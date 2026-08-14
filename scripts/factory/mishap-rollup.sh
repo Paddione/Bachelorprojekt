@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
-# scripts/factory/mishap-rollup.sh — generates + stages a mishap-incident-rollup
-# plan from buffer batches on the persistent container ticket. [T002407]
+# scripts/factory/mishap-rollup.sh — generates a mishap-incident-rollup plan from
+# buffer batches on the ephemeral rollup container ticket. [T002407]
 #
 # USAGE: BRAND=<brand> bash scripts/factory/mishap-rollup.sh
 #
-# Creates or updates openspec/changes/mishap-incident-rollup/ auf dem persistenten
-# Branch chore/mishap-incident-rollup. Der Branch wird nie geloescht — das Ticket
-# "Mishap Rollup — fortlaufende Sammlung" bleibt dauerhaft offen (type=chore,
-# status=plan_staged) und sammelt nicht-kritische Mishaps aus den Buffer-Flushern.
+# Erzeugt openspec/changes/mishap-incident-rollup-<datum>-<container>/ auf einem
+# pro Zyklus angelegten Branch chore/mishap-incident-rollup-<datum>-<container>.
+# Der Container ist ephemer [T004898]: er sammelt Batches bis zur Verarbeitung,
+# der Generator schliesst ihn (done · resolution=obsolete, Konvention
+# T004613/T004752), sobald sein Batch in den Plan uebergegangen ist. Der Change
+# wird per PR auf main gemergt und dort archiviert; Branch und Worktree werden
+# danach aufgeraeumt.
 #
 # Basiert auf auto-chore-plan.sh [T002390] mit geaenderten Semantiken:
-#   - Fester Slug/Branch (nicht pro Ticket)
-#   - Update statt Abbruch wenn Change-Verzeichnis existiert
-#   - Branch existiert auf Remote → auschecken + rebasen statt neu anlegen
-#   - Kein trap-cleanup des Worktrees (Branch bleibt persistent)
+#   - Slug/Branch pro Zyklus (Datum + Container-ID) statt festem Slug
+#   - Wegwerf-Worktree mit trap-cleanup (kein persistenter Worktree)
+#   - Closure des Containers nach erfolgreichem Push (done/obsolete)
 #
 # Exit:
-#   0 = Plan gestaged oder nichts zu tun
+#   0 = Plan gepusht oder nichts zu tun
 #   1 = Fehler
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,34 +26,26 @@ REPO="$(cd "$HERE/../.." && pwd)"
 
 # ── Constants ───────────────────────────────────────────────────────────────
 BRAND="${BRAND:-mentolder}"
-SLUG="mishap-incident-rollup"
-BRANCH="chore/${SLUG}"
-CHANGE_DIR="openspec/changes/${SLUG}"
-PLAN_PATH="${CHANGE_DIR}/tasks.md"
 ROLLUP_TITLE="Mishap Rollup — fortlaufende Sammlung"
-WT="$REPO/.worktrees/${SLUG}"
+# SLUG/BRANCH/CHANGE_DIR/WT werden nach der Container-Aufloesung gebaut
+# (Datum + Container-ID) — siehe unten.
 
 # ── Help ────────────────────────────────────────────────────────────────────
 if [[ "${1:-}" == "--help" ]]; then
   echo "Usage: BRAND=<brand> bash $(basename "${BASH_SOURCE[0]}")"
-  echo "  Generiert/staged einen Plan aus Mishap-Batches auf dem Container-Ticket."
+  echo "  Generiert einen Plan aus Mishap-Batches und pusht ihn auf den Zyklus-Branch."
   exit 0
 fi
-
-# [T002914] Der Rebase gegen origin/<BRANCH> lebt seit T002931 in
-# rollup-publish.sh als Konfliktbehandlung (Lease-Fehler → fetch → rebase →
-# retry). Hier entfaellt der Vorab-Rebase: er existierte allein, um eine wachsende
-# Kette anschlussfaehig zu halten, und diese Kette gibt es mit dem Amend-Modus
-# nicht mehr (scripts/factory/rollup-publish.sh, T002931).
 
 # ── Load factory lib ────────────────────────────────────────────────────────
 source "$HERE/lib.sh"
 
 # ── Find container ticket ───────────────────────────────────────────────────
 # T002783: Gemeinsame Aufloesung ueber ticket.sh rollup-container statt eigener
-# SQL. Die Shell-Implementierung sucht offene Chore-Tickets (nicht done/archived)
-# und legt notfalls einen neuen an. Ein leerer Rueckgabewert ist ein harter Fehler
-# (nicht exit 0), denn ein Container MUSS nach dieser Aufloesung existieren.
+# SQL. Die Shell-Implementierung sucht offene Chore-Tickets (nicht done/archived,
+# T004898: auch blocked-Container bleiben sichtbar) und legt notfalls einen
+# neuen an. Ein leerer Rueckgabewert ist ein harter Fehler (nicht exit 0), denn
+# ein Container MUSS nach dieser Aufloesung existieren.
 factory_resolve
 CONTAINER_ID="$(bash "$REPO/scripts/ticket.sh" rollup-container --brand "$BRAND" 2>/dev/null)"
 if [[ -z "${CONTAINER_ID}" ]]; then
@@ -59,6 +53,21 @@ if [[ -z "${CONTAINER_ID}" ]]; then
   exit 1
 fi
 echo "mishap-rollup: Container-Ticket = ${CONTAINER_ID} (${BRAND})"
+
+# ── Slug/Branch pro Zyklus ──────────────────────────────────────────────────
+# [T004898] Jeder Zyklus bekommt einen eigenen Slug: Datum + Container-ID. Die
+# Container-ID macht den Slug auch bei mehreren Zyklen am selben Tag eindeutig
+# (verschiedene Zyklen haben verschiedene Container — eine Kollision kann per
+# Konstruktion nicht auftreten) und haelt den Branch branch-naming-konform:
+# worktree-create.sh und der pre-commit-Guard verlangen T[0-9]{6,}, und die
+# Allowlist in scripts/lib/branch-allowlist.sh ist bewusst EXAKT statt Glob
+# (T002817, durch branch-allowlist-ssot.bats gepinnt) — ein ticketloser
+# Datums-Branch waere weder anlegbar noch committebar.
+SLUG="mishap-incident-rollup-$(date -u '+%Y-%m-%d')-${CONTAINER_ID}"
+BRANCH="chore/${SLUG}"
+CHANGE_DIR="openspec/changes/${SLUG}"
+PLAN_PATH="${CHANGE_DIR}/tasks.md"
+WT="$REPO/.worktrees/${SLUG}"
 
 # ── Check for unprocessed comment batches ───────────────────────────────────
 # Wir zaehlen Kommentare, die KEINE FACTORY-PLAN-REF sind (die sind vom letzten
@@ -78,25 +87,19 @@ if [[ "${BATCH_COUNT}" -eq 0 ]]; then
 fi
 echo "mishap-rollup: ${BATCH_COUNT} Batch-Kommentare gefunden"
 
-# ── Worktree-Management ────────────────────────────────────────────────────
-# Entferne einen ggf. stale Worktree von einem abgebrochenen vorherigen Lauf.
-# Anders als auto-chore-plan.sh behalten wir den Worktree NICHT ueber exit/trap,
-# weil der Branch persistent ist — der Worktree steht dem naechsten Lauf zur
-# Verfuegung. Ein abgebrochener Lauf hinterlaesst trotzdem einen stale Worktree,
-# den wir hier vor der Neuanlage entfernen.
-if git -C "$REPO" worktree list 2>/dev/null | grep -qF "$WT"; then
-  echo "mishap-rollup: entfernter Worktree schon registriert — benutze vorhandenen"
-  # Der Worktree ist noch intakt — kein remove noetig.
-elif [[ -d "$WT" ]]; then
-  echo "mishap-rollup: entfernter stale Worktree-Verzeichnis ${WT}"
-  rm -rf "$WT"
-fi
+# ── Worktree-Management (Wegwerf) ──────────────────────────────────────────
+# [T004898] Wie auto-chore-plan.sh [T002390]: der Worktree wird pro Lauf frisch
+# angelegt und per trap nach dem Lauf wieder entfernt. Der Branch bleibt auf
+# origin liegen, bis der PR gemergt und der Change archiviert ist; der naechste
+# Zyklus bekommt einen eigenen Worktree unter eigenem Slug. Ein stale Worktree
+# von einem abgebrochenen Lauf wird vom trap des naechsten Laufs entfernt.
+cleanup_wt() { git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true; }
+trap cleanup_wt EXIT
 
 # Worktree ggf. anlegen. worktree-create.sh behandelt beide Faelle:
 #   - Branch existiert noch nicht (lokal/remote) → neu von origin/main
-#   - Branch existiert bereits → checkout
-# Exit 3 = Branch in einem anderen Worktree ausgecheckt (sollte bei persistentem
-# Branch nicht vorkommen, aber sicherheitshalber abfangen).
+#   - Branch existiert bereits (Re-Run des gleichen Containers) → checkout
+# Exit 3 = Branch in einem anderen Worktree ausgecheckt (sicherheitshalber).
 if ! git -C "$REPO" worktree list 2>/dev/null | grep -qF "$WT"; then
   echo "mishap-rollup: lege Worktree an (branch=${BRANCH}, path=${WT})"
   wt_out="$(bash "$REPO/scripts/worktree-create.sh" --unattended "$BRANCH" "$WT" 2>&1)" || {
@@ -130,7 +133,7 @@ if [[ ! -f "$WT/$CHANGE_DIR/proposal.md" ]]; then
 
 Fortlaufende Sammlung nicht-kritischer Mishaps aus dem Buffer.
 Dieser Plan wird automatisch von \`scripts/factory/mishap-rollup.sh\` [T002407]
-generiert und geupdated, sobald der Rollup-Container neue Batch-Kommentare hat.
+pro Zyklus generiert, sobald der Rollup-Container neue Batch-Kommentare hat.
 
 ## What
 
@@ -223,10 +226,11 @@ lint_out="$(bash "$WT/scripts/plan-lint.sh" "$WT/$PLAN_PATH" 2>&1)" || {
 echo "mishap-rollup: plan-lint OK"
 
 # ── Commit + Push (rollup-publish.sh) ───────────────────────────────────────
-# [T002931] Der Generator ersetzt seinen eigenen letzten Commit (Amend + Lease)
-# statt anzuhaengen; der Commit+Push-Block wurde dorthin ausgelagert, damit der
-# Test ihn gegen ein Wegwerf-Repo fahren kann. [T002914] Der Rebase-Pfad lebt
-# dort als Konfliktbehandlung bei Lease-Fehler weiter.
+# [T004898] Der Generator committet den Plan und pusht ihn normal auf den
+# Zyklus-Branch — kein Amend, kein --force-with-lease, kein Rebase (die
+# Maschinerie aus T002914/T002931 ist ersatzlos entfallen: pro Zyklus existiert
+# genau ein Generator-Commit). Der Commit+Push-Block lebt in rollup-publish.sh,
+# damit der Test ihn gegen ein Wegwerf-Repo fahren kann.
 echo "mishap-rollup: commit + push ..."
 if ! bash "$REPO/scripts/factory/rollup-publish.sh" \
   --repo "$WT" \
@@ -241,25 +245,24 @@ if ! bash "$REPO/scripts/factory/rollup-publish.sh" \
   # fertige Arbeit, ist aber nirgends dauerhaft.
   echo "mishap-rollup: FEHLER — publish auf '${BRANCH}' fehlgeschlagen." >&2
   echo "  Der Plan liegt lokal committet oder staged, aber nicht auf origin: ${CHANGE_DIR}" >&2
-  echo "  Details liefert rollup-publish.sh oben. Hauefigste Ursache: ein nicht" >&2
-  echo "  aufloesbarer Konflikt beim Rebase gegen origin/${BRANCH} (T002914-Pfad)." >&2
+  echo "  Details liefert rollup-publish.sh oben. Hauefigste Ursache: ein" >&2
+  echo "  divergierter Remote-Stand (paralleler Lauf) oder fehlende Push-Rechte." >&2
+  echo "  Der Container bleibt offen und wird vom naechsten Lauf verarbeitet." >&2
   exit 1
 fi
 
-# ── stage-plan (--no-hold, damit das Ticket released ist) ─────────────────
-echo "mishap-rollup: stage-plan ..."
-bash "$WT/scripts/ticket.sh" stage-plan \
+# ── Container schliessen (ephemer) ─────────────────────────────────────────
+# [T004898] Nach erfolgreichem Commit+Push ist der Batch des Containers in den
+# Plan uebergegangen — der Generator schliesst ihn (done · resolution=obsolete,
+# Konvention der Ephemer-Container T004613/T004752). stage-plan/release-hold
+# entfallen: der Change wird nicht mehr ueber den Ticket-Status an den
+# Dispatcher gereicht, sondern per PR auf main gemergt und dort archiviert.
+# Der naechste Flush legt einen neuen Container an (Invariante: hoechstens ein
+# offener Container).
+echo "mishap-rollup: schliesse Container ${CONTAINER_ID} (done/obsolete) ..."
+BRAND="$BRAND" bash "$WT/scripts/ticket.sh" update-status \
   --id "$CONTAINER_ID" \
-  --branch "$BRANCH" \
-  --plan "$PLAN_PATH" \
-  --partials 1 --no-hold >/dev/null
+  --status done \
+  --resolution obsolete
 
-# ── execution_released=true explizit setzen (idempotent) ────────────────────
-# Der Container startet als triage und bekommt hier plan_staged + FACTORY-PLAN-REF.
-# Der stage-plan-Schritt setzt Status und Plan-Ref in einem Schritt.
-# Mit release-hold stellen wir sicher, dass execution_released=true gesetzt
-# UND die Factory aufgeweckt wird.
-echo "mishap-rollup: release-hold (execution_released=true) ..."
-bash "$WT/scripts/ticket.sh" release-hold --id "$CONTAINER_ID" >/dev/null
-
-echo "mishap-rollup: fertig — ${BRAND} Container ${CONTAINER_ID} released"
+echo "mishap-rollup: fertig — ${BRAND} Container ${CONTAINER_ID} geschlossen, Branch ${BRANCH} gepusht"

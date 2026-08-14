@@ -3395,7 +3395,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 727,
+      "file_count": 730,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3902,6 +3902,9 @@
         "scripts/llm/ui-config-seed.mjs",
         "scripts/llm/ui-config-seed.test.mjs",
         "scripts/llm/ui-config.template.json",
+        "scripts/lm-studio/lmstudio-bge-autoload.service",
+        "scripts/lm-studio/lmstudio-bge-autoload.sh",
+        "scripts/lm-studio/lmstudio-bge-autoload.timer",
         "scripts/lmstudio-preload.sh",
         "scripts/mcp-cors-proxy/mcp-cors-proxy.service",
         "scripts/mcp-cors-proxy/proxy.mjs",

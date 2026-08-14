@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1000,
+      "file_count": 1001,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -598,6 +598,7 @@
         "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
         "tests/spec/mcp-skill-integration.bats",
         "tests/spec/mcp-task-runner.bats",
+        "tests/spec/mcp-task-runner/spec-doc-covers-7-tools.bats",
         "tests/spec/mcp-tooling.bats",
         "tests/spec/mediaviewer.bats",
         "tests/spec/merge-arbitration/apply-escalation.bats",

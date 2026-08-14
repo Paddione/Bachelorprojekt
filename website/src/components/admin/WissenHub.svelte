@@ -8,6 +8,7 @@
   import DraftsInbox from './DraftsInbox.svelte';
   import type { Collection } from '../../lib/knowledge-db-types';
   import type { Book } from '../../lib/coaching-db';
+  import { isValidHttpUrl } from '../../lib/knowledge-url';
 
   let {
     initialCollections = [],
@@ -171,7 +172,11 @@
                 {col.name}
                 {#if col.source === 'web_crawl' && col.crawl_config?.startUrl}
                   {@const url = col.crawl_config.startUrl}
-                  <br /><a href={url} target="_blank" rel="noopener" class="crawl-url-link" style="font-size: 0.8em; color: var(--admin-primary, #c9a84c);">{url}</a>
+                  {#if isValidHttpUrl(url)}
+                    <br /><a href={url} target="_blank" rel="noopener" class="crawl-url-link" style="font-size: 0.8em; color: var(--admin-primary, #c9a84c);">{url}</a>
+                  {:else}
+                    <br /><span class="crawl-url-link" style="font-size: 0.8em; color: var(--admin-primary, #c9a84c);">{url}</span>
+                  {/if}
                 {/if}
               </td>
               <td><code>{col.source}</code></td>

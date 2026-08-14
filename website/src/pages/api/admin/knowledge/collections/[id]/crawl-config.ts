@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getCollection, updateCrawlConfig, type CrawlConfig } from '../../../../../../lib/knowledge-db';
+import { isValidHttpUrl } from '../../../../../../lib/knowledge-url';
 
 export const PATCH: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -22,8 +23,8 @@ export const PATCH: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ error: 'startUrl erforderlich' }), { status: 400 });
   }
 
-  try { new URL(body.startUrl); } catch {
-    return new Response(JSON.stringify({ error: 'startUrl ist keine gültige URL' }), { status: 400 });
+  if (!isValidHttpUrl(body.startUrl)) {
+    return new Response(JSON.stringify({ error: 'startUrl muss eine http(s)-URL sein' }), { status: 400 });
   }
 
   const config: CrawlConfig = {

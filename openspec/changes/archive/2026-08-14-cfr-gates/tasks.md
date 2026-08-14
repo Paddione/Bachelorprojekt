@@ -2,7 +2,7 @@
 title: cfr-gates
 ticket_id: T005307
 domains: [ci-cd, scripts]
-status: planning
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

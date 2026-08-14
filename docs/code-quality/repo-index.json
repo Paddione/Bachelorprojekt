@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 976,
+      "file_count": 977,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -373,6 +373,7 @@
         "tests/spec/background-agents-fallback.bats",
         "tests/spec/backup-pipeline.bats",
         "tests/spec/batch-git-worktree-integrity.bats",
+        "tests/spec/batch-local-test-runner-fixes/runner-fixes.bats",
         "tests/spec/batch-openspec-embed-fixes.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats",

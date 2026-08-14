@@ -90,6 +90,12 @@ spec:
           volumeMounts:
             - name: models
               mountPath: /models
+          resources:
+            requests:
+              # [T003903] Kein BestEffort-QoS mehr: Model-Download darf unter
+              # Node-Druck nicht als erster evictet werden.
+              cpu: 100m
+              memory: 256Mi
       containers:
         - name: llama-cpp
           image: ghcr.io/ggml-org/llama.cpp:server-b10223
@@ -238,6 +244,12 @@ spec:
           volumeMounts:
             - name: models
               mountPath: /models
+          resources:
+            requests:
+              # [T003903] Kein BestEffort-QoS mehr: Model-Download darf unter
+              # Node-Druck nicht als erster evictet werden.
+              cpu: 100m
+              memory: 256Mi
       containers:
         - name: llama-cpp
           image: ghcr.io/ggml-org/llama.cpp:server-b10223

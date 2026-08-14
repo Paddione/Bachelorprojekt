@@ -1,9 +1,6 @@
 # mcp-task-runner
 
-
 <!-- merged from change delta mcp-task-runner.md on 2026-06-21 -->
-# mcp-task-runner
-
 
 ## Purpose
 
@@ -21,15 +18,15 @@ The system SHALL return `ErrCyclicDependency` if the requested tasks form a cycl
 
 #### Scenario: same-brand independent tasks form one group
 
-- **GIVEN** a Taskfile where `workspace:deploy` and `workspace:validate` both have empty `deps`
-- **WHEN** the caller invokes `plan_tasks` with `[{task: workspace:deploy, env: mentolder}, {task: workspace:validate, env: mentolder}]`
+- **GIVEN** a Taskfile where `task-a` and `task-b` both have empty `deps`
+- **WHEN** the caller invokes `plan_tasks` with `[{task: task-a, env: mentolder}, {task: task-b, env: mentolder}]`
 - **THEN** the returned plan contains exactly one group with both tasks
 
 #### Scenario: dependent tasks are sequenced
 
-- **GIVEN** a Taskfile where `workspace:post-setup` depends on `workspace:deploy`
+- **GIVEN** a Taskfile where `task-b` depends on `task-a`
 - **WHEN** the caller invokes `plan_tasks` with both tasks for the same brand
-- **THEN** the returned plan contains two groups, `workspace:deploy` first and `workspace:post-setup` second
+- **THEN** the returned plan contains two groups, `task-a` first and `task-b` second
 
 #### Scenario: cyclic dependencies are rejected
 
@@ -85,6 +82,93 @@ The tool SHALL:
 - **WHEN** the caller invokes `execute_plan`
 - **THEN** the result list contains only the group-1 entry; group 2 never starts
 
+### Requirement: get_task_graph
+
+The system SHALL provide a `get_task_graph` MCP tool that returns the full task dependency DAG parsed from the project's Taskfile.
+
+The tool SHALL:
+- Accept an optional `format` argument restricted to the values `mermaid` (default) and `json`
+- Return the DAG as a Mermaid `graph TD` document when `format` is `mermaid` or omitted
+- Return the DAG as JSON when `format` is `json`
+- Return an error referencing the parse failure when the Taskfile cannot be parsed
+
+#### Scenario: default output format is Mermaid
+
+- **GIVEN** a parseable Taskfile
+- **WHEN** the caller invokes `get_task_graph` without a `format` argument
+- **THEN** the result is a Mermaid graph document
+
+#### Scenario: JSON output format
+
+- **GIVEN** a parseable Taskfile
+- **WHEN** the caller invokes `get_task_graph` with `format: json`
+- **THEN** the result is valid JSON describing the tasks and their dependencies
+
+### Requirement: run_task_async
+
+The system SHALL provide a `run_task_async` MCP tool that starts a task in the background and returns a job identifier immediately.
+
+The tool SHALL:
+- Accept a required `task` argument and an optional `env` argument
+- Validate both against the allow-list `A-Za-z0-9_:./-` (no `--` prefix allowed)
+- Run the task in a new goroutine via the same execution path as `run_task` and record the result in the global job registry
+- Return `{job_id, status: "running"}` without waiting for completion
+
+#### Scenario: async start returns immediately
+
+- **GIVEN** a long-running Taskfile task
+- **WHEN** the caller invokes `run_task_async` with that task name
+- **THEN** the result contains a non-empty `job_id` and `status` `running`, and the tool returns before the task finishes
+
+#### Scenario: async arguments are validated
+
+- **GIVEN** an attacker-controlled task argument containing `--`
+- **WHEN** the caller invokes `run_task_async` with that argument
+- **THEN** the tool returns an error before starting any subprocess
+
+### Requirement: cancel_task
+
+The system SHALL provide a `cancel_task` MCP tool that cancels a running asynchronous job by its `job_id`.
+
+The tool SHALL:
+- Send `SIGTERM` to the task process of a running job
+- Return `{cancelled: true, job_id}` when the job was running and cancellation was requested
+- Return `{cancelled: false, job_id, reason: "already done"}` when the job has already finished or been cancelled
+- Return a job-not-found error for unknown `job_id` values
+
+#### Scenario: cancelling an unknown job reports not found
+
+- **GIVEN** a `job_id` that was never registered
+- **WHEN** the caller invokes `cancel_task` with that id
+- **THEN** the tool returns an error indicating the job was not found
+
+#### Scenario: cancelling a finished job reports already done
+
+- **GIVEN** a job that has already completed
+- **WHEN** the caller invokes `cancel_task` with that job's id
+- **THEN** the result has `cancelled: false` and `reason: "already done"`
+
+### Requirement: get_task_result
+
+The system SHALL provide a `get_task_result` MCP tool that returns the current status and, once finished, the result of an asynchronous job.
+
+The tool SHALL:
+- Return `{status, job_id}` where `status` is `running` while the job is in progress and `done` or `cancelled` once finished
+- Include `exit_code` and the combined `output` once the job has finished
+- Return a job-not-found error for unknown `job_id` values
+
+#### Scenario: polling a running job reports running
+
+- **GIVEN** an async job that has not yet finished
+- **WHEN** the caller invokes `get_task_result` with that job's id
+- **THEN** the result has `status: "running"` and no `exit_code`
+
+#### Scenario: polling a finished job reports the result
+
+- **GIVEN** an async job that has finished
+- **WHEN** the caller invokes `get_task_result` with that job's id
+- **THEN** the result has `status: "done"` and contains `exit_code` and `output`
+
 ### Requirement: local WSL binary
 
 The system SHALL ship a Go binary `mcp-task-runner` that runs as a local process on the WSL host and communicates via the stdio MCP transport.
@@ -95,10 +179,10 @@ The binary SHALL:
 - Resolve the Taskfile path via the `--taskfile` flag; reject paths containing `..`
 - Fail-open on OTel Collector unavailability: log to stderr and continue
 
-#### Scenario: binary lists three tools on tools/list
+#### Scenario: binary lists all seven tools on tools/list
 
 - **WHEN** an MCP client sends `tools/list`
-- **THEN** the response contains `plan_tasks`, `run_task`, and `execute_plan`
+- **THEN** the response contains `plan_tasks`, `run_task`, `execute_plan`, `get_task_graph`, `run_task_async`, `cancel_task`, and `get_task_result`
 
 #### Scenario: OTel collector down does not abort task execution
 
@@ -114,6 +198,8 @@ Each task execution SHALL:
 - Create a span with attributes `task.name`, `task.env`, `task.brand`, `task.exit_code`
 - Emit one log record per stdout/stderr line with attribute `stream` set to `stdout` or `stderr`
 - Send traces and logs via OTLP gRPC to the endpoint configured by `--otel-endpoint` (default `localhost:4317`)
+
+The instrumentation SHALL apply to every execution path, including asynchronous jobs started via `run_task_async`.
 
 #### Scenario: traces reach the collector
 

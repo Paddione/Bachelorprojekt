@@ -1542,6 +1542,18 @@
     "kind": "shell"
   },
   {
+    "id": "MCP-TASK-RUNNER-SPEC-001",
+    "file": "tests/spec/mcp-task-runner/spec-doc-covers-7-tools.bats",
+    "category": "MCP",
+    "kind": "shell"
+  },
+  {
+    "id": "MCP-TASK-RUNNER-SPEC-002",
+    "file": "tests/spec/mcp-task-runner/spec-doc-covers-7-tools.bats",
+    "category": "MCP",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

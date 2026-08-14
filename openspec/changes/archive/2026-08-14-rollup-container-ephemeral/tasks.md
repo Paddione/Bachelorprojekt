@@ -2,7 +2,7 @@
 title: "rollup-container-ephemeral — Implementation Plan"
 ticket_id: T004898
 domains: [scripts, factory]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

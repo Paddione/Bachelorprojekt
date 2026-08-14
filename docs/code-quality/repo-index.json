@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 988,
+      "file_count": 990,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -735,6 +735,8 @@
         "tests/spec/secrets-deploy-automation.bats",
         "tests/spec/secrets-deploy-automation/schema-dev-secrets-sync.bats",
         "tests/spec/security.bats",
+        "tests/spec/security/alibaba-token-key-guard.bats",
+        "tests/spec/security/fixtures/alibaba-token-key-leak.txt",
         "tests/spec/sessions-server.bats",
         "tests/spec/sidekick-assistant.bats",
         "tests/spec/software-factory/_sf_common.bash",

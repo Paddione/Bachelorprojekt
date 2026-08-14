@@ -253,6 +253,9 @@ const DEFAULT_EMBED_URL = () =>
 // ohnehin ein Symptom sein.
 const embedFetchTimeoutMs = () => Number(process.env.OPENSPEC_EMBED_FETCH_TIMEOUT_MS ?? 60_000);
 
+const dbConnectTimeoutMs = () =>
+  Number(process.env.OPENSPEC_EMBED_DB_CONNECT_TIMEOUT_MS ?? 10_000); // Default 10s (D5)
+
 export async function defaultEmbed(texts) {
   const model = resolveEmbeddingModel();
   const r = await fetch(`${DEFAULT_EMBED_URL()}/v1/embeddings`, {
@@ -307,6 +310,12 @@ export function estimateSlugTokenWorst(slug, repoRoot) {
   }
   if (maxTokens === 0) return null;
   return { tokens: maxTokens, fileType: maxType };
+}
+
+function isConnectFailure(err) {
+  const code = err?.code ?? '';
+  return code === 'ECONNREFUSED' || code === 'ECONNRESET' || code === 'ETIMEDOUT'
+    || /timeout/i.test(err?.message ?? ''); // pg-pool: 'Connection terminated due to connection timeout'; pg: 'timeout expired'
 }
 
 export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
@@ -372,14 +381,14 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
   if (!query) {
     const conn = process.env.SESSIONS_DATABASE_URL || process.env.DATABASE_URL;
     if (!conn) { log('no SESSIONS_DATABASE_URL/DATABASE_URL set; skipping'); return { inserted: 0, dryRun: false }; }
-    pool = new pg.Pool({ connectionString: conn });
+    pool = new pg.Pool({ connectionString: conn, connectionTimeoutMillis: dbConnectTimeoutMs() });
     // [T003384] ECONNREFUSED/ECONNRESET beim Pool-Connect ist meist eine
     // Port-15432-Kollision (k3d-Portforward belegt) — die Ursache benennen statt
     // einen generischen Verbindungsfehler zu verschlucken.
     pool.on('error', (err) => {
-      if (err?.code === 'ECONNREFUSED' || err?.code === 'ECONNRESET') {
+      if (isConnectFailure(err)) {
         const port = conn.match(/:(\d+)\//)?.[1] ?? '?';
-        log(`WARN: DB-Verbindung auf Port ${port} zurueckgewiesen (${err.code}) — vermutlich Port-Kollision (k3d-Portforward 15432 belegt).`);
+        log(`WARN: DB-Verbindung auf Port ${port} zurueckgewiesen (${err.code ?? err.message}) — vermutlich Port-Kollision (k3d-Portforward 15432 belegt).`);
       } else if (err) {
         log(`WARN: DB-Verbindungsfehler: ${err.code ?? err.message}`);
       }
@@ -530,9 +539,14 @@ async function main() {
     await embedSlug({ slug, repoRoot, dryRun });
   } catch (err) {
     // [T003384] Portkonflikte nicht still schlucken: ECONNREFUSED/ECONNRESET
-    // wird explizit als Verbindungs- bzw. Portproblem attribuiert.
-    if (err?.code === 'ECONNREFUSED' || err?.code === 'ECONNRESET') {
-      console.error(`[openspec-embed] WARN: Embed-Fehler wegen Verbindungsabbruch (${err.code}) — Portkonflikt/Portforward pruefen, nicht "embed failed" pauschal akzeptieren.`);
+    // wird explizit als Verbindungs- bzw. Portproblem attribuiert. [T003988]
+    // Connect-Timeout traegt keinen code — Klassifikator prueft daher die Message.
+    if (isConnectFailure(err)) {
+      if (/timeout/i.test(err?.message ?? '')) {
+        console.error(`[openspec-embed] WARN: Connect-Timeout nach ${dbConnectTimeoutMs()} ms (${err.message}) — Port-Kollision vermutet (k3d-Portforward 15432 belegt), Portforward pruefen.`);
+      } else {
+        console.error(`[openspec-embed] WARN: Embed-Fehler wegen Verbindungsabbruch (${err.code}) — Portkonflikt/Portforward pruefen, nicht "embed failed" pauschal akzeptieren.`);
+      }
     }
     console.error('[openspec-embed] best-effort failure (exit 0):', err?.message ?? err);
   }

@@ -160,19 +160,31 @@ if [[ -z "$DB_URL" ]]; then
 fi
 
 # --- 3. Embed + fail-visible Auswertung -------------------------------------
-OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=true \
-  OPENSPEC_EMBED_REPO="$EMBED_REPO" \
-  node "$REPO_ROOT/scripts/openspec-embed.mjs" --slug "$SLUG" 2>&1 || true)"
-# Credentials-sicher loggen (URLs rausfiltern)
-printf '%s\n' "$OUT" | grep -v '://' >&2 || true
+EMBED_RETRIES="${OPENSPEC_EMBED_RETRIES:-2}"
+EMBED_RETRY_DELAY="${OPENSPEC_EMBED_RETRY_DELAY:-5}"
+TOTAL_ATTEMPTS=$((1 + EMBED_RETRIES))
 
-if embed_output_is_success "$OUT"; then
-  # Gesamtlage nach erfolgreichem Embedding zeigen
-  COUNT_OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=true \
+for attempt in $(seq 1 "$TOTAL_ATTEMPTS"); do
+  OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=true \
     OPENSPEC_EMBED_REPO="$EMBED_REPO" \
-    node "$REPO_ROOT/scripts/openspec-embed.mjs" --count-skipped 2>&1 || true)"
-  printf '%s\n' "$COUNT_OUT" | grep -v '://' >&2 || true
-  exit 0
-fi
+    node "$REPO_ROOT/scripts/openspec-embed.mjs" --slug "$SLUG" 2>&1 || true)"
+  # Credentials-sicher loggen (URLs rausfiltern)
+  printf '%s\n' "$OUT" | grep -v '://' >&2 || true
+
+  if embed_output_is_success "$OUT"; then
+    # Gesamtlage nach erfolgreichem Embedding zeigen
+    COUNT_OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=true \
+      OPENSPEC_EMBED_REPO="$EMBED_REPO" \
+      node "$REPO_ROOT/scripts/openspec-embed.mjs" --count-skipped 2>&1 || true)"
+    printf '%s\n' "$COUNT_OUT" | grep -v '://' >&2 || true
+    exit 0
+  fi
+
+  if [ "$attempt" -lt "$TOTAL_ATTEMPTS" ]; then
+    echo "[openspec-embed-local] retry ${attempt}/${EMBED_RETRIES} in ${EMBED_RETRY_DELAY}s…" >&2
+    sleep "$EMBED_RETRY_DELAY"
+  fi
+done
+
 echo "[openspec-embed-local] FEHLER: Embedding wurde NICHT indiziert (Output oben) — nicht still weitermachen." >&2
 exit 1

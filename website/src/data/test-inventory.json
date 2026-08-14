@@ -3660,6 +3660,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/embed-local-retry-T004608",
+    "file": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-embedding/port-forward-identity-T002870",
     "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
     "category": "openspec-embedding",

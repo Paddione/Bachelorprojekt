@@ -1,0 +1,475 @@
+{
+  "meta": {
+    "slug": "batch-worktree-guard-tooling-fixes",
+    "ticket_id": "T004295",
+    "generated_from": "main@c145272c9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/references/deploy-routing.md",
+      "language": "markdown",
+      "loc": 71,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".githooks/pre-commit",
+      "language": "text",
+      "loc": 230,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 275,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow-post-merge-deploy.sh",
+      "language": "bash",
+      "loc": 97,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 703
+    },
+    {
+      "path": "scripts/hooks/worktree-write-guard.sh",
+      "language": "bash",
+      "loc": 213,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 587
+    },
+    {
+      "path": "scripts/openspec-embed.mjs",
+      "language": "javascript",
+      "loc": 544,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 256
+    },
+    {
+      "path": "scripts/ticket.sh",
+      "language": "bash",
+      "loc": 1110,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/batch-worktree-guard-tooling-fixes/*.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 4760,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:41:_allow() { exit 0; }",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "41:_allow() { exit 0; }(...)",
+      "type_text": "41:_allow() { exit 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:85:_field() {  # $1=datei $2=key",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "85:_field() {  # $1=datei $2=key(...)",
+      "type_text": "85:_field() {  # $1=datei $2=key(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:89:_my_sid() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "89:_my_sid() {(...)",
+      "type_text": "89:_my_sid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:122:_abs_wt() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "122:_abs_wt() {(...)",
+      "type_text": "122:_abs_wt() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:103:function sectionTitleOf(section) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "103:function sectionTitleOf(section) {(...)",
+      "type_text": "103:function sectionTitleOf(section) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:108:function splitByTokenBudget(text, target, overlap) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "108:function splitByTokenBudget(text, target, overlap) {(...)",
+      "type_text": "108:function splitByTokenBudget(text, target, overlap) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:237:function readIfExists(p) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "237:function readIfExists(p) {(...)",
+      "type_text": "237:function readIfExists(p) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:241:function vecLiteral(v) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "241:function vecLiteral(v) {(...)",
+      "type_text": "241:function vecLiteral(v) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:543:  main();",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "543:  main();(...)",
+      "type_text": "543:  main();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:128:cmd_create() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "128:cmd_create() {(...)",
+      "type_text": "128:cmd_create() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:133:cmd_update_status() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "133:cmd_update_status() {(...)",
+      "type_text": "133:cmd_update_status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:139:cmd_update_fields() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "139:cmd_update_fields() {(...)",
+      "type_text": "139:cmd_update_fields() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:145:cmd_set_parent() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "145:cmd_set_parent() {(...)",
+      "type_text": "145:cmd_set_parent() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:151:cmd_add_comment() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "151:cmd_add_comment() {(...)",
+      "type_text": "151:cmd_add_comment() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:185:cmd_archive_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "185:cmd_archive_plan() {(...)",
+      "type_text": "185:cmd_archive_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:264:cmd_get_attachments() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "264:cmd_get_attachments() {(...)",
+      "type_text": "264:cmd_get_attachments() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:333:cmd_get() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "333:cmd_get() {(...)",
+      "type_text": "333:cmd_get() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:338:cmd_enqueue() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "338:cmd_enqueue() {(...)",
+      "type_text": "338:cmd_enqueue() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:343:cmd_stage_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "343:cmd_stage_plan() {(...)",
+      "type_text": "343:cmd_stage_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:348:cmd_assert_phase_chain() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "348:cmd_assert_phase_chain() {(...)",
+      "type_text": "348:cmd_assert_phase_chain() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:353:cmd_release_hold() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "353:cmd_release_hold() {(...)",
+      "type_text": "353:cmd_release_hold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:381:cmd_set_touched_files() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "381:cmd_set_touched_files() {(...)",
+      "type_text": "381:cmd_set_touched_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:399:cmd_set_scout_drift() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "399:cmd_set_scout_drift() {(...)",
+      "type_text": "399:cmd_set_scout_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:419:cmd_set_pipeline_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "419:cmd_set_pipeline_slot() {(...)",
+      "type_text": "419:cmd_set_pipeline_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:435:cmd_release_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "435:cmd_release_slot() {(...)",
+      "type_text": "435:cmd_release_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:450:cmd_touch() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "450:cmd_touch() {(...)",
+      "type_text": "450:cmd_touch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:465:cmd_retry_count() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "465:cmd_retry_count() {(...)",
+      "type_text": "465:cmd_retry_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:507:cmd_unfactory() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "507:cmd_unfactory() {(...)",
+      "type_text": "507:cmd_unfactory() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:561:cmd_factory_control() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "561:cmd_factory_control() {(...)",
+      "type_text": "561:cmd_factory_control() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:594:cmd_dryrun_mark() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "594:cmd_dryrun_mark() {(...)",
+      "type_text": "594:cmd_dryrun_mark() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:610:cmd_dryrun_check() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "610:cmd_dryrun_check() {(...)",
+      "type_text": "610:cmd_dryrun_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:626:cmd_feature_flag() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "626:cmd_feature_flag() {(...)",
+      "type_text": "626:cmd_feature_flag() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:667:cmd_phase() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "667:cmd_phase() {(...)",
+      "type_text": "667:cmd_phase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:694:cmd_inject() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "694:cmd_inject() {(...)",
+      "type_text": "694:cmd_inject() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:736:cmd_get_injections() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "736:cmd_get_injections() {(...)",
+      "type_text": "736:cmd_get_injections() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:764:cmd_plan_meta() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "764:cmd_plan_meta() {(...)",
+      "type_text": "764:cmd_plan_meta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:822:_csv_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "822:_csv_to_quoted() {(...)",
+      "type_text": "822:_csv_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:832:_pipe_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "832:_pipe_to_quoted() {(...)",
+      "type_text": "832:_pipe_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:845:cmd_lastenheft() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "845:cmd_lastenheft() {(...)",
+      "type_text": "845:cmd_lastenheft() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:889:_readiness_to_json() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "889:_readiness_to_json() {(...)",
+      "type_text": "889:_readiness_to_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:899:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "899:cmd_list() {(...)",
+      "type_text": "899:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:904:cmd_backfill_id() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "904:cmd_backfill_id() {(...)",
+      "type_text": "904:cmd_backfill_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:909:cmd_get_timeline() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "909:cmd_get_timeline() {(...)",
+      "type_text": "909:cmd_get_timeline() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:986:cmd_triage() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "986:cmd_triage() {(...)",
+      "type_text": "986:cmd_triage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:994:cmd_rollup_container() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "994:cmd_rollup_container() {(...)",
+      "type_text": "994:cmd_rollup_container() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

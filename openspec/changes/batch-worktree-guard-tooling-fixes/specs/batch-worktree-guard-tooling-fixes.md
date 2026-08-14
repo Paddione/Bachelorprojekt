@@ -8,7 +8,7 @@ Archive → Deploy) von manuellen Bypasses und stillen Hängern befreien. Entsta
 ticket-ops Phase 1.5 als Batch-Gruppe über die Kind-Tickets T004261, T003991, T004269,
 T003988 und T003982.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Batch-Branches ohne Bypass durch den Pre-Commit-Hook lassen
 

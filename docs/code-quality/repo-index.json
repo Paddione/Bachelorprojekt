@@ -855,6 +855,7 @@
         "tests/unit/brainstorm-extract-choice.bats",
         "tests/unit/build-graph.bats",
         "tests/unit/changed-manifests.bats",
+        "tests/unit/check-commit-vs-diff-package-drift.bats",
         "tests/unit/check-commit-vs-diff.bats",
         "tests/unit/coaching-json-ingest.bats",
         "tests/unit/cockpit-action-policy.test.ts",

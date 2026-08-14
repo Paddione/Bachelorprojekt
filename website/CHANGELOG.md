@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.4...website-v1.276.5) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** batch worktree/guard tooling fixes [T004295] ([#4389](https://github.com/Paddione/Bachelorprojekt/issues/4389)) ([9f3e271](https://github.com/Paddione/Bachelorprojekt/commit/9f3e271ed9cc3f3bd1d72ed4bf0b4680d128784e))
+
 ## [1.276.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.3...website-v1.276.4) (2026-08-14)
 
 

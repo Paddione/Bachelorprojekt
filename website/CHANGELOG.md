@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.5...website-v1.276.6) (2026-08-14)
+
+
+### Bug Fixes
+
+* **skills:** JSON-Polling via gh statt gh-axi + Archiv vor Branch-Löschung [T004612] ([#4394](https://github.com/Paddione/Bachelorprojekt/issues/4394)) ([25b8a2f](https://github.com/Paddione/Bachelorprojekt/commit/25b8a2f16fa2a4606e836a246705f7d00fb7ab54))
+
 ## [1.276.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.4...website-v1.276.5) (2026-08-14)
 
 

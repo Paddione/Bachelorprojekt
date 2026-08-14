@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.19](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.18...website-v1.276.19) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** restore staged-task requirement in software-factory SSOT [T005308] ([#4441](https://github.com/Paddione/Bachelorprojekt/issues/4441)) ([d3ef10d](https://github.com/Paddione/Bachelorprojekt/commit/d3ef10d826585fb73474562ce620c6b4078d28f2))
+
 ## [1.276.18](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.17...website-v1.276.18) (2026-08-14)
 
 

@@ -621,17 +621,20 @@ SH
 
 # ── [T002407-M7] Container-Lifecycle: plan_staged, Recycling, Treiber-Idempotenz ──#
 
-@test "T002407-M7a: mishap-rollup.sh hat festen Slug und Branch (kein Abbruch bei Existenz)" {
-  # Der Treiber verwendet einen persistenten Slug/Branch, der nie gelöscht wird.
-  # Existiert er bereits, wird tasks.md neu erzeugt — kein exit 3.
+@test "T002407-M7a: mishap-rollup.sh erzeugt pro Zyklus Slug mit Datum+Container-ID (kein Abbruch bei Existenz)" {
+  # [T004898] Der Treiber erzeugt pro Zyklus einen eigenen Slug/Branch
+  # (Datum + Container-ID statt festem Slug). Existiert der Change-Dir bereits
+  # (Re-Run des gleichen Containers), wird tasks.md neu erzeugt — kein exit 3.
   local script="$REPO/scripts/factory/mishap-rollup.sh"
   [ -f "$script" ]
   run bash -n "$script"
   [ "$status" -eq 0 ]
-  # Slug ist fest codiert
-  run grep -Fq 'SLUG="mishap-incident-rollup"' "$script"
+  # Slug pro Zyklus: Datum + Container-ID, daraus wird der Branch gebaut
+  run grep -Fq 'SLUG="mishap-incident-rollup-$(date' "$script"
   [ "$status" -eq 0 ]
   run grep -Fq 'BRANCH="chore/${SLUG}"' "$script"
+  [ "$status" -eq 0 ]
+  run grep -Fq 'CONTAINER_ID}' "$script"
   [ "$status" -eq 0 ]
   # Update statt Abbruch: existiert change dir → kein exit 3
   run grep -Eq "exit 3" "$script"
@@ -655,17 +658,23 @@ SH
   fi
 }
 
-@test "T002407-M7c: rollup-publish.sh integriert einen existierenden Remote-Branch statt Neu-Anlage" {
-  # Der Divergenz-/Rebase-Pfad lebt seit T002931 nicht mehr in mishap-rollup.sh,
-  # sondern in rollup-publish.sh: bei Lease-Fehler wird origin/${BRANCH} gefetcht
-  # und der eigene Stand darauf neu gebaut. Ein existierender Remote-Branch wird
-  # damit integriert statt ueberschrieben (T002914 bleibt erhalten).
+@test "T002407-M7c: rollup-publish.sh committet und pusht normal (kein Rebase-Rebuild)" {
+  # [T004898] Die Amend-/Lease-/Rebase-Maschinerie (T002914/T002931) ist ersatzlos
+  # entfallen: pro Zyklus existiert genau ein Generator-Commit, der Publisher
+  # committet und pusht normal. Ein divergierter Remote-Stand bricht den Push ab
+  # (Exit 1), statt umzubauen.
   local script="$REPO/scripts/factory/rollup-publish.sh"
   [ -f "$script" ] || { echo "rollup-publish.sh fehlt"; false; }
   run bash -n "$script"
   [ "$status" -eq 0 ] || { echo "rollup-publish.sh ist syntaktisch kaputt: $output" >&2; false; }
-  run grep -Eq 'fetch .*BRANCH|origin/\$\{BRANCH\}' "$script"
-  [ "$status" -eq 0 ] || { echo "Divergenz-Pfad (fetch + origin/\${BRANCH}) fehlt in rollup-publish.sh"; false; }
+  # Positiv-Anker (T002356-M1): der normale Push ist vorhanden — sonst waere die
+  # Negativ-Aussage unten vakuos.
+  run grep -Fq 'push -q -u origin "$BRANCH"' "$script"
+  [ "$status" -eq 0 ] || { echo "normaler Push (push -u origin \${BRANCH}) fehlt in rollup-publish.sh"; false; }
+  # Negativ-Aussage: keine Rebase-/Reset-/Force-Logik mehr im Code (Kommentarzeilen
+  # zaehlen nicht, wie in T002913-M8a).
+  run bash -c "grep -nE '\b(reset|rebase|force-with-lease)\b' '$script' | grep -vE '^[0-9]+:[[:space:]]*#'"
+  [ "$status" -ne 0 ] || { echo "rollup-publish.sh enthaelt noch Rebase-/Force-Logik (T004898)"; false; }
 }
 
 @test "T002913-M8a: kein Rebase/Commit in rollup-publish.sh laeuft mit aktiven Hooks" {

@@ -248,10 +248,12 @@ setup() {
   printf '%s' "$status_flag" | grep -q 'triage' \
     || { echo "rollup-container muss den Container als triage anlegen, gefunden: $status_flag"; false; }
 
-  # Der Wiederfinde-Pfad muss plan_staged weiterhin als offenen Status fuehren —
-  # sonst legt jeder Lauf neben dem bereits gestagten Container einen neuen an.
-  printf '%s\n' "$block" | grep -q "status IN.*plan_staged" \
-    || { echo "SELECT im Wiederfinde-Pfad fuehrt plan_staged nicht mehr als offenen Status"; false; }
+  # [T004898] Der Wiederfinde-Pfad fuehrt seit dem ephemeren Lifecycle
+  # NOT IN ('done','archived') statt der expliziten Statusliste: plan_staged ist
+  # darin als offener Status enthalten — sonst legte jeder Lauf neben dem bereits
+  # gestagten Container einen neuen an.
+  printf '%s\n' "$block" | grep -q "status NOT IN.*done.*archived" \
+    || { echo "SELECT im Wiederfinde-Pfad schliesst nur done/archived aus — plan_staged bleibt offen"; false; }
 }
 
 @test "T002407-M6c: ROLLUP_TICKET_TITLE ist definiert" {

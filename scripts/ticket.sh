@@ -1022,7 +1022,7 @@ cmd_rollup_container() {
     SELECT external_id FROM tickets.tickets
      WHERE type = 'chore'
        AND title = 'Mishap Rollup — fortlaufende Sammlung'
-       AND status IN ('triage','backlog','planning','plan_staged','in_progress')
+       AND status NOT IN ('done','archived')
      ORDER BY created_at ASC LIMIT 1;
   " 2>/dev/null | grep -v '^$' | head -1 || true)
   if [[ -n "$ext_id" ]]; then

@@ -3735,6 +3735,12 @@
       "status": "archived"
     }
   ],
+  "T006282": [
+    {
+      "slug": "factory-trace-collector-pass-done",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

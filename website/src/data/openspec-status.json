@@ -3663,6 +3663,12 @@
       "status": "archived"
     }
   ],
+  "T005901": [
+    {
+      "slug": "wissenhub-url-allowlist",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

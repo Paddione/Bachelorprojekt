@@ -3420,6 +3420,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/qwen-token-expansion",
+    "file": "tests/spec/mcp-gateway/qwen-token-expansion.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/watchdog-tunnel-liveness",
     "file": "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
     "category": "mcp-gateway",
@@ -3710,6 +3716,12 @@
   {
     "id": "openspec-workflow/half-archive-uncommitted",
     "file": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/plan-archive-git-add-coverage",
+    "file": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },

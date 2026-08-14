@@ -2,7 +2,7 @@
 title: Fix fail-open dependency blocker gate in schedule.sh
 ticket_id: T005306
 domains: [factory, test]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

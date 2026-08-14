@@ -1,0 +1,275 @@
+{
+  "meta": {
+    "slug": "test-changed-db-isolation",
+    "ticket_id": "",
+    "generated_from": "main@6f22baecd",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/watchdog.sh",
+      "language": "bash",
+      "loc": 332,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 468
+    },
+    {
+      "path": "tests/spec/software-factory/scheduling.bats",
+      "language": "bash",
+      "loc": 361,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "language": "bash",
+      "loc": 309,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/retry-limit.bats",
+      "language": "bash",
+      "loc": 164,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/_sf_common.bash",
+      "language": "bash",
+      "loc": 136,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 364
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/watchdog.sh:34:_stale_query() {",
+      "kind": "function",
+      "file": "scripts/factory/watchdog.sh",
+      "signature": "34:_stale_query() {(...)",
+      "type_text": "34:_stale_query() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/watchdog.sh:69:_wd_cleanup_worktree() {",
+      "kind": "function",
+      "file": "scripts/factory/watchdog.sh",
+      "signature": "69:_wd_cleanup_worktree() {(...)",
+      "type_text": "69:_wd_cleanup_worktree() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/scheduling.bats:26:setup_file() { export TICKET_TEST_DB_OK=1; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/scheduling.bats",
+      "signature": "26:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "type_text": "26:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/scheduling.bats:33:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/scheduling.bats",
+      "signature": "33:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }(...)",
+      "type_text": "33:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/scheduling.bats:34:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/scheduling.bats",
+      "signature": "34:teardown() { _sf_teardown; }(...)",
+      "type_text": "34:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:25:setup_file() { export TICKET_TEST_DB_OK=1; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "25:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "type_text": "25:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:29:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "29:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }(...)",
+      "type_text": "29:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:30:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "30:teardown() { _sf_teardown; }(...)",
+      "type_text": "30:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:35:_osr_ns() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "35:_osr_ns() {(...)",
+      "type_text": "35:_osr_ns() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:58:_osr_psql() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "58:_osr_psql() {(...)",
+      "type_text": "58:_osr_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:78:_osr_make_orphan() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "78:_osr_make_orphan() {(...)",
+      "type_text": "78:_osr_make_orphan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:83:_osr_slot_of() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "83:_osr_slot_of() {(...)",
+      "type_text": "83:_osr_slot_of() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:87:_osr_status_of() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "87:_osr_status_of() {(...)",
+      "type_text": "87:_osr_status_of() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:94:_osr_toplevel_local() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "94:_osr_toplevel_local() {(...)",
+      "type_text": "94:_osr_toplevel_local() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:25:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "25:setup_file() {(...)",
+      "type_text": "25:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:30:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "30:setup() {(...)",
+      "type_text": "30:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:53:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "53:teardown_file() {(...)",
+      "type_text": "53:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:58:_seed() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "58:_seed() {(...)",
+      "type_text": "58:_seed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:63:_stub_noop() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "63:_stub_noop() {(...)",
+      "type_text": "63:_stub_noop() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:73:_stub_commits() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "73:_stub_commits() {(...)",
+      "type_text": "73:_stub_commits() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:86:_stub_crash() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "86:_stub_crash() {(...)",
+      "type_text": "86:_stub_crash() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:42:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "42:_skip_if_no_db() {(...)",
+      "type_text": "42:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:57:_sf_setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "57:_sf_setup() {(...)",
+      "type_text": "57:_sf_setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:68:  validate_triage() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "68:  validate_triage() {(...)",
+      "type_text": "68:  validate_triage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:111:_sf_teardown() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "111:_sf_teardown() {(...)",
+      "type_text": "111:_sf_teardown() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

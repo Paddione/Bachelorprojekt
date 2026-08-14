@@ -32,8 +32,12 @@ STALE_EXCLUDED_TYPES="'project','incident'"
 STALE_MIN="${FACTORY_STALE_MIN:-30}"
 
 _stale_query() {
-  printf "SELECT external_id, type FROM tickets.tickets WHERE type NOT IN (%s) AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" \
-    "$STALE_EXCLUDED_TYPES" "$STALE_MIN"
+  local extra_filter=""
+  if [[ "${FACTORY_STALE_EXCLUDE_TEST_SEEDS:-}" == "1" ]]; then
+    extra_filter=" AND is_test_data = false"
+  fi
+  printf "SELECT external_id, type FROM tickets.tickets WHERE type NOT IN (%s) AND status='in_progress' AND updated_at < now() - make_interval(mins => %s)%s;" \
+    "$STALE_EXCLUDED_TYPES" "$STALE_MIN" "$extra_filter"
 }
 
 # Diagnosemodus: gibt die Stale-Query aus, ohne Cluster oder DB anzufassen.

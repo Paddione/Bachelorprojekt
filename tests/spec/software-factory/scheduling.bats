@@ -231,7 +231,7 @@ teardown() { _sf_teardown; }
   # also im $output. Output-Vertrag des Skripts: `echo "$escalated"` ist die
   # letzte Ausgabe, alle Warnungen stehen davor — die letzte Zeile ist
   # deterministisch das JSON-Array.
-  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ORPHAN_SLOT_MIN=999 \
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 FACTORY_ORPHAN_SLOT_MIN=999 \
     bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.
@@ -268,7 +268,7 @@ teardown() { _sf_teardown; }
   # [T005029] Kein `2>/dev/null` am run-Aufruf: BATS 1.x merged stderr in
   # $output und ueberschreibt die Redirection mit seinem internen `2>&1` —
   # siehe Kommentar im Watchdog-Test darueber. Die letzte Zeile ist das JSON.
-  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ORPHAN_SLOT_MIN=999 \
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 FACTORY_ORPHAN_SLOT_MIN=999 \
     bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.

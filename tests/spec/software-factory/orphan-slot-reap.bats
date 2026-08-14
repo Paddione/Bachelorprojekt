@@ -201,7 +201,8 @@ _osr_toplevel_local() {
   # Schwelle 0 statt Zurueckdatieren: fn_lifecycle_ts ueberschreibt updated_at
   # bei jedem Update, ein Backdating bliebe wirkungslos und die Stale-Liste leer
   # — dann liefe das Skript durch und der Test bestuende vakuos.
-  run env BRAND="$brand" FACTORY_STALE_MIN=0 bash scripts/factory/watchdog.sh
+  # Test-isolation: FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 (dieser Test prueft den Stale-Sweep gegen eigene Test-Seeds).
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # Auf die Fehlerzeile eingegrenzt statt gegen das gesamte $output zu matchen.
   [ "$(printf '%s\n' "$output" | grep -c 'can only be used in a function')" -eq 0 ]

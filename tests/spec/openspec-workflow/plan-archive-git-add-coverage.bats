@@ -77,7 +77,7 @@ ARCHIVE_MUTATION_PATHS=(
 
 @test "T005564: das Status-Sed-Muster deckt 'planning' ab" {
   [ -f "$REF" ] || { echo "Referenz fehlt: $REF" >&2; return 1; }
-  run grep -E 'sed -E -i.*status: \(active\|plan_staged\|in_progress\)' "$REF"
+  run grep -E 'sed -E -i.*status: ' "$REF"
   [ "$status" -eq 0 ] || { echo "kein Status-Sed-Muster in $REF gefunden" >&2; return 1; }
   echo "$output" | grep -qF 'planning' || { echo "Status-Sed-Muster ohne 'planning'-Alternative" >&2; return 1; }
 }

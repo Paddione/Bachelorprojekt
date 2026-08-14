@@ -65,7 +65,10 @@ YAML
   rm -rf "$tmpd"
 }
 
-@test "claude renderer keeps the canonical \${VAR} syntax" {
+@test "claude renderer skips servers with \${VAR} in headers (T004272)" {
+  # [T004272] Qwen Code liest .mcp.json mit Vorrang vor ~/.qwen/settings.json,
+  # expandiert ${VAR} aber nicht — der Literal-String fuehrt zu HTTP 401.
+  # Der Claude-Renderer ueberspringt deshalb Server mit ${VAR} in Headers.
   local tmpd
   tmpd="$(mktemp -d)"
   fixture_registry "$tmpd/registry.yaml"
@@ -74,19 +77,22 @@ YAML
       bash "$SYNC" render
   [ "$status" -eq 0 ]
 
-  run jq -r '.mcpServers["probe-http"].headers.Authorization' "$tmpd/.mcp.json"
-  echo "claude header: $output"
+  # probe-http hat ${PROBE_TOKEN} in Headers — darf NICHT in .mcp.json sein
+  run jq -r '.mcpServers["probe-http"]' "$tmpd/.mcp.json"
+  echo "claude probe-http: $output"
   [ "$status" -eq 0 ]
-  [ "$output" = 'Bearer ${PROBE_TOKEN}' ]
+  [ "$output" = "null" ]
 
   rm -rf "$tmpd"
 }
 
-@test "header values without a placeholder pass through untouched in both harnesses" {
+@test "header values without a placeholder pass through untouched in opencode" {
   # Positiv-Anker gegen eine zu gierige Ersetzung: ein Wert ohne ${...} darf
   # in KEINEM Renderer veraendert werden. Ohne diesen Test wuerde eine
   # Uebersetzung, die blind jede geschweifte Klammer umschreibt, unbemerkt
   # durchgehen.
+  # [T004272] Hinweis: Der Claude-Renderer ueberspringt Server mit ${VAR} in
+  # Headers komplett — deshalb wird hier nur opencode geprueft.
   local tmpd
   tmpd="$(mktemp -d)"
   fixture_registry "$tmpd/registry.yaml"
@@ -94,10 +100,6 @@ YAML
   run env HOME="$tmpd/fakehome" MCP_REGISTRY="$tmpd/registry.yaml" MCP_OUT_DIR="$tmpd" \
       bash "$SYNC" render
   [ "$status" -eq 0 ]
-
-  run jq -r '.mcpServers["probe-http"].headers["X-Static"]' "$tmpd/.mcp.json"
-  [ "$status" -eq 0 ]
-  [ "$output" = "no-placeholder-here" ]
 
   run grep -c 'no-placeholder-here' "$tmpd/.opencode/opencode.jsonc"
   [ "$status" -eq 0 ]

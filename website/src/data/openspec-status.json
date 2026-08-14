@@ -3573,6 +3573,12 @@
       "status": "plan_staged"
     }
   ],
+  "T004896": [
+    {
+      "slug": "plan-commit-scope-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T004898": [
     {
       "slug": "2026-08-14-rollup-container-ephemeral",

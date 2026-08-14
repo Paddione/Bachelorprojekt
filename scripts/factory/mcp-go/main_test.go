@@ -171,3 +171,78 @@ func TestFactoryAsk_ReleasesSlotAfterFailure(t *testing.T) {
 		t.Fatalf("release-slot.sh invocation = %q, want %q", line, want)
 	}
 }
+
+// Tests for T003987: Tool-Call-Conversion in factory_ask
+func TestResolveToolCallAnswer_HappyPath_ReadOnly(t *testing.T) {
+	// Mock read-only tool in factoryReadOnlyTools
+	orig := factoryReadOnlyTools["factory_status"]
+	defer func() { factoryReadOnlyTools["factory_status"] = orig }()
+
+	factoryReadOnlyTools["factory_status"] = func() (string, bool, error) {
+		return `{"status":"healthy"}`, false, nil
+	}
+
+	ans := `<|tool_call|>call:factory_status{}<tool_call|>`
+	res, handled := resolveToolCallAnswer(ans)
+	if !handled {
+		t.Fatalf("resolveToolCallAnswer(%q) handled = false, want true", ans)
+	}
+	if res != `{"status":"healthy"}` {
+		t.Fatalf("resolveToolCallAnswer(%q) res = %q, want %q", ans, res, `{"status":"healthy"}`)
+	}
+
+	// Also test parentheses form
+	ansParen := `<|tool_call|>call:factory_status()<tool_call|>`
+	resParen, handledParen := resolveToolCallAnswer(ansParen)
+	if !handledParen || resParen != `{"status":"healthy"}` {
+		t.Fatalf("resolveToolCallAnswer(%q) handled = %v, res = %q", ansParen, handledParen, resParen)
+	}
+}
+
+func TestResolveToolCallAnswer_RejectsSideEffects(t *testing.T) {
+	ans := `<|tool_call|>call:factory_enqueue{"ticket_id":"T001"}<tool_call|>`
+	res, handled := resolveToolCallAnswer(ans)
+	if !handled {
+		t.Fatalf("resolveToolCallAnswer(%q) handled = false, want true", ans)
+	}
+	if !strings.Contains(res, "factory_enqueue") || !strings.Contains(res, "NOT executed") {
+		t.Fatalf("resolveToolCallAnswer(%q) res = %q, want note containing factory_enqueue and 'NOT executed'", ans, res)
+	}
+}
+
+func TestResolveToolCallAnswer_Passthrough_PlainText(t *testing.T) {
+	plain := "Alle Worker sind gesund."
+	res, handled := resolveToolCallAnswer(plain)
+	if handled {
+		t.Fatalf("resolveToolCallAnswer(%q) handled = true, want false", plain)
+	}
+	if res != plain {
+		t.Fatalf("resolveToolCallAnswer(%q) res = %q, want %q", plain, res, plain)
+	}
+
+	// Plain text mentioning a tool name should NOT be triggered as a tool call
+	plainWithTool := "Please call factory_status to see the queue."
+	res2, handled2 := resolveToolCallAnswer(plainWithTool)
+	if handled2 {
+		t.Fatalf("resolveToolCallAnswer(%q) handled = true, want false", plainWithTool)
+	}
+	if res2 != plainWithTool {
+		t.Fatalf("resolveToolCallAnswer(%q) res = %q, want %q", plainWithTool, res2, plainWithTool)
+	}
+}
+
+func TestResolveToolCallAnswer_AllowlistContent(t *testing.T) {
+	if _, ok := factoryReadOnlyTools["factory_status"]; !ok {
+		t.Errorf("factoryReadOnlyTools missing factory_status")
+	}
+	if _, ok := factoryReadOnlyTools["factory_queue"]; !ok {
+		t.Errorf("factoryReadOnlyTools missing factory_queue")
+	}
+	if _, ok := factoryReadOnlyTools["factory_enqueue"]; ok {
+		t.Errorf("factoryReadOnlyTools must NOT contain factory_enqueue")
+	}
+	if _, ok := factoryReadOnlyTools["factory_trigger"]; ok {
+		t.Errorf("factoryReadOnlyTools must NOT contain factory_trigger")
+	}
+}
+

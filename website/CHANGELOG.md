@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.37](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.36...website-v1.276.37) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** support yaml list form in vda frontmatter [T005563] ([#4501](https://github.com/Paddione/Bachelorprojekt/issues/4501)) ([3d4be24](https://github.com/Paddione/Bachelorprojekt/commit/3d4be248883fa225ae2cfd237657334b6f94d62e))
+
 ## [1.276.36](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.35...website-v1.276.36) (2026-08-14)
 
 

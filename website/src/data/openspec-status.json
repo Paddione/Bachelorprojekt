@@ -3567,6 +3567,12 @@
       "status": "archived"
     }
   ],
+  "T005029": [
+    {
+      "slug": "sf-scheduling-test-drift",
+      "status": "plan_staged"
+    }
+  ],
   "T005031": [
     {
       "slug": "2026-08-14-mishap-rollup-artifacts",

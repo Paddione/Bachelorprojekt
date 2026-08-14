@@ -11,6 +11,12 @@
 # is reaped by tickets.fn_purge_test_data(). Pass DISJOINT touched_file paths per
 # test so the conflict gate does not legitimately fire between fixtures. Do NOT
 # run concurrently with the Playwright e2e suite (shared global purge).
+#
+# [T005029] seed_real_feature/purge_real_feature are the is_test_data=false
+# counterparts (title prefix 'SF-REAL-'): queue.sh filters `is_test_data = false`
+# since T002830, so only real features surface in the queue/schedule candidate
+# list (FA-SF-24/25). They are reaped by purge_real_feature (hard DELETE) — NOT
+# by fn_purge_test_data(), which reaps only is_test_data=true rows.
 
 # Resolve the repo root from this file's location so the fixture works
 # regardless of the BATS working directory.
@@ -32,6 +38,46 @@ seed_test_feature() {
     --type feature --brand "$brand" --title "$title" \
     --description "factory fixture" --priority mittel --status backlog --is-test-data)
   ext_id="${result%%|*}"
+  if [[ -n "$files" ]]; then
+    BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" set-touched-files --id "$ext_id" --files "$files" >/dev/null
+  fi
+  echo "$ext_id"
+}
+
+# seed_real_feature <brand> [touched_file ...] → echoes the new external_id
+# [T005029] Gegenstueck zu seed_test_feature mit is_test_data=false: queue.sh
+# filtert seit T002830 `AND is_test_data = false` — nur echte Features erscheinen
+# in der Queue-/Schedule-Kandidatenliste (FA-SF-24/25). Aufbau identisch zu
+# seed_test_feature (Prod-Guard, touched_files-Uebergabe), ohne das
+# --is-test-data-Flag beim ticket.sh create; Title-Praefix SF-REAL- macht
+# unaufgeraeumte Reste von SF-TEST-Fixtures unterscheidbar. Cleanup ausschliesslich
+# ueber purge_real_feature (hartes DELETE), nicht ueber fn_purge_test_data().
+#
+# Zusaetzlich zum is_test_data=false-Flag braucht die Queue-Lane fuer
+# backlog-Features readiness.lastenheft_locked=true (AI-ready-Gate der
+# Feature-Lane, siehe queue.sh). ticket.sh create setzt kein readiness-Flag —
+# der kanonische Weg ist `plan-meta set --requirements` gefolgt von
+# `lastenheft lock` (validiert >=1 Requirement und forward-transitioniert nach
+# backlog). Ein Feature ohne Lock ist der Queue unsichtbar und der FA-SF-24/25-
+# Positiv-Anker schlaegt fehl.
+seed_real_feature() {
+  local brand="$1"; shift
+  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}"
+  if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
+    echo "refusing to seed test data into prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
+    return 3
+  fi
+  local files; files="$(IFS=,; echo "$*")"
+  local title="SF-REAL-${brand}-${BATS_TEST_NAME:-manual}-$$-${RANDOM}"
+  local result ext_id
+  result=$(BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" create \
+    --type feature --brand "$brand" --title "$title" \
+    --description "factory fixture" --priority mittel --status backlog)
+  ext_id="${result%%|*}"
+  BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" \
+    plan-meta set --id "$ext_id" --requirements 'factory fixture' >/dev/null
+  BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" \
+    lastenheft lock --id "$ext_id" >/dev/null
   if [[ -n "$files" ]]; then
     BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" set-touched-files --id "$ext_id" --files "$files" >/dev/null
   fi
@@ -97,4 +143,34 @@ purge_factory_test_data() {
   ensure_purge_fn_current "$pod" "$ns" "$ctx" || return 1
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
     psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null
+}
+
+# purge_real_feature <brand> <ext_id> — hard DELETE of one real (is_test_data=false)
+# seeded feature row. [T005029] fn_purge_test_data() raeumt nur is_test_data=true-
+# Zeilen, deshalb loescht der Real-Feature-Cleanup direkt. Pod-/Namespace-Aufloesung
+# wie purge_factory_test_data ([T002689] Brand waehlt ZEILEN, nicht den Ort;
+# [T002781] shared-db liegt in 'workspace', nicht '-dev'); Prod-Guard wie
+# seed_real_feature — ein DELETE auf fleet ist nicht rueckholbar. Idempotent:
+# fehlt die Zeile, loescht das DELETE 0 Zeilen mit Exit 0.
+purge_real_feature() {
+  local brand="$1" ext_id="$2"
+  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
+  if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
+    echo "refusing to purge on prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
+    return 3
+  fi
+  case "$brand" in
+    mentolder|korczewski) ns="${FACTORY_NS:-workspace}" ;;
+    *) echo "purge_real_feature: unknown brand $brand" >&2; return 2 ;;
+  esac
+  local pod candidate_ns
+  for candidate_ns in "$ns" "${ns}-dev"; do
+    pod=$(kubectl get pod -n "$candidate_ns" --context "$ctx" \
+      -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
+      -o name 2>/dev/null | head -1)
+    [[ -n "$pod" ]] && { ns="$candidate_ns"; break; }
+  done
+  [[ -z "$pod" ]] && { echo "no shared-db pod in $ns" >&2; return 1; }
+  kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
+    psql -U postgres -d website -qtAc "DELETE FROM tickets.tickets WHERE external_id='$ext_id';" >/dev/null
 }

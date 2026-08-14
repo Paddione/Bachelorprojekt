@@ -122,7 +122,7 @@ ensure_purge_fn_current() {
   schema="${BASH_REMATCH[1]}"; fn="${BASH_REMATCH[2]}"; marker="${BASH_REMATCH[3]}"
   out="$(kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
     psql -U postgres -d website -qtAc \
-    "SELECT prosrc LIKE '%${marker}%' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = '${schema}' AND p.proname = '${fn}';" 2>/dev/null)"
+    "SELECT prosrc LIKE '%${marker}%' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = '${schema}' AND p.proname = '${fn}';" < /dev/null 2>/dev/null)"
   [[ "$out" == "t" ]] && return 0
   echo "self-heal: applying $latest to ${schema}.${fn} (Marker '$marker' fehlt in pg_proc)" >&2
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
@@ -159,7 +159,7 @@ purge_factory_test_data() {
   # schlagender Apply laesst den Purge sichtbar scheitern.
   ensure_purge_fn_current "$pod" "$ns" "$ctx" || return 1
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
-    psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null
+    psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null < /dev/null
 }
 
 # purge_real_feature [--force] <brand> <ext_id> — hard DELETE of one real

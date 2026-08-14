@@ -19,7 +19,7 @@ _Ticket: T005031_
 | Datei | Ist | Budget |
 |---|---|---|
 | `scripts/ticket.sh` | 1122 | s1.ignore (sanktionierte Ein-Datei-CLI) |
-| `scripts/factory/mishap-rollup.sh` | 268 | 532 |
+| `scripts/factory/mishap-rollup.sh` | 279 | 521 |
 | `scripts/factory/mishap-rollup-artifacts.sh` | neu | neu, unter Limit |
 | `tests/spec/mishap-rollup/container-create-description.bats` | neu | neu |
 | `tests/spec/mishap-rollup/generator-cycle-artifacts.bats` | neu | neu |

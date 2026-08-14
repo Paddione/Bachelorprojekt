@@ -197,6 +197,19 @@ describe('validateDeltaFile — T001262 hardening', () => {
     } finally { rmSync(tmp, { recursive: true, force: true }) }
   })
 
+  it('T004592: unedited stub delta fails the PR gate (errors, not warnings)', () => {
+    const STUB_MARKER = 'TO' + 'DO' // assembled marker for stub-detection tests
+    const tmp = tmpChange(
+      '## ADDED Requirements\n\n### Requirement: ' + STUB_MARKER +
+        '\n\n#### Scenario: ' + STUB_MARKER + '\n\nThe system SHALL …\n'
+    )
+    try {
+      const { result } = validateChange(tmp)
+      expect(result.ok).toBe(false)
+      expect(result.errors.some(e => /stub/i.test(e))).toBe(true)
+    } finally { rmSync(tmp, { recursive: true, force: true }) }
+  })
+
   it('warns (not errors) when a MODIFIED target is absent from the SSOT', () => {
     const specsRoot = mkdtempSync(join(tmpdir(), 'openspec-ssot-'))
     writeFileSync(join(specsRoot, 'cap.md'),

@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "slug": "stub-delta-pr-gate",
+    "ticket_id": "",
+    "generated_from": "main@fe4edc32b",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/openspec-validate.ts",
+      "language": "javascript",
+      "loc": 260,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 640
+    },
+    {
+      "path": "scripts/openspec-validate.test.ts",
+      "language": "javascript",
+      "loc": 230,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 670
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec-validate.ts:26:function ticketExemptSlugs(): Set<string> {",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "26:function ticketExemptSlugs(): Set<string> {(...)",
+      "type_text": "26:function ticketExemptSlugs(): Set<string> {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.ts:54:function sectionRequirements(content: string, op: string): { name: string; body: string }[] {",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "54:function sectionRequirements(content: string, op: string): { name: string; body: string }[] {(...)",
+      "type_text": "54:function sectionRequirements(content: string, op: string): { name: string; body: string }[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.ts:67:  flush()",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "67:  flush()(...)",
+      "type_text": "67:  flush()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.ts:71:function allRequirementNames(content: string): string[] {",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "71:function allRequirementNames(content: string): string[] {(...)",
+      "type_text": "71:function allRequirementNames(content: string): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.ts:75:function validateDeltaFile(",
+      "kind": "function",
+      "file": "scripts/openspec-validate.ts",
+      "signature": "75:function validateDeltaFile((...)",
+      "type_text": "75:function validateDeltaFile((...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-validate.test.ts:171:  function tmpChange(deltaBody: string) {",
+      "kind": "function",
+      "file": "scripts/openspec-validate.test.ts",
+      "signature": "171:  function tmpChange(deltaBody: string) {(...)",
+      "type_text": "171:  function tmpChange(deltaBody: string) {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

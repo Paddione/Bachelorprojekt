@@ -92,13 +92,24 @@ The system SHALL add a brand new block C.
     rmSync(dir2, { recursive: true, force: true });
   });
 
-  it('refuses ADDED when a requirement with the same name already exists [T001473]', () => {
+  it('auto-converts ADDED to MODIFIED when a requirement with the same name already exists [T002354]', () => {
     const ssotPath = join(root, 'specs', 'dup.md');
     writeFileSync(ssotPath, '# dup\n\n## Purpose\n\nx\n\n## Requirements\n\n### Requirement: Block A\n\nBody.\n');
     const deltaPath = join(root, 'delta-dup.md');
     writeFileSync(deltaPath, `## ADDED Requirements\n\n### Requirement: Block A\n\nDuplicate add.\n`);
 
-    vi.spyOn(process, 'exit').mockImplementationOnce(() => { throw new Error('process.exit(1)') });
-    expect(() => applyDelta(deltaPath, ssotPath, '2026-07-02', false)).toThrow('process.exit(1)');
+    // Seit T002354 schlägt der ADDED-Duplikat-Fall nicht mehr fehl, sondern wird
+    // laut warnend zu MODIFIED auto-konvertiert. Output-Verifikation statt
+    // Source-Grep: kein Throw, Warnung auf stderr, SSOT-Inhalt ersetzt.
+    const warn = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    applyDelta(deltaPath, ssotPath, '2026-07-02', false);
+    // Auswertung VOR mockRestore: mockRestore leert die Aufruf-Historie.
+    const warned = warn.mock.calls.some(([chunk]) => String(chunk).includes('auto-converting to MODIFIED'));
+    warn.mockRestore();
+
+    const merged = readFileSync(ssotPath, 'utf-8');
+    expect(merged).toContain('Duplicate add.');
+    expect(merged).not.toContain('Body.');
+    expect(warned).toBe(true);
   });
 });

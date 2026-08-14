@@ -70,10 +70,34 @@ function endOfRequirements(lines) {
   return i
 }
 
+// T005310: Trunkierungs-Guard. Ein Delta, das ein existierendes SSOT-Requirement
+// per full-block replacement ersetzt und dabei weniger `#### Scenario:`-Zeilen
+// trägt als der Bestand, löscht Szenarien stillschweigend (beobachteter Schaden:
+// PR #4440, 591 → 586). Gilt für den expliziten MODIFIED-Zweig UND den
+// ADDED→MODIFIED-Auto-Convert (derselbe Ersetzungsmechanismus, Review-Befund
+// IMPORTANT 1). Ohne allowShrink fail() — der Aufrufer schreibt nichts, die SSOT
+// bleibt unverändert; bewusste Konsolidierungen brauchen das Flag explizit.
+function assertNoTruncation(deltaName, item, lines, hit, allowShrink) {
+  const ssotBlock = lines.slice(hit.start, hit.end).join('\n')
+  const countScenarios = t => (t.match(/^#### Scenario: .*$/gm) || []).length
+  const deltaCount = countScenarios(item.lines.join('\n'))
+  const ssotCount = countScenarios(ssotBlock)
+  if (deltaCount < ssotCount) {
+    process.stderr.write(`WARN: ${deltaName}: MODIFIED '${item.name}' truncates scenarios (${ssotCount} → ${deltaCount})\n`)
+    if (!allowShrink) {
+      fail(`${deltaName}: MODIFIED '${item.name}' truncates scenarios (${ssotCount} → ${deltaCount}). Pass --allow-shrink to accept the reduction, or fix the delta to carry all scenarios.`)
+    }
+  }
+}
+
 // dryRun führt jeden Guard aus, schreibt aber nichts — weder die --create-new-
 // Skeleton-SSOT noch das Merge-Ergebnis. [T002581] Nur so kann cmd_archive alle
 // Deltas eines Change vorab prüfen, bevor der erste Schreibvorgang stattfindet.
-export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false, forceNewComponent = false, dryRun = false) {
+// allowShrink (T005310): ein MODIFIED-Delta, das weniger `#### Scenario:`-Zeilen
+// trägt als das SSOT-Requirement, ersetzt den Bestand stillschweigend (beobachteter
+// Schaden: PR #4440, 591 → 586 Szenarien). Ohne allowShrink bricht der Merge ab;
+// bewusste Konsolidierungen brauchen das Flag explizit.
+export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false, forceNewComponent = false, dryRun = false, allowShrink = false) {
   const deltaName = basename(deltaPath)
   const delta = readFileSync(deltaPath, 'utf-8')
 
@@ -109,7 +133,15 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   }
 
   let lines = content.split('\n')
-  for (const item of parseDelta(delta)) {
+  const items = parseDelta(delta)
+  // T005310: Zusatz-Warnung — ein MODIFIED-Block, der mehrere Requirements in
+  // einem Zug ersetzt, ist eine Kandidatin für versehentliche Konsolidierung.
+  // Nur warnen, nie blockieren (bewusste Mehrfach-Änderungen sind legitim).
+  const modifiedCount = items.filter(i => i.op === 'MODIFIED').length
+  if (modifiedCount > 1) {
+    process.stderr.write(`WARN: ${deltaName}: MODIFIED section replaces ${modifiedCount} requirements at once — verify no requirement was dropped unintentionally\n`)
+  }
+  for (const item of items) {
     const hit = findBlocks(lines).find(b => b.name === item.name)
     if (item.op === 'ADDED') {
       if (hit) {
@@ -117,6 +149,11 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
         // SSOT (e.g. the change directly edited the SSOT AND wrote a delta). Warn
         // loudly so the plan-phase lesson is visible, but do not abort the archive.
         process.stderr.write(`WARN: ${deltaName}: ADDED target '${item.name}' already exists in ${basename(ssotPath)} — auto-converting to MODIFIED\n`)
+        // T005310: Der Auto-Convert ist derselbe full-block replacement wie ein
+        // expliziter MODIFIED — der Trunkierungs-Guard gilt hier ebenso
+        // (Review-Befund: ADDED-Delta mit trunkierendem Inhalt merged zuvor
+        // stillschweigend mit exit 0 und verlor ein Szenario).
+        assertNoTruncation(deltaName, item, lines, hit, allowShrink)
         lines.splice(hit.start, hit.end - hit.start, ...item.lines)
         continue
       }
@@ -124,6 +161,7 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
       lines.splice(at, 0, '', ...item.lines)
     } else if (item.op === 'MODIFIED') {
       if (!hit) fail(`${deltaName}: MODIFIED target '${item.name}' not found in ${basename(ssotPath)}`)
+      assertNoTruncation(deltaName, item, lines, hit, allowShrink)
       lines.splice(hit.start, hit.end - hit.start, ...item.lines)
     } else if (item.op === 'REMOVED') {
       if (!hit) fail(`${deltaName}: REMOVED target '${item.name}' not found in ${basename(ssotPath)}`)
@@ -156,6 +194,7 @@ function main(argv) {
   const [verb, deltaPath, ssotPath] = positional
   const createNew = flags.includes('--create-new')
   const forceNewComponent = flags.includes('--force-new-component')
+  const allowShrink = flags.includes('--allow-shrink')
 
   // [T003140] batch: mehrere (delta, ssot)-Paare in EINEM Node-Prozess — der
   // Einzel-Archivierungspfad startet pro Delta einen Node (je ~3s); eine
@@ -173,17 +212,17 @@ function main(argv) {
     for (const item of items) {
       const createN = Boolean(item.create_new ?? createNew)
       const forceN = Boolean(item.force_new_component ?? forceNewComponent)
-      applyDelta(item.delta, item.ssot, new Date().toISOString().slice(0, 10), createN, forceN, item.dry_run === true)
+      applyDelta(item.delta, item.ssot, new Date().toISOString().slice(0, 10), createN, forceN, item.dry_run === true, Boolean(item.allow_shrink ?? allowShrink))
     }
     return 0
   }
 
   // 'check' ist 'apply' ohne Schreibvorgang — identische Guards. [T002581]
   if ((verb !== 'apply' && verb !== 'check') || !deltaPath || !ssotPath) {
-    process.stderr.write('Usage: openspec-merge.mjs <apply|check|batch> <deltaPath> <ssotPath> [--create-new] [--force-new-component]\n')
+    process.stderr.write('Usage: openspec-merge.mjs <apply|check|batch> <deltaPath> <ssotPath> [--create-new] [--force-new-component] [--allow-shrink]\n')
     process.exit(2)
   }
-  return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew, forceNewComponent, verb === 'check')
+  return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew, forceNewComponent, verb === 'check', allowShrink)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

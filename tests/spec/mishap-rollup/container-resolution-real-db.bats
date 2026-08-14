@@ -40,9 +40,17 @@ cluster_available() {
 # Eigenstaendiger Read-Pfad (NICHT rollup-container): JSON-Liste via ticket.sh
 # list, gefiltert auf offene Rollup-Container. Die Erwartung darf nicht aus der
 # getesteten Funktion abgeleitet sein.
+#
+# Brand-unabhaengig wie die Produktions-Query in cmd_rollup_container (kein
+# AND brand=...): der offene Container kann auf mentolder ODER korczewski liegen
+# (beobachtet: nach T005030-done lag er auf T005593/korczewski). Ein Brand-Filter
+# hier wuerde den Test skip-en, obwohl die Invariante "genau ein offener
+# Container" global gilt.
 open_container_ids() {
-  bash "$REPO_ROOT/scripts/ticket.sh" list --brand mentolder --limit 200 2>/dev/null \
-    | jq -r '.[] | select(.title == "Mishap Rollup — fortlaufende Sammlung") |
+  {
+    bash "$REPO_ROOT/scripts/ticket.sh" list --brand mentolder --limit 200 2>/dev/null
+    bash "$REPO_ROOT/scripts/ticket.sh" list --brand korczewski --limit 200 2>/dev/null
+  } | jq -r '.[] | select(.title == "Mishap Rollup — fortlaufende Sammlung") |
              select(.status != "done" and .status != "archived") | .external_id'
 }
 

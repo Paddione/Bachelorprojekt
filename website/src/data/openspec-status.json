@@ -3623,14 +3623,14 @@
   ],
   "T005592": [
     {
-      "slug": "mcp-task-runner-cancel-escalation",
-      "status": "plan_staged"
+      "slug": "2026-08-14-mcp-task-runner-cancel-escalation",
+      "status": "archived"
     }
   ],
   "T005596": [
     {
-      "slug": "mcp-task-runner-planner-deps",
-      "status": "plan_staged"
+      "slug": "2026-08-14-mcp-task-runner-planner-deps",
+      "status": "archived"
     }
   ],
   "TBD": [

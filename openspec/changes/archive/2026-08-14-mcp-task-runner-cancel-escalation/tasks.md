@@ -2,7 +2,7 @@
 title: mcp-task-runner: cancel-Eskalation an die Prozessgruppe — Implementation Plan
 ticket_id: T005592
 domains: [docs]
-status: active
+status: completed
 pr_number: null
 file_locks: []
 shared_changes: false

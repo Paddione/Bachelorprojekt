@@ -363,6 +363,7 @@
         "tests/spec/agent-skills/guard-semantics-konvention.bats",
         "tests/spec/agent-skills/messung-mit-befehl.bats",
         "tests/spec/agent-skills/plugin-activation.bats",
+        "tests/spec/agent-skills/review-gate-before-auto-merge.bats",
         "tests/spec/agent-skills/skill-path-references.bats",
         "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
         "tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats",

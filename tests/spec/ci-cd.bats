@@ -43,16 +43,17 @@ setup() {
   [[ "$output" == *"always()"* ]]
 }
 
-@test "T002272-M2: dev-flow-execute Step 5 requests auto-merge before the CI-watch loop" {
+@test "T002272-M2: dev-flow-execute review gate requests auto-merge before the CI-watch loop" {
   EXEC_SKILL="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
-  # [T003796] Suche auf den Bereich Schritt 5..5.5 eingeschraenkt: `gh pr merge --auto`
-  # steht im Dokument 4x (u.a. im Arbeitsteilungs-Kommentar Zeile 54), `devflow-ci-watch.sh`
-  # 3x. Dokumentweites head -1 pickte den Kommentar statt des Step-5-Aufrufs (T003104).
-  local step5 watch_line merge_line
-  step5="$(grep -n '^## Schritt 5: PR erstellen' "$EXEC_SKILL" | head -1 | cut -d: -f1)"
-  [ -n "$step5" ]
-  merge_line=$(awk -v s="$step5" 'NR > s && /gh pr merge --auto/ { print NR; exit }' "$EXEC_SKILL")
-  watch_line=$(awk -v s="$step5" 'NR > s && /devflow-ci-watch\.sh/ { print NR; exit }' "$EXEC_SKILL")
+  # [T003796] Suche auf den Bereich Schritt 3.8..5.5 eingeschraenkt: der einzige
+  # `gh pr merge --auto`-Aufruf liegt im Code-Review-Gate-Abschnitt (Schritt 3.8),
+  # `devflow-ci-watch.sh`-Aufrufe folgen in Schritt 5.5. Ohne den Anker pickte
+  # dokumentweites head -1 frueher den Arbeitsteilungs-Kommentar (T003104).
+  local gate watch_line merge_line
+  gate="$(grep -n '^## Schritt 3.8: Code-Review-Gate' "$EXEC_SKILL" | head -1 | cut -d: -f1)"
+  [ -n "$gate" ]
+  merge_line=$(awk -v s="$gate" 'NR > s && /gh pr merge --auto/ { print NR; exit }' "$EXEC_SKILL")
+  watch_line=$(awk -v s="$gate" 'NR > s && /devflow-ci-watch\.sh/ { print NR; exit }' "$EXEC_SKILL")
   [ -n "$merge_line" ] && [ -n "$watch_line" ]
   [ "$merge_line" -lt "$watch_line" ]
 }

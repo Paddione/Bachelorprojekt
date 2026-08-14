@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.41](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.40...website-v1.276.41) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** harden sf-test fixture helpers and guard precision [T005591] ([#4515](https://github.com/Paddione/Bachelorprojekt/issues/4515)) ([e0d47e5](https://github.com/Paddione/Bachelorprojekt/commit/e0d47e5fb5121c401f46255777dc4a23131b0739))
+
 ## [1.276.40](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.39...website-v1.276.40) (2026-08-14)
 
 

@@ -212,6 +212,17 @@ task freshness:check
 PLANEOF
 } > "$WT/$PLAN_PATH"
 
+# [T005031] openspec-Validierbarkeit des Change: openspec.sh validate ist
+# fail-closed (missing specs/ delta dir, no .ticket link). Das Artefakt-Skript
+# schreibt .ticket (Container-ID) und specs/<slug>.md (ADDED Requirements aus
+# den Batch-Eintraegen). Leere Eingabe bricht den Generator ab (Exit 1) — ein
+# leerer Change darf nie entstehen.
+echo "mishap-rollup: erzeuge .ticket + specs-Delta ..."
+bash "$REPO/scripts/factory/mishap-rollup-artifacts.sh" \
+  --slug "$SLUG" \
+  --change-dir "$WT/$CHANGE_DIR" \
+  --container "$CONTAINER_ID" < "$COMMENTS_FILE"
+
 rm -f "$COMMENTS_FILE"
 
 echo "mishap-rollup: Plan geschrieben nach ${PLAN_PATH}"

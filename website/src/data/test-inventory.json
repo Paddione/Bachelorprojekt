@@ -2892,6 +2892,12 @@
     "kind": "shell"
   },
   {
+    "id": "finetune/model-registry",
+    "file": "tests/spec/finetune/model-registry.bats",
+    "category": "finetune",
+    "kind": "shell"
+  },
+  {
     "id": "fix-ci-concurrency",
     "file": "tests/spec/fix-ci-concurrency.bats",
     "category": "fix-ci-concurrency",

@@ -15,6 +15,16 @@
 
 load '_sf_common'
 
+# [T003810/P2] Live-DB-Opt-in: TICKET_TEST_DB_OK=1 hebt den BATS-Sentinel-Kontext
+# (bats-no-cluster-t002224) auf, damit seed_test_feature und die slots/queue/
+# schedule/watchdog-Aufrufe gegen die echte Dev-DB laufen (dasselbe Muster wie
+# orphan-slot-reap.bats). Der fruehere Skip-Guard "FACTORY_CTX gesetzt" gruendete
+# auf dem lib.sh-Zustand VOR T003544 (Default erst in factory_resolve_data_ns);
+# seit dem Top-Level-Default ist FACTORY_CTX beim Source bereits gesetzt und der
+# Guard wirkungslos — der Skip haengt jetzt an der Pod-Erreichbarkeit
+# (_skip_if_no_db), nicht an einer Variablenbelegung.
+setup_file() { export TICKET_TEST_DB_OK=1; }
+
 # factory-test-fixtures traegt die Endung .sh und ist damit nicht ueber `load`
 # erreichbar (bats sucht .bash); die Bestandstests sourcen es ebenso direkt
 # (Vorlage: orphan-slot-reap.bats). Ohne diesen Source scheitert jeder Live-Test
@@ -39,7 +49,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-23: claim is atomic — second claim on the same ticket fails" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-slots-$$-a.txt")
   run env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1
@@ -76,7 +86,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-73: claim-gang claims n slots atomically; count reflects the gang; release resets to 1" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-gang-$$-a.txt")
   before=$(env BRAND="$brand" bash scripts/factory/slots.sh count)
@@ -94,7 +104,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-73: claim-gang rejects a gang larger than the free pool (nothing claimed)" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-gang-$$-big.txt")
   before=$(env BRAND="$brand" bash scripts/factory/slots.sh count)
@@ -116,7 +126,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-24: a seeded backlog feature appears in the queue JSON" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-queue-$$-a.txt")
   run env BRAND="$brand" bash scripts/factory/queue.sh
@@ -133,7 +143,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-25: two disjoint backlog features both get scheduled with slots" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   e1=$(seed_test_feature "$brand" "tests/fixtures/sf-test-sched-$$-a.txt")
   e2=$(seed_test_feature "$brand" "tests/fixtures/sf-test-sched-$$-b.txt")
@@ -144,7 +154,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-25: global cap of 1 schedules at most one feature" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   seed_test_feature "$brand" "tests/fixtures/sf-test-cap-$$-a.txt" >/dev/null
   seed_test_feature "$brand" "tests/fixtures/sf-test-cap-$$-b.txt" >/dev/null
@@ -163,7 +173,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-26: a stale in_progress feature is returned to triage and its slot freed" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-a.txt")
   # Zustand direkt setzen statt `slots.sh claim`: dessen Subkommando schreibt
@@ -199,7 +209,7 @@ teardown() { _sf_teardown; }
   # [T002427] Aus tests/local/FA-SF-26-watchdog.bats uebernommen. Gegenstueck zum Test
   # darueber: liegt bereits ein Plan vor, darf der Watchdog diese Arbeit nicht wegwerfen,
   # indem er nach triage zuruecksetzt — das erzwingt einen vollen Scout/Design/Plan-Neustart.
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-b.txt")
   # Zustand direkt setzen statt `slots.sh claim` (T002619) — siehe Test oben.
@@ -237,7 +247,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-27: posts a comment to a seeded metrics ticket" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   # Use a throwaway test ticket as the metrics sink so we don't touch T000413.
   sink=$(seed_test_feature "$brand" "tests/fixtures/sf-test-metrics-$$-a.txt")

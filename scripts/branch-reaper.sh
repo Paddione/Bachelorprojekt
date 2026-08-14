@@ -202,9 +202,12 @@ for branch in "${CANDIDATES[@]}"; do
 
   # (3) Ticket-Status
   ticket_json="$(bash "$TICKET_SH" get --id "$branch_ticket_id" 2>/dev/null || echo '{}')"
+  # [T004892] || true verhindert set-/pipefail-Exit bei nicht-existentem Ticket:
+  # grep findet keinen Treffer → Pipeline endet mit 1, aber || true laesst den
+  # bestehenden case ""-Zweig greifen (KEEP + "nicht ermittelbar").
   status="$(printf '%s' "$ticket_json" \
     | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' \
-    | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//')"
+    | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//' || true)"
   case "$status" in
     done|archived) : ;;
     "") echo "KEEP $branch — Ticket-Status nicht ermittelbar"; continue ;;

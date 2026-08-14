@@ -86,9 +86,10 @@ _unset_claude_harness_env() {
 #
 # The plan-stage commit in dev-flow-plan Schritt 5 must NEVER land on main.
 # The skill must explicitly document: (a) refuse if current branch is main,
-# (b) require git status to be clean, (c) cross-check branch against the
-# agent-lock claim. Currently the skill says "git commit && git push" with
-# no such guard.
+# (b) require the staged set to contain only plan artifacts (T005114 — the
+# clean-tree requirement was replaced by the staged-set check), (c) cross-check
+# branch against the agent-lock claim. Currently the skill says "git commit &&
+# git push" with no such guard.
 
 @test "T001268-M2: dev-flow-plan SKILL.md explicitly forbids plan-stage commit on main" {
   [ -f "$PLAN_SKILL" ]
@@ -98,9 +99,14 @@ _unset_claude_harness_env() {
   grep -Eqi 'do[[:space:]]+not[[:space:]]+commit[[:space:]]+on[[:space:]]+main|nicht[[:space:]]+auf[[:space:]]+main[[:space:]]+committen|refuse.*main|kein[[:space:]]+commit[[:space:]]+auf[[:space:]]+main|main.*verboten|main.*verweigern' "$PLAN_SKILL"
 }
 
-@test "T001268-M2: dev-flow-plan SKILL.md requires clean git status before plan-stage commit" {
+@test "T001268-M2: dev-flow-plan SKILL.md requires staged-set check (only plan artifacts) before plan-stage commit" {
   [ -f "$PLAN_SKILL" ]
-  grep -Eqi 'git[[:space:]]+status.*(clean|leer|empty)|clean[[:space:]]+status|status.*clean|verify.*git[[:space:]]+status|sauberer[[:space:]]+status' "$PLAN_SKILL"
+  # T005114: der Clean-Tree-Zwang ist abgeloest — die Skill muss dokumentieren,
+  # dass der Guard das Staged-Set (git diff --cached --name-only) prueft und
+  # nur Plan-Artefakte erlaubt; unstaged/untracked blockiert nicht mehr.
+  grep -Eqi 'diff[[:space:]]+--cached[[:space:]]+--name-only' "$PLAN_SKILL"
+  grep -qF 'openspec-status.json' "$PLAN_SKILL"
+  grep -qF 'test-inventory.json' "$PLAN_SKILL"
 }
 
 # ── Mishap 3: dev-flow-execute push-verification checkpoint ────────────#

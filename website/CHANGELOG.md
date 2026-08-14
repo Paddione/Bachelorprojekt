@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.9...website-v1.276.10) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** verify and report real worktree path in worktree-create.sh [T004604] ([#4410](https://github.com/Paddione/Bachelorprojekt/issues/4410)) ([affa8ca](https://github.com/Paddione/Bachelorprojekt/commit/affa8ca4e15235c5cc2d1a363f3b34ecf5343537))
+
 ## [1.276.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.8...website-v1.276.9) (2026-08-14)
 
 

@@ -90,11 +90,11 @@ function validateDeltaFile(
     errors.push(`${filePath}: uses H2 '## Requirement:' (must be H3 '### Requirement:')`)
   }
 
-  // Stub detection (reported as warnings so in-flight skeletons don't break the gate).
+  // [T004592] Stub detection (fail-closed im PR-Gate test:openspec; zweite Archiv-Welle — Warnings verhinderten den Merge nicht).
   const STUB_MARKER = 'TO' + 'DO' // assembled marker for skeleton-stub detection
-  if (new RegExp(`^### Requirement: ${STUB_MARKER}\\s*$`, 'm').test(content)) warnings.push(`${filePath}: unedited stub '### Requirement: ${STUB_MARKER}'`)
-  if (new RegExp(`^#### Scenario: ${STUB_MARKER}\\s*$`, 'm').test(content)) warnings.push(`${filePath}: unedited stub '#### Scenario: ${STUB_MARKER}'`)
-  if (/^The system SHALL …\s*$/m.test(content)) warnings.push(`${filePath}: unexpanded 'The system SHALL …' stub`)
+  if (new RegExp(`^### Requirement: ${STUB_MARKER}\\s*$`, 'm').test(content)) errors.push(`${filePath}: unedited stub '### Requirement: ${STUB_MARKER}'`)
+  if (new RegExp(`^#### Scenario: ${STUB_MARKER}\\s*$`, 'm').test(content)) errors.push(`${filePath}: unedited stub '#### Scenario: ${STUB_MARKER}'`)
+  if (/^The system SHALL …\s*$/m.test(content)) errors.push(`${filePath}: unexpanded 'The system SHALL …' stub`)
 
   // RENAMED blocks must carry a direction directive.
   for (const { name, body } of sectionRequirements(content, 'RENAMED')) {

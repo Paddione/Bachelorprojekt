@@ -60,7 +60,7 @@ describe('validateChange', () => {
       mkdirSync(join(tmp, 'specs'), { recursive: true })
       writeFileSync(
         join(tmp, 'specs', 'cap.md'),
-        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL …\n',
+        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL exist.\n',
       )
       const { result } = validateChange(tmp)
       expect(result.ok).toBe(false)
@@ -78,7 +78,7 @@ describe('validateChange', () => {
       mkdirSync(join(tmp, 'specs'), { recursive: true })
       writeFileSync(
         join(tmp, 'specs', 'cap.md'),
-        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL …\n',
+        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL exist.\n',
       )
       writeFileSync(join(tmp, '.ticket'), 'T000001\n')
       const { result } = validateChange(tmp)
@@ -99,7 +99,7 @@ describe('validateChange', () => {
       mkdirSync(join(tmp, 'specs'), { recursive: true })
       writeFileSync(
         join(tmp, 'specs', 'cap.md'),
-        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL …\n',
+        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL exist.\n',
       )
       writeFileSync(join(tmp, '.ticket'), '   \n')
       const { result } = validateChange(tmp)
@@ -126,7 +126,7 @@ describe('validateChange', () => {
       mkdirSync(join(changeDir, 'specs'), { recursive: true })
       writeFileSync(
         join(changeDir, 'specs', 'cap.md'),
-        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL …\n',
+        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL exist.\n',
       )
       const { result } = validateChange(changeDir)
       expect(result.ok, result.errors.join('\n')).toBe(true)
@@ -184,7 +184,8 @@ describe('validateDeltaFile — T001262 hardening', () => {
     } finally { rmSync(tmp, { recursive: true, force: true }) }
   })
 
-  it('warns (not errors) on an unedited stub delta', () => {
+  // [T004592] Fail-closed: unedited stub delta fails the PR gate (errors, not warnings).
+  it('fails on an unedited stub delta (errors, not warnings)', () => {
     const STUB_MARKER = 'TO' + 'DO' // assembled marker for stub-detection tests
     const tmp = tmpChange(
       '## ADDED Requirements\n\n### Requirement: ' + STUB_MARKER +
@@ -192,8 +193,8 @@ describe('validateDeltaFile — T001262 hardening', () => {
     )
     try {
       const { result } = validateChange(tmp)
-      expect(result.ok).toBe(true)
-      expect(result.warnings.some(w => /stub/i.test(w))).toBe(true)
+      expect(result.ok).toBe(false)
+      expect(result.errors.some(e => /stub/i.test(e))).toBe(true)
     } finally { rmSync(tmp, { recursive: true, force: true }) }
   })
 

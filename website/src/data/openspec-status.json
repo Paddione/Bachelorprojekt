@@ -3507,6 +3507,12 @@
       "status": "archived"
     }
   ],
+  "T004592": [
+    {
+      "slug": "stub-delta-pr-gate",
+      "status": "plan_staged"
+    }
+  ],
   "T004598": [
     {
       "slug": "2026-08-14-embed-completeness-slug-scope",

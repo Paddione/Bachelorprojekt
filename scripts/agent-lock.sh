@@ -519,6 +519,21 @@ cmd_check() {
   # worktree path containment, so a lock recognised from a subdirectory (e.g.
   # scripts/ within the worktree) still reports "mine".
   if _lock_is_mine "$f"; then echo "mine"; cat "$f"; return 0; fi
+  # [T005560] Toter Halter = kein Schutz gegen Doppelarbeit: advisory rc=4,
+  # Lock bleibt bestehen (Reap-Entscheidung bleibt bei _reapable).
+  # Grace-Frist wie bei _reapable (T002849): ein frischer Claim (age < GRACE)
+  # mit totem owner_pid ist ein Resume-Fenster — der neue Prozess eines
+  # neugestarteten Halters hat seinen Heartbeat moeglicherweise noch nicht
+  # geschrieben. Erst nach der Frist ist der Halter nachweislich beendet.
+  local _hp _hb _ct _age
+  _hp="$(_lock_field "$f" owner_pid)"
+  if [ -n "$_hp" ] && ! _pid_alive "$_hp"; then
+    _hb="$(_lock_field "$f" heartbeat_at)"; _ct="$(_lock_field "$f" created_at)"
+    _age=$(( $(_now) - ${_hb:-${_ct:-0}} ))
+    if [ -z "$_ct" ] || [ "$_age" -ge "$AGENT_LOCK_GRACE" ]; then
+      echo "held-stale"; cat "$f"; return 4
+    fi
+  fi
   echo "held"; cat "$f"; return 3
 }
 

@@ -3657,6 +3657,12 @@
       "status": "archived"
     }
   ],
+  "T005560": [
+    {
+      "slug": "ticket-lock-stale-pass",
+      "status": "plan_staged"
+    }
+  ],
   "T005561": [
     {
       "slug": "test-changed-db-isolation",

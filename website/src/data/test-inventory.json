@@ -4320,6 +4320,12 @@
     "kind": "shell"
   },
   {
+    "id": "security/alibaba-token-key-guard",
+    "file": "tests/spec/security/alibaba-token-key-guard.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
     "id": "sessions-server",
     "file": "tests/spec/sessions-server.bats",
     "category": "sessions-server",

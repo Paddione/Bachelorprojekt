@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.276.39](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.38...website-v1.276.39) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** isolate watchdog tests from shared dev db [T005561] ([#4507](https://github.com/Paddione/Bachelorprojekt/issues/4507)) ([fc56d36](https://github.com/Paddione/Bachelorprojekt/commit/fc56d366954a735bbbdcb3c7cf59af8827f51cf7))
+* **scripts:** make hooks worktree-capable with common-dir fallback [T005567] ([#4502](https://github.com/Paddione/Bachelorprojekt/issues/4502)) ([cef0dc6](https://github.com/Paddione/Bachelorprojekt/commit/cef0dc639d9800d3c3b8fb14ab3214be10468cdb))
+
 ## [1.276.38](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.37...website-v1.276.38) (2026-08-14)
 
 

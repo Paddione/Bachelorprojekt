@@ -21,10 +21,11 @@ Zeilenform (--fixture / --rows-json), je Phase-Event eine Zeile:
 Filter und Schutz:
 
   - Nur Laeufe, deren Ergebnis als erfolgreich verzeichnet ist: mindestens ein Event mit
-    phase == 'verify' und state == 'pass' (die dokumentierte Konvention fuer
-    Quality-Gate-Ergebnisse, siehe CLAUDE.md "Merge = Abschluss"). Faellt dieses Event nicht
-    vor, wird das Ticket komplett ausgeschlossen — Fehlverhalten einzuueben waere das
-    Gegenteil des Trainingsziels.
+    phase == 'verify' und state == 'done'. State-Werte folgen der Aufnahme-Mechanik
+    record_phase_event (entered|done|blocked, vgl. software-factory REQ-SF-EXECUTOR-002);
+    ein verify/entered-Event gilt als nicht abgeschlossen und wird verworfen. Faellt kein
+    verify/done-Event vor, wird das Ticket komplett ausgeschlossen — Fehlverhalten
+    einzuueben waere das Gegenteil des Trainingsziels.
   - Kein Lesezugriff auf environments/.secrets/ (dieses Skript liest ausschliesslich die
     uebergebenen Zeilen). Ein Redaktionsfilter entfernt bekannte Secret-Muster aus jedem
     `detail`-Feld, bevor geschrieben wird.
@@ -80,7 +81,7 @@ def group_by_ticket(rows: list[dict]) -> dict[int, list[dict]]:
 
 
 def is_successful(events: list[dict]) -> bool:
-    return any(e.get("phase") == "verify" and e.get("state") == "pass" for e in events)
+    return any(e.get("phase") == "verify" and e.get("state") == "done" for e in events)
 
 
 def render_conversation(events: list[dict]) -> dict:

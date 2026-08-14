@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.275.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.275.1...website-v1.275.2) (2026-08-14)
+
+
+### Bug Fixes
+
+* **mcp:** bge-mcp auth for Qwen Code [T004272] ([#4358](https://github.com/Paddione/Bachelorprojekt/issues/4358)) ([343ea80](https://github.com/Paddione/Bachelorprojekt/commit/343ea8032b5fc473d21e01e7a7fd9516f39f7a6b))
+
+## [1.275.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.275.0...website-v1.275.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **docs:** plan-archive-steps git add-Liste deckt openspec/specs/ ab [T004271] ([#4355](https://github.com/Paddione/Bachelorprojekt/issues/4355)) ([e1832cc](https://github.com/Paddione/Bachelorprojekt/commit/e1832cc2f9e942c04d5f791a6203440673828864))
+
 ## [1.275.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.274.0...website-v1.275.0) (2026-08-13)
 
 

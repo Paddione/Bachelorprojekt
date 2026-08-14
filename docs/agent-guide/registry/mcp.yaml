@@ -109,14 +109,17 @@ clients:
       Bind auf 127.0.0.1 plus Bearer-Token (BGE_MCP_TOKEN). Ohne gesetzten Token
       startet der Shim nicht. Der Header wird seit T002487 aus dem headers-Feld
       oben generiert — als unexpandierte ${VAR}-Referenz, damit kein Klartext in
-      eine getrackte Datei geraet. Betriebsvoraussetzung ist deshalb, dass
-      BGE_MCP_TOKEN in der Umgebung exportiert ist, aus der der Harness startet;
-      Quelle ist ~/.config/bge-mcp/server.env, dieselbe Datei, die die
-      systemd-user-Unit per EnvironmentFile= liest. Ist er nicht gesetzt,
-      erscheint der Server als inaktiv und ein direkter initialize-Aufruf
-      antwortet mit HTTP 401 (www-authenticate: Bearer). Der UI-Dialog der
-      llama-Web-UI ("Authorization / Bearer") bleibt davon unberuehrt: llama.cpp
-      bezieht den Server nicht aus dieser Registry.
+      eine getrackte Datei geraet. Claude Code expandiert ${VAR} beim Laden
+      selbst; OpenCode benoetigt die {env:VAR}-Notation (Uebersetzung in
+      mcp-sync.sh, T002488); agy (T002704) und Qwen Code (T004272) expandieren
+      ${VAR} ebenfalls nicht — dort loest mcp-sync.sh den Token zur Sync-Zeit
+      auf und schreibt den Klartext-Wert in die nicht-getrackte Config-Datei
+      (chmod 600). Quelle ist ~/.config/bge-mcp/server.env, dieselbe Datei, die
+      die systemd-user-Unit per EnvironmentFile= liest. Ist der Token weder in
+      der Umgebung noch in server.env vorhanden, bleibt der Platzhalter stehen
+      und der Server antwortet mit HTTP 401 (www-authenticate: Bearer). Der
+      UI-Dialog der llama-Web-UI ("Authorization / Bearer") bleibt davon
+      unberuehrt: llama.cpp bezieht den Server nicht aus dieser Registry.
     failover_note: >-
       Der Shim haelt keine eigene Failover-Logik. Welches bge-Paar antwortet,
       entscheidet website/src/lib/bge-router.ts — dieselbe Stelle, die auch die
@@ -131,6 +134,8 @@ clients:
         type: remote
         url: http://localhost:13005/mcp
         enabled: true
+      qwen_code:
+        httpUrl: http://localhost:13005/mcp
 
   mcp-task-runner:
     transport: stdio

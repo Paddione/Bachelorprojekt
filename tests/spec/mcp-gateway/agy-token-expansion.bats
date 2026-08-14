@@ -154,24 +154,25 @@ write_server_env() {
 }
 
 @test "the repository-tracked renderers never receive the resolved value" {
-  # Sicherheits-Guard: .mcp.json und .opencode/opencode.jsonc sind getrackt.
+  # Sicherheits-Guard: .opencode/opencode.jsonc ist getrackt.
   # Ein expandierter Token waere dort ein committetes Geheimnis.
+  # [T004272] .mcp.json ueberspringt Server mit ${VAR} in Headers komplett.
   run env HOME="$TMPD/fakehome" PROBE_TOKEN="env-value-4711" \
       MCP_REGISTRY="$TMPD/registry.yaml" MCP_OUT_DIR="$TMPD" \
       bash "$SYNC" render
   [ "$status" -eq 0 ]
 
-  # Positiv-Anker: beide Dateien existieren und tragen ihre eigene Notation.
-  run jq -r '.mcpServers["probe-http"].headers.Authorization' "$TMPD/.mcp.json"
-  echo "claude header: $output"
-  [ "$output" = 'Bearer ${PROBE_TOKEN}' ]
+  # Claude-Renderer ueberspringt probe-http (hat ${VAR} in Headers)
+  run jq -r '.mcpServers["probe-http"]' "$TMPD/.mcp.json"
+  echo "claude probe-http: $output"
+  [ "$output" = "null" ]
 
+  # OpenCode-Renderer uebersetzt ${VAR} in {env:VAR}
   run grep -c '{env:PROBE_TOKEN}' "$TMPD/.opencode/opencode.jsonc"
   echo "opencode placeholder count: $output"
   [ "$output" -ge 1 ]
 
-  # Erst danach die Negativ-Aussage: der aufgeloeste Wert taucht in keiner
-  # der beiden getrackten Dateien auf.
+  # Der aufgeloeste Wert taucht in keiner der getrackten Dateien auf.
   run grep -c 'env-value-4711' "$TMPD/.mcp.json"
   [ "$output" -eq 0 ]
   run grep -c 'env-value-4711' "$TMPD/.opencode/opencode.jsonc"

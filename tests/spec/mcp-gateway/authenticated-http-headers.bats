@@ -53,17 +53,19 @@ setup() {
 
 # ── Generator reicht Header in die HTTP-Harness-Configs durch ────────────
 
-@test "generated .mcp.json carries the bge-mcp Authorization header" {
+@test "generated .mcp.json does NOT carry bge-mcp (T004272)" {
+  # [T004272] bge-mcp hat ${BGE_MCP_TOKEN} in Headers — der Claude-Renderer
+  # ueberspringt Server mit ${VAR} in Headers, damit Qwen Code nicht den
+  # Literal-String sendet (HTTP 401). bge-mcp gehoert in ~/.qwen/settings.json.
   run bash -c "node -e \"
     const fs=require('fs');
     const d=JSON.parse(fs.readFileSync('$REPO/.mcp.json','utf8'));
     const s=d.mcpServers['bge-mcp'];
-    if(!s.headers) process.exit(1);
-    console.log(s.headers.Authorization||'');
+    console.log(s === undefined ? 'absent' : 'present');
   \""
   echo "output: $output"
   [ "$status" -eq 0 ]
-  [[ "$output" == *'${BGE_MCP_TOKEN}'* ]]
+  [ "$output" = "absent" ]
 }
 
 @test "generated opencode.jsonc carries the bge-mcp Authorization header" {
@@ -84,7 +86,9 @@ setup() {
 
 # ── Generizitaet: kein bge-mcp-Sonderfall im Renderer ────────────────────
 
-@test "renderers pass headers through for any http client, not just bge-mcp" {
+@test "renderers pass headers through for opencode and agy (T004272)" {
+  # [T004272] Der Claude-Renderer ueberspringt Server mit ${VAR} in Headers.
+  # Dieser Test prueft, dass opencode und agy die Header korrekt durchreichen.
   local tmpd fixture
   tmpd="$(mktemp -d)"
   fixture="$tmpd/registry.yaml"
@@ -109,8 +113,6 @@ clients:
 cluster: {}
 YAML
 
-  # Der Generator laeuft vollstaendig gegen MCP_OUT_DIR, sodass die getrackten
-  # Repo-Zieldateien unberuehrt bleiben.
   run env HOME="$tmpd/fakehome" MCP_REGISTRY="$fixture" MCP_OUT_DIR="$tmpd" bash "$SYNC" render
   local render_status="$status"
   local render_output="$output"
@@ -118,16 +120,27 @@ YAML
   echo "render output: $render_output"
   [ "$render_status" -eq 0 ]
 
-  # Ergebnis messen: beide Header stehen in der gerenderten Claude-Config.
+  # Claude-Renderer ueberspringt probe-http (hat ${VAR} in Headers)
   run bash -c "node -e \"
     const fs=require('fs');
     const d=JSON.parse(fs.readFileSync('$tmpd/.mcp.json','utf8'));
-    const h=d.mcpServers['probe-http'].headers;
-    console.log(h.Authorization+'|'+h['X-Probe']);
+    console.log(d.mcpServers['probe-http'] === undefined ? 'absent' : 'present');
   \""
-  echo "output: $output"
+  echo "claude probe-http: $output"
   [ "$status" -eq 0 ]
-  [[ "$output" == 'Bearer ${PROBE_TOKEN}|static-value' ]]
+  [ "$output" = "absent" ]
+
+  # OpenCode-Renderer uebersetzt ${VAR} in {env:VAR}
+  # Hinweis: .opencode/opencode.jsonc ist JSONC (mit Kommentaren), also grep statt JSON.parse
+  run grep -o '"Authorization":"[^"]*"' "$tmpd/.opencode/opencode.jsonc"
+  echo "opencode auth header: $output"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'{env:PROBE_TOKEN}'* ]]
+
+  run grep -o '"X-Probe":"[^"]*"' "$tmpd/.opencode/opencode.jsonc"
+  echo "opencode X-Probe: $output"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'static-value'* ]]
 
   rm -rf "$tmpd"
 }
@@ -135,31 +148,29 @@ YAML
 # ── Kein Secret in getrackten Dateien ────────────────────────────────────
 
 @test "no expanded bearer token leaks into tracked harness configs" {
-  # Positiv-Anker: die Dateien existieren und tragen ueberhaupt einen Header.
+  # [T004272] .mcp.json hat jetzt KEINE Authorization-Header mehr, weil der
+  # Claude-Renderer Server mit ${VAR} in Headers ueberspringt. Der Test prueft,
+  # dass keine Klartext-Token in .mcp.json stehen.
   [ -f "$REPO/.mcp.json" ]
-  run grep -c 'Authorization' "$REPO/.mcp.json"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
 
-  # Negativ-Aussage: jeder Authorization-Wert ist eine ${VAR}-Referenz.
-  # Extraktion bewusst per jq statt `node -e`: eine Regex auf `${...}` ueberlebt
-  # die drei Quoting-Ebenen (bats -> bash -c -> node -e) nicht — der Backslash
-  # vor dem Dollar geht unterwegs verloren und die Pruefung meldet falsch rot.
+  # Extraktion aller Authorization-Werte (sollte leer sein)
   run jq -r '.mcpServers | to_entries[] | select(.value.headers != null)
              | .key as $n | .value.headers | to_entries[]
              | select(.key | ascii_downcase == "authorization")
              | "\($n)=\(.value)"' "$REPO/.mcp.json"
   echo "authorization headers: $output"
   [ "$status" -eq 0 ]
-  [ -n "$output" ]
 
-  local leaked=""
-  while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    case "$line" in
-      *'${'*'}'*) : ;;                   # Env-Referenz — in Ordnung
-      *) leaked="${leaked}${line} " ;;   # alles andere ist ein Klartext-Wert
-    esac
-  done <<< "$output"
-  [ -z "$leaked" ] || { echo "LEAK: $leaked"; false; }
+  # Wenn es Authorization-Header gibt, pruefe dass alle ${VAR}-Referenzen sind
+  if [ -n "$output" ]; then
+    local leaked=""
+    while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      case "$line" in
+        *'${'*'}'*) : ;;                   # Env-Referenz — in Ordnung
+        *) leaked="${leaked}${line} " ;;   # alles andere ist ein Klartext-Wert
+      esac
+    done <<< "$output"
+    [ -z "$leaked" ] || { echo "LEAK: $leaked"; false; }
+  fi
 }

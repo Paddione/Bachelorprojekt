@@ -17,12 +17,8 @@ LOGFILE="${AGENT_PUSH_LOG:-/var/log/agent-push.log}"
 NTFY_BASE="${NTFY_BASE_URL:?NTFY_BASE_URL not set}"
 TOPIC="bachelorprojekt-${SOURCE}"
 
-if [ "$SOURCE" = "opencode" ]; then
-  TOKEN="${NTFY_TOKEN_OPEncode:-${NTFY_TOKEN_OPENCODE:-}}"
-else
-  TOKEN_VAR="NTFY_TOKEN_$(echo "$SOURCE" | tr '[:lower:]' '[:upper:]')"
-  TOKEN="${!TOKEN_VAR:-}"
-fi
+TOKEN_VAR="NTFY_TOKEN_$(echo "$SOURCE" | tr '[:lower:]' '[:upper:]')"
+TOKEN="${!TOKEN_VAR:-}"
 
 : "${TOKEN:?token for $SOURCE not set}"
 

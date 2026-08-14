@@ -33,7 +33,7 @@ openspec/changes/terminal-guard-invalid-done-repair/specs/mcp-gateway.md (p3)
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Die beiden neuen T003072-Tests in
+- [x] **Failing-Test-Step (RED).** Die beiden neuen T003072-Tests in
       `tests/spec/ticket-system.bats` MÜSSEN auf dem aktuellen Branch
       fehlschlagen (keine resolution-IS-NULL-Bedingung in beiden Write-Pfaden).
       `expected: FAIL` im Step-Body.
@@ -43,7 +43,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system.bats --filter 'T00307
 # expected: FAIL (red — die Ausnahme ist nicht implementiert)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implementiere p1 + p2. Die T003072-Tests müssen
+- [x] **Fix-Step (GREEN).** Implementiere p1 + p2. Die T003072-Tests müssen
       danach grün sein; alle bestehenden T002382-Tests bleiben grün.
 
 - [ ] **Final Verification.** Drei Pflicht-Gates:

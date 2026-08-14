@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.31](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.30...website-v1.276.31) (2026-08-14)
+
+
+### Bug Fixes
+
+* **website:** enforce http/https-only rendering for crawl startUrl in WissenHub [T005900] ([#4486](https://github.com/Paddione/Bachelorprojekt/issues/4486)) ([18b67a3](https://github.com/Paddione/Bachelorprojekt/commit/18b67a32b8de64bf535394233ab759bc5f1ac539))
+
 ## [1.276.30](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.29...website-v1.276.30) (2026-08-14)
 
 

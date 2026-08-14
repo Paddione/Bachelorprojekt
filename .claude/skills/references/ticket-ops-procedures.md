@@ -484,8 +484,16 @@ HYGIENE-EMPFEHLUNG: 5 stale Worktrees, 8 [gone]-Branches — `repo-hygiene` ausf
 
 ### Step 3.6: Dispatch wave 1 (after the user approves)
 
+> **Claim-Timing bei unplanned Tickets [T004602]:** Für unplanned Tickets (`ai_ready`, kein Plan)
+> läuft zuerst die `dev-flow-plan`-Proposal-Phase (Phase A) im **Haupt-Checkout** (main-checkout)
+> OHNE Branch-Lock. Mit aktivem Worktree-Claim blockiert der `worktree-write-guard` alle Write-Tools
+> im Haupt-Checkout (T002357-M1). Der branch-scoped Claim darf daher erst NACH der Proposal-Phase
+> (Phase A) gehalten werden.
+>
+> **Sequenz:** Proposal-Phase (Phase A im Haupt-Checkout, kein Claim) → Claim branch + Worktree anlegen (Phase B) → Plan/Execute-Dispatch im Worktree.
+
 For each remaining wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
-1. `bash scripts/agent-lock.sh claim branch <branch> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it). **Warum branch-scoped und nicht ticket-scoped (T003102):** der ticket-scoped Lock blockiert nicht den zweiten Bearbeiter, sondern den späteren Abschluss durch Subagent, `ticket-mcp` und `post-merge.yml` — der branch-scoped Claim hingegen schützt genau den Worktree, den `dev-flow-execute` betritt und ändert.
+1. `bash scripts/agent-lock.sh claim branch <branch> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it; bei unplanned Tickets erst nach Phase A claimen [T004602]). **Warum branch-scoped und nicht ticket-scoped (T003102):** der ticket-scoped Lock blockiert nicht den zweiten Bearbeiter, sondern den späteren Abschluss durch Subagent, `ticket-mcp` und `post-merge.yml` — der branch-scoped Claim hingegen schützt genau den Worktree, den `dev-flow-execute` betritt und ändert.
 
    Der Subagent soll zu Beginn im Worktree selbst claimen:
    ```bash

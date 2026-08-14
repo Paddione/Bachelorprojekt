@@ -23,21 +23,21 @@ tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats    # BATS te
 
 ## 1. Worktree Write Guard Phase-A Allowlist (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add BATS test `tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats` verifying that writes to `$MAIN_ROOT/openspec/changes/*` and `$MAIN_ROOT/.lavish/*` are permitted even when active own worktree claims exist under the same SID. Run with bats:
+- [x] **Failing-Test-Step (RED).** Add BATS test `tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats` verifying that writes to `$MAIN_ROOT/openspec/changes/*` and `$MAIN_ROOT/.lavish/*` are permitted even when active own worktree claims exist under the same SID. Run with bats:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats
 # expected: FAIL (red — guard rejects Phase-A writes on main checkout when own worktrees exist)
 ```
 
-- [ ] **Fix-Step (GREEN).** Update `scripts/hooks/worktree-write-guard.sh` to allow writes to `$MAIN_ROOT/openspec/changes/*` and `$MAIN_ROOT/.lavish/*` when checking own worktree claims.
+- [x] **Fix-Step (GREEN).** Update `scripts/hooks/worktree-write-guard.sh` to allow writes to `$MAIN_ROOT/openspec/changes/*` and `$MAIN_ROOT/.lavish/*` when checking own worktree claims.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats
 # expected: PASS (green — Phase-A proposal paths permitted on main, non-Phase-A main writes rejected)
 ```
 
-- [ ] **Final Verification.** Run the mandatory CI gates:
+- [x] **Final Verification.** Run the mandatory CI gates:
 
 ```bash
 task test:changed

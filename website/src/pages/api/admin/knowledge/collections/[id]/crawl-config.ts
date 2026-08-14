@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getCollection, updateCrawlConfig, type CrawlConfig } from '../../../../../../lib/knowledge-db';
+import { safeHttpUrl } from '../../../../../../lib/safe-url';
 
 export const PATCH: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -22,15 +23,11 @@ export const PATCH: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ error: 'startUrl erforderlich' }), { status: 400 });
   }
 
-  let parsedUrl: URL;
-  try { parsedUrl = new URL(body.startUrl); } catch {
-    return new Response(JSON.stringify({ error: 'startUrl ist keine gültige URL' }), { status: 400 });
-  }
-
-  // T005900: javascript:/data:/… sind parsebar, aber kein Link-Schema für einen
-  // Crawl-Ausgangspunkt — nur http/https persistieren (Stored-XSS-Vektor).
-  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-    return new Response(JSON.stringify({ error: 'startUrl muss http/https sein' }), { status: 400 });
+  // T005900/T005901: javascript:/data:/… sind parsebar, aber kein Link-Schema für
+  // einen Crawl-Ausgangspunkt — nur http/https persistieren (Stored-XSS-Vektor).
+  // geteilter Helper safeHttpUrl (safe-url.ts) als SSOT für Client und Server.
+  if (!safeHttpUrl(body.startUrl)) {
+    return new Response(JSON.stringify({ error: 'startUrl muss eine http(s)-URL sein' }), { status: 400 });
   }
 
   const config: CrawlConfig = {

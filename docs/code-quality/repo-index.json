@@ -1093,7 +1093,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1785,
+      "file_count": 1786,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -2481,6 +2481,7 @@
         "website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts",
         "website/src/pages/api/admin/knowledge/collections/[id]/context7-config.ts",
         "website/src/pages/api/admin/knowledge/collections/[id]/context7.ts",
+        "website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.test.ts",
         "website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.ts",
         "website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts",
         "website/src/pages/api/admin/knowledge/collections/[id]/documents.ts",

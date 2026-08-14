@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.14...website-v1.276.15) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** rollup generator writes .ticket + specs delta [T005031] ([#4428](https://github.com/Paddione/Bachelorprojekt/issues/4428)) ([3077032](https://github.com/Paddione/Bachelorprojekt/commit/3077032bfd3e7c4bf700e1103c3970b5cf6386e2))
+
 ## [1.276.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.13...website-v1.276.14) (2026-08-14)
 
 

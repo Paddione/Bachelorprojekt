@@ -2,7 +2,7 @@
 title: "embed-completeness-slug-scope — Implementation Plan"
 ticket_id: T004598
 domains: [openspec]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

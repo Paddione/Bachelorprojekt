@@ -1,4 +1,3 @@
 ---
-const { id } = Astro.params;
-return Astro.redirect(`/admin/live/sessions/${id}`, 301);
+return Astro.redirect(`/admin/live/sessions/${Astro.params.id}`, 301);
 ---

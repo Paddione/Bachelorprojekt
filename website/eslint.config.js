@@ -4,7 +4,7 @@ import svelte from 'eslint-plugin-svelte';
 import astro from 'eslint-plugin-astro';
 import globals from 'globals';
 
-export default tseslint.config(
+export default [
   { ignores: [
     'dist/', '.astro/', '.design-sync/', '.ds-sync/', 'node_modules/', 'coverage/', '**/*.generated.*',
     'src/pages/admin/coaching/sessions/index.astro',
@@ -48,4 +48,4 @@ export default tseslint.config(
     files: ['tests/**/*.ts', 'tests/**/*.mjs', 'src/**/*.test.ts', 'src/**/*.spec.ts'],
     languageOptions: { globals: { ...globals.vitest } },
   },
-);
+];

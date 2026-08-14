@@ -6,6 +6,5 @@
 import { forwardReturnTo } from '../lib/login-redirect';
 export const prerender = false;
 
-const { redirect } = Astro;
-return redirect(forwardReturnTo(Astro.url), 302);
+return Astro.redirect(forwardReturnTo(Astro.url), 302);
 ---

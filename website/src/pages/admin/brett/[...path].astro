@@ -14,8 +14,7 @@ const path = Astro.params.path || '';
 // Empty path means index — redirect to the Brett service admin console
 if (!path) {
   const brettDomain = process.env.BRETT_DOMAIN ?? 'brett.localhost';
-  const proto = brettDomain.includes('localhost') ? 'http' : 'https';
-  return Astro.redirect(`${proto}://${brettDomain}/?admin=1`);
+  return Astro.redirect(`${brettDomain.includes('localhost') ? 'http' : 'https'}://${brettDomain}/?admin=1`);
 }
 
 // Nur erlaubte Pfade proxyen
@@ -47,15 +46,11 @@ try {
     signal: AbortSignal.timeout(10000),
   });
 
-  const body = await upstreamRes.arrayBuffer();
-  const contentType = upstreamRes.headers.get('content-type') || 'application/octet-stream';
-
-  return new Response(body, {
+  return new Response(await upstreamRes.arrayBuffer(), {
     status: upstreamRes.status,
-    headers: { 'content-type': contentType },
+    headers: { 'content-type': upstreamRes.headers.get('content-type') || 'application/octet-stream' },
   });
 } catch (e) {
-  const message = e instanceof Error ? e.message : String(e);
-  return new Response(`Proxy error: ${message}`, { status: 502 });
+  return new Response(`Proxy error: ${e instanceof Error ? e.message : String(e)}`, { status: 502 });
 }
 ---

@@ -43,7 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
   let body: unknown;
   try { body = await request.json(); } catch { return new Response('bad json', { status: 400 }); }
   const parsed = CreateBody.safeParse(body);
-  if (!parsed.success) return new Response(JSON.stringify(parsed.error.flatten()), { status: 400 });
+  if (!parsed.success) return new Response(JSON.stringify(z.flattenError(parsed.error)), { status: 400 });
 
   const row = await createComponent(parsed.data);
   return new Response(JSON.stringify(row), {

@@ -93,6 +93,8 @@ jobs:
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
           mkdir -p ~/.kube
+          umask 077
+          chmod 700 ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
           kubectl rollout restart deployment/brett -n workspace
@@ -118,6 +120,8 @@ jobs:
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
           mkdir -p ~/.kube
+          umask 077
+          chmod 700 ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
           kubectl rollout restart deployment/brett -n workspace-korczewski

@@ -28,16 +28,20 @@ setup() {
 }
 
 @test "Mishap 1: plan-lint effective_threshold for InboxApp.svelte matches current baseline.json (not a stale hardcoded snapshot)" {
-  local baseline_metric
-  baseline_metric=$(jq -r '."S1:website/src/components/inbox/InboxApp.svelte".metric' "$BASELINE")
-  [ "$baseline_metric" != "null" ]
-  [ -n "$baseline_metric" ]
-
-  local expected
-  expected=$((baseline_metric > 500 ? baseline_metric : 500))
-
-  run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "website/src/components/inbox/InboxApp.svelte"
+  local tmp_base
+  tmp_base=$(mktemp)
+  cat > "$tmp_base" <<'EOF'
+{
+  "S1:website/src/components/inbox/InboxApp.svelte": {
+    "metric": 1200
+  }
+}
+EOF
+  local limit; limit=$(yq -r '.s1.limits[".svelte"]' "$REPO/docs/code-quality/gates.yaml")
+  run env PLAN_LINT_SELFTEST=1 BASELINE="$tmp_base" bash "$LINT" effective_threshold "website/src/components/inbox/InboxApp.svelte"
+  rm -f "$tmp_base"
   [ "$status" -eq 0 ]
+  local expected=$((1200 > limit ? 1200 : limit))
   [ "$output" = "$expected" ]
 }
 

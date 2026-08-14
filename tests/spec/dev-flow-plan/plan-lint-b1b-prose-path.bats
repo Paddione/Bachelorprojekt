@@ -24,12 +24,12 @@ setup() {
     printf '## File Structure\n\n'
     # Echter Tabelleneintrag: budget-erschoepfte Datei A, wird von Task 1 beruehrt.
     printf '| File | Ist | Budget |\n|------|-----|--------|\n'
-    printf -- '| `website/src/components/inbox/InboxApp.svelte` | 0 | 0 |\n\n'
+    printf -- '| `scripts/code-quality/fixtures/plan-lint/over-threshold-target.sh` | 850 | -50 |\n\n'
     # Reine Prosa-Erwaehnung: eine ANDERE, ebenfalls budget-erschoepfte Datei B,
     # nur als Beleg genannt — steht NICHT in der Tabelle, KEIN Listenpunkt.
-    printf 'Positiv-Kontrolle: `website/src/components/inbox/InboxDetail.svelte` ist ebenfalls am Limit, dient hier nur als Beleg fuer die Budget-Rechnung.\n\n'
+    printf 'Beleg: `scripts/code-quality/fixtures/plan-lint/over-threshold-prose.sh` ist ebenfalls am Limit, dient hier nur als Beleg fuer die Budget-Rechnung.\n\n'
     printf '## Task 1: Do the thing\n\n'
-    printf '**Files:**\n- Modify: `website/src/components/inbox/InboxApp.svelte`\n\n'
+    printf '**Files:**\n- Modify: `scripts/code-quality/fixtures/plan-lint/over-threshold-target.sh`\n\n'
     printf -- '- [ ] **Step 1: Write the failing test**\n\n'
     printf 'Run: `bats tests/unit/example.bats`\nExpected: FAIL\n\n'
     printf -- '## Task 2: GREEN\n\n- [ ] implement\n\n'
@@ -41,11 +41,13 @@ setup() {
   # Positiv-Anker [T002356-M1]: die echte Tabellenzeile (Datei A) MUSS weiterhin
   # eine B1b-Warnung ausloesen. Ohne diesen Anker waere die folgende
   # Negativ-Aussage auch dann gruen, wenn B1b gar nicht mehr auswerten wuerde.
-  echo "$output" | grep -qF 'B1b: website/src/components/inbox/InboxApp.svelte' \
-    || { echo "Anker fehlt: B1b muss fuer den echten Tabelleneintrag InboxApp.svelte anschlagen. Output:"; echo "$output"; return 1; }
+  echo "$output" | grep -qF 'B1b: scripts/code-quality/fixtures/plan-lint/over-threshold-target.sh' \
+    || { echo "Anker fehlt: B1b muss fuer den echten Tabelleneintrag over-threshold-target.sh anschlagen. Output:"; echo "$output"; return 1; }
 
   # Kernaussage (RED heute, GREEN nach dem Fix): die reine Prosa-Erwaehnung von
-  # Datei B (InboxDetail.svelte, nicht in der Tabelle) darf KEINE B1b-Warnung
-  # ausloesen.
-  ! echo "$output" | grep -qF 'InboxDetail.svelte'
+  # Datei B (over-threshold-prose.sh, nicht in der Tabelle) darf KEINE B1b-Warnung
+  # ausloesen. Datei B ist selbst budget-erschoepft (850 Zeilen gegen .sh-Limit
+  # 800) — wuerde plan-lint wieder Prosa-Zeilen scannen (T002807-Regression),
+  # schluege B1b fuer exakt diese Zeile an und der Test wuerde rot.
+  ! echo "$output" | grep -qF 'B1b: scripts/code-quality/fixtures/plan-lint/over-threshold-prose.sh'
 }

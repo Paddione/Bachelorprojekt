@@ -229,3 +229,76 @@ jobs:
           path: tests/results
           retention-days: 14
           if-no-files-found: ignore
+
+  # ── SSO-E2E: OIDC/OTAC-abhängige Specs gegen Fleet (T003163) ──────────
+  # Der Matrix-Job oben läuft auf ubuntu-latest OHNE Cluster-Zugriff; dort
+  # degradieren brett-mentolder-setup, sa-08 T16 und fa-60 sauber zu fixme.
+  # Dieser Job stellt kubectl + Fleet-Kubeconfig bereit (gleiche Pattern wie
+  # build-brett.yml), sodass lib/oidc.ts pro Login ein frisches One-Time-
+  # Access-Token über die pocket-id-CLI erzeugt — und brett-OIDC-Login,
+  # Nextcloud-SSO und der Realtime-WS-Test erstmals in CI echt laufen.
+  # Kein POCKET_ID_OTAC_URL-Env: das Token ist single-use und 1h gültig,
+  # ein statisches Secret wäre nach Ablauf tot.
+  sso-e2e:
+    name: SSO-E2E (OIDC-OTAC gegen Fleet)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tests/e2e/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tests/e2e
+        run: npm ci
+
+      - name: Install Playwright chromium
+        working-directory: tests/e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare Fleet kubeconfig (kubectl + OTAC-CLI-Zugriff)
+        id: kube
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          if [ -z "${KUBECONFIG_DATA:-}" ]; then
+            echo "::warning::FLEET_KUBECONFIG fehlt — SSO-E2E-Job übersprungen (Specs degradieren im Matrix-Job zu fixme)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          kubectl config current-context
+
+      - name: Run SSO-E2E specs (brett OIDC-Login, Nextcloud-SSO, Realtime-WS)
+        if: steps.kube.outputs.skip != 'true'
+        working-directory: tests/e2e
+        env:
+          WEBSITE_URL: https://web.mentolder.de
+          PROD_DOMAIN: mentolder.de
+          TEST_KC_URL: https://auth.mentolder.de
+          TEST_NC_URL: https://files.mentolder.de
+          NC_DOMAIN: files.mentolder.de
+          BRETT_URL: https://brett.mentolder.de
+          E2E_ADMIN_USER: paddione
+          E2E_ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASS }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: npx playwright test specs/sa-08-sso.spec.ts specs/fa-60-realtime-ws.spec.ts --project services --project brett-mentolder
+
+      - name: Upload results (SSO-E2E)
+        if: always() && steps.kube.outputs.skip != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-sso-e2e
+          path: tests/results
+          retention-days: 14
+          if-no-files-found: ignore

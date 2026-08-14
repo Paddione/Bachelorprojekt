@@ -162,7 +162,60 @@ warn() { WARN+=("$1"); }
 
 # --- frontmatter extraction (first --- … --- block) ---
 fm_field() {  # fm_field <key> -> value (empty if absent)
-  awk -v k="$1" 'BEGIN{f=0}/^---$/{f++;next}f==1 && $0 ~ "^"k":"{sub("^"k":[ \t]*","",$0);print;exit}' "$PLAN" | tr -d '\r'
+  awk -v k="$1" '
+    BEGIN{f=0; in_list=0; count=0}
+    /^---$/{
+      f++;
+      if (f==2) {
+        if (in_list) {
+          printf "["
+          for (i=0; i<count; i++) printf "%s%s", (i>0?", ":""), items[i]
+          printf "]\n"
+          in_list=0
+        }
+        exit
+      }
+      next
+    }
+    f==1 {
+      if (in_list) {
+        if ($0 ~ /^[ \t]*-[ \t]*/) {
+          val=$0
+          sub(/^[ \t]*-[ \t]*/, "", val)
+          sub(/[ \t\r]*$/, "", val)
+          sub(/^['\''"]/, "", val); sub(/['\''"]$/, "", val)
+          if (val != "") items[count++] = val
+          next
+        } else {
+          printf "["
+          for (i=0; i<count; i++) printf "%s%s", (i>0?", ":""), items[i]
+          printf "]\n"
+          in_list=0
+          exit
+        }
+      }
+      if ($0 ~ ("^" k ":")) {
+        line=$0
+        sub("^" k ":[ \t]*", "", line)
+        sub(/[ \t\r]*$/, "", line)
+        if (line != "") {
+          print line
+          in_list=0
+          exit
+        } else {
+          in_list=1
+          next
+        }
+      }
+    }
+    END {
+      if (in_list && f < 2) {
+        printf "["
+        for (i=0; i<count; i++) printf "%s%s", (i>0?", ":""), items[i]
+        printf "]\n"
+      }
+    }
+  ' "$PLAN" | tr -d '\r'
 }
 
 # === F1/F2: frontmatter completeness ===

@@ -58,7 +58,7 @@ Dieser Change baut den Count-Vergleich in den Merge-Punkt ein: trunkierendes MOD
 applyDelta durchreichen. Default bleibt false — bewusste Konsolidierungen brauchen das
 Flag explizit. Hilfe-Text ergänzen.
 
-## Task 4 — Discover-Schritt + Verifikation
+## Task 4 — Discover-Schritt + Verifikation — DONE (Discover: 695 Deltas, 3 trunkierende Funde am Ticket dokumentiert; vitest 22/22, openspec-BATS 149/149, freshness check grün, test:changed 2832 ok / 0 failed — Abbruch nur durch 600s-Timeout)
 
 - Discover: alle `openspec/changes/archive/*/specs/*.md`-Deltas gegen ihre SSOT-Specs mit
   dem neuen Guard-Ergebnis prüfen (einmaliger Lauf); Funde als Kommentar an T005310

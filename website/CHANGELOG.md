@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.40](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.39...website-v1.276.40) (2026-08-14)
+
+
+### Bug Fixes
+
+* **plans:** guard commit scopes in plan recommendations against commitlint [T004896] ([#4512](https://github.com/Paddione/Bachelorprojekt/issues/4512)) ([72f66f2](https://github.com/Paddione/Bachelorprojekt/commit/72f66f2d1394cc5a5c0c1561e7a6a3feeb31219c))
+
 ## [1.276.39](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.38...website-v1.276.39) (2026-08-14)
 
 

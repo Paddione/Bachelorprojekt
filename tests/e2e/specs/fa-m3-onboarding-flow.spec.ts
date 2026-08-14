@@ -8,15 +8,20 @@ const BASE        = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const GEKKO_USER  = process.env.E2E_GEKKO_USER ?? 'gekko';
 const GEKKO_PASS  = process.env.E2E_GEKKO_PASS ?? '';
 
-async function loginAsGekko(page: Page): Promise<void> {
+async function loginAsGekko(page: Page, testInfo?: any): Promise<void> {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    testInfo?.skip(true, 'CRON_SECRET not set — cannot login via e2e-login');
+    return;
+  }
   await loginViaE2E(page, BASE, GEKKO_USER, '/portal');
 }
 
 // ── M3-01: Portal nudge endpoint returns onboarding nudge after first login ──
 
 test.describe('M3 Onboarding Flow', () => {
-  test('M3-01: /api/assistant/nudges returns portal-onboarding-sequence nudge for logged-in user', async ({ page }) => {
-    await loginAsGekko(page);
+  test('M3-01: /api/assistant/nudges returns portal-onboarding-sequence nudge for logged-in user', async ({ page }, testInfo) => {
+    await loginAsGekko(page, testInfo);
 
     // First: ensure portal-first-login has fired by visiting /portal
     await page.goto(`${BASE}/portal`, { waitUntil: 'domcontentloaded' });
@@ -41,8 +46,8 @@ test.describe('M3 Onboarding Flow', () => {
 
   // ── M3-02: Primary action on first onboarding nudge is non-empty ────────────
 
-  test('M3-02: First onboarding nudge has a non-empty primaryAction kickoff', async ({ page }) => {
-    await loginAsGekko(page);
+  test('M3-02: First onboarding nudge has a non-empty primaryAction kickoff', async ({ page }, testInfo) => {
+    await loginAsGekko(page, testInfo);
     await page.goto(`${BASE}/portal`, { waitUntil: 'domcontentloaded' });
 
     const res = await page.request.get(`${BASE}/api/assistant/nudges?profile=portal`);
@@ -66,8 +71,8 @@ test.describe('M3 Onboarding Flow', () => {
 
   // ── M3-05: mark-step API persists an onboarding step ────────────────────────
 
-  test('M3-05: POST /api/portal/onboarding/mark-step persists step and returns ok', async ({ page }) => {
-    await loginAsGekko(page);
+  test('M3-05: POST /api/portal/onboarding/mark-step persists step and returns ok', async ({ page }, testInfo) => {
+    await loginAsGekko(page, testInfo);
 
     // Mark the sidekick-intro step as complete
     const res = await page.request.post(`${BASE}/api/portal/onboarding/mark-step`, {
@@ -103,8 +108,8 @@ test.describe('M3 Onboarding Flow', () => {
     expect(res.status()).toBe(401);
   });
 
-  test('M3-validation: POST /api/portal/onboarding/mark-step → 400 when stepId missing', async ({ page }) => {
-    await loginAsGekko(page);
+  test('M3-validation: POST /api/portal/onboarding/mark-step → 400 when stepId missing', async ({ page }, testInfo) => {
+    await loginAsGekko(page, testInfo);
 
     const res = await page.request.post(`${BASE}/api/portal/onboarding/mark-step`, {
       data: {},

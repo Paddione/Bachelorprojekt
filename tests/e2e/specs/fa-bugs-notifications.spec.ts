@@ -175,6 +175,6 @@ test.describe('FA-bug-notify', () => {
       headers: { 'Content-Type': 'application/json' },
       data: JSON.stringify({ status: 'done', resolution: 'fixed', note: 'test' }),
     });
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 });

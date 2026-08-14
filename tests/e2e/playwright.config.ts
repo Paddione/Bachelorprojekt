@@ -13,9 +13,9 @@ try {
 
 export default defineConfig({
   testDir: './specs',
-  timeout: 45_000,
-  retries: 1,
-  workers: process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : 1,
+  timeout: 10_000,
+  retries: 0,
+  workers: process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : 4,
   // Test-bracketed prod DB purge. Both hooks POST to
   // /api/admin/systemtest/purge-all-test-data with X-Cron-Secret. See
   // ./specs/global-db-cleanup.ts. The Taskfile's `test:e2e` target wraps

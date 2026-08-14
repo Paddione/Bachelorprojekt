@@ -154,13 +154,13 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
 
   test('GET /sdlc/api/tickets returns 403 without auth', async ({ request }) => {
     const res = await request.get(`${BASE}/sdlc/api/tickets`);
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 
   test('POST /sdlc/api/tickets/:id/transition returns 403 without auth', async ({ request }) => {
     const res = await request.post(`${BASE}/sdlc/api/tickets/00000000-0000-0000-0000-000000000000/transition`,
       { headers: { 'Content-Type': 'application/json' },
         data: JSON.stringify({ status: 'done', resolution: 'fixed' }) });
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 });

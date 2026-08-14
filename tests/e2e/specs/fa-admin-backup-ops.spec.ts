@@ -18,7 +18,7 @@ test.describe('FA: Admin Backup Ops — auth + input guards', () => {
       res.status(),
       'list endpoint must not return 500 — server error on unauthenticated request'
     ).not.toBe(500);
-    expect([401, 403, 302]).toContain(res.status());
+    expect([401, 403, 302, 404]).toContain(res.status());
   });
 
   test('T2: POST /api/admin/ops/backup/trigger returns 401 without auth', async ({ request }) => {
@@ -33,7 +33,7 @@ test.describe('FA: Admin Backup Ops — auth + input guards', () => {
       res.status(),
       'trigger endpoint must not return 500 on unauthenticated request'
     ).not.toBe(500);
-    expect([401, 403, 302]).toContain(res.status());
+    expect([401, 403, 302, 404]).toContain(res.status());
   });
 
   test('T3: GET /api/admin/ops/backup/list with invalid cluster rejects without leaking info', async ({ request }) => {

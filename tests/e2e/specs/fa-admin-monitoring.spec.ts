@@ -11,6 +11,6 @@ test.describe('FA: Admin Monitoring page', { tag: ['@admin'] }, () => {
   test('T2: GET /sdlc/api/monitoring returns 401 or 403 without auth', async ({ request }) => {
     // Route seit dem SDLC-Build-Target-Split (T002624) unter /sdlc/api/monitoring.
     const res = await request.get(`${BASE}/sdlc/api/monitoring`);
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 });

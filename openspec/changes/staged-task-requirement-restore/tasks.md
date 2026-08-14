@@ -2,7 +2,7 @@
 title: Restore staged-task requirement in software-factory SSOT
 ticket_id: T005308
 domains: [factory, test]
-status: planning
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

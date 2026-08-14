@@ -24,6 +24,7 @@ rules:
     - Jede SSOT-Spec deklariert ## Purpose + ## Requirements H2-Header (enforced by scripts/openspec-validate.ts)
     - Purpose-Text auf Deutsch, Requirements + Scenarios auf Englisch (GIVEN/WHEN/THEN)
     - H3 ist ### Requirement: (H2 Requirement: ist verboten)
+    - MODIFIED-Deltas tragen den vollständigen Ersatztext des Requirements (Prosa + alle Szenarien) — kein additiver Partialtext. Die Archivierung ersetzt die Sektion vollständig.
   design:
     - Goals und Non-Goals explizit trennen
     - Decisions mit Begründung und ggf. Trade-offs dokumentieren

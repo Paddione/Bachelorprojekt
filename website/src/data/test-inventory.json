@@ -1998,6 +1998,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/ssot-harness-stable-session",
+    "file": "tests/spec/active-sessions-hub/ssot-harness-stable-session.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/ticket-lock-closure-T003102",
     "file": "tests/spec/active-sessions-hub/ticket-lock-closure-T003102.bats",
     "category": "active-sessions-hub",
@@ -2126,6 +2132,12 @@
   {
     "id": "agent-skills/worktree-mid-rebase-guard",
     "file": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/worktree-write-guard-phase-a-allowlist",
+    "file": "tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -2396,6 +2408,12 @@
   {
     "id": "ci-cd/bats-no-live-branch-assertion",
     "file": "tests/spec/ci-cd/bats-no-live-branch-assertion.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/brainstorm-firewall-namespace",
+    "file": "tests/spec/ci-cd/brainstorm-firewall-namespace.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3528,6 +3546,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-task-runner/planner-sees-real-deps",
+    "file": "tests/spec/mcp-task-runner/planner-sees-real-deps.bats",
+    "category": "mcp-task-runner",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-tooling",
     "file": "tests/spec/mcp-tooling.bats",
     "category": "mcp-tooling",
@@ -3632,6 +3656,12 @@
   {
     "id": "mishap-rollup/container-resolution-and-unattended-worktree",
     "file": "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/container-resolution-real-db",
+    "file": "tests/spec/mishap-rollup/container-resolution-real-db.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },
@@ -4532,6 +4562,12 @@
   {
     "id": "software-factory/sandbox-egress",
     "file": "tests/spec/software-factory/sandbox-egress.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/schedule-blocker-gate",
+    "file": "tests/spec/software-factory/schedule-blocker-gate.bats",
     "category": "software-factory",
     "kind": "shell"
   },

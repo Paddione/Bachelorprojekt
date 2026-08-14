@@ -3651,6 +3651,12 @@
       "status": "archived"
     }
   ],
+  "T005676": [
+    {
+      "slug": "ssot-truncation-restores",
+      "status": "plan_staged"
+    }
+  ],
   "T005899": [
     {
       "slug": "brainstorm-firewall-namespace",

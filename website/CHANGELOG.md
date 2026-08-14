@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.29](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.28...website-v1.276.29) (2026-08-14)
+
+
+### Bug Fixes
+
+* **infra:** resolve brainstorm cross-include firewall call [T005899] ([#4479](https://github.com/Paddione/Bachelorprojekt/issues/4479)) ([a8307ae](https://github.com/Paddione/Bachelorprojekt/commit/a8307ae0347c3d96ec56ff730be7dceaecbd2822))
+
 ## [1.276.28](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.27...website-v1.276.28) (2026-08-14)
 
 

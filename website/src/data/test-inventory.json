@@ -1992,6 +1992,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/ssot-harness-stable-session",
+    "file": "tests/spec/active-sessions-hub/ssot-harness-stable-session.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/ticket-lock-closure-T003102",
     "file": "tests/spec/active-sessions-hub/ticket-lock-closure-T003102.bats",
     "category": "active-sessions-hub",

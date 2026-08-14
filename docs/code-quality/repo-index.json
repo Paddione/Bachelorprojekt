@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1007,
+      "file_count": 1008,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -340,6 +340,7 @@
         "tests/spec/active-sessions-hub/opencode-session-id-stable.bats",
         "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
         "tests/spec/active-sessions-hub/session-activity-visibility-T003098.bats",
+        "tests/spec/active-sessions-hub/ssot-harness-stable-session.bats",
         "tests/spec/active-sessions-hub/ticket-lock-closure-T003102.bats",
         "tests/spec/admin-cockpit.bats",
         "tests/spec/admin-token-consolidation.bats",

@@ -32,8 +32,7 @@
 }
 
 @test "T003987: System-Prompt verbietet rohe Tool-Call-Syntax" {
-  # Der Prompt ist ein einzeiliger Raw-String (const factorySystemPrompt = `...`).
-  block=$(sed -n 's/.*const factorySystemPrompt = `\(.*\)`.*/\1/p' scripts/factory/mcp-go/main.go)
+  block=$(awk '/const factorySystemPrompt = `/{flag=1; next} flag && /`/{flag=0; print; next} flag{print}' scripts/factory/mcp-go/main.go)
   [ -n "$block" ]
   grep -qiE 'tool_call' <<<"$block"
   grep -qiE 'never|nicht' <<<"$block"

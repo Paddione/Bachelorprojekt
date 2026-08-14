@@ -32,7 +32,7 @@ openspec/changes/factory-ask-tool-call/specs/software-factory.md (p2)
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der BATS-Test prüft Allowlist, Verdrahtung und
+- [x] **Failing-Test-Step (RED).** Der BATS-Test prüft Allowlist, Verdrahtung und
       Prompt-Härtung im Quelltext und MUSS auf dem aktuellen Branch fehlschlagen.
       `expected: FAIL` im Step-Body.
 
@@ -41,7 +41,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-mcp/factory-ask-tool-call.ba
 # expected: FAIL (red — die Konversion ist noch nicht implementiert)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implementiere p1. Der BATS-Test aus dem vorherigen
+- [x] **Fix-Step (GREEN).** Implementiere p1. Der BATS-Test aus dem vorherigen
       Schritt muss danach grün sein.
 
 - [ ] **Final Verification.** Drei Pflicht-Gates:

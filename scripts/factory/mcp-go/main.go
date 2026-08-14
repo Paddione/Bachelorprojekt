@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -493,7 +494,38 @@ Available factory state (read-only via separate tools):
 - OpenSpec changes live under openspec/changes/ (proposals) and openspec/specs/ (SSOT).
 
 Keep replies under 200 words. Respond in the same language as the question.
+IMPORTANT: Never emit raw tool-call syntax (like <|tool_call|>…<tool_call|>). Name tools inline as plain text (e.g. "use factory_status").
 IMPORTANT: Do not output chain-of-thought or reasoning blocks. Provide the final answer only.`
+
+// Allowlist of read-only tools that factory_ask can execute safely when a model emits raw tool-call syntax.
+var factoryReadOnlyTools = map[string]func() (string, bool, error){
+	"factory_status": func() (string, bool, error) { return toolFactoryStatus() },
+	"factory_queue":  func() (string, bool, error) { return toolFactoryQueue() },
+}
+
+// toolCallSyntaxRE matches raw tool-call emission like
+// <|tool_call|>call:factory_status{}<tool_call|> (args {...} or (...), optional).
+var toolCallSyntaxRE = regexp.MustCompile(`<\|tool_call\|>call:([a-z_]+)(?:\{[^}]*\}|\([^)]*\))?<tool_call\|>`)
+
+// resolveToolCallAnswer converts raw tool-call syntax in a model answer:
+// allowlisted read-only tools are executed and their result returned;
+// side-effecting tools are never executed — a plain-text note is returned.
+// handled=false when no tool-call syntax is present (answer unchanged).
+func resolveToolCallAnswer(ans string) (string, bool) {
+	m := toolCallSyntaxRE.FindStringSubmatch(ans)
+	if len(m) < 2 {
+		return ans, false
+	}
+	toolName := m[1]
+	if fn, ok := factoryReadOnlyTools[toolName]; ok {
+		res, _, err := fn()
+		if err != nil {
+			return fmt.Sprintf("(model requested tool %s; execution failed: %v)", toolName, err), true
+		}
+		return res, true
+	}
+	return fmt.Sprintf("(model requested tool %s — side effects; NOT executed. Call %s directly.)", toolName, toolName), true
+}
 
 // factoryAskTimeout: T003803. Muss UNTER dem Request-Timeout des MCP-Clients
 // (~60s) liegen — sonst bricht der Client mit -32001 ab, bevor der Server
@@ -574,6 +606,10 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	}
 	if ans == "" {
 		ans = fmt.Sprintf("(model returned empty content, finish_reason=%s)", parsed.Choices[0].FinishReason)
+	}
+	if repl, ok := resolveToolCallAnswer(ans); ok {
+		ans = repl
+		src = "tool_call"
 	}
 	out := map[string]any{
 		"answer": ans,

@@ -4512,6 +4512,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-mcp/factory-ask-tool-call",
+    "file": "tests/spec/ticket-mcp/factory-ask-tool-call.bats",
+    "category": "ticket-mcp",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-mcp/openspec-search-url-default",
     "file": "tests/spec/ticket-mcp/openspec-search-url-default.bats",
     "category": "ticket-mcp",

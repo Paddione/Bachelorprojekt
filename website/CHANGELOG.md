@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.24](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.23...website-v1.276.24) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** MODIFIED truncation guard for openspec merge [T005310] ([#4454](https://github.com/Paddione/Bachelorprojekt/issues/4454)) ([cf8feb2](https://github.com/Paddione/Bachelorprojekt/commit/cf8feb234064abe02690d2ec058c94fcedeceecb))
+
 ## [1.276.23](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.22...website-v1.276.23) (2026-08-14)
 
 

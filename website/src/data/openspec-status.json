@@ -3621,6 +3621,12 @@
       "status": "archived"
     }
   ],
+  "T005559": [
+    {
+      "slug": "worktree-write-guard-phase-a-allowlist",
+      "status": "plan_staged"
+    }
+  ],
   "T005592": [
     {
       "slug": "mcp-task-runner-cancel-escalation",

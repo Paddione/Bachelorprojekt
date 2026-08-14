@@ -2,7 +2,7 @@
 title: "openspec-embed-slug-pcre — Implementation Plan"
 ticket_id: T004829
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

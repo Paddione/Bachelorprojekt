@@ -122,12 +122,17 @@ foreign process, instead of silently using a pre-existing, unrelated port-forwar
 
 `scripts/openspec-embed-local.sh` SHALL treat `openspec-embed.mjs` output as a failure (exit
 non-zero) whenever the output contains a `WARN: completeness gate` line **that names the
-embedded slug itself in its missing list**. A completeness warning that names only foreign
-slugs (e.g. active plans living in other worktrees) SHALL NOT negate the success of the
-embedded slug — the wrapper exits zero when the output contains both `indexed slug='<slug>'`
-and a warning naming only other slugs. When no slug argument is given, the wrapper SHALL keep
-the previous behavior (any completeness warning fails the check). `.githooks/post-commit-embed`
-remains non-fatal on wrapper failure — safety-net semantics unchanged.
+embedded slug itself in its missing list**. The slug SHALL be matched as a literal, exact
+entry of the comma-separated missing list — never as a regular expression — so a slug
+containing PCRE metacharacters (`[]().*+?{}|^$`) can neither bypass the check (fail-open
+via `grep` syntax error) nor negate an unrelated success (false positive via `.*`).
+Exact-entry semantics SHALL be preserved (`demo` does not match `demo2`). A completeness
+warning that names only foreign slugs (e.g. active plans living in other worktrees) SHALL
+NOT negate the success of the embedded slug — the wrapper exits zero when the output
+contains both `indexed slug='<slug>'` and a warning naming only other slugs. When no slug
+argument is given, the wrapper SHALL keep the previous behavior (any completeness warning
+fails the check). `.githooks/post-commit-embed` remains non-fatal on wrapper failure —
+safety-net semantics unchanged.
 
 #### Scenario: Completeness-gate warning names the embedded slug
 
@@ -149,6 +154,17 @@ remains non-fatal on wrapper failure — safety-net semantics unchanged.
 - **GIVEN** `embed_output_is_success` is called with only the output text (no slug)
 - **WHEN** the output contains both `indexed slug='…'` and any `WARN: completeness gate` line
 - **THEN** the check exits non-zero — previous behavior is preserved exactly
+
+#### Scenario: Slug with regex metacharacters matches literally
+
+- **GIVEN** the missing list contains `demo[` and the output embeds slug `demo`
+- **WHEN** `embed_output_is_success` evaluates the output with slug `demo[`
+- **THEN** the check exits non-zero — the invalid-PCRE slug does not bypass the check
+
+- **GIVEN** the missing list contains only `other-slug-1, other-slug-2`
+- **AND** the output embeds slug `demo`
+- **WHEN** `embed_output_is_success` evaluates the output with slug `.*`
+- **THEN** the check exits zero — the metacharacter slug does not produce a false positive
 
 ### Requirement: post-commit-embed hook skips during an active rebase
 
@@ -270,3 +286,5 @@ attempt. The backend probe before the embed step SHALL remain fail-fast (no retr
 <!-- merged from change delta openspec-embedding.md (99a1f243f740) -->
 
 <!-- merged from change delta openspec-embedding.md (7fff3cb29392) -->
+
+<!-- merged from change delta openspec-embedding.md (9368d7586d04) -->

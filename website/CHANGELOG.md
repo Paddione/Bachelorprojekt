@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.22](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.21...website-v1.276.22) (2026-08-14)
+
+
+### Tests
+
+* **scripts:** add valid usage semantics to toolset check test fixture [T004889] ([#4455](https://github.com/Paddione/Bachelorprojekt/issues/4455)) ([b56f679](https://github.com/Paddione/Bachelorprojekt/commit/b56f679539a0aafc1a1db0531e9195b41eac8ca3))
+
 ## [1.276.21](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.20...website-v1.276.21) (2026-08-14)
 
 

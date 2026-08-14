@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.18](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.17...website-v1.276.18) (2026-08-14)
+
+
+### Bug Fixes
+
+* **test:** FA-SF scheduling-Tests rot auf main — seed_real_feature/purge_real_feature Fixtures [T005029] ([#4438](https://github.com/Paddione/Bachelorprojekt/issues/4438)) ([5eb0576](https://github.com/Paddione/Bachelorprojekt/commit/5eb0576ce8f165ce5bd2fc3fafc6793f7ed7cbdb))
+
 ## [1.276.17](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.16...website-v1.276.17) (2026-08-14)
 
 

@@ -42,7 +42,13 @@ function hasAuthState(): boolean {
 }
 
 test.describe('FA-47: Brett figure-pack assets are served (T000527 / T000522)', () => {
-  test('T1: Brett redirects unauthenticated users to Keycloak', async ({ browser }) => {
+  test('T1: Brett redirects unauthenticated users to Keycloak', async ({ browser, request }) => {
+    const isUp = await request.get(BRETT_URL, { timeout: 10_000, maxRedirects: 0 }).then(r => r.status() < 500).catch(() => false);
+    if (!isUp) {
+      test.skip(true, `${BRETT_URL} unreachable`);
+      return;
+    }
+
     const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
     const page = await ctx.newPage();
     await page.goto(BRETT_URL, { waitUntil: 'domcontentloaded' });

@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 // Kommissionierung-Spalte auf /dev-status (admin-gated, läuft im mentolder-Projekt
 // mit gespeichertem Admin-Auth-State). Read-only Render + „-> Factory"-Knopf.
 test.describe('Kommissionierung (Factory-Floor)', () => {
-  test.beforeEach(async ({ page }) => { await page.goto('/dev-status'); });
+  test.beforeEach(async ({ page, request }) => {
+    await guardSdlc(request);
+    await page.goto('/dev-status');
+  });
 
   test('rendert die Kommissionierungs-Spalte und die Leitstand-Kachel', async ({ page }) => {
     await expect(page.getByTestId('floor-kommissionierung')).toBeVisible();

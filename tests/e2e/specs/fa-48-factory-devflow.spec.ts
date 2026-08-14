@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 // Devflow chip & CI-badge auf /dev-status (admin-gated, laeuft im mentolder-Projekt
 // mit gespeichertem Admin-Auth-State). Stubt die API um devflow-Tickets zu simulieren,
@@ -60,7 +61,8 @@ async function gotoDevStatusWithStub(page: any, payload: any) {
 }
 
 test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
+    await guardSdlc(request);
     // Stub SSE endpoint to avoid real connection / error logs
     await page.route('**/api/factory-floor/stream', (route) => route.abort());
   });

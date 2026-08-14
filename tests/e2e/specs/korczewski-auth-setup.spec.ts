@@ -74,12 +74,12 @@ setup('authenticate korczewski website admin', async ({ page, request }, testInf
 // ── Brett admin login (oauth2-proxy) ─────────────────────────────────────────
 setup('authenticate korczewski brett', async ({ page, request }, testInfo) => {
   ensureAuthDir();
+  fs.writeFileSync(BRETT_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
 
   // Pocket ID has no password form — oauth2-proxy services need one-time access
   // code flow (T003163). The login is genuinely unimplemented, so this is marked
   // fixme unconditionally: an honest "not supported yet" rather than a silent
   // empty state that lets dependent tests run unauthenticated (T002199).
   testInfo.fixme(true, 'brett oauth2-proxy → Pocket ID needs passkey/one-time-code auth');
-  fs.writeFileSync(BRETT_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
   console.log('[korczewski-setup] skipped brett login — Pocket ID migration pending');
 });

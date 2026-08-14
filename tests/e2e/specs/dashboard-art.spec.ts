@@ -26,7 +26,13 @@ function hasAuthState(): boolean {
   }
 }
 
-test('admin portal redirects unauthenticated users to login', async ({ page }) => {
+test('admin portal redirects unauthenticated users to login', async ({ page, request }) => {
+  const isUp = await request.get(KORCZEWSKI_URL, { timeout: 10_000, maxRedirects: 0 }).then(r => r.status() < 500).catch(() => false);
+  if (!isUp) {
+    test.skip(true, `${KORCZEWSKI_URL} unreachable`);
+    return;
+  }
+
   await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
   if (hasAuthState()) {
     // Can't meaningfully assert the redirect when we have a valid session

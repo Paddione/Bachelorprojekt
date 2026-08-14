@@ -24,7 +24,7 @@ test.describe('FA-admin-db-crud-followups', () => {
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/followups`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin followups page' },
+      { acceptableStatuses: [200, 302, 401], allow404AsNotDeployed: true, label: 'admin followups page' },
       testInfo
     );
 

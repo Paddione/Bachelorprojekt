@@ -1,10 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 // Smoke: the inject form renders inside the /dev-status detail panel and submitting
 // it issues a POST to /api/factory-floor/<id>/inject. Network is stubbed so the smoke
 // needs no live pipeline. Runs in the `website` project (stored admin auth state),
 // mirroring fa-factory-floor.spec.ts. [factory-injection]
 test.describe('FactoryFloor injection', { tag: ['@admin', '@factory'] }, () => {
+  test.beforeEach(async ({ request }) => {
+    await guardSdlc(request);
+  });
   test('inject form renders in the detail panel and POSTs to the inject endpoint', async ({ page }) => {
     // Stub the floor payload so a clickable hall workpiece exists without a live pipeline.
     await page.route('**/api/factory-floor', (route) =>

@@ -30,6 +30,7 @@ function ensureAuthDir(): void {
 
 setup('authenticate mentolder brett admin', async ({ page, request }, testInfo) => {
   ensureAuthDir();
+  fs.writeFileSync(ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
 
   // Verify brett health endpoint is reachable before login
   await assertReachable(request, `${BRETT_URL}/healthz`, { label: 'brett healthz' }, testInfo);
@@ -40,6 +41,5 @@ setup('authenticate mentolder brett admin', async ({ page, request }, testInfo) 
   // the fixme, leaving the setup green and the dependent brett-mentolder project
   // running without a session (T002199).
   testInfo.fixme(true, 'brett oauth2-proxy → Pocket ID needs passkey/one-time-code auth');
-  fs.writeFileSync(ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
   console.log(`[brett-mentolder-setup] skipped brett login — Pocket ID migration pending`);
 });

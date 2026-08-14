@@ -60,8 +60,11 @@ export MODEL_REGISTRY_DB_URL="${DB_URL:-${MODEL_REGISTRY_DB_URL:-}}"
 
 # 1. Durchsatz (tok/s)
 # Kleine Completion: "print the numbers 1 to 200 one per line"
+# --dry-run ueberspringt die Messung komplett (kein Netzwerkzugriff) — der
+# Test-Pfad darf nie gegen einen echten Endpunkt messen.
 FINETUNE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 THROUGHPUT="null"
+if [[ "$DRY_RUN" == "false" ]]; then
 THROUGHPUT=$(python3 - "$ENDPOINT" "$ADAPTER" <<'PYEOF' || echo "null"
 import json
 import sys
@@ -109,6 +112,7 @@ else:
     print("null")
 PYEOF
 )
+fi
 
 # 2. max_context (NULL lassen, wird später manuell/via loadouts.json gesetzt)
 MAX_CONTEXT="null"

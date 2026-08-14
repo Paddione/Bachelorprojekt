@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.276.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.10...website-v1.276.11) (2026-08-14)
+
+
+### Bug Fixes
+
+* **ci:** block unintended package.json modifications in commit-vs-diff guard [T004611] ([#4409](https://github.com/Paddione/Bachelorprojekt/issues/4409)) ([dc8c4bf](https://github.com/Paddione/Bachelorprojekt/commit/dc8c4bfbb51aa3bb8b046979b82f4f03d5d70dcf))
+* **plans:** treat unedited stub deltas as validation errors in pr gate [T004592] ([#4413](https://github.com/Paddione/Bachelorprojekt/issues/4413)) ([949f9cf](https://github.com/Paddione/Bachelorprojekt/commit/949f9cf96b3efd77b426005aef53f69c73564572))
+* **skills:** claim-timing hinweis vor dev-flow-plan phase a [T004602] ([#4408](https://github.com/Paddione/Bachelorprojekt/issues/4408)) ([eef3825](https://github.com/Paddione/Bachelorprojekt/commit/eef382569b3e6d244ec11e74cad9f35e2d5dbaa9))
+
 ## [1.276.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.9...website-v1.276.10) (2026-08-14)
 
 

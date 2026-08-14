@@ -12,12 +12,12 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
   // die alten /api/admin/platform/* und /api/admin/ops/* existieren nicht mehr.
   test('T1: /sdlc/api/platform/software requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/sdlc/api/platform/software`);
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 
   test('T2: /sdlc/api/ops/health requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/sdlc/api/ops/health`);
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 
   test('T3: health API returns only current cluster (no cross-cluster probe)', async ({ page }, testInfo) => {

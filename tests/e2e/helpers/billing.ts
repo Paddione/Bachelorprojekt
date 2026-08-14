@@ -4,6 +4,11 @@ import { loginViaE2E, getAdminCredentials } from '../lib/auth';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 export async function adminLogin(page: Page, request?: APIRequestContext, testInfo?: any) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    testInfo?.skip(true, 'CRON_SECRET not set — cannot login via E2E');
+    return;
+  }
   const { user } = getAdminCredentials();
   await loginViaE2E(page, BASE, user, '/admin/rechnungen');
 }

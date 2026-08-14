@@ -4,9 +4,9 @@ const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 export default defineConfig({
   testDir: './specs',
-  timeout: 30_000,
+  timeout: 10_000,
   retries: 0,
-  workers: 1,
+  workers: process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : 4,
   reporter: [['line']],
   use: {
     baseURL: websiteURL,

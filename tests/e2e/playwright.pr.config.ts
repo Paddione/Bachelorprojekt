@@ -31,9 +31,9 @@ const websiteURL = process.env.WEBSITE_URL || 'https://web.mentolder.de';
 
 export default defineConfig({
   testDir: './specs',
-  timeout: 30_000,
+  timeout: 10_000,
   retries: 0,
-  workers: 2,
+  workers: process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : 4,
   reporter: [
     ['line'],
     ['json', { outputFile: '../results/.tmp-e2e-pr-results.json' }],

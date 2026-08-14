@@ -13,8 +13,20 @@ describe('safeHttpUrl', () => {
     expect(safeHttpUrl('http://example.com/docs')).toBe('http://example.com/docs');
   });
 
+  it('normalizes the href for a bare https origin', () => {
+    expect(safeHttpUrl('https://example.com')).toBe('https://example.com/');
+  });
+
   it('returns null for a javascript: scheme', () => {
     expect(safeHttpUrl('javascript:alert(1)')).toBeNull();
+  });
+
+  it('returns null for a case-variant javascript: scheme', () => {
+    expect(safeHttpUrl('JaVaScRiPt:alert(1)')).toBeNull();
+  });
+
+  it('returns null for a whitespace-prefixed javascript: scheme', () => {
+    expect(safeHttpUrl(' javascript:alert(1)')).toBeNull();
   });
 
   it('returns null for a data: scheme', () => {

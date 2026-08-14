@@ -18,7 +18,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
 
   const body = await request.json() as Partial<CrawlConfig>;
 
-  if (!body.startUrl?.trim()) {
+  if (typeof body.startUrl !== 'string' || !body.startUrl.trim()) {
     return new Response(JSON.stringify({ error: 'startUrl erforderlich' }), { status: 400 });
   }
 

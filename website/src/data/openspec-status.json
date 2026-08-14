@@ -3591,6 +3591,12 @@
       "status": "archived"
     }
   ],
+  "T005307": [
+    {
+      "slug": "cfr-gates",
+      "status": "plan_staged"
+    }
+  ],
   "T005308": [
     {
       "slug": "2026-08-14-staged-task-requirement-restore",

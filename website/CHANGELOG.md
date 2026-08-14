@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.3...website-v1.276.4) (2026-08-14)
+
+
+### Bug Fixes
+
+* **test:** local test runner fixes for cockpit vitest, test:changed and s2-cycles [T004296] ([#4381](https://github.com/Paddione/Bachelorprojekt/issues/4381)) ([f85ac22](https://github.com/Paddione/Bachelorprojekt/commit/f85ac22312a94afa142a598c7fe1fd5f78be9990))
+
 ## [1.276.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.2...website-v1.276.3) (2026-08-14)
 
 

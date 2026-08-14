@@ -126,3 +126,25 @@
   description = "JSON Web Token (JWT)"
   regex = '''eyJ[A-Za-z0-9\-_]+\.eyJ[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+'''
   tags = ["key", "jwt"]
+
+# API-Keys mit Trennzeichen [T004808]: Die schmalen Regeln oben erfassen
+# Formate mit Punkten/Bindestrichen nicht — der Alibaba-Token-Plan-Key
+# ("sk-sp-H.HHIHP.RTMh…") lief trotz Hook, lokalem Scan und CI durch, weil
+# openai-api-key (sk-[A-Za-z0-9]{20,}) an den Trennzeichen scheitert.
+#
+# Die Default-gitleaks-Regel generic-api-key (entropy 3.5) fängt ihn zwar,
+# erzeugte beim Repo-Scan aber 174 Funde — PublicKeys in
+# wireguard/wg-mesh-nodes.yaml, Env-Var-Namen (OAUTH2_PROXY_COOKIE_SECRET),
+# verschlüsselte SealedSecret-Blobs und die deklarierten dev-only-Werte aus
+# k3d/secrets.yaml. MESSUNG (2026-08-14, Stand main = fe4edc32b):
+#   gitleaks detect --config <generic-api-key-config> --no-git → 174 leaks.
+# Deshalb hier eine gezielte Regel fuer das sk-…-Format mit kurzem
+# Buchstaben-Praefix und Bindestrich (sk-sp-, sk-live-): Stripe-Test-Keys
+# (sk_test_…, sk_live_…, 4 Buchstaben + Unterstrich) matchen bewusst nicht.
+[[rules]]
+  id = "sk-separated-api-key"
+  description = "API key with sk- prefix and dashed segments"
+  regex = '''sk-[a-z]{2,3}-[A-Za-z0-9._-]{40,}'''
+  tags = ["key", "api"]
+
+

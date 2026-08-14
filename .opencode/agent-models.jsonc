@@ -92,13 +92,16 @@
 
     // ── Alibaba Cloud International (Token Plan) ───────────────────────
     // OpenAI-compatible Endpoint für Qwen/Claude Modelle via Alibaba MaaS.
-    // API-Key: sk-sp-H.HHIHP.RTMh.MEUCID2HdR5jagyJmgArzQBJ8RP5rHTa4NIS5ZpEqf_s-zqsAiEAtPWMVMHcXWqx8RuWvmJSZXl48U2zj6qeQeDGTG0OYbQ
+    // Kein "apiKey" hier [2026-08-14, T004808]: Der Key stand plaintext im
+    // Repo und ist als kompromittiert zu behandeln (Rotation offen). Er
+    // liegt jetzt in ~/.local/share/opencode/auth.json — so hält es der
+    // opencode-go-Provider unten ebenfalls; ohne apiKey-Feld greift opencode
+    // genau dort zu.
     // baseURL: https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1
     "alibaba-intl": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Alibaba Cloud International (Token Plan, MaaS)",
       "options": {
-        "apiKey": "sk-sp-H.HHIHP.RTMh.MEUCID2HdR5jagyJmgArzQBJ8RP5rHTa4NIS5ZpEqf_s-zqsAiEAtPWMVMHcXWqx8RuWvmJSZXl48U2zj6qeQeDGTG0OYbQ",
         "baseURL": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
       },
       "models": {

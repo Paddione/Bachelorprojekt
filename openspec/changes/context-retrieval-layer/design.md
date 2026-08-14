@@ -176,6 +176,41 @@ Verzeichnis pro SSOT-Spec, eine Datei pro Vorgang).
 
 ## Offene Parameter
 
-`--budget 4000` und `LIMIT 40` sind begründete Startwerte, keine gemessenen. Der Plan enthält
-eine Mess-Aufgabe, die beide gegen das Golden-Query-Set kalibriert; die Werte bleiben bis dahin
-konfigurierbar und werden nicht fest verdrahtet.
+Gemessen am 2026-08-14 gegen das Golden-Set (16 Einträge, `tests/fixtures/context-retrieve/golden-queries.json`),
+alle Kombinationen ohne degraded- oder rulefilter-Fälle:
+
+| limit | budget | Recall | ø belegte Tokens | ø Latenz |
+|---|---|---|---|---|
+| 20 | 2000 | 16/16 | 1770 | 9,3 s |
+| 20 | 4000 | 16/16 | 3686 | 9,6 s |
+| 20 | 8000 | 16/16 | 4172 | 9,3 s |
+| 40 | 2000 | 16/16 | 1833 | 12,4 s |
+| 40 | 4000 | 16/16 | 3801 | 13,2 s |
+| 40 | 8000 | 16/16 | 6682 | 12,6 s |
+| 60 | 2000 | 16/16 | 1797 | 16,2 s |
+| 60 | 4000 | 16/16 | 3830 | 15,4 s |
+| 60 | 8000 | 16/16 | 6825 | 16,3 s |
+
+**Gewählt bleiben `limit=40` und `budget=4000`** (CLI-Defaults, per `--limit`/`--budget`
+konfigurierbar). Die Messung bestätigt die Kostenlage aus der Vorbedingung: die Latenz skaliert
+nur mit `limit` (Rerank ≈ 96 % der Dispatch-Zeit — 20 Kandidaten ≈ 9,5 s, 40 ≈ 13 s, 60 ≈ 16 s),
+`budget` steuert nur die Füllmenge (2000 belegt ~1800 Tokens, 4000 ~3800, 8000 bis ~6800).
+Recall ist über den gesamten Bereich 16/16, die Wahl ist also ausschließlich Recall-gegen-Latenz:
+`limit=40` lässt mehr Kandidatendecke als 20 (3,5 s teurer) und kostet 3 s weniger als 60;
+`budget=4000` füllt den Block ohne aufzublähen (8000 verdoppelt ihn bei gleichem Recall).
+
+Messbefehl (T002717):
+
+```bash
+# Umgebung: Port-Forwards 8081 (embed), 8093/8094 (rerank), 5432 (shared-db);
+# PGURL wird vom Skript aus dem k3d-Secret abgeleitet. CONTEXT_RETRIEVE_EMBED_TIMEOUT_MS=20000:
+# der 5-s-Default ist fuer den fleet-WAN-Pfad zu knapp (3 von 9 Kombinationen zeigten im
+# Erstlauf rulefilter-Artefakte durch Embed-Timeout, mit 20 s sind alle 9 artefaktfrei).
+# Stand: Worktree-Branch feature/retrieval-schicht-T002658, Commits 53fd22d0b..f9d797d67.
+node scripts/knowledge/kalibrierung-retrieval.mjs
+```
+
+Die Messung läuft mit der Eingangs-Truncation des Reranks (`CONTEXT_RETRIEVE_RERANK_INPUT_CHARS=4500`,
+Messung 2026-08-14 im Kopf von `lib-context-retrieve.mjs`): der deployte llama.cpp kennt pro
+Anfrage nur n_ctx=2048 Tokens und scheitert bei 2 GiB RAM schon darunter — gekürzt wird nur das
+Rank-Signal, der gelieferte Block bleibt vollständig.

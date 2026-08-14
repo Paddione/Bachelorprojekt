@@ -3576,6 +3576,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/container-finds-blocked-status",
+    "file": "tests/spec/mishap-rollup/container-finds-blocked-status.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/container-resolution-and-unattended-worktree",
     "file": "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
     "category": "mishap-rollup",
@@ -3590,6 +3596,12 @@
   {
     "id": "mishap-rollup/rollup-container-empty-list-selfheal",
     "file": "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/rollup-cycle-push",
+    "file": "tests/spec/mishap-rollup/rollup-cycle-push.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },

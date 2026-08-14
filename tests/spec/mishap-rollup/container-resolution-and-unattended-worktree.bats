@@ -52,12 +52,3 @@ setup() {
   # Eigentliche Aussage: der unbeaufsichtigte Modus ist dokumentiert und damit vorhanden.
   [ "$(printf '%s\n' "$output" | grep -c -- '--unattended')" -ge 1 ]
 }
-
-# ── [T002914] Rollup-Rebase gegen origin/<BRANCH>, nicht origin/main ─────────
-# Die Aussage aus T002914 — ein divergierter Remote-Stand darf nicht in einen
-# dauerhaft abgelehnten Push muenden — wird seit T002931 als fuenfter Block in
-# tests/spec/mishap-rollup/rollup-branch-progress.bats als Command-Output-
-# Verifikation geprueft (Wegwerf-Repo, Rollup-Push gegen einen divergierten
-# Remote). Ein Quelltext-grep wie hier frueher verstiesse gegen T002448-M4 und
-# gegen die Pipeline-Semantik: der Rebase-Pfad lebt seit T002931 in
-# rollup-publish.sh (Konfliktbehandlung), nicht mehr in mishap-rollup.sh.

@@ -190,6 +190,12 @@ if [ "${#MY_WTS[@]}" -gt 0 ]; then
       "$mw"/*|"$mw") _allow ;;
     esac
   done
+  # [T005559] Phase-A-Proposal-Pfade im Hauptcheckout (openspec/changes/*, .lavish/*)
+  # duerfen auch geschrieben werden, wenn Schwester-Agenten derselben Session
+  # bereits eigene Worktrees halten.
+  case "$TARGET" in
+    "$MAIN_ROOT"/openspec/changes/*|"$MAIN_ROOT"/.lavish/*) _allow ;;
+  esac
   {
     echo "WORKTREE-GUARD: Schreibzugriff abgelehnt."
     echo "  Pfad:            $TARGET"

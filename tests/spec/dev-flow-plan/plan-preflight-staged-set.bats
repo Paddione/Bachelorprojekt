@@ -46,7 +46,10 @@ setup() {
 
   # Gültiger Fall: staged nur Plan-Artefakte — der Guard darf NICHT am
   # Clean-Tree-Zwang scheitern (das ist der Zustand direkt vor dem plan-stage-Commit).
-  mkdir -p openspec/changes/xyz tests/spec/xyz
+  # Absoluter Fixture-Pfad (T002368-Guard): ein relatives Plan-Verzeichnis im
+  # Fixture liest der Guard als Anlage im echten openspec/ — obwohl hier nach
+  # `cd "$TEST_DIR"` (mktemp) nur relativ zum Fixture angelegt wird.
+  mkdir -p "$TEST_DIR/openspec/changes/xyz" tests/spec/xyz
   echo "plan" > openspec/changes/xyz/tasks.md
   echo "test" > tests/spec/xyz/example.bats
   git add openspec/changes/xyz/tasks.md tests/spec/xyz/example.bats

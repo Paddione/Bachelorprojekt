@@ -58,7 +58,12 @@ bash scripts/agent-lock.sh list   # "Wer macht was": laufende Claims anderer Ses
 bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
 git worktree list
 bash scripts/worktree-git-op-guard.sh
-# Stale Worktrees ggf. löschen: git worktree remove <path> --force && git branch -D <branch>
+# Stale Worktrees ggf. löschen — aber NUR nach bestandenem Vorcheck [T005115]:
+#   bash scripts/worktree-clean-check.sh <path>
+# Das Skript lehnt dirty-Worktrees UND Worktrees mit aktivem fremden branch-Claim
+# ab (agent-lock.sh check branch <branch> — laufende Lauf/Rollup-Session!); schlägt
+# der Vorcheck an (rc 1), Worktree stehen lassen.
+#   git worktree remove <path> --force && git branch -D <branch>
 ```
 ## Schritt 0: Pfad bestimmen
 Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre dies mit dem User ab.

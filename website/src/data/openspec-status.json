@@ -3579,6 +3579,12 @@
       "status": "archived"
     }
   ],
+  "T005115": [
+    {
+      "slug": "worktree-remove-claim-guard",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

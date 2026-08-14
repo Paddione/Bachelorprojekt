@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "slug": "package-json-drift-guard",
+    "ticket_id": "",
+    "generated_from": "main@25b8a2f16",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/check-commit-vs-diff.sh",
+      "language": "bash",
+      "loc": 188,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 612
+    },
+    {
+      "path": "tests/unit/check-commit-vs-diff-package-drift.bats",
+      "language": "bash",
+      "loc": 74,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/check-commit-vs-diff.sh:57:  assert_allows() {",
+      "kind": "function",
+      "file": "scripts/check-commit-vs-diff.sh",
+      "signature": "57:  assert_allows() {(...)",
+      "type_text": "57:  assert_allows() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/check-commit-vs-diff.sh:76:  assert_blocks() {",
+      "kind": "function",
+      "file": "scripts/check-commit-vs-diff.sh",
+      "signature": "76:  assert_blocks() {(...)",
+      "type_text": "76:  assert_blocks() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/check-commit-vs-diff-package-drift.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/unit/check-commit-vs-diff-package-drift.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/check-commit-vs-diff-package-drift.bats:26:teardown() {",
+      "kind": "function",
+      "file": "tests/unit/check-commit-vs-diff-package-drift.bats",
+      "signature": "26:teardown() {(...)",
+      "type_text": "26:teardown() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

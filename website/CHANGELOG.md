@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.23](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.22...website-v1.276.23) (2026-08-14)
+
+
+### Bug Fixes
+
+* **mcp:** planner reads deps from Taskfile YAML sources [T005596] ([#4458](https://github.com/Paddione/Bachelorprojekt/issues/4458)) ([75c7e10](https://github.com/Paddione/Bachelorprojekt/commit/75c7e10d46f78d103a932c182896727a07928aa1))
+
 ## [1.276.22](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.21...website-v1.276.22) (2026-08-14)
 
 

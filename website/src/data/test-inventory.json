@@ -3678,6 +3678,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/slug-literal-match-T004829",
+    "file": "tests/spec/openspec-embedding/slug-literal-match-T004829.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-pgvector",
     "file": "tests/spec/openspec-pgvector.bats",
     "category": "openspec-pgvector",

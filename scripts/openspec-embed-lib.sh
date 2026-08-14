@@ -32,11 +32,14 @@ embed_output_is_success() {
   [[ -n "$warn" ]] || return 0
   # Ohne Slug: bisheriges Verhalten — jede WARN failt.
   [[ -z "$slug" ]] && return 1
-  # Mit Slug: nur failen, wenn der Slug in der missing-Liste steht
-  # (Wortgrenzen-Grenze, kein Prefix-Match — demo darf demo2 nicht matchen).
+  # Mit Slug: nur failen, wenn der Slug als exakter Eintrag in der
+  # missing-Liste steht (literal Match — Metazeichen im Slug sind
+  # wirkungslos; demo darf demo2 nicht matchen).
   local missing
   missing="$(printf '%s' "$warn" | grep -oP ':\s+\K[^:]*$' | head -1)"
-  if [[ -z "$missing" ]] || ! printf '%s' "$missing" | grep -qP "(^|, )${slug}(,|$)"; then
+  if [[ -z "$missing" ]] || ! printf '%s' "$missing" \
+       | tr ',' '\n' | sed 's/^ *//; s/ *$//' \
+       | grep -qxF "$slug"; then
     return 0
   fi
   return 1

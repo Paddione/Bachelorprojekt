@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 // Smoke: /admin/cockpit renders the Fabrikhalle and the detail panel opens on click.
 // Runs in the `website` project (uses its stored admin auth state).
 test.describe('FactoryFloor /admin/cockpit', { tag: ['@admin', '@factory'] }, () => {
+  test.beforeEach(async ({ request }) => {
+    await guardSdlc(request);
+  });
   test('renders the hall sections', async ({ page }) => {
     await page.goto('/admin/cockpit');
     await expect(page.getByTestId('factory-floor')).toBeVisible();

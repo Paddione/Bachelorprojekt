@@ -21,9 +21,13 @@
   $effect(() => {
     if (dialogEl) {
       if (open) {
-        dialogEl.showModal();
+        if (!dialogEl.open) {
+          try { dialogEl.showModal(); } catch { dialogEl.setAttribute('open', ''); }
+        }
       } else {
-        dialogEl.close();
+        if (dialogEl.open) {
+          try { dialogEl.close(); } catch { dialogEl.removeAttribute('open'); }
+        }
       }
     }
   });

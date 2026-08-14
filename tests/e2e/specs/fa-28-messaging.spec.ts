@@ -64,7 +64,7 @@ test.describe('FA-28: Website-Messaging (internes Chat-System)', { tag: ['@messa
 
   // T8: Im Browser — unauthenticated /portal redirects to Keycloak login
   test('T8: /portal redirects unauthenticated user away from portal', async ({ page }) => {
-    await page.goto(`${BASE}/portal`);
+    await page.goto(`${BASE}/portal`, { waitUntil: 'domcontentloaded' });
     // The user must be redirected — either to Keycloak or to a login page
     // What must NOT happen: the portal chat UI renders for an unauthenticated visitor
     const finalUrl = page.url();

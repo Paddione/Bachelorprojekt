@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.276.27](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.26...website-v1.276.27) (2026-08-14)
+
+
+### Bug Fixes
+
+* **test:** resolve flakiness, timeouts, storageState and guards [T005595] ([#4466](https://github.com/Paddione/Bachelorprojekt/issues/4466)) ([655998b](https://github.com/Paddione/Bachelorprojekt/commit/655998bb48f6e190f3020847463fff30fe001abd))
+
+## [1.276.26](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.25...website-v1.276.26) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** allow Phase-A proposal paths on main in worktree write guard [T005559] ([#4467](https://github.com/Paddione/Bachelorprojekt/issues/4467)) ([b2ccb57](https://github.com/Paddione/Bachelorprojekt/commit/b2ccb57fff63b692337965df00e3e82b64e9822f))
+
 ## [1.276.25](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.24...website-v1.276.25) (2026-08-14)
 
 

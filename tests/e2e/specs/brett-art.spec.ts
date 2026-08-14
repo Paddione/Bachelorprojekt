@@ -30,7 +30,13 @@ function hasAuthState(): boolean {
 // Each authenticated test creates a context with the saved storageState so
 // cookies are already present — no cookie-injection helpers needed.
 
-test('Brett redirects unauthenticated users to Keycloak', async ({ browser }) => {
+test('Brett redirects unauthenticated users to Keycloak', async ({ browser, request }) => {
+  const isUp = await request.get(BRETT_URL, { timeout: 10_000, maxRedirects: 0 }).then(r => r.status() < 500).catch(() => false);
+  if (!isUp) {
+    test.skip(true, `${BRETT_URL} unreachable`);
+    return;
+  }
+
   // Use a fresh context (no auth state) to verify the redirect
   const ctx = await browser.newContext({ ignoreHTTPSErrors: true });
   const page = await ctx.newPage();

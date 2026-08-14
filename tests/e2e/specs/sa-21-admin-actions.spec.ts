@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 // SA-21: Admin Aktionen Tab — self-service operations for Gekko
 
@@ -9,6 +10,9 @@ const aktionenTab = (page: import('@playwright/test').Page) =>
   page.getByRole('button', { name: 'Aktionen', exact: true });
 
 test.describe('SA-21: Admin Aktionen Tab', { tag: ['@admin'] }, () => {
+  test.beforeEach(async ({ request }) => {
+    await guardSdlc(request);
+  });
   test('SA-21.1: Aktionen tab is visible in /admin/platform', async ({ page }) => {
     await page.goto(`${ADMIN_URL}/admin/platform`, { waitUntil: 'domcontentloaded' });
     await expect(aktionenTab(page)).toBeVisible();

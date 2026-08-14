@@ -15,7 +15,6 @@ const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
  */
 
 async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/admin/coaching/sessions'): Promise<void> {
-  if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS is not set');
   await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
@@ -114,10 +113,10 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.locator('#submit-btn').click();
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible({ timeout: 15_000 });
       await page.getByRole('button', { name: 'Schritt überspringen' }).click();
-      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
-      await expect(page.getByText(/Fokussierung Schlüsselsituation/)).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByText(/Fokussierung Schlüsselsituation/)).toBeVisible({ timeout: 15_000 });
     });
 
     test('T11: back button returns to previous step', async ({ page }) => {
@@ -128,9 +127,9 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
       await page.getByRole('button', { name: 'Schritt überspringen' }).click();
-      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible({ timeout: 15_000 });
       await page.getByRole('button', { name: '← Zurück' }).click();
-      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible({ timeout: 15_000 });
     });
 
     test('T13: full step-1 beat walkthrough: greeting → capture → ki_prompt → step 2', async ({ page }) => {

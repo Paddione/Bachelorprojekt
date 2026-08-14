@@ -7,19 +7,19 @@ const VAULT_URL = process.env.VAULT_URL || defaultVault;
 test.describe('FA-23: Vaultwarden Passwort-Manager', () => {
 
   test('T1: Vaultwarden login page loads', async ({ page }) => {
-    const res = await page.goto(VAULT_URL);
+    const res = await page.goto(VAULT_URL, { waitUntil: 'domcontentloaded' });
     expect(res?.status()).toBe(200);
   });
 
   test('T2: Login page has email input', async ({ page }) => {
-    await page.goto(VAULT_URL);
+    await page.goto(VAULT_URL, { waitUntil: 'domcontentloaded' });
     // Vaultwarden Angular app: input is in DOM but may be inside a CSS container that Playwright
     // considers hidden (tw-h-full with parent height 0). Use toBeAttached to verify DOM presence.
     await expect(page.locator('input[type="email"], input[formcontrolname="email"], input.vw-email-continue').first()).toBeAttached({ timeout: 10_000 });
   });
 
   test('T3: SSO login button visible', async ({ page }) => {
-    await page.goto(VAULT_URL);
+    await page.goto(VAULT_URL, { waitUntil: 'domcontentloaded' });
     // Vaultwarden shows SSO button (text varies by language/version)
     const ssoButton = page.locator([
       'button:has-text("SSO")',
@@ -33,7 +33,7 @@ test.describe('FA-23: Vaultwarden Passwort-Manager', () => {
   });
 
   test('T4: /alive health endpoint returns 200', async ({ page }) => {
-    const res = await page.goto(`${VAULT_URL}/alive`);
+    const res = await page.goto(`${VAULT_URL}/alive`, { waitUntil: 'domcontentloaded' });
     expect(res?.status()).toBe(200);
   });
 });

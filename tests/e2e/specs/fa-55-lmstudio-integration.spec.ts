@@ -30,7 +30,6 @@ const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 // ── Auth helper ─────────────────────────────────────────────────────────────
 
 async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/admin/coaching/sessions'): Promise<void> {
-  if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS is not set');
   await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 

@@ -12,6 +12,7 @@
 // und Workspace — Assertions prüfen deshalb Titel/Buttons pro Panel, nicht die
 // statische Rail/Card-Zuordnung aus cockpit.astro.
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 
@@ -57,6 +58,10 @@ const PIPELINE_TABS = ['Floor', 'Planung', 'Analytics', 'Kosten', 'Steuerung', '
 test.describe('FA-58: Admin-Menü & SDLC Cockpit', { tag: ['@admin', '@factory'] }, () => {
   // Live-Server unter 4 Workern: großzügiges Timeout statt Default 45s.
   test.describe.configure({ timeout: 120_000 });
+
+  test.beforeEach(async ({ request }) => {
+    await guardSdlc(request);
+  });
 
   // ── Admin-Menü (Sidebar) ─────────────────────────────────────────
   test('T1: Sidebar rendert alle Kern-Navigationseinträge', async ({ page }) => {

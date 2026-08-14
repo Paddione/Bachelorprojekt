@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.33](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.32...website-v1.276.33) (2026-08-14)
+
+
+### Tests
+
+* **test:** OIDC-Login per One-Time-Access-Code und Realtime-WS-Spec [T003163] ([#4478](https://github.com/Paddione/Bachelorprojekt/issues/4478)) ([0d44333](https://github.com/Paddione/Bachelorprojekt/commit/0d44333ae3d8fa495246566d21a3b52252bc80f8))
+
 ## [1.276.32](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.31...website-v1.276.32) (2026-08-14)
 
 

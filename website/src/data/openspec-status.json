@@ -3669,6 +3669,12 @@
       "status": "plan_staged"
     }
   ],
+  "T005565": [
+    {
+      "slug": "review-gate-enforce",
+      "status": "plan_staged"
+    }
+  ],
   "T005567": [
     {
       "slug": "commit-msg-hook-worktree",

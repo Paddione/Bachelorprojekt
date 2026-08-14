@@ -23,3 +23,15 @@ The system SHALL keep exit code 3 (`held`) for locks whose holder process is ali
 ### Requirement: ticket write guard passes through stale holders
 
 The system SHALL let ticket status writes pass through with a warning when the ticket lock guard observes exit code 4 (`held-stale`) from `agent-lock.sh check`, because a dead holder provides no protection against duplicate work. Exit code 3 (`held` by a live session) SHALL keep blocking non-closure writes.
+
+#### Scenario: stale holder passes through with a warning
+
+- **GIVEN** a ticket status write and a ticket lock whose holder process is dead (`held-stale`, exit code 4)
+- **WHEN** the caller runs a ticket status write that triggers the lock guard
+- **THEN** the write passes through and the guard prints a warning naming the stale holder
+
+#### Scenario: live holder keeps blocking writes
+
+- **GIVEN** a non-closure ticket status write and a ticket lock held by a live session (`held`, exit code 3)
+- **WHEN** the caller runs a ticket status write that triggers the lock guard
+- **THEN** the write is refused with an error

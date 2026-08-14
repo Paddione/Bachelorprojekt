@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.38](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.37...website-v1.276.38) (2026-08-14)
+
+
+### Bug Fixes
+
+* **plans:** support planning status in archive sed pattern [T005564] ([#4503](https://github.com/Paddione/Bachelorprojekt/issues/4503)) ([bc47abc](https://github.com/Paddione/Bachelorprojekt/commit/bc47abc680c78ffeb4b109bfd5dbde461054a852))
+
 ## [1.276.37](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.36...website-v1.276.37) (2026-08-14)
 
 

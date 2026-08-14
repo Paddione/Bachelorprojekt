@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.30](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.29...website-v1.276.30) (2026-08-14)
+
+
+### Documentation
+
+* restore harness-stable session-identity scenarios [T005676] ([#4482](https://github.com/Paddione/Bachelorprojekt/issues/4482)) ([20a4195](https://github.com/Paddione/Bachelorprojekt/commit/20a4195374cd51a6505bc94bf24e89fb71b7a7ca))
+
 ## [1.276.29](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.28...website-v1.276.29) (2026-08-14)
 
 

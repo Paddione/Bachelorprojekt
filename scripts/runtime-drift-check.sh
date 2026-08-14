@@ -26,6 +26,15 @@
 #   RUNTIME_DRIFT_NS          Namespace der shared-db (default workspace)
 set -uo pipefail
 
+# ── Argument-Parsing ───────────────────────────────────────────────────────
+AUTO_KILL=false
+for arg in "$@"; do
+  case "$arg" in
+    --auto-kill) AUTO_KILL=true ;;
+    *) echo "Usage: $0 [--auto-kill]" >&2; echo "Unbekanntes Argument: $arg" >&2; exit 2 ;;
+  esac
+done
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REGISTRY="${RUNTIME_DRIFT_REGISTRY:-$REPO_ROOT/docs/agent-guide/registry/mcp.yaml}"
 MIGRATIONS_DIR="${RUNTIME_DRIFT_MIGRATIONS:-$REPO_ROOT/scripts/one-shot}"
@@ -61,7 +70,12 @@ _check_binary() {
       exe="${exe% (deleted)}"
       if [ "$exe" = "$bin" ] || [[ "$exe" == */"$base" ]]; then
         start="$(ps -o lstart= -p "$pid" 2>/dev/null | sed 's/^ *//')"
-        report "Prozess $pid ($start) laeuft mit ersetzter/geloeschter Binary $bin (Registry: $name) — kill $pid; der Server startet beim naechsten Tool-Aufruf neu"
+        report "Prozess $pid ($start) laeuft mit ersetzter/geloeschter Binary $bin (Registry: $name)"
+        if [ "$AUTO_KILL" = true ]; then
+          kill -TERM "$pid" 2>/dev/null && echo "         — SIGTERM an $pid gesendet"
+        else
+          echo "         — kill $pid; der Server startet beim naechsten Tool-Aufruf neu"
+        fi
         continue
       fi
       continue
@@ -76,7 +90,12 @@ _check_binary() {
     h2="$(sha256sum "$bin" 2>/dev/null | awk '{print $1}')"
     if [ -n "$h1" ] && [ -n "$h2" ] && [ "$h1" != "$h2" ]; then
       start="$(ps -o lstart= -p "$pid" 2>/dev/null | sed 's/^ *//')"
-      report "Prozess $pid ($start) weicht von Binary $bin ab (Registry: $name, sha256 $h1 != $h2) — kill $pid; der Server startet beim naechsten Tool-Aufruf neu"
+      report "Prozess $pid ($start) weicht von Binary $bin ab (Registry: $name, sha256 $h1 != $h2)"
+      if [ "$AUTO_KILL" = true ]; then
+        kill -TERM "$pid" 2>/dev/null && echo "         — SIGTERM an $pid gesendet"
+      else
+        echo "         — kill $pid; der Server startet beim naechsten Tool-Aufruf neu"
+      fi
     fi
   done
 }
@@ -153,6 +172,10 @@ echo "runtime-drift-check: Registry=$REGISTRY Migrations=$MIGRATIONS_DIR"
 check_processes
 check_db
 if [ "$DRIFT_COUNT" -gt 0 ]; then
+  if [ "$AUTO_KILL" = true ]; then
+    echo "runtime-drift-check: $DRIFT_COUNT Drift-Befund(e) — geheilt (SIGTERM gesendet)."
+    exit 0
+  fi
   echo "runtime-drift-check: $DRIFT_COUNT Drift-Befund(e) — meldend, kein Eingriff."
   exit 1
 fi

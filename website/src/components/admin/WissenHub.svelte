@@ -169,8 +169,8 @@
             <tr>
               <td>
                 {col.name}
-                {#if col.source === 'web_crawl' && (col.crawl_config?.startUrl || (col as any).crawlConfig?.startUrl)}
-                  {@const url = col.crawl_config?.startUrl || (col as any).crawlConfig?.startUrl}
+                {#if col.source === 'web_crawl' && col.crawl_config?.startUrl}
+                  {@const url = col.crawl_config.startUrl}
                   <br /><a href={url} target="_blank" rel="noopener" class="crawl-url-link" style="font-size: 0.8em; color: var(--admin-primary, #c9a84c);">{url}</a>
                 {/if}
               </td>

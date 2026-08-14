@@ -18,7 +18,7 @@ _Ticket: T005114_
 
 | Datei | Ist | Budget |
 |---|---|---|
-| `scripts/plan-preflight.sh` | 91 | 709 |
+| `scripts/plan-preflight.sh` | 99 | 701 |
 | `.claude/skills/dev-flow-plan/SKILL.md` | groß | nur Schritt-5-Block anpassen |
 | `tests/spec/dev-flow-plan/plan-preflight-staged-set.bats` | neu | neu |
 | `tests/spec/dev-flow-plan/plan-preflight.bats` | besteht | dirty-Tree-Testfall umstellen |

@@ -63,19 +63,23 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "pre-commit mit dirty tree wird abgelehnt (rc=1)" {
+@test "pre-commit: unstaged dirty tree ist ok (rc=0), gestagte Fremd-Datei wird abgelehnt (rc=1)" {
   cd "$TEST_DIR"
   echo '{"branch":"feature/px-T009999"}' > "$AGENT_LOCK_DIR/ticket__T009999.json"
   echo "dirty" > "$TEST_DIR/dirty.txt"
 
+  # Unstaged ist fuer den Commit irrelevant → rc=0 (T005114: Guard prueft das Staged-Set)
+  run bash "$SCRIPT" pre-commit --ticket T009999
+  [ "$status" -eq 0 ]
+
+  # Positiv-Anker: gestagte Fremd-Datei ausserhalb der Plan-Artefakte → rc=1
+  git add dirty.txt
   run bash "$SCRIPT" pre-commit --ticket T009999
   [ "$status" -eq 1 ]
-  grep -qF "nicht sauber" <<<"$output"
+  grep -qF "Fremd" <<<"$output"
 
-  # Positiv-Anker: nach commit → rc=0
+  # Nach commit → rc=0
   GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
-    GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
-    git -C "$TEST_DIR" add dirty.txt && GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
     GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
     git -C "$TEST_DIR" commit -q -m "clean" >/dev/null
   run bash "$SCRIPT" pre-commit --ticket T009999

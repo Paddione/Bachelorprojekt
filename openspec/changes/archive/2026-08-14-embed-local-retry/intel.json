@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "slug": "embed-local-retry",
+    "ticket_id": "",
+    "generated_from": "main@fe4edc32b",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/openspec-embed-local.sh",
+      "language": "bash",
+      "loc": 178,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 622
+    },
+    {
+      "path": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats",
+      "language": "bash",
+      "loc": 99,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "type_text": "42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:55:probe_embed() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "55:probe_embed() {(...)",
+      "type_text": "55:probe_embed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:70:probe_diagnosis() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "70:probe_diagnosis() {(...)",
+      "type_text": "70:probe_diagnosis() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats:18:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats",
+      "signature": "18:setup() {(...)",
+      "type_text": "18:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats:46:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats",
+      "signature": "46:teardown() {(...)",
+      "type_text": "46:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats:52:write_fake_node() { # <mode: always_fail|fail_twice|success>",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats",
+      "signature": "52:write_fake_node() { # <mode: always_fail|fail_twice|success>(...)",
+      "type_text": "52:write_fake_node() { # <mode: always_fail|fail_twice|success>(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

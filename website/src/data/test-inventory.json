@@ -2484,6 +2484,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/git-flow-poll-and-branch-order",
+    "file": "tests/spec/ci-cd/git-flow-poll-and-branch-order.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",
@@ -3654,6 +3660,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/embed-local-retry-T004608",
+    "file": "tests/spec/openspec-embedding/embed-local-retry-T004608.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-embedding/port-forward-identity-T002870",
     "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
     "category": "openspec-embedding",
@@ -4358,6 +4370,12 @@
   {
     "id": "software-factory/db-pod-phase-guard",
     "file": "tests/spec/software-factory/db-pod-phase-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/dispatch-branch-lock-gate",
+    "file": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
     "category": "software-factory",
     "kind": "shell"
   },

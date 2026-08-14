@@ -15,15 +15,31 @@ pf_listener_pid() {
   fi
 }
 
-# embed_output_is_success <output-text> -> exit 0 iff the text contains an
-# "indexed slug='" marker AND does NOT also contain a completeness-gate
-# WARN line. A parallel warning must fail the wrapper even though the
-# embed itself nominally "succeeded" (T002870/T002877 escalation).
+# embed_output_is_success <output-text> [<slug>] -> exit 0 iff the text
+# contains an "indexed slug='" marker AND does NOT also contain a
+# completeness-gate WARN line. A parallel warning must fail the wrapper even
+# though the embed itself nominally "succeeded" (T002870/T002877 escalation).
+# With an optional <slug>: a WARN only negates the success when THAT slug is
+# listed as missing — WARNs naming only foreign worktree plans (the observed
+# T004598 case: 20/31 missing active plans from other worktrees) leave the
+# success intact. Without <slug> the behaviour is unchanged (T004598).
 embed_output_is_success() {
   local out="$1"
+  local slug="${2:-}"
   printf '%s' "$out" | grep -q "indexed slug='" || return 1
-  printf '%s' "$out" | grep -q "WARN: completeness gate" && return 1
-  return 0
+  local warn
+  warn="$(printf '%s' "$out" | grep -oP 'WARN: completeness gate.*' | head -1)"
+  [[ -n "$warn" ]] || return 0
+  # Ohne Slug: bisheriges Verhalten — jede WARN failt.
+  [[ -z "$slug" ]] && return 1
+  # Mit Slug: nur failen, wenn der Slug in der missing-Liste steht
+  # (Wortgrenzen-Grenze, kein Prefix-Match — demo darf demo2 nicht matchen).
+  local missing
+  missing="$(printf '%s' "$warn" | grep -oP ':\s+\K[^:]*$' | head -1)"
+  if [[ -z "$missing" ]] || ! printf '%s' "$missing" | grep -qP "(^|, )${slug}(,|$)"; then
+    return 0
+  fi
+  return 1
 }
 
 # in_rebase -> exit 0 iff a rebase (merge or apply) is in progress in the

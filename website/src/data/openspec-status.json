@@ -3507,6 +3507,24 @@
       "status": "archived"
     }
   ],
+  "T004598": [
+    {
+      "slug": "2026-08-14-embed-completeness-slug-scope",
+      "status": "archived"
+    }
+  ],
+  "T004608": [
+    {
+      "slug": "2026-08-14-embed-local-retry",
+      "status": "archived"
+    }
+  ],
+  "T004610": [
+    {
+      "slug": "2026-08-14-factory-dispatch-branch-lock-gate",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

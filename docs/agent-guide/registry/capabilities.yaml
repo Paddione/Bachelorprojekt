@@ -35,8 +35,9 @@ capabilities:
   github:
     cli:gh-axi:
       state: canonical
-      use_when: "Alle GitHub-Operationen: PRs, Issues, Runs, Releases, Labels."
-      fallback: "gh (nur wenn gh-axi ein Kommando nicht abdeckt)"
+      use_when: "GitHub-Read/View-Flows zur Anzeige: PRs, Issues, Runs, Releases, Labels."
+      avoid_when: "Antwort wird maschinell geparst (--json/-q/--jq, jq-Pipelines), Polling-Loops oder Mutationen — gh-axi liefert TOON-Text und ignoriert --json still mit Exit 0 (T004612); dort gh direkt."
+      fallback: "gh (maschinelles Parsen, Polling, Mutationen, nicht abgedeckte Kommandos)"
       roles: [all]
       tier: caution
       deep_ref: ".claude/skills/references/gh-axi.md"

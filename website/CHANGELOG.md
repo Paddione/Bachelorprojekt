@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.276.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.8...website-v1.276.9) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** slug-scoped completeness-gate WARN in embed success check [T004598] ([#4405](https://github.com/Paddione/Bachelorprojekt/issues/4405)) ([d748e73](https://github.com/Paddione/Bachelorprojekt/commit/d748e738cc4b7f164bc4c37287f915056d515a2c))
+
+## [1.276.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.7...website-v1.276.8) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** retry transiente Embed-Backend-Fehler im Wrapper [T004608] ([#4401](https://github.com/Paddione/Bachelorprojekt/issues/4401)) ([2af2037](https://github.com/Paddione/Bachelorprojekt/commit/2af2037e69bfa5e1d7d42239382b30ac977606b6))
+
+## [1.276.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.6...website-v1.276.7) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** dispatch-branch-lock-gate gegen Doppel-Dispatch [T004610] ([#4398](https://github.com/Paddione/Bachelorprojekt/issues/4398)) ([353131a](https://github.com/Paddione/Bachelorprojekt/commit/353131a061b60a48db44b3c721793600ef400171))
+
+## [1.276.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.5...website-v1.276.6) (2026-08-14)
+
+
+### Bug Fixes
+
+* **skills:** JSON-Polling via gh statt gh-axi + Archiv vor Branch-Löschung [T004612] ([#4394](https://github.com/Paddione/Bachelorprojekt/issues/4394)) ([25b8a2f](https://github.com/Paddione/Bachelorprojekt/commit/25b8a2f16fa2a4606e836a246705f7d00fb7ab54))
+
 ## [1.276.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.4...website-v1.276.5) (2026-08-14)
 
 

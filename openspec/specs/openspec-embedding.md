@@ -121,25 +121,34 @@ foreign process, instead of silently using a pre-existing, unrelated port-forwar
 ### Requirement: Wrapper success check fails on a completeness-gate warning
 
 `scripts/openspec-embed-local.sh` SHALL treat `openspec-embed.mjs` output as a failure (exit
-non-zero) whenever the output contains a `WARN: completeness gate` line, even if the same
-output also contains an `indexed slug='` success marker. `.githooks/post-commit-embed` remains
-unaffected (still non-fatal on wrapper failure — safety-net semantics unchanged); the explicit
-`dev-flow-plan` C.4 invocation of the wrapper (no `|| true`) becomes the effective escalation
-point.
+non-zero) whenever the output contains a `WARN: completeness gate` line **that names the
+embedded slug itself in its missing list**. A completeness warning that names only foreign
+slugs (e.g. active plans living in other worktrees) SHALL NOT negate the success of the
+embedded slug — the wrapper exits zero when the output contains both `indexed slug='<slug>'`
+and a warning naming only other slugs. When no slug argument is given, the wrapper SHALL keep
+the previous behavior (any completeness warning fails the check). `.githooks/post-commit-embed`
+remains non-fatal on wrapper failure — safety-net semantics unchanged.
 
-#### Scenario: Completeness-gate warning is escalated
+#### Scenario: Completeness-gate warning names the embedded slug
 
-- **GIVEN** `openspec-embed.mjs` output contains both `indexed slug='<slug>'` and a
-  `WARN: completeness gate` line
-- **WHEN** `openspec-embed-local.sh` evaluates the output
-- **THEN** the wrapper exits non-zero
+- **GIVEN** `openspec-embed.mjs` output contains `indexed slug='demo'` and a
+  `WARN: completeness gate` line whose missing list contains `demo`
+- **WHEN** `embed_output_is_success` evaluates the output with slug `demo`
+- **THEN** the check exits non-zero (real defect — the slug was not fully covered)
 
-#### Scenario: Clean success stays a success
+#### Scenario: Completeness-gate warning names only foreign slugs
 
-- **GIVEN** `openspec-embed.mjs` output contains `indexed slug='<slug>'` and no
-  `WARN: completeness gate` line
-- **WHEN** `openspec-embed-local.sh` evaluates the output
-- **THEN** the wrapper exits zero
+- **GIVEN** `openspec-embed.mjs` output contains `indexed slug='demo'` and a
+  `WARN: completeness gate` line whose missing list contains only other slugs
+  (e.g. `other-slug-1, other-slug-2` from other worktrees)
+- **WHEN** `embed_output_is_success` evaluates the output with slug `demo`
+- **THEN** the check exits zero — the embedded slug's success is not negated by foreign gaps
+
+#### Scenario: Call without a slug argument stays backward-compatible
+
+- **GIVEN** `embed_output_is_success` is called with only the output text (no slug)
+- **WHEN** the output contains both `indexed slug='…'` and any `WARN: completeness gate` line
+- **THEN** the check exits non-zero — previous behavior is preserved exactly
 
 ### Requirement: post-commit-embed hook skips during an active rebase
 
@@ -230,3 +239,34 @@ after indexing) do not count toward coverage and do not mask missing active plan
 - **AND** das Gate meldet die 2 fehlenden aktiven Pläne als WARN (66 % > 10 %)
 
 <!-- merged from change delta openspec-embedding.md (5290b83703f2) -->
+
+### Requirement: Embed-Local-Wrapper retried transiente Backend-Fehler
+
+`scripts/openspec-embed-local.sh` SHALL retry the `openspec-embed.mjs` invocation up to
+`OPENSPEC_EMBED_RETRIES` (default 2) additional times, with `OPENSPEC_EMBED_RETRY_DELAY`
+(default 5s) between attempts, whenever the output lacks an `indexed slug='` success
+marker. When all retries are exhausted, the wrapper SHALL exit non-zero with its
+fail-visible message; a transient backend timeout SHALL NOT end the run after the first
+attempt. The backend probe before the embed step SHALL remain fail-fast (no retry).
+
+#### Scenario: Transienter Timeout wird überbrückt
+
+- **GIVEN** der erste `openspec-embed.mjs`-Lauf endet best-effort ohne `indexed slug=` (Backend-Timeout), und ein Folgeversuch würde Erfolg liefern
+- **WHEN** `openspec-embed-local.sh <slug>` mit `OPENSPEC_EMBED_RETRIES=3` läuft
+- **THEN** der Wrapper wiederholt den Lauf; beim erfolgreichen Folgeversuch Exit 0 mit `indexed slug=`
+
+#### Scenario: Retries erschöpft — fail-visible
+
+- **GIVEN** alle `openspec-embed.mjs`-Läufe enden best-effort ohne `indexed slug=`
+- **WHEN** `openspec-embed-local.sh <slug>` läuft
+- **THEN** der Wrapper exitet non-zero mit der Meldung `Embedding wurde NICHT indiziert`; mindestens initial + Retries Aufrufe fanden statt
+
+#### Scenario: Erfolg im ersten Versuch unverändert
+
+- **GIVEN** der erste Lauf liefert `indexed slug=`
+- **WHEN** `openspec-embed-local.sh <slug>` läuft
+- **THEN** Exit 0 ohne zusätzlichen Retry; der `--count-skipped`-Folgelauf bleibt bestehen
+
+<!-- merged from change delta openspec-embedding.md (99a1f243f740) -->
+
+<!-- merged from change delta openspec-embedding.md (7fff3cb29392) -->

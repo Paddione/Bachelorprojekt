@@ -81,6 +81,34 @@ time.sleep(8)
   [ "$status" -eq 1 ]
 }
 
+# --- T004598: Slug-spezifische WARN-Behandlung -------------------------------
+# Der post-commit-Hook laeuft in jedem Worktree; das completeness gate zaehlt
+# aktive Plaene aus dem HAUPT-CHECKOUT (listLocalActivePlans liest nur
+# <repoRoot>/openspec/changes). Plaene in anderen Worktrees fehlen dann in der
+# Collection, die WARN nennt sie als missing — obwohl der KONKRETE Slug des
+# Commits sauber indiziert wurde. Der Hook behandelte jede solche WARN als
+# harten Fehler: 3x5s Retry + "FEHLER: Embedding wurde NICHT indiziert" pro
+# Commit (beobachtet 2026-08-14, 20/31 fehlende Plaene). Die WARN darf den
+# Erfolg des eigenen Slugs nur negieren, wenn DER Slug selbst fehlt.
+
+@test "T004598: WARN mit fremden missing-Slugs negiert den Erfolg des eigenen Slugs NICHT" {
+  source "$LIB"
+  run embed_output_is_success "$(printf "indexed slug='demo' chunks=10\nWARN: completeness gate — collection covers 11/31 local active plans, missing 20 (> 10%% tolerance): other-slug-1, other-slug-2")" demo
+  [ "$status" -eq 0 ]
+}
+
+@test "T004598: WARN mit dem eigenen Slug in der missing-Liste failt weiterhin (echter Defekt)" {
+  source "$LIB"
+  run embed_output_is_success "$(printf "indexed slug='demo' chunks=10\nWARN: completeness gate — collection covers 11/31 local active plans, missing 20 (> 10%% tolerance): demo, other-slug-1")" demo
+  [ "$status" -eq 1 ]
+}
+
+@test "T004598: Aufruf ohne Slug-Parameter behaelt das bisherige Verhalten bei (rueckwaertskompatibel)" {
+  source "$LIB"
+  run embed_output_is_success "$(printf "indexed slug='demo' chunks=4\nWARN: completeness gate — collection has 4 docs but 55 local active plans")"
+  [ "$status" -eq 1 ]
+}
+
 # --- in_rebase ------------------------------------------------------------
 
 @test "in_rebase returns false outside a rebase (positive anchor)" {

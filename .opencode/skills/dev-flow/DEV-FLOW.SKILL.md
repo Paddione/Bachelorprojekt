@@ -28,7 +28,7 @@ git checkout -b feature/t001xxx
 
 # 3. Verify & Merge
 task test:changed
-gh-axi pr merge --auto --squash
+gh pr merge --auto --squash   # Mutation → gh (gh-axi ist Anzeige-only); kein --delete-branch (T004612)
 ```
 
 ## Freshness Guards

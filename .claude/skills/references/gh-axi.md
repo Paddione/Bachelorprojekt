@@ -1,6 +1,6 @@
 # gh-axi — GitHub CLI Wrapper
 
-`gh-axi` ist ein Ergonomie-Wrapper um die `gh` CLI. **Alle Agents sollen `gh-axi` statt `gh` direkt verwenden**, sofern ein passendes Sub-Kommando existiert. (Framework-agnostisch — funktioniert in Claude Code, opencode und agy gleichermaßen.)
+`gh-axi` ist ein Ergonomie-Wrapper um die `gh` CLI. **Für die menschliche Anzeige (Read/View-Flows) sollen alle Agents `gh-axi` statt `gh` verwenden**, sofern ein passendes Sub-Kommando existiert. (Framework-agnostisch — funktioniert in Claude Code, opencode und agy gleichermaßen.)
 
 Binary: `~/.npm-global/bin/gh-axi`  
 Repo-Kontext: wird automatisch aus dem aktuellen Git-Checkout abgeleitet (kein `-R` nötig).
@@ -18,9 +18,21 @@ gh-axi run view --job 789012 --log-failed  # Fehlgeschlagene Log-Zeilen für ein
 gh-axi setup hooks               # Optionale Agent-Session-Hooks installieren
 ```
 
-### Wann `gh` statt `gh-axi`
+### Wann `gh` statt `gh-axi` [T004612]
 
-`gh-axi` deckt die häufigen read/view-Flows ab. Für Operationen ohne `gh-axi`-Pendant (z. B. `gh pr create`, `gh pr merge`, `gh api`) direkt `gh` nutzen — die SessionStart-Hook-Ausgabe zeigt den verfügbaren Befehlssatz.
+`gh-axi` deckt die häufigen read/view-Flows **für menschliche Augen** ab. Sobald die Antwort
+**maschinell weiterverarbeitet** wird, ist `gh` Pflicht:
+
+- **`--json`, `-q`, `--jq` und jede `… | jq`-Pipeline → `gh`.**
+  `gh-axi` liefert TOON-Text und **ignoriert `--json` stillschweigend mit Exit 0** — die
+  Pipeline läuft falsch-leer weiter, ohne dass irgendwo ein Fehler auftaucht. Beleg und
+  Reproduktion: Mishap-Rollup T003533, Eintrag 2026-08-11 08:04 #6
+  (`gh-axi pr list --state merged --limit 1 --json number` → TOON-Text, exit=0).
+- **Polling-Loops und Mutationen → `gh`:** `pr checks`, Merge-Wait-Loops, CI-Watch,
+  `pr create`, `pr merge`, `gh api`. Vorbilder: `scripts/devflow-ci-watch.sh` und
+  `scripts/factory/pr-babysit-ticket.sh` nutzen durchgehend `gh`.
+- Operationen ohne `gh-axi`-Pendant ohnehin via `gh` — die SessionStart-Hook-Ausgabe zeigt den
+  verfügbaren Befehlssatz.
 
 ### Achtung: `gh pr edit --title` — GraphQL-Deprecation [T002042, T002048]
 

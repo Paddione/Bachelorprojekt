@@ -84,7 +84,7 @@ Changes:
 
 # Set auto-merge
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch 2>/dev/null) || true
+(cd "$MAIN_REPO" && gh pr merge --auto --squash 2>/dev/null) || true   # kein --delete-branch: Post-Merge-Archiv (T004612)
 
 # Cleanup
 cd "$MAIN_REPO"

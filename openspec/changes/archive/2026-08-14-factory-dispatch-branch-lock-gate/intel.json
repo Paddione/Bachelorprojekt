@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "slug": "factory-dispatch-branch-lock-gate",
+    "ticket_id": "",
+    "generated_from": "main@629480703",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/readiness-check.sh",
+      "language": "bash",
+      "loc": 33,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 767
+    },
+    {
+      "path": "scripts/factory/dispatcher-bridge.sh",
+      "language": "bash",
+      "loc": 181,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 619
+    },
+    {
+      "path": "scripts/factory/opencode-exec.sh",
+      "language": "bash",
+      "loc": 220,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 580
+    },
+    {
+      "path": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
+      "language": "bash",
+      "loc": 123,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/readiness-check.sh:8:check_ticket_readiness() {",
+      "kind": "function",
+      "file": "scripts/factory/readiness-check.sh",
+      "signature": "8:check_ticket_readiness() {(...)",
+      "type_text": "8:check_ticket_readiness() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/opencode-exec.sh:52:phase_event() { # <state> <subagent> <partial> <duration_s> <exit> [reason]",
+      "kind": "function",
+      "file": "scripts/factory/opencode-exec.sh",
+      "signature": "52:phase_event() { # <state> <subagent> <partial> <duration_s> <exit> [reason](...)",
+      "type_text": "52:phase_event() { # <state> <subagent> <partial> <duration_s> <exit> [reason](...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/dispatch-branch-lock-gate.bats:27:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
+      "signature": "27:setup() {(...)",
+      "type_text": "27:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/dispatch-branch-lock-gate.bats:54:teardown() { rm -rf \"${WORK:-}\"; _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
+      "signature": "54:teardown() { rm -rf \"${WORK:-}\"; _sf_teardown; }(...)",
+      "type_text": "54:teardown() { rm -rf \"${WORK:-}\"; _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/dispatch-branch-lock-gate.bats:58:_run_bridge() { # <prep_file>",
+      "kind": "function",
+      "file": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
+      "signature": "58:_run_bridge() { # <prep_file>(...)",
+      "type_text": "58:_run_bridge() { # <prep_file>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/dispatch-branch-lock-gate.bats:63:_prep_file() { # <ext_id> <branch> <plan_path> <worktree_path>",
+      "kind": "function",
+      "file": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
+      "signature": "63:_prep_file() { # <ext_id> <branch> <plan_path> <worktree_path>(...)",
+      "type_text": "63:_prep_file() { # <ext_id> <branch> <plan_path> <worktree_path>(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

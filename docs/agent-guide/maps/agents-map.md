@@ -20,6 +20,7 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 
 | Agent | Modus | Modell | Schreibfähig | Hinweis |
 | --- | --- | --- | --- | --- |
+| alibaba-primary | primary | alibaba-intl/qwen3.8-max | nein | PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx), tab-selectable singleagent via compatible-mode endpoint; replaces deepseek-v4-flash as the default model [T004396] |
 | big-pickle | primary | opencode-zen/big-pickle | ja | PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04] |
 | deepseek-flash | all | opencode-go/deepseek-v4-flash | ja | DeepSeek-V4 Flash (1M ctx, max reasoning effort). Up to 3 parallel for independent subtasks; tab-selectable + task-dispatchable [T002632] |
 | deepseek-flash-direct | all | deepseek/deepseek-v4-flash | ja | Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633] |

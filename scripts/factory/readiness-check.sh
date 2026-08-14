@@ -27,7 +27,28 @@ check_ticket_readiness() {
   return 0
 }
 
+check_branch_lock() {
+  local branch="${1:-}"
+
+  if [[ -z "$branch" || "$branch" == "null" ]]; then
+    printf '{"ready":false,"reason":"missing_args"}\n'
+    return 1
+  fi
+
+  local lock_bin
+  lock_bin="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/agent-lock.sh"
+
+  if bash "$lock_bin" check-branch-live "$branch" >/dev/null 2>&1; then
+    printf '{"ready":false,"reason":"branch_locked"}\n'
+    return 1
+  fi
+
+  printf '{"ready":true,"reason":"ok"}\n'
+  return 0
+}
+
 # Run only when executed directly, not when sourced.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   check_ticket_readiness "$@"
 fi
+

@@ -27,7 +27,10 @@ Before responding to any request, check these signals and delegate to the named 
 
 > **MCP-Schnellweg:** Welcher MCP-Server wann bevorzugt wird (statt `kubectl exec … psql`), steht in [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md) — inkl. Portforward-Guard und der kubectl-Pflicht für DDL/Superuser/Writes.
 
-> **gh-axi:** Bevorzugter GitHub-CLI-Wrapper für alle Agents (`gh-axi` statt `gh`). Kommando-Referenz: [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
+> **gh-axi:** Bevorzugter GitHub-CLI-Wrapper für Anzeige/Read-Flows (`gh-axi` statt `gh`).
+> **Maschinelles Parsen, Polling und Mutationen (T004612):** `--json`, `-q`, `--jq`,
+> `pr checks`/`pr merge`/`gh api` → immer `gh` direkt — gh-axi liefert TOON-Text und ignoriert
+> `--json` still mit Exit 0. Kommando-Referenz: [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
 
 **Before dispatching any agent, inject active plan context:**
 Run `bash scripts/plan-context.sh <role> --with-openspec` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output, omit the block entirely. `--with-openspec` auto-loads the SSOT spec(s) for any files changed vs main — omit only when explicitly told to skip OpenSpec context.

@@ -5,10 +5,10 @@
 #   1) MCP-Prozesse laufen gegen ersetzte Binaries (alte Inode) -> Drift.
 #   2) DB-Funktionen tragen die Marker ihrer Migrationen nicht  -> Drift.
 #
-# Der Guard MELDET nur, er greift nicht ein: kein kill, kein Migrationseinspielen.
-# Exit: 0 = kein Drift, 1 = mindestens ein Drift. Unerreichbare DB oder nicht
-# lesbares /proc/<pid>/exe (fremder Benutzer) werden uebersprungen und zaehlen
-# nicht als Drift.
+# Der Guard MELDET standardmaessig (read-only, Exit 1 bei Drift).
+# Mit --auto-kill beendet der Guard driftende Prozesse der eigenen
+# Registry via SIGTERM und kehrt mit Exit 0 zurueck.
+# DB-Drift wird in beiden Modi nur gemeldet.
 #
 # Einschraenkungen (bewusst):
 #   - `command:` in der Registry muss ein einzelnes Binary sein (keine Args).

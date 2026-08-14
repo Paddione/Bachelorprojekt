@@ -36,7 +36,7 @@ das `.sh`-Limit 800 aus `docs/code-quality/gates.yaml`. Die Aenderung umfasst ru
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Die BATS-Datei
+- [x] **Failing-Test-Step (RED).** Die BATS-Datei
       `tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats` liegt bereits im
       Branch und reproduziert den Defekt: der Guard ignoriert `--auto-kill` still, der
       driftende Prozess ueberlebt und der Exit ist 1 statt 0; unbekannte Argumente werden
@@ -47,7 +47,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/batch-repo-hygiene-ops-fixes/runtim
 # expected: FAIL — beide Tests rot (Kill fehlt, Arg-Parsing fehlt)
 ```
 
-- [ ] **GREEN.** Nach p1 (Implementierung) laufen beide Tests durch, der Bestandstest
+- [x] **GREEN.** Nach p1 (Implementierung) laufen beide Tests durch, der Bestandstest
       `tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats` bleibt gruen
       (Default-Verhalten unveraendert — Guard beendet ohne Flag weiterhin nichts), und die
       Gesamt-Regression ist gruen.
@@ -61,6 +61,6 @@ tests/unit/lib/bats-core/bin/bats \
 
 ## Final Verification
 
-- [ ] `task test:changed` — Gesamt-Regression der geaenderten Dateien laeuft gruen
-- [ ] `task freshness:regenerate` — Testinventar nach Test-Neuzugang neu erzeugen
-- [ ] `task freshness:check` — frisch regeneriertes Inventar konsistent
+- [x] `task test:changed` — Gesamt-Regression der geaenderten Dateien laeuft gruen
+- [x] `task freshness:regenerate` — Testinventar nach Test-Neuzugang neu erzeugen
+- [x] `task freshness:check` — frisch regeneriertes Inventar konsistent

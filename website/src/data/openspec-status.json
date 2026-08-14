@@ -3573,6 +3573,12 @@
       "status": "plan_staged"
     }
   ],
+  "T004897": [
+    {
+      "slug": "runtime-drift-auto-kill",
+      "status": "plan_staged"
+    }
+  ],
   "T004898": [
     {
       "slug": "2026-08-14-rollup-container-ephemeral",

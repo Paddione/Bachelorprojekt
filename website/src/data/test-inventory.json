@@ -2226,6 +2226,12 @@
     "kind": "shell"
   },
   {
+    "id": "batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill",
+    "file": "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats",
+    "category": "batch-repo-hygiene-ops-fixes",
+    "kind": "shell"
+  },
+  {
     "id": "batch-repo-hygiene-ops-fixes/runtime-drift-check",
     "file": "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats",
     "category": "batch-repo-hygiene-ops-fixes",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 986,
+      "file_count": 987,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -797,6 +797,7 @@
         "tests/spec/ticket-mcp/openspec-search-url-default.bats",
         "tests/spec/ticket-mcp/phase-events-at-column.bats",
         "tests/spec/ticket-mcp/triage-projection.bats",
+        "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
         "tests/spec/ticket-system.bats",
         "tests/spec/ticket-system/backfill-id-sequence.bats",
         "tests/spec/ticket-system/list-test-data-filter.bats",

@@ -2,7 +2,7 @@
 title: "mishap-rollup-artifacts — Implementation Plan"
 ticket_id: T005031
 domains: [scripts, factory]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

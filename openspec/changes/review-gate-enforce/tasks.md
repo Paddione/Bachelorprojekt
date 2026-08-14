@@ -55,7 +55,7 @@ Hinweis: `website/src/data/test-inventory.json` wurde im Stage-Commit bereits re
 - Consumes: nichts (Rot-Baseline existiert bereits auf dem Branch, im Stage-Commit `chore(plans): add failing test + stage plan [T005565]`).
 - Produces: den dokumentierten Rot-Zustand, gegen den die Tasks 2/3 messen: Test 1 (Positiv-Anker) PASS, Tests 2 und 3 FAIL.
 
-- [ ] **Step 1: Run the failing test and verify the expected red state**
+- [x] **Step 1: Run the failing test and verify the expected red state**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
@@ -64,7 +64,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/review-gate-before-aut
 
 Expected: FAIL — `@test "T005565: Implementer-Mandat nennt weiterhin die PR-Erstellung"` PASS (Positiv-Anker), `@test "T005565: Auto-Merge ist aus dem Implementer-Mandat entfernt"` FAIL, `@test "T005565: Auto-Merge liegt im Code-Review-Gate-Abschnitt (requesting-code-review, Orchestrator)"` FAIL.
 
-- [ ] **Step 2: Kein Commit nötig** — der failing Test liegt bereits im Stage-Commit auf dem Branch. Falls der Test überraschend grün ist: STOPP und an den Orchestrator eskalieren (die Rotphase wäre nicht belegt, T002448-M5).
+- [x] **Step 2: Kein Commit nötig** — der failing Test liegt bereits im Stage-Commit auf dem Branch. Falls der Test überraschend grün ist: STOPP und an den Orchestrator eskalieren (die Rotphase wäre nicht belegt, T002448-M5).
 
 ### Task 2: Implementer-Mandat härten — Schritt 2 ohne Auto-Merge
 
@@ -75,7 +75,7 @@ Expected: FAIL — `@test "T005565: Implementer-Mandat nennt weiterhin die PR-Er
 - Consumes: Task 1 Rot-Baseline (Test 2 ist rot).
 - Produces: Schritt-2-Abschnitt ohne das Literal `merge --auto` — Test 2 wird grün, Test 3 bleibt rot (der Gate-Abschnitt existiert noch nicht).
 
-- [ ] **Step 1: Arbeitsteilungs-Kommentar ersetzen** (aktuelle Zeilen 54–56)
+- [x] **Step 1: Arbeitsteilungs-Kommentar ersetzen** (aktuelle Zeilen 54–56)
 
 Aktuell:
 
@@ -95,7 +95,7 @@ Ersetzen durch:
 > Hintergrund-Monitor [T001969].
 ```
 
-- [ ] **Step 2: Mandat-Bullet ersetzen** (aktuelle Zeile 87)
+- [x] **Step 2: Mandat-Bullet ersetzen** (aktuelle Zeile 87)
 
 Aktuell:
 
@@ -110,7 +110,7 @@ Ersetzen durch (bewusst OHNE das Literal `merge --auto` — Guard-Test 2):
     Code-Review-Gate durch den Orchestrator, Schritt 3.8).
 ```
 
-- [ ] **Step 3: ENDE-Block ersetzen** (aktuelle Zeilen 88–90)
+- [x] **Step 3: ENDE-Block ersetzen** (aktuelle Zeilen 88–90)
 
 Aktuell:
 
@@ -129,7 +129,7 @@ Ersetzen durch:
     Der Orchestrator fährt nach deiner Rückmeldung bei Schritt 3.8 fort — nicht Schritt 8.
 ```
 
-- [ ] **Step 4: Test, dass Test 2 grün geworden ist**
+- [x] **Step 4: Test, dass Test 2 grün geworden ist**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
@@ -138,7 +138,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/review-gate-before-aut
 
 Expected: FAIL insgesamt, aber Tests 1 und 2 PASS, Test 3 weiterhin FAIL (der Gate-Abschnitt fehlt noch).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
@@ -155,7 +155,7 @@ git commit -m "fix(skills): remove auto-merge from implementer mandate [T005565]
 - Consumes: Task 2 (Schritt 2 ohne Auto-Merge-Literal).
 - Produces: Den Code-Review-Gate-Abschnitt (Schritt 3.8), der `gh pr merge --auto`, `requesting-code-review` und `Orchestrator` enthält — Test 3 wird grün. Danach ist der bisherige T002272-M2-Guard in `tests/spec/ci-cd.bats` rot (sein Anker lag auf dem entfernten Schritt-5-Auto-Merge-Block) — Task 4 stellt ihn im selben PR um, NICHT als separaten PR.
 
-- [ ] **Step 1: Abschnitt Schritt 3.8 ersetzen** (aktuelle Zeilen 159–165: `## Schritt 3.8: Code Review Gate (Mandatory)` samt Inhalt)
+- [x] **Step 1: Abschnitt Schritt 3.8 ersetzen** (aktuelle Zeilen 159–165: `## Schritt 3.8: Code Review Gate (Mandatory)` samt Inhalt)
 
 Aktuell:
 
@@ -195,7 +195,7 @@ Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
 ```
 ````
 
-- [ ] **Step 2: Schritt 5 — M1-Lesson anpassen, Auto-Merge-Block entfernen** (aktuelle Zeilen 181–193)
+- [x] **Step 2: Schritt 5 — M1-Lesson anpassen, Auto-Merge-Block entfernen** (aktuelle Zeilen 181–193)
 
 Aktuell:
 
@@ -225,19 +225,19 @@ Ersetzen durch (Bash-Block komplett entfernen — der Befehl lebt jetzt in Schri
 > Implementierungs-Commit bereits auf dem Branch, die Voraussetzung ist also erfüllt.
 ```
 
-- [ ] **Step 3: Schritt 5.5 — Verweis auf Schritt 3.8 statt Schritt 5** (erster Absatz, aktuelle Zeile 197)
+- [x] **Step 3: Schritt 5.5 — Verweis auf Schritt 3.8 statt Schritt 5** (erster Absatz, aktuelle Zeile 197)
 
 Aktuell (Teilsatz): `Nach der Implementer-Rückmeldung überwacht der Orchestrator CI — Auto-Merge ist bereits angefordert (Schritt 5) und greift, sobald die Required Checks grün sind.`
 
 Ersetzen durch: `Nach der Implementer-Rückmeldung überwacht der Orchestrator CI — Auto-Merge ist bereits angefordert (Schritt 3.8, nach bestandenem Review-Gate) und greift, sobald die Required Checks grün sind.`
 
-- [ ] **Step 4: Schritt 6 — Verweis auf Schritt 3.8 statt Schritt 5** (Klammerbemerkung, aktuelle Zeile 213)
+- [x] **Step 4: Schritt 6 — Verweis auf Schritt 3.8 statt Schritt 5** (Klammerbemerkung, aktuelle Zeile 213)
 
 Aktuell: `(Auto-Merge wurde bereits in Schritt 5 angefordert — hier läuft nur noch das Gate.)`
 
 Ersetzen durch: `(Auto-Merge wurde bereits in Schritt 3.8 angefordert — hier läuft nur noch das Gate.)`
 
-- [ ] **Step 5: Test — alle drei Guard-Tests grün**
+- [x] **Step 5: Test — alle drei Guard-Tests grün**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
@@ -246,9 +246,9 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/review-gate-before-aut
 
 Expected: PASS — alle drei Tests grün (Tests 1+2 aus Task 2, Test 3 neu).
 
-- [ ] **Step 6: Bekannten Rot-Zustand dokumentieren** — `tests/spec/ci-cd.bats` T002272-M2 ist jetzt rot (der Anker `^## Schritt 5: PR erstellen` findet den Auto-Merge-Aufruf nicht mehr). Das ist erwartet und wird in Task 4 im selben PR behoben.
+- [x] **Step 6: Bekannten Rot-Zustand dokumentieren** — `tests/spec/ci-cd.bats` T002272-M2 ist jetzt rot (der Anker `^## Schritt 5: PR erstellen` findet den Auto-Merge-Aufruf nicht mehr). Das ist erwartet und wird in Task 4 im selben PR behoben.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
@@ -265,7 +265,7 @@ git commit -m "fix(skills): enforce review gate before auto-merge [T005565]"
 - Consumes: Task 3 (Code-Review-Gate-Abschnitt mit dem einzigen `gh pr merge --auto`-Aufruf).
 - Produces: Den umgestellten Ordnungs-Guard — die Garantie `merge_line < watch_line` (Auto-Merge vor CI-Watch) bleibt unter dem neuen Anker erhalten.
 
-- [ ] **Step 1: Testblock ersetzen**
+- [x] **Step 1: Testblock ersetzen**
 
 Aktuell:
 
@@ -304,7 +304,7 @@ Ersetzen durch (Anker auf das Code-Review-Gate; der einzige `gh pr merge --auto`
 }
 ```
 
-- [ ] **Step 2: Test läuft grün**
+- [x] **Step 2: Test läuft grün**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
@@ -314,12 +314,12 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/review-gate-before-aut
 
 Expected: beide Läufe PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
 git add tests/spec/ci-cd.bats
-git commit -m "test(ci-cd): retarget T002272-M2 guard to review gate [T005565]"
+git commit -m "test(ci): retarget T002272-M2 guard to review gate [T005565]"
 ```
 
 ### Task 5: Verifikation — finale Gates
@@ -330,7 +330,7 @@ git commit -m "test(ci-cd): retarget T002272-M2 guard to review gate [T005565]"
 **Interfaces:**
 - Consumes: Tasks 1–4 (alle Änderungen committed).
 
-- [ ] **Step 1: Geänderte Tests vollständig grün**
+- [x] **Step 1: Geänderte Tests vollständig grün**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
@@ -339,17 +339,17 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/agent-skills tests/spec/ci-cd.ba
 
 Expected: PASS (inklusive der Nachbar-Guards in `tests/spec/agent-skills/`).
 
-- [ ] **Step 2: `timeout 600 task test:changed`** — der Gesamtlauf der geänderten Tests, Expected: PASS. Bei Rot: systematisch diagnostizieren (Logs lesen, Fehler eingrenzen, fixen, Re-Test) — keine Hintergrund-Monitore (T001969).
+- [x] **Step 2: `timeout 600 task test:changed`** — der Gesamtlauf der geänderten Tests, Expected: PASS. Bei Rot: systematisch diagnostizieren (Logs lesen, Fehler eingrenzen, fixen, Re-Test) — keine Hintergrund-Monitore (T001969).
 
-- [ ] **Step 3: `task freshness:regenerate`** — generierte Artefakte (u.a. `website/src/data/test-inventory.json`) aktualisieren; bei Drift die generierten Dateien stagen und committen (Artefakt-Liste: verification-block.md).
+- [x] **Step 3: `task freshness:regenerate`** — generierte Artefakte (u.a. `website/src/data/test-inventory.json`) aktualisieren; bei Drift die generierten Dateien stagen und committen (Artefakt-Liste: verification-block.md).
 
-- [ ] **Step 4: `task freshness:check`** — Expected: PASS (stale-artifact-Guard der CI).
+- [x] **Step 4: `task freshness:check`** — Expected: PASS (stale-artifact-Guard der CI).
 
-- [ ] **Step 5: Commit offener Freshness-Artefakte, falls in Step 3 entstanden**
+- [x] **Step 5: Commit offener Freshness-Artefakte, falls in Step 3 entstanden**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/.worktrees/review-gate-enforce
-git add -u && git commit -m "chore(freshness): regenerate artifacts [T005565]"
+git add -u && git commit -m "chore(scripts): regenerate freshness artifacts [T005565]"
 ```
 
 Falls Step 3 nichts geändert hat, entfällt dieser Schritt (nichts zu committen — nicht `git add -A` erzwingen).

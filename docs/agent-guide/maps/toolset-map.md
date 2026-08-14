@@ -10,8 +10,9 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `github`
 
 - **`cli:gh-axi`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Alle GitHub-Operationen: PRs, Issues, Runs, Releases, Labels.
-  - _Fallback:_ `gh (nur wenn gh-axi ein Kommando nicht abdeckt)`
+  - _Wann:_ GitHub-Read/View-Flows zur Anzeige: PRs, Issues, Runs, Releases, Labels.
+  - _Nicht:_ Antwort wird maschinell geparst (--json/-q/--jq, jq-Pipelines), Polling-Loops oder Mutationen — gh-axi liefert TOON-Text und ignoriert --json still mit Exit 0 (T004612); dort gh direkt.
+  - _Fallback:_ `gh (maschinelles Parsen, Polling, Mutationen, nicht abgedeckte Kommandos)`
   - _Rollen:_ `all`
   - _Tiefe:_ `.claude/skills/references/gh-axi.md`
 - **`mcp:github-mcp`** — Status `suppressed`
@@ -106,10 +107,8 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `externes-task-management`
 
-- **`mcp:task-master-ai`** — Status `canonical` · Tier `caution`
-  - _Wann:_ PRD-getriebene Task-Zerlegung und Autopilot ausserhalb des Ticket-Systems.
-  - _Nicht:_ Reguläre Repo-Tickets — dafür ticket-mcp und die dev-flow-Skills.
-  - _Rollen:_ `orchestrator`
+- **`mcp:task-master-ai`** — Status `suppressed`
+  - _Grund:_ Kein erreichbarer Server: task-master-ai existiert weder in docs/agent-guide/registry/mcp.yaml noch in .opencode/opencode.jsonc. PRD-getriebene Task-Zerlegung laeuft ueber ticket-mcp und die dev-flow-/opencode-flow-Skills.
 
 ## Fähigkeit: `mishap-erfassung`
 

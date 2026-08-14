@@ -7,7 +7,7 @@ description: Use whenever committing, pushing, creating a PR, or finishing work 
 
 **Sage zu Beginn:** "Ich nutze opencode-git-workflow für den Commit/PR-Ablauf."
 
-Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** in opencode. Die `opencode-flow-*`-Skills verweisen auf die Schritte hier statt sie zu duplizieren. Für GitHub-Read/View-Flows `gh-axi` bevorzugen (Repos: `Paddione/Bachelorprojekt`).
+Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** in opencode. Die `opencode-flow-*`-Skills verweisen auf die Schritte hier statt sie zu duplizieren. Für GitHub-Read/View-Flows (Anzeige) `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist: `gh` direkt (T004612, Repos: `Paddione/Bachelorprojekt`).
 
 ---
 
@@ -154,13 +154,13 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 
 > **Titel nachträglich editieren (REST-Fallback):**
 > ```bash
-> gh-axi api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
+> gh api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
 > ```
 
 ### PR anlegen
 
 ```bash
-gh-axi pr create \
+gh pr create \
   --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" \
   --body "$(cat <<'EOF'
 ## Summary
@@ -182,7 +182,7 @@ EOF
 Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird. SSOT: `.claude/skills/references/ci-fix-loop.md`.
 
 Kurzfassung:
-1. `gh-axi pr checks <n> --watch` — warten bis alle Required Checks grün sind
+1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind
 2. Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen
 3. Bei `CONFLICTING` PR-Status: `git fetch origin main && git rebase origin/main` → push
 4. Bei `CONFLICTING` nach Auto-Regen: `git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerierte> && git rebase --continue && git push --force-with-lease`
@@ -199,11 +199,13 @@ Kurzfassung:
 
 ```bash
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-(cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
+(cd "$MAIN_REPO" && gh pr merge --auto --squash)
 ```
 
 - **Immer `--squash`**
-- **Immer `--delete-branch`**
+- **KEIN `--delete-branch` (T004612)** — das Post-Merge-OpenSpec-Archiv (Schritt 7) braucht den
+  Branch noch; gelöscht wird er erst im Cleanup NACH der Archivierung.
+  `delete_branch_on_merge` ist repo-seitig deaktiviert.
 - **`--auto`** — mergt automatisch wenn alle Required Checks grün sind
 - **Race-Hinweis:** `--auto` kehrt sofort zurück; der eigentliche Merge passiert asynchron. CI-Läufe, die durch `edited`-Events (PR-Titel-Edit) getriggert wurden, können noch laufen. `cancel-in-progress` in `ci.yml` wurde so angepasst, dass `edited`-Runs keine laufenden CI-Jobs abbrechen (T002248).
 
@@ -213,11 +215,14 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 ```bash
 WORKTREE_PATH="$(git rev-parse --show-toplevel)"
+BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 cd "$MAIN_REPO"
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
+# Remote-Branch erst NACH der Archivierung löschen (T004612 — der Merge löscht nicht mehr):
+git push origin --delete "$BRANCH_NAME"
 ```
 
 Agent-Lock freigeben VOR dem Worktree-Remove.
@@ -248,9 +253,9 @@ bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 | 2 | Conventional Commit + Ticket-ID | Jeder Commit |
 | 2 | Commit-Verifikation (HEAD_SHA != BASE_SHA) | Nach jedem Commit in Worktrees |
 | 3 | `git push -u origin <branch>` | Einmalig, danach plain `git push` |
-| 4 | `preflight-pr-scope.sh` + `gh-axi pr create` | Einmal pro PR |
+| 4 | `preflight-pr-scope.sh` + `gh pr create` | Einmal pro PR |
 | 5 | CI Fix Loop | Bis alle Required Checks grün |
-| 6 | `gh-axi pr merge --auto --squash --delete-branch` | Wenn CI grün |
+| 6 | `gh pr merge --auto --squash` (kein `--delete-branch`, T004612) | Wenn CI grün |
 | 7 | `git worktree remove` + Lock-Release | Nur bei Worktree-Arbeit |
 
 ---
@@ -260,7 +265,7 @@ bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 | Fehler | Diagnose | Fix |
 |--------|----------|-----|
 | Commit landet nicht (git-crypt) | `git rev-parse HEAD == BASE_SHA` | `git status`, dann erneut committen |
-| CI startet nie | `gh-axi pr view <n> --json mergeStateStatus` → `CONFLICTING` | `git rebase origin/main` |
+| CI startet nie | `gh pr view <n> --json mergeStateStatus` → `CONFLICTING` | `git rebase origin/main` |
 | Stale artifact in CI | `task freshness:check` lokal rot | `task freshness:regenerate && git add && git commit` |
 | PR-Scope invalid | `preflight-pr-scope.sh` Exit 1 | Scope korrigieren, neu prüfen |
 | Falscher Cluster gedeployt | `ENV=` vergessen gesetzt | Immer `ENV=mentolder` / `ENV=korczewski` explizit |

@@ -77,7 +77,7 @@ gh api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
 | 3 | `git push -u origin <branch>` | Einmalig, danach plain `git push` |
 | 4 | `bash scripts/preflight-pr-scope.sh "<PR title>"` + `gh pr create` | Einmal pro PR |
 | 5 | CI Fix Loop | Bis alle Required Checks grün |
-| 6 | `gh pr merge --auto --squash --delete-branch` | Wenn CI grün |
+| 6 | `gh pr merge --auto --squash` (kein `--delete-branch` — Archiv läuft vor der Löschung, T004612) | Wenn CI grün |
 | 7 | `git worktree remove` + `agent-lock release` | Nur bei Worktree-Arbeit |
 
 ## Häufige Fehler

@@ -2,6 +2,12 @@
 
 Vollständige Mechanik zur Archivierung von Plan & OpenSpec.
 
+> **Reihenfolge-Garantie (T004612):** Schritt 7 läuft VOR Schritt 7.5 (Worktree/Branch-Löschung),
+> und der Fix-PR-Merge (Schritt 5) löscht den Branch NICHT mehr (`--delete-branch` entfernt,
+> `delete_branch_on_merge=false` repo-seitig). Der Fix-Branch existiert zum Archivzeitpunkt also
+> noch — ein Neu-Anlegen nach Auto-Delete (beobachtet am 2026-08-14, Archiv-PR #4393) entfällt.
+> Gelöscht wird er erst in 7.5, NACH diesem Schritt.
+
 ```bash
 SLUG="<slug>"
 BRANCH="feature/<slug>" # oder fix/<slug>

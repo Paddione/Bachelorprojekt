@@ -9,7 +9,9 @@
 #     (classify_failure <ci-log-file> — echoes exactly one class).
 #   - polling cadence, `gh pr checks` overview and the job-level step diagnosis
 #     are the SSOT of .claude/skills/references/ci-fix-loop.md (read there).
-# GitHub CLI runs through the preferred wrapper gh-axi (gh fallback).
+# GitHub CLI: every poll is machine-parsed (`--json | jq`) and therefore MUST run
+# through plain `gh` — gh-axi (TOON format) silently ignores `--json` with exit 0
+# (Mishap-Rollup T003533, Eintrag 2026-08-11 08:04 #6; Fix T004612).
 #
 #   bash scripts/factory/pr-babysit-ticket.sh T002074 123
 # Exit 0 = merged / all green; exit 1 = red after MAX_CI_ATTEMPTS.
@@ -21,8 +23,11 @@ REPO="${REPO:-/home/patrick/Bachelorprojekt}"
 MAX_CI_ATTEMPTS="${MAX_CI_ATTEMPTS:-5}"
 POLL_INTERVAL="${POLL_INTERVAL:-20}"
 
-# Prefer the gh-axi wrapper; fall back to plain gh.
-GH="gh"; command -v gh-axi >/dev/null 2>&1 && GH="gh-axi"
+# FEST `gh` — NICHT gh-axi: dieser Loop parsed jede Antwort mit `--json | jq`.
+# gh-axi liefert TOON-Text und ignoriert `--json` still mit Exit 0 — der
+# Babysitter sähe sonst jede Check-Liste als leer und bräche mit falschem
+# Befund ab (T004612).
+GH="gh"
 
 # shellcheck source=/dev/null
 source "$REPO/scripts/factory/classify-failure.sh"
@@ -55,8 +60,11 @@ _on_merged() {
 
 # Queue auto-merge (squash). Only ever called AFTER a full re-check confirms no
 # known-red check remains (green or pending are ok).
+# KEIN --delete-branch (T004612): das Post-Merge-OpenSpec-Archiv (dev-flow Schritt 7)
+# braucht den Branch noch; delete_branch_on_merge ist repo-seitig deaktiviert.
+# Verwaiste Branches räumt branch-reaper.sh ab (Ticket-Kriterium + reaped-Tag).
 _queue_automerge() {
-  "$GH" pr merge "$PR" --squash --auto --delete-branch 2>/dev/null || true
+  "$GH" pr merge "$PR" --squash --auto 2>/dev/null || true
 }
 
 attempt=0

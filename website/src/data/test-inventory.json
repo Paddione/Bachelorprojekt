@@ -2484,6 +2484,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/git-flow-poll-and-branch-order",
+    "file": "tests/spec/ci-cd/git-flow-poll-and-branch-order.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",

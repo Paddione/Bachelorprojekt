@@ -7,10 +7,12 @@
 #   bash scripts/branch-reaper.sh --sweep [--dry-run] [--remote ...]   # loeschender Sweep
 #
 # Warum es dieses Skript gibt:
-#   `delete_branch_on_merge=true` und `gh pr merge --delete-branch` greifen nur, wenn der
-#   Branch SELBST gemergt wird. Plan- und Factory-Branches laufen aber häufig über einen
-#   Sammel-PR nach main — auf ihrem eigenen Ref findet nie ein Merge-Event statt, also räumt
-#   sie niemand ab. Am 2026-08-01 lagen so 24 PR-lose Branches auf origin.
+#   Seit T004612 löscht der Merge-Flow Branches bewusst NICHT mehr (delete_branch_on_merge=false,
+#   kein --delete-branch im Fix-PR-Merge — das OpenSpec-Archiv braucht den Branch nach dem Merge).
+#   Der Reaper ist damit nicht mehr nur Netz für Sammel-PR-Branches (Plan- und Factory-Branches
+#   laufen über einen Sammel-PR nach main — auf ihrem eigenen Ref findet nie ein Merge-Event
+#   statt), sondern der reguläre Aufräumer für ALLE gemergten Branches. Am 2026-08-01 lagen so
+#   24 PR-lose Branches auf origin.
 #
 # Löschkriterium — ALLE vier Bedingungen müssen gelten:
 #   1. Branch trägt die Ticket-ID im Namen (case-insensitiv)

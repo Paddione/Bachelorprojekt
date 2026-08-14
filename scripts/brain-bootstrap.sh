@@ -65,8 +65,8 @@ if [[ "$CREATE_REMOTE" -eq 1 ]]; then
   : "${COLLABORATOR:?--collaborator <handle> required for --create-remote}"
   work="$(mktemp -d)"
   seed "$work"
-  gh_bin() { command -v gh-axi >/dev/null 2>&1 && echo gh-axi || echo gh; }
-  "$(gh_bin)" repo create Paddione/brain --private --disable-wiki || true
+  # Mutation → gh direkt (gh-axi ist Anzeige-only, T004612)
+  gh repo create Paddione/brain --private --disable-wiki || true
   (
     cd "$work"
     git init -q

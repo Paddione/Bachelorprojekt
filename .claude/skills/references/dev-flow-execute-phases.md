@@ -307,11 +307,18 @@ Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständig
 
 ## Schritt 7.5: Worktree & Branch bereinigen
 
+> **Reihenfolge (T004612):** Dieser Schritt läuft NACH Schritt 7 (Archiv) — der Fix-PR-Merge
+> (Schritt 5) löscht den Branch bewusst NICHT mehr (`--delete-branch` entfernt,
+> `delete_branch_on_merge=false`), damit die Archivierung ihn noch vorfindet.
+> Der Archiv-Branch (`chore/plan-archive-*`) ist davon unberührt — sein eigener Merge behält
+> sein `--delete-branch` (plan-archive-steps).
+
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 Claims freigeben VOR dem Worktree-Remove ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)), dann:
 ```bash
 git worktree remove "$MAIN_REPO/.worktrees/<slug>" --force
 git branch -D "<branch>"
+git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T004612)
 ```
 
 

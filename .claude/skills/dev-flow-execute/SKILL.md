@@ -84,7 +84,7 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
   - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
   - **Hintergrund-Monitore für lange Test-Runs verboten [T001969 Mishap 1].** Während der Verifikation (lange `task test:changed`/`gh run watch`/CI-Polls) **keine** Background-Tasks starten, auf deren Output der Subagent in einer Monitor-Schleife wartet ("I'll wait for the monitor"). Stattdessen synchron mit explizitem Timeout ausführen: `timeout 600 task test:changed` und auf das Resultat warten. Bei Stop-Events: Arbeit fortsetzen oder an den Orchestrator eskalieren — nicht auf einen Monitor-Loop warten.
-  - Erstelle einen PR und fordere Auto-Merge an (`gh pr merge --auto --squash --delete-branch`, Schritt 5).
+  - Erstelle einen PR und fordere Auto-Merge an (`gh pr merge --auto --squash` — KEIN `--delete-branch`, der Branch wird erst nach dem OpenSpec-Archiv gelöscht, T004612; Schritt 5).
   - **ENDE (T002365):** Melde Ergebnis zurück — CI-Fix-Schleife (5.5), Merge-Wait, Ticket-Abschluss und
     Plan-Archivierung laufen im Orchestrator. **Der Worktree wird NICHT von dir entfernt** (T002352-M1),
     das ist Orchestrator-Aufgabe (Schritt 7.5). Notification abwarten, dann bei Schritt 5.5 weiter — nicht Schritt 8.
@@ -186,7 +186,10 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 ```bash
 # Auto-Merge sofort anfordern — GitHub merged selbstständig, sobald Required Checks grün sind.
-(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
+# KEIN --delete-branch (T004612): Schritt 7 (Plan-/OpenSpec-Archiv) braucht den Branch noch —
+# gelöscht wird er erst in Schritt 7.5, NACH der Archivierung. delete_branch_on_merge ist
+# repo-seitig deaktiviert; verwaiste Branches räumt branch-reaper.sh ab.
+(cd "$MAIN_REPO" && gh pr merge --auto --squash)
 ```
 
 ## Schritt 5.5: CI/CD-Fix-Schleife (Orchestrator-Zuständigkeit, T002365)

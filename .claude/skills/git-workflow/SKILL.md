@@ -8,8 +8,9 @@ description: 'Use whenever committing, pushing, creating a PR, or finishing work
 **Sage zu Beginn:** "Ich nutze git-workflow für den Commit/PR-Ablauf."
 
 Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** — die `dev-flow-*`-Skills
-verweisen auf die Schritte hier statt sie zu duplizieren. Für read/view-GitHub-Flows den Wrapper
-`gh-axi` bevorzugen ([gh-axi](file:///home/patrick/Bachelorprojekt/.claude/skills/references/gh-axi.md)).
+verweisen auf die Schritte hier statt sie zu duplizieren. Für read/view-GitHub-Flows (Anzeige) den
+Wrapper `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist: `gh` direkt (T004612)
+([gh-axi](file:///home/patrick/Bachelorprojekt/.claude/skills/references/gh-axi.md)).
 
 ---
 
@@ -246,11 +247,13 @@ Kurzfassung:
 
 ```bash
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
+(cd "$MAIN_REPO" && gh pr merge --auto --squash)
 ```
 
 - **Immer `--squash`** — hält `main`-History sauber (Entwicklungsregel)
-- **Immer `--delete-branch`** — Branch-Leichen vermeiden
+- **KEIN `--delete-branch` (T004612)** — das Post-Merge-Archiv (OpenSpec, Schritt 7) braucht den
+  Branch noch; gelöscht wird er erst im Cleanup NACH der Archivierung.
+  `delete_branch_on_merge` ist repo-seitig deaktiviert; branch-reaper.sh räumt Verwaiste ab.
 - **`--auto`** — mergt automatisch wenn alle Required Checks grün sind
 - **Race-Hinweis:** `--auto` kehrt sofort zurück; der eigentliche Merge passiert asynchron. CI-Läufe, die durch `edited`-Events (PR-Titel-Edit) getriggert wurden, können noch laufen. `cancel-in-progress` in `ci.yml` wurde so angepasst, dass `edited`-Runs keine laufenden CI-Jobs abbrechen (T002248).
 
@@ -269,10 +272,12 @@ cd "$MAIN_REPO"
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
 
-# Der Remote-Branch wurde durch `gh pr merge --squash --delete-branch` bereits
-# gelöscht — der lokale Ref bleibt aber übrig, weil der Squash-Commit auf main
-# ein neuer Commit ist und Git den Branch nicht als "merged" erkennen kann.
-# `git branch -d` würde daher fehlschlagen; `-D` ist nötig.
+# T004612: der Merge löscht den Remote-Branch NICHT mehr (kein --delete-branch,
+# delete_branch_on_merge=false) — die Archivierung (Schritt 7) brauchte ihn. Erst
+# hier, NACH dem Archiv, remote + lokal löschen:
+git push origin --delete "$BRANCH_NAME"
+# Der Squash-Commit auf main ist ein neuer Commit — Git erkennt den Branch nicht
+# als "merged", `git branch -d` würde fehlschlagen; `-D` ist nötig.
 if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" 2>/dev/null; then
   git branch -D "$BRANCH_NAME"
 fi

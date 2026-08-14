@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.32](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.31...website-v1.276.32) (2026-08-14)
+
+
+### Bug Fixes
+
+* **website:** mirror http/https startUrl guard in collection create path [T005900] ([#4488](https://github.com/Paddione/Bachelorprojekt/issues/4488)) ([eb35511](https://github.com/Paddione/Bachelorprojekt/commit/eb3551109e6af1fa772b94efedf16daa836455e0))
+
 ## [1.276.31](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.30...website-v1.276.31) (2026-08-14)
 
 

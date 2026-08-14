@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.6...website-v1.276.7) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** dispatch-branch-lock-gate gegen Doppel-Dispatch [T004610] ([#4398](https://github.com/Paddione/Bachelorprojekt/issues/4398)) ([353131a](https://github.com/Paddione/Bachelorprojekt/commit/353131a061b60a48db44b3c721793600ef400171))
+
 ## [1.276.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.5...website-v1.276.6) (2026-08-14)
 
 

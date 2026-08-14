@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS model_registry.adapters (
 CREATE TABLE IF NOT EXISTS model_registry.eval_scores (
   adapter_id    INT REFERENCES model_registry.adapters(id),
   role          TEXT NOT NULL,           -- "scout", "review-lens", "commit-msg", "triage"
-  score         FLOAT NOT NULL,          -- 0..1
+  score         FLOAT NOT NULL CHECK (score >= 0 AND score <= 1),  -- 0..1 (T004445)
   harness_version TEXT,
   evaluated_at   TIMESTAMPTZ DEFAULT now(),
   PRIMARY KEY (adapter_id, role)
@@ -51,8 +51,25 @@ CREATE TABLE IF NOT EXISTS model_registry.deployment_config (
 -- landet automatisch im Schema der Tabelle (model_registry).
 CREATE INDEX IF NOT EXISTS eval_scores_role_idx ON model_registry.eval_scores(role);
 
+-- CHECK 0..1 auf score: bei bereits existierender Tabelle greift CREATE TABLE
+-- IF NOT EXISTS nicht nach — der Constraint wird hier idempotent nachgezogen
+-- (T004445 Review-Fix). Benannte Constraints sind pro Tabelle eindeutig, daher
+-- ist ADD CONSTRAINT IF NOT EXISTS sicher.
+ALTER TABLE model_registry.eval_scores
+  DROP CONSTRAINT IF EXISTS eval_scores_score_range_check;
+ALTER TABLE model_registry.eval_scores
+  ADD CONSTRAINT eval_scores_score_range_check CHECK (score >= 0 AND score <= 1);
+
 -- Zugriff fuer den Website-User (Skripte verbinden als website):
 GRANT USAGE ON SCHEMA model_registry TO website;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA model_registry TO website;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA model_registry TO website;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA model_registry TO website;
+-- Zukuenftige Tabellen/Funktionen im Schema automatisch mitberechtigen
+-- (GRANT ON ALL TABLES wirkt nur auf bereits existierende Objekte; T004445):
+ALTER DEFAULT PRIVILEGES IN SCHEMA model_registry
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO website;
+ALTER DEFAULT PRIVILEGES IN SCHEMA model_registry
+  GRANT USAGE, SELECT ON SEQUENCES TO website;
+ALTER DEFAULT PRIVILEGES IN SCHEMA model_registry
+  GRANT EXECUTE ON FUNCTIONS TO website;

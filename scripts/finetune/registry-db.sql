@@ -6,6 +6,11 @@
 -- DROP SCHEMA IF EXISTS model_registry CASCADE;
 
 -- 1. insert_adapter
+-- Get-or-create-Semantik (T004445 Review-Fix): existiert der Adapter schon, bleibt
+-- er UNVERAENDERT — eval-runner/stat-collector rufen diese Funktion mit
+-- Platzhalterwerten ('unknown', NULL) auf und duerfen registrierte Metadaten
+-- (base_model, quantization) nicht ueberschreiben. Nur die Neuanlage setzt
+-- die uebergebenen Werte.
 CREATE OR REPLACE FUNCTION model_registry.insert_adapter(
   p_name TEXT, 
   p_base_model TEXT, 
@@ -14,12 +19,12 @@ CREATE OR REPLACE FUNCTION model_registry.insert_adapter(
 DECLARE
   v_id INT;
 BEGIN
-  INSERT INTO model_registry.adapters (name, base_model, quantization)
-  VALUES (p_name, p_base_model, p_quantization)
-  ON CONFLICT (name) DO UPDATE 
-    SET base_model = EXCLUDED.base_model,
-        quantization = EXCLUDED.quantization
-  RETURNING id INTO v_id;
+  SELECT id INTO v_id FROM model_registry.adapters WHERE name = p_name;
+  IF v_id IS NULL THEN
+    INSERT INTO model_registry.adapters (name, base_model, quantization)
+    VALUES (p_name, p_base_model, p_quantization)
+    RETURNING id INTO v_id;
+  END IF;
   RETURN v_id;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
@@ -140,7 +145,7 @@ BEGIN
   ) es ON TRUE
   WHERE a.name = p_name;
 END;
-$$ LANGUAGE plpgsql VOLATILE;
+$$ LANGUAGE plpgsql STABLE;
 
 -- 7. list_adapters
 CREATE OR REPLACE FUNCTION model_registry.list_adapters(
@@ -172,5 +177,5 @@ BEGIN
     AND (p_min_score IS NULL OR es.score >= p_min_score)
   ORDER BY es.score DESC NULLS LAST;
 END;
-$$ LANGUAGE plpgsql VOLATILE;
+$$ LANGUAGE plpgsql STABLE;
 

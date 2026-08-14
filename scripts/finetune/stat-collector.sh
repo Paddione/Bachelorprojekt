@@ -26,7 +26,7 @@ Options:
   --json             Report als JSON auf stdout (Default: menschenlesbar)
   --help             Zeige Hilfe
 EOF
-    exit 1
+    exit "${1:-1}"
 }
 
 registry_psql() {
@@ -47,7 +47,7 @@ while [[ $# -gt 0 ]]; do
         --db-url) DB_URL="$2"; shift 2 ;;
         --dry-run) DRY_RUN=true; shift ;;
         --json) JSON_OUTPUT=true; shift ;;
-        --help) usage ;;
+        --help) usage 0 ;;
         *) echo "Unknown option: $1" >&2; usage ;;
     esac
 done
@@ -148,16 +148,22 @@ fi
 
 # --- DB-Update (wenn nicht --dry-run) ---
 if [[ "$DRY_RUN" == "false" ]]; then
-    # a. insert_adapter
-    ADAPTER_ID=$(registry_psql -t -A -c "SELECT model_registry.insert_adapter('$ADAPTER', 'unknown', NULL);" || echo "")
+    # a. insert_adapter — get-or-create; Werte als psql-Variablen, SQL ueber
+    # stdin (psql ersetzt :'var' nur bei stdin/-f, T004445 Review-Fix)
+    ADAPTER_ID=$(registry_psql -t -A -v adapter="$ADAPTER" <<'SQL' || echo ""
+SELECT model_registry.insert_adapter(:'adapter', 'unknown', NULL);
+SQL
+    )
     if [[ -z "$ADAPTER_ID" ]]; then
         echo "Error: DB update (insert_adapter) failed" >&2
         exit 1
     fi
 
-    # b. upsert_stat_requirements
+    # b. upsert_stat_requirements — Messwerte durch to_sql_val auf NULL|numerisch
+    # normalisiert; NULL wird als LEERER String an psql gegeben, damit
+    # NULLIF(:'vram','') zu echtem SQL-NULL wird (T004445 Review-Fix)
     to_sql_val() {
-        if [[ "$1" == "null" || "$1" == "NULL" ]]; then echo "NULL"; else echo "$1"; fi
+        if [[ "$1" == "null" || "$1" == "NULL" || -z "$1" ]]; then echo ""; else echo "$1"; fi
     }
 
     SQL_VRAM=$(to_sql_val "$VRAM")
@@ -165,10 +171,15 @@ if [[ "$DRY_RUN" == "false" ]]; then
     SQL_MAX_CTX=$(to_sql_val "$MAX_CONTEXT")
     SQL_LOAD=$(to_sql_val "$LOAD_TIME")
 
-    registry_psql -c "SELECT model_registry.upsert_stat_requirements('$ADAPTER_ID', $SQL_VRAM, $SQL_MAX_CTX, $SQL_THROUGHPUT, $SQL_LOAD);" || {
+    if ! registry_psql -v adapter_id="$ADAPTER_ID" \
+      -v vram="$SQL_VRAM" -v maxctx="$SQL_MAX_CTX" \
+      -v throughput="$SQL_THROUGHPUT" -v loadms="$SQL_LOAD" <<'SQL'
+SELECT model_registry.upsert_stat_requirements(:'adapter_id'::int, NULLIF(:'vram','')::int, NULLIF(:'maxctx','')::int, NULLIF(:'throughput','')::float, NULLIF(:'loadms','')::int);
+SQL
+    then
         echo "Error: DB update (upsert_stat_requirements) failed" >&2
         exit 1
-    }
+    fi
 fi
 
 exit 0

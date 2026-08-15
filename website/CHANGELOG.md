@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.279.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.2...website-v1.279.3) (2026-08-15)
+
+
+### Tests
+
+* **mcp:** Guard für psql-Fallback-Ticket-SSOT + OpenSpec-Delta [T006285] ([#4573](https://github.com/Paddione/Bachelorprojekt/issues/4573)) ([b21be17](https://github.com/Paddione/Bachelorprojekt/commit/b21be170467189b07de6c63ccd2f62db2ad0e718))
+
 ## [1.279.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.1...website-v1.279.2) (2026-08-15)
 
 

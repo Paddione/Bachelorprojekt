@@ -258,8 +258,10 @@ setup() {
   printf '%s\n' "$block" | grep -qE "status IN \('triage','backlog','planning'\)" \
     || { echo "SELECT im Wiederfinde-Pfad fehlt der Collect-Mode (triage/backlog/planning) — T007056"; false; }
   # Negativ-Anker: plan_staged darf nicht in der Collect-Mode-Statusliste stehen.
-  printf '%s\n' "$block" | grep -qE "status IN \([^)]*plan_staged" \
-    && { echo "plan_staged darf NICHT im Collect-Mode-Wiederfinde stehen (T007056: dispatched ausschliessen)"; false; }
+  if printf '%s\n' "$block" | grep -qE "status IN \([^)]*plan_staged"; then
+    echo "plan_staged darf NICHT im Collect-Mode-Wiederfinde stehen (T007056: dispatched ausschliessen)"
+    false
+  fi
 }
 
 @test "T002407-M6c: ROLLUP_TICKET_TITLE ist definiert" {

@@ -91,7 +91,13 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/mcp-gateway*
 
 ### Task 3: Verifikation und Abschluss
 
-- [ ] offen
+- [x] Verifikation (2026-08-15):
+  - `task test:inventory` grün (idempotent; Inventar war im Stage-Commit bereits aktuell)
+  - `task freshness:regenerate` + `freshness:check` grün (Artefakte committet, `git show --stat HEAD` geprüft)
+  - `task test:spec:changed` grün (268 Tests)
+  - `npx astro check` grün (0 errors/0 warnings, T002694)
+  - **Befund `task test:changed`:** failt an der main-identischen Vitest-Suite `website/src/lib/sdlc/tickets/cockpit-db.test.ts` (`getaddrinfo ENOTFOUND shared-db.workspace.svc.cluster.local` — pg-mem-Mock greift im Worktree nicht, echter Pool will Cluster-DNS auflösen). Datei identisch zu origin/main (0-Zeilen-Diff), isoliert reproduzierbar → vorbestehend, kein PR-Blocker; in CI (merge-base=origin/main) läuft die Suite für diesen PR nicht. Alle für den Change relevanten BATS-Suiten grün: `bats -r tests/spec/mcp-gateway*` (88) und die spec-Auswahl aus `find-changed-tests.sh spec` (258).
+  - Adapter-Neustart auf :13001 bewusst NICHT ausgeführt: der laufende Prozess gehört zur Session (Haupt-Checkout, alter Code); Fix wirksam nach Merge + Neustart (siehe Abschluss-Probe unten)
 
 ```bash
 task test:inventory          # neue .bats-Datei im Test-Inventar registrieren (CI-Check)

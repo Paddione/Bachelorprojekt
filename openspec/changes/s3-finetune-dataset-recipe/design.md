@@ -1,6 +1,6 @@
 ---
 ticket_id: T006252
-plan_ref: null
+plan_ref: openspec/changes/s3-finetune-dataset-recipe/tasks.md
 status: active
 date: 2026-08-15
 ---
@@ -18,6 +18,12 @@ GPU-Lauf startet.
 
 Der Scope ist bewusst auf Datensatz + Recipe begrenzt. Die eigentliche Trainingsdurchführung
 ist die Vollabnahme (T002606-Muster); das Deployment auf die Geräte gehört zu S2 (T006143).
+
+**Scope-Entscheidung (Brainstorming 2026-08-15, User-Freigabe):** Der T006252-Plan endet bei
+**DRY_RUN-grün** — Anreicherung implementiert und getestet, Korpus gezogen, DSGVO-Stichprobe
+bestanden, E5-Gate geprüft, measure/guard grün, `train DRY_RUN=1` grün. Der echte GPU-Lauf
+inkl. Eval-Gate wird ein **eigenes Lauf-Ticket** (E6: das Kapazitätsfenster auf der
+Serving-GPU wird dort geplant).
 
 ## Befunde (Recon 2026-08-15, MESSUNG mit Befehl — T002717)
 

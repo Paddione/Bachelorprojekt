@@ -15,8 +15,12 @@ diesem Skript — Schreib-/Leseverbindungen zur Ticket-DB laufen ueber die sankt
 Zeilenform (--fixture / --rows-json), je Phase-Event eine Zeile:
     {
       "ticket_id": <int>, "external_id": "T...", "title": "...",
+      "description": "...",           # optional (JOIN-Feld, Design SQL Schritt 2)
       "phase": "...", "state": "...", "detail": "...", "at": "ISO-8601"
     }
+
+Kommentarzeilen (--comments-json), je Kommentar eine Zeile:
+    {"ticket_id": <int>, "author": "...", "body": "...", "created_at": "ISO-8601"}
 
 Filter und Schutz:
 
@@ -28,7 +32,10 @@ Filter und Schutz:
     einzuueben waere das Gegenteil des Trainingsziels.
   - Kein Lesezugriff auf environments/.secrets/ (dieses Skript liest ausschliesslich die
     uebergebenen Zeilen). Ein Redaktionsfilter entfernt bekannte Secret-Muster aus jedem
-    `detail`-Feld, bevor geschrieben wird.
+    `detail`-Feld, bevor geschrieben wird — bei `--with-context` auch aus
+    Ticket-Beschreibung und Kommentar-Body.
+  - `--with-context` ohne `--comments-json` bricht fail-fast ab (Kommentarzeilen sind die
+    zusaetzlichen Kontext-Turns; ohne sie ist das Flag ein Irrtum).
   - Ausgabeformat identisch zum externen Korpus, damit dieselbe Encode-Strecke greift.
 """
 from __future__ import annotations
@@ -71,6 +78,41 @@ def _load_rows(args: argparse.Namespace) -> list[dict]:
     )
 
 
+def _load_comments(args: argparse.Namespace) -> list[dict]:
+    return json.loads(Path(args.comments_json).read_text(encoding="utf-8"))
+
+
+def group_comments_by_ticket(comments: list[dict]) -> dict[int, list[dict]]:
+    grouped: dict[int, list[dict]] = defaultdict(list)
+    for c in comments:
+        grouped[c["ticket_id"]].append(c)
+    for ticket_id in grouped:
+        grouped[ticket_id].sort(key=lambda c: c.get("created_at", ""))
+    return grouped
+
+
+ASSISTANT_AUTHORS = {"claude-code", "factory"}
+
+
+def role_for_author(author: str) -> str:
+    return "assistant" if author in ASSISTANT_AUTHORS else "user"
+
+
+def render_context_turns(description: str | None, comments: list[dict]) -> list[dict]:
+    turns: list[dict] = []
+    if description:
+        turns.append({"role": "user", "content": redact(description)})
+    for c in comments:
+        body = str(c.get("body") or "")
+        if not body:
+            continue
+        turns.append({
+            "role": role_for_author(str(c.get("author") or "")),
+            "content": redact(body),
+        })
+    return turns
+
+
 def group_by_ticket(rows: list[dict]) -> dict[int, list[dict]]:
     grouped: dict[int, list[dict]] = defaultdict(list)
     for row in rows:
@@ -84,37 +126,52 @@ def is_successful(events: list[dict]) -> bool:
     return any(e.get("phase") == "verify" and e.get("state") == "done" for e in events)
 
 
-def render_conversation(events: list[dict]) -> dict:
+def render_conversation(events: list[dict], description: str | None = None,
+                        comments: list[dict] | None = None) -> dict:
     title = events[0].get("title", "")
     lines = []
     for e in events:
         detail = redact(str(e.get("detail") or ""))
         lines.append(f"{e['phase']}/{e['state']}: {detail}".strip(": "))
-    assistant_content = "\n".join(lines)
-    return {
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "Du bist der Bachelorprojekt Software-Factory-Treiber. Setze das "
-                    "Ticket wie im dokumentierten Verlauf beschrieben um."
-                ),
-            },
-            {"role": "user", "content": redact(title)},
-            {"role": "assistant", "content": assistant_content},
-        ]
-    }
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Du bist der Bachelorprojekt Software-Factory-Treiber. Setze das "
+                "Ticket wie im dokumentierten Verlauf beschrieben um."
+            ),
+        },
+        {"role": "user", "content": redact(title)},
+    ]
+    if comments is not None:
+        messages.extend(render_context_turns(description, comments))
+    messages.append({"role": "assistant", "content": "\n".join(lines)})
+    return {"messages": messages}
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--fixture", help="JSON-Datei mit bereits abgerufenen Phase-Event-Zeilen (Tests)")
     parser.add_argument("--rows-json", help="JSON-Datei mit Phase-Event-Zeilen aus einem vorgeschalteten mcp-postgres-Aufruf")
+    parser.add_argument("--with-context", action="store_true",
+                        help="Ticket-Beschreibung und -Kommentare als Turns anreichern (E7)")
+    parser.add_argument("--comments-json",
+                        help="JSON-Datei mit Kommentarzeilen (Pflicht bei --with-context)")
     parser.add_argument("--out", required=True, help="Zielpfad der JSONL-Korpusdatei")
     args = parser.parse_args(argv)
 
+    if args.with_context and not args.comments_json:
+        raise SystemExit(
+            "FEHLER: --with-context erfordert --comments-json (Kommentarzeilen aus dem "
+            "vorgeschalteten mcp-postgres-Aufruf, siehe Docstring)."
+        )
+
     rows = _load_rows(args)
     grouped = group_by_ticket(rows)
+
+    comments_by_ticket: dict[int, list[dict]] = {}
+    if args.with_context:
+        comments_by_ticket = group_comments_by_ticket(_load_comments(args))
 
     kept = 0
     skipped = 0
@@ -125,7 +182,11 @@ def main(argv=None) -> int:
             if not is_successful(events):
                 skipped += 1
                 continue
-            conversation = render_conversation(events)
+            conversation = render_conversation(
+                events,
+                description=events[0].get("description"),
+                comments=comments_by_ticket.get(ticket_id),
+            )
             fh.write(json.dumps(conversation, ensure_ascii=False) + "\n")
             kept += 1
 

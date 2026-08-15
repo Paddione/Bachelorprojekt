@@ -492,6 +492,28 @@ HYGIENE-EMPFEHLUNG: 5 stale Worktrees, 8 [gone]-Branches — `repo-hygiene` ausf
 >
 > **Sequenz:** Proposal-Phase (Phase A im Haupt-Checkout, kein Claim) → Claim branch + Worktree anlegen (Phase B) → Plan/Execute-Dispatch im Worktree.
 
+> **Ticket-State-Recheck [T006295]:** Vor dem ersten `claim`-Aufruf der Dispatch-Schleife wird der
+> Ticket-Zustand JEDES Wave-1-Tickets re-fetcht — der Masterplan-Snapshot kann seit der
+> Plan-Erstellung stale sein (eine Parallelsession kann Tickets zwischenzeitlich übernommen
+> haben). Billige Query gegen die reale Schema-Referenz (verifiziert 2026-08-15):
+>
+> ```sql
+> SELECT t.external_id, t.status,
+>        EXISTS (SELECT 1 FROM tickets.ticket_comments c
+>                WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %') AS has_plan_ref
+> FROM tickets.tickets t
+> WHERE t.external_id = ANY($wave1_ids);
+> ```
+>
+> **Stale-Regel:** Ein Ticket ist `STALE-STATE`, wenn der re-fetchte `status` vom
+> Masterplan-Snapshot abweicht ODER `has_plan_ref` wahr ist (ein `FACTORY-PLAN-REF`-Kommentar
+> zeigt eine laufende Plan-Staging-Session). Vergleichsbasis ist der Zustand, den der Masterplan
+> für das Ticket erfasst hat — Execution-Wave-Tickets waren bereits `plan_staged` im Snapshot und
+> bleiben dispatchebar, solange der Zustand unverändert ist. Stale-Tickets werden als
+> `STALE-STATE: T00XXXX (status=<aktuell>, erwartet=<snapshot>)` gemeldet, aus der Wave-Menge
+> entfernt und NICHT dispatched — sie gehören einer laufenden Parallelsession, deren Ergebnis
+> nicht überschrieben werden darf. Es werden nur Tickets dispatched, die seit dem Masterplan-Snapshot unveraendert sind.
+
 For each remaining wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
 1. `bash scripts/agent-lock.sh claim branch <branch> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it; bei unplanned Tickets erst nach Phase A claimen [T004602]). **Warum branch-scoped und nicht ticket-scoped (T003102):** der ticket-scoped Lock blockiert nicht den zweiten Bearbeiter, sondern den späteren Abschluss durch Subagent, `ticket-mcp` und `post-merge.yml` — der branch-scoped Claim hingegen schützt genau den Worktree, den `dev-flow-execute` betritt und ändert.
 

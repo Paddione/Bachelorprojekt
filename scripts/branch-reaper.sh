@@ -225,7 +225,7 @@ for branch in "${CANDIDATES[@]}"; do
     ticket_json="$(bash "$TICKET_SH" get --id "$branch_ticket_id" 2>/dev/null || echo '{}')"
     status="$(printf '%s' "$ticket_json" \
       | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' \
-      | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//')"
+      | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//' || true)"
     case "$status" in
       done|archived) : ;;
       "") echo "KEEP $branch — Ticket-Status nicht ermittelbar"; continue ;;

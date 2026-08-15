@@ -1,5 +1,52 @@
 # Changelog
 
+## [1.278.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.1...website-v1.278.2) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock release branch verweigert cwd im Lock-Worktree [T006290] ([#4547](https://github.com/Paddione/Bachelorprojekt/issues/4547)) ([36f6ff6](https://github.com/Paddione/Bachelorprojekt/commit/36f6ff6c81906504bc32a664de344b580a7c22da))
+
+## [1.278.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.0...website-v1.278.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** branch-reaper überlebt leere ticket.sh-Antwort [T006329] ([#4540](https://github.com/Paddione/Bachelorprojekt/issues/4540)) ([5d944bd](https://github.com/Paddione/Bachelorprojekt/commit/5d944bd2b8395ee3fae234c6c2e5c29520bf16f8))
+
+## [1.278.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.277.0...website-v1.278.0) (2026-08-15)
+
+
+### Features
+
+* s3 finetune dataset recipe T006252 ([#4545](https://github.com/Paddione/Bachelorprojekt/issues/4545)) ([c4d9f47](https://github.com/Paddione/Bachelorprojekt/commit/c4d9f47b86699727b347af54c32a90b956041aa4))
+
+
+### Bug Fixes
+
+* **skills:** Ticket-State-Recheck vor Wave-1-Dispatch [T006295] ([#4542](https://github.com/Paddione/Bachelorprojekt/issues/4542)) ([f530ec9](https://github.com/Paddione/Bachelorprojekt/commit/f530ec9878a49d7f85b6b2d2af7b9ceaa9db8f7a))
+
+## [1.277.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.48...website-v1.277.0) (2026-08-15)
+
+
+### Features
+
+* **scripts:** idempotente Post-Merge-Finalize-Einheit für dev-flow-execute [T006284] ([#4539](https://github.com/Paddione/Bachelorprojekt/issues/4539)) ([1cab101](https://github.com/Paddione/Bachelorprojekt/commit/1cab10192513ae0916f7c2323c9305501d1e81e0))
+
+## [1.276.48](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.47...website-v1.276.48) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** add message-verified drop --by-message to git-stash-net [T006298] ([#4535](https://github.com/Paddione/Bachelorprojekt/issues/4535)) ([b346b24](https://github.com/Paddione/Bachelorprojekt/commit/b346b24806e2b9620b1ebae213f3836257a4b840))
+
+## [1.276.47](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.46...website-v1.276.47) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** mcp-postgres lehnt Multi-Statement-SQL mit Fehler ab statt leerem Array [T006293] ([#4534](https://github.com/Paddione/Bachelorprojekt/issues/4534)) ([4e5a4d8](https://github.com/Paddione/Bachelorprojekt/commit/4e5a4d86f567e1a1a5d6b65ef0528f46d9421e58))
+
 ## [1.276.46](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.45...website-v1.276.46) (2026-08-15)
 
 

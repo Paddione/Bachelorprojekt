@@ -1962,6 +1962,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/agent-lock-release-cwd",
+    "file": "tests/spec/active-sessions-hub/agent-lock-release-cwd.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/agent-lock-scope-regelwerk",
     "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
     "category": "active-sessions-hub",
@@ -2102,6 +2108,12 @@
   {
     "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
     "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/executor-post-merge-death",
+    "file": "tests/spec/agent-skills/executor-post-merge-death.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -2438,6 +2450,12 @@
   {
     "id": "ci-cd/branch-reaper",
     "file": "tests/spec/ci-cd/branch-reaper.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/branch-reaper-empty-answer",
+    "file": "tests/spec/ci-cd/branch-reaper-empty-answer.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2906,6 +2924,12 @@
   {
     "id": "divergence-guard/main-checkout-foreign-guard",
     "file": "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
+    "id": "divergence-guard/stash-drop-by-message",
+    "file": "tests/spec/divergence-guard/stash-drop-by-message.bats",
     "category": "divergence-guard",
     "kind": "shell"
   },
@@ -4785,6 +4809,12 @@
     "id": "ticket-ops-claim-phase-a-T004602",
     "file": "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
     "category": "ticket-ops-claim-phase-a-T004602",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-ops/wave1-state-refetch",
+    "file": "tests/spec/ticket-ops/wave1-state-refetch.bats",
+    "category": "ticket-ops",
     "kind": "shell"
   },
   {

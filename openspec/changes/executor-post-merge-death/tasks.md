@@ -27,7 +27,7 @@ depends_on_plans: []
 ## Global Constraints
 
 - `.md`/`.bats` haben kein S1-Limit (`docs/code-quality/gates.yaml` → `s1.limits` kennt nur .astro/.ts/.svelte/.sh/.mjs/.mts/.py/.js/.jsx/.tsx/.cjs/.bash) und sind nicht gebaselinet (`docs/code-quality/baseline.json`) — kein S1-Budget für die Skill-/Spec-/Test-Dateien.
-- `scripts/devflow-post-merge-finalize.sh` (NEU, .sh): Limit 800 → Budget 800; das Skript bleibt unter 300 Zeilen (Kette aus Bestands-Skripten, keine neue Logik).
+- `scripts/devflow-post-merge-finalize.sh` (NEU, .sh): Limit 800, Restbudget 506 (Ist 294 Zeilen, Ziel < 300; Kette aus Bestands-Skripten, keine neue Logik).
 - `scripts/devflow-post-merge-ticket-closure.sh` (137 Zeilen) dient als Stil-/Konventions-Vorlage (set -euo pipefail, HERE-Root, BRAND/TICKET_CTX-Env).
 - Kein neuer Vitest-Test nötig: keine `.ts`/`.svelte`-Änderung (Bash-Skript + Skill-Doku) — `<!-- vitest: kein neuer Test nötig, weil keine website/src-Änderung -->`.
 - S4: Das neue Skript wird von der SKILL.md referenziert und vom BATS-Guard aufgerufen — kein Orphan.
@@ -67,7 +67,7 @@ website/src/data/test-inventory.json                           # REGENERATE: tas
 ### Task 2: Idempotente Abschluss-Einheit `scripts/devflow-post-merge-finalize.sh`
 
 **Files:**
-- Add: `scripts/devflow-post-merge-finalize.sh` — S1: NEU, .sh-Limit 800 → Budget 800, Ziel < 300 Zeilen
+- Add: `scripts/devflow-post-merge-finalize.sh` — S1: .sh-Limit 800, Restbudget 506 (Ist 294 Zeilen, Ziel < 300)
 - Stil-Vorlage: `scripts/devflow-post-merge-ticket-closure.sh` (Ist 137, kein S1-Budget behauptet)
 
 **Interfaces:**
@@ -142,17 +142,17 @@ website/src/data/test-inventory.json                           # REGENERATE: tas
 - `website/src/data/test-inventory.json` (regeneriert)
 
 **Steps:**
-- [ ] Gezielte Tests für geänderte Domains:
+- [x] Gezielte Tests für geänderte Domains:
   ```bash
   task test:changed
   ```
-- [ ] Generierte Artefakte aktualisieren:
+- [x] Generierte Artefakte aktualisieren:
   ```bash
   task freshness:regenerate
   ```
-- [ ] CI-Äquivalent (Freshness + S1–S4-Ratchet + Baseline-Assertion):
+- [x] CI-Äquivalent (Freshness + S1–S4-Ratchet + Baseline-Assertion):
   ```bash
   task freshness:check
   ```
-- [ ] Zusätzlich: `bash scripts/openspec.sh validate` (Exit 0) und `bash scripts/plan-lint.sh openspec/changes/executor-post-merge-death/tasks.md` (Exit 0) als letzte Plausibilitäts-Gates vor dem Stage-Commit.
-- [ ] Ergebnis dokumentieren: alle drei Mandatory-Verify-Commands grün, kein Baseline-Wachstum (`docs/code-quality/baseline.json` unverändert).
+- [x] Zusätzlich: `bash scripts/openspec.sh validate` (Exit 0) und `bash scripts/plan-lint.sh openspec/changes/executor-post-merge-death/tasks.md` (Exit 0) als letzte Plausibilitäts-Gates vor dem Stage-Commit.
+- [x] Ergebnis dokumentieren: alle drei Mandatory-Verify-Commands grün, kein Baseline-Wachstum (`docs/code-quality/baseline.json` unverändert).

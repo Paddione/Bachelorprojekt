@@ -58,7 +58,6 @@ export const leitstandPurposes: Record<string, LeitstandPurpose> = {
     datenquelle: 'leitstand-purpose-registry.ts (Anker: data-purpose-id im DOM der Shell)',
     aktionen: ['Hilfe-Overlay schliessen'],
   },
-  },
 };
 
 // E5 (T008017): jede Registry-Ausprägung ist ein gueltiger data-purpose-id-

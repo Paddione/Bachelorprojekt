@@ -3741,6 +3741,12 @@
       "status": "archived"
     }
   ],
+  "T005958": [
+    {
+      "slug": "freshness-regen-reaper",
+      "status": "plan_staged"
+    }
+  ],
   "T006282": [
     {
       "slug": "2026-08-15-factory-trace-collector-pass-done",

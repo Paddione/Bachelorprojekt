@@ -75,6 +75,12 @@ if [[ -n "${TICKET_OFFLINE:-}" ]]; then
   exit 2
 fi
 
+# cwd-Unabhaengigkeit (T006348-Befund 3): alle relativen Zugriffe
+# (Plan-Pfad-Pruefung, branch-reaper-Default-cwd) gelten ab hier gegen
+# REPO_DIR, unabhaengig vom Aufruf-cwd. Die Schritt-8-Subshell wechselt
+# weiterhin selbst nach ARCHIVE_DIR.
+cd "$REPO_DIR"
+
 DONE_COUNT=0
 SKIP_COUNT=0
 mark_ok()   { echo "[ok]   $1"; DONE_COUNT=$((DONE_COUNT + 1)); }
@@ -106,6 +112,7 @@ PLAN_FILE=""
 if [[ -n "$PLAN_REF" ]]; then
   [[ -z "$BRANCH" ]] && BRANCH="$(echo "$PLAN_REF" | grep -oE 'branch=[^ ]+' | head -1 | sed 's/^branch=//' || true)"
   PLAN_FILE="$(echo "$PLAN_REF" | grep -oE 'plan=[^ ]+' | head -1 | sed 's/^plan=//' || true)"
+  [[ -n "$PLAN_FILE" && "$PLAN_FILE" != /* ]] && PLAN_FILE="$REPO_DIR/$PLAN_FILE"
 fi
 if [[ -z "$BRANCH" ]]; then
   echo "ERROR: Schritt 2 — Kein Branch bestimmbar (--branch fehlt, FACTORY-PLAN-REF ohne branch=). Branch ist Pflicht fuer PR-Aufloesung und Cleanup." >&2
@@ -125,6 +132,12 @@ WORKTREE="$REPO_DIR/.worktrees/$SLUG"
 # Closure-Schritte (4–6) nicht; Archiv/Cleanup weiter.
 if [[ -z "$PR_NUM" ]]; then
   PR_NUM="$(gh pr list --head "$BRANCH" --state merged --json number -q '.[0].number' 2>/dev/null || true)"
+else
+  PR_STATE="$(gh pr view "$PR_NUM" --json state -q .state 2>/dev/null || true)"
+  if [[ "$PR_STATE" != "MERGED" ]]; then
+    mark_skip "Schritt 3: PR #$PR_NUM ist nicht MERGED (state=$PR_STATE) — Closure-Schritte laufen nicht (T001149-M1)"
+    PR_NUM=""
+  fi
 fi
 if [[ -n "$PR_NUM" ]]; then
   mark_ok "Schritt 3: PR #$PR_NUM (merged)"
@@ -201,6 +214,14 @@ else
 fi
 
 if [[ -n "${ARCHIVE_DIR:-}" ]]; then
+  ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
+  if git ls-remote --exit-code origin "refs/heads/$ARCHIVE_BRANCH" >/dev/null 2>&1; then
+    mark_skip "Schritt 8: Archiv-Branch $ARCHIVE_BRANCH existiert bereits — Archivierung bereits ausgefuehrt (idempotent)"
+    ARCHIVE_DIR=""
+  fi
+fi
+
+if [[ -n "${ARCHIVE_DIR:-}" ]]; then
   (
     cd "$ARCHIVE_DIR"
     bash scripts/openspec.sh archive "$SLUG"
@@ -211,9 +232,15 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
     git add -u -- website/src/data website/src/lib website/public/learning-assets docs
     git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
     ARCHIVE_COMMIT="$(git rev-parse HEAD)"
+    # Branch-Restore (T006348-Befund 2): der `git checkout -B` unten wechselt
+    # den Branch des geteilten Arbeitsbaums (REPO_DIR oder Worktree paralleler
+    # Sessions). Vorherigen Branch merken und nach der Sektion restaurieren;
+    # der EXIT-trap deckt auch den Fehlerfall ab (FATAL/Exit 1 darf den
+    # Arbeitsbaum nicht auf dem Archiv-Branch zuruecklassen).
+    ARCHIVE_PREV_BRANCH="$(git -C "$ARCHIVE_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+    trap 'if [[ -n "${ARCHIVE_PREV_BRANCH:-}" ]]; then git -C "$ARCHIVE_DIR" checkout "$ARCHIVE_PREV_BRANCH" >/dev/null 2>&1 || true; fi' EXIT
     # Der Archiv-Branch MUSS von origin/main abzweigen, nicht vom Fix-Branch
     # (T002256) — squash-and-merge hinterlaesst den Fix-Branch am Pre-Squash-Stand.
-    ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
     git fetch origin main
     git checkout -B "$ARCHIVE_BRANCH" origin/main
     git cherry-pick "$ARCHIVE_COMMIT"
@@ -230,6 +257,9 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
     LOCAL_SHA="$(git rev-parse HEAD)"
     [[ "$REMOTE_SHA" = "$LOCAL_SHA" ]] || { echo "FATAL: remote SHA ($REMOTE_SHA) != local SHA ($LOCAL_SHA)" >&2; exit 1; }
     gh pr merge --auto --squash --delete-branch "$ARCHIVE_PR_URL"
+    if [[ -n "$ARCHIVE_PREV_BRANCH" ]]; then
+      git -C "$ARCHIVE_DIR" checkout "$ARCHIVE_PREV_BRANCH" >/dev/null 2>&1 || true
+    fi
   )
   mark_ok "Schritt 8: OpenSpec-Change archiviert (Archiv-PR erstellt)"
 fi
@@ -283,7 +313,7 @@ fi
 # Remote-Delete via branch-reaper.sh (Kriterien: Ticket done, keine offenen PRs,
 # Blob-Gleichheit zu main — inkl. Sicherheitsnetz-Ref-Tag). Best-effort: der
 # Reaper entscheidet selbst, was geloescht wird; ein Fehlschlag ist kein Abbruch.
-if bash "$REPO_DIR/scripts/branch-reaper.sh" --ticket "$TICKET_ID" >/dev/null 2>&1; then
+if bash "$REPO_DIR/scripts/branch-reaper.sh" --repo "$REPO_DIR" --ticket "$TICKET_ID" >/dev/null 2>&1; then
   mark_ok "Schritt 10: branch-reaper Lauf abgeschlossen"
 else
   mark_skip "Schritt 10: branch-reaper meldete Fehler (Best-effort — Remote-Branch manuell pruefen)"

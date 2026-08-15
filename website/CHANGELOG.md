@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.281.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.5...website-v1.281.6) (2026-08-15)
+
+
+### Bug Fixes
+
+* **skills:** harden plan-archive-steps with pre-push freshness check [T006369] ([#4628](https://github.com/Paddione/Bachelorprojekt/issues/4628)) ([99b1886](https://github.com/Paddione/Bachelorprojekt/commit/99b188654f79f643451afc23cce9c30c149116a0))
+
 ## [1.281.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.4...website-v1.281.5) (2026-08-15)
 
 

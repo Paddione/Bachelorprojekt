@@ -31,7 +31,7 @@ openspec/changes/branch-reaper-keep-allowlist/specs/ci-cd.md               (p2 �
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der BATS-Test reproduziert den Befund aus T007032:
+- [x] **Failing-Test-Step (RED).** Der BATS-Test reproduziert den Befund aus T007032:
       Branch mit Ticket-ID, done-Ticket und eigenem MERGED-PR (headRefOid == Remote-Tip)
       wird trotz Abweichung ausserhalb der ALLOWLIST nicht gereapt (Kernfall: gemergter
       Branch mit `scripts/echt.sh`-Änderung landet in 'KEEP ... abweichende Datei ausserhalb
@@ -43,7 +43,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper-merged-pr-signa
 # expected: FAIL (red — die Positiv-Anker scheitern am fehlenden MERGED-PR-Signal)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implementiere p1 (Positiv-Signale im branch-reaper). Der
+- [x] **Fix-Step (GREEN).** Implementiere p1 (Positiv-Signale im branch-reaper). Der
       BATS-Test aus dem vorherigen Schritt muss nun grün sein (9/9), die bestehenden
       Reaper-Tests bleiben grün (Regression).
 

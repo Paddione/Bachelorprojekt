@@ -146,5 +146,5 @@ bash scripts/plan-lint.sh openspec/changes/agent-lock-release-cwd/tasks.md
 # expected: PASS
 ```
 
-- [ ] Alle vier Kommandos laufen ohne Fehler durch; die Tests grün, die Freshness-Artefakte
+- [x] Alle vier Kommandos laufen ohne Fehler durch; die Tests grün, die Freshness-Artefakte
       auf Stand.

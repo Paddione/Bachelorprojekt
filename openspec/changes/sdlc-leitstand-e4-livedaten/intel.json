@@ -1,0 +1,219 @@
+{
+  "meta": {
+    "slug": "sdlc-leitstand-e4-livedaten",
+    "ticket_id": "T008016",
+    "generated_from": "main@60df76fd0",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/components/DeliveryHistory.svelte",
+      "language": "svelte",
+      "loc": 288,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 812
+    },
+    {
+      "path": "components/website/src/components/leitstand/ApiKatalog.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/Kontextzone.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/KpiGrid.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/decks/DeckPlattform.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/decks/DeckWissen.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/KostenTab.svelte",
+      "language": "svelte",
+      "loc": 13,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1087
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5180,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/__tests__/leitstand-kpi.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/leitstand-kpi.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/leitstand-purpose-registry.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/middleware/redirect-map.test.ts",
+      "language": "javascript",
+      "loc": 67,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 833
+    },
+    {
+      "path": "components/website/src/middleware/redirect-map.ts",
+      "language": "javascript",
+      "loc": 51,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 849
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/factory-floor/stream.ts",
+      "language": "javascript",
+      "loc": 68,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 832
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/mcp-health.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/observability.astro",
+      "language": "astro",
+      "loc": 26,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": 974
+    },
+    {
+      "path": "scripts/sdlc-cockpit-smoke.mjs",
+      "language": "javascript",
+      "loc": 123,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 677
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/leitstand-livedaten.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/components/DeliveryHistory.svelte:21:  function fmtH(v: number | null): string {",
+      "kind": "function",
+      "file": "components/website/src/components/DeliveryHistory.svelte",
+      "signature": "21:  function fmtH(v: number | null): string {(...)",
+      "type_text": "21:  function fmtH(v: number | null): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/DeliveryHistory.svelte:27:  function fmtPct(v: number): string {",
+      "kind": "function",
+      "file": "components/website/src/components/DeliveryHistory.svelte",
+      "signature": "27:  function fmtPct(v: number): string {(...)",
+      "type_text": "27:  function fmtPct(v: number): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/DeliveryHistory.svelte:47:    fetchData();",
+      "kind": "function",
+      "file": "components/website/src/components/DeliveryHistory.svelte",
+      "signature": "47:    fetchData();(...)",
+      "type_text": "47:    fetchData();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/sdlc/api/factory-floor/stream.ts:30:            getPlanningCount(),",
+      "kind": "function",
+      "file": "components/website/src/pages/sdlc/api/factory-floor/stream.ts",
+      "signature": "30:            getPlanningCount(),(...)",
+      "type_text": "30:            getPlanningCount(),(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/sdlc/api/factory-floor/stream.ts:54:    cancel() {",
+      "kind": "function",
+      "file": "components/website/src/pages/sdlc/api/factory-floor/stream.ts",
+      "signature": "54:    cancel() {(...)",
+      "type_text": "54:    cancel() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

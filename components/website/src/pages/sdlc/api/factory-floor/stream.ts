@@ -36,7 +36,12 @@ export const GET: APIRoute = async ({ request }) => {
 
       // Daten-Refresh: einmal pro Hub-Event (oder Fallback-Poll). Sendet nur
       // bei neuem MAX(at) — identisches LastMax ergibt kein redundantes Event.
-      const refresh = async (force = false) => {
+      // source unterscheidet initialen Prime, LISTEN-Event und Reconnect —
+      // nur ein echter Reconnect darf sich 'listen-reconnect' nennen (m3/Review).
+      const refresh = async (
+        force = false,
+        source: 'listen' | 'listen-reconnect' | 'initial' = force ? 'listen-reconnect' : 'listen',
+      ) => {
         try {
           const [phaseRow, planningCount] = await Promise.all([
             pool.query(`SELECT COALESCE(MAX(at)::text, '') AS m FROM tickets.factory_phase_events`),
@@ -45,14 +50,14 @@ export const GET: APIRoute = async ({ request }) => {
           const m = phaseRow.rows[0]?.m ?? '';
           if (force || (m && m !== lastMax)) {
             lastMax = m;
-            send('phase', { at: m, planningCount, source: force ? 'listen-reconnect' : 'listen' });
+            send('phase', { at: m, planningCount, source });
           }
         } catch {
           /* swallow — heartbeat keeps stream alive */
         }
       };
 
-      // Fallback-Poll: läuft NUR, solange der Hub still ist.
+      // Fallback-Poll: läuft NUR ohne NOTIFY-Verbindung (isListening-Watchdog).
       const fallbackPoll = async () => {
         try {
           const [phaseRow, planningCount] = await Promise.all([
@@ -96,8 +101,9 @@ export const GET: APIRoute = async ({ request }) => {
         }
       };
 
-      // Prime: eine Start-Snapshot-Zustellung, dann LISTEN-Abo.
-      void refresh(true);
+      // Prime: Start-Snapshot mit source 'initial' (kein Reconnect), dann
+      // LISTEN-Abo.
+      void refresh(true, 'initial');
       unsub = subscribe(onHubEvent);
       watchdogTimer = setInterval(watchdog, STREAM_POLL_MS);
       beatTimer = setInterval(() => send('heartbeat', { t: Date.now() }), STREAM_HEARTBEAT_MS);

@@ -31,7 +31,7 @@ setup() {
   cat > "$WORK/scripts/ticket.sh" <<'TICKET_EOF'
 #!/usr/bin/env bash
 echo "ticket.sh $*" >> "$MARKER_DIR/ticket-calls"
-case "$2" in
+case "$1" in
   assert-phase-chain) exit 0 ;;
   *) exit 0 ;;
 esac
@@ -104,7 +104,8 @@ teardown() {
 
 @test "T002671: an OPEN (not yet merged) PR still reaches gh pr checks --watch (unchanged happy path)" {
   echo "OPEN" > "$MARKER_DIR/pr-state"
-  run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
+  run env -C "$WORK" TICKET_SH="$WORK/scripts/ticket.sh" PATH="$WORK/bin:$PATH" \
+    bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
   [ "$status" -eq 0 ] || { echo "unerwarteter Exit $status: $output"; false; }
   [ -f "$MARKER_DIR/watch-called" ] \
     || { echo "Positiv-Anker verletzt: gh pr checks --watch wurde für eine offene PR NICHT aufgerufen — Testaufbau kaputt, nicht der Fix"; false; }
@@ -114,7 +115,8 @@ teardown() {
 
 @test "T002671: a MERGED PR must exit 0 WITHOUT ever reaching the blocking gh pr checks --watch call" {
   echo "MERGED" > "$MARKER_DIR/pr-state"
-  run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
+  run env -C "$WORK" TICKET_SH="$WORK/scripts/ticket.sh" PATH="$WORK/bin:$PATH" \
+    bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
   [ "$status" -eq 0 ] || { echo "unerwarteter Exit $status: $output"; false; }
   [ ! -f "$MARKER_DIR/watch-called" ] \
     || { echo "gh pr checks --watch WURDE für eine bereits gemergte PR aufgerufen — genau der blockierende Call, an dem der Poll-Loop nach dem Merge haengen blieb"; false; }
@@ -125,7 +127,8 @@ teardown() {
 
 @test "T003612-a: gh pr checks --watch receives the PR_URL argument (not cwd bare call)" {
   echo "OPEN" > "$MARKER_DIR/pr-state"
-  run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$SCRIPT" T999999 "https://github.com/x/y/pull/42"
+  run env -C "$WORK" TICKET_SH="$WORK/scripts/ticket.sh" PATH="$WORK/bin:$PATH" \
+    bash "$SCRIPT" T999999 "https://github.com/x/y/pull/42"
   [ "$status" -eq 0 ] || { echo "unerwarteter Exit $status: $output"; false; }
   # The fake gh records the PR URL passed to checks --watch.
   # Without the fix, no URL is recorded (the call is bare `gh pr checks --watch`).
@@ -156,7 +159,8 @@ teardown() {
   echo "1" > "$MARKER_DIR/mock-total-checks"
   git -C "$WORK" rev-parse HEAD > "$MARKER_DIR/mock-head-ref-oid"
 
-  run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
+  run env -C "$WORK" TICKET_SH="$WORK/scripts/ticket.sh" PATH="$WORK/bin:$PATH" \
+    bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
 
   # RED phase: script falsely exits 0 with "alle grün" → [ "$status" -ne 0 ] FAILS
   # GREEN phase: script detects PENDING_COUNT > 0, loops until max attempts, exits 1 → PASSES

@@ -3435,7 +3435,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 751,
+      "file_count": 752,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3942,6 +3942,7 @@
         "scripts/llm/pk-devices/pk-l-1-startup.ps1",
         "scripts/llm/pk-devices/pk-ssh-bootstrap.ps1",
         "scripts/llm/pk-devices/pk-tablet-startup.ps1",
+        "scripts/llm/pk-devices/register-autostart.ps1",
         "scripts/llm/pk-devices/run-bootstrap-admin.cmd",
         "scripts/llm/pk-devices/run-host-portproxy.cmd",
         "scripts/llm/pk-devices/run-startup.cmd",

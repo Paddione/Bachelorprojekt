@@ -182,6 +182,40 @@ Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
 (cd "$MAIN_REPO" && gh pr merge --auto --squash)
 ```
 
+## Schritt 3.9: Finalisierung delegieren
+
+> **Härtung T006284:** Nach dem Auto-Merge-Request (3.8) endet der Orchestrator für die
+> Finalisierung: Die Schritte 6.4–7.5 (Merge-Wait, Ticket-Abschluss, Plan-/OpenSpec-Archiv,
+> Worktree-/Branch-Cleanup, Lock-Release) laufen NICHT mehr im eigenen, kontextbelasteten
+> Kontext. Beim Incident T006284/PR #4460 starb der Executor nach dem Merge an
+> Kontext-Erschöpfung — Closure, Archiv und Cleanup blieben liegen und mussten manuell
+> nachgeholt werden. Die Härtung entfernt die Gelegenheit, statt die Direktive zu verschärfen
+> (Muster T002365/T001571).
+
+Spawne einen **frischen Finalizer-Subagenten** (`subagent_type: general-purpose`; Modell
+`sonnet`, mechanisch `haiku`) mit kompaktem Lagebild — er hat KEINEN Kontext, gib ihm alles
+explizit: Ticket-ID `$TICKET_ID`, PR-Nummer `$PR_NUM`, Branch `$BRANCH`, Worktree-Pfad
+`$MAIN_REPO/.worktrees/<slug>`, Plan-Pfad `$PLAN_FILE`, Resolution (`shipped`/`fixed`).
+
+Auftrag an den Finalizer (wörtlich Teil des Prompts):
+- **Merge-Wait-Loop zuerst (T001149-M1):** [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)
+  §"PR-Merge-Wait-Loop" lesen und den Loop von dort ausführen. Bei Timeout KEIN Ticket
+  schließen (Drift Ticket=done bei PR=OPEN) — stattdessen strukturiert berichten.
+- **Abschluss über die idempotente Einheit,** keine freie Rekonstruktion der Einzelschritte:
+  ```bash
+  bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
+  ```
+- **T001571-Standing-Direktive:** Bei Anzeichen von Kontext-Überlauf stoppen und einen
+  strukturierten Handoff-Report liefern (erledigte Schritte, Git-Zustand, offene Schritte in
+  Reihenfolge) — die offenen Schritte sind über das idempotente Skript von jeder Session
+  nachholbar.
+- **Rückmeldung an den Auftraggeber (Pflicht):** Endzustand strukturiert berichten — was
+  erledigt ist, was offen ist.
+
+**Der Orchestrator endet hier:** Rückmeldung an den Auftraggeber (Finalisierung an frischen
+Finalizer delegiert) und die Schritte 6.4–7.5 NICHT im eigenen Kontext ausführen. Der
+Orchestrator-Kontext bleibt nur für die CI-Fix-Schleife (5.5) zuständig, solange sie läuft.
+
 ## Schritt 4: Dev-Iteration (optional)
 
 Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
@@ -214,8 +248,9 @@ Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet
 
 ## Schritt 6: Phase-Chain-Gate & Merge-Wait
 
-> **Ab hier (Schritt 6–7.5) läuft alles im Orchestrator (T002365)** — der Implementer hat bereits
-> zurückgemeldet. `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT. Die
+> **Schritt 6 läuft im Orchestrator; die Finalisierung (Schritte 6.4–7.5) ist an den frischen
+> Finalizer delegiert (Schritt 3.9)** — der Implementer hat bereits zurückgemeldet. `E2E PR`
+> ist kein required check (T000722) — blockiert den Merge NICHT. Die
 > Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
 Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
@@ -227,26 +262,43 @@ zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann m
 
 ## Schritte 6.4–7.5 — Merge-Wait, Ticket-Abschluss, Cleanup
 
+> **Zuständigkeit: ein frischen Finalizer-Subagenten (Schritt 3.9), NICHT der Orchestrator.** Der
+> Orchestrator endet nach dem Auto-Merge-Request (3.8); der Finalizer führt die Schritte
+> 6.4–7.5 in frischem Kontext aus — Härtung gegen den Incident T006284 (Executor starb nach
+> dem Merge an Kontext-Erschöpfung, Closure/Archiv/Cleanup blieben liegen).
+
 `gh pr merge --auto` kehrt **sofort** zurück; der Merge passiert asynchron. Erst warten, bis er
 durch ist, dann das Ticket schließen — sonst entsteht die Drift Ticket=done bei PR=OPEN
-(Mishap T001149-M1). Danach: PR verlinken, Ticket auf `done` (`shipped`/`fixed`),
-`verify:done`-Phase-Event, Plan nach `tickets.ticket_plans` archivieren, OpenSpec-Change ins
-Archiv, Claims freigeben, Worktree und Branch entfernen.
+(Mishap T001149-M1). Der Merge-Wait-Loop läuft über die
+[ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)-Referenz
+§"PR-Merge-Wait-Loop" (die Datei lesen, den Loop von dort ausführen — nicht aus dem Gedächtnis
+rekonstruieren); bei Timeout kein Ticket schließen, sondern strukturiert berichten.
+
+Der Abschluss läuft als **eine idempotente Skript-Einheit** — keine freie Rekonstruktion der
+Einzelschritte:
+
+```bash
+bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
+```
+
+Das Skript führt deterministisch und idempotent aus: PR verlinken, Ticket auf `done`
+(`shipped`/`fixed`), `verify:done`-Phase-Event, Plan nach `tickets.ticket_plans` archivieren,
+OpenSpec-Change ins Archiv (inkl. Archiv-PR), Claims freigeben, Worktree und Branch entfernen —
+jeder Schritt überspringt bereits erledigte Arbeit. Jede Session (Recovery, Eskalation,
+Factory-Poller) kann die offenen Schritte mit einem Aufruf nachholen.
 
 Vollständige Befehlsfolgen inklusive Poll-Loop und MCP-first-Aufrufen:
 [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md).
 Die Archivierung samt Push-Verifikation [T001268] und PR-Creation-Verifikation [T001331] steht in
 [plan-archive-steps](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-archive-steps.md).
 
-Der Abschluss selbst — `resolution` ist `shipped` (Feature) oder `fixed` (Fix):
-
-```bash
-./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
-```
-
 > **Merge = Abschluss (T001092):** Das Ticket schließt beim grünen Merge nach `main`. Der
 > Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status **nicht**. `qa_review` und
 > `awaiting_deploy` sind aus dem Happy-Path entfernt — nicht als Zwischenstatus setzen.
+
+> **Reihenfolge (T004612):** Archivierung läuft VOR der Branch-Löschung — der Fix-PR-Merge
+> löscht den Branch bewusst nicht mehr (`--delete-branch` entfernt,
+> `delete_branch_on_merge=false`), damit die Archivierung ihn noch vorfindet.
 
 > **Claims vor dem Worktree-Remove freigeben** — sonst bleibt ein Lock auf einen Pfad zurück,
 > den es nicht mehr gibt.

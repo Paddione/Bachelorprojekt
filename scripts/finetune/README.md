@@ -57,6 +57,15 @@ Referenz beim Template-Guard ist immer das **Hub-Template** (vom Hugging Face Hu
 NICHT das vom Trainings-Framework in ein Adapterverzeichnis geschriebene — im Vorversuch
 unterschieden sich beide um mehr als 1000 Zeichen.
 
+Der Guard parst den Generation-Marker `{% generation %}...{% endgeneration %}` als
+Pass-through-Tag (transformers-AssistantTracker-Semantik): das Paar rendert seinen Body
+unveraendert und markiert nur die Region fuer assistant-only Loss. Ein gepatchtes Template
+darf sich also vom Hub-Template ausschliesslich um den Marker unterscheiden — die
+Byte-Pruefung stellt genau das sicher. Zwei Qwen3.5-Hub-Templates (offiziell und
+Text-Variante) enthalten den Marker NICHT; ohne gepatchtes Template liefert
+`return_assistant_tokens_mask=True` keine Masken und train.py verwirft alle Zeilen
+(Befund T006252, siehe Messbericht).
+
 ## Ohne GPU/transformers testen
 
 Dieses Repo-Worktree/CI haelt keine ML-Abhaengigkeiten (unsloth/trl/torch/transformers) vor.

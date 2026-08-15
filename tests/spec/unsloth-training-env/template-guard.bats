@@ -48,3 +48,88 @@ EOF
   [ "$status" -ne 0 ]
   [[ "$output" == *"Position"* ]]
 }
+
+@test "template-guard: generation-Marker-Template ist byte-identisch und warnt nicht" {
+  # Der `{% generation %}`-Tag (transformers-AssistantTracker-Semantik) muss als
+  # Pass-through geparst werden koennen — ohne die Extension bricht der Guard beim
+  # Rendern des gepatchten Templates ab, statt zu vergleichen (Falle 1/2 im Docstring).
+  # Konforme Form: Header AUSSERHALB des Blocks, Marker mit Whitespace-Kontrolle.
+  cat > "$WORKDIR/hub_gen.jinja" <<'EOF'
+{%- for message in messages -%}
+{%- if message['role'] == 'user' -%}
+{{- '<start_of_turn>user\n' + message['content'] + '<end_of_turn>\n' -}}
+{%- elif message['role'] == 'assistant' -%}
+{{- '<start_of_turn>model\n' + message['content'] + '<end_of_turn>\n' -}}
+{%- endif -%}
+{%- endfor -%}
+EOF
+  cat > "$WORKDIR/patched_gen.jinja" <<'EOF'
+{%- for message in messages -%}
+{%- if message['role'] == 'user' -%}
+{{- '<start_of_turn>user\n' + message['content'] + '<end_of_turn>\n' -}}
+{%- elif message['role'] == 'assistant' -%}
+{{- '<start_of_turn>model\n' -}}
+{%- generation -%}
+{{- message['content'] -}}
+{%- endgeneration -%}
+{{- '<end_of_turn>\n' -}}
+{%- endif -%}
+{%- endfor -%}
+EOF
+
+  # Positiv-Anker: Marker-Template rendert byte-identisch -> Exit null.
+  run python3 "$SCRIPT" --hub-template "$WORKDIR/hub_gen.jinja" --patched-template "$WORKDIR/patched_gen.jinja" --corpus "$CORPUS"
+  [ "$status" -eq 0 ]
+
+  # Negativ-Aussage: die konforme Markerform loest die Falle-2-Warnung NICHT aus.
+  [[ "$output" != *"WARNUNG"* ]]
+}
+
+@test "template-guard: generation-Marker ohne Whitespace-Kontrolle loest die Falle-2-Warnung aus" {
+  # Positiv-Anker zuerst (siehe Test zuvor): die konforme Form warnt nicht.
+  cat > "$WORKDIR/hub_gen.jinja" <<'EOF'
+{%- for message in messages -%}
+{%- if message['role'] == 'user' -%}
+{{- '<start_of_turn>user\n' + message['content'] + '<end_of_turn>\n' -}}
+{%- elif message['role'] == 'assistant' -%}
+{{- '<start_of_turn>model\n' + message['content'] + '<end_of_turn>\n' -}}
+{%- endif -%}
+{%- endfor -%}
+EOF
+  cat > "$WORKDIR/patched_gen.jinja" <<'EOF'
+{%- for message in messages -%}
+{%- if message['role'] == 'user' -%}
+{{- '<start_of_turn>user\n' + message['content'] + '<end_of_turn>\n' -}}
+{%- elif message['role'] == 'assistant' -%}
+{{- '<start_of_turn>model\n' -}}
+{%- generation -%}
+{{- message['content'] -}}
+{%- endgeneration -%}
+{{- '<end_of_turn>\n' -}}
+{%- endif -%}
+{%- endfor -%}
+EOF
+  run python3 "$SCRIPT" --hub-template "$WORKDIR/hub_gen.jinja" --patched-template "$WORKDIR/patched_gen.jinja" --corpus "$CORPUS"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"WARNUNG"* ]]
+
+  # Negativ-Aussage: `{% generation %}` ohne `{%-` wird statisch angemahnt
+  # (Falle 2: Whitespace-Kontrolle; der Marker selbst ist byte-erhaltend, die Warnung
+  # ist die durchsetzbare Oberflaeche — Exit bleibt 0 bei identischen Bytes).
+  cat > "$WORKDIR/patched_lint.jinja" <<'EOF'
+{%- for message in messages -%}
+{%- if message['role'] == 'user' -%}
+{{- '<start_of_turn>user\n' + message['content'] + '<end_of_turn>\n' -}}
+{%- elif message['role'] == 'assistant' -%}
+{{- '<start_of_turn>model\n' -}}
+{% generation %}
+{{- message['content'] -}}
+{% endgeneration %}
+{{- '<end_of_turn>\n' -}}
+{%- endif -%}
+{%- endfor -%}
+EOF
+  run python3 "$SCRIPT" --hub-template "$WORKDIR/hub_gen.jinja" --patched-template "$WORKDIR/patched_lint.jinja" --corpus "$CORPUS"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"WARNUNG"* ]]
+}

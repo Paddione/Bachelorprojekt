@@ -175,7 +175,7 @@
       </button>
     {/each}
   </div>
-  <a href="/sdlc/ki-konfiguration" class="kr-link">→ Key- & Provider-Konfiguration</a>
+  <a href="/sdlc/cockpit?deck=ki" class="kr-link">→ Key- & Provider-Konfiguration</a>
 
   {#if openDrawerPhase}
     <KiProviderDrawer

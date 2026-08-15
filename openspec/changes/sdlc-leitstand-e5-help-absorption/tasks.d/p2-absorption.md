@@ -4,20 +4,20 @@ _Voraussetzung: E3+E4 gemerged — Decks sind vollwertige Flächen (DeckWissen t
 
 ## Tasks
 
-- [ ] **`DeckWissen.svelte` erweitern.** `PromptLibraryManager.svelte` als Prompt-Bibliothek-
+- [x] **`DeckWissen.svelte` erweitern.** `PromptLibraryManager.svelte` als Prompt-Bibliothek-
       Modul aufnehmen (Design §S2: Wissen = API-Katalog · OpenSpec-Suche · Prompt-Bibliothek);
       Datenbeschaffung wie auf `prompts.astro` (`listPrompts`) — die SSR-Ladung wandert in die
       Deck-Props bzw. eine bestehende `/sdlc/api/`-Route, kein Direkt-DB-Zugriff aus der
       Komponente. `data-purpose-id`-Anker gemäß Registry-Schlüssel setzen.
-- [ ] **`DeckKi.svelte` erweitern.** `KiKonfiguration.svelte` als Modul aufnehmen (bisheriger
+- [x] **`DeckKi.svelte` erweitern.** `KiKonfiguration.svelte` als Modul aufnehmen (bisheriger
       Inhalt von `ki-konfiguration.astro`); `data-purpose-id`-Anker setzen.
-- [ ] **Drei Satellitenseiten löschen.** `repohealth.astro` (Inhalt = GoalsDashboard, seit E3
+- [x] **Drei Satellitenseiten löschen.** `repohealth.astro` (Inhalt = GoalsDashboard, seit E3
       im Qualität-Deck), `prompts.astro`, `ki-konfiguration.astro` entfernen. Danach
       Nav-Quellen bereinigen: `grep -rn 'repohealth\|/sdlc/prompts\|ki-konfiguration'
       components/website/src` und jede gefundene Nav-/Link-Stelle auf das Deck-Ziel
       umstellen — der Guard `tests/spec/sdlc-cockpit/navigation-no-dead-links.bats` muss
       grün bleiben.
-- [ ] **`redirect-map.ts` erweitern + normalisieren.** Neue Einträge:
+- [x] **`redirect-map.ts` erweitern + normalisieren.** Neue Einträge:
       `/sdlc/repohealth → /sdlc/cockpit?deck=qualitaet`,
       `/sdlc/prompts → /sdlc/cockpit?deck=wissen`,
       `/sdlc/ki-konfiguration → /sdlc/cockpit?deck=ki`. Bestehende Cockpit-Ziele mit

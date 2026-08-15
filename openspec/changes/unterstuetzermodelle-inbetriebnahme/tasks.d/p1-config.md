@@ -46,7 +46,9 @@ umgehaengt (D2); die Provider-Definition in `.opencode/opencode.jsonc` bleibt un
       `qwen3-14b@q4_k_m`.
 - [ ] Commit-Message nach Repo-Konvention (`feat(<scope>): … [T006XXX]`, vgl.
       `feat(mcp): port mcp-task-runner … [T006664]`):
-      `feat(llm): lmstudio-Slots fuer Gemma-4-12B (PK-Tablet) und Qwen3.5-4B (PK-L-1) [T006840]`
+      `feat(ops): lmstudio-Slots fuer Gemma-4-12B (PK-Tablet) und Qwen3.5-4B (PK-L-1) [T006840]`
+      — Scope `ops`, nicht `llm`: commitlint konsolidiert `llm` → `ops` (T002328); `llm`
+      wuerde abgelehnt.
       — Scope auf diese Datei begrenzt (nur `.opencode/agent-models.jsonc`; der
       `support-model-slots.bats`-Guard kommt im p2-Partial dazu).
 

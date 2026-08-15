@@ -120,8 +120,9 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/support-model-slots
 
 - [ ] Commit-Konvention (Budget-Integrität B1a/B1b): der Implementer committet die
       Testdatei und das regenerierte Inventar als einen Commit mit dem Präfix
-      `test(llm): … [T006840]` (die p1-Config-Änderung bleibt ein eigener
-      `feat`/`chore`-Commit — kein Vermischen der Rollen-Partials).
+      `test(ops): … [T006840]` — Scope `ops`, nicht `llm` (commitlint konsolidiert
+      `llm` → `ops`, T002328) — (die p1-Config-Änderung bleibt ein eigener
+      `feat(ops)`/`chore`-Commit — kein Vermischen der Rollen-Partials).
 - [ ] **Folge-Schritt-Bezug statt Platzhalter (D3, design.md):** Dieser Guard prüft
       bewusst nur die Slot-**Deklaration**, nicht die `limit`-Werte. Nach dem K3-
       Vulkan-Messschritt (User-Task T006840, Ergebnis als Ticket-Kommentar mit

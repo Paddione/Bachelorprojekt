@@ -64,7 +64,7 @@
   });
 </script>
 
-<section class="ls-kpi-grid" data-testid="leitstand-kpi-grid" aria-label="DORA- und Factory-KPIs">
+<section class="ls-kpi-grid" data-purpose-id="kpi-grid" data-testid="leitstand-kpi-grid" aria-label="DORA- und Factory-KPIs">
   <h2 class="ls-kpi-grid__heading">Delivery-KPIs</h2>
 
   {#if error}

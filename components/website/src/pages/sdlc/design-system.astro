@@ -138,12 +138,14 @@ import '../../styles/sdlc-leitstand.css';
 
     <section class="ls-showcase__section">
       <h2>Print-Light (Report-Ansicht)</h2>
-      <div class="ls-report ls-showcase__report-demo">
+      <div class="ls-shell report ls-showcase__report-demo">
         <p class="ls-showcase__eyebrow">Report-Ansicht</p>
-        <p>Dieser Block nutzt <code>.ls-report</code> — ausschließlich unter
-          <code>@media print</code> wirksam. Kein zweites interaktives Theme: auf dem
-          Bildschirm hat die Klasse keine Wirkung, öffnen Sie die Druckvorschau des Browsers
-          (Strg/Cmd+P), um die Farben zu sehen.</p>
+        <p>Dieser Block nutzt die Modifier-Klasse <code>.report</code> auf dem
+          Shell-Root (<code>.ls-shell.report</code>) — dieselbe Regelmenge gilt
+          unter <code>@media print</code> für jeden Druck. Kein zweites
+          interaktives Theme: auf dem Bildschirm hat die Klasse nur mit
+          <code>?report=1</code> Wirkung, öffnen Sie die Druckvorschau des
+          Browsers (Strg/Cmd+P), um die Farben zu sehen.</p>
       </div>
     </section>
 

@@ -28,7 +28,7 @@ Namespace `finetune:`):
 task finetune:measure CORPUS=<jsonl> MODEL=<label> TEMPLATE_FILE=<jinja> OUT=<report.json>
 task finetune:guard   HUB_TEMPLATE=<hub.jinja> PATCHED_TEMPLATE=<patched.jinja> CORPUS=<jsonl>
 task finetune:train    CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<report.json> [DRY_RUN=1]
-task finetune:traces   ROWS_JSON=<mcp-postgres-export.json> OUT=<jsonl>
+task finetune:traces   ROWS_JSON=<mcp-postgres-export.json> OUT=<jsonl> [WITH_CONTEXT=1 COMMENTS_JSON=<kommentare.json>]
 task finetune:export   ADAPTER_DIR=<dir> SLOT_NAME=<name> HUB_TEMPLATE=<hub.jinja> [DRY_RUN=1]
 ```
 
@@ -41,7 +41,10 @@ JSONL, eine Trainingszeile pro Zeile, TRL-Chat-Format:
 ```
 
 `measure_corpus.py`, `template_guard.py`, `train.py` und `collect_factory_traces.py` teilen
-dieses Format — derselbe Korpus laeuft unveraendert durch alle Schritte.
+dieses Format — derselbe Korpus laeuft unveraendert durch alle Schritte. Mit
+Kontext-Anreicherung enthaelt `messages` zusaetzlich `user`/`assistant`-Turns fuer
+Beschreibung und Kommentare, chronologisch vor dem abschliessenden Assistant-Turn mit den
+Phase-Event-Zeilen.
 
 ## Vorbedingungen (hart erzwungen von `train.py`)
 
@@ -87,6 +90,14 @@ vorgeschalteten `mcp__mcp-postgres__query`-Aufruf gegen `tickets.factory_phase_e
 uebergeben (`--fixture` ist der identische Pfad fuer Tests). Nur Ticket-Laeufe mit einem
 `verify`/`done`-Event werden uebernommen; bekannte Secret-Muster im `detail`-Feld werden vor
 dem Schreiben redigiert.
+
+`--with-context` (zusammen mit `--comments-json`) nimmt zusaetzlich die Ticket-Beschreibung
+und die Kommentare als chronologische Turns in den Korpus auf: Autoren `claude-code`/
+`factory` werden `assistant`-Turns, alle uebrigen `user`-Turns (E7-Konvention). Die
+Secret-Redaktion gilt auch fuer Beschreibung und Kommentar-Body. Ohne das Flag ist die
+Ausgabe byte-identisch zum bisherigen Verhalten. `--comments-json` ist wie `--fixture`
+der identische Pfad fuer Tests (Kommentarzeilen: `{"ticket_id": <int>, "author": "...",
+"body": "...", "created_at": "ISO-8601"}`).
 
 ## Trainingsartefakte
 

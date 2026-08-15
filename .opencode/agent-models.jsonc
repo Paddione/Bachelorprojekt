@@ -267,6 +267,23 @@
             "context": 150000,
             "output": 8192
           }
+        },
+        // Konservatives Limit (32768/8192) bis zur Vulkan-Messung (K3, User-Task
+        // in T006840). Nach der Messung hier die GEMESSEN-Werte eintragen und im
+        // Kommentar Messlauf + Datum notieren — Konvention der Datei, vgl. Zeile 26.
+        "gemma-4-12b@ud-iq3_xxs": {
+          "name": "Gemma 4 12B UD-IQ3_XXS (~4,64 GB, PK-Tablet)",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "qwen3.5-4b@q6_k": {
+          "name": "Qwen3.5-4B Q6_K (~3,3 GB, PK-L-1)",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
         }
       }
     }

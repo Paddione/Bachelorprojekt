@@ -3516,6 +3516,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/support-model-slots",
+    "file": "tests/spec/local-llm-proxy/support-model-slots.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/ui-config-seed",
     "file": "tests/spec/local-llm-proxy/ui-config-seed.bats",
     "category": "local-llm-proxy",

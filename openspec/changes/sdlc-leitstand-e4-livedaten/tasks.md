@@ -68,7 +68,7 @@ Dateien werden mit Wachstumsreserve deutlich unter ihrem Limit geschnitten.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** p3 legt `tests/spec/sdlc-cockpit/leitstand-livedaten.bats`
+- [x] **Failing-Test-Step (RED).** p3 legt `tests/spec/sdlc-cockpit/leitstand-livedaten.bats`
       an. Der Guard MUSS auf dem Branch-Stand vor p1/p2 fehlschlagen, weil
       `observability.astro` noch existiert, `stream.ts` noch `setInterval`-pollt und kein
       UI-Konsument von `api-inventory.json` existiert:
@@ -78,7 +78,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 # expected: FAIL (rot — Redirect, LISTEN-Umstellung und Katalog-UI fehlen noch)
 ```
 
-- [ ] **GREEN.** Nach Umsetzung von p1+p2 laufen dieselben Guards grün:
+- [x] **GREEN.** Nach Umsetzung von p1+p2 laufen dieselben Guards grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*

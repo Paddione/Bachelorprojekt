@@ -3540,6 +3540,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/mcp-postgres-multistatement",
+    "file": "tests/spec/mcp-gateway/mcp-postgres-multistatement.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/mcp-sync-drift-no-secret-leak",
     "file": "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
     "category": "mcp-gateway",

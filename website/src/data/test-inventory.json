@@ -1962,6 +1962,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/agent-lock-release-cwd",
+    "file": "tests/spec/active-sessions-hub/agent-lock-release-cwd.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/agent-lock-scope-regelwerk",
     "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
     "category": "active-sessions-hub",

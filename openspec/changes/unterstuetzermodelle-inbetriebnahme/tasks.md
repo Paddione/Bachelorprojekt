@@ -34,7 +34,7 @@ website/src/data/test-inventory.json                    (regenerated — task fr
 - [ ] **p1 — Config-Step.** Die zwei Slots `gemma-4-12b@ud-iq3_xxs` und `qwen3.5-4b@q6_k`
       sind im `lmstudio`-Provider-Block von `.opencode/agent-models.jsonc` eingetragen
       (Details: `tasks.d/p1-config.md`).
-- [ ] **p2 — Failing-Test-Step (RED).** Der Guard aus `tasks.d/p2-tests.md` ist geschrieben.
+- [x] **p2 — Failing-Test-Step (RED).** Der Guard aus `tasks.d/p2-tests.md` ist geschrieben.
       Er schlägt auf dem aktuellen Branch fehl, weil die Slots noch fehlen:
 
 ```bash

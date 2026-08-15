@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.281.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.2...website-v1.281.3) (2026-08-15)
+
+
+### Bug Fixes
+
+* **mcp:** enforce readonly role in mcp-postgres-local [T006335] ([#4601](https://github.com/Paddione/Bachelorprojekt/issues/4601)) ([1e01084](https://github.com/Paddione/Bachelorprojekt/commit/1e0108425a03947905d79481ec435d39ab2bfe0b))
+
 ## [1.281.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.1...website-v1.281.2) (2026-08-15)
 
 

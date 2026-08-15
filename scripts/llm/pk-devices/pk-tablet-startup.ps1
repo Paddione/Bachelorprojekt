@@ -20,7 +20,7 @@ $ErrorActionPreference = "Stop"
 
 # An den tatsaechlichen Modell-Verzeichnisnamen in LM Studio anpassen
 # (mit `lms ls` pruefen; -y bestaetigt Teilnamen-Matches automatisch).
-$ModelId = "gemma-4-12b-it"
+$ModelId = "gemma-4-e2b-it"
 
 $lms = Join-Path $env:USERPROFILE ".lmstudio\bin\lms.exe"
 if (-not (Test-Path $lms)) { $lms = "lms" }
@@ -30,7 +30,7 @@ Write-Host "[PK-Tablet] Starte LM-Studio-Server auf Port 1234 (bind 0.0.0.0 fuer
 if ($LASTEXITCODE -ne 0) { Write-Warning "server start lieferte Exit $LASTEXITCODE (Server laeuft evtl. bereits)." }
 
 Write-Host "[PK-Tablet] Lade Gemma 4 12B UD-IQ3_XXS (ctx 32768, GPU max) ..."
-& $lms load $ModelId --gpu max --context-length 32768 -y
+& $lms load $ModelId --gpu max --parallel 1 --context-length 16384 -y
 if ($LASTEXITCODE -ne 0) {
     Write-Warning "load lieferte Exit $LASTEXITCODE - Modell-ID pruefen: lms ls"
     exit 1

@@ -102,9 +102,9 @@ for (let i = 0; i < rows.length; i++) {
   // Pruefung 2: Routendatei existiert
   let routeFile;
   if (httpPath.startsWith('/sdlc/')) {
-    routeFile = repo + '/' + httpPath.replace('/sdlc/', 'website/src/pages/sdlc/') + '.ts';
+    routeFile = repo + '/' + httpPath.replace('/sdlc/', 'components/website/src/pages/sdlc/') + '.ts';
   } else if (httpPath.startsWith('/api/')) {
-    routeFile = repo + '/' + httpPath.replace('/api/', 'website/src/pages/api/') + '.ts';
+    routeFile = repo + '/' + httpPath.replace('/api/', 'components/website/src/pages/api/') + '.ts';
   } else {
     errors.push(action + ': Unbekannter Pfad-Praefix: ' + httpPath);
     continue;

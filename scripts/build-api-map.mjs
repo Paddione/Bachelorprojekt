@@ -2,7 +2,7 @@
 /**
  * build-api-map.mjs — API Surface Map from Astro routes (LAD-2)
  *
- * Crawls website/src/pages/api/**\/*.ts, extracts:
+ * Crawls components/website/src/pages/api/**\/*.ts, extracts:
  * - HTTP methods (export const GET/POST/PATCH/DELETE/PUT)
  * - Auth level (isAdmin, getSession, requireAdmin, requireAuth patterns)
  * - URL path derived from file path
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
-const API_DIR = join(ROOT, 'website/src/pages/api');
+const API_DIR = join(ROOT, 'components/website/src/pages/api');
 
 // ── File glob ─────────────────────────────────────────────────────────────────
 function globTs(dir) {
@@ -43,7 +43,7 @@ function globTs(dir) {
 
 // ── File path → URL path ──────────────────────────────────────────────────────
 function fileToUrlPath(filePath) {
-  const rel = relative(join(ROOT, 'website/src/pages'), filePath);
+  const rel = relative(join(ROOT, 'components/website/src/pages'), filePath);
   // Remove .ts extension
   let urlPath = rel.replace(/\.ts$/, '');
   // Convert [param] → {param}

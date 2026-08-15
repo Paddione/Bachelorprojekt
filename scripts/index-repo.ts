@@ -95,7 +95,7 @@ async function resolveEmbedConfig(): Promise<void> {
   }
   // llama-server serves a single model and ignores the `model` field, so this
   // is cosmetic there — it still matters for any OpenAI-compatible router in
-  // front. Keep it aligned with website/src/lib/embeddings.ts ('bge-m3').
+  // front. Keep it aligned with components/website/src/lib/embeddings.ts ('bge-m3').
   EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'bge-m3';
 }
 

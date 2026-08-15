@@ -75,12 +75,12 @@ test.describe('FA: Admin settings pages', { tag: ['@admin'] }, () => {
   });
 
   test('POST /sdlc/api/ops/deployments/:ns/:name/restart returns 401/403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/sdlc/api/ops/deployments/workspace/website/restart`, { data: {} });
+    const res = await request.post(`${BASE}/sdlc/api/ops/deployments/workspace/components/website/restart`, { data: {} });
     expect([401, 403, 404]).toContain(res.status());
   });
 
   test('POST /sdlc/api/ops/deployments/:ns/:name/scale returns 401/403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/sdlc/api/ops/deployments/workspace/website/scale`, { data: { replicas: 1 } });
+    const res = await request.post(`${BASE}/sdlc/api/ops/deployments/workspace/components/website/scale`, { data: { replicas: 1 } });
     expect([401, 403, 404]).toContain(res.status());
   });
 });

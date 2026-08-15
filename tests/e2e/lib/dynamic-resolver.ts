@@ -7,7 +7,7 @@
 //
 // Mirrors storageState conventions in tests/e2e/playwright.config.ts:122-126
 // and the live ticket-index anchor markup in
-// website/src/components/admin/TicketsTableBody.svelte:177,190
+// components/website/src/components/admin/TicketsTableBody.svelte:177,190
 // (<a href="/admin/tickets/${t.id}">).
 
 import type { BrowserContext, Page } from '@playwright/test';

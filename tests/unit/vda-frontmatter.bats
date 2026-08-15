@@ -87,7 +87,7 @@ status: active
 
 # Plan
 
-Touches the website/ astro and svelte components.
+Touches the components/website/ astro and svelte components.
 EOF
 
   # G — incomplete frontmatter missing batch fields

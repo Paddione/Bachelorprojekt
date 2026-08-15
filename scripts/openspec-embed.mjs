@@ -4,7 +4,7 @@
 //   node scripts/openspec-embed.mjs --slug <slug> [--dry-run]
 // [T002471-M8] Bei transienten Embedding-Backend-Fehlern werden nicht indexierte
 // Slugs nicht automatisch nachgezogen. Fuer Backfill: task openspec:embed:backfill
-// Chunking/frontmatter helpers are pure and duplicated from website/src/lib/chunking.ts
+// Chunking/frontmatter helpers are pure and duplicated from components/website/src/lib/chunking.ts
 // (an ESM script cannot import the TS src/ tree).
 // [T002877] Completeness gate: per-slug coverage of local active plans + tolerance (OPENSPEC_EMBED_COVERAGE_TOLERANCE, default 10%).
 

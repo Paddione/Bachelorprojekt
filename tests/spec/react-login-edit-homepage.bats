@@ -9,14 +9,14 @@
 # 1. Website CORS helper for allowlisted React-Origin
 # 2. callback.ts returnTo-Allowlist accepts absolute React URLs
 # 3. Block-document API: GET /api/homepage (public), POST /api/admin/homepage/save (admin)
-# 4. Server-side block schema in website/src/lib/homepage-blocks-schema.ts
+# 4. Server-side block schema in components/website/src/lib/homepage-blocks-schema.ts
 # 5. React-App components: useAuth, Navigation (Login/Edit Homepage links), Editor Route
 # 6. Error handling: Auth-Fetch-Failure, 409 Conflict, 422 Invalid, CORS-fail-closed, returnTo-not-in-Allowlist
 # 7. Environment config: VITE_WEBSITE_ORIGIN, REACT_APP_ORIGIN
 
 # ── File-level variables ──────────────────────────────────────────────────────
-WEBSITE_SRC="$BATS_TEST_DIRNAME/../../website/src"
-REACT_SRC="$BATS_TEST_DIRNAME/../../mentolder-web/src"
+WEBSITE_SRC="$BATS_TEST_DIRNAME/../../components/website/src"
+REACT_SRC="$BATS_TEST_DIRNAME/../../components/mentolder-web/src"
 # T002181: die Requirement-2-Tests grepten auf "$WEBSITE_SRC/api/callback.ts" —
 # diesen Pfad gibt es nicht, die Astro-Route liegt unter pages/api/auth/.
 # Ein Test gegen eine nicht existierende Datei ist immer rot und hat nie

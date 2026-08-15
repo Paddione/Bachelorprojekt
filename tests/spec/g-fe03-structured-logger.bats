@@ -9,7 +9,7 @@
   # sink deliberately avoid routing back through `logger` — logger.error() calls
   # persistError(), so persistError()'s own catch block logging via `logger` would
   # recurse on a persistent failure (e.g. DB outage).
-  count=$(grep -rEn 'console\.(error|warn)' website/src \
+  count=$(grep -rEn 'console\.(error|warn)' components/website/src \
     --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null \
     | grep -v 'browser-logger\.ts' | grep -v 'lib/logger\.ts' | grep -v 'error-log-store\.ts' \
     | grep -v '\.test\.ts' | wc -l | tr -d ' ')
@@ -17,9 +17,9 @@
 }
 
 @test "G-FE03: browser-logger.ts existiert und enthält browserLogger-Export" {
-  grep -q 'export const browserLogger' website/src/lib/browser-logger.ts
+  grep -q 'export const browserLogger' components/website/src/lib/browser-logger.ts
 }
 
 @test "G-FE03: logger.ts existiert und exportiert logger" {
-  grep -q 'export const logger' website/src/lib/logger.ts
+  grep -q 'export const logger' components/website/src/lib/logger.ts
 }

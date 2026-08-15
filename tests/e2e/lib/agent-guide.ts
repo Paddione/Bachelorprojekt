@@ -129,7 +129,7 @@ export interface GuideData {
 }
 
 export function loadGuideData(): GuideData {
-  const jsonPath = path.join(__dirname, '../../../website/src/lib/agent-guide.generated.json');
+  const jsonPath = path.join(__dirname, '../../../components/website/src/lib/agent-guide.generated.json');
   const raw = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
   return {
     goals: raw.goals as Goal[],

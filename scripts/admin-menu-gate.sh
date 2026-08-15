@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # admin-menu-gate.sh — enforce admin menu rules (R1, R2, R4, R5, R7).
 #
-# Exits 0 if the menu in website/src/layouts/AdminLayout.astro complies with
+# Exits 0 if the menu in components/website/src/layouts/AdminLayout.astro complies with
 # the rules and every new /admin/* static page added in this branch (vs the
 # base ref) is reachable from the sidemenu.
 #
@@ -11,8 +11,8 @@
 set -euo pipefail
 
 BASE_REF="${BASE_REF:-origin/main}"
-LAYOUT="website/src/layouts/AdminLayout.astro"
-DASHBOARD="website/src/pages/admin.astro"
+LAYOUT="components/website/src/layouts/AdminLayout.astro"
+DASHBOARD="components/website/src/pages/admin.astro"
 MAX_GROUPS=6
 MAX_ITEMS=6
 
@@ -102,14 +102,14 @@ LABELS=$(awk '
 
 # --- Step 4: detect new static /admin/* pages added vs base ---
 NEW_ROUTES=$(git diff --name-only --diff-filter=AM "$BASE_REF" \
-  -- ':(glob)website/src/pages/admin/**/*.astro' 2>/dev/null \
+  -- ':(glob)components/website/src/pages/admin/**/*.astro' 2>/dev/null \
   | grep -v '\[' \
-  | grep -v '^website/src/pages/admin\.astro$' \
+  | grep -v '^components/website/src/pages/admin\.astro$' \
   || true)
 
 # --- Step 5: derive canonical hrefs ---
 ROUTE_HREFS=$(printf '%s\n' "$NEW_ROUTES" \
-  | sed -E 's|^website/src/pages||; s|/index\.astro$||; s|\.astro$||' \
+  | sed -E 's|^components/website/src/pages||; s|/index\.astro$||; s|\.astro$||' \
   | grep -v '^$' || true)
 
 # --- Step 6: parse dashboard hrefs for R7 ---

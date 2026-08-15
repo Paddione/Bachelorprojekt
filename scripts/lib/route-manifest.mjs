@@ -95,5 +95,5 @@ export function buildManifest(pagesDir, brandConfigs) {
   routes.sort((a, b) =>
     a.route === b.route ? a.brand.localeCompare(b.brand) : a.route.localeCompare(b.route),
   );
-  return { generatedFrom: 'website/src/pages', count, routes };
+  return { generatedFrom: 'components/website/src/pages', count, routes };
 }

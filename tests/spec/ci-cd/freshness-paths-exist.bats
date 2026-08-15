@@ -12,7 +12,7 @@
 # nicht "Pfad unbekannt", sondern "regenerated but not staged": eine Meldung ueber
 # eine Datei, die es nicht mehr gibt, in der CI von PRs, die sie nie angefasst
 # haben. Genau so lief es beim SDLC-Split (goals-data.generated.json nach
-# website/src/lib/sdlc/). Dieser Test faengt die Klasse, nicht den Einzelfall.
+# components/website/src/lib/sdlc/). Dieser Test faengt die Klasse, nicht den Einzelfall.
 #
 # Bewusst NUR Existenz, kein Inhalt: was die Datei enthaelt, prueft freshness:check
 # selbst — hier geht es um den davorliegenden Fehler, dass der Vergleich am

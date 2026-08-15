@@ -67,9 +67,9 @@ describe('assignFiles', () => {
 
   test('assigns files based on domain match', () => {
     const subs = [{ id: 'sf-1', domains: ['website'] }, { id: 'sf-2', domains: ['db'] }]
-    const files = ['website/src/page.tsx', 'db/schema.sql']
+    const files = ['components/website/src/page.tsx', 'db/schema.sql']
     const result = D.assignFiles(subs, files, sharedList)
-    assert.deepEqual(result[0].assignedFiles, ['website/src/page.tsx'])
+    assert.deepEqual(result[0].assignedFiles, ['components/website/src/page.tsx'])
     assert.deepEqual(result[1].assignedFiles, ['db/schema.sql'])
   })
 
@@ -84,14 +84,14 @@ describe('assignFiles', () => {
 
   test('sub-feature without domains gets empty assignedFiles', () => {
     const subs = [{ id: 'sf-1' }]
-    const files = ['website/page.tsx']
+    const files = ['components/website/page.tsx']
     const result = D.assignFiles(subs, files, sharedList)
     assert.deepEqual(result[0].assignedFiles, [])
   })
 
   test('no duplicate file across sub-features', () => {
     const subs = [{ id: 'sf-1', domains: ['website'] }, { id: 'sf-2', domains: ['website'] }]
-    const files = ['website/a.ts', 'website/b.ts']
+    const files = ['components/website/a.ts', 'components/website/b.ts']
     const result = D.assignFiles(subs, files, sharedList)
     const allFiles = result.flatMap((sf) => sf.assignedFiles)
     assert.equal(new Set(allFiles).size, allFiles.length)

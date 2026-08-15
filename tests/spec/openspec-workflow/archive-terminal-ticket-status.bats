@@ -16,8 +16,8 @@
 # waehrend des Testlaufs, das echte Repo bleibt unberuehrt. Der Aufruf von
 # scripts/openspec-status-map.sh in cmd_archive ist best-effort (`|| true`); da
 # er ebenfalls per Symlink verfuegbar ist, scannt er in der Sandbox unter
-# OPENSPEC_ROOT und schreibt seine Ausgabe nach $SANDBOX/website/... — niemals
-# in die reale website/src/data/openspec-status.json.
+# OPENSPEC_ROOT und schreibt seine Ausgabe nach $SANDBOX/components/website/... — niemals
+# in die reale components/website/src/data/openspec-status.json.
 #
 # Kontext T002569: cmd_archive akzeptierte bislang ausschliesslich Ticket-Status
 # 'done'. 'archived' ist ein SPAETERER Lifecycle-Zustand als 'done' (siehe
@@ -58,9 +58,10 @@ DELTA
   rm -f "${SANDBOX}/scripts/ticket.sh"
 
   # Status-Map-Zielverzeichnis (T006371): openspec-status-map.sh kann nur
-  # schreiben, wenn website/src/data existiert — im echten Repo immer
-  # vorhanden, in der Sandbox bewusst im setup fuer alle Tests bereitgestellt.
-  mkdir -p "${SANDBOX}/website/src/data"
+  # schreiben, wenn components/website/src/data existiert — im echten Repo
+  # immer vorhanden, in der Sandbox bewusst im setup fuer alle Tests
+  # bereitgestellt.
+  mkdir -p "${SANDBOX}/components/website/src/data"
 }
 
 _stub_ticket_status() {
@@ -97,17 +98,19 @@ STUB
   [[ "$output" == *"archived: demo"* ]]
 }
 
-@test "T003136: archive staged website/src/data/openspec-status.json (Freshness-Gate)" {
+@test "T003136: archive staged components/website/src/data/openspec-status.json (Freshness-Gate)" {
   # cmd_archive regeneriert die Status-Map NACH dem Move und staged das Ergebnis
   # selbst — der nachfolgende Archiv-Commit traegt die Datei damit mit, sonst
   # faellt der Freshness-Gate sie als stale (PR #4083: Archiv-Commit ohne
   # openspec-status.json, Heilung erst durch nachgeschobenen Regen-Commit).
   # Das Zielverzeichnis stellt setup() bereit (T006371).
   _stub_ticket_status done
+
+
   run bash -c "cd '$SANDBOX' && bash '$OPENSPEC_SH' archive demo"
   [ "$status" -eq 0 ]
   run git -C "$SANDBOX" diff --cached --name-only
   [ "$status" -eq 0 ]
-  [[ "$output" == *"website/src/data/openspec-status.json"* ]] \
+  [[ "$output" == *"components/website/src/data/openspec-status.json"* ]] \
     || { echo "openspec-status.json NICHT gestaged nach archive: '$output'"; return 1; }
 }

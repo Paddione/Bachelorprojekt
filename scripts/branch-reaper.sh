@@ -59,10 +59,10 @@ REPO_DIR="$(cd "$HERE/.." && pwd)"
 ALLOWLIST=(
   'openspec/changes/*'
   'docs/code-quality/*'
-  'website/src/data/*'
+  'components/website/src/data/*'
   '.release-please-manifest.json'
-  'website/CHANGELOG.md'
-  'website/package.json'
+  'components/website/CHANGELOG.md'
+  'components/website/package.json'
 )
 
 TICKET_ID=""

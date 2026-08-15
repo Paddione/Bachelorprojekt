@@ -3,7 +3,7 @@
 # Verifies the admin_actions DB migration and schema integrity
 
 @test "admin_actions migration exists" {
-  run test -f website/src/db/migrations/20260525_admin_actions.sql
+  run test -f components/website/src/db/migrations/20260525_admin_actions.sql
   [ "$status" -eq 0 ]
 }
 

@@ -659,9 +659,9 @@ tasks:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scs-search.bats
 
   test:art-library:
-    desc: "Validate every art-library/sets/* manifest"
+    desc: "Validate every assets/art-library/sets/* manifest"
     cmds:
-      - cd art-library/_tooling && npm install --silent
+      - cd assets/art-library/_tooling && npm install --silent
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/test_art_library_manifest.bats
 
   test:manifests:
@@ -721,11 +721,11 @@ tasks:
       - node scripts/agent-guide/validate.mjs
       - node scripts/gen-platform-descriptions.mjs
       - |
-        git diff --exit-code website/src/lib/platform-descriptions.generated.json \
+        git diff --exit-code components/website/src/lib/platform-descriptions.generated.json \
           || (echo "ERROR: platform-descriptions.generated.json is stale — run node scripts/gen-platform-descriptions.mjs and commit"; exit 1)
       - node scripts/agent-guide/emit-webapp.mjs
       - |
-        git diff --exit-code website/src/lib/agent-guide.generated.json \
+        git diff --exit-code components/website/src/lib/agent-guide.generated.json \
           || (echo "ERROR: agent-guide.generated.json is stale — run 'task agent-guide:emit' and commit"; exit 1)
 
   test:code-quality:
@@ -1034,8 +1034,8 @@ tasks:
         # freshness:check filtert bewusst NICHT — dort sind diese Pfade der Pruefgegenstand.
         CHANGED=$( (git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null; git diff --name-only HEAD) | sort -u | bash scripts/filter-generated.sh || true)
         RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false; RUN_WORKFLOWS=false
-        echo "$CHANGED" | grep -qE "^website/" && RUN_WEBSITE=true || true
-        echo "$CHANGED" | grep -qE "^mentolder-web/" && RUN_MENTOLDER_WEB=true || true
+        echo "$CHANGED" | grep -qE "^components/website/" && RUN_WEBSITE=true || true
+        echo "$CHANGED" | grep -qE "^components/mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
         echo "$CHANGED" | grep -qE "^scripts/" && RUN_SCRIPTS=true || true
         echo "$CHANGED" | grep -qE "^(scripts/factory/|tests/local/FA-)" && RUN_FACTORY=true || true
@@ -1049,9 +1049,9 @@ tasks:
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true
         echo "$CHANGED" | grep -qE "^\.github/workflows/" && RUN_WORKFLOWS=true || true
-        echo "$CHANGED" | grep -qE "^website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
-        echo "$CHANGED" | grep -qE "^brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
-        echo "$CHANGED" | grep -qE "^(k3d/|environments/|VideoVault/)" && RUN_E2E_SERVICES=true || true
+        echo "$CHANGED" | grep -qE "^components/website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
+        echo "$CHANGED" | grep -qE "^components/brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
+        echo "$CHANGED" | grep -qE "^(k3d/|environments/|components/VideoVault/)" && RUN_E2E_SERVICES=true || true
         echo "$CHANGED" | grep -qE "(korczewski)" && RUN_E2E_KORCZEWSKI=true || true
         if [ "$RUN_WEBSITE" = "true" ]; then
           if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
@@ -1172,22 +1172,22 @@ tasks:
         echo "HTML report:        tests/e2e/playwright-report/index.html"
 
   test:inventory:
-    desc: Regenerate website/src/data/test-inventory.json (requirement → test mapping)
+    desc: Regenerate components/website/src/data/test-inventory.json (requirement → test mapping)
     cmds:
       - bash scripts/build-test-inventory.sh
 
   openspec:status-map:
-    desc: "Regenerate website/src/data/openspec-status.json from openspec/changes/"
+    desc: "Regenerate components/website/src/data/openspec-status.json from openspec/changes/"
     cmds:
       - bash scripts/openspec-status-map.sh
 
   routes:manifest:
-    desc: Regenerate website/src/data/route-manifest.json (page files + brand service slugs -> sweep route manifest)
+    desc: Regenerate components/website/src/data/route-manifest.json (page files + brand service slugs -> sweep route manifest)
     cmds:
       - node scripts/build-route-manifest.mjs
 
   assets:learning:
-    desc: Regenerate website/src/lib/learning-assets.generated.json from the SSOT manifest
+    desc: Regenerate components/website/src/lib/learning-assets.generated.json from the SSOT manifest
     cmds:
       - node scripts/build-learning-assets.mjs
 
@@ -1355,13 +1355,13 @@ tasks:
         # also in einem ANDEREN CI-Job (beobachtet an PR #3813).
         # Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
         FILES="
-          website/src/data/test-inventory.json
-          website/src/data/route-manifest.json
-          website/src/lib/learning-assets.generated.json
-          website/public/learning-assets/THIRD-PARTY-ASSETS.md
-          website/src/data/openspec-status.json
+          components/website/src/data/test-inventory.json
+          components/website/src/data/route-manifest.json
+          components/website/src/lib/learning-assets.generated.json
+          components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
+          components/website/src/data/openspec-status.json
           docs/diagrams/architecture.md
-          website/src/lib/sdlc/goals-data.generated.json
+          components/website/src/lib/sdlc/goals-data.generated.json
           docs/agent-guide/10-ziele.md
           docs/agent-guide/20-werkzeuge.md
           docs/agent-guide/30-bausteine.md
@@ -1369,8 +1369,8 @@ tasks:
           docs/agent-guide/maps/tools-map.md
           docs/agent-guide/maps/danger-map.md
           docs/agent-guide/maps/agents-map.md
-          website/src/lib/agent-guide.generated.json
-          website/src/lib/platform-descriptions.generated.json
+          components/website/src/lib/agent-guide.generated.json
+          components/website/src/lib/platform-descriptions.generated.json
         "
         # [T002375-p4] Die Meldung unterscheidet jetzt, WAS fehlt. Phase 0 oben hat
         # freshness:regenerate bereits ausgefuehrt — der Arbeitsbaum ist danach per
@@ -1409,10 +1409,10 @@ tasks:
       - |
         node -e '
           const fs = require("fs");
-          const m = JSON.parse(fs.readFileSync("website/src/data/route-manifest.json", "utf8"));
+          const m = JSON.parse(fs.readFileSync("components/website/src/data/route-manifest.json", "utf8"));
           const errs = [];
-          if (m.generatedFrom !== "website/src/pages") {
-            errs.push(`generatedFrom must be "website/src/pages", got ${JSON.stringify(m.generatedFrom)}`);
+          if (m.generatedFrom !== "components/website/src/pages") {
+            errs.push(`generatedFrom must be "components/website/src/pages", got ${JSON.stringify(m.generatedFrom)}`);
           }
           if (!Array.isArray(m.routes)) {
             errs.push("routes must be an array");
@@ -1886,7 +1886,7 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        if [ ! -f website/public/systembrett/systembrett.whiteboard ]; then
+        if [ ! -f components/website/public/systemcomponents/brett/systembrett.whiteboard ]; then
           echo "Template missing — generating..."
           node scripts/systembrett-generate.mjs
         fi
@@ -2729,7 +2729,7 @@ tasks:
       - kustomize build prod-fleet/korczewski/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "✓ prod-fleet/korczewski builds"
 
   srgb-icc:build:
-    desc: "Regenerate website/src/lib/srgb-icc.ts from the canonical sRGB.icc (delegates to scripts/build-srgb-icc.mjs)"
+    desc: "Regenerate components/website/src/lib/srgb-icc.ts from the canonical sRGB.icc (delegates to scripts/build-srgb-icc.mjs)"
     cmds:
       - node scripts/build-srgb-icc.mjs
 
@@ -2752,11 +2752,11 @@ tasks:
   # Environment Management
   # ─────────────────────────────────────────────
   content:export:
-    desc: Export site content (DB → website/content/<brand>/*.json) for the bundle (T001490)
+    desc: Export site content (DB → components/website/content/<brand>/*.json) for the bundle (T001490)
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
-      - ENV={{.ENV}} website/node_modules/.bin/tsx scripts/export-site-content.mjs
+      - ENV={{.ENV}} components/website/node_modules/.bin/tsx scripts/export-site-content.mjs
 
   env:validate:
     desc: Validate environment config against schema
@@ -3540,14 +3540,14 @@ tasks:
         kubectl $CTX logs -n "$NS" job/vaultwarden-seed
 
   billing:validate-einvoice:
-    desc: "Validate XML/PDF e-invoice(s) via Mustangproject. With no args, validates every fixture in website/test/fixtures/einvoice/. Pass `-- <file>` for a single file."
+    desc: "Validate XML/PDF e-invoice(s) via Mustangproject. With no args, validates every fixture in components/website/test/fixtures/einvoice/. Pass `-- <file>` for a single file."
     cmds:
       - |
         set -e
         if [ -n "{{.CLI_ARGS}}" ]; then
-          bash website/tests/fixtures/mustang.sh validate {{.CLI_ARGS}}
+          bash components/website/tests/fixtures/mustang.sh validate {{.CLI_ARGS}}
         else
-          fixtures_dir="website/test/fixtures/einvoice"
+          fixtures_dir="components/website/test/fixtures/einvoice"
           if [ ! -d "$fixtures_dir" ]; then
             echo "✗ No fixtures directory at $fixtures_dir" >&2
             exit 1
@@ -3563,7 +3563,7 @@ tasks:
           for f in "${files[@]}"; do
             echo
             echo "── $f ──"
-            bash website/tests/fixtures/mustang.sh validate "$f" || rc=$?
+            bash components/website/tests/fixtures/mustang.sh validate "$f" || rc=$?
           done
           exit "$rc"
         fi
@@ -3608,7 +3608,7 @@ tasks:
       - node scripts/agent-guide/emit-docs.mjs
 
   agent-guide:webapp:
-    desc: "S2: regenerate website/src/lib/agent-guide.generated.json from the registry"
+    desc: "S2: regenerate components/website/src/lib/agent-guide.generated.json from the registry"
     cmds:
       - node scripts/agent-guide/emit-webapp.mjs
 
@@ -3626,7 +3626,7 @@ tasks:
       - node scripts/agent-guide/emit-maps.mjs
 
   agent-guide:platform-descriptions:
-    desc: "Regenerate website/src/lib/platform-descriptions.generated.json from the components registry"
+    desc: "Regenerate components/website/src/lib/platform-descriptions.generated.json from the components registry"
     cmds:
       - node scripts/gen-platform-descriptions.mjs
 
@@ -3672,7 +3672,7 @@ tasks:
       - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
 
   health:goals:emit:
-    desc: "Regenerate website/src/lib/sdlc/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
+    desc: "Regenerate components/website/src/lib/sdlc/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
     cmds:
       - node scripts/gen-goals-data.mjs
 
@@ -3852,7 +3852,7 @@ tasks:
   # Website (Astro + Svelte)
   # ─────────────────────────────────────────────
   website:migrate:
-    desc: "Run website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski."
+    desc: "Run components/website/src/db/migrations/*.sql against the target DB (idempotent, tracked in schema_migrations). ENV=dev|mentolder|korczewski."
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
@@ -3943,7 +3943,7 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
         docker build -t "${IMAGE}:latest" \
-          -f website/Dockerfile \
+          -f components/website/Dockerfile \
           --build-arg PROD_DOMAIN="${PROD_DOMAIN}" \
           --build-arg BRAND_NAME="${BRAND_NAME}" \
           --build-arg CONTACT_EMAIL="${CONTACT_EMAIL}" \
@@ -3964,7 +3964,7 @@ tasks:
       - node scripts/check-bundle-size.mjs --check --fail
 
   website:bundle:baseline:
-    desc: "Measure and update the client-JS bundle baseline (website/bundle-baseline.json) — G-FE02"
+    desc: "Measure and update the client-JS bundle baseline (components/website/bundle-baseline.json) — G-FE02"
     cmds:
       - node scripts/check-bundle-size.mjs --update-baseline
 
@@ -3974,7 +3974,7 @@ tasks:
       - bash scripts/build-portrait-derivatives.sh
 
   website:sync:
-    desc: "Fast-sync website/src to the running pod and rebuild (ENV=dev|mentolder|...)"
+    desc: "Fast-sync components/website/src to the running pod and rebuild (ENV=dev|mentolder|...)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
@@ -3987,10 +3987,10 @@ tasks:
         
         echo "1/3 Syncing source and assets to $POD..."
         # We sync src/, public/ and configs to ensure the build can run correctly.
-        kubectl $CTX cp website/src "$NS/$POD:/app/src"
-        kubectl $CTX cp website/public "$NS/$POD:/app/public"
-        kubectl $CTX cp website/astro.config.mjs "$NS/$POD:/app/astro.config.mjs"
-        kubectl $CTX cp website/tsconfig.json "$NS/$POD:/app/tsconfig.json"
+        kubectl $CTX cp components/website/src "$NS/$POD:/app/src"
+        kubectl $CTX cp components/website/public "$NS/$POD:/app/public"
+        kubectl $CTX cp components/website/astro.config.mjs "$NS/$POD:/app/astro.config.mjs"
+        kubectl $CTX cp components/website/tsconfig.json "$NS/$POD:/app/tsconfig.json"
         
         echo "2/3 Running incremental build inside pod..."
         # This uses the node_modules already present in the container.
@@ -4262,7 +4262,7 @@ tasks:
             30[12378])
               if printf '%s' "${LOCATION}" | grep -qE '(^|/)404/?$'; then
                 echo "✗ /404 redirects to itself (${STATUS} → ${LOCATION}). ERR_TOO_MANY_REDIRECTS regression."
-                echo "  Ensure website/src/pages/404.astro exists so Astro serves a static 404 page."
+                echo "  Ensure components/website/src/pages/404.astro exists so Astro serves a static 404 page."
                 exit 1
               fi
               echo "⚠ /404 responded ${STATUS} → ${LOCATION} (unexpected but not a self-loop)"
@@ -4435,7 +4435,7 @@ tasks:
     deps:
       - assets:sync
     cmds:
-      - docker build -t ghcr.io/paddione/workspace-brett:latest brett/
+      - docker build -t ghcr.io/paddione/workspace-brett:latest components/brett/
       - |
         if [ "{{.ENV}}" = "dev" ]; then
           k3d image import ghcr.io/paddione/workspace-brett:latest -c {{.CLUSTER_NAME}}
@@ -4487,9 +4487,9 @@ tasks:
         POD=$(kubectl $CTX get pod -n "$NS" -l app=brett -o name | head -n 1 | cut -d'/' -f2)
         if [[ -z "$POD" ]]; then echo "ERROR: No brett pod found in $NS" >&2; exit 1; fi
         
-        echo "1/2 Syncing brett/src/ and brett/public/ to $POD..."
-        kubectl $CTX cp brett/src/ "$NS/$POD:/app/src/"
-        kubectl $CTX cp brett/public/ "$NS/$POD:/app/public/"
+        echo "1/2 Syncing components/brett/src/ and components/brett/public/ to $POD..."
+        kubectl $CTX cp components/brett/src/ "$NS/$POD:/app/src/"
+        kubectl $CTX cp components/brett/public/ "$NS/$POD:/app/public/"
 
         echo "2/2 Restarting node process..."
         kubectl $CTX exec -n "$NS" "$POD" -- pkill node || true
@@ -4526,7 +4526,7 @@ tasks:
   studio:build:
     desc: "Build studio-server image and (in dev) import into k3d (T001002)"
     cmds:
-      - docker build -t ${STUDIO_IMAGE:-studio-server}:latest studio-server/
+      - docker build -t ${STUDIO_IMAGE:-studio-server}:latest components/studio-server/
       - |
           if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
             k3d image import ${STUDIO_IMAGE:-studio-server}:latest -c {{.CLUSTER_NAME}}
@@ -5190,7 +5190,7 @@ tasks:
 
         PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
           npx tsx -e "
-            import { searchCode, searchCodeAugmented } from './website/src/lib/codesearch-db.ts';
+            import { searchCode, searchCodeAugmented } from './components/website/src/lib/codesearch-db.ts';
             const args = process.argv.slice(1);
             const q = args[0];
             const augmented = args.includes('--augmented');

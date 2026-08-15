@@ -19,8 +19,8 @@ REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)}"
 K3D="${REPO_ROOT}/k3d"
 PROD="${REPO_ROOT}/prod"
 ENV="${REPO_ROOT}/environments"
-WEBSITE="${REPO_ROOT}/website"
-BRETT="${REPO_ROOT}/brett"
+WEBSITE="${REPO_ROOT}/components/website"
+BRETT="${REPO_ROOT}/components/brett"
 SCHEMA="${ENV}/schema.yaml"
 
 setup() {
@@ -263,7 +263,10 @@ migrated_oauth2_manifests() {
     # Dev manifests use the in-cluster service http://pocket-id:1411 for the
     # OIDC redeem/jwks/profile endpoints; the browser-facing --login-url uses
     # ${POCKET_ID_DOMAIN} (auth.localhost in dev, auth.${PROD_DOMAIN} in prod).
-    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m" && ! grep -q 'auth.\${PROD_DOMAIN}' "$m"; then
+    # Seit T007035 (PR #4658) nutzen die dev-stack-Proxies die FQDN-Form
+    # pocket-id.workspace.svc.cluster.local:1411 (bare Service-Namen lösen aus
+    # workspace-dev nicht auf) — beide Formen sind gültige Anker.
+    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'pocket-id.workspace.svc.cluster.local:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m" && ! grep -q 'auth.\${PROD_DOMAIN}' "$m"; then
       echo "missing pocket-id issuer in $m"; return 1
     fi
   done
@@ -319,11 +322,11 @@ migrated_oauth2_manifests() {
 
 # ── Welle 2: website identity.ts + auth.ts + 27 import sites ───────────────
 
-@test "pocket-id: website/src/lib/identity.ts exists" {
+@test "pocket-id: components/website/src/lib/identity.ts exists" {
   [ -f "${WEBSITE}/src/lib/identity.ts" ]
 }
 
-@test "pocket-id: website/src/lib/identity.ts exports the full user-mgmt surface" {
+@test "pocket-id: components/website/src/lib/identity.ts exports the full user-mgmt surface" {
   local f="${WEBSITE}/src/lib/identity.ts"
   for sym in createUser setUserPassword sendPasswordResetEmail \
              listUsers getUserById deleteUser updateUser \
@@ -335,7 +338,7 @@ migrated_oauth2_manifests() {
   done
 }
 
-@test "pocket-id: website/src/lib/identity.ts calls Pocket ID Admin API with X-API-KEY header" {
+@test "pocket-id: components/website/src/lib/identity.ts calls Pocket ID Admin API with X-API-KEY header" {
   # T002181: die Assertion verlangte 'Authorization: Bearer '. Das war nie
   # erfüllbar — Pocket ID v2.9.0 akzeptiert kein Bearer-Token auf der Admin-API
   # und identity.ts setzt deshalb bewusst X-API-KEY (siehe Kommentar dort).
@@ -349,18 +352,18 @@ migrated_oauth2_manifests() {
   ! grep -qE "^[[:space:]]*'Authorization'[[:space:]]*:" "${WEBSITE}/src/lib/identity.ts"
 }
 
-@test "pocket-id: website/src/lib/auth.ts no longer references KEYCLOAK_URL/KEYCLOAK_REALM" {
+@test "pocket-id: components/website/src/lib/auth.ts no longer references KEYCLOAK_URL/KEYCLOAK_REALM" {
   ! grep -q 'KEYCLOAK_URL' "${WEBSITE}/src/lib/auth.ts" || false
   ! grep -q 'KEYCLOAK_REALM' "${WEBSITE}/src/lib/auth.ts" || false
   ! grep -q 'realms/workspace' "${WEBSITE}/src/lib/auth.ts" || false
 }
 
-@test "pocket-id: website/src/lib/auth/provider.ts uses POCKET_ID_URL/POCKET_ID_FRONTEND_URL" {
+@test "pocket-id: components/website/src/lib/auth/provider.ts uses POCKET_ID_URL/POCKET_ID_FRONTEND_URL" {
   grep -q 'POCKET_ID_URL' "${WEBSITE}/src/lib/auth/provider.ts"
   grep -q 'POCKET_ID_FRONTEND_URL' "${WEBSITE}/src/lib/auth/provider.ts"
 }
 
-@test "pocket-id: website/src/lib/auth.ts sets realmRoles from userInfo.isAdmin" {
+@test "pocket-id: components/website/src/lib/auth.ts sets realmRoles from userInfo.isAdmin" {
   grep -q 'isAdmin' "${WEBSITE}/src/lib/auth.ts"
 }
 
@@ -380,8 +383,8 @@ migrated_oauth2_manifests() {
 }
 
 # The "keycloak.ts still exists (compat shim for Welle 3 transition)" test was
-# removed: Welle 3 completed and website/src/lib/keycloak.ts was deleted (its
-# public surface lives on in website/src/lib/identity.ts). The transition the
+# removed: Welle 3 completed and components/website/src/lib/keycloak.ts was deleted (its
+# public surface lives on in components/website/src/lib/identity.ts). The transition the
 # shim guarded is over.
 
 @test "pocket-id: k3d/website.yaml exposes POCKET_ID_FRONTEND_URL + POCKET_ID_URL + POCKET_ID_API_KEY" {
@@ -424,11 +427,11 @@ migrated_oauth2_manifests() {
 
 # ── Welle 2: Brett auth.ts repointed to Pocket ID ──────────────────────────
 
-@test "pocket-id: brett/src/server/auth.ts no longer references keycloak" {
+@test "pocket-id: components/brett/src/server/auth.ts no longer references keycloak" {
   ! grep -q 'keycloak' "${BRETT}/src/server/auth.ts" || false
 }
 
-@test "pocket-id: brett/src/server/auth.ts reads POCKET_ID_URL" {
+@test "pocket-id: components/brett/src/server/auth.ts reads POCKET_ID_URL" {
   grep -q 'POCKET_ID_URL' "${BRETT}/src/server/auth.ts"
 }
 
@@ -492,7 +495,7 @@ migrated_oauth2_manifests() {
   grep -qE '^\s*POCKET_ID_API_KEY:' "${K3D}/website-dev-secrets.yaml"
 }
 
-@test "pocket-id-wiring: website/src/env.d.ts declares POCKET_ID_WEBSITE_SECRET" {
+@test "pocket-id-wiring: components/website/src/env.d.ts declares POCKET_ID_WEBSITE_SECRET" {
   grep -qE '^\s*readonly POCKET_ID_WEBSITE_SECRET:\s*string' "${WEBSITE}/src/env.d.ts"
 }
 

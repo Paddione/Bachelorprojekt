@@ -15,5 +15,5 @@ setup() {
 
 @test "G-RH01: GLTFLoader.js ist aus S1-Gate ausgeschlossen" {
   ! grep -q "GLTFLoader" "$REPO_ROOT/docs/code-quality/gates.yaml" 2>/dev/null \
-    || ! jq -e '."S1:brett/public/lib/GLTFLoader.js"' "$REPO_ROOT/docs/code-quality/baseline.json" >/dev/null 2>&1
+    || ! jq -e '."S1:components/brett/public/lib/GLTFLoader.js"' "$REPO_ROOT/docs/code-quality/baseline.json" >/dev/null 2>&1
 }

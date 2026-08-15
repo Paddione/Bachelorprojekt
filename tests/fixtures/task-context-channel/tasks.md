@@ -88,7 +88,7 @@ bash scripts/health-goals-check.sh 2>&1 | grep G-AGENTIC09
 ```
 
 Die Inventar-Regeneration ist Pflicht, weil p4 eine neue Test-Datei anlegt; das Ergebnis
-(`website/src/data/test-inventory.json`) wird mitcommittet. Der Health-Goal-Wert muss 0 bleiben.
+(`components/website/src/data/test-inventory.json`) wird mitcommittet. Der Health-Goal-Wert muss 0 bleiben.
 
 <!-- vitest: kein neuer Test nötig, weil dieser Change ausschliesslich Bash-Skripte und
-Skill-Dokumentation berührt — keine Dateien unter website/src/lib oder website/src/pages/api. -->
+Skill-Dokumentation berührt — keine Dateien unter components/website/src/lib oder components/website/src/pages/api. -->

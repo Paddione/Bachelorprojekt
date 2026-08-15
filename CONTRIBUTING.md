@@ -79,7 +79,7 @@ Vollständige Task-Referenz siehe [CLAUDE.md](CLAUDE.md#common-commands).
 `.github/workflows/ci.yml` läuft auf jeder PR:
 
 - `task test:all` — BATS-Unit-Tests, kustomize-Manifest-Struktur, Taskfile-Dry-Run
-- **Test-Inventory-Check** — `website/src/data/test-inventory.json` muss zur Test-Liste passen
+- **Test-Inventory-Check** — `components/website/src/data/test-inventory.json` muss zur Test-Liste passen
 - **Systembrett-Template-Validierung** (`scripts/tests/systembrett-template.test.sh`)
 - **Security-Scan** — Image-Pin-Hinweise + Hardcoded-Secret-Erkennung in `k3d/*.yaml`
 

@@ -33,7 +33,7 @@
 }
 
 @test "T002230: update-status.sh still clears resolution on a non-terminal status" {
-  # Mirrors website/src/lib/tickets/transition.ts:79 — a resolution only means
+  # Mirrors components/website/src/lib/tickets/transition.ts:79 — a resolution only means
   # anything for done/archived. openspec.sh (→ planning) and factory/pipeline.mjs
   # (→ backlog) depend on the clearing, so a blanket COALESCE would strand a stale
   # `fixed` on a reopened ticket.
@@ -62,11 +62,11 @@
   # transition.ts is the other path. If it ever drops the CASE, the shell path and
   # the API path would disagree about what a non-terminal status means.
   # [T002382] Updated to match the new multi-line COALESCE pattern.
-  run grep -Fq "resolution = CASE" website/src/lib/tickets/transition.ts
+  run grep -Fq "resolution = CASE" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
-  run grep -Fq "COALESCE(\$2, resolution)" website/src/lib/tickets/transition.ts
+  run grep -Fq "COALESCE(\$2, resolution)" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
-  run grep -Fq "ELSE NULL" website/src/lib/tickets/transition.ts
+  run grep -Fq "ELSE NULL" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
 
@@ -337,9 +337,9 @@ MOCKEOF
 # das SQL auszufuehren braucht einen Cluster, und diese Tests duerfen keinen
 # erreichen (T002224).
 
-MIGRATIONS_TS="website/src/lib/tickets/migrations.ts"
-TABLES_TS="website/src/lib/tickets/tables/tickets.ts"
-TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
+MIGRATIONS_TS="components/website/src/lib/tickets/migrations.ts"
+TABLES_TS="components/website/src/lib/tickets/tables/tickets.ts"
+TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
 
 @test "T002329: die Vokabular-Migration liegt in einem eigenen Modul" {
   # migrations.ts steht bei 576/600 Zeilen (S1-Budget 24). Der Constraint- und
@@ -549,17 +549,17 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
 # ── [T002382-M3] transition.ts guard: done → non-terminal verboten ───────────#
 
 @test "T002382-M3: transition.ts forbids done → non-terminal" {
-  run grep -Fq "Cannot transition from 'done'" website/src/lib/tickets/transition.ts
+  run grep -Fq "Cannot transition from 'done'" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
 
 @test "T002382-M3: transition.ts forbids archived → anything" {
-  run grep -Fq "Cannot transition from 'archived'" website/src/lib/tickets/transition.ts
+  run grep -Fq "Cannot transition from 'archived'" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
 
 @test "T002382-M3: transition.ts uses COALESCE for resolution preservation" {
-  run grep -Fq "COALESCE(\$2, resolution)" website/src/lib/tickets/transition.ts
+  run grep -Fq "COALESCE(\$2, resolution)" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
 
@@ -570,24 +570,24 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
 # RED-Bedingung (vor Task 1): der Typ fehlt → Test schlägt fehl.
 
 @test "T002407-M1a: migrate-type-vocabulary.ts listet 'incident' in NEW_TYPES" {
-  run bash -c "grep -q \"'incident'\" 'website/src/lib/tickets/migrate-type-vocabulary.ts'"
+  run bash -c "grep -q \"'incident'\" 'components/website/src/lib/tickets/migrate-type-vocabulary.ts'"
   [ "$status" -eq 0 ]
 }
 
 @test "T002407-M1b: migrate-type-vocabulary.ts CONSTRAINT CHECK kennt 'incident'" {
   # Der benannte CONSTRAINT muss 'incident' in der IN-Liste führen
-  run bash -c "grep -A20 'ADD CONSTRAINT tickets_type_check' 'website/src/lib/tickets/migrate-type-vocabulary.ts' 2>/dev/null \
+  run bash -c "grep -A20 'ADD CONSTRAINT tickets_type_check' 'components/website/src/lib/tickets/migrate-type-vocabulary.ts' 2>/dev/null \
                  | grep -c \"'incident'\""
   [ "$output" != "0" ]
 }
 
 @test "T002407-M1c: tables/tickets.ts Inline-CHECK kennt 'incident'" {
-  run bash -c "grep -c \"'incident'\" 'website/src/lib/tickets/tables/tickets.ts'"
+  run bash -c "grep -c \"'incident'\" 'components/website/src/lib/tickets/tables/tickets.ts'"
   [ "$output" != "0" ]
 }
 
 @test "T002407-M1d: cockpit-labels.ts hat TYPE_LABELS.incident" {
-  run bash -c "grep \"incident:\" 'website/src/lib/tickets/cockpit-labels.ts' \
+  run bash -c "grep \"incident:\" 'components/website/src/lib/tickets/cockpit-labels.ts' \
                  | grep -c 'Incident'"
   [ "$output" != "0" ]
 }
@@ -666,8 +666,8 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
 }
 
 @test "T003072: transition.ts spiegelt die Ausnahme (beide Write-Pfade einig, T002230-Muster)" {
-  run grep -Fq "resolution IS NULL" website/src/lib/tickets/transition.ts
+  run grep -Fq "resolution IS NULL" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ] || { echo "MISSING: resolution IS NULL-Bedingung in transition.ts"; false; }
-  run grep -Fq "created_at" website/src/lib/tickets/transition.ts
+  run grep -Fq "created_at" components/website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ] || { echo "MISSING: created_at-Bezug in transition.ts"; false; }
 }

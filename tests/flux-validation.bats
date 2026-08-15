@@ -32,7 +32,7 @@ setup() {
   done
 }
 
-@test "Brand/website/dev Kustomizations use OCIRepository/fleet-manifests source" {
+@test "Brand/components/website/dev Kustomizations use OCIRepository/fleet-manifests source" {
   for f in flux/clusters/fleet/ks-{mentolder,korczewski,website-mentolder,website-korczewski,dev}.yaml; do
     run grep -q "kind: OCIRepository" "$f"
     [ "$status" -eq 0 ]

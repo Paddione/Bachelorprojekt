@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'mentolder-web/**'
+      - 'components/mentolder-web/**'
       - '.github/workflows/build-mentolder-web.yml'
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'pnpm'
-          cache-dependency-path: mentolder-web/pnpm-lock.yaml
+          cache-dependency-path: components/mentolder-web/pnpm-lock.yaml
 
       - name: Typecheck
         run: |
@@ -63,7 +63,7 @@ jobs:
           VITE_WEBSITE_ORIGIN: "https://web.mentolder.de"
         with:
           context: .
-          file: mentolder-web/Dockerfile
+          file: components/mentolder-web/Dockerfile
           push: true
           build-args: |
             VITE_FORMSPREE_ENDPOINT=${{ env.VITE_FORMSPREE_ENDPOINT }}

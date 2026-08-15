@@ -2,16 +2,16 @@
 # tests/spec/pipeline-interface.bats
 # SSOT: openspec/specs/pipeline-interface.md
 
-STORE="website/src/lib/stores/factory-floor-store.ts"
-FLOOR="website/src/components/sdlc/FactoryFloor.svelte"
-TABS="website/src/components/DevStatusTabs.svelte"
-CTRL="website/src/components/sdlc/factory/ControlPanel.svelte"
-STRIP="website/src/components/sdlc/factory/StatusStrip.svelte"
-DAG="website/src/components/DependencyGraph.svelte"
-SIDEKICK="website/src/components/PortalSidekick.svelte"
-PIPEVIEW="website/src/components/assistant/PipelineSidekickView.svelte"
-NAV="website/src/components/admin/AdminSidebarNav.astro"
-BUDGETAPI="website/src/pages/sdlc/api/factory-budget.ts"
+STORE="components/website/src/lib/stores/factory-floor-store.ts"
+FLOOR="components/website/src/components/sdlc/FactoryFloor.svelte"
+TABS="components/website/src/components/DevStatusTabs.svelte"
+CTRL="components/website/src/components/sdlc/factory/ControlPanel.svelte"
+STRIP="components/website/src/components/sdlc/factory/StatusStrip.svelte"
+DAG="components/website/src/components/DependencyGraph.svelte"
+SIDEKICK="components/website/src/components/PortalSidekick.svelte"
+PIPEVIEW="components/website/src/components/assistant/PipelineSidekickView.svelte"
+NAV="components/website/src/components/admin/AdminSidebarNav.astro"
+BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
 
 @test "D1: shared floor store exists and exports the public surface" {
   [ -f "$STORE" ]
@@ -33,7 +33,7 @@ BUDGETAPI="website/src/pages/sdlc/api/factory-budget.ts"
 }
 
 @test "D3: KI provider editor extracted; FactoryFloor drops KiProviderDrawer" {
-  [ -f "website/src/components/sdlc/factory/KiRoutingPanel.svelte" ]
+  [ -f "components/website/src/components/sdlc/factory/KiRoutingPanel.svelte" ]
   run grep -q "KiProviderDrawer" "$FLOOR"
   [ "$status" -ne 0 ]
 }
@@ -67,12 +67,12 @@ BUDGETAPI="website/src/pages/sdlc/api/factory-budget.ts"
 }
 
 @test "D6: no --pb-* palette remains in Planungsbüro components" {
-  run grep -rq -- "--pb-" website/src/components/PlanningOffice.svelte \
-      website/src/components/PlanningOfficeItem.svelte \
-      website/src/components/PlanningOfficeDetail.svelte \
-      website/src/components/PlanningOfficeTriage.svelte \
-      website/src/components/PlanningOfficeQueue.svelte \
-      website/src/components/sdlc/factory/PhaseBadge.svelte
+  run grep -rq -- "--pb-" components/website/src/components/PlanningOffice.svelte \
+      components/website/src/components/PlanningOfficeItem.svelte \
+      components/website/src/components/PlanningOfficeDetail.svelte \
+      components/website/src/components/PlanningOfficeTriage.svelte \
+      components/website/src/components/PlanningOfficeQueue.svelte \
+      components/website/src/components/sdlc/factory/PhaseBadge.svelte
   [ "$status" -ne 0 ]
 }
 
@@ -85,13 +85,13 @@ BUDGETAPI="website/src/pages/sdlc/api/factory-budget.ts"
 @test "D4: der geteilte Analytics-Fensterfilter ist mitsamt seinen Konsumenten entfernt" {
   # Positiv-Anker: der Pfad, unter dem gesucht wird, existiert überhaupt —
   # sonst bestünde die Abwesenheitsaussage vakuos.
-  [ -d "website/src/components/sdlc/factory" ]
-  [ ! -f "website/src/components/sdlc/factory/AnalyticsWindowFilter.svelte" ]
+  [ -d "components/website/src/components/sdlc/factory" ]
+  [ ! -f "components/website/src/components/sdlc/factory/AnalyticsWindowFilter.svelte" ]
 }
 
 @test "D7.3: orphan ViewSwitcher is deleted and unreferenced" {
-  [ ! -f "website/src/components/sdlc/factory/ViewSwitcher.svelte" ]
-  run grep -rq "ViewSwitcher" website/src
+  [ ! -f "components/website/src/components/sdlc/factory/ViewSwitcher.svelte" ]
+  run grep -rq "ViewSwitcher" components/website/src
   [ "$status" -ne 0 ]
 }
 

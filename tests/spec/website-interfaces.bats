@@ -4,11 +4,11 @@
 #
 # Regression coverage for T002196: website API endpoint status/error fixes.
 
-STATUS_TS="${BATS_TEST_DIRNAME}/../../website/src/pages/api/status.ts"
-BOOKING_TS="${BATS_TEST_DIRNAME}/../../website/src/pages/api/booking.ts"
-FINALIZE_TS="${BATS_TEST_DIRNAME}/../../website/src/pages/api/meeting/finalize.ts"
-CLIENTS_ASTRO="${BATS_TEST_DIRNAME}/../../website/src/pages/admin/clients.astro"
-PUBLISH_ASTRO="${BATS_TEST_DIRNAME}/../../website/src/pages/admin/knowledge/snippets/[id]/publish.astro"
+STATUS_TS="${BATS_TEST_DIRNAME}/../../components/website/src/pages/api/status.ts"
+BOOKING_TS="${BATS_TEST_DIRNAME}/../../components/website/src/pages/api/booking.ts"
+FINALIZE_TS="${BATS_TEST_DIRNAME}/../../components/website/src/pages/api/meeting/finalize.ts"
+CLIENTS_ASTRO="${BATS_TEST_DIRNAME}/../../components/website/src/pages/admin/clients.astro"
+PUBLISH_ASTRO="${BATS_TEST_DIRNAME}/../../components/website/src/pages/admin/knowledge/snippets/[id]/publish.astro"
 E2E_MARKER_TS="${BATS_TEST_DIRNAME}/../../tests/e2e/lib/e2e-marker.ts"
 
 # ── Task 1: /api/status rate-limit scoped per-endpoint ──────────────────────
@@ -35,7 +35,7 @@ E2E_MARKER_TS="${BATS_TEST_DIRNAME}/../../tests/e2e/lib/e2e-marker.ts"
 @test "T002196-3: isSlotInAnyWindow in appointments-db returns false for past dates" {
   # Verify the function uses slotStart.toISOString() for date comparison,
   # which correctly handles far-past dates like 2020-01-01
-  APPOINTMENTS_DB="${BATS_TEST_DIRNAME}/../../website/src/lib/appointments-db.ts"
+  APPOINTMENTS_DB="${BATS_TEST_DIRNAME}/../../components/website/src/lib/appointments-db.ts"
   run grep -E "toISOString" "$APPOINTMENTS_DB"
   [ "$status" -eq 0 ] || { echo "isSlotInAnyWindow missing toISOString date conversion"; return 1; }
 }

@@ -136,7 +136,7 @@ else
 fi
 
 # ── Phase 2: File discovery (three strategies) ───────────────────────────────
-SRC_DIRS=("$REPO/website/src" "$REPO/scripts" "$REPO/brett" "$REPO/k3d" "$REPO/environments" "$REPO/tests" "$REPO/docs" "$REPO/openspec")
+SRC_DIRS=("$REPO/components/website/src" "$REPO/scripts" "$REPO/brett" "$REPO/k3d" "$REPO/environments" "$REPO/tests" "$REPO/docs" "$REPO/openspec")
 tmp_hits="$(mktemp)"
 trap 'rm -f "$tmp_hits"' EXIT
 
@@ -285,8 +285,8 @@ fi
 # find-similar prints an array of row objects; SCOUT_SCHEMA wants string IDs.
 # Map to .external_id; on any failure → [].
 SIMILAR="[]"
-if command -v npx >/dev/null 2>&1 && [[ -f "$REPO/website/scripts/find-similar-tickets.mjs" ]]; then
-  raw="$(cd "$REPO/website" \
+if command -v npx >/dev/null 2>&1 && [[ -f "$REPO/components/website/scripts/find-similar-tickets.mjs" ]]; then
+  raw="$(cd "$REPO/components/website" \
     && timeout 15 npx tsx scripts/find-similar-tickets.mjs "$TITLE $DESCRIPTION" 5 \
        2>/dev/null)" || raw=""
   if [[ -n "$raw" ]]; then

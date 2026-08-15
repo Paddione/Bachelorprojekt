@@ -76,10 +76,10 @@ tasks:
         fi
 
         # 4. Build website image from the worktree
-        echo "==> Building website image from ${WORKTREE_PATH}/website/"
+        echo "==> Building website image from ${WORKTREE_PATH}/components/website/"
         docker build --provenance=false \
           -t "$STAGING_IMAGE" \
-          -f "${WORKTREE_PATH}/website/Dockerfile" \
+          -f "${WORKTREE_PATH}/components/website/Dockerfile" \
           --build-arg PROD_DOMAIN="staging-${STAGING_ID}.localhost" \
           --build-arg BRAND=mentolder \
           "${WORKTREE_PATH}"

@@ -6,8 +6,8 @@
 # bekommt — es gibt bewusst KEINE zweite Pfadliste in diesem Skript.
 #
 # Hintergrund (T002255): `task freshness:regenerate` schreibt 16 Artefakte, mehrere davon
-# unter website/ und docs/. Jeder Change mit einem OpenSpec-Artefakt fasst mindestens
-# website/src/data/openspec-status.json an. Konsumenten, die aus einem Datei-Diff eine
+# unter components/website/ und docs/. Jeder Change mit einem OpenSpec-Artefakt fasst mindestens
+# components/website/src/data/openspec-status.json an. Konsumenten, die aus einem Datei-Diff eine
 # Handlung ableiten (test:changed, devflow-post-merge-deploy.sh), starteten dadurch
 # Playwright bzw. einen Image-Build fuer Changes ohne jeden Website-Bezug.
 #

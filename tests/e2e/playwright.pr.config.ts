@@ -14,7 +14,7 @@ import { defineConfig, devices } from '@playwright/test';
 //
 // Tag conventions (add to test.describe { tag: ['@tag'] }):
 //   @smoke         — always runs on every PR
-//   @website       — general website/Astro changes
+//   @website       — general components/website/Astro changes
 //   @content-hub   — content hub features
 //   @admin         — admin panel
 //   @factory       — software factory / dev-status

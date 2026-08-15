@@ -8,8 +8,8 @@
 # migration gets installed.
 
 setup() {
-  SRC="$BATS_TEST_DIRNAME/../../website/src/lib/tickets-schema.ts"
-  TMIG="$BATS_TEST_DIRNAME/../../website/src/lib/tickets/migrations.ts"
+  SRC="$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets-schema.ts"
+  TMIG="$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/migrations.ts"
 }
 
 @test "tickets: status CHECK enthält plan_staged" {
@@ -35,12 +35,12 @@ setup() {
 }
 
 @test "admin.ts TicketStatus-Union enthält plan_staged" {
-  run grep -F "plan_staged" "$BATS_TEST_DIRNAME/../../website/src/lib/tickets/admin.ts"
+  run grep -F "plan_staged" "$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/admin.ts"
   [ "$status" -eq 0 ]
 }
 
 @test "transition.ts TicketStatus-Union + VALID_STATUSES enthält plan_staged" {
-  run grep -c "plan_staged" "$BATS_TEST_DIRNAME/../../website/src/lib/tickets/transition.ts"
+  run grep -c "plan_staged" "$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/transition.ts"
   [ "$status" -eq 0 ]
   [ "$output" -ge 2 ]
 }

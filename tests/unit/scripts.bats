@@ -515,7 +515,7 @@ YAML
   mkdir -p "${tmpdir}/tests/local"
   mkdir -p "${tmpdir}/tests/prod"
   mkdir -p "${tmpdir}/tests/e2e/specs"
-  mkdir -p "${tmpdir}/website/src/data"
+  mkdir -p "${tmpdir}/components/website/src/data"
 
   # Copy the script
   cp "${PROJECT_DIR}/scripts/build-test-inventory.sh" "${tmpdir}/scripts/"
@@ -540,7 +540,7 @@ YAML
   mkdir -p "${tmpdir}/tests/local"
   mkdir -p "${tmpdir}/tests/prod"
   mkdir -p "${tmpdir}/tests/e2e/specs"
-  mkdir -p "${tmpdir}/website/src/data"
+  mkdir -p "${tmpdir}/components/website/src/data"
 
   # Copy the script
   cp "${PROJECT_DIR}/scripts/build-test-inventory.sh" "${tmpdir}/scripts/"
@@ -555,8 +555,8 @@ YAML
   assert_success
 
   # Check output JSON
-  [ -f "${tmpdir}/website/src/data/test-inventory.json" ]
-  run jq '. | length' "${tmpdir}/website/src/data/test-inventory.json"
+  [ -f "${tmpdir}/components/website/src/data/test-inventory.json" ]
+  run jq '. | length' "${tmpdir}/components/website/src/data/test-inventory.json"
   assert_output "3"
 
   rm -rf "$tmpdir"

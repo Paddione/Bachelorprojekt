@@ -27,19 +27,19 @@ setup() {
 }
 
 @test "graph.ts API endpoint file exists" {
-  [ -f website/src/pages/sdlc/api/cluster/graph.ts ]
+  [ -f components/website/src/pages/sdlc/api/cluster/graph.ts ]
 }
 
 @test "architektur.astro page file exists" {
-  [ -f website/src/pages/sdlc/architektur.astro ]
+  [ -f components/website/src/pages/sdlc/architektur.astro ]
 }
 
 @test "ArchitekturGraph.svelte component exists" {
-  [ -f website/src/components/admin/ArchitekturGraph.svelte ]
+  [ -f components/website/src/components/admin/ArchitekturGraph.svelte ]
 }
 
 @test "AdminLayout includes architektur page reference" {
-  [ -f website/src/pages/sdlc/architektur.astro ]
+  [ -f components/website/src/pages/sdlc/architektur.astro ]
 }
 
 @test "k3d kustomize builds without regression" {

@@ -7,7 +7,7 @@
 --
 -- Scope-corrected 2026-07-09 (T001681): factory-scout/factory-plan/lavish-artifact removed —
 -- they call the harness agent() primitive, which has no baseUrl support; only ticket-triage
--- uses its own baseURL-aware SDK client (website/src/lib/ticket-triage.ts) and benefits from this row.
+-- uses its own baseURL-aware SDK client (components/website/src/lib/ticket-triage.ts) and benefits from this row.
 --
 -- Apply to BOTH brands (separate per-brand DBs):
 --   BRAND=mentolder bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/2026-07-03-local-qwen35-seed.sql'

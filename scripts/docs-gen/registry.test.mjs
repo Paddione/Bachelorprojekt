@@ -48,7 +48,7 @@ const ROUTING_FIXTURE = `# CLAUDE.md
 
   | Signals | Agent |
   |---------|-------|
-  | \`website/\`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend, design | \`bachelorprojekt-website\` |
+  | \`components/website/\`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend, design | \`bachelorprojekt-website\` |
   | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running" | \`bachelorprojekt-ops\` |
   | \`k3d/\`, \`prod*/\`, manifest, kustomize, overlay, Taskfile, \`ENV=\`, \`environments/\`, deploy | \`bachelorprojekt-infra\` |
   | test, \`FA-*\`, \`SA-*\`, \`NFA-*\`, \`AK-*\`, BATS, Playwright, \`runner.sh\`, test case, "test failing", "write a test" | \`bachelorprojekt-test\` |

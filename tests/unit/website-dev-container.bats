@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # PRÜFMODUS (Konvention T002448-M4):
 #   • Die Entrypoint-Tests sind ECHTE Output-Verifikation — sie FÜHREN
-#     website/docker-entrypoint.dev.sh mit `env` als CMD aus und prüfen die
+#     components/website/docker-entrypoint.dev.sh mit `env` als CMD aus und prüfen die
 #     resultierende Prozessumgebung bzw. den Exit-Code. Kein Source-Grep.
 #   • Die Dockerfile-/Compose-Tests greifen per grep auf die Konfigurationsdatei
 #     zu. Das ist die in CLAUDE.md benannte Ausnahme: ihr Ergebnis manifestiert
@@ -12,15 +12,15 @@
 #     bewusst formatfrei (grep -F, keine Zeilenanker), damit sie an
 #     Umformatierungen nicht zerbrechen (Konvention T002716).
 #
-# Hintergrund: `astro dev` auf dem Host scheitert an website/src/lib/auth.ts:13,
+# Hintergrund: `astro dev` auf dem Host scheitert an components/website/src/lib/auth.ts:13,
 # weil Vite die .env nur nach import.meta.env lädt, auth.ts den Wert aber aus
 # process.env liest. Der Container löst das über env_file.
 # ═══════════════════════════════════════════════════════════════════
 
 load test_helper
 
-ENTRYPOINT="${PROJECT_DIR}/website/docker-entrypoint.dev.sh"
-DOCKERFILE_DEV="${PROJECT_DIR}/website/Dockerfile.dev"
+ENTRYPOINT="${PROJECT_DIR}/components/website/docker-entrypoint.dev.sh"
+DOCKERFILE_DEV="${PROJECT_DIR}/components/website/Dockerfile.dev"
 COMPOSE_DEV="${PROJECT_DIR}/compose.dev.yaml"
 
 # ── Entrypoint: ausgeführt, nicht gegreppt ───────────────────────
@@ -29,7 +29,7 @@ COMPOSE_DEV="${PROJECT_DIR}/compose.dev.yaml"
   # Die .env zeigt auf 127.0.0.1-Ports des Hosts (kubectl port-forward). Im
   # Container ist 127.0.0.1 ein anderer Netzwerk-Namespace — ohne Umschreiben
   # findet der Dev-Server die Datenbank nicht.
-  [[ -f "$ENTRYPOINT" ]] || fail "website/docker-entrypoint.dev.sh nicht gefunden"
+  [[ -f "$ENTRYPOINT" ]] || fail "components/website/docker-entrypoint.dev.sh nicht gefunden"
 
   run env POCKET_ID_WEBSITE_SECRET=dummy \
           DATABASE_URL='postgresql://u:p@127.0.0.1:5432/website' \
@@ -81,7 +81,7 @@ COMPOSE_DEV="${PROJECT_DIR}/compose.dev.yaml"
   # Ohne --chmod bricht der Container mit Exit 126 ab:
   # "exec /usr/local/bin/dev-entrypoint failed: Permission denied".
   # Real passiert beim Bau dieses Containers.
-  [[ -f "$DOCKERFILE_DEV" ]] || fail "website/Dockerfile.dev nicht gefunden"
+  [[ -f "$DOCKERFILE_DEV" ]] || fail "components/website/Dockerfile.dev nicht gefunden"
 
   run grep -F -- '--chmod=755' "$DOCKERFILE_DEV"
   assert_success
@@ -108,7 +108,7 @@ COMPOSE_DEV="${PROJECT_DIR}/compose.dev.yaml"
   assert_success
 
   # Die Zusicherung: kein Produktionsbuild. `pnpm run build` wuerde den Code
-  # einfrieren und Live-Reload aushebeln — das ist Aufgabe von website/Dockerfile.
+  # einfrieren und Live-Reload aushebeln — das ist Aufgabe von components/website/Dockerfile.
   #
   # Kommentarzeilen werden ausgefiltert: Dockerfile.dev ERWAEHNT den Prod-Build in
   # seinem Abgrenzungs-Kommentar. Ohne den Filter macht ausgerechnet die
@@ -117,10 +117,10 @@ COMPOSE_DEV="${PROJECT_DIR}/compose.dev.yaml"
   assert_output '0'
 }
 
-@test "website/Dockerfile (Prod) bleibt ein Build-Image" {
+@test "components/website/Dockerfile (Prod) bleibt ein Build-Image" {
   # Gegenprobe zum vorigen Test: belegt, dass die Unterscheidung real ist und
   # nicht bloss daran haengt, dass irgendwo 'pnpm run build' fehlt.
-  run grep -F 'pnpm run build' "${PROJECT_DIR}/website/Dockerfile"
+  run grep -F 'pnpm run build' "${PROJECT_DIR}/components/website/Dockerfile"
   assert_success
 }
 
@@ -137,7 +137,7 @@ COMPOSE_DEV="${PROJECT_DIR}/compose.dev.yaml"
 }
 
 @test "compose mountet .lavish fuer die cockpit-Symlinks" {
-  # website/public/cockpit/* sind Symlinks nach ../../../.lavish/ — vom Container
+  # components/website/public/cockpit/* sind Symlinks nach ../../../.lavish/ — vom Container
   # aus /.lavish/. Ohne den Mount zeigen sie ins Leere und /cockpit/ liefert 404,
   # waehrend auf dem Host alles korrekt aussieht.
   run grep -F '/.lavish' "$COMPOSE_DEV"
@@ -152,17 +152,17 @@ COMPOSE_DEV="${PROJECT_DIR}/compose.dev.yaml"
 }
 
 @test "compose bindet Port 4321" {
-  # Nicht frei waehlbar: website/.env setzt SITE_URL=http://localhost:4321, und
+  # Nicht frei waehlbar: components/website/.env setzt SITE_URL=http://localhost:4321, und
   # daraus baut auth.ts die OIDC-redirect_uri. Ein abweichender Port bricht den
   # Login-Rueckkanal.
   run grep -F '4321:4321' "$COMPOSE_DEV"
   assert_success
 }
 
-@test "compose liest website/.env als env_file" {
+@test "compose liest components/website/.env als env_file" {
   # Der Kern der ganzen Uebung: env_file legt die Variablen in die
   # PROZESSUMGEBUNG, wo process.env sie sieht. Vite allein wuerde sie nur nach
   # import.meta.env laden — genau daran scheitert `pnpm dev` auf dem Host.
-  run grep -F 'website/.env' "$COMPOSE_DEV"
+  run grep -F 'components/website/.env' "$COMPOSE_DEV"
   assert_success
 }

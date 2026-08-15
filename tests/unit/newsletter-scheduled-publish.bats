@@ -5,8 +5,8 @@ load test_helper
 setup_file() {
   export RENDERED="${BATS_FILE_TMPDIR}/rendered.yaml"
   kubectl kustomize "${PROJECT_DIR}/k3d" --load-restrictor=LoadRestrictionsNone > "$RENDERED" 2>&1
-  export ENDPOINT="${PROJECT_DIR}/website/src/pages/api/cron/scheduled-publish.ts"
-  export DB="${PROJECT_DIR}/website/src/lib/newsletter-db.ts"
+  export ENDPOINT="${PROJECT_DIR}/components/website/src/pages/api/cron/scheduled-publish.ts"
+  export DB="${PROJECT_DIR}/components/website/src/lib/newsletter-db.ts"
 }
 
 @test "scheduled-publish CronJob is registered in base kustomization" {

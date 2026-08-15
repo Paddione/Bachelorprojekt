@@ -7,12 +7,12 @@ import { runS5 } from './s5-lockfiles.mjs';
 const repoRoot = join(fileURLToPath(import.meta.url), '..', '..', '..', '..');
 
 test('runS5 reports violation when forbidden lockfile exists', () => {
-  // website/pnpm-lock.yaml exists in the repo
+  // components/website/pnpm-lock.yaml exists in the repo
   const mockGates = {
     s5: {
       rules: [
         {
-          path: 'website',
+          path: 'components/website',
           allowed: ['package-lock.json'],
           forbidden: ['pnpm-lock.yaml'],
         },
@@ -26,19 +26,19 @@ test('runS5 reports violation when forbidden lockfile exists', () => {
   assert.equal(res.violations.length, 1);
 
   const v = res.violations[0];
-  assert.equal(v.key, 'S5:website:pnpm-lock.yaml');
-  assert.equal(v.path, 'website/pnpm-lock.yaml');
+  assert.equal(v.key, 'S5:components/website:pnpm-lock.yaml');
+  assert.equal(v.path, 'components/website/pnpm-lock.yaml');
   assert.equal(v.metric, 1);
   assert.match(v.detail, /Forbidden lockfile found/);
 });
 
 test('runS5 passes when no forbidden lockfiles exist', () => {
-  // website/package-lock.json has been removed, so this rule should pass
+  // components/website/package-lock.json has been removed, so this rule should pass
   const mockGates = {
     s5: {
       rules: [
         {
-          path: 'website',
+          path: 'components/website',
           allowed: ['pnpm-lock.yaml'],
           forbidden: ['package-lock.json'],
         },

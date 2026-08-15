@@ -2,7 +2,7 @@
 -- Vereinheitlichte KI-API-Konfiguration: erweitert tickets.provider_config um `brand` +
 -- Coaching-Generierungs-Parameter, damit Coaching physisch ins zentrale Routing-Modell
 -- fusioniert werden kann.
--- Idempotent. Autoritative DDL lebt in website/src/lib/schema/provider-config-schema.ts
+-- Idempotent. Autoritative DDL lebt in components/website/src/lib/schema/provider-config-schema.ts
 -- (initProviderConfigSchema); diese Datei spiegelt sie für manuellen bring-up via factory_psql:
 --   BRAND=mentolder bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/2026-06-14-provider-config-unify.sql'
 -- Auf BEIDE Brands anwenden (workspace UND workspace-korczewski) — getrennte per-brand DBs.

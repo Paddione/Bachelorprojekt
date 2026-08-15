@@ -14,8 +14,8 @@ setup() {
   load 'lib/bats-support/load'
   load 'lib/bats-assert/load'
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  TSCHEMA="$REPO_ROOT/website/src/lib/tickets-schema.ts"
-  TMIG="$REPO_ROOT/website/src/lib/tickets/migrations.ts"
+  TSCHEMA="$REPO_ROOT/components/website/src/lib/tickets-schema.ts"
+  TMIG="$REPO_ROOT/components/website/src/lib/tickets/migrations.ts"
 }
 
 @test "fn_assign_external_id allocates external_id from a global sequence (nextval)" {

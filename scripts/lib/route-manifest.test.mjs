@@ -91,11 +91,11 @@ test('expandServices yields one entry per brand slug, brand-tagged', () => {
 
 // --- buildManifest against the REAL pages dir + real brands ---
 const REPO = new URL('../../', import.meta.url).pathname;
-const PAGES = join(REPO, 'website/src/pages');
+const PAGES = join(REPO, 'components/website/src/pages');
 
 test('buildManifest: shape + authoritative counts', () => {
   const manifest = buildManifest(PAGES, FIXTURE_BRANDS);
-  assert.equal(manifest.generatedFrom, 'website/src/pages');
+  assert.equal(manifest.generatedFrom, 'components/website/src/pages');
   assert.equal(manifest.count, 99); // page-file count (enumerated, pre-service-expansion)
   assert.ok(Array.isArray(manifest.routes));
   // /[service] literal is NOT emitted

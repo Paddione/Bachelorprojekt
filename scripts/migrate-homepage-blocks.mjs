@@ -3,7 +3,7 @@
  * Migration: Create the homepage block document tables.
  *
  * Parity helper for scripts/migrate-content-versions.mjs. The website store
- * (website/src/lib/homepage-blocks-store.ts) also creates these tables lazily
+ * (components/website/src/lib/homepage-blocks-store.ts) also creates these tables lazily
  * via CREATE TABLE IF NOT EXISTS on first access, so this script is an
  * operator convenience / explicit-provisioning path (e.g. to pre-create the
  * tables before the first request). Both paths use IF NOT EXISTS and are

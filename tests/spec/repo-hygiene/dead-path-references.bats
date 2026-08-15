@@ -29,7 +29,7 @@ setup() {
     # kann in einem frischen Klon nie existieren — seine Abwesenheit sagt nichts
     # ueber tote Referenzen aus, sondern nur darueber, ob jemand hier gebaut hat.
     # Ohne diese Zeile war der Block umgebungsabhaengig: lokal gruen (weil
-    # website/node_modules existierte), auf jedem CI-Runner rot. Der "# runtime"-
+    # components/website/node_modules existierte), auf jedem CI-Runner rot. Der "# runtime"-
     # Marker allein reicht nicht, weil er pro Eintrag von Hand gesetzt werden muss
     # und genau dann vergessen wird, wenn der Pfad lokal zufaellig existiert.
     if git -C "$REPO_ROOT" check-ignore -q "$line" 2>/dev/null; then

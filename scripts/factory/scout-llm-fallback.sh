@@ -120,11 +120,11 @@ find_similar_tickets() {
   if ! command -v npx >/dev/null 2>&1; then
     return 0
   fi
-  if [[ ! -f "$REPO/website/scripts/find-similar-tickets.mjs" ]]; then
+  if [[ ! -f "$REPO/components/website/scripts/find-similar-tickets.mjs" ]]; then
     return 0
   fi
   local raw
-  raw="$(cd "$REPO/website" \
+  raw="$(cd "$REPO/components/website" \
     && timeout 15 npx tsx scripts/find-similar-tickets.mjs "$title $description" "$limit" \
        2>/dev/null)" || return 0
   [[ -z "$raw" ]] && return 0

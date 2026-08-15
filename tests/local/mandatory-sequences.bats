@@ -60,14 +60,14 @@
 }
 
 @test "admin-actions migration file exists" {
-  [ -f website/src/db/migrations/20260525_admin_actions.sql ]
+  [ -f components/website/src/db/migrations/20260525_admin_actions.sql ]
 }
 
 @test "admin-api.ts helper exists and is valid" {
-  [ -f website/src/lib/admin-api.ts ]
-  grep -q "export async function apiCall" website/src/lib/admin-api.ts
+  [ -f components/website/src/lib/admin-api.ts ]
+  grep -q "export async function apiCall" components/website/src/lib/admin-api.ts
 }
 
 @test "admin-api.ts exports toast function" {
-  grep -q "export function toast" website/src/lib/admin-api.ts
+  grep -q "export function toast" components/website/src/lib/admin-api.ts
 }

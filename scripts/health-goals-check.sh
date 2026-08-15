@@ -209,12 +209,12 @@ print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else '-')" 2>/dev
 # ── GATES (müssen grün sein) ───────────────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "%sGATES (Policy/Halten)%s\n" "$C_B" "$C_X"
 
-row gate G-RH02 "$(anchor_dir website/src; count '@ts-ignore|@ts-expect-error' website/src)" eq 0 "TypeScript-Suppressionen"
-row gate G-TEST02 "$(anchor_dir website/src mentolder-web/src; grep -rnE '\.only\b' website/src mentolder-web/src --include='*.test.ts' --include='*.test.tsx' --include='*.test.svelte' 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Vitest .only (Suiten-Killer)"
+row gate G-RH02 "$(anchor_dir components/website/src; count '@ts-ignore|@ts-expect-error' components/website/src)" eq 0 "TypeScript-Suppressionen"
+row gate G-TEST02 "$(anchor_dir components/website/src components/mentolder-web/src; grep -rnE '\.only\b' components/website/src components/mentolder-web/src --include='*.test.ts' --include='*.test.tsx' --include='*.test.svelte' 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Vitest .only (Suiten-Killer)"
 # Target ≤4 deckt die bekannten Tooling-/Format-False-Positives ab (z.B. XXX-XXX Session-Code);
 # ein echt neuer FIXME/HACK/XXX schiebt über die Schwelle → rot (kein Netto-Zuwachs).
-row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' website/src scripts tests k3d brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 4 "FIXME/HACK/XXX (kein Netto-Zuwachs)"
-row gate G-DEP04 "$(c=0; for p in website/package.json brett/package.json mentolder-web/package.json mediaviewer-widget/package.json VideoVault/package.json studio-server/package.json; do [ -f "$p" ] || continue; v=$(python3 -c "import json;print((json.load(open('$p')).get('engines') or {}).get('node','MISSING'))" 2>/dev/null); [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo $c)" eq 0 "package.json ohne engines>=22.13"
+row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh' | wc -l | tr -d ' ')" le 4 "FIXME/HACK/XXX (kein Netto-Zuwachs)"
+row gate G-DEP04 "$(c=0; for p in components/website/package.json components/brett/package.json components/mentolder-web/package.json components/mediaviewer-widget/package.json components/VideoVault/package.json components/studio-server/package.json; do [ -f "$p" ] || continue; v=$(python3 -c "import json;print((json.load(open('$p')).get('engines') or {}).get('node','MISSING'))" 2>/dev/null); [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo $c)" eq 0 "package.json ohne engines>=22.13"
 row gate G-SEC01 "$(anchor_dir k3d; grep -rn 'password.*=.*[^$]' k3d/*.yaml 2>/dev/null | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}\|getenv(' | grep -iv '^\s*#' | wc -l | tr -d ' ')" eq 0 "Hardcoded Secrets in k3d/*.yaml"
 row gate G-GIT02 "$(anchor_ref origin/main; git log --format=%s --no-merges -30 origin/main 2>/dev/null | grep -vcE '^(feat|fix|chore|docs|refactor|test|ci|build|perf|style)(\(|!|:)')" eq 0 "Non-conventional Commits (letzte 30, ohne Merge)"
 if [ "$FAST" = 0 ] && command -v task >/dev/null 2>&1; then
@@ -385,15 +385,15 @@ row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlaufzeit (Tage, min 
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
-row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' website/src scripts tests k3d brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh|openspec-validate|openspec-merge' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
+row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh|openspec-validate|openspec-merge' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
 row target G-RH01 "$(n_baseline_gate ALL)" le 30 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"
 row target G-CQ09 "$(n_baseline_gate S3)" le 10 "S3 hartkodierte Hostnames"
 row target G-CQ10 "$(n_baseline_gate S4)" le 4  "S4 verwaiste Scripts/Manifeste"
-row target G-CQ02 "$(anchor_dir website/src; grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | wc -l | tr -d ' ')" le 280 "explizite any-Verwendungen"
-row target G-FE03 "$(anchor_dir website/src; grep -rEn 'console\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger\.ts' | grep -v 'logger\.ts' | grep -v 'error-log-store\.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" le 0 "rohe console.error/warn Aufrufe (exkl. browser-logger/logger/error-log-store Selbstschutz-Fallbacks, exkl. Tests) — T001299"
-row target G-FE04 "$(anchor_dir website/src; grep -rEn 'console\.(log|debug|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" eq 0 "Stray console.log/debug/info"
-row target G-SIZE03 "$( [ -f website/src/lib/website-db.ts ] && wc -l < website/src/lib/website-db.ts | tr -d ' ' || echo - )" le 3000 "God-File website-db.ts (Zeilen)"
+row target G-CQ02 "$(anchor_dir components/website/src; grep -rn ': any\|<any>\|as any' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | wc -l | tr -d ' ')" le 280 "explizite any-Verwendungen"
+row target G-FE03 "$(anchor_dir components/website/src; grep -rEn 'console\.(error|warn)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger\.ts' | grep -v 'logger\.ts' | grep -v 'error-log-store\.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" le 0 "rohe console.error/warn Aufrufe (exkl. browser-logger/logger/error-log-store Selbstschutz-Fallbacks, exkl. Tests) — T001299"
+row target G-FE04 "$(anchor_dir components/website/src; grep -rEn 'console\.(log|debug|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" eq 0 "Stray console.log/debug/info"
+row target G-SIZE03 "$( [ -f components/website/src/lib/website-db.ts ] && wc -l < components/website/src/lib/website-db.ts | tr -d ' ' || echo - )" le 3000 "God-File website-db.ts (Zeilen)"
 row target G-SIZE02 "$(git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' | grep -v node_modules | while read -r f; do [ -L "$f" ] || echo "$f"; done | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l | tr -d ' ')" le 3 "Großdateien außerhalb Gate-Scope (>1000 Zeilen)"
 # .codebase-memory/graph.db.zst (16.7MB, ehem. PR #2281) ist seit T001717 nicht mehr getrackt
 # (lokal via `task codebase:index` regeneriert, .gitignore) — die frühere Scope-Ausschluss-Policy
@@ -406,17 +406,17 @@ row target G-AGENTIC10 "$(
   c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
     grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
 )" le 0 "Agenten ohne dispatchende Skill (website/db/security)"
-row target G-DOC03 "$(c=0; for d in website brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
+row target G-DOC03 "$(c=0; for d in components/website components/brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -vE '(41898282\+)?github-actions\[bot\]@users\.noreply\.github\.com' | awk '{print $1}' | grep -c N || true)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 
-# G-TEST05 — Vitest Line-Coverage (website/src/lib ≥ 60 %)
+# G-TEST05 — Vitest Line-Coverage (components/website/src/lib ≥ 60 %)
 if [ "$FAST" = 0 ] && command -v pnpm >/dev/null 2>&1; then
-  (cd website && pnpm exec vitest run --coverage --testTimeout=10000 2>/dev/null) >/dev/null 2>&1
-  _cov_pct=$(jq -r '.total.lines.pct // empty' website/coverage/coverage-summary.json 2>/dev/null || echo "-")
+  (cd components/website && pnpm exec vitest run --coverage --testTimeout=10000 2>/dev/null) >/dev/null 2>&1
+  _cov_pct=$(jq -r '.total.lines.pct // empty' components/website/coverage/coverage-summary.json 2>/dev/null || echo "-")
   _cov_int=$(echo "$_cov_pct" | awk -F'.' '{if ($1~/^[0-9]+$/) print int($1); else print "-"}')
-  row target G-TEST05 "$_cov_int" ge 60 "Vitest Line-Coverage website/src/lib"
+  row target G-TEST05 "$_cov_int" ge 60 "Vitest Line-Coverage components/website/src/lib"
 else
-  row target G-TEST05 "-" ge 60 "Vitest Line-Coverage website/src/lib (--fast übersprungen)"
+  row target G-TEST05 "-" ge 60 "Vitest Line-Coverage components/website/src/lib (--fast übersprungen)"
 fi
 
 # ── DB-Gesundheit — TARGETS ──
@@ -489,7 +489,7 @@ row target G-IF01 "$(python3 scripts/lib/mcp-endpoint-probe.py)" le 0 "MCP-Endpu
 
 row target G-IF02 "$(python3 -c "
 import os,re
-files = ['website/src/lib/embeddings.ts', 'website/src/lib/rerank.ts', 'website/src/lib/bge-router.ts']
+files = ['components/website/src/lib/embeddings.ts', 'components/website/src/lib/rerank.ts', 'components/website/src/lib/bge-router.ts']
 if not all(os.path.exists(f) for f in files): print('-'); exit(0)  # Positiv-Anker: Basis muss existieren
 c=0
 for f in files:
@@ -671,20 +671,20 @@ exit_code_of_script() { # <script-pfad> [args…]
 }
 
 # --- Offline + schnell (18) ---------------------------------------------------
-row target G-CQ06  "$(anchor_dir website/src; grep -rnE '@deprecated' website/src 2>/dev/null | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in website/src"
+row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src 2>/dev/null | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
 # grep -c druckt bei null Treffern "0" und exitet trotzdem 1 — ein `|| echo 0`
 # haengt deshalb eine zweite Zeile an und macht aus dem gueltigen Wert "0" den
 # ungueltigen Wert "0\n0". Nur den Exit abfangen, nie die Ausgabe ersetzen.
 row gate   G-TEST01 "$(grep -rniE "skip [\"']" tests --include='*.bats' 2>/dev/null | grep -ciE 'pending|todo|WP-|disabled' || true)" eq 0 "BATS Debt-Skips (pending/todo/WP-/disabled)"
-row target G-TEST03 "$(anchor_dir website/src; grep -rnE '(describe|it|test)\.(skip|todo)\b' website/src --include='*.ts' 2>/dev/null | wc -l | tr -d ' ')" le 1 "Vitest Skipped/Todo-Suiten (Ist 1 bei Aufnahme T002598)"
-row gate   G-TEST04 "$(git status --porcelain website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
+row target G-TEST03 "$(anchor_dir components/website/src; grep -rnE '(describe|it|test)\.(skip|todo)\b' components/website/src --include='*.ts' 2>/dev/null | wc -l | tr -d ' ')" le 1 "Vitest Skipped/Todo-Suiten (Ist 1 bei Aufnahme T002598)"
+row gate   G-TEST04 "$(git status --porcelain components/website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
 row gate   G-SPEC01 "$(exit_code_of_script scripts/openspec.sh validate)" eq 0 "openspec validate (Exit)"
 row gate   G-SPEC02 "$(c=0; cutoff=$(( $(date +%s) - 30*86400 )); for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; ts=$(git log -1 --format=%at -- "$d" 2>/dev/null); [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && c=$((c+1)); done; echo $c)" eq 0 "OpenSpec-Changes ohne Aktivitaet >30 Tage"
 row target G-SPEC03 "$(m=0; for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; [ -f "$d/.ticket" ] || m=$((m+1)); done; echo $m)" le 41 "Proposals ohne .ticket-Verknuepfung (Ist 41 bei Aufnahme T002598)"
 row gate   G-SEC02 "$(exit_code_of_script scripts/git-crypt-guard.sh check-tracked)" eq 0 "git-crypt Guard (Exit)"
 row target G-SEC03 "$(ts=$(git log -1 --format=%at -- environments/sealed-secrets/*.yaml 2>/dev/null); [ -n "$ts" ] && echo $(( ( $(date +%s) - ts ) / 86400 )) || echo '-')" le 90 "Tage seit letzter SealedSecret-Rotation"
 row target G-SEC04 "$(min=''; for p in environments/certs/*.pem; do [ -f "$p" ] || continue; e=$(openssl x509 -enddate -noout -in "$p" 2>/dev/null | cut -d= -f2); [ -n "$e" ] || continue; d=$(( ( $(date -d "$e" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 )); { [ -z "$min" ] || [ "$d" -lt "$min" ]; } && min=$d; done; echo "${min:--}")" ge 30 "Sealing-Cert Restlaufzeit (Tage, Minimum)"
-row gate   G-DEP03 "$(anchor_file website/Dockerfile; grep -q 'npm ci' website/Dockerfile 2>/dev/null && echo 1 || echo 0)" eq 0 "PM-Konsistenz: npm ci in website/Dockerfile (0=nur pnpm)"
+row gate   G-DEP03 "$(anchor_file components/website/Dockerfile; grep -q 'npm ci' components/website/Dockerfile 2>/dev/null && echo 1 || echo 0)" eq 0 "PM-Konsistenz: npm ci in components/website/Dockerfile (0=nur pnpm)"
 row gate   G-RH04 "$(cutoff=$(( $(date +%s) - 30*86400 )); git for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/remotes/origin 2>/dev/null | while read -r b ts; do case "$b" in origin/HEAD|origin/main) continue;; esac; [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && echo "$b"; done | wc -l | tr -d ' ')" eq 0 "Stale Remote Branches (>30d)"
 row gate   G-RH07 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task freshness:check)" eq 0 "Freshness-Check (Exit)"
 row gate   G-K8S01 "$(k8s_audit limits)"     eq 0 "Deployments ohne resources.limits"
@@ -742,9 +742,9 @@ except Exception: print('-')
 # auf, statt sich als "nichts gefunden" auszugeben.
 pnpm_measure() {
   local helper="$1"; shift
-  [ -d website/node_modules ] || { echo '-'; return; }
+  [ -d components/website/node_modules ] || { echo '-'; return; }
   local out
-  out="$(cd website && timeout 180 pnpm "$@" 2>/dev/null)" || true
+  out="$(cd components/website && timeout 180 pnpm "$@" 2>/dev/null)" || true
   [ -n "$out" ] || { echo '-'; return; }
   python3 "$helper" <<<"$out" || echo 99
 }

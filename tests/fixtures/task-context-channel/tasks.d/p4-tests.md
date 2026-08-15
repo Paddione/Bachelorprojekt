@@ -86,5 +86,5 @@ besteht ein Negativtest vakuos gegen eine leere Kandidatenliste.
 task test:inventory
 ```
 
-`website/src/data/test-inventory.json` mitcommitten — der CI-Inventar-Check vergleicht gegen die
+`components/website/src/data/test-inventory.json` mitcommitten — der CI-Inventar-Check vergleicht gegen die
 committete Fassung und failt sonst.

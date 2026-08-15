@@ -57,7 +57,7 @@ Helper-Module als **pure Module** ohne Rück-Import auf DB-/API-Schichten planen
 
 ### S3 — Hardcodierte Hostnamen
 
-In `k3d/`, `prod*/`, `website/src/` sind String-Literale `*.mentolder.de` / `*.korczewski.de`
+In `k3d/`, `prod*/`, `components/website/src/` sind String-Literale `*.mentolder.de` / `*.korczewski.de`
 verboten (Kommentarzeilen ausgenommen). Im Plan immer Env-/Config-basierte Auflösung
 vorsehen (`PROD_DOMAIN`, `configmap-domains.yaml`-ConfigMap, `{ns}`-Templates) — nie
 Brand-Domains in Code-Snippets vorgeben.
@@ -67,30 +67,30 @@ Brand-Domains in Code-Snippets vorgeben.
 Jedes neue `k3d/*.yaml` muss in einer `kustomization.yaml` referenziert sein, jedes neue
 `scripts/*.sh`/`*.mjs` von Taskfile/CI/Doku/anderem Skript aus erreichbar — sonst Orphan-Violation.
 
-### CQ02 — Explizite `any`-Typen in `website/src` (Health-Goal)
+### CQ02 — Explizite `any`-Typen in `components/website/src` (Health-Goal)
 
 **Aktuelles Limit:** ≤ 200 explizite `any`-Verwendungen global (Gate: `tests/spec/g-cq02-any-types.bats`).
 
-Beim Plan-Schreiben für alle Dateien in `website/src/**`:
+Beim Plan-Schreiben für alle Dateien in `components/website/src/**`:
 
 ```bash
 # Ist-Zählung vor der Änderung (Baseline für den Plan)
-grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l
+grep -rn ': any\|<any>\|as any' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l
 ```
 
 **Pflicht:** Kein Plan darf die `any`-Anzahl erhöhen. Jede neue exportierte Funktion / jeder neue API-Handler muss typisiert sein — kein `as any`, kein `catch (e: any)`. Pläne, die `any`-Typen einführen müssen (z.B. Drittanbieter-Interop), MÜSSEN einen eigenen Task „CQ02: any-Typen eliminieren" enthalten.
 
 **Prüfbefehl für den Verify-Task:**
 ```bash
-bash -c "count=\$(grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l | tr -d ' '); echo \"any count: \$count (limit: 200)\"; [ \$count -le 200 ]"
+bash -c "count=\$(grep -rn ': any\|<any>\|as any' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l | tr -d ' '); echo \"any count: \$count (limit: 200)\"; [ \$count -le 200 ]"
 ```
 
 ### Vitest-Abdeckung (Health-Goal)
 
-Jeder Plan, der in `website/src/lib/**` oder `website/src/pages/api/**` neue Dateien anlegt oder bestehende wesentlich ändert, MUSS mindestens einen Vitest-Test-Task enthalten:
+Jeder Plan, der in `components/website/src/lib/**` oder `components/website/src/pages/api/**` neue Dateien anlegt oder bestehende wesentlich ändert, MUSS mindestens einen Vitest-Test-Task enthalten:
 
-- **Neue Lib-Datei** (`website/src/lib/<name>.ts`) → zugehöriger Test in `website/src/lib/__tests__/<name>.test.ts` (oder in der nächstgelegenen bestehenden Test-Datei erweitern, bevorzugt).
-- **Neuer API-Endpunkt** (`website/src/pages/api/**`) → Vitest-Test im zugehörigen Test-Bundle (`website/src/**/__tests__/`).
+- **Neue Lib-Datei** (`components/website/src/lib/<name>.ts`) → zugehöriger Test in `components/website/src/lib/__tests__/<name>.test.ts` (oder in der nächstgelegenen bestehenden Test-Datei erweitern, bevorzugt).
+- **Neuer API-Endpunkt** (`components/website/src/pages/api/**`) → Vitest-Test im zugehörigen Test-Bundle (`components/website/src/**/__tests__/`).
 - **Keine Test-Datei anlegen** ohne den `task test:inventory`-Schritt im Plan (CI-Inventar-Check flägt neue Tests).
 
 **Abweichung explizit begründen:** Wenn ein Plan `.ts`/`.svelte`-Dateien ändert aber bewusst KEINEN neuen Vitest-Test braucht (rein konfigurativ, Refactor ohne Logikänderung), muss der Plan einen Kommentar enthalten: `<!-- vitest: kein neuer Test nötig, weil … -->`.
@@ -151,11 +151,11 @@ task freshness:check       # CI-Äquivalent: Freshness + quality:check (S1–S4-
 
 Dazu:
 - **Test-Inventar:** nach jeder Test-Änderung `task test:inventory` regenerieren und
-  `website/src/data/test-inventory.json` mitcommitten (CI failt sonst).
+  `components/website/src/data/test-inventory.json` mitcommitten (CI failt sonst).
 - **Baseline darf nicht wachsen:** CI vergleicht die Key-Anzahl von
   `docs/code-quality/baseline.json` gegen main — Pläne dürfen keine Baseline-Einträge hinzufügen.
 - **Bestehende Tests erweitern statt neue Dateien anlegen** (Vitest/Playwright/BATS zuerst suchen).
 - **Manifest-Änderungen:** `task workspace:validate` + relevante `./tests/runner.sh local <TEST-ID>`.
-- **Image-Pins:** CI warnt bei `:latest` — Ausnahmen nur website/brett/docs (dokumentiert in CLAUDE.md).
+- **Image-Pins:** CI warnt bei `:latest` — Ausnahmen nur components/website/brett/docs (dokumentiert in CLAUDE.md).
 - **Shell-Snippet Sanity:** CLI-Befehle im Plan auf Argument-Fallen prüfen (z.B. `jq --args` wandelt alle Folgearags in Strings um -> Input-Dateien via Stdin `< file` umleiten).
 

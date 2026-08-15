@@ -34,7 +34,7 @@ tickets-transition
 coaching-json-ingest
 #
 # --- test_art_library_manifest: laeuft offline GRUEN, aber braucht node_modules in
-# --- art-library/_tooling (ajv) — die installiert der Offline-Gate `test:unit` nicht
+# --- assets/art-library/_tooling (ajv) — die installiert der Offline-Gate `test:unit` nicht
 # --- (nur der dedizierte Task `test:art-library`). Daher weiterhin exkludiert.
 test_art_library_manifest
 #

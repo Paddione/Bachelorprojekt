@@ -24,8 +24,8 @@ const opts = {
   updateBaseline: args.includes("--update-baseline"),
   fail: args.includes("--fail"),
   threshold: 5, // default 5%
-  dir: path.join(ROOT, "website", "dist", "client"),
-  baseline: path.join(ROOT, "website", "bundle-baseline.json"),
+  dir: path.join(ROOT, "components", "website", "dist", "client"),
+  baseline: path.join(ROOT, "components", "website", "bundle-baseline.json"),
 };
 
 // Parse --threshold=N and --dir= and --baseline=

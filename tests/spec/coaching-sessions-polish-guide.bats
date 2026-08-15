@@ -5,7 +5,7 @@
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  WEB="$REPO_ROOT/website/src"
+  WEB="$REPO_ROOT/components/website/src"
 }
 
 @test "sidebar has a Sessions nav item in Geschäft section" {

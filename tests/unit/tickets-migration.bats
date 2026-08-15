@@ -267,7 +267,7 @@ print('OK')
   if ! psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1; then skip "No database available"; fi
   psql "$PGURL" -c "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='bugs' AND c.relname='bug_tickets'" 2>/dev/null | grep -q '1 row' || \
     skip "bugs.bug_tickets does not exist (sunset already applied)"
-  # The query mirrors the one in website/src/lib/website-db.ts line 88-91
+  # The query mirrors the one in components/website/src/lib/website-db.ts line 88-91
   psql "$PGURL" -c "
     SELECT fixed_in_pr AS pr, COUNT(*)::int AS n
       FROM bugs.bug_tickets

@@ -36,12 +36,12 @@ setup() {
 # Wegwerf-Repo ohne Bezug zum Repo des Laufs.
 _make_repo() {
   local wt="$1"
-  mkdir -p "$wt/website/src/data" "$wt/scripts"
+  mkdir -p "$wt/components/website/src/data" "$wt/scripts"
   git -C "$wt" init -q
   git -C "$wt" symbolic-ref HEAD refs/heads/main
   git -C "$wt" config user.email "t002932@example.invalid"
   git -C "$wt" config user.name "T002932 Guard"
-  printf '{}\n' > "$wt/website/src/data/openspec-status.json"
+  printf '{}\n' > "$wt/components/website/src/data/openspec-status.json"
   printf 'echo base\n' > "$wt/scripts/beispiel.sh"
   git -C "$wt" add -A
   git -C "$wt" commit -qm "base"
@@ -94,7 +94,7 @@ _make_repo() {
 
   local wt="${BATS_TEST_TMPDIR}/generat"
   _make_repo "$wt"
-  printf '{"regeneriert": true}\n' > "$wt/website/src/data/openspec-status.json"
+  printf '{"regeneriert": true}\n' > "$wt/components/website/src/data/openspec-status.json"
 
   # Positiv-Anker: fuer git ist der Worktree dirty. Ohne ihn waere die Aussage
   # "gilt trotzdem als sauber" auch bei unveraendertem Baum wahr.

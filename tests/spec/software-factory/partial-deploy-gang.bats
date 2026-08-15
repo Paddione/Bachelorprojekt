@@ -52,7 +52,7 @@ REG="scripts/factory/service-registry.sh"
 
 @test "FA-SF-60: resolve_partial_services returns slugs for a small service-only diff" {
   source "$REG"
-  run resolve_partial_services "k3d/brett.yaml,website/src/pages/index.astro"
+  run resolve_partial_services "k3d/brett.yaml,components/website/src/pages/index.astro"
   [ "$status" -eq 0 ]
   [ "$output" = "brett" ]
 }
@@ -78,7 +78,7 @@ REG="scripts/factory/service-registry.sh"
 
 @test "FA-SF-60: a diff touching no k3d service file returns non-zero" {
   source "$REG"
-  run resolve_partial_services "website/src/pages/index.astro,Taskfile.yml"
+  run resolve_partial_services "components/website/src/pages/index.astro,Taskfile.yml"
   [ "$status" -ne 0 ]
 }
 

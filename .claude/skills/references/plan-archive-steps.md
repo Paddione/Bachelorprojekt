@@ -87,14 +87,14 @@ bash scripts/openspec.sh archive "$SLUG"
 > gecherry-picked; der Archiv-PR zeigt dann garantiert nur die Archiv-Änderungen im Diff.
 
 ```bash
-# scripts/openspec.sh cmd_archive schreibt website/src/data/openspec-status.json
+# scripts/openspec.sh cmd_archive schreibt components/website/src/data/openspec-status.json
 # NACH dem `mv "$dir" "$dest"` neu. Ohne die Regeneration + das explizite Staging
 # bleibt die Datei unstaged, der Archiv-Commit trägt sie nie mit und CI meldet sie
 # als stale. Regeneration ist idempotent; die Dateiliste folgt Taskfile
 # `freshness:check` Phase 1 (T002252), damit keine zweite Quelle entsteht.
 task freshness:regenerate
-git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
-git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+git add openspec/changes/ openspec/changes/archive/ openspec/specs/ components/website/src/data/openspec-status.json
+git add -u -- components/website/src/data components/website/src/lib components/website/public/learning-assets docs
 git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
 ARCHIVE_COMMIT=$(git rev-parse HEAD)
 
@@ -115,8 +115,8 @@ git cherry-pick "$ARCHIVE_COMMIT"
 # Archiv-Branch nach aussen traegt.
 if ! task freshness:check; then
   echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
-  git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
-  git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+  git add openspec/changes/ openspec/changes/archive/ openspec/specs/ components/website/src/data/openspec-status.json
+  git add -u -- components/website/src/data components/website/src/lib components/website/public/learning-assets docs
   git commit --amend --no-edit
   task freshness:check
 fi

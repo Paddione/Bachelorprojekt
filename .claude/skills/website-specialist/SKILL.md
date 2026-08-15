@@ -1,6 +1,6 @@
 ---
 name: website-specialist
-description: 'Use for Astro/Svelte frontend development, component creation, page routing, content management, and UI implementation in the Bachelorprojekt website monorepo. Triggers on: website/, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design, service pages, blog posts, landing pages.'
+description: 'Use for Astro/Svelte frontend development, component creation, page routing, content management, and UI implementation in the Bachelorprojekt website monorepo. Triggers on: components/website/, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design, service pages, blog posts, landing pages.'
 agent: bachelorprojekt-website
 ---
 
@@ -19,13 +19,13 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro/Svelt
 - **Components**: Svelte 5 (runes API), Astro components (.astro)
 - **Styling**: Tailwind CSS + custom CSS variables
 - **Design System**: Kore Design System (assets/design-overviews/)
-- **Content Model**: website/src/data/*.json, MDX via @astrojs/mdx
+- **Content Model**: components/website/src/data/*.json, MDX via @astrojs/mdx
 
 ## Commands
 ```bash
 # Dev & build
 npm run dev                    # start dev server on localhost:4321
-npm run build                  # production build to website/dist/
+npm run build                  # production build to components/website/dist/
 npm run preview                # preview prod build
 
 # Tests
@@ -37,15 +37,15 @@ npm run typecheck                    # TypeScript across monorepo
 ```
 
 ## Content pages
-- `website/src/pages/index.astro` — Homepage (hero, features, brands)
-- `website/src/pages/{slug}.astro` — Dynamic content pages from `content/`
-- Service pages in `website/src/pages/services/` (consulting, coaching, trainings)
-- Blog posts via MDX: `website/content/blog/*.mdx`
+- `components/website/src/pages/index.astro` — Homepage (hero, features, brands)
+- `components/website/src/pages/{slug}.astro` — Dynamic content pages from `content/`
+- Service pages in `components/website/src/pages/services/` (consulting, coaching, trainings)
+- Blog posts via MDX: `components/website/content/blog/*.mdx`
 
 ## Component architecture
-- `website/src/lib/components-db.ts` — central component registry
+- `components/website/src/lib/components-db.ts` — central component registry
 - Layout components: `Layout.astro`, `Header.astro`, `Footer.astro`
-- UI primitives in Svelte: `website/src/lib/ui/` (buttons, forms, modals)
+- UI primitives in Svelte: `components/website/src/lib/ui/` (buttons, forms, modals)
 - Design system integration from `assets/design-overviews/kore-design-system/`
 
 ## Brand routing

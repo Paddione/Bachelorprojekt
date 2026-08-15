@@ -50,7 +50,7 @@ test('FA-UNIF-07: Mobile — Tab-Wechsel funktioniert bei 390px', async ({ page 
 });
 
 // T003826: Die Sidebar führt KEINEN Cockpit-Eintrag mehr. Die SDLC-Oberflächen liegen unter
-// website/src/pages/sdlc/ und werden bei BUILD_TARGET=prod aus dem Route-Manifest entfernt
+// components/website/src/pages/sdlc/ und werden bei BUILD_TARGET=prod aus dem Route-Manifest entfernt
 // (build-target.mjs) — ein Eintrag darauf führte in eine Route, die es im Image nicht gibt.
 // Erreichbar sind sie über die lokale SDLC-Console. Der Test prüft daher jetzt die Abwesenheit.
 test('FA-UNIF-08: Sidebar führt keine im prod-Build entfernten SDLC-Routen', async ({ page }) => {

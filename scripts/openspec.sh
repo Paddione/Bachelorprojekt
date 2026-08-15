@@ -322,6 +322,7 @@ cmd_archive() {
   fi
   mkdir -p "$(dirname "$dest")"
   mv "$dir" "$dest"
+
   # [T003136] Status-Map-Ergebnis sofort stagen. cmd_archive regeneriert
   # openspec-status.json zwar nach dem Move, aber der Archiv-Commit des
   # Aufrufers (opencode-flow-execute Step 7 / plan-archive-steps.md) staged
@@ -337,7 +338,8 @@ cmd_archive() {
   # echten Repo immer (Sandbox-Tests legen es im setup an, damit der
   # Fehlerfall testbar bleibt).
   bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1
-  git -C "$REPO" add -- "$REPO/website/src/data/openspec-status.json"
+  git -C "$REPO" add -- "$REPO/components/website/src/data/openspec-status.json"
+
   # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).
   _embed_slug "$slug"
   if [[ "$no_merge" -eq 1 ]]; then

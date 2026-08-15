@@ -6,9 +6,9 @@
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd)"
   BUILD_WEBSITE_YML="$REPO_ROOT/.github/workflows/build-website.yml"
-  SDLC_PAGES_DIR="$REPO_ROOT/website/src/pages/sdlc"
-  ADMIN_PAGES_DIR="$REPO_ROOT/website/src/pages/admin"
-  BUILD_TARGET_MJS="$REPO_ROOT/website/src/integrations/build-target.mjs"
+  SDLC_PAGES_DIR="$REPO_ROOT/components/website/src/pages/sdlc"
+  ADMIN_PAGES_DIR="$REPO_ROOT/components/website/src/pages/admin"
+  BUILD_TARGET_MJS="$REPO_ROOT/components/website/src/integrations/build-target.mjs"
   SDLC_CONSOLE_YAML="$REPO_ROOT/k3d/sdlc-stack/sdlc-console.yaml"
 }
 
@@ -45,24 +45,24 @@ setup() {
 # Assertion 1: build-website.yml enthält die drei negativen Pfad-Muster.
 @test "T002624: build-website.yml enthaelt negativen Pfad-Filter für pages/sdlc (RED vor Task 5)" {
   [ -f "$BUILD_WEBSITE_YML" ] || { echo "MISSING workflow: $BUILD_WEBSITE_YML"; return 1; }
-  grep -qE "!website/src/pages/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
-    || { echo "MISSING negativer Pfad-Filter '!website/src/pages/sdlc/**' in build-website.yml"; return 1; }
+  grep -qE "!components/website/src/pages/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
+    || { echo "MISSING negativer Pfad-Filter '!components/website/src/pages/sdlc/**' in build-website.yml"; return 1; }
 }
 
 @test "T002624: build-website.yml enthaelt negativen Pfad-Filter für lib/sdlc" {
   [ -f "$BUILD_WEBSITE_YML" ] || { echo "MISSING workflow: $BUILD_WEBSITE_YML"; return 1; }
-  grep -qE "!website/src/lib/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
-    || { echo "MISSING negativer Pfad-Filter '!website/src/lib/sdlc/**' in build-website.yml"; return 1; }
+  grep -qE "!components/website/src/lib/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
+    || { echo "MISSING negativer Pfad-Filter '!components/website/src/lib/sdlc/**' in build-website.yml"; return 1; }
 }
 
 @test "T002624: build-website.yml enthaelt negativen Pfad-Filter für components/sdlc" {
   [ -f "$BUILD_WEBSITE_YML" ] || { echo "MISSING workflow: $BUILD_WEBSITE_YML"; return 1; }
-  grep -qE "!website/src/components/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
-    || { echo "MISSING negativer Pfad-Filter '!website/src/components/sdlc/**' in build-website.yml"; return 1; }
+  grep -qE "!components/website/src/components/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
+    || { echo "MISSING negativer Pfad-Filter '!components/website/src/components/sdlc/**' in build-website.yml"; return 1; }
 }
 
 # Assertion 2: Positiv-Anker — pages/sdlc/ existiert und enthält mindestens eine .astro-Datei.
-@test "T002624: website/src/pages/sdlc/ existiert mit mindestens einer .astro-Datei" {
+@test "T002624: components/website/src/pages/sdlc/ existiert mit mindestens einer .astro-Datei" {
   [ -d "$SDLC_PAGES_DIR" ] || { echo "MISSING directory: $SDLC_PAGES_DIR"; return 1; }
   count=$(find "$SDLC_PAGES_DIR" -name '*.astro' 2>/dev/null | wc -l | tr -d ' ')
   [ "$count" -gt 0 ] || { echo "FAIL: $SDLC_PAGES_DIR enthaelt keine .astro-Dateien (Umzug fehlt)"; return 1; }

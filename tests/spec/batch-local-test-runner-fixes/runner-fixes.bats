@@ -23,8 +23,8 @@ setup() {
 }
 
 @test "website cockpit unit test mock paths are correctly scoped to 4 levels" {
-  grep -q "vi.mock('../../../../lib/auth'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts"
-  grep -q "vi.mock('../../../../lib/sdlc/tickets/cockpit-db'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts"
-  grep -q "vi.mock('../../../../lib/auth'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api-actions.test.ts"
-  grep -q "vi.mock('../../../../lib/sdlc/tickets/cockpit-db'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api-actions.test.ts"
+  grep -q "vi.mock('../../../../lib/auth'" "${REPO_ROOT}/components/website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts"
+  grep -q "vi.mock('../../../../lib/sdlc/tickets/cockpit-db'" "${REPO_ROOT}/components/website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts"
+  grep -q "vi.mock('../../../../lib/auth'" "${REPO_ROOT}/components/website/src/lib/sdlc/tickets/__tests__/cockpit-api-actions.test.ts"
+  grep -q "vi.mock('../../../../lib/sdlc/tickets/cockpit-db'" "${REPO_ROOT}/components/website/src/lib/sdlc/tickets/__tests__/cockpit-api-actions.test.ts"
 }

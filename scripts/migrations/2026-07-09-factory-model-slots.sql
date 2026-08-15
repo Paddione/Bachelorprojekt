@@ -1,6 +1,6 @@
 -- 2026-07-09-factory-model-slots.sql
 -- Per-phase model slots configuration (T001733).
--- Idempotent. Authoritative idempotent DDL lives in website/src/lib/tickets/tables/factory-model-slots.ts
+-- Idempotent. Authoritative idempotent DDL lives in components/website/src/lib/tickets/tables/factory-model-slots.ts
 -- applyFactoryModelSlotsSchema(); this file mirrors it for manual bring-up via factory_psql:
 --   BRAND=mentolder bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/2026-07-09-factory-model-slots.sql'
 -- Apply to BOTH brands (workspace AND workspace-korczewski) — separate per-brand DBs.

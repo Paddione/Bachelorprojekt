@@ -4,15 +4,15 @@ on:
   push:
     branches: [main]
     paths:
-      - 'website/**'
-      - '!website/src/pages/sdlc/**'
-      - '!website/src/lib/sdlc/**'
-      - '!website/src/components/sdlc/**'
+      - 'components/website/**'
+      - '!components/website/src/pages/sdlc/**'
+      - '!components/website/src/lib/sdlc/**'
+      - '!components/website/src/components/sdlc/**'
       # Hier bewusst KEIN '.claude/lib/goals.md' (T002639): der Trigger stammte aus
       # T002158, als /admin/repohealth noch im Prod-Bundle steckte. Seit ADR-006 E1
       # ist der einzige Konsument pages/sdlc/repohealth.astro, und die Daten liegen
-      # unter website/src/lib/sdlc/ — von den Negationen oben also ausgeschlossen.
-      # Gebaut wird das über build-sdlc-console.yml ('website/src/lib/**'), das der
+      # unter components/website/src/lib/sdlc/ — von den Negationen oben also ausgeschlossen.
+      # Gebaut wird das über build-sdlc-console.yml ('components/website/src/lib/**'), das der
       # Bot-Commit aus health-goals.yml mitzieht (goals.md + JSON in EINEM Commit).
       - '.github/workflows/build-website.yml'
   workflow_dispatch:
@@ -77,7 +77,7 @@ jobs:
       # the mentolder and korczewski deploy jobs (T001229, T001276).
       #
       # GIT_SHA/BUILT_AT are the exception: they describe the image itself, not
-      # a brand, and website/Dockerfile declares matching ARG lines in its
+      # a brand, and components/website/Dockerfile declares matching ARG lines in its
       # runtime stage (T002202). Historically this Dockerfile had no ARG line
       # at all, which silently turned build-args into no-ops — keep the ARG
       # declarations and these values in sync.
@@ -92,7 +92,7 @@ jobs:
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # v7
         with:
           context: .
-          file: website/Dockerfile
+          file: components/website/Dockerfile
           push: true
           build-args: |
             GIT_SHA=${{ github.sha }}

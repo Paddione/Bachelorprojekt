@@ -10,8 +10,8 @@
 # - admin-nav-accordion (T001869)
 
 # ── File-level variables ──────────────────────────────────────────────────────
-ADMIN_SIDEBAR="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminSidebarNav.astro"
-WEB="$BATS_TEST_DIRNAME/../../website/src"
+ADMIN_SIDEBAR="$BATS_TEST_DIRNAME/../../components/website/src/components/admin/AdminSidebarNav.astro"
+WEB="$BATS_TEST_DIRNAME/../../components/website/src"
 
 @test "T001665 coaching settings page mounts CoachingSettings component" {
   run grep -qF "CoachingSettings" "$WEB/pages/admin/coaching/settings.astro"
@@ -46,7 +46,7 @@ WEB="$BATS_TEST_DIRNAME/../../website/src"
 # Das Sidebar-Akkordeon gibt es nicht mehr: nach dem Entfernen der SDLC-Einträge
 # verbleiben zu wenige Einträge, als dass ein Aufklappen etwas verbergen würde.
 #
-# An ihre Stelle tritt website/src/lib/admin/nav-items.test.ts — der Guard importiert die
+# An ihre Stelle tritt components/website/src/lib/admin/nav-items.test.ts — der Guard importiert die
 # Nav-Definition samt resolveRedirect() und prüft das ERGEBNIS der Pfadauflösung: kein
 # Eintrag darf über REDIRECT_MAP in einer /sdlc/-Route landen, die build-target.mjs bei
 # BUILD_TARGET=prod aus dem Manifest entfernt.

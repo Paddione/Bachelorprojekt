@@ -3,7 +3,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TEMPLATE="${REPO_ROOT}/website/public/systembrett/systembrett.whiteboard"
+TEMPLATE="${REPO_ROOT}/components/website/public/systembrett/systembrett.whiteboard"
 
 echo "=== systembrett.whiteboard validator ==="
 

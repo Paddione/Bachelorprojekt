@@ -76,7 +76,7 @@ git worktree list
 # Konfliktlösung nicht --continued wurde, hinterlässt nur gestagete Änderungen
 # und ist für den allowlist-gefilterten --porcelain-Vorcheck unsichtbar:
 # die Konflikte entstehen fast ausschliesslich an Freshness-Generate unter
-# website/src/data/ und docs/code-quality/ — genau den Pfaden, die die
+# components/website/src/data/ und docs/code-quality/ — genau den Pfaden, die die
 # Generat-Allowlist entfernt. Der Guard meldet diesen Zustand, repariert aber
 # nichts (ein Rebase in einem fremden Worktree fortzusetzen kann einen falschen
 # Commit auf einem Branch erzeugen, den der Aufrufer nicht besitzt).
@@ -109,7 +109,7 @@ Remove. Es gilt dieselbe Grundregel wie in §0 Punkt 5 und §3: eine leere Antwo
 
 Die frühere Regel „`--porcelain` MUSS leer sein" misst zu grob, um allein zu entscheiden. Jeder
 Worktree, in dem ein Plan gestaged oder archiviert wurde, trägt danach ein regeneriertes
-`website/src/data/openspec-status.json` und ist damit dauerhaft dirty — ohne dass ein Byte eigener
+`components/website/src/data/openspec-status.json` und ist damit dauerhaft dirty — ohne dass ein Byte eigener
 Arbeit darin steht. Wörtlich genommen landet der Aufräumpfad deshalb im Normalfall im
 `--force`-Zweig, und ein Schutz, der bei fast jedem legitimen Aufruf übersprungen werden muss,
 macht `--force` zum Standardgriff. Danach fällt echte ungesicherte Arbeit im selben Zweig nicht
@@ -124,8 +124,8 @@ er ist Filterbeschreibung, nicht der operative Aufruf.
 ```bash
 # Nicht-allowlistete Abweichungen — nur diese blockieren den Remove.
 git -C <path> status --porcelain | cut -c4- \
-  | grep -Ev '^(openspec/changes/|docs/code-quality/|website/src/data/)' \
-  | grep -Ev '^(\.release-please-manifest\.json|website/CHANGELOG\.md|website/package\.json)$'
+  | grep -Ev '^(openspec/changes/|docs/code-quality/|components/website/src/data/)' \
+  | grep -Ev '^(\.release-please-manifest\.json|components/website/CHANGELOG\.md|components/website/package\.json)$'
 ```
 
 Bleibt die Ausgabe leer, ist der Worktree im Sinne dieses Runbooks sauber. `--force` ist dann
@@ -417,7 +417,7 @@ GitHub führt keine Custom-Merge-Driver aus; Details in
 > `gh api --method PUT …/update-branch` antwortete **HTTP 422 „merge conflict between base and
 > head"** — während lokal `git merge origin/main` glatt durchlief und
 > `git diff --name-only --diff-filter=U` **leer** blieb. Ursache sind die Freshness-Generate
-> (`website/src/data/openspec-status.json`, `test-inventory.json`), die in `.gitattributes`
+> (`components/website/src/data/openspec-status.json`, `test-inventory.json`), die in `.gitattributes`
 > einen Custom-Merge-Driver tragen, den GitHub nicht ausführt.
 >
 > Unterscheiden mit dem lokalen Probe-Merge aus §3 („Leere Checkliste kann auch Konflikt
@@ -426,7 +426,7 @@ GitHub führt keine Custom-Merge-Driver aus; Details in
 > ```bash
 > git fetch origin main && git merge origin/main    # läuft lokal konfliktfrei durch
 > task freshness:regenerate                          # Generate gegen den neuen Stand neu bauen
-> git add -- website/src/data/openspec-status.json website/src/data/test-inventory.json
+> git add -- components/website/src/data/openspec-status.json components/website/src/data/test-inventory.json
 > git commit --amend --no-edit || git commit -m "chore: regenerate freshness artifacts"
 > git push origin HEAD                               # Merge-Commit pushen — danach ist der PR sauber
 > ```

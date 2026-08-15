@@ -487,12 +487,12 @@ if [ -d "$MAIN_ROOT/node_modules" ] && [ ! -e "$WT_PATH/node_modules" ]; then
     ln -s "$MAIN_ROOT/node_modules" "$WT_PATH/node_modules"
     echo "worktree-create: linked node_modules → $MAIN_ROOT/node_modules" >&2
 fi
-# Workspace packages (pnpm): each such package (website/, brett/, mentolder-web/,
+# Workspace packages (pnpm): each such package (components/website/, components/brett/, mentolder-web/,
 # ...) has its own pnpm-workspace.yaml AND its own node_modules, neither of which
 # is covered by the root symlink above. T002204: the old hardcoded website-only
 # symlink left every OTHER pnpm-managed package without deps in the worktree,
 # breaking `task test:changed` (vitest "module not found") whenever the touched
-# package wasn't website/. Discover every such package by its pnpm-workspace.yaml
+# package wasn't components/website/. Discover every such package by its pnpm-workspace.yaml
 # marker and link its node_modules too.
 while IFS= read -r -d '' _ws_file; do
     _pkg_dir="$(dirname "$_ws_file")"
@@ -503,7 +503,7 @@ while IFS= read -r -d '' _ws_file; do
         ln -s "$MAIN_ROOT/$_pkg_rel/node_modules" "$WT_PATH/$_pkg_rel/node_modules"
         echo "worktree-create: linked $_pkg_rel/node_modules → $MAIN_ROOT/$_pkg_rel/node_modules" >&2
     fi
-done < <(find "$MAIN_ROOT" -maxdepth 2 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print0 2>/dev/null)
+done < <(find "$MAIN_ROOT" -maxdepth 3 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print0 2>/dev/null)
 
 # Branch-warning: the node_modules symlinked above reflect whatever the SOURCE
 # checkout (MAIN_ROOT) currently has installed for ITS checked-out branch. If

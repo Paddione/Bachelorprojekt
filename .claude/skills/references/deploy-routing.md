@@ -13,8 +13,8 @@ kopieren, sondern verlinken.
 
 > **Generierte Artefakte lösen kein Deploy aus (T002255).** Pfade, die in `.gitattributes`
 > als `linguist-generated` markiert sind, werden vor der Selektion aus `$CHANGED` entfernt.
-> Grund: `task freshness:regenerate` schreibt 16 Artefakte, mehrere davon unter `website/`
-> und `docs/` — u.a. `website/src/data/openspec-status.json`, das im Diff **jedes** Changes
+> Grund: `task freshness:regenerate` schreibt 16 Artefakte, mehrere davon unter `components/website/`
+> und `docs/` — u.a. `components/website/src/data/openspec-status.json`, das im Diff **jedes** Changes
 > mit OpenSpec-Artefakt liegt. Ohne den Filter deployte ein reiner Manifest- oder Test-Change
 > die Website. Filter: `scripts/filter-generated.sh`; er liest ausschließlich das
 > Git-Attribut, führt also **keine** eigene Pfadliste.
@@ -28,8 +28,8 @@ kopieren, sondern verlinken.
 
 | Geänderte Dateipfade | Weg |
 |---|---|
-| `website/**` | `.github/workflows/build-website.yml` (baut + rollt aus). Break-Glass: `task feature:website` — braucht GHCR-Login. |
-| `brett/**` | `.github/workflows/build-brett.yml`. Break-Glass: `task feature:brett`. |
+| `components/website/**` | `.github/workflows/build-website.yml` (baut + rollt aus). Break-Glass: `task feature:website` — braucht GHCR-Login. |
+| `components/brett/**` | `.github/workflows/build-brett.yml`. Break-Glass: `task feature:brett`. |
 | `docs/**` | `.github/workflows/build-docs.yml`. Break-Glass: `task docs:deploy`. |
 | `k3d/**`, `prod*/**`, `prod-fleet/**`, `environments/**` | Flux reconciled das OCI-Artefakt. Break-Glass: `task feature:deploy` (kein Registry-Login nötig). |
 | `k3d/sdlc-stack/**` | **kein Deploy** — rein lokaler Stack (k3d-Dev-Cluster), existiert nicht auf fleet; wird vor dem `k3d/**`-Match aus `$CHANGED` gefiltert (T003982) |
@@ -40,8 +40,8 @@ kopieren, sondern verlinken.
 ```bash
 MERGE_COMMIT=$(git log origin/main -1 --format="%H")
 CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh | sed '/^k3d\/sdlc-stack\//d')
-echo "$CHANGED" | grep -qE '^website/'  && echo "→ build-website.yml (kein lokaler Build)"
-echo "$CHANGED" | grep -qE '^brett/'    && echo "→ build-brett.yml (kein lokaler Build)"
+echo "$CHANGED" | grep -qE '^components/website/'  && echo "→ build-website.yml (kein lokaler Build)"
+echo "$CHANGED" | grep -qE '^components/brett/'    && echo "→ build-brett.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^docs/'     && echo "→ build-docs.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' && task feature:deploy
 ```

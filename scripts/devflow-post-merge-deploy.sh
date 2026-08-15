@@ -32,7 +32,7 @@ fi
 TICKET_IDS=$(git show --format=%s "$MERGE_COMMIT" 2>/dev/null | grep -oE 'T00[0-9]{4}' | sort -u | tr '\n' ' ')
 echo "Referenzierte Ticket-IDs im Merge-Commit: ${TICKET_IDS:-keine}"
 # Generierte Artefakte (linguist-generated in .gitattributes) aus der Deploy-Routing-
-# Selektion nehmen: website/src/data/openspec-status.json & Co. liegen im Merge-Diff jedes
+# Selektion nehmen: components/website/src/data/openspec-status.json & Co. liegen im Merge-Diff jedes
 # Changes mit OpenSpec-Artefakt und loesten sonst einen Deploy ohne Website-Bezug aus
 # (T002255). SSOT des Routings: .claude/skills/references/deploy-routing.md
 # T003982: k3d/sdlc-stack/ existiert nur auf dem lokalen k3d-Dev-Cluster, nicht auf
@@ -45,8 +45,8 @@ DEPLOY_BRETT=false
 DEPLOY_K8S=false
 DEPLOY_DOCS=false
 
-echo "$CHANGED" | grep -qE '^website/' && DEPLOY_WEBSITE=true
-echo "$CHANGED" | grep -qE '^brett/' && DEPLOY_BRETT=true
+echo "$CHANGED" | grep -qE '^components/website/' && DEPLOY_WEBSITE=true
+echo "$CHANGED" | grep -qE '^components/brett/' && DEPLOY_BRETT=true
 echo "$CHANGED" | grep -qE '^docs/' && DEPLOY_DOCS=true
 echo "$CHANGED" | grep -qE '^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' \
   && DEPLOY_K8S=true

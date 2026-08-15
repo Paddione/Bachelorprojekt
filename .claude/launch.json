@@ -4,7 +4,7 @@
     {
       "name": "brett",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["brett/server.js"],
+      "runtimeArgs": ["components/brett/server.js"],
       "port": 3000,
       "env": {
         "PORT": "3000",

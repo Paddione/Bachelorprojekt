@@ -56,8 +56,8 @@ Ermittle daraus:
 
 | Geänderte Dateien | Live-URL | Playwright project |
 |---|---|---|---|
-| `website/src/**` | `https://web.mentolder.de` | `website` |
-| `brett/**` | `https://brett.mentolder.de` | `services`, `brett-mentolder` |
+| `components/website/src/**` | `https://web.mentolder.de` | `website` |
+| `components/brett/**` | `https://brett.mentolder.de` | `services`, `brett-mentolder` |
 | `k3d/nextcloud*.yaml` | `https://files.mentolder.de` | `services` |
 # LiveKit removed per T002184
 | korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` |
@@ -169,7 +169,7 @@ Falls neue FA-Tests angelegt wurden:
 
 ```bash
 task test:inventory
-git diff website/src/data/test-inventory.json
+git diff components/website/src/data/test-inventory.json
 ```
 
 ---
@@ -182,7 +182,7 @@ Commit-Verifikation, Scope-Preflight).
 E2E-spezifisch — zu stagende Pfade und Titelformat:
 
 ```bash
-git add tests/e2e/specs/<neu>.spec.ts tests/e2e/playwright.config.ts website/src/data/test-inventory.json
+git add tests/e2e/specs/<neu>.spec.ts tests/e2e/playwright.config.ts components/website/src/data/test-inventory.json
 # Titel: "test(test): add E2E tests for <feature> [$TICKET_ID]"
 # Scope 'test' verwenden — 'e2e' lehnt validate-commit-msg ab (seit T002328
 # zu 'test' konsolidiert; erlaubte Scopes: bash scripts/validate-commit-msg.sh scopes).
@@ -244,7 +244,7 @@ Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…RE
 
 **Zustand nach Schritt 7:**
 - E2E-Spec `tests/e2e/specs/<neu>.spec.ts` committed + gepusht
-- `website/src/data/test-inventory.json` aktualisiert
+- `components/website/src/data/test-inventory.json` aktualisiert
 - Tests laufen lokal grün gegen Live-URL
 
 **Kreislauf zurück zu `main`** via normalem PR-Merge (oder direkter Push wenn Branch-Protection es erlaubt). Nächste Arbeit startet mit `dev-flow-plan`.

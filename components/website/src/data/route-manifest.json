@@ -1,0 +1,950 @@
+{
+  "generatedFrom": "components/website/src/pages",
+  "count": 110,
+  "routes": [
+    {
+      "route": "/",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/404",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/50plus-digital",
+      "authTier": "public",
+      "brand": "mentolder",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/admin",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/[clientId]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/asset-generation",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/assets",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/billing/[id]/drucken",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/billing/elster",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/brett",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": true,
+      "media": false
+    },
+    {
+      "route": "/admin/brett/[...path]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": true,
+      "media": false
+    },
+    {
+      "route": "/admin/buchhaltung",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/clients",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/coaching/projekte",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/coaching/projekte/[id]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/coaching/sessions",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/coaching/sessions/[id]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/coaching/sessions/[id]/popout",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/coaching/sessions/new",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/coaching/settings",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/content-db",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/dokumente",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/einstellungen/backup",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/einstellungen/benachrichtigungen",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/einstellungen/branding",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/einstellungen/email",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/einstellungen/ordner-templates",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/einstellungen/rechnungen",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/fragebogen/[assignmentId]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/inbox",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/inhalte",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/kalender",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/knowledge/drafts",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/knowledge/snippets/[id]/publish",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/knowledge/templates",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/live/sessions/[id]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/meetings",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/meetings/[id]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/members",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/members/[userId]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/projekte",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/projekte/[id]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/rechnungen",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/rechtliches",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/steuer",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/termine",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/wissen",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/zeiterfassung",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/agb",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/barrierefreiheit",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/beratung",
+      "authTier": "public",
+      "brand": "mentolder",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/coaching",
+      "authTier": "public",
+      "brand": "mentolder",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/cookie-einstellungen",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/datenschutz",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/deployment",
+      "authTier": "public",
+      "brand": "korczewski",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/dev-status",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/[service]",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/404",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/agb",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/barrierefreiheit",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/cookie-einstellungen",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/datenschutz",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/impressum",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/kontakt",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/leistungen",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/login",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/meine-daten",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/newsletter/bestaetigt",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/newsletter/token-ungueltig",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/poll/[id]",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/poll/[id]/results",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/referenzen",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/registrieren",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/status",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/stripe/success",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/termin",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/en/ueber-mich",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/fuehrung-persoenlichkeit",
+      "authTier": "public",
+      "brand": "mentolder",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/impressum",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/ki-beratung",
+      "authTier": "public",
+      "brand": "korczewski",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/ki-transition",
+      "authTier": "public",
+      "brand": "mentolder",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/kontakt",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/leistungen",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/login",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/meine-daten",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/newsletter/bestaetigt",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/newsletter/token-ungueltig",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/poll/[id]",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/poll/[id]/results",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/besprechung/[id]",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/billing/[id]/drucken",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/document",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/fragebogen/[assignmentId]",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/loslernen",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/raum/[id]",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/sign/[assignmentId]",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/referenzen",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/registrieren",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/app-catalog",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/architektur",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/cockpit",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/design-system",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/ki-konfiguration",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/observability",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/platform",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/prompts",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/repohealth",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/software-history",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/systemtest/board",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/tickets/[id]",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/software-dev",
+      "authTier": "public",
+      "brand": "korczewski",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false,
+      "_fromService": true
+    },
+    {
+      "route": "/status",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/stripe/success",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/termin",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/ueber-mich",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    }
+  ]
+}

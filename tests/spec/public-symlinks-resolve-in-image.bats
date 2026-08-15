@@ -15,7 +15,7 @@
 # dieser Test ist der generische Wächter über ALLE Apps mit Dockerfile+public/.
 # Konkrete Pfade werden hier wörtlich geführt (auch in Kommentaren), damit
 # find-changed-tests.sh per grep-Probe diesen Test bei Änderungen an
-# website/public/cockpit/, website/.lavish/ oder website/Dockerfile selektiert
+# components/website/public/cockpit/, components/website/.lavish/ oder components/website/Dockerfile selektiert
 # (T002345).
 
 setup() {
@@ -51,12 +51,15 @@ _escapes_root() {
 @test "T002498-M4: public/-Symlinks bleiben im Docker-Image-Layout auflösbar" {
   local apps=()
   local app dockerfile
-  for dockerfile in */Dockerfile; do
+  # Apps liegen seit T006999 unter components/ — beide Ebenen scannen, damit
+  # der Wächter auch fuer kuenftige Root-Apps offen bleibt. Ungematchte Glob-
+  # Literale scheitern am [ -f ]-Guard.
+  while IFS= read -r dockerfile; do
     [ -f "$dockerfile" ] || continue
-    app="${dockerfile%%/*}"
+    app="${dockerfile%/*}"
     [ -d "$app/public" ] || continue
     apps+=("$app")
-  done
+  done < <(printf '%s\n' */Dockerfile components/*/Dockerfile)
   [ ${#apps[@]} -gt 0 ] || { echo "keine App mit Dockerfile+public/ gefunden"; return 1; }
 
   local failures=0

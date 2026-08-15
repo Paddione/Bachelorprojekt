@@ -8,7 +8,7 @@
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  BRETT="${REPO_ROOT}/brett"
+  BRETT="${REPO_ROOT}/components/brett"
   SRC="${BRETT}/src"
 }
 

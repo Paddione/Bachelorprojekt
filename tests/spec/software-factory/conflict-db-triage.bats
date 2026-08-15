@@ -53,7 +53,7 @@ teardown() { _sf_teardown; }
   export FACTORY_NS="workspace-korczewski-dev"
   
   # Ensure we have at least one ticket to test with, or insert/query safely
-  run bash scripts/factory/conflict-check.sh "T000413" "website/src/lib/tickets-db.ts" "k3d/website-schema.yaml"
+  run bash scripts/factory/conflict-check.sh "T000413" "components/website/src/lib/tickets-db.ts" "k3d/website-schema.yaml"
   # Verify the output is valid JSON (empty or array of conflicts)
   echo "$output" | jq . > /dev/null
 }
@@ -64,7 +64,7 @@ teardown() { _sf_teardown; }
   # `|| true`: offline (CI) conflict-check exits 2 (no cluster) — we only assert on the
   # stderr CONTENT (the WARN), not the exit code, so the non-zero must not fail the test.
   err="$(env -u BRAND FACTORY_CTX=k3d-korczewski-dev FACTORY_NS=workspace-korczewski-dev \
-        bash scripts/factory/conflict-check.sh T000413 website/src/lib/tickets-db.ts 2>&1 1>/dev/null || true)"
+        bash scripts/factory/conflict-check.sh T000413 components/website/src/lib/tickets-db.ts 2>&1 1>/dev/null || true)"
   [[ "$err" != *"WARN: no BRAND"* ]]
 }
 

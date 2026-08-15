@@ -1,1 +1,0 @@
-../../../../.lavish/kit/adapter.js

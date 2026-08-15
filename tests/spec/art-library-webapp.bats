@@ -3,8 +3,8 @@
 # Locks sprite health, avatarSrc path, and iconSpriteId coverage for mentolder.
 
 REPO="${BATS_TEST_DIRNAME}/../.."
-SPRITE="${REPO}/website/public/brand/mentolder/icons.svg"
-CONFIG="${REPO}/website/src/config/brands/mentolder.ts"
+SPRITE="${REPO}/components/website/public/brand/mentolder/icons.svg"
+CONFIG="${REPO}/components/website/src/config/brands/mentolder.ts"
 
 @test "mentolder icons.svg has exactly 6 symbol elements" {
   run grep -c '<symbol id=' "${SPRITE}"
@@ -20,8 +20,8 @@ CONFIG="${REPO}/website/src/config/brands/mentolder.ts"
   [ "$total" -eq "$unique" ]
 }
 
-@test "mentolder avatarSrc leadership.portrait.svg exists in website/public" {
-  local path="${REPO}/website/public/brand/mentolder/characters/leadership.portrait.svg"
+@test "mentolder avatarSrc leadership.portrait.svg exists in components/website/public" {
+  local path="${REPO}/components/website/public/brand/mentolder/characters/leadership.portrait.svg"
   [ -f "$path" ]
 }
 
@@ -36,8 +36,8 @@ CONFIG="${REPO}/website/src/config/brands/mentolder.ts"
   done
 }
 
-@test "mentolder props are committed as static files in website/public" {
-  local props_dir="${REPO}/website/public/brand/mentolder/props"
+@test "mentolder props are committed as static files in components/website/public" {
+  local props_dir="${REPO}/components/website/public/brand/mentolder/props"
   local count
   count=$(find "${props_dir}" -name "*.svg" | wc -l | tr -d ' ')
   echo "props count: $count"

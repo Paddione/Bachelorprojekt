@@ -74,7 +74,7 @@ einen Cron-Job ein. **STOPP hier.**
 > nachträglich umbenannt werden (Zeitverlust, siehe T001913).
 
 > **Test-only-Kurzpfad (kein Worktree):** Berührt die Chore **ausschließlich** Testdateien
-> (`tests/**/*.bats`, `tests/spec/*.bats`, `website/**/*.test.ts`, Playwright-Specs) — z.B. "schreib
+> (`tests/**/*.bats`, `tests/spec/*.bats`, `components/website/**/*.test.ts`, Playwright-Specs) — z.B. "schreib
 > einen Test für X" — dann entfällt `.worktrees/*` als Standardfall. Ein eigener Worktree pro Testdatei
 > erzeugt nur IDE-Clutter (jede offene `.worktrees/*`-Kopie erscheint als eigener Ordner) ohne
 > Isolationsgewinn, solange kein anderer Prozess konkurrierend im Haupt-Checkout schreibt. Prüfe das:

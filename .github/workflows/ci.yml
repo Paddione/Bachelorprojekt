@@ -550,15 +550,15 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: brett/package-lock.json
-      - run: npm ci --prefix brett
+          cache-dependency-path: components/brett/package-lock.json
+      - run: npm ci --prefix components/brett
       - name: Typecheck
-        run: npm run typecheck --prefix brett
+        run: npm run typecheck --prefix components/brett
       - name: Unit tests
-        run: npm test --prefix brett
+        run: npm test --prefix components/brett
         env:
           MOCK_DB: 'true'
-      - run: npm run build --prefix brett
+      - run: npm run build --prefix components/brett
 
   vitest-website:
     # Always runs on every PR (no job-level path filter) so the branch-protection
@@ -587,10 +587,10 @@ jobs:
         with:
           node-version: '24'
           cache: 'pnpm'
-          cache-dependency-path: website/pnpm-lock.yaml
+          cache-dependency-path: components/website/pnpm-lock.yaml
 
       - name: Install website dependencies
-        run: cd website && pnpm install --frozen-lockfile
+        run: cd components/website && pnpm install --frozen-lockfile
 
       - name: Fetch origin/main for --changed diffing
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
@@ -599,14 +599,14 @@ jobs:
         id: check-cov
         run: |
           CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
-          if echo "$CHANGED" | grep -q "^website/src/lib/"; then
+          if echo "$CHANGED" | grep -q "^components/website/src/lib/"; then
             echo "run-coverage=true" >> "$GITHUB_OUTPUT"
           else
             echo "run-coverage=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run ESLint (--max-warnings 0 fail-closed gate)
-        run: cd website && pnpm lint
+        run: cd components/website && pnpm lint
 
       - name: Run vitest + Astro check + Knip (parallel)
         # Mirrors the local `task test:changed` smart selection via explicit
@@ -614,14 +614,14 @@ jobs:
         # Astro typecheck and Knip dead-code analysis run concurrently with
         # vitest to shave ~2-3 min off wall-clock time.
         # --coverage is conditional: only added when the PR touches
-        # website/src/lib/ (where coverage gates apply), so trivial PRs
+        # components/website/src/lib/ (where coverage gates apply), so trivial PRs
         # skip instrumentation overhead. The coverage gate step below
         # handles the missing-report case gracefully. [T003164]
         # Default 5s per-test timeout is too tight for DB-heavy tests
         # (e.g. tickets/cockpit-db.test.ts seeds 1005 rows) when vitest
         # runs ~243 files in parallel on shared CI runners. [T001336, T001651]
         run: |
-          cd website
+          cd components/website
           ARGS="run --changed origin/main --testTimeout=30000"
           [[ "${{ steps.check-cov.outputs.run-coverage }}" == "true" ]] && ARGS="$ARGS --coverage"
           pnpm exec vitest $ARGS &
@@ -643,7 +643,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: vitest-junit-report
-          path: website/test-results/junit.xml
+          path: components/website/test-results/junit.xml
           retention-days: 14
           if-no-files-found: ignore
 
@@ -653,24 +653,24 @@ jobs:
         # Skipped gracefully when:
         #   a) no coverage report exists (--coverage wasn't passed because
         #      the PR doesn't touch src/lib/), or
-        #   b) --changed found zero website/ source changes (pct: "Unknown").
+        #   b) --changed found zero components/website/ source changes (pct: "Unknown").
         # In both cases there is no source delta to regress. [T001651, T003164]
         run: |
-          cd website
+          cd components/website
           if [ ! -f coverage/coverage-summary.json ]; then
             echo "::notice::No coverage-summary.json (--coverage not needed / no report) — skipping gate"
             exit 0
           fi
           COV=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
           if [ "$COV" = "Unknown" ] || [ "$COV" = "null" ] || [ -z "$COV" ]; then
-            echo "::notice::Coverage pct: ${COV:-empty} (--changed found no website/ changes) — skipping gate"
+            echo "::notice::Coverage pct: ${COV:-empty} (--changed found no components/website/ changes) — skipping gate"
             exit 0
           fi
           echo "Total line coverage: ${COV}%"
           awk -v cov="$COV" 'BEGIN { if (cov + 0 < 60) { print "::error::Coverage gate failed: " cov "% < 60%"; exit 1 } else { print "::notice::Coverage gate passed: " cov "% >= 60%" } }'
 
       - name: Build website
-        run: cd website && pnpm build
+        run: cd components/website && pnpm build
 
       - name: Check client-JS bundle budget
         # [T002754] Previously a separate job (bundle-budget) that spun up a
@@ -684,7 +684,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: website-dist
-          path: website/dist
+          path: components/website/dist
           retention-days: 1
 
   lighthouse:

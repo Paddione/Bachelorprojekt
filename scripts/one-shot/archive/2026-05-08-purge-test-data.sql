@@ -2,7 +2,7 @@
 --
 -- One-stop "wipe all test-data scaffolding" routine, intended to be called
 -- from /api/admin/systemtest/purge-all-test-data (the Playwright bracketing
--- endpoint). Complements website/src/lib/systemtest/cleanup.ts which sweeps
+-- endpoint). Complements components/website/src/lib/systemtest/cleanup.ts which sweeps
 -- in-flight fixtures with a grace period — this function ignores the grace
 -- and tears down everything tagged is_test_data=true plus orphaned testing
 -- side-tables.

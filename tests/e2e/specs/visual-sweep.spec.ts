@@ -4,7 +4,7 @@
 //   visual-sweep-mentolder-desktop | visual-sweep-mentolder-mobile
 //   visual-sweep-korczewski-desktop | visual-sweep-korczewski-mobile
 //
-// Reads website/src/data/route-manifest.json, derives {brand,viewport} from the
+// Reads components/website/src/data/route-manifest.json, derives {brand,viewport} from the
 // project name, sweeps every applicable non-excluded route, and writes
 //   tests/results/visual-sweep/<brand>/results-<viewport>.json
 //

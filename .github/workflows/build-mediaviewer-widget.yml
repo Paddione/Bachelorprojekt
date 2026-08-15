@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'mediaviewer-widget/**'
+      - 'components/mediaviewer-widget/**'
       - 'packages/videovault-player/**'
       - '.github/workflows/build-mediaviewer-widget.yml'
   workflow_dispatch:
@@ -31,12 +31,12 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: mediaviewer-widget/package-lock.json
+          cache-dependency-path: components/mediaviewer-widget/package-lock.json
 
       - name: Test gate (player package + widget)
         run: |
           cd packages/videovault-player && npm ci && npm test
-          cd ../../mediaviewer-widget && npm ci --legacy-peer-deps && npm run typecheck && npm test
+          cd ../../components/mediaviewer-widget && npm ci --legacy-peer-deps && npm run typecheck && npm test
 
       - name: Get short SHA
         id: version
@@ -56,7 +56,7 @@ jobs:
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # v7
         with:
           context: .
-          file: mediaviewer-widget/Dockerfile
+          file: components/mediaviewer-widget/Dockerfile
           push: true
           build-args: |
             VITE_ALLOWED_PARENT_ORIGINS=https://web.mentolder.de,https://web.korczewski.de,http://localhost:4321,http://web.localhost

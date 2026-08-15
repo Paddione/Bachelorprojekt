@@ -9,7 +9,7 @@
 # verhalten (`systemctl --user show bge-mcp -p Environment`) haengt am
 # installierten Host-Zustand und ist in der CI nicht reproduzierbar.
 #
-# Hintergrund: Der Shim importiert website/src/lib/bge-router.ts. Dessen
+# Hintergrund: Der Shim importiert components/website/src/lib/bge-router.ts. Dessen
 # resolveEndpoint('embed'|'rerank') liest LLM_EMBED_URL bzw. LLM_RERANKER_URL
 # und wirft ohne Wert (fail-closed). Seit T002551 liefen die bge-Server als
 # CPU-Deployments im Cluster (k3d/llm-gpu.yaml, Port 8081) und die Unit holte
@@ -21,7 +21,7 @@
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   UNIT="$REPO/scripts/bge-mcp/bge-mcp.service"
-  ROUTER="$REPO/website/src/lib/bge-router.ts"
+  ROUTER="$REPO/components/website/src/lib/bge-router.ts"
 }
 
 @test "bge-mcp unit exists" {

@@ -8,8 +8,8 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 
 setup() {
   export PROJECT_DIR
-  READINESS_API="${PROJECT_DIR}/website/src/pages/sdlc/api/tickets/[id]/readiness.ts"
-  READINESS_LIB="${PROJECT_DIR}/website/src/lib/ticket-readiness.ts"
+  READINESS_API="${PROJECT_DIR}/components/website/src/pages/sdlc/api/tickets/[id]/readiness.ts"
+  READINESS_LIB="${PROJECT_DIR}/components/website/src/lib/ticket-readiness.ts"
 }
 
 @test "static: readiness API endpoint exists" {

@@ -10,8 +10,8 @@ setup() {
 
 # ── REQ-ASTRO-TC-003: Check Script ───────────────────────────────────
 
-@test "REQ-ASTRO-TC-003: website/package.json has astro:check script" {
-  run grep -q '"astro:check"' "$REPO/website/package.json"
+@test "REQ-ASTRO-TC-003: components/website/package.json has astro:check script" {
+  run grep -q '"astro:check"' "$REPO/components/website/package.json"
   [ "$status" -eq 0 ]
 }
 
@@ -29,11 +29,11 @@ setup() {
 
 # ── REQ-ASTRO-TC-002: Fixture Factory ────────────────────────────────
 
-@test "REQ-ASTRO-TC-002: fixture factory exists at website/src/lib/sdlc/tickets/__tests__/fixtures.ts" {
-  [ -f "$REPO/website/src/lib/sdlc/tickets/__tests__/fixtures.ts" ]
+@test "REQ-ASTRO-TC-002: fixture factory exists at components/website/src/lib/sdlc/tickets/__tests__/fixtures.ts" {
+  [ -f "$REPO/components/website/src/lib/sdlc/tickets/__tests__/fixtures.ts" ]
 }
 
 @test "REQ-ASTRO-TC-002: fixture factory exports makeRollup" {
-  run grep -q 'makeRollup' "$REPO/website/src/lib/sdlc/tickets/__tests__/fixtures.ts"
+  run grep -q 'makeRollup' "$REPO/components/website/src/lib/sdlc/tickets/__tests__/fixtures.ts"
   [ "$status" -eq 0 ]
 }

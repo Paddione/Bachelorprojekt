@@ -1,7 +1,7 @@
 // Ambient TypeScript declarations for lib-knowledge-pg.mjs.
 // The .mjs file is the runtime source of truth; this file exists only so
 // .mts/.ts callers (e.g. scripts/coaching/ingest-book.mts) get types.
-// Pool is loosely typed because @types/pg lives in website/node_modules
+// Pool is loosely typed because @types/pg lives in components/website/node_modules
 // and isn't visible from project-root .mts files.
 
 interface PgPool {

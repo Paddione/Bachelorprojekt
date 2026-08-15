@@ -27,7 +27,7 @@
  * Endpoints (lib-context-retrieve.mjs wirft bei Fehler/Timeout/leerer
  * Antwort) — nie ueber Prozess- oder systemd-Unit-Zustand.
  *
- * Endpoints (Konvention website/src/lib/bge-router.ts): LLM_EMBED_URL,
+ * Endpoints (Konvention components/website/src/lib/bge-router.ts): LLM_EMBED_URL,
  * LLM_RERANKER_URL. DB: PGURL (Konvention lib-knowledge-pg.mjs makePool).
  */
 

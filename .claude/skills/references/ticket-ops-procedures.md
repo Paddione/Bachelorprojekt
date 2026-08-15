@@ -110,7 +110,7 @@ WHERE status NOT IN ('done','archived')
   -- woertlich aus einer inzwischen geloeschten E2E-Testdatei (historischer Beleg), und der
   -- Marker-Mechanismus aus T001453 hatte korrekt gegriffen (is_test_data = true). Diese
   -- Query filterte ihn nur nicht, obwohl der Produktivcode es durchgaengig tut (siehe
-  -- website/src/pages/sdlc/api/cockpit/container-count.ts:16).
+  -- components/website/src/pages/sdlc/api/cockpit/container-count.ts:16).
   AND is_test_data = false;
 ```
 
@@ -139,7 +139,7 @@ A ticket with an empty `missing[]` is **ready**. *Do not touch `in_progress` tic
 ### Step 1.3: Load OpenSpec status & render the triage table
 
 ```bash
-OMAP_FILE="$REPO/website/src/data/openspec-status.json"
+OMAP_FILE="$REPO/components/website/src/data/openspec-status.json"
 [[ -f "$OMAP_FILE" ]] || bash "$REPO/scripts/openspec-status-map.sh"   # regen if missing
 get_openspec_status() { jq -r --arg id "$1" '.[$id] // [] | map("\(.status):\(.slug)") | join(", ")' "$OMAP_FILE" 2>/dev/null || echo ""; }
 ```
@@ -253,7 +253,7 @@ For autonomous decisions, dispatch specialized subagents to validate and enrich 
 - `bachelorprojekt-test` → test-related tickets (severity, areas)
 - `bachelorprojekt-infra` → infra/security/deploy tickets
 - `bachelorprojekt-security` → secrets/OIDC/tickets
-- `bachelorprojekt-website` → website/frontend/admin tickets
+- `bachelorprojekt-website` → components/website/frontend/admin tickets
 - `database-specialist` → DB/schema tickets
 
 Each subagent returns validated severity, component, areas, and readiness flags. Consolidate results before proceeding to Phase 3.
@@ -262,7 +262,7 @@ Process at most **~6 tickets per round**, highest priority first. Any eligible t
 
 ### Step 2.3: Derive the questions
 
-Mirror `website/src/lib/sdlc/clarification-questions.ts` (`deriveSections`) — the source of truth. Map each gap to a concrete question:
+Mirror `components/website/src/lib/sdlc/clarification-questions.ts` (`deriveSections`) — the source of truth. Map each gap to a concrete question:
 
 | Gap | Question(s) |
 |---|---|
@@ -585,6 +585,6 @@ Merge = Abschluss: each ticket closes on its own green auto-merge; the masterpla
 | test/FA-* / BATS | bachelorprojekt-test | Severity rubric, areas (ci/tests) |
 | infra/deploy/sealed-secret | bachelorprojekt-infra | Component mapping, severity |
 | security/OIDC/secrets | bachelorprojekt-security | Severity escalation threshold |
-| website/admin/frontend | bachelorprojekt-website | Areas extraction, component |
+| components/website/admin/frontend | bachelorprojekt-website | Areas extraction, component |
 | database/schema/query | database-specialist | Severity rubric for DB impact |
 | chat/realtime | (domain subagent) | Scope validation |

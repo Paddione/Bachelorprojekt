@@ -2,7 +2,7 @@
   "name": "bachelorprojekt-coaching-scripts",
   "private": true,
   "type": "module",
-  "description": "Coaching ingest pipeline scripts. node_modules is symlinked to ../../website/node_modules to avoid duplicate installs.",
+  "description": "Coaching ingest pipeline scripts. node_modules is symlinked to ../../components/website/node_modules to avoid duplicate installs.",
   "dependencies": {
     "epub2": "3.0.2",
     "mammoth": "^1.12.0",

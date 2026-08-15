@@ -29,5 +29,5 @@ else
 fi
 
 # ── T3: finalize_meeting-Action in Website-Code vorhanden ────────────
-ACTION_EXISTS=$(grep -r "finalize_meeting" "${SCRIPT_DIR}/../website/src" 2>/dev/null | wc -l | xargs || echo "0")
+ACTION_EXISTS=$(grep -r "finalize_meeting" "${SCRIPT_DIR}/../components/website/src" 2>/dev/null | wc -l | xargs || echo "0")
 assert_gt "$ACTION_EXISTS" 0 "FA-20" "T3" "finalize_meeting-Action vorhanden"

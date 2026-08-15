@@ -1,5 +1,5 @@
 // scripts/build-route-manifest.mjs
-// CLI: enumerate website/src/pages + brand service slugs -> website/src/data/route-manifest.json
+// CLI: enumerate components/website/src/pages + brand service slugs -> components/website/src/data/route-manifest.json
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,8 +7,8 @@ import { execFileSync } from 'node:child_process';
 import { buildManifest } from './lib/route-manifest.mjs';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const PAGES_DIR = join(REPO_ROOT, 'website/src/pages');
-const OUT = join(REPO_ROOT, 'website/src/data/route-manifest.json');
+const PAGES_DIR = join(REPO_ROOT, 'components/website/src/pages');
+const OUT = join(REPO_ROOT, 'components/website/src/data/route-manifest.json');
 
 // Extract service slugs from the TS brand configs.
 // Primary: execute the configs via the repo-local tsx (most accurate). Fallback
@@ -18,11 +18,11 @@ const OUT = join(REPO_ROOT, 'website/src/data/route-manifest.json');
 // is sorted, so order is irrelevant. This keeps the CI drift guard self-contained
 // (no website install required) while staying byte-identical to the tsx output.
 function loadBrandSlugsViaTsx() {
-  const tsx = join(REPO_ROOT, 'website/node_modules/.bin/tsx');
+  const tsx = join(REPO_ROOT, 'components/website/node_modules/.bin/tsx');
   if (!existsSync(tsx)) return null;
   const snippet = `
-    import { mentolderConfig } from './website/src/config/brands/mentolder.ts';
-    import { korczewskiConfig } from './website/src/config/brands/korczewski.ts';
+    import { mentolderConfig } from './components/website/src/config/brands/mentolder.ts';
+    import { korczewskiConfig } from './components/website/src/config/brands/korczewski.ts';
     const pick = (c) => ({ services: c.services.map((s) => ({ slug: s.slug })) });
     process.stdout.write(JSON.stringify({
       mentolder: pick(mentolderConfig),
@@ -50,8 +50,8 @@ function loadBrandSlugs() {
   const viaTsx = loadBrandSlugsViaTsx();
   if (viaTsx) return viaTsx;
   return {
-    mentolder: extractSlugsFromSource('website/src/config/brands/mentolder.ts'),
-    korczewski: extractSlugsFromSource('website/src/config/brands/korczewski.ts'),
+    mentolder: extractSlugsFromSource('components/website/src/config/brands/mentolder.ts'),
+    korczewski: extractSlugsFromSource('components/website/src/config/brands/korczewski.ts'),
   };
 }
 

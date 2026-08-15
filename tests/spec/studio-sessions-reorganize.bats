@@ -8,7 +8,7 @@
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  WEB="$REPO_ROOT/website/src"
+  WEB="$REPO_ROOT/components/website/src"
 }
 
 @test "sidebar Sessions item points to coaching/sessions and matches sessions and fragebogen" {

@@ -38,7 +38,7 @@
  * Fehlerfall behandelt und umgekehrt — genau diese Verwechslung macht die
  * Herkunfts-Marker der CLI sonst wertlos.
  *
- * Endpoint-Konvention (T002551, website/src/lib/bge-router.ts): die Variablen
+ * Endpoint-Konvention (T002551, components/website/src/lib/bge-router.ts): die Variablen
  * werden ohne Defaults gelesen — ein fehlender Wert ist ein Konfigurationsfehler
  * und degraviert den Aufruf (der Aufrufer faellt auf mode=rulefilter zurueck).
  */

@@ -65,13 +65,13 @@ setup() {
   tmp_base=$(mktemp)
   cat > "$tmp_base" <<'EOF'
 {
-  "S1:website/src/components/inbox/InboxApp.svelte": {
+  "S1:components/website/src/components/inbox/InboxApp.svelte": {
     "metric": 1500
   }
 }
 EOF
   local limit; limit=$(yq -r '.s1.limits[".svelte"]' "$REPO/docs/code-quality/gates.yaml")
-  run env PLAN_LINT_SELFTEST=1 BASELINE="$tmp_base" bash "$LINT" effective_threshold "website/src/components/inbox/InboxApp.svelte"
+  run env PLAN_LINT_SELFTEST=1 BASELINE="$tmp_base" bash "$LINT" effective_threshold "components/website/src/components/inbox/InboxApp.svelte"
   rm -f "$tmp_base"
   [ "$status" -eq 0 ]
   local expected=$((1500 > limit ? 1500 : limit))
@@ -100,7 +100,7 @@ EOF
   tmp_base=$(mktemp)
   cat > "$tmp_base" <<'EOF'
 {
-  "S1:website/src/components/inbox/InboxApp.svelte": {
+  "S1:components/website/src/components/inbox/InboxApp.svelte": {
     "metric": 954
   }
 }

@@ -134,13 +134,13 @@ mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
 [ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
 
 # [T002523-M10] Phase A laeuft bewusst im Hauptcheckout — `openspec.sh propose` ruft dort
-# `openspec-status-map.sh` auf und schreibt website/src/data/openspec-status.json neu. Das ist
+# `openspec-status-map.sh` auf und schreibt components/website/src/data/openspec-status.json neu. Das ist
 # die einzige Mutation, die nach dem Umzug im Hauptcheckout zurueckbleibt, und sie widerspricht
 # der Regel "mutierende Tasks nie im Hauptcheckout" (CLAUDE.local.md). Sie ist leicht zu
 # uebersehen, weil sie erst nach dem Worktree-Wechsel sichtbar wird — wenn die Aufmerksamkeit
 # schon im Worktree liegt. Genau aus solchen liegengebliebenen Mutationen entstand T001880.
 # Die Datei wird im Worktree ohnehin von `task freshness:regenerate` neu erzeugt.
-git -C "${REPO_ROOT}" checkout -- website/src/data/openspec-status.json 2>/dev/null || true
+git -C "${REPO_ROOT}" checkout -- components/website/src/data/openspec-status.json 2>/dev/null || true
 
 cd "${WT}"
 ```
@@ -269,7 +269,7 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
      - Spec-Pfad: `openspec/changes/<slug>/design.md`
      - **Design-Bundle** (falls Schritt A.2 lief): `openspec/changes/<slug>/assets/` —
        der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
-       (z. B. unter `website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
+       (z. B. unter `components/website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
        Guardrails (currentColor statt `<img>`, keine Stray-Hex, Export-Vollständigkeit) als
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.

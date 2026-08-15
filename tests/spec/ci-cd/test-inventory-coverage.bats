@@ -23,7 +23,7 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   BUILDER="${REPO_ROOT}/scripts/build-test-inventory.sh"
-  COMMITTED="${REPO_ROOT}/website/src/data/test-inventory.json"
+  COMMITTED="${REPO_ROOT}/components/website/src/data/test-inventory.json"
   SANDBOX="${BATS_TEST_TMPDIR}/inventory.json"
   STRAY_REL="tests/spec/ci-cd/stray-ignored-test-T002664.bats"
 }
@@ -123,7 +123,7 @@ build_sandbox_inventory() {
 
 @test "inventory: Schema bleibt unveraendert (id, file, category, kind; kein tier)" {
   build_sandbox_inventory
-  # Der Konsument website/src/pages/sdlc/api/tests/traceability.ts liest genau diese Felder.
+  # Der Konsument components/website/src/pages/sdlc/api/tests/traceability.ts liest genau diese Felder.
   # tier ist ein Zwischenfeld des Builders und wird vor dem Schreiben entfernt.
   run jq '[.[] | select((.id|type) != "string" or (.file|type) != "string"
                         or (.category|type) != "string" or (.kind|type) != "string")] | length' "$SANDBOX"

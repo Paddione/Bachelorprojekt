@@ -89,12 +89,12 @@ setup() {
   [ "$output" = "0" ]
 }
 
-@test "G-CQ03: website/eslint.config.js exists" {
-  [ -f "$REPO_ROOT/website/eslint.config.js" ]
+@test "G-CQ03: components/website/eslint.config.js exists" {
+  [ -f "$REPO_ROOT/components/website/eslint.config.js" ]
 }
 
 @test "G-CQ03: website package.json has a lint script with --max-warnings 0" {
-  run jq -r '.scripts.lint // ""' "$REPO_ROOT/website/package.json"
+  run jq -r '.scripts.lint // ""' "$REPO_ROOT/components/website/package.json"
   [ "$status" -eq 0 ]
   [[ "$output" == *"eslint"* ]]
   [[ "$output" == *"--max-warnings 0"* ]]
@@ -106,10 +106,10 @@ setup() {
 }
 
 @test "G-CQ03: ESLint runs clean (0 warnings) when deps are installed" {
-  if [ ! -x "$REPO_ROOT/website/node_modules/.bin/eslint" ]; then
+  if [ ! -x "$REPO_ROOT/components/website/node_modules/.bin/eslint" ]; then
     skip "website deps not installed in this context — enforced by CI vitest-website job"
   fi
-  run bash -c "cd '$REPO_ROOT/website' && ./node_modules/.bin/eslint . --max-warnings 0 --cache"
+  run bash -c "cd "$REPO_ROOT/components/website" && ./node_modules/.bin/eslint . --max-warnings 0 --cache"
   [ "$status" -eq 0 ]
 }
 
@@ -161,15 +161,15 @@ PY
   grep -q 'needs.build-image.outputs.sha_tag' "$BUILD_WF"
 }
 
-@test "G-CD01: website/Dockerfile referenziert pnpm-lock.yaml (nicht package-lock.json)" {
-  DOCKERFILE="$REPO_ROOT/website/Dockerfile"
+@test "G-CD01: components/website/Dockerfile referenziert pnpm-lock.yaml (nicht package-lock.json)" {
+  DOCKERFILE="$REPO_ROOT/components/website/Dockerfile"
   run grep -nE 'pnpm-lock\.yaml' "$DOCKERFILE"
   [ "$status" -eq 0 ]
   ! grep -vE '^\s*#' "$DOCKERFILE" | grep -qE 'package-lock\.json'
 }
 
-@test "G-CD01: website/Dockerfile benutzt pnpm install (nicht npm ci)" {
-  DOCKERFILE="$REPO_ROOT/website/Dockerfile"
+@test "G-CD01: components/website/Dockerfile benutzt pnpm install (nicht npm ci)" {
+  DOCKERFILE="$REPO_ROOT/components/website/Dockerfile"
   run grep -nE 'pnpm install' "$DOCKERFILE"
   [ "$status" -eq 0 ]
   ! grep -qE '^[^#]*\bnpm ci\b' "$DOCKERFILE"
@@ -206,18 +206,18 @@ PY
 }
 
 @test "G-CI01-B: Dockerfile COPY-Zeile referenziert pnpm-lock.yaml (nicht package-lock.json)" {
-  ! grep -q "package-lock.json" "$REPO_ROOT/website/Dockerfile"
-  grep -q "pnpm-lock.yaml" "$REPO_ROOT/website/Dockerfile"
+  ! grep -q "package-lock.json" "$REPO_ROOT/components/website/Dockerfile"
+  grep -q "pnpm-lock.yaml" "$REPO_ROOT/components/website/Dockerfile"
 }
 
 @test "G-CI01-C: Dockerfile nutzt pnpm install --frozen-lockfile (nicht npm ci)" {
-  ! grep -q "npm ci" "$REPO_ROOT/website/Dockerfile"
-  grep -q "pnpm install --frozen-lockfile" "$REPO_ROOT/website/Dockerfile"
+  ! grep -q "npm ci" "$REPO_ROOT/components/website/Dockerfile"
+  grep -q "pnpm install --frozen-lockfile" "$REPO_ROOT/components/website/Dockerfile"
 }
 
-@test "G-CI01-D: website/pnpm-lock.yaml existiert; website/package-lock.json existiert nicht" {
-  [ -f "$REPO_ROOT/website/pnpm-lock.yaml" ]
-  [ ! -f "$REPO_ROOT/website/package-lock.json" ]
+@test "G-CI01-D: components/website/pnpm-lock.yaml existiert; components/website/package-lock.json existiert nicht" {
+  [ -f "$REPO_ROOT/components/website/pnpm-lock.yaml" ]
+  [ ! -f "$REPO_ROOT/components/website/package-lock.json" ]
 }
 
 @test "G-CI01-E: freshness-regen.yml Bot-Commit enthaelt [skip ci]" {
@@ -330,8 +330,8 @@ PY
 }
 
 @test "T001453: purge-fn v5 re-markiert unmarkierte E2E-Identitäten" {
-  grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/website/src/lib/tickets/migrations.ts"
-  grep -q 'inbox_remarked_unmarked' "$REPO_ROOT/website/src/lib/tickets/migrations.ts"
+  grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/migrations.ts"
+  grep -q 'inbox_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/migrations.ts"
   grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/scripts/one-shot/purge-fn-v5.sql"
 }
 
@@ -753,8 +753,8 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 
 # ── T002158: das Repohealth-Dashboard muss auf Goals-Aenderungen neu gebaut werden ──
 #
-# Gleiche Klasse wie T002157: website/src/lib/goals-data.generated.json wird per
-# statischem ESM-Import (website/src/lib/goals-data.ts:1) ins Astro-Bundle gebacken.
+# Gleiche Klasse wie T002157: components/website/src/lib/goals-data.generated.json wird per
+# statischem ESM-Import (components/website/src/lib/goals-data.ts:1) ins Astro-Bundle gebacken.
 # Neue Health-Goal-Werte erreichen /admin/repohealth also nur ueber ein neues
 # Website-Image. Zwei Trigger-Bruechen verhinderten das:
 #   A) build-website.yml triggerte nicht auf .claude/lib/goals.md — die Datenquelle.
@@ -762,12 +762,12 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 #      ist der einzige Ort, an dem der Website-JSON ausserhalb eines PRs
 #      fortgeschrieben wird, also der einzige Pfad, der den Build ausloesen WUERDE.
 # Folge: das Dashboard wurde nur zufaellig aktuell, wenn ein fremder PR nebenbei
-# einen website/**-Pfad anfasste (letzter Fall: d1cd912ce).
+# einen components/website/**-Pfad anfasste (letzter Fall: d1cd912ce).
 
 @test "T002158-A: build-website triggert auf die Repohealth-Datenquelle goals.md" {
   grep -q "\.claude/lib/goals\.md" "$BUILD_WF" || {
     echo "FAIL: build-website.yml triggert nicht auf .claude/lib/goals.md"
-    echo "      Diese Datei ist der SSOT von website/src/lib/goals-data.generated.json,"
+    echo "      Diese Datei ist der SSOT von components/website/src/lib/goals-data.generated.json,"
     echo "      das per statischem Import ins Bundle gebacken wird. Ohne Trigger baut"
     echo "      eine goals-only-Aenderung kein Image und /admin/repohealth bleibt stale."
     return 1
@@ -777,13 +777,13 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 @test "T002158-B: freshness-regen setzt [skip ci] nicht unbedingt im Bot-Commit" {
   local wf="$REPO_ROOT/.github/workflows/freshness-regen.yml"
   # Ein hart im commit -m eingebautes [skip ci] unterdrueckt build-website auch dann,
-  # wenn der Regen-Commit ein website/**-Artefakt enthaelt.
+  # wenn der Regen-Commit ein components/website/**-Artefakt enthaelt.
   ! grep -qE 'git commit -m "[^"]*\[skip ci\]"' "$wf" || {
     echo "FAIL: freshness-regen.yml haengt [skip ci] unbedingt an den Commit-Titel."
-    echo "      Enthaelt der Regen-Commit website/**-Artefakte (z.B."
+    echo "      Enthaelt der Regen-Commit components/website/**-Artefakte (z.B."
     echo "      goals-data.generated.json), unterdrueckt das den Website-Build und"
     echo "      der ausgelieferte Dashboard-Stand bleibt permanent veraltet."
-    echo "      Erwartet: [skip ci] nur wenn KEIN website/**-Pfad betroffen ist."
+    echo "      Erwartet: [skip ci] nur wenn KEIN components/website/**-Pfad betroffen ist."
     return 1
   }
 }
@@ -792,7 +792,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   local wf="$REPO_ROOT/.github/workflows/freshness-regen.yml"
   # ABGELOEST: Dieser Test prueft seit T002889 die Nachfolge-Eigenschaft.
   #
-  # Urspruenglich verlangte er den am Zeilenanfang verankerten '^website/'-Check
+  # Urspruenglich verlangte er den am Zeilenanfang verankerten '^components/website/'-Check
   # im Commit-Step, der steuerte, OB [skip ci] angehaengt wird. T002889 hat den
   # Bot vom Direkt-Push auf einen Auto-Merge-PR umgestellt und [skip ci] dabei
   # vollstaendig entfernt — unter Required Status Checks meldet ein
@@ -1138,24 +1138,24 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 @test "T002245: find-changed-tests.sh spec picks the deepest path-referencing spec" {
   local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
   local tmp="$BATS_TEST_TMPDIR/probe-repo"
-  mkdir -p "$tmp/scripts" "$tmp/tests/spec" "$tmp/website/src/pages/admin"
+  mkdir -p "$tmp/scripts" "$tmp/tests/spec" "$tmp/components/website/src/pages/admin"
   cp "$finder" "$tmp/scripts/find-changed-tests.sh"
   # deep.bats names the exact directory, shallow.bats only a broader prefix,
   # toplevel.bats only the bare top-level segment (must never win).
-  echo '# covers website/src/pages/admin' > "$tmp/tests/spec/deep.bats"
-  echo '# covers website/src' > "$tmp/tests/spec/shallow.bats"
+  echo '# covers components/website/src/pages/admin' > "$tmp/tests/spec/deep.bats"
+  echo '# covers components/website/src' > "$tmp/tests/spec/shallow.bats"
   echo '# covers website' > "$tmp/tests/spec/toplevel.bats"
-  : > "$tmp/website/src/pages/admin/dora.astro"
-  : > "$tmp/website/loose.txt"
+  : > "$tmp/components/website/src/pages/admin/dora.astro"
+  : > "$tmp/components/website/loose.txt"
 
   cd "$tmp"
   git init -q -b main .
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
   git update-ref refs/remotes/origin/main HEAD
 
-  # Deepest match wins: the admin spec, not the broader website/src one.
+  # Deepest match wins: the admin spec, not the broader components/website/src one.
   git checkout -q -b topic
-  echo change >> website/src/pages/admin/dora.astro
+  echo change >> components/website/src/pages/admin/dora.astro
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m deep
   run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
@@ -1163,7 +1163,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 
   # Floor: a top-level-only reference must not drag in the whole domain.
   git checkout -q main && git checkout -q -b topic2
-  echo change >> website/loose.txt
+  echo change >> components/website/loose.txt
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m floor
   run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
@@ -2025,16 +2025,16 @@ MOCKEOF
 @test "T002341-M2: agent-collision.sh filtert generierte Pfade aus einer Dateiliste" {
   [ -f "$REPO_ROOT/scripts/agent-collision.sh" ] || skip "agent-collision.sh nicht gefunden"
   run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
-    _drop_generated 'website/src/data/openspec-status.json'"
+    _drop_generated 'components/website/src/data/openspec-status.json'"
   [ "$status" -eq 0 ] || { echo "_drop_generated nicht aufrufbar"; return 1; }
   # Positiv-Anker zuerst: eine echte Quelldatei MUSS die Filterung ueberleben,
   # sonst besteht die Negativ-Aussage unten vakuos (T002356-M1).
   run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
-    _drop_generated 'website/src/pages/index.astro'"
-  [ "$(printf '%s' "$output" | tr -d '[:space:]')" = "website/src/pages/index.astro" ] \
+    _drop_generated 'components/website/src/pages/index.astro'"
+  [ "$(printf '%s' "$output" | tr -d '[:space:]')" = "components/website/src/pages/index.astro" ] \
     || { echo "Quelldatei wurde faelschlich gefiltert: '$output'"; return 1; }
   run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
-    _drop_generated 'website/src/data/openspec-status.json'"
+    _drop_generated 'components/website/src/data/openspec-status.json'"
   [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ] \
     || { echo "openspec-status.json haette gefiltert werden muessen: '$output'"; return 1; }
 }

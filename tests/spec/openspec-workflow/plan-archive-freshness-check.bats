@@ -10,9 +10,9 @@
 # Laufzeitverhalten, gegen das gemessen werden koennte.
 #
 # Hintergrund (T006369): Nach `openspec.sh archive` + `task freshness:regenerate`
-# + Commit trug das committete website/src/data/openspec-status.json den Change
-# noch als plan_staged statt archived. CI-Freshness-Gate schlug auf dem
-# Archiv-PR #4552 fehl ("regenerated but not staged"); behoben per
+# + Commit trug das committete components/website/src/data/openspec-status.json
+# den Change noch als plan_staged statt archived. CI-Freshness-Gate schlug auf
+# dem Archiv-PR #4552 fehl ("regenerated but not staged"); behoben per
 # Follow-up-Commit auf dem Archiv-Branch. Ursache (Hypothese, reproduziert):
 # die Regeneration lief, bevor die Archiv-Verschiebung im Arbeitsbaum
 # vollstaendig sichtbar war. Der Guard erzwingt eine freshness:check-

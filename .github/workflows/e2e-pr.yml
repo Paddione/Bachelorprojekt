@@ -1,7 +1,7 @@
 name: E2E (PR — gefiltert)
 
 # Läuft bei jedem PR auf main. Prüft zuerst ob E2E-relevante Dateien
-# (website/**, tests/e2e/**) geändert wurden. Falls nicht, wird der Job
+# (components/website/**, tests/e2e/**) geändert wurden. Falls nicht, wird der Job
 # übersprungen — erfüllt aber den Required-Check "E2E PR".
 #
 # Ziel:  Regressionsschutz im eigenen Scope, schnell (<5 min).
@@ -68,7 +68,7 @@ jobs:
         id: filter
         run: |
           CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || echo "")
-          if echo "$CHANGED" | grep -qE '^(website/|tests/e2e/|\.github/workflows/e2e-pr\.yml)'; then
+          if echo "$CHANGED" | grep -qE '^(components/website/|tests/e2e/|\.github/workflows/e2e-pr\.yml)'; then
             echo "run_e2e=true" >> "$GITHUB_OUTPUT"
             echo "E2E-relevant files changed, running tests"
           else

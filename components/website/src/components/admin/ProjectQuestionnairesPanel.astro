@@ -1,0 +1,50 @@
+---
+// components/website/src/components/admin/ProjectQuestionnairesPanel.astro
+//
+// Shared section for /admin/projekte/[id] and /admin/tickets/[id].
+// Renders nothing when `assignments` is empty.
+// Active assignments are shown directly; archived ones are collapsed in a <details> block.
+
+import type { QAssignment, QQuestion, QAnswer, QAnswerOption } from '../../lib/questionnaire-db';
+import type { DimensionScore } from '../../lib/compute-scores';
+import QuestionnaireBundleCard from './QuestionnaireBundleCard.astro';
+
+export interface AssignmentBundle {
+  assignment: QAssignment;
+  questions: QQuestion[];
+  options: QAnswerOption[];
+  answers: QAnswer[];
+  scores: DimensionScore[];
+}
+
+interface Props { assignments: AssignmentBundle[]; }
+const { assignments } = Astro.props;
+
+const active = assignments.filter(b => b.assignment.status !== 'archived');
+const archived = assignments.filter(b => b.assignment.status === 'archived');
+---
+
+{(active.length > 0 || archived.length > 0) && (
+  <section class="bg-dark-light rounded-2xl border border-dark-lighter p-6 mb-6" id="questionnaires-panel">
+    <h2 class="text-sm font-semibold text-light mb-4 font-serif uppercase tracking-wide">
+      Fragebögen ({active.length})
+    </h2>
+
+    {active.length > 0 && (
+      <div class="flex flex-col gap-6">
+        {active.map(bundle => <QuestionnaireBundleCard bundle={bundle} muted={false} />)}
+      </div>
+    )}
+
+    {archived.length > 0 && (
+      <details class="mt-6">
+        <summary class="cursor-pointer text-sm text-muted hover:text-light select-none">
+          Archivierte Fragebögen ({archived.length}) anzeigen
+        </summary>
+        <div class="flex flex-col gap-6 mt-4">
+          {archived.map(bundle => <QuestionnaireBundleCard bundle={bundle} muted={true} />)}
+        </div>
+      </details>
+    )}
+  </section>
+)}

@@ -6,12 +6,12 @@
 # Tier logic (most specific wins):
 #   1. DIRECT — an e2e spec file itself changed → return that spec
 #   2. CATEGORY — a source file changed → return specs whose category
-#      matches the changed file's path prefix (e.g. website/src/ → FA, E2E)
+#      matches the changed file's path prefix (e.g. components/website/src/ → FA, E2E)
 #   3. BROAD — infra/manifest changes → return all e2e specs
 
 set -euo pipefail
 
-INVENTORY="website/src/data/test-inventory.json"
+INVENTORY="components/website/src/data/test-inventory.json"
 SPEC_DIR="tests/e2e/specs"
 
 CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)
@@ -40,10 +40,10 @@ fi
 path_to_category() {
   local path="$1"
   case "$path" in
-    website/src/*|website/pages/*|website/components/*|website/layouts/*) echo "FA"; return ;;
-    brett/src/*|brett/app/*)    echo "FA"; return ;;
+    components/website/src/*|components/website/pages/*|components/website/components/*|components/website/layouts/*) echo "FA"; return ;;
+    components/brett/src/*|components/brett/app/*)    echo "FA"; return ;;
     k3d/*|environments/*)       echo "NFA"; return ;;
-    VideoVault/*)               echo "AK"; return ;;
+    components/VideoVault/*)               echo "AK"; return ;;
     scripts/factory/*)          echo "SA"; return ;;
     *)                          echo ""; return ;;
   esac

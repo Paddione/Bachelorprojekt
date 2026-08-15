@@ -201,8 +201,8 @@ EOF
     const tests = [
       matchGlob('scripts/*.sh', ['scripts/test.sh']) === true,
       matchGlob('scripts/*.sh', ['src/test.sh']) === false,
-      matchGlob('website/**/*.ts', ['website/src/lib/x.ts']) === true,
-      matchGlob('website/**/*.ts', ['k3d/x.ts']) === false,
+      matchGlob('components/website/**/*.ts', ['components/website/src/lib/x.ts']) === true,
+      matchGlob('components/website/**/*.ts', ['k3d/x.ts']) === false,
       matchGlob('*.json', ['file.json']) === true,
       matchGlob('*.json', ['dir/file.json']) === false,
       matchGlob('tests/*', ['tests/x.json']) === true,

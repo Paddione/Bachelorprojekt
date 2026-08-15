@@ -143,7 +143,7 @@ UPDATE tickets.tickets SET
   -- `done/null`: correct-looking in lists, but dropped from every report that
   -- groups by resolution, notably `vda.sh cfr` and /admin/dora.
   --
-  -- This mirrors website/src/lib/tickets/transition.ts:79, the other write path,
+  -- This mirrors components/website/src/lib/tickets/transition.ts:79, the other write path,
   -- which had it right all along: a resolution only means anything for a terminal
   -- status. So keep the existing value when none is supplied, let an explicit one
   -- override, and still clear it on a non-terminal transition — `openspec.sh`

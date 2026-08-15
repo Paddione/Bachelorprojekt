@@ -94,27 +94,27 @@ if [[ $SELF_TEST -eq 1 ]]; then
   }
 
   # Allow cases
-  assert_allows "feat(real-code)"      "feat(website): add pricing widget"        "website/src/components/Pricing.tsx"
-  assert_allows "fix(real-code)"       "fix(infra): chain middleware sequence"    "website/src/middleware.ts"
-  assert_allows "fix(real+test)"       "fix(infra): chain middleware sequence"    "website/src/middleware.ts website/src/middleware.test.ts"
+  assert_allows "feat(real-code)"      "feat(website): add pricing widget"        "components/website/src/components/Pricing.tsx"
+  assert_allows "fix(real-code)"       "fix(infra): chain middleware sequence"    "components/website/src/middleware.ts"
+  assert_allows "fix(real+test)"       "fix(infra): chain middleware sequence"    "components/website/src/middleware.ts components/website/src/middleware.test.ts"
   assert_allows "chore(plans)"         "chore(plans): stage t001434 for execution" "openspec/changes/t001434/tasks.md"
-  assert_allows "test(red-only)"       "test(red): verify locals.requestLogger"   "website/src/middleware.test.ts"
+  assert_allows "test(red-only)"       "test(red): verify locals.requestLogger"   "components/website/src/middleware.test.ts"
   assert_allows "docs(readme)"         "docs: update README"                      "README.md"
   assert_allows "ci(workflow)"         "ci: bump action versions"                ".github/workflows/ci.yml"
   assert_allows "fix(scope-less)"      "fix: typo"                                "scripts/check.sh"
 
   # Block cases — the T001434 pattern
-  assert_blocks "fix(red-only-test)"   "fix(infra): chain middleware sequence"    "website/src/middleware.test.ts"
+  assert_blocks "fix(red-only-test)"   "fix(infra): chain middleware sequence"    "components/website/src/middleware.test.ts"
   assert_blocks "fix(plan-only)"       "fix(infra): chain middleware sequence"    "openspec/changes/t001434/tasks.md"
-  assert_blocks "fix(plan-and-test)"   "fix(infra): chain middleware sequence"    "website/src/middleware.test.ts openspec/changes/t001434/tasks.md"
+  assert_blocks "fix(plan-and-test)"   "fix(infra): chain middleware sequence"    "components/website/src/middleware.test.ts openspec/changes/t001434/tasks.md"
   assert_blocks "fix(spec-only)"       "fix(infra): chain middleware sequence"    "openspec/specs/centralized-logging.md"
   assert_blocks "feat(plan-only)"      "feat(infra): add logging chain"           "openspec/changes/t001434/proposal.md openspec/changes/t001434/tasks.md"
   assert_blocks "refactor(plan-only)"  "refactor(scripts): consolidate guards"    "openspec/changes/cleanup/tasks.md"
   assert_blocks "perf(plan-only)"      "perf(db): index tickets table"            "openspec/changes/perf-index/tasks.md"
 
   # Block cases — the T004611 pattern (unintended package.json drift)
-  assert_blocks "fix(package-json-drift)"  "fix(infra): chain middleware sequence"    "website/src/middleware.ts .opencode/package.json"
-  assert_blocks "fix(package-lock-drift)"  "fix(infra): chain middleware sequence"    "website/src/middleware.ts .opencode/package-lock.json"
+  assert_blocks "fix(package-json-drift)"  "fix(infra): chain middleware sequence"    "components/website/src/middleware.ts .opencode/package.json"
+  assert_blocks "fix(package-lock-drift)"  "fix(infra): chain middleware sequence"    "components/website/src/middleware.ts .opencode/package-lock.json"
 
   # Allow cases — explicit dependency update
   assert_allows "chore(deps-package-json)" "chore(deps): update @opencode-ai/plugin"  ".opencode/package.json .opencode/package-lock.json"

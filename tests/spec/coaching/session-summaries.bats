@@ -6,11 +6,11 @@
 # ausschliesslich im Quelltext (Lib-Funktionen, API-Endpoint, Migration, gemountete
 # Komponente) — daher grep-basierte Assertions, dokumentiert im Header wie
 # tests/spec/coaching-sessions-polish-guide.bats. Verhaltenslogik wird separat in
-# website/src/lib/coaching-summary.test.ts geprueft.
+# components/website/src/lib/coaching-summary.test.ts geprueft.
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}" && git rev-parse --show-toplevel)"
-  WEB="$REPO_ROOT/website/src"
+  WEB="$REPO_ROOT/components/website/src"
 }
 
 @test "summary lib exports buildSummaryInput and generateSessionSummary" {
@@ -47,9 +47,9 @@ setup() {
 }
 
 @test "summary migration adds llm_summary columns to coaching.sessions" {
-  run grep -qF "llm_summary" "$REPO_ROOT/website/src/db/migrations/20260813_coaching_session_summary.sql"
+  run grep -qF "llm_summary" "$REPO_ROOT/components/website/src/db/migrations/20260813_coaching_session_summary.sql"
   [ "$status" -eq 0 ]
-  run grep -qF "llm_summary_at" "$REPO_ROOT/website/src/db/migrations/20260813_coaching_session_summary.sql"
+  run grep -qF "llm_summary_at" "$REPO_ROOT/components/website/src/db/migrations/20260813_coaching_session_summary.sql"
   [ "$status" -eq 0 ]
 }
 

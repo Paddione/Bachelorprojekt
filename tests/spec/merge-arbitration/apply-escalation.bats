@@ -3,14 +3,14 @@ setup() {
   TMPDIR=$(mktemp -d)
   cd "$TMPDIR" || exit
   git init --initial-branch main && git config user.email test@test && git config user.name test
-  mkdir -p website/src/lib scripts/factory k3d
-  echo 'base' > website/src/lib/x.ts
+  mkdir -p components/website/src/lib scripts/factory k3d
+  echo 'base' > components/website/src/lib/x.ts
   echo 'base: true' > k3d/foo.yaml
   printf 'k3d/\nprod\n' > scripts/factory/shared-state-paths.txt
   git add -A && git commit -m 'base'
-  git checkout -b pr1 && echo 'change1' > website/src/lib/x.ts && echo 'change1: true' > k3d/foo.yaml && git commit -am 'pr1 change'
-  git checkout main && git checkout -b pr2 && echo 'change2' > website/src/lib/x.ts && echo 'change2: true' > k3d/foo.yaml && git commit -am 'pr2 change'
-  git checkout main && git checkout -b pr3 && echo 'change3' > website/src/lib/x.ts && echo 'change3: true' > k3d/foo.yaml && git commit -am 'pr3 change'
+  git checkout -b pr1 && echo 'change1' > components/website/src/lib/x.ts && echo 'change1: true' > k3d/foo.yaml && git commit -am 'pr1 change'
+  git checkout main && git checkout -b pr2 && echo 'change2' > components/website/src/lib/x.ts && echo 'change2: true' > k3d/foo.yaml && git commit -am 'pr2 change'
+  git checkout main && git checkout -b pr3 && echo 'change3' > components/website/src/lib/x.ts && echo 'change3: true' > k3d/foo.yaml && git commit -am 'pr3 change'
   git checkout main
 }
 
@@ -85,8 +85,8 @@ JS
   run git rev-parse --verify "chore/merge-arbitration-${K3D_KEY:0:12}"
   [ "$status" -ne 0 ]
 
-  # --- Positiv-Anker: website/src/lib/x.ts ist NICHT auf der Risiko-Liste -> PR ---
-  CLUSTER_WEB="$(cluster_for "website/src/lib/x.ts" 201 202 203)"
+  # --- Positiv-Anker: components/website/src/lib/x.ts ist NICHT auf der Risiko-Liste -> PR ---
+  CLUSTER_WEB="$(cluster_for "components/website/src/lib/x.ts" 201 202 203)"
   run env PATH="$PATH_STUB:$PATH" GH_AXI=gh-axi TICKET_SH="$PATH_STUB/ticket-sh-stub" \
     SYNTHESIZE="$TMPDIR/synthesize-stub.mjs" SHARED_STATE="$TMPDIR/scripts/factory/shared-state-paths.txt" \
     bash "$APPLY" <<< "$CLUSTER_WEB"

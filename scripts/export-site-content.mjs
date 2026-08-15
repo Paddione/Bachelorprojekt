@@ -4,7 +4,7 @@
 // the Zod schema from the TypeScript content-schema module; tsx strips
 // the types at load.
 // scripts/export-site-content.mjs
-// One-shot DB → JSON exporter that seeds `website/content/<brand>/`.
+// One-shot DB → JSON exporter that seeds `components/website/content/<brand>/`.
 // Connects via SESSIONS_DATABASE_URL, reads each brand's effective content
 // (site_settings rows + service_config + leistungen_config + referenzen_config),
 // projects it through the same helpers the live `getEffective*` uses, validates
@@ -23,12 +23,12 @@ import { fileURLToPath } from 'node:url';
 import { config as loadEnv } from 'node:process';
 
 import pg from 'pg';
-import { ContentBundleSchema, DOMAINS } from '../website/src/content-schema/index.ts';
+import { ContentBundleSchema, DOMAINS } from '../components/website/src/content-schema/index.ts';
 
 // ESM __dirname shim
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
-const CONTENT_DIR = resolve(REPO_ROOT, 'website', 'content');
+const CONTENT_DIR = resolve(REPO_ROOT, 'components', 'website', 'content');
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';

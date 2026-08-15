@@ -14,7 +14,7 @@ function load(dir, file) {
 // Extract every asset slug seeded in the platform migrations, so components.yaml
 // stays in lock-step with the DB. Matches lines like: ('keycloak', 'Keycloak', ...
 function migrationSlugs(repoRoot) {
-  const dir = join(repoRoot, 'website', 'src', 'db', 'migrations');
+  const dir = join(repoRoot, 'components', 'website', 'src', 'db', 'migrations');
   const files = readdirSync(dir).filter((f) => f.includes('platform_assets'));
   const slugs = new Set();
   for (const f of files) {

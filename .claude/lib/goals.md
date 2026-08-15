@@ -152,16 +152,16 @@ Nebenbefund gefixt: der Verify-Job ließ bei Abbruch die Wegwerf-DB
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope (>1000 Zeilen): 3 → ≤ 3
 
-3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe `docs/code-quality/gates.yaml` s1.ignore), 0× VideoVault/ >1000 Zeilen.
+3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe `docs/code-quality/gates.yaml` s1.ignore), 0× components/VideoVault/ >1000 Zeilen.
 
 ```bash
-git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
+git ls-files components/VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
   | grep -v node_modules \
   | while read -r f; do [ -L "$f" ] || echo "$f"; done \
   | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l
 ```
 
-> **B · Baseline:** 17 (>600) → 3 ✅ Target erreicht (>1000 Zeilen Schwellenwert: 3× .opencode/ sanktioniert, 0× VideoVault/ verbleibend; 2026-07-21) · **Target:** ≤ 3 · **Aufwand:** gering · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001945 (**gefixt**)
+> **B · Baseline:** 17 (>600) → 3 ✅ Target erreicht (>1000 Zeilen Schwellenwert: 3× .opencode/ sanktioniert, 0× components/VideoVault/ verbleibend; 2026-07-21) · **Target:** ≤ 3 · **Aufwand:** gering · **Messzyklus:** pro Merge auf components/VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001945 (**gefixt**)
 
 ## G-DB01 — FK-Spalten ohne Index: 34/49 → 0 (Baseline-Korrektur T001946)
 
@@ -178,7 +178,7 @@ ursprünglichen T001905-Spalten (`public.onboarding_state.brand`,
 ein manueller Re-Run derselben SQL lief fehlerfrei durch und erzeugte sie sofort (Migration
 selbst korrekt; Ursache der Tracking/Wirkung-Diskrepanz nicht abschließend geklärt, kein
 Postmortem-Scope). Neue Migration
-`website/src/db/migrations/20260719_add_missing_fk_indexes_batch2.sql` (T001946) deckt die
+`components/website/src/db/migrations/20260719_add_missing_fk_indexes_batch2.sql` (T001946) deckt die
 Vereinigungsmenge aus beiden Brand-Messungen ab (58 Statements) — mit einer bewussten
 Ausnahme: `arena.match_players.brand` gehört einem Fremd-Owner-Schema (`arena_app`-Rolle,
 nicht `website`) und kann vom `website`-Migrationsrunner nicht indiziert werden (Dry-Run-Fund,
@@ -233,7 +233,7 @@ db_scalar "SELECT count(*) FROM pg_stat_user_indexes s JOIN pg_index i ON i.inde
 Erster Scan (2026-07-17): **93 Treffer** über 14 Schemas. Von diesen ist genau 1 zweifelsfrei
 sicher: `public.idx_customers_email` ist ein exaktes Duplikat von `customers_email_key`
 (UNIQUE-Constraint, idx_scan=700, aktiv genutzt) — via Migration gedropt
-(`website/src/db/migrations/20260717_drop_redundant_customers_email_index.sql`).
+(`components/website/src/db/migrations/20260717_drop_redundant_customers_email_index.sql`).
 Die verbleibenden 92 sind NICHT zweifelsfrei: 8 davon sind partielle UNIQUE-Indizes ohne
 formalen `pg_constraint`-Eintrag (Business-Invarianten wie "ein aktiver ki_config pro Brand",
 "ein offener Poll") — die Messquery selbst müsste um `NOT indisunique` erweitert werden,
@@ -367,7 +367,7 @@ Negativbefund, den T002356-M1 verbietet.
 # Zählt catch-Blöcke in Schnittstellen-Dateien ohne unmittelbare Fehlerprotokollierung
 python3 -c "
 import os, re
-files = ['website/src/lib/embeddings.ts', 'website/src/lib/rerank.ts', 'website/src/lib/bge-router.ts']
+files = ['components/website/src/lib/embeddings.ts', 'components/website/src/lib/rerank.ts', 'components/website/src/lib/bge-router.ts']
 if not all(os.path.exists(f) for f in files): print('-'); exit(0)  # Positiv-Anker: Basis muss existieren
 c=0
 for f in files:
@@ -642,27 +642,27 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
 | **G-RH01** | Gate-Violations (baseline.json) | 0 ✓ | ≤ 30 | `python3 -c "import json,sys; print(len(json.load(sys.stdin)))" < docs/code-quality/baseline.json` |
-| **G-RH02** | TypeScript-Suppressionen | 0 ✓ | 0 | Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -r '@ts-ignore\|@ts-expect-error' website/src --include='*.ts' \| grep -v goals-data.ts \| wc -l` |
+| **G-RH02** | TypeScript-Suppressionen | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -r '@ts-ignore\|@ts-expect-error' components/website/src --include='*.ts' \| grep -v goals-data.ts \| wc -l` |
 | **G-RH04** | Stale Remote Branches | 0 ✓ | 0 | `git for-each-ref ... refs/remotes/origin \| while IFS='|' read b ts; do [[ $ts -lt $CUTOFF ]] && echo $b; done \| wc -l` |
 | **G-RH06** | Sentinel-Issues >48h | 0 ✓ | 0 | `gh-axi issue list --label sentinel --state open --json createdAt` |
 | **G-RH07** | Freshness-Check grün | Exit 0 ✓ | Exit 0 | `task freshness:check` |
 | **G-TEST01** | BATS Debt-Skips | 0 ✓ | 0 | `grep -rniE "skip [\"']" tests --include=*.bats \| grep -ciE "pending\|todo\|WP-\|disabled"` |
-| **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | Positiv-Anker: `website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\.only\b' website/src --include='*.test.ts' \| wc -l` |
-| **G-TEST03** | Vitest Skipped/Todo-Suiten | 1 ✓ | 0 | Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" website/src --include="*.ts" \| wc -l` |
-| **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain website/src/data/test-inventory.json \| wc -l` |
-| **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 280 | Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
+| **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | Positiv-Anker: `components/website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\.only\b' components/website/src --include='*.test.ts' \| wc -l` |
+| **G-TEST03** | Vitest Skipped/Todo-Suiten | 1 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" components/website/src --include="*.ts" \| wc -l` |
+| **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain components/website/src/data/test-inventory.json \| wc -l` |
+| **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 280 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
-| **G-CQ05** | Echte TODO-Marker | 3 ⚠ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... website/src scripts tests k3d brett/src \| wc -l` |
-| **G-CQ06** | `@deprecated`-Symbole | 2 ⚠ | ≤ 1 | Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' website/src \| wc -l` |
+| **G-CQ05** | Echte TODO-Marker | 3 ⚠ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... components/website/src scripts tests k3d brett/src \| wc -l` |
+| **G-CQ06** | `@deprecated`-Symbole | 2 ⚠ | ≤ 1 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' components/website/src \| wc -l` |
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
-| **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 311 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
+| **G-SIZE03** | God-File `components/website/src/lib/website-db.ts` | 311 ✓ | ≤ 3000 | `wc -l < components/website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
 | **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 7 ⚠ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0) |
-| **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | Positiv-Anker: `website/Dockerfile` fehlt ⇒ n/a; `grep -q "npm ci" website/Dockerfile && echo inkonsistent \|\| echo ok` |
-| **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
+| **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | Positiv-Anker: `components/website/Dockerfile` fehlt ⇒ n/a; `grep -q "npm ci" components/website/Dockerfile && echo inkonsistent \|\| echo ok` |
+| **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json components/website/package.json ...; do python3 -c "..engines.."; done` |
 | **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
 | **G-DEP02** | Veraltete Major-Deps | 2 ✓ | ≤ 3 | `cd website && pnpm outdated --format json` → `scripts/lib/pnpm-outdated-majors.py` (stdin; pnpm endet mit Funden als Exit 1 — Ausgabe erfassen, nicht den Pipeline-Status werten) |
 | **G-IMG01** | Fremd-Image-Versions-Drift | 3 ⚠ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml) |
@@ -690,8 +690,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DORA02** | Lead Time (PR→merge) | Median 0.03h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (Proxy) | 7.4 % ✓ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | 3 ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
-| **G-FE03** | rohe `console.error/warn` (exkl. Selbstschutz-Fallbacks) | 0 ✓ | 0 | Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(error\|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v 'logger.ts' \| grep -v 'error-log-store.ts' \| grep -v '\.test\.ts' \| wc -l` |
-| **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(log\|debug\|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
+| **G-FE03** | rohe `console.error/warn` (exkl. Selbstschutz-Fallbacks) | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(error\|warn)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v 'logger.ts' \| grep -v 'error-log-store.ts' \| grep -v '\.test\.ts' \| wc -l` |
+| **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(log\|debug\|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits (ohne Merge) | 0 ✓ | 0 | Positiv-Anker: `origin/main`-Ref fehlt ⇒ n/a; `git log --format=%s --no-merges -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |
 | **G-AGENTIC02** | Agent-Routing-Tabelle ↔ Frontmatter-Drift | 0 ✓ | 0 | `python3 <<'PY' ... norm/toks/fm/rows ... symmetric_difference` |
 | **G-AGENTIC03** | Agent-Frontmatter (name + description) | 0 ✓ | 0 | `for f in .claude/agents/*.md; do name==basename && description present` |
@@ -712,7 +712,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
 | **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 506 ⚠ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 2 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
-| **G-TEST05** | Vitest Line-Coverage `website/src/lib` | 86 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
+| **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 86 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
 | **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 1 ⚠ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |

@@ -14,8 +14,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SOURCE="$REPO_ROOT/website/public/gerald.jpg"
-OUT_DIR="$REPO_ROOT/website/public"
+SOURCE="$REPO_ROOT/components/website/public/gerald.jpg"
+OUT_DIR="$REPO_ROOT/components/website/public"
 
 # Seitenverhaeltnis des .portrait-Rahmens in Portrait.svelte.  Aendert sich das
 # dort, muss es hier mitgeaendert werden — der BATS-Test
@@ -32,8 +32,8 @@ oberen Rand des Originals verankert (y=0), damit der Kopf vollstaendig im Bild
 bleibt, und traegt das Seitenverhaeltnis ${RATIO_W}:${RATIO_H} des Rahmens.
 
 Optionen:
-  --source <jpg>   Originalbild (Default: website/public/gerald.jpg)
-  --out <dir>      Zielverzeichnis (Default: website/public)
+  --source <jpg>   Originalbild (Default: components/website/public/gerald.jpg)
+  --out <dir>      Zielverzeichnis (Default: components/website/public)
   -h, --help       Diese Hilfe
 EOF
 }

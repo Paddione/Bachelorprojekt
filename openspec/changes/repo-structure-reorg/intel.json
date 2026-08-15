@@ -1,0 +1,617 @@
+{
+  "meta": {
+    "slug": "repo-structure-reorg",
+    "ticket_id": "T006999",
+    "generated_from": "main@054d08506",
+    "domains": [
+      "repo-structure",
+      "ci-cd",
+      "dev-tooling"
+    ],
+    "intel_sources": [
+      "git-grep",
+      "baseline.json",
+      "wc"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".claude/launch.json",
+      "language": "json",
+      "loc": 16,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".claude/skills/ui-ux-pro-max/scripts/design_system.py",
+      "language": "py",
+      "loc": 1329,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".claude/skills/ui-ux-pro-max/scripts/search.py",
+      "language": "py",
+      "loc": 127,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".dockerignore",
+      "language": "markdown",
+      "loc": 28,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".gitattributes",
+      "language": "markdown",
+      "loc": 69,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/build-brett.yml",
+      "language": "yml",
+      "loc": 128,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/build-mediaviewer-widget.yml",
+      "language": "yml",
+      "loc": 119,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/build-mentolder-web.yml",
+      "language": "yml",
+      "loc": 94,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/build-sdlc-console.yml",
+      "language": "yml",
+      "loc": 82,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/build-videovault.yml",
+      "language": "yml",
+      "loc": 134,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/build-website.yml",
+      "language": "yml",
+      "loc": 431,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "yml",
+      "loc": 856,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/e2e-pr.yml",
+      "language": "yml",
+      "loc": 212,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/health-goals.yml",
+      "language": "yml",
+      "loc": 162,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".github/workflows/post-merge.yml",
+      "language": "yml",
+      "loc": 177,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".gitignore",
+      "language": "markdown",
+      "loc": 229,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".opencode/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "md",
+      "loc": 183,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "md",
+      "loc": 278,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "md",
+      "loc": 138,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "HEARTBEAT.md",
+      "language": "md",
+      "loc": 7,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "IDENTITY.md",
+      "language": "md",
+      "loc": 13,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "QWEN.md",
+      "language": "md",
+      "loc": 335,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "README.md",
+      "language": "md",
+      "loc": 113,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "SOUL.md",
+      "language": "md",
+      "loc": 38,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "yml",
+      "loc": 5346,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "USER.md",
+      "language": "md",
+      "loc": 21,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "VideoVault/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "VideoVault/Dockerfile",
+      "language": "markdown",
+      "loc": 66,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "VideoVault/Dockerfile.prod",
+      "language": "prod",
+      "loc": 60,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "VideoVault/docker-compose.yml",
+      "language": "yml",
+      "loc": 220,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "art-library/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "brett/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "brett/dev-start.sh",
+      "language": "sh",
+      "loc": 104,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "brett/src/server/migrations/001_session_events.sql",
+      "language": "sql",
+      "loc": 25,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "brett/src/server/migrations/003_share_tokens.sql",
+      "language": "sql",
+      "loc": 16,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "components/website/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "compose.dev.yaml",
+      "language": "yaml",
+      "loc": 74,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "design-system/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "docs/agent-context/heartbeat.md",
+      "language": "md",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "docs/agent-context/persona.md",
+      "language": "md",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "docs/agent-context/user.md",
+      "language": "md",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "docs/code-quality/gates.yaml",
+      "language": "yaml",
+      "loc": 266,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "docs/code-quality/subsystems.yaml",
+      "language": "yaml",
+      "loc": 63,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-15-repo-structure-reorg-design.md",
+      "language": "md",
+      "loc": 120,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "mediaviewer-widget/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "mediaviewer-widget/Dockerfile",
+      "language": "markdown",
+      "loc": 23,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "mentolder-web/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "mentolder-web/Dockerfile",
+      "language": "markdown",
+      "loc": 30,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "scripts/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "studio-server/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "taskfiles/Taskfile.dev-stack.yml",
+      "language": "yml",
+      "loc": 387,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "taskfiles/Taskfile.staging.yml",
+      "language": "yml",
+      "loc": 347,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/e2e/brett-globals.d.ts",
+      "language": "ts",
+      "loc": 42,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/e2e/specs/brett-hidden-figures.spec.ts",
+      "language": "ts",
+      "loc": 116,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/factory-eval/fixtures/T001935/expected.json",
+      "language": "json",
+      "loc": 17,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/figure-pack-assets.test.sh",
+      "language": "sh",
+      "loc": 27,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/integration/brett-templates.bats",
+      "language": "bats",
+      "loc": 26,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/local/NFA-13.sh",
+      "language": "sh",
+      "loc": 37,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/react-homepage-blocks.bats",
+      "language": "bats",
+      "loc": 144,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/repo-structure/components-group.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/repo-structure/inventory-registered.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/repo-structure/packages-assets.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/repo-structure/root-agent-md.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/repo-structure/website-moved.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/s1-violations.bats",
+      "language": "bats",
+      "loc": 19,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/unit/.coverage-allowlist",
+      "language": "markdown",
+      "loc": 62,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/unit/test_art_library_manifest.bats",
+      "language": "bats",
+      "loc": 34,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/**",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/data/test-inventory.json",
+      "language": "json",
+      "loc": 5102,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "Move-Chore ohne neue Symbole: symbols/db_tables/api_contracts/external_types nicht anwendbar und daher leer.",
+      "severity": "info"
+    },
+    {
+      "note": "Glob-Eintraege (z.B. website/**) sind Ownership-Globs fuer D1/I1; loc ist 0. Feindateilisten und s1-Budgets stehen in den Partial-Plaenen (B1a-konform).",
+      "severity": "warn"
+    },
+    {
+      "note": "Querschnitts-Referenzdateien gehoeren geschlossen an p4-website (D1); Branch-Zwischenzustaende duerfen einzelne Checks rot zeigen, der Squash-Merge-Endzustand ist gruen.",
+      "severity": "info"
+    }
+  ]
+}

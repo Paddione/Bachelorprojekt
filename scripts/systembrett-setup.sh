@@ -13,7 +13,7 @@
 #   WORKSPACE_NAMESPACE — exported by `source scripts/env-resolve.sh <env>`;
 #                         used as the namespace fallback for ENV=korczewski
 #   TEMPLATE_SRC — path to systembrett.whiteboard
-#                  (defaults to website/public/systembrett/systembrett.whiteboard
+#                  (defaults to components/website/public/systembrett/systembrett.whiteboard
 #                   relative to the repo root)
 # ══════════════════════════════════════════════════════════════════════════════
 set -euo pipefail
@@ -22,7 +22,7 @@ NAMESPACE="${NAMESPACE:-${WORKSPACE_NAMESPACE:-workspace}}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEMPLATE_SRC="${TEMPLATE_SRC:-${REPO_ROOT}/website/public/systembrett/systembrett.whiteboard}"
+TEMPLATE_SRC="${TEMPLATE_SRC:-${REPO_ROOT}/components/website/public/systembrett/systembrett.whiteboard}"
 
 NC_USER="admin"
 NC_FOLDER="Coaching"

@@ -18,7 +18,7 @@ function makeFixtureRepo() {
     '',
     '| Signals | Agent |',
     '|---------|-------|',
-    '| `website/`, Astro, component | `bachelorprojekt-website` |',
+    '| `components/website/`, Astro, component | `bachelorprojekt-website` |',
     '| pod, logs, kubectl, status | `bachelorprojekt-ops` |',
     '',
   ].join('\n'), 'utf8');

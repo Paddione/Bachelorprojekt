@@ -3,8 +3,8 @@ import { basename } from 'node:path';
 import { extractText } from './lib-extract.mjs';
 // eslint-disable-next-line import/extensions
 import { makePool, sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats } from '../knowledge/lib-knowledge-pg.mjs';
-import { chunkText } from '../../website/src/lib/chunking.ts';
-import { embedBatch } from '../../website/src/lib/embeddings.ts';
+import { chunkText } from '../../components/website/src/lib/chunking.ts';
+import { embedBatch } from '../../components/website/src/lib/embeddings.ts';
 
 interface CliFlags {
   title?: string;

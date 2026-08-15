@@ -50,8 +50,8 @@ test.describe('FA content-hub: concurrency safety (AC 6)', { tag: ['@content-hub
   test('two saves with the same baseVersion — second gets 409 (API contract)', async ({ playwright }) => {
     // Without admin credentials in this project we can only verify the auth gate
     // from here. The full optimistic-lock 409 path is covered by:
-    //   website/src/pages/api/admin/content/save.test.ts (unit mock)
-    //   website/src/lib/admin/conflict.test.ts (pure helper)
+    //   components/website/src/pages/api/admin/content/save.test.ts (unit mock)
+    //   components/website/src/lib/admin/conflict.test.ts (pure helper)
     // This test documents the expected API contract so future authenticated
     // runners (dev-flow-iterate against a live cluster) can exercise it.
     const request = await anonContext(playwright);

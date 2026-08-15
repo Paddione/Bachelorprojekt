@@ -2,12 +2,12 @@
 # Gate configuration. scan.* defines the universe for emit + every gate.
 scan:
   code_roots:
-    - website
+    - components/website
     - tests
     - scripts
-    - brett
+    - components/brett
     - assets
-    - art-library
+    - assets/art-library
     - k3d
     - prod
     - prod-fleet
@@ -24,7 +24,7 @@ scan:
     - .opencode
   ignore_globs:
     - "k3d/docs-content-built/**"
-    - "website/src/lib/system-test-seed-data.ts"
+    - "components/website/src/lib/system-test-seed-data.ts"
     # Synthetic gate-test fixtures live under scripts/** (scripts-infra) but must
     # never enter the scan-universe — otherwise they perturb repo-index.json and
     # could be mistaken for orphans/over-limit files. Ignoring them keeps the
@@ -70,10 +70,10 @@ s1:
     .java: 600    # war 400
     .php: 600     # war 400
   ignore:
-    - "website/src/lib/system-test-seed-data.ts"
+    - "components/website/src/lib/system-test-seed-data.ts"
     # helpContent.ts is a static copy/dictionary catalog defining contextual help text
     # and action checklists for portal and admin routes. Static text catalog.
-    - "website/src/lib/helpContent.ts"
+    - "components/website/src/lib/helpContent.ts"
     # pipeline.js is a single monolithic Claude Code Workflow script: the harness
     # forbids top-level imports-before-`meta` and dynamic import(), so it cannot be
     # safely split into modules (see T000460). It is a sanctioned exception to the
@@ -85,15 +85,15 @@ s1:
     # billing-db.ts extracted from website-db.ts (G-SIZE03 / T001293): collects all
     # billing schema-init DDL. At 618 lines it slightly exceeds the 600-line limit;
     # future goal can reduce further if needed.
-    - "website/src/lib/billing-db.ts"
+    - "components/website/src/lib/billing-db.ts"
     # tickets-schema.ts akkumuliert das gesamte DDL + Helper für das
     # `tickets`-PostgreSQL-Schema. Splitting-Grenze ist die Tabelle
     # (Tabelle = Datei-Abschnitt), nicht die Datei — analog zu
     # website-db.ts. Entstanden mit G-CQ07 (S2-Import-Zyklus #1).
-    - "website/src/lib/tickets-schema.ts"
+    - "components/website/src/lib/tickets-schema.ts"
     # GLTFLoader.js is a vendored Three.js loader (MIT) shipped as a single
     # monolithic browser bundle. Cannot be reasonably split; vendor file.
-    - "brett/public/lib/GLTFLoader.js"
+    - "components/brett/public/lib/GLTFLoader.js"
     # scripts/ticket.sh is a sanctioned single-file CLI (735 lines) — the plan
     # explicitly lists it as "low priority, do not split" (G-RH01 Batch 1).
     - "scripts/ticket.sh"
@@ -120,7 +120,7 @@ s1:
 s2:
   graphs:
     - id: website
-      tsconfig: website/tsconfig.json
+      tsconfig: components/website/tsconfig.json
     - id: e2e
       tsconfig: tests/e2e/tsconfig.json
 
@@ -131,14 +131,14 @@ s3:
     - prod-fleet/
     - prod-mentolder/
     - prod-korczewski/
-    - website/src/
+    - components/website/src/
   # configmap-domains.yaml is the *.localhost dev SSOT — never a violation.
   # sitemap.xml.ts derives domain from BRAND env var (legitimate conditional) — not a hardcoded host.
   # Brand-specific overlays (prod-<brand>/kustomization.yaml + prod-<brand>/ddns-updater.yaml)
   # pin the brand's own domain by design — the file is the brand-scoped overlay, not a
   # cross-brand hardcode. prod/coredns-signaling-override.yaml + prod/cloud-init-dev-vm.yaml
   # are special-purpose configs (CoreDNS rewrite / Proxmox cloud-init) where the host is
-  # the resource's own identity. website/src/lib/*.generated.json are emitted from the
+  # the resource's own identity. components/website/src/lib/*.generated.json are emitted from the
   # agent-guide/components registry — the host strings live in doc text, not config.
   # goals-data.generated.json (T001884) is generated from .claude/lib/goals.md — some
   # goal `measurement` fields are literal reproduction commands (e.g. G-FE05's Lighthouse
@@ -146,20 +146,20 @@ s3:
   # hardcoded app config value.
   allowlist_files:
     - k3d/configmap-domains.yaml
-    - website/src/pages/sitemap.xml.ts
+    - components/website/src/pages/sitemap.xml.ts
     - prod-fleet/mentolder/sessions-server.yaml
     - prod-mentolder/kustomization.yaml
     - prod-korczewski/kustomization.yaml
     - prod-korczewski/ddns-updater.yaml
     - prod/coredns-signaling-override.yaml
     - prod/cloud-init-dev-vm.yaml
-    - website/src/lib/agent-guide.generated.json
-    - website/src/lib/platform-descriptions.generated.json
+    - components/website/src/lib/agent-guide.generated.json
+    - components/website/src/lib/platform-descriptions.generated.json
     # T002639: mit dem SDLC-Split nach lib/sdlc/ umgezogen. Diese Allowlist ist
     # PFADGEBUNDEN — nach einer Verschiebung greift der alte Eintrag nicht mehr und
     # der unveraenderte Inhalt erscheint als NEUER Verstoss. Beim Verschieben einer
     # hier gelisteten Datei den Pfad mitziehen.
-    - website/src/lib/sdlc/goals-data.generated.json
+    - components/website/src/lib/sdlc/goals-data.generated.json
 
 s4:
   manifest_globs:
@@ -237,30 +237,32 @@ s5:
     - path: "."
       allowed: ["package-lock.json"]
       forbidden: ["pnpm-lock.yaml"]
-    - path: "website"
+    - path: "components/website"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]
-    # brett: nur package-lock.json (Install-/CI-Quelle für npm ci — Dockerfile,
-    # ci.yml und build-brett.yml nutzen ausschließlich npm).
+    # components/brett: nur package-lock.json (Install-/CI-Quelle für npm ci —
+    # Dockerfile, ci.yml und build-brett.yml nutzen ausschließlich npm).
     #
     # Bis T002247 erlaubte diese Regel BEIDE Lockfiles, mit der Begründung
     # pnpm-lock.yaml sei nötig, damit Renovate brett-Deps prüfen kann [T001224].
     # Diese Begründung stammt aus PR #2183 — vor dem Renovate-Setup (T000898) —
     # und wurde per Renovate-Extraktionslauf (platform=local, dry-run) widerlegt:
     # mit und ohne pnpm-lock.yaml extrahiert Renovate identisch
-    # 12 npm-Dateien / 323 Deps inkl. brett/package.json. Der einzige Unterschied
-    # war, dass brett/package.json BEIDE Lockfiles zugeordnet bekam
+    # 12 npm-Dateien / 323 Deps inkl. components/brett/package.json. Der einzige
+    # Unterschied war, dass components/brett/package.json BEIDE Lockfiles
+    # zugeordnet bekam
     # (npmLock + pnpmShrinkwrap) — genau der Auslöser der Repository-Problem-
     # Warnung "Updating multiple npm lock files is deprecated".
     #
-    # Hinweis: brett/pnpm-workspace.yaml existiert weiterhin und enthält reine
+    # Hinweis: components/brett/pnpm-workspace.yaml existiert weiterhin und
+    # enthält reine
     # pnpm-Settings (allowBuilds, minimumReleaseAgeExclude) für ein Projekt, das
     # per npm installiert wird. Renovate extrahiert die Datei als Package-File.
     # Ungeprüft, ob sie noch einen Zweck erfüllt — nicht Teil von T002247.
-    - path: "brett"
+    - path: "components/brett"
       allowed: ["package-lock.json"]
       forbidden: ["pnpm-lock.yaml"]
-    - path: "mentolder-web"
+    - path: "components/mentolder-web"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]
 

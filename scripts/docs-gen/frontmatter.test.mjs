@@ -13,7 +13,7 @@ test('parseFrontmatter: folded block scalar (description: >) keeps the FULL mult
     'description: >',
     '  Use for Astro and Svelte website development, UI components, frontend design,',
     '  brand-specific layouts, and the /api/* backend endpoints in the Bachelorprojekt',
-    '  website. Triggers on: website/, Astro, Svelte, component, homepage, kore,',
+    '  website. Triggers on: components/website/, Astro, Svelte, component, homepage, kore,',
     '  mentolder brand, CSS, UI, frontend, design.',
     '---',
     '',

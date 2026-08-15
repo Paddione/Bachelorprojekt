@@ -192,7 +192,7 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 
 @test "FA-SF-32: a .sql file is escalate-class" {
   source scripts/factory/classify-paths.sh
-  run paths_are_escalate_class "website/src/db/migrate.sql"
+  run paths_are_escalate_class "components/website/src/db/migrate.sql"
   [ "$status" -eq 0 ]
 }
 
@@ -210,13 +210,13 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 
 @test "FA-SF-32: pure website src is NOT escalate-class" {
   source scripts/factory/classify-paths.sh
-  run paths_are_escalate_class "website/src/pages/index.astro,website/src/lib/foo.ts"
+  run paths_are_escalate_class "components/website/src/pages/index.astro,components/website/src/lib/foo.ts"
   [ "$status" -eq 1 ]
 }
 
 @test "FA-SF-32: mixed list with one shared-state path IS escalate-class" {
   source scripts/factory/classify-paths.sh
-  run paths_are_escalate_class "website/src/lib/foo.ts,Taskfile.yml"
+  run paths_are_escalate_class "components/website/src/lib/foo.ts,Taskfile.yml"
   [ "$status" -eq 0 ]
 }
 
@@ -257,7 +257,7 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
 }
 
 @test "FA-SF-33: eslint failure classifies as lint" {
-  printf '/website/src/foo.ts\n  3:1  error  Missing semicolon  eslint\n' > "$TMPLOG"
+  printf '/components/website/src/foo.ts\n  3:1  error  Missing semicolon  eslint\n' > "$TMPLOG"
   run _cf
   [ "$output" = "lint" ]
 }
@@ -293,7 +293,7 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
 @test "FA-SF-33: stale-artifact freshness failure classifies as freshness" {
   # The fixture names route-manifest.json on purpose: freshness must win over the
   # `manifest` class (the word 'manifest' appears in the stale file path).
-  printf "  ✗ website/src/data/route-manifest.json is stale — run 'task freshness:regenerate' locally and commit\nERROR: 1 generated artifact(s) are stale (see above).\n" > "$TMPLOG"
+  printf "  ✗ components/website/src/data/route-manifest.json is stale — run 'task freshness:regenerate' locally and commit\nERROR: 1 generated artifact(s) are stale (see above).\n" > "$TMPLOG"
   run _cf
   [ "$status" -eq 0 ]
   [ "$output" = "freshness" ]
@@ -301,7 +301,7 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
 
 # ── FA-SF-34-prefix-conflict ────────────────────────────────────#
 # FA-SF-34: directory-prefix conflict heuristic regression.
-#   - two website/src/pages/ features stay PARALLEL (no conflict)
+#   - two components/website/src/pages/ features stay PARALLEL (no conflict)
 #   - two k3d/ features in the same dir SERIALIZE (conflict via prefix branch)
 #
 # Die Seeds werden vor dem Conflict-Check auf status='in_progress' gesetzt:
@@ -325,14 +325,14 @@ _sf_mark_inprogress() {
     "UPDATE tickets.tickets SET status='in_progress' WHERE external_id='$ext';" >/dev/null
 }
 
-@test "FA-SF-34: two website/src/pages features do NOT conflict (stay parallel)" {
+@test "FA-SF-34: two components/website/src/pages features do NOT conflict (stay parallel)" {
   _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   local existing
-  existing=$(seed_test_feature "$brand" "website/src/pages/foo.astro")
+  existing=$(seed_test_feature "$brand" "components/website/src/pages/foo.astro")
   _sf_mark_inprogress "$existing"
   run env BRAND="$brand" FACTORY_CTX="$FACTORY_CTX" \
-    bash scripts/factory/conflict-check.sh "T999998" "website/src/pages/bar.astro"
+    bash scripts/factory/conflict-check.sh "T999998" "components/website/src/pages/bar.astro"
   [ "$status" -eq 0 ]
   [ "$output" = "[]" ]
 }
@@ -353,10 +353,10 @@ _sf_mark_inprogress() {
   _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   local existing
-  existing=$(seed_test_feature "$brand" "website/src/lib/shared.ts")
+  existing=$(seed_test_feature "$brand" "components/website/src/lib/shared.ts")
   _sf_mark_inprogress "$existing"
   run env BRAND="$brand" FACTORY_CTX="$FACTORY_CTX" \
-    bash scripts/factory/conflict-check.sh "T999996" "website/src/lib/shared.ts"
+    bash scripts/factory/conflict-check.sh "T999996" "components/website/src/lib/shared.ts"
   [ "$status" -eq 1 ]
   [[ "$output" =~ "$existing" ]]
 }

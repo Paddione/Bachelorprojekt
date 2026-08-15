@@ -286,9 +286,10 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # [T006371] Ohne `|| true`: eine fehlgeschlagene Regeneration bricht die
       # Subshell ab (set -e), statt den Archiv-Branch ohne frische Status-Map
       # zu pushen (PR #4529/#4533).
+      # Pfade seit T006999 (p4): website/ -> components/website/.
       task freshness:regenerate
-      git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
-      git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+      git add openspec/changes/ openspec/changes/archive/ openspec/specs/ components/website/src/data/openspec-status.json
+      git add -u -- components/website/src/data components/website/src/lib components/website/public/learning-assets docs
       git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
       # Pre-Push-Freshness-Verifikation (T006371): freshness:check diffet die
       # regenerierten Artefakte gegen HEAD. Meldet er Drift, werden die
@@ -297,8 +298,8 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # "regenerated but not staged", PR #4529/#4533).
       if ! task freshness:check; then
         echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
-        git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
-        git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+        git add openspec/changes/ openspec/changes/archive/ openspec/specs/ components/website/src/data/openspec-status.json
+        git add -u -- components/website/src/data components/website/src/lib components/website/public/learning-assets docs
         git commit --amend --no-edit
         task freshness:check
       fi

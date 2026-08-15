@@ -245,7 +245,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   einen Selektor suchen, einen Konsolen-/Netzwerk-Trace ansehen. Also die Fälle, in denen ein
   Snapshot des lebenden DOM die Frage beantwortet.
 - **Wann NICHT:** für wiederholbare Regressionstests. Die gehören als `.spec.ts` unter
-  `website/e2e/` und laufen über [`dev-flow-e2e`](../dev-flow-e2e/SKILL.md) — eine MCP-Sitzung
+  `components/website/e2e/` und laufen über [`dev-flow-e2e`](../dev-flow-e2e/SKILL.md) — eine MCP-Sitzung
   hinterlässt kein Artefakt, das die CI erneut ausführen könnte.
 - **Fallback:** `npx playwright test --headed --debug` bzw. `codegen` in der Shell.
 
@@ -268,7 +268,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   URL entgegennimmt.
 - **Tools:** `bge_embed`, `bge_rerank`.
 - **Wann bevorzugen:** lokale Vektor-Embeddings und Reranking über die bge-Paare.
-- **Fallback:** direkter HTTP-Aufruf an die Paar-URLs (siehe `website/src/lib/bge-router.ts`).
+- **Fallback:** direkter HTTP-Aufruf an die Paar-URLs (siehe `components/website/src/lib/bge-router.ts`).
 
 **Der Server verlangt zwingend einen Bearer-Token.** Über HTTP entfällt die implizite
 Authentifizierung, die stdio dadurch besitzt, dass nur der startende Prozess sprechen kann; der

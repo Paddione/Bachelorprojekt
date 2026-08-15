@@ -49,7 +49,7 @@ k3d/vaultwarden-seed-credentials.yaml
 k3d/vaultwarden-seed-job.yaml
 # ── Runtime-Daten (Docker-Volumes, DB, Certs) ──
 data/
-!website/src/data/
+!components/website/src/data/
 
 # ── Backup-Dumps (Skripte ja, Dumps nein) ──────
 backup/*.sql
@@ -87,8 +87,8 @@ wireguard/*.pub
 tracking.db
 
 # ── Website (Astro build output) ───────────────
-website/dist/
-website/.astro/
+components/website/dist/
+components/website/.astro/
 
 # ── Worktrees ───────────────────────────────────
 .worktrees/
@@ -120,7 +120,7 @@ files_main.txt
 # prod-korczewski/realm-workspace-korczewski.json tracked — Keycloak realm config (no credentials)
 prod/realm-workspace-prod.json
 # prod-korczewski/kustomization.yaml tracked — no secrets in this file
-website/.superpowers/
+components/website/.superpowers/
 .superpowers/
 .playwright-mcp/
 test-results/
@@ -144,7 +144,7 @@ __pycache__/
 coaching-sources/*
 !coaching-sources/.gitkeep
 
-# ── Coaching scripts (node_modules is symlinked to website/node_modules) ──
+# ── Coaching scripts (node_modules is symlinked to components/website/node_modules) ──
 scripts/coaching/node_modules
 
 # ── WSL/Windows NTFS alternate data streams ──

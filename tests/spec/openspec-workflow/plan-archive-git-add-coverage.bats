@@ -23,7 +23,7 @@
 #   - openspec/specs/                       : SSOT-Delta-Merge (openspec-merge.mjs batch, Pass 2)
 #   - openspec/changes/                     : Move-Quelle  (mv "$dir" "$dest")
 #   - openspec/changes/archive/             : Move-Ziel    (mv "$dir" "$dest")
-#   - website/src/data/openspec-status.json : Regeneration (openspec-status-map.sh) + eigenes Staging (T003136)
+#   - components/website/src/data/openspec-status.json : Regeneration (openspec-status-map.sh) + eigenes Staging (T003136)
 #
 # Positiv-Anker (T002356-M1): der erste Test verlangt die Existenz der
 # git add-Zeile mit openspec/changes/ — ohne sie bestuenden die
@@ -47,7 +47,7 @@ ARCHIVE_MUTATION_PATHS=(
   'openspec/changes/'
   'openspec/changes/archive/'
   'openspec/specs/'
-  'website/src/data/openspec-status.json'
+  'components/website/src/data/openspec-status.json'
 )
 
 @test "T004271: Positiv-Anker — die Referenz traegt eine git add-Liste mit openspec/changes/" {

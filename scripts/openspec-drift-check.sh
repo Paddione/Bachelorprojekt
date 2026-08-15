@@ -23,12 +23,12 @@ run_self_test() {
 
   cat > openspec/component-map.yaml <<'MAP'
 mappings:
-  - prefix: website/src/lib/tickets
+  - prefix: components/website/src/lib/tickets
     spec: tickets
 MAP
   echo "# tickets spec" > openspec/specs/tickets.md
-  mkdir -p website/src/lib/tickets
-  echo "seed" > website/src/lib/tickets/.gitkeep
+  mkdir -p components/website/src/lib/tickets
+  echo "seed" > components/website/src/lib/tickets/.gitkeep
   git add -A >/dev/null && git commit -q -m "chore: seed base" >/dev/null
   git branch -q -m main >/dev/null 2>&1 || true
   git checkout -q -b origin-main-shadow >/dev/null 2>&1
@@ -86,15 +86,15 @@ MAP
 
   # Case 1: feat PR changes mapped code, no spec touch -> exactly one DRIFT line, exit 0.
   assert_case "drift-warns" "case1" "feat: add ticket helper" \
-    "website/src/lib/tickets/x.ts" "export const x = 1;" \
+    "components/website/src/lib/tickets/x.ts" "export const x = 1;" \
     "" "" "" 0 "DRIFT: " ""
 
   # Case 2: same diff + delta spec touched -> no DRIFT line, exit 0.
   git checkout -q main >/dev/null 2>&1
   git branch -q -D case2 >/dev/null 2>&1 || true
   git checkout -q -b case2 >/dev/null 2>&1
-  mkdir -p website/src/lib/tickets openspec/changes/demo/specs
-  echo "export const x = 1;" > website/src/lib/tickets/x.ts
+  mkdir -p components/website/src/lib/tickets openspec/changes/demo/specs
+  echo "export const x = 1;" > components/website/src/lib/tickets/x.ts
   echo "## ADDED Requirements" > openspec/changes/demo/specs/tickets.md
   git add -A >/dev/null && git commit -q -m "feat: add ticket helper with spec" >/dev/null
   out="$(env PR_TITLE="feat: add ticket helper" bash "$REPO_ROOT/scripts/openspec-drift-check.sh" 2>&1)"
@@ -111,8 +111,8 @@ MAP
   git checkout -q main >/dev/null 2>&1
   git branch -q -D case3 >/dev/null 2>&1 || true
   git checkout -q -b case3 >/dev/null 2>&1
-  mkdir -p website/src/lib/tickets
-  echo "export const x = 1;" > website/src/lib/tickets/x.ts
+  mkdir -p components/website/src/lib/tickets
+  echo "export const x = 1;" > components/website/src/lib/tickets/x.ts
   git add -A >/dev/null && git commit -q -m "chore: fixture" >/dev/null
   out="$(env PR_TITLE="chore: housekeeping" bash "$REPO_ROOT/scripts/openspec-drift-check.sh" 2>&1)"
   status=$?

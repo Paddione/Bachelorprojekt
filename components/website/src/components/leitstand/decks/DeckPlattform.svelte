@@ -63,7 +63,10 @@
   });
 </script>
 
-<section class="deck-plattform" data-testid="deck-panel-plattform">
+<!-- Betriebsparameter + Kosten/Observability (T007957/E3, p2 Task 2). Beide
+     Karten laden ihre Daten selbst; die <h3>-Zwischenueberschrift erhaelt die
+     visuelle Trennung des alten DevStatusTabs-Doppeltabs. -->
+<section class="deck-plattform" data-testid="deck-panel-plattform" data-purpose-id="deck-plattform">
   <ControlPanel />
 
   <h3 class="deck-plattform__sub">Observability</h3>

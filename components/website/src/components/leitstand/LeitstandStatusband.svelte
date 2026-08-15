@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import PilotLight from '../sdlc/factory/PilotLight.svelte';
   import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store.ts';
+  import { helpOverlayActive } from '../../lib/stores/help-overlay-store.ts';
   import { deriveCountdownSec } from '../../lib/parallel-status';
 
   interface Props {
@@ -17,7 +18,6 @@
   let nextTickAt: string | null = $state(null);
   let nowMs = $state(Date.now());
   let tickTimer: ReturnType<typeof setInterval> | null = null;
-  let helpOpen = $state(false);
 
   let remainingSec = $derived(
     nextTickAt ? deriveCountdownSec(nextTickAt, new Date(nowMs).toISOString()) : null,
@@ -65,14 +65,17 @@
     };
   });
 
-  // Help-Toggle: lokaler Zustand, aendert NIE station/ticket/deck in der URL
-  // (Requirement "Help toggle opens without changing the selection").
+  // Help-Toggle (E5/T008017): der Zustand lebt im helpOverlayActive-Store,
+  // weil der HelpOverlay-Layer eine separate Astro-Insel ist (client:load) —
+  // lokaler $state hier erreichte ihn nicht. Der Toggle aendert NIE
+  // station/ticket/deck in der URL (Requirement "Help toggle opens without
+  // changing the selection").
   function toggleHelp() {
-    helpOpen = !helpOpen;
+    helpOverlayActive.update((v) => !v);
   }
 </script>
 
-<header class="ls-statusband" data-testid="leitstand-statusband">
+<header class="ls-statusband" data-testid="leitstand-statusband" data-purpose-id="statusband">
   <div class="ls-statusband__left">
     <span class="ls-statusband__brand">{brand}</span>
 
@@ -121,15 +124,14 @@
     <button
       type="button"
       class="ls-statusband__help"
-      aria-expanded={helpOpen}
+      data-testid="leitstand-help-toggle"
+      aria-expanded={$helpOverlayActive}
+      aria-pressed={$helpOverlayActive}
+      title="Hilfe-Overlay ein-/ausblenden"
       onclick={toggleHelp}
     >?</button>
   </div>
 </header>
-
-{#if helpOpen}
-  <p class="ls-statusband__help-hint" role="status">Hilfe-Overlay folgt in E5</p>
-{/if}
 
 <style>
   .ls-statusband {
@@ -211,13 +213,11 @@
     color: var(--ls-text-primary);
   }
 
-  .ls-statusband__help-hint {
-    margin: 0;
-    padding: var(--ls-space-3) var(--ls-space-6);
-    background: var(--ls-surface-raised);
-    border-bottom: 1px solid var(--ls-line);
-    color: var(--ls-text-muted);
-    font-size: 0.75rem;
+  /* Gedrueckter Toggle (E5): Overlay ist offen — Signal-Farbe statt Border. */
+  .ls-statusband__help[aria-pressed='true'] {
+    border-color: var(--ls-signal-info);
+    background: var(--ls-signal-info-dim);
+    color: var(--ls-signal-info);
   }
 
   @media (max-width: 767px) {

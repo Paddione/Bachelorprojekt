@@ -341,7 +341,8 @@
   </section>
 {/if}
 
-<!-- T002059: the Repo-Health dashboard moved to /admin/repohealth (admin-only).
+<!-- T002059: the Repo-Health dashboard moved to /admin/repohealth (admin-only),
+     E5/T008017: now absorbed into the Leitstand cockpit deck /sdlc/cockpit?deck=qualitaet.
      It used to render publicly here; Astro hoisted its GoalsDashboard.css into the
      homepage graph (render-blocking, and leaking onto the mentolder homepage). -->
 

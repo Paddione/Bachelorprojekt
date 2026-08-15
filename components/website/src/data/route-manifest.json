@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 109,
+  "count": 106,
   "routes": [
     {
       "route": "/",
@@ -842,31 +842,7 @@
       "media": false
     },
     {
-      "route": "/sdlc/ki-konfiguration",
-      "authTier": "public",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/sdlc/platform",
-      "authTier": "public",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/sdlc/prompts",
-      "authTier": "public",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/sdlc/repohealth",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

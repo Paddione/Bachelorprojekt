@@ -206,6 +206,38 @@ try {
     );
   }
 
+  // [T008017/E5] Help-Overlay: der [?]-Toggle im Statusband traegt eine
+  // testid (Anker fuer Overlay-Checks); ?report=1 setzt die .report-Klasse
+  // am Shell-Root (Export-Vorschau der Print-Darstellung).
+  check('Help-Toggle-testid vorhanden', (await page.locator('[data-testid="leitstand-help-toggle"]').count()) > 0);
+
+  const reportResp = await page.goto(`${BASE}/sdlc/cockpit?report=1`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+  check(
+    '?report=1 setzt .report-Klasse am Shell-Root',
+    (await page.locator('#cockpit-root.report').count()) > 0,
+    `HTTP ${reportResp?.status() ?? 0}`,
+  );
+
+  // [T008017/E5] Absorptions-Redirects: die drei Satelliten-Pfade antworten
+  // 301 auf ihr Deck-Ziel. Geprueft wird die SEMANTIK (Location-Header-Wert),
+  // nicht ein Format-Anker (T002716). Die Middleware redirectet vor dem
+  // Auth-Gate, daher ist kein Session-Kontext noetig.
+  const redirectCases = [
+    ['/sdlc/repohealth', '/sdlc/cockpit?deck=qualitaet'],
+    ['/sdlc/prompts', '/sdlc/cockpit?deck=wissen'],
+    ['/sdlc/ki-konfiguration', '/sdlc/cockpit?deck=ki'],
+  ];
+  for (const [from, to] of redirectCases) {
+    try {
+      const rr = await context.request.get(`${BASE}${from}`, { maxRedirects: 0, timeout: 15_000 });
+      const loc = rr.headers()['location'] ?? '(keine)';
+      check(`301 ${from} -> ${to}`, rr.status() === 301 && loc === to, `Status ${rr.status()}, Location ${loc}`);
+    } catch (e) {
+      check(`301 ${from} -> ${to}`, false, e?.message || 'Request-Fehler');
+    }
+  }
+
   await page.screenshot({ path: SHOT, fullPage: true }).catch(() => {});
   log('Screenshot:', SHOT);
 

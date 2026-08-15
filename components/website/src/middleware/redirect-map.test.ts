@@ -3,19 +3,22 @@ import { resolveRedirect, REDIRECT_MAP } from './redirect-map';
 
 // Zeichengenaue SSOT-Tabelle — muss byte-fuer-byte der REDIRECT_MAP in redirect-map.ts entsprechen.
 // ADR-006 Etappe 1 (T002624): die 12 SDLC-Seiten sind nach /sdlc/ umgezogen.
+// E5 (T008017): die drei Satelliten-Pfade leiten auf ihr Deck-Ziel; /admin/*-Quellen
+// der absorbierten Seiten folgen demselben Ziel; Cockpit-Ziele nutzen nur noch das
+// Leitstand-URL-Schema (station/ticket/deck) — keine ?tab=-Ziele.
 const CASES: ReadonlyArray<readonly [string, string]> = [
   ['/admin/cockpit',                  '/sdlc/cockpit'],
   ['/admin/observability',            '/sdlc/observability'],
   // E4 (T008016): /sdlc/observability ist ein reines Kettenglied zur
   // Platzhalter-Entfernung -- Ziel ist das Live-Plattform-Deck.
   ['/sdlc/observability',             '/sdlc/cockpit?deck=plattform'],
-  ['/admin/repohealth',               '/sdlc/repohealth'],
+  ['/admin/repohealth',               '/sdlc/cockpit?deck=qualitaet'],
   ['/admin/software-history',         '/sdlc/software-history'],
   ['/admin/architektur',              '/sdlc/architektur'],
   ['/admin/platform',                 '/sdlc/platform'],
   ['/admin/app-catalog',              '/sdlc/app-catalog'],
-  ['/admin/prompts',                  '/sdlc/prompts'],
-  ['/admin/ki-konfiguration',         '/sdlc/ki-konfiguration'],
+  ['/admin/prompts',                  '/sdlc/cockpit?deck=wissen'],
+  ['/admin/ki-konfiguration',         '/sdlc/cockpit?deck=ki'],
   ['/admin/systemtest/board',         '/sdlc/systemtest/board'],
   ['/admin/tickets',                  '/sdlc/cockpit'],
   ['/admin/startseite',               '/admin/inhalte?tab=website&section=startseite'],
@@ -29,15 +32,18 @@ const CASES: ReadonlyArray<readonly [string, string]> = [
   ['/admin/50plus-digital',           '/admin/inhalte?tab=website&section=50plus-digital'],
   ['/admin/fuehrung-persoenlichkeit', '/admin/inhalte?tab=website&section=fuehrung-persoenlichkeit'],
   ['/admin/ki-transition',            '/admin/inhalte?tab=website&section=ki-transition'],
-  ['/admin/planungsbuero',            '/sdlc/cockpit?tab=planung'],
-  ['/admin/dora',                     '/sdlc/cockpit?tab=analytics'],
-  ['/admin/factory-budget',           '/sdlc/cockpit?tab=kosten'],
-  ['/admin/factory-observability',    '/sdlc/cockpit?tab=kosten'],
+  ['/admin/planungsbuero',            '/sdlc/cockpit?station=planung'],
+  ['/admin/dora',                     '/sdlc/cockpit'],
+  ['/admin/factory-budget',           '/sdlc/cockpit?deck=plattform'],
+  ['/admin/factory-observability',    '/sdlc/cockpit?deck=plattform'],
   ['/admin/ops',                      '/sdlc/platform'],
   ['/admin/monitoring',               '/sdlc/platform'],
   ['/admin/stream',                   '/admin/live'],
   ['/admin/newsletter',               '/admin/dokumente'],
   ['/admin/wissensquellen',           '/admin/wissen'],
+  ['/sdlc/repohealth',                '/sdlc/cockpit?deck=qualitaet'],
+  ['/sdlc/prompts',                   '/sdlc/cockpit?deck=wissen'],
+  ['/sdlc/ki-konfiguration',          '/sdlc/cockpit?deck=ki'],
 ];
 
 describe('resolveRedirect', () => {
@@ -45,7 +51,7 @@ describe('resolveRedirect', () => {
     expect(resolveRedirect(from)).toBe(to);
   });
 
-  it('enthaelt genau 32 Eintraege und keine Zusatz-Keys', () => {
+  it('enthaelt genau 35 Eintraege und keine Zusatz-Keys', () => {
     expect(Object.keys(REDIRECT_MAP).sort()).toEqual(CASES.map(([p]) => p).sort());
   });
 
@@ -59,7 +65,7 @@ describe('resolveRedirect', () => {
   });
 
   it('normalisiert einen einzelnen Trailing-Slash', () => {
-    expect(resolveRedirect('/admin/dora/')).toBe('/sdlc/cockpit?tab=analytics');
+    expect(resolveRedirect('/admin/dora/')).toBe('/sdlc/cockpit');
   });
 
   it('gibt null fuer nicht-gemappte Pfade zurueck (dynamische Routen bleiben unberuehrt)', () => {

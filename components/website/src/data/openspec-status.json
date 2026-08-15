@@ -3975,6 +3975,12 @@
       "status": "archived"
     }
   ],
+  "T008017": [
+    {
+      "slug": "sdlc-leitstand-e5-help-absorption",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

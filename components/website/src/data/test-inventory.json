@@ -4482,8 +4482,20 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/leitstand-absorption",
+    "file": "tests/spec/sdlc-cockpit/leitstand-absorption.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/leitstand-ds-tokens",
     "file": "tests/spec/sdlc-cockpit/leitstand-ds-tokens.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/leitstand-help-overlay",
+    "file": "tests/spec/sdlc-cockpit/leitstand-help-overlay.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

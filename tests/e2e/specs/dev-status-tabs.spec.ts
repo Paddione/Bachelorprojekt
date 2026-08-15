@@ -23,9 +23,9 @@ test('FA-UNIF-03: Tab-Wechsel ändert URL ohne Reload', async ({ page }) => {
   await expect(page.locator('.tabs__tab--active')).toContainText('Planung');
 });
 
-test('FA-UNIF-04: /admin/planungsbuero → /admin/cockpit?tab=planung', async ({ page }) => {
+test('FA-UNIF-04: /admin/planungsbuero → /sdlc/cockpit?station=planung (E5/T008017)', async ({ page }) => {
   await page.goto('/admin/planungsbuero', { waitUntil: 'domcontentloaded' });
-  await expect(page).toHaveURL(/\/admin\/cockpit\?tab=planung/);
+  await expect(page).toHaveURL(/\/sdlc\/cockpit\?station=planung/);
 });
 
 test('FA-UNIF-05: Tab-Bar wird gerendert mit 6 Tabs', async ({ page }) => {
@@ -102,13 +102,13 @@ test('FA-UNIF-11: sidebar does not scroll with the Werkstatt accordion open (144
   expect(overflow).toBe(false);
 });
 
-test('FA-UNIF-12: legacy routes redirect to /admin/cockpit', async ({ page }) => {
+test('FA-UNIF-12: legacy routes redirect to the Leitstand cockpit (E5/T008017)', async ({ page }) => {
   await page.goto('/dev-status?tab=planung', { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(/\/admin\/cockpit\?tab=planung/);
   await page.goto('/admin/factory-observability', { waitUntil: 'domcontentloaded' });
-  await expect(page).toHaveURL(/\/admin\/cockpit\?tab=kosten/);
+  await expect(page).toHaveURL(/\/sdlc\/cockpit\?deck=plattform/);
   await page.goto('/admin/dora', { waitUntil: 'domcontentloaded' });
-  await expect(page).toHaveURL(/\/admin\/cockpit\?tab=analytics/);
+  await expect(page).toHaveURL('**/sdlc/cockpit');
 });
 
 });

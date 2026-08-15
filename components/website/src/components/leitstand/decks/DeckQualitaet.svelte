@@ -4,7 +4,7 @@
 
 <!-- Reiner Re-Export (T007957/E3, p2 Task 1): die Karte laedt sich vollstaendig
      selbst (Befund 1) -- kein State, kein Fetch, keine Props. -->
-<section class="deck-qualitaet" data-testid="deck-panel-qualitaet">
+<section class="deck-qualitaet" data-testid="deck-panel-qualitaet" data-purpose-id="deck-qualitaet">
   <GoalsDashboard />
 </section>
 

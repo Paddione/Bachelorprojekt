@@ -17,10 +17,20 @@ comment recording the measurement run, values and date (K3 measurement from T006
 - **THEN** entries `gemma-4-e4b@ud-q4_k_xl` and `qwen3.5-4b@q6_k` exist with
   `limit.context` 32768 and `limit.output` 4096
 - **AND** neither entry carries a backend-port literal
-- **AND** both entries carry a comment naming the measurement run and date
+- **AND** the entries carry a comment naming the measurement run and date
 
-#### Scenario: Tablet slot no longer references the 12B model
+#### Scenario: Support models are discoverable through the llm-proxy
 
-- **GIVEN** the T007033 change on the branch
-- **WHEN** the `lmstudio` provider block is inspected
-- **THEN** no entry named `gemma-4-12b@ud-iq3_xxs` exists
+- **GIVEN** the llm-proxy is running and LM Studio on the laptop devices has the support
+  models loaded
+- **WHEN** the guard queries `:18235/v1/models`
+- **THEN** both support model ids are listed; when the devices or the proxy are offline,
+  the guard skips instead of failing
+
+#### Scenario: Context limits reflect measured values after the Vulkan measurement
+
+- **GIVEN** the Vulkan measurement task has been executed and its result recorded as a
+  ticket comment with the executable command
+- **WHEN** the measured values are available
+- **THEN** the entry's `limit` values are updated to the measured sizes and the entry
+  carries a GEMESSEN note naming the measurement run

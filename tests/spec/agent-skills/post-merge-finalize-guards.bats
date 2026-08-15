@@ -63,16 +63,13 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-# Rot heute: nach der Archiv-Sektion bleibt der Arbeitsbaum auf dem Archiv-
-# Branch stehen (git checkout -B, Z. 218 — wechselt den Branch des geteilten
-# Arbeitsbaums paralleler Sessions); grün nach dem Fix: das Skript merkt sich
-# den vorherigen Branch und restauriert ihn nach der Sektion.
-#
-# SKIP (T006791): Der Restore-Mechanismus (ARCHIVE_PREV_BRANCH) wurde in PR
-# #4572 nicht implementiert — die Assertion ist gegen main rot und bleibt als
-# sichtbarer skip stehen, bis T006791 den Fix liefert; dann skip entfernen.
+# Rot vor T006791: nach der Archiv-Sektion blieb der Arbeitsbaum auf dem
+# Archiv-Branch stehen (git checkout -B, Z. 218 — wechselt den Branch des
+# geteilten Arbeitsbaums paralleler Sessions); grün nach dem Fix (T006791):
+# das Skript merkt sich den vorherigen Branch (ARCHIVE_PREV_BRANCH) vor der
+# Archiv-Sektion und restauriert ihn nach der Sektion (Restore greift auch auf
+# Fehlerpfaden, T002357-Fallenklasse).
 @test "T006348: Skript restauriert den Arbeitsbaum-Branch nach der Archiv-Sektion" {
-  skip "T006791: ARCHIVE_PREV_BRANCH-Restore fehlt auf main — Fix läuft in T006791"
   run grep -qF 'ARCHIVE_PREV_BRANCH' "$FINALIZE"
   [ "$status" -eq 0 ]
 }

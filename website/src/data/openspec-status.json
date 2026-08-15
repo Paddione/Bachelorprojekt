@@ -3813,6 +3813,12 @@
       "status": "archived"
     }
   ],
+  "T006348": [
+    {
+      "slug": "2026-08-15-post-merge-finalize-guards",
+      "status": "archived"
+    }
+  ],
   "T006664": [
     {
       "slug": "mcp-task-runner-node-port",

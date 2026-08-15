@@ -84,7 +84,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 ```
 
-- [ ] **Finale Verifikation (mandatory CI-Gates).**
+- [x] **Finale Verifikation (mandatory CI-Gates).**
 
 ```bash
 task test:changed

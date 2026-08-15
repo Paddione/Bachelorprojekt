@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "slug": "post-merge-finalize-guards",
+    "ticket_id": "T006348",
+    "generated_from": "main@c7b2a2b95",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/devflow-post-merge-finalize.sh",
+      "language": "bash",
+      "loc": 294,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 506
+    },
+    {
+      "path": "tests/spec/agent-skills/post-merge-finalize-guards.bats",
+      "language": "bash",
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/post-merge-finalize-guards/specs/agent-skills.md",
+      "language": "markdown",
+      "loc": 40,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:38:usage() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "38:usage() {(...)",
+      "type_text": "38:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:80:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "80:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "type_text": "80:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:81:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "81:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); }(...)",
+      "type_text": "81:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:93:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "93:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "type_text": "93:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/post-merge-finalize-guards.bats:22:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/post-merge-finalize-guards.bats",
+      "signature": "22:setup() {(...)",
+      "type_text": "22:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

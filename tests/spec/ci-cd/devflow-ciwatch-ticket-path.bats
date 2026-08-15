@@ -47,7 +47,7 @@ setup() {
   cat > "$WORK/fake-ticket.sh" <<'TICKET_EOF'
 #!/usr/bin/env bash
 echo "ticket.sh $*" >> "$MARKER_DIR/ticket-calls"
-if [[ "$2" == "assert-phase-chain" ]]; then
+if [[ "$1" == "assert-phase-chain" || "$2" == "assert-phase-chain" ]]; then
   exit "${FAKE_ASSERT_EXIT:-0}"
 fi
 exit 0

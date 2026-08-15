@@ -12,8 +12,11 @@ if [[ -z "$TICKET_ID" || -z "$PR_URL" ]]; then
   exit 2
 fi
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" || exit 2
+TICKET_SH="${TICKET_SH:-$SCRIPT_DIR/ticket.sh}"
+
 PR_NUM_TELEM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
-./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow \
+"$TICKET_SH" phase "$TICKET_ID" deploy entered --driver devflow \
   --detail "PR #$PR_NUM_TELEM · CI watch" 2>/dev/null || true
 
 # Preflight: if GitHub reports the PR as DIRTY (needs rebase), CI never starts —
@@ -57,7 +60,11 @@ fi
 PR_STATE=$(gh pr view "$PR_URL" --json state -q '.state' 2>/dev/null || echo "")
 if [[ "$PR_STATE" == "MERGED" ]]; then
   echo "✅ PR bereits gemergt (state=MERGED) — Checks waren per Branch-Protection bereits grün. Überspringe Poll-Loop."
-  if ! ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"; then
+  if [[ ! -x "$TICKET_SH" ]]; then
+    echo "⚠ ticket.sh nicht erreichbar ($TICKET_SH) — Phase-Chain kann nicht verifiziert werden (Worktree entfernt?)." >&2
+    exit 7
+  fi
+  if ! "$TICKET_SH" assert-phase-chain --id "$TICKET_ID"; then
     echo "❌ Phase-Chain nicht vollständig — siehe Meldungen oben." >&2
     exit 6
   fi
@@ -68,7 +75,7 @@ CI_ATTEMPT=0
 while true; do
   CI_ATTEMPT=$((CI_ATTEMPT + 1))
   echo "⏳ CI-Check Versuch $CI_ATTEMPT/$MAX_CI_ATTEMPTS für $PR_URL ..."
-  ./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow \
+  "$TICKET_SH" phase "$TICKET_ID" deploy entered --driver devflow \
     --detail "CI attempt $CI_ATTEMPT/$MAX_CI_ATTEMPTS" 2>/dev/null || true
 
   gh pr checks "$PR_URL" --watch --interval 15 2>/dev/null || true
@@ -152,7 +159,11 @@ while true; do
 
   if [[ -z "$FAILED_CHECKS" ]]; then
     echo "✅ $TOTAL_CHECKS CI-Checks, alle grün."
-    if ! ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"; then
+    if [[ ! -x "$TICKET_SH" ]]; then
+      echo "⚠ ticket.sh nicht erreichbar ($TICKET_SH) — Phase-Chain kann nicht verifiziert werden (Worktree entfernt?)." >&2
+      exit 7
+    fi
+    if ! "$TICKET_SH" assert-phase-chain --id "$TICKET_ID"; then
       echo "❌ Phase-Chain nicht vollständig — siehe Meldungen oben." >&2
       exit 6
     fi

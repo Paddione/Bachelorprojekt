@@ -3449,7 +3449,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 754,
+      "file_count": 753,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3837,7 +3837,6 @@
         "scripts/git-stash-net.sh",
         "scripts/git-worktree-health.sh",
         "scripts/gpu-lock.sh",
-        "scripts/guard-bonsai-overwrite.sh",
         "scripts/guard-pnpm-install.sh",
         "scripts/harness.ts",
         "scripts/health-goals-check.sh",

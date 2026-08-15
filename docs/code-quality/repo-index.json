@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1033,
+      "file_count": 1034,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -360,6 +360,7 @@
         "tests/spec/agent-roster.bats",
         "tests/spec/agent-skills.bats",
         "tests/spec/agent-skills/agent-lock-claim-help-flag.bats",
+        "tests/spec/agent-skills/automerge-preflight-check.bats",
         "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
         "tests/spec/agent-skills/executor-post-merge-death.bats",
         "tests/spec/agent-skills/guard-semantics-konvention.bats",
@@ -3430,7 +3431,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 739,
+      "file_count": 740,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3555,6 +3556,7 @@
         "scripts/check-connectivity.sh",
         "scripts/check-fix-ticket-guard.sh",
         "scripts/check-pod-phase-filter.sh",
+        "scripts/check-pr-automerge.sh",
         "scripts/check-skip-ci-marker.sh",
         "scripts/check-updates.sh",
         "scripts/ci-dummy-secrets.sh",

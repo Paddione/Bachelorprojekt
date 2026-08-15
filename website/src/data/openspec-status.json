@@ -3825,6 +3825,12 @@
       "status": "archived"
     }
   ],
+  "T006366": [
+    {
+      "slug": "devflow-automerge-preflight",
+      "status": "plan_staged"
+    }
+  ],
   "T006368": [
     {
       "slug": "2026-08-15-spec-junit-shard-ignore",

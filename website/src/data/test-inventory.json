@@ -2106,6 +2106,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/automerge-preflight-check",
+    "file": "tests/spec/agent-skills/automerge-preflight-check.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
     "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
     "category": "agent-skills",

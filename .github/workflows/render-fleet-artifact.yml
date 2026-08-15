@@ -40,6 +40,9 @@ concurrency:
 permissions:
   contents: read
   packages: write
+  # Keyless Cosign signing: the GitHub OIDC token proves the workflow identity
+  # to Sigstore (Fulcio/Rekor). Without id-token the `cosign sign` step fails.
+  id-token: write
 
 env:
   OPENSPEC_TELEMETRY: '0'
@@ -112,6 +115,20 @@ jobs:
           flux tag artifact \
             oci://ghcr.io/paddione/fleet-manifests:latest \
             --tag "sha-${GITHUB_SHA}"
+
+      # Keyless supply-chain signing. The signature attaches to the pushed
+      # digest, so both `latest` and `sha-<GITSHA>` resolve to a verified
+      # artifact. The cluster verifies via OCIRepository spec.verify
+      # (flux/clusters/fleet/oci-source.yaml) with the same OIDC identity.
+      - name: Sign OCI artifact (cosign keyless)
+        run: |
+          set -euo pipefail
+          if ! command -v cosign > /dev/null; then
+            curl -sSL "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64" \
+              -o /usr/local/bin/cosign
+            chmod +x /usr/local/bin/cosign
+          fi
+          cosign sign --yes "oci://ghcr.io/paddione/fleet-manifests:latest"
 
       - name: Ping Flux receiver (immediate reconcile)
         if: success()

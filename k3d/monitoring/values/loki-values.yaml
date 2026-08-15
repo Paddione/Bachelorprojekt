@@ -17,7 +17,9 @@ singleBinary:
       cpu: 100m
       memory: 256Mi
     limits:
-      cpu: 1
+      # String quantity, not bare int — YAML number fails strict schema validation
+      # (flux-schema: "got number, want string"). 1000m == 1 CPU core.
+      cpu: 1000m
       memory: 1Gi
 
 loki:

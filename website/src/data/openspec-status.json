@@ -3909,6 +3909,12 @@
       "status": "archived"
     }
   ],
+  "T007056": [
+    {
+      "slug": "mishap-rollup-direct-dispatch",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -4488,6 +4488,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/leitstand-livedaten",
+    "file": "tests/spec/sdlc-cockpit/leitstand-livedaten.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/leitstand-purpose-registry",
     "file": "tests/spec/sdlc-cockpit/leitstand-purpose-registry.bats",
     "category": "sdlc-cockpit",

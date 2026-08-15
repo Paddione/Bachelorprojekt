@@ -3969,6 +3969,12 @@
       "status": "archived"
     }
   ],
+  "T008016": [
+    {
+      "slug": "sdlc-leitstand-e4-livedaten",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

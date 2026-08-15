@@ -2,7 +2,7 @@ services:
   videovault:
     build:
       context: ..
-      dockerfile: VideoVault/Dockerfile.prod
+      dockerfile: components/VideoVault/Dockerfile.prod
     container_name: videovault
     profiles:
       - prod

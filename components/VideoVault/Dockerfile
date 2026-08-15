@@ -17,20 +17,20 @@ RUN apt-get update \
 COPY packages/videovault-player/ /packages/videovault-player/
 
 # Dependency manifests + build configs
-COPY VideoVault/package*.json ./
-COPY VideoVault/tsconfig.json ./
-COPY VideoVault/vite.config.ts ./
-COPY VideoVault/tailwind.config.cjs ./
-COPY VideoVault/postcss.config.js ./
+COPY components/VideoVault/package*.json ./
+COPY components/VideoVault/tsconfig.json ./
+COPY components/VideoVault/vite.config.ts ./
+COPY components/VideoVault/tailwind.config.cjs ./
+COPY components/VideoVault/postcss.config.js ./
 
 RUN --mount=type=cache,target=/root/.npm npm install -g npm@11 && npm install --legacy-peer-deps
 
 # Sources
-COPY VideoVault/shared/ ./shared/
-COPY VideoVault/client/ ./client/
-COPY VideoVault/server/ ./server/
-COPY VideoVault/scripts/ ./scripts/
-COPY VideoVault/drizzle.config.ts ./
+COPY components/VideoVault/shared/ ./shared/
+COPY components/VideoVault/client/ ./client/
+COPY components/VideoVault/server/ ./server/
+COPY components/VideoVault/scripts/ ./scripts/
+COPY components/VideoVault/drizzle.config.ts ./
 
 # prebuild copies ffmpeg-core to client/public/ffmpeg, then vite+esbuild
 RUN npm run build
@@ -47,13 +47,13 @@ RUN apt-get update \
 ENV NODE_ENV=production
 
 COPY --from=build /app/shared/ ./shared/
-COPY VideoVault/package*.json ./
+COPY components/VideoVault/package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm install -g npm@11 && npm install --legacy-peer-deps --omit=dev
 
 COPY --from=build /app/dist ./dist
-COPY VideoVault/migrations/ ./migrations/
-COPY VideoVault/scripts/ ./scripts/
-COPY VideoVault/drizzle.config.ts ./
+COPY components/VideoVault/migrations/ ./migrations/
+COPY components/VideoVault/scripts/ ./scripts/
+COPY components/VideoVault/drizzle.config.ts ./
 
 RUN mkdir -p /app/uploads && chown node:node /app/uploads
 

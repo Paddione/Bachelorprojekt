@@ -206,7 +206,7 @@ while true; do
 
   # Sandbox preflight: resolve the default backend once and record it for this tick.
   if [[ "${FACTORY_SANDBOX:-auto}" == "auto" ]]; then
-    if docker info >/dev/null 2>&1; then
+    if timeout 10 docker info >/dev/null 2>&1; then
       export FACTORY_SANDBOX=docker
     elif kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" version >/dev/null 2>&1; then
       export FACTORY_SANDBOX=k8s

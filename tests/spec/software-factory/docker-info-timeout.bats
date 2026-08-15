@@ -93,6 +93,7 @@ STUB
   start="$(date +%s)"
   FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" \
     FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" FACTORY_DRY_RUN=true \
+    FACTORY_SANDBOX=auto \
     FACTORY_IDLE_RETICK_ENABLED=false \
     FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" \
     PATH="${stubdir}:${PATH}" run bash "$WAKEUP"

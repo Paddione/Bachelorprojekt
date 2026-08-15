@@ -1,0 +1,587 @@
+{
+  "meta": {
+    "slug": "sdlc-leitstand-e3-shell",
+    "ticket_id": "T007957",
+    "generated_from": "main@60df76fd0",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/components/DevStatusTabs.svelte",
+      "language": "svelte",
+      "loc": 351,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 749
+    },
+    {
+      "path": "components/website/src/components/PlanningOffice.svelte",
+      "language": "svelte",
+      "loc": 433,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 667
+    },
+    {
+      "path": "components/website/src/components/cockpit/CockpitRail.svelte",
+      "language": "svelte",
+      "loc": 308,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 792
+    },
+    {
+      "path": "components/website/src/components/cockpit/CommandBar.svelte",
+      "language": "svelte",
+      "loc": 255,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 845
+    },
+    {
+      "path": "components/website/src/components/cockpit/OverviewDashboard.svelte",
+      "language": "svelte",
+      "loc": 351,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 749
+    },
+    {
+      "path": "components/website/src/components/leitstand/DeckLeiste.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/Kontextzone.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/decks/*.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "language": "svelte",
+      "loc": 332,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 768
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/AttentionStrip.svelte",
+      "language": "svelte",
+      "loc": 18,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1082
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "language": "svelte",
+      "loc": 60,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1040
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/MobileTabBar.svelte",
+      "language": "svelte",
+      "loc": 84,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 1016
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/StationColumn.svelte",
+      "language": "svelte",
+      "loc": 261,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 839
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5174,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/__tests__/leitstand-metrics.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/__tests__/leitstand-purpose-registry.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/__tests__/leitstand-url.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/leitstand-metrics.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/leitstand-purpose-registry.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/leitstand-url.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/cockpit.astro",
+      "language": "astro",
+      "loc": 226,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": 774
+    },
+    {
+      "path": "scripts/sdlc-cockpit-smoke.mjs",
+      "language": "javascript",
+      "loc": 123,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 677
+    },
+    {
+      "path": "tests/spec/pipeline-interface.bats",
+      "language": "bash",
+      "loc": 106,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/layout-rail-fixed.bats",
+      "language": "bash",
+      "loc": 59,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/leitstand-purpose-registry.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/leitstand-url-scheme.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/components/DevStatusTabs.svelte:29:  function switchTab(tab: Tab) {",
+      "kind": "function",
+      "file": "components/website/src/components/DevStatusTabs.svelte",
+      "signature": "29:  function switchTab(tab: Tab) {(...)",
+      "type_text": "29:  function switchTab(tab: Tab) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/DevStatusTabs.svelte:108:  function fmtCountdown(sec: number): string {",
+      "kind": "function",
+      "file": "components/website/src/components/DevStatusTabs.svelte",
+      "signature": "108:  function fmtCountdown(sec: number): string {(...)",
+      "type_text": "108:  function fmtCountdown(sec: number): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/DevStatusTabs.svelte:119:    loadParallel();",
+      "kind": "function",
+      "file": "components/website/src/components/DevStatusTabs.svelte",
+      "signature": "119:    loadParallel();(...)",
+      "type_text": "119:    loadParallel();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/DevStatusTabs.svelte:123:    return () => {",
+      "kind": "function",
+      "file": "components/website/src/components/DevStatusTabs.svelte",
+      "signature": "123:    return () => {(...)",
+      "type_text": "123:    return () => {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/DevStatusTabs.svelte:144:      loadParallel();",
+      "kind": "function",
+      "file": "components/website/src/components/DevStatusTabs.svelte",
+      "signature": "144:      loadParallel();(...)",
+      "type_text": "144:      loadParallel();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/DevStatusTabs.svelte:164:    return () => window.removeEventListener('floor-stub-update', handler);",
+      "kind": "function",
+      "file": "components/website/src/components/DevStatusTabs.svelte",
+      "signature": "164:    return () => window.removeEventListener('floor-stub-update', handler);(...)",
+      "type_text": "164:    return () => window.removeEventListener('floor-stub-update', handler);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:130:  function selectItem(it: PlanItem) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "130:  function selectItem(it: PlanItem) {(...)",
+      "type_text": "130:  function selectItem(it: PlanItem) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:155:  function onDragStart(e: DragEvent, it: PlanItem) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "155:  function onDragStart(e: DragEvent, it: PlanItem) {(...)",
+      "type_text": "155:  function onDragStart(e: DragEvent, it: PlanItem) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:163:  function onDragOver(e: DragEvent, idx: number) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "163:  function onDragOver(e: DragEvent, idx: number) {(...)",
+      "type_text": "163:  function onDragOver(e: DragEvent, idx: number) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:168:  function onDragLeave() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "168:  function onDragLeave() {(...)",
+      "type_text": "168:  function onDragLeave() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:182:  function onDragEnd() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "182:  function onDragEnd() {(...)",
+      "type_text": "182:  function onDragEnd() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:192:  function onHandlePointerDown(e: PointerEvent, it: PlanItem) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "192:  function onHandlePointerDown(e: PointerEvent, it: PlanItem) {(...)",
+      "type_text": "192:  function onHandlePointerDown(e: PointerEvent, it: PlanItem) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:198:  function onHandlePointerMove(e: PointerEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "198:  function onHandlePointerMove(e: PointerEvent) {(...)",
+      "type_text": "198:  function onHandlePointerMove(e: PointerEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:219:  function toggleView() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "219:  function toggleView() {(...)",
+      "type_text": "219:  function toggleView() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:225:  function onResize() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "225:  function onResize() {(...)",
+      "type_text": "225:  function onResize() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:229:  function onSheetPointerDown(e: PointerEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "229:  function onSheetPointerDown(e: PointerEvent) {(...)",
+      "type_text": "229:  function onSheetPointerDown(e: PointerEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:233:  function onSheetPointerUp(e: PointerEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "233:  function onSheetPointerUp(e: PointerEvent) {(...)",
+      "type_text": "233:  function onSheetPointerUp(e: PointerEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:256:    load();",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "256:    load();(...)",
+      "type_text": "256:    load();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/PlanningOffice.svelte:259:  function onFloorRefresh() {",
+      "kind": "function",
+      "file": "components/website/src/components/PlanningOffice.svelte",
+      "signature": "259:  function onFloorRefresh() {(...)",
+      "type_text": "259:  function onFloorRefresh() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CockpitRail.svelte:53:  function buildSections(): RailSection[] {",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CockpitRail.svelte",
+      "signature": "53:  function buildSections(): RailSection[] {(...)",
+      "type_text": "53:  function buildSections(): RailSection[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CommandBar.svelte:29:  function fmtCountdown(sec: number): string {",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CommandBar.svelte",
+      "signature": "29:  function fmtCountdown(sec: number): string {(...)",
+      "type_text": "29:  function fmtCountdown(sec: number): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CommandBar.svelte:36:  function switchMode(mode: CockpitMode) {",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CommandBar.svelte",
+      "signature": "36:  function switchMode(mode: CockpitMode) {(...)",
+      "type_text": "36:  function switchMode(mode: CockpitMode) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CommandBar.svelte:55:  function dispatch(name: string, detail: unknown) {",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CommandBar.svelte",
+      "signature": "55:  function dispatch(name: string, detail: unknown) {(...)",
+      "type_text": "55:  function dispatch(name: string, detail: unknown) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CommandBar.svelte:80:    loadParallel();",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CommandBar.svelte",
+      "signature": "80:    loadParallel();(...)",
+      "type_text": "80:    loadParallel();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CommandBar.svelte:84:    return () => {",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CommandBar.svelte",
+      "signature": "84:    return () => {(...)",
+      "type_text": "84:    return () => {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CommandBar.svelte:85:      unsub();",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CommandBar.svelte",
+      "signature": "85:      unsub();(...)",
+      "type_text": "85:      unsub();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/CommandBar.svelte:86:      release();",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/CommandBar.svelte",
+      "signature": "86:      release();(...)",
+      "type_text": "86:      release();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/cockpit/OverviewDashboard.svelte:86:  function navigateToPhase(phase: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/cockpit/OverviewDashboard.svelte",
+      "signature": "86:  function navigateToPhase(phase: string) {(...)",
+      "type_text": "86:  function navigateToPhase(phase: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:41:    return () => mq.removeEventListener('change', handler);",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "41:    return () => mq.removeEventListener('change', handler);(...)",
+      "type_text": "41:    return () => mq.removeEventListener('change', handler);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:53:    return () => window.removeEventListener('floor-stub-update', handler);",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "53:    return () => window.removeEventListener('floor-stub-update', handler);(...)",
+      "type_text": "53:    return () => window.removeEventListener('floor-stub-update', handler);(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:56:  function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "56:  function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }(...)",
+      "type_text": "56:  function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:57:  function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "57:  function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }(...)",
+      "type_text": "57:  function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:58:  function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "58:  function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }(...)",
+      "type_text": "58:  function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:59:  function onTouchEnd(e: TouchEvent) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "59:  function onTouchEnd(e: TouchEvent) {(...)",
+      "type_text": "59:  function onTouchEnd(e: TouchEvent) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:102:  function closeDetail() { selected = null; detail = null; }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "102:  function closeDetail() { selected = null; detail = null; }(...)",
+      "type_text": "102:  function closeDetail() { selected = null; detail = null; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:141:  function toggleManualHint(extId: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "141:  function toggleManualHint(extId: string) {(...)",
+      "type_text": "141:  function toggleManualHint(extId: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/FactoryFloor.svelte:153:    return () => { unsub(); release(); };",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/FactoryFloor.svelte",
+      "signature": "153:    return () => { unsub(); release(); };(...)",
+      "type_text": "153:    return () => { unsub(); release(); };(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:21:  function itemsFor(phase: Phase): HallItem[] {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "21:  function itemsFor(phase: Phase): HallItem[] {(...)",
+      "type_text": "21:  function itemsFor(phase: Phase): HallItem[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte:29:  function isMobileVisible(phase: Phase): boolean {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/ConveyorBelt.svelte",
+      "signature": "29:  function isMobileVisible(phase: Phase): boolean {(...)",
+      "type_text": "29:  function isMobileVisible(phase: Phase): boolean {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/MobileTabBar.svelte:16:  function handleSelect(i: number) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/MobileTabBar.svelte",
+      "signature": "16:  function handleSelect(i: number) {(...)",
+      "type_text": "16:  function handleSelect(i: number) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/sdlc/cockpit.astro:123:    function cockpitAct(action: string, target?: string) {",
+      "kind": "function",
+      "file": "components/website/src/pages/sdlc/cockpit.astro",
+      "signature": "123:    function cockpitAct(action: string, target?: string) {(...)",
+      "type_text": "123:    function cockpitAct(action: string, target?: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-cockpit/layout-rail-fixed.bats:14:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-cockpit/layout-rail-fixed.bats",
+      "signature": "14:setup() {(...)",
+      "type_text": "14:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

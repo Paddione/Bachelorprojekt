@@ -25,26 +25,19 @@ setup() {
   done
 }
 
-# [T003417] Die Astro-Hülle trägt die Rail-Gruppen nicht mehr. Der Change
-# "sdlc-dashboard-redesign" hebt die D7-Zusicherung "vier feste Gruppen" für die
-# Astro-Seite ausdrücklich auf — siehe MODIFIED Requirement "Layout Engine
-# Surface Organization": "the old spec's four-group immutable list constraint no
-# longer applies". Die Gruppen leben jetzt in CockpitRail.svelte und wechseln mit
-# Modus und Phase; belegt wird das durch die Vitest-Komponententests
-# (components/website/src/components/cockpit/CockpitRail.test.ts), die jede Phase einzeln
-# rendern. Für cockpit-shell.html (die statische Attrappe unter .lavish/) gilt
-# D7 unverändert weiter — der Test darüber bleibt deshalb bestehen.
-@test "T003417 Die Astro-Hülle delegiert die Rail an die Komponente" {
-  # Positiv-Anker: die Hülle bindet die Rail-Komponente überhaupt ein.
-  grep -qF "CockpitRail" "$ASTRO" \
-    || { echo "cockpit.astro bindet CockpitRail nicht ein"; return 1; }
-
-  # Und reicht ihr den Kontext durch, von dem die Gruppen abhängen.
-  grep -qE 'CockpitRail[^>]*mode=' "$ASTRO" \
-    || { echo "cockpit.astro reicht mode nicht an CockpitRail durch"; return 1; }
-  grep -qE 'CockpitRail[^>]*phase=' "$ASTRO" \
-    || { echo "cockpit.astro reicht phase nicht an CockpitRail durch"; return 1; }
-}
+# T003417 entfernt (T007957/E3): pruefte "grep -qF 'CockpitRail' cockpit.astro" plus
+# 'CockpitRail[^>]*mode='/'CockpitRail[^>]*phase=' — dass die Astro-Huelle die Rail-
+# Komponente einbindet und ihr mode/phase durchreicht, von denen die vier D7-Gruppen
+# abhingen. Das MODIFIED Requirement "Kontext-sensitive lebendige Rail" (design.md /
+# specs/sdlc-cockpit.md) ersetzt die Rail ersatzlos durch die selektionsgetriebene Z4
+# Kontextzone: Inhalt haengt an ?station=/?ticket= (floorStore), nicht mehr an mode=/phase=
+# (Props); das Scenario "Old Command-Bar/Rail structure no longer applies" verlangt sogar,
+# dass KEIN Element mehr die CockpitRail-Rolle traegt — ein Redirect dieser Assertion auf
+# cockpit.astro wuerde also das Gegenteil der Spec pruefen. Nachfolger-Coverage: die
+# Zonen-Selektor-Checks in scripts/sdlc-cockpit-smoke.mjs (Kontrakt C, leitstand-*-testids)
+# belegen, dass Kontextzone/Achse/Statusband/Deck-Leiste tatsaechlich gerendert werden;
+# tests/spec/sdlc-cockpit/leitstand-url-scheme.bats belegt die mode=/phase=-Normalisierung
+# auf station=/deck= (Kontrakt B), die die alte mode/phase-Weiterreichung ersetzt.
 
 @test "T002462 Es gibt keinen Konfigurationsschlüssel, der die Rail-Gruppen umstellt" {
   # Negativ-Aussage: kein data-Attribut und keine Variablen-Definition, die eine

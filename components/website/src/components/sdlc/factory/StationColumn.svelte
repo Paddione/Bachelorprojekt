@@ -20,6 +20,9 @@
     onSelect,
     activeConfig = null,
     onOpenDrawer,
+    compact = false,
+    selected = false,
+    onStationSelect,
   }: {
     station: { key: Phase; label: string };
     items: HallItem[];
@@ -28,12 +31,47 @@
     onSelect: (extId: string) => void;
     activeConfig?: ProviderConfigSummary | null;
     onOpenDrawer?: () => void;
+    compact?: boolean;
+    selected?: boolean;
+    onStationSelect?: (key: string) => void;
   } = $props();
 
   let meta  = $derived(PHASE_META[station.key] ?? { n: '—', label: station.label, agent: '', task: '' });
   let active = $derived(items.length > 0);
 </script>
 
+{#if compact}
+  <!-- Z3-Achse (T007957/E3): nur Knoten-Zeile + Header, der ganze Header ist
+       klickbar (onStationSelect statt onSelect -- Ticket-Klick bleibt getrennt). -->
+  <div
+    class="station station--compact"
+    class:station--selected={selected}
+    data-col={station.key}
+  >
+    <button
+      type="button"
+      class="station-compact-btn"
+      onclick={() => onStationSelect?.(station.key)}
+    >
+      <div class="station-node-row">
+        {#if !isFirst}
+          <span class="station-rail station-rail--left" class:station-rail--lit={active}></span>
+        {:else}
+          <span class="station-rail station-rail--left station-rail--invisible"></span>
+        {/if}
+        <span class="station-node" class:station-node--active={active}></span>
+        <span class="station-rail station-rail--right"></span>
+      </div>
+      <div class="station-header" class:station-header--dim={!active}>
+        <div class="station-header-top">
+          <span class="station-num">{meta.n}</span>
+          <span class="station-count">{items.length || '–'}</span>
+        </div>
+        <div class="station-label">{meta.label}</div>
+      </div>
+    </button>
+  </div>
+{:else}
 <div
   class="station"
   class:station--active={active}
@@ -89,6 +127,7 @@
     {/if}
   </div>
 </div>
+{/if}
 
 <style>
   .station {
@@ -257,5 +296,37 @@
   .station-badge--none:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ── Kompakte Achse (T007957/E3, Z3) ─────────────────────────────────── */
+  /* ueberschreibt das mobile .station { display: none }: die Achse ist auf
+     allen Viewports sichtbar (9 Spalten, horizontal scrollbar im Belt). */
+  .station--compact {
+    display: flex;
+  }
+
+  .station-compact-btn {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: var(--ls-surface-raised);
+    border: 1px solid var(--ls-line);
+    border-radius: var(--ls-radius-md);
+    padding: var(--ls-space-3);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color var(--ls-dur-fast) var(--ls-ease),
+      background var(--ls-dur-fast) var(--ls-ease);
+  }
+
+  .station-compact-btn:hover {
+    border-color: var(--ls-line-strong);
+  }
+
+  .station--compact.station--selected .station-compact-btn {
+    border-color: var(--ls-signal-info);
+    background: var(--ls-signal-info-dim);
   }
 </style>

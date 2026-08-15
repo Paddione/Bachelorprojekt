@@ -5,7 +5,14 @@
   import PlanningOfficeTriage from './PlanningOfficeTriage.svelte';
   import PlanningOfficeItem from './PlanningOfficeItem.svelte';
 
-  const { brand: _brand }: { brand: string } = $props();
+  // stationFilter (T007957/E3): Z4-Router filtert die Queue clientseitig.
+  // 'triage' = nur Items mit gesetztem triage-Feld (noch nicht uebernommene
+  // Vorschlaege), 'planung' = der Rest (bereits triagiert, in Planung).
+  // Default null = bestehendes ungefiltertes Verhalten, additiv.
+  const { brand: _brand, stationFilter = null }: {
+    brand: string;
+    stationFilter?: 'triage' | 'planung' | null;
+  } = $props();
 
   interface PlanItem {
     extId: string;
@@ -56,6 +63,14 @@
 
   let isMobile = $derived(
     (viewOverride ?? (windowWidth < 768 ? 'mobile' : 'desktop')) === 'mobile'
+  );
+
+  let visibleItems = $derived(
+    stationFilter === 'triage'
+      ? items.filter((i) => i.triage != null)
+      : stationFilter === 'planung'
+        ? items.filter((i) => i.triage == null)
+        : items
   );
 
   async function load() {
@@ -289,11 +304,11 @@
           </select>
           <button type="submit">+ Anlegen</button>
         </form>
-        {#if !items.length}
+        {#if !visibleItems.length}
           <div class="pb-empty">Büro leer.</div>
         {:else}
           <PlanningOfficeQueue
-            {items}
+            items={visibleItems}
             {isMobile}
             selectedExtId={selected?.extId ?? null}
             {dragSrcExtId}

@@ -211,6 +211,19 @@ done
 
 Dann normal rebasen und alle Partials implementieren.
 
+### Schritt 1.4.7: Auto-Merge-Zustand prüfen
+
+Prüfe, ob für den Branch bereits ein PR mit aktivem Auto-Merge existiert (parallele Session
+oder User-Aktion; Regression T006282):
+
+```bash
+bash scripts/check-pr-automerge.sh
+```
+
+- `rc=1`: Abbruch als Doppel-Execution-Situation (parallele Session oder der User hat bereits
+  einen PR mit Auto-Merge auf dem Branch → koordinieren, nicht duplizieren).
+- `rc=2`: Abbruch als Umgebungsfehler.
+
 
 ---
 

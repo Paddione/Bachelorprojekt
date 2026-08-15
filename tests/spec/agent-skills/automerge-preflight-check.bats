@@ -62,7 +62,13 @@ GHSTUB
 }
 
 @test "T006366: gh fehlt → rc=2 (kein Freibrief als 'kein Auto-Merge')" {
-  # BIN_DIR enthält bewusst keinen gh-Stub; das Skript muss rc=2 melden
+  # gh-Stub simuliert 'command not found' (exit 127) — deterministisch statt Abhängigkeit
+  # von ambient-gh-Abwesenheit (Testumgebung und CI haben /usr/bin/gh, Muster T003137).
+  cat > "$BIN_DIR/gh" <<'GHSTUB'
+#!/usr/bin/env bash
+exit 127
+GHSTUB
+  chmod +x "$BIN_DIR/gh"
   run bash "$REPO_ROOT/scripts/check-pr-automerge.sh" --pr 42
   [ "$status" -eq 2 ]
 }

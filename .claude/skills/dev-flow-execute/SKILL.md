@@ -171,13 +171,23 @@ bash scripts/admin-menu-gate.sh
 Kontext als den Implementer (Self-Attestation ist kein Review, T005307). Ohne bestandenes
 Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
 
-1. Rufe das Skill **`requesting-code-review`** auf (Claude Code — built-in; opencode: nutze
+1. Prüfe den Auto-Merge-Zustand des PRs (Regression T006282: extern aktiviertes Auto-Merge
+   ist für das Gate sonst unsichtbar):
+   ```bash
+   bash scripts/check-pr-automerge.sh
+   ```
+   Semantik:
+   - `rc=1`: Gate bricht fail-closed ab — die Meldung nennt die PR-Nummer; es wird KEIN
+     Review-Ergebnis erteilt und KEIN Auto-Merge deaktiviert (Design D2: der explizite
+     User-Akt wird sichtbar, der Operator entscheidet).
+   - `rc=2`: Abbruch als Umgebungsfehler.
+2. Rufe das Skill **`requesting-code-review`** auf (Claude Code — built-in; opencode: nutze
    `pr-review-toolkit:review-pr` oder delegiere an einen Review-Subagenten via `delegate()`),
    um die Änderungen zu auditieren.
-2. Findings gehen per `SendMessage` an den **bereits gespawnten** Implementer zurück (Muster
+3. Findings gehen per `SendMessage` an den **bereits gespawnten** Implementer zurück (Muster
    Exit 3/4 aus T002365 — kein neuer Spawn, Doppel-Push-Risiko aus T001408); nach dessen Push
    erneut reviewen.
-3. Erst wenn der Reviewer "Approved" gegeben hat, fordere den Auto-Merge an:
+4. Erst wenn der Reviewer "Approved" gegeben hat, fordere den Auto-Merge an:
 
 ```bash
 # Auto-Merge sofort anfordern — GitHub merged selbstständig, sobald Required Checks grün sind.

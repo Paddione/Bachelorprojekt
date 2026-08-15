@@ -31,12 +31,20 @@ source "$HERE/lib.sh"
 STALE_EXCLUDED_TYPES="'project','incident'"
 STALE_MIN="${FACTORY_STALE_MIN:-30}"
 
+# [T006364] factory_excluded-Gate: Tickets, die manuell übernommen wurden (T005560,
+# Fortsetzungs-Kontrakt T002327), werden bewusst von der Factory ferngehalten.
+# Ohne diesen Filter resettet der Watchdog bei FACTORY_STALE_MIN=0 ein aktives
+# in_progress-Ticket alle paar Minuten auf plan_staged, queue.sh dispatcht es erneut,
+# und die Pipeline deferriert am fremden branch-scoped Claim (T003677) — Resume-Livelock.
+# Branch-Claims werden bewusst NICHT als Fortschritt gewertet, da hängende Pipelines
+# selbst Claims hinterlassen. Dasselbe Gate wie in queue.sh (beide Dispatch-Lanes)
+# deckt beide Sweep-Pfade ab (Reset und Eskalation).
 _stale_query() {
   local extra_filter=""
   if [[ "${FACTORY_STALE_EXCLUDE_TEST_SEEDS:-}" == "1" ]]; then
     extra_filter=" AND is_test_data = false"
   fi
-  printf "SELECT external_id, type FROM tickets.tickets WHERE type NOT IN (%s) AND status='in_progress' AND updated_at < now() - make_interval(mins => %s)%s;" \
+  printf "SELECT external_id, type FROM tickets.tickets WHERE type NOT IN (%s) AND status='in_progress' AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false AND updated_at < now() - make_interval(mins => %s)%s;" \
     "$STALE_EXCLUDED_TYPES" "$STALE_MIN" "$extra_filter"
 }
 

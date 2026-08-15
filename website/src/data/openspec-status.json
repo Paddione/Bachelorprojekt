@@ -3819,6 +3819,12 @@
       "status": "archived"
     }
   ],
+  "T006364": [
+    {
+      "slug": "watchdog-factory-excluded-scope",
+      "status": "plan_staged"
+    }
+  ],
   "T006365": [
     {
       "slug": "2026-08-15-worktree-write-guard-session-propagation",

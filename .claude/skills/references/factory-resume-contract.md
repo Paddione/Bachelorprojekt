@@ -51,6 +51,16 @@ zurückfallen — also wieder `blocked` setzen.
 Für den menschlichen Ausführer heißt das: **ein Ticket, das kurz nicht anläuft, ist kein
 Defekt, sondern eine belegte Ressource.**
 
+## Manuelle Übernahme
+
+Wer ein Factory-gestagtes Ticket manuell übernimmt (`dev-flow-execute`), setzt unmittelbar nach dem Branch-Claim `readiness.factory_excluded=true`:
+
+```bash
+bash scripts/ticket.sh plan-meta set --id <external_id> --readiness factory_excluded=true
+```
+
+Watchdog und `queue.sh` respektieren das Flag; ohne es pongt der Watchdog (`STALE_MIN=0`) gegen die Pipeline: Reset auf `plan_staged` → erneuter Dispatch → Defer am fremden Claim → Status bleibt `in_progress` → nächster Tick resettet erneut (beobachtet an T005560, 22:41–22:54 UTC). Nach Abschluss (Merge → done) wird das Flag beim nächsten Dispatch-Bedarf von Hand zurückgesetzt (`--readiness factory_excluded=false`) — es ist die „durable half of `ticket.sh unfactory`" und wird bewusst nie automatisch gelöscht.
+
 ## Das Hold-Gate bleibt unverändert
 
 `readiness.execution_released=false` bleibt der **Default** (T002272). Fortsetzungs-

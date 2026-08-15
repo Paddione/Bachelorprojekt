@@ -3618,6 +3618,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-skill-integration/psql-fallback-ticket-ssot",
+    "file": "tests/spec/mcp-skill-integration/psql-fallback-ticket-ssot.bats",
+    "category": "mcp-skill-integration",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-task-runner/planner-sees-real-deps",
     "file": "tests/spec/mcp-task-runner/planner-sees-real-deps.bats",
     "category": "mcp-task-runner",

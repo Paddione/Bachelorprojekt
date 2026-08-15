@@ -66,8 +66,7 @@ preview/                        Design System tab cards (registered assets)
   portrait.html                 portrait component
   process-step.html             process rail step
 
-ui_kits/
-  website/                      marketing site (homepage, leistungen, kontakt, etc.)
+ui_kits/website/              marketing site (homepage, leistungen, kontakt, etc.)
     index.html                  click-thru prototype
     README.md
     *.jsx                       extracted components

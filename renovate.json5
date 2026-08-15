@@ -41,7 +41,7 @@
     // The warning still fires after these entries (T002246). A full scan of all
     // tracked files found 15 hits, only 6 of which are listed here; the other 9
     // are Markdown/JSON/JSX/TS/Svelte files across docs/, openspec/changes/archive/,
-    // tests/e2e/ and website/src/. Every hit is U+00AD (soft hyphen, German
+    // tests/e2e/ and components/website/src/. Every hit is U+00AD (soft hyphen, German
     // hyphenation), U+200B (zero-width space) or U+200C/U+200D (ZWJ inside emoji
     // sequences) — no bidirectional overrides (U+202A–U+202E), so there is no
     // Trojan-Source exposure. Whether ignorePaths gates the Unicode scanner at all

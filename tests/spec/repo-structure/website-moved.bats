@@ -41,3 +41,45 @@ setup() {
 
   [ "$stale" -eq 0 ] || return 1
 }
+
+@test "T007909: keine stale website/-Referenzen in Config-Klassen (Positiv-Anker)" {
+  # Positiv-Anker zuerst (T002356-M1): ohne den Move schlagen die Negativ-Aussagen
+  # ueber leere Listen vakuos fehl. Der Anker ist der T006999-Test oben
+  # (components/website existiert) — dieser Test ergaenzt die Klassen, die der
+  # urspruengliche Sweep (Taskfile.yml/taskfiles/.github/workflows) NICHT abdeckte:
+  # genau die Klassen, in denen T007855 nach dem Merge 17 Stale-Referenzen fand.
+  [ -f "$REPO_ROOT/components/website/package.json" ] \
+    || { echo "FEHLT: components/website/package.json — Move nicht ausgefuehrt"; return 1; }
+
+  # Config-Klassen aus T007855-Befund (der Sweep verfehlte sie):
+  #   .githooks/, .gitattributes, .dockerignore, renovate.json5,
+  #   docs/code-quality/subsystems.yaml, docs/agent-guide/registry/,
+  #   Root-MDs (bare Formen wie 'cd website' ohne Slash),
+  #   environments/-READMEs, factory-eval-Fixtures.
+  # Sweep-Muster no-slash-Formen (dokumentiert): `cd website`, `--prefix brett`,
+  # `brett/` in Tabellen — alle werden von den -F-Literalen unten erfasst
+  # (git grep -F findet Teilstrings; 'cd website' und 'website/' sind getrennte Muster).
+  local stale=0
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    case "$line" in
+      # neuer Praefix = erlaubt
+      *components/website/*|*components/brett/*) continue ;;
+      # Design-Kit-Ordner (ui_kits/website, ui_kits/brett in art-library/Uploads)
+      # sind KEINE Repo-Pfade — der Sweep ist auf die T007855-Klassen begrenzt.
+      *ui_kits/website/*|*ui_kits/brett/*) continue ;;
+      # k8s-Namespace-Name `website` (schema.yaml), kein Dateisystem-Pfad
+      *"namespace \`website\`"*) continue ;;
+    esac
+    echo "STALE: $line" >&2
+    stale=1
+  done < <(git -C "$REPO_ROOT" grep -F -n -e 'website/' -e 'brett/' \
+    -e 'cd website' -e 'cd brett' -e '--prefix brett' -- \
+    .githooks .gitattributes .dockerignore renovate.json5 \
+    docs/code-quality/subsystems.yaml docs/agent-guide/registry \
+    AGENTS.md README.md components/website/CLAUDE.md \
+    environments tests/factory-eval/fixtures || true)
+
+  [ "$stale" -eq 0 ] || return 1
+}
+

@@ -25,7 +25,7 @@ fi
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 [[ -z "$REPO_ROOT" ]] && exit 0
 
-STATUS_MAP="$REPO_ROOT/website/src/data/openspec-status.json"
+STATUS_MAP="$REPO_ROOT/components/website/src/data/openspec-status.json"
 SCRIPT="$REPO_ROOT/scripts/openspec-status-map.sh"
 
 if [[ -x "$SCRIPT" && -f "$STATUS_MAP" ]]; then

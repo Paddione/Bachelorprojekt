@@ -57,20 +57,20 @@
 
 ## S3 — Help-Overlay-Layer & Zweck-Eindeutigkeit
 
-Jede Leitstand-Komponente deklariert ein `purpose`-Metadatum: `{ zweck: string (1 Satz), datenquelle: string, aktionen: string[] }`. Die Deklarationen leben in einer zentralen, typisierten Registry-Datei (`website/src/lib/sdlc/leitstand-purpose-registry.ts`), damit Guard-Tests sie laden können, statt Svelte-Interna zu greppen. Der `[?]`-Toggle legt einen Overlay-Layer über die Fläche und rendert die Erklärungen in situ (Position der jeweiligen Komponente).
+Jede Leitstand-Komponente deklariert ein `purpose`-Metadatum: `{ zweck: string (1 Satz), datenquelle: string, aktionen: string[] }`. Die Deklarationen leben in einer zentralen, typisierten Registry-Datei (`components/website/src/lib/sdlc/leitstand-purpose-registry.ts`), damit Guard-Tests sie laden können, statt Svelte-Interna zu greppen. Der `[?]`-Toggle legt einen Overlay-Layer über die Fläche und rendert die Erklärungen in situ (Position der jeweiligen Komponente).
 
 **Abnahmekriterium, kein Vorsatz:** Ein BATS-Guard failt, wenn (a) eine registrierte Leitstand-Komponente kein `purpose` trägt oder (b) zwei Komponenten denselben `zweck`-Text tragen. Positiv-Anker-Pflicht (T002356-M1) gilt: der Guard prüft zuerst, dass die Registry nicht leer ist.
 
 ## S4 — Design-System „Leitstand DS"
 
 - **Token-Set** (eigenständig, Control Room): dunkle, kühle Grundtöne (nahe `#0a0c10`–`#12161d`), Linienfarben, Text-Stufen; semantischer Kern ist die **Signal-Ampel** (grün/amber/rot + info); Mono-Typo für Ziffern/IDs; kantige Radien (2–4 px); kompakte Abstände. Glow/Puls ausschließlich für „läuft gerade"-Zustände (Disziplin-Regel gegen Christbaum-Effekt).
-- **Auslieferung:** CSS-Custom-Properties in `website/src/styles/sdlc-leitstand.css`, nur vom SDLC-Build geladen. **Print-Light** als Report-Stylesheet (`@media print` + explizite `.report`-Ansicht), kein zweites interaktives Theme.
-- **Claude-Design-Workflow:** neues Projekt „SDLC Leitstand Design System"; Inhalte: Token-Karten, Komponenten-Previews (Statusband, Station, Ticket-Chip, KPI-Kachel, Attention, Help-Overlay), Icon-Satz (bestehende `website/public/cockpit/icons/` werden übernommen/erneuert). Sync über den etablierten design-sync-Kanal; Qualitäts-Gate für SVGs gilt (currentColor, keine Stray-Hex, kein Root-width/height, T000756).
+- **Auslieferung:** CSS-Custom-Properties in `components/website/src/styles/sdlc-leitstand.css`, nur vom SDLC-Build geladen. **Print-Light** als Report-Stylesheet (`@media print` + explizite `.report`-Ansicht), kein zweites interaktives Theme.
+- **Claude-Design-Workflow:** neues Projekt „SDLC Leitstand Design System"; Inhalte: Token-Karten, Komponenten-Previews (Statusband, Station, Ticket-Chip, KPI-Kachel, Attention, Help-Overlay), Icon-Satz (bestehende `components/website/public/cockpit/icons/` werden übernommen/erneuert). Sync über den etablierten design-sync-Kanal; Qualitäts-Gate für SVGs gilt (currentColor, keine Stray-Hex, kein Root-width/height, T000756).
 - `design-system.astro` wird zum Showcase des Leitstand DS umgebaut (bestehende Seite, neuer Inhalt).
 
 ## S5 — API-/Connector-Katalog
 
-- **Scanner** `scripts/sdlc/api-inventory.mjs`: wertet `website/src/pages/sdlc/api/**` aus (Dateisystem-Routen, exportierte HTTP-Methoden, Backend-Imports → Klassifikation Postgres/K8s-REST/kubectl/GitHub/Prometheus/FS) und ergänzt die MCP-Server aus `docs/agent-guide/registry/mcp.yaml` sowie die 7 factory-mcp-Tools. Output: `website/src/data/api-inventory.json` (deterministisch sortiert).
+- **Scanner** `scripts/sdlc/api-inventory.mjs`: wertet `components/website/src/pages/sdlc/api/**` aus (Dateisystem-Routen, exportierte HTTP-Methoden, Backend-Imports → Klassifikation Postgres/K8s-REST/kubectl/GitHub/Prometheus/FS) und ergänzt die MCP-Server aus `docs/agent-guide/registry/mcp.yaml` sowie die 7 factory-mcp-Tools. Output: `components/website/src/data/api-inventory.json` (deterministisch sortiert).
 - **Kuratierte Felder** (Beschreibung, Tier, Deprecation-Hinweis) in `docs/agent-guide/registry/api-overlay.yaml`; der Scanner mergt sie. Fehlende Kuration ist erlaubt (Feld leer), falsche Referenzen (Overlay-Eintrag ohne gescannten Endpunkt) sind ein Fehler.
 - **CI-Drift-Gate** nach dem test-inventory-Muster: Task regeneriert, CI vergleicht mit dem committeten Stand, Abweichung = rot. BATS-Test verifiziert Output-Semantik (Exit-Code + Kernfelder, keine Formatanker — T002716).
 - **UI:** Katalog-Modul im Wissen-Deck — Suche, Gruppierung nach Pfadpräfix, Methoden-Badges, Backend-Kennzeichnung, Live-Health-Punkt für die vier HTTP-MCPs (:18080/:13001/:13003/:13005 via bestehende Health-Endpunkte).

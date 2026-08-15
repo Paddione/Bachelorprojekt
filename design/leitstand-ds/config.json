@@ -3,7 +3,7 @@
   "projectId": null,
   "localDir": "design/leitstand-ds",
   "uploadGlobs": ["cards/**"],
-  "tokenSource": "website/src/styles/sdlc-leitstand.css",
+  "tokenSource": "components/website/src/styles/sdlc-leitstand.css",
   "cards": [
     "tokens-overview", "signal-set", "statusband-preview",
     "station-card", "kpi-tile", "ticket-chip"

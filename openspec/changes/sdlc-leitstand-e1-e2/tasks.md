@@ -17,26 +17,26 @@ _Ticket: T007559 · Epic: T007553 · Design: `openspec/changes/sdlc-leitstand-e1
 ## File Structure
 
 ```
-website/src/styles/sdlc-leitstand.css              neu       (p1) Leitstand-Token-Set (--ls-*)
-website/src/pages/sdlc/design-system.astro         Umbau     (p1) Showcase des Leitstand DS
+components/website/src/styles/sdlc-leitstand.css              neu       (p1) Leitstand-Token-Set (--ls-*)
+components/website/src/pages/sdlc/design-system.astro         Umbau     (p1) Showcase des Leitstand DS
 design/leitstand-ds/                               neu       (p1) DesignSync-Preview-Bundle (@dsCard)
 scripts/sdlc/api-inventory.mjs                     neu       (p2) API-/Connector-Scanner
-website/src/data/api-inventory.json                neu       (p2) generiertes Inventar (deterministisch)
+components/website/src/data/api-inventory.json                neu       (p2) generiertes Inventar (deterministisch)
 docs/agent-guide/registry/api-overlay.yaml         neu       (p2) kuratierte Felder (Merge-Quelle)
 Taskfile.yml                                       Erweiterung (p2) api:inventory-Task + freshness-Hooks
 .gitattributes                                     Erweiterung (p2) merge=ours für api-inventory.json
 tests/spec/sdlc-cockpit/leitstand-ds-tokens.bats   neu       (p3) Token-Guard (RED-first)
 tests/spec/sdlc-cockpit/api-inventory-drift.bats   neu       (p3) Inventar-Guard (RED-first)
-website/src/data/test-inventory.json               Regenerat (p3) task test:inventory
+components/website/src/data/test-inventory.json               Regenerat (p3) task test:inventory
 ```
 
 ## Partials
 
 | # | Partial-Datei | Rolle | target_files (disjunkt) |
 |---|---|---|---|
-| p1 | `tasks.d/p1-leitstand-ds.md` | website | `website/src/styles/sdlc-leitstand.css`, `website/src/pages/sdlc/design-system.astro`, `design/leitstand-ds/**` |
-| p2 | `tasks.d/p2-api-inventory.md` | infra | `scripts/sdlc/api-inventory.mjs`, `website/src/data/api-inventory.json`, `docs/agent-guide/registry/api-overlay.yaml`, `Taskfile.yml`, `.gitattributes` |
-| p3 | `tasks.d/p3-tests.md` | tests | `tests/spec/sdlc-cockpit/leitstand-ds-tokens.bats`, `tests/spec/sdlc-cockpit/api-inventory-drift.bats`, `website/src/data/test-inventory.json` |
+| p1 | `tasks.d/p1-leitstand-ds.md` | website | `components/website/src/styles/sdlc-leitstand.css`, `components/website/src/pages/sdlc/design-system.astro`, `design/leitstand-ds/**` |
+| p2 | `tasks.d/p2-api-inventory.md` | infra | `scripts/sdlc/api-inventory.mjs`, `components/website/src/data/api-inventory.json`, `docs/agent-guide/registry/api-overlay.yaml`, `Taskfile.yml`, `.gitattributes` |
+| p3 | `tasks.d/p3-tests.md` | tests | `tests/spec/sdlc-cockpit/leitstand-ds-tokens.bats`, `tests/spec/sdlc-cockpit/api-inventory-drift.bats`, `components/website/src/data/test-inventory.json` |
 
 Ausführungsregeln: p1 ∥ p2 parallel möglich (keine Datei-Überlappung); p3 ist das
 Tests-Partial und läuft zuletzt. Keine Datei liegt in zwei Partials (D1).
@@ -45,7 +45,7 @@ Tests-Partial und läuft zuletzt. Keine Datei liegt in zwei Partials (D1).
 
 | Datei | Ist | Budget |
 |---|---|---|
-| `website/src/pages/sdlc/design-system.astro` | 230 | 770 |
+| `components/website/src/pages/sdlc/design-system.astro` | 230 | 770 |
 
 Ermittelt gegen `docs/code-quality/baseline.json` (nicht-baselined) und
 `docs/code-quality/gates.yaml` (`.astro` 1000). Neue Dateien werden mit
@@ -55,7 +55,7 @@ kein S1-Limit). `Taskfile.yml`/`.gitattributes` erhalten nur kleine additive Bl�
 neu registrierte Artefakte bereits abdeckt (Befund p2).
 
 <!-- vitest: kein neuer Test nötig, weil dieser Change keine Dateien unter
-website/src/lib/** oder website/src/pages/api/** anlegt oder ändert; der Scanner
+components/website/src/lib/** oder components/website/src/pages/api/** anlegt oder ändert; der Scanner
 (.mjs unter scripts/) und das Token-CSS werden durch die BATS-Guards aus p3
 output-verifiziert. -->
 

@@ -6,7 +6,8 @@
 # CSS-Custom-Property-Set *ist* sein Quelltext; es gibt ohne Playwright-
 # Browserlauf gegen den Dev-Stack keinen separaten Laufzeit-Nachweis offline
 # (Analogie zu build-target-runtime-env.bats). Die Prod-Isolation (T7) ist
-# aus demselben Grund ebenfalls Quelltext-Pruefung ueber website/src/pages.
+# aus demselben Grund ebenfalls Quelltext-Pruefung ueber
+# components/website/src/pages.
 #
 # Der Kontrakt fuer p1 (design/leitstand-ds) ist bindend:
 #   - Signal-Tokens exakt --ls-signal-{green,amber,red,info}
@@ -21,13 +22,13 @@
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd)"
   cd "$REPO_ROOT" || return 1
-  CSS_FILE="$REPO_ROOT/website/src/styles/sdlc-leitstand.css"
-  SHOWCASE_FILE="$REPO_ROOT/website/src/pages/sdlc/design-system.astro"
+  CSS_FILE="$REPO_ROOT/components/website/src/styles/sdlc-leitstand.css"
+  SHOWCASE_FILE="$REPO_ROOT/components/website/src/pages/sdlc/design-system.astro"
 }
 
 # T1 -- Signal-Kern vollstaendig (Positiv-Anker: Datei existiert).
 @test "leitstand-ds: signal tokens green/amber/red/info are defined" {
-  [ -f "$CSS_FILE" ] || { echo "fehlt: website/src/styles/sdlc-leitstand.css"; return 1; }
+  [ -f "$CSS_FILE" ] || { echo "fehlt: components/website/src/styles/sdlc-leitstand.css"; return 1; }
   for sig in green amber red info; do
     grep -qE -- "--ls-signal-${sig}\s*:" "$CSS_FILE" \
       || { echo "fehlt: --ls-signal-${sig}"; return 1; }
@@ -111,7 +112,7 @@ setup() {
 # stays free of the Leitstand stylesheet"). Negativtest + Positiv-Anker.
 @test "leitstand-ds: no importer of the stylesheet outside pages/sdlc" {
   # Positiv-Anker zuerst: SDLC-Seiten referenzieren die Datei ueberhaupt (T5 real).
-  sdlc_hits=$(grep -rl 'sdlc-leitstand.css' "$REPO_ROOT/website/src" \
+  sdlc_hits=$(grep -rl 'sdlc-leitstand.css' "$REPO_ROOT/components/website/src" \
     --include='*.astro' --include='*.svelte' --include='*.ts' 2>/dev/null \
     | grep -c '/pages/sdlc/' || true)
   [ "$sdlc_hits" -ge 1 ]
@@ -119,7 +120,7 @@ setup() {
   # `|| true` auf beiden Substitutionen: grep -c/-vc enden bei 0 Treffern mit
   # Exit 1, was unter BATS-errexit die Zuweisung abwuerfe, bevor die Assertion
   # urteilt -- die Zaehlung gehoert dem Test, nicht dem Pipe-Exit.
-  prod_hits=$(grep -rl 'sdlc-leitstand.css' "$REPO_ROOT/website/src" \
+  prod_hits=$(grep -rl 'sdlc-leitstand.css' "$REPO_ROOT/components/website/src" \
     --include='*.astro' --include='*.svelte' --include='*.ts' 2>/dev/null \
     | grep -vc '/pages/sdlc/' || true)
   [ "$prod_hits" -eq 0 ]

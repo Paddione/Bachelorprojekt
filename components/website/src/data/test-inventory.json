@@ -4320,6 +4320,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/api-inventory-drift",
+    "file": "tests/spec/sdlc-cockpit/api-inventory-drift.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/brain-ingress-policy",
     "file": "tests/spec/sdlc-cockpit/brain-ingress-policy.bats",
     "category": "sdlc-cockpit",
@@ -4448,6 +4454,12 @@
   {
     "id": "sdlc-cockpit/layout-rail-fixed",
     "file": "tests/spec/sdlc-cockpit/layout-rail-fixed.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/leitstand-ds-tokens",
+    "file": "tests/spec/sdlc-cockpit/leitstand-ds-tokens.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

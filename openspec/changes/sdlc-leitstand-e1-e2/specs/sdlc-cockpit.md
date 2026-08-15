@@ -3,7 +3,7 @@
 ### Requirement: Leitstand Design Token Set
 
 The SDLC build SHALL provide a central Leitstand token stylesheet at
-`website/src/styles/sdlc-leitstand.css` that defines the Control-Room design language
+`components/website/src/styles/sdlc-leitstand.css` that defines the Control-Room design language
 as CSS custom properties with the prefix `--ls-`: dark surface tiers, line colors, text
 tiers, the semantic signal set (`--ls-signal-green`, `--ls-signal-amber`,
 `--ls-signal-red`, `--ls-signal-info`), monospace numeral typography, compact spacing
@@ -28,8 +28,8 @@ SHALL be loaded only by SDLC-target pages, never by the prod build.
 ### Requirement: API Connector Inventory
 
 The repository SHALL provide a generated API/connector inventory at
-`website/src/data/api-inventory.json`, produced by `scripts/sdlc/api-inventory.mjs`.
-The scanner SHALL enumerate the SDLC API routes under `website/src/pages/sdlc/api/`
+`components/website/src/data/api-inventory.json`, produced by `scripts/sdlc/api-inventory.mjs`.
+The scanner SHALL enumerate the SDLC API routes under `components/website/src/pages/sdlc/api/`
 (route path, exported HTTP methods, backend classification derived from imports), and
 SHALL append the MCP servers from `docs/agent-guide/registry/mcp.yaml` and the
 factory-mcp tool list. Curated fields (description, tier, deprecation) SHALL be merged

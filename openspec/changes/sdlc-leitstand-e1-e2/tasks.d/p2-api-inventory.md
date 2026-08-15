@@ -4,7 +4,7 @@
 
 **target_files:**
 - `scripts/sdlc/api-inventory.mjs`
-- `website/src/data/api-inventory.json`
+- `components/website/src/data/api-inventory.json`
 - `docs/agent-guide/registry/api-overlay.yaml`
 - `Taskfile.yml`
 - `.gitattributes`
@@ -17,7 +17,7 @@ _Ticket: T007559 · Epic T007553 · Etappe E2 (design.md S8) · Partial p2 von 3
 ## Ziel
 
 Ein generiertes Inventar aller SDLC-API-Endpunkte, MCP-Server und
-factory-mcp-Tools als `website/src/data/api-inventory.json`, erzeugt von
+factory-mcp-Tools als `components/website/src/data/api-inventory.json`, erzeugt von
 `scripts/sdlc/api-inventory.mjs`, angereichert mit kuratierten Feldern aus
 `docs/agent-guide/registry/api-overlay.yaml`, deterministisch (keine
 Zeitstempel, stabile Sortierung) und durch das bestehende
@@ -49,11 +49,11 @@ wäre eine funktionslose Dopplung. Zu ändern sind ausschließlich `Taskfile.yml
 (neuer Task + zwei Einhängepunkte) und `.gitattributes` (ein `merge=ours`-
 Eintrag) — beides Teil der bereits deklarierten target_files.
 
-## Vorab-Recherche: Ist-Bestand `website/src/pages/sdlc/api/`
+## Vorab-Recherche: Ist-Bestand `components/website/src/pages/sdlc/api/`
 
 ```bash
-find website/src/pages/sdlc/api -name '*.ts' ! -name '*.test.ts' | wc -l   # 123 Routen-Dateien
-find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 Test-Dateien (ausgeschlossen)
+find components/website/src/pages/sdlc/api -name '*.ts' ! -name '*.test.ts' | wc -l   # 123 Routen-Dateien
+find components/website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 Test-Dateien (ausgeschlossen)
 ```
 
 (Stand 2026-08-15, Commit `938567c13`.)
@@ -63,11 +63,11 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
 - [x] **Task 1 — Scanner-Kern: Route-Scan + Backend-Klassifikation.**
       `scripts/sdlc/api-inventory.mjs` (neu) verwendet `fs.readdirSync(dir, {
       recursive: true, withFileTypes: true })` (Node ≥22.13, `engines.node`
-      in `package.json`) über `website/src/pages/sdlc/api/`, schließt
+      in `package.json`) über `components/website/src/pages/sdlc/api/`, schließt
       `*.test.ts` aus. Route-Pfad = Dateisystempfad relativ zum Scan-Root,
       `.ts`-Endung entfernt, `/index` am Ende entfernt, Präfix `/sdlc/api/` —
       `[param]`-Segmente bleiben wörtlich erhalten (z. B.
-      `website/src/pages/sdlc/api/tickets/[id].ts` → `/sdlc/api/tickets/[id]`).
+      `components/website/src/pages/sdlc/api/tickets/[id].ts` → `/sdlc/api/tickets/[id]`).
       HTTP-Methoden: Regex `^export const (GET|POST|PUT|PATCH|DELETE)\b` auf
       Dateiinhalt (Zeilenanfang), sortiert nach fester Reihenfolge
       `['GET','POST','PUT','PATCH','DELETE']` (nicht alphabetisch — lesbarer).
@@ -157,7 +157,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
 
       ```yaml
       # docs/agent-guide/registry/api-overlay.yaml
-      # Kuratierte Zusatzfelder fuer website/src/data/api-inventory.json.
+      # Kuratierte Zusatzfelder fuer components/website/src/data/api-inventory.json.
       # Jeder Schluessel MUSS einem von scripts/sdlc/api-inventory.mjs
       # gescannten Endpunkt/Server/Tool entsprechen -- sonst schlaegt die
       # Generierung fehl (Requirement "API Connector Inventory" in
@@ -183,7 +183,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
 
 - [x] **Task 5 — Erstlauf + Commit des Inventars.** `node
       scripts/sdlc/api-inventory.mjs` einmal lokal ausführen und
-      `website/src/data/api-inventory.json` mit committen (Schema:
+      `components/website/src/data/api-inventory.json` mit committen (Schema:
       `{ routes: [...], mcpServers: [...], factoryMcpTools: [...] }`, jedes
       Route-Objekt `{ path, file, methods, backends, description, tier,
       deprecated }`, jedes Server-Objekt `{ name, transport, endpoint,
@@ -197,7 +197,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
 
       ```yaml
         api:inventory:
-          desc: Regenerate website/src/data/api-inventory.json (SDLC API/connector inventory)
+          desc: Regenerate components/website/src/data/api-inventory.json (SDLC API/connector inventory)
           cmds:
             - node scripts/sdlc/api-inventory.mjs
       ```
@@ -206,17 +206,17 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       `- task: test:inventory` ergänzen: `- task: api:inventory`.
 
       In `freshness:check`, Phase 1, im `FILES="..."`-String (Taskfile.yml)
-      direkt nach der Zeile `website/src/data/test-inventory.json` eine neue
-      Zeile `website/src/data/api-inventory.json` einfügen — **keine
+      direkt nach der Zeile `components/website/src/data/test-inventory.json` eine neue
+      Zeile `components/website/src/data/api-inventory.json` einfügen — **keine
       Kommentarzeilen** in diesem String (Wortsplitting-Falle, siehe
       bestehender Warnkommentar direkt darüber in derselben Datei).
 
 - [x] **Task 7 — `.gitattributes`: `merge=ours`-Eintrag.** Direkt nach der
-      Zeile `website/src/data/test-inventory.json  merge=ours
+      Zeile `components/website/src/data/test-inventory.json  merge=ours
       linguist-generated=true` ergänzen:
 
       ```
-      website/src/data/api-inventory.json           merge=ours linguist-generated=true
+      components/website/src/data/api-inventory.json           merge=ours linguist-generated=true
       ```
 
       Ohne diesen Eintrag failt
@@ -233,9 +233,9 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       Determinismus:
       ```bash
       node scripts/sdlc/api-inventory.mjs
-      cp website/src/data/api-inventory.json /tmp/run1.json
+      cp components/website/src/data/api-inventory.json /tmp/run1.json
       node scripts/sdlc/api-inventory.mjs
-      diff /tmp/run1.json website/src/data/api-inventory.json && echo "deterministic: OK"
+      diff /tmp/run1.json components/website/src/data/api-inventory.json && echo "deterministic: OK"
       ```
       Orphan-Fehlerpfad (temporäre Kopie, reale Overlay-Datei bleibt
       unangetastet):
@@ -248,7 +248,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       Freshness-Gate:
       ```bash
       task freshness:regenerate
-      git status --porcelain website/src/data/api-inventory.json   # erwartet: leer
+      git status --porcelain components/website/src/data/api-inventory.json   # erwartet: leer
       ```
 
 ## Schnittstellenvertrag für p3 (Tests-Partial)
@@ -259,11 +259,11 @@ stabiles Verhalten schreibt, ohne den Scanner-Quellcode zu greppen
 
 - **Env-Var-Overrides** (Default in Klammern), analog zu
   `TEST_INVENTORY_OUT` in `scripts/build-test-inventory.sh`:
-  `API_INVENTORY_ROUTES_DIR` (`website/src/pages/sdlc/api`),
+  `API_INVENTORY_ROUTES_DIR` (`components/website/src/pages/sdlc/api`),
   `API_INVENTORY_OVERLAY` (`docs/agent-guide/registry/api-overlay.yaml`),
   `API_INVENTORY_MCP_REGISTRY` (`docs/agent-guide/registry/mcp.yaml`),
   `API_INVENTORY_FACTORY_MCP_GO` (`scripts/factory/mcp-go/main.go`),
-  `API_INVENTORY_OUT` (`website/src/data/api-inventory.json`).
+  `API_INVENTORY_OUT` (`components/website/src/data/api-inventory.json`).
 - **Exit-Codes:** `0` bei Erfolg (Datei geschrieben); `1` bei mindestens
   einem verwaisten Overlay-Eintrag (Datei **nicht** geschrieben/verändert).
 - **Fehlermeldung:** auf stderr, enthält wortwörtlich den Substring `not
@@ -282,6 +282,6 @@ stabiles Verhalten schreibt, ohne den Scanner-Quellcode zu greppen
 
 - `.github/workflows/ci.yml` — bleibt unverändert (Begründung oben).
 - `tests/spec/sdlc-cockpit/api-inventory-drift.bats` und
-  `website/src/data/test-inventory.json` — Aufgabe von p3.
+  `components/website/src/data/test-inventory.json` — Aufgabe von p3.
 - UI-Modul im Wissen-Deck (design.md S5, „Katalog-Modul") — Teil von E4, nicht
   dieses Changes.

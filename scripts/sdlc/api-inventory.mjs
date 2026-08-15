@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // API-/Connector-Inventar-Scanner (SDLC-Leitstand E2, T007559).
 //
-// Erzeugt website/src/data/api-inventory.json: alle SDLC-API-Routen
-// (website/src/pages/sdlc/api/**), die MCP-Server aus
+// Erzeugt components/website/src/data/api-inventory.json: alle SDLC-API-Routen
+// (components/website/src/pages/sdlc/api/**), die MCP-Server aus
 // docs/agent-guide/registry/mcp.yaml (nur `clients:`-Top-Level, nicht
 // `cluster:`) und die factory-mcp-Tools aus scripts/factory/mcp-go/main.go
 // (toolList, keine Zweitquelle -- Aenderungen an main.go fliessen ein).
@@ -29,11 +29,11 @@ import { resolve, join, relative, dirname, sep } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
 const DEFAULTS = {
-  routesDir: 'website/src/pages/sdlc/api',
+  routesDir: 'components/website/src/pages/sdlc/api',
   overlay: 'docs/agent-guide/registry/api-overlay.yaml',
   mcpRegistry: 'docs/agent-guide/registry/mcp.yaml',
   factoryMcpGo: 'scripts/factory/mcp-go/main.go',
-  out: 'website/src/data/api-inventory.json',
+  out: 'components/website/src/data/api-inventory.json',
 };
 
 const envOr = (key, fallback) => process.env[key] || fallback;

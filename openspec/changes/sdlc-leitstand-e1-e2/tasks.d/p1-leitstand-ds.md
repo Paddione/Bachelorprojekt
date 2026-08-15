@@ -2,8 +2,8 @@
 
 **Rolle:** bachelorprojekt-website
 **target_files:**
-- `website/src/styles/sdlc-leitstand.css` (neu)
-- `website/src/pages/sdlc/design-system.astro` (Umbau)
+- `components/website/src/styles/sdlc-leitstand.css` (neu)
+- `components/website/src/pages/sdlc/design-system.astro` (Umbau)
 - `design/leitstand-ds/**` (neu)
 
 _Ticket: T007559 · Partial p1 (parallel zu p2, keine Datei-Überlappung) · deckt das
@@ -12,10 +12,10 @@ ADDED-Requirement "Leitstand Design Token Set" aus
 `openspec/changes/sdlc-leitstand-e1-e2/design.md`._
 
 BUILD_TARGET-Isolation ist bereits strukturell gegeben und wird hier NICHT neu gebaut:
-`design-system.astro` liegt unter `website/src/pages/sdlc/`, und
-`website/src/integrations/build-target.mjs` (`keepRoute()`) filtert jede `/sdlc/`-Route aus
+`design-system.astro` liegt unter `components/website/src/pages/sdlc/`, und
+`components/website/src/integrations/build-target.mjs` (`keepRoute()`) filtert jede `/sdlc/`-Route aus
 dem `BUILD_TARGET=prod`-Manifest; abgesichert durch das bestehende
-`website/src/integrations/build-target.test.ts`. Dieser Partial fügt keine neue
+`components/website/src/integrations/build-target.test.ts`. Dieser Partial fügt keine neue
 Isolationslogik hinzu — die Stylesheet-Isolation folgt allein daraus, dass der einzige
 Importer unter `pages/sdlc/` liegt.
 
@@ -45,16 +45,16 @@ verbindlich fest — nicht stillschweigend abweichen:
   (`#rgb`/`#rrggbb`), auch nicht in Kommentaren — ausschließlich `var(--ls-*)` (T6).
 - Kein Importer von `sdlc-leitstand.css` liegt außerhalb `pages/sdlc/` (T7).
 
-- [x] **Task 1 — `website/src/styles/sdlc-leitstand.css` anlegen (Token-Set + Glow-Disziplin
+- [x] **Task 1 — `components/website/src/styles/sdlc-leitstand.css` anlegen (Token-Set + Glow-Disziplin
       + Print-Light).**
 
 ```css
 /*
  * Leitstand Design System -- Control-Room token set (E1, T007559).
  * SSOT fuer alle `--ls-*` Custom Properties. Wird AUSSCHLIESSLICH von SDLC-Seiten
- * geladen (Importer liegen unter website/src/pages/sdlc/**) -- BUILD_TARGET=prod
+ * geladen (Importer liegen unter components/website/src/pages/sdlc/**) -- BUILD_TARGET=prod
  * buendelt nie eine Route, die diese Datei importiert, weil jeder Importer unter
- * /sdlc/ liegt (website/src/integrations/build-target.mjs keepRoute()).
+ * /sdlc/ liegt (components/website/src/integrations/build-target.mjs keepRoute()).
  *
  * Bewusster Stilbruch zur Kore-Marke (kein Brass) -- eigenstaendiges Set,
  * siehe openspec/changes/sdlc-leitstand-e1-e2/design.md S4.
@@ -151,7 +151,7 @@ verbindlich fest — nicht stillschweigend abweichen:
   `.css` trägt kein S1-Limit (kein Eintrag in `docs/code-quality/gates.yaml` → `s1.limits`) —
   keine Budget-Zahl zu diesem Task.
 
-- [x] **Task 2 — `website/src/pages/sdlc/design-system.astro` zum Leitstand-DS-Showcase
+- [x] **Task 2 — `components/website/src/pages/sdlc/design-system.astro` zum Leitstand-DS-Showcase
       umbauen (vollständiger Ersatz des Inhalts).**
 
   Entferne die bisherigen Imports (`PilotLight`, `WorkpieceCard`, `PhaseBadge`,
@@ -248,7 +248,7 @@ verbindlich fest — nicht stillschweigend abweichen:
     "projectId": null,
     "localDir": "design/leitstand-ds",
     "uploadGlobs": ["cards/**"],
-    "tokenSource": "website/src/styles/sdlc-leitstand.css",
+    "tokenSource": "components/website/src/styles/sdlc-leitstand.css",
     "cards": [
       "tokens-overview", "signal-set", "statusband-preview",
       "station-card", "kpi-tile", "ticket-chip"
@@ -310,7 +310,7 @@ verbindlich fest — nicht stillschweigend abweichen:
     const ICON_NAMES = ['health-green.svg', 'health-amber.svg', 'health-red.svg', 'chip-open.svg', 'chip-blocked.svg', 'chip-done.svg'];
     ```
   - `extractTokens()`: liest `TOKEN_SOURCE` statt der mentolder-Brand-CSS; Header-Kommentar
-    nennt `design/leitstand-ds/build.mjs` + `website/src/styles/sdlc-leitstand.css`.
+    nennt `design/leitstand-ds/build.mjs` + `components/website/src/styles/sdlc-leitstand.css`.
   - `copyAssets()`: die `props`/`logos`-Doppelschleife entfällt, ersetzt durch eine einzelne
     Schleife über `ICON_NAMES` nach `assets/icons/` (`mkdirSync(..., {recursive:true})` +
     `copyFileSync(join(ICON_SOURCE_DIR, name), join(to, name))` je Name).
@@ -482,8 +482,8 @@ verbindlich fest — nicht stillschweigend abweichen:
   node design/leitstand-ds/validate.mjs
   node --test design/leitstand-ds/
   # Spot-Check gegen den p3-Test-Kontrakt (informell, kein Ersatz für p3s BATS-Datei):
-  grep -cE -- '--ls-surface-[a-z0-9]+:' website/src/styles/sdlc-leitstand.css   # >= 2
-  grep -qF 'sdlc-leitstand.css' website/src/pages/sdlc/design-system.astro
+  grep -cE -- '--ls-surface-[a-z0-9]+:' components/website/src/styles/sdlc-leitstand.css   # >= 2
+  grep -qF 'sdlc-leitstand.css' components/website/src/pages/sdlc/design-system.astro
   ```
 
 - [x] **Task 6 — DesignSync-Push (interaktiv, optional/überspringbar).**

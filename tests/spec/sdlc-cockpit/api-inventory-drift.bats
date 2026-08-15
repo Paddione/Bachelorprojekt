@@ -10,7 +10,7 @@
 #
 # Schnittstellen-Vertrag (von p2 implementiert):
 #   - Aufruf: node scripts/sdlc/api-inventory.mjs -- Default-Output
-#     website/src/data/api-inventory.json, Default-Overlay
+#     components/website/src/data/api-inventory.json, Default-Overlay
 #     docs/agent-guide/registry/api-overlay.yaml.
 #   - Env-Overrides: API_INVENTORY_OUT (Zielpfad), API_OVERLAY_PATH (Overlay).
 #   - Exit-Codes: 0 Erfolg (Datei geschrieben); != 0 bei mind. einem
@@ -85,13 +85,13 @@ setup() {
 # build-target-runtime-env.bats).
 @test "api-inventory: drift fails the gate and generator is wired into freshness" {
   command -v node >/dev/null 2>&1 || skip "node not installed"
-  REAL="$REPO_ROOT/website/src/data/api-inventory.json"
+  REAL="$REPO_ROOT/components/website/src/data/api-inventory.json"
   [ -f "$REAL" ] && cp "$REAL" "$BATS_TEST_TMPDIR/orig.json"
   # Positiv-Anker: frisch regeneriert == committeter Stand (kein falsches
   # Drift-Signal).
   run node scripts/sdlc/api-inventory.mjs
   [ "$status" -eq 0 ]
-  run git -C "$REPO_ROOT" diff --quiet -- website/src/data/api-inventory.json
+  run git -C "$REPO_ROOT" diff --quiet -- components/website/src/data/api-inventory.json
   [ "$status" -eq 0 ]
   # Drift simulieren: eine neue Route, die der committete Stand nicht kennt.
   # Fixture-Overlay im entries-Format (p3) mit exakt diesem Endpoint -- der
@@ -111,10 +111,10 @@ EOF
     API_OVERLAY_PATH="$BATS_TEST_TMPDIR/routes-overlay.yaml" \
     run node scripts/sdlc/api-inventory.mjs
   [ "$status" -eq 0 ]
-  run git -C "$REPO_ROOT" diff --quiet -- website/src/data/api-inventory.json
+  run git -C "$REPO_ROOT" diff --quiet -- components/website/src/data/api-inventory.json
   [ "$status" -eq 1 ]   # Abweichung erkannt
   run git -C "$REPO_ROOT" diff --name-only -- website/src/data/api-inventory.json
-  echo "$output" | grep -qF 'website/src/data/api-inventory.json'
+  echo "$output" | grep -qF 'components/website/src/data/api-inventory.json'
   # Verdrahtung: freshness:regenerate fuehrt den Generator aus. Task-NAME ist
   # "api:inventory" (Doppelpunkt, nicht Bindestrich) -- die Invocation-Zeile
   # "- task: api:inventory" ist das Ankerliteral.
@@ -158,9 +158,9 @@ EOF
 
 teardown() {
   # T4 kann die committete Artefaktdatei mutiert haben -- IMMER zuruecksetzen.
-  REAL="$REPO_ROOT/website/src/data/api-inventory.json"
+  REAL="$REPO_ROOT/components/website/src/data/api-inventory.json"
   if [ -f "$BATS_TEST_TMPDIR/orig.json" ]; then
     cp "$BATS_TEST_TMPDIR/orig.json" "$REAL"
   fi
-  git -C "$REPO_ROOT" checkout -- website/src/data/api-inventory.json 2>/dev/null || true
+  git -C "$REPO_ROOT" checkout -- components/website/src/data/api-inventory.json 2>/dev/null || true
 }

@@ -4,13 +4,13 @@
 **target_files:**
 - `tests/spec/sdlc-cockpit/leitstand-ds-tokens.bats` (neu)
 - `tests/spec/sdlc-cockpit/api-inventory-drift.bats` (neu)
-- `website/src/data/test-inventory.json` (Regenerat via `task test:inventory`)
+- `components/website/src/data/test-inventory.json` (Regenerat via `task test:inventory`)
 
 _Ticket: T007559 · Partial p3 (tests) · IMMER zuletzt · deckt die zwei ADDED-Requirements aus
 `openspec/changes/sdlc-leitstand-e1-e2/specs/sdlc-cockpit.md` ab: "Leitstand Design Token Set"
-(p1 liefert `website/src/styles/sdlc-leitstand.css` + `design-system.astro`-Umbau) und
+(p1 liefert `components/website/src/styles/sdlc-leitstand.css` + `design-system.astro`-Umbau) und
 "API Connector Inventory" (p2 liefert `scripts/sdlc/api-inventory.mjs` +
-`website/src/data/api-inventory.json` + `docs/agent-guide/registry/api-overlay.yaml`)._
+`components/website/src/data/api-inventory.json` + `docs/agent-guide/registry/api-overlay.yaml`)._
 
 Runner: `tests/unit/lib/bats-core/bin/bats` (vendored — NICHT `which bats`). Syntax-Probe fuer
 neue Dateien: `tests/unit/lib/bats-core/bin/bats --count <datei>` (T002351-M2 — `bash -n` ist
@@ -25,7 +25,7 @@ Schnittstelle **verbindlich** fest — p2 implementiert dagegen, nicht der Test 
 geratene p2-Form:
 
 - Aufruf: `node scripts/sdlc/api-inventory.mjs` — Default-Output
-  `website/src/data/api-inventory.json`, Default-Overlay
+  `components/website/src/data/api-inventory.json`, Default-Overlay
   `docs/agent-guide/registry/api-overlay.yaml`.
 - Override fuer isolierte Testlaeufe (Muster `TEST_INVENTORY_OUT` aus
   `scripts/build-test-inventory.sh`): Env-Var `API_INVENTORY_OUT=<pfad>` fuer den Zielpfad,
@@ -45,10 +45,10 @@ Header dokumentiert zwei Pruefmodi: die Token-Struktur- und Disziplin-Checks sin
 Quelltext-Pruefung (dokumentierte Ausnahme T002448-M4 — ein CSS-Custom-Property-Set *ist*
 sein Quelltext, es gibt ohne Playwright-Browserlauf gegen den Dev-Stack keinen separaten
 Laufzeit-Nachweis offline; Analogie zu `build-target-runtime-env.bats`); die Prod-Isolation
-(Szenario 2) ist ebenfalls Quelltext-Pruefung ueber `website/src/pages`, aus demselben Grund.
+(Szenario 2) ist ebenfalls Quelltext-Pruefung ueber `components/website/src/pages`, aus demselben Grund.
 
 - [ ] **T1 — Signal-Kern vollstaendig (`--ls-signal-{green,amber,red,info}`).**
-      Positiv-Anker: Datei `website/src/styles/sdlc-leitstand.css` existiert. Dann je
+      Positiv-Anker: Datei `components/website/src/styles/sdlc-leitstand.css` existiert. Dann je
       Signalname eine eigene Assertion (kein Sammel-Count, damit ein fehlender Einzelname
       benennbar bleibt):
       ```bash
@@ -111,7 +111,7 @@ Laufzeit-Nachweis offline; Analogie zu `build-target-runtime-env.bats`); die Pro
       from tokens", erster Teil). Prüfmodus: Quelltext-Konvention, dokumentierter
       Ausnahmefall — Astro-Imports sind buildzeitig, kein Laufzeitnachweis offline noetig.**
       ```bash
-      grep -qF 'sdlc-leitstand.css' website/src/pages/sdlc/design-system.astro
+      grep -qF 'sdlc-leitstand.css' components/website/src/pages/sdlc/design-system.astro
       ```
 
 - [ ] **T6 — Komponenten-Previews nutzen `--ls-*` statt Ad-hoc-Hex (Szenario "Showcase
@@ -123,7 +123,7 @@ Laufzeit-Nachweis offline; Analogie zu `build-target-runtime-env.bats`); die Pro
       grep -qE -- '--ls-[a-z0-9-]+\s*:' "$CSS_FILE"
       # Negativ: kein Hex-Farbwert im <style>-Block von design-system.astro.
       awk '/<style/{inblock=1} inblock{print} /<\/style>/{if(inblock)exit}' \
-        website/src/pages/sdlc/design-system.astro \
+        components/website/src/pages/sdlc/design-system.astro \
         | grep -cE '#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?' | grep -qx 0
       ```
 
@@ -131,12 +131,12 @@ Laufzeit-Nachweis offline; Analogie zu `build-target-runtime-env.bats`); die Pro
       free of the Leitstand stylesheet") [Negativtest + Positiv-Anker].**
       ```bash
       # Positiv-Anker zuerst: SDLC-Seiten referenzieren die Datei ueberhaupt (T5 real).
-      sdlc_hits=$(grep -rl 'sdlc-leitstand.css' website/src \
+      sdlc_hits=$(grep -rl 'sdlc-leitstand.css' components/website/src \
         --include='*.astro' --include='*.svelte' --include='*.ts' 2>/dev/null \
         | grep -c '/pages/sdlc/')
       [ "$sdlc_hits" -ge 1 ]
       # Negativ: ausserhalb von pages/sdlc/ referenziert NICHTS die Datei.
-      prod_hits=$(grep -rl 'sdlc-leitstand.css' website/src \
+      prod_hits=$(grep -rl 'sdlc-leitstand.css' components/website/src \
         --include='*.astro' --include='*.svelte' --include='*.ts' 2>/dev/null \
         | grep -vc '/pages/sdlc/')
       [ "$prod_hits" -eq 0 ]
@@ -197,18 +197,18 @@ Verfuegbarkeits-Guard je Test: `command -v node >/dev/null 2>&1 || skip "node no
       committeten Artefaktpfad wie `task freshness:check` selbst — teardown stellt
       IMMER zurueck, siehe Taskfile-Kommentar zu Phase 1 der freshness:check-Task].**
       ```bash
-      REAL="$REPO/website/src/data/api-inventory.json"
+      REAL="$REPO/components/website/src/data/api-inventory.json"
       setup() { [ -f "$REAL" ] && cp "$REAL" "$BATS_TEST_TMPDIR/orig.json" || true; }
       teardown() {
         if [ -f "$BATS_TEST_TMPDIR/orig.json" ]; then
           cp "$BATS_TEST_TMPDIR/orig.json" "$REAL"
         fi
-        git -C "$REPO" checkout -- website/src/data/api-inventory.json 2>/dev/null || true
+        git -C "$REPO" checkout -- components/website/src/data/api-inventory.json 2>/dev/null || true
       }
       # Positiv-Anker: frisch regeneriert == committeter Stand (kein falsches Drift-Signal).
       run node scripts/sdlc/api-inventory.mjs
       [ "$status" -eq 0 ]
-      run git -C "$REPO" diff --quiet -- website/src/data/api-inventory.json
+      run git -C "$REPO" diff --quiet -- components/website/src/data/api-inventory.json
       [ "$status" -eq 0 ]
       # Committerten Stand kuenstlich veralten lassen (simuliert "passt nicht mehr zu den
       # aktuellen Routen").
@@ -216,10 +216,10 @@ Verfuegbarkeits-Guard je Test: `command -v node >/dev/null 2>&1 || skip "node no
       cp "$BATS_TEST_TMPDIR/stale.json" "$REAL"
       run node scripts/sdlc/api-inventory.mjs   # regeneriert ueber den veralteten Stand
       [ "$status" -eq 0 ]
-      run git -C "$REPO" diff --quiet -- website/src/data/api-inventory.json
+      run git -C "$REPO" diff --quiet -- components/website/src/data/api-inventory.json
       [ "$status" -eq 1 ]   # Abweichung erkannt
-      run git -C "$REPO" diff --name-only -- website/src/data/api-inventory.json
-      echo "$output" | grep -qF 'website/src/data/api-inventory.json'
+      run git -C "$REPO" diff --name-only -- components/website/src/data/api-inventory.json
+      echo "$output" | grep -qF 'components/website/src/data/api-inventory.json'
       ```
       Zusaetzlich (Verdrahtung, Quelltext-Ausnahme dokumentiert — Konfigurationsaussage,
       analog `build-target-runtime-env.bats`):
@@ -259,7 +259,7 @@ Verfuegbarkeits-Guard je Test: `command -v node >/dev/null 2>&1 || skip "node no
       echo "$output" | grep -qF 'does-not-exist-xyz'
       ```
       `/sdlc/api/qa-queue` ist eine real existierende Route
-      (`website/src/pages/sdlc/api/qa-queue.ts`) — der Positiv-Fall haengt nicht an p2s
+      (`components/website/src/pages/sdlc/api/qa-queue.ts`) — der Positiv-Fall haengt nicht an p2s
       Scan-Ergebnis, sondern an einer bereits im Repo vorhandenen Datei.
 
 ## RED — Failing-Test-Step (STRUCT2)
@@ -270,7 +270,7 @@ Branch rot, weil weder `sdlc-leitstand.css` noch `scripts/sdlc/api-inventory.mjs
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
-# expected: FAIL (red — leitstand-ds-tokens.bats: website/src/styles/sdlc-leitstand.css fehlt
+# expected: FAIL (red — leitstand-ds-tokens.bats: components/website/src/styles/sdlc-leitstand.css fehlt
 # (T1-T7 scheitern am Positiv-Anker "Datei existiert" bzw. am grep auf design-system.astro,
 # das die Datei noch nicht laedt); api-inventory-drift.bats: scripts/sdlc/api-inventory.mjs
 # fehlt (node-Aufruf schlaegt fehl, T1-T5 scheitern am ersten `run node ...`))
@@ -287,7 +287,7 @@ also kann jede Datei unabhaengig gruen werden.
       ```bash
       task test:inventory
       ```
-      `website/src/data/test-inventory.json` mitcommitten — CI failt sonst am
+      `components/website/src/data/test-inventory.json` mitcommitten — CI failt sonst am
       Inventar-Drift-Check.
 
 ## Finale Verifikation (STRUCT3)

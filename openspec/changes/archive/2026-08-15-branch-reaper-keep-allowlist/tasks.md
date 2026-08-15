@@ -2,7 +2,7 @@
 title: "branch-reaper-keep-allowlist — Implementation Plan"
 ticket_id: T007032
 domains: [dev-tooling, ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

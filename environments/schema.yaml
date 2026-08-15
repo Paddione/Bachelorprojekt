@@ -357,7 +357,7 @@ env_vars:
   - name: POCKET_ID_URL
     required: false
     default_dev: "http://pocket-id.workspace.svc.cluster.local:1411"
-    description: "Cluster-internal URL of the Pocket ID service. MUST be an FQDN (T002154): the website runs in namespace `website`, pocket-id in `workspace` — the bare short name `pocket-id:1411` only resolves inside `workspace` and breaks the OIDC token exchange cross-namespace. Used by website/brett/nextcloud/grafana as the OIDC discovery base."
+    description: "Cluster-internal URL of the Pocket ID service. MUST be an FQDN (T002154): the website runs in namespace `website`, pocket-id in `workspace` — the bare short name `pocket-id:1411` only resolves inside `workspace` and breaks the OIDC token exchange cross-namespace. Used by the website, brett, nextcloud and grafana services as the OIDC discovery base."
 
   - name: WEBSITE_CONFIG_SHA
     required: false
@@ -972,8 +972,8 @@ secrets:
     generate: false
 
   # GITHUB_CONTENT_TOKEN (T001490 Task 9) — fine-grained token for the bot-PR
-  # content publish pipeline (website/src/lib/content-publish.ts). Scope: only
-  # `contents: write` + `pull-requests: write` on `website/content/**`. Prod
+  # content publish pipeline (components/website/src/lib/content-publish.ts). Scope: only
+  # `contents: write` + `pull-requests: write` on `components/website/content/**`. Prod
   # sealed per-env via `task env:seal`; dev placeholder lives in
   # k3d/website-content-token-secret.yaml.
   - name: GITHUB_CONTENT_TOKEN
@@ -981,7 +981,7 @@ secrets:
     dev_absent: true
     dev_absent_reason: "Externes GitHub-PAT; kein Dev-Aequivalent, ein Fake-Wert wuerde Konfigurationsfehler maskieren."
     generate: false
-    description: "Fine-grained GitHub token for the content publish bot. contents:write + pull-requests:write on website/content/**."
+    description: "Fine-grained GitHub token for the content publish bot. contents:write + pull-requests:write on components/website/content/**."
     extra_namespaces:
       - namespace: website
         secret: website-content-token

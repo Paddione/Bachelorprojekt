@@ -149,8 +149,8 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 - `task test:changed` — smart selection, falls back to vitest if no domain detected.
 - `task freshness:check` — generated artifacts must be committed.
 - `task test:code-quality` — file-size caps, import-cycle detection, hardcoded-hostname scan.
-- Brett: `npm run typecheck --prefix brett && npm test --prefix brett && npm run build --prefix brett`
-- Website: `(cd website && pnpm test:unit)` (vitest)
+- Brett: `npm run typecheck --prefix components/brett && npm test --prefix components/brett && npm run build --prefix components/brett`
+- Website: `(cd components/website && pnpm test:unit)` (vitest)
 - PR titles: Conventional Commits with `[T000XXX]` tag (advisory only, not blocking).
 </details>
 

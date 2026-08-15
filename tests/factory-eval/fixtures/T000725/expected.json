@@ -8,7 +8,7 @@
   "forbidden": [
     "k3d/configmap-domains.yaml",
     "environments/*.yaml",
-    "website/*"
+    "components/website/*"
   ],
   "tests": ["bash -n scripts/mishap-categorize.sh"],
   "min_recall": 0.5,

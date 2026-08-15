@@ -13,6 +13,7 @@
 
   AUFRUF:
     powershell -ExecutionPolicy Bypass -File C:\...\start-tablet-rerank.ps1
+  # Optionaler Schalter -NoWait: Server starten und sofort zurueckkehren (T002339).
 
   AUTOSTART (Scheduled Task, AtLogOn, einmalig registrieren):
     Register-ScheduledTask -TaskPath '\BgeLaptops\' -TaskName 'TabletRerank' `
@@ -35,7 +36,8 @@
 
 param(
   [int]$Port = 8080,
-  [string]$ModelPath = "$env:USERPROFILE\.lmstudio\models\gpustack\bge-reranker-v2-m3-GGUF\bge-reranker-v2-m3-Q8_0.gguf"
+  [string]$ModelPath = "$env:USERPROFILE\.lmstudio\models\gpustack\bge-reranker-v2-m3-GGUF\bge-reranker-v2-m3-Q8_0.gguf",
+  [switch]$NoWait
 )
 
 $ErrorActionPreference = 'Stop'
@@ -61,5 +63,21 @@ $args = @(
   '-np', '2'
 )
 
+# Port raeumen - ein noch laufender Server auf diesem Port laesst den neuen
+# still am Bind scheitern (T002288).
+$conns = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+foreach ($c in $conns) {
+  if ($c.OwningProcess -and $c.OwningProcess -ne 0) {
+    Write-Output "Stopping existing process on port $Port (PID $($c.OwningProcess)) ..."
+    & taskkill.exe /F /T /PID $c.OwningProcess 2>&1 | Out-Null
+  }
+}
+
 Write-Host "Starte llama-server fuer bge-reranker-v2-m3 auf Port $Port ..."
-Start-Process -FilePath $LlamaServer -ArgumentList $args -NoNewWindow -Wait
+$p = Start-Process -FilePath $LlamaServer -ArgumentList $args -NoNewWindow -PassThru
+
+# Mit -NoWait starten und sofort zurueckkehren; ohne -NoWait bis zum
+# Ende des Servers warten (Scheduled-Task-Muster, T002339).
+if (-not $NoWait) {
+  $p.WaitForExit()
+}

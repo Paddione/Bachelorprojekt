@@ -3903,6 +3903,12 @@
       "status": "plan_staged"
     }
   ],
+  "T007032": [
+    {
+      "slug": "branch-reaper-keep-allowlist",
+      "status": "plan_staged"
+    }
+  ],
   "T007033": [
     {
       "slug": "2026-08-15-unterstuetzermodelle-limits-e4b",

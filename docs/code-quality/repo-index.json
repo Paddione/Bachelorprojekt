@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1042,
+      "file_count": 1043,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -424,6 +424,7 @@
         "tests/spec/ci-cd/branch-reaper-empty-answer.bats",
         "tests/spec/ci-cd/branch-reaper-freshness-regen.bats",
         "tests/spec/ci-cd/branch-reaper-local-ref.bats",
+        "tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats",
         "tests/spec/ci-cd/branch-reaper-sweep.bats",
         "tests/spec/ci-cd/branch-reaper.bats",
         "tests/spec/ci-cd/cfr-trend-window.bats",

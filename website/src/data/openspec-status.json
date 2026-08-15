@@ -3747,6 +3747,12 @@
       "status": "archived"
     }
   ],
+  "T006252": [
+    {
+      "slug": "s3-finetune-dataset-recipe",
+      "status": "plan_staged"
+    }
+  ],
   "T006282": [
     {
       "slug": "2026-08-15-factory-trace-collector-pass-done",

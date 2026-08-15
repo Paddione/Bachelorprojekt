@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.284.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.0...website-v1.284.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** merged-PR positives Reaping-Signal im branch-reaper [T007032] ([#4651](https://github.com/Paddione/Bachelorprojekt/issues/4651)) ([dbc0b7f](https://github.com/Paddione/Bachelorprojekt/commit/dbc0b7f195cfd0c6a32ba43e713540eb08f32af9))
+
 ## [1.284.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.283.0...website-v1.284.0) (2026-08-15)
 
 

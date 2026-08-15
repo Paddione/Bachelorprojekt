@@ -6,16 +6,17 @@
 #
 # Erzeugt openspec/changes/mishap-incident-rollup-<datum>-<container>/ auf einem
 # pro Zyklus angelegten Branch chore/mishap-incident-rollup-<datum>-<container>.
-# Der Container ist ephemer [T004898]: er sammelt Batches bis zur Verarbeitung,
-# der Generator schliesst ihn (done · resolution=obsolete, Konvention
-# T004613/T004752), sobald sein Batch in den Plan uebergegangen ist. Der Change
-# wird per PR auf main gemergt und dort archiviert; Branch und Worktree werden
-# danach aufgeraeumt.
+# Der Container ist ephemer [T004898, geaendert in T007056]: er sammelt Batches,
+# der Generator staged den daraus erzeugten Plan auf den Container
+# (stage-plan --no-hold). Die Factory-Staged-Lane dispatcht ihn, der Executor
+# implementiert die Fixes; der Post-Merge-Finalizer archiviert den Change und
+# schliesst den Container per Merge=Closure (done · resolution=fixed). Branch
+# und Worktree werden nach dem Executor-Merge aufgeraeumt.
 #
 # Basiert auf auto-chore-plan.sh [T002390] mit geaenderten Semantiken:
 #   - Slug/Branch pro Zyklus (Datum + Container-ID) statt festem Slug
 #   - Wegwerf-Worktree mit trap-cleanup (kein persistenter Worktree)
-#   - Closure des Containers nach erfolgreichem Push (done/obsolete)
+#   - Staged-Lane-Dispatch statt Container-Closure nach dem Push (T007056)
 #
 # Exit:
 #   0 = Plan gepusht oder nichts zu tun
@@ -284,18 +285,22 @@ if ! bash "$REPO/scripts/factory/rollup-publish.sh" \
   exit 1
 fi
 
-# ── Container schliessen (ephemer) ─────────────────────────────────────────
-# [T004898] Nach erfolgreichem Commit+Push ist der Batch des Containers in den
-# Plan uebergegangen — der Generator schliesst ihn (done · resolution=obsolete,
-# Konvention der Ephemer-Container T004613/T004752). stage-plan/release-hold
-# entfallen: der Change wird nicht mehr ueber den Ticket-Status an den
-# Dispatcher gereicht, sondern per PR auf main gemergt und dort archiviert.
-# Der naechste Flush legt einen neuen Container an (Invariante: hoechstens ein
-# offener Container).
-echo "mishap-rollup: schliesse Container ${CONTAINER_ID} (done/obsolete) ..."
-BRAND="$BRAND" bash "$WT/scripts/ticket.sh" update-status \
+# ── Staged-Lane-Dispatch statt Container-Closure (T007056) ─────────────────
+# Der Plan geht nicht mehr per PR auf main (T004898), sondern wird direkt auf
+# den Container gestaged: die Factory-Staged-Lane dispatcht ihn (queue.sh
+# akzeptiert type=chore, status=plan_staged + execution_released). Der Executor
+# implementiert die Mishap-Fixes als normalen Lauf; der Post-Merge-Finalizer
+# archiviert den Change (inkl. openspec-status.json-Regeneration) und schliesst
+# den Container per Merge=Closure (done · resolution=fixed).
+# --allow-empty-touched: der Rollup-Plan kennt die tatsaechlich geaenderten
+# Dateien erst zur Ausfuehrungszeit — die File-Structure-Sektion enthaelt den
+# Standard-Platzhalter, aus dem T002673 keine Pfade ableiten kann.
+echo "mishap-rollup: stage-plan auf Container ${CONTAINER_ID} (--no-hold) ..."
+BRAND="$BRAND" bash "$WT/scripts/ticket.sh" stage-plan \
   --id "$CONTAINER_ID" \
-  --status done \
-  --resolution obsolete
+  --branch "$BRANCH" \
+  --plan "${CHANGE_DIR}/tasks.md" \
+  --no-hold \
+  --allow-empty-touched
 
-echo "mishap-rollup: fertig — ${BRAND} Container ${CONTAINER_ID} geschlossen, Branch ${BRANCH} gepusht"
+echo "mishap-rollup: fertig — ${BRAND} Container ${CONTAINER_ID} gestaged, Branch ${BRANCH} gepusht"

@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "slug": "sdlc-leitstand-e5-help-absorption",
+    "ticket_id": "T008017",
+    "generated_from": "main@60df76fd0",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/components/leitstand/HelpOverlay.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/LeitstandStatusband.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/decks/DeckKi.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/leitstand/decks/DeckWissen.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5180,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/__tests__/help-overlay-anchors.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/leitstand-purpose-registry.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/middleware/redirect-map.test.ts",
+      "language": "javascript",
+      "loc": 67,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 833
+    },
+    {
+      "path": "components/website/src/middleware/redirect-map.ts",
+      "language": "javascript",
+      "loc": 51,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 849
+    },
+    {
+      "path": "components/website/src/pages/sdlc/cockpit.astro",
+      "language": "astro",
+      "loc": 226,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": 774
+    },
+    {
+      "path": "components/website/src/pages/sdlc/ki-konfiguration.astro",
+      "language": "astro",
+      "loc": 18,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": 982
+    },
+    {
+      "path": "components/website/src/pages/sdlc/prompts.astro",
+      "language": "astro",
+      "loc": 30,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": 970
+    },
+    {
+      "path": "components/website/src/pages/sdlc/repohealth.astro",
+      "language": "astro",
+      "loc": 22,
+      "s1_limit": 1000,
+      "s1_baseline": null,
+      "s1_budget": 978
+    },
+    {
+      "path": "components/website/src/styles/sdlc-leitstand.css",
+      "language": "css",
+      "loc": 98,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/sdlc-cockpit-smoke.mjs",
+      "language": "javascript",
+      "loc": 123,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 677
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/leitstand-absorption.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/leitstand-help-overlay.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/pages/sdlc/cockpit.astro:123:    function cockpitAct(action: string, target?: string) {",
+      "kind": "function",
+      "file": "components/website/src/pages/sdlc/cockpit.astro",
+      "signature": "123:    function cockpitAct(action: string, target?: string) {(...)",
+      "type_text": "123:    function cockpitAct(action: string, target?: string) {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

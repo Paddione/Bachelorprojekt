@@ -3777,6 +3777,12 @@
       "status": "archived"
     }
   ],
+  "T006285": [
+    {
+      "slug": "mcp-tool-guide-psql-ticket-ssot",
+      "status": "plan_staged"
+    }
+  ],
   "T006290": [
     {
       "slug": "2026-08-15-agent-lock-release-cwd",

@@ -2,7 +2,7 @@
 title: "agent-lock-release-cwd — Implementation Plan"
 ticket_id: T006290
 domains: [agent-skills, ci-tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -29,7 +29,9 @@ const serverInfo = {
 const tools = [
   {
     name: 'query',
-    description: 'Run a read-only SQL query against the local k3d postgres database.',
+    description:
+      'Run a read-only SQL query against the local k3d postgres database. ' +
+      'Only a single statement per call is accepted.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -68,6 +70,83 @@ async function handleToolsList() {
   return { tools };
 }
 
+// Erkennt mehr als ein SQL-Statement: ein Semikolon außerhalb von String-Literalen
+// ('...' und "..." inkl. ''- bzw. ""-Escapes) und Kommentaren (--, /* */), hinter dem
+// noch Nicht-Whitespace-Inhalt folgt. Ein trailing Semicolon (SELECT 1;) zählt nicht
+// als zweites Statement — pg liefert dort ein einzelnes Result.
+function isMultiStatement(sql) {
+  let inSingle = false;
+  let inDouble = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+  let seenSemicolon = false;
+
+  for (let i = 0; i < sql.length; i++) {
+    const ch = sql[i];
+    const next = sql[i + 1];
+
+    if (inLineComment) {
+      if (ch === '\n') inLineComment = false;
+      continue;
+    }
+    if (inBlockComment) {
+      if (ch === '*' && next === '/') {
+        inBlockComment = false;
+        i++;
+      }
+      continue;
+    }
+    if (inSingle) {
+      if (ch === "'") {
+        if (next === "'") {
+          i++; // ''-Escape
+        } else {
+          inSingle = false;
+        }
+      }
+      continue;
+    }
+    if (inDouble) {
+      if (ch === '"') {
+        if (next === '"') {
+          i++; // ""-Escape
+        } else {
+          inDouble = false;
+        }
+      }
+      continue;
+    }
+
+    // außerhalb von Strings und Kommentaren
+    if (ch === "'") {
+      inSingle = true;
+      continue;
+    }
+    if (ch === '"') {
+      inDouble = true;
+      continue;
+    }
+    if (ch === '-' && next === '-') {
+      inLineComment = true;
+      i++;
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      inBlockComment = true;
+      i++;
+      continue;
+    }
+    if (ch === ';') {
+      seenSemicolon = true;
+      continue;
+    }
+    if (seenSemicolon && !/\s/.test(ch)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function handleToolsCall(params) {
   const { name, arguments: args } = params;
   if (name !== 'query') {
@@ -84,13 +163,26 @@ async function handleToolsCall(params) {
     throw { code: -32602, message: 'Only read-only queries (SELECT/WITH/EXPLAIN) are allowed' };
   }
 
-  let rows;
+  // Präventiver Multi-Statement-Guard: mehrere Statements würden von pg als Array
+  // von Results beantwortet — der Adapter soll das mit Fehler ablehnen, nicht mit
+  // einem leeren Array antworten (T006293).
+  if (isMultiStatement(sql)) {
+    throw { code: -32602, message: 'Only single-statement queries are supported' };
+  }
+
+  let result;
   try {
-    const result = await pool.query(sql);
-    rows = result.rows;
+    result = await pool.query(sql);
   } catch (err) {
     throw { code: -32000, message: `Query failed: ${err.message}` };
   }
+
+  // Defensiv: falls pg doch mehrere Results liefert (Parser-Lücke im Scanner),
+  // als Fehler melden statt result.rows (dort undefined) als leeres Array auszugeben.
+  if (Array.isArray(result)) {
+    throw { code: -32602, message: 'Only single-statement queries are supported' };
+  }
+  const rows = result.rows;
 
   const text = JSON.stringify(rows, null, 2);
   return {

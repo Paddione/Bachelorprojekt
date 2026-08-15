@@ -603,6 +603,7 @@
         "tests/spec/mcp-gateway/bge-host-routing.bats",
         "tests/spec/mcp-gateway/bge-http-only-get.bats",
         "tests/spec/mcp-gateway/client-env-check.bats",
+        "tests/spec/mcp-gateway/mcp-postgres-multistatement.bats",
         "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
         "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
         "tests/spec/mcp-gateway/qwen-token-expansion.bats",

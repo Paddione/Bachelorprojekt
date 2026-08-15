@@ -4800,6 +4800,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-ops/wave1-state-refetch",
+    "file": "tests/spec/ticket-ops/wave1-state-refetch.bats",
+    "category": "ticket-ops",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-system",
     "file": "tests/spec/ticket-system.bats",
     "category": "ticket-system",

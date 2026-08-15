@@ -832,6 +832,7 @@
         "tests/spec/ticket-mcp/phase-events-at-column.bats",
         "tests/spec/ticket-mcp/triage-projection.bats",
         "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
+        "tests/spec/ticket-ops/wave1-state-refetch.bats",
         "tests/spec/ticket-system.bats",
         "tests/spec/ticket-system/areas-csv-trim.bats",
         "tests/spec/ticket-system/backfill-id-sequence.bats",

@@ -3753,6 +3753,12 @@
       "status": "archived"
     }
   ],
+  "T006284": [
+    {
+      "slug": "executor-post-merge-death",
+      "status": "plan_staged"
+    }
+  ],
   "T006293": [
     {
       "slug": "mcp-postgres-multistatement",

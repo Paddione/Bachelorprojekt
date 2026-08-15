@@ -172,6 +172,15 @@ Dann rebasen und alle Partials in Reihenfolge abarbeiten.
 - Lies den Plan aus `$PLAN_FILE` und — sofern vorhanden — das **Plan Intel Bundle** `openspec/changes/<slug>/intel.json` (Optional — der Implementer kann die Typen-Wahrheit selbst erheben, wenn die Datei fehlt)
 - Tasks in Reihenfolge; nach jedem Meilenstein Commit + Push
 - Vor PR: Freshness-Artefakte regenerieren
+- **SID-Propagation (PFLICHT, T006365):** Wird die Implementierung an einen
+  Subagenten delegiert, ermittle deine Session-SID mit `bash scripts/agent-lock.sh
+  mine` und weise den Implementer an, in jedem Bash-Call zuerst
+  `export AGENT_LOCK_SID=<deine-sid>` auszuführen — ohne diese Propagation
+  blockiert der Worktree-Write-Guard seine Edit/Write-Tools im geclaimten
+  Worktree (eigene Session-ID des Subagenten ≠ owner_sid).
+- **PR OHNE Auto-Merge-Anforderung (T005565):** Erstelle den PR, aber fordere
+  KEIN Auto-Merge an — das geschieht erst nach bestandenem Code-Review-Gate
+  (Schritt 4) durch den Orchestrator.
 - Phase-Telemetrie (best-effort):
   ```
   ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow" })
@@ -253,15 +262,38 @@ Falls neue Admin-Seiten hinzugefügt wurden:
 bash scripts/admin-menu-gate.sh
 ```
 
-## Schritt 4: Code Review Gate (Mandatory)
+## Schritt 4: Code-Review-Gate (PFLICHT vor Auto-Merge)
 
-Vor dem PR-Merge muss eine unabhängige Überprüfung stattfinden:
+**Unabhängige Prüfung, nicht Implementer-Selbst-Attestation** — die unabhängige Prüfung
+braucht einen anderen Kontext als den Implementer (Self-Attestation ist kein Review,
+T005307). Ohne bestandenes Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
 
-```bash
-delegate(prompt: "Review this PR's changes for bugs, security issues, and style. PR: $(gh pr view --json url -q '.url')", agent: "explore")
-```
-
-Behebe alle gefundenen Probleme und stelle sicher, dass der Reviewer "Approved" gibt, bevor du fortfährst.
+1. Prüfe den Auto-Merge-Zustand des PRs (Regression T006282: extern aktiviertes Auto-Merge
+   ist für das Gate sonst unsichtbar):
+   ```bash
+   bash scripts/check-pr-automerge.sh
+   ```
+   Semantik:
+   - `rc=1`: Gate bricht fail-closed ab — die Meldung nennt die PR-Nummer; es wird KEIN
+     Review-Ergebnis erteilt und KEIN Auto-Merge deaktiviert (Design D2: der explizite
+     User-Akt wird sichtbar, der Operator entscheidet).
+   - `rc=2`: Abbruch als Umgebungsfehler.
+2. Reviewe die Änderungen unabhängig — delegiere an einen Review-Subagenten via
+   `delegate(prompt, agent="explore")`:
+   ```bash
+   delegate(prompt: "Review this PR's changes for bugs, security issues, and style. PR: $(gh pr view --json url -q '.url')", agent: "explore")
+   ```
+3. Findings gehen an den **bereits gespawnten** Implementer zurück (kein neuer Spawn,
+   Doppel-Push-Risiko aus T001408); nach dessen Push erneut reviewen.
+4. Erst wenn der Reviewer "Approved" gegeben hat, fordere den Auto-Merge an:
+   ```bash
+   PR_NUM=$(gh pr view --json number -q '.number')
+   # Auto-Merge sofort anfordern — GitHub merged selbstständig, sobald Required Checks grün sind.
+   # KEIN --delete-branch (T004612): Schritt 7 (Plan-/OpenSpec-Archiv) braucht den Branch noch —
+   # gelöscht wird er erst im Cleanup NACH der Archivierung. delete_branch_on_merge ist
+   # repo-seitig deaktiviert; verwaiste Branches räumt branch-reaper.sh ab.
+   (cd "$MAIN_REPO" && gh pr merge --auto --squash)
+   ```
 
 ## Schritt 5: PR erstellen
 
@@ -274,13 +306,14 @@ gh pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
 
 > **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren.
 > Proposal-Commits auf Feature-Branches triggern den Auto-Merge-Flow und können das Ticket
-> vorzeitig schließen (Merge = Abschluss, T001092). Auto-Merge erst enable, wenn mindestens ein
-> Implementierungs-Commit auf dem Branch liegt.
+> vorzeitig schließen (Merge = Abschluss, T001092). Der Auto-Merge wird erst im
+> Code-Review-Gate angefordert (Schritt 4) — zu dem Zeitpunkt liegt der
+> Implementierungs-Commit bereits auf dem Branch, die Voraussetzung ist also erfüllt.
 
 ## Schritt 5.5: CI/CD-Fix-Schleife
 
 Nachdem der PR gepusht ist, überwache CI und behebe Fehler — Auto-Merge ist bereits angefordert
-(Schritt 5) und greift, sobald die Required Checks grün sind.
+(Schritt 4, nach bestandenem Review-Gate) und greift, sobald die Required Checks grün sind.
 
 ```bash
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$(gh pr view --json url -q '.url')"
@@ -295,81 +328,88 @@ Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` mit Exit-Code 4, wen
 `CONFLICTING` meldet — echte Merge-Konflikte. Auch hier löst der implementierende Subagent
 den Konflikt manuell (`git fetch origin main && git rebase origin/main`, lösen, push).
 
-## Schritt 6: Phase-Chain-Gate & Auto-Merge
+## Schritt 6: Phase-Chain-Gate & Merge-Wait
 
 > **Merge = Abschluss (T001092):** Das Ticket schließt beim grünen Merge nach `main`. Der
 > Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status **nicht**.
 
-**Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge:**
-Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen:
+> **Schritt 6 läuft hier; die Finalisierung (Schritte 6.4–7.5) ist an den frischen
+> Finalizer delegiert (Schritt 6.2)** — der Implementer hat bereits zurückgemeldet.
+
+**Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
+Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
+zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann mergen.
+(Auto-Merge wurde bereits in Schritt 4 angefordert — hier läuft nur noch das Gate.)
 ```bash
 bash scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
 ```
 
-Dann Auto-Merge anfordern:
+## Schritt 6.2: Finalisierung delegieren (T006284)
+
+> **Härtung T006284:** Nach dem Auto-Merge-Request (Schritt 4) endet die Finalisierung im
+> eigenen, kontextbelasteten Kontext: Die Schritte 6.4–7.5 (Merge-Wait, Ticket-Abschluss,
+> Plan-/OpenSpec-Archiv, Worktree-/Branch-Cleanup, Lock-Release) laufen NICHT mehr in-context.
+> Beim Incident T006284/PR #4460 starb der Executor nach dem Merge an Kontext-Erschöpfung —
+> Closure, Archiv und Cleanup blieben liegen und mussten manuell nachgeholt werden. Die
+> Härtung entfernt die Gelegenheit, statt die Direktive zu verschärfen (Muster T002365/T001571).
+
+Spawne einen **frischen Finalizer-Subagenten** (write-capable Delegation via `task` — er braucht
+Bash/Git-Zugriff für das Skript; `delegate` ist read-only) mit kompaktem Lagebild — er hat
+KEINEN Kontext, gib ihm alles explizit: Ticket-ID `$TICKET_ID`,
+PR-Nummer `$PR_NUM`, Branch `$BRANCH`, Worktree-Pfad `$MAIN_REPO/.worktrees/<slug>`,
+Plan-Pfad `$PLAN_FILE`, Resolution (`shipped`/`fixed`).
+
+Auftrag an den Finalizer (wörtlich Teil des Prompts):
+- **Merge-Wait-Loop zuerst (T001149-M1):** `gh pr view "$PR_NUM" --json state,mergeStateStatus`
+  pollen, bis `state=MERGED` (Timeout: KEIN Ticket schließen — Drift Ticket=done bei PR=OPEN;
+  stattdessen strukturiert berichten).
+- **Abschluss über die idempotente Einheit,** keine freie Rekonstruktion der Einzelschritte:
+  ```bash
+  bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
+  ```
+- **T001571-Standing-Direktive:** Bei Anzeichen von Kontext-Überlauf stoppen und einen
+  strukturierten Handoff-Report liefern (erledigte Schritte, Git-Zustand, offene Schritte in
+  Reihenfolge) — die offenen Schritte sind über das idempotente Skript von jeder Session
+  nachholbar.
+- **Rückmeldung an den Auftraggeber (Pflicht):** Endzustand strukturiert berichten — was
+  erledigt ist, was offen ist.
+
+**Die eigene Finalisierung endet hier:** die Schritte 6.4–7.5 NICHT im eigenen Kontext
+ausführen. Der eigene Kontext bleibt nur für die CI-Fix-Schleife (5.5) zuständig, solange
+sie läuft.
+
+## Schritte 6.4–7.5 — Merge-Wait, Ticket-Abschluss, Cleanup
+
+> **Zuständigkeit: ein frischer Finalizer-Subagent (Schritt 6.2), NICHT in-context.** Der
+> Abschluss läuft als **eine idempotente Skript-Einheit** — keine freie Rekonstruktion der
+> Einzelschritte:
+
 ```bash
-# KEIN --delete-branch (T004612): Schritt 7 (OpenSpec-Archiv) läuft nach dem Merge
-# und braucht den Branch noch; gelöscht wird er im Cleanup NACH der Archivierung.
-(cd "$MAIN_REPO" && gh pr merge --auto --squash)
+bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
 ```
 
-## Schritt 6.4: Auf Merge warten
+Das Skript führt deterministisch und idempotent aus: PR verlinken, Ticket auf `done`
+(`shipped`/`fixed`), `verify:done`-Phase-Event, Plan nach `tickets.ticket_plans` archivieren,
+OpenSpec-Change ins Archiv (inkl. Archiv-PR), Claims freigeben, Worktree und Branch entfernen —
+jeder Schritt überspringt bereits erledigte Arbeit. Jede Session (Recovery, Eskalation,
+Factory-Poller) kann die offenen Schritte mit einem Aufruf nachholen.
 
-`gh pr merge --auto` kehrt sofort zurück — Merge passiert asynchron:
-
-```bash
-PR_NUM=$(gh pr view --json number -q '.number')
-MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
-WAIT_START=$(date +%s)
-while true; do
-  MERGE_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
-  STATE="${MERGE_STATE%%|*}"
-  case "$STATE" in
-    MERGED) break ;;
-    CLOSED) exit 2 ;;
-  esac
-  ELAPSED=$(( $(date +%s) - WAIT_START ))
-  (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )) && exit 3
-  sleep 15
-done
-```
-
-## Schritt 6.5: Ticket abschließen
-
-Der Abschluss selbst — `resolution` ist `shipped` (Feature) oder `fixed` (Fix):
+Die Closure im Skript — `resolution` ist `shipped` (Feature) oder `fixed` (Fix):
 
 ```bash
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
 ```
 
-```
-ticket-mcp: add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })
-ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow" })
-```
+> **Merge = Abschluss (T001092):** Das Ticket schließt beim grünen Merge nach `main`. `qa_review`
+> und `awaiting_deploy` sind aus dem Happy-Path entfernt — nicht als Zwischenstatus setzen.
 
-> **Claims vor dem Worktree-Remove freigeben** — sonst bleibt ein Lock auf einen Pfad zurück,
-> den es nicht mehr gibt.
+> **Reihenfolge (T004612):** Archivierung läuft VOR der Branch-Löschung — der Fix-PR-Merge
+> löscht den Branch bewusst nicht mehr (`--delete-branch` entfernt,
+> `delete_branch_on_merge=false`), damit die Archivierung ihn noch vorfindet.
 
-## Schritt 7: Plan archivieren
-
-```bash
-sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/' "$PLAN_FILE"
-bash scripts/openspec.sh archive "$SLUG"
-# [T003136] openspec.sh archive regeneriert components/website/src/data/openspec-status.json
-# nach dem Move und staged sie bereits selbst (cmd_archive); der explizite
-# Eintrag hier ist Defense-in-Depth und haelt den Skill mit plan-archive-steps.md
-# konsistent. Ohne ihn traegt der Archiv-Commit die Datei nur, wenn der
-# pre-commit-Hook sie auto-staged (SKIP_FRESHNESS_REGEN/--no-verify umgehen das)
-# — PR #4083 fiel genau daran durch den Freshness-Gate.
-git add openspec/changes/ components/website/src/data/openspec-status.json
-git commit -m "chore(plans): archive $SLUG [$TICKET_ID]"
-```
-
-## Schritt 7.5: Worktree bereinigen
-
-```
-agent-lock.sh release branch "$(git branch --show-current)" && git worktree remove .worktrees/<slug> --force && git branch -D feature/<slug>
-```
+> **Claims vor dem Worktree-Remove freigeben (T006290)** — sonst bleibt ein Lock auf einen
+> Pfad zurück, den es nicht mehr gibt. Der Release läuft aus dem Haupt-Repo (cwd außerhalb
+> des Lock-Worktrees), ohne stderr-Unterdrückung.
 
 ## Schritt 8: Post-Merge Deploy
 
@@ -393,4 +433,6 @@ Melde alle aufgetretenen Fehler oder Prozess-Frictionen über `mishap-tracker`.
 | `opencode-git-workflow` | SSOT Commit/PR/Merge |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
 | `background-agents.ts` | Subagent-Routing |
+| `scripts/devflow-post-merge-finalize.sh` | Schritte 6.4–7.5 (Finalizer, idempotent) |
 | `scripts/devflow-post-merge-deploy.sh` | Schritt 8 |
+| `scripts/check-pr-automerge.sh` | Schritt 4 (Auto-Merge-Preflight, T006366) |

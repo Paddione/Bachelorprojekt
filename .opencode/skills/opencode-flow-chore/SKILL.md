@@ -77,7 +77,11 @@ Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
 
 ## Schritt 6: Worktree & Branch bereinigen
 
-Lock-Release, dann:
+**`opencode-git-workflow` Schritt 7** (SSOT): Im Haupt-Repo zuerst den Agent-Lock freigeben
+(`release ticket` + `release branch`, ohne stderr-Unterdrückung, T006290 — aus dem
+Lock-Worktree heraus verweigert `agent-lock.sh release branch` den Release, weil der
+nachfolgende Worktree-Remove die Shell-cwd zerstören würde), dann:
+
 ```bash
 git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug>
 git push origin --delete chore/<slug>

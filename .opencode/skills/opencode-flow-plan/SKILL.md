@@ -45,6 +45,12 @@ bash scripts/agent-lock.sh reap
 bash scripts/agent-lock.sh list
 bash scripts/agent-msg.sh read --unread
 git worktree list
+# Stale Worktrees ggf. löschen — aber NUR nach bestandenem Vorcheck [T005115]:
+#   bash scripts/worktree-clean-check.sh <path>
+# Das Skript lehnt dirty-Worktrees UND Worktrees mit aktivem fremden branch-Claim
+# ab (agent-lock.sh check branch <branch> — laufende Lauf/Rollup-Session!); schlägt
+# der Vorcheck an (rc 1), Worktree stehen lassen.
+#   git worktree remove <path> --force && git branch -D <branch>
 ```
 
 ## Schritt −0.5: Kollisions-Check vor der Planung ⚡ [T002444]
@@ -206,6 +212,11 @@ FOR each partial pX (p1, p2, ...):
   │     `bash scripts/plan-lint.sh --rules` als führende Instruktion („gleiche Karten"
   │     wie Factory und Claude). Schreibt `tasks.d/pX-<name>.md`.
   │
+  │     **SID-Propagation (PFLICHT, T006365):** Ermittle deine Session-SID mit
+  │     `bash scripts/agent-lock.sh mine` und weise den Plan-Subagenten an, in jedem
+  │     Bash-Call zuerst `export AGENT_LOCK_SID=<deine-sid>` auszuführen — sonst
+  │     blockiert der Worktree-Write-Guard seine Datei-Tools im Worktree.
+  │
   ├─► Schritt C.2b: tasks.md-Index aktualisieren
   │     Der Orchestrator updated `tasks.md` mit dem neuen Partial-Eintrag im Manifest
   │     und der aktualisierten File Structure.
@@ -336,7 +347,11 @@ hier harte Voraussetzung, nicht Stilfrage. Der Test gehört nach `tests/spec/<sp
 
 ### Pre-Commit Guard (PFLICHT vor Commit) [T001268]
 
-Bevor der plan-stage Commit läuft, MUSS der Operator `plan-preflight.sh` aufrufen. Das Skript bündelt alle drei Checks (nicht-main, clean tree, Lock-Match) und den branch-scoped Fallback [T003102] — ein Einzeiler statt drei Inline-Snippets:
+Bevor der plan-stage Commit läuft, MUSS der Operator `plan-preflight.sh` aufrufen. Das Skript bündelt alle drei Checks (nicht-main, Staged-Set, Lock-Match) und den branch-scoped Fallback [T003102] — ein Einzeiler statt drei Inline-Snippets:
+
+1. **Do not commit on main / Nicht auf main committen:** Plan-stage Commits auf `main` sind verboten — die Guards verweigern sie. Nur ein Worktree-Branch ist zulässig.
+2. **Staged-Set-Pflicht / Nur Plan-Artefakte stagen [T005114]:** der Guard wertet `git diff --cached --name-only` aus; erlaubt sind Pfade unter `tests/` und `openspec/changes/` sowie exakt `website/src/data/openspec-status.json` und `website/src/data/test-inventory.json`. Andere gestagte Dateien brechen den Guard ab (Abhilfe: `git restore --staged <pfad>` und nur Plan-Artefakte stagen). Unstaged/untracked wird nicht mehr geprüft — für den Commit zählt nur das Staged-Set.
+3. **Branch stimmt mit dem agent-lock-Claim überein (T003102 — akzeptiert ticket- UND branch-scoped Claims):** geprüft wird `agent-locks/ticket__${TICKET_EXT_ID}.json`, Fallback `agent-locks/branch__${BRANCH_SLUG}.json`; fehlt auch der, bricht der Guard ab.
 
 ```bash
 bash scripts/plan-preflight.sh pre-commit --ticket "$TICKET_EXT_ID"

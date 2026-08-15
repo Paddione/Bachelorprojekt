@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.46](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.45...website-v1.276.46) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** branch-reaper reaps merged freshness-regen branches [T005958] ([#4531](https://github.com/Paddione/Bachelorprojekt/issues/4531)) ([40e3ebf](https://github.com/Paddione/Bachelorprojekt/commit/40e3ebfacbc97c320a2a79ca26c23d3995e415ee))
+
 ## [1.276.45](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.44...website-v1.276.45) (2026-08-14)
 
 

@@ -287,6 +287,12 @@ OpenSpec-Change ins Archiv (inkl. Archiv-PR), Claims freigeben, Worktree und Bra
 jeder Schritt überspringt bereits erledigte Arbeit. Jede Session (Recovery, Eskalation,
 Factory-Poller) kann die offenen Schritte mit einem Aufruf nachholen.
 
+Die Closure im Skript (Schritt 5) — `resolution` ist `shipped` (Feature) oder `fixed` (Fix):
+
+```bash
+./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+```
+
 Vollständige Befehlsfolgen inklusive Poll-Loop und MCP-first-Aufrufen:
 [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md).
 Die Archivierung samt Push-Verifikation [T001268] und PR-Creation-Verifikation [T001331] steht in

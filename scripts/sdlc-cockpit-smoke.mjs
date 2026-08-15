@@ -99,6 +99,18 @@ try {
   check('Seite ist nicht leer', bodyText.trim().length > 200, `${bodyText.trim().length} Zeichen`);
   check('nicht auf der Login-Seite gelandet', !/\/login$/.test(url), url);
 
+  // [T007957/Review-I2] Der Factory-Floor (Z4-Fertigungsansicht) mountet erst
+  // bei einer Fertigungs-Station; auf der Default-Ansicht existieren die
+  // Floor-testids nicht. Fuer die Stabilitaets-Checks auf die Implement-
+  // Station navigieren — die Zonen-Shell (Z1/Z3/Z4/Z5) ist davon unberuehrt.
+  resp = await page.goto(`${BASE}/sdlc/cockpit?station=implement`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+  check(
+    'Fertigungs-Ansicht nach ?station=implement',
+    (await page.locator('[data-testid="factory-floor"]').count()) > 0,
+    page.url(),
+  );
+
   // [T007957/E3] Alte Floor-testids bleiben stabil (SSOT software-factory.md §
   // "FA-SF: Factory Floor Hallendarstellung" — INVARIANT, kein Delta in diesem Change).
   for (const id of ['factory-floor', 'floor-leitstand', 'floor-hall', 'floor-shipped', 'floor-slots']) {

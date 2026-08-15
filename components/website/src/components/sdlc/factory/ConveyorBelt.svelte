@@ -3,7 +3,7 @@
   import type { Phase, HallItem, ProviderConfigSummary } from '../../../lib/factory-floor-types.ts';
   import StationColumn from './StationColumn.svelte';
   import { floorStore, acquireFloor } from '../../../lib/stores/factory-floor-store.ts';
-  import { onLeitstandSelectionChange, pushLeitstandSelection } from '../../../lib/sdlc/leitstand-url.ts';
+  import { onLeitstandSelectionChange, parseLeitstandQuery, pushLeitstandSelection } from '../../../lib/sdlc/leitstand-url.ts';
 
   let {
     stations,
@@ -78,7 +78,12 @@
       onStationSelect(key);
       return;
     }
-    pushLeitstandSelection({ station: key });
+    // [T007957/Review-M1] Selektion nicht verwerfen: pushLeitstandSelection
+    // ersetzt die URL-Search komplett (Kontrakt B). Erst die aktuelle Selektion
+    // parsen und mit { station } mergen, sonst gehen deck/ticket (z.B. ein in
+    // Z5 geoeffnetes Deck) beim Stationswechsel verloren.
+    const current = parseLeitstandQuery(new URLSearchParams(window.location.search));
+    pushLeitstandSelection({ ...current, station: key });
   }
 </script>
 

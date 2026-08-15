@@ -44,7 +44,7 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
   <div class="ls-shell" id="cockpit-root">
     <LeitstandStatusband client:load {brand} />
     <AttentionStrip client:load />
-    <ConveyorBelt client:load compact stations={STATIONS} hallItems={[]} mobileColIndex={0} onSelect={() => {}} />
+    <ConveyorBelt client:load compact stations={STATIONS} hallItems={[]} mobileColIndex={0} onSelect={() => {}} selectedStation={initialSelection.station} />
 
     <div class="ls-main">
       <Kontextzone client:load {brand} {initial} initialSelection={initialSelection} slotsCap={slotsCap} />

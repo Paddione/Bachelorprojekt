@@ -329,8 +329,10 @@ Statusbands, aber ohne Overview/Fokus-Umschalter — stattdessen mit einem Help-
 
 The system SHALL render a persistent Z1 Statusband at the top of the SDLC Leitstand that remains
 visible regardless of the active station, ticket or deck selection. The Z1 Statusband SHALL
-display cluster health status, watchdog state, active agent count, slot usage, pending PR count,
-and the next factory tick countdown. It SHALL also host a Help toggle that opens the help/purpose
+display watchdog state, active agent count, slot usage, and the next factory tick countdown from
+live factory status. Live cluster health status and the pending PR count SHALL be present as
+placeholder indicators: deriving them from live sources is deferred to the E4 change of epic
+T007553 (review verdict M2, T007957). It SHALL also host a Help toggle that opens the help/purpose
 overlay affordance; it SHALL NOT host an Overview/Fokus mode toggle, since that mode distinction
 no longer exists.
 
@@ -341,12 +343,14 @@ no longer exists.
 - **THEN** Z1 is rendered and visible at the top of the page
 - **AND** it displays at minimum: cluster health indicator, active agent count, and slot usage
 
-#### Scenario: Cluster health is derived from live status
+#### Scenario: Cluster health indicator is a deferred placeholder
 
-- **GIVEN** the target cluster is reachable
-- **WHEN** Z1 fetches cluster status
-- **THEN** it shows a green indicator with the cluster name
-- **AND** when the cluster is unreachable, it shows a red indicator with an error message
+- **GIVEN** the SDLC Leitstand is loaded
+- **WHEN** Z1 Statusband is rendered
+- **THEN** a cluster health placeholder indicator is present
+- **AND** live cluster health (green indicator with the cluster name when reachable, red indicator
+  with an error message when unreachable) is deferred to E4 of epic T007553 (review verdict M2,
+  T007957)
 
 #### Scenario: Help toggle opens without changing the selection
 
@@ -361,22 +365,27 @@ Der bisherige Overview-Modus wird zum Leerlaufzustand von Z4: ohne Stations-/Tic
 Z4 ein KPI-Raster mit den Phasenzahlen; Attention-Daten liegen jetzt permanent in Z2, nicht mehr
 modusabhängig.
 
-The system SHALL render, in Z4 Kontextzone, a KPI grid aggregating the status of all nine
-value-stream stations (Triage, Planung, Scout, Design, Plan, Implement, Verify, Deploy, Ship)
-whenever no station and no ticket is selected. Each station SHALL display its ticket count by
-status, including stations with zero tickets. The KPI grid SHALL contain a structural PR section;
-populating it with live pull-request/CI data requires a PR-listing API that does not exist yet
-and is deferred to the E4 change of epic T007553 — until then the section renders an explicit
-empty marker and attempts no fetch. Blocked/stuck-ticket aggregation and active cooldowns SHALL
-NOT be part of this KPI grid, since Z2 Attention-Strip already carries them permanently.
+The system SHALL render, in Z4 Kontextzone, an idle-state KPI grid whenever no station and no
+ticket is selected. The grid SHALL show one tile per legacy value-stream phase (Triage, Planung,
+Bauen, Review, Deploy, Ship), including phases with zero tickets — this tile layout is the
+structural carrier for the nine-station axis of Kontrakt A. The per-station ticket-count
+aggregation over all nine value-stream stations (Triage, Planung, Scout, Design, Plan, Implement,
+Verify, Deploy, Ship) is deferred to the E4 change of epic T007553 (review verdict I1, T007957):
+E3 renders the legacy phase tiles from the portfolio endpoint and does not re-key them per
+station. The KPI grid SHALL contain a structural PR section; populating it with live
+pull-request/CI data requires a PR-listing API that does not exist yet and is deferred to the E4
+change of epic T007553 — until then the section renders an explicit empty marker and attempts no
+fetch. Blocked/stuck-ticket aggregation and active cooldowns SHALL NOT be part of this KPI grid,
+since Z2 Attention-Strip already carries them permanently.
 
-#### Scenario: All stations are displayed with counts
+#### Scenario: Idle KPI grid shows phase tiles with counts
 
-- **GIVEN** tickets exist across the nine stations and no selection is active
+- **GIVEN** tickets exist in the factory and no selection is active
 - **WHEN** Z4 renders its idle state
-- **THEN** each of the nine stations is shown
-- **AND** each station displays the count of tickets in that station
-- **AND** stations with zero tickets are still visible
+- **THEN** the KPI grid shows one tile per legacy phase (Triage, Planung, Bauen, Review, Deploy, Ship)
+- **AND** each tile displays the ticket counts of that phase
+- **AND** phases with zero tickets are still visible as empty tiles
+- **AND** the per-station aggregation over all nine value-stream stations is deferred to E4 of epic T007553 (review verdict I1, T007957)
 
 #### Scenario: PR section is present but deferred
 

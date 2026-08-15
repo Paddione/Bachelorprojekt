@@ -56,8 +56,8 @@
   purpose: Local LLM gateway bootstrap config.
 - id: assets
   name: Design + art-library assets
-  paths: ["assets/**", "art-library/**"]
+  paths: ["assets/**", "assets/art-library/**"]
   owner_agent: bachelorprojekt-website
-  test_location: art-library/_tooling/
+  test_location: assets/art-library/_tooling/
   purpose: Design overviews, game art, art-library tooling.
 

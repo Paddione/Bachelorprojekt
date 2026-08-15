@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { getSession, isAdmin } from '../../../lib/auth';
 
 const BRAND = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
-const MANIFEST_PATH = resolve(process.cwd(), '..', 'art-library', 'sets', BRAND, 'manifest.json');
+const MANIFEST_PATH = resolve(process.cwd(), '..', '..', 'assets', 'art-library', 'sets', BRAND, 'manifest.json');
 
 function toPublicUrl(flat: string): string {
   const m = flat.match(/^([a-z]+)_(.+)$/);

@@ -122,7 +122,7 @@ clients:
       unberuehrt: llama.cpp bezieht den Server nicht aus dieser Registry.
     failover_note: >-
       Der Shim haelt keine eigene Failover-Logik. Welches bge-Paar antwortet,
-      entscheidet website/src/lib/bge-router.ts — dieselbe Stelle, die auch die
+      entscheidet components/website/src/lib/bge-router.ts — dieselbe Stelle, die auch die
       HTTP-Endpunkte und die Bestandsclients benutzen.
     harness:
       claude_code:

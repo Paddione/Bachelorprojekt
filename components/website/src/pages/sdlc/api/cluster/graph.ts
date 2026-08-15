@@ -20,7 +20,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   let raw: string;
   try {
-    const graphPath = join(process.cwd(), '..', 'docs', 'generated', 'graph.json');
+    const graphPath = join(process.cwd(), '..', '..', 'docs', 'generated', 'graph.json');
     raw = await readFile(graphPath, 'utf-8');
   } catch {
     return new Response(JSON.stringify({ error: 'graph.json nicht gefunden' }), {

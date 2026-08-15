@@ -20,7 +20,7 @@ Live-Reload läuft über einen Bind-Mount (~2 s Latenz). Stoppen mit `down`, das
 ### Variante B — direkt auf dem Host
 
 ```bash
-cd website
+cd components/website
 pnpm install
 set -a; . ./.env; set +a   # PFLICHT — sonst bricht der Start ab, siehe unten
 pnpm dev                   # http://localhost:4321

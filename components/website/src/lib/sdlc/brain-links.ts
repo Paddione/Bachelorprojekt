@@ -19,7 +19,7 @@
  * `docs/agent-guide/maps/agents-map.md`.
  */
 
-const PRUNED_TREES = ['components/website/', 'k3d/', 'scripts/', 'tests/', '.worktrees/', 'brett/', 'tui/', 'packages/'];
+const PRUNED_TREES = ['components/website/', 'k3d/', 'scripts/', 'tests/', '.worktrees/', 'components/brett/', 'tui/', 'packages/'];
 
 const MANIFEST_GROUPS: string[] = [
   'openspec/specs/*.md',

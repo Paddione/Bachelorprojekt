@@ -3,7 +3,7 @@
     "docs/code-quality/repo-index.json",
     "scripts/worktree-create.sh",
     "tests/unit/worktree-create.bats",
-    "website/src/lib/goals-data.generated.json"
+    "components/website/src/lib/goals-data.generated.json"
   ],
   "forbidden": [
     "k3d/configmap-domains.yaml",

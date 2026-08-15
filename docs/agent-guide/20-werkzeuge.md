@@ -178,7 +178,7 @@ Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch.
 
 Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code.
 
-**Wofür?** Für alles rund um website/src/ – Astro-Seiten, Svelte-Komponenten, CSS, Inhalte.
+**Wofür?** Für alles rund um components/website/src/ – Astro-Seiten, Svelte-Komponenten, CSS, Inhalte.
 
 **So startest du:** Beschreibe einfach, was auf der Website geändert werden soll.
 

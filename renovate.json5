@@ -27,7 +27,7 @@
   // Paths that Renovate should never touch.
   "ignorePaths": [
     "**/node_modules/**",
-    "art-library/**",
+    "assets/art-library/**",
     "scripts/coaching/**",
     "scripts/knowledge/**",
     "tests/e2e/**",

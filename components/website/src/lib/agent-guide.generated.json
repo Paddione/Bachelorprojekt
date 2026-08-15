@@ -1135,7 +1135,7 @@
       "kind": "agent",
       "kind_de": "Agent",
       "summary_de": "Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code.",
-      "what_for_de": "Für alles rund um website/src/ – Astro-Seiten, Svelte-Komponenten, CSS, Inhalte.",
+      "what_for_de": "Für alles rund um components/website/src/ – Astro-Seiten, Svelte-Komponenten, CSS, Inhalte.",
       "how_to_start_de": "Beschreibe einfach, was auf der Website geändert werden soll.",
       "what_could_go_wrong_de": "Visuelle Änderungen wirken erst nach einem Deploy; er kann Typo-Fehler einbauen.",
       "danger": "caution",

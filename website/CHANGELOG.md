@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.279.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.1...website-v1.279.2) (2026-08-15)
+
+
+### Bug Fixes
+
+* **ci:** ignore spec-junit-shard-* in .gitignore [T006368] ([#4563](https://github.com/Paddione/Bachelorprojekt/issues/4563)) ([e05c19b](https://github.com/Paddione/Bachelorprojekt/commit/e05c19bfa176b0a82a3cfd9bb2740fb423f1ac00))
+
 ## [1.279.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.0...website-v1.279.1) (2026-08-15)
 
 

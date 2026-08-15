@@ -15,13 +15,13 @@ rollup is successful.
 
 #### Scenario: Three eligible pull requests form a cluster
 
-- **GIVEN** three open, non-draft pull requests with green checks change `website/src/lib/x.ts`
+- **GIVEN** three open, non-draft pull requests with green checks change `components/website/src/lib/x.ts`
 - **WHEN** `scripts/arbitration/detect.sh` runs
-- **THEN** it SHALL emit a cluster for `website/src/lib/x.ts` listing all three pull request numbers
+- **THEN** it SHALL emit a cluster for `components/website/src/lib/x.ts` listing all three pull request numbers
 
 #### Scenario: Two eligible pull requests do not form a cluster
 
-- **GIVEN** exactly two open, non-draft pull requests with green checks change `website/src/lib/x.ts`
+- **GIVEN** exactly two open, non-draft pull requests with green checks change `components/website/src/lib/x.ts`
 - **WHEN** `scripts/arbitration/detect.sh` runs
 - **THEN** it SHALL emit no cluster for that file
 
@@ -59,7 +59,7 @@ it arbitrates.
 
 #### Scenario: Synthesis pull request does not re-trigger arbitration
 
-- **GIVEN** an open pull request labelled `arbitration` changes `website/src/lib/x.ts`
+- **GIVEN** an open pull request labelled `arbitration` changes `components/website/src/lib/x.ts`
 - **AND** two other eligible pull requests change the same file
 - **WHEN** `scripts/arbitration/detect.sh` runs
 - **THEN** it SHALL emit no cluster for that file
@@ -113,7 +113,7 @@ reported confidence is below 0.8.
 
 #### Scenario: Ordinary path with high confidence produces a pull request
 
-- **GIVEN** a cluster on `website/src/lib/x.ts`
+- **GIVEN** a cluster on `components/website/src/lib/x.ts`
 - **AND** the reported confidence is 0.99
 - **WHEN** `scripts/arbitration/apply.sh` runs
 - **THEN** it SHALL open a pull request labelled `arbitration` containing only the cluster files

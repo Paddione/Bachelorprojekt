@@ -131,7 +131,7 @@ geplanten `touched_files` des Features mit den aktiven `in_progress`-Features an
 überlappen. Bei Überlappung wird die Pipeline sofort geblockt und der Slot freigegeben.
 
 #### Scenario: Kein Datei-Overlap
-- **GIVEN** T000501 berührt `website/src/pages/foo.astro` und kein anderes `in_progress`-Feature hat diese Datei
+- **GIVEN** T000501 berührt `components/website/src/pages/foo.astro` und kein anderes `in_progress`-Feature hat diese Datei
 - **WHEN** `conflict-check.sh T000501 <files>` aufgerufen wird
 - **THEN** Exit 0; Pipeline fährt fort mit Implement
 
@@ -856,7 +856,7 @@ The system SHALL extend the atomic slot claim so that a claim reserves the candi
 `reserved_tokens` by the same amount. The four routing implementations
 (`scripts/factory/route-provider.sh`, `scripts/factory/release-slot.sh`,
 `scripts/factory/provider-router.js`, and the inlined clone in `scripts/factory/pipeline.js`)
-SHALL apply identical budget arithmetic; `website/src/lib/provider-config.ts` remains a read-only
+SHALL apply identical budget arithmetic; `components/website/src/lib/provider-config.ts` remains a read-only
 selection path that passes the new columns through without claiming.
 
 #### Scenario: Claim within budget succeeds and reserves tokens
@@ -889,10 +889,10 @@ API-Key) sowie um die Cloud-Provider `openrouter`, `opencode-zen`, `google-gemin
 den lokalen Provider geroutet werden, mit Cloud als automatischem prio-2-Fallback über den
 bestehenden Circuit-Breaker.
 
-The system SHALL register `local-qwen35` in `website/src/lib/ki-catalog.ts` with the LM-Studio
+The system SHALL register `local-qwen35` in `components/website/src/lib/ki-catalog.ts` with the LM-Studio
 base URL and no `apiKeyEnv`, and SHALL register `openrouter`, `opencode-zen`, `google-gemini`, and
 `github-models` each with an `apiKeyEnv`. The service source `lavish-artifact` SHALL be registered
-in `website/src/lib/ki-services.ts`. Seed rows SHALL make `local-qwen35` priority 1 for the sources
+in `components/website/src/lib/ki-services.ts`. Seed rows SHALL make `local-qwen35` priority 1 for the sources
 `factory-scout`, `factory-plan`, `ticket-triage`, and `lavish-artifact`, and SHALL demote the
 existing cloud rows of those sources to priority 2.
 
@@ -2449,13 +2449,13 @@ When a BATS test file in `tests/local/` has been fully consolidated into `tests/
 
 ### Requirement: Test inventory references SHALL match existing files
 
-Generated indexes and inventories (`docs/code-quality/repo-index.json`, `website/src/data/test-inventory.json`) SHALL only reference test files that exist on disk.
+Generated indexes and inventories (`docs/code-quality/repo-index.json`, `components/website/src/data/test-inventory.json`) SHALL only reference test files that exist on disk.
 
 #### Scenario: Inventory updated after file removal
 - **GIVEN** `tests/local/FA-SF-20-pipeline-contract.bats` is removed
 - **WHEN** inventory files are regenerated
 - **THEN** `docs/code-quality/repo-index.json` SHALL NOT reference the removed file
-- **AND** `website/src/data/test-inventory.json` SHALL NOT reference the removed file
+- **AND** `components/website/src/data/test-inventory.json` SHALL NOT reference the removed file
 
 ### Requirement: BATS-Tests legen Fixtures außerhalb des Arbeitsbaums an
 
@@ -3537,7 +3537,7 @@ The system SHALL compute the Jaccard distance between the planned (`P`) and actu
 #### Scenario: filterNoise entfernt docs/generated/**, repo-index.json, test-inventory.json, Plan/Spec-Markdown *(BATS)*
 - **GIVEN** Arrays mit Mix aus relevanten und generierten Pfaden
 - **WHEN** `filterNoise([...])` ausgeführt wird
-- **THEN** `docs/generated/x.md`, `docs/code-quality/repo-index.json`, `website/src/data/test-inventory.json`, `docs/superpowers/plans/p.md`, `docs/superpowers/specs/s.md` werden entfernt; `src/a.ts` bleibt erhalten; `null`-Input gibt `[]` zurück
+- **THEN** `docs/generated/x.md`, `docs/code-quality/repo-index.json`, `components/website/src/data/test-inventory.json`, `docs/superpowers/plans/p.md`, `docs/superpowers/specs/s.md` werden entfernt; `src/a.ts` bleibt erhalten; `null`-Input gibt `[]` zurück
 
 ---
 
@@ -3687,7 +3687,7 @@ The system SHALL record process frictions via `mishap-tracker.sh` into a `.misha
 The system SHALL expose a POST endpoint at `/api/tickets/[id]/readiness` that requires admin authentication, validates the ticket ID format against `T\d{6}`, checks that the ticket status is `done` before proceeding, and calls `updateSuccessorReadiness` to propagate the `abhaengigkeiten_klar` flag in the readiness JSONB field. Missing/unauthorized/not-done conditions return 404, 401, and 409 respectively.
 
 #### Scenario: statische Checks des Readiness-Endpoints *(BATS)*
-- **GIVEN** `website/src/pages/api/tickets/[id]/readiness.ts` und `website/src/lib/ticket-readiness.ts` existieren
+- **GIVEN** `components/website/src/pages/api/tickets/[id]/readiness.ts` und `components/website/src/lib/ticket-readiness.ts` existieren
 - **WHEN** Code-Checks auf `isAdmin`, `export const POST`, `T\d{6}`, `status.*done`, `409`, `404`, `401`, `updateSuccessorReadiness`, `abhaengigkeiten_klar` ausgeführt werden
 - **THEN** alle `grep`-Checks geben Exit 0; Lib exportiert `updateSuccessorReadiness` und `allPredecessorsDone`
 

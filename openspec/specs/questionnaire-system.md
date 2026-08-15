@@ -209,14 +209,14 @@ customer and template, leaving the original assignment untouched in its current 
 
 The system SHALL provide a `coaching:ingest-json` task in `Taskfile.yml`, a CLI entrypoint
 at `scripts/coaching/ingest-json.mts`, and a shared core module at
-`website/src/lib/ingest-json-core.ts` that can be consumed by both the CLI and server-side code.
+`components/website/src/lib/ingest-json-core.ts` that can be consumed by both the CLI and server-side code.
 
 #### Scenario: Ingest-Infrastruktur vorhanden
 
 - **GIVEN** das Projekt-Repository ist ausgecheckt
 - **WHEN** die Dateipfade geprüft werden
 - **THEN** existiert `scripts/coaching/ingest-json.mts` als ausführbares CLI-Skript
-- **AND** existiert `website/src/lib/ingest-json-core.ts` als gemeinsame Kernbibliothek
+- **AND** existiert `components/website/src/lib/ingest-json-core.ts` als gemeinsame Kernbibliothek
 - **AND** ist in `Taskfile.yml` genau ein Task `coaching:ingest-json:` definiert
 
 ---

@@ -151,7 +151,7 @@ account recovery) exclusively through the website's internal Admin-API, which au
 against the Pocket ID Admin REST API using the `X-API-KEY` header with `POCKET_ID_API_KEY`.
 
 > Pocket ID v2.9.0 akzeptiert **kein** `Authorization: Bearer` auf der Admin-API — der
-> API-Key-Header ist der einzige unterstützte Weg (siehe `website/src/lib/identity.ts`).
+> API-Key-Header ist der einzige unterstützte Weg (siehe `components/website/src/lib/identity.ts`).
 
 #### Scenario: Neuen Nutzer anlegen
 

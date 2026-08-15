@@ -21,8 +21,29 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 ## File Structure
 
 ```
-<Der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+commitlint.config.cjs                                                  # [9] Alias-Gruppen als DEPRECATED gekennzeichnet (Nur-Hinweis, kein Scope-Nachweis)
+openspec/specs/*.md (36 Nicht-Archiv-Dateien)                          # [6] website/src → components/website/src Pfad-Sweep (204 Zeilen)
+openspec/changes/mishap-incident-rollup-2026-08-15-T007877/tasks.md    # Entscheidungen + Verify-Doku
+tests/spec/agent-skills/worktree-write-guard-session-propagation.bats  # [10] T5-Regressionstest: zwei Claims derselben SID → beide Worktrees beschreibbar
 ```
+
+Nicht angefasst (bewusst): `.opencode/package.json` + `.opencode/package-lock.json`
+(unstaged tooling-Drift 1.18.16→1.18.18, nicht Teil des Tickets).
+
+## Entscheidungen je Mishap-Eintrag
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | RED nicht anwendbar (Verify), Prozess-Hinweis dokumentiert | Auto-Merge-Gate lebt in `.github/workflows/auto-enable-automerge.yml` + `scripts/check-pr-automerge.sh` (Live-`gh`-API-Zustand) — nicht hermetsch in bats reproduzierbar; Fix ist eine Merge-Policy-Änderung, die dem Workflow-Besitzer gehört (kein kleiner sauberer Fix) |
+| 2 | `deferred` | `scripts/devflow-post-merge-finalize.sh` wird diesen Zyklus von T007067 geführt (paralleler Branch) — Konfliktvermeidung |
+| 3 | fixed-externally (Umgebung) | 13 Symlinks im Haupt-Checkout zeigen wieder auf gültige Ziele (0 broken, `.pnpm` vorhanden); Gate-Läufe wieder möglich. Remediation bei Rezidiv: `pnpm install`/`npm install` im Haupt-Checkout |
+| 4 | `deferred` | Operator-Zustand (Haupt-Checkout auf abgeschlossenem Branch T007035 mit uncommitteten Änderungen einer laufenden Session) — kein Code-Problem, keine Aktion aus dem Worktree |
+| 5 | fixed-externally (beobachtet) | mcp-postgres-Gateway liefert wieder `200` auf `/health` (curl-Probe); M2-Fallback nicht mehr nötig |
+| 6 | fixed | Pfad-Sweep `website/src` → `components/website/src` in 36 Nicht-Archiv-OpenSpec-Specs (204 Zeilen, rein mechanisch, Regex-sicher gegen `components/website/src`-Doppelersatz). `docs/`-Sweep (126 Dateien) + `archive/` (30 Vorkommen, historische Protokolle) bewusst `deferred` — eigener Chore laut Mishap-Fix-Idee |
+| 7 | `deferred` | `dev-flow-execute`-Docs werden von T006367 umgeschrieben (paralleler Branch) |
+| 8 | fixed-externally | Bonsai-Guard-Entfernung bereits durch PR #4666 (T007956) gemergt — `.githooks/pre-commit` auf origin/main enthält keinen Bonsai-Block mehr |
+| 9 | fixed | `SCOPE_ALIAS_GROUPS` in commitlint.config.cjs als DEPRECATED (Nur-Hinweis, keine gültigen Scopes) markiert; kanonische Abfrage `bash scripts/validate-commit-msg.sh scopes` im Kommentar verankert (git-workflow-SKILL.md Zeile 150 dokumentiert sie bereits) |
+| 10 | fixed-externally (bereits behoben) + Regressionstest | MY_WTS sammelt seit T002412 ALLE eigenen Claims; SID-Propagation für delegierte Subagenten seit T006365 (05:06 UTC heute, vor Mishap-Batch). Live-Test bestätigt: zwei Claims derselben SID → beide Worktrees beschreibbar. T5-Regressionstest verankert das Verhalten |
 
 ## Mishap-Batches
 
@@ -74,18 +95,33 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
-      der das beschriebene Fehlverhalten reproduziert. Er gehoert nach
-      `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
+- [x] **Failing-Test-Step (RED) — nicht anwendbar, begründet.** Eintrag 1 ist eine
+      Prozess-Beobachtung (Auto-Merge rannte dem Code-Review-Gate davon). Das
+      Verhalten wird von `.github/workflows/auto-enable-automerge.yml` (setzt
+      `gh pr merge --auto` inline bei jedem Nicht-Draft-PR) und
+      `scripts/check-pr-automerge.sh` (Live-`gh`-API-Zustand) bestimmt — beides
+      ist ohne GitHub-API-Mocking nicht hermetsch in bats reproduzierbar, und
+      ein Mock würde nur den Mock testen. Ein aussagekräftiger RED-Test müsste
+      die Merge-Policy ändern (Auto-Merge nur nach bestandenem Review-Gate),
+      was eine Workflow-Änderung ist und nicht in ein Rollup-Chore gehört
+      (Fix-Idee als Prozess-Empfehlung im Eintrag 1 dokumentiert).
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/software-factory/
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
+# real: nicht anwendbar — siehe Begründung oben (kein hermetsches Testziel vorhanden)
 ```
 
-- [ ] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten.
+- [x] **Fix-Step (GREEN).** Einträge 6 (Spec-Pfad-Sweep), 9 (Deprecated-Alias-Markierung)
+      und 10 (Regressionstest T5, zwei Claims derselben SID) umgesetzt; Einträge 2, 4, 7
+      als `deferred` dokumentiert; Einträge 3, 5, 8 als fixed-externally beobachtet/verifiziert.
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+```bash
+tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/worktree-write-guard-session-propagation.bats
+# result: 5 ok (inkl. neuem T5 für Eintrag 10)
+```
+
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

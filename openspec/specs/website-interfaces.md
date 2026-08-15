@@ -24,7 +24,7 @@ Sibling-Specs:
 
 The system SHALL persist all public page content as JSON files under
 `website/content/<brand>/` (one file per domain) validated at build time by the
-Zod schemas in `website/src/content-schema/`, and SHALL resolve every
+Zod schemas in `components/website/src/content-schema/`, and SHALL resolve every
 `getEffective*` content accessor from this build-time bundle, so that
 public-page rendering never requires a database round-trip.
 
@@ -105,7 +105,7 @@ widget. LiveKit is no longer part of this dependency set — the stack was remov
 #### Scenario: Keine LiveKit-Umgebungsvariable wird mehr gelesen
 
 - **GIVEN** the website build after the T002184 removal
-- **WHEN** the API handlers under `website/src/pages/api/` are scanned
+- **WHEN** the API handlers under `components/website/src/pages/api/` are scanned
 - **THEN** no handler reads `LLM_LIVEKIT_URL`, `LIVEKIT_DOMAIN` or `LIVEKIT_PIN_IP`
 
 ### Requirement: Admin-API mit SHA-Concurrency statt DB-Versionen
@@ -258,7 +258,7 @@ them, but no save.ts endpoint or content accessor imports or calls them.
 - **GIVEN** alle `getEffective*`-Funktionen lesen aus `content-bundle.ts`
 - **AND** `/api/homepage` ruft `bundleHomepageBlocks(brand)` auf (nicht
   `readCurrent(brand)`)
-- **WHEN** `grep -rn "homepage_block_documents" website/src/pages/api/`
+- **WHEN** `grep -rn "homepage_block_documents" components/website/src/pages/api/`
   ausgeführt wird
 - **THEN** liefert der Grep keine Treffer in `homepage.ts` oder
   `homepage.test.ts`

@@ -18,22 +18,22 @@ under test, not noise.
 
 #### Scenario: A change touching only a regenerated artifact selects no website tests
 
-- **GIVEN** a change whose diff contains `website/src/data/openspec-status.json` and
+- **GIVEN** a change whose diff contains `components/website/src/data/openspec-status.json` and
   `flux/clusters/fleet/bootstrap/sealed-secrets.yaml`
 - **WHEN** `task test:changed` computes its selection
 - **THEN** `RUN_E2E_WEBSITE` remains false and Playwright is not started
 
 #### Scenario: A real website source change still selects website tests
 
-- **GIVEN** a change whose diff contains `website/src/pages/index.astro`
+- **GIVEN** a change whose diff contains `components/website/src/pages/index.astro`
 - **WHEN** `task test:changed` computes its selection
 - **THEN** `RUN_WEBSITE` and `RUN_E2E_WEBSITE` are set to true
 
 #### Scenario: The filter passes non-generated paths through unchanged
 
-- **GIVEN** the path list `scripts/foo.sh` and `website/src/data/route-manifest.json` on stdin
+- **GIVEN** the path list `scripts/foo.sh` and `components/website/src/data/route-manifest.json` on stdin
 - **WHEN** `scripts/filter-generated.sh` runs
-- **THEN** it emits `scripts/foo.sh` and omits `website/src/data/route-manifest.json`
+- **THEN** it emits `scripts/foo.sh` and omits `components/website/src/data/route-manifest.json`
 
 #### Scenario: The filter tolerates empty input
 
@@ -55,7 +55,7 @@ reporting introduced by T002242-M3 SHALL remain in effect for the tasks that sti
 
 #### Scenario: A merged website change reports the CI workflow instead of building
 
-- **GIVEN** a merge commit touching `website/src/pages/index.astro`
+- **GIVEN** a merge commit touching `components/website/src/pages/index.astro`
 - **WHEN** `scripts/devflow-post-merge-deploy.sh` runs
 - **THEN** no image build is started and the output names `build-website.yml`
 

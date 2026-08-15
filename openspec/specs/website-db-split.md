@@ -8,7 +8,7 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu website-db-split ergänz
 
 ### Requirement: REQ-WEBSITE-DB-SPLIT-001 — Stage 1 Extraction With Re-Export Compatibility
 
-`website/src/lib/website-db.ts` SHALL have its first functional half (Customer, Bug-Ticket,
+`components/website/src/lib/website-db.ts` SHALL have its first functional half (Customer, Bug-Ticket,
 Site-Settings, Vacation/Blackout, Legal-Pages) moved into a new module, with `website-db.ts` keeping
 re-exports under the original names so no call site outside `website-db.ts` needs to change its
 import path. This is Stage 1 of a two-stage split; Stage 2 (the remaining functions) is tracked in

@@ -336,7 +336,7 @@ Repair exemption (T003072): a `done` state that was never valid — `resolution 
 legitimate closure and SHALL NOT block the transition. The script SHALL emit a visible WARN
 naming the invalid done state and proceed with the requested non-terminal transition.
 `archived` SHALL remain hard (no exemption). The mirrored TS write path
-(`website/src/lib/tickets/transition.ts`) SHALL apply the same exemption so that both write
+(`components/website/src/lib/tickets/transition.ts`) SHALL apply the same exemption so that both write
 paths agree (T002230 pattern).
 
 #### Scenario: A caller tries to transition from a legitimate done to in_progress

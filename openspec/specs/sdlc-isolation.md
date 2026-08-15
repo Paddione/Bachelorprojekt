@@ -103,23 +103,23 @@ memory budget. The effective allocation SHALL be measured and documented.
 ### Requirement: SDLC code resides in dedicated directories
 
 All code that exclusively serves the software development lifecycle SHALL live under
-`website/src/pages/sdlc/`, `website/src/lib/sdlc/` and `website/src/components/sdlc/`.
+`components/website/src/pages/sdlc/`, `components/website/src/lib/sdlc/` and `components/website/src/components/sdlc/`.
 Modules used by both the SDLC surface and the business surface SHALL remain in their current
 location and SHALL NOT be duplicated.
 
 #### Scenario: SDLC page lives under the sdlc directory
 
-- **GIVEN** the factory floor page, previously at `website/src/pages/admin/cockpit.astro`
+- **GIVEN** the factory floor page, previously at `components/website/src/pages/admin/cockpit.astro`
 - **WHEN** the repository is inspected after the split
-- **THEN** the file is located under `website/src/pages/sdlc/` and no SDLC-only page remains
-  under `website/src/pages/admin/`
+- **THEN** the file is located under `components/website/src/pages/sdlc/` and no SDLC-only page remains
+  under `components/website/src/pages/admin/`
 
 #### Scenario: Shared module stays in place
 
-- **GIVEN** `website/src/lib/auth.ts`, which is imported by both SDLC and business pages
+- **GIVEN** `components/website/src/lib/auth.ts`, which is imported by both SDLC and business pages
 - **WHEN** the split is applied
-- **THEN** the module remains at `website/src/lib/auth.ts` and is not copied into
-  `website/src/lib/sdlc/`
+- **THEN** the module remains at `components/website/src/lib/auth.ts` and is not copied into
+  `components/website/src/lib/sdlc/`
 
 ---
 
@@ -130,13 +130,13 @@ under the SDLC directories.
 
 #### Scenario: Commit touching only SDLC files
 
-- **GIVEN** a push to `main` whose changed-file set lies entirely under `website/src/**/sdlc/**`
+- **GIVEN** a push to `main` whose changed-file set lies entirely under `components/website/src/**/sdlc/**`
 - **WHEN** GitHub evaluates the `paths` filter of `.github/workflows/build-website.yml`
 - **THEN** the workflow is not triggered and no production website image is built
 
 #### Scenario: Commit touching a shared module
 
-- **GIVEN** a push to `main` that changes `website/src/lib/auth.ts`
+- **GIVEN** a push to `main` that changes `components/website/src/lib/auth.ts`
 - **WHEN** GitHub evaluates the `paths` filter
 - **THEN** the workflow IS triggered, because the module is shared by both surfaces
 
@@ -446,8 +446,8 @@ cockpit and no tunnel that opens an inbound path from the internet into the home
 ### Requirement: Two build targets from one codebase
 
 The Astro application SHALL support two build targets, `prod` and `sdlc`, from a single
-codebase. SDLC code SHALL live under `website/src/pages/sdlc/`, `website/src/lib/sdlc/` and
-`website/src/components/sdlc/`; the production build SHALL NOT contain SDLC routes and SHALL
+codebase. SDLC code SHALL live under `components/website/src/pages/sdlc/`, `components/website/src/lib/sdlc/` and
+`components/website/src/components/sdlc/`; the production build SHALL NOT contain SDLC routes and SHALL
 NOT be triggered by commits touching only SDLC directories.
 
 #### Scenario: Production image excludes SDLC routes
@@ -458,7 +458,7 @@ NOT be triggered by commits touching only SDLC directories.
 
 #### Scenario: SDLC-only commit does not trigger the production build
 
-- **GIVEN** a push whose changed files lie entirely under `website/src/**/sdlc/**`
+- **GIVEN** a push whose changed files lie entirely under `components/website/src/**/sdlc/**`
 - **WHEN** GitHub evaluates the `paths` filter of `.github/workflows/build-website.yml`
 - **THEN** the production website build is not triggered
 

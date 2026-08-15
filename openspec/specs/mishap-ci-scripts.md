@@ -11,8 +11,8 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu mishap-ci-scripts ergän
 `scripts/devflow-ci-watch.sh` SHALL run `task freshness:regenerate` between its automatic
 `git rebase origin/main` and the following `git push --force-with-lease`, and SHALL commit the
 result when the regeneration produces a diff. The rebase moves HEAD onto a new base, so every
-generated artifact snapshot (`website/src/data/openspec-status.json`,
-`docs/code-quality/repo-index.json`, `website/src/data/test-inventory.json`, …) can be stale
+generated artifact snapshot (`components/website/src/data/openspec-status.json`,
+`docs/code-quality/repo-index.json`, `components/website/src/data/test-inventory.json`, …) can be stale
 against that base; pushing without regenerating makes the CI freshness gate fail on a branch the
 script itself just updated.
 
@@ -26,7 +26,7 @@ script itself just updated.
 ### Requirement: plan-archive-steps step 4 stages the regenerated openspec status map
 
 Step 4 of `.claude/skills/references/plan-archive-steps.md` SHALL call `task freshness:regenerate`
-before its `git add` and SHALL stage `website/src/data/openspec-status.json` explicitly.
+before its `git add` and SHALL stage `components/website/src/data/openspec-status.json` explicitly.
 `scripts/openspec.sh archive` rewrites that file when it moves the change directory, so an archive
 commit that stages only the moved files carries the pre-archive slug and status and fails the CI
 freshness gate.
@@ -36,7 +36,7 @@ freshness gate.
 - **GIVEN** an agent follows the copy-paste bash block in step 4 of `plan-archive-steps.md`
 - **WHEN** the block reaches its `git add`
 - **THEN** `task freshness:regenerate` SHALL already have run
-- **AND** `website/src/data/openspec-status.json` SHALL be among the staged paths
+- **AND** `components/website/src/data/openspec-status.json` SHALL be among the staged paths
 
 ### Requirement: ticket status writes respect a foreign agent-lock claim
 

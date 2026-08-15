@@ -30,7 +30,7 @@ Das System SHALL auf `/admin/tickets/[id]` für Tickets mit `type ∈ {project, 
 
 ### Requirement: Container-Datenquellen in reinem pg-Modul
 
-Das System SHALL `getContainerRollup`, `getTicketPlan` und `getContainerDor` in `website/src/lib/tickets/container-detail.ts` bereitstellen — einem reinen pg-Modul ohne Svelte-/UI-Import. `admin.ts` und `cockpit-db.ts` SHALL unverändert bleiben. `getTicketPlan` SHALL die Spalte `content` ausschließlich für genau ein `ticket_id` selektieren.
+Das System SHALL `getContainerRollup`, `getTicketPlan` und `getContainerDor` in `components/website/src/lib/tickets/container-detail.ts` bereitstellen — einem reinen pg-Modul ohne Svelte-/UI-Import. `admin.ts` und `cockpit-db.ts` SHALL unverändert bleiben. `getTicketPlan` SHALL die Spalte `content` ausschließlich für genau ein `ticket_id` selektieren.
 
 #### Scenario: getContainerRollup liest die View per Container-uuid
 

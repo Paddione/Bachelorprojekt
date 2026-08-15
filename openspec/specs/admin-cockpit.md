@@ -281,8 +281,8 @@ the admin can see at a glance which tickets have active specifications.
 
 The system SHALL expose in the admin sidebar only routes that exist in the production build
 (`BUILD_TARGET=prod`). A nav entry whose `href` is mapped to a `/sdlc/` target by
-`website/src/middleware/redirect-map.ts` SHALL NOT appear, because
-`website/src/integrations/build-target.mjs` removes those routes from the production
+`components/website/src/middleware/redirect-map.ts` SHALL NOT appear, because
+`components/website/src/integrations/build-target.mjs` removes those routes from the production
 manifest — the entry would resolve to a route absent from the image.
 
 Konkret SHALL die Sidebar keine Einträge auf `/admin/systemtest`, `/admin/cockpit`,
@@ -293,7 +293,7 @@ Klassennamen oder Sektionslabel in der Quelldatei.
 
 #### Scenario: Kein Nav-Eintrag löst auf eine /sdlc/-Route auf
 
-- **GIVEN** die Redirect-Tabelle in `website/src/middleware/redirect-map.ts`
+- **GIVEN** die Redirect-Tabelle in `components/website/src/middleware/redirect-map.ts`
 - **WHEN** jeder nicht-externe `href` der Admin-Sidebar dagegen aufgelöst wird
 - **THEN** trägt kein Auflösungsergebnis das Präfix `/sdlc/`
 
@@ -368,19 +368,19 @@ link to `/admin/coaching/projekte`, and `buchhaltung.astro` SHALL link to `/admi
 
 #### Scenario: Termine-Seite enthält Kalender-Tab
 
-- **GIVEN** die Datei `website/src/pages/admin/termine.astro` ist der aktuelle Stand
+- **GIVEN** die Datei `components/website/src/pages/admin/termine.astro` ist der aktuelle Stand
 - **WHEN** die Tab-Links auf der Seite geprüft werden
 - **THEN** ist `href="/admin/kalender"` mindestens einmal vorhanden
 
 #### Scenario: Coaching-Sessions-Seite enthält Projekte-Tab
 
-- **GIVEN** die Datei `website/src/pages/admin/coaching/sessions/index.astro` ist der aktuelle Stand
+- **GIVEN** die Datei `components/website/src/pages/admin/coaching/sessions/index.astro` ist der aktuelle Stand
 - **WHEN** die Tab-Links auf der Seite geprüft werden
 - **THEN** ist `href="/admin/coaching/projekte"` mindestens einmal vorhanden
 
 #### Scenario: Buchhaltung-Seite enthält Steuer-Tab
 
-- **GIVEN** die Datei `website/src/pages/admin/buchhaltung.astro` ist der aktuelle Stand
+- **GIVEN** die Datei `components/website/src/pages/admin/buchhaltung.astro` ist der aktuelle Stand
 - **WHEN** die Tab-Links auf der Seite geprüft werden
 - **THEN** ist `href="/admin/steuer"` mindestens einmal vorhanden
 
@@ -598,7 +598,7 @@ The system SHALL display a categorised asset inventory (software and hardware) o
 
 > **Kategorie 4 (T002179):** Die Kachel heißt im UI weiterhin „Keycloak", weil sie aus der
 > Zeile `slug = 'keycloak'` in `platform.software_assets` stammt (siehe
-> `website/src/lib/platform-db.ensure.test.ts:18`). Deren `health_url` zeigt auf
+> `components/website/src/lib/platform-db.ensure.test.ts:18`). Deren `health_url` zeigt auf
 > `http://keycloak.{ns}.svc.cluster.local:8080/health/ready` — einen Dienst, den es nicht
 > mehr gibt; das Status-Badge kann für diese Kachel folglich nicht „ready" melden. Der
 > Spec-Text beschreibt das UI korrekt und bleibt; die Asset-Zeile umzubenennen ist eine
@@ -738,7 +738,7 @@ The system SHALL expose a POST `/api/tickets/:id/readiness` endpoint that requir
 
 #### Scenario: Readiness-API-Endpunkt existiert *(BATS)*
 - **GIVEN** das Projekt ist im aktuellen Stand ausgecheckt
-- **WHEN** geprüft wird, ob `website/src/pages/api/tickets/[id]/readiness.ts` existiert
+- **WHEN** geprüft wird, ob `components/website/src/pages/api/tickets/[id]/readiness.ts` existiert
 - **THEN** ist die Datei vorhanden
 
 #### Scenario: Readiness-Endpunkt erfordert Admin-Authentifizierung *(BATS)*
@@ -782,17 +782,17 @@ The system SHALL expose a POST `/api/tickets/:id/readiness` endpoint that requir
 - **THEN** enthält die Datei einen Aufruf von `updateSuccessorReadiness`
 
 #### Scenario: Readiness-Lib exportiert updateSuccessorReadiness *(BATS)*
-- **GIVEN** die Datei `website/src/lib/ticket-readiness.ts` ist vorhanden
+- **GIVEN** die Datei `components/website/src/lib/ticket-readiness.ts` ist vorhanden
 - **WHEN** der Quellcode auf den Export untersucht wird
 - **THEN** exportiert die Datei `export async function updateSuccessorReadiness`
 
 #### Scenario: Readiness-Lib exportiert allPredecessorsDone *(BATS)*
-- **GIVEN** die Datei `website/src/lib/ticket-readiness.ts` ist vorhanden
+- **GIVEN** die Datei `components/website/src/lib/ticket-readiness.ts` ist vorhanden
 - **WHEN** der Quellcode auf den Export untersucht wird
 - **THEN** exportiert die Datei `export async function allPredecessorsDone`
 
 #### Scenario: updateSuccessorReadiness setzt abhaengigkeiten_klar im JSONB *(BATS)*
-- **GIVEN** die Datei `website/src/lib/ticket-readiness.ts` ist vorhanden
+- **GIVEN** die Datei `components/website/src/lib/ticket-readiness.ts` ist vorhanden
 - **WHEN** der Quellcode auf den Readiness-JSONB-Key untersucht wird
 - **THEN** enthält die Datei den Bezeichner `abhaengigkeiten_klar`
 
@@ -848,14 +848,14 @@ The system SHALL NOT export a `setActiveTicket` function or carry an `activeTick
 
 ### Requirement: TicketDrawer-Dateien sind gelöscht
 
-The system SHALL delete `website/src/components/admin/TicketDrawer.svelte` and its unit-test file, and `website/src/components/admin/TicketDrawerContent.svelte` if it exists; no import of `TicketDrawer` SHALL remain in any `.svelte`, `.ts`, or `.astro` file.
+The system SHALL delete `components/website/src/components/admin/TicketDrawer.svelte` and its unit-test file, and `components/website/src/components/admin/TicketDrawerContent.svelte` if it exists; no import of `TicketDrawer` SHALL remain in any `.svelte`, `.ts`, or `.astro` file.
 
 #### Scenario: Drawer component files no longer exist
 
 - **GIVEN** the repository working tree
-- **WHEN** checking `website/src/components/admin/` for `TicketDrawer.svelte` and `TicketDrawerContent.svelte`
+- **WHEN** checking `components/website/src/components/admin/` for `TicketDrawer.svelte` and `TicketDrawerContent.svelte`
 - **THEN** neither file exists
-- **AND** `grep -r "TicketDrawer" website/src --include='*.svelte' --include='*.ts' --include='*.astro'` returns no matches
+- **AND** `grep -r "TicketDrawer" components/website/src --include='*.svelte' --include='*.ts' --include='*.astro'` returns no matches
 
 ---
 

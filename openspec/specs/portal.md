@@ -23,7 +23,7 @@ and SHALL preserve the original target URL as post-login redirect destination.
 
 - **GIVEN** ein Nutzer ist nicht eingeloggt
 - **WHEN** er `/portal` oder `/portal?section=dateien` aufruft
-- **THEN** wird er zum Pocket-ID-Authorization-Endpoint `${POCKET_ID_FRONTEND_URL}/authorize` umgeleitet (`website/src/lib/auth.ts:23`), mit dem Portal-Pfad als `redirect_uri`
+- **THEN** wird er zum Pocket-ID-Authorization-Endpoint `${POCKET_ID_FRONTEND_URL}/authorize` umgeleitet (`components/website/src/lib/auth.ts:23`), mit dem Portal-Pfad als `redirect_uri`
 
 #### Scenario: Zugriff nach Login
 
@@ -204,7 +204,7 @@ management page (password, email, 2FA) and SHALL link to the DSGVO data manageme
 
 - **GIVEN** `POCKET_ID_FRONTEND_URL` ist konfiguriert (die früheren `KEYCLOAK_FRONTEND_URL`/`KEYCLOAK_REALM` sind aus `environments/schema.yaml` entfernt)
 - **WHEN** der Nutzer `?section=konto` aufruft
-- **THEN** wird ein Link auf die Pocket-ID-Root `{pocketIdBase}/` angezeigt, der in einem neuen Tab öffnet (`website/src/components/portal/KontoSection.astro:13`) — Pocket ID hat keinen `/realms/<realm>/account/`-Pfad
+- **THEN** wird ein Link auf die Pocket-ID-Root `{pocketIdBase}/` angezeigt, der in einem neuen Tab öffnet (`components/website/src/components/portal/KontoSection.astro:13`) — Pocket ID hat keinen `/realms/<realm>/account/`-Pfad
 
 #### Scenario: DSGVO-Datenauskunft
 
@@ -523,7 +523,7 @@ does not break portal or admin project management.
 #### Scenario: Projekt anlegen nach dem Umbau
 
 - **GIVEN** ein Admin legt im Kundenportal-Backoffice ein neues Projekt an
-- **WHEN** `createProject()` (`website/src/lib/projects-db.ts`) aufgerufen wird
+- **WHEN** `createProject()` (`components/website/src/lib/projects-db.ts`) aufgerufen wird
 - **THEN** entsteht die Zeile in `public.customer_projects`, nicht in `tickets.tickets`
 
 #### Scenario: Bestehende Projekte bleiben nach der Migration sichtbar
@@ -572,7 +572,7 @@ Vitest tests) keep working without modification.
 
 #### Scenario: Validierungsmodul lädt unter plain tsx/node ohne TypeError
 
-- **GIVEN** `website/src/lib/profile-validation.ts` existiert und importiert kein anderes Modul
+- **GIVEN** `components/website/src/lib/profile-validation.ts` existiert und importiert kein anderes Modul
 - **WHEN** `validateProfileInput` per `npx tsx -e` aus diesem Modul importiert wird
 - **THEN** der Import läuft ohne `TypeError` (keine Vite-only `import.meta.glob`-API im
   Modul-Graph)

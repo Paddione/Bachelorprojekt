@@ -781,57 +781,57 @@ The system SHALL maintain a `scripts/index-repo.ts` indexer that creates `code_e
 The system SHALL expose a `GET /api/codesearch` endpoint (admin-only, query param `q`) backed by `codesearch-db.ts` using pgvector cosine distance; support augmented search with 1-hop file-dependency neighbors (score 0.7); display results with a score-colour function in the Factory DetailPanel; and trigger incremental re-indexing via a `post-commit-index` hook.
 
 #### Scenario: `codesearch.ts` API-Route existiert *(BATS)*
-- **GIVEN** das Repo enthält `website/src/pages/api/codesearch.ts`
+- **GIVEN** das Repo enthält `components/website/src/pages/api/codesearch.ts`
 - **WHEN** die Datei auf Existenz geprüft wird
 - **THEN** ist die Bedingung erfüllt
 
 #### Scenario: Codesearch-API erfordert Admin-Authentifizierung *(BATS)*
-- **GIVEN** `website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
 - **WHEN** die Datei nach `isAdmin` durchsucht wird
 - **THEN** erscheint das Token mindestens einmal
 
 #### Scenario: Codesearch-API validiert Query-Parameter `q` *(BATS)*
-- **GIVEN** `website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
 - **WHEN** die Datei nach `searchParams.get('q')` durchsucht wird
 - **THEN** erscheint das Token mindestens einmal
 
 #### Scenario: Codesearch-API liefert 503 wenn Embedding-Dienst nicht verfügbar *(BATS)*
-- **GIVEN** `website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
 - **WHEN** die Datei nach dem Fehlertext `embedding service unavailable` durchsucht wird
 - **THEN** erscheint der Text mindestens einmal
 
 #### Scenario: Augmented-Query-Parameter ist implementiert *(BATS)*
-- **GIVEN** `website/src/pages/api/codesearch.ts` ist vorhanden
+- **GIVEN** `components/website/src/pages/api/codesearch.ts` ist vorhanden
 - **WHEN** die Datei nach `augmented` durchsucht wird
 - **THEN** erscheint das Token mindestens 2-mal
 
 #### Scenario: `codesearch-db.ts` hat `searchCode`-Funktion *(BATS)*
-- **GIVEN** `website/src/lib/codesearch-db.ts` ist vorhanden
+- **GIVEN** `components/website/src/lib/codesearch-db.ts` ist vorhanden
 - **WHEN** die Datei nach `export async function searchCode` durchsucht wird
 - **THEN** erscheint das Token mindestens einmal
 
 #### Scenario: Kosinus-Distanz-Operator `<=>` ist in DB-Modul verwendet *(BATS)*
-- **GIVEN** `website/src/lib/codesearch-db.ts` ist vorhanden
+- **GIVEN** `components/website/src/lib/codesearch-db.ts` ist vorhanden
 - **WHEN** die Datei nach dem Operator `<=>` durchsucht wird
 - **THEN** erscheint der Operator mindestens einmal
 
 #### Scenario: `searchCodeAugmented` fragt 1-Hop-Nachbarn aus `file_dependencies` ab *(BATS)*
-- **GIVEN** `website/src/lib/codesearch-db.ts` ist vorhanden
+- **GIVEN** `components/website/src/lib/codesearch-db.ts` ist vorhanden
 - **WHEN** die Datei nach `file_dependencies` durchsucht wird
 - **THEN** erscheint das Token mindestens einmal
 
 #### Scenario: Augmentierte Nachbarn erhalten Score 0.7 *(BATS)*
-- **GIVEN** `website/src/lib/codesearch-db.ts` ist vorhanden
+- **GIVEN** `components/website/src/lib/codesearch-db.ts` ist vorhanden
 - **WHEN** die Datei nach `score: 0.7` durchsucht wird
 - **THEN** ist mindestens ein Treffer vorhanden
 
 #### Scenario: `DetailPanel.svelte` zeigt `suggested_files`-Sektion *(BATS)*
-- **GIVEN** `website/src/components/factory/DetailPanel.svelte` ist vorhanden
+- **GIVEN** `components/website/src/components/factory/DetailPanel.svelte` ist vorhanden
 - **WHEN** die Datei nach `suggested_files` durchsucht wird
 - **THEN** erscheint das Token mindestens 2-mal
 
 #### Scenario: `DetailPanel.svelte` hat `scoreColor`-Funktion *(BATS)*
-- **GIVEN** `website/src/components/factory/DetailPanel.svelte` ist vorhanden
+- **GIVEN** `components/website/src/components/factory/DetailPanel.svelte` ist vorhanden
 - **WHEN** die Datei nach `scoreColor` durchsucht wird
 - **THEN** erscheint das Token mindestens einmal
 

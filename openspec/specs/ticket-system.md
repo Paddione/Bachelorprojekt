@@ -210,7 +210,7 @@ guarantee the link operation is safe to call multiple times without side effects
 
 > **Zum Spaltennamen `keycloak_user_id` (T002179):** Die Spalte heißt in `customers`
 > weiterhin so und wird von den API-Routen unverändert gelesen und geschrieben (u. a.
-> `website/src/pages/api/portal/onboarding/update.ts:18`,
+> `components/website/src/pages/api/portal/onboarding/update.ts:18`,
 > `api/admin/clients/update-crm.ts:19`). Der Name ist eine Migrations-Altlast; sein
 > Inhalt ist heute die Pocket-ID-Subject-ID. Wo diese Spec ihn nennt, ist der Text
 > korrekt und wurde bewusst nicht umbenannt — eine Umbenennung wäre eine
@@ -677,7 +677,7 @@ than its current `last_value`, preventing a concurrent schema-init reseed from r
 
 #### Scenario: Reseed reduziert die Sequenz nicht unter ihren aktuellen Stand *(BATS)*
 
-- **GIVEN** `website/src/lib/tickets/migrations.ts` enthält den periodischen
+- **GIVEN** `components/website/src/lib/tickets/migrations.ts` enthält den periodischen
   `setval('tickets.external_id_seq', ...)`-Reseed in `applyLegacyMigrations()`
 - **WHEN** die Reseed-Anweisung auf ihr SQL-Muster geprüft wird
 - **THEN** enthält sie `GREATEST(` und referenziert sowohl `MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT))` aus der Tabelle als auch `last_value FROM tickets.external_id_seq` (den aktuellen Sequenzstand), sodass der Reseed niemals einen niedrigeren Wert setzt als den, den die Sequenz bereits erreicht hat
@@ -744,7 +744,7 @@ Re-running the backfill SHALL NOT create duplicate project tickets nor overwrite
 
 ### Requirement: Admin API parent validation consistency
 
-`createAdminTicket` in `website/src/lib/tickets/admin.ts` SHALL reject a `parentId` that does not
+`createAdminTicket` in `components/website/src/lib/tickets/admin.ts` SHALL reject a `parentId` that does not
 resolve to a `type='project'` ticket in the same brand, matching the validation enforced by the
 CLI/MCP creation path.
 
@@ -838,8 +838,8 @@ ausgelöst", nicht "tot". Details je Spalte stehen in der Tabelle unten.
 
 #### Scenario: Website-Code referenziert die entfernten Spalten nirgends mehr
 
-- **GIVEN** der Website-Code in `website/src/lib/tickets/` und
-  `website/src/pages/api/admin/tickets/`
+- **GIVEN** der Website-Code in `components/website/src/lib/tickets/` und
+  `components/website/src/pages/api/admin/tickets/`
 - **WHEN** nach `ai_question`, `human_answer` oder der
   `tickets.tickets`-Spalte `scope` gesucht wird
 - **THEN** liefert die Suche keinen Treffer mehr außerhalb der als obsolet
@@ -1185,7 +1185,7 @@ the T002731 collision go unnoticed.
 ### Requirement: Sequence names in ticket scripts match the schema migration
 
 Every sequence referenced via `nextval('tickets.…')` in `scripts/vda/ticket/*.sh` SHALL
-be created by `website/src/lib/tickets/migrations.ts`.
+be created by `components/website/src/lib/tickets/migrations.ts`.
 
 This binds the two artefacts that drifted apart in T002732 and is verifiable offline,
 so CI catches the next such drift without a live database.
@@ -1400,7 +1400,7 @@ The system SHALL reject `ticket.sh create` without `--type`, `--title`, or `--de
 The system SHALL assign external IDs via `nextval('tickets.external_id_seq')` and SHALL NOT use `ON CONFLICT (brand) DO UPDATE SET last_value` patterns; the sequence SHALL be seeded to the current max on init.
 
 #### Scenario: Globale Sequenz wird für external_id verwendet *(BATS)*
-- **GIVEN** `website/src/lib/tickets-db.ts` enthält `fn_assign_external_id`
+- **GIVEN** `components/website/src/lib/tickets-db.ts` enthält `fn_assign_external_id`
 - **WHEN** die Datei auf den verwendeten Mechanismus geprüft wird
 - **THEN** findet sich `nextval('tickets.external_id_seq')` im Code
 
@@ -1422,7 +1422,7 @@ The system SHALL assign external IDs via `nextval('tickets.external_id_seq')` an
 The system SHALL export `getTicketGraph`, `TicketGraph`, `GraphNode`, `GraphEdge` interfaces, use a recursive CTE named `dep_graph` with depth limit 10, compute a critical path via topological sort, and the API endpoint SHALL return 401 for unauthenticated callers.
 
 #### Scenario: Alle Graph-Exports sind vorhanden *(BATS)*
-- **GIVEN** `website/src/lib/ticket-graph.ts` existiert
+- **GIVEN** `components/website/src/lib/ticket-graph.ts` existiert
 - **WHEN** die Datei auf Export-Deklarationen geprüft wird
 - **THEN** exportiert sie `getTicketGraph`, `TicketGraph`, `GraphNode`, und `GraphEdge`
 
@@ -1437,7 +1437,7 @@ The system SHALL export `getTicketGraph`, `TicketGraph`, `GraphNode`, `GraphEdge
 - **THEN** enthält sie `computeCriticalPath` mit `inDeg` (in-degree für topologische Sortierung)
 
 #### Scenario: API-Endpoint gibt 401 bei fehlendem Admin zurück *(BATS)*
-- **GIVEN** `website/src/pages/api/tickets/graph.ts` existiert
+- **GIVEN** `components/website/src/pages/api/tickets/graph.ts` existiert
 - **WHEN** die Datei auf Auth-Prüfung geprüft wird
 - **THEN** enthält sie `isAdmin`, gibt `application/json` zurück und hat eine `401`-Antwort für Unauthentifizierte
 
@@ -1491,7 +1491,7 @@ The system SHALL reject unknown lastenheft subactions with exit 2, refuse to loc
 The system SHALL export `autoTriage`, `runTriage`, and `TriageResult`; use `getProviderConfig(SOURCE.ticketTriage, 'haiku')` from the ki-services registry; implement retry (`attempt < 2`); map priorities to German labels; validate severities; create system comments; and integrate with ticket/bug creation endpoints.
 
 #### Scenario: Alle Triage-Exports und Provider-Konfiguration sind vorhanden *(BATS)*
-- **GIVEN** `website/src/lib/ticket-triage.ts` existiert
+- **GIVEN** `components/website/src/lib/ticket-triage.ts` existiert
 - **WHEN** die Datei auf Exports und Provider-Imports geprüft wird
 - **THEN** exportiert sie `autoTriage`, `runTriage`, `TriageResult`; importiert `Anthropic` und verwendet `getProviderConfig(SOURCE.ticketTriage, 'haiku')` mit `import { SOURCE } from './ki-services'`
 
@@ -1526,7 +1526,7 @@ The system SHALL export `autoTriage`, `runTriage`, and `TriageResult`; use `getP
 - **THEN** rufen alle drei Endpunkte `void autoTriage(...)` auf (fire-and-forget)
 
 #### Scenario: Triage API-Endpoint erzwingt Admin-Auth und gibt 403 zurück *(BATS)*
-- **GIVEN** `website/src/pages/api/admin/tickets/[id]/triage.ts` existiert
+- **GIVEN** `components/website/src/pages/api/admin/tickets/[id]/triage.ts` existiert
 - **WHEN** ein nicht-administrativer Request eingeht
 - **THEN** gibt der Endpoint `status: 403` zurück; bei fehlendem `id` gibt er "id missing" aus
 
@@ -1580,7 +1580,7 @@ The system SHALL provide `migrate-bugs-to-tickets.mjs` that wraps mutations in B
 The system SHALL include `plan_staged` in the PostgreSQL CHECK constraint between `planning` and `backlog`, use `DROP CONSTRAINT IF EXISTS tickets_status_check` for idempotent migration, and include `plan_staged` in the `TicketStatus` union in `admin.ts` and `transition.ts` (at least twice in `transition.ts`).
 
 #### Scenario: plan_staged steht im DB-CHECK zwischen planning und backlog *(BATS)*
-- **GIVEN** `website/src/lib/tickets-db.ts` enthält das Schema
+- **GIVEN** `components/website/src/lib/tickets-db.ts` enthält das Schema
 - **WHEN** die Datei auf den Status-CHECK geprüft wird
 - **THEN** findet sich `'planning','plan_staged','backlog'` als Reihenfolge im CHECK-Constraint
 
@@ -1747,7 +1747,7 @@ The system SHALL provide `migrate-tracking-to-tickets.mjs` that in dry-run makes
 The system SHALL export `transitionTicket`, `TicketStatus`, `TicketResolution`, and `TransitionResult`; reject unknown statuses and `done`/`archived` without resolution; use `pool.connect()` with explicit BEGIN/COMMIT/ROLLBACK; set `app.user_label` and `app.user_id` session config; set `started_at` on first `in_progress`, `done_at` on `done`; create `ticket_links` for `prNumber`; insert `ticket_activity` with `field='_updated'`; and return a `TransitionResult` with all required fields.
 
 #### Scenario: Statische Struktur: alle Exports und Transaktionsmuster vorhanden *(BATS)*
-- **GIVEN** `website/src/lib/tickets/transition.ts` existiert
+- **GIVEN** `components/website/src/lib/tickets/transition.ts` existiert
 - **WHEN** die Datei auf Exports und SQL-Muster geprüft wird
 - **THEN** exportiert sie `transitionTicket`, `TicketStatus`, `TicketResolution`, `TransitionResult`; enthält `pool.connect()`, `BEGIN`, `COMMIT`, `ROLLBACK`, `app.user_label`, `app.user_id` und `before.status !== 'done'`
 
@@ -1945,7 +1945,7 @@ The system SHALL automatically evaluate ticket severity at create time using a h
 ### Requirement: S2 import cycle between `tickets-db.ts` and `website-db.ts` is removed
 
 The system SHALL break the static import cycle `lib/tickets-db.ts ↔ lib/website-db.ts`
-(G-CQ07 cycle #1) so that `npx --yes madge --circular --extensions ts,tsx website/src`
+(G-CQ07 cycle #1) so that `npx --yes madge --circular --extensions ts,tsx components/website/src`
 no longer reports that cycle. The other three S2 cycles (transitions / reporter-link /
 invoice-pdf ↔ native-billing) SHALL remain untouched by this change and SHALL be
 addressed in separate follow-up PRs.
@@ -1954,7 +1954,7 @@ addressed in separate follow-up PRs.
 
 - **GIVEN** the workspace contains the four import cycles G-CQ07 enumerates
   (`tickets-db ↔ website-db`, two `tickets/transition` cycles, `invoice-pdf ↔ native-billing`)
-- **WHEN** the implementer runs `npx --yes madge --circular --extensions ts,tsx website/src`
+- **WHEN** the implementer runs `npx --yes madge --circular --extensions ts,tsx components/website/src`
   on the merged branch
 - **THEN** the output reports exactly the three remaining cycles
   (`lib/website-db.ts > lib/tickets/transition.ts > lib/tickets/reporter-link.ts`,
@@ -1990,7 +1990,7 @@ than the baselined 1096 (frozen at commit `8b581ebe` per
 #### Scenario: `wc -l` of `tickets-db.ts` is below the baseline
 
 - **GIVEN** the current `tickets-db.ts` is 1096 lines, baselined at 1096
-- **WHEN** the implementer runs `wc -l website/src/lib/tickets-db.ts`
+- **WHEN** the implementer runs `wc -l components/website/src/lib/tickets-db.ts`
   on the merged branch
 - **THEN** the reported line count is strictly less than 1096.
 

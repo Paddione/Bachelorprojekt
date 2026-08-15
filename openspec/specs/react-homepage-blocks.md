@@ -123,12 +123,12 @@ parity assertion.
 
 #### Scenario: New tests are registered in the inventory
 - **GIVEN** the newly added block tests
-- **WHEN** `task test:inventory` regenerates `website/src/data/test-inventory.json`
+- **WHEN** `task test:inventory` regenerates `components/website/src/data/test-inventory.json`
 - **THEN** the inventory reflects the new tests and the committed file matches the regenerated one
 
 #### Scenario: mentolder-web suite runs as an explicit step outside test:changed
 - **GIVEN** a change set that touches only `mentolder-web/`, `openspec/`, `tests/spec/*.bats`,
-  and `website/src/data/test-inventory.json`
+  and `components/website/src/data/test-inventory.json`
 - **WHEN** verification runs `task test:changed`
 - **THEN** the mentolder-web vitest suite is NOT executed by `test:changed`, and therefore
   `pnpm --filter mentolder-web test` (plus typecheck and build) is run separately as the

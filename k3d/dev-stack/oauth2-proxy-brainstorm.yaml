@@ -88,13 +88,13 @@ spec:
             - --client-id=brainstorm
             - --client-secret=$(POCKET_ID_BRAINSTORM_SECRET)
             - --redirect-url=http://brainstorm.localhost/oauth2/callback
-            - --oidc-issuer-url=http://pocket-id:1411
+            - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
             - --login-url=http://auth.localhost/authorize
-            - --redeem-url=http://pocket-id:1411/api/oidc/token
-            - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
-            - --profile-url=http://pocket-id:1411/api/oidc/userinfo
+            - --redeem-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id.workspace.svc.cluster.local:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/userinfo
             # ForwardAuth mode: return 202 on success; Traefik passes the real request to sish.
             - --upstream=static://202
             - --reverse-proxy=true

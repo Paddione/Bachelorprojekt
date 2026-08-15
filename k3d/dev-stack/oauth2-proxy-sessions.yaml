@@ -86,13 +86,13 @@ spec:
             - --client-id=session-hub
             - --client-secret=$(POCKET_ID_SESSION_HUB_SECRET)
             - --redirect-url=http://session-hub.localhost/oauth2/callback
-            - --oidc-issuer-url=http://pocket-id:1411
+            - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
             - --login-url=http://auth.localhost/authorize
-            - --redeem-url=http://pocket-id:1411/api/oidc/token
-            - --oidc-jwks-url=http://pocket-id:1411/.well-known/jwks.json
-            - --profile-url=http://pocket-id:1411/api/oidc/userinfo
+            - --redeem-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id.workspace.svc.cluster.local:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/userinfo
             - --upstream=static://202
             - --reverse-proxy=true
             - --http-address=0.0.0.0:4180

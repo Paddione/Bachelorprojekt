@@ -83,7 +83,7 @@ spec:
             # Pocket ID loopback wie brainstorm/session-hub — die Keycloak-URL
             # (auth.${PROD_DOMAIN}/realms/workspace) existiert im Fleet nicht
             # mehr (OIDC-Discovery lieferte HTML → CrashLoop). [T007035]
-            - --oidc-issuer-url=http://pocket-id:1411
+            - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
             - --redirect-url=https://${DEV_DOMAIN}/oauth2/callback
             # Loop back to the in-cluster Traefik web entrypoint; Host preserved
             # so Traefik routes by host to website-dev / brett-dev.

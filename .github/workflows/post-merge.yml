@@ -55,9 +55,12 @@ jobs:
     # laeuft VOR der if:-Auswertung, der Job muss dafuer also nicht einmal
     # ausgefuehrt werden. Genau das passierte 37 Merges lang (T002118).
     # Das Recht bleibt bewusst auf diesen Job begrenzt statt workflowweit.
+    # id-token: write (cosign keyless, T007035): render-fleet-artifact.yml
+    # signiert das OCI-Artefakt — der Aufrufer muss das Callee-Recht decken.
     permissions:
       contents: read
       packages: write
+      id-token: write
     uses: ./.github/workflows/render-fleet-artifact.yml
     secrets: inherit
 

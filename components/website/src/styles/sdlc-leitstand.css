@@ -78,7 +78,7 @@
 }
 
 /* Print-Light (E5, T008017) -- NUR Report-Stylesheet, kein zweites interaktives
-   Theme, kein Toggle, kein [data-theme] (design.md S4). Zwei Ausloeser, EINE
+   Theme, kein Theme-Toggle-Selektor (design.md S4). Zwei Ausloeser, EINE
    Regelmenge: `?report=1` setzt .report am Shell-Root (Export-Vorschau),
    @media print gilt beim Drucken. Die Token-Werte der beiden Bloecke sind
    IDENTISCH — jede Aenderung hier an beiden Stellen nachziehen (sync-Markierung

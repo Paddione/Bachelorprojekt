@@ -4002,6 +4002,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/plan-archive-freshness-check",
+    "file": "tests/spec/openspec-workflow/plan-archive-freshness-check.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/plan-archive-git-add-coverage",
     "file": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
     "category": "openspec-workflow",

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import ControlPanel from '../../../sdlc/factory/ControlPanel.svelte';
-  import KostenTab from '../../../sdlc/factory/KostenTab.svelte';
+  import ControlPanel from '../../sdlc/factory/ControlPanel.svelte';
+  import KostenTab from '../../sdlc/factory/KostenTab.svelte';
 </script>
 
 <!-- Betriebsparameter + Kosten/Observability (T007957/E3, p2 Task 2). Beide

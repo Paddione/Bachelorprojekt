@@ -1,5 +1,5 @@
 <script lang="ts">
-  import GoalsDashboard from '../../../sdlc/GoalsDashboard.svelte';
+  import GoalsDashboard from '../../sdlc/GoalsDashboard.svelte';
 </script>
 
 <!-- Reiner Re-Export (T007957/E3, p2 Task 1): die Karte laedt sich vollstaendig

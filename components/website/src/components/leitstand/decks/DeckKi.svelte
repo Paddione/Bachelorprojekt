@@ -1,9 +1,9 @@
 <script lang="ts">
-  import LlmProxyPanel from '../../../sdlc/factory/LlmProxyPanel.svelte';
-  import KiRoutingPanel from '../../../sdlc/factory/KiRoutingPanel.svelte';
-  import FactoryModelSlots from '../../../sdlc/factory/FactoryModelSlots.svelte';
+  import LlmProxyPanel from '../../sdlc/factory/LlmProxyPanel.svelte';
+  import KiRoutingPanel from '../../sdlc/factory/KiRoutingPanel.svelte';
+  import FactoryModelSlots from '../../sdlc/factory/FactoryModelSlots.svelte';
   import DispatchLogPanel from '../../cockpit/DispatchLogPanel.svelte';
-  import InsightsTab from '../../../sdlc/factory/InsightsTab.svelte';
+  import InsightsTab from '../../sdlc/factory/InsightsTab.svelte';
 </script>
 
 <!-- KI-Deck (T007957/E3, p2 Task 3): alle fuenf Karten laden sich selbst

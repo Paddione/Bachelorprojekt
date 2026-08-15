@@ -370,6 +370,7 @@
         "tests/spec/agent-skills/skill-path-references.bats",
         "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
         "tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats",
+        "tests/spec/agent-skills/worktree-write-guard-session-propagation.bats",
         "tests/spec/agentic-review.bats",
         "tests/spec/agentic-tooling-quality-goals.bats",
         "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",

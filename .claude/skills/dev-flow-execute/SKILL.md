@@ -80,6 +80,11 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
   Vorgehen im Detail: [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md) §BATS.
 - **Auftrag:**
   - **Ein-Ebenen-Regel (PFLICHT, wörtlich Teil dieses Prompts):** Spawne selbst KEINE Subagenten/Sub-Implementer — rufe `superpowers:executing-plans` IN-CONTEXT auf. Wenn du glaubst, einen Sub-Implementer für einen Teil-Task zu brauchen, STOPPE und eskaliere stattdessen an den Orchestrator zurück, statt selbst zu delegieren. Verschachtelte Delegation ist nicht erlaubt (siehe subagent-provisioning.md, 162k-Prompt-Lehre).
+  - **SID-Propagation (PFLICHT, T006365):** Ermittle deine Session-SID mit
+    `bash scripts/agent-lock.sh mine` und weise den Implementer an, in jedem
+    Bash-Call zuerst `export AGENT_LOCK_SID=<deine-sid>` auszuführen — ohne
+    diese Propagation blockiert der Worktree-Write-Guard seine Edit/Write-Tools
+    im geclaimten Worktree (eigene Session-ID des Subagenten ≠ owner_sid).
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**
   - *Feature:* Rufe `superpowers:executing-plans` (Claude Code — built-in; opencode: steps inlined in `opencode-flow-execute`) + `test-driven-development` (Claude Code — built-in; opencode: see `vitest/SKILL.md`) auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.

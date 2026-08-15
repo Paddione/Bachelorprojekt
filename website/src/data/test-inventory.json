@@ -2166,6 +2166,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/worktree-write-guard-session-propagation",
+    "file": "tests/spec/agent-skills/worktree-write-guard-session-propagation.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agentic-review",
     "file": "tests/spec/agentic-review.bats",
     "category": "agentic-review",

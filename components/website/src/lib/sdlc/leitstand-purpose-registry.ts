@@ -49,4 +49,19 @@ export const leitstandPurposes: Record<string, LeitstandPurpose> = {
     datenquelle: 'api-inventory.json (einziger Import), /sdlc/api/mcp-health',
     aktionen: [],
   },
+  // E5 (T008017): der Help-Overlay-Layer selbst. KEINE statischen Positions-
+  // Hinweise in der Registry (Requirement "no static position hints") — die
+  // Kartenpositionen entstehen zur Laufzeit aus den getBoundingClientRect()
+  // der im DOM gemounteten [data-purpose-id]-Anker.
+  'help-overlay': {
+    zweck: 'Erklaerungen in situ zeigen: pro Komponente der Leitstand-Flaeche Zweck, Datenquelle und Aktionen.',
+    datenquelle: 'leitstand-purpose-registry.ts (Anker: data-purpose-id im DOM der Shell)',
+    aktionen: ['Hilfe-Overlay schliessen'],
+  },
+  },
 };
+
+// E5 (T008017): jede Registry-Ausprägung ist ein gueltiger data-purpose-id-
+// Anker-Wert (kebab-case). Der Typ folgt der Registry — kein separates Enum,
+// das auseinanderlaufen kann.
+export type PurposeId = keyof typeof leitstandPurposes;

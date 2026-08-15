@@ -100,7 +100,7 @@
   const isFertigung = $derived(FERTIGUNG_STATIONS.includes(sel.station ?? ''));
 </script>
 
-<div class="ls-kontextzone" data-testid="leitstand-kontextzone">
+<div class="ls-kontextzone" data-testid="leitstand-kontextzone" data-purpose-id="kontextzone">
   {#if sel.ticket}
     <DetailPanel
       detail={detailLoading ? null : detail}

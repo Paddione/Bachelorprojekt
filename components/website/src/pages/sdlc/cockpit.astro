@@ -4,6 +4,7 @@ import { getSession, isAdmin } from '../../lib/auth';
 import { buildLoginRedirect } from '../../lib/login-redirect';
 import { STATIONS } from '../../components/sdlc/FactoryFloor.svelte';
 import LeitstandStatusband from '../../components/leitstand/LeitstandStatusband.svelte';
+import HelpOverlay from '../../components/leitstand/HelpOverlay.svelte';
 import Kontextzone from '../../components/leitstand/Kontextzone.svelte';
 import DeckLeiste from '../../components/leitstand/DeckLeiste.svelte';
 import AttentionStrip from '../../components/sdlc/factory/AttentionStrip.svelte';
@@ -21,6 +22,11 @@ if (!session || !isAdmin(session)) return Astro.redirect(buildLoginRedirect(Astr
 
 const brand = BRAND();
 const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
+
+// E5 (T008017): Print-Light. ?report=1 setzt die .report-Klasse am Shell-Root
+// und rendert damit die helle Export-/Druck-Ansicht (sdlc-leitstand.css teilt
+// eine Regelmenge mit @media print — kein zweites interaktives Theme).
+const reportMode = Astro.url.searchParams.get('report') === '1';
 
 // Kontrakt B (T007957/E3): die alten CockpitMode/Phase/ALLOWED_MODES/ALLOWED_PHASES-
 // Deklarationen sind vollstaendig durch die Leitstand-Selektion ersetzt.
@@ -40,8 +46,9 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
   <script is:inline src="/cockpit/kit/adapter.js"></script>
 
   <!-- E3-Zonen-Shell: Z1 Statusband, Z2 AttentionStrip, Z3 Achse,
-       Z4 Kontextzone + Z5 DeckLeiste als CSS-Grid nebeneinander. -->
-  <div class="ls-shell" id="cockpit-root">
+       Z4 Kontextzone + Z5 DeckLeiste als CSS-Grid nebeneinander. E5:
+       .report (Print-Light-Export) und HelpOverlay-Layer am Shell-Ende. -->
+  <div class:list={['ls-shell', { report: reportMode }]} id="cockpit-root">
     <LeitstandStatusband client:load {brand} />
     <AttentionStrip client:load />
     <ConveyorBelt client:load compact stations={STATIONS} hallItems={[]} mobileColIndex={0} onSelect={() => {}} selectedStation={initialSelection.station} />
@@ -50,6 +57,10 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
       <Kontextzone client:load {brand} {initial} initialSelection={initialSelection} />
       <DeckLeiste client:load initialDeck={initialSelection.deck} />
     </div>
+
+    <!-- E5: Help-Overlay-Layer, eigene Insel — togglet ueber den
+         helpOverlayActive-Store aus dem Statusband. -->
+    <HelpOverlay client:load />
   </div>
 
   <script>

@@ -39,7 +39,7 @@
 <!-- Z5 (Kontrakt C): genau ein Deck ist gemountet -- die {#if}-Kette haelt
      inaktive Decks aus dem DOM, damit keine ihrer onMount-Fetches feuert
      (D11, p2 Task 5). -->
-<nav class="deck-leiste" data-testid="leitstand-deck-leiste">
+<nav class="deck-leiste" data-testid="leitstand-deck-leiste" data-purpose-id="deck-leiste">
   <div class="deck-leiste__tabs">
     {#each DECKS as deck}
       <button

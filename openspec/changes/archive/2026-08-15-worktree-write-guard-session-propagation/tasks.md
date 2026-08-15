@@ -2,7 +2,7 @@
 title: worktree-write-guard-session-propagation
 ticket_id: T006365
 domains: [scripts, test]
-status: plan_staged
+status: completed
 pr_number: null
 file_locks: []
 shared_changes: false

@@ -1180,4 +1180,4 @@ Delegierende Skills SHALL die Parent-SID an delegierte Subagenten propagieren (`
 - **WHEN** der delegierte Subagent in diesen fremden Worktree schreibt
 - **THEN** der Worktree-Write-Guard lehnt den Write ab (exit 2, Regel 3 bleibt aktiv) und die Meldung nennt den `AGENT_LOCK_SID`-Propagations-Hinweis
 
-<!-- merged from change delta agent-skills.md (T006365) -->
+<!-- merged from change delta agent-skills.md (34fa629dacf4) -->

@@ -2442,6 +2442,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-empty-answer",
+    "file": "tests/spec/ci-cd/branch-reaper-empty-answer.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/branch-reaper-freshness-regen",
     "file": "tests/spec/ci-cd/branch-reaper-freshness-regen.bats",
     "category": "ci-cd",

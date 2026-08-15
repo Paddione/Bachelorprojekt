@@ -95,7 +95,7 @@ werden mit Wachstumsreserve unter ihrem Limit geschnitten. Gelöschte Dateien
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** p3 legt die BATS-Guards an. Sie MÜSSEN auf dem
+- [x] **Failing-Test-Step (RED).** p3 legt die BATS-Guards an. Sie MÜSSEN auf dem
       aktuellen Branch fehlschlagen, weil purpose-Registry und URL-Weiche noch nicht
       existieren:
 

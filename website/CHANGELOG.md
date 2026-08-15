@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.280.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.3...website-v1.280.0) (2026-08-15)
+
+
+### Features
+
+* **mcp:** port mcp-task-runner from Go to Node.js ESM [T006664] ([#4578](https://github.com/Paddione/Bachelorprojekt/issues/4578)) ([4d216a3](https://github.com/Paddione/Bachelorprojekt/commit/4d216a39bfeede467513b262251e9fb7d6ccedc8))
+
 ## [1.279.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.2...website-v1.279.3) (2026-08-15)
 
 

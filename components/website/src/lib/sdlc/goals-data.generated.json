@@ -85,7 +85,7 @@
     "target": 3,
     "unit": "",
     "status": "unknown",
-    "measurement": "git ls-files VideoVault .opencode | grep -E '\\.(ts|tsx|js|mjs|svelte|sh|py)$' \\\n  | grep -v node_modules \\\n  | while read -r f; do [ -L \"$f\" ] || echo \"$f\"; done \\\n  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l",
+    "measurement": "git ls-files components/VideoVault .opencode | grep -E '\\.(ts|tsx|js|mjs|svelte|sh|py)$' \\\n  | grep -v node_modules \\\n  | while read -r f; do [ -L \"$f\" ] || echo \"$f\"; done \\\n  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l",
     "source": ".claude/lib/goals.md · G-SIZE02",
     "measured_at": "2026-08-15"
   },

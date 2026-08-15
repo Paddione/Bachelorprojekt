@@ -152,16 +152,16 @@ Nebenbefund gefixt: der Verify-Job ließ bei Abbruch die Wegwerf-DB
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope (>1000 Zeilen): 3 → ≤ 3
 
-3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe `docs/code-quality/gates.yaml` s1.ignore), 0× VideoVault/ >1000 Zeilen.
+3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe `docs/code-quality/gates.yaml` s1.ignore), 0× components/VideoVault/ >1000 Zeilen.
 
 ```bash
-git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
+git ls-files components/VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
   | grep -v node_modules \
   | while read -r f; do [ -L "$f" ] || echo "$f"; done \
   | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l
 ```
 
-> **B · Baseline:** 17 (>600) → 3 ✅ Target erreicht (>1000 Zeilen Schwellenwert: 3× .opencode/ sanktioniert, 0× VideoVault/ verbleibend; 2026-07-21) · **Target:** ≤ 3 · **Aufwand:** gering · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001945 (**gefixt**)
+> **B · Baseline:** 17 (>600) → 3 ✅ Target erreicht (>1000 Zeilen Schwellenwert: 3× .opencode/ sanktioniert, 0× components/VideoVault/ verbleibend; 2026-07-21) · **Target:** ≤ 3 · **Aufwand:** gering · **Messzyklus:** pro Merge auf components/VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001945 (**gefixt**)
 
 ## G-DB01 — FK-Spalten ohne Index: 34/49 → 0 (Baseline-Korrektur T001946)
 

@@ -3581,8 +3581,8 @@
   ],
   "T004897": [
     {
-      "slug": "runtime-drift-auto-kill",
-      "status": "plan_staged"
+      "slug": "2026-08-15-runtime-drift-auto-kill",
+      "status": "archived"
     }
   ],
   "T004898": [
@@ -3654,6 +3654,12 @@
   "T005559": [
     {
       "slug": "2026-08-14-worktree-write-guard-phase-a-allowlist",
+      "status": "archived"
+    }
+  ],
+  "T005560": [
+    {
+      "slug": "2026-08-15-ticket-lock-stale-pass",
       "status": "archived"
     }
   ],
@@ -3735,10 +3741,64 @@
       "status": "archived"
     }
   ],
+  "T005958": [
+    {
+      "slug": "2026-08-15-freshness-regen-reaper",
+      "status": "archived"
+    }
+  ],
   "T006143": [
     {
       "slug": "2026-08-15-laptop-bge-topologie",
       "status": "plan_staged"
+    }
+  ],
+  "T006252": [
+    {
+      "slug": "2026-08-15-s3-finetune-dataset-recipe",
+      "status": "archived"
+    }
+  ],
+  "T006282": [
+    {
+      "slug": "2026-08-15-factory-trace-collector-pass-done",
+      "status": "archived"
+    }
+  ],
+  "T006284": [
+    {
+      "slug": "2026-08-15-executor-post-merge-death",
+      "status": "archived"
+    }
+  ],
+  "T006290": [
+    {
+      "slug": "2026-08-15-agent-lock-release-cwd",
+      "status": "archived"
+    }
+  ],
+  "T006293": [
+    {
+      "slug": "2026-08-15-mcp-postgres-multistatement",
+      "status": "archived"
+    }
+  ],
+  "T006295": [
+    {
+      "slug": "ticket-ops-stale-triage",
+      "status": "plan_staged"
+    }
+  ],
+  "T006298": [
+    {
+      "slug": "stash-drop-renumbering",
+      "status": "plan_staged"
+    }
+  ],
+  "T006329": [
+    {
+      "slug": "2026-08-15-branch-reaper-sweep-empty-answer",
+      "status": "archived"
     }
   ],
   "TBD": [

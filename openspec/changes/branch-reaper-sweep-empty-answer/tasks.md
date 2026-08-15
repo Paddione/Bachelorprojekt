@@ -24,14 +24,14 @@ website/src/data/test-inventory.json          # regeneriert (neue BATS-Datei, CI
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Die BATS-Datei `tests/spec/ci-cd/branch-reaper-empty-answer.bats`
+- [x] **Failing-Test-Step (RED).** Die BATS-Datei `tests/spec/ci-cd/branch-reaper-empty-answer.bats`
       liegt dem Stage-Commit bereits bei (siehe Task 1). Der Lauf muss auf dem ungefixten Stand
       fehlschlagen.
 
-- [ ] **Fix-Step (GREEN).** `scripts/branch-reaper.sh` Zeile 205–207 absichern. Der BATS-Lauf aus
+- [x] **Fix-Step (GREEN).** `scripts/branch-reaper.sh` Zeile 205–207 absichern. Der BATS-Lauf aus
       Task 1 muss danach grün sein.
 
-- [ ] **Final Verification.** Siehe Task 3.
+- [x] **Final Verification.** Siehe Task 3.
 
 ## Task 1 — RED: Leer-Antwort-Test ist rot
 
@@ -92,13 +92,13 @@ neu, 122 Zeilen, unter allen relevanten Schwellen.
 
 ## Task 3 — Final Verification
 
-- [ ] **Test-Inventar regenerieren** (neue BATS-Datei → CI-Inventar-Check):
+- [x] **Test-Inventar regenerieren** (neue BATS-Datei → CI-Inventar-Check):
 
 ```bash
 task test:inventory
 ```
 
-- [ ] **Mandatory Verify-Commands:**
+- [x] **Mandatory Verify-Commands:**
 
 ```bash
 task test:changed

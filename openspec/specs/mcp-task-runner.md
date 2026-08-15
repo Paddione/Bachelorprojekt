@@ -187,11 +187,11 @@ The tool SHALL:
 
 ### Requirement: local WSL binary
 
-The system SHALL ship a Go binary `mcp-task-runner` that runs as a local process on the WSL host and communicates via the stdio MCP transport.
+The system SHALL ship a Node.js ESM script `mcp-task-runner` (located at `scripts/mcp-task-runner/server.mjs`) that runs as a local process on the WSL host and communicates via the stdio MCP transport.
 
-The binary SHALL:
-- Be built from the `mcp-task-runner/` module at the repo root
-- Be invoked from `.mcp.json` with `command` pointing to the binary and `args` containing `--taskfile /path/to/Taskfile.yml`
+The script SHALL:
+- Be executable directly with `node` or via the CLI wrapper `mcp-task-runner`
+- Be invoked from `.mcp.json` with `command` pointing to `mcp-task-runner` or `node scripts/mcp-task-runner/server.mjs` and `args` containing `--taskfile /path/to/Taskfile.yml`
 - Resolve the Taskfile path via the `--taskfile` flag; reject paths containing `..`
 - Fail-open on OTel Collector unavailability: log to stderr and continue
 
@@ -226,3 +226,5 @@ The instrumentation SHALL apply to every execution path, including asynchronous 
 <!-- merged from change delta mcp-task-runner.md (bcd02a43b942) -->
 
 <!-- merged from change delta mcp-task-runner.md (23c31fa05de6) -->
+
+<!-- merged from change delta mcp-task-runner.md (37524e9f11a6) -->

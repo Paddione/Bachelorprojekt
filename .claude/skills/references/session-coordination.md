@@ -207,7 +207,13 @@ Exit-Codes: 0=claimed, 1=held by other, 2=status-check refused.
 
 ## Freigeben (nach Merge, VOR dem Worktree-Remove)
 
+Zuerst in das Haupt-Repo wechseln, DANN freigeben (T006290): aus dem Worktree heraus
+verweigert `agent-lock.sh release branch` den Release, weil der nachfolgende
+`git worktree remove` die Shell-cwd zerstören würde. Ohne stderr-Unterdrückung,
+damit eine Verweigerung sichtbar bleibt.
+
 ```bash
-bash scripts/agent-lock.sh release ticket "<T00XXXX>" 2>/dev/null || true
-bash scripts/agent-lock.sh release branch "<branch>" 2>/dev/null || true
+cd "$MAIN_REPO"
+bash scripts/agent-lock.sh release ticket "<T00XXXX>"
+bash scripts/agent-lock.sh release branch "<branch>"
 ```

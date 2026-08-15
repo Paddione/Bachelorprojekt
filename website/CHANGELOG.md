@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.281.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.0...website-v1.281.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** Auto-Merge-Preflight-Check gegen externen Auto-Merge [T006366] ([#4602](https://github.com/Paddione/Bachelorprojekt/issues/4602)) ([cc5f486](https://github.com/Paddione/Bachelorprojekt/commit/cc5f486c0512e2969a600a37e5944f206ea8ce69))
+
 ## [1.281.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.280.1...website-v1.281.0) (2026-08-15)
 
 

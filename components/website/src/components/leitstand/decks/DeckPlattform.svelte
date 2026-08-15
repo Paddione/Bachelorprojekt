@@ -1,36 +1,65 @@
 <script lang="ts">
   // DeckPlattform.svelte — Nebendomaenen-Deck "Plattform" (T008016/E4).
   // Betriebsparameter (ControlPanel), Observability (FactoryObservability),
-  // Budgets (FactoryBudgetPage) und Cluster-/Deployment-Kennzahlen aus den
-  // bestehenden /sdlc/api/ Routen. Jede Sektion ist fail-soft: eine
-  // fehlende/fehlschlagende Datenquelle rendert einen Leerzustand statt die
-  // ganze Sektion zu blockieren (Anforderung "Live Platform Deck").
+  // Budgets (FactoryBudgetPage) und Cluster-Karten aus den bestehenden
+  // /sdlc/api/-Routen (lib/sdlc/k8s.ts-gestuetzt: deployments.ts,
+  // cluster/pods-list.ts). Jede Sektion ist fail-soft: eine fehlende oder
+  // fehlschlagende Datenquelle rendert den Fehlerzustand ihrer eigenen Karte,
+  // ohne die uebrigen Sektionen zu blockieren (Spec "Live Platform Deck":
+  // keine hartcodierten Kennzahlen, kein Platzhalter-Ersatz — die
+  // Dashboard-Fallback-Zahlen von /sdlc/api/cluster/status sind deshalb
+  // bewusst KEINE Quelle dieses Decks).
   import { onMount } from 'svelte';
   import ControlPanel from '../../sdlc/factory/ControlPanel.svelte';
   import FactoryObservability from '../../sdlc/factory/FactoryObservability.svelte';
   import FactoryBudgetPage from '../../sdlc/factory/FactoryBudgetPage.svelte';
 
-  interface ClusterStatus {
-    nodes: number;
-    pods: number;
-    brands: number;
+  type DeploymentStatus = 'healthy' | 'degraded' | 'stopped';
+  interface DeploymentInfo {
+    name: string;
+    desired: number;
+    ready: number;
+    available: number;
+    status: DeploymentStatus;
+  }
+  interface PodInfo {
+    name: string;
+    phase: string;
+    ready: boolean;
+    restarts: number;
   }
 
-  // K8s-Kennzahlen-Karte: laedt /sdlc/api/cluster/status (25s-TTL dort),
-  // fail-soft mit Leerzustand -- die uebrigen Sektionen bleiben nutzbar.
-  // D12/D13: explizites error-Feld plus fetchedAt als Lebensnachweis.
-  let cluster = $state<ClusterStatus | null>(null);
-  let clusterError = $state<string | null>(null);
-  let clusterFetchedAt = $state<number | null>(null);
+  // Cluster-Karten: zwei unabhaengige, k8s.ts-gestuetzte Quellen im
+  // Brand-Namespace. D12/D13: explizites error-Feld pro Karte, loadedAt als
+  // Lebensnachweis — kein Fallback mit hartcodierten Zahlen.
+  let deployments = $state<DeploymentInfo[] | null>(null);
+  let deploymentsError = $state<string | null>(null);
+  let pods = $state<PodInfo[] | null>(null);
+  let podsError = $state<string | null>(null);
+  let loadedAt = $state<number | null>(null);
+
+  const sortedDeployments = $derived(
+    deployments ? [...deployments].sort((a, b) => a.name.localeCompare(b.name)) : [],
+  );
+
+  const errText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
   onMount(() => {
-    fetch('/sdlc/api/cluster/status', { credentials: 'same-origin' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((j: ClusterStatus | null) => {
-        cluster = j;
-        clusterFetchedAt = Date.now();
+    void fetch('/sdlc/api/deployments', { credentials: 'same-origin' })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<{ deployments: DeploymentInfo[] }>;
       })
-      .catch(() => { clusterError = 'Cluster-Status nicht erreichbar'; });
+      .then((j) => { deployments = j.deployments; })
+      .catch((e: unknown) => { deploymentsError = errText(e); });
+    void fetch('/sdlc/api/cluster/pods-list?context=mentolder', { credentials: 'same-origin' })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<{ pods: PodInfo[] }>;
+      })
+      .then((j) => { pods = j.pods; })
+      .catch((e: unknown) => { podsError = errText(e); });
+    loadedAt = Date.now();
   });
 </script>
 
@@ -48,26 +77,41 @@
   </div>
 
   <h3 class="deck-plattform__sub">Cluster</h3>
-  <div class="deck-plattform__card">
-    {#if cluster}
-      <dl class="cluster-stats" data-testid="deck-plattform-cluster">
-        <div class="cluster-stat">
-          <dt>Knoten</dt>
-          <dd>{cluster.nodes}</dd>
-        </div>
-        <div class="cluster-stat">
-          <dt>Pods</dt>
-          <dd>{cluster.pods}</dd>
-        </div>
-        <div class="cluster-stat">
-          <dt>Brands</dt>
-          <dd>{cluster.brands}</dd>
-        </div>
-      </dl>
-    {:else if clusterError}
-      <p class="deck-plattform__fallback">{clusterError} — Cluster-Kennzahlen nicht verfügbar.</p>
+  <div class="deck-plattform__card" data-testid="deck-plattform-cluster">
+    {#if deployments !== null}
+      {#if deployments.length === 0}
+        <p class="deck-plattform__fallback">Keine Deployments im Namespace.</p>
+      {:else}
+        <ul class="deploy-list" data-testid="deck-plattform-deployments">
+          {#each sortedDeployments as d (d.name)}
+            <li class="deploy-item" title="{d.name} — {d.ready}/{d.desired} ready">
+              <span class="deploy-item__name">{d.name}</span>
+              <span class="deploy-item__replicas">{d.ready}/{d.desired}</span>
+              <span class="deploy-item__status deploy-item__status--{d.status}">{d.status}</span>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    {:else if deploymentsError}
+      <p class="deck-plattform__fallback" data-testid="deck-plattform-deployments-error">
+        Deployments nicht verfügbar: {deploymentsError}
+      </p>
     {:else}
-      <p class="deck-plattform__fallback">Cluster-Status wird geladen …</p>
+      <p class="deck-plattform__fallback">Deployments werden geladen …</p>
+    {/if}
+
+    {#if pods !== null}
+      <p class="deck-plattform__podstat" data-testid="deck-plattform-pods">
+        {pods.length} Pods, {pods.filter((p) => p.ready).length} ready
+      </p>
+    {:else if podsError}
+      <p class="deck-plattform__fallback">Pod-Status nicht verfügbar: {podsError}</p>
+    {:else}
+      <p class="deck-plattform__fallback">Pod-Status wird geladen …</p>
+    {/if}
+
+    {#if loadedAt}
+      <p class="deck-plattform__fetched">Datenstand: {new Date(loadedAt).toLocaleTimeString('de-DE')}</p>
     {/if}
   </div>
 </section>
@@ -86,6 +130,12 @@
     font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    color: var(--ls-text-muted, #707b8a);
+  }
+
+  .deck-plattform__fetched {
+    margin: var(--ls-space-2, 4px) 0 0;
+    font-size: 0.72rem;
     color: var(--ls-text-muted, #707b8a);
   }
 

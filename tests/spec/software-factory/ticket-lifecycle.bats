@@ -714,18 +714,21 @@ SH
   [ "$status" -eq 0 ] || { echo "plan-lint Gate fehlt in mishap-rollup.sh"; false; }
 }
 
-@test "T002407-M7e: auto-close-merged erkennt Rollup-Container und recycled statt close" {
-  # auto-close-merged.sh muss den Container-Titel erkennen und ihn auf plan_staged
-  # zurücksetzen statt auf done/shipped.
+@test "T002407-M7e: auto-close-merged schliesst Rollup-Container per Merge=Closure (T007056)" {
+  # auto-close-merged.sh muss den Container-Titel erkennen und ihn mit
+  # done/resolution=fixed schliessen statt zu recyceln — der Container ist seit
+  # T007056 ein Dispatch-Ticket, der naechste Flush legt einen frischen an.
   local script="$REPO/scripts/factory/auto-close-merged.sh"
   run bash -n "$script"
   [ "$status" -eq 0 ]
   # Container-Erkennung: muss den ROLLUP_TICKET_TITLE oder eine eindeutige Markierung prüfen
   run grep -q "Mishap Rollup\|ROLLUP_TICKET_TITLE\|Rollup" "$script"
   [ "$status" -eq 0 ] || { echo "auto-close-merged.sh erkennt Rollup-Container nicht"; false; }
-  # Recycling: statt done/shipped muss plan_staged gesetzt werden
-  run grep -Eq "plan_staged" "$script"
-  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh recycled Container nicht (plan_staged fehlt)"; false; }
+  # Merge=Closure: done + resolution=fixed statt plan_staged-Recycling
+  run grep -Eq "resolution = 'fixed'" "$script"
+  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh schliesst Rollup-Container nicht mit fixed"; false; }
+  run grep -Eq "status = 'done'" "$script"
+  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh setzt Rollup-Container nicht auf done"; false; }
 }
 
 @test "T003765: auto-close-merged prueft plan-only-Inhalt fuer ALLE Branch-Familien" {

@@ -3819,6 +3819,12 @@
       "status": "archived"
     }
   ],
+  "T006368": [
+    {
+      "slug": "2026-08-15-spec-junit-shard-ignore",
+      "status": "archived"
+    }
+  ],
   "T006664": [
     {
       "slug": "2026-08-15-mcp-task-runner-node-port",

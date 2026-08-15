@@ -56,6 +56,11 @@ DELTA
     ln -s "$f" "${SANDBOX}/scripts/$(basename "$f")"
   done
   rm -f "${SANDBOX}/scripts/ticket.sh"
+
+  # Status-Map-Zielverzeichnis (T006371): openspec-status-map.sh kann nur
+  # schreiben, wenn website/src/data existiert — im echten Repo immer
+  # vorhanden, in der Sandbox bewusst im setup fuer alle Tests bereitgestellt.
+  mkdir -p "${SANDBOX}/website/src/data"
 }
 
 _stub_ticket_status() {
@@ -97,10 +102,8 @@ STUB
   # selbst — der nachfolgende Archiv-Commit traegt die Datei damit mit, sonst
   # faellt der Freshness-Gate sie als stale (PR #4083: Archiv-Commit ohne
   # openspec-status.json, Heilung erst durch nachgeschobenen Regen-Commit).
-  # Das Zielverzeichnis muss existieren, damit openspec-status-map.sh in der
-  # Sandbox ueberhaupt schreiben kann (im echten Repo ist es immer vorhanden).
+  # Das Zielverzeichnis stellt setup() bereit (T006371).
   _stub_ticket_status done
-  mkdir -p "${SANDBOX}/website/src/data"
   run bash -c "cd '$SANDBOX' && bash '$OPENSPEC_SH' archive demo"
   [ "$status" -eq 0 ]
   run git -C "$SANDBOX" diff --cached --name-only

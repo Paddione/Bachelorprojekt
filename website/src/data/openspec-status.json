@@ -3821,8 +3821,8 @@
   ],
   "T006335": [
     {
-      "slug": "mcp-postgres-readonly-role",
-      "status": "plan_staged"
+      "slug": "2026-08-15-mcp-postgres-readonly-role",
+      "status": "archived"
     }
   ],
   "T006348": [

@@ -81,10 +81,12 @@ jobs:
       # runtime stage (T002202). Historically this Dockerfile had no ARG line
       # at all, which silently turned build-args into no-ops — keep the ARG
       # declarations and these values in sync.
-      # dev-stack alias: k3d/dev-stack/website-dev.yaml pins
-      # workspace-website:dev (fleet dev node, T007035) — same build,
-      # additional tag, no extra pipeline. NOTE: must stay OUTSIDE the
-      # multiline `tags:` string — build-push-action parses it as literal tags.
+      # dev-stack tag: k3d/dev-stack/website-dev.yaml pins website:dev (fleet
+      # dev node, T007035). Same build, additional tag. NOTE: `workspace-website`
+      # als Alias-Name scheiterte am GHCR-Token (permission_denied: read_package
+      # auf dem nicht-repo-verknuepften Package) — deshalb direkt :dev auf dem
+      # bestehenden `website`-Package. Kommentare duerfen NICHT in die
+      # multiline `tags:`-Zeichenkette (build-push-action parst sie als Tags).
       - name: Build & push Docker image
         id: build-push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # v7
@@ -99,7 +101,7 @@ jobs:
           tags: |
             ${{ steps.compute-tags.outputs.image }}:${{ steps.compute-tags.outputs.sha_tag }}
             ${{ steps.compute-tags.outputs.image }}:latest
-            ghcr.io/paddione/workspace-website:dev
+            ${{ steps.compute-tags.outputs.image }}:dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

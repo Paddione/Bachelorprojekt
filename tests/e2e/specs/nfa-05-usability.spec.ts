@@ -14,9 +14,13 @@ test.beforeAll(async ({ request }) => {
 });
 
 test.describe('NFA-05: Usability', () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   test('T1: UI auf Deutsch', async ({ page }) => {
     test.skip(!siteAvailable, `Website not accessible at ${BASE}`);
-    await page.goto(BASE);
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     const germanText = await page.locator('body').textContent();
     expect(germanText!.length).toBeGreaterThan(0);
   });
@@ -29,7 +33,7 @@ test.describe('NFA-05: Usability', () => {
     });
     const page = await context.newPage();
 
-    const res = await page.goto(BASE);
+    const res = await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     expect(res?.status()).toBe(200);
     await expect(page.locator('h1')).toBeVisible({ timeout: 60_000 });
     // On mobile the desktop nav is hidden; the hamburger toggle is visible instead
@@ -40,7 +44,7 @@ test.describe('NFA-05: Usability', () => {
 
   test('T4: Keyboard Navigation — Tab-Fokus funktioniert', async ({ page }) => {
     test.skip(!siteAvailable, `Website not accessible at ${BASE}`);
-    await page.goto(BASE);
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('h1')).toBeVisible();
 
     await page.keyboard.press('Tab');

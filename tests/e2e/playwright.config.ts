@@ -52,8 +52,8 @@ export default defineConfig({
         '**/fa-15-*.spec.ts',      // OIDC login
         '**/fa-16-*.spec.ts',      // calendar / booking
         '**/fa-17-*.spec.ts',      // meeting lifecycle
+        '**/fa-17-*.spec.ts',      // meeting lifecycle
         '**/fa-20-*.spec.ts',      // meeting finalization
-        '**/fa-21-*.spec.ts',      // service catalog & billing
         '**/fa-26-*.spec.ts',      // bug report form
         '**/fa-28-*.spec.ts',      // Website-Messaging (internes Chat-System)
         '**/fa-poll.spec.ts',      // live poll
@@ -65,39 +65,22 @@ export default defineConfig({
         '**/fa-client-portal.spec.ts', // client portal auth-gate
         '**/fa-meeting-history.spec.ts',  // meeting history & release
         '**/fa-document-signing.spec.ts', // document signing flow
-        '**/fa-admin-monitoring.spec.ts',       // admin monitoring page auth
-        '**/fa-admin-newsletter.spec.ts',       // admin newsletter page auth
-        '**/fa-admin-backup-settings.spec.ts',  // admin backup settings auth
         '**/fa-public-pages.spec.ts',           // public static & legal pages
-        '**/fa-admin-inhalte.spec.ts',          // unified content editor + legacy stubs
-        '**/fa-admin-billing-system.spec.ts',   // native SEPA billing, EÜR, UStVA
-        '**/fa-admin-crm.spec.ts',              // CRM: termine, followups, projekte, rooms, meetings
-        '**/fa-admin-settings.spec.ts',         // settings: email, rechnungen, branding, benachrichtigungen
-        '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
-        '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
-        '**/fa-bug-*.spec.ts',                  // dedicated bug reproductions
-        '**/fa-admin-inbox.spec.ts',            // /admin/inbox two-pane rework (spec 2026-05-08)
-        '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
-        '**/fa-admin-live.spec.ts',  // unified live cockpit
-        '**/fa-29-*.spec.ts',                   // Projekt-Cockpit E2E (T000752)
-        '**/fa-53-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
-        '**/fa-59-*.spec.ts',                        // systemtest purge route preservation [T002728]
-        '**/fa-54-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
-        '**/fa-55-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
-        '**/fa-56-admin-assets.spec.ts',            // central asset management (PR #884)
         '**/fa-57-homepage-hifi-redesign.spec.ts', // Homepage hifi-Redesign Sektionen [T001034]
-        '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
-        '**/fa-43-ticket-widget.spec.ts',           // TicketWidgetBar showEdit fix + portal widget regression
         '**/fa-44-platform-health-integrity.spec.ts', // Platform Hub health API — single-cluster probe + Collabora namespace fix
-        '**/wissensquellen.spec.ts',                 // knowledge collections CRUD + web_crawl ingest (PR #830)
-        '**/fa-admin-db-crud-*.spec.ts',             // DB-object CRUD via web UI: projekte, followups, clients, shortcuts
         '**/agent-guide-walkthrough.spec.ts',        // in-app Agent-Anleitung E2E (public, no auth)
-        '**/fa-m3-*.spec.ts',                        // M3 onboarding flow
-        '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
         '**/fa-50-*.spec.ts',                        // request correlation / X-Request-ID (T000964)
         '**/a11y-axe.spec.ts',                       // axe-core a11y-Scan der Kern-Routen (G-FE01, T001206)
-        '**/coaching-studio-empty-customer.spec.ts', // coaching-studio Workspace-Crash bei leerem CUSTOMERS (T001656)
-        '**/fa-61-sdlc-leitstand-devonly-split.spec.ts', // FA-61: SDLC-Leitstand E1+E2 dev-only-Split (T007559)
+        '**/fa-admin-inhalte.spec.ts',               // unified content editor + legacy stubs auth gates
+        '**/fa-admin-newsletter.spec.ts',            // admin newsletter page auth
+        '**/fa-admin-settings.spec.ts',              // settings auth gates
+        '**/fa-admin-live.spec.ts',                  // unified live cockpit redirects
+        '**/wissensquellen.spec.ts',                 // knowledge collections CRUD + web_crawl ingest (self-authenticating)
+        '**/fa-admin-billing-system.spec.ts',        // native SEPA billing, EÜR, UStVA auth gates
+        '**/fa-admin-crm.spec.ts',                   // CRM: termine, followups, projekte, rooms, meetings auth gates
+        '**/fa-56-admin-assets.spec.ts',             // central asset management auth gates
+        '**/fa-59-*.spec.ts',                        // systemtest purge route preservation
+        '**/fa-admin-backup-settings.spec.ts',       // admin backup settings auth gates
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -121,6 +104,7 @@ export default defineConfig({
       name: 'mentolder',
       dependencies: ['mentolder-setup'],
       testMatch: [
+        '**/fa-21-*.spec.ts',             // service catalog & billing lifecycle
         '**/fa-48-*.spec.ts',
         '**/fa-49-*.spec.ts',             // /admin/factory-observability OTel dashboard (admin-gated)
         '**/fa-46-*.spec.ts',
@@ -140,11 +124,26 @@ export default defineConfig({
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
         '**/fa-mobile-factory.spec.ts',           // FA-MOBILE-01..06 mobile factory parity (admin-gated)
         '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
-        '**/fa-51-*.spec.ts',             // sidekick navigation (T000965) — hits /admin, so it
-                                          // needs the admin session; in the unauthenticated
-                                          // `website` project the FAB never renders (T002199)
+        '**/fa-51-*.spec.ts',             // sidekick navigation (T000965)
         '**/factory-qs-abnahme.spec.ts',  // QS-Abnahme-Flow /dev-status (T000730)
         '**/fa-58-admin-cockpit.spec.ts', // FA-58: Admin-Menü, SDLC Cockpit & Git-Flows (admin-gated)
+        '**/fa-admin-monitoring.spec.ts',       // admin monitoring page auth
+        '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
+        '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
+        '**/fa-bug-*.spec.ts',                  // dedicated bug reproductions
+        '**/fa-admin-inbox.spec.ts',            // /admin/inbox two-pane rework (spec 2026-05-08)
+        '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
+        '**/fa-29-*.spec.ts',                   // Projekt-Cockpit E2E (T000752)
+        '**/fa-53-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
+        '**/fa-54-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
+        '**/fa-55-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
+        '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
+        '**/fa-43-ticket-widget.spec.ts',           // TicketWidgetBar showEdit fix + portal widget regression
+        '**/fa-admin-db-crud-*.spec.ts',             // DB-object CRUD via web UI: projekte, followups, clients, shortcuts
+        '**/fa-m3-*.spec.ts',                        // M3 onboarding flow
+        '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
+        '**/coaching-studio-empty-customer.spec.ts', // coaching-studio Workspace-Crash bei leerem CUSTOMERS (T001656)
+        '**/fa-61-sdlc-leitstand-devonly-split.spec.ts', // FA-61: SDLC-Leitstand E1+E2 dev-only-Split (T007559)
       ],
       use: {
         ...devices['Desktop Chrome'],

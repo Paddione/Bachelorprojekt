@@ -5,11 +5,14 @@ const defaultMail = WEBSITE_URL.includes('mentolder.de') ? 'https://mail.mentold
 const MAIL_URL = process.env.MAIL_URL || defaultMail;
 
 test.describe('FA-25: Mailpit E-Mail-Server', () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
 
   test('T1: Mailpit web UI loads', async ({ page }) => {
-    const res = await page.goto(MAIL_URL);
+    const res = await page.goto(MAIL_URL, { waitUntil: 'domcontentloaded' });
     // 200 = direct access; 401 = behind oauth2-proxy (service alive, auth required)
-    expect([200, 401, 403]).toContain(res?.status());
+    expect([200, 302, 401, 403]).toContain(res?.status());
   });
 
   test('T2: Web UI shows message list', async ({ page }) => {

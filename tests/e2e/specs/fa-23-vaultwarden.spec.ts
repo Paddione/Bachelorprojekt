@@ -5,6 +5,9 @@ const defaultVault = WEBSITE_URL.includes('mentolder.de') ? 'https://vault.mento
 const VAULT_URL = process.env.VAULT_URL || defaultVault;
 
 test.describe('FA-23: Vaultwarden Passwort-Manager', () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
 
   test('T1: Vaultwarden login page loads', async ({ page }) => {
     const res = await page.goto(VAULT_URL, { waitUntil: 'domcontentloaded' });

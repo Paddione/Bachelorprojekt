@@ -52,6 +52,7 @@ function writeEmptyState(filename: string): void {
 
 // ── Admin login ──────────────────────────────────────────────────────────────
 setup('authenticate mentolder website admin', async ({ page, request }, testInfo) => {
+  setup.setTimeout(60_000);
   // Fail closed. Degrading to an empty storageState here used to leave this
   // test green while every dependent `mentolder` test ran without a session —
   // 33 locator timeouts that read like product defects (T002199).

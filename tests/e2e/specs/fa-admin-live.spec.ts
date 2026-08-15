@@ -3,8 +3,12 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA: Admin Live Cockpit', { tag: ['@admin', '@smoke'] }, () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   test('T1: /admin/live redirects unauthenticated users', async ({ page }) => {
-    await page.goto(`${BASE}/admin/live`);
+    await page.goto(`${BASE}/admin/live`, { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(`${BASE}/admin/live`);
   });
 

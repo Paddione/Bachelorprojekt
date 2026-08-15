@@ -19,6 +19,9 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 }
 
 test.describe('FA-admin-db-crud-followups', () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
 
   test('follow-up CRUD: create → verify → mark done → verify → delete', async ({ page, request }, testInfo) => {
     await assertAuthenticatedReachable(
@@ -48,7 +51,7 @@ test.describe('FA-admin-db-crud-followups', () => {
 
     // ── 2. Navigate to follow-ups list and verify the row is visible ──
     await page.goto(`${BASE}/admin/followups`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const followUpRow = page.locator(`[data-testid="followup-item"]:has-text("${reason}")`);
     await expect(followUpRow).toBeVisible({ timeout: 60_000 });
 
@@ -71,7 +74,7 @@ test.describe('FA-admin-db-crud-followups', () => {
 
     // ── 5. Verify done state in UI (show all including done) ──
     await page.goto(`${BASE}/admin/followups?done=1`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Done items are rendered with opacity-50 and the reason has line-through
     const doneRow = page.locator(`[data-testid="followup-item"]:has-text("${reason}")`);
     await expect(doneRow).toBeVisible({ timeout: 60_000 });
@@ -91,7 +94,7 @@ test.describe('FA-admin-db-crud-followups', () => {
 
     // ── 7. Verify row is gone ──
     await page.goto(`${BASE}/admin/followups?done=1`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`[data-testid="followup-item"]:has-text("${reason}")`)).toHaveCount(0);
   });
 
@@ -122,7 +125,7 @@ test.describe('FA-admin-db-crud-followups', () => {
 
     // Navigate to the project list and find the newly created project ID
     await page.goto(`${BASE}/admin/projekte`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 60_000 });
 
     await page.locator(`a:has-text("${projectName}")`).first().click();
@@ -149,7 +152,7 @@ test.describe('FA-admin-db-crud-followups', () => {
 
     // ── 3. Navigate to zeiterfassung and verify the entry appears ──
     await page.goto(`${BASE}/admin/zeiterfassung`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // The time entry description should appear
     const entryLocator = page.locator(`text="e2e-zeit-entry-${ts}"`);
     await expect(entryLocator).toBeVisible({ timeout: 60_000 });
@@ -192,7 +195,7 @@ test.describe('FA-admin-db-crud-followups', () => {
       expect([302, 200, 303]).toContain(deleteRes.status());
 
       await page.goto(`${BASE}/admin/zeiterfassung`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page.locator(`text="e2e-zeit-entry-${ts}"`)).toHaveCount(0);
     }
 

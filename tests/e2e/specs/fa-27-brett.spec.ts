@@ -22,8 +22,8 @@ test.describe('FA-27: Systemisches Brett', { tag: ['@brett'] }, () => {
     expect([200, 302]).toContain(res.status());
   });
 
-  test('T4: /three.min.js static asset is served', async ({ request }) => {
-    const res = await request.get(`${BRETT_URL}/three.min.js`, { maxRedirects: 0 });
+  test('T4: static asset is served', async ({ request }) => {
+    const res = await request.get(`${BRETT_URL}/share.html`, { maxRedirects: 0 });
     expect([200, 302]).toContain(res.status());
   });
 

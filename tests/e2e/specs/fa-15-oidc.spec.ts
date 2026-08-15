@@ -3,6 +3,10 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA-15: OIDC Website Login (Pocket ID)', { tag: ['@website'] }, () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   test('T1: /api/auth/login redirects to Pocket ID', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/login`, {
       maxRedirects: 0,
@@ -33,15 +37,12 @@ test.describe('FA-15: OIDC Website Login (Pocket ID)', { tag: ['@website'] }, ()
   });
 
   test('T4: Nav shows Anmelden when not logged in', async ({ page }) => {
-    await page.goto(BASE);
-    // Wait for auth check to complete
-    await page.waitForTimeout(1000);
-    await expect(page.locator('a[href="/api/auth/login"]')).toBeVisible();
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('a[href="/api/auth/login"]')).toBeVisible({ timeout: 10_000 });
   });
 
   test('T5: Nav shows Registrieren when not logged in', async ({ page }) => {
-    await page.goto(BASE);
-    await page.waitForTimeout(1000);
-    await expect(page.locator('a[href="/registrieren"]')).toBeVisible();
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('a[href="/registrieren"]')).toBeVisible({ timeout: 10_000 });
   });
 });

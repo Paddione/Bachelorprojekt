@@ -19,6 +19,9 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 }
 
 test.describe('FA-admin-db-crud-projekte', () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
 
   test('full CRUD: create → verify → edit → subprojekt → delete', async ({ page, request }, testInfo) => {
     await assertAuthenticatedReachable(
@@ -54,7 +57,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
 
     // ── 2. Navigate to list and verify project appears ──
     await page.goto(`${BASE}/admin/projekte`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 60_000 });
 
     // ── 3. Find the project's detail page URL by following the link ──
@@ -79,7 +82,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
 
     // ── 5. Verify updated name appears in the list ──
     await page.goto(`${BASE}/admin/projekte`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${updatedName}"`).first()).toBeVisible({ timeout: 60_000 });
 
     // ── 6. Create a Subprojekt under the project ──
@@ -97,7 +100,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
 
     // ── 7. Verify subprojekt appears on the detail page ──
     await page.goto(`${BASE}/admin/projekte/${projectId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${subName}"`).first()).toBeVisible({ timeout: 60_000 });
 
     // ── 8. Find subprojekt id from the page ──
@@ -120,7 +123,7 @@ test.describe('FA-admin-db-crud-projekte', () => {
 
       // Verify subprojekt is gone
       await page.goto(`${BASE}/admin/projekte/${projectId}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page.locator(`text="${subName}"`)).toHaveCount(0);
     }
 
@@ -136,17 +139,19 @@ test.describe('FA-admin-db-crud-projekte', () => {
 
     // ── 10. Verify project is gone from the list ──
     await page.goto(`${BASE}/admin/projekte`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${updatedName}"`)).toHaveCount(0);
   });
 
-  test('GET /api/admin/projekte returns 403 without auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/projekte`);
+  test('GET /api/admin/projekte returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.get(`${BASE}/api/admin/projekte`);
     expect([401, 403, 404]).toContain(res.status());
   });
 
-  test('POST /api/admin/projekte/create returns 403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/projekte/create`, {
+  test('POST /api/admin/projekte/create returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.post(`${BASE}/api/admin/projekte/create`, {
       form: { name: 'unauth-test', status: 'entwurf', priority: 'mittel' },
       maxRedirects: 0,
     });

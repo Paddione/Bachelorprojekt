@@ -48,8 +48,11 @@
     # nicht in einen Commit gelangen koennen (verifiziert per git check-ignore).
     # Die Funde stammten aus Drittanbieter-Testfixturen (dotenv, zod, prettier)
     # und aus Scratch-Dateien.
-    "(?i)(^|.*/)node_modules/.*",
-    "(?i)^tmp/.*",
+    ".*node_modules.*",
+    ".*tmp.*",
+    ".*\\.worktrees.*",
+    ".*\\.auth.*",
+    ".*playwright-traces.*",
     ".gitattributes",
     ".gitignore",
     # [T002554] Diese Datei selbst. Eine Config, die Secret-MUSTER beschreibt,

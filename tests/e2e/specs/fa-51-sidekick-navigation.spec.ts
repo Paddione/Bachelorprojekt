@@ -13,6 +13,10 @@ async function openSidekick(page: import('@playwright/test').Page) {
 }
 
 test.describe('FA-51: Sidekick-Navigation (T000965)', { tag: ['@website'] }, () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
+
   test('T1: Sidekick FAB (.fab) is present and accessible on admin', async ({ page }) => {
     await loginAsAdmin(page);
     const fab = page.locator('button.fab');

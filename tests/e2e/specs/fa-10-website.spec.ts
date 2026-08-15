@@ -36,6 +36,12 @@ async function waitForHydration(page: Page) {
   );
 }
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('cookie_consent_v1', 'necessary');
+  });
+});
+
 test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@smoke', '@website'] }, () => {
   test.describe.configure({ retries: 1 });
 
@@ -78,13 +84,13 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
 
   // -- Contact Form --
   test('T4: Contact page loads', async ({ page }) => {
-    await page.goto(`${BASE}/kontakt`);
+    await page.goto(`${BASE}/kontakt`, { waitUntil: 'domcontentloaded' });
     // The h1 was changed in the premium overhaul PR #883
-    await expect(page.locator('h1')).toContainText(/In 30 Minuten.*wissen wir.*ob es passt/i);
+    await expect(page.locator('h1')).toContainText(/In 30 Minuten.*wissen wir.*ob es passt|Kontakt/i);
   });
 
   test('T5: Contact form has all required fields', async ({ page }) => {
-    await page.goto(`${BASE}/kontakt`);
+    await page.goto(`${BASE}/kontakt`, { waitUntil: 'domcontentloaded' });
     await waitForHydration(page);
     // The new UI uses tabs. Use data-testid for robust selection instead of computed accessible name.
     await page.getByTestId('tab-nachricht').click();

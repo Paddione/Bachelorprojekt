@@ -24,6 +24,9 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 }
 
 test.describe('FA-admin-db-crud-shortcuts', () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
 
   test('shortcut CRUD: create → verify in UI → update label → verify → delete → verify gone', async ({ page, request }, testInfo) => {
     await assertAuthenticatedReachable(
@@ -87,24 +90,27 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
     await expect(page.locator(`text="${updatedLabel}"`)).toHaveCount(0);
   });
 
-  test('POST /api/admin/shortcuts/create returns 403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/shortcuts/create`, {
+  test('POST /api/admin/shortcuts/create returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.post(`${BASE}/api/admin/shortcuts/create`, {
       headers: { 'Content-Type': 'application/json' },
       data: JSON.stringify({ url: 'https://example.invalid', label: 'unauth' }),
     });
     expect([401, 403]).toContain(res.status());
   });
 
-  test('PATCH /api/admin/shortcuts/update returns 403 without auth', async ({ request }) => {
-    const res = await request.patch(`${BASE}/api/admin/shortcuts/update`, {
+  test('PATCH /api/admin/shortcuts/update returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.patch(`${BASE}/api/admin/shortcuts/update`, {
       headers: { 'Content-Type': 'application/json' },
       data: JSON.stringify({ id: '00000000-0000-0000-0000-000000000000', label: 'x' }),
     });
     expect([401, 403]).toContain(res.status());
   });
 
-  test('DELETE /api/admin/shortcuts/delete returns 403 without auth', async ({ request }) => {
-    const res = await request.delete(`${BASE}/api/admin/shortcuts/delete`, {
+  test('DELETE /api/admin/shortcuts/delete returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.delete(`${BASE}/api/admin/shortcuts/delete`, {
       headers: { 'Content-Type': 'application/json' },
       data: JSON.stringify({ id: '00000000-0000-0000-0000-000000000000' }),
     });

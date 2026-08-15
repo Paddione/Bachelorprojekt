@@ -3,6 +3,10 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA: Admin native billing system (SEPA/ZUGFeRD)', { tag: ['@admin', '@billing'] }, () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   // ── Page auth-gating ───────────────────────────────────────────
   const adminPages = [
     '/admin/rechnungen',

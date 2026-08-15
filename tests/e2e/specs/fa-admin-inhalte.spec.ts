@@ -3,9 +3,13 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA: Admin Inhalte — unified content editor + legacy stubs', { tag: ['@admin', '@content-hub'] }, () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   // ── Main editor ────────────────────────────────────────────────
   test('T1: /admin/inhalte redirects unauthenticated users', async ({ page }) => {
-    await page.goto(`${BASE}/admin/inhalte`);
+    await page.goto(`${BASE}/admin/inhalte`, { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(`${BASE}/admin/inhalte`);
   });
 
@@ -22,7 +26,7 @@ test.describe('FA: Admin Inhalte — unified content editor + legacy stubs', { t
 
   for (const path of legacyStubs) {
     test(`T: ${path} redirects unauthenticated users`, async ({ page }) => {
-      await page.goto(`${BASE}${path}`);
+      await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
       await expect(page).not.toHaveURL(`${BASE}${path}`);
     });
   }

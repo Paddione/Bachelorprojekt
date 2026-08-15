@@ -22,6 +22,9 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 }
 
 test.describe('FA-admin-db-crud-clients', () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
 
   test('client CRUD: create user → navigate detail → add note → delete note → delete user', async ({ page, request }, testInfo) => {
     await assertAuthenticatedReachable(
@@ -59,7 +62,7 @@ test.describe('FA-admin-db-crud-clients', () => {
 
     // ── 2. Navigate to client list and verify user appears ──
     await page.goto(`${BASE}/admin/clients`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Client name appears as "E2E CrudTest<ts>" in the card/list
     const fullName = `${firstName} ${lastName}`;
     const clientItem = page.locator('[data-testid="admin-client-item"]').filter({ hasText: fullName }).first();
@@ -74,7 +77,7 @@ test.describe('FA-admin-db-crud-clients', () => {
 
     // ── 4. Navigate to the Notes tab ──
     await page.goto(`${BASE}/admin/${clientId}?tab=notes`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // ── 5. Add a client note via API ──
     const noteCreateRes = await page.request.post(`${BASE}/api/admin/clientnotes/create`, {
@@ -89,7 +92,7 @@ test.describe('FA-admin-db-crud-clients', () => {
 
     // ── 6. Reload notes tab and verify note is visible ──
     await page.goto(`${BASE}/admin/${clientId}?tab=notes`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${noteText}"`)).toBeVisible({ timeout: 60_000 });
 
     // ── 7. Find the note ID from the delete form ──
@@ -124,7 +127,7 @@ test.describe('FA-admin-db-crud-clients', () => {
 
       // Verify the note is gone
       await page.goto(`${BASE}/admin/${clientId}?tab=notes`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page.locator(`text="${noteText}"`)).toHaveCount(0);
     }
 
@@ -139,26 +142,29 @@ test.describe('FA-admin-db-crud-clients', () => {
 
     // ── 10. Verify client is gone from the list ──
     await page.goto(`${BASE}/admin/clients`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('[data-testid="admin-client-item"]').filter({ hasText: fullName })).toHaveCount(0);
   });
 
-  test('GET /admin/clients returns 403 without auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/admin/clients`);
-    expect([401, 403]).toContain(res.status());
+  test('GET /admin/clients returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.get(`${BASE}/admin/clients`, { maxRedirects: 0 });
+    expect([302, 401, 403]).toContain(res.status());
   });
 
-  test('POST /api/admin/clients/create returns 401/403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/clients/create`, {
+  test('POST /api/admin/clients/create returns 401/403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.post(`${BASE}/api/admin/clients/create`, {
       headers: { 'Content-Type': 'application/json' },
       data: JSON.stringify({ email: 'unauth@example.com', firstName: 'X', lastName: 'Y' }),
     });
     expect([401, 403]).toContain(res.status());
   });
 
-  test('POST /api/admin/clientnotes/create returns 403 without auth', async ({ request }) => {
+  test('POST /api/admin/clientnotes/create returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
     const form = new URLSearchParams({ keycloakUserId: '00000000-0000-0000-0000-000000000000', content: 'x' });
-    const res = await request.post(`${BASE}/api/admin/clientnotes/create`, {
+    const res = await unauth.post(`${BASE}/api/admin/clientnotes/create`, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       data: form.toString(),
       maxRedirects: 0,

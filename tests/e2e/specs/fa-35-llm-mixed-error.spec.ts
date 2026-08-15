@@ -21,6 +21,10 @@ const LLM_URL = process.env.LLM_ROUTER_URL
  */
 
 test.describe('FA-35: LLM MixedEmbeddingModelError', () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
+
   // T1: Check the website knowledge API rejects a mixed-model query
   test('T1: /api/knowledge/query rejects mixed bge-m3 + voyage collection query', async ({ request }) => {
     // Attempt a knowledge query that mixes model families.
@@ -64,8 +68,7 @@ test.describe('FA-35: LLM MixedEmbeddingModelError', () => {
   test('Browser: website homepage loads without script errors', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
-    await page.goto(BASE);
-    await page.waitForLoadState('networkidle');
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     // No critical import errors should appear (which would indicate missing exports)
     const criticalErrors = errors.filter(e => e.includes('MixedEmbeddingModelError') || e.includes('Cannot find module'));
     expect(criticalErrors).toHaveLength(0);

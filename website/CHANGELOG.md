@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.278.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.1...website-v1.278.2) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock release branch verweigert cwd im Lock-Worktree [T006290] ([#4547](https://github.com/Paddione/Bachelorprojekt/issues/4547)) ([36f6ff6](https://github.com/Paddione/Bachelorprojekt/commit/36f6ff6c81906504bc32a664de344b580a7c22da))
+
 ## [1.278.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.0...website-v1.278.1) (2026-08-15)
 
 

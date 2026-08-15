@@ -3,13 +3,13 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { pool } from '../../../../lib/website-db';
 import { getPlanningCount } from '../../../../lib/sdlc/factory-floor';
 import { STREAM_POLL_MS, STREAM_HEARTBEAT_MS } from '../../../../lib/factory-constants.ts';
-import { subscribe } from '../../../../lib/sdlc/cockpit-listen-hub';
+import { subscribe, isListening } from '../../../../lib/sdlc/cockpit-listen-hub';
 
 export const prerender = false;
 
 // E4 (T008016): Der Factory-Floor-Stream wird primär von LISTEN/NOTIFY über
 // den cockpit-listen-hub getrieben — ein DB-Abfrage-setInterval ist nur noch
-// FALLBACK, solange der Hub keine Lebenszeichen zeigt (Silence-Watchdog).
+// FALLBACK, solange keine NOTIFY-Verbindung verfügbar ist (isListening-Watchdog).
 // Reconnect-Events des Hubs erzwingen eine Voll-Snapshot-Zustellung, weil
 // während einer Hub-Pause Events verloren gehen können.
 const WATCHDOG_SILENCE_MS = 20_000;
@@ -83,11 +83,14 @@ export const GET: APIRoute = async ({ request }) => {
         void refresh(ev.domain === 'reconnect');
       };
 
-      // Watchdog: schweigt der Hub laenger als WATCHDOG_SILENCE_MS, startet
-      // der Fallback-Poll; die erste Hub-Regung stoppt ihn wieder. lastHubEventAt
-      // startet bei 0, damit auch ein nie verbundener Hub den Fallback ausloest.
+      // Watchdog: ist keine NOTIFY-Verbindung verfuegbar (isListening() false),
+      // startet nach WATCHDOG_SILENCE_MS der Fallback-Poll — die Spec bindet
+      // den Poll an die VERFUEGBARKEIT der Verbindung, nicht an Event-Stille
+      // (ein ruhiger Floor ist der Normalfall und darf nicht pollen). Die
+      // erste Hub-Regung stoppt den Poll wieder; lastHubEventAt startet bei 0,
+      // damit auch ein nie verbundener Hub den Fallback ausloest.
       const watchdog = () => {
-        if (Date.now() - lastHubEventAt >= WATCHDOG_SILENCE_MS && !pollTimer) {
+        if (!isListening() && Date.now() - lastHubEventAt >= WATCHDOG_SILENCE_MS && !pollTimer) {
           void fallbackPoll();
           pollTimer = setInterval(fallbackPoll, STREAM_POLL_MS);
         }

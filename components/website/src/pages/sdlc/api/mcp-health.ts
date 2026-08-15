@@ -9,8 +9,10 @@ import inventory from '../../../data/api-inventory.json';
 // nirgendwo dupliziert.
 //
 // Probe-Semantik: jeder HTTP-Status (auch 405/401) gilt als "Server lebt";
-// nur Netzwerk-Ebene (refused/timeout/DNS) ist "down". Timeout je Server
-// 1500 ms, damit eine Ausfallreihe die Antwort nicht unendlich verzoegert.
+// nur Netzwerk-Ebene (refused/DNS) ist sicher "down". Ein Timeout ist KEIN
+// Down-Beweis (ein langsamer Server kann ihn ausloesen) und wird deshalb als
+// "Zustand unbestimmt" ausgewiesen. Timeout je Server 1500 ms, damit eine
+// Ausfallreihe die Antwort nicht unendlich verzoegert.
 
 export const prerender = false;
 
@@ -44,10 +46,14 @@ async function probe(server: { name: string; endpoint: string }): Promise<McpHea
     // Jede HTTP-Antwort — auch Fehlerstatus — belegt, dass der Server lauscht.
     return { name: server.name, ok: true, error: null };
   } catch (e) {
+    // Timeout ≠ down: der Server kann schlicht langsamer als 1500 ms sein.
+    const isTimeout = e instanceof Error && e.name === 'TimeoutError';
     return {
       name: server.name,
       ok: false,
-      error: e instanceof Error ? e.message : 'nicht erreichbar',
+      error: isTimeout
+        ? `timeout nach ${PROBE_TIMEOUT_MS} ms (Zustand unbestimmt)`
+        : e instanceof Error ? e.message : 'nicht erreichbar',
     };
   }
 }

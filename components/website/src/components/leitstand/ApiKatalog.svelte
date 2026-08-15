@@ -85,6 +85,12 @@
   }
 
   onMount(() => {
+    // Bei Mount bereits versteckt: nicht pollen — der Timer startet erst mit
+    // dem naechsten visibilitychange (Spec: "Poll pausiert bei document.hidden").
+    if (document.hidden) {
+      document.addEventListener('visibilitychange', onVisibility);
+      return () => document.removeEventListener('visibilitychange', onVisibility);
+    }
     void loadHealth();
     healthTimer = setInterval(() => void loadHealth(), HEALTH_REFRESH_MS);
     document.addEventListener('visibilitychange', onVisibility);

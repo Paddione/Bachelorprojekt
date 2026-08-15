@@ -9,6 +9,29 @@
   import ControlPanel from '../../sdlc/factory/ControlPanel.svelte';
   import FactoryObservability from '../../sdlc/factory/FactoryObservability.svelte';
   import FactoryBudgetPage from '../../sdlc/factory/FactoryBudgetPage.svelte';
+
+  interface ClusterStatus {
+    nodes: number;
+    pods: number;
+    brands: number;
+  }
+
+  // K8s-Kennzahlen-Karte: laedt /sdlc/api/cluster/status (25s-TTL dort),
+  // fail-soft mit Leerzustand -- die uebrigen Sektionen bleiben nutzbar.
+  // D12/D13: explizites error-Feld plus fetchedAt als Lebensnachweis.
+  let cluster = $state<ClusterStatus | null>(null);
+  let clusterError = $state<string | null>(null);
+  let clusterFetchedAt = $state<number | null>(null);
+
+  onMount(() => {
+    fetch('/sdlc/api/cluster/status', { credentials: 'same-origin' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((j: ClusterStatus | null) => {
+        cluster = j;
+        clusterFetchedAt = Date.now();
+      })
+      .catch(() => { clusterError = 'Cluster-Status nicht erreichbar'; });
+  });
 </script>
 
 <section class="deck-plattform" data-testid="deck-panel-plattform">

@@ -171,6 +171,29 @@ try {
     );
   }
 
+  // [T008016/E4] Plattform-Deck: render-proof nach Deck-Wechsel — deckt die
+  // Fehlerklasse "kompiliert still, crasht beim Render" ab (Review-Befund:
+  // undeklarierte $state-Referenzen fielen durch alle Source-Guards).
+  {
+    const deckBtn = page.locator('[data-testid="deck-switch-plattform"]');
+    if (await deckBtn.count()) {
+      await deckBtn.click({ timeout: 10_000 }).catch((e) => log('Deck-Klick fehlgeschlagen:', e.message));
+      await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+    } else {
+      log('deck-switch-plattform nicht gefunden');
+    }
+    check(
+      'Plattform-Deck gerendert',
+      (await page.locator('[data-testid="deck-panel-plattform"]').count()) > 0,
+      'deck-panel-plattform',
+    );
+    check(
+      'Cluster-Sektion im Plattform-Deck',
+      (await page.locator('[data-testid="deck-plattform-cluster"]').count()) > 0,
+      'deck-plattform-cluster',
+    );
+  }
+
   await page.screenshot({ path: SHOT, fullPage: true }).catch(() => {});
   log('Screenshot:', SHOT);
 

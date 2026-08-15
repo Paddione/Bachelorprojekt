@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.283.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.282.1...website-v1.283.0) (2026-08-15)
+
+
+### Features
+
+* **factory:** mishap-rollup staged-lane dispatch statt PR-Merge [T007056] ([#4644](https://github.com/Paddione/Bachelorprojekt/issues/4644)) ([368ccb3](https://github.com/Paddione/Bachelorprojekt/commit/368ccb375f773c328d394472c22200fee81aaeb7))
+
 ## [1.282.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.282.0...website-v1.282.1) (2026-08-15)
 
 

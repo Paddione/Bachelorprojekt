@@ -8,7 +8,11 @@
 # dieser stand auf status=blocked, und die damalige positive Status-Allowlist
 # (`status IN ('triage','backlog','planning','plan_staged','in_progress')`)
 # schloss blocked aus. Der Root-Cause-Fix (T004898, auf main) ersetzte die
-# Allowlist durch `status NOT IN ('done','archived')`.
+# Allowlist durch `status NOT IN ('done','archived')`. T007056 ersetzt die
+# Exclusion-Liste wieder durch den positiven Collect-Mode-Filter
+# (`status IN ('triage','backlog','planning')` + blocked ohne FACTORY-PLAN-REF),
+# weil dispatchte Container (plan_staged/…) jetzt nie mehr im Suchergebnis
+# stehen duerfen — sie sind an den Executor uebergeben.
 #
 # PRUEFMODUS (T002448-M4): Command-Output-Verifikation gegen die LIVE-Datenbank.
 # `ticket.sh rollup-container` wird AUSGEFUEHRT; ein kubectl-Passthrough-Wrapper
@@ -51,7 +55,7 @@ open_container_ids() {
     bash "$REPO_ROOT/scripts/ticket.sh" list --brand mentolder --limit 200 2>/dev/null
     bash "$REPO_ROOT/scripts/ticket.sh" list --brand korczewski --limit 200 2>/dev/null
   } | jq -r '.[] | select(.title == "Mishap Rollup — fortlaufende Sammlung") |
-             select(.status != "done" and .status != "archived") | .external_id'
+             select(.status == "triage" or .status == "backlog" or .status == "planning") | .external_id'
 }
 
 @test "T004893: rollup-container findet den offenen Container gegen die reale DB und legt kein Duplikat an" {
@@ -104,12 +108,12 @@ MOCKEOF
   [ "$output" = "$before_id" ]
   [[ "$output" != *"kein offener Container"* ]]
 
-  # Aussage C (der historische Defekt): das emittierte Such-Praedikat schliesst
-  # NUR geschlossene Status aus (blocked-Container bleiben sichtbar) und ist
-  # KEINE positive Allowlist. Diese Assertion war gegen den prae-T004898-Stand
-  # (9f3e271ed) ROT: dort wurde `status IN ('triage',...)` emittiert.
-  [ "$(grep -c "status NOT IN ('done','archived')" "$cap")" -ge 1 ]
-  [ "$(grep -c "status IN (" "$cap")" -eq 0 ]
+  # Aussage C (T007056): das emittierte Such-Praedikat ist der positive
+  # Collect-Mode-Filter inkl. blocked-Nuance — keine NOT-IN-Exclusion-Liste.
+  [ "$(grep -c "status IN ('triage','backlog','planning')" "$cap")" -ge 1 ]
+  [ "$(grep -c "status = 'blocked'" "$cap")" -ge 1 ]
+  [ "$(grep -c "NOT EXISTS" "$cap")" -ge 1 ]
+  [ "$(grep -c "status NOT IN (" "$cap")" -eq 0 ]
 
   # Aussage B: nach dem Lauf existiert weiterhin genau ein offener Container —
   # der Lauf hat kein Duplikat angelegt.

@@ -2,7 +2,7 @@
 title: "mcp-postgres-multistatement — Implementation Plan"
 ticket_id: T006293
 domains: [scripts, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

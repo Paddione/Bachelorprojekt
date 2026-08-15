@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.278.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.277.0...website-v1.278.0) (2026-08-15)
+
+
+### Features
+
+* s3 finetune dataset recipe T006252 ([#4545](https://github.com/Paddione/Bachelorprojekt/issues/4545)) ([c4d9f47](https://github.com/Paddione/Bachelorprojekt/commit/c4d9f47b86699727b347af54c32a90b956041aa4))
+
+
+### Bug Fixes
+
+* **skills:** Ticket-State-Recheck vor Wave-1-Dispatch [T006295] ([#4542](https://github.com/Paddione/Bachelorprojekt/issues/4542)) ([f530ec9](https://github.com/Paddione/Bachelorprojekt/commit/f530ec9878a49d7f85b6b2d2af7b9ceaa9db8f7a))
+
 ## [1.277.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.48...website-v1.277.0) (2026-08-15)
 
 

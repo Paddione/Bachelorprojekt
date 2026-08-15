@@ -26,7 +26,8 @@ agent: bachelorprojekt-test
 ```
 
 **EINSTIEG:** `main` nach Merge — Feature deployed auf Live-Umgebung  
-**AUSSTIEG:** E2E-Spec committed + gepusht auf neuen `test/*`-Branch oder direkt auf `main`-Nachfolger  
+**AUSSTIEG:** E2E-Spec committed + gepusht auf neuen `feature/*`-Branch oder direkt auf `main`-Nachfolger  
+> `test/*`-Branches sind nicht erlaubt — `.githooks/pre-commit` (T002093) lässt nur `feature/ fix/ chore/ docs/ feat/batch-*` zu; E2E-Branches nutzen `feature/`.
 **Voraussetzung:** `dev-flow-execute` Schritt 8 (Post-Merge Deploy) abgeschlossen, Live-URL erreichbar
 
 ---
@@ -70,11 +71,15 @@ Ermittle daraus:
 BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 ```
 
-### Credentials: korczewski-Projekt
+### Credentials
 
-Das `korczewski`-Projekt verwendet einen dedizierten `test-admin`-User auf dem
-Korczewski-Pocket-ID. Das Passwort ist in `environments/.secrets/korczewski.yaml`
-unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert. Siehe details in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+Es gibt **kein** separates E2E-Test-Passwort für Korczewski: Der Brand ist
+eingefroren (T002602 — Flux-Kustomizations suspendiert, Deployments in
+`workspace-korczewski` stehen auf 0/0, `web.korczewski.de` antwortet mit 503),
+und der Key `E2E_TEST_ADMIN_PASSWORD` existiert nicht in
+`environments/.secrets/korczewski.yaml`. E2E-Tests laufen ausschließlich gegen
+Mentolder; das `korczewski`-Playwright-Projekt ist deaktiviert (siehe Kommentar
+in `.github/workflows/e2e.yml`).
 
 ---
 
@@ -142,7 +147,11 @@ testMatch: [
 
 ## Schritt 5: Tests ausführen und verifizieren
 
-> **Wichtig:** Details zu setup, working directory und global Setup/Purge Bypässen (`SKIP_DB_PURGE=1`) findest du in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md#t000218).
+> **Wichtig — Setup-Details:**
+> - **Working directory:** alle Playwright-Aufrufe laufen aus `tests/e2e/` (dort liegen die Configs wie `playwright.config.ts`).
+> - **node_modules:** frische Worktrees haben kein `tests/e2e/node_modules` — deshalb `[[ -x ./node_modules/.bin/playwright ]] || npm ci` (siehe [T000245] in dev-flow-gotchas).
+> - **`SKIP_DB_PURGE=1`:** überspringt den Prod-DB-Purge im globalen Setup/Teardown (`tests/e2e/specs/global-db-cleanup.ts`) — nötig, wenn `CRON_SECRET` nicht gesetzt ist.
+> - **Playwright-Projekt-Zuordnung:** siehe [dev-flow-gotchas #t000418](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md#t000418) (Playwright Project Assignment).
 
 ```bash
 # E2E Tests ausführen
@@ -174,7 +183,9 @@ E2E-spezifisch — zu stagende Pfade und Titelformat:
 
 ```bash
 git add tests/e2e/specs/<neu>.spec.ts tests/e2e/playwright.config.ts website/src/data/test-inventory.json
-# Titel: "test(<scope>): add E2E tests for <feature> [$TICKET_ID]"
+# Titel: "test(test): add E2E tests for <feature> [$TICKET_ID]"
+# Scope 'test' verwenden — 'e2e' lehnt validate-commit-msg ab (seit T002328
+# zu 'test' konsolidiert; erlaubte Scopes: bash scripts/validate-commit-msg.sh scopes).
 ```
 
 ---

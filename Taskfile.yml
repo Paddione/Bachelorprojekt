@@ -1176,6 +1176,11 @@ tasks:
     cmds:
       - bash scripts/build-test-inventory.sh
 
+  api:inventory:
+    desc: Regenerate website/src/data/api-inventory.json (SDLC API/connector inventory)
+    cmds:
+      - node scripts/sdlc/api-inventory.mjs
+
   openspec:status-map:
     desc: "Regenerate components/website/src/data/openspec-status.json from openspec/changes/"
     cmds:
@@ -1265,6 +1270,7 @@ tasks:
       # artifact to this list, add a matching .gitattributes entry.
       - '[ -d node_modules ] || npm ci'
       - task: test:inventory
+      - task: api:inventory
       - task: routes:manifest
       - task: assets:learning
       - task: quality:index
@@ -1356,6 +1362,7 @@ tasks:
         # Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
         FILES="
           components/website/src/data/test-inventory.json
+          components/website/src/data/api-inventory.json
           components/website/src/data/route-manifest.json
           components/website/src/lib/learning-assets.generated.json
           components/website/public/learning-assets/THIRD-PARTY-ASSETS.md

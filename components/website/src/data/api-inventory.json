@@ -1,0 +1,1781 @@
+{
+  "routes": [
+    {
+      "path": "/sdlc/api/ai-quality",
+      "file": "ai-quality.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/backup-status",
+      "file": "backup-status.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cluster/graph",
+      "file": "cluster/graph.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "filesystem"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cluster/logs",
+      "file": "cluster/logs.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "filesystem"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cluster/pods-list",
+      "file": "cluster/pods-list.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cluster/status",
+      "file": "cluster/status.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cluster/warnings",
+      "file": "cluster/warnings.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/actions",
+      "file": "cockpit/actions.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/audit",
+      "file": "cockpit/audit.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/batch",
+      "file": "cockpit/batch.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/brain",
+      "file": "cockpit/brain.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/container-count",
+      "file": "cockpit/container-count.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/feature",
+      "file": "cockpit/feature.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/feature-action",
+      "file": "cockpit/feature-action.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/feature-actions",
+      "file": "cockpit/feature-actions.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/portfolio",
+      "file": "cockpit/portfolio.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/reorder",
+      "file": "cockpit/reorder.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/reparent",
+      "file": "cockpit/reparent.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/stream",
+      "file": "cockpit/stream.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/suggest",
+      "file": "cockpit/suggest.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/cockpit/ticket-status",
+      "file": "cockpit/ticket-status.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/codesearch",
+      "file": "codesearch.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/delivery-metrics",
+      "file": "delivery-metrics.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/deployments",
+      "file": "deployments.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/deployments/[name]/restart",
+      "file": "deployments/[name]/restart.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/deployments/[name]/scale",
+      "file": "deployments/[name]/scale.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/evidence/[id]/replay",
+      "file": "evidence/[id]/replay.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "filesystem",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/evidence/upload",
+      "file": "evidence/upload.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "filesystem",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-budget",
+      "file": "factory-budget.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-control",
+      "file": "factory-control.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-floor",
+      "file": "factory-floor.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "github"
+      ],
+      "description": "Wertstrom-Ansicht: Slots, Hall, Backlog je Ticket-Phase.",
+      "tier": "core",
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-floor/[extId]",
+      "file": "factory-floor/[extId].ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-floor/[extId]/ci",
+      "file": "factory-floor/[extId]/ci.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-floor/[extId]/deploy",
+      "file": "factory-floor/[extId]/deploy.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-floor/[extId]/inject",
+      "file": "factory-floor/[extId]/inject.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-floor/[extId]/release",
+      "file": "factory-floor/[extId]/release.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-floor/stream",
+      "file": "factory-floor/stream.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-metrics",
+      "file": "factory-metrics.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-model-slots",
+      "file": "factory-model-slots.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory-observability",
+      "file": "factory-observability.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory/force-tick",
+      "file": "factory/force-tick.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/factory/parallel-status",
+      "file": "factory/parallel-status.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ki/catalog",
+      "file": "ki/catalog.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ki/embeddings",
+      "file": "ki/embeddings.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ki/env-status",
+      "file": "ki/env-status.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ki/providers",
+      "file": "ki/providers.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ki/providers/[id]",
+      "file": "ki/providers/[id].ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/backends",
+      "file": "llm-proxy/backends.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/backends/[id]",
+      "file": "llm-proxy/backends/[id].ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/reload",
+      "file": "llm-proxy/reload.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/requests",
+      "file": "llm-proxy/requests.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/requests/[id]",
+      "file": "llm-proxy/requests/[id].ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/status",
+      "file": "llm-proxy/status.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/monitoring",
+      "file": "monitoring.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/openspec/save-proposal",
+      "file": "openspec/save-proposal.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/openspec/search",
+      "file": "openspec/search.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/ai/reindex",
+      "file": "ops/ai/reindex.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/audit/log",
+      "file": "ops/audit/log.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/backup/list",
+      "file": "ops/backup/list.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/backup/trigger",
+      "file": "ops/backup/trigger.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/certs",
+      "file": "ops/certs.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/deployments/[ns]/[name]/restart",
+      "file": "ops/deployments/[ns]/[name]/restart.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/deployments/[ns]/[name]/scale",
+      "file": "ops/deployments/[ns]/[name]/scale.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/deployments/list",
+      "file": "ops/deployments/list.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/error-log",
+      "file": "ops/error-log.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/health",
+      "file": "ops/health.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/log-stream/stream",
+      "file": "ops/log-stream/stream.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/redeploy/brett",
+      "file": "ops/redeploy/brett.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/redeploy/docs",
+      "file": "ops/redeploy/docs.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/redeploy/website",
+      "file": "ops/redeploy/website.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/restore",
+      "file": "ops/restore.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/server-logs/stream",
+      "file": "ops/server-logs/stream.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/users/create",
+      "file": "ops/users/create.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/users/groups",
+      "file": "ops/users/groups.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/ops/users/list",
+      "file": "ops/users/list.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/planning-office",
+      "file": "planning-office/index.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "DELETE"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/planning-office/[extId]",
+      "file": "planning-office/[extId].ts",
+      "methods": [
+        "PATCH"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/planning-office/[extId]/clarify",
+      "file": "planning-office/[extId]/clarify.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/planning-office/[extId]/promote",
+      "file": "planning-office/[extId]/promote.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/planungsbuero",
+      "file": "planungsbuero/index.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/planungsbuero/[extId]",
+      "file": "planungsbuero/[extId].ts",
+      "methods": [
+        "PATCH"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/platform/assets/[slug]/tickets",
+      "file": "platform/assets/[slug]/tickets.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/platform/hardware",
+      "file": "platform/hardware.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "k8s-rest",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/platform/software",
+      "file": "platform/software.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "k8s-rest",
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/platform/software/[id]",
+      "file": "platform/software/[id].ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/prompt-library",
+      "file": "prompt-library/index.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/prompt-library/[id]",
+      "file": "prompt-library/[id].ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/prompt-library/[id]/use",
+      "file": "prompt-library/[id]/use.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/qa-criteria",
+      "file": "qa-criteria.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/qa-queue",
+      "file": "qa-queue.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/qa-reviews",
+      "file": "qa-reviews.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/systemtest/board",
+      "file": "systemtest/board.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/systemtest/cleanup-fixtures",
+      "file": "systemtest/cleanup-fixtures.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/systemtest/drain-outbox",
+      "file": "systemtest/drain-outbox.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/systemtest/purge-all-test-data",
+      "file": "systemtest/purge-all-test-data.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/systemtest/seed",
+      "file": "systemtest/seed.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/test-results",
+      "file": "test-results.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/test-runs",
+      "file": "test-runs.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/testdata/purge",
+      "file": "testdata/purge.ts",
+      "methods": [
+        "DELETE"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/testdata/seed",
+      "file": "testdata/seed.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/flake",
+      "file": "tests/flake.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/ingest-e2e",
+      "file": "tests/ingest-e2e.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/playwright-report",
+      "file": "tests/playwright-report.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/report",
+      "file": "tests/report.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "kubectl"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/results/[jobId]",
+      "file": "tests/results/[jobId].ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "filesystem"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/run",
+      "file": "tests/run.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/stream/[jobId]",
+      "file": "tests/stream/[jobId].ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/traceability",
+      "file": "tests/traceability.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tests/trend",
+      "file": "tests/trend.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets",
+      "file": "tickets/index.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]",
+      "file": "tickets/[id].ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/attachments",
+      "file": "tickets/[id]/attachments.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/attachments/[aid]",
+      "file": "tickets/[id]/attachments/[aid].ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/classify",
+      "file": "tickets/[id]/classify.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/comments",
+      "file": "tickets/[id]/comments.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/links",
+      "file": "tickets/[id]/links.ts",
+      "methods": [
+        "POST",
+        "DELETE"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/readiness",
+      "file": "tickets/[id]/readiness.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/transition",
+      "file": "tickets/[id]/transition.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/[id]/triage",
+      "file": "tickets/[id]/triage.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/bulk-status",
+      "file": "tickets/bulk-status.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/bulk-status/undo",
+      "file": "tickets/bulk-status/undo.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/comment",
+      "file": "tickets/comment.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/tickets/graph",
+      "file": "tickets/graph.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    }
+  ],
+  "mcpServers": [
+    {
+      "name": "bge-mcp",
+      "transport": "http",
+      "endpoint": "http://localhost:13005/mcp",
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "brain-mcp",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "codebase-memory-mcp",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "docfork",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "factory-mcp",
+      "transport": "http",
+      "endpoint": "http://localhost:13003/mcp",
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "github-mcp",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "mcp-kubernetes",
+      "transport": "http",
+      "endpoint": "http://localhost:18080/mcp",
+      "description": "Cluster-Status/-Aktionen fuer den Leitstand (Claude-Code-only SSE, Port 18080).",
+      "tier": "core",
+      "deprecated": null
+    },
+    {
+      "name": "mcp-postgres",
+      "transport": "http",
+      "endpoint": "http://localhost:13001/mcp",
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "mcp-task-runner",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "playwright",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "sequential-thinking",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "ticket-mcp",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "webresearch",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    }
+  ],
+  "factoryTools": [
+    {
+      "name": "factory_ask",
+      "description": "Ask a natural-language question about the Software Factory. Backed by local Qwen 3.5 9B. For actions (enqueue/trigger/...), prefer the dedicated tools.",
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "factory_enqueue",
+      "description": "Enqueue a ticket into the factory backlog",
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "factory_queue",
+      "description": "List waiting tickets (backlog + plan_staged)",
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "factory_recent",
+      "description": "Show last N factory run comments from ticket_comments",
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "factory_status",
+      "description": "Queue-Tiefe und laufender Tick fuer das Statusband.",
+      "tier": "core",
+      "deprecated": null
+    },
+    {
+      "name": "factory_trigger",
+      "description": "Trigger an immediate factory tick (runs wakeup.sh in background)",
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "name": "openspec_find_similar",
+      "description": "Findet semantisch ähnliche OpenSpec Changes zu einer Suchanfrage (wraps /api/openspec/search)",
+      "tier": null,
+      "deprecated": null
+    }
+  ]
+}

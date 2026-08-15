@@ -1,4 +1,4 @@
-// Type declarations for Brett's window-exposed globals (set in brett/public/index.html)
+// Type declarations for Brett's window-exposed globals (set in components/brett/public/index.html)
 interface BrettCameraState {
   mode: 'orbit' | 'pov' | 'auto' | 'freefly';
   theta: number;

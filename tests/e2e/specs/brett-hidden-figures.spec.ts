@@ -2,7 +2,7 @@ import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 
 // Coverage-Lücke (Gap-Analyse dev-flow-e2e): E9 "verdecktes Arbeiten"
 // (figure_hide_set) ist als SICHERHEITSKRITISCH dokumentiert
-// (brett/src/server/hidden-filter.ts: "hidden-Figurendaten dürfen einen
+// (components/brett/src/server/hidden-filter.ts: "hidden-Figurendaten dürfen einen
 // Nicht-Leiter NIE erreichen — weder im Snapshot noch als Broadcast"),
 // war aber bislang ungetestet. Diese Datei prüft den Server-seitigen
 // Rollen-Filter end-to-end: ein Beobachter darf eine vom Leiter versteckte

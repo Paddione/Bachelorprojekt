@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# brett/dev-start.sh — run Brett locally against the korczewski cluster
+# components/brett/dev-start.sh — run Brett locally against the korczewski cluster
 #
 # Prerequisites (one-time manual setup):
-#   1. npm install  (run once inside brett/)
+#   1. npm install  (run once inside components/brett/)
 #   2. Register https://brett-dev.korczewski.de/callback as a valid redirect URI
 #      in the 'brett-app' OIDC client (Pocket ID → Applications → brett-app)
 #   3. Ensure the korczewski dev sish stack is running (port 32224 on korczewski.de)
 #
 # Usage: run from repo root
-#   bash brett/dev-start.sh
+#   bash components/brett/dev-start.sh
 
 set -euo pipefail
 
@@ -23,8 +23,8 @@ check_cmd node
 check_cmd npx
 check_cmd ssh
 
-[[ -f brett/src/server/index.ts ]] || { echo "ERROR: run this script from the repo root (brett/src/server/index.ts not found)" >&2; exit 1; }
-[[ -d brett/node_modules ]] || { echo "ERROR: run 'npm install' inside brett/ first" >&2; exit 1; }
+[[ -f components/brett/src/server/index.ts ]] || { echo "ERROR: run this script from the repo root (components/brett/src/server/index.ts not found)" >&2; exit 1; }
+[[ -d components/brett/node_modules ]] || { echo "ERROR: run 'npm install' inside components/brett/ first" >&2; exit 1; }
 
 echo "[brett-dev] checking korczewski cluster reachability..."
 kubectl --context fleet cluster-info --request-timeout=5s >/dev/null \
@@ -92,7 +92,7 @@ echo "[brett-dev] tunnel: https://brett-dev.korczewski.de"
 echo ""
 
 # ── start Brett ───────────────────────────────────────────────────────────────
-cd brett
+cd components/brett
 NODE_ENV=development \
 BRETT_PUBLIC_URL=https://brett-dev.korczewski.de \
 KEYCLOAK_URL=http://localhost:8080 \

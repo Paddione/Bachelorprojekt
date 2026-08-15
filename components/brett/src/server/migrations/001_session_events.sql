@@ -1,4 +1,4 @@
--- brett/src/server/migrations/001_session_events.sql
+-- components/brett/src/server/migrations/001_session_events.sql
 -- Migration: create session_events table for Timeline/Replay (T000472).
 
 CREATE TABLE IF NOT EXISTS session_events (

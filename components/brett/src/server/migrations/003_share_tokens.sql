@@ -1,4 +1,4 @@
--- brett/src/server/migrations/003_share_tokens.sql
+-- components/brett/src/server/migrations/003_share_tokens.sql
 -- Migration: Share-Token-Tabelle für öffentliche View-only-Links (T000608).
 -- Idempotent (IF NOT EXISTS) — runMigrations() re-runs it on every startup.
 

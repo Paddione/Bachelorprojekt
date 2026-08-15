@@ -44,7 +44,7 @@
   purpose: Deploy/migration/build helpers (everything in scripts/ that is not DB).
 - id: brett
   name: Brett 3D board (CommonJS)
-  paths: ["brett/**"]
+  paths: ["components/brett/**"]
   owner_agent: bachelorprojekt-website
   test_location: brett/
   purpose: Node.js 3D systemic-constellation board + mayhem game.

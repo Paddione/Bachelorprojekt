@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "slug": "branch-reaper-keep-allowlist",
+    "ticket_id": "T007032",
+    "generated_from": "main@ba468e6c9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "openspec/changes/branch-reaper-keep-allowlist/specs/ci-cd.md",
+      "language": "markdown",
+      "loc": 60,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/branch-reaper.sh",
+      "language": "bash",
+      "loc": 310,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 490
+    },
+    {
+      "path": "tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats",
+      "language": "bash",
+      "loc": 242,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/branch-reaper.sh:68:usage() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "68:usage() {(...)",
+      "type_text": "68:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:119:_allowed() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "119:_allowed() {(...)",
+      "type_text": "119:_allowed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:134:_diverging_files() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "134:_diverging_files() {(...)",
+      "type_text": "134:_diverging_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:274:_reap_local_ref() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "274:_reap_local_ref() {(...)",
+      "type_text": "274:_reap_local_ref() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats:27:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats",
+      "signature": "27:setup() {(...)",
+      "type_text": "27:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats:56:  _branch() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats",
+      "signature": "56:  _branch() {(...)",
+      "type_text": "56:  _branch() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

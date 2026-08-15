@@ -71,12 +71,18 @@ setup() {
   grep -qiE '"(generatedAt|timestamp|date)"' "$out" && return 1 || true
 }
 
-# T4 -- Szenario "Drift fails the gate". Negativtest + Positiv-Anker; mutiert
-# den committeten Artefaktpfad wie task freshness:check selbst -- teardown
-# stellt IMMER zurueck (siehe Taskfile-Kommentar zu Phase 1 der
-# freshness:check-Task). Zusaetzlich Verdrahtungscheck: freshness:regenerate
-# ruft den Generator (Quelltext-Ausnahme, dokumentiert -- Konfigurationsaussage,
-# analog build-target-runtime-env.bats).
+# T4 -- Szenario "Drift fails the gate". Negativtest + Positiv-Anker.
+# Drift-Simulation ueber eine FIXTURE-Routenquelle statt ueber Artefakt-
+# Mutation: der Scanner regeneriert deterministisch aus seinen Quellen, daher
+# stellt eine Korruption des Artefakts den committeten Stand nach einem
+# Regenerate-Lauf exakt wieder her (diff exit 0) -- das Gate wuerde Drift nie
+# sehen. Echte Drift entsteht, wenn die QUELLEN seit dem Commit weitergelaufen
+# sind; genau das simuliert eine Route ausserhalb des Realbaums
+# (API_INVENTORY_ROUTES_DIR auf ein Fixture-Verzeichnis). teardown stellt
+# IMMER zurueck (siehe Taskfile-Kommentar zu Phase 1 der freshness:check-Task).
+# Zusaetzlich Verdrahtungscheck: freshness:regenerate ruft den Generator
+# (Quelltext-Ausnahme, dokumentiert -- Konfigurationsaussage, analog
+# build-target-runtime-env.bats).
 @test "api-inventory: drift fails the gate and generator is wired into freshness" {
   command -v node >/dev/null 2>&1 || skip "node not installed"
   REAL="$REPO_ROOT/website/src/data/api-inventory.json"
@@ -87,19 +93,33 @@ setup() {
   [ "$status" -eq 0 ]
   run git -C "$REPO_ROOT" diff --quiet -- website/src/data/api-inventory.json
   [ "$status" -eq 0 ]
-  # Committeten Stand kuenstlich veralten lassen (simuliert "passt nicht mehr
-  # zu den aktuellen Routen").
-  jq '.routes = []' "$REAL" > "$BATS_TEST_TMPDIR/stale.json"
-  cp "$BATS_TEST_TMPDIR/stale.json" "$REAL"
-  run node scripts/sdlc/api-inventory.mjs   # regeneriert ueber den veralteten Stand
+  # Drift simulieren: eine neue Route, die der committete Stand nicht kennt.
+  # Fixture-Overlay im entries-Format (p3) mit exakt diesem Endpoint -- der
+  # reale Overlay referenziert /sdlc/api/factory-floor, den die Fixture-
+  # Routenquelle nicht kennt (Orphan, Exit 1).
+  mkdir -p "$BATS_TEST_TMPDIR/routes/__drift__"
+  cat > "$BATS_TEST_TMPDIR/routes/__drift__/extra.ts" <<'EOF'
+export const GET: APIRoute = () => new Response('drift fixture');
+EOF
+  cat > "$BATS_TEST_TMPDIR/routes-overlay.yaml" <<'EOF'
+entries:
+  - endpoint: /sdlc/api/__drift__/extra
+    description: "Drift fixture"
+    tier: internal
+EOF
+  API_INVENTORY_ROUTES_DIR="$BATS_TEST_TMPDIR/routes" \
+    API_OVERLAY_PATH="$BATS_TEST_TMPDIR/routes-overlay.yaml" \
+    run node scripts/sdlc/api-inventory.mjs
   [ "$status" -eq 0 ]
   run git -C "$REPO_ROOT" diff --quiet -- website/src/data/api-inventory.json
   [ "$status" -eq 1 ]   # Abweichung erkannt
   run git -C "$REPO_ROOT" diff --name-only -- website/src/data/api-inventory.json
   echo "$output" | grep -qF 'website/src/data/api-inventory.json'
-  # Verdrahtung: freshness:regenerate fuehrt den Generator aus.
+  # Verdrahtung: freshness:regenerate fuehrt den Generator aus. Task-NAME ist
+  # "api:inventory" (Doppelpunkt, nicht Bindestrich) -- die Invocation-Zeile
+  # "- task: api:inventory" ist das Ankerliteral.
   awk '/^  freshness:regenerate:/{f=1;next} f && /^  [a-z][a-zA-Z0-9:_-]*:$/{exit} f' \
-    "$REPO_ROOT/Taskfile.yml" | grep -qi 'api-inventory'
+    "$REPO_ROOT/Taskfile.yml" | grep -qF -- '- task: api:inventory'
 }
 
 # T5 -- Szenario "Orphaned overlay entry fails". Negativtest + Positiv-Anker,

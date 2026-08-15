@@ -3857,8 +3857,8 @@
   ],
   "T006369": [
     {
-      "slug": "plan-archive-freshness-check",
-      "status": "plan_staged"
+      "slug": "2026-08-15-plan-archive-freshness-check",
+      "status": "archived"
     }
   ],
   "T006370": [
@@ -3869,8 +3869,8 @@
   ],
   "T006371": [
     {
-      "slug": "archive-status-staging-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-15-archive-status-staging-guard",
+      "status": "archived"
     }
   ],
   "T006664": [
@@ -3912,6 +3912,12 @@
   "T007055": [
     {
       "slug": "unterstuetzermodelle-e2b-slot",
+      "status": "plan_staged"
+    }
+  ],
+  "T007056": [
+    {
+      "slug": "mishap-rollup-direct-dispatch",
       "status": "plan_staged"
     }
   ],

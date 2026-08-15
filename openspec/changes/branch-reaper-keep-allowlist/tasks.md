@@ -47,7 +47,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper-merged-pr-signa
       BATS-Test aus dem vorherigen Schritt muss nun grün sein (9/9), die bestehenden
       Reaper-Tests bleiben grün (Regression).
 
-- [ ] **Final Verification.** Drei Pflicht-Gates:
+- [x] **Final Verification.** Drei Pflicht-Gates:
 
 ```bash
 task test:changed

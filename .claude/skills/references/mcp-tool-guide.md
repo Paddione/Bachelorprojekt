@@ -113,9 +113,12 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   ```bash
   # --field-selector ist Pflicht [T002307]: ohne ihn kann ein Completed-Pod vorne einsortiert
   # werden und jeder folgende exec stirbt an "cannot exec into a container in a completed pod".
-  PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db \
+  # Ticket-SSOT liegt auf k3d-mentolder-dev (mentolder) bzw. k3d-korczewski-dev (korczewski).
+  # Für Ticket-Writes immer den BRAND-spezifischen k3d-Dev-Kontext nutzen (fleet ist historisch eingefroren [T002785-4]):
+  CTX="${KUBE_CONTEXT:-k3d-mentolder-dev}"   # oder k3d-korczewski-dev
+  PGPOD=$(kubectl get pod -n workspace --context "$CTX" -l app=shared-db \
     --field-selector status.phase=Running -o name | head -1)
-  psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
+  psql() { kubectl exec "$PGPOD" -n workspace --context "$CTX" -c postgres -- psql -U website -d website "$@"; }
   ```
 - ⚠️ **kubectl exec Timeout [T002261]:** Schreibende `psql()`-Aufrufe über `kubectl exec` gegen
   `fleet` brauchen großzügige Timeouts (≥120s) — der Verbindungsabbau über WireGuard dauert

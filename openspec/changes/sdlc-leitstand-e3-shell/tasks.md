@@ -108,13 +108,13 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
-# 124/130 ok -- die 5 RED-Failures (102/104/123/125/126) sind gruen. Die 6
-# Daemon-Tests (36/39/40/44/45/46) brauchen ./node_modules/.bin/tsx, das im
-# Worktree nicht installiert ist -- Umgebungsfrage, kein Branch-Regress (keine
-# Daemon-Datei geaendert); in CI installiert der Runner Dependencies.
+# 130/130 ok, BATS_EXIT=0 -- die 5 RED-Failures (102/104/123/125/126) sind
+# gruen. Erster Lauf ohne node_modules: 6 Daemon-Tests rot (tsx fehlte);
+# nach `npm ci` (via freshness:regenerate) alle gruen. Kein Branch-Regress:
+# keine Daemon-Datei geaendert, CI installiert Dependencies selbst.
 ```
 
-- [ ] **Finale Verifikation (mandatory CI-Gates).**
+- [x] **Finale Verifikation (mandatory CI-Gates).**
 
 ```bash
 task test:changed

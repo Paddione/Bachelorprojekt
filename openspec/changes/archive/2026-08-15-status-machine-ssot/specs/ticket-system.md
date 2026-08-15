@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 <!-- section: status-ssot -->
 
 ### Requirement: Ticket-Status-Werte sind in einem zentralen SSOT-Modul definiert

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.281.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.1...website-v1.281.2) (2026-08-15)
+
+
+### Bug Fixes
+
+* **factory:** narrow watchdog scope to factory_excluded [T006364] ([#4598](https://github.com/Paddione/Bachelorprojekt/issues/4598)) ([906b115](https://github.com/Paddione/Bachelorprojekt/commit/906b1155cc18458d35a796c633a26f87a9915639))
+* **factory:** timeout 10 for docker info calls [T006303] ([#4600](https://github.com/Paddione/Bachelorprojekt/issues/4600)) ([7b8e2c8](https://github.com/Paddione/Bachelorprojekt/commit/7b8e2c8668eb8b65973dea0136084241f9e2ffc9))
+
 ## [1.281.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.0...website-v1.281.1) (2026-08-15)
 
 

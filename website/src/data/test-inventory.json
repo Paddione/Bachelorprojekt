@@ -3618,6 +3618,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/mcp-postgres-readonly-role",
+    "file": "tests/spec/mcp-gateway/mcp-postgres-readonly-role.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/mcp-sync-drift-no-secret-leak",
     "file": "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
     "category": "mcp-gateway",

@@ -13,7 +13,7 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 ## Globale Invarianten (gelten für ALLE Server)
 
 > **`mcp__mcp-postgres__query` ist READ-ONLY und nimmt NUR `sql`.** Kein `connectionString`-Argument
-> — die Verbindung ist serverseitig fest (`localhost:13001`, als `website`-User). INSERT/UPDATE/DELETE
+> — die Verbindung ist serverseitig fest (`localhost:13001`, als `mcp_readonly`-User). INSERT/UPDATE/DELETE
 > gehen NICHT über dieses Tool.
 
 > **Writes/DDL/Superuser bleiben kubectl.** Schreibende SQL (INSERT/UPDATE/DELETE/UPSERT), DDL als
@@ -22,11 +22,12 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 > MCP-Read-Tool. Ticket-Lifecycle-Writes gehen über die `ticket-mcp`-Wrapper (die shellen zu
 > `ticket.sh`, dem sanktionierten Write-Pfad) — nicht über `mcp-postgres`.
 >
-> **Konkret laufen dort auf [T002307]:** `ALTER USER`, `ALTER ROLE` und `GRANT` — sie scheitern mit
-> `ERROR: cannot execute ALTER ROLE in a read-only transaction`. `mcp-postgres` klammert **jede**
-> Query in eine `READ ONLY`-Transaktion; der Fehler ist also kein Rechte-, sondern ein
-> Transaktionsmodus-Problem und tritt unabhängig vom DB-User auf. Der read-only-Zwang wird bewusst
-> **nicht** gelockert — solche Statements gehören über `kubectl exec … psql` als `postgres`.
+> **Konkret laufen dort auf [T002307, T006335]:** `ALTER USER`, `ALTER ROLE` und `GRANT` — sie scheitern mit
+> `ERROR: cannot execute ALTER ROLE in a read-only transaction`. Der lokale Adapter verbindet als
+> `mcp_readonly` (LOGIN, NOSUPERUSER, `pg_read_all_data`, `default_transaction_read_only=on`), und
+> destruktive Statements scheitern am DBMS in einer Read-only-Transaktion — zusätzlich zu den
+> Pre-DB-Keyword-Guards des Adapters. Der read-only-Zwang wird bewusst **nicht** gelockert — solche
+> Statements gehören über `kubectl exec … psql` als `postgres`.
 
 > **Prod-Write-Guard [T001954].** Schreibende SQL-Operationen (CREATE, INSERT, UPDATE, DELETE,
 > ALTER, DROP, TRUNCATE) gegen Produktions-Namespaces (`mentolder`, `workspace-korczewski`) sind

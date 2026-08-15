@@ -3819,6 +3819,12 @@
       "status": "archived"
     }
   ],
+  "T006335": [
+    {
+      "slug": "mcp-postgres-readonly-role",
+      "status": "plan_staged"
+    }
+  ],
   "T006348": [
     {
       "slug": "2026-08-15-post-merge-finalize-guards",

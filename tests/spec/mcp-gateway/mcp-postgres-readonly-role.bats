@@ -99,7 +99,7 @@ psql_call() {
   DB_URL_DEV="postgresql://postgres@localhost:15432/website"
 
   # Scratch-Tabelle (nur diese wird von den Bypass-Versuchen beruehrt — kein Bestandsdatum)
-  psql_call "DROP TABLE IF EXISTS public.__t006335_ro_probe; CREATE TABLE public.__t006335_ro_probe (id int); INSERT INTO public.__t006335_ro_probe VALUES (1);"
+  psql_call "DROP TABLE IF EXISTS public.__t006335_ro_probe; CREATE TABLE public.__t006335_ro_probe (probe_id int); INSERT INTO public.__t006335_ro_probe VALUES (1);"
   [ "$(psql_call "SELECT count(*) FROM public.__t006335_ro_probe")" = "1" ] || {
     echo "FAIL: Scratch-Tabelle nicht initialisiert" >&2
     return 1
@@ -110,19 +110,19 @@ psql_call() {
   [ -z "$DATABASE_URL" ] || true
 
   # Positiv-Anker zuerst (T002356-M1): reines SELECT liefert weiterhin Zeilen.
-  single="$(query_call 1 "SELECT id FROM public.__t006335_ro_probe")"
-  echo "$single" | grep -q '"id"' || {
+  single="$(query_call 1 "SELECT probe_id FROM public.__t006335_ro_probe")"
+  echo "$single" | grep -q 'probe_id' || {
     echo "FAIL: Positiv-Anker SELECT liefert kein Ergebnis: $single" >&2
     return 1
   }
 
   # Negativ-Aussage 1: data-modifying CTE → JSON-RPC-Fehler, niemals Zeilen.
-  cte="$(query_call 2 "WITH x AS (DELETE FROM public.__t006335_ro_probe RETURNING id) SELECT id FROM x")"
+  cte="$(query_call 2 "WITH x AS (DELETE FROM public.__t006335_ro_probe RETURNING probe_id) SELECT probe_id FROM x")"
   if echo "$cte" | grep -q 'read-only'; then :; else
     echo "FAIL: WITH-CTE-DELETE nicht an der Readonly-Grenze gescheitert: $cte" >&2
     return 1
   fi
-  if echo "$cte" | grep -q '"id"'; then
+  if echo "$cte" | grep -q 'probe_id'; then
     echo "FAIL: WITH-CTE-DELETE hat Zeilen geliefert statt abgelehnt zu werden: $cte" >&2
     return 1
   fi
@@ -192,7 +192,7 @@ psql_call() {
 
   # Output-Verifikation (T002448-M4): Rollen-Eigenschaften kommen aus pg_roles, nicht aus dem Quelltext.
   role="$(psql_call "SELECT rolname || '|' || rolcanlogin || '|' || rolsuper || '|' || coalesce(rolconfig::text,'') || '|' || pg_has_role('mcp_readonly','pg_read_all_data','member') FROM pg_roles WHERE rolname='mcp_readonly'")"
-  echo "$role" | grep -q '^mcp_readonly|t|f|' || {
+  echo "$role" | grep -Eq '^mcp_readonly\|(t|true)\|(f|false)\|' || {
     echo "FAIL: Rolle mcp_readonly fehlt oder hat falsche Attribute: '$role'" >&2
     return 1
   }
@@ -200,7 +200,7 @@ psql_call() {
     echo "FAIL: default_transaction_read_only fehlt: '$role'" >&2
     return 1
   }
-  echo "$role" | grep -q '|t$' || {
+  echo "$role" | grep -Eq '\|(t|true)$' || {
     echo "FAIL: pg_read_all_data-Mitgliedschaft fehlt: '$role'" >&2
     return 1
   }

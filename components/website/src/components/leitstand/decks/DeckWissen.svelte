@@ -1,28 +1,11 @@
 <script lang="ts">
-  // T007957/E3, p2 Task 4: einzige Deck-Datei mit eigenem Script-Inhalt.
-  // Import-Pfad-Korrektur gegenueber dem Plan (Befund, dokumentiert im PR):
-  // der Plan nannte vier Ebenen ('../../../../data/...'), die Datei liegt aber
-  // unter components/website/src/data/ -- von leitstand/decks/ aus sind es
-  // genau drei Ebenen bis src.
-  import apiInventory from '../../../data/api-inventory.json';
-
-  interface ApiRoute {
-    path: string; file: string; methods: string[]; backend: string[];
-    description: string | null; tier: string | null; deprecated: string | null;
-  }
-  interface ApiInventory { routes: ApiRoute[]; mcpServers: unknown[]; factoryTools: unknown[] }
-
-  const inventory = apiInventory as ApiInventory;
-  const routeCount = inventory.routes.length;
-  const byBackend = inventory.routes.reduce<Record<string, number>>((acc, r) => {
-    for (const b of r.backend) acc[b] = (acc[b] ?? 0) + 1;
-    return acc;
-  }, {});
-  const PREVIEW_LIMIT = 8;
-  const preview = inventory.routes.slice(0, PREVIEW_LIMIT);
+  // T008016/E4: Der API-Katalog ist in <ApiKatalog /> (einziger Konsument von
+  // api-inventory.json unter components/leitstand/, Guard T3). Hier bleibt
+  // die OpenSpec-Suche; der Vorschau-Katalog wurde durch das Vollmodul ersetzt.
+  import ApiKatalog from '../ApiKatalog.svelte';
 
   // ── OpenSpec-Suche: eigener $state-Block, direkter fetch (etabliertes
-  //    Kartenmuster fuer SDLC-API-Routen, Befund 3). ──
+  //    Kartenmuster fuer SDLC-API-Routen, Befund 3 aus E3). ──
   interface OpenspecHit {
     slug: string; ticket_id: string | null; section_title: string | null;
     file_type: string | null; snippet: string; similarity: number;
@@ -53,31 +36,7 @@
 
 <section class="deck-wissen" data-testid="deck-panel-wissen">
   <h2 class="deck-wissen__heading">API-Katalog</h2>
-  <p class="deck-wissen__count">{routeCount} Routen</p>
-  <div class="deck-wissen__chips">
-    {#each Object.entries(byBackend) as [backend, count]}
-      <span class="deck-wissen__chip">{backend} · {count}</span>
-    {/each}
-  </div>
-  <table class="deck-wissen__table">
-    <thead>
-      <tr>
-        <th>Pfad</th>
-        <th>Methoden</th>
-        <th>Backend</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each preview as route}
-        <tr>
-          <td class="deck-wissen__path">{route.path}</td>
-          <td>{route.methods.join(', ')}</td>
-          <td>{route.backend.join(', ')}</td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
-  <p class="deck-wissen__hint">Vollständiger, filterbarer Katalog folgt in E4</p>
+  <ApiKatalog />
 
   <h2 class="deck-wissen__heading">OpenSpec-Suche</h2>
   <form class="deck-wissen__search" onsubmit={(e) => { e.preventDefault(); search(); }}>
@@ -129,59 +88,6 @@
     text-transform: uppercase;
     color: var(--ls-text-muted, #707b8a);
     margin: var(--ls-space-4, 8px) 0 0;
-  }
-
-  .deck-wissen__count {
-    color: var(--ls-text-secondary, #9aa4b2);
-    font-family: var(--ls-font-mono, monospace);
-    font-size: 0.75rem;
-    margin: 0;
-  }
-
-  .deck-wissen__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ls-space-2, 4px);
-  }
-
-  .deck-wissen__chip {
-    font-family: var(--ls-font-mono, monospace);
-    font-size: 0.65rem;
-    padding: 2px 8px;
-    border-radius: var(--ls-radius-sm, 4px);
-    border: 1px solid var(--ls-line, #1d232c);
-    color: var(--ls-text-secondary, #9aa4b2);
-  }
-
-  .deck-wissen__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--ls-font-mono, monospace);
-    font-size: 0.7rem;
-  }
-
-  .deck-wissen__table th {
-    text-align: left;
-    color: var(--ls-text-muted, #707b8a);
-    font-weight: 500;
-    padding: var(--ls-space-2, 4px);
-    border-bottom: 1px solid var(--ls-line-strong, #232a35);
-  }
-
-  .deck-wissen__table td {
-    padding: var(--ls-space-2, 4px);
-    border-bottom: 1px solid var(--ls-line, #1d232c);
-    color: var(--ls-text-secondary, #9aa4b2);
-  }
-
-  .deck-wissen__path {
-    color: var(--ls-text-primary, #e6edf3);
-  }
-
-  .deck-wissen__hint {
-    color: var(--ls-text-muted, #707b8a);
-    font-size: 0.75rem;
-    margin: 0;
   }
 
   .deck-wissen__search {

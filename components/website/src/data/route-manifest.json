@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 110,
+  "count": 109,
   "routes": [
     {
       "route": "/",
@@ -843,14 +843,6 @@
     },
     {
       "route": "/sdlc/ki-konfiguration",
-      "authTier": "public",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/sdlc/observability",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

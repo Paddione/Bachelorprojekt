@@ -1,0 +1,76 @@
+# sdlc-console-rbac.yaml — T008016/E4
+#
+# Die SDLC-Console (k3d/sdlc-stack/sdlc-console.yaml) zeichnet seit E4 die
+# Cluster-Karten des Plattform-Decks direkt aus der Kubernetes-API (über
+# lib/sdlc/k8s.ts und die /sdlc/api/-Routen deployments.ts + cluster/pods-list.ts).
+# Dafür braucht ihr ServiceAccount get/list-Rechte im Brand-Namespace — dieselbe
+# Rolle, die die prod-Website über k3d/website-rbac.yaml erhält. Die Console
+# existiert nur im Dev-Stack (BUILD_TARGET=sdlc fliegt in Prod-Builds raus), also
+# lebt die RBAC hier, nicht in website-rbac.yaml.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sdlc-console
+  namespace: workspace
+  labels:
+    app: sdlc-console
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sdlc-console-monitoring-role
+  namespace: workspace
+  labels:
+    app: sdlc-console
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "events"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sdlc-console-monitoring-rolebinding
+  namespace: workspace
+  labels:
+    app: sdlc-console
+subjects:
+  - kind: ServiceAccount
+    name: sdlc-console
+    namespace: workspace
+roleRef:
+  kind: Role
+  name: sdlc-console-monitoring-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sdlc-console-monitoring-clusterrole
+  labels:
+    app: sdlc-console
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sdlc-console-monitoring-clusterrolebinding
+  labels:
+    app: sdlc-console
+subjects:
+  - kind: ServiceAccount
+    name: sdlc-console
+    namespace: workspace
+roleRef:
+  kind: ClusterRole
+  name: sdlc-console-monitoring-clusterrole
+  apiGroup: rbac.authorization.k8s.io

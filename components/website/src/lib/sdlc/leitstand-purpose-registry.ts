@@ -39,4 +39,14 @@ export const leitstandPurposes: Record<string, LeitstandPurpose> = {
     datenquelle: 'api-inventory.json, OpenSpec-Suchindex',
     aktionen: [],
   },
+  'kpi-grid': {
+    zweck: 'Im Leerlauf der Kontextzone die DORA-KPIs (Deployment-Frequenz, Lead Time, CFR) plus Factory-Kennzahlen als Live-Raster zeigen.',
+    datenquelle: '/sdlc/api/delivery-metrics (summarize/aggregateDora aus delivery-metrics.ts)',
+    aktionen: [],
+  },
+  'api-katalog': {
+    zweck: 'Alle im Repo existierenden API-Endpunkte durchsuchbar nachschlagen — inklusive MCP-Server-Health (Browser prueft MCP-Ports nie direkt).',
+    datenquelle: 'api-inventory.json (einziger Import), /sdlc/api/mcp-health',
+    aktionen: [],
+  },
 };

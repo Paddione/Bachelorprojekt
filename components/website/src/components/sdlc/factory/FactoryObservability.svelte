@@ -182,7 +182,7 @@
               </tr>
             </thead>
             <tbody>
-              {#each data.timeline.slice(0, 20) as row (row.external_id + row.at)}
+              {#each data.timeline.slice(0, 20) as row (row.external_id + row.at + row.phase + row.state)}
                 <tr>
                   <td class="mono">{row.external_id}</td>
                   <td><span class="brand-badge badge-{row.brand}">{brandBadge(row.brand)}</span></td>

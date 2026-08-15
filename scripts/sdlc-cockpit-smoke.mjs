@@ -41,6 +41,9 @@ const context = await browser.newContext();
 const page = await context.newPage();
 const consoleErrors = [];
 page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+// Uncaught-Exceptions (Svelte-Renderfehler landen hier, nicht im console) —
+// faengt die Klasse "kompiliert still, crasht beim Render" (E4-Review-Befund).
+page.on('pageerror', (e) => consoleErrors.push(`pageerror: ${e.message}`));
 // Konsolentexte nennen die URL nicht ("Failed to load resource"). Fuer die
 // Diagnose zaehlt aber genau sie — welcher Endpunkt fehlt.
 const failedRequests = [];
@@ -99,6 +102,17 @@ try {
   check('Seite ist nicht leer', bodyText.trim().length > 200, `${bodyText.trim().length} Zeichen`);
   check('nicht auf der Login-Seite gelandet', !/\/login$/.test(url), url);
 
+  // [T008016/E4] KPI-Raster: frischer Aufruf ohne station/ticket landet in der
+  // Idle-Kontextzone und muss das DORA-Raster zeigen. WICHTIG: VOR der
+  // station-Navigation pruefen — mit ?station=implement zeigt die Kontextzone
+  // den Factory-Floor statt des Idle-Rasters (Review-Befund: Check lief nach
+  // der Navigation und konnte nie gruen werden).
+  check(
+    'KPI-Raster in der Idle-Kontextzone',
+    (await page.locator('[data-testid="leitstand-kpi-grid"]').count()) > 0,
+    'leitstand-kpi-grid',
+  );
+
   // [T007957/Review-I2] Der Factory-Floor (Z4-Fertigungsansicht) mountet erst
   // bei einer Fertigungs-Station; auf der Default-Ansicht existieren die
   // Floor-testids nicht. Fuer die Stabilitaets-Checks auf die Implement-
@@ -130,6 +144,68 @@ try {
     check(`Zone gerendert: ${id}`, (await page.locator(`[data-testid="${id}"]`).count()) > 0, id);
   }
 
+  // [T008016/E4] MCP-Health als Admin erreichbar: page.request teilt sich die
+  // Cookie-Jar des Contexts, die Session-Cookies fliessen mit.
+  {
+    const mcpRes = await page.request.get(`${BASE}/sdlc/api/mcp-health`);
+    let mcpBody = null;
+    try { mcpBody = await mcpRes.json(); } catch { /* koerper nicht JSON */ }
+    check('MCP-Health antwortet mit fetchedAt', mcpRes.status() === 200 && typeof mcpBody?.fetchedAt === 'string', String(mcpRes.status()));
+    if (mcpBody?.servers) {
+      check('MCP-Health listet HTTP-MCP-Server', Array.isArray(mcpBody.servers) && mcpBody.servers.length > 0, `${mcpBody.servers.length} Server`);
+    }
+  }
+
+  // [T008016/E4] Wissen-Deck: Katalog-Modul nach Deck-Wechsel gerendert.
+  {
+    const deckBtn = page.locator('[data-testid="deck-switch-wissen"]');
+    if (await deckBtn.count()) {
+      await deckBtn.click({ timeout: 10_000 }).catch((e) => log('Deck-Klick fehlgeschlagen:', e.message));
+      await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+    } else {
+      log('deck-switch-wissen nicht gefunden');
+    }
+    check(
+      'API-Katalog im Wissen-Deck gerendert',
+      (await page.locator('[data-testid="leitstand-api-katalog"]').count()) > 0,
+      'leitstand-api-katalog',
+    );
+    check(
+      'MCP-Health-Zeile im Katalog gerendert',
+      (await page.locator('[data-testid="leitstand-mcp-health"]').count()) > 0,
+      'leitstand-mcp-health',
+    );
+  }
+
+  // [T008016/E4/Review] Plattform-Deck per URL — ?deck=plattform ist das
+  // Redirect-Ziel von /sdlc/observability und deckt die Fehlerklasse
+  // "kompiliert still, crasht beim Render" ab (Review-Befund: undeklarierte
+  // $state-Referenzen; pageerror faengt die Klasse seit dem Fix hier ab).
+  {
+    await page.goto(`${BASE}/sdlc/cockpit?deck=plattform`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+    check(
+      'Plattform-Deck per ?deck=plattform gerendert',
+      (await page.locator('[data-testid="deck-panel-plattform"]').count()) > 0,
+      'deck-panel-plattform',
+    );
+    check(
+      'Cluster-Karte im Plattform-Deck',
+      (await page.locator('[data-testid="deck-plattform-cluster"]').count()) > 0,
+      'deck-plattform-cluster',
+    );
+    check(
+      'Deployment-Karten aus k8s.ts-Route',
+      (await page.locator('[data-testid="deck-plattform-deployments"]').count()) > 0,
+      'deck-plattform-deployments',
+    );
+    check(
+      'Pod-Statistik im Plattform-Deck',
+      (await page.locator('[data-testid="deck-plattform-pods"]').count()) > 0,
+      'deck-plattform-pods',
+    );
+  }
+
   await page.screenshot({ path: SHOT, fullPage: true }).catch(() => {});
   log('Screenshot:', SHOT);
 
@@ -137,10 +213,33 @@ try {
     log(`${failedRequests.length} fehlgeschlagene Requests:`);
     [...new Set(failedRequests)].slice(0, 20).forEach((e) => log('  ', e));
   }
+  // Strikte Schlusschecks, scoped auf den SDLC-Build-Vertrag:
+  // (1) Render-Crash-Klasse — jede pageerror (Svelte-ReferenceError etc.;
+  //     genau der E4-Review-Befund) faerbt den Smoke rot.
+  // (2) /sdlc/-Requests muessen alle erfolgreich sein. Der 404 auf
+  //     /api/portal/questionnaires zaehlt NICHT: PortalSidekick fragt das
+  //     Portal-Modul an, das der SDLC-Build (BUILD_TARGET=sdlc) bewusst nicht
+  //     enthaelt — kein SDLC-Vertrag, kein Portal-Backend im Dev-Stack.
+  // (3) Konsolenfehler rot, ausser 'Failed to load resource' — das ist nur
+  //     das Browser-Echo der HTTP-Fehler, die (2) bereits zaehlt.
+  const pageErrors = consoleErrors.filter((e) => e.startsWith('pageerror:'));
+  const sdlcFailures = failedRequests.filter((r) => r.includes('/sdlc/'));
+  const strayConsole = consoleErrors.filter(
+    (e) => !e.startsWith('pageerror:') && !e.includes('Failed to load resource'),
+  );
   check(
-    'alle Cockpit-Requests erfolgreich',
-    failedRequests.length === 0,
-    `${failedRequests.length} fehlgeschlagen`,
+    'alle /sdlc/-Requests erfolgreich',
+    sdlcFailures.length === 0,
+    `${sdlcFailures.length} fehlgeschlagen`,
+  );
+  if (pageErrors.length || strayConsole.length) {
+    log(`${pageErrors.length} pageerror(s), ${strayConsole.length} sonstige Konsolenfehler:`);
+    [...new Set([...pageErrors, ...strayConsole])].slice(0, 20).forEach((e) => log('  ', e));
+  }
+  check(
+    'keine Render-Crashs oder Konsolenfehler im Cockpit',
+    pageErrors.length === 0 && strayConsole.length === 0,
+    `${pageErrors.length + strayConsole.length} Fehler`,
   );
 } catch (err) {
   log('FEHLER:', err?.message || err);

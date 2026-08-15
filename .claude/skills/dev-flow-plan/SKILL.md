@@ -172,6 +172,11 @@ je ihre `tasks.d/pX-<name>.md`. Der Orchestrator schreibt den `tasks.md`-Index m
 Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und
 Provisionierung: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md).
 
+**SID-Propagation (PFLICHT, T006365):** Ermittle deine Session-SID mit
+`bash scripts/agent-lock.sh mine` und weise den Plan-Subagenten an, in jedem
+Bash-Call zuerst `export AGENT_LOCK_SID=<deine-sid>` auszuführen — sonst
+blockiert der Worktree-Write-Guard seine Datei-Tools im Worktree.
+
 **Der Subagent-Prompt MUSS
 [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
 verbindlich einbinden** — der Subagent liest die Datei und schreibt den Plan dagegen. Sie ist

@@ -218,6 +218,8 @@ if [ -n "$FOREIGN_WT" ]; then
     echo "  Geclaimt von:    Session $FOREIGN_SID (Worktree $FOREIGN_WT)"
     echo "  Eine andere Session arbeitet dort. Leg einen eigenen Worktree an"
     echo "  (scripts/worktree-create.sh) statt in ihren hineinzuschreiben."
+    echo "  Falls du ein delegierter Implementer/Planer der Session $FOREIGN_SID bist:"
+    echo "  export AGENT_LOCK_SID=$FOREIGN_SID und versuche erneut (T006365)."
     echo "  Notausgang (bewusst): WORKTREE_GUARD_BYPASS=1"
   } >&2
   exit 2

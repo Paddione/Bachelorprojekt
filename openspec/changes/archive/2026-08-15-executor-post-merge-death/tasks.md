@@ -2,7 +2,7 @@
 title: executor-post-merge-death — Post-Merge-Finalisierung in frischem Kontext — Implementation Plan
 ticket_id: T006284
 domains: [docs]
-status: planning
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

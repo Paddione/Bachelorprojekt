@@ -3659,8 +3659,8 @@
   ],
   "T005560": [
     {
-      "slug": "ticket-lock-stale-pass",
-      "status": "plan_staged"
+      "slug": "2026-08-15-ticket-lock-stale-pass",
+      "status": "archived"
     }
   ],
   "T005561": [
@@ -3749,8 +3749,8 @@
   ],
   "T006252": [
     {
-      "slug": "s3-finetune-dataset-recipe",
-      "status": "plan_staged"
+      "slug": "2026-08-15-s3-finetune-dataset-recipe",
+      "status": "archived"
     }
   ],
   "T006282": [
@@ -3761,14 +3761,20 @@
   ],
   "T006284": [
     {
-      "slug": "executor-post-merge-death",
-      "status": "plan_staged"
+      "slug": "2026-08-15-executor-post-merge-death",
+      "status": "archived"
+    }
+  ],
+  "T006290": [
+    {
+      "slug": "2026-08-15-agent-lock-release-cwd",
+      "status": "archived"
     }
   ],
   "T006293": [
     {
-      "slug": "mcp-postgres-multistatement",
-      "status": "plan_staged"
+      "slug": "2026-08-15-mcp-postgres-multistatement",
+      "status": "archived"
     }
   ],
   "T006295": [

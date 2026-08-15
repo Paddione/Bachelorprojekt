@@ -2,7 +2,7 @@
 title: ticket-lock-stale-pass — Implementation Plan
 ticket_id: T005560
 domains: [infra, test, docs]
-status: active
+status: completed
 pr_number: null
 file_locks: []
 shared_changes: false

@@ -10,7 +10,9 @@
 #   2. Fix-PR-Merges tragen kein `--delete-branch` — die OpenSpec-Archivierung
 #      (dev-flow Schritt 7) läuft NACH dem Merge und braucht den Branch noch;
 #      gelöscht wird erst in Schritt 7.5. Einzige Ausnahme: der Archiv-PR-Merge
-#      in plan-archive-steps.md (dessen Wegwerf-Branch hängt an nichts mehr).
+#      (dessen Wegwerf-Branch hängt an nichts mehr) — dokumentiert in
+#      plan-archive-steps.md und seit T006284/#4539 zusätzlich in
+#      scripts/devflow-post-merge-finalize.sh umgesetzt.
 #   3. Die gh-axi-Referenz dokumentiert die JSON/Polling-Regel (Drift-Schutz).
 
 setup() {
@@ -33,7 +35,9 @@ setup() {
   [ "$status" -eq 0 ]
   # Negativ-Aussage: alle übrigen pr-merge-Befehle in Skills/Skripten ohne --delete-branch.
   # Kommentare (#) und Backticks begrenzen die Zeile — Treffer nur über echte Befehlsspannen.
-  run bash -c "git -C '$REPO' grep -E -n 'pr merge[^#\`]*--delete-branch' -- '.claude/skills' '.opencode/skills' 'scripts' | grep -v 'plan-archive-steps.md'"
+  # Ausnahmen: die beiden dokumentierten Archiv-PR-Merge (plan-archive-steps.md und
+  # devflow-post-merge-finalize.sh, T004612/T006284).
+  run bash -c "git -C '$REPO' grep -E -n 'pr merge[^#\`]*--delete-branch' -- '.claude/skills' '.opencode/skills' 'scripts' | grep -v -e 'plan-archive-steps.md' -e 'devflow-post-merge-finalize.sh'"
   [ "$status" -ne 0 ]
 }
 

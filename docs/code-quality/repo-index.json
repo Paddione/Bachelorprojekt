@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1023,
+      "file_count": 1026,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -336,6 +336,7 @@
         "tests/spec/.spec-runtime.tsv",
         "tests/spec/active-sessions-hub.bats",
         "tests/spec/active-sessions-hub/agent-lock-main-checkout-reclaim.bats",
+        "tests/spec/active-sessions-hub/agent-lock-release-cwd.bats",
         "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
         "tests/spec/active-sessions-hub/claim-persistence-verified-T002826.bats",
         "tests/spec/active-sessions-hub/lock-ownership-cwd-independent-T003110.bats",

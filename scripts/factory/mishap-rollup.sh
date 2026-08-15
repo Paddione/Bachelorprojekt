@@ -97,6 +97,11 @@ cleanup_wt() {
   # [T005115] Claim zuerst freigeben (best-effort), dann den Worktree entfernen —
   # der Claim-Guard von worktree-clean-check.sh blockiert Fremd-Removes nur, wenn
   # der Lock noch lebt; das eigene Cleanup darf den Lock nie stehen lassen.
+  # [T007000] Vor dem Release aus dem Worktree-cwd heraus: der T006290-cwd-Guard
+  # in agent-lock.sh verweigert Branch-Releases, solange die Shell-cwd im
+  # Worktree des Locks liegt — der Lock blieb live, der naechste Driver-Lauf im
+  # selben Tick hing am claim (beobachtet 2026-08-15, Rollup-Pipeline ~1h blockiert).
+  cd "$REPO" >/dev/null 2>&1 || true
   bash "$REPO/scripts/agent-lock.sh" release branch "$BRANCH" >/dev/null 2>&1 || true
   git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true
 }
@@ -197,7 +202,13 @@ Batch-Kommentaren des Container-Tickets "${ROLLUP_TITLE}".
 ## Mishap-Batches
 
 PLANEOF
-  cat "$COMMENTS_FILE"
+  # [T007000] Batch-Inhalt als Blockquote einbetten: plan-lint P2 scannt die
+  # gesamte tasks.md auf Commit-Scope-Vorschreibungen (type(scope):) — Batch-
+  # Kommentare duerfen solche Muster als BEISPIELE enthalten (z.B. feat(llm):
+  # aus einem plan-quality-gates-Mishap). Zeilen mit '>' sind bei P2 explizit
+  # exempt; das Praefix '> ' pro Zeile neutralisiert Beispiele, ohne den Inhalt
+  # zu veraendern (beobachtet: Hard-Fail auf dem 10er-Batch vom 2026-08-15).
+  sed 's/^[[:space:]]*/&> /' "$COMMENTS_FILE"
   cat <<'PLANEOF'
 
 ## Verify (RED → GREEN)

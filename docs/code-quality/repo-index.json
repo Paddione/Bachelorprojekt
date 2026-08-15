@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1038,
+      "file_count": 1039,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -648,6 +648,7 @@
         "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
         "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
         "tests/spec/mishap-rollup/rollup-cycle-push.bats",
+        "tests/spec/mishap-rollup/rollup-plan-lint-scope-examples.bats",
         "tests/spec/mishap-t002422.bats",
         "tests/spec/mishap-t002424.bats",
         "tests/spec/mishap-tracking/dedupe-korpus.bats",

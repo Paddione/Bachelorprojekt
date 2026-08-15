@@ -113,11 +113,14 @@ setup() {
   # Positiv-Anker zuerst: SDLC-Seiten referenzieren die Datei ueberhaupt (T5 real).
   sdlc_hits=$(grep -rl 'sdlc-leitstand.css' "$REPO_ROOT/website/src" \
     --include='*.astro' --include='*.svelte' --include='*.ts' 2>/dev/null \
-    | grep -c '/pages/sdlc/')
+    | grep -c '/pages/sdlc/' || true)
   [ "$sdlc_hits" -ge 1 ]
   # Negativ: ausserhalb von pages/sdlc/ referenziert NICHTS die Datei.
+  # `|| true` auf beiden Substitutionen: grep -c/-vc enden bei 0 Treffern mit
+  # Exit 1, was unter BATS-errexit die Zuweisung abwuerfe, bevor die Assertion
+  # urteilt -- die Zaehlung gehoert dem Test, nicht dem Pipe-Exit.
   prod_hits=$(grep -rl 'sdlc-leitstand.css' "$REPO_ROOT/website/src" \
     --include='*.astro' --include='*.svelte' --include='*.ts' 2>/dev/null \
-    | grep -vc '/pages/sdlc/')
+    | grep -vc '/pages/sdlc/' || true)
   [ "$prod_hits" -eq 0 ]
 }

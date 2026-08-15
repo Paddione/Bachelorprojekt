@@ -1,230 +1,436 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PilotLight from '../../components/sdlc/factory/PilotLight.svelte';
-import WorkpieceCard from '../../components/sdlc/factory/WorkpieceCard.svelte';
-import PhaseBadge from '../../components/sdlc/factory/PhaseBadge.svelte';
-import type { FactoryTicket } from '../../components/sdlc/factory/types';
-
-const sampleTickets: FactoryTicket[] = [
-  { id: 'T000597', title: 'Factory UI — Design System', priority: 'high', phase: 'implement', assignee: 'patrick', updatedAt: '2026-06-10' },
-  { id: 'T000598', title: 'Factory Floor — Live Dashboard', priority: 'critical', phase: 'plan', assignee: 'team', updatedAt: '2026-06-09' },
-  { id: 'T000599', title: 'Workpiece Tracker — Backend API', priority: 'medium', phase: 'scout', updatedAt: '2026-06-08' },
-  { id: 'T000600', title: 'Phase Gate Automation', priority: 'low', phase: 'done', assignee: 'patrick', updatedAt: '2026-06-07' },
-  { id: 'T000601', title: 'Integration Test Suite', priority: 'high', phase: 'blocked', assignee: 'qa', updatedAt: '2026-06-06' },
-];
-
-const sampleTicketsCompact: FactoryTicket[] = [
-  { id: 'T000602', title: 'Deploy Pipeline v2', priority: 'critical', phase: 'review' },
-  { id: 'T000603', title: 'Keycloak Realm Sync', priority: 'medium', phase: 'implement' },
-  { id: 'T000604', title: 'Docs Generator', priority: 'low', phase: 'scout' },
-];
+import '../../styles/sdlc-leitstand.css';
 ---
 
-<Layout title="Factory Design System" rawTitle>
-  <div class="factory-demo">
-    <header class="factory-demo__header">
-      <h1>Factory Design System</h1>
-      <p class="factory-demo__subtitle">Industrial/Loft component library — token reference & component showcase</p>
+<Layout title="Leitstand Design System" rawTitle>
+  <div class="ls-showcase">
+    <header class="ls-showcase__section">
+      <span class="ls-showcase__eyebrow">Leitstand Design System</span>
+      <h1 class="ls-showcase__title">Control Room — Token-Referenz &amp; Showcase</h1>
+      <p class="ls-showcase__lede">
+        Bewusster Stilbruch zur Kore-Marke: signal-dominant, dark-first,
+        Mono-Ziffern, kantige Panels. Alle Werte stammen aus
+        <code class="ls-showcase__mono">sdlc-leitstand.css</code> (Token-Prefix
+        <code class="ls-showcase__mono">--ls-*</code>).
+      </p>
     </header>
 
-    <section class="factory-demo__section">
-      <h2>PilotLight — Status Indicator</h2>
-      <div class="factory-demo__grid">
-        <div class="factory-demo__card">
-          <h3>Green (Success)</h3>
-          <PilotLight client:load state="green" label="Operational" />
+    <section class="ls-showcase__section">
+      <h2>Surfaces &amp; Linien</h2>
+      <div class="ls-ds-grid cols-4">
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-bg)`}></div>
+          <div class="meta"><span class="nm">Background</span><span class="vl">--ls-bg</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-surface-base)`}></div>
+          <div class="meta"><span class="nm">Surface Base</span><span class="vl">--ls-surface-base</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-surface-raised)`}></div>
+          <div class="meta"><span class="nm">Surface Raised</span><span class="vl">--ls-surface-raised</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-line)`}></div>
+          <div class="meta"><span class="nm">Line</span><span class="vl">--ls-line</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-line-strong)`}></div>
+          <div class="meta"><span class="nm">Line Strong</span><span class="vl">--ls-line-strong</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-surface-base); display:flex; align-items:center; justify-content:center; color: var(--ls-text-primary); font-family: var(--ls-font-mono)`}>Aa 01</div>
+          <div class="meta"><span class="nm">Text Primary</span><span class="vl">--ls-text-primary</span></div></div>
+      </div>
+    </section>
+
+    <section class="ls-showcase__section">
+      <h2>Text-Stufen</h2>
+      <div class="ls-showcase__text-row" style={`color: var(--ls-text-primary)`}>
+        <span class="ls-showcase__mono ls-showcase__text-token">--ls-text-primary</span>
+        <span class="ls-showcase__text-sample">Leitstand</span>
+      </div>
+      <div class="ls-showcase__text-row" style={`color: var(--ls-text-secondary)`}>
+        <span class="ls-showcase__mono ls-showcase__text-token">--ls-text-secondary</span>
+        <span class="ls-showcase__text-sample">Leitstand</span>
+      </div>
+      <div class="ls-showcase__text-row" style={`color: var(--ls-text-muted)`}>
+        <span class="ls-showcase__mono ls-showcase__text-token">--ls-text-muted</span>
+        <span class="ls-showcase__text-sample">Leitstand</span>
+      </div>
+      <div class="ls-showcase__text-row" style={`color: var(--ls-text-disabled)`}>
+        <span class="ls-showcase__mono ls-showcase__text-token">--ls-text-disabled</span>
+        <span class="ls-showcase__text-sample">Leitstand</span>
+      </div>
+    </section>
+
+    <section class="ls-showcase__section">
+      <h2>Signal-Set</h2>
+      <div class="ls-ds-grid cols-4">
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-signal-green-dim); display:flex; align-items:center; justify-content:center`}><span class="ls-signal-dot" style={`color: var(--ls-signal-green)`}></span></div>
+          <div class="meta"><span class="nm">Green</span><span class="vl">--ls-signal-green</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-signal-amber-dim); display:flex; align-items:center; justify-content:center`}><span class="ls-signal-dot" style={`color: var(--ls-signal-amber)`}></span></div>
+          <div class="meta"><span class="nm">Amber</span><span class="vl">--ls-signal-amber</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-signal-red-dim); display:flex; align-items:center; justify-content:center`}><span class="ls-signal-dot" style={`color: var(--ls-signal-red)`}></span></div>
+          <div class="meta"><span class="nm">Red</span><span class="vl">--ls-signal-red</span></div></div>
+        <div class="ls-swatch"><div class="fill" style={`background: var(--ls-signal-info-dim); display:flex; align-items:center; justify-content:center`}><span class="ls-signal-dot" style={`color: var(--ls-signal-info)`}></span></div>
+          <div class="meta"><span class="nm">Info</span><span class="vl">--ls-signal-info</span></div></div>
+      </div>
+    </section>
+
+    <section class="ls-showcase__section">
+      <h2>Mono-Typografie</h2>
+      <p class="ls-showcase__mono">T007559 · Countdown 00:42:07 · Queue 7 · Fleet 26/26</p>
+    </section>
+
+    <section class="ls-showcase__section">
+      <h2>Radien &amp; Abstand</h2>
+      <div class="ls-ds-grid cols-3">
+        <div class="ls-showcase__radius" style={`border-radius: var(--ls-radius-sm)`}>
+          <span class="ls-showcase__mono">--ls-radius-sm</span>
         </div>
-        <div class="factory-demo__card">
-          <h3>Amber (Warning)</h3>
-          <PilotLight client:load state="amber" label="Degraded" />
+        <div class="ls-showcase__radius" style={`border-radius: var(--ls-radius-md)`}>
+          <span class="ls-showcase__mono">--ls-radius-md</span>
         </div>
-        <div class="factory-demo__card">
-          <h3>Red (Error)</h3>
-          <PilotLight client:load state="red" label="Offline" />
+        <div class="ls-showcase__radius" style={`border-radius: var(--ls-radius-lg)`}>
+          <span class="ls-showcase__mono">--ls-radius-lg</span>
         </div>
-        <div class="factory-demo__card">
-          <h3>Sizes</h3>
-          <div class="factory-demo__row">
-            <PilotLight client:load state="green" size="sm" />
-            <PilotLight client:load state="amber" size="md" />
-            <PilotLight client:load state="red" size="lg" />
-          </div>
+      </div>
+      <div class="ls-showcase__spaces">
+        <div class="ls-showcase__space-row">
+          <span class="ls-showcase__space-bar" style={`width: var(--ls-space-1)`}></span>
+          <span class="ls-showcase__mono">--ls-space-1</span>
         </div>
-        <div class="factory-demo__card">
-          <h3>Static (no animation)</h3>
-          <PilotLight client:load state="green" label="Static" animated={false} />
+        <div class="ls-showcase__space-row">
+          <span class="ls-showcase__space-bar" style={`width: var(--ls-space-2)`}></span>
+          <span class="ls-showcase__mono">--ls-space-2</span>
+        </div>
+        <div class="ls-showcase__space-row">
+          <span class="ls-showcase__space-bar" style={`width: var(--ls-space-3)`}></span>
+          <span class="ls-showcase__mono">--ls-space-3</span>
+        </div>
+        <div class="ls-showcase__space-row">
+          <span class="ls-showcase__space-bar" style={`width: var(--ls-space-4)`}></span>
+          <span class="ls-showcase__mono">--ls-space-4</span>
+        </div>
+        <div class="ls-showcase__space-row">
+          <span class="ls-showcase__space-bar" style={`width: var(--ls-space-5)`}></span>
+          <span class="ls-showcase__mono">--ls-space-5</span>
+        </div>
+        <div class="ls-showcase__space-row">
+          <span class="ls-showcase__space-bar" style={`width: var(--ls-space-6)`}></span>
+          <span class="ls-showcase__mono">--ls-space-6</span>
+        </div>
+        <div class="ls-showcase__space-row">
+          <span class="ls-showcase__space-bar" style={`width: var(--ls-space-7)`}></span>
+          <span class="ls-showcase__mono">--ls-space-7</span>
         </div>
       </div>
     </section>
 
-    <section class="factory-demo__section">
-      <h2>PhaseBadge — Phase Pill</h2>
-      <div class="factory-demo__row">
-        <PhaseBadge phase="scout" />
-        <PhaseBadge phase="plan" />
-        <PhaseBadge phase="implement" />
-        <PhaseBadge phase="review" />
-        <PhaseBadge phase="done" />
-        <PhaseBadge phase="blocked" />
-        <PhaseBadge phase="unknown" />
-      </div>
-    </section>
-
-    <section class="factory-demo__section">
-      <h2>WorkpieceCard — Ticket Card (Full)</h2>
-      <div class="factory-demo__stack">
-        {sampleTickets.map((ticket) => (
-          <WorkpieceCard client:load {ticket} />
-        ))}
-      </div>
-    </section>
-
-    <section class="factory-demo__section">
-      <h2>WorkpieceCard — Compact</h2>
-      <div class="factory-demo__stack">
-        {sampleTicketsCompact.map((ticket) => (
-          <WorkpieceCard client:load {ticket} compact />
-        ))}
-      </div>
-    </section>
-
-    <section class="factory-demo__section">
-      <h2>Token Reference</h2>
-      <div class="factory-demo__tokens">
-        <div class="factory-demo__token-group">
-          <h3>Colors</h3>
-          <div class="factory-demo__swatch" style="background: var(--factory-bg);">--factory-bg</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-surface);">--factory-surface</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-surface-elevated);">--factory-surface-elevated</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-accent);">--factory-accent</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-success);">--factory-success</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-error);">--factory-error</div>
+    <section class="ls-showcase__section">
+      <h2>Glow/Puls — nur &quot;läuft&quot;</h2>
+      <div class="ls-showcase__row">
+        <div class="ls-showcase__pulse-demo">
+          <span class="ls-signal-dot ls-running" style={`color: var(--ls-signal-amber)`}></span>
+          <span class="ls-showcase__mono">läuft</span>
         </div>
-        <div class="factory-demo__token-group">
-          <h3>Priority Colors</h3>
-          <div class="factory-demo__swatch" style="background: var(--factory-priority-critical);">--factory-priority-critical</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-priority-high);">--factory-priority-high</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-priority-medium);">--factory-priority-medium</div>
-          <div class="factory-demo__swatch" style="background: var(--factory-priority-low);">--factory-priority-low</div>
+        <div class="ls-showcase__pulse-demo">
+          <span class="ls-signal-dot" style={`color: var(--ls-signal-amber)`}></span>
+          <span class="ls-showcase__mono">ruhig</span>
         </div>
+      </div>
+      <p class="ls-showcase__lede">
+        Die Animation ist global an <code class="ls-showcase__mono">.ls-running</code>
+        gebunden (sdlc-leitstand.css) — Glow/Puls nur für &quot;läuft gerade&quot;-Zustände.
+      </p>
+    </section>
+
+    <section class="ls-showcase__section">
+      <h2>Print-Light (Report-Ansicht)</h2>
+      <div class="ls-report ls-showcase__report-demo">
+        <p class="ls-showcase__eyebrow">Report-Ansicht</p>
+        <p>Dieser Block nutzt <code>.ls-report</code> — ausschließlich unter
+          <code>@media print</code> wirksam. Kein zweites interaktives Theme: auf dem
+          Bildschirm hat die Klasse keine Wirkung, öffnen Sie die Druckvorschau des Browsers
+          (Strg/Cmd+P), um die Farben zu sehen.</p>
+      </div>
+    </section>
+
+    <section class="ls-showcase__section">
+      <h2>Komponenten-Vorschau</h2>
+      <h3 class="ls-showcase__subhead">Statusband</h3>
+      <div class="ls-band">
+        <div class="item"><span class="lbl">Tick</span><span class="val">00:42</span></div>
+        <div class="item"><span class="lbl">Queue</span><span class="val" style={`color: var(--ls-signal-amber)`}>7</span></div>
+        <div class="item"><span class="lbl">Fleet</span><span class="val" style={`color: var(--ls-signal-green)`}>26/26</span></div>
+        <div class="item"><span class="lbl">Kill</span><span class="val" style={`color: var(--ls-signal-red)`}>aus</span></div>
+        <div class="item"><span class="lbl">Budget</span><span class="val">62%</span></div>
+      </div>
+      <h3 class="ls-showcase__subhead">Stations-Karte</h3>
+      <div class="ls-station">
+        <div class="item"><span class="lbl">Station</span><span class="val">Verify</span></div>
+        <span class="ls-signal-dot" style={`color: var(--ls-signal-amber)`}></span>
+        <span class="ls-chip" style={`color: var(--ls-text-secondary)`}>4 Tickets</span>
+      </div>
+      <h3 class="ls-showcase__subhead">KPI-Kachel</h3>
+      <div class="ls-ds-grid cols-3">
+        <div class="ls-kpi"><span class="val">14</span><br/><span class="lbl">Lead Time (h)</span></div>
+        <div class="ls-kpi"><span class="val" style={`color: var(--ls-signal-green)`}>96%</span><br/><span class="lbl">Deploy Success</span></div>
+        <div class="ls-kpi"><span class="val" style={`color: var(--ls-signal-red)`}>2</span><br/><span class="lbl">CFR (Wochen)</span></div>
+      </div>
+      <h3 class="ls-showcase__subhead">Ticket-Chip</h3>
+      <div class="ls-showcase__row">
+        <span class="ls-chip" style={`color: var(--ls-signal-green)`}>T007559 - erledigt</span>
+        <span class="ls-chip" style={`color: var(--ls-signal-amber)`}>T007560 - laeuft</span>
+        <span class="ls-chip" style={`color: var(--ls-text-secondary)`}>T007561 - offen</span>
       </div>
     </section>
   </div>
 </Layout>
 
 <style>
-  .factory-demo {
-    max-width: 1200px;
+  .ls-showcase {
+    max-width: 1100px;
     margin: 0 auto;
-    padding: var(--factory-spacing-2xl) var(--factory-spacing-lg);
+    padding: var(--ls-space-7) var(--ls-space-6);
+    background: var(--ls-bg);
+    color: var(--ls-text-primary);
+    font-family: var(--ls-font-sans);
   }
 
-  .factory-demo__header {
-    margin-bottom: var(--factory-spacing-2xl);
+  .ls-showcase__title {
+    font-size: 30px;
+    line-height: 1.1;
+    margin: var(--ls-space-3) 0 var(--ls-space-3);
+    color: var(--ls-text-primary);
   }
 
-  .factory-demo__header h1 {
-    font-family: var(--factory-font-sans);
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--factory-text-primary);
-    margin: 0 0 0.5rem;
+  .ls-showcase__lede {
+    color: var(--ls-text-secondary);
+    max-width: 72ch;
+    margin: 0;
   }
 
-  .factory-demo__subtitle {
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-sm);
-    color: var(--factory-text-muted);
-    margin: 0 0 1.5rem;
+  .ls-showcase__section {
+    margin-bottom: var(--ls-space-7);
   }
 
-  .factory-demo__section {
-    margin-bottom: var(--factory-spacing-2xl);
-  }
-
-  .factory-demo__section h2 {
-    font-family: var(--factory-font-sans);
-    font-size: var(--factory-text-lg);
+  .ls-showcase__section h2 {
+    font-size: 18px;
     font-weight: 600;
-    color: var(--factory-text-primary);
-    margin: 0 0 var(--factory-spacing-md);
-    padding-bottom: var(--factory-spacing-sm);
-    border-bottom: 1px solid var(--factory-border);
+    margin: 0 0 var(--ls-space-5);
+    padding-bottom: var(--ls-space-3);
+    border-bottom: 1px solid var(--ls-line);
+    color: var(--ls-text-primary);
   }
 
-  .factory-demo__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--factory-spacing-md);
-  }
-
-  .factory-demo__card {
-    background: var(--factory-surface);
-    border: 1px solid var(--factory-border);
-    border-radius: var(--factory-radius-md);
-    padding: var(--factory-spacing-md);
-  }
-
-  .factory-demo__card h3 {
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-xs);
-    color: var(--factory-text-muted);
+  .ls-showcase__subhead {
+    font-size: 12px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 0 0 var(--factory-spacing-sm);
+    letter-spacing: .08em;
+    margin: var(--ls-space-6) 0 var(--ls-space-4);
+    color: var(--ls-text-muted);
   }
 
-  .factory-demo__row {
+  .ls-showcase__row {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--factory-spacing-sm);
+    gap: var(--ls-space-5);
     align-items: center;
   }
 
-  .factory-demo__stack {
+  .ls-showcase__eyebrow {
+    font-family: var(--ls-font-mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ls-text-muted);
+  }
+
+  .ls-showcase__mono {
+    font-family: var(--ls-font-mono);
+    color: var(--ls-text-primary);
+  }
+
+  .ls-showcase__text-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ls-space-5);
+    padding: var(--ls-space-3) 0;
+    border-bottom: 1px solid var(--ls-line);
+  }
+
+  .ls-showcase__text-token {
+    min-width: 180px;
+    font-size: 12px;
+    color: var(--ls-text-muted);
+  }
+
+  .ls-showcase__text-sample {
+    font-size: 18px;
+  }
+
+  .ls-showcase__radius {
+    border: 1px solid var(--ls-line-strong);
+    background: var(--ls-surface-base);
+    padding: var(--ls-space-5);
+    text-align: center;
+  }
+
+  .ls-showcase__spaces {
+    margin-top: var(--ls-space-5);
     display: flex;
     flex-direction: column;
-    gap: var(--factory-spacing-sm);
+    gap: var(--ls-space-3);
   }
 
-  .factory-demo__tokens {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--factory-spacing-lg);
-  }
-
-  .factory-demo__token-group h3 {
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-xs);
-    color: var(--factory-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 0 0 var(--factory-spacing-sm);
-  }
-
-  .factory-demo__swatch {
+  .ls-showcase__space-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: var(--factory-spacing-sm) var(--factory-spacing-md);
-    border-radius: var(--factory-radius-sm);
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-xs);
-    color: var(--factory-text-primary);
-    margin-bottom: 2px;
+    gap: var(--ls-space-3);
   }
 
-  @media (max-width: 375px) {
-    .factory-demo {
-      padding: var(--factory-spacing-md) var(--factory-spacing-sm);
-    }
+  .ls-showcase__space-bar {
+    height: var(--ls-space-4);
+    background: var(--ls-line-strong);
+    border-radius: var(--ls-radius-sm);
+  }
 
-    .factory-demo__grid {
+  .ls-showcase__pulse-demo {
+    display: flex;
+    align-items: center;
+    gap: var(--ls-space-3);
+    padding: var(--ls-space-4) var(--ls-space-5);
+    border: 1px solid var(--ls-line-strong);
+    border-radius: var(--ls-radius-md);
+    background: var(--ls-surface-base);
+  }
+
+  .ls-showcase__report-demo {
+    border: 1px dashed var(--ls-line-strong);
+    border-radius: var(--ls-radius-md);
+    padding: var(--ls-space-6);
+  }
+
+  .ls-ds-grid {
+    display: grid;
+    gap: var(--ls-space-6);
+  }
+
+  .cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .ls-swatch {
+    border: 1px solid var(--ls-line-strong);
+    border-radius: var(--ls-radius-md);
+    overflow: hidden;
+  }
+
+  .ls-swatch .fill {
+    height: 72px;
+  }
+
+  .ls-swatch .meta {
+    padding: var(--ls-space-4) var(--ls-space-5);
+    background: var(--ls-surface-base);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .ls-swatch .nm {
+    font: 500 13px/1.2 var(--ls-font-sans);
+    color: var(--ls-text-primary);
+  }
+
+  .ls-swatch .vl {
+    font: 400 11px/1.3 var(--ls-font-mono);
+    color: var(--ls-text-muted);
+  }
+
+  .ls-signal-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .ls-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ls-space-3);
+    padding: var(--ls-space-2) var(--ls-space-4);
+    border-radius: var(--ls-radius-lg);
+    border: 1px solid var(--ls-line-strong);
+    background: var(--ls-surface-base);
+    font: 500 12px/1 var(--ls-font-mono);
+    color: var(--ls-text-primary);
+  }
+
+  .ls-kpi {
+    border: 1px solid var(--ls-line-strong);
+    border-radius: var(--ls-radius-md);
+    background: var(--ls-surface-base);
+    padding: var(--ls-space-5);
+  }
+
+  .ls-kpi .val {
+    font: 600 26px/1 var(--ls-font-mono);
+    color: var(--ls-text-primary);
+  }
+
+  .ls-kpi .lbl {
+    font: 400 11px/1.3 var(--ls-font-sans);
+    color: var(--ls-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .ls-station {
+    border: 1px solid var(--ls-line-strong);
+    border-radius: var(--ls-radius-md);
+    background: var(--ls-surface-base);
+    padding: var(--ls-space-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ls-space-4);
+  }
+
+  .ls-band {
+    display: flex;
+    gap: var(--ls-space-6);
+    align-items: center;
+    padding: var(--ls-space-4) var(--ls-space-5);
+    border: 1px solid var(--ls-line-strong);
+    border-radius: var(--ls-radius-md);
+    background: var(--ls-surface-base);
+  }
+
+  .ls-band .item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ls-band .item .lbl {
+    font: 400 10px/1.2 var(--ls-font-sans);
+    color: var(--ls-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .ls-band .item .val {
+    font: 500 14px/1.2 var(--ls-font-mono);
+    color: var(--ls-text-primary);
+  }
+
+  @media (max-width: 720px) {
+    .cols-3,
+    .cols-4 {
       grid-template-columns: 1fr;
     }
 
-    .factory-demo__tokens {
-      grid-template-columns: 1fr;
+    .ls-band {
+      flex-wrap: wrap;
     }
   }
 </style>

@@ -1,0 +1,37 @@
+/* _card.css -- shared Leitstand-DS card chrome. Injected into every card (local build input). */
+body.ls-ds-card { background: var(--ls-bg); color: var(--ls-text-primary); font-family: var(--ls-font-sans);
+  margin: 0; padding: 48px; -webkit-font-smoothing: antialiased; }
+.ls-ds-wrap { max-width: 960px; margin: 0 auto; }
+.ls-ds-head { margin: 0 0 28px; }
+.ls-ds-head .eyebrow { font-family: var(--ls-font-mono); font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ls-text-muted); }
+.ls-ds-head h1 { font-size: 28px; line-height: 1.1; margin: 8px 0 6px; color: var(--ls-text-primary); }
+.ls-ds-head p { color: var(--ls-text-secondary); max-width: 64ch; margin: 0; }
+.ls-ds-grid { display: grid; gap: var(--ls-space-6); }
+.cols-3 { grid-template-columns: repeat(3,1fr); } .cols-4 { grid-template-columns: repeat(4,1fr); }
+.ls-swatch { border: 1px solid var(--ls-line-strong); border-radius: var(--ls-radius-md); overflow: hidden; }
+.ls-swatch .fill { height: 72px; }
+.ls-swatch .meta { padding: var(--ls-space-4) var(--ls-space-5); background: var(--ls-surface-base);
+  display: flex; flex-direction: column; gap: 3px; }
+.ls-swatch .nm { font: 500 13px/1.2 var(--ls-font-sans); color: var(--ls-text-primary); }
+.ls-swatch .vl { font: 400 11px/1.3 var(--ls-font-mono); color: var(--ls-text-muted); }
+.ls-signal-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.ls-icon-cell { display: flex; flex-direction: column; align-items: center; gap: var(--ls-space-4);
+  padding: var(--ls-space-5); background: var(--ls-surface-base); border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md); }
+.ls-icon-cell svg { width: 22px; height: 22px; color: var(--ls-text-primary); }
+.ls-icon-cell .cap { font: 400 11px/1.3 var(--ls-font-mono); color: var(--ls-text-muted); }
+.ls-chip { display: inline-flex; align-items: center; gap: var(--ls-space-3); padding: var(--ls-space-2) var(--ls-space-4);
+  border-radius: var(--ls-radius-lg); border: 1px solid var(--ls-line-strong); background: var(--ls-surface-base);
+  font: 500 12px/1 var(--ls-font-mono); color: var(--ls-text-primary); }
+.ls-kpi { border: 1px solid var(--ls-line-strong); border-radius: var(--ls-radius-md); background: var(--ls-surface-base);
+  padding: var(--ls-space-5); }
+.ls-kpi .val { font: 600 26px/1 var(--ls-font-mono); color: var(--ls-text-primary); }
+.ls-kpi .lbl { font: 400 11px/1.3 var(--ls-font-sans); color: var(--ls-text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.ls-station { border: 1px solid var(--ls-line-strong); border-radius: var(--ls-radius-md); background: var(--ls-surface-base);
+  padding: var(--ls-space-4); display: flex; align-items: center; justify-content: space-between; gap: var(--ls-space-4); }
+.ls-band { display: flex; gap: var(--ls-space-6); align-items: center; padding: var(--ls-space-4) var(--ls-space-5);
+  border: 1px solid var(--ls-line-strong); border-radius: var(--ls-radius-md); background: var(--ls-surface-base); }
+.ls-band .item { display: flex; flex-direction: column; gap: 2px; }
+.ls-band .item .lbl { font: 400 10px/1.2 var(--ls-font-sans); color: var(--ls-text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.ls-band .item .val { font: 500 14px/1.2 var(--ls-font-mono); color: var(--ls-text-primary); }

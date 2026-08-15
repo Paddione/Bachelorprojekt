@@ -21,7 +21,13 @@ Runbook zum Design-Doc `openspec/changes/2026-08-15-laptop-bge-topologie/design.
 5. llama-server: `winget install llama.cpp`, dann
    `powershell -ExecutionPolicy Bypass -File scripts/llm/start-tablet-rerank.ps1` (Pfad aufs Gerät kopiert).
 6. Scheduled Task registrieren (Befehl im Kopf von `start-tablet-rerank.ps1`).
-7. Firewall-Regel fürs WG-Interface (Befehl ebenda).
+7. Firewall-Regel für den Rerank-Port, gescoped aufs Mesh-Subnetz (elevated):
+
+   ```powershell
+   New-NetFirewallRule -DisplayName 'llama-server TabletRerank (WG only)' `
+     -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8080 `
+     -RemoteAddress 192.168.100.0/24 -ErrorAction SilentlyContinue
+   ```
 
 ## Einrichtung PK-L-1
 

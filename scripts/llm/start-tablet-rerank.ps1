@@ -25,10 +25,14 @@
     Disable-ScheduledTask -TaskPath '\BgeLaptops\' -TaskName 'TabletRerank'
     Enable-ScheduledTask  -TaskPath '\BgeLaptops\' -TaskName 'TabletRerank'
 
-  FIREWALL (nur WG-Interface, einmalig, elevated):
+  FIREWALL (nur Mesh-Subnetz, einmalig, elevated):
     New-NetFirewallRule -DisplayName 'llama-server TabletRerank (WG only)' `
       -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8080 `
-      -InterfaceAlias 'wg-mesh' -ErrorAction SilentlyContinue
+      -RemoteAddress 192.168.100.0/24 -ErrorAction SilentlyContinue
+    # Scope per Mesh-Subnetz statt InterfaceAlias: WireGuard fuer Windows
+    # benennt den Adapter nach dem Tunnel (pk-tablet), ein 'wg-mesh'-Alias
+    # existiert nicht. Die alte Regel band wirkungslos (SilentlyContinue
+    # verdeckte den Fehler), waehrend der Server auf 0.0.0.0:8080 lauschte.
 
   WARUM -np 2: Iris-RAM ist geteilter Systemspeicher; jede Parallelitaet
   kostet direkt Budget. Flags gespiegelt von k3d/llm-gpu.yaml (bge-rerank).

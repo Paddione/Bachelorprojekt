@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.279.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.2...website-v1.279.0) (2026-08-15)
+
+
+### Features
+
+* Laptop-bge-Topologie: Rerank auf PK-Tablet, Embedding auf PK-L-1 als Erstglieder [T006143] ([#4560](https://github.com/Paddione/Bachelorprojekt/issues/4560)) ([f384f06](https://github.com/Paddione/Bachelorprojekt/commit/f384f06f7c86f71947423d012fed710df2b772a0))
+
 ## [1.278.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.1...website-v1.278.2) (2026-08-15)
 
 

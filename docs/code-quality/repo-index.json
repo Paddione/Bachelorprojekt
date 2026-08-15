@@ -417,6 +417,7 @@
         "tests/spec/ci-cd/bats-no-live-branch-assertion.bats",
         "tests/spec/ci-cd/brainstorm-firewall-namespace.bats",
         "tests/spec/ci-cd/branch-allowlist-ssot.bats",
+        "tests/spec/ci-cd/branch-reaper-empty-answer.bats",
         "tests/spec/ci-cd/branch-reaper-freshness-regen.bats",
         "tests/spec/ci-cd/branch-reaper-local-ref.bats",
         "tests/spec/ci-cd/branch-reaper-sweep.bats",

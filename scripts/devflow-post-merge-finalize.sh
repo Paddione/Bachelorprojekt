@@ -216,28 +216,64 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
     # T006791: Vor der Archiv-Sektion den aktuellen Branch merken — die Sektion
     # wechselt per checkout -B den Branch des geteilten Arbeitsbaums (Worktree
     # oder Haupt-Checkout); der Restore in der Subshell-Trap stellt ihn nach der
-    # Sektion wieder her (auch auf Fehlerpfaden, T002357-Fallenklasse).
+    # Sektion wieder her (auch auf Fehlerpfaden, T002357-Fallenklasse). Zusaetzlich
+    # die SHA merken: auf detached HEAD liefert rev-parse --abbrev-ref HEAD nur
+    # "HEAD" und waere als Restore-Ziel unbrauchbar (Code-Review PR #4586).
     ARCHIVE_PREV_BRANCH="$(git -C "$ARCHIVE_DIR" rev-parse --abbrev-ref HEAD)"
+    ARCHIVE_PREV_SHA="$(git -C "$ARCHIVE_DIR" rev-parse HEAD 2>/dev/null || true)"
     (
       cd "$ARCHIVE_DIR"
       # T006791: Restore bei jedem Sektions-Ende — Happy-Path (nach Push/PR) und
       # Fehlerpfade (Subshell exit 1) hinterlassen den Arbeitsbaum auf dem
-      # gemerkten Branch. No-op, wenn kein Wechsel stattfand; Restore-Fehler
-      # enden mit Exit 1 statt still Erfolg zu melden.
+      # gemerkten Branch. Ownership-Guard (Code-Review PR #4586): Restore nur,
+      # wenn der Arbeitsbaum tatsaechlich auf dem Archiv-Branch steht — hat eine
+      # parallele Session zwischenzeitlich gewechselt (T002357), bleibt deren
+      # Wechsel unangetastet (WARN statt Restore). Detached HEAD wird ueber die
+      # gemerkte SHA zurueckgeholt (--detach). Restore-Fehler enden mit Exit 1
+      # statt still Erfolg zu melden.
       _restore_prev_branch() {
         local _prev_rc=$?
-        if [[ -n "$ARCHIVE_PREV_BRANCH" ]] && \
-           [[ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)" != "$ARCHIVE_PREV_BRANCH" ]]; then
-          if git checkout "$ARCHIVE_PREV_BRANCH" >/dev/null 2>&1; then
-            echo "Schritt 8: Branch-Restore auf $ARCHIVE_PREV_BRANCH nach Archiv-Sektion (T006791)"
-          else
-            echo "FATAL: Branch-Restore auf $ARCHIVE_PREV_BRANCH fehlgeschlagen — Arbeitsbaum bleibt auf $ARCHIVE_BRANCH (T006791)" >&2
-            _prev_rc=1
+        local _cur_branch
+        _cur_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+        if [[ "$_cur_branch" == "$ARCHIVE_BRANCH" ]]; then
+          if [[ "$ARCHIVE_PREV_BRANCH" == "HEAD" && -n "$ARCHIVE_PREV_SHA" ]]; then
+            if git checkout --detach "$ARCHIVE_PREV_SHA" >/dev/null 2>&1; then
+              echo "Schritt 8: Branch-Restore auf detached $ARCHIVE_PREV_SHA ausgefuehrt (T006791)"
+            else
+              # Code-Review PR #4586 (Finding 12): nicht behaupten, wo der Baum
+              # steht — der Restore kann aus unverwandtem Grund scheitern; der
+              # Zustand ist zu pruefen. Lock-Hinweis (Finding 6): bei Restore-
+              # Fehler bricht das Skript hier ab und der Lock bleibt zurueck.
+              echo "FATAL: Branch-Restore (detached) fehlgeschlagen — Arbeitsbaum-Zustand manuell pruefen, Lock ggf. raeumen (T006791)" >&2
+              _restore_failed=1
+            fi
+          elif [[ "$ARCHIVE_PREV_BRANCH" != "HEAD" ]]; then
+            if git checkout "$ARCHIVE_PREV_BRANCH" >/dev/null 2>&1; then
+              echo "Schritt 8: Branch-Restore auf $ARCHIVE_PREV_BRANCH ausgefuehrt (T006791)"
+            else
+              echo "FATAL: Branch-Restore auf $ARCHIVE_PREV_BRANCH fehlgeschlagen — Arbeitsbaum-Zustand manuell pruefen, Lock ggf. raeumen (T006791)" >&2
+              _restore_failed=1
+            fi
           fi
+          # Code-Review PR #4586 (Finding 5): Restore-Fehler aufklären — status
+          # zeigt, welche Änderungen den Wechsel blockieren (z. B. staged Move
+          # zwischen openspec.sh archive und git commit bei pre-commit-Fehler).
+          if [[ "${_restore_failed:-0}" == 1 ]]; then
+            git status --short >&2
+          fi
+        elif [[ "$_cur_branch" != "$ARCHIVE_PREV_BRANCH" ]]; then
+          echo "WARN: Arbeitsbaum steht auf $_cur_branch statt $ARCHIVE_BRANCH — paralleler Wechsel, Restore uebersprungen (T006791)" >&2
         fi
         exit "$_prev_rc"
       }
       trap _restore_prev_branch EXIT
+      # Order-Swap (Code-Review PR #4586): ERST auf den Archiv-Branch wechseln
+      # (von origin/main abzweigen, T002256), DANN archivieren und direkt auf
+      # dem Archiv-Branch committen — kein Streu-Commit auf dem Pre-Switch-
+      # Branch, kein cherry-pick (der auf einem dirty Baum oder einem bereits
+      # gemergten Commit verweigern kann).
+      git fetch origin main
+      git checkout -B "$ARCHIVE_BRANCH" origin/main
       bash scripts/openspec.sh archive "$SLUG"
       # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
       # Regeneration und explizites Staging nach plan-archive-steps (T002252).
@@ -245,12 +281,6 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
       git add -u -- website/src/data website/src/lib website/public/learning-assets docs
       git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
-      ARCHIVE_COMMIT="$(git rev-parse HEAD)"
-      # Der Archiv-Branch MUSS von origin/main abzweigen, nicht vom Fix-Branch
-      # (T002256) — squash-and-merge hinterlaesst den Fix-Branch am Pre-Squash-Stand.
-      git fetch origin main
-      git checkout -B "$ARCHIVE_BRANCH" origin/main
-      git cherry-pick "$ARCHIVE_COMMIT"
       git push -u origin "$ARCHIVE_BRANCH"
       # PR-Erstellung mit Assert (verhindert ungebuendelte Archiv-Branches, T001331)
       ARCHIVE_PR_URL="$(gh pr create \
@@ -305,7 +335,14 @@ else
 fi
 
 if git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
-  if git -C "$REPO_DIR" branch -D "$BRANCH"; then
+  if [[ "$(git -C "$REPO_DIR" rev-parse --abbrev-ref HEAD)" == "$BRANCH" ]]; then
+    # T006791: Der Restore hat den geteilten Haupt-Checkout auf $BRANCH
+    # zurueckgestellt — ein ausgecheckter Branch ist nicht loeschbar
+    # ("cannot delete branch used by worktree"). Der lokale Branch bleibt als
+    # Arbeitsbaum-Zustand erhalten; der Remote-Branch wird vom branch-reaper
+    # unten entfernt (Code-Review PR #4586, Finding 2).
+    mark_skip "Schritt 10: lokaler Branch $BRANCH ist im Haupt-Checkout ausgecheckt (Restore) — bleibt erhalten, Remote-Delete via branch-reaper"
+  elif git -C "$REPO_DIR" branch -D "$BRANCH"; then
     mark_ok "Schritt 10: lokaler Branch $BRANCH entfernt"
   else
     echo "ERROR: Schritt 10 — lokaler Branch $BRANCH nicht loeschbar." >&2

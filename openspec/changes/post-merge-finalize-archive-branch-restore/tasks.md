@@ -18,12 +18,16 @@ auch auf Fehlerpfaden. Der BATS-Guard Assertion 5
 (`tests/spec/agent-skills/post-merge-finalize-guards.bats`) wird von `skip` auf eine echte
 Assertion zurückgestellt (im Stage-Commit bereits geschehen).
 
-**Architecture:** Der Fix lebt in der Archiv-Sektion (Z. ~209–246): PREV-Merken im
-Hauptfluss vor der Subshell, Restore als EXIT-Trap IN der Subshell. Die Trap deckt sowohl den
-Happy-Path (nach Push/PR) als auch die Fehlerpfade (`gh pr create`/`gh pr merge` FATAL →
-Subshell-Exit 1) ab — die naheliegende Restore-Nach-der-Subshell-Variante liefe bei
-`set -euo pipefail`-Abbruch nie und hinterließe genau im Fehlerfall den gewechselten
-Arbeitsbaum (T002357-Fallenklasse, siehe design.md).
+**Architecture:** Der Fix lebt in der Archiv-Sektion: PREV-Merken (Branch + SHA für
+detached HEAD) im Hauptfluss vor der Subshell, Restore als EXIT-Trap IN der Subshell mit
+Ownership-Guard (Restore nur, wenn der Baum auf dem Archiv-Branch steht — parallele
+Wechsel bleiben unangetastet). Die Sektion wechselt per Order-Swap (Review PR #4586)
+zuerst auf den Archiv-Branch von origin/main und committet die Archivierung direkt dort —
+kein Streu-Commit, kein cherry-pick. Die Trap deckt sowohl den Happy-Path (nach Push/PR)
+als auch die Fehlerpfade (`gh pr create`/`gh pr merge` FATAL → Subshell-Exit 1) ab — die
+naheliegende Restore-Nach-der-Subshell-Variante liefe bei `set -euo pipefail`-Abbruch nie
+und hinterließe genau im Fehlerfall den gewechselten Arbeitsbaum (T002357-Fallenklasse,
+siehe design.md).
 
 **Tech Stack:** Bash (Skript-Subshell), git (`git -C "$ARCHIVE_DIR" rev-parse`,
 `git checkout`), BATS (vendored, `tests/unit/lib/bats-core/bin/bats`).
@@ -34,12 +38,15 @@ Arbeitsbaum (T002357-Fallenklasse, siehe design.md).
 ## Global Constraints
 
 - Kein Verhalten der Archiv-Sektion selbst ändern (Archive-Commit, checkout -B,
-  cherry-pick, push, gh pr create/merge bleiben unverändert) — nur PREV-Merken + Restore.
+  push, gh pr create/merge bleiben unverändert) — nur PREV-Merken + Restore +
+  Order-Swap der Commit-Reihenfolge (cherry-pick entfällt komplett).
 - Der Restore darf den Subshell-Exit-Code nicht verschlucken: Fehler in der Sektion
-  enden weiterhin mit Exit 1, ein Restore-Fehler ebenfalls (FATAL auf stderr).
+  enden weiterhin mit Exit 1, ein Restore-Fehler ebenfalls (FATAL auf stderr +
+  status-Dump).
 - BATS-Guard Assertion 5 bleibt im Source-Grep-Modus (dokumentierte Ausnahme von
   T002448-M4: der Laufzeitpfad braucht Cluster/DB) — die Datei dokumentiert den Modus
-  bereits im Header.
+  bereits im Header; die Restore-Mechanik wurde zusätzlich isoliert in einem
+  Bare-Git-Repo + Fake-openspec.sh verifiziert (Code-Review PR #4586).
 - Positiv-Anker (Test 4, `refs/heads/$ARCHIVE_BRANCH`) bleibt unangetastet.
 
 ## File Structure
@@ -68,44 +75,18 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/post-merge-finalize-gu
 # Variable im Skript noch nicht existiert (verifiziert am 2026-08-15 gegen main).
 ```
 
-### Task 2: [x] Fix implementieren — ARCHIVE_PREV_BRANCH merken + Restore-Trap
+### Task 2: [x] Fix implementieren — ARCHIVE_PREV_BRANCH merken + Restore-Trap (Order-Swap)
 
 Datei: `scripts/devflow-post-merge-finalize.sh`, Archiv-Sektion (`if [[ -n "${ARCHIVE_DIR:-}" ]]`).
-
-Schritt 2.1 — PREV im Hauptfluss merken, direkt vor der Subshell (im `else`-Zweig nach dem
-ls-remote-Skip, vor `(`):
-
-```bash
-      # T006791: Vor der Archiv-Sektion den aktuellen Branch merken — die Sektion
-      # wechselt per checkout -B den Branch des geteilten Arbeitsbaums (Worktree
-      # oder Haupt-Checkout); der Restore in der Subshell-Trap stellt ihn nach der
-      # Sektion wieder her (auch auf Fehlerpfaden, T002357-Fallenklasse).
-      ARCHIVE_PREV_BRANCH="$(git -C "$ARCHIVE_DIR" rev-parse --abbrev-ref HEAD)"
-```
-
-Schritt 2.2 — Restore-Trap als ersten Befehl IN der Subshell (nach `cd "$ARCHIVE_DIR"`,
-vor `bash scripts/openspec.sh archive "$SLUG"`):
-
-```bash
-        # T006791: Restore bei jedem Sektions-Ende — Happy-Path (nach Push/PR) und
-        # Fehlerpfade (Subshell exit 1) hinterlassen den Arbeitsbaum auf dem
-        # gemerkten Branch. No-op, wenn kein Wechsel stattfand; Restore-Fehler
-        # enden mit Exit 1 statt still Erfolg zu melden.
-        _restore_prev_branch() {
-          local _prev_rc=$?
-          if [[ -n "$ARCHIVE_PREV_BRANCH" ]] && \
-             [[ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)" != "$ARCHIVE_PREV_BRANCH" ]]; then
-            if git checkout "$ARCHIVE_PREV_BRANCH" >/dev/null 2>&1; then
-              echo "Schritt 8: Branch-Restore auf $ARCHIVE_PREV_BRANCH nach Archiv-Sektion (T006791)"
-            else
-              echo "FATAL: Branch-Restore auf $ARCHIVE_PREV_BRANCH fehlgeschlagen — Arbeitsbaum bleibt auf $ARCHIVE_BRANCH (T006791)" >&2
-              _prev_rc=1
-            fi
-          fi
-          exit "$_prev_rc"
-        }
-        trap _restore_prev_branch EXIT
-```
+Umgesetzter Stand (PR #4586 + Review-Fixes): siehe design.md — Capture von Branch + SHA
+im Hauptfluss vor der Subshell; EXIT-Trap `_restore_prev_branch` in der Subshell mit
+Ownership-Guard (`HEAD == $ARCHIVE_BRANCH` → Restore; sonst WARN bei parallelem Wechsel);
+Restore-Fehler → FATAL + `git status --short` + Lock-Hinweis, Exit 1. Sektion im
+Order-Swap: erst `git fetch origin main` + `git checkout -B "$ARCHIVE_BRANCH" origin/main`,
+dann `bash scripts/openspec.sh archive "$SLUG"` + `task freshness:regenerate` + Commit
+direkt auf dem Archiv-Branch + `git push -u`. Schritt 10 überspringt den Delete, wenn
+der Ticket-Branch nach dem Restore im Haupt-Checkout ausgecheckt ist (mark_skip statt
+ERROR/exit 1 — Review-Finding 2, sonst wäre jeder Main-Checkout-Lauf dauerhaft rot).
 
 Erwartung: `mark_ok "Schritt 8: OpenSpec-Change archiviert (Archiv-PR erstellt)"` bleibt
 unverändert; im Normal-Lauf erscheint zusätzlich die Restore-Meldung der Trap.
@@ -135,3 +116,20 @@ git push origin fix/devflow-post-merge-finalize-archive-restore-T006791
   Parent-Slug `agent-skills.md` benannt (T001304).
 - Der Commit-msg-Guard (`check-commit-vs-diff.sh`) verlangt hier `fix(scripts):`, weil der
   Diff Production-Code (Skript) + Tests enthält.
+
+### Task 5: [x] Review-Fixes PR #4596 (nachgeholt, da PR #4586 vor Fertigstellung auto-gemergt)
+
+Code-Review zu PR #4586 lieferte 15 Findings; die Kern-Fixes (Order-Swap,
+Ownership-Guard, detached-HEAD-SHA) waren bereits im gemergten Stand, die folgenden
+kamen als Follow-up-PR #4596 auf main:
+
+- Schritt 10: ausgecheckter Ticket-Branch nach Restore → `mark_skip` statt
+  `ERROR ... exit 1` (Finding 2 — ohne Fix wäre der Batch-Pfad permanent rot).
+- FATAL-Meldungen präzisiert: keine Behauptung über den Ist-Zustand des Baums,
+  Lock-Räum-Hinweis (Findings 6/12); `git status --short`-Dump bei Restore-Fehler
+  (Finding 5).
+- BATS Assertion 5 geschärft: prüft zusätzlich `trap _restore_prev_branch EXIT`
+  (Finding 11 — die reine Capture-Variable wäre vakuos).
+- Stale Zeilennummern-Kommentare in der BATS-Datei entfernt (Finding 13, T003104).
+- design.md/proposal.md: Fix-Ansatz auf Order-Swap aktualisiert, Belege mit
+  T002717-Pin (8422d5b39) nachstellbar gemacht (Finding 15).

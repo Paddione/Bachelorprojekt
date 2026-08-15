@@ -4,7 +4,7 @@
 # Ticket: T006840 (erweitert in T007033 — P2.5-Reviewer-Findings)
 #
 # SICHERT: die beiden Unterstuetzermodelle aus E6 des Designs
-# 2026-08-15-laptop-bge-topologie (T006143) — Gemma-4-E4B UD-Q4_K_XL (~2,7 GB,
+# 2026-08-15-laptop-bge-topologie (T006143) — Gemma-4-E2B UD-Q4_K_XL (~2,97 GiB,
 # PK-Tablet) und Qwen3.5-4B Q6_K (~3,3 GB, PK-L-1) — sind als benannte Slots im
 # "lmstudio"-Provider-Block von .opencode/agent-models.jsonc registriert und
 # ueber den llm-proxy (:18235) sichtbar. Die Eintraege folgen dem Muster
@@ -18,11 +18,16 @@
 # - Testfall 3: ERGEBNIS-basiert — der Test fragt die echte Discovery
 #   :18235/v1/models des laufenden llm-proxy ab und bewertet die Modellliste.
 #
-# P2.5 (T007033, Reviewer-Findings aus T006840):
+# P2.5 (T007033, Reviewer-Findings aus T006840) / T007055:
 # - Testfall 1 prueft seit T007033 auch die GEMESSENEN Limits (limit.context
 #   32768, limit.output 4096 — K3-Messung 2026-08-15, k3-messung.sh
 #   qwen3.5-4b@q6_k 5, ~7,8-9,5 tok/s Decode, Thinking nicht abschaltbar,
 #   Repo-Stand 47c5abca6) und den E4B-Slot statt des 12B-Slots.
+# - T007055 (2026-08-15): Tablet-Slot auf gemma-4-e2b@ud-q4_k_xl umgestellt —
+#   HF-Beleg 3.184.496.736 Bytes (~2,97 GiB) statt der falschen E4B-Groesse
+#   (~2,7 GB geschaetzt, real 4,77 GiB). limit.context 16384 fuer das
+#   8-GB-RAM-Budget des Iris-Plus-Tablets; die Tablet-K3-Messung folgt im
+#   Geraete-Folgetask (T007055-Geraeteteil).
 # - Testfall 3 skippt NUR bei exakt dem dokumentierten D1-Baseline-Stand (nur
 #   deepseek-IDs, Geraete offline) — jede geaenderte, nicht matchende
 #   Modellliste bleibt ROT (D1-Mismatch) statt zu skippen.
@@ -87,7 +92,7 @@ _require_proxy() {
   fi
 }
 
-@test "T006840: lmstudio-Slots gemma-4-e4b@ud-q4_k_xl und qwen3.5-4b@q6_k sind deklariert (Limits 32768/4096)" {
+@test "T006840: lmstudio-Slots gemma-4-e2b@ud-q4_k_xl und qwen3.5-4b@q6_k sind deklariert (Limits 16384/4096 bzw. 32768/4096)" {
   local block active
   block="$(lmstudio_block)"
   active="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*(#|//)' || true)"
@@ -95,22 +100,23 @@ _require_proxy() {
   # Trefferzahl == 1 je Slot im aktiven Text des lmstudio-Blocks (formatfrei,
   # T002716); -- beendet die Options-Parsing-Phase (T003108). Direkte
   # Argument-Uebergabe statt Inline-bash -c (Quote-Fix, P2.5/T007033).
-  run grep -c -- '"gemma-4-e4b@ud-q4_k_xl"' <<<"$active"
+  run grep -c -- '"gemma-4-e2b@ud-q4_k_xl"' <<<"$active"
   [ "$output" -eq 1 ]
 
   run grep -c -- '"qwen3.5-4b@q6_k"' <<<"$active"
   [ "$output" -eq 1 ]
 
-  # GEMESSEN-Limit-Pinning (K3, T007033): beide Slots tragen limit.context
-  # 32768 und limit.output 4096. Gezielt JE Eintrag statt im ganzen Block
-  # (T003104 — keine Positions-/Zufallstreffer-Messung).
-  local e4b qwen
-  e4b="$(slot_entry 'gemma-4-e4b@ud-q4_k_xl')"
+  # Limit-Pinning: der Tablet-Slot traegt limit.context 16384 (8-GB-RAM-Budget
+  # des Iris-Plus-Tablets, T007055) und limit.output 4096; qwen traegt die
+  # GEMESSENEN 32768/4096 (K3, T007033). Gezielt JE Eintrag statt im ganzen
+  # Block (T003104 — keine Positions-/Zufallstreffer-Messung).
+  local e2b qwen
+  e2b="$(slot_entry 'gemma-4-e2b@ud-q4_k_xl')"
   qwen="$(slot_entry 'qwen3.5-4b@q6_k')"
 
-  run grep -c -- '"context": 32768' <<<"$e4b"
+  run grep -c -- '"context": 16384' <<<"$e2b"
   [ "$output" -eq 1 ]
-  run grep -c -- '"output": 4096' <<<"$e4b"
+  run grep -c -- '"output": 4096' <<<"$e2b"
   [ "$output" -eq 1 ]
 
   run grep -c -- '"context": 32768' <<<"$qwen"
@@ -126,7 +132,7 @@ _require_proxy() {
   local block active
   block="$(lmstudio_block)"
   active="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*(#|//)' || true)"
-  run grep -c -- '"gemma-4-e4b@ud-q4_k_xl"' <<<"$active"
+  run grep -c -- '"gemma-4-e2b@ud-q4_k_xl"' <<<"$active"
   [ "$output" -eq 1 ]
   run grep -c -- '"qwen3.5-4b@q6_k"' <<<"$active"
   [ "$output" -eq 1 ]
@@ -138,7 +144,7 @@ _require_proxy() {
   # Eintraege hier bleiben portfrei (erreicht ueber den llm-proxy :18235, nie
   # direkt ueber ein Backend).
   local entries
-  entries="$(slot_entry 'gemma-4-e4b@ud-q4_k_xl' | grep -vE '^[[:space:]]*(#|//)'; slot_entry 'qwen3.5-4b@q6_k' | grep -vE '^[[:space:]]*(#|//)')"
+  entries="$(slot_entry 'gemma-4-e2b@ud-q4_k_xl' | grep -vE '^[[:space:]]*(#|//)'; slot_entry 'qwen3.5-4b@q6_k' | grep -vE '^[[:space:]]*(#|//)')"
 
   run grep -cE -- ':1234|:8093' <<<"$entries"
   [ "$output" -eq 0 ]
@@ -178,7 +184,7 @@ _require_proxy() {
   # Test rot (Halb-Online-Fall und D1-Mismatch-Fall).
   # Substring-Vergleich (formatfrei, T002716): LM Studio kann die IDs mit
   # Datei-/Repo-Praefix melden (z. B. lmstudio-community/...).
-  run grep -c -- 'gemma-4-e4b@ud-q4_k_xl' <<<"$ids"
+  run grep -c -- 'gemma-4-e2b@ud-q4_k_xl' <<<"$ids"
   [ "$output" -eq 1 ]
 
   run grep -c -- 'qwen3.5-4b@q6_k' <<<"$ids"

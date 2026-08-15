@@ -3819,6 +3819,12 @@
       "status": "archived"
     }
   ],
+  "T006365": [
+    {
+      "slug": "worktree-write-guard-session-propagation",
+      "status": "plan_staged"
+    }
+  ],
   "T006368": [
     {
       "slug": "2026-08-15-spec-junit-shard-ignore",

@@ -1,4 +1,4 @@
-# USER.md - About Your Human
+# user.md — About Your Human
 
 - **Name:** Patrick Korczewski
 - **What to call them:** Patrick

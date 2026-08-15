@@ -1,7 +1,7 @@
 ---
 title: "branch-reaper-keep-allowlist — Implementation Plan"
 ticket_id: T007032
-domains: [plan-authoring]
+domains: [dev-tooling, ci-cd]
 status: active
 file_locks: []
 shared_changes: false
@@ -12,31 +12,42 @@ depends_on_plans: []
 
 # branch-reaper-keep-allowlist — Implementation Plan
 
-_Ticket: T007032_
+_Ticket: T007032 — branch-reaper: KEEP bei gemergten Branches — Allowlist deckt specs/scripts/tests nicht ab_
 
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+scripts/branch-reaper.sh                                                   (p1 — MERGED-PR-Positiv-Signal; Ist 310 - Baseline 0 -> Budget 490)
+tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats                       (p2 — BATS-Positiv-Signal-Tests; NEU)
+openspec/changes/branch-reaper-keep-allowlist/specs/ci-cd.md               (p2 — Delta-Spec: Merged PRs Are a Positive Reaping Signal; NEU)
 ```
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | `tasks.d/p1-implement.md` | impl | `scripts/branch-reaper.sh` | |
+| p2 | `tasks.d/p2-tests.md` | tests | `tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats`, `openspec/changes/branch-reaper-keep-allowlist/specs/ci-cd.md` | p1 |
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+- [ ] **Failing-Test-Step (RED).** Der BATS-Test reproduziert den Befund aus T007032:
+      Branch mit Ticket-ID, done-Ticket und eigenem MERGED-PR (headRefOid == Remote-Tip)
+      wird trotz Abweichung ausserhalb der ALLOWLIST nicht gereapt (Kernfall: gemergter
+      Branch mit `scripts/echt.sh`-Änderung landet in 'KEEP ... abweichende Datei ausserhalb
+      der Allowlist'). Die Positiv-Anker (Tests 1, 5, 10) MÜSSEN auf dem aktuellen Branch
+      fehlschlagen.
 
 ```bash
-# Example: run the BATS test the author will add in their first task
-# (eigene Datei unter tests/spec/<spec-slug>/<kurz-slug>.bats, T002416)
-tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/
-# expected: FAIL (red — the fix is not yet implemented)
+tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats
+# expected: FAIL (red — die Positiv-Anker scheitern am fehlenden MERGED-PR-Signal)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
+- [ ] **Fix-Step (GREEN).** Implementiere p1 (Positiv-Signale im branch-reaper). Der
+      BATS-Test aus dem vorherigen Schritt muss nun grün sein (9/9), die bestehenden
+      Reaper-Tests bleiben grün (Regression).
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [ ] **Final Verification.** Drei Pflicht-Gates:
 
 ```bash
 task test:changed

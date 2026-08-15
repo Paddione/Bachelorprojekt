@@ -3084,6 +3084,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory-watchdog/merged-ticket-close",
+    "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+    "category": "factory-watchdog",
+    "kind": "shell"
+  },
+  {
     "id": "factory-watchdog/stale-type-coverage",
     "file": "tests/spec/factory-watchdog/stale-type-coverage.bats",
     "category": "factory-watchdog",
@@ -4724,6 +4730,12 @@
   {
     "id": "software-factory/factory-prep-worktree-reuse",
     "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/merged-dispatch-gate",
+    "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
     "category": "software-factory",
     "kind": "shell"
   },

@@ -3801,6 +3801,12 @@
       "status": "plan_staged"
     }
   ],
+  "T006297": [
+    {
+      "slug": "factory-merged-dispatch-gate",
+      "status": "plan_staged"
+    }
+  ],
   "T006298": [
     {
       "slug": "2026-08-15-stash-drop-renumbering",

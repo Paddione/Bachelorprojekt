@@ -95,8 +95,15 @@ PLAN
   _assert_derive_ran
   [[ "$output" == *"k3d/brett.yaml"* ]]
   [[ "$output" == *"k3d/docs.yaml"* ]]
-  # Spaltenueberschriften sind keine Pfade.
-  [[ "$output" != *"Action"* ]]
+  # Spaltenueberschriften sind keine Pfade. Exakt-Zeilen-Semantik statt
+  # Substring (T002716): der T002765-Diff-Beitrag ergaenzt real geaenderte
+  # Dateien — legitime `*Action*.svelte`-Namen (CallToAction, TicketActionBar)
+  # wuerden den Substring-Anker faelschlich rot faerben. Die Tabellen-Ueberschrift
+  # waere als abgeleiteter Pfad eine exakte Zeile `Action`.
+  # Negation explizit: `cmd && return 1` als letzte Zeile endet bei Nicht-Match
+  # mit greps Exit 1, den bats als Testfehler wertet — `! cmd` macht das Semantik
+  # (Nicht-Match ist Erfolg) und den Exit-Code deckungsgleich.
+  ! grep -qxF 'Action' <<<"$output"
 }
 
 @test "T002446: Nicht-Pfade werden aussortiert, echte Pfade daneben bleiben" {

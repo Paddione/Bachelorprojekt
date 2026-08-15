@@ -29,7 +29,11 @@ EXCLUDED_SKILLS=(gitops-repo-audit gitops-knowledge gitops-cluster-debug vitest 
 
 # Extraktionsmuster: repo-relative Pfade mit Dateiendung unter den bekannten
 # Wurzelpräfixen. Anhänge wie `:45`, `REQ-…` oder `)` werden beim Strippen entfernt.
-PATH_PATTERN='\b(openspec|scripts|tests|docs|website|k3d|environments|flux)/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
+# Seit T006999 (website/ -> components/website/) steht `components/website` vor dem
+# bare-`website` in der Alternation: GNU grep (POSIX-ERE) wählt leftmost-longest,
+# so extrahiert ein Verweis auf components/website/src/... den Endzustands-Pfad
+# und nicht den Substring website/src/... (der nicht mehr existiert).
+PATH_PATTERN='\b((components/website)|(openspec|scripts|tests|docs|website|k3d|environments|flux))/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
 
 # Alle zu prüfenden Skill-Dateien: `.md` unter `.claude/skills/` rekursiv (inkl.
 # `references/`), außer `OVERVIEW.md` an der Wurzel und außer der Ausnahmeliste.

@@ -102,7 +102,8 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   und steht bisher nur im Kopf von `scripts/ticket.sh`. Ein Triage-Lauf las dadurch drei
   bereits-done Tickets als offen und löste redundante Closure-Writes aus. Für
   **Ticket-Zustand** (offen/geschlossen, Status, `readiness`) IMMER `mcp__ticket-mcp__*` oder
-  den `psql()`-Fallback gegen die richtige DB nutzen; `mcp-postgres` nur für Nicht-Ticket-Reads
+  den `psql()`-Fallback gegen die richtige DB nutzen (der Helper unten zielt auf
+  `k3d-mentolder-dev`, BRAND-Routing [T006285]); `mcp-postgres` nur für Nicht-Ticket-Reads
   (`knowledge.*`, `v_timeline`), deren Freeze-Stand unkritisch ist.
 - **Wann bevorzugen:** Read-only SELECTs gegen `knowledge.*`, `v_timeline` oder andere
   Nicht-Ticket-Tabellen. Für Ticket-Queries → `mcp__ticket-mcp__get_ticket` /
@@ -113,13 +114,18 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   ```bash
   # --field-selector ist Pflicht [T002307]: ohne ihn kann ein Completed-Pod vorne einsortiert
   # werden und jeder folgende exec stirbt an "cannot exec into a container in a completed pod".
-  PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db \
+  # BRAND-Routing wie scripts/ticket.sh [T002689]: die Ticket-SSOT liegt lokal auf
+  # k3d-mentolder-dev (beide Brands in dieser einen DB) — die fleet-Kopie ist eingefroren
+  # [T002785-4]. fleet-Historie nur via explizitem TICKET_CTX=fleet (wie ticket.sh) [T006285].
+  PGPOD=$(kubectl get pod -n workspace --context k3d-mentolder-dev -l app=shared-db \
     --field-selector status.phase=Running -o name | head -1)
-  psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
+  psql() { kubectl exec "$PGPOD" -n workspace --context k3d-mentolder-dev -c postgres -- psql -U website -d website "$@"; }
   ```
-- ⚠️ **kubectl exec Timeout [T002261]:** Schreibende `psql()`-Aufrufe über `kubectl exec` gegen
-  `fleet` brauchen großzügige Timeouts (≥120s) — der Verbindungsabbau über WireGuard dauert
-  messbar länger als lokaler `psql`. Ein Exit-Code 143 (SIGTERM/Timeout) bedeutet **nicht**, dass
+- ⚠️ **kubectl exec Timeout [T002261]:** Der Helper oben zielt auf die lokale k3d-dev-DB — der
+  Verbindungsweg ist kurz, Timeouts sind dort unkritisch. Wer den Kontext bewusst auf `fleet`
+  umstellt (`TICKET_CTX=fleet`, siehe `ticket.sh`), braucht großzügige Timeouts (≥120s) — der
+  Verbindungsabbau über WireGuard dauert messbar länger als lokaler `psql`. Ein Exit-Code 143
+  (SIGTERM/Timeout) bedeutet **nicht**, dass
   das `UPDATE` fehlgeschlagen sein muss — oft war das Statement bereits committed, bevor der
   Timeout den Session-Abbau trifft. Ergebnis deshalb grundsätzlich per separatem `SELECT`
   verifizieren, **nicht** am Exit-Code festmachen. Bei idempotenten

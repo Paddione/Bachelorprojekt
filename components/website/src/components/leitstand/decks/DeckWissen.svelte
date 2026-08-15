@@ -80,7 +80,7 @@
   <p class="deck-wissen__hint">Vollständiger, filterbarer Katalog folgt in E4</p>
 
   <h2 class="deck-wissen__heading">OpenSpec-Suche</h2>
-  <form class="deck-wissen__search" onsubmit|preventDefault={search}>
+  <form class="deck-wissen__search" onsubmit={(e) => { e.preventDefault(); search(); }}>
     <input
       type="search"
       placeholder="Change, Spec oder Ticket…"

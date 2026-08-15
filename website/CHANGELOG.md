@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.281.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.4...website-v1.281.5) (2026-08-15)
+
+
+### Bug Fixes
+
+* **factory:** mishap-rollup blockiert — Batch-Inhalt als Blockquote + Lock-Release aus Repo-Root [T007000] ([#4625](https://github.com/Paddione/Bachelorprojekt/issues/4625)) ([e4c292d](https://github.com/Paddione/Bachelorprojekt/commit/e4c292d63ffead959e870f67a55387dd5e935d21))
+
 ## [1.281.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.3...website-v1.281.4) (2026-08-15)
 
 

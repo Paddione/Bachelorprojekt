@@ -5,6 +5,11 @@ description: Use in opencode for maintenance work with no behavior change — do
 
 # opencode-flow-chore — Wartung direkt ausführen & mergen (opencode)
 
+> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
+> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
+> `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
+> Haupt-Checkout landen (T002357-Falle).
+
 ## Wann diese Skill greift
 
 Eine **Chore**: Wartung ohne Verhaltensänderung. Chores brauchen **keinen** Plan und **keinen** `opencode-flow-execute`-Handoff. Für Features/Fixes stattdessen `opencode-flow-plan` nutzen.
@@ -32,7 +37,8 @@ Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, richte einen Cr
 
 ```bash
 bash scripts/worktree-create.sh chore/<slug> .worktrees/<slug>
-bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label opencode-flow-chore
+WT="$MAIN_REPO/.worktrees/<slug>"
+bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$WT" --label opencode-flow-chore
 ```
 
 > **`cd` wirkt nur auf Bash (T002357):** Ab hier MÜSSEN alle Datei-Tool-Pfade (Read/Write/Edit)
@@ -83,8 +89,8 @@ Lock-Worktree heraus verweigert `agent-lock.sh release branch` den Release, weil
 nachfolgende Worktree-Remove die Shell-cwd zerstören würde), dann:
 
 ```bash
-git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug>
-git push origin --delete chore/<slug>
+git -C "$MAIN_REPO" worktree remove .worktrees/<slug> --force && git -C "$MAIN_REPO" branch -D chore/<slug>
+git -C "$MAIN_REPO" push origin --delete chore/<slug>
 ```
 
 ## Schritt 7: Deploy (falls nötig)

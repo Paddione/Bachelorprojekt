@@ -7,6 +7,12 @@ description: Use in opencode when on a feature/* or fix/* branch that has a stag
 
 Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `done/shipped`, OpenSpec archiviert.
 
+> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
+> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
+> Die T002357-Falle schlägt auch im Bash-Git-Pfad zu: `cd` wirkt nur auf den
+> aktuellen Bash-Call, Datei-Tools nehmen absolute Pfade — ein bare `git commit`
+> landet sonst auf dem falschen Branch (Main-Checkout statt Worktree).
+
 ## Ticket-ID ermitteln
 
 Falls unbekannt: `mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`. Bei mehreren User fragen.
@@ -300,6 +306,7 @@ T005307). Ohne bestandenes Gate gibt es keinen Auto-Merge: fail-closed im Prozes
 Delegate to `opencode-git-workflow` Steps 2–6:
 
 ```bash
+cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree (T006367)"; exit 1; }
 bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [$TICKET_ID]"
 gh pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
 ```

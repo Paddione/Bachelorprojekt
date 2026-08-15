@@ -5,6 +5,11 @@ description: 'Use for maintenance with NO behavior change — documentation, dep
 
 # dev-flow-chore — Wartung direkt ausführen & mergen
 
+> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
+> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
+> `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
+> Haupt-Checkout landen (T002357-Falle).
+
 ## Wann diese Skill greift
 
 Eine **Chore**: Wartung ohne Verhaltensänderung — Doku, Dependency-Bumps, Config/Rename, CI-Tweaks,
@@ -102,6 +107,8 @@ bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label
 > explizit den Worktree-Präfix (`.worktrees/<slug>/...`) tragen. `cd` ändert nur das Bash-cwd,
 > nicht den Bezugspunkt der Datei-Tools — ein zu Session-Beginn im Hauptcheckout korrekter Pfad
 > bleibt syntaktisch gültig und trifft danach still die falsche Arbeitskopie (Mishap T002350).
+> Dasselbe gilt für Git-Aufrufe in Bash: ohne `git -C <worktree>` oder cd+Guard kann ein bare
+> `git commit` im Haupt-Checkout landen (cwd-Regel oben, T006367).
 
 > Enthält `<slug>` eine wiederverwendete `TICKET_EXT_ID` (z.B. `T001869`), sollte deren Ticketnummer
 > im Slug vorkommen (z.B. `doc-cleanup-T001869`) — `preflight-pr-scope.sh` prüft das PR-Titel↔Branch-
@@ -165,10 +172,10 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 **`git-workflow` Schritt 7** (SSOT): Im Haupt-Repo zuerst den Agent-Lock freigeben
 ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md) —
 `release ticket` + `release branch`, ohne stderr-Unterdrückung, T006290), dann
-`git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug> && git push origin --delete chore/<slug>` im Haupt-Repo.
+`git -C "$MAIN_REPO" worktree remove .worktrees/<slug> --force && git -C "$MAIN_REPO" branch -D chore/<slug> && git -C "$MAIN_REPO" push origin --delete chore/<slug>` im Haupt-Repo.
 
 Beim Test-only-Kurzpfad (Schritt 1) gibt es keinen Worktree zu entfernen — nur
-`bash scripts/agent-lock.sh release main-checkout`, `git checkout main`, dann `git branch -D chore/<slug>` und `git push origin --delete chore/<slug>`.
+`bash scripts/agent-lock.sh release main-checkout`, `git -C "$MAIN_REPO" checkout main`, dann `git -C "$MAIN_REPO" branch -D chore/<slug>` und `git -C "$MAIN_REPO" push origin --delete chore/<slug>`.
 
 ## Schritt 7: Deploy (falls nötig)
 

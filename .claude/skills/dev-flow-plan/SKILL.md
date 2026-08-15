@@ -3,6 +3,12 @@ name: dev-flow-plan
 description: 'Use to choose the development path (feature/fix/chore), run brainstorming, and generate a design spec and implementation plan.'
 ---
 # dev-flow-plan — Pfad-Wahl, Brainstorming & Plan
+
+> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
+> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
+> `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
+> Haupt-Checkout landen (T002357-Falle).
+
 ## Wann diese Skill greift
 Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 **Sage zu Beginn:** "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."
@@ -127,7 +133,9 @@ und committed Proposals, nicht nur das eigene Branch-Delta. Erst danach entsteht
 
 > **`cd` wirkt nur auf Bash (T002357):** Ab Phase B tragen alle Datei-Tool-Pfade (Read/Write/Edit)
 > zwingend den Worktree-Präfix — `cd` ändert nur das Bash-cwd, nicht den Bezugspunkt der
-> Datei-Tools. Begründung und Prüfbefehl stehen bei der `cd`-Sequenz in `dev-flow-plan-phases.md`.
+> Datei-Tools. Dasselbe gilt für Git-Aufrufe in Bash: ohne `git -C <worktree>` oder cd+Guard
+> kann ein bare `git commit` im Haupt-Checkout landen (cwd-Regel oben, T006367). Begründung
+> und Prüfbefehl stehen bei der `cd`-Sequenz in `dev-flow-plan-phases.md`.
 
 Vollständige Schrittfolge aller drei Phasen samt Befehlen, Decompose-/Fan-out-Mechanik
 (Schritt 3.7) und Kontext-Injektion für Plan-Subagenten:
@@ -225,10 +233,11 @@ bash scripts/plan-preflight.sh pre-commit --ticket "$TICKET_EXT_ID"
 
 Erst nach diesem Check darf `git commit` und `git push` laufen. Damit verweigern wir stale plan-stage commits auf `main`.
 ```bash
-# Sicherheitscheck: Branch-Guard [T000321]
-git add openspec/changes/<slug>/
-git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
-git push -u origin $(git branch --show-current)
+# Sicherheitscheck: Branch-Guard [T000321]; Git immer mit explizitem Worktree-Pfad
+# (cwd-Regel, T006367) — WT ist in Phase B definiert (dev-flow-plan-phases.md §B.2).
+git -C "$WT" add openspec/changes/<slug>/
+git -C "$WT" commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
+git -C "$WT" push -u origin "$(git -C "$WT" branch --show-current)"
 
 # ERST JETZT stagen [T002673] — stage-plan liest den Plan aus dem Branch-Commit,
 # vorher stünde dort noch das propose-Skeleton und touched_files bliebe leer.
@@ -275,9 +284,11 @@ Root-Cause-Fokus, failing Test, Plan, `stage-plan`, Commit):
 Der abschließende Stage-Commit des Fix-Pfads:
 
 ```bash
+# [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT aus dev-flow-plan-phases.md §B.2)
+cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
 git add tests/ openspec/changes/<slug>/tasks.md
 git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
-git push -u origin $(git branch --show-current)
+git push -u origin "$(git branch --show-current)"
 ```
 
 > **Commit-Titel-Konvention für Plan-Stage-Commits:** Der Stage-Commit enthält NUR den RED-Test

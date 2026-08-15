@@ -522,17 +522,17 @@ while IFS= read -r path; do
 done < <(_structural_file_tokens "$PLAN_PROSE")
 
 # === W1: Vitest advisory — website/src (bzw. components/website/src) .ts/.svelte/.astro files without a test mention ===
-# If the plan lists website/src lib or API files but never mentions vitest/test, warn.
+# If the plan lists website/src or components/website/src lib or API files but never mentions vitest/test, warn.
 if grep -qE '`(website|components/website)/src/(lib|pages/api)/[^`]+\.(ts|svelte|astro)`' <<<"$PLAN_PROSE"; then
   if ! grep -qiE 'vitest|\.test\.ts|__tests__|test:inventory' <<<"$PLAN_PROSE"; then
-    warn "W1: plan touches website/src lib/api files but mentions no Vitest test — add a test task or a '<!-- vitest: kein neuer Test nötig, weil … -->' comment"
+    warn "W1: plan touches website/src or components/website/src lib/api files but mentions no Vitest test — add a test task or a '<!-- vitest: kein neuer Test nötig, weil … -->' comment"
   fi
 fi
 
-# === W2: CQ02 advisory — new `any` usage planned in website/src ===
+# === W2: CQ02 advisory — new `any` usage planned in website/src or components/website/src ===
 # Warn if the plan's prose or code snippets suggest introducing `: any` / `as any`.
 if grep -qE ': any\b|as any\b|<any>' "$PLAN"; then
-  warn "W2: plan contains explicit 'any' usage — review CQ02 gate (limit ≤200 in website/src); ensure no net increase"
+  warn "W2: plan contains explicit 'any' usage — review CQ02 gate (limit ≤200 in website/src or components/website/src); ensure no net increase"
 fi
 
 # === W3: File-Structure ↔ tasks cross-check (advisory) ===

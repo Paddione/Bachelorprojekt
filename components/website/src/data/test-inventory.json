@@ -4230,6 +4230,36 @@
     "kind": "shell"
   },
   {
+    "id": "repo-structure/components-group",
+    "file": "tests/spec/repo-structure/components-group.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-structure/inventory-registered",
+    "file": "tests/spec/repo-structure/inventory-registered.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-structure/packages-assets",
+    "file": "tests/spec/repo-structure/packages-assets.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-structure/root-agent-md",
+    "file": "tests/spec/repo-structure/root-agent-md.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-structure/website-moved",
+    "file": "tests/spec/repo-structure/website-moved.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
     "id": "rustdesk-server",
     "file": "tests/spec/rustdesk-server.bats",
     "category": "rustdesk-server",

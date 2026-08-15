@@ -3855,9 +3855,21 @@
       "status": "archived"
     }
   ],
+  "T006369": [
+    {
+      "slug": "2026-08-15-plan-archive-freshness-check",
+      "status": "archived"
+    }
+  ],
   "T006370": [
     {
       "slug": "2026-08-15-fix-devflow-ciwatch-ticket-path",
+      "status": "archived"
+    }
+  ],
+  "T006371": [
+    {
+      "slug": "2026-08-15-archive-status-staging-guard",
       "status": "archived"
     }
   ],
@@ -3885,9 +3897,39 @@
       "status": "archived"
     }
   ],
+  "T006843": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-15-T006843",
+      "status": "plan_staged"
+    }
+  ],
   "T006999": [
     {
       "slug": "repo-structure-reorg",
+      "status": "plan_staged"
+    }
+  ],
+  "T007032": [
+    {
+      "slug": "branch-reaper-keep-allowlist",
+      "status": "plan_staged"
+    }
+  ],
+  "T007033": [
+    {
+      "slug": "2026-08-15-unterstuetzermodelle-limits-e4b",
+      "status": "archived"
+    }
+  ],
+  "T007055": [
+    {
+      "slug": "2026-08-15-unterstuetzermodelle-e2b-slot",
+      "status": "archived"
+    }
+  ],
+  "T007056": [
+    {
+      "slug": "mishap-rollup-direct-dispatch",
       "status": "plan_staged"
     }
   ],

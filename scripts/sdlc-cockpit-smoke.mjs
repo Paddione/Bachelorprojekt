@@ -130,6 +130,47 @@ try {
     check(`Zone gerendert: ${id}`, (await page.locator(`[data-testid="${id}"]`).count()) > 0, id);
   }
 
+  // [T008016/E4] KPI-Raster: frischer Aufruf ohne station/ticket landet in der
+  // Idle-Kontextzone und muss das DORA-Raster zeigen.
+  check(
+    'KPI-Raster in der Idle-Kontextzone',
+    (await page.locator('[data-testid="leitstand-kpi-grid"]').count()) > 0,
+    'leitstand-kpi-grid',
+  );
+
+  // [T008016/E4] MCP-Health als Admin erreichbar: page.request teilt sich die
+  // Cookie-Jar des Contexts, die Session-Cookies fliessen mit.
+  {
+    const mcpRes = await page.request.get(`${BASE}/sdlc/api/mcp-health`);
+    let mcpBody = null;
+    try { mcpBody = await mcpRes.json(); } catch { /* koerper nicht JSON */ }
+    check('MCP-Health antwortet mit fetchedAt', mcpRes.status() === 200 && typeof mcpBody?.fetchedAt === 'string', String(mcpRes.status()));
+    if (mcpBody?.servers) {
+      check('MCP-Health listet HTTP-MCP-Server', Array.isArray(mcpBody.servers) && mcpBody.servers.length > 0, `${mcpBody.servers.length} Server`);
+    }
+  }
+
+  // [T008016/E4] Wissen-Deck: Katalog-Modul nach Deck-Wechsel gerendert.
+  {
+    const deckBtn = page.locator('[data-testid="deck-switch-wissen"]');
+    if (await deckBtn.count()) {
+      await deckBtn.click({ timeout: 10_000 }).catch((e) => log('Deck-Klick fehlgeschlagen:', e.message));
+      await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+    } else {
+      log('deck-switch-wissen nicht gefunden');
+    }
+    check(
+      'API-Katalog im Wissen-Deck gerendert',
+      (await page.locator('[data-testid="leitstand-api-katalog"]').count()) > 0,
+      'leitstand-api-katalog',
+    );
+    check(
+      'MCP-Health-Zeile im Katalog gerendert',
+      (await page.locator('[data-testid="leitstand-mcp-health"]').count()) > 0,
+      'leitstand-mcp-health',
+    );
+  }
+
   await page.screenshot({ path: SHOT, fullPage: true }).catch(() => {});
   log('Screenshot:', SHOT);
 

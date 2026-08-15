@@ -2,7 +2,7 @@
 
 ## Tasks
 
-- [ ] **`tests/spec/sdlc-cockpit/leitstand-livedaten.bats` anlegen (RED zuerst).**
+- [x] **`tests/spec/sdlc-cockpit/leitstand-livedaten.bats` anlegen (RED zuerst).**
       Output-/Semantik-Verifikation (T002448-M4, T002716), Positiv-Anker-Pflicht (T002356-M1):
       1. *Redirect statt Platzhalter:* Positiv-Anker — `redirect-map.ts` enthält den
          Schlüssel `/sdlc/observability` (grep `-e`, nicht `-F '--…'`-Falle); Negativ —
@@ -14,14 +14,14 @@
          `components/leitstand/`; Registry-Eintrag für `ApiKatalog` vorhanden.
       Header-Kommentar dokumentiert den Prüfmodus (Source-Grep als Querschnittstest, wo sich
       das Ergebnis nur im Quelltext manifestiert; Laufzeit-Checks via vitest/smoke darunter).
-- [ ] **`lib/sdlc/__tests__/leitstand-kpi.test.ts` (vitest).** Feste Fixture-Zeilen →
+- [x] **`lib/sdlc/__tests__/leitstand-kpi.test.ts` (vitest).** Feste Fixture-Zeilen →
       deterministische DORA-Werte; Leere-Eingabe- und Fehlerfeld-Fälle.
-- [ ] **`middleware/redirect-map.test.ts` anpassen.** Zeichengenauer Spiegel-Eintrag für
+- [x] **`middleware/redirect-map.test.ts` anpassen.** Zeichengenauer Spiegel-Eintrag für
       `/sdlc/observability` (Konvention der Datei: Map und Test sind synchron).
-- [ ] **`scripts/sdlc-cockpit-smoke.mjs` erweitern.** Checks: Kontextzone-Leerlauf enthält
+- [x] **`scripts/sdlc-cockpit-smoke.mjs` erweitern.** Checks: Kontextzone-Leerlauf enthält
       KPI-Raster-testid, Wissen-Deck enthält Katalog-testid, `/sdlc/api/mcp-health` antwortet
       mit `fetchedAt`-Feld (Semantik, kein Formatanker).
-- [ ] **`components/website/src/data/test-inventory.json` regenerieren** (`task test:inventory`)
+- [x] **`components/website/src/data/test-inventory.json` regenerieren** (`task test:inventory`)
       und committen.
 
 ## Verifikation

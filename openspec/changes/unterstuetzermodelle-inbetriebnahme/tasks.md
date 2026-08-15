@@ -44,7 +44,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/support-model-slots
 
 - [x] **Fix-Step (GREEN).** Nach p1 ist der Guard grün; der Erreichbarkeits-Check
       (über `:18235/v1/models`) skippt, wenn llm-proxy oder Geräte offline sind.
-- [ ] **Final Verification.** Die drei CI-Gates laufen grün:
+- [x] **Final Verification.** Die drei CI-Gates laufen grün:
 
 ```bash
 task test:changed

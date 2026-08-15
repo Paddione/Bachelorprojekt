@@ -1,5 +1,5 @@
 # docs/agent-guide/registry/api-overlay.yaml
-# Kuratierte Zusatzfelder fuer website/src/data/api-inventory.json.
+# Kuratierte Zusatzfelder fuer components/website/src/data/api-inventory.json.
 # Jeder Schluessel MUSS einem von scripts/sdlc/api-inventory.mjs
 # gescannten Endpunkt/Server/Tool entsprechen -- sonst schlaegt die
 # Generierung fehl (Requirement "API Connector Inventory" in

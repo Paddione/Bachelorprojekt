@@ -52,7 +52,7 @@ const METHOD_RE = /^export const (GET|POST|PUT|PATCH|DELETE)\b/;
 export function classifyImport(spec) {
   if (/\/lib\/sdlc\/k8s(\.ts)?$/.test(spec)) return 'k8s-rest';
   if (spec === 'child_process' || spec === 'node:child_process' || /kubectl/i.test(spec)) return 'kubectl';
-  if (spec === 'pg' || /db-pool/.test(spec) || /\/lib\/[^/]*db[^/]*(\.ts)?$/i.test(spec)) return 'postgres';
+  if (spec === 'pg' || /db-pool/.test(spec) || /(^|\/)[^/]*db[^/]*(\.ts)?$/i.test(spec)) return 'postgres';
   if (/github/i.test(spec)) return 'github';
   if (/prometheus/i.test(spec)) return 'prometheus';
   if (['node:fs', 'node:fs/promises', 'fs', 'fs/promises'].includes(spec)) return 'filesystem';

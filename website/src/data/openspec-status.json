@@ -3807,6 +3807,12 @@
       "status": "archived"
     }
   ],
+  "T006664": [
+    {
+      "slug": "mcp-task-runner-node-port",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

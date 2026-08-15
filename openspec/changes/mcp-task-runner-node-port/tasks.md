@@ -44,7 +44,7 @@ openspec/changes/mcp-task-runner-node-port/specs/mcp-task-runner.md # EXISTS: De
 ## Tasks
 
 <!-- partial:p1-parser-and-planner -->
-- [ ] **Partial 1: Taskfile DAG Parser & Planner**
+- [x] **Partial 1: Taskfile DAG Parser & Planner**
   - Create `scripts/mcp-task-runner/planner.mjs`.
   - Parse `Taskfile.yml` and resolve `includes:` namespaces.
   - Implement Kahn's topological sort for `plan_tasks` to group independent tasks into parallel execution stages.
@@ -54,7 +54,7 @@ openspec/changes/mcp-task-runner-node-port/specs/mcp-task-runner.md # EXISTS: De
   - Run: `node --test scripts/mcp-task-runner/planner.test.mjs`
 
 <!-- partial:p2-runner-and-server -->
-- [ ] **Partial 2: Execution Runner & MCP Stdio Server**
+- [x] **Partial 2: Execution Runner & MCP Stdio Server**
   - Create `scripts/mcp-task-runner/runner.mjs`.
   - Implement `runTask(taskName, env)` with argument allowlist validation (`A-Za-z0-9_:./-`, no `--` prefix).
   - Implement `executePlan(plan)` with group-sequential and concurrent fail-fast execution.
@@ -63,14 +63,14 @@ openspec/changes/mcp-task-runner-node-port/specs/mcp-task-runner.md # EXISTS: De
   - Parse `--taskfile <path>` (reject `..`) and `--otel-endpoint` (fail-open).
 
 <!-- partial:p3-registry-and-integration -->
-- [ ] **Partial 3: MCP Registry & Taskfile Integration**
+- [x] **Partial 3: MCP Registry & Taskfile Integration**
   - Update `docs/agent-guide/registry/mcp.yaml` for `mcp-task-runner`.
   - Update `Taskfile.yml` task `mcp-task-runner:install` to symlink or install the Node script wrapper to `/usr/local/bin/mcp-task-runner`.
   - Run `task mcp:sync` and verify parity with `task mcp:check`.
   - Deprecate and clean up `mcp-task-runner/` Go module directory.
 
 <!-- partial:p4-tests -->
-- [ ] **Partial 4: Test Suite & Verification**
+- [x] **Partial 4: Test Suite & Verification**
   - **Failing Test (RED):** Run existing BATS test suite to confirm baseline failure before implementation.
     - Run: `tests/unit/lib/bats-core/bin/bats tests/spec/mcp-task-runner.bats`
     - Expected: `expected: FAIL`

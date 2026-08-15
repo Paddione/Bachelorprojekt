@@ -15,7 +15,7 @@ a generated artifact (website), never from a second hand-maintained copy of goal
 
 #### Scenario: The website never hand-maintains a duplicate goal list
 
-- **GIVEN** `website/src/lib/goals-data.ts`
+- **GIVEN** `components/website/src/lib/goals-data.ts`
 - **WHEN** its source is inspected
 - **THEN** it imports goal data from a generated JSON artifact rather than declaring goal entries as a
   literal in-source array
@@ -23,7 +23,7 @@ a generated artifact (website), never from a second hand-maintained copy of goal
 ### Requirement: REQ-HEALTH-GOALS-002 — Generated Website Artifact
 
 A generator script (`scripts/gen-goals-data.mjs`) SHALL parse `.claude/lib/goals.md` and emit
-`website/src/lib/goals-data.generated.json`, an array of objects matching the `HealthGoal` TypeScript
+`components/website/src/lib/goals-data.generated.json`, an array of objects matching the `HealthGoal` TypeScript
 interface (`id`, `title`, `category`, `priority`, `direction`, `baseline`, `current`, `target`, `unit`,
 `status`, `measurement`, `source`, `measured_at`, optional `note`). The generator SHALL parse both goal
 representations present in `goals.md`: individual `## G-<id> — <title>` sections carrying a
@@ -48,17 +48,17 @@ rows in the Green-Gates section (Priority C). Every emitted entry's `source` fie
 
 ### Requirement: REQ-HEALTH-GOALS-003 — Freshness Gate
 
-`website/src/lib/goals-data.generated.json` SHALL be a freshness-gated generated artifact: a
+`components/website/src/lib/goals-data.generated.json` SHALL be a freshness-gated generated artifact: a
 `health:goals:emit` Taskfile target SHALL run the generator, `task freshness:regenerate` SHALL include
 that target, and `task freshness:check` SHALL fail if the committed
-`website/src/lib/goals-data.generated.json` differs from a fresh regeneration.
+`components/website/src/lib/goals-data.generated.json` differs from a fresh regeneration.
 
 #### Scenario: A stale generated goals JSON fails freshness:check
 
-- **GIVEN** `.claude/lib/goals.md` was edited but `website/src/lib/goals-data.generated.json` was not
+- **GIVEN** `.claude/lib/goals.md` was edited but `components/website/src/lib/goals-data.generated.json` was not
   regenerated and committed
 - **WHEN** `task freshness:check` runs
-- **THEN** it fails and names `website/src/lib/goals-data.generated.json` as stale
+- **THEN** it fails and names `components/website/src/lib/goals-data.generated.json` as stale
 
 ### Requirement: REQ-HEALTH-GOALS-004 — Fail-Loud Parsing
 
@@ -184,11 +184,11 @@ none of these whitelist formats SHALL remain fail-safe in the `skipped_format` l
 ### Requirement: REQ-HEALTH-GOALS-006 — Read-only drift report mode
 
 `scripts/health-goals-update.sh --drift` SHALL emit a read-only report that joins the documented
-`current` value of every goal (all priorities) from `website/src/lib/goals-data.generated.json` against
+`current` value of every goal (all priorities) from `components/website/src/lib/goals-data.generated.json` against
 the freshly measured values in `HG_VALUES_FILE`, joined by goal ID, grouped by priority, marking each
 divergence with a `DRIFT` label. The `--drift` mode SHALL always exit `0` and SHALL never write to
 `.claude/lib/goals.md` — the Priority-A/B "human redaction" policy stays intact; the report only
-surfaces the drift. When `website/src/lib/goals-data.generated.json` is older (mtime) than
+surfaces the drift. When `components/website/src/lib/goals-data.generated.json` is older (mtime) than
 `.claude/lib/goals.md`, the report SHALL print a staleness warning rather than silently joining against
 stale documented values. The generated JSON remains the single parser SSOT (`gen-goals-data.mjs`,
 REQ-HEALTH-GOALS-002); `--drift` SHALL NOT introduce a second `goals.md` parser.
@@ -210,7 +210,7 @@ REQ-HEALTH-GOALS-002); `--drift` SHALL NOT introduce a second `goals.md` parser.
 ### Requirement: REQ-HEALTH-GOALS-007 — LLM-assisted candidate fill via unified gateway
 
 A new script `scripts/health-goals-llm-fill.sh` SHALL determine candidate goals as the set of IDs
-present in `website/src/lib/goals-data.generated.json` but absent from the measurement run's
+present in `components/website/src/lib/goals-data.generated.json` but absent from the measurement run's
 `HG_VALUES_FILE` (i.e. the deterministically uncovered goals), optionally narrowed by `--only=ID,ID`.
 For each candidate it SHALL POST one OpenAI-compatible request to
 `${HG_LLM_URL:-http://localhost:18235/v1}/chat/completions` (model `${HG_LLM_MODEL:-bonsai}`, the
@@ -296,13 +296,13 @@ derives work from these values.
 ### Requirement: REQ-HEALTH-GOALS-009 — Atomic Commit of SSOT and Generated Artifact
 
 Schreibt ein unbeaufsichtigter Workflow `.claude/lib/goals.md` fort, ohne
-`website/src/lib/goals-data.generated.json` im selben Commit nachzuziehen, entsteht auf `main` ein
+`components/website/src/lib/goals-data.generated.json` im selben Commit nachzuziehen, entsteht auf `main` ein
 Zeitfenster, in dem die Freshness-Invariante aus REQ-HEALTH-GOALS-003 verletzt ist. In diesem
 Fenster schlägt `task freshness:check` in der CI **fremder** Pull Requests fehl, mit einem Verweis
 auf ein Artefakt, das deren Autoren nie angefasst haben.
 
 The scheduled measurement workflow SHALL run the generator in the same job and commit
-`.claude/lib/goals.md` together with `website/src/lib/goals-data.generated.json` in a single
+`.claude/lib/goals.md` together with `components/website/src/lib/goals-data.generated.json` in a single
 commit. That commit SHALL NOT carry a `[skip ci]` marker, because it touches `website/**` and must
 trigger the website image build that delivers the new values to the dashboard.
 
@@ -311,7 +311,7 @@ trigger the website image build that delivers the new values to the dashboard.
 - **GIVEN** `.github/workflows/health-goals.yml` ist vorhanden
 - **WHEN** seine wirksame Konfiguration geprüft wird
 - **THEN** enthält sie einen `health:goals:emit`-Aufruf
-- **AND** sie stellt `website/src/lib/goals-data.generated.json` explizit für den Commit bereit
+- **AND** sie stellt `components/website/src/lib/goals-data.generated.json` explizit für den Commit bereit
 
 #### Scenario: T002162-D: der Commit unterdrückt den Website-Build nicht *(BATS)*
 
@@ -814,7 +814,7 @@ with a success status.
 #### Scenario: Reader path follows the generator
 
 - **GIVEN** `scripts/gen-goals-data.mjs` writes to
-  `website/src/lib/sdlc/goals-data.generated.json`
+  `components/website/src/lib/sdlc/goals-data.generated.json`
 - **WHEN** `scripts/health-goals-update.sh`, `scripts/health-goals-llm-fill.sh`
   or `scripts/factory/auto-close-merged.sh` reference that artifact
 - **THEN** each reference resolves to an existing file
@@ -833,7 +833,7 @@ variable, so the runner works without network, database or cluster access.
 
 #### Scenario: A family with a violating goal exits non-zero
 
-- **GIVEN** a fixture corpus where the `G-CQ02` measurement basis (directory `website/src`) is
+- **GIVEN** a fixture corpus where the `G-CQ02` measurement basis (directory `components/website/src`) is
   absent
 - **WHEN** `scripts/lib/zielfamilien-audit.sh check --family CQ --fixture <corpus>` runs
 - **THEN** it prints a `FAIL G-CQ02` line naming the existence-anchor rule
@@ -876,7 +876,7 @@ error class it detects:
 
 #### Scenario: A missing directory without anchor is flagged
 
-- **GIVEN** a goal whose measurement greps `website/src` for `: any` and the directory does not
+- **GIVEN** a goal whose measurement greps `components/website/src` for `: any` and the directory does not
   exist in the fixture
 - **WHEN** the runner evaluates that goal
 - **THEN** it prints `FAIL <id> E5` (vanished basis → `0` would be vacuously green)

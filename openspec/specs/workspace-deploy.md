@@ -628,7 +628,7 @@ and SHALL treat changes exclusively in `docs/` or `website/` as non-manifest cha
 
 #### Scenario: Nur Docs/Website-Änderungen führen zu Exit 1
 
-- **GIVEN** ein Git-Commit ändert ausschließlich Dateien unter `docs/` oder `website/src/`
+- **GIVEN** ein Git-Commit ändert ausschließlich Dateien unter `docs/` oder `components/website/src/`
 - **WHEN** `bash scripts/changed-manifests.sh HEAD~1 HEAD` ausgeführt wird
 - **THEN** beendet sich das Skript mit Exit 1
 - **AND** die Ausgabe enthält `no manifest changes`
@@ -1021,20 +1021,20 @@ ohne dass Env-Dateien ein neues Pflichtfeld benötigen.
 - **THEN** wird der Pocket-ID-Container-Env `SMTP_TLS=none` gesetzt
 
 ### Requirement: Website-DB-Migrationen laufen automatisiert vor dem website-Rollout
-Das System SHALL alle SQL-Dateien in `website/src/db/migrations/` vor dem Rollout der
+Das System SHALL alle SQL-Dateien in `components/website/src/db/migrations/` vor dem Rollout der
 website-Deployment automatisiert, idempotent und in chronologischer Reihenfolge (Dateiname
 `YYYYMMDD_*`) gegen die Ziel-DB anwenden. Bereits angewendete Migrationen (getrackt in
 `schema_migrations`) SHALL nicht erneut ausgeführt werden.
 
 #### Scenario: Neue Migrationsdatei liegt vor
-- **WHEN** `task workspace:deploy ENV=<brand>` läuft und `website/src/db/migrations/` eine Datei
+- **WHEN** `task workspace:deploy ENV=<brand>` läuft und `components/website/src/db/migrations/` eine Datei
   enthält, die noch nicht in `schema_migrations` getrackt ist
 - **THEN** wird diese Datei vor dem Rollout der website-Deployment ausgeführt und anschließend in
   `schema_migrations` als applied getrackt
 
 #### Scenario: Alle Migrationen bereits angewendet
 - **WHEN** `task workspace:deploy ENV=<brand>` läuft und jede Datei in
-  `website/src/db/migrations/` bereits in `schema_migrations` getrackt ist
+  `components/website/src/db/migrations/` bereits in `schema_migrations` getrackt ist
 - **THEN** wird keine der Dateien erneut ausgeführt und der Deploy fährt ohne Fehler fort
 
 ### Requirement: Migrations-Runner erkennt bereits real angewendete, aber ungetrackte Migrationen
@@ -1681,7 +1681,7 @@ The system SHALL exit non-zero and print "Duplicate test IDs found" when `script
 #### Scenario: Eindeutige Test-IDs erzeugen valides JSON-Inventar *(BATS)*
 - **GIVEN** drei Testdateien mit eindeutigen IDs (`FA-1`, `FA-2`, `FA-3`)
 - **WHEN** `bash scripts/build-test-inventory.sh` ausgeführt wird
-- **THEN** endet das Skript mit Exit 0 und schreibt `website/src/data/test-inventory.json`
+- **THEN** endet das Skript mit Exit 0 und schreibt `components/website/src/data/test-inventory.json`
 - **AND** das JSON-Array enthält genau 3 Einträge
 
 ---

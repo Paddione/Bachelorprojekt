@@ -41,7 +41,7 @@ that case. This check SHALL NOT block the commit (warn only).
 
 #### Scenario: Regeneration reproduces the HEAD state of an already-staged file
 
-- **GIVEN** `website/src/data/openspec-status.json` is staged with real content changes vs `HEAD`
+- **GIVEN** `components/website/src/data/openspec-status.json` is staged with real content changes vs `HEAD`
 - **WHEN** the pre-commit hook's `task freshness:regenerate` step regenerates that file back to
   a state identical to `HEAD`, and the auto-stage loop re-stages that identical content
 - **THEN** the hook prints a warning that the staged change to that file was neutralized by

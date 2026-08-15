@@ -54,7 +54,7 @@ The system SHALL implement the OIDC Authorization Code Flow against Pocket ID, s
 
 - **GIVEN** ein Nutzer ist nicht eingeloggt (kein gültiges `workspace_session`-Cookie)
 - **WHEN** er `/portal` aufruft
-- **THEN** leitet der Server zum Pocket-ID-Auth-Endpoint `${POCKET_ID_FRONTEND_URL}/authorize` weiter (`website/src/lib/auth.ts:23`; mit `client_id=website`, `response_type=code`, `scope=openid email profile`)
+- **THEN** leitet der Server zum Pocket-ID-Auth-Endpoint `${POCKET_ID_FRONTEND_URL}/authorize` weiter (`components/website/src/lib/auth.ts:23`; mit `client_id=website`, `response_type=code`, `scope=openid email profile`)
 
 #### Scenario: Session ist abgelaufen
 
@@ -124,7 +124,7 @@ The system SHALL render das Portal-Layout (PortalLayout.astro) nur für authenti
 
 #### Scenario: Admin-Nutzer öffnet Portal
 
-- **GIVEN** der eingeloggte Nutzer trägt den Claim `isAdmin` und erhält daraus die synthetische Rolle `admin` (`website/src/lib/auth.ts:60`, `identity.ts:171-178` — Pocket ID kennt keine Realm-Rollen, `realm-admin` existiert nicht)
+- **GIVEN** der eingeloggte Nutzer trägt den Claim `isAdmin` und erhält daraus die synthetische Rolle `admin` (`components/website/src/lib/auth.ts:60`, `identity.ts:171-178` — Pocket ID kennt keine Realm-Rollen, `realm-admin` existiert nicht)
 - **WHEN** `/portal` gerendert wird
 - **THEN** erscheint in der Sidebar ein "Admin"-Link (`/admin`); reguläre Nutzer sehen diesen Link nicht
 
@@ -354,7 +354,7 @@ copper palette so `admin/ui/*` components follow the brand.
 
 #### Scenario: admin-foundation defines only aliases
 
-- **WHEN** `website/src/styles/admin-foundation.css` is inspected
+- **WHEN** `components/website/src/styles/admin-foundation.css` is inspected
 - **THEN** every color-bearing `--admin-*` declaration references a `var(--…)` from factory-tokens (no independent hex/oklch literals for primary/bg/surface/status colors)
 
 #### Scenario: Kore brand recolors admin/ui components
@@ -423,8 +423,8 @@ strip with hairline separators; service tiles SHALL use monochrome Brass icons.
 
 Die Admin-Sidebar SHALL ausschließlich Einträge führen, deren Zielroute im
 Produktions-Build (`BUILD_TARGET=prod`) vorhanden ist. Ein Eintrag, dessen `href` von
-`website/src/middleware/redirect-map.ts` nach `/sdlc/` umgeleitet wird, SHALL nicht in der
-Sidebar erscheinen — `website/src/integrations/build-target.mjs` entfernt diese Routen aus
+`components/website/src/middleware/redirect-map.ts` nach `/sdlc/` umgeleitet wird, SHALL nicht in der
+Sidebar erscheinen — `components/website/src/integrations/build-target.mjs` entfernt diese Routen aus
 dem prod-Manifest, der Eintrag führte also ins Leere.
 
 Die Navigation SHALL wie folgt gegliedert sein:
@@ -456,22 +456,22 @@ SDLC-Einträge verbleiben zu wenige Einträge, als dass ein Aufklapp-Mechanismus
 verbergen würde. Alle Sektionen SHALL dauerhaft sichtbar sein.
 
 Die folgenden Einträge SHALL nicht in der Sidebar erscheinen, weil ihre Zielseiten nur unter
-`website/src/pages/sdlc/` existieren und im prod-Build gefiltert werden: Cockpit,
+`components/website/src/pages/sdlc/` existieren und im prod-Build gefiltert werden: Cockpit,
 App-Katalog, KI-Konfig., Prompts, Systemtest, Repo Health. Ebenfalls nicht erscheinen SHALL:
 Mitglieder, Mandate, Kontierung, Plattform Hub, Dev Status, DORA.
 
 #### Scenario: Kein Sidebar-Eintrag zeigt auf eine nach /sdlc/ umgeleitete Route
 
-- **GIVEN** die Redirect-Tabelle in `website/src/middleware/redirect-map.ts`
+- **GIVEN** die Redirect-Tabelle in `components/website/src/middleware/redirect-map.ts`
 - **WHEN** jeder nicht-externe `href` der Admin-Sidebar gegen diese Tabelle aufgelöst wird
 - **THEN** löst kein `href` auf ein Ziel mit dem Präfix `/sdlc/` auf
 
 #### Scenario: Jeder Sidebar-Eintrag hat eine existierende Zielseite
 
 - **GIVEN** die Admin-Sidebar mit ihren nicht-externen Einträgen
-- **WHEN** für jeden `href` die zugehörige Seite unter `website/src/pages/` gesucht wird
+- **WHEN** für jeden `href` die zugehörige Seite unter `components/website/src/pages/` gesucht wird
 - **THEN** existiert zu jedem Eintrag eine Datei oder ein Verzeichnis unter
-  `website/src/pages/admin/`
+  `components/website/src/pages/admin/`
 
 #### Scenario: Sidebar führt die vier benannten Sektionen
 

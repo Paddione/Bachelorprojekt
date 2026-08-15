@@ -631,7 +631,7 @@ Endpunkte unter `/api/admin/cockpit/` — SHALL unverändert bestehen bleiben.
 
 ### Requirement: OF4 — mobile-cockpit.css entfällt
 
-`website/src/styles/mobile-cockpit.css` SHALL entfallen. Die Datei beschreibt die Struktur
+`components/website/src/styles/mobile-cockpit.css` SHALL entfallen. Die Datei beschreibt die Struktur
 des alten Admin-Cockpits und wird von keiner Seite, keinem Layout und keinem Stylesheet
 geladen; ihr Wegfall ist damit keine Verhaltensänderung.
 
@@ -640,7 +640,7 @@ geladen; ihr Wegfall ist damit keine Verhaltensänderung.
 - **GIVEN** the repository after this change
 - **WHEN** `website/` is searched for references to `mobile-cockpit`
 - **THEN** no reference remains
-- **AND** `website/src/styles/admin-responsive.css` still exists and is still referenced
+- **AND** `components/website/src/styles/admin-responsive.css` still exists and is still referenced
 
 ### Requirement: Setting a ticket status is the one implemented write action
 
@@ -1105,7 +1105,7 @@ listening on a test port after the run.
 ### Requirement: Cockpit sources resolve against the SDLC build target
 
 Every website-served endpoint in the adapter's endpoint map SHALL resolve to a
-route that exists in `website/src/pages/sdlc/`. An endpoint entry whose path has
+route that exists in `components/website/src/pages/sdlc/`. An endpoint entry whose path has
 no corresponding route file SHALL NOT be shipped.
 
 This requirement exists because the build target split (T002624) moved the SDLC
@@ -1117,7 +1117,7 @@ unreachable source.
 
 - **GIVEN** the adapter's endpoint map
 - **WHEN** each entry marked `website: true` is resolved against the repository
-- **THEN** a route file exists for its path under `website/src/pages/sdlc/`
+- **THEN** a route file exists for its path under `components/website/src/pages/sdlc/`
 
 #### Scenario: A retired path is not reachable
 

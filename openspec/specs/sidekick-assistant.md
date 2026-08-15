@@ -619,7 +619,7 @@ The system SHALL provide `website/migrations/20260621_create_ai_call_log.sql` cr
 
 ### Requirement: ai-metrics Pure Module
 
-The system SHALL provide `website/src/lib/ai-metrics.ts` exporting two functions: `withAiMetrics(workflow, fn, modelHint?)` for Anthropic-Form call-sites (auto-extracts `result.usage.{input,output}_tokens` and `result.model`), and `logAiCall(metrics)` for non-Anthropic call-sites (RAG/embeddings). Both SHALL be fire-and-forget (Insert-Fehler werden auf stderr geloggt, Exit 0). `ai-metrics.ts` SHALL NOT import `assistant/llm.ts` (no import cycles).
+The system SHALL provide `components/website/src/lib/ai-metrics.ts` exporting two functions: `withAiMetrics(workflow, fn, modelHint?)` for Anthropic-Form call-sites (auto-extracts `result.usage.{input,output}_tokens` and `result.model`), and `logAiCall(metrics)` for non-Anthropic call-sites (RAG/embeddings). Both SHALL be fire-and-forget (Insert-Fehler werden auf stderr geloggt, Exit 0). `ai-metrics.ts` SHALL NOT import `assistant/llm.ts` (no import cycles).
 
 #### Scenario: withAiMetrics extrahiert usage aus Anthropic-Result
 
@@ -654,7 +654,7 @@ The system SHALL provide `GET /api/admin/ai-quality` (admin-only via `getSession
 
 ### Requirement: AiQualitySidekickView Svelte-Komponente
 
-The system SHALL provide `website/src/components/assistant/AiQualitySidekickView.svelte` rendering health indicator, 24h summary, cost chart, and recent error list. The view SHALL be registered as a Sidekick view in `sidekick-nudge.ts` (`'ai-quality'` to `View` union + `KNOWN_VIEWS`).
+The system SHALL provide `components/website/src/components/assistant/AiQualitySidekickView.svelte` rendering health indicator, 24h summary, cost chart, and recent error list. The view SHALL be registered as a Sidekick view in `sidekick-nudge.ts` (`'ai-quality'` to `View` union + `KNOWN_VIEWS`).
 
 #### Scenario: Admin sieht AI-Quality-View im Sidekick
 
@@ -674,7 +674,7 @@ The system SHALL NOT render the SidekickHome items for `tickets`, `inbox`, `pipe
 - **GIVEN** `tickets`, `inbox`, `pipeline` sind aus `KNOWN_VIEWS` entfernt
 - **WHEN** PortalSidekick mounted
 - **THEN** ist keiner der drei Einträge in der Sidekick-Item-Liste sichtbar
-- **AND** `grep -nE 'progressSub|summary|banner|pendingTickets|pendingInbox|loslernen' website/src/components/assistant/SidekickHome.svelte` ist leer
+- **AND** `grep -nE 'progressSub|summary|banner|pendingTickets|pendingInbox|loslernen' components/website/src/components/assistant/SidekickHome.svelte` ist leer
 
 ### Requirement: PortalSidekick.svelte ohne View-Branches für entfernte Views
 
@@ -689,11 +689,11 @@ The system SHALL NOT include the `tickets`, `inbox`, or `pipeline` view branches
 
 ### Requirement: sidekick-nudge.ts ohne Banner/LearnDot
 
-The system SHALL NOT export `decideBanner`, `BannerDecision`, `BannerInput`, or `shouldShowLearnDot` from `website/src/lib/assistant/sidekick-nudge.ts`. `SidekickView` and `KNOWN_VIEWS` SHALL be reduced to the post-cleanup view set.
+The system SHALL NOT export `decideBanner`, `BannerDecision`, `BannerInput`, or `shouldShowLearnDot` from `components/website/src/lib/assistant/sidekick-nudge.ts`. `SidekickView` and `KNOWN_VIEWS` SHALL be reduced to the post-cleanup view set.
 
 #### Scenario: Banner/LearnDot exports are gone from sidekick-nudge
 
-- **GIVEN** `website/src/lib/assistant/sidekick-nudge.ts`
+- **GIVEN** `components/website/src/lib/assistant/sidekick-nudge.ts`
 - **WHEN** searching its exports for `decideBanner`, `BannerDecision`, `BannerInput`, or `shouldShowLearnDot`
 - **THEN** none of them is exported
 - **AND** `SidekickView` / `KNOWN_VIEWS` contain only the post-cleanup view set

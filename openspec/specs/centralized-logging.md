@@ -16,7 +16,7 @@ to API errors with a standardized `{ error, requestId }` body — never a stack 
 
 ### Requirement: Pino logger singleton
 
-The system SHALL provide a `logger` singleton in `website/src/lib/logger.ts` that
+The system SHALL provide a `logger` singleton in `components/website/src/lib/logger.ts` that
 emits newline-delimited JSON to stdout, binds `service: 'website'`, and reads its
 level from `PINO_LOG_LEVEL` (defaulting to `info`).
 
@@ -69,7 +69,7 @@ error by status), and echoes `X-Request-ID` on the response.
 ### Requirement: Standardized error response contract
 
 The system SHALL expose `errorResponse(code, requestId, status=500)` from
-`website/src/pages/api/_errors.ts` that returns `{ error, requestId }` JSON with a
+`components/website/src/pages/api/_errors.ts` that returns `{ error, requestId }` JSON with a
 configurable HTTP status. The response body SHALL never contain a stack trace, even
 when the underlying error is an `Error` instance.
 
@@ -97,14 +97,14 @@ when the underlying error is an `Error` instance.
 ### Requirement: API surface is free of console.* logging
 
 The system SHALL NOT use `console.error`, `console.log`, `console.warn`, or
-`console.info` inside `website/src/pages/api/`. Every error or warning emitted by an
+`console.info` inside `components/website/src/pages/api/`. Every error or warning emitted by an
 API handler SHALL go through `locals.requestLogger` so the line carries the request
 correlation fields and is captured as structured JSON by Promtail.
 
 #### Scenario: No stray console calls in the API surface
 
 - **GIVEN** the website source tree
-- **WHEN** `grep -R "console\.\(error\|log\|warn\|info\)" website/src/pages/api` runs
+- **WHEN** `grep -R "console\.\(error\|log\|warn\|info\)" components/website/src/pages/api` runs
 - **THEN** no matches are reported
 
 #### Scenario: API handler error is captured with request context
@@ -222,9 +222,9 @@ traefik access log analytics view, and a keycloak audit trail.
 
 ### Requirement: Astro middleware entry point chains the logging middleware
 
-The system SHALL compose `website/src/middleware.ts` (the Astro entry point)
+The system SHALL compose `components/website/src/middleware.ts` (the Astro entry point)
 such that `onRequest` invokes `loggingMiddleware` from
-`website/src/middleware/logging.ts` before any other handler in the chain.
+`components/website/src/middleware/logging.ts` before any other handler in the chain.
 After the chain runs, `context.locals.requestId` and
 `context.locals.requestLogger` SHALL be populated for every request, and the
 response SHALL carry the `X-Request-ID` header.
@@ -250,7 +250,7 @@ response SHALL carry the `X-Request-ID` header.
 ### Requirement: Persisted error_log table
 
 The system SHALL provide a Postgres table `error_log` (migration
-`website/src/db/migrations/20260703_create_error_log.sql`) with columns
+`components/website/src/db/migrations/20260703_create_error_log.sql`) with columns
 `id bigserial`, `ts timestamptz DEFAULT now()`, `source text CHECK (source IN
 ('server','browser','pod'))`, `message text`, `namespace text`, `pod_name text`,
 `meta jsonb`, and an index on `ts DESC`. Only `level=error` entries SHALL be
@@ -271,7 +271,7 @@ persisted.
 ### Requirement: Fire-and-forget error persistence
 
 The system SHALL provide `persistError(entry)` in
-`website/src/lib/logging/error-log-store.ts` that inserts into `error_log`
+`components/website/src/lib/logging/error-log-store.ts` that inserts into `error_log`
 without blocking or throwing into the caller's execution path. Insert failures
 SHALL be logged via `logger.error` and SHALL NOT propagate as exceptions.
 
@@ -292,7 +292,7 @@ SHALL be logged via `logger.error` and SHALL NOT propagate as exceptions.
 
 The system SHALL expose `POST /api/admin/ops/error-log` and
 `GET /api/admin/ops/error-log?since=24h` at
-`website/src/pages/api/admin/ops/error-log.ts`, both gated by `getSession` +
+`components/website/src/pages/api/admin/ops/error-log.ts`, both gated by `getSession` +
 `isAdmin` (returning `401` for non-admins). `POST` SHALL accept
 `{ source, message, meta? }` for browser/pod-originated errors and call
 `persistError`. `GET` with `since=24h` SHALL return all `error_log` rows with
@@ -322,7 +322,7 @@ The system SHALL expose `POST /api/admin/ops/error-log` and
 
 ### Requirement: Browser error capture persists to error_log
 
-The system SHALL extend `website/src/lib/logging/browser-collector.ts` so that,
+The system SHALL extend `components/website/src/lib/logging/browser-collector.ts` so that,
 in addition to the existing local `addEntry()` call, every captured
 `window.onerror` / `unhandledrejection` event also issues a fire-and-forget
 `POST /api/admin/ops/error-log` request with `source: 'browser'`.
@@ -337,7 +337,7 @@ in addition to the existing local `addEntry()` call, every captured
 ### Requirement: Pod stream error lines persist during active observation
 
 The system SHALL extend the pod-log stream handling in
-`website/src/components/assistant/LogsSidekickView.svelte` so that, while a pod
+`components/website/src/components/assistant/LogsSidekickView.svelte` so that, while a pod
 log stream is actively open, lines classified as `level=error` (via
 `parsePodLine`/`textToLevel`) are also sent to
 `POST /api/admin/ops/error-log` with `source: 'pod'`, `namespace`, and

@@ -3939,6 +3939,12 @@
       "status": "archived"
     }
   ],
+  "T007877": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-15-T007877",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

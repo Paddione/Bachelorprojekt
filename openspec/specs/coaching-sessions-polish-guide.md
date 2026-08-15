@@ -97,7 +97,7 @@ Coaching-facing UI copy SHALL use "Session"/"Sessions" instead of
 message). Authentication- and cookie-related "Sitzung" wording (login sessions,
 DSGVO cookie copy, Keycloak strings) MUST remain unchanged. (Die i18n-Keys
 `cookie.keycloak-purpose` und `cookie.keycloak-duration` existieren unverändert in
-`website/src/i18n/de.ts:51-52` und `en.ts:51-52` — der Verweis ist korrekt, T002179.)
+`components/website/src/i18n/de.ts:51-52` und `en.ts:51-52` — der Verweis ist korrekt, T002179.)
 
 #### Scenario: Coaching copy reads "Session"
 

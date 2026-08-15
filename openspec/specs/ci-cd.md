@@ -61,7 +61,7 @@ level.
 
 #### Scenario: Website-Feature-PR läuft nur betroffene Tests
 
-- **GIVEN** ein PR ändert `website/src/lib/auth/magic-link.ts` und `website/src/lib/auth/magic-link.test.ts`
+- **GIVEN** ein PR ändert `components/website/src/lib/auth/magic-link.ts` und `components/website/src/lib/auth/magic-link.test.ts`
 - **WHEN** der `vitest-website`-Job `pnpm exec vitest run --changed --coverage` ausführt
 - **THEN** läuft nur `magic-link.test.ts` (und ggf. transitiv abhängige Tests), nicht die vollen ~243 Vitest-Dateien
 - **THEN** schreibt `coverage/coverage-summary.json` einen realen `pct`-Wert für `src/lib/auth/magic-link.ts`
@@ -90,14 +90,14 @@ to `npx playwright test` in addition to the tag-based grep filter.
 
 #### Scenario: Website-Feature-PR läuft Tag-gefilterte E2E-Suite
 
-- **GIVEN** ein PR mit Branch `feature/content-hub-foo` ändert `website/src/pages/coaching.astro` (keine Spec-Datei)
+- **GIVEN** ein PR mit Branch `feature/content-hub-foo` ändert `components/website/src/pages/coaching.astro` (keine Spec-Datei)
 - **WHEN** der `e2e-pr`-Job den `Leite Feature-Tag aus Branch-Name ab`-Schritt ausführt
 - **THEN** leitet er `TAG=content-hub` und `GREP_PATTERN=@content-hub|@smoke` ab
 - **THEN** ruft `npx playwright test --grep "@content-hub|@smoke"` auf (keine zusätzlichen positional args, da `CHANGED_SPECS` leer ist)
 
 #### Scenario: PR mit geänderter Spec-Datei läuft Tag-Grep + die geänderte Spec
 
-- **GIVEN** ein PR ändert `tests/e2e/specs/fa-30-cockpit.spec.ts` und `website/src/pages/cockpit.astro`
+- **GIVEN** ein PR ändert `tests/e2e/specs/fa-30-cockpit.spec.ts` und `components/website/src/pages/cockpit.astro`
 - **WHEN** der `e2e-pr`-Job den `Detect changed E2E spec files`-Schritt ausführt
 - **THEN** setzt er `changed_specs=specs/fa-30-cockpit.spec.ts` (Prefix `tests/e2e/` gestrippt, damit es zum `testDir: ./specs` der Config passt)
 - **THEN** ruft der Playwright-Schritt `npx playwright test --grep "<tag-pattern>" specs/fa-30-cockpit.spec.ts` auf — die geänderte Spec läuft zusätzlich zur Tag-gefilterten Suite
@@ -208,7 +208,7 @@ transition the ticket to `done` and run the scout-drift ratchet.
 
 #### Scenario: Manifest-Deploy läuft nur bei manifest-relevanten Änderungen
 
-- **GIVEN** ein Push auf `main` ändert nur `website/src/`
+- **GIVEN** ein Push auf `main` ändert nur `components/website/src/`
 - **WHEN** `scripts/changed-manifests.sh HEAD~1 HEAD` läuft
 - **THEN** setzt der Schritt `manifests_changed=false` — `task workspace:deploy` wird nicht ausgeführt
 
@@ -745,7 +745,7 @@ backstop for any future SKILL-deviation or human bypass.
 
 #### Scenario: Plan-stage commit with implementation-type subject is blocked
 
-- **GIVEN** a developer runs `git add openspec/changes/<slug>/ website/src/middleware.test.ts`
+- **GIVEN** a developer runs `git add openspec/changes/<slug>/ components/website/src/middleware.test.ts`
 - **AND** the commit message is `fix(infra): chain loggingMiddleware in middleware.ts via sequence() [T001434]`
 - **WHEN** `git commit` is invoked
 - **THEN** the `commit-msg` hook runs `scripts/check-commit-vs-diff.sh`
@@ -755,7 +755,7 @@ backstop for any future SKILL-deviation or human bypass.
 
 #### Scenario: Implementation commit with real production code passes
 
-- **GIVEN** a developer runs `git add website/src/middleware.ts website/src/middleware.test.ts`
+- **GIVEN** a developer runs `git add components/website/src/middleware.ts components/website/src/middleware.test.ts`
 - **AND** the commit message is `fix(infra): chain loggingMiddleware in middleware.ts via sequence() [T001434]`
 - **WHEN** `git commit` is invoked
 - **THEN** the `commit-msg` hook runs `scripts/check-commit-vs-diff.sh`
@@ -1000,7 +1000,7 @@ class this change removes.
 ### Requirement: Ausgabepfad des Inventar-Erzeugers ist umlenkbar
 
 The test inventory generator SHALL write to the path given in the `TEST_INVENTORY_OUT`
-environment variable when it is set, and to `website/src/data/test-inventory.json` otherwise.
+environment variable when it is set, and to `components/website/src/data/test-inventory.json` otherwise.
 
 This exists so that tests can execute the generator and assert on its result without mutating the
 committed inventory.
@@ -1010,7 +1010,7 @@ committed inventory.
 - **GIVEN** `TEST_INVENTORY_OUT` set to a path outside the repository working tree
 - **WHEN** the generator runs
 - **THEN** the given path contains the generated inventory
-- **AND** `website/src/data/test-inventory.json` is left untouched
+- **AND** `components/website/src/data/test-inventory.json` is left untouched
 
 ### Requirement: Post-Merge Reaping of Orphaned Remote Branches
 
@@ -1023,7 +1023,7 @@ A branch counts as obsolete only when ALL of the following hold:
 2. no open pull request exists for it,
 3. its ticket status is `done` or `archived`,
 4. every file whose blob hash differs from `origin/main` matches the allowlist of plan and
-   generated paths (`openspec/changes/**`, `docs/code-quality/**`, `website/src/data/**`,
+   generated paths (`openspec/changes/**`, `docs/code-quality/**`, `components/website/src/data/**`,
    `.release-please-manifest.json`, `website/CHANGELOG.md`, `website/package.json`).
 
 Before deleting a branch, the system SHALL push its tip SHA to `refs/tags/reaped/<branch>` on
@@ -1264,8 +1264,8 @@ Rationale: refusals are the normal case, not the exception. When the batch entry
 ### Requirement: Repohealth-Dashboard-Datenquelle triggert den Website-Build
 
 Health-Goal-Werte erreichen `/admin/repohealth` ausschliesslich ueber ein neu gebautes
-Website-Image, weil `website/src/lib/goals-data.generated.json` per statischem ESM-Import in
-`website/src/lib/goals-data.ts` ins Astro-Bundle gebacken wird. `.claude/lib/goals.md` ist der
+Website-Image, weil `components/website/src/lib/goals-data.generated.json` per statischem ESM-Import in
+`components/website/src/lib/goals-data.ts` ins Astro-Bundle gebacken wird. `.claude/lib/goals.md` ist der
 SSOT dieses Artefakts.
 
 The system SHALL trigger `build-website.yml` on changes to `.claude/lib/goals.md`, so that a
@@ -1861,7 +1861,7 @@ A bats run that already failed SHALL keep its own exit code; the guard SHALL NOT
 #### Scenario: Ignorierte Testdateien werden vom Inventar ignoriert
 GIVEN eine Datei unter `tests/spec/` ist durch `.gitignore` ignoriert
 WHEN `scripts/build-test-inventory.sh` ausgeführt wird
-THEN erscheint die ignorierte Datei NICHT in `website/src/data/test-inventory.json`.
+THEN erscheint die ignorierte Datei NICHT in `components/website/src/data/test-inventory.json`.
 
 ### Requirement: FRESHNESS-002 — Post-merge Hook stellt generierte Freshness-Artefakte wieder her
 
@@ -2292,7 +2292,7 @@ The system SHALL detect manifest-relevant file changes in `k3d/`, `prod/`, `prod
 - **THEN** liefert das Skript Exit-Code 1
 
 #### Scenario: Nur Website-Änderung — kein Manifest-Treffer *(BATS)*
-- **GIVEN** ein Commit ändert ausschließlich `website/src/pages/index.astro`
+- **GIVEN** ein Commit ändert ausschließlich `components/website/src/pages/index.astro`
 - **WHEN** `scripts/changed-manifests.sh HEAD~1 HEAD` ausgeführt wird
 - **THEN** liefert das Skript Exit-Code 1 und gibt "no manifest changes" aus
 
@@ -2317,7 +2317,7 @@ The system SHALL detect manifest-relevant file changes in `k3d/`, `prod/`, `prod
 - **THEN** liefert das Skript Exit-Code 0 und gibt `prod/config.yaml` aus
 
 #### Scenario: Gemischter Commit (Manifest + Non-Manifest) — Exit 0 *(BATS)*
-- **GIVEN** ein Commit ändert sowohl `k3d/foo.yaml` als auch `docs/x.md` und `website/src/index.astro`
+- **GIVEN** ein Commit ändert sowohl `k3d/foo.yaml` als auch `docs/x.md` und `components/website/src/index.astro`
 - **WHEN** `scripts/changed-manifests.sh HEAD~1 HEAD` ausgeführt wird
 - **THEN** liefert das Skript Exit-Code 0 und gibt `k3d/foo.yaml` in der Ausgabe aus
 
@@ -2687,7 +2687,7 @@ using three independent CI jobs: one shared build job and two parallel, independ
 
 #### Scenario: Website-Änderung löst Build und parallele Rollouts aus
 
-- **GIVEN** ein Commit auf `main` ändert `website/src/pages/index.astro`
+- **GIVEN** ein Commit auf `main` ändert `components/website/src/pages/index.astro`
 - **WHEN** der `build-website`-Workflow getriggert wird
 - **THEN** startet zuerst der `build-image`-Job (baut Image mit `SHA_TAG` + `:latest`, pusht nach GHCR, exportiert `image` + `sha_tag` als Job-Outputs), danach laufen `deploy-mentolder` und `deploy-korczewski` parallel — je mit `kubectl set image` + `rollout status --timeout=120s`
 

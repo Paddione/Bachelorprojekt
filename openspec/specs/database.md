@@ -328,7 +328,7 @@ The system SHALL include `plan_staged` between `planning` and `backlog` in the `
 
 #### Scenario: plan_staged ist im CHECK-Constraint vorhanden
 
-- **GIVEN** `website/src/lib/tickets-db.ts` definiert den Status-CHECK
+- **GIVEN** `components/website/src/lib/tickets-db.ts` definiert den Status-CHECK
 - **WHEN** der Quelltext auf den plan_staged-Wert geprüft wird
 - **THEN** enthält der CHECK-Constraint die Sequenz `'planning','plan_staged','backlog'` in dieser Reihenfolge
 
@@ -751,7 +751,7 @@ Laufzeit-Code die Spalte referenziert.
 
 Website-Module, die dieselbe `website`-Datenbank mit derselben Konfiguration wie der
 kanonische Pool ansprechen, SHALL den gehärteten geteilten Pool aus
-`website/src/lib/db-pool.ts` verwenden (mit `nodeLookup`-DNS-Workaround und fail-soft
+`components/website/src/lib/db-pool.ts` verwenden (mit `nodeLookup`-DNS-Workaround und fail-soft
 Connection-/Statement-Timeouts), statt einen eigenen `new Pool(...)` zu erzeugen. Module,
 die bewusst eine andere Datenbank, andere Umgebungsvariable oder abweichende
 Timeout-Anforderungen haben (z. B. Bulk-Import ohne engen `statement_timeout`), SHALL als
@@ -759,7 +759,7 @@ dokumentierter Sonder-Pool bestehen bleiben und dürfen NICHT naiv zusammengeleg
 
 #### Scenario: Gleiche DB/Config wird auf den geteilten Pool umgestellt
 
-- **GIVEN** ein Modul erzeugt einen eigenen `pg.Pool` über `SESSIONS_DATABASE_URL` mit derselben Ziel-DB wie `website/src/lib/db-pool.ts`
+- **GIVEN** ein Modul erzeugt einen eigenen `pg.Pool` über `SESSIONS_DATABASE_URL` mit derselben Ziel-DB wie `components/website/src/lib/db-pool.ts`
 - **WHEN** die Pool-Konsolidierung angewendet wird
 - **THEN** importiert das Modul `pool` aus `db-pool.ts`, erzeugt keinen eigenen Pool mehr und profitiert von DNS-Workaround und fail-soft Timeouts
 
@@ -910,18 +910,18 @@ The system SHALL provide a `graph.ts` API endpoint, an `architektur.astro` page,
 #### Scenario: API-Endpunkt-Datei existiert *(BATS)*
 
 - **GIVEN** das Website-Repository ist ausgecheckt
-- **WHEN** der Pfad `website/src/pages/api/admin/cluster/graph.ts` geprüft wird
+- **WHEN** der Pfad `components/website/src/pages/api/admin/cluster/graph.ts` geprüft wird
 - **THEN** existiert die Datei
 
 #### Scenario: Astro-Seite und Svelte-Komponente existieren *(BATS)*
 
 - **GIVEN** das Website-Repository ist ausgecheckt
-- **WHEN** die Pfade `website/src/pages/admin/architektur.astro` und `website/src/components/admin/ArchitekturGraph.svelte` geprüft werden
+- **WHEN** die Pfade `components/website/src/pages/admin/architektur.astro` und `components/website/src/components/admin/ArchitekturGraph.svelte` geprüft werden
 - **THEN** existieren beide Dateien
 
 #### Scenario: AdminLayout enthält Architektur-Sidebar-Eintrag *(BATS)*
 
-- **GIVEN** `website/src/layouts/AdminLayout.astro` ist die Admin-Navigation
+- **GIVEN** `components/website/src/layouts/AdminLayout.astro` ist die Admin-Navigation
 - **WHEN** die Datei auf `/admin/architektur` geprüft wird
 - **THEN** enthält sie einen Link zu `/admin/architektur` als Sidebar-Eintrag
 

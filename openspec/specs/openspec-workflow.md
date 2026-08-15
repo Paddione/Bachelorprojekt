@@ -174,7 +174,7 @@ und SHALL mit Exit-Code ungleich 0 fehlschlagen, sobald eine Datei ein Kriterium
 ### Requirement: Statusmap-Generierung spiegelt den Change-Zustand als JSON
 
 The system SHALL nach jedem `propose`-, `apply`- und `archive`-Aufruf automatisch
-`website/src/data/openspec-status.json` regenerieren, die aktive Changes als `planning`
+`components/website/src/data/openspec-status.json` regenerieren, die aktive Changes als `planning`
 (ohne `tasks.md`) bzw. `plan_staged` (mit `tasks.md`) und archivierte Changes als `archived`
 mit ihrem Ticket-Bezug ausgibt.
 
@@ -182,7 +182,7 @@ mit ihrem Ticket-Bezug ausgibt.
 
 - **GIVEN** `openspec/changes/my-feature/` existiert ohne `tasks.md`, mit `.ticket`-Datei
 - **WHEN** `scripts/openspec-status-map.sh` ausgeführt wird
-- **THEN** enthält `website/src/data/openspec-status.json` einen Eintrag `{ ticket: "<id>", slug: "my-feature", status: "planning" }`
+- **THEN** enthält `components/website/src/data/openspec-status.json` einen Eintrag `{ ticket: "<id>", slug: "my-feature", status: "planning" }`
 
 #### Scenario: Aktiver Change mit tasks.md erscheint als plan_staged
 
@@ -216,20 +216,20 @@ der Ticket-Status `done` ist.
 ### Requirement: Freshness-Check sichert Konsistenz der generierten Artefakte
 
 The system SHALL im Rahmen des `freshness:check`-Gates die Aktualität von
-`website/src/data/openspec-status.json` prüfen und SHALL fehlschlagen, wenn die Datei
+`components/website/src/data/openspec-status.json` prüfen und SHALL fehlschlagen, wenn die Datei
 gegenüber dem aktuellen Stand der `openspec/changes/`-Verzeichnisstruktur veraltet ist.
 
 #### Scenario: Veraltete openspec-status.json blockiert CI
 
 - **GIVEN** ein neuer Change wurde hinzugefügt, aber `openspec-status-map.sh` wurde nicht neu ausgeführt
 - **WHEN** `task freshness:check` im CI ausgeführt wird
-- **THEN** schlägt der Job fehl mit Hinweis auf die veraltete `website/src/data/openspec-status.json`
+- **THEN** schlägt der Job fehl mit Hinweis auf die veraltete `components/website/src/data/openspec-status.json`
 
 #### Scenario: Frische openspec-status.json lässt CI passieren
 
 - **GIVEN** `openspec-status-map.sh` wurde nach der letzten Change-Änderung ausgeführt und die Datei ist committed
 - **WHEN** `task freshness:check` ausgeführt wird
-- **THEN** wird `website/src/data/openspec-status.json` als aktuell akzeptiert
+- **THEN** wird `components/website/src/data/openspec-status.json` als aktuell akzeptiert
 
 ---
 
@@ -856,7 +856,7 @@ directory and without performing any ticket status transition.
 ### Requirement: Archive staged die regenerierte Status-Map für den Folge-Commit
 
 The system SHALL, after `scripts/openspec.sh archive <slug>` has moved the change directory
-to the archive and regenerated `website/src/data/openspec-status.json`, stage the
+to the archive and regenerated `components/website/src/data/openspec-status.json`, stage the
 regenerated file in the current git index (best-effort, never aborting the archive), so that
 the caller's subsequent commit — which stages the `openspec/changes/` move — carries the
 status map as well and the freshness gate does not report it as stale.
@@ -866,7 +866,7 @@ status map as well and the freshness gate does not report it as stale.
 - **GIVEN** a change directory with a `.ticket` file is archived via
   `scripts/openspec.sh archive <slug>`
 - **WHEN** the caller commits the archive (staging `openspec/changes/`)
-- **THEN** the commit also contains the regenerated `website/src/data/openspec-status.json`
+- **THEN** the commit also contains the regenerated `components/website/src/data/openspec-status.json`
 - **AND** `task freshness:check` passes on that commit without a manual regeneration step
 
 #### Scenario: Archive bleibt erfolgreich, wenn das Staging fehlschlägt
@@ -908,7 +908,7 @@ regress unnoticed.
 The archive step reference (`plan-archive-steps.md`) SHALL cover every path
 group mutated by `scripts/openspec.sh archive` in its `git add` list before
 the archive commit: `openspec/changes/`, `openspec/changes/archive/`,
-`openspec/specs/`, and `website/src/data/openspec-status.json`. A regression
+`openspec/specs/`, and `components/website/src/data/openspec-status.json`. A regression
 guard SHALL check the reference list against these mutation paths, so a
 silently unstaged SSOT delta (observed at T002614, repaired in PR #4334)
 cannot recur.
@@ -952,7 +952,7 @@ written-out delta SHALL keep validating as `ok=true`.
 The archive step reference (`.claude/skills/references/plan-archive-steps.md`, step 7) SHALL
 prescribe a `task freshness:check` verification between the cherry-pick of the archive commit
 onto the archive branch and the push of that branch, so that a stale committed
-`website/src/data/openspec-status.json` (regenerated before the archive move was fully
+`components/website/src/data/openspec-status.json` (regenerated before the archive move was fully
 visible in the working tree) is detected locally before CI fails the archive PR. When the
 check reports drift, the reference SHALL prescribe regenerating, staging the regenerated
 artifacts and amending the archive commit (`git commit --amend`), followed by a re-run of
@@ -960,7 +960,7 @@ the check, before the branch is pushed.
 
 #### Scenario: Pre-Push-Check erkennt eine stale Status-Map vor dem Push
 
-- **GIVEN** an archive commit whose `website/src/data/openspec-status.json` was regenerated
+- **GIVEN** an archive commit whose `components/website/src/data/openspec-status.json` was regenerated
   before the archive move was visible in the working tree (observed at T006369, PR #4552)
 - **WHEN** an agent follows `plan-archive-steps.md` to archive a change and reaches the
   verification step between cherry-pick and push

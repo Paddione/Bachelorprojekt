@@ -223,9 +223,9 @@ through the CLI gate `vda.sh cfr` and direct `tickets.pr_events` queries.
 - **GIVEN** an authenticated admin on `/admin`
 - **WHEN** the sidebar or shortcuts render
 - **THEN** no link to `/admin/dora` is present, the redirect stub page
-  (`website/src/pages/admin/dora.astro`) has been removed, and the URL
+  (`components/website/src/pages/admin/dora.astro`) has been removed, and the URL
   returns a 301 redirect to `/admin/pipeline?tab=analytics` (handled by the
-  `redirectMiddleware` / `REDIRECT_MAP` in `website/src/middleware/redirect-map.ts`,
+  `redirectMiddleware` / `REDIRECT_MAP` in `components/website/src/middleware/redirect-map.ts`,
   independent of the deleted stub page)
 
 <!-- merged from change delta monitoring-alerts.md (329d8c40680b) -->

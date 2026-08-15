@@ -8,11 +8,11 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu batch-local-test-runner-
 
 ### Requirement: Cockpit Vitest Suite mocks relative paths accurately
 
-The system SHALL use correct relative import and mock paths for auth and database modules in `website/src/lib/sdlc/tickets/__tests__/` so that tests execute isolated in-memory and pass without connecting to external cluster services.
+The system SHALL use correct relative import and mock paths for auth and database modules in `components/website/src/lib/sdlc/tickets/__tests__/` so that tests execute isolated in-memory and pass without connecting to external cluster services.
 
 #### Scenario: Running cockpit API unit tests
 
-- **GIVEN** unit tests in `website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts`
+- **GIVEN** unit tests in `components/website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts`
 - **WHEN** vitest executes the test suite locally
 - **THEN** authentication and database mocks are applied correctly and tests pass with expected status codes (200, 400, 504) without requiring cluster services.
 

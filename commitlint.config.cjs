@@ -23,9 +23,15 @@ const NAMED_SCOPES = [
   'deps',
 ];
 
+// DEPRECATED-ALIASE (NUR Diagnose-Hinweis, KEINE gueltigen Scopes!):
 // Ziel-Scope -> die Namen, die darin aufgegangen sind. Gruppiert statt als
 // flache Paar-Map notiert: spart rund 40 Zeilen (das .cjs-Limit liegt bei 200)
 // und macht die Zusammenfassung auf einen Blick lesbar.
+// Diese Eintraege sind KEINE akzeptierten Scopes — die scope-allowed-Regel
+// prueft nur NAMED_SCOPES (plus T-/G-Regex). Die Aliase existieren einzig fuer
+// die Konsolidierungs-Hint-Meldung (scopeHint). Ein grep nach einem Alias
+// (z. B. 'hooks') in dieser Datei ist daher KEIN Scope-Nachweis [T007877-9];
+// die kanonische Abfrage ist: bash scripts/validate-commit-msg.sh scopes
 const SCOPE_ALIAS_GROUPS = {
   website: ['brett', 'admin', 'billing', 'coaching', 'dashboard', 'arena', 'brain',
     'knowledge', 'mentolder-web', 'kore', 'cockpit', 'videovault', 'ui', 'content',

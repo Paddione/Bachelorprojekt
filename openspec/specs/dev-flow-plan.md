@@ -785,8 +785,8 @@ emitted by `plan-context.sh --vocab` as the single source of truth.
 ### Requirement: plan-preflight pre-commit evaluates the staged set
 
 The `pre-commit` invocation of `scripts/plan-preflight.sh` SHALL pass when the staged set
-contains only plan artifacts (`tests/`, `openspec/changes/`, `website/src/data/openspec-status.json`,
-`website/src/data/test-inventory.json`) — the exact state immediately before the plan-stage
+contains only plan artifacts (`tests/`, `openspec/changes/`, `components/website/src/data/openspec-status.json`,
+`components/website/src/data/test-inventory.json`) — the exact state immediately before the plan-stage
 commit. It SHALL NOT require a fully clean working tree: unstaged and untracked files are not
 part of the commit and SHALL NOT fail the guard. A staged file outside the plan artifacts SHALL
 still be rejected.

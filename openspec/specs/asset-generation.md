@@ -63,6 +63,6 @@ The website SHALL reach the GPU services exclusively via the env vars `COMFY_HOS
 
 #### Scenario: CI läuft ohne GPU-Host
 
-- **GIVEN** die Pipeline-Tests (`website/src/lib/generate-3d-pipeline.test.ts`, `brett/test/skins-upload.test.ts`)
+- **GIVEN** die Pipeline-Tests (`components/website/src/lib/generate-3d-pipeline.test.ts`, `brett/test/skins-upload.test.ts`)
 - **WHEN** `task test:all` bzw. `pnpm test` läuft
 - **THEN** decken Mocks alle Stages inkl. Fehlerpfade ab; kein Netzwerkzugriff auf `COMFY_HOST_IP`/`RIGGER_HOST_IP`

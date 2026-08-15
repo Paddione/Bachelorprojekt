@@ -74,3 +74,28 @@ teardown() {
   run grep -qi 'AGENT_LOCK_SID' "$skill"
   [ "$status" -eq 0 ]
 }
+
+@test "T5: Zwei Claims derselben SID auf verschiedenen Worktrees — beide beschreibbar (SID-Doppel-Claim, T007877-10)" {
+  # Mishap T007877-10: Orchestrator claimt Chore-Branch + delegierter
+  # Implementer claimt Feature-Branch unter derselben AGENT_LOCK_SID. Die
+  # MY_WTS-Logik sammelt ALLE eigenen Claims (T002412) — ein Schreibzugriff auf
+  # den zweiten Worktree muss ohne Re-Claim durchgehen.
+  mkdir -p "$REPO/wt-chore"
+  touch "$REPO/wt-chore/README.md"
+  echo "{\"owner_sid\":\"double-sid\",\"owner_pid\":\"9999\",\"worktree\":\"$REPO/wt-chore\",\"branch\":\"chore/demo-T007956\",\"label\":\"live\"}" > "$AGENT_LOCK_DIR/ticket__T007956.json"
+  echo "{\"owner_sid\":\"double-sid\",\"owner_pid\":\"9998\",\"worktree\":\"$REPO/wt-other\",\"branch\":\"feature/demo-T007559\",\"label\":\"live\"}" > "$AGENT_LOCK_DIR/ticket__T007559.json"
+
+  export AGENT_LOCK_SID="double-sid"
+
+  # Implementer-Worktree (zweiter Claim): Schreiben muss erlaubt sein.
+  run bash "$GUARD" <<< "$(printf '{"tool_input":{"file_path":"%s"}}' "$REPO/wt-other/README.md")"
+  [ "$status" -eq 0 ]
+
+  # Orchestrator-Worktree (erster Claim): ebenfalls erlaubt.
+  run bash "$GUARD" <<< "$(printf '{"tool_input":{"file_path":"%s"}}' "$REPO/wt-chore/README.md")"
+  [ "$status" -eq 0 ]
+
+  # Ausserhalb beider Claims: weiterhin blockiert.
+  run bash "$GUARD" <<< "$(printf '{"tool_input":{"file_path":"%s"}}' "$REPO/README.md")"
+  [ "$status" -eq 2 ]
+}

@@ -9,8 +9,8 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu admin-token-consolidatio
 ### Requirement: Single color-token source in the Tailwind @theme layer
 
 The system SHALL define every admin and factory base color token exclusively in
-the Tailwind `@theme` layer of `website/src/styles/global.css`. The file
-`website/src/styles/factory-tokens.css` SHALL NOT exist, and no second `:root`
+the Tailwind `@theme` layer of `components/website/src/styles/global.css`. The file
+`components/website/src/styles/factory-tokens.css` SHALL NOT exist, and no second `:root`
 block SHALL redeclare any of the 17 migrated base names (`--brass`, `--brass-2`,
 `--brass-d`, `--fg`, `--fg-soft`, `--ink-750`, `--ink-800`, `--ink-850`,
 `--ink-900`, `--line`, `--line-2`, `--mono`, `--mute`, `--mute-2`, `--sage`,
@@ -19,8 +19,8 @@ as thin `var(--color-*)` aliases in `global.css`.
 
 The regression guard for this requirement (`tests/spec/admin-token-consolidation.bats`)
 MUST point `ADMIN_LAYOUT` at the real file
-(`website/src/layouts/AdminLayout.astro`, not a nonexistent
-`website/src/components/admin/AdminLayout.astro`) and MUST use grep invocations
+(`components/website/src/layouts/AdminLayout.astro`, not a nonexistent
+`components/website/src/components/admin/AdminLayout.astro`) and MUST use grep invocations
 that actually exercise the assertion instead of silently passing regardless of
 file content — a wrong path or a broken `grep` pipeline is a false-green test
 that hides an incomplete migration.
@@ -43,7 +43,7 @@ that hides an incomplete migration.
 
 - **GIVEN** `tests/spec/admin-token-consolidation.bats`
 - **WHEN** `ADMIN_LAYOUT` is read
-- **THEN** it points at `website/src/layouts/AdminLayout.astro`, the file that
+- **THEN** it points at `components/website/src/layouts/AdminLayout.astro`, the file that
   Astro actually renders, so an import of `factory-tokens.css` there fails the
   test instead of being silently missed
 
@@ -76,7 +76,7 @@ duplicated in `admin-foundation.css`, and MUST NOT remain declared in
 ### Requirement: Single owner for sidebar width tokens
 
 The system SHALL define `--sidebar-width` and `--sidebar-collapsed-width` exactly
-once, owned by `website/src/styles/admin-premium.css` as the owner of the sidebar
+once, owned by `components/website/src/styles/admin-premium.css` as the owner of the sidebar
 optics. These tokens SHALL NOT be declared in `admin-foundation.css`.
 
 #### Scenario: sidebar tokens declared once

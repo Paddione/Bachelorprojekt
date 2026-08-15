@@ -813,7 +813,7 @@ and SHALL state why the ordering is required.
 
 The reason is structural, not stylistic: a rebase that is interrupted after its conflicts were
 resolved and staged leaves only the resolved paths in `git status --porcelain`. The conflicts
-that trigger these rebases are almost exclusively freshness artifacts under `website/src/data/`
+that trigger these rebases are almost exclusively freshness artifacts under `components/website/src/data/`
 and `docs/code-quality/` — precisely the paths the generat allowlist removes. After filtering,
 the output is empty and the broken worktree is classified as clean. The allowlist-filtered check
 therefore cannot detect this state at all, no matter how carefully it is performed.
@@ -1037,7 +1037,7 @@ SHALL be documented as an alternative.
 
 #### Scenario: A conflict-free rebase drops a committed freshness artifact
 
-- **GIVEN** a branch commit that carries regenerated `website/src/data/test-inventory.json` and `docs/code-quality/repo-index.json`
+- **GIVEN** a branch commit that carries regenerated `components/website/src/data/test-inventory.json` and `docs/code-quality/repo-index.json`
 - **AND** `origin/main` has moved those files
 - **WHEN** `git pull --rebase origin main` completes without conflicts
 - **THEN** the skill requires `task freshness:check` before push

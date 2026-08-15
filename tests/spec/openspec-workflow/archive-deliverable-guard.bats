@@ -45,11 +45,11 @@ DELTA
 
   # [T006371] Status-Map-Zielverzeichnis: cmd_archive regeneriert die Status-Map
   # seit T006371 bedingungslos und fail-closed — openspec-status-map.sh kann nur
-  # schreiben, wenn website/src/data existiert (im echten Repo immer vorhanden).
-  # Ohne das Verzeichnis bricht archive ab (Delta-Szenario 2), die hier gepruefte
-  # Deliverable-Semantik waere nicht mehr testbar. Muster aus
+  # schreiben, wenn components/website/src/data existiert (im echten Repo immer
+  # vorhanden). Ohne das Verzeichnis bricht archive ab (Delta-Szenario 2), die
+  # hier gepruefte Deliverable-Semantik waere nicht mehr testbar. Muster aus
   # archive-status-offline-staging.bats.
-  mkdir -p "${SANDBOX}/website/src/data"
+  mkdir -p "${SANDBOX}/components/website/src/data"
 }
 
 # $1 = status, $2 = touched_files JSON array literal (e.g. '["a.txt","b.txt"]' or 'null')

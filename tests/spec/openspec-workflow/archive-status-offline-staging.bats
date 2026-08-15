@@ -17,7 +17,7 @@
 # und REPO auf `git rev-parse --show-toplevel` — der Test laeuft daher in
 # einem eigenen `git init`-Sandbox-Repo mit Symlinks auf die echten Scripts
 # (nur ticket.sh wird durch eine Stub-Datei ersetzt). Die Status-Map schreibt
-# unter OPENSPEC_ROOT/website/... in die Sandbox, niemals ins echte Repo.
+# unter OPENSPEC_ROOT/components/website/... in die Sandbox, niemals ins echte Repo.
 #
 # Hintergrund (T006371): Der T003136-Add-Block in cmd_archive haengt an
 # `TICKET_OFFLINE != 1` und schluckt Fehler doppelt (`|| true`). Laeuft ein
@@ -65,8 +65,8 @@ DELTA
   rm -f "${SANDBOX}/scripts/ticket.sh"
 
   # Status-Map-Zielverzeichnis: openspec-status-map.sh kann nur schreiben,
-  # wenn website/src/data existiert (im echten Repo immer vorhanden).
-  mkdir -p "${SANDBOX}/website/src/data"
+  # wenn components/website/src/data existiert (im echten Repo immer vorhanden).
+  mkdir -p "${SANDBOX}/components/website/src/data"
 }
 
 _stub_ticket_status() {
@@ -90,7 +90,7 @@ STUB
   [ "$status" -eq 0 ]
   run git -C "$SANDBOX" diff --cached --name-only
   [ "$status" -eq 0 ]
-  [[ "$output" == *"website/src/data/openspec-status.json"* ]] \
+  [[ "$output" == *"components/website/src/data/openspec-status.json"* ]] \
     || { echo "openspec-status.json NICHT gestaged nach archive (TICKET_OFFLINE=1): '$output'" >&2; return 1; }
 }
 
@@ -103,7 +103,7 @@ STUB
   [ "$status" -eq 0 ]
   run git -C "$SANDBOX" diff --cached --name-only
   [ "$status" -eq 0 ]
-  [[ "$output" == *"website/src/data/openspec-status.json"* ]] \
+  [[ "$output" == *"components/website/src/data/openspec-status.json"* ]] \
     || { echo "openspec-status.json NICHT gestaged nach archive: '$output'" >&2; return 1; }
 }
 

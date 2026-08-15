@@ -58,9 +58,10 @@ DELTA
   rm -f "${SANDBOX}/scripts/ticket.sh"
 
   # Status-Map-Zielverzeichnis (T006371): openspec-status-map.sh kann nur
-  # schreiben, wenn website/src/data existiert — im echten Repo immer
-  # vorhanden, in der Sandbox bewusst im setup fuer alle Tests bereitgestellt.
-  mkdir -p "${SANDBOX}/website/src/data"
+  # schreiben, wenn components/website/src/data existiert — im echten Repo
+  # immer vorhanden, in der Sandbox bewusst im setup fuer alle Tests
+  # bereitgestellt.
+  mkdir -p "${SANDBOX}/components/website/src/data"
 }
 
 _stub_ticket_status() {

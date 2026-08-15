@@ -115,8 +115,8 @@ git cherry-pick "$ARCHIVE_COMMIT"
 # Archiv-Branch nach aussen traegt.
 if ! task freshness:check; then
   echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
-  git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
-  git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+  git add openspec/changes/ openspec/changes/archive/ openspec/specs/ components/website/src/data/openspec-status.json
+  git add -u -- components/website/src/data components/website/src/lib components/website/public/learning-assets docs
   git commit --amend --no-edit
   task freshness:check
 fi

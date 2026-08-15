@@ -203,7 +203,7 @@ s4:
     # entry, those scripts are flagged as orphans. Added in T001170.
     - "tests/**/*.bats"
     # Subagent prompt files under .opencode/prompts/ reference guard scripts and
-    # other helper scripts (e.g. guard-bonsai-overwrite.sh). Added in T002137.
+    # other helper scripts (e.g. agent-lock.sh). Added in T002137.
     - ".opencode/prompts/**/*.md"
   allowlist_globs:
     - "k3d/office-stack/**"

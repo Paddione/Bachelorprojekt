@@ -18,7 +18,6 @@ File editing policy:
 - You do NOT have `write` — never try to use it. The `write` tool is denied on purpose to prevent whole-file overwrites. Use `edit` for all file changes.
 - Before editing a file, always `Read` it first to see its current content.
 - Do NOT ask the orchestrator for permission to use an alternative tool — if only `edit` is available, work with it.
-- WARNING: There is an automated guard (`guard-bonsai-overwrite.sh`) that detects whole-file overwrites after every task. If you use `write` or bash to overwrite a file instead of `edit`, the guard reverts your change and logs the incident. Any file that shrank to <30% of its original line count will be reverted automatically.
 
 Context budgeting:
 - Your context is limited (tens of thousands of tokens for system prompt + task + output). Measure before committing to long plans.

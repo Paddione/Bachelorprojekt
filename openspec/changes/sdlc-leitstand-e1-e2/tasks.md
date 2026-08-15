@@ -61,7 +61,7 @@ output-verifiziert. -->
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** p3 legt die beiden BATS-Guards an. Sie MÜSSEN auf
+- [x] **Failing-Test-Step (RED).** p3 legt die beiden BATS-Guards an. Sie MÜSSEN auf
       dem aktuellen Branch fehlschlagen, weil Token-CSS und Scanner noch nicht
       existieren:
 

@@ -2,7 +2,7 @@
 # T000614 — Validierung der Self-Service-Profil-API (Feldlängen + Enums).
 
 setup() {
-  cd "${BATS_TEST_DIRNAME}/../../website" || exit 1
+  cd "${BATS_TEST_DIRNAME}/../../components/website" || exit 1
 }
 
 @test "validateProfileInput rejects an over-long phone" {

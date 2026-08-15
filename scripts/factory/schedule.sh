@@ -45,6 +45,25 @@ for c in "${candidates[@]}"; do
   [[ "$global_used" -ge "$GLOBAL_CAP" ]] && break
   ext_id=$(echo "$c" | jq -r '.external_id')
 
+  # ── Merged-PR-Gate (T006297) ─────────────────────────────────────────────
+  # Gemergte plan_staged-Tickets duerfen nicht dispatched werden (Duplikat-
+  # Arbeit; beobachtet als "Watchdog-Sturm" auf T004896/T005565/T005591 —
+  # PRs #4512/#4514/#4515 gemergt, Tickets blieben offen und wurden
+  # re-dispatcht). Close done statt Claim; rc=2 (kein origin/main) = fail-open
+  # mit sichtbarer WARN, Ticket bleibt Kandidat.
+  set +e
+  BRAND="$BRAND" bash "$HERE/../agent-lock.sh" check-merged "$ext_id" >/dev/null 2>&1
+  merged_rc=$?
+  set -e
+  if [[ "$merged_rc" -eq 1 ]]; then
+    resolution="shipped"; case "$(echo "$c" | jq -r '.type')" in fix|bug) resolution="fixed";; esac
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" update-status --id "$ext_id" --status done --resolution "$resolution" >/dev/null
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" comment --id "$ext_id" --body "Schedule: PR bereits auf main gemergt — Ticket geschlossen statt dispatched (T006297)" >/dev/null 2>&1 || true
+    continue
+  elif [[ "$merged_rc" -eq 2 ]]; then
+    echo "schedule: WARN check-merged rc 2 fuer ${ext_id} (kein origin/main) — Dispatch ungeprueft [T006297]" >&2
+  fi
+
   # Dependency blocker gate (TDR-2): skip tickets whose depends_on predecessors
   # are not all done. Queries the DB directly via factory_psql.
   # [T005306] Die Query referenzierte d.external_id, aber das Subquery-Alias d

@@ -92,7 +92,7 @@ export async function callVoyage(inputs, inputType = 'document') {
 
 // T002570: LLM_ROUTER_URL/llm-router.workspace.svc.cluster.local:4000 war toter
 // Code — dieser Service existiert im Cluster nicht. bge-m3 laeuft ueber
-// LLM_EMBED_URL, dieselbe Konvention wie website/src/lib/bge-router.ts
+// LLM_EMBED_URL, dieselbe Konvention wie components/website/src/lib/bge-router.ts
 // (http://llm-gateway-embed.workspace.svc.cluster.local:8081, k3d/llm-gpu.yaml).
 async function embedViaBge(texts, url) {
   const r = await fetch(`${url}/v1/embeddings`, {

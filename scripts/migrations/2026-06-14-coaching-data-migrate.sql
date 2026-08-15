@@ -5,7 +5,7 @@
 -- Reihenfolge: NACH 2026-06-14-provider-config-unify.sql, VOR Nutzung der neuen Coaching-UI.
 -- Auf BEIDE Brand-DBs anwenden (workspace UND workspace-korczewski).
 --   BRAND=mentolder bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/2026-06-14-coaching-data-migrate.sql'
--- Idempotent. Logik-Spiegel (getestet via pg-mem): website/src/lib/schema/coaching-migrate.ts.
+-- Idempotent. Logik-Spiegel (getestet via pg-mem): components/website/src/lib/schema/coaching-migrate.ts.
 -- coaching.ki_config wird NICHT gedroppt (Rollback-Sicherheit; Drop erst Phase 2).
 BEGIN;
 

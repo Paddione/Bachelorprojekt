@@ -56,7 +56,7 @@ print(json.dumps(rows))
 
 # ── 4. Extract seed req_ids (Python — no TS runtime needed) ───────────────
 echo "==> Extracting req_ids from seed data..."
-SEED_REQ_IDS=$(python3 - "$REPO_ROOT/website/src/lib/system-test-seed-data.ts" <<'PYEOF'
+SEED_REQ_IDS=$(python3 - "$REPO_ROOT/components/website/src/lib/system-test-seed-data.ts" <<'PYEOF'
 import re, json, sys
 
 with open(sys.argv[1]) as f:

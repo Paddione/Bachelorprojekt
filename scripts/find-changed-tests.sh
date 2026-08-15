@@ -176,10 +176,10 @@ while IFS= read -r file; do
 
   # Last resort for spec selection: a spec bats that mentions the changed path
   # is the one asserting about it. Probes the full path first, then walks up the
-  # ancestor directories, deepest match wins — so website/src/pages/admin/x.astro
-  # picks the admin specs rather than every spec that mentions website/src.
+  # ancestor directories, deepest match wins — so components/website/src/pages/admin/x.astro
+  # picks the admin specs rather than every spec that mentions components/website/src.
   # Floors above the top-level segment (never probes a bare "website"). Without
-  # this, whole domains (website/**, k3d/**, flux/**) matched no rule above and
+  # this, whole domains (components/website/**, k3d/**, flux/**) matched no rule above and
   # a diff-scoped run selected nothing for them. [T002245]
   if [ "$TYPE" = "spec" ] && [ "$RUN_ALL" != "true" ]; then
     probe_spec_for_path "$file"

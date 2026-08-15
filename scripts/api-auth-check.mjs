@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
 const DEFAULT_MAP = join(ROOT, 'docs/generated/api-map.json');
-const DEFAULT_ALLOWLIST = join(ROOT, 'website/api-public-allowlist.json');
+const DEFAULT_ALLOWLIST = join(ROOT, 'components/website/api-public-allowlist.json');
 
 function parseArgs(argv) {
   const args = { regression: false, mainMap: null };
@@ -97,7 +97,7 @@ function main() {
       for (const r of regressions) {
         console.error(`  ${r.path} [${r.methods.join(',')}]  ${r.prevAuth} → ${r.auth}`);
       }
-      console.error('\n  Add the endpoint to website/api-public-allowlist.json or restore its auth guard.');
+      console.error('\n  Add the endpoint to components/website/api-public-allowlist.json or restore its auth guard.');
       process.exit(1);
     }
   }
@@ -107,7 +107,7 @@ function main() {
     for (const f of failures) {
       console.error(`  ${f.path} [${f.methods.join(',')}]  auth=${f.auth}`);
     }
-    console.error('\n  Either add an auth guard or register in website/api-public-allowlist.json with a reason.');
+    console.error('\n  Either add an auth guard or register in components/website/api-public-allowlist.json with a reason.');
     process.exit(1);
   }
 

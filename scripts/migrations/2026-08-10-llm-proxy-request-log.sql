@@ -2,7 +2,7 @@
 -- 2026-08-10 — Haelt Request/Response-Paare jedes /v1/*-POST fest, der durch den
 -- lokalen Proxy (scripts/llm-proxy/server.mjs, Port 18235) laeuft. Geschrieben
 -- wird gebuendelt aus scripts/llm-proxy/request-log.mjs, gelesen von
--- website/src/pages/sdlc/api/llm-proxy/requests*.ts.
+-- components/website/src/pages/sdlc/api/llm-proxy/requests*.ts.
 --
 -- Aufbewahrung: 14 Tage via `task maintenance:dispatch-log-cleanup`.
 --

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 // eslint-disable-next-line import/extensions
 import { makePool } from '../knowledge/lib-knowledge-pg.mjs';
-import { validateJsonEntries, ingestJsonChunks } from '../../website/src/lib/ingest-json-core.js';
+import { validateJsonEntries, ingestJsonChunks } from '../../components/website/src/lib/ingest-json-core.js';
 
 async function main() {
   const args = process.argv.slice(2);

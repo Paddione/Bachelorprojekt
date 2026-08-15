@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Regenerates website/src/lib/srgb-icc.ts from website/src/assets/sRGB.icc.
+// Regenerates components/website/src/lib/srgb-icc.ts from components/website/src/assets/sRGB.icc.
 // Run after replacing the canonical .icc binary.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const ICC = 'website/src/assets/sRGB.icc';
-const OUT = 'website/src/lib/srgb-icc.ts';
+const ICC = 'components/website/src/assets/sRGB.icc';
+const OUT = 'components/website/src/lib/srgb-icc.ts';
 
 const bytes = readFileSync(ICC);
 const b64 = bytes.toString('base64');

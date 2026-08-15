@@ -84,7 +84,7 @@ cmd_check() {
   fi
   own="$(printf '%s\n' "$own" | sed '/^$/d' | sort -u)"
   # [T002375-p6] Generierte Artefakte aus der Kollisionspruefung nehmen. Sie werden von
-  # praktisch jedem Lauf angefasst — allen voran website/src/data/openspec-status.json,
+  # praktisch jedem Lauf angefasst — allen voran components/website/src/data/openspec-status.json,
   # das jeder `openspec propose` neu schreibt. In T002341-M2 kamen so sechs
   # COLLISION-Warnungen zustande, von denen nur diese eine Datei eine echte Ueberschneidung
   # war; echte Kollisionen gehen in solchem Rauschen unter.

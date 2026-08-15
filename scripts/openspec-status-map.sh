@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/openspec-status-map.sh
-# Scan openspec/changes/ and emit website/src/data/openspec-status.json.
+# Scan openspec/changes/ and emit components/website/src/data/openspec-status.json.
 # OPENSPEC_ROOT overrides the default openspec/ directory (used in tests).
 set -euo pipefail
 
@@ -10,7 +10,7 @@ set -euo pipefail
 REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "ERROR: openspec-status-map.sh must be run from inside a git worktree (cwd is not a git repository)" >&2; exit 1; }
 HERE="$REPO/scripts"
 OPENSPEC_ROOT="${OPENSPEC_ROOT:-$REPO/openspec}"
-OUT="$REPO/website/src/data/openspec-status.json"
+OUT="$REPO/components/website/src/data/openspec-status.json"
 CHANGES="$OPENSPEC_ROOT/changes"
 
 # Accumulate jq-compatible JSON fragments

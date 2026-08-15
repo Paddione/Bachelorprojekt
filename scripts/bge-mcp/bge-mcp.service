@@ -51,7 +51,7 @@ Restart=always
 RestartSec=5
 
 # T002488: Host-Routing der bge-Endpoints. Der Shim importiert
-# website/src/lib/bge-router.ts, dessen resolveEndpoint('embed'|'rerank') die
+# components/website/src/lib/bge-router.ts, dessen resolveEndpoint('embed'|'rerank') die
 # Variablen unten liest. Ohne sie greifen dort keine Defaults — ein fehlender
 # Wert wird geworfen (fail-closed, 503 im API-Pfad). Cluster-DNS waere fuer
 # diesen Prozess falsch: er laeuft auf dem WSL-Host, wo der Name nicht

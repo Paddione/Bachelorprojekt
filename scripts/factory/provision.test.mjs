@@ -68,7 +68,7 @@ import { provision } from './provision.js'
 test('provision: aggregates model + effort + compact contextHints', () => {
   const out = provision({
     complexity: 'medium', role: 'implement', risk: 'low',
-    budgetRemaining: 1.0, ticketId: 'T000420', touchedFiles: ['website/src/lib/x.ts'],
+    budgetRemaining: 1.0, ticketId: 'T000420', touchedFiles: ['components/website/src/lib/x.ts'],
     gpuEmbeddings: false,
   })
   assert.equal(out.model, 'sonnet')

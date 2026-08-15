@@ -15,7 +15,7 @@
 --     (fa-bugs-notifications.spec.ts).
 --
 -- All other steps are identical to v4. Mirrored in
--- website/src/lib/tickets/migrations.ts (applied on schema init).
+-- components/website/src/lib/tickets/migrations.ts (applied on schema init).
 
 \set ON_ERROR_STOP on
 BEGIN;

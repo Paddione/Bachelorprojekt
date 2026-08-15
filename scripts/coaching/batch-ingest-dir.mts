@@ -125,8 +125,8 @@ async function ingestDual(
 ): Promise<void> {
   const { sha256, ensureCollection, upsertDocumentAndChunks, bumpCollectionStats } =
     await import('../knowledge/lib-knowledge-pg.mjs') as any;
-  const { chunkText } = await import('../../website/src/lib/chunking.ts') as any;
-  const { embedBatch } = await import('../../website/src/lib/embeddings.ts') as any;
+  const { chunkText } = await import('../../components/website/src/lib/chunking.ts') as any;
+  const { embedBatch } = await import('../../components/website/src/lib/embeddings.ts') as any;
 
   const textHash = sha256(text);
   const chunks = chunkText(text, { mode: 'plain', targetTokens: 600, overlapTokens: 80 });

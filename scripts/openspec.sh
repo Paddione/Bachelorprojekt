@@ -332,7 +332,7 @@ cmd_archive() {
     # Staging hier macht das Ergebnis unabhaengig vom pre-commit-Hook
     # (SKIP_FRESHNESS_REGEN, --no-verify) und vom Flow-Skill. Best-effort wie
     # der Status-Map-Aufruf selbst.
-    git -C "$REPO" add -- "$REPO/website/src/data/openspec-status.json" >/dev/null 2>&1 || true
+    git -C "$REPO" add -- "$REPO/components/website/src/data/openspec-status.json" >/dev/null 2>&1 || true
   fi
   # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).
   _embed_slug "$slug"

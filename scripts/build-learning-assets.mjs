@@ -48,7 +48,7 @@ export function buildGenerated(manifest, { exists, readSvg }) {
   });
   return {
     $schema: 'learning-assets.generated/v1',
-    generatedFrom: 'website/src/data/learning-assets.manifest.json',
+    generatedFrom: 'components/website/src/data/learning-assets.manifest.json',
     assets,
   };
 }

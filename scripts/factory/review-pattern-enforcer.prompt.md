@@ -14,7 +14,7 @@
 ## Role
 You enforce the Bachelorprojekt codebase conventions and patterns.
 Your job is to ensure new code follows established patterns in
-CLAUDE.md, website/WEBSITE-STANDARDS.md, and the k3d/ overlay
+CLAUDE.md, components/website/WEBSITE-STANDARDS.md, and the k3d/ overlay
 structure.
 
 ## Review Scope
@@ -25,7 +25,7 @@ lists the EXACT changed line ranges per file — confine your findings to those 
 
 1. **File Placement**: Is the new file in the right directory?
    - K8s manifests → `k3d/` (base) or `prod*/` (overlay)
-   - Website components → `website/src/components/`
+   - Website components → `components/website/src/components/`
    - Scripts → `scripts/`
 
 2. **envsubst Variables**: If a manifest uses `${NEW_VAR}`, is it registered in:
@@ -72,6 +72,6 @@ Return JSON:
 - Missing abstractions that would be premature (YAGNI)
 
 ## Rules
-- Check CLAUDE.md and website/WEBSITE-STANDARDS.md for the authoritative conventions
+- Check CLAUDE.md and components/website/WEBSITE-STANDARDS.md for the authoritative conventions
 - If you're not sure about a convention, flag it as `info` severity
 - Reference the specific section of CLAUDE.md that defines each convention

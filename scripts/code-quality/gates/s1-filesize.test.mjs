@@ -16,17 +16,17 @@ test('lineCount counts newlines + a final partial line', () => {
 
 test('evalFile flags an over-limit file and shapes a violation', () => {
   const limits = { '.ts': 100 };
-  const v = evalFile('website/src/big.ts', 150, limits, []);
+  const v = evalFile('components/website/src/big.ts', 150, limits, []);
   assert.deepEqual(v, {
-    key: 'S1:website/src/big.ts',
-    path: 'website/src/big.ts',
+    key: 'S1:components/website/src/big.ts',
+    path: 'components/website/src/big.ts',
     metric: 150,
     detail: '150 lines > 100 limit (.ts)',
   });
 });
 
 test('evalFile returns null for an under-limit file', () => {
-  assert.equal(evalFile('website/src/ok.ts', 80, { '.ts': 100 }, []), null);
+  assert.equal(evalFile('components/website/src/ok.ts', 80, { '.ts': 100 }, []), null);
 });
 
 test('evalFile returns null for an ignored file', () => {
@@ -49,6 +49,6 @@ test('runS1 over the real repo returns the documented contract shape', () => {
   // Both website-db.ts and system-test-seed-data.ts are in the S1 ignore list
   // (sanctioned exceptions — see gates.yaml s1.ignore).
   const keys = new Set(res.violations.map((v) => v.key));
-  assert.ok(!keys.has('S1:website/src/lib/website-db.ts'));
-  assert.ok(!keys.has('S1:website/src/lib/system-test-seed-data.ts'));
+  assert.ok(!keys.has('S1:components/website/src/lib/website-db.ts'));
+  assert.ok(!keys.has('S1:components/website/src/lib/system-test-seed-data.ts'));
 });

@@ -10,19 +10,19 @@ const repoRoot = join(here, '..', '..');
 
 // Minimal inline subsystems for unit tests (mirrors subsystems.yaml structure)
 const subsystems = [
-  { id: 'tests', paths: ['tests/**', 'website/test/**', 'website/tests/**'] },
-  { id: 'website', paths: ['website/**'] },
+  { id: 'tests', paths: ['tests/**', 'components/website/test/**', 'components/website/tests/**'] },
+  { id: 'website', paths: ['components/website/**'] },
   { id: 'scripts-infra', paths: ['scripts/**'] },
   { id: 'infra-manifests', paths: ['k3d/**', 'prod/**', 'prod-fleet/**', 'prod-mentolder/**', 'prod-korczewski/**'] },
-  { id: 'brett', paths: ['brett/**'] },
+  { id: 'brett', paths: ['components/brett/**'] },
 ];
 
 const sampleBaseline = {
-  'S1:website/src/pages/big.astro': { gate: 'S1', path: 'website/src/pages/big.astro', metric: 612, detail: 'x', frozen_at: 'abc' },
-  'S1:website/src/components/Hero.svelte': { gate: 'S1', path: 'website/src/components/Hero.svelte', metric: 550, detail: 'y', frozen_at: 'abc' },
+  'S1:components/website/src/pages/big.astro': { gate: 'S1', path: 'components/website/src/pages/big.astro', metric: 612, detail: 'x', frozen_at: 'abc' },
+  'S1:components/website/src/components/Hero.svelte': { gate: 'S1', path: 'components/website/src/components/Hero.svelte', metric: 550, detail: 'y', frozen_at: 'abc' },
   'S1:scripts/build.sh': { gate: 'S1', path: 'scripts/build.sh', metric: 520, detail: 'z', frozen_at: 'abc' },
   'S3:k3d/configmap.yaml:foo.mentolder.de': { gate: 'S3', path: 'k3d/configmap.yaml', metric: 1, detail: 'w', frozen_at: 'abc' },
-  'S1:brett/public/scene.js': { gate: 'S1', path: 'brett/public/scene.js', metric: 700, detail: 'v', frozen_at: 'abc' },
+  'S1:components/brett/public/scene.js': { gate: 'S1', path: 'components/brett/public/scene.js', metric: 700, detail: 'v', frozen_at: 'abc' },
 };
 
 test('groups violations by (gate \xd7 subsystem)', () => {
@@ -47,7 +47,7 @@ test('violation_keys array contains the matching keys', () => {
   const s1Website = groups.find((g) => g.gate === 'S1' && g.subsystem === 'website');
   assert.deepEqual(
     s1Website.violation_keys.sort(),
-    ['S1:website/src/components/Hero.svelte', 'S1:website/src/pages/big.astro'],
+    ['S1:components/website/src/components/Hero.svelte', 'S1:components/website/src/pages/big.astro'],
   );
 });
 

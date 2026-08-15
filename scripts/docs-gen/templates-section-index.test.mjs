@@ -10,7 +10,7 @@ import {
 } from './templates.mjs';
 
 const FULL_DESC =
-  'Use this agent for website work in website/src. ' +
+  'Use this agent for website work in components/website/src. ' +
   'It owns Astro and Svelte components, the Kore brand design system, and CSS. ' +
   'It is the final authority on the editorial reading experience.';
 

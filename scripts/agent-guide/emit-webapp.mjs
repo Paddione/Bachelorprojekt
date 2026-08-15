@@ -181,7 +181,7 @@ export function serialize(data) {
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const REGISTRY_DIR = resolve(REPO_ROOT, 'docs/agent-guide/registry');
-const OUT_FILE = resolve(REPO_ROOT, 'website/src/lib/agent-guide.generated.json');
+const OUT_FILE = resolve(REPO_ROOT, 'components/website/src/lib/agent-guide.generated.json');
 
 /** CLI entrypoint: validate (fail-closed) → build → write. */
 export function main() {

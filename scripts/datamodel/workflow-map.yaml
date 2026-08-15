@@ -215,10 +215,10 @@ steps:
   - id: build-website
     family: ci
     label: "build-website.yml"
-    description: "GitHub Action: builds and rolls the Astro website on website/** push to main."
+    description: "GitHub Action: builds and rolls the Astro website on components/website/** push to main."
     writes: {}
     reads:
-      files: ["website/src/**", "website/public/**"]
+      files: ["components/website/src/**", "components/website/public/**"]
     gaps: []
 
   - id: manual-deploy

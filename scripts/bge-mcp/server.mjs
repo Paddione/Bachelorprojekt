@@ -23,7 +23,7 @@
 // Prozess den Server erreicht.
 //
 // KEINE EIGENE AUSWEICH-LOGIK. Welche Adresse antwortet, entscheidet
-// `website/src/lib/bge-router.ts` — dasselbe Modul, das auch die HTTP-Endpunkte
+// `components/website/src/lib/bge-router.ts` — dasselbe Modul, das auch die HTTP-Endpunkte
 // und die Bestandsclients benutzen. Node strippt beim Import die Typen; deshalb
 // laedt der Router seinen Logger lazy (siehe Kommentar dort). Eine zweite
 // Implementierung hier waere genau die Divergenz, die dieser Vorgang
@@ -41,7 +41,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve as resolvePath } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const ROUTER_PATH = resolvePath(HERE, '../../website/src/lib/bge-router.ts');
+const ROUTER_PATH = resolvePath(HERE, '../../components/website/src/lib/bge-router.ts');
 const { resolveEndpoint, BgeRoutingError } = await import(ROUTER_PATH);
 
 const HOST = process.env.BGE_MCP_HOST ?? '127.0.0.1';

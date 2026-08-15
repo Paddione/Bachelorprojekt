@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import json, base64, uuid, time, os, sys
 
-WHITEBOARD = 'website/public/systembrett/systembrett.whiteboard'
-ASSETS_DIR = 'website/public/brand/korczewski/kore-assets'
+WHITEBOARD = 'components/website/public/systembrett/systembrett.whiteboard'
+ASSETS_DIR = 'components/website/public/brand/korczewski/kore-assets'
 
 ASSETS = [
     ('logo-mark.svg',             'Kore Logo Mark',        128,  128, 'image/svg+xml'),

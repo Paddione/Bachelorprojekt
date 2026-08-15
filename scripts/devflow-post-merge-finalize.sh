@@ -278,8 +278,8 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
       # Regeneration und explizites Staging nach plan-archive-steps (T002252).
       task freshness:regenerate >/dev/null 2>&1 || true
-      git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
-      git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+      git add openspec/changes/ openspec/changes/archive/ openspec/specs/ components/website/src/data/openspec-status.json
+      git add -u -- components/website/src/data components/website/src/lib components/website/public/learning-assets docs
       git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
       git push -u origin "$ARCHIVE_BRANCH"
       # PR-Erstellung mit Assert (verhindert ungebuendelte Archiv-Branches, T001331)

@@ -16,8 +16,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const { buildNavSections } = await import(join(repoRoot, 'website/src/lib/admin/nav-items.ts'));
-const { resolveRedirect } = await import(join(repoRoot, 'website/src/middleware/redirect-map.ts'));
+const { buildNavSections } = await import(join(repoRoot, 'components/website/src/lib/admin/nav-items.ts'));
+const { resolveRedirect } = await import(join(repoRoot, 'components/website/src/middleware/redirect-map.ts'));
 
 const OPTS = { inboxPending: 3, brettUrl: 'https://brett.example.invalid' };
 

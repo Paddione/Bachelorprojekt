@@ -3,7 +3,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT="${TEST_INVENTORY_OUT:-${REPO_ROOT}/website/src/data/test-inventory.json}"
+OUT="${TEST_INVENTORY_OUT:-${REPO_ROOT}/components/website/src/data/test-inventory.json}"
 
 declare -a entries=()
 

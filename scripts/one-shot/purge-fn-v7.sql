@@ -7,7 +7,7 @@
 -- updating the purge function would fail silently at runtime.
 --
 -- All other steps are identical to v6. Mirrored in
--- website/src/lib/tickets/migrations.ts (applied on schema init).
+-- components/website/src/lib/tickets/migrations.ts (applied on schema init).
 
 \set ON_ERROR_STOP on
 BEGIN;

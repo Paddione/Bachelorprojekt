@@ -169,8 +169,8 @@ promote_phase_build() {
 
   echo "▸ Build ${full}" >&2
   case "$svc" in
-    website) run docker build -t "$full" "${REPO}/website/" >&2 ;;
-    brett)   run docker build -t "$full" "${REPO}/brett/" >&2 ;;
+    website) run docker build -t "$full" "${REPO}/components/website/" >&2 ;;
+    brett)   run docker build -t "$full" "${REPO}/components/brett/" >&2 ;;
     docs)
       run node "${REPO}/scripts/build-docs.mjs" >&2
       run docker build -t "$full" -f "${REPO}/scripts/docs.Dockerfile" "${REPO}" >&2

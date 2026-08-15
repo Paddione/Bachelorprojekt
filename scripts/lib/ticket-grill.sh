@@ -26,7 +26,7 @@ _grill_answers_json() {
 # Parse a tolerant grilling doc into TSV output:
 #   First line:  questionnaireId \t title \t count
 #   Rest lines:  id \t prompt \t section \t answer (empty if blank)
-# Mirrors website/src/lib/tickets/grilling.ts parseGrillingDoc (same markers/placeholders/auto-ids).
+# Mirrors components/website/src/lib/tickets/grilling.ts parseGrillingDoc (same markers/placeholders/auto-ids).
 _grill_parse_doc() {
   local file="$1" fallback="$2"
   awk -v fallback="$fallback" '

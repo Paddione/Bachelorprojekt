@@ -39,10 +39,10 @@ test('buildIndex is byte-deterministic and has no timestamp', () => {
 });
 
 test('buildIndex throws on an orphan file (no owning subsystem)', () => {
-  // a registry with a hole: only owns website/**, but scan-universe has more.
+  // a registry with a hole: only owns components/website/**, but scan-universe has more.
   const holed = [{
-    id: 'only-web', name: 'x', paths: ['website/**'],
-    owner_agent: 'bachelorprojekt-website', test_location: 'website/', purpose: 'x',
+    id: 'only-web', name: 'x', paths: ['components/website/**'],
+    owner_agent: 'bachelorprojekt-website', test_location: 'components/website/', purpose: 'x',
   }];
   const gates = loadGates(cfgDir);
   assert.throws(() => buildIndex(repoRoot, holed, gates), /orphan/i);

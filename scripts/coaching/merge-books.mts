@@ -8,7 +8,7 @@ import {
   proposeTitleFromBooks,
   mergeBooks,
   clusterByEmbedding,
-} from '../../website/src/lib/coaching-merge.ts';
+} from '../../components/website/src/lib/coaching-merge.ts';
 
 interface Flags {
   mode: 'pattern' | 'semantic' | 'list';

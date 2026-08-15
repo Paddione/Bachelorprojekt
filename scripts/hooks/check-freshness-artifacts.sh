@@ -57,6 +57,6 @@ _require() {
   fi
 }
 
-_needs_test_inventory && _require "website/src/data/test-inventory.json"
+_needs_test_inventory && _require "components/website/src/data/test-inventory.json"
 
 exit "$rc"

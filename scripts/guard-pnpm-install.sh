@@ -34,7 +34,7 @@ _refuse() {
 }
 
 if [ -n "$TARGET_DIR" ]; then
-  # Single-package check: e.g. scripts/guard-pnpm-install.sh website/
+  # Single-package check: e.g. scripts/guard-pnpm-install.sh components/website/
   pkg_nm="$TARGET_DIR/node_modules"
   if [ -L "$pkg_nm" ]; then
     _refuse "$TARGET_DIR"

@@ -413,7 +413,7 @@ cmd_seed_provider_config() {
 # ACHTUNG — in E3 NICHT ausfuehren [T002722].
 #
 # Der Freeze wuerde die Projektverwaltung im Kundenportal brechen:
-# website/src/lib/projects-db.ts fuehrt aus dem PRODUKTIONS-Build INSERT,
+# components/website/src/lib/projects-db.ts fuehrt aus dem PRODUKTIONS-Build INSERT,
 # UPDATE und DELETE auf tickets.tickets (type='project') aus — aufgerufen von
 # api/portal/projekte.ts, portal.astro und admin.astro. Bestand: 41 Projekte.
 #

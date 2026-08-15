@@ -521,9 +521,9 @@ while IFS= read -r path; do
   fi
 done < <(_structural_file_tokens "$PLAN_PROSE")
 
-# === W1: Vitest advisory — website/src .ts/.svelte/.astro files without a test mention ===
+# === W1: Vitest advisory — website/src (bzw. components/website/src) .ts/.svelte/.astro files without a test mention ===
 # If the plan lists website/src lib or API files but never mentions vitest/test, warn.
-if grep -qE '`website/src/(lib|pages/api)/[^`]+\.(ts|svelte|astro)`' <<<"$PLAN_PROSE"; then
+if grep -qE '`(website|components/website)/src/(lib|pages/api)/[^`]+\.(ts|svelte|astro)`' <<<"$PLAN_PROSE"; then
   if ! grep -qiE 'vitest|\.test\.ts|__tests__|test:inventory' <<<"$PLAN_PROSE"; then
     warn "W1: plan touches website/src lib/api files but mentions no Vitest test — add a test task or a '<!-- vitest: kein neuer Test nötig, weil … -->' comment"
   fi
@@ -569,7 +569,7 @@ fi
 while IFS= read -r ftok; do
   [[ -n "$ftok" ]] || continue
   # Match by BASENAME: File Structure lists full paths, but task prose idiomatically
-  # references the same file by its basename (e.g. FS `website/src/x/Foo.svelte`, task
+  # references the same file by its basename (e.g. FS `components/website/src/x/Foo.svelte`, task
   # "migrate `Foo.svelte`"). A full-path match would false-positive on nearly every plan.
   grep -qF -- "${ftok##*/}" <<<"$PLAN_OUTSIDE_FS" || warn "W3: \`$ftok\` is listed in File Structure but no task references it"
 done < <(_structural_file_tokens "$FS_SECTION")

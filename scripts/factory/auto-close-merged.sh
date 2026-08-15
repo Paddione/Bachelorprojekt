@@ -67,7 +67,7 @@ factory_resolve
 # files in large PRs (e.g. #3737 — scripts/openspec.sh was beyond the cap), so
 # use the paginated gh api instead. A plan-only PR changes only openspec/**
 # plan/archive files plus regenerated artifacts; any implementation file
-# (scripts/, tests/, k3d/, website/src/, .github/, brett/, docs/ non-generated)
+# (scripts/, tests/, k3d/, components/website/src/, .github/, components/brett/, docs/ non-generated)
 # makes it an execution PR that must auto-close.
 #
 # Returns 0 (plan-only) or 1 (execution / cannot determine).
@@ -82,12 +82,12 @@ pr_is_plan_only() {
       openspec/*) continue ;;
       # Generated artifacts — plan-only PRs regenerate these (openspec-status-map,
       # freshness:regenerate). Everything else is implementation.
-      website/src/data/openspec-status.json) continue ;;
-      website/src/data/test-inventory.json) continue ;;
-      website/src/data/route-manifest.json) continue ;;
-      website/src/lib/learning-assets.generated.json) continue ;;
-      website/src/lib/sdlc/goals-data.generated.json) continue ;;
-      website/src/lib/agent-guide.generated.json) continue ;;
+      components/website/src/data/openspec-status.json) continue ;;
+      components/website/src/data/test-inventory.json) continue ;;
+      components/website/src/data/route-manifest.json) continue ;;
+      components/website/src/lib/learning-assets.generated.json) continue ;;
+      components/website/src/lib/sdlc/goals-data.generated.json) continue ;;
+      components/website/src/lib/agent-guide.generated.json) continue ;;
       docs/code-quality/repo-index.json) continue ;;
       docs/code-quality/loc-budget.json) continue ;;
       docs/generated/*) continue ;;

@@ -7,7 +7,7 @@
 const NOISE_PATTERNS = [
   'docs/generated/',
   'docs/code-quality/repo-index.json',
-  'website/src/data/test-inventory.json',
+  'components/website/src/data/test-inventory.json',
   'docs/superpowers/plans/',
   'docs/superpowers/specs/',
 ]

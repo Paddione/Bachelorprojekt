@@ -18,7 +18,7 @@ test('canonCycle is rotation- and order-invariant', () => {
 });
 
 test('cyclesToviolations shapes keys and metrics per graph', () => {
-  const vs = cyclesToViolations('website', 'website/src', [
+  const vs = cyclesToViolations('website', 'components/website/src', [
     ['b.ts', 'a.ts'],
     ['x.ts', 'y.ts', 'z.ts'],
   ]);
@@ -27,7 +27,7 @@ test('cyclesToviolations shapes keys and metrics per graph', () => {
     'S2:website:x.ts|y.ts|z.ts',
   ]);
   assert.deepEqual(vs.map((v) => v.metric), [2, 3]);
-  assert.equal(vs[0].path, 'website/src');
+  assert.equal(vs[0].path, 'components/website/src');
 });
 
 test('runS2 returns the documented contract shape on the real tree', () => {

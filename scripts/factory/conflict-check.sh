@@ -132,9 +132,9 @@ WHERE t.external_id != :'ext_id'
     t.touched_files @> ARRAY[nf.f]
     -- augment: directory-prefix match, ONLY for the closed shared-state
     -- allowlist (k3d/, prod, environments/, Taskfile) and NOT for
-    -- website/src/pages/ (page-only features must stay parallel).
+    -- components/website/src/pages/ (page-only features must stay parallel).
     OR (
-      nf.f NOT LIKE 'website/src/pages/%'
+      nf.f NOT LIKE 'components/website/src/pages/%'
       AND EXISTS (
         SELECT 1
         FROM (VALUES ('k3d/%'), ('prod%'), ('environments/%'), ('Taskfile%')) AS p(prefix)

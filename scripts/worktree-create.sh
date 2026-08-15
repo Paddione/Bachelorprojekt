@@ -63,11 +63,25 @@ fi
 # real upstream repos (origin/main exists). Ephemeral BATS repos without a
 # remote must keep the T002204 warn-path (exit 0), because there is no canonical
 # main to protect. Mirrors the divergence-guard's origin/main precondition.
+#
+# [T007067] Der Branch muss am HAUPT-CHECKOUT geprueft werden, nicht pwd-relativ:
+# die Factory ruft worktree-create.sh aus Worktrees heraus auf (pipeline.mjs:
+# "From ${REPO}, create the isolated worktree"), und `git rev-parse --abbrev-ref
+# HEAD` loest dann im Aufruf-Worktree auf — ein Worktree auf branch "main" liesse
+# einen Fremdbranch des echten Haupt-Checkouts durch (Mishap 1, 2026-08-15:
+# Worktree auf chore/cosign-sign-reference-T007035 statt feature/...-T007055).
+# Das echte Haupt-Checkout ist das Elternverzeichnis des geteilten git-common-dir
+# (dieselbe Ableitung wie MAIN_ROOT unten, Zeile ~478).
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+  _mc_common="$(cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd 2>/dev/null)" || _mc_common=""
+  if [ -n "$_mc_common" ]; then
+    CURRENT_BRANCH="$(git -C "$(dirname "$_mc_common")" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+  else
+    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+  fi
   if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
     echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgefuehrt werden." >&2
-    echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
+    echo "       Aktueller Branch des Haupt-Checkouts: $CURRENT_BRANCH. Bitte: git checkout main" >&2
     exit 1
   fi
 fi
@@ -206,7 +220,17 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
         fi
       fi
       if ! $_skipped_sync; then
-        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
+        # [T007067] Gleiche Korrektur wie im T002448-M1-Guard oben: der Branch
+        # wird am HAUPT-CHECKOUT geprueft (Elternverzeichnis des git-common-dir),
+        # nicht pwd-relativ — der Divergence-Guard darf den Fremdbranch des
+        # Haupt-Checkouts nicht durchlassen, nur weil der Aufruf aus einem
+        # Worktree auf branch "main" kommt.
+        _mc_common="$(cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd 2>/dev/null)" || _mc_common=""
+        if [ -n "$_mc_common" ]; then
+          CURRENT_BRANCH="$(git -C "$(dirname "$_mc_common")" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+        else
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
+        fi
         if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
           echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgeführt werden." >&2
           echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2

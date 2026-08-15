@@ -205,7 +205,27 @@ elif [[ -d "$WORKTREE/openspec/changes/$SLUG" ]]; then
 elif [[ -d "$REPO_DIR/openspec/changes/$SLUG" ]]; then
   ARCHIVE_DIR="$REPO_DIR"
 else
-  mark_skip "Schritt 8: Change-Ordner openspec/changes/$SLUG existiert nicht mehr (bereits archiviert?)"
+  # [T007067] Nicht still "bereits archiviert?" raten, wenn der Change-Ordner im
+  # LOKALEN Arbeitsbaum fehlt: steht der Haupt-Checkout auf einem fremden Branch
+  # (Parallelsession), fehlt der Ordner dort auch dann, wenn der Change auf
+  # origin/main noch AKTIV ist — das Archiv wuerde lautlos uebersprungen und der
+  # Change bliebe halb-archiviert (Delta nie in die SSOT gemerged, Mishap 2,
+  # 2026-08-15). Der Change-Zustand wird deshalb gegen origin/main geprueft.
+  git fetch origin main --quiet 2>/dev/null || true
+  if git ls-tree -d --name-only origin/main "openspec/changes/$SLUG" 2>/dev/null | grep -qx "openspec/changes/$SLUG"; then
+    if git ls-remote --exit-code --heads origin "chore/plan-archive-${SLUG//\//-}-${TICKET_ID}" >/dev/null 2>&1; then
+      mark_skip "Schritt 8: Change auf origin/main noch aktiv, aber Archiv-Branch existiert remote — Archiv-PR laeuft (idempotent)"
+    else
+      echo "ERROR: Schritt 8 — Change-Ordner openspec/changes/$SLUG ist auf origin/main noch AKTIV," >&2
+      echo "       aber im lokalen Arbeitsbaum nicht vorhanden (Haupt-Checkout steht" >&2
+      echo "       evtl. auf einem fremden Branch). Das Archiv darf nicht still" >&2
+      echo "       uebersprungen werden. Bitte Haupt-Checkout auf main stellen und" >&2
+      echo "       Finalize wiederholen." >&2
+      exit 1
+    fi
+  else
+    mark_skip "Schritt 8: Change-Ordner openspec/changes/$SLUG existiert weder lokal noch auf origin/main (bereits archiviert?)"
+  fi
 fi
 
 if [[ -n "${ARCHIVE_DIR:-}" ]]; then

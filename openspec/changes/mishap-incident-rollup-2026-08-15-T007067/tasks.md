@@ -21,8 +21,34 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 ## File Structure
 
 ```
-<Der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/worktree-create.sh                                  # E1: Guard prueft Haupt-Checkout-Branch (git-common-dir) statt pwd-HEAD
+scripts/devflow-post-merge-finalize.sh                      # E2: Schritt 8 prueft Change-Zustand gegen origin/main, fail-closed
+scripts/branch-reaper.sh                                    # E4: Tag-Push-Fehler wird gegen origin verifiziert (ls-remote) vor KEEP
+scripts/plan-qa-check.sh                                    # E6: liest tasks.d/*.md in den QA-Payload (Index+Partials-Plaene)
+tests/spec/worktree-create-main-checkout-guard.bats         # E1: RED→GREEN Test (Fremdbranch im Haupt-Checkout, Aufruf aus Worktree)
+tests/spec/agent-skills/post-merge-finalize-guards.bats     # E2: T007067-Guards (ls-tree origin/main, fail-closed)
+tests/spec/ci-cd/branch-reaper-archiv-tag-verify.bats       # E4: Tag-liegt-auf-origin-trotz-Push-Fehler (Positiv/Negativ)
+tests/spec/dev-flow-plan/plan-qa-payload.bats               # E6: Partials-in-Payload + Single-Plan-unveraendert
+components/website/src/data/openspec-status.json            # E9: regeneriert (kanonischer Generator openspec-status-map.sh)
+components/website/src/data/test-inventory.json             # freshness:regenerate (neue Tests)
+docs/code-quality/repo-index.json                           # freshness:regenerate (neue Tests)
+openspec/changes/mishap-incident-rollup-2026-08-15-T007067/tasks.md  # dieser Plan: File Structure + Verify + Entscheidungen
 ```
+
+## Mishap-Entscheidungen (2026-08-15 Rollup)
+
+| # | Entscheidung | Begruendung |
+|---|---|---|
+| 1 | **fixed** | Guard in worktree-create.sh prueft jetzt den echten Haupt-Checkout-Branch (Elternverzeichnis des git-common-dir) statt pwd-relatives HEAD. RED-Test in tests/spec/worktree-create-main-checkout-guard.bats. |
+| 2 | **fixed** | devflow-post-merge-finalize.sh Schritt 8 prueft den Change-Ordner gegen origin/main (git ls-tree). Ist er dort noch aktiv, bricht das Skript fail-closed mit klarer Meldung ab statt still "bereits archiviert?" zu melden. |
+| 3 | **deferred** | Guard gegen Pushes auf gemergte Branches braeuchte eine gh-MERGED-PR-Abfrage im pre-push-Hook (Netzwerkabhaengigkeit, Hook-Chirurgie). Kein trivialer Fix; bleibt im Container fuer spaeteren Rollup. |
+| 4 | **fixed** | branch-reaper.sh verifiziert nach fehlgeschlagenem Archiv-Tag-Push den Tag-Zustand gegen origin (git ls-remote). Liegt der Tag am Branch-SHA, laeuft der Delete weiter (Sicherheitsnetz erfuellt); sonst KEEP wie bisher. |
+| 5 | **fixed-externally** | Die bash-Fehler (`${#MERGED_HEADS[@]:-0}` bad substitution, toter `-z`-Lazy-Load-Guard) wurden vom T007032-Implementer bereits behoben (numerischer `-eq 0`-Check, `${MERGED_HEADS[@]:-}`), verifiziert in scripts/branch-reaper.sh Zeile 175/310. Kein Rest-Code-Fehler; Prozess-Lehre (Plan-Code erst im BATS-Lauf sichtbar) ist dokumentiert. |
+| 6 | **fixed** | plan-qa-check.sh liest tasks.d/*.md in den QA-Payload, wenn neben der tasks.md ein tasks.d/-Verzeichnis mit `## Partials`-Manifest liegt (T002074-Struktur). Kein strukturelles False-FAIL mehr fuer Index+Partials-Plaene. |
+| 7 | **deferred** | post-commit-embed-Hang bei belegtem Port 15432: Hook-Chirurgie (Verbindungs-Timeout-Guard). Kern-Mitigationen (Probe-Timeout 20s, Retries, non-fatal WARN) existieren bereits in openspec-embed-local.sh; der 2-Minuten-Hang ist der 3x20s-Worst-Case. Bleibt im Container. |
+| 8 | **deferred** | .claude/skills/dev-flow-plan wird von Branch T006367 umgeschrieben (paralleler Owner). Doku-Kontrakt-Drift (Rollen-Literal 'tests', Claim-Flags) wird dort behandelt. |
+| 9 | **fixed** | openspec-status.json war in diesem Branch-Kontext stale (T007067-Eintrag fehlte). Kanonische Regeneration via `bash scripts/openspec-status-map.sh` ausgefuehrt und committet. (Erster Regenerations-Lauf produzierte `{}` — vermutlich OPENSPEC_ROOT-/cwd-Einfluss — verworfen und aus dem Worktree-Root erneut generiert; Ergebnis: genau +1 Eintrag T007067 gegen HEAD.) |
+| 10 | **deferred/observed** | mcp-postgres (localhost:13001) war zum Mishap-Zeitpunkt down (kein Listener). Aktueller Zustand (2026-08-15 Abend): Server laeuft wieder, MCP-Initialize antwortet HTTP 200. Environment-Zustand, kein Code-Defekt; kein Ticket. |
 
 ## Mishap-Batches
 
@@ -74,18 +100,34 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
+- [x] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
       der das beschriebene Fehlverhalten reproduziert. Er gehoert nach
       `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
 
 ```bash
-tests/unit/lib/bats-core/bin/bats -r tests/spec/software-factory/
-# expected: FAIL (rot — der Fix ist noch nicht implementiert)
+tests/unit/lib/bats-core/bin/bats tests/spec/worktree-create-main-checkout-guard.bats
+# expected: FAIL (rot) — der Test reproduziert Mishap 1: worktree-create.sh legt
+# bei Fremdbranch im Haupt-Checkout (Aufruf aus einem Worktree) den Worktree an,
+# statt fail-closed abzubrechen. RED belegt 2026-08-15: Test 1 scheiterte vor dem
+# Fix an `[ "$status" -ne 0 ]` (Skript lief durch, exit 0).
 ```
 
-- [ ] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten.
+- [x] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten.
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+```bash
+tests/unit/lib/bats-core/bin/bats tests/spec/worktree-create-main-checkout-guard.bats
+# GREEN: ok 1 T007067-M1 ...
+tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper-archiv-tag-verify.bats
+# GREEN: ok 1..3 (Positiv-Anker, Tag-trotz-Push-Fehler, Negativ-KEEP)
+tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/post-merge-finalize-guards.bats
+# GREEN: ok 1..10 (8x T006348 + 2x T007067)
+tests/unit/lib/bats-core/bin/bats tests/spec/dev-flow-plan/plan-qa-payload.bats
+# GREEN: ok 1..7 (5x T002595 + 2x T007067)
+tests/unit/lib/bats-core/bin/bats tests/spec/mishap-bundle-infra-testspec-ci.bats
+# GREEN: ok 1..10 (keine Regression T002448-M1)
+```
+
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

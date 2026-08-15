@@ -106,3 +106,24 @@ setup() {
   run grep -qF 'bash "$REPO_DIR/scripts/branch-reaper.sh"' "$FINALIZE"
   [ "$status" -eq 0 ]
 }
+
+# T007067 (Mishap 2, 2026-08-15): Bei fremdem Haupt-Checkout-Branch fand Schritt 8
+# den Change-Ordner nicht und uebersprang das OpenSpec-Archiv STILL ("bereits
+# archiviert?"), obwohl der Change auf origin/main noch AKTIV lag (halb-
+# archivierter Zustand, Delta nie in die SSOT gemerged). Erwartung: der
+# Change-Zustand wird gegen origin/main geprueft statt gegen den lokalen
+# Haupt-Checkout-Baum; bei aktivem Change auf origin/main bricht das Skript
+# fail-closed mit klarer Meldung ab.
+# Pruefmodus: Source-Grep (gleiche Ausnahme wie die Tests 1-8 — der Laufzeitpfad
+# braucht Cluster-/DB-Zugriff).
+@test "T007067: Schritt 8 prueft den Change-Zustand gegen origin/main (git ls-tree) statt nur lokal" {
+  run grep -qF 'git ls-tree -d --name-only origin/main' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T007067: Schritt 8 bricht fail-closed ab, wenn der Change auf origin/main noch aktiv ist" {
+  run grep -qF 'noch AKTIV' "$FINALIZE"
+  [ "$status" -eq 0 ]
+  run grep -qF 'exit 1' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}

@@ -388,8 +388,21 @@ for branch in "${REAP_LIST[@]}"; do
     continue
   fi
   if ! git push "$REMOTE" "$sha:refs/tags/reaped/$branch" 2>/dev/null; then
-    echo "KEEP $branch — Archiv-Tag konnte nicht gepusht werden, kein Delete"
-    continue
+    # [T007067] Push-Fehler ist nicht zwangslaeufig ein KEEP-Grund: der Push kann
+    # transient fehlschlagen (Server uebernimmt den Ref, Client meldet dennoch
+    # Fehler) oder ein paralleler Prozess (z.B. Hygiene-Lauf) hat den Tag
+    # zwischenzeitlich gepusht. Beobachtet 2026-08-15: Reaper meldete "Archiv-Tag
+    # konnte nicht gepusht werden", ls-remote zeigte den Tag direkt danach exakt
+    # am Branch-Tip. Vor dem KEEP gegen origin verifizieren: liegt der Archiv-Tag
+    # dort am Branch-SHA, ist das Sicherheitsnetz erfuellt und der Delete darf
+    # laufen. Fail-closed bleibt unveraendert: ohne Tag auf origin kein Delete.
+    remote_tag="$(git ls-remote "$REMOTE" "refs/tags/reaped/$branch" 2>/dev/null | cut -f1 || true)"
+    if [ -n "$remote_tag" ] && [ "$remote_tag" = "$sha" ]; then
+      echo "Archiv-Tag-Push meldete Fehler, Tag liegt aber bereits auf origin am Branch-SHA — Delete wird fortgesetzt"
+    else
+      echo "KEEP $branch — Archiv-Tag konnte nicht gepusht werden, kein Delete"
+      continue
+    fi
   fi
   if git push "$REMOTE" --delete "$branch" 2>/dev/null; then
     _reap_local_ref "$branch" "$sha"

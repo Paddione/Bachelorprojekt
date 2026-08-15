@@ -110,6 +110,23 @@ fi
 build_payload() {
   local plan_content
   plan_content=$(cat "$PLAN_FILE")
+  # [T007067] Index+Partials-Plaene (T002074): Die eigentliche Arbeit steht in
+  # tasks.d/pX-*.md, der tasks.md-Index delegiert nur. Ohne die Partials im
+  # Prompt bewertet das Modell jeden Partial-Plan strukturell als FAIL
+  # ("der Plan delegiert die eigentliche Arbeit an Partials, die nicht im
+  # Dokument enthalten sind") — beobachtet 2026-08-15 bei T007559, waehrend der
+  # harte Linter plan-lint.sh die tasks.d/ korrekt einbezieht (PASS). Analog zu
+  # plan-lint.sh (Partials-Manifest-Erkennung) werden die Partial-Dateien
+  # ANGEHAENGT, wenn neben der tasks.md ein tasks.d/-Verzeichnis liegt. Ohne
+  # tasks.d/ bleibt das Verhalten byte-identisch zum Single-Plan-Modus.
+  if [[ -d "$(dirname "$PLAN_FILE")/tasks.d" ]] \
+     && grep -q '^##[[:space:]]*Partials' "$PLAN_FILE"; then
+    for partial_file in "$(dirname "$PLAN_FILE")"/tasks.d/*.md; do
+      [[ -f "$partial_file" ]] || continue
+      plan_content+=$'\n\n--- Partial: '"$(basename "$partial_file")"$' ---\n'
+      plan_content+=$(cat "$partial_file")
+    done
+  fi
   # Echte Newlines (nicht die Literale "\n"): bash expandiert \n in
   # Doppelquotes nicht, jq --arg würde die 2-Zeichen-Sequenz sonst 1:1
   # übernehmen. Die Trennzeile zwischen Prefix und Plan soll ankommen.

@@ -130,3 +130,55 @@ PLANEOF
   [ "$status" -eq 0 ]
   echo "$output" | jq -e '.model == "pruefmodell-xyz"' >/dev/null
 }
+
+# T007067 (Mishap 6, 2026-08-15): plan-qa-check bewertete Index+Partials-Plaene
+# als FAIL, weil die eigentliche Arbeit in tasks.d/pX-*.md steht, die das Skript
+# nicht in den QA-Prompt einlas — waehrend plan-lint.sh die Partials korrekt
+# einbezieht (PASS). Fix: die Partials werden an den Payload-Content angehaengt,
+# wenn neben der tasks.md ein tasks.d/-Verzeichnis liegt (T002074-Struktur).
+# Ohne tasks.d/ bleibt der Modus byte-identisch zum Single-Plan-Fall.
+@test "T007067: Index+Partials-Plan — tasks.d/ wird in den Payload eingelesen" {
+  local plan_dir="$BATS_TEST_TMPDIR/index-plan"
+  mkdir -p "$plan_dir/tasks.d"
+  mkplan "$plan_dir/tasks.md"
+
+  # Partials-Manifest-Zeile + Partial-Datei anlegen (T002074-Konvention).
+  cat >> "$plan_dir/tasks.md" <<'MANIFEST'
+
+## Partials
+
+| id  | Datei | Rolle  | Ziel-Dateien |
+|-----|-------|--------|--------------|
+| p1  | tasks.d/p1-impl.md | impl | scripts/example.sh |
+MANIFEST
+
+  cat > "$plan_dir/tasks.d/p1-impl.md" <<'PARTIAL'
+# Partial p1 — Implementierung
+
+Konkreter Dateipfad: `scripts/example.sh`, Budget S1: Ist 42 - Baseline 10 -> Budget 32.
+
+Test-Schritt: `bats tests/unit/example.bats`
+PARTIAL
+
+  run bash "$QA" --emit-payload "$plan_dir/tasks.md"
+  [ "$status" -eq 0 ]
+
+  local user_content
+  user_content=$(echo "$output" | jq -r '[.messages[] | select(.role=="user") | .content] | first')
+  # Der Partial-Inhalt ist im Prompt (das ist die T007067-Erwartung).
+  grep -q 'tasks.d/p1-impl.md' <<<"$user_content"
+  grep -q 'Budget S1' <<<"$user_content"
+  # Der Index selbst ist weiterhin enthalten (kein Ersatz, nur Anhaengen).
+  grep -q 'Fixture Implementation Plan' <<<"$user_content"
+}
+
+@test "T007067: Single-Plan ohne tasks.d/ bleibt unveraendert (kein Partials-Anhang)" {
+  mkplan "$BATS_TEST_TMPDIR/plan.md"
+  run bash "$QA" --emit-payload "$BATS_TEST_TMPDIR/plan.md"
+  [ "$status" -eq 0 ]
+
+  local user_content
+  user_content=$(echo "$output" | jq -r '[.messages[] | select(.role=="user") | .content] | first')
+  # Kein Partials-Anhang eingeschleust.
+  ! grep -q '--- Partial:' <<<"$user_content"
+}

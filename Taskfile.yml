@@ -1177,7 +1177,7 @@ tasks:
       - bash scripts/build-test-inventory.sh
 
   api:inventory:
-    desc: Regenerate website/src/data/api-inventory.json (SDLC API/connector inventory)
+    desc: Regenerate components/website/src/data/api-inventory.json (SDLC API/connector inventory)
     cmds:
       - node scripts/sdlc/api-inventory.mjs
 

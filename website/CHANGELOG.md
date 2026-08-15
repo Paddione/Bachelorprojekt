@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.48](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.47...website-v1.276.48) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** add message-verified drop --by-message to git-stash-net [T006298] ([#4535](https://github.com/Paddione/Bachelorprojekt/issues/4535)) ([b346b24](https://github.com/Paddione/Bachelorprojekt/commit/b346b24806e2b9620b1ebae213f3836257a4b840))
+
 ## [1.276.47](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.46...website-v1.276.47) (2026-08-15)
 
 

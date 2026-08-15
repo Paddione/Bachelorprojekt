@@ -194,6 +194,21 @@ The system SHALL pro Tick stale `in_progress`-Tickets (kein `updated_at`-Update 
 (`plan_ref` via `ticket.sh get`) existiert, und den Slot in jedem Fall freigeben sowie den
 verwaisten Worktree entfernen.
 
+Der Stale-Sweep SHALL Tickets ausschließen, deren `readiness.factory_excluded` auf `true`
+gesetzt ist — dasselbe Gate, das `queue.sh` in beiden Dispatch-Lanes anwendet
+(`COALESCE((readiness->>'factory_excluded')::boolean, false) = false`). `factory_excluded`
+ist die dauerhafte Hälfte von `ticket.sh unfactory` und der dokumentierte Weg, ein Ticket
+bewusst von der Factory fernzuhalten (z. B. manuelle Übernahme eines gestagten Tickets
+durch dev-flow-execute, Fortsetzungs-Kontrakt T002327). Der Watchdog SHALL diese
+menschliche Entscheidung nicht durch einen Status-Reset oder eine Eskalation rückgängig
+machen: Ein ausgeschlossenes Ticket SHALL weder zurückgesetzt noch unfactored werden.
+
+Ohne den Ausschluss entsteht ein Resume-Livelock: Ein `in_progress`-Ticket mit lebender
+manueller Session (branch-scoped Claim) wird bei `FACTORY_STALE_MIN=0` jeden Tick auf
+`plan_staged` zurückgesetzt, von `queue.sh` erneut dispatcht und von der Pipeline am
+fremden Claim deferriert (T003677) — der Status bleibt `in_progress` und der nächste Tick
+resettet erneut (beobachtet an T005560, 2026-08-14, 22:41–22:54 UTC).
+
 Zusätzlich SHALL das System pro stale erkanntem Ticket einen Versuchszähler unter dem Key
 `factory_attempt:<external_id>` in `tickets.factory_control` fortschreiben. Der Zähler
 SHALL mit einem **non-NULL `brand`**-Wert geschrieben werden, weil `factory_control` ein
@@ -232,6 +247,16 @@ werden.
 `awaiting_deploy`-Features ohne Deployment seit `FACTORY_AD_STALE_H` Stunden (Default 24)
 werden mit `attention_mode=needs_human` markiert und erhalten einen Warn-Kommentar
 (unverändert).
+
+#### Scenario: Manuell übernommenes Ticket (factory_excluded) wird nicht zurückgesetzt
+
+- **GIVEN** Ticket T005560 (`type=fix`, `plan_ref` vorhanden) ist `in_progress`; eine
+  manuelle Session hält den branch-scoped Claim; `readiness.factory_excluded=true` wurde
+  über `ticket.sh plan-meta set --readiness factory_excluded=true` gesetzt
+- **WHEN** `watchdog.sh` ausgeführt wird (FACTORY_STALE_MIN=0)
+- **THEN** das Ticket wird NICHT zurückgesetzt, erhält keinen Reset-Kommentar und wird
+  nicht eskaliert — der Status bleibt `in_progress` (identisch zur Dispatch-Sperre in
+  `queue.sh`)
 
 #### Scenario: Hung Pipeline ohne gestagten Plan (kein Phase-Heartbeat)
 - **GIVEN** Ticket T000503 ist seit 35 Minuten `in_progress` ohne `ticket.sh touch`-Update
@@ -5346,3 +5371,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (51477492d96c) -->
 
 <!-- merged from change delta software-factory.md (faf59d84b06d) -->
+
+<!-- merged from change delta software-factory.md (49e91b4a5282) -->

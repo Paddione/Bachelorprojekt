@@ -89,10 +89,10 @@ query_call() {
     echo "FAIL: Multi-Statement liefert keinen Fehler: $multi" >&2
     return 1
   }
-  echo "$multi" | grep -q '\[\]' && {
+  if echo "$multi" | grep -q '\[\]'; then
     echo "FAIL: Multi-Statement liefert leeres Array statt Fehler: $multi" >&2
     return 1
-  }
+  fi
 }
 
 @test "mcp-postgres: Multi-Statement wird vor der DB-Ausfuehrung abgelehnt (auch ohne DB)" {

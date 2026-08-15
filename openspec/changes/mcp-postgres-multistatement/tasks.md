@@ -42,6 +42,8 @@ Ein einzelnes Partial p1 — keine Aufteilung nötig (ein Fix, eine Testdatei).
 
 ### Task 1: RED — Bug reproduzieren (Test liegt bereit)
 
+- [x] RED bestätigt (2026-08-15): beide Tests rot — Test 1 liefert `{"text":"[]"}` statt Fehler, Test 2 `Query failed: connect ECONNREFUSED` (kein präventiver Guard)
+
 Der failing Test `tests/spec/mcp-gateway/mcp-postgres-multistatement.bats` ist bereits im
 Stage-Commit enthalten. Zwei `@test`-Blöcke: (1) Multi-Statement-SQL → JSON-RPC-Fehler
 statt `[]`, mit Positiv-Anker (Einzel-Statement liefert Zeilen) und DB-Guard auf `:15432`
@@ -55,6 +57,8 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/mcp-postgres-multistate
 ```
 
 ### Task 2: GREEN — Multi-Statement-Guard in mcp-postgres-local.mjs
+
+- [x] Implementiert (2026-08-15): `isMultiStatement()`-Scanner (präventiv) + defensiver `Array.isArray`-Check + Tool-Beschreibung; Tests grün; Gegenprobe `bats -r tests/spec/mcp-gateway*` grün (88 Tests). Hinweis: Negativ-Assertion in Test 1 auf `if`-Form korrigiert (die `&& { return 1; }`-Form bricht unter BATS `set -e` auch bei erfüllter Negativ-Bedingung ab — Test konnte so nie grün werden)
 
 In `handleToolsCall()` von `scripts/mcp-gateway/mcp-postgres-local.mjs`:
 
@@ -86,6 +90,8 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/mcp-gateway*
 ```
 
 ### Task 3: Verifikation und Abschluss
+
+- [ ] offen
 
 ```bash
 task test:inventory          # neue .bats-Datei im Test-Inventar registrieren (CI-Check)

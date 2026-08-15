@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-13T16:54:42.953Z",
+  "generatedAt": "2026-08-15T11:35:09.586Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -8,7 +8,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/agent-push/settings.ts"
+      "file": "components/website/src/pages/api/admin/agent-push/settings.ts"
     },
     {
       "path": "/api/admin/angebote/save",
@@ -16,7 +16,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/angebote/save.ts"
+      "file": "components/website/src/pages/api/admin/angebote/save.ts"
     },
     {
       "path": "/api/admin/art-library",
@@ -24,7 +24,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/art-library.ts"
+      "file": "components/website/src/pages/api/admin/art-library.ts"
     },
     {
       "path": "/api/admin/assets",
@@ -32,7 +32,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/assets.ts"
+      "file": "components/website/src/pages/api/admin/assets.ts"
     },
     {
       "path": "/api/admin/assets/upload",
@@ -40,7 +40,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/assets/upload.ts"
+      "file": "components/website/src/pages/api/admin/assets/upload.ts"
     },
     {
       "path": "/api/admin/billing/{id}",
@@ -48,7 +48,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/index.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/index.ts"
     },
     {
       "path": "/api/admin/billing/{id}/discard",
@@ -56,7 +56,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/discard.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/discard.ts"
     },
     {
       "path": "/api/admin/billing/{id}/finalize-from-prepayment",
@@ -64,7 +64,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts"
     },
     {
       "path": "/api/admin/billing/{id}/item",
@@ -74,7 +74,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/item.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/item.ts"
     },
     {
       "path": "/api/admin/billing/{id}/payments",
@@ -83,7 +83,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/payments.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/payments.ts"
     },
     {
       "path": "/api/admin/billing/{id}/send",
@@ -91,7 +91,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/send.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/send.ts"
     },
     {
       "path": "/api/admin/billing/{id}/storno",
@@ -99,7 +99,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/storno.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/storno.ts"
     },
     {
       "path": "/api/admin/billing/{id}/validate",
@@ -107,7 +107,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/[id]/validate.ts"
+      "file": "components/website/src/pages/api/admin/billing/[id]/validate.ts"
     },
     {
       "path": "/api/admin/billing/create-invoice",
@@ -115,7 +115,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/create-invoice.ts"
+      "file": "components/website/src/pages/api/admin/billing/create-invoice.ts"
     },
     {
       "path": "/api/admin/billing/create-monthly-invoices",
@@ -123,7 +123,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/create-monthly-invoices.ts"
+      "file": "components/website/src/pages/api/admin/billing/create-monthly-invoices.ts"
     },
     {
       "path": "/api/admin/billing/customers/{id}/leitweg",
@@ -131,7 +131,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/customers/[id]/leitweg.ts"
+      "file": "components/website/src/pages/api/admin/billing/customers/[id]/leitweg.ts"
     },
     {
       "path": "/api/admin/billing/datev-email",
@@ -139,7 +139,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/datev-email.ts"
+      "file": "components/website/src/pages/api/admin/billing/datev-email.ts"
     },
     {
       "path": "/api/admin/billing/datev-export",
@@ -147,7 +147,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/datev-export.ts"
+      "file": "components/website/src/pages/api/admin/billing/datev-export.ts"
     },
     {
       "path": "/api/admin/billing/draft-count",
@@ -155,7 +155,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/draft-count.ts"
+      "file": "components/website/src/pages/api/admin/billing/draft-count.ts"
     },
     {
       "path": "/api/admin/billing/drafts",
@@ -163,7 +163,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/drafts.ts"
+      "file": "components/website/src/pages/api/admin/billing/drafts.ts"
     },
     {
       "path": "/api/admin/billing/dunning/{id}/send",
@@ -171,7 +171,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/dunning/[id]/send.ts"
+      "file": "components/website/src/pages/api/admin/billing/dunning/[id]/send.ts"
     },
     {
       "path": "/api/admin/billing/dunning/run",
@@ -180,7 +180,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/dunning/run.ts"
+      "file": "components/website/src/pages/api/admin/billing/dunning/run.ts"
     },
     {
       "path": "/api/admin/billing/integrity-check",
@@ -188,7 +188,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/integrity-check.ts"
+      "file": "components/website/src/pages/api/admin/billing/integrity-check.ts"
     },
     {
       "path": "/api/admin/billing/sepa-export",
@@ -196,7 +196,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/billing/sepa-export.ts"
+      "file": "components/website/src/pages/api/admin/billing/sepa-export.ts"
     },
     {
       "path": "/api/admin/bookings/{uid}/delete",
@@ -204,7 +204,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/bookings/[uid]/delete.ts"
+      "file": "components/website/src/pages/api/admin/bookings/[uid]/delete.ts"
     },
     {
       "path": "/api/admin/bookings/{uid}/remind",
@@ -212,7 +212,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/bookings/[uid]/remind.ts"
+      "file": "components/website/src/pages/api/admin/bookings/[uid]/remind.ts"
     },
     {
       "path": "/api/admin/bookings/{uid}/status",
@@ -220,7 +220,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/bookings/[uid]/status.ts"
+      "file": "components/website/src/pages/api/admin/bookings/[uid]/status.ts"
     },
     {
       "path": "/api/admin/bookings/create",
@@ -228,7 +228,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/bookings/create.ts"
+      "file": "components/website/src/pages/api/admin/bookings/create.ts"
     },
     {
       "path": "/api/admin/bookkeeping/summary",
@@ -236,7 +236,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/bookkeeping/summary.ts"
+      "file": "components/website/src/pages/api/admin/bookkeeping/summary.ts"
     },
     {
       "path": "/api/admin/brand-starter",
@@ -244,7 +244,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/brand-starter.ts"
+      "file": "components/website/src/pages/api/admin/brand-starter.ts"
     },
     {
       "path": "/api/admin/brett/broadcast",
@@ -253,7 +253,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/brett/broadcast.ts"
+      "file": "components/website/src/pages/api/admin/brett/broadcast.ts"
     },
     {
       "path": "/api/admin/clientnotes/create",
@@ -261,7 +261,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clientnotes/create.ts"
+      "file": "components/website/src/pages/api/admin/clientnotes/create.ts"
     },
     {
       "path": "/api/admin/clientnotes/delete",
@@ -269,7 +269,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clientnotes/delete.ts"
+      "file": "components/website/src/pages/api/admin/clientnotes/delete.ts"
     },
     {
       "path": "/api/admin/clients-list",
@@ -277,7 +277,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients-list.ts"
+      "file": "components/website/src/pages/api/admin/clients-list.ts"
     },
     {
       "path": "/api/admin/clients/contact-history/create",
@@ -285,7 +285,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/contact-history/create.ts"
+      "file": "components/website/src/pages/api/admin/clients/contact-history/create.ts"
     },
     {
       "path": "/api/admin/clients/create",
@@ -293,7 +293,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/create.ts"
+      "file": "components/website/src/pages/api/admin/clients/create.ts"
     },
     {
       "path": "/api/admin/clients/decline-enrollment",
@@ -301,7 +301,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/decline-enrollment.ts"
+      "file": "components/website/src/pages/api/admin/clients/decline-enrollment.ts"
     },
     {
       "path": "/api/admin/clients/delete",
@@ -309,7 +309,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/delete.ts"
+      "file": "components/website/src/pages/api/admin/clients/delete.ts"
     },
     {
       "path": "/api/admin/clients/enroll",
@@ -317,7 +317,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/enroll.ts"
+      "file": "components/website/src/pages/api/admin/clients/enroll.ts"
     },
     {
       "path": "/api/admin/clients/flag-user",
@@ -325,7 +325,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/flag-user.ts"
+      "file": "components/website/src/pages/api/admin/clients/flag-user.ts"
     },
     {
       "path": "/api/admin/clients/newsletter-toggle",
@@ -333,7 +333,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/newsletter-toggle.ts"
+      "file": "components/website/src/pages/api/admin/clients/newsletter-toggle.ts"
     },
     {
       "path": "/api/admin/clients/reset-password",
@@ -341,7 +341,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/reset-password.ts"
+      "file": "components/website/src/pages/api/admin/clients/reset-password.ts"
     },
     {
       "path": "/api/admin/clients/roles-assign",
@@ -349,7 +349,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/roles-assign.ts"
+      "file": "components/website/src/pages/api/admin/clients/roles-assign.ts"
     },
     {
       "path": "/api/admin/clients/roles-remove",
@@ -357,7 +357,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/roles-remove.ts"
+      "file": "components/website/src/pages/api/admin/clients/roles-remove.ts"
     },
     {
       "path": "/api/admin/clients/set-admin-number",
@@ -365,7 +365,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/set-admin-number.ts"
+      "file": "components/website/src/pages/api/admin/clients/set-admin-number.ts"
     },
     {
       "path": "/api/admin/clients/set-customer-number",
@@ -373,7 +373,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/set-customer-number.ts"
+      "file": "components/website/src/pages/api/admin/clients/set-customer-number.ts"
     },
     {
       "path": "/api/admin/clients/set-is-admin",
@@ -381,7 +381,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/set-is-admin.ts"
+      "file": "components/website/src/pages/api/admin/clients/set-is-admin.ts"
     },
     {
       "path": "/api/admin/clients/update",
@@ -389,7 +389,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/update.ts"
+      "file": "components/website/src/pages/api/admin/clients/update.ts"
     },
     {
       "path": "/api/admin/clients/update-crm",
@@ -397,7 +397,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/clients/update-crm.ts"
+      "file": "components/website/src/pages/api/admin/clients/update-crm.ts"
     },
     {
       "path": "/api/admin/coaching/books",
@@ -405,7 +405,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/books/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/books/index.ts"
     },
     {
       "path": "/api/admin/coaching/books/{id}",
@@ -414,7 +414,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/books/[id]/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/books/[id]/index.ts"
     },
     {
       "path": "/api/admin/coaching/books/{id}/acceptance-rate",
@@ -422,7 +422,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts"
+      "file": "components/website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts"
     },
     {
       "path": "/api/admin/coaching/books/{id}/chunks",
@@ -430,7 +430,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/books/[id]/chunks.ts"
+      "file": "components/website/src/pages/api/admin/coaching/books/[id]/chunks.ts"
     },
     {
       "path": "/api/admin/coaching/books/upload",
@@ -438,7 +438,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/books/upload.ts"
+      "file": "components/website/src/pages/api/admin/coaching/books/upload.ts"
     },
     {
       "path": "/api/admin/coaching/clusters",
@@ -447,7 +447,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/clusters/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/clusters/index.ts"
     },
     {
       "path": "/api/admin/coaching/drafts",
@@ -455,7 +455,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/drafts/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/drafts/index.ts"
     },
     {
       "path": "/api/admin/coaching/drafts/{id}",
@@ -463,7 +463,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/drafts/[id].ts"
+      "file": "components/website/src/pages/api/admin/coaching/drafts/[id].ts"
     },
     {
       "path": "/api/admin/coaching/drafts/{id}/accept",
@@ -471,7 +471,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/drafts/[id]/accept.ts"
+      "file": "components/website/src/pages/api/admin/coaching/drafts/[id]/accept.ts"
     },
     {
       "path": "/api/admin/coaching/drafts/{id}/reject",
@@ -479,7 +479,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/drafts/[id]/reject.ts"
+      "file": "components/website/src/pages/api/admin/coaching/drafts/[id]/reject.ts"
     },
     {
       "path": "/api/admin/coaching/ki-config",
@@ -488,7 +488,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/ki-config/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/ki-config/index.ts"
     },
     {
       "path": "/api/admin/coaching/ki-config/{id}",
@@ -497,7 +497,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/ki-config/[id].ts"
+      "file": "components/website/src/pages/api/admin/coaching/ki-config/[id].ts"
     },
     {
       "path": "/api/admin/coaching/ki-config/active",
@@ -505,7 +505,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/ki-config/active.ts"
+      "file": "components/website/src/pages/api/admin/coaching/ki-config/active.ts"
     },
     {
       "path": "/api/admin/coaching/ki-config/models",
@@ -513,7 +513,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/ki-config/models.ts"
+      "file": "components/website/src/pages/api/admin/coaching/ki-config/models.ts"
     },
     {
       "path": "/api/admin/coaching/projects",
@@ -521,7 +521,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/projects/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/projects/index.ts"
     },
     {
       "path": "/api/admin/coaching/projects/{id}",
@@ -530,7 +530,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/projects/[id].ts"
+      "file": "components/website/src/pages/api/admin/coaching/projects/[id].ts"
     },
     {
       "path": "/api/admin/coaching/questionnaire/insights",
@@ -538,7 +538,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/questionnaire/insights.ts"
+      "file": "components/website/src/pages/api/admin/coaching/questionnaire/insights.ts"
     },
     {
       "path": "/api/admin/coaching/save",
@@ -546,7 +546,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/save.ts"
+      "file": "components/website/src/pages/api/admin/coaching/save.ts"
     },
     {
       "path": "/api/admin/coaching/sessions",
@@ -555,7 +555,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/index.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}",
@@ -565,7 +565,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/index.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/archive",
@@ -573,7 +573,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/archive.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/archive.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/audit",
@@ -581,7 +581,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/audit.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/audit.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/complete",
@@ -589,7 +589,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/complete.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/complete.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/status",
@@ -597,7 +597,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/status.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/status.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/steps/{n}",
@@ -605,7 +605,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/steps/{n}/generate",
@@ -613,7 +613,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/summary",
@@ -621,7 +621,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/summary.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/summary.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/unarchive",
@@ -629,7 +629,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/sessions/[id]/unarchive.ts"
+      "file": "components/website/src/pages/api/admin/coaching/sessions/[id]/unarchive.ts"
     },
     {
       "path": "/api/admin/coaching/snippets",
@@ -638,7 +638,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/snippets/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/snippets/index.ts"
     },
     {
       "path": "/api/admin/coaching/snippets/{id}",
@@ -647,7 +647,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/snippets/[id].ts"
+      "file": "components/website/src/pages/api/admin/coaching/snippets/[id].ts"
     },
     {
       "path": "/api/admin/coaching/snippets/{id}/draft-template",
@@ -655,7 +655,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/snippets/[id]/draft-template.ts"
+      "file": "components/website/src/pages/api/admin/coaching/snippets/[id]/draft-template.ts"
     },
     {
       "path": "/api/admin/coaching/step-templates",
@@ -664,7 +664,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/step-templates/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/step-templates/index.ts"
     },
     {
       "path": "/api/admin/coaching/step-templates/{id}",
@@ -673,7 +673,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/step-templates/[id].ts"
+      "file": "components/website/src/pages/api/admin/coaching/step-templates/[id].ts"
     },
     {
       "path": "/api/admin/coaching/templates",
@@ -681,7 +681,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/templates/index.ts"
+      "file": "components/website/src/pages/api/admin/coaching/templates/index.ts"
     },
     {
       "path": "/api/admin/coaching/templates/{id}",
@@ -690,7 +690,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/templates/[id].ts"
+      "file": "components/website/src/pages/api/admin/coaching/templates/[id].ts"
     },
     {
       "path": "/api/admin/coaching/templates/{id}/publish",
@@ -698,7 +698,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/templates/[id]/publish.ts"
+      "file": "components/website/src/pages/api/admin/coaching/templates/[id]/publish.ts"
     },
     {
       "path": "/api/admin/coaching/templates/{id}/versions",
@@ -706,7 +706,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/coaching/templates/[id]/versions.ts"
+      "file": "components/website/src/pages/api/admin/coaching/templates/[id]/versions.ts"
     },
     {
       "path": "/api/admin/components",
@@ -715,7 +715,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/components/index.ts"
+      "file": "components/website/src/pages/api/admin/components/index.ts"
     },
     {
       "path": "/api/admin/components/{id}",
@@ -724,7 +724,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/components/[id].ts"
+      "file": "components/website/src/pages/api/admin/components/[id].ts"
     },
     {
       "path": "/api/admin/content/restore",
@@ -732,7 +732,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/content/restore.ts"
+      "file": "components/website/src/pages/api/admin/content/restore.ts"
     },
     {
       "path": "/api/admin/content/save",
@@ -740,7 +740,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/content/save.ts"
+      "file": "components/website/src/pages/api/admin/content/save.ts"
     },
     {
       "path": "/api/admin/content/versions",
@@ -748,7 +748,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/content/versions.ts"
+      "file": "components/website/src/pages/api/admin/content/versions.ts"
     },
     {
       "path": "/api/admin/customers",
@@ -756,7 +756,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/customers.ts"
+      "file": "components/website/src/pages/api/admin/customers.ts"
     },
     {
       "path": "/api/admin/customers-list",
@@ -764,7 +764,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/customers-list.ts"
+      "file": "components/website/src/pages/api/admin/customers-list.ts"
     },
     {
       "path": "/api/admin/documents/assign",
@@ -772,7 +772,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/assign.ts"
+      "file": "components/website/src/pages/api/admin/documents/assign.ts"
     },
     {
       "path": "/api/admin/documents/assignments",
@@ -780,7 +780,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/assignments.ts"
+      "file": "components/website/src/pages/api/admin/documents/assignments.ts"
     },
     {
       "path": "/api/admin/documents/assignments/{id}",
@@ -789,7 +789,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/assignments/[id].ts"
+      "file": "components/website/src/pages/api/admin/documents/assignments/[id].ts"
     },
     {
       "path": "/api/admin/documents/assignments/{id}/pdf",
@@ -797,7 +797,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/assignments/[id]/pdf.ts"
+      "file": "components/website/src/pages/api/admin/documents/assignments/[id]/pdf.ts"
     },
     {
       "path": "/api/admin/documents/notify/{id}",
@@ -805,7 +805,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/notify/[id].ts"
+      "file": "components/website/src/pages/api/admin/documents/notify/[id].ts"
     },
     {
       "path": "/api/admin/documents/templates",
@@ -814,7 +814,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/templates/index.ts"
+      "file": "components/website/src/pages/api/admin/documents/templates/index.ts"
     },
     {
       "path": "/api/admin/documents/templates/{id}",
@@ -824,7 +824,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/templates/[id].ts"
+      "file": "components/website/src/pages/api/admin/documents/templates/[id].ts"
     },
     {
       "path": "/api/admin/documents/templates/{id}/pdf",
@@ -832,7 +832,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/documents/templates/[id]/pdf.ts"
+      "file": "components/website/src/pages/api/admin/documents/templates/[id]/pdf.ts"
     },
     {
       "path": "/api/admin/einstellungen/backup",
@@ -840,7 +840,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/einstellungen/backup.ts"
+      "file": "components/website/src/pages/api/admin/einstellungen/backup.ts"
     },
     {
       "path": "/api/admin/einstellungen/benachrichtigungen",
@@ -848,7 +848,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/einstellungen/benachrichtigungen.ts"
+      "file": "components/website/src/pages/api/admin/einstellungen/benachrichtigungen.ts"
     },
     {
       "path": "/api/admin/einstellungen/branding",
@@ -856,7 +856,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/einstellungen/branding.ts"
+      "file": "components/website/src/pages/api/admin/einstellungen/branding.ts"
     },
     {
       "path": "/api/admin/einstellungen/email",
@@ -864,7 +864,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/einstellungen/email.ts"
+      "file": "components/website/src/pages/api/admin/einstellungen/email.ts"
     },
     {
       "path": "/api/admin/einstellungen/rechnungen",
@@ -872,7 +872,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/einstellungen/rechnungen.ts"
+      "file": "components/website/src/pages/api/admin/einstellungen/rechnungen.ts"
     },
     {
       "path": "/api/admin/einstellungen/upload-logo",
@@ -880,7 +880,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/einstellungen/upload-logo.ts"
+      "file": "components/website/src/pages/api/admin/einstellungen/upload-logo.ts"
     },
     {
       "path": "/api/admin/faq/save",
@@ -888,7 +888,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/faq/save.ts"
+      "file": "components/website/src/pages/api/admin/faq/save.ts"
     },
     {
       "path": "/api/admin/folder-templates/create",
@@ -896,7 +896,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/folder-templates/create.ts"
+      "file": "components/website/src/pages/api/admin/folder-templates/create.ts"
     },
     {
       "path": "/api/admin/folder-templates/delete",
@@ -904,7 +904,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/folder-templates/delete.ts"
+      "file": "components/website/src/pages/api/admin/folder-templates/delete.ts"
     },
     {
       "path": "/api/admin/folder-templates/update",
@@ -912,7 +912,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/folder-templates/update.ts"
+      "file": "components/website/src/pages/api/admin/folder-templates/update.ts"
     },
     {
       "path": "/api/admin/footer/save",
@@ -920,7 +920,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/footer/save.ts"
+      "file": "components/website/src/pages/api/admin/footer/save.ts"
     },
     {
       "path": "/api/admin/fuehrung/save",
@@ -928,7 +928,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/fuehrung/save.ts"
+      "file": "components/website/src/pages/api/admin/fuehrung/save.ts"
     },
     {
       "path": "/api/admin/generate-3d",
@@ -936,7 +936,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/generate-3d.ts"
+      "file": "components/website/src/pages/api/admin/generate-3d.ts"
     },
     {
       "path": "/api/admin/generate-3d/status",
@@ -944,7 +944,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/generate-3d/status.ts"
+      "file": "components/website/src/pages/api/admin/generate-3d/status.ts"
     },
     {
       "path": "/api/admin/homepage/save",
@@ -953,7 +953,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/homepage/save.ts"
+      "file": "components/website/src/pages/api/admin/homepage/save.ts"
     },
     {
       "path": "/api/admin/inbox",
@@ -961,7 +961,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/inbox.ts"
+      "file": "components/website/src/pages/api/admin/inbox.ts"
     },
     {
       "path": "/api/admin/inbox/{id}/action",
@@ -969,7 +969,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/inbox/[id]/action.ts"
+      "file": "components/website/src/pages/api/admin/inbox/[id]/action.ts"
     },
     {
       "path": "/api/admin/inbox/count",
@@ -977,7 +977,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/inbox/count.ts"
+      "file": "components/website/src/pages/api/admin/inbox/count.ts"
     },
     {
       "path": "/api/admin/inhalte/custom",
@@ -986,7 +986,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/inhalte/custom/index.ts"
+      "file": "components/website/src/pages/api/admin/inhalte/custom/index.ts"
     },
     {
       "path": "/api/admin/inhalte/custom/{slug}",
@@ -995,7 +995,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/inhalte/custom/[slug].ts"
+      "file": "components/website/src/pages/api/admin/inhalte/custom/[slug].ts"
     },
     {
       "path": "/api/admin/inhalte/rechnungsvorlagen/preview",
@@ -1003,7 +1003,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts"
+      "file": "components/website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts"
     },
     {
       "path": "/api/admin/inhalte/rechnungsvorlagen/save",
@@ -1011,7 +1011,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts"
+      "file": "components/website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts"
     },
     {
       "path": "/api/admin/knowledge/collections",
@@ -1020,7 +1020,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/index.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/index.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/{id}",
@@ -1029,7 +1029,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/[id]/index.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/[id]/index.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/{id}/context7",
@@ -1038,7 +1038,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/[id]/context7.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/[id]/context7.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/{id}/context7-config",
@@ -1046,7 +1046,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/[id]/context7-config.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/[id]/context7-config.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/{id}/crawl",
@@ -1055,7 +1055,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/{id}/crawl-config",
@@ -1063,7 +1063,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/{id}/documents",
@@ -1071,7 +1071,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/[id]/documents.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/[id]/documents.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/{id}/reindex",
@@ -1079,7 +1079,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/[id]/reindex.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/[id]/reindex.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/merge",
@@ -1087,7 +1087,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/merge.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/merge.ts"
     },
     {
       "path": "/api/admin/knowledge/collections/suggest",
@@ -1095,7 +1095,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/collections/suggest.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/collections/suggest.ts"
     },
     {
       "path": "/api/admin/knowledge/import/json",
@@ -1103,7 +1103,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/knowledge/import/json.ts"
+      "file": "components/website/src/pages/api/admin/knowledge/import/json.ts"
     },
     {
       "path": "/api/admin/kontakt/save",
@@ -1111,7 +1111,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/kontakt/save.ts"
+      "file": "components/website/src/pages/api/admin/kontakt/save.ts"
     },
     {
       "path": "/api/admin/kore-flags/save",
@@ -1119,7 +1119,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/kore-flags/save.ts"
+      "file": "components/website/src/pages/api/admin/kore-flags/save.ts"
     },
     {
       "path": "/api/admin/legal/{key}/save",
@@ -1127,7 +1127,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/legal/[key]/save.ts"
+      "file": "components/website/src/pages/api/admin/legal/[key]/save.ts"
     },
     {
       "path": "/api/admin/legal/retokenize",
@@ -1135,7 +1135,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/legal/retokenize.ts"
+      "file": "components/website/src/pages/api/admin/legal/retokenize.ts"
     },
     {
       "path": "/api/admin/meetings",
@@ -1143,7 +1143,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/meetings/index.ts"
+      "file": "components/website/src/pages/api/admin/meetings/index.ts"
     },
     {
       "path": "/api/admin/meetings/{id}",
@@ -1152,7 +1152,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/meetings/[id].ts"
+      "file": "components/website/src/pages/api/admin/meetings/[id].ts"
     },
     {
       "path": "/api/admin/meetings/create",
@@ -1160,7 +1160,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/meetings/create.ts"
+      "file": "components/website/src/pages/api/admin/meetings/create.ts"
     },
     {
       "path": "/api/admin/members/{userId}",
@@ -1168,7 +1168,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/members/[userId].ts"
+      "file": "components/website/src/pages/api/admin/members/[userId].ts"
     },
     {
       "path": "/api/admin/members/list",
@@ -1176,7 +1176,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/members/list.ts"
+      "file": "components/website/src/pages/api/admin/members/list.ts"
     },
     {
       "path": "/api/admin/messages",
@@ -1185,7 +1185,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/messages.ts"
+      "file": "components/website/src/pages/api/admin/messages.ts"
     },
     {
       "path": "/api/admin/messages/{threadId}",
@@ -1194,7 +1194,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/messages/[threadId].ts"
+      "file": "components/website/src/pages/api/admin/messages/[threadId].ts"
     },
     {
       "path": "/api/admin/navigation/save",
@@ -1202,7 +1202,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/navigation/save.ts"
+      "file": "components/website/src/pages/api/admin/navigation/save.ts"
     },
     {
       "path": "/api/admin/newsletter/blocks",
@@ -1211,7 +1211,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/blocks/index.ts"
+      "file": "components/website/src/pages/api/admin/newsletter/blocks/index.ts"
     },
     {
       "path": "/api/admin/newsletter/blocks/{id}",
@@ -1220,7 +1220,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/blocks/[id].ts"
+      "file": "components/website/src/pages/api/admin/newsletter/blocks/[id].ts"
     },
     {
       "path": "/api/admin/newsletter/campaigns",
@@ -1229,7 +1229,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/campaigns/index.ts"
+      "file": "components/website/src/pages/api/admin/newsletter/campaigns/index.ts"
     },
     {
       "path": "/api/admin/newsletter/campaigns/{id}",
@@ -1237,7 +1237,7 @@
         "PUT"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/campaigns/[id].ts"
+      "file": "components/website/src/pages/api/admin/newsletter/campaigns/[id].ts"
     },
     {
       "path": "/api/admin/newsletter/campaigns/{id}/send",
@@ -1245,7 +1245,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts"
+      "file": "components/website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts"
     },
     {
       "path": "/api/admin/newsletter/preview",
@@ -1253,7 +1253,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/preview.ts"
+      "file": "components/website/src/pages/api/admin/newsletter/preview.ts"
     },
     {
       "path": "/api/admin/newsletter/subscribers",
@@ -1262,7 +1262,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/subscribers/index.ts"
+      "file": "components/website/src/pages/api/admin/newsletter/subscribers/index.ts"
     },
     {
       "path": "/api/admin/newsletter/subscribers/{id}",
@@ -1270,7 +1270,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/newsletter/subscribers/[id].ts"
+      "file": "components/website/src/pages/api/admin/newsletter/subscribers/[id].ts"
     },
     {
       "path": "/api/admin/onboarding/reset",
@@ -1278,7 +1278,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/onboarding/reset.ts"
+      "file": "components/website/src/pages/api/admin/onboarding/reset.ts"
     },
     {
       "path": "/api/admin/onboarding/update",
@@ -1286,7 +1286,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/onboarding/update.ts"
+      "file": "components/website/src/pages/api/admin/onboarding/update.ts"
     },
     {
       "path": "/api/admin/poll",
@@ -1294,7 +1294,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/poll/index.ts"
+      "file": "components/website/src/pages/api/admin/poll/index.ts"
     },
     {
       "path": "/api/admin/poll/{id}",
@@ -1302,7 +1302,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/poll/[id].ts"
+      "file": "components/website/src/pages/api/admin/poll/[id].ts"
     },
     {
       "path": "/api/admin/poll/{id}/share",
@@ -1310,7 +1310,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/poll/[id]/share.ts"
+      "file": "components/website/src/pages/api/admin/poll/[id]/share.ts"
     },
     {
       "path": "/api/admin/poll/active",
@@ -1318,7 +1318,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/poll/active.ts"
+      "file": "components/website/src/pages/api/admin/poll/active.ts"
     },
     {
       "path": "/api/admin/poll/templates",
@@ -1326,7 +1326,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/poll/templates.ts"
+      "file": "components/website/src/pages/api/admin/poll/templates.ts"
     },
     {
       "path": "/api/admin/projekte/attachments/delete",
@@ -1334,7 +1334,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekte/attachments/delete.ts"
+      "file": "components/website/src/pages/api/admin/projekte/attachments/delete.ts"
     },
     {
       "path": "/api/admin/projekte/attachments/download",
@@ -1342,7 +1342,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekte/attachments/download.ts"
+      "file": "components/website/src/pages/api/admin/projekte/attachments/download.ts"
     },
     {
       "path": "/api/admin/projekte/attachments/upload",
@@ -1350,7 +1350,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekte/attachments/upload.ts"
+      "file": "components/website/src/pages/api/admin/projekte/attachments/upload.ts"
     },
     {
       "path": "/api/admin/projekte/create",
@@ -1358,7 +1358,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekte/create.ts"
+      "file": "components/website/src/pages/api/admin/projekte/create.ts"
     },
     {
       "path": "/api/admin/projekte/delete",
@@ -1366,7 +1366,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekte/delete.ts"
+      "file": "components/website/src/pages/api/admin/projekte/delete.ts"
     },
     {
       "path": "/api/admin/projekte/export",
@@ -1374,7 +1374,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekte/export.ts"
+      "file": "components/website/src/pages/api/admin/projekte/export.ts"
     },
     {
       "path": "/api/admin/projekte/update",
@@ -1382,7 +1382,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekte/update.ts"
+      "file": "components/website/src/pages/api/admin/projekte/update.ts"
     },
     {
       "path": "/api/admin/projekttasks/create",
@@ -1390,7 +1390,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekttasks/create.ts"
+      "file": "components/website/src/pages/api/admin/projekttasks/create.ts"
     },
     {
       "path": "/api/admin/projekttasks/delete",
@@ -1398,7 +1398,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekttasks/delete.ts"
+      "file": "components/website/src/pages/api/admin/projekttasks/delete.ts"
     },
     {
       "path": "/api/admin/projekttasks/update",
@@ -1406,7 +1406,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/projekttasks/update.ts"
+      "file": "components/website/src/pages/api/admin/projekttasks/update.ts"
     },
     {
       "path": "/api/admin/questionnaires/assign",
@@ -1414,7 +1414,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/assign.ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/assign.ts"
     },
     {
       "path": "/api/admin/questionnaires/assignments",
@@ -1422,7 +1422,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/assignments/index.ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/assignments/index.ts"
     },
     {
       "path": "/api/admin/questionnaires/assignments/{id}",
@@ -1431,7 +1431,7 @@
         "PUT"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/assignments/[id].ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/assignments/[id].ts"
     },
     {
       "path": "/api/admin/questionnaires/assignments/{id}/archive",
@@ -1439,7 +1439,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/archive.ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/archive.ts"
     },
     {
       "path": "/api/admin/questionnaires/assignments/{id}/create-task",
@@ -1447,7 +1447,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/create-task.ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/create-task.ts"
     },
     {
       "path": "/api/admin/questionnaires/assignments/{id}/reassign",
@@ -1455,7 +1455,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.ts"
     },
     {
       "path": "/api/admin/questionnaires/assignments/{id}/reopen",
@@ -1463,7 +1463,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/reopen.ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/assignments/[id]/reopen.ts"
     },
     {
       "path": "/api/admin/questionnaires/templates",
@@ -1472,7 +1472,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/templates/index.ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/templates/index.ts"
     },
     {
       "path": "/api/admin/questionnaires/templates/{id}",
@@ -1482,7 +1482,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/questionnaires/templates/[id].ts"
+      "file": "components/website/src/pages/api/admin/questionnaires/templates/[id].ts"
     },
     {
       "path": "/api/admin/rechtliches/save",
@@ -1490,7 +1490,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/rechtliches/save.ts"
+      "file": "components/website/src/pages/api/admin/rechtliches/save.ts"
     },
     {
       "path": "/api/admin/referenzen/save",
@@ -1498,7 +1498,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/referenzen/save.ts"
+      "file": "components/website/src/pages/api/admin/referenzen/save.ts"
     },
     {
       "path": "/api/admin/seo",
@@ -1506,7 +1506,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/seo/index.ts"
+      "file": "components/website/src/pages/api/admin/seo/index.ts"
     },
     {
       "path": "/api/admin/seo/pages",
@@ -1514,7 +1514,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/seo/pages.ts"
+      "file": "components/website/src/pages/api/admin/seo/pages.ts"
     },
     {
       "path": "/api/admin/seo/save",
@@ -1522,7 +1522,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/seo/save.ts"
+      "file": "components/website/src/pages/api/admin/seo/save.ts"
     },
     {
       "path": "/api/admin/seo/upload-og-image",
@@ -1530,7 +1530,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/seo/upload-og-image.ts"
+      "file": "components/website/src/pages/api/admin/seo/upload-og-image.ts"
     },
     {
       "path": "/api/admin/service-page/save",
@@ -1538,7 +1538,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/service-page/save.ts"
+      "file": "components/website/src/pages/api/admin/service-page/save.ts"
     },
     {
       "path": "/api/admin/sessions",
@@ -1548,7 +1548,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/sessions/index.ts"
+      "file": "components/website/src/pages/api/admin/sessions/index.ts"
     },
     {
       "path": "/api/admin/sessions/history",
@@ -1556,7 +1556,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/sessions/history/index.ts"
+      "file": "components/website/src/pages/api/admin/sessions/history/index.ts"
     },
     {
       "path": "/api/admin/sessions/history/{id}",
@@ -1564,7 +1564,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/sessions/history/[id].ts"
+      "file": "components/website/src/pages/api/admin/sessions/history/[id].ts"
     },
     {
       "path": "/api/admin/sessions/purge",
@@ -1572,7 +1572,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/sessions/purge.ts"
+      "file": "components/website/src/pages/api/admin/sessions/purge.ts"
     },
     {
       "path": "/api/admin/sessions/templates",
@@ -1581,7 +1581,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/sessions/templates/index.ts"
+      "file": "components/website/src/pages/api/admin/sessions/templates/index.ts"
     },
     {
       "path": "/api/admin/sessions/templates/{id}",
@@ -1589,7 +1589,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/sessions/templates/[id].ts"
+      "file": "components/website/src/pages/api/admin/sessions/templates/[id].ts"
     },
     {
       "path": "/api/admin/shortcuts/create",
@@ -1597,7 +1597,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/shortcuts/create.ts"
+      "file": "components/website/src/pages/api/admin/shortcuts/create.ts"
     },
     {
       "path": "/api/admin/shortcuts/delete",
@@ -1605,7 +1605,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/shortcuts/delete.ts"
+      "file": "components/website/src/pages/api/admin/shortcuts/delete.ts"
     },
     {
       "path": "/api/admin/shortcuts/fetch-title",
@@ -1613,7 +1613,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/shortcuts/fetch-title.ts"
+      "file": "components/website/src/pages/api/admin/shortcuts/fetch-title.ts"
     },
     {
       "path": "/api/admin/shortcuts/update",
@@ -1621,7 +1621,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/shortcuts/update.ts"
+      "file": "components/website/src/pages/api/admin/shortcuts/update.ts"
     },
     {
       "path": "/api/admin/slots/add",
@@ -1629,7 +1629,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/slots/add.ts"
+      "file": "components/website/src/pages/api/admin/slots/add.ts"
     },
     {
       "path": "/api/admin/slots/remove",
@@ -1637,7 +1637,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/slots/remove.ts"
+      "file": "components/website/src/pages/api/admin/slots/remove.ts"
     },
     {
       "path": "/api/admin/stammdaten/save",
@@ -1645,7 +1645,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/stammdaten/save.ts"
+      "file": "components/website/src/pages/api/admin/stammdaten/save.ts"
     },
     {
       "path": "/api/admin/startseite/save",
@@ -1653,7 +1653,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/startseite/save.ts"
+      "file": "components/website/src/pages/api/admin/startseite/save.ts"
     },
     {
       "path": "/api/admin/startseite/upload-portrait",
@@ -1661,7 +1661,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/startseite/upload-portrait.ts"
+      "file": "components/website/src/pages/api/admin/startseite/upload-portrait.ts"
     },
     {
       "path": "/api/admin/subprojekte/create",
@@ -1669,7 +1669,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/subprojekte/create.ts"
+      "file": "components/website/src/pages/api/admin/subprojekte/create.ts"
     },
     {
       "path": "/api/admin/subprojekte/delete",
@@ -1677,7 +1677,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/subprojekte/delete.ts"
+      "file": "components/website/src/pages/api/admin/subprojekte/delete.ts"
     },
     {
       "path": "/api/admin/subprojekte/update",
@@ -1685,7 +1685,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/subprojekte/update.ts"
+      "file": "components/website/src/pages/api/admin/subprojekte/update.ts"
     },
     {
       "path": "/api/admin/tax-monitor/status",
@@ -1693,7 +1693,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/tax-monitor/status.ts"
+      "file": "components/website/src/pages/api/admin/tax-monitor/status.ts"
     },
     {
       "path": "/api/admin/tax-monitor/ustvaexport",
@@ -1701,7 +1701,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/tax-monitor/ustvaexport.ts"
+      "file": "components/website/src/pages/api/admin/tax-monitor/ustvaexport.ts"
     },
     {
       "path": "/api/admin/time-windows/add",
@@ -1709,7 +1709,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/time-windows/add.ts"
+      "file": "components/website/src/pages/api/admin/time-windows/add.ts"
     },
     {
       "path": "/api/admin/time-windows/remove",
@@ -1717,7 +1717,7 @@
         "DELETE"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/time-windows/remove.ts"
+      "file": "components/website/src/pages/api/admin/time-windows/remove.ts"
     },
     {
       "path": "/api/admin/transcription",
@@ -1726,7 +1726,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/transcription/index.ts"
+      "file": "components/website/src/pages/api/admin/transcription/index.ts"
     },
     {
       "path": "/api/admin/uebermich/save",
@@ -1734,7 +1734,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/uebermich/save.ts"
+      "file": "components/website/src/pages/api/admin/uebermich/save.ts"
     },
     {
       "path": "/api/admin/urlaub/save",
@@ -1742,7 +1742,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/urlaub/save.ts"
+      "file": "components/website/src/pages/api/admin/urlaub/save.ts"
     },
     {
       "path": "/api/admin/zeiterfassung/create",
@@ -1750,7 +1750,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/zeiterfassung/create.ts"
+      "file": "components/website/src/pages/api/admin/zeiterfassung/create.ts"
     },
     {
       "path": "/api/admin/zeiterfassung/delete",
@@ -1758,7 +1758,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/zeiterfassung/delete.ts"
+      "file": "components/website/src/pages/api/admin/zeiterfassung/delete.ts"
     },
     {
       "path": "/api/admin/zeiterfassung/export",
@@ -1766,7 +1766,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/admin/zeiterfassung/export.ts"
+      "file": "components/website/src/pages/api/admin/zeiterfassung/export.ts"
     },
     {
       "path": "/api/assets/{...path}",
@@ -1774,7 +1774,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/assets/[...path].ts"
+      "file": "components/website/src/pages/api/assets/[...path].ts"
     },
     {
       "path": "/api/assistant/chat",
@@ -1782,7 +1782,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/assistant/chat.ts"
+      "file": "components/website/src/pages/api/assistant/chat.ts"
     },
     {
       "path": "/api/assistant/dismiss",
@@ -1790,7 +1790,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/assistant/dismiss.ts"
+      "file": "components/website/src/pages/api/assistant/dismiss.ts"
     },
     {
       "path": "/api/assistant/execute",
@@ -1798,7 +1798,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/assistant/execute.ts"
+      "file": "components/website/src/pages/api/assistant/execute.ts"
     },
     {
       "path": "/api/assistant/nudges",
@@ -1806,7 +1806,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/assistant/nudges.ts"
+      "file": "components/website/src/pages/api/assistant/nudges.ts"
     },
     {
       "path": "/api/assistant/transcribe",
@@ -1814,7 +1814,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/assistant/transcribe.ts"
+      "file": "components/website/src/pages/api/assistant/transcribe.ts"
     },
     {
       "path": "/api/auth/callback",
@@ -1822,7 +1822,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/auth/callback.ts"
+      "file": "components/website/src/pages/api/auth/callback.ts"
     },
     {
       "path": "/api/auth/delete-account",
@@ -1830,7 +1830,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/auth/delete-account.ts"
+      "file": "components/website/src/pages/api/auth/delete-account.ts"
     },
     {
       "path": "/api/auth/e2e-login",
@@ -1838,7 +1838,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/auth/e2e-login.ts"
+      "file": "components/website/src/pages/api/auth/e2e-login.ts"
     },
     {
       "path": "/api/auth/login",
@@ -1846,7 +1846,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/auth/login.ts"
+      "file": "components/website/src/pages/api/auth/login.ts"
     },
     {
       "path": "/api/auth/logout",
@@ -1854,7 +1854,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/auth/logout.ts"
+      "file": "components/website/src/pages/api/auth/logout.ts"
     },
     {
       "path": "/api/auth/magic",
@@ -1862,7 +1862,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/auth/magic.ts"
+      "file": "components/website/src/pages/api/auth/magic.ts"
     },
     {
       "path": "/api/auth/me",
@@ -1871,7 +1871,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/auth/me.ts"
+      "file": "components/website/src/pages/api/auth/me.ts"
     },
     {
       "path": "/api/bge/changes",
@@ -1879,7 +1879,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/bge/changes.ts"
+      "file": "components/website/src/pages/api/bge/changes.ts"
     },
     {
       "path": "/api/bge/retrieve",
@@ -1887,7 +1887,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/bge/retrieve.ts"
+      "file": "components/website/src/pages/api/bge/retrieve.ts"
     },
     {
       "path": "/api/billing/create-invoice",
@@ -1895,7 +1895,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/billing/create-invoice.ts"
+      "file": "components/website/src/pages/api/billing/create-invoice.ts"
     },
     {
       "path": "/api/billing/invoice/{id}/pdf",
@@ -1903,7 +1903,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/billing/invoice/[id]/pdf.ts"
+      "file": "components/website/src/pages/api/billing/invoice/[id]/pdf.ts"
     },
     {
       "path": "/api/billing/invoice/{id}/xrechnung.xml",
@@ -1911,7 +1911,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts"
+      "file": "components/website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts"
     },
     {
       "path": "/api/billing/invoice/{id}/zugferd",
@@ -1919,7 +1919,7 @@
         "GET"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/billing/invoice/[id]/zugferd.ts"
+      "file": "components/website/src/pages/api/billing/invoice/[id]/zugferd.ts"
     },
     {
       "path": "/api/booking",
@@ -1927,7 +1927,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/booking.ts"
+      "file": "components/website/src/pages/api/booking.ts"
     },
     {
       "path": "/api/bookings/{uid}/project",
@@ -1935,7 +1935,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/bookings/[uid]/project.ts"
+      "file": "components/website/src/pages/api/bookings/[uid]/project.ts"
     },
     {
       "path": "/api/brett/bot",
@@ -1943,7 +1943,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/brett/bot.ts"
+      "file": "components/website/src/pages/api/brett/bot.ts"
     },
     {
       "path": "/api/calendar/slots",
@@ -1951,7 +1951,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/calendar/slots.ts"
+      "file": "components/website/src/pages/api/calendar/slots.ts"
     },
     {
       "path": "/api/contact",
@@ -1959,7 +1959,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/contact.ts"
+      "file": "components/website/src/pages/api/contact.ts"
     },
     {
       "path": "/api/cron/error-log-retention",
@@ -1967,7 +1967,7 @@
         "POST"
       ],
       "auth": "cron",
-      "file": "website/src/pages/api/cron/error-log-retention.ts"
+      "file": "components/website/src/pages/api/cron/error-log-retention.ts"
     },
     {
       "path": "/api/cron/notify-unread",
@@ -1975,7 +1975,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/cron/notify-unread.ts"
+      "file": "components/website/src/pages/api/cron/notify-unread.ts"
     },
     {
       "path": "/api/cron/scheduled-publish",
@@ -1983,7 +1983,7 @@
         "GET"
       ],
       "auth": "cron",
-      "file": "website/src/pages/api/cron/scheduled-publish.ts"
+      "file": "components/website/src/pages/api/cron/scheduled-publish.ts"
     },
     {
       "path": "/api/demo/coaching-sim",
@@ -1991,7 +1991,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/demo/coaching-sim.ts"
+      "file": "components/website/src/pages/api/demo/coaching-sim.ts"
     },
     {
       "path": "/api/dsgvo-request",
@@ -1999,7 +1999,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/dsgvo-request.ts"
+      "file": "components/website/src/pages/api/dsgvo-request.ts"
     },
     {
       "path": "/api/health",
@@ -2007,7 +2007,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/health.ts"
+      "file": "components/website/src/pages/api/health.ts"
     },
     {
       "path": "/api/homepage",
@@ -2016,7 +2016,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/homepage.ts"
+      "file": "components/website/src/pages/api/homepage.ts"
     },
     {
       "path": "/api/internal/tickets/notify-close",
@@ -2024,7 +2024,7 @@
         "POST"
       ],
       "auth": "internal",
-      "file": "website/src/pages/api/internal/tickets/notify-close.ts"
+      "file": "components/website/src/pages/api/internal/tickets/notify-close.ts"
     },
     {
       "path": "/api/leistungen",
@@ -2032,7 +2032,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/leistungen.ts"
+      "file": "components/website/src/pages/api/leistungen.ts"
     },
     {
       "path": "/api/meeting/finalize",
@@ -2040,7 +2040,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/meeting/finalize.ts"
+      "file": "components/website/src/pages/api/meeting/finalize.ts"
     },
     {
       "path": "/api/meeting/release",
@@ -2048,7 +2048,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/meeting/release.ts"
+      "file": "components/website/src/pages/api/meeting/release.ts"
     },
     {
       "path": "/api/meeting/save-transcript",
@@ -2056,7 +2056,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/meeting/save-transcript.ts"
+      "file": "components/website/src/pages/api/meeting/save-transcript.ts"
     },
     {
       "path": "/api/meeting/transcribe",
@@ -2064,7 +2064,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/meeting/transcribe.ts"
+      "file": "components/website/src/pages/api/meeting/transcribe.ts"
     },
     {
       "path": "/api/meetings/{id}/project",
@@ -2072,7 +2072,7 @@
         "PATCH"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/meetings/[id]/project.ts"
+      "file": "components/website/src/pages/api/meetings/[id]/project.ts"
     },
     {
       "path": "/api/newsletter/confirm",
@@ -2080,7 +2080,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/newsletter/confirm.ts"
+      "file": "components/website/src/pages/api/newsletter/confirm.ts"
     },
     {
       "path": "/api/newsletter/subscribe",
@@ -2088,7 +2088,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/newsletter/subscribe.ts"
+      "file": "components/website/src/pages/api/newsletter/subscribe.ts"
     },
     {
       "path": "/api/newsletter/unsubscribe",
@@ -2096,7 +2096,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/newsletter/unsubscribe.ts"
+      "file": "components/website/src/pages/api/newsletter/unsubscribe.ts"
     },
     {
       "path": "/api/poll/{id}",
@@ -2104,7 +2104,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/poll/[id].ts"
+      "file": "components/website/src/pages/api/poll/[id].ts"
     },
     {
       "path": "/api/poll/{id}/answer",
@@ -2112,7 +2112,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/poll/[id]/answer.ts"
+      "file": "components/website/src/pages/api/poll/[id]/answer.ts"
     },
     {
       "path": "/api/poll/{id}/results",
@@ -2120,7 +2120,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/poll/[id]/results.ts"
+      "file": "components/website/src/pages/api/poll/[id]/results.ts"
     },
     {
       "path": "/api/portal/documents/{assignmentId}/pdf",
@@ -2128,7 +2128,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/documents/[assignmentId]/pdf.ts"
+      "file": "components/website/src/pages/api/portal/documents/[assignmentId]/pdf.ts"
     },
     {
       "path": "/api/portal/learning/summary",
@@ -2136,7 +2136,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/learning/summary.ts"
+      "file": "components/website/src/pages/api/portal/learning/summary.ts"
     },
     {
       "path": "/api/portal/learning/track",
@@ -2144,7 +2144,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/learning/track.ts"
+      "file": "components/website/src/pages/api/portal/learning/track.ts"
     },
     {
       "path": "/api/portal/messages",
@@ -2153,7 +2153,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/messages.ts"
+      "file": "components/website/src/pages/api/portal/messages.ts"
     },
     {
       "path": "/api/portal/messages/{threadId}",
@@ -2162,7 +2162,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/messages/[threadId].ts"
+      "file": "components/website/src/pages/api/portal/messages/[threadId].ts"
     },
     {
       "path": "/api/portal/nachrichten",
@@ -2170,7 +2170,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/nachrichten.ts"
+      "file": "components/website/src/pages/api/portal/nachrichten.ts"
     },
     {
       "path": "/api/portal/onboarding/mark-step",
@@ -2178,7 +2178,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/onboarding/mark-step.ts"
+      "file": "components/website/src/pages/api/portal/onboarding/mark-step.ts"
     },
     {
       "path": "/api/portal/onboarding/reset",
@@ -2186,7 +2186,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/onboarding/reset.ts"
+      "file": "components/website/src/pages/api/portal/onboarding/reset.ts"
     },
     {
       "path": "/api/portal/onboarding/update",
@@ -2194,7 +2194,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/onboarding/update.ts"
+      "file": "components/website/src/pages/api/portal/onboarding/update.ts"
     },
     {
       "path": "/api/portal/profile/export",
@@ -2202,7 +2202,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/profile/export.ts"
+      "file": "components/website/src/pages/api/portal/profile/export.ts"
     },
     {
       "path": "/api/portal/profile/update",
@@ -2210,7 +2210,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/profile/update.ts"
+      "file": "components/website/src/pages/api/portal/profile/update.ts"
     },
     {
       "path": "/api/portal/projekte",
@@ -2218,7 +2218,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/projekte.ts"
+      "file": "components/website/src/pages/api/portal/projekte.ts"
     },
     {
       "path": "/api/portal/projekttasks/{id}/done",
@@ -2226,7 +2226,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/projekttasks/[id]/done.ts"
+      "file": "components/website/src/pages/api/portal/projekttasks/[id]/done.ts"
     },
     {
       "path": "/api/portal/questionnaires",
@@ -2234,7 +2234,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/questionnaires/index.ts"
+      "file": "components/website/src/pages/api/portal/questionnaires/index.ts"
     },
     {
       "path": "/api/portal/questionnaires/{id}",
@@ -2242,7 +2242,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/questionnaires/[id]/index.ts"
+      "file": "components/website/src/pages/api/portal/questionnaires/[id]/index.ts"
     },
     {
       "path": "/api/portal/questionnaires/{id}/answer",
@@ -2250,7 +2250,7 @@
         "PUT"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/questionnaires/[id]/answer.ts"
+      "file": "components/website/src/pages/api/portal/questionnaires/[id]/answer.ts"
     },
     {
       "path": "/api/portal/questionnaires/{id}/dismiss",
@@ -2258,7 +2258,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/questionnaires/[id]/dismiss.ts"
+      "file": "components/website/src/pages/api/portal/questionnaires/[id]/dismiss.ts"
     },
     {
       "path": "/api/portal/questionnaires/{id}/submit",
@@ -2266,7 +2266,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/questionnaires/[id]/submit.ts"
+      "file": "components/website/src/pages/api/portal/questionnaires/[id]/submit.ts"
     },
     {
       "path": "/api/portal/rooms",
@@ -2274,7 +2274,7 @@
         "GET"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/rooms.ts"
+      "file": "components/website/src/pages/api/portal/rooms.ts"
     },
     {
       "path": "/api/portal/rooms/{id}/messages",
@@ -2283,7 +2283,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/rooms/[id]/messages.ts"
+      "file": "components/website/src/pages/api/portal/rooms/[id]/messages.ts"
     },
     {
       "path": "/api/portal/rooms/{id}/share",
@@ -2291,7 +2291,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/rooms/[id]/share.ts"
+      "file": "components/website/src/pages/api/portal/rooms/[id]/share.ts"
     },
     {
       "path": "/api/portal/rooms/ensure-direct",
@@ -2299,7 +2299,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/rooms/ensure-direct.ts"
+      "file": "components/website/src/pages/api/portal/rooms/ensure-direct.ts"
     },
     {
       "path": "/api/portal/sign/{assignmentId}",
@@ -2307,7 +2307,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/portal/sign/[assignmentId].ts"
+      "file": "components/website/src/pages/api/portal/sign/[assignmentId].ts"
     },
     {
       "path": "/api/register",
@@ -2315,7 +2315,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/register.ts"
+      "file": "components/website/src/pages/api/register.ts"
     },
     {
       "path": "/api/signing/confirm",
@@ -2323,7 +2323,7 @@
         "POST"
       ],
       "auth": "session",
-      "file": "website/src/pages/api/signing/confirm.ts"
+      "file": "components/website/src/pages/api/signing/confirm.ts"
     },
     {
       "path": "/api/status",
@@ -2331,7 +2331,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/status.ts"
+      "file": "components/website/src/pages/api/status.ts"
     },
     {
       "path": "/api/stream/end",
@@ -2339,7 +2339,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/stream/end.ts"
+      "file": "components/website/src/pages/api/stream/end.ts"
     },
     {
       "path": "/api/stream/recording",
@@ -2347,7 +2347,7 @@
         "POST"
       ],
       "auth": "admin",
-      "file": "website/src/pages/api/stream/recording.ts"
+      "file": "components/website/src/pages/api/stream/recording.ts"
     },
     {
       "path": "/api/stripe/checkout",
@@ -2355,7 +2355,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/stripe/checkout.ts"
+      "file": "components/website/src/pages/api/stripe/checkout.ts"
     },
     {
       "path": "/api/stripe/invoice-payment-intent",
@@ -2363,7 +2363,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/stripe/invoice-payment-intent.ts"
+      "file": "components/website/src/pages/api/stripe/invoice-payment-intent.ts"
     },
     {
       "path": "/api/stripe/webhook",
@@ -2371,7 +2371,7 @@
         "POST"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/stripe/webhook.ts"
+      "file": "components/website/src/pages/api/stripe/webhook.ts"
     },
     {
       "path": "/api/timeline",
@@ -2379,7 +2379,7 @@
         "GET"
       ],
       "auth": "unclassified",
-      "file": "website/src/pages/api/timeline.ts"
+      "file": "components/website/src/pages/api/timeline.ts"
     }
   ]
 }

@@ -61,6 +61,7 @@ jobs:
           tags: |
             ghcr.io/paddione/workspace-brett:sha-${{ steps.version.outputs.sha }}
             ghcr.io/paddione/workspace-brett:latest
+            ghcr.io/paddione/workspace-brett:dev
           cache-from: type=gha
           cache-to: type=gha,mode=min
 

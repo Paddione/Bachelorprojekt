@@ -2490,6 +2490,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-merged-pr-signal",
+    "file": "tests/spec/ci-cd/branch-reaper-merged-pr-signal.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/branch-reaper-sweep",
     "file": "tests/spec/ci-cd/branch-reaper-sweep.bats",
     "category": "ci-cd",
@@ -3804,6 +3810,18 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/rollup-direct-dispatch",
+    "file": "tests/spec/mishap-rollup/rollup-direct-dispatch.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/rollup-plan-lint-scope-examples",
+    "file": "tests/spec/mishap-rollup/rollup-plan-lint-scope-examples.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",
@@ -3960,6 +3978,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-status-offline-staging",
+    "file": "tests/spec/openspec-workflow/archive-status-offline-staging.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-terminal-ticket-status",
     "file": "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
     "category": "openspec-workflow",
@@ -3992,6 +4016,12 @@
   {
     "id": "openspec-workflow/main-staging-guard",
     "file": "tests/spec/openspec-workflow/main-staging-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/plan-archive-freshness-check",
+    "file": "tests/spec/openspec-workflow/plan-archive-freshness-check.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },

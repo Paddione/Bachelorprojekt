@@ -1,5 +1,54 @@
 # Changelog
 
+## [1.284.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.0...website-v1.284.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** merged-PR positives Reaping-Signal im branch-reaper [T007032] ([#4651](https://github.com/Paddione/Bachelorprojekt/issues/4651)) ([dbc0b7f](https://github.com/Paddione/Bachelorprojekt/commit/dbc0b7f195cfd0c6a32ba43e713540eb08f32af9))
+
+## [1.284.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.283.0...website-v1.284.0) (2026-08-15)
+
+
+### Features
+
+* **scripts:** switch tablet support slot to gemma-4-e2b UD-Q4_K_XL [T007055] ([#4647](https://github.com/Paddione/Bachelorprojekt/issues/4647)) ([a94fec7](https://github.com/Paddione/Bachelorprojekt/commit/a94fec7e2c40962e6303093c56fa1996a2970dcb))
+
+## [1.283.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.282.1...website-v1.283.0) (2026-08-15)
+
+
+### Features
+
+* **factory:** mishap-rollup staged-lane dispatch statt PR-Merge [T007056] ([#4644](https://github.com/Paddione/Bachelorprojekt/issues/4644)) ([368ccb3](https://github.com/Paddione/Bachelorprojekt/commit/368ccb375f773c328d394472c22200fee81aaeb7))
+
+## [1.282.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.282.0...website-v1.282.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** fail-closed archive freshness staging [T006371] ([#4632](https://github.com/Paddione/Bachelorprojekt/issues/4632)) ([324c803](https://github.com/Paddione/Bachelorprojekt/commit/324c803c8c4c998c7d54d8b402eda5b3b1146e81))
+
+## [1.282.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.6...website-v1.282.0) (2026-08-15)
+
+
+### Features
+
+* **scripts:** pin support-model limits 32768/4096 and switch tablet slot to gemma-4-e4b [T007033] ([#4630](https://github.com/Paddione/Bachelorprojekt/issues/4630)) ([9243467](https://github.com/Paddione/Bachelorprojekt/commit/92434672962f6c8ccd1ed2fb8ca539a00e21bf36))
+
+## [1.281.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.5...website-v1.281.6) (2026-08-15)
+
+
+### Bug Fixes
+
+* **skills:** harden plan-archive-steps with pre-push freshness check [T006369] ([#4628](https://github.com/Paddione/Bachelorprojekt/issues/4628)) ([99b1886](https://github.com/Paddione/Bachelorprojekt/commit/99b188654f79f643451afc23cce9c30c149116a0))
+
+## [1.281.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.4...website-v1.281.5) (2026-08-15)
+
+
+### Bug Fixes
+
+* **factory:** mishap-rollup blockiert — Batch-Inhalt als Blockquote + Lock-Release aus Repo-Root [T007000] ([#4625](https://github.com/Paddione/Bachelorprojekt/issues/4625)) ([e4c292d](https://github.com/Paddione/Bachelorprojekt/commit/e4c292d63ffead959e870f67a55387dd5e935d21))
+
 ## [1.281.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.3...website-v1.281.4) (2026-08-15)
 
 

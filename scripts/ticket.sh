@@ -1007,9 +1007,16 @@ ROLLUP_TITLE="Mishap Rollup — fortlaufende Sammlung"
 
 cmd_rollup_container() {
   # Gemeinsame Container-Aufloesung fuer mishap-rollup.sh (Leser) und ticket-mcp
-  # (Schreiber/Flusher). Sucht einen offenen Rollup-Container (type=chore, offene
-  # Status), bevorzugt den aeltesten. Erst wenn keiner offen ist, wird ein neuer
-  # angelegt. Ausgabe: nur die external_id auf stdout.
+  # (Schreiber/Flusher). Sucht einen Rollup-Container (type=chore) in Collect
+  # Mode, bevorzugt den aeltesten. Erst wenn keiner im Collect Mode ist, wird
+  # ein neuer angelegt. Ausgabe: nur die external_id auf stdout.
+  #
+  # [T007056] Collect Mode = Batch noch nicht in einen Plan uebergegangen:
+  # triage/backlog/planning. Ein blocked-Container wird nur gefunden, wenn er
+  # KEINEN FACTORY-PLAN-REF-Kommentar traegt (dann ist er noch nicht dispatcht);
+  # dispatchte Container (plan_staged/in_progress/qa_review/awaiting_deploy)
+  # werden nie zurueckgegeben — neue Flushes sollen einen frischen Container
+  # anlegen, solange der alte vom Executor bearbeitet wird.
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"
   local brand="mentolder"
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -1018,25 +1025,30 @@ cmd_rollup_container() {
     esac; done
   # Resolve db pod via shared pg helper
   local pod; pod=$(_pgpod)
-  # Step 1: Finden — offene Status (done/archived ausgeschlossen), aeltester zuerst
+  # Step 1: Finden — Collect Mode (siehe Kommentar oben), aeltester zuerst
   local ext_id
   ext_id=$(_exec_sql "$pod" -c "
     SELECT external_id FROM tickets.tickets
      WHERE type = 'chore'
        AND title = 'Mishap Rollup — fortlaufende Sammlung'
-       AND status NOT IN ('done','archived')
+       AND ( status IN ('triage','backlog','planning')
+          OR ( status = 'blocked'
+               AND NOT EXISTS (
+                     SELECT 1 FROM tickets.ticket_comments c
+                      WHERE c.ticket_id = tickets.tickets.id
+                        AND c.body LIKE 'FACTORY-PLAN-REF%' ) ) )
      ORDER BY created_at ASC LIMIT 1;
   " 2>/dev/null | grep -v '^$' | head -1 || true)
   if [[ -n "$ext_id" ]]; then
     echo "$ext_id"
     return 0
   fi
-  # Step 2: Erstellen — keiner offen gefunden
+  # Step 2: Erstellen — keiner im Collect Mode gefunden
   echo "rollup-container: kein offener Container, lege neuen an (brand=$brand)" >&2
   ext_id=$(bash "$(dirname "${BASH_SOURCE[0]}")/ticket.sh" create \
     --type chore --brand "$brand" \
     --title "$ROLLUP_TITLE" \
-    --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Der Container wird nach Verarbeitung seines Batches geschlossen." \
+    --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Der Container sammelt einen Batch; der Generator staged den daraus erzeugten Plan auf dieses Ticket, und es wird geschlossen (done · resolution=fixed), sobald der Executor-PR fuer den Plan gemergt ist." \
     --status triage --severity minor 2>&1)
   echo "$ext_id"
 }

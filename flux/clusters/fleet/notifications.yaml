@@ -21,14 +21,13 @@ spec:
   eventSources:
     - kind: Kustomization
       name: '*'
-    - kind: HelmRelease
-      name: '*'
     - kind: GitRepository
       name: '*'
     - kind: OCIRepository
       name: '*'
-    - kind: ExternalArtifact
-      name: '*'
   exclusionList:
     - ".*Succeeded.*"
     - ".*Artifact.*"
+  # NOTE: HelmRelease and ExternalArtifact eventSources were removed — no
+  # HelmRelease resources exist and ExternalArtifact requires the source-watcher
+  # component, which is not installed. [audit 2026-08-15]

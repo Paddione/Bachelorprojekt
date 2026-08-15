@@ -40,6 +40,9 @@ concurrency:
 permissions:
   contents: read
   packages: write
+  # Keyless Cosign signing: the GitHub OIDC token proves the workflow identity
+  # to Sigstore (Fulcio/Rekor). Without id-token the `cosign sign` step fails.
+  id-token: write
 
 env:
   OPENSPEC_TELEMETRY: '0'
@@ -102,16 +105,41 @@ jobs:
         run: task flux:render
 
       - name: Push OCI artifact
+        id: push-artifact
         run: |
           set -euo pipefail
-          flux push artifact \
+          OUT="$(flux push artifact \
             oci://ghcr.io/paddione/fleet-manifests:latest \
             --path=./out \
             --source="$(git config --get remote.origin.url)" \
-            --revision="${GITHUB_REF_NAME}@sha1:${GITHUB_SHA}"
+            --revision="${GITHUB_REF_NAME}@sha1:${GITHUB_SHA}" \
+            --output json)"
+          echo "$OUT"
+          echo "digest=$(printf '%s' "$OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["digest"])')" >> "$GITHUB_OUTPUT"
           flux tag artifact \
             oci://ghcr.io/paddione/fleet-manifests:latest \
             --tag "sha-${GITHUB_SHA}"
+
+      # Keyless supply-chain signing. The signature attaches to the pushed
+      # digest, so both `latest` and `sha-<GITSHA>` resolve to a verified
+      # artifact. The cluster verifies via OCIRepository spec.verify
+      # (flux/clusters/fleet/oci-source.yaml) with the same OIDC identity.
+      # NOTE: sign by DIGEST — cosign's `oci://` prefix is for local OCI
+      # layouts and would resolve host "oci" (observed failure on 2026-08-15).
+      - name: Sign OCI artifact (cosign keyless)
+        run: |
+          set -euo pipefail
+          if ! command -v cosign > /dev/null; then
+            # Pinned download + SHA256 verification (supply-chain hygiene, T007048).
+            COSIGN_VERSION=3.1.3
+            COSIGN_SHA256=4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71
+            curl -sSL "https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-amd64" \
+              -o /usr/local/bin/cosign
+            echo "${COSIGN_SHA256}  /usr/local/bin/cosign" | sha256sum -c -
+            chmod +x /usr/local/bin/cosign
+          fi
+          cosign sign --yes \
+            "ghcr.io/paddione/fleet-manifests@${{ steps.push-artifact.outputs.digest }}"
 
       - name: Ping Flux receiver (immediate reconcile)
         if: success()

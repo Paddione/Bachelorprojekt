@@ -24,6 +24,12 @@
 #   sein" hätte 1 von 20 erfasst (wirkungslos), "Ticket done genügt" hätte auch die einzige
 #   Kopie eines nie gemergten Deliverables gelöscht (T002431).
 #
+#   Positiv-Signale [T007032]: Ein gemergter PR (headRefOid == Remote-Tip des Branches) bzw.
+#   ein Nachfolge-Branch mit MERGED-PR und identischen Blobs über die gesamte Divergenzmenge
+#   ist ein Positiv-Signal: der Blob-Abweichungs-Check entfällt für den Branch, weil sein
+#   Inhalt nachweislich in main angekommen ist. Unverifizierbar (gh-Ausfall, kein MERGED-PR)
+#   heisst verschonen — der Blob-Check entscheidet dann wie bisher.
+#
 # Ausgabe (der Vertrag, auf den tests/spec/ci-cd/branch-reaper.bats zugreift):
 #   REAP <branch>            — Kandidat, wird ohne --dry-run gelöscht
 #   KEEP <branch> — <grund>  — verschont, mit Begründung
@@ -64,6 +70,14 @@ DRY_RUN=0
 SWEEP=0
 REMOTE="origin"
 TARGET_REPO="$PWD"
+
+# Positiv-Signal-Zustand [T007032]: MERGED_HEADS wird einmalig und lazy geladen (eine
+# gh-Abfrage pro Lauf, nur wenn ein Kandidat das Nachfolge-Signal braucht); DIVERGENT ist
+# die Divergenzmenge des aktuellen Kandidaten, von Positiv-Signal 2 und dem
+# Allowlist-Check gemeinsam genutzt (keine Doppelberechnung).
+MERGED_HEADS=()
+MERGED_HEADS_LOADED=0
+DIVERGENT=()
 
 usage() {
   echo "Usage: branch-reaper.sh [--ticket T######] [--dry-run] [--sweep] [--remote <name>] [--repo <pfad>]" >&2
@@ -122,6 +136,43 @@ _allowed() {
     # shellcheck disable=SC2053 — Glob-Vergleich ist hier beabsichtigt.
     [[ "$f" == $pattern ]] && return 0
   done
+  return 1
+}
+
+# Kopf-SHA eines gemergten PRs des Branches (Positiv-Signal 1, [T007032]). Exit-Code
+# auswerten, nicht die leere Ausgabe: ein gh-Ausfall muss als KEEP-Begruendung sichtbar
+# werden (T003074: unverifizierbar = verschonen). Exit 0 + leere Ausgabe heisst "kein
+# MERGED-PR" — kein Signal. Exit 0 + OID: erster MERGED-PR des Branches.
+_merged_pr_head_oid() {
+  local branch="$1" out
+  if ! out="$(gh pr list --head "$branch" --state merged --json headRefOid 2>&1)"; then
+    printf '%s' "$out" | head -1
+    return 1
+  fi
+  printf '%s' "$out" | grep -o '"headRefOid"[[:space:]]*:[[:space:]]*"[^"]*"' \
+    | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//' || true
+  return 0
+}
+
+# Nachfolge-Branch mit MERGED-PR und identischen Blobs (Positiv-Signal 2, [T007032]): Ein
+# anderer Remote-Branch, der selbst einen MERGED-PR hat, traegt fuer JEDE Datei der
+# Divergenzmenge des Kandidaten denselben Blob — der Kandidat ist ein Teilinhalt eines
+# gemergten Nachfolgers, sicher reapbar. MERGED_HEADS und DIVERGENT befuellt der Aufrufer;
+# die Selbstreferenz ist kein Nachfolger. Ohne Treffer Exit 1 (kein Signal).
+_merged_successor() {
+  local branch="$1" s f a b ok
+  while IFS= read -r s; do
+    [ -z "$s" ] && continue
+    [ "$s" = "$branch" ] && continue
+    ok=1
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      a="$(git rev-parse "$REMOTE/$s:$f" 2>/dev/null || echo MISSING)"
+      b="$(git rev-parse "$REMOTE/$branch:$f" 2>/dev/null || echo MISSING)"
+      [ "$a" = "$b" ] || { ok=0; break; }
+    done < <(printf '%s\n' "${DIVERGENT[@]:-}")
+    [ "$ok" -eq 1 ] && { echo "$s"; return 0; }
+  done < <(printf '%s\n' "${MERGED_HEADS[@]:-}")
   return 1
 }
 
@@ -233,12 +284,50 @@ for branch in "${CANDIDATES[@]}"; do
     esac
   fi
 
+  # Divergenzmenge GENAU EINMAL pro Branch berechnen — Positiv-Signal 2 und der
+  # Allowlist-Check darunter nutzen sie gemeinsam (keine Doppelberechnung).
+  mapfile -t DIVERGENT < <(_diverging_files "$REMOTE/$branch")
+
+  # Positiv-Signale [T007032]: Nur im Ticket-Pfad (freshness_decided=0); die
+  # freshness-Klasse laeuft ihren bestehenden Weg. Unverifizierbar heisst verschonen —
+  # kein Signal, dann entscheidet der Blob-Check wie bisher.
+  if [ "$freshness_decided" -eq 0 ]; then
+    # Positiv-Signal 1: eigener MERGED-PR mit headRefOid == Remote-Tip des Branches
+    tip_sha="$(git rev-parse "$REMOTE/$branch" 2>/dev/null || echo "")"
+    if ! merged_oid="$(_merged_pr_head_oid "$branch")"; then
+      echo "KEEP $branch — gh-Abfrage fehlgeschlagen: $merged_oid"
+      continue
+    fi
+    if [ -n "$merged_oid" ] && [ -n "$tip_sha" ] && [ "$merged_oid" = "$tip_sha" ]; then
+      echo "REAP $branch"
+      REAP_LIST+=("$branch")
+      continue
+    fi
+
+    # Positiv-Signal 2: Nachfolge-Branch mit MERGED-PR und identischen Blobs. Die
+    # MERGED-Koepfe-Liste wird einmalig und lazy geladen (eine gh-Abfrage pro Lauf);
+    # schlaegt die Abfrage fehl, bleibt die Liste leer — kein Signal.
+    if [ "${MERGED_HEADS_LOADED:-0}" -eq 0 ]; then
+      MERGED_HEADS_LOADED=1
+      if merged_all="$(gh pr list --state merged --json headRefName 2>&1)"; then
+        mapfile -t MERGED_HEADS < <(printf '%s' "$merged_all" \
+          | grep -o '"headRefName"[[:space:]]*:[[:space:]]*"[^"]*"' \
+          | sed 's/.*:[[:space:]]*"//; s/"$//' || true)
+      fi
+    fi
+    if [ "${#MERGED_HEADS[@]}" -gt 0 ] && _merged_successor "$branch"; then
+      echo "REAP $branch"
+      REAP_LIST+=("$branch")
+      continue
+    fi
+  fi
+
   # (4) Blob-Abweichungen gegen die Allowlist
   blocked=""
   while IFS= read -r f; do
     [ -z "$f" ] && continue
     _allowed "$f" || { blocked="$f"; break; }
-  done < <(_diverging_files "$REMOTE/$branch")
+  done < <(printf '%s\n' "${DIVERGENT[@]:-}")
 
   if [ -n "$blocked" ]; then
     echo "KEEP $branch — abweichende Datei ausserhalb der Allowlist: $blocked"

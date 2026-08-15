@@ -133,20 +133,6 @@ patches:
       kind: PrometheusRule
       metadata:
         name: delete-rule
-  - target: { group: helm.toolkit.fluxcd.io, version: v2beta1, kind: HelmRelease }
-    patch: |-
-      $patch: delete
-      apiVersion: helm.toolkit.fluxcd.io/v2beta1
-      kind: HelmRelease
-      metadata:
-        name: delete-helmrelease
-  - target: { group: source.toolkit.fluxcd.io, version: v1beta2, kind: HelmRepository }
-    patch: |-
-      $patch: delete
-      apiVersion: source.toolkit.fluxcd.io/v1beta2
-      kind: HelmRepository
-      metadata:
-        name: delete-helmrepo
   - target: { group: cert-manager.io, version: v1, kind: Certificate }
     patch: |-
       $patch: delete

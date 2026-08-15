@@ -76,11 +76,14 @@ spec:
           image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.3@sha256:10a1165743a192e1940b4708fb9647027185ce11a681a1c5519b442ff7f1f561
           args:
             - --config=/run/config/oauth2-extra.cfg
-            - --provider=keycloak-oidc
+            - --provider=oidc
             - --client-id=workspace-dev
             # client_secret is supplied via the config file written by the
             # write-oauth2-config initContainer (not a plaintext arg). [T000363]
-            - --oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace
+            # Pocket ID loopback wie brainstorm/session-hub — die Keycloak-URL
+            # (auth.${PROD_DOMAIN}/realms/workspace) existiert im Fleet nicht
+            # mehr (OIDC-Discovery lieferte HTML → CrashLoop). [T007035]
+            - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
             - --redirect-url=https://${DEV_DOMAIN}/oauth2/callback
             # Loop back to the in-cluster Traefik web entrypoint; Host preserved
             # so Traefik routes by host to website-dev / brett-dev.

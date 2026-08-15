@@ -97,6 +97,7 @@ fi
 # Bypass: SKIP_FRESHNESS_REGEN=1 git commit ...
 _FRESHNESS_FILES=(
   components/website/src/data/test-inventory.json
+  components/website/src/data/api-inventory.json
   components/website/src/data/route-manifest.json
   components/website/src/lib/learning-assets.generated.json
   components/website/public/learning-assets/THIRD-PARTY-ASSETS.md

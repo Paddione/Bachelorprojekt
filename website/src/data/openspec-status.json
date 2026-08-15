@@ -3773,8 +3773,8 @@
   ],
   "T006293": [
     {
-      "slug": "mcp-postgres-multistatement",
-      "status": "plan_staged"
+      "slug": "2026-08-15-mcp-postgres-multistatement",
+      "status": "archived"
     }
   ],
   "T006295": [

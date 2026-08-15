@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.277.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.48...website-v1.277.0) (2026-08-15)
+
+
+### Features
+
+* **scripts:** idempotente Post-Merge-Finalize-Einheit für dev-flow-execute [T006284] ([#4539](https://github.com/Paddione/Bachelorprojekt/issues/4539)) ([1cab101](https://github.com/Paddione/Bachelorprojekt/commit/1cab10192513ae0916f7c2323c9305501d1e81e0))
+
 ## [1.276.48](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.47...website-v1.276.48) (2026-08-15)
 
 

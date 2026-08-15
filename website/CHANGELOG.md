@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.279.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.0...website-v1.279.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **test:** narrow blocker-gate WARN assertion to line scope + fail-closed pool pre-check [T006031] ([#4562](https://github.com/Paddione/Bachelorprojekt/issues/4562)) ([b65810f](https://github.com/Paddione/Bachelorprojekt/commit/b65810f728c598e1578e4da8b2b56221cc331f46))
+
 ## [1.279.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.2...website-v1.279.0) (2026-08-15)
 
 

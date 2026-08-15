@@ -31,7 +31,7 @@ website/src/data/test-inventory.json                    (regenerated — task fr
 
 ## Verify (RED → GREEN)
 
-- [ ] **p1 — Config-Step.** Die zwei Slots `gemma-4-12b@ud-iq3_xxs` und `qwen3.5-4b@q6_k`
+- [x] **p1 — Config-Step.** Die zwei Slots `gemma-4-12b@ud-iq3_xxs` und `qwen3.5-4b@q6_k`
       sind im `lmstudio`-Provider-Block von `.opencode/agent-models.jsonc` eingetragen
       (Details: `tasks.d/p1-config.md`).
 - [x] **p2 — Failing-Test-Step (RED).** Der Guard aus `tasks.d/p2-tests.md` ist geschrieben.
@@ -42,7 +42,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/support-model-slots
 # expected: FAIL (red — die zwei Slots sind in .opencode/agent-models.jsonc noch nicht deklariert)
 ```
 
-- [ ] **Fix-Step (GREEN).** Nach p1 ist der Guard grün; der Erreichbarkeits-Check
+- [x] **Fix-Step (GREEN).** Nach p1 ist der Guard grün; der Erreichbarkeits-Check
       (über `:18235/v1/models`) skippt, wenn llm-proxy oder Geräte offline sind.
 - [ ] **Final Verification.** Die drei CI-Gates laufen grün:
 

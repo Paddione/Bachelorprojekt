@@ -361,6 +361,28 @@ spec:
     - port: 1411
       protocol: TCP
 ---
+# dev-stack (workspace-dev ns): Fleet-Dev-Knoten (brett-dev, website-dev,
+# oauth2-proxy-dev/brainstorm/session-hub) brauchen Pocket-ID auf 1411 — ohne
+# diese Regel blockt workspace/default-deny-ingress sie (ECONNREFUSED, T007035).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-devstack-to-pocket-id-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: pocket-id
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: workspace-dev
+    ports:
+    - port: 1411
+      protocol: TCP
+---
 # nextcloud: allow ingress from website namespace (CalDAV, Files, Talk integration)
 ---
 apiVersion: networking.k8s.io/v1

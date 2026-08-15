@@ -2,7 +2,7 @@
 title: "s3-finetune-dataset-recipe — Implementation Plan"
 ticket_id: T006252
 domains: [dev-tooling, factory, test]
-status: active
+status: completed
 ---
 
 # s3-finetune-dataset-recipe — Implementation Plan

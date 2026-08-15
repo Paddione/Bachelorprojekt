@@ -34,6 +34,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${REPO_DIR:-$(cd "$HERE/.." && pwd)}"
 TICKET_SH="$REPO_DIR/scripts/ticket.sh"
+cd "$REPO_DIR"
 
 usage() {
   cat <<'EOF'
@@ -106,6 +107,7 @@ PLAN_FILE=""
 if [[ -n "$PLAN_REF" ]]; then
   [[ -z "$BRANCH" ]] && BRANCH="$(echo "$PLAN_REF" | grep -oE 'branch=[^ ]+' | head -1 | sed 's/^branch=//' || true)"
   PLAN_FILE="$(echo "$PLAN_REF" | grep -oE 'plan=[^ ]+' | head -1 | sed 's/^plan=//' || true)"
+  [[ -n "$PLAN_FILE" && "$PLAN_FILE" != /* ]] && PLAN_FILE="$REPO_DIR/$PLAN_FILE"
 fi
 if [[ -z "$BRANCH" ]]; then
   echo "ERROR: Schritt 2 — Kein Branch bestimmbar (--branch fehlt, FACTORY-PLAN-REF ohne branch=). Branch ist Pflicht fuer PR-Aufloesung und Cleanup." >&2
@@ -125,6 +127,12 @@ WORKTREE="$REPO_DIR/.worktrees/$SLUG"
 # Closure-Schritte (4–6) nicht; Archiv/Cleanup weiter.
 if [[ -z "$PR_NUM" ]]; then
   PR_NUM="$(gh pr list --head "$BRANCH" --state merged --json number -q '.[0].number' 2>/dev/null || true)"
+else
+  PR_STATE="$(gh pr view "$PR_NUM" --json state -q .state 2>/dev/null || true)"
+  if [[ "$PR_STATE" != "MERGED" ]]; then
+    mark_skip "Schritt 3: PR #$PR_NUM ist nicht MERGED (state=$PR_STATE) — Closure-Schritte laufen nicht (T001149-M1)"
+    PR_NUM=""
+  fi
 fi
 if [[ -n "$PR_NUM" ]]; then
   mark_ok "Schritt 3: PR #$PR_NUM (merged)"
@@ -201,37 +209,41 @@ else
 fi
 
 if [[ -n "${ARCHIVE_DIR:-}" ]]; then
-  (
-    cd "$ARCHIVE_DIR"
-    bash scripts/openspec.sh archive "$SLUG"
-    # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
-    # Regeneration und explizites Staging nach plan-archive-steps (T002252).
-    task freshness:regenerate >/dev/null 2>&1 || true
-    git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
-    git add -u -- website/src/data website/src/lib website/public/learning-assets docs
-    git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
-    ARCHIVE_COMMIT="$(git rev-parse HEAD)"
-    # Der Archiv-Branch MUSS von origin/main abzweigen, nicht vom Fix-Branch
-    # (T002256) — squash-and-merge hinterlaesst den Fix-Branch am Pre-Squash-Stand.
-    ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
-    git fetch origin main
-    git checkout -B "$ARCHIVE_BRANCH" origin/main
-    git cherry-pick "$ARCHIVE_COMMIT"
-    git push -u origin "$ARCHIVE_BRANCH"
-    # PR-Erstellung mit Assert (verhindert ungebuendelte Archiv-Branches, T001331)
-    ARCHIVE_PR_URL="$(gh pr create \
-      --title "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]" \
-      --body "Automatischer Archiv-PR für $SLUG (Ticket $TICKET_ID). Plan wurde nach postgres archiviert." \
-      --head "$ARCHIVE_BRANCH" \
-      --base main)"
-    [[ -n "$ARCHIVE_PR_URL" ]] || { echo "FATAL: gh pr create returned empty URL for $ARCHIVE_BRANCH" >&2; exit 1; }
-    # Push-Verification vor Auto-Merge (T001268)
-    REMOTE_SHA="$(git ls-remote origin "refs/heads/$ARCHIVE_BRANCH" | cut -f1)"
-    LOCAL_SHA="$(git rev-parse HEAD)"
-    [[ "$REMOTE_SHA" = "$LOCAL_SHA" ]] || { echo "FATAL: remote SHA ($REMOTE_SHA) != local SHA ($LOCAL_SHA)" >&2; exit 1; }
-    gh pr merge --auto --squash --delete-branch "$ARCHIVE_PR_URL"
-  )
-  mark_ok "Schritt 8: OpenSpec-Change archiviert (Archiv-PR erstellt)"
+  ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
+  if git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1; then
+    mark_skip "Schritt 8: Archiv-Branch $ARCHIVE_BRANCH existiert bereits remote — OpenSpec-Archiv übersprungen (idempotent)"
+  else
+    (
+      cd "$ARCHIVE_DIR"
+      bash scripts/openspec.sh archive "$SLUG"
+      # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
+      # Regeneration und explizites Staging nach plan-archive-steps (T002252).
+      task freshness:regenerate >/dev/null 2>&1 || true
+      git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
+      git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+      git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
+      ARCHIVE_COMMIT="$(git rev-parse HEAD)"
+      # Der Archiv-Branch MUSS von origin/main abzweigen, nicht vom Fix-Branch
+      # (T002256) — squash-and-merge hinterlaesst den Fix-Branch am Pre-Squash-Stand.
+      git fetch origin main
+      git checkout -B "$ARCHIVE_BRANCH" origin/main
+      git cherry-pick "$ARCHIVE_COMMIT"
+      git push -u origin "$ARCHIVE_BRANCH"
+      # PR-Erstellung mit Assert (verhindert ungebuendelte Archiv-Branches, T001331)
+      ARCHIVE_PR_URL="$(gh pr create \
+        --title "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]" \
+        --body "Automatischer Archiv-PR für $SLUG (Ticket $TICKET_ID). Plan wurde nach postgres archiviert." \
+        --head "$ARCHIVE_BRANCH" \
+        --base main)"
+      [[ -n "$ARCHIVE_PR_URL" ]] || { echo "FATAL: gh pr create returned empty URL for $ARCHIVE_BRANCH" >&2; exit 1; }
+      # Push-Verification vor Auto-Merge (T001268)
+      REMOTE_SHA="$(git ls-remote origin "refs/heads/$ARCHIVE_BRANCH" | cut -f1)"
+      LOCAL_SHA="$(git rev-parse HEAD)"
+      [[ "$REMOTE_SHA" = "$LOCAL_SHA" ]] || { echo "FATAL: remote SHA ($REMOTE_SHA) != local SHA ($LOCAL_SHA)" >&2; exit 1; }
+      gh pr merge --auto --squash --delete-branch "$ARCHIVE_PR_URL"
+    )
+    mark_ok "Schritt 8: OpenSpec-Change archiviert (Archiv-PR erstellt)"
+  fi
 fi
 
 # Schritt 9 — Branch-Lock freigeben: nur wenn der Claim dieser Session gehoert

@@ -3966,6 +3966,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-status-offline-staging",
+    "file": "tests/spec/openspec-workflow/archive-status-offline-staging.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-terminal-ticket-status",
     "file": "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
     "category": "openspec-workflow",

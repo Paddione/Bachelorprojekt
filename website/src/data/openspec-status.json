@@ -3861,6 +3861,12 @@
       "status": "archived"
     }
   ],
+  "T006371": [
+    {
+      "slug": "archive-status-staging-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T006664": [
     {
       "slug": "2026-08-15-mcp-task-runner-node-port",

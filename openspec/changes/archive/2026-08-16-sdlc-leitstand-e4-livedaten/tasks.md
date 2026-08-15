@@ -2,7 +2,7 @@
 title: "sdlc-leitstand-e4-livedaten — Implementation Plan"
 ticket_id: T008016
 domains: [website, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

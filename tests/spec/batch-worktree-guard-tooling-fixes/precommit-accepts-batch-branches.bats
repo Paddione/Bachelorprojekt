@@ -17,7 +17,6 @@ setup() {
   ln -s "$(pwd)/scripts/git-crypt-guard.sh" "$FIXTURE/scripts/git-crypt-guard.sh"
   ln -s "$(pwd)/scripts/openspec-half-archive-check.sh" "$FIXTURE/scripts/openspec-half-archive-check.sh"
   ln -s "$(pwd)/scripts/openspec-main-staging-guard.sh" "$FIXTURE/scripts/openspec-main-staging-guard.sh"
-  ln -s "$(pwd)/scripts/guard-bonsai-overwrite.sh" "$FIXTURE/scripts/guard-bonsai-overwrite.sh"
   ln -s "$(pwd)/scripts/lib/branch-allowlist.sh" "$FIXTURE/scripts/lib/branch-allowlist.sh"
   ln -s "$(pwd)/.gitleaks.toml" "$FIXTURE/.gitleaks.toml"
 
@@ -51,12 +50,11 @@ teardown() {
   # Bypasses for hermetic state
   export AGENT_LOCK_FORCE=1
   export SKIP_FRESHNESS_REGEN=1
-  export SKIP_BONSAI_GUARD=1
   export SKIP_MAIN_COMMIT_GUARD=1
   # SKIP_BRANCH_CHECK remains UNSET
 
   run env PATH="$FIXTURE/bin:$PATH" bash "$FIXTURE/.githooks/pre-commit"
-  
+
   [ "$status" != 0 ]
   [[ "$output" =~ "experiment/foo" ]]
 }
@@ -66,7 +64,6 @@ teardown() {
   
   export AGENT_LOCK_FORCE=1
   export SKIP_FRESHNESS_REGEN=1
-  export SKIP_BONSAI_GUARD=1
   export SKIP_MAIN_COMMIT_GUARD=1
 
   run env PATH="$FIXTURE/bin:$PATH" bash "$FIXTURE/.githooks/pre-commit"

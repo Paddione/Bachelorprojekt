@@ -230,7 +230,7 @@ setup_t002239_m1() {
 #   - tool missing (task/node not in PATH)              -> stays fail-open
 #   - tool present, `task freshness:regenerate` fails    -> now blocking (exit 1)
 # with an emergency bypass SKIP_FRESHNESS_REGEN=1, consistent with the other
-# SKIP_* bypasses already in this hook (SKIP_BRANCH_CHECK, SKIP_BONSAI_GUARD,
+# SKIP_* bypasses already in this hook (SKIP_BRANCH_CHECK,
 # SKIP_MAIN_COMMIT_GUARD).
 #
 # Strategy: source-inspection of .githooks/pre-commit, same convention as the

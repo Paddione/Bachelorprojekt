@@ -33,7 +33,7 @@ setup() {
   # Vorgelagerte Hook-Abschnitte neutralisieren: sie rufen Repo-Skripte auf, die
   # fuer diesen Guard ohne Belang sind. Stubs statt Kopien, damit der Test nicht
   # an fremden Guards scheitert und deren Aenderungen ihn nicht rot faerben.
-  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh guard-bonsai-overwrite.sh openspec-half-archive-check.sh openspec-main-staging-guard.sh; do
+  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh openspec-half-archive-check.sh openspec-main-staging-guard.sh; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$SANDBOX/scripts/$s"
     chmod +x "$SANDBOX/scripts/$s"
   done
@@ -42,7 +42,7 @@ setup() {
   git -C "$SANDBOX" config user.name  Tester
   git -C "$SANDBOX" config core.hooksPath .githooks
 
-  export FRESHNESS_HOOK_DISABLED=1 SKIP_BONSAI_GUARD=1
+  export FRESHNESS_HOOK_DISABLED=1
 }
 
 teardown() { rm -rf "$TMP"; }

@@ -13,12 +13,27 @@
 # Bewusst NICHT hier: curl-Proben gegen einen laufenden Dev-Server. Die koennen
 # in CI nie gruen werden (dort laeuft kein Astro auf :4321) und sind als
 # E2E-Faelle in Playwright aufgehoben.
+#
+# Befund 4 [T007957/E3] — Anpassung ausserhalb des Plan-Scope, im Geiste von p3 geloest:
+# Vier der fuenf Tests haengten an Komponenten, die die E3-Leitstand-Shell ersatzlos
+# loescht (CommandBar/CockpitRail/OverviewDashboard + deren kollokierte Vitest-Tests).
+# Die gesicherten Aussagen bleiben erhalten und werden auf die Nachfolger re-verankert:
+#   - T1 (Nachfolger existieren): LeitstandStatusband/Kontextzone/DeckLeiste statt
+#     CommandBar/CockpitRail/OverviewDashboard; InsightsTab ueberlebt unveraendert.
+#   - T3 (Positiv-Anker): cockpit.astro importiert weiterhin die Z4 Kontextzone.
+#   - T4 (PlanningOffice/FactoryFloor ueberleben): Mount-Punkt ist jetzt Kontextzone.svelte.
+#   - T5 (Laufzeit-Coverage in Vitest): die drei neuen lib-Suites
+#     leitstand-{url,purpose-registry,metrics}.test.ts statt der geloeschten
+#     Komponententests; Registrierungs-Glob ist das node-Projekt
+#     (src/**/*.{test,spec}.ts), das src/lib/**/*.test.ts einschliesst.
 
 setup() {
   REPO_ROOT="$BATS_TEST_DIRNAME/../../.."
   COCKPIT_PAGE="$REPO_ROOT/components/website/src/pages/sdlc/cockpit.astro"
   COCKPIT_DIR="$REPO_ROOT/components/website/src/components/cockpit"
   FACTORY_DIR="$REPO_ROOT/components/website/src/components/sdlc/factory"
+  LEITSTAND_DIR="$REPO_ROOT/components/website/src/components/leitstand"
+  LIB_TESTS_DIR="$REPO_ROOT/components/website/src/lib/sdlc/__tests__"
 }
 
 # Die im Redesign entfernten Komponenten. Jeder Eintrag muss aus dem Quellbaum
@@ -37,9 +52,12 @@ REMOVED_COMPONENTS=(
   # Positiv-Anker fuer die Loesch-Guards unten: waeren die Ersatzkomponenten
   # nicht da, wuerde "die alten sind weg" vakuos bestehen — ein leeres
   # Verzeichnis erfuellt jede Abwesenheitsaussage.
-  [ -f "$COCKPIT_DIR/CommandBar.svelte" ]
-  [ -f "$COCKPIT_DIR/CockpitRail.svelte" ]
-  [ -f "$COCKPIT_DIR/OverviewDashboard.svelte" ]
+  # [T007957/E3] CommandBar/CockpitRail/OverviewDashboard sterben ersatzlos; die
+  # Nachfolge-Zonen sind LeitstandStatusband (Z1), Kontextzone (Z4) und
+  # DeckLeiste (Z5) unter components/leitstand/ (design.md § Zonen-Vertrag).
+  [ -f "$LEITSTAND_DIR/LeitstandStatusband.svelte" ]
+  [ -f "$LEITSTAND_DIR/Kontextzone.svelte" ]
+  [ -f "$LEITSTAND_DIR/DeckLeiste.svelte" ]
   [ -f "$FACTORY_DIR/InsightsTab.svelte" ]
 }
 
@@ -62,7 +80,9 @@ REMOVED_COMPONENTS=(
   # Positiv-Anker: die Suche findet im selben Baum einen Import, den es geben
   # MUSS. Ohne ihn koennte ein kaputtes grep-Kommando "nichts gefunden" melden
   # und der Test bestuende, waehrend verwaiste Importe unbemerkt blieben.
-  run grep -rF "CommandBar" "$REPO_ROOT/components/website/src/pages/sdlc/cockpit.astro"
+  # [T007957/E3] Anker ist jetzt die Kontextzone (Z4-Router), die cockpit.astro
+  # als Kernzone der Shell einbindet.
+  run grep -rF "Kontextzone" "$REPO_ROOT/components/website/src/pages/sdlc/cockpit.astro"
   [ "$status" -eq 0 ]
 
   local orphans=0
@@ -92,23 +112,29 @@ REMOVED_COMPONENTS=(
   [ -f "$REPO_ROOT/components/website/src/components/sdlc/FactoryFloor.svelte" ]
 
   # Existenz allein genuegt nicht — sie muessen auch weiterhin eingebunden sein.
-  run grep -cF "PlanningOffice" "$COCKPIT_PAGE"
+  # [T007957/E3] Mount-Punkt ist jetzt die Kontextzone (Z4): sie haengt die
+  # Fertigungsstationen an FactoryFloor und triage/planung an PlanningOffice
+  # (p1 Task 10). cockpit.astro importiert die Zonen selbst nicht mehr einzeln.
+  run grep -cF "PlanningOffice" "$LEITSTAND_DIR/Kontextzone.svelte"
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]
 
-  run grep -cF "FactoryFloor" "$COCKPIT_PAGE"
+  run grep -cF "FactoryFloor" "$LEITSTAND_DIR/Kontextzone.svelte"
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]
 }
 
 @test "SDLC-COCKPIT: das Laufzeitverhalten ist in Vitest abgedeckt" {
   # Guard gegen die Luecke aus T002657: eine Testdatei, die in keinem Runner
-  # registriert ist, faellt lokal nicht auf. Die Cockpit-Komponententests
-  # muessen existieren und vom `components`-Projekt der vitest.config erfasst
-  # sein (dessen Glob src/components/**/*.test.ts sie einschliesst).
-  [ -f "$COCKPIT_DIR/CommandBar.test.ts" ]
-  [ -f "$COCKPIT_DIR/CockpitRail.test.ts" ]
+  # registriert ist, faellt lokal nicht auf. [T007957/E3] Die Komponententests
+  # der geloeschten Komponenten (CommandBar/CockpitRail) sterben mit ihnen; die
+  # extrahierte Logik lebt als pure lib-Funktionen und ist unter
+  # src/lib/sdlc/__tests__/ vitest-abgedeckt (node-Projekt). Registriert sind
+  # sie ueber den Include-Glob src/**/*.{test,spec}.ts der vitest.config.
+  [ -f "$LIB_TESTS_DIR/leitstand-url.test.ts" ]
+  [ -f "$LIB_TESTS_DIR/leitstand-purpose-registry.test.ts" ]
+  [ -f "$LIB_TESTS_DIR/leitstand-metrics.test.ts" ]
 
-  run grep -F "src/components/**/*.{test,spec}.ts" "$REPO_ROOT/components/website/vitest.config.ts"
+  run grep -F "src/**/*.{test,spec}.ts" "$REPO_ROOT/components/website/vitest.config.ts"
   [ "$status" -eq 0 ]
 }

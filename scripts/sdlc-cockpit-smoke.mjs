@@ -99,6 +99,25 @@ try {
   check('Seite ist nicht leer', bodyText.trim().length > 200, `${bodyText.trim().length} Zeichen`);
   check('nicht auf der Login-Seite gelandet', !/\/login$/.test(url), url);
 
+  // [T007957/E3] Alte Floor-testids bleiben stabil (SSOT software-factory.md §
+  // "FA-SF: Factory Floor Hallendarstellung" — INVARIANT, kein Delta in diesem Change).
+  for (const id of ['factory-floor', 'floor-leitstand', 'floor-hall', 'floor-shipped', 'floor-slots']) {
+    check(`testid stabil: ${id}`, (await page.locator(`[data-testid="${id}"]`).count()) > 0, id);
+  }
+  // floor-workpiece/floor-detail nur pruefen, wenn ein Workpiece vorhanden ist —
+  // eine leere Halle ist kein Smoke-Fehler.
+  const wp = page.locator('[data-testid="floor-workpiece"]').first();
+  if (await wp.count()) {
+    check('testid stabil: floor-workpiece', true);
+    await wp.click({ timeout: 5_000 }).catch(() => {});
+    check('testid stabil: floor-detail (nach Klick)', (await page.locator('[data-testid="floor-detail"]').count()) > 0);
+  }
+
+  // [T007957/E3] Neue Zonen-Selektoren sind vorhanden (Kontrakt C).
+  for (const id of ['leitstand-statusband', 'leitstand-achse', 'leitstand-kontextzone', 'leitstand-deck-leiste']) {
+    check(`Zone gerendert: ${id}`, (await page.locator(`[data-testid="${id}"]`).count()) > 0, id);
+  }
+
   await page.screenshot({ path: SHOT, fullPage: true }).catch(() => {});
   log('Screenshot:', SHOT);
 

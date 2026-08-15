@@ -4,7 +4,6 @@
 
 STORE="components/website/src/lib/stores/factory-floor-store.ts"
 FLOOR="components/website/src/components/sdlc/FactoryFloor.svelte"
-TABS="components/website/src/components/DevStatusTabs.svelte"
 CTRL="components/website/src/components/sdlc/factory/ControlPanel.svelte"
 STRIP="components/website/src/components/sdlc/factory/StatusStrip.svelte"
 DAG="components/website/src/components/DependencyGraph.svelte"
@@ -62,9 +61,16 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
   [ "$status" -ne 0 ]
 }
 
-@test "D7.2: DevStatusTabs prefers the URL tab over localStorage" {
-  grep -q "urlTab" "$TABS"
-}
+# D7.2 entfernt (T007957/E3): pruefte "grep -q 'urlTab' $TABS" — dass DevStatusTabs.svelte
+# einen expliziten ?tab=-URL-Parameter nie von einem gespeicherten localStorage-Wert
+# ueberschreiben laesst (Datei-Zeilen 34-44 vor der Loeschung). DevStatusTabs.svelte stirbt
+# in T007957/E3 ersatzlos (design.md § E3-Entscheidungsprotokoll, "Toter Plattform/KI-Zweig"):
+# die 12 Karten wandern in DeckPlattform/DeckKi, die urlTab-vs-localStorage-Praezedenz nicht,
+# weil die Nachfolge-Architektur keine localStorage-Gegenquelle mehr kennt — Deck-/Stations-
+# Auswahl kommt ausschliesslich aus der URL (Kontrakt B, design.md § Navigation: "SSR liefert
+# den initialen Zustand aus den Query-Params"). Die Nachfolge-Semantik (URL -> Selektion,
+# deterministisch, kein lokaler Fallback, wirft nie) ist bereits abgedeckt durch
+# tests/spec/sdlc-cockpit/leitstand-url-scheme.bats.
 
 @test "D6: no --pb-* palette remains in Planungsbüro components" {
   run grep -rq -- "--pb-" components/website/src/components/PlanningOffice.svelte \

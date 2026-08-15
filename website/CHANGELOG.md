@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.281.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.3...website-v1.281.4) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** absolute script paths in devflow-ci-watch.sh [T006370] ([#4599](https://github.com/Paddione/Bachelorprojekt/issues/4599)) ([3f016ec](https://github.com/Paddione/Bachelorprojekt/commit/3f016ec19197d04600d01e5993402e9ea8a24648))
+
 ## [1.281.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.2...website-v1.281.3) (2026-08-15)
 
 

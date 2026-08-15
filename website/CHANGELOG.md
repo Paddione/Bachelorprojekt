@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.281.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.280.1...website-v1.281.0) (2026-08-15)
+
+
+### Features
+
+* **ops:** lmstudio-Slots fuer Gemma-4-12B (PK-Tablet) und Qwen3.5-4B (PK-L-1) [T006840] ([#4589](https://github.com/Paddione/Bachelorprojekt/issues/4589)) ([5166312](https://github.com/Paddione/Bachelorprojekt/commit/5166312e602d2dd5098aca534ba14ccdd3943d04))
+
 ## [1.280.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.280.0...website-v1.280.1) (2026-08-15)
 
 

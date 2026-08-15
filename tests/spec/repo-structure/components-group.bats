@@ -6,7 +6,7 @@
 # bevor die Negativ-Aussage (keine Top-Level-Ordner) zählt.
 
 setup() {
-  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd)"
 }
 
 @test "repo-structure: fünf Komponenten unter components/, keine Top-Level-Ordner" {

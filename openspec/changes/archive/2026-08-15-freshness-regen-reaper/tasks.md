@@ -2,7 +2,7 @@
 title: "freshness-regen-reaper — Implementation Plan"
 ticket_id: T005958
 domains: [ci-cd]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -3945,6 +3945,12 @@
       "status": "plan_staged"
     }
   ],
+  "T007955": [
+    {
+      "slug": "status-machine-ssot",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

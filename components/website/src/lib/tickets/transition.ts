@@ -4,19 +4,18 @@ import { sendBugCloseEmail } from './email-templates';
 import { linkReporterByEmail } from './reporter-link';
 import { updateSuccessorReadiness } from '../ticket-readiness.ts';
 import { logger } from '../logger.ts';
+import { VALID_STATUSES, isValidStatus } from './status';   // SSOT (T007955)
+import type { TicketStatus } from './status';
 
-export type TicketStatus =
-  'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'qa_review' | 'blocked' | 'awaiting_deploy' | 'done' | 'archived';
+// Re-export the SSOT vocabulary so existing consumers of this module keep
+// compiling (isValidStatus ← bulk-status.ts / transition.status.test.ts;
+// TicketStatus ← pages/sdlc/api/tickets/[id]/transition.ts). The single
+// definition lives in ./status (T007955).
+export { isValidStatus };
+export type { TicketStatus };
 
 export type TicketResolution =
   'fixed' | 'shipped' | 'wontfix' | 'duplicate' | 'cant_reproduce' | 'obsolete';
-
-const VALID_STATUSES: ReadonlySet<TicketStatus> = new Set(
-  ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'blocked', 'awaiting_deploy', 'done', 'archived']);
-
-export function isValidStatus(s: string): s is TicketStatus {
-  return VALID_STATUSES.has(s as TicketStatus);
-}
 
 const VALID_RESOLUTIONS: ReadonlySet<TicketResolution> = new Set(
   ['fixed', 'shipped', 'wontfix', 'duplicate', 'cant_reproduce', 'obsolete']);

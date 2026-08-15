@@ -10,12 +10,14 @@
 import { pool } from '../website-db.ts';
 import { initTicketsSchema } from '../tickets-db.ts';
 import type { GrillingAnswers, GrillingMeta } from './grilling';
+import type { TicketStatus } from './status';   // SSOT (T007955)
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
 export type TicketType = 'bug' | 'feature' | 'task' | 'project';
-export type TicketStatus =
-  'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'qa_review' | 'blocked' | 'awaiting_deploy' | 'done' | 'archived';
+// SSOT (T007955): the 11 canonical statuses live in ./status — re-exported here
+// so existing consumers of this module (TicketActionBar.svelte et al.) keep compiling.
+export type { TicketStatus };
 export type TicketResolution =
   'fixed' | 'shipped' | 'wontfix' | 'duplicate' | 'cant_reproduce' | 'obsolete';
 export type TicketPriority = 'hoch' | 'mittel' | 'niedrig';

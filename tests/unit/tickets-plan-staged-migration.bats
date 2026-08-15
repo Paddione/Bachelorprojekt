@@ -34,13 +34,33 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "admin.ts TicketStatus-Union enthält plan_staged" {
-  run grep -F "plan_staged" "$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/admin.ts"
-  [ "$status" -eq 0 ]
+@test "status.ts ist die Status-SSOT: exportiert alle 11 kanonischen Status (T007955)" {
+  STS="$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/status.ts"
+  for s in triage planning plan_staged backlog in_progress in_review qa_review blocked awaiting_deploy done archived; do
+    run grep -F "$s" "$STS"
+    [ "$status" -eq 0 ]
+  done
 }
 
-@test "transition.ts TicketStatus-Union + VALID_STATUSES enthält plan_staged" {
-  run grep -c "plan_staged" "$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/transition.ts"
+@test "status.ts exportiert SSOT-Surface (TICKET_STATUSES, VALID_STATUSES, isValidStatus, TicketStatus)" {
+  STS="$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/status.ts"
+  for pat in "export const TICKET_STATUSES" "export const VALID_STATUSES" "export function isValidStatus" "export type TicketStatus"; do
+    run grep -F "$pat" "$STS"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "Consumers importieren aus status.ts statt lokaler Duplikate (T007955)" {
+  ADMIN="$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/admin.ts"
+  TRANS="$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/transition.ts"
+  COCKPIT_DB="$BATS_TEST_DIRNAME/../../components/website/src/lib/sdlc/tickets/cockpit-db.ts"
+  ROUTE="$BATS_TEST_DIRNAME/../../components/website/src/pages/sdlc/api/cockpit/ticket-status.ts"
+  run grep -F "from './status'" "$ADMIN"
   [ "$status" -eq 0 ]
-  [ "$output" -ge 2 ]
+  run grep -F "from './status'" "$TRANS"
+  [ "$status" -eq 0 ]
+  run grep -F "tickets/status" "$COCKPIT_DB"
+  [ "$status" -eq 0 ]
+  run grep -F "lib/tickets/status" "$ROUTE"
+  [ "$status" -eq 0 ]
 }

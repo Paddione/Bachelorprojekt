@@ -193,8 +193,10 @@ process.stdout.write(a+'/'+b)"
   [ "$status" -ne 0 ]
 }
 
-@test "FA-SF-22: transition.ts retains awaiting_deploy + qa_review in VALID_STATUSES (non-destructive)" {
-  TS="components/website/src/lib/tickets/transition.ts"
+@test "FA-SF-22: status.ts SSOT retains awaiting_deploy + qa_review in VALID_STATUSES (non-destructive)" {
+  # T007955: die Status-SSOT lebt seit dem Konsolidierungs-Refactor in
+  # lib/tickets/status.ts — transition.ts importiert nur noch von dort.
+  TS="components/website/src/lib/tickets/status.ts"
   run grep -q "awaiting_deploy" "$TS"; [ "$status" -eq 0 ]
   run grep -q "qa_review" "$TS"; [ "$status" -eq 0 ]
 }

@@ -3759,6 +3759,12 @@
       "status": "plan_staged"
     }
   ],
+  "T006295": [
+    {
+      "slug": "ticket-ops-stale-triage",
+      "status": "plan_staged"
+    }
+  ],
   "T006298": [
     {
       "slug": "stash-drop-renumbering",

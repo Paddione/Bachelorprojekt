@@ -248,12 +248,18 @@ setup() {
   printf '%s' "$status_flag" | grep -q 'triage' \
     || { echo "rollup-container muss den Container als triage anlegen, gefunden: $status_flag"; false; }
 
-  # [T004898] Der Wiederfinde-Pfad fuehrt seit dem ephemeren Lifecycle
-  # NOT IN ('done','archived') statt der expliziten Statusliste: plan_staged ist
-  # darin als offener Status enthalten — sonst legte jeder Lauf neben dem bereits
-  # gestagten Container einen neuen an.
-  printf '%s\n' "$block" | grep -q "status NOT IN.*done.*archived" \
-    || { echo "SELECT im Wiederfinde-Pfad schliesst nur done/archived aus — plan_staged bleibt offen"; false; }
+  # [T004898 → T007056] Der Wiederfinde-Pfad nutzt seit dem Staged-Lane-Muster
+  # (T007056, Teil-Ruecknahme von T004898) einen EXPLIZITEN Collect-Mode statt
+  # NOT IN ('done','archived'): Dispatchete Container (plan_staged) muessen vom
+  # Finder ausgeschlossen bleiben, damit neue Flushes einen frischen Container
+  # anlegen — sonst sammelte jeder Lauf weiter in den bereits gestagten
+  # Container. Collect-Mode = triage/backlog/planning (+ blocked ohne
+  # FACTORY-PLAN-REF); der Anlage-Pfad (triage) bleibt davon unberuehrt.
+  printf '%s\n' "$block" | grep -qE "status IN \('triage','backlog','planning'\)" \
+    || { echo "SELECT im Wiederfinde-Pfad fehlt der Collect-Mode (triage/backlog/planning) — T007056"; false; }
+  # Negativ-Anker: plan_staged darf nicht in der Collect-Mode-Statusliste stehen.
+  printf '%s\n' "$block" | grep -qE "status IN \([^)]*plan_staged" \
+    && { echo "plan_staged darf NICHT im Collect-Mode-Wiederfinde stehen (T007056: dispatched ausschliessen)"; false; }
 }
 
 @test "T002407-M6c: ROLLUP_TICKET_TITLE ist definiert" {

@@ -68,7 +68,7 @@ task workspace:validate                          # Kustomize dry-run
 - OpenSpec archival ONLY in worktree — main-checkout commits leave orphaned files.
 - Website/Brett/Docs/etc. images use `:latest` intentionally — do not "fix" to digests.
 - Pre-commit blocks main-checkout when another session holds the lock. Use worktrees.
-- `components/website/` is pnpm-only (its package-lock.json was deleted, T001224); root and `brett/` use npm. Never `npm install` inside `components/website/`.
+- `components/website/` is pnpm-only (its package-lock.json was deleted, T001224); root and `components/brett/` use npm. Never `npm install` inside `components/website/`.
 
 ## Agent Coordination
 
@@ -170,7 +170,7 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 |------|---------|----------|
 | Root | `npm` | `package-lock.json` |
 | `components/website/` | `pnpm` | `components/website/pnpm-lock.yaml` |
-| `brett/` | `npm` | `brett/package-lock.json` |
+| `components/brett/` | `npm` | `components/brett/package-lock.json` |
 </details>
 
 <details>

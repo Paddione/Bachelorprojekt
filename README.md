@@ -90,7 +90,7 @@ graph TB
 - `prod-fleet/mentolder/`, `prod-fleet/korczewski/` — Produktions-Overlays (push-deployed; wrappen die Brand-Overlays `prod-mentolder/`/`prod-korczewski/` + `prod/`)
 - `environments/` — Per-Env Config + SealedSecrets
 - `components/website/` — Astro + Svelte (Brand-aware: mentolder + korczewski)
-- `brett/` — Node.js Systembrett-Service
+- `components/brett/` — Node.js Systembrett-Service
 - `scripts/`, `tests/`, `claude-code/`, `k3d/docs-content/`
 
 ## Tests

@@ -21,12 +21,12 @@ There is a **sibling brand**, `korczewski.de`, which shares this exact system �
 - `uploads/Homepage Redesign.html` + `uploads/README.md` — full hi-fi homepage prototype + design handoff (the canonical visual reference).
 - `uploads/gerald.jpg` — provided portrait (B&W, 1365×2048).
 - GitHub: **Paddione/Bachelorprojekt** (`main`) — the production Astro + Svelte codebase.
-  - `website/src/styles/global.css` — token source of truth (mirrored here).
-  - `website/src/config/brands/mentolder.ts` — copy, services, FAQ, milestones.
-  - `website/src/components/*.svelte` — Hero, Portrait, ServiceRow, QuoteCard, WhyMe, ContactForm, NewsletterSignup, Navigation.
-  - `website/src/components/admin/CreateInvoiceModal.svelte`, `QuestionnaireTemplateEditor.svelte`, `NewsletterAdmin.svelte`, `DokumentEditor.svelte` — admin patterns.
-  - `website/src/lib/invoice-pdf.ts` — the warm-paper PDF renderer (font, palette, layout).
-- `website/public/favicon.svg`, `website/public/gerald.webp`, `website/src/assets/icon-128.png` — copied to `assets/`.
+  - `components/website/src/styles/global.css` — token source of truth (mirrored here).
+  - `components/website/src/config/brands/mentolder.ts` — copy, services, FAQ, milestones.
+  - `components/website/src/components/*.svelte` — Hero, Portrait, ServiceRow, QuoteCard, WhyMe, ContactForm, NewsletterSignup, Navigation.
+  - `components/website/src/components/admin/CreateInvoiceModal.svelte`, `QuestionnaireTemplateEditor.svelte`, `NewsletterAdmin.svelte`, `DokumentEditor.svelte` — admin patterns.
+  - `components/website/src/lib/invoice-pdf.ts` — the warm-paper PDF renderer (font, palette, layout).
+- `components/website/public/favicon.svg`, `components/website/public/gerald.webp`, `components/website/src/assets/icon-128.png` — copied to `assets/`.
 
 The reader is **not assumed** to have access to those URLs/repos — everything required is mirrored locally.
 

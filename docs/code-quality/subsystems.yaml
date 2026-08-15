@@ -46,7 +46,7 @@
   name: Brett 3D board (CommonJS)
   paths: ["components/brett/**"]
   owner_agent: bachelorprojekt-website
-  test_location: brett/
+  test_location: components/brett/
   purpose: Node.js 3D systemic-constellation board + mayhem game.
 - id: openclaw
   name: OpenClaw WSL gateway config

@@ -27,7 +27,7 @@ fi
 # so a plain `git pull` doesn't leave the tree dirty. [T002239-M1, T002664]
 git -C "$repo_root" checkout -- k3d/docs-content-built/ 2>/dev/null || true
 git -C "$repo_root" checkout -- docs/mermaid-snapshots/ 2>/dev/null || true
-git -C "$repo_root" checkout -- website/src/data/test-inventory.json 2>/dev/null || true
+git -C "$repo_root" checkout -- components/website/src/data/test-inventory.json 2>/dev/null || true
 git -C "$repo_root" checkout -- docs/code-quality/repo-index.json 2>/dev/null || true
 
 # loc-budget.json always gets a fresh `commit`/`measured_at` stamp from

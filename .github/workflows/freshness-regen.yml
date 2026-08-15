@@ -54,6 +54,41 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # T006998: Rennverlierer-Cleanup. Mergt ein neuerer Regen-Lauf vor einem
+      # aelteren, bleibt dessen PR permanent CONFLICTING — Auto-Merge re-bast
+      # nicht, und kein Pfad hat ihn je geschlossen (beobachtet: PR #4616, erst
+      # 30 min spaeter von Hand geschlossen). Jeder Lauf schliesst deshalb alle
+      # offenen chore/freshness-regen-*-PRs anderer Laeufe inkl. Remote-Branch.
+      # changed=false heisst: main ist bereits frisch — ALLE offenen Regen-PRs
+      # sind dann redundant und werden ebenfalls geschlossen.
+      # Race-Freiheit: der concurrency-Guard serialisiert Laeufe auf main, ein
+      # juengerer PR kann zum Zeitpunkt dieses Schritts noch nicht existieren;
+      # der eigene Branch wird zusaetzlich defensiv uebersprungen.
+      - name: Close superseded regen PRs
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          OWN_BRANCH: chore/freshness-regen-${{ github.run_id }}
+          CHANGED: ${{ steps.diff.outputs.changed }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ "$CHANGED" != "true" ]; then
+            OWN_BRANCH=""
+          fi
+          while IFS=' ' read -r num head; do
+            if [ -n "$OWN_BRANCH" ] && [ "$head" = "$OWN_BRANCH" ]; then
+              echo "Skip eigener Branch: $head"
+              continue
+            fi
+            echo "Schliesse ueberholten Regen-PR #$num ($head)"
+            gh pr close "$num" \
+              --comment "Superseded: geschlossen durch freshness-regen.yml (run ${RUN_ID}). Ein Konflikt-PR heilt nie von selbst — der neueste Regen-Lauf gewinnt (T006998)." \
+              || echo "WARNUNG: gh pr close #$num fehlgeschlagen (bereits gemergt?)"
+            git push origin --delete "$head" >/dev/null 2>&1 || true
+          done < <(gh pr list --state open --limit 100 \
+            --json number,headRefName \
+            --jq '.[] | select(.headRefName | startswith("chore/freshness-regen-")) | "\(.number) \(.headRefName)"')
+          exit 0
+
       # T002889: Der Bot schreibt über einen PR statt direkt auf main. Grund: main
       # trug enforce_admins=false, und dieser Schritt war der produktive Nutzer
       # genau dieses Spalts. Wird die Protection scharfgestellt, ohne dass der Bot

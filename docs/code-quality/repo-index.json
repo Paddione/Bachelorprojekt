@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1029,
+      "file_count": 1030,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -615,6 +615,7 @@
         "tests/spec/mcp-gateway/qwen-token-expansion.bats",
         "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
         "tests/spec/mcp-skill-integration.bats",
+        "tests/spec/mcp-skill-integration/psql-fallback-ticket-ssot.bats",
         "tests/spec/mcp-task-runner.bats",
         "tests/spec/mcp-task-runner/planner-sees-real-deps.bats",
         "tests/spec/mcp-task-runner/spec-doc-covers-7-tools.bats",

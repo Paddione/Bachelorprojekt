@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.47](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.46...website-v1.276.47) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** mcp-postgres lehnt Multi-Statement-SQL mit Fehler ab statt leerem Array [T006293] ([#4534](https://github.com/Paddione/Bachelorprojekt/issues/4534)) ([4e5a4d8](https://github.com/Paddione/Bachelorprojekt/commit/4e5a4d86f567e1a1a5d6b65ef0528f46d9421e58))
+
 ## [1.276.46](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.45...website-v1.276.46) (2026-08-15)
 
 

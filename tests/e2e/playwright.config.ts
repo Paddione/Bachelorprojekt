@@ -97,6 +97,7 @@ export default defineConfig({
         '**/fa-50-*.spec.ts',                        // request correlation / X-Request-ID (T000964)
         '**/a11y-axe.spec.ts',                       // axe-core a11y-Scan der Kern-Routen (G-FE01, T001206)
         '**/coaching-studio-empty-customer.spec.ts', // coaching-studio Workspace-Crash bei leerem CUSTOMERS (T001656)
+        '**/fa-61-sdlc-leitstand-devonly-split.spec.ts', // FA-61: SDLC-Leitstand E1+E2 dev-only-Split (T007559)
       ],
       use: {
         ...devices['Desktop Chrome'],

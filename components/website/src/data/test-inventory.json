@@ -990,6 +990,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-61",
+    "file": "tests/e2e/specs/fa-61-sdlc-leitstand-devonly-split.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-AR-01",
     "file": "tests/local/FA-AR-01-filter-diff.bats",
     "category": "FA",

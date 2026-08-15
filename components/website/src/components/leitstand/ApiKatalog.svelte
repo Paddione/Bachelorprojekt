@@ -118,7 +118,7 @@
   };
 </script>
 
-<section class="ls-api-katalog" data-testid="leitstand-api-katalog" aria-label="API-Katalog">
+<section class="ls-api-katalog" data-purpose-id="api-katalog" data-testid="leitstand-api-katalog" aria-label="API-Katalog">
   <header class="ls-api-katalog__head">
     <h2 class="ls-api-katalog__heading">API-Katalog</h2>
     <p class="ls-api-katalog__count">{shownCount} / {totalCount} Routen</p>

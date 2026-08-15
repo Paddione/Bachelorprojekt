@@ -113,7 +113,7 @@ EOF
   [ "$status" -eq 0 ]
   run git -C "$REPO_ROOT" diff --quiet -- components/website/src/data/api-inventory.json
   [ "$status" -eq 1 ]   # Abweichung erkannt
-  run git -C "$REPO_ROOT" diff --name-only -- website/src/data/api-inventory.json
+  run git -C "$REPO_ROOT" diff --name-only -- components/website/src/data/api-inventory.json
   echo "$output" | grep -qF 'components/website/src/data/api-inventory.json'
   # Verdrahtung: freshness:regenerate fuehrt den Generator aus. Task-NAME ist
   # "api:inventory" (Doppelpunkt, nicht Bindestrich) -- die Invocation-Zeile
@@ -124,7 +124,7 @@ EOF
 
 # T5 -- Szenario "Orphaned overlay entry fails". Negativtest + Positiv-Anker,
 # gueltiger Fall zuerst im selben Test. /sdlc/api/qa-queue ist eine real
-# existierende Route (website/src/pages/sdlc/api/qa-queue.ts) -- der
+# existierende Route (components/website/src/pages/sdlc/api/qa-queue.ts) -- der
 # Positiv-Fall haengt nicht an p2s Scan-Ergebnis.
 @test "api-inventory: orphaned overlay entry fails and names the endpoint" {
   command -v node >/dev/null 2>&1 || skip "node not installed"

@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "slug": "mcp-task-runner-node-port",
+    "ticket_id": "T006664",
+    "generated_from": "main@308bd659e",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5364,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/mcp.yaml",
+      "language": "config",
+      "loc": 386,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-task-runner/planner.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-task-runner/planner.test.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-task-runner/runner.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-task-runner/server.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-task-runner.bats",
+      "language": "bash",
+      "loc": 121,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3757:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3757:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3757:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3758:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3758:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3758:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3759:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3759:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3759:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3760:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3760:        _run()  {(...)",
+      "type_text": "3760:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4951:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4951:        kexec_psql() {(...)",
+      "type_text": "4951:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-task-runner.bats:10:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-task-runner.bats",
+      "signature": "10:setup() {(...)",
+      "type_text": "10:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-task-runner.bats:55:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-task-runner.bats",
+      "signature": "55:teardown() {(...)",
+      "type_text": "55:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-task-runner.bats:62:_mcp() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-task-runner.bats",
+      "signature": "62:_mcp() {(...)",
+      "type_text": "62:_mcp() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -104,10 +104,14 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 # expected: FAIL (rot — leitstand-purpose-registry.ts und die Zonen-Shell fehlen noch)
 ```
 
-- [ ] **GREEN.** Nach Umsetzung von p1+p2 laufen dieselben Guards grün:
+- [x] **GREEN.** Nach Umsetzung von p1+p2 laufen dieselben Guards grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
+# 124/130 ok -- die 5 RED-Failures (102/104/123/125/126) sind gruen. Die 6
+# Daemon-Tests (36/39/40/44/45/46) brauchen ./node_modules/.bin/tsx, das im
+# Worktree nicht installiert ist -- Umgebungsfrage, kein Branch-Regress (keine
+# Daemon-Datei geaendert); in CI installiert der Runner Dependencies.
 ```
 
 - [ ] **Finale Verifikation (mandatory CI-Gates).**

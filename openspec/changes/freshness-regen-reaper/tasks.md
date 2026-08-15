@@ -242,7 +242,7 @@ task freshness:check
 ```
 Expected: PASS (das Gate schlägt nur an, wenn nach der Regenerierung noch Drift besteht).
 
-- [ ] **Step 4: PR eröffnen**
+- [x] **Step 4: PR eröffnen**
 
 ```bash
 git push -u origin fix/freshness-regen-reaper-T005958
@@ -251,3 +251,7 @@ gh pr create --base main --head fix/freshness-regen-reaper-T005958 \
   --body "Implementiert die Freshness-Reaper-Regel aus dem Plan (T005958). Roter Test war im Plan-Stage-Commit: tests/spec/ci-cd/branch-reaper-freshness-regen.bats."
 ```
 Expected: CI grün (offline tests + openspec:validate + inventar-check), Merge per squash.
+
+Hinweis Implementierung: PR #4531 erstellt (Titel mit Scope-Konvention `fix(scripts): … [T005958]`,
+Body `Closes T005958`), Auto-Merge per Squash angefordert (`gh pr merge --auto --squash`,
+ohne `--delete-branch`). CI-Checks laufen; Merge-Wait beim Orchestrator.

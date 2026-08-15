@@ -83,7 +83,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/active-sessions-hub/agent-lock-rele
 #   5  ticket-Scope unveraendert — gruen
 ```
 
-- [ ] Lauf ausführen und die beiden Fehlermeldungen mit obiger Liste abgleichen. Weicht ein
+- [x] Lauf ausführen und die beiden Fehlermeldungen mit obiger Liste abgleichen. Weicht ein
       Fehlgrund ab, ist das Fixture defekt und wird zuerst repariert — nicht die Zusicherung
       abgeschwächt.
 
@@ -91,19 +91,19 @@ tests/unit/lib/bats-core/bin/bats tests/spec/active-sessions-hub/agent-lock-rele
 
 Datei: `scripts/agent-lock.sh`, Funktion `cmd_release`.
 
-- [ ] Vor dem `rm -f` des Lock eine kleine Helper-Funktion (z. B. `_cwd_inside_worktree`)
+- [x] Vor dem `rm -f` des Lock eine kleine Helper-Funktion (z. B. `_cwd_inside_worktree`)
       einführen, die den `worktree`-Wert des Locks (`_lock_field "$f" worktree`) gegen `$PWD`
       und `git rev-parse --show-toplevel` prüft — exakte oder Präfix-Übereinstimmung,
       Muster analog `_lock_is_mine` (Zeilen 281-299).
-- [ ] Guard nur für Scope `branch` aktivieren: Lock ohne nutzbares `worktree`-Feld (`-` oder
+- [x] Guard nur für Scope `branch` aktivieren: Lock ohne nutzbares `worktree`-Feld (`-` oder
       leer) lässt den Release unverändert durchlaufen; `release ticket` bleibt unberührt.
-- [ ] Bei Verweigerung: Exit 1, stderr nennt Grund (cwd liegt im Worktree des Locks) und
+- [x] Bei Verweigerung: Exit 1, stderr nennt Grund (cwd liegt im Worktree des Locks) und
       Remedie (Release aus dem Haupt-Repo heraus ausführen, weil der dokumentierte nächste
       Schritt `git worktree remove` die Shell-cwd zerstört).
-- [ ] `--force` (drittes Argument, bestehende Semantik) übersteuert den Guard wie die
+- [x] `--force` (drittes Argument, bestehende Semantik) übersteuert den Guard wie die
       bestehende Fremd-Lock-Verweigerung.
-- [ ] Lock-Datei wird bei Verweigerung NICHT entfernt.
-- [ ] Zeilenbudget: Zuwachs in `scripts/agent-lock.sh` bleibt unter 37 Zeilen (Ist 763,
+- [x] Lock-Datei wird bei Verweigerung NICHT entfernt.
+- [x] Zeilenbudget: Zuwachs in `scripts/agent-lock.sh` bleibt unter 37 Zeilen (Ist 763,
       Limit 800).
 
 ## Task 3 (p1) — Skill-Sequenzen: Release nach cwd-Wechsel, stderr sichtbar
@@ -111,13 +111,13 @@ Datei: `scripts/agent-lock.sh`, Funktion `cmd_release`.
 Drei Dokumentationsstellen bilden die dokumentierte Freigabe-Sequenz; sie müssen den Release
 nach dem Wechsel ins Haupt-Repo aufrufen und die Verweigerung nicht mehr verschlucken.
 
-- [ ] `.claude/skills/git-workflow/SKILL.md` Schritt 7 (Zeilen 262-295): den Freigabe-Block in
+- [x] `.claude/skills/git-workflow/SKILL.md` Schritt 7 (Zeilen 262-295): den Freigabe-Block in
       die Sequenz NACH `cd "$MAIN_REPO"` ziehen und die `2>/dev/null || true`-Unterdrückung
       aus dem Code-Block entfernen.
-- [ ] `.claude/skills/references/session-coordination.md` §Freigeben (Zeilen 208-213): die
+- [x] `.claude/skills/references/session-coordination.md` §Freigeben (Zeilen 208-213): die
       beiden `release ... 2>/dev/null || true`-Zeilen ohne stderr-Redirect und nach dem
       Haupt-Repo-Wechsel dokumentieren.
-- [ ] `.claude/skills/dev-flow-chore/SKILL.md` Schritt 6 (Zeile 167): Reihenfolge so
+- [x] `.claude/skills/dev-flow-chore/SKILL.md` Schritt 6 (Zeile 167): Reihenfolge so
       anpassen, dass der Release vor dem `git worktree remove` und nach dem Wechsel ins
       Haupt-Repo steht, ohne `|| true`.
 
@@ -131,9 +131,9 @@ task test:inventory
 git status --short
 ```
 
-- [ ] Grün-Phase verifizieren: alle 5 Tests der neuen Datei gruen, die übrigen Tests der
+- [x] Grün-Phase verifizieren: alle 5 Tests der neuen Datei gruen, die übrigen Tests der
       Spec unveraendert gruen (kein Regressionstest).
-- [ ] `task test:inventory` ausführen; die regenerierte `website/src/data/test-inventory.json`
+- [x] `task test:inventory` ausführen; die regenerierte `website/src/data/test-inventory.json`
       in den Commit aufnehmen (CI-Job test-inventory check schlägt sonst fehl).
 
 ## Task 5 (p2) — Finale Verifikation

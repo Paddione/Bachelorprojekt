@@ -82,3 +82,10 @@ setup() {
   [ "$status" -ne 0 ]
   [ -n "$output" ]
 }
+
+# T006348: Skript ist unempfindlich gegenüber beliebigem cwd beim Aufruf
+@test "T006348: Finalize-Skript funktioniert unbeeinflusst vom Arbeitsverzeichnis" {
+  [ -f "$FINALIZE" ]
+  run bash -c "cd /tmp && bash '$FINALIZE' --help"
+  [ "$status" -eq 0 ]
+}

@@ -2910,6 +2910,12 @@
     "kind": "shell"
   },
   {
+    "id": "divergence-guard/stash-drop-by-message",
+    "file": "tests/spec/divergence-guard/stash-drop-by-message.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
     "id": "divergence-guard/worktree-create-git-op-guard",
     "file": "tests/spec/divergence-guard/worktree-create-git-op-guard.bats",
     "category": "divergence-guard",

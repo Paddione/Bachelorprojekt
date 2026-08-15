@@ -3807,6 +3807,12 @@
       "status": "archived"
     }
   ],
+  "T006303": [
+    {
+      "slug": "factory-docker-info-timeout",
+      "status": "plan_staged"
+    }
+  ],
   "T006329": [
     {
       "slug": "2026-08-15-branch-reaper-sweep-empty-answer",

@@ -4596,6 +4596,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/docker-info-timeout",
+    "file": "tests/spec/software-factory/docker-info-timeout.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/enqueue-preserves-plan-staged",
     "file": "tests/spec/software-factory/enqueue-preserves-plan-staged.bats",
     "category": "software-factory",

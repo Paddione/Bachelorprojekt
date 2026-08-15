@@ -789,6 +789,7 @@
         "tests/spec/software-factory/db-pod-phase-guard.bats",
         "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
         "tests/spec/software-factory/dispatcher.bats",
+        "tests/spec/software-factory/docker-info-timeout.bats",
         "tests/spec/software-factory/enqueue-preserves-plan-staged.bats",
         "tests/spec/software-factory/factory-claims-lock-before-write.bats",
         "tests/spec/software-factory/factory-model-id-default.bats",

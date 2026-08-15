@@ -42,7 +42,7 @@ resolve_mode() {
   case "${FACTORY_SANDBOX:-auto}" in
     docker|k8s|off) echo "${FACTORY_SANDBOX}"; return 0 ;;
   esac
-  if docker info >/dev/null 2>&1; then echo docker; return 0; fi
+  if timeout 10 docker info >/dev/null 2>&1; then echo docker; return 0; fi
   if kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" version >/dev/null 2>&1; then echo k8s; return 0; fi
   echo off
 }

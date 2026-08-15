@@ -2,7 +2,7 @@
 title: "branch-reaper-sweep-empty-answer — Implementation Plan"
 ticket_id: T006329
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

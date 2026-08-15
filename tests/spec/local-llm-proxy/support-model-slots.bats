@@ -1,15 +1,15 @@
 #!/usr/bin/env bats
 # tests/spec/local-llm-proxy/support-model-slots.bats
 # SSOT: openspec/specs/local-llm-proxy.md
-# Ticket: T006840
+# Ticket: T006840 (erweitert in T007033 — P2.5-Reviewer-Findings)
 #
 # SICHERT: die beiden Unterstuetzermodelle aus E6 des Designs
-# 2026-08-15-laptop-bge-topologie (T006143) — Gemma-4-12B UD-IQ3_XXS
-# (~4,64 GB, PK-Tablet) und Qwen3.5-4B Q6_K (~3,3 GB, PK-L-1) — sind als
-# benannte Slots im "lmstudio"-Provider-Block von .opencode/agent-models.jsonc
-# registriert und ueber den llm-proxy (:18235) sichtbar. Die Eintraege folgen
-# dem Muster qwen3-14b@q4_k_m: name + limit ohne baseURL; die Slots werden ueber
-# den Proxy erreicht, nie direkt ueber ein Backend (D1/D3 aus design.md).
+# 2026-08-15-laptop-bge-topologie (T006143) — Gemma-4-E4B UD-Q4_K_XL (~2,7 GB,
+# PK-Tablet) und Qwen3.5-4B Q6_K (~3,3 GB, PK-L-1) — sind als benannte Slots im
+# "lmstudio"-Provider-Block von .opencode/agent-models.jsonc registriert und
+# ueber den llm-proxy (:18235) sichtbar. Die Eintraege folgen dem Muster
+# qwen3-14b@q4_k_m: name + limit ohne baseURL; die Slots werden ueber den Proxy
+# erreicht, nie direkt ueber ein Backend (D1/D3 aus design.md).
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4):
 # - Testfaelle 1 und 2: Quelltext-Lint auf eine Konfigurationsdatei — die
@@ -18,12 +18,20 @@
 # - Testfall 3: ERGEBNIS-basiert — der Test fragt die echte Discovery
 #   :18235/v1/models des laufenden llm-proxy ab und bewertet die Modellliste.
 #
+# P2.5 (T007033, Reviewer-Findings aus T006840):
+# - Testfall 1 prueft seit T007033 auch die GEMESSENEN Limits (limit.context
+#   32768, limit.output 4096 — K3-Messung 2026-08-15, k3-messung.sh
+#   qwen3.5-4b@q6_k 5, ~7,8-9,5 tok/s Decode, Thinking nicht abschaltbar,
+#   Repo-Stand 47c5abca6) und den E4B-Slot statt des 12B-Slots.
+# - Testfall 3 skippt NUR bei exakt dem dokumentierten D1-Baseline-Stand (nur
+#   deepseek-IDs, Geraete offline) — jede geaenderte, nicht matchende
+#   Modellliste bleibt ROT (D1-Mismatch) statt zu skippen.
+# - Alle Pruefbefehle nutzen direkte Argument-Uebergabe statt Inline-
+#   bash -c 'printf ... | grep ...'-Einbettung (Quote-Fix).
+#
 # SKIP-GUARD (T002716): CI hat weder Geraete noch Proxy — dort skippt nur
-# Testfall 3. Die rot->gruen-Entscheidung dieses Changes tragen die Testfaelle
-# 1 und 2, die ohne laufenden Proxy auskommen. Testfall 3 skippt ausserdem,
-# wenn der Proxy zwar antwortet, aber keine lmstudio-Modelle meldet (Geraete
-# offline — die Liste traegt dann keinen Aussagewert; tasks.md Fix-Step:
-# "der Erreichbarkeits-Check skippt, wenn llm-proxy oder Geraete offline sind").
+# Testfall 3 (und nur im D1-Baseline-Fall). Die rot->gruen-Entscheidung dieses
+# Changes tragen die Testfaelle 1 und 2, die ohne laufenden Proxy auskommen.
 #
 # D1-LIVE-CHECK (design.md D1, Mess-Konvention T002717): Stand 2026-08-15,
 # Branch feature/unterstuetzermodelle-inbetriebnahme-T006840 (vor p1):
@@ -33,11 +41,6 @@
 # Weicht die spaeter gemeldete Discovery-ID von einem Slot-Namen ab, folgt der
 # Eintrag in agent-models.jsonc (Key + name-Feld) der gemeldeten ID — und damit
 # der erwartete String in Testfall 3 (D1).
-#
-# GEMESSEN-FOLGE (D3, P2.5): dieser Guard prueft bewusst nur die Slot-
-# DEKLARATION, nicht die limit-Werte. Nach dem Vulkan-Messschritt (K3,
-# User-Task in T006840, Ergebnis als Ticket-Kommentar mit ausfuehrbarem
-# Mess-Befehl) wird die Datei um eine GEMESSEN-Limit-Pruefung erweitert.
 
 setup() {
   load helpers/llm-endpoint
@@ -49,7 +52,7 @@ setup() {
 # Der "lmstudio"-Provider-Block von MODEL_FILE, eingegrenzt (T003104 — keine
 # Positionsmessung des ersten Zufallstreffers im ganzen Dokument): von der
 # Zeile '"lmstudio": {' bis zur ersten schliessenden Klammer mit 4 Leerzeichen
-# Einrueckung (die Provider-Klammer; Ist-Stand 2026-08-15: Zeile 272, die
+# Einrueckung (die Provider-Klammer; Ist-Stand 2026-08-15: Zeile 227, die
 # models-Klammer steht mit 6 Leerzeichen und faellt nicht darunter). Andere
 # Provider-Bloecke desselben Dokuments bleiben aussen vor.
 lmstudio_block() {
@@ -84,17 +87,35 @@ _require_proxy() {
   fi
 }
 
-@test "T006840: lmstudio-Slots gemma-4-12b@ud-iq3_xxs und qwen3.5-4b@q6_k sind deklariert" {
+@test "T006840: lmstudio-Slots gemma-4-e4b@ud-q4_k_xl und qwen3.5-4b@q6_k sind deklariert (Limits 32768/4096)" {
   local block active
   block="$(lmstudio_block)"
   active="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*(#|//)' || true)"
 
   # Trefferzahl == 1 je Slot im aktiven Text des lmstudio-Blocks (formatfrei,
-  # T002716); -e statt -F '--flag'-Muster (T003108).
-  run bash -c "printf '%s' '$active' | grep -ce '\"gemma-4-12b@ud-iq3_xxs\"' || true"
+  # T002716); -- beendet die Options-Parsing-Phase (T003108). Direkte
+  # Argument-Uebergabe statt Inline-bash -c (Quote-Fix, P2.5/T007033).
+  run grep -c -- '"gemma-4-e4b@ud-q4_k_xl"' <<<"$active"
   [ "$output" -eq 1 ]
 
-  run bash -c "printf '%s' '$active' | grep -ce '\"qwen3.5-4b@q6_k\"' || true"
+  run grep -c -- '"qwen3.5-4b@q6_k"' <<<"$active"
+  [ "$output" -eq 1 ]
+
+  # GEMESSEN-Limit-Pinning (K3, T007033): beide Slots tragen limit.context
+  # 32768 und limit.output 4096. Gezielt JE Eintrag statt im ganzen Block
+  # (T003104 — keine Positions-/Zufallstreffer-Messung).
+  local e4b qwen
+  e4b="$(slot_entry 'gemma-4-e4b@ud-q4_k_xl')"
+  qwen="$(slot_entry 'qwen3.5-4b@q6_k')"
+
+  run grep -c -- '"context": 32768' <<<"$e4b"
+  [ "$output" -eq 1 ]
+  run grep -c -- '"output": 4096' <<<"$e4b"
+  [ "$output" -eq 1 ]
+
+  run grep -c -- '"context": 32768' <<<"$qwen"
+  [ "$output" -eq 1 ]
+  run grep -c -- '"output": 4096' <<<"$qwen"
   [ "$output" -eq 1 ]
 }
 
@@ -105,21 +126,21 @@ _require_proxy() {
   local block active
   block="$(lmstudio_block)"
   active="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*(#|//)' || true)"
-  run bash -c "printf '%s' '$active' | grep -ce '\"gemma-4-12b@ud-iq3_xxs\"' || true"
+  run grep -c -- '"gemma-4-e4b@ud-q4_k_xl"' <<<"$active"
   [ "$output" -eq 1 ]
-  run bash -c "printf '%s' '$active' | grep -ce '\"qwen3.5-4b@q6_k\"' || true"
+  run grep -c -- '"qwen3.5-4b@q6_k"' <<<"$active"
   [ "$output" -eq 1 ]
 
-  # Negativ-Aussage, GEZIELT auf die zwei neuen Eintraege (nicht auf die ganze
+  # Negativ-Aussage, GEZIELT auf die zwei Eintraege (nicht auf die ganze
   # Datei — die deckt der gateway-consumer-lint T002582 bereits global ab).
   # Kommentarzeilen ausgeschlossen. Begruendung: die Provider-Definition mit
   # baseURL lebt in .opencode/opencode.jsonc und ist keine tracked surface; die
   # Eintraege hier bleiben portfrei (erreicht ueber den llm-proxy :18235, nie
   # direkt ueber ein Backend).
   local entries
-  entries="$(slot_entry 'gemma-4-12b@ud-iq3_xxs' | grep -vE '^[[:space:]]*(#|//)'; slot_entry 'qwen3.5-4b@q6_k' | grep -vE '^[[:space:]]*(#|//)')"
+  entries="$(slot_entry 'gemma-4-e4b@ud-q4_k_xl' | grep -vE '^[[:space:]]*(#|//)'; slot_entry 'qwen3.5-4b@q6_k' | grep -vE '^[[:space:]]*(#|//)')"
 
-  run bash -c "printf '%s' '$entries' | grep -cE ':1234|:8093' || true"
+  run grep -cE -- ':1234|:8093' <<<"$entries"
   [ "$output" -eq 0 ]
 }
 
@@ -128,24 +149,38 @@ _require_proxy() {
 
   run curl -s --max-time 10 "${PROXY_URL}/v1/models"
   [ "$status" -eq 0 ]
-  run bash -c "printf '%s' '$output' | jq -r '.data[].id'"
+  run jq -r '.data[].id' <<<"$output"
   [ "$status" -eq 0 ]
   local ids="$output"
 
-  # Geraete-offline-Skip (tasks.md Fix-Step: der Check skippt, wenn llm-proxy
-  # ODER Geraete offline sind). Antwortet der Proxy, ohne dass ein lmstudio-Slot
-  # in der Discovery erscheint, sind die Geraete nicht verbunden — die Liste
-  # traegt keinen Aussagewert. Erscheint mindestens ein Slot, wird
-  # weitergesprueft: der Halb-Online-Fall bleibt rot.
-  if ! grep -qe 'gemma-4-12b@ud-iq3_xxs' -e 'qwen3.5-4b@q6_k' <<<"$ids"; then
-    skip "keine lmstudio-Modelle in der Discovery — Geraete offline, kein Aussagewert"
+  # D1-Baseline-Skip (P2.5, T007033): skip NUR bei exakt dem dokumentierten
+  # D1-Baseline-Stand (ausschliesslich deepseek-IDs — Geraete offline, LM Link
+  # nicht verbunden; Stand 2026-08-15: deepseek-v4-flash, deepseek-v4-pro).
+  # Jede geaenderte, nicht matchende Modellliste bleibt ROT (D1-Mismatch)
+  # statt zu skippen.
+  local deepseek_only=1 count=0 id
+  while IFS= read -r id; do
+    if [ -z "$id" ]; then
+      continue
+    fi
+    count=$((count + 1))
+    case "$id" in
+      deepseek-v4-flash|deepseek-v4-pro) ;;
+      *) deepseek_only=0 ;;
+    esac
+  done <<<"$ids"
+  if [ "$deepseek_only" -eq 1 ] && [ "$count" -gt 0 ]; then
+    skip "D1-Baseline unveraendert (nur deepseek-IDs) — Geraete offline, kein Aussagewert"
   fi
 
+  # Liste ist NICHT die D1-Baseline: beide erwarteten lmstudio-Slots muessen
+  # erscheinen — fehlt einer oder taucht eine unbekannte ID auf, bleibt der
+  # Test rot (Halb-Online-Fall und D1-Mismatch-Fall).
   # Substring-Vergleich (formatfrei, T002716): LM Studio kann die IDs mit
   # Datei-/Repo-Praefix melden (z. B. lmstudio-community/...).
-  run bash -c "printf '%s' '$ids' | grep -ce 'gemma-4-12b@ud-iq3_xxs' || true"
+  run grep -c -- 'gemma-4-e4b@ud-q4_k_xl' <<<"$ids"
   [ "$output" -eq 1 ]
 
-  run bash -c "printf '%s' '$ids' | grep -ce 'qwen3.5-4b@q6_k' || true"
+  run grep -c -- 'qwen3.5-4b@q6_k' <<<"$ids"
   [ "$output" -eq 1 ]
 }

@@ -268,21 +268,23 @@
             "output": 8192
           }
         },
-        // Konservatives Limit (32768/8192) bis zur Vulkan-Messung (K3, User-Task
-        // in T006840). Nach der Messung hier die GEMESSEN-Werte eintragen und im
-        // Kommentar Messlauf + Datum notieren — Konvention der Datei, vgl. Zeile 26.
-        "gemma-4-12b@ud-iq3_xxs": {
-          "name": "Gemma 4 12B UD-IQ3_XXS (~4,64 GB, PK-Tablet)",
+        // GEMESSEN (K3, k3-messung.sh qwen3.5-4b@q6_k 5, 2026-08-15): ~7,8-9,5
+        // tok/s Decode, Thinking nicht abschaltbar — 8192 Output waere bei
+        // ~9,5 tok/s 14-17 Min/Request, deshalb 4096. Repo-Stand der Messung:
+        // 47c5abca6. Der E4B-Slot startet mit denselben Werten; die Tablet-
+        // K3-Messung folgt im Geraete-Folgetask (T007033, Proposal).
+        "gemma-4-e4b@ud-q4_k_xl": {
+          "name": "Gemma 4 E4B UD-Q4_K_XL (~2,7 GB, PK-Tablet)",
           "limit": {
             "context": 32768,
-            "output": 8192
+            "output": 4096
           }
         },
         "qwen3.5-4b@q6_k": {
           "name": "Qwen3.5-4B Q6_K (~3,3 GB, PK-L-1)",
           "limit": {
             "context": 32768,
-            "output": 8192
+            "output": 4096
           }
         }
       }

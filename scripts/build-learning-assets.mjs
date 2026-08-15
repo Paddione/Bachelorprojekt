@@ -55,12 +55,12 @@ export function buildGenerated(manifest, { exists, readSvg }) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const repoRoot = process.cwd();
-  const publicDir = join(repoRoot, 'website', 'public');
+  const publicDir = join(repoRoot, 'components', 'website', 'public');
   const rel2abs = (rel) => join(publicDir, rel.replace(/^\//, ''));
-  const manifest = JSON.parse(readFileSync(join(repoRoot, 'website', 'src', 'data', 'learning-assets.manifest.json'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(join(repoRoot, 'components', 'website', 'src', 'data', 'learning-assets.manifest.json'), 'utf8'));
   const generated = buildGenerated(manifest, { exists: (rel) => existsSync(rel2abs(rel)), readSvg: (rel) => readFileSync(rel2abs(rel), 'utf8') });
 
-  const target = join(repoRoot, 'website', 'src', 'lib', 'learning-assets.generated.json');
+  const target = join(repoRoot, 'components', 'website', 'src', 'lib', 'learning-assets.generated.json');
   writeFileSync(target, JSON.stringify(generated, null, 2) + '\n');
 
   const lines = ['# Third-Party Learning Assets', '', '> Auto-generiert aus learning-assets.manifest.json — nicht von Hand editieren.', '', '| ID | Quelle | Lizenz | Attribution |', '|---|---|---|---|'];

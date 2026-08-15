@@ -28,7 +28,7 @@ import { ContentBundleSchema, DOMAINS } from '../components/website/src/content-
 // ESM __dirname shim
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
-const CONTENT_DIR = resolve(REPO_ROOT, 'website', 'content');
+const CONTENT_DIR = resolve(REPO_ROOT, 'components', 'website', 'content');
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';

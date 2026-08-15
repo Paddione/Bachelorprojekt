@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/tickets/bulk-status/undo.ts
+// components/website/src/pages/api/admin/tickets/bulk-status/undo.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { undoBulkStatus } from '../../../../../lib/sdlc/bulk-status';

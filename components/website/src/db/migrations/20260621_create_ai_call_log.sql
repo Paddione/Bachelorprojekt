@@ -1,7 +1,7 @@
 -- AI Call Log — T001065
 -- 2026-06-21 — Records each AI workflow call (coaching_chat, rag_search, embedding,
 -- grilling, plan_qa) for the sidekick AI-Quality widget. Fire-and-forget inserts from
--- website/src/lib/ai-metrics.ts; reads aggregated by /api/admin/ai-quality.
+-- components/website/src/lib/ai-metrics.ts; reads aggregated by /api/admin/ai-quality.
 -- Retention: 90 days (DELETE WHERE ts < now() - interval '90 days') via
 -- task maintenance:ai-log-cleanup.
 

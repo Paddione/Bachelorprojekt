@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/prompt-library/[id].ts
+// components/website/src/pages/api/admin/prompt-library/[id].ts
 // Prompt Library admin API — update (PUT) and delete (DELETE) a single prompt.
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';

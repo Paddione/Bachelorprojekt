@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/failure-bridge-mocked.test.ts
+// components/website/src/lib/systemtest/failure-bridge-mocked.test.ts
 //
 // Mocked-pool tests (no DATABASE_URL required) — always run, including in CI.
 //

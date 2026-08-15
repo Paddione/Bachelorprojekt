@@ -137,7 +137,7 @@ sections: [
 
 Jede Service-Seite hat zwei Ebenen:
 
-1. **Statischer Fallback** in `website/src/config/brands/mentolder.ts` – wird genutzt solange kein DB-Override existiert
+1. **Statischer Fallback** in `components/website/src/config/brands/mentolder.ts` – wird genutzt solange kein DB-Override existiert
 2. **DB-Override** in `service_config` – wird durch Admin-Speichern angelegt, hat immer Vorrang
 
 **Wichtig:** Nach einem Deploy (neues Image) müssen neue Seiten einmal im Admin gespeichert werden, um den DB-Override zu aktivieren.
@@ -277,7 +277,7 @@ Die Reihenfolge der Footer-Links entspricht exakt der Reihenfolge der Leistungsk
 ### Konfiguration (statische Fallbacks)
 
 ```
-website/src/config/
+components/website/src/config/
   index.ts                    ← exportiert config = mentolderConfig
   types.ts                    ← TypeScript-Interfaces (BrandConfig, etc.)
   brands/
@@ -287,7 +287,7 @@ website/src/config/
 ### Öffentliche Seiten
 
 ```
-website/src/pages/
+components/website/src/pages/
   index.astro                 ← Startseite (liest getEffectiveHomepage())
   ueber-mich.astro            ← Über-mich-Seite
   referenzen.astro            ← Referenzen
@@ -305,10 +305,10 @@ website/src/pages/
 ### Admin-Seite
 
 ```
-website/src/pages/admin/
+components/website/src/pages/admin/
   inhalte.astro               ← Lädt alle Daten, übergibt an InhalteEditor
 
-website/src/components/admin/
+components/website/src/components/admin/
   InhalteEditor.svelte        ← Tab-Router: Website/Newsletter/Fragebögen/etc.
   SeoEditor.svelte            ← SEO-Tab: alle Seiten-Titel + Meta-Descriptions
   inhalte/
@@ -327,7 +327,7 @@ website/src/components/admin/
 ### API-Routen (Admin Save)
 
 ```
-website/src/pages/api/admin/
+components/website/src/pages/api/admin/
   service-page/save.ts        ← UNIVERSAL: speichert für jeden slug in service_config
   coaching/save.ts            ← speichert Coaching in service_config
   fuehrung/save.ts            ← speichert Führung in service_config
@@ -344,13 +344,13 @@ website/src/pages/api/admin/
 ### Zentrale Lib-Funktionen
 
 ```
-website/src/lib/
+components/website/src/lib/
   content.ts                  ← getEffectiveServices(), getEffectiveKontakt(), etc.
   website-db.ts               ← PostgreSQL-Funktionen: getServiceConfig(), saveServiceConfig()
   coaching-content.ts         ← getEffectiveCoaching() – liest aus service_config
   fuehrung-content.ts         ← getEffectiveFuehrung() – liest aus service_config
 
-website/src/components/
+components/website/src/components/
   Footer.astro                ← ZENTRAL: rendert alle Footer-Daten dynamisch
   Navigation.svelte           ← ZENTRAL: Header mit Standort-Anzeige
 ```
@@ -370,7 +370,7 @@ referenzen_config           ← brand + items_json
 
 ### Workflow: `.github/workflows/build-website.yml`
 
-Trigger: Jeder Push auf `main` mit Änderungen in `website/**`
+Trigger: Jeder Push auf `main` mit Änderungen in `components/website/**`
 
 ```yaml
 CONTACT_CITY: "Lüneburg, Hamburg und Umgebung"  # ← kritisch: nicht "Hamburg"
@@ -470,7 +470,7 @@ Stammdaten, Navigation, Footer, …). `site_settings` und
 ### Datei-Layout
 
 ```
-website/content/<brand>/
+components/website/content/<brand>/
   homepage.json          # HomepageContent (Hero, Stats, Why-Me, …)
   homepage-blocks.json   # HomepageBlocksContent (React-SPA-Document)
   seo.json               # SeoContent (titles / descriptions / ogImages pro pageKey)
@@ -486,9 +486,9 @@ website/content/<brand>/
   kore-flags.json        # KoreFlags (mentolder-only — KORE-Assistent)
 ```
 
-Jede Datei wird beim Astro-Build von `website/src/lib/content-bundle.ts`
+Jede Datei wird beim Astro-Build von `components/website/src/lib/content-bundle.ts`
 importiert (`import.meta.glob('/content/**/*.json', { eager: true })`) und
-gegen das passende Zod-Schema aus `website/src/content-schema/` validiert.
+gegen das passende Zod-Schema aus `components/website/src/content-schema/` validiert.
 **Validierungsfehler = Build-Fehler** (fail-closed, keine kaputten Inhalte
 live).
 
@@ -499,7 +499,7 @@ Admin-UI Save
    ↓
 POST /api/admin/<domain>/save  { payload, baseSha? }
    ↓
-publishContent() in website/src/lib/content-publish.ts
+publishContent() in components/website/src/lib/content-publish.ts
    ↓
   1. Zod-validate payload (fail-closed 422 wenn ungültig)
   2. Aktuellen Blob-SHA auf main lesen (GET /repos/.../contents/.../homepage.json)
@@ -529,7 +529,7 @@ Live-Website (typisch: 5-10 min nach Save)
   `PR #<N> erstellt — live in ~5-10 min` mit Link zum PR. Die Audit-Trail
   (wer, wann, was) liegt jetzt in der PR-Conversation auf GitHub.
 - **History:** Vor T001490 lag die History in `homepage_block_versions` als
-  JSON-Snapshots. Nach T001490 ist `git log website/content/<brand>/<domain>.json`
+  JSON-Snapshots. Nach T001490 ist `git log components/website/content/<brand>/<domain>.json`
   die kanonische History (Squash-Merge fasst den Bot-PR zu einem einzigen
   Commit zusammen).
 
@@ -540,8 +540,8 @@ Live-Website (typisch: 5-10 min nach Save)
 - `task website:build` validiert die Bundle-Dateien lokal (`pnpm vitest
   run src/content-schema/__tests__/schema.test.ts` als schneller
   Pre-Flight).
-- Für neue Marken: `mkdir -p website/content/<newbrand>/ && cp
-  website/content/mentolder/*.json website/content/<newbrand>/` (gleicher
+- Für neue Marken: `mkdir -p components/website/content/<newbrand>/ && cp
+  components/website/content/mentolder/*.json components/website/content/<newbrand>/` (gleicher
   Vertrag, anderer Inhalt), dann `task content:export` für historische
   Werte.
 

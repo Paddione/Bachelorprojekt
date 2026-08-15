@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/tickets/[id].ts
+// components/website/src/pages/api/admin/tickets/[id].ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getTicketDetail, getTicketTimeline, patchAdminTicket } from '../../../../lib/tickets/admin.ts';

@@ -1,4 +1,4 @@
-// website/tests/e2e-marker-hygiene.test.ts
+// components/website/tests/e2e-marker-hygiene.test.ts
 //
 // Regression guard for T000862 / T000863 — "E2E specs pollute the production
 // tracker".
@@ -22,7 +22,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
-// website/tests/ -> repo-root tests/e2e/
+// components/website/tests/ -> repo-root tests/e2e/
 const E2E_ROOT = resolve(__dirname, '../../tests/e2e');
 
 /** Recursively collect every *.spec.ts file under a directory. */

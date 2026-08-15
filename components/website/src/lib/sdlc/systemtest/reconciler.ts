@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/reconciler.ts
+// components/website/src/lib/systemtest/reconciler.ts
 //
 // Safety net for the retest trigger (Task 1, db.ts → trg_systemtest_retest).
 //

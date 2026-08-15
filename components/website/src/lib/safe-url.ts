@@ -1,4 +1,4 @@
-// website/src/lib/safe-url.ts
+// components/website/src/lib/safe-url.ts
 // T005900: Wächter gegen Stored-XSS über Link-Schemata. Ein Wert darf nur dann
 // als <a href> gerendert werden, wenn er eine http/https-URL ist. Alles andere
 // (javascript:, data:, vbscript:, Nicht-URLs, non-strings) ergibt null, damit

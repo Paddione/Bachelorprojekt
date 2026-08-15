@@ -1,4 +1,4 @@
-// website/src/lib/prompt-insert.ts
+// components/website/src/lib/prompt-insert.ts
 // Shared, browser-side helpers for the "Vorlage einfügen" (insert prompt
 // template) dropdown rendered in MessagePanel.svelte and ChatRoomPanel.svelte.
 //

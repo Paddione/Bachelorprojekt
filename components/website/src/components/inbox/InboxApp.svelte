@@ -1,4 +1,4 @@
-<!-- website/src/components/inbox/InboxApp.svelte
+<!-- components/website/src/components/inbox/InboxApp.svelte
      Orchestrator for the admin inbox: owns state, fetches, keyboard handlers
      and the top status bar. Delegates rendering to Sidebar / List / Detail. -->
 <script lang="ts">

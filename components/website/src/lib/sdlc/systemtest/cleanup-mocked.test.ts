@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/cleanup-mocked.test.ts
+// components/website/src/lib/systemtest/cleanup-mocked.test.ts
 //
 // Mocked-pool tests (no DATABASE_URL required) — always run, including in CI.
 //

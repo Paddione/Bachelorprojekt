@@ -1,4 +1,4 @@
-<!-- website/src/components/inbox/InboxSidebar.svelte
+<!-- components/website/src/components/inbox/InboxSidebar.svelte
      Type-filter rail. Shows "Alle" + 6 type rows with per-type counts.
      Counts are computed against the currently-loaded items, so they reflect
      the active status (pending / actioned / archived). -->

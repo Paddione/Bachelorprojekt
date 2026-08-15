@@ -1,4 +1,4 @@
-// website/src/lib/assistant/actions/admin/scheduleFollowup.ts
+// components/website/src/lib/assistant/actions/admin/scheduleFollowup.ts
 import { registerAction } from '../../actions';
 import { createCalendarEvent } from '../../../caldav';
 import { getCustomerFullById } from '../../../website-db';

@@ -1,4 +1,4 @@
-// website/src/lib/messaging-db.ts
+// components/website/src/lib/messaging-db.ts
 // DB operations for the inbox, messaging, and chat room system.
 // Uses the same shared-db connection as website-db.ts.
 

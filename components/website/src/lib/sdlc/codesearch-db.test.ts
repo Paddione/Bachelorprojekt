@@ -96,7 +96,7 @@ describe('codesearch-db', () => {
 // Reine Vektor-Naehe rankt Dateien hoch, die fast nur aus sprechenden
 // Bezeichnern bestehen. Gemessen am 2026-07-27 gewann fuer "svelte component
 // for the admin ticket board" die reine ID-Konstantenliste
-// website/src/lib/tickets/cockpit-ids.ts gegen die tatsaechlichen
+// components/website/src/lib/tickets/cockpit-ids.ts gegen die tatsaechlichen
 // Admin-Komponenten. bge-reranker-v2-m3 sieht Query und Dokument gemeinsam
 // und korrigiert solche Faelle.
 describe('codesearch-db: reranking (T002317)', () => {

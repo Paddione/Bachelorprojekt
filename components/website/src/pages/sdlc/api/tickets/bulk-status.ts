@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/tickets/bulk-status.ts
+// components/website/src/pages/api/admin/tickets/bulk-status.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { bulkChangeStatus } from '../../../../lib/sdlc/bulk-status';

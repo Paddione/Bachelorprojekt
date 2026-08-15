@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/shortcuts/fetch-title.ts
+// components/website/src/pages/api/admin/shortcuts/fetch-title.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 

@@ -1,4 +1,4 @@
-// website/src/components/inbox/inbox-actions.ts
+// components/website/src/components/inbox/inbox-actions.ts
 // Pure helpers describing which API action a given inbox-item type maps to
 // for the primary "done" / quick-action flow, plus a guard that decides
 // whether a row qualifies for the inline check-icon shortcut.

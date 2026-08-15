@@ -1,4 +1,4 @@
-// website/src/lib/coaching-project-db.ts
+// components/website/src/lib/coaching-project-db.ts
 import type { Pool } from 'pg';
 
 export interface CoachingProject {

@@ -1,4 +1,4 @@
-// website/src/lib/tickets/grilling.ts
+// components/website/src/lib/tickets/grilling.ts
 // Pure data module — no DB imports, no cycles.
 // Questionnaire definitions and answer type for the Grilling QA Panel.
 

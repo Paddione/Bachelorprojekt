@@ -1,4 +1,4 @@
-// website/src/pages/api/factory/parallel-status.ts
+// components/website/src/pages/api/factory/parallel-status.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { pool } from '../../../../lib/website-db';

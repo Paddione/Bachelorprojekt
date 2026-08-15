@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/tickets/[id]/classify.ts
+// components/website/src/pages/api/admin/tickets/[id]/classify.ts
 import type { APIRoute } from 'astro';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../lib/auth';
@@ -36,7 +36,7 @@ Title: ${detail.title}
 Description: ${detail.description ?? '(keine Beschreibung)'}
 
 Respond exactly:
-{"component":"<short component name, e.g. website/auth/brett/api>","priority":"low|medium|high|critical","attention_mode":"ai_ready|needs_human"}
+{"component":"<short component name, e.g. components/website/auth/brett/api>","priority":"low|medium|high|critical","attention_mode":"ai_ready|needs_human"}
 
 Rules:
 - component: one lowercase word or slash-path, max 20 chars

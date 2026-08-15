@@ -1,4 +1,4 @@
-// website/src/lib/db-pool.ts
+// components/website/src/lib/db-pool.ts
 // Shared pg.Pool + ensureSchemaOnce cache — extracted from website-db.ts to
 // break the import-cycles between website-db ↔ tickets-schema / tickets/transition /
 // tickets/reporter-link (G-CQ07). The pool is leaf-most: it depends only on

@@ -1,15 +1,15 @@
 # syntax=docker/dockerfile:1
-# ── Lokaler Entwicklungs-Container für website/ (T003055) ─────────────────────
+# ── Lokaler Entwicklungs-Container für components/website/ (T003055) ─────────────────────
 #
-# ABGRENZUNG zu website/Dockerfile: jenes ist das PRODUKTIONS-Image — es baut mit
+# ABGRENZUNG zu components/website/Dockerfile: jenes ist das PRODUKTIONS-Image — es baut mit
 # `pnpm run build` und startet den kompilierten Server (dist/server/entry.mjs).
 # Der Code ist dort zur Build-Zeit eingefroren. Diese Datei macht das Gegenteil:
 # sie installiert nur die Abhängigkeiten und startet `astro dev`, während der
 # Quellcode zur Laufzeit als Bind-Mount hereinkommt. Beide Dateien haben denselben
-# Build-Kontext (Repo-Root), damit die website/-Pfade unten identisch aussehen.
+# Build-Kontext (Repo-Root), damit die components/website/-Pfade unten identisch aussehen.
 #
 # Der eigentliche Zweck: `astro dev` auf dem Host scheitert an
-# website/src/lib/auth.ts:13, weil Vite die .env nur nach `import.meta.env` lädt,
+# components/website/src/lib/auth.ts:13, weil Vite die .env nur nach `import.meta.env` lädt,
 # auth.ts den Wert aber aus `process.env` liest. Docker kennt `env_file`, das die
 # Variablen direkt in die Prozessumgebung legt — damit verschwindet die
 # `set -a`-Falle strukturell statt bei jedem Start manuell umgangen zu werden.
@@ -17,7 +17,7 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-# Prod-Image pinnt pnpm@10.15.0 (siehe website/Dockerfile) — hier dieselbe
+# Prod-Image pinnt pnpm@10.15.0 (siehe components/website/Dockerfile) — hier dieselbe
 # Version, sonst könnten Lockfile-Auflösungen zwischen Dev und Prod divergieren.
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
@@ -46,7 +46,7 @@ USER node
 # sauber cached. pnpm-workspace.yaml MUSS mit — sie trägt die overrides-Sektion,
 # mit der das Lockfile erzeugt wurde; fehlt sie, bricht --frozen-lockfile mit
 # ERR_PNPM_LOCKFILE_CONFIG_MISMATCH ab (identisch zum Prod-Dockerfile).
-COPY --chown=node:node website/package.json website/pnpm-lock.yaml website/pnpm-workspace.yaml ./
+COPY --chown=node:node components/website/package.json components/website/pnpm-lock.yaml components/website/pnpm-workspace.yaml ./
 RUN --mount=type=cache,target=/pnpm/store,uid=1000,gid=1000 \
     pnpm install --frozen-lockfile
 
@@ -59,7 +59,7 @@ RUN sha256sum pnpm-lock.yaml | cut -d' ' -f1 > /app/node_modules/.dev-container-
 # "exec /usr/local/bin/dev-entrypoint failed: Permission denied" (Exit 126) ab.
 # Das Mode-Bit der Quelldatei ist zwar in git gesetzt, aber ein COPY würde es von
 # einem Checkout mit anderer umask stillschweigend anders übernehmen.
-COPY --chmod=755 website/docker-entrypoint.dev.sh /usr/local/bin/dev-entrypoint
+COPY --chmod=755 components/website/docker-entrypoint.dev.sh /usr/local/bin/dev-entrypoint
 
 # astro.config.mjs setzt bereits `server: { host: true, port: 4321 }` — host:true
 # bindet an 0.0.0.0, ohne das wäre der Dev-Server nur im Container-Loopback

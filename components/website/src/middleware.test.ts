@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock the virtual `astro:middleware` module so we can import
-// `website/src/middleware.ts` (the Astro entry point) outside the Astro
+// `components/website/src/middleware.ts` (the Astro entry point) outside the Astro
 // build pipeline. `defineMiddleware` is the identity wrapper; `sequence`
 // builds a chained handler that runs every handler in order, threading
 // `next` through. The chain ends in the user-supplied `next`, which

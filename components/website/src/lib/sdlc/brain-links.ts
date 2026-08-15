@@ -11,7 +11,7 @@
  *   - `CLAUDE.md`                       -> `claude` (core-docs)
  *   - `docs/superpowers/.../gotchas-footguns.md` -> `docs-superpowers-references-gotchas-footguns`
  *
- * Grenze (gemessen, nicht behauptet): `website/`, `k3d/`, `scripts/`, `tests/`
+ * Grenze (gemessen, nicht behauptet): `components/website/`, `k3d/`, `scripts/`, `tests/`
  * werden im `find`-Aufruf des Worklist-Skripts weggeprunt — für Dateien dort
  * existiert keine Wiki-Seite, unabhängig vom Manifest. Der Matcher
  * (`scripts/brain-group-match.sh`) übersetzt `*` zu `[^/]*`, also ein einzelnes
@@ -19,7 +19,7 @@
  * `docs/agent-guide/maps/agents-map.md`.
  */
 
-const PRUNED_TREES = ['website/', 'k3d/', 'scripts/', 'tests/', '.worktrees/', 'brett/', 'tui/', 'packages/'];
+const PRUNED_TREES = ['components/website/', 'k3d/', 'scripts/', 'tests/', '.worktrees/', 'brett/', 'tui/', 'packages/'];
 
 const MANIFEST_GROUPS: string[] = [
   'openspec/specs/*.md',

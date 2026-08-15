@@ -69,7 +69,7 @@ export interface FactoryMetricsPayload {
 }
 
 // [T003459] Der Endpunkt liegt unter /sdlc/api/, NICHT unter /api/. Ein
-// website/src/pages/api/factory-metrics.ts hat es nie gegeben; der Aufruf lief
+// components/website/src/pages/api/factory-metrics.ts hat es nie gegeben; der Aufruf lief
 // seit dem SDLC-Umzug (T002624) in einen 404. Weil die Konsumenten den Fehler
 // still schluckten, sah es nach "keine Daten vorhanden" statt nach "Route
 // falsch" aus — und war die Begruendung, mit der die Analytics-Komponenten in

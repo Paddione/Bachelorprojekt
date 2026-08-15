@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/test-results.ts
+// components/website/src/pages/api/admin/test-results.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { listTestStatusesForMonitoring } from '../../../lib/questionnaire-db';

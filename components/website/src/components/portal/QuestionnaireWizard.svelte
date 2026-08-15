@@ -1,4 +1,4 @@
-<!-- website/src/components/portal/QuestionnaireWizard.svelte -->
+<!-- components/website/src/components/portal/QuestionnaireWizard.svelte -->
 <script lang="ts">
   import { browserLogger } from '$lib/browser-logger';
   type QuestionData = {

@@ -1,4 +1,4 @@
-// website/src/lib/einvoice/xrechnung.ts
+// components/website/src/lib/einvoice/xrechnung.ts
 import { generateCII } from './cii';
 import { LEITWEG_ID_REGEX, type InvoiceInput } from './types';
 

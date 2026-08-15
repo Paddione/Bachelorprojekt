@@ -1,4 +1,4 @@
--- website/src/db/migrations/20260612_add_service_links.sql
+-- components/website/src/db/migrations/20260612_add_service_links.sql
 -- Verknüpft platform.software_assets mit laufenden Diensten:
 --   subdomain  → öffentliche Subdomain (effektive URL = url ?? https://<subdomain>.<PROD_DOMAIN>)
 --   health_url → internes Health-Probe-Template mit {ns}-Platzhalter (NULL = nicht probebar)

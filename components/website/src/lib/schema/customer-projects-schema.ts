@@ -1,4 +1,4 @@
-// website/src/lib/schema/customer-projects-schema.ts
+// components/website/src/lib/schema/customer-projects-schema.ts
 // Idempotente DDL fuer die Kundenprojekt-Tabellen AUSSERHALB des Schemas `tickets`
 // (damit der naechste ADR-006-Freeze sie nicht wieder einfängt — design.md D2).
 //

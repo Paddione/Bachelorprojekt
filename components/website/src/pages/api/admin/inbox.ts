@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/inbox.ts
+// components/website/src/pages/api/admin/inbox.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { listInboxItems, countPendingByType } from '../../../lib/messaging-db';

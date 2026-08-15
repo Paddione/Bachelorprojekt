@@ -1,4 +1,4 @@
-// website/src/lib/tickets/tables/systemtest-linkback.ts
+// components/website/src/lib/tickets/tables/systemtest-linkback.ts
 // ALTER TABLE … ADD COLUMN IF NOT EXISTS source_test_* (linkback to systemtest).
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155). Mirrors the
 // canonical owner systemtest/db.ts — we add the columns and unique indexes

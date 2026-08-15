@@ -1,7 +1,7 @@
 -- Migration: create assets.generation_jobs (3D asset-generation pipeline state).
 -- Apply manually (no auto-runner):
 --   kubectl exec -n <workspace-ns> deploy/shared-db -- \
---     psql -U website -d website -f - < website/src/db/migrations/20260607_create_generation_jobs.sql
+--     psql -U website -d website -f - < components/website/src/db/migrations/20260607_create_generation_jobs.sql
 --
 -- stage  values: queued | generating | rigging | uploading | done | error
 -- status values: pending | running | done | error  (legacy, derived from stage)

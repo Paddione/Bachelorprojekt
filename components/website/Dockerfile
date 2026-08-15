@@ -4,8 +4,8 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 
-# T001224/T001276: website migrated to pnpm — `website/package-lock.json` was
-# deleted, only `website/pnpm-lock.yaml` exists. Corepack is bundled with
+# T001224/T001276: website migrated to pnpm — `components/website/package-lock.json` was
+# deleted, only `components/website/pnpm-lock.yaml` exists. Corepack is bundled with
 # node 24, so we enable pnpm@10 (matches `.github/workflows/ci.yml` +
 # `.github/workflows/build-mentolder-web.yml`).
 ENV PNPM_HOME=/pnpm
@@ -16,13 +16,13 @@ RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 # pnpm-workspace.yaml must be present alongside pnpm-lock.yaml — it contains the
 # overrides section that the lockfile was generated with; omitting it causes
 # ERR_PNPM_LOCKFILE_CONFIG_MISMATCH on --frozen-lockfile installs.
-COPY website/package.json website/pnpm-lock.yaml website/pnpm-workspace.yaml ./
+COPY components/website/package.json components/website/pnpm-lock.yaml components/website/pnpm-workspace.yaml ./
 RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
 
-COPY website/ .
+COPY components/website/ .
 
 # [T002466] Lavish-Kit-Assets als ECHTE Dateien nachziehen.
-# website/public/cockpit/{kit,cockpit-shell.html,reference-board.html} sind im Repo
+# components/website/public/cockpit/{kit,cockpit-shell.html,reference-board.html} sind im Repo
 # Symlinks nach ../../../.lavish/ — .lavish/ ist die SSOT (K1-Kit + K2-Daemon), und
 # eine Kopie im Repo waere Duplikation. Im Checkout und unter `pnpm dev` loesen sie
 # auf; das COPY oben kopiert aber nur den website-Teilbaum nach /app, wo das Ziel
@@ -109,7 +109,7 @@ ENV BUILT_AT=${BUILT_AT}
 # Middleware zur Laufzeit prüfen kann, ob sie der sdlc-Build ist. ARG gilt
 # pro Stage — ohne diese Wiederholung wäre das Build-Arg aus der build-Stage
 # in der runtime-Stage unsichtbar (identischer Defekt wie bei GIT_SHA/BUILT_AT
-# vor T002202, dokumentiert in website/CLAUDE.md).
+# vor T002202, dokumentiert in components/website/CLAUDE.md).
 ARG BUILD_TARGET=prod
 ENV BUILD_TARGET=${BUILD_TARGET}
 

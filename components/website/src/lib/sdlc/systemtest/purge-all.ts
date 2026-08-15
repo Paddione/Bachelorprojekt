@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/purge-all.ts
+// components/website/src/lib/systemtest/purge-all.ts
 //
 // Test-bracketed purge — wipes ALL is_test_data=true rows + side-tables
 // (questionnaire scaffolding, systemtest plumbing, optional test_run history,

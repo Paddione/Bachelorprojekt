@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/feature-flag.ts
+// components/website/src/lib/systemtest/feature-flag.ts
 //
 // Master kill-switch for the system-test failure loop (Task 10).
 //

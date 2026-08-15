@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ── Module mocks ───────────────────────────────────────────────────────────────
 // status.ts imports these via '../../../../lib/generation-jobs' and
 // '../../../../lib/website-db', which resolve to the SAME files as './generation-jobs'
-// and './website-db' from this test (both live in website/src/lib/). vitest matches
+// and './website-db' from this test (both live in components/website/src/lib/). vitest matches
 // vi.mock by resolved module id, so these specifiers intercept the SUT's imports.
 const stageCalls: Array<{ id: string; stage: string; extra?: unknown }> = [];
 const registryInserts: unknown[][] = [];

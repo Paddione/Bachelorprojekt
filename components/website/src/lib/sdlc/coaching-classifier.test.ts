@@ -1,4 +1,4 @@
-// website/src/lib/coaching-classifier.test.ts
+// components/website/src/lib/coaching-classifier.test.ts
 import { describe, it, expect, vi } from 'vitest';
 import type Anthropic from '@anthropic-ai/sdk';
 import { classifyChunk } from './coaching-classifier';

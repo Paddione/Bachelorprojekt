@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/ContentDb.svelte -->
+<!-- components/website/src/components/admin/ContentDb.svelte -->
 <script lang="ts">
   import type { ContentEntry } from '../../lib/content-db-merge';
 

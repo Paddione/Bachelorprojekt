@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/retest-trigger.test.ts
+// components/website/src/lib/systemtest/retest-trigger.test.ts
 //
 // DB-gated tests for the retest trigger created in Task 1 (db.ts →
 // trg_systemtest_retest). The trigger should:

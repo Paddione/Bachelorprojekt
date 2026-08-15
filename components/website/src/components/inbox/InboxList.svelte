@@ -1,4 +1,4 @@
-<!-- website/src/components/inbox/InboxList.svelte
+<!-- components/website/src/components/inbox/InboxList.svelte
      The middle column: search box + scrollable list of items. Selection
      state is owned by the parent; this component only emits onSelect. -->
 <script lang="ts">

@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/test-run-bridge.ts
+// components/website/src/lib/systemtest/test-run-bridge.ts
 //
 // Auto-files a `tickets.tickets` row of type='bug' for each failing test in
 // a Playwright JSON report or a `tests/runner.sh` JSONL stream. Bridges the

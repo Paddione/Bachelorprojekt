@@ -1,4 +1,4 @@
-// website/scripts/seed-questionnaires.mjs
+// components/website/scripts/seed-questionnaires.mjs
 // Run: node --experimental-strip-types scripts/seed-questionnaires.mjs
 // (or: npx tsx scripts/seed-questionnaires.mjs)
 // Idempotent: skips templates that already exist by title.

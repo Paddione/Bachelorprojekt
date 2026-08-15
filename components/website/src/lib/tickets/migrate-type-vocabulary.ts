@@ -1,4 +1,4 @@
-// website/src/lib/tickets/migrate-type-vocabulary.ts
+// components/website/src/lib/tickets/migrate-type-vocabulary.ts
 // Teil B des Epics T002326: `tickets.type` bekommt das Conventional-Commit-Vokabular.
 // Ausgelagert aus migrations.ts (dort nur noch Import + Aufruf), weil die Datei mit
 // 576/600 Zeilen am S1-Budget steht — T002329.

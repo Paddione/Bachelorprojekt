@@ -27,7 +27,7 @@ const isKore = BRAND_ID === 'korczewski';
 const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
 // T001490: SEO is now sourced from the build-time content bundle
-// (website/content/<brand>/seo.json). Zero DB dependency on the
+// (components/website/content/<brand>/seo.json). Zero DB dependency on the
 // homepage render path.
 const seo = bundleSeo(BRAND_ID);
 const homeDescription = !isKore ? (seo.descriptions.home ?? null) : null;

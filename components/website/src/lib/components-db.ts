@@ -1,4 +1,4 @@
-// website/src/lib/components-db.ts
+// components/website/src/lib/components-db.ts
 import { pool } from './website-db';
 
 interface ComponentRow {

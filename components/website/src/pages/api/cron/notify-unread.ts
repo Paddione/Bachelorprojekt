@@ -1,4 +1,4 @@
-// website/src/pages/api/cron/notify-unread.ts
+// components/website/src/pages/api/cron/notify-unread.ts
 // Called by K8s CronJob every 6h. Sends one email per customer who has unread messages older than 72h.
 import type { APIRoute } from 'astro';
 import { sendEmail } from '../../../lib/email';

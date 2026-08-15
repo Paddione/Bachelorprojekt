@@ -6,7 +6,7 @@ import { logger } from '../../lib/logger';
 // Public read of the live homepage block document for this brand.
 //
 // T001490 Task 10 — bundle-sourced: the document is served from the
-// build-time content bundle (`website/content/<brand>/homepage-blocks.json`)
+// build-time content bundle (`components/website/content/<brand>/homepage-blocks.json`)
 // rather than from the legacy `homepage_block_documents` table. The DB
 // path is decommissioned; the contract is preserved for the React SPA
 // (`react.<brand>`) which reads this endpoint at render time. No auth.

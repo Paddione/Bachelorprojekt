@@ -6,7 +6,7 @@ greift. Stabile Pfade → Asset-Swap ohne Code-Änderung. `public/` wird beim
 Website-Deploy automatisch mitgezogen.
 
 ## Palette (mentolder Brass-Gold + Ink)
-- Gold: `oklch(0.80 0.09 75)` (`--color-gold` aus `website/src/styles/global.css`)
+- Gold: `oklch(0.80 0.09 75)` (`--color-gold` aus `components/website/src/styles/global.css`)
 - Gold-light: `oklch(0.86 0.09 75)` (`--color-gold-light`)
 - Ink/Dunkel: `#0b111c` (`--color-dark`), `#101826` (`--color-dark-light`)
 - Blockiert/Rot: Tailwind `red-500`

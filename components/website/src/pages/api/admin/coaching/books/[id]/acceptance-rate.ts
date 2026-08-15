@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts
+// components/website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { acceptanceRateByBook } from '../../../../../../lib/coaching-db';

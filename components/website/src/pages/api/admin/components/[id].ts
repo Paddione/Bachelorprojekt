@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/components/[id].ts
+// components/website/src/pages/api/admin/components/[id].ts
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import { getSession, isAdmin } from '../../../../lib/auth';

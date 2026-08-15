@@ -1,6 +1,6 @@
 -- Migration: drop redundant duplicate index on public.customers(email) — T001908 (G-DB10).
--- Applied automatically by website/src/db/migrate.ts (task workspace:deploy runs
--- `pnpm --dir website db:migrate` against the target brand's `website` database).
+-- Applied automatically by components/website/src/db/migrate.ts (task workspace:deploy runs
+-- `pnpm --dir components/website db:migrate` against the target brand's `website` database).
 --
 -- G-DB10 baseline scan (.claude/lib/goals.md#G-DB10) found 93 indexes with idx_scan = 0
 -- (excluding PKs and formal UNIQUE-constraint indexes). Of those 93, this is the only

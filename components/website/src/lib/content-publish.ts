@@ -28,7 +28,7 @@ import { ContentBundleSchema, type Domain, type SchemaOf } from '../content-sche
 /** Default repo for the content PR. */
 const DEFAULT_REPO = process.env.CONTENT_REPO || 'Paddione/Bachelorprojekt';
 const DEFAULT_BASE = process.env.CONTENT_BRANCH_BASE || 'main';
-const FILE_PATH = (brand: string, domain: Domain) => `website/content/${brand}/${domain}.json`;
+const FILE_PATH = (brand: string, domain: Domain) => `components/website/content/${brand}/${domain}.json`;
 
 /** Per-request result of `publishContent`. */
 export type PublishResult =

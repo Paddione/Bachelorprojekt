@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Entrypoint des lokalen Dev-Containers (T003055).
 #
-# Aufgabe: die .env des Hosts unverändert brauchbar machen. website/.env zeigt auf
+# Aufgabe: die .env des Hosts unverändert brauchbar machen. components/website/.env zeigt auf
 # 127.0.0.1-Ports, die von `kubectl port-forward` auf der WSL-Distro bereitgestellt
 # werden. Im Container ist 127.0.0.1 ein anderer Netzwerk-Namespace — die Adressen
 # müssen deshalb zur Laufzeit auf host.docker.internal umgeschrieben werden.
@@ -15,14 +15,14 @@ set -euo pipefail
 log() { printf '[dev-entrypoint] %s\n' "$*" >&2; }
 
 # ── 1. Secret-Guard ───────────────────────────────────────────────────────────
-# website/src/lib/auth.ts wirft beim Import, wenn diese Variable fehlt — allerdings
+# components/website/src/lib/auth.ts wirft beim Import, wenn diese Variable fehlt — allerdings
 # erst tief im Vite-Modulgraphen, mit einem Stacktrace voller node_modules-Frames.
 # Der Guard hier bricht früher und mit einer Meldung ab, die die Ursache benennt.
 if [[ -z "${POCKET_ID_WEBSITE_SECRET:-}${WEBSITE_OIDC_SECRET:-}" ]]; then
   log "FATAL: POCKET_ID_WEBSITE_SECRET ist nicht gesetzt."
-  log "       Der Container bekommt seine Variablen aus website/.env via env_file."
-  log "       Pruefen: existiert website/.env und enthaelt sie den Schluessel?"
-  log "       Vorlage: website/.env.example"
+  log "       Der Container bekommt seine Variablen aus components/website/.env via env_file."
+  log "       Pruefen: existiert components/website/.env und enthaelt sie den Schluessel?"
+  log "       Vorlage: components/website/.env.example"
   exit 1
 fi
 

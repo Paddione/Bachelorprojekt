@@ -1,4 +1,4 @@
-// website/src/lib/tickets-db.ts
+// components/website/src/lib/tickets-db.ts
 // Public-API-Fassade: re-exportiert die schema-relevanten Funktionen aus
 // tickets-schema.ts, damit bestehende Aufrufer (tickets-embed.ts,
 // tickets/admin.ts, systemtest/*, 7 .test.ts-Dateien) ihre Imports nicht

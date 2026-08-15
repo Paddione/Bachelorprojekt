@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/feature-flag.test.ts
+// components/website/src/lib/systemtest/feature-flag.test.ts
 //
 // Pure-unit tests for the SYSTEMTEST_LOOP_ENABLED kill-switch. No DB, no
 // Keycloak, no fixtures — just process.env mutation around isolated calls.

@@ -1,6 +1,6 @@
 // Build-time content bundle loader.
 //
-// Reads every `website/content/<brand>/<domain>.json` via Vite's
+// Reads every `components/website/content/<brand>/<domain>.json` via Vite's
 // `import.meta.glob('/content/**/*.json', { eager: true })` and validates
 // each against `ContentBundleSchema[domain]`. The result is a single
 // in-memory map keyed by `brand` → `domain` → typed object, looked up
@@ -13,7 +13,7 @@
 // the caller can surface a build error.
 //
 // S2: no back-imports onto DB / API layers. The schemas themselves
-// (website/src/content-schema) are pure Zod; this module only reads JSON
+// (components/website/src/content-schema) are pure Zod; this module only reads JSON
 // and runs validation.
 import { ZodError } from 'zod';
 import {
@@ -82,7 +82,7 @@ function parseDomain<D extends Domain>(brand: string, domain: D): SchemaOf<D> {
     throw new BundleValidationError(
       brand,
       domain,
-      [`missing file website/content/${brand}/${domain}.json`],
+      [`missing file components/website/content/${brand}/${domain}.json`],
     );
   }
   const schema = ContentBundleSchema[domain];

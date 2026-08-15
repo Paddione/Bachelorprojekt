@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/Components.svelte -->
+<!-- components/website/src/components/admin/Components.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
 

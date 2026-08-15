@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/failure-bridge.ts
+// components/website/src/lib/systemtest/failure-bridge.ts
 //
 // Auto-creates a `tickets.tickets` row of type='bug' when a system-test step
 // is marked `nicht_erfüllt`, and back-references the failed step on the new

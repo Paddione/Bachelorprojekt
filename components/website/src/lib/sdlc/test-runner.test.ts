@@ -1,4 +1,4 @@
-// website/src/lib/test-runner.test.ts
+// components/website/src/lib/test-runner.test.ts
 //
 // Behavioral tests for spawnTestRun's job orchestration: process spawning,
 // stdout line streaming, JSONL result tailing, and the exit handler that

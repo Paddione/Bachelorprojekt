@@ -1,4 +1,4 @@
-// website/src/lib/assistant/actions/admin/sendInvoice.ts
+// components/website/src/lib/assistant/actions/admin/sendInvoice.ts
 import { registerAction } from '../../actions';
 
 // Unimplemented: wire end-to-end invoice send (PDF generation + Factur-X embed +

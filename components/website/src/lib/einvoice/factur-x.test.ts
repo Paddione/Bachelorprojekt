@@ -1,4 +1,4 @@
-// website/src/lib/einvoice/factur-x.test.ts
+// components/website/src/lib/einvoice/factur-x.test.ts
 import { describe, it, expect } from 'vitest';
 import { generateFacturX } from './factur-x';
 import type { InvoiceInput } from './types';

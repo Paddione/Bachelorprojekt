@@ -1,5 +1,5 @@
 /**
- * website/src/lib/tickets-embed.ts
+ * components/website/src/lib/tickets-embed.ts
  *
  * Ticket-embedding writer, similar-ticket search, and backfill helper.
  * All embedding work is BEST-EFFORT: a GPU-host outage must never block

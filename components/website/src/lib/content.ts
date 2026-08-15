@@ -5,7 +5,7 @@
 // three-tier chain (DB override > static `pageContent` > TypeScript
 // fallback) collapsed: the merge now happens at build time (in
 // scripts/export-site-content.mjs) and the result ships as JSON under
-// `website/content/<brand>/`. Runtime pages have zero DB dependency.
+// `components/website/content/<brand>/`. Runtime pages have zero DB dependency.
 //
 // `getEffective*` signatures are kept `async` for source compatibility
 // with the React SPA / mentolder-web callers and to leave room for

@@ -1,4 +1,4 @@
-// website/src/lib/sessions/templates.ts
+// components/website/src/lib/sessions/templates.ts
 // CRUD logic for brainstorm session templates with hardcoded fallback.
 
 import { pool } from '../website-db.ts';

@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/bookings/create.ts
+// components/website/src/pages/api/admin/bookings/create.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { createInboxItem } from '../../../../lib/messaging-db';

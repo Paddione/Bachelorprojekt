@@ -1,9 +1,9 @@
 -- Migration: create public.folder_templates (configurable folder structure templates for new projects).
 -- Apply manually (no auto-runner) per brand:
 --   kubectl exec -n <workspace-ns> deploy/shared-db -- \
---     psql -U website -d website -v brand=mentolder -f - < website/src/db/migrations/20260617_create_folder_templates.sql
+--     psql -U website -d website -v brand=mentolder -f - < components/website/src/db/migrations/20260617_create_folder_templates.sql
 --   kubectl exec -n <workspace-ns> deploy/shared-db -- \
---     psql -U website -d website -v brand=korczewski -f - < website/src/db/migrations/20260617_create_folder_templates.sql
+--     psql -U website -d website -v brand=korczewski -f - < components/website/src/db/migrations/20260617_create_folder_templates.sql
 
 CREATE TABLE IF NOT EXISTS public.folder_templates (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

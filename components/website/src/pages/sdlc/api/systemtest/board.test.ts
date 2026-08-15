@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/systemtest/board.test.ts
+// components/website/src/pages/api/admin/systemtest/board.test.ts
 //
 // DB-gated tests for GET /api/admin/systemtest/board (Task 7).
 // Mirrors the fixture pattern used by seed.test.ts and failure-bridge.test.ts.

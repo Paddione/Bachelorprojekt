@@ -1,4 +1,4 @@
-// website/src/lib/tickets-db.featureflag.test.ts [T000413]
+// components/website/src/lib/tickets-db.featureflag.test.ts [T000413]
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const query = vi.fn();

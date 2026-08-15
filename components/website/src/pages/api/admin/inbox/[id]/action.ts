@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/inbox/[id]/action.ts
+// components/website/src/pages/api/admin/inbox/[id]/action.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getInboxItem, updateInboxItemStatus, deleteInboxItem } from '../../../../../lib/messaging-db';

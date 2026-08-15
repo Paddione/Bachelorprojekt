@@ -1,4 +1,4 @@
-// website/src/lib/coaching-project-db.test.ts
+// components/website/src/lib/coaching-project-db.test.ts
 import { describe, it, expect, beforeAll } from 'vitest';
 import { newDb, DataType } from 'pg-mem';
 import type { Pool } from 'pg';

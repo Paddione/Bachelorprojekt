@@ -1,4 +1,4 @@
-// website/src/lib/questionnaire-db.ensure.test.ts
+// components/website/src/lib/questionnaire-db.ensure.test.ts
 //
 // Offline (no real DB) regression test for T000406.
 //

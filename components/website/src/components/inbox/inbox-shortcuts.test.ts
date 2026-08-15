@@ -1,4 +1,4 @@
-// website/src/components/inbox/inbox-shortcuts.test.ts
+// components/website/src/components/inbox/inbox-shortcuts.test.ts
 import { describe, it, expect } from 'vitest';
 import { handle, type ShortcutCtx } from './inbox-shortcuts';
 import type { InboxType } from '../../lib/messaging-db';

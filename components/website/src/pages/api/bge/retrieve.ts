@@ -16,7 +16,7 @@ export const prerender = false;
  *
  * Failover: KEINE eigene Ausweichlogik. Embedding laeuft ueber `queryNearest` →
  * `embedQuery`, Reranking ueber `rerankCandidates` — beide loesen die
- * Zieladresse ueber den bge-Router (`website/src/lib/bge-router.ts`). Wird hier
+ * Zieladresse ueber den bge-Router (`components/website/src/lib/bge-router.ts`). Wird hier
  * ein zweiter Health-Check eingebaut, gibt es zwei Wahrheiten statt einer.
  *
  * Cross-Space: `queryNearest` wirft `MixedEmbeddingModelError`, sobald die

@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/cleanup.ts
+// components/website/src/lib/systemtest/cleanup.ts
 //
 // Background cleanup helpers for the system-test failure loop. These run on
 // CronJob schedules (see k3d/cronjob-systemtest-cleanup.yaml) to keep the

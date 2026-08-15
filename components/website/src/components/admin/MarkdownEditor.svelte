@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/MarkdownEditor.svelte
+<!-- components/website/src/components/admin/MarkdownEditor.svelte
      Wiederverwendbarer leichtgewichtiger Markdown-Editor: Textarea + Toolbar
      (Bold/Italic/Code/Überschrift/Liste/Nummerierte-Liste/Zitat/Link) + Vorschau.
      Speichert reinen Markdown-Plaintext über `value` ($bindable) — kein WYSIWYG.

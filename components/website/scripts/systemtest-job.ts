@@ -1,4 +1,4 @@
-// website/scripts/systemtest-job.ts
+// components/website/scripts/systemtest-job.ts
 //
 // Standalone CLI entrypoint for the system-test cleanup CronJobs. Two modes:
 //
@@ -12,7 +12,7 @@
 // container image with tsx/ts-node + the website's node_modules.
 //
 // This script remains useful for:
-//   - local invocation (`npx tsx website/scripts/systemtest-job.ts drain-outbox`)
+//   - local invocation (`npx tsx components/website/scripts/systemtest-job.ts drain-outbox`)
 //     while debugging, with WEBSITE_DATABASE_URL pointing at a port-forwarded
 //     shared-db.
 //   - manual one-shot runs from inside a website pod via `kubectl exec` if a

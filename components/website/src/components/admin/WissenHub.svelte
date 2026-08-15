@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/WissenHub.svelte -->
+<!-- components/website/src/components/admin/WissenHub.svelte -->
 <script lang="ts">
   import BookUploadForm from './BookUploadForm.svelte';
   import KnowledgeJsonImport from './KnowledgeJsonImport.svelte';

@@ -1,4 +1,4 @@
-// website/src/lib/assistant/actions/admin/writeClientNote.ts
+// components/website/src/lib/assistant/actions/admin/writeClientNote.ts
 import { registerAction } from '../../actions';
 import { createClientNote } from '../../../website-db';
 

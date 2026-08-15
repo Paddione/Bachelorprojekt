@@ -1,4 +1,4 @@
-// website/src/lib/questionnaire-db/queries.ts
+// components/website/src/lib/questionnaire-db/queries.ts
 // Template / Dimension / Question / Answer-Option / Assignment / Answer
 // CRUD + assignment transactions (archive, dismiss, reassign).
 // Sibling modules: schema.ts (pool + DDL), scoring.ts (read-only scorers

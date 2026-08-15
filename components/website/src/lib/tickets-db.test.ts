@@ -1,4 +1,4 @@
-// website/src/lib/tickets-db.test.ts
+// components/website/src/lib/tickets-db.test.ts
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

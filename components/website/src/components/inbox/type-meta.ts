@@ -1,4 +1,4 @@
-// website/src/components/inbox/type-meta.ts
+// components/website/src/components/inbox/type-meta.ts
 // Shared per-type accent palette + labels. Per spec §4.3 the oklch(...)
 // values listed below are intentionally hardcoded (not in the global token
 // set). Do not move these to hex.

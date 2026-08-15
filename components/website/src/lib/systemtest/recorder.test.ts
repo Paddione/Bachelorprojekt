@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/recorder.test.ts
+// components/website/src/lib/systemtest/recorder.test.ts
 //
 // Behavioral tests for the client-only rrweb recorder. Runs under the
 // 'components' vitest project (jsdom environment — see vitest.config.ts)

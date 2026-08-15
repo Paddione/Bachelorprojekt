@@ -1,4 +1,4 @@
-// website/src/lib/questionnaire-db/types.ts
+// components/website/src/lib/questionnaire-db/types.ts
 // TypeScript interfaces + type aliases for the questionnaire domain.
 // Pure types only — no runtime code, no imports.
 

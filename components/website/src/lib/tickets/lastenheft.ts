@@ -1,4 +1,4 @@
-// website/src/lib/tickets/lastenheft.ts
+// components/website/src/lib/tickets/lastenheft.ts
 //
 // Pure helpers for the Pflichtenheft → Lastenheft requirements-lock feature.
 // No imports → no import cycles (S2). The requirements live in the

@@ -1,4 +1,4 @@
-// website/src/components/inbox/inbox-shortcuts.ts
+// components/website/src/components/inbox/inbox-shortcuts.ts
 // Pure keyboard handler for the admin inbox.
 //
 // `handle({ event, ctx })` returns the next state action without ever touching

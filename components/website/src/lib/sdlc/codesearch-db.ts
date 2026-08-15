@@ -1,5 +1,5 @@
-// website/src/lib/codesearch-db.ts
-// Shared `pool` aus website/src/lib/db-pool.ts (gehärtet: nodeLookup DNS-Workaround +
+// components/website/src/lib/codesearch-db.ts
+// Shared `pool` aus components/website/src/lib/db-pool.ts (gehärtet: nodeLookup DNS-Workaround +
 // fail-soft Connection-/Statement-Timeouts). Eigener Ad-hoc-Pool entfernt —
 // siehe T001676 Stufe C1.
 import pg from 'pg';

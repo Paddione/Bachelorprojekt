@@ -1,4 +1,4 @@
-// website/src/lib/tickets/reporter-link.ts
+// components/website/src/lib/tickets/reporter-link.ts
 import { pool } from '../db-pool.ts';
 
 /**

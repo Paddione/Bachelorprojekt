@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/prompt-library/index.ts
+// components/website/src/pages/api/admin/prompt-library/index.ts
 // Prompt Library admin API — list (GET) and create (POST).
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';

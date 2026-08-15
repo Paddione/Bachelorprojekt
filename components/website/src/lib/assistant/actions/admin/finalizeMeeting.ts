@@ -1,4 +1,4 @@
-// website/src/lib/assistant/actions/admin/finalizeMeeting.ts
+// components/website/src/lib/assistant/actions/admin/finalizeMeeting.ts
 import { registerAction } from '../../actions';
 import { updateMeetingStatus } from '../../../website-db';
 

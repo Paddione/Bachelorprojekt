@@ -1,4 +1,4 @@
--- website/src/db/migrations/20260521_create_platform_assets.sql
+-- components/website/src/db/migrations/20260521_create_platform_assets.sql
 CREATE SCHEMA IF NOT EXISTS platform;
 
 CREATE TABLE IF NOT EXISTS platform.software_assets (

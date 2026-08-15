@@ -1,4 +1,4 @@
-// website/src/lib/schema/provider-config-schema.ts
+// components/website/src/lib/schema/provider-config-schema.ts
 // Idempotente DDL für die VEREINHEITLICHTE tickets.provider_config (globales Routing +
 // fusioniertes Coaching) sowie tickets.provider_health.
 //

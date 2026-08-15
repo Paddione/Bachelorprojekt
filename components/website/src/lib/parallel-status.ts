@@ -1,4 +1,4 @@
-// website/src/lib/parallel-status.ts
+// components/website/src/lib/parallel-status.ts
 // Pure, DB-free derivation logic for the factory parallel-status panel.
 // Time is passed in as an ISO string — no Date.now() in the core so the
 // derivations stay deterministic and unit-testable (P3 vitest). This module

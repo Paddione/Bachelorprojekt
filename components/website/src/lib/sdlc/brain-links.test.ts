@@ -27,7 +27,7 @@ describe('isIngestedSource — Grenze aus dem Manifest', () => {
   });
 
   it('weggeprunte Baeume liefern keinen Link', () => {
-    expect(isIngestedSource('website/src/pages/index.astro')).toBe(false);
+    expect(isIngestedSource('components/website/src/pages/index.astro')).toBe(false);
     expect(isIngestedSource('k3d/network-policies.yaml')).toBe(false);
     expect(isIngestedSource('scripts/brain-ingest.sh')).toBe(false);
     expect(isIngestedSource('tests/spec/sdlc-cockpit/k5-epic-canvas.bats')).toBe(false);

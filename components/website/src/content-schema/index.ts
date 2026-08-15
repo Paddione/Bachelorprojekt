@@ -1,7 +1,7 @@
 // Barrel re-exporting every content-domain Zod schema as a single map.
 // Pure module — no DB / API / website-db imports (S2 acyclic-website gate).
 //
-// The 13 content domains are the keys a brand's `website/content/<brand>/`
+// The 13 content domains are the keys a brand's `components/website/content/<brand>/`
 // directory must hold. `ContentBundleSchema` is consumed by the build-time
 // loader (content-bundle.ts) and by the DB→JSON exporter (scripts/export-site-content.mjs).
 import type { z } from 'zod';

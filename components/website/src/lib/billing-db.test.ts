@@ -1,4 +1,4 @@
-// website/src/lib/billing-db.test.ts
+// components/website/src/lib/billing-db.test.ts
 //
 // billing-db.ts is pure sequential DDL executed via pool.query(...), guarded
 // by module-level "ready" caches that are not exported/resettable. To test

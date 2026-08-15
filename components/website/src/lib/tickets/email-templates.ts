@@ -1,4 +1,4 @@
-// website/src/lib/tickets/email-templates.ts
+// components/website/src/lib/tickets/email-templates.ts
 import { sendEmail } from '../email.ts';
 import { logger } from '../logger.ts';
 

@@ -1,4 +1,4 @@
-// website/src/lib/planning-office-types.ts
+// components/website/src/lib/planning-office-types.ts
 // Type-only re-exports from planning-office.ts. The runtime module pulls in
 // `pg` + `dns` via website-db (server-only Node built-ins); a Svelte/Astro
 // file that only needs the *types* must import them from here to keep the

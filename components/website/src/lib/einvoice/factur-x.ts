@@ -1,4 +1,4 @@
-// website/src/lib/einvoice/factur-x.ts
+// components/website/src/lib/einvoice/factur-x.ts
 import { generateCII } from './cii';
 import type { InvoiceInput } from './types';
 

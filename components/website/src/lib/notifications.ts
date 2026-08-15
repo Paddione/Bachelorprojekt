@@ -1,4 +1,4 @@
-// website/src/lib/notifications.ts
+// components/website/src/lib/notifications.ts
 import { getSiteSetting } from './website-db';
 import { sendEmail } from './email';
 import { logger } from './logger';

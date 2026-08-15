@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/CreateInvoiceModal.svelte -->
+<!-- components/website/src/components/admin/CreateInvoiceModal.svelte -->
 <script lang="ts">
   import AdminModal from './ui/AdminModal.svelte';
 

@@ -1,4 +1,4 @@
-// website/src/lib/tickets/tables/tickets.ts
+// components/website/src/lib/tickets/tables/tickets.ts
 // Core DDL for tickets schema: tickets.tickets, ticket_links, ticket_activity,
 // ticket_comments, ticket_plans, ticket_attachments, ticket_embeddings,
 // ticket_watchers, tags, feature_flags, ticket_tags, pr_events, qa_reviews,

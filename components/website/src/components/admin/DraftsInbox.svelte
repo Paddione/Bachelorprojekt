@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/DraftsInbox.svelte -->
+<!-- components/website/src/components/admin/DraftsInbox.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
 

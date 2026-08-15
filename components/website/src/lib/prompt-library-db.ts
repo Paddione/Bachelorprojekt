@@ -1,4 +1,4 @@
-// website/src/lib/prompt-library-db.ts
+// components/website/src/lib/prompt-library-db.ts
 // DB layer for the reusable Prompt Library (F2 — Prompt-DB).
 //
 // Brand-scoped, reusable canned replies / prompts that admins can insert into

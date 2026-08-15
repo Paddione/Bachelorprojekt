@@ -37,7 +37,7 @@ export interface NavOptions {
  *
  * Es erscheinen ausschließlich Routen, die im Produktions-Build existieren. Einträge auf
  * die SDLC-Oberflächen (Cockpit, Pipeline, App-Katalog, KI-Konfiguration, Prompts,
- * Systemtest, Repo Health) entfallen: sie liegen unter website/src/pages/sdlc/ und werden
+ * Systemtest, Repo Health) entfallen: sie liegen unter components/website/src/pages/sdlc/ und werden
  * bei BUILD_TARGET=prod aus dem Route-Manifest entfernt. Erreichbar sind sie über die
  * lokale SDLC-Console.
  */

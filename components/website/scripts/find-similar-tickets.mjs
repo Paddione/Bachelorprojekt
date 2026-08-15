@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Usage: SESSIONS_DATABASE_URL=... npx tsx website/scripts/find-similar-tickets.mjs "<query text>" [k]
+// Usage: SESSIONS_DATABASE_URL=... npx tsx components/website/scripts/find-similar-tickets.mjs "<query text>" [k]
 // Prints a JSON array of similar tickets to stdout. Fail-soft: prints [] on no embeddings.
 import { findSimilarTickets } from '../src/lib/tickets-embed.ts';
 

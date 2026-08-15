@@ -1,4 +1,4 @@
-# website/
+# components/website/
 
 Astro + Svelte multi-brand website for the Workspace MVP platform.
 Serves two brands at runtime via `BRAND` / `BRAND_ID` env var:

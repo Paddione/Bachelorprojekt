@@ -1,7 +1,7 @@
 # Projekt-Cockpit — Asset-Manifest & Claude-Design-Prompts
 
 > Deko-/UI-Assets für das **Projekt-Cockpit** (`/admin/cockpit`, T000748ff.).
-> Vorbild & gleiche Strenge wie `website/public/factory/MANIFEST.md`.
+> Vorbild & gleiche Strenge wie `components/website/public/factory/MANIFEST.md`.
 > Asset-Erstellung = eigenes Ticket (siehe unten); die Cockpit-Features P1–P4
 > (T000749–T000752) bauen **gegen die hier festgelegten stabilen Pfade**.
 
@@ -32,7 +32,7 @@ funktioniert dort **nur**, weil die Farbe **monochrom Gold hartcodiert** ist
 > **An P3 (T000751 Frontend):** dieser Kontrakt ist als Injection (`--phase implement`)
 > hinterlegt. Bitte Asset-Loader entsprechend bauen, **nicht** `<img>` verwenden.
 
-## Palette (Tokens aus `website/src/styles/global.css`)
+## Palette (Tokens aus `components/website/src/styles/global.css`)
 
 | Rolle | mentolder | korczewski (Kore) |
 |------|-----------|-------------------|
@@ -52,29 +52,29 @@ Health-Farbe kommt von der **Host-Pille** (`color`/`background` per Status), nic
 
 | Pfad | viewBox | Zweck | Alt-Text (DE) |
 |------|---------|-------|---------------|
-| `website/public/cockpit/empty/empty-portfolio.svg` | 0 0 240 160 | Empty state for an entirely empty Portfolio (no products/features yet) — invites creating the first project. | Leeres Portfolio: drei gepunktete Projektkartenumrisse mit einem Plus-Symbol als Hinweis, das erste Projekt anzulegen. |
-| `website/public/cockpit/empty/product-no-features.svg` | 0 0 240 160 | Empty state for a Produkt container that holds zero Features — invites adding the first feature. | Produkt ohne Features: ein geöffneter, leerer Behälter mit gepunkteten Innenlinien und einem aufsteigenden Plus-Symbol. |
-| `website/public/cockpit/empty/feature-no-tickets.svg` | 0 0 240 160 | Empty state for a Feature drilled into with zero leaf tickets — invites creating the first ticket/work package. | Feature ohne Tickets: ein Knoten mit Verzweigungen zu gepunkteten, noch leeren Ticket-Knoten und einem Plus-Knoten zum Anlegen. |
-| `website/public/cockpit/empty/filter-no-results.svg` | 0 0 240 160 | Empty state for a Tabelle/search/filter that returned no matches — invites adjusting search or clearing the filter. | Keine Treffer: eine Lupe über gepunkteten, leeren Listenzeilen mit einem Hinweis, den Filter zurückzusetzen. |
-| `website/public/cockpit/icons/lens-ueberblick.svg` | 0 0 24 24 | Segmented-toggle icon for the calm "Überblick" lens — a portfolio of feature/product cards seen from above. | Überblick-Ansicht: ruhige Portfolio-Kachelübersicht |
-| `website/public/cockpit/icons/lens-werkbank.svg` | 0 0 24 24 | Segmented-toggle icon for the dense "Werkbank" lens — hands-on drill-in / tools view. | Werkbank-Ansicht: detaillierte Bearbeitung mit Werkzeugen |
-| `website/public/cockpit/icons/mode-karten.svg` | 0 0 24 24 | Layout-mode toggle: switch to "Karten" (card list) layout. | Kartenansicht: Einträge als gestapelte Karten |
-| `website/public/cockpit/icons/mode-tabelle.svg` | 0 0 24 24 | Layout-mode toggle: switch to "Tabelle" (rows) layout. | Tabellenansicht: Einträge als Zeilen |
-| `website/public/cockpit/icons/drag-handle.svg` | 0 0 24 24 | Reorder affordance (drag handle) on ticket rows in Werkbank. | Ziehgriff zum Umsortieren |
-| `website/public/cockpit/icons/bulk-select.svg` | 0 0 24 24 | Multi-select control / checkbox-stack for bulk actions in Werkbank. | Mehrfachauswahl: mehrere Einträge markieren |
-| `website/public/cockpit/icons/reparent.svg` | 0 0 24 24 | Move a ticket into another Feature/Produkt (reparent) — arrow entering a bracket/container. | Ticket einem anderen Feature/Produkt zuordnen |
-| `website/public/cockpit/icons/enqueue-factory.svg` | 0 0 24 24 | Send a ticket into the Software-Factory pipeline — arrow entering a cog. | An die Software-Factory übergeben |
-| `website/public/cockpit/icons/drawer-open.svg` | 0 0 24 24 | Open the right-side detail drawer for a ticket. | Detail-Seitenleiste öffnen |
-| `website/public/cockpit/health-green.svg` | 0 0 16 16 | Health badge: on-track / done. Closed full ring + crisp check. Themed via currentColor → sage on both brands. | Gesund — auf Kurs, abgeschlossen |
-| `website/public/cockpit/health-amber.svg` | 0 0 16 16 | Health badge: in progress. Half/open ring arc + centered dot. Openness of the arc is the shape signal. | In Arbeit — läuft |
-| `website/public/cockpit/health-red.svg` | 0 0 16 16 | Health badge: blocked. Ring + two vertical pause-bars (halt), deliberately not a warning triangle. | Blockiert — angehalten |
-| `website/public/cockpit/chip-done.svg` | 0 0 16 16 | Leading glyph for the 'erledigt' count chip. Lone check, no ring, optically light. | Erledigt |
-| `website/public/cockpit/chip-blocked.svg` | 0 0 16 16 | Leading glyph for the 'blockiert' count chip. Two pause-bars, no ring — same halt vocabulary as health-red. | Blockiert |
-| `website/public/cockpit/chip-open.svg` | 0 0 16 16 | Leading glyph for the 'offen' count chip. Single hollow outline circle (not-yet-started token). | Offen |
-| `website/public/cockpit/progress-ring.svg` | 0 0 24 24 | Reusable progress ring template: faint track + clockwise progress arc from 12 o'clock. JS overrides stroke-dasharray/dashoffset per card; comments document C=2·π·r and 0/25/50/75/100 offsets. Single asset, not five. | Fortschritt |
-| `website/public/cockpit/header-backdrop.svg` | 0 0 1280 220 | Optional, extremely subtle decorative header backdrop behind the Projekt-Cockpit 'Überblick' top strip (page title + Überblick/Werkbank + Karten/Tabelle toggles). A faint blueprint/portfolio-grid line motif: fine minor + fainter major drafting grid, 3–5 outline-only abstract 'portfolio cards' (each with a title rule, value-prop rule, and a small progress-ring circle) weighted to the lower band, plus faint registration/axis lines and left-margin tick marks. Outline-only, hairline strokes, overall opacity ~0.05–0.10. Drives all color from currentColor / var(--cockpit-backdrop-ink) so a single asset themes to both brands (mentolder brass, korczewski sage). Crops/tiles gracefully (preserveAspectRatio xMidYMid slice) and degrades to nothing when absent (component onerror-hides). LOW PRIORITY / out-of-MVP polish. | Dezente Blaupausen-Rasterkulisse im Hintergrund der Projekt-Cockpit-Überblicksleiste |
-| `website/public/cockpit/icons/drawer-close.svg` | 0 0 24 24 | Detail-drawer close/dismiss affordance (Werkbank right-side drawer) | (siehe promptSeed) |
-| `website/public/cockpit/icons/bulk-remove.svg` | 0 0 24 24 | Destructive bulk action in the Werkbank multi-select bulk-action bar (remove/archive selected tickets) — reparent + enqueue-factory exist, but the most common bulk verb has no glyph | (siehe promptSeed) |
+| `components/website/public/cockpit/empty/empty-portfolio.svg` | 0 0 240 160 | Empty state for an entirely empty Portfolio (no products/features yet) — invites creating the first project. | Leeres Portfolio: drei gepunktete Projektkartenumrisse mit einem Plus-Symbol als Hinweis, das erste Projekt anzulegen. |
+| `components/website/public/cockpit/empty/product-no-features.svg` | 0 0 240 160 | Empty state for a Produkt container that holds zero Features — invites adding the first feature. | Produkt ohne Features: ein geöffneter, leerer Behälter mit gepunkteten Innenlinien und einem aufsteigenden Plus-Symbol. |
+| `components/website/public/cockpit/empty/feature-no-tickets.svg` | 0 0 240 160 | Empty state for a Feature drilled into with zero leaf tickets — invites creating the first ticket/work package. | Feature ohne Tickets: ein Knoten mit Verzweigungen zu gepunkteten, noch leeren Ticket-Knoten und einem Plus-Knoten zum Anlegen. |
+| `components/website/public/cockpit/empty/filter-no-results.svg` | 0 0 240 160 | Empty state for a Tabelle/search/filter that returned no matches — invites adjusting search or clearing the filter. | Keine Treffer: eine Lupe über gepunkteten, leeren Listenzeilen mit einem Hinweis, den Filter zurückzusetzen. |
+| `components/website/public/cockpit/icons/lens-ueberblick.svg` | 0 0 24 24 | Segmented-toggle icon for the calm "Überblick" lens — a portfolio of feature/product cards seen from above. | Überblick-Ansicht: ruhige Portfolio-Kachelübersicht |
+| `components/website/public/cockpit/icons/lens-werkbank.svg` | 0 0 24 24 | Segmented-toggle icon for the dense "Werkbank" lens — hands-on drill-in / tools view. | Werkbank-Ansicht: detaillierte Bearbeitung mit Werkzeugen |
+| `components/website/public/cockpit/icons/mode-karten.svg` | 0 0 24 24 | Layout-mode toggle: switch to "Karten" (card list) layout. | Kartenansicht: Einträge als gestapelte Karten |
+| `components/website/public/cockpit/icons/mode-tabelle.svg` | 0 0 24 24 | Layout-mode toggle: switch to "Tabelle" (rows) layout. | Tabellenansicht: Einträge als Zeilen |
+| `components/website/public/cockpit/icons/drag-handle.svg` | 0 0 24 24 | Reorder affordance (drag handle) on ticket rows in Werkbank. | Ziehgriff zum Umsortieren |
+| `components/website/public/cockpit/icons/bulk-select.svg` | 0 0 24 24 | Multi-select control / checkbox-stack for bulk actions in Werkbank. | Mehrfachauswahl: mehrere Einträge markieren |
+| `components/website/public/cockpit/icons/reparent.svg` | 0 0 24 24 | Move a ticket into another Feature/Produkt (reparent) — arrow entering a bracket/container. | Ticket einem anderen Feature/Produkt zuordnen |
+| `components/website/public/cockpit/icons/enqueue-factory.svg` | 0 0 24 24 | Send a ticket into the Software-Factory pipeline — arrow entering a cog. | An die Software-Factory übergeben |
+| `components/website/public/cockpit/icons/drawer-open.svg` | 0 0 24 24 | Open the right-side detail drawer for a ticket. | Detail-Seitenleiste öffnen |
+| `components/website/public/cockpit/health-green.svg` | 0 0 16 16 | Health badge: on-track / done. Closed full ring + crisp check. Themed via currentColor → sage on both brands. | Gesund — auf Kurs, abgeschlossen |
+| `components/website/public/cockpit/health-amber.svg` | 0 0 16 16 | Health badge: in progress. Half/open ring arc + centered dot. Openness of the arc is the shape signal. | In Arbeit — läuft |
+| `components/website/public/cockpit/health-red.svg` | 0 0 16 16 | Health badge: blocked. Ring + two vertical pause-bars (halt), deliberately not a warning triangle. | Blockiert — angehalten |
+| `components/website/public/cockpit/chip-done.svg` | 0 0 16 16 | Leading glyph for the 'erledigt' count chip. Lone check, no ring, optically light. | Erledigt |
+| `components/website/public/cockpit/chip-blocked.svg` | 0 0 16 16 | Leading glyph for the 'blockiert' count chip. Two pause-bars, no ring — same halt vocabulary as health-red. | Blockiert |
+| `components/website/public/cockpit/chip-open.svg` | 0 0 16 16 | Leading glyph for the 'offen' count chip. Single hollow outline circle (not-yet-started token). | Offen |
+| `components/website/public/cockpit/progress-ring.svg` | 0 0 24 24 | Reusable progress ring template: faint track + clockwise progress arc from 12 o'clock. JS overrides stroke-dasharray/dashoffset per card; comments document C=2·π·r and 0/25/50/75/100 offsets. Single asset, not five. | Fortschritt |
+| `components/website/public/cockpit/header-backdrop.svg` | 0 0 1280 220 | Optional, extremely subtle decorative header backdrop behind the Projekt-Cockpit 'Überblick' top strip (page title + Überblick/Werkbank + Karten/Tabelle toggles). A faint blueprint/portfolio-grid line motif: fine minor + fainter major drafting grid, 3–5 outline-only abstract 'portfolio cards' (each with a title rule, value-prop rule, and a small progress-ring circle) weighted to the lower band, plus faint registration/axis lines and left-margin tick marks. Outline-only, hairline strokes, overall opacity ~0.05–0.10. Drives all color from currentColor / var(--cockpit-backdrop-ink) so a single asset themes to both brands (mentolder brass, korczewski sage). Crops/tiles gracefully (preserveAspectRatio xMidYMid slice) and degrades to nothing when absent (component onerror-hides). LOW PRIORITY / out-of-MVP polish. | Dezente Blaupausen-Rasterkulisse im Hintergrund der Projekt-Cockpit-Überblicksleiste |
+| `components/website/public/cockpit/icons/drawer-close.svg` | 0 0 24 24 | Detail-drawer close/dismiss affordance (Werkbank right-side drawer) | (siehe promptSeed) |
+| `components/website/public/cockpit/icons/bulk-remove.svg` | 0 0 24 24 | Destructive bulk action in the Werkbank multi-select bulk-action bar (remove/archive selected tickets) — reparent + enqueue-factory exist, but the most common bulk verb has no glyph | (siehe promptSeed) |
 
 ## Bewusst KEIN Asset (reines CSS — nicht generieren)
 
@@ -119,7 +119,7 @@ Therefore the cockpit component will **inline-inject** these SVGs (fetch the fil
   (a) DUAL-BRAND THEMING via `currentColor` / CSS vars is the goal AND it only works inline — so use it (details in §4). 
   (b) BECAUSE `currentColor` falls back to a near-black value on a dark surface if the host ever forgets to set `color` (or a future refactor wrongly uses `<img>`), you MUST make the SVG fail to a VISIBLE hue, never to invisible black. Do this by setting a default `color` on the root `<svg>` itself via the `style` attribute: `style="color: var(--cockpit-fg, #c8ad7a)"`. This means: the host's brand `color` wins when present; otherwise it falls back to the CSS var; otherwise to a warm brass-neutral `#c8ad7a` that is clearly visible on dark. (`#c8ad7a` is a deliberately neutral warm grey-gold that flatters both brands as a *fallback only* — it is NOT a brand color and is never used as the primary fill anywhere else; all actual lines still reference `currentColor`, which now resolves to this default when unstyled.) This is the ONE place a hex literal is permitted, and only inside the `color:` fallback on the root element.
 
-=== NON-NEGOTIABLE TECHNICAL CONTRACT (mirror the existing `website/public/factory/MANIFEST.md` rigor exactly) ===
+=== NON-NEGOTIABLE TECHNICAL CONTRACT (mirror the existing `components/website/public/factory/MANIFEST.md` rigor exactly) ===
 1. Output = clean, hand-authored SVG. One single `<svg>` element per file. No `<image>`, no embedded raster/base64, no `<foreignObject>`, no external fonts, no `<text>` at all (headlines live in the DOM, not the asset). Target < 8 KB per file (aim for 3–5 KB).
 2. viewBox = `0 0 240 160` on every file. NO fixed `width`/`height` attributes (they fight CSS sizing). Set `preserveAspectRatio="xMidYMid meet"`. Add `role="img"`. Provide an accessible name via a `<title>` element as the FIRST child of the `<svg>` (using the supplied German text) — do NOT also put an `aria-label` on the `<svg>` (the host wrapper owns the live a11y name; see §6 so the name is announced once, not twice). Include `xmlns="http://www.w3.org/2000/svg"`.
 3. Transparent background — never draw a filled background rect. The component places these on `--color-dark` (#0b111c).
@@ -140,28 +140,28 @@ Therefore the cockpit component will **inline-inject** these SVGs (fetch the fil
 8. Optical framing: keep all artwork inside an inner margin of ~24px (i.e. roughly x:24–216, y:20–140) so nothing clips when the component scales it down to ~180px wide. Center the composition; let the bottom ~20px breathe (the DOM headline + subline sit directly beneath the image).
 
 === GRACEFUL DEGRADATION (the cockpit relies on this like the factory floor, adapted for inline injection) ===
-Each file lives at a STABLE path under `website/public/cockpit/empty/`. The Svelte component fetches the file and inline-injects it; if the fetch fails or returns non-SVG, the component silently swaps in a CSS placeholder (the inline-injection analogue of the factory floor's `<img onerror>` fallback — note that `onerror` does NOT fire for inline-injected markup, so the component uses a fetch/parse-failure guard instead). Do not change these paths or filenames. Independently, because the root `<svg>` carries the `color: var(--cockpit-fg, #c8ad7a)` visible-fallback default, the asset ALSO degrades gracefully (visible, not black) if it is ever rendered with no host theming at all.
+Each file lives at a STABLE path under `components/website/public/cockpit/empty/`. The Svelte component fetches the file and inline-injects it; if the fetch fails or returns non-SVG, the component silently swaps in a CSS placeholder (the inline-injection analogue of the factory floor's `<img onerror>` fallback — note that `onerror` does NOT fire for inline-injected markup, so the component uses a fetch/parse-failure guard instead). Do not change these paths or filenames. Independently, because the root `<svg>` carries the `color: var(--cockpit-fg, #c8ad7a)` visible-fallback default, the asset ALSO degrades gracefully (visible, not black) if it is ever rendered with no host theming at all.
 
 === THE FOUR FILES — author each precisely as specified ===
 
-1) FILE: `website/public/cockpit/empty/empty-portfolio.svg`
+1) FILE: `components/website/public/cockpit/empty/empty-portfolio.svg`
    viewBox `0 0 240 160`. DEPICTS: the whole Portfolio is bare. Draw a sparse 3-up row of card outlines as dotted/dashed rounded rectangles (`stroke-dasharray="4 6"`, currentColor @ ~0.4 opacity), each with two faint short dashed lines inside hinting at a title + value-prop that aren't written yet. Above/behind them, one very faint solid baseline shelf line (currentColor @ ~0.22). The single accent: in the first (leftmost) card, a small solid rounded "+" spark drawn with `stroke="var(--cockpit-accent, currentColor)"`, stroke-width 2 — the invitation to create the first project. Composition reads wide and calm. `<title>` text: "Leeres Portfolio: drei gepunktete Projektkartenumrisse mit einem Plus-Symbol als Hinweis, das erste Projekt anzulegen."
    Suggested DOM copy (NOT in the SVG): Headline „Noch keine Projekte" · Subline „Lege dein erstes Produkt an, um loszulegen."
 
-2) FILE: `website/public/cockpit/empty/product-no-features.svg`
+2) FILE: `components/website/public/cockpit/empty/product-no-features.svg`
    viewBox `0 0 240 160`. DEPICTS: a Produkt container exists but holds zero Features. Draw ONE solid, open folder/container (rounded rectangle with a lifted tab/lid), currentColor solid stroke-width 2 — clearly a real, present box. Inside it: emptiness expressed as two or three short dotted shelf lines (`stroke-dasharray="4 6"`, ~0.35 opacity) where Feature rows would sit. Single accent: a gentle upward chevron/tick or a small "+" rising out of the open container, `stroke="var(--cockpit-accent, currentColor)"` — "add the first feature here". Distinct from #1 because it is ONE solid object, not a row of dotted ones. `<title>` text: "Produkt ohne Features: ein geöffneter, leerer Behälter mit gepunkteten Innenlinien und einem aufsteigenden Plus-Symbol."
    Suggested DOM copy: Headline „Dieses Produkt ist noch leer" · Subline „Füge das erste Feature hinzu."
 
-3) FILE: `website/public/cockpit/empty/feature-no-tickets.svg`
+3) FILE: `components/website/public/cockpit/empty/feature-no-tickets.svg`
    viewBox `0 0 240 160`. DEPICTS: a Feature drilled into, with zero leaf tickets. Draw a small solid parent node (rounded square or circle) near the top-center, currentColor solid stroke-width 2, with two or three solid connector lines branching downward — but the leaf ends terminate in DOTTED leaf-node outlines (small dotted circles/rounded squares, `stroke-dasharray="3 5"`, ~0.4 opacity): the branches reach toward tickets that don't exist yet. Single accent: one of the leaf stubs is a solid small "+" node in `stroke="var(--cockpit-accent, currentColor)"` — start the first ticket. Tree/branch silhouette makes it unmistakably different from the folder (#2) and the card-row (#1). `<title>` text: "Feature ohne Tickets: ein Knoten mit Verzweigungen zu gepunkteten, noch leeren Ticket-Knoten und einem Plus-Knoten zum Anlegen."
    Suggested DOM copy: Headline „Keine Tickets in diesem Feature" · Subline „Zerlege es in erste Arbeitspakete."
 
-4) FILE: `website/public/cockpit/empty/filter-no-results.svg`
+4) FILE: `components/website/public/cockpit/empty/filter-no-results.svg`
    viewBox `0 0 240 160`. DEPICTS: a Tabelle/search returned nothing. Draw a clean magnifying glass (solid circle lens + handle, currentColor stroke-width 2) hovering over a short stack of list rows whose content has collapsed to dotted ghost lines (`stroke-dasharray="4 6"`, ~0.3 opacity) — the rows exist as a list shape but hold no matches. Optionally a faint funnel hint behind the rows (currentColor @ ~0.22) to read as "filter active". Single accent: a small reset/clear gesture — e.g. a short curved arrow or a tiny "×" on the lens — in `stroke="var(--cockpit-accent, currentColor)"`, suggesting "clear the filter". The search-gesture silhouette is categorically different from the other three (no plus-to-create here; this one is about loosening a filter). `<title>` text: "Keine Treffer: eine Lupe über gepunkteten, leeren Listenzeilen mit einem Hinweis, den Filter zurückzusetzen."
    Suggested DOM copy: Headline „Keine Treffer" · Subline „Passe Suche oder Filter an."
 
 === OUTPUT FORMAT ===
-Return the four files as four separate fenced code blocks, each preceded by its full path comment (`<!-- website/public/cockpit/empty/<name>.svg -->`). No prose between blocks beyond the path. Verify before returning: each file is a single SVG whose root is exactly `<svg viewBox="0 0 240 160" role="img" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="color: var(--cockpit-fg, #c8ad7a)">` with a `<title>` as the FIRST child (no `aria-label` on the `<svg>`); every primary line uses `stroke="currentColor"`; the single accent uses `stroke="var(--cockpit-accent, currentColor)"`; the ONLY hex literal in the file is `#c8ad7a` inside the root `style` `color:` fallback; no `oklch`/other brand hex/raster/external font/`<text>` anywhere; no `width`/`height`; and the byte size is well under 8 KB. The four must be mutually distinguishable by shape with all color stripped to a single hue. Final mental test: rendered inline with `color` unset, every line is visibly warm-neutral on #0b111c (not black); with the host setting brand `color` + `--cockpit-accent`, the whole asset and its single accent re-theme correctly for both mentolder and korczewski.
+Return the four files as four separate fenced code blocks, each preceded by its full path comment (`<!-- components/website/public/cockpit/empty/<name>.svg -->`). No prose between blocks beyond the path. Verify before returning: each file is a single SVG whose root is exactly `<svg viewBox="0 0 240 160" role="img" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="color: var(--cockpit-fg, #c8ad7a)">` with a `<title>` as the FIRST child (no `aria-label` on the `<svg>`); every primary line uses `stroke="currentColor"`; the single accent uses `stroke="var(--cockpit-accent, currentColor)"`; the ONLY hex literal in the file is `#c8ad7a` inside the root `style` `color:` fallback; no `oklch`/other brand hex/raster/external font/`<text>` anywhere; no `width`/`height`; and the byte size is well under 8 KB. The four must be mutually distinguishable by shape with all color stripped to a single hue. Final mental test: rendered inline with `color` unset, every line is visibly warm-neutral on #0b111c (not black); with the host setting brand `color` + `--cockpit-accent`, the whole asset and its single accent re-theme correctly for both mentolder and korczewski.
 ```
 
 ## 2) Control- & Edit-Icon-Set (Linsen, Modi, Drag, Bulk, Reparent, Factory, Drawer)
@@ -189,7 +189,7 @@ These icons are themed by the host page's CSS `color` (mentolder Brass-Gold `okl
 Calm, crafted, engineering-precise. Explicitly AVOID generic AI-dashboard / clip-art / gradient / drop-shadow / skeuomorphic looks. No filters, gradients, or masks unless truly unavoidable. Geometric, confident, minimal. Optically normalize visual weight: a grid icon and a single-arrow icon should feel equally "heavy" on the bar.
 
 === FILE PATHS (write exactly here) ===
-All under `website/public/cockpit/icons/`. Stable paths so the component can degrade gracefully (see degradation note).
+All under `components/website/public/cockpit/icons/`. Stable paths so the component can degrade gracefully (see degradation note).
 
 === THE 9 GLYPHS (one family) ===
 Lens toggle (segmented control "Überblick ↔ Werkbank"):
@@ -221,15 +221,15 @@ Return all 9 SVGs as separate files at the exact paths above, plus a one-line co
 
 FILE LIST:
 [
-  { "path": "website/public/cockpit/icons/lens-ueberblick.svg", "purpose": "Segmented-toggle icon for the calm \"Überblick\" lens — a portfolio of feature/product cards seen from above.", "viewBox": "0 0 24 24", "alt": "Überblick-Ansicht: ruhige Portfolio-Kachelübersicht" },
-  { "path": "website/public/cockpit/icons/lens-werkbank.svg", "purpose": "Segmented-toggle icon for the dense \"Werkbank\" lens — hands-on drill-in / tools view.", "viewBox": "0 0 24 24", "alt": "Werkbank-Ansicht: detaillierte Bearbeitung mit Werkzeugen" },
-  { "path": "website/public/cockpit/icons/mode-karten.svg", "purpose": "Layout-mode toggle: switch to \"Karten\" (card list) layout.", "viewBox": "0 0 24 24", "alt": "Kartenansicht: Einträge als gestapelte Karten" },
-  { "path": "website/public/cockpit/icons/mode-tabelle.svg", "purpose": "Layout-mode toggle: switch to \"Tabelle\" (rows) layout.", "viewBox": "0 0 24 24", "alt": "Tabellenansicht: Einträge als Zeilen" },
-  { "path": "website/public/cockpit/icons/drag-handle.svg", "purpose": "Reorder affordance (drag handle) on ticket rows in Werkbank.", "viewBox": "0 0 24 24", "alt": "Ziehgriff zum Umsortieren" },
-  { "path": "website/public/cockpit/icons/bulk-select.svg", "purpose": "Multi-select control / checkbox-stack for bulk actions in Werkbank.", "viewBox": "0 0 24 24", "alt": "Mehrfachauswahl: mehrere Einträge markieren" },
-  { "path": "website/public/cockpit/icons/reparent.svg", "purpose": "Move a ticket into another Feature/Produkt (reparent) — arrow entering a bracket/container.", "viewBox": "0 0 24 24", "alt": "Ticket einem anderen Feature/Produkt zuordnen" },
-  { "path": "website/public/cockpit/icons/enqueue-factory.svg", "purpose": "Send a ticket into the Software-Factory pipeline — arrow entering a cog.", "viewBox": "0 0 24 24", "alt": "An die Software-Factory übergeben" },
-  { "path": "website/public/cockpit/icons/drawer-open.svg", "purpose": "Open the right-side detail drawer for a ticket.", "viewBox": "0 0 24 24", "alt": "Detail-Seitenleiste öffnen" }
+  { "path": "components/website/public/cockpit/icons/lens-ueberblick.svg", "purpose": "Segmented-toggle icon for the calm \"Überblick\" lens — a portfolio of feature/product cards seen from above.", "viewBox": "0 0 24 24", "alt": "Überblick-Ansicht: ruhige Portfolio-Kachelübersicht" },
+  { "path": "components/website/public/cockpit/icons/lens-werkbank.svg", "purpose": "Segmented-toggle icon for the dense \"Werkbank\" lens — hands-on drill-in / tools view.", "viewBox": "0 0 24 24", "alt": "Werkbank-Ansicht: detaillierte Bearbeitung mit Werkzeugen" },
+  { "path": "components/website/public/cockpit/icons/mode-karten.svg", "purpose": "Layout-mode toggle: switch to \"Karten\" (card list) layout.", "viewBox": "0 0 24 24", "alt": "Kartenansicht: Einträge als gestapelte Karten" },
+  { "path": "components/website/public/cockpit/icons/mode-tabelle.svg", "purpose": "Layout-mode toggle: switch to \"Tabelle\" (rows) layout.", "viewBox": "0 0 24 24", "alt": "Tabellenansicht: Einträge als Zeilen" },
+  { "path": "components/website/public/cockpit/icons/drag-handle.svg", "purpose": "Reorder affordance (drag handle) on ticket rows in Werkbank.", "viewBox": "0 0 24 24", "alt": "Ziehgriff zum Umsortieren" },
+  { "path": "components/website/public/cockpit/icons/bulk-select.svg", "purpose": "Multi-select control / checkbox-stack for bulk actions in Werkbank.", "viewBox": "0 0 24 24", "alt": "Mehrfachauswahl: mehrere Einträge markieren" },
+  { "path": "components/website/public/cockpit/icons/reparent.svg", "purpose": "Move a ticket into another Feature/Produkt (reparent) — arrow entering a bracket/container.", "viewBox": "0 0 24 24", "alt": "Ticket einem anderen Feature/Produkt zuordnen" },
+  { "path": "components/website/public/cockpit/icons/enqueue-factory.svg", "purpose": "Send a ticket into the Software-Factory pipeline — arrow entering a cog.", "viewBox": "0 0 24 24", "alt": "An die Software-Factory übergeben" },
+  { "path": "components/website/public/cockpit/icons/drawer-open.svg", "purpose": "Open the right-side detail drawer for a ticket.", "viewBox": "0 0 24 24", "alt": "Detail-Seitenleiste öffnen" }
 ]
 ```
 
@@ -239,7 +239,7 @@ FILE LIST:
 — COPY-PASTE PROMPT FOR CLAUDE DESIGN —
 
 ROLE
-You are authoring a small set of production-grade, hand-written SVG status glyphs for an internal admin project-management view ("Projekt-Cockpit"). These glyphs label HEALTH and STATUS on a dark UI. They must be a11y-correct: health/state must be readable by SHAPE alone, never color alone, because they sit inside chips whose background is the only other color signal. Mirror the rigor of an existing in-repo manifest (`website/public/factory/MANIFEST.md`): "monochrom auf transparent, < 8 KB, reines SVG, kein Raster, States per Form trennbar (a11y)".
+You are authoring a small set of production-grade, hand-written SVG status glyphs for an internal admin project-management view ("Projekt-Cockpit"). These glyphs label HEALTH and STATUS on a dark UI. They must be a11y-correct: health/state must be readable by SHAPE alone, never color alone, because they sit inside chips whose background is the only other color signal. Mirror the rigor of an existing in-repo manifest (`components/website/public/factory/MANIFEST.md`): "monochrom auf transparent, < 8 KB, reines SVG, kein Raster, States per Form trennbar (a11y)".
 
 SCOPE: produce EXACTLY 7 files (the full FILE LIST below). The five progress percentages 0/25/50/75/100 are NOT separate files — they are ONE reusable progress-ring template driven by JS, documented in comments. Do not invent, split, or add any file beyond the 7 listed.
 
@@ -279,19 +279,19 @@ A reusable circular progress ring the component will drive by JS (it overrides `
 - The template alone (no fill text) must look intentional at any size.
 
 GRACEFUL DEGRADATION
-These are served from stable paths under `website/public/cockpit/` so the Svelte component can `onerror`-hide the `<img>` and fall back to a CSS placeholder (the exact pattern the factory floor uses: `<img src="/cockpit/health-green.svg" onerror={assetFallback} …>`). Use EXACTLY the file paths and `<title>` strings in the list below — the component hardcodes them.
+These are served from stable paths under `components/website/public/cockpit/` so the Svelte component can `onerror`-hide the `<img>` and fall back to a CSS placeholder (the exact pattern the factory floor uses: `<img src="/cockpit/health-green.svg" onerror={assetFallback} …>`). Use EXACTLY the file paths and `<title>` strings in the list below — the component hardcodes them.
 
 DELIVER
 Output each file as a separate fenced code block, prefixed by its path comment. Produce all 7 files listed below (no more, no fewer), each meeting the contract above. After the files, give a 2-line note confirming (a) every visible color is `currentColor` or a `var(--…, currentColor)` override (no baked brand hex) and (b) the three health silhouettes survive grayscale.
 
 FILE LIST (path · viewBox · what to draw · German <title>/alt)
-1. website/public/cockpit/health-green.svg · 0 0 16 16 · closed full ring with a crisp check inside (complete / on track) · "Gesund — auf Kurs, abgeschlossen"
-2. website/public/cockpit/health-amber.svg · 0 0 16 16 · half/open ring arc with a single centered dot (in progress) · "In Arbeit — läuft"
-3. website/public/cockpit/health-red.svg · 0 0 16 16 · ring with two vertical pause-bars (blocked / halted) — NOT a warning triangle · "Blockiert — angehalten"
-4. website/public/cockpit/chip-done.svg · 0 0 16 16 · lone crisp check, no ring (count chip "erledigt") · "Erledigt"
-5. website/public/cockpit/chip-blocked.svg · 0 0 16 16 · two vertical pause-bars, no ring (count chip "blockiert") · "Blockiert"
-6. website/public/cockpit/chip-open.svg · 0 0 16 16 · single hollow outline circle (count chip "offen") · "Offen"
-7. website/public/cockpit/progress-ring.svg · 0 0 24 24 · two concentric strokes: faint track + clockwise progress arc from 12 o'clock, default ~50%, dasharray/offset driven by JS, math documented in comments · "Fortschritt"
+1. components/website/public/cockpit/health-green.svg · 0 0 16 16 · closed full ring with a crisp check inside (complete / on track) · "Gesund — auf Kurs, abgeschlossen"
+2. components/website/public/cockpit/health-amber.svg · 0 0 16 16 · half/open ring arc with a single centered dot (in progress) · "In Arbeit — läuft"
+3. components/website/public/cockpit/health-red.svg · 0 0 16 16 · ring with two vertical pause-bars (blocked / halted) — NOT a warning triangle · "Blockiert — angehalten"
+4. components/website/public/cockpit/chip-done.svg · 0 0 16 16 · lone crisp check, no ring (count chip "erledigt") · "Erledigt"
+5. components/website/public/cockpit/chip-blocked.svg · 0 0 16 16 · two vertical pause-bars, no ring (count chip "blockiert") · "Blockiert"
+6. components/website/public/cockpit/chip-open.svg · 0 0 16 16 · single hollow outline circle (count chip "offen") · "Offen"
+7. components/website/public/cockpit/progress-ring.svg · 0 0 24 24 · two concentric strokes: faint track + clockwise progress arc from 12 o'clock, default ~50%, dasharray/offset driven by JS, math documented in comments · "Fortschritt"
 
 (7 files total. The five progress stops 0/25/50/75/100 are ONE reusable ring driven by JS — documented in comments — not separate assets.)
 ```
@@ -304,7 +304,7 @@ You are authoring ONE production-grade, hand-written SVG decorative asset for an
 This is LOW PRIORITY / OUT-OF-MVP POLISH. If the file is absent the page must look completely fine — degrade to nothing. Author it so its absence is a non-event and its presence is a whisper.
 
 === DELIVERABLE ===
-A single file: `website/public/cockpit/header-backdrop.svg`
+A single file: `components/website/public/cockpit/header-backdrop.svg`
 
 === ⚠️ CRITICAL THEMING CONSTRAINT — READ FIRST (this is the #1 thing prompts get wrong here) ===
 This asset MUST theme to TWO brands (mentolder = brass-gold, korczewski = sage-green) from ONE file. The naive way — `stroke="currentColor"` and hoping the page's `color:` flows in — DOES NOT WORK for the way this component delivers the asset, and you must design around that:
@@ -343,10 +343,10 @@ A calm, crafted "blueprint of a portfolio" — an architect's drafting sheet mee
 - Because color is applied by the host, judge the stencil by how the SHAPE/luminance reads; it must look equally at home once painted brass-on-ink (mentolder) or sage-on-ink (korczewski).
 
 === REFERENCE PATTERN (mirror its rigor) ===
-The sibling asset set at `website/public/factory/MANIFEST.md` defines station/workpiece icons as "monochrom in Gold auf transparent, < 8 KB, reines SVG, kein Raster, States per Form trennbar (a11y)." Mirror that file-size/no-raster/clean-SVG rigor. NOTE the key difference: the factory icons are single-brand baked-in gold consumed via `<img>` (which is exactly why they can't theme). THIS asset is dual-brand and therefore uses the mask approach above instead. Do not copy the factory `<img>` consumption — copy only its craft and constraints.
+The sibling asset set at `components/website/public/factory/MANIFEST.md` defines station/workpiece icons as "monochrom in Gold auf transparent, < 8 KB, reines SVG, kein Raster, States per Form trennbar (a11y)." Mirror that file-size/no-raster/clean-SVG rigor. NOTE the key difference: the factory icons are single-brand baked-in gold consumed via `<img>` (which is exactly why they can't theme). THIS asset is dual-brand and therefore uses the mask approach above instead. Do not copy the factory `<img>` consumption — copy only its craft and constraints.
 
 === OUTPUT FORMAT ===
-Return only the complete SVG source for `website/public/cockpit/header-backdrop.svg`, ready to save, under 8 KB. At the top of the file include:
+Return only the complete SVG source for `components/website/public/cockpit/header-backdrop.svg`, ready to save, under 8 KB. At the top of the file include:
 - a brief comment block stating: this is a CSS-MASK stencil (consume via `mask-image` + `background-color: var(--cockpit-backdrop-ink)`, NOT `<img>`; white stencil = revealed, transparent = hidden; brand hue + ~0.07 opacity applied by host);
 - the German alt/description as an HTML comment for the MANIFEST: `<!-- alt: Dezente Blaupausen-Rasterkulisse im Hintergrund der Projekt-Cockpit-Überblicksleiste -->`.
 Then, AFTER the SVG, on its own line, repeat the German alt text so it can be copied into the component's MANIFEST:
@@ -355,7 +355,7 @@ Dezente Blaupausen-Rasterkulisse im Hintergrund der Projekt-Cockpit-Überblicksl
 FILE LIST:
 [
   {
-    "path": "website/public/cockpit/header-backdrop.svg",
+    "path": "components/website/public/cockpit/header-backdrop.svg",
     "purpose": "Optional, extremely subtle decorative header backdrop behind the Projekt-Cockpit 'Überblick' top strip (page title + Überblick/Werkbank + Karten/Tabelle toggles). A faint blueprint/portfolio-grid LUMINANCE-MASK stencil: minor (40px) + major (160px) drafting grid as <pattern>s, 3–5 outline-only abstract 'portfolio cards' (each with a title rule, value-prop rule, and a small progress-ring circle) weighted to the lower band, plus faint registration/axis lines and left-margin tick marks. Outline-only, hairline white strokes on transparency (stencil — white reveals, transparent hides). DUAL-BRAND by design: consumed as a CSS mask-image on a host element that paints `background-color: var(--cockpit-backdrop-ink)` (mentolder brass / korczewski sage) at `--cockpit-backdrop-opacity` ~0.07, so ONE file themes to both brands. NOT consumed as <img> and NOT reliant on currentColor inheritance (which does not cross the img/mask boundary). Crops/tiles gracefully (preserveAspectRatio xMidYMid slice, repeat-x seam-safe) and degrades to nothing when absent (no mask = no paint). LOW PRIORITY / out-of-MVP polish.",
     "viewBox": "0 0 1280 220",
     "alt": "Dezente Blaupausen-Rasterkulisse im Hintergrund der Projekt-Cockpit-Überblicksleiste"
@@ -367,11 +367,11 @@ FILE LIST:
 
 Zwei kleine Lücken im Icon-Set — dieselben Format-/Integrationsregeln wie Set 2:
 
-### `website/public/cockpit/icons/drawer-close.svg`
+### `components/website/public/cockpit/icons/drawer-close.svg`
 
 Mirror of drawer-open.svg: a panel collapsing to the right edge — a vertical bar at the right with a chevron pointing rightward (out of view) plus a small inner content rule fading toward it; viewBox 0 0 24 24, stroke=currentColor hairline, shape-distinct from drawer-open (which points content INWARD); German alt: 'Detail-Bereich schließen'. The open/close pair must be tellable apart by chevron direction alone (a11y, not color).
 
-### `website/public/cockpit/icons/bulk-remove.svg`
+### `components/website/public/cockpit/icons/bulk-remove.svg`
 
 Bulk-archive/remove for the selected-rows action bar: a stack of two offset row-rectangles with a single clean diagonal strike-through OR a small open box-with-lid (Archiv) over them — deliberately NOT a trash-can clip-art and NOT a red warning; viewBox 0 0 24 24, stroke=currentColor hairline, transparent bg; reads as a row-batch operation, not a single delete; German alt: 'Ausgewählte Tickets archivieren'. Must share the offset-row-stack vocabulary of bulk-select.svg so the bar reads as one family.
 

@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/reconciler.test.ts
+// components/website/src/lib/systemtest/reconciler.test.ts
 //
 // DB-gated tests for `runReconciler` — the safety net that catches
 // resolution=fixed updates which bypassed the retest trigger.

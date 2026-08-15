@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/tickets/[id]/transition.ts
+// components/website/src/pages/api/admin/tickets/[id]/transition.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { transitionTicket } from '../../../../../lib/tickets/transition.ts';

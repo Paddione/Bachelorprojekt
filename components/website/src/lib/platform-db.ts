@@ -35,7 +35,7 @@ export interface HardwareAsset {
 }
 
 // Idempotent platform-schema bootstrap + guarded German description seed.
-// DDL mirrors website/src/db/migrations/20260521_create_platform_assets.sql so the
+// DDL mirrors components/website/src/db/migrations/20260521_create_platform_assets.sql so the
 // tables are reproducible on a fresh DB. Descriptions are set ONLY where still NULL
 // or the known English placeholder — never overwriting an admin edit. Wrapped in
 // ensureSchemaOnce so it runs at most once per process (see website-db.ts T000304).

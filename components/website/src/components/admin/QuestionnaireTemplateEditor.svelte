@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/QuestionnaireTemplateEditor.svelte -->
+<!-- components/website/src/components/admin/QuestionnaireTemplateEditor.svelte -->
 <script lang="ts">
   type Dim = { id?: string; name: string; position: number; threshold_mid: number | null; threshold_high: number | null; score_multiplier: number };
   type AnswerOpt = { option_key: string; label: string; dimension_id: string | null; weight: number };

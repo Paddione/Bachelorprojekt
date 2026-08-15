@@ -1,4 +1,4 @@
-// website/src/lib/questionnaire-display.ts
+// components/website/src/lib/questionnaire-display.ts
 // getDisplayScores — reads DB state for an assignment and produces the
 // DimensionScore[] used by admin pages. Lives here (not in compute-scores.ts)
 // to keep the pure scorer free of DB imports and avoid import cycles between

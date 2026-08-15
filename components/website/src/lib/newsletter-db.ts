@@ -1,4 +1,4 @@
-// website/src/lib/newsletter-db.ts
+// components/website/src/lib/newsletter-db.ts
 import pg from 'pg';
 import { resolve4 } from 'dns';
 import { sendNewsletterCampaign } from './email';

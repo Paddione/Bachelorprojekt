@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/meetings/create.ts
+// components/website/src/pages/api/admin/meetings/create.ts
 //
 // Manually create a meeting from the admin /admin/meetings UI.
 // Persists into both the `meetings` table (so it shows on /admin/meetings,

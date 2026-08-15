@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/inbox/count.ts
+// components/website/src/pages/api/admin/inbox/count.ts
 // Lightweight endpoint that returns the current pending counts grouped by
 // inbox type plus the total. Used by the AdminLayout sidebar badge to
 // stay in sync after a client-side action without re-fetching the full list.

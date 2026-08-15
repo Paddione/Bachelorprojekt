@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/TicketActivityTimeline.svelte -->
+<!-- components/website/src/components/admin/TicketActivityTimeline.svelte -->
 <script lang="ts">
   import type { TimelineEntry } from '../../lib/tickets/admin';
   import { renderMarkdown } from '../../lib/markdown';

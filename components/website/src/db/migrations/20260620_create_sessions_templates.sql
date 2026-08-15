@@ -1,9 +1,9 @@
 -- Migration: create sessions.templates (brainstorm session templates with 5 defaults).
 -- Apply manually (no auto-runner) per brand on BOTH namespaces:
 --   kubectl exec -n workspace deploy/shared-db -- \
---     psql -U website -d website -f - < website/src/db/migrations/20260620_create_sessions_templates.sql
+--     psql -U website -d website -f - < components/website/src/db/migrations/20260620_create_sessions_templates.sql
 --   kubectl exec -n workspace-korczewski deploy/shared-db -- \
---     psql -U website -d website -f - < website/src/db/migrations/20260620_create_sessions_templates.sql
+--     psql -U website -d website -f - < components/website/src/db/migrations/20260620_create_sessions_templates.sql
 
 CREATE SCHEMA IF NOT EXISTS sessions;
 

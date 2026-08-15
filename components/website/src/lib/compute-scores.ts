@@ -1,4 +1,4 @@
-// website/src/lib/compute-scores.ts
+// components/website/src/lib/compute-scores.ts
 // Pure scoring logic — no DB access, no imports from sibling lib modules.
 // Consumers fetch their own data and pass it to computeScores().
 

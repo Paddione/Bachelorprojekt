@@ -9,7 +9,7 @@ if (!CLIENT_SECRET) {
   // Fail hard at boot instead of silently falling back to a well-known dev
   // secret (removed 2026-07, T001593). Dev clusters get the secret from
   // k3d/website-dev-secrets.yaml; prod via SealedSecret (environments/schema.yaml:
-  // POCKET_ID_WEBSITE_SECRET). For local `pnpm dev` see website/.env.example.
+  // POCKET_ID_WEBSITE_SECRET). For local `pnpm dev` see components/website/.env.example.
   throw new Error(
     'POCKET_ID_WEBSITE_SECRET (or legacy WEBSITE_OIDC_SECRET) is not set — refusing to start without an OIDC client secret',
   );

@@ -1,4 +1,4 @@
-// website/src/components/inbox/inbox-actions.test.ts
+// components/website/src/components/inbox/inbox-actions.test.ts
 import { describe, it, expect } from 'vitest';
 import { primaryActionFor, canQuickDone } from './inbox-actions';
 import type { InboxType } from '../../lib/messaging-db';

@@ -56,7 +56,7 @@ Antworte AUSSCHLIESSLICH mit einem JSON-Objekt:
 Regeln:
 - priority: low (kosmetisch), medium (beeutraechtigend), high (blockierend), critical (Datenverlust)
 - severity: critical (Systemausfall), major (Funktion kaputt), minor (Einschraenkung), trivial (kosmetisch)
-- component: ein Wort oder Slash-Pfad, max 20 Zeichen, z.B. website/auth, brett, api, admin
+- component: ein Wort oder Slash-Pfad, max 20 Zeichen, z.B. components/website/auth, brett, api, admin
 - reasoning: max 120 Zeichen`;
 
   let parsed: { priority: string; severity: string; component: string; reasoning: string } | null = null;

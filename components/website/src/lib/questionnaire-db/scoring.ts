@@ -1,4 +1,4 @@
-// website/src/lib/questionnaire-db/scoring.ts
+// components/website/src/lib/questionnaire-db/scoring.ts
 // Scoring / evaluation workflows and test-evidence reads.
 // Sibling modules: queries.ts (CRUD + assignment transactions),
 // schema.ts (pool), types.ts (interfaces).

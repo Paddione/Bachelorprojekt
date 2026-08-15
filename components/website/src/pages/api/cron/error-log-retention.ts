@@ -1,4 +1,4 @@
-// website/src/pages/api/cron/error-log-retention.ts
+// components/website/src/pages/api/cron/error-log-retention.ts
 import type { APIRoute } from 'astro';
 import { getErrorLogPool } from '../../../lib/logging/error-log-store';
 

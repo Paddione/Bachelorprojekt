@@ -1,4 +1,4 @@
-// website/src/pages/api/portal/messages.ts
+// components/website/src/pages/api/portal/messages.ts
 import type { APIRoute } from 'astro';
 import { getSession } from '../../../lib/auth';
 import { getThreadByCustomerId, getOrCreateThreadForCustomer, addMessage, createInboxItem } from '../../../lib/messaging-db';

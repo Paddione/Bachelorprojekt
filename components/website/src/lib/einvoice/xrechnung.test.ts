@@ -1,4 +1,4 @@
-// website/src/lib/einvoice/xrechnung.test.ts
+// components/website/src/lib/einvoice/xrechnung.test.ts
 import { describe, it, expect } from 'vitest';
 import { generateXRechnung } from './xrechnung';
 import type { InvoiceInput } from './types';

@@ -51,9 +51,9 @@ describe('GET /sdlc/api/cockpit/brain', () => {
   });
 
   it('routes a pruned source into uncovered instead of probing', async () => {
-    const res = await GET({ request: req('admin', 'paths=website/src/pages/index.astro') } as unknown as Parameters<typeof GET>[0]);
+    const res = await GET({ request: req('admin', 'paths=components/website/src/pages/index.astro') } as unknown as Parameters<typeof GET>[0]);
     const body = await res.json();
-    expect(body.uncovered).toEqual(['website/src/pages/index.astro']);
+    expect(body.uncovered).toEqual(['components/website/src/pages/index.astro']);
     expect(body.links).toEqual([]);
     expect(fetchMock).not.toHaveBeenCalled();
   });

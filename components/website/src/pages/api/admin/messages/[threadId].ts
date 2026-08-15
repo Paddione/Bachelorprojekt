@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/messages/[threadId].ts
+// components/website/src/pages/api/admin/messages/[threadId].ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getThread, getThreadMessages, addMessage, markThreadRead } from '../../../../lib/messaging-db';

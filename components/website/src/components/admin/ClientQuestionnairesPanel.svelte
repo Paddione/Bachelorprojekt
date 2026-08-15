@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/ClientQuestionnairesPanel.svelte -->
+<!-- components/website/src/components/admin/ClientQuestionnairesPanel.svelte -->
 <script lang="ts">
   type Props = { keycloakUserId: string };
   const { keycloakUserId }: Props = $props();

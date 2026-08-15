@@ -1,4 +1,4 @@
-<!-- website/src/components/inbox/InboxDetail.svelte
+<!-- components/website/src/components/inbox/InboxDetail.svelte
      Right-hand pane. Shared header (avatar, title, meta, ↑↓ nav) +
      per-type body block + footer with actions. -->
 <script lang="ts">

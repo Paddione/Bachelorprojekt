@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
 // `commit`/`builtAt` come from the ARG/ENV pair baked into the runtime stage of
-// website/Dockerfile (T002202). They let an E2E run tell the code under test
+// components/website/Dockerfile (T002202). They let an E2E run tell the code under test
 // apart from the deploy it is actually hitting — without them a run against
 // prod measures both at once and files tickets against bugs that do not exist
 // in the repo (T002192).

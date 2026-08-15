@@ -153,7 +153,7 @@ type SyncFallbackReason = 'never-probed' | 'cache-expired' | 'probe-failed';
  * zu schweigen.
  *
  * Verworfen wurde fail-closed (sofortiger Wurf): der einzige Produktions-
- * Aufrufer getLoginUrl() (website/src/lib/auth.ts) ist synchron und liefert
+ * Aufrufer getLoginUrl() (components/website/src/lib/auth.ts) ist synchron und liefert
  * `string`; ein Wurf muesste bis /api/auth/login als 503 durchgereicht werden.
  * Das macht aus jedem Sekunden-Aussetzer eine harte Sperre — ein hoher Preis
  * fuer Sichtbarkeit, die auch ein Log liefert.

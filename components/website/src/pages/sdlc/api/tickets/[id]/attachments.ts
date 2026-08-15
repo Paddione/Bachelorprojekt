@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/tickets/[id]/attachments.ts
+// components/website/src/pages/api/admin/tickets/[id]/attachments.ts
 //
 // Multipart upload, ≤ 5 MB. Stored as data_url for v1 (matches what the public
 // bug-report endpoint does). Nextcloud-backed uploads are deferred to v1.5.

@@ -3,7 +3,7 @@
 // Idempotent — only updates rows where the column is currently NULL.
 //
 // Usage:
-//   SESSIONS_DATABASE_URL=postgresql://… node website/scripts/gobd-backfill.mjs
+//   SESSIONS_DATABASE_URL=postgresql://… node components/website/scripts/gobd-backfill.mjs
 import pg from 'pg';
 
 const url = process.env.SESSIONS_DATABASE_URL;

@@ -1,4 +1,4 @@
-// website/src/lib/factory-observability.ts
+// components/website/src/lib/factory-observability.ts
 // Read helpers for the Factory Observability dashboard. Two sources:
 //  1) Prometheus HTTP API (server-side proxy) for OTel token/cost/phase metrics.
 //  2) The existing ticket phase timeline in Postgres (reused, no new table).

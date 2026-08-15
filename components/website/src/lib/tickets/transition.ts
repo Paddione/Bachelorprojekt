@@ -1,4 +1,4 @@
-// website/src/lib/tickets/transition.ts
+// components/website/src/lib/tickets/transition.ts
 import { pool } from '../db-pool.ts';
 import { sendBugCloseEmail } from './email-templates';
 import { linkReporterByEmail } from './reporter-link';

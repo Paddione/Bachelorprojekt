@@ -1,4 +1,4 @@
-// website/src/lib/planning-office.test.ts
+// components/website/src/lib/planning-office.test.ts
 // Real DML tests for planning-office.ts, backed by an in-memory Postgres (pg-mem).
 // planning-office.ts imports `pool` from ./website-db as a MODULE BINDING, so we
 // vi.mock('./website-db') and swap in a pg-mem-backed pool (same pattern as

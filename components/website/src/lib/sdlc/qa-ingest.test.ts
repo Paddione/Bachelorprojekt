@@ -1,4 +1,4 @@
-// website/src/lib/qa-ingest.test.ts [T000730]
+// components/website/src/lib/qa-ingest.test.ts [T000730]
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const query = vi.fn();

@@ -1,4 +1,4 @@
-// website/src/lib/tickets/tables/factory-model-slots.ts
+// components/website/src/lib/tickets/tables/factory-model-slots.ts
 // DDL for tickets.factory_model_slots.
 import type { Pool, PoolClient } from 'pg';
 

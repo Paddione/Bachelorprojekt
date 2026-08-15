@@ -1,4 +1,4 @@
-// website/src/lib/invoice-types.ts
+// components/website/src/lib/invoice-types.ts
 // Invoice domain types extracted from native-billing.ts (G-CQ07) so invoice-pdf.ts
 // can import the type without creating a static dependency on native-billing
 // (which dynamically imports pdf-a3-embed for embedFacturX). Leaf module —

@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/failure-bridge.test.ts
+// components/website/src/lib/systemtest/failure-bridge.test.ts
 //
 // DB-gated tests for the system-test failure-bridge. Mirrors the fixture
 // pattern used by `db.test.ts` and `auth-only.test.ts` — each test inserts

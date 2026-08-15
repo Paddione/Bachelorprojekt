@@ -1,6 +1,6 @@
 -- Migration: add remaining missing indexes on single-column FK constraints — T001946 (G-DB01).
--- Applied automatically by website/src/db/migrate.ts (task workspace:deploy runs
--- `pnpm --dir website db:migrate` against the target brand's `website` database).
+-- Applied automatically by components/website/src/db/migrate.ts (task workspace:deploy runs
+-- `pnpm --dir components/website db:migrate` against the target brand's `website` database).
 --
 -- Identified via the G-DB01 health-goal query (.claude/lib/goals.md#G-DB01), run live
 -- against both brand databases (mentolder `workspace`, korczewski `workspace-korczewski`)

@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/AdminShortcuts.svelte -->
+<!-- components/website/src/components/admin/AdminShortcuts.svelte -->
 <script lang="ts">
   interface Shortcut {
     id: string;

@@ -1,4 +1,4 @@
-<!-- website/src/components/admin/TicketActionBar.svelte -->
+<!-- components/website/src/components/admin/TicketActionBar.svelte -->
 <script lang="ts">
   import type { TicketStatus, TicketResolution, ListedTicket, LinkKind } from '../../lib/tickets/admin';
   import MarkdownEditor from './MarkdownEditor.svelte';

@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/customers-list.ts
+// components/website/src/pages/api/admin/customers-list.ts
 // Returns all non-admin customers (id, name, email) for the compose modal and
 // other admin UIs that need a customer picker without the full Keycloak roundtrip.
 import type { APIRoute } from 'astro';

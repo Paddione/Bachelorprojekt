@@ -1,4 +1,4 @@
-// website/src/lib/tickets/tables/factory-control.ts
+// components/website/src/lib/tickets/tables/factory-control.ts
 // DDL for tickets.factory_control, factory_phase_events, ticket_injections.
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155).
 import type { Pool, PoolClient } from 'pg';

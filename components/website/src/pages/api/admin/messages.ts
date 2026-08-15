@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/messages.ts
+// components/website/src/pages/api/admin/messages.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { listThreadsForAdmin, getOrCreateThreadForCustomer, addMessage } from '../../../lib/messaging-db';

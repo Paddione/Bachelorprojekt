@@ -1,4 +1,4 @@
--- website/src/lib/db/schema-health-goals.sql
+-- components/website/src/lib/db/schema-health-goals.sql
 -- PostgreSQL migration for Service Health Checks and Goals
 
 CREATE TABLE IF NOT EXISTS service_health_goals (

@@ -1,4 +1,4 @@
-// website/src/lib/assistant/actions/admin/resolveTicket.ts
+// components/website/src/lib/assistant/actions/admin/resolveTicket.ts
 import { registerAction } from '../../actions';
 import { transitionTicket, type TicketResolution } from '../../../tickets/transition.ts';
 

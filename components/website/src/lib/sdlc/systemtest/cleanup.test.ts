@@ -1,4 +1,4 @@
-// website/src/lib/systemtest/cleanup.test.ts
+// components/website/src/lib/systemtest/cleanup.test.ts
 //
 // DB-gated tests for the cleanup helpers. Mirrors the fixture pattern used by
 // `failure-bridge.test.ts` and `db.test.ts`.

@@ -1,4 +1,4 @@
-// website/src/lib/tickets-schema.ts
+// components/website/src/lib/tickets-schema.ts
 // Schema-Initialisierung + Helper für das `tickets`-PostgreSQL-Schema.
 // Ausgelagert aus tickets-db.ts (G-CQ07, Zyklus #1), um den statischen
 // Import-Zyklus zwischen tickets-db.ts und website-db.ts aufzubrechen.

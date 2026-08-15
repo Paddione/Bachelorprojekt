@@ -1,4 +1,4 @@
-// website/src/pages/api/portal/rooms/[id]/messages.ts
+// components/website/src/pages/api/portal/rooms/[id]/messages.ts
 import type { APIRoute } from 'astro';
 import { getSession } from '../../../../../lib/auth';
 import { getCustomerByEmail, getRoom, isRoomMember, getRoomMessages, addRoomMessage, markRoomMessagesRead } from '../../../../../lib/messaging-db';

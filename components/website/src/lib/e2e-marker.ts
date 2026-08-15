@@ -1,4 +1,4 @@
-// website/src/lib/e2e-marker.ts
+// components/website/src/lib/e2e-marker.ts
 //
 // Detects whether an inbound HTTP request is a Playwright E2E call so the
 // form endpoints (/api/contact, /api/booking,

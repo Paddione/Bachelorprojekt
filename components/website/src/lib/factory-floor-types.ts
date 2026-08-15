@@ -1,4 +1,4 @@
-// website/src/lib/factory-floor-types.ts
+// components/website/src/lib/factory-floor-types.ts
 // Type-only (and pure-constant) re-exports from factory-floor.ts. The runtime
 // module pulls in `pg` + `dns` via website-db (server-only Node built-ins);
 // Svelte/Astro files that only need the *types* and the client-safe `PHASE_ORDER`

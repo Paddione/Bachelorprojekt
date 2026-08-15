@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/tickets/[id]/links.ts
+// components/website/src/pages/api/admin/tickets/[id]/links.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { addLink, removeLink, type LinkKind } from '../../../../../lib/tickets/admin.ts';

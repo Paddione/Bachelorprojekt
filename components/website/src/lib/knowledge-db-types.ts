@@ -1,4 +1,4 @@
-// website/src/lib/knowledge-db-types.ts
+// components/website/src/lib/knowledge-db-types.ts
 // Type-only re-exports from knowledge-db.ts. The runtime module pulls in `pg`
 // + `dns` (server-only Node built-ins); a Svelte/Astro file that only needs
 // the *types* must import them from here to keep the Vite client-side

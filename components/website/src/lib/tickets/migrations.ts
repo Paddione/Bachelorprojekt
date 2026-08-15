@@ -1,4 +1,4 @@
-// website/src/lib/tickets/migrations.ts
+// components/website/src/lib/tickets/migrations.ts
 // Legacy ALTER TABLE patches + deprecated table + global T-number sequence +
 // audit/cycle/lifecycle triggers + fn_purge_test_data + notify_feature_inserted.
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155).

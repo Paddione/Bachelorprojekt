@@ -85,7 +85,7 @@ export const POST: APIRoute = async ({ request, url , locals }) => {
     else existing.push(override);
 
     // T001490: write goes through the bot-PR publish pipeline (Task 6+7)
-    // which mutates website/content/<brand>/services.json. The save
+    // which mutates components/website/content/<brand>/services.json. The save
     // endpoint stays on the same shape so the editor UX is unchanged
     // once Task 7 wires `publishContent` here.
     return new Response(JSON.stringify({ ok: true, queued: true }), {

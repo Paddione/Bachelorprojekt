@@ -1,4 +1,4 @@
-// website/src/lib/questionnaire-db/schema.ts
+// components/website/src/lib/questionnaire-db/schema.ts
 // Pool setup, DDL (ensureQuestionnaireSchema), and module init.
 // Exports the shared `pool` for all sibling modules and the test-only
 // `ensureQuestionnaireSchemaOnce` run-once wrapper.

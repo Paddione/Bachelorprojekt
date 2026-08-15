@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/prompt-library/[id]/use.ts
+// components/website/src/pages/api/admin/prompt-library/[id]/use.ts
 // Prompt Library admin API — record a use (POST), bumping usage_count.
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';

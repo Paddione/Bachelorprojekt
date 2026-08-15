@@ -1,4 +1,4 @@
-// website/src/lib/tickets/admin.ts
+// components/website/src/lib/tickets/admin.ts
 //
 // Brand-scoped admin helpers for the unified /admin/tickets UI.
 // Every function takes `brand` as a required parameter and refuses to read

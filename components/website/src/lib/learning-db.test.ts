@@ -1,4 +1,4 @@
-// website/src/lib/learning-db.test.ts
+// components/website/src/lib/learning-db.test.ts
 // Real DML tests for learning-db.ts, backed by an in-memory Postgres (pg-mem).
 // learning-db.ts imports `pool` from ./website-db as a MODULE BINDING, so we
 // vi.mock('./website-db') and swap in a pg-mem pool.

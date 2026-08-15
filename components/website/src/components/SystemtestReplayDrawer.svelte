@@ -1,4 +1,4 @@
-<!-- website/src/components/SystemtestReplayDrawer.svelte -->
+<!-- components/website/src/components/SystemtestReplayDrawer.svelte -->
 <!--
   Side drawer that mounts an rrweb-player on demand for a given evidence id.
   Loaded only by the failure-board page (Task 7) and only after a card click.
@@ -63,7 +63,7 @@
       }
 
       // 2. dynamic import — fail soft if rrweb-player isn't installed in
-      //    this build (the package is in website/package.json since 2026-05-08
+      //    this build (the package is in components/website/package.json since 2026-05-08
       //    via PR #c8f79ccd, but a stale dev install may not have it).
       const mod = await import('rrweb-player').catch(() => null);
       if (!mod) {

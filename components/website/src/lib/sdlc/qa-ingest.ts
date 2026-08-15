@@ -1,4 +1,4 @@
-// website/src/lib/qa-ingest.ts [T000730]
+// components/website/src/lib/qa-ingest.ts [T000730]
 // Rückkanal: mappt E2E-Ergebnisse auf qa_review- und awaiting_deploy-Tickets.
 //
 // Feature-Slug-Konvention: Spec-/Test-Titel beginnen mit "[<slug>] ..."

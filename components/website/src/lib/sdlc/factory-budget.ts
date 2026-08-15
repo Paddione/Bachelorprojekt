@@ -1,4 +1,4 @@
-// website/src/lib/factory-budget.ts
+// components/website/src/lib/factory-budget.ts
 // Data Access Layer (DAL) for token and cost budget tracking.
 // Per-brand PostgreSQL access via the central pool.
 

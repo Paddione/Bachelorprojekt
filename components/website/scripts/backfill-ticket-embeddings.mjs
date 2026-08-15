@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Usage (run once PER BRAND, pointing at that brand's shared-db):
 //   SESSIONS_DATABASE_URL=postgresql://website:...@<host>:5432/website \
-//   LLM_ENABLED=true LLM_EMBED_URL=... npx tsx website/scripts/backfill-ticket-embeddings.mjs
+//   LLM_ENABLED=true LLM_EMBED_URL=... npx tsx components/website/scripts/backfill-ticket-embeddings.mjs
 import { backfillTicketEmbeddings } from '../src/lib/tickets-embed.ts';
 
 const res = await backfillTicketEmbeddings({

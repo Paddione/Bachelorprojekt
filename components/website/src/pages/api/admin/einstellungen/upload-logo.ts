@@ -1,4 +1,4 @@
-// website/src/pages/api/admin/einstellungen/upload-logo.ts
+// components/website/src/pages/api/admin/einstellungen/upload-logo.ts
 // Multipart upload for the brand logo on /admin/einstellungen/branding.
 // Mirrors /api/admin/startseite/upload-portrait — returns a base64 data URL
 // the client then writes into the brand_logo_url site setting.

@@ -1,5 +1,5 @@
 -- Migration tracking table — T001652
--- 2026-07-08 — Bootstrap table for website/src/db/migrate.ts, the automated
+-- 2026-07-08 — Bootstrap table for components/website/src/db/migrate.ts, the automated
 -- migration runner. Tracks which .sql files in this directory have been
 -- applied so re-runs (and workspace:deploy) are idempotent.
 

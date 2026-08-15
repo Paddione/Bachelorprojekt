@@ -15,6 +15,13 @@
 #
 # Aufgerufen vom systemd-User-Timer lmstudio-bge-autoload.timer; manuell:
 #   bash scripts/lm-studio/lmstudio-bge-autoload.sh
+#
+# T006143: bge-m3 ist NUR auf PK-L-1 geladen zu halten — auf dem PK-Tablet
+# darf das Modell in LM Studio nicht als geladen erscheinen (sonst laedt
+# `lms load -y` ohne Device-Pin ggf. dort). Die llm-proxy-Kette behandelt
+# LM Studio als EIN logisches Backend (:1234), egal welches LM-Link-Geraet
+# das Modell traegt — die Ladung auf PK-L-1 ist per LM-Studio-UI
+# sicherzustellen (Modell dort laden, Tablet-Eintrag fuer bge-m3 entfernen).
 
 set -euo pipefail
 

@@ -30,12 +30,12 @@ openspec/changes/agent-lock-release-cwd/**                  (Proposal + Delta-Sp
 
 | Datei | Ist | Budget |
 | --- | --- | --- |
-| `scripts/agent-lock.sh` | 763 | 37 |
+| `scripts/agent-lock.sh` | 783 | 17 |
 
 `scripts/agent-lock.sh` ist **nicht gebaselined**; wirksame Schwelle ist das statische
-Extension-Limit 800 aus `docs/code-quality/gates.yaml` (`.sh: 800`) minus Ist-Stand 763 =
-**37 Zeilen** Zuwachs für den Guard (inkl. Helper-Funktion). Als kleine Helper-Funktion
-formuliert, nicht inline dupliziert.
+Extension-Limit 800 aus `docs/code-quality/gates.yaml` (`.sh: 800`). Der Guard wurde als
+kleine Helper-Funktion (`_cwd_inside_worktree`, nicht inline dupliziert) mit einem Zuwachs
+von **20 Zeilen** (763 → 783) umgesetzt; das verbleibende Budget beträgt 17.
 
 S1-Budget-Kommentare fuer die uebrigen geaenderten Dateien:
 

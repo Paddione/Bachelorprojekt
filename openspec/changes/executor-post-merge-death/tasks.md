@@ -115,19 +115,19 @@ website/src/data/test-inventory.json                           # REGENERATE: tas
 - Produces: grüner BATS-Lauf der neuen Testdatei; aktualisiertes Test-Inventar; validierte OpenSpec-Struktur.
 
 **Steps:**
-- [ ] Testrunner auf die neue Testdatei ausführen — jetzt `expected: PASS` (6/6 grün):
+- [x] Testrunner auf die neue Testdatei ausführen — jetzt `expected: PASS` (6/6 grün):
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/executor-post-merge-death.bats
   ```
   Die Tests 4–6 rufen das neue Skript direkt auf (`--help`-Exit 0, No-Args-Exit ≠ 0, `TICKET_OFFLINE`-Exit ≠ 0) — das ist die explizite Output-Verifikation des Skript-Aufrufvertrags aus Task 2.
-- [ ] Negativ-Richtung belegen (der Test ist der Drift-Guard): dokumentieren, dass die fünf Implementierungs-Tests vor Task 2/3 rot waren (Task-1-Ergebnis) und jetzt grün sind.
-- [ ] Bestehende Guards unversehrt: `tests/unit/lib/bats-core/bin/bats -r tests/spec/agent-skills/ tests/spec/dev-flow-execute.bats` muss grün bleiben (kein Rückbau von T002352-/T005565-Konventionen).
-- [ ] Test-Inventar regenerieren und committen:
+- [x] Negativ-Richtung belegen (der Test ist der Drift-Guard): dokumentieren, dass die fünf Implementierungs-Tests vor Task 2/3 rot waren (Task-1-Ergebnis) und jetzt grün sind.
+- [x] Bestehende Guards unversehrt: `tests/unit/lib/bats-core/bin/bats -r tests/spec/agent-skills/ tests/spec/dev-flow-execute.bats` muss grün bleiben (kein Rückbau von T002352-/T005565-Konventionen).
+- [x] Test-Inventar regenerieren und committen:
   ```bash
   task test:inventory
   git add website/src/data/test-inventory.json
   ```
-- [ ] OpenSpec-Struktur validieren:
+- [x] OpenSpec-Struktur validieren:
   ```bash
   bash scripts/openspec.sh validate
   ```

@@ -3821,8 +3821,8 @@
   ],
   "T006365": [
     {
-      "slug": "worktree-write-guard-session-propagation",
-      "status": "plan_staged"
+      "slug": "2026-08-15-worktree-write-guard-session-propagation",
+      "status": "archived"
     }
   ],
   "T006368": [

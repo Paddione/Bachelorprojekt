@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1032,
+      "file_count": 1033,
       "files": [
         "tests/.gitignore",
         "tests/README.md",

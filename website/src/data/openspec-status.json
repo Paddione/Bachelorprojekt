@@ -3747,6 +3747,12 @@
       "status": "archived"
     }
   ],
+  "T006143": [
+    {
+      "slug": "2026-08-15-laptop-bge-topologie",
+      "status": "plan_staged"
+    }
+  ],
   "T006252": [
     {
       "slug": "2026-08-15-s3-finetune-dataset-recipe",

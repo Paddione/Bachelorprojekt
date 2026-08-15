@@ -3330,6 +3330,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/bge-chain-order",
+    "file": "tests/spec/local-llm-proxy/bge-chain-order.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/bge-cpu-parallel-start",
     "file": "tests/spec/local-llm-proxy/bge-cpu-parallel-start.bats",
     "category": "local-llm-proxy",

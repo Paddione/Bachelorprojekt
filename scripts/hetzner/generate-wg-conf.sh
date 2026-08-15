@@ -60,7 +60,7 @@ listen_port = env_data['listen_port']
 # IMPORTANT: keep this tuple in sync with the peer-emit loop below.
 # Any category key present in wg-mesh-nodes.yaml must appear in BOTH tuples
 # or those nodes are silently dropped from every peer list (T000371 regression).
-MESH_CATEGORIES = ('nodes', 'gpu_hosts', 'home_workers', 'workers', 'devc_servers')
+MESH_CATEGORIES = ('nodes', 'gpu_hosts', 'home_workers', 'workers', 'devc_servers', 'laptops')
 self_node = None
 self_category = None
 for cat in MESH_CATEGORIES:

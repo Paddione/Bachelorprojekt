@@ -61,6 +61,12 @@ declare -A PROBE_CACHE=()  # path-prefix → matching spec bats (grep memoisatio
 probe_spec_for_path() { # $1 = changed file path
   local probe="$1" matched=""
   while [[ "$probe" == */* ]]; do
+    # Floor: nie das bare Komponenten-Root proben. Der alte Walk terminierte
+    # bei einem Segment (`website` wurde nie geprobt); seit dem components/-
+    # Move ist der Stamm zweiteilig (components/<name>) — ein Probe auf
+    # `components/website` matcht per Substring jede `components/website/src`-
+    # Referenz und risse die ganze Domain in die Auswahl. [T006999]
+    if [[ "$probe" == components/* ]] && [[ "$probe" != */*/* ]]; then break; fi
     if [ -n "${PROBE_CACHE[$probe]+set}" ]; then
       matched="${PROBE_CACHE[$probe]}"
     else

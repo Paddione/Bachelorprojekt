@@ -503,7 +503,7 @@ while IFS= read -r -d '' _ws_file; do
         ln -s "$MAIN_ROOT/$_pkg_rel/node_modules" "$WT_PATH/$_pkg_rel/node_modules"
         echo "worktree-create: linked $_pkg_rel/node_modules → $MAIN_ROOT/$_pkg_rel/node_modules" >&2
     fi
-done < <(find "$MAIN_ROOT" -maxdepth 2 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print0 2>/dev/null)
+done < <(find "$MAIN_ROOT" -maxdepth 3 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print0 2>/dev/null)
 
 # Branch-warning: the node_modules symlinked above reflect whatever the SOURCE
 # checkout (MAIN_ROOT) currently has installed for ITS checked-out branch. If

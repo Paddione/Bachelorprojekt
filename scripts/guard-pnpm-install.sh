@@ -49,7 +49,7 @@ else
     if [ -L "$_pkg_nm" ]; then
       _refuse "$_pkg_rel"
     fi
-  done < <(find "$REPO_ROOT" -maxdepth 2 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print0 2>/dev/null)
+  done < <(find "$REPO_ROOT" -maxdepth 3 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print0 2>/dev/null)
 fi
 
 echo "✅ No symlinked node_modules detected — pnpm install is safe." >&2

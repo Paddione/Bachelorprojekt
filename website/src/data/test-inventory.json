@@ -3804,6 +3804,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/rollup-plan-lint-scope-examples",
+    "file": "tests/spec/mishap-rollup/rollup-plan-lint-scope-examples.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",

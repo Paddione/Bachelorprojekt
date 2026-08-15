@@ -1,6 +1,13 @@
 # Single-binary Loki for unified log aggregation across both brands.
 # Dev baseline: local-path storage, 5Gi PVC. Prod: longhorn via overlay patch.
 # No MinIO/S3 — plain filesystem TSDB, 14d retention.
+#
+# NOTE (T007035, audit 2026-08-15): the committed loki-rendered.yaml is
+# INTENTIONALLY out of sync with `helm template` output — it pins
+# grafana/loki:3.7.4@sha256:87f0... and quay.io/kiwigrid/k8s-sidecar:2.8.1,
+# while a fresh `task loki:render` would fall back to the chart defaults
+# (3.6.7 / docker.io:2.5.0). Do NOT regenerate the rendered file blindly;
+# patch it minimally instead (see the cpu: 1000m fix below).
 
 deploymentMode: SingleBinary
 

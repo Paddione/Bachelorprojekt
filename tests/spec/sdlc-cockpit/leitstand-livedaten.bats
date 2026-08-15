@@ -59,8 +59,10 @@ setup() {
 # T3 -- Katalog-Konsum: genau EIN Import von api-inventory.json unter
 # components/leitstand/ (ApiKatalog.svelte) plus Registry-Eintrag.
 @test "T3 api-inventory.json wird genau einmal konsumiert und ApiKatalog ist registriert" {
-  # Positiv-Anker 1: genau eine Datei importiert das Inventar.
-  run grep -rl 'api-inventory.json' "$LEITSTAND_DIR"
+  # Positiv-Anker 1: genau eine Datei IMPORTIERT das Inventar. Grep auf die
+  # Import-Zeile statt auf den blossen Dateinamen — Kommentare, die den
+  # Guard dokumentieren (DeckWissen.svelte), duerfen den Zaehler nicht treffen.
+  run grep -rlE 'import .*api-inventory\.json' "$LEITSTAND_DIR"
   [ "$status" -eq 0 ]
   [ "$(echo "$output" | grep -c .)" -eq 1 ]
 
@@ -69,6 +71,8 @@ setup() {
 
   # Positiv-Anker 3: der purpose-Registry-Eintrag fuer das Modul existiert
   # (Eindeutigkeit/Abdeckung prueft leitstand-purpose-registry.bats T1).
-  run grep -qe 'api-katalog:' "$REGISTRY"
+  # Muster mit schliessendem Quote: der Key ist `'api-katalog':` (Quote vor
+  # dem Doppelpunkt) — ohne das Quote matcht der Anker nie.
+  run grep -qe "'api-katalog':" "$REGISTRY"
   [ "$status" -eq 0 ]
 }

@@ -144,6 +144,10 @@
   # sie steht in der Aufloesungsreihenfolge VOR CLAUDE_SESSION_ID. Ohne das unset haetten
   # beide "Sessions" dieselbe SID und der Guard haette nichts zu verweigern.
   unset CLAUDE_CODE_SESSION_ID
+  # [T006365] AGENT_LOCK_SID ist in agent-lock.sh die erste SID-Quelle (Test-override,
+  # agent-lock.sh Zeile 4) — Worktree-Write-Guard-Sessions exportieren sie real und
+  # beide "Sessions" loesten sonst auf dieselbe SID auf.
+  unset AGENT_LOCK_SID
   # Session A hält den Ticket-Lock.
   run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t002282-session-a" \
     bash "$repo/scripts/agent-lock.sh" claim ticket T002282 --label foreign-session
@@ -176,6 +180,7 @@
 
   unset CLAUDE_CODE_SESSION_ID
   # Session A haelt den Ticket-Lock (z.B. die auftraggebende ticket-ops-Session).
+  unset AGENT_LOCK_SID  # [T006365] sonst loesen beide Sessions auf dieselbe SID auf
   run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t003102-session-a" \
     bash "$repo/scripts/agent-lock.sh" claim ticket T003102 --label ticket-ops
   [ "$status" -eq 0 ]

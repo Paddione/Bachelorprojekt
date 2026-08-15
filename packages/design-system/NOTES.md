@@ -5,10 +5,10 @@ HTML cards. No component-compile pipeline — cards are static; `build.mjs` only
 the token CSS, the shared card CSS, and inline SVG grids.
 
 ## Re-build / re-sync
-1. `node design-system/build.mjs`  — regenerates `_tokens.css` from the brand SSOT,
+1. `node packages/design-system/build.mjs`  — regenerates `_tokens.css` from the brand SSOT,
    copies SVGs into `assets/`, and re-injects every card (idempotent).
-2. `node design-system/validate.mjs`  — lints `@dsCard` markers + injection regions.
-3. `node --test design-system/`  — unit tests for build + validate.
+2. `node packages/design-system/validate.mjs`  — lints `@dsCard` markers + injection regions.
+3. `node --test packages/design-system/`  — unit tests for build + validate.
 4. Push: DesignSync `finalize_plan { writes:["cards/**"], localDir:"design-system" }` → `write_files`.
    Only `cards/**` is uploaded; `_tokens.css` / `_card.css` / `assets/` are local build inputs.
 

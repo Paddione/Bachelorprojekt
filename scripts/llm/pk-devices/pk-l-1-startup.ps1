@@ -33,7 +33,7 @@ Write-Host "[PK-L-1] Starte LM-Studio-Server auf Port 1234 (bind 0.0.0.0 fuer LM
 if ($LASTEXITCODE -ne 0) { Write-Warning "server start lieferte Exit $LASTEXITCODE (Server laeuft evtl. bereits)." }
 
 Write-Host "[PK-L-1] Lade Qwen3.5-4B Q6_K (ctx 32768, GPU max) ..."
-& $lms load $ModelId --gpu max --context-length 32768 -y
+& $lms load $ModelId --gpu max --parallel 1 --context-length 32768 -y
 if ($LASTEXITCODE -ne 0) {
     Write-Warning "load lieferte Exit $LASTEXITCODE - Modell-ID pruefen: lms ls"
     exit 1

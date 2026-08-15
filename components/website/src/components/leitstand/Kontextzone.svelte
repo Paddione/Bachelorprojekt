@@ -14,12 +14,10 @@
   let {
     initial = null,
     brand,
-    slotsCap = 3,
     initialSelection = {},
   }: {
     initial?: FloorPayload | null;
     brand: string;
-    slotsCap?: number;
     initialSelection?: LeitstandSelection;
   } = $props();
 

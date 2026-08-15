@@ -2,7 +2,7 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../../lib/auth';
 import { buildLoginRedirect } from '../../lib/login-redirect';
-import FactoryFloor, { STATIONS } from '../../components/sdlc/FactoryFloor.svelte';
+import { STATIONS } from '../../components/sdlc/FactoryFloor.svelte';
 import LeitstandStatusband from '../../components/leitstand/LeitstandStatusband.svelte';
 import Kontextzone from '../../components/leitstand/Kontextzone.svelte';
 import DeckLeiste from '../../components/leitstand/DeckLeiste.svelte';
@@ -47,7 +47,7 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
     <ConveyorBelt client:load compact stations={STATIONS} hallItems={[]} mobileColIndex={0} onSelect={() => {}} selectedStation={initialSelection.station} />
 
     <div class="ls-main">
-      <Kontextzone client:load {brand} {initial} initialSelection={initialSelection} slotsCap={slotsCap} />
+      <Kontextzone client:load {brand} {initial} initialSelection={initialSelection} />
       <DeckLeiste client:load initialDeck={initialSelection.deck} />
     </div>
   </div>

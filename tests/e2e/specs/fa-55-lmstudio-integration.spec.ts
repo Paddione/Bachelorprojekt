@@ -37,6 +37,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/
 
 test.describe('FA-55-LMStudio: KI provider config & generate API', () => {
   test.beforeEach(async ({ request }, testInfo) => {
+    test.setTimeout(60_000);
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/coaching/sessions`,
@@ -140,7 +141,7 @@ test.describe('FA-55-LMStudio: KI provider config & generate API', () => {
     const genRes = await page.request.post(
       `${BASE}/api/admin/coaching/sessions/${sid}/steps/1/generate`,
       {
-        data: { coachInputs },
+        data: { beatIndex: 2, inputs: coachInputs },
         timeout: 60_000,   // allow up to 60s for a cold LLM swap
       },
     );
@@ -170,23 +171,23 @@ test.describe('FA-55-LMStudio: KI provider config & generate API', () => {
     expect([200, 201]).toContain(titleRes.status());
     const { session } = await titleRes.json() as { session: { id: string } };
 
+    const coachInputs = {
+      anlass: 'Konflikt im Management',
+      situation: 'Zwei Abteilungsleiter blockieren gegenseitig Entscheidungen',
+    };
+
     const startMs = Date.now();
     const genRes = await page.request.post(
       `${BASE}/api/admin/coaching/sessions/${session.id}/steps/1/generate`,
       {
-        data: { coachInputs: { anlass: 'Teamproblem', situation: 'Kurztest für Latenzmessung' } },
+        data: { beatIndex: 2, inputs: coachInputs },
         timeout: 60_000,
       },
     );
     const durationMs = Date.now() - startMs;
+    expect(genRes.status(), `generate failed: ${genRes.status()}`).toBe(200);
 
-    console.log(`[T5] generate latency: ${durationMs}ms | status: ${genRes.status()}`);
-
-    // Status must be 200 (not 502 "KI-Anfrage fehlgeschlagen" / 503 gateway down)
-    expect(genRes.status(), `generate endpoint failed with ${genRes.status()} after ${durationMs}ms`).toBe(200);
-
-    // Hard latency gate: 30 s. First call pays model-swap cost (~3-6 s for Ollama/LM Studio),
-    // but 30 s gives comfortable headroom without being flaky.
+    console.log(`[T5] generate response time: ${durationMs}ms`);
     expect(durationMs, `LLM response took ${durationMs}ms — gateway may be down or overloaded`).toBeLessThan(30_000);
   });
 });
@@ -195,6 +196,7 @@ test.describe('FA-55-LMStudio: KI provider config & generate API', () => {
 
 test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
   test.beforeEach(async ({ request }, testInfo) => {
+    test.setTimeout(60_000);
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/coaching/sessions`,
@@ -212,15 +214,31 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await page.locator('#submit-btn').click();
     await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-    // KI button disabled before input
-    await expect(page.getByRole('button', { name: /KI befragen/ })).toBeDisabled();
+    // Advance Beat 1 -> Beat 2
+    if (await page.getByText(/Beat\s+1/i).isVisible()) {
+      await page.getByRole('button', { name: /Weiter/i }).click();
+    }
+    // Advance Beat 2 -> Beat 3
+    if (await page.getByText(/Beat\s+2/i).isVisible()) {
+      const captureInput = page.locator('textarea, input[type="text"]').first();
+      if (await captureInput.isVisible()) await captureInput.fill('Führungsproblem');
+      await page.getByRole('button', { name: /Weiter/i }).click();
+    }
 
-    // Fill required step-1 fields
-    await page.locator('#anlass').fill('Führungsproblem im Team');
-    await page.locator('#situation').fill('Kommunikation zwischen Kollegen ist eingebrochen');
+    // Beat 3 KI prompt beat
+    await expect(page.getByText(/Beat\s+3/i)).toBeVisible();
+    const kiBtn = page.getByRole('button', { name: /KI befragen/ });
+    await expect(kiBtn).toBeDisabled();
+
+    // Fill required step-1 beat-3 fields
+    const beat3Inputs = page.locator('.inputs-section input, .inputs-section textarea');
+    const count = await beat3Inputs.count();
+    for (let i = 0; i < count; i++) {
+      await beat3Inputs.nth(i).fill('Führungsproblem im Team');
+    }
 
     // KI button should now be enabled
-    await expect(page.getByRole('button', { name: /KI befragen/ })).toBeEnabled();
+    await expect(kiBtn).toBeEnabled();
     console.log('[T6] KI button enabled after filling required fields');
   });
 
@@ -235,9 +253,23 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await page.locator('#submit-btn').click();
     await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-    // Fill step-1 inputs
-    await page.locator('#anlass').fill('Teamproblem: Konsensfindung schwierig');
-    await page.locator('#situation').fill('Verschiedene Meinungen, keine klare Richtung');
+    // Advance Beat 1 -> Beat 2
+    if (await page.getByText(/Beat\s+1/i).isVisible()) {
+      await page.getByRole('button', { name: /Weiter/i }).click();
+    }
+    // Advance Beat 2 -> Beat 3
+    if (await page.getByText(/Beat\s+2/i).isVisible()) {
+      const captureInput = page.locator('textarea, input[type="text"]').first();
+      if (await captureInput.isVisible()) await captureInput.fill('Führungsproblem');
+      await page.getByRole('button', { name: /Weiter/i }).click();
+    }
+
+    await expect(page.getByText(/Beat\s+3/i)).toBeVisible();
+    const beat3Inputs = page.locator('.inputs-section input, .inputs-section textarea');
+    const count = await beat3Inputs.count();
+    for (let i = 0; i < count; i++) {
+      await beat3Inputs.nth(i).fill('Teamproblem: Konsensfindung schwierig');
+    }
 
     // Click the KI button
     const kiButton = page.getByRole('button', { name: /KI befragen/ });

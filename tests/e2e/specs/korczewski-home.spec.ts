@@ -215,8 +215,12 @@ test.describe('Korczewski: Kontakt page', () => {
 // ── Cross-brand isolation ─────────────────────────────────────────────────────
 
 test.describe('Cross-brand isolation', () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   test('mentolder homepage renders mentolder branding (not kore)', async ({ page }) => {
-    await page.goto('https://web.mentolder.de/');
+    await page.goto('https://web.mentolder.de/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('body')).not.toContainText('korczewski.de');
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   });

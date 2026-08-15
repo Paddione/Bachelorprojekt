@@ -3,6 +3,10 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA: Admin CRM & operations pages', { tag: ['@admin', '@crm'] }, () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   // ── Page auth-gating ───────────────────────────────────────────
   const adminPages = [
     '/admin/termine',
@@ -18,18 +22,18 @@ test.describe('FA: Admin CRM & operations pages', { tag: ['@admin', '@crm'] }, (
 
   for (const path of adminPages) {
     test(`${path} redirects unauthenticated users`, async ({ page }) => {
-      await page.goto(`${BASE}${path}`);
+      await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
       await expect(page).not.toHaveURL(`${BASE}${path}`);
     });
   }
 
   test('/admin/projekte/:id redirects unauthenticated users', async ({ page }) => {
-    await page.goto(`${BASE}/admin/projekte/1`);
+    await page.goto(`${BASE}/admin/projekte/1`, { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(/\/admin\/projekte\/\d+/);
   });
 
   test('/admin/meetings/:id redirects unauthenticated users', async ({ page }) => {
-    await page.goto(`${BASE}/admin/meetings/00000000-0000-0000-0000-000000000000`);
+    await page.goto(`${BASE}/admin/meetings/00000000-0000-0000-0000-000000000000`, { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(/\/admin\/meetings\/.+/);
   });
 

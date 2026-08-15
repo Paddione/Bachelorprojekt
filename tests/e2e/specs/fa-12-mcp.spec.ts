@@ -14,6 +14,10 @@ const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
  */
 
 test.describe('FA-12: Claude Code AI Assistant (MCP-Infrastruktur)', () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   // T1-T4: Pod readiness requires kubectl — skip with guard
   test('T1-T4: MCP pod readiness (kubectl, skipped without cluster context)', async () => {
     test.skip(!process.env.KUBECONFIG && !process.env.MCP_CLUSTER_CONTEXT,

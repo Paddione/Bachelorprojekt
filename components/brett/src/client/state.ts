@@ -23,6 +23,10 @@ export const STATE: AppState = {
   zones: [],   // ← NEU (T000605)
 };
 
+if (typeof window !== 'undefined') {
+  (window as any).STATE = STATE;
+}
+
 // ── Three.js singletons, registered by scene.ts ───────────────────
 interface SceneRefs {
   renderer: THREE.WebGLRenderer;

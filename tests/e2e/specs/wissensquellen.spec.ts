@@ -209,7 +209,7 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
     });
     expect(res.status()).toBe(400);
     const body = await res.json();
-    expect(body.error).toMatch(/gültige URL/i);
+    expect(body.error).toMatch(/(gültige URL|http\(s\)-URL)/i);
 
     // Cleanup
     await request.delete(`${BASE}/api/admin/knowledge/collections/${id}`, { headers: { Cookie: cookie } });
@@ -445,7 +445,7 @@ test.describe('Wissensquellen admin — web_crawl UI', () => {
     await wPage.goto('sammlungen');
     const row = page.getByRole('row', { name: new RegExp(stamp) });
     await expect(row).toBeVisible({ timeout: 60_000 });
-    await expect(row.locator('a[href*="mentolder"]').or(row)).toBeVisible();
+    await expect(row.locator('a[href*="mentolder"]').first()).toBeVisible();
 
     await wPage.deleteCollectionRow(stamp, created.id);
     await expect(row).not.toBeVisible({ timeout: 60_000 });

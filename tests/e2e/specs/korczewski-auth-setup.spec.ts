@@ -42,6 +42,7 @@ function ensureAuthDir(): void {
 
 // ── Website admin login ───────────────────────────────────────────────────────
 setup('authenticate korczewski website admin', async ({ page, request }, testInfo) => {
+  setup.setTimeout(60_000);
   ensureAuthDir();
 
   // Fail closed — an empty storageState here would silently run the whole

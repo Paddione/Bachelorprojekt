@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('SA-02: Authentifizierung — Browser (Pocket ID)', () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   test('T1: Pocket ID login page zeigt sich', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     const baseURL = process.env.TEST_BASE_URL || process.env.WEBSITE_URL || 'http://localhost:4321';
 
-    await page.goto(`${baseURL}/login`);
+    await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded' });
 
     await expect(page).toHaveURL(/authorize|interaction|login|auth\./, { timeout: 60_000 });
 
@@ -18,7 +22,7 @@ test.describe('SA-02: Authentifizierung — Browser (Pocket ID)', () => {
     const page = await context.newPage();
     const baseURL = process.env.TEST_BASE_URL || process.env.WEBSITE_URL || 'http://localhost:4321';
 
-    await page.goto(`${baseURL}/login`);
+    await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded' });
 
     await expect(page).toHaveURL(/authorize|interaction|login|auth\./, { timeout: 60_000 });
     await context.close();

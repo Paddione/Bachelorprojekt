@@ -21,9 +21,10 @@ test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@ad
   });
 
   test('verify embedding model selection in Web-Quelle modal and create bge-m3 collection', async ({ page }) => {
+    test.setTimeout(30_000);
     await loginAsAdmin(page);
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.getByRole('button', { name: 'Einlesen' }).click();
     await page.getByRole('button', { name: '+ Web-Quelle' }).click();
     await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-web-crawl-modal')));

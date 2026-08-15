@@ -34,7 +34,10 @@ const CRON_SECRET = process.env.CRON_SECRET;
 import { loginViaE2E } from '../lib/auth';
 
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
-  await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
+  await page.goto(`${BASE}${returnTo}`, { waitUntil: 'domcontentloaded' });
+  if (page.url().includes('login') || page.url().includes('auth.')) {
+    await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
+  }
 }
 
 /**
@@ -69,6 +72,7 @@ async function seedTestContactRow(api: APIRequestContext): Promise<string> {
 
 test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', '@messaging'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
+    test.setTimeout(30_000);
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/inbox`,

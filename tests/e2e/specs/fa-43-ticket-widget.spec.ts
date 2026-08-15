@@ -19,14 +19,22 @@ async function loginAndGo(page: import('@playwright/test').Page, path: string) {
 }
 
 test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
-  // ── Auth gating ─────────────────────────────────────────────────────
-  test('T1: /portal requires authentication', async ({ page }) => {
-    await page.goto(`${BASE}/portal`);
-    await expect(page).not.toHaveURL(`${BASE}/portal`);
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
   });
 
-  test('T2: GET /api/admin/tickets returns 403 without auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/tickets`);
+  // ── Auth gating ─────────────────────────────────────────────────────
+  test('T1: /portal requires authentication', async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const page = await ctx.newPage();
+    await page.goto(`${BASE}/portal`, { waitUntil: 'domcontentloaded' });
+    await expect(page).not.toHaveURL(`${BASE}/portal`);
+    await ctx.close();
+  });
+
+  test('T2: GET /api/admin/tickets returns 403 without auth', async ({ playwright }) => {
+    const unauth = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
+    const res = await unauth.get(`${BASE}/api/admin/tickets`);
     expect([401, 403, 404]).toContain(res.status());
   });
 
@@ -44,17 +52,17 @@ test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
     // ── TicketQuickCreate always visible in portal ───────────────────────
     test('T3: portal shows floating "Fehler melden" create button', async ({ page }) => {
       await loginAndGo(page, '/portal');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // The floating widget bar is fixed bottom-right; aria-label uniquely identifies the create btn
       const createBtn = page.locator('button[aria-label="Fehler melden"]');
-      await expect(createBtn).toBeVisible({ timeout: 60_000 });
+      await expect(createBtn).toBeVisible({ timeout: 15_000 });
     });
 
     // ── TicketWidgetBar DOM presence (showEdit prop regression guard) ─────
     test('T4: portal widget bar is attached in DOM', async ({ page }) => {
       await loginAndGo(page, '/portal');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // The fixed bottom-right container must be present — confirms TicketWidgetBar renders at all
       const widgetBar = page.locator('.fixed.bottom-6.right-6');
@@ -64,7 +72,7 @@ test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
     // ── Admin layout: no floating create widget (moved to PlatformHub) ──
     test('T5: admin layout has no floating aria-labeled "Fehler melden" button', async ({ page }) => {
       await loginAndGo(page, '/admin');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // showCreate=false in AdminLayout — the floating widget button must not render
       const floatingBtn = page.locator('button[aria-label="Fehler melden"]');
@@ -75,11 +83,11 @@ test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
     test('T6: PlatformHub Tickets tab renders create form', async ({ page, request }) => {
       await guardSdlc(request);
       await loginAndGo(page, '/admin/platform');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Tickets is the first tab (default open), create-form heading is "NEUES TICKET ▲"
       const formHeading = page.getByText('NEUES TICKET', { exact: false });
-      await expect(formHeading).toBeVisible({ timeout: 60_000 });
+      await expect(formHeading).toBeVisible({ timeout: 15_000 });
     });
   });
 });

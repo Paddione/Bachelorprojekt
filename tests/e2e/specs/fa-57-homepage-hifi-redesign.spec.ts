@@ -4,6 +4,9 @@ const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
 test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smoke', '@website'] }, () => {
   test.describe.configure({ retries: 1 });
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
 
   test('T1: Hero-Sektion rendert mit h1 und Kicker', async ({ page }) => {
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
@@ -130,7 +133,7 @@ test.describe('FA-57: Mentolder Homepage hifi-Redesign [T001034]', { tag: ['@smo
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
 
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 
     // Keine kritischen JS-Fehler (ResizeObserver-Warnings sind harmlos)
     expect(errors.filter(e => !e.includes('ResizeObserver'))).toHaveLength(0);

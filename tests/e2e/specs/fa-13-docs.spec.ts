@@ -20,6 +20,10 @@ const DOCS_URL = process.env.DOCS_URL
  */
 
 test.describe('FA-13: Dokumentations-Service', () => {
+  test.beforeEach(() => {
+    test.setTimeout(30_000);
+  });
+
   // T1: Docs deployment readiness (kubectl)
   test('T1: docs deployment readiness (kubectl, skipped without cluster context)', async () => {
     test.skip(!process.env.KUBECONFIG && !process.env.MCP_CLUSTER_CONTEXT,

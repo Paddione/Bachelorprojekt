@@ -3,6 +3,10 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA: Admin settings pages', { tag: ['@admin'] }, () => {
+  test.beforeEach(() => {
+    test.setTimeout(15_000);
+  });
+
   // ── Page auth-gating ───────────────────────────────────────────
   const settingsPages = [
     '/admin/einstellungen/email',
@@ -13,7 +17,7 @@ test.describe('FA: Admin settings pages', { tag: ['@admin'] }, () => {
 
   for (const path of settingsPages) {
     test(`${path} redirects unauthenticated users`, async ({ page }) => {
-      await page.goto(`${BASE}${path}`);
+      await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
       await expect(page).not.toHaveURL(`${BASE}${path}`);
     });
   }

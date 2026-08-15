@@ -16,7 +16,7 @@ test.describe('FA: Public static pages', { tag: ['@smoke', '@website'] }, () => 
 
   for (const { path, title } of publicPages) {
     test(`${path} loads and shows expected heading`, async ({ page }) => {
-      const res = await page.goto(`${BASE}${path}`);
+      const res = await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
       expect(res?.status(), `${path} should return 200`).toBe(200);
       await expect(page.locator('h1').first()).toBeVisible();
       await expect(page.locator('h1').first()).toContainText(title);

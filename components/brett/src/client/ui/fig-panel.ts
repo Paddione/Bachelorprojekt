@@ -139,6 +139,10 @@ export function selectFigure(id: string | null): void {
   if (appBtn) appBtn.disabled = !id;
 }
 
+if (typeof window !== 'undefined') {
+  (window as any).selectFigure = selectFigure;
+}
+
 const figPanelBtn   = document.getElementById('fig-panel-btn')!;
 const figPanel      = document.getElementById('fig-panel')!;
 const figPanelClose = document.getElementById('fig-panel-close')!;

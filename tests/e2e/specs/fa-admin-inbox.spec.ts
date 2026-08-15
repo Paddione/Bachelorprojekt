@@ -36,11 +36,15 @@ const STATUSES = ['pending', 'done', 'archived'] as const;
 import { loginViaE2E } from '../lib/auth';
 
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
-  await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
+  await page.goto(`${BASE}${returnTo}`, { waitUntil: 'domcontentloaded' });
+  if (page.url().includes('login') || page.url().includes('auth.')) {
+    await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
+  }
 }
 
 test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
+    test.setTimeout(30_000);
     await assertAuthenticatedReachable(
       request,
       `${BASE}/admin/inbox`,
@@ -172,7 +176,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
 
     const list   = root.locator('[data-testid="inbox-list"]');
     const search = root.locator('[data-testid="inbox-search"]');
-    await expect(search).toBeVisible();
+    await expect(search).toBeVisible({ timeout: 15_000 });
 
     const baseline = await list.locator('[data-testid="inbox-list-row"]').count();
 

@@ -42,7 +42,8 @@ function describeViolations(violations: AxeViolationSummary[]): string {
 
 for (const route of CORE_ROUTES) {
   test(`a11y: ${PROD_DOMAIN} ${route} hat 0 critical/serious`, async ({ page }) => {
-    await page.goto(route, { waitUntil: 'networkidle' });
+    test.setTimeout(30_000);
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();

@@ -27,11 +27,14 @@ test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
     expect(res.status()).toBe(400);
   });
 
-  test('T4: portal invoice section is auth-protected', async ({ page }) => {
+  test('T4: portal invoice section is auth-protected', async ({ browser }) => {
     // The inline payment button is only accessible after login.
     // Verify the portal auth-gates the invoice section for unauthenticated users.
-    await page.goto(`${BASE}/portal`);
-    await expect(page).not.toHaveURL(`${BASE}/portal`);
+    const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const unauthPage = await context.newPage();
+    await unauthPage.goto(`${BASE}/portal`, { waitUntil: 'domcontentloaded' });
+    await expect(unauthPage).not.toHaveURL(`${BASE}/portal`);
+    await context.close();
   });
 });
 
@@ -71,6 +74,7 @@ test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', { tag: ['@
   });
 
   test('payment overshoot rejected', async ({ page, request }, testInfo) => {
+    test.setTimeout(30_000);
     await adminLogin(page, request, testInfo); // Need login for session
 
     const inv = await createTestInvoice(page, { gross: 100 });

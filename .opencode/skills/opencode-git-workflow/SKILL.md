@@ -219,13 +219,17 @@ BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 cd "$MAIN_REPO"
+# Agent-Lock freigeben (T006290): NACH dem Wechsel ins Haupt-Repo — aus dem
+# Worktree heraus verweigert agent-lock.sh den Branch-Release, weil der
+# nachfolgende Worktree-Remove die Shell-cwd zerstören würde. Ohne
+# stderr-Unterdrückung, damit eine Verweigerung sichtbar bleibt.
+bash scripts/agent-lock.sh release ticket "<T00XXXX>"
+bash scripts/agent-lock.sh release branch "$BRANCH_NAME"
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
 # Remote-Branch erst NACH der Archivierung löschen (T004612 — der Merge löscht nicht mehr):
 git push origin --delete "$BRANCH_NAME"
 ```
-
-Agent-Lock freigeben VOR dem Worktree-Remove.
 
 ---
 

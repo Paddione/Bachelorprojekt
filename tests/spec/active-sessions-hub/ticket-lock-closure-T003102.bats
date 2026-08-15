@@ -129,7 +129,12 @@ _section() {  # <file> <start-regex>
 @test "Claim-Verifikation + Release im opencode-flow-execute sind branch-scoped" {
   run grep -F 'check branch "$(git branch --show-current)"' "$EXEC_SKILL"
   [ "$status" -eq 0 ]
-  run grep -F 'release branch "$(git branch --show-current)"' "$EXEC_SKILL"
+  # T006284: Der Release liegt nicht mehr inline im Skill, sondern in der
+  # idempotenten Finalize-Einheit, die opencode-flow-execute Schritt 6.2
+  # dem Finalizer als Pflicht aufträgt (branch-scoped, T003102).
+  run grep -F 'release branch "$BRANCH"' "$REPO/scripts/devflow-post-merge-finalize.sh"
+  [ "$status" -eq 0 ]
+  run grep -F 'devflow-post-merge-finalize.sh' "$EXEC_SKILL"
   [ "$status" -eq 0 ]
 }
 

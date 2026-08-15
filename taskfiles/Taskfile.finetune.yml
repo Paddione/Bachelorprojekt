@@ -72,17 +72,21 @@ tasks:
           {{if .DRY_RUN}}--dry-run{{end}}
 
   traces:
-    desc: "Erfolgreiche Factory-Laeufe zu Trainingskorpus rendern. FIXTURE=<json>|ROWS_JSON=<json> OUT=<jsonl>"
+    desc: "Erfolgreiche Factory-Laeufe zu Trainingskorpus rendern. FIXTURE=<json>|ROWS_JSON=<json> [COMMENTS_JSON=<json>] [WITH_CONTEXT=1] OUT=<jsonl>"
     preconditions:
       - sh: '[ -n "{{.OUT}}" ]'
         msg: "OUT=<jsonl> ist erforderlich."
       - sh: '[ -n "{{.FIXTURE}}" ] || [ -n "{{.ROWS_JSON}}" ]'
         msg: "FIXTURE=<json> (Tests) oder ROWS_JSON=<json> (mcp-postgres-Ergebnis) ist erforderlich."
+      - sh: '[ -n "{{.WITH_CONTEXT}}" ] && [ -n "{{.COMMENTS_JSON}}" ] || [ -z "{{.WITH_CONTEXT}}" ]'
+        msg: "WITH_CONTEXT=1 erfordert COMMENTS_JSON=<json> (Kommentarzeilen aus dem mcp-postgres-Aufruf)."
     cmds:
       - |
         python3 scripts/finetune/collect_factory_traces.py \
           {{if .FIXTURE}}--fixture "{{.FIXTURE}}"{{end}} \
           {{if .ROWS_JSON}}--rows-json "{{.ROWS_JSON}}"{{end}} \
+          {{if .COMMENTS_JSON}}--comments-json "{{.COMMENTS_JSON}}"{{end}} \
+          {{if .WITH_CONTEXT}}--with-context{{end}} \
           --out "{{.OUT}}"
 
   export:

@@ -181,11 +181,31 @@ for branch in "${CANDIDATES[@]}"; do
   # Im Sweep-Modus die Ticket-ID je Branch aus dem Branch-Namen ziehen. Trägt der
   # Branch keine T######-ID im Namen: KEEP — nicht prüfbar, also verschonen.
   branch_ticket_id="$TICKET_ID"
+  freshness_decided=0
   if [ -z "$branch_ticket_id" ]; then
     branch_ticket_id="$(printf '%s' "$branch" | grep -o 'T[0-9]\{6\}' | head -1 || true)"
     if [ -z "$branch_ticket_id" ]; then
-      echo "KEEP $branch — keine Ticket-ID im Branch-Namen erkennbar"
-      continue
+      # [T005958] chore/freshness-regen-* traegt nie eine Ticket-ID. Fuer diese Klasse
+      # entscheidet der PR-Status (MERGED/CLOSED) statt des Ticket-Status. Exit-Code
+      # auswerten, nicht die leere Ausgabe (dasselbe Muster wie beim offenen-PR-Check).
+      if [[ "$branch" == chore/freshness-regen-* ]]; then
+        if ! pr_all="$(gh pr list --head "$branch" --state all --json state 2>&1)"; then
+          echo "KEEP $branch — gh-Abfrage fehlgeschlagen: $(printf '%s' "$pr_all" | head -1)"
+          continue
+        fi
+        if printf '%s' "$pr_all" | grep -q '"state"[[:space:]]*:[[:space:]]*"OPEN"'; then
+          echo "KEEP $branch — offener Freshness-PR (Auto-Merge ausstehend)"
+          continue
+        fi
+        if ! printf '%s' "$pr_all" | grep -qE '"state"[[:space:]]*:[[:space:]]*"(MERGED|CLOSED)"'; then
+          echo "KEEP $branch — kein Freshness-PR auffindbar"
+          continue
+        fi
+        freshness_decided=1
+      else
+        echo "KEEP $branch — keine Ticket-ID im Branch-Namen erkennbar"
+        continue
+      fi
     fi
   fi
 
@@ -200,16 +220,18 @@ for branch in "${CANDIDATES[@]}"; do
     continue
   fi
 
-  # (3) Ticket-Status
-  ticket_json="$(bash "$TICKET_SH" get --id "$branch_ticket_id" 2>/dev/null || echo '{}')"
-  status="$(printf '%s' "$ticket_json" \
-    | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' \
-    | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//')"
-  case "$status" in
-    done|archived) : ;;
-    "") echo "KEEP $branch — Ticket-Status nicht ermittelbar"; continue ;;
-    *)  echo "KEEP $branch — Ticket-Status ist $status"; continue ;;
-  esac
+  # (3) Ticket-Status — fuer freshness_decided=1 bereits durch den PR-Status entschieden
+  if [ "$freshness_decided" -eq 0 ]; then
+    ticket_json="$(bash "$TICKET_SH" get --id "$branch_ticket_id" 2>/dev/null || echo '{}')"
+    status="$(printf '%s' "$ticket_json" \
+      | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' \
+      | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//' || true)"
+    case "$status" in
+      done|archived) : ;;
+      "") echo "KEEP $branch — Ticket-Status nicht ermittelbar"; continue ;;
+      *)  echo "KEEP $branch — Ticket-Status ist $status"; continue ;;
+    esac
+  fi
 
   # (4) Blob-Abweichungen gegen die Allowlist
   blocked=""

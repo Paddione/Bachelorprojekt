@@ -15,6 +15,14 @@ Zwei Fallen aus dem Vorversuch, die dieser Guard absichert:
      Zeilenumbruch — eine einzelne Byte-Abweichung, die Trainings- und Serving-Format
      auseinanderlaufen laesst.
 
+Der Marker `{% generation %}...{% endgeneration %}` ist ein Block-Tag-Paar (transformers'
+`AssistantTracker`-Semantik, utils/chat_template_utils.py): es rendert seinen Body
+unveraendert und markiert nur die Generation-Region fuer assistant-only Loss. Der Guard
+registriert den Tag als Pass-through-Extension — sonst schlaegt die Byte-Pruefung fuer
+gepatchte Templates mit Marker bereits beim Parsen fehl. Falle 1 ist ueber die Bytes NICHT
+erkennbar (der Tag rendert den Header unveraendert mit); sie bleibt als Lint-Konvention
+dokumentiert und wird vom Trainings-Test (Lernsignal-Anteil) mechanisch abgedeckt.
+
 Referenz ist immer das HUB-Template (vom Hugging Face Hub geladen), NICHT das vom
 Trainings-Framework in ein Adapterverzeichnis geschriebene Template — im Vorversuch
 unterschieden sich beide um mehr als tausend Zeichen. `--hub-template` nimmt eine lokale
@@ -29,8 +37,32 @@ import sys
 from pathlib import Path
 
 import jinja2
+import jinja2.ext
 
 CONTEXT_CHARS = 40
+
+
+class GenerationTag(jinja2.ext.Extension):
+    """Pass-through-Tag `{% generation %}...{% endgeneration %}` (transformers-kompatibel).
+
+    Transformers' AssistantTracker (utils/chat_template_utils.py) markiert mit diesem
+    Block-Tag-Paar die Region, fuer die assistant-only Loss berechnet wird; der Tag rendert
+    seinen Body unveraendert. Der Guard braucht dieselbe Parsing-Semantik, sonst ist die
+    Byte-Pruefung fuer gepatchte Templates mit Marker nicht ausfuehrbar (siehe Docstring,
+    Falle 1/2). Die Markierung selbst (Masken-Indizes) ist Sache von train.py — hier zaehlt
+    nur, dass gerendert wird wie ohne Tag.
+    """
+
+    tags = {"generation"}
+
+    def parse(self, parser: jinja2.parser.Parser) -> jinja2.nodes.CallBlock:
+        lineno = next(parser.stream).lineno
+        body = parser.parse_statements(["name:endgeneration"], drop_needle=True)
+        return jinja2.nodes.CallBlock(self.call_method("_passthrough"), [], [], body).set_lineno(lineno)
+
+    @jinja2.pass_eval_context
+    def _passthrough(self, context: jinja2.runtime.Context, caller: jinja2.runtime.Macro) -> str:
+        return caller()
 
 
 def _load_corpus(path: Path) -> list[dict]:
@@ -45,7 +77,7 @@ def _load_corpus(path: Path) -> list[dict]:
 
 
 def _render_all(template_text: str, rows: list[dict]) -> list[str]:
-    env = jinja2.Environment(trim_blocks=True, lstrip_blocks=False)
+    env = jinja2.Environment(trim_blocks=True, lstrip_blocks=False, extensions=[GenerationTag])
     template = env.from_string(template_text)
     rendered = []
     for row in rows:

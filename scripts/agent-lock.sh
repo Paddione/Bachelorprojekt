@@ -493,6 +493,15 @@ cmd_refresh() {
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
 }
 
+# 0 = caller's cwd (or its git toplevel) falls inside <worktree>. Exact or
+# prefix match, mirroring _lock_is_mine (T003110). [T006290]
+_cwd_inside_worktree() {  # <worktree-path>
+  local wt="$1" my_toplevel
+  my_toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || my_toplevel="$PWD"
+  [ "$my_toplevel" = "$wt" ] || [[ "$my_toplevel" = "$wt"/* ]] \
+    || [ "$PWD" = "$wt" ] || [[ "$PWD" = "$wt"/* ]]
+}
+
 # NOTE: cmd_release compares SID with _my_sid. When claim happened in a subshell
 # the SID may differ — see T001268.
 cmd_release() {
@@ -506,6 +515,17 @@ cmd_release() {
   # gegen SID-Drift pro Bash-Call — diese Ursache ist seit T002375-p1 behoben. [T002447]
   if [ -n "$force" ] || _lock_is_mine "$f" \
      || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
+    # [T006290] cwd-Guard: Branch-Release verweigern, solange die Shell-cwd im
+    # Worktree des Locks liegt. Der dokumentierte naechste Schritt
+    # (git worktree remove) zerstoert sonst die cwd, alle Folgekommandos sterben
+    # (rc=128) und der Lock bliebe stale. --force uebersteuert den Guard.
+    if [ "$scope" = "branch" ] && [ -z "$force" ]; then
+      local wt; wt="$(_lock_field "$f" worktree)"
+      if [ -n "$wt" ] && [ "$wt" != "-" ] && _cwd_inside_worktree "$wt"; then
+        echo "release: cwd liegt im Worktree des Locks ($wt) — release aus dem Haupt-Repo heraus ausfuehren, dann git worktree remove" >&2
+        return 1
+      fi
+    fi
     rm -f "$f"; return 0
   fi
   echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2
@@ -519,6 +539,21 @@ cmd_check() {
   # worktree path containment, so a lock recognised from a subdirectory (e.g.
   # scripts/ within the worktree) still reports "mine".
   if _lock_is_mine "$f"; then echo "mine"; cat "$f"; return 0; fi
+  # [T005560] Toter Halter = kein Schutz gegen Doppelarbeit: advisory rc=4,
+  # Lock bleibt bestehen (Reap-Entscheidung bleibt bei _reapable).
+  # Grace-Frist wie bei _reapable (T002849): ein frischer Claim (age < GRACE)
+  # mit totem owner_pid ist ein Resume-Fenster — der neue Prozess eines
+  # neugestarteten Halters hat seinen Heartbeat moeglicherweise noch nicht
+  # geschrieben. Erst nach der Frist ist der Halter nachweislich beendet.
+  local _hp _hb _ct _age
+  _hp="$(_lock_field "$f" owner_pid)"
+  if [ -n "$_hp" ] && ! _pid_alive "$_hp"; then
+    _hb="$(_lock_field "$f" heartbeat_at)"; _ct="$(_lock_field "$f" created_at)"
+    _age=$(( $(_now) - ${_hb:-${_ct:-0}} ))
+    if [ -z "$_ct" ] || [ "$_age" -ge "$AGENT_LOCK_GRACE" ]; then
+      echo "held-stale"; cat "$f"; return 4
+    fi
+  fi
   echo "held"; cat "$f"; return 3
 }
 

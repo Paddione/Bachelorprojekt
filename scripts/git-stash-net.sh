@@ -35,6 +35,11 @@ usage: git-stash-net.sh <cmd> [args]
                                Verifikation danach: Eintrag weg → 0, Eintrag
                                noch da → 1 (Teil-Pop-Befund, bleibt als
                                Sicherungsnetz), kein Treffer → 2.
+  drop --by-message <pattern>  Eintrag per Nachricht-Regex auflösen und entfernen —
+                               NIE über den Index stash@{N}. Mehrdeutig (mehrere
+                               Treffer) → 3, nichts entfernt; kein Treffer → 2.
+                               Positive Verifikation danach: Eintrag weg → 0,
+                               Eintrag noch da → 1 (BEFUND, bleibt erhalten).
 EOF
   exit 2
 }
@@ -113,6 +118,48 @@ cmd_pop() {
   return 1
 }
 
+# Message des Eintrags zu einem Index ($1 = stash@{N}) — nur zur Anzeige (D3),
+# keine Auflösung: der Index kommt immer aus _find_idx.
+_msg_of() {  # -> <message>; 0/1
+  local idx="$1" line
+  line="$(_stash_entries | grep -F -- "$idx|" | head -n 1)" || return 1
+  printf '%s\n' "${line#*|}"
+}
+
+cmd_drop() {
+  local pattern="$1" idx before after drop_status msg
+  idx="$(_find_idx "$pattern")" || {
+    echo "git-stash-net: kein Stash-Eintrag für Muster '$pattern' gefunden (Exit 2, Fail-Closed)." >&2
+    return 2
+  }
+  before="$(_count_matches "$pattern")"
+  # Eindeutigkeit VOR dem Drop — mehrdeutig heißt: nichts entfernen (D2).
+  if [ "$before" -gt 1 ]; then
+    {
+      echo "git-stash-net: Muster '$pattern' ist mehrdeutig — $before Einträge matchten, nichts entfernt (Exit 3)."
+      echo "  Treffer (je <index> <message>):"
+      _stash_entries | grep -iE -- "$pattern" | tr '|' ' '
+    } >&2
+    return 3
+  fi
+  # Operatoren-Sichtbarkeit: aufgelöster Index UND Message vor dem Drop (D3).
+  msg="$(_msg_of "$idx")"
+  echo "git-stash-net: entferne $idx ('$msg') — aufgelöst per Message-Muster '$pattern'." >&2
+  # Drop ausführen — Ausgabe sichtbar lassen, Exit-Code getrennt von Pipes messen.
+  git stash drop "$idx"
+  drop_status=$?
+  after="$(_count_matches "$pattern")"
+  if [ "$after" -eq 0 ]; then
+    echo "git-stash-net: Eintrag $idx entfernt (positive Verifikation)." >&2
+    return 0
+  fi
+  {
+    echo "BEFUND: Stash-Eintrag $idx wurde NICHT entfernt (git-Exit $drop_status)."
+    echo "  Der Eintrag bleibt im Stash-Stack erhalten — kein Verlust, erneuter Aufruf möglich."
+  } >&2
+  return 1
+}
+
 CMD="${1:-}"
 case "$CMD" in
   find)
@@ -122,6 +169,10 @@ case "$CMD" in
   pop)
     [ "${2:-}" = "--by-message" ] && [ -n "${3:-}" ] || usage
     cmd_pop "$3"
+    ;;
+  drop)
+    [ "${2:-}" = "--by-message" ] && [ -n "${3:-}" ] || usage
+    cmd_drop "$3"
     ;;
   *) usage ;;
 esac

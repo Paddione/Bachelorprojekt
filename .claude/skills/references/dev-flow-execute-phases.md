@@ -266,14 +266,32 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 
 ## Schritt 6.4 bis 7.5 — Merge-Wait, Ticket-Abschluss, Archivierung, Cleanup
 
+> **Finalizer-Zuständigkeit (T006284):** Diese Schritte laufen NICHT im Orchestrator — sie
+> sind an einen frischen Finalizer-Subagenten delegiert (SKILL.md Schritt 3.9). Der Finalizer
+> führt sie als eine idempotente Skript-Einheit aus:
+>
+> ```bash
+> bash scripts/devflow-post-merge-finalize.sh "$TICKET_ID" --pr "$PR_NUM"
+> ```
+>
+> Das Skript ist deterministisch und idempotent: Jeder Schritt überspringt bereits erledigte
+> Arbeit (Ticket schon `done`, Plan schon archiviert, Lock schon frei, Worktree schon
+> entfernt); ein zweiter Lauf setzt an der ersten offenen Stelle fort. Die Einzelschritte unten
+> bleiben als Referenz der Skript-Mechanik erhalten — der Finalizer rekonstruiert sie NICHT
+> frei, sondern ruft das Skript (Exit 0 = erledigt/übersprungen, Exit 1 = Fehler).
+
+Vor dem Skript-Aufruf steht der Merge-Wait-Loop — erst warten, bis der PR
 tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Ticket=done bei
 PR=OPEN+CONFLICTING Drift, Mishap T001149-M1). Voller Poll-Loop mit Timeout/State-Handling
 (`MERGED`/`CLOSED`/Timeout-Exit-Codes): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)
-§"PR-Merge-Wait-Loop" — der Subagent MUSS die Datei lesen und den Loop von dort ausführen
-(nicht aus dem Gedächtnis rekonstruieren).
+§"PR-Merge-Wait-Loop" — der Finalizer MUSS die Datei lesen und den Loop von dort ausführen
+(nicht aus dem Gedächtnis rekonstruieren). Bei Timeout KEIN Ticket schließen (T001149-M1) —
+strukturiert berichten; die offenen Schritte sind über das Skript nachholbar.
 
 
 ## Schritt 6.5: Ticket abschließen
+
+> Läuft über `devflow-post-merge-finalize.sh` (Schritte 3–6 der Skript-Kette). Referenz:
 
 Falls eine Ticket-ID vorhanden ist, schließe das Ticket:
 PR-Nummer ermitteln (falls nicht aus Schritt 6.4 bekannt):
@@ -299,6 +317,8 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Re
 
 ## Schritt 7: Plan & OpenSpec archivieren
 
+> Läuft über `devflow-post-merge-finalize.sh` (Schritte 7–8 der Skript-Kette). Referenz:
+
 Zwei Schritte: (1) `tasks.md` nach postgres (`ticket-mcp` `archive_plan` bzw. `ticket.sh archive-plan`),
 (2) der gesamte OpenSpec-Change-Ordner ins Archiv via `scripts/openspec.sh archive` — inkl.
 Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständige Mechanik:
@@ -306,6 +326,8 @@ Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständig
 
 
 ## Schritt 7.5: Worktree & Branch bereinigen
+
+> Läuft über `devflow-post-merge-finalize.sh` (Schritt 10 der Skript-Kette). Referenz:
 
 > **Reihenfolge (T004612):** Dieser Schritt läuft NACH Schritt 7 (Archiv) — der Fix-PR-Merge
 > (Schritt 5) löscht den Branch bewusst NICHT mehr (`--delete-branch` entfernt,

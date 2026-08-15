@@ -156,6 +156,13 @@ Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
 > verhindert, dass bereits belegte Tickets erst nach dem Aufbau des Worktrees (kostspielig)
 > als blockiert erkannt werden.
 >
+> **Ticket-State-Recheck [T006295]:** Vor dem ersten `claim`-Aufruf der Dispatch-Schleife wird
+> zusätzlich der Ticket-Zustand jedes Wave-1-Tickets re-fetcht (status + `FACTORY-PLAN-REF`-Marker)
+> und nur Tickets dispatched, die seit dem Masterplan-Snapshot unveraendert sind — Abweichungen
+> werden als `STALE-STATE` gemeldet und NICHT dispatched (laufende Parallelsession). Query und
+> Stale-Regel: [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md)
+> §Step 3.6.
+>
 > **Beide Lock-Scopes prüfen [T002498-M6]:** `check ticket` allein greift nicht — die
 > dev-flow-*-Skills locken branch-scoped, das Feld `held` bleibt dann für das Ticket leer
 > (T002497). Zusätzlich `check branch <vorgesehener-branch>` sowie

@@ -92,16 +92,23 @@ The system SHALL in repo-hygiene-ops.md §1 den Vorcheck auf einen laufenden Fac
 ### Requirement: Runtime drift detection for replaced MCP server binaries
 
 The system SHALL detect MCP server processes that execute a binary which has since been
-replaced on disk, and SHALL report each such process without terminating it.
+replaced on disk, and SHALL report each such process. By default the check reports without
+terminating the process; with the explicit `--auto-kill` flag it additionally terminates the
+drifting process.
 
 A process holds its executable through an open inode handle. Replacing the file on disk
 leaves the running process on the old code, which makes a merged fix ineffective while the
-repository shows it as present. Terminating the process is an operator decision, so the
-check reports and names the remedy instead of acting.
+repository shows it as present. By default, terminating the process is an operator decision,
+so the check reports and names the remedy instead of acting; `--auto-kill` automates exactly
+that named remedy (`kill $pid; der Server startet beim naechsten Tool-Aufruf neu`).
 
 The set of binaries to check SHALL be derived from the existing registry
 `docs/agent-guide/registry/mcp.yaml` — every entry with `transport: stdio` — so that a newly
 registered server is covered without maintaining a second list.
+
+`--auto-kill` SHALL terminate only processes that match a registered stdio binary of the
+registry — never a foreign process. The drift check SHALL accept unknown flags with a usage
+error and exit status 2 instead of ignoring them.
 
 #### Scenario: Process runs a deleted binary
 
@@ -112,6 +119,21 @@ registered server is covered without maintaining a second list.
   belongs to
 - **AND** it exits with status 1
 - **AND** the process is still running afterwards
+
+#### Scenario: Auto-kill terminates a registered drifting process
+
+- **GIVEN** an MCP server process whose `/proc/<pid>/exe` symlink resolves to a path ending
+  in `" (deleted)"` and whose binary is registered in the registry
+- **WHEN** the drift check runs with `--auto-kill`
+- **THEN** it reports the process with its PID and start time
+- **AND** the process is terminated
+- **AND** the drift check exits with status 0 once no residual drift remains
+
+#### Scenario: Auto-kill leaves foreign processes untouched
+
+- **GIVEN** a process outside the registry whose executable has been deleted
+- **WHEN** the drift check runs with `--auto-kill`
+- **THEN** the foreign process is still running afterwards
 
 #### Scenario: Process binary differs from the file on disk
 
@@ -173,8 +195,11 @@ the system, so an unreachable database is reported as unknown, never as drift.
 
 ### Requirement: Drift check never modifies system state
 
-The drift check SHALL be read-only. It SHALL NOT terminate processes, apply migrations,
-write to the database, or modify files.
+The drift check SHALL be read-only by default: it SHALL NOT terminate processes, apply
+migrations, write to the database, or modify files. With the explicit `--auto-kill` flag,
+terminating registered drifting processes is the documented exception; migrations are never
+applied automatically, database findings remain operator decisions, and no files are
+modified in either mode.
 
 #### Scenario: Check runs against a drifted system
 
@@ -183,6 +208,14 @@ write to the database, or modify files.
 - **THEN** the offending process is still running afterwards
 - **AND** the installed function definition is unchanged
 - **AND** the reported output names the command that would remedy each finding
+
+#### Scenario: Auto-kill heals processes but never applies migrations
+
+- **GIVEN** a system with a replaced binary and an unapplied migration
+- **WHEN** the drift check runs with `--auto-kill`
+- **THEN** the offending process is terminated
+- **AND** the installed function definition is unchanged
+- **AND** the unapplied migration is still reported as drift with exit status 1
 
 ### Requirement: repo-hygiene reports runtime drift
 
@@ -196,3 +229,31 @@ surface its findings alongside the existing branch, worktree and queue findings.
 - **THEN** the drift appears in its findings with the remedy command
 
 <!-- merged from change delta batch-repo-hygiene-ops-fixes.md (744968b821ea) -->
+
+<!-- merged from change delta batch-repo-hygiene-ops-fixes.md (a4921c46c62c) -->
+
+### Requirement: Sweep überlebt leere ticket.sh-Antwort
+
+The system SHALL continue the sweep in `scripts/branch-reaper.sh` when the ticket status lookup
+for a branch's ticket id returns an empty answer (`ticket.sh get --id <id>` with exit code 0 and
+empty stdout, i.e. the ticket does not exist in the database). The branch SHALL be kept with the
+"Ticket-Status nicht ermittelbar" reason instead of terminating the whole run silently with a
+non-zero exit code.
+
+#### Scenario: Branch mit nicht-existenter Ticket-ID verschont den Sweep
+
+- **GIVEN** a remote branch whose name carries a ticket id that is not present in the ticket
+  database (the lookup answers rc=0 with empty stdout)
+- **WHEN** `scripts/branch-reaper.sh --sweep --dry-run` runs
+- **THEN** the run completes with exit code 0
+- **AND** the branch is listed with a `KEEP` line
+- **AND** the branches following it are still evaluated (the run does not stop at the
+  problematic branch)
+
+#### Scenario: Einzel-Ticket-Lauf mit unbekannter ID bricht nicht ab
+
+- **GIVEN** a ticket id that is not present in the ticket database
+- **WHEN** `scripts/branch-reaper.sh --ticket <id> --dry-run` runs
+- **THEN** the run completes with exit code 0 instead of dying at the status extraction
+
+<!-- merged from change delta batch-repo-hygiene-ops-fixes.md (7bb4b7ebca8d) -->

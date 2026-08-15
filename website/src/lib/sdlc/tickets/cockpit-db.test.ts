@@ -31,7 +31,7 @@ const { mem } = vi.hoisted(() => {
   return { mem: db };
 });
 
-vi.mock('../website-db', () => {
+vi.mock('../../website-db', () => {
   const pg = mem.adapters.createPg();
   const pool = new pg.Pool();
   return { pool, ensureSchemaOnce: async (_k: string, fn: () => Promise<void>) => fn() };

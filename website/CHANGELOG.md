@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.278.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.278.0...website-v1.278.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** branch-reaper überlebt leere ticket.sh-Antwort [T006329] ([#4540](https://github.com/Paddione/Bachelorprojekt/issues/4540)) ([5d944bd](https://github.com/Paddione/Bachelorprojekt/commit/5d944bd2b8395ee3fae234c6c2e5c29520bf16f8))
+
 ## [1.278.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.277.0...website-v1.278.0) (2026-08-15)
 
 

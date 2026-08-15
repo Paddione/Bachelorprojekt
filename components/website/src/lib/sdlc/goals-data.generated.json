@@ -205,7 +205,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "# Zählt catch-Blöcke in Schnittstellen-Dateien ohne unmittelbare Fehlerprotokollierung\npython3 -c \"\nimport os, re\nfiles = ['website/src/lib/embeddings.ts', 'website/src/lib/rerank.ts', 'website/src/lib/bge-router.ts']\nif not all(os.path.exists(f) for f in files): print('-'); exit(0)  # Positiv-Anker: Basis muss existieren\nc=0\nfor f in files:\n    for b in re.findall(r'catch\\s*\\([^)]*\\)\\s*\\{([^}]*)\\}', open(f).read(), re.DOTALL):\n        if not re.search(r'(logger\\.|console\\.(error|warn))', b): c+=1\nprint(c)\n\" 2>/dev/null || echo n/a",
+    "measurement": "# Zählt catch-Blöcke in Schnittstellen-Dateien ohne unmittelbare Fehlerprotokollierung\npython3 -c \"\nimport os, re\nfiles = ['components/website/src/lib/embeddings.ts', 'components/website/src/lib/rerank.ts', 'components/website/src/lib/bge-router.ts']\nif not all(os.path.exists(f) for f in files): print('-'); exit(0)  # Positiv-Anker: Basis muss existieren\nc=0\nfor f in files:\n    for b in re.findall(r'catch\\s*\\([^)]*\\)\\s*\\{([^}]*)\\}', open(f).read(), re.DOTALL):\n        if not re.search(r'(logger\\.|console\\.(error|warn))', b): c+=1\nprint(c)\n\" 2>/dev/null || echo n/a",
     "source": ".claude/lib/goals.md · G-IF02",
     "measured_at": "2026-08-15"
   },
@@ -415,7 +415,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -r '@ts-ignore|@ts-expect-error' website/src --include='*.ts' | grep -v goals-data.ts | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -r '@ts-ignore|@ts-expect-error' components/website/src --include='*.ts' | grep -v goals-data.ts | wc -l",
     "source": ".claude/lib/goals.md · G-RH02",
     "measured_at": "2026-08-15"
   },
@@ -490,7 +490,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\\.only\\b' website/src --include='*.test.ts' | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\\.only\\b' components/website/src --include='*.test.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-TEST02",
     "measured_at": "2026-08-15"
   },
@@ -505,7 +505,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rnE \"(describe|it|test)\\.(skip|todo)\\b\" website/src --include=\"*.ts\" | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE \"(describe|it|test)\\.(skip|todo)\\b\" components/website/src --include=\"*.ts\" | wc -l",
     "source": ".claude/lib/goals.md · G-TEST03",
     "measured_at": "2026-08-15"
   },
@@ -520,7 +520,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "git status --porcelain website/src/data/test-inventory.json | wc -l",
+    "measurement": "git status --porcelain components/website/src/data/test-inventory.json | wc -l",
     "source": ".claude/lib/goals.md · G-TEST04",
     "measured_at": "2026-08-15"
   },
@@ -535,7 +535,7 @@
     "target": 280,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rn ': any|<any>|as any' website/src --include=*.ts --include=*.svelte --include=*.astro | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any|<any>|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro | wc -l",
     "source": ".claude/lib/goals.md · G-CQ02",
     "measured_at": "2026-08-15"
   },
@@ -565,7 +565,7 @@
     "target": 1,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rnE \"\\bTODO\\b\" --include=*.ts ... website/src scripts tests k3d brett/src | wc -l",
+    "measurement": "grep -rnE \"\\bTODO\\b\" --include=*.ts ... components/website/src scripts tests k3d brett/src | wc -l",
     "source": ".claude/lib/goals.md · G-CQ05",
     "measured_at": "2026-08-15"
   },
@@ -580,7 +580,7 @@
     "target": 1,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' website/src | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' components/website/src | wc -l",
     "source": ".claude/lib/goals.md · G-CQ06",
     "measured_at": "2026-08-15"
   },
@@ -631,7 +631,7 @@
   },
   {
     "id": "G-SIZE03",
-    "title": "God-File `website/src/lib/website-db.ts`",
+    "title": "God-File `components/website/src/lib/website-db.ts`",
     "category": "Code-Größe",
     "priority": "C",
     "direction": "lower",
@@ -640,7 +640,7 @@
     "target": 3000,
     "unit": "",
     "status": "unknown",
-    "measurement": "wc -l < website/src/lib/website-db.ts",
+    "measurement": "wc -l < components/website/src/lib/website-db.ts",
     "source": ".claude/lib/goals.md · G-SIZE03",
     "measured_at": "2026-08-15"
   },
@@ -700,7 +700,7 @@
     "target": 1,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/Dockerfile` fehlt ⇒ n/a; `grep -q \"npm ci\" website/Dockerfile && echo inkonsistent || echo ok",
+    "measurement": "Positiv-Anker: `components/website/Dockerfile` fehlt ⇒ n/a; `grep -q \"npm ci\" components/website/Dockerfile && echo inkonsistent || echo ok",
     "source": ".claude/lib/goals.md · G-DEP03",
     "measured_at": "2026-08-15"
   },
@@ -715,7 +715,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "for p in package.json website/package.json ...; do python3 -c \"..engines..\"; done",
+    "measurement": "for p in package.json components/website/package.json ...; do python3 -c \"..engines..\"; done",
     "source": ".claude/lib/goals.md · G-DEP04",
     "measured_at": "2026-08-15"
   },
@@ -1135,7 +1135,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rEn 'console\\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v 'logger.ts' | grep -v 'error-log-store.ts' | grep -v '\\.test\\.ts' | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\\.(error|warn)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v 'logger.ts' | grep -v 'error-log-store.ts' | grep -v '\\.test\\.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-FE03",
     "measured_at": "2026-08-15"
   },
@@ -1150,7 +1150,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rEn 'console\\.(log|debug|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v '\\.test\\.ts' | wc -l",
+    "measurement": "Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\\.(log|debug|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v '\\.test\\.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-FE04",
     "measured_at": "2026-08-15"
   },
@@ -1456,7 +1456,7 @@
   },
   {
     "id": "G-TEST05",
-    "title": "Vitest Line-Coverage `website/src/lib`",
+    "title": "Vitest Line-Coverage `components/website/src/lib`",
     "category": "Test-Health",
     "priority": "C",
     "direction": "higher",

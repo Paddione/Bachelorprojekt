@@ -3,7 +3,7 @@ name: bachelorprojekt-website
 description: >
   Use for Astro and Svelte website development, UI components, frontend design,
   brand-specific layouts, and the /api/* backend endpoints in the Bachelorprojekt
-  website. Triggers on: website/, Astro, Svelte, component, homepage, kore,
+  website. Triggers on: components/website/, Astro, Svelte, component, homepage, kore,
   mentolder brand, CSS, UI, frontend, design.
 model: sonnet
 ---
@@ -22,9 +22,9 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 - **korczewski** (`web.korczewski.de`) — bachelor thesis showcase with the Kore design system
 
 ## Brand routing
-- Entry point: `website/src/pages/index.astro`
+- Entry point: `components/website/src/pages/index.astro`
 - Brand detection: `process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'`
-- korczewski renders components from `website/src/components/kore/`
+- korczewski renders components from `components/website/src/components/kore/`
 - mentolder renders existing Hero/WhyMe/ServiceRow/... Svelte components
 
 > **Prod targeting (Fleet Stage 3).** Both brands are served by the unified `fleet` cluster (context `fleet`). mentolder: ENV `mentolder`, ns `workspace`, domain `web.mentolder.de`. korczewski: ENV `korczewski`, ns `workspace-korczewski`, domain `web.korczewski.de`. The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for everything.
@@ -35,7 +35,7 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 - Timeline shows **historical data only** — tracking pipeline removed (PR #788 removed `tracking-import` CronJob, PR #993 removed `track-pr.yml`); last entry is PR #787
 
 ## Deploy rule (CRITICAL)
-Every change to `website/src/` or `website/public/` requires a push to `main` (via PR). In prod, the `build-website.yml` / `build-website-korczewski.yml` Actions rebuild the brand image and roll it out automatically (push-based via `FLEET_KUBECONFIG`; no Flux). For manual rollout/rebuild:
+Every change to `components/website/src/` or `components/website/public/` requires a push to `main` (via PR). In prod, the `build-website.yml` / `build-website-korczewski.yml` Actions rebuild the brand image and roll it out automatically (push-based via `FLEET_KUBECONFIG`; no Flux). For manual rollout/rebuild:
 ```bash
 # Fan-out to both brands (recommended):
 task feature:website

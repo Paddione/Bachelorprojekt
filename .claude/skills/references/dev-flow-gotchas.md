@@ -29,7 +29,7 @@ This section aggregates known operational issues, gotchas, and workarounds for t
 
 ### [T000245] fresh worktree node_modules missing
 **Context**: Node modules are not checked in, and worktrees are clean.
-**Rule**: Run `npm ci --prefix brett` before running tests or compilation within a fresh worktree.
+**Rule**: Run `npm ci --prefix components/brett` before running tests or compilation within a fresh worktree.
 
 
 
@@ -53,7 +53,7 @@ human touched the file — this happened during T001378 and required a manual re
 force-push to unstick.
 **Rule**: Keep PRs short-lived to minimize the window for this race. If a PR does flip to
 `CONFLICTING` and the diff is only in generated freshness artifacts (`docs/code-quality/*.json`,
-`website/src/data/test-inventory.json`, etc.), don't debug it as a real conflict — immediately run
+`components/website/src/data/test-inventory.json`, etc.), don't debug it as a real conflict — immediately run
 `git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerated files> && git rebase --continue && git push --force-with-lease`. `scripts/devflow-ci-watch.sh` already self-services a plain `DIRTY` rebase (see its preflight block); `CONFLICTING` from this specific race needs the regenerate step added in, since a bare rebase won't reproduce the artifact the auto-regen job would have produced.
 
 ### [T001395] Check the commit-scope SSOT allowlist BEFORE the first commit
@@ -120,6 +120,6 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 **Rule**: See `.claude/skills/lavish/SKILL.md#reload-safety` for the full lavish reload-safety protocol — never reload while a poll is outstanding, and check the last poll status before reloading.
 
 ### [T002637-M5] Massenverschiebung: Referenzliste zuerst erheben, nicht aus CI ernten
-**Context**: Nach der sdlc/-Verschiebung (T002624) waren Testpfade in `tests/` nicht nachgezogen. Das kam über DREI CI-Runden einzeln hoch (dashboard.bats; dann G-CQ02 in zwei Kopien; dann pipeline-interface/openspec-pgvector/brain-link-derivation), weil jeweils nur der gemeldete Fehler behoben wurde — statt einmal die Gesamtliste zu erheben. Ein Teil zeigte sogar auf eine ZWISCHENFORM der Verschiebung (`website/src/sdlc/components/`), die nie existierte.
+**Context**: Nach der sdlc/-Verschiebung (T002624) waren Testpfade in `tests/` nicht nachgezogen. Das kam über DREI CI-Runden einzeln hoch (dashboard.bats; dann G-CQ02 in zwei Kopien; dann pipeline-interface/openspec-pgvector/brain-link-derivation), weil jeweils nur der gemeldete Fehler behoben wurde — statt einmal die Gesamtliste zu erheben. Ein Teil zeigte sogar auf eine ZWISCHENFORM der Verschiebung (`components/website/src/sdlc/components/`), die nie existierte.
 **Rule**: Bei einer Massenverschiebung VOR dem ersten Commit systematisch alle Referenzen auf die alten Pfade suchen (git grep über den ganzen Baum, inkl. tests/), NICHT CI-Runde für CI-Runde die gemeldeten Fehler abarbeiten. Erwartete Fehlerliste einmal vollständig erheben und abhaken.
 

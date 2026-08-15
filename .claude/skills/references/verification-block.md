@@ -29,7 +29,7 @@ seine Datei-Universe aus `git ls-files` — untracked Dateien werden nicht erfas
 führt zu einem zweiten Durchlauf: erst `git add` der neuen Datei, dann `task
 freshness:regenerate` erneut, dann `freshness:check`. Planbar zwei Runden einplanen.
 
-Bei Änderungen unter `website/` zusätzlich: **`cd website && npx astro check`** [T002694].
+Bei Änderungen unter `components/website/` zusätzlich: **`cd website && npx astro check`** [T002694].
 
 > **`tsc --noEmit` ist dafür kein Ersatz.** Der CI-Job heißt `Vitest (website)`, führt aber
 > `vitest + astro check + Knip` aus. `astro check` ist strenger als `tsc` und prüft zusätzlich
@@ -60,7 +60,7 @@ das alte Muster laufen. Dann gilt die Reihenfolge: erst `git add <neue Datei>`, 
 steigt beim zweiten Lauf um genau 1 (beobachtet 548 → 549, T002255/T002267).
 
 **(b) Rote E2E-Services bei reinen Manifest-Änderungen sind KEIN PR-Blocker.**
-`task test:changed` startet bei `k3d/`-, `environments/`- oder `VideoVault/`-Änderungen die
+`task test:changed` startet bei `k3d/`-, `environments/`- oder `components/VideoVault/`-Änderungen die
 Gruppe `test:e2e:services` gegen `localhost:4321`. Ohne laufenden Dev-Stack sind 13
 `ERR_CONNECTION_REFUSED` das erwartete Ergebnis. Seit T002375-p4 überspringt `test:changed`
 die Gruppe mit sichtbarer Meldung, wenn der Port nicht antwortet.
@@ -77,7 +77,7 @@ tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/changed-m
 
 **(c) Rote `test:e2e:website` sind auch MIT laufendem Dev-Server kein PR-Blocker** [T002691].
 Der Fall unter (b) ist am fehlenden Dev-Stack erkennbar — dieser hier nicht: `test:e2e:website`
-läuft bei Änderungen unter `website/(src|pages|components|layouts|lib)/` an und liefert auch dann
+läuft bei Änderungen unter `components/website/(src|pages|components|layouts|lib)/` an und liefert auch dann
 rund 30 Fehlschläge, wenn `curl http://localhost:4321/` sauber mit 200 antwortet. Wer den
 Dev-Server prüft und ihn laufen sieht, schließt daraus leicht auf eine echte Regression.
 
@@ -98,7 +98,7 @@ task test:e2e:website              # gegen main, mit laufendem Dev-Server
 ```
 
 > Auslöser war eine reine Doku-Chore (T002678/PR #3803): `task freshness:regenerate` schrieb
-> `website/src/lib/sdlc/goals-data.generated.json` neu, die Datei liegt unter `website/src/` und
+> `components/website/src/lib/sdlc/goals-data.generated.json` neu, die Datei liegt unter `components/website/src/` und
 > zog damit den E2E-Bucket. Dieser Selektionspfad ist seit T002255 geschlossen —
 > `scripts/filter-generated.sh` entfernt alle Pfade mit `linguist-generated=true` vor der Auswahl
 > (`Taskfile.yml`, `CHANGED=`-Zeile). Die roten Specs bleiben davon unberührt: sie waren schon
@@ -129,11 +129,11 @@ Diese Pfadliste lebt NUR hier (wartungskritisch — bei neuen Generatoren hier e
 
 ```bash
 git add \
-  website/src/data/test-inventory.json \
-  website/src/data/openspec-status.json \
-  website/src/data/route-manifest.json \
-  website/src/lib/learning-assets.generated.json \
-  "website/public/learning-assets/THIRD-PARTY-ASSETS.md" \
+  components/website/src/data/test-inventory.json \
+  components/website/src/data/openspec-status.json \
+  components/website/src/data/route-manifest.json \
+  components/website/src/lib/learning-assets.generated.json \
+  "components/website/public/learning-assets/THIRD-PARTY-ASSETS.md" \
   docs/code-quality/repo-index.json \
   docs/agent-guide/10-ziele.md \
   docs/agent-guide/20-werkzeuge.md \
@@ -141,13 +141,13 @@ git add \
   docs/agent-guide/maps/goals-map.md \
   docs/agent-guide/maps/tools-map.md \
   docs/agent-guide/maps/danger-map.md \
-  website/src/lib/agent-guide.generated.json \
-  website/src/lib/platform-descriptions.generated.json \
+  components/website/src/lib/agent-guide.generated.json \
+  components/website/src/lib/platform-descriptions.generated.json \
   docs/generated/graph.json \
   docs/generated/api-map.json \
   docs/generated/blast-radius.md \
   docs/diagrams/architecture.md \
-  website/src/lib/sdlc/goals-data.generated.json 2>/dev/null || true
+  components/website/src/lib/sdlc/goals-data.generated.json 2>/dev/null || true
 git diff --cached --quiet || git commit -m "chore: regenerate freshness artifacts [$TICKET_ID]"
 ```
 

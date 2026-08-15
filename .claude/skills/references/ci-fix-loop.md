@@ -38,8 +38,8 @@ Auto-Merge wartet auf diese fünf required checks:
 |-------|----------|
 | `Offline Tests (Manifests, Configs, Unit)` | `ci.yml` → `task test:all` |
 | `Security Scan` | `ci.yml` → image-pin + hardcoded-secret detection |
-| `Brett TypeScript` | `ci.yml` → tsc in `brett/` |
-| `Vitest (website + arena-server)` | `ci.yml` → `pnpm test` in `website/` |
+| `Brett TypeScript` | `ci.yml` → tsc in `components/brett/` |
+| `Vitest (website + arena-server)` | `ci.yml` → `pnpm test` in `components/website/` |
 | `Conventional Commits` | `ci.yml` → commitlint PR-Titel |
 
 `E2E PR` ist **kein** required check (T000722) — erscheint informativ, blockiert Merge nicht.
@@ -93,7 +93,7 @@ Reihenfolge: Freshness → TypeScript → BATS → Kustomize → Commitlint
 
 ```bash
 task freshness:regenerate
-git add docs/ website/src/data/ website/src/lib/
+git add docs/ components/website/src/data/ components/website/src/lib/
 git commit -m "chore: regenerate freshness artifacts"
 ```
 
@@ -102,7 +102,7 @@ git commit -m "chore: regenerate freshness artifacts"
 ```bash
 cd website && pnpm type-check   # oder: cd brett && npx tsc --noEmit
 # Fehler beheben, dann:
-git add website/src/ brett/src/
+git add components/website/src/ brett/src/
 git commit -m "fix(website): resolve type errors"
 ```
 
@@ -112,7 +112,7 @@ git commit -m "fix(website): resolve type errors"
 ./tests/runner.sh local <TEST-ID>
 # Fehlende Test-Inventory-Einträge:
 task test:inventory
-git add website/src/data/test-inventory.json
+git add components/website/src/data/test-inventory.json
 ```
 
 ### 4. Kustomize-Fehler

@@ -36,7 +36,7 @@ scripts/ticket.sh grill --id <external_id> \
 ### Strukturiert vs. ad-hoc
 
 - **Strukturiert** (`--questionnaire coaching-sessions-v1`, registriert in
-  `website/src/lib/tickets/grilling.ts`): rendert nach dem T000737-Merge direkt im
+  `components/website/src/lib/tickets/grilling.ts`): rendert nach dem T000737-Merge direkt im
   `GrillingAnswersPanel`.
 - **Ad-hoc** (eigener Fragebogen-Slug, nicht registriert): wird gespeichert, aber vom Panel
   (das nur bekannte `QUESTIONNAIRES` rendert) **nicht** angezeigt → hier ist der

@@ -20,7 +20,7 @@ und API-Contracts statt erfundener Typen.
 | `symbols` / `signature` / `type_text` | `codebase-memory` (`get_code_snippet`, `search_graph`) + LSP hover/definition | `grep` / `Read` |
 | `call_graph` | `codebase-memory` `trace_path` (`calls` / `data_flow` / `cross_service`) | manual grep chain |
 | `db_tables` | `mcp-postgres` (`information_schema.columns`, read-only) | `kubectl exec … psql` |
-| `api_contracts` | `Read` of the `website/src/pages/api/**` handlers + their types | — |
+| `api_contracts` | `Read` of the `components/website/src/pages/api/**` handlers + their types | — |
 | `external_types` | `context7` (`resolve-library-id` → `query-docs`) | read the library `.d.ts` |
 | `impact_files` / `s1_*` | `wc -l` + `docs/code-quality/baseline.json` + the `_ext_limit` table (plan-lint logic) | — |
 

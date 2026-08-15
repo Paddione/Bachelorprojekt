@@ -10,3 +10,11 @@ spec:
     tag: latest
   secretRef:
     name: ghcr-auth
+  # Supply-chain verification: every artifact must carry a cosign signature
+  # from the render-fleet-artifact workflow (GitHub Actions OIDC identity,
+  # keyless signing). An unsigned or foreign-signed artifact is rejected.
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: ^https://token\.actions\.githubusercontent\.com$
+        subject: ^https://github\.com/Paddione/Bachelorprojekt/\.github/workflows/render-fleet-artifact\.yml@refs/heads/main$

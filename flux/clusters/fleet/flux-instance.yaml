@@ -15,6 +15,10 @@ spec:
   cluster:
     type: kubernetes
     networkPolicy: true
+    # Vertical scaling profile: 5-node fleet with ~150 resources across 10
+    # Kustomizations — medium raises controller concurrency/limits above the
+    # small defaults. [audit 2026-08-15]
+    size: medium
   sync:
     kind: GitRepository
     url: https://github.com/Paddione/Bachelorprojekt

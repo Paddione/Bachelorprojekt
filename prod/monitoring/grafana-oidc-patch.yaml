@@ -1,6 +1,13 @@
 # Enable Pocket ID OIDC on Grafana in prod. The OIDC client_secret + admin
 # password come from the `grafana-oidc` SealedSecret. Pocket ID has no groups
 # — the role-attribute-path keys on the boolean isAdmin claim (T000972).
+#
+# The grafana-sc-dashboard sidecar originally authenticated the dashboards
+# reload API (POST /api/admin/provisioning/dashboards/reload) with the chart's
+# default admin/admin (monitoring-grafana secret). Prod's real admin password
+# comes from the grafana-oidc SealedSecret (GRAFANA_ADMIN_PASSWORD), so the
+# sidecar login 401'd and dashboard reloads silently failed. Point the sidecar
+# at the same secret the grafana container uses.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,3 +47,17 @@ spec:
                   key: GRAFANA_ADMIN_PASSWORD
             - name: GF_SERVER_ROOT_URL
               value: "https://grafana.${PROD_DOMAIN}"
+        - name: grafana-sc-dashboard
+          env:
+            - name: REQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-oidc
+                  key: GRAFANA_ADMIN_PASSWORD
+        - name: grafana-sc-datasources
+          env:
+            - name: REQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-oidc
+                  key: GRAFANA_ADMIN_PASSWORD

@@ -4,6 +4,11 @@ Referenz zu [`dev-flow-plan`](../dev-flow-plan/SKILL.md). Der Skill-Body führt 
 alle Guards; hier stehen die ausformulierten Phasen des Feature-Pfads, die Decompose-/Fan-out-
 Mechanik und die Schritte des Fix-Pfads.
 
+> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
+> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
+> `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
+> Haupt-Checkout landen (T002357-Falle).
+
 ---
 
 ### Phase A: Auf main — Proposal-Phase
@@ -104,7 +109,9 @@ enqueued ist — parallel zum Schreiben des nächsten Partials.
 > keinerlei Bezug zum Bash-cwd. Ein Pfad, der vor der Worktree-Anlage korrekt war
 > (`<repo>/tests/spec/<name>.bats`), bleibt danach syntaktisch gültig und trifft still den
 > Hauptcheckout — der Verstoß gegen "Mutierende Tasks nie im Hauptcheckout" fällt erst beim
-> `git status` auf (Mishap T002350, Ursprung T001880). Prüfbefehl bei Verdacht, im
+> `git status` auf (Mishap T002350, Ursprung T001880). Dieselbe Falle schlägt für Git-Aufrufe
+> in Bash zu: ohne `git -C <worktree>`/cd+Guard kann ein bare `git commit` im Haupt-Checkout
+> landen (cwd-Regel, T006367). Prüfbefehl bei Verdacht, im
 > Hauptcheckout auszuführen: `git -C <repo-root> status --porcelain` muss leer bleiben.
 
 ```bash
@@ -127,7 +134,7 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
 #### Schritt B.2: Artefakte in den Worktree verschieben
 
 ```bash
-WT=".worktrees/<slug>"
+WT="${REPO_ROOT}/.worktrees/<slug>"   # absolut [T006367] — cd+Guard / git -C funktionieren von jedem cwd
 mkdir -p "${WT}/openspec/changes/"
 mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
 [ -f "${REPO_ROOT}/intel.json" ] && mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json"
@@ -152,6 +159,8 @@ cd "${WT}"
 #### Schritt B.3: Scaffold-Commit + Push (Branch ist live für Factory)
 
 ```bash
+# [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT absolut, s. B.2)
+cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
 git add openspec/changes/<slug>/
 git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
@@ -179,6 +188,8 @@ FOR each partial pX (p1, p2, ...):
   │     Orchestrator schreibt/updated tasks.md mit Partial-Manifest + File Structure.
   │
   ├─► Schritt C.2c: Commit + Push
+  │     # [T006367] cwd-Guard — nie auf implizites cwd vertrauen
+  │     cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
   │     git add openspec/changes/<slug>/
   │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
   │     git push origin feature/<slug>-T<id>
@@ -212,6 +223,8 @@ NACH dem letzten Partial (Tests):
   │     bash scripts/openspec-embed-local.sh <slug> "$(pwd)"
   │
   └─► Schritt C.5: Finaler Commit + Push
+        # [T006367] cwd-Guard — nie auf implizites cwd vertrauen
+        cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
         git add openspec/changes/<slug>/
         git commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
         git push origin $(git branch --show-current)
@@ -312,6 +325,7 @@ bash scripts/plan-preflight.sh pre-worktree --ticket "$TICKET_EXT_ID"
 
 # git-crypt-safe: creates the worktree, handles git-crypt
 bash scripts/worktree-create.sh fix/<slug> .worktrees/<slug>
+WT="$(pwd)/.worktrees/<slug>"   # absoluter Worktree-Pfad [T006367] — Start ist der main-Checkout
 cd .worktrees/<slug>
 ```
 
@@ -359,6 +373,8 @@ Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flo
 ### Schritt 5: Commit & Push
 Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:
 ```bash
+# [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT aus Fix-Schritt 2)
+cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
 git add tests/ openspec/changes/<slug>/tasks.md
 git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)

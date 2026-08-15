@@ -5,6 +5,11 @@ description: Use in opencode to choose the development path (feature/fix/chore),
 
 # opencode-flow-plan — Pfad-Wahl, Brainstorming & Plan
 
+> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
+> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
+> `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
+> Haupt-Checkout landen (T002357-Falle).
+
 ## Wann diese Skill greift
 
 Bei jeder Anfrage in diesem Repo, die etwas verändern will. Nutze diesen Skill für Features und Fixes; für Chores stattdessen `opencode-flow-chore`.
@@ -167,7 +172,7 @@ bash scripts/agent-lock.sh claim branch "feature/<slug>-T$TICKET_EXT_ID" --workt
 #### Schritt B.2: Proposal-Artefakte in den Worktree verschieben
 
 ```bash
-WT=".worktrees/<slug>"
+WT="${REPO_ROOT}/.worktrees/<slug>"   # absolut [T006367] — git -C "$WT" funktioniert von jedem cwd
 mkdir -p "${WT}/openspec/changes/"
 mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
 cd "${WT}"
@@ -176,9 +181,9 @@ cd "${WT}"
 #### Schritt B.3: Leeren Branch pushen (Grundlage für Factory-Dispatch)
 
 ```bash
-git add openspec/changes/<slug>/
-git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
-git push -u origin feature/<slug>-T"$TICKET_EXT_ID"
+git -C "$WT" add openspec/changes/<slug>/
+git -C "$WT" commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
+git -C "$WT" push -u origin feature/<slug>-T"$TICKET_EXT_ID"
 ```
 
 ### Phase C: Im Worktree — Pipeline-Plan-Phase (Partial-Dispatch)
@@ -222,9 +227,9 @@ FOR each partial pX (p1, p2, ...):
   │     und der aktualisierten File Structure.
   │
   ├─► Schritt C.2c: Commit + Push (Partial ist im Branch sichtbar)
-  │     git add openspec/changes/<slug>/
-  │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
-  │     git push origin feature/<slug>-T"$TICKET_EXT_ID"
+  │     git -C "$WT" add openspec/changes/<slug>/
+  │     git -C "$WT" commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
+  │     git -C "$WT" push origin feature/<slug>-T"$TICKET_EXT_ID"
   │
   ├─► Schritt C.2d: Plan stagen (plan_staged + slot_count setzen)
   │     # --no-hold: Pipeline-Dispatch — das Partial soll SOFORT von der Factory
@@ -284,9 +289,9 @@ NACH dem letzten Partial (Tests):
   │     bash scripts/openspec-embed-local.sh <slug> "$(pwd)"
   │
   └─► Schritt C.5: Finaler Commit + Push
-        git add openspec/changes/<slug>/
-        git commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
-        git push origin feature/<slug>-T"$TICKET_EXT_ID"
+        git -C "$WT" add openspec/changes/<slug>/
+        git -C "$WT" commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
+        git -C "$WT" push origin feature/<slug>-T"$TICKET_EXT_ID"
 ```
 
 ### Pipeline-Fluss (visuell)

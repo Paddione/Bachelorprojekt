@@ -223,6 +223,12 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
     ARCHIVE_PREV_SHA="$(git -C "$ARCHIVE_DIR" rev-parse HEAD 2>/dev/null || true)"
     (
       cd "$ARCHIVE_DIR"
+      # [T006371] Fail-closed in der Subshell: set -e macht eine fehlgeschlagene
+      # Regeneration oder Verifikation zum Abbruch statt stillem Weitermarsch —
+      # die Subshell erbt zwar bereits set -euo pipefail vom Skript, das
+      # explizite set -e dokumentiert die Härtung fuer die Archiv-Sektion
+      # (PR #4529/#4533).
+      set -e
       # T006791: Restore bei jedem Sektions-Ende — Happy-Path (nach Push/PR) und
       # Fehlerpfade (Subshell exit 1) hinterlassen den Arbeitsbaum auf dem
       # gemerkten Branch. Ownership-Guard (Code-Review PR #4586): Restore nur,
@@ -277,10 +283,25 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       bash scripts/openspec.sh archive "$SLUG"
       # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
       # Regeneration und explizites Staging nach plan-archive-steps (T002252).
-      task freshness:regenerate >/dev/null 2>&1 || true
+      # [T006371] Ohne `|| true`: eine fehlgeschlagene Regeneration bricht die
+      # Subshell ab (set -e), statt den Archiv-Branch ohne frische Status-Map
+      # zu pushen (PR #4529/#4533).
+      task freshness:regenerate
       git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
       git add -u -- website/src/data website/src/lib website/public/learning-assets docs
       git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
+      # Pre-Push-Freshness-Verifikation (T006371): freshness:check diffet die
+      # regenerierten Artefakte gegen HEAD. Meldet er Drift, werden die
+      # regenerierten Artefakte gestaged und der Archiv-Commit geamendet —
+      # BEVOR der Push den Archiv-Branch nach aussen traegt (T002252-Muster
+      # "regenerated but not staged", PR #4529/#4533).
+      if ! task freshness:check; then
+        echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
+        git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
+        git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+        git commit --amend --no-edit
+        task freshness:check
+      fi
       git push -u origin "$ARCHIVE_BRANCH"
       # PR-Erstellung mit Assert (verhindert ungebuendelte Archiv-Branches, T001331)
       ARCHIVE_PR_URL="$(gh pr create \

@@ -322,18 +322,22 @@ cmd_archive() {
   fi
   mkdir -p "$(dirname "$dest")"
   mv "$dir" "$dest"
-  if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
-    bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
-    # [T003136] Status-Map-Ergebnis sofort stagen. cmd_archive regeneriert
-    # openspec-status.json zwar nach dem Move, aber der Archiv-Commit des
-    # Aufrufers (opencode-flow-execute Step 7 / plan-archive-steps.md) staged
-    # bisher nur die openspec/changes/-Verschiebung — die JSON blieb unstaged
-    # und der Freshness-Gate meldete sie danach als stale (PR #4083). Das
-    # Staging hier macht das Ergebnis unabhaengig vom pre-commit-Hook
-    # (SKIP_FRESHNESS_REGEN, --no-verify) und vom Flow-Skill. Best-effort wie
-    # der Status-Map-Aufruf selbst.
-    git -C "$REPO" add -- "$REPO/website/src/data/openspec-status.json" >/dev/null 2>&1 || true
-  fi
+  # [T003136] Status-Map-Ergebnis sofort stagen. cmd_archive regeneriert
+  # openspec-status.json zwar nach dem Move, aber der Archiv-Commit des
+  # Aufrufers (opencode-flow-execute Step 7 / plan-archive-steps.md) staged
+  # bisher nur die openspec/changes/-Verschiebung — die JSON blieb unstaged
+  # und der Freshness-Gate meldete sie danach als stale (PR #4083). Das
+  # Staging hier macht das Ergebnis unabhaengig vom pre-commit-Hook
+  # (SKIP_FRESHNESS_REGEN, --no-verify) und vom Flow-Skill.
+  # [T006371] Ohne TICKET_OFFLINE-Bedingung und ohne `|| true`: offline
+  # laufende Ausfuehrer liessen Regeneration UND Staging still ausfallen, der
+  # Archiv-Commit trug die JSON nicht mit (PR #4529/#4533). set -euo pipefail
+  # macht eine fehlgeschlagene Regeneration fail-closed — Abbruch statt
+  # still leerer Status-Map. KEIN mkdir -p: das Zielverzeichnis existiert im
+  # echten Repo immer (Sandbox-Tests legen es im setup an, damit der
+  # Fehlerfall testbar bleibt).
+  bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1
+  git -C "$REPO" add -- "$REPO/website/src/data/openspec-status.json"
   # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).
   _embed_slug "$slug"
   if [[ "$no_merge" -eq 1 ]]; then

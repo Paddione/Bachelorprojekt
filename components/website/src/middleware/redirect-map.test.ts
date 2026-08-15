@@ -6,6 +6,9 @@ import { resolveRedirect, REDIRECT_MAP } from './redirect-map';
 const CASES: ReadonlyArray<readonly [string, string]> = [
   ['/admin/cockpit',                  '/sdlc/cockpit'],
   ['/admin/observability',            '/sdlc/observability'],
+  // E4 (T008016): /sdlc/observability ist ein reines Kettenglied zur
+  // Platzhalter-Entfernung -- Ziel ist das Live-Plattform-Deck.
+  ['/sdlc/observability',             '/sdlc/cockpit?deck=plattform'],
   ['/admin/repohealth',               '/sdlc/repohealth'],
   ['/admin/software-history',         '/sdlc/software-history'],
   ['/admin/architektur',              '/sdlc/architektur'],
@@ -42,7 +45,7 @@ describe('resolveRedirect', () => {
     expect(resolveRedirect(from)).toBe(to);
   });
 
-  it('enthaelt genau 31 Eintraege und keine Zusatz-Keys', () => {
+  it('enthaelt genau 32 Eintraege und keine Zusatz-Keys', () => {
     expect(Object.keys(REDIRECT_MAP).sort()).toEqual(CASES.map(([p]) => p).sort());
   });
 

@@ -12,6 +12,10 @@
 export const REDIRECT_MAP: Record<string, string> = {
   '/admin/cockpit': '/sdlc/cockpit',
   '/admin/observability': '/sdlc/observability',
+  // E4 (T008016): Die Platzhalterseite /sdlc/observability ist entfernt; das
+  // Ziel ist das Live-Plattform-Deck. Der admin-Eintrag oben bildet eine
+  // Kette: /admin/observability -> /sdlc/observability -> /sdlc/cockpit?deck=plattform.
+  '/sdlc/observability': '/sdlc/cockpit?deck=plattform',
   '/admin/repohealth': '/sdlc/repohealth',
   '/admin/software-history': '/sdlc/software-history',
   '/admin/architektur': '/sdlc/architektur',

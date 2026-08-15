@@ -2106,6 +2106,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/executor-post-merge-death",
+    "file": "tests/spec/agent-skills/executor-post-merge-death.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/guard-semantics-konvention",
     "file": "tests/spec/agent-skills/guard-semantics-konvention.bats",
     "category": "agent-skills",

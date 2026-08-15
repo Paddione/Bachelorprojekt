@@ -102,6 +102,30 @@ for row in "${stale[@]}"; do
   ticket_json="$(BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" get --id "$ext_id")"
   plan_ref="$(echo "$ticket_json" | jq -r '.plan_ref // empty')"
 
+  # ── Merged-PR-Gate (T006297) ─────────────────────────────────────────────
+  # Gemergte Tickets (PR auf origin/main mit "[<id>]" im Betreff, M2/T002506)
+  # sind fertig — sie duerfen vom Stale-Sweep NICHT in die Queue zurueckgesetzt
+  # werden (der Reset re-dispatcht gemergte Arbeit in ein frisches Worktree;
+  # beobachtet als "Watchdog-Sturm" auf T004896/T005565/T005591). Stattdessen:
+  # close done, Resolution nach Typ (T002329), Kommentar mit "gemergt"-Vermerk.
+  # rc=2 (kein origin/main) = fail-open: sichtbare WARN, Ticket unveraendert —
+  # ein nicht erreichbarer Remote darf den Sweep nicht anhalten.
+  set +e
+  BRAND="$BRAND" bash "$HERE/../agent-lock.sh" check-merged "$ext_id" >/dev/null 2>&1
+  merged_rc=$?
+  set -e
+  if [[ "$merged_rc" -eq 1 ]]; then
+    resolution="shipped"; [[ "$ticket_type" == "fix" || "$ticket_type" == "bug" ]] && resolution="fixed"
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" update-status --id "$ext_id" --status done --resolution "$resolution" >/dev/null
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" comment --id "$ext_id" --body "Watchdog: PR bereits auf main gemergt — Ticket geschlossen statt zurueckgesetzt (T006297)" >/dev/null 2>&1 || true
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" >/dev/null
+    _wd_cleanup_worktree "$ext_id"
+    escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+    continue
+  elif [[ "$merged_rc" -eq 2 ]]; then
+    echo "watchdog: WARN check-merged rc 2 fuer ${ext_id} (kein origin/main) — Stale-Behandlung ungeprueft [T006297]" >&2
+  fi
+
   # ── Attempt counter (T002361) ───────────────────────────────────────────────
   # Counts CONSECUTIVE stale rounds without progress. Without it, a dry-run that
   # aborts before `ticket.sh dryrun-mark` leaves guard_dryrun_ok permanently

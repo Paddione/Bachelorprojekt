@@ -12,7 +12,7 @@ factory_resolve
 cat <<'SQL' | factory_psql
 SELECT COALESCE(json_agg(row_to_json(q)), '[]')
 FROM (
-  SELECT external_id, title, priority, touched_files, created_at
+  SELECT external_id, title, type, priority, touched_files, created_at
   FROM tickets.tickets
   WHERE (
       -- factory_excluded (T002361) gates BOTH branches below. It is the durable half

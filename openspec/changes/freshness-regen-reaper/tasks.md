@@ -167,7 +167,7 @@ divergieren nur unter `docs/code-quality/*` — Messung im design.md). Trifft da
 Differenz prüfen: offener PR, kein PR, oder Abweichung ausserhalb der ALLOWLIST sind legitime
 KEEP-Gründe; eine davon muss in der Ausgabe stehen.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/branch-reaper.sh
@@ -182,19 +182,23 @@ CI-Inventar-Check (`task test:inventory` in `ci.yml`) failt sonst (T002416).
 **Files:**
 - Modify: `website/src/data/test-inventory.json` (regeneriert)
 
-- [ ] **Step 1: Inventar regenerieren**
+- [x] **Step 1: Inventar regenerieren**
 
 Run: `task test:inventory`
 Expected: Exit 0; `website/src/data/test-inventory.json` enthält einen Eintrag für
 `tests/spec/ci-cd/branch-reaper-freshness-regen.bats`.
 
-- [ ] **Step 2: Diff prüfen**
+- [x] **Step 2: Diff prüfen**
 
 Run: `git diff -- website/src/data/test-inventory.json`
 Expected: genau ein neuer Eintrag (die freshness-regen-Testdatei). Weitere Diff-Zeilen bedeuten
 einen lokalen Drift — nicht committen, erst klären.
 
-- [ ] **Step 3: Commit**
+Hinweis Implementierung: Der Eintrag war bereits im Plan-Stage-Commit `e7f1c1ce9`
+registriert; `task test:inventory` (833 Einträge, Exit 0) erzeugte keinerlei Diff —
+kein Drift, kein separater Commit nötig.
+
+- [x] **Step 3: Commit** (bereits durch Plan-Stage-Commit abgedeckt — kein zusätzlicher Commit nötig)
 
 ```bash
 git add website/src/data/test-inventory.json
@@ -206,7 +210,7 @@ git commit -m "chore: register branch-reaper-freshness-regen test in inventory [
 **Files:**
 - Modify: keine
 
-- [ ] **Step 1: Geänderte Tests + Gates**
+- [x] **Step 1: Geänderte Tests + Gates**
 
 Run:
 ```bash
@@ -214,7 +218,14 @@ task test:changed
 ```
 Expected: PASS.
 
-- [ ] **Step 2: Freshness-Artefakte + OpenSpec-Gate**
+Hinweis Implementierung: `task test:changed` endet lokal strukturell rot — ausschliesslich am
+`runtime-drift-check` (stale mcp-task-runner-Binary, Dev-DB-Migrationsdrift `purge-fn-v8`;
+bekanntes lokales Umgebungsproblem T005561, kein Fehler aus diesem Change). CI-äquivalente
+Läufe sind gruen: `task test:spec:changed` (253 Tests, Exit 0) sowie gezielt
+`bats tests/spec/ci-cd/branch-reaper*.bats tests/spec/ci-cd/branch-reaper-freshness-regen.bats`
+(21 Tests, Exit 0).
+
+- [x] **Step 2: Freshness-Artefakte + OpenSpec-Gate**
 
 Run:
 ```bash
@@ -223,7 +234,7 @@ task openspec:validate
 ```
 Expected: beide PASS. `openspec:validate` prüft das Delta `openspec/changes/freshness-regen-reaper/specs/ci-cd.md` gegen `openspec/specs/ci-cd.md` (fail-closed CI-Gate).
 
-- [ ] **Step 3: Drift-Gate**
+- [x] **Step 3: Drift-Gate**
 
 Run:
 ```bash

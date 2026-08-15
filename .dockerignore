@@ -17,7 +17,7 @@ prod-mentolder
 prod-korczewski
 scripts
 !scripts/knowledge
-brett
+components/brett
 docker
 wireguard
 

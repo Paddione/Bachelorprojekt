@@ -96,13 +96,13 @@ fi
 # Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
 # Bypass: SKIP_FRESHNESS_REGEN=1 git commit ...
 _FRESHNESS_FILES=(
-  website/src/data/test-inventory.json
-  website/src/data/route-manifest.json
-  website/src/lib/learning-assets.generated.json
-  website/public/learning-assets/THIRD-PARTY-ASSETS.md
-  website/src/data/openspec-status.json
+  components/website/src/data/test-inventory.json
+  components/website/src/data/route-manifest.json
+  components/website/src/lib/learning-assets.generated.json
+  components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
+  components/website/src/data/openspec-status.json
   docs/diagrams/architecture.md
-  website/src/lib/sdlc/goals-data.generated.json
+  components/website/src/lib/sdlc/goals-data.generated.json
   docs/agent-guide/10-ziele.md
   docs/agent-guide/20-werkzeuge.md
   docs/agent-guide/30-bausteine.md
@@ -110,8 +110,8 @@ _FRESHNESS_FILES=(
   docs/agent-guide/maps/tools-map.md
   docs/agent-guide/maps/danger-map.md
   docs/agent-guide/maps/agents-map.md
-  website/src/lib/agent-guide.generated.json
-  website/src/lib/platform-descriptions.generated.json
+  components/website/src/lib/agent-guide.generated.json
+  components/website/src/lib/platform-descriptions.generated.json
   docs/generated/api-map.json
   docs/generated/api-surface.md
   docs/generated/blast-radius.md

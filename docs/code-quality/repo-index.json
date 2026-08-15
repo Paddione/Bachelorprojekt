@@ -3452,7 +3452,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 754,
+      "file_count": 753,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3944,7 +3944,6 @@
         "scripts/llm-pull-models.sh",
         "scripts/llm/README-laptop-bge.md",
         "scripts/llm/bench-bge-embed.sh",
-        "scripts/llm/bench-guff.sh",
         "scripts/llm/github-mcp-wrapper.sh",
         "scripts/llm/harden-gpu-firewall.ps1",
         "scripts/llm/kv-budget.sh",

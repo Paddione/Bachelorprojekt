@@ -7,7 +7,7 @@
 # resolveRedirect() und löst jeden href real auf — es greppt keinen Quelltext
 # (CLAUDE.md § Test-Resultats-Konvention, T002448-M4).
 #
-# Warum hier und nicht nur als vitest (website/src/lib/admin/nav-items.test.ts):
+# Warum hier und nicht nur als vitest (components/website/src/lib/admin/nav-items.test.ts):
 # Der CI-Job "Vitest (website)" läuft mit `--changed origin/main`, während checkout@v7
 # und `git fetch --depth=1` beide eine shallow History anlegen. Ohne gemeinsamen Vorfahren
 # meldet er "No test files found, exiting with code 0" — grün, ohne einen Test ausgeführt
@@ -46,7 +46,7 @@ setup() {
 
   local fixture="$BATS_TEST_TMPDIR/inject.mjs"
   cat > "$fixture" <<EOF
-const { resolveRedirect } = await import('$REPO_ROOT/website/src/middleware/redirect-map.ts');
+const { resolveRedirect } = await import('$REPO_ROOT/components/website/src/middleware/redirect-map.ts');
 // Derselbe Auflösungspfad wie im Guard, angewandt auf einen entfernten Eintrag.
 let cur = '/admin/cockpit';
 for (let i = 0; i < 10; i++) {

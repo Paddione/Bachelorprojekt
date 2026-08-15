@@ -15,8 +15,8 @@
 # 7. Non-overlay components (TicketCreateModal, VersionDrawer) stay unmigrated
 
 # ── File-level variables ──────────────────────────────────────────────────────
-ADMIN_UI="$BATS_TEST_DIRNAME/../../website/src/components/admin/ui"
-ADMIN_UI_DIR="$BATS_TEST_DIRNAME/../../website/src/components/admin"
+ADMIN_UI="$BATS_TEST_DIRNAME/../../components/website/src/components/admin/ui"
+ADMIN_UI_DIR="$BATS_TEST_DIRNAME/../../components/website/src/components/admin"
 
 # ── Requirement 1: AdminModal uses native <dialog> ──────────────────────────────
 @test "AdminModal is a native <dialog> element with stable data-testid" {

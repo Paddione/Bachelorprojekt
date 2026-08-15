@@ -37,7 +37,7 @@ setup() {
 # 2026-07-19 live gemessenen fehlenden FK-Indizes abdecken (Vereinigungsmenge aus
 # mentolder + korczewski), inkl. der vier urspruenglichen T001905-Spalten, die trotz
 # "applied"-Tracking auf mentolder weiterhin unindiziert waren.
-FK_BATCH2_MIGRATION="website/src/db/migrations/20260719_add_missing_fk_indexes_batch2.sql"
+FK_BATCH2_MIGRATION="components/website/src/db/migrations/20260719_add_missing_fk_indexes_batch2.sql"
 
 @test "20260719_add_missing_fk_indexes_batch2.sql existiert" {
   [ -f "$FK_BATCH2_MIGRATION" ]

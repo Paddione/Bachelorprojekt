@@ -43,7 +43,7 @@ setup() {
 @test "index-repo.ts: resolveEmbedConfig bevorzugt LLM_EMBED_URL vor jedem Fallback" {
   [ -f "$INDEX_REPO" ]
 
-  # Positiv-Anker: die Env-Var-Konvention (identisch zu website/src/lib/bge-router.ts)
+  # Positiv-Anker: die Env-Var-Konvention (identisch zu components/website/src/lib/bge-router.ts)
   # muss die primaere Quelle bleiben.
   run grep -c "process.env.LLM_EMBED_URL" "$INDEX_REPO"
   [ "$status" -eq 0 ]

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/sdlc-cockpit/adapter-sdlc-paths.bats
 # Prueft, dass jeder website:true-Eintrag im ENDPOINT_MAP eine entsprechende
-# Routendatei unter website/src/pages/ hat und kein Eintrag die
+# Routendatei unter components/website/src/pages/ hat und kein Eintrag die
 # ehemaligen /api/admin/-Pfade verwendet.
 #
 # SSOT: openspec/changes/cockpit-realtime-push/specs/sdlc-cockpit.md
@@ -76,9 +76,9 @@ for (const e of entries) {
   const bare = isDynamicPrefix ? routePath.slice(0, -1) : routePath;
   let base;
   if (bare.startsWith('/sdlc/')) {
-    base = repo + '/' + bare.replace('/sdlc/', 'website/src/pages/sdlc/');
+    base = repo + '/' + bare.replace('/sdlc/', 'components/website/src/pages/sdlc/');
   } else if (bare.startsWith('/api/')) {
-    base = repo + '/' + bare.replace('/api/', 'website/src/pages/api/');
+    base = repo + '/' + bare.replace('/api/', 'components/website/src/pages/api/');
   } else {
     errors.push('Unbekannter Pfad-Praefix: ' + e.key + ' -> ' + routePath);
     continue;
@@ -119,7 +119,7 @@ EOF
   [ "$count" -gt 0 ]
 }
 
-@test "jeder website:true-Pfad hat eine Routendatei unter website/src/pages" {
+@test "jeder website:true-Pfad hat eine Routendatei unter components/website/src/pages" {
   entries=$(node "$EXTRACT_JS" "$ADAPTER_FILE")
   echo "$entries" | node "$CHECK_JS" "$REPO"
   [ "$?" -eq 0 ]

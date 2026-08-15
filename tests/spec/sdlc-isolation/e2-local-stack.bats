@@ -11,7 +11,7 @@
 setup() {
   REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)}"
   SDLC_STACK="${REPO_ROOT}/k3d/sdlc-stack"
-  AUTH_DIR="${REPO_ROOT}/website/src/lib/auth"
+  AUTH_DIR="${REPO_ROOT}/components/website/src/lib/auth"
   DOCS="${REPO_ROOT}/docs/sdlc-stack"
 }
 

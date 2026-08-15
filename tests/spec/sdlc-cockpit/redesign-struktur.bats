@@ -7,7 +7,7 @@
 # sich NUR im Quellbaum manifestiert: dass geloeschte Komponenten wirklich weg
 # sind und niemand sie mehr importiert. Das Laufzeitverhalten des Cockpits
 # (Modus-Umschaltung, kontextsensitive Rail) haengt NICHT hier, sondern in den
-# Vitest-Komponententests unter website/src/components/cockpit/*.test.ts — dort
+# Vitest-Komponententests unter components/website/src/components/cockpit/*.test.ts — dort
 # wird gerendert und geklickt statt gegreppt.
 #
 # Bewusst NICHT hier: curl-Proben gegen einen laufenden Dev-Server. Die koennen
@@ -16,9 +16,9 @@
 
 setup() {
   REPO_ROOT="$BATS_TEST_DIRNAME/../../.."
-  COCKPIT_PAGE="$REPO_ROOT/website/src/pages/sdlc/cockpit.astro"
-  COCKPIT_DIR="$REPO_ROOT/website/src/components/cockpit"
-  FACTORY_DIR="$REPO_ROOT/website/src/components/sdlc/factory"
+  COCKPIT_PAGE="$REPO_ROOT/components/website/src/pages/sdlc/cockpit.astro"
+  COCKPIT_DIR="$REPO_ROOT/components/website/src/components/cockpit"
+  FACTORY_DIR="$REPO_ROOT/components/website/src/components/sdlc/factory"
 }
 
 # Die im Redesign entfernten Komponenten. Jeder Eintrag muss aus dem Quellbaum
@@ -50,7 +50,7 @@ REMOVED_COMPONENTS=(
 
   local missing=0
   for comp in "${REMOVED_COMPONENTS[@]}"; do
-    if [ -f "$REPO_ROOT/website/src/components/$comp" ]; then
+    if [ -f "$REPO_ROOT/components/website/src/components/$comp" ]; then
       echo "noch vorhanden: $comp"
       missing=1
     fi
@@ -62,7 +62,7 @@ REMOVED_COMPONENTS=(
   # Positiv-Anker: die Suche findet im selben Baum einen Import, den es geben
   # MUSS. Ohne ihn koennte ein kaputtes grep-Kommando "nichts gefunden" melden
   # und der Test bestuende, waehrend verwaiste Importe unbemerkt blieben.
-  run grep -rF "CommandBar" "$REPO_ROOT/website/src/pages/sdlc/cockpit.astro"
+  run grep -rF "CommandBar" "$REPO_ROOT/components/website/src/pages/sdlc/cockpit.astro"
   [ "$status" -eq 0 ]
 
   local orphans=0
@@ -76,11 +76,11 @@ REMOVED_COMPONENTS=(
     # mehrzeilige Imports ab, deren Name in einer Folgezeile steht.
     if grep -rnE --include='*.svelte' --include='*.astro' --include='*.ts' \
         "import[[:space:]{(].*$name|from[[:space:]]+['\"][^'\"]*$name" \
-        "$REPO_ROOT/website/src" >/dev/null 2>&1; then
+        "$REPO_ROOT/components/website/src" >/dev/null 2>&1; then
       echo "verwaiste Referenz auf $name:"
       grep -rlnE --include='*.svelte' --include='*.astro' --include='*.ts' \
         "import[[:space:]{(].*$name|from[[:space:]]+['\"][^'\"]*$name" \
-        "$REPO_ROOT/website/src"
+        "$REPO_ROOT/components/website/src"
       orphans=1
     fi
   done
@@ -88,8 +88,8 @@ REMOVED_COMPONENTS=(
 }
 
 @test "SDLC-COCKPIT: PlanningOffice und FactoryFloor ueberleben das Redesign" {
-  [ -f "$REPO_ROOT/website/src/components/PlanningOffice.svelte" ]
-  [ -f "$REPO_ROOT/website/src/components/sdlc/FactoryFloor.svelte" ]
+  [ -f "$REPO_ROOT/components/website/src/components/PlanningOffice.svelte" ]
+  [ -f "$REPO_ROOT/components/website/src/components/sdlc/FactoryFloor.svelte" ]
 
   # Existenz allein genuegt nicht — sie muessen auch weiterhin eingebunden sein.
   run grep -cF "PlanningOffice" "$COCKPIT_PAGE"
@@ -109,6 +109,6 @@ REMOVED_COMPONENTS=(
   [ -f "$COCKPIT_DIR/CommandBar.test.ts" ]
   [ -f "$COCKPIT_DIR/CockpitRail.test.ts" ]
 
-  run grep -F "src/components/**/*.{test,spec}.ts" "$REPO_ROOT/website/vitest.config.ts"
+  run grep -F "src/components/**/*.{test,spec}.ts" "$REPO_ROOT/components/website/vitest.config.ts"
   [ "$status" -eq 0 ]
 }

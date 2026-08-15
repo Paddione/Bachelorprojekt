@@ -6,29 +6,29 @@
 # Convention: one .bats file per OpenSpec SSOT spec.
 
 # ── File-level variables ──────────────────────────────────────────────────────
-ADMIN_FOUNDATION="$BATS_TEST_DIRNAME/../../website/src/styles/admin-foundation.css"
-GLOBAL_CSS="$BATS_TEST_DIRNAME/../../website/src/styles/global.css"
-ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
-SIDEBAR_NAV="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminSidebarNav.astro"
+ADMIN_FOUNDATION="$BATS_TEST_DIRNAME/../../components/website/src/styles/admin-foundation.css"
+GLOBAL_CSS="$BATS_TEST_DIRNAME/../../components/website/src/styles/global.css"
+ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../components/website/src/layouts/AdminLayout.astro"
+SIDEBAR_NAV="$BATS_TEST_DIRNAME/../../components/website/src/components/admin/AdminSidebarNav.astro"
 # T003826: Die Nav-Definition liegt seit der SDLC-Bereinigung in einem eigenen Modul, damit
 # der Guard sie importieren und Pfade real auflösen kann. Assertions auf einzelne Einträge
 # greifen deshalb hierher, nicht mehr auf die Astro-Komponente (die nur noch rendert).
-SIDEBAR_ITEMS="$BATS_TEST_DIRNAME/../../website/src/lib/admin/nav-items.ts"
-KORE_CSS="$BATS_TEST_DIRNAME/../../website/public/brand/korczewski/kore-app.css"
-ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.css"
+SIDEBAR_ITEMS="$BATS_TEST_DIRNAME/../../components/website/src/lib/admin/nav-items.ts"
+KORE_CSS="$BATS_TEST_DIRNAME/../../components/website/public/brand/korczewski/kore-app.css"
+ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../components/website/src/styles/admin-responsive.css"
 PERF_WEBSITE_YAML="$BATS_TEST_DIRNAME/../../k3d/website.yaml"
-PERF_PORTRAIT="$BATS_TEST_DIRNAME/../../website/src/components/Portrait.svelte"
-PERF_MENTOLDER_TS="$BATS_TEST_DIRNAME/../../website/src/config/brands/mentolder.ts"
-PERF_GLOBAL_CSS="$BATS_TEST_DIRNAME/../../website/src/styles/global.css"
-PERF_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/Layout.astro"
+PERF_PORTRAIT="$BATS_TEST_DIRNAME/../../components/website/src/components/Portrait.svelte"
+PERF_MENTOLDER_TS="$BATS_TEST_DIRNAME/../../components/website/src/config/brands/mentolder.ts"
+PERF_GLOBAL_CSS="$BATS_TEST_DIRNAME/../../components/website/src/styles/global.css"
+PERF_LAYOUT="$BATS_TEST_DIRNAME/../../components/website/src/layouts/Layout.astro"
 PERF_MENTOLDER_ING="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/website-ingress-web.yaml"
 PERF_KORCZEWSKI_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-korczewski/kustomization.yaml"
 MENTOLDER_SEC_HEADERS="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/website-security-headers.yaml"
 MENTOLDER_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/kustomization.yaml"
 SHARED_MIDDLEWARES="$BATS_TEST_DIRNAME/../../prod/traefik-middlewares.yaml"
-KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage.svelte"
+KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../components/website/src/components/kore/KoreHomepage.svelte"
 # T002239-M2: source-of-truth branding files (assets/branding/ — synced by
-# scripts/assets-sync.sh to website/public/brand/). The source must carry
+# scripts/assets-sync.sh to components/website/public/brand/). The source must carry
 # the override so a sync does not silently drop it. [T002239-M2]
 KORE_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/korczewski/kore-app.css"
 KORE_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/korczewski/colors_and_type.css"
@@ -138,32 +138,32 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 }
 
 @test "T001471 collapse: rechnungen.astro stays exactly 592 lines (Budget 0)" {
-  run bash -c "wc -l < '$BATS_TEST_DIRNAME/../../website/src/pages/admin/rechnungen.astro' | tr -d ' '"
+  run bash -c "wc -l < '$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/rechnungen.astro' | tr -d ' '"
   [ "$output" -eq 592 ]
 }
 
 @test "T001471 collapse: projekte.astro stays exactly 408 lines (Budget 0)" {
-  run bash -c "wc -l < '$BATS_TEST_DIRNAME/../../website/src/pages/admin/projekte.astro' | tr -d ' '"
+  run bash -c "wc -l < '$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/projekte.astro' | tr -d ' '"
   [ "$output" -eq 408 ]
 }
 
 @test "T001471 collapse: rechnungen.astro tags a table with admin-table-collapse" {
-  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../website/src/pages/admin/rechnungen.astro"
+  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/rechnungen.astro"
   [ "$status" -eq 0 ]
 }
 
 @test "T001471 collapse: projekte.astro tags a table with admin-table-collapse" {
-  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../website/src/pages/admin/projekte.astro"
+  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/projekte.astro"
   [ "$status" -eq 0 ]
 }
 
 @test "T001471 collapse: zeiterfassung.astro tags a table with admin-table-collapse" {
-  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../website/src/pages/admin/zeiterfassung.astro"
+  run grep -F "admin-table-collapse" "$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/zeiterfassung.astro"
   [ "$status" -eq 0 ]
 }
 
 @test "T001471 ui: AdminTabs has a mobile scroll media query" {
-  f="$BATS_TEST_DIRNAME/../../website/src/components/admin/ui/AdminTabs.svelte"
+  f="$BATS_TEST_DIRNAME/../../components/website/src/components/admin/ui/AdminTabs.svelte"
   run grep -E "max-width:[[:space:]]*767px" "$f"
   [ "$status" -eq 0 ]
   run grep -E "overflow-x:[[:space:]]*auto" "$f"
@@ -171,13 +171,13 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 }
 
 @test "T001471 ui: AdminPageHeader stacks title and actions on mobile" {
-  f="$BATS_TEST_DIRNAME/../../website/src/components/admin/ui/AdminPageHeader.svelte"
+  f="$BATS_TEST_DIRNAME/../../components/website/src/components/admin/ui/AdminPageHeader.svelte"
   run grep -E "max-width:[[:space:]]*767px" "$f"
   [ "$status" -eq 0 ]
 }
 
 @test "T001471 forms: all six einstellungen views opt into admin-form-wide" {
-  base="$BATS_TEST_DIRNAME/../../website/src/pages/admin/einstellungen"
+  base="$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/einstellungen"
   for f in backup benachrichtigungen branding email ordner-templates rechnungen; do
     run grep -F "admin-form-wide" "$base/$f.astro"
     [ "$status" -eq 0 ] || { echo "missing admin-form-wide in $f.astro"; return 1; }
@@ -186,7 +186,7 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 
 # ── T001490: content bundle completeness ──────────────────────────────────────
 @test "T001490 content bundle: every brand has all 13 domain JSON files" {
-  base="$BATS_TEST_DIRNAME/../../website/content"
+  base="$BATS_TEST_DIRNAME/../../components/website/content"
   for brand in mentolder korczewski; do
     [ -d "$base/$brand" ] || { echo "missing brand dir $brand"; return 1; }
     for d in homepage homepage-blocks seo faq kontakt ueber-mich services \
@@ -197,7 +197,7 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 }
 
 @test "T001490 content bundle: website-db.ts no longer exports deleted content readers" {
-  f="$BATS_TEST_DIRNAME/../../website/src/lib/website-db.ts"
+  f="$BATS_TEST_DIRNAME/../../components/website/src/lib/website-db.ts"
   # Removed in T001490 Task 4 — content is now sourced from the bundle
   for fn in getHomepageContent getUebermichContent getFaqContent \
             getKontaktContent getServiceConfig getLeistungenConfig \
@@ -212,18 +212,18 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 # decommissioned. The public read path serves the build-time bundle; admin
 # saves route through content-publish.ts; version history is now git log.
 @test "T001490 decommissioned: homepage-blocks-store.ts is removed" {
-  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/lib/homepage-blocks-store.ts" ] \
+  [ ! -f "$BATS_TEST_DIRNAME/../../components/website/src/lib/homepage-blocks-store.ts" ] \
     || { echo "homepage-blocks-store.ts still present"; return 1; }
-  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/lib/homepage-blocks-store.test.ts" ] \
+  [ ! -f "$BATS_TEST_DIRNAME/../../components/website/src/lib/homepage-blocks-store.test.ts" ] \
     || { echo "homepage-blocks-store.test.ts still present"; return 1; }
-  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/pages/api/admin/homepage/versions.ts" ] \
+  [ ! -f "$BATS_TEST_DIRNAME/../../components/website/src/pages/api/admin/homepage/versions.ts" ] \
     || { echo "admin/homepage/versions.ts still present"; return 1; }
-  [ ! -f "$BATS_TEST_DIRNAME/../../website/src/pages/api/admin/homepage/restore.ts" ] \
+  [ ! -f "$BATS_TEST_DIRNAME/../../components/website/src/pages/api/admin/homepage/restore.ts" ] \
     || { echo "admin/homepage/restore.ts still present"; return 1; }
 }
 
 @test "T001490 decommissioned: /api/homepage is bundle-sourced, no DB readCurrent" {
-  f="$BATS_TEST_DIRNAME/../../website/src/pages/api/homepage.ts"
+  f="$BATS_TEST_DIRNAME/../../components/website/src/pages/api/homepage.ts"
   run grep -F "bundleHomepageBlocks" "$f"
   [ "$status" -eq 0 ] || { echo "homepage.ts does not use bundleHomepageBlocks"; return 1; }
   run grep -F "readCurrent" "$f"
@@ -353,7 +353,7 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 }
 
 @test "T001929 perf: mentolder content bundle avatarSrc references gerald.webp (live source)" {
-  HOMEPAGE_JSON="$BATS_TEST_DIRNAME/../../website/content/mentolder/homepage.json"
+  HOMEPAGE_JSON="$BATS_TEST_DIRNAME/../../components/website/content/mentolder/homepage.json"
   run grep -q '"avatarSrc": "/gerald.webp"' "$HOMEPAGE_JSON"; [ "$status" -eq 0 ]
   run grep -q 'gerald.jpg' "$HOMEPAGE_JSON"; [ "$status" -ne 0 ]
 }

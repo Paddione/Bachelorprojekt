@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
-// Centralized logging (T000964): the loggingMiddleware in website/src/middleware/logging.ts
+// Centralized logging (T000964): the loggingMiddleware in components/website/src/middleware/logging.ts
 // injects X-Request-ID into every API response. Either echoes the incoming header or
 // generates a fresh nanoid(12). Testable without auth via the public /api/health route.
 // NOTE: The middleware fix (clone Response instead of mutating immutable headers) must be

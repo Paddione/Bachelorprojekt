@@ -74,9 +74,9 @@ create_commit() {
 }
 
 @test "no manifest change — website only" {
-  mkdir -p website/src/pages
+  mkdir -p components/website/src/pages
   create_commit "base"
-  echo "---" > website/src/pages/index.astro
+  echo "---" > components/website/src/pages/index.astro
   create_commit "website change"
 
   run bash "$CHANGED_MANIFESTS" "HEAD~1" "HEAD"
@@ -126,11 +126,11 @@ create_commit() {
 }
 
 @test "mixed: manifest + non-manifest — still exits 0" {
-  mkdir -p k3d docs website/src
+  mkdir -p k3d docs components/website/src
   create_commit "base"
   echo "apiVersion: v1" > k3d/foo.yaml
   echo "# docs" > docs/x.md
-  echo "---" > website/src/index.astro
+  echo "---" > components/website/src/index.astro
   create_commit "mixed changes"
 
   run bash "$CHANGED_MANIFESTS" "HEAD~1" "HEAD"

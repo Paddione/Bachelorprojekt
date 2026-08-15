@@ -127,7 +127,7 @@ _workspace_partial_deploy_block() {
 # `kubectl apply`) or the `kustomize build ... >/dev/null && echo` dry-run
 # sanity checks in `workspace:validate` — which would otherwise get
 # spuriously blamed for an unrelated, much later envsubst call.
-# T001652: website/src/db/migrations/*.sql had no automated runner, causing
+# T001652: components/website/src/db/migrations/*.sql had no automated runner, causing
 # Prod-DB drift. website:migrate must exist and run before the website
 # rollout in both workspace:deploy branches (dev + prod) and at the top of
 # website:deploy, so every deploy path applies pending migrations first.

@@ -7,12 +7,12 @@ setup() {
 }
 
 @test "G-FE02: bundle baseline file exists" {
-  [ -f "$REPO_ROOT/website/bundle-baseline.json" ]
+  [ -f "$REPO_ROOT/components/website/bundle-baseline.json" ]
 }
 
 @test "G-FE02: baseline JSON has a positive totalGzipBytes field" {
   run node -e 'const b=require(process.argv[1]); process.exit(Number(b.totalGzipBytes)>0?0:1)' \
-    "$REPO_ROOT/website/bundle-baseline.json"
+    "$REPO_ROOT/components/website/bundle-baseline.json"
   [ "$status" -eq 0 ]
 }
 

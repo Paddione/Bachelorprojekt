@@ -11,7 +11,7 @@
 # den Text.
 #
 # Warum ueberhaupt: der SDLC-Split (6959c722e) verschob
-# goals-data.generated.json nach website/src/lib/sdlc/. Die schreibende Seite
+# goals-data.generated.json nach components/website/src/lib/sdlc/. Die schreibende Seite
 # (gen-goals-data.mjs) wurde nachgezogen und waere bei einem Fehler laut
 # gebrochen. Die drei LESENDEN Stellen haben einen stillen Fallback und blieben
 # unbemerkt zurueck:
@@ -27,7 +27,7 @@ setup() {
   cd "$REPO_ROOT" || return 1
 }
 
-# Sammelt alle website/src/**-Pfade auf goals-data*.json, die im Health-Goal-
+# Sammelt alle components/website/src/**-Pfade auf goals-data*.json, die im Health-Goal-
 # und Factory-Tooling hartkodiert sind. Bewusst ueber eine Dateiliste statt
 # repo-weit: ein Treffer in openspec/changes/archive/** ist eine historische
 # Momentaufnahme und darf gerade NICHT mitwandern.
@@ -37,7 +37,7 @@ setup() {
 # auf der deduplizierten Menge waere dann nie wieder erfuellbar und der Test
 # bliebe dauerhaft rot.
 goals_data_refs() {
-  grep -ohE 'website/src/[A-Za-z0-9_/.-]*goals-data[A-Za-z0-9_.-]*\.json' \
+  grep -ohE 'components/website/src/[A-Za-z0-9_/.-]*goals-data[A-Za-z0-9_.-]*\.json' \
     scripts/health-goals-update.sh \
     scripts/health-goals-llm-fill.sh \
     scripts/factory/auto-close-merged.sh \

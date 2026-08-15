@@ -5,7 +5,7 @@
 # erforderte einen vollständigen Image-Build und ist offline nicht tragbar.
 # [T003036]
 #
-# Hintergrund: `ARG` gilt in Docker pro Stage. `website/Dockerfile` deklariert
+# Hintergrund: `ARG` gilt in Docker pro Stage. `components/website/Dockerfile` deklariert
 # BUILD_TARGET nur in der build-Stage; die runtime-Stage übernahm den Wert nicht,
 # sodass er im laufenden Container fehlte (per `printenv` im sdlc-console-Pod
 # bestätigt). Ein Request-Zeit-Check auf process.env.BUILD_TARGET wäre damit
@@ -14,7 +14,7 @@
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
-  DOCKERFILE="${REPO_ROOT}/website/Dockerfile"
+  DOCKERFILE="${REPO_ROOT}/components/website/Dockerfile"
   # Der Rumpf der letzten Stage: alles ab dem letzten FROM bis Dateiende.
   # Als Datei statt als Variable, damit der Inhalt auch in `run`-Subshells
   # ankommt — eine nicht exportierte Variable wäre dort leer, und jede
@@ -23,7 +23,7 @@ setup() {
   awk '/^FROM /{buf=""} {buf = buf $0 ORS} END{printf "%s", buf}' "$DOCKERFILE" >"$RUNTIME_STAGE_FILE"
 }
 
-@test "website/Dockerfile exists and declares more than one stage" {
+@test "components/website/Dockerfile exists and declares more than one stage" {
   [ -f "$DOCKERFILE" ]
   run bash -c "grep -c '^FROM ' '$DOCKERFILE'"
   [ "$status" -eq 0 ]

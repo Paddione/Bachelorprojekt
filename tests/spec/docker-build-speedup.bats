@@ -5,8 +5,8 @@
 
 # ── Phase 1: Layer-Caching ──────────────────────────────────────────────────
 @test "P1: website Dockerfile hat # syntax + npm-Cache-Mount" {
-  head -1 website/Dockerfile | grep -q 'syntax=docker/dockerfile:1'
-  grep -q 'mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile' website/Dockerfile
+  head -1 components/website/Dockerfile | grep -q 'syntax=docker/dockerfile:1'
+  grep -q 'mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile' components/website/Dockerfile
 }
 
 @test "P1: kein --no-cache in den umgestellten Build-Workflows" {
@@ -29,12 +29,12 @@
 }
 
 @test "P1: mentolder-web Dockerfile hat pnpm-Store-Cache-Mount" {
-  grep -q 'mount=type=cache,target=/root/.local/share/pnpm/store' mentolder-web/Dockerfile
+  grep -q 'mount=type=cache,target=/root/.local/share/pnpm/store' components/mentolder-web/Dockerfile
 }
 
 # ── Phase 2: Website slim + Konsolidierung ─────────────────────────────────
 @test "P2: website Dockerfile pruned devDependencies" {
-  grep -q 'pnpm install --prod' website/Dockerfile
+  grep -q 'pnpm install --prod' components/website/Dockerfile
 }
 
 @test "P2: website-Build-Workflow pusht das geteilte Image" {

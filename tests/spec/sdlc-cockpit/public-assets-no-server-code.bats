@@ -1,14 +1,14 @@
 #!/usr/bin/env bats
 
-# public-assets-no-server-code.bats — kein Server-Code unter website/public/ (T002528)
+# public-assets-no-server-code.bats — kein Server-Code unter components/website/public/ (T002528)
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert, aber auf
 # dem Dateisystem statt auf einem Kommando-Output. Geprueft wird, WAS unter
-# website/public/ tatsaechlich erreichbar ist — nicht, wie die Symlinks
+# components/website/public/ tatsaechlich erreichbar ist — nicht, wie die Symlinks
 # konfiguriert sind. Das ist der Unterschied, der hier zaehlt: der Defekt
 # entstand, ohne dass jemand einen Symlink veraendert hat.
 #
-# Hintergrund: website/public/cockpit/kit war ein Symlink auf .lavish/kit —
+# Hintergrund: components/website/public/cockpit/kit war ein Symlink auf .lavish/kit —
 # angelegt fuer die Browser-Assets (CSS, adapter.js, panel*.js). Seit K2 liegt
 # unter .lavish/kit/ auch daemon/ mit dem TypeScript-Quellcode des Daemons.
 # Astro loest Symlinks beim Build auf und kopiert den GESAMTEN Zielbaum nach
@@ -26,11 +26,11 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
-  PUBLIC_DIR="$REPO/website/public"
+  PUBLIC_DIR="$REPO/components/website/public"
   KIT_DIR="$REPO/.lavish/kit"
 }
 
-@test "T002528 Kein TypeScript-Quellcode unter website/public/ erreichbar [Negativtest + Positiv-Anker]" {
+@test "T002528 Kein TypeScript-Quellcode unter components/website/public/ erreichbar [Negativtest + Positiv-Anker]" {
   [ -d "$PUBLIC_DIR" ]
 
   # POSITIV-ANKER: find -L findet ueber Symlinks hinweg ueberhaupt Dateien.
@@ -54,13 +54,13 @@ setup() {
   local offenders
   offenders=$(find -L "$PUBLIC_DIR" -type f \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null)
   [ -z "$offenders" ] || {
-    echo "Server-Code unter website/public/ erreichbar:" >&2
+    echo "Server-Code unter components/website/public/ erreichbar:" >&2
     echo "$offenders" >&2
     false
   }
 }
 
-@test "T002528 Kein daemon-Verzeichnis unter website/public/ erreichbar" {
+@test "T002528 Kein daemon-Verzeichnis unter components/website/public/ erreichbar" {
   # Auch ohne .ts-Dateien haette ein verlinktes daemon/ dort nichts zu suchen:
   # tsconfig.json, package-Metadaten und kuenftige .js-Builds gehoeren genauso
   # wenig in den oeffentlichen Baum.
@@ -97,7 +97,7 @@ setup() {
 
   [ -z "$missing" ] || {
     echo "Kit-Assets ohne Verknuepfung unter public/cockpit/kit/:${missing}" >&2
-    echo "Anlegen mit: ln -s ../../../.lavish/kit/<datei> website/public/cockpit/kit/<datei>" >&2
+    echo "Anlegen mit: ln -s ../../../.lavish/kit/<datei> components/website/public/cockpit/kit/<datei>" >&2
     false
   }
 }

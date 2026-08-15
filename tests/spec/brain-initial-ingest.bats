@@ -160,8 +160,8 @@ YAML
 }
 
 @test "worklist suppresses a nested node_modules tree regardless of depth" {
-  mkdir -p "$WORK/repo/website/node_modules/some-pkg"
-  printf -- '{}' > "$WORK/repo/website/node_modules/some-pkg/package.json"
+  mkdir -p "$WORK/repo/components/website/node_modules/some-pkg"
+  printf -- '{}' > "$WORK/repo/components/website/node_modules/some-pkg/package.json"
   cat > "$WORK/manifest.yaml" <<YAML
 exclude:
   - drafts/

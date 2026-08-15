@@ -6,7 +6,7 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  API_DIR="$REPO/website/src/pages/api/assistant"
+  API_DIR="$REPO/components/website/src/pages/api/assistant"
 }
 
 # ── API routes exist ──────────────────────────────────────────────────

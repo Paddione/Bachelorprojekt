@@ -13,8 +13,8 @@
 # freshness:check (was geprueft wird), .gitattributes (was merge-geschuetzt ist)
 # und einzelne BATS-Tests. Zwei Drifts waren die Folge:
 #
-#   - .gitattributes listete website/src/lib/goals-data.generated.json, waehrend
-#     der Generator nach website/src/lib/sdlc/goals-data.generated.json schreibt.
+#   - .gitattributes listete components/website/src/lib/goals-data.generated.json, waehrend
+#     der Generator nach components/website/src/lib/sdlc/goals-data.generated.json schreibt.
 #     Die real erzeugte Datei hatte damit merge: unspecified.
 #   - docs/agent-guide/maps/agents-map.md fehlte in BEIDEN Registern, obwohl die
 #     drei Schwesterdateien vollstaendig erfasst sind. Staleness fiel dadurch in

@@ -1,14 +1,14 @@
 #!/usr/bin/env bats
 # SSOT: openspec/changes/cq02-any-types-200/proposal.md
-# G-CQ02: Explizite any-Verwendungen in website/src auf ≤200 reduzieren.
+# G-CQ02: Explizite any-Verwendungen in components/website/src auf ≤200 reduzieren.
 # GREEN (post-impl): ≤200 → PASS
 
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }
 
-@test "G-CQ02: explicit any count in website/src is at most 200" {
-  run bash -c "grep -rn ': any\|<any>\|as any' '$REPO_ROOT/website/src' \
+@test "G-CQ02: explicit any count in components/website/src is at most 200" {
+  run bash -c "grep -rn ': any\|<any>\|as any' '$REPO_ROOT/components/website/src' \
     --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l | tr -d ' '"
   echo "any count: $output (limit: 200)"
   [ "$output" -le 200 ]
@@ -18,7 +18,7 @@ setup() {
   # T002624: monitoring.ts liegt seit dem SDLC-Build-Target-Split unter pages/sdlc/api/.
   # Positiv-Anker vor der Zaehlung: fehlt die Datei, liefert `grep -c … || true` einen
   # LEEREN count, und die Zaehlung liefe ins Leere statt zu scheitern.
-  local f="$REPO_ROOT/website/src/pages/sdlc/api/monitoring.ts"
+  local f="$REPO_ROOT/components/website/src/pages/sdlc/api/monitoring.ts"
   [ -f "$f" ] || { echo "monitoring.ts nicht gefunden unter $f" >&2; false; }
 
   count=$(grep -c ': any\|<any>\|as any' "$f" || true)
@@ -28,7 +28,7 @@ setup() {
 
 @test "G-CQ02: catch-blocks in admin API use err: unknown not err: any" {
   hits=$(grep -rn 'catch (err: any)\|catch (error: any)' \
-    "$REPO_ROOT/website/src/pages/api/admin" --include='*.ts' \
+    "$REPO_ROOT/components/website/src/pages/api/admin" --include='*.ts' \
     | wc -l | tr -d ' ')
   echo "remaining err: any catch blocks: $hits (target: 0)"
   [ "$hits" -eq 0 ]

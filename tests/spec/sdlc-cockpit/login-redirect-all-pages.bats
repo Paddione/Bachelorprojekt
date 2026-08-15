@@ -13,7 +13,7 @@
 # AUSGEWERTETEN Ergebnissen: die Redirect-Ausdruecke der !session-Zweige werden
 # mit new Function evaluiert — getLoginUrl ist im Sandbox-Kontext ein Sentinel,
 # der 'OIDC-DIRECT:' + Argumente zurueckgibt, buildLoginRedirect wird echt aus
-# website/src/lib/login-redirect.ts importiert (reines TS ohne Imports, laeuft
+# components/website/src/lib/login-redirect.ts importiert (reines TS ohne Imports, laeuft
 # unter --experimental-strip-types, node >= 22.6; CI test-bats: node 22).
 # Ein direkter OIDC-Redirect faellt damit als evaluierte Location durch, nicht
 # als String-Fund im Quelltext.
@@ -27,10 +27,10 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
 const ROOT = process.argv[2];
-const PAGES = join(ROOT, 'website/src/pages');
+const PAGES = join(ROOT, 'components/website/src/pages');
 
 // Echte buildLoginRedirect aus der SSOT (reines TS ohne Imports -> strip-types).
-const { buildLoginRedirect } = await import(join(ROOT, 'website/src/lib/login-redirect.ts'));
+const { buildLoginRedirect } = await import(join(ROOT, 'components/website/src/lib/login-redirect.ts'));
 
 // --- 1. Kandidaten sammeln: .astro unter pages/sdlc mit !session-Gate ---
 function walk(dir, acc = []) {

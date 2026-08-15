@@ -10,8 +10,8 @@
 # window.open-/Astro.redirect-Aufrufe), es gibt keine Laufzeit-Kommando-Repraesentation.
 # Die ZUSICHERUNG haengt aber an den Aufloesungs-ERGEBNISSEN, nicht an String-
 # Vorkommen: gesammelte Ziele werden durch die echte REDIRECT_MAP (geparst aus
-# website/src/middleware/redirect-map.ts) aufgeloest und gegen das echte Dateisystem
-# unter website/src/pages/ geprueft. Eine Redirect-Kette (Map-Wert ist selbst Map-Key)
+# components/website/src/middleware/redirect-map.ts) aufgeloest und gegen das echte Dateisystem
+# unter components/website/src/pages/ geprueft. Eine Redirect-Kette (Map-Wert ist selbst Map-Key)
 # gilt als Defekt. /admin/live (Map-Wert von /admin/stream) ist als vorbestehender
 # Defekt ohne SDLC-Bezug bewusst ausgenommen, weil er nicht unter /sdlc/ liegt;
 # externe URLs, Anker (#) und der Auth-Guard-Pfad /admin ohne Slash sind kein
@@ -27,13 +27,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = process.argv[2];
-const PAGES = path.join(ROOT, 'website/src/pages');
-const MAP_FILE = path.join(ROOT, 'website/src/middleware/redirect-map.ts');
+const PAGES = path.join(ROOT, 'components/website/src/pages');
+const MAP_FILE = path.join(ROOT, 'components/website/src/middleware/redirect-map.ts');
 const SOURCES = [
-  path.join(ROOT, 'website/src/components/sdlc'),
-  path.join(ROOT, 'website/src/pages/sdlc'),
-  path.join(ROOT, 'website/src/components/admin/AdminSidebarNav.astro'),
-  path.join(ROOT, 'website/src/lib/admin/nav-items.ts'),
+  path.join(ROOT, 'components/website/src/components/sdlc'),
+  path.join(ROOT, 'components/website/src/pages/sdlc'),
+  path.join(ROOT, 'components/website/src/components/admin/AdminSidebarNav.astro'),
+  path.join(ROOT, 'components/website/src/lib/admin/nav-items.ts'),
 ];
 
 // --- 1. REDIRECT_MAP aus der TS-Quelle parsen (SSOT, kein Duplikat) ---

@@ -40,7 +40,7 @@ export interface ResultRow {
   deadLinks: unknown[];
 }
 
-export const MANIFEST_PATH = path.join(__dirname, '..', '..', '..', 'website', 'src', 'data', 'route-manifest.json');
+export const MANIFEST_PATH = path.join(__dirname, '..', '..', '..', 'components', 'website', 'src', 'data', 'route-manifest.json');
 export const AUTH_DIR      = path.join(__dirname, '..', '.auth');
 export const RESULTS_ROOT  = path.join(__dirname, '..', '..', 'results', 'visual-sweep');
 

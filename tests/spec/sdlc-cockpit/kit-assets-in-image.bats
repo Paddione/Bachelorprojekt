@@ -7,9 +7,9 @@
 # (COPY --from, ADD, ein Build-Script), besteht den Test ebenso — solange das
 # Ergebnis stimmt.
 #
-# Hintergrund [T002466]: website/public/cockpit/{kit,cockpit-shell.html,
+# Hintergrund [T002466]: components/website/public/cockpit/{kit,cockpit-shell.html,
 # reference-board.html} sind Symlinks nach ../../../.lavish/. Sie lösen im
-# Repo-Checkout auf, aber `COPY website/ .` im Dockerfile kopiert nur den
+# Repo-Checkout auf, aber `COPY components/website/ .` im Dockerfile kopiert nur den
 # website-Teilbaum nach /app — dort zeigen sie auf /.lavish/, das im Image nicht
 # existiert. Folge: `pnpm dev` zeigt das Cockpit korrekt, das Prod-Image liefert
 # unter /cockpit/kit/ 404. Genau diese Divergenz fängt der Test ab.
@@ -19,12 +19,12 @@ setup() {
   cd "$REPO" || return 1
 }
 
-# Bildet `COPY website/ .` (WORKDIR /app) nach: der website-Teilbaum landet im
+# Bildet `COPY components/website/ .` (WORKDIR /app) nach: der website-Teilbaum landet im
 # Ziel, Symlinks werden als Symlinks übernommen.
 #
-# [T002499] Kopiert wird NUR public/, nicht website/. — und das ist eine
-# Korrektheits-, keine Sparmaßnahme. `cp -r website/.` zog in CI 606 MB mit:
-# website/node_modules ist lokal ein Symlink aufs Haupt-node_modules (der Test
+# [T002499] Kopiert wird NUR public/, nicht components/website/. — und das ist eine
+# Korrektheits-, keine Sparmaßnahme. `cp -r components/website/.` zog in CI 606 MB mit:
+# components/website/node_modules ist lokal ein Symlink aufs Haupt-node_modules (der Test
 # lief in 0,59 s), nach `pnpm install` in CI aber ein echtes Verzeichnis. Da
 # BATS_TEST_TMPDIR unter /tmp liegt und `task test:spec` die Suite mit
 # `bats -j $(nproc)` PARALLEL fährt, lief /tmp voll und die anderen Worker
@@ -38,7 +38,7 @@ setup() {
 _simulate_website_copy() {
   local dest="$1"
   mkdir -p "$dest/public"
-  cp -r website/public/. "$dest/public/" 2>/dev/null || true
+  cp -r components/website/public/. "$dest/public/" 2>/dev/null || true
 }
 
 @test "T002466: Kit-Assets sind im Image-Layout auflösbar, nicht nur im Checkout" {
@@ -46,8 +46,8 @@ _simulate_website_copy() {
   # Ohne diese Vorbedingung wäre die Hauptaussage unten vakuos — sie würde auch
   # bestehen, wenn jemand die Symlinks schlicht gelöscht hätte.
   for asset in kit cockpit-shell.html reference-board.html; do
-    [ -e "website/public/cockpit/$asset" ] \
-      || { echo "Vorbedingung verletzt: website/public/cockpit/$asset löst im Checkout nicht auf"; return 1; }
+    [ -e "components/website/public/cockpit/$asset" ] \
+      || { echo "Vorbedingung verletzt: components/website/public/cockpit/$asset löst im Checkout nicht auf"; return 1; }
   done
 
   local stage="$BATS_TEST_TMPDIR/app"
@@ -58,7 +58,7 @@ _simulate_website_copy() {
   # auflösbar sein. Das erfordert, dass das Dockerfile die .lavish-Quellen
   # zusätzlich ins Image holt und die toten Symlinks überschreibt.
   local dockerfile_copies
-  dockerfile_copies=$(grep -E '^COPY[[:space:]]+\.lavish/' website/Dockerfile || true)
+  dockerfile_copies=$(grep -E '^COPY[[:space:]]+\.lavish/' components/website/Dockerfile || true)
   [ -n "$dockerfile_copies" ] \
     || { echo "Dockerfile holt .lavish/ nicht ins Image — Kit-Assets wären tote Symlinks"; return 1; }
 

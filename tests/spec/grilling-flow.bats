@@ -6,7 +6,7 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  GRILLING="$REPO/website/src/lib/tickets/grilling.ts"
+  GRILLING="$REPO/components/website/src/lib/tickets/grilling.ts"
 }
 
 # ── Questionnaire registry ────────────────────────────────────────────
@@ -42,5 +42,5 @@ setup() {
 # ── Test file exists ──────────────────────────────────────────────────
 
 @test "grilling.test.ts exists with questionnaire validation" {
-  [ -f "$REPO/website/src/lib/tickets/grilling.test.ts" ]
+  [ -f "$REPO/components/website/src/lib/tickets/grilling.test.ts" ]
 }

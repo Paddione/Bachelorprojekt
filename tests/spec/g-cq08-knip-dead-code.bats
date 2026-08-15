@@ -8,12 +8,12 @@ setup() {
 }
 
 @test "G-CQ08: knip.json config exists for website" {
-  [ -f "$REPO_ROOT/website/knip.json" ]
+  [ -f "$REPO_ROOT/components/website/knip.json" ]
 }
 
 @test "G-CQ08: knip is a website devDependency" {
   jq -e '.devDependencies.knip // .dependencies.knip' \
-    "$REPO_ROOT/website/package.json" >/dev/null
+    "$REPO_ROOT/components/website/package.json" >/dev/null
 }
 
 @test "G-CQ08: dead-code baseline recorded (before + after)" {

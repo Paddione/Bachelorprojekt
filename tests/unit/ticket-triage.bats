@@ -12,8 +12,8 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 
 setup() {
   export PROJECT_DIR
-  TRIAGE_FILE="${PROJECT_DIR}/website/src/lib/sdlc/ticket-triage.ts"
-  TRIAGE_API="${PROJECT_DIR}/website/src/pages/sdlc/api/tickets/[id]/triage.ts"
+  TRIAGE_FILE="${PROJECT_DIR}/components/website/src/lib/sdlc/ticket-triage.ts"
+  TRIAGE_API="${PROJECT_DIR}/components/website/src/pages/sdlc/api/tickets/[id]/triage.ts"
 }
 
 # ── File existence ───────────────────────────────────────────────
@@ -188,19 +188,19 @@ setup() {
 # ── Hook integration ─────────────────────────────────────────────
 
 @test "static: admin/tickets/index.ts imports autoTriage" {
-  grep -q "autoTriage" "${PROJECT_DIR}/website/src/pages/sdlc/api/tickets/index.ts"
+  grep -q "autoTriage" "${PROJECT_DIR}/components/website/src/pages/sdlc/api/tickets/index.ts"
 }
 
 @test "static: tickets/comment.ts imports autoTriage" {
-  grep -q "autoTriage" "${PROJECT_DIR}/website/src/pages/sdlc/api/tickets/comment.ts"
+  grep -q "autoTriage" "${PROJECT_DIR}/components/website/src/pages/sdlc/api/tickets/comment.ts"
 }
 
 @test "static: admin/tickets/index.ts calls autoTriage after create" {
-  grep -q "void autoTriage" "${PROJECT_DIR}/website/src/pages/sdlc/api/tickets/index.ts"
+  grep -q "void autoTriage" "${PROJECT_DIR}/components/website/src/pages/sdlc/api/tickets/index.ts"
 }
 
 @test "static: tickets/comment.ts calls autoTriage in else branch" {
-  grep -q "void autoTriage" "${PROJECT_DIR}/website/src/pages/sdlc/api/tickets/comment.ts"
+  grep -q "void autoTriage" "${PROJECT_DIR}/components/website/src/pages/sdlc/api/tickets/comment.ts"
 }
 
 # ── TypeScript syntax ────────────────────────────────────────────
@@ -214,5 +214,5 @@ setup() {
 # ── addComment kind parameter ────────────────────────────────────
 
 @test "static: addComment supports optional kind parameter" {
-  grep -q "kind?: 'comment' | 'status_change' | 'system'" "${PROJECT_DIR}/website/src/lib/tickets/admin.ts"
+  grep -q "kind?: 'comment' | 'status_change' | 'system'" "${PROJECT_DIR}/components/website/src/lib/tickets/admin.ts"
 }

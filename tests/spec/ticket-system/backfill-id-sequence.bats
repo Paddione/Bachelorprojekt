@@ -14,7 +14,7 @@
 setup() {
   REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)}"
   TICKET_SCRIPTS="${REPO_ROOT}/scripts/vda/ticket"
-  MIGRATIONS="${REPO_ROOT}/website/src/lib/tickets/migrations.ts"
+  MIGRATIONS="${REPO_ROOT}/components/website/src/lib/tickets/migrations.ts"
   CTX="k3d-mentolder-dev"
   NS="workspace"
   TESTROW_TITLE="T002732 backfill-id testrow"

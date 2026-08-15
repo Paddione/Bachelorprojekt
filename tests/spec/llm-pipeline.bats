@@ -11,11 +11,11 @@ setup() {
 # ── Embedding infrastructure ──────────────────────────────────────────
 
 @test "embeddings.ts exists for embedding routing" {
-  [ -f "$REPO/website/src/lib/embeddings.ts" ]
+  [ -f "$REPO/components/website/src/lib/embeddings.ts" ]
 }
 
 @test "embeddings.ts references LLM_ENABLED switch" {
-  run grep -q 'LLM_ENABLED' "$REPO/website/src/lib/embeddings.ts"
+  run grep -q 'LLM_ENABLED' "$REPO/components/website/src/lib/embeddings.ts"
   [ "$status" -eq 0 ]
 }
 
@@ -24,28 +24,28 @@ setup() {
   # kommt vom bge-Router — seit T002551 die reine resolveEndpoint-Aufloesung
   # (ein Endpoint pro Rolle). Geprueft wird deshalb die Indirektion, nicht mehr
   # das Adressliteral.
-  run grep -q "from './bge-router'" "$REPO/website/src/lib/embeddings.ts"
+  run grep -q "from './bge-router'" "$REPO/components/website/src/lib/embeddings.ts"
   [ "$status" -eq 0 ]
-  run grep -qE 'llm-gateway' "$REPO/website/src/lib/bge-router.ts"
+  run grep -qE 'llm-gateway' "$REPO/components/website/src/lib/bge-router.ts"
   [ "$status" -eq 0 ]
 }
 
 @test "embeddings.ts falls back to voyageai when LLM_ENABLED=false" {
-  run grep -q 'voyageai\|voyage' "$REPO/website/src/lib/embeddings.ts"
+  run grep -q 'voyageai\|voyage' "$REPO/components/website/src/lib/embeddings.ts"
   [ "$status" -eq 0 ]
 }
 
 # ── Fail-closed on GPU router errors ──────────────────────────────────
 
 @test "embeddings.ts has error handling (EmbeddingQueryError or similar)" {
-  run grep -qi 'EmbeddingQueryError\|EmbeddingIndexError\|throw.*Error\|catch' "$REPO/website/src/lib/embeddings.ts"
+  run grep -qi 'EmbeddingQueryError\|EmbeddingIndexError\|throw.*Error\|catch' "$REPO/components/website/src/lib/embeddings.ts"
   [ "$status" -eq 0 ]
 }
 
 # ── Knowledge DB layer ────────────────────────────────────────────────
 
 @test "knowledge-db.ts exists for pgvector operations" {
-  [ -f "$REPO/website/src/lib/knowledge-db.ts" ]
+  [ -f "$REPO/components/website/src/lib/knowledge-db.ts" ]
 }
 
 # ── LLM_HOST_IP reachability from the k3d dev cluster [T002109] ────────
@@ -278,7 +278,7 @@ assert_var_not_declared() {
 # -b/-ub gilt der Default n_ubatch=512 und jeder längere Input scheitert mit
 # "input (N tokens) is too large to process". Das gesetzte -c 8192 hilft nicht.
 # Der Ausfall ist unsichtbar: Kurztext-Smoke-Tests bleiben grün, und
-# website/src/lib/rerank.ts verschluckt Rerank-Fehler zu score: 0.
+# components/website/src/lib/rerank.ts verschluckt Rerank-Fehler zu score: 0.
 # Die Flags lebten zuerst in start-embed-server.ps1/start-rerank-server.ps1;
 # seit dem bge-Umzug (T002551) stehen sie in den Deployment-Args von
 # k3d/llm-gpu.yaml (bge-embed und bge-rerank) — dort wird der Regressionsschutz

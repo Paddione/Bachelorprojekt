@@ -13,8 +13,8 @@ load test_helper
   assert_success
 }
 
-@test "ingest-json-core.ts exists in website/src/lib" {
-  run test -f "${PROJECT_DIR}/website/src/lib/ingest-json-core.ts"
+@test "ingest-json-core.ts exists in components/website/src/lib" {
+  run test -f "${PROJECT_DIR}/components/website/src/lib/ingest-json-core.ts"
   assert_success
 }
 

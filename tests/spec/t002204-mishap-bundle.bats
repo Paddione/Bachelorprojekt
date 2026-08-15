@@ -3,9 +3,9 @@
 # SSOT: openspec/changes/t002204-worktree-lock/proposal.md
 # T002204 — Mishap-Bundle: scripts/worktree-create.sh, scripts/agent-lock.sh (2 Einträge).
 #
-#   M1 — scripts/worktree-create.sh only symlinked the repo-root and website/
+#   M1 — scripts/worktree-create.sh only symlinked the repo-root and components/website/
 #        node_modules into a fresh worktree. Any other pnpm-managed workspace
-#        package (e.g. brett/, mentolder-web/) was left without a node_modules
+#        package (e.g. components/brett/, components/mentolder-web/) was left without a node_modules
 #        symlink, so tooling that imports from those packages (vitest, tsc, ...)
 #        failed inside the worktree with "module not found". Fix: discover every
 #        directory with its own pnpm-workspace.yaml and link its node_modules
@@ -42,25 +42,25 @@ _init_main_with_workspace_pkg() {
   git init -q -b main "$MAIN"
   git -C "$MAIN" config user.email t@example.com
   git -C "$MAIN" config user.name  Tester
-  # A pnpm-managed workspace package other than website/ (mirrors brett/).
-  mkdir -p "$MAIN/brett"
-  printf 'allowBuilds:\n  esbuild: true\n' > "$MAIN/brett/pnpm-workspace.yaml"
-  printf '{"name":"brett"}\n' > "$MAIN/brett/package.json"
+  # A pnpm-managed workspace package other than components/website/ (mirrors components/brett/).
+  mkdir -p "$MAIN/components/brett"
+  printf 'allowBuilds:\n  esbuild: true\n' > "$MAIN/components/brett/pnpm-workspace.yaml"
+  printf '{"name":"brett"}\n' > "$MAIN/components/brett/package.json"
   git -C "$MAIN" add -A
   git -C "$MAIN" commit -qm init
   # node_modules is created AFTER the commit — gitignored/untracked in the real
   # repo, so it must never appear in the worktree via checkout, only via the
   # helper's symlink logic (matches the T000526 root-node_modules test pattern).
-  mkdir -p "$MAIN/brett/node_modules/some-dep"
-  printf '{"name":"some-dep"}\n' > "$MAIN/brett/node_modules/some-dep/package.json"
+  mkdir -p "$MAIN/components/brett/node_modules/some-dep"
+  printf '{"name":"some-dep"}\n' > "$MAIN/components/brett/node_modules/some-dep/package.json"
 }
 
-@test "T002204-M1: a fresh worktree links node_modules for a non-website pnpm workspace package (brett/)" {
+@test "T002204-M1: a fresh worktree links node_modules for a non-website pnpm workspace package (components/brett/)" {
   _init_main_with_workspace_pkg
   run bash -c "cd '$MAIN' && bash '$HELPER' feature/wt-brett-nm '$TMP/wt-brett-nm' HEAD"
   [ "$status" -eq 0 ]
-  [ -e "$TMP/wt-brett-nm/brett/node_modules/some-dep/package.json" ]
-  grep -q 'some-dep' "$TMP/wt-brett-nm/brett/node_modules/some-dep/package.json"
+  [ -e "$TMP/wt-brett-nm/components/brett/node_modules/some-dep/package.json" ]
+  grep -q 'some-dep' "$TMP/wt-brett-nm/components/brett/node_modules/some-dep/package.json"
 }
 
 @test "T002204-M1: worktree-create still links the root node_modules alongside a workspace package's" {
@@ -70,7 +70,7 @@ _init_main_with_workspace_pkg() {
   run bash -c "cd '$MAIN' && bash '$HELPER' feature/wt-both-nm '$TMP/wt-both-nm' HEAD"
   [ "$status" -eq 0 ]
   [ -e "$TMP/wt-both-nm/node_modules/cheerio/package.json" ]
-  [ -e "$TMP/wt-both-nm/brett/node_modules/some-dep/package.json" ]
+  [ -e "$TMP/wt-both-nm/components/brett/node_modules/some-dep/package.json" ]
 }
 
 @test "T002204-M1: worktree-create warns when the source checkout is on a different branch than the new worktree" {
@@ -156,16 +156,16 @@ _init_main_with_workspace_pkg() {
 
 @test "T002239-M3: guard refuses pnpm install when node_modules is a symlink" {
   M3_TMP="$(mktemp -d)"
-  mkdir -p "$M3_TMP/website/node_modules/.pnpm"
+  mkdir -p "$M3_TMP/components/website/node_modules/.pnpm"
   # real node_modules → guard passes (pass the package dir, not the repo root)
-  run bash "$REPO/scripts/guard-pnpm-install.sh" "$M3_TMP/website"
+  run bash "$REPO/scripts/guard-pnpm-install.sh" "$M3_TMP/components/website"
   [ "$status" -eq 0 ]
 
   # symlink node_modules → guard refuses
-  rm -rf "$M3_TMP/website/node_modules"
+  rm -rf "$M3_TMP/components/website/node_modules"
   mkdir -p "$M3_TMP/real-nm"
-  ln -s "$M3_TMP/real-nm" "$M3_TMP/website/node_modules"
-  run bash "$REPO/scripts/guard-pnpm-install.sh" "$M3_TMP/website"
+  ln -s "$M3_TMP/real-nm" "$M3_TMP/components/website/node_modules"
+  run bash "$REPO/scripts/guard-pnpm-install.sh" "$M3_TMP/components/website"
   [ "$status" -ne 0 ] || { echo "guard did not refuse (exit 0)"; return 1; }
   echo "$output" | grep -qi "refus" || { echo "guard output missing 'refus': $output"; return 1; }
   rm -rf "$M3_TMP"

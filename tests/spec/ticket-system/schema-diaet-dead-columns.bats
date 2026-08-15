@@ -14,25 +14,25 @@ setup() {
   # Versehen leer sein oder der Suchpfad falsch, würde auch dieser Fund auf
   # 0 fallen und den Test rot machen, statt die Negativ-Aussage trivial
   # wahr werden zu lassen.
-  run grep -rl "grilling_answers" "$REPO/website/src/lib/tickets/admin.ts"
+  run grep -rl "grilling_answers" "$REPO/components/website/src/lib/tickets/admin.ts"
   [ "$status" -eq 0 ]
   [ -n "$output" ]
 }
 
 @test "ai_question / human_answer sind aus dem Website-Code entfernt" {
   run grep -rln "ai_question\|human_answer\|aiQuestion\|humanAnswer" \
-    "$REPO/website/src/lib/tickets/admin.ts" \
-    "$REPO/website/src/lib/tickets/admin.test.ts" \
-    "$REPO/website/src/pages/sdlc/api/tickets/[id].ts"
+    "$REPO/components/website/src/lib/tickets/admin.ts" \
+    "$REPO/components/website/src/lib/tickets/admin.test.ts" \
+    "$REPO/components/website/src/pages/sdlc/api/tickets/[id].ts"
   [ "$status" -eq 1 ]
 }
 
 @test "tickets.tickets.scope ist aus migrations.ts entfernt (pr_events.scope bleibt unangetastet)" {
-  run grep -n "ADD COLUMN IF NOT EXISTS scope" "$REPO/website/src/lib/tickets/migrations.ts"
+  run grep -n "ADD COLUMN IF NOT EXISTS scope" "$REPO/components/website/src/lib/tickets/migrations.ts"
   [ "$status" -eq 1 ]
 
   # Positiv-Anker: pr_events.scope (andere Tabelle) muss unverändert bleiben.
-  run grep -n "scope        TEXT," "$REPO/website/src/lib/tickets/tables/tickets.ts"
+  run grep -n "scope        TEXT," "$REPO/components/website/src/lib/tickets/tables/tickets.ts"
   [ "$status" -eq 0 ]
 }
 

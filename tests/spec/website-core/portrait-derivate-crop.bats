@@ -15,8 +15,8 @@
 # nicht still uebersprungen werden.
 
 ROOT="$BATS_TEST_DIRNAME/../../.."
-PUBLIC="$ROOT/website/public"
-PORTRAIT="$ROOT/website/src/components/Portrait.svelte"
+PUBLIC="$ROOT/components/website/public"
+PORTRAIT="$ROOT/components/website/src/components/Portrait.svelte"
 ORIGINAL="$PUBLIC/gerald.jpg"
 IMGSIZE="$BATS_TEST_DIRNAME/imgsize.py"
 GENERATOR="$ROOT/scripts/build-portrait-derivatives.sh"

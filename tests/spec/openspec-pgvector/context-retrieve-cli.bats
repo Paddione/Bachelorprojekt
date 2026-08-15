@@ -14,7 +14,7 @@
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   CLI="$REPO/scripts/context-retrieve.mjs"
-  # Endpoint-Konvention aus website/src/lib/bge-router.ts: LLM_EMBED_URL /
+  # Endpoint-Konvention aus components/website/src/lib/bge-router.ts: LLM_EMBED_URL /
   # LLM_RERANKER_URL. Lokale Port-Forwards (bge-MCP-Units) — nur gesetzt,
   # wenn die Umgebung sie nicht schon mitbringt.
   export LLM_EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:8081}"

@@ -18,21 +18,21 @@ setup() {
   # Positiv-Anker (T002356-M1): eine BEREITS vorhandene Kit-Datei (panel.js)
   # muss beide Prüfungen bestehen — sonst bestünde ein Test, der schlicht
   # nichts findet.
-  [ -f "website/public/cockpit/kit/panel.js" ] \
-    || { echo "Vorbedingung verletzt: website/public/cockpit/kit/panel.js fehlt"; return 1; }
+  [ -f "components/website/public/cockpit/kit/panel.js" ] \
+    || { echo "Vorbedingung verletzt: components/website/public/cockpit/kit/panel.js fehlt"; return 1; }
 
   for asset in layout.js layout.css; do
-    [ -L "website/public/cockpit/kit/$asset" ] \
-      || { echo "$asset ist kein Symlink unter website/public/cockpit/kit/"; return 1; }
-    [ -f "website/public/cockpit/kit/$asset" ] \
+    [ -L "components/website/public/cockpit/kit/$asset" ] \
+      || { echo "$asset ist kein Symlink unter components/website/public/cockpit/kit/"; return 1; }
+    [ -f "components/website/public/cockpit/kit/$asset" ] \
       || { echo "$asset löst im Checkout nicht auf (Dev-Server-Fall)"; return 1; }
-    [ -s "website/public/cockpit/kit/$asset" ] \
+    [ -s "components/website/public/cockpit/kit/$asset" ] \
       || { echo "$asset ist leer"; return 1; }
   done
 
   # Image-Layout: .lavish/kit wird per `COPY .lavish/kit ./public/cockpit/kit`
   # ins Image geholt (Dockerfile Zeile 35 kopiert das ganze Verzeichnis).
-  grep -qE '^COPY[[:space:]]+\.lavish/kit[[:space:]]+\./public/cockpit/kit' website/Dockerfile \
-    || grep -qE '^COPY[[:space:]]+\.lavish/kit[[:space:]]+public/cockpit/kit' website/Dockerfile \
-    || { echo "website/Dockerfile holt .lavish/kit nicht nach public/cockpit/kit — Image hätte tote Symlinks"; return 1; }
+  grep -qE '^COPY[[:space:]]+\.lavish/kit[[:space:]]+\./public/cockpit/kit' components/website/Dockerfile \
+    || grep -qE '^COPY[[:space:]]+\.lavish/kit[[:space:]]+public/cockpit/kit' components/website/Dockerfile \
+    || { echo "components/website/Dockerfile holt .lavish/kit nicht nach public/cockpit/kit — Image hätte tote Symlinks"; return 1; }
 }

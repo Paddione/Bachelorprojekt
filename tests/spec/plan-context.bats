@@ -28,7 +28,7 @@
 # setup() (see TMP_ROOT below), not the real repo — CHANGES_DIR resolution
 # via `git rev-parse --show-toplevel` inside plan-context.sh then anchors at
 # TMP_ROOT and never touches $REPO/openspec/changes/. The fixture set is
-# self-contained: exactly 3 non-archived proposals (ops/website/ci) plus one
+# self-contained: exactly 3 non-archived proposals (ops/components/website/ci) plus one
 # proposal parked directly under a slug literally named "archive" (to
 # exercise the `slug == archive` skip in plan-context.sh — the real repo's
 # archive/ only ever holds nested sub-dirs, so that skip is otherwise
@@ -202,7 +202,7 @@ EOF
   website="$(_run_pcf bachelorprojekt-website 2>/dev/null | grep -c '^### Active proposal:' || true)"
   # A correctly filtered ops/website output should be strictly less than
   # the unfiltered orchestrator count (the script today returns the same
-  # entries for all three — the bug). The fixture set (ops/website/ci)
+  # entries for all three — the bug). The fixture set (ops/components/website/ci)
   # guarantees a real reduction.
   [ "$ops" -lt "$all" ] \
     || { echo "BUG STILL ACTIVE: ops count ($ops) >= orchestrator count ($all) — filter does nothing"; return 1; }

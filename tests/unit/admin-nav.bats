@@ -5,9 +5,9 @@
 load test_helper
 
 PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
-ADMIN_LAYOUT="$PROJECT_DIR/website/src/layouts/AdminLayout.astro"
-PORTAL_LAYOUT="$PROJECT_DIR/website/src/layouts/PortalLayout.astro"
-EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.astro"
+ADMIN_LAYOUT="$PROJECT_DIR/components/website/src/layouts/AdminLayout.astro"
+PORTAL_LAYOUT="$PROJECT_DIR/components/website/src/layouts/PortalLayout.astro"
+EINSTELLUNGEN_TABS="$PROJECT_DIR/components/website/src/components/AdminEinstellungenTabs.astro"
 
 # ── Admin nav: removed items ──────────────────────────────────────
 
@@ -71,12 +71,12 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
 }
 
 @test "termine.astro: Kalender tab present" {
-  run grep -c "href=\"/admin/kalender\"" "$PROJECT_DIR/website/src/pages/admin/termine.astro"
+  run grep -c "href=\"/admin/kalender\"" "$PROJECT_DIR/components/website/src/pages/admin/termine.astro"
   refute_output "0"
 }
 
 @test "clients.astro: Meetings tab present" {
-  run grep -c "href.*meetings" "$PROJECT_DIR/website/src/pages/admin/clients.astro"
+  run grep -c "href.*meetings" "$PROJECT_DIR/components/website/src/pages/admin/clients.astro"
   refute_output "0"
 }
 
@@ -84,28 +84,28 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
   # T001792 / PR #2767 removed the dead coaching studio route and its tab
   # links; the sessions page keeps only the Admin breadcrumb. Assert the
   # removed route is not referenced anymore and the breadcrumb survives.
-  run grep -c 'href="/admin/coaching/studio"' "$PROJECT_DIR/website/src/pages/admin/coaching/sessions/index.astro"
+  run grep -c 'href="/admin/coaching/studio"' "$PROJECT_DIR/components/website/src/pages/admin/coaching/sessions/index.astro"
   assert_output "0"
-  run grep -c 'href="/admin"' "$PROJECT_DIR/website/src/pages/admin/coaching/sessions/index.astro"
+  run grep -c 'href="/admin"' "$PROJECT_DIR/components/website/src/pages/admin/coaching/sessions/index.astro"
   refute_output "0"
 }
 
 @test "rechnungen.astro: Zeiterfassung tab present" {
-  run grep -c "href.*zeiterfassung" "$PROJECT_DIR/website/src/pages/admin/rechnungen.astro"
+  run grep -c "href.*zeiterfassung" "$PROJECT_DIR/components/website/src/pages/admin/rechnungen.astro"
   refute_output "0"
 }
 
 @test "buchhaltung.astro: Steuer tab present" {
-  run grep -c "href=\"/admin/steuer\"" "$PROJECT_DIR/website/src/pages/admin/buchhaltung.astro"
+  run grep -c "href=\"/admin/steuer\"" "$PROJECT_DIR/components/website/src/pages/admin/buchhaltung.astro"
   refute_output "0"
 }
 
 @test "PlatformHub.svelte: Software-History link present" {
-  run grep -c "software-history" "$PROJECT_DIR/website/src/components/admin/PlatformHub.svelte"
+  run grep -c "software-history" "$PROJECT_DIR/components/website/src/components/admin/PlatformHub.svelte"
   refute_output "0"
 }
 
 @test "PlatformHub.svelte: Systemtest link present" {
-  run grep -c "systemtest" "$PROJECT_DIR/website/src/components/admin/PlatformHub.svelte"
+  run grep -c "systemtest" "$PROJECT_DIR/components/website/src/components/admin/PlatformHub.svelte"
   refute_output "0"
 }

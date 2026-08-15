@@ -21,7 +21,7 @@ teardown() {
 
 @test "FA-QS-07 approve setzt status=done und done_at" {
   node -e "
-    const { createQaReview } = require('./website/src/lib/qa-dal');
+    const { createQaReview } = require('./components/website/src/lib/qa-dal');
     createQaReview({
       ticketId: '$TICKET_ID',
       criteria: [{key:'spec_match',passed:true},{key:'no_regression',passed:true},{key:'responsive',passed:true},{key:'performance',passed:true},{key:'copy',passed:true}],
@@ -34,7 +34,7 @@ teardown() {
 
 @test "FA-QS-08 reject setzt status=in_progress und legt factory_injection an" {
   node -e "
-    const { createQaReview } = require('./website/src/lib/qa-dal');
+    const { createQaReview } = require('./components/website/src/lib/qa-dal');
     createQaReview({
       ticketId: '$TICKET_ID',
       criteria: [{key:'spec_match',passed:false},{key:'no_regression',passed:true},{key:'responsive',passed:true},{key:'performance',passed:true},{key:'copy',passed:true}],

@@ -14,7 +14,7 @@
 setup() {
   REPO="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PROOF_DIR="$REPO/.lavish"
-  ASTRO="$REPO/website/src/pages/sdlc/cockpit.astro"
+  ASTRO="$REPO/components/website/src/pages/sdlc/cockpit.astro"
 }
 
 @test "T002462 Die vier D7-Gruppen sind in der Shell-Hülle vorhanden" {
@@ -31,7 +31,7 @@ setup() {
 # Surface Organization": "the old spec's four-group immutable list constraint no
 # longer applies". Die Gruppen leben jetzt in CockpitRail.svelte und wechseln mit
 # Modus und Phase; belegt wird das durch die Vitest-Komponententests
-# (website/src/components/cockpit/CockpitRail.test.ts), die jede Phase einzeln
+# (components/website/src/components/cockpit/CockpitRail.test.ts), die jede Phase einzeln
 # rendern. Für cockpit-shell.html (die statische Attrappe unter .lavish/) gilt
 # D7 unverändert weiter — der Test darüber bleibt deshalb bestehen.
 @test "T003417 Die Astro-Hülle delegiert die Rail an die Komponente" {

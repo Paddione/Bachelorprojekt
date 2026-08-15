@@ -30,11 +30,11 @@ setup() {
 }
 
 @test "T002255-A1: filter entfernt generierte Pfade, behaelt Quelltext" {
-  run bash -c "cd '$REPO_ROOT' && printf 'website/src/data/openspec-status.json\nscripts/foo.sh\nwebsite/src/pages/index.astro\n' | bash '$FILTER'"
+  run bash -c "cd '$REPO_ROOT' && printf 'components/website/src/data/openspec-status.json\nscripts/foo.sh\ncomponents/website/src/pages/index.astro\n' | bash '$FILTER'"
   [ "$status" -eq 0 ]
   [[ "$output" != *"openspec-status.json"* ]]
   [[ "$output" == *"scripts/foo.sh"* ]]
-  [[ "$output" == *"website/src/pages/index.astro"* ]]
+  [[ "$output" == *"components/website/src/pages/index.astro"* ]]
 }
 
 @test "T002255-A1: filter gibt Pfade unveraendert aus (kein check-attr-Suffix)" {
@@ -54,7 +54,7 @@ setup() {
 # `grep -v` liefert hier Exit 1 und reisst unter `set -o pipefail` den
 # aufrufenden Task mit.
 @test "T002255-A1: filter exit 0 wenn ALLE Eingabepfade generiert sind" {
-  run bash -c "cd '$REPO_ROOT' && printf 'website/src/data/openspec-status.json\nwebsite/src/data/route-manifest.json\n' | bash '$FILTER'"
+  run bash -c "cd '$REPO_ROOT' && printf 'components/website/src/data/openspec-status.json\ncomponents/website/src/data/route-manifest.json\n' | bash '$FILTER'"
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }

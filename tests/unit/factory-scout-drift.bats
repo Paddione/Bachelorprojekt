@@ -56,7 +56,7 @@ setup() { export PROJECT_DIR MOD; }
 }
 
 @test "scout-drift: filterNoise removes test-inventory.json" {
-  run node -e "const {filterNoise}=require('$MOD'); process.stdout.write(JSON.stringify(filterNoise(['src/a.ts','website/src/data/test-inventory.json'])))"
+  run node -e "const {filterNoise}=require('$MOD'); process.stdout.write(JSON.stringify(filterNoise(['src/a.ts','components/website/src/data/test-inventory.json'])))"
   [ "$status" -eq 0 ]
   [ "$output" = '["src/a.ts"]' ]
 }

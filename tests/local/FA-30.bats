@@ -8,8 +8,8 @@
 }
 
 @test "FA-30.2: /embed returns PDF/A-3 with factur-x attachment" {
-  PDF_B64=$(base64 -w0 website/test/fixtures/einvoice/sample.pdf)
-  XML_B64=$(base64 -w0 website/test/fixtures/einvoice/regelbesteuerung-19.cii.xml)
+  PDF_B64=$(base64 -w0 components/website/test/fixtures/einvoice/sample.pdf)
+  XML_B64=$(base64 -w0 components/website/test/fixtures/einvoice/regelbesteuerung-19.cii.xml)
   RESPONSE=$(kubectl -n workspace run curl-embed --image=curlimages/curl --rm -i --restart=Never --quiet -- \
     -s -X POST http://einvoice-sidecar/embed \
     -H 'Content-Type: application/json' \

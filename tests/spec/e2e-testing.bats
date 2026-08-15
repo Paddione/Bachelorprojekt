@@ -28,7 +28,7 @@ SPEC_FILE="${BATS_TEST_DIRNAME}/../e2e/specs/fa-bugs-notifications.spec.ts"
 # ambiguous under strict mode — the likely source of the "flaky" runs in the
 # ticket. The outer layout footer stays; the inner one must not be a <footer>.
 
-KORE_HOMEPAGE="${BATS_TEST_DIRNAME}/../../website/src/components/kore/KoreHomepage.svelte"
+KORE_HOMEPAGE="${BATS_TEST_DIRNAME}/../../components/website/src/components/kore/KoreHomepage.svelte"
 KORCZEWSKI_SPEC="${BATS_TEST_DIRNAME}/../e2e/specs/korczewski-home.spec.ts"
 
 @test "T000254: KoreHomepage renders no nested <footer> landmark" {

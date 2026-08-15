@@ -6,11 +6,11 @@
 # ausschliesslich im Quelltext (Lib-Funktionen, API-Endpoint, Migration, gemountete
 # Komponente) — daher grep-basierte Assertions, dokumentiert im Header wie
 # tests/spec/coaching-sessions-polish-guide.bats. Verhaltenslogik wird separat in
-# website/src/lib/coaching-questionnaire-insights.test.ts geprueft.
+# components/website/src/lib/coaching-questionnaire-insights.test.ts geprueft.
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}" && git rev-parse --show-toplevel)"
-  WEB="$REPO_ROOT/website/src"
+  WEB="$REPO_ROOT/components/website/src"
 }
 
 @test "insights lib exports embed, cluster and label" {
@@ -56,13 +56,13 @@ setup() {
 }
 
 @test "insights cache migration exists with key/payload/created_at" {
-  run grep -qF "questionnaire_insights_cache" "$REPO_ROOT/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
+  run grep -qF "questionnaire_insights_cache" "$REPO_ROOT/components/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
   [ "$status" -eq 0 ]
-  run grep -qiE "key[[:space:]]+text[[:space:]]+(primary key|PRIMARY KEY)" "$REPO_ROOT/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
+  run grep -qiE "key[[:space:]]+text[[:space:]]+(primary key|PRIMARY KEY)" "$REPO_ROOT/components/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
   [ "$status" -eq 0 ]
-  run grep -qiE "payload[[:space:]]+jsonb" "$REPO_ROOT/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
+  run grep -qiE "payload[[:space:]]+jsonb" "$REPO_ROOT/components/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
   [ "$status" -eq 0 ]
-  run grep -qiE "created_at[[:space:]]+timestamptz" "$REPO_ROOT/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
+  run grep -qiE "created_at[[:space:]]+timestamptz" "$REPO_ROOT/components/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql"
   [ "$status" -eq 0 ]
 }
 

@@ -41,7 +41,7 @@ EOF
     "subsystem": "website",
     "count": 15,
     "title": "CQ-GATE:S1:website — 15 Dateien kürzen",
-    "violation_keys": ["S1:website/src/pages/foo.astro", "S1:website/src/pages/bar.astro"]
+    "violation_keys": ["S1:components/website/src/pages/foo.astro", "S1:components/website/src/pages/bar.astro"]
   },
   {
     "gate": "S3",

@@ -14,7 +14,7 @@ setup() {
 }
 
 @test "G-RH01 batch2: tickets-db.ts ist unter S1-Limit" {
-  loc=$(wc -l < "$REPO_ROOT/website/src/lib/tickets-db.ts")
+  loc=$(wc -l < "$REPO_ROOT/components/website/src/lib/tickets-db.ts")
   [ "$loc" -le 600 ]
 }
 
@@ -25,7 +25,7 @@ setup() {
 
 @test "G-RH01 batch2: tickets-db.ts ist auf Re-Export-Index geschrumpft" {
   # Nach dem Split in Task 2 muss tickets-db.ts fast nur aus re-exports bestehen
-  loc=$(wc -l < "$REPO_ROOT/website/src/lib/tickets-db.ts")
+  loc=$(wc -l < "$REPO_ROOT/components/website/src/lib/tickets-db.ts")
   [ "$loc" -le 200 ]
 }
 

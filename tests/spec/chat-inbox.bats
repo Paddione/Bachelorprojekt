@@ -8,12 +8,12 @@ setup() {
 }
 
 @test "T001456: listInboxItems versteckt is_test_data-Zeilen per Default" {
-  grep -q "is_test_data = false" "$REPO_ROOT/website/src/lib/messaging-db.ts"
+  grep -q "is_test_data = false" "$REPO_ROOT/components/website/src/lib/messaging-db.ts"
 }
 
 @test "T001456: countPendingByType zählt keine Test-Zeilen" {
   grep -q "status = 'pending' AND is_test_data = false" \
-    "$REPO_ROOT/website/src/lib/messaging-db.ts"
+    "$REPO_ROOT/components/website/src/lib/messaging-db.ts"
 }
 
 @test "T001456: fa-20 finalize-Spec nutzt [TEST]-meetingType (Sweep-fähig)" {

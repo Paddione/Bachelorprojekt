@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # ═══════════════════════════════════════════════════════════════════
 # tickets-reporter-link.bats — Unit/integration tests for
-#   website/src/lib/tickets/reporter-link.ts
+#   components/website/src/lib/tickets/reporter-link.ts
 # ═══════════════════════════════════════════════════════════════════
 # Runtime tests (linkReporterByEmail, linkAllReporters) require a live
 # PostgreSQL database with the `customers` and `tickets.tickets` tables.
@@ -64,32 +64,32 @@ db_available() {
 # ── Static checks (no DB required) ───────────────────────────────
 
 @test "reporter-link.ts file exists" {
-  [ -f "${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts" ]
+  [ -f "${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts" ]
 }
 
 @test "reporter-link.ts exports linkReporterByEmail" {
   grep -q "export async function linkReporterByEmail" \
-    "${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts"
+    "${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts"
 }
 
 @test "reporter-link.ts exports linkAllReporters" {
   grep -q "export async function linkAllReporters" \
-    "${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts"
+    "${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts"
 }
 
 @test "linkReporterByEmail uses parameterized query (no string interpolation)" {
   # Ensure SQL uses $1 placeholder, not template literals, for the email value.
-  grep -q '\$1' "${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts"
+  grep -q '\$1' "${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts"
 }
 
 @test "both functions check reporter_id IS NULL (idempotency guard)" {
   # Match only the SQL clause form (t.reporter_id IS NULL) to avoid counting the JSDoc comment.
-  count=$(grep -c "t\.reporter_id IS NULL" "${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts")
+  count=$(grep -c "t\.reporter_id IS NULL" "${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts")
   [ "$count" -eq 2 ]
 }
 
 @test "both functions filter on keycloak_user_id IS NOT NULL" {
-  count=$(grep -c "keycloak_user_id IS NOT NULL" "${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts")
+  count=$(grep -c "keycloak_user_id IS NOT NULL" "${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts")
   [ "$count" -eq 2 ]
 }
 
@@ -110,7 +110,7 @@ db_available() {
 SQL
 
   SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
-    import { linkReporterByEmail } from '${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts';
+    import { linkReporterByEmail } from '${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts';
     linkReporterByEmail('link-test@example.com').then(() => process.exit(0));
   "
 
@@ -128,7 +128,7 @@ SQL
   fi
 
   result=$(SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
-    import { linkReporterByEmail } from '${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts';
+    import { linkReporterByEmail } from '${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts';
     linkReporterByEmail('does-not-exist-${RANDOM}@example.com').then(n => { console.log(n); process.exit(0); });
   ")
   [ "$result" = "0" ]
@@ -149,7 +149,7 @@ SQL
 SQL
 
   linked=$(SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
-    import { linkAllReporters } from '${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts';
+    import { linkAllReporters } from '${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts';
     linkAllReporters().then(n => { console.log(n); process.exit(0); });
   ")
   # At least one row must have been linked
@@ -179,13 +179,13 @@ SQL
 
   # First call links the row
   SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
-    import { linkReporterByEmail } from '${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts';
+    import { linkReporterByEmail } from '${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts';
     linkReporterByEmail('idem-test@example.com').then(() => process.exit(0));
   "
 
   # Second call must return 0 (already linked, reporter_id IS NULL guard fires)
   second=$(SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
-    import { linkReporterByEmail } from '${PROJECT_DIR}/website/src/lib/tickets/reporter-link.ts';
+    import { linkReporterByEmail } from '${PROJECT_DIR}/components/website/src/lib/tickets/reporter-link.ts';
     linkReporterByEmail('idem-test@example.com').then(n => { console.log(n); process.exit(0); });
   ")
   [ "$second" = "0" ]

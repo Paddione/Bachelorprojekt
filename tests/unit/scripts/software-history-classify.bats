@@ -35,7 +35,7 @@ teardown() {
 }
 
 @test "classifies every unclassified PR exactly once" {
-  run bash -c 'cd website && npx tsx ../scripts/software-history-classify.mts'
+  run bash -c 'cd components/website && npx tsx ../scripts/software-history-classify.mts'
   [ "$status" -eq 0 ]
 
   run psql -At "$TEST_PG_URL" -c "SELECT count(*) FROM bachelorprojekt.software_events"
@@ -43,19 +43,19 @@ teardown() {
 }
 
 @test "re-run is idempotent" {
-  bash -c 'cd website && npx tsx ../scripts/software-history-classify.mts' >/dev/null
-  run bash -c 'cd website && npx tsx ../scripts/software-history-classify.mts'
+  bash -c 'cd components/website && npx tsx ../scripts/software-history-classify.mts' >/dev/null
+  run bash -c 'cd components/website && npx tsx ../scripts/software-history-classify.mts'
   [ "$status" -eq 0 ]
   run psql -At "$TEST_PG_URL" -c "SELECT count(*) FROM bachelorprojekt.software_events"
   [ "$output" -eq 4 ]
 }
 
 @test "manual overrides survive --force re-run" {
-  bash -c 'cd website && npx tsx ../scripts/software-history-classify.mts' >/dev/null
+  bash -c 'cd components/website && npx tsx ../scripts/software-history-classify.mts' >/dev/null
   psql "$TEST_PG_URL" -v ON_ERROR_STOP=1 -c \
     "UPDATE bachelorprojekt.software_events SET classifier='manual', service='manually-renamed' WHERE pr_number=1"
 
-  run bash -c 'cd website && npx tsx ../scripts/software-history-classify.mts --retry-failed'
+  run bash -c 'cd components/website && npx tsx ../scripts/software-history-classify.mts --retry-failed'
   [ "$status" -eq 0 ]
 
   run psql -At "$TEST_PG_URL" -c "SELECT service FROM bachelorprojekt.software_events WHERE pr_number=1"
@@ -63,7 +63,7 @@ teardown() {
 }
 
 @test "--limit caps work" {
-  run bash -c 'cd website && npx tsx ../scripts/software-history-classify.mts --limit=1'
+  run bash -c 'cd components/website && npx tsx ../scripts/software-history-classify.mts --limit=1'
   [ "$status" -eq 0 ]
   run psql -At "$TEST_PG_URL" -c "SELECT count(DISTINCT pr_number) FROM bachelorprojekt.software_events"
   [ "$output" -eq 1 ]

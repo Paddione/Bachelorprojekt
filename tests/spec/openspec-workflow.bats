@@ -323,16 +323,16 @@ EOF
 }
 
 # ── T002282: Archiv-Commit muss die regenerierten Freshness-Artefakte tragen ──
-# `scripts/openspec.sh cmd_archive` schreibt website/src/data/openspec-status.json
+# `scripts/openspec.sh cmd_archive` schreibt components/website/src/data/openspec-status.json
 # NACH dem `mv "$dir" "$dest"` neu (openspec.sh:154-156). Schritt 4 von
 # plan-archive-steps.md staged aber nur `openspec/changes/` — die regenerierte
 # JSON-Datei bleibt unstaged und fällt erst im CI als stale auf. Der Bash-Block
 # in der .md IST die ausführbare Prozedur, daher ein Konventions-Check auf sie.
 
-@test "T002282-M2: plan-archive-steps.md Schritt 4 staged website/src/data/openspec-status.json" {
+@test "T002282-M2: plan-archive-steps.md Schritt 4 staged components/website/src/data/openspec-status.json" {
   local f="$REPO/.claude/skills/references/plan-archive-steps.md"
   [ -f "$f" ]
-  run grep -Fq 'website/src/data/openspec-status.json' "$f"
+  run grep -Fq 'components/website/src/data/openspec-status.json' "$f"
   [ "$status" -eq 0 ]
 }
 

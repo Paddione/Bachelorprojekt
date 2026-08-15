@@ -161,7 +161,7 @@ project_block() {
   # ARG is per-stage: an ARG in the build stage alone is invisible at runtime.
   # build-website.yml already warns that this Dockerfile once had no ARG line,
   # which silently turned --build-arg values into no-ops.
-  local dockerfile="$REPO/website/Dockerfile"
+  local dockerfile="$REPO/components/website/Dockerfile"
   run awk '/^FROM .* AS runtime/ { inside = 1 } inside' "$dockerfile"
   [ "$status" -eq 0 ]
   echo "$output" | grep -qE '^ARG GIT_SHA'
@@ -169,7 +169,7 @@ project_block() {
 }
 
 @test "website Dockerfile declares BUILT_AT in the runtime stage" {
-  local dockerfile="$REPO/website/Dockerfile"
+  local dockerfile="$REPO/components/website/Dockerfile"
   run awk '/^FROM .* AS runtime/ { inside = 1 } inside' "$dockerfile"
   [ "$status" -eq 0 ]
   echo "$output" | grep -qE '^ARG BUILT_AT'
@@ -190,7 +190,7 @@ project_block() {
 }
 
 @test "health endpoint reports the built commit" {
-  local health="$REPO/website/src/pages/api/health.ts"
+  local health="$REPO/components/website/src/pages/api/health.ts"
   run grep -q 'GIT_SHA' "$health"
   [ "$status" -eq 0 ]
   run grep -q 'commit' "$health"
@@ -200,7 +200,7 @@ project_block() {
 @test "health endpoint falls back to 'unknown' rather than omitting commit" {
   # A missing field would let a consumer read it as undefined and treat the
   # run as drift-free. The value must always be present.
-  run grep -q "unknown" "$REPO/website/src/pages/api/health.ts"
+  run grep -q "unknown" "$REPO/components/website/src/pages/api/health.ts"
   [ "$status" -eq 0 ]
 }
 
@@ -217,7 +217,7 @@ project_block() {
 # ── R3: drifted runs cannot open tickets ──────────────────────────────
 
 @test "ingest endpoint gates ticket creation on deploy drift" {
-  local ingest="$REPO/website/src/pages/sdlc/api/tests/ingest-e2e.ts"
+  local ingest="$REPO/components/website/src/pages/sdlc/api/tests/ingest-e2e.ts"
   run grep -q 'testedSha' "$ingest"
   [ "$status" -eq 0 ]
   run grep -q 'deploy-drift' "$ingest"
@@ -228,7 +228,7 @@ project_block() {
   # Fail closed. A gate that waves through a missing value is exactly the
   # T002199 mistake in new clothes: build-website.yml documents that this
   # build-arg chain has already snapped once.
-  run grep -q "unknown" "$REPO/website/src/pages/sdlc/api/tests/ingest-e2e.ts"
+  run grep -q "unknown" "$REPO/components/website/src/pages/sdlc/api/tests/ingest-e2e.ts"
   [ "$status" -eq 0 ]
 }
 

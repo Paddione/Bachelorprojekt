@@ -38,17 +38,17 @@ _section() {
 # einer echten Quelldatei (Befund). Kein Bezug zum Repo des Laufs.
 _make_dirty_worktree() {
   local wt="$1"
-  mkdir -p "$wt/website/src/data" "$wt/scripts"
+  mkdir -p "$wt/components/website/src/data" "$wt/scripts"
   git -C "$wt" init -q
   git -C "$wt" symbolic-ref HEAD refs/heads/main
   git -C "$wt" config user.email "t003121@example.invalid"
   git -C "$wt" config user.name "T003121 Guard"
-  printf '{}\n' > "$wt/website/src/data/openspec-status.json"
+  printf '{}\n' > "$wt/components/website/src/data/openspec-status.json"
   printf 'echo base\n' > "$wt/scripts/beispiel.sh"
   git -C "$wt" add -A
   git -C "$wt" commit -qm "base"
   # Generat wandert auf main ohnehin fort — folgenlos.
-  printf '{"regeneriert": true}\n' > "$wt/website/src/data/openspec-status.json"
+  printf '{"regeneriert": true}\n' > "$wt/components/website/src/data/openspec-status.json"
   # Echte Arbeit, die kein Commit sichert — genau das soll den Remove blockieren.
   printf 'echo ungesicherte Arbeit\n' >> "$wt/scripts/beispiel.sh"
 }
@@ -96,7 +96,7 @@ _make_dirty_worktree() {
 
   # … und das Generat wird geschluckt. Ohne diese Haelfte waere der Vorcheck wieder
   # der grobe, der `--force` zum Standardgriff macht.
-  run bash -c "$form | grep -cF 'website/src/data/openspec-status.json'"
+  run bash -c "$form | grep -cF 'components/website/src/data/openspec-status.json'"
   [ "$output" -eq 0 ]
 }
 

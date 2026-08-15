@@ -6,9 +6,9 @@
 # Convention: one .bats file per OpenSpec SSOT spec.
 
 # ── File-level variables ──────────────────────────────────────────────────────
-DORA_DASHBOARD="$BATS_TEST_DIRNAME/../../website/src/components/admin/DoraDashboard.svelte"
-DORA_METRICS_LIB="$BATS_TEST_DIRNAME/../../website/src/lib/dora-metrics.ts"
-DORA_API="$BATS_TEST_DIRNAME/../../website/src/pages/api/admin/dora-metrics.ts"
+DORA_DASHBOARD="$BATS_TEST_DIRNAME/../../components/website/src/components/admin/DoraDashboard.svelte"
+DORA_METRICS_LIB="$BATS_TEST_DIRNAME/../../components/website/src/lib/dora-metrics.ts"
+DORA_API="$BATS_TEST_DIRNAME/../../components/website/src/pages/api/admin/dora-metrics.ts"
 
 # ── T001433: DORA removal ─────────────────────────────────────────────────────
 @test "T001433 dora: DoraDashboard.svelte is removed" {

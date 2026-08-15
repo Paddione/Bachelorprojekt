@@ -61,9 +61,9 @@ setup() {
 
 # ── End-to-End (check) ───────────────────────────────────────────────────────
 
-@test "check --family CQ: fehlende website/src-Basis → FAIL G-CQ02, exit 1" {
+@test "check --family CQ: fehlende components/website/src-Basis → FAIL G-CQ02, exit 1" {
   local fx; fx="$(mktemp -d)"
-  # Fixture: keine website/src-Basis (Marker-Datei gesetzt → Basis fehlt)
+  # Fixture: keine components/website/src-Basis (Marker-Datei gesetzt → Basis fehlt)
   mkdir -p "$fx/basis/CQ"
   : > "$fx/basis/CQ/G-CQ02.absent"
   run bash "$RUNNER" check --family CQ --fixture "$fx"
@@ -74,7 +74,7 @@ setup() {
 
 @test "check --family CQ: Basis vorhanden → PASS, exit 0" {
   local fx; fx="$(mktemp -d)"
-  # Fixture: website/src-Basis vorhanden (Marker-Datei gesetzt → Basis existiert)
+  # Fixture: components/website/src-Basis vorhanden (Marker-Datei gesetzt → Basis existiert)
   mkdir -p "$fx/basis/CQ"
   : > "$fx/basis/CQ/G-CQ02.present"
   run bash "$RUNNER" check --family CQ --fixture "$fx"

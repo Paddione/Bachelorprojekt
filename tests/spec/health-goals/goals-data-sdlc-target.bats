@@ -14,7 +14,7 @@ setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PROD_WF="${REPO_ROOT}/.github/workflows/build-website.yml"
   SDLC_WF="${REPO_ROOT}/.github/workflows/build-sdlc-console.yml"
-  GOALS_JSON="website/src/lib/sdlc/goals-data.generated.json"
+  GOALS_JSON="components/website/src/lib/sdlc/goals-data.generated.json"
 }
 
 # Liest die push-paths eines Workflows als Zeilen — Kommentare sind hier weg,
@@ -31,8 +31,8 @@ wf_paths() {
 
   # Positiv-Anker [T002356-M1]: ohne ihn waere die Liste bei kaputtem YAML leer
   # und die Negativ-Aussage unten trivial erfuellt.
-  echo "$output" | grep -qx 'website/\*\*' || {
-    echo "FAIL: build-website.yml triggert nicht mehr auf 'website/**' — die paths-Liste ist kaputt, nicht bloss goals-frei:"
+  echo "$output" | grep -qx 'components/website/\*\*' || {
+    echo "FAIL: build-website.yml triggert nicht mehr auf 'components/website/**' — die paths-Liste ist kaputt, nicht bloss goals-frei:"
     echo "$output"
     return 1
   }
@@ -40,7 +40,7 @@ wf_paths() {
   if echo "$output" | grep -qx '\.claude/lib/goals\.md'; then
     echo "FAIL: build-website.yml triggert auf .claude/lib/goals.md."
     echo "      Der einzige Konsument der Goals-Daten ist pages/sdlc/repohealth.astro,"
-    echo "      und ${GOALS_JSON} ist von den '!website/src/lib/sdlc/**'-Negationen"
+    echo "      und ${GOALS_JSON} ist von den '!components/website/src/lib/sdlc/**'-Negationen"
     echo "      ausgeschlossen. Der Trigger baut damit ein Prod-Image fuer Daten,"
     echo "      die dieses Image nicht rendert. Gebaut wird ueber build-sdlc-console.yml."
     return 1
@@ -65,7 +65,7 @@ wf_paths() {
     [ -n "$pattern" ] || continue
     case "$pattern" in '!'*) continue ;; esac
     # ** in GitHub-paths entspricht bash-globstar; ein reines Praefix-Glob wie
-    # 'website/src/lib/**' matcht den tieferen Pfad nur mit globstar.
+    # 'components/website/src/lib/**' matcht den tieferen Pfad nur mit globstar.
     # shellcheck disable=SC2254
     case "$GOALS_JSON" in
       $pattern) matched=1; break ;;

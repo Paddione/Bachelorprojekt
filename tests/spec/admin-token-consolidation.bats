@@ -16,9 +16,9 @@
 # 7. Visual-regression baseline (visual-sweep E2E)
 
 # ── File-level variables ──────────────────────────────────────────────────────
-STYLES_DIR="$BATS_TEST_DIRNAME/../../website/src/styles"
+STYLES_DIR="$BATS_TEST_DIRNAME/../../components/website/src/styles"
 GLOBAL_CSS="$STYLES_DIR/global.css"
-ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
+ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../components/website/src/layouts/AdminLayout.astro"
 
 # ── Requirement 1: factory-tokens.css is dissolved ─────────────────────────────
 @test "factory-tokens.css does not exist" {

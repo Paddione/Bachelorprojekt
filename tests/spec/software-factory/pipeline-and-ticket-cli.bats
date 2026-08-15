@@ -194,7 +194,7 @@ process.stdout.write(a+'/'+b)"
 }
 
 @test "FA-SF-22: transition.ts retains awaiting_deploy + qa_review in VALID_STATUSES (non-destructive)" {
-  TS="website/src/lib/tickets/transition.ts"
+  TS="components/website/src/lib/tickets/transition.ts"
   run grep -q "awaiting_deploy" "$TS"; [ "$status" -eq 0 ]
   run grep -q "qa_review" "$TS"; [ "$status" -eq 0 ]
 }

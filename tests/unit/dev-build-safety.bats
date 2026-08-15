@@ -13,20 +13,20 @@ load test_helper
 
 # ── Dockerfile heap cap ──────────────────────────────────────────
 
-@test "website/Dockerfile build stage sets NODE_OPTIONS with max-old-space-size" {
+@test "components/website/Dockerfile build stage sets NODE_OPTIONS with max-old-space-size" {
   # Without this, Node.js has no explicit heap limit and crashes with
   # SIGSEGV on the memory-constrained dev node when building pixi.js+Astro.
-  local dockerfile="${PROJECT_DIR}/website/Dockerfile"
-  [[ -f "$dockerfile" ]] || fail "website/Dockerfile not found"
+  local dockerfile="${PROJECT_DIR}/components/website/Dockerfile"
+  [[ -f "$dockerfile" ]] || fail "components/website/Dockerfile not found"
 
   run grep -E "NODE_OPTIONS.*max-old-space-size" "$dockerfile"
   assert_success
   assert_output --partial "max-old-space-size"
 }
 
-@test "website/Dockerfile NODE_OPTIONS heap limit is at least 2048 MB" {
-  local dockerfile="${PROJECT_DIR}/website/Dockerfile"
-  [[ -f "$dockerfile" ]] || fail "website/Dockerfile not found"
+@test "components/website/Dockerfile NODE_OPTIONS heap limit is at least 2048 MB" {
+  local dockerfile="${PROJECT_DIR}/components/website/Dockerfile"
+  [[ -f "$dockerfile" ]] || fail "components/website/Dockerfile not found"
 
   # Extract the numeric value from --max-old-space-size=<N>
   local value
@@ -35,9 +35,9 @@ load test_helper
   (( value >= 2048 )) || fail "max-old-space-size=${value} is below minimum 2048 MB"
 }
 
-@test "website/Dockerfile NODE_OPTIONS is set in the build stage (before runtime stage)" {
-  local dockerfile="${PROJECT_DIR}/website/Dockerfile"
-  [[ -f "$dockerfile" ]] || fail "website/Dockerfile not found"
+@test "components/website/Dockerfile NODE_OPTIONS is set in the build stage (before runtime stage)" {
+  local dockerfile="${PROJECT_DIR}/components/website/Dockerfile"
+  [[ -f "$dockerfile" ]] || fail "components/website/Dockerfile not found"
 
   # The flag must appear BEFORE the "runtime stage" comment/FROM line
   # so it only affects the build, not the running container.

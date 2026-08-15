@@ -31,9 +31,9 @@ setup() {
   git config commit.gpgsign false
 
   # Basis-Commit: beide generierten Artefakte existieren bereits.
-  mkdir -p docs/code-quality website/src/data tests/spec
+  mkdir -p docs/code-quality components/website/src/data tests/spec
   echo '{}' > docs/code-quality/repo-index.json
-  echo '[]' > website/src/data/test-inventory.json
+  echo '[]' > components/website/src/data/test-inventory.json
   echo '@test "alt" { true; }' > tests/spec/alt.bats
   git add -A
   git commit -qm "base"
@@ -60,7 +60,7 @@ _commit_bats_with() {
 # sind durch die beiden folgenden ersetzt.
 @test "check-freshness-artifacts: schweigt, wenn test-inventory im Push liegt" {
   local head
-  head="$(_commit_bats_with website/src/data/test-inventory.json)"
+  head="$(_commit_bats_with components/website/src/data/test-inventory.json)"
 
   run bash "$SCRIPT" "$BASE_SHA" "$head"
 
@@ -105,7 +105,7 @@ _commit_bats_with() {
 
 @test "check-freshness-artifacts: schweigt, wenn beide im Push liegen" {
   local head
-  head="$(_commit_bats_with docs/code-quality/repo-index.json website/src/data/test-inventory.json)"
+  head="$(_commit_bats_with docs/code-quality/repo-index.json components/website/src/data/test-inventory.json)"
 
   run bash "$SCRIPT" "$BASE_SHA" "$head"
 
@@ -138,9 +138,9 @@ _commit_bats_with() {
 # nicht mehr in PRs gehoert, ist eine hinzugefuegte Nicht-Test-Datei fuer den
 # Hook belanglos — genau das entlastet PRs von der Kollisionsquelle.
 @test "check-freshness-artifacts: schweigt bei NEUER Nicht-Test-Datei" {
-  mkdir -p website/src/lib
-  echo "export const x = 1;" > website/src/lib/neu.test.ts
-  git add website/src/lib/neu.test.ts
+  mkdir -p components/website/src/lib
+  echo "export const x = 1;" > components/website/src/lib/neu.test.ts
+  git add components/website/src/lib/neu.test.ts
   git commit -qm "add non-bats file"
   local head
   head="$(git rev-parse HEAD)"
@@ -164,7 +164,7 @@ _commit_bats_with() {
   run bash "$SCRIPT" "$BASE_SHA" "$head"
 
   [ "$status" -eq 1 ]
-  [[ "$output" == *"website/src/data/test-inventory.json"* ]]
+  [[ "$output" == *"components/website/src/data/test-inventory.json"* ]]
   [[ "$output" != *"repo-index.json"* ]]
 }
 
@@ -180,6 +180,6 @@ _commit_bats_with() {
   run bash "$SCRIPT" "$BASE_SHA" "$head"
 
   [ "$status" -eq 1 ]
-  [[ "$output" == *"website/src/data/test-inventory.json"* ]]
+  [[ "$output" == *"components/website/src/data/test-inventory.json"* ]]
   [[ "$output" != *"repo-index.json"* ]]
 }

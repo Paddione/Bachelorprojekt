@@ -15,7 +15,7 @@
 # dieser Test ist der generische Wächter über ALLE Apps mit Dockerfile+public/.
 # Konkrete Pfade werden hier wörtlich geführt (auch in Kommentaren), damit
 # find-changed-tests.sh per grep-Probe diesen Test bei Änderungen an
-# website/public/cockpit/, website/.lavish/ oder website/Dockerfile selektiert
+# components/website/public/cockpit/, components/website/.lavish/ oder components/website/Dockerfile selektiert
 # (T002345).
 
 setup() {

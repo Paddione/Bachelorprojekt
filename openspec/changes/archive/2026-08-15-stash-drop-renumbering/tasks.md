@@ -2,7 +2,7 @@
 title: "stash-drop-renumbering — Implementation Plan"
 ticket_id: T006298
 domains: [repo-hygiene, scripts]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

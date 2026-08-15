@@ -1,13 +1,13 @@
 {
   "files": [],
   "references": [
-    { "path": "./brett" },
-    { "path": "./VideoVault" },
-    { "path": "./website" },
-    { "path": "./studio-server" },
+    { "path": "./components/brett" },
+    { "path": "./components/VideoVault" },
+    { "path": "./components/website" },
+    { "path": "./components/studio-server" },
     { "path": "./packages/videovault-player" },
-    { "path": "./mediaviewer-widget" },
-    { "path": "./mentolder-web" },
+    { "path": "./components/mediaviewer-widget" },
+    { "path": "./components/mentolder-web" },
     { "path": "./tests/e2e" },
     { "path": "./.lavish/kit/daemon" }
   ]

@@ -91,7 +91,7 @@ werden keine S1-Zeilenbudgets beansprucht (B1a).
   `[LM Studio :1234, Cluster :8081]`, rerank `[Tablet 192.168.100.12:8080, Cluster :8093,
   loadout:bge-rerank-cpu]`
 
-- [ ] **Step 1: Schreib den fehlschlagenden Test**
+- [x] **Step 1: Schreib den fehlschlagenden Test**
 
 `tests/spec/local-llm-proxy/bge-chain-order.bats` (neu):
 
@@ -161,14 +161,14 @@ setup() {
 }
 ```
 
-- [ ] **Step 2: Test laufen lassen — er muss FEHLSCHLAGEN**
+- [x] **Step 2: Test laufen lassen — er muss FEHLSCHLAGEN**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/bge-chain-order.bats`
 expected: FAIL an den beiden Ketten-Tests — heutige Kette hat Cluster zuerst (`embed[0]` ist
 `http://127.0.0.1:8081`, nicht `:1234`); Ausgabe nennt `embed[0] must be LM Studio :1234`. Der
 Tablet-Smoke-Test skippt (Tablet noch nicht eingerichtet).
 
-- [ ] **Step 3: roles-Block in loadouts.json umbauen**
+- [x] **Step 3: roles-Block in loadouts.json umbauen**
 
 In `scripts/llm/loadouts.json` den bestehenden `roles`-Block exakt ersetzen durch:
 
@@ -193,19 +193,19 @@ In `scripts/llm/loadouts.json` den bestehenden `roles`-Block exakt ersetzen durc
 Alles andere im Dokument bleibt unverändert (insbesondere `loadouts[]`, `modelRoots`,
 `defaults`).
 
-- [ ] **Step 4: Test erneut laufen lassen — muss PASSEN**
+- [x] **Step 4: Test erneut laufen lassen — muss PASSEN**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/bge-chain-order.bats`
 Expected: PASS an beiden Ketten-Tests; der Tablet-Smoke-Test darf PASSEN oder SKIPPEN (Gerät
 noch nicht am Mesh).
 
-- [ ] **Step 5: Bestands-Tests der bge-Fläche gegenhalten**
+- [x] **Step 5: Bestands-Tests der bge-Fläche gegenhalten**
 
 Run: `tests/unit/lib/bats-core/bin/bats -r tests/spec/local-llm-proxy*`
 Expected: PASS — insbesondere `bge-role-routes.bats` (skip, falls kein Proxy läuft, ist OK),
 `loadouts-format.bats`, `bge-cpu-parallel-start.bats`, `embed-bge-fallback.bats`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/llm/loadouts.json tests/spec/local-llm-proxy/bge-chain-order.bats
@@ -234,7 +234,7 @@ git commit -m "feat(scripts): bge-Ketten: Laptop/Tablet vor Cluster als Erstglie
   Registry; Conf-Generierung listet die Laptops als Peers. Task 5 (Geräte-Einrichtung)
   konsumiert die generierten Confs und die Registry-Einträge.
 
-- [ ] **Step 1: Schreib den fehlschlagenden Test**
+- [x] **Step 1: Schreib den fehlschlagenden Test**
 
 `tests/unit/wg-mesh-laptop-nodes.bats` (neu — Fallback-Location `tests/unit/`, es gibt keinen
 WG-Spec in `openspec/specs/`):
@@ -295,13 +295,13 @@ TABLET_IP="192.168.100.12"
 # dort rot. Plaintext- und Sealed-Praesenz verifiziert Task 2 Step 7 manuell.
 ```
 
-- [ ] **Step 2: Tests laufen lassen — sie muessen FEHLSCHLAGEN**
+- [x] **Step 2: Tests laufen lassen — sie muessen FEHLSCHLAGEN**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-laptop-nodes.bats`
 expected: FAIL — Generator kennt keine `laptops`-Kategorie, Registry kennt die Nodes nicht (der
 Schema-Test scheitert ebenfalls).
 
-- [ ] **Step 3: Keypaare erzeugen**
+- [x] **Step 3: Keypaare erzeugen**
 
 ```bash
 for NAME in PKL1 PKT; do
@@ -313,7 +313,7 @@ done
 
 Ausgabe notieren — sie wird in Step 5 und Step 6 gebraucht.
 
-- [ ] **Step 4: Registry-Einträge in wireguard/wg-mesh-nodes.yaml**
+- [x] **Step 4: Registry-Einträge in wireguard/wg-mesh-nodes.yaml**
 
 Unter der mentolder-Sektion (nach dem `home_workers`-Block, vor der nächsten Sektion) einfügen —
 Public Keys aus Step 3:
@@ -336,7 +336,7 @@ Public Keys aus Step 3:
       public_key: "<PUB_AUS_STEP_3>"
 ```
 
-- [ ] **Step 5: generate-wg-conf.sh um die Kategorie erweitern**
+- [x] **Step 5: generate-wg-conf.sh um die Kategorie erweitern**
 
 Run: `grep -n "gpu_hosts" scripts/hetzner/generate-wg-conf.sh`
 Expected: eine Zeile mit einem Tuple wie `('nodes','gpu_hosts','home_workers')` — dort
@@ -347,7 +347,7 @@ mentolder-Konfiguration.
 Danach erneut: `tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-laptop-nodes.bats` → der
 erste Test muss jetzt PASSEN; die Registry-Tests scheitern weiter, bis Steps 6–8 fertig sind.
 
-- [ ] **Step 6: environments/schema.yaml ergänzen**
+- [x] **Step 6: environments/schema.yaml ergänzen**
 
 An die Stelle der bestehenden `WG_MESH_WSL2_GPU_*`-Einträge nach demselben Format vier Einträge
 anfügen (das Format der Nachbar-Einträge ist maßgeblich — falls diese andere Felder tragen,
@@ -365,7 +365,7 @@ exakt deren Felder spiegeln):
 Public-Key-Variablen existieren im Schema nur, wo sie auch im Plaintext stehen — beide Spiegel
 wie bei `WG_MESH_WSL2_GPU_*` behandeln.
 
-- [ ] **Step 7: Plaintext-Secrets ergänzen und sealen**
+- [x] **Step 7: Plaintext-Secrets ergänzen und sealen**
 
 In `environments/.secrets/mentolder.yaml` nach dem Muster der `WG_MESH_WSL2_GPU_*`-Zeilen:
 
@@ -397,13 +397,13 @@ grep -c 'WG_MESH_PKL1_PRIVATE_KEY\|WG_MESH_PKT_PRIVATE_KEY' environments/sealed-
 
 Erwartung: `2` in jeder Zeile (je Datei beide Keys).
 
-- [ ] **Step 8: Tests laufen lassen — alle drei müssen PASSEN**
+- [x] **Step 8: Tests laufen lassen — alle drei müssen PASSEN**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-laptop-nodes.bats tests/unit/wg-mesh-fullmesh.bats`
 Expected: PASS — insbesondere bleibt `wg-mesh-fullmesh.bats` grün (fleet-Env unberührt: die
 Peer-Zählung `-eq 6` dort betrifft nur die fleet-Sektion).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add wireguard/wg-mesh-nodes.yaml scripts/hetzner/generate-wg-conf.sh environments/schema.yaml environments/.secrets/mentolder.yaml environments/sealed-secrets/mentolder.yaml environments/sealed-secrets/fleet-mentolder.yaml tests/unit/wg-mesh-laptop-nodes.bats
@@ -425,14 +425,14 @@ git commit -m "feat(infra): pk-l-1 und pk-tablet als Mesh-Nodes fuer die bge-Ket
 - Produces: ausführbares Startskript für den Tablet-Dienst (Task 5 nutzt es); Port **8080**,
   `--reranking`, Modell aus dem LM-Studio-Modelldir
 
-- [ ] **Step 1: Prüfen, ob bereits ein PS1-ASCII-Guard existiert**
+- [x] **Step 1: Prüfen, ob bereits ein PS1-ASCII-Guard existiert**
 
 Run: `grep -rln --include='*.bats' -e 'ASCII' -e 'BOM' tests/spec tests/unit`
 Ergebnis A: Treffer in `tests/spec` oder `tests/unit` → diesen Guard um die neue Datei erweitern
 statt neu anzulegen; sein Prüfmuster übernehmen (die Steps 2/5 entsprechend anpassen).
 Ergebnis B: keine Treffer → weiter mit Step 2 (neuer Guard).
 
-- [ ] **Step 2: Schreib den fehlschlagenden Guard**
+- [x] **Step 2: Schreib den fehlschlagenden Guard**
 
 `tests/unit/llm-ps1-ascii.bats` (neu):
 
@@ -472,12 +472,12 @@ setup() {
 }
 ```
 
-- [ ] **Step 3: Guard laufen lassen — muss FEHLSCHLAGEN**
+- [x] **Step 3: Guard laufen lassen — muss FEHLSCHLAGEN**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/unit/llm-ps1-ascii.bats`
 expected: FAIL — Datei existiert nicht.
 
-- [ ] **Step 4: start-tablet-rerank.ps1 schreiben**
+- [x] **Step 4: start-tablet-rerank.ps1 schreiben**
 
 `scripts/llm/start-tablet-rerank.ps1` (rein ASCII, CRLF, kein BOM):
 
@@ -549,17 +549,17 @@ Write-Host "Starte llama-server fuer bge-reranker-v2-m3 auf Port $Port ..."
 Start-Process -FilePath $LlamaServer -ArgumentList $args -NoNewWindow -Wait
 ```
 
-- [ ] **Step 5: Guard laufen lassen — muss PASSEN**
+- [x] **Step 5: Guard laufen lassen — muss PASSEN**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/unit/llm-ps1-ascii.bats`
 Expected: PASS (beide Tests).
 
-- [ ] **Step 6: PowerShell-Syntax pruefen (T002495-M7)**
+- [x] **Step 6: PowerShell-Syntax pruefen (T002495-M7)**
 
 Run: `powershell.exe -NoProfile -Command "[System.Management.Automation.Language.Parser]::ParseFile('C:\\pfad\\zu\\scripts\\llm\\start-tablet-rerank.ps1', [ref]\$null, [ref]\$null).GetErrors() | ForEach-Object Message"` — WSL-Pfad via `wslpath -w` auflösen.
 Expected: leere Ausgabe (keine Parser-Fehler).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/llm/start-tablet-rerank.ps1 tests/unit/llm-ps1-ascii.bats
@@ -579,13 +579,13 @@ git commit -m "feat(scripts): Tablet-Rerank-Startskript (llama-server, Vulkan) m
 - Produces: deterministischer bge-m3-Load auf PK-L-1 (oder dokumentierte
   Geräte-Neutralität), damit das embed-Erstglied der Kette (Task 1) zuverlässig bedient wird
 
-- [ ] **Step 1: Geräte-Flag des lms-CLI prüfen**
+- [x] **Step 1: Geräte-Flag des lms-CLI prüfen**
 
 Run: `$HOME/.lmstudio/bin/lms load --help`
 Befund A: Es gibt ein Device-Flag (z. B. `--device <id>`): weiter mit Step 2a.
 Befund B: Kein Device-Flag: weiter mit Step 2b.
 
-- [ ] **Step 2a (Flag vorhanden): Load auf PK-L-1 pinnen**
+- [x] **Step 2a (Flag vorhanden): Load auf PK-L-1 pinnen**
 
 Geräte-ID ermitteln: `$HOME/.lmstudio/bin/lms ps --json` (bzw. `lms devices`/`lms link`-Liste —
 das Kommando der CLI-Hilfe folgen) → ID des PK-L-1-Eintrags notieren. Dann in
@@ -609,7 +609,7 @@ Den Kopfkommentar der Datei ergänzen:
 # anderen LM-Link-Geraet (PK-Tablet) hochfahren.
 ```
 
-- [ ] **Step 2b (kein Flag): Geräte-Neutralität dokumentieren**
+- [x] **Step 2b (kein Flag): Geräte-Neutralität dokumentieren**
 
 Den Kopfkommentar der Datei ergänzen:
 
@@ -622,14 +622,14 @@ Den Kopfkommentar der Datei ergänzen:
 # sicherzustellen (Modell dort laden, Tablet-Eintrag fuer bge-m3 entfernen).
 ```
 
-- [ ] **Step 3: Syntax und Bestand pruefen**
+- [x] **Step 3: Syntax und Bestand pruefen**
 
 Run: `bash -n scripts/lm-studio/lmstudio-bge-autoload.sh`
 Run: `grep -rln 'lmstudio-bge-autoload' tests/` → falls ein Guard existiert:
 `tests/unit/lib/bats-core/bin/bats <guard-datei>`
 Expected: `bash -n` stumm (Exit 0); vorhandener Guard grün.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/lm-studio/lmstudio-bge-autoload.sh
@@ -653,7 +653,7 @@ git commit -m "docs(scripts): bge-m3-Autoload auf die Laptop-Topologie festlegen
 > Geräten, nicht im Checkout. Das Runbook wird im Repo versioniert und Schritt für Schritt
 > ausgeführt; die Verifikationen ab Step 7 laufen wieder in WSL.
 
-- [ ] **Step 1: Runbook-Datei anlegen**
+- [x] **Step 1: Runbook-Datei anlegen**
 
 `scripts/llm/README-laptop-bge.md` mit folgendem Inhalt:
 
@@ -713,7 +713,7 @@ curl -s -m 15 http://127.0.0.1:1234/v1/embeddings \
 - Beide weg + Cluster weg → rerank startet `bge-rerank-cpu` on-demand auf dem Desktop.
 ````
 
-- [ ] **Step 2: Runbook committen**
+- [x] **Step 2: Runbook committen**
 
 ```bash
 git add scripts/llm/README-laptop-bge.md
@@ -746,12 +746,12 @@ Erwartung: `/health` → 200 `{"status":"ok"}`; Rerank-Smoke → 200 mit
 - Consumes: Tasks 1–5 (alle Deliverables)
 - Produces: grüner Verify-Block und gepushter Branch `feature/laptop-bge-topologie-T006143`
 
-- [ ] **Step 1: Test-Inventar regenerieren (CI-Gate)**
+- [x] **Step 1: Test-Inventar regenerieren (CI-Gate)**
 
 Run: `task test:inventory`
 Expected: `website/src/data/test-inventory.json` enthält die drei neuen BATS-Dateien.
 
-- [ ] **Step 2: Neue und betroffene Tests komplett laufen lassen**
+- [x] **Step 2: Neue und betroffene Tests komplett laufen lassen**
 
 ```bash
 task test:changed
@@ -761,7 +761,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/local-llm-proxy*
 
 Expected: PASS (bzw. dokumentierte Skips bei fehlendem Live-Proxy).
 
-- [ ] **Step 3: Freshness regenerieren und prüfen (S1-Ratchet)**
+- [x] **Step 3: Freshness regenerieren und prüfen (S1-Ratchet)**
 
 ```bash
 task freshness:regenerate
@@ -771,7 +771,7 @@ task freshness:check
 Expected: grün. Falls S1 rot: die beanstandete Datei wirklich verkleinern, nicht kosmetisch
 zusammenziehen.
 
-- [ ] **Step 4: End-to-End-Smoke über den Proxy (wenn Geräte stehen)**
+- [x] **Step 4: End-to-End-Smoke über den Proxy (wenn Geräte stehen)**
 
 ```bash
 curl -s -m 40 -D - http://127.0.0.1:18235/v1/rerank \
@@ -785,7 +785,7 @@ Kette degradiert wie designt; der Smoke ist dann als Skip (Geräteausstattung, T
 werten, nicht als rot. Gleiches Muster für `/v1/embeddings` (Erwartung
 `x-llm-proxy-bge-upstream: http://127.0.0.1:1234`).
 
-- [ ] **Step 5: Commit + Push**
+- [x] **Step 5: Commit + Push**
 
 ```bash
 git add website/src/data/test-inventory.json
@@ -793,13 +793,13 @@ git commit -m "test: Test-Inventar fuer die Laptop-bge-Guards regenerieren [T006
 git push origin feature/laptop-bge-topologie-T006143
 ```
 
-- [ ] **Step 6: Push verifizieren**
+- [x] **Step 6: Push verifizieren**
 
 Run: `git status --short`
 Expected: Working Tree sauber (bis auf dokumentierte skip-worktree-Overrides, die nicht
 angezeigt werden); `git log origin/feature/laptop-bge-topologie-T006143..HEAD` leer.
 
-- [ ] **Step 7: Final Verification**
+- [x] **Step 7: Final Verification**
 
 ```bash
 task test:changed

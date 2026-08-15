@@ -10,7 +10,7 @@ Before responding to any request, check these signals and delegate to the named 
 
 | Signals | Agent | MCP-Primär (Claude Code) |
 |---------|-------|--------------------------|
-| `website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
+| `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
 | `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
 | test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `ticket-mcp` (Go-Adapter) — Ticket-Reads/Lifecycle; `mcp-postgres` (:13001, nur mentolder) für Nicht-Ticket-Tabellen |
@@ -72,7 +72,7 @@ tools=$(bash scripts/toolset-context.sh bachelorprojekt-infra)
 
 Also: after `superpowers:writing-plans` skill creates a new plan file, run `bash scripts/vda.sh frontmatter <plan-file>` on it before committing. (`scripts/plan-frontmatter-hook.sh` ist deprecated und gibt bei jedem Aufruf eine Deprecation-Warnung aus — sie erschien bisher bei **jedem** Planlauf, weil diese Zeile genau das Skript verlangte [T002342-M2]. Das Skript selbst bleibt bestehen: es kann externe Aufrufer haben, und Löschen wäre ein eigener Vorgang mit eigener Prüfung.) This adds the required frontmatter (domains, status) that `plan-context.sh` and the GH Action depend on.
 
-**Tie-break rule:** when signals overlap (e.g. "deploy the website"), prefer the domain of the files being changed — `bachelorprojekt-website` for `website/src/` changes, `bachelorprojekt-infra` for manifest/overlay changes.
+**Tie-break rule:** when signals overlap (e.g. "deploy the website"), prefer the domain of the files being changed — `bachelorprojekt-website` for `components/website/src/` changes, `bachelorprojekt-infra` for manifest/overlay changes.
 
 **Cross-cutting requests** (e.g. a feature spanning both website and k8s) stay with the main orchestrator, which coordinates multiple agents in sequence.
 
@@ -158,7 +158,7 @@ Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotu
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
-- **`website/`** -- Astro + Svelte website. See `website/CLAUDE.md` for dev quick-start and content patterns; full standards in `website/WEBSITE-STANDARDS.md`.
+- **`components/website/`** -- Astro + Svelte website. See `components/website/CLAUDE.md` for dev quick-start and content patterns; full standards in `components/website/WEBSITE-STANDARDS.md`.
 - **`k3d/docs-content-built/`** -- Pre-built HTML served by the `docs` Deployment. Source is compiled by `node scripts/build-docs.mjs` from the `docs/` directory and skill HTML. Deploy via `task docs:deploy` (builds image). **`docs:sync` does NOT work** (read-only rootfs on the container).
 
 ### Configuration patterns
@@ -174,7 +174,7 @@ Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotu
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
-- **Test inventory check**: re-runs `task test:inventory` and fails the job if `website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
+- **Test inventory check**: re-runs `task test:inventory` and fails the job if `components/website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
 - **BATS convention (tests/spec/) [T002416]**: Neue `@test`-Blöcke gehören in eine **eigene Datei** unter `tests/spec/<spec-slug>/<kurz-slug>.bats` — ein Verzeichnis pro OpenSpec-SSOT-Spec aus `openspec/specs/`, eine Datei pro Vorgang. Nicht mehr an die Sammeldatei `tests/spec/<spec-slug>.bats` anhängen: genau das ließ Parallelarbeit strukturell am Dateiende kollidieren (`tests/spec/ci-cd.bats` lag am 2026-07-28 gleichzeitig in drei offenen PRs). Der Runner läuft seit T002416 mit `bats -r tests/spec/` und erfasst **beide** Formen, deshalb bleiben die Bestandsdateien auf der obersten Ebene unverändert liegen — sie werden nicht migriert, nur nicht mehr erweitert. Weiterhin gilt: keine ticket-nummerierten Dateien (`FA-SF-42.bats`); Fallback für Querschnittstests ohne klare Spec ist `tests/unit/`.
   > `merge=union` für `.bats` ist **keine** Lösung für Append-Konflikte und darf nicht gesetzt werden: es merged zeilenweise ohne Blockstruktur, erzeugt syntaktisch kaputte Dateien und liefert dabei **keinen** Konfliktmarker — der Merge gilt als erfolgreich. Guard: `tests/spec/ci-cd/spec-dir-convention.bats`.
   >
@@ -193,7 +193,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - **Release notes**: Generate structured release notes from merged PRs via `bash scripts/vda.sh release-notes generate` or `task release:notes` (LLM/DeepSeek-gestützt mit deterministischem Fallback). Publish to GitHub Release body with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
 - Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
 - Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
-Other workflows: `renovate.yml` (self-hosted Renovate weekly dependency update bot, T000898), `e2e.yml` (nightly Playwright against both brands on fleet), `build-brett.yml` (auto build+rollout both brands on `brett/**` push to main), `build-docs.yml` (auto build on `docs/**`/docs-script push to main, plus manual dispatch), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` (auto build+rollout on `website/**` push to main — **one** workflow builds a brand-neutral image that feeds both the mentolder and korczewski deploy jobs; there is no separate korczewski website workflow, see T001229/T001276).
+Other workflows: `renovate.yml` (self-hosted Renovate weekly dependency update bot, T000898), `e2e.yml` (nightly Playwright against both brands on fleet), `build-brett.yml` (auto build+rollout both brands on `brett/**` push to main), `build-docs.yml` (auto build on `docs/**`/docs-script push to main, plus manual dispatch), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` (auto build+rollout on `components/website/**` push to main — **one** workflow builds a brand-neutral image that feeds both the mentolder and korczewski deploy jobs; there is no separate korczewski website workflow, see T001229/T001276).
 Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.yml` was removed in PR #993 (2026-05-23); `build-tracking.yml` and `track-plans.yml` are gone — both parts of the tracking pipeline are fully removed. The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
 
 ## Image Exclusions

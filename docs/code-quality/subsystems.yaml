@@ -4,7 +4,7 @@
 # six routing agents. Do not edit repo-index.json by hand — run `task quality:index`.
 - id: tests
   name: Test suites (BATS + Playwright + vitest)
-  paths: ["tests/**", "website/test/**", "website/tests/**"]
+  paths: ["tests/**", "components/website/test/**", "components/website/tests/**"]
   owner_agent: bachelorprojekt-test
   test_location: tests/
   purpose: Offline + E2E + unit test harness and fixtures.
@@ -16,9 +16,9 @@
   purpose: SQL migrations and the datamodel/ERD generator.
 - id: website
   name: Astro + Svelte website
-  paths: ["website/**"]
+  paths: ["components/website/**"]
   owner_agent: bachelorprojekt-website
-  test_location: website/test/
+  test_location: components/website/test/
   purpose: Public site, admin portal, chat, billing, content hub.
 - id: infra-manifests
   name: Kubernetes manifests, overlays, env registry

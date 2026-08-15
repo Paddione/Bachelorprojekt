@@ -1,10 +1,10 @@
 # Exclude large directories not needed for Docker build
-website/node_modules
+components/website/node_modules
 mentolder-web/node_modules  # runtime: npm install
-website/dist                # runtime: astro build
-website/.env                # runtime: local env file
-website/.env.*
-!website/.env.example
+components/website/dist                # runtime: astro build
+components/website/.env                # runtime: local env file
+components/website/.env.*
+!components/website/.env.example
 
 # Exclude non-essential top-level dirs to keep build context lean
 .git

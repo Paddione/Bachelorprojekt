@@ -68,7 +68,7 @@ task workspace:validate                          # Kustomize dry-run
 - OpenSpec archival ONLY in worktree — main-checkout commits leave orphaned files.
 - Website/Brett/Docs/etc. images use `:latest` intentionally — do not "fix" to digests.
 - Pre-commit blocks main-checkout when another session holds the lock. Use worktrees.
-- `website/` is pnpm-only (its package-lock.json was deleted, T001224); root and `brett/` use npm. Never `npm install` inside `website/`.
+- `components/website/` is pnpm-only (its package-lock.json was deleted, T001224); root and `brett/` use npm. Never `npm install` inside `components/website/`.
 
 ## Agent Coordination
 
@@ -111,7 +111,7 @@ The following sections contain detailed reference material. **Do not load them i
 
 | Signals | Agent |
 |---------|-------|
-| `website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
+| `components/website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", llm:, GPU, Ollama, model | `bachelorprojekt-ops` |
 | k3d/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy, workspace:setup | `bachelorprojekt-infra` |
 | test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, "test failing", "test case", "write a test", factory:, autopilot, FA-SF | `bachelorprojekt-test` |
@@ -169,7 +169,7 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 | Area | Manager | Lockfile |
 |------|---------|----------|
 | Root | `npm` | `package-lock.json` |
-| `website/` | `pnpm` | `website/pnpm-lock.yaml` |
+| `components/website/` | `pnpm` | `components/website/pnpm-lock.yaml` |
 | `brett/` | `npm` | `brett/package-lock.json` |
 </details>
 
@@ -177,7 +177,7 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 <summary>Important References (read when you need deeper context)</summary>
 
 - `CLAUDE.md` — authoritative comprehensive reference (task lists, topology, all footguns)
-- `website/CLAUDE.md` — Astro/Svelte quick-start
+- `components/website/CLAUDE.md` — Astro/Svelte quick-start
 - `docs/agent-guide/README.md` — agent operating guide
 - `.agents/skills/OVERVIEW.md` — skill layering contract
 </details>

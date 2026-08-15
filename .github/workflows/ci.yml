@@ -550,15 +550,15 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: brett/package-lock.json
-      - run: npm ci --prefix brett
+          cache-dependency-path: components/brett/package-lock.json
+      - run: npm ci --prefix components/brett
       - name: Typecheck
-        run: npm run typecheck --prefix brett
+        run: npm run typecheck --prefix components/brett
       - name: Unit tests
-        run: npm test --prefix brett
+        run: npm test --prefix components/brett
         env:
           MOCK_DB: 'true'
-      - run: npm run build --prefix brett
+      - run: npm run build --prefix components/brett
 
   vitest-website:
     # Always runs on every PR (no job-level path filter) so the branch-protection
@@ -587,7 +587,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'pnpm'
-          cache-dependency-path: website/pnpm-lock.yaml
+          cache-dependency-path: components/website/pnpm-lock.yaml
 
       - name: Install website dependencies
         run: cd website && pnpm install --frozen-lockfile
@@ -599,7 +599,7 @@ jobs:
         id: check-cov
         run: |
           CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
-          if echo "$CHANGED" | grep -q "^website/src/lib/"; then
+          if echo "$CHANGED" | grep -q "^components/website/src/lib/"; then
             echo "run-coverage=true" >> "$GITHUB_OUTPUT"
           else
             echo "run-coverage=false" >> "$GITHUB_OUTPUT"
@@ -614,7 +614,7 @@ jobs:
         # Astro typecheck and Knip dead-code analysis run concurrently with
         # vitest to shave ~2-3 min off wall-clock time.
         # --coverage is conditional: only added when the PR touches
-        # website/src/lib/ (where coverage gates apply), so trivial PRs
+        # components/website/src/lib/ (where coverage gates apply), so trivial PRs
         # skip instrumentation overhead. The coverage gate step below
         # handles the missing-report case gracefully. [T003164]
         # Default 5s per-test timeout is too tight for DB-heavy tests
@@ -643,7 +643,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: vitest-junit-report
-          path: website/test-results/junit.xml
+          path: components/website/test-results/junit.xml
           retention-days: 14
           if-no-files-found: ignore
 
@@ -653,7 +653,7 @@ jobs:
         # Skipped gracefully when:
         #   a) no coverage report exists (--coverage wasn't passed because
         #      the PR doesn't touch src/lib/), or
-        #   b) --changed found zero website/ source changes (pct: "Unknown").
+        #   b) --changed found zero components/website/ source changes (pct: "Unknown").
         # In both cases there is no source delta to regress. [T001651, T003164]
         run: |
           cd website
@@ -663,7 +663,7 @@ jobs:
           fi
           COV=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
           if [ "$COV" = "Unknown" ] || [ "$COV" = "null" ] || [ -z "$COV" ]; then
-            echo "::notice::Coverage pct: ${COV:-empty} (--changed found no website/ changes) — skipping gate"
+            echo "::notice::Coverage pct: ${COV:-empty} (--changed found no components/website/ changes) — skipping gate"
             exit 0
           fi
           echo "Total line coverage: ${COV}%"
@@ -684,7 +684,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: website-dist
-          path: website/dist
+          path: components/website/dist
           retention-days: 1
 
   lighthouse:

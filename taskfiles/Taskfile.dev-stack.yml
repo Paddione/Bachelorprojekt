@@ -199,7 +199,7 @@ tasks:
       - |
         # Kill any stale docker build from a previous timed-out SSH session (T000315).
         # Without this, two concurrent Astro+pixi.js builds exhaust dev-node memory.
-        pkill -f "docker.*website/Dockerfile" 2>/dev/null || true
+        pkill -f "docker.*components/website/Dockerfile" 2>/dev/null || true
         sleep 1
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -208,7 +208,7 @@ tasks:
         # extract ("content digest ... not found"), corrupting the node's
         # containerd content store. [T000363]
         docker build --provenance=false -t ghcr.io/paddione/workspace-website:dev \
-          -f website/Dockerfile \
+          -f components/website/Dockerfile \
           --build-arg PROD_DOMAIN=$DEV_DOMAIN \
           --build-arg BRAND=${BRAND_ID:-mentolder} \
           .
@@ -230,7 +230,7 @@ tasks:
     cmds:
       # --provenance=false: avoid attestation manifests that break k3d image
       # import / corrupt the node containerd content store. [T000363]
-      - docker build --provenance=false -t ghcr.io/paddione/workspace-brett:dev -f brett/Dockerfile brett/
+      - docker build --provenance=false -t ghcr.io/paddione/workspace-brett:dev -f components/brett/Dockerfile components/brett/
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         TMP_TAR=$(mktemp /tmp/brett-dev-XXXXXX.tar)

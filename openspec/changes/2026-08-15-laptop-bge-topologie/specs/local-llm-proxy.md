@@ -17,6 +17,15 @@ puts the local CPU loadout first" wird ersetzt; Failover-Mechanik, Vertrag und
 |---|---|---|
 | Chain order (shipped default) | the shipped default puts the local CPU loadout first and the cluster port-forward second | the shipped default puts the GPU-enabled laptop/tablet upstreams first: `embed` → `[http://127.0.0.1:1234 (LM Studio on PK-L-1), http://127.0.0.1:8081 (cluster port-forward)]`; `rerank` → `[http://192.168.100.12:8080 (llama-server on PK-Tablet), http://127.0.0.1:8093 (cluster port-forward), loadout:bge-rerank-cpu]` — the cluster remains the always-on second link, the on-demand desktop CPU loadout stays last |
 
+#### Scenario: The shipped default chains put the laptop upstreams first
+
+- **GIVEN** the shipped default role chains in `scripts/llm/loadouts.json`
+- **WHEN** they are read for the roles `embed` and `rerank`
+- **THEN** the `embed` chain leads with `http://127.0.0.1:1234` (LM Studio on PK-L-1) and the
+  `rerank` chain leads with `http://192.168.100.12:8080` (llama-server on PK-Tablet), each
+  followed by its cluster port-forward link, with the on-demand desktop CPU loadout last in the
+  `rerank` chain
+
 ## ADDED Requirements
 
 ### Requirement: Laptop bge upstreams are WireGuard mesh nodes

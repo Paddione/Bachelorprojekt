@@ -1,0 +1,17 @@
+# scripts/mcp-gateway/k3d-postgres-forward.service
+# T006996: ins Repo aufgenommen — vorher existierte die Unit nur auf dem Host
+# (~/.config/systemd/user/k3d-postgres-forward.service, angelegt 2026-08-09).
+# Versionierungs-Guard: tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats.
+# Installiert als Symlink in ~/.config/systemd/user/.
+[Unit]
+Description=Port-forward k3d shared-db → localhost:15432
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/kubectl --context k3d-mentolder-dev port-forward -n workspace svc/shared-db 15432:5432
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,21 @@
+# scripts/mcp-gateway/mcp-postgres-local.service
+# T006996: ins Repo aufgenommen — vorher existierte die Unit nur auf dem Host
+# (~/.config/systemd/user/mcp-postgres-local.service, angelegt 2026-08-09).
+# (T002767: 13001 läuft lokal statt über den fleet-Forward.)
+# Installiert als Symlink in ~/.config/systemd/user/.
+[Unit]
+Description=Local Postgres MCP Server (k3d → :13001)
+After=network-online.target k3d-postgres-forward.service
+Requires=k3d-postgres-forward.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/patrick/Bachelorprojekt
+Environment=DATABASE_URL=postgresql://postgres@localhost:15432/website
+Environment=PORT=13001
+ExecStart=/usr/bin/node scripts/mcp-gateway/mcp-postgres-local.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

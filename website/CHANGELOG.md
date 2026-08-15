@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.280.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.280.0...website-v1.280.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** restore worktree branch after archive section in devflow finalize [T006791] ([#4586](https://github.com/Paddione/Bachelorprojekt/issues/4586)) ([1d3a1e6](https://github.com/Paddione/Bachelorprojekt/commit/1d3a1e643b377e2c65b0b0a734b584aad9bdf552))
+
 ## [1.280.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.279.3...website-v1.280.0) (2026-08-15)
 
 

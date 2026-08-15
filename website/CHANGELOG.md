@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.282.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.282.0...website-v1.282.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **scripts:** fail-closed archive freshness staging [T006371] ([#4632](https://github.com/Paddione/Bachelorprojekt/issues/4632)) ([324c803](https://github.com/Paddione/Bachelorprojekt/commit/324c803c8c4c998c7d54d8b402eda5b3b1146e81))
+
 ## [1.282.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.6...website-v1.282.0) (2026-08-15)
 
 

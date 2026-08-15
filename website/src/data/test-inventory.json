@@ -2796,6 +2796,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/junit-shard-ignore",
+    "file": "tests/spec/dev-flow-plan/junit-shard-ignore.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-commit-scope-guard",
     "file": "tests/spec/dev-flow-plan/plan-commit-scope-guard.bats",
     "category": "dev-flow-plan",

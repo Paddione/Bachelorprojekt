@@ -70,7 +70,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 # expected: FAIL (rot — sdlc-leitstand.css und scripts/sdlc/api-inventory.mjs fehlen noch)
 ```
 
-- [ ] **GREEN.** Nach Umsetzung von p1+p2 laufen dieselben Guards grün:
+- [x] **GREEN.** Nach Umsetzung von p1+p2 laufen dieselben Guards grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*

@@ -60,7 +60,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
 
 ## Tasks
 
-- [ ] **Task 1 — Scanner-Kern: Route-Scan + Backend-Klassifikation.**
+- [x] **Task 1 — Scanner-Kern: Route-Scan + Backend-Klassifikation.**
       `scripts/sdlc/api-inventory.mjs` (neu) verwendet `fs.readdirSync(dir, {
       recursive: true, withFileTypes: true })` (Node ≥22.13, `engines.node`
       in `package.json`) über `website/src/pages/sdlc/api/`, schließt
@@ -108,7 +108,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       Designs (S5) und keine Voraussetzung für ein erstes nutzbares Inventar;
       das Overlay kann `description`/`tier` trotzdem pflegen.
 
-- [ ] **Task 2 — MCP-Server- und factory-mcp-Tool-Scan.** Zwei weitere
+- [x] **Task 2 — MCP-Server- und factory-mcp-Tool-Scan.** Zwei weitere
       Funktionen im selben Skript:
       - `scanMcpServers()`: parst `docs/agent-guide/registry/mcp.yaml` mit
         dem vorhandenen npm-Paket `yaml` (`import { parse as parseYaml } from
@@ -132,7 +132,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
         Zweitquelle.
       Beide Listen jeweils nach `name` sortiert (`localeCompare`).
 
-- [ ] **Task 3 — Overlay-Merge + Validierung (Fehlerpfad).**
+- [x] **Task 3 — Overlay-Merge + Validierung (Fehlerpfad).**
       `applyOverlay(routes, mcpServers, factoryMcpTools)` liest
       `docs/agent-guide/registry/api-overlay.yaml` (`yaml`-Paket), erwartet
       drei optionale Top-Level-Gruppen `routes`, `mcpServers`, `mcpTools`,
@@ -150,7 +150,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       Schnittstellenvertrag unten):
       `api-inventory: api-overlay.yaml entries not found in scan: routes "/sdlc/api/does-not-exist"`
 
-- [ ] **Task 4 — `docs/agent-guide/registry/api-overlay.yaml` anlegen.**
+- [x] **Task 4 — `docs/agent-guide/registry/api-overlay.yaml` anlegen.**
       Neue Datei mit Kopfkommentar (Zweck + Verweis auf das Requirement) und
       genau drei Beispiel-Einträgen gegen real existierende, verifizierte
       Endpunkte/Server/Tools (kein Orphan-Risiko):
@@ -181,7 +181,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
           deprecated: null
       ```
 
-- [ ] **Task 5 — Erstlauf + Commit des Inventars.** `node
+- [x] **Task 5 — Erstlauf + Commit des Inventars.** `node
       scripts/sdlc/api-inventory.mjs` einmal lokal ausführen und
       `website/src/data/api-inventory.json` mit committen (Schema:
       `{ routes: [...], mcpServers: [...], factoryMcpTools: [...] }`, jedes
@@ -192,7 +192,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       null, 2) + '\n'` — keine `generatedAt`/Zeitstempel-Felder, keine
       Kommentare, damit zwei Läufe byte-identisch sind).
 
-- [ ] **Task 6 — `Taskfile.yml`: Task `api:inventory` + Einhängung.**
+- [x] **Task 6 — `Taskfile.yml`: Task `api:inventory` + Einhängung.**
       Neuer Task direkt nach `test:inventory:` (Taskfile.yml, Zeile ~1174):
 
       ```yaml
@@ -211,7 +211,7 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       Kommentarzeilen** in diesem String (Wortsplitting-Falle, siehe
       bestehender Warnkommentar direkt darüber in derselben Datei).
 
-- [ ] **Task 7 — `.gitattributes`: `merge=ours`-Eintrag.** Direkt nach der
+- [x] **Task 7 — `.gitattributes`: `merge=ours`-Eintrag.** Direkt nach der
       Zeile `website/src/data/test-inventory.json  merge=ours
       linguist-generated=true` ergänzen:
 
@@ -225,7 +225,11 @@ find website/src/pages/sdlc/api -name '*.test.ts' | wc -l                  # 21 
       Partial dieses Changes, läuft aber automatisch gegen jede Änderung an
       `Taskfile.yml`/`.gitattributes`.
 
-- [ ] **Task 8 — Lokale Verifikation (vor Übergabe an p3).**
+- [x] **Task 8 — Lokale Verifikation (vor Übergabe an p3).**
+      _Hinweis: der p2-eigene Orphan-Snippet haengt eine zweite `routes:`-Gruppe an die
+      reale Overlay-Kopie an -- der yaml-Parser faengt das als Duplicate-Key (Exit 1, keine
+      Ausgabedatei, korrekt); den echten Orphan-Pfad belegen die p3-Fixtures (T5) und ein
+      Einzelgruppen-Test mit eindeutigem Key._
       Determinismus:
       ```bash
       node scripts/sdlc/api-inventory.mjs

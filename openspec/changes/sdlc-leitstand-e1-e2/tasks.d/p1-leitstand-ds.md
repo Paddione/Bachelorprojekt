@@ -45,7 +45,7 @@ verbindlich fest — nicht stillschweigend abweichen:
   (`#rgb`/`#rrggbb`), auch nicht in Kommentaren — ausschließlich `var(--ls-*)` (T6).
 - Kein Importer von `sdlc-leitstand.css` liegt außerhalb `pages/sdlc/` (T7).
 
-- [ ] **Task 1 — `website/src/styles/sdlc-leitstand.css` anlegen (Token-Set + Glow-Disziplin
+- [x] **Task 1 — `website/src/styles/sdlc-leitstand.css` anlegen (Token-Set + Glow-Disziplin
       + Print-Light).**
 
 ```css
@@ -151,7 +151,7 @@ verbindlich fest — nicht stillschweigend abweichen:
   `.css` trägt kein S1-Limit (kein Eintrag in `docs/code-quality/gates.yaml` → `s1.limits`) —
   keine Budget-Zahl zu diesem Task.
 
-- [ ] **Task 2 — `website/src/pages/sdlc/design-system.astro` zum Leitstand-DS-Showcase
+- [x] **Task 2 — `website/src/pages/sdlc/design-system.astro` zum Leitstand-DS-Showcase
       umbauen (vollständiger Ersatz des Inhalts).**
 
   Entferne die bisherigen Imports (`PilotLight`, `WorkpieceCard`, `PhaseBadge`,
@@ -237,7 +237,7 @@ verbindlich fest — nicht stillschweigend abweichen:
 
   S1-Budget siehe Index-Plan `tasks.md` (Ist 230 · Budget 770) — der Umbau bleibt darunter.
 
-- [ ] **Task 3 — `design/leitstand-ds/` DesignSync-Bundle-Grundgerüst anlegen** (Static-Card-
+- [x] **Task 3 — `design/leitstand-ds/` DesignSync-Bundle-Grundgerüst anlegen** (Static-Card-
       Pattern wie `design-system/` — mentolder Brand Foundations —, kein Component-Compile).
 
   `design/leitstand-ds/config.json`:
@@ -367,7 +367,7 @@ verbindlich fest — nicht stillschweigend abweichen:
   `.mjs` trägt ein S1-Limit von 800 Zeilen (gates.yaml) — alle drei neuen `.mjs`-Dateien
   liegen bei ~50–90 Zeilen, keine Split-Planung nötig.
 
-- [ ] **Task 4 — die 6 Preview-Karten unter `design/leitstand-ds/cards/` anlegen** (jede
+- [x] **Task 4 — die 6 Preview-Karten unter `design/leitstand-ds/cards/` anlegen** (jede
       beginnt mit `<!-- @dsCard group="Leitstand" name="…" -->` als erster Zeile,
       enthält leere `tokens:start/end`- und `card:start/end`-Regionen, die `build.mjs`
       aus Task 3 füllt).
@@ -474,7 +474,7 @@ verbindlich fest — nicht stillschweigend abweichen:
   `name="Ticket-Chip"`, `name="Statusband-Preview"`, `name="Stations-Karte"`,
   `name="KPI-Kachel"`).
 
-- [ ] **Task 5 — lokale Verifikation (nicht das mandatory Verify-Gate — das trägt p3/der
+- [x] **Task 5 — lokale Verifikation (nicht das mandatory Verify-Gate — das trägt p3/der
       Index-Plan; hier nur lokale Absicherung vor Übergabe).**
 
   ```bash
@@ -486,7 +486,9 @@ verbindlich fest — nicht stillschweigend abweichen:
   grep -qF 'sdlc-leitstand.css' website/src/pages/sdlc/design-system.astro
   ```
 
-- [ ] **Task 6 — DesignSync-Push (interaktiv, optional/überspringbar).**
+- [x] **Task 6 — DesignSync-Push (interaktiv, optional/überspringbar).**
+      _Übersprungen: DesignSync im ausführenden Kontext nicht verfügbar — Bundle liegt
+      committed unter `design/leitstand-ds/`, Push kann nachgeholt werden (kein Blocker)._
 
   Interaktiver Schritt mit dem DesignSync-Tool: `create_project` (Name "SDLC Leitstand
   Design System") → `finalize_plan { writes: ["cards/**"], localDir: "design/leitstand-ds"

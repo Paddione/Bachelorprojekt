@@ -105,13 +105,17 @@ jobs:
         run: task flux:render
 
       - name: Push OCI artifact
+        id: push-artifact
         run: |
           set -euo pipefail
-          flux push artifact \
+          OUT="$(flux push artifact \
             oci://ghcr.io/paddione/fleet-manifests:latest \
             --path=./out \
             --source="$(git config --get remote.origin.url)" \
-            --revision="${GITHUB_REF_NAME}@sha1:${GITHUB_SHA}"
+            --revision="${GITHUB_REF_NAME}@sha1:${GITHUB_SHA}" \
+            --output json)"
+          echo "$OUT"
+          echo "digest=$(printf '%s' "$OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["digest"])')" >> "$GITHUB_OUTPUT"
           flux tag artifact \
             oci://ghcr.io/paddione/fleet-manifests:latest \
             --tag "sha-${GITHUB_SHA}"
@@ -120,6 +124,8 @@ jobs:
       # digest, so both `latest` and `sha-<GITSHA>` resolve to a verified
       # artifact. The cluster verifies via OCIRepository spec.verify
       # (flux/clusters/fleet/oci-source.yaml) with the same OIDC identity.
+      # NOTE: sign by DIGEST — cosign's `oci://` prefix is for local OCI
+      # layouts and would resolve host "oci" (observed failure on 2026-08-15).
       - name: Sign OCI artifact (cosign keyless)
         run: |
           set -euo pipefail
@@ -128,7 +134,8 @@ jobs:
               -o /usr/local/bin/cosign
             chmod +x /usr/local/bin/cosign
           fi
-          cosign sign --yes "oci://ghcr.io/paddione/fleet-manifests:latest"
+          cosign sign --yes \
+            "ghcr.io/paddione/fleet-manifests@${{ steps.push-artifact.outputs.digest }}"
 
       - name: Ping Flux receiver (immediate reconcile)
         if: success()

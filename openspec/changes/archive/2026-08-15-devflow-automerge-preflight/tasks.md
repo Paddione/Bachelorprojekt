@@ -2,7 +2,7 @@
 title: "devflow-automerge-preflight — Implementation Plan"
 ticket_id: T006366
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

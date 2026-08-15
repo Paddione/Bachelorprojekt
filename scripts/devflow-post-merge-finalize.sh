@@ -213,8 +213,31 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
   if git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1; then
     mark_skip "Schritt 8: Archiv-Branch $ARCHIVE_BRANCH existiert bereits remote — OpenSpec-Archiv übersprungen (idempotent)"
   else
+    # T006791: Vor der Archiv-Sektion den aktuellen Branch merken — die Sektion
+    # wechselt per checkout -B den Branch des geteilten Arbeitsbaums (Worktree
+    # oder Haupt-Checkout); der Restore in der Subshell-Trap stellt ihn nach der
+    # Sektion wieder her (auch auf Fehlerpfaden, T002357-Fallenklasse).
+    ARCHIVE_PREV_BRANCH="$(git -C "$ARCHIVE_DIR" rev-parse --abbrev-ref HEAD)"
     (
       cd "$ARCHIVE_DIR"
+      # T006791: Restore bei jedem Sektions-Ende — Happy-Path (nach Push/PR) und
+      # Fehlerpfade (Subshell exit 1) hinterlassen den Arbeitsbaum auf dem
+      # gemerkten Branch. No-op, wenn kein Wechsel stattfand; Restore-Fehler
+      # enden mit Exit 1 statt still Erfolg zu melden.
+      _restore_prev_branch() {
+        local _prev_rc=$?
+        if [[ -n "$ARCHIVE_PREV_BRANCH" ]] && \
+           [[ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)" != "$ARCHIVE_PREV_BRANCH" ]]; then
+          if git checkout "$ARCHIVE_PREV_BRANCH" >/dev/null 2>&1; then
+            echo "Schritt 8: Branch-Restore auf $ARCHIVE_PREV_BRANCH nach Archiv-Sektion (T006791)"
+          else
+            echo "FATAL: Branch-Restore auf $ARCHIVE_PREV_BRANCH fehlgeschlagen — Arbeitsbaum bleibt auf $ARCHIVE_BRANCH (T006791)" >&2
+            _prev_rc=1
+          fi
+        fi
+        exit "$_prev_rc"
+      }
+      trap _restore_prev_branch EXIT
       bash scripts/openspec.sh archive "$SLUG"
       # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
       # Regeneration und explizites Staging nach plan-archive-steps (T002252).

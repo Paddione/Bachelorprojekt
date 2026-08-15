@@ -56,7 +56,7 @@ Arbeitsbaum (T002357-Fallenklasse, siehe design.md).
 
 ## Tasks
 
-### Task 1: RED — Assertion 5 aktivieren (Stage-Commit, bereits erledigt)
+### Task 1: [x] RED — Assertion 5 aktivieren (Stage-Commit, bereits erledigt)
 
 Die `skip`-Zeile in `tests/spec/agent-skills/post-merge-finalize-guards.bats` (Test 5,
 `T006348: Skript restauriert den Arbeitsbaum-Branch nach der Archiv-Sektion`) wurde im
@@ -68,7 +68,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/post-merge-finalize-gu
 # Variable im Skript noch nicht existiert (verifiziert am 2026-08-15 gegen main).
 ```
 
-### Task 2: Fix implementieren — ARCHIVE_PREV_BRANCH merken + Restore-Trap
+### Task 2: [x] Fix implementieren — ARCHIVE_PREV_BRANCH merken + Restore-Trap
 
 Datei: `scripts/devflow-post-merge-finalize.sh`, Archiv-Sektion (`if [[ -n "${ARCHIVE_DIR:-}" ]]`).
 
@@ -110,14 +110,14 @@ vor `bash scripts/openspec.sh archive "$SLUG"`):
 Erwartung: `mark_ok "Schritt 8: OpenSpec-Change archiviert (Archiv-PR erstellt)"` bleibt
 unverändert; im Normal-Lauf erscheint zusätzlich die Restore-Meldung der Trap.
 
-### Task 3: GREEN — BATS-Lauf
+### Task 3: [x] GREEN — BATS-Lauf
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/post-merge-finalize-guards.bats
 # expected: PASS — 8/8 grün (Assertion 5 greift jetzt `ARCHIVE_PREV_BRANCH`).
 ```
 
-### Task 4: Verifikation + Commit
+### Task 4: [x] Verifikation + Commit
 
 ```bash
 bash -n scripts/devflow-post-merge-finalize.sh

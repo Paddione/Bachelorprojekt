@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.282.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.6...website-v1.282.0) (2026-08-15)
+
+
+### Features
+
+* **scripts:** pin support-model limits 32768/4096 and switch tablet slot to gemma-4-e4b [T007033] ([#4630](https://github.com/Paddione/Bachelorprojekt/issues/4630)) ([9243467](https://github.com/Paddione/Bachelorprojekt/commit/92434672962f6c8ccd1ed2fb8ca539a00e21bf36))
+
 ## [1.281.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.281.5...website-v1.281.6) (2026-08-15)
 
 

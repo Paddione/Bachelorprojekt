@@ -51,6 +51,10 @@ err()  { printf '✗  pre-push: %s\n' "$*" >&2; }
 if [[ "${SKIP_CI_CHECK:-0}" == "1" ]]; then
   warn "SKIP_CI_CHECK=1 — quality:check bypassed"
 else
+  # [T008015-5] Fortschritts-Hinweis: quality:check liefert erst NACH
+  # Abschluss Output — ohne diese Zeile wirkte ein Push mit laufendem Gate
+  # wie ein Hang (2x Bash-Timeout-Fehlalarm) und verleitete zu Retries.
+  echo "pre-push: running task quality:check (dauert einige Sekunden)…" >&2
   if ! task quality:check; then
     err "quality:check failed — push blocked"
     err "Fix the violations above, then push again."

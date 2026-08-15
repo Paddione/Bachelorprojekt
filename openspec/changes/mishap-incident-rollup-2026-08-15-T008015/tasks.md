@@ -21,8 +21,37 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 ## File Structure
 
 ```
-<Der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/devflow-post-merge-deploy.sh                              # [1] Commit-Auswahl: erster Ticket-Commit mit Deploy-Trigger-Pfaden statt neuestem Archiv-Commit
+tests/spec/software-factory/devflow-post-merge-deploy-commit-selection.bats  # [1] RED/GREEN: Fixture Archiv-Commit vs Feature-Merge
+scripts/plan-intel.sh                                            # [3] _resolve_target_files: Nicht-Pfad-Tokens filtern, Backticks strippen
+scripts/plan-lint.sh                                             # [3] ALL_PARTIAL_TARGETS identisch filtern + Pfadrein-Konvention im Manifest-Kommentar
+tests/spec/dev-flow-plan/plan-intel-annotated-target-files.bats  # [3] annotierte/brace/backtick-Zellen
+.githooks/post-commit-embed                                      # [4] per-Versuch-Timeout um openspec-embed-local.sh
+.githooks/pre-push                                               # [5] Fortschritts-Hinweis vor task quality:check
+scripts/openspec-status-map.sh                                   # [6] Fail-closed-Guard gegen {} -Clobber
+tests/spec/openspec-workflow/status-map-fail-closed-guard.bats   # [6] Fail-closed + legit-{}-Verhalten
+.gitignore                                                       # [9] /website/ root-geankert
+scripts/llm/pk-devices/download-quant.ps1                        # [10] aus origin/chore/pk-device-autostart-T006842 nach main (T002431-Fall)
+openspec/changes/mishap-incident-rollup-2026-08-15-T008015/tasks.md  # Entscheidungen + Verify-Doku
 ```
+
+Nicht angefasst (bewusst): `.opencode/package.json` + `.opencode/package-lock.json`
+(unstaged tooling-Drift, nicht Teil des Tickets).
+
+## Entscheidungen je Mishap-Eintrag
+
+| # | Entscheidung | Begründung |
+|---|---|---|
+| 1 | `fixed` + RED/GREEN-Test | `devflow-post-merge-deploy.sh` wandert die ticket-referenzierenden Commits auf origin/main neueste-zuerst und nimmt den ersten mit Deploy-Trigger-Pfaden (nach `filter-generated.sh`); Fallback: neuester. Vorher waehlte `git log -1` den neuesten Ticket-Commit — bei T007559 den Archiv-Commit (nur openspec/ + generierte JSON) statt des Feature-Merge 14e0c2b6 → false negative "Keine bekannten Deploy-Trigger". Real-History-verifiziert. |
+| 2 | `deferred` (Ops) | Route `/sdlc/design-system` existiert im SSOT (route-manifest.json); der Dev-404 ist ein Dev-Stack-Deploy-/BUILD_TARGET-sdlc-Problem, kein Repo-Code-Defekt — im Worktree nicht fixbar, Verifikation gehoert dem Ops-Stack. |
+| 3 | `fixed` + Tests | `plan-intel.sh _resolve_target_files()` und `plan-lint.sh ALL_PARTIAL_TARGETS` filtern jetzt identisch: nur Pfad-Tokens (ein Wort ohne Whitespace, mit `/`, `.` oder `{`); Annotations-Praefixe ("Löschungen:") fallen raus, Backticks werden entfernt — I1 bleibt konsistent. Doku-Konvention: Manifest-Zellen pfadrein (Kommentar in plan-lint.sh). E2E-Check: annotierte Zelle → plan-lint PASS (vorher I1 hard-fail, E3-Lauf T007957). |
+| 4 | `fixed` | `.githooks/post-commit-embed`: pro Versuch hartes Timeout (`OPENSPEC_EMBED_HOOK_TIMEOUT`, Default 30s) um `openspec-embed-local.sh` — ein haengender kubectl port-forward / node-Embed blockiert den Commit nicht mehr Minuten (Mishap-7-Wiederholung, stale Listener 15432/8081); timeout-124 zaehlt als fehlgeschlagener Versuch, Retry-Budget 3×30s+Sleeps. |
+| 5 | `fixed` (Prozess-Reibung) | `.githooks/pre-push`: Fortschritts-Hinweis auf stderr VOR `task quality:check` — ein Push mit laufendem Gate wirkt nicht mehr wie ein Hang (2× Bash-Timeout-Fehlalarm). Kein Code-Defekt am Gate selbst. |
+| 6 | `fixed` + Test | `scripts/openspec-status-map.sh`: Fail-closed-Guard — Scan mit 0 Eintraegen, waehrend das Repo-default `openspec/changes` `.ticket`-Dateien traegt, bricht mit ERROR ab statt die bestehende openspec-status.json mit `{}` zu clobbern (cwd/OPENSPEC_ROOT-Artefakt, 3952-Zeilen-Verlust). `{}` nur noch bei wirklich leeren Changes. |
+| 7 | `deferred` (Operator) | Hauptcheckout-Lage (Branch fix/e2e-test-suite-resilience-T008338, Commit f2b42b0e3 ohne PR, T008338 triage ohne Lock) ist ein Operator-Zustand des Haupt-Checkouts, kein Worktree-Code — PR-Anlage + Lock-Triage gehoeren dem Operator. |
+| 8 | `fixed-externally` | `scripts/llm/bench-guff.sh` existiert im Hauptcheckout nicht mehr (verifiziert 2026-08-16) — zwischenzeitlich entfernt; kein Ticket noetig. Bei Wiederauftreten: Ticket anlegen + in Worktree ueberfuehren (repo-hygiene §0). |
+| 9 | `fixed-externally` + Praevention | `website/`-Verzeichnis existiert im Hauptcheckout nicht mehr (verifiziert); als Praevention `/website/` root-geankert in `.gitignore` (T006999-Reorg: website → components/website; ungeankert wuerde es components/website/ matchen). |
+| 10 | `fixed` (nach main ueberfuehrt) | T002431-Fall geschlossen: `scripts/llm/pk-devices/download-quant.ps1` (22 Zeilen, Header dokumentiert Nutzung, siblings auf main) wurde aus `origin/chore/pk-device-autostart-T006842` in diesen Commit uebernommen — das Deliverable bleibt erhalten statt am Branch haengen zu bleiben; branch-reaper kann den Branch danach freigeben. |
 
 ## Mishap-Batches
 

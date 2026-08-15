@@ -3951,6 +3951,12 @@
       "status": "plan_staged"
     }
   ],
+  "T008015": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-15-T008015",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

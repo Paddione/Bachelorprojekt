@@ -17,13 +17,32 @@ case "$TICKET_ID" in T[0-9][0-9][0-9][0-9][0-9][0-9]) : ;; *)
   exit 2
 esac
 # T002448-M9/M10: Finde den Merge-Commit durch Ticket-ID-Match auf main,
-# nicht durch blindes `git log -1`. Bei mehreren intervenierenden Commits
-# zwischen Merge und HEAD liefert `-1` den falschen Commit.
-# M7 (T002506): `--merges` gestrichen — das Repo squasht PRs (1 Parent),
-# `--merges` wuerde nur echte Merge-Commits (≥2 Parents) finden und schliesst
-# den Squash-Commit aus. Der `--grep`-Match auf "[TICKET_ID]" identifiziert
-# den Squash-Commit bereits eindeutig.
-MERGE_COMMIT=$(git log origin/main --format="%H %s" --grep="\\[${TICKET_ID}\\]" -1 2>/dev/null | awk '{print $1}')
+# nicht durch blindes `git log -1`. M7 (T002506): `--merges` ist gestrichen —
+# das Repo squasht PRs (1 Parent), der `--grep`-Match auf "[TICKET_ID]"
+# identifiziert den Squash-Commit. ABER (T008015-1): `git log -1` waehlt den
+# NEUESTEN ticket-referenzierenden Commit — bei T007559 war das der Archiv-
+# Commit (chore(plans): archive …) mit nur openspec/-Dateien, wodurch die
+# Deploy-Detection faelschlich "Keine bekannten Deploy-Trigger" meldete statt
+# den Feature-Merge 14e0c2b6 zu analysieren. Jetzt: Kandidaten neueste-zuerst
+# durchlaufen, den ersten mit Deploy-Trigger-Pfaden (nach filter-generated)
+# waehlen; Fallback: neuester. Die Trigger-Regex ist dieselbe wie in den
+# DEPLOY_*-Checks weiter unten — dort halten.
+DEPLOY_TRIGGER_RE='^(components/website/|components/brett/|docs/|k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)'
+MERGE_COMMIT=""
+while IFS= read -r _cand; do
+  [[ -z "$_cand" ]] && continue
+  if git diff-tree --no-commit-id -r --name-only "$_cand" 2>/dev/null \
+      | bash scripts/filter-generated.sh \
+      | sed '/^k3d\/sdlc-stack\//d' \
+      | grep -qE "$DEPLOY_TRIGGER_RE"; then
+    MERGE_COMMIT="$_cand"
+    break
+  fi
+done < <(git log origin/main --format="%H" --grep="\\[${TICKET_ID}\\]" 2>/dev/null)
+if [[ -z "$MERGE_COMMIT" ]]; then
+  MERGE_COMMIT="$(git log origin/main --format="%H" --grep="\\[${TICKET_ID}\\]" -1 2>/dev/null)"
+fi
+
 if [[ -z "$MERGE_COMMIT" ]]; then
   echo "FEHLER: Kein Merge-Commit fuer Ticket ${TICKET_ID} auf origin/main gefunden." >&2
   exit 3

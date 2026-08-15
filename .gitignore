@@ -6,6 +6,7 @@ vitest-junit-report/
 scripts/deep.sh
 # bats junit-Reporte (BATS_JUNIT_DIR, [T003025]) — CI-artefakt, nie committen
 junit-report/
+spec-junit-shard-*/
 website-dist/
 .lighthouseci/
 # Windows Lighthouse cache dirs (cross-platform artifact, literal backslash names)

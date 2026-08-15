@@ -269,6 +269,13 @@ BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 cd "$MAIN_REPO"
+# Agent-Lock freigeben (T006290): NACH dem Wechsel ins Haupt-Repo — aus dem
+# Worktree heraus verweigert agent-lock.sh den Branch-Release, weil der
+# nachfolgende Worktree-Remove die Shell-cwd zerstören würde. Ohne
+# stderr-Unterdrückung, damit eine Verweigerung sichtbar bleibt. Lebenszyklus-
+# SSOT: .claude/skills/references/session-coordination.md
+bash scripts/agent-lock.sh release ticket "<T00XXXX>"
+bash scripts/agent-lock.sh release branch "$BRANCH_NAME"
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
 
@@ -282,9 +289,6 @@ if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" 2>/dev/null; then
   git branch -D "$BRANCH_NAME"
 fi
 ```
-
-Agent-Lock freigeben (`release ticket` + `release branch`, VOR dem Worktree-Remove) —
-Lebenszyklus-SSOT: [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
 
 ---
 

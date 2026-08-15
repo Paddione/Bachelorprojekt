@@ -493,6 +493,15 @@ cmd_refresh() {
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
 }
 
+# 0 = caller's cwd (or its git toplevel) falls inside <worktree>. Exact or
+# prefix match, mirroring _lock_is_mine (T003110). [T006290]
+_cwd_inside_worktree() {  # <worktree-path>
+  local wt="$1" my_toplevel
+  my_toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || my_toplevel="$PWD"
+  [ "$my_toplevel" = "$wt" ] || [[ "$my_toplevel" = "$wt"/* ]] \
+    || [ "$PWD" = "$wt" ] || [[ "$PWD" = "$wt"/* ]]
+}
+
 # NOTE: cmd_release compares SID with _my_sid. When claim happened in a subshell
 # the SID may differ — see T001268.
 cmd_release() {
@@ -506,6 +515,17 @@ cmd_release() {
   # gegen SID-Drift pro Bash-Call — diese Ursache ist seit T002375-p1 behoben. [T002447]
   if [ -n "$force" ] || _lock_is_mine "$f" \
      || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
+    # [T006290] cwd-Guard: Branch-Release verweigern, solange die Shell-cwd im
+    # Worktree des Locks liegt. Der dokumentierte naechste Schritt
+    # (git worktree remove) zerstoert sonst die cwd, alle Folgekommandos sterben
+    # (rc=128) und der Lock bliebe stale. --force uebersteuert den Guard.
+    if [ "$scope" = "branch" ] && [ -z "$force" ]; then
+      local wt; wt="$(_lock_field "$f" worktree)"
+      if [ -n "$wt" ] && [ "$wt" != "-" ] && _cwd_inside_worktree "$wt"; then
+        echo "release: cwd liegt im Worktree des Locks ($wt) — release aus dem Haupt-Repo heraus ausfuehren, dann git worktree remove" >&2
+        return 1
+      fi
+    fi
     rm -f "$f"; return 0
   fi
   echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2

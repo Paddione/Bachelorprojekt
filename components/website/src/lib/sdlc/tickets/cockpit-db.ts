@@ -5,7 +5,7 @@ import type {
   BatchMutation, BatchResult, OpenSpecProposal,
 } from '../../tickets/cockpit-types.ts';
 import { recordAudit } from './cockpit-audit';
-import type { TicketStatus } from '../../tickets/admin.ts';
+import type { TicketStatus } from '../../tickets/status.ts';   // SSOT (T007955)
 import openspecStatusMap from '../../../data/openspec-status.json';
 import { ALL_TICKETS_ID, NO_FEATURE_ID, NO_PRODUCT_ID } from './cockpit-ids';
 

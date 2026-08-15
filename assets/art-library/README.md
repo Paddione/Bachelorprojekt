@@ -14,7 +14,7 @@ served at the URL path `/art-library/`). Pods boot fine without it (`optional: t
 
 1. `cp -r sets/korczewski sets/<brand>` and replace SVGs.
 2. Update `manifest.json` (id slugs, names, palettes, file paths).
-3. Run `node art-library/_tooling/validate-manifest.mjs`.
+3. Run `node assets/art-library/_tooling/validate-manifest.mjs`.
 4. Wire the set into the relevant overlay's `configMapGenerator`.
 
 See `docs/superpowers/specs/2026-05-04-art-library-design.md` for the

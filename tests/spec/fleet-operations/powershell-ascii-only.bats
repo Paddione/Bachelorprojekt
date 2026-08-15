@@ -19,6 +19,7 @@
 
 setup() {
   PROJECT_DIR="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  PS1_FILE="${PROJECT_DIR}/scripts/llm/start-tablet-rerank.ps1"
 }
 
 @test "every scripts/llm/*.ps1 is pure ASCII" {
@@ -61,4 +62,31 @@ setup() {
     grep -n 'Set-Content.*-Encoding[[:space:]]\+UTF8' "${files[@]}" >&2
     return 1
   }
+}
+
+# T006143 (Basis: T002495-M7 — PS1-Dateien aus WSL muessen rein ASCII ohne BOM
+# sein; PS 5.1 liest UTF-8 ohne BOM sonst als CP1252). Die Datei ist das
+# Rerank-Startskript fuer das PK-Tablet (llama-server, Port 8080, --reranking).
+#
+# PRUEFMODUS: KONFIGURATIONS-Guard (T002448-M4-Ausnahme) — kodierung und
+# Flag-Pflicht manifestieren sich ausschliesslich im Dateiinhalt. grep -F
+# OHNE Zeilenanker, weil die PS1-Dateien CRLF tragen (T002338-M2).
+
+@test "T006143: start-tablet-rerank.ps1 existiert und ist ASCII ohne BOM" {
+  # Positiv-Anker (T002356-M1): die Datei existiert und ist nicht leer.
+  [ -s "$PS1_FILE" ]
+  # Kein BOM: die ersten drei Bytes sind nicht EF BB BF.
+  run head -c 3 "$PS1_FILE" | od -An -tx1 | tr -d ' \n'
+  [ "$output" != "efbbbf" ]
+  # Rein ASCII: LC_ALL=C meldet jeden Nicht-ASCII-Bereich als Zeile.
+  run bash -c "LC_ALL=C grep -nP '[^\\x00-\\x7F]' '$PS1_FILE' || true"
+  [ -z "$output" ]
+}
+
+@test "T006143: start-tablet-rerank.ps1 traegt die Rerank-Flags" {
+  grep -qF -- '--reranking' "$PS1_FILE"
+  grep -qF -- '-ngl' "$PS1_FILE"
+  grep -qF -- '8080' "$PS1_FILE"
+  grep -qF -- 'bge-reranker-v2-m3-Q8_0.gguf' "$PS1_FILE"
+  grep -qF -- '.lmstudio\models' "$PS1_FILE"
 }

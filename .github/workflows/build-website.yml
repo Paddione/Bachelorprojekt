@@ -95,6 +95,10 @@ jobs:
           tags: |
             ${{ steps.compute-tags.outputs.image }}:${{ steps.compute-tags.outputs.sha_tag }}
             ${{ steps.compute-tags.outputs.image }}:latest
+            # dev-stack alias: k3d/dev-stack/website-dev.yaml pins
+            # workspace-website:dev (fleet dev node, T007035) — same build,
+            # additional tag, no extra pipeline.
+            ghcr.io/paddione/workspace-website:dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

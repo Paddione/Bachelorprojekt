@@ -57,12 +57,12 @@ website/src/data/test-inventory.json                           # REGENERATE: tas
 - Produces: dokumentierter RED-Lauf (5/6 rot, Anker grün) als Task-Ergebnis.
 
 **Steps:**
-- [ ] Testrunner auf die neue Testdatei ausführen:
+- [x] Testrunner auf die neue Testdatei ausführen:
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/executor-post-merge-death.bats
   ```
-- [ ] Erwartetes Ergebnis prüfen und im Task-Ergebnis festhalten: `expected: FAIL` — genau die fünf Implementierungs-Tests (Finalizer-Delegation im Skill, Skill-Referenz auf das Skript, Skript-Existenz/Usage/Offline-Pfad) sind rot, der Positiv-Anker (Post-Merge-Abschnitt existiert) ist grün.
-- [ ] Kein Fix in diesem Task — nur Reproduktion und Dokumentation.
+- [x] Erwartetes Ergebnis prüfen und im Task-Ergebnis festhalten: `expected: FAIL` — genau die fünf Implementierungs-Tests (Finalizer-Delegation im Skill, Skill-Referenz auf das Skript, Skript-Existenz/Usage/Offline-Pfad) sind rot, der Positiv-Anker (Post-Merge-Abschnitt existiert) ist grün.
+- [x] Kein Fix in diesem Task — nur Reproduktion und Dokumentation.
 
 ### Task 2: Idempotente Abschluss-Einheit `scripts/devflow-post-merge-finalize.sh`
 
@@ -75,19 +75,19 @@ website/src/data/test-inventory.json                           # REGENERATE: tas
 - Consumes: `scripts/ticket.sh get/update-status/add-pr-link/phase/archive-plan`, `scripts/openspec.sh archive`, `scripts/agent-lock.sh release/check`, `scripts/branch-reaper.sh` (oder direkter `git push origin --delete`), `gh` für PR-Auflösung.
 
 **Steps:**
-- [ ] Skriptgerüst mit `set -euo pipefail`, `HERE`/`REPO_DIR`-Auflösung und Usage-Block anlegen (Vorlage: `devflow-post-merge-ticket-closure.sh`). `--help` gibt Usage aus und endet mit Exit 0; Aufruf ohne Ticket-ID endet mit Usage auf stderr und Exit 2.
-- [ ] Offline-Fehlerpfad: `TICKET_OFFLINE` gesetzt → klare Meldung ("Finalize-Skript benötigt Cluster-/DB-Zugriff (ticket.sh); TICKET_OFFLINE ist gesetzt") und Exit 2, bevor irgendein Schritt läuft. `BRAND`/`TICKET_CTX` werden an `ticket.sh` durchgereicht.
-- [ ] Schritt 1 — Ticket laden (`ticket.sh get`): unbekannte ID → Meldung + Exit 1. Status `done`/`archived` → `[skip] bereits abgeschlossen` und weiter (Idempotenz).
-- [ ] Schritt 2 — Branch bestimmen: `--branch`-Flag, sonst `plan_ref` aus der Ticket-DB (FACTORY-PLAN-REF), sonst Abbruch mit Meldung + Exit 1 (Branch ist Pflicht für PR-Auflösung und Cleanup).
-- [ ] Schritt 3 — PR-Nummer bestimmen: `--pr`-Flag, sonst `gh pr list --head <branch> --state merged --json number -q '.[0].number'`; keine PR → `[skip] kein PR gefunden` (nur Closure-schädliche Schritte laufen nicht; Archiv/Cleanup weiter).
-- [ ] Schritt 4 — PR-Link setzen (`ticket.sh add-pr-link`, `|| true`): bestehender Link ist kein Fehler (idempotent, Meldung `[skip]`/`[ok]`).
-- [ ] Schritt 5 — Ticket abschließen (`ticket.sh update-status --status done`): Resolution `fixed` bei type `fix`/`bug`, sonst `shipped` (Dual-Vokabular wie `auto-close-merged.sh`); nur wenn Status noch nicht `done`/`archived`.
-- [ ] Schritt 6 — `verify:done`-Phase-Event (`ticket.sh phase <id> verify done --driver devflow --detail "gate=ci result=pass"`, `|| true` — Dedup ist harmlos).
-- [ ] Schritt 7 — Plan archivieren (`ticket.sh archive-plan --id <id> --slug <slug> --branch <branch> --plan-file <pfad>`, Pfad aus `plan_ref`): bereits archiviert oder kein `plan_ref` → `[skip]` mit Meldung.
-- [ ] Schritt 8 — OpenSpec-Change archivieren (`scripts/openspec.sh archive <slug> --ticket <id>` im Haupt-Repo, inklusive Archiv-PR wie in `plan-archive-steps`): Change-Ordner existiert nicht mehr (bereits archiviert) → `[skip]`.
-- [ ] Schritt 9 — Branch-Lock freigeben (`agent-lock.sh release branch <branch>`): nur wenn der Claim dieser Session gehört (`agent-lock.sh check branch` == mine); fremder/fehlender Claim → `[skip]` (T003102-Respekt).
-- [ ] Schritt 10 — Worktree/Branch bereinigen: `git worktree remove <wt> --force` (Worktree-Pfad aus `plan_ref`/Konvention `.worktrees/<slug>`), lokalen Branch `-D` + Remote-Delete via `branch-reaper.sh --ticket <id>` (oder äquivalent); bereits entfernt → `[skip]`.
-- [ ] Abschluss: Zusammenfassung der Steps (erledigt/übersprungen) auf stdout, Exit 0.
+- [x] Skriptgerüst mit `set -euo pipefail`, `HERE`/`REPO_DIR`-Auflösung und Usage-Block anlegen (Vorlage: `devflow-post-merge-ticket-closure.sh`). `--help` gibt Usage aus und endet mit Exit 0; Aufruf ohne Ticket-ID endet mit Usage auf stderr und Exit 2.
+- [x] Offline-Fehlerpfad: `TICKET_OFFLINE` gesetzt → klare Meldung ("Finalize-Skript benötigt Cluster-/DB-Zugriff (ticket.sh); TICKET_OFFLINE ist gesetzt") und Exit 2, bevor irgendein Schritt läuft. `BRAND`/`TICKET_CTX` werden an `ticket.sh` durchgereicht.
+- [x] Schritt 1 — Ticket laden (`ticket.sh get`): unbekannte ID → Meldung + Exit 1. Status `done`/`archived` → `[skip] bereits abgeschlossen` und weiter (Idempotenz).
+- [x] Schritt 2 — Branch bestimmen: `--branch`-Flag, sonst `plan_ref` aus der Ticket-DB (FACTORY-PLAN-REF), sonst Abbruch mit Meldung + Exit 1 (Branch ist Pflicht für PR-Auflösung und Cleanup).
+- [x] Schritt 3 — PR-Nummer bestimmen: `--pr`-Flag, sonst `gh pr list --head <branch> --state merged --json number -q '.[0].number'`; keine PR → `[skip] kein PR gefunden` (nur Closure-schädliche Schritte laufen nicht; Archiv/Cleanup weiter).
+- [x] Schritt 4 — PR-Link setzen (`ticket.sh add-pr-link`, `|| true`): bestehender Link ist kein Fehler (idempotent, Meldung `[skip]`/`[ok]`).
+- [x] Schritt 5 — Ticket abschließen (`ticket.sh update-status --status done`): Resolution `fixed` bei type `fix`/`bug`, sonst `shipped` (Dual-Vokabular wie `auto-close-merged.sh`); nur wenn Status noch nicht `done`/`archived`.
+- [x] Schritt 6 — `verify:done`-Phase-Event (`ticket.sh phase <id> verify done --driver devflow --detail "gate=ci result=pass"`, `|| true` — Dedup ist harmlos).
+- [x] Schritt 7 — Plan archivieren (`ticket.sh archive-plan --id <id> --slug <slug> --branch <branch> --plan-file <pfad>`, Pfad aus `plan_ref`): bereits archiviert oder kein `plan_ref` → `[skip]` mit Meldung.
+- [x] Schritt 8 — OpenSpec-Change archivieren (`scripts/openspec.sh archive <slug>` im Haupt-Repo, inklusive Archiv-PR wie in `plan-archive-steps`): Change-Ordner existiert nicht mehr (bereits archiviert) → `[skip]`.
+- [x] Schritt 9 — Branch-Lock freigeben (`agent-lock.sh release branch <branch>`): nur wenn der Claim dieser Session gehört (`agent-lock.sh check branch` == mine); fremder/fehlender Claim → `[skip]` (T003102-Respekt).
+- [x] Schritt 10 — Worktree/Branch bereinigen: `git worktree remove <wt> --force` (Worktree-Pfad aus `plan_ref`/Konvention `.worktrees/<slug>`), lokalen Branch `-D` + Remote-Delete via `branch-reaper.sh --ticket <id>` (oder äquivalent); bereits entfernt → `[skip]`.
+- [x] Abschluss: Zusammenfassung der Steps (erledigt/übersprungen) auf stdout, Exit 0.
 
 ### Task 3: Skill-Umbau — Finalizer-Delegation
 

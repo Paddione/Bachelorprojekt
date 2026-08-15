@@ -45,7 +45,7 @@ spec:
         - name: ghcr-pull-secret
       containers:
         - name: website
-          image: ghcr.io/paddione/workspace-website:dev
+          image: ghcr.io/paddione/website:dev
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4321

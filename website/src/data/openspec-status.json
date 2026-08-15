@@ -3855,6 +3855,12 @@
       "status": "archived"
     }
   ],
+  "T006369": [
+    {
+      "slug": "plan-archive-freshness-check",
+      "status": "plan_staged"
+    }
+  ],
   "T006370": [
     {
       "slug": "2026-08-15-fix-devflow-ciwatch-ticket-path",

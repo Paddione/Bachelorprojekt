@@ -106,6 +106,20 @@ ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
 git fetch origin main
 git checkout -B "$ARCHIVE_BRANCH" origin/main
 git cherry-pick "$ARCHIVE_COMMIT"
+
+# Freshness-Verifikation VOR dem Push (T006369): freshness:check regeneriert
+# (Phase 0) und diffet gegen HEAD; meldet er Drift (Exit != 0), ist das
+# committete openspec-status.json stale (beobachtet bei PR #4552: Regeneration
+# lief, bevor die Archiv-Verschiebung sichtbar war). Dann die regenerierten
+# Artefakte stagen und den Archiv-Commit amenden — BEVOR der Push den
+# Archiv-Branch nach aussen traegt.
+if ! task freshness:check; then
+  echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
+  git add openspec/changes/ openspec/changes/archive/ openspec/specs/ website/src/data/openspec-status.json
+  git add -u -- website/src/data website/src/lib website/public/learning-assets docs
+  git commit --amend --no-edit
+  task freshness:check
+fi
 git push -u origin "$ARCHIVE_BRANCH"
 
 # PR-Erstellung mit Assert (verhindert ungebündelte Archiv-Branches, T001331)

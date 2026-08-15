@@ -237,30 +237,32 @@ s5:
     - path: "."
       allowed: ["package-lock.json"]
       forbidden: ["pnpm-lock.yaml"]
-    - path: "website"
+    - path: "components/website"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]
-    # brett: nur package-lock.json (Install-/CI-Quelle für npm ci — Dockerfile,
-    # ci.yml und build-brett.yml nutzen ausschließlich npm).
+    # components/brett: nur package-lock.json (Install-/CI-Quelle für npm ci —
+    # Dockerfile, ci.yml und build-brett.yml nutzen ausschließlich npm).
     #
     # Bis T002247 erlaubte diese Regel BEIDE Lockfiles, mit der Begründung
     # pnpm-lock.yaml sei nötig, damit Renovate brett-Deps prüfen kann [T001224].
     # Diese Begründung stammt aus PR #2183 — vor dem Renovate-Setup (T000898) —
     # und wurde per Renovate-Extraktionslauf (platform=local, dry-run) widerlegt:
     # mit und ohne pnpm-lock.yaml extrahiert Renovate identisch
-    # 12 npm-Dateien / 323 Deps inkl. brett/package.json. Der einzige Unterschied
-    # war, dass brett/package.json BEIDE Lockfiles zugeordnet bekam
+    # 12 npm-Dateien / 323 Deps inkl. components/brett/package.json. Der einzige
+    # Unterschied war, dass components/brett/package.json BEIDE Lockfiles
+    # zugeordnet bekam
     # (npmLock + pnpmShrinkwrap) — genau der Auslöser der Repository-Problem-
     # Warnung "Updating multiple npm lock files is deprecated".
     #
-    # Hinweis: brett/pnpm-workspace.yaml existiert weiterhin und enthält reine
+    # Hinweis: components/brett/pnpm-workspace.yaml existiert weiterhin und
+    # enthält reine
     # pnpm-Settings (allowBuilds, minimumReleaseAgeExclude) für ein Projekt, das
     # per npm installiert wird. Renovate extrahiert die Datei als Package-File.
     # Ungeprüft, ob sie noch einen Zweck erfüllt — nicht Teil von T002247.
-    - path: "brett"
+    - path: "components/brett"
       allowed: ["package-lock.json"]
       forbidden: ["pnpm-lock.yaml"]
-    - path: "mentolder-web"
+    - path: "components/mentolder-web"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]
 

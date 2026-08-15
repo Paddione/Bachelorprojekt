@@ -263,7 +263,10 @@ migrated_oauth2_manifests() {
     # Dev manifests use the in-cluster service http://pocket-id:1411 for the
     # OIDC redeem/jwks/profile endpoints; the browser-facing --login-url uses
     # ${POCKET_ID_DOMAIN} (auth.localhost in dev, auth.${PROD_DOMAIN} in prod).
-    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m" && ! grep -q 'auth.\${PROD_DOMAIN}' "$m"; then
+    # Seit T007035 (PR #4658) nutzen die dev-stack-Proxies die FQDN-Form
+    # pocket-id.workspace.svc.cluster.local:1411 (bare Service-Namen lösen aus
+    # workspace-dev nicht auf) — beide Formen sind gültige Anker.
+    if ! grep -q 'pocket-id:1411' "$m" && ! grep -q 'pocket-id.workspace.svc.cluster.local:1411' "$m" && ! grep -q 'POCKET_ID_DOMAIN' "$m" && ! grep -q 'auth.\${PROD_DOMAIN}' "$m"; then
       echo "missing pocket-id issuer in $m"; return 1
     fi
   done

@@ -590,7 +590,7 @@ jobs:
           cache-dependency-path: components/website/pnpm-lock.yaml
 
       - name: Install website dependencies
-        run: cd website && pnpm install --frozen-lockfile
+        run: cd components/website && pnpm install --frozen-lockfile
 
       - name: Fetch origin/main for --changed diffing
         run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
@@ -606,7 +606,7 @@ jobs:
           fi
 
       - name: Run ESLint (--max-warnings 0 fail-closed gate)
-        run: cd website && pnpm lint
+        run: cd components/website && pnpm lint
 
       - name: Run vitest + Astro check + Knip (parallel)
         # Mirrors the local `task test:changed` smart selection via explicit
@@ -621,7 +621,7 @@ jobs:
         # (e.g. tickets/cockpit-db.test.ts seeds 1005 rows) when vitest
         # runs ~243 files in parallel on shared CI runners. [T001336, T001651]
         run: |
-          cd website
+          cd components/website
           ARGS="run --changed origin/main --testTimeout=30000"
           [[ "${{ steps.check-cov.outputs.run-coverage }}" == "true" ]] && ARGS="$ARGS --coverage"
           pnpm exec vitest $ARGS &
@@ -656,7 +656,7 @@ jobs:
         #   b) --changed found zero components/website/ source changes (pct: "Unknown").
         # In both cases there is no source delta to regress. [T001651, T003164]
         run: |
-          cd website
+          cd components/website
           if [ ! -f coverage/coverage-summary.json ]; then
             echo "::notice::No coverage-summary.json (--coverage not needed / no report) — skipping gate"
             exit 0
@@ -670,7 +670,7 @@ jobs:
           awk -v cov="$COV" 'BEGIN { if (cov + 0 < 60) { print "::error::Coverage gate failed: " cov "% < 60%"; exit 1 } else { print "::notice::Coverage gate passed: " cov "% >= 60%" } }'
 
       - name: Build website
-        run: cd website && pnpm build
+        run: cd components/website && pnpm build
 
       - name: Check client-JS bundle budget
         # [T002754] Previously a separate job (bundle-budget) that spun up a

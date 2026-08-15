@@ -6,7 +6,7 @@ import path from 'node:path';
 // D1 — assert the additive, idempotent `brett_snapshots.is_template` migration
 // exists in the shared schema (k3d/website-schema.yaml). Structure-only: we read
 // the YAML text and check the SQL is present (no DB/cluster apply here).
-const SCHEMA_PATH = path.join(__dirname, '..', '..', 'k3d', 'website-schema.yaml');
+const SCHEMA_PATH = path.join(__dirname, '..', '..', '..', 'k3d', 'website-schema.yaml');
 const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
 
 test('brett_snapshots gains an additive is_template column (idempotent)', () => {

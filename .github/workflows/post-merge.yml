@@ -104,7 +104,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: components/website/pnpm-lock.yaml
       - name: Install website dependencies
-        run: cd website && pnpm install --frozen-lockfile
+        run: cd components/website && pnpm install --frozen-lockfile
 
       - name: Set up kubeconfig
         env:
@@ -151,7 +151,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: components/website/pnpm-lock.yaml
       - name: Install website dependencies
-        run: cd website && pnpm install --frozen-lockfile
+        run: cd components/website && pnpm install --frozen-lockfile
       - name: Set up kubeconfig
         env:
           FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}

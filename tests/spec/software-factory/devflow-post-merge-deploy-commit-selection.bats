@@ -67,11 +67,14 @@ teardown() {
   git commit -m "feat(website): fixture feature [T999001]"
   
   # Commit B: The archive commit (NEWEST, contains only non-deploy-trigger files)
-  mkdir -p openspec/changes/archive/fixture/
-  touch openspec/changes/archive/fixture/tasks.md
+  # Fixture-Pfad-Konvention (T002368-Guard): openspec/changes nur unter
+  # "$FIXTURE" anlegen — bare relative Pfade wuerden den Guard
+  # "kein Test legt ein Change-Verzeichnis im echten openspec/ an" treffen.
+  mkdir -p "$FIXTURE/openspec/changes/archive/fixture/"
+  touch "$FIXTURE/openspec/changes/archive/fixture/tasks.md"
   mkdir -p components/website/src/data/
   echo "{}" > components/website/src/data/openspec-status.json
-  git add openspec/changes/archive/fixture/tasks.md components/website/src/data/openspec-status.json
+  git add "$FIXTURE/openspec/changes/archive/fixture/tasks.md" components/website/src/data/openspec-status.json
   git commit -m "chore(plans): archive fixture [T999001]"
   
   git update-ref refs/remotes/origin/main HEAD
@@ -87,11 +90,11 @@ teardown() {
   cd "$FIXTURE"
   
   # Commit B (NEWEST): Only the archive commit
-  mkdir -p openspec/changes/archive/fixture/
-  touch openspec/changes/archive/fixture/tasks.md
+  mkdir -p "$FIXTURE/openspec/changes/archive/fixture/"
+  touch "$FIXTURE/openspec/changes/archive/fixture/tasks.md"
   mkdir -p components/website/src/data/
   echo "{}" > components/website/src/data/openspec-status.json
-  git add openspec/changes/archive/fixture/tasks.md components/website/src/data/openspec-status.json
+  git add "$FIXTURE/openspec/changes/archive/fixture/tasks.md" components/website/src/data/openspec-status.json
   git commit -m "chore(plans): archive fixture [T999001]"
   
   git update-ref refs/remotes/origin/main HEAD

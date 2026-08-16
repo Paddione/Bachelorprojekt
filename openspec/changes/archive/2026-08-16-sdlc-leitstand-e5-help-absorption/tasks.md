@@ -2,7 +2,7 @@
 title: "sdlc-leitstand-e5-help-absorption — Implementation Plan"
 ticket_id: T008017
 domains: [website, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

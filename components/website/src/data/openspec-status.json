@@ -4005,6 +4005,12 @@
       "status": "archived"
     }
   ],
+  "T011580": [
+    {
+      "slug": "fix-alibaba-token-key-guard-tmpdir",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

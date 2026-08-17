@@ -1185,6 +1185,11 @@ tasks:
     cmds:
       - node scripts/sdlc/api-inventory.mjs
 
+  design:leitstand-ds-sync:
+    desc: Regenerate design/leitstand-ds artifacts (tokens verbatim copy, glyph assets, card assembly)
+    cmds:
+      - node design/leitstand-ds/build.mjs
+
   openspec:status-map:
     desc: "Regenerate components/website/src/data/openspec-status.json from openspec/changes/"
     cmds:
@@ -1275,6 +1280,7 @@ tasks:
       - '[ -d node_modules ] || npm ci'
       - task: test:inventory
       - task: api:inventory
+      - task: design:leitstand-ds-sync
       - task: routes:manifest
       - task: assets:learning
       - task: quality:index
@@ -1367,6 +1373,7 @@ tasks:
         FILES="
           components/website/src/data/test-inventory.json
           components/website/src/data/api-inventory.json
+          design/leitstand-ds/_tokens.css
           components/website/src/data/route-manifest.json
           components/website/src/lib/learning-assets.generated.json
           components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
@@ -5355,3 +5362,7 @@ tasks:
   # ─────────────────────────────────────────────
   # End of tasks
   # ─────────────────────────────────────────────
+  design:check-sync:
+    desc: "Check if design tokens in design/leitstand-ds/_tokens.css are in sync with components/website/src/styles/sdlc-leitstand.css"
+    cmds:
+      - node design/leitstand-ds/check-sync.mjs

@@ -4416,6 +4416,24 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/deck-resize",
+    "file": "tests/spec/sdlc-cockpit/deck-resize.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-freeze-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-handle-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/document-tokens-only",
     "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
     "category": "sdlc-cockpit",
@@ -4574,6 +4592,12 @@
   {
     "id": "sdlc-cockpit/redesign-struktur",
     "file": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/sdlc-leitstand-tokens",
+    "file": "tests/spec/sdlc-cockpit/sdlc-leitstand-tokens.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -4782,8 +4806,26 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-already-running",
+    "file": "tests/spec/software-factory/opencode-exec-already-running.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-binary-resolution",
     "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-pr-step",
+    "file": "tests/spec/software-factory/opencode-exec-pr-step.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-prerun-shortcircuit",
+    "file": "tests/spec/software-factory/opencode-exec-prerun-shortcircuit.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4886,6 +4928,12 @@
   {
     "id": "software-factory/update-status-id-allowlist-T002906",
     "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/wakeup-pull-loud-failure",
+    "file": "tests/spec/software-factory/wakeup-pull-loud-failure.bats",
     "category": "software-factory",
     "kind": "shell"
   },

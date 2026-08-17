@@ -336,9 +336,9 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent, now on the gemma26-factory loadout (Gemma 4 26B A4B UD-IQ4_XS, 177920 ctx, Port 8091, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; shares exclusiveGroup chat-gpu with the other local loadouts (only one runs at a time).",
+      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; updated to gemma26-throughput to share the live loadout with orchestrator and gptoss without GPU swapping. Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma26-throughput",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -346,9 +346,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent for the gemma family (Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
+      "description": "Local subagent for the gemma family (Gemma 4 26B A4B QAT UD-Q4_K_XL, Loadout gemma26-throughput auf Port 8092, via llm-proxy :18235). Write-capable delegation; shares the live GPU loadout with orchestrator/gptoss without swapping.",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma26-throughput",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -541,9 +541,15 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      // T011579: opencode-go/deepseek-v4-flash erschoepfte am 2026-08-17 sein
+      // Monatskontingent (AI_APICallError "Monthly usage limit reached", Reset in
+      // 16 Tagen) — alle Factory-Laeufe hingen, bevor ein Subagent dispatcht war.
+      // Umgestellt auf das einzige live Loadout gemma26-throughput (Port 8092 via
+      // llm-proxy :18235). Rueckbau auf deepseek-v4-flash erst nach Limit-Reset
+      // oder freigeschaltetem Balance-Usage.
+      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "llamacpp-local/gemma26-throughput",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,

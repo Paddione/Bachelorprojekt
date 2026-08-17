@@ -3981,9 +3981,39 @@
       "status": "archived"
     }
   ],
+  "T009369": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-17-T009369",
+      "status": "plan_staged"
+    }
+  ],
   "T011498": [
     {
       "slug": "2026-08-17-sdlc-deck-leiste-overflow",
+      "status": "archived"
+    }
+  ],
+  "T011499": [
+    {
+      "slug": "2026-08-17-sdlc-deck-leiste-resize",
+      "status": "archived"
+    }
+  ],
+  "T011500": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-handle-fix",
+      "status": "archived"
+    }
+  ],
+  "T011501": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-freeze-fix",
+      "status": "archived"
+    }
+  ],
+  "T011580": [
+    {
+      "slug": "2026-08-18-fix-alibaba-token-key-guard-tmpdir",
       "status": "archived"
     }
   ],

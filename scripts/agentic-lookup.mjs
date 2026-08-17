@@ -3,7 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
-import yaml from 'js-yaml';
+import * as yamlPkg from 'js-yaml';
+const yaml = yamlPkg.default ?? yamlPkg;
 
 const argv = process.argv.slice(2);
 const verb = argv[0];

@@ -5362,3 +5362,7 @@ tasks:
   # ─────────────────────────────────────────────
   # End of tasks
   # ─────────────────────────────────────────────
+  design:check-sync:
+    desc: "Check if design tokens in design/leitstand-ds/_tokens.css are in sync with components/website/src/styles/sdlc-leitstand.css"
+    cmds:
+      - node design/leitstand-ds/check-sync.mjs

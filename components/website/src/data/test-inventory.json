@@ -2814,6 +2814,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-e2e",
+    "file": "tests/spec/dev-flow-e2e.bats",
+    "category": "dev-flow-e2e",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-execute",
     "file": "tests/spec/dev-flow-execute.bats",
     "category": "dev-flow-execute",
@@ -4778,6 +4784,12 @@
   {
     "id": "software-factory/factory-claims-lock-before-write",
     "file": "tests/spec/software-factory/factory-claims-lock-before-write.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/factory-e2e-pipeline-coverage",
+    "file": "tests/spec/software-factory/factory-e2e-pipeline-coverage.bats",
     "category": "software-factory",
     "kind": "shell"
   },

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1065,
+      "file_count": 1066,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -801,6 +801,7 @@
         "tests/spec/sdlc-cockpit/public-assets-no-server-code.bats",
         "tests/spec/sdlc-cockpit/rail-representation.bats",
         "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+        "tests/spec/sdlc-cockpit/sdlc-leitstand-tokens.bats",
         "tests/spec/sdlc-cockpit/write-token-removed.bats",
         "tests/spec/sdlc-isolation/build-target-split.bats",
         "tests/spec/sdlc-isolation/e2-local-stack.bats",

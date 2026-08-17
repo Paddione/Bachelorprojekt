@@ -47,12 +47,46 @@ ensure_pr() {
   local title
   title="$(git -C "$dir" log --format=%s origin/main..HEAD 2>/dev/null \
     | grep -vE '^chore\(plans\):' | grep -vE '^chore: anchor branch ' | tail -1)"
-  [[ -n "$title" ]] || title="fix: ${ext_id} Factory-Implementierung"
+  if [[ -z "$title" ]]; then
+    # Fallback auf Ticket-Metadaten
+    local t_data t_type t_title
+    t_data="$(bash "$dir/scripts/ticket.sh" get --id "$ext_id" 2>/dev/null || true)"
+    t_type="$(printf '%s' "$t_data" | jq -r '.type // empty' 2>/dev/null || true)"
+    t_title="$(printf '%s' "$t_data" | jq -r '.title // empty' 2>/dev/null || true)"
+    [[ -n "$t_type" ]] || t_type="fix"
+    [[ -n "$t_title" ]] || t_title="Factory-Implementierung"
+    title="${t_type}: ${t_title} [${ext_id}]"
+  elif [[ "$title" != *"[${ext_id}]"* ]]; then
+    title="${title} [${ext_id}]"
+  fi
+
+  local t_desc body
+  t_desc="$(bash "$dir/scripts/ticket.sh" get --id "$ext_id" 2>/dev/null | jq -r '.description // empty' 2>/dev/null || true)"
+  if [[ -n "$t_desc" ]]; then
+    body="## Context
+Software Factory (opencode-Executor) — Ticket [${ext_id}].
+
+${t_desc}
+
+## Summary of Changes
+- Automated implementation executed by Software Factory for ticket ${ext_id}.
+
+## Verification
+- Automated tests and verification gates passed in Software Factory worktree."
+  else
+    body="## Context
+Software Factory (opencode-Executor) — Ticket [${ext_id}].
+
+## Summary of Changes
+- Automated implementation executed by Software Factory for ticket ${ext_id}.
+
+## Verification
+- Automated tests and verification gates passed in Software Factory worktree."
+  fi
+
   ( cd "$dir" && gh pr create --base main --head "$branch" \
       --title "$title" \
-      --body "Software Factory (opencode-Executor) — Ticket ${ext_id}.
-
-Automatisch geöffnet von scripts/factory/pr-ready.sh nach verifiziertem Implementierungs-Commit [T011543]." ) || {
+      --body "$body" ) || {
     echo "pr-ready: gh pr create für $branch fehlgeschlagen — nächster Tick versucht erneut" >&2
     return 1
   }

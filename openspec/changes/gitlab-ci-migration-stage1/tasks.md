@@ -17,17 +17,23 @@ _Ticket: T011790_
 ## File Structure
 
 ```
-NEU  .gitlab-ci.yml                                          GitLab-Pipeline, 3 Kern-Jobs
-NEU  .github/workflows/mirror-to-gitlab.yml                  Push-Mirror GitHub → GitLab
-NEU  scripts/gitlab-runner-setup.sh                          Runner-Registrierung (+ --dry-run)
-NEU  docs/runbooks/gitlab-runner.md                          Betrieb + Fallback-Umschaltung
-NEU  tests/spec/ci-cd/gitlab-tool-parity.bats                gitleaks-Versions-Parität
-NEU  tests/spec/ci-cd/gitlab-runner-tag-routing.bats         tags: [$CI_RUNNER_TAG] statt Literal
-NEU  tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats        Dry-Run-Ausgabe des Setup-Skripts
-NEU  tests/spec/ci-cd/gitlab-mirror-workflow.bats            Mirror-Trigger und -Richtung
-NEU  tests/spec/ci-cd/gitlab-parallel-non-blocking.bats      kein GitHub-Workflow stillgelegt
-GEN  components/website/src/data/test-inventory.json         regeneriert (neue .bats-Dateien)
+.gitlab-ci.yml                                      (neu)  GitLab-Pipeline, 3 Kern-Jobs
+.github/workflows/mirror-to-gitlab.yml              (neu)  Push-Mirror GitHub → GitLab
+scripts/gitlab-runner-setup.sh                      (neu)  Runner-Registrierung (+ --dry-run)
+docs/runbooks/gitlab-runner.md                      (neu)  Betrieb + Fallback-Umschaltung
+tests/spec/ci-cd/gitlab-tool-parity.bats            (neu)  gitleaks-Versions-Parität
+tests/spec/ci-cd/gitlab-runner-tag-routing.bats     (neu)  Tag-Routing statt Literal
+tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats    (neu)  Dry-Run-Ausgabe des Setup-Skripts
+tests/spec/ci-cd/gitlab-mirror-workflow.bats        (neu)  Mirror-Trigger und -Richtung
+tests/spec/ci-cd/gitlab-parallel-non-blocking.bats  (neu)  kein GitHub-Workflow stillgelegt
+components/website/src/data/test-inventory.json     (generiert, durch die neuen .bats-Dateien)
 ```
+
+Der Pfad steht in jeder Zeile zuerst: Die touched-files-Ableitung liest das erste Feld einer
+Zeile als Repo-Pfad, ein vorangestelltes Statuswort macht sie unbrauchbar. Die Pipeline-Datei
+in der Repo-Wurzel erscheint dabei nicht in der abgeleiteten Liste — neue Dateien ohne
+Verzeichnisanteil erkennt die Ableitung nicht. Für die Konflikterkennung ist das folgenlos, da
+kein anderer offener Plan diese Datei berührt.
 
 Alle Produktivdateien sind neu — es wird keine bestehende Datei geändert. Deshalb wird für
 keine Datei ein Zeilen-Budget beansprucht (plan-lint B1a: „when unsure, claim no number").

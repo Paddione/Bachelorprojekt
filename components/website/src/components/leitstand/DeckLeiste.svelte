@@ -1,6 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { parseLeitstandQuery, toLeitstandQuery } from '../../lib/sdlc/leitstand-url';
+  import {
+    clampDeckWidth,
+    widthFromPointer,
+    DECK_WIDTH_DEFAULT,
+    DECK_WIDTH_STEP,
+    DECK_WIDTH_MIN,
+    DECK_WIDTH_MAX,
+    DECK_WIDTH_STORAGE_KEY,
+  } from '../../lib/sdlc/deck-resize';
   import DeckQualitaet from './decks/DeckQualitaet.svelte';
   import DeckPlattform from './decks/DeckPlattform.svelte';
   import DeckKi from './decks/DeckKi.svelte';
@@ -34,12 +43,100 @@
       active = isDeckId(sel.deck) ? sel.deck : DEFAULT_DECK;
     });
   });
+
+  // T011499: Resize-Handle am linken Rand der DeckLeiste. Setzt nur die
+  // CSS-Var --ls-deck-width auf #cockpit-root -- cockpit.astro konsumiert
+  // sie in der .ls-main-Grid-Spalte (clamp(240px, var(--ls-deck-width,
+  // 320px), 640px)). Pointer Events + setPointerCapture statt HTML5-DnD
+  // (Spec-Konvention, siehe design.md).
+  let deckWidth = $state(DECK_WIDTH_DEFAULT);
+  let resizing = false;
+
+  function applyDeckWidth(px: number) {
+    deckWidth = clampDeckWidth(px);
+    document
+      .getElementById('cockpit-root')
+      ?.style.setProperty('--ls-deck-width', `${deckWidth}px`);
+  }
+
+  function persistDeckWidth(px: number) {
+    try {
+      localStorage.setItem(DECK_WIDTH_STORAGE_KEY, String(px));
+    } catch {}
+  }
+
+  function clearPersistedDeckWidth() {
+    try {
+      localStorage.removeItem(DECK_WIDTH_STORAGE_KEY);
+    } catch {}
+  }
+
+  function onResizePointerDown(e: PointerEvent) {
+    resizing = true;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function onResizePointerMove(e: PointerEvent) {
+    if (!resizing) return;
+    applyDeckWidth(widthFromPointer(e.clientX, window.innerWidth));
+  }
+
+  function onResizePointerUp(e: PointerEvent) {
+    if (!resizing) return;
+    resizing = false;
+    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    persistDeckWidth(deckWidth);
+  }
+
+  function onResizeDoubleClick() {
+    resizing = false;
+    applyDeckWidth(DECK_WIDTH_DEFAULT);
+    clearPersistedDeckWidth();
+  }
+
+  function onResizeKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      applyDeckWidth(deckWidth + DECK_WIDTH_STEP);
+      persistDeckWidth(deckWidth);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      applyDeckWidth(deckWidth - DECK_WIDTH_STEP);
+      persistDeckWidth(deckWidth);
+    }
+  }
+
+  onMount(() => {
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(DECK_WIDTH_STORAGE_KEY);
+    } catch {}
+    applyDeckWidth(clampDeckWidth(stored !== null ? Number(stored) : undefined));
+  });
 </script>
 
 <!-- Z5 (Kontrakt C): genau ein Deck ist gemountet -- die {#if}-Kette haelt
      inaktive Decks aus dem DOM, damit keine ihrer onMount-Fetches feuert
      (D11, p2 Task 5). -->
 <nav class="deck-leiste" data-testid="leitstand-deck-leiste" data-purpose-id="deck-leiste">
+  <div
+    class="deck-leiste__resize"
+    data-testid="deck-leiste-resize"
+    role="separator"
+    aria-orientation="vertical"
+    aria-label="Deck-Leiste Breite anpassen"
+    aria-valuemin={DECK_WIDTH_MIN}
+    aria-valuemax={DECK_WIDTH_MAX}
+    aria-valuenow={deckWidth}
+    tabindex="0"
+    onpointerdown={onResizePointerDown}
+    onpointermove={onResizePointerMove}
+    onpointerup={onResizePointerUp}
+    onpointercancel={onResizePointerUp}
+    ondblclick={onResizeDoubleClick}
+    onkeydown={onResizeKeydown}
+  ></div>
+
   <div class="deck-leiste__tabs">
     {#each DECKS as deck}
       <button
@@ -70,12 +167,43 @@
 
 <style>
   .deck-leiste {
+    position: relative;
     display: flex;
     flex-direction: column;
     background: var(--ls-surface-base, #0e1117);
     border-left: 1px solid var(--ls-line, #1d232c);
     min-height: 0;
     overflow-y: auto;
+  }
+
+  .deck-leiste__resize {
+    position: absolute;
+    top: 0;
+    left: -4px;
+    width: 8px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+    z-index: 2;
+  }
+
+  .deck-leiste__resize::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 3px;
+    width: 2px;
+    height: 100%;
+    background: var(--ls-line, #1d232c);
+  }
+
+  .deck-leiste__resize:hover::after,
+  .deck-leiste__resize:focus-visible::after {
+    background: var(--ls-signal-info, #4c8dff);
+  }
+
+  .deck-leiste__resize:focus-visible {
+    outline: none;
   }
 
   .deck-leiste__tabs {
@@ -123,6 +251,10 @@
     .deck-leiste {
       border-left: none;
       border-top: 1px solid var(--ls-line, #1d232c);
+    }
+
+    .deck-leiste__resize {
+      display: none;
     }
   }
 </style>

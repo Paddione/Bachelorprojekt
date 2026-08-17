@@ -34,7 +34,7 @@ Content-Autoscaling liefert der Query-Container aus T011498. Pointer Events +
 
 ## Tasks (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der BATS-Guard liegt im Stage-Commit und ist auf
+- [x] **Failing-Test-Step (RED).** Der BATS-Guard liegt im Stage-Commit und ist auf
       diesem Branch rot (4/4 Failures an den Kern-Assertions, Anker halten).
 
 ```bash
@@ -42,7 +42,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize.bats
 # expected: FAIL (rot — das Feature ist noch nicht implementiert)
 ```
 
-- [ ] **T1 — Reine Logik `deck-resize.ts`.** Neu:
+- [x] **T1 — Reine Logik `deck-resize.ts`.** Neu:
       `components/website/src/lib/sdlc/deck-resize.ts` mit
       `export const DECK_WIDTH_MIN = 240`, `DECK_WIDTH_MAX = 640`,
       `DECK_WIDTH_DEFAULT = 320`, `DECK_WIDTH_STEP = 16`,
@@ -52,17 +52,17 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize.bats
       `export function widthFromPointer(clientX: number, innerWidth: number): number`
       (Breite = innerWidth − clientX, geklemmt).
 
-- [ ] **T2 — Vitest `deck-resize.test.ts`.** Neu, neben der Lib: Fälle für
+- [x] **T2 — Vitest `deck-resize.test.ts`.** Neu, neben der Lib: Fälle für
       Klemmen unten/oben, Default bei NaN, Runden, `widthFromPointer` an beiden
       Rändern. Stil wie bestehende Tests unter `src/lib/**/*.test.ts`.
 
-- [ ] **T3 — `cockpit.astro` Grid-Spalte.** In der `.ls-main`-Regel
+- [x] **T3 — `cockpit.astro` Grid-Spalte.** In der `.ls-main`-Regel
       (`components/website/src/pages/sdlc/cockpit.astro`)
       `grid-template-columns: 1fr minmax(240px, 320px);` ersetzen durch
       `grid-template-columns: 1fr clamp(240px, var(--ls-deck-width, 320px), 640px);`.
       Mobile-Query (`1fr`) bleibt unverändert.
 
-- [ ] **T4 — Resize-Handle in `DeckLeiste.svelte`.** Am linken Rand der Leiste ein
+- [x] **T4 — Resize-Handle in `DeckLeiste.svelte`.** Am linken Rand der Leiste ein
       Handle-Element (`class="deck-leiste__resize"`, `role="separator"`,
       `aria-orientation="vertical"`, `tabindex="0"`, `aria-valuemin/-valuemax/-valuenow`,
       `aria-label="Deck-Leiste Breite anpassen"`). Verhalten (Logik aus T1
@@ -81,7 +81,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize.bats
         Hover-/Fokus-Akzent (bestehende `--ls-*`-Tokens nutzen); in der
         `@media (max-width: 767px)`-Regel `display: none`.
 
-- [ ] **GREEN-Nachweis.** BATS-Guard grün:
+- [x] **GREEN-Nachweis.** BATS-Guard grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize.bats
@@ -92,10 +92,20 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize.bats
       werden die Karten zweispaltig, Reload behält die Breite, Doppelklick
       resettet. (Führt der Orchestrator im Browser aus.)
 
-- [ ] **Final Verification.** Die drei Pflicht-Gates:
+- [x] **Final Verification.** Die drei Pflicht-Gates:
 
 ```bash
 task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+`task test:changed` bricht am bekannten vorbestehenden Befund
+`scripts/runtime-drift-check.sh` (DB-Funktion `tickets.fn_purge_test_data`
+traegt Marker `to_regclass` nicht) ab — dieser Befund existiert unabhaengig
+von diesem Change auf `main` (siehe Auftragstext) und ist kein Regressions-
+Symptom dieses Feature-Branches. `pnpm vitest` ist im Worktree nicht lauffreif
+(bekannte Symlink-Falle, MEMORY `website-vitest-not-runnable-locally`) — die
+neue `deck-resize.test.ts` wird von CI ("Vitest (website)") ausgefuehrt.
+`task freshness:regenerate` + `task freshness:check` liefen sauber durch
+(Exit 0, `repo-index.json` regeneriert und committet).

@@ -2,7 +2,7 @@
 //
 // Playwright globalSetup + globalTeardown that brackets every Playwright run
 // with a hard test-data purge against the prod website DB. Both hooks call
-// POST /api/admin/systemtest/purge-all-test-data with the X-Cron-Secret
+// POST /sdlc/api/systemtest/purge-all-test-data with the X-Cron-Secret
 // header that the in-cluster CRON_SECRET also uses.
 //
 // Wired in tests/e2e/playwright.config.ts as:
@@ -25,7 +25,7 @@
 import type { FullConfig } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 
-const PURGE_PATH = '/api/admin/systemtest/purge-all-test-data';
+const PURGE_PATH = '/sdlc/api/systemtest/purge-all-test-data';
 
 function purgeUrl(): string {
   // Prefer the dedicated E2E_BASE_URL override, then fall back to WEBSITE_URL

@@ -116,6 +116,7 @@
   .deck-leiste__body {
     flex: 1;
     min-height: 0;
+    container-type: inline-size;
   }
 
   @media (max-width: 767px) {

@@ -41,6 +41,7 @@ k3d/docs-content-built/**                     merge=ours linguist-generated=true
 components/website/src/data/openspec-status.json         merge=ours linguist-generated=true
 components/website/src/data/test-inventory.json          merge=ours linguist-generated=true
 components/website/src/data/api-inventory.json           merge=ours linguist-generated=true
+design/leitstand-ds/_tokens.css                          merge=ours linguist-generated=true
 components/website/src/data/route-manifest.json          merge=ours linguist-generated=true
 components/website/src/lib/learning-assets.generated.json merge=ours linguist-generated=true
 components/website/src/lib/sdlc/goals-data.generated.json merge=ours linguist-generated=true

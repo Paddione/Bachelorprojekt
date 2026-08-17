@@ -113,6 +113,7 @@ _FRESHNESS_FILES=(
   docs/agent-guide/maps/agents-map.md
   components/website/src/lib/agent-guide.generated.json
   components/website/src/lib/platform-descriptions.generated.json
+  design/leitstand-ds/_tokens.css
   docs/generated/api-map.json
   docs/generated/api-surface.md
   docs/generated/blast-radius.md

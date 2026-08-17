@@ -40,12 +40,23 @@ describe('deck-resize', () => {
   });
 
   describe('widthFromPointer', () => {
-    it('berechnet die Breite als innerWidth - clientX', () => {
+    // T011500: gerechnet wird gegen die rechte Panel-Kante
+    // (getBoundingClientRect().right), nicht gegen window.innerWidth —
+    // innerWidth enthaelt die vertikale Scrollbar und liesse die Kante
+    // hinter dem Cursor herlaufen.
+    it('berechnet die Breite als rightEdge - clientX', () => {
       expect(widthFromPointer(1600, 1920)).toBe(320);
       expect(widthFromPointer(1280, 1920)).toBe(640);
     });
 
-    it('klemmt am unteren Rand (Pointer nahe am rechten Fensterrand)', () => {
+    it('folgt dem Cursor exakt, unabhaengig von einer Scrollbar-Breite', () => {
+      // rightEdge ist die Layout-Kante des Panels (z. B. 1905 bei 15px
+      // Scrollbar in einem 1920px-Fenster) — die Breite haengt nur von ihr ab.
+      expect(widthFromPointer(1600, 1905)).toBe(305);
+      expect(widthFromPointer(1600, 1920) - widthFromPointer(1600, 1905)).toBe(15);
+    });
+
+    it('klemmt am unteren Rand (Pointer nahe an der Panel-Kante)', () => {
       expect(widthFromPointer(1900, 1920)).toBe(DECK_WIDTH_MIN);
     });
 

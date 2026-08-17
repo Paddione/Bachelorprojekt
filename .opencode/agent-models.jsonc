@@ -541,9 +541,15 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      // T011579: opencode-go/deepseek-v4-flash erschoepfte am 2026-08-17 sein
+      // Monatskontingent (AI_APICallError "Monthly usage limit reached", Reset in
+      // 16 Tagen) — alle Factory-Laeufe hingen, bevor ein Subagent dispatcht war.
+      // Umgestellt auf das einzige live Loadout gemma26-throughput (Port 8092 via
+      // llm-proxy :18235). Rueckbau auf deepseek-v4-flash erst nach Limit-Reset
+      // oder freigeschaltetem Balance-Usage.
+      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "llamacpp-local/gemma26-throughput",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,

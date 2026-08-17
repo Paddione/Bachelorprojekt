@@ -16,11 +16,11 @@ status: active
 
 Das Skript wurde bereits im alten Worktree (chore/bench-guff-T008443) committed. Cherry-pick in den neuen Worktree durchgeführt.
 
-### Task 2: Script-Bereinigung (optional)
+### Task 2: Script-Bereinigung (optional) ✅
 
-Prüfen ob `LLAMA_DIR=$HOME/opt/llama-b10442` noch aktuell ist und ob das Skript in ein LLM-Benchmark-/Ops-Ticket integriert werden soll.
+`LLAMA_DIR=$HOME/opt/llama-b10442` ist weiterhin aktuell: `llama-b10442/llama-server` (build 10442) ist neuer als `llama-current` (build 10241). Der Default im Skript bleibt korrekt. Das Skript bleibt eigenständig — keine Integration in ein LLM-Benchmark-/Ops-Ticket nötig (Smoke-Test lief erfolgreich, siehe unten).
 
 ## Acceptance Criteria
 
 - [x] Script committed in Worktree
-- [ ] Script getestet (optional)
+- [x] Script getestet (Smoke-Test 2026-08-17: gemma-4-12B-it-qat-UD-Q4_K_XL, CTX=2048, PP 137 Tokens @ 11.4 tps, GEN 32 Tokens @ 4.1 tps, CPU-only, Exit 0)

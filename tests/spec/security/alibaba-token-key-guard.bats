@@ -23,11 +23,18 @@ setup() {
 
   # Positiv-Anker: ein plaintext-Key im sk-sp-…-Format MUSS einen Fund auslösen.
   # Die Fixture liegt im allowlisted Pfad tests/spec/security/fixtures/ (der
-  # Repo-Scan soll sie nicht sehen). Für den Scan wird sie nach
-  # $BATS_TEST_TMPDIR kopiert — dort wirkt die Allowlist nicht.
-  cp "$REPO_ROOT/tests/spec/security/fixtures/alibaba-token-key-leak.txt" "$BATS_TEST_TMPDIR/"
+  # Repo-Scan soll sie nicht sehen). Für den Scan wird sie in ein Verzeichnis
+  # OHNE 'tmp' im Pfad kopiert [T011580]: Seit T002554 matcht die Allowlist
+  # ".*tmp.*" auch $BATS_TEST_TMPDIR (unter /tmp) — dort wurde der Fund
+  # allowlisted und der Test lief vakuos rot (gitleaks Exit 0 statt 1).
+  # /dev/shm (tmpfs ausserhalb des Repos) matcht kein Allowlist-Muster und
+  # taucht nie im --no-git-Arbeitsbaum-Scan des Pre-Commit-Hooks auf.
+  [ -d /dev/shm ] || skip "kein /dev/shm vorhanden — Test braucht einen Scan-Pfad ohne 'tmp'-Segment"
+  SCAN_DIR="$(mktemp -d /dev/shm/alk.XXXXXX)"
+  trap 'rm -rf "$SCAN_DIR"' EXIT
+  cp "$REPO_ROOT/tests/spec/security/fixtures/alibaba-token-key-leak.txt" "$SCAN_DIR/"
   run gitleaks detect --config "$GITLEAKS_CONFIG" --no-git \
-    --source "$BATS_TEST_TMPDIR/alibaba-token-key-leak.txt" 2>&1
+    --source "$SCAN_DIR/alibaba-token-key-leak.txt" 2>&1
   [ "$status" -eq 1 ]
   [[ "$output" == *"leaks found"* ]]
 }

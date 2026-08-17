@@ -518,6 +518,46 @@ env_vars:
     required: false
     default_dev: "info"
 
+  - name: WEBSITE_PRIMARY_SERVICE
+    required: false
+    default_dev: "website"
+    description: "Primary website service name (derived from PRIMARY_FRONTEND in workspace:deploy: 'website' for astro, 'mentolder-web' for react)."
+
+  - name: COLLABORA_INGRESS_MIDDLEWARES
+    required: false
+    default_dev: ""
+    description: "Traefik ingress middleware chain for Collabora office stack on primary brand."
+
+  - name: COLLABORA_INGRESS_MIDDLEWARES_2
+    required: false
+    default_dev: ""
+    description: "Traefik ingress middleware chain for Collabora office stack on Korczewski brand."
+
+  - name: COLLABORA_INGRESS_MIDDLEWARES_KORCZEWSKI
+    required: false
+    default_dev: ""
+    description: "Alias for COLLABORA_INGRESS_MIDDLEWARES_2."
+
+  - name: COLLABORA_TLS_SECRET_2
+    required: false
+    default_dev: "korczewski-tls"
+    description: "TLS secret name for Collabora ingress on Korczewski brand."
+
+  - name: POCKET_ID_SMTP_TLS
+    required: false
+    default_dev: "none"
+    description: "SMTP TLS mode for Pocket ID ('tls', 'starttls', or 'none', derived from SMTP_SECURE + SMTP_PORT)."
+
+  - name: POCKET_ID_FALLBACK_FRONTEND_URL
+    required: false
+    default_dev: "https://auth.mentolder.de"
+    description: "Optional fallback Pocket ID frontend URL for SDLC stack."
+
+  - name: POCKET_ID_FALLBACK_URL
+    required: false
+    default_dev: "https://auth.mentolder.de"
+    description: "Optional fallback Pocket ID internal URL for SDLC stack."
+
 secrets:
   - name: STUDIO_DB_URL
     required: false

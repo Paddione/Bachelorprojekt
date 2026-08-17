@@ -1,6 +1,7 @@
 // scripts/toolset/lib/registry.mjs
 import fs from 'node:fs';
-import yaml from 'js-yaml';
+import * as yamlPkg from 'js-yaml';
+const yaml = yamlPkg.default ?? yamlPkg;
 
 export const KNOWN_PREFIXES = ['cli:', 'mcp:', 'skill:', 'agent:', 'plugin:'];
 

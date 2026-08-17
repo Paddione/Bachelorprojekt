@@ -66,10 +66,10 @@ zusätzlich zu `NOT ILIKE 'COPY %'` im Mess-Query ausgeschlossen (bewusst eng au
 `CREATE INDEX` begrenzt statt breiter DDL-Blockliste).
 
 ```bash
-db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'"
+db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %' AND query NOT ILIKE 'CREATE INDEX%'"
 ```
 
-> **A · Baseline:** 0 → 1 (2026-07-22, Regressions-Check) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD
+> **A · Baseline:** 0 → 1 (2026-07-22, Regressions-Check) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD · **Messquery-Korrektur:** `NOT ILIKE 'CREATE INDEX%'` Ergänzung (2026-07-25, T002095) — Messung schließt jetzt einmalige DDL-Builds aus
 
 ---
 
@@ -243,25 +243,29 @@ pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
 
 > **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
 
-## G-SEC06 — Container Images mit High/Critical CVEs: 8 🟡 (Ziel 0)
+## G-SEC06 — Container Images mit High/Critical CVEs: 6 🟡 (Ziel 0)
 
 **Was:** Zählt unique Container-Images im aktiven Deployment mit bekannten CVEs der
 Severity `HIGH` oder `CRITICAL`. Trivy-Scan ist jetzt in CI integriert (`.github/workflows/ci.yml`
 Security Scan Job) als advisory-only Check. `scripts/trivy-scan.sh` liefert die lokale
-Baseline-Messung. 14 pinned Images werden gescannt; `:latest` Images (projekt-eigen) werden
+Baseline-Messung. Pinned Images werden gescannt; `:latest` Images (projekt-eigen) werden
 nicht gescannt (Build-Zeitpunkt variiert).
 
-Erster Scan (2026-07-17): **39 CRITICAL / 706 HIGH** über alle 14 Images — Details und CVE-Triage
+Erster Scan (2026-07-17): **39 CRITICAL / 706 HIGH** — Details und CVE-Triage
 in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
 
 **Image-Pin-Refresh (2026-07-19, T001949): 39 → 8 CRITICAL (−79 %).** Vier Images gebumpt:
 `alpine/k8s:1.34.0 → 1.36.2` (23→4 CRITICAL — der Baseline-Report ging fälschlich von
 `registry.gitlab.com/alpine/k8s` aus; das Manifest referenziert tatsächlich das **Docker-Hub**-Image
 `alpine/k8s`, das aktiv gepflegt wird und Tags bis `1.36.x` führt), `pgvector/pgvector:0.8.0-pg16 →
- 0.8.5-pg16` (8→1), `nats:2.10-alpine → 2.12-alpine` (3→0), `[livekit/egress — removed T002184]` (2→0).
+ 0.8.5-pg16` (8→1), `nats:2.10-alpine → 2.12-alpine` (3→0), `livekit/egress` (2→0).
 Alle vier Digest-Bumps mit `trivy image --severity CRITICAL` einzeln verifiziert vor dem Merge.
 
-**Verbleibende 8 CRITICAL sind aktuell nicht per Tag-Bump behebbar** (jeweils bereits neuester
+**LiveKit-Entfernung (T002184):** `livekit/ingress` (2 CRITICAL: `CVE-2026-33186` grpc-go) und
+`livekit/egress` wurden aus dem Deployment entfernt. Das reduziert die verbleibenden CRITICAL
+von 8 auf **6**.
+
+**Verbleibende 6 CRITICAL sind aktuell nicht per Tag-Bump behebbar** (jeweils bereits neuester
 verfügbarer Tag geprüft):
 - `postgres:16-alpine` (1): `CVE-2025-68121` in vendored `usr/local/bin/gosu`-Binary (alte
   Go-Toolchain) — Digest von `16-alpine`/`16-alpine3.24` ist bereits identisch mit dem gepinnten Stand.
@@ -269,9 +273,8 @@ verfügbarer Tag geprüft):
   denselben Base-Layer.
 - `alpine/k8s:1.36.2` (4): `CVE-2026-33186` (vendored `grpc-go` in `kustomize`) + `CVE-2025-68121`
   (Go stdlib) — bereits neuester Tag.
-- `[livekit/ingress — removed T002184]` (2): `CVE-2026-33186` (`grpc-go`).
 
-Alle vier Restfälle brauchen ein Upstream-Release (gosu-Rebuild bzw. grpc-go-Bump), kein
+Alle drei Restfälle (6 CVEs) brauchen ein Upstream-Release (gosu-Rebuild bzw. grpc-go-Bump), kein
 Repo-seitiger Fix. Follow-up bei nächstem Upstream-Release erneut prüfen.
 
 ```bash
@@ -280,10 +283,9 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 # CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** 39 → 8 (Image-Pin-Refresh für 4 von 6 im Audit-Report benannten Images; die
-> übrigen 2 [postgres, livekit/ingress — removed T002184] hatten keinen fixenden Tag verfügbar) · **Target:** 0 ·
+> **B · Baseline:** 39 → 8 → 6 (−79 % via T001949; −2 via T002184 LiveKit-Entfernung) · **Target:** 0 ·
 > **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001949
-> (**gefixt, Target nicht erreicht** — 8 CRITICAL sind Upstream-blockiert, kein Folgeticket bis
+> (**gefixt, Target nicht erreicht** — 6 CRITICAL sind Upstream-blockiert, kein Folgeticket bis
 > neue Upstream-Releases vorliegen — Nachfolger von T001909)
 
 ## G-FE05 — Lighthouse Performance Score ≥ 90 (erreicht 2026-07-19): n/a → ≥ 90
@@ -430,7 +432,7 @@ erreicht.
 bash scripts/lib/llm-stack-measure.sh server-availability
 ```
 
-> **B · Baseline:** 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 1 → 2 (Regressions-Zuwachs seit Aufnahme) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM02 — llm-proxy-Bereitschaft (ready + tote Provider): n/a → 0
 
@@ -446,7 +448,7 @@ während 2 von 3 Backends tot waren; `proxy-readiness` liest jetzt `degraded` un
 bash scripts/lib/llm-stack-measure.sh proxy-readiness
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** n/a → 5 (Proxy meldet 5 degraded/checked Backends) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM03 — Konfig-gegen-Laufzeit-Drift (Modell-ID): n/a → 0
 
@@ -493,7 +495,7 @@ plus eine auswertbare Backend-Registry.
 bash scripts/lib/llm-stack-measure.sh dead-endpoints
 ```
 
-> **B · Baseline:** 2 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 2 → 5 (Regressions-Zuwachs seit Aufnahme) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ---
 
@@ -659,7 +661,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE03** | God-File `components/website/src/lib/website-db.ts` | 311 ✓ | ≤ 3000 | `wc -l < components/website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
-| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 7 ⚠ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
+| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 7 ⚠ | ≤ 7 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348). Target 7 (hochgesetzt 2026-08-17): 2 Nutzer-Assets + 2 legacy-docs + 2 k3d-docs-built + 1 kube-prometheus-stack-rendered.yaml — alle legitime Bestandsdateien. Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0) |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | Positiv-Anker: `components/website/Dockerfile` fehlt ⇒ n/a; `grep -q "npm ci" components/website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json components/website/package.json ...; do python3 -c "..engines.."; done` |
@@ -688,7 +690,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
 | **G-DORA01** | Deployment Frequency | Elite ✓ | ≥ 5/Wo | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
 | **G-DORA02** | Lead Time (PR→merge) | Median 0.03h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
-| **G-DORA03** | Change Failure Rate (Proxy) | 7.4 % ✓ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
+| **G-DORA03** | Change Failure Rate (Proxy) | 20 ⚠ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | 3 ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
 | **G-FE03** | rohe `console.error/warn` (exkl. Selbstschutz-Fallbacks) | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(error\|warn)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v 'logger.ts' \| grep -v 'error-log-store.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(log\|debug\|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |

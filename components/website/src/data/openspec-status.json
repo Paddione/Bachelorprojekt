@@ -4013,8 +4013,8 @@
   ],
   "T011580": [
     {
-      "slug": "fix-alibaba-token-key-guard-tmpdir",
-      "status": "plan_staged"
+      "slug": "2026-08-18-fix-alibaba-token-key-guard-tmpdir",
+      "status": "archived"
     }
   ],
   "TBD": [

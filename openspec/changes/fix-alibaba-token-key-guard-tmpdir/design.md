@@ -36,7 +36,7 @@ Der Test kopiert die Fixture künftig in ein Verzeichnis **ohne** `tmp`-Segment:
 ## Edge-Cases
 
 - `/dev/shm` fehlt (z. B. macOS): Guard `[ -d /dev/shm ] || skip …` — der Test skippt sauber statt zu brechen (Muster T002820).
-- tmpfs-Aufräumen: `trap 'rm -rf "$SCAN_DIR"' EXIT` — kein Müll in `/dev/shm`.
+- tmpfs-Aufräumen: `teardown()` entfernt `$SCAN_DIR` — kein Müll in `/dev/shm`. Bewusst kein `trap ... EXIT` im Testkörper: bats-core überschreibt den EXIT-trap (bats-exec-test), der trap würde nie feuern (Review-Befund 2026-08-18); teardown() läuft bei Pass UND Fail.
 - gitleaks fehlt: bestehender Guard (`command -v gitleaks || skip`) bleibt.
 - Die Fixture bleibt im Repo-Pfad allowlisted (`(?i)tests/.*fixtures/.*`) — der CI-Repo-Scan sieht sie weiterhin nicht; keine CI-Auswirkung.
 

@@ -18,6 +18,19 @@ setup() {
   GITLEAKS_CONFIG="$REPO_ROOT/.gitleaks.toml"
 }
 
+teardown() {
+  # Cleanup der Fixture-Kopie in /dev/shm. Bewusst teardown() statt
+  # 'trap ... EXIT' im Testkoerper: bats-core ueberschreibt den EXIT-trap
+  # (bats-exec-test) — der trap wuerde nie feuern und jeder Lauf leakte ein
+  # alk.*-Verzeichnis nach /dev/shm. teardown() laeuft bei Pass UND Fail.
+  # if-Block statt '&&'-Einzeiler: eine false-Bedingung als letzte Zeile der
+  # Funktion endet mit Exit 1 und bats faerbt den Test als teardown-Fehler,
+  # obwohl die Testlogik gruen war (beobachtet am 2026-08-18).
+  if [ -n "${SCAN_DIR:-}" ]; then
+    rm -rf "$SCAN_DIR"
+  fi
+}
+
 @test "gitleaks-Config erfasst das Alibaba-Token-Format (sk-separated-api-key)" {
   command -v gitleaks >/dev/null || skip "gitleaks nicht installiert (CI: security-scan-Job deckt den Scan ab)"
 
@@ -31,7 +44,6 @@ setup() {
   # taucht nie im --no-git-Arbeitsbaum-Scan des Pre-Commit-Hooks auf.
   [ -d /dev/shm ] || skip "kein /dev/shm vorhanden — Test braucht einen Scan-Pfad ohne 'tmp'-Segment"
   SCAN_DIR="$(mktemp -d /dev/shm/alk.XXXXXX)"
-  trap 'rm -rf "$SCAN_DIR"' EXIT
   cp "$REPO_ROOT/tests/spec/security/fixtures/alibaba-token-key-leak.txt" "$SCAN_DIR/"
   run gitleaks detect --config "$GITLEAKS_CONFIG" --no-git \
     --source "$SCAN_DIR/alibaba-token-key-leak.txt" 2>&1

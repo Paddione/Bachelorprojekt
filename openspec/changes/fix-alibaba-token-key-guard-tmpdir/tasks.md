@@ -67,7 +67,6 @@ Die Änderung in `tests/spec/security/alibaba-token-key-guard.bats` (Test 1, Fix
 ```bash
 [ -d /dev/shm ] || skip "kein /dev/shm vorhanden — Test braucht einen Scan-Pfad ohne 'tmp'-Segment"
 SCAN_DIR="$(mktemp -d /dev/shm/alk.XXXXXX)"
-trap 'rm -rf "$SCAN_DIR"' EXIT
 cp "$REPO_ROOT/tests/spec/security/fixtures/alibaba-token-key-leak.txt" "$SCAN_DIR/"
 run gitleaks detect --config "$GITLEAKS_CONFIG" --no-git \
   --source "$SCAN_DIR/alibaba-token-key-leak.txt" 2>&1
@@ -75,13 +74,24 @@ run gitleaks detect --config "$GITLEAKS_CONFIG" --no-git \
 [[ "$output" == *"leaks found"* ]]
 ```
 
+Cleanup über eine `teardown()`-Funktion statt `trap ... EXIT` im Testkörper (Review-Befund 2026-08-18): bats-core überschreibt den EXIT-trap des Tests (bats-exec-test) — der trap feuert nie und jeder Lauf leakte ein `alk.*`-Verzeichnis nach /dev/shm. `teardown()` läuft bei Pass UND Fail. Der if-Block (statt `&&`-Einzeiler) ist Pflicht: eine false-Bedingung als letzte Zeile endet mit Exit 1 und bats färbt den Test als teardown-Fehler, obwohl die Testlogik grün war:
+
+```bash
+teardown() {
+  if [ -n "${SCAN_DIR:-}" ]; then
+    rm -rf "$SCAN_DIR"
+  fi
+}
+```
+
 Prüfschritte:
 
 1. Diff gegen den Basis-Stand prüfen: `git diff tests/spec/security/alibaba-token-key-guard.bats` — geändert ist nur der Fixture-Scan-Pfad in Test 1 (plus Kommentar), die gitleaks-Allowlist-Datei ist nicht berührt.
-2. Testlauf (muss grün sein — beide Tests ok, Exit 0):
+2. Testlauf (muss grün sein — beide Tests ok, Exit 0) plus Cleanup-Check (teardown() darf keinen `alk.*`-Rest in /dev/shm hinterlassen):
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/security/alibaba-token-key-guard.bats
+ls -d /dev/shm/alk.* 2>/dev/null | wc -l   # erwartet 0 — teardown() räumt auf
 ```
 
 3. Committen (Change-Set inkl. Delta-Spec) — der Stage-Commit trägt `chore(plans):`, weil sein Diff nur Test-/Plan-Artefakte enthält (commit-vs-diff-Guard blockiert `fix(…)`-Präfixe für reine Test/Plan-Diffs; T001434). Der Implementer führt diesen Commit nur aus, falls der Stage-Commit ihn nicht bereits enthält:

@@ -76,7 +76,8 @@ fi
 TOOLSET_REGISTRY="$REGISTRY" TOOLSET_ROLE="$ROLE" TOOLSET_JSON="$AS_JSON" \
 node --input-type=module -e '
 import fs from "node:fs";
-import yaml from "js-yaml";
+import * as yamlPkg from "js-yaml";
+const yaml = yamlPkg.default ?? yamlPkg;
 
 const registryPath = process.env.TOOLSET_REGISTRY;
 const role = process.env.TOOLSET_ROLE;

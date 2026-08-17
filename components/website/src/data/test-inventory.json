@@ -4416,6 +4416,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/deck-resize",
+    "file": "tests/spec/sdlc-cockpit/deck-resize.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/document-tokens-only",
     "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
     "category": "sdlc-cockpit",

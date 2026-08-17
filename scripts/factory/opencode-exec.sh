@@ -105,6 +105,28 @@ fi
 # shellcheck source=scripts/factory/pr-ready.sh
 source "$HERE/pr-ready.sh"
 
+# --- Pre-Run-Orphan-Kurzschluss [T011581] -------------------------------------------
+# Die Orphan-Rettung aus T011543 sitzt im Ergebnis-Check HINTER dem opencode-
+# Aufruf: ein bereits fertig gepushtes Ticket verbrannte erst einen kompletten
+# serialisierten Orchestrator-Lauf (max_inflight=1 — drei parallele Runs teilen
+# sich einen GPU-Slot), bevor die fertige Arbeit erkannt wurde. Beobachtet
+# 2026-08-17 an T008014: Commit [T008014] seit 20:34 auf origin, danach zwei
+# volle Re-Implement-Laeufe (einer starb an einer opencode-Kompaktierung, die
+# anderen am systemd-Kill). Deshalb VOR dem Lauf: sauberer Worktree + vorhandener
+# Implementierungs-Commit => direkt zum PR-Schritt, kein LLM-Lauf.
+if [[ -z "$(git -C "$LAUNCH_DIR" status --porcelain 2>/dev/null)" ]] \
+   && has_implementation "$LAUNCH_DIR" "$EXT_ID"; then
+  echo "opencode-exec: $EXT_ID — Implementierungs-Commit [$EXT_ID] liegt bereits auf ${BRANCH}; kein erneuter Orchestrator-Lauf, direkt zum PR-Schritt [T011581]" >&2
+  phase_event done orchestrator all 0 0 already_implemented
+  if ensure_pr "$LAUNCH_DIR" "$BRANCH" "$EXT_ID"; then
+    phase_event done orchestrator pr-ready 0 0
+  else
+    phase_event blocked orchestrator pr-ready 0 0 pr_step_failed
+  fi
+  bash "$REPO/scripts/ticket.sh" retry-count reset --id "$EXT_ID" >/dev/null 2>&1 || true
+  exit 0
+fi
+
 phase_event entered orchestrator all 0 0
 
 # --- build the orchestrator prompt (manifest as a data arg — NO shell expansion) -----

@@ -2,7 +2,7 @@
 title: "sdlc-deck-resize-freeze-fix — Implementation Plan"
 ticket_id: T011501
 domains: [website]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

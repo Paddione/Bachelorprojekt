@@ -135,7 +135,7 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
   /* Z4 (Kontextzone) + Z5 (DeckLeiste) nebeneinander; mobil gestapelt. */
   .ls-main {
     display: grid;
-    grid-template-columns: 1fr minmax(240px, 320px);
+    grid-template-columns: 1fr clamp(240px, var(--ls-deck-width, 320px), 640px);
     gap: 0;
     flex: 1;
     min-height: 0;

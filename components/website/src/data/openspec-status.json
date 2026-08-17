@@ -3987,6 +3987,24 @@
       "status": "archived"
     }
   ],
+  "T011499": [
+    {
+      "slug": "2026-08-17-sdlc-deck-leiste-resize",
+      "status": "archived"
+    }
+  ],
+  "T011500": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-handle-fix",
+      "status": "archived"
+    }
+  ],
+  "T011501": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-freeze-fix",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

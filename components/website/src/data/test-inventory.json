@@ -4416,6 +4416,24 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/deck-resize",
+    "file": "tests/spec/sdlc-cockpit/deck-resize.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-freeze-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-handle-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/document-tokens-only",
     "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
     "category": "sdlc-cockpit",
@@ -4782,8 +4800,20 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-already-running",
+    "file": "tests/spec/software-factory/opencode-exec-already-running.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-binary-resolution",
     "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-pr-step",
+    "file": "tests/spec/software-factory/opencode-exec-pr-step.bats",
     "category": "software-factory",
     "kind": "shell"
   },

@@ -3989,14 +3989,14 @@
   ],
   "T011499": [
     {
-      "slug": "2026-08-17-sdlc-deck-leiste-resize",
-      "status": "archived"
+      "slug": "sdlc-deck-leiste-resize",
+      "status": "plan_staged"
     }
   ],
-  "T011500": [
+  "T011501": [
     {
-      "slug": "2026-08-17-sdlc-deck-resize-handle-fix",
-      "status": "archived"
+      "slug": "sdlc-deck-resize-freeze-fix",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

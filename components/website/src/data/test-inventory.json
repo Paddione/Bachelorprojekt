@@ -4818,6 +4818,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-prerun-shortcircuit",
+    "file": "tests/spec/software-factory/opencode-exec-prerun-shortcircuit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-result-check",
     "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
     "category": "software-factory",
@@ -4916,6 +4922,12 @@
   {
     "id": "software-factory/update-status-id-allowlist-T002906",
     "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/wakeup-pull-loud-failure",
+    "file": "tests/spec/software-factory/wakeup-pull-loud-failure.bats",
     "category": "software-factory",
     "kind": "shell"
   },

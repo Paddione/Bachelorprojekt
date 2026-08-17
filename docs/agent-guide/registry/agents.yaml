@@ -136,7 +136,7 @@ runtimes:
     note: "Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
   orchestrator:
     mode: primary
-    model: opencode-go/deepseek-v4-flash
+    model: llamacpp-local/gemma26-throughput
     write_capable: true
     note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially"
   alibaba-primary:

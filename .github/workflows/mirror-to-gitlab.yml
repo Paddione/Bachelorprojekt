@@ -1,0 +1,58 @@
+name: Mirror to GitLab
+
+# Push-Mirror GitHub -> GitLab (Etappe 1, T011790). GitLab ist ein sekundaerer,
+# nicht blockierender Spiegel — GitHub Actions bleibt SSOT und Merge-Gate.
+# Details: openspec/specs/ci-cd.md, openspec/changes/gitlab-ci-migration-stage1/design.md.
+#
+# Kein pull_request-Trigger: PR-Staende gehoeren nicht in den Spiegel. Pull-Mirroring
+# wird bewusst nicht verwendet (kostenpflichtiges gitlab.com-Feature) — die Richtung
+# ist GitHub -> GitLab per push --mirror, damit GitLab nie ein zweites schreibbares
+# Origin wird.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: mirror-to-gitlab
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Push-Mirror nach GitLab
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Ein flacher Klon laesst `git push --mirror` scheitern, weil ihm die
+          # Historie fehlt — das ist der haeufigste Fehler bei diesem Workflow-Typ.
+          fetch-depth: 0
+
+      - name: Verify mirror secrets are configured
+        env:
+          GITLAB_MIRROR_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
+          GITLAB_MIRROR_URL: ${{ secrets.GITLAB_MIRROR_URL }}
+        run: |
+          missing=""
+          [ -n "${GITLAB_MIRROR_TOKEN:-}" ] || missing="${missing} GITLAB_MIRROR_TOKEN"
+          [ -n "${GITLAB_MIRROR_URL:-}" ] || missing="${missing} GITLAB_MIRROR_URL"
+          if [ -n "$missing" ]; then
+            echo "ERROR: fehlende Secret(s):${missing} — Mirror wird NICHT ausgefuehrt" >&2
+            exit 1
+          fi
+          echo "Beide Mirror-Secrets sind gesetzt."
+
+      - name: Push --mirror to GitLab
+        env:
+          GITLAB_MIRROR_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
+          GITLAB_MIRROR_URL: ${{ secrets.GITLAB_MIRROR_URL }}
+        run: |
+          set -euo pipefail
+          # Das Token darf nicht ins Log geraten: die Remote-URL wird aus
+          # Umgebungsvariablen zusammengesetzt, nie per echo ausgegeben oder als
+          # Literal in eine run-Zeile geschrieben.
+          host="${GITLAB_MIRROR_URL#https://}"
+          host="${host#http://}"
+          git remote add gitlab-mirror "https://oauth2:${GITLAB_MIRROR_TOKEN}@${host}"
+          git push --mirror gitlab-mirror

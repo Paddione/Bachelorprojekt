@@ -1,0 +1,82 @@
+# .gitlab-ci.yml — GitLab-CI-Spiegel (Etappe 1, T011790)
+#
+# Sekundaere, nicht blockierende Verifikation neben GitHub Actions. GitHub Actions
+# bleibt die einzige Quelle fuer Merge-Entscheidungen; kein hier definierter Job ist
+# irgendwo als Required Check hinterlegt. Details:
+#   openspec/specs/ci-cd.md
+#   openspec/changes/gitlab-ci-migration-stage1/design.md
+#   docs/runbooks/gitlab-runner.md (Betrieb, Fallback-Umschaltung)
+#
+# Diese Pipeline erhaelt Pushes ausschliesslich ueber den Mirror-Workflow
+# (.github/workflows/mirror-to-gitlab.yml), der `main` spiegelt. Ein Diff gegen
+# `main` selektiert dort nichts, deshalb laufen hier die vollen Testmengen statt
+# der GitHub-seitigen Diff-Auswahl (task test:changed / dessen Alias test:all).
+
+stages:
+  - test
+
+variables:
+  # Fallback-Mechanismus (design.md D2): jeder Job routet ueber diese Variable statt
+  # ueber einen hartkodierten Tag. Vorgabewert ist der self-hosted Runner; im
+  # Stoerfall in der GitLab-Projekt-UI auf saas-linux-small-amd64 umstellen —
+  # Projekt-Variablen haben Vorrang vor dieser Datei-Variable. Siehe
+  # docs/runbooks/gitlab-runner.md.
+  CI_RUNNER_TAG: "bachelorprojekt-local"
+  # Einzige Fundstelle der gitleaks-Version. Der Paritaets-Guard
+  # (tests/spec/ci-cd/gitlab-tool-parity.bats) liest sie aus und vergleicht sie
+  # gegen .github/workflows/ci.yml — ein Versions-Bump ohne Gegenstueck faellt auf.
+  GITLEAKS_VERSION: "8.18.2"
+
+bats-unit:
+  stage: test
+  image: ubuntu:24.04
+  tags: [$CI_RUNNER_TAG]
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash ca-certificates >/dev/null
+    - bash scripts/ci-dummy-secrets.sh
+  script:
+    - |
+      set -euo pipefail
+      ./tests/unit/lib/bats-core/bin/bats -r tests/unit/ --formatter tap | tee /tmp/bats-tap.log
+      total="$(grep -m1 -oE '^1\.\.[0-9]+' /tmp/bats-tap.log | grep -oE '[0-9]+$' || echo 0)"
+      # Leerer Lauf gilt als Fehlschlag (design.md D4) — der Mirror pusht main, eine
+      # Diff-Auswahl gegen main selektiert dort die leere Menge, und ein grüner Lauf
+      # ohne einen einzigen ausgefuehrten Test waere die gefaehrlichste Ausprägung
+      # dieser Pipeline.
+      if [ "${total:-0}" -eq 0 ]; then
+        echo "ERROR: 0 Tests ausgefuehrt — leerer Lauf gilt als Fehlschlag"
+        exit 1
+      fi
+      echo "Ausgefuehrte Tests: ${total}"
+
+manifests:
+  stage: test
+  image: ubuntu:24.04
+  tags: [$CI_RUNNER_TAG]
+  variables:
+    KUBECTL_VERSION: "v1.31.0"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates >/dev/null
+    - curl --fail -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+    - chmod +x /usr/local/bin/kubectl
+  script:
+    # tests/unit/changed-manifests.bats bleibt bewusst aussen vor: der Test ist
+    # diff-basiert und hat auf einem main-Mirror-Push keinen Bezugspunkt (design.md D4).
+    - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/dead-node-affinity.bats
+
+gitleaks:
+  stage: test
+  image: ubuntu:24.04
+  tags: [$CI_RUNNER_TAG]
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates >/dev/null
+    - curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz -C /usr/local/bin gitleaks
+    - chmod +x /usr/local/bin/gitleaks
+  script:
+    - |
+      set -euo pipefail
+      if ! gitleaks detect --config .gitleaks.toml --no-git --redact; then
+        echo "ERROR: gitleaks detected potential secrets — see findings above"
+        exit 1
+      fi
+      echo "No secrets detected by gitleaks"

@@ -267,6 +267,5 @@
   @container (max-width: 480px) {
     .kpi-row, .skeleton.kpi-row { grid-template-columns: 1fr; }
     .phase-label, .phase-val { min-width: 0; }
-    .timeline-table-wrap { overflow-x: auto; }
   }
 </style>

@@ -266,6 +266,7 @@
   @container (max-width: 480px) {
     .factory-budget-page { padding: 0.5rem; }
     .dashboard-grid { grid-template-columns: 1fr; }
+    .col-left, .col-right { min-width: 0; }
     .card { overflow-x: auto; }
   }
   .card { background: var(--admin-bg-light, #1b2330); border: 1px solid var(--admin-border, rgba(255,255,255,0.07)); border-radius: 6px; padding: 1.5rem; margin-bottom: 1.5rem; }

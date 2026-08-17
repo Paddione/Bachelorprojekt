@@ -263,4 +263,10 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
   @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 500px) { .kpi-row { grid-template-columns: 1fr; } }
+
+  @container (max-width: 480px) {
+    .kpi-row, .skeleton.kpi-row { grid-template-columns: 1fr; }
+    .phase-label, .phase-val { min-width: 0; }
+    .timeline-table-wrap { overflow-x: auto; }
+  }
 </style>

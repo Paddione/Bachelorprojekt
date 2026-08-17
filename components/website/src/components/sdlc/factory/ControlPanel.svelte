@@ -167,4 +167,16 @@
       grid-template-columns: 1fr;
     }
   }
+
+  @container (max-width: 480px) {
+    .control-panel {
+      padding: 0.5rem;
+      gap: 0.75rem;
+    }
+
+    .control-panel__grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+  }
 </style>

@@ -262,6 +262,12 @@
   .error-banner { background: color-mix(in srgb, var(--danger) 15%, transparent); border: 1px solid var(--danger); color: var(--danger); padding: 1rem; border-radius: 6px; margin-bottom: 2rem; }
   .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
   @media (min-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } }
+
+  @container (max-width: 480px) {
+    .factory-budget-page { padding: 0.5rem; }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .card { overflow-x: auto; }
+  }
   .card { background: var(--admin-bg-light, #1b2330); border: 1px solid var(--admin-border, rgba(255,255,255,0.07)); border-radius: 6px; padding: 1.5rem; margin-bottom: 1.5rem; }
   .card h2 { font-size: 16px; margin-top: 0; margin-bottom: 1rem; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
   .card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-mute, #8c96a3); margin-top: 1.5rem; margin-bottom: 0.75rem; }

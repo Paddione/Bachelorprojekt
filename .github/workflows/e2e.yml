@@ -156,7 +156,10 @@ jobs:
           # SKIP_DB_PURGE mehr: fehlt das Secret, soll der Run laut scheitern.
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           PLAYWRIGHT_WORKERS: "4"
-        run: npx playwright test
+        # Exclude korczewski projects — brand is frozen (T002602), web.korczewski.de returns 503.
+        # Without this filter, every nightly run fails on the korczewski health check before
+        # any mentolder test executes. Negation syntax: --project=!<name> excludes a project.
+        run: npx playwright test --project=!korczewski-setup --project=!korczewski
 
       # G-E2E02 / T002096: defense-in-depth post-run purge (covers timeout kill)
       - name: Post-run test-data purge (defense-in-depth)
@@ -164,7 +167,7 @@ jobs:
         if: always() && steps.gate.outputs.skip != 'true'
         run: |
           if [ -z "${CRON_SECRET:-}" ]; then echo "::warning::CRON_SECRET not set; skipping."; exit 0; fi
-          curl -fsS -X POST "${{ matrix.website_url }}/api/admin/systemtest/purge-all-test-data" \
+          curl -fsS -X POST "${{ matrix.website_url }}/sdlc/api/systemtest/purge-all-test-data" \
             -H "X-Cron-Secret: ${CRON_SECRET}" || true
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}

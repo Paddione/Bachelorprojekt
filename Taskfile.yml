@@ -1478,7 +1478,7 @@ tasks:
         # blocker, we want to know.
         echo "[test:e2e] Pre-run test-data purge against $WEBSITE_URL"
         curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
-          "$WEBSITE_URL/api/admin/systemtest/purge-all-test-data"
+          "$WEBSITE_URL/sdlc/api/systemtest/purge-all-test-data"
         echo
         # Capture playwright's exit code so a post-run purge failure can't
         # mask a real test failure.
@@ -1491,7 +1491,7 @@ tasks:
         # actual playwright result.
         echo "[test:e2e] Post-run test-data purge against $WEBSITE_URL"
         curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
-          "$WEBSITE_URL/api/admin/systemtest/purge-all-test-data" || true
+          "$WEBSITE_URL/sdlc/api/systemtest/purge-all-test-data" || true
         echo
         exit $pw_rc
 

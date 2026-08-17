@@ -18,7 +18,12 @@ RESIZE_LIB="$WEBSITE_SRC/lib/sdlc/deck-resize.ts"
   grep -qF -e '.deck-leiste__body' "$DECK_LEISTE"
   # Kern-Assertion: overflow-y: auto im __body-Regelblock
   awk '/\.deck-leiste__body \{/,/\}/' "$DECK_LEISTE" | grep -qE 'overflow-y:[[:space:]]*auto'
-  # Negativ mit Anker oben: der .deck-leiste-Regelblock traegt KEIN overflow-y mehr
+  # Positiv-Anker fuer den awk-Range selbst (T002356-M1): der extrahierte
+  # .deck-leiste-Block muss nicht-leer sein — sonst bestuende die
+  # Negativ-Assertion vakuos, wenn Formatierung/Selektor sich aendern.
+  awk '/^  \.deck-leiste \{/,/^  \}/' "$DECK_LEISTE" | grep -qF -e 'position: relative'
+  # Negativ mit Anker direkt darueber: der .deck-leiste-Regelblock traegt
+  # KEIN overflow-y mehr
   ! awk '/^  \.deck-leiste \{/,/^  \}/' "$DECK_LEISTE" | grep -qE 'overflow-y'
 }
 

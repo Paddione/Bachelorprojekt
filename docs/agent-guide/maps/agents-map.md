@@ -27,9 +27,9 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | deepseek-helper | subagent | deepseek/deepseek-v4-flash | ja | Escalation: DeepSeek-V4 Flash (1M ctx) via direct DeepSeek API [T002632] |
 | deepseek-pro | all | opencode-go/deepseek-v4-pro | ja | DeepSeek-V4 Pro (1M ctx, max reasoning effort) for deep analysis and hard refactors; tab-selectable + task-dispatchable [T002632] |
 | deepseek-pro-direct | all | deepseek/deepseek-v4-pro | ja | Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633] |
-| devstral | subagent | llamacpp-local/gemma26-factory | nein | NAME luegt ueber das Modell: faehrt seit T003204 gemma26-factory (177920 ctx, Port 8091), weil devstral-quality in allen Dimensionen dominiert war. Name bleibt als Dispatch-Schnittstelle [T003204] |
+| devstral | subagent | llamacpp-local/gemma26-throughput | nein | NAME luegt ueber das Modell: faehrt gemma26-throughput (118016 ctx, Port 8092) — Name bleibt als Dispatch-Schnittstelle [T003204] |
 | devstral-primary | primary | llamacpp-local/gemma26-factory | nein | Tab-selectable primary, seit T003204 auf gemma26-factory (Port 8091), 177920 ctx, code-quality review — devstral-quality ist abgeschaltet [T003065/T003204] |
-| gemma | subagent | llamacpp-local/gemma26-factory | nein | gemma family: Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091 (exclusiveGroup chat-gpu) [2026-08-09 T002753] |
+| gemma | subagent | llamacpp-local/gemma26-throughput | nein | gemma family: Gemma 4 26B A4B QAT UD-Q4_K_XL, Loadout gemma26-throughput auf Port 8092 (live GPU-Loadout) |
 | gemma12 | subagent | llamacpp-local/gemma12-vision | nein | gemma12 family: Gemma 4 12B QAT + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx — groesster lokaler Kontext und einziges vision-faehiges Loadout. Seit T003204 als Subagent dispatchbar (vorher nur Tab-waehlbar via gemma12-primary) |
 | gemma12-primary | primary | llamacpp-local/gemma12-vision | nein | Tab-selectable primary on gemma12-vision (Port 8089), 262144 ctx measured, vision-capable via mmproj-F16 [T003065] |
 | gemma26-primary | primary | llamacpp-local/gemma26-factory | nein | Tab-selectable primary local agent, 161024 ctx measured (np=3 -kvu q4_0 fitt 128) [T002753] |

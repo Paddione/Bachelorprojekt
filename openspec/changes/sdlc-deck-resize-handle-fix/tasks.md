@@ -31,7 +31,7 @@ Seiten-Scrollbar hinter dem Cursor, weil gegen `window.innerWidth` gerechnet wir
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der BATS-Guard liegt im Stage-Commit und ist rot
+- [x] **Failing-Test-Step (RED).** Der BATS-Guard liegt im Stage-Commit und ist rot
       (3/3 Failures an den Kern-Assertions, Positiv-Anker halten).
 
 ```bash
@@ -39,24 +39,24 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize-handle-fix
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
 ```
 
-- [ ] **Fix 1 — Scroll-Kontext.** In `DeckLeiste.svelte`: `overflow-y: auto` aus dem
+- [x] **Fix 1 — Scroll-Kontext.** In `DeckLeiste.svelte`: `overflow-y: auto` aus dem
       `.deck-leiste`-Regelblock entfernen und in den `.deck-leiste__body`-Block
       aufnehmen. Das `position: sticky` der Tabs wird dadurch wirkungslos (Tabs
       stehen jetzt außerhalb des Scroll-Containers fest) — die sticky-Deklaration
       kann entfallen.
 
-- [ ] **Fix 2 — Panel-Geometrie.** `deck-resize.ts`: Signatur auf
+- [x] **Fix 2 — Panel-Geometrie.** `deck-resize.ts`: Signatur auf
       `widthFromPointer(clientX: number, rightEdge: number)` ändern
       (Breite = rightEdge − clientX, geklemmt; Doku-Kommentar anpassen).
       In `DeckLeiste.svelte` den Drag-Pfad auf
       `widthFromPointer(e.clientX, nav.getBoundingClientRect().right)` umstellen
       (`nav` = das `.deck-leiste`-Root-Element, per `bind:this`).
 
-- [ ] **Fix 3 — Vitest nachziehen.** `deck-resize.test.ts`: Fälle auf die
+- [x] **Fix 3 — Vitest nachziehen.** `deck-resize.test.ts`: Fälle auf die
       rightEdge-Semantik umstellen (Kante folgt Cursor exakt, Klemmen an beiden
       Rändern bleibt).
 
-- [ ] **GREEN-Nachweis.** Beide BATS-Guards grün:
+- [x] **GREEN-Nachweis.** Beide BATS-Guards grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1061,
+      "file_count": 1062,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -771,6 +771,7 @@
         "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
         "tests/spec/sdlc-cockpit/daemon-token-mode.bats",
         "tests/spec/sdlc-cockpit/deck-kompakt-layout.bats",
+        "tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats",
         "tests/spec/sdlc-cockpit/deck-resize.bats",
         "tests/spec/sdlc-cockpit/document-tokens-only.bats",
         "tests/spec/sdlc-cockpit/endpoint-host-map.bats",

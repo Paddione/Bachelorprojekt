@@ -51,6 +51,7 @@
   // (Spec-Konvention, siehe design.md).
   let deckWidth = $state(DECK_WIDTH_DEFAULT);
   let resizing = false;
+  let navEl: HTMLElement | undefined = $state();
 
   function applyDeckWidth(px: number) {
     deckWidth = clampDeckWidth(px);
@@ -77,8 +78,10 @@
   }
 
   function onResizePointerMove(e: PointerEvent) {
-    if (!resizing) return;
-    applyDeckWidth(widthFromPointer(e.clientX, window.innerWidth));
+    if (!resizing || !navEl) return;
+    // Panel-Geometrie statt window.innerWidth: innerWidth enthaelt die
+    // vertikale Scrollbar, die Kante hinge sonst hinter dem Cursor (T011500).
+    applyDeckWidth(widthFromPointer(e.clientX, navEl.getBoundingClientRect().right));
   }
 
   function onResizePointerUp(e: PointerEvent) {
@@ -118,7 +121,7 @@
 <!-- Z5 (Kontrakt C): genau ein Deck ist gemountet -- die {#if}-Kette haelt
      inaktive Decks aus dem DOM, damit keine ihrer onMount-Fetches feuert
      (D11, p2 Task 5). -->
-<nav class="deck-leiste" data-testid="leitstand-deck-leiste" data-purpose-id="deck-leiste">
+<nav class="deck-leiste" data-testid="leitstand-deck-leiste" data-purpose-id="deck-leiste" bind:this={navEl}>
   <div
     class="deck-leiste__resize"
     data-testid="deck-leiste-resize"
@@ -173,7 +176,6 @@
     background: var(--ls-surface-base, #0e1117);
     border-left: 1px solid var(--ls-line, #1d232c);
     min-height: 0;
-    overflow-y: auto;
   }
 
   .deck-leiste__resize {
@@ -211,8 +213,6 @@
     gap: var(--ls-space-1, 2px);
     padding: var(--ls-space-3, 6px);
     border-bottom: 1px solid var(--ls-line, #1d232c);
-    position: sticky;
-    top: 0;
     background: var(--ls-surface-base, #0e1117);
     z-index: 1;
   }
@@ -244,6 +244,9 @@
   .deck-leiste__body {
     flex: 1;
     min-height: 0;
+    /* T011500: __body ist der Scroll-Container — nicht .deck-leiste selbst,
+       sonst scrollt/clippt der absolut positionierte Resize-Handle. */
+    overflow-y: auto;
     container-type: inline-size;
   }
 

@@ -3999,6 +3999,12 @@
       "status": "archived"
     }
   ],
+  "T011501": [
+    {
+      "slug": "sdlc-deck-resize-freeze-fix",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -4422,6 +4422,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/deck-resize-freeze-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/deck-resize-handle-fix",
     "file": "tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats",
     "category": "sdlc-cockpit",

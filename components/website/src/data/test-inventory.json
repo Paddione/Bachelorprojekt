@@ -4410,6 +4410,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/deck-kompakt-layout",
+    "file": "tests/spec/sdlc-cockpit/deck-kompakt-layout.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/document-tokens-only",
     "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
     "category": "sdlc-cockpit",

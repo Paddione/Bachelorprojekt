@@ -2067,6 +2067,29 @@ second interactive theme or a theme switcher.
 - **THEN** deck switcher, action slots and the help toggle are not displayed
 - **AND** status signals and KPI values remain readable on a light background
 
+### Requirement: Z5 deck content adapts to container width without horizontal overflow
+
+The Z5 Deck-Leiste SHALL render its deck content without horizontal overflow at any
+viewport width. The deck body SHALL be a CSS query container
+(`container-type: inline-size`), and full-width components embedded in a deck
+(ControlPanel, FactoryObservability, FactoryBudgetPage) SHALL switch to single-column
+compact layouts via `@container` rules when the container is narrow, instead of
+relying on viewport media queries that never match on desktop.
+
+#### Scenario: Platform deck fits the deck column on desktop
+
+- **GIVEN** the Leitstand is open on a desktop viewport with the Plattform deck active
+- **WHEN** the Z5 deck strip renders ControlPanel, FactoryObservability and FactoryBudgetPage
+- **THEN** the deck body element is a CSS query container (`container-type: inline-size`)
+- **AND** each embedded component carries an `@container` rule collapsing its grid to a single column in narrow containers
+- **AND** no horizontal page overflow is produced by the deck strip
+
+#### Scenario: Compact rules stay scoped to deck containers
+
+- **GIVEN** a component with `@container` compact rules
+- **WHEN** it is rendered outside any element with `container-type`
+- **THEN** the compact rules are inert and the component keeps its full-width layout
+
 ## Kind-Verteilung
 
 | Kind | Ticket | Status |
@@ -2134,3 +2157,5 @@ Siehe `openspec/changes/sdlc-cockpit-design/design.md`, Abschnitt „Getroffene 
 <!-- merged from change delta sdlc-cockpit.md (cb1a3c0223d3) -->
 
 <!-- merged from change delta sdlc-cockpit.md (2afbc19a1f73) -->
+
+<!-- merged from change delta sdlc-cockpit.md (645b4f76e935) -->

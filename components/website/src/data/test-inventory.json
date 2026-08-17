@@ -4800,8 +4800,20 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-already-running",
+    "file": "tests/spec/software-factory/opencode-exec-already-running.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-binary-resolution",
     "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-pr-step",
+    "file": "tests/spec/software-factory/opencode-exec-pr-step.bats",
     "category": "software-factory",
     "kind": "shell"
   },

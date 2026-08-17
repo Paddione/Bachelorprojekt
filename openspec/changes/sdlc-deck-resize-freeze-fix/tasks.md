@@ -30,7 +30,7 @@ Gutter-Reservierung.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der BATS-Guard liegt im Stage-Commit und ist
+- [x] **Failing-Test-Step (RED).** Der BATS-Guard liegt im Stage-Commit und ist
       rot (Kern-Assertion `scrollbar-gutter: stable` fehlt, Anker halten).
 
 ```bash
@@ -38,11 +38,11 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize-freeze-fix
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
 ```
 
-- [ ] **Fix.** In `components/website/src/components/leitstand/DeckLeiste.svelte`
+- [x] **Fix.** In `components/website/src/components/leitstand/DeckLeiste.svelte`
       im `.deck-leiste__body`-Regelblock `scrollbar-gutter: stable;` ergänzen
       (direkt bei `overflow-y: auto`, mit Begründungskommentar).
 
-- [ ] **GREEN-Nachweis.**
+- [x] **GREEN-Nachweis.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats

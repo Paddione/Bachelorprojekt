@@ -247,6 +247,11 @@
     /* T011500: __body ist der Scroll-Container — nicht .deck-leiste selbst,
        sonst scrollt/clippt der absolut positionierte Resize-Handle. */
     overflow-y: auto;
+    /* T011501: Gutter konstant reservieren — __body ist zugleich
+       Query-Container; eine erscheinende Scrollbar aenderte sonst die
+       Inline-Size, kippte den @container-Breakpoint und oszillierte
+       (Renderer-Stall beim Resize durch die 480px-Zone). */
+    scrollbar-gutter: stable;
     container-type: inline-size;
   }
 

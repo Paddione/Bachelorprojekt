@@ -31,7 +31,7 @@ env:
 jobs:
   auto-title:
     name: Auto-title PR from branch name
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 3
     # Skip bots (renovate, release-please) — they set correct titles already.
     if: >

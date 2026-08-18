@@ -45,7 +45,7 @@ jobs:
     # [T012414] Fork-Guard: self-hosted Runner duerfen keinen Fork-Code
     # ausfuehren (actions/checkout holt bei pull_request den PR-HEAD).
     if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       WEBSITE_URL: https://web.mentolder.de

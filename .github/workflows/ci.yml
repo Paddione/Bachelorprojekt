@@ -53,14 +53,9 @@ env:
 
   OPENSPEC_TELEMETRY: '0'
 jobs:
-  # [T012414] Jeder Job unten traegt zusaetzlich den Fork-Guard
-  #   github.event.pull_request.head.repo.full_name == github.repository
-  # Seit diese Jobs auf self-hosted Runnern laufen, wuerde ein beliebiger
-  # Fork-PR sonst seinen eigenen Code auf eigener Hardware ausfuehren:
-  # actions/checkout holt bei pull_request den PR-HEAD. Der Guard ist auf
-  # Nicht-PR-Ereignisse (push, schedule, workflow_dispatch) durchlaessig,
-  # weil github.event.pull_request dort null ist. Erzwungen von
-  # tests/spec/ci-cd/self-hosted-fork-guard.bats [T002927].
+  # [T012446] Portable Gates laufen GitHub-hosted. Dadurch koennen Fork-PRs
+  # ihre secret-freien Validierungen ausfuehren, ohne eigenen Code auf unserer
+  # Hardware zu starten. Lokale LLM-Jobs bleiben separat auf fleet-gpu.
   # ── Scoped test jobs (replaces offline-tests monolith) ─────────────
 
   test-bats:
@@ -68,11 +63,8 @@ jobs:
     # gates + API auth regression + freshness check. The core offline job
     # that most PRs hit. Does NOT need Go, kubectl, or pnpm. [T001860]
     name: BATS Unit + Quality Gates
-    if: >-
-      github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64]
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
@@ -188,11 +180,8 @@ jobs:
     # kustomize manifest validation — the ONLY job that needs kubectl.
     # Very fast setup (~1 min) + ~5s test execution. [T001860]
     name: Manifest Validation
-    if: >-
-      github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64]
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
@@ -247,11 +236,8 @@ jobs:
     # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
     # melden nach ~30s statt nach ~400s.
     name: Factory OpenSpec + Guards (fast)
-    if: >-
-      github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64]
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -286,11 +272,8 @@ jobs:
     # (CI-safe). [T002182]
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
     name: Factory spec shard ${{ matrix.shard }}
-    if: >-
-      github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64]
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       # fail-fast: false ist Absicht. Bricht ein Shard ab, sollen die anderen
@@ -462,12 +445,9 @@ jobs:
     # bestanden. Ein Aggregator ohne always() wuerde bei fehlgeschlagenen
     # needs uebersprungen und damit das Gate lautlos oeffnen.
     name: Factory + OpenSpec + Guards
-    if: >-
-      always() && github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
+    if: always() && github.event.action != 'edited'
     needs: [test-factory-openspec, test-factory-shard]
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Aggregate shard + gate results
@@ -490,11 +470,8 @@ jobs:
 
   security-scan:
     name: Security Scan
-    if: >-
-      github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64]
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -585,11 +562,8 @@ jobs:
 
   brett-typescript:
     name: Brett TypeScript
-    if: >-
-      github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64]
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -619,11 +593,8 @@ jobs:
     # ~1s, a website-feature PR runs only the affected ones. The
     # coverage gate below treats the no-changes case as a pass.
     name: Vitest (website)
-    if: >-
-      github.event.action != 'edited' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64]
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -746,11 +717,9 @@ jobs:
     # main niemand vor einer Entscheidung liest. Er auditiert ausserdem die
     # LIVE-URL web.mentolder.de, nicht den gemergten Stand — nach einem Merge
     # ist der dort noch gar nicht deployt.
-    if: >-
-      github.event.action != 'edited' && github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.action != 'edited' && github.event_name == 'pull_request'
     needs: [vitest-website]
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     # LHCI posts an advisory commit status; the built-in GITHUB_TOKEN needs
     # statuses:write to do so (no more expiring personal access token to maintain).
@@ -789,14 +758,12 @@ jobs:
 
   commit-lint:
     name: Conventional Commits
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     # 5min was too tight for the full-history checkout below on a repo with
     # many short-lived feature/chore branches — observed cancellations
     # ("The operation was canceled") mid-fetch on PR #3029 [T002049].
     timeout-minutes: 15
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'pull_request'
     steps:
       # Checkout IS needed here despite the PR-title check above being pure
       # API — the later "Validate individual commit messages" and

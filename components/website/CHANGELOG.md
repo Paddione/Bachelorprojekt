@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.285.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.1...website-v1.285.2) (2026-08-18)
+
+
+### CI/CD
+
+* **ci:** distribute portable PR gates [T012446] ([#4785](https://github.com/Paddione/Bachelorprojekt/issues/4785)) ([5cb6bcd](https://github.com/Paddione/Bachelorprojekt/commit/5cb6bcd413874b559054c0754e379870ec87ab06))
+
 ## [1.285.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.0...website-v1.285.1) (2026-08-18)
 
 

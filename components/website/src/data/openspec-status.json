@@ -4055,14 +4055,14 @@
   ],
   "T012239": [
     {
-      "slug": "fix-ci-failure-detection",
-      "status": "plan_staged"
+      "slug": "2026-08-18-fix-ci-failure-detection",
+      "status": "archived"
     }
   ],
   "T012240": [
     {
-      "slug": "finalizer-resolve-worktree-by-branch",
-      "status": "plan_staged"
+      "slug": "2026-08-18-finalizer-resolve-worktree-by-branch",
+      "status": "archived"
     }
   ],
   "TBD": [

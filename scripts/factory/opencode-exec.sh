@@ -105,6 +105,31 @@ fi
 # shellcheck source=scripts/factory/pr-ready.sh
 source "$HERE/pr-ready.sh"
 
+# --- PR-Schritt-CI-Signal (T012266) ----------------------------------------------------
+# Nach erfolgreichem ensure_pr: best-effort Check-Runs-Lesen auf dem PR-HEAD.
+# Ein PR-HEAD ohne Check-Runs (total_count=0) ist KEIN pr-ready — CI lief nie
+# (Sekundaerbefund 3 aus T012239); die CI-Erkennung haengt sonst allein am
+# Cron-Scanner babysit-prs.sh. Fail-soft: schlaegt ein gh-Call fehl, bleibt das
+# bisherige done-Event — kein Exit-Code-Wechsel. Wird von Kurzschluss- (T011581)
+# und Regulaer-Pfad gemeinsam genutzt.
+pr_ready_signal() { # <duration_s>
+  local dur_s="${1:-0}" head_oid total
+  head_oid="$(gh pr view -R Paddione/Bachelorprojekt "$BRANCH" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")"
+  if [[ -z "$head_oid" ]]; then
+    phase_event done orchestrator pr-ready "$dur_s" 0
+    return
+  fi
+  total="$(gh api "repos/Paddione/Bachelorprojekt/commits/${head_oid}/check-runs" -q '.total_count' 2>/dev/null || echo "")"
+  if [[ "$total" == "0" ]]; then
+    echo "opencode-exec: $EXT_ID — ci-never-ran: PR-HEAD hat keine Check-Runs" >&2
+    phase_event blocked orchestrator pr-ready "$dur_s" 0 ci_never_ran
+  elif [[ -n "$total" ]]; then
+    phase_event done orchestrator pr-ready "$dur_s" 0 "ci=${total}-checks"
+  else
+    phase_event done orchestrator pr-ready "$dur_s" 0
+  fi
+}
+
 # --- Pre-Run-Orphan-Kurzschluss [T011581] -------------------------------------------
 # Die Orphan-Rettung aus T011543 sitzt im Ergebnis-Check HINTER dem opencode-
 # Aufruf: ein bereits fertig gepushtes Ticket verbrannte erst einen kompletten
@@ -119,7 +144,7 @@ if [[ -z "$(git -C "$LAUNCH_DIR" status --porcelain 2>/dev/null)" ]] \
   echo "opencode-exec: $EXT_ID — Implementierungs-Commit [$EXT_ID] liegt bereits auf ${BRANCH}; kein erneuter Orchestrator-Lauf, direkt zum PR-Schritt [T011581]" >&2
   phase_event done orchestrator all 0 0 already_implemented
   if ensure_pr "$LAUNCH_DIR" "$BRANCH" "$EXT_ID"; then
-    phase_event done orchestrator pr-ready 0 0
+    pr_ready_signal 0
   else
     phase_event blocked orchestrator pr-ready 0 0 pr_step_failed
   fi
@@ -226,7 +251,7 @@ state=done; [[ $ex -ne 0 ]] && state=blocked
 # der Orphan-Erkennung oben und holt den PR nach.
 if [[ "$state" == done ]]; then
   if ensure_pr "$LAUNCH_DIR" "$BRANCH" "$EXT_ID"; then
-    phase_event done orchestrator pr-ready "$dur" 0
+    pr_ready_signal "$dur"
   else
     phase_event blocked orchestrator pr-ready "$dur" 0 pr_step_failed
   fi

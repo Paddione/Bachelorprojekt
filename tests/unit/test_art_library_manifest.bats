@@ -5,6 +5,17 @@
 
 REPO="${BATS_TEST_DIRNAME}/../.."
 
+# assets/art-library/_tooling/ hat ein eigenes package.json getrennt vom
+# Root-node_modules. Nur `task test:art-library` installiert es vorab; ein
+# direkter bats-Aufruf (GitLab-Pipeline, manueller Lauf) lief sonst in
+# ERR_MODULE_NOT_FOUND. Der Test macht sich hier selbst lauffaehig.
+setup_file() {
+  if [[ ! -d "${REPO}/assets/art-library/_tooling/node_modules" ]]; then
+    ( cd "${REPO}/assets/art-library/_tooling" && npm install --silent ) \
+      || skip "art-library tooling dependencies not installable (npm install failed)"
+  fi
+}
+
 @test "art-library validator script runs and exits zero" {
   run node "${REPO}/assets/art-library/_tooling/validate-manifest.mjs"
   echo "stdout: $output"

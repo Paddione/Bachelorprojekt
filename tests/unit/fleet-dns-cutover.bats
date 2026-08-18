@@ -23,7 +23,6 @@ setup() {
   assert_output --partial 'A|@|37.27.251.38'
   assert_output --partial 'A|@|62.238.23.79'
   assert_output --partial 'A|*|62.238.23.79'
-  assert_output --partial 'A|stream|204.168.244.104'
   assert_output --partial 'A|turn|204.168.244.104'
 }
 
@@ -46,11 +45,11 @@ setup() {
   done <<< "$output"
 }
 
-@test "plan: korczewski pins service subdomains to pk-hetzner-6" {
-  run env PROD_DOMAIN=korczewski.de STREAM_PIN_IP=37.27.251.38 \
+@test "plan: korczewski pins the turn subdomain to the configured TURN_PUBLIC_IP" {
+  run env PROD_DOMAIN=korczewski.de TURN_PUBLIC_IP=37.27.251.38 \
     bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" plan
   assert_success
-  assert_output --partial 'A|stream|37.27.251.38'
+  assert_output --partial 'A|turn|37.27.251.38'
   assert_output --partial 'A|@|204.168.244.104'
 }
 

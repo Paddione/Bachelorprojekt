@@ -19,7 +19,7 @@ load test_helper
 }
 
 @test "ingest-json.mts exits 2 with no args" {
-  run bash -c "cd '${PROJECT_DIR}/website' && npx tsx ../scripts/coaching/ingest-json.mts 2>&1; echo EXIT:\$?"
+  run bash -c "cd '${PROJECT_DIR}/components/website' && npx tsx ../../scripts/coaching/ingest-json.mts 2>&1; echo EXIT:\$?"
   assert_output --partial "EXIT:2"
   assert_output --partial "Usage:"
 }
@@ -27,6 +27,6 @@ load test_helper
 @test "ingest-json.mts exits 1 on malformed JSON content" {
   local bad_json="${BATS_TEST_TMPDIR}/bad.json"
   echo '[{"id":"x"}]' > "$bad_json"
-  run bash -c "PGHOST=127.0.0.1 PGPORT=1 cd '${PROJECT_DIR}/website' && npx tsx ../scripts/coaching/ingest-json.mts '$bad_json' test-slug 2>&1; echo EXIT:\$?"
-  assert_output --partial "content fehlt"
+  run bash -c "PGHOST=127.0.0.1 PGPORT=1 cd '${PROJECT_DIR}/components/website' && npx tsx ../../scripts/coaching/ingest-json.mts '$bad_json' test-slug 2>&1; echo EXIT:\$?"
+  assert_output --partial '"content" fehlt oder ist leer' 
 }

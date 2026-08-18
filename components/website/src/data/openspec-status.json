@@ -3999,6 +3999,12 @@
       "status": "plan_staged"
     }
   ],
+  "T008757": [
+    {
+      "slug": "fix-fa-sf-25-scheduling-cap",
+      "status": "plan_staged"
+    }
+  ],
   "T009368": [
     {
       "slug": "2026-08-18-fix-devflow-post-merge-deploy-grep",

@@ -52,19 +52,19 @@ runtimes:
   # ihr Loadout qwen3-coder-30b ist enabled: false in loadouts.json.
   gptoss:
     mode: subagent
-    model: llamacpp-local/gemma26-throughput
+    model: llamacpp-local/gemma26-factory
     write_capable: false
-    note: "NAME luegt ueber das Modell: faehrt seit T003204 gemma26-throughput (118016 ctx, Port 8092), weil gptoss-context abgeschaltet wurde. Der Name bleibt, weil er die Dispatch-Schnittstelle des Orchestrators ist — Umbenennen ist ein eigener Vorgang [T003204]"
+    note: "NAME luegt ueber das Modell: faehrt seit T012409 gemma26-factory (167168 ctx gesamt, Port 8091), weil das Gateway nur noch dieses Modell listet. Der Name bleibt, weil er die Dispatch-Schnittstelle des Orchestrators ist — Umbenennen ist ein eigener Vorgang [T003204]"
   devstral:
     mode: subagent
-    model: llamacpp-local/gemma26-throughput
+    model: llamacpp-local/gemma26-factory
     write_capable: false
-    note: "NAME luegt ueber das Modell: faehrt gemma26-throughput (118016 ctx, Port 8092) — Name bleibt als Dispatch-Schnittstelle [T003204]"
+    note: "NAME luegt ueber das Modell: faehrt gemma26-factory (167168 ctx gesamt, Port 8091) — Name bleibt als Dispatch-Schnittstelle [T003204]"
   gemma:
     mode: subagent
-    model: llamacpp-local/gemma26-throughput
+    model: llamacpp-local/gemma26-factory
     write_capable: false
-    note: "gemma family: Gemma 4 26B A4B QAT UD-Q4_K_XL, Loadout gemma26-throughput auf Port 8092 (live GPU-Loadout)"
+    note: "gemma family: Gemma 4 26B A4B IT UD-IQ4_XS, Loadout gemma26-factory auf Port 8091 (live GPU-Loadout) [T012409]"
   gemma12:
     mode: subagent
     model: llamacpp-local/gemma12-vision
@@ -86,9 +86,9 @@ runtimes:
   # den Modellwechsel, deshalb duerfen diese Agenten Subagenten dispatchen.
   gptoss-primary:
     mode: primary
-    model: llamacpp-local/gemma26-throughput
+    model: llamacpp-local/gemma26-factory
     write_capable: false
-    note: "Tab-selectable primary, seit T003204 auf gemma26-throughput (Port 8092), 118016 ctx — gptoss-context ist abgeschaltet. Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze [T003065/T003204]"
+    note: "Tab-selectable primary, seit T012409 auf gemma26-factory (Port 8091), 167168 ctx gesamt — gemma26-throughput wird vom Gateway nicht mehr gelistet. Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze [T003065/T003204]"
   devstral-primary:
     mode: primary
     model: llamacpp-local/gemma26-factory
@@ -101,9 +101,9 @@ runtimes:
     note: "Tab-selectable primary on gemma12-vision (Port 8089), 262144 ctx measured, vision-capable via mmproj-F16 [T003065]"
   gemma26-throughput-primary:
     mode: primary
-    model: llamacpp-local/gemma26-throughput
+    model: llamacpp-local/gemma26-factory
     write_capable: false
-    note: "Tab-selectable primary on gemma26-throughput (Port 8092), 118016 ctx measured, 159-169 tok/s [T003065]"
+    note: "Tab-selectable primary, seit T012409 auf gemma26-factory (Port 8091), 167168 ctx gesamt gemessen, 122-128 tok/s [T003065/T012409]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
@@ -136,7 +136,7 @@ runtimes:
     note: "Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
   orchestrator:
     mode: primary
-    model: llamacpp-local/gemma26-throughput
+    model: llamacpp-local/gemma26-factory
     write_capable: true
     note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially"
   alibaba-primary:

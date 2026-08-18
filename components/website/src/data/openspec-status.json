@@ -4067,8 +4067,8 @@
   ],
   "T012242": [
     {
-      "slug": "fix-ciwatch-failedchecks-empty",
-      "status": "plan_staged"
+      "slug": "2026-08-18-fix-ciwatch-failedchecks-empty",
+      "status": "archived"
     }
   ],
   "T012243": [

@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.284.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.2...website-v1.284.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** release-please writes into components/, CLAUDE.md guards unpinned [T012406] [T012408] ([#4770](https://github.com/Paddione/Bachelorprojekt/issues/4770)) ([226c36c](https://github.com/Paddione/Bachelorprojekt/commit/226c36cb2cc38589ebc23161fc24fb1b6555ffdf))
+* **ci:** yq, envsubst und PyYAML in den GitLab-bats-unit-Job aufnehmen [T012309] ([#4755](https://github.com/Paddione/Bachelorprojekt/issues/4755)) ([7915f15](https://github.com/Paddione/Bachelorprojekt/commit/7915f152c8a06700e40dcde692b7bea9206c7306))
+* **scripts:** add CI signal check after PR step [T012266] ([#4761](https://github.com/Paddione/Bachelorprojekt/issues/4761)) ([cb6ed2c](https://github.com/Paddione/Bachelorprojekt/commit/cb6ed2cda220e052db1985e1be0751e2746d6f41))
+* **scripts:** detect PRs where CI never ran [T012264] ([#4760](https://github.com/Paddione/Bachelorprojekt/issues/4760)) ([9ac97ed](https://github.com/Paddione/Bachelorprojekt/commit/9ac97ed174f49e9047307e25a3d5978a503f40ff))
+* **scripts:** ticket-grill Ueberschriften-Regex mawk-tauglich machen [T012310] ([#4758](https://github.com/Paddione/Bachelorprojekt/issues/4758)) ([79f7bcb](https://github.com/Paddione/Bachelorprojekt/commit/79f7bcb570a6cdf0e9b1558b1336576491ba63cb))
+* **test:** baseline-aware caps for FA-SF-25 scheduling [T008757] ([#4763](https://github.com/Paddione/Bachelorprojekt/issues/4763)) ([6fa5b0b](https://github.com/Paddione/Bachelorprojekt/commit/6fa5b0b7b6537691b10368e208cdba6025da0961))
+
+
+### Tests
+
+* **ci:** 8 veraltete Testerwartungen der GitLab-Testserie korrigieren [T011907] ([#4752](https://github.com/Paddione/Bachelorprojekt/issues/4752)) ([689651f](https://github.com/Paddione/Bachelorprojekt/commit/689651f142a2f66d127dc693c48943df67ebdd1d))
+
 ## [1.284.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.1...website-v1.284.2) (2026-08-18)
 
 

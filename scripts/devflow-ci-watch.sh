@@ -86,9 +86,10 @@ while true; do
 
   gh pr checks "$PR_URL" --watch --interval 15 2>/dev/null || true
 
-  # [T003225] headSha-Filter: statusCheckRollup kann Checks VORGÄNGER-Commits mischen
-  # (Re-Runs nach Push). Nur Checks des aktuellen PR-HEAD zählen — fremde head-SHAs
-  # werden ignoriert. Der Filter ist Vorbedingung für jede Auswertung darunter.
+  # [T003225] Die Rot-Meldungen kommen aus der check-runs-API des PR-HEAD
+  # (commits/<oid>/check-runs?filter=latest): die URL-Bindung schließt Checks
+  # VORGÄNGER-Commits aus (Re-Runs nach Push) — fremde head-SHAs kommen gar nicht
+  # vor. Diese Bindung ist Vorbedingung für jede Auswertung darunter.
   PR_HEAD_OID="$(gh pr view "$PR_URL" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")"
   if [[ -z "$PR_HEAD_OID" ]]; then
     echo "⚠ gh pr view --json headRefOid fehlgeschlagen — PR-HEAD nicht bestimmbar, Checks können nicht sicher bewertet werden." >&2
@@ -119,6 +120,11 @@ while true; do
     sleep 15
     continue
   fi
+
+  # Leere Array-Form ([] bei null Fehlern) ist "keine Fehler" — die
+  # T003224-Gegenprobe liefe sonst auf jedem grünen Lauf und würde bei
+  # einem überholten failure-Run am selben HEAD falsch-rot eskalieren.
+  [[ "$FAILED_CHECKS" == "[]" ]] && FAILED_CHECKS=""
 
   PR_HEAD_OID=$(gh pr view "$PR_URL" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")
   TOTAL_CHECKS=$(gh api "repos/Paddione/Bachelorprojekt/commits/${PR_HEAD_OID}/check-runs" -q '.total_count' 2>/dev/null || echo "0")
@@ -158,10 +164,11 @@ while true; do
         FAILED_CHECKS=""
       fi
     else
-      # Kein failure-Run am aktuellen HEAD gefunden, obwohl das Rollup rot meldet: die
-      # Meldung stammt von einem abgebrochenen/leeren Lauf oder einem fremden HEAD —
-      # beides ist kein echter Codefehler. (Das Rollup wurde bereits auf .headSha gefiltert.)
-      echo "ℹ Rollup meldet rot, aber kein failure-Run am aktuellen HEAD — kein Codefehler, weiter beobachten."
+      # Kein failure-Run am aktuellen HEAD gefunden, obwohl die check-runs-API für
+      # diesen Commit failure meldet: die Meldung stammt von einem abgebrochenen/
+      # leeren Lauf — beides ist kein echter Codefehler. (Die check-runs-Abfrage ist
+      # per URL bereits auf den PR-HEAD gebunden.)
+      echo "ℹ check-runs meldet failure, aber kein failure-Run am aktuellen HEAD — kein Codefehler, weiter beobachten."
       FAILED_CHECKS=""
     fi
   fi
@@ -181,12 +188,12 @@ while true; do
 
   if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
     echo "❌ CI nach $MAX_CI_ATTEMPTS Versuchen noch rot — manuelles Eingreifen nötig:"
-    echo "$FAILED_CHECKS"
+    echo "$FAILED_CHECKS" | jq -r '.[]' 2>/dev/null || echo "$FAILED_CHECKS"
     exit 1
   fi
 
   echo "⚠ Fehlgeschlagene Checks:"
-  echo "$FAILED_CHECKS"
+  echo "$FAILED_CHECKS" | jq -r '.[]' 2>/dev/null || echo "$FAILED_CHECKS"
 
   if [[ -n "$FAILED_RUN_ID" ]]; then
     echo "--- CI-Logs (Run $FAILED_RUN_ID) ---"

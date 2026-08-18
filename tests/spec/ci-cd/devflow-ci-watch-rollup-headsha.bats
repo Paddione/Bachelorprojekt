@@ -128,8 +128,9 @@ teardown() {
   echo "2" > "$MARKER_DIR/mock-total-checks"
 
   # Ein failure-Run am PR-HEAD — genau das Signal, das der tote Rollup-Selector
-  # (headSha nie gefuellt) nicht liefern kann.
-  echo 'BATS Unit + Quality Gates: https://example.invalid/run' > "$MARKER_DIR/mock-check-runs-failures"
+  # (headSha nie gefuellt) nicht liefern kann. Array-Form: der echte post-jq-
+  # Output der check-runs-Abfrage (filter=latest, Wrapper-Form) bei einem Treffer.
+  echo '["BATS Unit + Quality Gates: https://example.invalid/run"]' > "$MARKER_DIR/mock-check-runs-failures"
 
   SHA="$(git -C "$WORK" rev-parse HEAD)"
   echo "$SHA" > "$MARKER_DIR/mock-head-ref-oid"
@@ -150,4 +151,44 @@ teardown() {
     || { echo "❌ Bug reproduziert: Script meldete 'alle grün' (exit 0) obwohl ein failure-Run auf dem PR-HEAD vorliegt — der tote Rollup-Selector maskiert das Rot"; false; }
   grep -q "BATS Unit + Quality Gates" <<<"$output" \
     || { echo "❌ Der fehlgeschlagene Check erscheint nicht in der Eskalationsmeldung"; false; }
+}
+
+# ── T012242: Falsch-Rot durch leeres JSON-Array ──────────────────────────────#
+# expected: FAIL (RED — `[]` ist in [[ -n ]] nicht-leer; die T003224-Gegenprobe
+# laeuft, findet den stale failure-Run am selben HEAD, und das Skript eskaliert
+# nach MAX_CI_ATTEMPTS auf einem gruenen PR — exit 1 trotz gruener Sachlage)
+#
+# Positiv-Anker (T002356-M1) im selben File: der Test darueber (T012239-Rot-Test)
+# beweist, dass die Gegenproben-Kette (run list + jobs) funktioniert, wenn
+# FAILED_CHECKS echt gefuellt ist — der D3-Test schlaegt nicht aus kaputtem
+# Testaufbau fehl.
+
+@test "T012242: leeres FAILED_CHECKS-Array ([]) darf bei stale failure-Run NICHT als rot eskalieren" {
+  echo "OPEN" > "$MARKER_DIR/pr-state"
+  echo "0" > "$MARKER_DIR/mock-rollup-pending"
+  echo "2" > "$MARKER_DIR/mock-total-checks"
+
+  # Gruene Sachlage am PR-HEAD: die check-runs-Abfrage (Array-Form) liefert bei
+  # null Fehlern exakt "[]" — den echten post-jq-Output der Wrapper-Form.
+  echo '[]' > "$MARKER_DIR/mock-check-runs-failures"
+
+  # Stale failure-Run am selben HEAD (ueberholter Workflow, T003224-Kandidat):
+  # die Gegenprobe findet ihn, seine Jobs enden weiterhin auf failure.
+  SHA="$(git -C "$WORK" rev-parse HEAD)"
+  echo "$SHA" > "$MARKER_DIR/mock-head-ref-oid"
+  printf '[{"databaseId":43,"headSha":"%s","status":"completed","conclusion":"failure"}]' "$SHA" \
+    > "$MARKER_DIR/mock-run-list"
+  echo "1" > "$MARKER_DIR/mock-jobs-failures"
+
+  run env -C "$WORK" TICKET_SH="$WORK/scripts/ticket.sh" PATH="$WORK/bin:$PATH" \
+    MAX_CI_ATTEMPTS=1 \
+    bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
+
+  # RED phase: "[]" nicht-leer → Gegenprobe → stale Run bleibt → exit 1 auf
+  #           gruenem PR → [ "$status" -eq 0 ] FAILS
+  # GREEN phase: "[]" wird als "keine Fehler" normalisiert → exit 0 "alle grün"
+  [ "$status" -eq 0 ] \
+    || { echo "❌ Bug reproduziert: leeres [] eskalierte als rot (exit $status) — die T003224-Gegenprobe invertiert auf gruenem PR"; echo "$output"; false; }
+  grep -q "alle grün" <<<"$output" \
+    || { echo "❌ Gruene Sachlage wurde nicht als grün gemeldet"; echo "$output"; false; }
 }

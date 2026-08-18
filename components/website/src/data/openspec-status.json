@@ -3969,6 +3969,12 @@
       "status": "archived"
     }
   ],
+  "T008014": [
+    {
+      "slug": "fix-devflow-post-merge-finalize-worktree-path",
+      "status": "plan_staged"
+    }
+  ],
   "T008016": [
     {
       "slug": "2026-08-16-sdlc-leitstand-e4-livedaten",
@@ -3987,6 +3993,24 @@
       "status": "plan_staged"
     }
   ],
+  "T008721": [
+    {
+      "slug": "chore-e3-review-followups",
+      "status": "plan_staged"
+    }
+  ],
+  "T009368": [
+    {
+      "slug": "2026-08-18-fix-devflow-post-merge-deploy-grep",
+      "status": "archived"
+    }
+  ],
+  "T009369": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-17-T009369",
+      "status": "plan_staged"
+    }
+  ],
   "T011498": [
     {
       "slug": "2026-08-17-sdlc-deck-leiste-overflow",
@@ -3995,8 +4019,38 @@
   ],
   "T011499": [
     {
-      "slug": "sdlc-deck-leiste-resize",
-      "status": "plan_staged"
+      "slug": "2026-08-17-sdlc-deck-leiste-resize",
+      "status": "archived"
+    }
+  ],
+  "T011500": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-handle-fix",
+      "status": "archived"
+    }
+  ],
+  "T011501": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-freeze-fix",
+      "status": "archived"
+    }
+  ],
+  "T011580": [
+    {
+      "slug": "2026-08-18-fix-alibaba-token-key-guard-tmpdir",
+      "status": "archived"
+    }
+  ],
+  "T011790": [
+    {
+      "slug": "2026-08-18-gitlab-ci-migration-stage1",
+      "status": "archived"
+    }
+  ],
+  "T011792": [
+    {
+      "slug": "2026-08-18-fix-spec-suite-leaks-website",
+      "status": "archived"
     }
   ],
   "TBD": [

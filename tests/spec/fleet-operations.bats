@@ -16,13 +16,24 @@ setup() {
   fi
 
   # Collect legacy_only keys from environments/schema.yaml
+  #
+  # [T012414] UEBER ALLE ABSCHNITTE, nicht nur 'secrets'. Vorher las diese
+  # Stelle ausschliesslich schema['secrets'] — und alle 26 WG_MESH_*-Eintraege
+  # stehen in 'setup_vars'. Ein dort gesetztes legacy_only wirkte damit
+  # NICHT, ohne dass irgendetwas es meldete: die Ausnahmeliste blieb fuer
+  # diese Namen dauerhaft leer. Aufgefallen ist es erst, als mit
+  # WG_MESH_PKL1_*/WG_MESH_PKT_* zum ersten Mal Schluessel auftraten, die im
+  # Legacy-Secret liegen und im Fleet-Secret fehlen; die GEKKO-/K3S-Pendants
+  # verdeckten den Defekt, weil sie in beiden Dateien vorhanden sind und
+  # deshalb nie in die Ausnahmepruefung liefen.
   legacy_only_keys=$(python3 -c "
 import yaml
 with open('${REPO_ROOT}/environments/schema.yaml') as f:
     schema = yaml.safe_load(f)
-for s in schema.get('secrets', []):
-    if s.get('legacy_only', False):
-        print(s['name'])
+for section in ('env_vars', 'secrets', 'setup_vars'):
+    for s in schema.get(section, []) or []:
+        if isinstance(s, dict) and s.get('legacy_only', False):
+            print(s['name'])
 " 2>/dev/null || true)
 
   for pair in "mentolder:fleet-mentolder" "korczewski:fleet-korczewski"; do

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1083,
+      "file_count": 1084,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -471,6 +471,7 @@
         "tests/spec/ci-cd/git-flow-poll-and-branch-order.bats",
         "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
         "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+        "tests/spec/ci-cd/gitlab-pipeline-check.bats",
         "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
         "tests/spec/ci-cd/gitlab-runner-tag-routing.bats",
         "tests/spec/ci-cd/gitlab-tool-parity.bats",
@@ -3497,7 +3498,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 756,
+      "file_count": 757,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3885,6 +3886,7 @@
         "scripts/git-safe-push.sh",
         "scripts/git-stash-net.sh",
         "scripts/git-worktree-health.sh",
+        "scripts/gitlab-pipeline-check.sh",
         "scripts/gitlab-runner-setup.sh",
         "scripts/gpu-lock.sh",
         "scripts/guard-pnpm-install.sh",

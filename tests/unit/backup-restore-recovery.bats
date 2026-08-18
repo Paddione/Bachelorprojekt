@@ -16,7 +16,22 @@ setup() {
 #!/usr/bin/env bash
 args="\$*"
 case "\$args" in
-  *"apply"*)  cat > "${CAPTURE}" ; exit 0 ;;
+  *"create configmap"*)
+    # cmd_recovery_verify speist eine Erfolgs-ConfigMap aus
+    # `kubectl create … --dry-run=client -o yaml | kubectl apply -f -` (T002063).
+    # Der Stub muss gueltiges YAML liefern, sonst bekommt der zweite apply einen
+    # leeren Stream und ueberschreibt das zuvor aufgenommene Job-Manifest.
+    cat <<'YAML'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recovery-verify-status
+YAML
+    exit 0 ;;
+  *"apply"*)
+    # Nur den ERSTEN apply aufnehmen; spaetere (aus Pipes) verwerfen.
+    if [[ ! -s "${CAPTURE}" ]]; then cat > "${CAPTURE}"; else cat > /dev/null; fi
+    exit 0 ;;
   *"delete"*) exit 0 ;;
   *"wait"*)   exit 0 ;;
   *"logs"*)   exit 0 ;;
@@ -27,7 +42,12 @@ case "\$args" in
       echo "recover.localhost"
     fi
     exit 0 ;;
-  *) exit 0 ;;
+  *)
+    # Laut statt still: ein stiller Default-Case verschluckt jedes kuenftige
+    # Subkommando, das das Produktskript hinzubekommt (genau so blieb der
+    # zweite kubectl-Aufruf aus T002063 monatelang unsichtbar).
+    echo "kubectl stub: unsupported invocation: \$args" >&2
+    exit 1 ;;
 esac
 EOF
   chmod +x "${FAKE_BIN}/kubectl"

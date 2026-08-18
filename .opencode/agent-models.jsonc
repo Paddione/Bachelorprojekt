@@ -64,6 +64,13 @@
             "output": 8192
           }
         },
+        "gemma12-mtp3": {
+          "name": "Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP-Drafter, 3 Slots shared KV (-kvu), Loadout gemma12-mtp3 auf Port 8088 - exclusiveGroup chat-gpu. Vision-capable.",
+          "limit": {
+            "context": 262144,
+            "output": 8192
+          }
+        },
         "gemma26-throughput": {
           "name": "Gemma 4 26B A4B QAT-Q4_K_XL (Durchsatz, Loadout gemma26-throughput auf Port 8092, gemessen 118.016 ctx, 159-169 tok/s) - exclusiveGroup chat-gpu",
           "limit": {
@@ -364,6 +371,19 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
+    // 3-Slot-Variante von gemma12: geteilter KV-Cache (-kvu), jeder Slot hat
+    // einen eigenen MTP-Drafter. q4_0 KV statt q8_0 passt mit 3 Slots in 16 GB
+    // (gemessen/kv-budget.sh: 10.087 MiB, 6.216 frei bei 262.144 ctx).
+    "gemma12-mtp3": {
+      "description": "Local subagent for gemma12-mtp3 (Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP, 3 parallel slots with shared KV cache, Loadout gemma12-mtp3 auf Port 8088, 262144 ctx, via llm-proxy :18235). Vision-capable; each slot has its own MTP draft head. Shares exclusiveGroup chat-gpu.",
+      "mode": "subagent",
+      "model": "llamacpp-local/gemma12-mtp3",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#E879F9",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
     // Primaerer (Tab-waehlbarer) Lokal-Agent auf gemma26-factory.
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
     // summonbar. Kann beliebige Subagenten dispatchen (deepseek + lokal).
@@ -447,6 +467,16 @@
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F472B6",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "gemma12-mtp3-primary": {
+      "description": "PRIMARY: Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP, 3 parallel slots shared KV (262.144 ctx). Tab-selectable singleagent on gemma12-mtp3 loadout (Port 8088). Vision-capable; each slot has its own MTP drafter. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "llamacpp-local/gemma12-mtp3",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#D946EF",
       "temperature": 0.3,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
@@ -558,6 +588,7 @@
           // nicht dispatchbar — die Liste nennt bewusst exakte Namen statt einer
           // Wildcard (Prinzip aus T002298).
           "gemma12": "allow",
+          "gemma12-mtp3": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow",

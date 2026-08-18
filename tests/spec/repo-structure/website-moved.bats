@@ -11,8 +11,19 @@
 # muss existieren — ohne den Move schlaegt er fehl), dann die Negativ-Aussagen.
 # Ohne den Anker bestuenden die Negativ-Pruefungen ueber leere Listen vakuos.
 
+# [T011792] Leak-Haertung: Die Spec-Suite laesst in manchen Ordnungen ein leeres
+# Top-Level-Website/ zurueck (kein Shell-mkdir — Verursacher nutzt einen
+# Node/cp/git-artigen Syscall; Diagnose in T011792). Der Guard darf nur den
+# LEAK wegraeumen, nie echte Regressionen maskieren: rmdir entfernt ausschliesslich
+# LEERE Verzeichnisse — ein nicht-leeres website/ bleibt stehen und der Test
+# "kein Top-Level-Verzeichnis website/ mehr" wird weiterhin rot.
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd)"
+  rmdir "$REPO_ROOT/website" 2>/dev/null || true
+}
+
+teardown() {
+  rmdir "$REPO_ROOT/website" 2>/dev/null || true
 }
 
 @test "T006999: components/website existiert (Positiv-Anker)" {

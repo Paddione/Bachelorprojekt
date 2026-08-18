@@ -4284,6 +4284,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-structure/spec-suite-website-leak",
+    "file": "tests/spec/repo-structure/spec-suite-website-leak.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
     "id": "repo-structure/website-moved",
     "file": "tests/spec/repo-structure/website-moved.bats",
     "category": "repo-structure",

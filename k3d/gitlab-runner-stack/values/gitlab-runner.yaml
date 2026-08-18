@@ -11,7 +11,7 @@ gitlabUrl: https://gitlab.com/
 # beobachtet beim ersten Render-Versuch dieser Korrektur, deshalb hier explizit
 # festgehalten. Deckelt den Manager auf "zwei parallele Jobs" (design.md D2,
 # Rechnung in namespace.yaml).
-concurrent: 2
+concurrent: 4
 
 # N1 (Nachreview T012177): KEIN Top-Level automountServiceAccountToken hier.
 # Der urspruengliche Kommentar an dieser Stelle behauptete, dieser Chart-Value

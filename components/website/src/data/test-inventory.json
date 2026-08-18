@@ -2616,6 +2616,36 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-mirror-workflow",
+    "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-parallel-non-blocking",
+    "file": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-setup-dryrun",
+    "file": "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-tag-routing",
+    "file": "tests/spec/ci-cd/gitlab-runner-tag-routing.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-tool-parity",
+    "file": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",

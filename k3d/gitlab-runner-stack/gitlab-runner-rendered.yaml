@@ -280,7 +280,6 @@ spec:
         checksum/configmap: b9d9d4127a6c0095cc7f38f8408ce3840d1f5ac5ef134a56157b56cbf64da19b
         checksum/secrets: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     spec:
-      automountServiceAccountToken: false
       securityContext: 
         fsGroup: 65533
         runAsNonRoot: true

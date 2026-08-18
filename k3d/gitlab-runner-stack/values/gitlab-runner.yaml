@@ -13,13 +13,21 @@ gitlabUrl: https://gitlab.com/
 # Rechnung in namespace.yaml).
 concurrent: 2
 
-# Der Runner-Manager selbst braucht sein ServiceAccount-Token, um ueber die Role
-# aus rbac.rules Job-Pods zu erzeugen — das ist ein anderer Mechanismus als die
-# Job-Pod-Absicherung unten (specs/ci-cd.md, Requirement "CI-Jobs erhalten keinen
-# Cluster-Zugriff"). automountServiceAccountToken templated in runners.config als
-# [runners.kubernetes] automount_service_account_token = false und wirkt dort auf
-# die vom Manager erzeugten Job-Pods, NICHT auf den Manager-Pod selbst.
-automountServiceAccountToken: false
+# N1 (Nachreview T012177): KEIN Top-Level automountServiceAccountToken hier.
+# Der urspruengliche Kommentar an dieser Stelle behauptete, dieser Chart-Value
+# wirke ueber runners.config auf die JOB-Pods und NICHT auf den Manager-Pod —
+# das war falsch. Chart-Template deployment.yaml rendert diesen Top-Level-Wert
+# direkt in die DEPLOYMENT-PodSpec (verifiziert in
+# gitlab-runner-rendered.yaml: spec.template.spec.automountServiceAccountToken).
+# Mit automountServiceAccountToken: false HIER haette der MANAGER kein
+# ServiceAccount-Token bekommen, koennte keine In-Cluster-Config bilden und
+# haette NIE einen Job-Pod erzeugt — die frisch angelegten Role/RoleBinding
+# waeren wirkungslos geblieben. Der Manager BRAUCHT sein Token, um ueber die
+# Role aus rbac.rules Job-Pods zu erzeugen. Die Job-Pod-Absicherung (specs/
+# ci-cd.md, Requirement "CI-Jobs erhalten keinen Cluster-Zugriff") ist bereits
+# korrekt und an der richtigen Stelle erledigt: automount_service_account_token
+# = false im runners.config-TOML unten ([runners.kubernetes]), wirkt NUR auf
+# die vom Manager zur Laufzeit erzeugten Job-Pods.
 
 rbac:
   create: true

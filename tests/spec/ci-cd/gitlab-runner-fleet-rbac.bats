@@ -100,11 +100,21 @@ PY
   [ "$result" = "OK" ]
 }
 
-@test "gitlab-runner-fleet-rbac: Job-Pod-Template mountet kein ServiceAccount-Token" {
+@test "gitlab-runner-fleet-rbac: Manager-Pod (Deployment gitlab-runner) behaelt sein eigenes ServiceAccount-Token" {
+  # N1/N4 (Nachreview T012177): umbenannt und geschaerft. Der alte Test hiess
+  # "Job-Pod-Template mountet kein ServiceAccount-Token", prüfte aber die
+  # MANAGER-PodSpec (Deployment gitlab-runner) — und akzeptierte
+  # `pod_level is False` als Erfolg. Genau das war N1: ein Top-Level
+  # automountServiceAccountToken: false in den Helm-Values landet in der
+  # Manager-PodSpec (Chart-Template deployment.yaml), nicht bei den Job-Pods.
+  # Ohne eigenes Token kann der Manager keine In-Cluster-Config bilden und
+  # erzeugt NIE einen Job-Pod — dieser Test haette N1 also durchgewunken statt
+  # ihn zu fangen. Er prueft jetzt das GEGENTEIL: der Manager MUSS sein Token
+  # behalten (automountServiceAccountToken darf am Manager-Pod NICHT auf false
+  # stehen). Die eigentliche Job-Pod-Absicherung hat einen eigenen Test unten.
   _render_to_file
 
-  # Positiv-Anker [T002356-M1]: das Runner-Deployment muss zuerst gefunden werden,
-  # sonst waere "kein Token gemountet" bei fehlendem Manifest vakuos wahr.
+  # Positiv-Anker [T002356-M1]: das Runner-Deployment muss zuerst gefunden werden.
   result="$(python3 - "$RENDERED_FILE" <<'PY'
 import sys
 import yaml
@@ -121,35 +131,45 @@ if not deploys:
     sys.exit()
 
 pod_spec = ((deploys[0].get("spec") or {}).get("template") or {}).get("spec") or {}
-
-# automountServiceAccountToken kann am Pod-Template ODER am ServiceAccount-Objekt
-# gesetzt sein — beide Stellen pruefen (p4-tests.md).
 pod_level = pod_spec.get("automountServiceAccountToken")
 
-sa_name = pod_spec.get("serviceAccountName") or pod_spec.get("serviceAccount")
-sa_level = None
-if sa_name:
-    for d in docs:
-        if d.get("kind") == "ServiceAccount" and (d.get("metadata") or {}).get("name") == sa_name:
-            sa_level = d.get("automountServiceAccountToken")
-            break
+print("OK" if pod_level is not False else "TOKEN_DISABLED_ON_MANAGER")
+PY
+)"
+  [ "$result" = "OK" ]
+}
 
-# Konfig-Text ("runners.config") kann automount_service_account_token = false auch
-# als [runners.kubernetes]-Feld tragen — das gilt fuer die vom Manager erzeugten
-# Job-Pods (nicht den Manager-Pod selbst) und steckt als Secret/ConfigMap-Daten im
-# gerenderten Manifest.
+@test "gitlab-runner-fleet-rbac: Job-Pods (runners.config-TOML) mounten kein ServiceAccount-Token" {
+  _render_to_file
+
+  # Positiv-Anker [T002356-M1]: die ConfigMap mit dem eingebetteten
+  # runners.config-TOML muss zuerst existieren, sonst waere "kein Token
+  # gemountet" bei fehlender Datei vakuos wahr.
+  result="$(python3 - "$RENDERED_FILE" <<'PY'
+import sys
+import yaml
+
+with open(sys.argv[1]) as fh:
+    docs = [d for d in yaml.safe_load_all(fh) if isinstance(d, dict)]
+
+# Job-Pods werden vom Manager zur Laufzeit erzeugt und stehen NICHT im
+# gerenderten Manifest — die einzige statisch pruefbare Quelle ist das
+# eingebettete runners.config-TOML ([runners.kubernetes]
+# automount_service_account_token = false), das der Manager beim Erzeugen
+# jedes Job-Pods anwendet.
+config_maps = [d for d in docs if d.get("kind") in ("Secret", "ConfigMap")]
+if not config_maps:
+    print("MISSING")
+    sys.exit()
+
 config_level = False
-for d in docs:
-    if d.get("kind") in ("Secret", "ConfigMap"):
-        data = d.get("stringData") or d.get("data") or {}
-        for v in data.values():
-            if isinstance(v, str) and "automount_service_account_token = false" in v:
-                config_level = True
+for d in config_maps:
+    data = d.get("stringData") or d.get("data") or {}
+    for v in data.values():
+        if isinstance(v, str) and "automount_service_account_token = false" in v:
+            config_level = True
 
-if pod_level is False or sa_level is False or config_level:
-    print("OK")
-else:
-    print("TOKEN_MOUNTED_OR_UNSET")
+print("OK" if config_level else "MISSING_CONFIG_KEY")
 PY
 )"
   [ "$result" = "OK" ]

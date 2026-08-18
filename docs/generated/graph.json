@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T12:15:13.123Z",
+  "generatedAt": "2026-08-18T03:35:10.957Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -150,6 +150,18 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "error-log-retention"
+    },
+    {
+      "id": "gitlab-runner",
+      "namespace": "gitlab-runner",
+      "type": "Deployment",
+      "name": "gitlab-runner"
+    },
+    {
+      "id": "registry-cache",
+      "namespace": "gitlab-runner",
+      "type": "Deployment",
+      "name": "registry-cache"
     },
     {
       "id": "knowledge-ingest-prs",
@@ -1398,6 +1410,12 @@
     {
       "from": "einvoice-sidecar",
       "to": "einvoice-sidecar",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "registry-cache",
+      "to": "registry-cache",
       "via": "selector",
       "kind": "selector"
     },

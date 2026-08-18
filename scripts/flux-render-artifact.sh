@@ -193,6 +193,11 @@ cd "$PROJECT_DIR"
   render_component prod-fleet/platform "${OUT_DIR}/platform/platform.yaml"
 )
 
+# 1c. GitLab-Runner-Stack (T012177) — kein ${VAR}-Platzhalter in
+# k3d/gitlab-runner-stack, deshalb kein vorheriges env-resolve.sh noetig.
+mkdir -p "${OUT_DIR}/gitlab-runner"
+render_component k3d/gitlab-runner-stack "${OUT_DIR}/gitlab-runner/gitlab-runner.yaml"
+
 # 1b. Dev (workspace-dev namespace)
 #
 # T002174: environments/schema.yaml:474 spezifiziert für DEV_DOMAIN
@@ -320,7 +325,7 @@ find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clus
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/gitlab-runner"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

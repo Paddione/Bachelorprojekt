@@ -28,7 +28,12 @@ _start_stub() {
   echo $!
 }
 
-_free_port() { node -e 'const s=require("net").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }
+# [T012414] String(): console.log() faerbt eine nackte Zahl ein, sobald node
+# Farbunterstuetzung erkennt. Der zurueckgegebene "Port" war dann
+# '\x1b[33m45839\x1b[39m'; Number() daraus ist NaN und der Proxy brach beim
+# Start mit ERR_SOCKET_BAD_PORT ab — der Test scheiterte deterministisch an
+# der Einfaerbung, nicht an der Sache. Semantik statt Darstellung [T002716].
+_free_port() { node -e 'const s=require("net").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }
 
 setup() {
   load 'test_helper.bash'

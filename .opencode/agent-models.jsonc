@@ -43,7 +43,8 @@
         // 2026-08-04: Familiensubagenten brauchten eigene Loadouts — gemma4
         // (Port 8090) und qwen3-coder-30b (Port 8094) lagen auf der Platte.
         // Beide teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
-        // T003204: qwen3-coder-30b ist abgeschaltet (enabled: false in
+        // T003204/T012414: qwen3-coder-30b ist abgeschaltet und aus
+        // loadouts.json entfernt (vorher nur enabled: false in
         // loadouts.json) — gleicher VRAM wie gemma26-factory bei aggressiverer
         // Quantisierung, weniger Kontext, langsamer gemessen; kein Agent
         // referenziert das Modell mehr.
@@ -294,7 +295,7 @@
     // jeder lokale Subagent den Namen der Familie, die er tatsaechlich serviert
     // (gptoss, devstral, gemma, gemma12), und der Orchestrator ruft ihn damit auf:
     // `task gemma` gibt die Gemma-Familie. T003204: die Familie qwen ist
-    // abgeschaltet — ihr Loadout qwen3-coder-30b ist enabled: false.
+    // abgeschaltet — ihr Loadout qwen3-coder-30b wurde entfernt (T012414).
     //
     // Was unveraendert gilt: der llm-proxy hat max_inflight=1, die Agenten
     // rechnen nacheinander. Mehr Namen bringen erhaltenen Kontext, nicht

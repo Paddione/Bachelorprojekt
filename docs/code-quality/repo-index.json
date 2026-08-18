@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1091,
+      "file_count": 1092,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -443,6 +443,7 @@
         "tests/spec/ci-cd/actionlint-workflow-gate.bats",
         "tests/spec/ci-cd/arbitration-scoped-kubeconfig.bats",
         "tests/spec/ci-cd/automerge-run-scope.bats",
+        "tests/spec/ci-cd/awk-interval-portability.bats",
         "tests/spec/ci-cd/bats-no-live-branch-assertion.bats",
         "tests/spec/ci-cd/brainstorm-firewall-namespace.bats",
         "tests/spec/ci-cd/branch-allowlist-ssot.bats",

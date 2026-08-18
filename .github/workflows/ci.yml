@@ -53,6 +53,14 @@ env:
 
   OPENSPEC_TELEMETRY: '0'
 jobs:
+  # [T012414] Jeder Job unten traegt zusaetzlich den Fork-Guard
+  #   github.event.pull_request.head.repo.full_name == github.repository
+  # Seit diese Jobs auf self-hosted Runnern laufen, wuerde ein beliebiger
+  # Fork-PR sonst seinen eigenen Code auf eigener Hardware ausfuehren:
+  # actions/checkout holt bei pull_request den PR-HEAD. Der Guard ist auf
+  # Nicht-PR-Ereignisse (push, schedule, workflow_dispatch) durchlaessig,
+  # weil github.event.pull_request dort null ist. Erzwungen von
+  # tests/spec/ci-cd/self-hosted-fork-guard.bats [T002927].
   # ── Scoped test jobs (replaces offline-tests monolith) ─────────────
 
   test-bats:
@@ -60,7 +68,10 @@ jobs:
     # gates + API auth regression + freshness check. The core offline job
     # that most PRs hit. Does NOT need Go, kubectl, or pnpm. [T001860]
     name: BATS Unit + Quality Gates
-    if: github.event.action != 'edited'
+    if: >-
+      github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     permissions:
@@ -111,11 +122,24 @@ jobs:
       - name: Code-quality gates (always)
         run: node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
 
+      # [T012414] Die self-hosted Runner haben kein passwortloses sudo — und
+      # sollen es nicht brauchen. Installiert wird in ein vom Runner-User
+      # beschreibbares bin-Verzeichnis, das ueber GITHUB_PATH fuer die
+      # Folgeschritte auf den PATH kommt. Ein bereits vorhandenes actionlint
+      # der gepinnten Version wird wiederverwendet.
       - name: Install actionlint (pinned)
         run: |
-          curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz \
-            | tar -xz -C /tmp actionlint
-          sudo install -m 0755 /tmp/actionlint /usr/local/bin/actionlint
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if actionlint --version 2>/dev/null | head -1 | grep -qx '1.7.7'; then
+            echo "actionlint 1.7.7 bereits vorhanden: $(command -v actionlint)"
+          else
+            curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz \
+              | tar -xz -C "$RUNNER_TEMP" actionlint
+            install -m 0755 "$RUNNER_TEMP/actionlint" "$BIN/actionlint"
+          fi
           actionlint --version
 
       - name: Workflow lint (always)
@@ -164,7 +188,10 @@ jobs:
     # kustomize manifest validation — the ONLY job that needs kubectl.
     # Very fast setup (~1 min) + ~5s test execution. [T001860]
     name: Manifest Validation
-    if: github.event.action != 'edited'
+    if: >-
+      github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 5
     steps:
@@ -172,21 +199,25 @@ jobs:
         with:
           fetch-tags: false
 
-      # [T002754] Cache the kubectl binary (~50MB download). Keyed on version
-      # so it auto-busts when we bump k8s. On cache miss, the next step
-      # downloads it. On hit, it's already in /usr/local/bin.
-      - name: Cache kubectl binary
-        id: cache-kubectl
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/kubectl
-          key: kubectl-v1.31.0-linux-amd64
-
-      - name: Install kubectl (if not cached)
-        if: steps.cache-kubectl.outputs.cache-hit != 'true'
+      # [T002754/T012414] Vorher: actions/cache auf /usr/local/bin/kubectl plus
+      # ein curl direkt dorthin. Beides setzt Schreibrechte als root voraus, die
+      # ein CI-Job nicht hat — auf self-hosted Runnern schlug der Download fehl.
+      # Beide Runner bringen kubectl ohnehin mit; geladen wird nur, wenn es
+      # wirklich fehlt, und dann in ein runner-beschreibbares Verzeichnis.
+      - name: Ensure kubectl
         run: |
-          curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
-            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if command -v kubectl >/dev/null 2>&1; then
+            echo "kubectl bereits vorhanden: $(command -v kubectl)"
+          else
+            curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+              -o "$BIN/kubectl"
+            chmod +x "$BIN/kubectl"
+          fi
+          kubectl version --client
 
       - name: Run manifest tests
         run: |
@@ -216,7 +247,10 @@ jobs:
     # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
     # melden nach ~30s statt nach ~400s.
     name: Factory OpenSpec + Guards (fast)
-    if: github.event.action != 'edited'
+    if: >-
+      github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     steps:
@@ -252,7 +286,10 @@ jobs:
     # (CI-safe). [T002182]
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
     name: Factory spec shard ${{ matrix.shard }}
-    if: github.event.action != 'edited'
+    if: >-
+      github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 20
     strategy:
@@ -425,7 +462,10 @@ jobs:
     # bestanden. Ein Aggregator ohne always() wuerde bei fehlgeschlagenen
     # needs uebersprungen und damit das Gate lautlos oeffnen.
     name: Factory + OpenSpec + Guards
-    if: always() && github.event.action != 'edited'
+    if: >-
+      always() && github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     needs: [test-factory-openspec, test-factory-shard]
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 5
@@ -450,7 +490,10 @@ jobs:
 
   security-scan:
     name: Security Scan
-    if: github.event.action != 'edited'
+    if: >-
+      github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     steps:
@@ -489,23 +532,26 @@ jobs:
           fi
           echo "All managed secret files are git-crypt-encrypted"
 
-      # [T002754] Cache the gitleaks binary to avoid re-downloading from GitHub
-      # releases on every run. The cache key includes the version so it
-      # auto-busts on upgrades. Post-restore the binary is in /usr/local/bin
-      # and the following step uses it directly.
-      - name: Cache gitleaks binary
-        id: cache-gitleaks
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/gitleaks
-          key: gitleaks-v8.18.2-linux-amd64
-
-      - name: Install gitleaks (if not cached)
-        if: steps.cache-gitleaks.outputs.cache-hit != 'true'
+      # [T002754/T012414] Vorher: actions/cache auf /usr/local/bin/gitleaks plus
+      # `sudo tar` dorthin. Beides braucht root und schlug auf den self-hosted
+      # Runnern fehl. Die gepinnte Version 8.18.2 liegt auf beiden Runnern
+      # bereits systemweit; sie wird geprueft und wiederverwendet, sonst wird in
+      # ein runner-beschreibbares Verzeichnis installiert. Die Version bleibt
+      # damit exakt gepinnt (CLAUDE.md: lokal und CI muessen dieselbe pruefen).
+      - name: Install gitleaks (pinned 8.18.2)
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
-            | sudo tar -xz -C /usr/local/bin gitleaks
-          sudo chmod +x /usr/local/bin/gitleaks
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if gitleaks version 2>/dev/null | head -1 | grep -qx '8.18.2'; then
+            echo "gitleaks 8.18.2 bereits vorhanden: $(command -v gitleaks)"
+          else
+            curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
+              | tar -xz -C "$RUNNER_TEMP" gitleaks
+            install -m 0755 "$RUNNER_TEMP/gitleaks" "$BIN/gitleaks"
+          fi
+          gitleaks version
 
       - name: Gitleaks secret scan (fail-closed)
         run: |
@@ -539,7 +585,10 @@ jobs:
 
   brett-typescript:
     name: Brett TypeScript
-    if: github.event.action != 'edited'
+    if: >-
+      github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     steps:
@@ -570,7 +619,10 @@ jobs:
     # ~1s, a website-feature PR runs only the affected ones. The
     # coverage gate below treats the no-changes case as a pass.
     name: Vitest (website)
-    if: github.event.action != 'edited'
+    if: >-
+      github.event.action != 'edited' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     steps:
@@ -694,7 +746,9 @@ jobs:
     # main niemand vor einer Entscheidung liest. Er auditiert ausserdem die
     # LIVE-URL web.mentolder.de, nicht den gemergten Stand — nach einem Merge
     # ist der dort noch gar nicht deployt.
-    if: github.event.action != 'edited' && github.event_name == 'pull_request'
+    if: >-
+      github.event.action != 'edited' && github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     needs: [vitest-website]
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
@@ -740,7 +794,9 @@ jobs:
     # many short-lived feature/chore branches — observed cancellations
     # ("The operation was canceled") mid-fetch on PR #3029 [T002049].
     timeout-minutes: 15
-    if: github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     steps:
       # Checkout IS needed here despite the PR-title check above being pure
       # API — the later "Validate individual commit messages" and

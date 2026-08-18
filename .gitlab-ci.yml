@@ -357,7 +357,17 @@ factory-shard:
     - |
       set -euo pipefail
       echo "Shard ${SPEC_SHARD}/${SPEC_SHARDS}"
-      task test:spec
+      # Dieselbe Aufteilung wie im GitHub-Gegenstueck: diff-skopiert, wo es ein
+      # Gegenueber gibt, sonst die Vollmenge. Ohne die Unterscheidung liefe der
+      # Job auf Branch-Pipelines MEHR als GitHub — vier volle Spec-Partitionen je
+      # Push, auf dem Runner, der laut Etappe-2-Messung ohnehin der Engpass ist.
+      if [ -n "${DIFF_BASE:-}" ]; then
+        echo "Auswahl: geaenderte Spec-Tests gegen ${DIFF_BASE}"
+        task test:spec:changed
+      else
+        echo "Auswahl: vollstaendige Spec-Suite (kein Diff-Gegenueber)"
+        task test:spec
+      fi
 
 brett-typescript:
   # Gegenstueck zu brett-typescript. Node 24, nicht 22: das ist die Version des

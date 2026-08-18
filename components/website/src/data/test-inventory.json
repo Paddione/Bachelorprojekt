@@ -2640,6 +2640,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-batsunit-toolchain",
+    "file": "tests/spec/ci-cd/gitlab-batsunit-toolchain.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-mirror-workflow",
     "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
     "category": "ci-cd",

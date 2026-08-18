@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1090,
+      "file_count": 1091,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -28,6 +28,7 @@
         "components/website/tests/major-deps.test.ts",
         "components/website/tests/zugferd.test.mjs",
         "tests/.gitignore",
+        "tests/CLAUDE.md",
         "tests/README.md",
         "tests/batch/batch-gap-analysis.bats",
         "tests/batch/batch-workflow-gen.bats",
@@ -3509,7 +3510,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 758,
+      "file_count": 759,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4003,6 +4004,7 @@
         "scripts/llm-proxy/strip-markers.test.mjs",
         "scripts/llm-proxy/ui/index.html",
         "scripts/llm-pull-models.sh",
+        "scripts/llm/CLAUDE.md",
         "scripts/llm/README-laptop-bge.md",
         "scripts/llm/bench-bge-embed.sh",
         "scripts/llm/bench-guff.sh",

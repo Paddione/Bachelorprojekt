@@ -26,14 +26,49 @@ metadata:
   name: gitlab-runner-limits
   namespace: gitlab-runner
 spec:
+  # B2 (Review T012177) — Neuberechnung, dokumentiert damit sie beim naechsten
+  # Anfassen nachvollziehbar bleibt (genau ihr Fehlen im urspruenglichen Plan
+  # ermoeglichte den Fehler: p1-Rechnung nahm 0,9 CPU PRO POD an, obwohl
+  # `type: Container` — die eigene Begruendung dafuer — bedeutet, dass jeder
+  # Container (build UND helper) je defaultRequest zieht, nicht der Pod als
+  # Ganzes):
+  #
+  # Requests-Budget (ResourceQuota requests.cpu = 2000m, requests.memory = 2Gi):
+  #   Basislast im Namespace (zaehlt IMMER mit, unabhaengig von Jobs):
+  #     Runner-Manager   200m /  128Mi  (values/gitlab-runner.yaml resources.requests)
+  #     registry-cache    100m /  128Mi  (registry-cache.yaml, gleicher Namespace)
+  #     Summe Basis:      300m /  256Mi
+  #   Frei fuer Job-Pods: 2000-300=1700m CPU, 2048-256=1792Mi Memory
+  #   Ein Job-Pod besteht aus 2 Containern (build + helper) — Design/p1-Begruendung
+  #   fuer `type: Container`. Ziel: ZWEI parallele Jobs = 4 Container gleichzeitig.
+  #     defaultRequest.cpu <= 1700m / 4 = 425m    -> gewaehlt: 400m (4*400=1600m, 100m Puffer)
+  #     defaultRequest.memory <= 1792Mi / 4 = 448Mi -> gewaehlt: 400Mi (4*400=1600Mi, 192Mi Puffer)
+  #
+  # Limits-Budget (ResourceQuota limits.cpu = 4000m, limits.memory = 4Gi):
+  #   Basislast (Limits, nicht Requests):
+  #     Runner-Manager   500m / 256Mi   (values/gitlab-runner.yaml resources.limits)
+  #     registry-cache   500m / 512Mi   (registry-cache.yaml limits)
+  #     Summe Basis:    1000m / 768Mi
+  #   Frei fuer Job-Pods: 4000-1000=3000m CPU, 4096-768=3328Mi Memory
+  #     default.cpu (Limit) <= 3000m / 4 = 750m    -> gewaehlt: 700m (4*700=2800m, 200m Puffer)
+  #     default.memory (Limit) <= 3328Mi / 4 = 832Mi -> gewaehlt: 700Mi (4*700=2800Mi, 528Mi Puffer)
+  #
+  # requests.cpu-Quota (2000m) bleibt unter der Haelfte der gemessenen freien
+  # Worker-Kapazitaet (4,48 CPU / 2 = 2240m) — die Rechnung senkt defaultRequest/
+  # default statt die Quota anzuheben, weil 2000m bereits konservativ innerhalb
+  # der 2240m-Obergrenze liegt (design.md D2).
+  #
+  # `runners.concurrent: 2` (values/gitlab-runner.yaml) deckelt den Manager selbst
+  # zusaetzlich auf "zwei parallele Jobs" — ohne das haette der Chart-Default
+  # (10) versucht, mehr Job-Pods zu erzeugen, als die Quota je zulaesst.
   limits:
     - type: Container
       defaultRequest:
-        cpu: 900m
-        memory: 512Mi
+        cpu: 400m
+        memory: 400Mi
       default:
-        cpu: 1500m
-        memory: 1Gi
+        cpu: 700m
+        memory: 700Mi
       max:
         cpu: "2"
         memory: 2Gi

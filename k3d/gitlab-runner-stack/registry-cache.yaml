@@ -30,6 +30,24 @@ spec:
       automountServiceAccountToken: false
       nodeSelector:
         node-type: worker
+      # B4 (Review T012177): Namespace gitlab-runner erzwingt pod-security.
+      # kubernetes.io/enforce: restricted (seit k8s 1.25) — ohne EXPLIZITEN
+      # securityContext (Pod- UND Container-Ebene) weist die Admission diesen
+      # Pod ab (runAsNonRoot, seccompProfile, allowPrivilegeEscalation,
+      # capabilities sind alle Pflichtfelder, kein "Default erlaubt"). Das
+      # offizielle registry:2-Image setzt kein USER (laeuft sonst als root) —
+      # runAsUser/fsGroup werden deshalb HIER (anders als bei den Job-Pods in
+      # values/gitlab-runner.yaml, wo das Image beliebig ist) bewusst explizit
+      # gesetzt: fsGroup sorgt dafuer, dass die Longhorn-PVC fuer die gewaehlte
+      # UID/GID beschreibbar ist. Unverifiziert gegen den laufenden Cluster —
+      # Teil der manuellen Abnahme (tasks.md).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: registry
           image: registry:2
@@ -43,6 +61,12 @@ spec:
           volumeMounts:
             - name: registry-cache-data
               mountPath: /var/lib/registry
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 1000
           resources:
             requests:
               cpu: 100m

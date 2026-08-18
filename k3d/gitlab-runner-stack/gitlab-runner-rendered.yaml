@@ -75,7 +75,7 @@ data:
       --working-directory=/home/gitlab-runner
   config.toml: |
     shutdown_timeout = 0
-    concurrent = 10
+    concurrent = 2
     check_interval = 3
     log_level = "info"
 
@@ -93,12 +93,54 @@ data:
         # namespace/image/privileged/service_account/priority_class_name gesetzt.
         priority_class_name = "ci-low"
         pull_policy = ["if-not-present"]
-        [runners.kubernetes.node_affinity]
-          [[runners.kubernetes.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms]]
-            [[runners.kubernetes.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_expressions]]
-              key = "kubernetes.io/hostname"
-              operator = "In"
-              values = ["gekko-hetzner-3", "gekko-hetzner-4"]
+        # B1 (Review T012177): Der Kubernetes-Executor kennt NUR
+        # [runners.kubernetes.affinity.node_affinity] — der vorherige Pfad
+        # [runners.kubernetes.node_affinity] (ohne "affinity") ist ein unbekannter
+        # TOML-Key und wird vom Executor STILL VERWORFEN, ohne Fehler. Ergebnis:
+        # Job-Pods hatten GAR KEINE Affinitaet und konnten auf den Control-Plane-
+        # Knoten (pk-hetzner-4/6/8, 96% CPU-Requests) landen — genau das Risiko,
+        # gegen das Design D2 gebaut ist. Verifiziert gegen die offizielle
+        # Kubernetes-Executor-Doku (docs.gitlab.com/runner/executors/kubernetes),
+        # zusaetzlich abgesichert durch den TOML-Guard in
+        # tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats (S4).
+        [runners.kubernetes.affinity]
+          [runners.kubernetes.affinity.node_affinity]
+            [runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution]
+              [[runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms]]
+                [[runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_expressions]]
+                  key = "kubernetes.io/hostname"
+                  operator = "In"
+                  values = ["gekko-hetzner-3", "gekko-hetzner-4"]
+        # B4 (Review T012177): dieselbe restricted-PSA-Pflicht wie beim
+        # Manager-Pod (siehe podSecurityContext oben) gilt fuer JEDEN Pod im
+        # Namespace — also auch fuer die vom Manager erzeugten Job-Pods
+        # (build+helper-Container). Ohne diese drei Bloecke scheitert jeder
+        # CI-Job an der Admission, bevor er ueberhaupt startet. run_as_user wird
+        # bewusst NICHT gesetzt: Job-Images sind beliebig (Job-.gitlab-ci.yml
+        # entscheidet per eigenem image:), ein fest verdrahteter UID wuerde
+        # Images brechen, die eine andere non-root-UID mitbringen. runAsNonRoot
+        # verlangt nur, dass die tatsaechliche UID des Images != 0 ist — welche
+        # UID das ist, bleibt Sache des Job-Images (Konsequenz der Wahl von
+        # "restricted" als Namespace-Policy, dokumentiert in namespace.yaml und
+        # Runbook Abschnitt 8; nicht durch dieses Partial aufloesbar).
+        [runners.kubernetes.pod_security_context]
+          run_as_non_root = true
+          [runners.kubernetes.pod_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.build_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.build_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.build_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.helper_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.helper_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.helper_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
   
 
   register-the-runner: |
@@ -235,13 +277,16 @@ spec:
         release: "gitlab-runner"
         heritage: "Helm"
       annotations:
-        checksum/configmap: 7aee2ec5af8ea96dbbe7a83a6f52b44dda4e12b510397156a8666ba168935ee2
+        checksum/configmap: b9d9d4127a6c0095cc7f38f8408ce3840d1f5ac5ef134a56157b56cbf64da19b
+        checksum/secrets: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     spec:
       automountServiceAccountToken: false
       securityContext: 
         fsGroup: 65533
         runAsNonRoot: true
         runAsUser: 100
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 3600
       priorityClassName: "ci-low"
       serviceAccountName: "gitlab-runner"
@@ -270,7 +315,7 @@ spec:
         - name: REGISTER_LOCKED
           value: "true"
         - name: RUNNER_TAG_LIST
-          value: "[bachelorprojekt-local]"
+          value: "bachelorprojekt-local"
         - name: SESSION_SERVER_ADDRESS
           value:
         livenessProbe:
@@ -293,6 +338,8 @@ spec:
         - name: "metrics"
           containerPort: 9252
         volumeMounts:
+        - name: projected-secrets
+          mountPath: /secrets
         - name: etc-gitlab-runner
           mountPath: /home/gitlab-runner/.gitlab-runner
         - name: configmaps
@@ -311,6 +358,16 @@ spec:
       - name: etc-gitlab-runner
         emptyDir:
           medium: "Memory"
+      - name: projected-secrets
+        projected:
+          sources:
+            - secret:
+                name: "gitlab-runner-secret"
+                items:
+                  - key: runner-registration-token
+                    path: runner-registration-token
+                  - key: runner-token
+                    path: runner-token
       - name: configmaps
         configMap:
           name: gitlab-runner

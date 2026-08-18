@@ -1545,6 +1545,34 @@ setup_vars:
     sealed: true
     description: "glrt-Authentication-Token fuer den fleet-GitLab-Runner (Kubernetes-Executor, Tag bachelorprojekt-local)"
     extra_namespaces:
+      # B3 (Review T012177): dest_key MUSS "runner-token" heissen — der Chart
+      # liest ausschliesslich /secrets/runner-token (projected Volume aus
+      # runners.secret: gitlab-runner-secret, siehe values/gitlab-runner.yaml).
+      # Ohne dest_key waere der Key im Secret "GITLAB_RUNNER_TOKEN" (Default =
+      # Variablenname) — der Chart wuerde ihn nie finden, CI_SERVER_TOKEN
+      # bliebe leer, derselbe stille Fehlermodus wie B1/B4.
       - namespace: gitlab-runner
         secret: gitlab-runner-secret
+        dest_key: runner-token
+        owner_brand: [mentolder]
+
+  # B3 (Review T012177): Der Chart-Template listet IMMER beide Keys im
+  # projected Volume (runner-registration-token UND runner-token, siehe
+  # gitlab-runner-rendered.yaml volumes.projected-secrets.sources[0].secret.
+  # items) — ohne "optional: true". Fehlt einer der beiden Keys im referenzierten
+  # Secret gitlab-runner/gitlab-runner-secret, bleibt der Pod dauerhaft in
+  # ContainerCreating (Volume-Mount-Fehler "not found"), unabhaengig davon, ob
+  # der Registration-Token-Fluss ueberhaupt benutzt wird. Dieses Repo nutzt
+  # ausschliesslich den neueren glrt-Authentication-Token-Fluss (Runbook
+  # Abschnitt 2 — der aeltere Registration-Token-Fluss ist seit GitLab 16
+  # entfernt) — der Key wird deshalb bewusst LEER gesealt (required: false,
+  # kein Wert in environments/.secrets/*.yaml), einzig um die Chart-Vorgabe
+  # "Key muss existieren" zu erfuellen.
+  - name: GITLAB_RUNNER_REGISTRATION_TOKEN
+    required: false
+    description: "Bewusst leer — Chart-Pflichtfeld des projected Secrets (runner-registration-token), dieses Repo nutzt ausschliesslich den glrt-Authentication-Token-Fluss."
+    extra_namespaces:
+      - namespace: gitlab-runner
+        secret: gitlab-runner-secret
+        dest_key: runner-registration-token
         owner_brand: [mentolder]

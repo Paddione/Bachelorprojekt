@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitlab-runner
+  labels:
+    app.kubernetes.io/part-of: workspace-mvp
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gitlab-runner-quota
+  namespace: gitlab-runner
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    pods: "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: gitlab-runner-limits
+  namespace: gitlab-runner
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 900m
+        memory: 512Mi
+      default:
+        cpu: 1500m
+        memory: 1Gi
+      max:
+        cpu: "2"
+        memory: 2Gi
+      min:
+        cpu: 50m
+        memory: 64Mi
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: ci-low
+value: -1000
+globalDefault: false
+description: >-
+  CI-Job- und Runner-Manager-Pods im Namespace gitlab-runner. Absichtlich unter
+  dem impliziten Cluster-Default, damit der Scheduler bei Knappheit CI-Arbeit
+  verdrängt statt produktiver Pods (Design D2).

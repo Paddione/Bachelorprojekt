@@ -338,6 +338,10 @@ factory-shard:
     # bei einem direkten Download muss die Version dem go.mod folgen.
     GO_VERSION: "1.26.4"
     YQ_VERSION: "4.53.3"
+    # Dieselbe kubectl-Version wie im manifests-Job — der Paritaets-Guard
+    # vergleicht sie gegen den Cache-Key in ci.yml.
+    KUBECTL_VERSION: "v1.31.0"
+    KUSTOMIZE_VERSION: "5.5.0"
   before_script:
     # GNU parallel ist Pflicht, kein Komfort: task test:spec:changed startet die
     # Auswahl mit `bats -j $(nproc)`, und bats delegiert die Parallelisierung an
@@ -353,6 +357,20 @@ factory-shard:
     # wie im bats-unit-Job oben.
     - curl --fail -sSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq
     - chmod +x /usr/local/bin/yq
+    # kubectl UND das eigenstaendige kustomize: GitHubs ubuntu-latest bringt beide
+    # vorinstalliert mit, node:22 keines — und genau daran scheiterten in Lauf
+    # 2769186808 mehrere Testgruppen, ohne dass an ihnen etwas falsch war
+    # (tests/spec/flux-render-security/immutable-image-refs.bats ruft
+    # scripts/flux-render-artifact.sh, das `kustomize build` braucht; die
+    # T002465-Netzwerkpolicy-Tests brauchen kubectl).
+    #
+    # `kubectl kustomize` reicht NICHT als Ersatz: flux-render-artifact.sh ruft
+    # `kustomize` als eigenes Binary mit --load-restrictor auf.
+    - curl --fail -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+    - chmod +x /usr/local/bin/kubectl
+    - curl --fail -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz" -o /tmp/kustomize.tgz
+    - tar -xzf /tmp/kustomize.tgz -C /usr/local/bin kustomize
+    - kustomize version
     # Go fuer den mcp-task-runner-Build, den task test:spec voraussetzt.
     - curl --fail -sSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tgz
     - tar -C /usr/local -xzf /tmp/go.tgz

@@ -135,6 +135,14 @@ tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats
          verdrängt CI im Ernstfall doch produktive Last, und die Zusicherung wäre gebrochen.
       6. **Ausfalltest:** Den Desktop-Runner-Dienst stoppen, Pipeline starten, belegen dass der
          fleet-Runner übernimmt — ohne Variablenänderung. Danach wieder starten.
+      7. **N6 (Nachreview T012177) — Speicher-Enge im Blick behalten.** Der LimitRange-Default
+         `default.memory = 700Mi` (`namespace.yaml`) gilt auch für den `build`-Container, und
+         `npm ci` unter `node:22` (bats-unit-Job) läuft damit knapp. Bewusste Entscheidung,
+         **jetzt nicht** anzupassen: die Worker sind klein, eine höhere Grenze überzöge die
+         gemessene Reserve. Stirbt `bats-unit` auf dem fleet-Runner mit OOM
+         (`OOMKilled`/exit 137), ist das die erste Stelle zum Nachsehen — die Antwort ist dann
+         ein `memory_limit`-Override für den Build-Container in `runners.config`
+         (`[runners.kubernetes] memory_limit = "..."`), nicht eine größere Namespace-Quota.
 
 - [ ] **Final Verification.** Die drei Pflicht-Gates fahren:
 

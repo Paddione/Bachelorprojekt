@@ -133,6 +133,22 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
+# 0. Fail-fast-Vorpruefung (Zusatz, Nachreview T012177): der [runners.docker]-
+#    Block MUSS existieren, sonst kann Schritt 3 unten sein pull_policy nie
+#    einfuegen. Diese Pruefung laeuft VOR jeder zustandsaendernden Aktion
+#    (Container-Start, daemon.json-Merge, systemctl restart docker) — nicht
+#    erst danach. Ohne diese Reihenfolge waere die unangenehmste Abbruchstelle
+#    genau zwischen "docker neu gestartet" und "config.toml geaendert": der
+#    Docker-Daemon liefe bereits mit dem neuen Mirror, aber pull_policy bliebe
+#    unangewendet — ein Teilzustand, der bei einem erneuten Lauf nicht von
+#    selbst heilt (die Ursache, ein fehlender [runners.docker]-Block, aendert
+#    sich durch einen Docker-Neustart nicht).
+if [ -f "${RUNNER_CONFIG_TOML}" ] && ! sudo grep -qE '^[[:space:]]*\[runners\.docker\]' "${RUNNER_CONFIG_TOML}"; then
+  echo "ERROR: kein [runners.docker]-Block in ${RUNNER_CONFIG_TOML} gefunden — Runner noch nicht mit dem Docker-Executor registriert?" >&2
+  echo "       Abbruch VOR jeder Aenderung (Cache-Container, daemon.json, Docker-Neustart)." >&2
+  exit 1
+fi
+
 # 1. Cache-Container starten (idempotent — existiert er bereits, ueberspringen
 #    statt einen Namenskonflikt zu werfen).
 if docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
@@ -171,16 +187,19 @@ echo "✓ Docker-Daemon neu gestartet."
 #    Design D4a warnt). awk sucht den [runners.docker]-Header gezielt und fuegt
 #    die Zeile DIREKT danach ein; die Idempotenz-Pruefung ist auf den
 #    [runners.docker]-Block SCOPED, damit ein pull_policy in einem anderen
-#    Block nicht faelschlich als "bereits gesetzt" durchgeht.
+#    Block nicht faelschlich als "bereits gesetzt" durchgeht. Die Existenz des
+#    Blocks selbst ist bereits in Schritt 0 (fail-fast, vor jeder Aenderung)
+#    geprueft.
+#
+# N3 (Nachreview T012177): alle drei Anker sind [[:space:]]*-tolerant. Ein
+# echtes, von `gitlab-runner register` geschriebenes config.toml rueckt
+# verschachtelte Tabellen mit zwei Leerzeichen ein — ein Anker auf Spalte 0
+# (^\[runners\.docker\]) matcht eine solche Datei NIE und der Block-Reset
+# (^\[) ebenfalls nicht, was den awk-Insert stillschweigend leerlaufen liesse.
 if [ -f "${RUNNER_CONFIG_TOML}" ]; then
-  if ! sudo grep -qE '^\[runners\.docker\]' "${RUNNER_CONFIG_TOML}"; then
-    echo "ERROR: kein [runners.docker]-Block in ${RUNNER_CONFIG_TOML} gefunden — Runner noch nicht mit dem Docker-Executor registriert?" >&2
-    exit 1
-  fi
-
   already_set="$(sudo awk '
-    /^\[runners\.docker\]/ { in_block=1; next }
-    /^\[/ { in_block=0 }
+    /^[[:space:]]*\[runners\.docker\]/ { in_block=1; next }
+    /^[[:space:]]*\[/ { in_block=0 }
     in_block && /pull_policy[[:space:]]*=[[:space:]]*\["if-not-present"\]/ { print "yes"; exit }
   ' "${RUNNER_CONFIG_TOML}")"
 
@@ -194,7 +213,7 @@ if [ -f "${RUNNER_CONFIG_TOML}" ]; then
     # ist der separate `sudo cp` darunter.
     sudo awk '
       { print }
-      /^\[runners\.docker\]/ && !inserted { print "  pull_policy = [\"if-not-present\"]"; inserted=1 }
+      /^[[:space:]]*\[runners\.docker\]/ && !inserted { print "  pull_policy = [\"if-not-present\"]"; inserted=1 }
     ' "${RUNNER_CONFIG_TOML}" > "${tmp_toml}"
     sudo cp "${tmp_toml}" "${RUNNER_CONFIG_TOML}"
     rm -f "${tmp_toml}"

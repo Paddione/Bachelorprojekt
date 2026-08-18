@@ -24,7 +24,9 @@ under contention the scheduler evicts or defers CI work rather than production w
   den der Scheduler platzieren könnte) und der GitLab-Job schlägt fehl (S5, Review
   T012177: „bleibt pending" trifft nicht zu — das gilt für einen erzeugten, aber
   nicht schedulebaren Pod, nicht für einen von der Quota abgelehnten)
-- **THEN** bleibt kein produktiver Pod in `workspace` oder `workspace-korczewski` davon unberührt
+- **THEN** bleiben alle produktiven Pods in `workspace` und `workspace-korczewski` davon
+  unberührt (N5, Nachreview T012177: die vorherige Formulierung „bleibt kein produktiver
+  Pod … davon unberührt" war eine doppelte Verneinung und sagte wörtlich das Gegenteil)
 
 #### Scenario: Kein CI-Pod auf einem Control-Plane-Knoten
 

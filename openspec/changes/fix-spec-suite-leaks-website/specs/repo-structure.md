@@ -13,10 +13,11 @@ der Guard toleriert und entfernt leere Streuner, echte (nicht-leere) Regressione
 
 ### Requirement: The drift guard is order-independent against stray empty directories
 
-The BATS spec suite (`bats -r tests/spec/`) SHALL NOT leave a top-level `website/`
-directory behind after a run, and the drift guard `tests/spec/repo-structure/website-moved.bats`
-SHALL remove a stray EMPTY `website/` directory in its setup (`rmdir` — empty directories
-only) so its result is independent of test execution order. A NON-EMPTY `website/`
+The spec suite can leave a stray EMPTY top-level `website/` directory behind depending on
+test execution order (T011792; the leak origin is not a shell `mkdir` and is out of scope
+here). The drift guard `tests/spec/repo-structure/website-moved.bats` SHALL tolerate and
+remove a stray EMPTY `website/` directory in its setup (`rmdir` — empty directories only),
+so the guard's result is independent of test execution order. A NON-EMPTY `website/`
 directory (a real reorg regression) SHALL still fail the guard and MUST NOT be removed.
 
 #### Scenario: Empty stray website/ directory is cleaned up before the guard asserts

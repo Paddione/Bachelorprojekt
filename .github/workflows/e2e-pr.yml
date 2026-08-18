@@ -42,7 +42,7 @@ jobs:
     # Static name — branch protection requires the context "E2E PR";
     # a dynamic name (with branch) never satisfies it and blocks every merge.
     name: E2E PR
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     env:
       WEBSITE_URL: https://web.mentolder.de

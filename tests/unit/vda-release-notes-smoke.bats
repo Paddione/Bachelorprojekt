@@ -5,14 +5,16 @@
 SCRIPT_DIR="$BATS_TEST_DIRNAME/../../scripts"
 RN_SH="$SCRIPT_DIR/vda/release-notes.sh"
 
+_WORK_DIR="$BATS_TMPDIR/release-notes-work"
+
 setup() {
   BIN_DIR="$BATS_TMPDIR/release-notes-stubs"
-  rm -rf "$BIN_DIR"
-  mkdir -p "$BIN_DIR"
+  rm -rf "$BIN_DIR" "$_WORK_DIR"
+  mkdir -p "$BIN_DIR" "$_WORK_DIR"
 }
 
 teardown() {
-  rm -rf "$BIN_DIR"
+  rm -rf "$BIN_DIR" "$_WORK_DIR"
 }
 
 _stub_gh() {
@@ -89,7 +91,7 @@ GHSTUB
 
 @test "generate --out writes to file" {
   _stub_gh
-  local out="$BATS_TMPDIR/notes.md"
+  local out="$_WORK_DIR/notes.md"
   PATH="$BIN_DIR:$PATH" run bash "$RN_SH" generate --since v1.0.0 --out "$out"
   [ "$status" -eq 0 ]
   [ -f "$out" ]
@@ -98,7 +100,7 @@ GHSTUB
 
 @test "publish-github --dry-run displays command" {
   _stub_gh
-  local notes="$BATS_TMPDIR/notes.md"
+  local notes="$_WORK_DIR/notes.md"
   echo "# Test notes" > "$notes"
   PATH="$BIN_DIR:$PATH" run bash "$RN_SH" publish-github --tag v1.0.0 --notes-file "$notes" --dry-run
   [ "$status" -eq 0 ]
@@ -113,7 +115,7 @@ GHSTUB
 }
 
 @test "publish-changelog --dry-run displays preview" {
-  local notes="$BATS_TMPDIR/notes.md"
+  local notes="$_WORK_DIR/notes.md"
   echo "# Test changelog entry" > "$notes"
   run bash "$RN_SH" publish-changelog --notes-file "$notes" --dry-run
   [ "$status" -eq 0 ]

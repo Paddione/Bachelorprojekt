@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.2...website-v1.286.0) (2026-08-18)
+
+
+### Features
+
+* **ci:** Runner-Zuordnung über Capability-Labels erzwingen [T012488] ([#4789](https://github.com/Paddione/Bachelorprojekt/issues/4789)) ([3b39adf](https://github.com/Paddione/Bachelorprojekt/commit/3b39adf661928b55b31809efa2edc410050bccf1))
+
 ## [1.285.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.1...website-v1.285.2) (2026-08-18)
 
 

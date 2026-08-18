@@ -160,9 +160,13 @@ PY
     false
   fi
 
-  # PATH ohne docker — --dry-run darf trotzdem mit Exit 0 durchlaufen.
+  # PATH ohne docker fuer den Skript-internen `command -v docker`-Check. `bash`
+  # selbst wird als ABSOLUTER Pfad uebergeben, damit `env` es nicht erst ueber die
+  # (leere) neue PATH suchen muss — sonst waere der Testaufbau selbst kaputt,
+  # unabhaengig davon, ob das Skript funktioniert.
+  real_bash="$(command -v bash)"
   empty_path_dir="$(mktemp -d)"
-  run env PATH="$empty_path_dir" bash "$CACHE_SH" --dry-run
+  run env PATH="$empty_path_dir" "$real_bash" "$CACHE_SH" --dry-run
   rm -rf "$empty_path_dir"
   [ "$status" -eq 0 ]
 }
@@ -173,8 +177,9 @@ PY
     false
   fi
 
+  real_bash="$(command -v bash)"
   empty_path_dir="$(mktemp -d)"
-  run env PATH="$empty_path_dir" bash "$CACHE_SH"
+  run env PATH="$empty_path_dir" "$real_bash" "$CACHE_SH"
   rm -rf "$empty_path_dir"
   [ "$status" -ne 0 ]
   echo "$output" | grep -qe 'docker'

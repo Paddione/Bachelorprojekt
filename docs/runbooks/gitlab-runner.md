@@ -2,7 +2,11 @@
 
 _Etappe 1 der GitLab-CI-Migration (T011790). GitHub Actions bleibt SSOT und
 Merge-Gate — GitLab ist ein sekundaerer, nicht blockierender Spiegel. Architektur
-und Entscheidungen: `openspec/changes/gitlab-ci-migration-stage1/design.md`._
+und Entscheidungen: `openspec/changes/gitlab-ci-migration-stage1/design.md`.
+Etappe 2 (T012177) ergaenzt einen zweiten self-hosted Runner auf `fleet`
+(Kubernetes-Executor) plus einen Registry-Pull-Through-Cache an beiden
+Standorten — siehe Abschnitte 8-10 unten sowie
+`openspec/changes/gitlab-ci-k8s-runner-cache/design.md`._
 
 ## 1. Mirror-Secrets einrichten
 
@@ -215,10 +219,117 @@ anderer Hardware. Ein Ausfall, den niemand bemerkt, wird nicht behoben. Der
 Rueckfall gehoert deshalb bewusst ins Runbook und nicht in eine Selbstheilung
 (design.md D2).
 
-## 7. Abgrenzung
+## 7. Abgrenzung Etappe 1
 
-Diese Etappe betreibt ausschliesslich den lokalen Docker-Executor auf einem
+Etappe 1 betrieb ausschliesslich den lokalen Docker-Executor auf einem
 einzelnen self-hosted Host. Ein Kubernetes-Executor auf `fleet` als zweiter
-self-hosted Runner ist fuer Etappe 2 vorgesehen (siehe design.md, "Offene Punkte
-fuer Etappe 2"). Diese Etappe migriert weder das Merge-Gate noch weitere
-GitHub-Workflows (Build, E2E, Release, Factory) — siehe design.md, "Non-Goals".
+self-hosted Runner war fuer Etappe 2 vorgesehen — **umgesetzt, siehe Abschnitt
+8**. Diese Etappe migriert weder das Merge-Gate noch weitere GitHub-Workflows
+(Build, E2E, Release, Factory) — siehe design.md, "Non-Goals".
+
+## 8. Zwei-Runner-Betrieb (Etappe 2, T012177)
+
+Ab Etappe 2 laufen zwei self-hosted Runner parallel: der Docker-Executor aus
+Abschnitt 1-7 auf PK-Desktop und ein Kubernetes-Executor im Namespace
+`gitlab-runner` auf `fleet`. Beide tragen **denselben** Tag
+`bachelorprojekt-local` (Design D5) — das Tag-Routing aus Abschnitt 4 bleibt
+damit unveraendert gueltig, und der Ausfall eines Runners erfordert **keine**
+Variablenaenderung: GitLab verteilt die Jobs auf den verbleibenden.
+
+**Der Name ist seit Etappe 2 irrefuehrend:** `bachelorprojekt-local` bezeichnet
+keinen Ort mehr, sondern „self-hosted" — im Unterschied zu den gitlab.com
+Shared Runnern aus dem Fallback (Abschnitt 4). Ein Rename haette
+`.gitlab-ci.yml`, dieses Runbook, die Guards und beide
+GitLab-Runner-Konfigurationen gleichzeitig getroffen — das Risiko ueberstieg
+den Gewinn (design.md D5).
+
+**Pod-Status pruefen:**
+
+```bash
+kubectl --context fleet get pods -n gitlab-runner -o wide
+```
+
+Der Runner-Pod muss auf `gekko-hetzner-3` oder `gekko-hetzner-4` laufen —
+**nie** auf einem `pk-hetzner-*`-Knoten (das waeren Control-Plane-Knoten, siehe
+Design D2 zur Ressourcen-Umzaeunung). Fuer den Runner-Status in GitLab gilt ab
+jetzt dieselbe Diagnose-Tabelle wie in Abschnitt 5.1, nur mit zwei Zeilen statt
+einer — je eine pro Runner.
+
+**Ressourcen-Umzaeunung.** Der Namespace `gitlab-runner` traegt vier
+voneinander unabhaengige Grenzen (`k3d/gitlab-runner-stack/namespace.yaml`):
+ResourceQuota, LimitRange, PriorityClass `ci-low` (Wert unter dem
+Cluster-Default) und eine `nodeAffinity` (kein einfacher `nodeSelector` — der
+kann kein ODER ueber die zwei Worker-Hostnamen ausdruecken). Details und
+Begruendung: `openspec/changes/gitlab-ci-k8s-runner-cache/design.md`, D2.
+
+## 9. Cache-Diagnose (Etappe 2, T012177)
+
+Ein gruener Job sagt nichts ueber Cache-Treffer aus — zwei unabhaengige
+Pruefungen:
+
+- **fleet:**
+  ```bash
+  kubectl --context fleet logs -n gitlab-runner deploy/registry-cache | grep -c "proxy: pull"
+  ```
+  Die Zahl steigt bei jedem tatsaechlichen Upstream-Pull. Bleibt sie ueber
+  mehrere Pipelines hinweg gleich, obwohl neue Jobs liefen, zieht irgendetwas
+  direkt an `registry-cache` vorbei — ueblichster Grund: fehlende
+  containerd-Mirror-Konfiguration (siehe unten).
+- **PK-Desktop:**
+  ```bash
+  docker inspect gitlab-registry-cache --format '{{.State.Status}}'
+  ```
+  muss `running` sein. Treffer-Test: ein noch nie gezogenes Tag zweimal pullen
+  (`docker rmi` dazwischen) — der zweite Pull muss spuerbar schneller sein,
+  weil er aus `localhost:5000` statt aus dem Internet kommt.
+- **Verbindung fehlt, keine Fehlermeldung:** Ein nicht erreichbarer Cache
+  erzeugt laut Design (Error-Handling-Tabelle in
+  `openspec/changes/gitlab-ci-k8s-runner-cache/design.md`) **keinen** Fehler —
+  der Pull faellt still auf Upstream zurueck und wird nur langsamer (zurueck
+  auf die Etappe-1-Werte 50/84/284 s). Das ist Absicht, macht die Diagnose aber
+  genau deshalb auf einen Laufzeitvergleich angewiesen, nicht auf eine
+  Fehlermeldung.
+- **fleet-spezifische Falle — die eigentliche Betriebsluecke dieser Etappe:**
+  Der Kubernetes-Executor zieht Job-Images ueber das **containerd des
+  Knotens**, nicht ueber einen Docker-Daemon — anders als bei PK-Desktop reicht
+  hier kein `daemon.json`. Damit `gekko-hetzner-3` und `gekko-hetzner-4`
+  `registry-cache:5000` tatsaechlich als Mirror fuer `docker.io` nutzen,
+  braucht jeder der beiden Knoten einen Eintrag in
+  `/etc/rancher/k3s/registries.yaml` (k3s-native Mirror-Konfiguration) mit
+  anschliessendem `systemctl restart k3s-agent`. **Das ist eine
+  Host-Konfiguration ausserhalb von Git** — sie wird bei einem Knoten-Neuaufbau
+  erneut faellig und ist durch keinen Guard automatisiert pruefbar. Dieses
+  Runbook ist ihr einziger Aufbewahrungsort, analog zu den WireGuard-/UFW-
+  Schritten in `infra-ops`. Beispiel-Eintrag:
+  ```yaml
+  mirrors:
+    docker.io:
+      endpoint:
+        - "http://registry-cache.gitlab-runner.svc.cluster.local:5000"
+  ```
+  Ohne diesen Schritt laeuft der fleet-Runner korrekt, der Cache bleibt aber
+  leer — ein Zustand, der nur an der obigen Log-Zeile auffaellt, nicht an einem
+  Fehler.
+
+**Lokaler Cache auf PK-Desktop einrichten:**
+
+```bash
+bash scripts/gitlab-runner-cache.sh --dry-run   # erst gegenlesen
+bash scripts/gitlab-runner-cache.sh             # Echtlauf, braucht sudo
+```
+
+Startet (idempotent) den `registry:2`-Proxy-Container, mergt
+`registry-mirrors` in `/etc/docker/daemon.json` und haengt
+`pull_policy = ["if-not-present"]` an den `[runners.docker]`-Block in
+`/etc/gitlab-runner/config.toml` an.
+
+## 10. Abgrenzung Etappe 2
+
+- Keine automatische Umschaltung, kein Autoscaling der Runner — unveraendert
+  Non-Goal.
+- Kein Cache-Eviction-Mechanismus (Cron-GC, TTL) —
+  `REGISTRY_STORAGE_DELETE_ENABLED=true` schafft nur die Voraussetzung fuer
+  eine spaetere manuelle oder automatisierte Bereinigung.
+- Die containerd-Mirror-Konfiguration auf den fleet-Worker-Knoten (Abschnitt 9)
+  ist eine Host-Konfiguration ausserhalb von Git und wird ausschliesslich hier
+  dokumentiert, nicht automatisiert.

@@ -4380,6 +4380,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-structure/release-please-paths",
+    "file": "tests/spec/repo-structure/release-please-paths.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
     "id": "repo-structure/root-agent-md",
     "file": "tests/spec/repo-structure/root-agent-md.bats",
     "category": "repo-structure",

@@ -15,14 +15,23 @@ setup() {
     skip "python3 is not installed"
   fi
 
-  # Collect legacy_only keys from environments/schema.yaml
+  # Collect legacy_only keys from environments/schema.yaml.
+  #
+  # ALLE Abschnitte lesen, nicht nur 'secrets' [T012415]: Die schema.yaml fuehrt
+  # env_vars, secrets und setup_vars getrennt, und saemtliche 16 legacy_only-
+  # Markierungen liegen in setup_vars — in 'secrets' steht keine einzige. Wer nur
+  # 'secrets' liest, bekommt eine leere Ausnahmeliste und prueft damit nie das,
+  # was dieser Test zu pruefen vorgibt. Aufgefallen ist das erst, als die PR-Jobs
+  # auf den self-hosted Runner umzogen: ohne installiertes `yq` hat der Test sich
+  # zuvor uebersprungen, die Fehlfunktion war also nie sichtbar.
   legacy_only_keys=$(python3 -c "
 import yaml
 with open('${REPO_ROOT}/environments/schema.yaml') as f:
     schema = yaml.safe_load(f)
-for s in schema.get('secrets', []):
-    if s.get('legacy_only', False):
-        print(s['name'])
+for section in ('env_vars', 'secrets', 'setup_vars'):
+    for s in schema.get(section) or []:
+        if isinstance(s, dict) and s.get('legacy_only', False):
+            print(s['name'])
 " 2>/dev/null || true)
 
   for pair in "mentolder:fleet-mentolder" "korczewski:fleet-korczewski"; do

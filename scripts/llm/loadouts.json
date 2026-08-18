@@ -285,20 +285,18 @@
     },
     {
       "slug": "gemma12-vision",
-      "label": "Gemma 4 12B QAT · Vision & MTP",
+      "label": "Gemma 4 12B QAT · Durchsatz (1 Slot), Vision & MTP",
       "model": "gemma4-12qat/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8089,
       "fit": {
-        "enabled": true,
-        "targetMarginMib": 256,
-        "minCtx": 8192
+        "enabled": false
       },
       "args": {
-        "ctx": null,
-        "ngl": null,
+        "ctx": 262144,
+        "ngl": 999,
         "parallel": 1,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
+        "cacheTypeK": "f16",
+        "cacheTypeV": "f16",
         "loadMode": "mmap",
         "flashAttention": true,
         "jinja": true,
@@ -318,8 +316,14 @@
       "mcp": {
         "serversConfig": null
       },
-      "extraArgs": [],
-      "notes": "12B QAT mit mmproj (F16) und MTP-Drafter. Gemessen: 262.144 Kontext, 137-149 tok/s Prosa. Vision-Funktionstest bestanden.",
+      "extraArgs": [
+        "-kvu",
+        "-b",
+        "4096",
+        "-ub",
+        "2048"
+      ],
+      "notes": "Auf Durchsatz mit EINEM Slot ausgelegt (T012414). KV-Rechnung aus den GGUF-Metadaten: 48 Layer im Muster 5x SWA + 1x global. Die 40 SWA-Layer (8 KV-Heads, 256+256, Fenster 1024) belegen fest ~320 MiB @f16; die 8 globalen Layer haben nur EINEN KV-Head (512+512, unified) und kosten 16 KiB/Token @f16 — 262144 Kontext also 4,0 GiB. Zusammen mit Modell (6,3 GiB), MTP-Drafter (0,24 GiB) und mmproj (0,17 GiB) bleibt auf 16 GiB Rand fuer die Compute-Puffer. Reicht es bei -ub 2048 nicht, zuerst -ub auf 1024 senken, erst danach den Kontext. MTP: der Drafter ist eine eigene Datei (gemma4-assistant, 423M, nextn_predict_layers=4) — im Haupt-GGUF steckt er NICHT; die Auto-Erkennung der Modellkarte greift nur beim Start ueber -hf, nicht ueber einen lokalen -m-Pfad. draftNMax=4 ist der modelleigene Wert, nicht geschaetzt. Vorher: -fit on, q8_0-KV, 137-149 tok/s Prosa ohne wirksames MTP.",
       "exclusiveGroup": "chat-gpu"
     },
     {

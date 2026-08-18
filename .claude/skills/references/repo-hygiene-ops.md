@@ -244,6 +244,21 @@ Blob-Abweichung zu `main` in der Allowlist des Skripts liegt (Plan- und Generat-
 Signale sind nötig: „Blob-Diff leer" allein hätte 1 von 20 realen Leichen erfasst, „Ticket done"
 allein hätte auch die einzige Kopie eines nie gemergten Deliverables gelöscht (T002431).
 
+> **Ein nicht ermittelbarer Ticket-Status ersetzt das erste Signal, hebt es aber nicht auf
+> [T012412].** Antwortet `ticket.sh get --id <id>` mit rc=0 und **leerer** stdout, ist das eine
+> fehlende Messung — keine Aussage über den Ticket-Zustand. Der Reaper wertet dann die
+> Positiv-Signale aus T007032 aus (eigener MERGED-PR mit `headRefOid` == Remote-Tip, oder ein
+> MERGED-Nachfolger mit identischen Blobs) und löscht **nur**, wenn eines davon greift; ohne
+> Positiv-Signal bleibt es beim KEEP mit „Ticket-Status nicht ermittelbar". Ein **gelesener**,
+> nicht-terminaler Status (`in_progress`) bleibt unverändert ein hartes KEEP — er ist eine
+> Aussage, kein fehlender Messwert.
+>
+> Entscheidend ist, was dabei **nicht** passiert: Der unbekannte Status fällt nicht auf den
+> Allowlist-Check durch. Täte er das, wäre „Ticket done" als zweites nötiges Signal ausgehebelt
+> und der T002431-Fall wieder offen. Anlass war der Ticket-DB-Drop vom 2026-08-18, nach dem
+> jede `external_id` unterhalb `T012401` leer beantwortet wird: der Sweep meldete 10 von 15
+> Branches als „nicht ermittelbar", 8 davon mit nachweislich gemergtem PR.
+
 ## 3. PR-Triage → verknüpftes Ticket schließen
 
 ### Grundregel: ein leeres Signal ist kein Urteil

@@ -272,6 +272,13 @@ for branch in "${CANDIDATES[@]}"; do
   fi
 
   # (3) Ticket-Status — fuer freshness_decided=1 bereits durch den PR-Status entschieden
+  #
+  # [T012412] Eine LEERE Antwort ist eine fehlende Messung, keine negative Aussage. Sie bricht
+  # deshalb nicht mehr sofort ab, sondern setzt ticket_unknown=1 und laesst die Positiv-Signale
+  # unten entscheiden — die existieren seit T007032, waren hinter dem frueheren `continue` aber
+  # unerreichbar. Ein GELESENER, nicht-terminaler Status (z.B. in_progress) bleibt dagegen ein
+  # hartes KEEP: er ist eine Aussage, kein fehlender Messwert.
+  ticket_unknown=0
   if [ "$freshness_decided" -eq 0 ]; then
     ticket_json="$(bash "$TICKET_SH" get --id "$branch_ticket_id" 2>/dev/null || echo '{}')"
     status="$(printf '%s' "$ticket_json" \
@@ -279,7 +286,7 @@ for branch in "${CANDIDATES[@]}"; do
       | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//' || true)"
     case "$status" in
       done|archived) : ;;
-      "") echo "KEEP $branch — Ticket-Status nicht ermittelbar"; continue ;;
+      "") ticket_unknown=1 ;;
       *)  echo "KEEP $branch — Ticket-Status ist $status"; continue ;;
     esac
   fi
@@ -320,6 +327,20 @@ for branch in "${CANDIDATES[@]}"; do
       REAP_LIST+=("$branch")
       continue
     fi
+  fi
+
+  # [T012412] Riegel: Ein unbekannter Ticket-Status gibt einen Branch NUR ueber ein
+  # Positiv-Signal frei. Faellt er bis hierher durch, hat keines gegriffen — dann gilt die
+  # bisherige Begruendung. Der Blob-Allowlist-Check unten darf ihn nicht ersatzweise
+  # freigeben: "Ticket done" und "Blob-Diff in der Allowlist" sind zwei getrennt noetige
+  # Signale. Die Allowlist allein haette die einzige Kopie eines nie gemergten Deliverables
+  # geloescht (T002431).
+  #
+  # Die Position ist bedeutungstragend: HINTER den Positiv-Signalen, sonst ist der Zustand vor
+  # dem Fix wiederhergestellt — und VOR dem Allowlist-Check, sonst gibt dieser den Branch frei.
+  if [ "$ticket_unknown" -eq 1 ]; then
+    echo "KEEP $branch — Ticket-Status nicht ermittelbar"
+    continue
   fi
 
   # (4) Blob-Abweichungen gegen die Allowlist

@@ -2478,6 +2478,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/awk-interval-portability",
+    "file": "tests/spec/ci-cd/awk-interval-portability.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/bats-no-live-branch-assertion",
     "file": "tests/spec/ci-cd/bats-no-live-branch-assertion.bats",
     "category": "ci-cd",

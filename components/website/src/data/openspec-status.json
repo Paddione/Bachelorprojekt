@@ -4053,6 +4053,12 @@
       "status": "archived"
     }
   ],
+  "T012177": [
+    {
+      "slug": "gitlab-ci-k8s-runner-cache",
+      "status": "plan_staged"
+    }
+  ],
   "T012239": [
     {
       "slug": "2026-08-18-fix-ci-failure-detection",
@@ -4065,6 +4071,12 @@
       "status": "archived"
     }
   ],
+  "T012242": [
+    {
+      "slug": "2026-08-18-fix-ciwatch-failedchecks-empty",
+      "status": "archived"
+    }
+  ],
   "T012243": [
     {
       "slug": "2026-08-18-finalizer-plan-ref-whitespace",
@@ -4074,6 +4086,18 @@
   "T012256": [
     {
       "slug": "finalizer-hardening",
+      "status": "plan_staged"
+    }
+  ],
+  "T012265": [
+    {
+      "slug": "fix-pr-babysit-head-sha",
+      "status": "plan_staged"
+    }
+  ],
+  "T012267": [
+    {
+      "slug": "fix-gitlab-pipeline-check",
       "status": "plan_staged"
     }
   ],

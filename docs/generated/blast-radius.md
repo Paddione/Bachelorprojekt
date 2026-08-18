@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-08-09T12:15:13.235Z
-> Nodes: 92 | Edges: 1921 | Isolated: 4
+> Generated: 2026-08-18T03:35:11.114Z
+> Nodes: 94 | Edges: 1922 | Isolated: 5
 
 ## Ranking (transitive Abhängige)
 
@@ -79,14 +79,15 @@
 | 71 | docs | 1 | 1 | 1 |
 | 72 | downloads | 1 | 1 | 1 |
 | 73 | einvoice-sidecar | 1 | 1 | 1 |
-| 74 | bge-embed | 1 | 1 | 1 |
-| 75 | bge-rerank | 1 | 1 | 1 |
-| 76 | mediaviewer-widget | 1 | 1 | 1 |
-| 77 | monitoring-kube-state-metrics | 1 | 1 | 1 |
-| 78 | monitoring-operator | 1 | 1 | 1 |
-| 79 | nextcloud-redis | 1 | 1 | 1 |
-| 80 | sealed-secrets-controller | 1 | 1 | 1 |
-| 81 | whisper | 1 | 1 | 1 |
+| 74 | registry-cache | 1 | 1 | 1 |
+| 75 | bge-embed | 1 | 1 | 1 |
+| 76 | bge-rerank | 1 | 1 | 1 |
+| 77 | mediaviewer-widget | 1 | 1 | 1 |
+| 78 | monitoring-kube-state-metrics | 1 | 1 | 1 |
+| 79 | monitoring-operator | 1 | 1 | 1 |
+| 80 | nextcloud-redis | 1 | 1 | 1 |
+| 81 | sealed-secrets-controller | 1 | 1 | 1 |
+| 82 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -453,6 +454,11 @@
 ### einvoice-sidecar
 **Direkte Abhängige:** 1 — einvoice-sidecar
 **Transitive Abhängige:** 1 — einvoice-sidecar
+**Upstream (In-Degree):** 1
+
+### registry-cache
+**Direkte Abhängige:** 1 — registry-cache
+**Transitive Abhängige:** 1 — registry-cache
 **Upstream (In-Degree):** 1
 
 ### bge-embed

@@ -161,8 +161,6 @@ exit 0
 TICKET_EOF
   chmod +x "$WORK/scripts/ticket.sh"
 
-  # ROLLUP_FILE enthält das rohe statusCheckRollup-JSON; der Stub wendet die
-  # headSha-Filter-Query an — die Query selbst wird über gh-calls geprüft.
   cat > "$WORK/bin/gh" <<GH_EOF
 #!/usr/bin/env bash
 echo "gh \$*" >> "$MARKER_DIR/gh-calls"
@@ -201,11 +199,6 @@ GH_EOF
 
 @test "T003225: conclusion=\"\" (laufend) ist kein Fehler" {
   _setup_ciwatch "aaaa1111"
-  cat > "$WORK/rollup.json" <<'JSON'
-{"headRefOid":"aaaa1111","statusCheckRollup":[
-  {"headSha":"aaaa1111","conclusion":"","status":"IN_PROGRESS","name":"laufend","detailsUrl":"u1"}
-]}
-JSON
   echo '[]' > "$WORK/runs.json"
   run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$PROJECT_DIR/scripts/devflow-ci-watch.sh" T999999 "https://github.com/x/y/pull/1"
   [ "$status" -eq 0 ] || { echo "laufender Check wurde als Fehler gewertet (Exit $status): $output"; false; }

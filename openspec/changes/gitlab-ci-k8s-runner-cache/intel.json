@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "slug": "gitlab-ci-k8s-runner-cache",
+    "ticket_id": "T012177",
+    "generated_from": "main@cf8eaa6fb",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "docs/runbooks/gitlab-runner.md",
+      "language": "markdown",
+      "loc": 224,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1536,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/ks-gitlab-runner.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/namespace.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/registry-cache.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/gitlab-runner-stack/values/gitlab-runner.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/flux-render-artifact.sh",
+      "language": "bash",
+      "loc": 398,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 402
+    },
+    {
+      "path": "scripts/gitlab-runner-cache.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/gitlab-registry-cache.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:66:apply_schema_defaults() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "66:apply_schema_defaults() {(...)",
+      "type_text": "66:apply_schema_defaults() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:71:render_component() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "71:render_component() {(...)",
+      "type_text": "71:render_component() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

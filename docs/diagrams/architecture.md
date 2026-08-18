@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1921 Abhängigkeitskanten · 291 API-Endpoints
+94 Services · 1922 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -36,6 +36,8 @@ flowchart LR
   downloads["downloads"]:::default
   einvoice_sidecar["einvoice-sidecar"]:::default
   error_log_retention["error-log-retention"]:::default
+  gitlab_runner["gitlab-runner"]:::default
+  registry_cache["registry-cache"]:::default
   knowledge_ingest_prs["knowledge-ingest-prs"]:::default
   knowledge_ingest_markdown["knowledge-ingest-markdown"]:::default
   knowledge_ingest_bugs["knowledge-ingest-bugs"]:::default
@@ -226,6 +228,7 @@ flowchart LR
   docs -->|"selector"| docs
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar
+  registry_cache -->|"selector"| registry_cache
   llm_gateway_embed -->|"selector"| bge_embed
   llm_gateway_rerank -->|"selector"| bge_rerank
   mailpit -->|"selector"| mailpit
@@ -2060,6 +2063,10 @@ flowchart TB
   end
   subgraph workspace_dev["workspace-dev"]
     oauth2_proxy_dev["oauth2-proxy-dev"]
+  end
+  subgraph gitlab_runner["gitlab-runner"]
+    gitlab_runner["gitlab-runner"]
+    registry_cache["registry-cache"]
   end
   subgraph monitoring["monitoring"]
     monitoring_grafana["monitoring-grafana"]

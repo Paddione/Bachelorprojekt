@@ -2562,6 +2562,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/ci-diff-base",
+    "file": "tests/spec/ci-cd/ci-diff-base.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/ci-wait-loop-nonempty-guard",
     "file": "tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats",
     "category": "ci-cd",
@@ -2648,6 +2654,12 @@
   {
     "id": "ci-cd/gitlab-batsunit-toolchain",
     "file": "tests/spec/ci-cd/gitlab-batsunit-toolchain.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-job-coverage",
+    "file": "tests/spec/ci-cd/gitlab-job-coverage.bats",
     "category": "ci-cd",
     "kind": "shell"
   },

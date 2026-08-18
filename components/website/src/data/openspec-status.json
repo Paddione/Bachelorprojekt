@@ -4053,6 +4053,12 @@
       "status": "archived"
     }
   ],
+  "T012177": [
+    {
+      "slug": "gitlab-ci-k8s-runner-cache",
+      "status": "plan_staged"
+    }
+  ],
   "T012239": [
     {
       "slug": "2026-08-18-fix-ci-failure-detection",

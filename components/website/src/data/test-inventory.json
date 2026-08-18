@@ -2658,6 +2658,30 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-registry-cache",
+    "file": "tests/spec/ci-cd/gitlab-registry-cache.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-fleet-guardrails",
+    "file": "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-fleet-rbac",
+    "file": "tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-job-pod-toml",
+    "file": "tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-runner-setup-dryrun",
     "file": "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
     "category": "ci-cd",

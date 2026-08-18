@@ -44,41 +44,6 @@
       "exclusiveGroup": "chat-gpu"
     },
     {
-      "slug": "devstral-quality",
-      "enabled": false,
-      "label": "Devstral-Small-2 24B · Code-Qualitaet",
-      "model": "devstral24/Devstral-Small-2-24B-Instruct-2512-IQ4_XS.gguf",
-      "port": 8099,
-      "fit": {
-        "enabled": true,
-        "targetMarginMib": 64,
-        "minCtx": 8192
-      },
-      "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
-        "loadMode": "mmap",
-        "flashAttention": true,
-        "jinja": true,
-        "metrics": true,
-        "reasoning": "auto",
-        "reasoningBudget": null
-      },
-      "speculative": {
-        "draftHfRepo": null,
-        "draftNgl": null
-      },
-      "mcp": {
-        "serversConfig": null
-      },
-      "extraArgs": [],
-      "notes": "IQ4_XS (12,78 GB). q8_0 KV-Cache fuer Code-Qualitaet (T002501); 33.536 Kontext bei 59 tok/s. ABGESCHALTET seit T003204 (enabled: false) — in ALLEN Dimensionen dominiert: gemma26-factory liefert mehr Kontext (177.920 gegen 33.536) bei hoeherem Durchsatz. Es gibt damit keine Anfrage mehr, fuer die dieses Loadout die bessere Wahl waere. Die Messwerte oben bleiben absichtlich stehen — sie belegen die Dominanz und sind der Grund fuer das Abschalten statt Loeschen.",
-      "exclusiveGroup": "chat-gpu"
-    },
-    {
       "slug": "gemma26-factory",
       "label": "Gemma 4 26B A4B · Factory Single-Agent",
       "model": "gemma4-26A4-it/gemma-4-26B-A4B-it-UD-IQ4_XS.gguf",
@@ -128,7 +93,7 @@
       "slug": "bge-embed-cpu",
       "enabled": false,
       "label": "bge-m3 · Embedding, CPU-gebunden",
-      "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
+      "model": "gpustack-bge-m3-GGUF/bge-m3-Q8_0.gguf",
       "port": 8095,
       "fit": {
         "enabled": false,
@@ -355,44 +320,6 @@
       },
       "extraArgs": [],
       "notes": "12B QAT mit mmproj (F16) und MTP-Drafter. Gemessen: 262.144 Kontext, 137-149 tok/s Prosa. Vision-Funktionstest bestanden.",
-      "exclusiveGroup": "chat-gpu"
-    },
-    {
-      "slug": "qwen3-coder-30b",
-      "enabled": false,
-      "label": "Qwen3-Coder-30B-A3B UD-IQ3_XXS (Familientraeger \"qwen\")",
-      "model": "qwen3coder30/Qwen3-Coder-30B-A3B-Instruct-UD-IQ3_XXS.gguf",
-      "port": 8094,
-      "fit": {
-        "enabled": true,
-        "targetMarginMib": 64,
-        "minCtx": 8192
-      },
-      "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": "q4_0",
-        "cacheTypeV": "q4_0",
-        "loadMode": "mmap",
-        "flashAttention": true,
-        "jinja": true,
-        "metrics": true,
-        "reasoning": "auto",
-        "reasoningBudget": null,
-        "temperature": 0.7,
-        "topP": 0.8,
-        "topK": 20
-      },
-      "speculative": {
-        "draftHfRepo": null,
-        "draftNgl": null
-      },
-      "mcp": {
-        "serversConfig": null
-      },
-      "extraArgs": [],
-      "notes": "UD-IQ3_XXS, 11,9 GB auf Platte. fitt 64 bei q4_0 KV gibt 96.000 Kontext. Sampling nach Modellkarte: temp 0.7, topP 0.8, topK 20. ABGESCHALTET seit T003204 (enabled: false): gleicher VRAM-Fussabdruck wie gemma26-factory bei weit aggressiverer Quantisierung (UD-IQ3_XXS statt nativem Format), weniger Kontext (96.000 vs 161.024), gemessen nur 47,9 tok/s unter Konkurrenz, einziger Anspruch 'agentische Tiefe' ohne Messung.",
       "exclusiveGroup": "chat-gpu"
     },
     {

@@ -78,8 +78,17 @@ fi
 
 DONE_COUNT=0
 SKIP_COUNT=0
+WARN_COUNT=0
 mark_ok()   { echo "[ok]   $1"; DONE_COUNT=$((DONE_COUNT + 1)); }
 mark_skip() { echo "[skip] $1"; SKIP_COUNT=$((SKIP_COUNT + 1)); }
+# [T012256/B2] mark_warn trennt "Eingabe nicht aufloesbar" von "bereits erledigt".
+# Beide erschienen als [skip] und zaehlten als uebersprungen; das Skript endete
+# mit Exit 0 und "abgeschlossen". Genau so blieb T012243 unsichtbar: Schritt 10
+# meldete "Worktree bereits entfernt", waehrend Worktree und Branch standen.
+# Ein [warn] aendert den Exit-Code NICHT (der Lauf soll weiterhin nachholbar
+# bleiben), erscheint aber in der Schlusszeile — der Aufrufer kann Erfolg damit
+# von stillem Nichtstun unterscheiden.
+mark_warn() { echo "[warn] $1" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }
 
 echo "--- devflow-post-merge-finalize: Ticket $TICKET_ID ---"
 
@@ -241,6 +250,61 @@ else
   fi
 fi
 
+# [T012256/B1] _archive_lock serialisiert die Archiv-Sektion.
+# Schritt 8 wechselt per `git checkout -B "$ARCHIVE_BRANCH" origin/main` den
+# Branch des GETEILTEN Arbeitsbaums. Am 2026-08-18 liefen zwei Finalizer
+# gleichzeitig (T012240 --pr 4738 und T012239 --pr 4737, per pgrep belegt) im
+# selben Haupt-Checkout: die gestagte Archivierung des fremden Changes lag im
+# Index auf dem eigenen Archiv-Branch, und der Push scheiterte an
+# "cannot lock ref ... reference already exists".
+# Der Lock liegt im gemeinsamen Git-Verzeichnis, gilt also ueber alle Worktrees
+# desselben Repos hinweg — genau die Reichweite des geteilten Index.
+# flock haelt die Sperre am offenen Dateideskriptor; sie faellt beim Prozessende
+# von selbst, auch bei Abbruch. Fehlt flock, laeuft der Schritt unserialisiert
+# weiter (fail-open) und sagt es — die Archivierung ist wichtiger als der Schutz
+# vor einem seltenen Timing.
+_archive_lock() {
+  local common lockfile
+  common="${GIT_COMMON_DIR:-$(git -C "$REPO_DIR" rev-parse --git-common-dir 2>/dev/null || echo "")}"
+  [[ -n "$common" ]] || { mark_warn "Schritt 8: Git-Common-Dir nicht bestimmbar — Archiv-Sektion laeuft unserialisiert"; return 0; }
+  lockfile="$common/devflow-finalize-archive.lock"
+  if ! command -v flock >/dev/null 2>&1; then
+    mark_warn "Schritt 8: flock nicht verfuegbar — Archiv-Sektion laeuft unserialisiert"
+    return 0
+  fi
+  exec {_ARCHIVE_LOCK_FD}>"$lockfile" || {
+    mark_warn "Schritt 8: Lock-Datei $lockfile nicht oeffenbar — Archiv-Sektion laeuft unserialisiert"
+    return 0
+  }
+  flock "$_ARCHIVE_LOCK_FD"
+}
+
+# [T012256/B3] _archive_already_done prueft den ZIELZUSTAND, nicht die Existenz
+# des Archiv-Branches.
+# Der bisherige Check war `git ls-remote --heads origin "$ARCHIVE_BRANCH"`. Er
+# erkennt "Archiv-PR noch offen", nicht "Archiv-PR gemergt und Remote-Branch
+# geloescht" — einen Zustand, den Schritt 8 unten per
+# `gh pr merge --auto --squash --delete-branch` regelmaessig SELBST herstellt.
+# Belegt am 2026-08-18: PR #4740 (chore/plan-archive-finalizer-resolve-worktree-
+# by-branch-T012240) ist MERGED, `git ls-remote --exit-code --heads origin
+# <branch>` liefert 2. Ein Wiederholungslauf mit noch vorhandenem lokalem
+# Change-Ordner hielt den Schritt deshalb fuer unerledigt und archivierte erneut.
+# Der Finalizer ist laut openspec/specs/agent-skills.md als idempotente Einheit
+# spezifiziert; der Wiederholungslauf nach Abbruch ist sein Zweck.
+#
+# Drei Signale, jedes fuer sich hinreichend:
+#   1. Archiv-Branch liegt noch remote  -> Archivierung laeuft, PR offen
+#   2. Archiv-Verzeichnis liegt auf origin/main -> Zielzustand erreicht; bleibt
+#      auch nach dem Loeschen des Archiv-Branches wahr
+#   3. Ein Archiv-PR auf diesen Branch ist gemergt -> zweites Signal fuer (2)
+_archive_already_done() {
+  git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1 && return 0
+  git ls-tree -d --name-only "origin/main" "openspec/changes/archive/" 2>/dev/null \
+    | grep -q -- "-${SLUG}\$" && return 0
+  [[ -n "$(gh pr list --head "$ARCHIVE_BRANCH" --state merged --json number -q '.[0].number' 2>/dev/null || true)" ]] && return 0
+  return 1
+}
+
 # Schritt 8 — OpenSpec-Change archivieren (delta-merge + Verschiebung ins Archiv)
 # inklusive Archiv-PR (Mechanik: plan-archive-steps.md). Der Change-Ordner lebt
 # im Worktree (Branch-Zustand) oder im Haupt-Checkout; die git-Operationen laufen
@@ -257,9 +321,10 @@ fi
 
 if [[ -n "${ARCHIVE_DIR:-}" ]]; then
   ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
-  if git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1; then
-    mark_skip "Schritt 8: Archiv-Branch $ARCHIVE_BRANCH existiert bereits remote — OpenSpec-Archiv übersprungen (idempotent)"
+  if _archive_already_done; then
+    mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (Archiv-Branch remote, Archiv auf origin/main oder Archiv-PR gemergt) — uebersprungen (idempotent)"
   else
+    _archive_lock
     # T006791: Vor der Archiv-Sektion den aktuellen Branch merken — die Sektion
     # wechselt per checkout -B den Branch des geteilten Arbeitsbaums (Worktree
     # oder Haupt-Checkout); der Restore in der Subshell-Trap stellt ihn nach der
@@ -400,7 +465,22 @@ if [[ -d "$WORKTREE" ]]; then
     exit 1
   fi
 else
-  mark_skip "Schritt 10: Worktree bereits entfernt"
+  # [T012256/B2] "Pfad existiert nicht" heisst nicht "aufgeraeumt". Haelt noch
+  # ein Worktree $BRANCH, waehrend der aufgeloeste Pfad fehlt, widerspricht sich
+  # der Zustand: die Aufloesung hat den falschen Pfad geliefert, und der echte
+  # Worktree bleibt liegen. Genau so trat T012243 auf — Schritt 10 meldete
+  # "bereits entfernt", waehrend Worktree UND Branch standen, und der Lauf endete
+  # mit Exit 0. Der Widerspruch wird jetzt benannt statt verschwiegen.
+  _wt_holding_branch="$(git -C "$REPO_DIR" worktree list --porcelain 2>/dev/null | awk -v b="refs/heads/$BRANCH" '
+    /^worktree / { wt=$2 }
+    /^branch / && $0 == "branch " b { print wt; found=1; exit }
+    END { if (!found) exit 1 }
+  ' || true)"
+  if [[ -n "$_wt_holding_branch" ]]; then
+    mark_warn "Schritt 10: aufgeloester Pfad $WORKTREE existiert nicht, aber $_wt_holding_branch haelt $BRANCH — nicht aufgeraeumt (Aufloesung lieferte den falschen Pfad)"
+  else
+    mark_skip "Schritt 10: Worktree bereits entfernt"
+  fi
 fi
 
 if git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
@@ -431,5 +511,10 @@ else
 fi
 
 echo ""
-echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen ---"
+if [[ "$WARN_COUNT" -gt 0 ]]; then
+  echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen, $WARN_COUNT Warnung(en) ---"
+  echo "    $WARN_COUNT Schritt(e) konnten ihre Eingabe nicht aufloesen — siehe [warn] oben. Erneut aufrufbar (idempotent)." >&2
+else
+  echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen, $WARN_COUNT Warnung(en) ---"
+fi
 exit 0

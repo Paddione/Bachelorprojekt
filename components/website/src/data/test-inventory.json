@@ -2136,6 +2136,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/finalize-hardening",
+    "file": "tests/spec/agent-skills/finalize-hardening.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/finalize-plan-ref-whitespace",
     "file": "tests/spec/agent-skills/finalize-plan-ref-whitespace.bats",
     "category": "agent-skills",

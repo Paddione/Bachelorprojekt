@@ -51,7 +51,20 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     --port)
-      CACHE_PORT="${2:-}"
+      # Kosmetisch (Review T012177): ohne Wert brach `shift 2` unter `set -e`
+      # wortlos mit Exit 1 ab — jetzt eine benannte Fehlermeldung, plus
+      # Validierung, dass der Wert tatsaechlich numerisch ist.
+      if [ $# -lt 2 ] || [ -z "${2:-}" ]; then
+        echo "ERROR: --port erwartet einen Portwert" >&2
+        usage >&2
+        exit 1
+      fi
+      if ! [[ "$2" =~ ^[0-9]+$ ]]; then
+        echo "ERROR: --port erwartet eine Zahl, erhalten: '$2'" >&2
+        usage >&2
+        exit 1
+      fi
+      CACHE_PORT="$2"
       shift 2
       ;;
     -h|--help)
@@ -69,11 +82,16 @@ done
 # Einzige Fundstelle des Registrierungsbefehls — Dry-Run und Echtlauf teilen sich
 # dieses Array, statt es an zwei Stellen gepflegt vorzufinden (analog
 # gitlab-runner-setup.sh).
+# S3 (Review T012177): auf 127.0.0.1 binden, nicht auf 0.0.0.0 — ein einfaches
+# "-p PORT:5000" bindet auf alle Interfaces und macht den unauthentifizierten
+# Docker-Hub-Proxy im LAN erreichbar. Der Cache wird ausschliesslich vom
+# lokalen Docker-Daemon (registry-mirrors -> http://localhost:PORT) und dem
+# lokalen gitlab-runner-Prozess gebraucht, nie von einem anderen Host.
 run_args=(
   run -d
   --name "${CONTAINER_NAME}"
   --restart unless-stopped
-  -p "${CACHE_PORT}:5000"
+  -p "127.0.0.1:${CACHE_PORT}:5000"
   -e "REGISTRY_PROXY_REMOTEURL=${REMOTE_URL}"
   -e "REGISTRY_STORAGE_DELETE_ENABLED=true"
   -v "gitlab-registry-cache-data:/var/lib/registry"
@@ -145,13 +163,42 @@ fi
 sudo systemctl restart docker
 echo "✓ Docker-Daemon neu gestartet."
 
-# 3. pull_policy im bestehenden self-hosted Runner (additiv zum Docker-Mirror).
+# 3. pull_policy im bestehenden self-hosted Runner, GEZIELT im [runners.docker]-
+#    Block (S2, Review T012177). Ein blindes `tee -a` haengt an das Dateiende
+#    an — folgt dort z.B. [runners.cache] (wie in Etappe-1-Installationen
+#    ueblich), landet der Key in der FALSCHEN TOML-Tabelle und wird von
+#    gitlab-runner still ignoriert (genau der stille Fehlermodus, vor dem
+#    Design D4a warnt). awk sucht den [runners.docker]-Header gezielt und fuegt
+#    die Zeile DIREKT danach ein; die Idempotenz-Pruefung ist auf den
+#    [runners.docker]-Block SCOPED, damit ein pull_policy in einem anderen
+#    Block nicht faelschlich als "bereits gesetzt" durchgeht.
 if [ -f "${RUNNER_CONFIG_TOML}" ]; then
-  if sudo grep -qF -- 'pull_policy = ["if-not-present"]' "${RUNNER_CONFIG_TOML}"; then
-    echo "✓ pull_policy bereits in ${RUNNER_CONFIG_TOML} gesetzt."
+  if ! sudo grep -qE '^\[runners\.docker\]' "${RUNNER_CONFIG_TOML}"; then
+    echo "ERROR: kein [runners.docker]-Block in ${RUNNER_CONFIG_TOML} gefunden — Runner noch nicht mit dem Docker-Executor registriert?" >&2
+    exit 1
+  fi
+
+  already_set="$(sudo awk '
+    /^\[runners\.docker\]/ { in_block=1; next }
+    /^\[/ { in_block=0 }
+    in_block && /pull_policy[[:space:]]*=[[:space:]]*\["if-not-present"\]/ { print "yes"; exit }
+  ' "${RUNNER_CONFIG_TOML}")"
+
+  if [ "${already_set}" = "yes" ]; then
+    echo "✓ pull_policy bereits im [runners.docker]-Block von ${RUNNER_CONFIG_TOML} gesetzt."
   else
-    printf '  pull_policy = ["if-not-present"]\n' | sudo tee -a "${RUNNER_CONFIG_TOML}" >/dev/null
-    echo "✓ pull_policy an ${RUNNER_CONFIG_TOML} angehaengt — sudo systemctl restart gitlab-runner nicht vergessen."
+    tmp_toml="$(mktemp)"
+    # shellcheck disable=SC2024 # gewollt: sudo hebt nur das Lesen der
+    # privilegierten Datei an, der tmp_toml-Schreibzugriff bleibt bewusst beim
+    # aktuellen Benutzer (mktemp-Datei); der privilegierte Rueckschreibschritt
+    # ist der separate `sudo cp` darunter.
+    sudo awk '
+      { print }
+      /^\[runners\.docker\]/ && !inserted { print "  pull_policy = [\"if-not-present\"]"; inserted=1 }
+    ' "${RUNNER_CONFIG_TOML}" > "${tmp_toml}"
+    sudo cp "${tmp_toml}" "${RUNNER_CONFIG_TOML}"
+    rm -f "${tmp_toml}"
+    echo "✓ pull_policy in den [runners.docker]-Block von ${RUNNER_CONFIG_TOML} eingefuegt — sudo systemctl restart gitlab-runner nicht vergessen."
   fi
 else
   echo "HINWEIS: ${RUNNER_CONFIG_TOML} nicht gefunden — pull_policy nicht gesetzt (Runner noch nicht registriert?)." >&2

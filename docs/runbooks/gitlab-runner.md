@@ -243,6 +243,58 @@ Shared Runnern aus dem Fallback (Abschnitt 4). Ein Rename haette
 GitLab-Runner-Konfigurationen gleichzeitig getroffen — das Risiko ueberstieg
 den Gewinn (design.md D5).
 
+### 8.1 Registrierung — Token erzeugen, sealen, anwenden (B3, Review T012177)
+
+Ohne diesen Schritt bleibt die Flux-Kustomization `flux-gitlab-runner`
+(`flux/clusters/fleet/ks-gitlab-runner.yaml`) dauerhaft `NotReady` — sie hat
+`wait: true` und einen `healthCheck` auf `deployment/gitlab-runner`, und der
+Manager-Pod crasht ohne Token nach 30 Registrierungsversuchen dauerhaft
+(`CI_SERVER_TOKEN` bleibt leer, siehe `values/gitlab-runner.yaml`,
+`runners.secret`-Kommentar).
+
+1. Im GitLab-Projekt einen neuen **Project Runner** anlegen (Settings → CI/CD
+   → Runners → "New project runner"), Tag `bachelorprojekt-local` vergeben,
+   Executor-Typ ist fuer die Registrierung selbst egal (der Kubernetes-Executor
+   steht bereits im Chart-Wert `runners.executor`) — den `glrt-`-
+   Authentication-Token kopieren. Derselbe Token-Typ wie in Abschnitt 3.1, ein
+   **anderer** Token als der des Docker-Runners — jeder Runner braucht seinen
+   eigenen.
+2. In `environments/schema.yaml` steht der Eintrag bereits (`GITLAB_RUNNER_TOKEN`,
+   `extra_namespaces: [{namespace: gitlab-runner, secret: gitlab-runner-secret,
+   dest_key: runner-token}]`) — nichts weiter zu tun, nur den Klartextwert
+   eintragen:
+   ```bash
+   # environments/.secrets/mentolder.yaml (git-crypt-verschluesselt, getrackt)
+   GITLAB_RUNNER_TOKEN: "glrt-..."
+   ```
+   `GITLAB_RUNNER_REGISTRATION_TOKEN` (der zweite, benachbarte Schema-Eintrag)
+   **nicht** befuellen — er bleibt absichtlich leer (siehe Kommentar in
+   `environments/schema.yaml`: der Chart verlangt den Key
+   `runner-registration-token` im Secret unabhaengig vom verwendeten Token-Fluss,
+   dieses Repo nutzt aber ausschliesslich den `glrt-`-Fluss).
+3. Sealen und committen:
+   ```bash
+   task env:seal ENV=mentolder
+   git add environments/sealed-secrets/mentolder.yaml
+   git commit -m "chore(security): seal GitLab-Runner-Token fuer fleet [T012177]"
+   ```
+   Das Sealing-Zertifikat ist pro **Cluster** (`fleet`) gueltig, nicht pro
+   Brand — `ENV=mentolder` ist hier nur der Anker-Lauf, der Ziel-Namespace
+   `gitlab-runner` gehoert zu keinem Brand.
+4. Push nach `main` → `.github/workflows/render-fleet-artifact.yml` rendert das
+   OCI-Artefakt neu (inkl. `gitlab-runner/gitlab-runner.yaml`, siehe
+   `scripts/flux-render-artifact.sh`) → Flux appliziert den SealedSecret (der
+   `sealed-secrets`-Controller entschluesselt ihn zum echten Secret
+   `gitlab-runner-secret`) und reconciled danach `flux-gitlab-runner`.
+5. Erfolg pruefen:
+   ```bash
+   kubectl --context fleet get secret gitlab-runner-secret -n gitlab-runner
+   kubectl --context fleet get kustomization flux-gitlab-runner -n flux-system
+   kubectl --context fleet get pods -n gitlab-runner -o wide
+   ```
+   Der Pod-Status muss `Running` zeigen (nicht `CrashLoopBackOff`), die
+   Kustomization `READY=True`.
+
 **Pod-Status pruefen:**
 
 ```bash

@@ -1350,6 +1350,11 @@ secrets:
   - name: GITLAB_RUNNER_TOKEN
     required: false
     sealed: true
+    # dev_absent: der GitLab-Runner laeuft ausschliesslich auf fleet, nicht im
+    # lokalen k3d-Dev-Cluster — dort gibt es keinen Runner, der einen Token
+    # brauchte. Ohne diese Markierung verlangt tests/unit/secrets-sync.bats
+    # einen Dev-Wert in k3d/secrets.yaml, der nichts absichern wuerde.
+    dev_absent: true
     description: "glrt-Authentication-Token fuer den fleet-GitLab-Runner (Kubernetes-Executor, Tag bachelorprojekt-local)"
     extra_namespaces:
       # B3 (Review T012177): dest_key MUSS "runner-token" heissen — der Chart
@@ -1377,6 +1382,8 @@ secrets:
   # "Key muss existieren" zu erfuellen.
   - name: GITLAB_RUNNER_REGISTRATION_TOKEN
     required: false
+    # dev_absent: siehe GITLAB_RUNNER_TOKEN — kein Runner im Dev-Cluster.
+    dev_absent: true
     description: "Bewusst leer — Chart-Pflichtfeld des projected Secrets (runner-registration-token), dieses Repo nutzt ausschliesslich den glrt-Authentication-Token-Fluss."
     extra_namespaces:
       - namespace: gitlab-runner

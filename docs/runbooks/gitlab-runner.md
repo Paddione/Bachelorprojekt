@@ -264,7 +264,7 @@ Manager-Pod crasht ohne Token nach 30 Registrierungsversuchen dauerhaft
    dest_key: runner-token}]`) — nichts weiter zu tun, nur den Klartextwert
    eintragen:
    ```bash
-   # environments/.secrets/mentolder.yaml (git-crypt-verschluesselt, getrackt)
+   # environments/.secrets/fleet-mentolder.yaml (git-crypt-verschluesselt, getrackt)
    GITLAB_RUNNER_TOKEN: "glrt-..."
    ```
    `GITLAB_RUNNER_REGISTRATION_TOKEN` (der zweite, benachbarte Schema-Eintrag)
@@ -274,10 +274,18 @@ Manager-Pod crasht ohne Token nach 30 Registrierungsversuchen dauerhaft
    dieses Repo nutzt aber ausschliesslich den `glrt-`-Fluss).
 3. Sealen und committen:
    ```bash
-   task env:seal ENV=mentolder
-   git add environments/sealed-secrets/mentolder.yaml
+   task env:seal ENV=fleet-mentolder
+   git add environments/sealed-secrets/fleet-mentolder.yaml
    git commit -m "chore(security): seal GitLab-Runner-Token fuer fleet [T012177]"
    ```
+   > **`ENV=fleet-mentolder`, nicht `ENV=mentolder`** — das ist keine Kosmetik:
+   > `scripts/flux-render-artifact.sh` kopiert **ausschliesslich**
+   > `environments/sealed-secrets/fleet-mentolder.yaml` ins OCI-Artefakt. Ein nach
+   > `sealed-secrets/mentolder.yaml` gesealter Token erreicht fleet also **nie**,
+   > der Runner-Pod bleibt in CrashLoop, und `flux-gitlab-runner` steht wegen
+   > `wait: true` dauerhaft auf NotReady — ohne dass irgendwo ein Fehler zum
+   > Token erschiene. `environments/fleet-mentolder.yaml` traegt `BRAND_ID:
+   > mentolder`, der `owner_brand`-Filter des Sealers greift also unveraendert.
    Das Sealing-Zertifikat ist pro **Cluster** (`fleet`) gueltig, nicht pro
    Brand — `ENV=mentolder` ist hier nur der Anker-Lauf, der Ziel-Namespace
    `gitlab-runner` gehoert zu keinem Brand.

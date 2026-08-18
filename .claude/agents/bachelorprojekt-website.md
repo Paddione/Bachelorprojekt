@@ -35,7 +35,7 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 - Timeline shows **historical data only** — tracking pipeline removed (PR #788 removed `tracking-import` CronJob, PR #993 removed `track-pr.yml`); last entry is PR #787
 
 ## Deploy rule (CRITICAL)
-Every change to `components/website/src/` or `components/website/public/` requires a push to `main` (via PR). In prod, the `build-website.yml` / `build-website-korczewski.yml` Actions rebuild the brand image and roll it out automatically (push-based via `FLEET_KUBECONFIG`; no Flux). For manual rollout/rebuild:
+Every change to `components/website/src/` or `components/website/public/` requires a push to `main` (via PR). In prod, **one** workflow — `build-website.yml` — builds a brand-neutral image and then runs two deploy jobs (mentolder, korczewski) that roll it out push-based via `FLEET_KUBECONFIG`. There is no separate korczewski website workflow (T001229/T001276). The same run re-renders the fleet OCI artifact so Flux stays pinned to the built SHA. For manual rollout/rebuild:
 ```bash
 # Fan-out to both brands (recommended):
 task feature:website
@@ -56,25 +56,18 @@ Execute Bash commands and file edits without asking for confirmation.
 
 ## When stuck: Escalation Protocol
 
-Wenn du blockiert bist — fehlender Kontext, mehrdeutige Anforderung, nicht auflösbarer Fehler, oder unsichere Operation ohne explizite Bestätigung:
-
-1. **Sofort stoppen** — nicht raten, nicht blind weitermachen
-2. **Signal senden:**
-   ```bash
-   bash scripts/agent-escalate.sh \
-     --agent "bachelorprojekt-website" \
-     --reason "<Was dich blockiert>" \
-     --tried  "<Was du versucht hast>" \
-     --needs  "<Was dich entblocken würde>"
-   ```
-3. **ESCALATION-Block als Antwort zurückgeben** — der Orchestrator re-dispatcht mit mehr Kontext
-
-**Niemals:**
-- Stumm scheitern und unvollständige Arbeit zurückgeben
-- Bei mehrdeutigen `ENV=`-Zielen, Secret-Werten oder destruktiven Operationen raten
-- Über einen 🔴 oder 🟠 Guardrail hinausgehen ohne explizite Bestätigung
+Blockiert (fehlender Kontext, Mehrdeutigkeit, unsichere Operation)? Sofort stoppen,
+`bash scripts/agent-escalate.sh --agent "bachelorprojekt-website" --reason … --tried … --needs …`
+aufrufen und einen ESCALATION-Block zurückgeben. Nie stumm scheitern, nie raten.
+Vollständige Regel: [`escalation-protocol.md`](../lib/behaviors/escalation-protocol.md).
 
 ## Active plans
-The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh website --with-openspec`, which reads active proposals from `openspec/changes/*/proposal.md`. **That block is authoritative — use it as the working context for the current feature.**
 
-If no block was injected, no `website`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is frozen historical data — `scripts/track-pr.mjs` and the tracking pipeline were removed in PRs #788/#993.
+Der Orchestrator injiziert einen `<active-plans>`-Block aus
+`scripts/plan-context.sh bachelorprojekt-website --with-openspec`. Ist er da, ist er maßgeblich.
+Ist er nicht da, läuft für diese Rolle kein Plan — **nicht** ersatzweise
+`superpowers.plans` abfragen (eingefrorene Historie).
+
+Immer den **vollen** Rollennamen übergeben: eine Kurzform fällt still auf „alle
+Proposals" zurück, statt zu scheitern (T002322). Details:
+[`agent-active-plans.md`](../skills/references/agent-active-plans.md).

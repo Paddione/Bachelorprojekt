@@ -31,7 +31,7 @@ variables:
   # Trivy pinnt GitHub ueber aquasecurity/setup-trivy ohne explizite Version. Hier
   # ist eine Version noetig, weil der Download direkt erfolgt; sie wandert in den
   # Paritaets-Guard als "nur GitLab gepinnt" und nicht als Divergenz.
-  TRIVY_VERSION: "0.58.1"
+  TRIVY_VERSION: "0.74.0"
 
 # ── Etappe 3 (T012405): gemeinsame Bausteine ─────────────────────────────────
 #
@@ -332,7 +332,11 @@ factory-shard:
   variables:
     SPEC_SHARD: "$CI_NODE_INDEX"
     SPEC_SHARDS: "$CI_NODE_TOTAL"
-    GO_VERSION: "1.23.4"
+    # scripts/ticket-mcp/go/go.mod verlangt go 1.26.4 — eine aeltere Toolchain
+    # bricht den Build ab, den task test:spec voraussetzt. GitHub nutzt hier
+    # setup-go mit 'stable' und bekommt die Anforderung automatisch erfuellt;
+    # bei einem direkten Download muss die Version dem go.mod folgen.
+    GO_VERSION: "1.26.4"
     YQ_VERSION: "4.53.3"
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 python3-yaml gettext-base jq ca-certificates curl >/dev/null
@@ -351,6 +355,12 @@ factory-shard:
     - corepack enable && corepack prepare pnpm@10 --activate
     - npm ci
     - bash scripts/ci-dummy-secrets.sh
+    # Die beiden folgenden Schritte hat das GitHub-Gegenstueck ebenfalls, und ohne
+    # sie ist der Job kein Gegenstueck, sondern nur gleichnamig: ticket-mcp:test
+    # baut das Go-Binary mit, das task test:spec voraussetzt, und ein Teil der
+    # Spec-Suite spricht mit dem Cockpit-Daemon.
+    - task ticket-mcp:test
+    - task cockpit:daemon
   script:
     - export PATH="/usr/local/go/bin:$PATH"
     - *diff_base_preamble

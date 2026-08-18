@@ -165,3 +165,35 @@ _gl_node_majors() {
   echo "Anker: extrahierte Versionswerte = ${found} (erwartet 4)"
   [ "$found" -eq 4 ]
 }
+
+@test "gitlab-tool-parity: die GitLab-Go-Version erfuellt die go.mod-Anforderung" {
+  # Belegter Fehlschlag (T012405): .gitlab-ci.yml pinnte Go 1.23.4, waehrend
+  # scripts/ticket-mcp/go/go.mod bereits 1.26.4 verlangt. Alle vier Shard-Jobs
+  # scheiterten daran — und zwar erst auf GitLab, nach dem Push.
+  #
+  # Die Asymmetrie ist der Grund fuer diesen Guard: GitHub nutzt setup-go mit
+  # 'stable' und erfuellt jede go.mod-Anforderung automatisch mit. Ein direkter
+  # Download tut das nicht. Es gibt hier also KEINE Versionszahl auf der
+  # GitHub-Seite, gegen die sich vergleichen liesse — der Vergleich muss gegen
+  # go.mod selbst laufen, nicht gegen die andere Pipeline.
+  gomod="${REPO_ROOT}/scripts/ticket-mcp/go/go.mod"
+  [ -f "$gomod" ]
+
+  required="$(grep -oE '^go [0-9]+\.[0-9]+(\.[0-9]+)?' "$gomod" | awk '{print $2}')"
+  pinned="$(grep -oE 'GO_VERSION:[[:space:]]*"[0-9]+\.[0-9]+\.[0-9]+"' "$GL_YML" \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+
+  # Positiv-Anker [T002356-M1]: beide Werte wurden ueberhaupt extrahiert. Zwei
+  # leere Zeichenketten wuerden den sort -V-Vergleich unten klaglos bestehen.
+  echo "Anker: go.mod verlangt='${required}' .gitlab-ci.yml pinnt='${pinned}'"
+  [ -n "$required" ]
+  [ -n "$pinned" ]
+
+  # Der gepinnte Wert muss >= dem geforderten sein. sort -V vergleicht semantisch,
+  # nicht lexikografisch — sonst gaelte "1.9" > "1.26".
+  lowest="$(printf '%s\n%s\n' "$required" "$pinned" | sort -V | head -1)"
+  if [ "$lowest" != "$required" ] && [ "$required" != "$pinned" ]; then
+    echo "GO_VERSION ${pinned} ist aelter als die go.mod-Anforderung ${required}" >&2
+    false
+  fi
+}

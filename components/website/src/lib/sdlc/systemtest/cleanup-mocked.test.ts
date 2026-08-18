@@ -20,7 +20,7 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import type { Pool } from 'pg';
 
-vi.mock('../identity', () => ({
+vi.mock('../../identity', () => ({
   deleteUser: vi.fn().mockResolvedValue(true),
 }));
 

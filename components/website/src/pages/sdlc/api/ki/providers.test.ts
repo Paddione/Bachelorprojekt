@@ -11,7 +11,7 @@ vi.mock('../../../../lib/auth', () => ({
 const db = vi.hoisted(() => ({
   listProviders: vi.fn(), listHealth: vi.fn(), createProvider: vi.fn(),
 }));
-vi.mock('../../../../lib/ki-config-db', () => db);
+vi.mock('../../../../lib/sdlc/ki-config-db', () => db);
 
 import { GET, POST } from './providers';
 
@@ -31,19 +31,19 @@ beforeEach(() => {
 describe('GET /api/admin/ki/providers', () => {
   it('401 without session', async () => {
     getSession.mockResolvedValue(null);
-    const r = await GET({ request: req() } as never);
+    const r = await GET({ request: req(), locals: { requestLogger: { error: vi.fn() } } } as never);
     expect(r.status).toBe(401);
   });
   it('403 for non-admin', async () => {
     getSession.mockResolvedValue(session); isAdmin.mockReturnValue(false);
-    const r = await GET({ request: req() } as never);
+    const r = await GET({ request: req(), locals: { requestLogger: { error: vi.fn() } } } as never);
     expect(r.status).toBe(403);
   });
   it('returns entries + health for admin', async () => {
     getSession.mockResolvedValue(session); isAdmin.mockReturnValue(true);
     db.listProviders.mockResolvedValue([{ id: 1 }]);
     db.listHealth.mockResolvedValue([{ provider: 'anthropic' }]);
-    const r = await GET({ request: req() } as never);
+    const r = await GET({ request: req(), locals: { requestLogger: { error: vi.fn() } } } as never);
     expect(r.status).toBe(200);
     const json = await r.json();
     expect(json.entries).toHaveLength(1);
@@ -54,14 +54,14 @@ describe('GET /api/admin/ki/providers', () => {
 describe('POST /api/admin/ki/providers', () => {
   it('400 on missing required field', async () => {
     getSession.mockResolvedValue(session); isAdmin.mockReturnValue(true);
-    const r = await POST({ request: req({ source: 'chat/*' }) } as never);
+    const r = await POST({ request: req({ source: 'chat/*' }), locals: { requestLogger: { error: vi.fn() } } } as never);
     expect(r.status).toBe(400);
   });
   it('400 on invalid tier', async () => {
     getSession.mockResolvedValue(session); isAdmin.mockReturnValue(true);
     const r = await POST({ request: req({
       source: 'chat/*', tier: 'opus', priority: 1, provider: 'x', model_id: 'm',
-    }) } as never);
+    }), locals: { requestLogger: { error: vi.fn() } } } as never);
     expect(r.status).toBe(400);
   });
   it('409 on unique-priority conflict', async () => {
@@ -69,7 +69,7 @@ describe('POST /api/admin/ki/providers', () => {
     db.createProvider.mockRejectedValue(Object.assign(new Error('dup'), { code: '23505' }));
     const r = await POST({ request: req({
       source: 'chat/*', tier: 'sonnet', priority: 1, provider: 'x', model_id: 'm',
-    }) } as never);
+    }), locals: { requestLogger: { error: vi.fn() } } } as never);
     expect(r.status).toBe(409);
   });
   it('201 with new id on success', async () => {
@@ -77,7 +77,7 @@ describe('POST /api/admin/ki/providers', () => {
     db.createProvider.mockResolvedValue(42);
     const r = await POST({ request: req({
       source: 'chat/*', tier: 'sonnet', priority: 1, provider: 'x', model_id: 'm',
-    }) } as never);
+    }), locals: { requestLogger: { error: vi.fn() } } } as never);
     expect(r.status).toBe(201);
     expect((await r.json()).id).toBe(42);
   });

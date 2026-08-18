@@ -45,7 +45,7 @@ let safeOpenTestRunFailureTicket: typeof import('./test-run-bridge').safeOpenTes
 
 beforeAll(async () => {
   vi.resetModules();
-  vi.doMock('../tickets-db', () => ({
+  vi.doMock('../../tickets-db', () => ({
     initTicketsSchema: vi.fn().mockResolvedValue(undefined),
   }));
   const mod = await import('./test-run-bridge');
@@ -55,7 +55,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
-  vi.doUnmock('../tickets-db');
+  vi.doUnmock('../../tickets-db');
   vi.resetModules();
 });
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getTicketGraph } from './ticket-graph';
 
-vi.mock('./website-db', () => ({
+vi.mock('../website-db', () => ({
   pool: { query: vi.fn() },
 }));
 

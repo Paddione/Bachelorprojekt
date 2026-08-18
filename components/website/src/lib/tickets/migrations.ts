@@ -4,6 +4,7 @@
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155).
 import type { Pool, PoolClient } from 'pg';
 import { applyTypeVocabularyMigration } from './migrate-type-vocabulary';
+import { TICKET_STATUSES } from './status';
 
 export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<void> {
   // Idempotent column additions for older schema versions where CREATE TABLE IF NOT EXISTS skipped creation
@@ -47,9 +48,12 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
   // ('backlog') auf manuelle Freigabe. Der Dispatcher pollt nur 'backlog' → die
   // Factory rührt 'plan_staged' nicht an. Constraint ist inline/unbenannt → drop+add.
   await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_status_check`);
+  // Status-Vokabular aus ./status.ts (SSOT, T007955): das CHECK-SQL wird aus
+  // TICKET_STATUSES gebaut, damit DB-Constraint und Union nie mehr driften
+  // (die 11 Werte sind compile-zeitliche Literale, keine Nutzereingabe).
+  const statusCheckSql = `CHECK (status IN (${TICKET_STATUSES.map((s) => `'${s}'`).join(',')}))`;
   await pool.query(`
-    ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_status_check
-      CHECK (status IN ('triage','planning','plan_staged','backlog','in_progress','in_review','blocked','qa_review','awaiting_deploy','done','archived'))
+    ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_status_check ${statusCheckSql}
   `);
 
   // Typ-Vokabular (T002329): benannter Constraint + Datenmigration bug/feature/task

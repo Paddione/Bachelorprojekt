@@ -3987,6 +3987,12 @@
       "status": "archived"
     }
   ],
+  "T008345": [
+    {
+      "slug": "fix-status-ssot-consolidation",
+      "status": "plan_staged"
+    }
+  ],
   "T008721": [
     {
       "slug": "chore-e3-review-followups",

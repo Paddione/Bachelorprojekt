@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1077,
+      "file_count": 1078,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -904,6 +904,7 @@
         "tests/spec/ticket-mcp/phase-events-at-column.bats",
         "tests/spec/ticket-mcp/triage-projection.bats",
         "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
+        "tests/spec/ticket-ops/triage-status-ssot.bats",
         "tests/spec/ticket-ops/wave1-state-refetch.bats",
         "tests/spec/ticket-system.bats",
         "tests/spec/ticket-system/areas-csv-trim.bats",
@@ -1160,7 +1161,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1801,
+      "file_count": 1802,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -2340,6 +2341,7 @@
         "components/website/src/lib/tickets/reporter-link.test.ts",
         "components/website/src/lib/tickets/reporter-link.ts",
         "components/website/src/lib/tickets/status.ts",
+        "components/website/src/lib/tickets/statuses.json",
         "components/website/src/lib/tickets/suggest-prompt.test.ts",
         "components/website/src/lib/tickets/suggest-prompt.ts",
         "components/website/src/lib/tickets/tables/factory-control.ts",

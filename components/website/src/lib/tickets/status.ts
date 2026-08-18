@@ -6,13 +6,18 @@
 // duplicated three times (lib/tickets/admin.ts, lib/tickets/transition.ts,
 // pages/sdlc/api/cockpit/ticket-status.ts) and could drift.
 //
-// Membership mirrors the tickets_status_check constraint installed by
-// lib/tickets/migrations.ts (order there: 'in_review','blocked','qa_review';
-// here qa_review precedes blocked — the order all three consumers shared).
-// Pure module: imports nothing, so tests and components can import it without
-// booting the pg Pool.
+// The VALUES live in ./statuses.json — the machine-readable source shared with
+// the shell tooling (scripts/vda/ticket/triage.sh validates against the same
+// file). TICKET_STATUSES IS that JSON array; the literal tuple below is a
+// compile-time contract for the literal union type, not a runtime duplicate.
+//
+// The tickets_status_check DB constraint is built from this module (see
+// lib/tickets/migrations.ts), so constraint and union cannot drift either.
+// Pure module: imports no runtime modules (JSON data only), so tests and
+// components can import it without booting the pg Pool.
+import statusValues from './statuses.json';
 
-export const TICKET_STATUSES = [
+export const TICKET_STATUSES = statusValues as unknown as readonly [
   'triage',
   'planning',
   'plan_staged',
@@ -24,7 +29,7 @@ export const TICKET_STATUSES = [
   'awaiting_deploy',
   'done',
   'archived',
-] as const;
+];
 
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
 

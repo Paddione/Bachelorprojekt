@@ -19,7 +19,11 @@ under contention the scheduler evicts or defers CI work rather than production w
 
 - **GIVEN** die ResourceQuota des Runner-Namespace ist ausgeschöpft
 - **WHEN** ein weiterer Job-Pod erzeugt werden soll
-- **THEN** lehnt der API-Server die Erzeugung ab und der Job bleibt `pending`
+- **THEN** lehnt der API-Server die Pod-Erzeugung selbst ab (kein Scheduling-`pending`
+  — die Ablehnung geschieht schon bei der Objekt-Erzeugung, bevor ein Pod existiert,
+  den der Scheduler platzieren könnte) und der GitLab-Job schlägt fehl (S5, Review
+  T012177: „bleibt pending" trifft nicht zu — das gilt für einen erzeugten, aber
+  nicht schedulebaren Pod, nicht für einen von der Quota abgelehnten)
 - **THEN** bleibt kein produktiver Pod in `workspace` oder `workspace-korczewski` davon unberührt
 
 #### Scenario: Kein CI-Pod auf einem Control-Plane-Knoten

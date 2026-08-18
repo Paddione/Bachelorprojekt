@@ -120,9 +120,12 @@ tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats
       4. **Laufzeit gegen die Etappe-1-Werte messen** (50 / 84 / 284 s) und die neuen Zahlen im
          Ticket vermerken. Sinkt sie nicht, ist der Cache wirkungslos — dann Cache-Trefferquote
          prüfen, bevor etwas anderes geändert wird.
-      5. **Quota-Nachweis:** Einen Job über die Quota hinaus erzeugen und belegen, dass er
-         `pending` bleibt **und** kein produktiver Pod in `workspace` oder
-         `workspace-korczewski` betroffen ist.
+      5. **Quota-Nachweis:** Einen Job über die Quota hinaus erzeugen und belegen, dass seine
+         Pod-Erzeugung vom API-Server abgelehnt wird und der GitLab-Job dadurch fehlschlägt
+         (kein `pending` — das gilt nur für einen bereits erzeugten, aber nicht schedulebaren
+         Pod, nicht für eine Quota-Ablehnung bei der Objekt-Erzeugung selbst; S5, Review
+         T012177) **und** kein produktiver Pod in `workspace` oder `workspace-korczewski`
+         betroffen ist.
       5a. **PriorityClass-Annahme prüfen.** Der geplante Wert `-1000` ruht auf der Annahme, dass
          im Cluster keine Klasse mit `globalDefault: true` existiert und produktive Pods damit
          auf Priorität 0 laufen. Das war bei der Planung **nicht verifizierbar** — die

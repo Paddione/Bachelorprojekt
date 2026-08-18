@@ -157,7 +157,7 @@ jeweils lokalen Cache. Der Cloud-Fallback aus Etappe 1 bleibt unverändert als d
 | fleet-Runner offline | Desktop-Runner nimmt alle Jobs | Pipeline läuft weiter, Runner-Liste in GitLab zeigt „offline" |
 | Desktop-Runner offline | fleet-Runner nimmt alle Jobs | dito |
 | Beide offline | Jobs `pending` | Runbook: `CI_RUNNER_TAG` auf SaaS |
-| Quota ausgeschöpft | Job-Pod wird nicht erzeugt, Job bleibt `pending` | Events im Namespace; **produktive Pods unberührt** |
+| Quota ausgeschöpft | Job-Pod-**Erzeugung** wird vom API-Server abgelehnt, der GitLab-Job **schlägt fehl** (kein `pending` — das gilt nur für einen bereits erzeugten, aber nicht schedulebaren Pod, S5 Review T012177) | Events im Namespace; **produktive Pods unberührt** |
 | Cache nicht erreichbar | Pull geht direkt upstream — langsamer, nicht kaputt | Laufzeit steigt auf den Etappe-1-Wert |
 
 Der letzte Fall ist Absicht: Ein Cache-Ausfall darf die Pipeline nicht anhalten. Der

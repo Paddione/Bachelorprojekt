@@ -4950,6 +4950,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-ci-signal",
+    "file": "tests/spec/software-factory/opencode-exec-ci-signal.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-pr-step",
     "file": "tests/spec/software-factory/opencode-exec-pr-step.bats",
     "category": "software-factory",

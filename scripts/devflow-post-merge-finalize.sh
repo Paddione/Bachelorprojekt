@@ -324,8 +324,16 @@ _archive_already_done() {
     [[ -n "$_entry" ]] || continue
     _base="${_entry##*/}"
     # Datumspraefix YYYY-MM-DD- abtrennen; der Rest muss der Slug SELBST sein.
-    [[ "$_base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]] || continue
-    [[ "${BASH_REMATCH[1]}" == "$SLUG" ]] && return 0
+    if [[ "$_base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]]; then
+      [[ "${BASH_REMATCH[1]}" == "$SLUG" ]] && return 0
+    # 9 der Archiv-Verzeichnisse stammen aus der Zeit vor der Datumskonvention
+    # (mishap-t002407, k1-vektorspeicher, t001537, ...). Ohne diesen Zweig fielen
+    # sie durchs Raster: Signal 2 meldete "nicht archiviert", und griffen auch
+    # Signal 1 und 3 nicht, archivierte Schritt 8 erneut — der Fehler, den B3
+    # gerade beheben soll (Code-Review PR #4744, Re-Review).
+    elif [[ "$_base" == "$SLUG" ]]; then
+      return 0
+    fi
   done < <(git ls-tree -d --name-only "origin/main" "openspec/changes/archive/" 2>/dev/null || true)
   [[ -n "$(gh pr list --head "$ARCHIVE_BRANCH" --state merged --json number -q '.[0].number' 2>/dev/null || true)" ]] && return 0
   return 1

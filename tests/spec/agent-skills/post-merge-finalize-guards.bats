@@ -12,6 +12,11 @@
 # voller BATS-Runtime-Test bleibt unmöglich, weil die Sektion nicht als Funktion
 # isolierbar ist und Schritt 1 (ticket.sh get) die Ticket-DB braucht.
 #
+# Regression für T008014 (PR #4663-Beobachtung): Worktree-Auflösung per
+# git worktree list mit Branch-exakter Zuordnung (refs/heads/$BRANCH — deckt
+# <slug>-T<id> UND <branch-ohne-Typ-Praefix>-T<id> ab) statt Slug-Konkatenation
+# und relativer Plan-Pfad im cat-file-Check (${PLAN_FILE#"$REPO_DIR"/}).
+#
 # Regression für T006348: Review-Befunde aus PR #4539 (T006284, gemergt 1cab10192) —
 #   (1) Merge-Status-Guard fehlt im --pr-Pfad: Closure-Schritte laufen für jede
 #       übergebene PR-Nummer, nur der Auto-Pfad filtert auf merged — Drift
@@ -104,5 +109,39 @@ setup() {
 # eines --repo-Flags.
 @test "T006348: branch-reaper-Aufruf ist cwd-unabhängig (absoluter Skript-Pfad)" {
   run grep -qF 'bash "$REPO_DIR/scripts/branch-reaper.sh"' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+# Positiv-Anker (T002356-M1) für Test 10: Das Skript löst den Worktree per
+# git worktree list auf — die Branch-Zuordnungs-Aussage wäre ohne den Anker
+# vakuos, wenn die gesamte Auflösung entfernt würde.
+@test "T008014: Worktree-Auflösung nutzt git worktree list (Anker)" {
+  run grep -qF 'worktree list --porcelain' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+# Rot heute: WORKTREE="$REPO_DIR/.worktrees/$SLUG" konkateniert den Slug ohne
+# -T<id>-Suffix; grün nach dem Fix: die Auflösung ordnet den Worktree per
+# Branch-Zeile exakt zu (refs/heads/$BRANCH) — deckt <slug>-T<id> und
+# <branch-ohne-Typ-Praefix>-T<id> ab (T008014), Fallback bleibt die Konkatenation.
+@test "T008014: Worktree-Auflösung ordnet per Branch-Zeile zu (branch-exact)" {
+  run grep -qF 'refs/heads/$BRANCH' "$FINALIZE"
+  [ "$status" -eq 0 ]
+  run grep -qF '"branch " b' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+# Positiv-Anker für Test 12: Der cat-file-Mechanismus existiert — die
+# Relativ-Pfad-Aussage wäre ohne den Anker vakuos, wenn der Check entfernt würde.
+@test "T008014: Plan-Check nutzt git cat-file (Anker)" {
+  run grep -qF 'git cat-file -e' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+# Rot heute: git cat-file -e "$BRANCH:$PLAN_FILE" mit absolutem Pfad — rev:path
+# verlangt relativ, der Check schlägt immer fehl; grün nach dem Fix: der
+# Repo-Präfix wird entfernt (${PLAN_FILE#"$REPO_DIR"/}).
+@test "T008014: cat-file-Check nutzt den Plan-Pfad relativ zum Repo" {
+  run grep -qF '${PLAN_FILE#"$REPO_DIR"/}' "$FINALIZE"
   [ "$status" -eq 0 ]
 }

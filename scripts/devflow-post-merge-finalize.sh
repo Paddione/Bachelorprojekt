@@ -120,7 +120,26 @@ mark_ok "Schritt 2: Branch=$BRANCH"
 SLUG=""
 [[ -n "$PLAN_FILE" ]] && SLUG="$(basename "$(dirname "$PLAN_FILE")" 2>/dev/null || true)"
 [[ -z "$SLUG" ]] && SLUG="$(echo "$BRANCH" | sed -E 's/^(feature|fix|chore)\///; s/-T[0-9]{6,}$//')"
-WORKTREE="$REPO_DIR/.worktrees/$SLUG"
+# Resolve worktree via git worktree list (branch-exact match) — Worktree-Dirs
+# heiessen <branch-ohne-Typ-Praefix>-T<id> (z.B. devflow-post-merge-finalize-
+# worktree-path-T008014 fuer fix/devflow-post-merge-finalize-worktree-path-T008014)
+# ODER <slug>-T<id>; der Branch (Schritt 2, Pflicht) identifiziert den Worktree
+# eindeutig, unabhaengig von der Verzeichnis-Konvention (T008014). Der Slug-
+# Kandidat deckt Worktrees ohne -T<id>-Suffix ab (z.B. nach `git worktree move`).
+WORKTREE=""
+_wt_candidate="$REPO_DIR/.worktrees/$SLUG"
+if [[ -d "$_wt_candidate" ]]; then
+  WORKTREE="$_wt_candidate"
+else
+  # Branch-exact: refs/heads/$BRANCH dem Worktree zuordnen
+  WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
+    /^worktree / { wt=$2 }
+    /^branch / && $0 == "branch " b { print wt; found=1; exit }
+    END { if (!found) exit 1 }
+  ' 2>/dev/null || true)"
+fi
+# Fallback: original path (for backwards compat with -T<id>-less worktrees)
+[[ -z "$WORKTREE" ]] && WORKTREE="$REPO_DIR/.worktrees/$SLUG"
 
 # Schritt 3 — PR-Nummer: --pr-Flag, sonst gh gegen den Branch (state=merged —
 # Closure erst nach bestaetigtem Merge, T001149-M1). Ohne PR laufen die
@@ -186,7 +205,7 @@ else
   [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
   if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
     mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert"
-  elif [[ ! -s "$PLAN_FILE" ]] && ! git cat-file -e "$BRANCH:$PLAN_FILE" 2>/dev/null; then
+  elif [[ ! -s "$PLAN_FILE" ]] && ! git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}" 2>/dev/null; then
     mark_skip "Schritt 7: Plan-Pfad nicht (mehr) aufloesbar — Archiv vermutlich bereits persistiert"
   else
     echo "ERROR: Schritt 7 — archive-plan fehlgeschlagen (Ticket $TICKET_ID, $PLAN_FILE)." >&2

@@ -173,7 +173,7 @@ Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotu
 ## CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
-- Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
+- Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run). BATS runner: `tests/unit/lib/bats-core/bin/bats`
 - **Test inventory check**: re-runs `task test:inventory` and fails the job if `components/website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
 - **Test- und BATS-Konventionen -> [`tests/CLAUDE.md`](tests/CLAUDE.md)**: Verzeichnisaufbau `tests/spec/<spec-slug>/`, Runner-Pfad, `$output`-Matching, Positiv-Anker-Pflicht bei Negativtests, CRLF-tolerante Anker, `bash -n`-Falle, Append-Konflikte. Die Datei laedt automatisch, sobald an Dateien unter `tests/` gearbeitet wird. **Kernregel, die hier bleibt:** Tests pruefen **command output** und Resultate (output verification) statt der Implementierungsquelle, und die Zusicherung haengt an der Semantik des Outputs (Exit-Code, Vorhandensein eines Werts), nicht an dessen Darstellung.
 - **Release notes**: Generate structured release notes from merged PRs via `bash scripts/vda.sh release-notes generate` or `task release:notes` (LLM/DeepSeek-gestützt mit deterministischem Fallback). Publish to GitHub Release body with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.

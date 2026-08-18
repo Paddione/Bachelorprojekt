@@ -3,8 +3,21 @@
 # Ticket: T012267 — Diagnose-Werkzeug (read-only) fuer den GitLab-Spiegel.
 #
 # Fragt den Status der letzten Pipeline auf main des GitLab-Spiegel-Projekts
-# (gitlab.com/Paddione/Bachelorprojekt, Projekt-ID 85496968, Etappe 1 T011790)
-# ueber die oeffentliche GitLab-API ab — ohne Token lesbar. Keine
+# (gitlab.com/p.korczewski/Bachelorprojekt, Projekt-ID 85506856) ueber die
+# oeffentliche GitLab-API ab — ohne Token lesbar. Keine
+#
+# PROJEKT-ID KORRIGIERT (T012405): Bis hierher stand 85496968 im Skript. Dieses
+# Projekt heisst inzwischen 'Paddione/Bachelorprojekt-deletion_scheduled-85496968'
+# und ist zur Loeschung vorgemerkt — der Mirror-Workflow pusht laengst nach
+# 85506856 (belegt im Log von Actions-Run 32134537198: "To create a merge request
+# ... visit https://gitlab.com/p.korczewski/Bachelorprojekt/-/merge_requests/new").
+#
+# Das war der gefaehrlichste denkbare Fehler fuer genau dieses Skript: Das tote
+# Projekt ANTWORTET weiter und liefert alte, gruene Pipelines. Die Diagnose war
+# also nicht kaputt, sondern falsch — sie meldete "Pipeline gruen" fuer ein
+# Projekt, in das seit dem Umzug nichts mehr gepusht wird. Ein Ausfall waere
+# harmloser gewesen als diese Antwort.
+#
 # Schreiboperation, kein CI-Gate: das Skript ist ein Diagnose-Werkzeug fuer
 # Agents und Runbooks.
 #
@@ -19,7 +32,10 @@
 
 set -u
 
-API="https://gitlab.com/api/v4/projects/85496968/pipelines?ref=main&per_page=1"
+# Ueberschreibbar, damit ein Projektwechsel keinen Commit braucht — der Default
+# ist die einzige Fundstelle der ID.
+GITLAB_PROJECT_ID="${GITLAB_PROJECT_ID:-85506856}"
+API="https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_ID}/pipelines?ref=main&per_page=1"
 BODY="$(curl -fsSL "$API" 2>/dev/null || echo "")"
 
 # Nichtleere-Guard ZUERST (T003109-Semantik): eine leere Antwort ist kein

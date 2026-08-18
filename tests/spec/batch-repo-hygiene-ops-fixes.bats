@@ -257,15 +257,21 @@ GH_EOF
   chmod +x "$WORK/bin/gh"
 
   # tick_running=true simulieren: Lock-Datei existiert UND ist gehalten.
-  # flock -w begrenzt die Wartezeit: hält eine echte Factory den Lock, blockt
-  # der Subshell-Flock nicht endlos. stdout/stderr auf /dev/null: überlebt ein
+  # [T012444] Eigener Pfad unter $WORK statt des geteilten /tmp/factory-tick.lock.
+  # Auf dem self-hosted Runner läuft der Job als `ghrunner`, während die echte
+  # Lock-Datei `patrick` gehört (664) — schon der Redirect `9>` scheiterte dort mit
+  # EACCES, der Lock entstand nie und die Assertion fiel deterministisch. Ein Test
+  # darf den Lock einer laufenden Factory ohnehin nicht anfassen.
+  TICK_LOCK="$WORK/factory-tick.lock"
+  # flock -w begrenzt die Wartezeit. stdout/stderr auf /dev/null: überlebt ein
   # verwaister Flock-Kindprozess den kill, hält er die Bats-Output-Pipe nicht
   # offen (sonst hängt die Suite am Testende).
-  ( flock -w 10 -x 9; sleep 30 ) 9>/tmp/factory-tick.lock >/dev/null 2>&1 &
+  ( flock -w 10 -x 9; sleep 30 ) 9>"$TICK_LOCK" >/dev/null 2>&1 &
   TMP_LOCK_PID=$!
   sleep 0.2
 
   run --separate-stderr env -C "$WORK" PATH="$WORK/bin:$PATH" REPO_DIR="$FIXTURE" AGENT_LOCK_DIR="$WORK/locks" \
+    FACTORY_TICK_LOCK="$TICK_LOCK" \
     bash "$PROJECT_DIR/scripts/repo-hygiene-cron.sh" standard
   kill "$TMP_LOCK_PID" 2>/dev/null || true
   wait "$TMP_LOCK_PID" 2>/dev/null || true

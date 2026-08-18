@@ -48,9 +48,15 @@ bash "$HERE/agent-lock.sh" reap >&2 2>/dev/null || true
 # auf veraltetem Stand ist wertlos — die Sektion wird dann übersprungen und als
 # "skipped" ausgewiesen, statt falsche Zahlen zu liefern. Dasselbe Lock-Test-Muster
 # wie scripts/factory/mcp-server.mjs factory_status.
+# [T012444] Pfad überschreibbar. Der Default bleibt der geteilte /tmp-Pfad, den die
+# echte Factory hält. Nötig wurde die Naht durch den self-hosted Runner: der Job läuft
+# als `ghrunner`, die Lock-Datei gehört `patrick` (Modus 664), und schon der Probe-
+# Redirect `9>` braucht Schreibrechte. Ein Test, der den geteilten Pfad benutzt, scheitert
+# dort mit EACCES — und die Datei zu löschen scheidet aus, solange ein echter Tick sie hält.
+FACTORY_TICK_LOCK="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
 tick_running() {
-  test -f /tmp/factory-tick.lock || return 1
-  (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+  test -f "$FACTORY_TICK_LOCK" || return 1
+  (flock -n 9 2>/dev/null && return 1 || return 0) 9>"$FACTORY_TICK_LOCK"
 }
 TICK_RUNNING=0
 if tick_running; then

@@ -42,7 +42,7 @@ design.md D1), `.github/workflows/arbitration.yml` und `.github/workflows/openco
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** `tests/spec/ci-cd/runner-role-assignment.bats` anlegen,
+- [x] **Failing-Test-Step (RED).** `tests/spec/ci-cd/runner-role-assignment.bats` anlegen,
       bevor `scripts/ci/runner-placement-check.sh` existiert.
 
       Der entscheidende Test ist **nicht**, dass das Repository die Regel erfüllt — das tut es
@@ -61,7 +61,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/runner-role-assignment.bats
 # expected: FAIL — scripts/ci/runner-placement-check.sh existiert noch nicht
 ```
 
-- [ ] **Fix-Step (GREEN).** Guard und Inventur-Skript implementieren; anschließend besteht die
+- [x] **Fix-Step (GREEN).** Guard und Inventur-Skript implementieren; anschließend besteht die
       BATS-Datei.
 
 ## Task 1 — Roten Guard-Test schreiben
@@ -149,9 +149,23 @@ GitHub-Konfiguration des Repositories und entzieht Kapazität.
 - Bleibt die Freigabe aus, wird das im PR-Body festgehalten. Der Workflow-seitige Guard ist
   davon unabhängig wirksam.
 
+**Stand: offen — Freigabe steht aus.** Die Inventur belegt den Befund:
+
+```
+$ bash scripts/ci/runner-inventory-check.sh
+UNZUGEWIESEN: Runner 'gekko-hetzner-3' (online) — Labels: self-hosted,Linux,X64,gekko
+              Kein Job fordert eines seiner Capability-Labels an.
+OK: Runner 'wsl-gpu-host' wird ueber 'fleet-gpu' adressiert.
+runner-inventory-check: 1 Abweichung(en).   # exit 1
+```
+
+Die Deregistrierung selbst ist nicht ausgeführt — sie ändert die GitHub-Konfiguration des
+Repositories und entzieht Kapazität. Der Workflow-seitige Guard aus Task 2 wirkt unabhängig
+davon: er verhindert, dass ein Job den generischen Pool überhaupt anfordert.
+
 ## Task 7 — Abschließende Verifikation
 
-- [ ] **Final Verification.** Run the mandatory gates:
+- [x] **Final Verification.** Run the mandatory gates:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/runner-role-assignment.bats

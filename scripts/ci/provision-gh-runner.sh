@@ -2,12 +2,18 @@
 # provision-gh-runner.sh — Bringt einen self-hosted GitHub-Actions-Runner auf den
 # Werkzeugstand, den .github/workflows/ci.yml voraussetzt.
 #
-# Hintergrund [T012414]: Es sind zwei Runner mit identischen Labels
-# (self-hosted, linux, x64) registriert — `wsl-gpu-host` und `gekko-hetzner-3`.
-# GitHub verteilt Jobs frei zwischen beiden. Sind sie unterschiedlich
-# ausgestattet, schlaegt derselbe Job je nach Zuteilung fehl oder nicht — der
-# Lauf wird zufallsabhaengig. Dieses Skript stellt die Gleichheit her und ist die
-# einzige Stelle, an der der erwartete Werkzeugsatz steht.
+# Hintergrund [T012488]: Die Zuteilung wird nicht mehr ueber die Gleichheit der
+# Hosts geregelt, sondern ueber Capability-Labels. Ein Job, der lokale
+# Infrastruktur braucht, fordert das Label an, das diese Infrastruktur bezeichnet
+# (`fleet-gpu`), nie den generischen Pool `[self-hosted, linux, x64]`. Damit ist
+# die Platzierung durch die Workflow-Definition bestimmt statt durch das
+# Runner-Inventar. Erzwungen von scripts/ci/runner-placement-check.sh; die Regel
+# steht als Requirement in openspec/specs/ci-cd.md.
+#
+# Dieses Skript stellt deshalb die AUSSTATTUNG des jeweiligen Runners sicher und
+# ist die einzige Stelle, an der der erwartete Werkzeugsatz steht. Es stellt nicht
+# mehr die Gleichheit zweier Hosts her — diese Begruendung stammte aus T012414 und
+# entfaellt mit der Capability-Label-Regel.
 #
 # Nicht enthalten sind Node, pnpm, Go und Trivy: die liefern die Workflows selbst
 # ueber actions/setup-node, pnpm/action-setup, actions/setup-go und

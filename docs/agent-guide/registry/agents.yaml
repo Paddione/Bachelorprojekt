@@ -49,7 +49,8 @@ runtimes:
   # das Modell. Jeder Familien-Subagent serviert sein eigenes Loadout ueber den
   # llm-proxy (:18235); alle Chat-Loadouts teilen exclusiveGroup "chat-gpu"
   # (es laeuft immer nur eines). T003204: die Familie qwen ist abgeschaltet —
-  # ihr Loadout qwen3-coder-30b ist enabled: false in loadouts.json.
+  # ihr Loadout qwen3-coder-30b wurde aus loadouts.json entfernt (T012414);
+  # das Backend llamacpp-qwen bleibt per Migration deaktiviert.
   gptoss:
     mode: subagent
     model: llamacpp-local/gemma26-factory

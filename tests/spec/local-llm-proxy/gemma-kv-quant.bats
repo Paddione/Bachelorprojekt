@@ -71,8 +71,7 @@ _argv_facts() {
 # braucht eine Begruendung im Block darunter — die Liste ist keine Sammelstelle.
 _KV_Q4_ALLOWED="gemma26-factory
 gemma4
-gemma26-throughput
-qwen3-coder-30b"
+gemma26-throughput"
 
 @test "nur ausdruecklich ausgenommene GPU-Chat-Loadouts starten mit q4_0-KV" {
   run _argv_facts
@@ -101,9 +100,9 @@ qwen3-coder-30b"
   # Bei Fehlern in Tool-Call-Argumenten oder Pfaden bleibt diese Ausnahme der
   # erste Verdaechtige: gemma26-factory auf q8_0 zuruecksetzen.
   #
-  # AUSNAHME qwen3-coder-30b: Loadout ist seit T003204 disabled (enabled: false),
-  # die Ausnahme bleibt als No-Op in der Liste, weil der Test alle konfigurierten
-  # Loadouts unabhaengig vom enabled-Flag scannt.
+  # T012414: die Ausnahme qwen3-coder-30b ist entfallen — das Loadout wurde
+  # entfernt, nicht nur abgeschaltet. Ein Eintrag fuer ein nicht mehr
+  # existierendes Loadout waere eine Ausnahme ohne Gegenstand.
   local offenders
   offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }' \
               | grep -vxF "$_KV_Q4_ALLOWED" || true)

@@ -92,7 +92,7 @@ jobs:
       - name: Restore Renovate cache
         uses: actions/cache@v6
         with:
-          path: /tmp/renovate-cache
+          path: ${{ runner.temp }}/renovate-cache
           # Rolling key: every run writes a new entry, restore-keys pulls the most
           # recent one. A static key would never be refreshed after the first run
           # (actions/cache does not overwrite an existing key).
@@ -123,22 +123,31 @@ jobs:
           # A bare digest pin would freeze and silently rot.
           IMAGE='ghcr.io/renovatebot/renovate:43@sha256:2a4e6df0330b0aa42b21f40589666b678bbd19bcd9a14c3c24ce0492c237c2ff'
           MAX_ATTEMPTS=7
-          mkdir -p /tmp/renovate-cache
+          # [T012414] Jobeigenes Arbeitsverzeichnis statt fester /tmp-Pfade.
+          # Der Kommentar unten setzte einen "ephemeral single-tenant runner"
+          # voraus — das gilt nicht mehr: tests/spec/ci-cd.bats fuehrt genau
+          # diesen Schritt aus, und auf einem self-hosted Runner gehoerte
+          # /tmp/renovate-cache bereits einem anderen User. Das `chmod` brach
+          # dann mit "Operation not permitted" ab, bevor der erste
+          # docker-Aufruf ueberhaupt stattfand. Der Fallback auf mktemp greift
+          # ausserhalb eines Runners (Testlauf), wo RUNNER_TEMP leer ist.
+          WORK="${RUNNER_TEMP:-$(mktemp -d)}"
+          CACHE_DIR="$WORK/renovate-cache"
+          mkdir -p "$CACHE_DIR"
           # The runner owns this directory (it creates it, and actions/cache
           # restores into it as `runner`), but the Renovate container runs under a
           # different UID and needs to write here — without this it dies with
           # `EACCES: mkdir '/tmp/renovate-cache/containerbase'` before it ever
           # reaches a repository (T002289, run 30240257345). Mode instead of
           # chown-to-a-fixed-UID on purpose: it survives an image that changes its
-          # user. Wide permissions are acceptable on an ephemeral single-tenant
-          # runner under /tmp; the post-run chown below hands ownership back so
-          # the actions/cache post step can pack the directory.
-          chmod -R a+rwX /tmp/renovate-cache
+          # user. The post-run chown below hands ownership back so the
+          # actions/cache post step can pack the directory.
+          chmod -R a+rwX "$CACHE_DIR"
 
           success=0
           for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
             echo "::group::Renovate attempt ${attempt}/${MAX_ATTEMPTS}"
-            log="/tmp/renovate-attempt-${attempt}.log"
+            log="$WORK/renovate-attempt-${attempt}.log"
 
             # No -t: a TTY colours the output and would break the grep below.
             # PIPESTATUS, not $?: through the tee pipe $? is tee's exit code.
@@ -152,9 +161,10 @@ jobs:
               --env RENOVATE_REPOSITORY_CACHE=enabled \
               --env RENOVATE_CACHE_DIR=/tmp/renovate-cache \
               --env RENOVATE_REPORT_TYPE=file \
-              --env "RENOVATE_REPORT_PATH=/tmp/renovate-report-${attempt}.json" \
+              --env "RENOVATE_REPORT_PATH=/work/renovate-report-${attempt}.json" \
               --volume "${GITHUB_WORKSPACE}/renovate.json5:/github-action/renovate.json5" \
-              --volume /tmp:/tmp \
+              --volume "${CACHE_DIR}:/tmp/renovate-cache" \
+              --volume "${WORK}:/work" \
               "$IMAGE" 2>&1 | tee "$log"
             docker_rc=${PIPESTATUS[0]}
             set -e
@@ -209,7 +219,7 @@ jobs:
         # cache files as root, packing fails on permissions — and it fails
         # quietly: the cache would stay cold forever without turning the job red.
         if: always()
-        run: sudo chown -R "$(id -u):$(id -g)" /tmp/renovate-cache || true
+        run: sudo chown -R "$(id -u):$(id -g)" "${{ runner.temp }}/renovate-cache" || true
 
       - name: Upload Renovate reports
         # Debug material only — the gate is the log grep above, not these files.
@@ -218,7 +228,7 @@ jobs:
         with:
           name: renovate-reports
           path: |
-            /tmp/renovate-report-*.json
-            /tmp/renovate-attempt-*.log
+            ${{ runner.temp }}/renovate-report-*.json
+            ${{ runner.temp }}/renovate-attempt-*.log
           if-no-files-found: ignore
           retention-days: 7

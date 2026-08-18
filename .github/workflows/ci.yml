@@ -53,6 +53,9 @@ env:
 
   OPENSPEC_TELEMETRY: '0'
 jobs:
+  # [T012446] Portable Gates laufen GitHub-hosted. Dadurch koennen Fork-PRs
+  # ihre secret-freien Validierungen ausfuehren, ohne eigenen Code auf unserer
+  # Hardware zu starten. Lokale LLM-Jobs bleiben separat auf fleet-gpu.
   # ── Scoped test jobs (replaces offline-tests monolith) ─────────────
 
   test-bats:
@@ -61,7 +64,7 @@ jobs:
     # that most PRs hit. Does NOT need Go, kubectl, or pnpm. [T001860]
     name: BATS Unit + Quality Gates
     if: github.event.action != 'edited'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
@@ -111,11 +114,24 @@ jobs:
       - name: Code-quality gates (always)
         run: node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
 
+      # [T012414] Die self-hosted Runner haben kein passwortloses sudo — und
+      # sollen es nicht brauchen. Installiert wird in ein vom Runner-User
+      # beschreibbares bin-Verzeichnis, das ueber GITHUB_PATH fuer die
+      # Folgeschritte auf den PATH kommt. Ein bereits vorhandenes actionlint
+      # der gepinnten Version wird wiederverwendet.
       - name: Install actionlint (pinned)
         run: |
-          curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz \
-            | tar -xz -C /tmp actionlint
-          sudo install -m 0755 /tmp/actionlint /usr/local/bin/actionlint
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if actionlint --version 2>/dev/null | head -1 | grep -qx '1.7.7'; then
+            echo "actionlint 1.7.7 bereits vorhanden: $(command -v actionlint)"
+          else
+            curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz \
+              | tar -xz -C "$RUNNER_TEMP" actionlint
+            install -m 0755 "$RUNNER_TEMP/actionlint" "$BIN/actionlint"
+          fi
           actionlint --version
 
       - name: Workflow lint (always)
@@ -165,28 +181,32 @@ jobs:
     # Very fast setup (~1 min) + ~5s test execution. [T001860]
     name: Manifest Validation
     if: github.event.action != 'edited'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-tags: false
 
-      # [T002754] Cache the kubectl binary (~50MB download). Keyed on version
-      # so it auto-busts when we bump k8s. On cache miss, the next step
-      # downloads it. On hit, it's already in /usr/local/bin.
-      - name: Cache kubectl binary
-        id: cache-kubectl
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/kubectl
-          key: kubectl-v1.31.0-linux-amd64
-
-      - name: Install kubectl (if not cached)
-        if: steps.cache-kubectl.outputs.cache-hit != 'true'
+      # [T002754/T012414] Vorher: actions/cache auf /usr/local/bin/kubectl plus
+      # ein curl direkt dorthin. Beides setzt Schreibrechte als root voraus, die
+      # ein CI-Job nicht hat — auf self-hosted Runnern schlug der Download fehl.
+      # Beide Runner bringen kubectl ohnehin mit; geladen wird nur, wenn es
+      # wirklich fehlt, und dann in ein runner-beschreibbares Verzeichnis.
+      - name: Ensure kubectl
         run: |
-          curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
-            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if command -v kubectl >/dev/null 2>&1; then
+            echo "kubectl bereits vorhanden: $(command -v kubectl)"
+          else
+            curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+              -o "$BIN/kubectl"
+            chmod +x "$BIN/kubectl"
+          fi
+          kubectl version --client
 
       - name: Run manifest tests
         run: |
@@ -217,7 +237,7 @@ jobs:
     # melden nach ~30s statt nach ~400s.
     name: Factory OpenSpec + Guards (fast)
     if: github.event.action != 'edited'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -253,7 +273,7 @@ jobs:
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
     name: Factory spec shard ${{ matrix.shard }}
     if: github.event.action != 'edited'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       # fail-fast: false ist Absicht. Bricht ein Shard ab, sollen die anderen
@@ -427,7 +447,7 @@ jobs:
     name: Factory + OpenSpec + Guards
     if: always() && github.event.action != 'edited'
     needs: [test-factory-openspec, test-factory-shard]
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Aggregate shard + gate results
@@ -451,7 +471,7 @@ jobs:
   security-scan:
     name: Security Scan
     if: github.event.action != 'edited'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -489,23 +509,26 @@ jobs:
           fi
           echo "All managed secret files are git-crypt-encrypted"
 
-      # [T002754] Cache the gitleaks binary to avoid re-downloading from GitHub
-      # releases on every run. The cache key includes the version so it
-      # auto-busts on upgrades. Post-restore the binary is in /usr/local/bin
-      # and the following step uses it directly.
-      - name: Cache gitleaks binary
-        id: cache-gitleaks
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/gitleaks
-          key: gitleaks-v8.18.2-linux-amd64
-
-      - name: Install gitleaks (if not cached)
-        if: steps.cache-gitleaks.outputs.cache-hit != 'true'
+      # [T002754/T012414] Vorher: actions/cache auf /usr/local/bin/gitleaks plus
+      # `sudo tar` dorthin. Beides braucht root und schlug auf den self-hosted
+      # Runnern fehl. Die gepinnte Version 8.18.2 liegt auf beiden Runnern
+      # bereits systemweit; sie wird geprueft und wiederverwendet, sonst wird in
+      # ein runner-beschreibbares Verzeichnis installiert. Die Version bleibt
+      # damit exakt gepinnt (CLAUDE.md: lokal und CI muessen dieselbe pruefen).
+      - name: Install gitleaks (pinned 8.18.2)
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
-            | sudo tar -xz -C /usr/local/bin gitleaks
-          sudo chmod +x /usr/local/bin/gitleaks
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+          export PATH="$BIN:$PATH"
+          if gitleaks version 2>/dev/null | head -1 | grep -qx '8.18.2'; then
+            echo "gitleaks 8.18.2 bereits vorhanden: $(command -v gitleaks)"
+          else
+            curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
+              | tar -xz -C "$RUNNER_TEMP" gitleaks
+            install -m 0755 "$RUNNER_TEMP/gitleaks" "$BIN/gitleaks"
+          fi
+          gitleaks version
 
       - name: Gitleaks secret scan (fail-closed)
         run: |
@@ -540,7 +563,7 @@ jobs:
   brett-typescript:
     name: Brett TypeScript
     if: github.event.action != 'edited'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -571,7 +594,7 @@ jobs:
     # coverage gate below treats the no-changes case as a pass.
     name: Vitest (website)
     if: github.event.action != 'edited'
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -696,7 +719,7 @@ jobs:
     # ist der dort noch gar nicht deployt.
     if: github.event.action != 'edited' && github.event_name == 'pull_request'
     needs: [vitest-website]
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     # LHCI posts an advisory commit status; the built-in GITHUB_TOKEN needs
     # statuses:write to do so (no more expiring personal access token to maintain).
@@ -735,7 +758,7 @@ jobs:
 
   commit-lint:
     name: Conventional Commits
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     # 5min was too tight for the full-history checkout below on a repo with
     # many short-lived feature/chore branches — observed cancellations
     # ("The operation was canceled") mid-fetch on PR #3029 [T002049].

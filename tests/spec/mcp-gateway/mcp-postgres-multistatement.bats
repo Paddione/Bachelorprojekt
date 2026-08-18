@@ -78,6 +78,21 @@ query_call() {
 
   # Positiv-Anker zuerst (T002356-M1): Einzel-Statement liefert weiterhin Zeilen.
   single="$(query_call 1 "SELECT 1 AS total_open")"
+
+  # [T012414] Ein offener Port ist kein Nachweis, dass dort DIESE Datenbank
+  # antwortet. Auf einem self-hosted Runner schlug der Port-Check oben an,
+  # waehrend der Verbindungsaufbau danach an der Authentifizierung scheiterte
+  # ("SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string") —
+  # der Test wurde rot, obwohl die gepruefte Eigenschaft nie gemessen wurde.
+  # Eine nicht herstellbare Verbindung ist dieselbe Lage wie ein geschlossener
+  # Port und gehoert zum skip. Ein echter Defekt (Verbindung steht, Ergebnis
+  # fehlt trotzdem) bleibt rot.
+  case "$single" in
+    *SASL*|*password*|*ECONNREFUSED*|*"does not exist"*|*"Connection terminated"*)
+      skip "keine nutzbare DB auf :15432 (Verbindung/Authentifizierung): $single"
+      ;;
+  esac
+
   echo "$single" | grep -q 'total_open' || {
     echo "FAIL: Einzel-Statement liefert kein Ergebnis: $single" >&2
     return 1

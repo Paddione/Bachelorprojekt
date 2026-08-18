@@ -2730,6 +2730,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/hybrid-runner-placement",
+    "file": "tests/spec/ci-cd/hybrid-runner-placement.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",
@@ -2768,6 +2774,12 @@
   {
     "id": "ci-cd/self-hosted-fork-guard",
     "file": "tests/spec/ci-cd/self-hosted-fork-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/self-hosted-no-root-install",
+    "file": "tests/spec/ci-cd/self-hosted-no-root-install.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3686,12 +3698,6 @@
   {
     "id": "local-llm-proxy/proxy-tests-registered",
     "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/qwen3-coder-loadout",
-    "file": "tests/spec/local-llm-proxy/qwen3-coder-loadout.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },

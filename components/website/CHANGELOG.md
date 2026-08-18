@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.285.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.0...website-v1.285.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** unbekannter Ticket-Status reicht auf die MERGED-PR-Signale durch [T012412] ([#4775](https://github.com/Paddione/Bachelorprojekt/issues/4775)) ([b9548da](https://github.com/Paddione/Bachelorprojekt/commit/b9548da9adec23a7759607ffdfcc02a5f7828e28))
+
 ## [1.285.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.3...website-v1.285.0) (2026-08-18)
 
 

@@ -352,7 +352,15 @@ factory-shard:
     # Ausfuehrung, die als bestanden zaehlt, ist genau der Fehlschlag, gegen den die
     # Etappe-1-Regel "leerer Lauf gilt als Fehlschlag" geschrieben wurde.
     # ubuntu-latest auf GitHub bringt parallel vorinstalliert mit, node:22 nicht.
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 python3-yaml gettext-base jq ca-certificates curl parallel >/dev/null
+    #
+    # bc, file, unzip, python3-pip gehoeren zur selben Klasse und sind aus
+    # demselben Grund leicht zu uebersehen: Auf der GitHub-Seite existiert KEINE
+    # Installationszeile, die man beim Uebertragen vermissen koennte. Konkret
+    # gemessen an Lauf 2769257178: tests/spec/ci-cd/fetch-refspec-forced.bats
+    # pipet seinen Positiv-Anker nach `bc` (Zeile 56) und schlug ohne es fehl —
+    # mit einer Meldung, die auf die Assertion zeigt, nicht auf das fehlende
+    # Werkzeug.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 python3-yaml gettext-base jq ca-certificates curl parallel bc file unzip python3-pip >/dev/null
     # yq: mikefarah v4, NICHT das gleichnamige apt-Paket — dieselbe Begruendung
     # wie im bats-unit-Job oben.
     - curl --fail -sSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq

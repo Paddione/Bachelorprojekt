@@ -33,6 +33,6 @@ Der einzige geplante Eintrag MUSS der eigene Seed r1 sein (nicht mehr nur count 
 
 ## Acceptance Criteria
 
-- [ ] `bats tests/spec/software-factory/scheduling.bats` besteht auf geteilter Dev-DB
-- [ ] Keine hardcoded Caps mehr
-- [ ] Seeds deterministisch priorisiert
+- [x] `bats tests/spec/software-factory/scheduling.bats` besteht auf geteilter Dev-DB
+- [x] Keine hardcoded Caps mehr
+- [x] Seeds deterministisch priorisiert

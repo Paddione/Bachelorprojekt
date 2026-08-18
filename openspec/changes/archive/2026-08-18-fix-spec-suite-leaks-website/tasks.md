@@ -2,7 +2,7 @@
 title: "fix-spec-suite-leaks-website — Implementation Plan"
 ticket_id: T011792
 domains: [test]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.0...website-v1.286.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** Prod-E2E-Projektauswahl positiv aufzählen statt scheinnegieren [T012489] ([#4792](https://github.com/Paddione/Bachelorprojekt/issues/4792)) ([600a99f](https://github.com/Paddione/Bachelorprojekt/commit/600a99f291be4e863ac81f1b53dcf5461afdaea8))
+
 ## [1.286.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.2...website-v1.286.0) (2026-08-18)
 
 

@@ -81,7 +81,7 @@ SQL
 }
 
 @test "static: exports TicketStatus type" {
-  grep -q 'export type TicketStatus' \
+  grep -q 'export type { TicketStatus }' \
     "${PROJECT_DIR}/components/website/src/lib/tickets/transition.ts"
 }
 

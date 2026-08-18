@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
-# Offline-safe: prüft den Migrations-Quelltext in tickets/migrations.ts. Stellt sicher,
-# dass 'plan_staged' im Status-CHECK steht und das Muster idempotent (drop+add) ist.
+# Offline-safe: prüft den Migrations-Quelltext in tickets/migrations.ts und die
+# Status-Reihenfolge in tickets/status.ts (TICKET_STATUSES, SSOT seit T007955).
+# Stellt sicher, dass 'plan_staged' im Status-CHECK steht (der CHECK wird seit
+# T007955 dynamisch aus der SSOT gebaut) und das Muster idempotent (drop+add) ist.
 # Kein Cluster / keine DB nötig.
 # As of T001155 (G-RH01 Batch 2), the status-CHECK migration lives in
 # tickets/migrations.ts. #2114 (G-CQ07) moved initTicketsSchema() into
@@ -24,7 +26,13 @@ setup() {
 }
 
 @test "tickets: plan_staged steht zwischen planning und backlog im CHECK" {
-  run grep -E "'planning','plan_staged','backlog'" "$TMIG"
+  # T007955: der CHECK wird seitdem aus TICKET_STATUSES (status.ts, SSOT) gebaut —
+  # die Reihenfolge lebt dort als Tuple-Literal, nicht mehr als SQL-Literal in
+  # migrations.ts. Semantik pruefen: 'plan_staged' kommt nach 'planning' und vor
+  # 'backlog' vor (awk-Flags, kein Source-Grep aufs Migrations-SQL).
+  STS="$BATS_TEST_DIRNAME/../../components/website/src/lib/tickets/status.ts"
+  run awk -v p=0 -v s=0 -v b=0 \
+    '/'"'"'planning'"'"'/{p=1} /'"'"'plan_staged'"'"'/{s=p} /'"'"'backlog'"'"'/{b=s} END{exit !(p && s && b)}' "$STS"
   [ "$status" -eq 0 ]
 }
 

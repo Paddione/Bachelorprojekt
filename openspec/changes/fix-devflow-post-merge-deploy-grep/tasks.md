@@ -30,6 +30,6 @@ Alternative: PR-Nummer als Eingabe verwenden statt `--grep -1` zu raten.
 
 ## Acceptance Criteria
 
-- [ ] `devflow-post-merge-deploy.sh` findet den Feature-Merge-Commit, nicht den Archiv-Commit
-- [ ] Archiv-Commits werden von --grep ausgeschlossen
-- [ ] Testfall: Ticket mit Archiv-PR + Feature-PR
+- [x] `devflow-post-merge-deploy.sh` findet den Feature-Merge-Commit, nicht den Archiv-Commit
+- [x] Archiv-Commits werden von --grep ausgeschlossen
+- [x] Testfall: Ticket mit Archiv-PR + Feature-PR

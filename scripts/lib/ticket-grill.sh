@@ -50,7 +50,13 @@ _grill_parse_doc() {
     }
     {
       line=$0
-      if (line ~ /^#{2,3}[ \t]+/) { flush(); p=line; sub(/^#{2,3}[ \t]+/,"",p); split_id(p); have=1; next }
+      # "###?" statt "#{2,3}": mawk (das awk in den CI-Images debian/ubuntu, via
+      # /etc/alternatives/awk) kennt KEINE Intervall-Ausdruecke und matcht {2,3}
+      # nie — die Ueberschriften-Form wurde dort still gar nicht erkannt, der
+      # Parser lieferte answers:{} questions:[]. gawk (lokal) matcht beides,
+      # deshalb war der Defekt nur in CI sichtbar. "###?" ist exakt {2,3} und
+      # portabel. Repo-weit das einzige Vorkommen (T012310).
+      if (line ~ /^###?[ \t]+/) { flush(); p=line; sub(/^###?[ \t]+/,"",p); split_id(p); have=1; next }
       if (line ~ /^[ \t]*(q?[0-9]+[.)])[ \t]+/) {
         flush(); m=line; eid=m; sub(/^[ \t]*/,"",eid);
         if (eid ~ /^q[0-9]+/) { num=eid; sub(/[.)].*/,"",num); sub(/^q/,"",num); curid_pre="q" num } else { curid_pre="" }

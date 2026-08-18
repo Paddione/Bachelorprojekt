@@ -2550,6 +2550,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/devflow-ci-watch-rollup-headsha",
+    "file": "tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/devflow-ciwatch-ticket-path",
     "file": "tests/spec/ci-cd/devflow-ciwatch-ticket-path.bats",
     "category": "ci-cd",
@@ -4778,6 +4784,12 @@
   {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/babysit-prs-red-detection",
+    "file": "tests/spec/software-factory/babysit-prs-red-detection.bats",
     "category": "software-factory",
     "kind": "shell"
   },

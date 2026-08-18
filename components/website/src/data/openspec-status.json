@@ -4053,6 +4053,12 @@
       "status": "archived"
     }
   ],
+  "T012239": [
+    {
+      "slug": "fix-ci-failure-detection",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -393,3 +393,68 @@ Startet (idempotent) den `registry:2`-Proxy-Container, mergt
 - Die containerd-Mirror-Konfiguration auf den fleet-Worker-Knoten (Abschnitt 9)
   ist eine Host-Konfiguration ausserhalb von Git und wird ausschliesslich hier
   dokumentiert, nicht automatisiert.
+
+## 14. Warum der lokale Runner trotz Etappe 2 langsam blieb (T012410)
+
+Etappe 2 (T012177) lieferte `scripts/gitlab-runner-cache.sh` gegen den gemessenen Befund
+„self-hosted 2–3× langsamer als SaaS, Ursache Image-Pull je Job". Das Werkzeug wurde
+ausgeführt — und `pull_policy` war danach trotzdem nicht gesetzt. **Fünf Defekte in einer
+Kette**, jeder für sich still:
+
+| # | Defekt | Wirkung |
+|---|---|---|
+| 1 | `[ -f /etc/gitlab-runner/config.toml ]` unprivilegiert | Verzeichnis ist `0700 root` → Test **immer** falsch → Schritt übersprungen, Meldung „Runner noch nicht registriert?" |
+| 2 | `sudo systemctl restart docker` ungeschützt, **vor** dem `pull_policy`-Schritt | Auf Docker-Desktop-/rootless-Hosts Abbruch unter `set -e`, bevor der wertvollste Schritt läuft |
+| 3 | `daemon.json`-Merge meldet Erfolg | Unter Docker Desktop **wirkungslos** — der Daemon liest von der Windows-Seite |
+| 4 | awk-Insert mit globalem `!inserted` | Trifft nur den **ersten** `[runners.docker]`-Block → Einstellung landet beim falschen Runner |
+| 5 | Idempotenz-Prüfung auf erste Fundstelle | Meldet „bereits gesetzt", sobald **irgendein** Block sie hat → der fehlende bekommt sie nie |
+
+**Die gemeinsame Eigenschaft ist die eigentliche Lehre:** Jeder dieser Defekte erzeugt eine
+**Erfolgsmeldung**. Keiner erzeugt einen Fehlschlag. Das Skript berichtete durchweg „✓", während
+faktisch nichts passierte — und eine Erfolgsmeldung über eine wirkungslose Änderung ist
+schädlicher als ein Fehler, weil sie die Ursachensuche an der falschen Stelle beendet.
+
+Defekt 4 und 5 zusammen ergaben einen **stabilen** Fehlzustand: Zeile im falschen Runner,
+Erfolgsmeldung, unveränderte Laufzeit — und ein Wiederholen des Laufs heilte nichts.
+
+### Nachprüfen, ob es diesmal wirklich wirkt
+
+Nicht der Skript-Ausgabe glauben, sondern die Datei lesen — sie ist nur mit `sudo` lesbar:
+
+```bash
+sudo awk '/^\[\[runners\]\]/{blk++} /^  name = /{n=$0} /pull_policy/{print "Block " blk n}' \
+  /etc/gitlab-runner/config.toml
+```
+
+Erwartet: **genau eine** Zeile je registriertem Runner. Zwei Zeilen für denselben Block sind ein
+doppelter TOML-Key und damit ein Parse-Fehler.
+
+TOML-Gültigkeit gegenprüfen:
+
+```bash
+sudo cat /etc/gitlab-runner/config.toml | python3 -c "
+import sys,tomllib; d=tomllib.loads(sys.stdin.read())
+[print(r.get('name'),'->',r.get('docker',{}).get('pull_policy')) for r in d['runners']]"
+```
+
+### Konfiguration übernehmen, ohne laufende Jobs zu reißen
+
+`systemctl restart gitlab-runner` bricht laufende Jobs ab. `gitlab-runner` lädt seine
+Konfiguration auf **SIGHUP** neu:
+
+```bash
+sudo kill -HUP "$(pgrep -f 'gitlab-runner run')"
+```
+
+### Docker Desktop: der Registry-Mirror gehört auf die Windows-Seite
+
+`/etc/docker/daemon.json` in der WSL-Distro ist dort wirkungslos. Der Mirror wird eingetragen
+unter **Docker Desktop → Settings → Docker Engine**:
+
+```json
+{ "registry-mirrors": ["http://localhost:5000"] }
+```
+
+Danach Docker Desktop neu starten — das reißt laufende Container mit, also nicht während eines
+CI-Laufs oder eines aktiven k3d-Clusters. `pull_policy` wirkt **unabhängig davon** und ist der
+größere Hebel: Es verhindert den Pull ganz, statt ihn nur zu beschleunigen.

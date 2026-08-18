@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.285.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.3...website-v1.285.0) (2026-08-18)
+
+
+### Features
+
+* **ci:** GitLab job parity + branch mirroring, gate flip deferred [T012405] ([#4766](https://github.com/Paddione/Bachelorprojekt/issues/4766)) ([603ac88](https://github.com/Paddione/Bachelorprojekt/commit/603ac88757395a0dc6a4ebba8a88f7a340c26a8a))
+
 ## [1.284.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.2...website-v1.284.3) (2026-08-18)
 
 

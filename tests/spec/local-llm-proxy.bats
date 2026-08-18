@@ -363,7 +363,11 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 
 # --- T002394: Loadout-Registry -------------------------------------------------
 @test "T002394: loadouts.json ist gueltiges JSON mit mindestens einem Loadout" {
-  run node -e 'const d=require("./scripts/llm/loadouts.json"); if(!Array.isArray(d.loadouts)||!d.loadouts.length) process.exit(1); console.log(d.loadouts.length)'
+  # String(): console.log() faerbt eine nackte Zahl ein, sobald node
+  # Farbunterstuetzung erkennt — der Vergleich unten sah dann
+  # '\x1b[33m9\x1b[39m' und brach mit 'integer expression expected' ab.
+  # Lokal rot, in CI ohne TTY gruen [T012414].
+  run node -e 'const d=require("./scripts/llm/loadouts.json"); if(!Array.isArray(d.loadouts)||!d.loadouts.length) process.exit(1); console.log(String(d.loadouts.length))'
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }

@@ -4089,6 +4089,12 @@
       "status": "plan_staged"
     }
   ],
+  "T012265": [
+    {
+      "slug": "fix-pr-babysit-head-sha",
+      "status": "plan_staged"
+    }
+  ],
   "T012267": [
     {
       "slug": "fix-gitlab-pipeline-check",

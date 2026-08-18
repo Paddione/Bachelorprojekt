@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1088,
+      "file_count": 1089,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -870,6 +870,7 @@
         "tests/spec/software-factory/orphan-slot-reap.bats",
         "tests/spec/software-factory/partial-deploy-gang.bats",
         "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
+        "tests/spec/software-factory/pr-babysit-ci-never-ran.bats",
         "tests/spec/software-factory/pr-babysit.bats",
         "tests/spec/software-factory/provider-config-baseurl-convention.bats",
         "tests/spec/software-factory/queue-test-data-filter.bats",

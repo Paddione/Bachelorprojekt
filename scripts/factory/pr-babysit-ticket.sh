@@ -36,14 +36,29 @@ source "$REPO/scripts/lib/ci-checks.sh"
 
 MAX_EMPTY_ROUNDS="${MAX_EMPTY_ROUNDS:-2}"
 
-# Print the PR checks that are not SUCCESS (name<TAB>state). Empty = all green.
+# PR-HEAD (headRefOid) lesen — leer bei gh-Ausfall (Fail-soft, D3).
+_pr_head_oid() {
+  "$GH" pr view "$PR" --json headRefOid -q '.headRefOid' 2>/dev/null || true
+}
+
+# Rote Checks aus der check-runs-API des PR-HEAD (filter=latest,
+# failure/timed_out = rot) — dieselbe Quelle wie devflow-ci-watch.sh
+# (T003225/T012239). `gh pr checks` aggregiert die letzte Konklusion SHA-los
+# über ALLE Commits des PRs und maskiert einen leeren HEAD. Empty = kein Rot.
 _red_or_pending_checks() {
-  "$GH" pr checks "$PR" --json name,state 2>/dev/null \
-    | jq -r '.[] | select(.state != "SUCCESS") | "\(.name)\t\(.state)"' 2>/dev/null || true
+  local head_oid
+  head_oid="$(_pr_head_oid)"
+  [[ -z "$head_oid" ]] && return 0
+  "$GH" api "repos/Paddione/Bachelorprojekt/commits/${head_oid}/check-runs?filter=latest" \
+    -q '[.check_runs[] | select(.conclusion == "failure" or .conclusion == "timed_out") | "\(.name // "unknown")\t\(.conclusion // "")"] | .[]' 2>/dev/null || true
 }
 _has_red() {
-  verdict="$("$GH" pr checks "$PR" --json name,state 2>/dev/null | ci_checks_verdict)" || true
-  [[ "$verdict" == "red" ]]
+  local head_oid n
+  head_oid="$(_pr_head_oid)"
+  [[ -z "$head_oid" ]] && return 1
+  n="$("$GH" api "repos/Paddione/Bachelorprojekt/commits/${head_oid}/check-runs?filter=latest" \
+    -q '[.check_runs[] | select(.conclusion == "failure" or .conclusion == "timed_out")] | length' 2>/dev/null || echo "0")"
+  [[ "$n" =~ ^[1-9][0-9]*$ ]]
 }
 _is_merged() {
   "$GH" pr view "$PR" --json state -q '.state' 2>/dev/null | grep -qi merged
@@ -70,6 +85,22 @@ _queue_automerge() {
 attempt=0
 empty_rounds=0
 _queue_automerge   # queue once up front; requeued only after fixes + re-check
+
+# [T012265] "CI lief nie" ist ein eigener Zustand (D2): total_count=0 auf dem
+# PR-HEAD kann durch Pollen nie grün werden — sofortiges Signal statt des
+# grünen Polls, in den die SHA-lose `gh pr checks`-Vorgänger-SUCCESS-Liste
+# sonst schleift. Fail-soft (D3): schlägt die HEAD-Abfrage fehl (leerer
+# HEAD_OID/TOTAL), greift der bestehende empty-Pfad weiter unten.
+HEAD_OID="$(_pr_head_oid)"
+if [[ -n "$HEAD_OID" ]]; then
+  TOTAL="$("$GH" api "repos/Paddione/Bachelorprojekt/commits/${HEAD_OID}/check-runs?filter=latest" \
+    -q '.total_count' 2>/dev/null || echo "")"
+  if [[ "$TOTAL" == "0" ]]; then
+    echo "pr-babysit: ci-never-ran — PR #$PR HEAD hat keine Check-Runs (CI lief nie)" >&2
+    exit 2
+  fi
+fi
+
 while (( attempt < MAX_CI_ATTEMPTS )); do
   if _is_merged; then _on_merged; exit 0; fi
 

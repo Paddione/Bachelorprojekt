@@ -263,8 +263,17 @@ fi
 # von selbst, auch bei Abbruch. Fehlt flock, laeuft der Schritt unserialisiert
 # weiter (fail-open) und sagt es — die Archivierung ist wichtiger als der Schutz
 # vor einem seltenen Timing.
+#
+# [Code-Review PR #4744, F4] Der Lock wartet mit Timeout, nicht unbegrenzt. Der
+# Absturz-Fall ist durch die FD-Semantik abgedeckt, der HAENGER-Fall nicht: ein
+# Lauf, der lebt aber nicht weiterkommt, blockierte sonst jeden nachfolgenden
+# Lauf dauerhaft. Laeuft der Timeout ab, wird Schritt 8 UEBERSPRUNGEN statt
+# unserialisiert ausgefuehrt — der Race ist der teurere Fehler, und das Skript
+# ist idempotent: der naechste Lauf holt die Archivierung nach.
+# Wartezeit per DEVFLOW_ARCHIVE_LOCK_WAIT ueberschreibbar (Sekunden).
 _archive_lock() {
-  local common lockfile
+  local common lockfile wait
+  wait="${DEVFLOW_ARCHIVE_LOCK_WAIT:-300}"
   common="${GIT_COMMON_DIR:-$(git -C "$REPO_DIR" rev-parse --git-common-dir 2>/dev/null || echo "")}"
   [[ -n "$common" ]] || { mark_warn "Schritt 8: Git-Common-Dir nicht bestimmbar — Archiv-Sektion laeuft unserialisiert"; return 0; }
   lockfile="$common/devflow-finalize-archive.lock"
@@ -276,7 +285,11 @@ _archive_lock() {
     mark_warn "Schritt 8: Lock-Datei $lockfile nicht oeffenbar — Archiv-Sektion laeuft unserialisiert"
     return 0
   }
-  flock "$_ARCHIVE_LOCK_FD"
+  if ! flock -w "$wait" "$_ARCHIVE_LOCK_FD"; then
+    mark_warn "Schritt 8: Archiv-Lock nach ${wait}s nicht erhalten (anderer Finalize-Lauf haelt ihn oder haengt) — Archivierung uebersprungen, beim naechsten Lauf nachholbar"
+    return 1
+  fi
+  return 0
 }
 
 # [T012256/B3] _archive_already_done prueft den ZIELZUSTAND, nicht die Existenz
@@ -299,8 +312,29 @@ _archive_lock() {
 #   3. Ein Archiv-PR auf diesen Branch ist gemergt -> zweites Signal fuer (2)
 _archive_already_done() {
   git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1 && return 0
-  git ls-tree -d --name-only "origin/main" "openspec/changes/archive/" 2>/dev/null \
-    | grep -q -- "-${SLUG}\$" && return 0
+  # Exakter Vergleich auf <datum>-<slug>, KEIN Suffix-Match. `grep -- "-${SLUG}$"`
+  # traf am 2026-08-18 fuer SLUG=hardening sechs fremde Eintraege (u.a.
+  # 2026-08-14-blocker-gate-hardening) — ein nie archivierter Change haette als
+  # erledigt gegolten und waere nie archiviert worden. Ein kurzer oder generischer
+  # Slug ist der Normalfall, nicht die Ausnahme (Code-Review PR #4744, F1).
+  # Der Vergleich laeuft in bash statt per Regex: der Slug muesste sonst
+  # maskiert werden, und ein vergessenes Escape brächte die Fehlerklasse zurueck.
+  local _entry _base
+  while IFS= read -r _entry; do
+    [[ -n "$_entry" ]] || continue
+    _base="${_entry##*/}"
+    # Datumspraefix YYYY-MM-DD- abtrennen; der Rest muss der Slug SELBST sein.
+    if [[ "$_base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]]; then
+      [[ "${BASH_REMATCH[1]}" == "$SLUG" ]] && return 0
+    # 9 der Archiv-Verzeichnisse stammen aus der Zeit vor der Datumskonvention
+    # (mishap-t002407, k1-vektorspeicher, t001537, ...). Ohne diesen Zweig fielen
+    # sie durchs Raster: Signal 2 meldete "nicht archiviert", und griffen auch
+    # Signal 1 und 3 nicht, archivierte Schritt 8 erneut — der Fehler, den B3
+    # gerade beheben soll (Code-Review PR #4744, Re-Review).
+    elif [[ "$_base" == "$SLUG" ]]; then
+      return 0
+    fi
+  done < <(git ls-tree -d --name-only "origin/main" "openspec/changes/archive/" 2>/dev/null || true)
   [[ -n "$(gh pr list --head "$ARCHIVE_BRANCH" --state merged --json number -q '.[0].number' 2>/dev/null || true)" ]] && return 0
   return 1
 }
@@ -323,8 +357,9 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
   ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
   if _archive_already_done; then
     mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (Archiv-Branch remote, Archiv auf origin/main oder Archiv-PR gemergt) — uebersprungen (idempotent)"
+  elif ! _archive_lock; then
+    : # _archive_lock hat bereits gewarnt; Archivierung dieses Laufs entfaellt
   else
-    _archive_lock
     # T006791: Vor der Archiv-Sektion den aktuellen Branch merken — die Sektion
     # wechselt per checkout -B den Branch des geteilten Arbeitsbaums (Worktree
     # oder Haupt-Checkout); der Restore in der Subshell-Trap stellt ihn nach der

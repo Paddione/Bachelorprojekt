@@ -1,7 +1,7 @@
 ---
 slug: fix-devflow-post-merge-deploy-grep
 ticket: T009368
-status: active
+status: completed
 ---
 
 # Fix: devflow-post-merge-deploy.sh --grep Archiv-Commit

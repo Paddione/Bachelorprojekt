@@ -1,7 +1,7 @@
 ---
 slug: fix-fa-sf-25-scheduling-cap
 ticket: T008757
-status: active
+status: completed
 ---
 
 # Fix: FA-SF-25 scheduling.bats Baseline-aware Caps

@@ -4065,6 +4065,12 @@
       "status": "archived"
     }
   ],
+  "T012243": [
+    {
+      "slug": "finalizer-plan-ref-whitespace",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

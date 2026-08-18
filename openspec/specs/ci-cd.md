@@ -2431,6 +2431,85 @@ SHALL therefore run the full corresponding set.
 - **WHEN** der CI-Guard das Testkommando prüft
 - **THEN** verweist es auf den mitgelieferten Runner unter `tests/unit/lib/`
 
+### Requirement: devflow-ci-watch derives failed checks from the PR head's check-runs
+
+`scripts/devflow-ci-watch.sh` SHALL derive `FAILED_CHECKS` from the GitHub
+check-runs API of the PR's current `headRefOid`
+(`repos/Paddione/Bachelorprojekt/commits/<headRefOid>/check-runs?filter=latest`)
+instead of the `statusCheckRollup`, SHALL count a check as failed only when its
+latest run on that commit has `conclusion == "failure"` or
+`conclusion == "timed_out"`, and SHALL NOT report "all green" while any such run
+exists. `PENDING_COUNT` detection SHALL remain on the `statusCheckRollup`
+(`status != "COMPLETED"`).
+
+#### Scenario: A failed check-run on the PR head prevents the green exit
+
+- **GIVEN** `devflow-ci-watch.sh` is called for an OPEN PR whose `headRefOid`
+  has at least one check-run with `conclusion == "failure"`
+- **AND** all checks report `status == COMPLETED`
+- **WHEN** the script evaluates the result
+- **THEN** it SHALL NOT exit 0 with "✅ … alle grün"
+- **AND** it SHALL list the failed check name in the escalation message and
+  exit non-zero when `MAX_CI_ATTEMPTS` is exhausted
+
+#### Scenario: A timed-out check-run on the PR head counts as failed
+
+- **GIVEN** the PR head's latest check-run for one check has
+  `conclusion == "timed_out"`
+- **WHEN** `devflow-ci-watch.sh` evaluates `FAILED_CHECKS`
+- **THEN** that check SHALL be treated as failed
+
+#### Scenario: A green PR head still reports green
+
+- **GIVEN** the PR head has check-runs and none has
+  `conclusion == "failure"` or `"timed_out"`, and no check is
+  `status != COMPLETED`
+- **WHEN** `devflow-ci-watch.sh` evaluates the result
+- **THEN** it SHALL report "✅ … CI-Checks, alle grün" and exit 0 (unchanged)
+
+#### Scenario: A cancelled latest run is not a code failure
+
+- **GIVEN** the PR head's latest check-run for one check has
+  `conclusion == "cancelled"`
+- **WHEN** `devflow-ci-watch.sh` evaluates `FAILED_CHECKS`
+- **THEN** that check SHALL NOT count as failed by itself
+- **AND** the existing job-level counter-check (T003224) SHALL clear
+  `FAILED_CHECKS` when no job of the failed run reports `conclusion == "failure"`
+
+### Requirement: devflow-ci-watch treats an empty failed-checks result as no failure
+
+`scripts/devflow-ci-watch.sh` SHALL treat the empty-array literal `[]` produced
+by its failed-checks query (check-runs API, wrapper form) as "no failed
+checks", SHALL NOT run the job-level counter-check (T003224) for it, and SHALL
+NOT escalate to a red exit while the failed-checks result contains no actual
+check entry. The escalation message SHALL list one failed check per line
+instead of a JSON array literal.
+
+#### Scenario: Empty failed-checks array with a stale failure run stays green
+
+- **GIVEN** the PR head's failed-checks query returns `[]` (zero failures)
+- **AND** a stale failure run for the same head exists whose jobs report
+  `conclusion == "failure"`
+- **WHEN** `devflow-ci-watch.sh` evaluates the result
+- **THEN** it SHALL report "✅ … alle grün" and exit 0
+- **AND** it SHALL NOT treat the stale run as a code failure
+
+#### Scenario: Non-empty failed-checks array still escalates
+
+- **GIVEN** the PR head's failed-checks query returns an array with at least
+  one entry
+- **WHEN** `devflow-ci-watch.sh` evaluates the result
+- **THEN** it SHALL keep the existing red path: counter-check via run/job
+  level, escalation message listing the failed checks, and exit non-zero when
+  `MAX_CI_ATTEMPTS` is exhausted
+
+#### Scenario: Escalation message lists one check per line
+
+- **GIVEN** `FAILED_CHECKS` contains two failed checks
+- **WHEN** `devflow-ci-watch.sh` prints the escalation message
+- **THEN** each failed check SHALL appear on its own line
+- **AND** no JSON array wrapper (`[ … ]`) SHALL be printed
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -2988,3 +3067,7 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (a74fe0399b34) -->
 
 <!-- merged from change delta ci-cd.md (8e0380ea13dd) -->
+
+<!-- merged from change delta ci-cd.md (354368854f9d) -->
+
+<!-- merged from change delta ci-cd.md (80d6aa3f9ee4) -->

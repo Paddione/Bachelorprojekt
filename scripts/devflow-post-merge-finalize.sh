@@ -78,8 +78,17 @@ fi
 
 DONE_COUNT=0
 SKIP_COUNT=0
+WARN_COUNT=0
 mark_ok()   { echo "[ok]   $1"; DONE_COUNT=$((DONE_COUNT + 1)); }
 mark_skip() { echo "[skip] $1"; SKIP_COUNT=$((SKIP_COUNT + 1)); }
+# [T012256/B2] mark_warn trennt "Eingabe nicht aufloesbar" von "bereits erledigt".
+# Beide erschienen als [skip] und zaehlten als uebersprungen; das Skript endete
+# mit Exit 0 und "abgeschlossen". Genau so blieb T012243 unsichtbar: Schritt 10
+# meldete "Worktree bereits entfernt", waehrend Worktree und Branch standen.
+# Ein [warn] aendert den Exit-Code NICHT (der Lauf soll weiterhin nachholbar
+# bleiben), erscheint aber in der Schlusszeile — der Aufrufer kann Erfolg damit
+# von stillem Nichtstun unterscheiden.
+mark_warn() { echo "[warn] $1" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }
 
 echo "--- devflow-post-merge-finalize: Ticket $TICKET_ID ---"
 
@@ -91,13 +100,34 @@ if [[ -z "$TICKET_JSON" ]] || ! grep -q '"external_id"' <<<"$TICKET_JSON"; then
   echo "ERROR: Schritt 1 — Ticket $TICKET_ID nicht gefunden (ticket.sh get lieferte keine Daten)." >&2
   exit 1
 fi
+# json_field: fuer Werte OHNE bedeutungstragende Leerzeichen (status, type, ...).
+# Die sed-Klasse [:space:] entfernt jedes Leerzeichen aus dem Wert — fuer diese
+# Felder folgenlos, fuer zusammengesetzte Werte NICHT. Wer ein Feld ergaenzt,
+# dessen Wert Leerzeichen tragen kann, nimmt json_field_raw.
 json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)
   echo "$2" | grep -o "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 \
     | sed "s/\"$1\"//;s/[:\"[:space:]]//g" || true
 }
+# [T012243] json_field_raw: erhaelt Leerzeichen IM Wert. Nur die JSON-Syntax um
+# den Wert herum wird abgetragen (Feldname, Doppelpunkt, umschliessende Quotes),
+# der Inhalt bleibt unangetastet.
+#
+# Pflicht fuer plan_ref: der Wert hat die Form
+#   "FACTORY-PLAN-REF branch=<b> plan=<p>"
+# Mit json_field verschmolzen beide Felder zu einem Token, und die Extraktion
+# `grep -oE 'branch=[^ ]+'` unten lieferte "<b>plan=<p>" statt "<b>". Der
+# korrupte Branchname liess die branch-exakte Worktree-Aufloesung (Schritt 10)
+# ins Leere laufen: sie meldete "bereits entfernt", waehrend Worktree und Branch
+# liegen blieben — und zwar mit Exit 0, weil der Fehlschlag als [skip] auftrat.
+# Betraf jeden Aufruf ohne explizites --branch, also den Regelpfad aus
+# dev-flow-execute.
+json_field_raw() { # $1 = Feldname, $2 = JSON-Text
+  echo "$2" | grep -o "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 \
+    | sed "s/^\"$1\"[[:space:]]*:[[:space:]]*\"//; s/\"$//" || true
+}
 TICKET_STATUS="$(json_field status "$TICKET_JSON")"
 TICKET_TYPE="$(json_field type "$TICKET_JSON")"
-PLAN_REF="$(json_field plan_ref "$TICKET_JSON")"
+PLAN_REF="$(json_field_raw plan_ref "$TICKET_JSON")"
 mark_ok "Schritt 1: Ticket geladen (status=$TICKET_STATUS, type=$TICKET_TYPE)"
 
 # Schritt 2 — Branch bestimmen: --branch-Flag, sonst FACTORY-PLAN-REF aus der
@@ -120,7 +150,33 @@ mark_ok "Schritt 2: Branch=$BRANCH"
 SLUG=""
 [[ -n "$PLAN_FILE" ]] && SLUG="$(basename "$(dirname "$PLAN_FILE")" 2>/dev/null || true)"
 [[ -z "$SLUG" ]] && SLUG="$(echo "$BRANCH" | sed -E 's/^(feature|fix|chore)\///; s/-T[0-9]{6,}$//')"
-WORKTREE="$REPO_DIR/.worktrees/$SLUG"
+# Resolve worktree via git worktree list (branch-exact match) — der Branch
+# (Schritt 2, Pflicht) identifiziert den Worktree eindeutig, unabhaengig von der
+# Verzeichnis-Konvention: Dirs heiessen <branch-ohne-Typ-Praefix>-T<id>, <slug>-T<id>
+# oder <slug>-reuse (Factory-Pre-Create, scripts/vda/factory-prep.sh) [T008014].
+#
+# [T012240] Die branch-exakte Aufloesung laeuft ZUERST. Der Slug-Kandidat deckt nur
+# noch Worktrees ohne -T<id>-Suffix ab (z.B. nach `git worktree move`) und wird gegen
+# den Ziel-Branch validiert: Schritt 10 fuehrt `git worktree remove --force` auf dem
+# Ergebnis aus, und ein Worktree mit fremdem Branch traegt fremde, uncommittete Arbeit.
+WORKTREE=""
+# 1) Branch-exact: refs/heads/$BRANCH dem Worktree zuordnen
+WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
+  /^worktree / { wt=$2 }
+  /^branch / && $0 == "branch " b { print wt; found=1; exit }
+  END { if (!found) exit 1 }
+' 2>/dev/null || true)"
+# 2) Rueckfall Slug-Kandidat — nur wenn er den Ziel-Branch tatsaechlich ausgecheckt hat
+if [[ -z "$WORKTREE" ]]; then
+  _wt_candidate="$REPO_DIR/.worktrees/$SLUG"
+  if [[ -d "$_wt_candidate" ]] \
+     && [[ "$(git -C "$_wt_candidate" rev-parse --abbrev-ref HEAD 2>/dev/null || true)" == "$BRANCH" ]]; then
+    WORKTREE="$_wt_candidate"
+  fi
+fi
+# 3) Kein Worktree haelt den Branch: Slug-Pfad als Platzhalter, damit Schritt 10 seine
+#    bestehende "bereits entfernt"-Meldung behaelt statt zu scheitern.
+[[ -z "$WORKTREE" ]] && WORKTREE="$REPO_DIR/.worktrees/$SLUG"
 
 # Schritt 3 — PR-Nummer: --pr-Flag, sonst gh gegen den Branch (state=merged —
 # Closure erst nach bestaetigtem Merge, T001149-M1). Ohne PR laufen die
@@ -186,13 +242,102 @@ else
   [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
   if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
     mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert"
-  elif [[ ! -s "$PLAN_FILE" ]] && ! git cat-file -e "$BRANCH:$PLAN_FILE" 2>/dev/null; then
+  elif [[ ! -s "$PLAN_FILE" ]] && ! git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}" 2>/dev/null; then
     mark_skip "Schritt 7: Plan-Pfad nicht (mehr) aufloesbar — Archiv vermutlich bereits persistiert"
   else
     echo "ERROR: Schritt 7 — archive-plan fehlgeschlagen (Ticket $TICKET_ID, $PLAN_FILE)." >&2
     exit 1
   fi
 fi
+
+# [T012256/B1] _archive_lock serialisiert die Archiv-Sektion.
+# Schritt 8 wechselt per `git checkout -B "$ARCHIVE_BRANCH" origin/main` den
+# Branch des GETEILTEN Arbeitsbaums. Am 2026-08-18 liefen zwei Finalizer
+# gleichzeitig (T012240 --pr 4738 und T012239 --pr 4737, per pgrep belegt) im
+# selben Haupt-Checkout: die gestagte Archivierung des fremden Changes lag im
+# Index auf dem eigenen Archiv-Branch, und der Push scheiterte an
+# "cannot lock ref ... reference already exists".
+# Der Lock liegt im gemeinsamen Git-Verzeichnis, gilt also ueber alle Worktrees
+# desselben Repos hinweg — genau die Reichweite des geteilten Index.
+# flock haelt die Sperre am offenen Dateideskriptor; sie faellt beim Prozessende
+# von selbst, auch bei Abbruch. Fehlt flock, laeuft der Schritt unserialisiert
+# weiter (fail-open) und sagt es — die Archivierung ist wichtiger als der Schutz
+# vor einem seltenen Timing.
+#
+# [Code-Review PR #4744, F4] Der Lock wartet mit Timeout, nicht unbegrenzt. Der
+# Absturz-Fall ist durch die FD-Semantik abgedeckt, der HAENGER-Fall nicht: ein
+# Lauf, der lebt aber nicht weiterkommt, blockierte sonst jeden nachfolgenden
+# Lauf dauerhaft. Laeuft der Timeout ab, wird Schritt 8 UEBERSPRUNGEN statt
+# unserialisiert ausgefuehrt — der Race ist der teurere Fehler, und das Skript
+# ist idempotent: der naechste Lauf holt die Archivierung nach.
+# Wartezeit per DEVFLOW_ARCHIVE_LOCK_WAIT ueberschreibbar (Sekunden).
+_archive_lock() {
+  local common lockfile wait
+  wait="${DEVFLOW_ARCHIVE_LOCK_WAIT:-300}"
+  common="${GIT_COMMON_DIR:-$(git -C "$REPO_DIR" rev-parse --git-common-dir 2>/dev/null || echo "")}"
+  [[ -n "$common" ]] || { mark_warn "Schritt 8: Git-Common-Dir nicht bestimmbar — Archiv-Sektion laeuft unserialisiert"; return 0; }
+  lockfile="$common/devflow-finalize-archive.lock"
+  if ! command -v flock >/dev/null 2>&1; then
+    mark_warn "Schritt 8: flock nicht verfuegbar — Archiv-Sektion laeuft unserialisiert"
+    return 0
+  fi
+  exec {_ARCHIVE_LOCK_FD}>"$lockfile" || {
+    mark_warn "Schritt 8: Lock-Datei $lockfile nicht oeffenbar — Archiv-Sektion laeuft unserialisiert"
+    return 0
+  }
+  if ! flock -w "$wait" "$_ARCHIVE_LOCK_FD"; then
+    mark_warn "Schritt 8: Archiv-Lock nach ${wait}s nicht erhalten (anderer Finalize-Lauf haelt ihn oder haengt) — Archivierung uebersprungen, beim naechsten Lauf nachholbar"
+    return 1
+  fi
+  return 0
+}
+
+# [T012256/B3] _archive_already_done prueft den ZIELZUSTAND, nicht die Existenz
+# des Archiv-Branches.
+# Der bisherige Check war `git ls-remote --heads origin "$ARCHIVE_BRANCH"`. Er
+# erkennt "Archiv-PR noch offen", nicht "Archiv-PR gemergt und Remote-Branch
+# geloescht" — einen Zustand, den Schritt 8 unten per
+# `gh pr merge --auto --squash --delete-branch` regelmaessig SELBST herstellt.
+# Belegt am 2026-08-18: PR #4740 (chore/plan-archive-finalizer-resolve-worktree-
+# by-branch-T012240) ist MERGED, `git ls-remote --exit-code --heads origin
+# <branch>` liefert 2. Ein Wiederholungslauf mit noch vorhandenem lokalem
+# Change-Ordner hielt den Schritt deshalb fuer unerledigt und archivierte erneut.
+# Der Finalizer ist laut openspec/specs/agent-skills.md als idempotente Einheit
+# spezifiziert; der Wiederholungslauf nach Abbruch ist sein Zweck.
+#
+# Drei Signale, jedes fuer sich hinreichend:
+#   1. Archiv-Branch liegt noch remote  -> Archivierung laeuft, PR offen
+#   2. Archiv-Verzeichnis liegt auf origin/main -> Zielzustand erreicht; bleibt
+#      auch nach dem Loeschen des Archiv-Branches wahr
+#   3. Ein Archiv-PR auf diesen Branch ist gemergt -> zweites Signal fuer (2)
+_archive_already_done() {
+  git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1 && return 0
+  # Exakter Vergleich auf <datum>-<slug>, KEIN Suffix-Match. `grep -- "-${SLUG}$"`
+  # traf am 2026-08-18 fuer SLUG=hardening sechs fremde Eintraege (u.a.
+  # 2026-08-14-blocker-gate-hardening) — ein nie archivierter Change haette als
+  # erledigt gegolten und waere nie archiviert worden. Ein kurzer oder generischer
+  # Slug ist der Normalfall, nicht die Ausnahme (Code-Review PR #4744, F1).
+  # Der Vergleich laeuft in bash statt per Regex: der Slug muesste sonst
+  # maskiert werden, und ein vergessenes Escape brächte die Fehlerklasse zurueck.
+  local _entry _base
+  while IFS= read -r _entry; do
+    [[ -n "$_entry" ]] || continue
+    _base="${_entry##*/}"
+    # Datumspraefix YYYY-MM-DD- abtrennen; der Rest muss der Slug SELBST sein.
+    if [[ "$_base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]]; then
+      [[ "${BASH_REMATCH[1]}" == "$SLUG" ]] && return 0
+    # 9 der Archiv-Verzeichnisse stammen aus der Zeit vor der Datumskonvention
+    # (mishap-t002407, k1-vektorspeicher, t001537, ...). Ohne diesen Zweig fielen
+    # sie durchs Raster: Signal 2 meldete "nicht archiviert", und griffen auch
+    # Signal 1 und 3 nicht, archivierte Schritt 8 erneut — der Fehler, den B3
+    # gerade beheben soll (Code-Review PR #4744, Re-Review).
+    elif [[ "$_base" == "$SLUG" ]]; then
+      return 0
+    fi
+  done < <(git ls-tree -d --name-only "origin/main" "openspec/changes/archive/" 2>/dev/null || true)
+  [[ -n "$(gh pr list --head "$ARCHIVE_BRANCH" --state merged --json number -q '.[0].number' 2>/dev/null || true)" ]] && return 0
+  return 1
+}
 
 # Schritt 8 — OpenSpec-Change archivieren (delta-merge + Verschiebung ins Archiv)
 # inklusive Archiv-PR (Mechanik: plan-archive-steps.md). Der Change-Ordner lebt
@@ -210,8 +355,10 @@ fi
 
 if [[ -n "${ARCHIVE_DIR:-}" ]]; then
   ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
-  if git ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH" >/dev/null 2>&1; then
-    mark_skip "Schritt 8: Archiv-Branch $ARCHIVE_BRANCH existiert bereits remote — OpenSpec-Archiv übersprungen (idempotent)"
+  if _archive_already_done; then
+    mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (Archiv-Branch remote, Archiv auf origin/main oder Archiv-PR gemergt) — uebersprungen (idempotent)"
+  elif ! _archive_lock; then
+    : # _archive_lock hat bereits gewarnt; Archivierung dieses Laufs entfaellt
   else
     # T006791: Vor der Archiv-Sektion den aktuellen Branch merken — die Sektion
     # wechselt per checkout -B den Branch des geteilten Arbeitsbaums (Worktree
@@ -353,7 +500,22 @@ if [[ -d "$WORKTREE" ]]; then
     exit 1
   fi
 else
-  mark_skip "Schritt 10: Worktree bereits entfernt"
+  # [T012256/B2] "Pfad existiert nicht" heisst nicht "aufgeraeumt". Haelt noch
+  # ein Worktree $BRANCH, waehrend der aufgeloeste Pfad fehlt, widerspricht sich
+  # der Zustand: die Aufloesung hat den falschen Pfad geliefert, und der echte
+  # Worktree bleibt liegen. Genau so trat T012243 auf — Schritt 10 meldete
+  # "bereits entfernt", waehrend Worktree UND Branch standen, und der Lauf endete
+  # mit Exit 0. Der Widerspruch wird jetzt benannt statt verschwiegen.
+  _wt_holding_branch="$(git -C "$REPO_DIR" worktree list --porcelain 2>/dev/null | awk -v b="refs/heads/$BRANCH" '
+    /^worktree / { wt=$2 }
+    /^branch / && $0 == "branch " b { print wt; found=1; exit }
+    END { if (!found) exit 1 }
+  ' || true)"
+  if [[ -n "$_wt_holding_branch" ]]; then
+    mark_warn "Schritt 10: aufgeloester Pfad $WORKTREE existiert nicht, aber $_wt_holding_branch haelt $BRANCH — nicht aufgeraeumt (Aufloesung lieferte den falschen Pfad)"
+  else
+    mark_skip "Schritt 10: Worktree bereits entfernt"
+  fi
 fi
 
 if git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
@@ -384,5 +546,10 @@ else
 fi
 
 echo ""
-echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen ---"
+if [[ "$WARN_COUNT" -gt 0 ]]; then
+  echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen, $WARN_COUNT Warnung(en) ---"
+  echo "    $WARN_COUNT Schritt(e) konnten ihre Eingabe nicht aufloesen — siehe [warn] oben. Erneut aufrufbar (idempotent)." >&2
+else
+  echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen, $WARN_COUNT Warnung(en) ---"
+fi
 exit 0

@@ -2136,6 +2136,24 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/finalize-hardening",
+    "file": "tests/spec/agent-skills/finalize-hardening.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/finalize-plan-ref-whitespace",
+    "file": "tests/spec/agent-skills/finalize-plan-ref-whitespace.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/finalize-worktree-branch-validation",
+    "file": "tests/spec/agent-skills/finalize-worktree-branch-validation.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/guard-semantics-konvention",
     "file": "tests/spec/agent-skills/guard-semantics-konvention.bats",
     "category": "agent-skills",
@@ -2550,6 +2568,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/devflow-ci-watch-rollup-headsha",
+    "file": "tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/devflow-ciwatch-ticket-path",
     "file": "tests/spec/ci-cd/devflow-ciwatch-ticket-path.bats",
     "category": "ci-cd",
@@ -2624,6 +2648,36 @@
   {
     "id": "ci-cd/gitlab-parallel-non-blocking",
     "file": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-pipeline-check",
+    "file": "tests/spec/ci-cd/gitlab-pipeline-check.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-registry-cache",
+    "file": "tests/spec/ci-cd/gitlab-registry-cache.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-fleet-guardrails",
+    "file": "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-fleet-rbac",
+    "file": "tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-job-pod-toml",
+    "file": "tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2990,6 +3044,12 @@
   {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
+    "category": "devflow-selection-archive-hardening",
+    "kind": "shell"
+  },
+  {
+    "id": "devflow-selection-archive-hardening/merge-commit-selection",
+    "file": "tests/spec/devflow-selection-archive-hardening/merge-commit-selection.bats",
     "category": "devflow-selection-archive-hardening",
     "kind": "shell"
   },
@@ -4776,6 +4836,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/babysit-prs-red-detection",
+    "file": "tests/spec/software-factory/babysit-prs-red-detection.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/batch-closure-title-children",
     "file": "tests/spec/software-factory/batch-closure-title-children.bats",
     "category": "software-factory",
@@ -4892,6 +4958,12 @@
   {
     "id": "software-factory/pr-babysit",
     "file": "tests/spec/software-factory/pr-babysit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/pr-babysit-ci-never-ran",
+    "file": "tests/spec/software-factory/pr-babysit-ci-never-ran.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -5109,6 +5181,12 @@
     "id": "ticket-ops-claim-phase-a-T004602",
     "file": "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
     "category": "ticket-ops-claim-phase-a-T004602",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-ops/triage-status-ssot",
+    "file": "tests/spec/ticket-ops/triage-status-ssot.bats",
+    "category": "ticket-ops",
     "kind": "shell"
   },
   {

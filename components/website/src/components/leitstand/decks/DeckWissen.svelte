@@ -20,24 +20,38 @@
   let results = $state<OpenspecHit[] | null>(null);
   let searchError = $state<string | null>(null);
   let searching = $state(false);
+  // T008721/M5: AbortController gegen out-of-order-Aufloesung — ein neuer
+  // Submit bricht den laufenden Request ab; der Cleanup-Effect unten bricht
+  // ihn beim Deck-Wechsel (Dismount) ab.
+  let searchAbort: AbortController | null = null;
 
   async function search() {
     const q = query.trim();
     if (q.length < 2) { searchError = 'Mindestens 2 Zeichen.'; results = null; return; }
+    searchAbort?.abort();
+    const controller = new AbortController();
+    searchAbort = controller;
     searching = true;
     searchError = null;
     try {
-      const res = await fetch(`/sdlc/api/openspec/search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/sdlc/api/openspec/search?q=${encodeURIComponent(q)}`, { signal: controller.signal });
       const body = await res.json();
       if (!res.ok || body.error) { searchError = body.error ?? `HTTP ${res.status}`; results = null; return; }
       results = body.results ?? [];
     } catch (err) {
+      // Abgebrochener/veralteter Request: still verwerfen — kein Fehlertext.
+      if (controller.signal.aborted) return;
       searchError = err instanceof Error ? err.message : 'Suche fehlgeschlagen';
       results = null;
     } finally {
-      searching = false;
+      if (!controller.signal.aborted) searching = false;
     }
   }
+
+  // Dismount-Schutz: laufende Suche abbrechen, wenn das Deck gewechselt wird.
+  $effect(() => {
+    return () => searchAbort?.abort();
+  });
 
   // ── Prompt-Bibliothek (E5): selbstladend wie die uebrigen Deck-Bereiche.
   //    $effect stoesst den Fetch beim Mount; der Cleanup guardt gegen

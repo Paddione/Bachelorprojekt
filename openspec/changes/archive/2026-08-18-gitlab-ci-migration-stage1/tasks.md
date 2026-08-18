@@ -2,7 +2,7 @@
 title: "gitlab-ci-migration-stage1 — Implementation Plan"
 ticket_id: T011790
 domains: [ci-cd, infra]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

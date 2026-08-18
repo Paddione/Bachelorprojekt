@@ -2,7 +2,11 @@
 
 _Etappe 1 der GitLab-CI-Migration (T011790). GitHub Actions bleibt SSOT und
 Merge-Gate — GitLab ist ein sekundaerer, nicht blockierender Spiegel. Architektur
-und Entscheidungen: `openspec/changes/gitlab-ci-migration-stage1/design.md`._
+und Entscheidungen: `openspec/changes/gitlab-ci-migration-stage1/design.md`.
+Etappe 2 (T012177) ergaenzt einen zweiten self-hosted Runner auf `fleet`
+(Kubernetes-Executor) plus einen Registry-Pull-Through-Cache an beiden
+Standorten — siehe Abschnitte 8-10 unten sowie
+`openspec/changes/gitlab-ci-k8s-runner-cache/design.md`._
 
 ## 1. Mirror-Secrets einrichten
 
@@ -28,7 +32,43 @@ die fehlende Variable), statt still ohne Spiegelung zu enden.
   brechen den Push still: eine falsch zusammengesetzte URL ist kein `git`-Syntaxfehler,
   sondern schlaegt erst beim tatsaechlichen Netzwerkzugriff fehl.
 
-## 2. Ersteinrichtung des Runners
+## 2. Installation des Runner-Binaries
+
+Auf dem Host, der den Runner betreiben soll (Ubuntu/Debian). Der offizielle
+apt-Weg mit manuell hinterlegtem GPG-Key — kein `curl | sudo bash`:
+
+```bash
+curl -fsSL https://packages.gitlab.com/runner/gitlab-runner/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/gitlab-runner.gpg
+echo "deb [signed-by=/usr/share/keyrings/gitlab-runner.gpg] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ $(lsb_release -cs) main" \
+  | sudo tee /etc/apt/sources.list.d/gitlab-runner.list
+sudo apt-get update && sudo apt-get install -y gitlab-runner
+```
+
+Das Paket legt den Dienst-User `gitlab-runner` an und aktiviert den
+systemd-Dienst.
+
+### 2.1 Docker-Gruppe — sonst scheitert erst der erste Job
+
+Der Docker-Executor braucht Zugriff auf den Docker-Socket. Der Dienst-User ist
+nach der Installation **nicht** in der `docker`-Gruppe:
+
+```bash
+sudo usermod -aG docker gitlab-runner
+sudo systemctl restart gitlab-runner
+sudo -u gitlab-runner docker version --format '{{.Server.Version}}'   # muss eine Version ausgeben
+```
+
+Ohne diesen Schritt laufen Installation, Registrierung und `gitlab-runner verify`
+alle sauber durch — der Fehler taucht erst beim **ersten Job** auf, als
+`permission denied while trying to connect to the Docker daemon socket`.
+
+> **Sicherheitshinweis:** Mitgliedschaft in der `docker`-Gruppe entspricht
+> faktisch Root-Rechten auf dem Host. CI-Jobs laufen damit mit erheblichen
+> Rechten. Für einen lokalen Entwicklungs-Runner ist das der vorgesehene Weg;
+> auf einem geteilten oder produktiven Host wäre es das nicht.
+
+## 3. Ersteinrichtung des Runners
 
 1. Im GitLab-Projekt einen neuen Runner anlegen (Project Settings → CI/CD →
    Runners → "New project runner"), Tag `bachelorprojekt-local` vergeben und den
@@ -52,7 +92,66 @@ die fehlende Variable), statt still ohne Spiegelung zu enden.
    das Skript mit Exit-Code ≠ 0 ab und benennt die fehlende Voraussetzung — es
    endet nie wirkungslos-gruen.
 
-## 3. Fallback-Umschaltung — der eigentliche Zweck dieses Runbooks
+### 3.1 Registrierung braucht `sudo` — sonst läuft der Runner nie als Dienst
+
+`gitlab-runner register` **ohne** `sudo` schreibt nach
+`~/.gitlab-runner/config.toml`. Der systemd-Dienst liest aber
+`/etc/gitlab-runner/config.toml`. Das Ergebnis ist tückisch: Die Registrierung
+meldet Erfolg, der Runner erscheint in der GitLab-Oberfläche — und läuft
+trotzdem nicht, weil der Dienst eine leere Konfiguration vorfindet. Nach dem
+nächsten Neustart wäre er ganz verschwunden.
+
+Prüfen, in welcher Konfiguration der Runner gelandet ist:
+
+```bash
+sudo grep -c '\[\[runners\]\]' /etc/gitlab-runner/config.toml   # muss >= 1 sein
+sudo gitlab-runner verify                                        # muss "is valid" melden
+```
+
+Meldet `verify` keinen Runner, liegt die Registrierung im User-Modus. Die
+`[[runners]]`-Sektion nachträglich übernehmen (Token gerät dabei nicht ins Log):
+
+```bash
+sudo cp /etc/gitlab-runner/config.toml /etc/gitlab-runner/config.toml.bak
+awk '/^\[\[runners\]\]/{f=1} f' ~/.gitlab-runner/config.toml \
+  | sudo tee -a /etc/gitlab-runner/config.toml > /dev/null
+sudo systemctl restart gitlab-runner && sudo gitlab-runner verify
+```
+
+### 3.2 Tags werden beim `glrt-`-Fluss serverseitig verwaltet
+
+Beim Authentication-Token-Fluss gehören Tags und die Untagged-Einstellung zum
+Runner-Objekt **in GitLab**, nicht zur lokalen Konfiguration. Das
+`--tag-list`-Argument des Registrierungsbefehls bleibt dort **wirkungslos** —
+es steht im Skript, weil es beim älteren Fluss und bei self-managed Instanzen
+weiterhin greift, aber es setzt hier nichts.
+
+Nach der Registrierung deshalb in GitLab prüfen (Settings → CI/CD → Runners →
+Edit):
+
+- Tag `bachelorprojekt-local` ist gesetzt
+- "Run untagged jobs" ist **ausgeschaltet**
+
+Das zweite ist nicht kosmetisch: Nimmt der Runner auch ungetaggte Jobs an, zieht
+er Arbeit an, die eigentlich in die Cloud ausweichen soll — der Fallback aus
+Abschnitt 4 wäre damit ausgehebelt.
+
+### 3.3 Nebenläufigkeit an die Zahl der Jobs anpassen
+
+Der Default `concurrent = 1` lässt die drei Kern-Jobs seriell laufen. In
+`/etc/gitlab-runner/config.toml`:
+
+```toml
+concurrent = 3
+
+[[runners]]
+  request_concurrency = 2
+```
+
+`request_concurrency` mahnt der Runner sonst selbst als Long-Polling-Bottleneck
+im Journal an. Nach der Änderung `sudo systemctl restart gitlab-runner`.
+
+## 4. Fallback-Umschaltung — der eigentliche Zweck dieses Runbooks
 
 Der Compute-Fallback laeuft ausschliesslich ueber die Projekt-Variable
 `CI_RUNNER_TAG` (design.md D2). Kein Job in `.gitlab-ci.yml` traegt einen
@@ -73,7 +172,7 @@ hartkodierten Tag; jeder Job deklariert `tags: [$CI_RUNNER_TAG]`.
 Beide Richtungen (Umschalten und Zuruecksetzen) gehoeren zum selben Vorgang und
 sind im Ticket zu vermerken, wenn dieser Fallback real ausgeloest wurde.
 
-## 4. Diagnose — woran erkennt man einen Runner-Ausfall
+## 5. Diagnose — woran erkennt man einen Runner-Ausfall
 
 Ein ausgefallener self-hosted Runner sieht **nicht** wie ein Fehlschlag aus:
 Jobs bleiben `pending` statt zu scheitern, weil GitLab wartet, bis ein Runner mit
@@ -86,9 +185,33 @@ passendem Tag verfuegbar wird. Anzeichen:
 - Auf dem Runner-Host selbst: `sudo gitlab-runner status` bzw. `systemctl status
   gitlab-runner` meldet den Dienst als nicht laufend.
 
-Ein haengender Job ist deshalb der Trigger fuer Schritt 2, nicht ein rotes X.
+Ein haengender Job ist deshalb der Trigger fuer die Fallback-Umschaltung, nicht
+ein rotes X.
 
-## 5. Warum die Umschaltung manuell ist
+### 5.1 Jobs hängen, obwohl der Runner online ist
+
+`pending` hat zwei Ursachen, die von außen gleich aussehen. Die erste ist der
+Ausfall oben. Die zweite: Der Runner läuft einwandfrei, ihm fehlt nur der Tag,
+den die Jobs verlangen (Abschnitt 3.2). GitLab bietet ihm die Jobs dann gar
+nicht erst an — deshalb steht in seinem Journal **keine** Ablehnung, sondern
+überhaupt nichts. Genau dieses Schweigen führt in die Irre: Es liest sich wie
+ein Netzwerk- oder Authentifizierungsproblem, ist aber eine Konfigurationslücke.
+
+Die beiden Fälle unterscheidet man an einer Stelle:
+
+| Beobachtung | Ausfall (5) | Tag fehlt (3.2) |
+|---|---|---|
+| Runner-Status in GitLab | offline / stale | **online** |
+| `sudo gitlab-runner verify` | schlägt fehl oder findet nichts | `is valid` |
+| `systemctl is-active gitlab-runner` | inaktiv | `active` |
+| Journal des Runners | Verbindungsfehler | ruhig, nur Polling |
+
+Meldet `verify` einen gültigen Runner und ist der Dienst aktiv, liegt es nicht
+am Host — dann in GitLab die Tags des Runners prüfen. Denselben Weg nimmt man,
+wenn ein Job nach dem Fallback-Umschalten hängt: dann fehlt dem SaaS-Tag
+gegenüber der Variablenwert, nicht dem Runner der Tag.
+
+## 6. Warum die Umschaltung manuell ist
 
 Ein automatisches Ausweichen auf Shared Runner wuerde den Ausfall des
 self-hosted Runners verbergen — die Pipeline liefe unauffaellig weiter, nur auf
@@ -96,10 +219,177 @@ anderer Hardware. Ein Ausfall, den niemand bemerkt, wird nicht behoben. Der
 Rueckfall gehoert deshalb bewusst ins Runbook und nicht in eine Selbstheilung
 (design.md D2).
 
-## 6. Abgrenzung
+## 7. Abgrenzung Etappe 1
 
-Diese Etappe betreibt ausschliesslich den lokalen Docker-Executor auf einem
+Etappe 1 betrieb ausschliesslich den lokalen Docker-Executor auf einem
 einzelnen self-hosted Host. Ein Kubernetes-Executor auf `fleet` als zweiter
-self-hosted Runner ist fuer Etappe 2 vorgesehen (siehe design.md, "Offene Punkte
-fuer Etappe 2"). Diese Etappe migriert weder das Merge-Gate noch weitere
-GitHub-Workflows (Build, E2E, Release, Factory) — siehe design.md, "Non-Goals".
+self-hosted Runner war fuer Etappe 2 vorgesehen — **umgesetzt, siehe Abschnitt
+8**. Diese Etappe migriert weder das Merge-Gate noch weitere GitHub-Workflows
+(Build, E2E, Release, Factory) — siehe design.md, "Non-Goals".
+
+## 8. Zwei-Runner-Betrieb (Etappe 2, T012177)
+
+Ab Etappe 2 laufen zwei self-hosted Runner parallel: der Docker-Executor aus
+Abschnitt 1-7 auf PK-Desktop und ein Kubernetes-Executor im Namespace
+`gitlab-runner` auf `fleet`. Beide tragen **denselben** Tag
+`bachelorprojekt-local` (Design D5) — das Tag-Routing aus Abschnitt 4 bleibt
+damit unveraendert gueltig, und der Ausfall eines Runners erfordert **keine**
+Variablenaenderung: GitLab verteilt die Jobs auf den verbleibenden.
+
+**Der Name ist seit Etappe 2 irrefuehrend:** `bachelorprojekt-local` bezeichnet
+keinen Ort mehr, sondern „self-hosted" — im Unterschied zu den gitlab.com
+Shared Runnern aus dem Fallback (Abschnitt 4). Ein Rename haette
+`.gitlab-ci.yml`, dieses Runbook, die Guards und beide
+GitLab-Runner-Konfigurationen gleichzeitig getroffen — das Risiko ueberstieg
+den Gewinn (design.md D5).
+
+### 8.1 Registrierung — Token erzeugen, sealen, anwenden (B3, Review T012177)
+
+Ohne diesen Schritt bleibt die Flux-Kustomization `flux-gitlab-runner`
+(`flux/clusters/fleet/ks-gitlab-runner.yaml`) dauerhaft `NotReady` — sie hat
+`wait: true` und einen `healthCheck` auf `deployment/gitlab-runner`, und der
+Manager-Pod crasht ohne Token nach 30 Registrierungsversuchen dauerhaft
+(`CI_SERVER_TOKEN` bleibt leer, siehe `values/gitlab-runner.yaml`,
+`runners.secret`-Kommentar).
+
+1. Im GitLab-Projekt einen neuen **Project Runner** anlegen (Settings → CI/CD
+   → Runners → "New project runner"), Tag `bachelorprojekt-local` vergeben,
+   Executor-Typ ist fuer die Registrierung selbst egal (der Kubernetes-Executor
+   steht bereits im Chart-Wert `runners.executor`) — den `glrt-`-
+   Authentication-Token kopieren. Derselbe Token-Typ wie in Abschnitt 3.1, ein
+   **anderer** Token als der des Docker-Runners — jeder Runner braucht seinen
+   eigenen.
+2. In `environments/schema.yaml` steht der Eintrag bereits (`GITLAB_RUNNER_TOKEN`,
+   `extra_namespaces: [{namespace: gitlab-runner, secret: gitlab-runner-secret,
+   dest_key: runner-token}]`) — nichts weiter zu tun, nur den Klartextwert
+   eintragen:
+   ```bash
+   # environments/.secrets/fleet-mentolder.yaml (git-crypt-verschluesselt, getrackt)
+   GITLAB_RUNNER_TOKEN: "glrt-..."
+   ```
+   `GITLAB_RUNNER_REGISTRATION_TOKEN` (der zweite, benachbarte Schema-Eintrag)
+   **nicht** befuellen — er bleibt absichtlich leer (siehe Kommentar in
+   `environments/schema.yaml`: der Chart verlangt den Key
+   `runner-registration-token` im Secret unabhaengig vom verwendeten Token-Fluss,
+   dieses Repo nutzt aber ausschliesslich den `glrt-`-Fluss).
+3. Sealen und committen:
+   ```bash
+   task env:seal ENV=fleet-mentolder
+   git add environments/sealed-secrets/fleet-mentolder.yaml
+   git commit -m "chore(security): seal GitLab-Runner-Token fuer fleet [T012177]"
+   ```
+   > **`ENV=fleet-mentolder`, nicht `ENV=mentolder`** — das ist keine Kosmetik:
+   > `scripts/flux-render-artifact.sh` kopiert **ausschliesslich**
+   > `environments/sealed-secrets/fleet-mentolder.yaml` ins OCI-Artefakt. Ein nach
+   > `sealed-secrets/mentolder.yaml` gesealter Token erreicht fleet also **nie**,
+   > der Runner-Pod bleibt in CrashLoop, und `flux-gitlab-runner` steht wegen
+   > `wait: true` dauerhaft auf NotReady — ohne dass irgendwo ein Fehler zum
+   > Token erschiene. `environments/fleet-mentolder.yaml` traegt `BRAND_ID:
+   > mentolder`, der `owner_brand`-Filter des Sealers greift also unveraendert.
+   Das Sealing-Zertifikat ist pro **Cluster** (`fleet`) gueltig, nicht pro
+   Brand — `ENV=mentolder` ist hier nur der Anker-Lauf, der Ziel-Namespace
+   `gitlab-runner` gehoert zu keinem Brand.
+4. Push nach `main` → `.github/workflows/render-fleet-artifact.yml` rendert das
+   OCI-Artefakt neu (inkl. `gitlab-runner/gitlab-runner.yaml`, siehe
+   `scripts/flux-render-artifact.sh`) → Flux appliziert den SealedSecret (der
+   `sealed-secrets`-Controller entschluesselt ihn zum echten Secret
+   `gitlab-runner-secret`) und reconciled danach `flux-gitlab-runner`.
+5. Erfolg pruefen:
+   ```bash
+   kubectl --context fleet get secret gitlab-runner-secret -n gitlab-runner
+   kubectl --context fleet get kustomization flux-gitlab-runner -n flux-system
+   kubectl --context fleet get pods -n gitlab-runner -o wide
+   ```
+   Der Pod-Status muss `Running` zeigen (nicht `CrashLoopBackOff`), die
+   Kustomization `READY=True`.
+
+**Pod-Status pruefen:**
+
+```bash
+kubectl --context fleet get pods -n gitlab-runner -o wide
+```
+
+Der Runner-Pod muss auf `gekko-hetzner-3` oder `gekko-hetzner-4` laufen —
+**nie** auf einem `pk-hetzner-*`-Knoten (das waeren Control-Plane-Knoten, siehe
+Design D2 zur Ressourcen-Umzaeunung). Fuer den Runner-Status in GitLab gilt ab
+jetzt dieselbe Diagnose-Tabelle wie in Abschnitt 5.1, nur mit zwei Zeilen statt
+einer — je eine pro Runner.
+
+**Ressourcen-Umzaeunung.** Der Namespace `gitlab-runner` traegt vier
+voneinander unabhaengige Grenzen (`k3d/gitlab-runner-stack/namespace.yaml`):
+ResourceQuota, LimitRange, PriorityClass `ci-low` (Wert unter dem
+Cluster-Default) und eine `nodeAffinity` (kein einfacher `nodeSelector` — der
+kann kein ODER ueber die zwei Worker-Hostnamen ausdruecken). Details und
+Begruendung: `openspec/changes/gitlab-ci-k8s-runner-cache/design.md`, D2.
+
+## 9. Cache-Diagnose (Etappe 2, T012177)
+
+Ein gruener Job sagt nichts ueber Cache-Treffer aus — zwei unabhaengige
+Pruefungen:
+
+- **fleet:**
+  ```bash
+  kubectl --context fleet logs -n gitlab-runner deploy/registry-cache | grep -c "proxy: pull"
+  ```
+  Die Zahl steigt bei jedem tatsaechlichen Upstream-Pull. Bleibt sie ueber
+  mehrere Pipelines hinweg gleich, obwohl neue Jobs liefen, zieht irgendetwas
+  direkt an `registry-cache` vorbei — ueblichster Grund: fehlende
+  containerd-Mirror-Konfiguration (siehe unten).
+- **PK-Desktop:**
+  ```bash
+  docker inspect gitlab-registry-cache --format '{{.State.Status}}'
+  ```
+  muss `running` sein. Treffer-Test: ein noch nie gezogenes Tag zweimal pullen
+  (`docker rmi` dazwischen) — der zweite Pull muss spuerbar schneller sein,
+  weil er aus `localhost:5000` statt aus dem Internet kommt.
+- **Verbindung fehlt, keine Fehlermeldung:** Ein nicht erreichbarer Cache
+  erzeugt laut Design (Error-Handling-Tabelle in
+  `openspec/changes/gitlab-ci-k8s-runner-cache/design.md`) **keinen** Fehler —
+  der Pull faellt still auf Upstream zurueck und wird nur langsamer (zurueck
+  auf die Etappe-1-Werte 50/84/284 s). Das ist Absicht, macht die Diagnose aber
+  genau deshalb auf einen Laufzeitvergleich angewiesen, nicht auf eine
+  Fehlermeldung.
+- **fleet-spezifische Falle — die eigentliche Betriebsluecke dieser Etappe:**
+  Der Kubernetes-Executor zieht Job-Images ueber das **containerd des
+  Knotens**, nicht ueber einen Docker-Daemon — anders als bei PK-Desktop reicht
+  hier kein `daemon.json`. Damit `gekko-hetzner-3` und `gekko-hetzner-4`
+  `registry-cache:5000` tatsaechlich als Mirror fuer `docker.io` nutzen,
+  braucht jeder der beiden Knoten einen Eintrag in
+  `/etc/rancher/k3s/registries.yaml` (k3s-native Mirror-Konfiguration) mit
+  anschliessendem `systemctl restart k3s-agent`. **Das ist eine
+  Host-Konfiguration ausserhalb von Git** — sie wird bei einem Knoten-Neuaufbau
+  erneut faellig und ist durch keinen Guard automatisiert pruefbar. Dieses
+  Runbook ist ihr einziger Aufbewahrungsort, analog zu den WireGuard-/UFW-
+  Schritten in `infra-ops`. Beispiel-Eintrag:
+  ```yaml
+  mirrors:
+    docker.io:
+      endpoint:
+        - "http://registry-cache.gitlab-runner.svc.cluster.local:5000"
+  ```
+  Ohne diesen Schritt laeuft der fleet-Runner korrekt, der Cache bleibt aber
+  leer — ein Zustand, der nur an der obigen Log-Zeile auffaellt, nicht an einem
+  Fehler.
+
+**Lokaler Cache auf PK-Desktop einrichten:**
+
+```bash
+bash scripts/gitlab-runner-cache.sh --dry-run   # erst gegenlesen
+bash scripts/gitlab-runner-cache.sh             # Echtlauf, braucht sudo
+```
+
+Startet (idempotent) den `registry:2`-Proxy-Container, mergt
+`registry-mirrors` in `/etc/docker/daemon.json` und haengt
+`pull_policy = ["if-not-present"]` an den `[runners.docker]`-Block in
+`/etc/gitlab-runner/config.toml` an.
+
+## 10. Abgrenzung Etappe 2
+
+- Keine automatische Umschaltung, kein Autoscaling der Runner — unveraendert
+  Non-Goal.
+- Kein Cache-Eviction-Mechanismus (Cron-GC, TTL) —
+  `REGISTRY_STORAGE_DELETE_ENABLED=true` schafft nur die Voraussetzung fuer
+  eine spaetere manuelle oder automatisierte Bereinigung.
+- Die containerd-Mirror-Konfiguration auf den fleet-Worker-Knoten (Abschnitt 9)
+  ist eine Host-Konfiguration ausserhalb von Git und wird ausschliesslich hier
+  dokumentiert, nicht automatisiert.

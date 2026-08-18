@@ -3969,6 +3969,12 @@
       "status": "archived"
     }
   ],
+  "T008014": [
+    {
+      "slug": "2026-08-18-fix-devflow-post-merge-finalize-worktree-path",
+      "status": "archived"
+    }
+  ],
   "T008016": [
     {
       "slug": "2026-08-16-sdlc-leitstand-e4-livedaten",
@@ -3978,6 +3984,24 @@
   "T008017": [
     {
       "slug": "2026-08-16-sdlc-leitstand-e5-help-absorption",
+      "status": "archived"
+    }
+  ],
+  "T008345": [
+    {
+      "slug": "fix-status-ssot-consolidation",
+      "status": "plan_staged"
+    }
+  ],
+  "T008721": [
+    {
+      "slug": "chore-e3-review-followups",
+      "status": "plan_staged"
+    }
+  ],
+  "T009368": [
+    {
+      "slug": "2026-08-18-fix-devflow-post-merge-deploy-grep",
       "status": "archived"
     }
   ],
@@ -4027,6 +4051,54 @@
     {
       "slug": "2026-08-18-fix-spec-suite-leaks-website",
       "status": "archived"
+    }
+  ],
+  "T012177": [
+    {
+      "slug": "gitlab-ci-k8s-runner-cache",
+      "status": "plan_staged"
+    }
+  ],
+  "T012239": [
+    {
+      "slug": "2026-08-18-fix-ci-failure-detection",
+      "status": "archived"
+    }
+  ],
+  "T012240": [
+    {
+      "slug": "2026-08-18-finalizer-resolve-worktree-by-branch",
+      "status": "archived"
+    }
+  ],
+  "T012242": [
+    {
+      "slug": "2026-08-18-fix-ciwatch-failedchecks-empty",
+      "status": "archived"
+    }
+  ],
+  "T012243": [
+    {
+      "slug": "2026-08-18-finalizer-plan-ref-whitespace",
+      "status": "archived"
+    }
+  ],
+  "T012256": [
+    {
+      "slug": "finalizer-hardening",
+      "status": "plan_staged"
+    }
+  ],
+  "T012265": [
+    {
+      "slug": "fix-pr-babysit-head-sha",
+      "status": "plan_staged"
+    }
+  ],
+  "T012267": [
+    {
+      "slug": "fix-gitlab-pipeline-check",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

@@ -86,11 +86,12 @@ while true; do
 
   gh pr checks "$PR_URL" --watch --interval 15 2>/dev/null || true
 
-  # [T003225] headSha-Filter: statusCheckRollup kann Checks VORGÄNGER-Commits mischen
-  # (Re-Runs nach Push). Nur Checks des aktuellen PR-HEAD zählen — fremde head-SHAs
-  # werden ignoriert. Der Filter ist Vorbedingung für jede Auswertung darunter.
-  HEAD_OID="$(gh pr view "$PR_URL" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")"
-  if [[ -z "$HEAD_OID" ]]; then
+  # [T003225] Die Rot-Meldungen kommen aus der check-runs-API des PR-HEAD
+  # (commits/<oid>/check-runs?filter=latest): die URL-Bindung schließt Checks
+  # VORGÄNGER-Commits aus (Re-Runs nach Push) — fremde head-SHAs kommen gar nicht
+  # vor. Diese Bindung ist Vorbedingung für jede Auswertung darunter.
+  PR_HEAD_OID="$(gh pr view "$PR_URL" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")"
+  if [[ -z "$PR_HEAD_OID" ]]; then
     echo "⚠ gh pr view --json headRefOid fehlgeschlagen — PR-HEAD nicht bestimmbar, Checks können nicht sicher bewertet werden." >&2
     if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
       echo "❌ Nach $MAX_CI_ATTEMPTS Versuchen weiterhin keine verlässliche Check-Auskunft von gh — manuelles Eingreifen nötig." >&2
@@ -100,15 +101,18 @@ while true; do
     continue
   fi
 
-  # [T003224] cancelled ≠ fail: nur echte FAILURE/TIMED_OUT-Conclusions am aktuellen
-  # HEAD zählen als Fehler. Laufende (conclusion="") und abgebrochene (CANCELLED/SKIPPED)
+  # [T003224] cancelled ≠ fail: nur echte failure/timed_out-Conclusions am aktuellen
+  # HEAD zählen als Fehler. Laufende (conclusion="") und abgebrochene (cancelled/skipped)
   # Checks sind KEIN failure — ein aggregierter "fail"-Check, dessen Jobs alle grün oder
   # cancelled sind, ist kein Codefehler, sondern ein Re-Run-Kandidat.
-  if ! FAILED_CHECKS=$(gh pr view "$PR_URL" --json headRefOid,statusCheckRollup \
-    -q '. as $p | $p.statusCheckRollup[] | select(.headSha == $p.headRefOid) | select(
-          (.conclusion // "") == "FAILURE" or (.conclusion // "") == "TIMED_OUT"
-        ) | (.name // .context // "unknown") + ": " + (.detailsUrl // .targetUrl // "")'); then
-    echo "⚠ gh pr view --json statusCheckRollup fehlgeschlagen (Auth/Schema/Rate-Limit?) — kann Checks nicht sicher bewerten." >&2
+  # [T012239] Quelle ist die check-runs-API des PR-HEAD (filter=latest → genau ein Run
+  # je Check auf diesem Commit, Re-Runs mischen sich nicht ein) statt des
+  # statusCheckRollup: das Feld headSha füllt die gh-REST-API im Rollup nie
+  # (33/33 Einträge headSha: null, live verifiziert 2026-08-18 an PR #4734/#4728) —
+  # der alte Selector lieferte immer die leere Menge und maskierte rote Runs als "alle grün".
+  if ! FAILED_CHECKS=$(gh api "repos/Paddione/Bachelorprojekt/commits/${PR_HEAD_OID}/check-runs?filter=latest" \
+    -q '[.check_runs[] | select(.conclusion == "failure" or .conclusion == "timed_out") | (.name // "unknown") + ": " + (.html_url // "")]' 2>/dev/null); then
+    echo "⚠ gh api check-runs fehlgeschlagen (Auth/Schema/Rate-Limit?) — kann Checks nicht sicher bewerten." >&2
     if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
       echo "❌ Nach $MAX_CI_ATTEMPTS Versuchen weiterhin keine verlässliche Check-Auskunft von gh — manuelles Eingreifen nötig." >&2
       exit 1
@@ -116,6 +120,11 @@ while true; do
     sleep 15
     continue
   fi
+
+  # Leere Array-Form ([] bei null Fehlern) ist "keine Fehler" — die
+  # T003224-Gegenprobe liefe sonst auf jedem grünen Lauf und würde bei
+  # einem überholten failure-Run am selben HEAD falsch-rot eskalieren.
+  [[ "$FAILED_CHECKS" == "[]" ]] && FAILED_CHECKS=""
 
   PR_HEAD_OID=$(gh pr view "$PR_URL" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")
   TOTAL_CHECKS=$(gh api "repos/Paddione/Bachelorprojekt/commits/${PR_HEAD_OID}/check-runs" -q '.total_count' 2>/dev/null || echo "0")
@@ -146,7 +155,7 @@ while true; do
   if [[ -n "$FAILED_CHECKS" ]]; then
     FAILED_RUN_ID=$(gh run list --branch "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)" \
       --json databaseId,headSha,status,conclusion \
-      | jq -r --arg head "$HEAD_OID" '[.[] | select(.conclusion == "failure" and .headSha == $head)] | sort_by(.databaseId) | last | .databaseId // empty')
+      | jq -r --arg head "$PR_HEAD_OID" '[.[] | select(.conclusion == "failure" and .headSha == $head)] | sort_by(.databaseId) | last | .databaseId // empty')
     if [[ -n "$FAILED_RUN_ID" ]]; then
       REAL_FAILURES=$(gh api "repos/Paddione/Bachelorprojekt/actions/runs/${FAILED_RUN_ID}/jobs" \
         --jq '[.jobs[] | select(.conclusion == "failure")] | length' 2>/dev/null || echo "")
@@ -155,10 +164,11 @@ while true; do
         FAILED_CHECKS=""
       fi
     else
-      # Kein failure-Run am aktuellen HEAD gefunden, obwohl das Rollup rot meldet: die
-      # Meldung stammt von einem abgebrochenen/leeren Lauf oder einem fremden HEAD —
-      # beides ist kein echter Codefehler. (Das Rollup wurde bereits auf .headSha gefiltert.)
-      echo "ℹ Rollup meldet rot, aber kein failure-Run am aktuellen HEAD — kein Codefehler, weiter beobachten."
+      # Kein failure-Run am aktuellen HEAD gefunden, obwohl die check-runs-API für
+      # diesen Commit failure meldet: die Meldung stammt von einem abgebrochenen/
+      # leeren Lauf — beides ist kein echter Codefehler. (Die check-runs-Abfrage ist
+      # per URL bereits auf den PR-HEAD gebunden.)
+      echo "ℹ check-runs meldet failure, aber kein failure-Run am aktuellen HEAD — kein Codefehler, weiter beobachten."
       FAILED_CHECKS=""
     fi
   fi
@@ -178,12 +188,12 @@ while true; do
 
   if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
     echo "❌ CI nach $MAX_CI_ATTEMPTS Versuchen noch rot — manuelles Eingreifen nötig:"
-    echo "$FAILED_CHECKS"
+    echo "$FAILED_CHECKS" | jq -r '.[]' 2>/dev/null || echo "$FAILED_CHECKS"
     exit 1
   fi
 
   echo "⚠ Fehlgeschlagene Checks:"
-  echo "$FAILED_CHECKS"
+  echo "$FAILED_CHECKS" | jq -r '.[]' 2>/dev/null || echo "$FAILED_CHECKS"
 
   if [[ -n "$FAILED_RUN_ID" ]]; then
     echo "--- CI-Logs (Run $FAILED_RUN_ID) ---"

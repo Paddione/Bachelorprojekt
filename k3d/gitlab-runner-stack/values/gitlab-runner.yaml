@@ -1,0 +1,166 @@
+# k3d/gitlab-runner-stack/values/gitlab-runner.yaml
+# Eingabe fuer `task gitlab-runner:render` — nicht direkt gegen den Cluster
+# anwenden, das gerenderte gitlab-runner-rendered.yaml ist die Wahrheit.
+gitlabUrl: https://gitlab.com/
+
+# B2 (Review T012177): TOP-LEVEL Chart-Key (config.toml global-Section), NICHT
+# unter runners: verschachtelt — `helm show values gitlab/gitlab-runner` zeigt
+# `concurrent: 10` als Root-Key. Unter runners: verschachtelt wird der Wert
+# STILL VERWORFEN (dieselbe Fehlerklasse wie B1: unbekannter Chart-Value-Pfad,
+# kein Fehler, kein Hinweis) und der Chart-Default 10 bleibt bestehen —
+# beobachtet beim ersten Render-Versuch dieser Korrektur, deshalb hier explizit
+# festgehalten. Deckelt den Manager auf "zwei parallele Jobs" (design.md D2,
+# Rechnung in namespace.yaml).
+concurrent: 2
+
+# N1 (Nachreview T012177): KEIN Top-Level automountServiceAccountToken hier.
+# Der urspruengliche Kommentar an dieser Stelle behauptete, dieser Chart-Value
+# wirke ueber runners.config auf die JOB-Pods und NICHT auf den Manager-Pod —
+# das war falsch. Chart-Template deployment.yaml rendert diesen Top-Level-Wert
+# direkt in die DEPLOYMENT-PodSpec (verifiziert in
+# gitlab-runner-rendered.yaml: spec.template.spec.automountServiceAccountToken).
+# Mit automountServiceAccountToken: false HIER haette der MANAGER kein
+# ServiceAccount-Token bekommen, koennte keine In-Cluster-Config bilden und
+# haette NIE einen Job-Pod erzeugt — die frisch angelegten Role/RoleBinding
+# waeren wirkungslos geblieben. Der Manager BRAUCHT sein Token, um ueber die
+# Role aus rbac.rules Job-Pods zu erzeugen. Die Job-Pod-Absicherung (specs/
+# ci-cd.md, Requirement "CI-Jobs erhalten keinen Cluster-Zugriff") ist bereits
+# korrekt und an der richtigen Stelle erledigt: automount_service_account_token
+# = false im runners.config-TOML unten ([runners.kubernetes]), wirkt NUR auf
+# die vom Manager zur Laufzeit erzeugten Job-Pods.
+
+rbac:
+  create: true
+  # Namespaced Role statt ClusterRole — Requirement "RBAC fuer den Runner-Manager
+  # SHALL be a namespaced Role, never a ClusterRole" (specs/ci-cd.md).
+  clusterWideAccess: false
+  rules:
+    - resources: ["pods"]
+      verbs: ["get", "list", "watch", "create", "delete"]
+    - resources: ["pods/log"]
+      verbs: ["get"]
+
+# nodeAffinity statt nodeSelector (p1, Aufgabe 4): ein simples Label-Map kann kein
+# ODER ueber zwei Hostnamen ausdruecken. Gleiche Form wie
+# prod-fleet/mentolder/kustomization.yaml:67-71, nur mit den Worker- statt den
+# CP-Hostnamen.
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values: [gekko-hetzner-3, gekko-hetzner-4]
+
+# PriorityClass aus p1 — der Manager-Pod selbst zaehlt genauso zur CI-Last wie die
+# Job-Pods, die er erzeugt (design.md D2 nennt "Runner und Job-Pods" gemeinsam).
+priorityClassName: ci-low
+
+# B4 (Review T012177): Namespace gitlab-runner erzwingt pod-security.kubernetes.io/
+# enforce: restricted (seit k8s 1.25) — das verlangt ein EXPLIZIT gesetztes
+# seccompProfile, Fehlen ist verboten (nicht "Default erlaubt"). Ohne diese Zeile
+# wird der Manager-Pod von der Admission abgewiesen, obwohl runAsNonRoot/
+# allowPrivilegeEscalation/capabilities schon korrekt gesetzt waren.
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+runners:
+  # Kubernetes-Executor statt Docker — Design D1: eigene Hardware, eigener Ort.
+  executor: kubernetes
+  # Dasselbe Tag wie der Desktop-Runner (Design D5) — GitLab routet ueber die
+  # verbleibenden Runner, kein Variablenwechsel bei Ausfall eines der beiden.
+  # S1 (Review T012177): STRING, keine YAML-Liste — der Chart erwartet fuer
+  # runners.tags eine komma-separierte Zeichenkette. Eine Liste ([bachelorprojekt-local])
+  # rendert wortwoertlich als RUNNER_TAG_LIST="[bachelorprojekt-local]" (inkl.
+  # eckiger Klammern) statt "bachelorprojekt-local" — mit dem glrt-Token folgenlos
+  # (register-the-runner unsetzt RUNNER_TAG_LIST fuer glrt-Token), aber falsch und
+  # bei einem Wechsel auf den Registration-Token-Fluss ein stiller Fehler.
+  tags: "bachelorprojekt-local"
+  # Kein RUN_UNTAGGED — wie beim Docker-Runner (docs/runbooks/gitlab-runner.md
+  # Abschnitt 3.2): sonst zieht dieser Runner auch Jobs an, die eigentlich in die
+  # Cloud ausweichen sollen.
+  runUntagged: false
+  # B3 (Review T012177): OHNE dieses Feld rendert der Chart weder initContainer
+  # noch /secrets-Mount — der Manager liest /secrets/runner-token nie, CI_SERVER_TOKEN
+  # bleibt leer, 30 Registrierungsversuche schlagen fehl, Pod crasht dauerhaft.
+  # Der referenzierte Secret wird durch das SealedSecret aus GITLAB_RUNNER_TOKEN
+  # befuellt (environments/schema.yaml, dest_key: runner-token) — siehe Runbook
+  # Abschnitt 8 fuer den kompletten Weg (Klartext -> env:seal -> SealedSecret).
+  secret: gitlab-runner-secret
+  config: |
+    [[runners]]
+      [runners.kubernetes]
+        namespace = "gitlab-runner"
+        image = "ubuntu:24.04"
+        privileged = false
+        service_account = "default"
+        automount_service_account_token = false
+        # Siehe Runbook "Registry-Anbindung" — dieses Feld existiert im
+        # Kubernetes-Executor NICHT als Pull-Through-Ziel; hier absichtlich nur
+        # namespace/image/privileged/service_account/priority_class_name gesetzt.
+        priority_class_name = "ci-low"
+        pull_policy = ["if-not-present"]
+        # B1 (Review T012177): Der Kubernetes-Executor kennt NUR
+        # [runners.kubernetes.affinity.node_affinity] — der vorherige Pfad
+        # [runners.kubernetes.node_affinity] (ohne "affinity") ist ein unbekannter
+        # TOML-Key und wird vom Executor STILL VERWORFEN, ohne Fehler. Ergebnis:
+        # Job-Pods hatten GAR KEINE Affinitaet und konnten auf den Control-Plane-
+        # Knoten (pk-hetzner-4/6/8, 96% CPU-Requests) landen — genau das Risiko,
+        # gegen das Design D2 gebaut ist. Verifiziert gegen die offizielle
+        # Kubernetes-Executor-Doku (docs.gitlab.com/runner/executors/kubernetes),
+        # zusaetzlich abgesichert durch den TOML-Guard in
+        # tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats (S4).
+        [runners.kubernetes.affinity]
+          [runners.kubernetes.affinity.node_affinity]
+            [runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution]
+              [[runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms]]
+                [[runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_expressions]]
+                  key = "kubernetes.io/hostname"
+                  operator = "In"
+                  values = ["gekko-hetzner-3", "gekko-hetzner-4"]
+        # B4 (Review T012177): dieselbe restricted-PSA-Pflicht wie beim
+        # Manager-Pod (siehe podSecurityContext oben) gilt fuer JEDEN Pod im
+        # Namespace — also auch fuer die vom Manager erzeugten Job-Pods
+        # (build+helper-Container). Ohne diese drei Bloecke scheitert jeder
+        # CI-Job an der Admission, bevor er ueberhaupt startet. run_as_user wird
+        # bewusst NICHT gesetzt: Job-Images sind beliebig (Job-.gitlab-ci.yml
+        # entscheidet per eigenem image:), ein fest verdrahteter UID wuerde
+        # Images brechen, die eine andere non-root-UID mitbringen. runAsNonRoot
+        # verlangt nur, dass die tatsaechliche UID des Images != 0 ist — welche
+        # UID das ist, bleibt Sache des Job-Images (Konsequenz der Wahl von
+        # "restricted" als Namespace-Policy, dokumentiert in namespace.yaml und
+        # Runbook Abschnitt 8; nicht durch dieses Partial aufloesbar).
+        [runners.kubernetes.pod_security_context]
+          run_as_non_root = true
+          [runners.kubernetes.pod_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.build_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.build_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.build_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.helper_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.helper_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.helper_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"

@@ -61,7 +61,7 @@ jobs:
     # that most PRs hit. Does NOT need Go, kubectl, or pnpm. [T001860]
     name: BATS Unit + Quality Gates
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     permissions:
       contents: write
@@ -165,7 +165,7 @@ jobs:
     # Very fast setup (~1 min) + ~5s test execution. [T001860]
     name: Manifest Validation
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
@@ -217,7 +217,7 @@ jobs:
     # melden nach ~30s statt nach ~400s.
     name: Factory OpenSpec + Guards (fast)
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -253,7 +253,7 @@ jobs:
     # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
     name: Factory spec shard ${{ matrix.shard }}
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 20
     strategy:
       # fail-fast: false ist Absicht. Bricht ein Shard ab, sollen die anderen
@@ -427,7 +427,7 @@ jobs:
     name: Factory + OpenSpec + Guards
     if: always() && github.event.action != 'edited'
     needs: [test-factory-openspec, test-factory-shard]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 5
     steps:
       - name: Aggregate shard + gate results
@@ -451,7 +451,7 @@ jobs:
   security-scan:
     name: Security Scan
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -540,7 +540,7 @@ jobs:
   brett-typescript:
     name: Brett TypeScript
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -571,7 +571,7 @@ jobs:
     # coverage gate below treats the no-changes case as a pass.
     name: Vitest (website)
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -696,7 +696,7 @@ jobs:
     # ist der dort noch gar nicht deployt.
     if: github.event.action != 'edited' && github.event_name == 'pull_request'
     needs: [vitest-website]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 10
     # LHCI posts an advisory commit status; the built-in GITHUB_TOKEN needs
     # statuses:write to do so (no more expiring personal access token to maintain).
@@ -735,7 +735,7 @@ jobs:
 
   commit-lint:
     name: Conventional Commits
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     # 5min was too tight for the full-history checkout below on a repo with
     # many short-lived feature/chore branches — observed cancellations
     # ("The operation was canceled") mid-fetch on PR #3029 [T002049].

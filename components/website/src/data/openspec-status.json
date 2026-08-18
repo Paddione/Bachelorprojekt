@@ -4113,6 +4113,12 @@
       "status": "plan_staged"
     }
   ],
+  "T012266": [
+    {
+      "slug": "fix-opencode-exec-ci-signal",
+      "status": "plan_staged"
+    }
+  ],
   "T012267": [
     {
       "slug": "2026-08-18-fix-gitlab-pipeline-check",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1093,
+      "file_count": 1094,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -868,6 +868,7 @@
         "tests/spec/software-factory/merged-dispatch-gate.bats",
         "tests/spec/software-factory/opencode-exec-already-running.bats",
         "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+        "tests/spec/software-factory/opencode-exec-ci-signal.bats",
         "tests/spec/software-factory/opencode-exec-pr-step.bats",
         "tests/spec/software-factory/opencode-exec-prerun-shortcircuit.bats",
         "tests/spec/software-factory/opencode-exec-result-check.bats",

@@ -3987,6 +3987,12 @@
       "status": "plan_staged"
     }
   ],
+  "T009368": [
+    {
+      "slug": "fix-devflow-post-merge-deploy-grep",
+      "status": "plan_staged"
+    }
+  ],
   "T009369": [
     {
       "slug": "mishap-incident-rollup-2026-08-17-T009369",

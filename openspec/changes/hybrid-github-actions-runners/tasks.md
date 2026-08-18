@@ -117,6 +117,7 @@ Freshness-Artefakte blind übernehmen.
 
 ## Task 6 — CI messen und Ergebnis dokumentieren
 
+- Mess-PR: `https://github.com/Paddione/Bachelorprojekt/pull/4785`
 - PR pushen und bis zum vollständigen Ende aller Required Checks beobachten.
 - Für den neuen Lauf dieselben Zeitstempel wie in Task 1 abrufen.
 - Queue-, Lauf- und Gesamtzeit sowie prozentuale Änderung im PR-Body dokumentieren.

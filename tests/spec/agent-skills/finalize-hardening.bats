@@ -112,6 +112,31 @@ setup() {
   [[ "$output" == *"SKIP=0"* ]]
 }
 
+@test "B3: fremder Archiv-Eintrag mit gleichem Namens-Suffix zaehlt NICHT als erledigt" {
+  local section; section="$(_archive_idempotence_section)"
+  [ -n "$section" ]
+  # SLUG=demo; im Archiv liegen nur ...-pocket-id-smtp-port-quoting-demo und
+  # ...-blocker-gate-demo — beide enden auf "-demo", sind aber andere Changes.
+  # Ein Suffix-Match wuerde hier faelschlich "erledigt" melden und den Change
+  # nie archivieren. Real reproduziert: SLUG=hardening traf am 2026-08-18 sechs
+  # fremde Eintraege (u.a. 2026-08-14-blocker-gate-hardening).
+  run _run_idempotence "$section" "nothing"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"SKIP=0"* ]]
+}
+
+@test "B3: Archiv-Eintrag ohne Datumspraefix zaehlt als erledigt" {
+  local section; section="$(_archive_idempotence_section)"
+  [ -n "$section" ]
+  # 9 der 725 Archiv-Verzeichnisse tragen kein YYYY-MM-DD-Praefix (mishap-t002407,
+  # k1-vektorspeicher, t001537, ...). Ein Slug, der exakt so heisst, darf nicht
+  # durchs Raster fallen — sonst archiviert Schritt 8 erneut, sobald auch
+  # Signal 1 und 3 nicht greifen (Code-Review PR #4744, Re-Review).
+  run _run_idempotence "$section" "legacy_no_date"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"SKIP=1"* ]]
+}
+
 # ── B1: Archiv-Sektion serialisiert ──────────────────────────────────────────
 # PRÜFMODUS: Output-Verifikation — zwei Läufe der extrahierten Guard-Sequenz
 # konkurrieren um denselben Lock; geprüft wird, dass sie sich nicht überlappen.
@@ -157,9 +182,15 @@ if [[ "\$*" == *"ls-remote"* ]]; then
   [[ "$scenario" == "branch_present" ]] && exit 0
   exit 2
 fi
-if [[ "\$*" == *"cat-file"* || "\$*" == *"ls-tree"* ]]; then
-  [[ "$scenario" == "merged_branch_gone" ]] && exit 0
-  exit 1
+if [[ "\$*" == *"ls-tree"* ]]; then
+  # Realistische Archiv-Liste: der eigene Eintrag nur im merged-Szenario, aber
+  # IMMER Nachbarn, deren Namen auf denselben Suffix enden koennen (F1-Regression).
+  [[ "$scenario" == "merged_branch_gone" ]] && echo "openspec/changes/archive/2026-08-18-demo"
+  # Alt-Eintraege ohne Datumspraefix (9 im echten Repo, z.B. mishap-t002407)
+  [[ "$scenario" == "legacy_no_date" ]] && echo "openspec/changes/archive/demo"
+  echo "openspec/changes/archive/2026-07-01-pocket-id-smtp-port-quoting-demo"
+  echo "openspec/changes/archive/2026-08-14-blocker-gate-demo"
+  exit 0
 fi
 exit 0
 STUB

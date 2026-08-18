@@ -310,7 +310,7 @@ jobs:
       # dieser Step dahinter und trug nichts bei — dass die Assertions trotzdem
       # liefen, lag allein daran, dass ubuntu-latest PyYAML vorinstalliert hat.
       - name: Install PyYAML for CI-CD guard assertions
-        run: python3 -m pip install --quiet pyyaml
+        run: python3 -m pip install --quiet --break-system-packages pyyaml || python3 -c "import yaml; print('pyyaml already available')"
 
       # Ohne laufenden Daemon skippten 24 der 41 sdlc-cockpit-Tests dauerhaft,
       # darunter alle Route- und Security-Guards aus T002505. Ein bats-skip ist

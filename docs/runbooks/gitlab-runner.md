@@ -537,3 +537,35 @@ unter **Docker Desktop → Settings → Docker Engine**:
 Danach Docker Desktop neu starten — das reißt laufende Container mit, also nicht während eines
 CI-Laufs oder eines aktiven k3d-Clusters. `pull_policy` wirkt **unabhängig davon** und ist der
 größere Hebel: Es verhindert den Pull ganz, statt ihn nur zu beschleunigen.
+
+## 15. Werkzeug-Luecken zwischen ubuntu-latest und den GitLab-Images (T012405)
+
+Die drei teuersten Fehler beim Aufbau der Job-Paritaet waren allesamt dieselbe Klasse: **ein
+Werkzeug, das GitHubs `ubuntu-latest` vorinstalliert mitbringt und das GitLab-Image nicht hat.**
+Auf der GitHub-Seite ist die Abhaengigkeit unsichtbar — es gibt dort keine Installationszeile,
+die man beim Uebertragen vermissen koennte.
+
+| Werkzeug | Wer braucht es | Symptom bei Fehlen |
+|---|---|---|
+| GNU `parallel` | `bats -j` (jedes `task test:*:changed`) | `1..1159` gemeldet, **null** Tests gefahren |
+| `kustomize` (eigenes Binary) | `scripts/flux-render-artifact.sh` | Renderer-Tests rot, ohne Bezug zum Testinhalt |
+| `kubectl` | T002465-Netzwerkpolicy-Tests | dito |
+
+**Der `parallel`-Fall ist der lehrreiche.** Er scheiterte nicht beim Aufruf, sondern **nach** der
+Plan-Ankuendigung: bats meldete 1159 Tests und fuehrte keinen aus. Dass der Job trotzdem rot
+wurde, verdankt sich einer Warnung in bats — nicht der Pipeline-Konstruktion. Es ist damit die
+eine Fehlerform, die als Erfolg durchgehen *kann*, und genau der Fall, fuer den die
+Etappe-1-Regel „leerer Lauf gilt als Fehlschlag" existiert.
+
+**Diagnose-Faustregel:** Scheitert ein GitLab-Job an Tests, die lokal und auf GitHub gruen sind,
+zuerst nach `command not found` im Trace suchen — nicht nach der Testlogik. Der Trace ist ohne
+Token ueber die Web-Route lesbar:
+
+```bash
+curl -sL "https://gitlab.com/<namespace>/<projekt>/-/jobs/<job-id>/raw" | grep -i "command not found"
+```
+
+Die API-Route `/api/v4/projects/<id>/jobs/<job-id>/trace` verlangt dagegen ein Token (401).
+
+`tests/spec/ci-cd/gitlab-job-coverage.bats` haelt die `parallel`-Abhaengigkeit inzwischen als
+Guard fest: jeder Job, der bats parallel faehrt, muss sie installieren.

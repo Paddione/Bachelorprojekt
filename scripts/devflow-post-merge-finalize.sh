@@ -120,25 +120,32 @@ mark_ok "Schritt 2: Branch=$BRANCH"
 SLUG=""
 [[ -n "$PLAN_FILE" ]] && SLUG="$(basename "$(dirname "$PLAN_FILE")" 2>/dev/null || true)"
 [[ -z "$SLUG" ]] && SLUG="$(echo "$BRANCH" | sed -E 's/^(feature|fix|chore)\///; s/-T[0-9]{6,}$//')"
-# Resolve worktree via git worktree list (branch-exact match) — Worktree-Dirs
-# heiessen <branch-ohne-Typ-Praefix>-T<id> (z.B. devflow-post-merge-finalize-
-# worktree-path-T008014 fuer fix/devflow-post-merge-finalize-worktree-path-T008014)
-# ODER <slug>-T<id>; der Branch (Schritt 2, Pflicht) identifiziert den Worktree
-# eindeutig, unabhaengig von der Verzeichnis-Konvention (T008014). Der Slug-
-# Kandidat deckt Worktrees ohne -T<id>-Suffix ab (z.B. nach `git worktree move`).
+# Resolve worktree via git worktree list (branch-exact match) — der Branch
+# (Schritt 2, Pflicht) identifiziert den Worktree eindeutig, unabhaengig von der
+# Verzeichnis-Konvention: Dirs heiessen <branch-ohne-Typ-Praefix>-T<id>, <slug>-T<id>
+# oder <slug>-reuse (Factory-Pre-Create, scripts/vda/factory-prep.sh) [T008014].
+#
+# [T012240] Die branch-exakte Aufloesung laeuft ZUERST. Der Slug-Kandidat deckt nur
+# noch Worktrees ohne -T<id>-Suffix ab (z.B. nach `git worktree move`) und wird gegen
+# den Ziel-Branch validiert: Schritt 10 fuehrt `git worktree remove --force` auf dem
+# Ergebnis aus, und ein Worktree mit fremdem Branch traegt fremde, uncommittete Arbeit.
 WORKTREE=""
-_wt_candidate="$REPO_DIR/.worktrees/$SLUG"
-if [[ -d "$_wt_candidate" ]]; then
-  WORKTREE="$_wt_candidate"
-else
-  # Branch-exact: refs/heads/$BRANCH dem Worktree zuordnen
-  WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
-    /^worktree / { wt=$2 }
-    /^branch / && $0 == "branch " b { print wt; found=1; exit }
-    END { if (!found) exit 1 }
-  ' 2>/dev/null || true)"
+# 1) Branch-exact: refs/heads/$BRANCH dem Worktree zuordnen
+WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
+  /^worktree / { wt=$2 }
+  /^branch / && $0 == "branch " b { print wt; found=1; exit }
+  END { if (!found) exit 1 }
+' 2>/dev/null || true)"
+# 2) Rueckfall Slug-Kandidat — nur wenn er den Ziel-Branch tatsaechlich ausgecheckt hat
+if [[ -z "$WORKTREE" ]]; then
+  _wt_candidate="$REPO_DIR/.worktrees/$SLUG"
+  if [[ -d "$_wt_candidate" ]] \
+     && [[ "$(git -C "$_wt_candidate" rev-parse --abbrev-ref HEAD 2>/dev/null || true)" == "$BRANCH" ]]; then
+    WORKTREE="$_wt_candidate"
+  fi
 fi
-# Fallback: original path (for backwards compat with -T<id>-less worktrees)
+# 3) Kein Worktree haelt den Branch: Slug-Pfad als Platzhalter, damit Schritt 10 seine
+#    bestehende "bereits entfernt"-Meldung behaelt statt zu scheitern.
 [[ -z "$WORKTREE" ]] && WORKTREE="$REPO_DIR/.worktrees/$SLUG"
 
 # Schritt 3 — PR-Nummer: --pr-Flag, sonst gh gegen den Branch (state=merged —

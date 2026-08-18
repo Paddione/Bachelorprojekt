@@ -23,6 +23,11 @@ concurrency:
   group: mirror-to-gitlab
   cancel-in-progress: false
 
+# Repo-weite Anforderung: jeder Workflow unter .github/workflows/ deklariert den
+# OpenSpec-Telemetrie-Opt-out (Guard: tests/spec/openspec-workflow.bats, T001265).
+env:
+  OPENSPEC_TELEMETRY: '0'
+
 jobs:
   mirror:
     name: Push-Spiegel nach GitLab

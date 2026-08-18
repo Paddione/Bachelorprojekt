@@ -4131,6 +4131,12 @@
       "status": "archived"
     }
   ],
+  "T012405": [
+    {
+      "slug": "gitlab-ci-migration-stage3",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

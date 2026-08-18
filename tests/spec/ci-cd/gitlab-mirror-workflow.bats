@@ -176,3 +176,93 @@ PY
   fi
   echo "$guard_run" | grep -qe 'exit 1'
 }
+
+# ── Etappe 3 (T012405): Branch- und Delete-Spiegelung ────────────────────────
+#
+# Ohne diese Zusicherungen sieht GitLab nur `main`, also ausschliesslich Staende
+# NACH der Merge-Entscheidung — und kann sie damit prinzipiell nicht informieren.
+
+@test "gitlab-mirror-workflow: Trigger deckt die drei Arbeits-Branch-Praefixe ab" {
+  push_yaml="$(_push_trigger_yaml)"
+  echo "$push_yaml"
+
+  # Positiv-Anker [T002356-M1]: die Trigger-Liste ist ueberhaupt lesbar. Ohne ihn
+  # bestuenden die drei Praefix-Pruefungen unten auch bei leerem Ergebnis nicht,
+  # sondern schluegen fehl — aber mit einer Meldung, die auf den Praefix zeigt
+  # statt auf die unlesbare Datei.
+  [ -n "$push_yaml" ]
+  echo "$push_yaml" | grep -q 'main'
+
+  echo "$push_yaml" | grep -q 'feature/'
+  echo "$push_yaml" | grep -q 'fix/'
+  echo "$push_yaml" | grep -q 'chore/'
+}
+
+@test "gitlab-mirror-workflow: Bot-Branch-Praefixe werden nicht gespiegelt" {
+  # Jeder gespiegelte Branch erzeugt eine volle Pipeline auf dem Engpass-Runner.
+  # Renovate und Release-Please erzeugen laufend Branches; sie gehoeren nicht dazu.
+  push_yaml="$(_push_trigger_yaml)"
+  [ -n "$push_yaml" ]
+  run bash -c "printf '%s' \"\$0\" | grep -q 'renovate'" "$push_yaml"
+  [ "$status" -ne 0 ]
+  run bash -c "printf '%s' \"\$0\" | grep -q 'release-please'" "$push_yaml"
+  [ "$status" -ne 0 ]
+}
+
+@test "gitlab-mirror-workflow: ein run:-Block behandelt den Loesch-Fall mit leerem Quell-Ref" {
+  rows="$(_mirror_steps_tsv)"
+  [ -n "$rows" ]
+
+  # Der Push-Step traegt eine Verzweigung auf das Loesch-Event UND den Push mit
+  # leerem Quell-Ref. Beides im run:-Feld desselben Steps, nicht irgendwo in der
+  # Datei — ein Kommentar ueber Loeschung ist keine Loeschung.
+  del_run="$(printf '%s\n' "$rows" | awk -F"$(printf '❘')" \
+    '$2 ~ /MIRROR_DELETED/ && $2 ~ /:refs\/heads\// {print $2}')"
+  if [ -z "$del_run" ]; then
+    echo "kein Step mit run:-Feld gefunden, das den Loesch-Fall behandelt" >&2
+    printf '%s\n' "$rows" >&2
+    false
+  fi
+}
+
+@test "gitlab-mirror-workflow: ein run:-Block spiegelt den Arbeits-Branch unter seinem Namen" {
+  rows="$(_mirror_steps_tsv)"
+  [ -n "$rows" ]
+
+  branch_run="$(printf '%s\n' "$rows" | awk -F"$(printf '❘')" \
+    '$2 ~ /HEAD:refs\/heads\/\$\{branch\}/ {print $2}')"
+  if [ -z "$branch_run" ]; then
+    echo "kein Step mit run:-Feld gefunden, das HEAD nach refs/heads/\${branch} pusht" >&2
+    printf '%s\n' "$rows" >&2
+    false
+  fi
+}
+
+@test "gitlab-mirror-workflow: kein git push verwendet --mirror" {
+  # Die Zusicherung aus Etappe 1, nachgezogen fuer Etappe 3.
+  #
+  # Sie haengt bewusst an "git push ... --mirror" und NICHT am blossen Vorkommen der
+  # Zeichenkette. Zwei Stellen erwaehnen --mirror legitim in Prosa: der Kopfkommentar
+  # der Workflow-Datei und ein Shell-Kommentar im Push-Block, beide begruenden, warum
+  # es nicht verwendet wird. Eine Zeichenketten-Suche waere daran dauerhaft rot — und
+  # der naheliegende "Fix" waere, die Begruendung zu loeschen. Ein Guard, der die
+  # Dokumentation seiner eigenen Regel bestraft, erzieht zum Loeschen der Begruendung.
+  #
+  # Der YAML-Parser blendet YAML-Kommentare ohnehin aus; Shell-Kommentare INNERHALB
+  # eines run:-Blocks sieht er dagegen als Inhalt — genau deshalb reicht das Parsen
+  # allein hier nicht.
+  rows="$(_mirror_steps_tsv)"
+  [ -n "$rows" ]
+
+  # Positiv-Anker [T002356-M1]: Es gibt ueberhaupt run:-Felder MIT einem git-push-Aufruf.
+  # Ohne ihn bestuende die Abwesenheitspruefung auch dann, wenn jeder Push entfernt
+  # worden waere.
+  push_lines="$(printf '%s\n' "$rows" | awk -F"$(printf '❘')" '$2 ~ /git push/ {print $2}')"
+  echo "Anker: run-Felder mit git push = $(printf '%s\n' "$push_lines" | grep -c .)"
+  [ -n "$push_lines" ]
+
+  # Ein git-push-Aufruf und ein --mirror im selben Kommando: der flatten-Schritt hat
+  # Zeilenumbrueche durch ⏎ ersetzt, ein Kommando endet also am naechsten ⏎.
+  run bash -c "printf '%s' \"\$0\" | grep -qE 'git push[^⏎]*--mirror'" "$push_lines"
+  [ "$status" -ne 0 ]
+}

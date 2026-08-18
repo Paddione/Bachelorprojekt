@@ -6,7 +6,11 @@ und Entscheidungen: `openspec/changes/gitlab-ci-migration-stage1/design.md`.
 Etappe 2 (T012177) ergaenzt einen zweiten self-hosted Runner auf `fleet`
 (Kubernetes-Executor) plus einen Registry-Pull-Through-Cache an beiden
 Standorten — siehe Abschnitte 8-10 unten sowie
-`openspec/changes/gitlab-ci-k8s-runner-cache/design.md`._
+`openspec/changes/gitlab-ci-k8s-runner-cache/design.md`.
+Etappe 3 (T012405) spiegelt zusaetzlich die Arbeits-Branches und stellt die
+Job-Paritaet zu `.github/workflows/ci.yml` her — siehe Abschnitte 11-13. **GitLab
+ist damit merge-faehig, aber weiterhin KEIN Merge-Gate:** kein Ergebnis ist als
+Required Check hinterlegt, kein GitHub-Job abgeschaltet._
 
 ## 1. Mirror-Secrets einrichten
 
@@ -394,6 +398,81 @@ Startet (idempotent) den `registry:2`-Proxy-Container, mergt
   ist eine Host-Konfiguration ausserhalb von Git und wird ausschliesslich hier
   dokumentiert, nicht automatisiert.
 
+## 11. Branch-Pipelines (Etappe 3, T012405)
+
+Bis Etappe 2 spiegelte `mirror-to-gitlab.yml` ausschliesslich `main`. Seit Etappe 3
+spiegelt er zusaetzlich die drei Arbeits-Praefixe `feature/`, `fix/` und `chore/`.
+Der Grund ist strukturell, nicht kosmetisch: Eine Pipeline, die nur `main` sieht,
+laeuft **nach** der Merge-Entscheidung und kann sie deshalb nicht informieren.
+
+**Drei Annahmen aus den Abschnitten 1-10 gelten damit nicht mehr:**
+
+| Bisher | Ab Etappe 3 |
+|---|---|
+| Ein Pipeline-Lauf pro Merge | Ein Lauf pro Push auf jeden Arbeits-Branch |
+| Vorhersagbare Last | Last skaliert mit der Zahl aktiver Branches |
+| Ein abgebrochener Lauf ist ein Befund | Abbrueche sind **Normalzustand** (`interruptible: true`) |
+
+Der dritte Punkt ist der, an dem im Stoerfall Zeit verloren geht: Alle Etappe-3-Jobs
+tragen `interruptible: true`. Folgt ein zweiter Push schnell auf den ersten, bricht
+GitLab die ueberholte Pipeline ab. Im UI sieht das aus wie ein Fehlschlag, ist aber
+das gewollte Verhalten — auf einem Runner, der laut Etappe-2-Messung 2-3x langsamer
+ist als SaaS, ist belegte Kapazitaet fuer einen veralteten Stand der teuerste Zustand.
+
+Geloeschte Branches werden mitgeloescht (Push mit leerem Quell-Ref auf dem
+`delete`-Event). Bleibt auf GitLab ein Branch stehen, den GitHub nicht mehr hat, ist
+das ein Hinweis auf einen fehlgeschlagenen Mirror-Lauf — nicht auf Aufraeumbedarf.
+
+Bot-Branches (`renovate/`, `release-please--`) und Factory-Batch-Branches werden
+bewusst **nicht** gespiegelt.
+
+## 12. Diagnose: Diff-Basis (Etappe 3, T012405)
+
+Die haeufigste neue Fehlerklasse ist ein Job, der scheitert, weil `origin/main` im
+flachen Klon fehlt — **nicht**, weil ein Test rot ist. Die Fehlermeldung nennt dann
+`ci-diff-base`, nicht den Test.
+
+`scripts/ci-diff-base.sh` ist die einzige Fundstelle der Aufloesung. Seine Exit-Codes
+sind bewusst unterschieden:
+
+| Exit | Bedeutung | Reaktion |
+|---|---|---|
+| 0 | Basis auf stdout | — |
+| 3 | Keine Basis anwendbar (`main`-Push) | Job nimmt die Vollmenge, kein Befund |
+| 4 | Umgebung kaputt (kein `origin/main`) | Job bricht ab — hier liegt der Fehler |
+
+Lokal reproduzieren:
+
+```bash
+CI_COMMIT_BRANCH=main bash scripts/ci-diff-base.sh; echo "rc=$?"          # erwartet 3
+CI_COMMIT_BRANCH=feature/x bash scripts/ci-diff-base.sh; echo "rc=$?"     # erwartet 0
+```
+
+**Warum 3 und 4 nicht derselbe Code sind:** Der Aufrufer waehlt daraus die Testmenge.
+Eine kaputte Umgebung, die als „keine Basis, also Vollmenge" gelesen wird, meldet gruen
+fuer einen Commit, den nichts geprueft hat — und ein leerer Lauf ist genau der
+Fehlschlag, der am wenigsten auffaellt.
+
+## 13. Kapazitaet und Abgrenzung Etappe 3
+
+Etappe 3 bringt sieben zusaetzliche Jobs, davon vier parallele Shards. Der
+`fleet`-CP-Knoten `pk-hetzner-8` lag beim Etappe-2-Befund bei 96 % CPU-Requests.
+
+**Erste Massnahme bei Stau ist die Umschaltung auf SaaS**, nicht das Abschalten von
+Jobs: `CI_RUNNER_TAG` in der GitLab-Projekt-UI auf `saas-linux-small-amd64` setzen
+(Abschnitt 4). Projekt-Variablen haben Vorrang vor der Datei-Variable, es braucht
+also keinen Commit.
+
+Nicht in Etappe 3:
+
+- **Kein Gate-Flip.** Kein GitLab-Ergebnis ist als Required Check hinterlegt, kein
+  `ci.yml`-Job abgeschaltet. Der Guard
+  `tests/spec/ci-cd/gitlab-parallel-non-blocking.bats` haelt das fest.
+- **Keine Verlagerung von Review oder Merge.** Branches entstehen weiter auf GitHub;
+  GitLab bleibt Push-Ziel, nie zweites schreibbares Origin.
+- **Kein Laufzeit-Budget als Gate.** Ob die Kapazitaet fuer einen Flip reicht, ist
+  eine Messung, die erst der Parallelbetrieb dieser Etappe ermoeglicht.
+
 ## 14. Warum der lokale Runner trotz Etappe 2 langsam blieb (T012410)
 
 Etappe 2 (T012177) lieferte `scripts/gitlab-runner-cache.sh` gegen den gemessenen Befund
@@ -458,3 +537,35 @@ unter **Docker Desktop → Settings → Docker Engine**:
 Danach Docker Desktop neu starten — das reißt laufende Container mit, also nicht während eines
 CI-Laufs oder eines aktiven k3d-Clusters. `pull_policy` wirkt **unabhängig davon** und ist der
 größere Hebel: Es verhindert den Pull ganz, statt ihn nur zu beschleunigen.
+
+## 15. Werkzeug-Luecken zwischen ubuntu-latest und den GitLab-Images (T012405)
+
+Die drei teuersten Fehler beim Aufbau der Job-Paritaet waren allesamt dieselbe Klasse: **ein
+Werkzeug, das GitHubs `ubuntu-latest` vorinstalliert mitbringt und das GitLab-Image nicht hat.**
+Auf der GitHub-Seite ist die Abhaengigkeit unsichtbar — es gibt dort keine Installationszeile,
+die man beim Uebertragen vermissen koennte.
+
+| Werkzeug | Wer braucht es | Symptom bei Fehlen |
+|---|---|---|
+| GNU `parallel` | `bats -j` (jedes `task test:*:changed`) | `1..1159` gemeldet, **null** Tests gefahren |
+| `kustomize` (eigenes Binary) | `scripts/flux-render-artifact.sh` | Renderer-Tests rot, ohne Bezug zum Testinhalt |
+| `kubectl` | T002465-Netzwerkpolicy-Tests | dito |
+
+**Der `parallel`-Fall ist der lehrreiche.** Er scheiterte nicht beim Aufruf, sondern **nach** der
+Plan-Ankuendigung: bats meldete 1159 Tests und fuehrte keinen aus. Dass der Job trotzdem rot
+wurde, verdankt sich einer Warnung in bats — nicht der Pipeline-Konstruktion. Es ist damit die
+eine Fehlerform, die als Erfolg durchgehen *kann*, und genau der Fall, fuer den die
+Etappe-1-Regel „leerer Lauf gilt als Fehlschlag" existiert.
+
+**Diagnose-Faustregel:** Scheitert ein GitLab-Job an Tests, die lokal und auf GitHub gruen sind,
+zuerst nach `command not found` im Trace suchen — nicht nach der Testlogik. Der Trace ist ohne
+Token ueber die Web-Route lesbar:
+
+```bash
+curl -sL "https://gitlab.com/<namespace>/<projekt>/-/jobs/<job-id>/raw" | grep -i "command not found"
+```
+
+Die API-Route `/api/v4/projects/<id>/jobs/<job-id>/trace` verlangt dagegen ein Token (401).
+
+`tests/spec/ci-cd/gitlab-job-coverage.bats` haelt die `parallel`-Abhaengigkeit inzwischen als
+Guard fest: jeder Job, der bats parallel faehrt, muss sie installieren.

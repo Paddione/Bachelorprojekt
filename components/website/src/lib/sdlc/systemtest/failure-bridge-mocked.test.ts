@@ -49,7 +49,7 @@ describe('openFailureTicket / enqueueOutboxRetry (mocked pool)', () => {
 
   beforeAll(async () => {
     vi.resetModules();
-    vi.doMock('../tickets-db', () => ({
+    vi.doMock('../../tickets-db', () => ({
       initTicketsSchema: vi.fn().mockResolvedValue(undefined),
     }));
     const mod = await import('./failure-bridge');
@@ -58,7 +58,7 @@ describe('openFailureTicket / enqueueOutboxRetry (mocked pool)', () => {
   });
 
   afterAll(() => {
-    vi.doUnmock('../tickets-db');
+    vi.doUnmock('../../tickets-db');
     vi.resetModules();
   });
 

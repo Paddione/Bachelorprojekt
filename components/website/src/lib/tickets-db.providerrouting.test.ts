@@ -24,6 +24,7 @@ vi.mock('pg', () => {
       is_active      BOOLEAN,
       context_window INTEGER,
       context_budget INTEGER,
+      data_residency TEXT,
       UNIQUE (source, tier, priority)
     );
     CREATE TABLE tickets.provider_health (

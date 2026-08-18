@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const query = vi.fn();
-vi.mock('./website-db', () => ({
+vi.mock('../website-db', () => ({
   pool: { query: (...a: unknown[]) => query(...a), connect: vi.fn() },
 }));
 vi.mock('./knowledge-db', () => ({ MixedEmbeddingModelError: class {} }));

@@ -5,7 +5,7 @@ vi.mock('../../../../lib/auth', () => ({
   isAdmin: vi.fn((s: { groups?: string[] } | null | undefined) => s?.groups?.includes('admins') ?? false),
 }));
 const listBackends = vi.fn();
-vi.mock('../../../../lib/llm-proxy-db', () => ({ listBackends: (...a: unknown[]) => listBackends(...a) }));
+vi.mock('../../../../lib/sdlc/llm-proxy-db', () => ({ listBackends: (...a: unknown[]) => listBackends(...a) }));
 
 import { GET } from './status';
 

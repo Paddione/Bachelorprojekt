@@ -38,7 +38,7 @@ vi.mock('fs/promises', () => ({ readFile: (...args: unknown[]) => readFileMock(.
 const saveTestRunMock = vi.fn();
 const saveTestResultsMock = vi.fn();
 const updateTestRunMock = vi.fn();
-vi.mock('./website-db.js', () => ({
+vi.mock('../website-db', () => ({
   saveTestRun: (...args: unknown[]) => saveTestRunMock(...args),
   saveTestResults: (...args: unknown[]) => saveTestResultsMock(...args),
   updateTestRun: (...args: unknown[]) => updateTestRunMock(...args),
@@ -51,7 +51,7 @@ vi.mock('./systemtest/test-run-bridge.js', () => ({
 }));
 
 const loggerErrorMock = vi.fn();
-vi.mock('./logger', () => ({
+vi.mock('../logger', () => ({
   logger: { error: (...args: unknown[]) => loggerErrorMock(...args) },
 }));
 

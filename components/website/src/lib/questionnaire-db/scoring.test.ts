@@ -15,7 +15,7 @@ vi.mock('./schema', () => ({
 }));
 vi.mock('./queries', () => ({ getQAssignment: vi.fn() }));
 vi.mock('../compute-scores', () => ({ computeScores: (...a: unknown[]) => computeScores(...a) }));
-vi.mock('../systemtest/failure-bridge', () => ({
+vi.mock('../sdlc/systemtest/failure-bridge', () => ({
   openFailureTicket: (...a: unknown[]) => openFailureTicket(...a),
   enqueueOutboxRetry: (...a: unknown[]) => enqueueOutboxRetry(...a),
 }));

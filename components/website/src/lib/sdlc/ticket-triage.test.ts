@@ -12,15 +12,15 @@ const getTicketDetail = vi.fn();
 const getProviderConfig = vi.fn();
 const setProviderCooldown = vi.fn();
 
-vi.mock('./provider-config', () => ({
+vi.mock('../provider-config', () => ({
   getProviderConfig: (...a: unknown[]) => getProviderConfig(...a),
   setProviderCooldown: (...a: unknown[]) => setProviderCooldown(...a),
 }));
-vi.mock('./tickets/admin', () => ({
+vi.mock('../tickets/admin', () => ({
   getTicketDetail: (...a: unknown[]) => getTicketDetail(...a),
   addComment: (...a: unknown[]) => addComment(...a),
 }));
-vi.mock('./website-db', () => ({ pool: {} }));
+vi.mock('../website-db', () => ({ pool: {} }));
 
 import { runTriage, autoTriage } from './ticket-triage';
 

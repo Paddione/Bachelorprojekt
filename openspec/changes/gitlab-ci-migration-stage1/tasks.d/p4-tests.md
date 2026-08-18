@@ -97,8 +97,11 @@ Der einzige Guard, der ein Skript **ausführt** statt eine Datei zu lesen.
 
 - **Positiv-Anker:** `.github/workflows/mirror-to-gitlab.yml` existiert und ist nicht leer.
 - Trigger enthält `push` auf `main`.
-- Der Workflow führt einen Mirror-Push aus (`push` mit `--mirror`).
-- `fetch-depth: 0` ist gesetzt — ein flacher Klon lässt `--mirror` scheitern.
+- Der Workflow pusht mit explizitem Refspec (`refs/heads/main`, `--tags`) — **nicht** mit
+  `git push --mirror` (design.md D6: `--mirror` überträgt zusätzlich `refs/remotes/origin/*`
+  und löscht auf GitLab fehlende Refs).
+- `fetch-depth: 0` ist gesetzt — ein flacher Klon lässt den main-Push scheitern, weil ihm die
+  vollständige Commit-Kette fehlt.
 - Beide Secrets (`GITLAB_MIRROR_TOKEN`, `GITLAB_MIRROR_URL`) werden referenziert, und es gibt
   einen Schritt, der ihr Fehlen abfängt.
 

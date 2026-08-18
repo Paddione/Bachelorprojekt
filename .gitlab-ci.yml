@@ -32,25 +32,75 @@ bats-unit:
   # node:22 statt eines schlanken Images: 33 der Dateien unter tests/unit/ brauchen
   # node/npm/npx, 11 python3, 10 jq, 16 das task-Binary (gemessen per grep -rl gegen
   # tests/unit/). Der GitHub-Gegenpart (test-bats in ci.yml) installiert Node 22, npm ci
-  # und arduino/setup-task — dieser Job muss dieselbe Toolchain mitbringen, sonst
+  # und arduino/setup-task — dieser Job muss dieselbe TOOLCHAIN mitbringen, sonst
   # spiegelt er nicht das Verhalten, sondern nur die Existenz der Suite.
+  #
+  # WICHTIG (Review-Befund, T011790): Toolchain-Paritaet ist NICHT Testmengen-Paritaet.
+  # test-bats auf GitHub laeuft diff-skopiert (scripts/find-changed-tests.sh); kubectl-
+  # abhaengige Tests liegen dort im separaten Job test-manifests, der einzige mit
+  # kubectl. Dieser Job hat KEIN kubectl — die kubectl-abhaengigen Dateien werden
+  # deshalb unten explizit ausgeschlossen, nicht per zusaetzlicher Toolinstallation
+  # hereingezogen (das wuerde die Job-Aufteilung des Repos unterlaufen, die genau
+  # dafuer existiert, dass test-bats OHNE kubectl auskommt).
   image: node:22
   tags: [$CI_RUNNER_TAG]
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 jq ca-certificates curl >/dev/null
-    - sh -c "$(curl -ssL https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    # Separater Download-Schritt mit curl --fail (wie im manifests-Job): "-ssL" ist
+    # zweimal --silent statt -sS, unterdrueckt also die Fehlermeldung, UND der
+    # Exit-Code eines fehlschlagenden curl innerhalb von "$(...)" geht in der
+    # Kommandosubstitution verloren — ein toter Host liesse den Schritt trotzdem
+    # gruen durchlaufen, mit fehlendem task-Binary (16 Testdateien brauchen es).
+    - curl --fail -sSL https://taskfile.dev/install.sh -o /tmp/install-task.sh
+    - sh /tmp/install-task.sh -b /usr/local/bin
+    - task --version
     - npm ci
     - bash scripts/ci-dummy-secrets.sh
   script:
     - |
       set -euo pipefail
+      # Ausschlussliste statt Werkzeug-Nachinstallation (Review-Entscheidung, T011790):
+      # sieben dieser Dateien rufen `kubectl kustomize` in setup_file() auf. Das ist
+      # kein "skip" bei fehlendem kubectl, sondern ein harter Abbruch — siehe
+      # dead-node-affinity.bats:22-24 woertlich: "FATAL: kubectl fehlt — diese Datei
+      # gehoert in den test-manifests-Job." Genau dorthin gehoeren sie auch hier: der
+      # manifests-Job unten hat kubectl und faehrt sechs von ihnen (changed-manifests.bats
+      # ist zusaetzlich diff-basiert, design.md D4, und deshalb NIRGENDS auf main-Push
+      # sinnvoll). tests/unit/.coverage-allowlist dokumentiert dieselbe Zuordnung fuer
+      # den GitHub-Offline-Gate.
+      #
+      # T000617-alert-rules.bats kommt aus einem zweiten Grund dazu, ungleich der
+      # anderen sieben: sein einzelner kubectl-Test (Zeile 44/45, "k3d/monitoring
+      # kustomize builds") ruft `kubectl kustomize` DIREKT im Testkoerper auf, nicht in
+      # setup_file() — deshalb bricht nicht die ganze Datei ab (kein "setup_file
+      # failed"), sondern nur dieser eine Test schlaegt fehl. Bei einer vollen
+      # Job-PATH-Nachstellung (ohne kubectl) faellt das trotzdem auf: 1 von 8 Tests
+      # dieser Datei braucht kubectl real, ohne Skip-Guard (anders als der
+      # promtool/yq-Test zwei @test-Bloecke darueber). Auch diese Datei zieht deshalb in
+      # den manifests-Job — ihre uebrigen Tests (Alertmanager/Prometheus-Rules-Struktur)
+      # laufen dort unveraendert mit.
+      EXCLUDE_KUBECTL_SETUP="tests/unit/dead-node-affinity.bats tests/unit/manifests.bats tests/unit/knowledge-ingest-schema.bats tests/unit/knowledge-ingest-bugs-schema.bats tests/unit/knowledge-ingest-manifest.bats tests/unit/newsletter-scheduled-publish.bats tests/unit/changed-manifests.bats tests/unit/T000617-alert-rules.bats"
       # tests/unit/*.bats direkt statt "-r tests/unit/": eine Rekursion zieht auch
       # tests/unit/lib/bats-core/docs/examples/package-tarball.bats mit — vier
       # Fremdtests aus dem vendored bats-core, die nicht zur Repo-Suite gehoeren.
       # tests/unit/factory/ und tests/unit/scripts/ tragen eigene Repo-Tests und
-      # werden deshalb explizit dazugenommen (17 Tests, gemessen per
-      # `bats --count tests/unit/factory/*.bats tests/unit/scripts/*.bats`).
-      ./tests/unit/lib/bats-core/bin/bats tests/unit/*.bats tests/unit/factory/*.bats tests/unit/scripts/*.bats --formatter tap | tee /tmp/bats-tap.log
+      # werden deshalb explizit dazugenommen.
+      FILES=""
+      for f in tests/unit/*.bats tests/unit/factory/*.bats tests/unit/scripts/*.bats; do
+        excluded=0
+        for ex in $EXCLUDE_KUBECTL_SETUP; do
+          if [ "$f" = "$ex" ]; then
+            excluded=1
+            break
+          fi
+        done
+        [ "$excluded" -eq 0 ] && FILES="$FILES $f"
+      done
+      # Bewusstes Wortsplitting einer Dateipfadliste: keine der Dateien im Repo
+      # enthaelt Leerzeichen (gleiches Muster wie $CHANGED_FILES im GitHub-Job
+      # test-bats, ci.yml).
+      # shellcheck disable=SC2086
+      ./tests/unit/lib/bats-core/bin/bats $FILES --formatter tap | tee /tmp/bats-tap.log
       total="$(grep -m1 -oE '^1\.\.[0-9]+' /tmp/bats-tap.log | grep -oE '[0-9]+$' || echo 0)"
       # Leerer Lauf gilt als Fehlschlag (design.md D4) — der Mirror pusht main, eine
       # Diff-Auswahl gegen main selektiert dort die leere Menge, und ein grüner Lauf
@@ -77,7 +127,18 @@ manifests:
     # diff-basiert und hat auf einem main-Mirror-Push keinen Bezugspunkt (design.md D4).
     # python3 und jq sind Pflicht: dead-node-affinity.bats ruft python3 -c auf,
     # manifests.bats setzt jq voraus.
-    - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/dead-node-affinity.bats
+    #
+    # knowledge-ingest-{schema,bugs-schema,manifest}.bats und
+    # newsletter-scheduled-publish.bats rufen ebenfalls `kubectl kustomize` in
+    # setup_file() auf (Review-Befund, T011790) — sie gehoeren strukturell hierher,
+    # nicht in bats-unit (siehe dortiger Kommentar).
+    #
+    # T000617-alert-rules.bats: sein kubectl-Test sitzt im Testkoerper statt in
+    # setup_file(), hat aber keinen Skip-Guard (anders als der promtool/yq-Test in
+    # derselben Datei) — bei einer vollen Job-PATH-Nachstellung ohne kubectl faellt
+    # er sonst als einzelner "not ok". Gehoert aus demselben Grund wie die vier
+    # obigen hierher statt in bats-unit.
+    - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/dead-node-affinity.bats tests/unit/knowledge-ingest-schema.bats tests/unit/knowledge-ingest-bugs-schema.bats tests/unit/knowledge-ingest-manifest.bats tests/unit/newsletter-scheduled-publish.bats tests/unit/T000617-alert-rules.bats
 
 gitleaks:
   stage: test

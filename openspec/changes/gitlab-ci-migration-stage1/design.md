@@ -104,10 +104,16 @@ GitLab jeden Ref, der lokal fehlt — bei einem Ziel, das GitLab selbst verwalte
 Tags oder Branches), ein destruktiver Nebeneffekt, den ein reiner Lese-Spiegel nicht auslösen
 darf.
 
-**Trade-off:** Ein expliziter Refspec kann weder fremde Refs anlegen noch fremde Branches
-löschen — er kann nur `refs/heads/main` und die benannten Tag-Refs erzeugen oder
-vorspulen. Das ist bewusst enger als `--mirror`, aber genau das ist der Zweck: ein
-Nur-Lese-Spiegel soll nichts spiegeln können, was er nicht spiegeln soll.
+**Trade-off:** Der Push läuft mit `--force`, überschreibt `refs/heads/main` und die
+benannten Tag-Refs also auch nicht-vorspulend — ohne `--force` bliebe der Spiegel nach
+einem legitimen Force-Push oder einer verschobenen Tag-Referenz auf GitHub-Seite stumm
+stehenbleiben, und genau ein solches stilles Scheitern soll diese Migration verhindern.
+Die Eigenschaft, auf die es ankommt, ist deshalb nicht Fast-Forward-Only, sondern:
+der Refspec kann **weder fremde Refs anlegen noch fremde Branches löschen** — er kann
+ausschließlich `refs/heads/main` und die benannten Tag-Refs überschreiben. Das ist
+bewusst enger als `--mirror`, aber genau das ist der Zweck: ein Nur-Lese-Spiegel soll
+nichts spiegeln können, was er nicht spiegeln soll — er darf aber auch nicht stillstehen,
+nur weil `main` einmal neu geschrieben wurde.
 
 ## Architecture
 

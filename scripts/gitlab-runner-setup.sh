@@ -96,9 +96,43 @@ args=(
 )
 
 if [ "$DRY_RUN" = true ]; then
-  printf 'gitlab-runner register'
-  printf ' %q' "${args[@]}"
-  printf '\n\n'
+  # Mehrzeilig zum Gegenlesen (Runbook), aber weiterhin aus DEMSELBEN Array wie der
+  # Echtlauf — nur die Darstellung gruppiert Flag und Wert auf eine Zeile, es gibt
+  # keine zweite, separat gepflegte Fundstelle der Argumente.
+  echo "gitlab-runner register \\"
+  i=0
+  n=${#args[@]}
+  while [ "$i" -lt "$n" ]; do
+    cur="${args[$i]}"
+    nxt_idx=$((i + 1))
+    nxt=""
+    [ "$nxt_idx" -lt "$n" ] && nxt="${args[$nxt_idx]}"
+    case "$cur" in
+      --*=*)
+        line="$(printf '%q' "$cur")"
+        i=$((i + 1))
+        ;;
+      --*)
+        if [ -n "$nxt" ] && [ "${nxt#--}" = "$nxt" ]; then
+          line="$(printf '%q' "$cur") $(printf '%q' "$nxt")"
+          i=$((i + 2))
+        else
+          line="$(printf '%q' "$cur")"
+          i=$((i + 1))
+        fi
+        ;;
+      *)
+        line="$(printf '%q' "$cur")"
+        i=$((i + 1))
+        ;;
+    esac
+    if [ "$i" -lt "$n" ]; then
+      printf '  %s \\\n' "$line"
+    else
+      printf '  %s\n' "$line"
+    fi
+  done
+  echo ""
   echo "Dry-Run: kein Kontakt zu GitLab, keine Runner-Konfiguration geschrieben."
   exit 0
 fi

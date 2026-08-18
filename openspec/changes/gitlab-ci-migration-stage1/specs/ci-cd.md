@@ -35,8 +35,14 @@ including `refs/remotes/origin/*` for every open feature branch that a full-hist
 carries — refs the mirror direction explicitly excludes. Those refs would land on GitLab
 invisibly under `refs/remotes/`, outside what the GitLab UI lists and outside what `git gc`
 ever reclaims. `--mirror` also deletes on GitLab any ref absent from the source side, which
-can destroy state GitLab itself created. An explicit refspec push can do neither: it can only
-create or fast-forward `refs/heads/main` and the tag refs it names.
+can destroy state GitLab itself created. The explicit refspec push SHALL overwrite
+`refs/heads/main` and the tag refs it names — including non-fast-forward, so the mirror still
+converges after a force-push or a moved tag on the GitHub side — but it SHALL NOT be able to
+create any ref outside those two refspecs, and it SHALL NOT be able to delete any ref that
+`--mirror` would have deleted (a ref absent from the source but present on GitLab, such as
+GitLab-side tags or branches). That is the property that matters, not fast-forward-only: a
+mirror that stalled on a legitimate force-push or moved tag would fail silently, exactly the
+outcome this migration is meant to avoid.
 
 Pull-Mirroring SHALL NOT be relied upon: it is a paid gitlab.com feature and therefore not
 available on the project's plan. The mirror direction SHALL be GitHub → GitLab only, so that

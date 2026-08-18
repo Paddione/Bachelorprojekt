@@ -98,8 +98,9 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/ci-cd/gitlab-*.bats
 - [ ] **Manuelle Abnahme gegen die echte GitLab-Instanz.** Diese Schritte sind nicht
       automatisierbar, weil sie ein GitLab-Projekt und einen laufenden Runner voraussetzen.
       Sie gehören ins Ticket, nicht in CI:
-      1. GitLab-Projekt anlegen, Deploy-Token erzeugen, `GITLAB_MIRROR_TOKEN` und
-         `GITLAB_MIRROR_URL` als GitHub-Secrets hinterlegen.
+      1. GitLab-Projekt anlegen, Project-Access-Token (`glpat-`-Präfix, Scope
+         `write_repository`) erzeugen, `GITLAB_MIRROR_TOKEN` und `GITLAB_MIRROR_URL` als
+         GitHub-Secrets hinterlegen.
       2. `bash scripts/gitlab-runner-setup.sh` real ausführen und den Runner registrieren.
       3. Einen Push auf `main` abwarten und belegen, dass der GitLab-`main` denselben SHA
          trägt.

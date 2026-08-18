@@ -4,16 +4,20 @@
 
 ## Aufgabe 1: Mirror-Workflow anlegen
 
-Ein GitHub-Actions-Workflow, der bei jedem Push auf `main` den vollständigen Repo-Stand
-per `git push --mirror` zur GitLab-Instanz spiegelt.
+Ein GitHub-Actions-Workflow, der bei jedem Push auf `main` den Stand per **explizitem
+Refspec** (nicht `git push --mirror`) zur GitLab-Instanz spiegelt: `HEAD:refs/heads/main`
+plus `--tags`, beide mit `--force`. `--mirror` überträgt zusätzlich `refs/remotes/origin/*`
+(jeden offenen Feature-Branch) und löscht auf GitLab fehlende Refs — beides mit der
+Zusicherung „PR-Stände gehören nicht in den Spiegel" unvereinbar (design.md D6).
 
 **Anforderungen an die Umsetzung:**
 
 - Trigger ausschließlich `push` auf `main` sowie `workflow_dispatch` für manuelles Nachziehen.
   Kein `pull_request`-Trigger — PR-Stände gehören nicht in den Spiegel.
-- `actions/checkout` mit `fetch-depth: 0`. Ein flacher Klon lässt `--mirror` scheitern, weil
-  ihm die Historie fehlt. Das ist der häufigste Fehler bei diesem Workflow-Typ.
-- Authentifizierung über die Secrets `GITLAB_MIRROR_TOKEN` und `GITLAB_MIRROR_URL`.
+- `actions/checkout` mit `fetch-depth: 0`. Ein flacher Klon lässt den main-Push scheitern,
+  weil ihm die vollständige Commit-Kette fehlt.
+- Authentifizierung über die Secrets `GITLAB_MIRROR_TOKEN` (GitLab-Project-Access-Token,
+  `glpat-`-Präfix) und `GITLAB_MIRROR_URL`.
 - **Fail-fast bei fehlendem Secret:** Vor dem Push prüfen, ob beide Secrets gesetzt sind, und
   andernfalls mit einer Meldung abbrechen, die die fehlende Variable **beim Namen nennt**.
   Ohne diesen Schritt endet der Workflow grün, ohne gespiegelt zu haben — genau der stille

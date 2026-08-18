@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1070,
+      "file_count": 1071,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -748,6 +748,7 @@
         "tests/spec/repo-structure/inventory-registered.bats",
         "tests/spec/repo-structure/packages-assets.bats",
         "tests/spec/repo-structure/root-agent-md.bats",
+        "tests/spec/repo-structure/spec-suite-website-leak.bats",
         "tests/spec/repo-structure/website-moved.bats",
         "tests/spec/rustdesk-server.bats",
         "tests/spec/s1-violations-batch2.bats",

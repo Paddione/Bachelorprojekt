@@ -2994,6 +2994,12 @@
     "kind": "shell"
   },
   {
+    "id": "devflow-selection-archive-hardening/merge-commit-selection",
+    "file": "tests/spec/devflow-selection-archive-hardening/merge-commit-selection.bats",
+    "category": "devflow-selection-archive-hardening",
+    "kind": "shell"
+  },
+  {
     "id": "divergence-guard",
     "file": "tests/spec/divergence-guard.bats",
     "category": "divergence-guard",

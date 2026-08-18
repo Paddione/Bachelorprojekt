@@ -112,6 +112,19 @@ setup() {
   [[ "$output" == *"SKIP=0"* ]]
 }
 
+@test "B3: fremder Archiv-Eintrag mit gleichem Namens-Suffix zaehlt NICHT als erledigt" {
+  local section; section="$(_archive_idempotence_section)"
+  [ -n "$section" ]
+  # SLUG=demo; im Archiv liegen nur ...-pocket-id-smtp-port-quoting-demo und
+  # ...-blocker-gate-demo — beide enden auf "-demo", sind aber andere Changes.
+  # Ein Suffix-Match wuerde hier faelschlich "erledigt" melden und den Change
+  # nie archivieren. Real reproduziert: SLUG=hardening traf am 2026-08-18 sechs
+  # fremde Eintraege (u.a. 2026-08-14-blocker-gate-hardening).
+  run _run_idempotence "$section" "nothing"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"SKIP=0"* ]]
+}
+
 # ── B1: Archiv-Sektion serialisiert ──────────────────────────────────────────
 # PRÜFMODUS: Output-Verifikation — zwei Läufe der extrahierten Guard-Sequenz
 # konkurrieren um denselben Lock; geprüft wird, dass sie sich nicht überlappen.
@@ -157,9 +170,13 @@ if [[ "\$*" == *"ls-remote"* ]]; then
   [[ "$scenario" == "branch_present" ]] && exit 0
   exit 2
 fi
-if [[ "\$*" == *"cat-file"* || "\$*" == *"ls-tree"* ]]; then
-  [[ "$scenario" == "merged_branch_gone" ]] && exit 0
-  exit 1
+if [[ "\$*" == *"ls-tree"* ]]; then
+  # Realistische Archiv-Liste: der eigene Eintrag nur im merged-Szenario, aber
+  # IMMER Nachbarn, deren Namen auf denselben Suffix enden koennen (F1-Regression).
+  [[ "$scenario" == "merged_branch_gone" ]] && echo "openspec/changes/archive/2026-08-18-demo"
+  echo "openspec/changes/archive/2026-07-01-pocket-id-smtp-port-quoting-demo"
+  echo "openspec/changes/archive/2026-08-14-blocker-gate-demo"
+  exit 0
 fi
 exit 0
 STUB

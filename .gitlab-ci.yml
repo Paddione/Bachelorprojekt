@@ -29,15 +29,28 @@ variables:
 
 bats-unit:
   stage: test
-  image: ubuntu:24.04
+  # node:22 statt eines schlanken Images: 33 der Dateien unter tests/unit/ brauchen
+  # node/npm/npx, 11 python3, 10 jq, 16 das task-Binary (gemessen per grep -rl gegen
+  # tests/unit/). Der GitHub-Gegenpart (test-bats in ci.yml) installiert Node 22, npm ci
+  # und arduino/setup-task — dieser Job muss dieselbe Toolchain mitbringen, sonst
+  # spiegelt er nicht das Verhalten, sondern nur die Existenz der Suite.
+  image: node:22
   tags: [$CI_RUNNER_TAG]
   before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash ca-certificates >/dev/null
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 jq ca-certificates curl >/dev/null
+    - sh -c "$(curl -ssL https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - npm ci
     - bash scripts/ci-dummy-secrets.sh
   script:
     - |
       set -euo pipefail
-      ./tests/unit/lib/bats-core/bin/bats -r tests/unit/ --formatter tap | tee /tmp/bats-tap.log
+      # tests/unit/*.bats direkt statt "-r tests/unit/": eine Rekursion zieht auch
+      # tests/unit/lib/bats-core/docs/examples/package-tarball.bats mit — vier
+      # Fremdtests aus dem vendored bats-core, die nicht zur Repo-Suite gehoeren.
+      # tests/unit/factory/ und tests/unit/scripts/ tragen eigene Repo-Tests und
+      # werden deshalb explizit dazugenommen (17 Tests, gemessen per
+      # `bats --count tests/unit/factory/*.bats tests/unit/scripts/*.bats`).
+      ./tests/unit/lib/bats-core/bin/bats tests/unit/*.bats tests/unit/factory/*.bats tests/unit/scripts/*.bats --formatter tap | tee /tmp/bats-tap.log
       total="$(grep -m1 -oE '^1\.\.[0-9]+' /tmp/bats-tap.log | grep -oE '[0-9]+$' || echo 0)"
       # Leerer Lauf gilt als Fehlschlag (design.md D4) — der Mirror pusht main, eine
       # Diff-Auswahl gegen main selektiert dort die leere Menge, und ein grüner Lauf
@@ -56,12 +69,14 @@ manifests:
   variables:
     KUBECTL_VERSION: "v1.31.0"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates >/dev/null
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates python3 jq >/dev/null
     - curl --fail -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
     - chmod +x /usr/local/bin/kubectl
   script:
     # tests/unit/changed-manifests.bats bleibt bewusst aussen vor: der Test ist
     # diff-basiert und hat auf einem main-Mirror-Push keinen Bezugspunkt (design.md D4).
+    # python3 und jq sind Pflicht: dead-node-affinity.bats ruft python3 -c auf,
+    # manifests.bats setzt jq voraus.
     - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/dead-node-affinity.bats
 
 gitleaks:

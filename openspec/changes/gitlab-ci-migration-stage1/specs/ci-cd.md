@@ -27,8 +27,16 @@ continue to happen on GitHub.
 ### Requirement: Spiegelung GitHub → GitLab per Push-Mirror
 
 The system SHALL mirror the repository to GitLab from a GitHub Actions workflow that runs on
-pushes to `main` and performs a `git push --mirror` to the GitLab remote, authenticated by a
-GitLab deploy token held as a GitHub secret.
+pushes to `main` and pushes with an **explicit refspec** for the `main` branch and for tags,
+authenticated by a GitLab Project-Access-Token (`glpat-` prefix) held as a GitHub secret.
+
+`git push --mirror` SHALL NOT be used: it transfers every ref in the local repository,
+including `refs/remotes/origin/*` for every open feature branch that a full-history checkout
+carries — refs the mirror direction explicitly excludes. Those refs would land on GitLab
+invisibly under `refs/remotes/`, outside what the GitLab UI lists and outside what `git gc`
+ever reclaims. `--mirror` also deletes on GitLab any ref absent from the source side, which
+can destroy state GitLab itself created. An explicit refspec push can do neither: it can only
+create or fast-forward `refs/heads/main` and the tag refs it names.
 
 Pull-Mirroring SHALL NOT be relied upon: it is a paid gitlab.com feature and therefore not
 available on the project's plan. The mirror direction SHALL be GitHub → GitLab only, so that

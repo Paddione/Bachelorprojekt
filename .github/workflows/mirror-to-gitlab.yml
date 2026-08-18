@@ -1,13 +1,19 @@
 name: Mirror to GitLab
 
-# Push-Mirror GitHub -> GitLab (Etappe 1, T011790). GitLab ist ein sekundaerer,
+# Push-Spiegel GitHub -> GitLab (Etappe 1, T011790). GitLab ist ein sekundaerer,
 # nicht blockierender Spiegel — GitHub Actions bleibt SSOT und Merge-Gate.
-# Details: openspec/specs/ci-cd.md, openspec/changes/gitlab-ci-migration-stage1/design.md.
+# Details: openspec/specs/ci-cd.md, openspec/changes/gitlab-ci-migration-stage1/design.md (D6).
 #
 # Kein pull_request-Trigger: PR-Staende gehoeren nicht in den Spiegel. Pull-Mirroring
 # wird bewusst nicht verwendet (kostenpflichtiges gitlab.com-Feature) — die Richtung
-# ist GitHub -> GitLab per push --mirror, damit GitLab nie ein zweites schreibbares
-# Origin wird.
+# ist GitHub -> GitLab per Push, damit GitLab nie ein zweites schreibbares Origin wird.
+#
+# Kein `git push --mirror`: das ueberträgt ALLE lokalen Refs, inklusive
+# refs/remotes/origin/* — die der fetch-depth:0-Checkout unten fuer jeden offenen
+# Feature-Branch anlegt. Das wuerde jeden offenen PR-Stand unsichtbar unterhalb
+# refs/remotes/ auf GitLab spiegeln und dort Refs loeschen, die lokal fehlen. Statt
+# dessen zwei explizite Refspecs: HEAD nach refs/heads/main, plus Tags — das kann
+# weder fremde Refs anlegen noch fremde Branches loeschen (design.md D6).
 on:
   push:
     branches: [main]
@@ -19,14 +25,15 @@ concurrency:
 
 jobs:
   mirror:
-    name: Push-Mirror nach GitLab
+    name: Push-Spiegel nach GitLab
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
-          # Ein flacher Klon laesst `git push --mirror` scheitern, weil ihm die
-          # Historie fehlt — das ist der haeufigste Fehler bei diesem Workflow-Typ.
+          # Voller Klon: ein flacher Checkout haette nur einen Teil der Historie
+          # von HEAD erreichbar, und der main-Push nach GitLab braucht die
+          # vollstaendige Commit-Kette.
           fetch-depth: 0
 
       - name: Verify mirror secrets are configured
@@ -43,7 +50,7 @@ jobs:
           fi
           echo "Beide Mirror-Secrets sind gesetzt."
 
-      - name: Push --mirror to GitLab
+      - name: Push main + tags to GitLab
         env:
           GITLAB_MIRROR_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
           GITLAB_MIRROR_URL: ${{ secrets.GITLAB_MIRROR_URL }}
@@ -51,8 +58,11 @@ jobs:
           set -euo pipefail
           # Das Token darf nicht ins Log geraten: die Remote-URL wird aus
           # Umgebungsvariablen zusammengesetzt, nie per echo ausgegeben oder als
-          # Literal in eine run-Zeile geschrieben.
+          # Literal in eine run-Zeile geschrieben. GITLAB_MIRROR_TOKEN ist ein
+          # GitLab-Project-Access-Token (glpat-Praefix) — dafuer ist "oauth2:" als
+          # Basic-Auth-Username die von GitLab dokumentierte Form.
           host="${GITLAB_MIRROR_URL#https://}"
           host="${host#http://}"
           git remote add gitlab-mirror "https://oauth2:${GITLAB_MIRROR_TOKEN}@${host}"
-          git push --mirror gitlab-mirror
+          git push --force gitlab-mirror HEAD:refs/heads/main
+          git push --force --tags gitlab-mirror

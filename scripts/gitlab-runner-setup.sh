@@ -19,6 +19,11 @@
 # auch ohne gesetzten Token und ohne installiertes gitlab-runner-Binary. Damit prueft
 # der BATS-Guard (tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats) das *Verhalten*
 # des Skripts statt seinen Quelltext zu greppen (Repo-Konvention T002448-M4).
+#
+# Die Argumente stehen genau EINMAL, in einem Array. Dry-Run gibt es per `printf '%q'`
+# aus, der Echtlauf fuehrt dasselbe Array aus. Ohne diese Kopplung koennte der
+# Echtlauf still von der Dry-Run-Ausgabe abweichen (z.B. --token gegen
+# --registration-token getauscht) und der Guard bliebe trotzdem gruen.
 set -euo pipefail
 
 DRY_RUN=false
@@ -63,37 +68,39 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$DRY_RUN" = true ]; then
-  echo "gitlab-runner register \\"
-  echo "  --non-interactive \\"
-  echo "  --executor docker \\"
-  echo "  --docker-image docker:24-git \\"
-  echo "  --url \"${GITLAB_URL}\" \\"
-  echo "  --token \"<GITLAB_RUNNER_TOKEN>\" \\"
-  echo "  --tag-list \"${RUNNER_TAG}\" \\"
-  echo "  --run-untagged=false \\"
-  echo "  --description \"${RUNNER_DESCRIPTION}\""
-  echo ""
+  TOKEN_VALUE="<GITLAB_RUNNER_TOKEN>"
+else
+  if [ -z "${GITLAB_RUNNER_TOKEN:-}" ]; then
+    echo "ERROR: GITLAB_RUNNER_TOKEN ist nicht gesetzt (glrt-Authentication-Token erforderlich)" >&2
+    exit 1
+  fi
+  if ! command -v gitlab-runner >/dev/null 2>&1; then
+    echo "ERROR: gitlab-runner ist nicht installiert." >&2
+    echo "Installationshinweis: https://docs.gitlab.com/runner/install/linux-repository.html" >&2
+    exit 1
+  fi
+  TOKEN_VALUE="${GITLAB_RUNNER_TOKEN}"
+fi
+
+# Einzige Fundstelle der Registrierungsargumente — Dry-Run und Echtlauf teilen
+# sich dieses Array, statt es an zwei Stellen gepflegt vorzufinden.
+args=(
+  --non-interactive
+  --executor docker
+  --docker-image docker:24-git
+  --url "${GITLAB_URL}"
+  --token "${TOKEN_VALUE}"
+  --tag-list "${RUNNER_TAG}"
+  --run-untagged=false
+  --description "${RUNNER_DESCRIPTION}"
+)
+
+if [ "$DRY_RUN" = true ]; then
+  printf 'gitlab-runner register'
+  printf ' %q' "${args[@]}"
+  printf '\n\n'
   echo "Dry-Run: kein Kontakt zu GitLab, keine Runner-Konfiguration geschrieben."
   exit 0
 fi
 
-if [ -z "${GITLAB_RUNNER_TOKEN:-}" ]; then
-  echo "ERROR: GITLAB_RUNNER_TOKEN ist nicht gesetzt (glrt-Authentication-Token erforderlich)" >&2
-  exit 1
-fi
-
-if ! command -v gitlab-runner >/dev/null 2>&1; then
-  echo "ERROR: gitlab-runner ist nicht installiert." >&2
-  echo "Installationshinweis: https://docs.gitlab.com/runner/install/linux-repository.html" >&2
-  exit 1
-fi
-
-gitlab-runner register \
-  --non-interactive \
-  --executor docker \
-  --docker-image docker:24-git \
-  --url "${GITLAB_URL}" \
-  --token "${GITLAB_RUNNER_TOKEN}" \
-  --tag-list "${RUNNER_TAG}" \
-  --run-untagged=false \
-  --description "${RUNNER_DESCRIPTION}"
+gitlab-runner register "${args[@]}"

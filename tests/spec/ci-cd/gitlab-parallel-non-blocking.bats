@@ -51,10 +51,24 @@ _gh_job_block() {
     echo "erwartete Datei fehlt: $CI_YML" >&2
     false
   fi
+
+  # Positiv-Anker [T002356-M1] — im SELBEN Test, nicht nur im vorigen: fehlten alle
+  # drei Jobbloecke, waere "keiner kurzgeschlossen" unten trivial wahr (leere
+  # Kandidatenmenge). Ein anderer Test darf diesen Anker nicht ersetzen — jeder
+  # Test steht fuer sich.
+  missing=""
+  for job in test-bats test-manifests security-scan; do
+    block="$(_gh_job_block "$job")"
+    [ -n "$block" ] || missing="${missing} ${job}"
+  done
+  if [ -n "$missing" ]; then
+    echo "GitHub-Job fehlt oder wurde entfernt (Positiv-Anker verletzt):${missing}" >&2
+    false
+  fi
+
   offenders=""
   for job in test-bats test-manifests security-scan; do
     block="$(_gh_job_block "$job")"
-    [ -n "$block" ] || continue # bereits im vorigen Test gemeldet
     if echo "$block" | grep -qE 'if:\s*false'; then
       offenders="${offenders} ${job}"
     fi

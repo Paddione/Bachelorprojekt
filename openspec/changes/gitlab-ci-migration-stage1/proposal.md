@@ -52,8 +52,10 @@ bewusst nicht verwendet.
 
 Pull-Mirroring (GitLab zieht von GitHub) ist auf gitlab.com ein Premium-Feature. Der
 kostenfreie und im Repo sichtbare Weg ist ein GitHub-Actions-Workflow, der nach jedem
-`main`-Push per `git push --mirror` zu GitLab spiegelt. GitHub bleibt in dieser Etappe
-**SSOT und Merge-Gate**; GitLab ist Nur-Lese-Spiegel plus zweite Verifikation.
+`main`-Push mit einem **expliziten Refspec** für `main` und für Tags zu GitLab spiegelt —
+nicht mit `git push --mirror`, das auch `refs/remotes/origin/*` (also jeden offenen
+Feature-Branch) überträgt und auf GitLab fehlende Refs löscht. GitHub bleibt in dieser
+Etappe **SSOT und Merge-Gate**; GitLab ist Nur-Lese-Spiegel plus zweite Verifikation.
 
 ### Die drei Kern-Jobs sind Spiegel, keine Neuerfindung
 

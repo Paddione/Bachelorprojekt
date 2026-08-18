@@ -89,6 +89,26 @@ statt ihn auszuführen. Damit prüft der Guard das *Verhalten* des Skripts statt
 zu greppen — die Repo-Konvention „Output- statt Source-Verifikation" (T002448-M4) wird
 eingehalten, obwohl CI-Konfiguration von ihr ausgenommen wäre.
 
+### D6 — Expliziter Refspec statt `--mirror` für den Push nach GitLab
+
+**Entscheidung:** `mirror-to-gitlab.yml` pusht mit zwei expliziten Refspecs —
+`HEAD:refs/heads/main` und `--tags` — statt mit `git push --mirror`.
+
+**Begründung:** `checkout@v7` mit `fetch-depth: 0` legt lokal auch
+`refs/remotes/origin/*` an — einen Remote-Tracking-Ref pro offenem GitHub-Branch.
+`git push --mirror` überträgt **alle** lokalen Refs, nicht nur `refs/heads/*`. Jeder offene
+Feature-Branch landete damit auf GitLab, unsichtbar unterhalb `refs/remotes/`, wo die
+GitLab-UI ihn nicht listet und `git gc` ihn nie einsammelt — ein Widerspruch zur eigenen
+Zusicherung, dass PR-Stände nicht in den Spiegel gehören. `--mirror` löscht zusätzlich auf
+GitLab jeden Ref, der lokal fehlt — bei einem Ziel, das GitLab selbst verwaltet (z. B. eigene
+Tags oder Branches), ein destruktiver Nebeneffekt, den ein reiner Lese-Spiegel nicht auslösen
+darf.
+
+**Trade-off:** Ein expliziter Refspec kann weder fremde Refs anlegen noch fremde Branches
+löschen — er kann nur `refs/heads/main` und die benannten Tag-Refs erzeugen oder
+vorspulen. Das ist bewusst enger als `--mirror`, aber genau das ist der Zweck: ein
+Nur-Lese-Spiegel soll nichts spiegeln können, was er nicht spiegeln soll.
+
 ## Architecture
 
 ```
@@ -98,10 +118,10 @@ GitHub (SSOT, Merge-Gate)                     GitLab (Spiegel, Zweitprüfung)
 │      └─ Required Checks    │                │   bats-unit                 │
 │                            │                │   manifests                 │
 │ merge ─► main              │                │   gitleaks                  │
-│         │                  │  push --mirror │      │                      │
+│         │                  │ push main+tags │      │                      │
 │         └─ mirror-to-gitlab├───────────────►│      ▼ tags: [$CI_RUNNER_TAG]│
-└────────────────────────────┘   (Deploy-     └──────┬──────────────────────┘
-                                  Token)             │
+└────────────────────────────┘   (glpat-      └──────┬──────────────────────┘
+                                  Access-Token)       │
                                           ┌──────────┴───────────┐
                                           ▼                      ▼
                               self-hosted Runner       gitlab.com Shared

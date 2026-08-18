@@ -261,11 +261,17 @@ GH_EOF
   # der Subshell-Flock nicht endlos. stdout/stderr auf /dev/null: überlebt ein
   # verwaister Flock-Kindprozess den kill, hält er die Bats-Output-Pipe nicht
   # offen (sonst hängt die Suite am Testende).
-  ( flock -w 10 -x 9; sleep 30 ) 9>/tmp/factory-tick.lock >/dev/null 2>&1 &
+  # [T012414] Eigener Lock-Pfad statt des geteilten /tmp/factory-tick.lock: auf
+  # einem self-hosted Runner gehört der einem anderen User, das Anlegen scheiterte
+  # mit "Permission denied" und der Test maß die Eigenschaft nie. Das Skript nimmt
+  # den Pfad über FACTORY_TICK_LOCK entgegen; der Default bleibt der geteilte.
+  TICK_LOCK="$WORK/factory-tick.lock"
+  ( flock -w 10 -x 9; sleep 30 ) 9>"$TICK_LOCK" >/dev/null 2>&1 &
   TMP_LOCK_PID=$!
   sleep 0.2
 
   run --separate-stderr env -C "$WORK" PATH="$WORK/bin:$PATH" REPO_DIR="$FIXTURE" AGENT_LOCK_DIR="$WORK/locks" \
+    FACTORY_TICK_LOCK="$TICK_LOCK" \
     bash "$PROJECT_DIR/scripts/repo-hygiene-cron.sh" standard
   kill "$TMP_LOCK_PID" 2>/dev/null || true
   wait "$TMP_LOCK_PID" 2>/dev/null || true

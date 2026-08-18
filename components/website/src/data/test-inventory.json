@@ -5118,6 +5118,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-ops/triage-status-ssot",
+    "file": "tests/spec/ticket-ops/triage-status-ssot.bats",
+    "category": "ticket-ops",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-ops/wave1-state-refetch",
     "file": "tests/spec/ticket-ops/wave1-state-refetch.bats",
     "category": "ticket-ops",

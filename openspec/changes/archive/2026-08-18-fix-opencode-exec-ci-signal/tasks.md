@@ -2,7 +2,7 @@
 title: "fix-opencode-exec-ci-signal — Implementation Plan"
 ticket_id: T012266
 domains: [scripts]
-status: active
+status: completed
 file_locks:
   - scripts/factory/opencode-exec.sh
   - tests/spec/software-factory/opencode-exec-ci-signal.bats

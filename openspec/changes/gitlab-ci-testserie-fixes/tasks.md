@@ -46,7 +46,7 @@ Step liegt im Tests-Partial p8.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** p8 reproduziert den Defekt des letzten Falls:
+- [x] **Failing-Test-Step (RED).** p8 reproduziert den Defekt des letzten Falls:
       der kubectl-Stub überschreibt $CAPTURE mit dem leeren create-Stream; der
       Testlauf auf dem aktuellen Stand schlägt fehl (siehe p8, `expected: FAIL`).
       Die Partials p1..p7 dokumentieren ihre eigenen RED-Läufe gegen den
@@ -57,10 +57,10 @@ tests/unit/lib/bats-core/bin/bats tests/unit/backup-restore-recovery.bats
 # expected: FAIL (red — der Stub-Fix in p8 ist nicht umgesetzt)
 ```
 
-- [ ] **Fix-Step (GREEN).** Alle acht Partials implementieren ihre Fixes; jede der
+- [x] **Fix-Step (GREEN).** Alle acht Partials implementieren ihre Fixes; jede der
       acht Testdateien läuft einzeln grün.
 
-- [ ] **Final Verification.** Die drei mandatory Verify-Commands plus
+- [x] **Final Verification.** Die drei mandatory Verify-Commands plus
       Test-Inventar-Regenerierung (es kommen keine neuen Testdateien hinzu —
       das Inventar muss unverändert bleiben):
 
@@ -71,6 +71,6 @@ task freshness:regenerate
 task freshness:check
 ```
 
-- [ ] **Diff-Integrität.** `git diff --stat` zeigt ausschließlich Pfade unter
+- [x] **Diff-Integrität.** `git diff --stat` zeigt ausschließlich Pfade unter
       `tests/` und `openspec/changes/gitlab-ci-testserie-fixes/` — kein
       Produktcode (scripts/, components/website/, k3d/) wird angefasst.

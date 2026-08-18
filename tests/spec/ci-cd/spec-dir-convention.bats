@@ -114,14 +114,43 @@ setup() {
   [ "$output" -eq 0 ]
 }
 
-@test "spec-dir: CLAUDE.md dokumentiert die Verzeichniskonvention" {
-  # Positiv-Anker: der BATS-Konventionsblock existiert ...
-  run grep -c 'BATS convention' "${REPO_ROOT}/CLAUDE.md"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
-  # ... und nennt die Verzeichnisform. Ohne Doku wandern neue Tests weiter in die
-  # Sammeldateien und die Konflikte kommen zurueck.
-  block="$(sed -n '/BATS convention/,/^- \*\*BATS .output/p' "${REPO_ROOT}/CLAUDE.md")"
-  [ -n "$block" ]
-  printf '%s\n' "$block" | grep -q 'tests/spec/<spec-slug>/'
+@test "spec-dir: die Konventionsdoku beschreibt die Verzeichnisform" {
+  # [T012408] Geprueft wird der DOKUMENTSATZ statt einer festen Datei: die
+  # Wurzel-CLAUDE.md gilt repo-weit, tests/CLAUDE.md laedt bereichsgebunden bei
+  # Arbeit unter tests/ und traegt seit der Auslagerung den BATS-Block.
+  #
+  # Die Zusicherung ist "die Verzeichnisform ist dokumentiert, wo ein Agent an
+  # Tests sie zu lesen bekommt" — nicht "sie steht in Datei X". Der frueher hier
+  # festgenagelte Pfad machte den Guard beim Verschieben rot, obwohl die
+  # Konvention vollstaendig im Repo stand; rot wurde dadurch jeder PR mit echtem
+  # Diff, waehrend main gruen blieb (dort selektiert der diff-skopierte Lauf
+  # diesen Test gar nicht).
+  docs=("${REPO_ROOT}/CLAUDE.md" "${REPO_ROOT}/tests/CLAUDE.md")
+
+  # Positiv-Anker [T002356-M1]: mindestens ein Dokument existiert.
+  present=0
+  for d in "${docs[@]}"; do
+    [ -f "$d" ] && present=$((present + 1))
+  done
+  echo "Anker: vorhandene Konventionsdokumente=${present} von ${#docs[@]}"
+  [ "$present" -gt 0 ]
+
+  # Irgendeines nennt den BATS-Konventionsblock UND die Verzeichnisform. Beides
+  # muss in DERSELBEN Datei stehen — sonst bestuende der Test auch, wenn eine
+  # Datei die Ueberschrift traegt und eine andere zufaellig den Pfad erwaehnt.
+  found=0
+  for d in "${docs[@]}"; do
+    [ -f "$d" ] || continue
+    grep -qF 'BATS convention' "$d" || continue
+    grep -qF 'tests/spec/<spec-slug>/' "$d" || continue
+    found=1
+    echo "Konvention gefunden in: $d"
+    break
+  done
+
+  if [ "$found" -ne 1 ]; then
+    echo "Kein Konventionsdokument nennt 'BATS convention' zusammen mit 'tests/spec/<spec-slug>/'" >&2
+    echo "Gesucht in: ${docs[*]}" >&2
+    false
+  fi
 }

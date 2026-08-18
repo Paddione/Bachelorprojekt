@@ -119,6 +119,55 @@ A version bump on one side without its counterpart on the other SHALL fail that 
 - **WHEN** der Paritaets-Guard laeuft
 - **THEN** deckt seine Werkzeug-Tabelle dieses Werkzeug ab, statt es ungeprueft zu lassen
 
+---
+
+### Requirement: GitLab-Kern-Jobs spiegeln die GitHub-Offline-Gates
+
+The system SHALL define jobs in `.gitlab-ci.yml` that mirror the GitHub offline gates. As of
+the parity stage this covers every offline gate job in `.github/workflows/ci.yml`, not only the
+initial three (BATS unit tests, manifest validation, gitleaks scan).
+
+The BATS job SHALL use the vendored runner at `tests/unit/lib/bats-core/bin/bats`, not a
+globally installed `bats`, matching the repository convention that CI and local runs execute
+the same binary.
+
+On a push to `main` the jobs SHALL run the full corresponding set rather than the diff-scoped
+selection used on GitHub: the mirror receives pushes to `main`, where a diff against `main`
+selects nothing. On a working-branch or merge-request pipeline the jobs MAY use the diff-scoped
+selection, resolved through the single diff-base script.
+
+No GitLab job SHALL be softened (`allow_failure`) **beyond** its GitHub counterpart. A job
+whose GitHub counterpart is itself advisory (`continue-on-error`) MAY be soft; any other soft
+job SHALL fail the guard. Softening is not the mechanism by which GitLab stays non-blocking —
+that follows from GitLab being absent from branch protection. A job made soft without a
+counterpart would hide real findings while appearing to check them. Equally, a job made
+fail-closed whose GitHub counterpart is advisory would make GitLab *stricter* than GitHub,
+which is the same divergence in the other direction.
+
+#### Scenario: Mirror-Lauf führt tatsächlich Tests aus
+
+- **GIVEN** die GitLab-Pipeline läuft auf einem `main`-Mirror-Push
+- **WHEN** der BATS-Job ausgeführt wird
+- **THEN** ist die Zahl der ausgeführten Tests größer als null — ein leerer Lauf gilt als Fehlschlag, nicht als Erfolg
+
+#### Scenario: Vendored BATS-Runner statt globalem Binary
+
+- **GIVEN** die Jobdefinition des BATS-Jobs
+- **WHEN** der CI-Guard das Testkommando prüft
+- **THEN** verweist es auf den mitgelieferten Runner unter `tests/unit/lib/`
+
+#### Scenario: Weichgestellter Job ohne weiches GitHub-Gegenstueck faellt auf
+
+- **GIVEN** ein GitLab-Job trägt `allow_failure: true`
+- **WHEN** der Guard das GitHub-Gegenstück prüft und dieses **nicht** `continue-on-error` trägt
+- **THEN** schlägt der Guard fehl und benennt den Job
+
+#### Scenario: Ausnahme verfaellt, wenn die GitHub-Seite fail-closed wird
+
+- **GIVEN** ein GitLab-Job ist als Ausnahme weichgestellt, weil sein GitHub-Gegenstück advisory war
+- **WHEN** das GitHub-Gegenstück später fail-closed wird
+- **THEN** schlägt der Guard fehl — die Ausnahme bleibt nicht als Freibrief stehen
+
 ## ADDED Requirements
 
 ### Requirement: GitLab-Jobs decken jeden Offline-Gate-Job aus ci.yml ab

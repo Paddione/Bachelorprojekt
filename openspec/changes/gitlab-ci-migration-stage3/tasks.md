@@ -79,11 +79,11 @@ Gate-Flip ist Etappe 4. Ein Partial, das `ci.yml` anfasst, verletzt den Scope di
 
 ## Tasks
 
-- [ ] **T1 — p1: Diff-Basis-Skript** (`tasks.d/p1-diff-base.md`)
-- [ ] **T2 — p2: Branch- und Delete-Spiegelung** (`tasks.d/p2-mirror-branches.md`)
-- [ ] **T3 — p3: sieben GitLab-Jobs** (`tasks.d/p3-gitlab-jobs.md`)
-- [ ] **T4 — p4: Runbook** (`tasks.d/p4-runbook.md`)
-- [ ] **T5 — p5: Guards** (`tasks.d/p5-tests.md`)
+- [x] **T1 — p1: Diff-Basis-Skript** (`tasks.d/p1-diff-base.md`)
+- [x] **T2 — p2: Branch- und Delete-Spiegelung** (`tasks.d/p2-mirror-branches.md`)
+- [x] **T3 — p3: sieben GitLab-Jobs** (`tasks.d/p3-gitlab-jobs.md`)
+- [x] **T4 — p4: Runbook** (`tasks.d/p4-runbook.md`)
+- [x] **T5 — p5: Guards** (`tasks.d/p5-tests.md`)
 
 - [ ] **T6 — Verifikation**
 

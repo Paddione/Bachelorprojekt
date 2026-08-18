@@ -2,7 +2,7 @@
 title: "fix-ci-failure-detection — Implementation Plan"
 ticket_id: T012239
 domains: [scripts]
-status: active
+status: completed
 file_locks:
   - scripts/devflow-ci-watch.sh
   - scripts/factory/babysit-prs.sh

@@ -1097,9 +1097,10 @@ brand-agnostisch) und wählt **genau einen** Kandidaten pro Aufruf (Concurrency 
 
 The system SHALL scan open pull requests via `gh pr list --state open --json
 number,headRefName,isDraft,mergeStateStatus,statusCheckRollup,author,labels`,
-treat only unambiguous `FAILURE` conclusions in `statusCheckRollup` as red (a
-`null`/pending conclusion SHALL NOT count as red), and select at most one
-candidate per invocation ordered by ascending PR number.
+treat only unambiguous `FAILURE`, `TIMED_OUT`, and `ERROR` conclusions in
+`statusCheckRollup` as red (a `null`/pending conclusion SHALL NOT count as
+red), and select at most one candidate per invocation ordered by ascending PR
+number.
 
 #### Scenario: Ein einziger roter PR wird gewählt
 - **GIVEN** two open non-draft PRs #40 and #42 both have a `statusCheckRollup` entry with `conclusion=FAILURE`
@@ -1110,6 +1111,16 @@ candidate per invocation ordered by ascending PR number.
 - **GIVEN** an open PR whose only `statusCheckRollup` entries have `conclusion=null` (pending)
 - **WHEN** `babysit-prs.sh` evaluates the candidate set
 - **THEN** the PR is skipped and the pass ends without selecting it (retried next tick)
+
+#### Scenario: TIMED_OUT zählt als rot
+- **GIVEN** an open non-draft PR whose `statusCheckRollup` has an entry with `conclusion=TIMED_OUT`
+- **WHEN** `babysit-prs.sh` runs one pass
+- **THEN** the PR SHALL be selected as a red candidate
+
+#### Scenario: ERROR zählt als rot
+- **GIVEN** an open non-draft PR whose `statusCheckRollup` has an entry with `conclusion=ERROR`
+- **WHEN** `babysit-prs.sh` runs one pass
+- **THEN** the PR SHALL be selected as a red candidate
 
 ### Requirement: PR-CI-Babysitter Filter- und Guard-Kette
 
@@ -5397,3 +5408,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (49e91b4a5282) -->
 
 <!-- merged from change delta software-factory.md (53c15a2effb7) -->
+
+<!-- merged from change delta software-factory.md (56dcb680a0a1) -->

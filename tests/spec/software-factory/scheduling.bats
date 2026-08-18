@@ -167,12 +167,55 @@ teardown() { _sf_teardown; }
   local brand="${TEST_BRAND:-korczewski}"
   e1=$(seed_real_feature "$brand" "tests/fixtures/sf-test-sched-$$-a.txt")
   e2=$(seed_real_feature "$brand" "tests/fixtures/sf-test-sched-$$-b.txt")
-  run env BRAND="$brand" FACTORY_GLOBAL_CAP=3 bash scripts/factory/schedule.sh
-  [ "$status" -eq 0 ]
-  # [T005309] Assertions filtern auf die gesehenen eigenen IDs (e1/e2) — keine
-  # globale Kandidatenzahl. Cleanup uebernimmt _sf_teardown (Registry).
-  echo "$output" | jq -e --arg e "$e1" 'any(.[]; .external_id == $e and (.slot|type=="number"))'
-  echo "$output" | jq -e --arg e "$e2" 'any(.[]; .external_id == $e and (.slot|type=="number"))'
+  # [T008757] Baseline-aware Caps statt harter FACTORY_GLOBAL_CAP=3: fremde
+  # in_progress-Tickets mit pipeline_slot auf der geteilten Dev-DB belegen
+  # Kapazitaet. Bounded retry (3 Versuche): fremde Sessions koennen zwischen
+  # Baseline-Messung und schedule.sh-Lauf Slots belegen (beobachtet im
+  # Parallelbetrieb) — jeder Versuch misst die Baseline FRISCH und setzt die
+  # Seeds zurueck, damit der Headroom (2 Slots fuer e1+e2) nur eigene Kandidaten
+  # abdeckt. base_used spiegelt die global_used-Rechnung aus schedule.sh (Summe
+  # der slots.sh count-Werte beider Brands); GLOBAL_CAP und SLOTS_PER_BRAND
+  # heben um den Headroom an.
+  local ns="${FACTORY_NS:-workspace}"
+  local pod
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
+  local attempt=0 plan last_status=0
+  while [ "$attempt" -lt 3 ]; do
+    attempt=$((attempt + 1))
+    # [T008757] Seed-Ranking: eigene Seeds auf priority='hoch' + created_at=2000-01-01,
+    # damit sie in queue.sh (ORDER BY priority, created_at) deterministisch vor fremden
+    # Kandidaten stehen und den Headroom erhalten. Status-Reset raeumt Bewegungen
+    # durch Ticker/watchdog zwischen den Versuchen weg.
+    kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+      psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1, status='backlog', priority='hoch', created_at='2000-01-01' WHERE external_id IN ('$e1','$e2');"
+    local base_used=0 n b
+    for b in mentolder korczewski; do
+      n=$(BRAND="$b" FACTORY_CTX="$FACTORY_CTX" bash scripts/factory/slots.sh count 2>/dev/null) || n=0
+      case "$n" in (''|*[!0-9]*) n=0 ;; esac
+      base_used=$((base_used + n))
+    done
+    local cap=$((base_used + 2))
+    local slots_per_brand=$((base_used + 2))
+    run env BRAND="$brand" FACTORY_GLOBAL_CAP="$cap" FACTORY_SLOTS_PER_BRAND="$slots_per_brand" bash scripts/factory/schedule.sh
+    last_status=$status
+    # [T008757] Plan-Extraktion ueber die LETZTE Zeile von $output: WARN-Zeilen
+    # fremder Kandidaten landen in $output VOR dem finalen Plan-JSON (BATS 1.x
+    # merged stderr; gleiches Muster wie FA-SF-26 watchdog, siehe [T005029]).
+    plan="$(printf '%s\n' "$output" | tail -n 1)"
+    # [T005309] Assertions filtern auf die gesehenen eigenen IDs (e1/e2) — keine
+    # globale Kandidatenzahl. Cleanup uebernimmt _sf_teardown (Registry).
+    if [ "$status" -eq 0 ] \
+      && echo "$plan" | jq -e --arg e "$e1" 'any(.[]; .external_id == $e and (.slot|type=="number"))' >/dev/null 2>&1 \
+      && echo "$plan" | jq -e --arg e "$e2" 'any(.[]; .external_id == $e and (.slot|type=="number"))' >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+  # [T008757] Alle Versuche fehlgeschlagen (fremde Dauersession oder echte
+  # Regression): letzter Lauf wird fuer Diagnose ausgegeben, Assertion wiederholt.
+  echo "FA-SF-25: schedule-test fehlgeschlagen nach $attempt Versuchen (letzter status=$last_status, base_used=$base_used, cap=$cap)" >&2
+  printf '%s\n' "$output" >&2
+  echo "$plan" | jq -e --arg e "$e1" 'any(.[]; .external_id == $e and (.slot|type=="number"))'
+  echo "$plan" | jq -e --arg e "$e2" 'any(.[]; .external_id == $e and (.slot|type=="number"))'
 }
 
 @test "FA-SF-25: global cap of 1 schedules at most one feature" {
@@ -183,17 +226,52 @@ teardown() { _sf_teardown; }
   local brand="${TEST_BRAND:-korczewski}"
   r1=$(seed_real_feature "$brand" "tests/fixtures/sf-test-cap-$$-a.txt")
   r2=$(seed_real_feature "$brand" "tests/fixtures/sf-test-cap-$$-b.txt")
-  run env BRAND="$brand" FACTORY_GLOBAL_CAP=1 bash scripts/factory/schedule.sh
-  [ "$status" -eq 0 ]
-  # [T005309] Globaler Cap-Test: die Zaehl-Aussage gilt fuer die Kandidatenmenge
-  # insgesamt, nicht fuer die eigenen IDs — ein Filter auf r1/r2 wuerde die
-  # Cap-Semantik verfaelschen. Dokumentierte Vorbedingung: saubere Dev-DB (keine
-  # fremden echten Backlog-Features mit hoeherem Rank). _sf_teardown purgt alle
-  # registrierten Seeds nach jedem Test, Ghost-Seeds aus Fehllauefen entstehen
-  # damit nicht mehr.
-  count=$(echo "$output" | jq 'length')
-  [ "$count" -ge 1 ]
-  [ "$count" -le 1 ]
+  # [T008757] Baseline-aware Cap mit Headroom 1 statt hartem FACTORY_GLOBAL_CAP=1:
+  # fremde belegte Slots der geteilten Dev-DB wuerden global_used >= CAP schon beim
+  # Loop-Eintritt machen und plan=[] erzwingen. Bounded retry (3 Versuche) wie im
+  # Test oben: frische Baseline + Seed-Reset pro Versuch gegen Slot-Belegungen
+  # fremder Sessions zwischen Baseline-Messung und schedule.sh-Lauf. Spiegel der
+  # global_used-Rechnung aus schedule.sh (Summe der slots.sh count-Werte beider
+  # Brands).
+  local ns="${FACTORY_NS:-workspace}"
+  local pod
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
+  local attempt=0 plan last_status=0
+  while [ "$attempt" -lt 3 ]; do
+    attempt=$((attempt + 1))
+    # [T008757] Seed-Ranking wie im Test oben (priority='hoch' + created_at=2000-01-01),
+    # damit r1/r2 in queue.sh vor fremden Kandidaten stehen. Status-Reset raeumt
+    # Bewegungen durch Ticker/watchdog zwischen den Versuchen weg.
+    kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+      psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1, status='backlog', priority='hoch', created_at='2000-01-01' WHERE external_id IN ('$r1','$r2');"
+    local base_used=0 n b
+    for b in mentolder korczewski; do
+      n=$(BRAND="$b" FACTORY_CTX="$FACTORY_CTX" bash scripts/factory/slots.sh count 2>/dev/null) || n=0
+      case "$n" in (''|*[!0-9]*) n=0 ;; esac
+      base_used=$((base_used + n))
+    done
+    local cap=$((base_used + 1))
+    local slots_per_brand=$((base_used + 1))
+    run env BRAND="$brand" FACTORY_GLOBAL_CAP="$cap" FACTORY_SLOTS_PER_BRAND="$slots_per_brand" bash scripts/factory/schedule.sh
+    last_status=$status
+    # [T008757] Plan-Extraktion ueber die letzte Zeile (WARN-Zeilen stehen davor).
+    plan="$(printf '%s\n' "$output" | tail -n 1)"
+    # [T008757] POSITIV-ANKER statt Intervall-Zaehlung: der einzige geplante Eintrag
+    # MUSS der eigene Seed r1 sein (Headroom 1 + Seed-Ranking). Das belegt die
+    # Cap-Semantik auch dann, wenn fremde Backlog-Kandidaten in der Queue stehen —
+    # die Vorbedingung "saubere Dev-DB" ist damit nicht mehr noetig. [T005309]
+    # _sf_teardown purgt alle registrierten Seeds nach jedem Test, Ghost-Seeds aus
+    # Fehllauefen entstehen damit nicht mehr.
+    if [ "$status" -eq 0 ] \
+      && echo "$plan" | jq -e --arg e "$r1" 'length == 1 and .[0].external_id == $e' >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+  # [T008757] Alle Versuche fehlgeschlagen (fremde Dauersession oder echte
+  # Regression): letzter Lauf wird fuer Diagnose ausgegeben, Assertion wiederholt.
+  echo "FA-SF-25: cap-test fehlgeschlagen nach $attempt Versuchen (letzter status=$last_status, base_used=$base_used, cap=$cap)" >&2
+  printf '%s\n' "$output" >&2
+  echo "$plan" | jq -e --arg e "$r1" 'length == 1 and .[0].external_id == $e'
 }
 
 # ── FA-SF-26-watchdog ───────────────────────────────────────────#

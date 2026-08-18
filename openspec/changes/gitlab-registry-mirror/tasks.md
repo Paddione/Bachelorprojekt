@@ -46,7 +46,7 @@ Die Partials sind dateidisjunkt. P3 traegt den RED-Schritt und laeuft zuletzt.
 
 ## Vorbedingung (einmalig, vor P1)
 
-- [ ] **GitLab-Token bereitstellen.** Project-Access-Token mit Scope
+- [ ] **GitLab-Token bereitstellen.** (OFFEN — Operator-Aktion, siehe Runbook 16.2.) Project-Access-Token mit Scope
       `write_registry` erzeugen und als GitHub-Secret `GITLAB_REGISTRY_TOKEN`
       hinterlegen — **getrennt** von `GITLAB_MIRROR_TOKEN` (D4).
 
@@ -55,26 +55,37 @@ Die Partials sind dateidisjunkt. P3 traegt den RED-Schritt und laeuft zuletzt.
       Datei-Umleitung setzen und danach einen Workflow-Lauf pruefen, nicht die
       Secret-Liste.
 
-## P1 — Dual-Push in den Build-Workflows
+## P1 — Spiegel-Schritt in den Build-Workflows
 
-- [ ] **Zweiten Registry-Login ergaenzen.** In jedem der zehn `build-*.yml`
-      hinter dem bestehenden `docker/login-action` fuer `ghcr.io` einen zweiten
-      Login-Schritt fuer `registry.gitlab.com` einfuegen, Action auf denselben
-      Digest gepinnt wie der bestehende Aufruf.
+> **Korrektur waehrend der Umsetzung.** Der Plan sah zunaechst vor, die
+> GitLab-Tags in die `tags:`-Liste des Build-Schritts aufzunehmen. Das ist
+> falsch: Die Tag-Liste ist atomar — ein GitLab-Ausfall oder ein fehlendes Token
+> haette damit den **primaeren** ghcr-Push umgerissen, und ohne gesetztes Secret
+> waeren alle neun Build-Workflows sofort rot gewesen. Die Redundanz haette die
+> Verfuegbarkeit gesenkt statt sie zu erhoehen. Umgesetzt ist deshalb ein
+> separater, nicht-blockierender Schritt.
 
-- [ ] **Tag-Liste erweitern.** In der `tags:`-Liste des
-      `docker/build-push-action`-Schritts zu jedem `ghcr.io/paddione/<img>:<tag>`
-      den korrespondierenden `registry.gitlab.com/<ns>/<projekt>/<img>:<tag>`
-      ergaenzen. Es bleibt bei **einem** Build-Schritt — beide Registries
-      erhalten denselben Digest.
+- [x] **Zentrales Spiegel-Skript.** `scripts/mirror-image-to-gitlab.sh` kopiert
+      die uebergebenen ghcr-Tags per `docker buildx imagetools create`
+      (serverseitig, kein Rebuild, gleicher Digest). Ohne
+      `GITLAB_REGISTRY_PREFIX`/`GITLAB_REGISTRY_TOKEN` endet es mit Exit 0 und
+      einer SKIP-Meldung.
 
-- [ ] **`renovate.yml` nicht anfassen.** Der Workflow referenziert ein
+- [x] **Spiegel-Schritt in den neun bauenden Workflows.** Jeweils nach dem
+      `docker/build-push-action`-Schritt, mit `continue-on-error: true` und der
+      wortgleich uebernommenen Tag-Liste als `SOURCE_TAGS`. Wo der Build-Schritt
+      ein bedingtes `push:` traegt, uebernimmt der Spiegel-Schritt dieselbe
+      Bedingung — sonst wuerde er bei PR-Laeufen ein Image spiegeln wollen, das
+      nie gepusht wurde.
+
+- [x] **`renovate.yml` nicht angefasst.** Der Workflow referenziert ein
       Fremd-Image (`ghcr.io/renovatebot/renovate`), das wir nicht bauen und
-      folglich nicht spiegeln. Er faellt nicht unter das Requirement.
+      folglich nicht spiegeln. `build-rustdesk-installer.yml` faellt aus
+      demselben Grund heraus: es nutzt kein `docker/build-push-action`.
 
 ## P2 — Artefakt-Spiegel und Cluster-Quelle
 
-- [ ] **`cosign copy` nach dem Signieren.** In `render-fleet-artifact.yml` nach
+- [x] **`cosign copy` nach dem Signieren.** In `render-fleet-artifact.yml` nach
       dem Schritt `Sign OCI artifact (cosign keyless)` einen Spiegel-Schritt
       ergaenzen:
 
@@ -89,21 +100,21 @@ cosign copy --force \
       Artefakt-Tag laesst sie zurueck. Der Spiegel waere unsigniert, und das
       faellt erst im Ausfall auf, wenn Flux ihn ablehnt (D2).
 
-- [ ] **Zweite OCIRepository anlegen.** `flux/clusters/fleet/oci-source-gitlab.yaml`
+- [x] **Zweite OCIRepository anlegen.** `flux/clusters/fleet/oci-source-gitlab.yaml`
       als Kopie von `oci-source.yaml` mit `suspend: true`, GitLab-URL und
       `secretRef: gitlab-registry-auth`. Der `verify`-Block wird **wortgleich**
       uebernommen — dieselbe Issuer- und Subject-Regex. Das ist der Punkt, an
       dem der Spiegel seinen Wert beweist: dieselbe Policy akzeptiert ihn, weil
       die Signatur am Digest haengt (D1).
 
-- [ ] **Pull-Secret sealen.** Deploy-Token mit `read_registry` als
+- [ ] **Pull-Secret sealen.** (OFFEN — braucht ein echtes Deploy-Token vom Operator.) Deploy-Token mit `read_registry` als
       `gitlab-registry-auth` nach dem Muster von `ghcr-auth` sealen
       (`task env:seal ENV=mentolder`). Kein Deployment referenziert es, solange
       nicht umgeschaltet wird.
 
 ## P3 — Guards und Runbook (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** `tests/spec/ci-cd/gitlab-registry-mirror.bats`
+- [x] **Failing-Test-Step (RED).** `tests/spec/ci-cd/gitlab-registry-mirror.bats`
       anlegen, mit je einem Test pro Requirement: (a) jeder `build-*.yml`, der
       nach `ghcr.io` pusht, traegt auch eine `registry.gitlab.com`-Tag-Zeile;
       (b) `render-fleet-artifact.yml` enthaelt `cosign copy` und **kein**
@@ -119,7 +130,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/gitlab-registry-mirror.bats
 # expected: FAIL (rot — Dual-Push, cosign copy und die zweite Quelle fehlen noch)
 ```
 
-- [ ] **Runbook-Abschnitt (GREEN).** `docs/runbooks/gitlab-runner.md` um §16
+- [x] **Runbook-Abschnitt (GREEN).** `docs/runbooks/gitlab-runner.md` um §16
       "Registry-Failover" ergaenzen: Umschalten (`fleet-manifests-gitlab`
       entsuspendieren, `sourceRef` der Kustomizations umhaengen),
       **Zuruecknehmen** als gleichwertiger Schritt, und der ausdrueckliche
@@ -127,7 +138,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/gitlab-registry-mirror.bats
       entstehen — der Spiegel traegt Rollout und Rollback bereits gebauter
       Staende, nicht mehr (D1).
 
-- [ ] **Test gruen.** Derselbe BATS-Lauf wie oben muss nun bestehen.
+- [x] **Test gruen.** Derselbe BATS-Lauf wie oben muss nun bestehen.
 
 ## Final Verification
 

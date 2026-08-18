@@ -2,23 +2,43 @@
 
 ### Requirement: Build-Artefakte werden in eine zweite Registry gespiegelt
 
-The system SHALL push every container image that it publishes to `ghcr.io` to a
-second registry (`registry.gitlab.com`) under the same tags, within the same
-workflow run that built it. The mirror SHALL reuse the artifact already built —
-it SHALL NOT rebuild the image for the second registry.
+The system SHALL mirror every container image it publishes to `ghcr.io` into a
+second registry (`registry.gitlab.com`), within the same workflow run that built
+it. The mirror SHALL reuse the artifact already built — it SHALL NOT rebuild the
+image for the second registry.
 
-#### Scenario: Build-Workflow pusht in beide Registries
+The mirror SHALL run as a **separate, non-blocking step** after the `ghcr.io`
+push, never as additional entries in the build step's `tags:` list. The tag list
+is atomic: a GitLab tag inside it would tie the primary `ghcr.io` push to
+GitLab's availability, so an outage of the secondary registry — or a missing
+token — would break the primary path. Redundancy must not lower the availability
+of the path it protects.
 
-- **GIVEN** a build workflow under `.github/workflows/` that pushes an image to `ghcr.io`
-- **WHEN** the workflow's push step is inspected
-- **THEN** its tag list contains at least one `registry.gitlab.com/` reference alongside the `ghcr.io/` references
-- **AND** the workflow authenticates against `registry.gitlab.com` via `docker/login-action` using the `GITLAB_REGISTRY_TOKEN` secret
+#### Scenario: Build-Workflow ruft den Spiegel-Schritt auf
+
+- **GIVEN** a build workflow under `.github/workflows/` that uses `docker/build-push-action`
+- **WHEN** the workflow's steps are inspected
+- **THEN** a step invoking `scripts/mirror-image-to-gitlab.sh` follows the build step
+- **AND** that step carries `continue-on-error: true`
+
+#### Scenario: Fehlende Konfiguration faerbt keinen Build rot
+
+- **GIVEN** neither `GITLAB_REGISTRY_PREFIX` nor `GITLAB_REGISTRY_TOKEN` is configured
+- **WHEN** the mirror step runs
+- **THEN** it reports that the mirror is not configured and exits 0
+- **AND** the `ghcr.io` push of the same workflow is unaffected
 
 #### Scenario: Kein zweiter Build für die zweite Registry
 
 - **GIVEN** a build workflow that publishes to both registries
 - **WHEN** its build steps are counted
 - **THEN** the image is built exactly once and both registries receive the same digest
+
+#### Scenario: Fremd-Images werden nicht gespiegelt
+
+- **GIVEN** `.github/workflows/renovate.yml`, which references the third-party image `ghcr.io/renovatebot/renovate`
+- **WHEN** the workflow is inspected
+- **THEN** it contains no mirror step, because the repository does not build that image
 
 ### Requirement: Das signierte OCI-Artefakt wird mitsamt Signatur gespiegelt
 

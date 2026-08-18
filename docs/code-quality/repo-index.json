@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1098,
+      "file_count": 1099,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -479,6 +479,7 @@
         "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
         "tests/spec/ci-cd/gitlab-pipeline-check.bats",
         "tests/spec/ci-cd/gitlab-registry-cache.bats",
+        "tests/spec/ci-cd/gitlab-registry-mirror.bats",
         "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
         "tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats",
         "tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats",
@@ -3518,7 +3519,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 760,
+      "file_count": 761,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4074,6 +4075,7 @@
         "scripts/migrate-projects-to-tickets.mjs",
         "scripts/migrate-superpowers.sql",
         "scripts/migrate.sh",
+        "scripts/mirror-image-to-gitlab.sh",
         "scripts/mishap-categorize.sh",
         "scripts/mishap-keywords.json",
         "scripts/one-shot/2026-07-21-feature-product-backfill-mapping.json",

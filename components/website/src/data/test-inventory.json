@@ -2694,6 +2694,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-registry-mirror",
+    "file": "tests/spec/ci-cd/gitlab-registry-mirror.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-runner-fleet-guardrails",
     "file": "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
     "category": "ci-cd",

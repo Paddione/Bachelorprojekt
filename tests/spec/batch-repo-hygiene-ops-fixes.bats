@@ -174,8 +174,7 @@ case "\$args" in
   *"--json state -q .state") echo "OPEN" ;;
   *"checks --watch"*) touch "$MARKER_DIR/watch-called"; exit 0 ;;
   *"--json headRefOid -q .headRefOid"*) echo "\$HEAD_SHA" ;;
-  *"--json headRefOid,statusCheckRollup"*)
-    jq -c '. as \$p | \$p.statusCheckRollup[] | select(.headSha == \$p.headRefOid) | select((.conclusion // "") == "FAILURE" or (.conclusion // "") == "TIMED_OUT") | (.name // .context // "unknown") + ": " + (.detailsUrl // .targetUrl // "")' "$WORK/rollup.json" 2>/dev/null || true ;;
+  *"check-runs"*"failure"*) cat "$WORK/check-runs-failures.txt" 2>/dev/null || true ;;
   *"run list --branch"*) cat "$WORK/runs.json" 2>/dev/null || echo '[]' ;;
   *"actions/runs/"*"/jobs"*) cat "$WORK/jobs-count.txt" 2>/dev/null || echo "1" ;;
   *"check-runs"*"total_count"*) echo "3" ;;
@@ -187,18 +186,16 @@ GH_EOF
 
 @test "T003225 Positiv-Anker: nur Checks des aktuellen head-SHA zählen (fremde head-SHAs = grün)" {
   _setup_ciwatch "aaaa1111"
-  cat > "$WORK/rollup.json" <<'JSON'
-{"headRefOid":"aaaa1111","statusCheckRollup":[
-  {"headSha":"ffff9999","conclusion":"FAILURE","name":"alter-check","detailsUrl":"u1"},
-  {"headSha":"ffff9999","conclusion":"TIMED_OUT","name":"alter-check-2","detailsUrl":"u2"}
-]}
-JSON
+  # T012239: die check-runs-API des PR-HEAD liefert per URL-Bindung nur Checks
+  # DIESES Commits — fremde head-SHAs kommen dort gar nicht vor. Leere Antwort = grün.
+  echo -n "" > "$WORK/check-runs-failures.txt"
   echo '[]' > "$WORK/runs.json"
   echo "1" > "$WORK/jobs-count.txt"
   run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$PROJECT_DIR/scripts/devflow-ci-watch.sh" T999999 "https://github.com/x/y/pull/1"
   [ "$status" -eq 0 ] || { echo "unerwarteter Exit $status: $output"; false; }
-  # Die vom Skript an gh übergebene Query MUSS den headSha-Filter enthalten
-  grep -q 'headSha == \$p.headRefOid' "$MARKER_DIR/gh-calls" || { echo "headSha-Filter fehlt in gh-Query: $(cat "$MARKER_DIR/gh-calls")"; false; }
+  # Die check-runs-Abfrage MUSS an den PR-HEAD gebunden sein — sonst zählen
+  # wieder Checks Vorgänger-Commits mit.
+  grep -q "commits/$HEAD_SHA/check-runs" "$MARKER_DIR/gh-calls" || { echo "check-runs-Abfrage fehlt (keine HEAD-Bindung): $(cat "$MARKER_DIR/gh-calls")"; false; }
   printf '%s\n' "$output" | grep -q "alle grün" || { echo "fremde head-SHAs wurden als Fehler gewertet: $output"; false; }
 }
 
@@ -216,11 +213,9 @@ JSON
 
 @test "T003224: aggregierter failure-Run ohne failure-Jobs (cancelled/skipped) ist kein Codefehler" {
   _setup_ciwatch "aaaa1111"
-  cat > "$WORK/rollup.json" <<'JSON'
-{"headRefOid":"aaaa1111","statusCheckRollup":[
-  {"headSha":"aaaa1111","conclusion":"FAILURE","name":"ci","detailsUrl":"u1"}
-]}
-JSON
+  # T012239: FAILED_CHECKS kommt aus der check-runs-API des PR-HEAD — der
+  # aggregierte Check meldet failure (Rot-Signal), die Gegenprobe greift.
+  echo "ci: u1" > "$WORK/check-runs-failures.txt"
   # Run am aktuellen HEAD meldet failure, aber 0 Jobs mit conclusion=failure
   cat > "$WORK/runs.json" <<'JSON'
 [{"databaseId":42,"headSha":"aaaa1111","status":"completed","conclusion":"failure"}]

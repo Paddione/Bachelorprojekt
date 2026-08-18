@@ -89,7 +89,9 @@ CANDIDATES=$(echo "$PRS_JSON" | jq -c --arg renovate_ok "$RENOVATE_OK" '
       )
     | select(
         (.mergeStateStatus == "CONFLICTING")
-        or ((.statusCheckRollup // []) | any(.conclusion == "FAILURE"))
+        or ((.statusCheckRollup // []) | any(
+              .conclusion == "FAILURE" or .conclusion == "TIMED_OUT" or .conclusion == "ERROR"
+            ))
       )
   ] | sort_by(.number)')
 

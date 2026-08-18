@@ -4055,14 +4055,14 @@
   ],
   "T011907": [
     {
-      "slug": "gitlab-ci-testserie-fixes",
-      "status": "plan_staged"
+      "slug": "2026-08-18-gitlab-ci-testserie-fixes",
+      "status": "archived"
     }
   ],
   "T012177": [
     {
-      "slug": "gitlab-ci-k8s-runner-cache",
-      "status": "plan_staged"
+      "slug": "2026-08-18-gitlab-ci-k8s-runner-cache",
+      "status": "archived"
     }
   ],
   "T012239": [
@@ -4103,8 +4103,8 @@
   ],
   "T012267": [
     {
-      "slug": "fix-gitlab-pipeline-check",
-      "status": "plan_staged"
+      "slug": "2026-08-18-fix-gitlab-pipeline-check",
+      "status": "archived"
     }
   ],
   "TBD": [

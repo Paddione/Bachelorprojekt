@@ -2610,6 +2610,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/e2e-project-selection",
+    "file": "tests/spec/ci-cd/e2e-project-selection.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
     "category": "ci-cd",

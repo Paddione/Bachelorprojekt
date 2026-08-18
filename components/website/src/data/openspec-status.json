@@ -4065,6 +4065,12 @@
       "status": "archived"
     }
   ],
+  "T012242": [
+    {
+      "slug": "fix-ciwatch-failedchecks-empty",
+      "status": "plan_staged"
+    }
+  ],
   "T012243": [
     {
       "slug": "2026-08-18-finalizer-plan-ref-whitespace",

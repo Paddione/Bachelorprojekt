@@ -1,0 +1,86 @@
+# k3d/gitlab-runner-stack/values/gitlab-runner.yaml
+# Eingabe fuer `task gitlab-runner:render` — nicht direkt gegen den Cluster
+# anwenden, das gerenderte gitlab-runner-rendered.yaml ist die Wahrheit.
+gitlabUrl: https://gitlab.com/
+
+# Der Runner-Manager selbst braucht sein ServiceAccount-Token, um ueber die Role
+# aus rbac.rules Job-Pods zu erzeugen — das ist ein anderer Mechanismus als die
+# Job-Pod-Absicherung unten (specs/ci-cd.md, Requirement "CI-Jobs erhalten keinen
+# Cluster-Zugriff"). automountServiceAccountToken templated in runners.config als
+# [runners.kubernetes] automount_service_account_token = false und wirkt dort auf
+# die vom Manager erzeugten Job-Pods, NICHT auf den Manager-Pod selbst.
+automountServiceAccountToken: false
+
+rbac:
+  create: true
+  # Namespaced Role statt ClusterRole — Requirement "RBAC fuer den Runner-Manager
+  # SHALL be a namespaced Role, never a ClusterRole" (specs/ci-cd.md).
+  clusterWideAccess: false
+  rules:
+    - resources: ["pods"]
+      verbs: ["get", "list", "watch", "create", "delete"]
+    - resources: ["pods/log"]
+      verbs: ["get"]
+
+# nodeAffinity statt nodeSelector (p1, Aufgabe 4): ein simples Label-Map kann kein
+# ODER ueber zwei Hostnamen ausdruecken. Gleiche Form wie
+# prod-fleet/mentolder/kustomization.yaml:67-71, nur mit den Worker- statt den
+# CP-Hostnamen.
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values: [gekko-hetzner-3, gekko-hetzner-4]
+
+# PriorityClass aus p1 — der Manager-Pod selbst zaehlt genauso zur CI-Last wie die
+# Job-Pods, die er erzeugt (design.md D2 nennt "Runner und Job-Pods" gemeinsam).
+priorityClassName: ci-low
+
+podSecurityContext:
+  runAsNonRoot: true
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+runners:
+  # Kubernetes-Executor statt Docker — Design D1: eigene Hardware, eigener Ort.
+  executor: kubernetes
+  # Dasselbe Tag wie der Desktop-Runner (Design D5) — GitLab routet ueber die
+  # verbleibenden Runner, kein Variablenwechsel bei Ausfall eines der beiden.
+  tags: [bachelorprojekt-local]
+  # Kein RUN_UNTAGGED — wie beim Docker-Runner (docs/runbooks/gitlab-runner.md
+  # Abschnitt 3.2): sonst zieht dieser Runner auch Jobs an, die eigentlich in die
+  # Cloud ausweichen sollen.
+  runUntagged: false
+  config: |
+    [[runners]]
+      [runners.kubernetes]
+        namespace = "gitlab-runner"
+        image = "ubuntu:24.04"
+        privileged = false
+        service_account = "default"
+        automount_service_account_token = false
+        # Siehe Runbook "Registry-Anbindung" — dieses Feld existiert im
+        # Kubernetes-Executor NICHT als Pull-Through-Ziel; hier absichtlich nur
+        # namespace/image/privileged/service_account/priority_class_name gesetzt.
+        priority_class_name = "ci-low"
+        pull_policy = ["if-not-present"]
+        [runners.kubernetes.node_affinity]
+          [[runners.kubernetes.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms]]
+            [[runners.kubernetes.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_expressions]]
+              key = "kubernetes.io/hostname"
+              operator = "In"
+              values = ["gekko-hetzner-3", "gekko-hetzner-4"]

@@ -2718,6 +2718,21 @@ tasks:
           > k3d/monitoring/kube-prometheus-stack-rendered.yaml
         echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
 
+  gitlab-runner:render:
+    desc: "Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade)."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add gitlab https://charts.gitlab.io 2>/dev/null || true
+        helm repo update gitlab
+        helm template gitlab-runner gitlab/gitlab-runner \
+          --namespace gitlab-runner \
+          -f k3d/gitlab-runner-stack/values/gitlab-runner.yaml \
+          > k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml
+        echo "✓ Rendered to k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml — review the diff and commit."
+
   loki:render:
     desc: "Pre-render Loki + promtail Helm charts to committed YAML (additive to monitoring:render). Renders the DEV values baseline; prod layers patches via prod/monitoring."
     preconditions:

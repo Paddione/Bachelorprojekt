@@ -1534,3 +1534,17 @@ setup_vars:
   - name: PVE_HOSTS
     required: false
     description: "Comma-separated IPs of the Proxmox cluster hosts"
+
+  # ── GitLab-CI Etappe 2: K8s-Runner auf fleet (T012177) ───────────────────────
+  # glrt-Authentication-Token fuer den zweiten self-hosted Runner (Kubernetes-
+  # Executor, Namespace gitlab-runner). owner_brand: [mentolder] ist ein
+  # willkuerlicher Anker — der Namespace gehoert zu keinem Brand, aber das
+  # Sealing-Zertifikat ist pro Cluster (fleet), nicht pro Brand gueltig.
+  - name: GITLAB_RUNNER_TOKEN
+    required: false
+    sealed: true
+    description: "glrt-Authentication-Token fuer den fleet-GitLab-Runner (Kubernetes-Executor, Tag bachelorprojekt-local)"
+    extra_namespaces:
+      - namespace: gitlab-runner
+        secret: gitlab-runner-secret
+        owner_brand: [mentolder]

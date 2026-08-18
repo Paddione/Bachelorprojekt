@@ -4842,6 +4842,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/babysit-prs-ci-never-ran",
+    "file": "tests/spec/software-factory/babysit-prs-ci-never-ran.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",

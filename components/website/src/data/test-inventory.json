@@ -2538,6 +2538,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-unknown-ticket-merged-pr",
+    "file": "tests/spec/ci-cd/branch-reaper-unknown-ticket-merged-pr.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/cfr-trend-window",
     "file": "tests/spec/ci-cd/cfr-trend-window.bats",
     "category": "ci-cd",

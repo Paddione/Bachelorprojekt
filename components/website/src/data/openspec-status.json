@@ -3969,6 +3969,12 @@
       "status": "archived"
     }
   ],
+  "T008014": [
+    {
+      "slug": "fix-devflow-post-merge-finalize-worktree-path",
+      "status": "plan_staged"
+    }
+  ],
   "T008016": [
     {
       "slug": "2026-08-16-sdlc-leitstand-e4-livedaten",

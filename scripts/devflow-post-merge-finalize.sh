@@ -120,16 +120,21 @@ mark_ok "Schritt 2: Branch=$BRANCH"
 SLUG=""
 [[ -n "$PLAN_FILE" ]] && SLUG="$(basename "$(dirname "$PLAN_FILE")" 2>/dev/null || true)"
 [[ -z "$SLUG" ]] && SLUG="$(echo "$BRANCH" | sed -E 's/^(feature|fix|chore)\///; s/-T[0-9]{6,}$//')"
-# Resolve worktree via git worktree list (suffix match) — worktrees have -T<id> suffix
+# Resolve worktree via git worktree list (branch-exact match) — Worktree-Dirs
+# heiessen <branch-ohne-Typ-Praefix>-T<id> (z.B. devflow-post-merge-finalize-
+# worktree-path-T008014 fuer fix/devflow-post-merge-finalize-worktree-path-T008014)
+# ODER <slug>-T<id>; der Branch (Schritt 2, Pflicht) identifiziert den Worktree
+# eindeutig, unabhaengig von der Verzeichnis-Konvention (T008014). Der Slug-
+# Kandidat deckt Worktrees ohne -T<id>-Suffix ab (z.B. nach `git worktree move`).
 WORKTREE=""
 _wt_candidate="$REPO_DIR/.worktrees/$SLUG"
 if [[ -d "$_wt_candidate" ]]; then
   WORKTREE="$_wt_candidate"
 else
-  # Try suffix match: <slug>-T<id>
-  WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v slug="$SLUG" '
+  # Branch-exact: refs/heads/$BRANCH dem Worktree zuordnen
+  WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
     /^worktree / { wt=$2 }
-    /^branch / && wt ~ slug "-T[0-9]+$" { print wt; found=1; exit }
+    /^branch / && $0 == "branch " b { print wt; found=1; exit }
     END { if (!found) exit 1 }
   ' 2>/dev/null || true)"
 fi

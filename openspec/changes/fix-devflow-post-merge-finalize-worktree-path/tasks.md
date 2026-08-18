@@ -18,7 +18,13 @@ Two bugs in `scripts/devflow-post-merge-finalize.sh` cause incorrect skips durin
 
 ### Task 1: Fix worktree path resolution (Line 118-123)
 
-Replace slug-based concatenation with `git worktree list` suffix-match:
+Replace slug-based concatenation with `git worktree list` branch-exact match.
+Umsetzungs-Erkenntnis (T008014, Live-Test): Worktree-Dirs heißen
+`<branch-ohne-Typ-Praefix>-T<id>` (z.B. `devflow-post-merge-finalize-worktree-
+path-T008014` für Branch `fix/devflow-post-merge-finalize-worktree-path-T008014`)
+ODER `<slug>-T<id>` — der Slug kann einen Typ-Präfix tragen, den das Dir nicht
+hat. Der Branch (Schritt 2, Pflicht) identifiziert den Worktree eindeutig,
+unabhängig von der Verzeichnis-Konvention:
 
 ```bash
 # Current (broken):
@@ -31,16 +37,16 @@ WORKTREE="$REPO_DIR/.worktrees/$SLUG"
 SLUG=""
 [[ -n "$PLAN_FILE" ]] && SLUG="$(basename "$(dirname "$PLAN_FILE")" 2>/dev/null || true)"
 [[ -z "$SLUG" ]] && SLUG="$(echo "$BRANCH" | sed -E 's/^(feature|fix|chore)\///; s/-T[0-9]{6,}$//')"
-# Resolve worktree via git worktree list (suffix match) — worktrees have -T<id> suffix
+# Resolve worktree via git worktree list (branch-exact match)
 WORKTREE=""
 _wt_candidate="$REPO_DIR/.worktrees/$SLUG"
 if [[ -d "$_wt_candidate" ]]; then
   WORKTREE="$_wt_candidate"
 else
-  # Try suffix match: <slug>-T<id>
-  WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v slug="$SLUG" '
+  # Branch-exact: refs/heads/$BRANCH dem Worktree zuordnen
+  WORKTREE="$(git -C "$REPO_DIR" worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '
     /^worktree / { wt=$2 }
-    /^branch / && wt ~ slug "$" { print wt; found=1; exit }
+    /^branch / && $0 == "branch " b { print wt; found=1; exit }
     END { if (!found) exit 1 }
   ' 2>/dev/null || true)"
 fi
@@ -62,13 +68,14 @@ elif [[ ! -s "$PLAN_FILE" ]] && ! git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DI
 
 ### Task 3: Verify both fixes
 
-- Test worktree resolution with a slug that has `-T<id>` suffix
-- Test cat-file with an absolutized plan path
-- Run `bash -n scripts/devflow-post-merge-finalize.sh` for syntax check
+- [x] Live: Branch-exact-Zuordnung findet `.worktrees/devflow-post-merge-finalize-worktree-path-T008014` (realer Porcelain-Output, 2026-08-18)
+- [x] Live: `git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}"` findet den committeten Plan; die alte absolute Form schlägt fehl (2026-08-18)
+- [x] `bash -n scripts/devflow-post-merge-finalize.sh` (Exit 0)
+- [x] Guard-Tests: `tests/spec/agent-skills/post-merge-finalize-guards.bats` 12/12 grün
 
 ## Acceptance Criteria
 
-- [ ] `WORKTREE` resolves correctly for worktrees with `-T<id>` suffix
-- [ ] `git cat-file -e "$BRANCH:${PLAN_FILE#*/}"` succeeds for committed plan files
-- [ ] `bash -n scripts/devflow-post-merge-finalize.sh` passes syntax check
-- [ ] Existing behavior preserved for worktrees without `-T<id>` suffix (fallback)
+- [x] `WORKTREE` resolves correctly for worktrees with `-T<id>` suffix
+- [x] `git cat-file -e "$BRANCH:${PLAN_FILE#*/}"` succeeds for committed plan files
+- [x] `bash -n scripts/devflow-post-merge-finalize.sh` passes syntax check
+- [x] Existing behavior preserved for worktrees without `-T<id>` suffix (fallback)

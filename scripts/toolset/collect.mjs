@@ -16,7 +16,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import yaml from 'js-yaml';
+import * as yamlPkg from 'js-yaml';
+const yaml = yamlPkg.default ?? yamlPkg;
 import { readClaudeCodeConfig, readOpencodeConfig, readAgyConfig } from './lib/harness.mjs';
 import { loadRegistry } from './lib/registry.mjs';
 

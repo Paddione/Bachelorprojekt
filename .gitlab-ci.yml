@@ -1,0 +1,158 @@
+# .gitlab-ci.yml — GitLab-CI-Spiegel (Etappe 1, T011790)
+#
+# Sekundaere, nicht blockierende Verifikation neben GitHub Actions. GitHub Actions
+# bleibt die einzige Quelle fuer Merge-Entscheidungen; kein hier definierter Job ist
+# irgendwo als Required Check hinterlegt. Details:
+#   openspec/specs/ci-cd.md
+#   openspec/changes/gitlab-ci-migration-stage1/design.md
+#   docs/runbooks/gitlab-runner.md (Betrieb, Fallback-Umschaltung)
+#
+# Diese Pipeline erhaelt Pushes ausschliesslich ueber den Mirror-Workflow
+# (.github/workflows/mirror-to-gitlab.yml), der `main` spiegelt. Ein Diff gegen
+# `main` selektiert dort nichts, deshalb laufen hier die vollen Testmengen statt
+# der GitHub-seitigen Diff-Auswahl (task test:changed / dessen Alias test:all).
+
+stages:
+  - test
+
+variables:
+  # Fallback-Mechanismus (design.md D2): jeder Job routet ueber diese Variable statt
+  # ueber einen hartkodierten Tag. Vorgabewert ist der self-hosted Runner; im
+  # Stoerfall in der GitLab-Projekt-UI auf saas-linux-small-amd64 umstellen —
+  # Projekt-Variablen haben Vorrang vor dieser Datei-Variable. Siehe
+  # docs/runbooks/gitlab-runner.md.
+  CI_RUNNER_TAG: "bachelorprojekt-local"
+  # Einzige Fundstelle der gitleaks-Version. Der Paritaets-Guard
+  # (tests/spec/ci-cd/gitlab-tool-parity.bats) liest sie aus und vergleicht sie
+  # gegen .github/workflows/ci.yml — ein Versions-Bump ohne Gegenstueck faellt auf.
+  GITLEAKS_VERSION: "8.18.2"
+
+bats-unit:
+  stage: test
+  # node:22 statt eines schlanken Images: 33 der Dateien unter tests/unit/ brauchen
+  # node/npm/npx, 11 python3, 10 jq, 16 das task-Binary (gemessen per grep -rl gegen
+  # tests/unit/). Der GitHub-Gegenpart (test-bats in ci.yml) installiert Node 22, npm ci
+  # und arduino/setup-task — dieser Job muss dieselbe TOOLCHAIN mitbringen, sonst
+  # spiegelt er nicht das Verhalten, sondern nur die Existenz der Suite.
+  #
+  # WICHTIG (Review-Befund, T011790): Toolchain-Paritaet ist NICHT Testmengen-Paritaet.
+  # test-bats auf GitHub laeuft diff-skopiert (scripts/find-changed-tests.sh); kubectl-
+  # abhaengige Tests liegen dort im separaten Job test-manifests, der einzige mit
+  # kubectl. Dieser Job hat KEIN kubectl — die kubectl-abhaengigen Dateien werden
+  # deshalb unten explizit ausgeschlossen, nicht per zusaetzlicher Toolinstallation
+  # hereingezogen (das wuerde die Job-Aufteilung des Repos unterlaufen, die genau
+  # dafuer existiert, dass test-bats OHNE kubectl auskommt).
+  image: node:22
+  tags: [$CI_RUNNER_TAG]
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 jq ca-certificates curl >/dev/null
+    # Separater Download-Schritt mit curl --fail (wie im manifests-Job): "-ssL" ist
+    # zweimal --silent statt -sS, unterdrueckt also die Fehlermeldung, UND der
+    # Exit-Code eines fehlschlagenden curl innerhalb von "$(...)" geht in der
+    # Kommandosubstitution verloren — ein toter Host liesse den Schritt trotzdem
+    # gruen durchlaufen, mit fehlendem task-Binary (16 Testdateien brauchen es).
+    - curl --fail -sSL https://taskfile.dev/install.sh -o /tmp/install-task.sh
+    - sh /tmp/install-task.sh -b /usr/local/bin
+    - task --version
+    - npm ci
+    - bash scripts/ci-dummy-secrets.sh
+  script:
+    - |
+      set -euo pipefail
+      # Ausschlussliste statt Werkzeug-Nachinstallation (Review-Entscheidung, T011790):
+      # sieben dieser Dateien rufen `kubectl kustomize` in setup_file() auf. Das ist
+      # kein "skip" bei fehlendem kubectl, sondern ein harter Abbruch — siehe
+      # dead-node-affinity.bats:22-24 woertlich: "FATAL: kubectl fehlt — diese Datei
+      # gehoert in den test-manifests-Job." Genau dorthin gehoeren sie auch hier: der
+      # manifests-Job unten hat kubectl und faehrt sechs von ihnen (changed-manifests.bats
+      # ist zusaetzlich diff-basiert, design.md D4, und deshalb NIRGENDS auf main-Push
+      # sinnvoll). tests/unit/.coverage-allowlist dokumentiert dieselbe Zuordnung fuer
+      # den GitHub-Offline-Gate.
+      #
+      # T000617-alert-rules.bats kommt aus einem zweiten Grund dazu, ungleich der
+      # anderen sieben: sein einzelner kubectl-Test (Zeile 44/45, "k3d/monitoring
+      # kustomize builds") ruft `kubectl kustomize` DIREKT im Testkoerper auf, nicht in
+      # setup_file() — deshalb bricht nicht die ganze Datei ab (kein "setup_file
+      # failed"), sondern nur dieser eine Test schlaegt fehl. Bei einer vollen
+      # Job-PATH-Nachstellung (ohne kubectl) faellt das trotzdem auf: 1 von 8 Tests
+      # dieser Datei braucht kubectl real, ohne Skip-Guard (anders als der
+      # promtool/yq-Test zwei @test-Bloecke darueber). Auch diese Datei zieht deshalb in
+      # den manifests-Job — ihre uebrigen Tests (Alertmanager/Prometheus-Rules-Struktur)
+      # laufen dort unveraendert mit.
+      EXCLUDE_KUBECTL_SETUP="tests/unit/dead-node-affinity.bats tests/unit/manifests.bats tests/unit/knowledge-ingest-schema.bats tests/unit/knowledge-ingest-bugs-schema.bats tests/unit/knowledge-ingest-manifest.bats tests/unit/newsletter-scheduled-publish.bats tests/unit/changed-manifests.bats tests/unit/T000617-alert-rules.bats"
+      # tests/unit/*.bats direkt statt "-r tests/unit/": eine Rekursion zieht auch
+      # tests/unit/lib/bats-core/docs/examples/package-tarball.bats mit — vier
+      # Fremdtests aus dem vendored bats-core, die nicht zur Repo-Suite gehoeren.
+      # tests/unit/factory/ und tests/unit/scripts/ tragen eigene Repo-Tests und
+      # werden deshalb explizit dazugenommen.
+      FILES=""
+      for f in tests/unit/*.bats tests/unit/factory/*.bats tests/unit/scripts/*.bats; do
+        excluded=0
+        for ex in $EXCLUDE_KUBECTL_SETUP; do
+          if [ "$f" = "$ex" ]; then
+            excluded=1
+            break
+          fi
+        done
+        [ "$excluded" -eq 0 ] && FILES="$FILES $f"
+      done
+      # Bewusstes Wortsplitting einer Dateipfadliste: keine der Dateien im Repo
+      # enthaelt Leerzeichen (gleiches Muster wie $CHANGED_FILES im GitHub-Job
+      # test-bats, ci.yml).
+      # shellcheck disable=SC2086
+      ./tests/unit/lib/bats-core/bin/bats $FILES --formatter tap | tee /tmp/bats-tap.log
+      total="$(grep -m1 -oE '^1\.\.[0-9]+' /tmp/bats-tap.log | grep -oE '[0-9]+$' || echo 0)"
+      # Leerer Lauf gilt als Fehlschlag (design.md D4) — der Mirror pusht main, eine
+      # Diff-Auswahl gegen main selektiert dort die leere Menge, und ein grüner Lauf
+      # ohne einen einzigen ausgefuehrten Test waere die gefaehrlichste Ausprägung
+      # dieser Pipeline.
+      if [ "${total:-0}" -eq 0 ]; then
+        echo "ERROR: 0 Tests ausgefuehrt — leerer Lauf gilt als Fehlschlag"
+        exit 1
+      fi
+      echo "Ausgefuehrte Tests: ${total}"
+
+manifests:
+  stage: test
+  image: ubuntu:24.04
+  tags: [$CI_RUNNER_TAG]
+  variables:
+    KUBECTL_VERSION: "v1.31.0"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates python3 jq >/dev/null
+    - curl --fail -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+    - chmod +x /usr/local/bin/kubectl
+  script:
+    # tests/unit/changed-manifests.bats bleibt bewusst aussen vor: der Test ist
+    # diff-basiert und hat auf einem main-Mirror-Push keinen Bezugspunkt (design.md D4).
+    # python3 und jq sind Pflicht: dead-node-affinity.bats ruft python3 -c auf,
+    # manifests.bats setzt jq voraus.
+    #
+    # knowledge-ingest-{schema,bugs-schema,manifest}.bats und
+    # newsletter-scheduled-publish.bats rufen ebenfalls `kubectl kustomize` in
+    # setup_file() auf (Review-Befund, T011790) — sie gehoeren strukturell hierher,
+    # nicht in bats-unit (siehe dortiger Kommentar).
+    #
+    # T000617-alert-rules.bats: sein kubectl-Test sitzt im Testkoerper statt in
+    # setup_file(), hat aber keinen Skip-Guard (anders als der promtool/yq-Test in
+    # derselben Datei) — bei einer vollen Job-PATH-Nachstellung ohne kubectl faellt
+    # er sonst als einzelner "not ok". Gehoert aus demselben Grund wie die vier
+    # obigen hierher statt in bats-unit.
+    - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/dead-node-affinity.bats tests/unit/knowledge-ingest-schema.bats tests/unit/knowledge-ingest-bugs-schema.bats tests/unit/knowledge-ingest-manifest.bats tests/unit/newsletter-scheduled-publish.bats tests/unit/T000617-alert-rules.bats
+
+gitleaks:
+  stage: test
+  image: ubuntu:24.04
+  tags: [$CI_RUNNER_TAG]
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates >/dev/null
+    - curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz -C /usr/local/bin gitleaks
+    - chmod +x /usr/local/bin/gitleaks
+  script:
+    - |
+      set -euo pipefail
+      if ! gitleaks detect --config .gitleaks.toml --no-git --redact; then
+        echo "ERROR: gitleaks detected potential secrets — see findings above"
+        exit 1
+      fi
+      echo "No secrets detected by gitleaks"

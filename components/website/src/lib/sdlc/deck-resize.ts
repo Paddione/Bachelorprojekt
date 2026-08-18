@@ -23,10 +23,13 @@ export function clampDeckWidth(px: number | undefined): number {
 }
 
 /**
- * Berechnet die Deck-Leiste-Breite aus der Pointer-Position beim Drag: die
- * Leiste sitzt am rechten Rand, also Breite = innerWidth - clientX,
- * geklemmt auf den erlaubten Bereich.
+ * Berechnet die Deck-Leiste-Breite aus der Pointer-Position beim Drag:
+ * Breite = rechte Panel-Kante - clientX, geklemmt auf den erlaubten
+ * Bereich. Gerechnet wird gegen die eigene Geometrie der Leiste
+ * (getBoundingClientRect().right), NICHT gegen window.innerWidth — das
+ * enthaelt die vertikale Scrollbar, wodurch die gezogene Kante bei
+ * sichtbarer Seiten-Scrollbar hinter dem Cursor herliefe (T011500).
  */
-export function widthFromPointer(clientX: number, innerWidth: number): number {
-  return clampDeckWidth(innerWidth - clientX);
+export function widthFromPointer(clientX: number, rightEdge: number): number {
+  return clampDeckWidth(rightEdge - clientX);
 }

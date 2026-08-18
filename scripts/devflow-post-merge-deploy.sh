@@ -3,6 +3,29 @@
 # Aus dev-flow-execute Schritt 8 extrahiert (Chore T001007).
 set -u
 
+# T009368: Merge-Commit-Selektion als eigene Funktion, damit BATS sie gegen ein
+# temp-Git-Repo laufen lassen kann (Output-Verifikation, T002448-M4).
+# Semantik: neuester Commit auf origin/main mit [TICKET_ID] im Subject, AUSSER
+# OpenSpec-Archiv-Commits (chore(plans): archive ...). Ein Archiv-Commit traegt
+# die Ticket-ID ebenfalls im Subject, enthaelt aber nur openspec/changes/archive/-
+# Pfade und fuehrte sonst zu "Keine bekannten Deploy-Trigger" ohne Deploy-Phase-
+# Event (beobachtet T008017: getroffen 673f14a48 statt Feature-Merge abda93f9a).
+# Nicht nutzbar: --all-match + --invert-match — "matcht nicht beide Patterns"
+# schliesst auch Commits ohne Ticket-ID ein (semantisch falsch).
+select_merge_commit() {
+  local repo="${1:?repo erforderlich}"
+  local ticket_id="${2:?ticket_id erforderlich}"
+  git -C "$repo" log origin/main --format="%H %s" --grep="\\[${ticket_id}\\]" 2>/dev/null \
+    | grep -vE ' chore\(plans\): archive ' \
+    | head -1 \
+    | awk '{print $1}'
+}
+
+# Beim Sourcing (BATS-Funktionstest) nur die Funktionen bereitstellen.
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  return 0
+fi
+
 TICKET_ID="${1:-}"
 if [ -z "$TICKET_ID" ]; then
   echo "FEHLER: TICKET_ID erforderlich — Usage: devflow-post-merge-deploy.sh T00XXXX" >&2
@@ -21,9 +44,11 @@ esac
 # zwischen Merge und HEAD liefert `-1` den falschen Commit.
 # M7 (T002506): `--merges` gestrichen — das Repo squasht PRs (1 Parent),
 # `--merges` wuerde nur echte Merge-Commits (≥2 Parents) finden und schliesst
-# den Squash-Commit aus. Der `--grep`-Match auf "[TICKET_ID]" identifiziert
-# den Squash-Commit bereits eindeutig.
-MERGE_COMMIT=$(git log origin/main --format="%H %s" --grep="\\[${TICKET_ID}\\]" -1 2>/dev/null | awk '{print $1}')
+# den Squash-Commit aus.
+# T009368: `select_merge_commit` filtert zusaetzlich die Archiv-Commit-Klasse
+# heraus — deren Subject traegt die Ticket-ID ebenfalls und kaeme sonst als
+# neuester Treffer zurueck (siehe Funktionskommentar oben).
+MERGE_COMMIT=$(select_merge_commit . "$TICKET_ID")
 if [[ -z "$MERGE_COMMIT" ]]; then
   echo "FEHLER: Kein Merge-Commit fuer Ticket ${TICKET_ID} auf origin/main gefunden." >&2
   exit 3

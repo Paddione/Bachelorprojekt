@@ -39,8 +39,9 @@ setup() {
 }
 
 # T2 -- Kernfelder: Routen mit path/methods/backend, MCP-Server-Liste deckt
-# sich mit der Registry, 7 factory-mcp-Tools (design.md S5).
-@test "api-inventory: core fields present, mcp count matches registry, 7 factory tools" {
+# sich mit der Registry, factory-mcp-Tools zaehlen gegen dieselbe Regex-Quelle
+# wie der Scanner (kein harter Count -- T007968).
+@test "api-inventory: core fields present, mcp count matches registry, factory tools count matches source" {
   command -v node >/dev/null 2>&1 || skip "node not installed"
   out="$BATS_TEST_TMPDIR/inv.json"
   API_INVENTORY_OUT="$out" run node scripts/sdlc/api-inventory.mjs
@@ -53,9 +54,16 @@ setup() {
   registry_n=$(awk '/^clients:/{f=1;next} f && /^[a-z]/{exit} f && /^  [a-zA-Z0-9_-]+:$/{n++} END{print n+0}' \
     docs/agent-guide/registry/mcp.yaml)
   [ "$(jq '.mcpServers | length' "$out")" -eq "$registry_n" ]
-  # factory-mcp-Tools: 7 lt. design.md S5 (openspec_find_similar, factory_ask,
-  # factory_enqueue, factory_queue, factory_recent, factory_status, factory_trigger)
-  [ "$(jq '.factoryTools | length' "$out")" -eq 7 ]
+  # factory-mcp-Tools: Count gegen dieselbe Regex-Quelle wie der Scanner
+  # (scripts/sdlc/api-inventory.mjs scanFactoryMcpTools) -- kein harter Count,
+  # robust beim naechsten legitimen Tool-Zuwachs (T007968).
+  factory_n=$(node -e '
+    const fs = require("fs");
+    const src = fs.readFileSync("scripts/factory/mcp-go/main.go", "utf8");
+    const re = /Name:\s*"([^"]+)",\s*\n\s*Description:\s*"([^"]+)"/g;
+    process.stdout.write(String([...src.matchAll(re)].length));
+  ')
+  [ "$(jq '.factoryTools | length' "$out")" -eq "$factory_n" ]
 }
 
 # T3 -- Deterministisch sortiert, keine Zeitstempel.

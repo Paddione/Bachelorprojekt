@@ -36,18 +36,24 @@
 
   $effect(() => {
     if (!selected) { ciChecks = []; ciRollup = null; return; }
-    let cancelled = false;
+    // T008721/M5: AbortController statt cancelled-Flag — das Flag liess zwischen
+    // `await r.json()` und der Zuweisung eine out-of-order-Aufloesung durch
+    // (schnelle Selektion A→B: Antwort A ueberschrieb B).
+    const controller = new AbortController();
     (async () => {
       try {
-        const r = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(selected)}/ci`, { credentials: 'same-origin' });
-        if (r.ok && !cancelled) {
+        const r = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(selected)}/ci`, {
+          credentials: 'same-origin',
+          signal: controller.signal,
+        });
+        if (r.ok) {
           const d = await r.json();
           ciChecks = d.checks ?? [];
           ciRollup = d.rollup ?? null;
         }
       } catch { /* CI stays empty on error */ }
     })();
-    return () => { cancelled = true; };
+    return () => controller.abort();
   });
 </script>
 

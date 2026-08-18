@@ -2616,6 +2616,36 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-mirror-workflow",
+    "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-parallel-non-blocking",
+    "file": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-setup-dryrun",
+    "file": "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-tag-routing",
+    "file": "tests/spec/ci-cd/gitlab-runner-tag-routing.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-tool-parity",
+    "file": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",
@@ -2814,6 +2844,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-e2e",
+    "file": "tests/spec/dev-flow-e2e.bats",
+    "category": "dev-flow-e2e",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-execute",
     "file": "tests/spec/dev-flow-execute.bats",
     "category": "dev-flow-execute",
@@ -2954,6 +2990,12 @@
   {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
+    "category": "devflow-selection-archive-hardening",
+    "kind": "shell"
+  },
+  {
+    "id": "devflow-selection-archive-hardening/merge-commit-selection",
+    "file": "tests/spec/devflow-selection-archive-hardening/merge-commit-selection.bats",
     "category": "devflow-selection-archive-hardening",
     "kind": "shell"
   },
@@ -4278,6 +4320,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-structure/spec-suite-website-leak",
+    "file": "tests/spec/repo-structure/spec-suite-website-leak.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
     "id": "repo-structure/website-moved",
     "file": "tests/spec/repo-structure/website-moved.bats",
     "category": "repo-structure",
@@ -4418,6 +4466,18 @@
   {
     "id": "sdlc-cockpit/deck-resize",
     "file": "tests/spec/sdlc-cockpit/deck-resize.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-freeze-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-handle-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -4580,6 +4640,12 @@
   {
     "id": "sdlc-cockpit/redesign-struktur",
     "file": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/sdlc-leitstand-tokens",
+    "file": "tests/spec/sdlc-cockpit/sdlc-leitstand-tokens.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -4764,6 +4830,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-e2e-pipeline-coverage",
+    "file": "tests/spec/software-factory/factory-e2e-pipeline-coverage.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/factory-model-id-default",
     "file": "tests/spec/software-factory/factory-model-id-default.bats",
     "category": "software-factory",
@@ -4788,8 +4860,26 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-already-running",
+    "file": "tests/spec/software-factory/opencode-exec-already-running.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-binary-resolution",
     "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-pr-step",
+    "file": "tests/spec/software-factory/opencode-exec-pr-step.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-prerun-shortcircuit",
+    "file": "tests/spec/software-factory/opencode-exec-prerun-shortcircuit.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4892,6 +4982,12 @@
   {
     "id": "software-factory/update-status-id-allowlist-T002906",
     "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/wakeup-pull-loud-failure",
+    "file": "tests/spec/software-factory/wakeup-pull-loud-failure.bats",
     "category": "software-factory",
     "kind": "shell"
   },

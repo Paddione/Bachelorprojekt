@@ -19,7 +19,7 @@
 //      sufficient).
 //
 // Cleanup is automatic: globalSetup/globalTeardown both POST
-// /api/admin/systemtest/purge-all-test-data, which (after PR #608) sweeps
+// /sdlc/api/systemtest/purge-all-test-data, which (after PR #608) sweeps
 // inbox_items WHERE is_test_data=true. Even if this spec aborts mid-flight,
 // the next run's globalSetup wipes the seeded row.
 //

@@ -39,7 +39,7 @@ test.describe('[factory-qs-abnahme-loop] QS-Abnahme-Flow', () => {
   });
 
   test('[factory-qs-abnahme-loop] ingest-e2e Endpoint antwortet mit 401 ohne Token', async ({ request }) => {
-    const resp = await request.post(`${WEBSITE_URL}/api/admin/tests/ingest-e2e`, {
+    const resp = await request.post(`${WEBSITE_URL}/sdlc/api/tests/ingest-e2e`, {
       data: { suites: [], stats: { startTime: new Date().toISOString(), duration: 0, expected: 0, unexpected: 0, skipped: 0 } },
       headers: { 'Content-Type': 'application/json' },
     });
@@ -48,7 +48,7 @@ test.describe('[factory-qs-abnahme-loop] QS-Abnahme-Flow', () => {
 
   test('[factory-qs-abnahme-loop] ingest-e2e Endpoint akzeptiert validen Payload mit Token', async ({ request }) => {
     test.skip(!process.env.E2E_INGEST_TOKEN, 'E2E_INGEST_TOKEN nicht gesetzt');
-    const resp = await request.post(`${WEBSITE_URL}/api/admin/tests/ingest-e2e`, {
+    const resp = await request.post(`${WEBSITE_URL}/sdlc/api/tests/ingest-e2e`, {
       data: {
         suites: [],
         stats: { startTime: new Date().toISOString(), duration: 100, expected: 0, unexpected: 0, skipped: 0 },

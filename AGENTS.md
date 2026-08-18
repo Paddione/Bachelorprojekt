@@ -12,8 +12,8 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 |-------|-------|----------|
 | `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`gemma12`) sequentially (llm-proxy serializes at max_inflight=1) |
 | `gptoss` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local bulk work. **Der Name lügt über das Modell seit T003204** — `gptoss-context` ist abgeschaltet, der Name bleibt als Dispatch-Schnittstelle. `write=deny`, `edit=allow` |
-| `devstral` | `llamacpp-local/gemma26-factory` (Gemma 4 26B A4B IQ4_XS, :8091) | Local work. **Name lügt über das Modell seit T003204** — `devstral-quality` war in allen Dimensionen dominiert und ist abgeschaltet |
-| `gemma` | `llamacpp-local/gemma26-factory` (Gemma 4 26B A4B IQ4_XS, :8091) | Local work, gemma family |
+| `devstral` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local work. **Name lügt über das Modell seit T003204** — `devstral-quality` war in allen Dimensionen dominiert und ist abgeschaltet |
+| `gemma` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local work, gemma family |
 | `gemma12` | `llamacpp-local/gemma12-vision` (Gemma 4 12B QAT + mmproj-F16, :8089) | Local work, 262144 ctx — größter lokaler Kontext und einziges vision-fähiges Loadout. Seit T003204 per `task` dispatchbar |
 | `gemma26-primary` | `llamacpp-local/gemma26-factory`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
 | `gemma26-vision` | `llamacpp-local/gemma26-factory`, `mode: primary` | Max local context (161024, measured), no subagent dispatch. **No vision** — gemma26-factory loads no mmproj (loadouts.json); vision is on `gemma12-vision` only |

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1080,
+      "file_count": 1081,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -384,6 +384,7 @@
         "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
         "tests/spec/agent-skills/devflow-worktree-cwd-guard.bats",
         "tests/spec/agent-skills/executor-post-merge-death.bats",
+        "tests/spec/agent-skills/finalize-worktree-branch-validation.bats",
         "tests/spec/agent-skills/guard-semantics-konvention.bats",
         "tests/spec/agent-skills/messung-mit-befehl.bats",
         "tests/spec/agent-skills/plugin-activation.bats",

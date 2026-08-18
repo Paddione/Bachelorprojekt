@@ -32,6 +32,10 @@ Empfehlung: Assertions anpassen (Low effort, bewahrt Testabdeckung).
 
 Empfehlung: Belassen — E4 wird sie brauchen.
 
+**Entscheidung (T008721):** Belassen. Header-Kommentar in `leitstand-metrics.ts`
+dokumentiert: kein Produktions-Import bis E4-Observability die Z1-Statusband-
+Livedaten verdrahtet; vitest-Test bleibt der einzige Konsument.
+
 ### Task 3: Async-Races beheben
 
 DetailPanel-$effect-Fetch und DeckWissen-OpenSpec-Suche ohne AbortController — out-of-order-Auflösung bei schneller Selektion.
@@ -45,6 +49,6 @@ return () => controller.abort();
 
 ## Acceptance Criteria
 
-- [ ] fa-58 Assertions passen neuen Titel "SDLC Leitstand"
-- [ ] Async-Races mit AbortController behoben
-- [ ] leitstand-metrics.ts Entscheidung dokumentiert
+- [x] fa-58 Assertions passen neuen Titel "SDLC Leitstand"
+- [x] Async-Races mit AbortController behoben
+- [x] leitstand-metrics.ts Entscheidung dokumentiert

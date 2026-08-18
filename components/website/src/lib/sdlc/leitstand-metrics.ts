@@ -1,3 +1,8 @@
+// T008721 (E3-Review-Follow-up, M3): Bewusst OHNE Produktions-Import —
+// ausschliesslich vitest-abgedeckt (__tests__/leitstand-metrics.test.ts).
+// E4-Entscheidung: die Z1-Statusband-Livedaten kommen erst mit
+// E4-Observability; diese Datei wird dann verdrahtet. Bis dahin weder
+// entfernen (E4 braucht sie) noch importieren (toter Produktionscode).
 import { formatCycleTime } from './factory-metrics-derive';
 import type { DerivedMetrics } from './factory-metrics-derive';
 

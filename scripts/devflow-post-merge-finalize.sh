@@ -91,13 +91,34 @@ if [[ -z "$TICKET_JSON" ]] || ! grep -q '"external_id"' <<<"$TICKET_JSON"; then
   echo "ERROR: Schritt 1 — Ticket $TICKET_ID nicht gefunden (ticket.sh get lieferte keine Daten)." >&2
   exit 1
 fi
+# json_field: fuer Werte OHNE bedeutungstragende Leerzeichen (status, type, ...).
+# Die sed-Klasse [:space:] entfernt jedes Leerzeichen aus dem Wert — fuer diese
+# Felder folgenlos, fuer zusammengesetzte Werte NICHT. Wer ein Feld ergaenzt,
+# dessen Wert Leerzeichen tragen kann, nimmt json_field_raw.
 json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)
   echo "$2" | grep -o "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 \
     | sed "s/\"$1\"//;s/[:\"[:space:]]//g" || true
 }
+# [T012243] json_field_raw: erhaelt Leerzeichen IM Wert. Nur die JSON-Syntax um
+# den Wert herum wird abgetragen (Feldname, Doppelpunkt, umschliessende Quotes),
+# der Inhalt bleibt unangetastet.
+#
+# Pflicht fuer plan_ref: der Wert hat die Form
+#   "FACTORY-PLAN-REF branch=<b> plan=<p>"
+# Mit json_field verschmolzen beide Felder zu einem Token, und die Extraktion
+# `grep -oE 'branch=[^ ]+'` unten lieferte "<b>plan=<p>" statt "<b>". Der
+# korrupte Branchname liess die branch-exakte Worktree-Aufloesung (Schritt 10)
+# ins Leere laufen: sie meldete "bereits entfernt", waehrend Worktree und Branch
+# liegen blieben — und zwar mit Exit 0, weil der Fehlschlag als [skip] auftrat.
+# Betraf jeden Aufruf ohne explizites --branch, also den Regelpfad aus
+# dev-flow-execute.
+json_field_raw() { # $1 = Feldname, $2 = JSON-Text
+  echo "$2" | grep -o "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 \
+    | sed "s/^\"$1\"[[:space:]]*:[[:space:]]*\"//; s/\"$//" || true
+}
 TICKET_STATUS="$(json_field status "$TICKET_JSON")"
 TICKET_TYPE="$(json_field type "$TICKET_JSON")"
-PLAN_REF="$(json_field plan_ref "$TICKET_JSON")"
+PLAN_REF="$(json_field_raw plan_ref "$TICKET_JSON")"
 mark_ok "Schritt 1: Ticket geladen (status=$TICKET_STATUS, type=$TICKET_TYPE)"
 
 # Schritt 2 — Branch bestimmen: --branch-Flag, sonst FACTORY-PLAN-REF aus der

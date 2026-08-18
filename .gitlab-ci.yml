@@ -339,7 +339,16 @@ factory-shard:
     GO_VERSION: "1.26.4"
     YQ_VERSION: "4.53.3"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 python3-yaml gettext-base jq ca-certificates curl >/dev/null
+    # GNU parallel ist Pflicht, kein Komfort: task test:spec:changed startet die
+    # Auswahl mit `bats -j $(nproc)`, und bats delegiert die Parallelisierung an
+    # `parallel`. Fehlt es, meldet bats zuerst den Plan (`1..1159`) und fuehrt dann
+    # NULL Tests aus — belegt in Job 15957957469: "parallel: command not found" plus
+    # "bats warning: Executed 0 instead of expected 1159 tests". Der Lauf wird davon
+    # rot (bats faengt es ab), aber das ist Glueck, nicht Absicherung: eine leere
+    # Ausfuehrung, die als bestanden zaehlt, ist genau der Fehlschlag, gegen den die
+    # Etappe-1-Regel "leerer Lauf gilt als Fehlschlag" geschrieben wurde.
+    # ubuntu-latest auf GitHub bringt parallel vorinstalliert mit, node:22 nicht.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 python3-yaml gettext-base jq ca-certificates curl parallel >/dev/null
     # yq: mikefarah v4, NICHT das gleichnamige apt-Paket — dieselbe Begruendung
     # wie im bats-unit-Job oben.
     - curl --fail -sSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq

@@ -187,3 +187,54 @@ PY
   echo "$output"
   [ "$status" -eq 0 ]
 }
+
+@test "gitlab-job-coverage: Jobs mit paralleler BATS-Ausfuehrung installieren GNU parallel" {
+  # Belegter Fehlschlag (T012405, GitLab-Job 15957957469): `task test:spec:changed`
+  # ruft `bats -j $(nproc)`, bats delegiert die Parallelisierung an GNU `parallel`.
+  # Im node:22-Image fehlt es. Die Folge war NICHT "Job bricht beim Aufruf ab",
+  # sondern:
+  #     1..1159
+  #     parallel: command not found
+  #     bats warning: Executed 0 instead of expected 1159 tests
+  #
+  # Also: Plan angekuendigt, null Tests gefahren. Bats faengt das ab und wird rot —
+  # aber darauf darf sich niemand verlassen, denn es ist die eine Fehlerform, die
+  # als Erfolg durchgehen KANN. Die Etappe-1-Regel "leerer Lauf gilt als
+  # Fehlschlag" ist fuer genau diesen Fall geschrieben; dieser Guard zieht sie auf
+  # die Werkzeugseite vor, wo der Fehler entsteht.
+  #
+  # ubuntu-latest auf GitHub bringt parallel vorinstalliert mit — deshalb faellt
+  # die Abhaengigkeit dort nie auf und ist auf der GitLab-Seite leicht zu vergessen.
+  run python3 - "$GL_YML" <<'PY'
+import sys, yaml
+with open(sys.argv[1]) as fh:
+    doc = yaml.safe_load(fh) or {}
+
+RESERVED = {"stages", "variables", "default", "workflow", "include",
+            "image", "before_script", "after_script"}
+
+checked, problems = 0, []
+for name, job in doc.items():
+    if name in RESERVED or name.startswith(".") or not isinstance(job, dict):
+        continue
+    setup = yaml.safe_dump(job.get("before_script") or [])
+    body  = yaml.safe_dump(job.get("script") or [])
+    both  = setup + body
+    # Braucht der Job parallele bats-Ausfuehrung? Entweder direkt via `bats -j`
+    # oder mittelbar ueber ein task-Target, das es tut.
+    needs_parallel = ("bats -j" in both) or ("test:spec" in both) or ("test:changed" in both)
+    if not needs_parallel:
+        continue
+    checked += 1
+    if "parallel" not in setup:
+        problems.append(f"{name}: faehrt bats parallel, installiert GNU parallel aber nicht")
+
+print(f"Anker: Jobs mit paralleler BATS-Ausfuehrung = {checked}")
+for p in problems:
+    print("FEHLT:", p)
+# Anker: findet der Test gar keinen solchen Job, stimmt seine Erkennung nicht mehr.
+sys.exit(1 if (problems or checked == 0) else 0)
+PY
+  echo "$output"
+  [ "$status" -eq 0 ]
+}

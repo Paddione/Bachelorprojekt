@@ -323,6 +323,44 @@
       "exclusiveGroup": "chat-gpu"
     },
     {
+      "slug": "qwen3-coder-30b",
+      "enabled": false,
+      "label": "Qwen3-Coder-30B-A3B UD-IQ3_XXS (Familientraeger \"qwen\")",
+      "model": "qwen3coder30/Qwen3-Coder-30B-A3B-Instruct-UD-IQ3_XXS.gguf",
+      "port": 8094,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 64,
+        "minCtx": 8192
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": "q4_0",
+        "cacheTypeV": "q4_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null,
+        "temperature": 0.7,
+        "topP": 0.8,
+        "topK": 20
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [],
+      "notes": "UD-IQ3_XXS, 11,9 GB auf Platte. fitt 64 bei q4_0 KV gibt 96.000 Kontext. Sampling nach Modellkarte: temp 0.7, topP 0.8, topK 20. ABGESCHALTET seit T003204 (enabled: false): gleicher VRAM-Fussabdruck wie gemma26-factory bei weit aggressiverer Quantisierung (UD-IQ3_XXS statt nativem Format), weniger Kontext (96.000 vs 161.024), gemessen nur 47,9 tok/s unter Konkurrenz, einziger Anspruch 'agentische Tiefe' ohne Messung.",
+      "exclusiveGroup": "chat-gpu"
+    },
+    {
       "slug": "brain-ingest",
       "label": "gpt-oss-20b - Brain-Ingest-Pool",
       "model": "gptoss20/gpt-oss-20b-UD-Q4_K_XL.gguf",

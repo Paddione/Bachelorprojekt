@@ -33,8 +33,18 @@ setup() {
   [ -f "$CI" ]
   [ -n "$BATS_UNIT_BLOCK" ]
   [ -n "$MANIFESTS_BLOCK" ]
-  printf '%s' "$BATS_UNIT_BLOCK" | grep -qF -e 'image: node:22'
-  printf '%s' "$MANIFESTS_BLOCK" | grep -qF -e 'image: ubuntu:24.04'
+  # [T012899] Geprueft wird die TOOLCHAIN-Familie, nicht der Image-Literal.
+  # Bis #4823 standen hier 'node:22' und 'ubuntu:24.04'. Dieser PR stellte auf
+  # vorgebaute CI-Images um (ci-node22 / ci-ubuntu, ~75s Setup-Ersparnis je Job),
+  # zog den Guard aber nicht nach. Aufgefallen ist das erst jetzt, weil der
+  # gleichzeitig eingebrachte Anker-Defekt die ganze Datei unparsebar machte und
+  # dieser Test schon vorher aus einem anderen Grund rot war.
+  #
+  # Auf die Familie zu pruefen statt auf den Literal haelt die Zusicherung am
+  # Zweck: der Job muss node22 bzw. ubuntu mitbringen. Ein erneuter Wechsel des
+  # Bezugswegs (Registry, Tag) bricht den Guard dann nicht wieder.
+  printf '%s' "$BATS_UNIT_BLOCK" | grep -qE 'image:.*(node:22|ci-node22)'
+  printf '%s' "$MANIFESTS_BLOCK" | grep -qE 'image:.*(ubuntu:24\.04|ci-ubuntu)'
 }
 
 @test "T012309: bats-unit installiert PyYAML (python3-yaml)" {

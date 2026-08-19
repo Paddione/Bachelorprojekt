@@ -34,6 +34,23 @@ variables:
   # Paritaets-Guard als "nur GitLab gepinnt" und nicht als Divergenz.
   TRIVY_VERSION: "0.74.0"
 
+# ── Gemeinsame Job-Bausteine ─────────────────────────────────────────────────
+#
+# Diese Definition steht bewusst VOR dem ersten Job. YAML loest Anker beim
+# Parsen von oben nach unten auf: ein `<<: *gl_defaults` oberhalb der
+# Definition macht die ganze Datei ungueltig, nicht nur den einen Job. Genau
+# das passierte, als build-ci-images (T012411) oberhalb der damaligen
+# Definition eingefuegt wurde — GitLab konnte die Pipeline nicht mehr lesen
+# und der Paritaets-Guard fiel in jedem PR gegen main (T012901).
+#
+# Wer hier einen neuen Anker ergaenzt, setzt ihn ebenfalls in diesen Block.
+.gl_defaults: &gl_defaults
+  tags: [$CI_RUNNER_TAG]
+  # Bei mehreren Pushes hintereinander bricht GitLab die ueberholte Pipeline ab,
+  # statt den Runner mit veralteten Staenden zu belegen. Auf einem Runner, der
+  # laut Etappe-2-Messung 2-3x langsamer ist als SaaS, ist das kein Feinschliff.
+  interruptible: true
+
 # ── Prebuilt CI Images (T012411) ────────────────────────────────────────────
 # Vorgebaute Images eliminieren ~75s Setup-Zeit pro Job (apt-get, curl-Downloads).
 # Quelle: .gitlab-ci-images/*.Dockerfile, scripts/build-ci-images.sh
@@ -66,13 +83,9 @@ build-ci-images:
 # Warum Anker statt Wiederholung je Job: dieselbe Anti-Duplikations-Entscheidung
 # wie bei CI_RUNNER_TAG in Etappe 1. Eine Toolchain, die an sieben Stellen steht,
 # driftet an sieben Stellen.
-
-.gl_defaults: &gl_defaults
-  tags: [$CI_RUNNER_TAG]
-  # Bei mehreren Pushes hintereinander bricht GitLab die ueberholte Pipeline ab,
-  # statt den Runner mit veralteten Staenden zu belegen. Auf einem Runner, der
-  # laut Etappe-2-Messung 2-3x langsamer ist als SaaS, ist das kein Feinschliff.
-  interruptible: true
+#
+# Die Definition von .gl_defaults steht weiter oben, direkt hinter variables —
+# siehe die Begruendung dort.
 
 # Laeuft auf main (Vollmenge), auf Arbeits-Branches und in MR-Pipelines.
 # Die Unterscheidung Vollmenge/Diff-Auswahl trifft NICHT diese Regel, sondern der

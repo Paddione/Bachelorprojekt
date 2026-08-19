@@ -33,8 +33,14 @@ setup() {
   [ -f "$CI" ]
   [ -n "$BATS_UNIT_BLOCK" ]
   [ -n "$MANIFESTS_BLOCK" ]
-  printf '%s' "$BATS_UNIT_BLOCK" | grep -qF -e 'image: node:22'
-  printf '%s' "$MANIFESTS_BLOCK" | grep -qF -e 'image: ubuntu:24.04'
+  # Geprueft wird, DASS jeder Job an ein Image gebunden ist — nicht, welches.
+  # Bis T012411 stand hier der Bildname woertlich ('image: node:22',
+  # 'image: ubuntu:24.04'). Die Umstellung auf vorgebaute Registry-Images
+  # (ci-node22, ci-ubuntu) machte den Test rot, ohne dass ein Defekt vorlag:
+  # er mass die Darstellung statt der Zusicherung (T002716). Ob die noetige
+  # Toolchain wirklich da ist, pruefen die Tests darunter.
+  printf '%s' "$BATS_UNIT_BLOCK" | grep -qE '^[[:space:]]*image:[[:space:]]*\S'
+  printf '%s' "$MANIFESTS_BLOCK" | grep -qE '^[[:space:]]*image:[[:space:]]*\S'
 }
 
 @test "T012309: bats-unit installiert PyYAML (python3-yaml)" {

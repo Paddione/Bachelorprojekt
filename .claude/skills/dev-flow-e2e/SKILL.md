@@ -216,18 +216,31 @@ manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als re
    cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" ./node_modules/.bin/playwright test \
      specs/k8-headed-verify.spec.ts --headed --project website
    ```
-3. **Optional — Vision-gestützte Verifikation:** Screenshots aus dem Testlauf an den bereits
-   laufenden mmproj-Vision-Server senden und die Antwort (UI-Elemente, Text, Positionierung
-   korrekt?) ins Testergebnis einbetten. Port **8094** ist der bevorzugte dedizierte Endpunkt,
-   **8091** der Rückfall (das Loadout `gemma26-factory` führt `mmprojPath`). Wähle den
-   verfügbaren Endpunkt mit:
+3. **Optional — Vision-gestützte Verifikation:** Screenshots aus dem Testlauf an das lokale
+   vision-fähige Loadout senden und die Antwort (UI-Elemente, Text, Positionierung korrekt?)
+   ins Testergebnis einbetten. Der Weg führt über den **llm-proxy auf `127.0.0.1:18235`** mit
+   dem Modellalias **`gemma12-vision`**:
    ```bash
-   curl -s -m 3 http://localhost:8094/v1/models >/dev/null && echo "8094 (dediziert)" \
-     || { curl -s -m 3 http://localhost:8091/v1/models >/dev/null && echo "8091 (Rueckfall)" \
-          || echo "kein Vision-Endpunkt — Punkt 3 ueberspringen"; }
+   curl -sf -m 3 http://127.0.0.1:18235/v1/models | grep -q gemma12-vision \
+     && echo "Vision verfuegbar" \
+     || echo "kein Vision-Endpunkt — Punkt 3 ueberspringen"
    ```
-   Ist kein Endpunkt erreichbar, überspringe Punkt 3 — die Verifikation bleibt optional und
-   blockiert den Ablauf nicht.
+   **Nicht direkt auf Port 8089 prüfen.** Der llama.cpp-Server läuft auf dem Windows-GPU-Host
+   und ist aus WSL nicht erreichbar (`curl localhost:8089` liefert HTTP-Code 000, der Proxy
+   liefert 200). Der Proxy ist zugleich die Stelle, an der `max_inflight=3` durchgesetzt wird.
+
+   > **Bis T012781 stand hier Port 8094 mit 8091 als Rückfall.** Beides war wirkungslos: 8094
+   > hat in `scripts/llm/loadouts.json` keinen Eintrag, und das Loadout auf 8091
+   > (`gemma26-factory`) trägt in seinen eigenen `notes` den Satz „Kein mmproj". Weil die Stufe
+   > Fehler nur als Annotation notiert, ist das jahrelang nicht aufgefallen.
+
+   Ist der Endpunkt nicht erreichbar, überspringe Punkt 3 — die Verifikation bleibt optional und
+   blockiert den Ablauf nicht. Unterscheide dabei „Proxy antwortet nicht" (Proxy starten) von
+   „Proxy antwortet, Alias fehlt" (Backend-Zeile anlegen:
+   `scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql`) — die Abhilfe ist eine andere.
+
+   Für einen **breiten** vision-geurteilten Durchgang über alle Routen statt einer Einzelprüfung:
+   `task test:e2e:visual-sweep:vision` (T012781, report-only, kein CI-Gate).
 4. **Kein Abbruch bei Fehler:** Diese Stufe informiert den Agenten, blockiert aber nicht den
    Merge- oder Deploy-Flow — sie läuft grundsätzlich erst nach Merge/Deploy (Schritt 8).
 

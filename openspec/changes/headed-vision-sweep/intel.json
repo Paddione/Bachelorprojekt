@@ -1,0 +1,291 @@
+{
+  "meta": {
+    "slug": "headed-vision-sweep",
+    "ticket_id": "T012781",
+    "generated_from": "main@540a8fc46",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/dev-flow-e2e/SKILL.md",
+      "language": "markdown",
+      "loc": 271,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5410,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5522,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/e2e/lib/build-gallery.mjs",
+      "language": "javascript",
+      "loc": 253,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 547
+    },
+    {
+      "path": "tests/e2e/lib/vision-judge.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/e2e/lib/vision-judge.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/e2e/lib/visual-sweep-helpers.ts",
+      "language": "javascript",
+      "loc": 170,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 730
+    },
+    {
+      "path": "tests/e2e/playwright.visual-sweep.config.ts",
+      "language": "javascript",
+      "loc": 80,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 820
+    },
+    {
+      "path": "tests/e2e/specs/k8-headed-verify.spec.ts",
+      "language": "javascript",
+      "loc": 98,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 802
+    },
+    {
+      "path": "tests/e2e/specs/visual-sweep.spec.ts",
+      "language": "javascript",
+      "loc": 342,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 558
+    },
+    {
+      "path": "tests/spec/e2e-test-infrastructure/vision-sweep.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3799:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3799:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3799:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3800:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3800:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3800:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3801:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3801:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3801:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3802:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3802:        _run()  {(...)",
+      "type_text": "3802:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4993:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4993:        kexec_psql() {(...)",
+      "type_text": "4993:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:25:function safeReadJson(file) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "25:function safeReadJson(file) {(...)",
+      "type_text": "25:function safeReadJson(file) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:37:function loadResults() {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "37:function loadResults() {(...)",
+      "type_text": "37:function loadResults() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:53:function safeRoute(route) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "53:function safeRoute(route) {(...)",
+      "type_text": "53:function safeRoute(route) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:61:function screenshotRel(row, brand, vp) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "61:function screenshotRel(row, brand, vp) {(...)",
+      "type_text": "61:function screenshotRel(row, brand, vp) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:79:function esc(s) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "79:function esc(s) {(...)",
+      "type_text": "79:function esc(s) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:87:function indexByRoute(brandRows) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "87:function indexByRoute(brandRows) {(...)",
+      "type_text": "87:function indexByRoute(brandRows) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:100:function unionRoutes(indexed) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "100:function unionRoutes(indexed) {(...)",
+      "type_text": "100:function unionRoutes(indexed) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:111:function statusBadge(row) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "111:function statusBadge(row) {(...)",
+      "type_text": "111:function statusBadge(row) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:120:function healthSummary(row) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "120:function healthSummary(row) {(...)",
+      "type_text": "120:function healthSummary(row) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:134:function renderViewportCell(row, brand, vp) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "134:function renderViewportCell(row, brand, vp) {(...)",
+      "type_text": "134:function renderViewportCell(row, brand, vp) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:147:function renderBrandCell(brandIndex, brand, route) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "147:function renderBrandCell(brandIndex, brand, route) {(...)",
+      "type_text": "147:function renderBrandCell(brandIndex, brand, route) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:191:function brandSection(indexed, route) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "191:function brandSection(indexed, route) {(...)",
+      "type_text": "191:function brandSection(indexed, route) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:199:function summaryLine(results) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "199:function summaryLine(results) {(...)",
+      "type_text": "199:function summaryLine(results) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:214:function renderHtml(results) {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "214:function renderHtml(results) {(...)",
+      "type_text": "214:function renderHtml(results) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:245:function main() {",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "245:function main() {(...)",
+      "type_text": "245:function main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/e2e/lib/build-gallery.mjs:253:main();",
+      "kind": "function",
+      "file": "tests/e2e/lib/build-gallery.mjs",
+      "signature": "253:main();(...)",
+      "type_text": "253:main();(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

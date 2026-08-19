@@ -18,6 +18,7 @@ _Ticket: T012902 (Rebuild-Modus), T012903 (State-Typ-Reparatur, blockiert dieses
 
 ```
 scripts/brain-ingest.sh                                  (geaendert)
+scripts/brain-ingest-reset.sh                            (neu; testbare Reset-Helfer)
 tests/spec/brain-foundation/from-scratch-rebuild.bats    (neu)
 tests/spec/brain-foundation/state-file-type-repair.bats  (neu)
 openspec/specs/brain-foundation.md                       (geaendert, Delta-Merge beim Archivieren)

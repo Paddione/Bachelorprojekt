@@ -29,9 +29,12 @@ MANIFEST="$REPO_ROOT/scripts/brain/ingest-sources.yaml"
 WORKLIST_SCRIPT="$REPO_ROOT/scripts/brain-ingest-worklist.sh"
 TRANSFORM_SCRIPT="$HERE/brain-ingest-transform.sh"
 CHUNK_SCRIPT="$HERE/brain-chunk.sh"
+RESET_HELPERS="$HERE/brain-ingest-reset.sh"
 
 # shellcheck source=./brain-group-match.sh
 source "$HERE/brain-group-match.sh"
+# shellcheck source=./brain-ingest-reset.sh
+source "$RESET_HELPERS"
 
 # --- Defaults ---
 BRAIN_REPO=""
@@ -87,19 +90,22 @@ fi
 [ -f "$WORKLIST_SCRIPT" ] || { echo "error: worklist script not found: $WORKLIST_SCRIPT" >&2; exit 1; }
 [ -f "$TRANSFORM_SCRIPT" ] || { echo "error: transform script not found: $TRANSFORM_SCRIPT" >&2; exit 1; }
 [ -f "$CHUNK_SCRIPT" ] || { echo "error: chunk script not found: $CHUNK_SCRIPT" >&2; exit 1; }
+[ -f "$RESET_HELPERS" ] || { echo "error: reset helpers not found: $RESET_HELPERS" >&2; exit 1; }
 
-# Load state (idempotency) before any state lookup. Non-object JSON (and invalid
-# JSON) cannot support the keyed lookups used by the transform and prune phases.
-if [ ! -f "$STATE_FILE" ]; then
-  echo '{}' > "$STATE_FILE"
-elif ! jq -e 'type == "object"' "$STATE_FILE" >/dev/null 2>&1; then
-  echo "State file is not a JSON object, resetting to {}" >&2
-  echo '{}' > "$STATE_FILE"
+# Historical plain --dry-run behavior initializes state; only the new
+# --from-scratch preview promises a completely write-free reset inspection.
+STATE_INIT_DRY_RUN=0
+[ "$FROM_SCRATCH" -eq 1 ] && [ "$DRY_RUN" -eq 1 ] && STATE_INIT_DRY_RUN=1
+brain_ingest_initialize_state "$STATE_FILE" "$STATE_INIT_DRY_RUN"
+
+# A from-scratch dry run is a reset preview, not a transformation run. Preview
+# directly from the current wiki so it performs no checkout, chunking, LLM call,
+# state initialization, or other write.
+if [ "$FROM_SCRATCH" -eq 1 ] && [ "$DRY_RUN" -eq 1 ]; then
+  PRIMARY_REPO_ROOT="$(git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" 1 "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
+  exit 0
 fi
-
-# Test seam: lets result-based BATS exercise the script's real initialization
-# without starting worklist/chunk/LLM processing. Not part of the CLI contract.
-[ "${BRAIN_INGEST_TEST_STOP_AFTER_STATE_INIT:-0}" -eq 1 ] && exit 0
 
 # Extracted once (not per file — see brain-group-match.sh perf note).
 brain_group_section_for_manifest "$MANIFEST"
@@ -117,12 +123,7 @@ WORKLIST="$(mktemp)"
 # path it covers. The ${VAR:-} guards matter because `set -u` is in force and an
 # abort in Phase 1 fires the trap before the later variables are ever assigned.
 trap 'rm -f "${WORKLIST:-}" "${SLUGS_JSON:-}" "${CHUNKS_TSV:-}" "${DELIVERED_TSV:-}"; rm -rf "${CHUNK_DIR:-}" "${RESULTS_DIR:-}"' EXIT
-if [ "${BRAIN_INGEST_TEST_STOP_AFTER_RESET:-0}" -eq 1 ]; then
-  # The reset tests deliberately avoid preparing or transforming real sources.
-  : > "$WORKLIST"
-else
-  bash "$WORKLIST_SCRIPT" --root "$REPO_ROOT" --manifest "$MANIFEST" > "$WORKLIST"
-fi
+bash "$WORKLIST_SCRIPT" --root "$REPO_ROOT" --manifest "$MANIFEST" > "$WORKLIST"
 TOTAL="$(wc -l < "$WORKLIST")"
 echo "Worklist: $TOTAL source files"
 
@@ -195,48 +196,9 @@ cd "$REPO_ROOT"
 # ============================================================
 if [ "$FROM_SCRATCH" -eq 1 ]; then
   echo ""
-  echo "=== Phase 1b: Wiki- und State-Reset (--from-scratch) ==="
-
-  RESET_COUNT=0
-  KEPT_COUNT=0
-
-  for page in "$BRAIN_REPO"/wiki/*.md; do
-    [ -e "$page" ] || continue
-    slug="$(basename "$page" .md)"
-    src_line="$(grep -m1 '^source:: ' "$page" || true)"
-
-    if [[ "$src_line" == "source:: Bachelorprojekt "* ]]; then
-      # Bachelorprojekt page — delete (or report in dry-run)
-      if [ "$DRY_RUN" -eq 1 ]; then
-        echo "DRY-RUN: would delete wiki/$slug.md (source: ${src_line#source:: })"
-      else
-        rm -f "$page"
-        echo "DELETED: wiki/$slug.md (source: ${src_line#source:: })"
-      fi
-      RESET_COUNT=$((RESET_COUNT + 1))
-    else
-      # Meta page or no source:: — never delete (invariant from prune)
-      KEPT_COUNT=$((KEPT_COUNT + 1))
-    fi
-  done
-
-  # Reset state file to empty object
-  if [ "$DRY_RUN" -eq 1 ]; then
-    echo "DRY-RUN: would reset state file to {}"
-  else
-    echo '{}' > "$STATE_FILE"
-    echo "State file reset to {}"
-  fi
-
-  if [ "$DRY_RUN" -eq 1 ]; then
-    echo "Phase 1b: $RESET_COUNT pages would be deleted, $KEPT_COUNT pages kept"
-  else
-    echo "Phase 1b: $RESET_COUNT pages deleted, $KEPT_COUNT pages kept"
-  fi
+  PRIMARY_REPO_ROOT="$(git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" "$DRY_RUN" "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
 fi
-
-# Test seam: the reset contract can be verified without a real LLM rebuild.
-[ "${BRAIN_INGEST_TEST_STOP_AFTER_RESET:-0}" -eq 1 ] && exit 0
 
 # ============================================================
 # Phase 2: LLM Transformation

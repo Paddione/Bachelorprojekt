@@ -1,145 +1,104 @@
 #!/usr/bin/env bats
-# tests/spec/brain-foundation/from-scratch-rebuild.bats
 # Ticket: T012902 — Rebuild-Modus fuer brain-ingest
-#
-# Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Jeder Test
-# fuehrt scripts/brain-ingest.sh mit --from-scratch aus und prueft Dateiinhalt
-# bzw. Exit-Code — nicht den Quelltext des Skripts.
-#
-# Die Tests arbeiten gegen ein temporaeres brain-Repo-Verzeichnis, nicht gegen
-# ~/brain. Negativtests bekommen je einen Positiv-Anker, damit ein stumm
-# fehlschlagendes Skript den Test nicht gruen erscheinen laesst.
 
 INGEST="$BATS_TEST_DIRNAME/../../../scripts/brain-ingest.sh"
-setup() {
-  # brain-ingest.sh requires LM_MODEL (T002533)
-  export LM_MODEL="test-model"
-  export BRAIN_INGEST_TEST_STOP_AFTER_RESET=1
+HELPERS="$BATS_TEST_DIRNAME/../../../scripts/brain-ingest-reset.sh"
+CHUNKER="$BATS_TEST_DIRNAME/../../../scripts/brain-chunk.sh"
+REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
 
-  # Fake brain repo with a wiki/ directory and a few pages
+setup() {
   BRAIN_DIR="$BATS_TEST_TMPDIR/brain"
   mkdir -p "$BRAIN_DIR/wiki"
-  git -C "$BRAIN_DIR" init -q -b main 2>/dev/null || true
-  git -C "$BRAIN_DIR" config user.email "test@test" 2>/dev/null || true
-  git -C "$BRAIN_DIR" config user.name "Test" 2>/dev/null || true
-  echo "init" > "$BRAIN_DIR/.gitkeep"
-  git -C "$BRAIN_DIR" add -A && git -C "$BRAIN_DIR" commit -q -m "init" 2>/dev/null || true
-
-  # State file
+  git -C "$BRAIN_DIR" init -q -b main
   STATE_FILE="$BATS_TEST_TMPDIR/state.json"
   ORIGINAL_STATE='{"scripts/old.md":{"hash":"abc","slug":"old"}}'
   echo "$ORIGINAL_STATE" > "$STATE_FILE"
 
-  # A Bachelorprojekt page (has source:: Bachelorprojekt ...)
-  cat > "$BRAIN_DIR/wiki/bp-page.md" <<'PAGE'
----
-type: note
-status: active
----
-
-# Bachelorprojekt Page
-
-source:: Bachelorprojekt scripts/brain-ingest.sh
-
-This is a Bachelorprojekt page.
-PAGE
-
-  # A meta page (source:: self, no Bachelorprojekt prefix)
-  cat > "$BRAIN_DIR/wiki/meta-page.md" <<'PAGE'
----
-type: note
-status: active
----
-
-# Meta Page
-
-source:: self
-
-This is a meta page.
-PAGE
-
-  # A page without any source:: line
-  cat > "$BRAIN_DIR/wiki/orphan-page.md" <<'PAGE'
----
-type: note
-status: active
----
-
-# Orphan Page
-
-This page has no source line.
-PAGE
-
+  printf '%s\n' 'source:: Bachelorprojekt scripts/brain-ingest.sh' > "$BRAIN_DIR/wiki/bp-page.md"
+  printf '%s\n' 'source:: self' > "$BRAIN_DIR/wiki/meta-page.md"
+  printf '%s\n' '# no source metadata' > "$BRAIN_DIR/wiki/no-source-page.md"
+  printf '%s\n' 'source:: /srv/external/project/readme.md' > "$BRAIN_DIR/wiki/external-page.md"
 }
 
-@test "from-scratch: Bachelorprojekt pages are deleted and state reset" {
-  # Verify the page exists before
-  [ -f "$BRAIN_DIR/wiki/bp-page.md" ]
+run_reset() {
+  run bash -c 'source "$1"; brain_ingest_reset_wiki "$2" "$3" "$4" "$5" "$5"' \
+    _ "$HELPERS" "$BRAIN_DIR" "$STATE_FILE" "${1:-0}" "$REPO_ROOT"
+}
 
-  # Run with --from-scratch (not --dry-run) — bp-page should be deleted
-  run bash "$INGEST" \
-    --brain-repo "$BRAIN_DIR" \
-    --from-scratch \
-    --state "$STATE_FILE" \
-    --branch test-branch
-
+@test "from-scratch deletes Bachelorprojekt pages and resets state" {
+  run_reset
   [ "$status" -eq 0 ]
   [[ "$output" == *"=== Phase 1b:"* ]]
-
-  # After --from-scratch, the Bachelorprojekt page must be gone
   [ ! -f "$BRAIN_DIR/wiki/bp-page.md" ]
-  # State must be reset to empty
   [ "$(cat "$STATE_FILE")" = '{}' ]
 }
 
-@test "from-scratch: meta pages (source:: self) are never deleted" {
-  [ -f "$BRAIN_DIR/wiki/meta-page.md" ]
-
-  run bash "$INGEST" \
-    --brain-repo "$BRAIN_DIR" \
-    --from-scratch \
-    --state "$STATE_FILE" \
-    --branch test-branch
-
+@test "from-scratch deletes a parent MOC carrying actual chunker absolute provenance" {
+  MOC="$BRAIN_DIR/wiki/generated-parent-moc.md"
+  run bash "$CHUNKER" \
+    --source "$REPO_ROOT/openspec/specs/brain-foundation.md" \
+    --slug generated-parent \
+    --out-dir "$BATS_TEST_TMPDIR/chunks" \
+    --moc "$MOC" \
+    --target-chars 200
   [ "$status" -eq 0 ]
-  [[ "$output" == *"=== Phase 1b:"* ]]
-  # Meta page must survive
-  [ -f "$BRAIN_DIR/wiki/meta-page.md" ]
-  [ -f "$BRAIN_DIR/wiki/orphan-page.md" ]
-  [ "$(cat "$STATE_FILE")" = '{}' ]
+  grep -qF "source:: $REPO_ROOT/openspec/specs/brain-foundation.md" "$MOC"
+
+  run_reset
+  [ "$status" -eq 0 ]
+  [ ! -f "$MOC" ]
 }
 
-@test "from-scratch --pilot is rejected with exit 2" {
-  run bash "$INGEST" \
-    --brain-repo "$BRAIN_DIR" \
-    --from-scratch \
-    --pilot 5 \
-    --dry-run \
-    --state "$STATE_FILE" \
-    --branch test-branch
+@test "from-scratch preserves self, external, and no-source pages" {
+  run_reset
+  [ "$status" -eq 0 ]
+  [ -f "$BRAIN_DIR/wiki/meta-page.md" ]
+  [ -f "$BRAIN_DIR/wiki/external-page.md" ]
+  [ -f "$BRAIN_DIR/wiki/no-source-page.md" ]
+}
 
+@test "from-scratch --pilot is rejected with exit 2 before writes" {
+  export LM_MODEL="test-model"
+  run bash "$INGEST" --brain-repo "$BRAIN_DIR" --from-scratch --pilot 5 \
+    --state "$STATE_FILE"
   [ "$status" -eq 2 ]
   [[ "$output" == *"cannot be combined"* ]]
-  # Pilot + from-scratch must not touch anything
   [ -f "$BRAIN_DIR/wiki/bp-page.md" ]
-  [ -f "$BRAIN_DIR/wiki/meta-page.md" ]
   [ "$(cat "$STATE_FILE")" = "$ORIGINAL_STATE" ]
 }
 
-@test "from-scratch --dry-run reports but does not delete" {
-  run bash "$INGEST" \
-    --brain-repo "$BRAIN_DIR" \
-    --from-scratch \
-    --dry-run \
-    --state "$STATE_FILE" \
-    --branch test-branch
-
+@test "from-scratch dry-run reports reset without modifying wiki or state" {
+  export LM_MODEL="test-model"
+  run bash "$INGEST" --brain-repo "$BRAIN_DIR" --from-scratch --dry-run \
+    --state "$STATE_FILE"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"DRY-RUN: would delete wiki/bp-page.md"* ]]
-  [[ "$output" == *"DRY-RUN: would reset state file to {}"* ]]
-  # All pages should still exist after dry-run
+  [[ "$output" == *"would delete wiki/bp-page.md"* ]]
+  [[ "$output" == *"would reset state file to {}"* ]]
   [ -f "$BRAIN_DIR/wiki/bp-page.md" ]
   [ -f "$BRAIN_DIR/wiki/meta-page.md" ]
-  [ -f "$BRAIN_DIR/wiki/orphan-page.md" ]
+  [ -f "$BRAIN_DIR/wiki/external-page.md" ]
+  [ -f "$BRAIN_DIR/wiki/no-source-page.md" ]
   [ "$(cat "$STATE_FILE")" = "$ORIGINAL_STATE" ]
+}
+
+@test "from-scratch dry-run leaves invalid array state byte-identical" {
+  export LM_MODEL="test-model"
+  echo '[]' > "$STATE_FILE"
+
+  run bash "$INGEST" --brain-repo "$BRAIN_DIR" --from-scratch --dry-run \
+    --state "$STATE_FILE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"would repair non-object state file"* ]]
+  [ "$(cat "$STATE_FILE")" = '[]' ]
+}
+
+@test "from-scratch dry-run does not create a missing state file" {
+  export LM_MODEL="test-model"
+  rm -f "$STATE_FILE"
+
+  run bash "$INGEST" --brain-repo "$BRAIN_DIR" --from-scratch --dry-run \
+    --state "$STATE_FILE"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"would initialize missing state file"* ]]
+  [ ! -e "$STATE_FILE" ]
 }

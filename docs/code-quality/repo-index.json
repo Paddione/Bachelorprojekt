@@ -3554,7 +3554,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 784,
+      "file_count": 785,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3659,6 +3659,7 @@
         "scripts/brain-merge-hook.sh",
         "scripts/brain-page-metadata.py",
         "scripts/brain-retrieval-eval.py",
+        "scripts/brain-source-provenance.sh",
         "scripts/brain/ingest-sources.yaml",
         "scripts/brainstorm-bridge.sh",
         "scripts/brainstorm-companion-harden.sh",

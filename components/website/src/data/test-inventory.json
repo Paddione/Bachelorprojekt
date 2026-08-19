@@ -3270,6 +3270,12 @@
     "kind": "shell"
   },
   {
+    "id": "dsh-harness-integration/taskfile-runtime",
+    "file": "tests/spec/dsh-harness-integration/taskfile-runtime.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-skill-selfpatch",
     "file": "tests/local/e2e-skill-selfpatch.bats",
     "category": "e2e-skill-selfpatch",

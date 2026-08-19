@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.1...website-v1.286.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* **factory:** Konflikt-Guard prueft das Feld, das den Konflikt fuehrt [T012500] ([#4796](https://github.com/Paddione/Bachelorprojekt/issues/4796)) ([d12f66c](https://github.com/Paddione/Bachelorprojekt/commit/d12f66c0cc7dd887b51bc9654707dc313408378f))
+
 ## [1.286.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.0...website-v1.286.1) (2026-08-18)
 
 

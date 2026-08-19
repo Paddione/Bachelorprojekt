@@ -87,7 +87,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/brain-foundation/from-scratch-rebui
       neben Trockenlauf, Pilot und vollem Lauf aufnehmen, samt des Hinweises, dass
       `--from-scratch` nicht mit `--pilot` kombinierbar ist.
 
-- [ ] **7. Final Verification.** Die drei Pflicht-Gates:
+- [x] **7. Final Verification.** Die drei Pflicht-Gates:
 
 ```bash
 task test:changed

@@ -115,7 +115,7 @@ render_component() {
   if [[ -z "$vars" ]]; then
     # Nichts zu substituieren — aber das $$-Unwrapping muss trotzdem laufen,
     # sonst blieben $${VAR}/$$VAR als Doppel-Dollar im Manifest stehen.
-    sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' <<<"$rendered" > "$out"
+    sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' <<<"$rendered" > "$out"
     return
   fi
   
@@ -127,9 +127,17 @@ render_component() {
   
   # Wrap bare ${VAR} at end of line in double quotes (envsubst needs quoting context),
   # then substitute, then unwrap any $$ escaping envsubst introduced.
+  #
+  # T012503: Das Unwrapping deckt neben Variablennamen auch (, !, ? ab. Wer ein
+  # ConfigMap-Skript escaped, verdoppelt jedes Dollarzeichen — auch $$(cmd),
+  # $$! und $$?. envsubst fasst diese drei zwar ohnehin nicht an, aber ein
+  # Unwrapping, das sie auslaesst, liefert sie als literales $$ aus: in der
+  # Shell ist $$ die PID, aus $$(seq 1 3) wird "1234(seq 1 3)" und das Skript
+  # bricht mit einem Syntaxfehler ab. Genau so lag der gitlab-runner ab
+  # bc80f246b im CrashLoop.
   sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' <<<"$rendered" \
     | envsubst "$envsubst_vars" \
-    | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+    | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
     > "$out"
 
   # T002156: checksum/config NACH envsubst aus dem website-config-data-Block
@@ -192,6 +200,11 @@ cd "$PROJECT_DIR"
   mkdir -p "${OUT_DIR}/platform"
   render_component prod-fleet/platform "${OUT_DIR}/platform/platform.yaml"
 )
+
+# 1c. GitLab-Runner-Stack (T012177) — kein ${VAR}-Platzhalter in
+# k3d/gitlab-runner-stack, deshalb kein vorheriges env-resolve.sh noetig.
+mkdir -p "${OUT_DIR}/gitlab-runner"
+render_component k3d/gitlab-runner-stack "${OUT_DIR}/gitlab-runner/gitlab-runner.yaml"
 
 # 1b. Dev (workspace-dev namespace)
 #
@@ -320,7 +333,7 @@ find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clus
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/gitlab-runner"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

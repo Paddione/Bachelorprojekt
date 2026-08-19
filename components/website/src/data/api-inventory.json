@@ -701,6 +701,19 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/mcp-health",
+      "file": "mcp-health.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/monitoring",
       "file": "monitoring.ts",
       "methods": [

@@ -69,7 +69,7 @@ beforeEach(() => {
 describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
   it('generate: uses apiEndpoint when provided', async () => {
     getProviderByNameMock.mockResolvedValueOnce({
-      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', dataResidency: 'on_premises', apiKey: 'test',
     });
     mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'pong' } }] });
     const out = await new OpenAICompatibleSessionAgent().generate({
@@ -90,7 +90,7 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
 
   it('generate: uses DB api_key when config apiKey is null', async () => {
     getProviderByNameMock.mockResolvedValueOnce({
-      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'db-key',
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', dataResidency: 'on_premises', apiKey: 'db-key',
     });
     mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
     const out = await new OpenAICompatibleSessionAgent().generate({
@@ -103,7 +103,7 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
   it('generate: uses explicit modelName when provided', async () => {
     let captured = '';
     getProviderByNameMock.mockResolvedValueOnce({
-      provider: 'local-ollama', modelId: 'qwen2.5', baseUrl: 'http://localhost:11434/v1', apiKey: 'not-required',
+      provider: 'local-ollama', modelId: 'qwen2.5', baseUrl: 'http://localhost:11434/v1', dataResidency: 'on_premises', apiKey: 'not-required',
     });
     mockCreate.mockImplementationOnce((req: { model: string }) => {
       captured = req.model;
@@ -119,7 +119,7 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
   it('generate: defaults model from DB row when no explicit modelName', async () => {
     let captured = '';
     getProviderByNameMock.mockResolvedValueOnce({
-      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', dataResidency: 'on_premises', apiKey: 'test',
     });
     mockCreate.mockImplementationOnce((req: { model: string }) => {
       captured = req.model;
@@ -134,7 +134,7 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
 
   it('stream: yields delta text fragments as they arrive', async () => {
     getProviderByNameMock.mockResolvedValueOnce({
-      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', dataResidency: 'on_premises', apiKey: 'test',
     });
     mockCreate.mockResolvedValueOnce(
       (async function* () {
@@ -151,7 +151,7 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
   it('generate: forwards the assembled history (system + history + user)', async () => {
     let captured: { messages: { role: string; content: string }[] } = { messages: [] };
     getProviderByNameMock.mockResolvedValueOnce({
-      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', dataResidency: 'on_premises', apiKey: 'test',
     });
     mockCreate.mockImplementationOnce((req: { messages: { role: string; content: string }[] }) => {
       captured = req;
@@ -171,7 +171,7 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
 
   it('generate: returns a durationMs that is >= 0', async () => {
     getProviderByNameMock.mockResolvedValueOnce({
-      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', dataResidency: 'on_premises', apiKey: 'test',
     });
     mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
     const out = await new OpenAICompatibleSessionAgent().generate(baseOptions());

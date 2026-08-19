@@ -9,16 +9,27 @@
 // Rueckwaerts-Redirect auf /admin/cockpit, und die Middleware gibt Query-Strings nicht
 // weiter — der Kommentar behauptete bis T003826 fälschlich das Gegenteil. /admin/tickets
 // zeigt auf das Cockpit, wo die Ticketliste seit T000752 lebt.
+//
+// E5 (T008017): Satelliten-Absorption — die drei eigenstaendigen Seiten
+// /sdlc/repohealth, /sdlc/prompts und /sdlc/ki-konfiguration sind entfernt; ihre
+// Pfade (und die /admin/*-Quellen) leiten auf das jeweilige Deck im Cockpit.
+// Cockpit-Ziele nutzen nur noch das Leitstand-URL-Schema (station/ticket/deck) —
+// die alten ?tab=-Ziele sind normalisiert. Hinweis: /admin/observability wird von
+// E4 (T008016) gepflegt und bleibt hier unangetastet.
 export const REDIRECT_MAP: Record<string, string> = {
   '/admin/cockpit': '/sdlc/cockpit',
   '/admin/observability': '/sdlc/observability',
-  '/admin/repohealth': '/sdlc/repohealth',
+  // E4 (T008016): Die Platzhalterseite /sdlc/observability ist entfernt; das
+  // Ziel ist das Live-Plattform-Deck. Der admin-Eintrag oben bildet eine
+  // Kette: /admin/observability -> /sdlc/observability -> /sdlc/cockpit?deck=plattform.
+  '/sdlc/observability': '/sdlc/cockpit?deck=plattform',
+  '/admin/repohealth': '/sdlc/cockpit?deck=qualitaet',
   '/admin/software-history': '/sdlc/software-history',
   '/admin/architektur': '/sdlc/architektur',
   '/admin/platform': '/sdlc/platform',
   '/admin/app-catalog': '/sdlc/app-catalog',
-  '/admin/prompts': '/sdlc/prompts',
-  '/admin/ki-konfiguration': '/sdlc/ki-konfiguration',
+  '/admin/prompts': '/sdlc/cockpit?deck=wissen',
+  '/admin/ki-konfiguration': '/sdlc/cockpit?deck=ki',
   '/admin/systemtest/board': '/sdlc/systemtest/board',
   '/admin/tickets': '/sdlc/cockpit',
   '/admin/startseite': '/admin/inhalte?tab=website&section=startseite',
@@ -32,15 +43,18 @@ export const REDIRECT_MAP: Record<string, string> = {
   '/admin/50plus-digital': '/admin/inhalte?tab=website&section=50plus-digital',
   '/admin/fuehrung-persoenlichkeit': '/admin/inhalte?tab=website&section=fuehrung-persoenlichkeit',
   '/admin/ki-transition': '/admin/inhalte?tab=website&section=ki-transition',
-  '/admin/planungsbuero': '/sdlc/cockpit?tab=planung',
-  '/admin/dora': '/sdlc/cockpit?tab=analytics',
-  '/admin/factory-budget': '/sdlc/cockpit?tab=kosten',
-  '/admin/factory-observability': '/sdlc/cockpit?tab=kosten',
+  '/admin/planungsbuero': '/sdlc/cockpit?station=planung',
+  '/admin/dora': '/sdlc/cockpit',
+  '/admin/factory-budget': '/sdlc/cockpit?deck=plattform',
+  '/admin/factory-observability': '/sdlc/cockpit?deck=plattform',
   '/admin/ops': '/sdlc/platform',
   '/admin/monitoring': '/sdlc/platform',
   '/admin/stream': '/admin/live',
   '/admin/newsletter': '/admin/dokumente',
   '/admin/wissensquellen': '/admin/wissen',
+  '/sdlc/repohealth': '/sdlc/cockpit?deck=qualitaet',
+  '/sdlc/prompts': '/sdlc/cockpit?deck=wissen',
+  '/sdlc/ki-konfiguration': '/sdlc/cockpit?deck=ki',
 };
 
 /** Loest einen eingehenden Pfad auf sein Redirect-Ziel auf, oder null bei keinem Treffer.

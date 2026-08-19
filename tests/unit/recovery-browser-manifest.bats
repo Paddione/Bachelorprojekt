@@ -16,8 +16,12 @@ setup() { MF="${BATS_TEST_DIRNAME}/../../k3d/recovery-browser.yaml"; }
   grep -q "readOnly: true" "$MF"
 }
 
-@test "oauth2-proxy is gated to the /recovery-access group" {
-  grep -q -- "--allowed-groups=/recovery-access" "$MF"
+@test "oauth2-proxy is gated via authenticated-emails-file" {
+  # Pocket ID kennt kein Gruppenkonzept (T001068) — das Gate haengt am Flag UND
+  # an seiner Datenquelle. Beides zusichern, sonst waere die Aussage schwaecher
+  # als die frueher geprueft Keycloak-Gruppen-Syntax.
+  grep -q -- "--authenticated-emails-file=/etc/oauth2/allowed-emails" "$MF"
+  grep -q -- "name: oauth2-proxy-recovery-allowed-emails" "$MF"
 }
 
 @test "oauth2-proxy uses the recovery client and upstreams the filebrowser" {

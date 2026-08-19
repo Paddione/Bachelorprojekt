@@ -518,6 +518,46 @@ env_vars:
     required: false
     default_dev: "info"
 
+  - name: WEBSITE_PRIMARY_SERVICE
+    required: false
+    default_dev: "website"
+    description: "Primary website service name (derived from PRIMARY_FRONTEND in workspace:deploy: 'website' for astro, 'mentolder-web' for react)."
+
+  - name: COLLABORA_INGRESS_MIDDLEWARES
+    required: false
+    default_dev: ""
+    description: "Traefik ingress middleware chain for Collabora office stack on primary brand."
+
+  - name: COLLABORA_INGRESS_MIDDLEWARES_2
+    required: false
+    default_dev: ""
+    description: "Traefik ingress middleware chain for Collabora office stack on Korczewski brand."
+
+  - name: COLLABORA_INGRESS_MIDDLEWARES_KORCZEWSKI
+    required: false
+    default_dev: ""
+    description: "Alias for COLLABORA_INGRESS_MIDDLEWARES_2."
+
+  - name: COLLABORA_TLS_SECRET_2
+    required: false
+    default_dev: "korczewski-tls"
+    description: "TLS secret name for Collabora ingress on Korczewski brand."
+
+  - name: POCKET_ID_SMTP_TLS
+    required: false
+    default_dev: "none"
+    description: "SMTP TLS mode for Pocket ID ('tls', 'starttls', or 'none', derived from SMTP_SECURE + SMTP_PORT)."
+
+  - name: POCKET_ID_FALLBACK_FRONTEND_URL
+    required: false
+    default_dev: "https://auth.mentolder.de"
+    description: "Optional fallback Pocket ID frontend URL for SDLC stack."
+
+  - name: POCKET_ID_FALLBACK_URL
+    required: false
+    default_dev: "https://auth.mentolder.de"
+    description: "Optional fallback Pocket ID internal URL for SDLC stack."
+
 secrets:
   - name: STUDIO_DB_URL
     required: false
@@ -1296,6 +1336,58 @@ secrets:
     default_dev: "ap_dev_token_32chars_abcdefgh"
     description: "Bearer token for agent-push.sh to authenticate against the website settings API"
 
+  # ── GitLab-CI Etappe 2: K8s-Runner auf fleet (T012177) ───────────────────────
+  # N2 (Nachreview T012177): gehoert unter secrets:, NICHT setup_vars: — der
+  # Sealer liest ausschliesslich schema["secrets"]
+  # (scripts/lib/seal-extra-namespaces.sh:55). Unter setup_vars: haette
+  # `task env:seal` das Secret NIE erzeugt, empirisch belegt:
+  #   source scripts/lib/seal-extra-namespaces.sh
+  #   parse_extra_namespace_entries environments/schema.yaml | grep -c gitlab-runner
+  # glrt-Authentication-Token fuer den zweiten self-hosted Runner (Kubernetes-
+  # Executor, Namespace gitlab-runner). owner_brand: [mentolder] ist ein
+  # willkuerlicher Anker — der Namespace gehoert zu keinem Brand, aber das
+  # Sealing-Zertifikat ist pro Cluster (fleet), nicht pro Brand gueltig.
+  - name: GITLAB_RUNNER_TOKEN
+    required: false
+    sealed: true
+    dev_absent: true
+    dev_absent_reason: "GitLab-Runner laeuft ausschliesslich auf fleet; im lokalen k3d-Dev-Cluster existiert kein Runner, der einen Token braeuchte."
+    description: "glrt-Authentication-Token fuer den fleet-GitLab-Runner (Kubernetes-Executor, Tag bachelorprojekt-local)"
+    extra_namespaces:
+      # B3 (Review T012177): dest_key MUSS "runner-token" heissen — der Chart
+      # liest ausschliesslich /secrets/runner-token (projected Volume aus
+      # runners.secret: gitlab-runner-secret, siehe values/gitlab-runner.yaml).
+      # Ohne dest_key waere der Key im Secret "GITLAB_RUNNER_TOKEN" (Default =
+      # Variablenname) — der Chart wuerde ihn nie finden, CI_SERVER_TOKEN
+      # bliebe leer, derselbe stille Fehlermodus wie B1/B4.
+      - namespace: gitlab-runner
+        secret: gitlab-runner-secret
+        dest_key: runner-token
+        owner_brand: [mentolder]
+
+  # B3 (Review T012177): Der Chart-Template listet IMMER beide Keys im
+  # projected Volume (runner-registration-token UND runner-token, siehe
+  # gitlab-runner-rendered.yaml volumes.projected-secrets.sources[0].secret.
+  # items) — ohne "optional: true". Fehlt einer der beiden Keys im referenzierten
+  # Secret gitlab-runner/gitlab-runner-secret, bleibt der Pod dauerhaft in
+  # ContainerCreating (Volume-Mount-Fehler "not found"), unabhaengig davon, ob
+  # der Registration-Token-Fluss ueberhaupt benutzt wird. Dieses Repo nutzt
+  # ausschliesslich den neueren glrt-Authentication-Token-Fluss (Runbook
+  # Abschnitt 2 — der aeltere Registration-Token-Fluss ist seit GitLab 16
+  # entfernt) — der Key wird deshalb bewusst LEER gesealt (required: false,
+  # kein Wert in environments/.secrets/*.yaml), einzig um die Chart-Vorgabe
+  # "Key muss existieren" zu erfuellen.
+  - name: GITLAB_RUNNER_REGISTRATION_TOKEN
+    required: false
+    dev_absent: true
+    dev_absent_reason: "Siehe GITLAB_RUNNER_TOKEN — kein Runner im k3d-Dev-Cluster; dieser Key bleibt zudem generell leer (nur Chart-Pflichtfeld)."
+    description: "Bewusst leer — Chart-Pflichtfeld des projected Secrets (runner-registration-token), dieses Repo nutzt ausschliesslich den glrt-Authentication-Token-Fluss."
+    extra_namespaces:
+      - namespace: gitlab-runner
+        secret: gitlab-runner-secret
+        dest_key: runner-registration-token
+        owner_brand: [mentolder]
+
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true
@@ -1425,19 +1517,37 @@ setup_vars:
     description: "wg-mesh public key for the WSL host running ttyd (terminal-sidekick, T001565)"
   # Laptops/Tablet (T006143) — pk-l-1 (Laptop, bge-Embedding) und pk-tablet (bge-Rerank).
   # Home-NAT-Geraete, wg_ips 192.168.100.11/.12, Keepalive 25 (vgl. wsl2-gpu-mentolder).
+  # T012414: legacy_only, weil es die Lage beschreibt — nicht, um einen Guard
+  # ruhigzustellen. Belege vom 2026-08-18:
+  #   kubectl --context fleet -n workspace get secret workspace-secrets -o json
+  # listet 17 WG_MESH-Schluessel (GEKKO2/3/4, K3S1/2/3, PK4/6/8, WSL2_GPU) —
+  # PKL1 und PKT sind NICHT darunter, die Fleet laeuft ohne sie. Die Klartext-
+  # Werte existieren zudem in keiner Repo-Datei mehr (weder
+  # environments/.secrets/mentolder.yaml noch fleet-mentolder.yaml kennen die
+  # Namen); im gesiegelten Legacy-File liegt nur noch verwaister Chiffretext.
+  # Sie in fleet-mentolder nachzusiegeln waere daher keine Ergaenzung, sondern
+  # eine Neuerzeugung der Schluesselpaare samt Ausrollen auf Laptop und Tablet.
+  #
+  # Warum es so lange unbemerkt blieb (T012415): bis zur Umstellung der PR-Jobs
+  # auf den self-hosted Runner fehlte dort `yq` — der Guard in
+  # tests/spec/fleet-operations.bats hat sich uebersprungen, statt zu pruefen.
   - name: WG_MESH_PKL1_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "wg-mesh private key for pk-l-1 (Laptop, bge-Embedding)"
   - name: WG_MESH_PKL1_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "wg-mesh public key for pk-l-1 (Laptop, bge-Embedding)"
   - name: WG_MESH_PKT_PRIVATE_KEY
     required: false
     sealed: true
+    legacy_only: true
     description: "wg-mesh private key for pk-tablet (bge-Rerank)"
   - name: WG_MESH_PKT_PUBLIC_KEY
     required: false
+    legacy_only: true
     description: "wg-mesh public key for pk-tablet (bge-Rerank)"
 
   # ── Proxmox hypervisor SSH keys ─────────────────────────────────────────────

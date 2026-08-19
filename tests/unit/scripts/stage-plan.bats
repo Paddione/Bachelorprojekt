@@ -7,7 +7,7 @@ setup() {
 }
 
 @test "stage-plan rejects FACTORY-PLAN-REF pointing to nonexistent file" {
-  run bash "$STAGE_PLAN" --id T000999 --branch "feature/test" --plan "openspec/changes/nonexistent/tasks.md"
+  run bash "$STAGE_PLAN" --id T000999 --branch "feature/test" --plan "openspec/changes/nonexistent/tasks.md" --no-hold
   [ "$status" -eq 1 ]
   [[ "$output" == *"does not exist"* ]]
 }
@@ -83,7 +83,7 @@ setup() {
   )
   cd "$repo"
   run bash "$STAGE_PLAN" --id T000999 --branch "feature/absent" \
-      --plan "openspec/changes/ghost/tasks.md"
+      --plan "openspec/changes/ghost/tasks.md" --no-hold
   [ "$status" -eq 1 ]
   [[ "$output" == *"does not exist"* ]]
 }

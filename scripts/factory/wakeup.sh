@@ -72,7 +72,21 @@ cd "${REPO}"
 # [T002381-M3] Vor jedem Tick den lokalen main-Ref aktualisieren, damit die
 # Factory nicht mit stale Code tickt. Fail-open: bei Fehler (z.B. kein Netz)
 # laeuft mit dem aktuellen Stand weiter — besser stale als ausgefallen.
-git pull --ff-only origin main 2>/dev/null || true
+#
+# [T011581] Aber nicht mehr STUMM fail-open: `2>/dev/null || true` verschluckte
+# jeden Fehlgrund. Beobachtet 2026-08-17: eine lokal modifizierte, upstream
+# geloeschte Datei blockierte den ff-Pull; der Checkout blieb 7 Commits hinter
+# origin/main, und zwei Ticks fuhren einen Executor OHNE die eine Stunde zuvor
+# gemergten Factory-Fixes (PR #4700). Der Fehler und der Rueckstand gehoeren
+# ins Journal — beheben muss ihn weiterhin ein Mensch (lokale Aenderungen im
+# geteilten Haupt-Checkout raeumt die Factory bewusst nicht selbst weg).
+if ! pull_err="$(git pull --ff-only origin main 2>&1)"; then
+  echo "wakeup.sh: git pull --ff-only origin main fehlgeschlagen — Tick laeuft mit dem aktuellen (moeglicherweise stale) Stand weiter [T011581]" >&2
+  printf '%s\n' "$pull_err" | tail -n 3 | sed 's/^/wakeup.sh:   /' >&2
+  behind="$(git rev-list --count HEAD..origin/main 2>/dev/null || echo '?')"
+  echo "wakeup.sh:   HEAD ist ${behind} Commit(s) hinter origin/main" >&2
+fi
+unset pull_err
 
 # ── single-flight: acquire the tick lock non-blocking; bail if a tick is live ──
 exec 9>"${LOCKFILE}"

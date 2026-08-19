@@ -7,6 +7,7 @@ import {
   type LaneKey,
   type TicketStatus,
 } from './pipeline-order';
+import { TICKET_STATUSES } from './status';
 
 describe('ALL_TICKET_STATUSES', () => {
   it('contains exactly the 11 known ticket statuses', () => {
@@ -15,6 +16,11 @@ describe('ALL_TICKET_STATUSES', () => {
 
   it('contains no duplicates', () => {
     expect(new Set(ALL_TICKET_STATUSES).size).toBe(ALL_TICKET_STATUSES.length);
+  });
+
+  it('is the status.ts SSOT array itself (no parallel 11-list, T008345)', () => {
+    expect(ALL_TICKET_STATUSES).toBe(TICKET_STATUSES);
+    expect([...ALL_TICKET_STATUSES].sort()).toEqual([...TICKET_STATUSES].sort());
   });
 });
 

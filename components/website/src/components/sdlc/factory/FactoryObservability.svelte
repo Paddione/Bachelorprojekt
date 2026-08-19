@@ -182,7 +182,7 @@
               </tr>
             </thead>
             <tbody>
-              {#each data.timeline.slice(0, 20) as row (row.external_id + row.at)}
+              {#each data.timeline.slice(0, 20) as row (row.external_id + row.at + row.phase + row.state)}
                 <tr>
                   <td class="mono">{row.external_id}</td>
                   <td><span class="brand-badge badge-{row.brand}">{brandBadge(row.brand)}</span></td>
@@ -263,4 +263,9 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
   @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 500px) { .kpi-row { grid-template-columns: 1fr; } }
+
+  @container (max-width: 480px) {
+    .kpi-row, .skeleton.kpi-row { grid-template-columns: 1fr; }
+    .phase-label, .phase-val { min-width: 0; }
+  }
 </style>

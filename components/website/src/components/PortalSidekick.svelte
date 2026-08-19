@@ -320,7 +320,7 @@
             </div>
             
             <div class="setting-link">
-              <a href="/admin/ki-konfiguration" class="admin-link">
+              <a href="/sdlc/cockpit?deck=ki" class="admin-link">
                 → Zur Key- & Provider-Konfiguration
               </a>
             </div>

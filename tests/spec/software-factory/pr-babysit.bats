@@ -121,14 +121,31 @@ _stub_gh_runlog() {
   [[ "$output" != *"selected PR #50"* ]]
 }
 
-@test "T001805: CONFLICTING PRs get labelled + notified, never fixed" {
-  _stub_gh_prs '[{"number":51,"isDraft":false,"mergeStateStatus":"CONFLICTING","headRefName":"fix/c","author":{"login":"paddione"},"labels":[],"statusCheckRollup":[{"conclusion":"FAILURE"}]}]'
+# T012567: Der Stub trug bis hierher nur mergeStateStatus="CONFLICTING" — einen Wert, den
+# das Enum gar nicht kennt. T012500 (#4796) hat den Guard im Skript auf die real
+# gelieferten Felder umgestellt (mergeable="CONFLICTING" ODER mergeStateStatus="DIRTY"),
+# den Stub aber nicht mitgezogen; seitdem lief dieser Test ins Leere. Die Spec-Shards
+# laufen nur als PR-Check, deshalb fiel es erst im naechsten PR auf.
+@test "T001805: CONFLICTING PRs get labelled + notified, never fixed (mergeable)" {
+  _stub_gh_prs '[{"number":51,"isDraft":false,"mergeable":"CONFLICTING","mergeStateStatus":"BLOCKED","headRefName":"fix/c","author":{"login":"paddione"},"labels":[],"statusCheckRollup":[{"conclusion":"FAILURE"}]}]'
   FACTORY_DRY_RESOLVE=1 run bash "$BABYSIT"
   [[ "$output" == *"QA_NOTIFY_PAYLOAD"* ]]
   run grep -E 'pr edit 51 --add-label ci-babysitter-conflict' "$ARGV_LOG"
   [ "$status" -eq 0 ]
   run grep -F 'run view' "$ARGV_LOG"
   [ "$status" -ne 0 ]   # kein CI-Log-Fetch → kein Fix-Versuch
+}
+
+# Zweiter Weg in denselben Zweig: waehrend GitHub mergeable noch berechnet, steht dort
+# UNKNOWN und nur mergeStateStatus verraet den Konflikt (DIRTY).
+@test "T001805: CONFLICTING PRs get labelled + notified, never fixed (mergeStateStatus DIRTY)" {
+  _stub_gh_prs '[{"number":53,"isDraft":false,"mergeable":"UNKNOWN","mergeStateStatus":"DIRTY","headRefName":"fix/dirty","author":{"login":"paddione"},"labels":[],"statusCheckRollup":[{"conclusion":"FAILURE"}]}]'
+  FACTORY_DRY_RESOLVE=1 run bash "$BABYSIT"
+  [[ "$output" == *"QA_NOTIFY_PAYLOAD"* ]]
+  run grep -E 'pr edit 53 --add-label ci-babysitter-conflict' "$ARGV_LOG"
+  [ "$status" -eq 0 ]
+  run grep -F 'run view' "$ARGV_LOG"
+  [ "$status" -ne 0 ]
 }
 
 @test "T001805: at 2 prior attempts the PR is given up + notified" {

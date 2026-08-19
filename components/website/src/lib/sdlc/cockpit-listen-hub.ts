@@ -117,3 +117,9 @@ export function subscribe(fn: Subscriber): () => void {
 export function subscriberCount(): number {
   return subscribers.size;
 }
+
+/** Ob die LISTEN-Verbindung aktiv steht — Konsumenten nutzen das als
+ *  "NOTIFY-Verbindung verfügbar"-Signal fuer ihren Fallback (T008016/E4). */
+export function isListening(): boolean {
+  return listenActive;
+}

@@ -9,7 +9,11 @@ _normalize_priority() {
 }
 
 _VALID_SEVERITIES="critical major minor trivial"
-_VALID_STATUSES="triage planning plan_staged backlog in_progress in_review qa_review awaiting_deploy blocked done archived"
+# Status-Vokabular aus der Website-SSO (T008345): statuses.json ist die
+# maschinenlesbare Quelle der 11 Status — status.ts (lib/tickets/status.ts,
+# T007955) importiert dieselbe Datei. Kein Hardcode hier, sonst driftet die
+# Shell-Validierung von der Union. Pfad: scripts/vda/ticket/ → Repo-Root (3 Ebenen).
+_VALID_STATUSES=$(jq -r '.[]' "$(dirname "${BASH_SOURCE[0]}")/../../../components/website/src/lib/tickets/statuses.json" | paste -sd' ' -)
 
 show_help() {
   vda_header "vda.sh ticket triage"
@@ -40,7 +44,7 @@ main() {
     vda_error "Invalid severity: $severity (critical|major|minor|trivial)"; exit 2
   fi
   if [[ -n "$status" ]] && ! [[ " $_VALID_STATUSES " == *" ${status,,} "* ]]; then
-    vda_error "Invalid status: $status (triage|planning|plan_staged|backlog|in_progress|in_review|qa_review|awaiting_deploy|blocked|done|archived)"; exit 2
+    vda_error "Invalid status: $status (valid: ${_VALID_STATUSES// /|})"; exit 2
   fi
   # [T002876] plan_staged guard (erweitert auf triage-Pfad, 2026-08-09):
   # Der triage-Pfad darf NIEMALS nach plan_staged wechseln — plan_staged ist
@@ -104,7 +108,7 @@ SQL
   if [[ "$apply" != "true" && "${VDA_NONINTERACTIVE:-0}" != "1" && -t 0 ]]; then
     [[ -z "$priority" ]] && priority=$(vda_choose "Priority" niedrig mittel hoch)
     [[ -z "$severity" ]] && severity=$(vda_choose "Severity" critical major minor trivial)
-    [[ -z "$status" ]] && status=$(vda_choose "Status" triage planning plan_staged backlog in_progress in_review qa_review awaiting_deploy blocked done archived)
+    [[ -z "$status" ]] && status=$(vda_choose "Status" $_VALID_STATUSES)
     [[ -z "$component" ]] && component=$(vda_input "Component" "")
   fi
 

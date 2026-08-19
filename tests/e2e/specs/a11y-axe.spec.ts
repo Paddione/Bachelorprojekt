@@ -43,6 +43,11 @@ function describeViolations(violations: AxeViolationSummary[]): string {
 for (const route of CORE_ROUTES) {
   test(`a11y: ${PROD_DOMAIN} ${route} hat 0 critical/serious`, async ({ page }) => {
     test.setTimeout(30_000);
+    // Disable CSS animations so axe measures the final rendered colors.
+    // Without this, elements mid-fade (e.g. Hero .hero-copy fade-up at
+    // opacity ~0.55) produce false contrast violations because axe-core
+    // computes the effective blended color through the reduced opacity.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(route, { waitUntil: 'domcontentloaded' });
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

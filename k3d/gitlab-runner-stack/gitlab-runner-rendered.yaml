@@ -1,0 +1,474 @@
+---
+# Source: gitlab-runner/templates/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "gitlab-runner"
+  namespace: "gitlab-runner"
+  labels:
+    app: gitlab-runner
+    chart: gitlab-runner-0.91.2
+    release: "gitlab-runner"
+    heritage: "Helm"
+---
+# Source: gitlab-runner/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-runner
+  namespace: "gitlab-runner"
+  labels:
+    app: gitlab-runner
+    chart: gitlab-runner-0.91.2
+    release: "gitlab-runner"
+    heritage: "Helm"
+data:
+  entrypoint: |
+    #!/bin/bash
+    set -e
+
+    export CONFIG_PATH_FOR_INIT="/home/gitlab-runner/.gitlab-runner/"
+    mkdir -p $${CONFIG_PATH_FOR_INIT}
+    cp /configmaps/config.toml $${CONFIG_PATH_FOR_INIT}
+    # Set up environment variables for cache
+    if [[ -f /secrets/accesskey && -f /secrets/secretkey ]]; then
+      export CACHE_S3_ACCESS_KEY=$(cat /secrets/accesskey)
+      export CACHE_S3_SECRET_KEY=$(cat /secrets/secretkey)
+    fi
+
+    if [[ -f /secrets/gcs-applicaton-credentials-file ]]; then
+      export GOOGLE_APPLICATION_CREDENTIALS="/secrets/gcs-applicaton-credentials-file"
+    elif [[ -f /secrets/gcs-application-credentials-file ]]; then
+      export GOOGLE_APPLICATION_CREDENTIALS="/secrets/gcs-application-credentials-file"
+    else
+      if [[ -f /secrets/gcs-access-id && -f /secrets/gcs-private-key ]]; then
+        export CACHE_GCS_ACCESS_ID=$(cat /secrets/gcs-access-id)
+        # echo -e used to make private key multiline (in google json auth key private key is oneline with \n)
+        export CACHE_GCS_PRIVATE_KEY=$(echo -e $(cat /secrets/gcs-private-key))
+      fi
+    fi
+
+    if [[ -f /secrets/azure-account-name && -f /secrets/azure-account-key ]]; then
+      export CACHE_AZURE_ACCOUNT_NAME=$(cat /secrets/azure-account-name)
+      export CACHE_AZURE_ACCOUNT_KEY=$(cat /secrets/azure-account-key)
+    fi
+
+    if [[ -f /secrets/runner-registration-token ]]; then
+      export REGISTRATION_TOKEN=$(cat /secrets/runner-registration-token)
+    fi
+
+    if [[ -f /secrets/runner-token ]]; then
+      export CI_SERVER_TOKEN=$(cat /secrets/runner-token)
+    fi
+    if ! sh /configmaps/register-the-runner; then
+      exit 1
+    fi
+
+    # Run pre-entrypoint-script
+    if ! bash /configmaps/pre-entrypoint-script; then
+      exit 1
+    fi
+
+    # Start the runner
+    exec /entrypoint run \
+      --user=gitlab-runner \
+      --working-directory=/home/gitlab-runner
+  config.toml: |
+    shutdown_timeout = 0
+    concurrent = 3
+    check_interval = 3
+    log_level = "info"
+
+  
+  config.template.toml:   |
+    [[runners]]
+      [runners.kubernetes]
+        namespace = "gitlab-runner"
+        image = "ubuntu:24.04"
+        privileged = false
+        service_account = "default"
+        automount_service_account_token = false
+        # Siehe Runbook "Registry-Anbindung" — dieses Feld existiert im
+        # Kubernetes-Executor NICHT als Pull-Through-Ziel; hier absichtlich nur
+        # namespace/image/privileged/service_account/priority_class_name gesetzt.
+        priority_class_name = "ci-low"
+        pull_policy = ["if-not-present"]
+        # B1 (Review T012177): Der Kubernetes-Executor kennt NUR
+        # [runners.kubernetes.affinity.node_affinity] — der vorherige Pfad
+        # [runners.kubernetes.node_affinity] (ohne "affinity") ist ein unbekannter
+        # TOML-Key und wird vom Executor STILL VERWORFEN, ohne Fehler. Ergebnis:
+        # Job-Pods hatten GAR KEINE Affinitaet und konnten auf den Control-Plane-
+        # Knoten (pk-hetzner-4/6/8, 96% CPU-Requests) landen — genau das Risiko,
+        # gegen das Design D2 gebaut ist. Verifiziert gegen die offizielle
+        # Kubernetes-Executor-Doku (docs.gitlab.com/runner/executors/kubernetes),
+        # zusaetzlich abgesichert durch den TOML-Guard in
+        # tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats (S4).
+        [runners.kubernetes.affinity]
+          [runners.kubernetes.affinity.node_affinity]
+            [runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution]
+              [[runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms]]
+                [[runners.kubernetes.affinity.node_affinity.required_during_scheduling_ignored_during_execution.node_selector_terms.match_expressions]]
+                  key = "kubernetes.io/hostname"
+                  operator = "In"
+                  values = ["gekko-hetzner-3", "gekko-hetzner-4"]
+        # B4 (Review T012177): dieselbe restricted-PSA-Pflicht wie beim
+        # Manager-Pod (siehe podSecurityContext oben) gilt fuer JEDEN Pod im
+        # Namespace — also auch fuer die vom Manager erzeugten Job-Pods
+        # (build+helper-Container, dazu init-permissions und service — siehe
+        # T012634 weiter unten). Ohne diese Bloecke scheitert jeder CI-Job an
+        # der Admission, bevor er ueberhaupt startet.
+        #
+        # T012644 — run_as_user wird jetzt gesetzt, entgegen der frueheren
+        # Festlegung an dieser Stelle. Die lautete: "run_as_user wird bewusst
+        # NICHT gesetzt, ein fest verdrahteter UID wuerde Images brechen, die
+        # eine andere non-root-UID mitbringen; runAsNonRoot verlangt nur, dass
+        # die tatsaechliche UID des Images != 0 ist." Der zweite Satz stimmt —
+        # und genau daran scheiterte es: die tatsaechliche UID IST 0. Belegt an
+        # zwei Containern:
+        #   docker run --rm ubuntu:24.04 id -u        => 0   (Default-Job-Image)
+        #   Event am Job-Pod: "container has runAsNonRoot and image will run as
+        #   root ... container: init-permissions"     (Helper-Image)
+        # Ohne eigene UID startete kein Job-Pod; der Pod blieb Pending, bis der
+        # Executor mit "timed out waiting for pod to start" abbrach.
+        #
+        # Die Sorge der alten Festlegung bleibt berechtigt: ein Job-Image, das
+        # eine eigene non-root-UID mitbringt und auf sie angewiesen ist, laeuft
+        # jetzt trotzdem als 59417. Das ist der bewusst gewaehlte Preis dafuer,
+        # dass der Namespace restricted BLEIBT (Alternative waere baseline, also
+        # ein Sicherheitsabbau). Konkrete Folge fuer die .gitlab-ci.yml: was im
+        # Job root braucht — apt-get install, npm -g, Schreiben ausserhalb des
+        # Workspace — schlaegt fehl und muss anders geloest werden (fertiges
+        # Image statt Installation zur Laufzeit).
+        #
+        # 59417 ist die UID aus dem Doku-Beispiel des Runners. Sie ist frei
+        # gewaehlt; entscheidend ist nur != 0 und Konsistenz zwischen
+        # run_as_user, run_as_group und fs_group. fs_group sorgt dafuer, dass
+        # das Build-Volume der Gruppe gehoert — sonst koennte init-permissions
+        # als non-root nicht darauf schreiben und der Pod haenge weiter.
+        #
+        # build/helper/service erben run_as_user vom Pod: ihre Bloecke unten
+        # setzen es bewusst nicht erneut, damit es genau eine Stelle gibt, an
+        # der die UID steht.
+        [runners.kubernetes.pod_security_context]
+          run_as_non_root = true
+          run_as_user = 59417
+          run_as_group = 59417
+          fs_group = 59417
+          [runners.kubernetes.pod_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.build_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.build_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.build_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.helper_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.helper_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.helper_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        # T012634: Der Executor erzeugt neben build und helper zwei weitere
+        # Container, die dieselbe Admission passieren muessen — der Kommentar
+        # oben spricht von "diesen drei Bloecken" und uebersah beide.
+        #
+        # init-permissions ist ein Init-Container, den der Kubernetes-Executor
+        # vor jedem Job anlegt. Ohne eigenen Block lehnte die Admission jeden
+        # Job-Pod ab:
+        #   pods "runner-…-concurrent-0-…" is forbidden: violates PodSecurity
+        #   "restricted:latest": allowPrivilegeEscalation != false (container
+        #   "init-permissions" must set securityContext.allowPrivilegeEscalation
+        #   =false), unrestricted capabilities (container "init-permissions"
+        #   must set securityContext.capabilities.drop=["ALL"])
+        # Der Manager-Pod sah dabei gesund aus (1/1 Running) und nahm Jobs an —
+        # sie scheiterten erst beim "prepare environment".
+        #
+        # service_container_security_context deckt Job-Services ab (services:
+        # in der .gitlab-ci.yml). Der Fehler tritt dort erst beim ersten Job
+        # auf, der einen Service startet, ist aber dieselbe Klasse.
+        #
+        # Die Schluesselnamen sind gegen das eingesetzte Binary belegt, nicht
+        # geraten — TOML ignoriert unbekannte Schluessel still, ein Tippfehler
+        # faellt also nicht auf, sondern wirkt nur nicht:
+        #   strings /usr/bin/gitlab-runner | grep -o '[a-z_]*container_security_context' | sort -u
+        #   => build_ / helper_ / init_permissions_ / service_container_security_context
+        [runners.kubernetes.init_permissions_container_security_context]
+          run_as_non_root = true
+          # T012644: hier steht die UID ein zweites Mal, obwohl der Pod sie
+          # bereits vorgibt. Die Runner-Doku fuehrt beide Stellen auf, und der
+          # Container ist derjenige, der ohne sie nachweislich nicht startete —
+          # bei einem Chart-Upgrade, das die Vererbung aendert, faellt der
+          # Ausfall sonst wieder auf die schwerste Art auf.
+          run_as_user = 59417
+          run_as_group = 59417
+          allow_privilege_escalation = false
+          [runners.kubernetes.init_permissions_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.init_permissions_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.service_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.service_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.service_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+  
+
+  register-the-runner: |
+    #!/bin/sh
+    signal_handler() {
+      if [ ! -d "/proc/$register_pid" ]; then
+        wait $register_pid
+      fi
+      exit
+    }
+    trap 'signal_handler' QUIT INT
+
+    MAX_REGISTER_ATTEMPTS=30
+
+    # Reset/unset the not needed flags when an authentication token
+    RUN_UNTAGGED=""
+    ACCESS_LEVEL=""
+
+    if [ -n "$CI_SERVER_TOKEN" ] && [ "${CI_SERVER_TOKEN#glrt-}" != "$CI_SERVER_TOKEN" ]; then
+      RUN_UNTAGGED=""
+      ACCESS_LEVEL=""
+      unset REGISTER_LOCKED
+      unset RUNNER_TAG_LIST
+    fi
+
+    for i in $(seq 1 "$${MAX_REGISTER_ATTEMPTS}"); do
+      echo "Registration attempt $${i} of $${MAX_REGISTER_ATTEMPTS}"
+      /entrypoint register \
+        $${RUN_UNTAGGED} \
+        $${ACCESS_LEVEL} \
+        --template-config /configmaps/config.template.toml \
+        --non-interactive &
+
+      register_pid=$!
+      wait $register_pid
+      retval=$?
+
+      if [ $${retval} = 0 ]; then
+        break
+      elif [ $${i} = $${MAX_REGISTER_ATTEMPTS} ]; then
+        exit 1
+      fi
+
+      sleep 5
+    done
+
+  check-live: |
+    #!/bin/bash
+    set -eou pipefail
+
+    # default timeout is 3 seconds, can be overriden
+    VERIFY_TIMEOUT=${1:-${VERIFY_TIMEOUT:-3}}
+
+    if ! /usr/bin/pgrep -f ".*register-the-runner"  > /dev/null && ! /usr/bin/pgrep -f "gitlab.*runner"  > /dev/null ; then
+      exit 1
+    fi
+
+    status=0
+    # empty --url= helps `gitlab-runner verify` select all configured runners (otherwise filters for $CI_SERVER_URL)
+    verify_output=$(timeout "$${VERIFY_TIMEOUT}" gitlab-runner verify --url= 2>&1) || status=$?
+
+    # timeout exit code is 143 with busybox, and 124 with coreutils
+    if (( status == 143 )) || (( status == 124 )) ; then
+      echo "'gitlab-runner verify' terminated by timeout, not a conclusive failure" >&2
+      exit 0
+    elif (( status > 0 )) ; then
+      exit $${status}
+    fi
+
+    grep -qE "is (alive|valid)" <<<"$${verify_output}"
+
+  pre-entrypoint-script: |
+---
+# Source: gitlab-runner/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: "Role"
+metadata:
+  name: gitlab-runner
+  labels:
+    app: gitlab-runner
+    chart: gitlab-runner-0.91.2
+    release: "gitlab-runner"
+    heritage: "Helm"
+  namespace: "gitlab-runner"
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get","list","watch","create","delete"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["get","create","delete","patch"]
+- apiGroups: [""]
+  resources: ["pods/attach"]
+  verbs: ["get","create","delete","patch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get","list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get","list","create","update","delete"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get","create"]
+- apiGroups: [""]
+  resources: ["serviceaccounts"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["list","watch"]
+---
+# Source: gitlab-runner/templates/role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: "RoleBinding"
+metadata:
+  name: gitlab-runner
+  labels:
+    app: gitlab-runner
+    chart: gitlab-runner-0.91.2
+    release: "gitlab-runner"
+    heritage: "Helm"
+  namespace: "gitlab-runner"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: "Role"
+  name: gitlab-runner
+subjects:
+- kind: ServiceAccount
+  name: "gitlab-runner"
+  namespace: "gitlab-runner"
+---
+# Source: gitlab-runner/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-runner
+  namespace: "gitlab-runner"
+  labels:
+    app: gitlab-runner
+    chart: gitlab-runner-0.91.2
+    release: "gitlab-runner"
+    heritage: "Helm"
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: gitlab-runner
+  template:
+    metadata:
+      labels:
+        app: gitlab-runner
+        chart: gitlab-runner-0.91.2
+        release: "gitlab-runner"
+        heritage: "Helm"
+      annotations:
+        checksum/configmap: 7b306129eb07488b5c2e1c94b53ed74ca0eb3b750a4deff7364fa10df3d1e360
+        checksum/secrets: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    spec:
+      securityContext: 
+        fsGroup: 65533
+        runAsNonRoot: true
+        runAsUser: 100
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 3600
+      priorityClassName: "ci-low"
+      serviceAccountName: "gitlab-runner"
+      containers:
+      - name: gitlab-runner
+        image: registry.gitlab.com/gitlab-org/gitlab-runner:alpine-v19.2.2
+        imagePullPolicy: "IfNotPresent"
+        securityContext: 
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/entrypoint", "unregister", "--all-runners"]
+        command: ["/usr/bin/dumb-init", "--", "/bin/bash", "/configmaps/entrypoint"]
+        env:        
+        - name: CI_SERVER_URL
+          value: "https://gitlab.com/"
+        - name: RUNNER_EXECUTOR
+          value: "kubernetes"
+        - name: REGISTER_LOCKED
+          value: "true"
+        - name: RUNNER_TAG_LIST
+          value: "bachelorprojekt-local"
+        - name: SESSION_SERVER_ADDRESS
+          value:
+        livenessProbe:
+          exec:
+            command: ["/bin/bash", "/configmaps/check-live", "3"]
+          initialDelaySeconds: 60
+          timeoutSeconds: 4
+          periodSeconds: 60
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command: ["/usr/bin/pgrep","gitlab.*runner"]
+          initialDelaySeconds: 60
+          timeoutSeconds: 4
+          periodSeconds: 60
+          successThreshold: 1
+          failureThreshold: 3
+        ports:
+        - name: "metrics"
+          containerPort: 9252
+        volumeMounts:
+        - name: projected-secrets
+          mountPath: /secrets
+        - name: etc-gitlab-runner
+          mountPath: /home/gitlab-runner/.gitlab-runner
+        - name: configmaps
+          mountPath: /configmaps
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+      volumes:
+      - name: runner-secrets
+        emptyDir:
+          medium: "Memory"
+      - name: etc-gitlab-runner
+        emptyDir:
+          medium: "Memory"
+      - name: projected-secrets
+        projected:
+          sources:
+            - secret:
+                name: "gitlab-runner-secret"
+                items:
+                  - key: runner-registration-token
+                    path: runner-registration-token
+                  - key: runner-token
+                    path: runner-token
+      - name: configmaps
+        configMap:
+          name: gitlab-runner
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - gekko-hetzner-3
+                - gekko-hetzner-4

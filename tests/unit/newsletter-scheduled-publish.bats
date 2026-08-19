@@ -27,7 +27,7 @@ setup_file() {
 }
 
 @test "cron endpoint requires Bearer auth and returns 401 on mismatch" {
-  run grep -F "status: 401" "$ENDPOINT"
+  run grep -F "errorResponse('Unauthorized', locals.requestId, 401)" "$ENDPOINT"
   assert_success
   run grep -F 'Bearer ${CRON_SECRET}' "$ENDPOINT"
   assert_success

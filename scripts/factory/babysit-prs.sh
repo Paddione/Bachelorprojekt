@@ -48,8 +48,8 @@ CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 # calling wakeup.sh context relays this onward to the notification tool;
 # this script itself never invokes it directly.
 emit_notify() {
-  local pr="$1" title="$2" body="$3"
-  echo "QA_NOTIFY_PAYLOAD: title=\"${title}\" body=\"${body}\" event=ci-babysitter pr=${pr}"
+  local pr="$1" title="$2" body="$3" event="${4:-ci-babysitter}"
+  echo "QA_NOTIFY_PAYLOAD: title=\"${title}\" body=\"${body}\" event=${event} pr=${pr}"
 }
 
 # post_marker <pr> <attempt> <class> <decision> [logfile] — machine-readable
@@ -69,7 +69,7 @@ is_branch_locked() {
 }
 
 # ── Scan (D-scan): required json fields per plan Task 1 ─────────────────────
-PRS_JSON=$(gh pr list --state open --json number,headRefName,isDraft,mergeStateStatus,statusCheckRollup,author,labels 2>/dev/null || echo '[]')
+PRS_JSON=$(gh pr list --state open --json number,headRefName,isDraft,mergeStateStatus,mergeable,statusCheckRollup,author,labels 2>/dev/null || echo '[]')
 
 if [[ -z "$PRS_JSON" || "$PRS_JSON" == "[]" ]]; then
   echo "babysit-prs: no open PRs" >&2
@@ -79,7 +79,16 @@ fi
 RENOVATE_OK="${FACTORY_BABYSIT_RENOVATE:-false}"
 
 # ── Filter chain (Task 2): draft, gave-up label, Renovate opt-in, red/conflicting ──
+# [T012500] Konflikt-Erkennung an EINER Stelle definiert. Vorher stand hier
+# '.mergeStateStatus == "CONFLICTING"' — ein Vergleich, der nie zutreffen kann:
+# das Enum mergeStateStatus kennt BEHIND/BLOCKED/CLEAN/DIRTY/DRAFT/HAS_HOOKS/
+# UNKNOWN/UNSTABLE, der Konflikt heisst dort DIRTY. CONFLICTING ist der Wert des
+# SEPARATEN Feldes mergeable, das die Abfrage oben bis T012500 nicht einmal
+# anforderte. Beide Felder werden geprueft, weil mergeable waehrend der
+# GitHub-Berechnung UNKNOWN sein kann.
 CANDIDATES=$(echo "$PRS_JSON" | jq -c --arg renovate_ok "$RENOVATE_OK" '
+  def _is_conflicting:
+    (.mergeable == "CONFLICTING") or (.mergeStateStatus == "DIRTY");
   [ .[]
     | select(.isDraft == false)
     | select((.labels // []) | map(.name) | index("ci-babysitter-gave-up") | not)
@@ -88,14 +97,47 @@ CANDIDATES=$(echo "$PRS_JSON" | jq -c --arg renovate_ok "$RENOVATE_OK" '
         or ($renovate_ok == "true")
       )
     | select(
-        (.mergeStateStatus == "CONFLICTING")
-        or ((.statusCheckRollup // []) | any(.conclusion == "FAILURE"))
+        _is_conflicting
+        or ((.statusCheckRollup // []) | any(
+              .conclusion == "FAILURE" or .conclusion == "TIMED_OUT" or .conclusion == "ERROR"
+            ))
       )
   ] | sort_by(.number)')
 
 CANDIDATE_COUNT=$(echo "$CANDIDATES" | jq 'length')
 if [[ "$CANDIDATE_COUNT" -eq 0 ]]; then
   echo "babysit-prs: no eligible red PR" >&2
+
+  # ── CI-never-ran-Scan (T012264) ────────────────────────────────────────────
+  # PRs derselben Filterkette wie der Kandidaten-Scan (kein Draft, kein
+  # gave-up-Label, Renovate nur mit Opt-in) ohne COMPLETED-Rollup-Eintrag
+  # melden, wenn der HEAD keinerlei Check-Runs hat (total_count=0): CI lief
+  # nie, kein roter Kandidat, keine Babysitter-Notiz — der PR ist unsichtbar.
+  # IN_PROGRESS-Checks sind kein "lief nie" und bleiben stumm (D2).
+  NEVER_RAN=$(echo "$PRS_JSON" | jq -c --arg renovate_ok "$RENOVATE_OK" '
+    [ .[]
+      | select(.isDraft == false)
+      | select((.labels // []) | map(.name) | index("ci-babysitter-gave-up") | not)
+      | select(
+          ((.author.login // "") | test("^renovate(\\[bot\\])?$") | not)
+          or ($renovate_ok == "true")
+        )
+      | select((.statusCheckRollup // []) | any(.status == "COMPLETED") | not)
+    ] | sort_by(.number)')
+  for row in $(echo "$NEVER_RAN" | jq -r '.[] | @base64'); do
+    _jq() { echo "$row" | base64 -d | jq -r "$1"; }
+    NUM2=$(_jq '.number'); BRANCH2=$(_jq '.headRefName')
+    is_branch_locked "$BRANCH2" && continue
+    HEAD_OID=$(gh pr view "$NUM2" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")
+    [[ -z "$HEAD_OID" ]] && continue
+    TOTAL=$(gh api "repos/Paddione/Bachelorprojekt/commits/${HEAD_OID}/check-runs" -q '.total_count' 2>/dev/null || echo "")
+    if [[ "$TOTAL" == "0" ]]; then
+      emit_notify "$NUM2" "PR #${NUM2} CI lief nie" \
+        "PR #${NUM2} (${BRANCH2}) hat keine Check-Runs auf seinem HEAD — CI wurde nie gestartet. Kein roter Kandidat, deshalb kein Babysitter-Fix." \
+        ci-never-ran
+    fi
+  done
+
   exit 0
 fi
 
@@ -122,11 +164,19 @@ fi
 NUM=$(echo "$SELECTED" | jq -r '.number')
 BRANCH_NAME=$(echo "$SELECTED" | jq -r '.headRefName')
 MERGE_STATE=$(echo "$SELECTED" | jq -r '.mergeStateStatus')
+MERGEABLE=$(echo "$SELECTED" | jq -r '.mergeable // "UNKNOWN"')
 
 echo "babysit-prs: selected PR #${NUM} (branch=${BRANCH_NAME}, mergeState=${MERGE_STATE})" >&2
 
 # ── CONFLICTING branch (D7): label + notify, never fix ──────────────────────
-if [[ "$MERGE_STATE" == "CONFLICTING" ]]; then
+#
+# [T012500] Geprueft werden mergeable UND mergeStateStatus. Vorher stand hier
+# nur '$MERGE_STATE == "CONFLICTING"' — der Guard konnte damit nie feuern, weil
+# mergeStateStatus diesen Wert nicht kennt (dort heisst der Konflikt DIRTY).
+# Folge: ein Konflikt-PR fiel in den Fix-Pfad, den er laut D7 nie erreichen
+# soll. An PR #4780 arbeitete die Factory darauf ueber 25 Minuten und ~30.000
+# Token, ohne Commit oder Push — und begann bei jedem Tick von vorn.
+if [[ "$MERGEABLE" == "CONFLICTING" || "$MERGE_STATE" == "DIRTY" ]]; then
   HAS_LABEL=$(echo "$SELECTED" | jq -r '(.labels // []) | map(.name) | index("ci-babysitter-conflict") // empty')
   if [[ -z "$HAS_LABEL" ]]; then
     if [[ "$DRY_RUN" == "true" ]]; then

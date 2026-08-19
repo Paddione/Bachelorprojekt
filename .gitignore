@@ -229,3 +229,11 @@ scripts/ticket-mcp/go/ticket-mcp
 # Audit-Log des Cockpit-Daemons — Laufzeitartefakt, entsteht bei jedem Start
 # und bei jedem Testlauf gegen die Write-Endpunkte [T002721].
 audit.jsonl
+
+# flux-render-artifact.sh rendert per Default nach out/ (Build-Artefakt)
+out/
+
+# ISO-Build: mehrere GB Artefakt, und die node-map beschreibt konkrete
+# Hardware (MAC-Adressen) statt das Repo. Vorlage: scripts/iso/node-map.example
+build/iso/
+scripts/iso/node-map

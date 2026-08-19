@@ -161,8 +161,6 @@ exit 0
 TICKET_EOF
   chmod +x "$WORK/scripts/ticket.sh"
 
-  # ROLLUP_FILE enthält das rohe statusCheckRollup-JSON; der Stub wendet die
-  # headSha-Filter-Query an — die Query selbst wird über gh-calls geprüft.
   cat > "$WORK/bin/gh" <<GH_EOF
 #!/usr/bin/env bash
 echo "gh \$*" >> "$MARKER_DIR/gh-calls"
@@ -174,8 +172,7 @@ case "\$args" in
   *"--json state -q .state") echo "OPEN" ;;
   *"checks --watch"*) touch "$MARKER_DIR/watch-called"; exit 0 ;;
   *"--json headRefOid -q .headRefOid"*) echo "\$HEAD_SHA" ;;
-  *"--json headRefOid,statusCheckRollup"*)
-    jq -c '. as \$p | \$p.statusCheckRollup[] | select(.headSha == \$p.headRefOid) | select((.conclusion // "") == "FAILURE" or (.conclusion // "") == "TIMED_OUT") | (.name // .context // "unknown") + ": " + (.detailsUrl // .targetUrl // "")' "$WORK/rollup.json" 2>/dev/null || true ;;
+  *"check-runs"*"failure"*) cat "$WORK/check-runs-failures.txt" 2>/dev/null || true ;;
   *"run list --branch"*) cat "$WORK/runs.json" 2>/dev/null || echo '[]' ;;
   *"actions/runs/"*"/jobs"*) cat "$WORK/jobs-count.txt" 2>/dev/null || echo "1" ;;
   *"check-runs"*"total_count"*) echo "3" ;;
@@ -187,28 +184,21 @@ GH_EOF
 
 @test "T003225 Positiv-Anker: nur Checks des aktuellen head-SHA zählen (fremde head-SHAs = grün)" {
   _setup_ciwatch "aaaa1111"
-  cat > "$WORK/rollup.json" <<'JSON'
-{"headRefOid":"aaaa1111","statusCheckRollup":[
-  {"headSha":"ffff9999","conclusion":"FAILURE","name":"alter-check","detailsUrl":"u1"},
-  {"headSha":"ffff9999","conclusion":"TIMED_OUT","name":"alter-check-2","detailsUrl":"u2"}
-]}
-JSON
+  # T012239: die check-runs-API des PR-HEAD liefert per URL-Bindung nur Checks
+  # DIESES Commits — fremde head-SHAs kommen dort gar nicht vor. Leere Antwort = grün.
+  echo -n "" > "$WORK/check-runs-failures.txt"
   echo '[]' > "$WORK/runs.json"
   echo "1" > "$WORK/jobs-count.txt"
   run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$PROJECT_DIR/scripts/devflow-ci-watch.sh" T999999 "https://github.com/x/y/pull/1"
   [ "$status" -eq 0 ] || { echo "unerwarteter Exit $status: $output"; false; }
-  # Die vom Skript an gh übergebene Query MUSS den headSha-Filter enthalten
-  grep -q 'headSha == \$p.headRefOid' "$MARKER_DIR/gh-calls" || { echo "headSha-Filter fehlt in gh-Query: $(cat "$MARKER_DIR/gh-calls")"; false; }
+  # Die check-runs-Abfrage MUSS an den PR-HEAD gebunden sein — sonst zählen
+  # wieder Checks Vorgänger-Commits mit.
+  grep -q "commits/$HEAD_SHA/check-runs" "$MARKER_DIR/gh-calls" || { echo "check-runs-Abfrage fehlt (keine HEAD-Bindung): $(cat "$MARKER_DIR/gh-calls")"; false; }
   printf '%s\n' "$output" | grep -q "alle grün" || { echo "fremde head-SHAs wurden als Fehler gewertet: $output"; false; }
 }
 
 @test "T003225: conclusion=\"\" (laufend) ist kein Fehler" {
   _setup_ciwatch "aaaa1111"
-  cat > "$WORK/rollup.json" <<'JSON'
-{"headRefOid":"aaaa1111","statusCheckRollup":[
-  {"headSha":"aaaa1111","conclusion":"","status":"IN_PROGRESS","name":"laufend","detailsUrl":"u1"}
-]}
-JSON
   echo '[]' > "$WORK/runs.json"
   run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$PROJECT_DIR/scripts/devflow-ci-watch.sh" T999999 "https://github.com/x/y/pull/1"
   [ "$status" -eq 0 ] || { echo "laufender Check wurde als Fehler gewertet (Exit $status): $output"; false; }
@@ -216,11 +206,9 @@ JSON
 
 @test "T003224: aggregierter failure-Run ohne failure-Jobs (cancelled/skipped) ist kein Codefehler" {
   _setup_ciwatch "aaaa1111"
-  cat > "$WORK/rollup.json" <<'JSON'
-{"headRefOid":"aaaa1111","statusCheckRollup":[
-  {"headSha":"aaaa1111","conclusion":"FAILURE","name":"ci","detailsUrl":"u1"}
-]}
-JSON
+  # T012239: FAILED_CHECKS kommt aus der check-runs-API des PR-HEAD — der
+  # aggregierte Check meldet failure (Rot-Signal), die Gegenprobe greift.
+  echo "ci: u1" > "$WORK/check-runs-failures.txt"
   # Run am aktuellen HEAD meldet failure, aber 0 Jobs mit conclusion=failure
   cat > "$WORK/runs.json" <<'JSON'
 [{"databaseId":42,"headSha":"aaaa1111","status":"completed","conclusion":"failure"}]
@@ -273,11 +261,17 @@ GH_EOF
   # der Subshell-Flock nicht endlos. stdout/stderr auf /dev/null: überlebt ein
   # verwaister Flock-Kindprozess den kill, hält er die Bats-Output-Pipe nicht
   # offen (sonst hängt die Suite am Testende).
-  ( flock -w 10 -x 9; sleep 30 ) 9>/tmp/factory-tick.lock >/dev/null 2>&1 &
+  # [T012414] Eigener Lock-Pfad statt des geteilten /tmp/factory-tick.lock: auf
+  # einem self-hosted Runner gehört der einem anderen User, das Anlegen scheiterte
+  # mit "Permission denied" und der Test maß die Eigenschaft nie. Das Skript nimmt
+  # den Pfad über FACTORY_TICK_LOCK entgegen; der Default bleibt der geteilte.
+  TICK_LOCK="$WORK/factory-tick.lock"
+  ( flock -w 10 -x 9; sleep 30 ) 9>"$TICK_LOCK" >/dev/null 2>&1 &
   TMP_LOCK_PID=$!
   sleep 0.2
 
   run --separate-stderr env -C "$WORK" PATH="$WORK/bin:$PATH" REPO_DIR="$FIXTURE" AGENT_LOCK_DIR="$WORK/locks" \
+    FACTORY_TICK_LOCK="$TICK_LOCK" \
     bash "$PROJECT_DIR/scripts/repo-hygiene-cron.sh" standard
   kill "$TMP_LOCK_PID" 2>/dev/null || true
   wait "$TMP_LOCK_PID" 2>/dev/null || true

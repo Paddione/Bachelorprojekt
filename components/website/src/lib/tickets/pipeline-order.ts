@@ -1,14 +1,15 @@
 // Ordered pipeline-lane SSOT. The ONE front→back declaration; PIPELINE_STATUSES
-// and STATUS_BUCKETS are derived from it. Pure module — imports nothing (no DB,
-// no API), so tests and Svelte components can import it without booting the pg Pool.
-// Valid ticket states (Set, NOT lane order). Mirrors the DB CHECK in tickets-db.ts.
-// Order is historical (blocked between in_review and qa_review) and intentionally
-// preserved for backward compatibility — lane order lives in PIPELINE_LANES below.
-export const ALL_TICKET_STATUSES = [
-  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
-  'in_review', 'blocked', 'qa_review', 'awaiting_deploy', 'done', 'archived',
-] as const;
-export type TicketStatus = (typeof ALL_TICKET_STATUSES)[number];
+// and STATUS_BUCKETS are derived from it. Pure module — imports only ./status
+// (no DB, no API), so tests and Svelte components can import it without booting
+// the pg Pool.
+// The 11 canonical status values are NOT declared here — they come from
+// ./status.ts (T007955 SSOT). ALL_TICKET_STATUSES is the historical name, kept
+// as an alias so existing consumers and the factory-floor.ts re-export contract
+// stay untouched; lane order lives in PIPELINE_LANES below.
+import { TICKET_STATUSES, type TicketStatus } from './status';
+
+export const ALL_TICKET_STATUSES = TICKET_STATUSES;
+export type { TicketStatus } from './status';
 
 export type LaneKey =
   | 'planning' | 'staged' | 'loadingDock' | 'hall' | 'qa' | 'awaitingDeploy' | 'shipped'

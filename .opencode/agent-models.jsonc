@@ -9,9 +9,8 @@
     // die Gemma-Agenten lief damit ins Leere.
     //
     // Weiterhin ueber den llm-proxy (:18235) statt direkt auf den Server-Port: damit gilt
-    // max_inflight=1 auch fuer die opencode-Agenten (sie serialisieren, statt gleichzeitig
-    // auf die eine GPU zu gehen) und die Fallback-Kette lokal -> deepseek -> zen greift
-    // auch hier [T002558].
+    // max_inflight=3 auch fuer die opencode-Agenten (bis zu 3 parallele Streams pro Backend)
+    // und die Fallback-Kette lokal -> deepseek -> zen greift auch hier [T002558].
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama.cpp b10225 via llm-proxy (Unsloth-Build, CUDA 13.3)",
@@ -31,13 +30,6 @@
             "output": 8192
           }
         },
-        "devstral-quality": {
-          "name": "Devstral-Small-2 24B IQ4_XS, Loadout devstral-quality auf Port 8099 - teilt sich exclusiveGroup chat-gpu mit gptoss-context, es laeuft immer nur eines",
-          "limit": {
-            "context": 32768,
-            "output": 8192
-          }
-        },
         "gemma26-factory": {
           "name": "Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091 (np=3, -kvu, q4_0, fitt 128) - exclusiveGroup chat-gpu",
           // 161024 ist GEMESSEN (n_ctx_slot im Serverlog, 2026-08-09, b10241, np=3 -kvu
@@ -50,7 +42,8 @@
         // 2026-08-04: Familiensubagenten brauchten eigene Loadouts — gemma4
         // (Port 8090) und qwen3-coder-30b (Port 8094) lagen auf der Platte.
         // Beide teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
-        // T003204: qwen3-coder-30b ist abgeschaltet (enabled: false in
+        // T003204/T012414: qwen3-coder-30b ist abgeschaltet und aus
+        // loadouts.json entfernt (vorher nur enabled: false in
         // loadouts.json) — gleicher VRAM wie gemma26-factory bei aggressiverer
         // Quantisierung, weniger Kontext, langsamer gemessen; kein Agent
         // referenziert das Modell mehr.
@@ -301,9 +294,9 @@
     // jeder lokale Subagent den Namen der Familie, die er tatsaechlich serviert
     // (gptoss, devstral, gemma, gemma12), und der Orchestrator ruft ihn damit auf:
     // `task gemma` gibt die Gemma-Familie. T003204: die Familie qwen ist
-    // abgeschaltet — ihr Loadout qwen3-coder-30b ist enabled: false.
+    // abgeschaltet — ihr Loadout qwen3-coder-30b wurde entfernt (T012414).
     //
-    // Was unveraendert gilt: der llm-proxy hat max_inflight=1, die Agenten
+    // Was unveraendert gilt: der llm-proxy hat max_inflight=3, die Agenten
     // rechnen nacheinander. Mehr Namen bringen erhaltenen Kontext, nicht
     // Durchsatz — bei einer einzelnen GPU waere echte Nebenlaeufigkeit ohnehin
     // kaum ein Gewinn. Alle vier Chat-Loadouts teilen exclusiveGroup
@@ -320,9 +313,9 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the gptoss-context loadout was disabled in T003204; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
+      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the gptoss-context loadout was disabled in T003204; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-throughput",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -336,9 +329,9 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent, now on the gemma26-factory loadout (Gemma 4 26B A4B UD-IQ4_XS, 177920 ctx, Port 8091, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; shares exclusiveGroup chat-gpu with the other local loadouts (only one runs at a time).",
+      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; updated to gemma26-throughput to share the live loadout with orchestrator and gptoss without GPU swapping. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -346,9 +339,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent for the gemma family (Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
+      "description": "Local subagent for the gemma family (Gemma 4 26B A4B QAT UD-Q4_K_XL, Loadout gemma26-throughput auf Port 8092, via llm-proxy :18235). Write-capable delegation; shares the live GPU loadout with orchestrator/gptoss without swapping.",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -380,7 +373,7 @@
     "gemma26-primary": {
       "description": "Primary (Tab-selectable) local agent on gemma26-factory (Gemma 4 26B A4B IQ4_XS, 161024 ctx measured, np=3 -kvu q4_0). Use for fully local work without the DeepSeek orchestrator in front. Can dispatch any subagent (deepseek + local).",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#6EE7B7",
       // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
@@ -403,7 +396,7 @@
     "gemma26-vision": {
       "description": "Local agent on gemma26-factory with no subagent dispatch \u2014 for long-context work that must stay on-device. No vision: gemma26-factory loads no mmproj (see loadouts.json); for vision use the gemma12-vision loadout instead.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#A78BFA",
       "temperature": 0.3,
@@ -431,7 +424,7 @@
     "gptoss-primary": {
       "description": "PRIMARY: Gemma 4 26B A4B QAT UD-Q4_K_XL (118.016 ctx). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092) — moved off the gptoss-context loadout, disabled in T003204. Broad general knowledge. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-throughput",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.3,
@@ -441,7 +434,7 @@
     "devstral-primary": {
       "description": "PRIMARY: Gemma 4 26B A4B UD-IQ4_XS (177.920 ctx). Tab-selectable singleagent on the gemma26-factory loadout (Port 8091) — moved off the devstral-quality loadout, disabled in T003204 (dominated in every dimension). Optimised for code quality review. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.3,
@@ -461,7 +454,7 @@
     "gemma26-throughput-primary": {
       "description": "PRIMARY: Gemma 4 26B A4B QAT-Q4_K_XL (118.016 ctx, 159-169 tok/s). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092). Fastest 26B option — QAT quant trades some quality for 30% higher throughput. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-throughput",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.3,
@@ -541,9 +534,15 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      // T011579: opencode-go/deepseek-v4-flash erschoepfte am 2026-08-17 sein
+      // Monatskontingent (AI_APICallError "Monthly usage limit reached", Reset in
+      // 16 Tagen) — alle Factory-Laeufe hingen, bevor ein Subagent dispatcht war.
+      // Umgestellt auf das einzige live Loadout gemma26-throughput (Port 8092 via
+      // llm-proxy :18235). Rueckbau auf deepseek-v4-flash erst nach Limit-Reset
+      // oder freigeschaltetem Balance-Usage.
+      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) up to 3 in parallel for implementation - the llm-proxy allows max_inflight=3. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,

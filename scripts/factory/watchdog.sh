@@ -81,9 +81,18 @@ mapfile -t stale < <(_stale_query | factory_psql)
 _wd_cleanup_worktree() {
   local ext_id="$1" ext_lc stale_wt
   ext_lc="$(printf '%s' "$ext_id" | tr '[:upper:]' '[:lower:]')"
+  # [T012502] Alle vier Konventions-Praefixe und beide Schreibweisen der
+  # Ticket-ID erfassen. Vorher stand hier exakt feature/sf-<klein> bzw.
+  # chore/sf-<klein> — die Gegenstelle in pipeline.mjs bildet seit T012502 den
+  # Praefix aus dem Ticket-Typ (fix/, docs/ kamen hinzu) und schreibt die ID
+  # GROSS, weil worktree-create.sh sie klein ablehnt. Ohne diese Anpassung
+  # faende der Watchdog seine eigenen Zombie-Worktrees nicht mehr.
+  # Unveraendert eng bleibt der sf-Praefix: geraeumt wird weiterhin nur der
+  # Fallback-Slug, nicht jeder Branch mit dieser Ticket-ID.
   stale_wt="$(git worktree list --porcelain 2>/dev/null \
-    | awk -v p1="refs/heads/feature/sf-$ext_lc" -v p2="refs/heads/chore/sf-$ext_lc" '
-        /^worktree /{w=$2} $0=="branch "p1 || $0=="branch "p2{print w}')"
+    | awk -v pat="^branch refs/heads/(feature|fix|chore|docs)/sf-" -v id="$ext_lc" '
+        /^worktree /{w=$2}
+        /^branch /{ b=tolower($0); if (b ~ (pat id "$")) print w }')"
   [[ -z "$stale_wt" ]] && return 0
   if git -C "$stale_wt" status --short 2>/dev/null | grep -q .; then
     bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
@@ -101,6 +110,30 @@ for row in "${stale[@]}"; do
   ticket_type="${row##*|}"
   ticket_json="$(BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" get --id "$ext_id")"
   plan_ref="$(echo "$ticket_json" | jq -r '.plan_ref // empty')"
+
+  # ── Merged-PR-Gate (T006297) ─────────────────────────────────────────────
+  # Gemergte Tickets (PR auf origin/main mit "[<id>]" im Betreff, M2/T002506)
+  # sind fertig — sie duerfen vom Stale-Sweep NICHT in die Queue zurueckgesetzt
+  # werden (der Reset re-dispatcht gemergte Arbeit in ein frisches Worktree;
+  # beobachtet als "Watchdog-Sturm" auf T004896/T005565/T005591). Stattdessen:
+  # close done, Resolution nach Typ (T002329), Kommentar mit "gemergt"-Vermerk.
+  # rc=2 (kein origin/main) = fail-open: sichtbare WARN, Ticket unveraendert —
+  # ein nicht erreichbarer Remote darf den Sweep nicht anhalten.
+  set +e
+  BRAND="$BRAND" bash "$HERE/../agent-lock.sh" check-merged "$ext_id" >/dev/null 2>&1
+  merged_rc=$?
+  set -e
+  if [[ "$merged_rc" -eq 1 ]]; then
+    resolution="shipped"; [[ "$ticket_type" == "fix" || "$ticket_type" == "bug" ]] && resolution="fixed"
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" update-status --id "$ext_id" --status done --resolution "$resolution" >/dev/null
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" comment --id "$ext_id" --body "Watchdog: PR bereits auf main gemergt — Ticket geschlossen statt zurueckgesetzt (T006297)" >/dev/null 2>&1 || true
+    BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" >/dev/null
+    _wd_cleanup_worktree "$ext_id"
+    escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+    continue
+  elif [[ "$merged_rc" -eq 2 ]]; then
+    echo "watchdog: WARN check-merged rc 2 fuer ${ext_id} (kein origin/main) — Stale-Behandlung ungeprueft [T006297]" >&2
+  fi
 
   # ── Attempt counter (T002361) ───────────────────────────────────────────────
   # Counts CONSECUTIVE stale rounds without progress. Without it, a dry-run that

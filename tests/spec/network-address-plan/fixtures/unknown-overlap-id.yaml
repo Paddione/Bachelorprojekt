@@ -1,0 +1,12 @@
+# Fixture: overlaps zeigt auf eine id, die es nicht gibt.
+networks:
+  - id: alpha
+    cidr: 10.20.0.0/24
+    owner: fleet
+    purpose: Overlay
+    status: active
+    source: test
+    overlaps:
+      - with: gibt-es-nicht
+        reason: Verweist ins Leere.
+        mitigation: keine

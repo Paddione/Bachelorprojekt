@@ -1,13 +1,18 @@
 // tests/e2e/specs/fa-58-admin-cockpit.spec.ts
-// FA-58: Admin-Menü, SDLC Cockpit & Git-Flows (Factory-Pipeline).
+// FA-58: Admin-Menü, SDLC Leitstand & Git-Flows (Factory-Pipeline).
 // Verifiziert gegen die Live-Umgebung (WEBSITE_URL):
 //   - Admin-Sidebar: Kern-Navigation, Werkstatt-Akkordeon, aktive Zustände,
 //     externer Systembrett-Link, Sidebar-Collapse.
-//   - SDLC Cockpit (/admin/cockpit): Header, Panels, Pipeline-Tabs,
-//     Route-Aliase (/admin/pipeline, /admin/tickets), Auth-Gating.
+//   - SDLC Leitstand (/sdlc/cockpit): Zonen-Shell (Statusband Z1, Kontextzone
+//     Z4, Deck-Leiste Z5, E3), Route-Aliase per 301-Redirect (/admin/cockpit,
+//     /admin/tickets), Auth-Gating. Titel "SDLC Leitstand" seit E3 (T007957).
 //   - Git-Flows: Factory-Floor (Stationen, QS-Abnahme, Versand), Planung,
 //     Analytics, Steuerung, Parallel sowie /admin/repohealth.
 // Läuft im `mentolder`-Projekt (admin-authentifiziert, storageState).
+// Hinweis: Der Leitstand existiert nur im SDLC-Build (BUILD_TARGET=sdlc,
+// sdlc-console) — der Prod-Build (BUILD_TARGET=prod) entfernt /sdlc/-Routen
+// (build-target.mjs), dort enden /admin/cockpit und /admin/tickets nach dem
+// 301-Redirect in 404 (T008721, Befund aus dem E3-Review).
 // Hinweis: Die K3-Layout-Engine verschiebt Panels zur Laufzeit zwischen Rail
 // und Workspace — Assertions prüfen deshalb Titel/Buttons pro Panel, nicht die
 // statische Rail/Card-Zuordnung aus cockpit.astro.
@@ -176,16 +181,23 @@ test.describe('FA-58: Admin-Menü & SDLC Cockpit', { tag: ['@admin', '@factory']
     await expect(page.locator('.tabs__tab--active')).toContainText('Planung');
   });
 
-  test('T11: /sdlc/cockpit rendert das SDLC Cockpit (Pipeline-Slot)', async ({ page }) => {
+  test('T11: /sdlc/cockpit rendert den SDLC Leitstand (E3-Zonen-Shell)', async ({ page }) => {
     await page.goto(`${BASE}/sdlc/cockpit`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: 'SDLC Cockpit' })).toBeVisible();
-    await expect(page.locator('#panel-pipeline')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'SDLC Leitstand' })).toBeVisible();
+    await expect(page.locator('#cockpit-root')).toBeVisible();
+    // E3-Zonen (T007957): Statusband Z1, Kontextzone Z4 und Deck-Leiste Z5
+    // tragen stabile testids — statt des entfernten #panel-pipeline.
+    await expect(page.locator('[data-testid="leitstand-statusband"]')).toBeVisible();
+    await expect(page.locator('[data-testid="leitstand-kontextzone"]')).toBeVisible();
+    await expect(page.locator('[data-testid="leitstand-deck-leiste"]')).toBeVisible();
   });
 
-  test('T12: /admin/tickets rendert das SDLC Cockpit (Route-Alias)', async ({ page }) => {
+  test('T12: /admin/tickets leitet auf den SDLC Leitstand um (Route-Alias)', async ({ page }) => {
     await page.goto(`${BASE}/admin/tickets`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: 'SDLC Cockpit' })).toBeVisible();
-    await expect(page.locator('#panel-pipeline')).toBeVisible();
+    // Die Middleware antwortet 301; Playwright folgt dem Redirect.
+    await expect(page).toHaveURL(/\/sdlc\/cockpit/);
+    await expect(page.getByRole('heading', { name: 'SDLC Leitstand' })).toBeVisible();
+    await expect(page.locator('#cockpit-root')).toBeVisible();
   });
 
   test('T13: Planung-Tab ist über die Tab-Leiste erreichbar (client-seitig)', async ({ page }) => {

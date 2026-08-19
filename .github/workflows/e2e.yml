@@ -156,7 +156,27 @@ jobs:
           # SKIP_DB_PURGE mehr: fehlt das Secret, soll der Run laut scheitern.
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           PLAYWRIGHT_WORKERS: "4"
-        run: npx playwright test
+        # Exclude korczewski projects — brand is frozen (T002602), web.korczewski.de returns 503.
+        # Without this filter, every nightly run fails on the korczewski health check before
+        # any mentolder test executes.
+        #
+        # Die Auswahl steht positiv, weil Playwright KEINE Negation in --project kennt
+        # [T012489]: `--project=!korczewski` wird als Projektname gelesen, nicht als
+        # Ausschluss, und der Lauf bricht mit "Project(s) not found" ab, bevor ein
+        # einziger Test laeuft. Damit die Liste nicht still veraltet, prueft
+        # tests/spec/ci-cd/e2e-project-selection.bats, dass jedes Projekt aus
+        # playwright.config.ts hier entweder aufgezaehlt oder bewusst ausgeschlossen ist.
+        run: |
+          npx playwright test \
+            --project website \
+            --project mentolder-setup \
+            --project mentolder \
+            --project services \
+            --project brett-mentolder-setup \
+            --project brett-mentolder \
+            --project smoke \
+            --project ios \
+            --project android
 
       # G-E2E02 / T002096: defense-in-depth post-run purge (covers timeout kill)
       - name: Post-run test-data purge (defense-in-depth)
@@ -164,7 +184,7 @@ jobs:
         if: always() && steps.gate.outputs.skip != 'true'
         run: |
           if [ -z "${CRON_SECRET:-}" ]; then echo "::warning::CRON_SECRET not set; skipping."; exit 0; fi
-          curl -fsS -X POST "${{ matrix.website_url }}/api/admin/systemtest/purge-all-test-data" \
+          curl -fsS -X POST "${{ matrix.website_url }}/sdlc/api/systemtest/purge-all-test-data" \
             -H "X-Cron-Secret: ${CRON_SECRET}" || true
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}

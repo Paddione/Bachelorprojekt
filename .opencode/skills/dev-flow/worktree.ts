@@ -44,7 +44,6 @@ import {
 	clearPendingDelete,
 	getPendingDelete,
 	getSession,
-	getWorktreePath,
 	initStateDb,
 	removeSession,
 	setPendingDelete,
@@ -638,22 +637,46 @@ async function createWorktree(
 	baseBranch?: string,
 	basePath?: string,
 ): Promise<Result<string, string>> {
-	const worktreePath = await getWorktreePath(repoRoot, branch, basePath)
+	// Delegate to scripts/worktree-create.sh for consistent worktree creation
+	// across ALL harnesses (Claude Code, opencode, agy, factory).
+	// Path convention: .worktrees/<slug> — enforced by the bash script (T001936).
+	const slug = branch.replace(/\//g, "-")
+	const relativePath = path.join(basePath ?? ".worktrees", slug)
+	const scriptPath = path.join(repoRoot, "scripts", "worktree-create.sh")
 
-	// Ensure parent directory exists
-	await mkdir(path.dirname(worktreePath), { recursive: true })
+	const args = [branch, relativePath]
+	if (baseBranch) args.push(baseBranch)
 
-	const exists = await branchExists(repoRoot, branch)
+	try {
+		const result = await Bun.spawn(["bash", scriptPath, ...args], {
+			cwd: repoRoot,
+			stdout: "pipe",
+			stderr: "pipe",
+		})
 
-	if (exists) {
-		// Checkout existing branch into worktree
-		const result = await git(["worktree", "add", worktreePath, branch], repoRoot)
-		return result.ok ? Result.ok(worktreePath) : result
-	} else {
-		// Create new branch from base
-		const base = baseBranch ?? "HEAD"
-		const result = await git(["worktree", "add", "-b", branch, worktreePath, base], repoRoot)
-		return result.ok ? Result.ok(worktreePath) : result
+		const exitCode = await result.exited
+		const stdout = await new Response(result.stdout).text()
+		const stderr = await new Response(result.stderr).text()
+
+		if (exitCode === 0) {
+			// Parse "ready on <path>" from stdout (worktree-create.sh contract)
+			const readyMatch = stdout.match(/ready on (.+)/)
+			if (readyMatch) {
+				const wtPath = readyMatch[1].trim()
+				return Result.ok(path.isAbsolute(wtPath) ? wtPath : path.resolve(repoRoot, wtPath))
+			}
+			// Fallback: construct the absolute path from the relative input
+			return Result.ok(path.resolve(repoRoot, relativePath))
+		}
+
+		if (exitCode === 3) {
+			// Branch is already checked out in another worktree — defer, not failure
+			return Result.err(`Branch "${branch}" is already checked out in another worktree`)
+		}
+
+		return Result.err(stderr.trim() || `worktree-create.sh failed (exit ${exitCode})`)
+	} catch (error) {
+		return Result.err(error instanceof Error ? error.message : String(error))
 	}
 }
 
@@ -924,9 +947,9 @@ async function loadWorktreeConfig(directory: string, log: Logger): Promise<Workt
   // Worktree plugin configuration
   // Documentation: https://github.com/kdcokenny/ocx
 
-  // Custom base path for worktree storage (supports ~)
-  // Default: ~/.local/share/opencode/worktree
-  // "worktreePath": "~/my-worktrees",
+  // Canonical worktree location — delegated to scripts/worktree-create.sh.
+  // All harnesses (opencode, agy, factory) use .worktrees/<slug>.
+  "worktreePath": ".worktrees",
 
   "sync": {
     // Files to copy from main worktree to new worktrees

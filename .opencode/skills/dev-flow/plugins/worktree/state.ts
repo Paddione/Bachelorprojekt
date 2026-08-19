@@ -83,6 +83,9 @@ const pendingDeleteSchema = z.object({
 /**
  * Get the default base directory for worktree storage.
  * Location: ~/.local/share/opencode/worktree/
+ * NOTE: This is the fallback. The canonical path is .worktrees/<slug>
+ * (set via .opencode/worktree.jsonc worktreePath), delegated to
+ * scripts/worktree-create.sh.
  */
 function getWorktreeBaseDirectory(): string {
 	return path.join(os.homedir(), ".local", "share", "opencode", "worktree")
@@ -94,6 +97,7 @@ function getWorktreeBaseDirectory(): string {
  * @param projectRoot - Absolute path to the project root
  * @param branch - Branch name for the worktree
  * @param basePath - Optional custom base path (absolute). Defaults to ~/.local/share/opencode/worktree
+ *   (legacy fallback — prefer .opencode/worktree.jsonc worktreePath = ".worktrees")
  * @returns Absolute path to the worktree directory
  */
 export async function getWorktreePath(

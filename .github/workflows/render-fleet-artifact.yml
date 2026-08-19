@@ -60,7 +60,7 @@ jobs:
 
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
         with:
-          version: 3.x
+          version: 3.52.0
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install kustomize + flux CLI + crane
@@ -140,6 +140,42 @@ jobs:
           fi
           cosign sign --yes \
             "ghcr.io/paddione/fleet-manifests@${{ steps.push-artifact.outputs.digest }}"
+
+      # Registry-Redundanz [T012415]: dasselbe, bereits signierte Artefakt wird in
+      # die GitLab Registry gespiegelt. Es wird NICHT neu gerendert — die cosign-
+      # Signatur bindet an den Digest, nicht an den Ablageort, und bleibt dadurch
+      # unter derselben verify-Policy gueltig (flux/clusters/fleet/oci-source.yaml).
+      # Ein in GitLab neu gebautes Artefakt truege eine GitLab-OIDC-Identitaet und
+      # fiele durch genau diese Pruefung.
+      #
+      # `cosign copy`, NICHT `crane copy`: Die Signatur liegt als eigenes Tag
+      # (sha256-<digest>.sig) neben dem Artefakt. `crane copy` auf den Artefakt-Tag
+      # laesst sie zurueck — der Spiegel waere unsigniert, und das faellt nicht beim
+      # Kopieren auf, sondern erst im Ausfall, wenn Flux ihn ablehnt.
+      #
+      # continue-on-error: Der Spiegel ist sekundaer. Ein GitLab-Ausfall oder ein
+      # fehlendes Token darf den primaeren Render-Pfad nicht rot faerben.
+      - name: Mirror signed OCI artifact to GitLab registry
+        continue-on-error: true
+        env:
+          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
+          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+          ARTIFACT_DIGEST: ${{ steps.push-artifact.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GITLAB_REGISTRY_PREFIX:-}" || -z "${GITLAB_REGISTRY_TOKEN:-}" ]]; then
+            echo "SKIP: GitLab-Registry-Spiegel nicht konfiguriert — ghcr-Artefakt ist unberuehrt."
+            exit 0
+          fi
+          prefix="${GITLAB_REGISTRY_PREFIX#https://}"
+          prefix="${prefix#http://}"
+          prefix="${prefix%/}"
+          printf '%s' "$GITLAB_REGISTRY_TOKEN" \
+            | cosign login "${prefix%%/*}" --username oauth2 --password-stdin
+          cosign copy --force \
+            "ghcr.io/paddione/fleet-manifests@${ARTIFACT_DIGEST}" \
+            "${prefix}/fleet-manifests:latest"
+          echo "Artefakt samt Signatur gespiegelt nach ${prefix}/fleet-manifests:latest"
 
       - name: Ping Flux receiver (immediate reconcile)
         if: success()

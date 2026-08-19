@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "slug": "gitlab-ci-migration-stage3",
+    "ticket_id": "T012405",
+    "generated_from": "main@c99aff277",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".github/workflows/mirror-to-gitlab.yml",
+      "language": "config",
+      "loc": 73,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitlab-ci.yml",
+      "language": "config",
+      "loc": 180,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/gitlab-runner.md",
+      "language": "markdown",
+      "loc": 395,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/ci-diff-base.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/ci-diff-base.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/gitlab-job-coverage.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
+      "language": "bash",
+      "loc": 178,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+      "language": "bash",
+      "loc": 117,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+      "language": "bash",
+      "loc": 88,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-mirror-workflow.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-mirror-workflow.bats:29:_mirror_steps_tsv() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
+      "signature": "29:_mirror_steps_tsv() {(...)",
+      "type_text": "29:_mirror_steps_tsv() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-mirror-workflow.bats:64:_push_trigger_yaml() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
+      "signature": "64:_push_trigger_yaml() {(...)",
+      "type_text": "64:_push_trigger_yaml() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats:16:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+      "signature": "16:setup() {(...)",
+      "type_text": "16:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats:24:_gh_job_block() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+      "signature": "24:_gh_job_block() {(...)",
+      "type_text": "24:_gh_job_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-tool-parity.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-tool-parity.bats:24:_gh_gitleaks_version() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+      "signature": "24:_gh_gitleaks_version() {(...)",
+      "type_text": "24:_gh_gitleaks_version() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/gitlab-tool-parity.bats:34:_gl_gitleaks_version() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+      "signature": "34:_gl_gitleaks_version() {(...)",
+      "type_text": "34:_gl_gitleaks_version() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

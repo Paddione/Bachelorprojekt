@@ -35,12 +35,25 @@ task brain:ingest:pilot  # Pilot
 task brain:ingest:run    # Voller Lauf inkl. PR
 ```
 
+### 4. Reproduzierbarer Neuaufbau
+
+Entfernt zuerst alle aus Bachelorprojekt erzeugten Wiki-Seiten, setzt den State
+auf `{}` zurueck und transformiert danach den vollstaendigen Quellenbestand neu:
+
+```bash
+bash scripts/brain-ingest.sh --brain-repo ~/brain --from-scratch
+```
+
+Mit `--dry-run` werden Reset und Loeschungen nur gemeldet. `--from-scratch` ist
+bewusst nicht mit `--pilot` kombinierbar, weil sonst die vollstaendige Wiki
+geloescht, aber nur der Pilot-Ausschnitt neu aufgebaut wuerde.
+
 Intern generiert `brain-ingest.sh` die Worklist über
 `scripts/brain-ingest-worklist.sh --root <repo> --manifest scripts/brain/ingest-sources.yaml`
 (TAB-separiert: Pfad, Slug, Gruppe) aus allen `openspec/specs/*.md`-Dateien (Glob, kein
 fixer Count) plus den übrigen Manifest-Gruppen.
 
-### 4. Prune (Deletion-Sync)
+### 5. Prune (Deletion-Sync)
 Listet Wiki-Seiten, deren Bachelorprojekt-Quelle gelöscht wurde (default dry):
 ```bash
 bash scripts/brain-ingest-prune.sh --brain-repo ~/brain
@@ -70,4 +83,3 @@ werden nie gelöscht.
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-

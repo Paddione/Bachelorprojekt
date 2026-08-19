@@ -1,0 +1,83 @@
+#cloud-config
+# Ubuntu Server autoinstall — Base-Image fuer Workstation-Cluster-Nodes.
+# Gerendert von scripts/iso/build-node-iso.sh. Nicht von Hand ins ISO kopieren.
+#
+# Bewusst OHNE k3s: das ist ein Base-Image. Der Cluster-Join laeuft nach dem
+# ersten Boot ueber /usr/local/sbin/k3s-join.sh — Rolle und Token stehen erst
+# fest, wenn alle drei Maschinen laufen.
+autoinstall:
+  version: 1
+  # Leere Liste = keine einzige Rueckfrage, auch nicht beim Storage.
+  # Die groesste Platte wird ohne Bestaetigung geloescht.
+  interactive-sections: []
+
+  locale: ${ISO_LOCALE}
+  keyboard:
+    layout: ${ISO_KEYBOARD_LAYOUT}
+  timezone: ${ISO_TIMEZONE}
+
+  identity:
+    hostname: ${ISO_HOSTNAME_FALLBACK}
+    realname: "Cluster Node Admin"
+    username: ${ISO_ADMIN_USER}
+    password: "${ISO_ADMIN_PASSWORD_HASH}"
+
+  ssh:
+    install-server: true
+    allow-pw: ${ISO_SSH_ALLOW_PW}
+    authorized-keys:
+      - "${ISO_SSH_PUBLIC_KEY}"
+
+  storage:
+    layout:
+      name: direct
+      # KEIN match-Block. "match: {size: largest}" liess eine Installation mit
+      # "Failed to find matching device" abbrechen, waehrend dieselbe Konfiguration
+      # auf der Maschine davor durchlief: findet der Filter keinen Kandidaten,
+      # bricht subiquity ab, statt auf die Standardauswahl zurueckzufallen.
+      # Ohne match waehlt der direct-Layout-Algorithmus die Platte selbst.
+    # Kein Swap. Der Schluessel gehoert unter storage — unter user-data
+    # (cloud-init) wird er ignoriert, und der Installer legt dann doch eine
+    # /swap.img an. Genau das passierte im ersten VM-Testlauf.
+    swap:
+      size: 0
+
+  # Paketsatz = was ein k3s-Node spaeter braucht, damit der Join auch ohne
+  # frisches apt durchlaeuft: open-iscsi/nfs-common fuer Longhorn,
+  # wireguard fuer den Mesh.
+  packages:
+    - open-iscsi
+    - nfs-common
+    - wireguard
+    - ufw
+    - curl
+    - jq
+    - apt-transport-https
+    - ca-certificates
+    - chrony
+
+  package_update: true
+  package_upgrade: ${ISO_PACKAGE_UPGRADE}
+
+  user-data:
+    disable_root: true
+
+  late-commands:
+    # Hostname aus der MAC-Tabelle setzen: ein ISO, drei Nodes.
+    - /bin/bash /cdrom/nocloud/assign-identity.sh /target
+    # Join-Helfer und Node-Map ins installierte System legen.
+    - cp /cdrom/nocloud/k3s-join.sh /target/usr/local/sbin/k3s-join.sh
+    - chmod 0755 /target/usr/local/sbin/k3s-join.sh
+    - cp /cdrom/nocloud/node-map /target/etc/cluster-node-map
+    # iscsid ist Voraussetzung fuer Longhorn-Volume-Attach.
+    - curtin in-target --target=/target -- systemctl enable iscsid
+    - curtin in-target --target=/target -- systemctl enable chrony
+    # Firewall-Regeln vorbereiten, ufw aber AUS lassen: ein Default-Deny vor
+    # dem Join sperrt bei falscher Reihenfolge den eigenen Zugang aus.
+    # k3s-join.sh schaltet ufw ein, nachdem die Regeln stehen.
+    - curtin in-target --target=/target -- ufw allow 22/tcp
+    - curtin in-target --target=/target -- ufw allow 6443/tcp
+    - curtin in-target --target=/target -- ufw allow 10250/tcp
+    - curtin in-target --target=/target -- ufw allow 8472/udp
+
+  shutdown: ${ISO_SHUTDOWN_MODE}

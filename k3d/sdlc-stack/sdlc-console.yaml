@@ -43,6 +43,7 @@ spec:
       labels:
         app: sdlc-console
     spec:
+      serviceAccountName: sdlc-console
       imagePullSecrets:
         - name: ghcr-pull-secret
       dnsConfig:

@@ -44,41 +44,6 @@
       "exclusiveGroup": "chat-gpu"
     },
     {
-      "slug": "devstral-quality",
-      "enabled": false,
-      "label": "Devstral-Small-2 24B · Code-Qualitaet",
-      "model": "devstral24/Devstral-Small-2-24B-Instruct-2512-IQ4_XS.gguf",
-      "port": 8099,
-      "fit": {
-        "enabled": true,
-        "targetMarginMib": 64,
-        "minCtx": 8192
-      },
-      "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
-        "loadMode": "mmap",
-        "flashAttention": true,
-        "jinja": true,
-        "metrics": true,
-        "reasoning": "auto",
-        "reasoningBudget": null
-      },
-      "speculative": {
-        "draftHfRepo": null,
-        "draftNgl": null
-      },
-      "mcp": {
-        "serversConfig": null
-      },
-      "extraArgs": [],
-      "notes": "IQ4_XS (12,78 GB). q8_0 KV-Cache fuer Code-Qualitaet (T002501); 33.536 Kontext bei 59 tok/s. ABGESCHALTET seit T003204 (enabled: false) — in ALLEN Dimensionen dominiert: gemma26-factory liefert mehr Kontext (177.920 gegen 33.536) bei hoeherem Durchsatz. Es gibt damit keine Anfrage mehr, fuer die dieses Loadout die bessere Wahl waere. Die Messwerte oben bleiben absichtlich stehen — sie belegen die Dominanz und sind der Grund fuer das Abschalten statt Loeschen.",
-      "exclusiveGroup": "chat-gpu"
-    },
-    {
       "slug": "gemma26-factory",
       "label": "Gemma 4 26B A4B · Factory Single-Agent",
       "model": "gemma4-26A4-it/gemma-4-26B-A4B-it-UD-IQ4_XS.gguf",
@@ -128,7 +93,7 @@
       "slug": "bge-embed-cpu",
       "enabled": false,
       "label": "bge-m3 · Embedding, CPU-gebunden",
-      "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
+      "model": "gpustack-bge-m3-GGUF/bge-m3-Q8_0.gguf",
       "port": 8095,
       "fit": {
         "enabled": false,
@@ -294,7 +259,7 @@
       "args": {
         "ctx": null,
         "ngl": null,
-        "parallel": 1,
+        "parallel": 3,
         "cacheTypeK": "q4_0",
         "cacheTypeV": "q4_0",
         "loadMode": "mmap",
@@ -320,20 +285,18 @@
     },
     {
       "slug": "gemma12-vision",
-      "label": "Gemma 4 12B QAT · Vision & MTP",
+      "label": "Gemma 4 12B QAT · 3 Slots (geteilter KV), Vision & MTP",
       "model": "gemma4-12qat/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8089,
       "fit": {
-        "enabled": true,
-        "targetMarginMib": 256,
-        "minCtx": 8192
+        "enabled": false
       },
       "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
+        "ctx": 262144,
+        "ngl": 999,
+        "parallel": 3,
+        "cacheTypeK": "f16",
+        "cacheTypeV": "f16",
         "loadMode": "mmap",
         "flashAttention": true,
         "jinja": true,
@@ -353,64 +316,30 @@
       "mcp": {
         "serversConfig": null
       },
-      "extraArgs": [],
-      "notes": "12B QAT mit mmproj (F16) und MTP-Drafter. Gemessen: 262.144 Kontext, 137-149 tok/s Prosa. Vision-Funktionstest bestanden.",
-      "exclusiveGroup": "chat-gpu"
-    },
-    {
-      "slug": "qwen3-coder-30b",
-      "enabled": false,
-      "label": "Qwen3-Coder-30B-A3B UD-IQ3_XXS (Familientraeger \"qwen\")",
-      "model": "qwen3coder30/Qwen3-Coder-30B-A3B-Instruct-UD-IQ3_XXS.gguf",
-      "port": 8094,
-      "fit": {
-        "enabled": true,
-        "targetMarginMib": 64,
-        "minCtx": 8192
-      },
-      "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": "q4_0",
-        "cacheTypeV": "q4_0",
-        "loadMode": "mmap",
-        "flashAttention": true,
-        "jinja": true,
-        "metrics": true,
-        "reasoning": "auto",
-        "reasoningBudget": null,
-        "temperature": 0.7,
-        "topP": 0.8,
-        "topK": 20
-      },
-      "speculative": {
-        "draftHfRepo": null,
-        "draftNgl": null
-      },
-      "mcp": {
-        "serversConfig": null
-      },
-      "extraArgs": [],
-      "notes": "UD-IQ3_XXS, 11,9 GB auf Platte. fitt 64 bei q4_0 KV gibt 96.000 Kontext. Sampling nach Modellkarte: temp 0.7, topP 0.8, topK 20. ABGESCHALTET seit T003204 (enabled: false): gleicher VRAM-Fussabdruck wie gemma26-factory bei weit aggressiverer Quantisierung (UD-IQ3_XXS statt nativem Format), weniger Kontext (96.000 vs 161.024), gemessen nur 47,9 tok/s unter Konkurrenz, einziger Anspruch 'agentische Tiefe' ohne Messung.",
+      "extraArgs": [
+        "-kvu",
+        "-b",
+        "4096",
+        "-ub",
+        "2048"
+      ],
+      "notes": "Auf Durchsatz mit DREI Slots und geteiltem KV ausgelegt (T012414). Messung scripts/llm/measurements/2026-08-19-gemma12-slots.md: mit -np 3 -kvu 307-489 tok/s gesamt gegen 255 bei einem Slot, Einzelstrom 106-183 statt 289, MTP-Annahme 92-95 %. Der Kontext wird NICHT gedrittelt (n_ctx_slot bleibt 262144), der VRAM-Bedarf steigt kaum (15909 statt 15869 MiB). -np 4 ist SCHLECHTER als 3 (319 tok/s), -np 6 laedt gar nicht erst — der MTP-Drafter bricht mit vector::_M_range_check ab. Drei ist also gemessen, nicht gewaehlt. Der Proxy muss mitziehen: ohne max_inflight=3 auf dem Backend serialisiert er trotzdem alles (scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql). MESSUNG 2026-08-18 auf RTX 5070 Ti 16 GiB, llama.cpp b10241, scripts/llm/bench-decode.sh 8089 (n_predict=512, cache_prompt=false); A/B durch VOLLSTAENDIGES Entfernen der Spec-Flags, nicht durch ein angehaengtes --spec-type none — das ueberschreibt die fruehere Angabe NICHT, der Drafter lief weiter und beide Seiten massen dasselbe. Decode: 246-287 tok/s mit MTP gegen 80-86 tok/s ohne, also ~3,2x; MTP-Annahmequote 93-99 %. Prefill (6902-Token-Prompt): 1797 tok/s mit MTP gegen 3380 tok/s ohne — der Drafter verarbeitet den Prompt mit, MTP HALBIERT den Prefill. Umschlagpunkt daraus: MTP lohnt, sobald mehr als etwa ein Token je 33 Prompt-Token erzeugt wird (bei 7k Prompt ab ~210 erzeugten Token) — fuer Chat und Codegenerierung immer, fuer reines Prompt-Durchreichen nicht. Belegt geladen: 262144 Kontext (n_ctx_slot), n_slots=1, kv_unified=true, 15869 von 16303 MiB. KV-Rechnung aus den GGUF-Metadaten: 48 Layer im Muster 5x SWA + 1x global; die 40 SWA-Layer (8 KV-Heads, 256+256, Fenster 1024) kosten fest ~320 MiB @f16, die 8 globalen Layer haben nur EINEN KV-Head (512+512, unified) und kosten 16 KiB/Token — der volle Kontext also 4,0 GiB. Reicht es nicht, zuerst -ub auf 1024 senken, erst danach den Kontext. MTP: der Drafter ist eine eigene Datei (gemma4-assistant, 423M, nextn_predict_layers=4) — im Haupt-GGUF steckt er NICHT (667 Tensoren, alle textuell, geprueft mit scripts/llm/gguf-tensor-names.py); die Auto-Erkennung der Modellkarte greift nur beim Start ueber -hf, nicht ueber einen lokalen -m-Pfad. Vorher: -fit on, q8_0-KV, 137-149 tok/s Prosa ohne wirksames MTP.",
       "exclusiveGroup": "chat-gpu"
     },
     {
       "slug": "brain-ingest",
-      "label": "gpt-oss-20b - Brain-Ingest-Pool",
-      "model": "gptoss20/gpt-oss-20b-UD-Q4_K_XL.gguf",
+      "label": "Gemma 4 12B QAT - Brain-Ingest-Pool",
+      "model": "gemma4-12qat/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8100,
       "fit": {
-        "enabled": true,
-        "targetMarginMib": 256,
-        "minCtx": 32768
+        "enabled": false
       },
       "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 4,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
+        "ctx": 65536,
+        "ngl": 999,
+        "parallel": 3,
+        "cacheTypeK": "f16",
+        "cacheTypeV": "f16",
         "loadMode": "mmap",
         "flashAttention": true,
         "jinja": true,
@@ -426,7 +355,7 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). parallel=4, gpt-oss-20b UD-Q4_K_XL. 32.768 ctx je Slot. Port 8100 seit T003203: 8093 belegt der kubectl-Forward auf llm-gateway-rerank (scripts/bge-mcp/bge-forward-rerank.service), 8097 ein Factory-Provider (scripts/factory/provider-register-gptoss.sh). T003204: reasoningBudget=0 — Formattreue bei temperature 0.2 braucht keine Denkphase, die Tokens kostet, ohne die Einhaltung der sechs harten Constraints zu verbessern. Abgeschaltet wird das Denken ueber reasoningBudget (--reasoning-budget 0) und NICHT ueber args.reasoning: '-rea' steuert nur, ob llama-server reasoning_content PARST (siehe runner.mjs). Es auf null zu setzen haette die Denkphase unberuehrt gelassen und bloss deren Ausgabe unterdrueckt — die Tokens waeren weiter angefallen. Das Loadout selbst bleibt aktiv; abgeschaltet ist nur gptoss-context auf :8098, das dieselbe Modelldatei faehrt.",
+      "notes": "Serverseite fuer scripts/brain-ingest.sh. Umgestellt von gpt-oss-20b auf Gemma 4 12B QAT (T012905, Operator-Entscheidung). BELEG: Spike am 2026-08-19 gegen Repo-Stand 73ca48ccc, drei echte Quellen durch scripts/brain-ingest-transform.sh gegen einen manuell gestarteten llama-server (/home/patrick/.unsloth/llama.cpp/build/bin/llama-server, Build b10241, -ngl 999 -c 32768 -fa on --jinja -np 1 --port 8100 --alias gemma-4-12b-qat). Ergebnis 3/3 rc=0 in 16/39/58 s, jeweils gueltiges Frontmatter und genau eine source::-Zeile; die bei Reasoning-Modellen bekannte Falle (Antwort in reasoning_content, content leer) trat nicht auf. Befehl zur Nachstellung: export LM_STUDIO_URL=http://127.0.0.1:8100 LM_MODEL=gemma-4-12b-qat; bash scripts/brain-ingest-transform.sh openspec/specs/phase-events.md note phase-events <slugs.json> '[\"note\"]'. PARAMETER: ctx auf 65536 erhoeht (T012911): Chunk-Ziel 8k chars (~4k tokens) + Prompt + 4k Output + headroom fuer parallel=3. parallel=3 bleibt gemessen optimal (siehe Notiz zu gemma12-vision, T012414: -np 4 liefert 319 statt 489 tok/s). KV auf f16 und fit deaktiviert mit explizitem ctx, analog gemma12-vision; -fit on laedt sonst n_ctx_train und bindet den Rest als KV-Cache. reasoningBudget=0 bleibt aus dem gpt-oss-Eintrag stehen: Gemma hat keine Denkphase, die Einstellung ist damit wirkungslos, aber auch unschaedlich. Port 8100 unveraendert (8093 belegt der kubectl-Forward auf llm-gateway-rerank, 8097 ein Factory-Provider). Kein mmproj und kein MTP-Drafter: der Ingest ist reiner Text, und der Drafter halbiert laut Messung den Prefill. HISTORIE zum reasoningBudget (aus T003204, gilt weiter, falls hier je wieder ein Reasoning-Modell laeuft): abgeschaltet wird das Denken ueber reasoningBudget (--reasoning-budget 0) und NICHT ueber args.reasoning — '-rea' steuert nur, ob llama-server reasoning_content PARST (siehe runner.mjs). args.reasoning auf null zu setzen laesst die Denkphase unberuehrt und unterdrueckt bloss deren Ausgabe, die Tokens fallen weiter an.",
       "exclusiveGroup": "chat-gpu"
     }
   ],

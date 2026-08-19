@@ -79,6 +79,7 @@ import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
          phaseProgress, STATUS_BUCKETS, ALL_TICKET_STATUSES,
          buildAttention, phaseDurations } from './factory-floor';
 import type { HallItem, ProviderStatus, PhaseEventRow } from './factory-floor';
+import { TICKET_STATUSES } from '../tickets/status';
 import { aggregateCheckRuns } from './github-ci';
 
 describe('factory-floor DAL', () => {
@@ -323,17 +324,12 @@ describe('getHall phaseProgress', () => {
 });
 
 describe('status coverage', () => {
-  const ENUM = [
-    'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
-    'in_review', 'blocked', 'qa_review', 'awaiting_deploy', 'done', 'archived',
-  ];
-
-  it('exports every enum value (drift guard against tickets-db.ts)', () => {
-    expect([...ALL_TICKET_STATUSES].sort()).toEqual([...ENUM].sort());
+  it('exports every SSOT status value (no parallel 11-list, T008345)', () => {
+    expect([...ALL_TICKET_STATUSES].sort()).toEqual([...TICKET_STATUSES].sort());
   });
 
   it('maps every status to a non-empty UI bucket (no invisible tickets)', () => {
-    for (const s of ENUM) {
+    for (const s of TICKET_STATUSES) {
       expect(STATUS_BUCKETS[s as import('../tickets/pipeline-order.ts').TicketStatus], `status "${s}" has no UI bucket`).toBeTruthy();
     }
   });

@@ -42,6 +42,9 @@ jobs:
     # Static name — branch protection requires the context "E2E PR";
     # a dynamic name (with branch) never satisfies it and blocks every merge.
     name: E2E PR
+    # [T012414] Fork-Guard: self-hosted Runner duerfen keinen Fork-Code
+    # ausfuehren (actions/checkout holt bei pull_request den PR-HEAD).
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -99,7 +102,16 @@ jobs:
       - name: Install Playwright browsers (chromium only)
         if: steps.filter.outputs.run_e2e == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: tests/e2e
-        run: npx playwright install --with-deps chromium
+        run: |
+          # [T012414] `--with-deps` ruft intern `sudo apt-get`. Auf den
+          # self-hosted Runnern ohne passwortloses sudo bricht der Schritt damit
+          # ab; die Systembibliotheken sind dort vorprovisioniert. Nachgezogen
+          # werden sie nur, wo sudo ohne Passwort verfuegbar ist.
+          if sudo -n true 2>/dev/null; then
+            npx playwright install --with-deps chromium
+          else
+            npx playwright install chromium
+          fi
 
       - name: Leite Feature-Tag aus Branch-Name ab
         if: steps.filter.outputs.run_e2e == 'true'

@@ -5,6 +5,12 @@ description: 'Use when on a feature/* or fix/* branch that has a staged plan in 
 
 # dev-flow-execute — Plan-Ausführung & PR
 
+> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
+> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
+> Die T002357-Falle schlägt auch im Bash-Git-Pfad zu: `cd` wirkt nur auf den
+> aktuellen Bash-Call, Datei-Tools nehmen absolute Pfade — ein bare `git commit`
+> landet sonst auf dem falschen Branch (Main-Checkout statt Worktree).
+
 ## Wann diese Skill greift
 
 Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `done/shipped`, OpenSpec archiviert.

@@ -2262,6 +2262,609 @@ unchanged.
 - **WHEN** the sweep runs in dry-run mode
 - **THEN** the branch is preserved with a `KEEP` line and a reason
 
+### Requirement: GitLab-Parallelbetrieb — GitHub bleibt SSOT und Merge-Gate
+
+The system SHALL run GitLab CI as a **secondary, non-blocking** verification alongside GitHub
+Actions until an explicit gate-switch stage retires that arrangement. GitHub Actions SHALL
+remain the single source of truth for merge decisions for as long as this requirement stands:
+no GitLab pipeline result SHALL be wired into branch protection, and no existing GitHub
+workflow SHALL be disabled, deleted, or made conditional.
+
+Reaching **parity of checks** SHALL NOT by itself change this. A stage that makes the GitLab
+pipeline capable of gating (by mirroring branches and by covering every offline gate) SHALL
+still leave GitHub as the gate; the switch is a separate, explicit decision.
+
+The GitLab side SHALL remain a push target only: development and review SHALL continue to
+happen on GitHub, and GitLab SHALL NOT become a second writable origin.
+
+#### Scenario: GitLab-Pipeline rot blockiert keinen Merge
+
+- **GIVEN** die GitLab-Pipeline für den aktuellen Stand schlägt fehl
+- **WHEN** auf GitHub ein PR mit grünen Checks vorliegt
+- **THEN** ist der Merge nicht blockiert — GitLab ist an keiner Stelle als Required Check hinterlegt
+
+#### Scenario: Kein GitHub-Workflow wird stillgelegt
+
+- **GIVEN** die Änderungen einer Migrationsetappe sind gemergt
+- **WHEN** die Workflow-Dateien unter `.github/workflows/` gezählt und auf `if:`-Kurzschlüsse geprüft werden
+- **THEN** ist kein bestehender Workflow entfernt und keiner durch eine neue Bedingung dauerhaft übersprungen
+
+#### Scenario: Job-Parität allein schaltet das Gate nicht um
+
+- **GIVEN** `.gitlab-ci.yml` deckt jeden Offline-Gate-Job aus `.github/workflows/ci.yml` ab
+- **WHEN** die Branch-Protection-Konfiguration und die Job-Bedingungen in `ci.yml` geprüft werden
+- **THEN** ist weiterhin kein GitLab-Ergebnis als Required Check hinterlegt und kein `ci.yml`-Job abgeschaltet
+
+---
+
+### Requirement: Spiegelung GitHub → GitLab per Push-Mirror
+
+The system SHALL mirror the repository to GitLab from a GitHub Actions workflow that runs on
+pushes to `main` **and to the repository's working-branch prefixes** (`feature/`, `fix/`,
+`chore/`), pushing with an **explicit refspec** per branch plus the tag refs, authenticated by
+a GitLab Project-Access-Token (`glpat-` prefix) held as a GitHub secret.
+
+Mirroring working branches is what makes a pre-merge verification possible at all: a pipeline
+that only ever sees `main` runs after the merge decision and therefore cannot inform it.
+
+`git push --mirror` SHALL NOT be used. It transfers every ref in the local repository,
+including `refs/remotes/origin/*` for every open branch that a full-history checkout carries —
+refs the mirror direction explicitly excludes. Those refs would land on GitLab invisibly under
+`refs/remotes/`, outside what the GitLab UI lists and outside what `git gc` ever reclaims.
+`--mirror` also deletes on GitLab any ref absent from the source side, which can destroy state
+GitLab itself created. Extending the mirror to working branches strengthens rather than
+weakens this exclusion, because the checkout now carries more foreign refs, not fewer.
+
+Branch deletion SHALL be mirrored as part of the mirroring, not left to cleanup: a `delete`
+push event SHALL push an empty source ref for that branch. An unmirrored deletion leaves a
+branch on GitLab that GitHub no longer has, and that stale branch remains a valid pipeline
+target.
+
+Branches outside the three working prefixes (bot branches such as Renovate or Release-Please,
+and factory batch branches) SHALL NOT be mirrored, so that automated branch churn does not
+consume runner capacity.
+
+Pull-Mirroring SHALL NOT be relied upon: it is a paid gitlab.com feature and therefore not
+available on the project's plan. The mirror direction SHALL be GitHub → GitLab only.
+
+#### Scenario: Push auf main erreicht GitLab
+
+- **GIVEN** ein Commit ist auf GitHub `main` gelandet
+- **WHEN** der Mirror-Workflow läuft
+- **THEN** zeigt der GitLab-`main` denselben Commit-SHA wie der GitHub-`main`
+
+#### Scenario: Push auf einen Feature-Branch erreicht GitLab unter demselben Namen
+
+- **GIVEN** ein Commit ist auf einen Branch mit Präfix `feature/`, `fix/` oder `chore/` gepusht
+- **WHEN** der Mirror-Workflow läuft
+- **THEN** existiert auf GitLab ein gleichnamiger Branch mit demselben Head-SHA
+
+#### Scenario: Gelöschter Branch verschwindet auch auf GitLab
+
+- **GIVEN** ein gespiegelter Arbeits-Branch wird auf GitHub gelöscht
+- **WHEN** der Mirror-Workflow auf das `delete`-Event läuft
+- **THEN** ist der gleichnamige Branch auf GitLab ebenfalls entfernt
+
+#### Scenario: Bot-Branches werden nicht gespiegelt
+
+- **GIVEN** ein Push auf einen Branch außerhalb der drei Arbeits-Präfixe (z. B. `renovate/…`)
+- **WHEN** die Trigger-Bedingungen des Mirror-Workflows ausgewertet werden
+- **THEN** löst er nicht aus
+
+#### Scenario: Fehlendes Token bricht den Mirror sichtbar ab
+
+- **GIVEN** das GitLab-Token-Secret ist im GitHub-Repository nicht gesetzt
+- **WHEN** der Mirror-Workflow läuft
+- **THEN** scheitert er mit einer Meldung, die das fehlende Secret benennt, statt still nichts zu tun
+
+---
+
+### Requirement: Compute-Fallback per Runner-Tag-Variable
+
+The system SHALL route every GitLab CI job to a runner through the CI/CD variable
+`CI_RUNNER_TAG`, declared in each job as `tags: [$CI_RUNNER_TAG]`. Switching the whole pipeline
+between self-hosted compute and gitlab.com Shared Runners SHALL require changing only that
+variable's value — no change to `.gitlab-ci.yml`, no duplicated job definitions, and no second
+pipeline file.
+
+No job SHALL hard-code a runner tag, because a hard-coded tag is exactly the case the fallback
+must survive.
+
+The default value SHALL select the self-hosted runner; the SaaS tag SHALL be used only as the
+documented fallback.
+
+#### Scenario: Umschalten auf Cloud-Compute ohne Codeänderung
+
+- **GIVEN** der self-hosted Runner ist nicht verfügbar
+- **WHEN** die Projekt-Variable `CI_RUNNER_TAG` auf den SaaS-Tag gesetzt wird
+- **THEN** laufen dieselben Jobs unverändert auf gitlab.com Shared Runnern — ohne Commit auf `.gitlab-ci.yml`
+
+#### Scenario: Hartkodierter Tag wird abgelehnt
+
+- **GIVEN** ein Job in `.gitlab-ci.yml` deklariert einen Tag als Literal statt über die Variable
+- **WHEN** der CI-Guard über die Jobdefinitionen läuft
+- **THEN** schlägt er fehl und benennt den betroffenen Job
+
+---
+
+### Requirement: Werkzeug-Parität zwischen GitHub- und GitLab-Pipeline
+
+The system SHALL keep every externally pinned tool version identical between
+`.github/workflows/ci.yml` and `.gitlab-ci.yml`, so that the two pipelines test the same
+behaviour rather than merely running suites of the same name. This SHALL cover every pinned
+tool the two pipelines share — not a single tool — and SHALL be enforced by a guard that
+compares the **version values** at their respective sites, not the surrounding text.
+
+A version bump on one side without its counterpart on the other SHALL fail that guard.
+
+#### Scenario: Divergente Version faellt auf
+
+- **GIVEN** `.github/workflows/ci.yml` pinnt ein Werkzeug auf eine andere Version als `.gitlab-ci.yml`
+- **WHEN** der Paritaets-Guard laeuft
+- **THEN** schlaegt er fehl und benennt Werkzeug und beide Versionswerte
+
+#### Scenario: Neu gepinntes Werkzeug ohne Gegenstueck faellt auf
+
+- **GIVEN** ein Werkzeug wird in `.gitlab-ci.yml` gepinnt, das auf GitHub-Seite in `ci.yml` ebenfalls gepinnt ist
+- **WHEN** der Paritaets-Guard laeuft
+- **THEN** deckt seine Werkzeug-Tabelle dieses Werkzeug ab, statt es ungeprueft zu lassen
+
+---
+
+### Requirement: Runner-Registrierung über Authentication-Token
+
+The system SHALL provide a repeatable, non-interactive registration path for the self-hosted
+runner via `scripts/gitlab-runner-setup.sh`, using a runner **authentication token**
+(`glrt-` prefix, passed as `--token`).
+
+The deprecated registration-token flow (`--registration-token`) SHALL NOT be used: it is
+removed from current GitLab versions, so a script built on it would fail at the moment it is
+first needed.
+
+The script SHALL offer a dry-run mode that prints the registration command it would execute
+without contacting GitLab and without writing runner configuration, so the command can be
+verified in CI where no runner and no token exist.
+
+#### Scenario: Dry-Run zeigt den Registrierungsbefehl ohne Seiteneffekt
+
+- **GIVEN** weder ein GitLab-Token noch ein installierter `gitlab-runner` liegen vor
+- **WHEN** das Setup-Skript im Dry-Run-Modus aufgerufen wird
+- **THEN** gibt es den vollständigen `gitlab-runner register`-Aufruf aus, beendet sich mit Exit-Code 0 und verändert keine Runner-Konfiguration
+
+#### Scenario: Fehlendes Token im Echtlauf bricht ab
+
+- **GIVEN** die Token-Variable ist nicht gesetzt
+- **WHEN** das Setup-Skript ohne Dry-Run aufgerufen wird
+- **THEN** bricht es mit Exit-Code ≠ 0 ab und benennt die fehlende Variable, statt eine unvollständige Registrierung zu versuchen
+
+---
+
+### Requirement: GitLab-Kern-Jobs spiegeln die GitHub-Offline-Gates
+
+The system SHALL define jobs in `.gitlab-ci.yml` that mirror the GitHub offline gates. As of
+the parity stage this covers every offline gate job in `.github/workflows/ci.yml`, not only the
+initial three (BATS unit tests, manifest validation, gitleaks scan).
+
+The BATS job SHALL use the vendored runner at `tests/unit/lib/bats-core/bin/bats`, not a
+globally installed `bats`, matching the repository convention that CI and local runs execute
+the same binary.
+
+On a push to `main` the jobs SHALL run the full corresponding set rather than the diff-scoped
+selection used on GitHub: the mirror receives pushes to `main`, where a diff against `main`
+selects nothing. On a working-branch or merge-request pipeline the jobs MAY use the diff-scoped
+selection, resolved through the single diff-base script.
+
+No GitLab job SHALL be softened (`allow_failure`) **beyond** its GitHub counterpart. A job
+whose GitHub counterpart is itself advisory (`continue-on-error`) MAY be soft; any other soft
+job SHALL fail the guard. Softening is not the mechanism by which GitLab stays non-blocking —
+that follows from GitLab being absent from branch protection. A job made soft without a
+counterpart would hide real findings while appearing to check them. Equally, a job made
+fail-closed whose GitHub counterpart is advisory would make GitLab *stricter* than GitHub,
+which is the same divergence in the other direction.
+
+#### Scenario: Mirror-Lauf führt tatsächlich Tests aus
+
+- **GIVEN** die GitLab-Pipeline läuft auf einem `main`-Mirror-Push
+- **WHEN** der BATS-Job ausgeführt wird
+- **THEN** ist die Zahl der ausgeführten Tests größer als null — ein leerer Lauf gilt als Fehlschlag, nicht als Erfolg
+
+#### Scenario: Vendored BATS-Runner statt globalem Binary
+
+- **GIVEN** die Jobdefinition des BATS-Jobs
+- **WHEN** der CI-Guard das Testkommando prüft
+- **THEN** verweist es auf den mitgelieferten Runner unter `tests/unit/lib/`
+
+#### Scenario: Weichgestellter Job ohne weiches GitHub-Gegenstueck faellt auf
+
+- **GIVEN** ein GitLab-Job trägt `allow_failure: true`
+- **WHEN** der Guard das GitHub-Gegenstück prüft und dieses **nicht** `continue-on-error` trägt
+- **THEN** schlägt der Guard fehl und benennt den Job
+
+#### Scenario: Ausnahme verfaellt, wenn die GitHub-Seite fail-closed wird
+
+- **GIVEN** ein GitLab-Job ist als Ausnahme weichgestellt, weil sein GitHub-Gegenstück advisory war
+- **WHEN** das GitHub-Gegenstück später fail-closed wird
+- **THEN** schlägt der Guard fehl — die Ausnahme bleibt nicht als Freibrief stehen
+
+### Requirement: devflow-ci-watch derives failed checks from the PR head's check-runs
+
+`scripts/devflow-ci-watch.sh` SHALL derive `FAILED_CHECKS` from the GitHub
+check-runs API of the PR's current `headRefOid`
+(`repos/Paddione/Bachelorprojekt/commits/<headRefOid>/check-runs?filter=latest`)
+instead of the `statusCheckRollup`, SHALL count a check as failed only when its
+latest run on that commit has `conclusion == "failure"` or
+`conclusion == "timed_out"`, and SHALL NOT report "all green" while any such run
+exists. `PENDING_COUNT` detection SHALL remain on the `statusCheckRollup`
+(`status != "COMPLETED"`).
+
+#### Scenario: A failed check-run on the PR head prevents the green exit
+
+- **GIVEN** `devflow-ci-watch.sh` is called for an OPEN PR whose `headRefOid`
+  has at least one check-run with `conclusion == "failure"`
+- **AND** all checks report `status == COMPLETED`
+- **WHEN** the script evaluates the result
+- **THEN** it SHALL NOT exit 0 with "✅ … alle grün"
+- **AND** it SHALL list the failed check name in the escalation message and
+  exit non-zero when `MAX_CI_ATTEMPTS` is exhausted
+
+#### Scenario: A timed-out check-run on the PR head counts as failed
+
+- **GIVEN** the PR head's latest check-run for one check has
+  `conclusion == "timed_out"`
+- **WHEN** `devflow-ci-watch.sh` evaluates `FAILED_CHECKS`
+- **THEN** that check SHALL be treated as failed
+
+#### Scenario: A green PR head still reports green
+
+- **GIVEN** the PR head has check-runs and none has
+  `conclusion == "failure"` or `"timed_out"`, and no check is
+  `status != COMPLETED`
+- **WHEN** `devflow-ci-watch.sh` evaluates the result
+- **THEN** it SHALL report "✅ … CI-Checks, alle grün" and exit 0 (unchanged)
+
+#### Scenario: A cancelled latest run is not a code failure
+
+- **GIVEN** the PR head's latest check-run for one check has
+  `conclusion == "cancelled"`
+- **WHEN** `devflow-ci-watch.sh` evaluates `FAILED_CHECKS`
+- **THEN** that check SHALL NOT count as failed by itself
+- **AND** the existing job-level counter-check (T003224) SHALL clear
+  `FAILED_CHECKS` when no job of the failed run reports `conclusion == "failure"`
+
+### Requirement: devflow-ci-watch treats an empty failed-checks result as no failure
+
+`scripts/devflow-ci-watch.sh` SHALL treat the empty-array literal `[]` produced
+by its failed-checks query (check-runs API, wrapper form) as "no failed
+checks", SHALL NOT run the job-level counter-check (T003224) for it, and SHALL
+NOT escalate to a red exit while the failed-checks result contains no actual
+check entry. The escalation message SHALL list one failed check per line
+instead of a JSON array literal.
+
+#### Scenario: Empty failed-checks array with a stale failure run stays green
+
+- **GIVEN** the PR head's failed-checks query returns `[]` (zero failures)
+- **AND** a stale failure run for the same head exists whose jobs report
+  `conclusion == "failure"`
+- **WHEN** `devflow-ci-watch.sh` evaluates the result
+- **THEN** it SHALL report "✅ … alle grün" and exit 0
+- **AND** it SHALL NOT treat the stale run as a code failure
+
+#### Scenario: Non-empty failed-checks array still escalates
+
+- **GIVEN** the PR head's failed-checks query returns an array with at least
+  one entry
+- **WHEN** `devflow-ci-watch.sh` evaluates the result
+- **THEN** it SHALL keep the existing red path: counter-check via run/job
+  level, escalation message listing the failed checks, and exit non-zero when
+  `MAX_CI_ATTEMPTS` is exhausted
+
+#### Scenario: Escalation message lists one check per line
+
+- **GIVEN** `FAILED_CHECKS` contains two failed checks
+- **WHEN** `devflow-ci-watch.sh` prints the escalation message
+- **THEN** each failed check SHALL appear on its own line
+- **AND** no JSON array wrapper (`[ … ]`) SHALL be printed
+
+### Requirement: GitLab-Pipeline-Status ist lesbar klassifiziert
+
+`scripts/gitlab-pipeline-check.sh` SHALL query the public GitLab API for the
+latest pipeline on `main` of the mirror project (85496968) and SHALL classify:
+`success` → exit 0; `failed`/`canceled` → exit 1; `pending`/`running` → exit 2
+with a diagnostic naming the missing-runner/unknown-outcome classification. An
+empty or invalid API response SHALL exit non-zero with a "no verdict"
+diagnostic — an empty answer is never a green verdict.
+
+#### Scenario: Erfolgreiche Pipeline
+- **GIVEN** the latest pipeline on main has `status=success`
+- **WHEN** `gitlab-pipeline-check.sh` runs
+- **THEN** it SHALL exit 0 and print the success status
+
+#### Scenario: Pending-Pipeline ohne Runner ist kein Urteil
+- **GIVEN** the latest pipeline on main has `status=pending`
+- **WHEN** `gitlab-pipeline-check.sh` runs
+- **THEN** it SHALL exit non-zero with a diagnostic that names the pending
+  status and the missing-runner/unknown-outcome classification
+
+#### Scenario: Leere API-Antwort ist kein Urteil
+- **GIVEN** the API returns an empty body
+- **WHEN** `gitlab-pipeline-check.sh` runs
+- **THEN** it SHALL exit non-zero with a "no verdict" diagnostic
+
+### Requirement: CI-Runner auf fleet läuft in einer harten Ressourcen-Umzäunung
+
+The system SHALL run the Kubernetes-executor GitLab Runner on the `fleet` production cluster
+only inside a dedicated namespace that carries **both** a ResourceQuota and a LimitRange. The
+quota SHALL bound CPU and memory for the namespace as a whole; the LimitRange SHALL give every
+job pod a default request and limit, so that a job without explicit resources cannot claim an
+unbounded share.
+
+Runner and job pods SHALL be scheduled onto the worker nodes only, never onto the control-plane
+nodes: at the time of writing one control-plane node sits at 96 % CPU requests, and CI load
+there would compete with the API server and etcd.
+
+Runner and job pods SHALL carry a PriorityClass whose value is **below** the default, so that
+under contention the scheduler evicts or defers CI work rather than production workloads.
+
+#### Scenario: Job über der Namespace-Quota wird abgelehnt statt Produktion zu verdrängen
+
+- **GIVEN** die ResourceQuota des Runner-Namespace ist ausgeschöpft
+- **WHEN** ein weiterer Job-Pod erzeugt werden soll
+- **THEN** lehnt der API-Server die Pod-Erzeugung selbst ab (kein Scheduling-`pending`
+  — die Ablehnung geschieht schon bei der Objekt-Erzeugung, bevor ein Pod existiert,
+  den der Scheduler platzieren könnte) und der GitLab-Job schlägt fehl (S5, Review
+  T012177: „bleibt pending" trifft nicht zu — das gilt für einen erzeugten, aber
+  nicht schedulebaren Pod, nicht für einen von der Quota abgelehnten)
+- **THEN** bleiben alle produktiven Pods in `workspace` und `workspace-korczewski` davon
+  unberührt (N5, Nachreview T012177: die vorherige Formulierung „bleibt kein produktiver
+  Pod … davon unberührt" war eine doppelte Verneinung und sagte wörtlich das Gegenteil)
+
+#### Scenario: Kein CI-Pod auf einem Control-Plane-Knoten
+
+- **GIVEN** die Runner-Manifeste sind angewandt
+- **WHEN** die Node-Zuordnung der Runner- und Job-Pods geprüft wird
+- **THEN** schränkt eine `nodeAffinity` mit `operator: In` sie auf die Worker-Knoten ein
+- **THEN** genügt eine einfache `nodeSelector`-Label-Map dafür nicht, weil sie kein ODER über mehrere Hostnamen ausdrücken kann
+
+---
+
+### Requirement: CI-Jobs erhalten keinen Cluster-Zugriff
+
+The system SHALL NOT mount a ServiceAccount token into GitLab CI job pods
+(`automountServiceAccountToken: false`). The three core jobs do not need API-server access: the
+manifest job invokes `kubectl` solely for `kubectl kustomize`, which is an offline
+transformation.
+
+RBAC for the runner manager SHALL be a namespaced Role, never a ClusterRole, and SHALL be
+limited to managing pods and reading pod logs within its own namespace.
+
+#### Scenario: Job-Pod kann den API-Server nicht erreichen
+
+- **GIVEN** ein laufender CI-Job-Pod
+- **WHEN** sein Dateisystem auf ein ServiceAccount-Token geprüft wird
+- **THEN** ist keines eingehängt
+
+#### Scenario: Runner-Rechte enden am eigenen Namespace
+
+- **GIVEN** die RBAC-Manifeste des Runners
+- **WHEN** ihre Art geprüft wird
+- **THEN** handelt es sich um Role und RoleBinding, nicht um ClusterRole oder ClusterRoleBinding
+
+---
+
+### Requirement: Image-Pulls laufen über einen Pull-Through-Cache
+
+The system SHALL provide a registry pull-through cache for each self-hosted runner location, so
+that a base image is fetched from the upstream registry once and served locally thereafter. A
+cache instance placed only on the cluster would not help the desktop runner, whose pulls would
+still cross the same internet path the cache is meant to remove.
+
+The cache SHALL be a proxy, not a manually populated mirror: images appear in it as a side
+effect of being requested, without a separate publish step that could go stale.
+
+#### Scenario: Zweiter Lauf zieht das Basis-Image nicht erneut aus dem Internet
+
+- **GIVEN** ein Job hat `node:22` bereits einmal über den Cache gezogen
+- **WHEN** ein weiterer Job dasselbe Image anfordert
+- **THEN** liefert der Cache es aus, ohne die Upstream-Registry erneut zu kontaktieren
+
+#### Scenario: Beide Runner-Standorte haben eine Cache-Instanz
+
+- **GIVEN** die Konfiguration beider Runner
+- **WHEN** ihre Registry-Einstellung geprüft wird
+- **THEN** verweist jede auf eine für sie lokal erreichbare Cache-Instanz
+
+#### Scenario: Die Anbindung sitzt bei dem Programm, das tatsächlich zieht
+
+- **GIVEN** der Docker-Executor zieht über den Host-Docker-Daemon, der Kubernetes-Executor über containerd
+- **WHEN** die Cache-Anbindung eingerichtet wird
+- **THEN** steht sie beim Docker-Executor in der Daemon-Konfiguration und beim Kubernetes-Executor in der Registry-Konfiguration der Knoten
+- **THEN** genügt eine Einstellung in der Runner-Konfiguration allein nicht — sie bliebe wirkungslos, ohne dass ein Fehler sichtbar würde
+
+---
+
+### Requirement: Ausfall eines Runners legt die Pipeline nicht still
+
+The system SHALL keep the pipeline able to run when one of the two self-hosted runners is
+unavailable. Both runners SHALL answer to the same runner tag, so that job routing does not have
+to change when one of them drops out.
+
+This does not replace the documented cloud fallback: it removes the single point of failure that
+made the fallback the only remedy.
+
+#### Scenario: Ein Runner offline, Pipeline läuft weiter
+
+- **GIVEN** einer der beiden self-hosted Runner ist offline
+- **WHEN** eine Pipeline startet
+- **THEN** nimmt der verbleibende Runner die Jobs an, ohne dass eine Variable geändert wird
+
+---
+
+### Requirement: Gerenderte Helm-Artefakte folgen der bestehenden Repo-Konvention
+
+The system SHALL render the GitLab Runner Helm chart to a committed `*-rendered.yaml` file
+alongside its `values/` input, mirroring how `k3d/monitoring/` handles
+`kube-prometheus-stack-rendered.yaml`. A Taskfile target SHALL regenerate it, so the rendered
+output can be reproduced rather than hand-edited.
+
+#### Scenario: Gerendertes Manifest ist reproduzierbar
+
+- **GIVEN** die committete Values-Datei
+- **WHEN** das Render-Target erneut ausgeführt wird
+- **THEN** entsteht dasselbe gerenderte Manifest, und ein Drift wird als Diff sichtbar
+
+### Requirement: Volle BATS-Testmenge läuft grün — Test-Erwartungen folgen dem Produktstand
+
+Die CI SHALL die volle Testmenge (`tests/unit/**/*.bats` und `tests/spec/**/*.bats`) ohne
+Diff-Skoping ausführen. Jede Testdatei SHALL gegen den aktuellen Produktstand grün sein;
+eine Testdatei, deren Erwartungen durch eine Produktänderung obsolet wurden (entfernte
+Feature-Flags, Pflicht-Flags, Pfad-Reorgs, Auth-Migrationen, Re-Export-Konsolidierung,
+Helper-Refactor), SHALL an den neuen Stand angepasst werden — veraltete Testerwartungen
+sind ein Defekt der Testdatei, nicht des Produkts. Tests, die Produktcode prüfen, SHALL
+die Semantik des Produkts zusichern (Gate vorhanden, Fehlermeldung exakt, Verhalten
+reproduzierbar) statt veraltete Formulierungen zu konservieren.
+
+#### Scenario: Entferntes Feature-Flag bleibt ohne Test-Assertion
+
+- **GIVEN** ein Skript hat ein Feature-Flag (z. B. `stream`-DNS-Prefix) entfernt
+- **WHEN** die volle BATS-Testmenge läuft
+- **THEN** assertiert keine Testdatei das entfernte Flag
+- **AND** verbleibende aktive Flags sind weiterhin per Positiv-Assertion abgesichert
+
+#### Scenario: Neue Pflicht-Flags sind in Test-Aufrufen gesetzt
+
+- **GIVEN** ein CLI-Skript verlangt seit einer Änderung ein Pflicht-Flag
+- **WHEN** Tests das Skript direkt aufrufen
+- **THEN** tragen die Aufrufe das Pflicht-Flag
+- **AND** das Fehlen des Flags ist durch einen eigenen Guard-Test abgesichert
+
+#### Scenario: Pfad-Reorg bricht Test-Setup nicht
+
+- **GIVEN** der Repo-Code wurde in ein neues Verzeichnis verschoben (z. B.
+  `website/` → `components/website/`)
+- **WHEN** ein Test das Verzeichnis betritt oder relative Skriptpfade auflöst
+- **THEN** verwendet er die aktuelle Verzeichnisstruktur
+- **AND** erwartete Fehlermeldungen stimmen exakt mit dem realen String des Produkts
+  überein
+
+#### Scenario: Auth-Gate-Wechsel bleibt sicherheits-zugesichert
+
+- **GIVEN** ein oauth2-proxy-Gate wechselt das Verfahren (z. B. Gruppen-Flag →
+  `--authenticated-emails-file` mit ConfigMap-Mount)
+- **WHEN** der Manifest-Test das Gate prüft
+- **THEN** assertiert er das aktuelle Verfahren samt Datenquelle (Mount/ConfigMap)
+- **AND** die Zusicherung „der Proxy ist gegated" bleibt erhalten, statt nur das
+  Flag-Literal zu tauschen
+
+#### Scenario: Direkt aufgerufene Tests sind selbst lauffähig
+
+- **GIVEN** ein Test braucht installierte npm-Dependencies, die nur ein Task-Wrapper
+  vorher installiert
+- **WHEN** der Test direkt per bats aufgerufen wird
+- **THEN** installiert er seine Dependencies selbst in `setup_file()` oder skippt
+  sauber mit Begründung
+- **AND** er ist nicht auf einen bestimmten Wrapper angewiesen
+
+#### Scenario: Test-Stubs brechen bei unbekannten Aufrufen laut ab
+
+- **GIVEN** ein Test stubbt ein CLI-Werkzeug (z. B. kubectl)
+- **WHEN** das Produktskript ein Subkommando aufruft, das der Stub nicht kennt
+- **THEN** bricht der Stub mit einer Meldung und Exit-Code ungleich 0 ab
+- **AND** er verschluckt den Aufruf nicht still über einen Default-Case mit Exit 0
+
+### Requirement: GitLab-Jobs decken jeden Offline-Gate-Job aus ci.yml ab
+
+`.gitlab-ci.yml` SHALL define a counterpart for every offline gate job in
+`.github/workflows/ci.yml`: the BATS unit suite, manifest validation, the OpenSpec/guards
+check, the sharded spec suite, the full security scan (image pinning, git-crypt guard,
+gitleaks, Trivy), the Brett TypeScript build, the website Vitest suite, the commit-message
+lint and the Lighthouse audit.
+
+A GitHub job SHALL NOT be considered covered by a GitLab job that merely shares its name: the
+counterpart SHALL bring the same toolchain and SHALL run the same suite selection for the
+pipeline context it runs in.
+
+The aggregator job `test-factory` SHALL NOT be reproduced. It exists on GitHub solely because
+a **skipped** required check counts as passed in branch protection; GitLab has no such
+semantics, and mirroring the job would reproduce a platform quirk rather than its effect.
+
+#### Scenario: Jeder Offline-Gate-Job hat ein Gegenstueck
+
+- **GIVEN** die Job-Namen beider Pipeline-Dateien werden gegeneinander gestellt
+- **WHEN** der Abdeckungs-Guard laeuft
+- **THEN** ist jeder `ci.yml`-Offline-Gate-Job einem GitLab-Job zugeordnet, mit Ausnahme des als bewusst ausgelassen deklarierten Aggregators
+
+#### Scenario: Spec-Suite laeuft in vier Partitionen
+
+- **GIVEN** der Spec-Suite-Job auf GitLab laeuft
+- **WHEN** seine Parallelisierung ausgewertet wird
+- **THEN** laeuft er in vier Partitionen, und die GitLab-Partitionsvariablen sind auf `SPEC_SHARD`/`SPEC_SHARDS` abgebildet
+
+---
+
+### Requirement: Diff-Basis wird an einer Stelle aufgeloest und meldet ihr Fehlen
+
+The system SHALL resolve the diff base for scope-selecting gates in a single script that both
+pipelines call, rather than repeating the resolution per job or per platform. The resolution
+order SHALL be: an explicit merge-request diff base if the CI context provides one, otherwise
+the merge base between `origin/main` and `HEAD`, otherwise `origin/main`.
+
+For a pipeline context that has **no** counterpart to diff against (a push to `main`), the
+script SHALL signal this with a distinct exit code and empty output — it SHALL NOT report an
+empty diff.
+
+This distinction is the point of the script. A failed base resolution and a legitimately empty
+diff both yield zero selected files; a caller that treats them alike reports a commit as
+checked that nothing checked. A job whose selection is empty SHALL therefore pass only when
+the base resolved, and SHALL fail when it did not.
+
+#### Scenario: Merge-Request-Kontext liefert die vorgegebene Basis
+
+- **GIVEN** die CI-Umgebung setzt eine Merge-Request-Diff-Basis
+- **WHEN** das Skript laeuft
+- **THEN** gibt es genau diesen SHA aus und beendet sich mit Exit-Code 0
+
+#### Scenario: Branch-Pipeline ohne Merge-Request faellt auf die Merge-Base zurueck
+
+- **GIVEN** ein gespiegelter Arbeits-Branch ohne Merge-Request-Kontext
+- **WHEN** das Skript laeuft
+- **THEN** gibt es die Merge-Base gegen `origin/main` aus und beendet sich mit Exit-Code 0
+
+#### Scenario: main-Push meldet fehlende Basis statt leeren Diff
+
+- **GIVEN** die Pipeline laeuft auf einem Push nach `main`
+- **WHEN** das Skript laeuft
+- **THEN** ist die Ausgabe leer und der Exit-Code von 0 verschieden
+
+#### Scenario: Leere Auswahl ohne aufloesbare Basis scheitert
+
+- **GIVEN** ein diff-skopierter Job waehlt null Tests aus, weil die Basis nicht aufloesbar war
+- **WHEN** der Job seine Auswahl auswertet
+- **THEN** scheitert er, statt gruen zu melden
+
+---
+
+### Requirement: Commit-Lint auf GitLab prueft den Commit-Range
+
+The GitLab commit-lint job SHALL validate the **commit messages in the pipeline's range**
+using the same scripts the local hook and the GitHub job invoke, rather than reproducing the
+GitHub pull-request-title check. A mirrored branch pipeline has no merge request and therefore
+no title to check; the commit messages exist in both contexts.
+
+Where the CI context does provide a merge-request title, the job SHALL additionally validate
+that title against the same type list.
+
+#### Scenario: Branch-Pipeline prueft Commit-Nachrichten
+
+- **GIVEN** eine gespiegelte Branch-Pipeline ohne Merge-Request-Kontext
+- **WHEN** der Commit-Lint-Job laeuft
+- **THEN** validiert er jede Nicht-Merge-Commit-Nachricht im Range und scheitert bei einer nicht-konventionellen Nachricht
+
+#### Scenario: Merge-Request-Titel wird zusaetzlich geprueft
+
+- **GIVEN** die CI-Umgebung setzt einen Merge-Request-Titel
+- **WHEN** der Commit-Lint-Job laeuft
+- **THEN** prueft er zusaetzlich diesen Titel gegen dieselbe Typ-Liste
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -2817,3 +3420,17 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (693cabb34ac5) -->
 
 <!-- merged from change delta ci-cd.md (a74fe0399b34) -->
+
+<!-- merged from change delta ci-cd.md (8e0380ea13dd) -->
+
+<!-- merged from change delta ci-cd.md (354368854f9d) -->
+
+<!-- merged from change delta ci-cd.md (80d6aa3f9ee4) -->
+
+<!-- merged from change delta ci-cd.md (3fed10ba6de9) -->
+
+<!-- merged from change delta ci-cd.md (6db12af962de) -->
+
+<!-- merged from change delta ci-cd.md (65339c7f7fac) -->
+
+<!-- merged from change delta ci-cd.md (a6aa459e81f1) -->

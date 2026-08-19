@@ -1,0 +1,14 @@
+# Fixture: zwei Bereiche ueberschneiden sich, keiner erklaert es.
+networks:
+  - id: alpha
+    cidr: 10.20.0.0/24
+    owner: fleet
+    purpose: Overlay
+    status: active
+    source: test
+  - id: beta
+    cidr: 10.20.0.0/25
+    owner: other
+    purpose: Teilbereich
+    status: active
+    source: test

@@ -1,0 +1,73 @@
+version: '3'
+
+# Autoinstall-ISO fuer Cluster-Workstations.
+# Baut ein unbeaufsichtigtes Ubuntu-Server-Image, das den Hostnamen aus der
+# MAC ableitet und /usr/local/sbin/k3s-join.sh mitbringt. k3s selbst wird
+# NICHT installiert — der Join ist ein eigener Schritt nach dem ersten Boot.
+# Runbook: docs/runbooks/workstation-cluster-iso.md
+
+vars:
+  ISO_OUT: '{{.ISO_OUT | default "build/iso/ubuntu-cluster-node.iso"}}'
+  ISO_SSH_KEY: '{{.ISO_SSH_KEY | default "~/.ssh/id_ed25519.pub"}}'
+  ISO_NODE_MAP: '{{.ISO_NODE_MAP | default "scripts/iso/node-map"}}'
+
+tasks:
+  build:
+    desc: "Autoinstall-ISO fuer die Cluster-Workstations bauen (ISO_SSH_KEY=, ISO_NODE_MAP=, ISO_OUT=)"
+    cmds:
+      - |
+        map_arg=""
+        if [ -f "{{.ISO_NODE_MAP}}" ]; then
+          map_arg="--node-map {{.ISO_NODE_MAP}}"
+        else
+          echo "WARN: {{.ISO_NODE_MAP}} fehlt — Hostnamen werden aus der MAC abgeleitet." >&2
+          echo "      Vorlage: cp scripts/iso/node-map.example scripts/iso/node-map" >&2
+        fi
+        bash scripts/iso/build-node-iso.sh \
+          --ssh-key "{{.ISO_SSH_KEY}}" \
+          --out "{{.ISO_OUT}}" \
+          $map_arg
+
+  deps:
+    desc: "Werkzeuge fuer den ISO-Build pruefen"
+    cmds:
+      - |
+        missing=""
+        for t in xorriso curl envsubst openssl; do
+          command -v "$t" >/dev/null 2>&1 || missing="$missing $t"
+        done
+        if [ -n "$missing" ]; then
+          echo "fehlt:$missing"
+          echo "  sudo apt install -y xorriso curl gettext-base openssl"
+          exit 1
+        fi
+        echo "alle Werkzeuge vorhanden"
+
+  pxe:
+    desc: "PXE-Boot-Server starten — Netzweg statt USB (ISO_SSH_KEY=, ISO_NODE_MAP=). Braucht sudo."
+    cmds:
+      - |
+        map_arg=""
+        if [ -f "{{.ISO_NODE_MAP}}" ]; then
+          map_arg="--node-map {{.ISO_NODE_MAP}}"
+        fi
+        sudo bash scripts/pxe/setup-pxe.sh --ssh-key "{{.ISO_SSH_KEY}}" $map_arg
+
+  pxe:stop:
+    desc: "PXE-Boot-Server beenden"
+    cmds:
+      - sudo bash scripts/pxe/setup-pxe.sh --stop
+
+  pxe:status:
+    desc: "Zustand des PXE-Boot-Servers anzeigen"
+    cmds:
+      - sudo bash scripts/pxe/setup-pxe.sh --status
+
+  check:
+    desc: "ISO- und PXE-Skripte auf Syntaxfehler pruefen (ohne Build)"
+    cmds:
+      - bash -n scripts/pxe/setup-pxe.sh
+      - bash -n scripts/iso/build-node-iso.sh
+      - bash -n scripts/iso/autoinstall/assign-identity.sh
+      - bash -n scripts/iso/autoinstall/k3s-join.sh
+      - echo "ISO-Skripte syntaktisch in Ordnung"

@@ -1,0 +1,22 @@
+# Fixture: dieselbe Ueberschneidung, aber beidseitig erklaert.
+networks:
+  - id: home-lan
+    cidr: 10.0.0.0/8
+    owner: haushalt
+    purpose: LAN
+    status: active
+    source: fritzbox
+    overlaps:
+      - with: pod-cidr
+        reason: Das LAN-Praefix umfasst den Pod-Bereich.
+        mitigation: Laengere Praefixe gewinnen per Longest-Prefix-Routing.
+  - id: pod-cidr
+    cidr: 10.42.5.0/24
+    owner: fleet
+    purpose: Pods
+    status: active
+    source: kubernetes
+    overlaps:
+      - with: home-lan
+        reason: Liegt innerhalb des LAN-Praefixes.
+        mitigation: Explizite /24-Route ueber den Tunnel.

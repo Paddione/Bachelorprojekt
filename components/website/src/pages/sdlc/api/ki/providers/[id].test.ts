@@ -11,7 +11,7 @@ const db = vi.hoisted(() => ({
   getProvider: vi.fn(), updateProvider: vi.fn(), deleteProvider: vi.fn(),
   countEnabledForSource: vi.fn(),
 }));
-vi.mock('../../../../../lib/ki-config-db', () => db);
+vi.mock('../../../../../lib/sdlc/ki-config-db', () => db);
 
 import { PUT, DELETE } from './[id]';
 
@@ -21,6 +21,7 @@ function ctx(id: string, body?: unknown, method = 'PUT') {
     request: new Request(`http://t/api/admin/ki/providers/${id}`, {
       method, headers: { cookie: 'x' }, body: body ? JSON.stringify(body) : undefined,
     }),
+    locals: { requestLogger: { error: vi.fn() } },
   } as never;
 }
 

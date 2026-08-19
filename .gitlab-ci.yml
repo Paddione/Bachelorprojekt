@@ -1,0 +1,588 @@
+# .gitlab-ci.yml — GitLab-CI-Spiegel (Etappe 1, T011790)
+#
+# Sekundaere, nicht blockierende Verifikation neben GitHub Actions. GitHub Actions
+# bleibt die einzige Quelle fuer Merge-Entscheidungen; kein hier definierter Job ist
+# irgendwo als Required Check hinterlegt. Details:
+#   openspec/specs/ci-cd.md
+#   openspec/changes/gitlab-ci-migration-stage1/design.md
+#   docs/runbooks/gitlab-runner.md (Betrieb, Fallback-Umschaltung)
+#
+# Diese Pipeline erhaelt Pushes ausschliesslich ueber den Mirror-Workflow
+# (.github/workflows/mirror-to-gitlab.yml), der `main` spiegelt. Ein Diff gegen
+# `main` selektiert dort nichts, deshalb laufen hier die vollen Testmengen statt
+# der GitHub-seitigen Diff-Auswahl (task test:changed / dessen Alias test:all).
+
+stages:
+  - build
+  - lint
+  - test
+  - quality
+
+variables:
+  # Fallback-Mechanismus (design.md D2): jeder Job routet ueber diese Variable statt
+  # ueber einen hartkodierten Tag. Vorgabewert ist der self-hosted Runner; im
+  # Stoerfall in der GitLab-Projekt-UI auf saas-linux-small-amd64 umstellen —
+  # Projekt-Variablen haben Vorrang vor dieser Datei-Variable. Siehe
+  # docs/runbooks/gitlab-runner.md.
+  CI_RUNNER_TAG: "bachelorprojekt-local"
+  # Einzige Fundstelle der gitleaks-Version. Der Paritaets-Guard
+  # (tests/spec/ci-cd/gitlab-tool-parity.bats) liest sie aus und vergleicht sie
+  # gegen .github/workflows/ci.yml — ein Versions-Bump ohne Gegenstueck faellt auf.
+  GITLEAKS_VERSION: "8.18.2"
+  # Trivy pinnt GitHub ueber aquasecurity/setup-trivy ohne explizite Version. Hier
+  # ist eine Version noetig, weil der Download direkt erfolgt; sie wandert in den
+  # Paritaets-Guard als "nur GitLab gepinnt" und nicht als Divergenz.
+  TRIVY_VERSION: "0.74.0"
+
+# ── Gemeinsame Job-Vorgaben ─────────────────────────────────────────────────
+#
+# Warum Anker statt Wiederholung je Job: dieselbe Anti-Duplikations-Entscheidung
+# wie bei CI_RUNNER_TAG in Etappe 1. Eine Toolchain, die an sieben Stellen steht,
+# driftet an sieben Stellen.
+#
+# Der Block steht bewusst VOR dem ersten `<<: *gl_defaults`. YAML loest Aliase
+# beim Parsen von oben nach unten auf — ein Alias auf einen erst spaeter
+# definierten Anker ist kein gueltiges YAML, sondern ein ComposerError
+# ("found undefined alias"). Genau das war T012899: der Job build-ci-images kam
+# mit #4823 oberhalb dieses Blocks hinzu und machte die gesamte Datei
+# unparsebar — fuer die Guards in tests/spec/ci-cd/ ebenso wie fuer GitLab
+# selbst. Neue Jobs, die den Anker verwenden, gehoeren UNTER diesen Block.
+.gl_defaults: &gl_defaults
+  tags: [$CI_RUNNER_TAG]
+  # Bei mehreren Pushes hintereinander bricht GitLab die ueberholte Pipeline ab,
+  # statt den Runner mit veralteten Staenden zu belegen. Auf einem Runner, der
+  # laut Etappe-2-Messung 2-3x langsamer ist als SaaS, ist das kein Feinschliff.
+  interruptible: true
+
+# ── Prebuilt CI Images (T012411) ────────────────────────────────────────────
+# Vorgebaute Images eliminieren ~75s Setup-Zeit pro Job (apt-get, curl-Downloads).
+# Quelle: .gitlab-ci-images/*.Dockerfile, scripts/build-ci-images.sh
+# Rebuild: manuell oder beim Aendern von VERSION-Argen in den Dockerfiles.
+
+build-ci-images:
+  stage: build
+  <<: *gl_defaults
+  image: docker:24
+  services:
+    - docker:24-dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - ".gitlab-ci-images/*"
+        - "scripts/build-ci-images.sh"
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - bash scripts/build-ci-images.sh
+
+# ── Etappe 3 (T012405): gemeinsame Bausteine ─────────────────────────────────
+#
+# Die sieben Jobs unterhalb der Etappe-1-Jobs stellen die Paritaet zu den
+# Offline-Gates in .github/workflows/ci.yml her. GitLab bleibt dabei
+# nicht-blockierend — kein Ergebnis ist als Required Check hinterlegt, und kein
+# GitHub-Job wurde abgeschaltet. Der Gate-Flip ist eine eigene, spaetere Etappe.
+#
+# Warum Anker statt Wiederholung je Job: dieselbe Anti-Duplikations-Entscheidung
+# wie bei CI_RUNNER_TAG in Etappe 1. Eine Toolchain, die an sieben Stellen steht,
+# driftet an sieben Stellen.
+
+# Laeuft auf main (Vollmenge), auf Arbeits-Branches und in MR-Pipelines.
+# Die Unterscheidung Vollmenge/Diff-Auswahl trifft NICHT diese Regel, sondern der
+# Exit-Code von scripts/ci-diff-base.sh im Job selbst — sonst braeuchte jeder Job
+# zwei durch rules getrennte Varianten.
+.scoped_rules: &scoped_rules
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  - if: $CI_COMMIT_BRANCH == "main"
+  - if: $CI_COMMIT_BRANCH =~ /^(feature|fix|chore)\//
+
+# Nur dort, wo es ein Gegenueber gibt — auf main gaebe es keinen Commit-Range.
+.branch_only_rules: &branch_only_rules
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  - if: $CI_COMMIT_BRANCH =~ /^(feature|fix|chore)\//
+
+bats-unit:
+  stage: test
+  # node:22 statt eines schlanken Images: 33 der Dateien unter tests/unit/ brauchen
+  # node/npm/npx, 11 python3, 10 jq, 16 das task-Binary (gemessen per grep -rl gegen
+  # tests/unit/). Der GitHub-Gegenpart (test-bats in ci.yml) installiert Node 22, npm ci
+  # und arduino/setup-task — dieser Job muss dieselbe TOOLCHAIN mitbringen, sonst
+  # spiegelt er nicht das Verhalten, sondern nur die Existenz der Suite.
+  #
+  # WICHTIG (Review-Befund, T011790): Toolchain-Paritaet ist NICHT Testmengen-Paritaet.
+  # test-bats auf GitHub laeuft diff-skopiert (scripts/find-changed-tests.sh); kubectl-
+  # abhaengige Tests liegen dort im separaten Job test-manifests, der einzige mit
+  # kubectl. Dieser Job hat KEIN kubectl — die kubectl-abhaengigen Dateien werden
+  # deshalb unten explizit ausgeschlossen, nicht per zusaetzlicher Toolinstallation
+  # hereingezogen (das wuerde die Job-Aufteilung des Repos unterlaufen, die genau
+  # dafuer existiert, dass test-bats OHNE kubectl auskommt).
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
+  tags: [$CI_RUNNER_TAG]
+  variables:
+    YQ_VERSION: "4.53.3"
+  before_script:
+    # python3-yaml und gettext-base (envsubst) gehoeren zur Toolchain-Paritaet, nicht
+    # zum Komfort: ubuntu-latest bringt beide vorinstalliert mit, das Debian-basierte
+    # node:22 keines. ci.yml installiert PyYAML sogar explizit nach (Zeile 312) mit
+    # genau dieser Begruendung. Ohne sie schlagen tests/unit/scripts.bats (4 Tests,
+    # ModuleNotFoundError: No module named 'yaml') und
+    # tests/unit/flux-render-runtime-vars.bats (envsubst) auf reine Umgebung fehl.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 python3-yaml gettext-base jq ca-certificates curl >/dev/null
+    # yq: mikefarah v4, NICHT das gleichnamige apt-Paket (ein Python-jq-Wrapper mit
+    # anderer Syntax). tests/unit/plan-lint.bats ruft `yq -r` mit @tsv auf,
+    # scripts/hermes-mcp-provision.sh `yq eval` — beides v4-Syntax. Wie beim
+    # task-Binary ein eigener curl --fail-Schritt, damit ein toter Host den Job
+    # rot macht statt still ohne das Werkzeug weiterzulaufen.
+    - curl --fail -sSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq
+    - chmod +x /usr/local/bin/yq
+    - yq --version
+    # Separater Download-Schritt mit curl --fail (wie im manifests-Job): "-ssL" ist
+    # zweimal --silent statt -sS, unterdrueckt also die Fehlermeldung, UND der
+    # Exit-Code eines fehlschlagenden curl innerhalb von "$(...)" geht in der
+    # Kommandosubstitution verloren — ein toter Host liesse den Schritt trotzdem
+    # gruen durchlaufen, mit fehlendem task-Binary (16 Testdateien brauchen es).
+    - curl --fail -sSL https://taskfile.dev/install.sh -o /tmp/install-task.sh
+    - sh /tmp/install-task.sh -b /usr/local/bin
+    - task --version
+    - npm ci
+    - bash scripts/ci-dummy-secrets.sh
+  script:
+    - |
+      set -euo pipefail
+      # Ausschlussliste statt Werkzeug-Nachinstallation (Review-Entscheidung, T011790):
+      # sieben dieser Dateien rufen `kubectl kustomize` in setup_file() auf. Das ist
+      # kein "skip" bei fehlendem kubectl, sondern ein harter Abbruch — siehe
+      # dead-node-affinity.bats:22-24 woertlich: "FATAL: kubectl fehlt — diese Datei
+      # gehoert in den test-manifests-Job." Genau dorthin gehoeren sie auch hier: der
+      # manifests-Job unten hat kubectl und faehrt sechs von ihnen (changed-manifests.bats
+      # ist zusaetzlich diff-basiert, design.md D4, und deshalb NIRGENDS auf main-Push
+      # sinnvoll). tests/unit/.coverage-allowlist dokumentiert dieselbe Zuordnung fuer
+      # den GitHub-Offline-Gate.
+      #
+      # T000617-alert-rules.bats kommt aus einem zweiten Grund dazu, ungleich der
+      # anderen sieben: sein einzelner kubectl-Test (Zeile 44/45, "k3d/monitoring
+      # kustomize builds") ruft `kubectl kustomize` DIREKT im Testkoerper auf, nicht in
+      # setup_file() — deshalb bricht nicht die ganze Datei ab (kein "setup_file
+      # failed"), sondern nur dieser eine Test schlaegt fehl. Bei einer vollen
+      # Job-PATH-Nachstellung (ohne kubectl) faellt das trotzdem auf: 1 von 8 Tests
+      # dieser Datei braucht kubectl real, ohne Skip-Guard (anders als der
+      # promtool/yq-Test zwei @test-Bloecke darueber). Auch diese Datei zieht deshalb in
+      # den manifests-Job — ihre uebrigen Tests (Alertmanager/Prometheus-Rules-Struktur)
+      # laufen dort unveraendert mit.
+      EXCLUDE_KUBECTL_SETUP="tests/unit/dead-node-affinity.bats tests/unit/manifests.bats tests/unit/knowledge-ingest-schema.bats tests/unit/knowledge-ingest-bugs-schema.bats tests/unit/knowledge-ingest-manifest.bats tests/unit/newsletter-scheduled-publish.bats tests/unit/changed-manifests.bats tests/unit/T000617-alert-rules.bats"
+      # tests/unit/*.bats direkt statt "-r tests/unit/": eine Rekursion zieht auch
+      # tests/unit/lib/bats-core/docs/examples/package-tarball.bats mit — vier
+      # Fremdtests aus dem vendored bats-core, die nicht zur Repo-Suite gehoeren.
+      # tests/unit/factory/ und tests/unit/scripts/ tragen eigene Repo-Tests und
+      # werden deshalb explizit dazugenommen.
+      FILES=""
+      for f in tests/unit/*.bats tests/unit/factory/*.bats tests/unit/scripts/*.bats; do
+        excluded=0
+        for ex in $EXCLUDE_KUBECTL_SETUP; do
+          if [ "$f" = "$ex" ]; then
+            excluded=1
+            break
+          fi
+        done
+        [ "$excluded" -eq 0 ] && FILES="$FILES $f"
+      done
+      # Bewusstes Wortsplitting einer Dateipfadliste: keine der Dateien im Repo
+      # enthaelt Leerzeichen (gleiches Muster wie $CHANGED_FILES im GitHub-Job
+      # test-bats, ci.yml).
+      # shellcheck disable=SC2086
+      ./tests/unit/lib/bats-core/bin/bats $FILES --formatter tap | tee /tmp/bats-tap.log
+      total="$(grep -m1 -oE '^1\.\.[0-9]+' /tmp/bats-tap.log | grep -oE '[0-9]+$' || echo 0)"
+      # Leerer Lauf gilt als Fehlschlag (design.md D4) — der Mirror pusht main, eine
+      # Diff-Auswahl gegen main selektiert dort die leere Menge, und ein grüner Lauf
+      # ohne einen einzigen ausgefuehrten Test waere die gefaehrlichste Ausprägung
+      # dieser Pipeline.
+      if [ "${total:-0}" -eq 0 ]; then
+        echo "ERROR: 0 Tests ausgefuehrt — leerer Lauf gilt als Fehlschlag"
+        exit 1
+      fi
+      echo "Ausgefuehrte Tests: ${total}"
+
+manifests:
+  stage: test
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-ubuntu:latest
+  tags: [$CI_RUNNER_TAG]
+  variables:
+    KUBECTL_VERSION: "v1.31.0"
+  before_script:
+    # gettext-base und python3-yaml aus demselben Grund wie im bats-unit-Job
+    # (T012309): ubuntu-latest auf GitHub liefert beide vorinstalliert, das nackte
+    # ubuntu:24.04-Image nicht. Ohne envsubst bricht setup_file in
+    # tests/unit/manifests.bats mit Status 127 ab (die Office-Stack-Templates
+    # laufen dort durch envsubst) und reisst die ganze Datei mit; ohne PyYAML
+    # fallen zwei Tests in tests/unit/dead-node-affinity.bats.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates python3 python3-yaml gettext-base jq >/dev/null
+    - curl --fail -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+    - chmod +x /usr/local/bin/kubectl
+  script:
+    # tests/unit/changed-manifests.bats bleibt bewusst aussen vor: der Test ist
+    # diff-basiert und hat auf einem main-Mirror-Push keinen Bezugspunkt (design.md D4).
+    # python3 und jq sind Pflicht: dead-node-affinity.bats ruft python3 -c auf,
+    # manifests.bats setzt jq voraus.
+    #
+    # knowledge-ingest-{schema,bugs-schema,manifest}.bats und
+    # newsletter-scheduled-publish.bats rufen ebenfalls `kubectl kustomize` in
+    # setup_file() auf (Review-Befund, T011790) — sie gehoeren strukturell hierher,
+    # nicht in bats-unit (siehe dortiger Kommentar).
+    #
+    # T000617-alert-rules.bats: sein kubectl-Test sitzt im Testkoerper statt in
+    # setup_file(), hat aber keinen Skip-Guard (anders als der promtool/yq-Test in
+    # derselben Datei) — bei einer vollen Job-PATH-Nachstellung ohne kubectl faellt
+    # er sonst als einzelner "not ok". Gehoert aus demselben Grund wie die vier
+    # obigen hierher statt in bats-unit.
+    - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/dead-node-affinity.bats tests/unit/knowledge-ingest-schema.bats tests/unit/knowledge-ingest-bugs-schema.bats tests/unit/knowledge-ingest-manifest.bats tests/unit/newsletter-scheduled-publish.bats tests/unit/T000617-alert-rules.bats
+
+gitleaks:
+  # Gegenstueck zum GitHub-Job security-scan. Der Job-NAME bleibt "gitleaks",
+  # obwohl er seit Etappe 3 (T012405) alle vier Schritte des GitHub-Jobs traegt:
+  # tests/spec/ci-cd/gitlab-tool-parity.bats prueft gegen diese Fundstelle, und ein
+  # Umbenennen waere eine Aenderung an der Guard-Verankerung ohne Gegenwert.
+  #
+  # Fehlerverhalten je Schritt wie auf GitHub — das ist keine Nachlaessigkeit,
+  # sondern Teil der Paritaet:
+  #   Image-Pinning  advisory     (mehrere Dev-Images nutzen :latest absichtlich)
+  #   git-crypt      fail-closed  (ein Klartext-Secret im Baum ist ein Abbruchgrund)
+  #   gitleaks       fail-closed
+  #   Trivy          advisory     (auf GitHub continue-on-error)
+  stage: test
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-ubuntu:latest
+  tags: [$CI_RUNNER_TAG]
+  interruptible: true
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl bash ca-certificates git jq >/dev/null
+    - curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz -C /usr/local/bin gitleaks
+    - chmod +x /usr/local/bin/gitleaks
+    - curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" | tar -xz -C /usr/local/bin trivy
+    - chmod +x /usr/local/bin/trivy
+  script:
+    - |
+      set -euo pipefail
+
+      # ── 1) Image-Pinning (advisory) ─────────────────────────────────────────
+      # Mehrere Komponenten nutzen :latest absichtlich (CLAUDE.md §Image Exclusions).
+      # Der Schritt meldet, er erzwingt nicht.
+      pinned=true
+      for f in k3d/*.yaml; do
+        if grep -q ':latest' "$f"; then
+          echo "INFO: $f enthaelt :latest"
+          pinned=false
+        fi
+      done
+      if [ "$pinned" = true ]; then
+        echo "Alle Images sind versionsgepinnt"
+      else
+        echo "WARNUNG: einige Images nutzen :latest (siehe oben)"
+      fi
+
+      # ── 2) Klartext-Secrets in Manifesten (fail-closed) ─────────────────────
+      if grep -rn 'password.*=.*[^$]' k3d/*.yaml \
+           | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}\|getenv(' \
+           | grep -iv '^\s*#'; then
+        echo "ERROR: moeglicherweise hartkodierte Secrets gefunden (siehe oben)" >&2
+        exit 1
+      fi
+      echo "Keine hartkodierten Secrets in k3d/*.yaml"
+
+      # ── 3) git-crypt-Verschluesselung getrackter Secrets (fail-closed) ──────
+      if ! bash scripts/git-crypt-guard.sh check-tracked; then
+        echo "ERROR: ein getracktes Secret liegt im Klartext vor" >&2
+        exit 1
+      fi
+      echo "Alle verwalteten Secret-Dateien sind git-crypt-verschluesselt"
+
+      # ── 4) gitleaks (fail-closed) ──────────────────────────────────────────
+      if ! gitleaks detect --config .gitleaks.toml --no-git --redact; then
+        echo "ERROR: gitleaks detected potential secrets — see findings above"
+        exit 1
+      fi
+      echo "No secrets detected by gitleaks"
+
+      # ── 5) Trivy (advisory) ────────────────────────────────────────────────
+      # Wie auf GitHub continue-on-error: ein CVE-Befund in einem Fremd-Image ist
+      # eine Information fuer die naechste Pin-Runde, kein Grund, diesen Commit
+      # zurueckzuweisen. Der Befund wird ausgegeben, damit er nicht verschwindet.
+      result="$(bash scripts/trivy-scan.sh --json 2>/dev/null || echo '{"total_critical":0,"total_high":0}')"
+      crit="$(printf '%s' "$result" | jq -r '.total_critical // 0')"
+      high="$(printf '%s' "$result" | jq -r '.total_high // 0')"
+      echo "Trivy: ${crit} kritisch, ${high} hoch"
+      if [ "${crit:-0}" -gt 0 ]; then
+        echo "WARNUNG: ${crit} CRITICAL-CVEs ueber die gepinnten Images"
+      fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Etappe 3 (T012405) — Gegenstuecke zu den restlichen Offline-Gates aus ci.yml
+# ═══════════════════════════════════════════════════════════════════════════════
+
+.diff_base_preamble: &diff_base_preamble |
+  # Aufloesung der Diff-Basis. Die drei Faelle werden GETRENNT behandelt — das ist
+  # der Punkt von scripts/ci-diff-base.sh (design.md D2):
+  #   0 = Basis da        → diff-skopierte Auswahl
+  #   3 = keine Basis     → main-Push, Vollmenge ist richtig
+  #   * = Umgebung kaputt → abbrechen
+  # Waeren 3 und * zusammengefasst, liefe ein Job mit kaputter Umgebung als
+  # "Vollmenge" durch — oder, schlimmer, als leere Auswahl gruen. Ein leerer Lauf
+  # ist genau der Fehlschlag, der am wenigsten auffaellt (Etappe-1-Regel D4).
+  git fetch --no-tags --depth=50 origin +main:refs/remotes/origin/main || true
+  set +e
+  DIFF_BASE="$(bash scripts/ci-diff-base.sh)"
+  DIFF_BASE_RC=$?
+  set -e
+  case "$DIFF_BASE_RC" in
+    0) echo "Diff-Basis: $DIFF_BASE" ;;
+    3) echo "Keine Diff-Basis (main-Push) — Vollmenge"; DIFF_BASE="" ;;
+    *) echo "ERROR: Diff-Basis nicht aufloesbar (rc=$DIFF_BASE_RC)" >&2; exit 1 ;;
+  esac
+  export DIFF_BASE
+
+factory-openspec:
+  # Gegenstueck zu test-factory-openspec: die billigen, hochsignalhaften Gates.
+  stage: test
+  <<: *gl_defaults
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
+  rules: *scoped_rules
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git jq ca-certificates >/dev/null
+    - npm ci
+  script:
+    - npm run test:openspec
+
+factory-shard:
+  # Gegenstueck zu test-factory-shard. GitLabs parallel: 4 setzt CI_NODE_INDEX
+  # (1-basiert) und CI_NODE_TOTAL; beide werden auf die Namen abgebildet, die
+  # Taskfile.yml ab Zeile 789 auswertet. An scripts/spec-shard.sh aendert sich nichts.
+  #
+  # KEIN Aggregator-Job: test-factory existiert auf GitHub ausschliesslich, weil ein
+  # UEBERSPRUNGENER Required Check in der Branch Protection als bestanden zaehlt.
+  # GitLab kennt diese Semantik nicht — ein nicht gelaufener Job laesst die Pipeline
+  # nicht gruen werden. Den Job zu spiegeln hiesse, eine Plattform-Eigenheit
+  # nachzubauen statt ihrer Wirkung (design.md D3).
+  stage: test
+  <<: *gl_defaults
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22-heavy:latest
+  rules: *scoped_rules
+  parallel: 4
+  variables:
+    SPEC_SHARD: "$CI_NODE_INDEX"
+    SPEC_SHARDS: "$CI_NODE_TOTAL"
+    # scripts/ticket-mcp/go/go.mod verlangt go 1.26.4 — eine aeltere Toolchain
+    # bricht den Build ab, den task test:spec voraussetzt. GitHub nutzt hier
+    # setup-go mit 'stable' und bekommt die Anforderung automatisch erfuellt;
+    # bei einem direkten Download muss die Version dem go.mod folgen.
+    GO_VERSION: "1.26.4"
+    YQ_VERSION: "4.53.3"
+    # Dieselbe kubectl-Version wie im manifests-Job — der Paritaets-Guard
+    # vergleicht sie gegen den Cache-Key in ci.yml.
+    KUBECTL_VERSION: "v1.31.0"
+    KUSTOMIZE_VERSION: "5.5.0"
+  before_script:
+    # GNU parallel ist Pflicht, kein Komfort: task test:spec:changed startet die
+    # Auswahl mit `bats -j $(nproc)`, und bats delegiert die Parallelisierung an
+    # `parallel`. Fehlt es, meldet bats zuerst den Plan (`1..1159`) und fuehrt dann
+    # NULL Tests aus — belegt in Job 15957957469: "parallel: command not found" plus
+    # "bats warning: Executed 0 instead of expected 1159 tests". Der Lauf wird davon
+    # rot (bats faengt es ab), aber das ist Glueck, nicht Absicherung: eine leere
+    # Ausfuehrung, die als bestanden zaehlt, ist genau der Fehlschlag, gegen den die
+    # Etappe-1-Regel "leerer Lauf gilt als Fehlschlag" geschrieben wurde.
+    # ubuntu-latest auf GitHub bringt parallel vorinstalliert mit, node:22 nicht.
+    #
+    # bc, file, unzip, python3-pip gehoeren zur selben Klasse und sind aus
+    # demselben Grund leicht zu uebersehen: Auf der GitHub-Seite existiert KEINE
+    # Installationszeile, die man beim Uebertragen vermissen koennte. Konkret
+    # gemessen an Lauf 2769257178: tests/spec/ci-cd/fetch-refspec-forced.bats
+    # pipet seinen Positiv-Anker nach `bc` (Zeile 56) und schlug ohne es fehl —
+    # mit einer Meldung, die auf die Assertion zeigt, nicht auf das fehlende
+    # Werkzeug.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash python3 python3-yaml gettext-base jq ca-certificates curl parallel bc file unzip python3-pip >/dev/null
+    # yq: mikefarah v4, NICHT das gleichnamige apt-Paket — dieselbe Begruendung
+    # wie im bats-unit-Job oben.
+    - curl --fail -sSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq
+    - chmod +x /usr/local/bin/yq
+    # kubectl UND das eigenstaendige kustomize: GitHubs ubuntu-latest bringt beide
+    # vorinstalliert mit, node:22 keines — und genau daran scheiterten in Lauf
+    # 2769186808 mehrere Testgruppen, ohne dass an ihnen etwas falsch war
+    # (tests/spec/flux-render-security/immutable-image-refs.bats ruft
+    # scripts/flux-render-artifact.sh, das `kustomize build` braucht; die
+    # T002465-Netzwerkpolicy-Tests brauchen kubectl).
+    #
+    # `kubectl kustomize` reicht NICHT als Ersatz: flux-render-artifact.sh ruft
+    # `kustomize` als eigenes Binary mit --load-restrictor auf.
+    - curl --fail -sSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+    - chmod +x /usr/local/bin/kubectl
+    - curl --fail -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz" -o /tmp/kustomize.tgz
+    - tar -xzf /tmp/kustomize.tgz -C /usr/local/bin kustomize
+    - kustomize version
+    # Go fuer den mcp-task-runner-Build, den task test:spec voraussetzt.
+    - curl --fail -sSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tgz
+    - tar -C /usr/local -xzf /tmp/go.tgz
+    - export PATH="/usr/local/go/bin:$PATH"
+    - go version
+    - curl --fail -sSL https://taskfile.dev/install.sh -o /tmp/install-task.sh
+    - sh /tmp/install-task.sh -b /usr/local/bin
+    - task --version
+    - corepack enable && corepack prepare pnpm@10 --activate
+    - npm ci
+    - bash scripts/ci-dummy-secrets.sh
+    # Die beiden folgenden Schritte hat das GitHub-Gegenstueck ebenfalls, und ohne
+    # sie ist der Job kein Gegenstueck, sondern nur gleichnamig: ticket-mcp:test
+    # baut das Go-Binary mit, das task test:spec voraussetzt, und ein Teil der
+    # Spec-Suite spricht mit dem Cockpit-Daemon.
+    - task ticket-mcp:test
+    - task cockpit:daemon
+  script:
+    - export PATH="/usr/local/go/bin:$PATH"
+    - *diff_base_preamble
+    - |
+      set -euo pipefail
+      echo "Shard ${SPEC_SHARD}/${SPEC_SHARDS}"
+      # Dieselbe Aufteilung wie im GitHub-Gegenstueck: diff-skopiert, wo es ein
+      # Gegenueber gibt, sonst die Vollmenge. Ohne die Unterscheidung liefe der
+      # Job auf Branch-Pipelines MEHR als GitHub — vier volle Spec-Partitionen je
+      # Push, auf dem Runner, der laut Etappe-2-Messung ohnehin der Engpass ist.
+      if [ -n "${DIFF_BASE:-}" ]; then
+        echo "Auswahl: geaenderte Spec-Tests gegen ${DIFF_BASE}"
+        task test:spec:changed
+      else
+        echo "Auswahl: vollstaendige Spec-Suite (kein Diff-Gegenueber)"
+        task test:spec
+      fi
+
+brett-typescript:
+  # Gegenstueck zu brett-typescript. Node 24, nicht 22: das ist die Version des
+  # GitHub-Gegenstuecks, und Werkzeug-Paritaet ist der Zweck der Uebung.
+  stage: test
+  <<: *gl_defaults
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
+  rules: *scoped_rules
+  variables:
+    MOCK_DB: "true"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git ca-certificates >/dev/null
+    - npm ci --prefix components/brett
+  script:
+    - npm run typecheck --prefix components/brett
+    - npm test --prefix components/brett
+    - npm run build --prefix components/brett
+
+vitest-website:
+  # Gegenstueck zu vitest-website: ESLint (fail-closed), vitest, Build,
+  # Bundle-Budget.
+  #
+  # Die Auswahl kehrt sich gegenueber GitHub um, und das ist Absicht: auf einem
+  # main-Push (DIFF_BASE leer) laeuft die VOLLE Suite statt --changed. Ein
+  # --changed gegen main waehlt auf main die leere Menge — der Job waere auf dem
+  # Spiegel-Push dauerhaft ein Leerlauf, der gruen meldet. Genau hier faellt das
+  # am wenigsten auf (vgl. Memory-Notiz "Vitest gruen ohne Testlauf").
+  stage: test
+  <<: *gl_defaults
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
+  rules: *scoped_rules
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git jq ca-certificates >/dev/null
+    - corepack enable && corepack prepare pnpm@10 --activate
+    - (cd components/website && pnpm install --frozen-lockfile)
+  script:
+    - *diff_base_preamble
+    - |
+      set -euo pipefail
+      # Subshell statt nacktem `cd`: GitLab fuehrt ALLE script-Zeilen in derselben
+      # Shell aus, ein cd wirkte also bis ans Job-Ende fort — und der
+      # Bundle-Check unten laeuft vom Repo-Wurzelverzeichnis aus.
+      (
+        cd components/website
+        # ESLint ist auf GitHub ein fail-closed Gate (--max-warnings 0) — hier ebenso.
+        pnpm lint
+        if [ -n "${DIFF_BASE:-}" ]; then
+          echo "Vitest diff-skopiert gegen ${DIFF_BASE}"
+          pnpm exec vitest run --changed "$DIFF_BASE" --reporter=default
+        else
+          echo "Vitest vollstaendig (kein Diff-Gegenueber)"
+          pnpm exec vitest run --reporter=default
+        fi
+        pnpm build
+      )
+      node scripts/check-bundle-size.mjs --check --fail --threshold=5
+
+commit-lint:
+  # Gegenstueck zu commit-lint — aber ueber den Commit-Range statt ueber den
+  # PR-Titel. amannn/action-semantic-pull-request prueft den PULL-REQUEST-Titel
+  # ueber die GitHub-API; bei einer gespiegelten Branch-Pipeline existiert weder
+  # ein MR noch ein Titel. Die Commit-Nachrichten existieren in beiden Kontexten,
+  # und dafuer gibt es bereits die Skripte, die auch Hook und GitHub-Job rufen.
+  stage: lint
+  <<: *gl_defaults
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
+  rules: *branch_only_rules
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash ca-certificates >/dev/null
+  script:
+    - *diff_base_preamble
+    - |
+      set -euo pipefail
+      if [ -z "${DIFF_BASE:-}" ]; then
+        echo "ERROR: commit-lint ohne Diff-Basis — es gibt keinen Range zu pruefen" >&2
+        exit 1
+      fi
+      HEAD_SHA="$(git rev-parse HEAD)"
+      echo "Range: ${DIFF_BASE}..${HEAD_SHA}"
+
+      # 1) Konventionelle Commit-Nachrichten im Range. Das Skript nimmt EIN
+      #    Range-Argument in der Form <base>..<head>, nicht zwei Argumente.
+      bash scripts/validate-commit-msg.sh range "${DIFF_BASE}..${HEAD_SHA}"
+
+      # 2) commit-vs-diff je Commit (T001434-Guard). check-commit-vs-diff.sh nimmt
+      #    eine Commit-Message-DATEI plus optional den Commit-SHA — es hat keinen
+      #    Range-Modus. Die Schleife entspricht der im GitHub-Job; sie ist der
+      #    Grund, warum hier nicht einfach ein Range durchgereicht werden kann.
+      fail=0
+      while IFS= read -r sha; do
+        [ -z "$sha" ] && continue
+        subject="$(git log -1 --format='%s' "$sha")"
+        tmp_msg="$(mktemp)"
+        printf '%s\n' "$subject" > "$tmp_msg"
+        if ! bash scripts/check-commit-vs-diff.sh "$tmp_msg" "$sha"; then
+          echo "✗ Commit $sha verletzt den commit-vs-diff-Guard: $subject" >&2
+          fail=1
+        fi
+        rm -f "$tmp_msg"
+      done < <(git rev-list "${DIFF_BASE}..${HEAD_SHA}" --no-merges)
+      if [ "$fail" -ne 0 ]; then
+        echo "✗ commit-vs-diff-Guard fehlgeschlagen (siehe T001434-mishap)" >&2
+        exit 1
+      fi
+
+      # 3) Keine CI-Skip-Marker in Branch-Commits (T002522). Ein `[skip ci]` auf
+      #    einem Branch landet per Squash-Merge im main-Commit und legt dort ALLE
+      #    push-getriggerten Workflows still — ohne fehlgeschlagenen Lauf, an dem
+      #    es auffiele.
+      bash scripts/check-skip-ci-marker.sh "$DIFF_BASE" "$HEAD_SHA"
+      # Nur wenn ein echter MR existiert, gibt es einen Titel zu pruefen. Auf einer
+      # gespiegelten Branch-Pipeline ist die Variable leer — das ist kein Fehler,
+      # sondern die Abwesenheit eines Gegenstands.
+      if [ -n "${CI_MERGE_REQUEST_TITLE:-}" ]; then
+        echo "MR-Titel: ${CI_MERGE_REQUEST_TITLE}"
+        printf '%s\n' "$CI_MERGE_REQUEST_TITLE" \
+          | grep -qE '^(feat|fix|chore|docs|refactor|test|build|ci|perf|revert)(\([^)]+\))?!?: .{1,200}$'
+      else
+        echo "Kein MR-Kontext — Titelpruefung entfaellt (Commit-Range wurde geprueft)"
+      fi
+
+lighthouse:
+  # Gegenstueck zu lighthouse. Wie dort advisory (allow_failure) und nur mit
+  # Gegenueber: der Lauf auditiert die LIVE-URL, nicht den gebauten Stand, und
+  # sein Ergebnis ist ein Hinweis, kein Merge-Kriterium.
+  stage: quality
+  <<: *gl_defaults
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
+  rules: *branch_only_rules
+  allow_failure: true
+  needs: [vitest-website]
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends ca-certificates >/dev/null
+    - npm install -g @lhci/cli --loglevel=error
+  script:
+    - lhci autorun || true
+    - echo "Lighthouse ist advisory — Budget siehe lighthouserc.json"

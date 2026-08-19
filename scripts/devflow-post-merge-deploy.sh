@@ -3,6 +3,38 @@
 # Aus dev-flow-execute Schritt 8 extrahiert (Chore T001007).
 set -u
 
+# T009368: Merge-Commit-Selektion als eigene Funktion, damit BATS sie gegen ein
+# temp-Git-Repo laufen lassen kann (Output-Verifikation, T002448-M4).
+# Semantik: neuester Commit auf origin/main mit [TICKET_ID] im Subject, AUSSER
+# OpenSpec-Archiv-Commits (chore(plans): archive ...). Ein Archiv-Commit traegt
+# die Ticket-ID ebenfalls im Subject, enthaelt aber nur openspec/changes/archive/-
+# Pfade und fuehrte sonst zu "Keine bekannten Deploy-Trigger" ohne Deploy-Phase-
+# Event (beobachtet T008017: getroffen 673f14a48 statt Feature-Merge abda93f9a).
+# Nicht nutzbar: --all-match + --invert-match — "matcht nicht beide Patterns"
+# schliesst auch Commits ohne Ticket-ID ein (semantisch falsch).
+select_merge_commit() {
+  local repo="${1:?repo erforderlich}"
+  local ticket_id="${2:?ticket_id erforderlich}"
+  local all first
+  all=$(git -C "$repo" log origin/main --format="%H %s" --grep="\\[${ticket_id}\\]" 2>/dev/null)
+  first=$(printf '%s\n' "$all" | grep -vE ' chore\(plans\): archive ' | head -1 | awk '{print $1}')
+  # [T008015-1] Bleibt nach dem Archiv-Filter nichts uebrig, es gab aber sehr wohl
+  # Treffer, dann besteht die Historie des Tickets ausschliesslich aus Archiv-
+  # Commits. Dann den neuesten Treffer zurueckgeben statt leer: der Aufrufer
+  # meldet dann "Keine bekannten Deploy-Trigger" (Exit 0) statt mit Exit 3
+  # "Kein Merge-Commit gefunden" abzubrechen — der Commit existiert ja.
+  # Leer bleibt es nur, wenn es ueberhaupt keinen Treffer gab; das ist Exit 3.
+  if [ -z "$first" ]; then
+    first=$(printf '%s\n' "$all" | grep -v '^$' | head -1 | awk '{print $1}')
+  fi
+  printf '%s' "$first"
+}
+
+# Beim Sourcing (BATS-Funktionstest) nur die Funktionen bereitstellen.
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  return 0
+fi
+
 TICKET_ID="${1:-}"
 if [ -z "$TICKET_ID" ]; then
   echo "FEHLER: TICKET_ID erforderlich — Usage: devflow-post-merge-deploy.sh T00XXXX" >&2
@@ -17,32 +49,15 @@ case "$TICKET_ID" in T[0-9][0-9][0-9][0-9][0-9][0-9]) : ;; *)
   exit 2
 esac
 # T002448-M9/M10: Finde den Merge-Commit durch Ticket-ID-Match auf main,
-# nicht durch blindes `git log -1`. M7 (T002506): `--merges` ist gestrichen —
-# das Repo squasht PRs (1 Parent), der `--grep`-Match auf "[TICKET_ID]"
-# identifiziert den Squash-Commit. ABER (T008015-1): `git log -1` waehlt den
-# NEUESTEN ticket-referenzierenden Commit — bei T007559 war das der Archiv-
-# Commit (chore(plans): archive …) mit nur openspec/-Dateien, wodurch die
-# Deploy-Detection faelschlich "Keine bekannten Deploy-Trigger" meldete statt
-# den Feature-Merge 14e0c2b6 zu analysieren. Jetzt: Kandidaten neueste-zuerst
-# durchlaufen, den ersten mit Deploy-Trigger-Pfaden (nach filter-generated)
-# waehlen; Fallback: neuester. Die Trigger-Regex ist dieselbe wie in den
-# DEPLOY_*-Checks weiter unten — dort halten.
-DEPLOY_TRIGGER_RE='^(components/website/|components/brett/|docs/|k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)'
-MERGE_COMMIT=""
-while IFS= read -r _cand; do
-  [[ -z "$_cand" ]] && continue
-  if git diff-tree --no-commit-id -r --name-only "$_cand" 2>/dev/null \
-      | bash scripts/filter-generated.sh \
-      | sed '/^k3d\/sdlc-stack\//d' \
-      | grep -qE "$DEPLOY_TRIGGER_RE"; then
-    MERGE_COMMIT="$_cand"
-    break
-  fi
-done < <(git log origin/main --format="%H" --grep="\\[${TICKET_ID}\\]" 2>/dev/null)
-if [[ -z "$MERGE_COMMIT" ]]; then
-  MERGE_COMMIT="$(git log origin/main --format="%H" --grep="\\[${TICKET_ID}\\]" -1 2>/dev/null)"
-fi
-
+# nicht durch blindes `git log -1`. Bei mehreren intervenierenden Commits
+# zwischen Merge und HEAD liefert `-1` den falschen Commit.
+# M7 (T002506): `--merges` gestrichen — das Repo squasht PRs (1 Parent),
+# `--merges` wuerde nur echte Merge-Commits (≥2 Parents) finden und schliesst
+# den Squash-Commit aus.
+# T009368: `select_merge_commit` filtert zusaetzlich die Archiv-Commit-Klasse
+# heraus — deren Subject traegt die Ticket-ID ebenfalls und kaeme sonst als
+# neuester Treffer zurueck (siehe Funktionskommentar oben).
+MERGE_COMMIT=$(select_merge_commit . "$TICKET_ID")
 if [[ -z "$MERGE_COMMIT" ]]; then
   echo "FEHLER: Kein Merge-Commit fuer Ticket ${TICKET_ID} auf origin/main gefunden." >&2
   exit 3

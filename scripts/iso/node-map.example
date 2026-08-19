@@ -1,0 +1,17 @@
+# MAC -> Hostname fuer scripts/iso/build-node-iso.sh --node-map
+#
+# Ein ISO, drei Maschinen: assign-identity.sh liest beim Installieren die MAC
+# der Netzwerkkarte und setzt danach den Hostnamen. Ohne Eintrag heisst der
+# Node ws-<letzte-3-MAC-Oktette> — eindeutig, aber nicht sprechend.
+#
+# MAC der Workstation ermitteln, ohne sie zu installieren:
+#   - BIOS/UEFI-Setup, meist unter "Network" / "MAC Address"
+#   - oder vom Live-System: ip -o link | awk '{print $2, $(NF-2)}'
+#   - oder aus der DHCP-Lease-Liste des Routers
+#
+# Format: <mac> <hostname>, Trennung per Leerzeichen oder Tab.
+# Gross-/Kleinschreibung egal, # leitet einen Kommentar ein.
+
+# aa:bb:cc:dd:ee:01  ws-node-1
+# aa:bb:cc:dd:ee:02  ws-node-2
+# aa:bb:cc:dd:ee:03  ws-node-3

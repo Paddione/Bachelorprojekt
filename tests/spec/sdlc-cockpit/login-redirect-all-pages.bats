@@ -59,8 +59,10 @@ for (const f of walk(join(PAGES, 'sdlc'))) {
 gated.sort((a, b) => a.file.localeCompare(b.file));
 
 // Positiv-Anker (T002356-M1): ohne Kandidatensatz waere der Test vakuos gruen.
-if (gated.length < 10) {
-  process.stdout.write('FAIL Anker: nur ' + gated.length + ' gated Seiten gefunden, erwartet >= 10\n');
+// E5/T008017: drei Satelliten-Seiten (repohealth, prompts, ki-konfiguration)
+// sind absorbiert — es bleiben 7 gated Seiten unter pages/sdlc.
+if (gated.length < 7) {
+  process.stdout.write('FAIL Anker: nur ' + gated.length + ' gated Seiten gefunden, erwartet >= 7\n');
   process.exit(1);
 }
 
@@ -124,7 +126,7 @@ EOF
   # Positiv-Anker (T002356-M1): der Kandidatensatz ist nicht leer und es gibt
   # OK-Treffer — ein leerer Lauf (Extraktion kaputt) ist nicht gruen.
   grep -qE '^OK ' <<<"$output"
-  grep -qE '^CHECKED (10|[1-9][0-9]+)$' <<<"$output"
+  grep -qE '^CHECKED [1-9][0-9]*$' <<<"$output"
 
   # Kernaussage: keine Seite evaluiert auf eine OIDC-DIRECT:-Sentinel-Location.
   if [ "$status" -ne 0 ]; then

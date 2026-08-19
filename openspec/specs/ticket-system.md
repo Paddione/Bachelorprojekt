@@ -1346,6 +1346,22 @@ Subcommands implemented outside `scripts/ticket.sh` (`scripts/vda/ticket/*.sh`,
 - **THEN** beendet es sich mit einem Exit-Code ungleich 0 und meldet
   "Unknown update-status option" — der Hilfe-Vorabgriff entschaerft die Options-Schleife nicht
 
+### Requirement: Ticket-Status-Werte sind in einem zentralen SSOT-Modul definiert
+<!-- bats: tickets-status-vocabulary.bats -->
+
+The system SHALL define the 11 valid ticket statuses in a central TypeScript module `components/website/src/lib/tickets/status.ts` exporting `TICKET_STATUSES`, `TicketStatus`, `VALID_STATUSES`, and `isValidStatus()`. Consumers across the website (`admin.ts`, `transition.ts`, `cockpit-db.ts`, and cockpit API routes) SHALL import their status definitions and validation logic from this module instead of defining duplicate constants or union types.
+
+#### Scenario: status.ts exportiert alle 11 Status-Werte und Type-Guards *(Vitest/BATS)*
+- **GIVEN** `components/website/src/lib/tickets/status.ts` existiert
+- **WHEN** die exportierten Status-Konstanten geprüft werden
+- **THEN** enthält `TICKET_STATUSES` exakt die 11 Werte `triage`, `planning`, `plan_staged`, `backlog`, `in_progress`, `in_review`, `qa_review`, `blocked`, `awaiting_deploy`, `done`, `archived`
+- **AND** `isValidStatus()` gibt `true` für alle 11 Werte und `false` für ungültige Werte zurück
+
+#### Scenario: Konsumenten importieren Status-Typen aus status.ts *(BATS)*
+- **GIVEN** `admin.ts`, `transition.ts` und `cockpit-db.ts` benötigen Status-Definitionen
+- **WHEN** die Import-Pfade geprüft werden
+- **THEN** importieren sie `TicketStatus` bzw. `VALID_STATUSES` aus `status.ts` (bzw. re-exportieren zur Abwärtskompatibilität)
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -2020,3 +2036,5 @@ than the baselined 1096 (frozen at commit `8b581ebe` per
 <!-- merged from change delta ticket-system.md (207e11452e7a) -->
 
 <!-- merged from change delta ticket-system.md (aaf76db3ef53) -->
+
+<!-- merged from change delta ticket-system.md (cfa2db85e775) -->

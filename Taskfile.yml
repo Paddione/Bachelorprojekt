@@ -5,6 +5,11 @@ includes:
   assets:
     taskfile: ./taskfiles/Taskfile.assets.yml
     dir: .
+  # Autoinstall-ISO fuer Cluster-Workstations (Bare-Metal-Nodes).
+  # Siehe docs/runbooks/workstation-cluster-iso.md.
+  iso:
+    taskfile: ./taskfiles/Taskfile.iso.yml
+    dir: .
   llm:
     taskfile: ./taskfiles/Taskfile.llm.yml
     dir: .
@@ -254,6 +259,18 @@ tasks:
     desc: "Verify that the three target configs match the SSOT registry (exit != 0 on drift; never writes)"
     cmds:
       - bash scripts/mcp-sync.sh check
+
+  # Netzwerk-Adressplan (T012645). SSOT: docs/agent-guide/registry/networks.yaml.
+  # networks:check laeuft in test:changed mit, networks:map in freshness:regenerate.
+  networks:check:
+    desc: "Verify the network address plan: no undeclared overlap between declared ranges (exit != 0 on violation; never writes)"
+    cmds:
+      - node scripts/networks-check.mjs
+
+  networks:map:
+    desc: "Regenerate docs/agent-guide/maps/networks-map.md from the SSOT registry (docs/agent-guide/registry/networks.yaml)"
+    cmds:
+      - node scripts/networks-check.mjs --emit-map
 
   toolset:lookup:
     desc: "On-demand MCP/agent resource discovery — find, inspect, and record curation decisions"
@@ -1054,15 +1071,19 @@ tasks:
         echo "$CHANGED" | grep -qE "^(k3d/|environments/|components/VideoVault/)" && RUN_E2E_SERVICES=true || true
         echo "$CHANGED" | grep -qE "(korczewski)" && RUN_E2E_KORCZEWSKI=true || true
         if [ "$RUN_WEBSITE" = "true" ]; then
-          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+          if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version >/dev/null 2>&1); then
             echo "→ website changes: pnpm vitest run --changed"
-            (cd website && pnpm vitest run --changed --reporter verbose)
+            (cd components/website && pnpm vitest run --changed --reporter verbose)
+            # Spiegelt das fail-closed ESLint-Gate des CI-Jobs "Vitest (website)"
+            # (eslint . --max-warnings 0) — sonst erreichen Lint-Fehler erst CI [T008454].
+            echo "→ website changes: pnpm lint (eslint --max-warnings 0)"
+            (cd components/website && pnpm lint)
           else
-            echo "⚠ vitest not available (worktree symlink limitation) — skipping website JS tests"
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping website JS tests + lint"
           fi
         fi
         if [ "$RUN_MENTOLDER_WEB" = "true" ]; then
-          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+          if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version >/dev/null 2>&1); then
             echo "→ mentolder-web changes: pnpm --filter mentolder-web test"
             pnpm --filter mentolder-web test
           else
@@ -1136,14 +1157,19 @@ tasks:
         if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
 
         if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_WORKFLOWS" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
-          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+          if command -v pnpm >/dev/null 2>&1 && (cd components/website && pnpm vitest --version >/dev/null 2>&1); then
             echo "→ no domain-specific changes: vitest --changed"
-            (cd website && pnpm vitest run --changed --reporter verbose)
+            (cd components/website && pnpm vitest run --changed --reporter verbose)
           else
             echo "⚠ vitest not available (worktree symlink limitation) — skipping JS fallback tests"
           fi
         fi
         echo "→ quality gate (always)"; task test:code-quality
+        # [T012645] Immer, nicht diff-gesteuert: eine Adress-Kollision entsteht durch
+        # das ZUSAMMENSPIEL zweier Bereiche. Wer einen davon aendert, aendert die
+        # Datei des anderen nicht mit — eine Diff-Auswahl wuerde den Guard genau in
+        # dem Fall ueberspringen, fuer den es ihn gibt. Der Lauf kostet Millisekunden.
+        echo "→ network address plan (always)"; task networks:check
 
   test:api-auth:
     desc: "API auth coverage gate — every endpoint must be classified; public endpoints need an allowlist entry"
@@ -1180,6 +1206,11 @@ tasks:
     desc: Regenerate components/website/src/data/api-inventory.json (SDLC API/connector inventory)
     cmds:
       - node scripts/sdlc/api-inventory.mjs
+
+  design:leitstand-ds-sync:
+    desc: Regenerate design/leitstand-ds artifacts (tokens verbatim copy, glyph assets, card assembly)
+    cmds:
+      - node design/leitstand-ds/build.mjs
 
   openspec:status-map:
     desc: "Regenerate components/website/src/data/openspec-status.json from openspec/changes/"
@@ -1271,6 +1302,7 @@ tasks:
       - '[ -d node_modules ] || npm ci'
       - task: test:inventory
       - task: api:inventory
+      - task: design:leitstand-ds-sync
       - task: routes:manifest
       - task: assets:learning
       - task: quality:index
@@ -1279,6 +1311,7 @@ tasks:
       - task: graph:build-docs
       - task: openspec:status-map
       - task: health:goals:emit
+      - task: networks:map   # T012645: docs/agent-guide/maps/networks-map.md
 
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
@@ -1363,6 +1396,7 @@ tasks:
         FILES="
           components/website/src/data/test-inventory.json
           components/website/src/data/api-inventory.json
+          design/leitstand-ds/_tokens.css
           components/website/src/data/route-manifest.json
           components/website/src/lib/learning-assets.generated.json
           components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
@@ -1376,6 +1410,7 @@ tasks:
           docs/agent-guide/maps/tools-map.md
           docs/agent-guide/maps/danger-map.md
           docs/agent-guide/maps/agents-map.md
+          docs/agent-guide/maps/networks-map.md
           components/website/src/lib/agent-guide.generated.json
           components/website/src/lib/platform-descriptions.generated.json
         "
@@ -1474,7 +1509,7 @@ tasks:
         # blocker, we want to know.
         echo "[test:e2e] Pre-run test-data purge against $WEBSITE_URL"
         curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
-          "$WEBSITE_URL/api/admin/systemtest/purge-all-test-data"
+          "$WEBSITE_URL/sdlc/api/systemtest/purge-all-test-data"
         echo
         # Capture playwright's exit code so a post-run purge failure can't
         # mask a real test failure.
@@ -1487,7 +1522,7 @@ tasks:
         # actual playwright result.
         echo "[test:e2e] Post-run test-data purge against $WEBSITE_URL"
         curl -fsS -X POST -H "X-Cron-Secret: ${CRON_SECRET}" \
-          "$WEBSITE_URL/api/admin/systemtest/purge-all-test-data" || true
+          "$WEBSITE_URL/sdlc/api/systemtest/purge-all-test-data" || true
         echo
         exit $pw_rc
 
@@ -1529,6 +1564,63 @@ tasks:
         ./node_modules/.bin/playwright test \
           --config playwright.visual-sweep.config.ts \
           --project=visual-sweep-{{.ENV}}-{{.VIEWPORT}} {{.CLI_ARGS}}
+        echo ""
+        node lib/build-gallery.mjs
+
+  test:e2e:visual-sweep:vision:
+    desc: "Headed Route-Sweep beider Brands mit Vision-Urteil je Screenshot (gemma12-vision, 3 Slots). Report-only, kein CI-Gate. MAX_ROUTES=N begrenzt die Zahl beurteilter Routen je Project."
+    dir: tests/e2e
+    vars:
+      MAX_ROUTES: '{{.MAX_ROUTES | default ""}}'
+    cmds:
+      - |
+        # Guards bewusst INLINE statt als `preconditions:` [T012781]. `task --dry`
+        # wertet preconditions aus (gemessen an systemtest:all:headed -> Exit 201);
+        # als precondition formuliert waere die Verdrahtung dieses Ziels in CI nicht
+        # ueber die Kommandoausgabe pruefbar. Der Guard wirkt zur Laufzeit identisch.
+        if [ -z "${DISPLAY:-}" ]; then
+          echo "FEHLER: DISPLAY ist nicht gesetzt — ein headed-Lauf braucht eine Anzeige." >&2
+          echo "        Unter WSL liefert WSLg eine; in einer reinen Konsole ist dieses Ziel nicht lauffaehig." >&2
+          exit 1
+        fi
+        # Wer dieses Ziel aufruft, will ausdruecklich ein Vision-Urteil. Ein stiller
+        # Lauf ganz ohne Urteil waere die schlechtere Antwort, deshalb hier hart.
+        if ! curl -sf -m 5 http://127.0.0.1:18235/v1/models | grep -q gemma12-vision; then
+          echo "FEHLER: der Modellalias gemma12-vision wird vom llm-proxy nicht gefuehrt." >&2
+          echo "        Zwei getrennte Ursachen mit zwei getrennten Abhilfen:" >&2
+          echo "        1) llm-proxy antwortet nicht auf 127.0.0.1:18235 -> Proxy starten." >&2
+          echo "        2) Proxy antwortet, Alias fehlt -> Backend-Zeile anlegen:" >&2
+          echo "           scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql" >&2
+          echo "        Nicht direkt auf 8089 pruefen: der llama.cpp-Server laeuft auf dem" >&2
+          echo "        Windows-GPU-Host und ist aus WSL nicht erreichbar." >&2
+          exit 1
+        fi
+        # Beide Brands in EINEM Aufruf. Die Projects loesen ihre baseURL selbst
+        # ueber BRAND_URLS in playwright.visual-sweep.config.ts auf; WEBSITE_URL
+        # bedient mentolder, KORCZEWSKI_URL bedient korczewski — dieselbe
+        # Aufteilung, die die *-auth-setup-Specs bereits verwenden.
+        export WEBSITE_URL="${WEBSITE_URL:-https://web.mentolder.de}"
+        export KORCZEWSKI_URL="${KORCZEWSKI_URL:-https://web.korczewski.de}"
+        export PROD_DOMAIN="${PROD_DOMAIN:-mentolder.de}"
+        export VISUAL_SWEEP_VISION=1
+        [ -n "{{.MAX_ROUTES}}" ] && export VISION_MAX_ROUTES="{{.MAX_ROUTES}}"
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        # Read-only: die Sweep-Konfiguration setzt globalSetup/globalTeardown auf
+        # undefined und installReadOnlyGuard bricht alle Nicht-GET/HEAD-Anfragen der
+        # Seite ab. Kein Test-Data-Purge, kein CRON_SECRET noetig.
+        #
+        # --workers=3 ist der clientseitige Deckel auf drei gleichzeitige
+        # Vision-Anfragen (die Konfiguration setzt denselben Wert; das Flag macht
+        # ihn an der Aufrufstelle sichtbar). Serverseitig deckelt der Proxy mit
+        # max_inflight=3 dieselbe Zahl ein zweites Mal ab.
+        ./node_modules/.bin/playwright test \
+          --config playwright.visual-sweep.config.ts \
+          --headed --workers=3 \
+          --project=visual-sweep-mentolder-desktop \
+          --project=visual-sweep-mentolder-mobile \
+          --project=visual-sweep-korczewski-desktop \
+          --project=visual-sweep-korczewski-mobile {{.CLI_ARGS}}
         echo ""
         node lib/build-gallery.mjs
 
@@ -2706,6 +2798,48 @@ tasks:
           -f k3d/monitoring/values/kube-prometheus-stack-dev-values.yaml \
           > k3d/monitoring/kube-prometheus-stack-rendered.yaml
         echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
+
+  gitlab-runner:render:
+    # T012503/T012634: Die Chart-Ausgabe enthaelt ausschliesslich Shell-
+    # Laufzeit-Variablen (${CONFIG_PATH_FOR_INIT}, ${i}, ${retval} …) und
+    # keinen einzigen envsubst-Platzhalter. Committet werden muessen sie als
+    # $${VAR} — sonst nimmt scripts/flux-render-artifact.sh sie in seine
+    # envsubst-Liste auf und setzt sie auf "": "mkdir -p" laeuft dann ohne
+    # Argument und der Runner crasht beim Start.
+    #
+    # Bis T012634 war das Handarbeit nach jedem Render, mit einem Warnhinweis
+    # an dieser Stelle. Das hat genau einmal funktioniert und beim naechsten
+    # Render nicht mehr — deshalb escaped der Task jetzt selbst. Der Guard
+    # tests/spec/flux-render-security/runtime-var-unwrapping.bats prueft das
+    # Ergebnis; scripts/flux-render-artifact.sh macht das $$ beim Rendern des
+    # Artefakts wieder rueckgaengig.
+    desc: "Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Escaped Laufzeit-Variablen automatisch."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add gitlab https://charts.gitlab.io 2>/dev/null || true
+        helm repo update gitlab
+        helm template gitlab-runner gitlab/gitlab-runner \
+          --namespace gitlab-runner \
+          -f k3d/gitlab-runner-stack/values/gitlab-runner.yaml \
+          > k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml
+        # Nur ${NAME} wird escaped — genau die Form, die der Extraktor in
+        # flux-render-artifact.sh sieht. Die klammerlose Form $NAME sieht er
+        # nicht, $(cmd)/$!/$? sind keine Variablen: alle drei bleiben unberuehrt.
+        sed -i -E 's/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/$${\1}/g' \
+          k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml
+        # Fail-closed: bleibt eine unescapte ${VAR} stehen, wuerde sie im
+        # Cluster als Leerstring landen. Lieber hier abbrechen.
+        if grep -qE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' \
+             k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml; then
+          echo "ERROR: unescapte \${VAR} in gitlab-runner-rendered.yaml:" >&2
+          grep -nE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' \
+            k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml >&2
+          exit 1
+        fi
+        echo "✓ Rendered to k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml — review the diff and commit."
 
   loki:render:
     desc: "Pre-render Loki + promtail Helm charts to committed YAML (additive to monitoring:render). Renders the DEV values baseline; prod layers patches via prod/monitoring."
@@ -5084,7 +5218,7 @@ tasks:
   coaching:ingest:
     desc: "Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]"
     cmds:
-      - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/ingest-book.mts {{.CLI_ARGS}}
+      - source scripts/env-resolve.sh "${ENV:-dev}" && cd components/website && npx tsx ../../scripts/coaching/ingest-book.mts {{.CLI_ARGS}}
   coaching:ingest-json:
     desc: "Ingest a pre-chunked JSON file into a knowledge collection. Args: -- <file.json> <slug> [--brand=mentolder|korczewski]"
     cmds:
@@ -5115,10 +5249,10 @@ tasks:
           exit 1
         fi
 
-        cd website && PGHOST=localhost PGPORT=15499 PGDATABASE=website PGUSER=website \
+        cd components/website && PGHOST=localhost PGPORT=15499 PGDATABASE=website PGUSER=website \
           PGPASSWORD="$WEBSITE_DB_PASSWORD" \
           LLM_ENABLED=false \
-          npx tsx ../scripts/coaching/ingest-json.mts {{.CLI_ARGS}}
+          npx tsx ../../scripts/coaching/ingest-json.mts {{.CLI_ARGS}}
 
   coaching:batch-ingest:
     desc: "Batch-ingest a directory of coaching PDFs/DOCs — Usage: task coaching:batch-ingest -- <dir> <kurs-slug> [--dry-run] [--yes] [--classify]"
@@ -5129,7 +5263,7 @@ tasks:
   coaching:classify:
     desc: "Run AI classifier over UNCLASSIFIED chunks of a coaching book. Args: -- --slug=<slug> | --all"
     cmds:
-      - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/classify-book.mts {{.CLI_ARGS}}
+      - source scripts/env-resolve.sh "${ENV:-dev}" && cd components/website && npx tsx ../../scripts/coaching/classify-book.mts {{.CLI_ARGS}}
 
   scs:index:
     desc: "Build the semantic code search index (bge-m3 embeddings → pgvector). Requires cluster DB access."
@@ -5351,3 +5485,7 @@ tasks:
   # ─────────────────────────────────────────────
   # End of tasks
   # ─────────────────────────────────────────────
+  design:check-sync:
+    desc: "Check if design tokens in design/leitstand-ds/_tokens.css are in sync with components/website/src/styles/sdlc-leitstand.css"
+    cmds:
+      - node design/leitstand-ds/check-sync.mjs

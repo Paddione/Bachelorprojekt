@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "slug": "gitlab-ci-testserie-fixes",
+    "ticket_id": "T011907",
+    "generated_from": "main@8e5cedb66",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "tests/unit/fleet-dns-cutover.bats",
+      "language": "bash",
+      "loc": 149,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/scripts/stage-plan.bats",
+      "language": "bash",
+      "loc": 136,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/coaching-json-ingest.bats",
+      "language": "bash",
+      "loc": 32,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/recovery-browser-manifest.bats",
+      "language": "bash",
+      "loc": 36,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/test_art_library_manifest.bats",
+      "language": "bash",
+      "loc": 34,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/tickets-transition.bats",
+      "language": "bash",
+      "loc": 345,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/newsletter-scheduled-publish.bats",
+      "language": "bash",
+      "loc": 50,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/backup-restore-recovery.bats",
+      "language": "bash",
+      "loc": 125,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/unit/fleet-dns-cutover.bats:4:setup() {",
+      "kind": "function",
+      "file": "tests/unit/fleet-dns-cutover.bats",
+      "signature": "4:setup() {(...)",
+      "type_text": "4:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/fleet-dns-cutover.bats:66:_make_fake_curl() {",
+      "kind": "function",
+      "file": "tests/unit/fleet-dns-cutover.bats",
+      "signature": "66:_make_fake_curl() {(...)",
+      "type_text": "66:_make_fake_curl() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/scripts/stage-plan.bats:4:setup() {",
+      "kind": "function",
+      "file": "tests/unit/scripts/stage-plan.bats",
+      "signature": "4:setup() {(...)",
+      "type_text": "4:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/recovery-browser-manifest.bats:4:setup() { MF=\"${BATS_TEST_DIRNAME}/../../k3d/recovery-browser.yaml\"; }",
+      "kind": "function",
+      "file": "tests/unit/recovery-browser-manifest.bats",
+      "signature": "4:setup() { MF=\"${BATS_TEST_DIRNAME}/../../k3d/recovery-browser.yaml\"; }(...)",
+      "type_text": "4:setup() { MF=\"${BATS_TEST_DIRNAME}/../../k3d/recovery-browser.yaml\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/tickets-transition.bats:21:setup() {",
+      "kind": "function",
+      "file": "tests/unit/tickets-transition.bats",
+      "signature": "21:setup() {(...)",
+      "type_text": "21:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/tickets-transition.bats:37:teardown() {",
+      "kind": "function",
+      "file": "tests/unit/tickets-transition.bats",
+      "signature": "37:teardown() {(...)",
+      "type_text": "37:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/tickets-transition.bats:50:db_available() {",
+      "kind": "function",
+      "file": "tests/unit/tickets-transition.bats",
+      "signature": "50:db_available() {(...)",
+      "type_text": "50:db_available() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/tickets-transition.bats:55:tsx_available() {",
+      "kind": "function",
+      "file": "tests/unit/tickets-transition.bats",
+      "signature": "55:tsx_available() {(...)",
+      "type_text": "55:tsx_available() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/tickets-transition.bats:59:seed_ticket() {",
+      "kind": "function",
+      "file": "tests/unit/tickets-transition.bats",
+      "signature": "59:seed_ticket() {(...)",
+      "type_text": "59:seed_ticket() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/newsletter-scheduled-publish.bats:5:setup_file() {",
+      "kind": "function",
+      "file": "tests/unit/newsletter-scheduled-publish.bats",
+      "signature": "5:setup_file() {(...)",
+      "type_text": "5:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/backup-restore-recovery.bats:9:setup() {",
+      "kind": "function",
+      "file": "tests/unit/backup-restore-recovery.bats",
+      "signature": "9:setup() {(...)",
+      "type_text": "9:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/backup-restore-recovery.bats:39:teardown() { rm -rf \"$FAKE_BIN\"; }",
+      "kind": "function",
+      "file": "tests/unit/backup-restore-recovery.bats",
+      "signature": "39:teardown() { rm -rf \"$FAKE_BIN\"; }(...)",
+      "type_text": "39:teardown() { rm -rf \"$FAKE_BIN\"; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

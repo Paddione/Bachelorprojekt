@@ -37,9 +37,12 @@ jobs:
     name: Enable Auto-Merge
     # Drafts ausnehmen — "fertig, aber nicht mergen" bleibt über Draft-Status möglich.
     # Renovate-PRs (Label `dependencies`) ausnehmen — Begründung im Dateikopf.
+    # Trust-Guard: der Job nutzt einen PAT mit PR-Schreibrechten und darf daher
+    # nur fuer Branches dieses Repositories laufen. [T012446]
     if: |
       github.event.pull_request.draft == false &&
-      !contains(github.event.pull_request.labels.*.name, 'dependencies')
+      !contains(github.event.pull_request.labels.*.name, 'dependencies') &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

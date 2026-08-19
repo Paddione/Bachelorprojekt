@@ -258,109 +258,125 @@ between two seconds of panel life.
 
 ### Requirement: Layout Engine Surface Organization
 
-Das Cockpit organisiert seine Fläche als Command Bar plus Hauptfläche mit zwei Modi (Overview/Fokus), nicht als zweispaltiges Rail+Workspace-Layout mit statischen Rail-Gruppen. Die Rail ist nicht mehr statisch, sondern kontext-sensitiv — sie ändert ihren Inhalt je nach aktivem Modus und Phase.
+Das Cockpit organisiert seine Fläche nicht mehr als Command Bar plus Hauptfläche mit zwei Modi
+(Overview/Fokus) und einer kontext-sensitiven Rail, sondern als fünf senkrecht gestapelte
+Leitstand-Zonen: Z1 Statusband oben, darunter Z2 Attention-Strip, darunter Z3 Stationen-Achse,
+darunter die Hauptfläche Z4 Kontextzone, mit Z5 Deck-Leiste als seitlicher Seitenmodul-Leiste neben
+Z4. Die Positionierung ist damit ein Stapel aus vier permanenten Bändern plus einer seitlichen,
+umschaltenden Leiste statt eines zweispaltigen Rail+Workspace-Layouts.
 
-The system SHALL organize the cockpit surface as a Command Bar (top) plus a main area with exactly two modes — Overview and Fokus — and a context-sensitive rail. The rail contents SHALL adapt to the active mode and phase rather than being a fixed, immutable list of four groups.
+The system SHALL organize the `/sdlc/cockpit` surface as five zones arranged top-to-bottom: Z1
+Statusband spanning the full width at the top, Z2 Attention-Strip directly beneath it, Z3
+Stationen-Achse beneath that, Z4 Kontextzone as the main content area, and Z5 Deck-Leiste as a
+side-module strip alongside Z4. The system SHALL NOT organize the surface as a Command Bar plus a
+two-mode (Overview/Fokus) main area with a context-sensitive rail.
 
-#### Scenario: Surface layout is Command Bar + main area + rail
+#### Scenario: Surface layout is a five-zone stack
 
 - **GIVEN** the cockpit is loaded
 - **WHEN** the layout engine computes the placement
-- **THEN** the Command Bar is at the top spanning full width
-- **AND** the main area occupies the center
-- **AND** the rail is on the side with context-sensitive content
+- **THEN** Z1 is at the top spanning full width
+- **AND** Z2 and Z3 follow beneath it
+- **AND** Z4 occupies the main content area
+- **AND** Z5 renders as a side-module strip
 
-#### Scenario: Rail groups are no longer a fixed immutable list
+#### Scenario: Old Command-Bar/Rail structure no longer applies
 
 - **GIVEN** the layout engine is loaded
-- **WHEN** the active phase changes from "Bauen" to "Planung"
-- **THEN** the rail content changes to reflect the new phase context
-- **AND** the old spec's four-group immutable list constraint no longer applies
+- **WHEN** its DOM structure is inspected
+- **THEN** no element carries the legacy `CommandBar` or `CockpitRail` role
+- **AND** the five zone containers (Z1–Z5) are present instead
 
 ### Requirement: Pointer-Based Rearrangement
 
-Panels werden mit einer einzigen Eingabe-API bewegt: Pointer Events. Damit gilt derselbe
-Codepfad für Maus, Touch und Stift.
+Die Pointer-Events-Mechanik zum Verschieben von Panels bleibt unverändert; die Begriffe "Catalog"
+und "Workspace" entfallen, da diese Konzepte im Zonenmodell nicht existieren. Panels werden
+stattdessen zwischen Z5-Deck-Karten und Z4-Kontextzonen-Slots bewegt bzw. innerhalb dieser
+umsortiert.
 
-The system SHALL move panels between catalog and workspace and reorder them within the
-workspace using Pointer Events with pointer capture, SHALL NOT use the HTML5
-drag-and-drop API, and SHALL restore the pre-drag arrangement when the pointer interaction
-is cancelled.
+The system SHALL move panels between the Z5 deck strip and Z4 Kontextzone slots, and reorder them
+within a zone, using Pointer Events with pointer capture, SHALL NOT use the HTML5 drag-and-drop
+API, and SHALL restore the pre-drag arrangement when the pointer interaction is cancelled. The
+terms "catalog" and "workspace" SHALL NOT appear in the implementation or its data model, since
+those layout concepts no longer exist.
 
 #### Scenario: Cancelled drag restores the arrangement
 
-- **GIVEN** a panel is being dragged from the catalog toward the workspace
+- **GIVEN** a panel is being dragged from the Z5 deck strip toward a Z4 slot
 - **WHEN** the pointer interaction is cancelled before release
 - **THEN** the stored arrangement is identical to the arrangement before the drag started
 
+#### Scenario: No catalog/workspace vocabulary remains
+
+- **GIVEN** the panel rearrangement module
+- **WHEN** its public API and data model are inspected
+- **THEN** no identifier or option in that module is named `catalog` or `workspace`
+
 ### Requirement: Full-Surface Canvas Is One State In Two Layouts
 
-Das Canvas-Panel lässt sich zur Vollfläche aufziehen und zurückholen. Es bleibt dabei ein
-Zustand (E7) — der Inhalt wird nicht neu aufgebaut.
+Das Canvas-Panel lässt sich weiterhin zur Vollfläche aufziehen und zurückholen, ohne neu
+aufgebaut zu werden; die Vollfläche gilt jetzt innerhalb von Z4 statt innerhalb von Card/Workspace.
 
-The system SHALL toggle a canvas panel between card and full-surface layout without
-destroying and recreating its panel instance, so that unsaved canvas content and the
-modified marker survive the toggle in both directions.
+The system SHALL toggle a canvas-type panel hosted in Z4 Kontextzone between its normal Z4 card
+layout and a full-surface layout without destroying and recreating its panel instance, so that
+unsaved canvas content and the modified marker survive the toggle in both directions.
 
 #### Scenario: Canvas content survives the full-surface toggle
 
-- **GIVEN** a canvas panel with unsaved content in card layout
+- **GIVEN** a canvas panel with unsaved content in its normal Z4 layout
 - **WHEN** it is expanded to full surface and collapsed back
 - **THEN** the same panel instance is still registered for that element
 - **AND** the unsaved content and the modified marker are unchanged
 
-### Requirement: Layout Persistence Separate From Canvas Content
-
-Die Anordnung ist Ansichtsvorliebe, kein Arbeitsergebnis. Sie wird getrennt vom
-Canvas-Speicher abgelegt.
-
-The system SHALL persist the arrangement under its own versioned `localStorage` key,
-separate from the canvas content keys, SHALL restore the default arrangement when the
-stored value is missing, unparseable or of an unknown version, and SHALL drop entries
-referring to panels that no longer exist rather than failing to restore.
-
-#### Scenario: Unknown stored version falls back to the default arrangement
-
-- **GIVEN** a stored layout value whose version does not match the current one
-- **WHEN** the engine restores the arrangement
-- **THEN** the default arrangement is used and no canvas content key is read or written
-
 ### Requirement: Mobile Layout And Terminal Lock
 
-Mobil gilt dieselbe Struktur untereinander statt nebeneinander (3.2). Das Terminal-Panel
-ist mobil gesperrt (D8).
+Mobil gilt weiterhin dieselbe Zonenstruktur, nur senkrecht gestapelt statt eines eigenen
+Bottom-Sheets für die Stationsnavigation (das eigenständige Mobile-Bottom-Sheet-Requirement
+entfällt ersatzlos, siehe REMOVED Requirements). Das Terminal-Panel bleibt mobil gesperrt (D8).
 
-The system SHALL, for mobile viewports, render the rail as a top bar plus an expandable
-bottom sheet containing the four rail groups, SHALL place workspace panels as a
-single-panel stack in full-surface size only, and SHALL refuse to place a terminal panel
-in the workspace, keeping it visibly locked rather than hidden.
+The system SHALL, for mobile viewports, stack the five Leitstand zones vertically in the same
+Z1→Z5 order used on desktop, without introducing a separate bottom-sheet or swipe-navigation
+surface for station selection. The system SHALL refuse to place a terminal-type panel in Z4 or Z5
+on mobile viewports, keeping it visibly locked with a stated reason rather than silently hiding
+it.
 
 #### Scenario: Terminal panel is locked, not silently dropped, on mobile
 
-- **GIVEN** a mobile viewport and a terminal panel in the catalog
-- **WHEN** the engine computes the placement
+- **GIVEN** a mobile viewport and a terminal-type panel eligible for Z4
+- **WHEN** the shell computes placement
 - **THEN** the terminal panel is reported as locked with a stated reason
-- **AND** it is not placed in the workspace
+- **AND** it is not placed in Z4
 
-#### Scenario: Mobile workspace shows one full-surface panel
+#### Scenario: Zones stack vertically on mobile without a bottom sheet
 
-- **GIVEN** a mobile viewport and three non-terminal panels assigned to the workspace
-- **WHEN** the engine computes the placement
-- **THEN** exactly one panel is visible and its size is the full-surface size
+- **GIVEN** a mobile viewport
+- **WHEN** the Leitstand shell renders
+- **THEN** Z1–Z5 are stacked vertically in order
+- **AND** no bottom-sheet or swipe-navigation container is rendered for station selection
 
 ### Requirement: Layout Engine Stays Build-Free And Ships To Both Shells
 
-Das Kit bleibt buildfrei (D1) und wird von beiden Hüllen über dieselben Dateien geladen.
+Das K1-Kit bleibt buildfrei (D1) und wird jetzt von drei statt zwei Hüllen über dieselben Dateien
+geladen: den beiden bestehenden K1-Belegartefakten sowie neu der Leitstand-Zonen-Shell.
 
 The system SHALL ship the layout engine as a classic browser script without module syntax,
 bundler step or npm dependency, and SHALL make it resolvable under `/cockpit/kit/` in the
-repository checkout, in the dev server and inside the built website image.
+repository checkout, in the dev server and inside the built website image, for all three consuming
+shells: `reference-board.html`, `cockpit-shell.html`, and the Leitstand zone-model shell at
+`/sdlc/cockpit`.
 
 #### Scenario: Layout asset resolves in the image layout
 
-- **GIVEN** the website image build copies `website/` and the `.lavish` sources
+- **GIVEN** the website image build copies `components/website/` and the `.lavish` sources
 - **WHEN** the resulting file layout is inspected
 - **THEN** the layout engine files resolve under `public/cockpit/kit/` and are non-empty
+
+#### Scenario: The Leitstand shell loads the same kit files
+
+- **GIVEN** `/sdlc/cockpit` is requested
+- **WHEN** its network requests are inspected
+- **THEN** it loads its panel runtime from the same `/cockpit/kit/` files as `cockpit-shell.html`
+- **AND** no duplicated copy of the kit is loaded
 
 ### Requirement: Schreibaktionen laufen über die authentifizierte Admin-Fläche
 
@@ -579,7 +595,15 @@ information is without inferring it from the request time.
 
 ### Requirement: Pipeline-Inhalt lebt als Panel im Cockpit
 
-Die Fläche `/admin/cockpit` SHALL den `DevStatusTabs`-Baum durch die Command-Bar + Overview/Fokus-Architektur ersetzen. Der `PipelinePanel`-Wrapper entfällt, da das Unified Panel System Svelte-Komponenten nativ unterstützt.
+Die Fläche `/sdlc/cockpit` SHALL den `DevStatusTabs`-Baum durch das Leitstand-Zonenmodell (Z1–Z5)
+ersetzen statt durch die frühere Command-Bar+Overview/Fokus-Architektur. Der `PipelinePanel`-
+Wrapper entfällt weiterhin, da das Unified Panel System Svelte-Komponenten nativ unterstützt
+(unverändert gegenüber dem Ursprungs-Requirement).
+
+The system SHALL replace the `DevStatusTabs` tree at `/sdlc/cockpit` with the five-zone Leitstand
+shell (Z1–Z5) instead of the Command-Bar/Overview-Fokus architecture. The `PipelinePanel` wrapper
+component SHALL continue not to exist, since the Unified Panel System registers Svelte components
+natively.
 
 #### Scenario: PipelinePanel wrapper is removed
 
@@ -588,11 +612,12 @@ Die Fläche `/admin/cockpit` SHALL den `DevStatusTabs`-Baum durch die Command-Ba
 - **THEN** `PipelinePanel.svelte` no longer exists
 - **AND** no component imports from `PipelinePanel.svelte`
 
-#### Scenario: Tab pre-selection survives the architectural change
+#### Scenario: Station pre-selection survives the architectural change
 
-- **GIVEN** a request to `/admin/cockpit?mode=fokus&phase=planung`
+- **GIVEN** a request to `/sdlc/cockpit?station=planung`
 - **WHEN** the page is rendered
-- **THEN** the Fokus mode is active with the Planung phase selected
+- **THEN** Z3 shows "Planung" as the selected station
+- **AND** Z4 renders the Planung station content
 
 ### Requirement: Alt-Pfade lösen auf das Cockpit auf
 
@@ -820,10 +845,30 @@ Frage-Marker, Code-Blöcke, Blockquotes, Listen. Per `<link>` von jedem Board nu
 
 ### Requirement: K1-03 — Panel-Rahmen
 
-#### Scenario: K1-03 — Panel-Rahmen
-`panel.css` definiert Panel-Frame, Kopf, Body, Aktions-Slot (4 Zustände: verfügbar/
-gesperrt/bestätigung offen/läuft), Kontext-Slot. Drei Größen: Rail/Karte/Vollbild.
-(D2–D6, D8, D12)
+`panel.css` definiert weiterhin Panel-Frame, Kopf, Body, Aktions-Slot (4 Zustände: verfügbar/
+gesperrt/bestätigung offen/läuft) und Kontext-Slot. Die drei Größen heißen jetzt Deck/Kontext/
+Vollbild statt Rail/Karte/Vollbild, da die Rail-Zone im Zonenmodell nicht mehr existiert — Deck
+entspricht der kompakten Kartengröße in Z5, Kontext der Standardgröße in Z4. (D2–D6, D8, D12)
+
+`panel.css` SHALL continue to define the panel frame, header, body, an action slot with four
+states (available / locked / confirmation-pending / running), and a context slot. It SHALL define
+three panel sizes named Deck, Kontext, and Vollbild — Deck for the compact Z5 deck-strip card
+size, Kontext for the standard Z4 panel size, and Vollbild for the full-surface size — replacing
+the former Rail/Karte/Vollbild naming, since the Rail zone no longer exists.
+
+#### Scenario: Action slot exposes four states
+
+- **GIVEN** a panel rendered with `panel.css`
+- **WHEN** its action slot markup is inspected
+- **THEN** exactly four state classes/attributes are defined: available, locked,
+  confirmation-pending, running
+
+#### Scenario: Panel sizes are named Deck/Kontext/Vollbild
+
+- **GIVEN** `panel.css`
+- **WHEN** its size variants are inspected
+- **THEN** the three defined sizes are `deck`, `kontext`, and `vollbild`
+- **AND** no size variant named `rail` exists
 
 ### Requirement: K1-04 — Panel-Laufzeit
 
@@ -1251,13 +1296,16 @@ count as evidence of reachability.
 
 ### Requirement: The cockpit header reports its actual data source
 
-The cockpit SHALL indicate whether it is serving live data or fixtures based on
-the adapter's actual state. A fixed label SHALL NOT be used.
+Das Verhalten bleibt unverändert: der Datenmodus wird aus dem tatsächlichen Adapter-Zustand
+abgeleitet, kein Fixtext. Der Ort wandert vom Header ins Z1 Statusband.
 
-#### Scenario: Live data is labelled as live
+The Leitstand SHALL indicate, within Z1 Statusband, whether it is serving live data or fixtures
+based on the adapter's actual state. A fixed label SHALL NOT be used.
+
+#### Scenario: Live data is labelled as live in Z1
 
 - **GIVEN** the adapter is serving live endpoints
-- **WHEN** the cockpit header renders
+- **WHEN** Z1 Statusband renders
 - **THEN** it does not claim fixture mode
 
 ### Requirement: Dev-Deployment — SDLC-Console auf mentolder-dev-Cluster
@@ -1296,13 +1344,17 @@ SHALL konsistent mit diesem Callback sein, sodass `GET /sdlc/cockpit` ohne
 
 ### Requirement: Header-Status spiegelt Livedaten statt Fixtures
 
-Das Cockpit-Header-Badge SHALL den realen Datenmodus (Livedaten) anzeigen und nicht mehr
-"Fixtures (K1)", sobald `adapter.js` Livedaten liefert.
+Das Status-Badge zeigt weiterhin den realen Datenmodus (Livedaten) an und nicht mehr "Fixtures
+(K1)", sobald `adapter.js` Livedaten liefert — es sitzt jetzt in Z1 Statusband statt im
+früheren Header.
 
-#### Scenario: Badge zeigt Livedaten
+Das Z1-Statusband-Badge SHALL den realen Datenmodus (Livedaten) anzeigen und nicht mehr "Fixtures
+(K1)", sobald `adapter.js` Livedaten liefert.
+
+#### Scenario: Badge zeigt Livedaten in Z1
 
 - **GIVEN** das Cockpit lädt mit einem konfigurierten Adapter, der Livedaten liefert
-- **WHEN** der Header gerendert wird
+- **WHEN** Z1 Statusband gerendert wird
 - **THEN** zeigt das Status-Element den Livedaten-Status an
 - **AND** es zeigt nicht "Fixtures (K1)"
 
@@ -1414,100 +1466,163 @@ that request-time logic can distinguish the SDLC build from the production build
 
 ### Requirement: Command Bar — Persistentes Status-Band
 
-The system SHALL render a persistent Command Bar at the top of the SDLC Cockpit that remains visible regardless of the active view mode. The Command Bar SHALL display cluster health status, watchdog state, active agent count, slot usage, pending PR count, and the next factory tick countdown. It SHALL also host the Overview/Fokus mode toggle.
+Die bisherige Command Bar wird zu Z1 Statusband: dasselbe Prinzip eines permanent sichtbaren
+Statusbands, aber ohne Overview/Fokus-Umschalter — stattdessen mit einem Help-Toggle.
 
-#### Scenario: Command Bar is always visible
+The system SHALL render a persistent Z1 Statusband at the top of the SDLC Leitstand that remains
+visible regardless of the active station, ticket or deck selection. The Z1 Statusband SHALL
+display watchdog state, active agent count, slot usage, and the next factory tick countdown from
+live factory status. Live cluster health status and the pending PR count SHALL be present as
+placeholder indicators: deriving them from live sources is deferred to the E4 change of epic
+T007553 (review verdict M2, T007957). It SHALL also host a Help toggle that opens the help/purpose
+overlay affordance; it SHALL NOT host an Overview/Fokus mode toggle, since that mode distinction
+no longer exists.
 
-- **GIVEN** the SDLC Cockpit page is loaded
-- **WHEN** any view mode (Overview or Fokus) is active
-- **THEN** the Command Bar is rendered and visible at the top of the page
+#### Scenario: Statusband is always visible
+
+- **GIVEN** the SDLC Leitstand page is loaded
+- **WHEN** any station/ticket/deck selection is active
+- **THEN** Z1 is rendered and visible at the top of the page
 - **AND** it displays at minimum: cluster health indicator, active agent count, and slot usage
 
-#### Scenario: Cluster health is derived from k3d status
+#### Scenario: Cluster health indicator is a deferred placeholder
 
-- **GIVEN** the local k3d cluster `mentolder-dev` is running
-- **WHEN** the Command Bar fetches cluster status
-- **THEN** it shows a green indicator with the cluster name
-- **AND** when the cluster is unreachable, it shows a red indicator with an error message
+- **GIVEN** the SDLC Leitstand is loaded
+- **WHEN** Z1 Statusband is rendered
+- **THEN** a cluster health placeholder indicator is present
+- **AND** live cluster health (green indicator with the cluster name when reachable, red indicator
+  with an error message when unreachable) is deferred to E4 of epic T007553 (review verdict M2,
+  T007957)
 
-#### Scenario: Overview/Fokus toggle switches the main area
+#### Scenario: Help toggle opens without changing the selection
 
-- **GIVEN** the Command Bar is rendered with the Overview mode active
-- **WHEN** the user clicks the Fokus toggle
-- **THEN** the main area switches to Fokus mode
-- **AND** the toggle state is reflected in the URL as a query parameter
+- **GIVEN** Z1 is rendered with a station selected
+- **WHEN** the user clicks the Help toggle
+- **THEN** the help/purpose overlay opens
+- **AND** the current `station`/`ticket`/`deck` selection in the URL is unchanged
 
 ### Requirement: Overview-Modus — Lifecycle-Status auf einen Blick
 
-The system SHALL provide an Overview mode that aggregates the status of all SDLC lifecycle phases into a single dashboard view. Each phase SHALL display its ticket count by status. The view SHALL also show an Attention section aggregating blocked tickets, stuck tickets (idle > 30 minutes), and active cooldowns. A PR section SHALL list open pull requests with their CI status.
+Der bisherige Overview-Modus wird zum Leerlaufzustand von Z4: ohne Stations-/Ticket-Auswahl zeigt
+Z4 ein KPI-Raster mit den Phasenzahlen; Attention-Daten liegen jetzt permanent in Z2, nicht mehr
+modusabhängig.
 
-#### Scenario: All phases are displayed with counts
+The system SHALL render, in Z4 Kontextzone, an idle-state KPI grid whenever no station and no
+ticket is selected. The grid SHALL show one tile per legacy value-stream phase (Triage, Planung,
+Bauen, Review, Deploy, Ship), including phases with zero tickets — this tile layout is the
+structural carrier for the nine-station axis of Kontrakt A. The per-station ticket-count
+aggregation over all nine value-stream stations (Triage, Planung, Scout, Design, Plan, Implement,
+Verify, Deploy, Ship) is deferred to the E4 change of epic T007553 (review verdict I1, T007957):
+E3 renders the legacy phase tiles from the portfolio endpoint and does not re-key them per
+station. The KPI grid SHALL contain a structural PR section; populating it with live
+pull-request/CI data requires a PR-listing API that does not exist yet and is deferred to the E4
+change of epic T007553 — until then the section renders an explicit empty marker and attempts no
+fetch. Blocked/stuck-ticket aggregation and active cooldowns SHALL NOT be part of this KPI grid,
+since Z2 Attention-Strip already carries them permanently.
 
-- **GIVEN** tickets exist in various lifecycle phases
-- **WHEN** the Overview mode is active
-- **THEN** each phase (Triage, Planung, Bauen, Review, Deploy, Ship) is shown
-- **AND** each phase displays the count of tickets in that phase
-- **AND** phases with zero tickets are still visible
+#### Scenario: Idle KPI grid shows phase tiles with counts
 
-#### Scenario: Attention section highlights blockers
+- **GIVEN** tickets exist in the factory and no selection is active
+- **WHEN** Z4 renders its idle state
+- **THEN** the KPI grid shows one tile per legacy phase (Triage, Planung, Bauen, Review, Deploy, Ship)
+- **AND** each tile displays the ticket counts of that phase
+- **AND** phases with zero tickets are still visible as empty tiles
+- **AND** the per-station aggregation over all nine value-stream stations is deferred to E4 of epic T007553 (review verdict I1, T007957)
 
-- **GIVEN** tickets T003120 is blocked and T003119 is stuck (idle > 45min)
-- **WHEN** the Overview mode is active
-- **THEN** the Attention section shows both tickets
-- **AND** blocked tickets are visually distinct from stuck tickets
-- **AND** a cooldown on any provider is shown if active
+#### Scenario: PR section is present but deferred
 
-#### Scenario: PR section lists open pull requests
+- **GIVEN** no PR-listing API exists yet and no selection is active
+- **WHEN** Z4 renders its idle state
+- **THEN** the PR section is present with an explicit empty/deferred marker
+- **AND** no request to a non-existent PR endpoint is attempted
 
-- **GIVEN** open pull requests exist on GitHub for the repository
-- **WHEN** the Overview mode is active
-- **THEN** the PR section lists them with title, branch, and CI status
+#### Scenario: Attention data is not duplicated in the KPI grid
+
+- **GIVEN** ticket T003120 is blocked
+- **WHEN** Z4 renders its idle KPI grid
+- **THEN** T003120 does not appear inside the KPI grid itself
+- **AND** it is shown in Z2 Attention-Strip instead
 
 ### Requirement: Fokus-Modus — Drilldown in eine SDLC-Phase
 
-The system SHALL provide a Fokus mode that drills into a single SDLC lifecycle phase, rendering the content relevant to that phase. The phase selection SHALL be reflected in the URL. The Fokus mode SHALL reuse existing Svelte components where applicable (FactoryFloor for Bauen, PlanningOffice for Planung).
+Der bisherige Fokus-Modus wird zur Stations-Auswahl: ein Klick auf eine Station in Z3 setzt
+`?station=` und lässt Z4 den passenden Inhalt zeigen (Liste/PlanningOffice statt eines separaten
+Modus).
 
-#### Scenario: Fokus mode renders the selected phase content
+The system SHALL, when a station is selected via `?station=<phase>`, render the content relevant
+to that station in Z4 Kontextzone. The station selection SHALL be reflected in the URL as the
+`station` query parameter. Z4 SHALL reuse existing Svelte components where applicable
+(FactoryFloor-derived list/lane components for the Fertigung stations (Scout through Deploy), PlanningOffice for Triage
+and Planung).
 
-- **GIVEN** the Fokus mode is active and the "Bauen" phase is selected
-- **WHEN** the view is rendered
-- **THEN** the FactoryFloor component is displayed as the main content
-- **AND** the URL carries `?mode=fokus&phase=bauen`
+#### Scenario: Station selection renders the relevant content in Z4
 
-#### Scenario: Switching phases in Fokus mode updates content and URL
+- **GIVEN** the "Implement" station is selected via `?station=implement`
+- **WHEN** the page is rendered
+- **THEN** Z4 shows the Implement station's list content (workpieces/lanes)
+- **AND** the URL carries `?station=implement`
 
-- **GIVEN** Fokus mode is active showing the "Planung" phase
-- **WHEN** the user selects the "Bauen" phase
-- **THEN** the main content switches to FactoryFloor
-- **AND** the URL updates to reflect the new phase
+#### Scenario: Switching stations updates content and URL
+
+- **GIVEN** `?station=planung` is active and PlanningOffice is shown in Z4
+- **WHEN** the user selects the "Implement" station on Z3
+- **THEN** Z4 switches to the Implement content
+- **AND** the URL updates to `?station=implement` via `history.pushState` without a full reload
 
 ### Requirement: Kontext-sensitive lebendige Rail
 
-The system SHALL render a rail (sidebar) whose content adapts to the active mode and phase. In Overview mode, the rail SHALL show aggregated Attention data, running Epics, active Agents, and Model health. In Fokus mode, the rail SHALL show context-relevant data for the active phase (e.g., Factory status in Bauen, DoR scores in Planung, trace data in Insights). All rail content SHALL be populated from live data sources via the adapter, not from static HTML.
+Die bisherige kontext-sensitive Rail wird zur selektionsgetriebenen Z4 Kontextzone: ohne Auswahl
+zeigt sie das KPI-Raster, bei Stations-Auswahl die Stationsliste/PlanningOffice, bei
+Ticket-Auswahl das DetailPanel. Attention/Epics/Agents/Modelle sind nicht mehr rail-exklusiv —
+Attention liegt permanent in Z2, die übrigen Karten wandern in die Z5 Decks.
 
-#### Scenario: Rail content changes with mode
+The system SHALL render Z4 Kontextzone with content that adapts to the current selection rather
+than to an Overview/Fokus mode: with no station and no ticket selected, Z4 SHALL show the KPI
+grid; with a station selected, Z4 SHALL show that station's list/PlanningOffice content; with a
+ticket selected, Z4 SHALL show the ticket DetailPanel. All Z4 content SHALL be populated from live
+data sources via the adapter/`floorStore`, not from static HTML. Attention data, formerly shown
+only in the rail during Overview mode, SHALL instead be shown permanently in Z2 regardless of the
+Z4 selection.
 
-- **GIVEN** the Overview mode is active
-- **WHEN** the rail is rendered
-- **THEN** it shows sections for Attention, Epics, Agents, and Models
-- **AND** all sections contain live data (not static text)
+#### Scenario: Z4 content changes with selection
 
-#### Scenario: Rail content adapts to Fokus phase
+- **GIVEN** no station and no ticket is selected
+- **WHEN** Z4 is rendered
+- **THEN** it shows the KPI grid
+- **AND** when a ticket is subsequently selected via `?ticket=<id>`, Z4 switches to the DetailPanel
+  for that ticket
 
-- **GIVEN** Fokus mode is active and "Bauen" phase is selected
-- **WHEN** the rail is rendered
-- **THEN** it shows Factory-relevant data: slot usage, active workpieces, agent logs
-- **AND** when switching to "Planung" phase, it shows DoR scores and queue depth
+#### Scenario: Z4 content adapts to the selected station
+
+- **GIVEN** `?station=implement` is active
+- **WHEN** Z4 is rendered
+- **THEN** it shows implement-relevant data: slot usage, active workpieces, agent logs
+- **AND** when the station changes to `planung`, Z4 shows DoR scores and queue depth instead
+
+#### Scenario: Attention is visible independent of Z4 selection
+
+- **GIVEN** a ticket DetailPanel is shown in Z4
+- **WHEN** Z2 is inspected
+- **THEN** blocked/stuck tickets and active cooldowns are still shown there, unaffected by the Z4
+  selection
 
 ### Requirement: Unified Panel System
 
-The system SHALL render all panels (rail panels and workspace panels) through a single panel system that supports both the legacy Kit panel runtime and Svelte components as first-class panel types. The PipelinePanel wrapper component SHALL be removed. A Svelte component SHALL be registrable as a panel without needing a protective wrapper.
+Panels werden weiterhin über ein einheitliches Panel-System gerendert, das sowohl die Legacy-
+Kit-Panel-Laufzeit als auch Svelte-Komponenten als First-Class-Panel-Typen unterstützt; der
+`PipelinePanel`-Wrapper bleibt entfernt. Die Begriffe "Rail-Panels" und "Workspace-Panels"
+entfallen zugunsten von Z4- und Z5-Panels.
+
+The system SHALL render all panels — Z4 Kontextzone panels and Z5 Deck-Leiste panels — through a
+single panel system that supports both the legacy Kit panel runtime and Svelte components as
+first-class panel types. The `PipelinePanel` wrapper component SHALL remain removed. A Svelte
+component SHALL be registrable as a panel without needing a protective wrapper.
 
 #### Scenario: Svelte components are registered as native panels
 
-- **GIVEN** a Svelte component (e.g., FactoryFloor) is registered as a panel
+- **GIVEN** a Svelte component (e.g., a station list view) is registered as a Z4 panel
 - **WHEN** the panel system initializes
-- **THEN** the component is mounted into the panel frame without a PipelinePanel wrapper
+- **THEN** the component is mounted into the panel frame without a `PipelinePanel` wrapper
 - **AND** the panel's lifecycle (refresh, resize, destroy) works correctly
 
 #### Scenario: The Panel.run() method no longer adopts the Svelte area
@@ -1519,14 +1634,22 @@ The system SHALL render all panels (rail panels and workspace panels) through a 
 
 ### Requirement: Insights-Tab mit Trace-Recording
 
-The system SHALL provide an Insights area accessible from both Overview and Fokus modes. The Insights area SHALL display meaningful metrics (not the previous bloated analytics KPIs) and SHALL record agent decision traces, factory run results, and partial plan outcomes for downstream finetuning use.
+Das Trace-Recording-Backend bleibt unverändert: Agent-Entscheidungs-Traces, Factory-Lauf-
+Ergebnisse und Partial-Plan-Outcomes werden weiterhin für nachgelagertes Finetuning aufgezeichnet.
+Der Zugang zur Insights-Ansicht wandert vom Command-Bar-Button ins Z5 KI-Deck.
 
-#### Scenario: Insights area is accessible from the Command Bar
+The system SHALL provide an Insights view accessible from the Z5 KI-Deck (rather than from a
+Command Bar button). The Insights view SHALL display meaningful metrics (not the previous bloated
+analytics KPIs) and SHALL record agent decision traces, factory run results, and partial plan
+outcomes for downstream finetuning use.
 
-- **GIVEN** the Command Bar is rendered
-- **WHEN** the user clicks the Insights button
-- **THEN** the Insights area is displayed
-- **AND** it shows metrics that are computed from actual data (not the old Throughput/Heatmap/ShippedBar components)
+#### Scenario: Insights is accessible from the KI deck
+
+- **GIVEN** Z5 Deck-Leiste is showing the KI deck
+- **WHEN** the user opens the Insights module within it
+- **THEN** the Insights view is displayed
+- **AND** it shows metrics computed from actual data (not the old Throughput/Heatmap/ShippedBar
+  components)
 
 #### Scenario: Trace recording captures agent actions
 
@@ -1534,41 +1657,6 @@ The system SHALL provide an Insights area accessible from both Overview and Foku
 - **WHEN** the execution completes
 - **THEN** the outcome is recorded as a trace entry
 - **AND** the trace entry includes: agent model, ticket ID, phase, duration, and result
-
-### Requirement: Wählbare Default-Ansicht
-
-The system SHALL allow the user to set their preferred default view (Overview or a specific Fokus phase) and SHALL persist this preference in localStorage. The preference SHALL be applied on page load.
-
-#### Scenario: Default view preference is persisted
-
-- **GIVEN** the user sets their default view to "Planung" phase in Fokus mode
-- **WHEN** the page is reloaded
-- **THEN** the Cockpit opens with the "Planung" phase active
-- **AND** the preference is stored in localStorage under a versioned key
-
-#### Scenario: Unknown or missing preference falls back to Overview
-
-- **GIVEN** no default view preference is stored, or the stored value is corrupt
-- **WHEN** the page is loaded
-- **THEN** the Overview mode is displayed
-
-### Requirement: Mobile Bottom-Sheet + Swipe-Navigation
-
-The system SHALL render the phase navigation as a bottom sheet on mobile viewports. Users SHALL be able to swipe between Overview and Fokus phase views. Non-reversible actions SHALL be locked by default on mobile as per the existing session-lock requirement.
-
-#### Scenario: Mobile renders bottom sheet for phase navigation
-
-- **GIVEN** the viewport width is below 768px
-- **WHEN** the Cockpit is loaded
-- **THEN** the phase navigation is rendered as a bottom sheet
-- **AND** the Command Bar remains visible as a top bar
-
-#### Scenario: Swipe navigation between views
-
-- **GIVEN** the mobile view is showing the Overview
-- **WHEN** the user swipes left
-- **THEN** the next Fokus phase is displayed
-- **AND** the URL updates to reflect the transition
 
 ### Requirement: Dispatch recordings are visible as a live cockpit panel
 
@@ -1693,6 +1781,378 @@ pattern.
 - **WHEN** the scanner runs
 - **THEN** generation fails with a message naming the orphaned entry
 
+### Requirement: Leitstand Zone Model
+
+Das Cockpit organisiert seine Fläche als fünf Zonen mit je genau einem Zweck statt als
+Command-Bar+Overview/Fokus+Rail-Layout. Z1–Z4 bilden eine permanente Struktur; nur Z5 schaltet
+zwischen Nebendomänen (Decks) um.
+
+The system SHALL organize the `/sdlc/cockpit` surface as five zones, each serving exactly one
+purpose: Z1 Statusband (persistent top status band with a Help toggle), Z2 Attention-Strip
+(persistent, surfaces blocked/stuck tickets and active cooldowns, never covered by any other
+zone), Z3 Stationen-Achse (persistent nine-station value-stream axis: Triage, Planung, Scout,
+Design, Plan, Implement, Verify, Deploy, Ship), Z4 Kontextzone (selection-driven: renders a KPI grid when nothing is
+selected, a station list/PlanningOffice when a station is selected, or a ticket DetailPanel when a
+ticket is selected), and Z5 Deck-Leiste (the side-module strip with a deck switcher for Qualität,
+Plattform, KI, and Wissen). Z1 through Z4 SHALL remain structurally present regardless of the
+current selection or the active Z5 deck; Z5 SHALL be the only zone whose displayed module set
+changes.
+
+#### Scenario: All zones are visible with nothing selected
+
+- **GIVEN** the cockpit is loaded with no `station`, `ticket` or `deck` query parameter
+- **WHEN** the shell renders
+- **THEN** Z1, Z2, Z3, Z4 and Z5 all render
+- **AND** Z4 shows the idle-state KPI grid
+
+#### Scenario: Deck switch does not hide Z2 or Z3
+
+- **GIVEN** the Z5 Deck-Leiste shows the KI deck active
+- **WHEN** the user switches the active deck to Plattform
+- **THEN** Z2 Attention-Strip and Z3 Stationen-Achse remain visible and unchanged
+- **AND** only the Z5 module content changes
+
+#### Scenario: Zone testids stay mapped to floor components
+
+- **GIVEN** the zone shell renders with a station selected
+- **WHEN** the DOM is inspected for `data-testid` attributes
+- **THEN** the existing floor testids (`factory-floor`, `floor-leitstand`, `floor-hall`,
+  `floor-shipped`, `floor-slots`, `floor-workpiece`, `floor-detail`) resolve inside the
+  appropriate zone without being renamed
+
+### Requirement: Cockpit Selection URL Scheme
+
+Auswahl und Deck-Wahl werden als kombinierbare Query-Parameter auf `/sdlc/cockpit` abgebildet
+statt als eigene Pfad-Modi. Alte Parameter werden auf das neue Schema gemappt statt entfernt.
+
+The system SHALL express cockpit selection state as query parameters on `/sdlc/cockpit`:
+`?station=<phase-slug>` selects a station on the Z3 axis, `?ticket=<id>` selects a ticket for the
+Z4 DetailPanel, and `?deck=<qualitaet|plattform|ki|wissen>` selects the active Z5 deck; all three
+SHALL be combinable in a single URL. The legacy `?mode=overview|fokus` and `?phase=<phase>`
+parameters SHALL be mapped onto the new scheme by a normalization step: `phase=triage|planung|
+deploy|ship` map to the same-named station, `phase=review` maps to `station=verify`,
+`phase=bauen` maps to no station (the axis is always visible), `mode=insights` maps to
+`deck=ki`, and `mode=overview` maps to an empty selection; explicit new parameters take
+precedence over legacy ones when both are present. Legacy parameters are normalized rather
+than being removed outright. Selection changes triggered from within the shell (station click,
+ticket click, deck switch) SHALL update the URL via `history.pushState` and SHALL NOT trigger a
+full page reload; the server SHALL still render the correct initial state for a direct or
+deep-linked request.
+
+#### Scenario: Deep link renders server-side correctly
+
+- **GIVEN** a request to `/sdlc/cockpit?station=implement&deck=ki`
+- **WHEN** the page is server-rendered
+- **THEN** Z3 shows "Implement" as the selected station
+- **AND** Z4 shows the Implement station content
+- **AND** Z5 shows the KI deck active
+
+#### Scenario: Legacy URL maps to the new scheme
+
+- **GIVEN** a request to `/sdlc/cockpit?mode=fokus&phase=planung`
+- **WHEN** the page resolves
+- **THEN** the effective selection is `station=planung`
+- **AND** the rendered content matches a direct `/sdlc/cockpit?station=planung` request
+
+#### Scenario: Selection change causes no reload
+
+- **GIVEN** the cockpit is open with no selection
+- **WHEN** the user clicks a station on Z3
+- **THEN** the URL updates to include `?station=<phase>` via `history.pushState`
+- **AND** no full document reload occurs (the page's navigation/load event does not fire again)
+
+### Requirement: Leitstand Purpose Registry
+
+Jede Shell-Komponente deklariert ihren Zweck, ihre Datenquelle und ihre Aktionen maschinenlesbar,
+damit Redundanz und mehrdeutige Zwecke auffallen statt sich anzusammeln.
+
+The system SHALL maintain a purpose registry at
+`components/website/src/lib/sdlc/leitstand-purpose-registry.ts` carrying one entry per shell
+component (the Z1–Z5 zone components and their constituent panels/decks), each entry declaring
+`zweck` (a human-readable one-sentence purpose string), `datenquelle` (the adapter/store/endpoint
+the component reads from), and `aktionen` (the list of write actions the component can trigger,
+possibly empty). Every `zweck` string SHALL be unique across the registry. The registry SHALL be
+checked by an automated guard that fails when a shell component has no registry entry or when two
+entries share the same `zweck` text.
+
+#### Scenario: A fully covered, unique registry passes
+
+- **GIVEN** every shell component under the cockpit zone tree has exactly one registry entry
+- **AND** all `zweck` strings in the registry are pairwise distinct
+- **WHEN** the purpose-registry guard runs
+- **THEN** it passes
+
+#### Scenario: Missing entry fails the guard
+
+- **GIVEN** a shell component file exists under the cockpit zone tree with no corresponding
+  registry entry
+- **WHEN** the purpose-registry guard runs
+- **THEN** it fails and names the component that is missing an entry
+
+#### Scenario: Duplicate purpose text fails the guard
+
+- **GIVEN** a registry that otherwise satisfies full coverage
+- **AND** two of its entries carry the identical `zweck` string
+- **WHEN** the purpose-registry guard runs
+- **THEN** it fails and names both conflicting entries
+
+### Requirement: Live Platform Deck
+
+Das Plattform-Deck zeigt ausschließlich echte Datenquellen; die Platzhalterseite mit
+hartcodierten Uptime-Zahlen stirbt und leitet auf den Leitstand um.
+
+The system SHALL source every metric shown in the Plattform deck (Z5) from a real backend
+(`/sdlc/api/` routes backed by `lib/sdlc/k8s.ts`, `lib/sdlc/factory-observability.ts` or
+Prometheus) and SHALL NOT render hardcoded availability numbers anywhere in the SDLC build. The
+route `/sdlc/observability` SHALL 301-redirect to `/sdlc/cockpit?deck=plattform` via the
+middleware redirect map. Each deck section SHALL fail soft: a failing data source hides or marks
+only its own section (with the explicit `error` field per D12/D13) and never substitutes
+placeholder values.
+
+#### Scenario: Observability page redirects
+
+- **GIVEN** a request to `/sdlc/observability`
+- **WHEN** the middleware resolves the path
+- **THEN** the response is a 301 redirect to `/sdlc/cockpit?deck=plattform`
+- **AND** no page file `pages/sdlc/observability.astro` exists in the build
+
+#### Scenario: Failing source shows error, not placeholder
+
+- **GIVEN** the Prometheus backend is unreachable
+- **WHEN** the Plattform deck renders
+- **THEN** the affected section shows its error state
+- **AND** no hardcoded fallback number is displayed
+
+### Requirement: DORA KPI Idle Grid
+
+Die Kontextzone zeigt im Leerlauf ein KPI-Raster inklusive DORA-Kennzahlen aus den
+Delivery-Metriken; die bisher verwaiste Delivery-Auswertung geht darin auf.
+
+The system SHALL render, when no station and no ticket is selected, a KPI grid in the Z4
+Kontextzone that includes DORA metrics (deployment frequency, lead time, change failure rate)
+computed from `/sdlc/api/delivery-metrics` by pure aggregation functions in
+`components/website/src/lib/sdlc/leitstand-kpi.ts`. The grid response SHALL carry `fetchedAt`
+and an explicit `error` field. The orphaned `DeliveryHistory.svelte` component SHALL be removed.
+
+#### Scenario: Idle state shows DORA KPIs
+
+- **GIVEN** the cockpit is loaded without `station` or `ticket` parameters
+- **WHEN** Z4 renders
+- **THEN** the KPI grid appears and contains DORA metric tiles fed by the delivery-metrics API
+
+#### Scenario: Aggregation is pure and tested
+
+- **GIVEN** a fixed array of delivery-metric rows
+- **WHEN** the aggregation functions in `leitstand-kpi.ts` run
+- **THEN** they return deterministic DORA values without performing any I/O
+
+### Requirement: Factory Floor Stream via LISTEN
+
+Der Factory-Floor-SSE-Stream wird von PG-Ereignissen getrieben statt von einem festen
+Poll-Intervall; Polling bleibt nur als Fallback ohne NOTIFY-Verbindung.
+
+The system SHALL drive the SSE endpoint `pages/sdlc/api/factory-floor/stream.ts` from
+`lib/sdlc/cockpit-listen-hub.ts` subscriptions (PostgreSQL LISTEN/NOTIFY) instead of a fixed
+`setInterval` data poll. A poll-based refresh SHALL remain only as fallback while no NOTIFY
+connection is available, and heartbeat frames MAY keep using a timer. Reconnect events from the
+hub SHALL trigger a full snapshot push to connected clients.
+
+#### Scenario: Ticket event pushes floor update
+
+- **GIVEN** a client is connected to the factory-floor stream
+- **WHEN** a `cockpit_events` NOTIFY fires for a ticket change
+- **THEN** the endpoint pushes a fresh floor payload without waiting for a poll interval
+
+#### Scenario: Fallback poll without NOTIFY
+
+- **GIVEN** the listen hub cannot establish its PG connection
+- **WHEN** the stream endpoint serves a client
+- **THEN** it falls back to interval-based refresh so the stream stays functional
+
+### Requirement: API Catalog UI
+
+Das Wissen-Deck zeigt den generierten API-/Connector-Katalog durchsuchbar an, mit
+Live-Health-Anzeige für die HTTP-MCP-Server über eine server-seitige Proxy-Route.
+
+The system SHALL render the E2-generated `components/website/src/data/api-inventory.json` in the
+Wissen deck as a searchable catalog (`ApiKatalog.svelte`) offering text search, grouping by path
+prefix, HTTP-method badges and backend classification labels. For the HTTP MCP servers in the
+inventory, the UI SHALL show a live health indicator fed by a server-side route
+`/sdlc/api/mcp-health` that probes the servers' existing health endpoints; the browser SHALL NOT
+probe MCP ports directly. The health response SHALL carry `fetchedAt` and per-server status with
+an explicit `error` field.
+
+#### Scenario: Catalog search narrows entries
+
+- **GIVEN** the Wissen deck shows the API catalog
+- **WHEN** the user types a search term matching three route paths
+- **THEN** only those three entries remain visible, grouped under their path prefixes
+
+#### Scenario: MCP health is proxied server-side
+
+- **GIVEN** the catalog shows an HTTP MCP server entry
+- **WHEN** its health indicator updates
+- **THEN** the data originates from `/sdlc/api/mcp-health`
+- **AND** no browser request targets an MCP port directly
+
+### Requirement: Help Overlay Layer
+
+Der Help-Toggle im Statusband legt einen Overlay-Layer über die Leitstand-Fläche, der die
+Registry-Erklärungen in situ an der Position der jeweiligen Komponente rendert.
+
+The system SHALL render, when the `[?]` toggle in the Z1 Statusband is active, an overlay layer
+(`HelpOverlay.svelte`) above the cockpit surface that displays each registered component's
+`zweck`, `datenquelle` and `aktionen` from `lib/sdlc/leitstand-purpose-registry.ts`, positioned
+at the component it describes. Components SHALL be located via `data-purpose-id` anchors whose
+values equal their registry keys. Deactivating the toggle SHALL remove the overlay without a
+page reload. While the overlay is active, underlying write actions SHALL NOT be triggerable
+through the overlay.
+
+#### Scenario: Toggle shows in-situ explanations
+
+- **GIVEN** the cockpit is rendered with the E3 zone shell
+- **WHEN** the user activates the `[?]` toggle in the Statusband
+- **THEN** an overlay appears showing the registry `zweck` text anchored at each component that
+  carries a matching `data-purpose-id`
+
+#### Scenario: Anchors and registry stay in sync
+
+- **GIVEN** the purpose registry and the rendered shell
+- **WHEN** the anchor guard runs
+- **THEN** every registry key has a matching `data-purpose-id` anchor in the component sources
+  and every anchor has a registry entry
+
+### Requirement: Satellite Absorption Redirects
+
+Absorbiert eine Etappe den Inhalt einer Satellitenseite in den Leitstand, stirbt die Seite und
+ihr Pfad leitet auf die entsprechende Leitstand-Selektion um; Cockpit-Redirect-Ziele verwenden
+ausschließlich das Leitstand-URL-Schema.
+
+The system SHALL redirect absorbed satellite pages via the middleware redirect map:
+`/sdlc/repohealth` → `/sdlc/cockpit?deck=qualitaet`, `/sdlc/prompts` →
+`/sdlc/cockpit?deck=wissen`, `/sdlc/ki-konfiguration` → `/sdlc/cockpit?deck=ki`; the
+corresponding `.astro` pages SHALL be removed and their modules (PromptLibraryManager,
+KiKonfiguration) SHALL be reachable inside the respective decks. Every redirect-map target that
+points at `/sdlc/cockpit` SHALL use only the Leitstand URL scheme (`station`, `ticket`, `deck`)
+— no `?tab=` targets remain. Navigation sources SHALL NOT keep links to removed pages.
+
+#### Scenario: Absorbed page redirects to its deck
+
+- **GIVEN** a request to `/sdlc/repohealth`
+- **WHEN** the middleware resolves the path
+- **THEN** the response is a 301 redirect to `/sdlc/cockpit?deck=qualitaet`
+- **AND** no page file `pages/sdlc/repohealth.astro` exists
+
+#### Scenario: No stale tab vocabulary
+
+- **GIVEN** the redirect map
+- **WHEN** its cockpit-targeting entries are inspected
+- **THEN** none of them contains a `tab=` query parameter
+
+### Requirement: Print Report Stylesheet
+
+Die Leitstand-Fläche besitzt eine helle Report-Darstellung ausschließlich für Druck/Export —
+kein zweites interaktives Theme.
+
+The system SHALL provide a light print/report rendition of the cockpit via
+`styles/sdlc-leitstand.css`: an `@media print` block plus an explicit `.report` class that
+applies the same light rendition on screen for export preview. The report rendition SHALL hide
+interactive-only chrome (deck switcher, action slots, help toggle) and SHALL NOT introduce a
+second interactive theme or a theme switcher.
+
+#### Scenario: Print hides interactive chrome
+
+- **GIVEN** the cockpit page
+- **WHEN** it is rendered with the `.report` class (or printed)
+- **THEN** deck switcher, action slots and the help toggle are not displayed
+- **AND** status signals and KPI values remain readable on a light background
+
+### Requirement: Z5 deck content adapts to container width without horizontal overflow
+
+The Z5 Deck-Leiste SHALL render its deck content without horizontal overflow at any
+viewport width. The deck body SHALL be a CSS query container
+(`container-type: inline-size`), and full-width components embedded in a deck
+(ControlPanel, FactoryObservability, FactoryBudgetPage) SHALL switch to single-column
+compact layouts via `@container` rules when the container is narrow, instead of
+relying on viewport media queries that never match on desktop.
+
+#### Scenario: Platform deck fits the deck column on desktop
+
+- **GIVEN** the Leitstand is open on a desktop viewport with the Plattform deck active
+- **WHEN** the Z5 deck strip renders ControlPanel, FactoryObservability and FactoryBudgetPage
+- **THEN** the deck body element is a CSS query container (`container-type: inline-size`)
+- **AND** each embedded component carries an `@container` rule collapsing its grid to a single column in narrow containers
+- **AND** no horizontal page overflow is produced by the deck strip
+
+#### Scenario: Compact rules stay scoped to deck containers
+
+- **GIVEN** a component with `@container` compact rules
+- **WHEN** it is rendered outside any element with `container-type`
+- **THEN** the compact rules are inert and the component keeps its full-width layout
+
+### Requirement: Z5 deck strip is user-resizable with content autoscaling
+
+The Z5 Deck-Leiste SHALL provide a resize handle on its left edge that lets the user
+drag the strip wider or narrower. The handle SHALL use Pointer Events with pointer
+capture (not the HTML5 drag-and-drop API), consistent with the Leitstand drag
+convention. The handle SHALL remain visible, hit-testable and focusable regardless of
+the deck body's scroll position: the deck body — not the strip root — SHALL be the
+vertical scroll container, so the handle lives outside the overflow box. The dragged
+width SHALL be derived from the strip's own geometry (its right edge), not from
+`window.innerWidth`, so the edge tracks the pointer exactly even when a page
+scrollbar is present. The width SHALL be applied through a CSS custom property
+consumed by the `.ls-main` grid column and clamped to a sane range (minimum 240px,
+maximum 640px, default 320px). Because the deck body is a CSS query container, deck
+content SHALL adapt automatically to the chosen width. The chosen width SHALL persist
+across reloads via localStorage, a double-click on the handle SHALL reset it to the
+default, and the handle SHALL be keyboard-operable as a `separator` with arrow keys
+and `aria-valuenow`/`-valuemin`/`-valuemax`. On stacked mobile layouts the handle
+SHALL not be operable.
+
+#### Scenario: Dragging the handle resizes the deck strip
+
+- **GIVEN** the Leitstand is open on a desktop viewport
+- **WHEN** the user drags the deck resize handle to the left
+- **THEN** the deck column widens accordingly, clamped between 240px and 640px
+- **AND** the dragged edge follows the pointer exactly, including when a vertical page scrollbar is visible
+- **AND** the deck content re-layouts via its container queries (multi-column once past the compact breakpoint)
+
+#### Scenario: Handle stays reachable while the deck content scrolls
+
+- **GIVEN** a deck whose body overflows and is scrolled down
+- **WHEN** the user moves the pointer to the strip's left edge or tabs to the handle
+- **THEN** the handle is still rendered at the strip's full height, hit-testable across its whole hit zone, and focusable
+
+#### Scenario: Width persists and resets
+
+- **GIVEN** the user resized the deck strip and reloads the page
+- **WHEN** the Leitstand mounts
+- **THEN** the persisted width is applied (clamped)
+- **AND** a double-click on the handle restores the 320px default
+
+#### Scenario: Keyboard resize
+
+- **GIVEN** the resize handle has keyboard focus
+- **WHEN** the user presses the left or right arrow key
+- **THEN** the deck width changes by a fixed step within the clamp range
+- **AND** the handle exposes `role="separator"` with current/min/max values
+
+### Requirement: Deck scroll container reserves a stable scrollbar gutter
+
+The Z5 deck body — being both the CSS query container for deck content and the
+vertical scroll container — SHALL reserve a stable scrollbar gutter
+(`scrollbar-gutter: stable`), so that the appearance or disappearance of a
+classic scrollbar does not change the container's inline size. This prevents a
+layout feedback loop in which the scrollbar toggles the `@container` compact
+breakpoint, which changes content height, which toggles the scrollbar again.
+
+#### Scenario: Resizing through the compact breakpoint does not oscillate
+
+- **GIVEN** the deck strip is being resized across the compact breakpoint with overflowing deck content
+- **WHEN** the vertical scrollbar of the deck body would appear or disappear
+- **THEN** the deck body's inline size is unaffected (the gutter is reserved permanently)
+- **AND** the layout settles without oscillation or renderer stalls
+
 ## Kind-Verteilung
 
 | Kind | Ticket | Status |
@@ -1754,3 +2214,17 @@ Siehe `openspec/changes/sdlc-cockpit-design/design.md`, Abschnitt „Getroffene 
 <!-- merged from change delta sdlc-cockpit.md (33af0a008033) -->
 
 <!-- merged from change delta sdlc-cockpit.md (a4dd239d1298) -->
+
+<!-- merged from change delta sdlc-cockpit.md (70cd97d52f25) -->
+
+<!-- merged from change delta sdlc-cockpit.md (cb1a3c0223d3) -->
+
+<!-- merged from change delta sdlc-cockpit.md (2afbc19a1f73) -->
+
+<!-- merged from change delta sdlc-cockpit.md (645b4f76e935) -->
+
+<!-- merged from change delta sdlc-cockpit.md (8b6f6a7b911a) -->
+
+<!-- merged from change delta sdlc-cockpit.md (fd9f16d0311e) -->
+
+<!-- merged from change delta sdlc-cockpit.md (9eed6752fc02) -->

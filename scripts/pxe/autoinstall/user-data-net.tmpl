@@ -1,0 +1,82 @@
+#cloud-config
+# Ubuntu Server autoinstall ueber PXE (NoCloud-Net).
+# Gerendert von scripts/pxe/setup-pxe.sh.
+#
+# Unterschied zur USB-Variante (scripts/iso/autoinstall/user-data.tmpl):
+# es gibt kein /cdrom. Die Helfer-Skripte kommen per HTTP vom PXE-Server,
+# nicht vom Medium.
+autoinstall:
+  version: 1
+  interactive-sections: []
+${PXE_EARLY_COMMANDS}
+  locale: ${PXE_LOCALE}
+  keyboard:
+    layout: ${PXE_KEYBOARD_LAYOUT}
+  timezone: ${PXE_TIMEZONE}
+
+  identity:
+    hostname: ${PXE_HOSTNAME_FALLBACK}
+    realname: "Cluster Node Admin"
+    username: ${PXE_ADMIN_USER}
+    password: "${PXE_ADMIN_PASSWORD_HASH}"
+
+  ssh:
+    install-server: true
+    allow-pw: ${PXE_SSH_ALLOW_PW}
+    authorized-keys:
+      - "${PXE_SSH_PUBLIC_KEY}"
+
+  storage:
+    layout:
+      name: direct
+      # KEIN match-Block. "match: {size: largest}" liess die Installation auf
+      # einer Maschine mit "Failed to find matching device" abbrechen, waehrend
+      # sie auf der Maschine davor durchlief: findet der Filter keinen
+      # Kandidaten, bricht subiquity ab, statt auf die Standardauswahl
+      # zurueckzufallen. Ohne match waehlt der direct-Layout-Algorithmus die
+      # Platte selbst — bei genau einer Platte ohnehin eindeutig.
+      # Eine bestimmte Platte erzwingt man mit --disk (setzt match.path).${PXE_DISK_MATCH}
+    # Der Schluessel gehoert unter storage — unter user-data wird er
+    # ignoriert und der Installer legt doch eine /swap.img an.
+    swap:
+      size: 0
+
+  packages:
+    - open-iscsi
+    - nfs-common
+    - wireguard
+    - ufw
+    - curl
+    - jq
+    - apt-transport-https
+    - ca-certificates
+    - chrony
+
+  package_update: true
+  package_upgrade: ${PXE_PACKAGE_UPGRADE}
+
+  user-data:
+    disable_root: true
+
+  late-commands:
+    # Helfer vom PXE-Server holen. Beim USB-Weg liegen sie auf dem Medium;
+    # hier ist der Server die einzige Quelle, deshalb ein harter Abbruch,
+    # wenn der Download scheitert — ein Node ohne k3s-join.sh waere still
+    # unbrauchbar.
+    - curtin in-target --target=/target -- sh -c 'curl -fsS -o /usr/local/sbin/k3s-join.sh ${PXE_BASE_URL}/assets/k3s-join.sh'
+    - curtin in-target --target=/target -- chmod 0755 /usr/local/sbin/k3s-join.sh
+    - curl -fsS -o /tmp/assign-identity.sh ${PXE_BASE_URL}/assets/assign-identity.sh
+    - curl -fsS -o /tmp/node-map ${PXE_BASE_URL}/assets/node-map
+    - cp /tmp/node-map /target/etc/cluster-node-map
+    # Hostname aus der MAC-Tabelle setzen. NODE_MAP zeigt auf die eben
+    # geladene Kopie, weil es hier keinen /cdrom-Pfad gibt.
+    - NODE_MAP=/tmp/node-map /bin/bash /tmp/assign-identity.sh /target
+    - curtin in-target --target=/target -- systemctl enable iscsid
+    - curtin in-target --target=/target -- systemctl enable chrony
+    # Regeln anlegen, Firewall aber AUS lassen bis zum Join.
+    - curtin in-target --target=/target -- ufw allow 22/tcp
+    - curtin in-target --target=/target -- ufw allow 6443/tcp
+    - curtin in-target --target=/target -- ufw allow 10250/tcp
+    - curtin in-target --target=/target -- ufw allow 8472/udp
+
+  shutdown: ${PXE_SHUTDOWN_MODE}

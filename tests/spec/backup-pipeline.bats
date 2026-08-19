@@ -40,6 +40,16 @@ REPO_ROOT="${PROJECT_DIR}"
   [ "$output" -ge 1 ]
 }
 
+@test "db-backup cannot overlap and has a bounded runtime" {
+  run grep -cE '^  concurrencyPolicy: Forbid$' "${REPO_ROOT}/k3d/backup-cronjob.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 1 ]
+
+  run grep -cE '^      activeDeadlineSeconds: 7200$' "${REPO_ROOT}/k3d/backup-cronjob.yaml"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 1 ]
+}
+
 @test "backup-restore.sh exists and is runnable" {
   [ -f "${REPO_ROOT}/scripts/backup-restore.sh" ]
   # Script is currently not chmod +x in repo, so check it can be invoked via bash

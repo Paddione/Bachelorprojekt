@@ -11,7 +11,7 @@ const { mockClient, mockPool } = vi.hoisted(() => {
   return { mockClient: client, mockPool: pool };
 });
 
-vi.mock('./website-db', () => ({
+vi.mock('../website-db', () => ({
   pool: mockPool,
 }));
 

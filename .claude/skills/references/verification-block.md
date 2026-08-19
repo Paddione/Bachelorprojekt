@@ -29,10 +29,16 @@ seine Datei-Universe aus `git ls-files` — untracked Dateien werden nicht erfas
 führt zu einem zweiten Durchlauf: erst `git add` der neuen Datei, dann `task
 freshness:regenerate` erneut, dann `freshness:check`. Planbar zwei Runden einplanen.
 
-Bei Änderungen unter `components/website/` zusätzlich: **`cd website && npx astro check`** [T002694].
+Bei Änderungen unter `components/website/` zusätzlich: **`cd components/website && npx astro check`** [T002694].
+
+> **ESLint läuft seit T008454 in `task test:changed` mit** (fail-closed, `eslint . --max-warnings 0`,
+> identisch zum CI-Gate im Job `Vitest (website)`). Erscheint stattdessen die Skip-Meldung
+> „vitest not available", ist damit auch **kein** Lint gelaufen — dann vor dem PR im
+> Haupt-Checkout `cd components/website && pnpm lint` ausführen. Genau diese Lücke ließ bei
+> T007957 (PR #4674) zwei unused-var-Fehler erst in CI auffallen.
 
 > **`tsc --noEmit` ist dafür kein Ersatz.** Der CI-Job heißt `Vitest (website)`, führt aber
-> `vitest + astro check + Knip` aus. `astro check` ist strenger als `tsc` und prüft zusätzlich
+> `vitest + astro check + Knip + ESLint` aus. `astro check` ist strenger als `tsc` und prüft zusätzlich
 > `.astro`-Dateien. Am 2026-08-08 fiel PR #3823 mit `ts(2322)` in `astro check`, während `tsc`
 > und die gezielt ausgeführte Testdatei lokal grün waren — der Jobname führte die Diagnose in
 > die Vitest-Ergebnisse, die grün waren.

@@ -27,7 +27,7 @@
 # Den rollengefilterten Prompt-Block rendert `bash scripts/toolset-context.sh <rolle>`.
 #
 # Gültige Rollen:
-#   bachelorprojekt-website | -ops | -infra | -test | -db | -security | orchestrator | all
+#   bachelorprojekt-website | -ops | -infra | -test | -db | -security | orchestrator | big-pickle | all
 ---
 capabilities:
 
@@ -87,7 +87,7 @@ capabilities:
       use_when: "Read-only SQL gegen die mentolder-DB, Nicht-Ticket-Tabellen."
       avoid_when: "INSERT/UPDATE/DELETE/DDL — jede Query läuft READ ONLY und scheitert."
       fallback: "kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)"
-      roles: [bachelorprojekt-db, orchestrator]
+      roles: [bachelorprojekt-db, orchestrator, big-pickle]
       tier: safe
       deep_ref: ".claude/skills/references/mcp-tool-guide.md"
 

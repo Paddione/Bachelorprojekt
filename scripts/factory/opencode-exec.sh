@@ -14,6 +14,7 @@
 #   2  opencode-Binary nicht gefunden (T003275; bewusst nicht 127)
 #   6  Orchestrator lief, hinterliess aber weder Commit noch Aenderung (T003335)
 #   7  ohne Branch/Plan abgelehnt, Lauf gar nicht erst gestartet (T003773)
+#   8  fuer dieses Ticket laeuft bereits ein Orchestrator-Prozess (T011543)
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
@@ -85,6 +86,70 @@ source "$HERE/readiness-check.sh"
 if ! check_branch_lock "$BRANCH" >/dev/null 2>&1; then
   echo "opencode-exec: $EXT_ID Branch $BRANCH ist geclaimt — kein Launch" >&2
   exit 7
+fi
+
+# --- Prozess-Guard gegen Doppel-Dispatch [T011543] ----------------------------------
+# check_branch_lock oben prueft nur Locks LEBENDER Sessions. Beobachtet 2026-08-17
+# (T008635): der Eltern-opencode-exec des ersten Laufs war tot (systemd-Kill), der
+# Orchestrator lief aber weiter — der naechste Tick startete einen zweiten in
+# DENSELBEN Worktree. Deshalb direkt auf einen lebenden Orchestrator-Prozess mit
+# der Ticket-Signatur in der cmdline pruefen (der eigene opencode-Aufruf startet
+# erst spaeter, matcht hier also nicht).
+if pgrep -f "Implement ticket ${EXT_ID} from its staged plan" >/dev/null 2>&1; then
+  phase_event blocked orchestrator all 0 8 already_running
+  echo "opencode-exec: $EXT_ID — es laeuft bereits ein Orchestrator-Prozess fuer dieses Ticket, kein zweiter Launch (exit 8)" >&2
+  exit 8
+fi
+
+# PR-Schritt + Orphan-Erkennung (T011543): has_implementation / ensure_pr.
+# shellcheck source=scripts/factory/pr-ready.sh
+source "$HERE/pr-ready.sh"
+
+# --- PR-Schritt-CI-Signal (T012266) ----------------------------------------------------
+# Nach erfolgreichem ensure_pr: best-effort Check-Runs-Lesen auf dem PR-HEAD.
+# Ein PR-HEAD ohne Check-Runs (total_count=0) ist KEIN pr-ready — CI lief nie
+# (Sekundaerbefund 3 aus T012239); die CI-Erkennung haengt sonst allein am
+# Cron-Scanner babysit-prs.sh. Fail-soft: schlaegt ein gh-Call fehl, bleibt das
+# bisherige done-Event — kein Exit-Code-Wechsel. Wird von Kurzschluss- (T011581)
+# und Regulaer-Pfad gemeinsam genutzt.
+pr_ready_signal() { # <duration_s>
+  local dur_s="${1:-0}" head_oid total
+  head_oid="$(gh pr view -R Paddione/Bachelorprojekt "$BRANCH" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")"
+  if [[ -z "$head_oid" ]]; then
+    phase_event done orchestrator pr-ready "$dur_s" 0
+    return
+  fi
+  total="$(gh api "repos/Paddione/Bachelorprojekt/commits/${head_oid}/check-runs" -q '.total_count' 2>/dev/null || echo "")"
+  if [[ "$total" == "0" ]]; then
+    echo "opencode-exec: $EXT_ID — ci-never-ran: PR-HEAD hat keine Check-Runs" >&2
+    phase_event blocked orchestrator pr-ready "$dur_s" 0 ci_never_ran
+  elif [[ -n "$total" ]]; then
+    phase_event done orchestrator pr-ready "$dur_s" 0 "ci=${total}-checks"
+  else
+    phase_event done orchestrator pr-ready "$dur_s" 0
+  fi
+}
+
+# --- Pre-Run-Orphan-Kurzschluss [T011581] -------------------------------------------
+# Die Orphan-Rettung aus T011543 sitzt im Ergebnis-Check HINTER dem opencode-
+# Aufruf: ein bereits fertig gepushtes Ticket verbrannte erst einen kompletten
+# serialisierten Orchestrator-Lauf (max_inflight=1 — drei parallele Runs teilen
+# sich einen GPU-Slot), bevor die fertige Arbeit erkannt wurde. Beobachtet
+# 2026-08-17 an T008014: Commit [T008014] seit 20:34 auf origin, danach zwei
+# volle Re-Implement-Laeufe (einer starb an einer opencode-Kompaktierung, die
+# anderen am systemd-Kill). Deshalb VOR dem Lauf: sauberer Worktree + vorhandener
+# Implementierungs-Commit => direkt zum PR-Schritt, kein LLM-Lauf.
+if [[ -z "$(git -C "$LAUNCH_DIR" status --porcelain 2>/dev/null)" ]] \
+   && has_implementation "$LAUNCH_DIR" "$EXT_ID"; then
+  echo "opencode-exec: $EXT_ID — Implementierungs-Commit [$EXT_ID] liegt bereits auf ${BRANCH}; kein erneuter Orchestrator-Lauf, direkt zum PR-Schritt [T011581]" >&2
+  phase_event done orchestrator all 0 0 already_implemented
+  if ensure_pr "$LAUNCH_DIR" "$BRANCH" "$EXT_ID"; then
+    pr_ready_signal 0
+  else
+    phase_event blocked orchestrator pr-ready 0 0 pr_step_failed
+  fi
+  bash "$REPO/scripts/ticket.sh" retry-count reset --id "$EXT_ID" >/dev/null 2>&1 || true
+  exit 0
 fi
 
 phase_event entered orchestrator all 0 0
@@ -160,6 +225,14 @@ if [[ $ex -eq 0 ]]; then
     produced_work=true
   elif [[ -n "$(git -C "$LAUNCH_DIR" status --porcelain 2>/dev/null)" ]]; then
     produced_work=true
+  elif has_implementation "$LAUNCH_DIR" "$EXT_ID"; then
+    # Orphan-Rettung (T011543): der Branch traegt bereits einen gepushten
+    # Implementierungs-Commit [EXT_ID] ahead of origin/main — ein frueherer Lauf
+    # hat geliefert, aber sein Nachlauf (PR) ging verloren (z. B. systemd-Kill).
+    # Ohne diesen Zweig wuerde fertige Arbeit als exit 6 gezaehlt und nach drei
+    # Runden per T003810 mitsamt Worktree verworfen.
+    produced_work=true
+    echo "opencode-exec: $EXT_ID — Implementierung liegt bereits auf ${BRANCH} (ahead of origin/main); Lauf zaehlt als done, PR-Schritt folgt [T011543]" >&2
   fi
   if [[ "$produced_work" != true ]]; then
     ex=6   # kollisionsfrei: 2 Bedienfehler, 127 Kommando fehlt
@@ -168,6 +241,21 @@ if [[ $ex -eq 0 ]]; then
 fi
 
 state=done; [[ $ex -ne 0 ]] && state=blocked
+
+# --- PR-Schritt (T011543) ------------------------------------------------------------
+# Der Orchestrator-Prompt verbietet dem LLM das PR-Oeffnen ("the caller does
+# that after verifying the result") — verifiziert ist hier (produced_work), also
+# oeffnet der Caller jetzt den PR. Kein Auto-Merge: der D3-Trial stoppt am
+# pr-ready-Gate, offene PRs betreut babysit-prs.sh. Schlaegt der Schritt fehl,
+# bleibt state=done: das Ticket bleibt plan_staged, der naechste Tick landet in
+# der Orphan-Erkennung oben und holt den PR nach.
+if [[ "$state" == done ]]; then
+  if ensure_pr "$LAUNCH_DIR" "$BRANCH" "$EXT_ID"; then
+    pr_ready_signal "$dur"
+  else
+    phase_event blocked orchestrator pr-ready "$dur" 0 pr_step_failed
+  fi
+fi
 
 # --- terminal telemetry: one event per partial (deterministic gang-slot mapping) -----
 if [[ ${#partial_ids[@]} -eq 0 ]]; then

@@ -13,10 +13,19 @@ metadata:
     graph.bachelorprojekt.de/depends-on: shared-db
 spec:
   schedule: "0 2 * * *"
+  # A second backup cannot usefully run while the first still owns backup-pvc.
+  # This also prevents a stuck upload sidecar from accumulating daily Pods and
+  # exhausting CPU requests on the PVC's node.
+  concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      # The completion marker lives on emptyDir. If the upload container
+      # restarts after backup completed, that marker can be lost; cap the Job
+      # so it releases its requests instead of waiting forever.
+      activeDeadlineSeconds: 7200
+      backoffLimit: 2
       template:
         metadata:
           labels:

@@ -122,7 +122,14 @@ _stub_gh_runlog() {
 }
 
 @test "T001805: CONFLICTING PRs get labelled + notified, never fixed" {
-  _stub_gh_prs '[{"number":51,"isDraft":false,"mergeStateStatus":"CONFLICTING","headRefName":"fix/c","author":{"login":"paddione"},"labels":[],"statusCheckRollup":[{"conclusion":"FAILURE"}]}]'
+  # [T012500] Der Stub trug bis hierher mergeStateStatus:"CONFLICTING" — einen
+  # Wert, den GitHub in diesem Feld nie liefert. Das Enum fuehrt BEHIND/BLOCKED/
+  # CLEAN/DIRTY/DRAFT/HAS_HOOKS/UNKNOWN/UNSTABLE; der Konflikt heisst dort DIRTY.
+  # CONFLICTING ist der Wert des SEPARATEN Feldes mergeable. Der Test bestaetigte
+  # damit eine Fiktion und deckte den realen Fall nicht ab — an PR #4780 lief die
+  # Factory deshalb 25 Minuten in den Fix-Pfad, den D7 verbietet.
+  # Stub jetzt so, wie GitHub tatsaechlich antwortet.
+  _stub_gh_prs '[{"number":51,"isDraft":false,"mergeStateStatus":"DIRTY","mergeable":"CONFLICTING","headRefName":"fix/c","author":{"login":"paddione"},"labels":[],"statusCheckRollup":[{"conclusion":"FAILURE"}]}]'
   FACTORY_DRY_RESOLVE=1 run bash "$BABYSIT"
   [[ "$output" == *"QA_NOTIFY_PAYLOAD"* ]]
   run grep -E 'pr edit 51 --add-label ci-babysitter-conflict' "$ARGV_LOG"

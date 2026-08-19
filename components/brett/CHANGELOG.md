@@ -1,6 +1,20 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.41.3](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.2...brett-v0.41.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** release-please writes into components/, CLAUDE.md guards unpinned [T012406] [T012408] ([#4770](https://github.com/Paddione/Bachelorprojekt/issues/4770)) ([226c36c](https://github.com/Paddione/Bachelorprojekt/commit/226c36cb2cc38589ebc23161fc24fb1b6555ffdf))
+
+## [0.41.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.1...brett-v0.41.2) (2026-08-18)
+
+
+### Tests
+
+* **ci:** RED guards for gitlab k8s runner + registry cache [T012177] ([#4749](https://github.com/Paddione/Bachelorprojekt/issues/4749)) ([2730a35](https://github.com/Paddione/Bachelorprojekt/commit/2730a35cdf493b4dc924b3195a624d7ab984947b))
+
 ## [0.41.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.0...brett-v0.41.1) (2026-08-03)
 
 

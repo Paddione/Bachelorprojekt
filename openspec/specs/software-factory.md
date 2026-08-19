@@ -3447,6 +3447,68 @@ the factory tick indefinitely.
 - **WHEN** the sandbox backend is resolved
 - **THEN** the mode resolves to `docker` as before (unchanged behavior)
 
+### Requirement: opencode-exec meldet einen PR-HEAD ohne Check-Runs
+
+After the PR step succeeds, `scripts/factory/opencode-exec.sh` SHALL query the
+check-runs API for the PR's `headRefOid` (best-effort) and SHALL, when
+`total_count == 0`, print a `ci-never-ran` diagnostic and record a `blocked`
+phase event for `pr-ready` instead of `done`. A `gh` failure during this query
+SHALL NOT change the exit code or the `done` event.
+
+#### Scenario: PR-HEAD ohne Check-Runs wird gemeldet
+- **GIVEN** `ensure_pr` succeeded and the PR's `headRefOid` has
+  `total_count = 0`
+- **WHEN** `opencode-exec.sh` completes the PR step
+- **THEN** it SHALL print a diagnostic containing `ci-never-ran`
+- **AND** the pr-ready phase event SHALL be recorded as `blocked`
+
+#### Scenario: PR-HEAD mit Check-Runs bleibt done
+- **GIVEN** `ensure_pr` succeeded and the PR's `headRefOid` has
+  `total_count > 0`
+- **WHEN** `opencode-exec.sh` completes the PR step
+- **THEN** it SHALL NOT print a `ci-never-ran` diagnostic
+- **AND** the pr-ready phase event SHALL be recorded as `done`
+
+#### Scenario: gh-Ausfall lässt die Kette unbeschadet
+- **GIVEN** the `headRefOid` or check-runs call fails
+- **WHEN** `opencode-exec.sh` completes the PR step
+- **THEN** it SHALL keep the `done` event and exit with the unchanged code
+
+### Requirement: FA-SF-25-Tests deterministisch auf geteilter Dev-DB
+
+The FA-SF-25 schedule tests (`tests/spec/software-factory/scheduling.bats`) SHALL
+run deterministically against the shared dev DB even when foreign tickets occupy
+slots or foreign backlog candidates are queued. They SHALL NOT assume the
+precondition of a "clean dev DB".
+
+The test caps SHALL be derived from the live slot baseline instead of hardcoded
+values: `base_used` mirrors the `global_used` calculation of `schedule.sh` (sum of
+the `slots.sh count` values of both brands), and
+`FACTORY_GLOBAL_CAP`/`FACTORY_SLOTS_PER_BRAND` are raised by the headroom the
+test needs. The tests SHALL run a bounded retry (fresh baseline measurement and
+seed reset per attempt) so slot claims of foreign sessions between measurement
+and run cannot exhaust the headroom. The plan JSON SHALL be extracted from the
+last line of the script output, since BATS merges stderr warnings of foreign
+candidates into `$output` before the final plan line. Test seeds SHALL be ranked
+deterministically ahead of foreign candidates (`priority='hoch'`,
+`created_at='2000-01-01'`) so they receive the headroom slots; the global-cap
+test SHALL assert by positive anchor that the single planned entry is the own
+seed.
+
+#### Scenario: Foreign occupied slots do not exhaust the test cap
+
+- **GIVEN** the shared dev DB has foreign `in_progress` tickets with `pipeline_slot` set
+- **WHEN** the FA-SF-25 "two disjoint backlog features" test seeds two features and runs `schedule.sh` with the baseline-derived cap
+- **THEN** both seeded features receive a slot in the plan
+- **AND** the test asserts on the last output line, ignoring stderr warnings
+
+#### Scenario: Global cap of one schedules the own seed only
+
+- **GIVEN** the shared dev DB has foreign backlog candidates in the queue
+- **WHEN** the FA-SF-25 "global cap of 1" test seeds two features and runs `schedule.sh` with headroom 1
+- **THEN** exactly the first-ranked own seed is planned
+- **AND** the test asserts `length == 1` with the own seed's `external_id` as positive anchor
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -5410,3 +5472,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (53c15a2effb7) -->
 
 <!-- merged from change delta software-factory.md (56dcb680a0a1) -->
+
+<!-- merged from change delta software-factory.md (363384a38cc4) -->
+
+<!-- merged from change delta software-factory.md (957a075c3ebc) -->

@@ -1,10 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Alibaba Intl Token Plan (qwen3.8-max via token-plan) als Standard — Fallback
-  // Kette: alibaba-intl/qwen3.8-max (default) → opencode-go/deepseek-v4-flash (Go-Sub) →
-  // deepseek/deepseek-v4-flash (direkte API). Falls der Token Plan ausfällt oder
-  // abgelaufen ist, rutscht opencode automatisch auf DeepSeek zurück.
-  "model": "alibaba-intl/qwen3.8-max",
+  // Lokales Gemma 4 26B A4B (IT-Quant, IQ4_XS) als Standard [T012409]. Es ist das
+  // einzige Modell, das das Gateway auf :18235 listet — die Backend-Registry
+  // tickets.llm_proxy_backends hat nur llamacpp-gemma (Port 8091) aktiv.
+  // Gemessen 2026-08-18: 167.168 Kontext gesamt / 55.722 je Slot, 122-128 tok/s.
+  //
+  // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
+  // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
+  "model": "llamacpp-local/gemma26-factory",
   "permission": {
     "read": "allow",
     "edit": "allow",

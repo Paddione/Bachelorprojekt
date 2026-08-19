@@ -69,7 +69,7 @@ kubectl --context fleet -n workspace-korczewski delete job pocket-id-client-seed
 
 ```bash
 bash scripts/llm-host-setup.sh
-task llm:pull-models HOST=<wg-mesh-ip>
+bash scripts/llm-pull-models.sh <ssh-host>   # kein task-Wrapper — Skript direkt
 ```
 
 ### Phase 2 — Deploy
@@ -103,7 +103,7 @@ kubectl --context fleet -n <ns> get events --field-selector involvedObject.name=
 ### Phase 6 — Model Management
 
 ```bash
-task llm:pull-models HOST=<wg-mesh-ip>
+bash scripts/llm-pull-models.sh <ssh-host>   # kein task-Wrapper — Skript direkt
 ssh <GPU_HOST> "ollama list && ollama pull qwen2.5:14b-instruct-q4_K_M"
 ```
 
@@ -167,8 +167,8 @@ task workspace:deploy ENV=<env>
 ### Typ D — Claude Code Token
 
 ```bash
-task claude-code:rotate-tokens
-task mcp:status
+bash scripts/secret-rotate.sh --env <env>   # rotiert exponierte Credentials inkl. Agent-Token
+task mcp:check                              # MCP-Registry-Drift gegen die Harness-Configs
 ```
 
 ### Cross-Brand Checklist

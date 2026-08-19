@@ -48,9 +48,16 @@ bash "$HERE/agent-lock.sh" reap >&2 2>/dev/null || true
 # auf veraltetem Stand ist wertlos — die Sektion wird dann übersprungen und als
 # "skipped" ausgewiesen, statt falsche Zahlen zu liefern. Dasselbe Lock-Test-Muster
 # wie scripts/factory/mcp-server.mjs factory_status.
+# [T012414] Der Pfad ist überschreibbar, damit ein Test nicht auf den echten,
+# geteilten Lock angewiesen ist. Auf einem self-hosted Runner gehört
+# /tmp/factory-tick.lock einem anderen User; der Test scheiterte dort schon beim
+# Anlegen ("Permission denied") und maß dann die Eigenschaft gar nicht. Der
+# Default bleibt der geteilte Pfad — die Absprache mit der Factory
+# (scripts/factory/mcp-server.mjs factory_status) hängt genau daran.
+FACTORY_TICK_LOCK="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
 tick_running() {
-  test -f /tmp/factory-tick.lock || return 1
-  (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+  test -f "$FACTORY_TICK_LOCK" || return 1
+  (flock -n 9 2>/dev/null && return 1 || return 0) 9>"$FACTORY_TICK_LOCK"
 }
 TICK_RUNNING=0
 if tick_running; then

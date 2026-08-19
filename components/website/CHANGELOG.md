@@ -1,5 +1,92 @@
 # Changelog
 
+## [1.286.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.4...website-v1.286.5) (2026-08-19)
+
+
+### Bug Fixes
+
+* **factory:** Branch-Namen aus dem Ticket-Typ bilden, Ticket-ID gross [T012502] ([#4801](https://github.com/Paddione/Bachelorprojekt/issues/4801)) ([be1e752](https://github.com/Paddione/Bachelorprojekt/commit/be1e752f1e9dabc6b23dd9a7f59ef80fad838602))
+
+## [1.286.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.3...website-v1.286.4) (2026-08-19)
+
+
+### CI/CD
+
+* Container-Artefakte in die GitLab Registry spiegeln [T012415] ([#4780](https://github.com/Paddione/Bachelorprojekt/issues/4780)) ([7482261](https://github.com/Paddione/Bachelorprojekt/commit/748226149a12ec6741435f259c14767e1f2d461b))
+
+## [1.286.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.2...website-v1.286.3) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** $$-Unwrapping deckt ( ! ? ab, gitlab-runner-Escaping zurueck [T012503] ([#4800](https://github.com/Paddione/Bachelorprojekt/issues/4800)) ([d8de489](https://github.com/Paddione/Bachelorprojekt/commit/d8de489f10664260ffaee2310979c81da7510ccc))
+
+## [1.286.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.1...website-v1.286.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* **factory:** Konflikt-Guard prueft das Feld, das den Konflikt fuehrt [T012500] ([#4796](https://github.com/Paddione/Bachelorprojekt/issues/4796)) ([d12f66c](https://github.com/Paddione/Bachelorprojekt/commit/d12f66c0cc7dd887b51bc9654707dc313408378f))
+
+## [1.286.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.0...website-v1.286.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** Prod-E2E-Projektauswahl positiv aufzählen statt scheinnegieren [T012489] ([#4792](https://github.com/Paddione/Bachelorprojekt/issues/4792)) ([600a99f](https://github.com/Paddione/Bachelorprojekt/commit/600a99f291be4e863ac81f1b53dcf5461afdaea8))
+
+## [1.286.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.2...website-v1.286.0) (2026-08-18)
+
+
+### Features
+
+* **ci:** Runner-Zuordnung über Capability-Labels erzwingen [T012488] ([#4789](https://github.com/Paddione/Bachelorprojekt/issues/4789)) ([3b39adf](https://github.com/Paddione/Bachelorprojekt/commit/3b39adf661928b55b31809efa2edc410050bccf1))
+
+## [1.285.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.1...website-v1.285.2) (2026-08-18)
+
+
+### CI/CD
+
+* **ci:** distribute portable PR gates [T012446] ([#4785](https://github.com/Paddione/Bachelorprojekt/issues/4785)) ([5cb6bcd](https://github.com/Paddione/Bachelorprojekt/commit/5cb6bcd413874b559054c0754e379870ec87ab06))
+
+## [1.285.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.0...website-v1.285.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** unbekannter Ticket-Status reicht auf die MERGED-PR-Signale durch [T012412] ([#4775](https://github.com/Paddione/Bachelorprojekt/issues/4775)) ([b9548da](https://github.com/Paddione/Bachelorprojekt/commit/b9548da9adec23a7759607ffdfcc02a5f7828e28))
+
+## [1.285.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.3...website-v1.285.0) (2026-08-18)
+
+
+### Features
+
+* **ci:** GitLab job parity + branch mirroring, gate flip deferred [T012405] ([#4766](https://github.com/Paddione/Bachelorprojekt/issues/4766)) ([603ac88](https://github.com/Paddione/Bachelorprojekt/commit/603ac88757395a0dc6a4ebba8a88f7a340c26a8a))
+
+## [1.284.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.2...website-v1.284.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** release-please writes into components/, CLAUDE.md guards unpinned [T012406] [T012408] ([#4770](https://github.com/Paddione/Bachelorprojekt/issues/4770)) ([226c36c](https://github.com/Paddione/Bachelorprojekt/commit/226c36cb2cc38589ebc23161fc24fb1b6555ffdf))
+* **ci:** yq, envsubst und PyYAML in den GitLab-bats-unit-Job aufnehmen [T012309] ([#4755](https://github.com/Paddione/Bachelorprojekt/issues/4755)) ([7915f15](https://github.com/Paddione/Bachelorprojekt/commit/7915f152c8a06700e40dcde692b7bea9206c7306))
+* **scripts:** add CI signal check after PR step [T012266] ([#4761](https://github.com/Paddione/Bachelorprojekt/issues/4761)) ([cb6ed2c](https://github.com/Paddione/Bachelorprojekt/commit/cb6ed2cda220e052db1985e1be0751e2746d6f41))
+* **scripts:** detect PRs where CI never ran [T012264] ([#4760](https://github.com/Paddione/Bachelorprojekt/issues/4760)) ([9ac97ed](https://github.com/Paddione/Bachelorprojekt/commit/9ac97ed174f49e9047307e25a3d5978a503f40ff))
+* **scripts:** ticket-grill Ueberschriften-Regex mawk-tauglich machen [T012310] ([#4758](https://github.com/Paddione/Bachelorprojekt/issues/4758)) ([79f7bcb](https://github.com/Paddione/Bachelorprojekt/commit/79f7bcb570a6cdf0e9b1558b1336576491ba63cb))
+* **test:** baseline-aware caps for FA-SF-25 scheduling [T008757] ([#4763](https://github.com/Paddione/Bachelorprojekt/issues/4763)) ([6fa5b0b](https://github.com/Paddione/Bachelorprojekt/commit/6fa5b0b7b6537691b10368e208cdba6025da0961))
+
+
+### Tests
+
+* **ci:** 8 veraltete Testerwartungen der GitLab-Testserie korrigieren [T011907] ([#4752](https://github.com/Paddione/Bachelorprojekt/issues/4752)) ([689651f](https://github.com/Paddione/Bachelorprojekt/commit/689651f142a2f66d127dc693c48943df67ebdd1d))
+
+## [1.284.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.1...website-v1.284.2) (2026-08-18)
+
+
+### Tests
+
+* **ci:** RED guards for gitlab k8s runner + registry cache [T012177] ([#4749](https://github.com/Paddione/Bachelorprojekt/issues/4749)) ([2730a35](https://github.com/Paddione/Bachelorprojekt/commit/2730a35cdf493b4dc924b3195a624d7ab984947b))
+
 ## [1.284.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.284.0...website-v1.284.1) (2026-08-15)
 
 

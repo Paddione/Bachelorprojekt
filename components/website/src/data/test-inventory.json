@@ -2538,6 +2538,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-unknown-ticket-merged-pr",
+    "file": "tests/spec/ci-cd/branch-reaper-unknown-ticket-merged-pr.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/cfr-trend-window",
     "file": "tests/spec/ci-cd/cfr-trend-window.bats",
     "category": "ci-cd",
@@ -2558,6 +2564,12 @@
   {
     "id": "ci-cd/changed-tests-uncommitted-diff",
     "file": "tests/spec/ci-cd/changed-tests-uncommitted-diff.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/ci-diff-base",
+    "file": "tests/spec/ci-cd/ci-diff-base.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2594,6 +2606,12 @@
   {
     "id": "ci-cd/docs-content-guards",
     "file": "tests/spec/ci-cd/docs-content-guards.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/e2e-project-selection",
+    "file": "tests/spec/ci-cd/e2e-project-selection.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2652,6 +2670,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-job-coverage",
+    "file": "tests/spec/ci-cd/gitlab-job-coverage.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-mirror-workflow",
     "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
     "category": "ci-cd",
@@ -2672,6 +2696,12 @@
   {
     "id": "ci-cd/gitlab-registry-cache",
     "file": "tests/spec/ci-cd/gitlab-registry-cache.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-registry-mirror",
+    "file": "tests/spec/ci-cd/gitlab-registry-mirror.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2712,6 +2742,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/hybrid-runner-placement",
+    "file": "tests/spec/ci-cd/hybrid-runner-placement.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",
@@ -2748,8 +2784,20 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/runner-role-assignment",
+    "file": "tests/spec/ci-cd/runner-role-assignment.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/self-hosted-fork-guard",
     "file": "tests/spec/ci-cd/self-hosted-fork-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/self-hosted-no-root-install",
+    "file": "tests/spec/ci-cd/self-hosted-no-root-install.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3306,6 +3354,12 @@
     "kind": "shell"
   },
   {
+    "id": "flux-render-security/runtime-var-unwrapping",
+    "file": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",
@@ -3668,12 +3722,6 @@
   {
     "id": "local-llm-proxy/proxy-tests-registered",
     "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/qwen3-coder-loadout",
-    "file": "tests/spec/local-llm-proxy/qwen3-coder-loadout.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4380,6 +4428,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-structure/release-please-paths",
+    "file": "tests/spec/repo-structure/release-please-paths.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
     "id": "repo-structure/root-agent-md",
     "file": "tests/spec/repo-structure/root-agent-md.bats",
     "category": "repo-structure",
@@ -4842,6 +4896,18 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/babysit-prs-ci-never-ran",
+    "file": "tests/spec/software-factory/babysit-prs-ci-never-ran.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/babysit-prs-conflict-guard-T012500",
+    "file": "tests/spec/software-factory/babysit-prs-conflict-guard-T012500.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",
@@ -4856,6 +4922,12 @@
   {
     "id": "software-factory/batch-closure-title-children",
     "file": "tests/spec/software-factory/batch-closure-title-children.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/branch-naming-T012502",
+    "file": "tests/spec/software-factory/branch-naming-T012502.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4940,6 +5012,12 @@
   {
     "id": "software-factory/opencode-exec-binary-resolution",
     "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-ci-signal",
+    "file": "tests/spec/software-factory/opencode-exec-ci-signal.bats",
     "category": "software-factory",
     "kind": "shell"
   },

@@ -77,3 +77,44 @@ EOF
   [ "$status" -ne 0 ] \
     || { echo "❌ Bug reproduziert: leere API-Antwort wurde als gültiges Urteil behandelt (exit 0)"; echo "$output"; false; }
 }
+
+# ── T012405: die abgefragte Projekt-ID ist die des Mirror-Ziels ──────────────
+
+@test "gitlab-pipeline-check: fragt nicht mehr das zur Loeschung vorgemerkte Projekt ab" {
+  # Belegter Fehlschlag (T012405): Das Skript fragte 85496968 ab. Dieses Projekt
+  # heisst inzwischen 'Paddione/Bachelorprojekt-deletion_scheduled-85496968';
+  # gepusht wird laengst nach 85506856 (p.korczewski/Bachelorprojekt).
+  #
+  # Der Schaden lag nicht darin, dass die Abfrage scheiterte — sie GELANG. Das
+  # tote Projekt antwortet weiter mit seinen letzten, gruenen Pipelines. Die
+  # Diagnose meldete also "alles gruen" fuer ein Projekt, in das seit dem Umzug
+  # nichts mehr gepusht wird. Genau deshalb reicht hier keine Erreichbarkeits-
+  # pruefung: eine Antwort ist kein Beleg dafuer, dass sie vom richtigen Ort kommt.
+  script="${REPO_ROOT}/scripts/gitlab-pipeline-check.sh"
+  [ -f "$script" ]
+
+  # Positiv-Anker [T002356-M1]: Es wird ueberhaupt eine Projekt-ID gesetzt.
+  # Ohne ihn bestuende die Abwesenheitspruefung auch bei geloeschter Zeile.
+  ids="$(grep -oE 'GITLAB_PROJECT_ID:-[0-9]+' "$script" | grep -oE '[0-9]+')"
+  echo "Anker: gefundene Default-Projekt-ID='${ids}'"
+  [ -n "$ids" ]
+
+  if grep -q '85496968' "$script"; then
+    # Der Kopfkommentar DARF die alte ID nennen (er erklaert den Wechsel) —
+    # die API-URL darf sie nicht mehr tragen.
+    if grep -E '^[^#]*api/v4/projects' "$script" | grep -q '85496968'; then
+      echo "Die API-URL fragt weiterhin das zur Loeschung vorgemerkte Projekt 85496968 ab" >&2
+      false
+    fi
+  fi
+}
+
+@test "gitlab-pipeline-check: die Projekt-ID ist ohne Commit ueberschreibbar" {
+  # Ein zweiter Kontowechsel soll keine Codeaenderung erzwingen — und vor allem
+  # soll die ID EINE Fundstelle haben, damit der naechste Wechsel nicht wieder
+  # eine Kopie stehen laesst.
+  script="${REPO_ROOT}/scripts/gitlab-pipeline-check.sh"
+  run grep -c 'GITLAB_PROJECT_ID' "$script"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 2 ]
+}

@@ -10,10 +10,12 @@ VideoVault is a client-first video management app. The browser is the primary da
 
 **Documentation references:**
 - [README.md](README.md) -- Quick start, environment setup, testing guide, architecture, API reference
-- [docs/services/videovault.md](../docs/services/videovault.md) -- Deep dive: client-first architecture, core services
-- [docs/guides/testing.md](../docs/guides/testing.md) -- Shared testing patterns and CI
-- [docs/guides/deployment.md](../docs/guides/deployment.md) -- Deployment to k3s
-- [docs/architecture/database.md](../docs/architecture/database.md) -- Shared PostgreSQL setup
+- [../../CLAUDE.md](../../CLAUDE.md) -- Repo-wide conventions (deploy, overlays, agent routing)
+- [../../tests/CLAUDE.md](../../tests/CLAUDE.md) -- Test and BATS conventions
+
+> There is no `components/docs/` tree. This file was imported from the standalone
+> VideoVault repo, which had one; the links to `docs/services/`, `docs/guides/` and
+> `docs/architecture/` pointed at nothing here and were removed rather than re-pointed.
 
 ## Commands
 
@@ -83,18 +85,15 @@ npm run db:push                # Apply Drizzle schema to Postgres
 
 **Production** runs on **k3s** (lightweight Kubernetes). Do not use Docker Compose for production.
 
-**Deploy with shell scripts** (build + push + restart):
-```bash
-../../k8s/scripts/deploy/deploy-videovault.sh                # Build, push, deploy
-../../k8s/scripts/deploy/deploy-videovault.sh --manifests-only  # Manifest-only (config changes)
-```
+**Deploy is CI-driven.** Merging to `main` triggers `.github/workflows/build-videovault.yml`
+(paths `components/VideoVault/**`, `packages/videovault-player/**`), which builds the image
+and rolls it out. There is nothing to run by hand for a normal release.
 
-**Or use Skaffold** (alternative, requires defaultRepo — not usable from WSL2):
-```bash
-cd ../../k8s && skaffold run -p videovault   # Build + deploy VideoVault
-```
+K8s manifests: `k3d/videovault.yaml` and `k3d/videovault-uploads-pvc.yaml` (Kustomize base,
+layered by the `prod-fleet/<brand>` overlays like every other service).
 
-K8s manifests: `k8s/services/videovault/`. Skaffold config: `k8s/skaffold.yaml`. Full deployment guide: `k8s/README.md`.
+> There is no `k8s/` directory, no `deploy-videovault.sh` and no Skaffold config in this
+> repo — those came from the standalone VideoVault repo this component was imported from.
 
 ## Directory Structure
 

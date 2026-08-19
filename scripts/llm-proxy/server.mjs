@@ -44,8 +44,15 @@ if (rolesError) console.error(`[bge-routes] ${rolesError.message}`);
 // um per-Backend-Semaphor T002128-p4): mehrere gleichzeitige Requests an DENSELBEN
 // Backend serialisiert der Proxy in einem per-Backend-Semaphor. Default max_inflight=1
 // => byte-identisch zur bisherigen Promise-Kette (genau 1 in-flight, strikte FIFO).
-// max_inflight >1 erlaubt echte Parallelitaet pro Backend (z. B. fuer die Bonsai-
-// Gang). Die max_tokens-Deckelung (Context-Budget) bleibt unveraendert erhalten.
+// max_inflight >1 erlaubt echte Parallelitaet pro Backend. Die max_tokens-Deckelung
+// (Context-Budget) bleibt unveraendert erhalten — sie haengt am Modellkontext, nicht
+// am Semaphor.
+//
+// [T012414] Der frueher hier genannte Anwendungsfall "Bonsai-Gang" existiert nicht
+// mehr. Aktuell nutzen ihn die GPU-Chat-Backends mit max_inflight=3, passend zu
+// '-np 3 -kvu' auf der llama.cpp-Seite: ohne beides zusammen bringt der zweite Slot
+// nichts, weil entweder der Server nur einen fuehrt oder der Proxy nur einen
+// durchlaesst. Messung: scripts/llm/measurements/2026-08-19-gemma12-slots.md.
 const CTX_MARGIN = Number(process.env.LLM_PROXY_CTX_MARGIN || 1024); // Chat-Template/Tool-Schema-Overhead, den /tokenize nicht sieht
 const SAFETY_MARGIN = Number(process.env.LLM_PROXY_SAFETY_MARGIN || 256);
 const MIN_OUTPUT_BUDGET = Number(process.env.LLM_PROXY_MIN_OUTPUT || 64);

@@ -3999,6 +3999,12 @@
       "status": "plan_staged"
     }
   ],
+  "T008757": [
+    {
+      "slug": "2026-08-18-fix-fa-sf-25-scheduling-cap",
+      "status": "archived"
+    }
+  ],
   "T009368": [
     {
       "slug": "2026-08-18-fix-devflow-post-merge-deploy-grep",
@@ -4053,6 +4059,12 @@
       "status": "archived"
     }
   ],
+  "T011793": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-18-T011793",
+      "status": "plan_staged"
+    }
+  ],
   "T011907": [
     {
       "slug": "2026-08-18-gitlab-ci-testserie-fixes",
@@ -4095,16 +4107,58 @@
       "status": "plan_staged"
     }
   ],
+  "T012264": [
+    {
+      "slug": "fix-babysit-prs-ci-never-ran",
+      "status": "plan_staged"
+    }
+  ],
   "T012265": [
     {
       "slug": "fix-pr-babysit-head-sha",
       "status": "plan_staged"
     }
   ],
+  "T012266": [
+    {
+      "slug": "2026-08-18-fix-opencode-exec-ci-signal",
+      "status": "archived"
+    }
+  ],
   "T012267": [
     {
       "slug": "2026-08-18-fix-gitlab-pipeline-check",
       "status": "archived"
+    }
+  ],
+  "T012405": [
+    {
+      "slug": "2026-08-18-gitlab-ci-migration-stage3",
+      "status": "archived"
+    }
+  ],
+  "T012412": [
+    {
+      "slug": "2026-08-18-fix-reaper-unknown-ticket-merged-pr",
+      "status": "archived"
+    }
+  ],
+  "T012415": [
+    {
+      "slug": "gitlab-registry-mirror",
+      "status": "plan_staged"
+    }
+  ],
+  "T012446": [
+    {
+      "slug": "hybrid-github-actions-runners",
+      "status": "plan_staged"
+    }
+  ],
+  "T012488": [
+    {
+      "slug": "runner-role-assignment",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

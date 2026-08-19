@@ -105,6 +105,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Mirror image to GitLab registry
+        continue-on-error: true
+        env:
+          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
+          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+          SOURCE_TAGS: |
+            ${{ steps.compute-tags.outputs.image }}:${{ steps.compute-tags.outputs.sha_tag }}
+            ${{ steps.compute-tags.outputs.image }}:latest
+            ${{ steps.compute-tags.outputs.image }}:dev
+        run: bash scripts/mirror-image-to-gitlab.sh
+
   render-artifact:
     name: Re-render fleet artifact (pins website SHA)
     needs: [build-image]

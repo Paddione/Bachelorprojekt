@@ -20,7 +20,28 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
+  # [T012408] Die Konventionsdoku ist bereichsgebunden aufgeteilt: die Wurzel-
+  # CLAUDE.md gilt repo-weit, tests/CLAUDE.md laedt automatisch bei Arbeit unter
+  # tests/ und traegt seit der Auslagerung die Test- und Guard-Konventionen.
+  #
+  # Geprueft wird deshalb der DOKUMENTSATZ, nicht eine feste Datei. Die
+  # Zusicherung lautet "ein Agent, der an Tests arbeitet, bekommt diese
+  # Konvention zu lesen" — und die bleibt wahr, egal in welcher der beiden
+  # Dateien der Block steht. Ein Guard, der die Fundstelle festnagelt, wird beim
+  # naechsten Verschieben rot, ohne dass an der Konvention etwas fehlt: genau das
+  # ist hier passiert, und es blockierte jeden PR mit echtem Diff.
   CLAUDE_MD="$REPO/CLAUDE.md"
+  CONVENTION_DOCS=("$REPO/CLAUDE.md" "$REPO/tests/CLAUDE.md")
+}
+
+# Exit 0, sobald einer der Konventionsdokumente den Begriff traegt.
+_convention_docs_contain() {
+  local term="$1" doc
+  for doc in "${CONVENTION_DOCS[@]}"; do
+    [ -f "$doc" ] || continue
+    grep -qF -- "$term" "$doc" && return 0
+  done
+  return 1
 }
 
 @test "T003796: grep -qF '--flag' endet mit Exit 2 (Options-Parsing), mit -e mit 0 (Positiv-Anker)" {
@@ -62,15 +83,26 @@ FIX
   [ "${output%%:*}" != "4" ]
 }
 
-@test "T003796: CLAUDE.md nennt alle vier Spielarten der Konvention (Drift-Schutz)" {
+@test "T003796: die Konventionsdoku nennt alle vier Spielarten (Drift-Schutz)" {
   # Textabgleich — bewusste Ausnahme (T002448-M4): die Konvention existiert
   # nur als Text. Formatfrei geprueft (T002716): inhaltstragende Begriffe
   # statt exaktem Wortlaut, keine Zeilenanker. Keiner der Begriffe beginnt
   # mit '-', Fall 1 (Options-Parsing) greift hier also nicht.
+  # Positiv-Anker [T002356-M1]: Mindestens ein Konventionsdokument ist ueberhaupt
+  # vorhanden und lesbar. Ohne ihn wuerde die Schleife unten bei zwei fehlenden
+  # Dateien nicht "Konvention fehlt" melden, sondern "Datei fehlt" — zwei sehr
+  # verschiedene Befunde mit derselben roten Zeile.
+  present=0
+  for doc in "${CONVENTION_DOCS[@]}"; do
+    [ -f "$doc" ] && present=$((present + 1))
+  done
+  echo "Anker: vorhandene Konventionsdokumente=${present} von ${#CONVENTION_DOCS[@]}"
+  [ "$present" -gt 0 ]
+
   for term in 'Dokumentposition' 'Options-Parsing' 'Konfiguration statt Laufzeit' 'Prozesslisten-Format'; do
-    run bash -c "grep -qF -- '$term' '$CLAUDE_MD'"
-    [ "$status" -eq 0 ] || {
-      echo "CLAUDE.md nennt die Spielart '$term' nicht (T002716-Erweiterung fehlt)"
+    _convention_docs_contain "$term" || {
+      echo "Keines der Konventionsdokumente nennt die Spielart '$term' (T002716-Erweiterung fehlt)"
+      echo "Gesucht in: ${CONVENTION_DOCS[*]}"
       return 1
     }
   done

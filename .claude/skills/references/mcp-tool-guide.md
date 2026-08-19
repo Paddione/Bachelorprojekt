@@ -298,3 +298,10 @@ Diagnose zusammen — prüft `~/.config/bge-mcp/server.env` auf Existenz + `BGE_
 den Endpunkt mit und ohne Token und unterscheidet die drei Zustände über Exit-Codes (`0` = ok,
 `1` = Token fehlt/stimmt nicht, `2` = Server nicht erreichbar). Der Token-Wert wird nie
 ausgegeben. BATS-Regressionsschutz: `tests/spec/mcp-gateway/client-env-check.bats`.
+
+## `brain-mcp` — Brain Wiki (stdio, lokaler Python-Server)
+
+- **Transport:** stdio via `python3 scripts/brain-mcp-server.py` (kein Daemon nötig).
+- **Tools:** `brain_search(query, top_k)` — BM25-Suche über Wiki-Seiten; `brain_read(slug)` — vollständige Seitenabgabe (Frontmatter + Body).
+- **Wann bevorzugen:** Brain-Wiki-Inhalte lesen (Specs, Runbooks, ADRs, Gotchas) — bevor grep/glob auf dem Wiki-Dateisystem.
+- **Fallback:** direktes `cat ~/brain/wiki/<slug>.md` oder `grep` über das Wiki-Verzeichnis.

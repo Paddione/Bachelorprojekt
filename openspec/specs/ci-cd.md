@@ -2265,62 +2265,97 @@ unchanged.
 ### Requirement: GitLab-Parallelbetrieb — GitHub bleibt SSOT und Merge-Gate
 
 The system SHALL run GitLab CI as a **secondary, non-blocking** verification alongside GitHub
-Actions during the migration. GitHub Actions SHALL remain the single source of truth for merge
-decisions: no GitLab pipeline result SHALL be wired into branch protection, and no existing
-GitHub workflow SHALL be disabled, deleted, or made conditional as part of this stage.
+Actions until an explicit gate-switch stage retires that arrangement. GitHub Actions SHALL
+remain the single source of truth for merge decisions for as long as this requirement stands:
+no GitLab pipeline result SHALL be wired into branch protection, and no existing GitHub
+workflow SHALL be disabled, deleted, or made conditional.
 
-The GitLab side SHALL be reachable as a read-only mirror; development, review and merge SHALL
-continue to happen on GitHub.
+Reaching **parity of checks** SHALL NOT by itself change this. A stage that makes the GitLab
+pipeline capable of gating (by mirroring branches and by covering every offline gate) SHALL
+still leave GitHub as the gate; the switch is a separate, explicit decision.
+
+The GitLab side SHALL remain a push target only: development and review SHALL continue to
+happen on GitHub, and GitLab SHALL NOT become a second writable origin.
 
 #### Scenario: GitLab-Pipeline rot blockiert keinen Merge
 
-- **GIVEN** die GitLab-Pipeline für den aktuellen `main`-Stand schlägt fehl
+- **GIVEN** die GitLab-Pipeline für den aktuellen Stand schlägt fehl
 - **WHEN** auf GitHub ein PR mit grünen Checks vorliegt
 - **THEN** ist der Merge nicht blockiert — GitLab ist an keiner Stelle als Required Check hinterlegt
 
-#### Scenario: Kein GitHub-Workflow wird in dieser Etappe stillgelegt
+#### Scenario: Kein GitHub-Workflow wird stillgelegt
 
-- **GIVEN** die Etappe-1-Änderungen sind gemergt
+- **GIVEN** die Änderungen einer Migrationsetappe sind gemergt
 - **WHEN** die Workflow-Dateien unter `.github/workflows/` gezählt und auf `if:`-Kurzschlüsse geprüft werden
 - **THEN** ist kein bestehender Workflow entfernt und keiner durch eine neue Bedingung dauerhaft übersprungen
+
+#### Scenario: Job-Parität allein schaltet das Gate nicht um
+
+- **GIVEN** `.gitlab-ci.yml` deckt jeden Offline-Gate-Job aus `.github/workflows/ci.yml` ab
+- **WHEN** die Branch-Protection-Konfiguration und die Job-Bedingungen in `ci.yml` geprüft werden
+- **THEN** ist weiterhin kein GitLab-Ergebnis als Required Check hinterlegt und kein `ci.yml`-Job abgeschaltet
 
 ---
 
 ### Requirement: Spiegelung GitHub → GitLab per Push-Mirror
 
 The system SHALL mirror the repository to GitLab from a GitHub Actions workflow that runs on
-pushes to `main` and pushes with an **explicit refspec** for the `main` branch and for tags,
-authenticated by a GitLab Project-Access-Token (`glpat-` prefix) held as a GitHub secret.
+pushes to `main` **and to the repository's working-branch prefixes** (`feature/`, `fix/`,
+`chore/`), pushing with an **explicit refspec** per branch plus the tag refs, authenticated by
+a GitLab Project-Access-Token (`glpat-` prefix) held as a GitHub secret.
 
-`git push --mirror` SHALL NOT be used: it transfers every ref in the local repository,
-including `refs/remotes/origin/*` for every open feature branch that a full-history checkout
-carries — refs the mirror direction explicitly excludes. Those refs would land on GitLab
-invisibly under `refs/remotes/`, outside what the GitLab UI lists and outside what `git gc`
-ever reclaims. `--mirror` also deletes on GitLab any ref absent from the source side, which
-can destroy state GitLab itself created. The explicit refspec push SHALL overwrite
-`refs/heads/main` and the tag refs it names — including non-fast-forward, so the mirror still
-converges after a force-push or a moved tag on the GitHub side — but it SHALL NOT be able to
-create any ref outside those two refspecs, and it SHALL NOT be able to delete any ref that
-`--mirror` would have deleted (a ref absent from the source but present on GitLab, such as
-GitLab-side tags or branches). That is the property that matters, not fast-forward-only: a
-mirror that stalled on a legitimate force-push or moved tag would fail silently, exactly the
-outcome this migration is meant to avoid.
+Mirroring working branches is what makes a pre-merge verification possible at all: a pipeline
+that only ever sees `main` runs after the merge decision and therefore cannot inform it.
+
+`git push --mirror` SHALL NOT be used. It transfers every ref in the local repository,
+including `refs/remotes/origin/*` for every open branch that a full-history checkout carries —
+refs the mirror direction explicitly excludes. Those refs would land on GitLab invisibly under
+`refs/remotes/`, outside what the GitLab UI lists and outside what `git gc` ever reclaims.
+`--mirror` also deletes on GitLab any ref absent from the source side, which can destroy state
+GitLab itself created. Extending the mirror to working branches strengthens rather than
+weakens this exclusion, because the checkout now carries more foreign refs, not fewer.
+
+Branch deletion SHALL be mirrored as part of the mirroring, not left to cleanup: a `delete`
+push event SHALL push an empty source ref for that branch. An unmirrored deletion leaves a
+branch on GitLab that GitHub no longer has, and that stale branch remains a valid pipeline
+target.
+
+Branches outside the three working prefixes (bot branches such as Renovate or Release-Please,
+and factory batch branches) SHALL NOT be mirrored, so that automated branch churn does not
+consume runner capacity.
 
 Pull-Mirroring SHALL NOT be relied upon: it is a paid gitlab.com feature and therefore not
-available on the project's plan. The mirror direction SHALL be GitHub → GitLab only, so that
-GitLab never becomes a second writable origin.
+available on the project's plan. The mirror direction SHALL be GitHub → GitLab only.
 
 #### Scenario: Push auf main erreicht GitLab
 
-- **GIVEN** ein Commit wird nach `main` gemergt
+- **GIVEN** ein Commit ist auf GitHub `main` gelandet
 - **WHEN** der Mirror-Workflow läuft
 - **THEN** zeigt der GitLab-`main` denselben Commit-SHA wie der GitHub-`main`
 
-#### Scenario: Fehlendes Mirror-Secret bricht sichtbar ab
+#### Scenario: Push auf einen Feature-Branch erreicht GitLab unter demselben Namen
+
+- **GIVEN** ein Commit ist auf einen Branch mit Präfix `feature/`, `fix/` oder `chore/` gepusht
+- **WHEN** der Mirror-Workflow läuft
+- **THEN** existiert auf GitLab ein gleichnamiger Branch mit demselben Head-SHA
+
+#### Scenario: Gelöschter Branch verschwindet auch auf GitLab
+
+- **GIVEN** ein gespiegelter Arbeits-Branch wird auf GitHub gelöscht
+- **WHEN** der Mirror-Workflow auf das `delete`-Event läuft
+- **THEN** ist der gleichnamige Branch auf GitLab ebenfalls entfernt
+
+#### Scenario: Bot-Branches werden nicht gespiegelt
+
+- **GIVEN** ein Push auf einen Branch außerhalb der drei Arbeits-Präfixe (z. B. `renovate/…`)
+- **WHEN** die Trigger-Bedingungen des Mirror-Workflows ausgewertet werden
+- **THEN** löst er nicht aus
+
+#### Scenario: Fehlendes Token bricht den Mirror sichtbar ab
 
 - **GIVEN** das GitLab-Token-Secret ist im GitHub-Repository nicht gesetzt
-- **WHEN** der Mirror-Workflow startet
-- **THEN** bricht er mit einer Meldung ab, die das fehlende Secret benennt — statt still ohne Spiegelung zu enden
+- **WHEN** der Mirror-Workflow läuft
+- **THEN** scheitert er mit einer Meldung, die das fehlende Secret benennt, statt still nichts zu tun
 
 ---
 
@@ -2354,26 +2389,25 @@ documented fallback.
 
 ### Requirement: Werkzeug-Parität zwischen GitHub- und GitLab-Pipeline
 
-The system SHALL pin the same tool versions in both CI systems for any check that exists on
-both sides. Specifically, the gitleaks version used in `.gitlab-ci.yml` SHALL equal the version
-used in `.github/workflows/ci.yml`, and both SHALL invoke it with the same arguments
-(`--config .gitleaks.toml --no-git --redact`).
+The system SHALL keep every externally pinned tool version identical between
+`.github/workflows/ci.yml` and `.gitlab-ci.yml`, so that the two pipelines test the same
+behaviour rather than merely running suites of the same name. This SHALL cover every pinned
+tool the two pipelines share — not a single tool — and SHALL be enforced by a guard that
+compares the **version values** at their respective sites, not the surrounding text.
 
-A drift guard SHALL extract the version from both files and compare them, so that bumping one
-side without the other fails CI rather than silently producing two different security verdicts
-for the same working tree.
+A version bump on one side without its counterpart on the other SHALL fail that guard.
 
-#### Scenario: Auseinanderlaufende gitleaks-Version schlägt fehl
+#### Scenario: Divergente Version faellt auf
 
-- **GIVEN** `.github/workflows/ci.yml` pinnt gitleaks auf eine andere Version als `.gitlab-ci.yml`
-- **WHEN** der Paritäts-Guard läuft
-- **THEN** schlägt er fehl und nennt beide gefundenen Versionen
+- **GIVEN** `.github/workflows/ci.yml` pinnt ein Werkzeug auf eine andere Version als `.gitlab-ci.yml`
+- **WHEN** der Paritaets-Guard laeuft
+- **THEN** schlaegt er fehl und benennt Werkzeug und beide Versionswerte
 
-#### Scenario: Gleiche Version besteht den Guard
+#### Scenario: Neu gepinntes Werkzeug ohne Gegenstueck faellt auf
 
-- **GIVEN** beide Dateien pinnen dieselbe gitleaks-Version
-- **WHEN** der Paritäts-Guard läuft
-- **THEN** besteht er, und beide Versionen sind im Testausgang sichtbar
+- **GIVEN** ein Werkzeug wird in `.gitlab-ci.yml` gepinnt, das auf GitHub-Seite in `ci.yml` ebenfalls gepinnt ist
+- **WHEN** der Paritaets-Guard laeuft
+- **THEN** deckt seine Werkzeug-Tabelle dieses Werkzeug ab, statt es ungeprueft zu lassen
 
 ---
 
@@ -2407,17 +2441,26 @@ verified in CI where no runner and no token exist.
 
 ### Requirement: GitLab-Kern-Jobs spiegeln die GitHub-Offline-Gates
 
-The system SHALL define three jobs in `.gitlab-ci.yml` that mirror the existing GitHub offline
-gates: BATS unit tests, Kubernetes manifest validation, and the gitleaks secret scan.
+The system SHALL define jobs in `.gitlab-ci.yml` that mirror the GitHub offline gates. As of
+the parity stage this covers every offline gate job in `.github/workflows/ci.yml`, not only the
+initial three (BATS unit tests, manifest validation, gitleaks scan).
 
 The BATS job SHALL use the vendored runner at `tests/unit/lib/bats-core/bin/bats`, not a
 globally installed `bats`, matching the repository convention that CI and local runs execute
 the same binary.
 
-These jobs SHALL NOT reuse the diff-scoped selection used on GitHub
-(`scripts/find-changed-tests.sh`, `task test:changed`, and its alias `task test:all`): the
-mirror receives pushes to `main`, where a diff against `main` selects nothing. The GitLab jobs
-SHALL therefore run the full corresponding set.
+On a push to `main` the jobs SHALL run the full corresponding set rather than the diff-scoped
+selection used on GitHub: the mirror receives pushes to `main`, where a diff against `main`
+selects nothing. On a working-branch or merge-request pipeline the jobs MAY use the diff-scoped
+selection, resolved through the single diff-base script.
+
+No GitLab job SHALL be softened (`allow_failure`) **beyond** its GitHub counterpart. A job
+whose GitHub counterpart is itself advisory (`continue-on-error`) MAY be soft; any other soft
+job SHALL fail the guard. Softening is not the mechanism by which GitLab stays non-blocking —
+that follows from GitLab being absent from branch protection. A job made soft without a
+counterpart would hide real findings while appearing to check them. Equally, a job made
+fail-closed whose GitHub counterpart is advisory would make GitLab *stricter* than GitHub,
+which is the same divergence in the other direction.
 
 #### Scenario: Mirror-Lauf führt tatsächlich Tests aus
 
@@ -2430,6 +2473,18 @@ SHALL therefore run the full corresponding set.
 - **GIVEN** die Jobdefinition des BATS-Jobs
 - **WHEN** der CI-Guard das Testkommando prüft
 - **THEN** verweist es auf den mitgelieferten Runner unter `tests/unit/lib/`
+
+#### Scenario: Weichgestellter Job ohne weiches GitHub-Gegenstueck faellt auf
+
+- **GIVEN** ein GitLab-Job trägt `allow_failure: true`
+- **WHEN** der Guard das GitHub-Gegenstück prüft und dieses **nicht** `continue-on-error` trägt
+- **THEN** schlägt der Guard fehl und benennt den Job
+
+#### Scenario: Ausnahme verfaellt, wenn die GitHub-Seite fail-closed wird
+
+- **GIVEN** ein GitLab-Job ist als Ausnahme weichgestellt, weil sein GitHub-Gegenstück advisory war
+- **WHEN** das GitHub-Gegenstück später fail-closed wird
+- **THEN** schlägt der Guard fehl — die Ausnahme bleibt nicht als Freibrief stehen
 
 ### Requirement: devflow-ci-watch derives failed checks from the PR head's check-runs
 
@@ -2715,6 +2770,100 @@ reproduzierbar) statt veraltete Formulierungen zu konservieren.
 - **WHEN** das Produktskript ein Subkommando aufruft, das der Stub nicht kennt
 - **THEN** bricht der Stub mit einer Meldung und Exit-Code ungleich 0 ab
 - **AND** er verschluckt den Aufruf nicht still über einen Default-Case mit Exit 0
+
+### Requirement: GitLab-Jobs decken jeden Offline-Gate-Job aus ci.yml ab
+
+`.gitlab-ci.yml` SHALL define a counterpart for every offline gate job in
+`.github/workflows/ci.yml`: the BATS unit suite, manifest validation, the OpenSpec/guards
+check, the sharded spec suite, the full security scan (image pinning, git-crypt guard,
+gitleaks, Trivy), the Brett TypeScript build, the website Vitest suite, the commit-message
+lint and the Lighthouse audit.
+
+A GitHub job SHALL NOT be considered covered by a GitLab job that merely shares its name: the
+counterpart SHALL bring the same toolchain and SHALL run the same suite selection for the
+pipeline context it runs in.
+
+The aggregator job `test-factory` SHALL NOT be reproduced. It exists on GitHub solely because
+a **skipped** required check counts as passed in branch protection; GitLab has no such
+semantics, and mirroring the job would reproduce a platform quirk rather than its effect.
+
+#### Scenario: Jeder Offline-Gate-Job hat ein Gegenstueck
+
+- **GIVEN** die Job-Namen beider Pipeline-Dateien werden gegeneinander gestellt
+- **WHEN** der Abdeckungs-Guard laeuft
+- **THEN** ist jeder `ci.yml`-Offline-Gate-Job einem GitLab-Job zugeordnet, mit Ausnahme des als bewusst ausgelassen deklarierten Aggregators
+
+#### Scenario: Spec-Suite laeuft in vier Partitionen
+
+- **GIVEN** der Spec-Suite-Job auf GitLab laeuft
+- **WHEN** seine Parallelisierung ausgewertet wird
+- **THEN** laeuft er in vier Partitionen, und die GitLab-Partitionsvariablen sind auf `SPEC_SHARD`/`SPEC_SHARDS` abgebildet
+
+---
+
+### Requirement: Diff-Basis wird an einer Stelle aufgeloest und meldet ihr Fehlen
+
+The system SHALL resolve the diff base for scope-selecting gates in a single script that both
+pipelines call, rather than repeating the resolution per job or per platform. The resolution
+order SHALL be: an explicit merge-request diff base if the CI context provides one, otherwise
+the merge base between `origin/main` and `HEAD`, otherwise `origin/main`.
+
+For a pipeline context that has **no** counterpart to diff against (a push to `main`), the
+script SHALL signal this with a distinct exit code and empty output — it SHALL NOT report an
+empty diff.
+
+This distinction is the point of the script. A failed base resolution and a legitimately empty
+diff both yield zero selected files; a caller that treats them alike reports a commit as
+checked that nothing checked. A job whose selection is empty SHALL therefore pass only when
+the base resolved, and SHALL fail when it did not.
+
+#### Scenario: Merge-Request-Kontext liefert die vorgegebene Basis
+
+- **GIVEN** die CI-Umgebung setzt eine Merge-Request-Diff-Basis
+- **WHEN** das Skript laeuft
+- **THEN** gibt es genau diesen SHA aus und beendet sich mit Exit-Code 0
+
+#### Scenario: Branch-Pipeline ohne Merge-Request faellt auf die Merge-Base zurueck
+
+- **GIVEN** ein gespiegelter Arbeits-Branch ohne Merge-Request-Kontext
+- **WHEN** das Skript laeuft
+- **THEN** gibt es die Merge-Base gegen `origin/main` aus und beendet sich mit Exit-Code 0
+
+#### Scenario: main-Push meldet fehlende Basis statt leeren Diff
+
+- **GIVEN** die Pipeline laeuft auf einem Push nach `main`
+- **WHEN** das Skript laeuft
+- **THEN** ist die Ausgabe leer und der Exit-Code von 0 verschieden
+
+#### Scenario: Leere Auswahl ohne aufloesbare Basis scheitert
+
+- **GIVEN** ein diff-skopierter Job waehlt null Tests aus, weil die Basis nicht aufloesbar war
+- **WHEN** der Job seine Auswahl auswertet
+- **THEN** scheitert er, statt gruen zu melden
+
+---
+
+### Requirement: Commit-Lint auf GitLab prueft den Commit-Range
+
+The GitLab commit-lint job SHALL validate the **commit messages in the pipeline's range**
+using the same scripts the local hook and the GitHub job invoke, rather than reproducing the
+GitHub pull-request-title check. A mirrored branch pipeline has no merge request and therefore
+no title to check; the commit messages exist in both contexts.
+
+Where the CI context does provide a merge-request title, the job SHALL additionally validate
+that title against the same type list.
+
+#### Scenario: Branch-Pipeline prueft Commit-Nachrichten
+
+- **GIVEN** eine gespiegelte Branch-Pipeline ohne Merge-Request-Kontext
+- **WHEN** der Commit-Lint-Job laeuft
+- **THEN** validiert er jede Nicht-Merge-Commit-Nachricht im Range und scheitert bei einer nicht-konventionellen Nachricht
+
+#### Scenario: Merge-Request-Titel wird zusaetzlich geprueft
+
+- **GIVEN** die CI-Umgebung setzt einen Merge-Request-Titel
+- **WHEN** der Commit-Lint-Job laeuft
+- **THEN** prueft er zusaetzlich diesen Titel gegen dieselbe Typ-Liste
 
 ## Testszenarien
 
@@ -3283,3 +3432,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (6db12af962de) -->
 
 <!-- merged from change delta ci-cd.md (65339c7f7fac) -->
+
+<!-- merged from change delta ci-cd.md (a6aa459e81f1) -->

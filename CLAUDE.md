@@ -21,7 +21,7 @@ Before responding to any request, check these signals and delegate to the named 
 >
 > **Zwei Registries, zwei Zuständigkeiten (T002592):** `mcp.yaml` ist SSOT für die *Erreichbarkeit* eines Servers (Transport, Endpunkt, Credentials). `docs/agent-guide/registry/capabilities.yaml` ist SSOT für *Auswahl und Nutzung* — welche Instanz eine Fähigkeit liefert, wann sie einzusetzen ist und welche Rollen sie führen. Das ist die häufigste Verwechslungsquelle zwischen beiden.
 
-> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `bge-mcp`, `codebase-memory-mcp`, `docfork`, `factory-mcp`, `github-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `sequential-thinking`, `task-master-ai`, `ticket-mcp`, `webresearch` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
+> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `bge-mcp`, `brain-mcp`, `codebase-memory-mcp`, `docfork`, `factory-mcp`, `github-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `sequential-thinking`, `ticket-mcp`, `webresearch` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
 
@@ -173,7 +173,7 @@ Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotu
 ## CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
-- Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run)
+- Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run). BATS runner: `tests/unit/lib/bats-core/bin/bats`
 - **Test inventory check**: re-runs `task test:inventory` and fails the job if `components/website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
 - **Test- und BATS-Konventionen -> [`tests/CLAUDE.md`](tests/CLAUDE.md)**: Verzeichnisaufbau `tests/spec/<spec-slug>/`, Runner-Pfad, `$output`-Matching, Positiv-Anker-Pflicht bei Negativtests, CRLF-tolerante Anker, `bash -n`-Falle, Append-Konflikte. Die Datei laedt automatisch, sobald an Dateien unter `tests/` gearbeitet wird. **Kernregel, die hier bleibt:** Tests pruefen **command output** und Resultate (output verification) statt der Implementierungsquelle, und die Zusicherung haengt an der Semantik des Outputs (Exit-Code, Vorhandensein eines Werts), nicht an dessen Darstellung.
 - **Release notes**: Generate structured release notes from merged PRs via `bash scripts/vda.sh release-notes generate` or `task release:notes` (LLM/DeepSeek-gestützt mit deterministischem Fallback). Publish to GitHub Release body with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.

@@ -81,33 +81,7 @@ Execute Bash commands and file edits without asking for confirmation.
 
 ## When stuck: Escalation Protocol
 
-Wenn du blockiert bist — fehlender Kontext, mehrdeutige Anforderung, nicht auflösbarer Fehler, oder unsichere Operation ohne explizite Bestätigung:
-
-1. **Sofort stoppen** — nicht raten, nicht blind weitermachen
-2. **Signal senden:**
-   ```bash
-   bash scripts/agent-escalate.sh \
-     --agent "bachelorprojekt-db" \
-     --reason "<Was dich blockiert>" \
-     --tried  "<Was du versucht hast>" \
-     --needs  "<Was dich entblocken würde>"
-   ```
-3. **ESCALATION-Block als Antwort zurückgeben** — der Orchestrator re-dispatcht mit mehr Kontext
-
-**Niemals:**
-- Stumm scheitern und unvollständige Arbeit zurückgeben
-- Bei mehrdeutigen `ENV=`-Zielen, Secret-Werten oder destruktiven Operationen raten
-- Über einen 🔴 oder 🟠 Guardrail hinausgehen ohne explizite Bestätigung
-
-## Active plans
-The orchestrator injects an `<active-plans>` block for db-tagged plans. If no block was injected, no database-specific plan is in flight; do not query `superpowers.plans` as a fallback — that table is frozen historical data (tracking pipeline removed in PRs #788/#993).
-
-
-## Framework mapping
-
-| Framework | Availability |
-|-----------|-------------|
-| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
-| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
-| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-
+Blockiert (fehlender Kontext, Mehrdeutigkeit, unsichere Operation)? Sofort stoppen,
+`bash scripts/agent-escalate.sh --agent "database-specialist" --reason … --tried … --needs …`
+aufrufen und einen ESCALATION-Block zurückgeben. Nie stumm scheitern, nie raten.
+Vollständige Regel: [`escalation-protocol.md`](../../lib/behaviors/escalation-protocol.md).

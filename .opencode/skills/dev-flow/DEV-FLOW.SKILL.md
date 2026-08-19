@@ -13,7 +13,7 @@ Skills for managing the OpenCode development workflow from brainstorming through
 - **vitest** — Fast unit testing (Vitest + Vite, Jest-compatible API)
 
 ### References
-- [references.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/README.md) — Cross-cutting concepts (CI gates, deploy routing, session coordination)
+- [references](file:///home/patrick/Bachelorprojekt/.claude/skills/references/SKILL.md) — Cross-cutting concepts (CI gates, deploy routing, session coordination)
 - [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Model selection and context injection
 
 ## Usage Flow

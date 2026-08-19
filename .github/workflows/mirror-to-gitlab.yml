@@ -1,26 +1,49 @@
 name: Mirror to GitLab
 
-# Push-Spiegel GitHub -> GitLab (Etappe 1, T011790). GitLab ist ein sekundaerer,
-# nicht blockierender Spiegel — GitHub Actions bleibt SSOT und Merge-Gate.
-# Details: openspec/specs/ci-cd.md, openspec/changes/gitlab-ci-migration-stage1/design.md (D6).
+# Push-Spiegel GitHub -> GitLab (Etappe 1 T011790, erweitert in Etappe 3 T012405).
+# GitLab bleibt ein sekundaerer, nicht blockierender Spiegel — GitHub Actions ist
+# weiterhin SSOT und Merge-Gate. Details: openspec/specs/ci-cd.md.
 #
-# Kein pull_request-Trigger: PR-Staende gehoeren nicht in den Spiegel. Pull-Mirroring
-# wird bewusst nicht verwendet (kostenpflichtiges gitlab.com-Feature) — die Richtung
-# ist GitHub -> GitLab per Push, damit GitLab nie ein zweites schreibbares Origin wird.
+# ETAPPE 3 — warum jetzt auch Arbeits-Branches gespiegelt werden:
+# Bis Etappe 2 lief hier ausschliesslich `main`. Eine Pipeline, die nur `main` sieht,
+# laeuft NACH der Merge-Entscheidung und kann sie deshalb prinzipiell nicht
+# informieren. Damit GitLab ueberhaupt merge-faehig werden kann, muss der Head-SHA
+# eines Arbeits-Branches dort ankommen. Der frueher an dieser Stelle stehende Satz
+# "PR-Staende gehoeren nicht in den Spiegel" ist damit ueberholt und wurde ersetzt,
+# nicht danebengeschrieben.
+#
+# Gespiegelt werden nur die drei Arbeits-Praefixe aus CLAUDE.md (feature/, fix/,
+# chore/). Bot-Branches (renovate/, release-please--) und Factory-Batch-Branches
+# bleiben aussen vor: jeder gespiegelte Branch erzeugt eine volle Pipeline auf einem
+# Runner, der laut Etappe-2-Messung ohnehin der Engpass ist.
+#
+# Pull-Mirroring wird weiterhin nicht verwendet (kostenpflichtiges gitlab.com-Feature)
+# — die Richtung bleibt GitHub -> GitLab per Push, damit GitLab nie ein zweites
+# schreibbares Origin wird.
 #
 # Kein `git push --mirror`: das ueberträgt ALLE lokalen Refs, inklusive
 # refs/remotes/origin/* — die der fetch-depth:0-Checkout unten fuer jeden offenen
-# Feature-Branch anlegt. Das wuerde jeden offenen PR-Stand unsichtbar unterhalb
-# refs/remotes/ auf GitLab spiegeln und dort Refs loeschen, die lokal fehlen. Statt
-# dessen zwei explizite Refspecs: HEAD nach refs/heads/main, plus Tags — das kann
-# weder fremde Refs anlegen noch fremde Branches loeschen (design.md D6).
+# Feature-Branch anlegt. Das wuerde jeden offenen Branch-Stand unsichtbar unterhalb
+# refs/remotes/ auf GitLab spiegeln und dort Refs loeschen, die lokal fehlen. Diese
+# Begruendung wird durch die Branch-Erweiterung eher schaerfer als schwaecher: der
+# Checkout traegt jetzt MEHR fremde Refs, nicht weniger. Statt dessen explizite
+# Refspecs je Fall — das kann weder fremde Refs anlegen noch fremde Branches loeschen.
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
   workflow_dispatch: {}
 
+# Der Gruppenname traegt den Ref: ohne ihn wuerde ein Push auf einen Feature-Branch
+# den main-Spiegel-Lauf abwarten oder verdraengen, weil alle Laeufe in derselben
+# Gruppe saessen. cancel-in-progress bleibt false — ein abgebrochener Mirror-Lauf
+# hinterlaesst auf GitLab einen aelteren Stand als auf GitHub, ohne dass irgendetwas
+# rot wird.
 concurrency:
-  group: mirror-to-gitlab
+  group: mirror-to-gitlab-${{ github.ref }}
   cancel-in-progress: false
 
 # Repo-weite Anforderung: jeder Workflow unter .github/workflows/ deklariert den
@@ -36,9 +59,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          # Beim Loesch-Event existiert github.ref nicht mehr — ein Checkout darauf
+          # schlaegt fehl. Der Loesch-Pfad braucht den Arbeitsbaum ohnehin nicht,
+          # nur ein Repository mit konfiguriertem Remote, deshalb der Default-Branch.
+          ref: ${{ github.event.deleted && github.event.repository.default_branch || github.ref }}
           # Voller Klon: ein flacher Checkout haette nur einen Teil der Historie
-          # von HEAD erreichbar, und der main-Push nach GitLab braucht die
-          # vollstaendige Commit-Kette.
+          # von HEAD erreichbar, und der Push nach GitLab braucht die vollstaendige
+          # Commit-Kette.
           fetch-depth: 0
 
       - name: Verify mirror secrets are configured
@@ -55,10 +82,14 @@ jobs:
           fi
           echo "Beide Mirror-Secrets sind gesetzt."
 
-      - name: Push main + tags to GitLab
+      - name: Push branch + tags to GitLab
         env:
           GITLAB_MIRROR_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
           GITLAB_MIRROR_URL: ${{ secrets.GITLAB_MIRROR_URL }}
+          # Ueber env statt direkt interpoliert: Event-Payload-Felder gehoeren nicht
+          # als Literale in eine run-Zeile (Repo-Konvention, vgl. commit-lint in ci.yml).
+          MIRROR_BRANCH: ${{ github.ref_name }}
+          MIRROR_DELETED: ${{ github.event.deleted }}
         run: |
           set -euo pipefail
           # Das Token darf nicht ins Log geraten: die Remote-URL wird aus
@@ -69,5 +100,23 @@ jobs:
           host="${GITLAB_MIRROR_URL#https://}"
           host="${host#http://}"
           git remote add gitlab-mirror "https://oauth2:${GITLAB_MIRROR_TOKEN}@${host}"
-          git push --force gitlab-mirror HEAD:refs/heads/main
-          git push --force --tags gitlab-mirror
+
+          branch="${MIRROR_BRANCH}"
+
+          if [ "${MIRROR_DELETED:-false}" = "true" ]; then
+            # Leerer Quell-Ref = Loeschung auf der Gegenseite. Loeschung ist Teil der
+            # Spiegelung, nicht Aufraeumarbeit: ein ungespiegelt geloeschter Branch
+            # bleibt auf GitLab liegen UND bleibt ein gueltiges Pipeline-Ziel.
+            # Kein --force noetig und bewusst kein --mirror (siehe Kopfkommentar).
+            echo "Loesche gespiegelten Branch: ${branch}"
+            git push gitlab-mirror ":refs/heads/${branch}"
+          elif [ "$branch" = "main" ]; then
+            # Unveraendert gegenueber Etappe 1 — dieser Pfad ist in Betrieb und in
+            # openspec/specs/ci-cd.md zugesichert.
+            echo "Spiegle main + Tags"
+            git push --force gitlab-mirror HEAD:refs/heads/main
+            git push --force --tags gitlab-mirror
+          else
+            echo "Spiegle Arbeits-Branch: ${branch}"
+            git push --force gitlab-mirror "HEAD:refs/heads/${branch}"
+          fi

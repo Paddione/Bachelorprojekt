@@ -175,10 +175,13 @@ let REUSE = !!(REUSE_BRANCH && REUSE_PLAN)
 // If dev-flow-plan staged a plan but the dispatcher didn't pass branch/plan_path,
 // the ticket still carries a FACTORY-PLAN-REF comment. Parse it to enable REUSE
 // and skip Scout/Design/Plan-creation — the human already did that work.
+let TICKET_TYPE = ''
 if (!REUSE && A.ticket_id) {
   try {
     const ticketJsonStr = await runRunner(agent, 'ticket-get', { ticket_id: A.ticket_id, brand })
-    const planRef = (JSON.parse(ticketJsonStr).plan_ref) || ''
+    const ticketObj = JSON.parse(ticketJsonStr)
+    TICKET_TYPE = String(ticketObj.type || '')
+    const planRef = ticketObj.plan_ref || ''
     const branchMatch = planRef.match(/branch=(\S+)/)
     const planMatch   = planRef.match(/plan=(\S+)/)
     if (branchMatch && planMatch) {
@@ -192,9 +195,44 @@ if (!REUSE && A.ticket_id) {
   }
 }
 
-// Ensure slug is never "null" — fall back to ticket-based slug
+// Ensure slug is never "null" — fall back to ticket-based slug.
+// Der slug benennt Pfade (.worktrees/<slug>, openspec/changes/<slug>) und bleibt
+// deshalb klein. Der BRANCH-Name folgt einer anderen Regel — siehe unten.
 const safeSlug = (!slug || slug === 'null') ? `sf-${(A.ticket_id || '').toLowerCase()}` : slug
-const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${safeSlug}`
+
+// [T012502] Branch-Namen nach Repo-Konvention: type/<slug>-T000XXX.
+// scripts/worktree-create.sh (~Z. 102) laesst genau vier Typ-Praefixe zu und
+// verlangt die Ticket-ID in GROSSschreibung. Zuvor stand hier fest `feature/`
+// mit dem unveraenderten safeSlug — zwei Defekte in einer Zeile:
+//
+//   1. Jeder Vorgang hiess feature/, auch ein type=bug- oder chore-Ticket.
+//   2. Der Fallback-slug `sf-t012415` traegt die ID KLEIN. Der Guard prueft
+//      /T[0-9]{6,}/ und ist case-sensitiv — er lehnte den Namen ab, den die
+//      Factory selbst gebildet hatte. worktree-create.sh haelt fuer genau
+//      diesen Fall sogar eine eigene Fehlermeldung bereit ("Muss GROSS sein").
+//
+// Der Typ kommt aus `ticket.sh get` (Feld `type`); faellt der Aufruf aus, bleibt
+// TICKET_TYPE leer und wir landen bewusst auf `feature` — dem bisherigen
+// Verhalten, nicht auf einem Abbruch.
+// >>> T012502-BRANCH-REGEL — Anfang (Testanker, nicht entfernen) >>>
+// pipeline.mjs laeuft im Workflow-Sandbox OHNE import/require. Die Regel kann
+// deshalb nicht in ein Modul ausgelagert werden, das der Test importiert.
+// Damit der Test trotzdem den laufenden Code prueft und keine Kopie, schneidet
+// tests/spec/software-factory/branch-naming-T012502.bats genau diesen Block aus
+// der Datei und fuehrt ihn aus. Die Marker sind Teil des Vertrags.
+const BRANCH_PREFIX_BY_TICKET_TYPE = { bug: 'fix', chore: 'chore', docs: 'docs' }
+const branchPrefix = BRANCH_PREFIX_BY_TICKET_TYPE[String(TICKET_TYPE || '').toLowerCase()] || 'feature'
+
+// Ticket-ID im Branch erzwingen: erst eine klein geschriebene ID hochziehen,
+// dann — falls gar keine drinsteht — die des Tickets anhaengen.
+const upcasedSlug = String(safeSlug || '').replace(/\bt([0-9]{6,})\b/g, (_m, digits) => `T${digits}`)
+const ticketIdUpper = String(A.ticket_id || '').toUpperCase()
+const branchSlug = /T[0-9]{6,}/.test(upcasedSlug)
+  ? upcasedSlug
+  : (ticketIdUpper ? (upcasedSlug ? `${upcasedSlug}-${ticketIdUpper}` : ticketIdUpper) : upcasedSlug)
+
+const WORK_BRANCH = REUSE ? REUSE_BRANCH : `${branchPrefix}/${branchSlug}`
+// <<< T012502-BRANCH-REGEL — Ende <<<
 // [T003270] Ein wiederverwendeter Worktree (factory-prep V1-Reuse) kann an
 // einem nicht-kanonischen Pfad liegen (.worktrees/mishap-incident-rollup statt
 // .worktrees/<slug>-reuse). A.worktree_path traegt den tatsaechlich verwendeten

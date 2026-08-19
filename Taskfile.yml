@@ -5,6 +5,11 @@ includes:
   assets:
     taskfile: ./taskfiles/Taskfile.assets.yml
     dir: .
+  # Autoinstall-ISO fuer Cluster-Workstations (Bare-Metal-Nodes).
+  # Siehe docs/runbooks/workstation-cluster-iso.md.
+  iso:
+    taskfile: ./taskfiles/Taskfile.iso.yml
+    dir: .
   llm:
     taskfile: ./taskfiles/Taskfile.llm.yml
     dir: .

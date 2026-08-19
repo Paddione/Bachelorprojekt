@@ -71,6 +71,25 @@ setup() {
   [ "$output" -gt 0 ]
 }
 
+# T012634: Die Zusicherung oben nennt zwei Variablen — tatsaechlich enthaelt die
+# Chart-Ausgabe neun (ACCESS_LEVEL, CONFIG_PATH_FOR_INIT, MAX_REGISTER_ATTEMPTS,
+# RUN_UNTAGGED, VERIFY_TIMEOUT, i, retval, status, verify_output). Jede einzelne
+# davon wuerde ohne Escaping in der envsubst-Liste landen. Statt sie aufzuzaehlen
+# — die Liste aendert sich mit jedem Chart-Upgrade — prueft dieser Test, dass
+# ueberhaupt keine unescapte Referenz uebrig bleibt.
+@test "T012634: keine einzige unescapte \${VAR} in der gerenderten Datei" {
+  # Positiv-Anker: escapte Referenzen sind vorhanden. Ohne ihn bestuende der Test
+  # auch dann, wenn die Datei leer waere oder gar keine Variablen mehr enthielte.
+  run grep -c '\$\${' "$RENDERED"
+  [ "$status" -eq 0 ]
+  [ "$output" -gt 0 ]
+
+  # Ein einzelnes $ vor {NAME} — genau die Form, die der Extraktor in
+  # flux-render-artifact.sh in seine Ersetzungsliste aufnimmt.
+  run grep -cE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$RENDERED"
+  [ "$output" = "0" ]
+}
+
 @test "T012503: nach dem Unwrapping bleibt in der gerenderten Datei kein \$\$ stehen" {
   local unwrapped
   unwrapped="$(sed -E "$UNWRAP" "$RENDERED")"

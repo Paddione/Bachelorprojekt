@@ -143,8 +143,9 @@ runners:
         # B4 (Review T012177): dieselbe restricted-PSA-Pflicht wie beim
         # Manager-Pod (siehe podSecurityContext oben) gilt fuer JEDEN Pod im
         # Namespace — also auch fuer die vom Manager erzeugten Job-Pods
-        # (build+helper-Container). Ohne diese drei Bloecke scheitert jeder
-        # CI-Job an der Admission, bevor er ueberhaupt startet. run_as_user wird
+        # (build+helper-Container, dazu init-permissions und service — siehe
+        # T012634 weiter unten). Ohne diese Bloecke scheitert jeder CI-Job an
+        # der Admission, bevor er ueberhaupt startet. run_as_user wird
         # bewusst NICHT gesetzt: Job-Images sind beliebig (Job-.gitlab-ci.yml
         # entscheidet per eigenem image:), ein fest verdrahteter UID wuerde
         # Images brechen, die eine andere non-root-UID mitbringen. runAsNonRoot
@@ -169,4 +170,42 @@ runners:
           [runners.kubernetes.helper_container_security_context.capabilities]
             drop = ["ALL"]
           [runners.kubernetes.helper_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        # T012634: Der Executor erzeugt neben build und helper zwei weitere
+        # Container, die dieselbe Admission passieren muessen — der Kommentar
+        # oben spricht von "diesen drei Bloecken" und uebersah beide.
+        #
+        # init-permissions ist ein Init-Container, den der Kubernetes-Executor
+        # vor jedem Job anlegt. Ohne eigenen Block lehnte die Admission jeden
+        # Job-Pod ab:
+        #   pods "runner-…-concurrent-0-…" is forbidden: violates PodSecurity
+        #   "restricted:latest": allowPrivilegeEscalation != false (container
+        #   "init-permissions" must set securityContext.allowPrivilegeEscalation
+        #   =false), unrestricted capabilities (container "init-permissions"
+        #   must set securityContext.capabilities.drop=["ALL"])
+        # Der Manager-Pod sah dabei gesund aus (1/1 Running) und nahm Jobs an —
+        # sie scheiterten erst beim "prepare environment".
+        #
+        # service_container_security_context deckt Job-Services ab (services:
+        # in der .gitlab-ci.yml). Der Fehler tritt dort erst beim ersten Job
+        # auf, der einen Service startet, ist aber dieselbe Klasse.
+        #
+        # Die Schluesselnamen sind gegen das eingesetzte Binary belegt, nicht
+        # geraten — TOML ignoriert unbekannte Schluessel still, ein Tippfehler
+        # faellt also nicht auf, sondern wirkt nur nicht:
+        #   strings /usr/bin/gitlab-runner | grep -o '[a-z_]*container_security_context' | sort -u
+        #   => build_ / helper_ / init_permissions_ / service_container_security_context
+        [runners.kubernetes.init_permissions_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.init_permissions_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.init_permissions_container_security_context.seccomp_profile]
+            type = "RuntimeDefault"
+        [runners.kubernetes.service_container_security_context]
+          run_as_non_root = true
+          allow_privilege_escalation = false
+          [runners.kubernetes.service_container_security_context.capabilities]
+            drop = ["ALL"]
+          [runners.kubernetes.service_container_security_context.seccomp_profile]
             type = "RuntimeDefault"

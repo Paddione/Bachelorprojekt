@@ -81,3 +81,21 @@ PY
   run python3 "$RUNNER" --wiki-dir "$WIKI" --eval-set "$evalset" --format json
   [ "$status" -eq 2 ]
 }
+
+@test "aggregate recall uses raw zero and one-third values before output rounding" {
+  local evalset="$BATS_TEST_TMPDIR/fractional.jsonl" json
+  cat > "$evalset" <<'EOF'
+{"id":"one-third","query":"alpha banana","relevant_slugs":["alpha","missing-a","missing-b"],"top_k":1}
+{"id":"zero","query":"does-not-exist","relevant_slugs":["alpha"],"top_k":1}
+EOF
+  run python3 "$RUNNER" --wiki-dir "$WIKI" --eval-set "$evalset" --format json
+  [ "$status" -eq 0 ]
+  json="$output"
+  python3 - "$json" <<'PY'
+import json, sys
+d = json.loads(sys.argv[1])
+assert d["cases"][0]["recall_at_k"] == 0.333333
+assert d["cases"][1]["recall_at_k"] == 0.0
+assert d["metrics"]["recall_at_k"] == 0.166667
+PY
+}

@@ -127,6 +127,24 @@ PY
   [ "$status" -eq 2 ]
 }
 
+@test "lifecycle audit ignores contradictory claims on draft and archived pages" {
+  local revision json
+  revision="$(sha256sum "$SRC" | awk '{print $1}')"
+  page active-page 2026-01-01 2027-01-01 blue "$revision"
+  page draft-page 2026-01-01 2027-01-01 green "$revision"
+  page archived-page 2026-01-01 2027-01-01 red "$revision"
+  sed -i 's/status: active/status: draft/' "$WIKI/draft-page.md"
+  sed -i 's/status: active/status: archived/' "$WIKI/archived-page.md"
+
+  run python3 "$AUDIT" --brain-repo "$BATS_TEST_TMPDIR/brain" --source-root "$BATS_TEST_TMPDIR" --as-of 2026-08-19 --format json
+  [ "$status" -eq 0 ]
+  json="$output"
+  python3 - "$json" <<'PY'
+import json, sys
+assert all(item["code"] != "conflicting_claim" for item in json.loads(sys.argv[1])["findings"])
+PY
+}
+
 @test "expertise fetch stage approve is explicit scoped redacted and allowlisted" {
   local stub="$BATS_TEST_TMPDIR/bin" state="$BATS_TEST_TMPDIR/state" repo="$BATS_TEST_TMPDIR/repo"
   local sha="0123456789abcdef0123456789abcdef01234567"
@@ -140,9 +158,11 @@ case "$*" in
   'api repos/Paddione/Bachelorprojekt/pulls/123')
     printf '%s\n' '{"number":123,"html_url":"https://github.com/Paddione/Bachelorprojekt/pull/123","title":"Decision","body":"mail a@b.test token=ghp_abcdefghijklmnopqrstuvwxyz123456","head":{"sha":"0123456789abcdef0123456789abcdef01234567"},"user":{"login":"private-user"}}' ;;
   'api --paginate repos/Paddione/Bachelorprojekt/pulls/123/files')
-    printf '%s\n' '[{"filename":"scripts/a.py","status":"modified","patch":"+ Authorization: Bearer abc.def.ghi"}]' ;;
+    printf '%s\n' '[{"filename":"scripts/a.py","status":"modified","patch":"+ Authorization: Bearer abc.def.ghi"}]'
+    printf '%s\n' '[{"filename":"scripts/b.py","status":"added","patch":"+ bounded second page"}]' ;;
   'api --paginate repos/Paddione/Bachelorprojekt/pulls/123/reviews')
-    printf '%s\n' '[{"id":91,"html_url":"https://github.com/x/r/91","state":"APPROVED","body":"use bounded scope","user":{"login":"reviewer-name"}}]' ;;
+    printf '%s\n' '[{"id":91,"html_url":"https://github.com/x/r/91","state":"APPROVED","body":"use bounded scope","user":{"login":"reviewer-name"}}]'
+    printf '%s\n' '[{"id":93,"html_url":"https://github.com/x/r/93","state":"COMMENTED","body":"second page review"}]' ;;
   'api --paginate repos/Paddione/Bachelorprojekt/issues/123/comments')
     printf '%s\n' '[{"id":92,"html_url":"https://github.com/x/c/92","body":"password=hunter2","user":{"login":"commenter-name"}}]' ;;
   *) exit 90 ;;
@@ -157,6 +177,10 @@ SH
   ! grep -Eq 'search|pr list|orgs/' "$GH_LOG"
   ! grep -R -E 'private-user|reviewer-name|commenter-name|a@b.test|hunter2|ghp_' "$state"
   grep -R -q '\[REDACTED:' "$state"
+  grep -R -q 'scripts/b.py' "$state"
+  grep -R -q '"id": 93' "$state"
+  [ "$(find "$state" -type d -printf '%m\n' | sort -u)" = 700 ]
+  [ "$(find "$state" -type f -printf '%m\n' | sort -u)" = 600 ]
 
   run python3 "$EXPERTISE" --repo-root "$repo" --state-dir "$state" stage --repo Paddione/Bachelorprojekt --pr 123 --revision "$sha"
   [ "$status" -eq 0 ]
@@ -175,8 +199,9 @@ SH
   approved="$(find "$repo/docs/brain-expertise/approved" -type f -name '*.md')"
   [ -f "$approved" ]
   grep -q 'source_kind: github-reviewed' "$approved"
-  grep -q "$sha" "$approved"
-  grep -q 'review_ids: \[91\]' "$approved"
+  grep -q "upstream_revision: $sha" "$approved"
+  ! grep -q '^source_revision:' "$approved"
+  grep -q 'review_ids: \[91, 93\]' "$approved"
   run bash "$REPO_ROOT/scripts/brain-ingest-worklist.sh" --root "$repo" --manifest "$REPO_ROOT/scripts/brain/ingest-sources.yaml"
   [ "$status" -eq 0 ]
   [[ "$output" == *$'\tgithub-reviewed'* ]]
@@ -186,4 +211,23 @@ SH
 
   run python3 "$EXPERTISE" --repo-root "$repo" --state-dir "$repo/state" stage --repo Paddione/Bachelorprojekt --pr 123 --revision "$sha"
   [ "$status" -eq 2 ]
+
+  run python3 "$EXPERTISE" --repo-root "$repo" --state-dir "$state" fetch --repo ../Bachelorprojekt --pr 123 --revision "$sha"
+  [ "$status" -eq 2 ]
+
+  local compiled="$BATS_TEST_TMPDIR/compiled.md" local_hash response
+  local_hash="$(sha256sum "$approved" | awk '{print $1}')"
+  printf '%s\n' '---' 'type: note' 'tags: [github-reviewed, expertise]' 'status: active' '---' 'bounded expertise evidence' \
+    | python3 "$METADATA" --source "$approved" --source-kind github-reviewed \
+        --upstream-revision "$sha" --observed-at 2026-08-19T12:00:00Z --valid-from 2026-08-19 > "$compiled"
+  grep -q "source_revision: \"$local_hash\"" "$compiled"
+  grep -q "upstream_revision: \"$sha\"" "$compiled"
+  mkdir -p "$BATS_TEST_TMPDIR/retrieval-wiki"
+  cp "$compiled" "$BATS_TEST_TMPDIR/retrieval-wiki/reviewed.md"
+  response="$(BRAIN_WIKI_DIR="$BATS_TEST_TMPDIR/retrieval-wiki" python3 "$REPO_ROOT/scripts/brain-mcp-server.py" <<'EOF'
+{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"brain_search","arguments":{"query":"bounded expertise","source_kind":"github-reviewed"}}}
+EOF
+)"
+  [[ "$response" == *"$local_hash"* ]]
+  [[ "$response" == *"$sha"* ]]
 }

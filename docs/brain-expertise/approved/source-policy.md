@@ -27,7 +27,9 @@ Credentials, Tokens, URL-Userinfo und Private Keys werden redigiert; Textfelder 
 
 Approval ist append-only und erfordert interaktiv oder per Datei exakt:
 `APPROVE <owner/repo>#<pr>@<sha> <slug>`. Nur danach entsteht ein Dokument unter
-`docs/brain-expertise/approved/`.
+`docs/brain-expertise/approved/`. Es hält die geprüfte GitHub-SHA als `upstream_revision` fest;
+der allgemeine Ingest berechnet davon getrennt `source_revision` aus den Bytes dieses lokalen
+approved-Artefakts.
 
 Verboten sind organisationsweite oder ambiente Suche, Autorenprofile und Leistungsbewertung,
 Persistenz roher API-Antworten, ungeprüfte Secrets oder PII, Ingest aus `fetched/` oder

@@ -188,6 +188,45 @@ EOF
   }
 }
 
+@test "multi-chunk parent group and index MOCs receive deterministic lifecycle metadata" {
+  local source_root="$WORK/source-root" brain="$WORK/brain" chunks="$WORK/chunks.tsv"
+  local state="$WORK/state.json" observed="2026-08-19T12:00:00Z"
+  mkdir -p "$source_root/openspec/specs" "$source_root/scripts/brain" "$brain/wiki"
+  printf 'authoritative multi chunk source\n' > "$source_root/openspec/specs/example.md"
+  cp "$MANIFEST" "$source_root/scripts/brain/ingest-sources.yaml"
+  cat > "$WORK/parent-moc.md" <<'EOF'
+---
+type: moc
+tags: [example, moc]
+status: active
+---
+# Example MOC
+- [[example-part-1]]
+- [[example-part-2]]
+EOF
+  printf '%s\n' '# part one' > "$brain/wiki/example-part-1.md"
+  printf '%s\n' '# part two' > "$brain/wiki/example-part-2.md"
+  printf 'openspec/specs/example.md\t%s\texample\t0\tMap of Content\n' "$WORK/parent-moc.md" > "$chunks"
+  cat > "$state" <<'EOF'
+{"openspec/specs/example.md#1":{"slug":"example-part-1","type":"note"},"openspec/specs/example.md#2":{"slug":"example-part-2","type":"note"}}
+EOF
+
+  run bash "$MOC" --brain-repo "$brain" --chunks "$chunks" --state "$state" \
+    --source-root "$source_root" --manifest "$source_root/scripts/brain/ingest-sources.yaml" \
+    --metadata-script "$REPO_ROOT/scripts/brain-page-metadata.py" \
+    --observed-at "$observed" --valid-from 2026-08-19
+  [ "$status" -eq 0 ]
+
+  local source_hash manifest_hash
+  source_hash="$(sha256sum "$source_root/openspec/specs/example.md" | awk '{print $1}')"
+  manifest_hash="$(sha256sum "$source_root/scripts/brain/ingest-sources.yaml" | awk '{print $1}')"
+  grep -q "source_kind: \"openspec\"" "$brain/wiki/example.md"
+  grep -q "source_revision: \"$source_hash\"" "$brain/wiki/example.md"
+  grep -q "observed_at: \"$observed\"" "$brain/wiki/example.md"
+  grep -q "source_revision: \"$manifest_hash\"" "$brain/wiki/ssot-specs-moc.md"
+  grep -q "source_revision: \"$manifest_hash\"" "$brain/index.md"
+}
+
 # --- Type mapping tests ---
 
 @test "type_map overrides take precedence over defaults" {
@@ -288,8 +327,11 @@ YAML
   # The loop moved from brain-ingest.sh to brain-ingest-moc.sh with the Phase 2b
   # extraction (T002679). What T001884 guards is that the two groups are covered,
   # not which file happens to hold the loop — so the assertion follows the code.
-  grep -q 'for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams; do' \
-    "$MOC" || { echo "FAIL: Phase 2b loop not extended with new groups"; return 1; }
+  local loop
+  loop="$(grep '^for group in ' "$MOC")"
+  for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams github-reviewed; do
+    [[ "$loop" == *"$group"* ]] || { echo "FAIL: Phase 2b loop missing $group"; return 1; }
+  done
   # Positiv-Anker: brain-ingest.sh must still reach that loop, otherwise the
   # groups would be covered in a script nobody calls.
   grep -q 'brain-ingest-moc.sh' "$INGEST" \

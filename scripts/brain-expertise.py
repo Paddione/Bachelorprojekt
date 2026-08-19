@@ -65,9 +65,34 @@ def residual_secret(text: str) -> bool:
                 or URL_USERINFO_RE.search(sanitized))
 
 
-def atomic_write(path: Path, content: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    os.chmod(path.parent, 0o700)
+def _require_under(root: Path, path: Path) -> Path:
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(root.resolve())
+    except ValueError as exc:
+        raise ValueError(f"state path escapes canonical state root: {path}") from exc
+    return resolved
+
+
+def _secure_state_ancestors(root: Path, parent: Path) -> None:
+    root = root.resolve()
+    parent = _require_under(root, parent)
+    root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(root, 0o700)
+    relative = parent.relative_to(root)
+    current = root
+    for part in relative.parts:
+        current = current / part
+        current.mkdir(exist_ok=True, mode=0o700)
+        os.chmod(current, 0o700)
+
+
+def atomic_write(path: Path, content: bytes, *, state_root_path: Path | None = None) -> None:
+    if state_root_path is not None:
+        path = _require_under(state_root_path, path)
+        _secure_state_ancestors(state_root_path, path.parent)
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
         if path.read_bytes() == content:
             return
@@ -95,6 +120,8 @@ def validate_scope(args: argparse.Namespace) -> tuple[str, str, int, str]:
     if not SHA_RE.fullmatch(args.revision or ""):
         raise ValueError("--revision must be a 40-character hexadecimal SHA")
     owner, repository = args.repo.split("/", 1)
+    if owner in {".", ".."} or repository in {".", ".."}:
+        raise ValueError("repository components must not be '.' or '..'")
     return owner, repository, args.pr, args.revision.lower()
 
 
@@ -118,15 +145,35 @@ def state_root(args: argparse.Namespace) -> Path:
 def state_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
     owner, repository, pr, revision = validate_scope(args)
     root = state_root(args)
-    fetched = root / "fetched" / owner / repository / f"pr-{pr}" / f"{revision}.json"
-    staged = root / "staged" / owner / repository / f"pr-{pr}" / revision / "candidate.md"
+    fetched = _require_under(root, root / "fetched" / owner / repository / f"pr-{pr}" / f"{revision}.json")
+    staged = _require_under(root, root / "staged" / owner / repository / f"pr-{pr}" / revision / "candidate.md")
     return root, fetched, staged
+
+
+def _parse_json_stream(output: str) -> Any:
+    decoder = json.JSONDecoder()
+    values: list[Any] = []
+    offset = 0
+    while offset < len(output):
+        while offset < len(output) and output[offset].isspace():
+            offset += 1
+        if offset >= len(output):
+            break
+        value, offset = decoder.raw_decode(output, offset)
+        values.append(value)
+    if not values:
+        raise json.JSONDecodeError("empty JSON response", output, 0)
+    if len(values) == 1:
+        return values[0]
+    if all(isinstance(value, list) for value in values):
+        return [item for value in values for item in value]
+    raise json.JSONDecodeError("paginated response is not an array stream", output, 0)
 
 
 def gh_json(arguments: list[str]) -> Any:
     try:
         result = subprocess.run(["gh", *arguments], check=True, capture_output=True, text=True)
-        return json.loads(result.stdout)
+        return _parse_json_stream(result.stdout)
     except (subprocess.CalledProcessError, OSError, json.JSONDecodeError) as exc:
         raise ExpertiseError(f"GitHub request failed: {' '.join(arguments)}") from exc
 
@@ -159,7 +206,7 @@ def fetch(args: argparse.Namespace) -> None:
                          for item in comments if isinstance(item, dict) and isinstance(item.get("id"), int)]
     evidence = {
         "schema_version": 1, "repository": f"{owner}/{repository}", "pull_request": pr,
-        "source_url": str(pull.get("html_url", "")), "source_revision": revision,
+        "source_url": str(pull.get("html_url", "")), "upstream_revision": revision,
         "pull": {"role": "pr-author", "title": clean(pull.get("title")), "body": clean(pull.get("body"))},
         "files": selected_files, "reviews": selected_reviews, "comments": selected_comments,
         "redaction": {"version": 1, **counters},
@@ -177,7 +224,7 @@ def fetch(args: argparse.Namespace) -> None:
         else:
             raise ExpertiseError("redacted evidence exceeds the 2 MiB limit")
         raw = (json.dumps(evidence, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode()
-    atomic_write(fetched_path, raw)
+    atomic_write(fetched_path, raw, state_root_path=state_root(args))
     print(fetched_path)
 
 
@@ -197,7 +244,7 @@ def render_candidate(data: dict[str, Any]) -> str:
     lines = [
         "---", "status: staged", f"repository: {data['repository']}",
         f"pull_request: {data['pull_request']}", f"source_url: {data['source_url']}",
-        f"source_revision: {data['source_revision']}",
+        f"upstream_revision: {data['upstream_revision']}",
         f"review_ids: {json.dumps(review_ids)}", f"comment_ids: {json.dumps(comment_ids)}",
         f"redaction_version: {data['redaction']['version']}",
         f"redacted_fields: {data['redaction']['redacted_fields']}",
@@ -220,13 +267,13 @@ def stage(args: argparse.Namespace) -> None:
     _, fetched_path, staged_path = state_paths(args)
     data = load_evidence(fetched_path)
     owner, repository, pr, revision = validate_scope(args)
-    if (data.get("repository"), data.get("pull_request"), data.get("source_revision")) != (f"{owner}/{repository}", pr, revision):
+    if (data.get("repository"), data.get("pull_request"), data.get("upstream_revision")) != (f"{owner}/{repository}", pr, revision):
         raise ExpertiseError("evidence provenance does not match requested scope")
     counters = {"redacted_fields": 0, "truncated_fields": 0}
     rendered = redact(render_candidate(data), counters)
     if residual_secret(rendered):
         raise ExpertiseError("residual secret or personal data in staged candidate")
-    atomic_write(staged_path, rendered.encode())
+    atomic_write(staged_path, rendered.encode(), state_root_path=state_root(args))
     print(staged_path)
 
 
@@ -250,7 +297,7 @@ def approve(args: argparse.Namespace) -> None:
         raise ExpertiseError(f"cannot read staged candidate: {staged_path}") from exc
     metadata = _candidate_metadata(candidate)
     expected = (f"{owner}/{repository}", str(pr), revision)
-    if (metadata.get("repository"), metadata.get("pull_request"), metadata.get("source_revision")) != expected:
+    if (metadata.get("repository"), metadata.get("pull_request"), metadata.get("upstream_revision")) != expected:
         raise ExpertiseError("candidate provenance does not match requested scope")
     known_ids = {str(item["id"]) for item in data.get("reviews", []) + data.get("comments", [])}
     candidate_ids = set(re.findall(r"(?:Review|Comment)\s+(\d+)", candidate))
@@ -280,7 +327,7 @@ def approve(args: argparse.Namespace) -> None:
     body = candidate.split("\n---\n", 1)[1].lstrip()
     approved = "\n".join([
         "---", "type: note", "tags: [github-reviewed, expertise]", "status: active",
-        "source_kind: github-reviewed", f"source_revision: {revision}",
+        "source_kind: github-reviewed", f"upstream_revision: {revision}",
         f"repository: {owner}/{repository}", f"pull_request: {pr}",
         f"source_url: {data['source_url']}", f"review_ids: {json.dumps(review_ids)}",
         f"comment_ids: {json.dumps(comment_ids)}", "---", body.rstrip(), "",

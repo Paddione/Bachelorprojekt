@@ -261,7 +261,8 @@ source_kind_for_group() {
 process_page() {
   local src_path="$1" chunk_file="$2" chunk_slug="$3" index="$4"
   local src_hash existing_hash type tag_defaults transformed group tmp chunk_chars
-  local src_file source_kind target_tmp
+  local src_file source_kind target_tmp upstream_revision
+  local -a metadata_args
 
   [ -f "$chunk_file" ] || { echo "WARN: chunk not found: $chunk_file ($src_path)" >&2; return 1; }
 
@@ -307,9 +308,18 @@ process_page() {
   fi
 
   target_tmp="$(mktemp "$BRAIN_REPO/wiki/.${chunk_slug}.XXXXXX")"
-  if ! printf '%s\n' "$transformed" \
-    | python3 "$METADATA_SCRIPT" --source "$src_file" --source-kind "$source_kind" \
-        --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM" > "$target_tmp"; then
+  metadata_args=(--source "$src_file" --source-kind "$source_kind" \
+    --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM")
+  if [ "$source_kind" = "github-reviewed" ]; then
+    upstream_revision="$(awk -F': *' '/^upstream_revision:/{print $2; exit}' "$src_file" | tr -d "\"'")"
+    [ -n "$upstream_revision" ] || {
+      rm -f "$target_tmp"
+      echo "WARN: Missing upstream_revision: $src_path chunk $index" >&2
+      return 1
+    }
+    metadata_args+=(--upstream-revision "$upstream_revision")
+  fi
+  if ! printf '%s\n' "$transformed" | python3 "$METADATA_SCRIPT" "${metadata_args[@]}" > "$target_tmp"; then
     rm -f "$target_tmp"
     echo "WARN: Metadata annotation failed: $src_path chunk $index" >&2
     return 1
@@ -475,7 +485,9 @@ fi
 # ============================================================
 # Phase 2b: MOC Generation (delegated to brain-ingest-moc.sh)
 # ============================================================
-bash "$HERE/brain-ingest-moc.sh" --brain-repo "$BRAIN_REPO" --chunks "$CHUNKS_TSV" --state "$STATE_FILE"
+bash "$HERE/brain-ingest-moc.sh" --brain-repo "$BRAIN_REPO" --chunks "$CHUNKS_TSV" --state "$STATE_FILE" \
+  --source-root "$REPO_ROOT" --manifest "$MANIFEST" --metadata-script "$METADATA_SCRIPT" \
+  --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM"
 
 # ============================================================
 # Phase 2c: Prune (Deletion-Sync, T001963) — default dry, --prune schaltet scharf

@@ -108,18 +108,23 @@ def evaluate(wiki_dir: Path, eval_set: Path, default_k: int) -> dict[str, Any]:
         reports.append({
             "id": case["id"], "query": case["query"], "top_k": top_k,
             "filters": filters, "relevant_slugs": case["relevant_slugs"],
-            "returned_slugs": returned, "recall_at_k": round(recall, 6),
-            "reciprocal_rank": round(reciprocal, 6), "returned_results": len(results),
+            "returned_slugs": returned, "recall_at_k": recall,
+            "reciprocal_rank": reciprocal, "returned_results": len(results),
             "stale_results": stale, "future_results": future, "unknown_results": unknown,
         })
     count = len(reports)
     metrics = {
-        "recall_at_k": round(sum(item["recall_at_k"] for item in reports) / count, 6),
-        "mrr": round(sum(item["reciprocal_rank"] for item in reports) / count, 6),
-        "stale_result_rate": round(total_stale / total_returned, 6) if total_returned else 0.0,
+        "recall_at_k": sum(item["recall_at_k"] for item in reports) / count,
+        "mrr": sum(item["reciprocal_rank"] for item in reports) / count,
+        "stale_result_rate": total_stale / total_returned if total_returned else 0.0,
         "returned_results": total_returned, "stale_results": total_stale,
         "future_results": total_future, "unknown_results": total_unknown,
     }
+    for case in reports:
+        case["recall_at_k"] = round(case["recall_at_k"], 6)
+        case["reciprocal_rank"] = round(case["reciprocal_rank"], 6)
+    for key in ("recall_at_k", "mrr", "stale_result_rate"):
+        metrics[key] = round(metrics[key], 6)
     return {"schema_version": 1, "eval_set": str(eval_set), "top_k": default_k,
             "case_count": count, "metrics": metrics, "cases": reports}
 

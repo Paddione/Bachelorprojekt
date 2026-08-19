@@ -191,8 +191,10 @@ EOF
 @test "multi-chunk parent group and index MOCs receive deterministic lifecycle metadata" {
   local source_root="$WORK/source-root" brain="$WORK/brain" chunks="$WORK/chunks.tsv"
   local state="$WORK/state.json" observed="2026-08-19T12:00:00Z"
-  mkdir -p "$source_root/openspec/specs" "$source_root/scripts/brain" "$brain/wiki"
+  mkdir -p "$source_root/openspec/specs" "$source_root/docs/runbooks" \
+    "$source_root/scripts/brain" "$brain/wiki"
   printf 'authoritative multi chunk source\n' > "$source_root/openspec/specs/example.md"
+  printf 'authoritative runbook source\n' > "$source_root/docs/runbooks/guide.md"
   cp "$MANIFEST" "$source_root/scripts/brain/ingest-sources.yaml"
   cat > "$WORK/parent-moc.md" <<'EOF'
 ---
@@ -206,9 +208,10 @@ status: active
 EOF
   printf '%s\n' '# part one' > "$brain/wiki/example-part-1.md"
   printf '%s\n' '# part two' > "$brain/wiki/example-part-2.md"
+  printf '%s\n' '# runbook' > "$brain/wiki/runbook-guide.md"
   printf 'openspec/specs/example.md\t%s\texample\t0\tMap of Content\n' "$WORK/parent-moc.md" > "$chunks"
   cat > "$state" <<'EOF'
-{"openspec/specs/example.md#1":{"slug":"example-part-1","type":"note"},"openspec/specs/example.md#2":{"slug":"example-part-2","type":"note"}}
+{"openspec/specs/example.md#1":{"slug":"example-part-1","type":"note"},"openspec/specs/example.md#2":{"slug":"example-part-2","type":"note"},"docs/runbooks/guide.md#1":{"slug":"runbook-guide","type":"runbook"}}
 EOF
 
   run bash "$MOC" --brain-repo "$brain" --chunks "$chunks" --state "$state" \
@@ -225,6 +228,100 @@ EOF
   grep -q "observed_at: \"$observed\"" "$brain/wiki/example.md"
   grep -q "source_revision: \"$manifest_hash\"" "$brain/wiki/ssot-specs-moc.md"
   grep -q "source_revision: \"$manifest_hash\"" "$brain/index.md"
+  grep -q '\[\[example-part-1\]\]' "$brain/wiki/ssot-specs-moc.md"
+  grep -q '\[\[example-part-2\]\]' "$brain/wiki/ssot-specs-moc.md"
+  ! grep -q '\[\[runbook-guide\]\]' "$brain/wiki/ssot-specs-moc.md"
+  grep -q '\[\[runbook-guide\]\]' "$brain/wiki/runbooks-moc.md"
+  ! grep -q '\[\[example-part-' "$brain/wiki/runbooks-moc.md"
+  [ ! -e "$brain/wiki/github-reviewed-moc.md" ]
+}
+
+@test "local github-reviewed policy completes normal and parent-MOC ingest without upstream provenance" {
+  local source_root="$WORK/source-root" brain="$WORK/brain" fake_bin="$WORK/bin"
+  local state="$WORK/state.json" observed="2026-08-19T12:00:00Z"
+  mkdir -p "$source_root/scripts/brain" "$source_root/docs/brain-expertise/approved" \
+    "$brain/wiki" "$brain/scripts" "$fake_bin"
+  for script in brain-ingest.sh brain-ingest-transform.sh brain-chunk.sh brain-ingest-reset.sh \
+    brain-group-match.sh brain-source-provenance.sh brain-ingest-worklist.sh \
+    brain-page-metadata.py brain-ingest-moc.sh brain-ingest-prune.sh brain-ingest-coverage.sh; do
+    cp "$REPO_ROOT/scripts/$script" "$source_root/scripts/$script"
+  done
+  cp "$REPO_ROOT/docs/brain-expertise/approved/source-policy.md" \
+    "$source_root/docs/brain-expertise/approved/source-policy.md"
+  printf '\nupstream_revision: ffffffffffffffffffffffffffffffffffffffff\n' \
+    >> "$source_root/docs/brain-expertise/approved/source-policy.md"
+  cat > "$source_root/docs/brain-expertise/approved/paddione-example-pr-7.md" <<'EOF'
+---
+type: note
+tags: [github-reviewed, expertise]
+status: active
+source_kind: github-reviewed
+upstream_revision: 0123456789abcdef0123456789abcdef01234567
+repository: Paddione/example
+pull_request: 7
+source_url: https://github.com/Paddione/example/pull/7
+---
+# Approved PR evidence
+
+Reviewed evidence.
+EOF
+  cat > "$source_root/scripts/brain/ingest-sources.yaml" <<'YAML'
+exclude: []
+groups:
+  github-reviewed: docs/brain-expertise/approved/*.md
+type_map:
+  defaults:
+    github-reviewed: note
+  overrides: []
+tag_defaults:
+  github-reviewed: [github-reviewed, expertise]
+YAML
+  cat > "$fake_bin/curl" <<'SH'
+#!/usr/bin/env bash
+content="$(printf '%s\n' '---' 'type: note' 'tags: [github-reviewed, expertise]' \
+  'status: active' '---' '# Reviewed source' '' \
+  "source:: Bachelorprojekt ${BRAIN_SOURCE_PATH:?}" '' 'See [[index-moc]].')"
+jq -n --arg content "$content" '{choices:[{message:{content:$content}}]}'
+SH
+  chmod +x "$fake_bin/curl"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$brain/scripts/lint-frontmatter.sh"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$brain/scripts/lint-wikilinks.sh"
+  chmod +x "$brain/scripts/lint-frontmatter.sh" "$brain/scripts/lint-wikilinks.sh"
+  git -C "$brain" init -q -b main
+  git -C "$brain" config user.email test@test
+  git -C "$brain" config user.name test
+  printf '# fixture brain\n' > "$brain/README.md"
+  git -C "$brain" add README.md scripts
+  git -C "$brain" commit -q -m init
+
+  run env PATH="$fake_bin:$PATH" LM_STUDIO_URL=http://fixture.invalid LM_MODEL=fixture \
+    MAX_PARALLEL=1 BRAIN_CHUNK_TARGET_CHARS=800 BRAIN_OBSERVED_AT="$observed" \
+    bash "$source_root/scripts/brain-ingest.sh" --brain-repo "$brain" --state "$state" --dry-run
+  [ "$status" -eq 0 ]
+
+  local policy_hash policy_pages approved_hash approved_pages
+  policy_hash="$(sha256sum "$source_root/docs/brain-expertise/approved/source-policy.md" | awk '{print $1}')"
+  policy_pages="$(find "$brain/wiki" -maxdepth 1 -type f -name 'docs-brain-expertise-approved-source-policy*.md' -print)"
+  [ -n "$policy_pages" ]
+  while IFS= read -r page; do
+    grep -q 'source_kind: "github-reviewed"' "$page"
+    grep -q "source_revision: \"$policy_hash\"" "$page"
+    ! grep -q '^upstream_revision:' "$page"
+  done <<< "$policy_pages"
+  approved_hash="$(sha256sum "$source_root/docs/brain-expertise/approved/paddione-example-pr-7.md" | awk '{print $1}')"
+  approved_pages="$(find "$brain/wiki" -maxdepth 1 -type f -name 'docs-brain-expertise-approved-paddione-example-pr-7*.md' -print)"
+  [ -n "$approved_pages" ]
+  while IFS= read -r page; do
+    grep -q "source_revision: \"$approved_hash\"" "$page"
+    grep -q 'upstream_revision: "0123456789abcdef0123456789abcdef01234567"' "$page"
+  done <<< "$approved_pages"
+  grep -q '\[\[docs-brain-expertise-approved-source-policy-' "$brain/wiki/github-reviewed-moc.md"
+  grep -q '\[\[docs-brain-expertise-approved-paddione-example-pr-7-' "$brain/wiki/github-reviewed-moc.md"
+
+  run python3 "$REPO_ROOT/scripts/brain-lifecycle-audit.py" --brain-repo "$brain" \
+    --source-root "$source_root" --as-of "$observed" --format json
+  [ "$status" -eq 0 ]
+  [ "$(jq -r '.summary.finding_count' <<< "$output")" -eq 0 ]
 }
 
 # --- Type mapping tests ---

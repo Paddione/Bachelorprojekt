@@ -40,10 +40,12 @@ Feldern — `raw/` und `README.md` sind vom Frontmatter-Lint ausgenommen:
 
 Neu kompilierte Seiten tragen zusätzlich die flachen Felder `source_kind`,
 `source_revision`, `observed_at` und `valid_from`, optional auch `valid_until` und
-`superseded_by`. `github-reviewed`-Seiten tragen zusätzlich `upstream_revision`: die validierte
-GitHub-Head-SHA bleibt dort getrennt von `source_revision`, dem SHA-256 des lokalen approved-
-Artefakts. Legacy-Seiten nur mit `type`, `tags` und `status` bleiben gültig;
-Lifecycle-Werkzeuge melden ihre zeitliche Einordnung als unbekannt, statt Werte zu erfinden.
+`superseded_by`. PR-abgeleitete `github-reviewed`-Seiten tragen zusätzlich
+`upstream_revision`: die validierte GitHub-Head-SHA bleibt dort getrennt von
+`source_revision`, dem SHA-256 des lokalen approved-Artefakts. Lokale Policies in derselben
+Manifest-Gruppe haben keine Upstream-SHA und werden ausschließlich lokal gehasht. Legacy-Seiten
+nur mit `type`, `tags` und `status` bleiben gültig; Lifecycle-Werkzeuge melden ihre zeitliche
+Einordnung als unbekannt, statt Werte zu erfinden.
 
 `source_kind` ist einer von `openspec`, `runbook`, `adr`, `gotcha`, `agent-guide`,
 `core-doc`, `health-goal`, `diagram` oder `github-reviewed`. `source_revision` ist bei

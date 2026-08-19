@@ -24,12 +24,13 @@ Seiten erhalten flache, YAML-parserfreundliche Felder:
   `github-reviewed`;
 - `source_revision`: deterministischer Hash der lokalen Quelldatei;
 - optional `upstream_revision`: validierte unveränderliche GitHub-Head-SHA für
-  `github-reviewed`-Artefakte;
+  PR-abgeleitete `github-reviewed`-Artefakte; lokale Policies derselben Manifest-Gruppe
+  bleiben ausschließlich über ihren lokalen Hash verankert;
 - `observed_at`: ISO-8601-Zeitpunkt der Quellenbeobachtung;
 - `valid_from`: ISO-Datum oder Zeitpunkt, ab dem der Inhalt gilt;
 - optional `valid_until` und `superseded_by`.
 
-Beim Kompilieren eines reviewed-Artefakts bleibt `upstream_revision` erhalten, während
+Beim Kompilieren eines PR-abgeleiteten reviewed-Artefakts bleibt `upstream_revision` erhalten, während
 `source_revision` deterministisch die Bytes des lokalen approved-Artefakts bezeichnet.
 
 Alte Seiten ohne diese Felder bleiben lesbar. Zeitintervalle sind halboffen

@@ -34,6 +34,8 @@ METADATA_SCRIPT="$HERE/brain-page-metadata.py"
 
 # shellcheck source=./brain-group-match.sh
 source "$HERE/brain-group-match.sh"
+# shellcheck source=./brain-source-provenance.sh
+source "$HERE/brain-source-provenance.sh"
 # shellcheck source=./brain-ingest-reset.sh
 source "$RESET_HELPERS"
 
@@ -261,7 +263,7 @@ source_kind_for_group() {
 process_page() {
   local src_path="$1" chunk_file="$2" chunk_slug="$3" index="$4"
   local src_hash existing_hash type tag_defaults transformed group tmp chunk_chars
-  local src_file source_kind target_tmp upstream_revision
+  local src_file source_kind target_tmp upstream_revision reviewed_marker reviewed_repo reviewed_pr
   local -a metadata_args
 
   [ -f "$chunk_file" ] || { echo "WARN: chunk not found: $chunk_file ($src_path)" >&2; return 1; }
@@ -311,13 +313,18 @@ process_page() {
   metadata_args=(--source "$src_file" --source-kind "$source_kind" \
     --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM")
   if [ "$source_kind" = "github-reviewed" ]; then
-    upstream_revision="$(awk -F': *' '/^upstream_revision:/{print $2; exit}' "$src_file" | tr -d "\"'")"
-    [ -n "$upstream_revision" ] || {
-      rm -f "$target_tmp"
-      echo "WARN: Missing upstream_revision: $src_path chunk $index" >&2
-      return 1
-    }
-    metadata_args+=(--upstream-revision "$upstream_revision")
+    reviewed_marker="$(brain_source_frontmatter_value "$src_file" source_kind || true)"
+    reviewed_repo="$(brain_source_frontmatter_value "$src_file" repository || true)"
+    reviewed_pr="$(brain_source_frontmatter_value "$src_file" pull_request || true)"
+    if [ "$reviewed_marker" = "github-reviewed" ] || [ -n "$reviewed_repo" ] || [ -n "$reviewed_pr" ]; then
+      upstream_revision="$(brain_source_frontmatter_value "$src_file" upstream_revision || true)"
+      [ -n "$upstream_revision" ] || {
+        rm -f "$target_tmp"
+        echo "WARN: PR-derived source missing frontmatter upstream_revision: $src_path chunk $index" >&2
+        return 1
+      }
+      metadata_args+=(--upstream-revision "$upstream_revision")
+    fi
   fi
   if ! printf '%s\n' "$transformed" | python3 "$METADATA_SCRIPT" "${metadata_args[@]}" > "$target_tmp"; then
     rm -f "$target_tmp"
@@ -329,9 +336,9 @@ process_page() {
   (
     flock -x 200
     tmp="$(mktemp)"
-    jq --arg k "$state_key" --arg h "$src_hash" --arg s "$chunk_slug" --arg t "$type" \
+    jq --arg k "$state_key" --arg h "$src_hash" --arg s "$chunk_slug" --arg t "$type" --arg g "$group" \
       --arg ci "$index" --argjson cc "$chunk_chars" \
-      '.[$k] = {hash:$h, slug:$s, type:$t, chunk_index:$ci, chars:$cc, transformed_at:(now | todate)}' \
+      '.[$k] = {hash:$h, slug:$s, type:$t, group:$g, chunk_index:$ci, chars:$cc, transformed_at:(now | todate)}' \
       "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
   ) 200>"$STATE_FILE.lock"
   return 0

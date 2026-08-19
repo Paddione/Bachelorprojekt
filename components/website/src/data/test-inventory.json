@@ -5502,6 +5502,24 @@
     "kind": "shell"
   },
   {
+    "id": "workstation-cluster-iso/assign-identity",
+    "file": "tests/spec/workstation-cluster-iso/assign-identity.bats",
+    "category": "workstation-cluster-iso",
+    "kind": "shell"
+  },
+  {
+    "id": "workstation-cluster-iso/build-node-iso-guards",
+    "file": "tests/spec/workstation-cluster-iso/build-node-iso-guards.bats",
+    "category": "workstation-cluster-iso",
+    "kind": "shell"
+  },
+  {
+    "id": "workstation-cluster-iso/k3s-join-guards",
+    "file": "tests/spec/workstation-cluster-iso/k3s-join-guards.bats",
+    "category": "workstation-cluster-iso",
+    "kind": "shell"
+  },
+  {
     "id": "worktree-create-real-path-T004604",
     "file": "tests/spec/worktree-create-real-path-T004604.bats",
     "category": "worktree-create-real-path-T004604",

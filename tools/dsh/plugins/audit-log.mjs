@@ -25,7 +25,7 @@ export const name = 'audit-log'
 /**
  * @param {import('@deepseek-ai/cordis').Context} ctx
  */
-export function setup(ctx) {
+export function apply(ctx) {
   const ticketId = process.env.TICKET_ID || ''
   if (!ticketId) {
     // No ticket context — silent no-op. Ad-hoc sessions must not fill the timeline.

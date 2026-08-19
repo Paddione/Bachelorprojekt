@@ -1,42 +1,56 @@
 # taskfiles/Taskfile.dsh.yml — DSH build, web, and doctor tasks.
+#
+# [T012965] Pfade gehen ueber {{.ROOT_DIR}}. `{{.ROOT}}` gibt es in go-task nicht:
+# es expandiert leer, und der Klon wurde dann unter `/deepseek-harness` gesucht.
+#
+# Der Harness wird ueber `pnpm dsh` im Klon gestartet, nicht ueber
+# node_modules/.bin/dsh — dieses Bin-Link existiert im Workspace nicht.
 version: "3"
 
 tasks:
   dsh:build:
     desc: "Build deepseek-harness (pnpm install + build)"
-    dir: "{{.ROOT}}/deepseek-harness"
     cmds:
-      - pnpm install --frozen-lockfile 2>/dev/null || pnpm install
-      - pnpm run build
-      - pnpm dsh --version
+      - cd "$(bash {{.ROOT_DIR}}/scripts/dsh/resolve-clone.sh {{.ROOT_DIR}})" && pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+      - cd "$(bash {{.ROOT_DIR}}/scripts/dsh/resolve-clone.sh {{.ROOT_DIR}})" && pnpm run build
+      - cd "$(bash {{.ROOT_DIR}}/scripts/dsh/resolve-clone.sh {{.ROOT_DIR}})" && pnpm dsh --version
 
   dsh:web:
     desc: "Start the DSH Web UI on port 3080"
     vars:
-      DSH_WEB_PORT: "{{.DSH_WEB_PORT | default 3080}}"
+      DSH_WEB_PORT: '{{.DSH_WEB_PORT | default 3080}}'
     cmds:
-      - bash "{{.ROOT}}/scripts/dsh/web-up.sh {{.DSH_WEB_PORT}}"
+      # Pfad und Argument getrennt quoten — zusammen in einem Quote las bash beides
+      # als einen Dateinamen (T012965).
+      - bash "{{.ROOT_DIR}}/scripts/dsh/web-up.sh" {{.DSH_WEB_PORT}}
 
   dsh:doctor:
     desc: "Check DSH prerequisites (clone, build, CLI)"
     cmds:
       - |
         echo "=== DSH Doctor ==="
-        DSH_DIR="{{.ROOT}}/deepseek-harness"
-        if [ ! -d "$DSH_DIR" ]; then
-          echo "❌ deepseek-harness clone not found at $DSH_DIR"
+        if ! DSH_DIR=$(bash "{{.ROOT_DIR}}/scripts/dsh/resolve-clone.sh" "{{.ROOT_DIR}}" 2>/dev/null); then
+          echo "❌ deepseek-harness clone not found (checked \$DSH_DIR, repo, main checkout)"
           exit 1
         fi
-        echo "✅ Clone found"
+        echo "✅ Clone found: $DSH_DIR"
         if [ ! -d "$DSH_DIR/node_modules" ]; then
-          echo "❌ node_modules missing — run: cd deepseek-harness && pnpm install"
+          echo "❌ node_modules missing — run: task dsh:dsh:build"
           exit 1
         fi
         echo "✅ node_modules present"
-        DSH_BIN="$DSH_DIR/node_modules/.bin/dsh"
-        if [ ! -x "$DSH_BIN" ]; then
-          echo "❌ dsh binary not found — run: cd deepseek-harness && pnpm run build"
+        if ! version=$(cd "$DSH_DIR" && pnpm dsh --version 2>/dev/null | tail -1); then
+          echo "❌ dsh CLI did not answer — run: task dsh:dsh:build"
           exit 1
         fi
-        echo "✅ dsh binary found: $("$DSH_BIN" --version 2>/dev/null || echo 'unknown version')"
+        if [ -z "$version" ]; then
+          echo "❌ dsh CLI returned no version — run: task dsh:dsh:build"
+          exit 1
+        fi
+        echo "✅ dsh CLI answers: $version"
+        if [ ! -f "{{.ROOT_DIR}}/tools/dsh/cordis.patch.yml" ]; then
+          echo "❌ bundle overlay missing at tools/dsh/cordis.patch.yml"
+          exit 1
+        fi
+        echo "✅ bundle overlay present"
         echo "=== All checks passed ==="

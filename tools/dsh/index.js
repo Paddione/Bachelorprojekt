@@ -18,7 +18,7 @@ const pluginsDir = join(__dirname, 'plugins')
 
 export const name = 'dsh-bachelorprojekt'
 
-export async function setup(ctx) {
+export async function apply(ctx) {
   let entries
   try {
     entries = await readdir(pluginsDir)
@@ -31,7 +31,7 @@ export async function setup(ctx) {
     if (!entry.endsWith('.mjs')) continue
     try {
       const mod = await import(join(pluginsDir, entry))
-      if (typeof mod.setup === 'function') {
+      if (typeof mod.apply === 'function' || typeof mod === 'function') {
         ctx.plugin(mod)
       }
     } catch (err) {

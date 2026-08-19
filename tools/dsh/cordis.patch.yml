@@ -1,10 +1,20 @@
 # cordis.patch.yml — DSH bundle patch layer for Bachelorprojekt.
-# Configures the CC-Hook bridge and the bundle entry point.
+#
+# [T012965] Die Plugin-Rows tragen PLATZHALTER, keine Paketnamen. Grund: weder
+# das Repo-Bundle noch die Hook-Bridge sind ueber Node-Resolution auffindbar —
+# das Bundle ist nicht ins Profil installiert, und die Bridge ist ein
+# Workspace-Paket des gitignorierten Klons (`require.resolve` => MODULE_NOT_FOUND).
+# Cordis akzeptiert in `name:` einen Modulpfad; scripts/dsh/web-up.sh setzt die
+# Platzhalter zur Laufzeit auf die aufgeloesten absoluten Pfade und uebergibt
+# das Ergebnis per `--patch`.
+#
+# Absolute Pfade koennen hier nicht eingecheckt werden: der Klon ist
+# gitignoriert und sein Ort maschinenabhaengig.
 - insert:
     - id: cc-hooks
-      name: dsh-hooks-claude-code
+      name: '@@DSH_CLONE@@/packages/hooks/hooks-claude-code/lib/index.js'
       config:
-        configPath: ./.claude/settings.json
-        projectDir: .
+        configPath: '@@REPO@@/.claude/settings.json'
+        projectDir: '@@REPO@@'
     - id: bachelorprojekt
-      name: dsh-bachelorprojekt
+      name: '@@REPO@@/tools/dsh/index.js'

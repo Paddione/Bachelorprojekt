@@ -49,6 +49,7 @@ TIMEZONE="Europe/Berlin"
 HOSTNAME_FALLBACK="ws-node"
 PACKAGE_UPGRADE="false"
 SHUTDOWN_MODE="poweroff"
+DISK_PATH=""
 ACTION="start"
 FOREGROUND=0
 
@@ -67,6 +68,9 @@ Flags:
   --release <x.yy>         Ubuntu-Release (default: 24.04)
   --source-iso <datei>     vorhandenes ISO statt Download
   --locale / --keyboard / --timezone / --hostname-fallback
+  --disk </dev/pfad>       Zielplatte festnageln (z. B. /dev/nvme0n1). Ohne
+                           Angabe waehlt der Installer selbst — das ist der
+                           Normalfall und robuster.
   --shutdown <poweroff|reboot>  default: poweroff
                            poweroff ist Absicht: bootet die Maschine nach der
                            Installation neu und steht die Boot-Reihenfolge noch
@@ -98,6 +102,7 @@ while [[ $# -gt 0 ]]; do
     --hostname-fallback) HOSTNAME_FALLBACK="$2"; shift 2 ;;
     --package-upgrade)   PACKAGE_UPGRADE="true"; shift ;;
     --shutdown)          SHUTDOWN_MODE="$2";     shift 2 ;;
+    --disk)              DISK_PATH="$2";         shift 2 ;;
     --foreground)        FOREGROUND=1;           shift ;;
     --stop)              ACTION="stop";          shift ;;
     --status)            ACTION="status";        shift ;;
@@ -165,6 +170,9 @@ fi
 [[ "$SSH_PUBLIC_KEY" == *PRIVATE* ]] && die "--ssh-key zeigt auf einen PRIVATEN Schluessel."
 
 case "$SHUTDOWN_MODE" in poweroff|reboot) ;; *) die "--shutdown: poweroff oder reboot" ;; esac
+if [[ -n "$DISK_PATH" ]]; then
+  [[ "$DISK_PATH" == /dev/* ]] || die "--disk erwartet einen Geraetepfad wie /dev/nvme0n1, nicht: $DISK_PATH"
+fi
 [[ "$HTTP_PORT" =~ ^[0-9]+$ ]] || die "--http-port ist keine Zahl: $HTTP_PORT"
 if [[ -n "$NODE_MAP" ]]; then
   [[ -f "$NODE_MAP" ]] || die "--node-map nicht gefunden: $NODE_MAP"
@@ -353,7 +361,18 @@ export PXE_LOCALE="$LOCALE" \
        PXE_SHUTDOWN_MODE="$SHUTDOWN_MODE" \
        PXE_BASE_URL="$BASE_URL"
 
-envsubst '${PXE_LOCALE} ${PXE_KEYBOARD_LAYOUT} ${PXE_TIMEZONE} ${PXE_HOSTNAME_FALLBACK} ${PXE_ADMIN_USER} ${PXE_ADMIN_PASSWORD_HASH} ${PXE_SSH_ALLOW_PW} ${PXE_SSH_PUBLIC_KEY} ${PXE_PACKAGE_UPGRADE} ${PXE_SHUTDOWN_MODE} ${PXE_BASE_URL}' \
+# Der match-Block wird nur eingefuegt, wenn eine Platte ausdruecklich genannt
+# wurde. Ohne --disk bleibt die Stelle leer und subiquity waehlt selbst.
+if [[ -n "$DISK_PATH" ]]; then
+  export PXE_DISK_MATCH="
+      match:
+        path: ${DISK_PATH}"
+  info "Zielplatte festgelegt: ${DISK_PATH}"
+else
+  export PXE_DISK_MATCH=""
+fi
+
+envsubst '${PXE_LOCALE} ${PXE_KEYBOARD_LAYOUT} ${PXE_TIMEZONE} ${PXE_HOSTNAME_FALLBACK} ${PXE_ADMIN_USER} ${PXE_ADMIN_PASSWORD_HASH} ${PXE_SSH_ALLOW_PW} ${PXE_SSH_PUBLIC_KEY} ${PXE_PACKAGE_UPGRADE} ${PXE_SHUTDOWN_MODE} ${PXE_BASE_URL} ${PXE_DISK_MATCH}' \
   < "${SCRIPT_DIR}/autoinstall/user-data-net.tmpl" > "${HTTP_DIR}/nocloud/user-data"
 
 # instance-id muss vorhanden sein; ohne sie haelt cloud-init den Seed fuer

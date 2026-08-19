@@ -4197,6 +4197,12 @@
       "status": "archived"
     }
   ],
+  "T012962": [
+    {
+      "slug": "dsh-harness-integration",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

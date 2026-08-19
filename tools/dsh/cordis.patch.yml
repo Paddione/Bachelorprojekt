@@ -1,0 +1,10 @@
+# cordis.patch.yml — DSH bundle patch layer for Bachelorprojekt.
+# Configures the CC-Hook bridge and the bundle entry point.
+- insert:
+    - id: cc-hooks
+      name: dsh-hooks-claude-code
+      config:
+        configPath: ./.claude/settings.json
+        projectDir: .
+    - id: bachelorprojekt
+      name: dsh-bachelorprojekt

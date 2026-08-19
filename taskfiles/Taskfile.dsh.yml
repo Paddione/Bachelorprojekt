@@ -1,0 +1,42 @@
+# taskfiles/Taskfile.dsh.yml — DSH build, web, and doctor tasks.
+version: "3"
+
+tasks:
+  dsh:build:
+    desc: "Build deepseek-harness (pnpm install + build)"
+    dir: "{{.ROOT}}/deepseek-harness"
+    cmds:
+      - pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+      - pnpm run build
+      - pnpm dsh --version
+
+  dsh:web:
+    desc: "Start the DSH Web UI on port 3080"
+    vars:
+      DSH_WEB_PORT: "{{.DSH_WEB_PORT | default 3080}}"
+    cmds:
+      - bash "{{.ROOT}}/scripts/dsh/web-up.sh {{.DSH_WEB_PORT}}"
+
+  dsh:doctor:
+    desc: "Check DSH prerequisites (clone, build, CLI)"
+    cmds:
+      - |
+        echo "=== DSH Doctor ==="
+        DSH_DIR="{{.ROOT}}/deepseek-harness"
+        if [ ! -d "$DSH_DIR" ]; then
+          echo "❌ deepseek-harness clone not found at $DSH_DIR"
+          exit 1
+        fi
+        echo "✅ Clone found"
+        if [ ! -d "$DSH_DIR/node_modules" ]; then
+          echo "❌ node_modules missing — run: cd deepseek-harness && pnpm install"
+          exit 1
+        fi
+        echo "✅ node_modules present"
+        DSH_BIN="$DSH_DIR/node_modules/.bin/dsh"
+        if [ ! -x "$DSH_BIN" ]; then
+          echo "❌ dsh binary not found — run: cd deepseek-harness && pnpm run build"
+          exit 1
+        fi
+        echo "✅ dsh binary found: $("$DSH_BIN" --version 2>/dev/null || echo 'unknown version')"
+        echo "=== All checks passed ==="

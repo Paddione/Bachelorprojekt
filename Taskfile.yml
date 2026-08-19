@@ -16,6 +16,10 @@ includes:
   sdlc:
     taskfile: ./taskfiles/Taskfile.sdlc.yml
     dir: .
+  # DeepSeek Harness (dsh) — build, web UI, doctor.
+  dsh:
+    taskfile: ./taskfiles/Taskfile.dsh.yml
+    dir: .
   finetune:
     taskfile: ./taskfiles/Taskfile.finetune.yml
     dir: .

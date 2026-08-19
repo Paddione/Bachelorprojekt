@@ -236,6 +236,34 @@ EOF
   [ ! -e "$brain/wiki/github-reviewed-moc.md" ]
 }
 
+@test "group MOCs follow current manifest for dot paths and ignore stale stored groups" {
+  local source_root="$WORK/source-root" brain="$WORK/brain" chunks="$WORK/chunks.tsv"
+  local state="$WORK/state.json" observed="2026-08-19T12:00:00Z"
+  mkdir -p "$source_root/.claude/lib" "$source_root/docs/runbooks" \
+    "$source_root/scripts/brain" "$brain/wiki"
+  printf '# Goals\n' > "$source_root/.claude/lib/goals.md"
+  printf '# Guide\n' > "$source_root/docs/runbooks/guide.md"
+  cp "$MANIFEST" "$source_root/scripts/brain/ingest-sources.yaml"
+  printf '# compiled goals\n' > "$brain/wiki/quality-goals.md"
+  printf '# compiled guide\n' > "$brain/wiki/guide.md"
+  : > "$chunks"
+  cat > "$state" <<'EOF'
+{".claude/lib/goals.md#1":{"slug":"quality-goals","type":"decision","group":"runbooks"},"docs/runbooks/guide.md#1":{"slug":"guide","type":"runbook","group":"health-goals"}}
+EOF
+
+  run bash "$MOC" --brain-repo "$brain" --chunks "$chunks" --state "$state" \
+    --source-root "$source_root" --manifest "$source_root/scripts/brain/ingest-sources.yaml" \
+    --metadata-script "$REPO_ROOT/scripts/brain-page-metadata.py" \
+    --observed-at "$observed" --valid-from 2026-08-19
+  [ "$status" -eq 0 ]
+
+  [ "$(grep -o '\[\[[^]]*\]\]' "$brain/wiki/health-goals-moc.md")" = '[[quality-goals]]' ]
+  grep -q '1 Seiten aus der Gruppe `health-goals`' "$brain/wiki/health-goals-moc.md"
+  [ "$(grep -o '\[\[[^]]*\]\]' "$brain/wiki/runbooks-moc.md")" = '[[guide]]' ]
+  ! grep -q '\[\[guide\]\]' "$brain/wiki/health-goals-moc.md"
+  ! grep -q '\[\[quality-goals\]\]' "$brain/wiki/runbooks-moc.md"
+}
+
 @test "local github-reviewed policy completes normal and parent-MOC ingest without upstream provenance" {
   local source_root="$WORK/source-root" brain="$WORK/brain" fake_bin="$WORK/bin"
   local state="$WORK/state.json" observed="2026-08-19T12:00:00Z"

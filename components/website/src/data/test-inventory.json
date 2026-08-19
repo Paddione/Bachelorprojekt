@@ -2610,6 +2610,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/e2e-project-selection",
+    "file": "tests/spec/ci-cd/e2e-project-selection.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
     "category": "ci-cd",
@@ -2736,6 +2742,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/hybrid-runner-placement",
+    "file": "tests/spec/ci-cd/hybrid-runner-placement.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",
@@ -2772,8 +2784,20 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/runner-role-assignment",
+    "file": "tests/spec/ci-cd/runner-role-assignment.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/self-hosted-fork-guard",
     "file": "tests/spec/ci-cd/self-hosted-fork-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/self-hosted-no-root-install",
+    "file": "tests/spec/ci-cd/self-hosted-no-root-install.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3330,6 +3354,12 @@
     "kind": "shell"
   },
   {
+    "id": "flux-render-security/runtime-var-unwrapping",
+    "file": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",
@@ -3692,12 +3722,6 @@
   {
     "id": "local-llm-proxy/proxy-tests-registered",
     "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/qwen3-coder-loadout",
-    "file": "tests/spec/local-llm-proxy/qwen3-coder-loadout.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4874,6 +4898,12 @@
   {
     "id": "software-factory/babysit-prs-ci-never-ran",
     "file": "tests/spec/software-factory/babysit-prs-ci-never-ran.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/babysit-prs-conflict-guard-T012500",
+    "file": "tests/spec/software-factory/babysit-prs-conflict-guard-T012500.bats",
     "category": "software-factory",
     "kind": "shell"
   },

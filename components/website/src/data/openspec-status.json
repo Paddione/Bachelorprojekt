@@ -4149,6 +4149,18 @@
       "status": "plan_staged"
     }
   ],
+  "T012446": [
+    {
+      "slug": "hybrid-github-actions-runners",
+      "status": "plan_staged"
+    }
+  ],
+  "T012488": [
+    {
+      "slug": "runner-role-assignment",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

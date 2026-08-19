@@ -1,0 +1,18 @@
+# Fixture: overlaps erklaert eine Ueberschneidung, die es nicht gibt.
+networks:
+  - id: alpha
+    cidr: 10.20.0.0/24
+    owner: fleet
+    purpose: Overlay
+    status: active
+    source: test
+    overlaps:
+      - with: beta
+        reason: Behauptet, ueberschneidet aber nicht.
+        mitigation: keine
+  - id: beta
+    cidr: 192.168.100.0/24
+    owner: mentolder
+    purpose: Mesh
+    status: active
+    source: test

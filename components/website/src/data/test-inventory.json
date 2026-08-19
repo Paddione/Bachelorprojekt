@@ -4890,6 +4890,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/babysit-prs-conflict-guard-T012500",
+    "file": "tests/spec/software-factory/babysit-prs-conflict-guard-T012500.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",

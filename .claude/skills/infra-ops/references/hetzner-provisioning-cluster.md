@@ -10,10 +10,11 @@ bei einem **frischen Cluster-Setup** oder **Node-Replacement** ausgeführt — i
 - WireGuard-Mesh-Keys in `environments/.secrets/<env>.yaml` (Schema-Key pro Node)
 - SSH-Public-Key in `~/.ssh/id_ed25519.pub`
 
-## Node-Layout (Fleet-Cluster, Stand 2026-05-31)
+## Node-Layout (Fleet-Cluster)
 
 - 3 Control-Plane: `pk-hetzner-4/6/8`
-- 3 Worker: `gekko-hetzner-2/3/4`
+- 2 Worker: `gekko-hetzner-3/4` (`gekko-hetzner-2` ist derzeit **kein** Mitglied)
+- Maßgeblich ist der lebende Cluster, nicht diese Liste: `kubectl --context fleet get nodes`
 - Mentolder brand: namespace `workspace`, domain `mentolder.de`
 - Korczewski brand: namespace `workspace-korczewski`, domain `korczewski.de`
 - Alte Kontexte `mentolder`/`korczewski` sind DEAD — `--context fleet` für alles.

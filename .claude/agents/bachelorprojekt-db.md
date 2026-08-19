@@ -68,25 +68,18 @@ Execute Bash commands and file edits without asking for confirmation.
 
 ## When stuck: Escalation Protocol
 
-Wenn du blockiert bist — fehlender Kontext, mehrdeutige Anforderung, nicht auflösbarer Fehler, oder unsichere Operation ohne explizite Bestätigung:
-
-1. **Sofort stoppen** — nicht raten, nicht blind weitermachen
-2. **Signal senden:**
-   ```bash
-   bash scripts/agent-escalate.sh \
-     --agent "bachelorprojekt-db" \
-     --reason "<Was dich blockiert>" \
-     --tried  "<Was du versucht hast>" \
-     --needs  "<Was dich entblocken würde>"
-   ```
-3. **ESCALATION-Block als Antwort zurückgeben** — der Orchestrator re-dispatcht mit mehr Kontext
-
-**Niemals:**
-- Stumm scheitern und unvollständige Arbeit zurückgeben
-- Bei mehrdeutigen `ENV=`-Zielen, Secret-Werten oder destruktiven Operationen raten
-- Über einen 🔴 oder 🟠 Guardrail hinausgehen ohne explizite Bestätigung
+Blockiert (fehlender Kontext, Mehrdeutigkeit, unsichere Operation)? Sofort stoppen,
+`bash scripts/agent-escalate.sh --agent "bachelorprojekt-db" --reason … --tried … --needs …`
+aufrufen und einen ESCALATION-Block zurückgeben. Nie stumm scheitern, nie raten.
+Vollständige Regel: [`escalation-protocol.md`](../lib/behaviors/escalation-protocol.md).
 
 ## Active plans
-The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh db --with-openspec`, which reads active proposals from `openspec/changes/*/proposal.md`. **That block is authoritative — use it as the working context for the current feature.**
 
-If no block was injected, no `db`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is frozen historical data — `scripts/track-pr.mjs` and the tracking pipeline were removed in PRs #788/#993.
+Der Orchestrator injiziert einen `<active-plans>`-Block aus
+`scripts/plan-context.sh bachelorprojekt-db --with-openspec`. Ist er da, ist er maßgeblich.
+Ist er nicht da, läuft für diese Rolle kein Plan — **nicht** ersatzweise
+`superpowers.plans` abfragen (eingefrorene Historie).
+
+Immer den **vollen** Rollennamen übergeben: eine Kurzform fällt still auf „alle
+Proposals" zurück, statt zu scheitern (T002322). Details:
+[`agent-active-plans.md`](../skills/references/agent-active-plans.md).

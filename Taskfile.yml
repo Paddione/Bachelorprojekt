@@ -2719,7 +2719,14 @@ tasks:
         echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
 
   gitlab-runner:render:
-    desc: "Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade)."
+    # ACHTUNG (T012503): Die Chart-Ausgabe enthaelt Laufzeit-Variablen
+    # (${CONFIG_PATH_FOR_INIT}, ${MAX_REGISTER_ATTEMPTS}). Sie muessen in der
+    # committeten Datei als $${VAR} escaped sein, sonst nimmt
+    # scripts/flux-render-artifact.sh sie in seine envsubst-Liste auf und setzt
+    # sie auf "" — "mkdir -p" laeuft dann ohne Argument und der Runner crasht.
+    # Nach jedem Re-Render das Escaping wieder anbringen; der Guard dafuer ist
+    # tests/spec/flux-render-security/runtime-var-unwrapping.bats.
+    desc: "Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Danach $${VAR}-Escaping wieder anbringen — siehe Kommentar."
     preconditions:
       - sh: command -v helm > /dev/null
         msg: "helm not found. Install: https://helm.sh/docs/intro/install/"

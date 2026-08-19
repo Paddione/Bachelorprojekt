@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.8...website-v1.286.9) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** concurrent auf 3 senken + description fuer update-dependencies SKILL [T012647] ([#4819](https://github.com/Paddione/Bachelorprojekt/issues/4819)) ([ee9280f](https://github.com/Paddione/Bachelorprojekt/commit/ee9280f1d40dcae39d0fb87291b6690706336751))
+
 ## [1.286.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.7...website-v1.286.8) (2026-08-19)
 
 

@@ -103,3 +103,19 @@ setup() {
   run grep -c '\$\$' <<<"$unwrapped"
   [ "$output" = "0" ]
 }
+
+@test "T012907: CronJob auth secrets survive fleet envsubst for runtime expansion" {
+  local manifest
+  for manifest in \
+    k3d/cronjob-scheduled-publish.yaml \
+    k3d/notify-unread-cronjob.yaml \
+    k3d/error-log-retention-cronjob.yaml; do
+    run grep -cF 'Bearer $${CRON_SECRET}' "${REPO_ROOT}/${manifest}"
+    [ "$status" -eq 0 ]
+    [ "$output" -eq 1 ]
+
+    run bash -c "sed -E '$UNWRAP' '${REPO_ROOT}/${manifest}' | grep -cF 'Bearer \${CRON_SECRET}'"
+    [ "$status" -eq 0 ]
+    [ "$output" -eq 1 ]
+  done
+}

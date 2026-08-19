@@ -1,7 +1,7 @@
 ---
 name: update-dependencies
+description: 'Archived dependency-update routine retained for reference; invoke explicitly only when the scheduled biweekly workflow must be run manually.'
 archived: true
-# Kein description-Feld — dieser Skill läuft als biweekly Cloud-Routine (CronCreate).
 # Manuell: Skill explizit mit /update-dependencies aufrufen, falls sofortige Ausführung nötig.
 ---
 
@@ -79,4 +79,3 @@ cd website && pnpm install --frozen-lockfile
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-

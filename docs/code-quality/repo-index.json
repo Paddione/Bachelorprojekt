@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1101,
+      "file_count": 1102,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -853,6 +853,7 @@
         "tests/spec/software-factory/agent-lock-scope-argument.bats",
         "tests/spec/software-factory/auto-triage-type-vocab.bats",
         "tests/spec/software-factory/babysit-prs-ci-never-ran.bats",
+        "tests/spec/software-factory/babysit-prs-conflict-guard-T012500.bats",
         "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
         "tests/spec/software-factory/babysit-prs-red-detection.bats",
         "tests/spec/software-factory/batch-closure-title-children.bats",

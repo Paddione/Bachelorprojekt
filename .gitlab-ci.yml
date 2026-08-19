@@ -13,6 +13,7 @@
 # der GitHub-seitigen Diff-Auswahl (task test:changed / dessen Alias test:all).
 
 stages:
+  - build
   - lint
   - test
   - quality
@@ -32,6 +33,28 @@ variables:
   # ist eine Version noetig, weil der Download direkt erfolgt; sie wandert in den
   # Paritaets-Guard als "nur GitLab gepinnt" und nicht als Divergenz.
   TRIVY_VERSION: "0.74.0"
+
+# ── Prebuilt CI Images (T012411) ────────────────────────────────────────────
+# Vorgebaute Images eliminieren ~75s Setup-Zeit pro Job (apt-get, curl-Downloads).
+# Quelle: .gitlab-ci-images/*.Dockerfile, scripts/build-ci-images.sh
+# Rebuild: manuell oder beim Aendern von VERSION-Argen in den Dockerfiles.
+
+build-ci-images:
+  stage: build
+  <<: *gl_defaults
+  image: docker:24
+  services:
+    - docker:24-dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - ".gitlab-ci-images/*"
+        - "scripts/build-ci-images.sh"
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - bash scripts/build-ci-images.sh
 
 # ── Etappe 3 (T012405): gemeinsame Bausteine ─────────────────────────────────
 #
@@ -80,7 +103,7 @@ bats-unit:
   # deshalb unten explizit ausgeschlossen, nicht per zusaetzlicher Toolinstallation
   # hereingezogen (das wuerde die Job-Aufteilung des Repos unterlaufen, die genau
   # dafuer existiert, dass test-bats OHNE kubectl auskommt).
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
   tags: [$CI_RUNNER_TAG]
   variables:
     YQ_VERSION: "4.53.3"
@@ -168,7 +191,7 @@ bats-unit:
 
 manifests:
   stage: test
-  image: ubuntu:24.04
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-ubuntu:latest
   tags: [$CI_RUNNER_TAG]
   variables:
     KUBECTL_VERSION: "v1.31.0"
@@ -213,7 +236,7 @@ gitleaks:
   #   gitleaks       fail-closed
   #   Trivy          advisory     (auf GitHub continue-on-error)
   stage: test
-  image: ubuntu:24.04
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-ubuntu:latest
   tags: [$CI_RUNNER_TAG]
   interruptible: true
   before_script:
@@ -306,7 +329,7 @@ factory-openspec:
   # Gegenstueck zu test-factory-openspec: die billigen, hochsignalhaften Gates.
   stage: test
   <<: *gl_defaults
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
   rules: *scoped_rules
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git jq ca-certificates >/dev/null
@@ -326,7 +349,7 @@ factory-shard:
   # nachzubauen statt ihrer Wirkung (design.md D3).
   stage: test
   <<: *gl_defaults
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22-heavy:latest
   rules: *scoped_rules
   parallel: 4
   variables:
@@ -419,7 +442,7 @@ brett-typescript:
   # GitHub-Gegenstuecks, und Werkzeug-Paritaet ist der Zweck der Uebung.
   stage: test
   <<: *gl_defaults
-  image: node:24
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
   rules: *scoped_rules
   variables:
     MOCK_DB: "true"
@@ -442,7 +465,7 @@ vitest-website:
   # am wenigsten auf (vgl. Memory-Notiz "Vitest gruen ohne Testlauf").
   stage: test
   <<: *gl_defaults
-  image: node:24
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
   rules: *scoped_rules
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git jq ca-certificates >/dev/null
@@ -478,7 +501,7 @@ commit-lint:
   # und dafuer gibt es bereits die Skripte, die auch Hook und GitHub-Job rufen.
   stage: lint
   <<: *gl_defaults
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
   rules: *branch_only_rules
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash ca-certificates >/dev/null
@@ -540,7 +563,7 @@ lighthouse:
   # sein Ergebnis ist ein Hinweis, kein Merge-Kriterium.
   stage: quality
   <<: *gl_defaults
-  image: node:24
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
   rules: *branch_only_rules
   allow_failure: true
   needs: [vitest-website]

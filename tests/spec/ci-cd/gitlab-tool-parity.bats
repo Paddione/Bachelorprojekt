@@ -109,10 +109,11 @@ _gh_node_majors() {
     | grep -oE '[0-9]+' | sort -u
 }
 
-# Alle Node-Major-Versionen der GitLab-Pipeline (image: node:NN).
+# Alle Node-Major-Versionen der GitLab-Pipeline (image: node:NN oder ci-nodeNN).
 _gl_node_majors() {
-  grep -oE 'image:[[:space:]]*node:[0-9]+' "$GL_YML" \
-    | grep -oE '[0-9]+$' | sort -u
+  { grep -oE 'image:[[:space:]]*node:[0-9]+' "$GL_YML" | grep -oE '[0-9]+$'
+    grep -oE 'ci-node[0-9]+' "$GL_YML" | grep -oE '[0-9]+$'
+  } | sort -u
 }
 
 @test "gitlab-tool-parity: die Node-Majors beider Seiten stimmen ueberein" {

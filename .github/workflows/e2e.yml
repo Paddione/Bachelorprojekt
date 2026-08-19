@@ -156,27 +156,17 @@ jobs:
           # SKIP_DB_PURGE mehr: fehlt das Secret, soll der Run laut scheitern.
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           PLAYWRIGHT_WORKERS: "4"
-        # Exclude korczewski projects — brand is frozen (T002602), web.korczewski.de returns 503.
-        # Without this filter, every nightly run fails on the korczewski health check before
-        # any mentolder test executes.
-        #
-        # Die Auswahl steht positiv, weil Playwright KEINE Negation in --project kennt
-        # [T012489]: `--project=!korczewski` wird als Projektname gelesen, nicht als
-        # Ausschluss, und der Lauf bricht mit "Project(s) not found" ab, bevor ein
-        # einziger Test laeuft. Damit die Liste nicht still veraltet, prueft
-        # tests/spec/ci-cd/e2e-project-selection.bats, dass jedes Projekt aus
-        # playwright.config.ts hier entweder aufgezaehlt oder bewusst ausgeschlossen ist.
-        run: |
-          npx playwright test \
-            --project website \
-            --project mentolder-setup \
-            --project mentolder \
-            --project services \
-            --project brett-mentolder-setup \
-            --project brett-mentolder \
-            --project smoke \
-            --project ios \
-            --project android
+          # Exclude korczewski projects — brand is frozen (T002602), web.korczewski.de
+          # returns 503. Ohne den Ausschluss scheitert jeder naechtliche Lauf am
+          # korczewski-Health-Check, bevor ein mentolder-Test ausgefuehrt wird.
+          #
+          # Der Ausschluss laeuft ueber die Config, nicht ueber --project [T012489]:
+          # Playwright kennt keine Negation in --project, und eine positive Aufzaehlung
+          # bricht ab, sobald ein Projekt bedingt fehlt (`ios` existiert nur bei
+          # installiertem WebKit). Die Config kennt ihre eigene Projektliste — dort
+          # kann die Auswahl nicht veralten.
+          E2E_SKIP_KORCZEWSKI: "1"
+        run: npx playwright test
 
       # G-E2E02 / T002096: defense-in-depth post-run purge (covers timeout kill)
       - name: Post-run test-data purge (defense-in-depth)

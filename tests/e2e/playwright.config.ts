@@ -10,6 +10,16 @@ try {
   webkitInstalled = fs.existsSync(webkit.executablePath());
 } catch { /* webkit not available */ }
 
+// Korczewski-Brand ist eingefroren (T002602), web.korczewski.de antwortet 503.
+// Der naechtliche Prod-Lauf blendet die beiden Projekte deshalb aus.
+//
+// Der Ausschluss steht hier und nicht als --project-Auswahl im Workflow [T012489]:
+// Playwright kennt keine Negation in --project, und eine positive Aufzaehlung im
+// Workflow bricht ab, sobald ein Projekt bedingt fehlt — `ios` existiert nur bei
+// installiertem WebKit (siehe unten). Genau dieselbe Fehlerklasse, nur eine Stufe
+// spaeter. Die Config kennt ihre eigene Projektliste; hier kann nichts veralten.
+const skipKorczewski = process.env.E2E_SKIP_KORCZEWSKI === '1';
+
 export default defineConfig({
   testDir: './specs',
   timeout: 10_000,
@@ -244,35 +254,41 @@ export default defineConfig({
       },
     },
 
-    // ── korczewski-setup: seeds auth state for korczewski tests ─────
-    // Runs before `korczewski` via the `dependencies` field.
-    // Performs real OIDC login and writes .auth/korczewski-*.json.
-    {
-      name: 'korczewski-setup',
-      testMatch: '**/korczewski-auth-setup.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        ignoreHTTPSErrors: true,
+    // ── korczewski-setup / korczewski ────────────────────────────
+    // Beide entfallen bei E2E_SKIP_KORCZEWSKI=1 (Brand eingefroren, T002602).
+    // Sie haengen nur aneinander, kein anderes Projekt referenziert sie —
+    // der Ausschluss reisst also keine dependencies-Kette auf.
+    ...(skipKorczewski ? [] : [
+      // korczewski-setup: seeds auth state for korczewski tests.
+      // Runs before `korczewski` via the `dependencies` field.
+      // Performs real OIDC login and writes .auth/korczewski-*.json.
+      {
+        name: 'korczewski-setup',
+        testMatch: '**/korczewski-auth-setup.spec.ts',
+        use: {
+          ...devices['Desktop Chrome'],
+          ignoreHTTPSErrors: true,
+        },
       },
-    },
 
-    // ── korczewski: Korczewski-brand & cross-cluster specs ───────
-    // Run: playwright test --project=korczewski
-    {
-      name: 'korczewski',
-      dependencies: ['korczewski-setup'],
-      testMatch: [
-        '**/korczewski-home.spec.ts',  // Kore brand homepage
-        '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
-        '**/fa-47-brett-figure-pack-assets.spec.ts', // figure-pack assets served (T000527/T000522)
-        '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
-        '**/fa-content-hub-legal-ssot.spec.ts',
-      ],
-      use: {
-        ...devices['Desktop Chrome'],
-        ignoreHTTPSErrors: true,
+      // korczewski: Korczewski-brand & cross-cluster specs.
+      // Run: playwright test --project=korczewski
+      {
+        name: 'korczewski',
+        dependencies: ['korczewski-setup'],
+        testMatch: [
+          '**/korczewski-home.spec.ts',  // Kore brand homepage
+          '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
+          '**/fa-47-brett-figure-pack-assets.spec.ts', // figure-pack assets served (T000527/T000522)
+          '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
+          '**/fa-content-hub-legal-ssot.spec.ts',
+        ],
+        use: {
+          ...devices['Desktop Chrome'],
+          ignoreHTTPSErrors: true,
+        },
       },
-    },
+    ]),
 
     // ── smoke: Cross-service integration tests ──────────────────
     // Run: playwright test --project=smoke

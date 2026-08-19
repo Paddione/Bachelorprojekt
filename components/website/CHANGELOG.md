@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.293.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.292.1...website-v1.293.0) (2026-08-19)
+
+
+### Features
+
+* **factory:** DeepSeek Harness integration [T012962] ([#4867](https://github.com/Paddione/Bachelorprojekt/issues/4867)) ([be24cbc](https://github.com/Paddione/Bachelorprojekt/commit/be24cbc37153ccde11c34e1ec43c649f67cb5c3d))
+
 ## [1.292.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.292.0...website-v1.292.1) (2026-08-19)
 
 

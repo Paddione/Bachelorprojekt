@@ -5,7 +5,10 @@ import { TERRITORY_AREA_IDS } from './map-areas.mjs';
 
 const TAXONOMY_REQUIRED = ['safe', 'caution', 'assisted', 'forbidden'];
 const TOOL_KINDS = ['skill', 'agent', 'task'];
-const HARNESS_VALUES = ['claude', 'opencode', 'both'];
+const HARNESS_VALUES = ['claude', 'opencode', 'both', 'dsh', 'all'];
+// `both` = "Claude Code und opencode" (historisch, 9 geprüfte Einträge).
+// `all` = "alle erklärten Harnesses inklusive dsh". Nicht `both` auf `all`
+// umschreiben — die bestehenden `both`-Einträge sind Zusage für genau diese zwei.
 
 function load(dir, file) {
   return parse(readFileSync(join(dir, file), 'utf8')) ?? [];

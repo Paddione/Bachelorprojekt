@@ -2382,6 +2382,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-foundation/from-scratch-rebuild",
+    "file": "tests/spec/brain-foundation/from-scratch-rebuild.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
     "id": "brain-foundation/ingest-llm-endpoint",
     "file": "tests/spec/brain-foundation/ingest-llm-endpoint.bats",
     "category": "brain-foundation",
@@ -2390,6 +2396,12 @@
   {
     "id": "brain-foundation/k1-vector-db-doc",
     "file": "tests/spec/brain-foundation/k1-vector-db-doc.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-foundation/state-file-type-repair",
+    "file": "tests/spec/brain-foundation/state-file-type-repair.bats",
     "category": "brain-foundation",
     "kind": "shell"
   },

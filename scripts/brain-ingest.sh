@@ -3,7 +3,7 @@
 # Transforms Bachelorprojekt source files into brain wiki pages via LLM,
 # delivers via PR to Paddione/brain.
 #
-# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune]
+# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune] [--from-scratch]
 #
 # Env:
 #   LM_STUDIO_URL    — llama-server ingest-pool API URL (default:
@@ -29,15 +29,19 @@ MANIFEST="$REPO_ROOT/scripts/brain/ingest-sources.yaml"
 WORKLIST_SCRIPT="$REPO_ROOT/scripts/brain-ingest-worklist.sh"
 TRANSFORM_SCRIPT="$HERE/brain-ingest-transform.sh"
 CHUNK_SCRIPT="$HERE/brain-chunk.sh"
+RESET_HELPERS="$HERE/brain-ingest-reset.sh"
 
 # shellcheck source=./brain-group-match.sh
 source "$HERE/brain-group-match.sh"
+# shellcheck source=./brain-ingest-reset.sh
+source "$RESET_HELPERS"
 
 # --- Defaults ---
 BRAIN_REPO=""
 DRY_RUN=0
 PILOT=0
 PRUNE=0
+FROM_SCRATCH=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://localhost:8100}"
@@ -68,10 +72,17 @@ while [[ $# -gt 0 ]]; do
     --state)      STATE_FILE="${2:?--state requires a path}"; shift ;;
     --branch)     BRANCH="${2:?--branch requires a name}"; shift ;;
     --prune)      PRUNE=1 ;;
+    --from-scratch) FROM_SCRATCH=1 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
 done
+
+# --from-scratch + --pilot is forbidden: it would delete everything then
+# only rebuild a partial slice, losing the rest. (T012902)
+if [ "$FROM_SCRATCH" -eq 1 ] && [ "$PILOT" -gt 0 ]; then
+  echo "error: --from-scratch cannot be combined with --pilot" >&2; exit 2
+fi
 
 [ -n "$BRAIN_REPO" ] || { echo "error: --brain-repo required" >&2; exit 1; }
 [ -d "$BRAIN_REPO/.git" ] || { echo "error: --brain-repo is not a git repo: $BRAIN_REPO" >&2; exit 1; }
@@ -79,6 +90,22 @@ done
 [ -f "$WORKLIST_SCRIPT" ] || { echo "error: worklist script not found: $WORKLIST_SCRIPT" >&2; exit 1; }
 [ -f "$TRANSFORM_SCRIPT" ] || { echo "error: transform script not found: $TRANSFORM_SCRIPT" >&2; exit 1; }
 [ -f "$CHUNK_SCRIPT" ] || { echo "error: chunk script not found: $CHUNK_SCRIPT" >&2; exit 1; }
+[ -f "$RESET_HELPERS" ] || { echo "error: reset helpers not found: $RESET_HELPERS" >&2; exit 1; }
+
+# Historical plain --dry-run behavior initializes state; only the new
+# --from-scratch preview promises a completely write-free reset inspection.
+STATE_INIT_DRY_RUN=0
+[ "$FROM_SCRATCH" -eq 1 ] && [ "$DRY_RUN" -eq 1 ] && STATE_INIT_DRY_RUN=1
+brain_ingest_initialize_state "$STATE_FILE" "$STATE_INIT_DRY_RUN"
+
+# A from-scratch dry run is a reset preview, not a transformation run. Preview
+# directly from the current wiki so it performs no checkout, chunking, LLM call,
+# state initialization, or other write.
+if [ "$FROM_SCRATCH" -eq 1 ] && [ "$DRY_RUN" -eq 1 ]; then
+  PRIMARY_REPO_ROOT="$(git -C "$REPO_ROOT" worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" 1 "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
+  exit 0
+fi
 
 # Extracted once (not per file — see brain-group-match.sh perf note).
 brain_group_section_for_manifest "$MANIFEST"
@@ -151,11 +178,6 @@ SLUGS_JSON="$(mktemp)"
 awk -F'\t' '{print $3}' "$CHUNKS_TSV" | jq -R . | jq -s . > "$SLUGS_JSON"
 echo "Slug inventory: $(jq length "$SLUGS_JSON") slugs (including MOCs)"
 
-# Load state (idempotency)
-if [ ! -f "$STATE_FILE" ]; then
-  echo '{}' > "$STATE_FILE"
-fi
-
 # Create/update branch in brain repo
 echo "Preparing brain repo branch: $BRANCH"
 cd "$BRAIN_REPO"
@@ -168,6 +190,15 @@ fi
 # Ensure wiki/ directory exists
 mkdir -p "$BRAIN_REPO/wiki"
 cd "$REPO_ROOT"
+
+# ============================================================
+# Phase 1b: Wiki- und State-Reset (nur bei --from-scratch)
+# ============================================================
+if [ "$FROM_SCRATCH" -eq 1 ]; then
+  echo ""
+  PRIMARY_REPO_ROOT="$(git -C "$REPO_ROOT" worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" "$DRY_RUN" "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
+fi
 
 # ============================================================
 # Phase 2: LLM Transformation

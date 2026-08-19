@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1105,
+      "file_count": 1106,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -481,6 +481,7 @@
         "tests/spec/ci-cd/gitlab-pipeline-check.bats",
         "tests/spec/ci-cd/gitlab-registry-cache.bats",
         "tests/spec/ci-cd/gitlab-registry-mirror.bats",
+        "tests/spec/ci-cd/gitlab-runner-executor-rbac.bats",
         "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
         "tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats",
         "tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats",

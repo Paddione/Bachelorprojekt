@@ -34,17 +34,51 @@ rbac:
   # Namespaced Role statt ClusterRole — Requirement "RBAC fuer den Runner-Manager
   # SHALL be a namespaced Role, never a ClusterRole" (specs/ci-cd.md).
   clusterWideAccess: false
+  # T012637: Die Liste folgt der Rechtetabelle fuer den Kubernetes-Executor aus
+  # der Runner-Doku. Sie war bis dahin auf pods, pods/log und secrets verkuerzt;
+  # jeder Job scheiterte an
+  #   error setting ownerReferences: secrets "runner-…" is forbidden:
+  #   User "system:serviceaccount:gitlab-runner:gitlab-runner" cannot update
+  #   resource "secrets" in API group "" in the namespace "gitlab-runner"
+  # Es fehlte nicht nur update: ohne pods/exec und pods/attach waere der
+  # naechste Fehlschlag direkt danach gekommen, weil der Executor die
+  # Build-Schritte per exec im Job-Pod ausfuehrt.
+  #
+  # BEWUSST NICHT uebernommen, obwohl die Doku sie auflistet: namespaces
+  # (create/delete), apps/deployments, poddisruptionbudgets und
+  # priorityclasses. Der Runner arbeitet in einem festen Namespace; namespaces
+  # create/delete waere ein clusterweiter Rechteausbau ohne Bedarf und stuende
+  # gegen clusterWideAccess=false direkt darueber. Wer eines dieser Features
+  # spaeter einschaltet, ergaenzt die Regel gezielt — nicht auf Vorrat.
   rules:
     - resources: ["pods"]
       verbs: ["get", "list", "watch", "create", "delete"]
+    # Der Executor fuehrt die Build-Schritte im Job-Pod aus, nicht als
+    # Container-Kommando — dafuer braucht er exec und attach.
+    - resources: ["pods/exec"]
+      verbs: ["get", "create", "delete", "patch"]
+    - resources: ["pods/attach"]
+      verbs: ["get", "create", "delete", "patch"]
     - resources: ["pods/log"]
-      verbs: ["get"]
+      verbs: ["get", "list"]
     # Der Kubernetes-Executor legt pro Job ein Secret mit den Registry-
     # Credentials an (image_pull_secrets) und raeumt es danach wieder ab.
+    # update ist noetig, weil er auf dem frisch erzeugten Secret die
+    # ownerReferences nachtraegt — genau daran scheiterte T012637.
     # Stand bis T012413 nur in der gerenderten Datei — dort geht die Regel bei
     # jedem gitlab-runner:render verloren, deshalb gehoert sie hierher.
     - resources: ["secrets"]
-      verbs: ["get", "list", "create", "delete"]
+      verbs: ["get", "list", "create", "update", "delete"]
+    # Job-Services (services: in der .gitlab-ci.yml) bekommen einen eigenen
+    # Kubernetes-Service, damit der Build sie unter ihrem Namen erreicht.
+    - resources: ["services"]
+      verbs: ["get", "create"]
+    # Der Executor liest den eigenen ServiceAccount und wertet Pod-Events aus,
+    # um beim Start haengende Job-Pods mit Grund zu melden statt im Timeout.
+    - resources: ["serviceaccounts"]
+      verbs: ["get"]
+    - resources: ["events"]
+      verbs: ["list", "watch"]
 
 # nodeAffinity statt nodeSelector (p1, Aufgabe 4): ein simples Label-Map kann kein
 # ODER ueber zwei Hostnamen ausdruecken. Gleiche Form wie

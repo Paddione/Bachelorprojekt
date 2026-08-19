@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.292.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.292.0...website-v1.292.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **website:** bump @astrojs/node to ^11.1.4 to fix CrashLoopBackOff [T012963] ([#4864](https://github.com/Paddione/Bachelorprojekt/issues/4864)) ([c20643b](https://github.com/Paddione/Bachelorprojekt/commit/c20643ba49de4a9fbe39a98a589fbc2b86e6bf4f))
+
 ## [1.292.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.291.0...website-v1.292.0) (2026-08-19)
 
 

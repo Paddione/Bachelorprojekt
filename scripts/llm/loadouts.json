@@ -328,20 +328,18 @@
     },
     {
       "slug": "brain-ingest",
-      "label": "gpt-oss-20b - Brain-Ingest-Pool",
-      "model": "gptoss20/gpt-oss-20b-UD-Q4_K_XL.gguf",
+      "label": "Gemma 4 12B QAT - Brain-Ingest-Pool",
+      "model": "gemma4-12qat/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8100,
       "fit": {
-        "enabled": true,
-        "targetMarginMib": 256,
-        "minCtx": 32768
+        "enabled": false
       },
       "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 4,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
+        "ctx": 32768,
+        "ngl": 999,
+        "parallel": 3,
+        "cacheTypeK": "f16",
+        "cacheTypeV": "f16",
         "loadMode": "mmap",
         "flashAttention": true,
         "jinja": true,
@@ -357,7 +355,7 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). parallel=4, gpt-oss-20b UD-Q4_K_XL. 32.768 ctx je Slot. Port 8100 seit T003203: 8093 belegt der kubectl-Forward auf llm-gateway-rerank (scripts/bge-mcp/bge-forward-rerank.service), 8097 ein Factory-Provider (scripts/factory/provider-register-gptoss.sh). T003204: reasoningBudget=0 — Formattreue bei temperature 0.2 braucht keine Denkphase, die Tokens kostet, ohne die Einhaltung der sechs harten Constraints zu verbessern. Abgeschaltet wird das Denken ueber reasoningBudget (--reasoning-budget 0) und NICHT ueber args.reasoning: '-rea' steuert nur, ob llama-server reasoning_content PARST (siehe runner.mjs). Es auf null zu setzen haette die Denkphase unberuehrt gelassen und bloss deren Ausgabe unterdrueckt — die Tokens waeren weiter angefallen. Das Loadout selbst bleibt aktiv; abgeschaltet ist nur gptoss-context auf :8098, das dieselbe Modelldatei faehrt.",
+      "notes": "Serverseite fuer scripts/brain-ingest.sh. Umgestellt von gpt-oss-20b auf Gemma 4 12B QAT (T012905, Operator-Entscheidung). BELEG: Spike am 2026-08-19 gegen Repo-Stand 73ca48ccc, drei echte Quellen durch scripts/brain-ingest-transform.sh gegen einen manuell gestarteten llama-server (/home/patrick/.unsloth/llama.cpp/build/bin/llama-server, Build b10241, -ngl 999 -c 32768 -fa on --jinja -np 1 --port 8100 --alias gemma-4-12b-qat). Ergebnis 3/3 rc=0 in 16/39/58 s, jeweils gueltiges Frontmatter und genau eine source::-Zeile; die bei Reasoning-Modellen bekannte Falle (Antwort in reasoning_content, content leer) trat nicht auf. Befehl zur Nachstellung: export LM_STUDIO_URL=http://127.0.0.1:8100 LM_MODEL=gemma-4-12b-qat; bash scripts/brain-ingest-transform.sh openspec/specs/phase-events.md note phase-events <slugs.json> '[\"note\"]'. PARAMETER: parallel=3 statt 4 — fuer dieses Modell auf dieser GPU ist 3 gemessen optimal (siehe Notiz zu gemma12-vision, T012414: -np 4 liefert 319 statt 489 tok/s). KV auf f16 und fit deaktiviert mit explizitem ctx, analog gemma12-vision; -fit on laedt sonst n_ctx_train und bindet den Rest als KV-Cache. reasoningBudget=0 bleibt aus dem gpt-oss-Eintrag stehen: Gemma hat keine Denkphase, die Einstellung ist damit wirkungslos, aber auch unschaedlich. Port 8100 unveraendert (8093 belegt der kubectl-Forward auf llm-gateway-rerank, 8097 ein Factory-Provider). Kein mmproj und kein MTP-Drafter: der Ingest ist reiner Text, und der Drafter halbiert laut Messung den Prefill. HISTORIE zum reasoningBudget (aus T003204, gilt weiter, falls hier je wieder ein Reasoning-Modell laeuft): abgeschaltet wird das Denken ueber reasoningBudget (--reasoning-budget 0) und NICHT ueber args.reasoning — '-rea' steuert nur, ob llama-server reasoning_content PARST (siehe runner.mjs). args.reasoning auf null zu setzen laesst die Denkphase unberuehrt und unterdrueckt bloss deren Ausgabe, die Tokens fallen weiter an.",
       "exclusiveGroup": "chat-gpu"
     }
   ],

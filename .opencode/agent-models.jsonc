@@ -316,7 +316,7 @@
     "gptoss": {
       "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the gptoss-context loadout was disabled in T003204; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -332,7 +332,7 @@
     "devstral": {
       "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; updated to gemma26-throughput to share the live loadout with orchestrator and gptoss without GPU swapping. Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -342,7 +342,7 @@
     "gemma": {
       "description": "Local subagent for the gemma family (Gemma 4 26B A4B QAT UD-Q4_K_XL, Loadout gemma26-throughput auf Port 8092, via llm-proxy :18235). Write-capable delegation; shares the live GPU loadout with orchestrator/gptoss without swapping.",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -374,7 +374,7 @@
     "gemma26-primary": {
       "description": "Primary (Tab-selectable) local agent on gemma26-factory (Gemma 4 26B A4B IQ4_XS, 161024 ctx measured, np=3 -kvu q4_0). Use for fully local work without the DeepSeek orchestrator in front. Can dispatch any subagent (deepseek + local).",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#6EE7B7",
       // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
@@ -397,7 +397,7 @@
     "gemma26-vision": {
       "description": "Local agent on gemma26-factory with no subagent dispatch \u2014 for long-context work that must stay on-device. No vision: gemma26-factory loads no mmproj (see loadouts.json); for vision use the gemma12-vision loadout instead.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#A78BFA",
       "temperature": 0.3,
@@ -425,7 +425,7 @@
     "gptoss-primary": {
       "description": "PRIMARY: Gemma 4 26B A4B QAT UD-Q4_K_XL (118.016 ctx). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092) — moved off the gptoss-context loadout, disabled in T003204. Broad general knowledge. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.3,
@@ -435,7 +435,7 @@
     "devstral-primary": {
       "description": "PRIMARY: Gemma 4 26B A4B UD-IQ4_XS (177.920 ctx). Tab-selectable singleagent on the gemma26-factory loadout (Port 8091) — moved off the devstral-quality loadout, disabled in T003204 (dominated in every dimension). Optimised for code quality review. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.3,
@@ -455,7 +455,7 @@
     "gemma26-throughput-primary": {
       "description": "PRIMARY: Gemma 4 26B A4B QAT-Q4_K_XL (118.016 ctx, 159-169 tok/s). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092). Fastest 26B option — QAT quant trades some quality for 30% higher throughput. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.3,
@@ -543,7 +543,7 @@
       // oder freigeschaltetem Balance-Usage.
       "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma26-factory",
+      "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.292.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.291.0...website-v1.292.0) (2026-08-19)
+
+
+### Features
+
+* **agents:** add Brain knowledge lifecycle [T012913] ([#4854](https://github.com/Paddione/Bachelorprojekt/issues/4854)) ([d4d84b5](https://github.com/Paddione/Bachelorprojekt/commit/d4d84b5a3bebdf9176411d2fc5cb86e6565c5f8d))
+
 ## [1.291.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.290.0...website-v1.291.0) (2026-08-19)
 
 

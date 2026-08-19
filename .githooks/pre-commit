@@ -111,6 +111,7 @@ _FRESHNESS_FILES=(
   docs/agent-guide/maps/tools-map.md
   docs/agent-guide/maps/danger-map.md
   docs/agent-guide/maps/agents-map.md
+  docs/agent-guide/maps/networks-map.md
   components/website/src/lib/agent-guide.generated.json
   components/website/src/lib/platform-descriptions.generated.json
   design/leitstand-ds/_tokens.css

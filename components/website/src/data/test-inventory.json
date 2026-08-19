@@ -5556,6 +5556,12 @@
     "kind": "shell"
   },
   {
+    "id": "workstation-cluster-pxe/setup-pxe-guards",
+    "file": "tests/spec/workstation-cluster-pxe/setup-pxe-guards.bats",
+    "category": "workstation-cluster-pxe",
+    "kind": "shell"
+  },
+  {
     "id": "worktree-create-real-path-T004604",
     "file": "tests/spec/worktree-create-real-path-T004604.bats",
     "category": "worktree-create-real-path-T004604",

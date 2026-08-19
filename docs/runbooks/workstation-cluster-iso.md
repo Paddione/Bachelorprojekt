@@ -168,7 +168,9 @@ aendern, etwa `match: {ssd: true}` oder ein fester Pfad
 Bestueckung, sonst ist wieder ein ISO je Maschine faellig.
 
 **Secure Boot.** Das umgepackte ISO ist nicht signiert. Bootet die Maschine
-nicht, im UEFI Secure Boot deaktivieren.
+nicht, im UEFI Secure Boot deaktivieren — oder den Netzweg nehmen: bei PXE
+bleiben Ubuntus signierte Binaries unveraendert, Secure Boot kann anbleiben.
+Siehe [`workstation-cluster-pxe.md`](workstation-cluster-pxe.md).
 
 **Zwei Netzwerkkarten.** `k3s-join.sh` nimmt ohne `--node-ip` die IP der
 Default-Route. Bei getrenntem Management- und Cluster-Netz die gewuenschte IP

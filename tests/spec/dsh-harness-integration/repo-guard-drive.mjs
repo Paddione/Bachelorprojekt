@@ -31,12 +31,12 @@ const NEXT = { kind: 'allow', via: 'next' }
 const next = async () => NEXT
 
 const cases = [
-  { case: 'write-inside', exec: { name: 'Write', arguments: { file_path: `${SESSION_CWD}/src/a.ts` }, agent } },
-  { case: 'write-outside', exec: { name: 'Write', arguments: { file_path: '/etc/passwd' }, agent } },
-  { case: 'write-escape-dotdot', exec: { name: 'Edit', arguments: { file_path: `${SESSION_CWD}/../outside.txt` }, agent } },
-  { case: 'read-tool-outside', exec: { name: 'Read', arguments: { file_path: '/etc/passwd' }, agent } },
-  { case: 'no-agent', exec: { name: 'Write', arguments: { file_path: '/etc/passwd' } } },
-  { case: 'prefix-trap', exec: { name: 'Write', arguments: { file_path: `${SESSION_CWD}-evil/x.txt` }, agent } },
+  { case: 'write-inside', exec: { name: 'write', arguments: { file_path: `${SESSION_CWD}/src/a.ts` }, agent } },
+  { case: 'write-outside', exec: { name: 'write', arguments: { file_path: '/etc/passwd' }, agent } },
+  { case: 'write-escape-dotdot', exec: { name: 'edit', arguments: { file_path: `${SESSION_CWD}/../outside.txt` }, agent } },
+  { case: 'read-tool-outside', exec: { name: 'read', arguments: { file_path: '/etc/passwd' }, agent } },
+  { case: 'no-agent', exec: { name: 'write', arguments: { file_path: '/etc/passwd' } } },
+  { case: 'prefix-trap', exec: { name: 'write', arguments: { file_path: `${SESSION_CWD}-evil/x.txt` }, agent } },
 ]
 
 for (const c of cases) {

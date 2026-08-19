@@ -33,8 +33,15 @@ import { isAbsolute, resolve } from 'node:path'
 
 export const name = 'repo-guard'
 
-/** Werkzeuge, die in eine Datei schreiben. Lesende Aufrufe passieren ungeprueft. */
-const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit'])
+/**
+ * Werkzeuge, die in eine Datei schreiben. Lesende Aufrufe passieren ungeprueft.
+ *
+ * [T012965] Die Namen sind KLEINGESCHRIEBEN und stammen aus dsh
+ * (docs/tool-catalog.md: `write`, `edit`, `str_replace_editor`). Die erste
+ * Fassung trug 'Write'/'Edit'/'NotebookEdit' — die Namen aus Claude Code, die
+ * es in dsh nicht gibt. Der Guard sah damit nie einen Schreibaufruf.
+ */
+const WRITE_TOOLS = new Set(['write', 'edit', 'str_replace_editor'])
 
 /** Argumentnamen, unter denen die Werkzeuge ihren Zielpfad fuehren. */
 const PATH_KEYS = ['file_path', 'notebook_path', 'path']

@@ -138,6 +138,24 @@ bietet eine Root-Shell an, dort `lsblk -o NAME,SIZE,TYPE,MODEL,TRAN`:
 Beobachtet auf echter Hardware: dieselbe Konfiguration lief auf der ersten
 Maschine durch und brach auf der zweiten ab.
 
+**curtin bricht in `stage-partitioning` ab.** Die Plattenwahl war dann schon
+erfolgreich; es scheitert erst beim Schreiben der Partitionen. In der
+Installer-Shell `lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT` und auf zwei
+Dinge achten:
+
+- **Eine Platte trägt `iso9660` und ist unter `/cdrom` gemountet.** Dann will
+  der Installer auf sein eigenes Medium schreiben — das kann nicht gelingen.
+  Beobachtet an einer Maschine, in der noch die Festplatte steckte, auf die
+  zuvor das Installations-ISO geschrieben worden war: mit 465 GB war sie die
+  größte und damit die Wahl des `direct`-Layouts. Lösung: Zielplatte
+  ausdrücklich benennen, `--disk /dev/sdb`.
+- **LVM-Volumes oder `md`-Geräte.** Reste einer früheren Installation halten
+  das Gerät, curtin scheitert mit `EBUSY`. Lösung: `--wipe-disks`.
+
+Die beiden Fälle verlangen gegensätzliche Maßnahmen — `--wipe-disks` auf eine
+Maschine loszulassen, deren Problem das Installationsmedium ist, löscht die
+falsche Platte. Deshalb erst `lsblk` lesen, dann entscheiden.
+
 **Arbeitsspeicher.** casper lädt das komplette ISO (~3,2 GB) ins RAM. Unter
 etwa 6 GB wird es eng.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.5...website-v1.286.6) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** Runner-Role um die Rechte des Kubernetes-Executors ergaenzen [T012637] ([#4810](https://github.com/Paddione/Bachelorprojekt/issues/4810)) ([3fc7daa](https://github.com/Paddione/Bachelorprojekt/commit/3fc7daa394f5923231c9bea1b4f4d53ea155ba02))
+
 ## [1.286.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.4...website-v1.286.5) (2026-08-19)
 
 

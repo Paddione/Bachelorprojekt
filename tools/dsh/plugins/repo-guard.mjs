@@ -1,61 +1,85 @@
 /**
  * tools/dsh/plugins/repo-guard.mjs — Native guard plugin for DSH.
  *
- * Mirrors the logic of scripts/hooks/worktree-write-guard.sh as a typed
- * pre-execute listener. Write calls targeting paths outside the session cwd
- * are denied with a structured reason (the path and cwd).
+ * Spiegelt scripts/hooks/worktree-write-guard.sh als typisierten
+ * pre-execute-Listener: ein Schreibaufruf auf einen Pfad ausserhalb des
+ * Sitzungs-Arbeitsverzeichnisses wird mit strukturierter Begruendung abgelehnt.
  *
- * WHY BOTH BRIDGE AND PLUGIN (double-check is intentional):
- * The CC-Hook bridge (p2) maps PreToolUse → tools/pre-execute and runs the
- * shell guard. This plugin registers on the same waterfall independently.
- * Both enforce the same rule: writes outside the session cwd are denied.
- * A double denial is expected and harmless — the waterfall folds to the
- * most restrictive decision. If the two paths ever disagree on what to
- * deny, that is a finding, not noise.
+ * WARUM BRIDGE UND PLUGIN NEBENEINANDER:
+ * Die CC-Hook-Bridge bildet PreToolUse auf tools/pre-execute ab und faehrt den
+ * Shell-Guard. Dieses Plugin haengt unabhaengig am selben Waterfall. Beide
+ * setzen dieselbe Regel durch; eine doppelte Ablehnung ist erwartet und
+ * unschaedlich (die Kette faltet restriktivst). Laufen beide Wege je
+ * auseinander, ist das ein Befund, kein Rauschen.
+ *
+ * [T012965] Drei Korrekturen gegenueber der ersten Fassung — jede einzeln am
+ * Upstream-Quelltext belegt, jede fuer sich machte den Guard wirkungslos:
+ *
+ *   1. Die Argumente stehen in `exec.arguments`, nicht `exec.args`
+ *      (ToolExecutionInput, packages/core/tools/src/index.ts:323). Die alte
+ *      Fassung las `exec.args || {}` — immer ein leeres Objekt, also fand sie
+ *      nie einen Zielpfad und lehnte NIE etwas ab.
+ *   2. Die Grenze ist die Sitzungs-cwd `exec.agent.session.header.cwd`, nicht
+ *      `process.cwd()`. Letzteres ist das Verzeichnis des Harness-Klons; der
+ *      Guard haette gegen den falschen Baum geprueft — Schreibzugriffe ins
+ *      Repo abgelehnt und solche in den Klon erlaubt. Dasselbe Feld benutzt
+ *      die Hook-Bridge (packages/hooks/hooks-claude-code/src/index.ts:328).
+ *   3. Die Entscheidung heisst `{ kind: 'deny', reason }`, nicht
+ *      `{ action: 'deny' }` (PreToolDecision, ebd. Zeile 588-591).
  *
  * @module repo-guard
  */
-
-const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit'])
+import { isAbsolute, resolve } from 'node:path'
 
 export const name = 'repo-guard'
+
+/** Werkzeuge, die in eine Datei schreiben. Lesende Aufrufe passieren ungeprueft. */
+const WRITE_TOOLS = new Set(['Write', 'Edit', 'NotebookEdit'])
+
+/** Argumentnamen, unter denen die Werkzeuge ihren Zielpfad fuehren. */
+const PATH_KEYS = ['file_path', 'notebook_path', 'path']
+
+/**
+ * Zielpfad aus den geparsten Argumenten lesen.
+ * @param {unknown} args
+ * @returns {string | undefined}
+ */
+function targetPathOf(args) {
+  if (!args || typeof args !== 'object') return undefined
+  for (const key of PATH_KEYS) {
+    const value = /** @type {Record<string, unknown>} */ (args)[key]
+    if (typeof value === 'string' && value.length > 0) return value
+  }
+  return undefined
+}
 
 /**
  * @param {import('@deepseek-ai/cordis').Context} ctx
  */
 export function apply(ctx) {
   ctx.on('tools/pre-execute', async (exec, next) => {
-    // Only intercept write tools.
-    if (!WRITE_TOOLS.has(exec.name)) {
-      return next()
-    }
+    if (!WRITE_TOOLS.has(exec.name)) return next()
 
-    // Extract the target file path from tool args.
-    const args = exec.args || {}
-    const targetPath = args.file_path || args.notebook_path || args.path
-    if (!targetPath || typeof targetPath !== 'string') {
-      return next()
-    }
+    const targetPath = targetPathOf(exec.arguments)
+    if (!targetPath) return next()
 
-    // Resolve to absolute path (relative paths resolve against cwd).
-    const { resolve, isAbsolute } = await import('node:path')
-    const absTarget = isAbsolute(targetPath)
-      ? resolve(targetPath)
-      : resolve(process.cwd(), targetPath)
+    // Die Grenze ist das Arbeitsverzeichnis DIESER Sitzung. Fehlt der Agent
+    // (etwa bei einem Aufruf ausserhalb einer Sitzung), gibt es keine Grenze,
+    // gegen die zu pruefen waere: dann wird delegiert statt gegen das
+    // Prozessverzeichnis zu pruefen, das mit dem Vorgang nichts zu tun hat.
+    const sessionCwd = exec.agent?.session?.header?.cwd
+    if (!sessionCwd) return next()
 
-    // Session working directory — the boundary.
-    const sessionCwd = process.cwd()
+    const absTarget = isAbsolute(targetPath) ? resolve(targetPath) : resolve(sessionCwd, targetPath)
+    const absCwd = resolve(sessionCwd)
+    if (absTarget === absCwd || absTarget.startsWith(absCwd + '/')) return next()
 
-    // If the resolved target is within the session cwd, allow.
-    if (absTarget.startsWith(sessionCwd + '/') || absTarget === sessionCwd) {
-      return next()
-    }
-
-    // Deny with structured reason — this is the key difference from the
-    // shell hook: the plugin returns a typed denial that the UI can display.
     return {
-      action: 'deny',
-      reason: `Write outside session workspace denied by repo-guard: target=${absTarget} is outside cwd=${sessionCwd}. Use a path within the session workspace, or set WORKTREE_GUARD_BYPASS=1 to override.`
+      kind: 'deny',
+      reason:
+        `repo-guard: Schreibzugriff ausserhalb des Sitzungs-Arbeitsverzeichnisses abgelehnt. ` +
+        `Ziel=${absTarget}, Arbeitsverzeichnis=${absCwd}. ` +
+        `Einen Pfad innerhalb des Arbeitsverzeichnisses waehlen.`,
     }
   })
 }

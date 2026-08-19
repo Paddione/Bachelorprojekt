@@ -4926,6 +4926,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/branch-naming-T012502",
+    "file": "tests/spec/software-factory/branch-naming-T012502.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/brand-is-row-filter-not-namespace",
     "file": "tests/spec/software-factory/brand-is-row-filter-not-namespace.bats",
     "category": "software-factory",

@@ -81,9 +81,18 @@ mapfile -t stale < <(_stale_query | factory_psql)
 _wd_cleanup_worktree() {
   local ext_id="$1" ext_lc stale_wt
   ext_lc="$(printf '%s' "$ext_id" | tr '[:upper:]' '[:lower:]')"
+  # [T012502] Alle vier Konventions-Praefixe und beide Schreibweisen der
+  # Ticket-ID erfassen. Vorher stand hier exakt feature/sf-<klein> bzw.
+  # chore/sf-<klein> — die Gegenstelle in pipeline.mjs bildet seit T012502 den
+  # Praefix aus dem Ticket-Typ (fix/, docs/ kamen hinzu) und schreibt die ID
+  # GROSS, weil worktree-create.sh sie klein ablehnt. Ohne diese Anpassung
+  # faende der Watchdog seine eigenen Zombie-Worktrees nicht mehr.
+  # Unveraendert eng bleibt der sf-Praefix: geraeumt wird weiterhin nur der
+  # Fallback-Slug, nicht jeder Branch mit dieser Ticket-ID.
   stale_wt="$(git worktree list --porcelain 2>/dev/null \
-    | awk -v p1="refs/heads/feature/sf-$ext_lc" -v p2="refs/heads/chore/sf-$ext_lc" '
-        /^worktree /{w=$2} $0=="branch "p1 || $0=="branch "p2{print w}')"
+    | awk -v pat="^branch refs/heads/(feature|fix|chore|docs)/sf-" -v id="$ext_lc" '
+        /^worktree /{w=$2}
+        /^branch /{ b=tolower($0); if (b ~ (pat id "$")) print w }')"
   [[ -z "$stale_wt" ]] && return 0
   if git -C "$stale_wt" status --short 2>/dev/null | grep -q .; then
     bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \

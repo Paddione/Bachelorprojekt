@@ -30,6 +30,7 @@ VALID_ROLES=(
   bachelorprojekt-db
   bachelorprojekt-security
   orchestrator
+  big-pickle
 )
 
 usage() {

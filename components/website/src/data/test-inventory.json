@@ -1752,6 +1752,36 @@
     "kind": "shell"
   },
   {
+    "id": "REQ-NETPLAN-001",
+    "file": "tests/spec/network-address-plan/networks-registry.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-NETPLAN-002",
+    "file": "tests/spec/network-address-plan/networks-registry.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-NETPLAN-003",
+    "file": "tests/spec/network-address-plan/networks-registry.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-NETPLAN-004",
+    "file": "tests/spec/network-address-plan/networks-registry.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-NETPLAN-005",
+    "file": "tests/spec/network-address-plan/networks-registry.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
     "id": "SA-01",
     "file": "tests/local/SA-01.bats",
     "category": "SA",
@@ -2142,8 +2172,32 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/devflow-worktree-cwd-guard",
+    "file": "tests/spec/agent-skills/devflow-worktree-cwd-guard.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/executor-post-merge-death",
     "file": "tests/spec/agent-skills/executor-post-merge-death.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/finalize-hardening",
+    "file": "tests/spec/agent-skills/finalize-hardening.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/finalize-plan-ref-whitespace",
+    "file": "tests/spec/agent-skills/finalize-plan-ref-whitespace.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/finalize-worktree-branch-validation",
+    "file": "tests/spec/agent-skills/finalize-worktree-branch-validation.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -2346,6 +2400,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-foundation/from-scratch-rebuild",
+    "file": "tests/spec/brain-foundation/from-scratch-rebuild.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
     "id": "brain-foundation/ingest-llm-endpoint",
     "file": "tests/spec/brain-foundation/ingest-llm-endpoint.bats",
     "category": "brain-foundation",
@@ -2354,6 +2414,12 @@
   {
     "id": "brain-foundation/k1-vector-db-doc",
     "file": "tests/spec/brain-foundation/k1-vector-db-doc.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-foundation/state-file-type-repair",
+    "file": "tests/spec/brain-foundation/state-file-type-repair.bats",
     "category": "brain-foundation",
     "kind": "shell"
   },
@@ -2472,6 +2538,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/awk-interval-portability",
+    "file": "tests/spec/ci-cd/awk-interval-portability.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/bats-no-live-branch-assertion",
     "file": "tests/spec/ci-cd/bats-no-live-branch-assertion.bats",
     "category": "ci-cd",
@@ -2526,6 +2598,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-unknown-ticket-merged-pr",
+    "file": "tests/spec/ci-cd/branch-reaper-unknown-ticket-merged-pr.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/cfr-trend-window",
     "file": "tests/spec/ci-cd/cfr-trend-window.bats",
     "category": "ci-cd",
@@ -2550,6 +2628,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/ci-diff-base",
+    "file": "tests/spec/ci-cd/ci-diff-base.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/ci-wait-loop-nonempty-guard",
     "file": "tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats",
     "category": "ci-cd",
@@ -2558,6 +2642,12 @@
   {
     "id": "ci-cd/devflow-ci-watch-merged-exit",
     "file": "tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/devflow-ci-watch-rollup-headsha",
+    "file": "tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2576,6 +2666,12 @@
   {
     "id": "ci-cd/docs-content-guards",
     "file": "tests/spec/ci-cd/docs-content-guards.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/e2e-project-selection",
+    "file": "tests/spec/ci-cd/e2e-project-selection.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2628,6 +2724,108 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-batsunit-toolchain",
+    "file": "tests/spec/ci-cd/gitlab-batsunit-toolchain.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-job-coverage",
+    "file": "tests/spec/ci-cd/gitlab-job-coverage.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-mirror-workflow",
+    "file": "tests/spec/ci-cd/gitlab-mirror-workflow.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-parallel-non-blocking",
+    "file": "tests/spec/ci-cd/gitlab-parallel-non-blocking.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-pipeline-check",
+    "file": "tests/spec/ci-cd/gitlab-pipeline-check.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-registry-cache",
+    "file": "tests/spec/ci-cd/gitlab-registry-cache.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-registry-mirror",
+    "file": "tests/spec/ci-cd/gitlab-registry-mirror.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-executor-rbac",
+    "file": "tests/spec/ci-cd/gitlab-runner-executor-rbac.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-fleet-guardrails",
+    "file": "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-fleet-rbac",
+    "file": "tests/spec/ci-cd/gitlab-runner-fleet-rbac.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-job-pod-toml",
+    "file": "tests/spec/ci-cd/gitlab-runner-job-pod-toml.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-nonroot-uid",
+    "file": "tests/spec/ci-cd/gitlab-runner-nonroot-uid.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-quota-fit",
+    "file": "tests/spec/ci-cd/gitlab-runner-quota-fit.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-setup-dryrun",
+    "file": "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-runner-tag-routing",
+    "file": "tests/spec/ci-cd/gitlab-runner-tag-routing.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/gitlab-tool-parity",
+    "file": "tests/spec/ci-cd/gitlab-tool-parity.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/hybrid-runner-placement",
+    "file": "tests/spec/ci-cd/hybrid-runner-placement.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/main-direct-push-guard",
     "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
     "category": "ci-cd",
@@ -2664,8 +2862,20 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/runner-role-assignment",
+    "file": "tests/spec/ci-cd/runner-role-assignment.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/self-hosted-fork-guard",
     "file": "tests/spec/ci-cd/self-hosted-fork-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/self-hosted-no-root-install",
+    "file": "tests/spec/ci-cd/self-hosted-no-root-install.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2708,6 +2918,12 @@
   {
     "id": "ci-cd/spec-tracked-file-guard-isolation",
     "file": "tests/spec/ci-cd/spec-tracked-file-guard-isolation.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/taskfile-no-stale-website-root",
+    "file": "tests/spec/ci-cd/taskfile-no-stale-website-root.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2817,6 +3033,12 @@
     "id": "dev-flow-chore-ticket-ops-mishaps",
     "file": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
     "category": "dev-flow-chore-ticket-ops-mishaps",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-e2e",
+    "file": "tests/spec/dev-flow-e2e.bats",
+    "category": "dev-flow-e2e",
     "kind": "shell"
   },
   {
@@ -2964,6 +3186,12 @@
     "kind": "shell"
   },
   {
+    "id": "devflow-selection-archive-hardening/merge-commit-selection",
+    "file": "tests/spec/devflow-selection-archive-hardening/merge-commit-selection.bats",
+    "category": "devflow-selection-archive-hardening",
+    "kind": "shell"
+  },
+  {
     "id": "divergence-guard",
     "file": "tests/spec/divergence-guard.bats",
     "category": "divergence-guard",
@@ -3036,6 +3264,12 @@
     "kind": "shell"
   },
   {
+    "id": "e2e-test-infrastructure/vision-sweep",
+    "file": "tests/spec/e2e-test-infrastructure/vision-sweep.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-testing",
     "file": "tests/spec/e2e-testing.bats",
     "category": "e2e-testing",
@@ -3092,6 +3326,12 @@
   {
     "id": "factory-watchdog/factory-excluded-scope",
     "file": "tests/spec/factory-watchdog/factory-excluded-scope.bats",
+    "category": "factory-watchdog",
+    "kind": "shell"
+  },
+  {
+    "id": "factory-watchdog/merged-ticket-close",
+    "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
     "category": "factory-watchdog",
     "kind": "shell"
   },
@@ -3194,6 +3434,12 @@
   {
     "id": "flux-render-security/immutable-image-refs",
     "file": "tests/spec/flux-render-security/immutable-image-refs.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
+    "id": "flux-render-security/runtime-var-unwrapping",
+    "file": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
     "category": "flux-render-security",
     "kind": "shell"
   },
@@ -3560,12 +3806,6 @@
   {
     "id": "local-llm-proxy/proxy-tests-registered",
     "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/qwen3-coder-loadout",
-    "file": "tests/spec/local-llm-proxy/qwen3-coder-loadout.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4272,8 +4512,20 @@
     "kind": "shell"
   },
   {
+    "id": "repo-structure/release-please-paths",
+    "file": "tests/spec/repo-structure/release-please-paths.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
     "id": "repo-structure/root-agent-md",
     "file": "tests/spec/repo-structure/root-agent-md.bats",
+    "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-structure/spec-suite-website-leak",
+    "file": "tests/spec/repo-structure/spec-suite-website-leak.bats",
     "category": "repo-structure",
     "kind": "shell"
   },
@@ -4410,6 +4662,30 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/deck-kompakt-layout",
+    "file": "tests/spec/sdlc-cockpit/deck-kompakt-layout.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize",
+    "file": "tests/spec/sdlc-cockpit/deck-resize.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-freeze-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-freeze-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/deck-resize-handle-fix",
+    "file": "tests/spec/sdlc-cockpit/deck-resize-handle-fix.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/document-tokens-only",
     "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
     "category": "sdlc-cockpit",
@@ -4482,8 +4758,38 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/leitstand-absorption",
+    "file": "tests/spec/sdlc-cockpit/leitstand-absorption.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/leitstand-ds-tokens",
     "file": "tests/spec/sdlc-cockpit/leitstand-ds-tokens.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/leitstand-help-overlay",
+    "file": "tests/spec/sdlc-cockpit/leitstand-help-overlay.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/leitstand-livedaten",
+    "file": "tests/spec/sdlc-cockpit/leitstand-livedaten.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/leitstand-purpose-registry",
+    "file": "tests/spec/sdlc-cockpit/leitstand-purpose-registry.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/leitstand-url-scheme",
+    "file": "tests/spec/sdlc-cockpit/leitstand-url-scheme.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -4538,6 +4844,12 @@
   {
     "id": "sdlc-cockpit/redesign-struktur",
     "file": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/sdlc-leitstand-tokens",
+    "file": "tests/spec/sdlc-cockpit/sdlc-leitstand-tokens.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -4668,14 +4980,38 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/babysit-prs-ci-never-ran",
+    "file": "tests/spec/software-factory/babysit-prs-ci-never-ran.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/babysit-prs-conflict-guard-T012500",
+    "file": "tests/spec/software-factory/babysit-prs-conflict-guard-T012500.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",
     "kind": "shell"
   },
   {
+    "id": "software-factory/babysit-prs-red-detection",
+    "file": "tests/spec/software-factory/babysit-prs-red-detection.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/batch-closure-title-children",
     "file": "tests/spec/software-factory/batch-closure-title-children.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/branch-naming-T012502",
+    "file": "tests/spec/software-factory/branch-naming-T012502.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4722,6 +5058,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-e2e-pipeline-coverage",
+    "file": "tests/spec/software-factory/factory-e2e-pipeline-coverage.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/factory-model-id-default",
     "file": "tests/spec/software-factory/factory-model-id-default.bats",
     "category": "software-factory",
@@ -4740,8 +5082,38 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/merged-dispatch-gate",
+    "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-already-running",
+    "file": "tests/spec/software-factory/opencode-exec-already-running.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-binary-resolution",
     "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-ci-signal",
+    "file": "tests/spec/software-factory/opencode-exec-ci-signal.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-pr-step",
+    "file": "tests/spec/software-factory/opencode-exec-pr-step.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-prerun-shortcircuit",
+    "file": "tests/spec/software-factory/opencode-exec-prerun-shortcircuit.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4760,6 +5132,12 @@
   {
     "id": "software-factory/pr-babysit",
     "file": "tests/spec/software-factory/pr-babysit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/pr-babysit-ci-never-ran",
+    "file": "tests/spec/software-factory/pr-babysit-ci-never-ran.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4844,6 +5222,12 @@
   {
     "id": "software-factory/update-status-id-allowlist-T002906",
     "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/wakeup-pull-loud-failure",
+    "file": "tests/spec/software-factory/wakeup-pull-loud-failure.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4971,6 +5355,12 @@
     "id": "ticket-ops-claim-phase-a-T004602",
     "file": "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
     "category": "ticket-ops-claim-phase-a-T004602",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-ops/triage-status-ssot",
+    "file": "tests/spec/ticket-ops/triage-status-ssot.bats",
+    "category": "ticket-ops",
     "kind": "shell"
   },
   {
@@ -5175,6 +5565,30 @@
     "id": "workspace-deploy-secrets-scope",
     "file": "tests/spec/workspace-deploy-secrets-scope.bats",
     "category": "workspace-deploy-secrets-scope",
+    "kind": "shell"
+  },
+  {
+    "id": "workstation-cluster-iso/assign-identity",
+    "file": "tests/spec/workstation-cluster-iso/assign-identity.bats",
+    "category": "workstation-cluster-iso",
+    "kind": "shell"
+  },
+  {
+    "id": "workstation-cluster-iso/build-node-iso-guards",
+    "file": "tests/spec/workstation-cluster-iso/build-node-iso-guards.bats",
+    "category": "workstation-cluster-iso",
+    "kind": "shell"
+  },
+  {
+    "id": "workstation-cluster-iso/k3s-join-guards",
+    "file": "tests/spec/workstation-cluster-iso/k3s-join-guards.bats",
+    "category": "workstation-cluster-iso",
+    "kind": "shell"
+  },
+  {
+    "id": "workstation-cluster-pxe/setup-pxe-guards",
+    "file": "tests/spec/workstation-cluster-pxe/setup-pxe-guards.bats",
+    "category": "workstation-cluster-pxe",
     "kind": "shell"
   },
   {

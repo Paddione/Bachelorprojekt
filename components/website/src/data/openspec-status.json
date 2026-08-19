@@ -3801,6 +3801,12 @@
       "status": "plan_staged"
     }
   ],
+  "T006297": [
+    {
+      "slug": "factory-merged-dispatch-gate",
+      "status": "plan_staged"
+    }
+  ],
   "T006298": [
     {
       "slug": "2026-08-15-stash-drop-renumbering",
@@ -3847,6 +3853,12 @@
     {
       "slug": "2026-08-15-devflow-automerge-preflight",
       "status": "archived"
+    }
+  ],
+  "T006367": [
+    {
+      "slug": "devflow-worktree-cwd-guard",
+      "status": "plan_staged"
     }
   ],
   "T006368": [
@@ -3947,14 +3959,236 @@
   ],
   "T007955": [
     {
-      "slug": "status-machine-ssot",
-      "status": "plan_staged"
+      "slug": "2026-08-15-status-machine-ssot",
+      "status": "archived"
+    }
+  ],
+  "T007957": [
+    {
+      "slug": "2026-08-16-sdlc-leitstand-e3-shell",
+      "status": "archived"
+    }
+  ],
+  "T008014": [
+    {
+      "slug": "2026-08-18-fix-devflow-post-merge-finalize-worktree-path",
+      "status": "archived"
     }
   ],
   "T008015": [
     {
       "slug": "mishap-incident-rollup-2026-08-15-T008015",
       "status": "plan_staged"
+    }
+  ],
+  "T008016": [
+    {
+      "slug": "2026-08-16-sdlc-leitstand-e4-livedaten",
+      "status": "archived"
+    }
+  ],
+  "T008017": [
+    {
+      "slug": "2026-08-16-sdlc-leitstand-e5-help-absorption",
+      "status": "archived"
+    }
+  ],
+  "T008345": [
+    {
+      "slug": "fix-status-ssot-consolidation",
+      "status": "plan_staged"
+    }
+  ],
+  "T008721": [
+    {
+      "slug": "chore-e3-review-followups",
+      "status": "plan_staged"
+    }
+  ],
+  "T008757": [
+    {
+      "slug": "2026-08-18-fix-fa-sf-25-scheduling-cap",
+      "status": "archived"
+    }
+  ],
+  "T009368": [
+    {
+      "slug": "2026-08-18-fix-devflow-post-merge-deploy-grep",
+      "status": "archived"
+    }
+  ],
+  "T009369": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-17-T009369",
+      "status": "plan_staged"
+    }
+  ],
+  "T011498": [
+    {
+      "slug": "2026-08-17-sdlc-deck-leiste-overflow",
+      "status": "archived"
+    }
+  ],
+  "T011499": [
+    {
+      "slug": "2026-08-17-sdlc-deck-leiste-resize",
+      "status": "archived"
+    }
+  ],
+  "T011500": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-handle-fix",
+      "status": "archived"
+    }
+  ],
+  "T011501": [
+    {
+      "slug": "2026-08-17-sdlc-deck-resize-freeze-fix",
+      "status": "archived"
+    }
+  ],
+  "T011580": [
+    {
+      "slug": "2026-08-18-fix-alibaba-token-key-guard-tmpdir",
+      "status": "archived"
+    }
+  ],
+  "T011790": [
+    {
+      "slug": "2026-08-18-gitlab-ci-migration-stage1",
+      "status": "archived"
+    }
+  ],
+  "T011792": [
+    {
+      "slug": "2026-08-18-fix-spec-suite-leaks-website",
+      "status": "archived"
+    }
+  ],
+  "T011793": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-18-T011793",
+      "status": "plan_staged"
+    }
+  ],
+  "T011907": [
+    {
+      "slug": "2026-08-18-gitlab-ci-testserie-fixes",
+      "status": "archived"
+    }
+  ],
+  "T012177": [
+    {
+      "slug": "2026-08-18-gitlab-ci-k8s-runner-cache",
+      "status": "archived"
+    }
+  ],
+  "T012239": [
+    {
+      "slug": "2026-08-18-fix-ci-failure-detection",
+      "status": "archived"
+    }
+  ],
+  "T012240": [
+    {
+      "slug": "2026-08-18-finalizer-resolve-worktree-by-branch",
+      "status": "archived"
+    }
+  ],
+  "T012242": [
+    {
+      "slug": "2026-08-18-fix-ciwatch-failedchecks-empty",
+      "status": "archived"
+    }
+  ],
+  "T012243": [
+    {
+      "slug": "2026-08-18-finalizer-plan-ref-whitespace",
+      "status": "archived"
+    }
+  ],
+  "T012256": [
+    {
+      "slug": "finalizer-hardening",
+      "status": "plan_staged"
+    }
+  ],
+  "T012264": [
+    {
+      "slug": "fix-babysit-prs-ci-never-ran",
+      "status": "plan_staged"
+    }
+  ],
+  "T012265": [
+    {
+      "slug": "fix-pr-babysit-head-sha",
+      "status": "plan_staged"
+    }
+  ],
+  "T012266": [
+    {
+      "slug": "2026-08-18-fix-opencode-exec-ci-signal",
+      "status": "archived"
+    }
+  ],
+  "T012267": [
+    {
+      "slug": "2026-08-18-fix-gitlab-pipeline-check",
+      "status": "archived"
+    }
+  ],
+  "T012402": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-18-T012402",
+      "status": "plan_staged"
+    }
+  ],
+  "T012405": [
+    {
+      "slug": "2026-08-18-gitlab-ci-migration-stage3",
+      "status": "archived"
+    }
+  ],
+  "T012412": [
+    {
+      "slug": "2026-08-18-fix-reaper-unknown-ticket-merged-pr",
+      "status": "archived"
+    }
+  ],
+  "T012415": [
+    {
+      "slug": "gitlab-registry-mirror",
+      "status": "plan_staged"
+    }
+  ],
+  "T012446": [
+    {
+      "slug": "hybrid-github-actions-runners",
+      "status": "plan_staged"
+    }
+  ],
+  "T012488": [
+    {
+      "slug": "runner-role-assignment",
+      "status": "plan_staged"
+    }
+  ],
+  "T012645": [
+    {
+      "slug": "network-address-plan",
+      "status": "plan_staged"
+    }
+  ],
+  "T012781": [
+    {
+      "slug": "2026-08-19-headed-vision-sweep",
+      "status": "archived"
+    }
+  ],
+  "T012902": [
+    {
+      "slug": "2026-08-19-brain-ingest-from-scratch",
+      "status": "archived"
     }
   ],
   "TBD": [

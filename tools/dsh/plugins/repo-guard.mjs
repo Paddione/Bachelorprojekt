@@ -23,7 +23,7 @@ export const name = 'repo-guard'
 /**
  * @param {import('@deepseek-ai/cordis').Context} ctx
  */
-export function setup(ctx) {
+export function apply(ctx) {
   ctx.on('tools/pre-execute', async (exec, next) => {
     // Only intercept write tools.
     if (!WRITE_TOOLS.has(exec.name)) {

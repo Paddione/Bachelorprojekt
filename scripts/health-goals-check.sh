@@ -671,7 +671,7 @@ exit_code_of_script() { # <script-pfad> [args…]
 }
 
 # --- Offline + schnell (18) ---------------------------------------------------
-row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src 2>/dev/null | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
+row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src 2>/dev/null | grep -v goals-data.generated.json | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
 # grep -c druckt bei null Treffern "0" und exitet trotzdem 1 — ein `|| echo 0`
 # haengt deshalb eine zweite Zeile an und macht aus dem gueltigen Wert "0" den
 # ungueltigen Wert "0\n0". Nur den Exit abfangen, nie die Ausgabe ersetzen.

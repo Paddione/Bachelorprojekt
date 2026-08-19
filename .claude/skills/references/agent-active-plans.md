@@ -36,5 +36,5 @@ Der Schwesterbefehl `scripts/toolset-context.sh <rolle>` ist im Gegensatz dazu
 
 Dann ist für diese Rolle kein Plan in Arbeit. **Nicht** ersatzweise `superpowers.plans`
 abfragen: die Tabelle ist eingefrorene Historie. Die Tracking-Pipeline wurde in PR #788
-(`tracking-import` CronJob) und PR #993 (`track-pr.yml`, `scripts/track-pr.mjs`) entfernt;
+(`tracking-import` CronJob) und PR #993 (`track-pr.yml`) entfernt;
 der letzte erfasste Eintrag ist PR #787.

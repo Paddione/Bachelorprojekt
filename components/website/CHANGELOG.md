@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.291.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.290.0...website-v1.291.0) (2026-08-19)
+
+
+### Features
+
+* **scripts:** add reproducible brain rebuild mode [T012902] ([#4847](https://github.com/Paddione/Bachelorprojekt/issues/4847)) ([e1926da](https://github.com/Paddione/Bachelorprojekt/commit/e1926dab1260c55965e8b1e5114159a1bf7485af))
+
 ## [1.290.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.289.0...website-v1.290.0) (2026-08-19)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.293.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.0...website-v1.293.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **agents:** dsh web UI startet — Klon-Aufloesung, Cordis-apply-API, Laufzeit-Overlay [T012965] ([#4869](https://github.com/Paddione/Bachelorprojekt/issues/4869)) ([af3eb41](https://github.com/Paddione/Bachelorprojekt/commit/af3eb4168cf2a06f36a0d7aefd76a50c00b3a4fe))
+
 ## [1.293.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.292.1...website-v1.293.0) (2026-08-19)
 
 

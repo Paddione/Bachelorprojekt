@@ -1,0 +1,14 @@
+# Fixture: gueltig, keine Ueberschneidung. Positiv-Anker der Negativtests.
+networks:
+  - id: alpha
+    cidr: 10.20.0.0/24
+    owner: fleet
+    purpose: Overlay
+    status: active
+    source: wireguard/wg-mesh-nodes.yaml
+  - id: beta
+    cidr: 192.168.100.0/24
+    owner: mentolder
+    purpose: Mesh
+    status: active
+    source: wireguard/wg-mesh-nodes.yaml

@@ -1,0 +1,15 @@
+# Fixture: Ueberschneidung ueber sehr verschiedene Praefixlaengen ohne
+# gemeinsames Textpraefix — ein grep faende sie nicht.
+networks:
+  - id: home-lan
+    cidr: 10.0.0.0/8
+    owner: haushalt
+    purpose: LAN
+    status: active
+    source: fritzbox
+  - id: pod-cidr
+    cidr: 10.42.5.0/24
+    owner: fleet
+    purpose: Pods
+    status: active
+    source: kubernetes

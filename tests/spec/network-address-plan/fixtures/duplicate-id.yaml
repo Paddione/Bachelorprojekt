@@ -1,0 +1,14 @@
+# Fixture: dieselbe id zweimal.
+networks:
+  - id: alpha
+    cidr: 10.20.0.0/24
+    owner: fleet
+    purpose: Overlay
+    status: active
+    source: test
+  - id: alpha
+    cidr: 192.168.100.0/24
+    owner: mentolder
+    purpose: Mesh
+    status: active
+    source: test

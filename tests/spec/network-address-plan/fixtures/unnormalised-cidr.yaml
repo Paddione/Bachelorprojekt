@@ -1,0 +1,8 @@
+# Fixture: Hostbits gesetzt — 10.42.5.7/24 ist keine Netzadresse.
+networks:
+  - id: alpha
+    cidr: 10.42.5.7/24
+    owner: fleet
+    purpose: Pods
+    status: active
+    source: test

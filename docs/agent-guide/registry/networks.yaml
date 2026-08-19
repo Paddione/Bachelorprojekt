@@ -1,0 +1,244 @@
+# docs/agent-guide/registry/networks.yaml
+# SSOT Netzwerk-Adressplan — die einzige Stelle, an der ein IP-Bereich dieses
+# Projekts deklariert wird. Prüfen mit:
+#
+#     task networks:check          # fail-closed: unerklärte Überschneidung -> Exit != 0
+#     task networks:map            # erzeugt docs/agent-guide/maps/networks-map.md
+#
+# Felder je Eintrag:
+#   id        eindeutiger Bezeichner (wird von overlaps[].with referenziert)
+#   cidr      Bereich in Notation mit Präfixlänge, normalisiert (Hostbits = 0)
+#   owner     wem der Bereich gehört
+#   purpose   wofür er benutzt wird
+#   status    active | retired
+#   source    wo er tatsächlich konfiguriert ist (nicht: wo er dokumentiert ist)
+#   notes     optional, freier Text
+#   overlaps  optional, Liste aus {with, reason, mitigation}
+#
+# ÜBERSCHNEIDUNG IST ERKLÄRUNGSPFLICHTIG, NICHT VERBOTEN. Der Guard verlangt für
+# jedes überschneidende Paar, dass BEIDE Seiten die andere unter overlaps nennen —
+# mit Grund und Absicherung. Er verlangt umgekehrt, dass ein overlaps-Eintrag auch
+# wirklich überschneidet: sonst wäre das Feld eine Blanko-Ausnahme, die eine
+# spätere, echte Kollision verdeckt.
+#
+# EINEN BEREICH NIE LÖSCHEN. Wird er außer Dienst gestellt, bekommt er
+# status: retired und bleibt stehen — sonst vergibt ihn später jemand neu, ohne
+# dass etwas warnt.
+#
+# Erhoben 2026-08-19 (Ticket T012645), Messbefehle im Ticket.
+---
+networks:
+  - id: home-lan
+    cidr: 10.0.0.0/8
+    owner: Haushalt (FritzBox 10.0.0.1)
+    purpose: Heimnetz — Arbeitsplätze, Laptops, Proxmox-Hosts, IoT
+    status: active
+    source: FritzBox-DHCP (nicht im Repo konfiguriert)
+    notes: >-
+      Das /8 ist ungewöhnlich weit und der Grund für die meisten Einträge unter
+      overlaps. Beobachtete Hosts liegen in 10.0.0.x, 10.1.0.x und 10.10.0.x —
+      ein engeres Präfix würde eine Neuvergabe im gesamten Haushalt bedeuten und
+      ist bewusst zurückgestellt (Operator-Entscheidung 2026-08-19).
+    overlaps:
+      - with: korczewski-mesh
+        reason: Das /8 umfasst 10.13.14.0/24 vollständig.
+        mitigation: >-
+          Der zugehörige Cluster ist abgebaut, der Bereich steht auf retired —
+          es fließt kein Verkehr, der falsch geroutet werden könnte.
+      - with: fleet-overlay
+        reason: Das /8 umfasst 10.20.0.0/24 vollständig.
+        mitigation: >-
+          Der WireGuard-Adapter trägt /32-Routen je Peer; Longest-Prefix schlägt
+          die /8-Link-Route des LAN.
+      - with: pod-cidr-fleet
+        reason: Das /8 umfasst 10.42.0.0/16 vollständig.
+        mitigation: >-
+          Pro erreichbarem Knoten wird dessen podCIDR als /24 über den Tunnel
+          geroutet. Fehlt eine dieser Routen, läuft der Verkehr still ins LAN —
+          die Fehlerklasse aus T002491.
+      - with: pod-cidr-k3d-dev
+        reason: Das /8 umfasst 10.42.0.0/16 vollständig.
+        mitigation: >-
+          Der lokale k3d-Cluster ist über die Docker-Bridge erreichbar, nicht
+          über eine 10.42-Route auf dem Host.
+      - with: service-cidr-fleet
+        reason: Das /8 umfasst 10.43.0.0/16 vollständig.
+        mitigation: >-
+          Service-Adressen werden nie vom Host aus adressiert, nur clusterintern
+          über kube-proxy.
+      - with: service-cidr-k3d-dev
+        reason: Das /8 umfasst 10.43.0.0/16 vollständig.
+        mitigation: >-
+          Wie beim fleet-Service-Netz: clusterintern, nie vom Host adressiert.
+
+  - id: korczewski-mesh
+    cidr: 10.13.14.0/24
+    owner: korczewski (abgebaut)
+    purpose: WireGuard-Mesh des ehemaligen korczewski-Standalone-Clusters
+    status: retired
+    source: wireguard/wg-mesh-nodes.yaml (Sektion korczewski)
+    notes: >-
+      Der Cluster wurde mit PR #1189 abgebaut; die Marke läuft seither auf fleet
+      im Namespace workspace-korczewski. Der Eintrag bleibt stehen, damit eine
+      Neuvergabe dieses Bereichs als Kollision auffällt.
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: Außer Dienst — es fließt kein Verkehr.
+
+  - id: fleet-overlay
+    cidr: 10.20.0.0/24
+    owner: fleet-Cluster
+    purpose: >-
+      WireGuard-Overlay wg-fleet; zugleich die InternalIP der Kubernetes-Knoten
+      (10.20.0.1 bis 10.20.0.6) und die Adresse des terminal-sidekick (10.20.0.10)
+    status: active
+    source: wireguard/wg-mesh-nodes.yaml (Sektion fleet)
+    notes: >-
+      Die Präfixlänge ist /24, belegt am lebenden Cluster. openspec/specs/
+      rustdesk-server.md nannte bis T012645 fälschlich /16 — in einer
+      ufw-Freigabe hätte das 255-mal mehr Adressen geöffnet als beabsichtigt.
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: /32-Routen je Peer schlagen die /8-Link-Route per Longest-Prefix.
+
+  - id: pod-cidr-fleet
+    cidr: 10.42.0.0/16
+    owner: fleet-Cluster
+    purpose: Pod-Netz; k3s vergibt daraus je Knoten ein /24
+    status: active
+    source: .spec.podCIDR der Knoten (k3s-Default)
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: Je erreichbarem Knoten eine explizite /24-Route über den Tunnel.
+      - with: pod-cidr-k3d-dev
+        reason: >-
+          Identischer Bereich — k3s benutzt in beiden Clustern denselben Default,
+          fleet vergibt daraus 10.42.0.0/24 bis 10.42.6.0/24, der lokale
+          Dev-Cluster 10.42.0.0/24 und 10.42.1.0/24.
+        mitigation: >-
+          Die beiden Cluster sind auf dem Entwicklungsrechner nicht gleichzeitig
+          über 10.42er Routen erreichbar. Deshalb lassen sich die Pod-CIDRs der
+          fleet-Control-Plane dort NICHT als Route nachtragen — sie kollidierten
+          mit dem lokalen Cluster. Wer Pods der CP-Knoten vom Host aus erreichen
+          muss, geht über kubectl port-forward statt über eine Route.
+
+  - id: pod-cidr-k3d-dev
+    cidr: 10.42.0.0/16
+    owner: k3d-mentolder-dev (lokaler Entwicklungscluster)
+    purpose: Pod-Netz des lokalen k3d-Clusters
+    status: active
+    source: .spec.podCIDR der k3d-Knoten (k3s-Default)
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: Erreichbarkeit läuft über die Docker-Bridge, nicht über Host-Routen.
+      - with: pod-cidr-fleet
+        reason: Identischer Bereich, derselbe k3s-Default in beiden Clustern.
+        mitigation: >-
+          Siehe pod-cidr-fleet — auf dem Entwicklungsrechner ist immer nur einer
+          der beiden Bereiche routbar.
+
+  - id: service-cidr-fleet
+    cidr: 10.43.0.0/16
+    owner: fleet-Cluster
+    purpose: Service-Netz (ClusterIP), kubernetes.default auf 10.43.0.1
+    status: active
+    source: k3s-Default
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: Clusterintern über kube-proxy, nie vom Host adressiert.
+      - with: service-cidr-k3d-dev
+        reason: Identischer Bereich, derselbe k3s-Default in beiden Clustern.
+        mitigation: Clusterintern, keine Host-Route in beiden Fällen.
+
+  - id: service-cidr-k3d-dev
+    cidr: 10.43.0.0/16
+    owner: k3d-mentolder-dev (lokaler Entwicklungscluster)
+    purpose: Service-Netz des lokalen k3d-Clusters
+    status: active
+    source: k3s-Default
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: Clusterintern über kube-proxy, nie vom Host adressiert.
+      - with: service-cidr-fleet
+        reason: Identischer Bereich, derselbe k3s-Default in beiden Clustern.
+        mitigation: Clusterintern, keine Host-Route in beiden Fällen.
+
+  - id: tailscale
+    cidr: 100.64.0.0/10
+    owner: Tailnet (p.korczewski)
+    purpose: >-
+      NAT-durchdringendes Overlay; trägt derzeit pk-desktop (100.102.71.114) und
+      pk-hetzner-8 (100.118.49.94)
+    status: active
+    source: Tailscale-Dienst auf den Geräten
+    notes: >-
+      Der einzige Bereich, der ohne eigenes Zutun kollisionsfrei bleibt — Tailscale
+      benutzt den für Carrier-Grade-NAT reservierten Block, den sonst niemand vergibt.
+
+  - id: docker-bridge-default
+    cidr: 172.17.0.0/16
+    owner: Docker (Entwicklungsrechner)
+    purpose: Default-Bridge
+    status: active
+    source: Docker-Daemon
+
+  - id: docker-factory-sandbox-egress
+    cidr: 172.18.0.0/16
+    owner: Docker (Entwicklungsrechner)
+    purpose: Netz factory-sandbox-egress der Software-Factory
+    status: active
+    source: Docker-Daemon
+
+  - id: docker-k3d-mentolder-dev
+    cidr: 172.23.0.0/16
+    owner: Docker (Entwicklungsrechner)
+    purpose: Netz des k3d-Clusters k3d-mentolder-dev
+    status: active
+    source: Docker-Daemon (k3d)
+
+  - id: mentolder-mesh
+    cidr: 192.168.100.0/24
+    owner: mentolder
+    purpose: >-
+      WireGuard-Mesh; GPU-Host auf .10, Laptops auf .11 und .12, Hetzner-Knoten
+      auf .33 bis .35
+    status: active
+    source: wireguard/wg-mesh-nodes.yaml (Sektion mentolder)
+    notes: >-
+      Auf dem WSL-Entwicklungsrechner trägt .10 zweimal auf: einmal auf wg0 in
+      WSL und einmal auf dem gespiegelten Windows-Adapter wg-gpu (WSL läuft in
+      networkingMode = mirrored, Windows-Adapter erscheinen dort als eth*). Das
+      ist eine Doppelvergabe innerhalb desselben Bereichs, keine Überschneidung
+      zweier Bereiche, und deshalb nicht unter overlaps abgebildet.
+    overlaps:
+      - with: hetzner-private
+        reason: >-
+          Derselbe Bereich wird von Hetzner als privates Netz derselben Server
+          vergeben — pk-hetzner-4/6/8 tragen dort .5, .6 und .8, während die
+          Registry ihnen .33, .34 und .35 zuweist.
+        mitigation: >-
+          Auf den Hetzner-Knoten darf keine Route für 192.168.100.0/24 als Ganzes
+          gesetzt werden; die Peers stehen mit /32-AllowedIPs in der
+          WireGuard-Konfiguration. Eine Umnummerierung ist der saubere Ausweg und
+          bewusst als eigener Vorgang zurückgestellt.
+
+  - id: hetzner-private
+    cidr: 192.168.100.0/24
+    owner: Hetzner Cloud
+    purpose: Privates Netz der Server pk-hetzner-4 (.5), pk-hetzner-6 (.6), pk-hetzner-8 (.8)
+    status: active
+    source: Hetzner-Cloud-Konsole (nicht im Repo konfiguriert)
+    notes: >-
+      Bis T012645 war dieser Bereich im Repo überhaupt nicht bekannt. Genau das
+      ist der Grund für diese Registry: ein Netz, das niemand deklariert hat,
+      kann mit keinem Prüflauf kollidieren.
+    overlaps:
+      - with: mentolder-mesh
+        reason: Identischer Bereich auf denselben Maschinen.
+        mitigation: Siehe mentolder-mesh — /32-AllowedIPs statt einer /24-Route.

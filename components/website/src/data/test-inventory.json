@@ -3252,6 +3252,24 @@
     "kind": "shell"
   },
   {
+    "id": "dsh-harness-integration/bundle",
+    "file": "tests/spec/dsh-harness-integration/bundle.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "dsh-harness-integration/executor",
+    "file": "tests/spec/dsh-harness-integration/executor.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "dsh-harness-integration/hook-bridge",
+    "file": "tests/spec/dsh-harness-integration/hook-bridge.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-skill-selfpatch",
     "file": "tests/local/e2e-skill-selfpatch.bats",
     "category": "e2e-skill-selfpatch",
@@ -3501,6 +3519,12 @@
     "id": "grilling-flow",
     "file": "tests/spec/grilling-flow.bats",
     "category": "grilling-flow",
+    "kind": "shell"
+  },
+  {
+    "id": "harness-workflow-split/harness-enum",
+    "file": "tests/spec/harness-workflow-split/harness-enum.bats",
+    "category": "harness-workflow-split",
     "kind": "shell"
   },
   {

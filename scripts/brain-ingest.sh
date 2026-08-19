@@ -102,7 +102,7 @@ brain_ingest_initialize_state "$STATE_FILE" "$STATE_INIT_DRY_RUN"
 # directly from the current wiki so it performs no checkout, chunking, LLM call,
 # state initialization, or other write.
 if [ "$FROM_SCRATCH" -eq 1 ] && [ "$DRY_RUN" -eq 1 ]; then
-  PRIMARY_REPO_ROOT="$(git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  PRIMARY_REPO_ROOT="$(git -C "$REPO_ROOT" worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
   brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" 1 "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
   exit 0
 fi
@@ -196,7 +196,7 @@ cd "$REPO_ROOT"
 # ============================================================
 if [ "$FROM_SCRATCH" -eq 1 ]; then
   echo ""
-  PRIMARY_REPO_ROOT="$(git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  PRIMARY_REPO_ROOT="$(git -C "$REPO_ROOT" worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
   brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" "$DRY_RUN" "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
 fi
 

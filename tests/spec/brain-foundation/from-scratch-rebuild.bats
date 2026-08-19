@@ -102,3 +102,17 @@ run_reset() {
   [[ "$output" == *"would initialize missing state file"* ]]
   [ ! -e "$STATE_FILE" ]
 }
+
+@test "from-scratch dry-run works when invoked by absolute path outside a git repo" {
+  export LM_MODEL="test-model"
+  NON_REPO_CWD="$BATS_TEST_TMPDIR/non-repo-cwd"
+  mkdir -p "$NON_REPO_CWD"
+
+  run bash -c 'cd "$1"; exec bash "$2" --brain-repo "$3" --from-scratch --dry-run --state "$4"' \
+    _ "$NON_REPO_CWD" "$INGEST" "$BRAIN_DIR" "$STATE_FILE"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"=== Phase 1b:"* ]]
+  [ -f "$BRAIN_DIR/wiki/bp-page.md" ]
+  [ "$(cat "$STATE_FILE")" = "$ORIGINAL_STATE" ]
+}

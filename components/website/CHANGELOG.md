@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.6...website-v1.286.7) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** non-root UID fuer die Job-Pods des Runners [T012644] ([#4814](https://github.com/Paddione/Bachelorprojekt/issues/4814)) ([1c3b5a8](https://github.com/Paddione/Bachelorprojekt/commit/1c3b5a823c799d85521b83ecc0dfcf12a3cfc606))
+
 ## [1.286.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.5...website-v1.286.6) (2026-08-19)
 
 

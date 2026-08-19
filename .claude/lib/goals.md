@@ -517,7 +517,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 2 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 86 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
-| **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
+| **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff); .github/-Pfade zählen nicht mit — sie sind Trigger, keine Brain-Quellen` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 3 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 9 ⚠ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
@@ -566,7 +566,9 @@ G-IF01 (MCP-Endpunkte), G-IF02 (Stille Degradation), G-IF03 (MCP-Drift), G-LLM03
 Baseline-Updates für noch offene Prio-B-Ziele: G-DB01 0→18 (Regressions-Zuwachs), G-DB03 16→2
 (Restwert), G-OPS01 2→59 (signifikanter Anstieg), G-LLM01 2→3, G-WT05 0→14 (main divergiert).
 Zusätzliche Fixes: G-AGENTIC08 (toter Script-Pfad `scripts/track-pr.mjs` in Historie-Text →
-Referenz bereinigt), G-BRAIN13 (Self-Reference-Trigger `brain-merge-hook.yml` entfernt),
+Referenz bereinigt), G-BRAIN13 (`.github/`-Pfade aus der Paritätsmessung ausgenommen — die Selbstreferenz
+`brain-merge-hook.yml` muss laut `workflow-self-trigger.bats` im `paths:`-Block stehen und
+hat naturgemäß kein SRC-Gegenstück),
 G-CQ06 (False-Positive `@deprecated` in generiertem goals-data.json → Check gefiltert).
 
 **Baseline-Update 2026-08-03 (T002598 — Entschlackung und Paritäts-Guard):**

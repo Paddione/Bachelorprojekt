@@ -1495,7 +1495,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)",
+    "measurement": "paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff); .github/-Pfade zählen nicht mit — sie sind Trigger, keine Brain-Quellen",
     "source": ".claude/lib/goals.md · G-BRAIN13",
     "measured_at": "2026-08-19"
   },

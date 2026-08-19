@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - openspec/specs/**
+      - .github/workflows/brain-merge-hook.yml
       - docs/runbooks/**
       - docs/adr/**
       - .claude/lib/goals.md

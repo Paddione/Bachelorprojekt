@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.7...website-v1.286.8) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** concurrent auf 3 senken, damit Job-Wechsel in die Quota passt [T012647] ([#4817](https://github.com/Paddione/Bachelorprojekt/issues/4817)) ([a418f6f](https://github.com/Paddione/Bachelorprojekt/commit/a418f6f1ed74194b41d9cd86536d6bfed2913f12))
+
 ## [1.286.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.6...website-v1.286.7) (2026-08-19)
 
 

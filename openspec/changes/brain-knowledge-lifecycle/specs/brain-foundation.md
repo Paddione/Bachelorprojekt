@@ -4,7 +4,9 @@
 
 The Brain ingest pipeline SHALL add deterministic, flat provenance metadata to newly compiled
 pages: `source_kind`, `source_revision`, `observed_at`, and `valid_from`. It MAY add
-`valid_until` and `superseded_by`. Existing pages without these fields SHALL remain valid and
+`valid_until`, `superseded_by`, and `upstream_revision`. For `github-reviewed` sources,
+`source_revision` SHALL identify the approved local artifact bytes while `upstream_revision`
+SHALL retain the validated immutable GitHub head SHA. Existing pages without these fields SHALL remain valid and
 readable. When `valid_until` is present, the validity interval SHALL be interpreted as half-open:
 `valid_from <= as_of < valid_until`.
 
@@ -14,6 +16,13 @@ readable. When `valid_until` is present, the validity interval SHALL be interpre
 - **WHEN** the pipeline compiles it into a Brain page
 - **THEN** the page carries its source kind, source revision, observation time, and validity start
 - **AND** the source revision is derived from the source rather than invented by the LLM
+
+#### Scenario: Reviewed upstream revision survives compilation
+
+- **GIVEN** an approved GitHub expertise artifact with a validated immutable head SHA
+- **WHEN** the pipeline compiles it into a Brain page
+- **THEN** `source_revision` is the SHA-256 of the approved local artifact
+- **AND** `upstream_revision` remains the validated GitHub head SHA
 
 #### Scenario: Legacy pages remain compatible
 
@@ -61,5 +70,5 @@ organization-wide discovery and automatic ingestion of staged material SHALL be 
 
 - **GIVEN** a reviewer approves a redacted staged artifact
 - **WHEN** the approval command writes the allowlisted source document
-- **THEN** it records repository, PR or review identifiers, source URL, and revision
+- **THEN** it records repository, PR or review identifiers, source URL, and `upstream_revision`
 - **AND** the worklist includes it under source kind `github-reviewed`

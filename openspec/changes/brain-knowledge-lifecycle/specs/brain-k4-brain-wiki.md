@@ -6,7 +6,8 @@ The Brain MCP server SHALL continue to advertise exactly `brain_search` and `bra
 `brain_search` SHALL accept its existing `query` and `top_k` parameters plus optional conjunctive
 filters for `type`, `tags`, `status`, `source_kind`, and `as_of`. Without optional filters its
 ranking and result-limit behavior SHALL remain backward compatible. Search results SHALL include
-available provenance and validity metadata plus a computed freshness state. `brain_read` SHALL
+available provenance (including `upstream_revision` when present) and validity metadata plus a
+computed freshness state. `brain_read` SHALL
 continue returning the complete frontmatter and body for a slug.
 
 #### Scenario: Existing unfiltered search remains compatible

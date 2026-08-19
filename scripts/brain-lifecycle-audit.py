@@ -139,6 +139,8 @@ def collect_findings(pages: list[PageRecord], source_root: Path, as_of: datetime
     root = source_root.resolve()
     for page in pages:
         missing = [key for key in REQUIRED_LIFECYCLE if not page.metadata.get(key)]
+        if page.metadata.get("source_kind") == "github-reviewed" and not page.metadata.get("upstream_revision"):
+            missing.append("upstream_revision")
         if missing:
             findings.append({"code": "metadata_unknown", "slug": page.slug, "missing": missing})
         if page.valid_from is not None and page.valid_until is not None and page.valid_until <= page.valid_from:
@@ -148,7 +150,11 @@ def collect_findings(pages: list[PageRecord], source_root: Path, as_of: datetime
         target = page.metadata.get("superseded_by")
         if target and target not in slugs:
             findings.append({"code": "missing_superseded_target", "slug": page.slug, "target": target})
-        if page.source_path and page.metadata.get("source_kind") != "github-reviewed":
+        upstream = page.metadata.get("upstream_revision")
+        if upstream and not re.fullmatch(r"[0-9a-f]{40}", str(upstream)):
+            findings.append({"code": "invalid_upstream_revision", "slug": page.slug,
+                             "upstream_revision": upstream})
+        if page.source_path:
             candidate = (root / page.source_path).resolve()
             try:
                 candidate.relative_to(root)
@@ -168,6 +174,8 @@ def collect_findings(pages: list[PageRecord], source_root: Path, as_of: datetime
                                  "recorded_revision": recorded, "current_revision": current})
     claims: dict[str, list[tuple[PageRecord, str]]] = {}
     for page in pages:
+        if page.metadata.get("status") != "active":
+            continue
         for key, value in page.claims:
             claims.setdefault(key, []).append((page, value))
     for key, entries in claims.items():

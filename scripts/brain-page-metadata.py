@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,7 +16,7 @@ SOURCE_KINDS = {
     "health-goal", "diagram", "github-reviewed",
 }
 LIFECYCLE_KEYS = (
-    "source_kind", "source_revision", "observed_at", "valid_from",
+    "source_kind", "source_revision", "upstream_revision", "observed_at", "valid_from",
     "valid_until", "superseded_by",
 )
 
@@ -90,6 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-kind", required=True)
     parser.add_argument("--observed-at", required=True)
     parser.add_argument("--valid-from", required=True)
+    parser.add_argument("--upstream-revision")
     parser.add_argument("--valid-until")
     parser.add_argument("--superseded-by")
     return parser
@@ -114,6 +116,10 @@ def run(argv: list[str] | None = None) -> int:
             "observed_at": args.observed_at,
             "valid_from": args.valid_from,
         }
+        if args.upstream_revision:
+            if not re.fullmatch(r"[0-9a-fA-F]{40}", args.upstream_revision):
+                raise MetadataError("upstream-revision must be a 40-character hexadecimal SHA")
+            metadata["upstream_revision"] = args.upstream_revision.lower()
         if args.valid_until:
             metadata["valid_until"] = args.valid_until
         if args.superseded_by:

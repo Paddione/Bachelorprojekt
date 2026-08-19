@@ -13,7 +13,7 @@ from typing import Any
 
 RESULT_METADATA = (
     "type", "tags", "status", "source_kind", "source_revision", "observed_at",
-    "valid_from", "valid_until", "superseded_by",
+    "upstream_revision", "valid_from", "valid_until", "superseded_by",
 )
 
 

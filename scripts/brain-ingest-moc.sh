@@ -9,17 +9,31 @@
 #   --brain-repo   Path to the brain wiki repository
 #   --chunks       Chunk manifest TSV (from brain-chunk.sh via brain-ingest.sh)
 #   --state        State file path (for slug lookup)
+#   --source-root  Bachelorprojekt source root
+#   --manifest     Ingest source manifest
+#   --metadata-script Deterministic metadata filter
+#   --observed-at / --valid-from Fixed lifecycle time for this ingest run
 set -euo pipefail
 
 BRAIN_REPO=""
 CHUNKS_TSV=""
 STATE_FILE=""
+SOURCE_ROOT=""
+MANIFEST=""
+METADATA_SCRIPT=""
+OBSERVED_AT=""
+VALID_FROM=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --brain-repo) BRAIN_REPO="${2:?--brain-repo requires a value}"; shift ;;
     --chunks)     CHUNKS_TSV="${2:?--chunks requires a value}"; shift ;;
     --state)      STATE_FILE="${2:?--state requires a value}"; shift ;;
+    --source-root) SOURCE_ROOT="${2:?--source-root requires a value}"; shift ;;
+    --manifest) MANIFEST="${2:?--manifest requires a value}"; shift ;;
+    --metadata-script) METADATA_SCRIPT="${2:?--metadata-script requires a value}"; shift ;;
+    --observed-at) OBSERVED_AT="${2:?--observed-at requires a value}"; shift ;;
+    --valid-from) VALID_FROM="${2:?--valid-from requires a value}"; shift ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
@@ -28,6 +42,51 @@ done
 [ -n "$BRAIN_REPO" ] || { echo "error: --brain-repo required" >&2; exit 1; }
 [ -f "$CHUNKS_TSV" ] || { echo "error: chunks TSV not found: $CHUNKS_TSV" >&2; exit 1; }
 [ -f "$STATE_FILE" ] || { echo "error: state file not found: $STATE_FILE" >&2; exit 1; }
+[ -d "$SOURCE_ROOT" ] || { echo "error: source root not found: $SOURCE_ROOT" >&2; exit 1; }
+[ -f "$MANIFEST" ] || { echo "error: manifest not found: $MANIFEST" >&2; exit 1; }
+[ -f "$METADATA_SCRIPT" ] || { echo "error: metadata script not found: $METADATA_SCRIPT" >&2; exit 1; }
+[ -n "$OBSERVED_AT" ] || { echo "error: --observed-at required" >&2; exit 1; }
+[ -n "$VALID_FROM" ] || { echo "error: --valid-from required" >&2; exit 1; }
+
+# shellcheck source=./brain-group-match.sh
+source "$(dirname "${BASH_SOURCE[0]}")/brain-group-match.sh"
+brain_group_section_for_manifest "$MANIFEST"
+GROUPS_SECTION="$_BRAIN_GROUP_SECTION"
+
+source_kind_for_group() {
+  case "$1" in
+    ssot-specs) echo openspec ;;
+    runbooks) echo runbook ;;
+    adr) echo adr ;;
+    gotchas-footguns) echo gotcha ;;
+    agent-guide-maps) echo agent-guide ;;
+    core-docs) echo core-doc ;;
+    health-goals) echo health-goal ;;
+    diagrams) echo diagram ;;
+    github-reviewed) echo github-reviewed ;;
+    *) return 1 ;;
+  esac
+}
+
+write_moc() {
+  local content="$1" destination="$2" source_file="$3" source_kind="$4"
+  local temporary upstream_revision
+  local -a metadata_args
+  [ -f "$source_file" ] || { echo "error: MOC source missing: $source_file" >&2; return 1; }
+  temporary="$(mktemp "$(dirname "$destination")/.moc.XXXXXX")"
+  metadata_args=(--source "$source_file" --source-kind "$source_kind" \
+    --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM")
+  if [ "$source_kind" = github-reviewed ]; then
+    upstream_revision="$(awk -F': *' '/^upstream_revision:/{print $2; exit}' "$source_file" | tr -d "\"'")"
+    [ -n "$upstream_revision" ] || { rm -f "$temporary"; echo "error: reviewed source lacks upstream_revision" >&2; return 1; }
+    metadata_args+=(--upstream-revision "$upstream_revision")
+  fi
+  if ! printf '%s' "$content" | python3 "$METADATA_SCRIPT" "${metadata_args[@]}" > "$temporary"; then
+    rm -f "$temporary"
+    return 1
+  fi
+  mv "$temporary" "$destination"
+}
 
 echo "=== Phase 2b: MOC Generation ==="
 
@@ -52,7 +111,12 @@ while IFS=$'\t' read -r src_path chunk_file chunk_slug idx heading; do
       filtered+="$line"$'\n'
     fi
   done < "$chunk_file"
-  printf '%s' "$filtered" > "$moc_dest"
+  brain_group_for "$src_path" "$GROUPS_SECTION" || {
+    echo "error: no manifest group for parent MOC source: $src_path" >&2
+    exit 1
+  }
+  source_kind="$(source_kind_for_group "$_BRAIN_GROUP_OUT")" || exit 1
+  write_moc "$filtered" "$moc_dest" "$SOURCE_ROOT/$src_path" "$source_kind"
 
   # Write state entry for the MOC
   (
@@ -68,7 +132,7 @@ done < "$CHUNKS_TSV"
 echo "Parent MOCs: $moc_count"
 
 # ── Generate sub-MOCs per group ──────────────────────────────────────────
-for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams; do
+for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams github-reviewed; do
   pages="$(jq -r --arg g "$group" '
     to_entries[] |
     select(.value.type != null) |
@@ -102,7 +166,7 @@ ${page_count} Seiten aus der Gruppe \`${group}\`.
 "
   done <<< "$pages"
 
-  echo "$moc_content" > "$BRAIN_REPO/wiki/${group}-moc.md"
+  write_moc "$moc_content" "$BRAIN_REPO/wiki/${group}-moc.md" "$MANIFEST" core-doc
   echo "  Created ${group}-moc.md ($page_count pages)"
 done
 
@@ -119,7 +183,7 @@ index_content="---
 type: moc
 tags: [moc, meta]
 status: active
-source:: Bachelorprojekt brain-initial-ingest (T001861)
+source:: Bachelorprojekt scripts/brain/ingest-sources.yaml
 ---
 # Wiki — Map of Content
 
@@ -174,5 +238,5 @@ for page_slug in $existing_pages; do
   fi
 done
 
-echo "$index_content" > "$BRAIN_REPO/index.md"
+write_moc "$index_content" "$BRAIN_REPO/index.md" "$MANIFEST" core-doc
 echo "  Updated index.md"

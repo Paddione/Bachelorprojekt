@@ -95,14 +95,48 @@ _resolve_aux() {
   # Der Skip haengt am VORHANDENSEIN der Roots, nicht am Ergebnis: sonst
   # verschwaende jeder echte Fehlschlag hinter einem Skip (die Falle aus
   # T002535, wo ein Skip-Guard eine Probe jahrelang stumm schaltete).
+  # [T012414] Geprueft wird, ob ein Root ueberhaupt GGUF-Dateien ENTHAELT — nicht
+  # nur, ob das Verzeichnis existiert. Der CI-Job laeuft als Runner-User
+  # ('ghrunner', HOME=/opt/actions-runner); '~/models/gguf' zeigt dort ins Leere,
+  # waehrend der zweite Root (LM-Studio-Pfad unter /mnt/c) existiert und keine
+  # GGUFs enthaelt. Die alte Existenzpruefung war damit erfuellt, nichts loeste
+  # auf, und der Guard war fuer den CI-User DAUERHAFT rot — ohne dass sich am
+  # Geprueften etwas geaendert haette.
+  #
+  # Die Warnung aus T002535 bleibt gewahrt: der Skip haengt weiterhin an der
+  # UMGEBUNG (liegen hier ueberhaupt Gewichte?), nicht am ERGEBNIS der Pruefung.
+  # Ein Host mit Gewichten, bei dem eine deklarierte Datei fehlt, wird rot.
   local roots_present
   roots_present=$(node --input-type=module -e "
-    import { readFileSync, existsSync } from 'node:fs';
+    import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+    import { join } from 'node:path';
     import os from 'node:os';
     const doc = JSON.parse(readFileSync('${LOADOUTS}', 'utf8'));
-    console.log(doc.modelRoots.map(r => r.replace(/^~/, os.homedir())).some(existsSync) ? 'yes' : 'no');
+    const hasGguf = (dir, depth = 2) => {
+      let entries;
+      try { entries = readdirSync(dir); } catch { return false; }
+      for (const e of entries) {
+        if (e.toLowerCase().endsWith('.gguf')) return true;
+        if (depth > 0) {
+          const p = join(dir, e);
+          let st; try { st = statSync(p); } catch { continue; }
+          if (st.isDirectory() && hasGguf(p, depth - 1)) return true;
+        }
+      }
+      return false;
+    };
+    // ALLE deklarierten Roots muessen da sein, nicht irgendeiner: 'modelRoots'
+    // enthaelt '~/models/gguf', und '~' ist benutzerabhaengig. Der CI-Job laeuft
+    // als 'ghrunner' (HOME=/opt/actions-runner) — dort existiert dieser Root
+    // nicht, waehrend der zweite (LM-Studio unter /mnt/c) existiert UND GGUFs
+    // enthaelt. Mit 'some' war die Bedingung also erfuellt, obwohl der Baum mit
+    // den deklarierten Modellen fehlte. Ein unvollstaendiges Umfeld kann nicht
+    // urteilen und soll das sagen.
+    const resolved = doc.modelRoots.map(r => r.replace(/^~/, os.homedir()));
+    const complete = resolved.every(existsSync);
+    console.log(complete && resolved.some(r => hasGguf(r)) ? 'yes' : 'no');
   ")
-  [ "$roots_present" = "yes" ] || skip "kein modelRoot im Testumfeld vorhanden (CI-Runner ohne GGUF-Gewichte)"
+  [ "$roots_present" = "yes" ] || skip "modelRoots im Testumfeld unvollstaendig oder ohne GGUF-Dateien (z. B. CI-Job als anderer Benutzer: '~' zeigt woandershin)"
 
   local missing
   missing=$(echo "$output" | awk '$3 == "MISSING" { print $1 " (" $2 ")" }')

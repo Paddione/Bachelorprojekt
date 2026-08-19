@@ -1517,14 +1517,20 @@ setup_vars:
     description: "wg-mesh public key for the WSL host running ttyd (terminal-sidekick, T001565)"
   # Laptops/Tablet (T006143) — pk-l-1 (Laptop, bge-Embedding) und pk-tablet (bge-Rerank).
   # Home-NAT-Geraete, wg_ips 192.168.100.11/.12, Keepalive 25 (vgl. wsl2-gpu-mentolder).
+  # T012414: legacy_only, weil es die Lage beschreibt — nicht, um einen Guard
+  # ruhigzustellen. Belege vom 2026-08-18:
+  #   kubectl --context fleet -n workspace get secret workspace-secrets -o json
+  # listet 17 WG_MESH-Schluessel (GEKKO2/3/4, K3S1/2/3, PK4/6/8, WSL2_GPU) —
+  # PKL1 und PKT sind NICHT darunter, die Fleet laeuft ohne sie. Die Klartext-
+  # Werte existieren zudem in keiner Repo-Datei mehr (weder
+  # environments/.secrets/mentolder.yaml noch fleet-mentolder.yaml kennen die
+  # Namen); im gesiegelten Legacy-File liegt nur noch verwaister Chiffretext.
+  # Sie in fleet-mentolder nachzusiegeln waere daher keine Ergaenzung, sondern
+  # eine Neuerzeugung der Schluesselpaare samt Ausrollen auf Laptop und Tablet.
   #
-  # legacy_only wie bei allen uebrigen WG_MESH_*-Keys (GEKKO2/3/4, K3S1, WSL-Host):
-  # Diese Geraete sind Gegenstellen des wg-mesh, keine Cluster-Knoten. Ihre Keys
-  # gehoeren in die Brand-Secrets, nicht in fleet-mentolder. Ohne die Markierung
-  # verlangt tests/spec/fleet-operations.bats sie im fleet-SealedSecret und ist
-  # dort dauerhaft rot (T012415). Bis zur Umstellung der PR-Jobs auf den
-  # self-hosted Runner fiel das nicht auf: ohne installiertes `yq` hat der Test
-  # sich uebersprungen, statt zu pruefen.
+  # Warum es so lange unbemerkt blieb (T012415): bis zur Umstellung der PR-Jobs
+  # auf den self-hosted Runner fehlte dort `yq` — der Guard in
+  # tests/spec/fleet-operations.bats hat sich uebersprungen, statt zu pruefen.
   - name: WG_MESH_PKL1_PRIVATE_KEY
     required: false
     sealed: true

@@ -111,6 +111,21 @@ psql_call() {
 
   # Positiv-Anker zuerst (T002356-M1): reines SELECT liefert weiterhin Zeilen.
   single="$(query_call 1 "SELECT probe_id FROM public.__t006335_ro_probe")"
+
+  # [T012414] Der Port-Check oben ist eine Momentaufnahme. Die Dev-DB haengt an
+  # einem 'kubectl port-forward', der periodisch abbricht und neu aufbaut —
+  # zwischen Check und dem Verbindungsaufbau des Adapters liegt genug Zeit.
+  # Beobachtet: derselbe Test lieferte in drei aufeinanderfolgenden Laeufen
+  # gruen, skip und rot ("connect ECONNREFUSED 127.0.0.1:15432"), waehrend psql
+  # im selben Test die Tabelle problemlos anlegte. Eine nicht herstellbare
+  # Verbindung ist dieselbe Lage wie ein geschlossener Port und gehoert zum
+  # skip; ein echter Defekt (Verbindung steht, Ergebnis fehlt trotzdem) bleibt rot.
+  case "$single" in
+    *ECONNREFUSED*|*ETIMEDOUT*|*ECONNRESET*|*"Connection terminated"*|*SASL*)
+      skip "keine nutzbare DB auf :15432 (Verbindung brach weg): $single"
+      ;;
+  esac
+
   echo "$single" | grep -q 'probe_id' || {
     echo "FAIL: Positiv-Anker SELECT liefert kein Ergebnis: $single" >&2
     return 1

@@ -39,6 +39,12 @@ rbac:
       verbs: ["get", "list", "watch", "create", "delete"]
     - resources: ["pods/log"]
       verbs: ["get"]
+    # Der Kubernetes-Executor legt pro Job ein Secret mit den Registry-
+    # Credentials an (image_pull_secrets) und raeumt es danach wieder ab.
+    # Stand bis T012413 nur in der gerenderten Datei — dort geht die Regel bei
+    # jedem gitlab-runner:render verloren, deshalb gehoert sie hierher.
+    - resources: ["secrets"]
+      verbs: ["get", "list", "create", "delete"]
 
 # nodeAffinity statt nodeSelector (p1, Aufgabe 4): ein simples Label-Map kann kein
 # ODER ueber zwei Hostnamen ausdruecken. Gleiche Form wie

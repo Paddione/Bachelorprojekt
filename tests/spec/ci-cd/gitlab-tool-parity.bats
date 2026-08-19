@@ -18,12 +18,16 @@ setup() {
   GL_YML="${REPO_ROOT}/.gitlab-ci.yml"
 }
 
-# Extrahiert die gitleaks-Version aus dem GitHub-Workflow ueber den versionierten
-# Cache-Key (gitleaks-vX.Y.Z-linux-amd64) — die eine Fundstelle, aus der auch der
-# Download-Schritt seine Version bezieht.
+# Extrahiert die gitleaks-Version aus dem GitHub-Workflow ueber die
+# Release-Download-URL.
+#
+# [T012414] Vorher las diese Funktion den Cache-Key (gitleaks-vX.Y.Z-linux-amd64).
+# Der Cache-Eintrag ist entfallen: er zeigte auf /usr/local/bin und war damit auf
+# einem self-hosted Runner ohne root nicht wiederherstellbar. Die URL ist ohnehin
+# die Fundstelle, an der der Pin *wirkt* — der Cache-Key war nur eine Kopie davon.
 _gh_gitleaks_version() {
   [ -f "$CI_YML" ] || return 0
-  grep -oE 'gitleaks-v[0-9]+\.[0-9]+\.[0-9]+-linux-amd64' "$CI_YML" \
+  grep -oE 'gitleaks/releases/download/v[0-9]+\.[0-9]+\.[0-9]+' "$CI_YML" \
     | head -1 \
     | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'
 }
@@ -140,9 +144,12 @@ _gl_node_majors() {
 }
 
 @test "gitlab-tool-parity: die kubectl-Version stimmt ueberein" {
-  # GitHub pinnt sie im Cache-Key (kubectl-vX.Y.Z-linux-amd64), GitLab in der
+  # GitHub pinnt sie in der Download-URL (dl.k8s.io/release/vX.Y.Z), GitLab in der
   # KUBECTL_VERSION-Variable des manifests-Jobs.
-  gh="$(grep -oE 'kubectl-v[0-9]+\.[0-9]+\.[0-9]+' "$CI_YML" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+  #
+  # [T012414] Vorher der Cache-Key kubectl-vX.Y.Z-linux-amd64 — entfallen, weil er
+  # auf /usr/local/bin zeigte und ohne root nicht wiederherstellbar war.
+  gh="$(grep -oE 'dl\.k8s\.io/release/v[0-9]+\.[0-9]+\.[0-9]+' "$CI_YML" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
   gl="$(grep -oE 'KUBECTL_VERSION:[[:space:]]*"?v?[0-9]+\.[0-9]+\.[0-9]+' "$GL_YML" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
 
   echo "Anker: GitHub-kubectl='${gh}' GitLab-kubectl='${gl}'"

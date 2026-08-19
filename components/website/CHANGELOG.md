@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.286.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.1...website-v1.286.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* **factory:** Konflikt-Guard prueft das Feld, das den Konflikt fuehrt [T012500] ([#4796](https://github.com/Paddione/Bachelorprojekt/issues/4796)) ([d12f66c](https://github.com/Paddione/Bachelorprojekt/commit/d12f66c0cc7dd887b51bc9654707dc313408378f))
+
+## [1.286.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.0...website-v1.286.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** Prod-E2E-Projektauswahl positiv aufzählen statt scheinnegieren [T012489] ([#4792](https://github.com/Paddione/Bachelorprojekt/issues/4792)) ([600a99f](https://github.com/Paddione/Bachelorprojekt/commit/600a99f291be4e863ac81f1b53dcf5461afdaea8))
+
+## [1.286.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.2...website-v1.286.0) (2026-08-18)
+
+
+### Features
+
+* **ci:** Runner-Zuordnung über Capability-Labels erzwingen [T012488] ([#4789](https://github.com/Paddione/Bachelorprojekt/issues/4789)) ([3b39adf](https://github.com/Paddione/Bachelorprojekt/commit/3b39adf661928b55b31809efa2edc410050bccf1))
+
+## [1.285.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.1...website-v1.285.2) (2026-08-18)
+
+
+### CI/CD
+
+* **ci:** distribute portable PR gates [T012446] ([#4785](https://github.com/Paddione/Bachelorprojekt/issues/4785)) ([5cb6bcd](https://github.com/Paddione/Bachelorprojekt/commit/5cb6bcd413874b559054c0754e379870ec87ab06))
+
 ## [1.285.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.285.0...website-v1.285.1) (2026-08-18)
 
 

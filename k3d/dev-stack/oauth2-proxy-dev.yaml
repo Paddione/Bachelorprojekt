@@ -84,6 +84,16 @@ spec:
             # (auth.${PROD_DOMAIN}/realms/workspace) existiert im Fleet nicht
             # mehr (OIDC-Discovery lieferte HTML → CrashLoop). [T007035]
             - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
+            # Discovery uebersprungen wie bei brainstorm/session-hub: Pocket ID
+            # meldet in seinem Discovery-Dokument die oeffentliche APP_URL
+            # (https://auth.${PROD_DOMAIN}), nie die Cluster-interne — mit
+            # aktivierter Discovery bricht oauth2-proxy beim Start mit
+            # "issuer did not match" ab. Die Endpunkte deshalb explizit. [T012501]
+            - --skip-oidc-discovery=true
+            - --login-url=https://auth.${PROD_DOMAIN}/authorize
+            - --redeem-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id.workspace.svc.cluster.local:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/userinfo
             - --redirect-url=https://${DEV_DOMAIN}/oauth2/callback
             # Loop back to the in-cluster Traefik web entrypoint; Host preserved
             # so Traefik routes by host to website-dev / brett-dev.

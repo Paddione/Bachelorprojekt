@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.2...website-v1.286.3) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** $$-Unwrapping deckt ( ! ? ab, gitlab-runner-Escaping zurueck [T012503] ([#4800](https://github.com/Paddione/Bachelorprojekt/issues/4800)) ([d8de489](https://github.com/Paddione/Bachelorprojekt/commit/d8de489f10664260ffaee2310979c81da7510ccc))
+
 ## [1.286.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.1...website-v1.286.2) (2026-08-19)
 
 

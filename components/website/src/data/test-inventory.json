@@ -2706,6 +2706,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-runner-executor-rbac",
+    "file": "tests/spec/ci-cd/gitlab-runner-executor-rbac.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-runner-fleet-guardrails",
     "file": "tests/spec/ci-cd/gitlab-runner-fleet-guardrails.bats",
     "category": "ci-cd",

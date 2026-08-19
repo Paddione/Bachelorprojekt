@@ -55,7 +55,7 @@ jobs:
   mirror:
     name: Push-Spiegel nach GitLab
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30 # Erhöht auf 30 Min, da fetch-depth:0 bei großen Repositories oft > 10 Min benötigt.
     steps:
       - uses: actions/checkout@v7
         with:

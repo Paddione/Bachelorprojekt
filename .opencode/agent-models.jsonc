@@ -9,9 +9,8 @@
     // die Gemma-Agenten lief damit ins Leere.
     //
     // Weiterhin ueber den llm-proxy (:18235) statt direkt auf den Server-Port: damit gilt
-    // max_inflight=1 auch fuer die opencode-Agenten (sie serialisieren, statt gleichzeitig
-    // auf die eine GPU zu gehen) und die Fallback-Kette lokal -> deepseek -> zen greift
-    // auch hier [T002558].
+    // max_inflight=3 auch fuer die opencode-Agenten (bis zu 3 parallele Streams pro Backend)
+    // und die Fallback-Kette lokal -> deepseek -> zen greift auch hier [T002558].
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama.cpp b10225 via llm-proxy (Unsloth-Build, CUDA 13.3)",
@@ -297,7 +296,7 @@
     // `task gemma` gibt die Gemma-Familie. T003204: die Familie qwen ist
     // abgeschaltet — ihr Loadout qwen3-coder-30b wurde entfernt (T012414).
     //
-    // Was unveraendert gilt: der llm-proxy hat max_inflight=1, die Agenten
+    // Was unveraendert gilt: der llm-proxy hat max_inflight=3, die Agenten
     // rechnen nacheinander. Mehr Namen bringen erhaltenen Kontext, nicht
     // Durchsatz — bei einer einzelnen GPU waere echte Nebenlaeufigkeit ohnehin
     // kaum ein Gewinn. Alle vier Chat-Loadouts teilen exclusiveGroup
@@ -314,7 +313,7 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the gptoss-context loadout was disabled in T003204; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
+      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the gptoss-context loadout was disabled in T003204; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
       "mode": "subagent",
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -330,7 +329,7 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; updated to gemma26-throughput to share the live loadout with orchestrator and gptoss without GPU swapping. Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
+      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; updated to gemma26-throughput to share the live loadout with orchestrator and gptoss without GPU swapping. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
       "mode": "subagent",
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -541,7 +540,7 @@
       // Umgestellt auf das einzige live Loadout gemma26-throughput (Port 8092 via
       // llm-proxy :18235). Rueckbau auf deepseek-v4-flash erst nach Limit-Reset
       // oder freigeschaltetem Balance-Usage.
-      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) up to 3 in parallel for implementation - the llm-proxy allows max_inflight=3. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/orchestrator.md}",

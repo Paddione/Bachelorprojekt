@@ -75,7 +75,7 @@ data:
       --working-directory=/home/gitlab-runner
   config.toml: |
     shutdown_timeout = 0
-    concurrent = 4
+    concurrent = 3
     check_interval = 3
     log_level = "info"
 
@@ -369,7 +369,7 @@ spec:
         release: "gitlab-runner"
         heritage: "Helm"
       annotations:
-        checksum/configmap: 1cf23480ace938c773c37fcea39044715fd2e92fd0da8e1363d41d553c2fcb54
+        checksum/configmap: 7b306129eb07488b5c2e1c94b53ed74ca0eb3b750a4deff7364fa10df3d1e360
         checksum/secrets: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     spec:
       securityContext: 

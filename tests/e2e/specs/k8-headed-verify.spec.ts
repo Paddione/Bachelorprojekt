@@ -33,9 +33,19 @@ const VERIFY_TARGET = {
   expectVisible: true,
 };
 
-// Vision-Server für optionale screenshot-gestützte Verifikation (bereits laufend, kein
-// neuer Dienst — siehe Design "KEIN neuer Server").
-const VISION_SERVER_URL = process.env.K8_VISION_URL ?? 'http://localhost:8094/v1/chat/completions';
+// Vision-Endpunkt für die optionale screenshot-gestützte Verifikation. Kein neuer
+// Dienst — der Weg führt über den bereits laufenden llm-proxy.
+//
+// [T012781] Vorher stand hier Port 8094 mit 8091 als Rückfall. Beides war
+// wirkungslos: 8094 hat in scripts/llm/loadouts.json keinen Eintrag, und das
+// Loadout auf 8091 (gemma26-factory) trägt in seinen eigenen notes den Satz
+// "Kein mmproj". Weil dieser Aufruf Fehler nur als Annotation notiert, ist das
+// seit T002467 nie aufgefallen — die Annotation lautete immer "nicht erreichbar".
+//
+// Nicht direkt auf 8089: der llama.cpp-Server läuft auf dem Windows-GPU-Host und
+// ist aus WSL nicht erreichbar (curl -> HTTP-Code 000, Proxy -> 200).
+const VISION_SERVER_URL = process.env.K8_VISION_URL ?? 'http://127.0.0.1:18235/v1/chat/completions';
+const VISION_MODEL = process.env.K8_VISION_MODEL ?? 'gemma12-vision';
 
 test.describe('K8: Agentische Headed-Verifikation (T002467, manuell/agentisch)', () => {
   test.beforeEach(() => {
@@ -56,19 +66,20 @@ test.describe('K8: Agentische Headed-Verifikation (T002467, manuell/agentisch)',
     }
   });
 
-  test('headed-verify: optionaler Vision-Server-Check (Screenshot → Port 8094)', async ({ page }) => {
+  test('headed-verify: optionaler Vision-Check (Screenshot → llm-proxy)', async ({ page }) => {
     await page.goto(`${BASE}${VERIFY_TARGET.path}`);
     const screenshot = await page.screenshot({ fullPage: false });
 
-    // Best-effort: der Vision-Server ist ein separater, bereits laufender Dienst
-    // (mmproj auf Port 8094). Ist er nicht erreichbar, wird die Vision-Prüfung
-    // übersprungen, statt den Testlauf zu blocken — diese Stufe informiert, sie
-    // gate't nicht (Design "Kein Abbruch bei Fehler").
+    // Best-effort: das Vision-Loadout läuft bereits (gemma12-vision, mmproj-F16).
+    // Ist es nicht erreichbar, wird die Prüfung übersprungen, statt den Testlauf
+    // zu blocken — diese Stufe informiert, sie gate't nicht.
     try {
       const res = await fetch(VISION_SERVER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          // Ohne 'model' trifft die Anfrage beim Proxy kein Backend.
+          model: VISION_MODEL,
           messages: [
             {
               role: 'user',
@@ -84,14 +95,22 @@ test.describe('K8: Agentische Headed-Verifikation (T002467, manuell/agentisch)',
         }),
         signal: AbortSignal.timeout(15_000),
       });
+      // Status 404 heisst hier NICHT "kein Server", sondern "Proxy da, Alias
+      // fehlt" — die Abhilfe ist die Backend-Migration, nicht ein Serverstart.
+      // Werden beide Fehlbilder zu "nicht erreichbar" verschmolzen, wiederholt
+      // sich genau der Vorfall, den T012781 behebt.
       test.info().annotations.push({
-        type: 'vision-check',
-        description: res.ok ? 'Vision-Server antwortete' : `Vision-Server Status ${res.status}`,
+        type: res.ok ? 'vision-check' : 'vision-check-unavailable',
+        description: res.ok
+          ? `Vision-Modell ${VISION_MODEL} antwortete`
+          : `llm-proxy antwortete mit Status ${res.status} — Modellalias ${VISION_MODEL} vermutlich `
+            + 'nicht gefuehrt (scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql)',
       });
     } catch (err) {
       test.info().annotations.push({
         type: 'vision-check-skipped',
-        description: `Vision-Server nicht erreichbar (${(err as Error).message}) — non-fatal`,
+        description: `llm-proxy nicht erreichbar unter ${VISION_SERVER_URL} `
+          + `(${(err as Error).message}) — non-fatal`,
       });
     }
   });

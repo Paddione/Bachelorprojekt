@@ -34,6 +34,23 @@ function safeReadJson(file) {
   }
 }
 
+// [T012781] Vision-Urteile liegen NEBEN den Ergebniszeilen in
+// vision-<viewport>.json. Fehlt die Datei — der Regelfall, weil die Stufe
+// standardmaessig aus ist —, bleibt die Galerie unveraendert.
+function loadVision() {
+  const out = {};
+  for (const brand of BRANDS) {
+    out[brand] = {};
+    for (const vp of VIEWPORTS) {
+      const rows = safeReadJson(join(SWEEP_DIR, brand, `vision-${vp}.json`));
+      const byRoute = new Map();
+      if (Array.isArray(rows)) for (const r of rows) byRoute.set(r.route, r);
+      out[brand][vp] = byRoute;
+    }
+  }
+  return out;
+}
+
 function loadResults() {
   const out = {};
   for (const brand of BRANDS) {
@@ -131,7 +148,30 @@ function healthSummary(row) {
   return `<div class="health-row">${parts.join('')}</div>`;
 }
 
-function renderViewportCell(row, brand, vp) {
+// Drei Zustaende, die NICHT zu "kein Befund" verschmelzen duerfen:
+//   judged   — das Modell hat geantwortet und die Antwort passte zum Schema
+//   skipped  — kein Endpunkt / Zeitgrenze; Abhilfe: Proxy oder Migration
+//   unusable — Endpunkt antwortete, die Antwort passte nicht zum Schema
+// Genau diese Verschmelzung ist der Grund, warum der Vision-Aufruf vor T012781
+// jahrelang unbemerkt wirkungslos war.
+function visionBadge(v) {
+  if (!v) return '';
+  if (v.status === 'skipped') {
+    return `<div class="vision"><span class="badge badge-vskip" title="${esc(v.reason)}">vision: uebersprungen</span></div>`;
+  }
+  if (v.status === 'unusable') {
+    return `<div class="vision"><span class="badge badge-vunusable" title="${esc(String(v.raw).slice(0, 400))}">vision: unbrauchbar</span></div>`;
+  }
+  if (v.verdict === 'ok') {
+    return '<div class="vision"><span class="badge badge-vok">vision: ok</span></div>';
+  }
+  const codes = (v.findings || [])
+    .map((f) => `<span class="finding" title="${esc(f.note)} (confidence ${esc(f.confidence)})">${esc(f.code)}</span>`)
+    .join('');
+  return `<div class="vision"><span class="badge badge-vsuspect">vision: auffaellig</span>${codes}</div>`;
+}
+
+function renderViewportCell(row, brand, vp, vision) {
   const rel = row ? screenshotRel(row, brand, vp) : null;
   const img = rel
     ? `<a href="${esc(rel)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(rel)}" alt="${esc(brand)} ${esc(vp)} ${esc(row.route)}"></a>`
@@ -141,17 +181,18 @@ function renderViewportCell(row, brand, vp) {
       <figcaption>${esc(vp)} ${statusBadge(row)}</figcaption>
       ${img}
       ${healthSummary(row)}
+      ${visionBadge(row && vision ? vision.get(row.route) : null)}
     </figure>`;
 }
 
-function renderBrandCell(brandIndex, brand, route) {
+function renderBrandCell(brandIndex, brand, route, vision) {
   const entry = brandIndex[route];
   if (!entry) {
     return `<td class="brand-cell empty"><div class="not-in-brand">not in ${esc(brand)}</div></td>`;
   }
   return `<td class="brand-cell">
-    ${renderViewportCell(entry.desktop, brand, 'desktop')}
-    ${renderViewportCell(entry.mobile, brand, 'mobile')}
+    ${renderViewportCell(entry.desktop, brand, 'desktop', vision?.[brand]?.desktop)}
+    ${renderViewportCell(entry.mobile, brand, 'mobile', vision?.[brand]?.mobile)}
   </td>`;
 }
 
@@ -181,6 +222,12 @@ figure.vp-mobile{flex:0 0 160px;min-width:140px}
 .badge-timeout{background:#3a2412;color:#e08a4a}
 .badge-error{background:#3a1517;color:#ef6b73}
 .badge-missing,.badge-unknown{background:#23262e;color:#6b7280}
+.badge-vok{background:#16361f;color:#5fd07a}
+.badge-vsuspect{background:#3a1517;color:#ef6b73}
+.badge-vskip{background:#23262e;color:#9aa3b2}
+.badge-vunusable{background:#3a2f12;color:#e0b94a}
+.vision{margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.finding{font-size:10px;padding:1px 5px;border-radius:8px;background:#2a1f22;color:#e79aa1;font-family:ui-monospace,Menlo,monospace}
 .health-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .health{font-size:10px;padding:1px 5px;border-radius:6px}
 .health.ok{background:#16361f;color:#5fd07a}
@@ -188,11 +235,11 @@ figure.vp-mobile{flex:0 0 160px;min-width:140px}
 a{color:inherit}
 `;
 
-function brandSection(indexed, route) {
+function brandSection(indexed, route, vision) {
   return `<tr>
     <td class="route-cell">${esc(route)}</td>
-    ${renderBrandCell(indexed.mentolder, 'mentolder', route)}
-    ${renderBrandCell(indexed.korczewski, 'korczewski', route)}
+    ${renderBrandCell(indexed.mentolder, 'mentolder', route, vision)}
+    ${renderBrandCell(indexed.korczewski, 'korczewski', route, vision)}
   </tr>`;
 }
 
@@ -211,13 +258,34 @@ function summaryLine(results) {
   return `${total} captures — ${parts.join(' · ') || 'none'}`;
 }
 
-function renderHtml(results) {
+// [T012781] Eine Zeile je Brand und Viewport. Die Zahl der uebersprungenen ist
+// die wichtigste: steht dort die Gesamtzahl, hat der Lauf nichts gemessen.
+function visionSummary(vision) {
+  const lines = [];
+  for (const brand of BRANDS) {
+    for (const vp of VIEWPORTS) {
+      const rows = [...vision[brand][vp].values()];
+      if (rows.length === 0) continue;
+      const judged = rows.filter((r) => r.status === 'judged').length;
+      const suspect = rows.filter((r) => r.status === 'judged' && r.verdict === 'suspect').length;
+      const skipped = rows.filter((r) => r.status === 'skipped').length;
+      const unusable = rows.filter((r) => r.status === 'unusable').length;
+      lines.push(
+        `${brand}/${vp}: ${judged} beurteilt · ${suspect} auffaellig · ` +
+        `${skipped} uebersprungen · ${unusable} unbrauchbar`,
+      );
+    }
+  }
+  return lines;
+}
+
+function renderHtml(results, vision) {
   const indexed = {};
   for (const brand of BRANDS) indexed[brand] = indexByRoute(results[brand]);
   const routes = unionRoutes(indexed);
 
   const rows = routes.length
-    ? routes.map((r) => brandSection(indexed, r)).join('\n')
+    ? routes.map((r) => brandSection(indexed, r, vision)).join('\n')
     : '<tr><td colspan="3" style="padding:40px;text-align:center;color:#6b7280">No sweep results found. Run task test:e2e:visual-sweep first.</td></tr>';
 
   return `<!DOCTYPE html>
@@ -230,6 +298,7 @@ function renderHtml(results) {
 <header class="top">
   <h1>Visual Sweep — Contact Sheet</h1>
   <div class="summary">${esc(summaryLine(results))} · generated ${esc(new Date().toISOString())}</div>
+  ${visionSummary(vision).map((l) => `<div class="summary">${esc(l)}</div>`).join('')}
 </header>
 <main>
   <table class="sweep">
@@ -244,7 +313,8 @@ ${rows}
 
 function main() {
   const results = loadResults();
-  const html = renderHtml(results);
+  const vision = loadVision();
+  const html = renderHtml(results, vision);
   writeFileSync(OUT_FILE, html, 'utf8');
   // Absolute path is the contract: the Taskfile + humans open this directly.
   console.log(OUT_FILE);

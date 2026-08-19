@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.287.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.9...website-v1.287.0) (2026-08-19)
+
+
+### Features
+
+* **test:** vision-geurteilter headed Visual-Sweep auf gemma12-vision [T012781] ([#4826](https://github.com/Paddione/Bachelorprojekt/issues/4826)) ([728b592](https://github.com/Paddione/Bachelorprojekt/commit/728b592aab5ecd0027a309e26d04fc2329645ae5))
+
+## [1.286.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.8...website-v1.286.9) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** concurrent auf 3 senken + description fuer update-dependencies SKILL [T012647] ([#4819](https://github.com/Paddione/Bachelorprojekt/issues/4819)) ([ee9280f](https://github.com/Paddione/Bachelorprojekt/commit/ee9280f1d40dcae39d0fb87291b6690706336751))
+
+## [1.286.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.7...website-v1.286.8) (2026-08-19)
+
+
+### Bug Fixes
+
+* **infra:** concurrent auf 3 senken, damit Job-Wechsel in die Quota passt [T012647] ([#4817](https://github.com/Paddione/Bachelorprojekt/issues/4817)) ([a418f6f](https://github.com/Paddione/Bachelorprojekt/commit/a418f6f1ed74194b41d9cd86536d6bfed2913f12))
+
 ## [1.286.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.6...website-v1.286.7) (2026-08-19)
 
 

@@ -13,6 +13,7 @@
 # der GitHub-seitigen Diff-Auswahl (task test:changed / dessen Alias test:all).
 
 stages:
+  - build
   - lint
   - test
   - quality
@@ -33,6 +34,48 @@ variables:
   # Paritaets-Guard als "nur GitLab gepinnt" und nicht als Divergenz.
   TRIVY_VERSION: "0.74.0"
 
+# ── Gemeinsame Job-Vorgaben ─────────────────────────────────────────────────
+#
+# Warum Anker statt Wiederholung je Job: dieselbe Anti-Duplikations-Entscheidung
+# wie bei CI_RUNNER_TAG in Etappe 1. Eine Toolchain, die an sieben Stellen steht,
+# driftet an sieben Stellen.
+#
+# Der Block steht bewusst VOR dem ersten `<<: *gl_defaults`. YAML loest Aliase
+# beim Parsen von oben nach unten auf — ein Alias auf einen erst spaeter
+# definierten Anker ist kein gueltiges YAML, sondern ein ComposerError
+# ("found undefined alias"). Genau das war T012899: der Job build-ci-images kam
+# mit #4823 oberhalb dieses Blocks hinzu und machte die gesamte Datei
+# unparsebar — fuer die Guards in tests/spec/ci-cd/ ebenso wie fuer GitLab
+# selbst. Neue Jobs, die den Anker verwenden, gehoeren UNTER diesen Block.
+.gl_defaults: &gl_defaults
+  tags: [$CI_RUNNER_TAG]
+  # Bei mehreren Pushes hintereinander bricht GitLab die ueberholte Pipeline ab,
+  # statt den Runner mit veralteten Staenden zu belegen. Auf einem Runner, der
+  # laut Etappe-2-Messung 2-3x langsamer ist als SaaS, ist das kein Feinschliff.
+  interruptible: true
+
+# ── Prebuilt CI Images (T012411) ────────────────────────────────────────────
+# Vorgebaute Images eliminieren ~75s Setup-Zeit pro Job (apt-get, curl-Downloads).
+# Quelle: .gitlab-ci-images/*.Dockerfile, scripts/build-ci-images.sh
+# Rebuild: manuell oder beim Aendern von VERSION-Argen in den Dockerfiles.
+
+build-ci-images:
+  stage: build
+  <<: *gl_defaults
+  image: docker:24
+  services:
+    - docker:24-dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - ".gitlab-ci-images/*"
+        - "scripts/build-ci-images.sh"
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - bash scripts/build-ci-images.sh
+
 # ── Etappe 3 (T012405): gemeinsame Bausteine ─────────────────────────────────
 #
 # Die sieben Jobs unterhalb der Etappe-1-Jobs stellen die Paritaet zu den
@@ -43,13 +86,6 @@ variables:
 # Warum Anker statt Wiederholung je Job: dieselbe Anti-Duplikations-Entscheidung
 # wie bei CI_RUNNER_TAG in Etappe 1. Eine Toolchain, die an sieben Stellen steht,
 # driftet an sieben Stellen.
-
-.gl_defaults: &gl_defaults
-  tags: [$CI_RUNNER_TAG]
-  # Bei mehreren Pushes hintereinander bricht GitLab die ueberholte Pipeline ab,
-  # statt den Runner mit veralteten Staenden zu belegen. Auf einem Runner, der
-  # laut Etappe-2-Messung 2-3x langsamer ist als SaaS, ist das kein Feinschliff.
-  interruptible: true
 
 # Laeuft auf main (Vollmenge), auf Arbeits-Branches und in MR-Pipelines.
 # Die Unterscheidung Vollmenge/Diff-Auswahl trifft NICHT diese Regel, sondern der
@@ -80,7 +116,7 @@ bats-unit:
   # deshalb unten explizit ausgeschlossen, nicht per zusaetzlicher Toolinstallation
   # hereingezogen (das wuerde die Job-Aufteilung des Repos unterlaufen, die genau
   # dafuer existiert, dass test-bats OHNE kubectl auskommt).
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
   tags: [$CI_RUNNER_TAG]
   variables:
     YQ_VERSION: "4.53.3"
@@ -168,7 +204,7 @@ bats-unit:
 
 manifests:
   stage: test
-  image: ubuntu:24.04
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-ubuntu:latest
   tags: [$CI_RUNNER_TAG]
   variables:
     KUBECTL_VERSION: "v1.31.0"
@@ -213,7 +249,7 @@ gitleaks:
   #   gitleaks       fail-closed
   #   Trivy          advisory     (auf GitHub continue-on-error)
   stage: test
-  image: ubuntu:24.04
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-ubuntu:latest
   tags: [$CI_RUNNER_TAG]
   interruptible: true
   before_script:
@@ -306,7 +342,7 @@ factory-openspec:
   # Gegenstueck zu test-factory-openspec: die billigen, hochsignalhaften Gates.
   stage: test
   <<: *gl_defaults
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
   rules: *scoped_rules
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git jq ca-certificates >/dev/null
@@ -326,7 +362,7 @@ factory-shard:
   # nachzubauen statt ihrer Wirkung (design.md D3).
   stage: test
   <<: *gl_defaults
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22-heavy:latest
   rules: *scoped_rules
   parallel: 4
   variables:
@@ -419,7 +455,7 @@ brett-typescript:
   # GitHub-Gegenstuecks, und Werkzeug-Paritaet ist der Zweck der Uebung.
   stage: test
   <<: *gl_defaults
-  image: node:24
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
   rules: *scoped_rules
   variables:
     MOCK_DB: "true"
@@ -442,7 +478,7 @@ vitest-website:
   # am wenigsten auf (vgl. Memory-Notiz "Vitest gruen ohne Testlauf").
   stage: test
   <<: *gl_defaults
-  image: node:24
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
   rules: *scoped_rules
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git jq ca-certificates >/dev/null
@@ -478,7 +514,7 @@ commit-lint:
   # und dafuer gibt es bereits die Skripte, die auch Hook und GitHub-Job rufen.
   stage: lint
   <<: *gl_defaults
-  image: node:22
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node22:latest
   rules: *branch_only_rules
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git bash ca-certificates >/dev/null
@@ -540,7 +576,7 @@ lighthouse:
   # sein Ergebnis ist ein Hinweis, kein Merge-Kriterium.
   stage: quality
   <<: *gl_defaults
-  image: node:24
+  image: ${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/ci-node24:latest
   rules: *branch_only_rules
   allow_failure: true
   needs: [vitest-website]

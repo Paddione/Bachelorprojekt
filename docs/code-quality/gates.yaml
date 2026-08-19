@@ -194,6 +194,8 @@ s4:
     # agent-msg.sh, agent-escalate.sh). Added in T001049.
     - "AGENTS.md"
     - "CLAUDE.md"
+    # GitLab CI pipeline references build scripts (build-ci-images.sh etc.)
+    - ".gitlab-ci.yml"
     # OpenSpec SSOT specs (.openspec/specs/<capability>/spec.md) are the source of truth
     # for behavioural contracts and frequently name migration / one-shot scripts that the
     # old spec did not list under docs/ (T001170, chore/repo-hygiene).

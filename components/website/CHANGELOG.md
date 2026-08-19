@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.288.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.287.0...website-v1.288.0) (2026-08-19)
+
+
+### Features
+
+* **infra:** unbeaufsichtigtes Autoinstall-ISO fuer Cluster-Workstations [T012900] ([#4827](https://github.com/Paddione/Bachelorprojekt/issues/4827)) ([8376f04](https://github.com/Paddione/Bachelorprojekt/commit/8376f04fd4ddf49d9457b969b5bab0be0e135b6d))
+
 ## [1.287.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.9...website-v1.287.0) (2026-08-19)
 
 

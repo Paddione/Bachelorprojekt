@@ -24,3 +24,22 @@ patches:
       kind: Job
       metadata:
         name: any-job
+  # T012964: pvc-backup + tests-results-retention CronJobs cannot work in
+  # workspace-korczewski — nextcloud/website pods are scaled to 0 here.
+  # The mounter job needs podAffinity to app=nextcloud (which only runs in
+  # workspace); tests-results-retention exec's into website-korczewski (empty).
+  # Delete them from the overlay to stop the daily failure noise.
+  - target: { group: batch, version: v1, kind: CronJob, name: pvc-backup }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: pvc-backup
+  - target: { group: batch, version: v1, kind: CronJob, name: tests-results-retention }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: tests-results-retention

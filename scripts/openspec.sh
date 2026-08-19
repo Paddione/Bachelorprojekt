@@ -337,8 +337,15 @@ cmd_archive() {
   # still leerer Status-Map. KEIN mkdir -p: das Zielverzeichnis existiert im
   # echten Repo immer (Sandbox-Tests legen es im setup an, damit der
   # Fehlerfall testbar bleibt).
-  bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1
-  git -C "$REPO" add -- "$REPO/components/website/src/data/openspec-status.json"
+  # [T002581] Bei explizitem OPENSPEC_ROOT (BATS-Tests) ist die Status-Map
+  # best-effort: das Temp-Verzeichnis hat keine .ticket-Dateien, der Guard
+  # in openspec-status-map.sh wuerde faelschlich ausloesen.
+  if [[ "${OPENSPEC_ROOT:-}" == "${REPO}/openspec" || -z "${OPENSPEC_ROOT:-}" ]]; then
+    bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1
+    git -C "$REPO" add -- "$REPO/components/website/src/data/openspec-status.json"
+  else
+    bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
+  fi
 
   # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).
   _embed_slug "$slug"

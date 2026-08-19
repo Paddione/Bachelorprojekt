@@ -20,6 +20,11 @@ unsloth_compiled_cache
 # Nicht mehr committet (T001717) — wird pro Session/Checkout bei Bedarf lokal neu gebaut.
 .codebase-memory/
 
+# ── deepseek-harness: externer Baum im Repo-Root (T012960) ──
+# Kein Submodul, kein eigenes .git — 7.462 Dateien / 1,5 GB, nichts davon getrackt.
+# Ungeignoriert verrauschte es jede status-Ansicht und machte `git add -A` zur Falle.
+/deepseek-harness/
+
 # ── Secrets (niemals committen!) ────────────────
 .env
 .env.*

@@ -55,7 +55,10 @@ for row in "${launch_rows[@]}"; do
   branch="$(echo "$row" | jq -r '.branch // ""')"
   plan_path="$(echo "$row" | jq -r '.plan_path // ""')"
   wt_path="$(echo "$row" | jq -r '.worktree_path // ""')"
-  slug="$(echo "$row" | jq -r '.branch // ""' | sed -E 's#^(feature|fix|chore)/##')"
+  # [T012502] docs/ mitstrippen: pipeline.mjs leitet den Praefix seit T012502 aus
+  # dem Ticket-Typ ab. Bliebe docs/ stehen, landete es im slug — und damit im
+  # Worktree-Pfad (.worktrees/docs/<name>) und im OpenSpec-Verzeichnis.
+  slug="$(echo "$row" | jq -r '.branch // ""' | sed -E 's#^(feature|fix|chore|docs)/##')"
   [[ -z "$slug" ]] && slug="sf-$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')"
   dry_run_val="$(echo "$row" | jq -r '.dry_run // false')"
   [[ "$DRY_RUN" == "true" ]] && dry_run_val=true

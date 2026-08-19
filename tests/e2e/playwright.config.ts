@@ -79,7 +79,8 @@ export default defineConfig({
         '**/fa-admin-billing-system.spec.ts',        // native SEPA billing, EÜR, UStVA auth gates
         '**/fa-admin-crm.spec.ts',                   // CRM: termine, followups, projekte, rooms, meetings auth gates
         '**/fa-56-admin-assets.spec.ts',             // central asset management auth gates
-        '**/fa-59-*.spec.ts',                        // systemtest purge route preservation
+        '**/fa-62-*.spec.ts',                        // Gemma12 Factory Model
+
         '**/fa-admin-backup-settings.spec.ts',       // admin backup settings auth gates
       ],
       use: {

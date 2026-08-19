@@ -996,6 +996,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-62",
+    "file": "tests/e2e/specs/fa-62-gemma12-factory-parallel-sessions.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-AR-01",
     "file": "tests/local/FA-AR-01-filter-diff.bats",
     "category": "FA",

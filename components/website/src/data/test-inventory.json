@@ -2418,6 +2418,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-foundation/knowledge-lifecycle",
+    "file": "tests/spec/brain-foundation/knowledge-lifecycle.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
     "id": "brain-foundation/state-file-type-repair",
     "file": "tests/spec/brain-foundation/state-file-type-repair.bats",
     "category": "brain-foundation",
@@ -2474,6 +2480,12 @@
   {
     "id": "brain-k4-brain-wiki/parent-moc",
     "file": "tests/spec/brain-k4-brain-wiki/parent-moc.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/retrieval-eval",
+    "file": "tests/spec/brain-k4-brain-wiki/retrieval-eval.bats",
     "category": "brain-k4-brain-wiki",
     "kind": "shell"
   },

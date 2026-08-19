@@ -376,3 +376,88 @@ SECONDEOF
     false
   fi
 }
+
+@test "tools list keeps exactly brain_search and brain_read with optional filters" {
+  local response schema
+  response="$(rpc '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}')"
+  schema="$(python3 - "$response" <<'PY'
+import json, sys
+d=json.loads(sys.argv[1])["result"]["tools"]
+assert sorted(t["name"] for t in d) == ["brain_read", "brain_search"]
+s=next(t for t in d if t["name"] == "brain_search")["inputSchema"]
+assert s["required"] == ["query"]
+assert {"query","top_k","type","tags","status","source_kind","as_of"} == set(s["properties"])
+assert s["properties"]["tags"]["type"] == "array"
+print("ok")
+PY
+)"
+  [ "$schema" = ok ]
+}
+
+@test "brain_search optional filters are conjunctive and return provenance" {
+  cat > "$BRAIN_WIKI_DIR/filtered.md" <<'EOF'
+---
+type: decision
+tags: [test, searchable, temporal]
+status: active
+source_kind: openspec
+source_revision: abc123
+observed_at: 2026-01-01
+valid_from: 2026-01-01
+valid_until: 2027-01-01
+superseded_by: later
+---
+SEARCHTERM filtered decision.
+EOF
+  local response result
+  response="$(rpc '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"brain_search","arguments":{"query":"SEARCHTERM","top_k":5,"type":"decision","tags":["test","temporal"],"status":"active","source_kind":"openspec","as_of":"2026-08-19"}}}')"
+  result="$(python3 - "$response" <<'PY'
+import json, sys
+m=json.loads(sys.argv[1]); data=json.loads(m['result']['content'][0]['text'])
+assert [r['slug'] for r in data['results']] == ['filtered']
+r=data['results'][0]
+assert r['source_revision']=='abc123' and r['freshness']=='current'
+assert r['valid_from']=='2026-01-01' and r['valid_until']=='2027-01-01'
+print('ok')
+PY
+)"
+  [ "$result" = ok ]
+}
+
+@test "brain_search as_of uses half-open intervals and preserves legacy pages as unknown" {
+  cat > "$BRAIN_WIKI_DIR/temporal.md" <<'EOF'
+---
+type: note
+tags: [test]
+status: active
+source_kind: runbook
+observed_at: 2025-01-01
+valid_from: 2026-01-01
+valid_until: 2026-08-19
+---
+BOUNDARYTERM temporal.
+EOF
+  cat > "$BRAIN_WIKI_DIR/legacy.md" <<'EOF'
+---
+type: note
+tags: [test]
+status: active
+---
+BOUNDARYTERM legacy.
+EOF
+  local response result
+  response="$(rpc '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"brain_search","arguments":{"query":"BOUNDARYTERM","as_of":"2026-08-19"}}}')"
+  result="$(python3 - "$response" <<'PY'
+import json,sys
+d=json.loads(json.loads(sys.argv[1])['result']['content'][0]['text'])['results']
+assert [r['slug'] for r in d] == ['legacy']
+assert d[0]['freshness'] == 'unknown'
+print('ok')
+PY
+)"
+  [ "$result" = ok ]
+
+  run rpc '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"brain_search","arguments":{"query":"x","top_k":"bad","tags":"bad","as_of":"never"}}}'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"error"'* ]]
+}

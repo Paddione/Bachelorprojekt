@@ -1,0 +1,2 @@
+{"id":"brain-foundation","query":"brain lifecycle provenance","relevant_slugs":["openspec-specs-brain-foundation"],"top_k":5,"filters":{"source_kind":"openspec"}}
+{"id":"brain-runbook","query":"brain ingest runbook","relevant_slugs":["docs-runbooks-brain-ingest"],"top_k":5,"filters":{"tags":["runbook"]}}

@@ -5,6 +5,31 @@
 version: "3"
 
 tasks:
+  eval:
+    desc: "Run deterministic offline Brain retrieval evaluation (report-only)"
+    cmds:
+      - 'python3 scripts/brain-retrieval-eval.py --wiki-dir "${BRAIN_WIKI_DIR:-$HOME/brain/wiki}" --eval-set tests/fixtures/brain/retrieval-eval.jsonl {{.CLI_ARGS}}'
+
+  lifecycle:audit:
+    desc: "Audit Brain provenance, validity and claims without mutation"
+    cmds:
+      - 'python3 scripts/brain-lifecycle-audit.py --brain-repo "${BRAIN_REPO:-$HOME/brain}" --source-root . {{.CLI_ARGS}}'
+
+  expertise:fetch:
+    desc: "Fetch and redact evidence for one explicitly selected GitHub PR"
+    cmds:
+      - 'python3 scripts/brain-expertise.py fetch {{.CLI_ARGS}}'
+
+  expertise:stage:
+    desc: "Render a local review candidate from redacted PR evidence"
+    cmds:
+      - 'python3 scripts/brain-expertise.py stage {{.CLI_ARGS}}'
+
+  expertise:approve:
+    desc: "Approve a reviewed expertise candidate into the allowlisted source tree"
+    cmds:
+      - 'python3 scripts/brain-expertise.py approve {{.CLI_ARGS}}'
+
   ingest:
     desc: "Initialisiere die Brain-Quartz-Wiki-Kompilierung (57 Specs + Runbooks)"
     dir: "."

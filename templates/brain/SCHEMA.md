@@ -38,8 +38,23 @@ Feldern — `raw/` und `README.md` sind vom Frontmatter-Lint ausgenommen:
 | `tags` | nicht-leere Liste | Themen-Schlagworte |
 | `status` | `draft \| active \| archived` | Reifegrad |
 
-Optional: `source::`-Zeilen als typisierte Rückverweise auf externe Quellen
-(SSOT-Regel „kompilieren, nicht verschieben" — siehe unten).
+Neu kompilierte Seiten tragen zusätzlich die flachen Felder `source_kind`,
+`source_revision`, `observed_at` und `valid_from`, optional auch `valid_until` und
+`superseded_by`. Legacy-Seiten nur mit `type`, `tags` und `status` bleiben gültig;
+Lifecycle-Werkzeuge melden ihre zeitliche Einordnung als unbekannt, statt Werte zu erfinden.
+
+`source_kind` ist einer von `openspec`, `runbook`, `adr`, `gotcha`, `agent-guide`,
+`core-doc`, `health-goal`, `diagram` oder `github-reviewed`. `source_revision` ist bei
+lokalen Quellen der lowercase SHA-256 der vollständigen Ursprungsdatei. Zeitwerte verwenden
+ISO-8601; Intervalle sind halboffen: `valid_from <= as_of < valid_until`.
+`source:: Bachelorprojekt <path>` bleibt der maschinenlesbare lokale Quellpfad.
+
+## Claims und Lifecycle-Audit
+
+Explizite Faktenkanten verwenden vollständige Body-Zeilen der Form
+`claim:: <key> = <value>`. Der Lifecycle-Audit vergleicht ausschließlich diese Syntax bei
+zeitlich überlappenden Intervallen; freie Prosa wird nicht semantisch geraten. Der Audit ist
+report-only und verändert, archiviert, löscht oder überschreibt keine Wiki-Seite.
 
 ## Wikilinks
 

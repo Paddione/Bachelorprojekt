@@ -146,21 +146,17 @@ echo "Parent MOCs: $moc_count"
 # ── Generate sub-MOCs per group ──────────────────────────────────────────
 for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams github-reviewed; do
   pages=""
-  while IFS=$'\t' read -r page_slug page_path stored_group; do
+  while IFS=$'\t' read -r page_slug page_path; do
     [ -n "$page_slug" ] || continue
-    page_group="$stored_group"
-    if [ -z "$page_group" ] || [ "$page_group" = null ]; then
-      source_path="${page_path%%#*}"
-      brain_group_for "$source_path" "$GROUPS_SECTION" || continue
-      page_group="$_BRAIN_GROUP_OUT"
-    fi
-    [ "$page_group" = "$group" ] || continue
+    source_path="${page_path%%#*}"
+    brain_group_for "$source_path" "$GROUPS_SECTION" || continue
+    [ "$_BRAIN_GROUP_OUT" = "$group" ] || continue
     pages+="${page_slug}"$'\t'"${page_path}"$'\n'
   done < <(jq -r '
     to_entries | sort_by(.key)[] |
     select(.value.type != null) |
-    select(.key | startswith("openspec/") or startswith("docs/") or startswith("CLAUDE") or startswith("AGENTS")) |
-    "\(.value.slug)\t\(.key)\t\(.value.group // "")"
+    select(.value.slug != null) |
+    "\(.value.slug)\t\(.key)"
   ' "$STATE_FILE" 2>/dev/null || echo "")
 
   if [ -z "$pages" ]; then

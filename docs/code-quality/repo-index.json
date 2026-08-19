@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1137,
+      "file_count": 1139,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -571,6 +571,8 @@
         "tests/spec/dsh-harness-integration/bundle.bats",
         "tests/spec/dsh-harness-integration/executor.bats",
         "tests/spec/dsh-harness-integration/hook-bridge.bats",
+        "tests/spec/dsh-harness-integration/repo-guard-behavior.bats",
+        "tests/spec/dsh-harness-integration/repo-guard-drive.mjs",
         "tests/spec/dsh-harness-integration/taskfile-runtime.bats",
         "tests/spec/e2e-test-infrastructure.bats",
         "tests/spec/e2e-test-infrastructure/bats-missing-file-exit0.bats",

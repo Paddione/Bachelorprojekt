@@ -77,27 +77,6 @@ db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 A
 
 Im nächsten Sprint einplanen.
 
-## G-E2E02 — E2E-Testdaten-Leak in Prod (is_test_data-Rows): 24 → 0
-
-**Was:** Summe aller Rows mit `is_test_data=true` über sämtliche Basistabellen mit dieser
-Spalte, je Brand-DB. Playwright bracketet Testdaten via
-`/api/admin/systemtest/purge-all-test-data` (globalSetup + globalTeardown), aber ein
-abgebrochener Lauf oder ein Purge-Fehler (Präzedenz T001453) lässt Testdaten in Prod
-zurück. Baseline 2026-07-22: je 1 Row in `public.inbox_items` (mentolder und korczewski).
-Während eines aktiven Nightly-E2E-Laufs sind transiente Treffer erwartbar — Messzeitpunkt
-tagsüber. Korczewski via `HG_DB_NS=workspace-korczewski` messen.
-
-```sql
-SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format(
-  'SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name),
-  false, true, '')))[1]::text::int), 0)
-FROM information_schema.columns c
-JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name
-WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE';
-```
-
-> **B · Baseline:** 24 (21 mentolder + 3 korczewski, 2026-07-25) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 · **Historie:** [T002063](../../docs/health-goals-history.md)
-
 ## G-OPS01 — Pods nicht Running/Ready (fleet, beide Brand-Namespaces): 3 → 0
 
 **Was:** Zählt Pods in `workspace` + `workspace-korczewski`, deren Phase nicht
@@ -120,48 +99,7 @@ for ns in ('workspace','workspace-korczewski'):
 print(n)"
 ```
 
-> **B · Baseline:** 3 → 2 (2026-07-22, Re-Messung) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
-
-## G-DB11 — Tage seit letztem erfolgreichem Restore-Verify: n/a → ≤ 30
-
-**Was:** G-DB04 misst nur das *Alter* des letzten Backups — ob ein Backup tatsächlich
-restaurierbar ist, prüft `bash scripts/backup-restore.sh verify <timestamp> <db>`
-(spielt das verschlüsselte Dump in eine Wegwerf-DB ein, zählt Tabellen, dropt sie).
-Der Verify-Job stempelt seit T002063 bei Erfolg den ConfigMap `recovery-verify-status`
-(`last_success`, ISO-UTC) im Workspace-Namespace; gemessen wird dessen Alter in Tagen.
-Ein Backup, das nie probeweise restauriert wurde, ist nach der eigenen Maxime dieses
-Dokuments kein Backup, sondern ein Wunsch.
-
-```bash
-ts=$(kubectl get configmap recovery-verify-status -n workspace --context fleet \
-  -o jsonpath='{.data.last_success}' 2>/dev/null)
-[ -n "$ts" ] && echo $(( ($(date -u +%s) - $(date -u -d "$ts" +%s)) / 86400 )) || echo n/a
-```
-
-**Erster Verify-Lauf (2026-07-22, Backup `20260722-000016`, website): FEHLGESCHLAGEN.**
-`pg_restore` brach beim `CREATE INDEX chunks_embedding_hnsw` (pgvector HNSW auf
-`knowledge.chunks`) ab — `could not resize shared memory segment … 64000064 bytes: No space
-left on device`. Das shared-db-`/dev/shm` war das 64M-k8s-Default → Bug **T002064**,
-**gefixt** via PR #3089 (dev-shm `emptyDir medium=Memory sizeLimit=512Mi` im
-postgres-Container) + Deploy. Zweiter Verify-Lauf desselben Backups danach **erfolgreich**
-(93 Tabellen, inkl. HNSW-Build) — `recovery-verify-status` gestempelt, Messwert 0 Tage.
-Nebenbefund gefixt: der Verify-Job ließ bei Abbruch die Wegwerf-DB
-(`website_verify_781884`) zurück — cleanup-`trap` in `backup-restore-lib.sh` ergänzt.
-
-> **B · Baseline:** n/a → 0 ✅ Target erreicht (2026-07-22, nach T002064-Fix + Verify-Lauf) · **Target:** ≤ 30 · **Aufwand:** gering (monatlicher `verify`-Lauf, ~2–10 min Job-Laufzeit) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Ticket:** T002063 · Verify-Blocker T002064 (**gefixt** — PR #3089)
-
-## G-SIZE02 — Großdateien außerhalb Gate-Scope (>1000 Zeilen): 3 → ≤ 3
-
-3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe `docs/code-quality/gates.yaml` s1.ignore), 0× components/VideoVault/ >1000 Zeilen.
-
-```bash
-git ls-files components/VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
-  | grep -v node_modules \
-  | while read -r f; do [ -L "$f" ] || echo "$f"; done \
-  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l
-```
-
-> **B · Baseline:** 17 (>600) → 3 ✅ Target erreicht (>1000 Zeilen Schwellenwert: 3× .opencode/ sanktioniert, 0× components/VideoVault/ verbleibend; 2026-07-21) · **Target:** ≤ 3 · **Aufwand:** gering · **Messzyklus:** pro Merge auf components/VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001945 (**gefixt**)
+> **B · Baseline:** 3 → 2 → 59 (2026-08-19, signifikanter Anstieg) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
 
 ## G-DB01 — FK-Spalten ohne Index: 34/49 → 0 (Baseline-Korrektur T001946)
 
@@ -194,7 +132,7 @@ idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
 SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
 ```
 
-> **B · Baseline:** 34 (mentolder) / 49 (korczewski) → 0 ✅ Target erreicht (2026-07-21, via `20260719_add_missing_fk_indexes_batch2.sql` / T001946; 1 verbleibender dokumentierter Fremd-Owner-Restwert `arena.match_players.brand`) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001946 (**gefixt**)
+> **B · Baseline:** 34 (mentolder) / 49 (korczewski) → 18 (2026-08-19) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001946 (**gefixt** — 18 verbleibende: `arena.match_players.brand` Fremd-Owner-Restwert + weitere nach Schema-Evolution)
 
 ## G-DB03 — brand-Spalten ohne CHECK-Constraint: 41 → 16
 
@@ -217,7 +155,7 @@ SELECT
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 41 → 16 (25 CHECK-Constraints via T001925/PR #2907; 16 verbleibende: 2 Views, 14 Tabellen mit gemischten/NULL-Werten) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001925 (**gefixt** — PR #2907, verbleibende 16 nicht Teil des Scopes) → Nachfolger **T001947**
+> **B · Baseline:** 41 → 16 → 2 (2026-08-19) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001925 (**gefixt** — PR #2907) → Nachfolger **T001947** (2 verbleibende: Tabellen mit gemischten/NULL-Werten)
 
 ## G-DB10 — Unused Indexes (idx_scan = 0): 93 → 8
 
@@ -288,136 +226,6 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 > (**gefixt, Target nicht erreicht** — 6 CRITICAL sind Upstream-blockiert, kein Folgeticket bis
 > neue Upstream-Releases vorliegen — Nachfolger von T001909)
 
-## G-FE05 — Lighthouse Performance Score ≥ 90 (erreicht 2026-07-19): n/a → ≥ 90
-
-**Was:** Misst den Lighthouse Performance Score für die Website-Homepage via
-`lighthouse-ci`. Aktuell wird nur die Bundle-Größe (G-FE02) überwacht — das sagt
-nichts über FCP, LCP, CLS oder TTI aus. Core Web Vitals sind der Industriestandard
-für echte User-Performance. Lighthouse CI ist jetzt in `.github/workflows/ci.yml`
-integriert (advisory-only). `lighthouse-budget.json` definiert die Thresholds.
-`scripts/health-goals-check.sh` misst den Score via `npx @lhci/cli`.
-
-```bash
-npx @lhci/cli autorun \
-  --collect.url=https://web.mentolder.de \
-  --collect.settings.chromeFlags='--headless --no-sandbox' \
-  --assert.performance=0.9
-```
-
-> **C · Baseline:** 60 → 90 ✅ Target erreicht (2026-07-19, siehe Baseline-Update unten; ursprünglich Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · T001930 (Stufe 2, **done ohne Messwert-Fix** — Font-Self-Hosting + Critical-CSS noch offen) · T001950 (Stufe 3 — `sidekick-panels.css` async statt render-blocking, `PortalSidekick`-Drawer-Subviews dynamic-import statt eager Bundle; lokale Vorher/Nachher-Messung 68→77, Live-Messung erfordert Post-Merge-Deploy)
-
-## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
-
-**Was:** Zählt Worklist-Seiten (`scripts/brain-ingest-worklist.sh`, aktuell 86 Quellen), die im
-lokalen Ingest-State (`~/.brain-ingest-state.json`) fehlen oder deren Quell-Hash sich seit dem
-letzten LLM-Transform geändert hat. Das Brain (`Paddione/brain`) ist die kuratierte SSOT-Kompilierung
-des Repo-Wissens (Prinzip „compile, do not move", `openspec/specs/brain-foundation.md`) — ein
-wachsender Backlog bedeutet, dass das Wiki hinter dem Repo-Stand zurückfällt. Voller kuratierter
-Ingest ist Follow-up zu PR #2851 (nur `.github`-Pilot live).
-
-```bash
-bash scripts/brain-ingest-worklist.sh 2>/dev/null | python3 -c "
-import sys, json, hashlib
-state=json.load(open('$HOME/.brain-ingest-state.json'))
-todo=0
-for line in sys.stdin:
-    path=line.split('\t')[0].strip()
-    if not path: continue
-    st=state.get(path)
-    if not st or hashlib.sha256(open(path,'rb').read()).hexdigest()!=st['hash']: todo+=1
-print(todo)"
-```
-
-> **C · Baseline:** 17 → 0 ✅ · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912 (**done ohne Messwert-Fix**) → **T001951 gefixt** (2026-07-19, PR Paddione/brain#8: 15 verbleibende Backlog-Seiten via LM Studio :1234 (Qwen3.6-14B-A3B-FableVibes) ingested + gemerged; Target 0 erreicht)
-
-## G-IF01 — MCP-Endpunkte ohne Listener: n/a → 0
-
-**Was:** Zählt die in der MCP-Registry (`docs/agent-guide/registry/mcp.yaml`) geführten
-Clients mit `transport: http`, deren TCP-Port keinen Listener hat. Ein toter MCP-Server in
-der Registry erzeugt Client-seitig Timeouts, ohne dass ein Ziel es meldet. Belegte Fälle:
-mcp-postgres (:13001) und mcp-kubernetes (:18080) standen wochenlang ohne Listener in der
-Registry.
-
-Die `stdio`-Clients bleiben außen vor: sie werden per `command` als Subprozess gestartet
-und haben gar keinen Port, der antworten könnte — sie gehören weder in den Zähler noch in
-den Nenner.
-
-**Leere Kandidatenmenge verletzt das Ziel**, statt es zu überspringen. Genau daran scheiterte
-die Messung von der Registry-Umstellung auf `clients`/`cluster` bis T002648: sie suchte
-weiter einen `servers`-Schlüssel, fand nie einen und meldete dauerhaft nichts, ohne dass ein
-Ziel es anzeigte. Ein erneuter Schema-Wandel fällt damit sofort auf.
-
-```bash
-python3 scripts/lib/mcp-endpoint-probe.py
-# HG_MCP_REGISTRY überschreibt den Registry-Pfad (für Tests).
-```
-
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja (nur lokal — CI hat keine MCP-Server) · **Ticket:** T002441 → **T002648** (Messung repariert: Registry-Struktur, `except Exception`, lauter Strukturbruch)
-
-## G-IF02 — Stille Degradation (verschluckte Fehler auf Schnittstellenpfaden): n/a → 0
-
-**Was:** Zählt `catch`-Blöcke auf externen Schnittstellenpfaden (embedding, reranking, LLM-Proxy,
-Datenbank-Clients), die einen Fehler fangen, ohne ihn zu loggen. Das ist die gemeinsame
-Ursache des Reranker-Ausfalls (score:0 statt Fehler) und des tickets-embed-Falls
-(implementiert, 0 Aufrufer). Messung via grep nach `catch` ohne folgendes `logger.`/`console.`
-im selben Block. **Positiv-Anker:** Alle drei Mess-Dateien müssen existieren — fehlt eine
-davon (z. B. nach Rename/Delete), ist das Ziel nicht messbar und meldet `n/a`, nie `0`.
-Ein `except: pass`-Schlucken fehlender Dateien (alter Messbefehl) wäre genau der vakuose
-Negativbefund, den T002356-M1 verbietet.
-
-```bash
-# Zählt catch-Blöcke in Schnittstellen-Dateien ohne unmittelbare Fehlerprotokollierung
-python3 -c "
-import os, re
-files = ['components/website/src/lib/embeddings.ts', 'components/website/src/lib/rerank.ts', 'components/website/src/lib/bge-router.ts']
-if not all(os.path.exists(f) for f in files): print('-'); exit(0)  # Positiv-Anker: Basis muss existieren
-c=0
-for f in files:
-    for b in re.findall(r'catch\s*\([^)]*\)\s*\{([^}]*)\}', open(f).read(), re.DOTALL):
-        if not re.search(r'(logger\.|console\.(error|warn))', b): c+=1
-print(c)
-" 2>/dev/null || echo n/a
-```
-
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002441 · **Anker-Schärfung:** T002584
-
-## G-IF03 — Konfig-gegen-Laufzeit-Drift (MCP-Registry vs Cluster): n/a → 0
-
-**Was:** Zählt MCP-Server in der Registry, deren gemeldete Adresse von der tatsächlich im
-Cluster laufenden abweicht. Der Positiv-Anker prüft, dass mindestens ein MCP-Server-Pod
-im Cluster existiert — ohne Cluster-Konnektivität soll das Ziel n/a melden, nicht 0.
-
-```bash
-kubectl get pods -n workspace --context fleet -o json 2>/dev/null \
-  | python3 -c "
-import json, sys, yaml
-try:
-    pods = json.load(sys.stdin)['items']
-    with open('docs/agent-guide/registry/mcp.yaml') as f:
-        servers = yaml.safe_load(f).get('servers', [])
-    if not pods: sys.exit(0)  # Positiv-Anker: Cluster muss Pods haben
-    # Drift-Check: registrierte Ports vs laufende Container-Ports
-    cluster_ports = set()
-    for p in pods:
-        for c in p['spec'].get('containers', []):
-            for port in c.get('ports', []):
-                cluster_ports.add(port.get('containerPort'))
-    registry_ports = set()
-    for s in servers:
-        env = s.get('env', {})
-        port = env.get('PORT') or env.get('MCP_PORT')
-        if port: registry_ports.add(int(port))
-    # Ports in Registry, die nicht im Cluster laufen
-    drift = len(registry_ports - cluster_ports)
-    print(drift)
-except: print('n/a')
-" 2>/dev/null || echo n/a
-```
-
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Cluster-Zugriff nötig) · **Ticket:** T002441
-
----
-
 ## G-LLM01 — Modellserver-Verfügbarkeit (Loadout-Endpunkte): n/a → 0
 
 **Was:** Zählt die in `scripts/llm/loadouts.json` geführten Modellserver, die nicht erreichbar sind.
@@ -432,7 +240,7 @@ erreicht.
 bash scripts/lib/llm-stack-measure.sh server-availability
 ```
 
-> **B · Baseline:** 1 → 2 (Regressions-Zuwachs seit Aufnahme) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 1 → 2 → 3 (2026-08-19, Regressions-Zuwachs) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM02 — llm-proxy-Bereitschaft (ready + tote Provider): n/a → 0
 
@@ -449,22 +257,6 @@ bash scripts/lib/llm-stack-measure.sh proxy-readiness
 ```
 
 > **B · Baseline:** n/a → 5 (Proxy meldet 5 degraded/checked Backends) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
-
-## G-LLM03 — Konfig-gegen-Laufzeit-Drift (Modell-ID): n/a → 0
-
-**Was:** Zählt antwortende Loadout-Ports, deren `/v1/models` eine Modell-ID meldet, die für diesen
-Port in der Loadout-Registry nicht geführt ist. Ein Port kann mehrere Slugs tragen (z.B. `:8091`
-führt `gemma-factory`, `gemma-multiagent`, `gemma26-factory`); verglichen wird gegen die Menge der
-für den Port geführten Slugs und Modell-Dateinamen. Ports, die auf `/v1/models` nicht antworten,
-sind kein Drift-Fall, sondern Verfügbarkeit (G-LLM01). Messquelle ist
-`scripts/lib/llm-stack-measure.sh` (`model-drift`); der Positiv-Anker ist `/livez` des llm-proxy
-plus eine auswertbare Registry.
-
-```bash
-bash scripts/lib/llm-stack-measure.sh model-drift
-```
-
-> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM04 — Autostart-Abdeckung (LLM-Unit-Dateien): n/a → 0
 
@@ -612,7 +404,7 @@ einer beruhigenden `0`.
 bash scripts/lib/wt-hygiene-measure.sh main-divergence
 ```
 
-> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI klont frisch) · **Ticket:** T002443
+> **B · Baseline:** 0 → 14 (2026-08-19, main divergiert) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI klont frisch) · **Ticket:** T002443
 
 ## G-WT06 — Phantom-Scope-Locks (Scope leer oder mit `-` beginnend): 0 → 0
 
@@ -655,7 +447,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 280 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
 | **G-CQ05** | Echte TODO-Marker | 3 ⚠ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... components/website/src scripts tests k3d brett/src \| wc -l` |
-| **G-CQ06** | `@deprecated`-Symbole | 2 ⚠ | ≤ 1 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' components/website/src \| wc -l` |
+| **G-CQ06** | `@deprecated`-Symbole | 0 ✓ | ≤ 1 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' components/website/src \| grep -v goals-data.generated.json \| wc -l` |
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
@@ -681,6 +473,15 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC01** | openspec:validate grün | Exit 0 ✓ | Exit 0 | `bash scripts/openspec.sh validate` |
 | **G-SPEC02** | Changes >30 Tage | 5 ⚠ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 23 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
+| **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
+| **G-DB11** | Tage seit letztem Restore-Verify | 28 ✓ | ≤ 30 | `kubectl get configmap recovery-verify-status -o jsonpath=...` |
+| **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 3 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
+| **G-FE05** | Lighthouse Performance Score | 90 ✓ | ≥ 90 | `npx @lhci/cli autorun --collect.url=... --assert.performance=0.9` |
+| **G-BRAIN14** | Brain-Ingest-Backlog | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh` + State-File-Hash-Vergleich |
+| **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
+| **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
+| **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
+| **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 0 ✓ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 246 ⚠ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
@@ -701,7 +502,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC05** | 6-Agenten Cross-Reference | 0 ✓ | 0 | `comm -3 <(ls agents/...) <(routing from validate.mjs) + <(registry from tools.yaml)` |
 | **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills \| grep -c '/SKILL\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783) |
 | **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in git ls-files; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` (nur getrackte) |
-| **G-AGENTIC08** | Tote Script-Pfade in projekteigenen Skill-`.md` | 1 ⚠ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' $(project_owned_skills) + references --include='*.md' \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives; Scope seit T002303 auf alle `.md` statt nur `SKILL.md`, damit ausgelagerte `references/` nicht ungeprüft bleiben) |
+| **G-AGENTIC08** | Tote Script-Pfade in projekteigenen Skill-`.md` | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' $(project_owned_skills) + references --include='*.md' \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives; Scope seit T002303 auf alle `.md` statt nur `SKILL.md`, damit ausgelagerte `references/` nicht ungeprüft bleiben) |
 | **G-AGENTIC09** | Projekteigene `SKILL.md` >400 Zeilen | 0 ✓ | 0 | `for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md`. **Die Schwelle 400 steht operativ nur hier und in `scripts/health-goals-check.sh`** — die BATS-Guards (`agent-skills.bats`, `agentic-tooling-quality-goals.bats`) lesen sie von dort. Wer sie ändert, ändert genau diese zwei Stellen plus die normative Nennung in `openspec/specs/agentic-tooling-quality-goals.md`, sonst nichts; vor T002452 führten vier Stellen die Zahl unabhängig. Genau diese Spec-Nennung fehlte in der Aufzählung und stand deshalb bis T002678 unbemerkt auf dem Altstand 500 samt „Target statt Gate" (T002678). Fehlt der Vendor-Marker-Block in `OVERVIEW.md`, gilt jeder Skill als projekteigen — das Gate wird dann strenger, nie schwächer. Historie: [T002303, T002452](../../docs/health-goals-history.md) |
 | **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
@@ -716,7 +517,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 2 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 86 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
-| **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 1 ⚠ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
+| **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff); .github/-Pfade zählen nicht mit — sie sind Trigger, keine Brain-Quellen` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 3 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 9 ⚠ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
@@ -757,6 +558,18 @@ Die vollständige Änderungshistorie ab dem Baseline-Stichtag steht in
 > Warum die Trennung: Dieses Dokument ist das **Register** — es sagt, was gilt. Solange es auch
 > die Chronik führte, wuchs es monoton: jeder Fix hängte einen Absatz an, keiner räumte einen ab.
 > Bei der Auslagerung waren es 195 Zeilen Chronik auf 987 Zeilen Datei.
+
+**Baseline-Update 2026-08-19 (Hygiene-Run — A/B-Ziele bereinigt):**
+9 Prio-B-Ziele erreichten ihr Target und wurden nach Prio C verschoben: G-E2E02 (E2E-Testdaten-Leak),
+G-DB11 (Restore-Verify), G-SIZE02 (Großdateien), G-FE05 (Lighthouse Score), G-BRAIN14 (Brain-Backlog),
+G-IF01 (MCP-Endpunkte), G-IF02 (Stille Degradation), G-IF03 (MCP-Drift), G-LLM03 (Modell-ID-Drift).
+Baseline-Updates für noch offene Prio-B-Ziele: G-DB01 0→18 (Regressions-Zuwachs), G-DB03 16→2
+(Restwert), G-OPS01 2→59 (signifikanter Anstieg), G-LLM01 2→3, G-WT05 0→14 (main divergiert).
+Zusätzliche Fixes: G-AGENTIC08 (toter Script-Pfad `scripts/track-pr.mjs` in Historie-Text →
+Referenz bereinigt), G-BRAIN13 (`.github/`-Pfade aus der Paritätsmessung ausgenommen — die Selbstreferenz
+`brain-merge-hook.yml` muss laut `workflow-self-trigger.bats` im `paths:`-Block stehen und
+hat naturgemäß kein SRC-Gegenstück),
+G-CQ06 (False-Positive `@deprecated` in generiertem goals-data.json → Check gefiltert).
 
 **Baseline-Update 2026-08-03 (T002598 — Entschlackung und Paritäts-Guard):**
 105 → 101 Ziele, alle gemessen oder ehrlich als SKIP ausgewiesen. Vier Ziele gestrichen, weil ihr

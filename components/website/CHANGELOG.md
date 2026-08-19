@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.293.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.1...website-v1.293.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* **agents:** repo-guard gegen die echte Cordis-API + Archivierung [T012965] ([#4872](https://github.com/Paddione/Bachelorprojekt/issues/4872)) ([47ff752](https://github.com/Paddione/Bachelorprojekt/commit/47ff75297693088e18ea21d140ad531968336449))
+
 ## [1.293.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.0...website-v1.293.1) (2026-08-19)
 
 

@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { Page } from '@playwright/test';
+import type { VisionOutcome } from './vision-judge';
 
 export type AuthTier = 'public' | 'portal' | 'admin';
 export type Brand = 'mentolder' | 'korczewski';
@@ -40,9 +41,28 @@ export interface ResultRow {
   deadLinks: unknown[];
 }
 
+/**
+ * Ein Vision-Urteil zu einer Route. [T012781]
+ *
+ * Bewusst NICHT als Feld an ResultRow: results-<viewport>.json wird von
+ * build-gallery.mjs und von vorhandenen Auswertungen gelesen, ein zusaetzliches
+ * Feld dort veraendert ein Format, das andere bereits konsumieren. Die Urteile
+ * gehen deshalb in eine eigene Datei neben dem bestehenden Ergebnis.
+ */
+export type VisionRow = {
+  route: string;
+  brand: Brand;
+  viewport: Viewport;
+} & VisionOutcome;
+
 export const MANIFEST_PATH = path.join(__dirname, '..', '..', '..', 'components', 'website', 'src', 'data', 'route-manifest.json');
 export const AUTH_DIR      = path.join(__dirname, '..', '.auth');
 export const RESULTS_ROOT  = path.join(__dirname, '..', '..', 'results', 'visual-sweep');
+
+/** Ablage der Vision-Urteile — spiegelbildlich zu results-<viewport>.json. */
+export function visionResultsFile(brand: Brand, viewport: Viewport): string {
+  return path.join(RESULTS_ROOT, brand, `vision-${viewport}.json`);
+}
 
 export const VIEWPORTS: Record<Viewport, { width: number; height: number }> = {
   desktop: { width: 1440, height: 900 },

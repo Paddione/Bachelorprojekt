@@ -1543,6 +1543,63 @@ tasks:
         echo ""
         node lib/build-gallery.mjs
 
+  test:e2e:visual-sweep:vision:
+    desc: "Headed Route-Sweep beider Brands mit Vision-Urteil je Screenshot (gemma12-vision, 3 Slots). Report-only, kein CI-Gate. MAX_ROUTES=N begrenzt die Zahl beurteilter Routen je Project."
+    dir: tests/e2e
+    vars:
+      MAX_ROUTES: '{{.MAX_ROUTES | default ""}}'
+    cmds:
+      - |
+        # Guards bewusst INLINE statt als `preconditions:` [T012781]. `task --dry`
+        # wertet preconditions aus (gemessen an systemtest:all:headed -> Exit 201);
+        # als precondition formuliert waere die Verdrahtung dieses Ziels in CI nicht
+        # ueber die Kommandoausgabe pruefbar. Der Guard wirkt zur Laufzeit identisch.
+        if [ -z "${DISPLAY:-}" ]; then
+          echo "FEHLER: DISPLAY ist nicht gesetzt — ein headed-Lauf braucht eine Anzeige." >&2
+          echo "        Unter WSL liefert WSLg eine; in einer reinen Konsole ist dieses Ziel nicht lauffaehig." >&2
+          exit 1
+        fi
+        # Wer dieses Ziel aufruft, will ausdruecklich ein Vision-Urteil. Ein stiller
+        # Lauf ganz ohne Urteil waere die schlechtere Antwort, deshalb hier hart.
+        if ! curl -sf -m 5 http://127.0.0.1:18235/v1/models | grep -q gemma12-vision; then
+          echo "FEHLER: der Modellalias gemma12-vision wird vom llm-proxy nicht gefuehrt." >&2
+          echo "        Zwei getrennte Ursachen mit zwei getrennten Abhilfen:" >&2
+          echo "        1) llm-proxy antwortet nicht auf 127.0.0.1:18235 -> Proxy starten." >&2
+          echo "        2) Proxy antwortet, Alias fehlt -> Backend-Zeile anlegen:" >&2
+          echo "           scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql" >&2
+          echo "        Nicht direkt auf 8089 pruefen: der llama.cpp-Server laeuft auf dem" >&2
+          echo "        Windows-GPU-Host und ist aus WSL nicht erreichbar." >&2
+          exit 1
+        fi
+        # Beide Brands in EINEM Aufruf. Die Projects loesen ihre baseURL selbst
+        # ueber BRAND_URLS in playwright.visual-sweep.config.ts auf; WEBSITE_URL
+        # bedient mentolder, KORCZEWSKI_URL bedient korczewski — dieselbe
+        # Aufteilung, die die *-auth-setup-Specs bereits verwenden.
+        export WEBSITE_URL="${WEBSITE_URL:-https://web.mentolder.de}"
+        export KORCZEWSKI_URL="${KORCZEWSKI_URL:-https://web.korczewski.de}"
+        export PROD_DOMAIN="${PROD_DOMAIN:-mentolder.de}"
+        export VISUAL_SWEEP_VISION=1
+        [ -n "{{.MAX_ROUTES}}" ] && export VISION_MAX_ROUTES="{{.MAX_ROUTES}}"
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        # Read-only: die Sweep-Konfiguration setzt globalSetup/globalTeardown auf
+        # undefined und installReadOnlyGuard bricht alle Nicht-GET/HEAD-Anfragen der
+        # Seite ab. Kein Test-Data-Purge, kein CRON_SECRET noetig.
+        #
+        # --workers=3 ist der clientseitige Deckel auf drei gleichzeitige
+        # Vision-Anfragen (die Konfiguration setzt denselben Wert; das Flag macht
+        # ihn an der Aufrufstelle sichtbar). Serverseitig deckelt der Proxy mit
+        # max_inflight=3 dieselbe Zahl ein zweites Mal ab.
+        ./node_modules/.bin/playwright test \
+          --config playwright.visual-sweep.config.ts \
+          --headed --workers=3 \
+          --project=visual-sweep-mentolder-desktop \
+          --project=visual-sweep-mentolder-mobile \
+          --project=visual-sweep-korczewski-desktop \
+          --project=visual-sweep-korczewski-mobile {{.CLI_ARGS}}
+        echo ""
+        node lib/build-gallery.mjs
+
   test:e2e:visual-sweep:all-prods:
     desc: "Visual sweep across mentolder + korczewski × desktop + mobile, then one combined contact-sheet."
     cmds:

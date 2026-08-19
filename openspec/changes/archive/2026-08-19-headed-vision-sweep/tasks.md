@@ -2,7 +2,7 @@
 title: "headed-vision-sweep — Implementation Plan"
 ticket_id: T012781
 domains: [test, website, infra]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

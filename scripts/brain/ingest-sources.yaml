@@ -36,6 +36,7 @@ groups:
   diagrams: |
     docs/diagrams/*.md
     docs/db-schema-diagram.md
+  github-reviewed: docs/brain-expertise/approved/*.md
 
 # Type mapping: group → default type, with path-based overrides.
 # The ingest pipeline reads this to assign brain page types.
@@ -49,6 +50,7 @@ type_map:
     core-docs: moc
     health-goals: decision
     diagrams: note
+    github-reviewed: note
   overrides:
     - pattern: "openspec/specs/security*.md"
       type: decision
@@ -73,3 +75,4 @@ tag_defaults:
   core-docs: [core, meta]
   health-goals: [health, goals]
   diagrams: [diagram, architecture]
+  github-reviewed: [github-reviewed, expertise]

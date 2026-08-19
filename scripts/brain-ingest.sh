@@ -30,6 +30,7 @@ WORKLIST_SCRIPT="$REPO_ROOT/scripts/brain-ingest-worklist.sh"
 TRANSFORM_SCRIPT="$HERE/brain-ingest-transform.sh"
 CHUNK_SCRIPT="$HERE/brain-chunk.sh"
 RESET_HELPERS="$HERE/brain-ingest-reset.sh"
+METADATA_SCRIPT="$HERE/brain-page-metadata.py"
 
 # shellcheck source=./brain-group-match.sh
 source "$HERE/brain-group-match.sh"
@@ -91,6 +92,21 @@ fi
 [ -f "$TRANSFORM_SCRIPT" ] || { echo "error: transform script not found: $TRANSFORM_SCRIPT" >&2; exit 1; }
 [ -f "$CHUNK_SCRIPT" ] || { echo "error: chunk script not found: $CHUNK_SCRIPT" >&2; exit 1; }
 [ -f "$RESET_HELPERS" ] || { echo "error: reset helpers not found: $RESET_HELPERS" >&2; exit 1; }
+[ -f "$METADATA_SCRIPT" ] || { echo "error: metadata helper not found: $METADATA_SCRIPT" >&2; exit 1; }
+
+# One observation instant per run keeps all chunks reproducible and mutually
+# comparable. Tests and deterministic replays may provide a fixed override.
+OBSERVED_AT="${BRAIN_OBSERVED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+VALID_FROM="$(python3 -c 'import runpy,sys; print(runpy.run_path(sys.argv[1])["parse_timestamp"](sys.argv[2]).date())' "$METADATA_SCRIPT" "$OBSERVED_AT" 2>/dev/null)" || {
+  echo "error: invalid BRAIN_OBSERVED_AT: $OBSERVED_AT" >&2
+  exit 2
+}
+if ! printf '%s' $'---\ntype: note\ntags: [validation]\nstatus: active\n---\n' \
+  | python3 "$METADATA_SCRIPT" --source "$MANIFEST" --source-kind core-doc \
+      --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM" >/dev/null; then
+  echo "error: invalid BRAIN_OBSERVED_AT: $OBSERVED_AT" >&2
+  exit 2
+fi
 
 # Historical plain --dry-run behavior initializes state; only the new
 # --from-scratch preview promises a completely write-free reset inspection.
@@ -224,12 +240,28 @@ determine_group() {
   echo "$_BRAIN_GROUP_OUT"
 }
 
+source_kind_for_group() {
+  case "$1" in
+    ssot-specs) echo openspec ;;
+    runbooks) echo runbook ;;
+    adr) echo adr ;;
+    gotchas-footguns) echo gotcha ;;
+    agent-guide-maps) echo agent-guide ;;
+    core-docs) echo core-doc ;;
+    health-goals) echo health-goal ;;
+    diagrams) echo diagram ;;
+    github-reviewed) echo github-reviewed ;;
+    *) return 1 ;;
+  esac
+}
+
 # Process a single chunk (extracted for reuse). Safe to run concurrently —
 # the STATE_FILE read-modify-write is flock-protected since multiple
 # parallel jobs write to it.
 process_page() {
   local src_path="$1" chunk_file="$2" chunk_slug="$3" index="$4"
   local src_hash existing_hash type tag_defaults transformed group tmp chunk_chars
+  local src_file source_kind target_tmp
 
   [ -f "$chunk_file" ] || { echo "WARN: chunk not found: $chunk_file ($src_path)" >&2; return 1; }
 
@@ -241,6 +273,11 @@ process_page() {
   [ "$src_hash" = "$existing_hash" ] && return 2  # skip
 
   group="$(determine_group "$src_path")"
+  source_kind="$(source_kind_for_group "$group")" || {
+    echo "WARN: Unknown source group: $group ($src_path)" >&2
+    return 1
+  }
+  src_file="$REPO_ROOT/$src_path"
 
   type=""
   while IFS= read -r override; do
@@ -269,7 +306,15 @@ process_page() {
     return 1
   fi
 
-  echo "$transformed" > "$BRAIN_REPO/wiki/$chunk_slug.md"
+  target_tmp="$(mktemp "$BRAIN_REPO/wiki/.${chunk_slug}.XXXXXX")"
+  if ! printf '%s\n' "$transformed" \
+    | python3 "$METADATA_SCRIPT" --source "$src_file" --source-kind "$source_kind" \
+        --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM" > "$target_tmp"; then
+    rm -f "$target_tmp"
+    echo "WARN: Metadata annotation failed: $src_path chunk $index" >&2
+    return 1
+  fi
+  mv "$target_tmp" "$BRAIN_REPO/wiki/$chunk_slug.md"
 
   (
     flock -x 200

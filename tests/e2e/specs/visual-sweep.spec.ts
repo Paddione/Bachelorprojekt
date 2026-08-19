@@ -16,6 +16,12 @@
 //
 // Env knobs:
 //   VISUAL_SWEEP_PUBLIC_ONLY=1 — restrict to the anonymous public tier (zero auth).
+//   VISUAL_SWEEP_VISION=1      — additionally have the local vision model judge
+//                                every screenshot and write the verdicts to
+//                                tests/results/visual-sweep/<brand>/vision-<viewport>.json.
+//                                Report-only: a verdict never fails the run
+//                                (T012781, REQ-vs-02). Off by default.
+//   VISION_MAX_ROUTES=N        — judge only the first N routes (probe runs).
 //   VISUAL_SWEEP_VIDEO=1       — record one continuous .webm per swept tier
 //                                (one page reused per tier). Off by default so the
 //                                committed/CI default stays lean. Saved to
@@ -49,7 +55,10 @@ import {
   storageStateFor,
   authStatesMap,
   robustGoto,
+  visionResultsFile,
+  type VisionRow,
 } from '../lib/visual-sweep-helpers';
+import { visionConfig, probeVision, judgeScreenshot } from '../lib/vision-judge';
 
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -58,7 +67,12 @@ test.describe('visual sweep', () => {
 
   test('sweep all applicable routes', async ({ browser }, testInfo) => {
     const { brand, viewport } = parseProject(testInfo.project.name);
-    const baseURL = (process.env.WEBSITE_URL ?? testInfo.project.use.baseURL ?? 'https://web.mentolder.de')
+    // Project-baseURL SCHLAEGT WEBSITE_URL [T012781]. Vorher war es umgekehrt.
+    // Solange ein Lauf genau einen Brand sweepte, war das gleichbedeutend — die
+    // Project-baseURL wird in der Sweep-Konfiguration ohnehin aus WEBSITE_URL
+    // gebildet. Das Vision-Ziel faehrt beide Brands in EINEM Aufruf; dort zoege
+    // der Vorrang von WEBSITE_URL die korczewski-Projects auf den mentolder-Host.
+    const baseURL = (testInfo.project.use.baseURL ?? process.env.WEBSITE_URL ?? 'https://web.mentolder.de')
       .replace(/\/$/, '');
     const vp = VIEWPORTS[viewport];
 
@@ -68,6 +82,20 @@ test.describe('visual sweep', () => {
 
     const authStates = authStatesMap(brand);
     const results: ResultRow[] = [];
+
+    // Vision-Stufe (T012781). Einmal pro Lauf pruefen, ob der Endpunkt ueberhaupt
+    // antwortet — nicht je Route. Ist er nicht da, wird die Begruendung EINMAL
+    // ausgegeben und die Stufe bleibt still aus; der Sweep laeuft unveraendert
+    // weiter (REQ-vs-02).
+    const vision = visionConfig();
+    const visionRows: VisionRow[] = [];
+    let visionReady = false;
+    let visionJudged = 0;
+    if (vision.enabled) {
+      const probe = await probeVision({ endpoint: vision.endpoint, model: vision.model });
+      visionReady = probe.available;
+      console.log(`[visual-sweep] vision: ${probe.available ? 'bereit' : 'aus'} — ${probe.reason}`);
+    }
 
     // verifyGlobalNav is expensive; run it ONCE per {brand,authTier}.
     const navVerifiedFor = new Set<AuthTier>();
@@ -195,6 +223,37 @@ test.describe('visual sweep', () => {
             mask: masksForRoute(page, entry.route),
           });
 
+          // Vision-Urteil (T012781). Eigene Aufnahme: JPEG statt PNG und nur der
+          // sichtbare Bereich statt fullPage — rund ein Zehntel der base64-Last,
+          // und der Prefill des Vision-Towers dominiert die Antwortzeit. Die oben
+          // abgelegte PNG-Datei bleibt unveraendert, sonst aenderte sich, was der
+          // Kontaktbogen zeigt.
+          if (visionReady && (vision.maxRoutes === null || visionJudged < vision.maxRoutes)) {
+            visionJudged += 1;
+            const jpeg = await page.screenshot({
+              type: 'jpeg',
+              quality: 80,
+              fullPage: false,
+              animations: 'disabled',
+              timeout: 20_000,
+              mask: masksForRoute(page, entry.route),
+            });
+            // judgeScreenshot wirft nie — im Fehlerfall kommt eine Zeile mit
+            // status 'skipped' zurueck.
+            const outcome = await judgeScreenshot(
+              {
+                route: entry.route,
+                brand,
+                viewport,
+                domStatus: redirected ? `redirect -> ${landed}` : `http ${resp?.status() ?? 'unknown'}`,
+                imageBase64: jpeg.toString('base64'),
+                model: vision.model,
+              },
+              { endpoint: vision.endpoint, timeoutMs: vision.timeoutMs },
+            );
+            visionRows.push({ route: entry.route, brand, viewport, ...outcome });
+          }
+
           // One-time global-nav verification per tier.
           if (!navVerifiedFor.has(entry.authTier)) {
             const nav = await verifyGlobalNav(page, routes);
@@ -307,6 +366,20 @@ test.describe('visual sweep', () => {
     fs.mkdirSync(path.dirname(resultsFile), { recursive: true });
     fs.writeFileSync(resultsFile, JSON.stringify(results, null, 2));
     console.log(`[visual-sweep] wrote ${results.length} rows → ${path.relative(process.cwd(), resultsFile)}`);
+
+    // Vision-Urteile getrennt ablegen. results-<viewport>.json bleibt Feld fuer
+    // Feld unveraendert.
+    if (vision.enabled) {
+      const visionFile = visionResultsFile(brand, viewport);
+      fs.mkdirSync(path.dirname(visionFile), { recursive: true });
+      fs.writeFileSync(visionFile, JSON.stringify(visionRows, null, 2));
+      const suspect = visionRows.filter((r) => r.status === 'judged' && r.verdict === 'suspect').length;
+      const skipped = visionRows.filter((r) => r.status !== 'judged').length;
+      console.log(
+        `[visual-sweep] vision: ${visionRows.length} beurteilt, ${suspect} auffaellig, ` +
+        `${skipped} ohne Urteil → ${path.relative(process.cwd(), visionFile)}`,
+      );
+    }
 
     // Visibility: dynamic routes that skipped purely because no resolver is wired
     // yet (a known, plan-deferred coverage gap — resolver annotation is follow-up).

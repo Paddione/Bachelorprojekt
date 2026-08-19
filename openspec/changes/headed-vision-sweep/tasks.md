@@ -50,23 +50,27 @@ Ermittelt mit `wc -l` gegen `docs/code-quality/baseline.json` (leeres Objekt `{}
 gebaselined, also gilt je Endung das Limit aus `docs/code-quality/gates.yaml`: `.ts` 900,
 `.mjs` 800). Reserve ist überall reichlich; kein Split nötig.
 
+Die Spalte „Ist" ist der Stand **nach** der Umsetzung. Ausgangswerte, gegen die geplant wurde:
+visual-sweep.spec.ts 342, visual-sweep-helpers.ts 170, playwright.visual-sweep.config.ts 80,
+build-gallery.mjs 253, k8-headed-verify.spec.ts 98.
+
 | Datei | Ist | Budget |
 |---|---|---|
-| `tests/e2e/specs/visual-sweep.spec.ts` | 342 | 558 |
-| `tests/e2e/lib/visual-sweep-helpers.ts` | 170 | 730 |
-| `tests/e2e/playwright.visual-sweep.config.ts` | 80 | 820 |
-| `tests/e2e/lib/build-gallery.mjs` | 253 | 547 |
-| `tests/e2e/specs/k8-headed-verify.spec.ts` | 98 | 802 |
+| `tests/e2e/specs/visual-sweep.spec.ts` | 415 | 485 |
+| `tests/e2e/lib/visual-sweep-helpers.ts` | 190 | 710 |
+| `tests/e2e/playwright.visual-sweep.config.ts` | 113 | 787 |
+| `tests/e2e/lib/build-gallery.mjs` | 323 | 477 |
+| `tests/e2e/specs/k8-headed-verify.spec.ts` | 117 | 783 |
 
 `Taskfile.yml` (`.yml`) und `.claude/skills/dev-flow-e2e/SKILL.md` (`.md`) haben in
 `gates.yaml` → `s1.limits` keinen Eintrag und unterliegen dem Zeilengate nicht.
-`tests/e2e/lib/vision-judge.ts` ist neu; Zielgröße unter 250 Zeilen, Limit 900.
+`tests/e2e/lib/vision-judge.ts` ist neu und liegt bei 274 Zeilen (Limit 900, Budget 626).
 
 <!-- vitest: neuer Test in p6 vorgesehen (tests/e2e/lib/vision-judge.test.ts) -->
 
 ## Abschließende Verifikation
 
-- [ ] **Final Verification.** Nach allen Partials im Worktree ausführen:
+- [x] **Final Verification.** Nach allen Partials im Worktree ausführen:
 
 ```bash
 task test:changed

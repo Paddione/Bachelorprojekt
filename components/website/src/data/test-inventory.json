@@ -3204,6 +3204,12 @@
     "kind": "shell"
   },
   {
+    "id": "e2e-test-infrastructure/vision-sweep",
+    "file": "tests/spec/e2e-test-infrastructure/vision-sweep.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-testing",
     "file": "tests/spec/e2e-testing.bats",
     "category": "e2e-testing",

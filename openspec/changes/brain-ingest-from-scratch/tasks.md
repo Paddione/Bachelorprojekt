@@ -30,7 +30,7 @@ Split ist nicht erforderlich.
 
 ## Tasks
 
-- [ ] **1. Failing-Test-Step (RED) — State-Typ-Reparatur [T012903].**
+- [x] **1. Failing-Test-Step (RED) — State-Typ-Reparatur [T012903].**
       Neue Datei `tests/spec/brain-foundation/state-file-type-repair.bats`. Der Test
       legt eine State-Datei mit dem Inhalt `[]` an, ruft die State-Initialisierung des
       Ingest-Skripts auf und erwartet danach ein leeres JSON-Objekt. Ein zweiter Fall
@@ -43,13 +43,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/brain-foundation/state-file-type-re
 # expected: FAIL (rot — die Initialisierung prueft bisher nur die Existenz der Datei)
 ```
 
-- [ ] **2. Fix (GREEN) — State-Typ-Reparatur [T012903].**
+- [x] **2. Fix (GREEN) — State-Typ-Reparatur [T012903].**
       In `scripts/brain-ingest.sh` die Initialisierung bei Zeile 155-157 so erweitern,
       dass sie nicht nur auf ein fehlendes File reagiert, sondern auch dann `{}`
       schreibt, wenn der vorhandene Inhalt kein JSON-Objekt ist. Der Test aus Schritt 1
       muss danach gruen sein.
 
-- [ ] **3. Failing-Test-Step (RED) — Rebuild-Modus.**
+- [x] **3. Failing-Test-Step (RED) — Rebuild-Modus.**
       Neue Datei `tests/spec/brain-foundation/from-scratch-rebuild.bats` mit vier
       Faellen, einer je Szenario aus REQ-BRAIN-FOUNDATION-016: Bachelorprojekt-Seiten
       werden geloescht und der State zurueckgesetzt; `source:: self` und Seiten ohne
@@ -64,14 +64,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/brain-foundation/from-scratch-rebui
 # expected: FAIL (rot — --from-scratch existiert noch nicht, das Argument-Parsing lehnt es ab)
 ```
 
-- [ ] **4. Argument-Parsing und Guard.**
+- [x] **4. Argument-Parsing und Guard.**
       In `scripts/brain-ingest.sh` das Flag `--from-scratch` in die `case`-Liste des
       Argument-Parsings aufnehmen (`FROM_SCRATCH=1`). Direkt nach dem Parsing pruefen:
       sind `--from-scratch` und `--pilot` beide gesetzt, mit Exit 2 und einer
       Fehlermeldung abbrechen, die den Grund nennt — die Kombination loescht alles und
       baut nur den Pilot-Ausschnitt neu.
 
-- [ ] **5. Phase 1b: Wiki- und State-Reset.**
+- [x] **5. Phase 1b: Wiki- und State-Reset.**
       Neue Phase zwischen dem Branch-Checkout im brain-Repo (bei Zeile 159-171) und
       Phase 2, im Stil der uebrigen Phasen mit `echo "=== Phase 1b: ..."` und einer
       Zaehler-Zusammenfassung. Nur aktiv bei gesetztem `FROM_SCRATCH`.
@@ -82,7 +82,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/brain-foundation/from-scratch-rebui
       `scripts/brain-ingest-prune.sh`, damit Reset und Prune nicht darueber
       auseinanderlaufen, was als Bachelorprojekt-Seite gilt.
 
-- [ ] **6. Dokumentation der Betriebsvariante.**
+- [x] **6. Dokumentation der Betriebsvariante.**
       In `.claude/skills/brain-ingest/SKILL.md` den Rebuild-Modus als eigenen Schritt
       neben Trockenlauf, Pilot und vollem Lauf aufnehmen, samt des Hinweises, dass
       `--from-scratch` nicht mit `--pilot` kombinierbar ist.

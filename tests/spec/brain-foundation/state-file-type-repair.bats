@@ -6,36 +6,27 @@
 # fuehrt die State-Initialisierung des Ingest-Skripts aus und prueft den
 # Dateiinhalt — nicht den Quelltext des Skripts.
 #
-# Die State-Initialisierung ist ein extrahiertes Snippet aus brain-ingest.sh
-# (Zeile 154-157), das als eigenes Skript getestet wird, weil der volle
-# Ingest-Lauf zu viele Abhaengigkeiten hat (Manifest, Worklist, LLM-Endpoint).
+INGEST="$BATS_TEST_DIRNAME/../../../scripts/brain-ingest.sh"
 
-# Extract the state-init logic from brain-ingest.sh into a testable wrapper.
-# The wrapper takes a STATE_FILE path as $1 and runs the same logic as
-# brain-ingest.sh lines 154-157.
 setup() {
-  STATE_INIT="$BATS_TEST_TMPDIR/state-init.sh"
-  cat > "$STATE_INIT" <<'WRAPPER'
-#!/usr/bin/env bash
-set -euo pipefail
-STATE_FILE="$1"
+  export LM_MODEL="test-model"
+  export BRAIN_INGEST_TEST_STOP_AFTER_STATE_INIT=1
+  BRAIN_DIR="$BATS_TEST_TMPDIR/brain"
+  mkdir -p "$BRAIN_DIR/wiki"
+  git -C "$BRAIN_DIR" init -q -b main
+  git -C "$BRAIN_DIR" config user.email "test@example.invalid"
+  git -C "$BRAIN_DIR" config user.name "Test"
+}
 
-# --- State init logic (brain-ingest.sh, T012903) ---
-if [ ! -f "$STATE_FILE" ]; then
-  echo '{}' > "$STATE_FILE"
-elif ! jq -e 'type == "object"' "$STATE_FILE" >/dev/null 2>&1; then
-  echo "State file is not a JSON object, resetting to {}" >&2
-  echo '{}' > "$STATE_FILE"
-fi
-WRAPPER
-  chmod +x "$STATE_INIT"
+run_state_init() {
+  run bash "$INGEST" --brain-repo "$BRAIN_DIR" --state "$STATE_FILE"
 }
 
 @test "state file with array [] is repaired to empty object {}" {
   STATE_FILE="$BATS_TEST_TMPDIR/state.json"
   echo '[]' > "$STATE_FILE"
 
-  run bash "$STATE_INIT" "$STATE_FILE"
+  run_state_init
   [ "$status" -eq 0 ]
 
   CONTENT="$(cat "$STATE_FILE")"
@@ -46,7 +37,7 @@ WRAPPER
   STATE_FILE="$BATS_TEST_TMPDIR/state.json"
   echo '{"key":"val"}' > "$STATE_FILE"
 
-  run bash "$STATE_INIT" "$STATE_FILE"
+  run_state_init
   [ "$status" -eq 0 ]
 
   CONTENT="$(cat "$STATE_FILE")"
@@ -56,7 +47,7 @@ WRAPPER
 @test "missing state file is created as empty object {}" {
   STATE_FILE="$BATS_TEST_TMPDIR/state.json"
 
-  run bash "$STATE_INIT" "$STATE_FILE"
+  run_state_init
   [ "$status" -eq 0 ]
 
   CONTENT="$(cat "$STATE_FILE")"
@@ -67,7 +58,7 @@ WRAPPER
   STATE_FILE="$BATS_TEST_TMPDIR/state.json"
   echo '' > "$STATE_FILE"
 
-  run bash "$STATE_INIT" "$STATE_FILE"
+  run_state_init
   [ "$status" -eq 0 ]
 
   CONTENT="$(cat "$STATE_FILE")"

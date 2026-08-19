@@ -3,7 +3,7 @@
 # Transforms Bachelorprojekt source files into brain wiki pages via LLM,
 # delivers via PR to Paddione/brain.
 #
-# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune]
+# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune] [--from-scratch]
 #
 # Env:
 #   LM_STUDIO_URL    — llama-server ingest-pool API URL (default:
@@ -38,6 +38,7 @@ BRAIN_REPO=""
 DRY_RUN=0
 PILOT=0
 PRUNE=0
+FROM_SCRATCH=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://localhost:8100}"
@@ -68,10 +69,17 @@ while [[ $# -gt 0 ]]; do
     --state)      STATE_FILE="${2:?--state requires a path}"; shift ;;
     --branch)     BRANCH="${2:?--branch requires a name}"; shift ;;
     --prune)      PRUNE=1 ;;
+    --from-scratch) FROM_SCRATCH=1 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
 done
+
+# --from-scratch + --pilot is forbidden: it would delete everything then
+# only rebuild a partial slice, losing the rest. (T012902)
+if [ "$FROM_SCRATCH" -eq 1 ] && [ "$PILOT" -gt 0 ]; then
+  echo "error: --from-scratch cannot be combined with --pilot" >&2; exit 2
+fi
 
 [ -n "$BRAIN_REPO" ] || { echo "error: --brain-repo required" >&2; exit 1; }
 [ -d "$BRAIN_REPO/.git" ] || { echo "error: --brain-repo is not a git repo: $BRAIN_REPO" >&2; exit 1; }
@@ -79,6 +87,19 @@ done
 [ -f "$WORKLIST_SCRIPT" ] || { echo "error: worklist script not found: $WORKLIST_SCRIPT" >&2; exit 1; }
 [ -f "$TRANSFORM_SCRIPT" ] || { echo "error: transform script not found: $TRANSFORM_SCRIPT" >&2; exit 1; }
 [ -f "$CHUNK_SCRIPT" ] || { echo "error: chunk script not found: $CHUNK_SCRIPT" >&2; exit 1; }
+
+# Load state (idempotency) before any state lookup. Non-object JSON (and invalid
+# JSON) cannot support the keyed lookups used by the transform and prune phases.
+if [ ! -f "$STATE_FILE" ]; then
+  echo '{}' > "$STATE_FILE"
+elif ! jq -e 'type == "object"' "$STATE_FILE" >/dev/null 2>&1; then
+  echo "State file is not a JSON object, resetting to {}" >&2
+  echo '{}' > "$STATE_FILE"
+fi
+
+# Test seam: lets result-based BATS exercise the script's real initialization
+# without starting worklist/chunk/LLM processing. Not part of the CLI contract.
+[ "${BRAIN_INGEST_TEST_STOP_AFTER_STATE_INIT:-0}" -eq 1 ] && exit 0
 
 # Extracted once (not per file — see brain-group-match.sh perf note).
 brain_group_section_for_manifest "$MANIFEST"
@@ -96,7 +117,12 @@ WORKLIST="$(mktemp)"
 # path it covers. The ${VAR:-} guards matter because `set -u` is in force and an
 # abort in Phase 1 fires the trap before the later variables are ever assigned.
 trap 'rm -f "${WORKLIST:-}" "${SLUGS_JSON:-}" "${CHUNKS_TSV:-}" "${DELIVERED_TSV:-}"; rm -rf "${CHUNK_DIR:-}" "${RESULTS_DIR:-}"' EXIT
-bash "$WORKLIST_SCRIPT" --root "$REPO_ROOT" --manifest "$MANIFEST" > "$WORKLIST"
+if [ "${BRAIN_INGEST_TEST_STOP_AFTER_RESET:-0}" -eq 1 ]; then
+  # The reset tests deliberately avoid preparing or transforming real sources.
+  : > "$WORKLIST"
+else
+  bash "$WORKLIST_SCRIPT" --root "$REPO_ROOT" --manifest "$MANIFEST" > "$WORKLIST"
+fi
 TOTAL="$(wc -l < "$WORKLIST")"
 echo "Worklist: $TOTAL source files"
 
@@ -151,14 +177,6 @@ SLUGS_JSON="$(mktemp)"
 awk -F'\t' '{print $3}' "$CHUNKS_TSV" | jq -R . | jq -s . > "$SLUGS_JSON"
 echo "Slug inventory: $(jq length "$SLUGS_JSON") slugs (including MOCs)"
 
-# Load state (idempotency) — repair non-object types (T012903)
-if [ ! -f "$STATE_FILE" ]; then
-  echo '{}' > "$STATE_FILE"
-elif ! jq -e 'type == "object"' "$STATE_FILE" >/dev/null 2>&1; then
-  echo "State file is not a JSON object, resetting to {}" >&2
-  echo '{}' > "$STATE_FILE"
-fi
-
 # Create/update branch in brain repo
 echo "Preparing brain repo branch: $BRANCH"
 cd "$BRAIN_REPO"
@@ -171,6 +189,54 @@ fi
 # Ensure wiki/ directory exists
 mkdir -p "$BRAIN_REPO/wiki"
 cd "$REPO_ROOT"
+
+# ============================================================
+# Phase 1b: Wiki- und State-Reset (nur bei --from-scratch)
+# ============================================================
+if [ "$FROM_SCRATCH" -eq 1 ]; then
+  echo ""
+  echo "=== Phase 1b: Wiki- und State-Reset (--from-scratch) ==="
+
+  RESET_COUNT=0
+  KEPT_COUNT=0
+
+  for page in "$BRAIN_REPO"/wiki/*.md; do
+    [ -e "$page" ] || continue
+    slug="$(basename "$page" .md)"
+    src_line="$(grep -m1 '^source:: ' "$page" || true)"
+
+    if [[ "$src_line" == "source:: Bachelorprojekt "* ]]; then
+      # Bachelorprojekt page — delete (or report in dry-run)
+      if [ "$DRY_RUN" -eq 1 ]; then
+        echo "DRY-RUN: would delete wiki/$slug.md (source: ${src_line#source:: })"
+      else
+        rm -f "$page"
+        echo "DELETED: wiki/$slug.md (source: ${src_line#source:: })"
+      fi
+      RESET_COUNT=$((RESET_COUNT + 1))
+    else
+      # Meta page or no source:: — never delete (invariant from prune)
+      KEPT_COUNT=$((KEPT_COUNT + 1))
+    fi
+  done
+
+  # Reset state file to empty object
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "DRY-RUN: would reset state file to {}"
+  else
+    echo '{}' > "$STATE_FILE"
+    echo "State file reset to {}"
+  fi
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "Phase 1b: $RESET_COUNT pages would be deleted, $KEPT_COUNT pages kept"
+  else
+    echo "Phase 1b: $RESET_COUNT pages deleted, $KEPT_COUNT pages kept"
+  fi
+fi
+
+# Test seam: the reset contract can be verified without a real LLM rebuild.
+[ "${BRAIN_INGEST_TEST_STOP_AFTER_RESET:-0}" -eq 1 ] && exit 0
 
 # ============================================================
 # Phase 2: LLM Transformation

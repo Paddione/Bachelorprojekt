@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.289.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.288.0...website-v1.289.0) (2026-08-19)
+
+
+### Features
+
+* **infra:** Netzwerk-Adressplan als SSOT mit fail-closed Overlap-Guard [T012645] ([#4825](https://github.com/Paddione/Bachelorprojekt/issues/4825)) ([5f2ca4c](https://github.com/Paddione/Bachelorprojekt/commit/5f2ca4c6aac549eefda9379c0fc13fc445f105a7))
+
 ## [1.288.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.287.0...website-v1.288.0) (2026-08-19)
 
 

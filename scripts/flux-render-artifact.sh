@@ -115,7 +115,7 @@ render_component() {
   if [[ -z "$vars" ]]; then
     # Nichts zu substituieren — aber das $$-Unwrapping muss trotzdem laufen,
     # sonst blieben $${VAR}/$$VAR als Doppel-Dollar im Manifest stehen.
-    sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' <<<"$rendered" > "$out"
+    sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' <<<"$rendered" > "$out"
     return
   fi
   
@@ -127,9 +127,17 @@ render_component() {
   
   # Wrap bare ${VAR} at end of line in double quotes (envsubst needs quoting context),
   # then substitute, then unwrap any $$ escaping envsubst introduced.
+  #
+  # T012503: Das Unwrapping deckt neben Variablennamen auch (, !, ? ab. Wer ein
+  # ConfigMap-Skript escaped, verdoppelt jedes Dollarzeichen — auch $$(cmd),
+  # $$! und $$?. envsubst fasst diese drei zwar ohnehin nicht an, aber ein
+  # Unwrapping, das sie auslaesst, liefert sie als literales $$ aus: in der
+  # Shell ist $$ die PID, aus $$(seq 1 3) wird "1234(seq 1 3)" und das Skript
+  # bricht mit einem Syntaxfehler ab. Genau so lag der gitlab-runner ab
+  # bc80f246b im CrashLoop.
   sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' <<<"$rendered" \
     | envsubst "$envsubst_vars" \
-    | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+    | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
     > "$out"
 
   # T002156: checksum/config NACH envsubst aus dem website-config-data-Block

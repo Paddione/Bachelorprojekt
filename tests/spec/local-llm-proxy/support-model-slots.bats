@@ -159,24 +159,30 @@ _require_proxy() {
   [ "$status" -eq 0 ]
   local ids="$output"
 
-  # D1-Baseline-Skip (P2.5, T007033): skip NUR bei exakt dem dokumentierten
-  # D1-Baseline-Stand (ausschliesslich deepseek-IDs — Geraete offline, LM Link
-  # nicht verbunden; Stand 2026-08-15: deepseek-v4-flash, deepseek-v4-pro).
-  # Jede geaenderte, nicht matchende Modellliste bleibt ROT (D1-Mismatch)
-  # statt zu skippen.
-  local deepseek_only=1 count=0 id
-  while IFS= read -r id; do
-    if [ -z "$id" ]; then
-      continue
-    fi
-    count=$((count + 1))
-    case "$id" in
-      deepseek-v4-flash|deepseek-v4-pro) ;;
-      *) deepseek_only=0 ;;
-    esac
-  done <<<"$ids"
-  if [ "$deepseek_only" -eq 1 ] && [ "$count" -gt 0 ]; then
-    skip "D1-Baseline unveraendert (nur deepseek-IDs) — Geraete offline, kein Aussagewert"
+  # [T012414] Der Skip haengt jetzt an der URSACHE statt an einer eingefrorenen
+  # ID-Liste: ist ueberhaupt ein lmstudio-Backend registriert?
+  #
+  # Der Kopf dieser Datei nennt die Annahme "CI hat weder Geraete noch Proxy".
+  # Auf ubuntu-latest stimmte sie — _require_proxy sprang an und der Fall trat
+  # nie ein. Seit CI auf dem self-hosted Runner laeuft, IST der Proxy
+  # erreichbar; der Test bewertet also eine Modellliste, waehrend die Geraete
+  # (PK-Tablet, PK-L-1) offline sind. Die dokumentierte D1-Baseline
+  # (deepseek-v4-flash, deepseek-v4-pro; Stand 2026-08-15) trifft dabei nicht
+  # mehr zu, weil sich die Backend-Registrierung seither geaendert hat — der
+  # Test wurde rot, ohne dass die geschuetzte Eigenschaft verletzt gewesen waere.
+  #
+  # Ohne registriertes lmstudio-Backend KANN kein Slot erscheinen; das ist
+  # dieselbe Lage wie "Geraete offline" und gehoert zum skip. Die Schaerfe
+  # bleibt: sobald ein lmstudio-Backend da ist und ein Slot fehlt, ist der Test
+  # rot (Halb-Online-Fall und D1-Mismatch-Fall).
+  local lmstudio_backends
+  lmstudio_backends="$(curl -s --max-time 10 "${PROXY_URL}/admin/state" \
+    | jq -r '[.backends[]? | select(.kind == "lmstudio")] | length' 2>/dev/null || echo 0)"
+  case "$lmstudio_backends" in
+    ''|*[!0-9]*) lmstudio_backends=0 ;;
+  esac
+  if [ "$lmstudio_backends" -eq 0 ]; then
+    skip "kein lmstudio-Backend im Proxy registriert — Geraete offline/LM Link nicht verbunden, kein Aussagewert"
   fi
 
   # Liste ist NICHT die D1-Baseline: beide erwarteten lmstudio-Slots muessen

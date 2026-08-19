@@ -285,20 +285,18 @@
     },
     {
       "slug": "gemma12-vision",
-      "label": "Gemma 4 12B QAT · Vision & MTP",
+      "label": "Gemma 4 12B QAT · 3 Slots (geteilter KV), Vision & MTP",
       "model": "gemma4-12qat/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8089,
       "fit": {
-        "enabled": true,
-        "targetMarginMib": 256,
-        "minCtx": 8192
+        "enabled": false
       },
       "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
+        "ctx": 262144,
+        "ngl": 999,
+        "parallel": 3,
+        "cacheTypeK": "f16",
+        "cacheTypeV": "f16",
         "loadMode": "mmap",
         "flashAttention": true,
         "jinja": true,
@@ -318,46 +316,14 @@
       "mcp": {
         "serversConfig": null
       },
-      "extraArgs": [],
-      "notes": "12B QAT mit mmproj (F16) und MTP-Drafter. Gemessen: 262.144 Kontext, 137-149 tok/s Prosa. Vision-Funktionstest bestanden.",
-      "exclusiveGroup": "chat-gpu"
-    },
-    {
-      "slug": "qwen3-coder-30b",
-      "enabled": false,
-      "label": "Qwen3-Coder-30B-A3B UD-IQ3_XXS (Familientraeger \"qwen\")",
-      "model": "qwen3coder30/Qwen3-Coder-30B-A3B-Instruct-UD-IQ3_XXS.gguf",
-      "port": 8094,
-      "fit": {
-        "enabled": true,
-        "targetMarginMib": 64,
-        "minCtx": 8192
-      },
-      "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": "q4_0",
-        "cacheTypeV": "q4_0",
-        "loadMode": "mmap",
-        "flashAttention": true,
-        "jinja": true,
-        "metrics": true,
-        "reasoning": "auto",
-        "reasoningBudget": null,
-        "temperature": 0.7,
-        "topP": 0.8,
-        "topK": 20
-      },
-      "speculative": {
-        "draftHfRepo": null,
-        "draftNgl": null
-      },
-      "mcp": {
-        "serversConfig": null
-      },
-      "extraArgs": [],
-      "notes": "UD-IQ3_XXS, 11,9 GB auf Platte. fitt 64 bei q4_0 KV gibt 96.000 Kontext. Sampling nach Modellkarte: temp 0.7, topP 0.8, topK 20. ABGESCHALTET seit T003204 (enabled: false): gleicher VRAM-Fussabdruck wie gemma26-factory bei weit aggressiverer Quantisierung (UD-IQ3_XXS statt nativem Format), weniger Kontext (96.000 vs 161.024), gemessen nur 47,9 tok/s unter Konkurrenz, einziger Anspruch 'agentische Tiefe' ohne Messung.",
+      "extraArgs": [
+        "-kvu",
+        "-b",
+        "4096",
+        "-ub",
+        "2048"
+      ],
+      "notes": "Auf Durchsatz mit DREI Slots und geteiltem KV ausgelegt (T012414). Messung scripts/llm/measurements/2026-08-19-gemma12-slots.md: mit -np 3 -kvu 307-489 tok/s gesamt gegen 255 bei einem Slot, Einzelstrom 106-183 statt 289, MTP-Annahme 92-95 %. Der Kontext wird NICHT gedrittelt (n_ctx_slot bleibt 262144), der VRAM-Bedarf steigt kaum (15909 statt 15869 MiB). -np 4 ist SCHLECHTER als 3 (319 tok/s), -np 6 laedt gar nicht erst — der MTP-Drafter bricht mit vector::_M_range_check ab. Drei ist also gemessen, nicht gewaehlt. Der Proxy muss mitziehen: ohne max_inflight=3 auf dem Backend serialisiert er trotzdem alles (scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql). MESSUNG 2026-08-18 auf RTX 5070 Ti 16 GiB, llama.cpp b10241, scripts/llm/bench-decode.sh 8089 (n_predict=512, cache_prompt=false); A/B durch VOLLSTAENDIGES Entfernen der Spec-Flags, nicht durch ein angehaengtes --spec-type none — das ueberschreibt die fruehere Angabe NICHT, der Drafter lief weiter und beide Seiten massen dasselbe. Decode: 246-287 tok/s mit MTP gegen 80-86 tok/s ohne, also ~3,2x; MTP-Annahmequote 93-99 %. Prefill (6902-Token-Prompt): 1797 tok/s mit MTP gegen 3380 tok/s ohne — der Drafter verarbeitet den Prompt mit, MTP HALBIERT den Prefill. Umschlagpunkt daraus: MTP lohnt, sobald mehr als etwa ein Token je 33 Prompt-Token erzeugt wird (bei 7k Prompt ab ~210 erzeugten Token) — fuer Chat und Codegenerierung immer, fuer reines Prompt-Durchreichen nicht. Belegt geladen: 262144 Kontext (n_ctx_slot), n_slots=1, kv_unified=true, 15869 von 16303 MiB. KV-Rechnung aus den GGUF-Metadaten: 48 Layer im Muster 5x SWA + 1x global; die 40 SWA-Layer (8 KV-Heads, 256+256, Fenster 1024) kosten fest ~320 MiB @f16, die 8 globalen Layer haben nur EINEN KV-Head (512+512, unified) und kosten 16 KiB/Token — der volle Kontext also 4,0 GiB. Reicht es nicht, zuerst -ub auf 1024 senken, erst danach den Kontext. MTP: der Drafter ist eine eigene Datei (gemma4-assistant, 423M, nextn_predict_layers=4) — im Haupt-GGUF steckt er NICHT (667 Tensoren, alle textuell, geprueft mit scripts/llm/gguf-tensor-names.py); die Auto-Erkennung der Modellkarte greift nur beim Start ueber -hf, nicht ueber einen lokalen -m-Pfad. Vorher: -fit on, q8_0-KV, 137-149 tok/s Prosa ohne wirksames MTP.",
       "exclusiveGroup": "chat-gpu"
     },
     {

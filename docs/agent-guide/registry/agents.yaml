@@ -49,22 +49,23 @@ runtimes:
   # das Modell. Jeder Familien-Subagent serviert sein eigenes Loadout ueber den
   # llm-proxy (:18235); alle Chat-Loadouts teilen exclusiveGroup "chat-gpu"
   # (es laeuft immer nur eines). T003204: die Familie qwen ist abgeschaltet —
-  # ihr Loadout qwen3-coder-30b ist enabled: false in loadouts.json.
+  # ihr Loadout qwen3-coder-30b wurde aus loadouts.json entfernt (T012414);
+  # das Backend llamacpp-qwen bleibt per Migration deaktiviert.
   gptoss:
     mode: subagent
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "NAME luegt ueber das Modell: faehrt seit T012409 gemma26-factory (167168 ctx gesamt, Port 8091), weil das Gateway nur noch dieses Modell listet. Der Name bleibt, weil er die Dispatch-Schnittstelle des Orchestrators ist — Umbenennen ist ein eigener Vorgang [T003204]"
+    note: "NAME luegt ueber das Modell. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst. Der Name bleibt, weil er die Dispatch-Schnittstelle des Orchestrators ist — Umbenennen ist ein eigener Vorgang [T003204/T012414]"
   devstral:
     mode: subagent
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "NAME luegt ueber das Modell: faehrt gemma26-factory (167168 ctx gesamt, Port 8091) — Name bleibt als Dispatch-Schnittstelle [T003204]"
+    note: "NAME luegt ueber das Modell. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst — Name bleibt als Dispatch-Schnittstelle [T003204/T012414]"
   gemma:
     mode: subagent
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "gemma family: Gemma 4 26B A4B IT UD-IQ4_XS, Loadout gemma26-factory auf Port 8091 (live GPU-Loadout) [T012409]"
+    note: "gemma family: NAME luegt ueber das Modell. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T012409/T012414]"
   gemma12:
     mode: subagent
     model: llamacpp-local/gemma12-vision
@@ -72,28 +73,28 @@ runtimes:
     note: "gemma12 family: Gemma 4 12B QAT + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx — groesster lokaler Kontext und einziges vision-faehiges Loadout. Seit T003204 als Subagent dispatchbar (vorher nur Tab-waehlbar via gemma12-primary)"
   gemma26-primary:
     mode: primary
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "Tab-selectable primary local agent, 161024 ctx measured (np=3 -kvu q4_0 fitt 128) [T002753]"
+    note: "Tab-selectable primary local agent. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T002753/T012414]"
   gemma26-vision:
     mode: primary
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "Max context, no subagent dispatch. Vision IS available — gemma26-factory loads mmproj-F16.gguf since T002753"
+    note: "Max context, no subagent dispatch. Vision IS available — gemma12-vision laedt mmproj-F16.gguf. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T012414]"
   # [T003065] Ein tab-waehlbarer Primaeragent pro lokalem GGUF-Modell. Alle
   # Kontextwerte sind in scripts/llm/loadouts.json als Messwert belegt — keine
   # n_ctx_train-Zahlen. Der Semaphor in scripts/llm-proxy/server.mjs serialisiert
   # den Modellwechsel, deshalb duerfen diese Agenten Subagenten dispatchen.
   gptoss-primary:
     mode: primary
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "Tab-selectable primary, seit T012409 auf gemma26-factory (Port 8091), 167168 ctx gesamt — gemma26-throughput wird vom Gateway nicht mehr gelistet. Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze [T003065/T003204]"
+    note: "Tab-selectable primary. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst. Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze [T003065/T003204/T012414]"
   devstral-primary:
     mode: primary
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "Tab-selectable primary, seit T003204 auf gemma26-factory (Port 8091), 177920 ctx, code-quality review — devstral-quality ist abgeschaltet [T003065/T003204]"
+    note: "Tab-selectable primary, code-quality review — devstral-quality ist abgeschaltet. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T003065/T003204/T012414]"
   gemma12-primary:
     mode: primary
     model: llamacpp-local/gemma12-vision
@@ -101,9 +102,9 @@ runtimes:
     note: "Tab-selectable primary on gemma12-vision (Port 8089), 262144 ctx measured, vision-capable via mmproj-F16 [T003065]"
   gemma26-throughput-primary:
     mode: primary
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: false
-    note: "Tab-selectable primary, seit T012409 auf gemma26-factory (Port 8091), 167168 ctx gesamt gemessen, 122-128 tok/s [T003065/T012409]"
+    note: "Tab-selectable primary. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP; 307-489 tok/s gesamt bei drei gleichzeitigen Anfragen, 106-183 je Einzelstrom). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T003065/T012409/T012414]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
@@ -136,7 +137,7 @@ runtimes:
     note: "Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
   orchestrator:
     mode: primary
-    model: llamacpp-local/gemma26-factory
+    model: llamacpp-local/gemma12-vision
     write_capable: true
     note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially"
   alibaba-primary:

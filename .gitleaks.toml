@@ -38,6 +38,7 @@
     # [T002554] Nicht versionierbare Pfade. Der pre-commit-Hook und der CI-Step
     # rufen gitleaks mit --no-git auf, scannen also den ARBEITSBAUM statt der
     # Versionierung — damit auch alles, was gitignored ist.
+    "(?i)\\.claude/worktrees/.*",
     #
     # In CI fiel das nie auf: der Job `security-scan` fuehrt kein npm ci aus, dort
     # gibt es weder node_modules noch tmp/. Lokal lieferten dieselbe Config und

@@ -179,16 +179,44 @@ runners:
         # Namespace — also auch fuer die vom Manager erzeugten Job-Pods
         # (build+helper-Container, dazu init-permissions und service — siehe
         # T012634 weiter unten). Ohne diese Bloecke scheitert jeder CI-Job an
-        # der Admission, bevor er ueberhaupt startet. run_as_user wird
-        # bewusst NICHT gesetzt: Job-Images sind beliebig (Job-.gitlab-ci.yml
-        # entscheidet per eigenem image:), ein fest verdrahteter UID wuerde
-        # Images brechen, die eine andere non-root-UID mitbringen. runAsNonRoot
-        # verlangt nur, dass die tatsaechliche UID des Images != 0 ist — welche
-        # UID das ist, bleibt Sache des Job-Images (Konsequenz der Wahl von
-        # "restricted" als Namespace-Policy, dokumentiert in namespace.yaml und
-        # Runbook Abschnitt 8; nicht durch dieses Partial aufloesbar).
+        # der Admission, bevor er ueberhaupt startet.
+        #
+        # T012644 — run_as_user wird jetzt gesetzt, entgegen der frueheren
+        # Festlegung an dieser Stelle. Die lautete: "run_as_user wird bewusst
+        # NICHT gesetzt, ein fest verdrahteter UID wuerde Images brechen, die
+        # eine andere non-root-UID mitbringen; runAsNonRoot verlangt nur, dass
+        # die tatsaechliche UID des Images != 0 ist." Der zweite Satz stimmt —
+        # und genau daran scheiterte es: die tatsaechliche UID IST 0. Belegt an
+        # zwei Containern:
+        #   docker run --rm ubuntu:24.04 id -u        => 0   (Default-Job-Image)
+        #   Event am Job-Pod: "container has runAsNonRoot and image will run as
+        #   root ... container: init-permissions"     (Helper-Image)
+        # Ohne eigene UID startete kein Job-Pod; der Pod blieb Pending, bis der
+        # Executor mit "timed out waiting for pod to start" abbrach.
+        #
+        # Die Sorge der alten Festlegung bleibt berechtigt: ein Job-Image, das
+        # eine eigene non-root-UID mitbringt und auf sie angewiesen ist, laeuft
+        # jetzt trotzdem als 59417. Das ist der bewusst gewaehlte Preis dafuer,
+        # dass der Namespace restricted BLEIBT (Alternative waere baseline, also
+        # ein Sicherheitsabbau). Konkrete Folge fuer die .gitlab-ci.yml: was im
+        # Job root braucht — apt-get install, npm -g, Schreiben ausserhalb des
+        # Workspace — schlaegt fehl und muss anders geloest werden (fertiges
+        # Image statt Installation zur Laufzeit).
+        #
+        # 59417 ist die UID aus dem Doku-Beispiel des Runners. Sie ist frei
+        # gewaehlt; entscheidend ist nur != 0 und Konsistenz zwischen
+        # run_as_user, run_as_group und fs_group. fs_group sorgt dafuer, dass
+        # das Build-Volume der Gruppe gehoert — sonst koennte init-permissions
+        # als non-root nicht darauf schreiben und der Pod haenge weiter.
+        #
+        # build/helper/service erben run_as_user vom Pod: ihre Bloecke unten
+        # setzen es bewusst nicht erneut, damit es genau eine Stelle gibt, an
+        # der die UID steht.
         [runners.kubernetes.pod_security_context]
           run_as_non_root = true
+          run_as_user = 59417
+          run_as_group = 59417
+          fs_group = 59417
           [runners.kubernetes.pod_security_context.seccomp_profile]
             type = "RuntimeDefault"
         [runners.kubernetes.build_container_security_context]
@@ -231,6 +259,13 @@ runners:
         #   => build_ / helper_ / init_permissions_ / service_container_security_context
         [runners.kubernetes.init_permissions_container_security_context]
           run_as_non_root = true
+          # T012644: hier steht die UID ein zweites Mal, obwohl der Pod sie
+          # bereits vorgibt. Die Runner-Doku fuehrt beide Stellen auf, und der
+          # Container ist derjenige, der ohne sie nachweislich nicht startete —
+          # bei einem Chart-Upgrade, das die Vererbung aendert, faellt der
+          # Ausfall sonst wieder auf die schwerste Art auf.
+          run_as_user = 59417
+          run_as_group = 59417
           allow_privilege_escalation = false
           [runners.kubernetes.init_permissions_container_security_context.capabilities]
             drop = ["ALL"]

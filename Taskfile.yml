@@ -2719,14 +2719,20 @@ tasks:
         echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
 
   gitlab-runner:render:
-    # ACHTUNG (T012503): Die Chart-Ausgabe enthaelt Laufzeit-Variablen
-    # (${CONFIG_PATH_FOR_INIT}, ${MAX_REGISTER_ATTEMPTS}). Sie muessen in der
-    # committeten Datei als $${VAR} escaped sein, sonst nimmt
-    # scripts/flux-render-artifact.sh sie in seine envsubst-Liste auf und setzt
-    # sie auf "" — "mkdir -p" laeuft dann ohne Argument und der Runner crasht.
-    # Nach jedem Re-Render das Escaping wieder anbringen; der Guard dafuer ist
-    # tests/spec/flux-render-security/runtime-var-unwrapping.bats.
-    desc: "Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Danach $${VAR}-Escaping wieder anbringen — siehe Kommentar."
+    # T012503/T012634: Die Chart-Ausgabe enthaelt ausschliesslich Shell-
+    # Laufzeit-Variablen (${CONFIG_PATH_FOR_INIT}, ${i}, ${retval} …) und
+    # keinen einzigen envsubst-Platzhalter. Committet werden muessen sie als
+    # $${VAR} — sonst nimmt scripts/flux-render-artifact.sh sie in seine
+    # envsubst-Liste auf und setzt sie auf "": "mkdir -p" laeuft dann ohne
+    # Argument und der Runner crasht beim Start.
+    #
+    # Bis T012634 war das Handarbeit nach jedem Render, mit einem Warnhinweis
+    # an dieser Stelle. Das hat genau einmal funktioniert und beim naechsten
+    # Render nicht mehr — deshalb escaped der Task jetzt selbst. Der Guard
+    # tests/spec/flux-render-security/runtime-var-unwrapping.bats prueft das
+    # Ergebnis; scripts/flux-render-artifact.sh macht das $$ beim Rendern des
+    # Artefakts wieder rueckgaengig.
+    desc: "Pre-render das gitlab-runner-Chart zu committed YAML (Re-Run bei Chart-Upgrade). Escaped Laufzeit-Variablen automatisch."
     preconditions:
       - sh: command -v helm > /dev/null
         msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
@@ -2738,6 +2744,20 @@ tasks:
           --namespace gitlab-runner \
           -f k3d/gitlab-runner-stack/values/gitlab-runner.yaml \
           > k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml
+        # Nur ${NAME} wird escaped — genau die Form, die der Extraktor in
+        # flux-render-artifact.sh sieht. Die klammerlose Form $NAME sieht er
+        # nicht, $(cmd)/$!/$? sind keine Variablen: alle drei bleiben unberuehrt.
+        sed -i -E 's/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/$${\1}/g' \
+          k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml
+        # Fail-closed: bleibt eine unescapte ${VAR} stehen, wuerde sie im
+        # Cluster als Leerstring landen. Lieber hier abbrechen.
+        if grep -qE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' \
+             k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml; then
+          echo "ERROR: unescapte \${VAR} in gitlab-runner-rendered.yaml:" >&2
+          grep -nE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' \
+            k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml >&2
+          exit 1
+        fi
         echo "✓ Rendered to k3d/gitlab-runner-stack/gitlab-runner-rendered.yaml — review the diff and commit."
 
   loki:render:

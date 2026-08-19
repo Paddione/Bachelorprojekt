@@ -48,14 +48,20 @@ teardown() {
 }
 
 @test "build-node-iso: gueltiger Key passiert den Key-Guard" {
-  # Positiv-Anker zum vorigen Test: mit gueltigem Key darf NICHT der
-  # Key-Guard greifen. Der Lauf scheitert spaeter (kein Netz/kein Quell-ISO),
-  # aber die Meldung darf nicht mehr den Schluessel betreffen.
-  run bash "$BUILD" --ssh-key "${TMP}/id_test.pub" \
-    --source-iso "${TMP}/gibt-es-nicht.iso" --out "${TMP}/out.iso"
+  # Positiv-Anker zum vorigen Test: mit gueltigem Key darf der Key-Guard NICHT
+  # greifen, die Verarbeitung muss den naechsten Guard erreichen. Als Beleg
+  # dient hier ein absichtlich falsches --shutdown: seine Meldung kann nur
+  # erscheinen, wenn der Key-Guard vorher durchgelassen hat.
+  #
+  # Der Anker haengt bewusst an einem Guard und nicht am Quell-ISO: auf einem
+  # Runner ohne xorriso meldet das Skript zuerst das fehlende Werkzeug, und
+  # ein Anker auf "source-iso" waere dort rot geworden, ohne dass ein Defekt
+  # vorliegt.
+  run bash "$BUILD" --ssh-key "${TMP}/id_test.pub" --shutdown halt \
+    --out "${TMP}/out.iso"
   [ "$status" -ne 0 ]
   ! echo "$output" | grep -qi 'ssh-key'
-  echo "$output" | grep -qi 'source-iso'
+  echo "$output" | grep -qi 'shutdown'
 }
 
 @test "build-node-iso: --shutdown akzeptiert nur reboot und poweroff" {

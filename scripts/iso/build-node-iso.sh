@@ -102,16 +102,10 @@ done
 die() { echo "ERROR: $*" >&2; exit 1; }
 info() { echo "==> $*" >&2; }
 
-# --- Vorbedingungen ---------------------------------------------------------
-missing_tools=()
-for t in xorriso curl envsubst openssl awk sed; do
-  command -v "$t" >/dev/null 2>&1 || missing_tools+=("$t")
-done
-if [[ ${#missing_tools[@]} -gt 0 ]]; then
-  echo "ERROR: fehlende Werkzeuge: ${missing_tools[*]}" >&2
-  echo "  sudo apt install -y xorriso curl gettext-base openssl" >&2
-  exit 1
-fi
+# --- Argumente pruefen ------------------------------------------------------
+# Bewusst VOR dem Werkzeug-Check: ein Tippfehler soll seine eigene Ursache
+# nennen, nicht "installier xorriso". Auf einem CI-Runner ohne xorriso meldete
+# die umgekehrte Reihenfolge fuer jeden Argumentfehler dieselbe Werkzeugmeldung.
 
 # SSH-Key ist Pflicht: ohne ihn ist der Node nach dem Reboot nicht erreichbar,
 # und der Fehler faellt erst auf, wenn alle drei Maschinen schon installiert sind.
@@ -135,16 +129,29 @@ if [[ -z "$K3S_VERSION" ]]; then
 fi
 [[ -n "$K3S_VERSION" ]] || die "k3s-Version nicht ermittelbar — --k3s-version angeben"
 
+if [[ -n "$NODE_MAP" ]]; then
+  [[ -f "$NODE_MAP" ]] || die "--node-map nicht gefunden: $NODE_MAP"
+fi
+
+# --- Werkzeuge --------------------------------------------------------------
+# Erst hier: alles darunter braucht sie tatsaechlich (openssl fuer den
+# Passwort-Hash, curl fuer den Download, xorriso fuers Packen).
+missing_tools=()
+for t in xorriso curl envsubst openssl awk sed; do
+  command -v "$t" >/dev/null 2>&1 || missing_tools+=("$t")
+done
+if [[ ${#missing_tools[@]} -gt 0 ]]; then
+  echo "ERROR: fehlende Werkzeuge: ${missing_tools[*]}" >&2
+  echo "  sudo apt install -y xorriso curl gettext-base openssl" >&2
+  exit 1
+fi
+
 # Passwort-Hash. Ohne Passwort bleibt der Account gesperrt (nur SSH-Key).
 if [[ -n "$ADMIN_PASSWORD" ]]; then
   ADMIN_PASSWORD_HASH="$(openssl passwd -6 "$ADMIN_PASSWORD")"
 else
   ADMIN_PASSWORD_HASH='!'
   echo "WARN: kein --admin-password — Konsolen-Login ist gesperrt, nur SSH-Key." >&2
-fi
-
-if [[ -n "$NODE_MAP" ]]; then
-  [[ -f "$NODE_MAP" ]] || die "--node-map nicht gefunden: $NODE_MAP"
 fi
 
 # --- Quell-ISO besorgen -----------------------------------------------------

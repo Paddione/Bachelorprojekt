@@ -28,8 +28,8 @@ data:
     set -e
 
     export CONFIG_PATH_FOR_INIT="/home/gitlab-runner/.gitlab-runner/"
-    mkdir -p ${CONFIG_PATH_FOR_INIT}
-    cp /configmaps/config.toml ${CONFIG_PATH_FOR_INIT}
+    mkdir -p $${CONFIG_PATH_FOR_INIT}
+    cp /configmaps/config.toml $${CONFIG_PATH_FOR_INIT}
     # Set up environment variables for cache
     if [[ -f /secrets/accesskey && -f /secrets/secretkey ]]; then
       export CACHE_S3_ACCESS_KEY=$(cat /secrets/accesskey)
@@ -166,21 +166,21 @@ data:
       unset RUNNER_TAG_LIST
     fi
 
-    for i in $(seq 1 "${MAX_REGISTER_ATTEMPTS}"); do
-      echo "Registration attempt ${i} of ${MAX_REGISTER_ATTEMPTS}"
+    for i in $$(seq 1 "$${MAX_REGISTER_ATTEMPTS}"); do
+      echo "Registration attempt $$i of $$MAX_REGISTER_ATTEMPTS"
       /entrypoint register \
-        ${RUN_UNTAGGED} \
-        ${ACCESS_LEVEL} \
+        $$RUN_UNTAGGED \
+        $$ACCESS_LEVEL \
         --template-config /configmaps/config.template.toml \
         --non-interactive &
 
-      register_pid=$!
-      wait $register_pid
-      retval=$?
+      register_pid=$$!
+      wait $$register_pid
+      retval=$$?
 
-      if [ ${retval} = 0 ]; then
+      if [ $$retval = 0 ]; then
         break
-      elif [ ${i} = ${MAX_REGISTER_ATTEMPTS} ]; then
+      elif [ $$i = $$MAX_REGISTER_ATTEMPTS ]; then
         exit 1
       fi
 
@@ -192,7 +192,7 @@ data:
     set -eou pipefail
 
     # default timeout is 3 seconds, can be overriden
-    VERIFY_TIMEOUT=${1:-${VERIFY_TIMEOUT:-3}}
+    VERIFY_TIMEOUT=$${1:-$${VERIFY_TIMEOUT:-3}}
 
     if ! /usr/bin/pgrep -f ".*register-the-runner"  > /dev/null && ! /usr/bin/pgrep -f "gitlab.*runner"  > /dev/null ; then
       exit 1
@@ -200,17 +200,17 @@ data:
 
     status=0
     # empty --url= helps `gitlab-runner verify` select all configured runners (otherwise filters for $CI_SERVER_URL)
-    verify_output=$(timeout "${VERIFY_TIMEOUT}" gitlab-runner verify --url= 2>&1) || status=$?
+    verify_output=$$(timeout "$$VERIFY_TIMEOUT" gitlab-runner verify --url= 2>&1) || status=$$?
 
     # timeout exit code is 143 with busybox, and 124 with coreutils
     if (( status == 143 )) || (( status == 124 )) ; then
       echo "'gitlab-runner verify' terminated by timeout, not a conclusive failure" >&2
       exit 0
     elif (( status > 0 )) ; then
-      exit ${status}
+      exit $$status
     fi
 
-    grep -qE "is (alive|valid)" <<<"${verify_output}"
+    grep -qE "is (alive|valid)" <<<"$$verify_output"
 
   pre-entrypoint-script: |
 ---
@@ -280,7 +280,7 @@ spec:
         release: "gitlab-runner"
         heritage: "Helm"
       annotations:
-        checksum/configmap: c5241837ca3ff4cc8df888dd21ae57e348bdba68cfcec34e6218b0ff1aaad8e0
+        checksum/configmap: b9d9d4127a6c0095cc7f38f8408ce3840d1f5ac5ef134a56157b56cbf64da19b
         checksum/secrets: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     spec:
       securityContext: 

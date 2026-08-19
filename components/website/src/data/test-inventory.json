@@ -3348,6 +3348,12 @@
     "kind": "shell"
   },
   {
+    "id": "flux-render-security/runtime-var-unwrapping",
+    "file": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",

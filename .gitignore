@@ -8,6 +8,8 @@ scripts/deep.sh
 junit-report/
 spec-junit-shard-*/
 website-dist/
+# [T008015-9] Streu-Artefakt-Verzeichnis (Pre-Reorg website/) — ignorieren
+/website/
 .lighthouseci/
 # Windows Lighthouse cache dirs (cross-platform artifact, literal backslash names)
 C:\\Users\\*\\AppData\\Local\\lighthouse.*/

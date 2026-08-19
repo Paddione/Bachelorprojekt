@@ -244,6 +244,9 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   PARTIAL_MODE=1
   # Parse the `## Partials` manifest table rows:
   #   | <id> | tasks.d/pX-<name>.md | impl|tests | <target_files, comma-sep> |
+  #   target_files-Zellen muessen pfadrein sein (T008015-3): Annotations-Praefixe
+  #   ("Löschungen:") und Brace-Globs werden NICHT als Pfade aufgeloest; der
+  #   Loesch-Status gehoert in die File-Structure-Spalte.
   manifest_rows="$(awk '/^##[[:space:]]+Partials/{f=1;next} f&&/^##[[:space:]]/{f=0} f&&/^\|/{print}' "$PLAN")"
   while IFS= read -r row; do
     [[ "$row" == *tasks.d/* ]] || continue
@@ -256,7 +259,15 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     IFS=',' read -ra _tgs <<<"$c_targets"
     for _t in "${_tgs[@]}"; do
       _t="$(printf '%s' "$_t" | sed -E 's/^ *//; s/ *$//; s/`//g')"
-      [[ -n "$_t" ]] && ALL_PARTIAL_TARGETS+=("$_t")
+      # [T008015-3] Annotierte Zellen tolerieren: Nur Pfad-Tokens (kein Whitespace,
+      # mit '/', '.' oder '{') kommen in ALL_PARTIAL_TARGETS — Annotations-Praefixe
+      # ("Löschungen:") sind keine Dateien. Muss mit plan-intel.sh _resolve_target_files()
+      # identisch filtern, sonst divergiert I1.
+      [[ -z "$_t" ]] && continue
+      if [[ "$_t" =~ [[:space:]] ]] || ! [[ "$_t" =~ [/.\{] ]]; then
+        continue
+      fi
+      ALL_PARTIAL_TARGETS+=("$_t")
     done
   done <<<"$manifest_rows"
 

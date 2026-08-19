@@ -50,6 +50,20 @@ fi
 # Build final JSON: group entries by ticket_id -> array of {slug, status}
 TMP="$(mktemp)"
 if [[ ${#frags[@]} -eq 0 ]]; then
+  # [T008015-6] Fail-closed statt Silent-Clobber: Ein Scan, der 0 Eintraege
+  # liefert, waehrend das Repo-default openspec/changes .ticket-Dateien
+  # traegt, ist fast immer ein cwd/OPENSPEC_ROOT-Artefakt (beobachtet:
+  # openspec-status.json wurde extern auf '{}' reduziert, 3952 Zeilen).
+  # In dem Fall NIE die bestehende Datei mit {} ueberschreiben — abbrechen.
+  # Legitim ist {} nur, wenn das Repo wirklich keine Changes hat.
+  _default_tickets=""
+  if [[ -d "$REPO/openspec/changes" ]]; then
+    _default_tickets="$(find "$REPO/openspec/changes" -name .ticket -print -quit 2>/dev/null || true)"
+  fi
+  if [[ -n "$_default_tickets" ]]; then
+    echo "ERROR: openspec-status-map: Scan ergab 0 Eintraege, aber $REPO/openspec/changes enthaelt .ticket-Dateien (OPENSPEC_ROOT=${OPENSPEC_ROOT:-<default>}) — cwd/OPENSPEC_ROOT-Artefakt? openspec-status.json NICHT ueberschrieben." >&2
+    exit 1
+  fi
   echo '{}' > "$TMP"
 else
   printf '%s\n' "${frags[@]}" | jq -s '

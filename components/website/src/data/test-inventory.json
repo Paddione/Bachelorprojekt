@@ -1986,6 +1986,24 @@
     "kind": "shell"
   },
   {
+    "id": "T008015-1",
+    "file": "tests/spec/software-factory/devflow-post-merge-deploy-commit-selection.bats",
+    "category": "T008015",
+    "kind": "shell"
+  },
+  {
+    "id": "T008015-3",
+    "file": "tests/spec/dev-flow-plan/plan-intel-annotated-target-files.bats",
+    "category": "T008015",
+    "kind": "shell"
+  },
+  {
+    "id": "T008015-6",
+    "file": "tests/spec/openspec-workflow/status-map-fail-closed-guard.bats",
+    "category": "T008015",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

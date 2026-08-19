@@ -39,7 +39,11 @@ export function apply(ctx) {
   const auditScript = `${repoRoot}/scripts/dsh/session-audit.sh`
 
   // Subscribe to durable session events for turn boundaries.
-  ctx.on('session/event', async (event) => {
+  // [T012965] Die Signatur ist (session, event) — zwei Parameter
+  // (packages/core/session/src/index.ts:76). Die erste Fassung nahm das Event
+  // als ERSTEN Parameter entgegen, bekam also die Session und las `session.type`:
+  // ein Feld, das es nicht gibt. Das Plugin feuerte damit nie.
+  ctx.on('session/event', async (session, event) => {
     const eventType = event?.type || ''
 
     // Map dsh session events to factory phase states.
@@ -48,10 +52,10 @@ export function apply(ctx) {
 
     if (eventType === 'turn/start') {
       phaseState = 'entered'
-      detail = JSON.stringify({ executor: 'dsh', event: 'turn/start', turn_id: event?.turn?.id || '' })
+      detail = JSON.stringify({ executor: 'dsh', event: 'turn/start', turn_id: event?.turnId || event?.id || '', session_id: session?.id || '' })
     } else if (eventType === 'turn/end') {
       phaseState = 'done'
-      detail = JSON.stringify({ executor: 'dsh', event: 'turn/end', turn_id: event?.turn?.id || '' })
+      detail = JSON.stringify({ executor: 'dsh', event: 'turn/end', turn_id: event?.turnId || event?.id || '', session_id: session?.id || '' })
     }
 
     if (!phaseState) return

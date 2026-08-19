@@ -3270,6 +3270,12 @@
     "kind": "shell"
   },
   {
+    "id": "dsh-harness-integration/repo-guard-behavior",
+    "file": "tests/spec/dsh-harness-integration/repo-guard-behavior.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
     "id": "dsh-harness-integration/taskfile-runtime",
     "file": "tests/spec/dsh-harness-integration/taskfile-runtime.bats",
     "category": "dsh-harness-integration",

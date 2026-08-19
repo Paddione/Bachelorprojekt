@@ -8,7 +8,7 @@
 autoinstall:
   version: 1
   interactive-sections: []
-
+${PXE_EARLY_COMMANDS}
   locale: ${PXE_LOCALE}
   keyboard:
     layout: ${PXE_KEYBOARD_LAYOUT}
@@ -29,8 +29,13 @@ autoinstall:
   storage:
     layout:
       name: direct
-      match:
-        size: largest
+      # KEIN match-Block. "match: {size: largest}" liess die Installation auf
+      # einer Maschine mit "Failed to find matching device" abbrechen, waehrend
+      # sie auf der Maschine davor durchlief: findet der Filter keinen
+      # Kandidaten, bricht subiquity ab, statt auf die Standardauswahl
+      # zurueckzufallen. Ohne match waehlt der direct-Layout-Algorithmus die
+      # Platte selbst — bei genau einer Platte ohnehin eindeutig.
+      # Eine bestimmte Platte erzwingt man mit --disk (setzt match.path).${PXE_DISK_MATCH}
     # Der Schluessel gehoert unter storage — unter user-data wird er
     # ignoriert und der Installer legt doch eine /swap.img an.
     swap:

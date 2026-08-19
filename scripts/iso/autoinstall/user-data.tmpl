@@ -31,8 +31,11 @@ autoinstall:
   storage:
     layout:
       name: direct
-      match:
-        size: largest
+      # KEIN match-Block. "match: {size: largest}" liess eine Installation mit
+      # "Failed to find matching device" abbrechen, waehrend dieselbe Konfiguration
+      # auf der Maschine davor durchlief: findet der Filter keinen Kandidaten,
+      # bricht subiquity ab, statt auf die Standardauswahl zurueckzufallen.
+      # Ohne match waehlt der direct-Layout-Algorithmus die Platte selbst.
     # Kein Swap. Der Schluessel gehoert unter storage — unter user-data
     # (cloud-init) wird er ignoriert, und der Installer legt dann doch eine
     # /swap.img an. Genau das passierte im ersten VM-Testlauf.

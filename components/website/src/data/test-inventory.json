@@ -2766,6 +2766,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-runner-quota-fit",
+    "file": "tests/spec/ci-cd/gitlab-runner-quota-fit.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-runner-setup-dryrun",
     "file": "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
     "category": "ci-cd",
@@ -3224,6 +3230,12 @@
   {
     "id": "e2e-test-infrastructure/purge-test-data-missing-table",
     "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-test-infrastructure/vision-sweep",
+    "file": "tests/spec/e2e-test-infrastructure/vision-sweep.bats",
     "category": "e2e-test-infrastructure",
     "kind": "shell"
   },

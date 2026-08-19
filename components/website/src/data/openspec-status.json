@@ -4173,6 +4173,12 @@
       "status": "plan_staged"
     }
   ],
+  "T012781": [
+    {
+      "slug": "2026-08-19-headed-vision-sweep",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

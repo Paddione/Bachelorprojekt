@@ -4,10 +4,12 @@
 
 The Brain ingest pipeline SHALL add deterministic, flat provenance metadata to newly compiled
 pages: `source_kind`, `source_revision`, `observed_at`, and `valid_from`. It MAY add
-`valid_until`, `superseded_by`, and `upstream_revision`. For `github-reviewed` sources,
-`source_revision` SHALL identify the approved local artifact bytes while `upstream_revision`
-SHALL retain the validated immutable GitHub head SHA. Existing pages without these fields SHALL remain valid and
-readable. When `valid_until` is present, the validity interval SHALL be interpreted as half-open:
+`valid_until`, `superseded_by`, and `upstream_revision`. For PR-derived approved artifacts in
+the `github-reviewed` group, `source_revision` SHALL identify the approved local artifact bytes
+while `upstream_revision` SHALL retain the validated immutable GitHub head SHA. Local policy
+documents in that group SHALL use only their local `source_revision` and SHALL NOT fabricate an
+upstream revision. Existing pages without these fields SHALL remain valid and readable. When
+`valid_until` is present, the validity interval SHALL be interpreted as half-open:
 `valid_from <= as_of < valid_until`.
 
 #### Scenario: New pages receive deterministic provenance
@@ -23,6 +25,13 @@ readable. When `valid_until` is present, the validity interval SHALL be interpre
 - **WHEN** the pipeline compiles it into a Brain page
 - **THEN** `source_revision` is the SHA-256 of the approved local artifact
 - **AND** `upstream_revision` remains the validated GitHub head SHA
+
+#### Scenario: Local review policy remains locally sourced
+
+- **GIVEN** a local policy document in the `github-reviewed` manifest group with no PR provenance
+- **WHEN** the pipeline compiles it into a Brain page and audits the result
+- **THEN** `source_revision` is derived from the local policy bytes
+- **AND** no `upstream_revision` is required or fabricated
 
 #### Scenario: Legacy pages remain compatible
 

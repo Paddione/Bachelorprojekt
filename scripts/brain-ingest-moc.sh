@@ -50,6 +50,8 @@ done
 
 # shellcheck source=./brain-group-match.sh
 source "$(dirname "${BASH_SOURCE[0]}")/brain-group-match.sh"
+# shellcheck source=./brain-source-provenance.sh
+source "$(dirname "${BASH_SOURCE[0]}")/brain-source-provenance.sh"
 brain_group_section_for_manifest "$MANIFEST"
 GROUPS_SECTION="$_BRAIN_GROUP_SECTION"
 
@@ -70,16 +72,25 @@ source_kind_for_group() {
 
 write_moc() {
   local content="$1" destination="$2" source_file="$3" source_kind="$4"
-  local temporary upstream_revision
+  local temporary upstream_revision reviewed_marker reviewed_repo reviewed_pr
   local -a metadata_args
   [ -f "$source_file" ] || { echo "error: MOC source missing: $source_file" >&2; return 1; }
   temporary="$(mktemp "$(dirname "$destination")/.moc.XXXXXX")"
   metadata_args=(--source "$source_file" --source-kind "$source_kind" \
     --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM")
   if [ "$source_kind" = github-reviewed ]; then
-    upstream_revision="$(awk -F': *' '/^upstream_revision:/{print $2; exit}' "$source_file" | tr -d "\"'")"
-    [ -n "$upstream_revision" ] || { rm -f "$temporary"; echo "error: reviewed source lacks upstream_revision" >&2; return 1; }
-    metadata_args+=(--upstream-revision "$upstream_revision")
+    reviewed_marker="$(brain_source_frontmatter_value "$source_file" source_kind || true)"
+    reviewed_repo="$(brain_source_frontmatter_value "$source_file" repository || true)"
+    reviewed_pr="$(brain_source_frontmatter_value "$source_file" pull_request || true)"
+    if [ "$reviewed_marker" = github-reviewed ] || [ -n "$reviewed_repo" ] || [ -n "$reviewed_pr" ]; then
+      upstream_revision="$(brain_source_frontmatter_value "$source_file" upstream_revision || true)"
+      [ -n "$upstream_revision" ] || {
+        rm -f "$temporary"
+        echo "error: PR-derived source lacks frontmatter upstream_revision" >&2
+        return 1
+      }
+      metadata_args+=(--upstream-revision "$upstream_revision")
+    fi
   fi
   if ! printf '%s' "$content" | python3 "$METADATA_SCRIPT" "${metadata_args[@]}" > "$temporary"; then
     rm -f "$temporary"
@@ -115,15 +126,16 @@ while IFS=$'\t' read -r src_path chunk_file chunk_slug idx heading; do
     echo "error: no manifest group for parent MOC source: $src_path" >&2
     exit 1
   }
-  source_kind="$(source_kind_for_group "$_BRAIN_GROUP_OUT")" || exit 1
+  parent_group="$_BRAIN_GROUP_OUT"
+  source_kind="$(source_kind_for_group "$parent_group")" || exit 1
   write_moc "$filtered" "$moc_dest" "$SOURCE_ROOT/$src_path" "$source_kind"
 
   # Write state entry for the MOC
   (
     flock -x 200
     tmp="$(mktemp)"
-    jq --arg k "${src_path}#moc" --arg s "$moc_slug" \
-      '.[$k] = {slug:$s, type:"moc", transformed_at:(now | todate)}' \
+    jq --arg k "${src_path}#moc" --arg s "$moc_slug" --arg g "$parent_group" \
+      '.[$k] = {slug:$s, type:"moc", group:$g, transformed_at:(now | todate)}' \
       "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
   ) 200>"$STATE_FILE.lock"
 
@@ -133,18 +145,31 @@ echo "Parent MOCs: $moc_count"
 
 # ── Generate sub-MOCs per group ──────────────────────────────────────────
 for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams github-reviewed; do
-  pages="$(jq -r --arg g "$group" '
-    to_entries[] |
+  pages=""
+  while IFS=$'\t' read -r page_slug page_path stored_group; do
+    [ -n "$page_slug" ] || continue
+    page_group="$stored_group"
+    if [ -z "$page_group" ] || [ "$page_group" = null ]; then
+      source_path="${page_path%%#*}"
+      brain_group_for "$source_path" "$GROUPS_SECTION" || continue
+      page_group="$_BRAIN_GROUP_OUT"
+    fi
+    [ "$page_group" = "$group" ] || continue
+    pages+="${page_slug}"$'\t'"${page_path}"$'\n'
+  done < <(jq -r '
+    to_entries | sort_by(.key)[] |
     select(.value.type != null) |
     select(.key | startswith("openspec/") or startswith("docs/") or startswith("CLAUDE") or startswith("AGENTS")) |
-    "\(.value.slug)\t\(.key)"
-  ' "$STATE_FILE" 2>/dev/null || echo "")"
+    "\(.value.slug)\t\(.key)\t\(.value.group // "")"
+  ' "$STATE_FILE" 2>/dev/null || echo "")
 
   if [ -z "$pages" ]; then
+    rm -f "$BRAIN_REPO/wiki/${group}-moc.md"
     continue
   fi
 
-  page_count="$(echo "$pages" | wc -l)"
+  pages="${pages%$'\n'}"
+  page_count="$(printf '%s\n' "$pages" | wc -l)"
 
   moc_content="---
 type: moc

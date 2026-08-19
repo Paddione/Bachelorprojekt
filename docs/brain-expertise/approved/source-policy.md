@@ -7,7 +7,10 @@ status: active
 
 Diese Policy ist selbst ein bewusst freigegebenes Dokument der Gruppe `github-reviewed`.
 Sie enthält keine PR-Evidenz; ihre lokale `source_revision` und die Lifecycle-Felder ergänzt
-der allgemeine Brain-Ingest aus dieser Ursprungsdatei.
+der allgemeine Brain-Ingest aus dieser Ursprungsdatei. Die Gruppenzugehörigkeit oder das Tag
+`github-reviewed` allein machen eine Quelle nicht zu einem PR-Artefakt: Nur die vom
+Approval-Schritt geschriebenen Frontmatter-Felder `source_kind`, `repository`, `pull_request`
+und `upstream_revision` kennzeichnen diese unveränderliche Upstream-Provenienz.
 
 Der Pilot verarbeitet ausschließlich ein ausdrücklich genanntes Repository, eine Pull Request
 und deren unveränderliche Head-SHA. Die Bedienfolge lautet:

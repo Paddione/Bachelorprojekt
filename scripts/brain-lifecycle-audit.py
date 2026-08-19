@@ -139,10 +139,8 @@ def collect_findings(pages: list[PageRecord], source_root: Path, as_of: datetime
     root = source_root.resolve()
     for page in pages:
         missing = [key for key in REQUIRED_LIFECYCLE if not page.metadata.get(key)]
-        if page.metadata.get("source_kind") == "github-reviewed" and not page.metadata.get("upstream_revision"):
-            missing.append("upstream_revision")
-        if missing:
-            findings.append({"code": "metadata_unknown", "slug": page.slug, "missing": missing})
+        requires_upstream = bool(page.metadata.get("repository") or page.metadata.get("pull_request"))
+        source_upstream: str | None = None
         if page.valid_from is not None and page.valid_until is not None and page.valid_until <= page.valid_from:
             findings.append({"code": "invalid_interval", "slug": page.slug,
                              "valid_from": page.metadata.get("valid_from"),
@@ -166,12 +164,30 @@ def collect_findings(pages: list[PageRecord], source_root: Path, as_of: datetime
                 findings.append({"code": "source_unavailable", "slug": page.slug,
                                  "source_path": page.source_path})
                 continue
+            if page.metadata.get("source_kind") == "github-reviewed":
+                source_metadata, _ = _frontmatter(candidate.read_text(encoding="utf-8"))
+                source_is_pr = (
+                    source_metadata.get("source_kind") == "github-reviewed"
+                    or bool(source_metadata.get("repository"))
+                    or bool(source_metadata.get("pull_request"))
+                )
+                if source_is_pr:
+                    requires_upstream = True
+                    source_upstream = str(source_metadata.get("upstream_revision", ""))
             current = _hash(candidate)
             recorded = str(page.metadata.get("source_revision", ""))
             if recorded and recorded != current:
                 findings.append({"code": "stale_source", "slug": page.slug,
                                  "source_path": page.source_path,
                                  "recorded_revision": recorded, "current_revision": current})
+        upstream = page.metadata.get("upstream_revision")
+        if requires_upstream and not upstream:
+            missing.append("upstream_revision")
+        if source_upstream and upstream and str(upstream) != source_upstream:
+            findings.append({"code": "upstream_revision_mismatch", "slug": page.slug,
+                             "recorded_revision": upstream, "source_revision": source_upstream})
+        if missing:
+            findings.append({"code": "metadata_unknown", "slug": page.slug, "missing": missing})
     claims: dict[str, list[tuple[PageRecord, str]]] = {}
     for page in pages:
         if page.metadata.get("status") != "active":

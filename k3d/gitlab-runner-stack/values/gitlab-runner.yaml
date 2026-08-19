@@ -9,9 +9,24 @@ gitlabUrl: https://gitlab.com/
 # STILL VERWORFEN (dieselbe Fehlerklasse wie B1: unbekannter Chart-Value-Pfad,
 # kein Fehler, kein Hinweis) und der Chart-Default 10 bleibt bestehen —
 # beobachtet beim ersten Render-Versuch dieser Korrektur, deshalb hier explizit
-# festgehalten. Deckelt den Manager auf "zwei parallele Jobs" (design.md D2,
-# Rechnung in namespace.yaml).
-concurrent: 4
+# festgehalten. Deckelt den Manager auf parallele Jobs (design.md D2, Rechnung
+# in namespace.yaml).
+#
+# T012647: von 4 auf 3 gesenkt. Die Rechnung in namespace.yaml bemass die Quota
+# fuer VIER parallele Jobs und liess 500m requests.cpu Puffer — ein Job-Pod
+# belegt aber 800m (zwei Container a 400m). Beim Wechsel eines Jobs zaehlt der
+# alte Pod im Zustand Terminating noch zur Quota, waehrend der naechste schon
+# angefordert wird; der Puffer deckt diese Ueberlappung nicht. Folge war kein
+# Warten, sondern ein sofortiger Fehlschlag — der Runner wertet eine
+# Quota-Ablehnung als system failure:
+#   pods "runner-…-concurrent-3-…" is forbidden: exceeded quota,
+#   requested: requests.cpu=800m, used: 3500m, limited: 4
+# In Pipeline 2771092581 scheiterten daran ALLE 10 Jobs.
+#
+# Mit 3: 6 Container a 400m = 2400m + 300m Basis = 2700m von 4000m. Die
+# verbleibenden 800m sind exakt ein Terminating-Pod — der Puffer ist damit
+# bemessen, nicht geschaetzt.
+concurrent: 3
 
 # N1 (Nachreview T012177): KEIN Top-Level automountServiceAccountToken hier.
 # Der urspruengliche Kommentar an dieser Stelle behauptete, dieser Chart-Value

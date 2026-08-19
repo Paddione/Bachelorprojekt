@@ -2736,6 +2736,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-runner-quota-fit",
+    "file": "tests/spec/ci-cd/gitlab-runner-quota-fit.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-runner-setup-dryrun",
     "file": "tests/spec/ci-cd/gitlab-runner-setup-dryrun.bats",
     "category": "ci-cd",

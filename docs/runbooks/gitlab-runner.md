@@ -569,3 +569,124 @@ Die API-Route `/api/v4/projects/<id>/jobs/<job-id>/trace` verlangt dagegen ein T
 
 `tests/spec/ci-cd/gitlab-job-coverage.bats` haelt die `parallel`-Abhaengigkeit inzwischen als
 Guard fest: jeder Job, der bats parallel faehrt, muss sie installieren.
+
+## 16. Registry-Failover (T012415)
+
+Die Etappen 1-3 haben die *Pruefung* redundant gemacht, nicht die *Auslieferung*.
+Dieser Abschnitt schliesst die Luecke: Images und das Flux-OCI-Artefakt werden
+zusaetzlich in die GitLab Container Registry gespiegelt, damit ein Rollout oder
+Rollback auch dann moeglich ist, wenn ghcr.io nicht antwortet.
+
+### 16.1 Was der Spiegel leistet — und was nicht
+
+**Er traegt Rollout und Rollback bereits gebauter Staende.** Waehrend eines
+GitHub-Ausfalls entstehen **keine neuen Artefakte**: Gebaut wird ausschliesslich in
+GitHub Actions, der Spiegel kopiert nur. Wer im Ernstfall einen frischen Build
+erwartet, sucht an der falschen Stelle. Ein neuer Stand braucht GitHub — oder
+einen manuellen lokalen Build samt `task workspace:deploy ENV=<brand>`.
+
+Der Grund fuer diese Grenze ist die Signatur, nicht die Bequemlichkeit:
+`flux/clusters/fleet/oci-source.yaml` verifiziert per cosign gegen die
+GitHub-Actions-OIDC-Identitaet. Ein in GitLab neu gebautes Artefakt truege eine
+GitLab-Identitaet und fiele durch diese Pruefung; es zuzulassen hiesse, die
+Supply-Chain-Zusicherung aufzuweichen, um eine Verfuegbarkeitsluecke zu schliessen.
+Ein **kopiertes** Artefakt behaelt seine Signatur, weil cosign an den Digest bindet
+und nicht an den Ablageort — deshalb traegt `oci-source-gitlab.yaml` denselben
+`verify`-Block wortgleich.
+
+### 16.2 Einrichtung (einmalig)
+
+Drei Werte, keiner davon identisch mit den Mirror-Secrets aus Abschnitt 1:
+
+- **`GITLAB_REGISTRY_TOKEN`** (GitHub-Repository-Secret) — GitLab-Project-Access-Token
+  mit Scope `write_registry`. Bewusst getrennt von `GITLAB_MIRROR_TOKEN`
+  (`write_repository`): ein Token, das beides darf, waere im Ausfall genau der
+  Schluessel, dessen Kompromittierung beide Wege zugleich trifft.
+- **`GITLAB_REGISTRY_PREFIX`** (GitHub-Repository-Secret) — Registry-Praefix ohne
+  Schema und ohne abschliessenden Slash, z. B.
+  `registry.gitlab.com/<namespace>/<projekt>`. Das Skript normalisiert beides
+  selbst, verlaesst sich aber nicht darauf.
+- **`gitlab-registry-auth`** (SealedSecret im Cluster) — Deploy-Token mit
+  `read_registry`, nach dem Muster des bestehenden `ghcr-auth`. Es wird
+  bereitgestellt, aber von nichts referenziert, solange nicht umgeschaltet ist.
+
+> **`gh secret set` schreibt ohne TTY einen leeren Wert.** Ein frischer
+> Zeitstempel in der Secret-Liste belegt nicht, dass etwas drinsteht. Wert per
+> Datei-Umleitung setzen und danach einen echten Workflow-Lauf pruefen — der
+> Spiegel-Schritt meldet `SKIP: GitLab-Registry-Spiegel nicht konfiguriert`,
+> solange eines der beiden Secrets leer ist.
+
+**Der Spiegel ist nicht-blockierend.** Jeder Spiegel-Schritt traegt
+`continue-on-error: true`, und `scripts/mirror-image-to-gitlab.sh` endet bei
+fehlender Konfiguration mit Exit 0. Solange die Secrets fehlen, laufen alle Builds
+unveraendert gruen — nur ohne Spiegel. Das ist Absicht: Die Redundanz darf die
+Verfuegbarkeit des primaeren Pfads nicht senken.
+
+### 16.3 Umschalten auf die GitLab-Quelle
+
+Voraussetzung: `registry.gitlab.com` traegt einen aktuellen Stand. Das laesst sich
+vorab pruefen, ohne umzuschalten:
+
+```bash
+cosign verify \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp 'render-fleet-artifact\.yml@refs/heads/main$' \
+  registry.gitlab.com/<namespace>/<projekt>/fleet-manifests:latest
+```
+
+Schlaegt das fehl, hilft die Umschaltung nicht — dann ist der Spiegel unsigniert
+oder veraltet, und der Weg ist ein manueller Deploy statt Flux.
+
+Dann in drei Schritten:
+
+```bash
+# 1. Pull-Secret bereitstellen (einmalig, falls noch nicht angewendet)
+kubectl --context fleet -n flux-system get secret gitlab-registry-auth
+
+# 2. Zweite Quelle aktivieren
+kubectl --context fleet -n flux-system patch ocirepository fleet-manifests-gitlab \
+  --type merge -p '{"spec":{"suspend":false}}'
+
+# 3. Kustomizations auf die neue Quelle umhaengen
+for ks in $(kubectl --context fleet -n flux-system get kustomization -o name); do
+  kubectl --context fleet -n flux-system patch "$ks" --type merge \
+    -p '{"spec":{"sourceRef":{"name":"fleet-manifests-gitlab"}}}'
+done
+```
+
+Danach `flux get kustomizations --context fleet` pruefen: `READY=True` und ein
+`Revision`, das zum gespiegelten Digest passt.
+
+> **Hinweis zu korczewski:** Dessen Flux-Kustomizations sind absichtlich
+> suspendiert. `READY=True` dort ist kein Gesundheitsnachweis, und der Schleifen-
+> Patch oben beruehrt sie mit — beim Zuruecknehmen also ebenfalls mitziehen.
+
+### 16.4 Zuruecknehmen — der Schritt, der vergessen wird
+
+Sobald ghcr.io wieder antwortet, gehoert die Quelle **zurueck**. Ohne diesen
+Schritt reconciled Flux dauerhaft aus einem Spiegel, der nur so frisch ist wie der
+letzte GitHub-Actions-Lauf — und nichts wird dabei rot. Genau das macht das
+Vergessen so teuer: Der Cluster laeuft weiter, nur eben auf einem Stand, den
+niemand mehr aktualisiert.
+
+```bash
+for ks in $(kubectl --context fleet -n flux-system get kustomization -o name); do
+  kubectl --context fleet -n flux-system patch "$ks" --type merge \
+    -p '{"spec":{"sourceRef":{"name":"fleet-manifests"}}}'
+done
+kubectl --context fleet -n flux-system patch ocirepository fleet-manifests-gitlab \
+  --type merge -p '{"spec":{"suspend":true}}'
+```
+
+Beide Richtungen gehoeren zum selben Vorgang und sind im Ticket zu vermerken, wenn
+dieser Failover real ausgeloest wurde — dieselbe Regel wie beim Runner-Fallback
+(Abschnitt 4).
+
+### 16.5 Abgrenzung
+
+- **Kein Gate-Flip.** GitHub bleibt SSOT und Merge-Gate; Guard
+  `tests/spec/ci-cd/gitlab-parallel-non-blocking.bats`.
+- **Keine Build-Jobs in `.gitlab-ci.yml`.** Der Spiegel kopiert, er baut nicht.
+- **Keine Aufweichung der verify-Policy.** Beide OCIRepositories akzeptieren
+  ausschliesslich die GitHub-Actions-Identitaet; Guard
+  `tests/spec/ci-cd/gitlab-registry-mirror.bats`.

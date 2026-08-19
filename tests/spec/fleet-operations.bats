@@ -17,15 +17,17 @@ setup() {
 
   # Collect legacy_only keys from environments/schema.yaml
   #
-  # [T012414] UEBER ALLE ABSCHNITTE, nicht nur 'secrets'. Vorher las diese
-  # Stelle ausschliesslich schema['secrets'] — und alle 26 WG_MESH_*-Eintraege
-  # stehen in 'setup_vars'. Ein dort gesetztes legacy_only wirkte damit
-  # NICHT, ohne dass irgendetwas es meldete: die Ausnahmeliste blieb fuer
-  # diese Namen dauerhaft leer. Aufgefallen ist es erst, als mit
-  # WG_MESH_PKL1_*/WG_MESH_PKT_* zum ersten Mal Schluessel auftraten, die im
-  # Legacy-Secret liegen und im Fleet-Secret fehlen; die GEKKO-/K3S-Pendants
-  # verdeckten den Defekt, weil sie in beiden Dateien vorhanden sind und
-  # deshalb nie in die Ausnahmepruefung liefen.
+  # [T012414/T012415] UEBER ALLE ABSCHNITTE, nicht nur 'secrets'. Vorher las
+  # diese Stelle ausschliesslich schema['secrets'] — dort steht keine einzige
+  # legacy_only-Markierung: alle 16 liegen in 'setup_vars', ebenso die 26
+  # WG_MESH_*-Eintraege. Ein gesetztes legacy_only wirkte damit NICHT, ohne
+  # dass irgendetwas es meldete; die Ausnahmeliste blieb dauerhaft leer.
+  #
+  # Zwei Dinge verdeckten den Defekt: die GEKKO-/K3S-Pendants stehen in beiden
+  # Dateien und liefen deshalb nie in die Ausnahmepruefung — sichtbar wurde es
+  # erst mit WG_MESH_PKL1_*/WG_MESH_PKT_*, die im Legacy-Secret liegen und im
+  # Fleet-Secret fehlen. Und bis zum Umzug der PR-Jobs auf den self-hosted
+  # Runner fehlte dort `yq`, sodass der Test sich uebersprang statt zu pruefen.
   legacy_only_keys=$(python3 -c "
 import yaml
 with open('${REPO_ROOT}/environments/schema.yaml') as f:

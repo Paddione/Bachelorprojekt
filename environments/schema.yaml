@@ -1527,6 +1527,10 @@ setup_vars:
   # Namen); im gesiegelten Legacy-File liegt nur noch verwaister Chiffretext.
   # Sie in fleet-mentolder nachzusiegeln waere daher keine Ergaenzung, sondern
   # eine Neuerzeugung der Schluesselpaare samt Ausrollen auf Laptop und Tablet.
+  #
+  # Warum es so lange unbemerkt blieb (T012415): bis zur Umstellung der PR-Jobs
+  # auf den self-hosted Runner fehlte dort `yq` — der Guard in
+  # tests/spec/fleet-operations.bats hat sich uebersprungen, statt zu pruefen.
   - name: WG_MESH_PKL1_PRIVATE_KEY
     required: false
     sealed: true

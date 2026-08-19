@@ -1,0 +1,35 @@
+# Registry-Redundanz [T012415] — zweite Bezugsquelle fuer fleet-manifests.
+#
+# Diese Quelle ist im Normalbetrieb SUSPENDIERT. Sie existiert, damit im Ausfall
+# von ghcr.io oder GitHub nicht erst ein Manifest geschrieben werden muss, wenn
+# ohnehin nichts erreichbar ist. Die Umschaltung ist ein manueller Runbook-Schritt
+# (docs/runbooks/gitlab-runner.md, Abschnitt 16) — bewusst kein Automatismus:
+# Flux' OCIRepository kennt keine Multi-Quelle mit Fallback, und ein selbsttaetiger
+# Schwenk wuerde den Ausfall verbergen. Ein Ausfall, den niemand bemerkt, wird
+# nicht behoben (dieselbe Linie wie CI_RUNNER_TAG, Abschnitt 6 desselben Runbooks).
+#
+# Der verify-Block ist WORTGLEICH mit oci-source.yaml. Das ist kein Copy-Paste-
+# Versehen, sondern der Kern der Entscheidung: gespiegelt wird das in GitHub
+# Actions signierte Artefakt, nicht ein in GitLab neu gebautes. Die cosign-Signatur
+# bindet an den Digest, nicht an den Ablageort — deshalb bleibt dieselbe
+# GitHub-OIDC-Identitaet gueltig, obwohl das Artefakt aus GitLab bezogen wird.
+# Wer hier eine GitLab-Identitaet ergaenzt, weicht die Supply-Chain-Zusicherung auf
+# und hebt den Grund fuer diese Datei auf.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: fleet-manifests-gitlab
+  namespace: flux-system
+spec:
+  suspend: true
+  interval: 10m
+  url: oci://registry.gitlab.com/p.korczewski/bachelorprojekt/fleet-manifests
+  ref:
+    tag: latest
+  secretRef:
+    name: gitlab-registry-auth
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: ^https://token\.actions\.githubusercontent\.com$
+        subject: ^https://github\.com/Paddione/Bachelorprojekt/\.github/workflows/render-fleet-artifact\.yml@refs/heads/main$

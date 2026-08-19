@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.290.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.289.0...website-v1.290.0) (2026-08-19)
+
+
+### Features
+
+* **infra:** PXE-Boot-Server fuer die Cluster-Workstations [T012906] ([#4843](https://github.com/Paddione/Bachelorprojekt/issues/4843)) ([cd98ee8](https://github.com/Paddione/Bachelorprojekt/commit/cd98ee824f581290cda34e471276301fcf093541))
+
 ## [1.289.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.288.0...website-v1.289.0) (2026-08-19)
 
 

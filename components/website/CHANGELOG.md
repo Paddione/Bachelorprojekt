@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.286.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.4...website-v1.286.5) (2026-08-19)
+
+
+### Bug Fixes
+
+* **factory:** Branch-Namen aus dem Ticket-Typ bilden, Ticket-ID gross [T012502] ([#4801](https://github.com/Paddione/Bachelorprojekt/issues/4801)) ([be1e752](https://github.com/Paddione/Bachelorprojekt/commit/be1e752f1e9dabc6b23dd9a7f59ef80fad838602))
+
 ## [1.286.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.286.3...website-v1.286.4) (2026-08-19)
 
 

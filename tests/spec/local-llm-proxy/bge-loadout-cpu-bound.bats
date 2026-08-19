@@ -56,7 +56,11 @@ bge_slugs() {
     import { parseLoadouts } from '${REPO_ROOT}/scripts/llm-proxy/loadouts.mjs';
     import { readFileSync } from 'node:fs';
     const doc = parseLoadouts(readFileSync('${REPO_ROOT}/scripts/llm/loadouts.json', 'utf8'));
-    console.log(doc.loadouts.length);
+    // [T012414] String(): console.log() faerbt eine nackte Zahl ein, sobald
+    // node Farbunterstuetzung erkennt. Der Vergleich unten sah dann
+    // '\x1b[33m9\x1b[39m' und brach mit 'integer expression expected' ab —
+    // lokal rot, in CI ohne TTY gruen. Semantik statt Darstellung [T002716].
+    console.log(String(doc.loadouts.length));
   "
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]

@@ -77,6 +77,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Mirror image to GitLab registry
+        continue-on-error: true
+        env:
+          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
+          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+          SOURCE_TAGS: |
+            ${{ steps.compute-tags.outputs.image }}:${{ steps.compute-tags.outputs.sha_tag }}
+            ${{ steps.compute-tags.outputs.image }}:latest
+        run: bash scripts/mirror-image-to-gitlab.sh
+
   deploy-mentolder:
     name: Deploy VideoVault (mentolder)
     runs-on: ubuntu-latest

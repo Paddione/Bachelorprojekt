@@ -35,8 +35,11 @@ spec:
             - name: DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website?sslmode=disable"
           readinessProbe:
+            # /healthz wie in k3d/brett.yaml: "/" laeuft in den OIDC-Flow und
+            # antwortet ohne konfigurierten Pocket-ID-Client mit 500 — der Pod
+            # wurde dadurch nie ready und hielt die flux-dev-Kustomization rot.
             httpGet:
-              path: /
+              path: /healthz
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10

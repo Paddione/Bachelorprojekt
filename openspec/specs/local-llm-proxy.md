@@ -1244,24 +1244,41 @@ reuses the vocabulary the backend registry already has.
 
 ### Requirement: Dominated chat loadouts are retired rather than left selectable
 
-`gptoss-context` and `devstral-quality` SHALL be disabled. Because every chat loadout shares
-`exclusiveGroup "chat-gpu"` and only one occupies the GPU at a time, a loadout that leads in no
-dimension costs switching time and mis-selection rather than memory. `devstral-quality`
-(33.536 context, 59 tok/s) leads in no dimension against the remaining loadouts.
+A chat loadout that leads in no dimension SHALL NOT stay selectable. Because every chat loadout
+shares `exclusiveGroup "chat-gpu"` and only one occupies the GPU at a time, such a loadout costs
+switching time and mis-selection rather than memory.
 
-Their `notes` SHALL be retained and SHALL state why they were retired, so the measurements that
-justified the decision survive the decision.
+Retirement has two degrees, and the choice between them is what the reason has to justify:
 
-`qwen3-coder-30b` SHALL remain inactive and SHALL NOT be reactivated: at an equal VRAM footprint
-it runs a larger model at a far more aggressive quantisation (UD-IQ3_XXS) than the natively
-formatted alternative, offers less context, and its only claimed advantage — agentic depth — has
-no measurement.
+- **Disabled** (`enabled: false`) — the loadout stays in `scripts/llm/loadouts.json`. Its `notes`
+  SHALL be retained and SHALL state why it was retired, so the measurements that justified the
+  decision survive the decision. `gptoss-context` is retired this way.
+- **Removed** — the entry is deleted. This is the right degree when the weights are gone from the
+  host as well: a declaration whose model file does not exist fails the guard
+  `tests/spec/local-llm-proxy/loadout-model-files-exist.bats` on every run and teaches readers to
+  ignore it. `devstral-quality` (33.536 context, 59 tok/s) and `qwen3-coder-30b` are retired this
+  way.
 
-#### Scenario: The retired loadouts carry their reason
+`qwen3-coder-30b` SHALL NOT be reintroduced: at an equal VRAM footprint it runs a larger model at
+a far more aggressive quantisation (UD-IQ3_XXS) than the natively formatted alternative, offers
+less context, and its only claimed advantage — agentic depth — has no measurement.
 
-- **GIVEN** a loadout was disabled by this change
+[T012414] Vorher forderte dieser Abschnitt, `qwen3-coder-30b` SHALL "remain inactive", also den
+Eintrag zu behalten — waehrend `devstral-quality` bereits ersatzlos entfernt war und der Spec das
+nicht nachvollzog. Der Abschnitt beschrieb damit einen Zustand, den es nicht gab. Beide Faelle sind
+jetzt als dieselbe Entscheidung mit zwei Abstufungen formuliert.
+
+#### Scenario: A disabled loadout carries its reason
+
+- **GIVEN** a loadout was retired by disabling it
 - **WHEN** its configuration entry is read
 - **THEN** it is marked disabled and its notes state the reason
+
+#### Scenario: A removed loadout leaves no dangling declaration
+
+- **GIVEN** a loadout was retired by removing it
+- **WHEN** `scripts/llm/loadouts.json` is read
+- **THEN** no entry names it, and no guard carries an exception for it
 
 ### Requirement: No agent definition points at a disabled loadout
 

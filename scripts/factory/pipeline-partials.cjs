@@ -122,8 +122,11 @@ function buildDeployPrompt(ctx) {
    Deploy to both brands. Operate from MAIN repo ${R} (NOT ${c.workWt}).
 
    HARD GUARDS — STOP on any failure:
-   a. Branch: WORK_BRANCH must match ^(feature|fix|chore)/ .
-      printf '%s' "${c.workBranch}" | grep -Eq '^(feature|fix|chore)/' || { echo "BLOCK: WORK_BRANCH ${c.workBranch} not feature/*|fix/*|chore/*"; exit 1; }
+   a. Branch: WORK_BRANCH must match ^(feature|fix|chore|docs)/ .
+      [T012502] docs/ ergaenzt: pipeline.mjs leitet den Praefix seit T012502 aus
+      dem Ticket-Typ ab und kann docs/ erzeugen — ohne diesen Eintrag blockte der
+      Guard einen Namen, den die Konvention ausdruecklich erlaubt.
+      printf '%s' "${c.workBranch}" | grep -Eq '^(feature|fix|chore|docs)/' || { echo "BLOCK: WORK_BRANCH ${c.workBranch} not feature/*|fix/*|chore/*|docs/*"; exit 1; }
    b. Diff-size cap: source ${R}/scripts/factory/guards.sh
       GUARDS_REPO=${R} guard_check_diff_size ${c.maxDiff || '800'} ${c.workBranch}
    c. CWD: every command MUST run from ${R}, never ${c.workWt} (T000342).

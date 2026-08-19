@@ -91,7 +91,7 @@ task workspace:deploy ENV=korczewski
 
 | Symptom | Fix |
 |---------|-----|
-| Merged PR nicht live | Push-based, kein GitOps: `task workspace:deploy ENV=<env>` |
+| Merged PR nicht live | Prod ist **pull-based via Flux**. Erst `kubectl --context fleet get kustomizations -n flux-system` prüfen (suspendierte zählen nicht als gesund). `task workspace:deploy ENV=<env>` nur als Break-Glass. |
 | SealedSecret: adoption refused | `kubectl delete secret <name> -n <ns>` |
 | Longhorn PVC Pending | `kubectl get storageclass longhorn`; iscsid auf allen Nodes? |
 | `office.` 404 | `task workspace:office:deploy ENV=<env>` |
@@ -176,7 +176,7 @@ task workspace:vaultwarden:seed-logs ENV=<env> # Logs prüfen
 ### Network Architecture
 
 ```
-[ Fleet Cluster: pk-hetzner-4/6/8 (CP) + gekko-hetzner-2/3/4 (Worker) ]
+[ Fleet Cluster: pk-hetzner-4/6/8 (CP) + gekko-hetzner-3/4 (Worker) ]
                       │  WireGuard overlay (wg-fleet)
                       ▼
 [ WSL Host / OpenClaw ] ◄──► [ GPU Worker — 10.10.0.3 ]

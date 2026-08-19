@@ -28,7 +28,12 @@ _start_stub() {
   echo $!
 }
 
-_free_port() { node -e 'const s=require("net").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }
+# [T012414] String(): console.log() faerbt eine nackte Zahl ein, sobald node
+# Farbunterstuetzung erkennt. Der zurueckgegebene "Port" war dann
+# '\x1b[33m45839\x1b[39m'; Number() daraus ist NaN und der Proxy brach beim
+# Start mit ERR_SOCKET_BAD_PORT ab — der Test scheiterte deterministisch an
+# der Einfaerbung, nicht an der Sache. Semantik statt Darstellung [T002716].
+_free_port() { node -e 'const s=require("net").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }
 
 setup() {
   load 'test_helper.bash'
@@ -358,7 +363,11 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 
 # --- T002394: Loadout-Registry -------------------------------------------------
 @test "T002394: loadouts.json ist gueltiges JSON mit mindestens einem Loadout" {
-  run node -e 'const d=require("./scripts/llm/loadouts.json"); if(!Array.isArray(d.loadouts)||!d.loadouts.length) process.exit(1); console.log(d.loadouts.length)'
+  # String(): console.log() faerbt eine nackte Zahl ein, sobald node
+  # Farbunterstuetzung erkennt — der Vergleich unten sah dann
+  # '\x1b[33m9\x1b[39m' und brach mit 'integer expression expected' ab.
+  # Lokal rot, in CI ohne TTY gruen [T012414].
+  run node -e 'const d=require("./scripts/llm/loadouts.json"); if(!Array.isArray(d.loadouts)||!d.loadouts.length) process.exit(1); console.log(String(d.loadouts.length))'
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }

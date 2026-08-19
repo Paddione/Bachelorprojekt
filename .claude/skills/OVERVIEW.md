@@ -102,7 +102,8 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 
 `infra-ops` ist ein **explicit-invoke-only Runbook** und bündelt sieben ehemals eigenständige
 Skills. Die Sektionen sind einzeln adressierbar; die ausformulierten Phasen liegen in
-[`references/infra-ops-runbooks.md`](references/infra-ops-runbooks.md).
+[`infra-ops/references/runbooks-deploy.md`](infra-ops/references/runbooks-deploy.md) (§1–§2) und
+[`infra-ops/references/runbooks-operations.md`](infra-ops/references/runbooks-operations.md) (§4–§7).
 
 | Einstieg | Wofür |
 |---|---|

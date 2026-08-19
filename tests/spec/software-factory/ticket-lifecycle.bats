@@ -40,17 +40,52 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-52: dispatcher-bridge strips feature|fix|chore prefix from slug" {
-  run grep -Fq "s#^(feature|fix|chore)/#" scripts/factory/dispatcher-bridge.sh
-  [ "$status" -eq 0 ]
-  # old feature-only strip must be gone
-  run grep -Fq "sed 's/^feature\\///'" scripts/factory/dispatcher-bridge.sh
-  [ "$status" -ne 0 ]
+  # [T012502] Wieder Semantik statt Darstellung: geprueft wird, WAS der sed-
+  # Ausdruck aus einem Branch-Namen macht, nicht sein Wortlaut. Der frühere
+  # Literal-Vergleich auf "s#^(feature|fix|chore)/#" wurde rot, als docs/
+  # hinzukam — obwohl das Strippen danach mehr, nicht weniger konnte.
+  #
+  # Der Slug wird zum Pfad (.worktrees/<slug>). Bliebe ein Praefix stehen, ent-
+  # stuenden verschachtelte Verzeichnisse wie .worktrees/docs/<name>.
+  # Den sed-Ausdruck AUS dem Skript ziehen und ausfuehren — nicht nachbauen.
+  local sedexpr
+  sedexpr="$(grep -o "s#\^([a-z|()]*)/##" scripts/factory/dispatcher-bridge.sh | head -1)"
+  [ -n "$sedexpr" ] || { echo "sed-Ausdruck in dispatcher-bridge.sh nicht gefunden"; false; }
+
+  local p out
+  for p in feature fix chore docs; do
+    out="$(echo "${p}/mein-slug-T000730" | sed -E "$sedexpr")"
+    [ "$out" = "mein-slug-T000730" ] \
+      || { echo "Praefix '${p}/' wird nicht gestrippt (Ausdruck: $sedexpr): $out"; false; }
+  done
+
+  # Positiv-Anker in die Gegenrichtung: es wird nicht blind alles vor dem ersten
+  # / entfernt — ein Slug mit fremdem Praefix bliebe sonst verstuemmelt.
+  out="$(echo "wip/etwas" | sed -E "$sedexpr")"
+  [ "$out" = "wip/etwas" ] || { echo "fremder Praefix wurde gestrippt: $out"; false; }
 }
 
 @test "FA-SF-52: pipeline.js deploy guard admits chore branches" {
   # The branch-regex guard moved into buildDeployPrompt (pipeline-partials.cjs).
-  run grep -Fq '^(feature|fix|chore)/' scripts/factory/pipeline-partials.cjs
-  [ "$status" -eq 0 ]
+  #
+  # [T012502] Geprueft wird, WAS das Muster zulaesst — nicht, wie es geschrieben
+  # ist. Vorher stand hier `grep -Fq '^(feature|fix|chore)/'`, ein Literal-
+  # Vergleich: das Ergaenzen von docs/ (eines Praefixes, das die Konvention
+  # ausdruecklich erlaubt) faerbte den Test rot, obwohl die Zusicherung — chore/
+  # kommt durch — unveraendert erfuellt war. Semantik statt Darstellung.
+  local pattern
+  pattern="$(grep -o "grep -Eq '\^([a-z|]*)/'" scripts/factory/pipeline-partials.cjs \
+    | head -1 | sed "s/grep -Eq '//; s/'$//")"
+  [ -n "$pattern" ] || { echo "Guard-Muster in pipeline-partials.cjs nicht gefunden"; false; }
+
+  echo "chore/etwas-T000730" | grep -Eq "$pattern" \
+    || { echo "Deploy-Guard laesst chore/ NICHT durch (Muster: $pattern)"; false; }
+
+  # Positiv-Anker in die Gegenrichtung: das Muster lehnt ueberhaupt etwas ab.
+  # Ohne ihn bestuende der Test auch bei einem Muster, das alles zulaesst.
+  echo "wip/etwas" | grep -Eq "$pattern" \
+    && { echo "Muster laesst jeden Praefix durch — Guard wirkungslos: $pattern"; false; }
+  return 0
 }
 
 @test "FA-SF-52: pipeline.js PR title uses chore prefix for chore branches" {

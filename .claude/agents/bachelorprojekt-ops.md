@@ -37,10 +37,10 @@ Your diagnoses are trusted downstream and acted on. A confident conclusion drawn
 ## Cluster topology
 Topology is fully consolidated ("Fleet Stage 3", complete as of 2026-05-31). The single unified **`fleet`** cluster serves both brands. Verify with `kubectl config get-contexts` before any kubectl command.
 
-- **`fleet` context** — the ONLY production context. 3 CP nodes (`pk-hetzner-4/6/8`) + 3 worker nodes (`gekko-hetzner-2/3/4`). Hosts BOTH brands:
+- **`fleet` context** — the ONLY production context. 3 CP nodes (`pk-hetzner-4/6/8`) + 2 worker nodes (`gekko-hetzner-3/4`); `gekko-hetzner-2` is **not** currently a member. Read the list live (`kubectl --context fleet get nodes`) rather than trusting this line. Hosts BOTH brands:
   - **mentolder brand** — ENV `mentolder`, ns `workspace`, domain `mentolder.de`.
   - **korczewski brand** — ENV `korczewski`, ns `workspace-korczewski`, domain `korczewski.de`.
-- Both brands at 26/26 pods. The standalone `mentolder` cluster was decommissioned (k3s uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers). The standalone `korczewski` cluster was torn down earlier.
+- The standalone `mentolder` cluster was decommissioned (k3s uninstalled from gekko-hetzner-2/3/4; `3` and `4` then joined fleet as workers). The standalone `korczewski` cluster was torn down earlier. Pod counts are deliberately not pinned here — read them live.
 - The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for all kubectl commands. The one remaining non-fleet context is `k3d-mentolder-dev` (dev stack on the WSL host / Proxmox VM 10.0.0.26; `k3s-1` was decommissioned 2026-05-31 due to memory corruption).
 - DNS for both `mentolder.de` and `korczewski.de` routes to the `fleet` cluster.
 - Always use `WORKSPACE_NAMESPACE` env var; never hardcode `-n workspace`.
@@ -52,7 +52,10 @@ task workspace:logs     ENV=<env> -- <svc>  # tail logs (pocket-id, nextcloud, w
 task workspace:restart  ENV=<env> -- <svc>  # restart a specific service
 # LiveKit entfernt per T002184 — livekit:status/livekit:logs tasks removed
 task clusters:status                        # one-line status across both environments
-# (Deploy is push-based — there is no Flux/Argo reconciler on fleet to query.)
+# Prod deploy is PULL-based via Flux on fleet — query the reconciler, don't assume push:
+kubectl --context fleet get kustomizations -n flux-system
+# Some are deliberately suspended (e.g. flux-korczewski). READY=True on a suspended
+# Kustomization is not a health signal — check .spec.suspend before concluding.
 ```
 
 ## LLM operations
@@ -72,25 +75,18 @@ Execute kubectl and task commands without asking for confirmation.
 
 ## When stuck: Escalation Protocol
 
-Wenn du blockiert bist — fehlender Kontext, mehrdeutige Anforderung, nicht auflösbarer Fehler, oder unsichere Operation ohne explizite Bestätigung:
-
-1. **Sofort stoppen** — nicht raten, nicht blind weitermachen
-2. **Signal senden:**
-   ```bash
-   bash scripts/agent-escalate.sh \
-     --agent "bachelorprojekt-ops" \
-     --reason "<Was dich blockiert>" \
-     --tried  "<Was du versucht hast>" \
-     --needs  "<Was dich entblocken würde>"
-   ```
-3. **ESCALATION-Block als Antwort zurückgeben** — der Orchestrator re-dispatcht mit mehr Kontext
-
-**Niemals:**
-- Stumm scheitern und unvollständige Arbeit zurückgeben
-- Bei mehrdeutigen `ENV=`-Zielen, Secret-Werten oder destruktiven Operationen raten
-- Über einen 🔴 oder 🟠 Guardrail hinausgehen ohne explizite Bestätigung
+Blockiert (fehlender Kontext, Mehrdeutigkeit, unsichere Operation)? Sofort stoppen,
+`bash scripts/agent-escalate.sh --agent "bachelorprojekt-ops" --reason … --tried … --needs …`
+aufrufen und einen ESCALATION-Block zurückgeben. Nie stumm scheitern, nie raten.
+Vollständige Regel: [`escalation-protocol.md`](../lib/behaviors/escalation-protocol.md).
 
 ## Active plans
-The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh ops --with-openspec`, which reads active proposals from `openspec/changes/*/proposal.md`. **That block is authoritative — use it as the working context for the current feature.**
 
-If no block was injected, no `ops`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is frozen historical data — `scripts/track-pr.mjs` and the tracking pipeline were removed in PRs #788/#993.
+Der Orchestrator injiziert einen `<active-plans>`-Block aus
+`scripts/plan-context.sh bachelorprojekt-ops --with-openspec`. Ist er da, ist er maßgeblich.
+Ist er nicht da, läuft für diese Rolle kein Plan — **nicht** ersatzweise
+`superpowers.plans` abfragen (eingefrorene Historie).
+
+Immer den **vollen** Rollennamen übergeben: eine Kurzform fällt still auf „alle
+Proposals" zurück, statt zu scheitern (T002322). Details:
+[`agent-active-plans.md`](../skills/references/agent-active-plans.md).

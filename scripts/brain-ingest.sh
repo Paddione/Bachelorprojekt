@@ -151,8 +151,11 @@ SLUGS_JSON="$(mktemp)"
 awk -F'\t' '{print $3}' "$CHUNKS_TSV" | jq -R . | jq -s . > "$SLUGS_JSON"
 echo "Slug inventory: $(jq length "$SLUGS_JSON") slugs (including MOCs)"
 
-# Load state (idempotency)
+# Load state (idempotency) — repair non-object types (T012903)
 if [ ! -f "$STATE_FILE" ]; then
+  echo '{}' > "$STATE_FILE"
+elif ! jq -e 'type == "object"' "$STATE_FILE" >/dev/null 2>&1; then
+  echo "State file is not a JSON object, resetting to {}" >&2
   echo '{}' > "$STATE_FILE"
 fi
 

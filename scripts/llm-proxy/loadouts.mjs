@@ -26,6 +26,9 @@ const LOADOUT_KEYS = new Set([
   'uiConfigFile',
   // T002550: eingebaute llama-Tools (--tools), Werte siehe TOOL_NAMES
   'tools',
+  // Laufzeit, in der diese Tools ausgefuehrt werden (--tools-runtime). Ohne das
+  // Feld laufen sie im Host-Kontext der Unit — siehe die Warnung bei TOOL_NAMES.
+  'toolsRuntime',
   // T003204: Abschalten OHNE Loeschen. Ohne dieses Feld laesst sich ein
   // dominiertes Loadout nur entfernen — und Loeschen naehme die gemessenen
   // `notes` mit. Genau deshalb bleiben dominierte Eintraege sonst jahrelang
@@ -85,6 +88,19 @@ const ARG_KEYS = new Set([
   'reasoningEffort',
 ]);
 const LOAD_MODES = new Set(['none', 'mmap', 'mlock', 'mmap+mlock', 'dio']);
+// Formen von --tools-runtime. llama.cpp akzeptiert vier; hier stehen sie als
+// Regex, weil der Wert danach unveraendert in eine Kommandozeile geht.
+//
+// Die Spawn-Form '<engine>:<image>' ist gueltig, aber fuer Datei-Tools
+// NUTZLOS: llama.cpp startet sie als `<engine> run --rm -i <image> sh`, also
+// OHNE Volume. read_file/write_file/grep_search/file_glob_search laufen dann
+// gegen ein leeres Dateisystem. Wer Dateien sehen will, nimmt die Attach-Form
+// und bestimmt die Mounts selbst (scripts/llm/tools-sandbox.sh).
+//
+// Der zweite Teil ist bewusst eng (alnum am Anfang, dann alnum . - _): llama.cpp
+// prueft dasselbe, weil ein mit '-' beginnender Wert sonst als Engine-Option
+// durchginge — etwa '--privileged'.
+const TOOLS_RUNTIME_RE = /^(?:docker|podman)(?:-container)?:[A-Za-z0-9][A-Za-z0-9._:\/-]*$|^ssh:[A-Za-z0-9][A-Za-z0-9._@-]*$/;
 // Werte aus `llama-server --help`. 'default' laesst die Vorlage entscheiden.
 //
 // Die Stufen sind NICHT monoton: gemessen am 2026-08-20 gegen gemma12-vision
@@ -136,6 +152,14 @@ function validateLoadout(l, index, seen) {
   }
   if (args.reasoningEffort != null && !REASONING_EFFORTS.has(args.reasoningEffort)) {
     fail(`${l.slug}: reasoningEffort '${args.reasoningEffort}' unbekannt (${[...REASONING_EFFORTS].join('|')})`);
+  }
+  if (l.toolsRuntime != null) {
+    if (typeof l.toolsRuntime !== 'string' || !TOOLS_RUNTIME_RE.test(l.toolsRuntime)) {
+      fail(`${l.slug}: toolsRuntime '${l.toolsRuntime}' unbekannt (docker:<image>|docker-container:<name>|podman:…|ssh:<target>)`);
+    }
+    // Eine Laufzeit ohne Tools waere ein stiller Irrtum: sie kostet nichts und
+    // wirkt nie. Wer sie setzt, meint die Tools — dann muessen sie da stehen.
+    if (!l.tools) fail(`${l.slug}: toolsRuntime ohne tools ist wirkungslos`);
   }
 
   // Ohne --fit bedeutet ein ungesetztes -c den llama.cpp-Default 0 ("aus dem

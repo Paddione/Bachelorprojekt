@@ -3870,6 +3870,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/tools-runtime-sandbox",
+    "file": "tests/spec/local-llm-proxy/tools-runtime-sandbox.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/ui-config-seed",
     "file": "tests/spec/local-llm-proxy/ui-config-seed.bats",
     "category": "local-llm-proxy",

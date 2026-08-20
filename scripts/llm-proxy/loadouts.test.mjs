@@ -312,3 +312,44 @@ test('parseLoadouts: get_info ist der aktuelle Name', () => {
   ok.loadouts[0].tools = 'read_file,get_info'
   assert.equal(parseLoadouts(JSON.stringify(ok)).loadouts[0].tools, 'read_file,get_info')
 })
+
+// ── toolsRuntime (--tools-runtime) ───────────────────────────────────────────
+//
+// Der Wert geht unveraendert in eine Kommandozeile. llama.cpp lehnt einen mit
+// '-' beginnenden Bezeichner selbst ab, weil er sonst als Engine-Option
+// durchginge (etwa --privileged); die Pruefung hier ist dieselbe Schranke einen
+// Schritt frueher, damit eine kaputte Registry gar nicht erst startet.
+
+test('parseLoadouts: docker-container-Form ist gueltig', () => {
+  const ok = structuredClone(valid)
+  ok.loadouts[0].tools = 'read_file'
+  ok.loadouts[0].toolsRuntime = 'docker-container:llama-tools-sandbox'
+  assert.equal(parseLoadouts(JSON.stringify(ok)).loadouts[0].toolsRuntime,
+    'docker-container:llama-tools-sandbox')
+})
+
+test('parseLoadouts: toolsRuntime ist optional', () => {
+  // Positiv-Anker: ohne das Feld bleibt das Dokument gueltig.
+  const doc = parseLoadouts(JSON.stringify(valid))
+  assert.equal(doc.loadouts[0].toolsRuntime, undefined)
+})
+
+test('parseLoadouts: toolsRuntime ohne tools wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].toolsRuntime = 'docker-container:llama-tools-sandbox'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /wirkungslos/)
+})
+
+test('parseLoadouts: fuehrendes - im Bezeichner wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = 'read_file'
+  bad.loadouts[0].toolsRuntime = 'docker-container:--privileged'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /toolsRuntime/)
+})
+
+test('parseLoadouts: unbekannte Engine wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = 'read_file'
+  bad.loadouts[0].toolsRuntime = 'chroot:/srv/jail'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /toolsRuntime/)
+})

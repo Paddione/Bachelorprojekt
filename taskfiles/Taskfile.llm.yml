@@ -267,6 +267,21 @@ tasks:
     cmds:
       - node scripts/llm/loadouts-format.mjs --write
 
+  tools-sandbox:up:
+    desc: "Startet den Container, in dem die eingebauten llama-server-Tools laufen (--tools-runtime)"
+    cmds:
+      - bash scripts/llm/tools-sandbox.sh up
+
+  tools-sandbox:status:
+    desc: "Exit 0, wenn der Tool-Sandbox-Container laeuft — dieselbe Pruefung, die der Proxy vor dem Start macht"
+    cmds:
+      - bash scripts/llm/tools-sandbox.sh status
+
+  tools-sandbox:down:
+    desc: "Entfernt den Tool-Sandbox-Container"
+    cmds:
+      - bash scripts/llm/tools-sandbox.sh down
+
   measure-equivalence:
     desc: "Measure embedding equivalence between TEI and new llama.cpp endpoint"
     cmds:

@@ -23,6 +23,61 @@ const REPO_ROOT = process.env.FACTORY_REPO || path.resolve(import.meta.dirname, 
 
 export function unitName(slug) { return `llama-${slug}.service`; }
 
+/**
+ * Zerlegt einen --tools-runtime-Wert in seine Bestandteile.
+ *
+ * Rein, damit die Fallunterscheidung ohne Docker testbar ist — der Aufruf, der
+ * wirklich nachsieht, steht in `toolsRuntimeMissing`.
+ *
+ * @param {string|null|undefined} spec Wert aus loadout.toolsRuntime
+ * @returns {{kind:'attach'|'spawn'|'ssh', bin:string, arg:string}|null}
+ *   null, wenn nichts gesetzt ist oder die Form unbekannt ist. Die Form wird in
+ *   loadouts.mjs fail-closed geprueft; hier ist null schlicht "nichts zu tun".
+ */
+export function parseToolsRuntime(spec) {
+  if (typeof spec !== 'string' || spec === '') return null;
+  for (const bin of ['docker', 'podman']) {
+    if (spec.startsWith(`${bin}-container:`)) {
+      return { kind: 'attach', bin, arg: spec.slice(`${bin}-container:`.length) };
+    }
+    if (spec.startsWith(`${bin}:`)) {
+      return { kind: 'spawn', bin, arg: spec.slice(`${bin}:`.length) };
+    }
+  }
+  if (spec.startsWith('ssh:')) return { kind: 'ssh', bin: 'ssh', arg: spec.slice(4) };
+  return null;
+}
+
+/**
+ * Prueft, ob die Attach-Form auf einen LAUFENDEN Container zeigt.
+ *
+ * Nur diese Form ist hier pruefbar und nur sie muss geprueft werden: die
+ * Spawn-Form legt llama.cpp selbst an, und ssh scheitert beim Verbinden mit
+ * einer eigenen Meldung. Ohne diesen Vorablauf faellt ein fehlender Container
+ * erst beim ersten Toolaufruf auf — als Fehlertext AN DAS MODELL, nicht im Log
+ * und nicht beim Start. Der Server liefe scheinbar gesund weiter.
+ *
+ * @param {object} loadout Loadout mit optionalem toolsRuntime
+ * @returns {string|null} Klartext-Grund, oder null wenn nichts zu beanstanden ist
+ */
+export function toolsRuntimeMissing(loadout) {
+  const rt = parseToolsRuntime(loadout?.toolsRuntime);
+  if (!rt || rt.kind !== 'attach') return null;
+  let out;
+  try {
+    out = execFileSync(rt.bin, ['inspect', '-f', '{{.State.Running}}', rt.arg],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  } catch {
+    return `toolsRuntime: ${rt.bin} kennt den Container '${rt.arg}' nicht `
+      + `(anlegen: bash scripts/llm/tools-sandbox.sh up)`;
+  }
+  if (out !== 'true') {
+    return `toolsRuntime: Container '${rt.arg}' existiert, laeuft aber nicht `
+      + `(starten: bash scripts/llm/tools-sandbox.sh up)`;
+  }
+  return null;
+}
+
 /** @returns {string[]} argv fuer llama-server, OHNE das Binary selbst */
 export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   const a = loadout.args ?? {};
@@ -127,6 +182,12 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   // auf localhost. Fuer unseren Fall folgenlos, weil WebUI und alle acht
   // MCP-Endpunkte auf loopback liegen.
   if (loadout.tools != null) argv.push('--tools', String(loadout.tools));
+  // Isolat, in dem die Tools laufen. Ohne das Flag ist es der Host-Kontext der
+  // Unit — mit exec_shell_command also eine Shell ueber das gesamte
+  // Benutzerverzeichnis. server.mjs prueft VOR dem Start, dass ein benannter
+  // Container laeuft; ein fehlender faellt sonst erst beim ersten Toolaufruf auf,
+  // und zwar nur gegenueber dem Modell.
+  if (loadout.toolsRuntime != null) argv.push('--tools-runtime', String(loadout.toolsRuntime));
 
   // T002426: GEGENRICHTUNG zu --mcp-servers-config. Jenes Flag macht llama-server
   // zum MCP-*Client* (das Modell ruft fremde Tools). --ui-mcp-proxy betrifft die

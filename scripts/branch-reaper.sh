@@ -193,6 +193,16 @@ _diverging_files() {
   done < <(git diff --name-only "$mb" "$ref" 2>/dev/null)
 }
 
+# Branches, die gerade in einem Worktree ausgecheckt sind. Ein solcher Branch traegt
+# laufende Arbeit: sein Remote-Gegenstueck zu loeschen nimmt der Sitzung das Ziel des
+# naechsten Push, waehrend sie laeuft. Der Ausgangszustand ist hier bewusst der
+# Arbeitsbaum und nicht das Ticket — ein Worktree kann offen sein, obwohl das Ticket
+# schon done ist, und genau dann greift keine der anderen Schranken.
+#
+# --porcelain ist Pflicht: die Klartextform von 'git worktree list' kuerzt lange Pfade
+# und nennt den Branch in eckigen Klammern, also nicht als stabiles Feld.
+mapfile -t WORKTREE_BRANCHES < <(git worktree list --porcelain | sed -n 's|^branch refs/heads/||p')
+
 # Kandidaten: Remote-Branches. Im Einzel-Ticket-Modus nur die, deren Name die Ticket-ID
 # trägt (case-insensitiv). Im Sweep-Modus alle — die Ticket-ID wird je Branch aus dem
 # Branch-Namen extrahiert.
@@ -226,6 +236,18 @@ for branch in "${CANDIDATES[@]}"; do
   [ -z "$branch" ] && continue
   if [ "$branch" = "main" ] || [ "$branch" = "$CURRENT_BRANCH" ]; then
     echo "KEEP $branch — aktueller Branch oder main"
+    continue
+  fi
+
+  # Vor jeder Ticket- oder Diff-Pruefung: ein Branch mit offenem Worktree wird verschont,
+  # unabhaengig vom Ticketstatus. Die Pruefung steht hier oben, weil sie den Lauf nichts
+  # kostet und die teureren Abfragen (ticket.sh, gh) dahinter gar nicht erst noetig sind.
+  in_worktree=0
+  for wb in "${WORKTREE_BRANCHES[@]}"; do
+    if [ "$branch" = "$wb" ]; then in_worktree=1; break; fi
+  done
+  if [ "$in_worktree" -eq 1 ]; then
+    echo "KEEP $branch — in einem Worktree ausgecheckt"
     continue
   fi
 

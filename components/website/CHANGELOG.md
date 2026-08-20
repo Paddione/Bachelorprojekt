@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.294.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.294.0...website-v1.294.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **scripts:** branch-reaper erkennt Netzfehler und SKILL.md nennt Scope-Allowlist [T012967] ([#4894](https://github.com/Paddione/Bachelorprojekt/issues/4894)) ([fe851ae](https://github.com/Paddione/Bachelorprojekt/commit/fe851aebf6adfc7068ccf9b1adc766e6913185f2))
+
 ## [1.294.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.3...website-v1.294.0) (2026-08-20)
 
 

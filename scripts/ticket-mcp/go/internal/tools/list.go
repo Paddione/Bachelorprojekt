@@ -51,13 +51,13 @@ func RegisterListTools(s *server.MCPServer) {
 			}
 
 			args := []string{"list", "--brand", brand, "--limit", fmt.Sprintf("%d", limit)}
+			// T012972: Eine Komma-Liste geht unveraendert durch. Sie hier in mehrere
+			// --status-Flags aufzuspalten waere wirkungslos: vda/ticket/list.sh
+			// ueberschreibt den Wert bei jedem Vorkommen, sodass nur der letzte zaehlt —
+			// der Aufrufer bekaeme still eine Teilmenge statt eines Fehlers. Aufgeloest
+			// wird die Liste dort, wo sie ankommt (status = ANY(string_to_array(...))).
 			if status != "" {
-				for _, s := range strings.Split(status, ",") {
-					s = strings.TrimSpace(s)
-					if s != "" {
-						args = append(args, "--status", s)
-					}
-				}
+				args = append(args, "--status", status)
 			}
 			if mtype != "" {
 				args = append(args, "--type", mtype)
@@ -132,13 +132,13 @@ func RegisterListTools(s *server.MCPServer) {
 			}
 
 			args := []string{"list", "--brand", brand, "--limit", fmt.Sprintf("%d", limit)}
+			// T012972: Eine Komma-Liste geht unveraendert durch. Sie hier in mehrere
+			// --status-Flags aufzuspalten waere wirkungslos: vda/ticket/list.sh
+			// ueberschreibt den Wert bei jedem Vorkommen, sodass nur der letzte zaehlt —
+			// der Aufrufer bekaeme still eine Teilmenge statt eines Fehlers. Aufgeloest
+			// wird die Liste dort, wo sie ankommt (status = ANY(string_to_array(...))).
 			if status != "" {
-				for _, s := range strings.Split(status, ",") {
-					s = strings.TrimSpace(s)
-					if s != "" {
-						args = append(args, "--status", s)
-					}
-				}
+				args = append(args, "--status", status)
 			}
 			if mtype != "" {
 				args = append(args, "--type", mtype)

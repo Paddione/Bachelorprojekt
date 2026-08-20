@@ -193,13 +193,20 @@ _diverging_files() {
   done < <(git diff --name-only "$mb" "$ref" 2>/dev/null)
 }
 
-# Get branches currently checked out in any worktree
-mapfile -t WORKTREE_BRANCHES < <(git worktree list --porcelain | grep "^branch refs/heads/" | sed 's/^branch refs\/heads\///')
+# Branches, die gerade in einem Worktree ausgecheckt sind. Ein solcher Branch traegt
+# laufende Arbeit: sein Remote-Gegenstueck zu loeschen nimmt der Sitzung das Ziel des
+# naechsten Push, waehrend sie laeuft. Der Ausgangszustand ist hier bewusst der
+# Arbeitsbaum und nicht das Ticket — ein Worktree kann offen sein, obwohl das Ticket
+# schon done ist, und genau dann greift keine der anderen Schranken.
+#
+# --porcelain ist Pflicht: die Klartextform von 'git worktree list' kuerzt lange Pfade
+# und nennt den Branch in eckigen Klammern, also nicht als stabiles Feld.
+mapfile -t WORKTREE_BRANCHES < <(git worktree list --porcelain | sed -n 's|^branch refs/heads/||p')
 
 # Kandidaten: Remote-Branches. Im Einzel-Ticket-Modus nur die, deren Name die Ticket-ID
-# trägt (case-insensitiv). Im Sweep-Modus alle — die Ticket-ID wird je Branch aus dem Branch-Namen extrahiert.
+# trägt (case-insensitiv). Im Sweep-Modus alle — die Ticket-ID wird je Branch aus dem
+# Branch-Namen extrahiert.
 mapfile -t CANDIDATES < <(
-
   if [ -n "$TICKET_ID" ]; then
     git ls-remote --heads "$REMOTE" 2>/dev/null \
       | awk '{print $2}' \
@@ -232,16 +239,14 @@ for branch in "${CANDIDATES[@]}"; do
     continue
   fi
 
-  # Check if branch is checked out in a worktree
+  # Vor jeder Ticket- oder Diff-Pruefung: ein Branch mit offenem Worktree wird verschont,
+  # unabhaengig vom Ticketstatus. Die Pruefung steht hier oben, weil sie den Lauf nichts
+  # kostet und die teureren Abfragen (ticket.sh, gh) dahinter gar nicht erst noetig sind.
   in_worktree=0
   for wb in "${WORKTREE_BRANCHES[@]}"; do
-    if [[ "$branch" == "$wb" ]]; then
-      in_worktree=1
-      break
-    fi
+    if [ "$branch" = "$wb" ]; then in_worktree=1; break; fi
   done
-
-  if [[ $in_worktree -eq 1 ]]; then
+  if [ "$in_worktree" -eq 1 ]; then
     echo "KEEP $branch — in einem Worktree ausgecheckt"
     continue
   fi

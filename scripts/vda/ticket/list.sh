@@ -32,7 +32,12 @@ main() {
   local pod; pod=$(_pgpod)
 
   local where="brand = :'brand'"
-  [[ -n "$status" ]]         && where+=" AND status = :'status'"
+  # T012972: --status nimmt eine Komma-Liste ("open,triage"). Ein zweites --status-Flag
+  # waere kein Ausweg — die Schleife oben ueberschreibt den Wert, und der Aufrufer bekaeme
+  # still die Treffer des LETZTEN Werts statt der Vereinigung. Die Aufloesung gehoert
+  # deshalb hierher, wo die Liste als Ganzes ankommt. Leerzeichen werden entfernt, damit
+  # "open, triage" nicht an einem Wert mit fuehrendem Blank scheitert.
+  [[ -n "$status" ]]         && where+=" AND status = ANY(string_to_array(replace(:'status', ' ', ''), ','))"
   [[ -n "$type" ]]           && where+=" AND type = :'type'"
   [[ -n "$attention_mode" ]] && where+=" AND attention_mode = :'attn'"
   [[ "$missing_id" == "true" ]] && where+=" AND external_id IS NULL"

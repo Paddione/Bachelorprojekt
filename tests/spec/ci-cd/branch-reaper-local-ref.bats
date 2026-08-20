@@ -130,25 +130,37 @@ _anchor_same_sha_reaped() {
   [ -n "$kept_local" ]
 }
 
-@test "T003182: in einem Worktree ausgecheckter lokaler Ref ueberlebt" {
+@test "T012972: Branch mit offenem Worktree wird gar nicht erst geloescht" {
   # Positiv-Anker zuerst: der gültige Fall (identische SHA) läuft durch.
   _anchor_same_sha_reaped
 
-  # Negativ-Aussage: der lokale Branch ist in einem zweiten Worktree ausgecheckt —
-  # `git branch -D` schlaegt fehl, der Ref darf NICHT entfernt werden. Die SHA-Gleichheit
-  # allein genuegt als Loeschgrund also nicht: das Scheitern des Delete-Befehls ist kein
-  # Fehler, sondern ein dokumentierter KEEP-Fall.
+  # Diese Zusicherung hat die urspruengliche von T003182 ABGELOEST. Bis T012972 wurde der
+  # Remote-Branch auch dann geloescht, wenn er in einem Worktree ausgecheckt war; verschont
+  # blieb nur der lokale Ref, weil `git branch -D` daran scheitert. Das war die schwaechere
+  # Zusicherung: der Worktree verlor sein Push-Ziel mitten im Lauf und der lokale Ref
+  # ueberlebte nur als Nebenwirkung eines fehlschlagenden Befehls. Jetzt greift der Guard
+  # VOR der Loeschung, und beide Refs bleiben stehen.
   git -C "$FIXTURE" worktree add --quiet "$BATS_TEST_TMPDIR/wt2" chore/plan-T009002
 
   run bash "$REAPER" --ticket T009002 --repo "$FIXTURE"
   [ "$status" -eq 0 ]
-  # Ausgabe-Ableitung sofort sichern (der folgende `run` ueberschreibt $output).
-  kept_local="$(printf '%s\n' "$output" | grep '^KEEP local chore/plan-T009002' || true)"
-  # Remote-Branch wurde geloescht.
-  [ "$(git ls-remote --heads "$REMOTE" | grep -c 'chore/plan-T009002' || true)" -eq 0 ]
-  # Der lokale Ref lebt weiter (ist im Worktree ausgecheckt).
+  # Ausgabe-Ableitung sofort sichern (die folgenden `run`-Aufrufe ueberschreiben $output).
+  kept="$(printf '%s\n' "$output" | grep '^KEEP chore/plan-T009002' || true)"
+  # Der Remote-Branch lebt — das ist die Aussage, die vorher umgekehrt lautete.
+  [ "$(git ls-remote --heads "$REMOTE" | grep -c 'chore/plan-T009002' || true)" -eq 1 ]
+  # Der lokale Ref lebt ebenfalls.
   run git -C "$FIXTURE" rev-parse --verify --quiet chore/plan-T009002
   [ "$status" -eq 0 ]
-  # Die Ausgabe begruendet das Verschonen des LOKALEN Refs.
-  [ -n "$kept_local" ]
+  # Die Ausgabe begruendet das Verschonen mit dem Worktree, nicht mit dem Ticketstatus:
+  # das Ticket ist per Stub `done`, ohne den Guard waere der Branch also faellig.
+  [ -n "$kept" ]
+  [ "$(printf '%s\n' "$kept" | grep -ci 'worktree')" -eq 1 ]
+}
+
+@test "T012972: Branch ohne Worktree bleibt faellig (Guard greift nicht pauschal)" {
+  # Negativ-Anker zum Guard: ohne offenen Worktree muss die Loeschung weiterhin stattfinden.
+  # Ohne diesen Test waere ein Guard, der IMMER KEEP sagt, gruen — und der Reaper wirkungslos.
+  run bash "$REAPER" --ticket T009002 --repo "$FIXTURE"
+  [ "$status" -eq 0 ]
+  [ "$(git ls-remote --heads "$REMOTE" | grep -c 'chore/plan-T009002' || true)" -eq 0 ]
 }

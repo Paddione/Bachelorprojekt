@@ -5448,6 +5448,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-system/list-status-comma-list",
+    "file": "tests/spec/ticket-system/list-status-comma-list.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-system/list-test-data-filter",
     "file": "tests/spec/ticket-system/list-test-data-filter.bats",
     "category": "ticket-system",

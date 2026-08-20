@@ -362,3 +362,25 @@ test('ohne speculative-Felder erscheint kein einziges spec-Flag', () => {
   const argv = buildServerArgv(specBase({ draftHfRepo: null, draftNgl: null }), MODEL, defaults)
   assert.equal(argv.filter((x) => String(x).startsWith('--spec-')).length, 0)
 })
+
+// ── --reasoning-effort ───────────────────────────────────────────────────────
+//
+// Dritte, unabhaengige Stellschraube der Denkphase neben '-rea' (denkt das
+// Modell ueberhaupt) und '--reasoning-budget' (harte Token-Obergrenze): sie
+// gibt der Chat-Vorlage eine Stufe vor. Wie ueberall hier erzeugt nur ein
+// gesetzter Wert ein Argument.
+
+test('gesetzter reasoningEffort erscheint als --reasoning-effort', () => {
+  const l = structuredClone(base)
+  l.args.reasoningEffort = 'low'
+  const argv = buildServerArgv(l, MODEL, defaults)
+  assert.deepEqual(argv.slice(argv.indexOf('--reasoning-effort'), argv.indexOf('--reasoning-effort') + 2),
+    ['--reasoning-effort', 'low'])
+})
+
+test('ohne reasoningEffort erscheint kein --reasoning-effort', () => {
+  const argv = buildServerArgv(base, MODEL, defaults)
+  assert.equal(argv.includes('--reasoning-effort'), false)
+  // Positiv-Anker: die uebrigen reasoning-Flags sind davon unberuehrt.
+  assert.deepEqual(argv.slice(argv.indexOf('-rea'), argv.indexOf('-rea') + 2), ['-rea', 'auto'])
+})

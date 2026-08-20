@@ -73,6 +73,8 @@ Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
 - Commit-Verifikation: `HEAD_SHA != BASE_SHA`
 - Scope-Preflight: `bash scripts/preflight-pr-scope.sh`
 - PR-Titel: `chore(<scope>): <subject> [$TICKET_EXT_ID]`
+  - Scope muss aus der Allowlist stammen (`bash scripts/validate-commit-msg.sh scopes`)
+  - Oder Ticket-Scope verwenden: `chore($TICKET_EXT_ID): <subject>` (bypassed die Allowlist)
 
 ## Schritt 5: Merge wenn CI grün
 

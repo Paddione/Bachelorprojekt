@@ -52,7 +52,12 @@ func RegisterListTools(s *server.MCPServer) {
 
 			args := []string{"list", "--brand", brand, "--limit", fmt.Sprintf("%d", limit)}
 			if status != "" {
-				args = append(args, "--status", status)
+				for _, s := range strings.Split(status, ",") {
+					s = strings.TrimSpace(s)
+					if s != "" {
+						args = append(args, "--status", s)
+					}
+				}
 			}
 			if mtype != "" {
 				args = append(args, "--type", mtype)
@@ -128,7 +133,12 @@ func RegisterListTools(s *server.MCPServer) {
 
 			args := []string{"list", "--brand", brand, "--limit", fmt.Sprintf("%d", limit)}
 			if status != "" {
-				args = append(args, "--status", status)
+				for _, s := range strings.Split(status, ",") {
+					s = strings.TrimSpace(s)
+					if s != "" {
+						args = append(args, "--status", s)
+					}
+				}
 			}
 			if mtype != "" {
 				args = append(args, "--type", mtype)

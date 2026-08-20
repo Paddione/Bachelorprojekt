@@ -193,10 +193,13 @@ _diverging_files() {
   done < <(git diff --name-only "$mb" "$ref" 2>/dev/null)
 }
 
+# Get branches currently checked out in any worktree
+mapfile -t WORKTREE_BRANCHES < <(git worktree list --porcelain | grep "^branch refs/heads/" | sed 's/^branch refs\/heads\///')
+
 # Kandidaten: Remote-Branches. Im Einzel-Ticket-Modus nur die, deren Name die Ticket-ID
-# trägt (case-insensitiv). Im Sweep-Modus alle — die Ticket-ID wird je Branch aus dem
-# Branch-Namen extrahiert.
+# trägt (case-insensitiv). Im Sweep-Modus alle — die Ticket-ID wird je Branch aus dem Branch-Namen extrahiert.
 mapfile -t CANDIDATES < <(
+
   if [ -n "$TICKET_ID" ]; then
     git ls-remote --heads "$REMOTE" 2>/dev/null \
       | awk '{print $2}' \
@@ -226,6 +229,20 @@ for branch in "${CANDIDATES[@]}"; do
   [ -z "$branch" ] && continue
   if [ "$branch" = "main" ] || [ "$branch" = "$CURRENT_BRANCH" ]; then
     echo "KEEP $branch — aktueller Branch oder main"
+    continue
+  fi
+
+  # Check if branch is checked out in a worktree
+  in_worktree=0
+  for wb in "${WORKTREE_BRANCHES[@]}"; do
+    if [[ "$branch" == "$wb" ]]; then
+      in_worktree=1
+      break
+    fi
+  done
+
+  if [[ $in_worktree -eq 1 ]]; then
+    echo "KEEP $branch — in einem Worktree ausgecheckt"
     continue
   fi
 

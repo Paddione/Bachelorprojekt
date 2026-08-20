@@ -4974,6 +4974,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc/dev-admin-session-guards",
+    "file": "tests/spec/sdlc/dev-admin-session-guards.bats",
+    "category": "sdlc",
+    "kind": "shell"
+  },
+  {
     "id": "sealed-secret-cluster-drift",
     "file": "tests/spec/sealed-secret-cluster-drift.bats",
     "category": "sealed-secret-cluster-drift",

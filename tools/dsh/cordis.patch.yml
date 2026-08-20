@@ -18,3 +18,33 @@
         projectDir: '@@REPO@@'
     - id: bachelorprojekt
       name: '@@REPO@@/tools/dsh/index.js'
+
+    # [T012971] Zwei optionale Faehigkeiten, die dsh-base nicht mitbringt.
+    # Beide sind Host-Plane-Rows: der Patch-Layer patcht den Host-Tree, nicht
+    # die Agent-Presets.
+    #
+    # schedule — durable Reminder ueber den Session-Ereignisstrom
+    # (schedule_create/-list/-cancel). Registriert seine Werkzeuge selbst ueber
+    # `agent.ctx`, sobald ein Root-Agent entsteht, und ist deshalb vom Host aus
+    # vollstaendig. Nur spaetere `agent/created`-Ereignisse zaehlen: Agenten,
+    # die beim Laden schon existierten, bekommen kein Schedule.
+    - id: schedule
+      name: '@@DSH_CLONE@@/packages/schedule/schedule/lib/index.js'
+
+    # terminal — persistente PTY-Sitzungen (terminal_open/_send/_read/_signal/
+    # _close/_list). Drei Rows, weil die Faehigkeit auf drei Rollen aufgeteilt
+    # ist: Service (`terminal`), Backend (`terminal-bash`, laeuft unter der
+    # gemeinsamen sandboxPolicy) und die modellseitigen Werkzeuge
+    # (`tool-terminal`). Ohne Backend gaebe es einen Service ohne Ausfuehrung,
+    # ohne tool-Row sieht das Modell nichts.
+    - id: terminal
+      name: '@@DSH_CLONE@@/packages/terminal/terminal/lib/index.js'
+    - id: terminal-bash
+      name: '@@DSH_CLONE@@/packages/terminal/terminal-bash/lib/index.js'
+    - id: tool-terminal
+      name: '@@DSH_CLONE@@/packages/terminal/tool-terminal/lib/index.js'
+
+    # lsp bleibt bewusst draussen: `dsh-lsp-stdio` verlangt eine `servers`-
+    # Tabelle (welcher Sprachserver, welches Binary, welche Dateiendungen) und
+    # bricht ohne sie beim Boot ab — `$.servers missing required value`. Welche
+    # Server hier installiert sein sollen, ist eine eigene Entscheidung.

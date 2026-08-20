@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.294.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.3...website-v1.294.0) (2026-08-20)
+
+
+### Features
+
+* **ops:** Tool-Laufzeit fuer llama-server in einem gehaerteten Container ([#4878](https://github.com/Paddione/Bachelorprojekt/issues/4878)) ([0ed637c](https://github.com/Paddione/Bachelorprojekt/commit/0ed637c24a5960bc6e69b4c157e08e94abba7ac8))
+
 ## [1.293.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.2...website-v1.293.3) (2026-08-20)
 
 

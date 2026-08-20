@@ -3,7 +3,8 @@
 // reine Funktion herausgezogen, damit sie ohne GPU getestet werden kann.
 //
 // WARUM null-Felder WEGGELASSEN werden (gemessen 2026-07-28):
-//   llama.cpp b10155 hat --fit per Default auf 'on' und passt nur UNGESETZTE
+//   llama.cpp hat --fit per Default auf 'on' (gegengeprueft b10155 bis Build 61)
+//   und passt nur UNGESETZTE
 //   Argumente an das freie VRAM an. Ein serialisiertes `-c 0` waere ein GESETZTES
 //   Argument und schaltet die Anpassung ab. Handgesetzt -ngl 19 -c 65536 lieferte
 //   30,9 tok/s decode; ungesetzt mit -fitt 2400 waren es 158-166 tok/s bei
@@ -47,6 +48,10 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   if (a.metrics) argv.push('--metrics');
   if (a.reasoning != null) argv.push('-rea', a.reasoning);
   if (a.reasoningBudget != null) argv.push('--reasoning-budget', String(a.reasoningBudget));
+  // Abgestufte Staerke der Denkphase. Wirkungslos, solange nicht gedacht wird —
+  // es ersetzt weder '-rea' (Denken an/aus) noch '--reasoning-budget'
+  // (harte Token-Obergrenze), sondern gibt der Vorlage eine Stufe vor.
+  if (a.reasoningEffort != null) argv.push('--reasoning-effort', a.reasoningEffort);
 
   // T002579 — Sampling. Bis hierher setzte kein Loadout Sampling-Parameter, es
   // galten also stillschweigend die llama.cpp-Defaults (temp 0.8, top-k 40).
@@ -68,6 +73,12 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   //
   // Serialisierung hier statt in der Konfiguration: der Wert steht in
   // loadouts.json als echtes Objekt, damit ihn niemand von Hand escapen muss.
+  //
+  // Fuer 'enable_thinking' ist dieser Weg im aktuellen Build deprecated:
+  // llama-server warnt "Setting 'enable_thinking' via --chat-template-kwargs is
+  // deprecated. Use --reasoning on / --reasoning off instead." Kein Loadout
+  // fuehrt den Schluessel noch; wer ihn wieder einsetzt, nimmt die Warnung in
+  // Kauf und riskiert, dass ein spaeterer Build ihn ganz fallen laesst.
   if (a.chatTemplateKwargs != null) {
     argv.push('--chat-template-kwargs', JSON.stringify(a.chatTemplateKwargs));
   }
@@ -77,13 +88,14 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   if (mmproj != null) argv.push('--mmproj', mmproj);
   const s = loadout.speculative ?? {};
   // T002633: '--spec-type' MUSS gesetzt werden, sonst ist der ganze Block wirkungslos.
-  // llama.cpp b10225 hat den Default 'none'; ein uebergebenes '--spec-draft-model' wird
+  // llama.cpp hat den Default 'none' (b10225 bis Build 61); ein uebergebenes '--spec-draft-model' wird
   // dann geladen (belegt also VRAM) und nie benutzt. Bis hierher setzte der Runner nur
   // '--spec-draft-model' — spekulatives Dekodieren war auf dem Proxy-Pfad also durchgehend
   // aus, waehrend der '.ps1'-Pfad es korrekt mit '--spec-type draft-mtp' startete. Der
   // Fehler ist still: kein Startabbruch, keine Logzeile.
   //
-  // Gueltige Werte des Builds: none, draft-simple, draft-eagle3, draft-mtp, draft-dflash,
+  // Gueltige Werte des Builds (unveraendert b10225 bis Build 61, 0adcc3bb5): none,
+  // draft-simple, draft-eagle3, draft-mtp, draft-dflash,
   // draft-dspark, ngram-simple, ngram-map-k, ngram-map-k4v, ngram-mod, ngram-cache.
   // Die 'ngram-*'-Varianten brauchen KEIN Draft-Modell, kosten also kein VRAM — auf einer
   // 16-GB-Karte mit einem 12-GB-Modell die einzige Variante, die noch hineinpasst.

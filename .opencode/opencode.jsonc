@@ -1,13 +1,22 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Lokales Gemma 4 26B A4B (IT-Quant, IQ4_XS) als Standard [T012409]. Es ist das
-  // einzige Modell, das das Gateway auf :18235 listet — die Backend-Registry
-  // tickets.llm_proxy_backends hat nur llamacpp-gemma (Port 8091) aktiv.
-  // Gemessen 2026-08-18: 167.168 Kontext gesamt / 55.722 je Slot, 122-128 tok/s.
+  // Lokales Gemma 4 12B QAT mit drei Slots als Standard — das Loadout
+  // gemma12-vision auf Port 8089 (Backend llamacpp-gemma12). Es ist das einzige
+  // vision-faehige lokale Loadout, hat mit 262.144 den groessten Kontext und
+  // faehrt MTP-Speculative-Decoding.
+  //
+  // WARUM NICHT MEHR gemma26-factory [2026-08-20]: Alle chat-gpu-Loadouts teilen
+  // eine exclusiveGroup, es laeuft also immer nur eines. Solange der Default auf
+  // ein anderes Loadout zeigte als das, mit dem gearbeitet wird, stoppte jede
+  // neue opencode-Session zuerst das laufende, um den Default zu starten. Als
+  // gemma26-factory nach dem llama.cpp-Upgrade nicht mehr startete (Tool-Name
+  // get_datetime -> get_info), riss dieser Wechsel gemma12-vision jedes Mal mit
+  // herunter und opencode meldete durchgehend "no healthy backend". Der Default
+  // gehoert deshalb auf das Loadout, das tatsaechlich laufen soll.
   //
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
-  "model": "llamacpp-local/gemma26-factory",
+  "model": "llamacpp-local/gemma12-vision",
   "permission": {
     "read": "allow",
     "edit": "allow",

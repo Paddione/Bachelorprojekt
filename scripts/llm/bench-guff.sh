@@ -6,7 +6,7 @@
 # optionalem MTP (--spec-type draft-mtp).
 #
 # Nutzung:
-#   LLAMA_DIR=$HOME/opt/llama-b10442/llama-b10442 bash scripts/llm/bench-guff.sh <modell.gguf>
+#   LLAMA_DIR=$HOME/opt/llama-current/bin bash scripts/llm/bench-guff.sh <modell.gguf>
 #
 # Env-Parameter:
 #   PORT       Server-Port (Default 8090)
@@ -20,7 +20,10 @@
 # Ausgabe: eine JSON-Zeile mit quant, mtp, ctx, kv_t, pp_tps, gen_tps, vram_mb
 set -euo pipefail
 
-: "${LLAMA_DIR:=$HOME/opt/llama-b10442/llama-b10442}"
+# Versionsneutral wie in scripts/llm-proxy/server.mjs (T002536): der Symlink
+# ~/opt/llama-current zeigt auf den jeweils aktuellen Build. Ein gepinnter
+# Pfad misst nach jedem Upgrade still gegen das alte Binary weiter.
+: "${LLAMA_DIR:=$HOME/opt/llama-current/bin}"
 : "${PORT:=8090}"
 : "${CTX:=32768}"
 : "${KV_T:=q8_0}"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.293.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.2...website-v1.293.3) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ops:** llama.cpp-Upgrade — get_datetime -&gt; get_info, opencode-Default auf gemma12-vision ([#4875](https://github.com/Paddione/Bachelorprojekt/issues/4875)) ([a7502a6](https://github.com/Paddione/Bachelorprojekt/commit/a7502a62238fa521552013f8dc9766d55e287445))
+
 ## [1.293.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.1...website-v1.293.2) (2026-08-19)
 
 

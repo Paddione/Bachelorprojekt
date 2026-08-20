@@ -156,7 +156,9 @@ Läuft nach **`git-workflow` Schritt 2–4** (SSOT): git-crypt-Staging-Guard [T0
 `HEAD_SHA != BASE_SHA` [T000925], `preflight-pr-scope.sh` vor `gh pr create`,
 REST-Fallback für Titel-Edits.
 
-Chore-spezifisch: Titelformat `chore(<scope>): <subject> [$TICKET_EXT_ID]`. Die
+Chore-spezifisch: Titelformat `chore(<TICKET_EXT_ID>): <subject> [$TICKET_EXT_ID]`. Als
+Scope die Ticket-ID nehmen, nicht ein Thema-Wort: `validate-commit-msg.sh` prüft Scopes
+gegen eine Allowlist, ein Ticket-Scope umgeht sie. Die
 `[T000XXX]`-Referenz wird von `.github/workflows/post-merge.yml` gelesen — das Ticket ist
 bereits `done`, der Status-Update ist ein idempotenter No-op.
 

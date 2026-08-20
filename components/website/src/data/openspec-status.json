@@ -4161,6 +4161,12 @@
       "status": "plan_staged"
     }
   ],
+  "T012445": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-19-T012445",
+      "status": "plan_staged"
+    }
+  ],
   "T012446": [
     {
       "slug": "hybrid-github-actions-runners",
@@ -4189,6 +4195,12 @@
     {
       "slug": "2026-08-19-brain-ingest-from-scratch",
       "status": "archived"
+    }
+  ],
+  "T012909": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-20-T012909",
+      "status": "plan_staged"
     }
   ],
   "T012913": [

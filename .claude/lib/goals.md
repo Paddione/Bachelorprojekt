@@ -3,7 +3,7 @@
 Quantifizierbare Ziele für die strukturelle Gesundheit des Repos.
 Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
-**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-08-19` · **Dashboard:** Homepage-Section `#health`
+**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-08-20` · **Dashboard:** Homepage-Section `#health`
 
 > **`Zuletzt gemessen` ist das Messdatum des Dashboards** und wird von
 > `scripts/health-goals-update.sh` bei jedem Lauf gestempelt. Vor T002598 leitete
@@ -468,17 +468,17 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
 | **G-SEC03** | SealedSecret-Rotation | 0 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
-| **G-SEC04** | Sealing-Cert Restlaufzeit | 3599 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
+| **G-SEC04** | Sealing-Cert Restlaufzeit | 3598 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
 | **G-SEC05** | Unsignierte Commits (adj.) | 0/50 adj. ✓ (Mess-Bug fix: Skript filtert beide github-actions[bot] Mail-Varianten) | ≤ 5 % | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
 | **G-SPEC01** | openspec:validate grün | Exit 0 ✓ | Exit 0 | `bash scripts/openspec.sh validate` |
 | **G-SPEC02** | Changes >30 Tage | 5 ⚠ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 23 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
-| **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
+| **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 1 ⚠ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-DB11** | Tage seit letztem Restore-Verify | 28 ✓ | ≤ 30 | `kubectl get configmap recovery-verify-status -o jsonpath=...` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 3 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
 | **G-FE05** | Lighthouse Performance Score | 90 ✓ | ≥ 90 | `npx @lhci/cli autorun --collect.url=... --assert.performance=0.9` |
-| **G-BRAIN14** | Brain-Ingest-Backlog | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh` + State-File-Hash-Vergleich |
-| **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
+| **G-BRAIN14** | Brain-Ingest-Backlog | 171 ⚠ | 0 | `bash scripts/brain-ingest-worklist.sh` + State-File-Hash-Vergleich |
+| **G-IF01** | MCP-Endpunkte ohne Listener | 4 ⚠ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
 | **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 0 ✓ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
@@ -519,8 +519,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
 | **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff); .github/-Pfade zählen nicht mit — sie sind Trigger, keine Brain-Quellen` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
-| **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 3 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
-| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 9 ⚠ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
+| **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
+| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 8 ⚠ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
 
 ---
 

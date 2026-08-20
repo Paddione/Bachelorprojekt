@@ -49,7 +49,9 @@
       "Bash(timeout 20 kubectl --context fleet get ns argocd)",
       "Bash(timeout 25 kubectl --context fleet get ns)",
       "Bash(git fetch *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(git stash drop *)",
+      "Bash(git fetch origin main:main)"
     ],
     "defaultMode": "auto"
   },

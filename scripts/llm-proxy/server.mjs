@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive, isLoadoutEnabled } from './loadouts.mjs';
 import os from 'node:os';
 import { scanModels, resolveModelPath } from './models.mjs';
-import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
+import { unitName, startUnit, stopUnit, unitStatus, recentLogs, toolsRuntimeMissing } from './runner.mjs';
 import { join } from 'node:path';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
@@ -371,6 +371,13 @@ async function startLoadout(slug) {
   const modelPath = resolveModelPath(doc, loadout);
   if (!modelPath) {
     throw new LoadoutStartError(422, 'model_missing', `${loadout.model} in keiner modelRoot gefunden`);
+  }
+  // Vor dem Start, nicht danach: ein fehlender Tool-Container macht den Server
+  // nicht ungesund, er entwertet nur die Tools — und zwar sichtbar allein fuer
+  // das Modell. Hier faellt es laut auf.
+  const runtimeProblem = toolsRuntimeMissing(loadout);
+  if (runtimeProblem) {
+    throw new LoadoutStartError(424, 'tools_runtime_missing', runtimeProblem);
   }
   // Resolve draftModelPath and mmprojPath against modelRoots for runner.mjs (P2 contract)
   const resolved = {};

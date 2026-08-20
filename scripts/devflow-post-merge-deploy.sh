@@ -15,10 +15,19 @@ set -u
 select_merge_commit() {
   local repo="${1:?repo erforderlich}"
   local ticket_id="${2:?ticket_id erforderlich}"
-  git -C "$repo" log origin/main --format="%H %s" --grep="\\[${ticket_id}\\]" 2>/dev/null \
-    | grep -vE ' chore\(plans\): archive ' \
-    | head -1 \
-    | awk '{print $1}'
+  local all first
+  all=$(git -C "$repo" log origin/main --format="%H %s" --grep="\\[${ticket_id}\\]" 2>/dev/null)
+  first=$(printf '%s\n' "$all" | grep -vE ' chore\(plans\): archive ' | head -1 | awk '{print $1}')
+  # [T008015-1] Bleibt nach dem Archiv-Filter nichts uebrig, es gab aber sehr wohl
+  # Treffer, dann besteht die Historie des Tickets ausschliesslich aus Archiv-
+  # Commits. Dann den neuesten Treffer zurueckgeben statt leer: der Aufrufer
+  # meldet dann "Keine bekannten Deploy-Trigger" (Exit 0) statt mit Exit 3
+  # "Kein Merge-Commit gefunden" abzubrechen — der Commit existiert ja.
+  # Leer bleibt es nur, wenn es ueberhaupt keinen Treffer gab; das ist Exit 3.
+  if [ -z "$first" ]; then
+    first=$(printf '%s\n' "$all" | grep -v '^$' | head -1 | awk '{print $1}')
+  fi
+  printf '%s' "$first"
 }
 
 # Beim Sourcing (BATS-Funktionstest) nur die Funktionen bereitstellen.

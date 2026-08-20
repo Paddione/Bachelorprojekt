@@ -8,6 +8,10 @@ DB-Zugriff (MCP-first, `psql()`-Fallback, `ticket_plans`-Warnung): siehe
 
 ## 0. Arbeitsbaum & Stashes
 
+**Vorbedingung in einer isolierten Session: zuerst `ExitWorktree`.** Dieses Skill operiert
+per Definition auf dem Hauptcheckout und auf fremden Worktrees; der Isolations-Guard lehnt
+diese Pfade sonst ab — auch für reine Statusabfragen.
+
 Vor jeder Worktree- oder Branch-Aufräumaktion den Arbeitsbaum des Hauptcheckouts und die
 Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftaucht.
 

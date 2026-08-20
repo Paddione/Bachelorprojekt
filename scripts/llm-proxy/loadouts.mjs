@@ -26,6 +26,9 @@ const LOADOUT_KEYS = new Set([
   'uiConfigFile',
   // T002550: eingebaute llama-Tools (--tools), Werte siehe TOOL_NAMES
   'tools',
+  // Laufzeit, in der diese Tools ausgefuehrt werden (--tools-runtime). Ohne das
+  // Feld laufen sie im Host-Kontext der Unit — siehe die Warnung bei TOOL_NAMES.
+  'toolsRuntime',
   // T003204: Abschalten OHNE Loeschen. Ohne dieses Feld laesst sich ein
   // dominiertes Loadout nur entfernen — und Loeschen naehme die gemessenen
   // `notes` mit. Genau deshalb bleiben dominierte Eintraege sonst jahrelang
@@ -34,7 +37,8 @@ const LOADOUT_KEYS = new Set([
   // andere Bedeutung.
   'enabled',
 ]);
-// T002550 — Namen aus `llama-server --help` (b10223). llama.cpp akzeptiert
+// T002550 — Namen aus `llama-server --help`, gegengeprueft gegen den Build, den
+// ~/opt/llama-current aufloest (0.1.2-dev, build 61, 0adcc3bb5). llama.cpp akzeptiert
 // zusaetzlich das Sammelwort 'all'; hier ist es bewusst NICHT gueltig.
 //
 // llama.cpp kennt weder Sandbox noch Wurzelverzeichnis-Beschraenkung: mit
@@ -44,9 +48,18 @@ const LOADOUT_KEYS = new Set([
 // sich nicht hinter einem Wort verstecken, das nach Bequemlichkeit aussieht;
 // sie gehoert namentlich dorthin, wo sie erteilt wird. Ein spaeter
 // hinzugefuegtes llama-Tool erweitert 'all' still — die Allowlist nicht.
+//
+// Die Namen sind an den Build gebunden und wandern mit ihm: 'get_datetime' hiess
+// bis b10241 so und heisst seither 'get_info'. Ein Loadout, das den alten Namen
+// fuehrt, laesst llama-server beim Start mit Exit 1 abbrechen
+// ("tools setup failed: unknown tool") — der Prozess kommt nie ans Modell-Laden,
+// und der Proxy meldet fuer JEDES Modell dieses Ports 'no healthy backend'.
+// Beim naechsten llama.cpp-Upgrade diese Liste gegen `llama-server --help`
+// abgleichen; tests/spec/local-llm-proxy/llama-tool-names.bats prueft sie
+// gegen das laufende Binary, sofern eines vorhanden ist.
 const TOOL_NAMES = new Set([
   'read_file', 'file_glob_search', 'grep_search',
-  'exec_shell_command', 'write_file', 'edit_file', 'get_datetime',
+  'exec_shell_command', 'write_file', 'edit_file', 'get_info',
 ]);
 const ARG_KEYS = new Set([
   'ctx', 'ngl', 'parallel', 'cacheTypeK', 'cacheTypeV', 'loadMode',
@@ -63,9 +76,45 @@ const ARG_KEYS = new Set([
   // T002579 — Argumente des Chat-Templates, insbesondere enable_thinking.
   // Getrennt von 'reasoning' (= '-rea'): jenes steuert das PARSEN von
   // reasoning_content, dieses, ob das Modell ueberhaupt denkt.
+  //
+  // Fuer enable_thinking ist dieser Weg im aktuellen Build DEPRECATED —
+  // llama-server warnt beim Start "Setting 'enable_thinking' via
+  // --chat-template-kwargs is deprecated. Use --reasoning on / --reasoning off
+  // instead." und meint damit 'reasoning'. Das Feld bleibt fuer die uebrigen
+  // Template-Argumente; fuer die Denkphase gehoert der Wert nach 'reasoning'.
   'chatTemplateKwargs',
+  // Abgestufte Staerke der Denkphase (--reasoning-effort). Neu in dem Build,
+  // den ~/opt/llama-current aufloest; wirkt nur, wenn ueberhaupt gedacht wird.
+  'reasoningEffort',
 ]);
 const LOAD_MODES = new Set(['none', 'mmap', 'mlock', 'mmap+mlock', 'dio']);
+// Formen von --tools-runtime. llama.cpp akzeptiert vier; hier stehen sie als
+// Regex, weil der Wert danach unveraendert in eine Kommandozeile geht.
+//
+// Die Spawn-Form '<engine>:<image>' ist gueltig, aber fuer Datei-Tools
+// NUTZLOS: llama.cpp startet sie als `<engine> run --rm -i <image> sh`, also
+// OHNE Volume. read_file/write_file/grep_search/file_glob_search laufen dann
+// gegen ein leeres Dateisystem. Wer Dateien sehen will, nimmt die Attach-Form
+// und bestimmt die Mounts selbst (scripts/llm/tools-sandbox.sh).
+//
+// Der zweite Teil ist bewusst eng (alnum am Anfang, dann alnum . - _): llama.cpp
+// prueft dasselbe, weil ein mit '-' beginnender Wert sonst als Engine-Option
+// durchginge — etwa '--privileged'.
+const TOOLS_RUNTIME_RE = /^(?:docker|podman)(?:-container)?:[A-Za-z0-9][A-Za-z0-9._:\/-]*$|^ssh:[A-Za-z0-9][A-Za-z0-9._@-]*$/;
+// Werte aus `llama-server --help`. 'default' laesst die Vorlage entscheiden.
+//
+// Die Stufen sind NICHT monoton: gemessen am 2026-08-20 gegen gemma12-vision
+// (Build 61, 0adcc3bb5) denkt 'minimal' LAENGER als 'low' und lieferte im
+// 300-Token-Fenster gar keine Antwort mehr, weil die Denkphase es fuellte.
+// Die Gemma-4-Vorlage kennt die Stufe offenbar nicht und faellt auf ein
+// laengeres Denken zurueck. Wer hier eine Stufe waehlt, misst sie nach:
+//   curl -s -m 90 -X POST http://127.0.0.1:8089/v1/chat/completions \
+//     -H 'Content-Type: application/json' \
+//     -d '{"model":"gemma12-vision","max_tokens":300,"reasoning_effort":"low",
+//          "messages":[{"role":"user","content":"What is 17*23? Answer with the number only."}]}'
+const REASONING_EFFORTS = new Set([
+  'default', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max',
+]);
 
 function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }
 
@@ -100,6 +149,17 @@ function validateLoadout(l, index, seen) {
   }
   if (args.loadMode != null && !LOAD_MODES.has(args.loadMode)) {
     fail(`${l.slug}: loadMode '${args.loadMode}' unbekannt (${[...LOAD_MODES].join('|')})`);
+  }
+  if (args.reasoningEffort != null && !REASONING_EFFORTS.has(args.reasoningEffort)) {
+    fail(`${l.slug}: reasoningEffort '${args.reasoningEffort}' unbekannt (${[...REASONING_EFFORTS].join('|')})`);
+  }
+  if (l.toolsRuntime != null) {
+    if (typeof l.toolsRuntime !== 'string' || !TOOLS_RUNTIME_RE.test(l.toolsRuntime)) {
+      fail(`${l.slug}: toolsRuntime '${l.toolsRuntime}' unbekannt (docker:<image>|docker-container:<name>|podman:…|ssh:<target>)`);
+    }
+    // Eine Laufzeit ohne Tools waere ein stiller Irrtum: sie kostet nichts und
+    // wirkt nie. Wer sie setzt, meint die Tools — dann muessen sie da stehen.
+    if (!l.tools) fail(`${l.slug}: toolsRuntime ohne tools ist wirkungslos`);
   }
 
   // Ohne --fit bedeutet ein ungesetztes -c den llama.cpp-Default 0 ("aus dem

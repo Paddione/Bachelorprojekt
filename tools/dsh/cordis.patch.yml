@@ -1,0 +1,116 @@
+# cordis.patch.yml — DSH bundle patch layer for Bachelorprojekt.
+#
+# [T012965] Die Plugin-Rows tragen PLATZHALTER, keine Paketnamen. Grund: weder
+# das Repo-Bundle noch die Hook-Bridge sind ueber Node-Resolution auffindbar —
+# das Bundle ist nicht ins Profil installiert, und die Bridge ist ein
+# Workspace-Paket des gitignorierten Klons (`require.resolve` => MODULE_NOT_FOUND).
+# Cordis akzeptiert in `name:` einen Modulpfad; scripts/dsh/web-up.sh setzt die
+# Platzhalter zur Laufzeit auf die aufgeloesten absoluten Pfade und uebergibt
+# das Ergebnis per `--patch`.
+#
+# Absolute Pfade koennen hier nicht eingecheckt werden: der Klon ist
+# gitignoriert und sein Ort maschinenabhaengig.
+- insert:
+    - id: cc-hooks
+      name: '@@DSH_CLONE@@/packages/hooks/hooks-claude-code/lib/index.js'
+      config:
+        configPath: '@@REPO@@/.claude/settings.json'
+        projectDir: '@@REPO@@'
+    - id: bachelorprojekt
+      name: '@@REPO@@/tools/dsh/index.js'
+
+    # [T012971] Zwei optionale Faehigkeiten, die dsh-base nicht mitbringt.
+    # Beide sind Host-Plane-Rows: der Patch-Layer patcht den Host-Tree, nicht
+    # die Agent-Presets.
+    #
+    # schedule — durable Reminder ueber den Session-Ereignisstrom
+    # (schedule_create/-list/-cancel). Registriert seine Werkzeuge selbst ueber
+    # `agent.ctx`, sobald ein Root-Agent entsteht, und ist deshalb vom Host aus
+    # vollstaendig. Nur spaetere `agent/created`-Ereignisse zaehlen: Agenten,
+    # die beim Laden schon existierten, bekommen kein Schedule.
+    - id: schedule
+      name: '@@DSH_CLONE@@/packages/schedule/schedule/lib/index.js'
+
+    # terminal — persistente PTY-Sitzungen (terminal_open/_send/_read/_signal/
+    # _close/_list). Drei Rows, weil die Faehigkeit auf drei Rollen aufgeteilt
+    # ist: Service (`terminal`), Backend (`terminal-bash`, laeuft unter der
+    # gemeinsamen sandboxPolicy) und die modellseitigen Werkzeuge
+    # (`tool-terminal`). Ohne Backend gaebe es einen Service ohne Ausfuehrung,
+    # ohne tool-Row sieht das Modell nichts.
+    - id: terminal
+      name: '@@DSH_CLONE@@/packages/terminal/terminal/lib/index.js'
+    - id: terminal-bash
+      name: '@@DSH_CLONE@@/packages/terminal/terminal-bash/lib/index.js'
+    - id: tool-terminal
+      name: '@@DSH_CLONE@@/packages/terminal/tool-terminal/lib/index.js'
+
+    # lsp — semantische Navigation (goToDefinition, findReferences,
+    # goToImplementation, hover) ueber echte Sprachserver statt Textsuche.
+    #
+    # Drei Rows wie bei terminal: Service (`lsp`), stdio-Backend (`lsp-stdio`)
+    # und das modellseitige Werkzeug (`tool-lsp`).
+    #
+    # `lsp-stdio` ist ein generischer Wirt, kein Server-Katalog: die Tabelle
+    # unten IST die Deklaration, welche Sprachen dieses Repo fuehrt. Ohne sie
+    # bricht der Boot ab (`$.servers missing required value`).
+    #
+    # Die Binaries kommen aus den devDependencies der Root-package.json und
+    # werden deshalb ueber `@@REPO@@/node_modules/.bin/` adressiert — nicht
+    # ueber `npx`: `lsp-stdio` loest jedes `command` BEIM LADEN auf, und ein
+    # Eintrag, der erst zur Laufzeit ein Paket zoege, haette den Boot an einer
+    # Netzwerkabhaengigkeit haengen. Ein fehlerhafter Eintrag verhindert die
+    # Registrierung ALLER Provider, nicht nur des eigenen.
+    - id: lsp
+      name: '@@DSH_CLONE@@/packages/lsp/lsp/lib/index.js'
+    - id: lsp-stdio
+      name: '@@DSH_CLONE@@/packages/lsp/lsp-stdio/lib/index.js'
+      config:
+        servers:
+          # 2358 Dateien (.ts/.tsx/.mjs/.jsx) — die Kernsprache des Repos.
+          typescript:
+            command: '@@REPO@@/node_modules/.bin/typescript-language-server'
+            args: ['--stdio']
+            extensionToLanguage:
+              '.ts': typescript
+              '.mts': typescript
+              '.cts': typescript
+              '.tsx': typescriptreact
+              '.js': javascript
+              '.mjs': javascript
+              '.cjs': javascript
+              '.jsx': javascriptreact
+          # 1262 Dateien — .bats zaehlt mit: BATS-Dateien sind Bash, und der
+          # Server liest sie als solche.
+          bash:
+            command: '@@REPO@@/node_modules/.bin/bash-language-server'
+            args: ['start']
+            extensionToLanguage:
+              '.sh': shellscript
+              '.bash': shellscript
+              '.bats': shellscript
+          # 503 Dateien — Kustomize-Manifests, Taskfiles, Registries.
+          yaml:
+            command: '@@REPO@@/node_modules/.bin/yaml-language-server'
+            args: ['--stdio']
+            extensionToLanguage:
+              '.yaml': yaml
+              '.yml': yaml
+          # 242 Dateien — die Svelte-Komponenten der Website.
+          svelte:
+            command: '@@REPO@@/node_modules/.bin/svelteserver'
+            args: ['--stdio']
+            extensionToLanguage:
+              '.svelte': svelte
+          # 142 Dateien — die Astro-Seiten und -Layouts.
+          astro:
+            command: '@@REPO@@/node_modules/.bin/astro-ls'
+            args: ['--stdio']
+            extensionToLanguage:
+              '.astro': astro
+    - id: tool-lsp
+      name: '@@DSH_CLONE@@/packages/lsp/tool-lsp/lib/index.js'
+
+    # Nicht aufgenommen: Markdown (3892 Dateien, aber goToDefinition und
+    # findReferences haben dort keinen Gegenstand), SQL und Python (115 bzw.
+    # 75 Dateien — der Server waere groesser als der Nutzen). Beide sind eine
+    # Zeile Nachtrag, sobald jemand sie braucht.

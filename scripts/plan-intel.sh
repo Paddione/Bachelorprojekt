@@ -37,12 +37,19 @@ _resolve_target_files() {
   [[ -f "$tasks_md" ]] || { echo "tasks.md not found: $tasks_md" >&2; return 1; }
   # Table columns: | id | file | role | target_files | depends_on |
   # Leading | creates empty field 0. So read order: _0 _1(id) _2(file) _3(role) _4(targets) _5(deps)
+  # [T008015-3] Annotierte Zellen tolerieren: Nur Pfad-Tokens (ein Wort ohne
+  # Whitespace, mit '/', '.' oder '{') gelten als Pfade — Annotations-Praefixe
+  # ("Löschungen:") fallen raus, Backticks werden im Pipeline-Schritt entfernt.
+  # Muss mit plan-lint.sh ALL_PARTIAL_TARGETS identisch filtern, sonst
+  # divergiert I1. Konvention: Manifest-Zellen sind pfadrein.
   awk '/^##[[:space:]]+Partials/{f=1;next} f&&/^##[[:space:]]/{exit} f&&/^\|/{print}' "$tasks_md" \
     | grep 'tasks\.d/' \
     | while IFS='|' read -r _ _ _ _ targets _; do
         echo "$targets"
       done \
-    | tr -d ' `' | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u | grep -v '^$' \
+    | tr -d '`' | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+    | awk 'NF==1 && ($0 ~ /\// || $0 ~ /\./ || $0 ~ /\{/)' \
+    | sort -u | grep -v '^$' \
     | paste -sd ',' -
 }
 

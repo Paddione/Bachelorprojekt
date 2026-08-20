@@ -360,7 +360,13 @@ row gate G-BRAIN13 "$(python3 - <<'PY' 2>/dev/null || echo "-"
 import re
 wf=open('.github/workflows/brain-merge-hook.yml').read()
 head=wf.split('jobs:')[0]
-paths=[p.strip() for p in re.findall(r'^\s+- ([^\s].*)$', head, re.M) if '/' in p or p.startswith('.claude')]
+# [T012904] .github/-Pfade sind Trigger, keine Brain-Quellen. Die Selbstreferenz
+# .github/workflows/brain-merge-hook.yml MUSS im paths-Block stehen — der Guard
+# tests/spec/ci-cd/workflow-self-trigger.bats verlangt sie, damit eine Aenderung
+# am Workflow ihn selbst ausloest. Sie hat naturgemaess kein SRC-Gegenstueck und
+# haette die Paritaet sonst dauerhaft auf 1 gehalten.
+paths=[p.strip() for p in re.findall(r'^\s+- ([^\s].*)$', head, re.M)
+       if ('/' in p or p.strip().startswith('.claude')) and not p.strip().startswith('.github/')]
 srcs=re.findall(r'brain-merge-hook\.sh \\\n\s+bachelorprojekt/(\S+)', wf)
 norm=lambda p: p.replace('/**','').rstrip('/')
 print(len(set(map(norm,paths)) ^ set(map(norm,srcs))))
@@ -671,7 +677,7 @@ exit_code_of_script() { # <script-pfad> [args…]
 }
 
 # --- Offline + schnell (18) ---------------------------------------------------
-row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src 2>/dev/null | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
+row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src 2>/dev/null | grep -v goals-data.generated.json | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
 # grep -c druckt bei null Treffern "0" und exitet trotzdem 1 — ein `|| echo 0`
 # haengt deshalb eine zweite Zeile an und macht aus dem gueltigen Wert "0" den
 # ungueltigen Wert "0\n0". Nur den Exit abfangen, nie die Ausgabe ersetzen.

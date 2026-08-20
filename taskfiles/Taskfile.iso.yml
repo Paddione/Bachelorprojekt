@@ -43,9 +43,30 @@ tasks:
         fi
         echo "alle Werkzeuge vorhanden"
 
-  check:
-    desc: "ISO-Skripte auf Syntaxfehler pruefen (ohne Build)"
+  pxe:
+    desc: "PXE-Boot-Server starten — Netzweg statt USB (ISO_SSH_KEY=, ISO_NODE_MAP=). Braucht sudo."
     cmds:
+      - |
+        map_arg=""
+        if [ -f "{{.ISO_NODE_MAP}}" ]; then
+          map_arg="--node-map {{.ISO_NODE_MAP}}"
+        fi
+        sudo bash scripts/pxe/setup-pxe.sh --ssh-key "{{.ISO_SSH_KEY}}" $map_arg
+
+  pxe:stop:
+    desc: "PXE-Boot-Server beenden"
+    cmds:
+      - sudo bash scripts/pxe/setup-pxe.sh --stop
+
+  pxe:status:
+    desc: "Zustand des PXE-Boot-Servers anzeigen"
+    cmds:
+      - sudo bash scripts/pxe/setup-pxe.sh --status
+
+  check:
+    desc: "ISO- und PXE-Skripte auf Syntaxfehler pruefen (ohne Build)"
+    cmds:
+      - bash -n scripts/pxe/setup-pxe.sh
       - bash -n scripts/iso/build-node-iso.sh
       - bash -n scripts/iso/autoinstall/assign-identity.sh
       - bash -n scripts/iso/autoinstall/k3s-join.sh

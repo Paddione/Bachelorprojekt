@@ -31,6 +31,10 @@ const VALID_ROLES = new Set([
   'bachelorprojekt-db',
   'bachelorprojekt-security',
   'orchestrator',
+  // [T012912] Rolle aus agents.yaml/AGENTS.md; PR #4839 trug sie in
+  // capabilities.yaml und toolset-context.sh ein, hier fehlte sie — das Gate
+  // stand danach auf jedem PR rot.
+  'big-pickle',
   'all',
 ]);
 

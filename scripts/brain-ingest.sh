@@ -3,7 +3,7 @@
 # Transforms Bachelorprojekt source files into brain wiki pages via LLM,
 # delivers via PR to Paddione/brain.
 #
-# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune]
+# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune] [--from-scratch]
 #
 # Env:
 #   LM_STUDIO_URL    — llama-server ingest-pool API URL (default:
@@ -29,15 +29,22 @@ MANIFEST="$REPO_ROOT/scripts/brain/ingest-sources.yaml"
 WORKLIST_SCRIPT="$REPO_ROOT/scripts/brain-ingest-worklist.sh"
 TRANSFORM_SCRIPT="$HERE/brain-ingest-transform.sh"
 CHUNK_SCRIPT="$HERE/brain-chunk.sh"
+RESET_HELPERS="$HERE/brain-ingest-reset.sh"
+METADATA_SCRIPT="$HERE/brain-page-metadata.py"
 
 # shellcheck source=./brain-group-match.sh
 source "$HERE/brain-group-match.sh"
+# shellcheck source=./brain-source-provenance.sh
+source "$HERE/brain-source-provenance.sh"
+# shellcheck source=./brain-ingest-reset.sh
+source "$RESET_HELPERS"
 
 # --- Defaults ---
 BRAIN_REPO=""
 DRY_RUN=0
 PILOT=0
 PRUNE=0
+FROM_SCRATCH=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://localhost:8100}"
@@ -68,10 +75,17 @@ while [[ $# -gt 0 ]]; do
     --state)      STATE_FILE="${2:?--state requires a path}"; shift ;;
     --branch)     BRANCH="${2:?--branch requires a name}"; shift ;;
     --prune)      PRUNE=1 ;;
+    --from-scratch) FROM_SCRATCH=1 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
 done
+
+# --from-scratch + --pilot is forbidden: it would delete everything then
+# only rebuild a partial slice, losing the rest. (T012902)
+if [ "$FROM_SCRATCH" -eq 1 ] && [ "$PILOT" -gt 0 ]; then
+  echo "error: --from-scratch cannot be combined with --pilot" >&2; exit 2
+fi
 
 [ -n "$BRAIN_REPO" ] || { echo "error: --brain-repo required" >&2; exit 1; }
 [ -d "$BRAIN_REPO/.git" ] || { echo "error: --brain-repo is not a git repo: $BRAIN_REPO" >&2; exit 1; }
@@ -79,6 +93,37 @@ done
 [ -f "$WORKLIST_SCRIPT" ] || { echo "error: worklist script not found: $WORKLIST_SCRIPT" >&2; exit 1; }
 [ -f "$TRANSFORM_SCRIPT" ] || { echo "error: transform script not found: $TRANSFORM_SCRIPT" >&2; exit 1; }
 [ -f "$CHUNK_SCRIPT" ] || { echo "error: chunk script not found: $CHUNK_SCRIPT" >&2; exit 1; }
+[ -f "$RESET_HELPERS" ] || { echo "error: reset helpers not found: $RESET_HELPERS" >&2; exit 1; }
+[ -f "$METADATA_SCRIPT" ] || { echo "error: metadata helper not found: $METADATA_SCRIPT" >&2; exit 1; }
+
+# One observation instant per run keeps all chunks reproducible and mutually
+# comparable. Tests and deterministic replays may provide a fixed override.
+OBSERVED_AT="${BRAIN_OBSERVED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+VALID_FROM="$(python3 -c 'import runpy,sys; print(runpy.run_path(sys.argv[1])["parse_timestamp"](sys.argv[2]).date())' "$METADATA_SCRIPT" "$OBSERVED_AT" 2>/dev/null)" || {
+  echo "error: invalid BRAIN_OBSERVED_AT: $OBSERVED_AT" >&2
+  exit 2
+}
+if ! printf '%s' $'---\ntype: note\ntags: [validation]\nstatus: active\n---\n' \
+  | python3 "$METADATA_SCRIPT" --source "$MANIFEST" --source-kind core-doc \
+      --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM" >/dev/null; then
+  echo "error: invalid BRAIN_OBSERVED_AT: $OBSERVED_AT" >&2
+  exit 2
+fi
+
+# Historical plain --dry-run behavior initializes state; only the new
+# --from-scratch preview promises a completely write-free reset inspection.
+STATE_INIT_DRY_RUN=0
+[ "$FROM_SCRATCH" -eq 1 ] && [ "$DRY_RUN" -eq 1 ] && STATE_INIT_DRY_RUN=1
+brain_ingest_initialize_state "$STATE_FILE" "$STATE_INIT_DRY_RUN"
+
+# A from-scratch dry run is a reset preview, not a transformation run. Preview
+# directly from the current wiki so it performs no checkout, chunking, LLM call,
+# state initialization, or other write.
+if [ "$FROM_SCRATCH" -eq 1 ] && [ "$DRY_RUN" -eq 1 ]; then
+  PRIMARY_REPO_ROOT="$(git -C "$REPO_ROOT" worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" 1 "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
+  exit 0
+fi
 
 # Extracted once (not per file — see brain-group-match.sh perf note).
 brain_group_section_for_manifest "$MANIFEST"
@@ -151,11 +196,6 @@ SLUGS_JSON="$(mktemp)"
 awk -F'\t' '{print $3}' "$CHUNKS_TSV" | jq -R . | jq -s . > "$SLUGS_JSON"
 echo "Slug inventory: $(jq length "$SLUGS_JSON") slugs (including MOCs)"
 
-# Load state (idempotency)
-if [ ! -f "$STATE_FILE" ]; then
-  echo '{}' > "$STATE_FILE"
-fi
-
 # Create/update branch in brain repo
 echo "Preparing brain repo branch: $BRANCH"
 cd "$BRAIN_REPO"
@@ -168,6 +208,15 @@ fi
 # Ensure wiki/ directory exists
 mkdir -p "$BRAIN_REPO/wiki"
 cd "$REPO_ROOT"
+
+# ============================================================
+# Phase 1b: Wiki- und State-Reset (nur bei --from-scratch)
+# ============================================================
+if [ "$FROM_SCRATCH" -eq 1 ]; then
+  echo ""
+  PRIMARY_REPO_ROOT="$(git -C "$REPO_ROOT" worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print; exit}')"
+  brain_ingest_reset_wiki "$BRAIN_REPO" "$STATE_FILE" "$DRY_RUN" "$REPO_ROOT" "$PRIMARY_REPO_ROOT"
+fi
 
 # ============================================================
 # Phase 2: LLM Transformation
@@ -193,12 +242,29 @@ determine_group() {
   echo "$_BRAIN_GROUP_OUT"
 }
 
+source_kind_for_group() {
+  case "$1" in
+    ssot-specs) echo openspec ;;
+    runbooks) echo runbook ;;
+    adr) echo adr ;;
+    gotchas-footguns) echo gotcha ;;
+    agent-guide-maps) echo agent-guide ;;
+    core-docs) echo core-doc ;;
+    health-goals) echo health-goal ;;
+    diagrams) echo diagram ;;
+    github-reviewed) echo github-reviewed ;;
+    *) return 1 ;;
+  esac
+}
+
 # Process a single chunk (extracted for reuse). Safe to run concurrently —
 # the STATE_FILE read-modify-write is flock-protected since multiple
 # parallel jobs write to it.
 process_page() {
   local src_path="$1" chunk_file="$2" chunk_slug="$3" index="$4"
   local src_hash existing_hash type tag_defaults transformed group tmp chunk_chars
+  local src_file source_kind target_tmp upstream_revision reviewed_marker reviewed_repo reviewed_pr
+  local -a metadata_args
 
   [ -f "$chunk_file" ] || { echo "WARN: chunk not found: $chunk_file ($src_path)" >&2; return 1; }
 
@@ -210,6 +276,11 @@ process_page() {
   [ "$src_hash" = "$existing_hash" ] && return 2  # skip
 
   group="$(determine_group "$src_path")"
+  source_kind="$(source_kind_for_group "$group")" || {
+    echo "WARN: Unknown source group: $group ($src_path)" >&2
+    return 1
+  }
+  src_file="$REPO_ROOT/$src_path"
 
   type=""
   while IFS= read -r override; do
@@ -238,14 +309,36 @@ process_page() {
     return 1
   fi
 
-  echo "$transformed" > "$BRAIN_REPO/wiki/$chunk_slug.md"
+  target_tmp="$(mktemp "$BRAIN_REPO/wiki/.${chunk_slug}.XXXXXX")"
+  metadata_args=(--source "$src_file" --source-kind "$source_kind" \
+    --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM")
+  if [ "$source_kind" = "github-reviewed" ]; then
+    reviewed_marker="$(brain_source_frontmatter_value "$src_file" source_kind || true)"
+    reviewed_repo="$(brain_source_frontmatter_value "$src_file" repository || true)"
+    reviewed_pr="$(brain_source_frontmatter_value "$src_file" pull_request || true)"
+    if [ "$reviewed_marker" = "github-reviewed" ] || [ -n "$reviewed_repo" ] || [ -n "$reviewed_pr" ]; then
+      upstream_revision="$(brain_source_frontmatter_value "$src_file" upstream_revision || true)"
+      [ -n "$upstream_revision" ] || {
+        rm -f "$target_tmp"
+        echo "WARN: PR-derived source missing frontmatter upstream_revision: $src_path chunk $index" >&2
+        return 1
+      }
+      metadata_args+=(--upstream-revision "$upstream_revision")
+    fi
+  fi
+  if ! printf '%s\n' "$transformed" | python3 "$METADATA_SCRIPT" "${metadata_args[@]}" > "$target_tmp"; then
+    rm -f "$target_tmp"
+    echo "WARN: Metadata annotation failed: $src_path chunk $index" >&2
+    return 1
+  fi
+  mv "$target_tmp" "$BRAIN_REPO/wiki/$chunk_slug.md"
 
   (
     flock -x 200
     tmp="$(mktemp)"
-    jq --arg k "$state_key" --arg h "$src_hash" --arg s "$chunk_slug" --arg t "$type" \
+    jq --arg k "$state_key" --arg h "$src_hash" --arg s "$chunk_slug" --arg t "$type" --arg g "$group" \
       --arg ci "$index" --argjson cc "$chunk_chars" \
-      '.[$k] = {hash:$h, slug:$s, type:$t, chunk_index:$ci, chars:$cc, transformed_at:(now | todate)}' \
+      '.[$k] = {hash:$h, slug:$s, type:$t, group:$g, chunk_index:$ci, chars:$cc, transformed_at:(now | todate)}' \
       "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
   ) 200>"$STATE_FILE.lock"
   return 0
@@ -399,7 +492,9 @@ fi
 # ============================================================
 # Phase 2b: MOC Generation (delegated to brain-ingest-moc.sh)
 # ============================================================
-bash "$HERE/brain-ingest-moc.sh" --brain-repo "$BRAIN_REPO" --chunks "$CHUNKS_TSV" --state "$STATE_FILE"
+bash "$HERE/brain-ingest-moc.sh" --brain-repo "$BRAIN_REPO" --chunks "$CHUNKS_TSV" --state "$STATE_FILE" \
+  --source-root "$REPO_ROOT" --manifest "$MANIFEST" --metadata-script "$METADATA_SCRIPT" \
+  --observed-at "$OBSERVED_AT" --valid-from "$VALID_FROM"
 
 # ============================================================
 # Phase 2c: Prune (Deletion-Sync, T001963) — default dry, --prune schaltet scharf

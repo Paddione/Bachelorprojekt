@@ -1986,6 +1986,24 @@
     "kind": "shell"
   },
   {
+    "id": "T008015-1",
+    "file": "tests/spec/software-factory/devflow-post-merge-deploy-commit-selection.bats",
+    "category": "T008015",
+    "kind": "shell"
+  },
+  {
+    "id": "T008015-3",
+    "file": "tests/spec/dev-flow-plan/plan-intel-annotated-target-files.bats",
+    "category": "T008015",
+    "kind": "shell"
+  },
+  {
+    "id": "T008015-6",
+    "file": "tests/spec/openspec-workflow/status-map-fail-closed-guard.bats",
+    "category": "T008015",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",
@@ -2382,6 +2400,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-foundation/from-scratch-rebuild",
+    "file": "tests/spec/brain-foundation/from-scratch-rebuild.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
     "id": "brain-foundation/ingest-llm-endpoint",
     "file": "tests/spec/brain-foundation/ingest-llm-endpoint.bats",
     "category": "brain-foundation",
@@ -2390,6 +2414,18 @@
   {
     "id": "brain-foundation/k1-vector-db-doc",
     "file": "tests/spec/brain-foundation/k1-vector-db-doc.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-foundation/knowledge-lifecycle",
+    "file": "tests/spec/brain-foundation/knowledge-lifecycle.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-foundation/state-file-type-repair",
+    "file": "tests/spec/brain-foundation/state-file-type-repair.bats",
     "category": "brain-foundation",
     "kind": "shell"
   },
@@ -2444,6 +2480,12 @@
   {
     "id": "brain-k4-brain-wiki/parent-moc",
     "file": "tests/spec/brain-k4-brain-wiki/parent-moc.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/retrieval-eval",
+    "file": "tests/spec/brain-k4-brain-wiki/retrieval-eval.bats",
     "category": "brain-k4-brain-wiki",
     "kind": "shell"
   },
@@ -3210,6 +3252,36 @@
     "kind": "shell"
   },
   {
+    "id": "dsh-harness-integration/bundle",
+    "file": "tests/spec/dsh-harness-integration/bundle.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "dsh-harness-integration/executor",
+    "file": "tests/spec/dsh-harness-integration/executor.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "dsh-harness-integration/hook-bridge",
+    "file": "tests/spec/dsh-harness-integration/hook-bridge.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "dsh-harness-integration/repo-guard-behavior",
+    "file": "tests/spec/dsh-harness-integration/repo-guard-behavior.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "dsh-harness-integration/taskfile-runtime",
+    "file": "tests/spec/dsh-harness-integration/taskfile-runtime.bats",
+    "category": "dsh-harness-integration",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-skill-selfpatch",
     "file": "tests/local/e2e-skill-selfpatch.bats",
     "category": "e2e-skill-selfpatch",
@@ -3459,6 +3531,12 @@
     "id": "grilling-flow",
     "file": "tests/spec/grilling-flow.bats",
     "category": "grilling-flow",
+    "kind": "shell"
+  },
+  {
+    "id": "harness-workflow-split/harness-enum",
+    "file": "tests/spec/harness-workflow-split/harness-enum.bats",
+    "category": "harness-workflow-split",
     "kind": "shell"
   },
   {
@@ -3714,6 +3792,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/llama-tool-names-match-binary",
+    "file": "tests/spec/local-llm-proxy/llama-tool-names-match-binary.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/loadout-aux-files-exist",
     "file": "tests/spec/local-llm-proxy/loadout-aux-files-exist.bats",
     "category": "local-llm-proxy",
@@ -3782,6 +3866,12 @@
   {
     "id": "local-llm-proxy/support-model-slots",
     "file": "tests/spec/local-llm-proxy/support-model-slots.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/tools-runtime-sandbox",
+    "file": "tests/spec/local-llm-proxy/tools-runtime-sandbox.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -5553,6 +5643,12 @@
     "id": "workstation-cluster-iso/k3s-join-guards",
     "file": "tests/spec/workstation-cluster-iso/k3s-join-guards.bats",
     "category": "workstation-cluster-iso",
+    "kind": "shell"
+  },
+  {
+    "id": "workstation-cluster-pxe/setup-pxe-guards",
+    "file": "tests/spec/workstation-cluster-pxe/setup-pxe-guards.bats",
+    "category": "workstation-cluster-pxe",
     "kind": "shell"
   },
   {

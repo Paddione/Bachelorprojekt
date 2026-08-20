@@ -1,5 +1,68 @@
 # Changelog
 
+## [1.294.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.3...website-v1.294.0) (2026-08-20)
+
+
+### Features
+
+* **ops:** Tool-Laufzeit fuer llama-server in einem gehaerteten Container ([#4878](https://github.com/Paddione/Bachelorprojekt/issues/4878)) ([0ed637c](https://github.com/Paddione/Bachelorprojekt/commit/0ed637c24a5960bc6e69b4c157e08e94abba7ac8))
+
+## [1.293.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.2...website-v1.293.3) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ops:** llama.cpp-Upgrade — get_datetime -&gt; get_info, opencode-Default auf gemma12-vision ([#4875](https://github.com/Paddione/Bachelorprojekt/issues/4875)) ([a7502a6](https://github.com/Paddione/Bachelorprojekt/commit/a7502a62238fa521552013f8dc9766d55e287445))
+
+## [1.293.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.1...website-v1.293.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* **agents:** repo-guard gegen die echte Cordis-API + Archivierung [T012965] ([#4872](https://github.com/Paddione/Bachelorprojekt/issues/4872)) ([47ff752](https://github.com/Paddione/Bachelorprojekt/commit/47ff75297693088e18ea21d140ad531968336449))
+
+## [1.293.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.293.0...website-v1.293.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **agents:** dsh web UI startet — Klon-Aufloesung, Cordis-apply-API, Laufzeit-Overlay [T012965] ([#4869](https://github.com/Paddione/Bachelorprojekt/issues/4869)) ([af3eb41](https://github.com/Paddione/Bachelorprojekt/commit/af3eb4168cf2a06f36a0d7aefd76a50c00b3a4fe))
+
+## [1.293.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.292.1...website-v1.293.0) (2026-08-19)
+
+
+### Features
+
+* **factory:** DeepSeek Harness integration [T012962] ([#4867](https://github.com/Paddione/Bachelorprojekt/issues/4867)) ([be24cbc](https://github.com/Paddione/Bachelorprojekt/commit/be24cbc37153ccde11c34e1ec43c649f67cb5c3d))
+
+## [1.292.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.292.0...website-v1.292.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **website:** bump @astrojs/node to ^11.1.4 to fix CrashLoopBackOff [T012963] ([#4864](https://github.com/Paddione/Bachelorprojekt/issues/4864)) ([c20643b](https://github.com/Paddione/Bachelorprojekt/commit/c20643ba49de4a9fbe39a98a589fbc2b86e6bf4f))
+
+## [1.292.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.291.0...website-v1.292.0) (2026-08-19)
+
+
+### Features
+
+* **agents:** add Brain knowledge lifecycle [T012913] ([#4854](https://github.com/Paddione/Bachelorprojekt/issues/4854)) ([d4d84b5](https://github.com/Paddione/Bachelorprojekt/commit/d4d84b5a3bebdf9176411d2fc5cb86e6565c5f8d))
+
+## [1.291.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.290.0...website-v1.291.0) (2026-08-19)
+
+
+### Features
+
+* **scripts:** add reproducible brain rebuild mode [T012902] ([#4847](https://github.com/Paddione/Bachelorprojekt/issues/4847)) ([e1926da](https://github.com/Paddione/Bachelorprojekt/commit/e1926dab1260c55965e8b1e5114159a1bf7485af))
+
+## [1.290.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.289.0...website-v1.290.0) (2026-08-19)
+
+
+### Features
+
+* **infra:** PXE-Boot-Server fuer die Cluster-Workstations [T012906] ([#4843](https://github.com/Paddione/Bachelorprojekt/issues/4843)) ([cd98ee8](https://github.com/Paddione/Bachelorprojekt/commit/cd98ee824f581290cda34e471276301fcf093541))
+
 ## [1.289.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.288.0...website-v1.289.0) (2026-08-19)
 
 

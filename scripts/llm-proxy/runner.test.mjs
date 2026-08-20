@@ -3,7 +3,7 @@
 // "null-Felder erscheinen NICHT in argv" -- er kodiert die --fit-Regel.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { unitName, buildServerArgv, buildStartCommand } from './runner.mjs'
+import { unitName, buildServerArgv, parseToolsRuntime, toolsRuntimeMissing, buildStartCommand } from './runner.mjs'
 
 const base = {
   slug: 'gptoss-context',
@@ -361,4 +361,62 @@ test('ngram-Variante kommt OHNE --spec-draft-model aus (kein VRAM fuer einen Dra
 test('ohne speculative-Felder erscheint kein einziges spec-Flag', () => {
   const argv = buildServerArgv(specBase({ draftHfRepo: null, draftNgl: null }), MODEL, defaults)
   assert.equal(argv.filter((x) => String(x).startsWith('--spec-')).length, 0)
+})
+
+// ── --reasoning-effort ───────────────────────────────────────────────────────
+//
+// Dritte, unabhaengige Stellschraube der Denkphase neben '-rea' (denkt das
+// Modell ueberhaupt) und '--reasoning-budget' (harte Token-Obergrenze): sie
+// gibt der Chat-Vorlage eine Stufe vor. Wie ueberall hier erzeugt nur ein
+// gesetzter Wert ein Argument.
+
+test('gesetzter reasoningEffort erscheint als --reasoning-effort', () => {
+  const l = structuredClone(base)
+  l.args.reasoningEffort = 'low'
+  const argv = buildServerArgv(l, MODEL, defaults)
+  assert.deepEqual(argv.slice(argv.indexOf('--reasoning-effort'), argv.indexOf('--reasoning-effort') + 2),
+    ['--reasoning-effort', 'low'])
+})
+
+test('ohne reasoningEffort erscheint kein --reasoning-effort', () => {
+  const argv = buildServerArgv(base, MODEL, defaults)
+  assert.equal(argv.includes('--reasoning-effort'), false)
+  // Positiv-Anker: die uebrigen reasoning-Flags sind davon unberuehrt.
+  assert.deepEqual(argv.slice(argv.indexOf('-rea'), argv.indexOf('-rea') + 2), ['-rea', 'auto'])
+})
+
+// ── --tools-runtime ──────────────────────────────────────────────────────────
+
+test('gesetzter toolsRuntime erscheint als --tools-runtime', () => {
+  const l = structuredClone(base)
+  l.tools = 'read_file'
+  l.toolsRuntime = 'docker-container:llama-tools-sandbox'
+  const argv = buildServerArgv(l, MODEL, defaults)
+  assert.deepEqual(argv.slice(argv.indexOf('--tools-runtime'), argv.indexOf('--tools-runtime') + 2),
+    ['--tools-runtime', 'docker-container:llama-tools-sandbox'])
+})
+
+test('ohne toolsRuntime erscheint kein --tools-runtime', () => {
+  const l = structuredClone(base)
+  l.tools = 'read_file'
+  const argv = buildServerArgv(l, MODEL, defaults)
+  assert.equal(argv.includes('--tools-runtime'), false)
+  // Positiv-Anker: --tools steht trotzdem da, das Weglassen betrifft nur die Laufzeit.
+  assert.deepEqual(argv.slice(argv.indexOf('--tools'), argv.indexOf('--tools') + 2),
+    ['--tools', 'read_file'])
+})
+
+test('parseToolsRuntime unterscheidet Attach-, Spawn- und ssh-Form', () => {
+  assert.deepEqual(parseToolsRuntime('docker-container:box'), { kind: 'attach', bin: 'docker', arg: 'box' })
+  assert.deepEqual(parseToolsRuntime('podman:alpine:3.22'),   { kind: 'spawn',  bin: 'podman', arg: 'alpine:3.22' })
+  assert.deepEqual(parseToolsRuntime('ssh:builder@host'),     { kind: 'ssh',    bin: 'ssh',    arg: 'builder@host' })
+  assert.equal(parseToolsRuntime(null), null)
+  assert.equal(parseToolsRuntime('chroot:/srv'), null)
+})
+
+test('toolsRuntimeMissing schweigt zu Spawn- und ssh-Form', () => {
+  // Beide legt nicht der Proxy an — eine Vorabpruefung koennte hier nur raten.
+  assert.equal(toolsRuntimeMissing({ toolsRuntime: 'docker:alpine:3.22' }), null)
+  assert.equal(toolsRuntimeMissing({ toolsRuntime: 'ssh:builder@host' }), null)
+  assert.equal(toolsRuntimeMissing({}), null)
 })

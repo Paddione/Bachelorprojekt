@@ -164,13 +164,16 @@ the identical call — stop and report the error verbatim instead of looping."
   # still joins them. The claude branch is byte-identical to the pre-T002128 spawn.
   executor="${FACTORY_EXECUTOR:-claude}"
   case "$executor" in
-    claude|opencode) ;;
+    claude|opencode|dsh) ;;
     *) echo "dispatcher-bridge: unknown FACTORY_EXECUTOR='$executor' — falling back to claude" >&2
        executor=claude ;;
   esac
 
   if [[ "$executor" == "opencode" ]]; then
     ( bash "$HERE/opencode-exec.sh" "$ext_id" "$LAUNCH_DIR" "$branch" "$plan_path" 2>&1 ) \
+      | sed "s/^/[pipeline:${ext_id}] /" >&2 &
+  elif [[ "$executor" == "dsh" ]]; then
+    ( bash "$HERE/dsh-exec.sh" "$ext_id" "$LAUNCH_DIR" "$branch" "$plan_path" 2>&1 ) \
       | sed "s/^/[pipeline:${ext_id}] /" >&2 &
   else
     (cd "$LAUNCH_DIR" && "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \

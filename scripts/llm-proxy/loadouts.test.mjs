@@ -107,9 +107,9 @@ test('parseLoadouts: model path mit .. wird abgelehnt', () => {
 
 // ── T002550: eingebaute llama-Tools ──────────────────────────────────────────
 //
-// Die Namen stammen aus `llama-server --help` (b10223) und sind bewusst als
-// Allowlist gefuehrt: read_file, file_glob_search, grep_search,
-// exec_shell_command, write_file, edit_file, get_datetime.
+// Die Namen stammen aus `llama-server --help` (Build 61, 0adcc3bb5) und sind bewusst
+// als Allowlist gefuehrt: read_file, file_glob_search, grep_search,
+// exec_shell_command, write_file, edit_file, get_info.
 //
 // 'all' waere ebenfalls ein gueltiger llama-Wert, wird hier aber ABGELEHNT.
 // llama.cpp kennt weder Sandbox noch Wurzelverzeichnis-Beschraenkung; wer
@@ -267,4 +267,89 @@ test('T003204: isLoadoutEnabled ist der EINE Ort der Default-Regel', () => {
   assert.equal(isLoadoutEnabled({ slug: 'x' }), true)
   assert.equal(isLoadoutEnabled({ slug: 'x', enabled: true }), true)
   assert.equal(isLoadoutEnabled({ slug: 'x', enabled: false }), false)
+})
+
+// ── reasoningEffort (--reasoning-effort) ─────────────────────────────────────
+//
+// Das Feld kam mit dem Build, den ~/opt/llama-current aufloest. Die Validierung
+// ist eine Allowlist, weil llama-server einen unbekannten Wert nicht etwa
+// ignoriert: er faellt auf die Vorlagen-Voreinstellung zurueck, und die
+// Fehlkonfiguration bleibt als stille Verhaltensaenderung stehen.
+
+test('parseLoadouts: bekannte reasoningEffort-Stufe ist gueltig', () => {
+  const ok = structuredClone(valid)
+  ok.loadouts[0].args.reasoningEffort = 'low'
+  assert.equal(parseLoadouts(JSON.stringify(ok)).loadouts[0].args.reasoningEffort, 'low')
+})
+
+test('parseLoadouts: reasoningEffort ist optional', () => {
+  // Positiv-Anker: ohne das Feld bleibt das Dokument gueltig.
+  const doc = parseLoadouts(JSON.stringify(valid))
+  assert.equal(doc.loadouts[0].args.reasoningEffort, undefined)
+})
+
+test('parseLoadouts: unbekannte reasoningEffort-Stufe wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].args.reasoningEffort = 'aus'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /reasoningEffort 'aus'/)
+})
+
+// ── Tool-Namen wandern mit dem llama.cpp-Build ───────────────────────────────
+//
+// 'get_datetime' hiess bis b10241 so und heisst seither 'get_info'. Der alte
+// Name laesst llama-server beim Start mit Exit 1 abbrechen, bevor das Modell
+// geladen wird — der Proxy meldet dann fuer jedes Modell dieses Ports
+// 'no healthy backend'. Der Test haelt den erledigten Umstieg fest.
+
+test('parseLoadouts: get_datetime ist kein gueltiger Tool-Name mehr', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = 'read_file,get_datetime'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /get_datetime/)
+})
+
+test('parseLoadouts: get_info ist der aktuelle Name', () => {
+  const ok = structuredClone(valid)
+  ok.loadouts[0].tools = 'read_file,get_info'
+  assert.equal(parseLoadouts(JSON.stringify(ok)).loadouts[0].tools, 'read_file,get_info')
+})
+
+// ── toolsRuntime (--tools-runtime) ───────────────────────────────────────────
+//
+// Der Wert geht unveraendert in eine Kommandozeile. llama.cpp lehnt einen mit
+// '-' beginnenden Bezeichner selbst ab, weil er sonst als Engine-Option
+// durchginge (etwa --privileged); die Pruefung hier ist dieselbe Schranke einen
+// Schritt frueher, damit eine kaputte Registry gar nicht erst startet.
+
+test('parseLoadouts: docker-container-Form ist gueltig', () => {
+  const ok = structuredClone(valid)
+  ok.loadouts[0].tools = 'read_file'
+  ok.loadouts[0].toolsRuntime = 'docker-container:llama-tools-sandbox'
+  assert.equal(parseLoadouts(JSON.stringify(ok)).loadouts[0].toolsRuntime,
+    'docker-container:llama-tools-sandbox')
+})
+
+test('parseLoadouts: toolsRuntime ist optional', () => {
+  // Positiv-Anker: ohne das Feld bleibt das Dokument gueltig.
+  const doc = parseLoadouts(JSON.stringify(valid))
+  assert.equal(doc.loadouts[0].toolsRuntime, undefined)
+})
+
+test('parseLoadouts: toolsRuntime ohne tools wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].toolsRuntime = 'docker-container:llama-tools-sandbox'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /wirkungslos/)
+})
+
+test('parseLoadouts: fuehrendes - im Bezeichner wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = 'read_file'
+  bad.loadouts[0].toolsRuntime = 'docker-container:--privileged'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /toolsRuntime/)
+})
+
+test('parseLoadouts: unbekannte Engine wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = 'read_file'
+  bad.loadouts[0].toolsRuntime = 'chroot:/srv/jail'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /toolsRuntime/)
 })

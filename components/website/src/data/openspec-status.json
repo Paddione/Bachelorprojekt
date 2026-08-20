@@ -3975,6 +3975,12 @@
       "status": "archived"
     }
   ],
+  "T008015": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-15-T008015",
+      "status": "plan_staged"
+    }
+  ],
   "T008016": [
     {
       "slug": "2026-08-16-sdlc-leitstand-e4-livedaten",
@@ -4176,6 +4182,30 @@
   "T012781": [
     {
       "slug": "2026-08-19-headed-vision-sweep",
+      "status": "archived"
+    }
+  ],
+  "T012902": [
+    {
+      "slug": "2026-08-19-brain-ingest-from-scratch",
+      "status": "archived"
+    }
+  ],
+  "T012909": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-20-T012909",
+      "status": "plan_staged"
+    }
+  ],
+  "T012913": [
+    {
+      "slug": "2026-08-19-brain-knowledge-lifecycle",
+      "status": "archived"
+    }
+  ],
+  "T012962": [
+    {
+      "slug": "2026-08-20-dsh-harness-integration",
       "status": "archived"
     }
   ],

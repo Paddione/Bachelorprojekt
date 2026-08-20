@@ -13,7 +13,7 @@
     // und die Fallback-Kette lokal -> deepseek -> zen greift auch hier [T002558].
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp b10225 via llm-proxy (Unsloth-Build, CUDA 13.3)",
+      "name": "llama.cpp via llm-proxy (~/opt/llama-current, aktuell Build 61 / 0adcc3bb5)",
       "options": {
         "baseURL": "http://127.0.0.1:18235/v1",
         "timeout": 600000,

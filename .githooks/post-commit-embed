@@ -60,13 +60,19 @@ for slug in $SLUGS; do
   EMBEDDED=0
   EMBED_MAX_RETRIES="${OPENSPEC_EMBED_HOOK_RETRIES:-3}"
   EMBED_RETRY_DELAY="${OPENSPEC_EMBED_HOOK_RETRY_DELAY:-5}"
+  # T008015-4: Harte Zeitbudget-Grenze pro Versuch — ein haengender kubectl
+  # port-forward / node-Embed darf den Commit nicht Minuten blockieren
+  # (Mishap-7-Wiederholung: 2x Commit+Amend >120s, stale kubectl-Listener auf
+  # 15432/8081). `timeout` liefert 124 -> zaehlt als fehlgeschlagener Versuch,
+  # es folgt der naechste Retry bzw. die WARN unten.
+  EMBED_TIMEOUT="${OPENSPEC_EMBED_HOOK_TIMEOUT:-30}"
   for attempt in $(seq 1 "$EMBED_MAX_RETRIES"); do
-    if bash "$repo_root/scripts/openspec-embed-local.sh" "$slug" 2>&1; then
+    if timeout "$EMBED_TIMEOUT" bash "$repo_root/scripts/openspec-embed-local.sh" "$slug" 2>&1; then
       EMBEDDED=1
       break
     fi
     if [ "$attempt" -lt "$EMBED_MAX_RETRIES" ]; then
-      echo "[openspec-embed] retry ${attempt}/$EMBED_MAX_RETRIES for '$slug' in ${EMBED_RETRY_DELAY}s…" >&2
+      echo "[openspec-embed] retry ${attempt}/$EMBED_MAX_RETRIES for '$slug' in ${EMBED_RETRY_DELAY}s… (Versuch dauerte >${EMBED_TIMEOUT}s)" >&2
       sleep "$EMBED_RETRY_DELAY"
     fi
   done

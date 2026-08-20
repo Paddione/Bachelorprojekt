@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "slug": "brain-knowledge-lifecycle",
+    "ticket_id": "T012913",
+    "generated_from": "main@a0ee67fd0",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/brain-page-metadata.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-lifecycle-audit.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-ingest.sh",
+      "language": "bash",
+      "loc": 576,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 224
+    },
+    {
+      "path": "templates/brain/SCHEMA.md",
+      "language": "markdown",
+      "loc": 96,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-index.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-mcp-server.py",
+      "language": "python",
+      "loc": 373,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 427
+    },
+    {
+      "path": "scripts/brain-expertise.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain/ingest-sources.yaml",
+      "language": "config",
+      "loc": 75,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/brain-expertise/approved/source-policy.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-retrieval-eval.py",
+      "language": "python",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.brain.yaml",
+      "language": "config",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/fixtures/brain/retrieval-eval.jsonl",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-foundation/knowledge-lifecycle.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
+      "language": "bash",
+      "loc": 378,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/retrieval-eval.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5594,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/brain-ingest.sh:221:determine_group() {",
+      "kind": "function",
+      "file": "scripts/brain-ingest.sh",
+      "signature": "221:determine_group() {(...)",
+      "type_text": "221:determine_group() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-ingest.sh:230:process_page() {",
+      "kind": "function",
+      "file": "scripts/brain-ingest.sh",
+      "signature": "230:process_page() {(...)",
+      "type_text": "230:process_page() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-server.py:373:    main()",
+      "kind": "function",
+      "file": "scripts/brain-mcp-server.py",
+      "signature": "373:    main()(...)",
+      "type_text": "373:    main()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats:8:setup() {",
+      "kind": "function",
+      "file": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
+      "signature": "8:setup() {(...)",
+      "type_text": "8:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats:67:rpc() {",
+      "kind": "function",
+      "file": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
+      "signature": "67:rpc() {(...)",
+      "type_text": "67:rpc() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -261,6 +261,36 @@ tasks:
         export BUILD_TARGET=sdlc
         pnpm dev -- --force
 
+  sdlc:admin-session:
+    desc: "Lokale Admin-Session fuer den Astro-Devserver anlegen (Cookie ausgeben, ohne OIDC)"
+    # T012980: Der regulaere Weg in /sdlc/* ist die Anmeldung ueber Pocket ID. Lokal muss
+    # dafuer kein Pocket ID erreichbar sein — auth.ts oeffnet mit issueSession() denselben
+    # Pfad bereits fuer die System-Testnutzer (Magic-Link-Redeem). Das Skript schreibt eine
+    # Zeile in web_sessions und gibt das Cookie aus.
+    #
+    # Es ist ein Auth-Bypass und verweigert daher alles, was nicht localhost ist: zeigt
+    # SESSIONS_DATABASE_URL auf einen anderen Host, bricht es mit Exit 2 ab, BEVOR es
+    # schreibt. Eine Session in einer Cluster-DB waere ein echter Zugang zu einer echten
+    # Umgebung, kein Entwicklungsbehelf.
+    #
+    # Vorbedingung: der Devserver lief mindestens einmal (task sdlc:dev), damit
+    # ensureSessionsTable() die Tabelle web_sessions angelegt hat. Fehlt sie, bricht das
+    # Skript ebenfalls ab — eine Session in eine gerade erfundene Tabelle zu schreiben
+    # verschleierte, dass der Server nie lief.
+    #
+    # Die .env wird ausdruecklich aus components/website geladen, nicht aus dem Repo-Root:
+    # SESSIONS_DATABASE_URL steht nur dort. Ohne  exportiert das Sourcen die
+    # Variablen nicht in die Kindumgebung, und node saehe sie nicht.
+    cmds:
+      - |
+        set -e
+        if [ ! -f components/website/.env ]; then
+          echo "components/website/.env fehlt — SESSIONS_DATABASE_URL kann nicht geladen werden." >&2
+          exit 2
+        fi
+        set -a; . ./components/website/.env; set +a
+        node scripts/dev-admin-session.mjs
+
   sdlc:refresh:
     desc: "SDLC-Console nach einem main-Merge auf die aktuelle :latest nachziehen (T003740)"
     # T003740: imagePullPolicy Always in k3d/sdlc-stack/sdlc-console.yaml sorgt dafuer,

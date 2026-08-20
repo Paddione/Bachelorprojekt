@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1141,
+      "file_count": 1142,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -872,6 +872,7 @@
         "tests/spec/sdlc-isolation/kubelet-cert-guard.bats",
         "tests/spec/sdlc-isolation/llm-up-health.bats",
         "tests/spec/sdlc-isolation/sdlc-up-command.bats",
+        "tests/spec/sdlc/dev-admin-session-guards.bats",
         "tests/spec/sealed-secret-cluster-drift.bats",
         "tests/spec/secret-rotation-exposure.bats",
         "tests/spec/secret-rotation.bats",
@@ -3563,7 +3564,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 791,
+      "file_count": 792,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3750,6 +3751,7 @@
         "scripts/code-quality/validate.test.mjs",
         "scripts/context-retrieve.mjs",
         "scripts/db-schema-diagram.py",
+        "scripts/dev-admin-session.mjs",
         "scripts/dev-cluster-autostart.sh",
         "scripts/dev-db-refresh.sh",
         "scripts/dev-reset.sh",

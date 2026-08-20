@@ -206,15 +206,26 @@ mapfile -t WORKTREE_BRANCHES < <(git worktree list --porcelain | sed -n 's|^bran
 # Kandidaten: Remote-Branches. Im Einzel-Ticket-Modus nur die, deren Name die Ticket-ID
 # trägt (case-insensitiv). Im Sweep-Modus alle — die Ticket-ID wird je Branch aus dem
 # Branch-Namen extrahiert.
+#
+# T012967: Exit-Code von git ls-remote getrennt auswerten — ein Netzfehler ist kein
+# "leeres Repo". stderr sichtbar lassen, damit der Aufrufer die Fehlerursache sieht.
+LS_REMOTE_RAW=$(git ls-remote --heads "$REMOTE" 2>&1) || LS_REMOTE_RC=$?
+if [ "${LS_REMOTE_RC:-0}" -ne 0 ]; then
+  echo "Fehler: git ls-remote gegen $REMOTE schlug fehl (rc=$LS_REMOTE_RC)." >&2
+  echo "$LS_REMOTE_RAW" >&2
+  exit 1
+fi
+
 mapfile -t CANDIDATES < <(
+  [ -z "$LS_REMOTE_RAW" ] && exit 0
   if [ -n "$TICKET_ID" ]; then
-    git ls-remote --heads "$REMOTE" 2>/dev/null \
+    printf '%s\n' "$LS_REMOTE_RAW" \
       | awk '{print $2}' \
       | sed 's|^refs/heads/||' \
       | grep -i -- "$TICKET_ID" \
       || true
   else
-    git ls-remote --heads "$REMOTE" 2>/dev/null \
+    printf '%s\n' "$LS_REMOTE_RAW" \
       | awk '{print $2}' \
       | sed 's|^refs/heads/||' \
       || true

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1143,
+      "file_count": 1144,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -443,6 +443,7 @@
         "tests/spec/brain-merge-hook.bats",
         "tests/spec/brain-quality-goals.bats",
         "tests/spec/brain-quartz-deploy.bats",
+        "tests/spec/branch-reaper-netzausfall.bats",
         "tests/spec/brett.bats",
         "tests/spec/centralized-logging.bats",
         "tests/spec/chat-inbox.bats",

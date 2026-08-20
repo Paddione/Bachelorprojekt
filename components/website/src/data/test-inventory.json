@@ -2508,6 +2508,12 @@
     "kind": "shell"
   },
   {
+    "id": "branch-reaper-netzausfall",
+    "file": "tests/spec/branch-reaper-netzausfall.bats",
+    "category": "branch-reaper-netzausfall",
+    "kind": "shell"
+  },
+  {
     "id": "brett",
     "file": "tests/spec/brett.bats",
     "category": "brett",

@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "slug": "branch-reaper-netzausfall",
+    "ticket_id": "",
+    "generated_from": "main@d6a1cedeb",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/branch-reaper.sh",
+      "language": "bash",
+      "loc": 420,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 380
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/branch-reaper.sh:82:usage() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "82:usage() {(...)",
+      "type_text": "82:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:133:_allowed() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "133:_allowed() {(...)",
+      "type_text": "133:_allowed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:146:_merged_pr_head_oid() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "146:_merged_pr_head_oid() {(...)",
+      "type_text": "146:_merged_pr_head_oid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:162:_merged_successor() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "162:_merged_successor() {(...)",
+      "type_text": "162:_merged_successor() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:185:_diverging_files() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "185:_diverging_files() {(...)",
+      "type_text": "185:_diverging_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:384:_reap_local_ref() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "384:_reap_local_ref() {(...)",
+      "type_text": "384:_reap_local_ref() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

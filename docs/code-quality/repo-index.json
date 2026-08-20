@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1139,
+      "file_count": 1140,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -662,6 +662,7 @@
         "tests/spec/local-llm-proxy/helpers/llm-endpoint.bash",
         "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
         "tests/spec/local-llm-proxy/lib/pick-small-model.sh",
+        "tests/spec/local-llm-proxy/llama-tool-names-match-binary.bats",
         "tests/spec/local-llm-proxy/loadout-aux-files-exist.bats",
         "tests/spec/local-llm-proxy/loadout-enabled-flag.bats",
         "tests/spec/local-llm-proxy/loadout-env-property.bats",

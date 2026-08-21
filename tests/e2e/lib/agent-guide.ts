@@ -178,6 +178,7 @@ export async function openAgentGuide(page: Page) {
   // The nav row is button.sk-row — role="listitem" on a <button> isn't matched by getByRole in all browsers
   const agentGuideRow = page.locator('button.sk-row').filter({ hasText: 'Agent-Anleitung' });
   await expect(agentGuideRow).toBeVisible({ timeout: 30_000 });
+  await agentGuideRow.scrollIntoViewIfNeeded();
   await agentGuideRow.click();
 
   const body = page.locator('.ag-body');

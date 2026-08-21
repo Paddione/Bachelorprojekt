@@ -11,8 +11,8 @@
 //
 // Scope:
 //   1. Admin login
-//   2. Visit /admin/systemtest/board
-//   3. Assert all 4 column headers render
+//   2. Visit /sdlc/systemtest/board
+//   3. Assert all 4 column headers render (or feature-flag redirect if disabled)
 //   4. Assert the API endpoint returns the canonical shape
 //   5. Assert no JS errors on page load
 //
@@ -34,19 +34,19 @@ const ADMIN_PASS = isKorczewski
 const COLUMN_TITLES = ['Offen', 'Fix in PR', 'Retest ausstehend', 'Grün (7 Tage)'];
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/systemtest/board');
+  await loginViaE2E(page, BASE, ADMIN_USER, '/sdlc/systemtest/board');
 }
 
 test.describe('FA-53: System-test failure loop kanban', () => {
-  test('T1: /admin/systemtest/board redirects unauthenticated users to login', async ({ page }) => {
-    await page.goto(`${BASE}/admin/systemtest/board`);
+  test('T1: /sdlc/systemtest/board redirects unauthenticated users to login', async ({ page }) => {
+    await page.goto(`${BASE}/sdlc/systemtest/board`);
     // Expect either Keycloak (if SITE_URL/login configured) or the local
     // /admin/login redirect — never the board itself.
-    await expect(page).not.toHaveURL(/\/admin\/systemtest\/board$/);
+    await expect(page).not.toHaveURL(/\/sdlc\/systemtest\/board$/);
   });
 
-  test('T2: /api/admin/systemtest/board requires admin auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/systemtest/board`);
+  test('T2: /sdlc/api/systemtest/board requires admin auth', async ({ request }) => {
+    const res = await request.get(`${BASE}/sdlc/api/systemtest/board`);
     expect([401, 403, 404]).toContain(res.status());
   });
 
@@ -54,7 +54,7 @@ test.describe('FA-53: System-test failure loop kanban', () => {
     test.beforeEach(async ({ request }, testInfo) => {
       await assertAuthenticatedReachable(
         request,
-        `${BASE}/admin/systemtest/board`,
+        `${BASE}/sdlc/systemtest/board`,
         { acceptableStatuses: [200, 302, 401], label: 'admin systemtest board' },
         testInfo
       );
@@ -70,6 +70,12 @@ test.describe('FA-53: System-test failure loop kanban', () => {
       await loginAsAdmin(page);
       await page.waitForLoadState('networkidle');
 
+      // If systemtest loop is feature-flagged off, page redirects to /admin?msg=systemtest-loop-disabled
+      if (page.url().includes('msg=systemtest-loop-disabled')) {
+        test.skip(true, 'SYSTEMTEST_LOOP_ENABLED is disabled on this cluster');
+        return;
+      }
+
       for (const title of COLUMN_TITLES) {
         await expect(page.getByRole('heading', { name: title, level: 2 })).toBeVisible({
           timeout: 60_000,
@@ -84,9 +90,9 @@ test.describe('FA-53: System-test failure loop kanban', () => {
       expect(fatal, fatal.join('\n')).toEqual([]);
     });
 
-    test('T4: /api/admin/systemtest/board returns canonical shape (admin session)', async ({ page }) => {
+    test('T4: /sdlc/api/systemtest/board returns canonical shape (admin session)', async ({ page }) => {
       await loginAsAdmin(page);
-      const res = await page.request.get(`${BASE}/api/admin/systemtest/board`);
+      const res = await page.request.get(`${BASE}/sdlc/api/systemtest/board`);
       expect(res.ok()).toBeTruthy();
       const body = await res.json();
       expect(body).toHaveProperty('columns');

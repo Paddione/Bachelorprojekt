@@ -105,6 +105,22 @@ PYEOF
   [[ "$output" == *"LM_MODEL"* ]]
 }
 
+@test "T013033 transform sends slug inventory contents instead of its file path" {
+  start_stub "$VALID_PAGE"
+  local inventory="$BATS_TEST_TMPDIR/slugs.json"
+  printf '["architecture-neighbour","other-page"]\n' > "$inventory"
+
+  run env LM_STUDIO_URL="$STUB_URL" LM_MODEL=stub \
+      bash "$TRANSFORM" "$SRC" note slug "$inventory" '["note"]'
+
+  [ "$status" -eq 0 ]
+  run jq -e --arg path "$inventory" '
+    .messages[0].content
+    | contains("architecture-neighbour") and (contains($path) | not)
+  ' "$STUB_DIR/headers.txt.body"
+  [ "$status" -eq 0 ]
+}
+
 @test "T002533 LM_API_KEY wird als Authorization-Header gesendet" {
   start_stub "$VALID_PAGE"
 

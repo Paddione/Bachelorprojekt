@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.0...website-v1.295.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* **test:** Playwright E2E Suite Flakes und Endpunkt-Drift beheben [T013029] ([#4910](https://github.com/Paddione/Bachelorprojekt/issues/4910)) ([db2467a](https://github.com/Paddione/Bachelorprojekt/commit/db2467afc780af7228dbe06d644f3518f9b0b2a1))
+
 ## [1.295.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.294.2...website-v1.295.0) (2026-08-21)
 
 

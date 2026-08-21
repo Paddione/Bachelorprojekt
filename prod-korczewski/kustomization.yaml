@@ -308,3 +308,21 @@ patches:
       kind: CronJob
       metadata:
         name: error-log-retention
+
+  # db-backup CronJob: suspendiert solange die korczewski-Brand eingefroren
+  # ist (T002479, Kosten/Wartung seit 2026-07-26). shared-db laeuft mit 0
+  # Replicas, der naechtliche Job scheiterte daher an der pg_isready-
+  # Pre-flight mit BackoffLimitExceeded — letzter Erfolg 2026-07-28
+  # [T013037]. Bewusst spec.suspend statt Delete-Patch (Gegenstueck zu
+  # pvc-backup/T012964): beim Unfreeze genuegt das Zuruecksetzen des Flags,
+  # die CronJob-Definition bleibt sichtbar. Inline-target statt Pfad-Patch,
+  # weil der Base-CronJob metadata.namespace=workspace traegt und ein
+  # namespace-loser SMP-Patch sonst kein Ziel findet.
+  - target: { group: batch, version: v1, kind: CronJob, name: db-backup }
+    patch: |-
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: db-backup
+      spec:
+        suspend: true

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.294.2...website-v1.295.0) (2026-08-21)
+
+
+### Features
+
+* **infra:** Prod-Passkeys im lokalen SDLC-Stack nutzbar machen [T012999] ([#4898](https://github.com/Paddione/Bachelorprojekt/issues/4898)) ([a925474](https://github.com/Paddione/Bachelorprojekt/commit/a92547424452c9ef97f6327bca6babf65cf59594))
+
 ## [1.294.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.294.1...website-v1.294.2) (2026-08-21)
 
 

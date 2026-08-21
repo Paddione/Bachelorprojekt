@@ -25,6 +25,9 @@
 #                      http://127.0.0.1:8091 or https://api.deepseek.com
 #                      (var name kept for backward compat, it's not LM Studio)
 #   LM_MODEL         — REQUIRED. Model id, e.g. deepseek-chat
+#   LM_MAX_TOKENS    — Optional response-token ceiling (default: 3072). Raise
+#                      together with MAX_SOURCE_CHARS for large atomic Mermaid
+#                      blocks on a local long-context model.
 #   LM_API_KEY       — Optional. Sent as `Authorization: Bearer`. Leer lassen
 #                      für lokale llama-server, die keine Auth erwarten.
 #   LM_DISABLE_THINKING — Optional (1). Schaltet die Denkphase ab. Pflicht bei
@@ -50,11 +53,17 @@ TAG_DEFAULTS="${5:?tag defaults json required}"
 
 LM_URL="${LM_STUDIO_URL:?LM_STUDIO_URL required (OpenAI-compatible base URL, e.g. https://api.deepseek.com)}"
 LM_MODEL="${LM_MODEL:?LM_MODEL required (model id, e.g. deepseek-chat)}"
+LM_MAX_TOKENS="${LM_MAX_TOKENS:-3072}"
 LM_API_KEY="${LM_API_KEY:-}"
 # Gehostete Anbieter antworten spuerbar langsamer als ein lokaler llama-server;
 # 90 s reichen dort nicht zuverlaessig fuer 3072 Ausgabe-Tokens.
 LM_TIMEOUT="${LM_TIMEOUT:-180}"
 MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-4000}"
+
+case "$LM_MAX_TOKENS" in
+  ''|*[!0-9]*) echo "error: LM_MAX_TOKENS must be a positive integer, got: $LM_MAX_TOKENS" >&2; exit 1 ;;
+esac
+[ "$LM_MAX_TOKENS" -gt 0 ] || { echo "error: LM_MAX_TOKENS must be > 0" >&2; exit 1; }
 
 # Validate source file exists
 [ -f "$SOURCE" ] || { echo "error: source file not found: $SOURCE" >&2; exit 1; }
@@ -84,7 +93,7 @@ PROMPT="Transformiere diese Quelldatei in eine brain-Wiki-Seite.
 Regeln:
 - Frontmatter: type: ${TYPE}, tags: [...], status: active
 - Sprachregel: durchgängig deutsche Prosa ODER englische Original-Passagen unverändert belassen — NIEMALS Wort-für-Wort-Mischübersetzung (Denglisch)
-- Wikilinks: [[slug]] zu verwandten Seiten (aus Slug-Liste)
+- PFLICHT: mindestens einen Wikilink im Format [[slug]] zu einer verwandten Seite aus der Slug-Liste im Fliesstext ausgeben
 - source:: Rückverweis: Bachelorprojekt ${SRC_PATH}
 - Max 1500 Wörter, destilliere Kernaussagen
 - \`\`\`mermaid-Codeblöcke UNVERÄNDERT (verbatim) übernehmen — nicht in Prosa auflösen
@@ -112,13 +121,14 @@ call_llm() {
   # Gemma 4 uses chat_template_kwargs.enable_thinking; DeepSeek uses thinking.type.
   # Send both — unknown keys are harmlessly ignored by each provider. [T002533]
   [ "${LM_DISABLE_THINKING:-0}" = "1" ] && think='{"thinking":{"type":"disabled"},"chat_template_kwargs":{"enable_thinking":false}}'
-  response="$(printf '%s\n' "$curl_cfg" | curl -sf --config - --max-time "$LM_TIMEOUT" "${LM_URL}/v1/chat/completions" \
-    -H "Content-Type: application/json" \
-    -d "$(jq -n \
+  response="$(jq -n --rawfile prompt /dev/fd/4 \
       --arg model "$LM_MODEL" \
-      --arg prompt "$prompt" \
+      --argjson max_tokens "$LM_MAX_TOKENS" \
       --argjson think "$think" \
-      '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: 3072, top_p: 0.9} + $think')" 2>&1)" || {
+      '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: $max_tokens, top_p: 0.9} + $think' \
+      4<<<"$prompt" \
+    | curl -sf --config /dev/fd/3 --max-time "$LM_TIMEOUT" "${LM_URL}/v1/chat/completions" \
+        -H "Content-Type: application/json" --data-binary @- 3<<<"$curl_cfg" 2>&1)" || {
     echo "error: chat completion request failed (${LM_URL}, model ${LM_MODEL})" >&2
     echo "$response" >&2
     exit 1
@@ -148,7 +158,7 @@ call_llm() {
   OUTPUT="$(echo "$OUTPUT" | sed '/^```markdown$/d; /^```$/d')"
 
   # Validate output has frontmatter
-  if ! echo "$OUTPUT" | head -5 | grep -q '^---'; then
+  if ! grep -q -m1 '^---' <<< "$OUTPUT"; then
     echo "error: output missing frontmatter delimiter" >&2
     echo "$OUTPUT" | head -10 >&2
     exit 1
@@ -159,20 +169,20 @@ call_llm() {
 # back-reference and at least one [[wikilink]] in its body.
 validate_output() {
   local out="$1"
-  if ! echo "$out" | grep -q '^source:: '; then
+  if ! grep -q -m1 '^source:: ' <<< "$out"; then
     echo "validation: missing source:: line" >&2
     return 1
   fi
   local body
   body="$(echo "$out" | awk 'BEGIN{fm=0} /^---[[:space:]]*$/{fm++; next} fm>=2{print}')"
-  if ! echo "$body" | grep -q '\[\['; then
+  if ! grep -q -m1 '\[\[' <<< "$body"; then
     echo "validation: no [[wikilink]] in body" >&2
     return 1
   fi
 }
 
 call_llm "$PROMPT"
-if ! validate_output "$OUTPUT"; then
+if ! validate_output "$OUTPUT" 2>/dev/null; then
   RETRY_HINT="
 
 WICHTIG — dein vorheriger Versuch war ungültig. Pflicht: eine Zeile 'source:: Bachelorprojekt ${SRC_PATH}' UND mindestens ein [[wikilink]] aus der Slug-Liste im Fließtext."

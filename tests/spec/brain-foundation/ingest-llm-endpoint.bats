@@ -222,3 +222,42 @@ PYEOF
   run grep -c '"thinking"' "$STUB_DIR/headers.txt.body"
   [ "$output" -ge 1 ]
 }
+
+@test "long valid output is not rejected after grep finds a wikilink" {
+  local content filler response
+  filler="$(printf 'Langer Inhalt ohne weiteren Link. %.0s' {1..3000})"
+  content=$'---\ntype: note\nstatus: active\n---\n\n# X\n\nsource:: Bachelorprojekt quelle.md\n\nSiehe [[andere-seite]].\n\n'"$filler"
+  response="$(jq -cn --arg content "$content" \
+    '{choices:[{message:{content:$content},finish_reason:"stop"}]}')"
+  start_stub "$response"
+
+  run env LM_STUDIO_URL="$STUB_URL" LM_MODEL=stub bash "$TRANSFORM" "$SRC" note slug '[]' '[]'
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"[[andere-seite]]"* ]]
+}
+
+@test "LM_MAX_TOKENS overrides the response budget for atomic diagrams" {
+  start_stub "$VALID_PAGE"
+
+  run env LM_STUDIO_URL="$STUB_URL" LM_MODEL=stub LM_MAX_TOKENS=65536 \
+      bash "$TRANSFORM" "$SRC" note slug '[]' '[]'
+
+  [ "$status" -eq 0 ]
+  run grep -c '65536' "$STUB_DIR/headers.txt.body"
+  [ "$output" -ge 1 ]
+}
+
+@test "large source request body is streamed to curl instead of passed in argv" {
+  local large_src="$BATS_TEST_TMPDIR/large-diagram.md"
+  printf '# Diagram\n\n' > "$large_src"
+  printf 'graph-node-%.0s' {1..12000} >> "$large_src"
+  start_stub "$VALID_PAGE"
+
+  run env LM_STUDIO_URL="$STUB_URL" LM_MODEL=stub MAX_SOURCE_CHARS=200000 \
+      bash "$TRANSFORM" "$large_src" note slug '[]' '[]'
+
+  [ "$status" -eq 0 ] || { echo "$output" >&2; false; }
+  [[ "$output" != *"Argument list too long"* ]]
+  [ -s "$STUB_DIR/headers.txt.body" ]
+}

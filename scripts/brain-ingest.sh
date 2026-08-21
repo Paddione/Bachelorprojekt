@@ -299,7 +299,7 @@ process_page() {
 
   # Set BRAIN_SOURCE_PATH so transform.sh carries the original source path in its
   # source:: line, not the temp chunk directory (T002679, D2).
-  transformed="$(BRAIN_SOURCE_PATH="$src_path" bash "$TRANSFORM_SCRIPT" "$chunk_file" "$type" "$chunk_slug" "$SLUGS_JSON" "$tag_defaults" 2>/dev/null)" || {
+  transformed="$(BRAIN_SOURCE_PATH="$src_path" bash "$TRANSFORM_SCRIPT" "$chunk_file" "$type" "$chunk_slug" "$SLUGS_JSON" "$tag_defaults")" || {
     echo "WARN: LLM failed: $src_path chunk $index" >&2
     return 1
   }

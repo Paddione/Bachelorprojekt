@@ -279,6 +279,6 @@ stop_mock_llm() {
 }
 
 @test "transform requests max_tokens 3072 and carries the language rule" {
-  grep -q 'max_tokens: 3072' "$REPO_ROOT/scripts/brain-ingest-transform.sh"
+  grep -q 'LM_MAX_TOKENS:-3072' "$REPO_ROOT/scripts/brain-ingest-transform.sh"
   grep -q 'Mischübersetzung' "$REPO_ROOT/scripts/brain-ingest-transform.sh"
 }

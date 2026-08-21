@@ -167,6 +167,11 @@ for ns in sys.argv[3:]:
         ph=p["status"].get("phase")
         cs=p["status"].get("containerStatuses",[])
         if mode=="not_ready":
+            # Mishap-Rollup T012445 (#8): Job-Pods sind historische Debris, keine
+            # Live-Degradation — ein durchgelaufener Cron-Job hinterlaesst Failed/
+            # NotReady-Pods, die den G-OPS01-Zielwert dauerhaft aufblaehten.
+            owners=p["metadata"].get("ownerReferences") or []
+            if any(o.get("kind")=="Job" for o in owners): continue
             if ph=="Succeeded": continue
             if ph!="Running" or any(not c.get("ready") for c in cs): n+=1
         else:
@@ -448,7 +453,7 @@ row target G-DB11 "$(restore_verify_age_d)" le 30 "Tage seit letztem erfolgreich
 # ── E2E-/OPS-TARGETS (T002063) ──
 row target G-E2E01 "$(e2e_success_rate)" ge 90 "Nightly-E2E-Erfolgsrate e2e.yml (%, letzte 14 Läufe)"
 row target G-E2E02 "$(db_scalar "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name), false, true, '')))[1]::text::int), 0) FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE'")" eq 0 "E2E-Testdaten-Leak (is_test_data=true Rows, Brand-DB via HG_DB_NS)"
-row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready (fleet, beide Brand-Namespaces)"
+row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready, exkl. Job-Pods (fleet, beide Brand-Namespaces)"
 
 # ── CI-TARGETS ──
 row target G-CI03 "$(

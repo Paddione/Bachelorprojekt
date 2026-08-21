@@ -58,11 +58,13 @@ EOF
 @test "jede Eintrags-Task verlangt eine Disposition" {
   run bash -c "'$RENDER'" <<<"$(_comments)"
   [ "$status" -eq 0 ]
-  # Jede offene Checkbox traegt das Wort Disposition — sonst kann der Executor
-  # einen Eintrag abhaken, ohne zu sagen, was mit ihm geschehen ist.
+  # Jede EINTRAGS-Task traegt das Wort Disposition — sonst kann der Executor
+  # einen Eintrag abhaken, ohne zu sagen, was mit ihm geschehen ist. Eintrags-
+  # Tasks sind die nummerierten Boxen; die Prozess-Schritte (RED-Step, Final
+  # Verification) sind keine Eintraege und deshalb hier nicht gemeint.
   local boxes dispo
-  boxes="$(printf '%s\n' "$output" | grep -c '^- \[ \]')"
-  dispo="$(printf '%s\n' "$output" | grep -e '- \[ \]' | grep -ci 'disposition')"
+  boxes="$(printf '%s\n' "$output" | grep -c '^- \[ \] \*\*[0-9]')"
+  dispo="$(printf '%s\n' "$output" | grep -e '^- \[ \] \*\*[0-9]' | grep -ci 'disposition')"
   [ "$boxes" -ge 2 ]
   [ "$dispo" -eq "$boxes" ]
 }
@@ -86,6 +88,33 @@ EOF
   printf '%s\n' "$output" | grep -qiF 'gefixt'
   printf '%s\n' "$output" | grep -qiF 'kein Repo-Fix'
   printf '%s\n' "$output" | grep -qiF 'bereits gefixt'
+}
+
+# Wie der Generator den Strom liefert: jeder Kommentar-Body wird von einer
+# Sentinel-Zeile eingeleitet. Ohne sie reiht psql die Bodies ohne Trenner
+# aneinander und ein Folgekommentar ist nicht vom Batch-Ende zu unterscheiden.
+_comments_sentinel() {
+  cat <<'EOF'
+<<<ROLLUP-COMMENT>>>
+### Mishap-Rollup — 1 Eintraege (2026-08-22 09:00 UTC)
+
+**1. Reaper kennt lebende Worktrees nicht** (suspicious, scripts/branch-reaper.sh)
+
+Der Sweep loeschte Remote-Refs von Branches, die in Worktrees ausgecheckt waren.
+<<<ROLLUP-COMMENT>>>
+Watchdog: pipeline stale > 30min (no phase progress write, class=INFRA).
+Der Eintrag hier ist Fliesstext eines Folgekommentars und gehoert nicht zum Batch.
+EOF
+}
+
+@test "--batches liefert den Batch ohne den Folgekommentar" {
+  run bash -c "'$RENDER' --batches" <<<"$(_comments_sentinel)"
+  [ "$status" -eq 0 ]
+  # Positiv-Anker: der Batch-Inhalt ist da ...
+  printf '%s\n' "$output" | grep -qF 'Reaper kennt lebende Worktrees nicht'
+  # ... und der Folgekommentar hinter der Kommentargrenze ist es nicht.
+  [ "$(printf '%s\n' "$output" | grep -ci 'watchdog')" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -ci 'Folgekommentars')" -eq 0 ]
 }
 
 @test "leere Eingabe ohne Mishap-Batch meldet 0 und rendert nichts" {

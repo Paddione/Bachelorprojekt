@@ -36,7 +36,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mishap-rollup/rollup-plan-per-entry
 # expected: FAIL (rot — scripts/factory/rollup-plan-tasks.sh fehlt noch)
 ```
 
-- [ ] **Renderer anlegen (GREEN, Teil 1).** `scripts/factory/rollup-plan-tasks.sh` schreiben.
+- [x] **Renderer anlegen (GREEN, Teil 1).** `scripts/factory/rollup-plan-tasks.sh` schreiben.
       Vertrag, wie ihn der Test misst:
       - liest den Kommentar-Strom des Containers von stdin,
       - erkennt Batch-Kommentare am Header `### Mishap-Rollup` und Einträge am Muster
@@ -49,7 +49,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mishap-rollup/rollup-plan-per-entry
         `- [ ] **N. Titel** (typ, komponente) — Disposition: …`,
       - Nicht-Batch-Kommentare (Watchdog, `Unfactored`, Executor-Notizen) werden verworfen.
 
-- [ ] **Generator umstellen (GREEN, Teil 2).** In `scripts/factory/mishap-rollup.sh`:
+- [x] **Generator umstellen (GREEN, Teil 2).** In `scripts/factory/mishap-rollup.sh`:
       - Die Kommentar-Abfrage (heute zweimal: Zählung und Plan-Inhalt) auf **einen** Lauf
         zusammenziehen und vor die Worktree-Anlage ziehen, damit der No-op-Pfad erhalten bleibt.
       - `BATCH_COUNT` aus `rollup-plan-tasks.sh --count` beziehen statt aus dem SQL-`COUNT(*)`.
@@ -60,13 +60,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mishap-rollup/rollup-plan-per-entry
       - Der finale Verifikations-Task des generierten Plans bleibt unverändert, sonst verliert
         der erzeugte Plan seine STRUCT3-Konformität.
 
-- [ ] **Skill-Doku nachziehen.** In `.claude/skills/mishap-tracker/SKILL.md` unter Step 3.5
+- [x] **Skill-Doku nachziehen.** In `.claude/skills/mishap-tracker/SKILL.md` unter Step 3.5
       beschreiben, was der generierte Plan trägt (eine Task pro Eintrag, Pflicht-Disposition,
       die drei zulässigen Dispositionen) und dass nur `### Mishap-Rollup`-Kommentare als Batch
       zählen. Das ist die Stelle, an der ein Modell nachschlägt, bevor es einen Container
       anfasst.
 
-- [ ] **Regressionsprobe am echten Batch.** Den Renderer gegen einen realen Container-Kommentar
+- [x] **Regressionsprobe am echten Batch.** Den Renderer gegen einen realen Container-Kommentar
       fahren und die Ausgabe ansehen — der 08-19-Batch auf T012445 ist der belegte Fall mit
       10 Einträgen und Watchdog-Rauschen im selben Container:
 

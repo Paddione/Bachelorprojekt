@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1146,
+      "file_count": 1147,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -725,6 +725,7 @@
         "tests/spec/mishap-rollup/rollup-cycle-push.bats",
         "tests/spec/mishap-rollup/rollup-direct-dispatch.bats",
         "tests/spec/mishap-rollup/rollup-plan-lint-scope-examples.bats",
+        "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
         "tests/spec/mishap-t002422.bats",
         "tests/spec/mishap-t002424.bats",
         "tests/spec/mishap-tracking/dedupe-korpus.bats",
@@ -3570,7 +3571,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 793,
+      "file_count": 794,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3908,6 +3909,7 @@
         "scripts/factory/review-pattern-enforcer.prompt.md",
         "scripts/factory/review-perf-reviewer.prompt.md",
         "scripts/factory/review-security-auditor.prompt.md",
+        "scripts/factory/rollup-plan-tasks.sh",
         "scripts/factory/rollup-publish.sh",
         "scripts/factory/route-provider.sh",
         "scripts/factory/run-dispatcher-prep.sh",

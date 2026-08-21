@@ -4164,6 +4164,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/rollup-plan-per-entry-tasks",
+    "file": "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",

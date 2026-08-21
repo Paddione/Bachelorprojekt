@@ -70,23 +70,38 @@ CHANGE_DIR="openspec/changes/${SLUG}"
 PLAN_PATH="${CHANGE_DIR}/tasks.md"
 WT="$REPO/.worktrees/${SLUG}"
 
-# ── Check for unprocessed comment batches ───────────────────────────────────
-# Wir zaehlen Kommentare, die KEINE FACTORY-PLAN-REF sind (die sind vom letzten
-# stage-plan). Nur Content-Kommentare (= Mishap-Batches) zaehlen als Batches.
-BATCH_COUNT=$(cat <<SQL | factory_psql 2>/dev/null | head -1
-SELECT COUNT(*)::int FROM tickets.ticket_comments c
+# ── Kommentare lesen und echte Mishap-Eintraege zaehlen ─────────────────────
+# [T013043] Der Kommentar-Strom wird EINMAL gelesen — hier, vor der Worktree-
+# Anlage, damit der No-op-Pfad ohne Worktree erhalten bleibt. Gezaehlt werden
+# nicht mehr die Kommentare, sondern die Mishap-EINTRAEGE darin: die alte
+# Bedingung 'NOT LIKE FACTORY-PLAN-REF%' liess Watchdog-Meldungen, Unfactored-
+# Notizen und Executor-Kommentare als Batch durchgehen (Container T012445:
+# 16 gezaehlte "Batches", real EIN Mishap-Kommentar mit 10 Eintraegen). Die
+# Filterlogik lebt in rollup-plan-tasks.sh und ist dort ueber stdout pruefbar.
+# Aufgeraeumt wird in cleanup_wt() weiter unten — der EXIT-Trap ist einer pro
+# Shell, ein eigener trap hier wuerde vom Worktree-Trap ueberschrieben.
+COMMENTS_FILE=$(mktemp)
+
+# Die Sentinel-Zeile markiert die Grenze zwischen zwei Kommentar-Bodies —
+# psql reiht sie sonst ohne Trenner aneinander und ein Folgekommentar (etwa
+# eine Watchdog-Notiz) waere nicht vom Ende des Batches zu unterscheiden.
+# Der Wert ist mit COMMENT_SENTINEL in rollup-plan-tasks.sh abgestimmt.
+cat <<SQL | factory_psql 2>/dev/null > "$COMMENTS_FILE"
+SELECT E'<<<ROLLUP-COMMENT>>>\n' || c.body FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
 WHERE t.external_id = '${CONTAINER_ID}'
-  AND c.body NOT LIKE 'FACTORY-PLAN-REF%';
+  AND c.body NOT LIKE 'FACTORY-PLAN-REF%'
+ORDER BY c.created_at ASC;
 SQL
-)
+
+BATCH_COUNT="$(bash "$REPO/scripts/factory/rollup-plan-tasks.sh" --count < "$COMMENTS_FILE")"
 BATCH_COUNT="${BATCH_COUNT:-0}"
 
 if [[ "${BATCH_COUNT}" -eq 0 ]]; then
-  echo "mishap-rollup: keine Content-Kommentare auf ${CONTAINER_ID} — nichts zu tun, exit 0"
+  echo "mishap-rollup: keine Mishap-Eintraege auf ${CONTAINER_ID} — nichts zu tun, exit 0"
   exit 0
 fi
-echo "mishap-rollup: ${BATCH_COUNT} Batch-Kommentare gefunden"
+echo "mishap-rollup: ${BATCH_COUNT} Mishap-Eintraege gefunden"
 
 # ── Worktree-Management (Wegwerf) ──────────────────────────────────────────
 # [T004898] Wie auto-chore-plan.sh [T002390]: der Worktree wird pro Lauf frisch
@@ -105,6 +120,8 @@ cleanup_wt() {
   cd "$REPO" >/dev/null 2>&1 || true
   bash "$REPO/scripts/agent-lock.sh" release branch "$BRANCH" >/dev/null 2>&1 || true
   git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true
+  # [T013043] Der oben gelesene Kommentar-Strom liegt in einer Temp-Datei.
+  rm -f "${COMMENTS_FILE:-}" 2>/dev/null || true
 }
 trap cleanup_wt EXIT
 
@@ -160,17 +177,9 @@ PROPOSALEOF
 fi
 
 # tasks.md aus den Batch-Kommentaren generieren
-echo "mishap-rollup: generiere Plan aus ${BATCH_COUNT} Batch-Kommentaren"
-
-# Kommentare einsammeln (nur Body, keine Metadaten)
-COMMENTS_FILE=$(mktemp)
-cat <<SQL | factory_psql 2>/dev/null > "$COMMENTS_FILE"
-SELECT c.body FROM tickets.ticket_comments c
-JOIN tickets.tickets t ON t.id = c.ticket_id
-WHERE t.external_id = '${CONTAINER_ID}'
-  AND c.body NOT LIKE 'FACTORY-PLAN-REF%'
-ORDER BY c.created_at ASC;
-SQL
+# [T013043] COMMENTS_FILE wurde oben (vor der Worktree-Anlage) einmal gefuellt —
+# die frueher hier stehende zweite, identische Abfrage ist entfallen.
+echo "mishap-rollup: generiere Plan aus ${BATCH_COUNT} Mishap-Eintraegen"
 
 {
   cat <<PLANEOF
@@ -209,30 +218,16 @@ PLANEOF
   # aus einem plan-quality-gates-Mishap). Zeilen mit '>' sind bei P2 explizit
   # exempt; das Praefix '> ' pro Zeile neutralisiert Beispiele, ohne den Inhalt
   # zu veraendern (beobachtet: Hard-Fail auf dem 10er-Batch vom 2026-08-15).
-  sed 's/^[[:space:]]*/&> /' "$COMMENTS_FILE"
-  cat <<'PLANEOF'
+  # [T013043] Nur die Batch-Kommentare, ohne Watchdog-/Unfactored-/Executor-
+  # Notizen — die lasen sich im Plan wie Arbeitsanweisungen (im 08-21-Plan
+  # standen sechs 'Watchdog: pipeline stale'-Zeilen zwischen den Mishaps).
+  bash "$REPO/scripts/factory/rollup-plan-tasks.sh" --batches < "$COMMENTS_FILE" \
+    | sed 's/^[[:space:]]*/&> /'
+  echo
 
-## Verify (RED → GREEN)
-
-- [ ] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
-      der das beschriebene Fehlverhalten reproduziert. Er gehoert nach
-      `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
-
-```bash
-tests/unit/lib/bats-core/bin/bats -r tests/spec/software-factory/
-# expected: FAIL (rot — der Fix ist noch nicht implementiert)
-```
-
-- [ ] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten.
-
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
-
-```bash
-task test:changed
-task freshness:regenerate
-task freshness:check
-```
-PLANEOF
+  # [T013043] Aufgaben-Sektion: eine abhakbare Task pro Mishap-Eintrag mit
+  # Pflicht-Disposition statt drei generischer Sammel-Checkboxen.
+  bash "$REPO/scripts/factory/rollup-plan-tasks.sh" < "$COMMENTS_FILE"
 } > "$WT/$PLAN_PATH"
 
 # [T005031] openspec-Validierbarkeit des Change: openspec.sh validate ist

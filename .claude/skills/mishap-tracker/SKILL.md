@@ -204,9 +204,35 @@ Was das Skript garantiert (Details im Skriptkopf `scripts/factory/mishap-rollup.
 - **Commit und Push `&&`-verkettet** — ein abgelehnter Commit verhindert einen Push auf
   eigener Zeile nicht.
 - **No-op-Pfad:** keine unverarbeiteten Batches → Meldung und `exit 0` ohne Worktree-Anlage.
+- **Eine Task pro Mishap-Eintrag [T013043]:** die Aufgaben-Sektion kommt aus
+  `scripts/factory/rollup-plan-tasks.sh` und trägt eine abhakbare Zeile je Eintrag, keine
+  generische Sammel-Checkbox mehr.
+- **Nur echte Batches zählen [T013043]:** als Batch gilt ausschließlich, was der Buffer-Flusher
+  geschrieben hat (Body beginnt mit `### Mishap-Rollup`). Watchdog-Meldungen,
+  `Unfactored`-Notizen und Executor-Kommentare zählen nicht mit und erscheinen nicht im Plan.
 
 Nach erfolgreichem `stage-plan` ist der Container an den Executor übergeben — neue
 Batches landen automatisch in einem frischen Container.
+
+### Wie der Container abgearbeitet wird [T013043]
+
+Der generierte Plan sagt es selbst — wer ihn liest, braucht diesen Abschnitt nicht. Er steht hier
+für den umgekehrten Fall: jemand schaut auf einen Container, bevor ein Plan existiert.
+
+**Jeder Eintrag bekommt genau eine Disposition, dann erst wird seine Box abgehakt:**
+
+| Disposition | Wann | Was sie verlangt |
+|---|---|---|
+| **gefixt** | wird in diesem Zyklus behoben | Code-/Konfigänderung **plus** ein Test, der das Fehlverhalten vorher reproduziert |
+| **bereits gefixt** | zwischenzeitlich anderswo behoben | Beleg nennen (PR/Commit) und gegenprüfen, dass er auf `main` liegt |
+| **kein Repo-Fix** | transientes Ereignis, Bedienfehler, so gewollt | begründen, warum keine Repo-Änderung folgt |
+
+Ein Eintrag darf offen bleiben, wenn er den Zyklus sprengt — Box leer, Grund dahinter. Nicht
+zulässig ist eine abgehakte Box ohne Disposition. **Die Dispositionen zusammen sind der Nachweis,
+dass der Container abgearbeitet wurde und nicht nur geschlossen.** Der Container schließt per
+Merge=Closure; ohne diesen Nachweis schließt er mit unerledigten Einträgen, und weil der nächste
+Flush einen frischen Container anlegt, liest die alten Kommentare danach niemand mehr (beobachtet
+am Zyklus 08-20/T012909: 3 von 10 Einträgen erledigt, Container trotzdem `done · fixed`).
 
 ---
 

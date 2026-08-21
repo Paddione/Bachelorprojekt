@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.3...website-v1.295.4) (2026-08-21)
+
+
+### Documentation
+
+* **plans:** archive fix-db-missing-indexes-constraints [T013031] ([#4918](https://github.com/Paddione/Bachelorprojekt/issues/4918)) ([621abf6](https://github.com/Paddione/Bachelorprojekt/commit/621abf65d158e434350bea37b0e37084f88cd0ee))
+
 ## [1.295.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.2...website-v1.295.3) (2026-08-21)
 
 

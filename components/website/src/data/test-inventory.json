@@ -2448,6 +2448,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-ingest-task-defaults",
+    "file": "tests/spec/brain-ingest-task-defaults.bats",
+    "category": "brain-ingest-task-defaults",
+    "kind": "shell"
+  },
+  {
     "id": "brain-initial-ingest",
     "file": "tests/spec/brain-initial-ingest.bats",
     "category": "brain-initial-ingest",

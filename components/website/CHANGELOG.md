@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.5...website-v1.295.6) (2026-08-21)
+
+
+### Bug Fixes
+
+* **factory:** Rollup-Plan traegt eine Task pro Mishap-Eintrag [T013043] ([#4929](https://github.com/Paddione/Bachelorprojekt/issues/4929)) ([ac9a291](https://github.com/Paddione/Bachelorprojekt/commit/ac9a291c81506da281b0247e84f98fb62dd532cb))
+
 ## [1.295.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.4...website-v1.295.5) (2026-08-21)
 
 

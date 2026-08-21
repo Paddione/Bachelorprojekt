@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.4...website-v1.295.5) (2026-08-21)
+
+
+### Bug Fixes
+
+* **scripts:** default brain ingest to local Gemma [T013042] ([#4925](https://github.com/Paddione/Bachelorprojekt/issues/4925)) ([c38453a](https://github.com/Paddione/Bachelorprojekt/commit/c38453a3a311743af1f4514a8b04f74c434946c9))
+
 ## [1.295.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.3...website-v1.295.4) (2026-08-21)
 
 

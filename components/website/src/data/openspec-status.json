@@ -3963,8 +3963,8 @@
   ],
   "T013031": [
     {
-      "slug": "fix-db-missing-indexes-constraints",
-      "status": "plan_staged"
+      "slug": "2026-08-21-fix-db-missing-indexes-constraints",
+      "status": "archived"
     }
   ],
   "TBD": [

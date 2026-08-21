@@ -99,6 +99,22 @@ EOF
   [ -x "$INGEST" ] || { echo "FAIL: orchestrator script not executable"; return 1; }
 }
 
+@test "T013039 large transformed pages use a SIGPIPE-safe frontmatter guard" {
+  # The production failure needs output larger than the pipe buffer: head then
+  # closes before echo finishes, and pipefail reports echo's SIGPIPE as failure.
+  local large_page=$'---\ntype: note\n---\n'
+  large_page+="$(awk 'BEGIN { for (i = 0; i < 50000; i++) print "x" }')"
+  local large_file="$WORK/large-page.md"
+  printf '%s' "$large_page" > "$large_file"
+
+  run bash -o pipefail -c 'cat "$1" | head -20 | grep -q "^---"' _ "$large_file"
+  [ "$status" -ne 0 ] || { echo "FAIL: regression fixture did not trigger SIGPIPE"; return 1; }
+
+  run grep -q -m1 '^---' "$large_file"
+  [ "$status" -eq 0 ]
+  grep -Fq 'grep -q -m1 "^---" <<< "$transformed"' "$INGEST"
+}
+
 @test "orchestrator requires --brain-repo argument" {
   run bash "$INGEST" 2>&1
   [ "$status" -ne 0 ] || { echo "FAIL: should fail without --brain-repo"; return 1; }

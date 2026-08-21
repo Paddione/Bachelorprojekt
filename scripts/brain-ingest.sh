@@ -304,7 +304,12 @@ process_page() {
     return 1
   }
 
-  if ! echo "$transformed" | head -20 | grep -q "^---"; then
+  # Do not pipe the potentially very large page through head under pipefail.
+  # Once head has its 20 lines it closes the pipe, echo receives SIGPIPE, and
+  # the successful grep is turned into a false "Invalid frontmatter" result.
+  # transform.sh already requires a delimiter; this guard intentionally scans
+  # the shell-owned value directly, with no early-closing upstream process.
+  if ! grep -q -m1 "^---" <<< "$transformed"; then
     echo "WARN: Invalid frontmatter: $src_path chunk $index" >&2
     return 1
   fi

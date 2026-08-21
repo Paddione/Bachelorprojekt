@@ -71,7 +71,8 @@ _argv_facts() {
 # braucht eine Begruendung im Block darunter — die Liste ist keine Sammelstelle.
 _KV_Q4_ALLOWED="gemma26-factory
 gemma4
-gemma26-throughput"
+gemma26-throughput
+qwen38-220k"
 
 @test "nur ausdruecklich ausgenommene GPU-Chat-Loadouts starten mit q4_0-KV" {
   run _argv_facts
@@ -103,6 +104,13 @@ gemma26-throughput"
   # T012414: die Ausnahme qwen3-coder-30b ist entfallen — das Loadout wurde
   # entfernt, nicht nur abgeschaltet. Ein Eintrag fuer ein nicht mehr
   # existierendes Loadout waere eine Ausnahme ohne Gegenstand.
+  #
+  # AUSNAHME qwen38-220k (T013109): Das 10,9-GB-IQ3_XXS-Modell soll auf der
+  # RTX 5070 Ti mit fest gepinnten 220.000 Tokens laufen. q4_0-KV ist Teil
+  # dieses bewusst VRAM-optimierten Profils; q8_0 wuerde den KV-Bedarf nahezu
+  # verdoppeln und den zugesicherten Kontext gefaehrden. Der Agent ist
+  # text-only und nutzt genau dieses Profil, statt die Quantisierung still aus
+  # einem anderen Loadout zu erben.
   local offenders
   offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }' \
               | grep -vxF "$_KV_Q4_ALLOWED" || true)

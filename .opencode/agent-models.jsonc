@@ -70,6 +70,13 @@
             "context": 118016,
             "output": 8192
           }
+        },
+        "qwen38-220k": {
+          "name": "Qwen 3.8 27B UD-IQ3_XXS (Text, Loadout qwen38-220k auf Port 8094, 220.000 ctx) - exclusiveGroup chat-gpu",
+          "limit": {
+            "context": 220000,
+            "output": 8192
+          }
         }
       }
     },
@@ -457,6 +464,16 @@
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "qwen38-primary": {
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx). Tab-selectable text-only singleagent on the qwen38-220k loadout (Port 8094). Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "llamacpp-local/qwen38-220k",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#A855F7",
       "temperature": 0.3,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }

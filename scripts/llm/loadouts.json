@@ -9,6 +9,54 @@
   },
   "loadouts": [
     {
+      "slug": "qwen38-220k",
+      "label": "Qwen 3.8 27B IQ3_XXS · 220K Text",
+      "model": "qwen38/Qwen3.8-27B-UD-IQ3_XXS.gguf",
+      "port": 8094,
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": 256,
+        "minCtx": 220000
+      },
+      "args": {
+        "ctx": 220000,
+        "ngl": 999,
+        "parallel": 1,
+        "cacheTypeK": "q4_0",
+        "cacheTypeV": "q4_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null,
+        "temperature": 1,
+        "topP": 0.95,
+        "topK": 20
+      },
+      "speculative": {
+        "specType": "ngram-mod",
+        "draftModelPath": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [
+        "--no-context-shift",
+        "-b",
+        "2048",
+        "-ub",
+        "512",
+        "--cache-ram",
+        "0",
+        "--ctx-checkpoints",
+        "0"
+      ],
+      "notes": "Text-only loadout for the Unsloth Qwen3.8-27B UD-IQ3_XXS GGUF. One slot, fixed 220000-token request with auto-fit disabled, all layers on GPU, q4_0 KV cache, flash attention, ngram-mod speculation, no MTP drafter, and deliberately no mmproj/vision head. The model's native context is 262144; 220K and q4_0 KV were selected for additional VRAM headroom on the RTX 5070 Ti 16 GiB.",
+      "exclusiveGroup": "chat-gpu"
+    },
+    {
       "slug": "gptoss-context",
       "enabled": false,
       "label": "gpt-oss-20b · maximaler Kontext",

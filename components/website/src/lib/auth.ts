@@ -3,7 +3,15 @@
 import { logger } from './logger';
 import { resolveEndpoints, resolveEndpointsSync, clearProviderCache, AuthUnavailableError } from './auth/provider';
 
-const CLIENT_ID = 'website';
+// Normalerweise 'website' — der Client, den pocket-id-client-seed anlegt.
+// Überschreibbar für den Fall, dass eine Instanz gegen eine FREMDE Pocket ID
+// spricht, in der dieser Deployment-Stand einen eigenen Client hat: der lokale
+// SDLC-Stack, der sich gegen die Prod-Pocket-ID anmeldet, damit dort
+// registrierte Passkeys nutzbar sind (siehe docs/sdlc-stack/prod-auth.md).
+// Ein Passkey ist per WebAuthn an die RP-ID der Pocket-ID-Domain gebunden;
+// der Authorize-Schritt MUSS deshalb auf der Prod-Domain stattfinden, und
+// dort ist der Prod-`website`-Client für web.<PROD_DOMAIN> reserviert.
+const CLIENT_ID = process.env.POCKET_ID_CLIENT_ID || 'website';
 const CLIENT_SECRET = process.env.POCKET_ID_WEBSITE_SECRET || process.env.WEBSITE_OIDC_SECRET || '';
 if (!CLIENT_SECRET) {
   // Fail hard at boot instead of silently falling back to a well-known dev

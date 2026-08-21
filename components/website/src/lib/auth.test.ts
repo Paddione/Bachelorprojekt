@@ -80,6 +80,35 @@ describe('getLoginUrl', () => {
     expect(url).toContain(encodeURIComponent('/api/auth/callback'));
   });
 
+  // Der lokale SDLC-Stack meldet sich im Prod-Auth-Modus gegen die
+  // Prod-Pocket-ID an, damit dort registrierte Passkeys nutzbar sind. Dort ist
+  // der `website`-Client fuer web.<PROD_DOMAIN> reserviert, die localhost-
+  // Console braucht also einen eigenen client_id. Ohne die Env-Ueberschreibung
+  // sendet sie client_id=website mit einer redirect_uri, die dieser Client
+  // nicht kennt — Pocket ID weist den Authorize-Request ab.
+  it('nimmt den client_id aus POCKET_ID_CLIENT_ID, wenn gesetzt', async () => {
+    process.env.POCKET_ID_CLIENT_ID = 'website-local';
+    vi.resetModules();
+    try {
+      const m = await loadModule();
+      const url = m.getLoginUrl();
+      expect(new URL(url).searchParams.get('client_id')).toBe('website-local');
+    } finally {
+      delete process.env.POCKET_ID_CLIENT_ID;
+      vi.resetModules();
+    }
+  });
+
+  // Positiv-Anker zum Test darueber: ohne gesetzte Variable bleibt es bei
+  // 'website'. Sonst koennte die Ueberschreibung auch dadurch "gruen" sein,
+  // dass der Default versehentlich mitgeaendert wurde.
+  it('faellt ohne POCKET_ID_CLIENT_ID auf website zurueck', async () => {
+    delete process.env.POCKET_ID_CLIENT_ID;
+    vi.resetModules();
+    const m = await loadModule();
+    expect(new URL(m.getLoginUrl()).searchParams.get('client_id')).toBe('website');
+  });
+
   // [T002497] Bis 372729d7d reichte getLoginUrl das Argument als state-Parameter
   // durch; der Test hiess entsprechend "echoes the supplied state parameter".
   // Seither ist das Argument ein returnTo, das INTERN unter einem zufällig

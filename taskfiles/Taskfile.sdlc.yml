@@ -54,6 +54,33 @@ tasks:
         export POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-auth.localhost}"
         export POCKET_ID_FALLBACK_FRONTEND_URL="${POCKET_ID_FALLBACK_FRONTEND_URL:-https://auth.mentolder.de}"
         export POCKET_ID_FALLBACK_URL="${POCKET_ID_FALLBACK_URL:-https://auth.mentolder.de}"
+        # ── Auth-Modus der Console (SDLC_AUTH=local|prod) ────────────────────
+        # local (Default): Login gegen die mitgelieferte Pocket ID auf
+        #   auth.localhost. Passkeys, die dort registriert wurden, funktionieren
+        #   — Prod-Passkeys nicht, weil WebAuthn-Credentials an die RP-ID der
+        #   Domain gebunden sind und auth.localhost eine andere RP-ID ist.
+        # prod: Der Authorize-Schritt laeuft auf https://auth.<PROD_DOMAIN>,
+        #   also genau dort, wo die Passkeys registriert sind; danach leitet
+        #   Pocket ID nach http://web.localhost/api/auth/callback zurueck. Der
+        #   Token-Exchange spricht ebenfalls die Prod-Instanz an.
+        #   Voraussetzungen (beide stellt `task sdlc:sdlc:auth:prod` her): ein
+        #   eigener OIDC-Client in der Prod-Pocket-ID mit dieser Callback-URL,
+        #   und dessen Secret in den lokalen K8s-Secrets.
+        #   Der Prod-`website`-Client bleibt bewusst unangetastet.
+        SDLC_AUTH="${SDLC_AUTH:-local}"
+        if [ "$SDLC_AUTH" = "prod" ]; then
+          SDLC_AUTH_DOMAIN="${SDLC_AUTH_DOMAIN:-mentolder.de}"
+          export SDLC_CONSOLE_POCKET_ID_FRONTEND_URL="https://auth.${SDLC_AUTH_DOMAIN}"
+          export SDLC_CONSOLE_POCKET_ID_URL="https://auth.${SDLC_AUTH_DOMAIN}"
+          export SDLC_CONSOLE_POCKET_ID_CLIENT_ID="${SDLC_AUTH_CLIENT_ID:-website-local}"
+        else
+          export SDLC_CONSOLE_POCKET_ID_FRONTEND_URL="http://auth.localhost"
+          export SDLC_CONSOLE_POCKET_ID_URL="http://pocket-id:1411"
+          export SDLC_CONSOLE_POCKET_ID_CLIENT_ID="website"
+        fi
+        # SITE_URL bleibt in beiden Modi web.localhost: es ist der Host, unter
+        # dem der Browser die Console erreicht, und bildet die redirect_uri.
+        export SDLC_CONSOLE_SITE_URL="${SDLC_CONSOLE_SITE_URL:-http://web.localhost}"
         export PROD_DOMAIN="${PROD_DOMAIN:-localhost}"
         export WEBSITE_SITE_URL="${WEBSITE_SITE_URL:-http://sdlc.localhost}"
         export SMTP_HOST="${SMTP_HOST:-}"
@@ -96,7 +123,7 @@ tasks:
         # "DO \$ BEGIN" und der Rollen-Block scheitert an einem Syntaxfehler.
         # Vor Leerzeichen oder ';' bleibt $$ deshalb unangetastet.
         kubectl kustomize --load-restrictor=LoadRestrictionsNone k3d/sdlc-stack \
-          | envsubst '$POCKET_ID_FRONTEND_URL $POCKET_ID_URL $POCKET_ID_DOMAIN $POCKET_ID_FALLBACK_FRONTEND_URL $POCKET_ID_FALLBACK_URL $POCKET_ID_SMTP_TLS $PROD_DOMAIN $WEBSITE_SITE_URL $SMTP_HOST $SMTP_PORT $SMTP_USER $SMTP_FROM $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE' \
+          | envsubst '$POCKET_ID_FRONTEND_URL $POCKET_ID_URL $POCKET_ID_DOMAIN $POCKET_ID_FALLBACK_FRONTEND_URL $POCKET_ID_FALLBACK_URL $POCKET_ID_SMTP_TLS $PROD_DOMAIN $WEBSITE_SITE_URL $SMTP_HOST $SMTP_PORT $SMTP_USER $SMTP_FROM $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE $SDLC_CONSOLE_SITE_URL $SDLC_CONSOLE_POCKET_ID_FRONTEND_URL $SDLC_CONSOLE_POCKET_ID_URL $SDLC_CONSOLE_POCKET_ID_CLIENT_ID' \
           | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g' \
           | kubectl --context k3d-mentolder-dev apply -f -
         echo "---"
@@ -129,6 +156,28 @@ tasks:
     # scheitert mit invalid_client.
     cmds:
       - bash scripts/sdlc-sync-oidc-secret.sh
+
+  sdlc:auth:prod:
+    desc: "Console-Login auf die PROD-Pocket-ID umstellen (Prod-Passkeys nutzbar)"
+    # Passkeys sind an die RP-ID ihrer Domain gebunden — ein auf
+    # auth.mentolder.de registrierter Passkey ist gegen auth.localhost
+    # unbrauchbar. Diese Task laesst den Authorize-Schritt auf der Prod-Domain
+    # stattfinden und danach nach http://web.localhost zurueckleiten.
+    # Legt dafuer in Prod EINEN eigenen Client `website-local` an; der
+    # Prod-`website`-Client bleibt unangetastet. Nach jedem sdlc:sdlc:deploy erneut
+    # aufrufen (der Deploy setzt das Client-Secret auf den Dev-Wert zurueck).
+    cmds:
+      - bash scripts/sdlc-auth-mode.sh prod
+
+  sdlc:auth:local:
+    desc: "Console-Login zurueck auf die lokale Pocket ID (auth.localhost)"
+    cmds:
+      - bash scripts/sdlc-auth-mode.sh local
+
+  sdlc:auth:status:
+    desc: "Zeigt, gegen welche Pocket ID sich die Console anmeldet"
+    cmds:
+      - bash scripts/sdlc-auth-mode.sh status
 
   # --- E3/T002626: Datenhoheit ------------------------------------------------
   # Der Cutover ist ein Betriebsvorgang, kein Task-Lauf. Diese Tasks sind die

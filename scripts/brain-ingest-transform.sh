@@ -109,7 +109,9 @@ Gib NUR das fertige Markdown aus:"
 call_llm() {
   local prompt="$1" response curl_cfg="" think='{}'
   [ -n "$LM_API_KEY" ] && curl_cfg="$(printf 'header = "Authorization: Bearer %s"' "$LM_API_KEY")"
-  [ "${LM_DISABLE_THINKING:-0}" = "1" ] && think='{"thinking":{"type":"disabled"}}'
+  # Gemma 4 uses chat_template_kwargs.enable_thinking; DeepSeek uses thinking.type.
+  # Send both — unknown keys are harmlessly ignored by each provider. [T002533]
+  [ "${LM_DISABLE_THINKING:-0}" = "1" ] && think='{"thinking":{"type":"disabled"},"chat_template_kwargs":{"enable_thinking":false}}'
   response="$(printf '%s\n' "$curl_cfg" | curl -sf --config - --max-time "$LM_TIMEOUT" "${LM_URL}/v1/chat/completions" \
     -H "Content-Type: application/json" \
     -d "$(jq -n \

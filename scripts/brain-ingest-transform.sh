@@ -17,7 +17,8 @@
 #   source_file      — Path to the source markdown file
 #   type             — Brain page type (note|moc|entity|decision|runbook)
 #   slug             — Target slug for the wiki page
-#   slugs_json       — JSON array of all available slugs (for wikilinks)
+#   slugs_json       — JSON array of all available slugs, or a file containing
+#                      that array (brain-ingest.sh uses a file to keep argv small)
 #   tag_defaults_json — JSON array of default tags for the group
 #
 # Env:
@@ -48,8 +49,25 @@ set -euo pipefail
 SOURCE="${1:?source file path required}"
 TYPE="${2:?page type required}"
 SLUG="${3:?page slug required}"
-SLUGS_JSON="${4:?slugs json required}"
+SLUGS_INPUT="${4:?slugs json or file required}"
 TAG_DEFAULTS="${5:?tag defaults json required}"
+
+# The orchestrator deliberately writes the inventory to a temporary file. Do
+# not interpolate that pathname into the prompt: the model cannot dereference
+# local files and consequently has no valid slug from which to form the
+# mandatory wikilink. Keep accepting an inline array for standalone callers.
+if [ -f "$SLUGS_INPUT" ]; then
+  SLUGS_JSON="$(jq -c . "$SLUGS_INPUT")" || {
+    echo "error: invalid slug inventory JSON file: $SLUGS_INPUT" >&2
+    exit 1
+  }
+else
+  SLUGS_JSON="$SLUGS_INPUT"
+fi
+jq -e 'type == "array" and all(.[]; type == "string")' <<<"$SLUGS_JSON" >/dev/null || {
+  echo "error: slug inventory must be a JSON array of strings" >&2
+  exit 1
+}
 
 LM_URL="${LM_STUDIO_URL:?LM_STUDIO_URL required (OpenAI-compatible base URL, e.g. https://api.deepseek.com)}"
 LM_MODEL="${LM_MODEL:?LM_MODEL required (model id, e.g. deepseek-chat)}"

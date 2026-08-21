@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.6...website-v1.295.7) (2026-08-21)
+
+
+### Bug Fixes
+
+* **factory:** Carry-over unerledigter Mishap-Eintraege + SSOT-Spec-Korrektur [T013108] ([#4934](https://github.com/Paddione/Bachelorprojekt/issues/4934)) ([8be7a61](https://github.com/Paddione/Bachelorprojekt/commit/8be7a61564b72bcce0a822b01d5acd3b7b3c1ad5))
+
 ## [1.295.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.5...website-v1.295.6) (2026-08-21)
 
 

@@ -115,6 +115,10 @@ EOF
   grep -Fq 'grep -q -m1 "^---" <<< "$transformed"' "$INGEST"
 }
 
+@test "T013040 secret gate scans the current deliverable instead of immutable history" {
+  grep -Fq 'gitleaks detect --source . --no-git --no-banner' "$INGEST"
+}
+
 @test "orchestrator requires --brain-repo argument" {
   run bash "$INGEST" 2>&1
   [ "$status" -ne 0 ] || { echo "FAIL: should fail without --brain-repo"; return 1; }

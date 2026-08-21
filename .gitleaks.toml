@@ -70,6 +70,11 @@
     # den Arbeitsbaum mit --no-git und wuerde sonst jeden Commit blockieren.
     "(?i)^\\.env$",
     "(?i)^deep\\.sh$",
+    # [T012960] Externer Arbeitsbaum deepseek-harness im Repo-Root, gitignored
+    # (verifiziert per git check-ignore) — kann nie in einen Commit gelangen.
+    # Enthaelt eine echte .env mit DeepSeek-API-Key; der Hook scannt mit
+    # --no-git den Arbeitsbaum und wuerde sonst jeden Commit blockieren.
+    "(?i)^deepseek-harness/.*",
   ]
 
 # ── Standard rules ─────────────────────────────────────────────────────

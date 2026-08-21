@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.294.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.294.1...website-v1.294.2) (2026-08-21)
+
+
+### Bug Fixes
+
+* **infra:** remove pvc-backup + error-log-retention CronJobs from korczewski overlay [T012964] ([#4890](https://github.com/Paddione/Bachelorprojekt/issues/4890)) ([ef2c3ae](https://github.com/Paddione/Bachelorprojekt/commit/ef2c3ae301d360ba9ccd4417e3ff4690e6be2847))
+
 ## [1.294.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.294.0...website-v1.294.1) (2026-08-20)
 
 

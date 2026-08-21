@@ -16,6 +16,23 @@ setup() {
   EXEC_SKILL="$REPO/.agents/skills/dev-flow-execute/SKILL.md"
 }
 
+# Mishap-Rollup T012445 (#2): Die Worktree-Guard-Tests legen ihre Fixtures als
+# leere Verzeichnisse unter <repo>/.worktrees/ an — frueher blieben sie liegen
+# und fuellten den Orphan-Guard von scripts/git-worktree-health.sh mit Rauschen.
+# rmdir entfernt NUR leere Verzeichnisse: ein echtes, gefuelltes Worktree kann
+# dieser Teardown per Konstruktion nicht treffen.
+_wg_cleanup_fixture_dirs() {
+  local main_root d
+  main_root="$(cd "$(git -C "$REPO" rev-parse --git-common-dir)/.." && pwd)"
+  for d in "$REPO"/.worktrees/t002375-p2-* "$REPO"/.worktrees/t002412-* \
+           "$main_root"/.worktrees/t002375-p2-* "$main_root"/.worktrees/t002412-*; do
+    [ -d "$d" ] || continue
+    rmdir "$d" 2>/dev/null || true
+  done
+}
+
+teardown() { _wg_cleanup_fixture_dirs; }
+
 # ── (1) schema is valid JSON declaring draft 2020-12 + required sections ──
 @test "PIB: schema file is valid JSON" {
   [ -f "$SCHEMA" ] || { echo "MISSING schema: $SCHEMA"; return 1; }

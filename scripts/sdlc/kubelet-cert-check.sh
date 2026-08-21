@@ -56,7 +56,16 @@ declare -a FAILED_NODES=()
 EXIT=0
 
 # Node-Liste und InternalIP pro Node
+# Dual-Stack-Nodes liefern InternalIP zweimal (IPv4 + IPv6) — der jsonpath oben gibt
+# je Adresse eine eigene Zeile aus. Die IPv6-Zeile wuerde gegen die rein IPv4-seitigen
+# SAN-Eintraege geprueft und immer FAIL melden (Mishap-Rollup T012445 #6), obwohl der
+# Reparaturlauf erfolgreich war. Deshalb: IPv6-Zeilen ueberspringen und jeden Node
+# nur einmal pruefen.
+declare -A SEEN_NODES=()
 while IFS=' ' read -r node_name node_ip; do
+  [[ "$node_ip" == *:* ]] && continue
+  [[ -n "${SEEN_NODES[$node_name]:-}" ]] && continue
+  SEEN_NODES["$node_name"]=1
   # SAN aus dem Container-Zertifikat lesen: docker exec cat das crt,
   # host-seitig per openssl parsen (der k3s-Container hat kein openssl)
   san_text="$(docker exec "$node_name" cat /var/lib/rancher/k3s/agent/serving-kubelet.crt 2>/dev/null \

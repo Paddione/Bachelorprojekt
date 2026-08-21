@@ -107,23 +107,51 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 > 
 > Rueckweg (nur menschlich): ticket.sh plan-meta set --id T012445 --readiness factory_excluded=false
 
+## File Structure
+
+```
+scripts/branch-reaper.sh                                  (#1 war schon in main via #4887; #4 Batching der Remote-Pushes)
+tests/spec/batch-repo-hygiene-ops-fixes/reaper-worktree-checkout-keep.bats   (NEU — Regressionstest #1)
+tests/spec/dev-flow-plan.bats                             (#2 teardown() + _wg_cleanup_fixture_dirs)
+scripts/sdlc/kubelet-cert-check.sh                        (#6 Dual-Stack: IPv6-Zeilen skippen, Node-Dedupe)
+scripts/health-goals-check.sh                             (#8 G-OPS01: Job-Pods exkludieren + Zieltext)
+```
+
+## Eintrags-Dispositionen
+
+| # | Disposition |
+|---|---|
+| 1 | **Gefixt vor dem Zyklus** — Worktree-Guard landete via PR #4887 (`a54de896b`) in main. Regressionstest nachgetragen (`reaper-worktree-checkout-keep.bats`); er ist grün-on-arrival, weil der Fix bereits existiert. |
+| 2 | **Gefixt** — `teardown()` + `_wg_cleanup_fixture_dirs()` in dev-flow-plan.bats; rmdir entfernt nur leere Verzeichnisse, echte Worktrees sind per Konstruktion geschützt. Suite-Lauf hinterlässt keine Fixtures mehr (verifiziert). |
+| 3 | **Kein Repo-Fix** — transientes llm-proxy/Queue-Ereignis, T012645 manuell vom Operator abgehandelt. Beobachtungspunkt. |
+| 4 | **Gefixt** — Archiv-Tags und Deletes laufen je in EINEM git-Push (2 Hook-Läufe statt 2N); Batch-Fehler fallen auf Einzelpushes zurück, teilweise angelaufene Batches werden gegen Remote verifiziert. |
+| 5 | **Bereits gefixt, verifiziert** — Komma-Status wird an der Zielstelle aufgelöst (`status = ANY(string_to_array(...))`, PR #4887). End-to-End geprüft: `list.sh --status 'triage,in_progress' --brand korczewski` liefert beide Tickets. |
+| 6 | **Gefixt** — IPv6-InternalIP-Zeilen werden übersprungen, jeder Node nur einmal geprüft; ein erfolgreicher Repair meldet nicht mehr FAIL. |
+| 7 | **Kein Repo-Fix** — Loadout-Doku in `loadouts.json` deckt den Crash (`vector::_M_range_check` bei -np 6) und die Messwerte bereits vollständig ab; Live-Workaround (Start ohne MTP) ist operativ. |
+| 8 | **Gefixt** — `ops_kubectl_count not_ready` exkludiert Job-owned Pods; G-OPS01-Zieltext ergänzt. Historische Job-Debris bläht den Wert nicht mehr auf. |
+| 9 | **Bereits gefixt** — PR #4842 (laut Batch-Kommentar, im Cluster recoveriert). |
+| 10 | **Bereits gefixt** — SealedSecret in-place korrigiert, Rollout abgeschlossen (laut Batch-Kommentar). |
+
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
+- [x] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
       der das beschriebene Fehlverhalten reproduziert. Er gehoert nach
       `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
 
 ```bash
-tests/unit/lib/bats-core/bin/bats -r tests/spec/software-factory/
-# expected: FAIL (rot — der Fix ist noch nicht implementiert)
+tests/unit/lib/bats-core/bin/bats tests/spec/batch-repo-hygiene-ops-fixes/reaper-worktree-checkout-keep.bats
+# expected: ok — ABWEICHUNG vom Plan: Eintrag #1 wurde zwischenzeitlich unabhängig
+# über PR #4887 gefixt, der Test ist daher grün-on-arrival als Regressionsschutz.
 ```
 
-- [ ] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten.
+- [x] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten (Dispositionen siehe Tabelle).
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed
-task freshness:regenerate
-task freshness:check
+# 1890 ok / 3 not ok — alle 3 reproduzieren identisch auf dem Main-Checkout OHNE
+# diese Aenderungen (route-provider :18235-Pin, chunks_embedding_hnsw,
+# feature_flags brand FK) → pre-existing, umgebungsbedingt, nicht Teil dieses Zyklus.
+task freshness:regenerate && task freshness:check   # gruenn nach Commit des Regenerats
 ```

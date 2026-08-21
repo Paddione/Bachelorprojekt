@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1144,
+      "file_count": 1145,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -415,6 +415,7 @@
         "tests/spec/batch-local-test-runner-fixes/runner-fixes.bats",
         "tests/spec/batch-openspec-embed-fixes.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes.bats",
+        "tests/spec/batch-repo-hygiene-ops-fixes/reaper-worktree-checkout-keep.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats",
         "tests/spec/batch-worktree-guard-tooling-fixes/archive-plan-gitshow-fallback.bats",

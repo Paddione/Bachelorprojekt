@@ -435,19 +435,57 @@ _reap_local_ref() {
   fi
 }
 
+# Mishap-Rollup T012445 (#4): Jeder einzelne git-Push triggert die Pre-Push-Hooks
+# (quality:check, validate-commit-msg) — bei N Kandidaten waren das 2N Hook-Laeufe
+# und >120 s Gesamtzeit, bis der aufrufende Timeout den Sweep abbrach. Archiv-Tags
+# und Deletes gehen deshalb JEWEILS in EINEM Push (ein Hook-Lauf pro Phase); scheitert
+# ein Batch, faellt die Logik auf Einzelpushes zurueck, um die granularen KEEP-Meldungen
+# zu behalten. Teilweise angelaufene Batches werden vor dem Einzelfall-Ersatz gegen
+# Remote geprueft, damit ein schon geloeschter Ref nicht als KEEP gemeldet wird.
+
+declare -A REAP_SHA=()
 for branch in "${REAP_LIST[@]}"; do
   sha="$(git rev-parse "$REMOTE/$branch" 2>/dev/null || echo "")"
   if [ -z "$sha" ]; then
     echo "KEEP $branch — SHA nicht aufloesbar, kein Delete ohne Archiv-Tag"
     continue
   fi
-  if ! git push "$REMOTE" "$sha:refs/tags/reaped/$branch" 2>/dev/null; then
-    echo "KEEP $branch — Archiv-Tag konnte nicht gepusht werden, kein Delete"
-    continue
-  fi
-  if git push "$REMOTE" --delete "$branch" 2>/dev/null; then
-    _reap_local_ref "$branch" "$sha"
-  else
-    echo "KEEP $branch — Delete fehlgeschlagen (Archiv-Tag liegt bereits vor)"
-  fi
+  REAP_SHA["$branch"]="$sha"
 done
+
+# Phase A: Archiv-Tags in einem Push.
+tag_ok=()
+if [ "${#REAP_SHA[@]}" -gt 0 ]; then
+  tag_specs=()
+  for branch in "${!REAP_SHA[@]}"; do tag_specs+=("${REAP_SHA[$branch]}:refs/tags/reaped/$branch"); done
+  if git push "$REMOTE" "${tag_specs[@]}" 2>/dev/null; then
+    tag_ok=("${!REAP_SHA[@]}")
+  else
+    for branch in "${!REAP_SHA[@]}"; do
+      if git ls-remote --exit-code "$REMOTE" "refs/tags/reaped/$branch" >/dev/null 2>&1; then
+        tag_ok+=("$branch")   # Batch hat den Tag schon angelegt
+      elif git push "$REMOTE" "${REAP_SHA[$branch]}:refs/tags/reaped/$branch" 2>/dev/null; then
+        tag_ok+=("$branch")
+      else
+        echo "KEEP $branch — Archiv-Tag konnte nicht gepusht werden, kein Delete"
+      fi
+    done
+  fi
+fi
+
+# Phase B: Deletes in einem Push.
+if [ "${#tag_ok[@]}" -gt 0 ]; then
+  if git push "$REMOTE" --delete "${tag_ok[@]}" 2>/dev/null; then
+    for branch in "${tag_ok[@]}"; do _reap_local_ref "$branch" "${REAP_SHA[$branch]}"; done
+  else
+    for branch in "${tag_ok[@]}"; do
+      if ! git ls-remote --exit-code --heads "$REMOTE" "refs/heads/$branch" >/dev/null 2>&1; then
+        _reap_local_ref "$branch" "${REAP_SHA[$branch]}"   # Batch hat ihn schon geloescht
+      elif git push "$REMOTE" --delete "$branch" 2>/dev/null; then
+        _reap_local_ref "$branch" "${REAP_SHA[$branch]}"
+      else
+        echo "KEEP $branch — Delete fehlgeschlagen (Archiv-Tag liegt bereits vor)"
+      fi
+    done
+  fi
+fi

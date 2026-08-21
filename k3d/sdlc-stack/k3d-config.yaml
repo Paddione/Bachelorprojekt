@@ -4,7 +4,7 @@ metadata:
   name: mentolder-dev
 servers: 1
 agents: 1
-image: rancher/k3s:v1.32.13-k3s1
+image: rancher/k3s:v1.32.13-k3s1@sha256:7534b63e02277917f77c584ed5532b31562c760d6bb8fe88059002e9bdeee033
 kubeAPI:
   host: "127.0.0.1"
   hostIP: "127.0.0.1"

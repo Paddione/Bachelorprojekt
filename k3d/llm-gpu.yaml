@@ -76,7 +76,7 @@ spec:
         fsGroup: 101
       initContainers:
         - name: model-download
-          image: curlimages/curl:8.21.0
+          image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
           command: ["sh", "-c"]
           args:
             - |
@@ -98,7 +98,7 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-b10223
+          image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
           args:
             - "-m"
             - "/models/bge-m3-Q8_0.gguf"
@@ -230,7 +230,7 @@ spec:
         fsGroup: 101
       initContainers:
         - name: model-download
-          image: curlimages/curl:8.21.0
+          image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
           command: ["sh", "-c"]
           args:
             - |
@@ -252,7 +252,7 @@ spec:
               memory: 256Mi
       containers:
         - name: llama-cpp
-          image: ghcr.io/ggml-org/llama.cpp:server-b10223
+          image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
           args:
             - "-m"
             - "/models/bge-reranker-v2-m3-Q8_0.gguf"

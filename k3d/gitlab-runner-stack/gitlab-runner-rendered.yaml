@@ -383,7 +383,7 @@ spec:
       serviceAccountName: "gitlab-runner"
       containers:
       - name: gitlab-runner
-        image: registry.gitlab.com/gitlab-org/gitlab-runner:alpine-v19.2.2
+        image: registry.gitlab.com/gitlab-org/gitlab-runner:alpine-v19.2.2@sha256:c3e28c921328c4a81404482b3ae7c73565fa4ddb218b2665bc3324ec98840bfa
         imagePullPolicy: "IfNotPresent"
         securityContext: 
           allowPrivilegeEscalation: false

@@ -346,3 +346,24 @@ spec:
       name: otel-collector-auth
       namespace: monitoring
     type: Opaque
+
+# T013037: Temporaerer Filen-Backend-Reroute fuer den mentolder db-backup.
+# Das mentolder-Filen-Konto hat 2FA aktiviert (~2026-07-25) — der Upload-Sidecar
+# haengt am interaktiven 2FA-Prompt bis zum Deadline-Tod. Bis das Konto wieder
+# ohne 2FA nutzbar ist, weicht der Job auf das korczewski-Filen-Konto (ohne 2FA)
+# aus. Wird von k3d/backup-cronjob.yaml (FILEN_*_OVERWRITE, optional) gelesen;
+# fehlt das Secret, gilt workspace-secrets wie bisher. Entfernen nach Reroute-Ende.
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: filen-upload-credentials
+  namespace: workspace
+spec:
+  encryptedData:
+    EMAIL: AgB6ov+Xu9pYWzZ2LXHVEAWfCdFNWYAzMdYkMLvq6gLp2+DG9V4jLrswEji0LaDn5ZrTLLUqQ6JlROcunVZ8NBnTEl4BU6zaEDLGwWWexZx0WgkpxPOANPtEWltwEhr/Ky49mNm37B+Ifz1zfVRj4srqkw7bFGu603SPQ4z2fCLBc+DyKUlTHZ9ODT9peBuH7lS0NeUJno23SKtd547H78Mv8A3xz9N2OAmgdOZKKe84fjS5Jiz9OYTq1/yFXPpi4vclO9tBd+QyjAH3JUaNJGFdxTdyFmHAvwKB9jQ74KWl/poGToYcIsvJzRJCuviFbUXjps/jm/GYfz4h5t9t9+FxKZ7zESpfoO99UxF15O/JRt2ppfaVekG+5XyNyd0Tu61Mj+02eEP0Z2aMrtg7jLPWK9Imrp+ITXOT4A6Eyi8rT6CccscK/h5aM8s1l67nJFflLVZVeHJI2Dw2NMZvc11vU2dxEgzGXBEtpFP8RwY79C/uLT+Degb7Gr5j33NRPMXG+NWS1tSpiXb50+jEBmrQ/FzAoosTTQVl04y4A3FpzUFZusJFsc6oQrJzkjwY98+PharDWCox/xV5OiBnYm8t5nWw3S+lHMFUEwCshB0xbTNcx9VbcBosiCPu9cR4NhKX1ioIHRCTNz3yXn/Sk1IUI7dotZ+0ZybRtTrpfRIldTrWEaF4rj50QedoegYn6EpLT0s/GDz+TU/1Vpd3/9oyNGt3dwkt
+    PASSWORD: AgA5fxWfy68YwMfd8BqCFyRIc9KIfWk0ngPxab44i0DyBpPaF5d9pQllcJbV6pLm3b7RJBcF5axo2QfXFBCxEpI/54HFz3E64j6Q7nTCQRMLmZ9TurnKJm6lZHcgdDfh8K+5k6BPiCUkkpFZqs8iCbKY+tJTLSQknlFYfjrXz/3mUGGUusK1FQ0ElT4cJ+yYgzLgwQjnqWDVsjJAOHkYi4dMYQu8dhOxP9Q1w1PBY6XULzykDTtWEx0jEtnFUxKcszyGS/HFnqpIWKd/Y2ua+TWVNbARF8XAWpK5FgYKZQrtM5SA3n8MdeG9/lrq6JehAieFHY/f40wa8AGKOlesoOVxH0jmDXNtr9+7MhB4ce+zyi4P0/C9ApzixXRmShdnOsu0IXVZYL/4hMWaqiXl+b1A4r78IjGFi43HWpWNfJNqqlfpqMM87mZsjrdyevVODkCXFXPJE/uHUFH61SCBCl3+K7AjpzIY02zsZbkQt/Vptd/ljqrfoopYdRwj1pJgv3FVXVEExYs9NNwsHTJ0QO40Zkm+cXy+zYE0iCshzt6gMNXmjkSmUrxbsRh6aZLHzwPzICYFpk17/1J/bRqmRHxsA5OVHAhZmBXDxGljjC2qonXRI1fkV/jXMANVxfaPEoA633eR4O+WqMYNphj5dPZHEtMW5mZ77FcD3uElD8cI6lhFspgialTSaov6isJyroObqh2+rgLv7xh4X88uAPV0zw==
+  template:
+    metadata:
+      name: filen-upload-credentials
+      namespace: workspace

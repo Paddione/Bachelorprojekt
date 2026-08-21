@@ -203,6 +203,20 @@ spec:
               # STAMP and UPLOAD_PATH below are read from /staging at runtime — NOT envsubst targets.
               args:
                 - |
+                  # Credential-Auflösung: Die optionale Secret filen-upload-credentials
+                  # gewinnt gegenüber workspace-secrets [T013037]. Hintergrund: Das
+                  # mentolder-Filen-Konto hat 2FA aktiviert (~2026-07-25), worauf die
+                  # CLI mit einem interaktiven Prompt antwortet und den Job bis zum
+                  # Deadline-Tod aufhängt. Bis das Konto wieder ohne 2FA nutzbar ist,
+                  # wird auf das korczewski-Filen-Konto (ohne 2FA) ausgewichen.
+                  FILEN_EMAIL="$${FILEN_EMAIL:-}"
+                  FILEN_PASSWORD="$${FILEN_PASSWORD:-}"
+                  if [ -n "$${FILEN_EMAIL_OVERRIDE:-}" ] && [ -n "$${FILEN_PASSWORD_OVERRIDE:-}" ]; then
+                    echo "Using override Filen credentials (filen-upload-credentials) [T013037]"
+                    FILEN_EMAIL="$${FILEN_EMAIL_OVERRIDE}"
+                    FILEN_PASSWORD="$${FILEN_PASSWORD_OVERRIDE}"
+                  fi
+
                   if [ -z "$${FILEN_EMAIL}" ] || [ -z "$${FILEN_PASSWORD}" ]; then
                     echo "Filen not configured — skipping remote backup"
                     until [ -f /staging/.done ]; do sleep 2; done
@@ -224,12 +238,15 @@ spec:
                   # @filen/cli authenticates with raw email+password; it derives the
                   # PBKDF2 key / master keys / API token internally (Filen auth v2).
                   # This invocation passes NO 2FA code, so it assumes 2FA is OFF on the
-                  # Filen account — an invariant that holds for both mentolder and
-                  # korczewski. If 2FA is ever enabled, login fails permanently here.
-                  if ! filen --email "$${FILEN_EMAIL}" --password "$${FILEN_PASSWORD}" \
+                  # Filen account. If 2FA is enabled, the CLI blocks on an interactive
+                  # prompt forever — der timeout unten verwandelt diesen Hang in einen
+                  # sichtbaren Fehler statt 2h Deadline-Tod [T013037].
+                  UPLOAD_TIMEOUT="$${FILEN_UPLOAD_TIMEOUT:-1800}"
+                  if ! timeout "$${UPLOAD_TIMEOUT}" filen --email "$${FILEN_EMAIL}" --password "$${FILEN_PASSWORD}" \
                        upload "/backups/$${STAMP}/" "$${UPLOAD_PATH}/$${STAMP}/"; then
                     echo "ERROR: Filen remote upload failed for $${STAMP} — the LOCAL encrypted backup on backup-pvc is intact."
-                    echo "       Likely cause: invalid FILEN_EMAIL/FILEN_PASSWORD, or 2FA was enabled on the Filen account (this job requires 2FA OFF)."
+                    echo "       Likely cause: invalid FILEN_EMAIL/FILEN_PASSWORD, 2FA enabled on the account (requires 2FA OFF),"
+                    echo "       or the $${UPLOAD_TIMEOUT}s upload timeout hit a stalled transfer."
                     echo "       Exiting non-zero so the broken remote backup surfaces as a Failed Job instead of being silently swallowed."
                     # restartPolicy: OnFailure retries transients in-pod; a permanent
                     # failure escalates to a Failed Job (failedJobsHistoryLimit keeps it visible).
@@ -249,6 +266,22 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: FILEN_PASSWORD
+                      optional: true
+                # T013037: Optionale Credential-Überschreibung für den temporären
+                # Backend-Reroute (korczewski-Filen-Konto statt mentolder, solange
+                # dort 2FA aktiv ist). Secret fehlt ⇒ beide Variablen leer ⇒
+                # workspace-secrets wird verwendet — Verhalten wie bisher.
+                - name: FILEN_EMAIL_OVERRIDE
+                  valueFrom:
+                    secretKeyRef:
+                      name: filen-upload-credentials
+                      key: EMAIL
+                      optional: true
+                - name: FILEN_PASSWORD_OVERRIDE
+                  valueFrom:
+                    secretKeyRef:
+                      name: filen-upload-credentials
+                      key: PASSWORD
                       optional: true
               volumeMounts:
                 - name: backup-storage

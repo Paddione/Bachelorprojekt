@@ -210,6 +210,12 @@ Was das Skript garantiert (Details im Skriptkopf `scripts/factory/mishap-rollup.
 - **Nur echte Batches zählen [T013043]:** als Batch gilt ausschließlich, was der Buffer-Flusher
   geschrieben hat (Body beginnt mit `### Mishap-Rollup`). Watchdog-Meldungen,
   `Unfactored`-Notizen und Executor-Kommentare zählen nicht mit und erscheinen nicht im Plan.
+- **Carry-over unerledigter Einträge [T013108]:** vor dem Zählen hängt der Generator die offenen
+  Eintrags-Tasks des letzten abgeschlossenen Zyklus als regulären Batch an den aktuellen Container
+  (`scripts/factory/rollup-carryover.sh`). Ein Eintrag ohne Disposition verfällt damit nicht mit
+  seinem Container, sondern steht im nächsten Plan wieder — mit genannter Herkunft. Idempotent je
+  Quell-Zyklus; übertragen wird nur der jüngste Zyklus, weil dessen Plan die Übernahmen der
+  älteren bereits enthält.
 
 Nach erfolgreichem `stage-plan` ist der Container an den Executor übergeben — neue
 Batches landen automatisch in einem frischen Container.

@@ -2,7 +2,15 @@
 
 ## Purpose
 
-_Purpose fehlt — beim nächsten inhaltlichen Delta zu mishap-rollup ergänzen._
+Nicht-kritische Reibungen aus dev-flow- und Runbook-Läufen sollen weder einzeln den Ticket-Backlog
+fluten noch stillschweigend verfallen. Der Rollup-Container ist der Sammelpunkt dazwischen: der
+Buffer-Flusher hängt Batches an ihn, der Generator macht daraus periodisch einen Plan, die Factory
+arbeitet ihn ab, und der Merge schließt den Container.
+
+Der Spec regelt drei Dinge, an denen dieser Weg nachweislich gerissen ist: dass pro Zyklus genau
+ein validierbarer Change entsteht, dass der Container ephemer ist und von der Factory geschlossen
+wird statt vom Generator, und dass ein Eintrag ohne Disposition beim Schließen nicht verloren geht,
+sondern in den Folge-Container wandert.
 
 ## Requirements
 

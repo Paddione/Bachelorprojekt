@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.1...website-v1.295.2) (2026-08-21)
+
+
+### Documentation
+
+* update G-DB09 baseline to reached in goals.md [T013030] ([#4913](https://github.com/Paddione/Bachelorprojekt/issues/4913)) ([9fda6dd](https://github.com/Paddione/Bachelorprojekt/commit/9fda6ddb161a722983d692dccda54a03f3a788dc))
+
 ## [1.295.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.0...website-v1.295.1) (2026-08-21)
 
 

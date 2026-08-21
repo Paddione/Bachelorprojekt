@@ -3961,6 +3961,12 @@
       "status": "archived"
     }
   ],
+  "T013031": [
+    {
+      "slug": "fix-db-missing-indexes-constraints",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

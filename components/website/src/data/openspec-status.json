@@ -2409,12 +2409,6 @@
       "status": "archived"
     }
   ],
-  "T002587": [
-    {
-      "slug": "unsloth-training-env",
-      "status": "plan_staged"
-    }
-  ],
   "T002592": [
     {
       "slug": "2026-08-03-toolset-usage-injection",
@@ -2587,12 +2581,6 @@
     {
       "slug": "2026-08-10-health-goals-silent-fallbacks",
       "status": "archived"
-    }
-  ],
-  "T002650": [
-    {
-      "slug": "one-command-dev-environment",
-      "status": "plan_staged"
     }
   ],
   "T002651": [
@@ -3057,22 +3045,10 @@
       "status": "archived"
     }
   ],
-  "T002929": [
-    {
-      "slug": "fix-plan-agent-readiness",
-      "status": "plan_staged"
-    }
-  ],
   "T002931": [
     {
       "slug": "2026-08-10-mishap-rollup-loop",
       "status": "archived"
-    }
-  ],
-  "T002932": [
-    {
-      "slug": "worktree-status-check-existence",
-      "status": "plan_staged"
     }
   ],
   "T002941": [
@@ -3085,18 +3061,6 @@
     {
       "slug": "2026-08-10-fix-k3d-kubelet-cert-T002999",
       "status": "archived"
-    }
-  ],
-  "T003003": [
-    {
-      "slug": "fix-devflow-background-block",
-      "status": "plan_staged"
-    }
-  ],
-  "T003008": [
-    {
-      "slug": "actionlint-workflow-gate",
-      "status": "plan_staged"
     }
   ],
   "T003036": [
@@ -3141,18 +3105,6 @@
       "status": "archived"
     }
   ],
-  "T003102": [
-    {
-      "slug": "fix-ticket-lock-subagent",
-      "status": "plan_staged"
-    }
-  ],
-  "T003103": [
-    {
-      "slug": "preflight-scope-multi-ticket",
-      "status": "plan_staged"
-    }
-  ],
   "T003107": [
     {
       "slug": "2026-08-10-agent-lock-claim-help",
@@ -3169,12 +3121,6 @@
     {
       "slug": "2026-08-10-agent-lock-sid-detection-T003110",
       "status": "archived"
-    }
-  ],
-  "T003112": [
-    {
-      "slug": "plan-qa-check-parse",
-      "status": "plan_staged"
     }
   ],
   "T003116": [
@@ -3201,34 +3147,16 @@
       "status": "archived"
     }
   ],
-  "T003139": [
-    {
-      "slug": "commit-scope-openspec",
-      "status": "plan_staged"
-    }
-  ],
   "T003141": [
     {
       "slug": "2026-08-11-secrets-schema-drift",
       "status": "archived"
     }
   ],
-  "T003142": [
-    {
-      "slug": "docs-content-test-paths",
-      "status": "plan_staged"
-    }
-  ],
   "T003144": [
     {
       "slug": "2026-08-14-portal-profile-bats",
       "status": "archived"
-    }
-  ],
-  "T003180": [
-    {
-      "slug": "branch-reaper-sweep-cli",
-      "status": "plan_staged"
     }
   ],
   "T003203": [
@@ -3247,18 +3175,6 @@
     {
       "slug": "2026-08-10-feat-bge-proxy-role-routes-T003205",
       "status": "archived"
-    }
-  ],
-  "T003215": [
-    {
-      "slug": "worktree-create-git-op-guard",
-      "status": "plan_staged"
-    }
-  ],
-  "T003267": [
-    {
-      "slug": "cross-harness-plan-guardrails",
-      "status": "plan_staged"
     }
   ],
   "T003269": [
@@ -3333,36 +3249,6 @@
       "status": "archived"
     }
   ],
-  "T003540": [
-    {
-      "slug": "batch-ci-check-evaluation",
-      "status": "plan_staged"
-    }
-  ],
-  "T003541": [
-    {
-      "slug": "batch-ticket-ops-meta",
-      "status": "plan_staged"
-    }
-  ],
-  "T003553": [
-    {
-      "slug": "fix-mishap-buffer-no-conversion",
-      "status": "plan_staged"
-    }
-  ],
-  "T003612": [
-    {
-      "slug": "fix-devflow-ciwatch-cwd-head",
-      "status": "plan_staged"
-    }
-  ],
-  "T003641": [
-    {
-      "slug": "batch-plan-tooling-fixes",
-      "status": "plan_staged"
-    }
-  ],
   "T003677": [
     {
       "slug": "2026-08-14-fix-factory-lock-worktree-safety",
@@ -3385,12 +3271,6 @@
     {
       "slug": "2026-08-13-build-login-redirect",
       "status": "archived"
-    }
-  ],
-  "T003765": [
-    {
-      "slug": "auto-close-plan-only-all-branches",
-      "status": "plan_staged"
     }
   ],
   "T003773": [
@@ -3567,18 +3447,6 @@
       "status": "archived"
     }
   ],
-  "T004894": [
-    {
-      "slug": "areas-csv-trim",
-      "status": "plan_staged"
-    }
-  ],
-  "T004896": [
-    {
-      "slug": "plan-commit-scope-guard",
-      "status": "plan_staged"
-    }
-  ],
   "T004897": [
     {
       "slug": "2026-08-15-runtime-drift-auto-kill",
@@ -3663,42 +3531,6 @@
       "status": "archived"
     }
   ],
-  "T005561": [
-    {
-      "slug": "test-changed-db-isolation",
-      "status": "plan_staged"
-    }
-  ],
-  "T005563": [
-    {
-      "slug": "vda-frontmatter-yaml",
-      "status": "plan_staged"
-    }
-  ],
-  "T005564": [
-    {
-      "slug": "archive-status-sed-planning",
-      "status": "plan_staged"
-    }
-  ],
-  "T005565": [
-    {
-      "slug": "review-gate-enforce",
-      "status": "plan_staged"
-    }
-  ],
-  "T005567": [
-    {
-      "slug": "commit-msg-hook-worktree",
-      "status": "plan_staged"
-    }
-  ],
-  "T005591": [
-    {
-      "slug": "sf-fixture-hardening",
-      "status": "plan_staged"
-    }
-  ],
   "T005592": [
     {
       "slug": "2026-08-14-mcp-task-runner-cancel-escalation",
@@ -3753,12 +3585,6 @@
       "status": "archived"
     }
   ],
-  "T006143": [
-    {
-      "slug": "2026-08-15-laptop-bge-topologie",
-      "status": "plan_staged"
-    }
-  ],
   "T006252": [
     {
       "slug": "2026-08-15-s3-finetune-dataset-recipe",
@@ -3777,12 +3603,6 @@
       "status": "archived"
     }
   ],
-  "T006285": [
-    {
-      "slug": "mcp-tool-guide-psql-ticket-ssot",
-      "status": "plan_staged"
-    }
-  ],
   "T006290": [
     {
       "slug": "2026-08-15-agent-lock-release-cwd",
@@ -3793,18 +3613,6 @@
     {
       "slug": "2026-08-15-mcp-postgres-multistatement",
       "status": "archived"
-    }
-  ],
-  "T006295": [
-    {
-      "slug": "ticket-ops-stale-triage",
-      "status": "plan_staged"
-    }
-  ],
-  "T006297": [
-    {
-      "slug": "factory-merged-dispatch-gate",
-      "status": "plan_staged"
     }
   ],
   "T006298": [
@@ -3855,12 +3663,6 @@
       "status": "archived"
     }
   ],
-  "T006367": [
-    {
-      "slug": "devflow-worktree-cwd-guard",
-      "status": "plan_staged"
-    }
-  ],
   "T006368": [
     {
       "slug": "2026-08-15-spec-junit-shard-ignore",
@@ -3891,12 +3693,6 @@
       "status": "archived"
     }
   ],
-  "T006725": [
-    {
-      "slug": "mishap-incident-rollup-2026-08-15-T006725",
-      "status": "plan_staged"
-    }
-  ],
   "T006791": [
     {
       "slug": "2026-08-15-post-merge-finalize-archive-branch-restore",
@@ -3907,12 +3703,6 @@
     {
       "slug": "2026-08-15-unterstuetzermodelle-inbetriebnahme",
       "status": "archived"
-    }
-  ],
-  "T006843": [
-    {
-      "slug": "mishap-incident-rollup-2026-08-15-T006843",
-      "status": "plan_staged"
     }
   ],
   "T006999": [
@@ -3939,22 +3729,10 @@
       "status": "archived"
     }
   ],
-  "T007056": [
-    {
-      "slug": "mishap-rollup-direct-dispatch",
-      "status": "plan_staged"
-    }
-  ],
   "T007559": [
     {
       "slug": "2026-08-15-sdlc-leitstand-e1-e2",
       "status": "archived"
-    }
-  ],
-  "T007877": [
-    {
-      "slug": "mishap-incident-rollup-2026-08-15-T007877",
-      "status": "plan_staged"
     }
   ],
   "T007955": [
@@ -3975,12 +3753,6 @@
       "status": "archived"
     }
   ],
-  "T008015": [
-    {
-      "slug": "mishap-incident-rollup-2026-08-15-T008015",
-      "status": "plan_staged"
-    }
-  ],
   "T008016": [
     {
       "slug": "2026-08-16-sdlc-leitstand-e4-livedaten",
@@ -3993,18 +3765,6 @@
       "status": "archived"
     }
   ],
-  "T008345": [
-    {
-      "slug": "fix-status-ssot-consolidation",
-      "status": "plan_staged"
-    }
-  ],
-  "T008721": [
-    {
-      "slug": "chore-e3-review-followups",
-      "status": "plan_staged"
-    }
-  ],
   "T008757": [
     {
       "slug": "2026-08-18-fix-fa-sf-25-scheduling-cap",
@@ -4015,12 +3775,6 @@
     {
       "slug": "2026-08-18-fix-devflow-post-merge-deploy-grep",
       "status": "archived"
-    }
-  ],
-  "T009369": [
-    {
-      "slug": "mishap-incident-rollup-2026-08-17-T009369",
-      "status": "plan_staged"
     }
   ],
   "T011498": [
@@ -4065,12 +3819,6 @@
       "status": "archived"
     }
   ],
-  "T011793": [
-    {
-      "slug": "mishap-incident-rollup-2026-08-18-T011793",
-      "status": "plan_staged"
-    }
-  ],
   "T011907": [
     {
       "slug": "2026-08-18-gitlab-ci-testserie-fixes",
@@ -4107,24 +3855,6 @@
       "status": "archived"
     }
   ],
-  "T012256": [
-    {
-      "slug": "finalizer-hardening",
-      "status": "plan_staged"
-    }
-  ],
-  "T012264": [
-    {
-      "slug": "fix-babysit-prs-ci-never-ran",
-      "status": "plan_staged"
-    }
-  ],
-  "T012265": [
-    {
-      "slug": "fix-pr-babysit-head-sha",
-      "status": "plan_staged"
-    }
-  ],
   "T012266": [
     {
       "slug": "2026-08-18-fix-opencode-exec-ci-signal",
@@ -4139,8 +3869,8 @@
   ],
   "T012402": [
     {
-      "slug": "mishap-incident-rollup-2026-08-18-T012402",
-      "status": "plan_staged"
+      "slug": "2026-08-20-mishap-incident-rollup-2026-08-18-T012402",
+      "status": "archived"
     }
   ],
   "T012405": [
@@ -4157,8 +3887,8 @@
   ],
   "T012415": [
     {
-      "slug": "gitlab-registry-mirror",
-      "status": "plan_staged"
+      "slug": "2026-08-20-gitlab-registry-mirror",
+      "status": "archived"
     }
   ],
   "T012445": [
@@ -4169,20 +3899,20 @@
   ],
   "T012446": [
     {
-      "slug": "hybrid-github-actions-runners",
-      "status": "plan_staged"
+      "slug": "2026-08-20-hybrid-github-actions-runners",
+      "status": "archived"
     }
   ],
   "T012488": [
     {
-      "slug": "runner-role-assignment",
-      "status": "plan_staged"
+      "slug": "2026-08-20-runner-role-assignment",
+      "status": "archived"
     }
   ],
   "T012645": [
     {
-      "slug": "network-address-plan",
-      "status": "plan_staged"
+      "slug": "2026-08-20-network-address-plan",
+      "status": "archived"
     }
   ],
   "T012781": [

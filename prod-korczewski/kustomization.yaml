@@ -283,9 +283,28 @@ patches:
             requiredDuringSchedulingIgnoredDuringExecution:
               nodeSelectorTerms:
                 - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: In
-                      values:
-                        - pk-hetzner-4
-                        - pk-hetzner-6
-                        - pk-hetzner-8
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - pk-hetzner-4
+                      - pk-hetzner-6
+                      - pk-hetzner-8
+
+  # pvc-backup CronJob: referenziert vaultwarden/nextcloud Pods, die in
+  # korczewski auf 0 skaliert sind (T012964).
+  - target: { group: batch, version: v1, kind: CronJob, name: pvc-backup }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: pvc-backup
+
+  # error-log-retention CronJob: target website Pod, in korczewski auf 0.
+  - target: { group: batch, version: v1, kind: CronJob, name: error-log-retention }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: error-log-retention

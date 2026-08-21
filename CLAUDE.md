@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Before responding to any request, check these signals and delegate to the named agent. The signal lists below mirror the routing table in [`AGENTS.md`](AGENTS.md) — which is the single source of truth (it matches each agent's `description:` frontmatter in `.agents/agents/<name>.md`).
 
-> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — **Claude Code only** reads these via its native `task` tool dispatch. **opencode does NOT read `.agents/agents/`** — it uses its own agent definitions in `.opencode/agent-models.jsonc` (local LLM subagents: `gptoss`, `devstral`, `gemma`, `qwen`, plus the deepseek agents and `orchestrator`). Die generierte Übersicht `docs/agent-guide/maps/agents-map.md` listet alle Rollen und Runtimes — sie ist die konsolidierte Karte zur Registry `docs/agent-guide/registry/agents.yaml`. Edit domain agents at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
+> **Subagent layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source (`.agents/agents` is a symlink). **Claude Code only** reads these via native `task` tool dispatch. **opencode** uses `.opencode/agent-models.jsonc` (local LLMs: `gptoss`, `devstral`, `gemma`, plus `deepseek` and `orchestrator`). Map: `docs/agent-guide/maps/agents-map.md`.
 
 | Signals | Agent | MCP-Primär (Claude Code) |
 |---------|-------|--------------------------|
@@ -17,42 +17,11 @@ Before responding to any request, check these signals and delegate to the named 
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001, nur mentolder-DB) — Ticket-Reads → `ticket-mcp` mit `brand` |
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
-> **MCP-Registry ist SSOT (T002300):** `docs/agent-guide/registry/mcp.yaml` ist die einzige Quelle für alle drei Harness-Configs. `task mcp:sync` regeneriert daraus `.mcp.json` (Claude Code), `.opencode/opencode.jsonc` (opencode) und `~/.gemini/config/mcp_config.json` (agy); `task mcp:check` prüft auf Drift. Configs nicht von Hand editieren — die Änderung geht in die Registry.
->
-> **Zwei Registries, zwei Zuständigkeiten (T002592):** `mcp.yaml` ist SSOT für die *Erreichbarkeit* eines Servers (Transport, Endpunkt, Credentials). `docs/agent-guide/registry/capabilities.yaml` ist SSOT für *Auswahl und Nutzung* — welche Instanz eine Fähigkeit liefert, wann sie einzusetzen ist und welche Rollen sie führen. Das ist die häufigste Verwechslungsquelle zwischen beiden.
+> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `opencode.jsonc`, `mcp_config.json`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
+> **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
 
-> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `bge-mcp`, `brain-mcp`, `codebase-memory-mcp`, `docfork`, `factory-mcp`, `github-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `sequential-thinking`, `ticket-mcp`, `webresearch` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
-
-> **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
-
-> **MCP-Schnellweg:** Welcher MCP-Server wann bevorzugt wird (statt `kubectl exec … psql`), steht in [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md) — inkl. Portforward-Guard und der kubectl-Pflicht für DDL/Superuser/Writes.
-
-> **gh-axi:** Bevorzugter GitHub-CLI-Wrapper für Anzeige/Read-Flows (`gh-axi` statt `gh`).
-> **Maschinelles Parsen, Polling und Mutationen (T004612):** `--json`, `-q`, `--jq`,
-> `pr checks`/`pr merge`/`gh api` → immer `gh` direkt — gh-axi liefert TOON-Text und ignoriert
-> `--json` still mit Exit 0. Kommando-Referenz: [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
-
-**Before dispatching any agent, inject active plan context:**
-Run `bash scripts/plan-context.sh <role> --with-openspec` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output, omit the block entirely. `--with-openspec` auto-loads the SSOT spec(s) for any files changed vs main — omit only when explicitly told to skip OpenSpec context.
-
-```bash
-context=$(bash scripts/plan-context.sh bachelorprojekt-infra --with-openspec)
-[ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
-```
-
-> **`<role>` muss ein voller Rollenname sein.** Gültig sind ausschließlich die in
-> `_role_allowlist()` in `scripts/plan-context.sh` gelisteten Namen —
-> `bachelorprojekt-{website,ops,infra,test,db,security}` plus `orchestrator`. Eine Kurzform wie
-> `infra` schlägt **nicht** fehl: sie fällt still auf `__ALL__` zurück, gibt nur ein `WARN:
-> unknown role` auf stderr aus und liefert **alle** Proposals ungefiltert — der Rollenfilter wirkt
-> dann gar nicht (T002322). Die Allowlist wird hier bewusst nicht dupliziert; maßgeblich ist die
-> Funktion im Skript.
-
-**Zusätzlich den kuratierten Werkzeug-Satz injizieren:**
-`bash scripts/toolset-context.sh <role>` rendert aus `docs/agent-guide/registry/capabilities.yaml`
-alle Werkzeuge, die diese Rolle führen darf — samt `use_when`, `avoid_when`, `fallback` und
-Verweis auf die Tiefenreferenz. Damit greift ein Subagent zum kanonischen Pfad (`gh-axi` statt
-`gh`, `ticket-mcp` statt `kubectl exec … psql`), statt zu raten.
+**Before dispatching any agent, inject active plan context & curated toolset:**
+Run `bash scripts/plan-context.sh <role> --with-openspec` (full role name e.g. `bachelorprojekt-infra`) and `bash scripts/toolset-context.sh <role>`.
 
 ```bash
 context=$(bash scripts/plan-context.sh bachelorprojekt-infra --with-openspec)
@@ -62,17 +31,7 @@ tools=$(bash scripts/toolset-context.sh bachelorprojekt-infra)
 [ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
 ```
 
-> **`toolset-context.sh` ist fail-closed — anders als `plan-context.sh`.** Eine unbekannte Rolle
-> beendet es mit Exit ≠ 0 und gibt **keine** Instanz aus, statt auf „alle" zurückzufallen. Für
-> einen Werkzeug-Block wäre der stille Fallback schädlich: eine vertippte Rolle injizierte das
-> vollständige Arsenal in jeden Prompt und erzeugte genau den Kontext-Bloat, gegen den kuriert
-> wird. Die Rollenliste ist dieselbe, erweitert um die Wildcard `all`. Kuration und
-> Registry-Schema: Skill [`toolset-curate`](.claude/skills/toolset-curate/SKILL.md), Gate
-> `task agents:toolset:check` (fail-closed), Karte `docs/agent-guide/maps/toolset-map.md`.
-
-Also: after `superpowers:writing-plans` skill creates a new plan file, run `bash scripts/vda.sh frontmatter <plan-file>` on it before committing. (`scripts/plan-frontmatter-hook.sh` ist deprecated und gibt bei jedem Aufruf eine Deprecation-Warnung aus — sie erschien bisher bei **jedem** Planlauf, weil diese Zeile genau das Skript verlangte [T002342-M2]. Das Skript selbst bleibt bestehen: es kann externe Aufrufer haben, und Löschen wäre ein eigener Vorgang mit eigener Prüfung.) This adds the required frontmatter (domains, status) that `plan-context.sh` and the GH Action depend on.
-
-**Tie-break rule:** when signals overlap (e.g. "deploy the website"), prefer the domain of the files being changed — `bachelorprojekt-website` for `components/website/src/` changes, `bachelorprojekt-infra` for manifest/overlay changes.
+> **Hinweise:** `<role>` muss ein voller Rollenname sein (`bachelorprojekt-*` / `orchestrator`); `toolset-context.sh` ist fail-closed (Exit ≠ 0 bei ungültiger Rolle). Nach `superpowers:writing-plans` Planerstellung: `bash scripts/vda.sh frontmatter <plan-file>`. Tie-break: Domain der geänderten Dateien bevorzugen. Cross-cutting requests verbleiben beim Haupt-Orchestrator.
 
 **Cross-cutting requests** (e.g. a feature spanning both website and k8s) stay with the main orchestrator, which coordinates multiple agents in sequence.
 
@@ -158,38 +117,34 @@ Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotu
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
-- **`components/website/`** -- Astro + Svelte website. See `components/website/CLAUDE.md` for dev quick-start and content patterns; full standards in `components/website/WEBSITE-STANDARDS.md`.
-- **`k3d/docs-content-built/`** -- Pre-built HTML served by the `docs` Deployment. Source is compiled by `node scripts/build-docs.mjs` from the `docs/` directory and skill HTML. Deploy via `task docs:deploy` (builds image). **`docs:sync` does NOT work** (read-only rootfs on the container).
+- **`k3d/docs-content-built/`** -- Pre-built HTML served by the `docs` Deployment. Source is compiled by `node scripts/build-docs.mjs` from `docs/` and skill HTML. Deploy via `task docs:deploy`.
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.
 - **Per-env config**: `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL`, `ENV_CONTEXT`, `ENV_OVERLAY`, SMTP, etc. live in `environments/<env>.yaml`. `scripts/env-resolve.sh` exports them; tasks then `envsubst` them into manifests.
 - **Prod secrets**: plaintext in `environments/.secrets/<env>.yaml` (git-crypt-encrypted at-rest, tracked) → `task env:seal ENV=<env>` → committed SealedSecret in `environments/sealed-secrets/<env>.yaml`. `workspace:deploy` applies the SealedSecret before manifests.
 - **Dev secrets**: `k3d/secrets.yaml` (dev values only — never commit real credentials). The `prod/` overlay strips this via `$patch: delete` so sealed secrets survive.
-- **Pocket ID OIDC clients**: there are **no realm JSON files** — Pocket ID keeps its clients in its own PostgreSQL database (`pocket_id.oidc_clients`). They are provisioned by the `pocket-id-client-seed` Job (`k3d/pocket-id-client-seed.yaml`) via the Pocket ID Admin REST API on every `task workspace:deploy`. Client secrets are written back into `workspace-secrets` (and, for the website client only, additionally into `website-secrets` in the `website` namespace — see `k3d/pocket-id-client-seed-website-rbac.yaml`). Editing clients by hand in the UI causes drift the next deploy will overwrite.
-- **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (dev) / `prod/nextcloud-oidc-prod.php` (prod), both loaded as ConfigMap. They point at Pocket ID (`oidc_login_provider_url` → `http://pocket-id:1411` in dev).
-- **SSO flow**: **Pocket ID** (`ghcr.io/pocket-id/pocket-id`, `k3d/pocket-id.yaml`) is the OIDC provider. Around 20 clients are seeded, including website, nextcloud, vaultwarden, brett, docs, downloads, grafana, mediaviewer, studio, videovault, brain, comfy, terminal, traefik, mail, rustdesk-web, session-hub and claude-code. Services without native OIDC sit behind an `oauth2-proxy` gate (20 manifests reference it) rather than talking to the provider directly.
+- **Pocket ID OIDC clients**: Provisioned by `pocket-id-client-seed` Job (`k3d/pocket-id-client-seed.yaml`) via Admin API on `task workspace:deploy`. Client secrets are written back to `workspace-secrets` / `website-secrets`.
+- **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (dev) / `prod/nextcloud-oidc-prod.php` (prod).
+- **SSO flow**: **Pocket ID** (`ghcr.io/pocket-id/pocket-id`, `k3d/pocket-id.yaml`) is the OIDC provider for ~20 clients. Services without native OIDC sit behind an `oauth2-proxy` gate.
 
 ## CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - Offline tests: `task test:all` (BATS unit tests, kustomize manifest structure, Taskfile dry-run). BATS runner: `tests/unit/lib/bats-core/bin/bats`
-- **Test inventory check**: re-runs `task test:inventory` and fails the job if `components/website/src/data/test-inventory.json` differs from the committed version — regenerate it locally and commit alongside any test additions.
-- **Test- und BATS-Konventionen -> [`tests/CLAUDE.md`](tests/CLAUDE.md)**: Verzeichnisaufbau `tests/spec/<spec-slug>/`, Runner-Pfad, `$output`-Matching, Positiv-Anker-Pflicht bei Negativtests, CRLF-tolerante Anker, `bash -n`-Falle, Append-Konflikte. Die Datei laedt automatisch, sobald an Dateien unter `tests/` gearbeitet wird. **Kernregel, die hier bleibt:** Tests pruefen **command output** und Resultate (output verification) statt der Implementierungsquelle, und die Zusicherung haengt an der Semantik des Outputs (Exit-Code, Vorhandensein eines Werts), nicht an dessen Darstellung.
-- **Release notes**: Generate structured release notes from merged PRs via `bash scripts/vda.sh release-notes generate` or `task release:notes` (LLM/DeepSeek-gestützt mit deterministischem Fallback). Publish to GitHub Release body with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
-- Systembrett template validation (`scripts/tests/systembrett-template.test.sh`)
-- Security scan: image-pin advisory + hardcoded-secret detection in `k3d/*.yaml`
-Other workflows: `renovate.yml` (self-hosted Renovate weekly dependency update bot, T000898), `e2e.yml` (nightly Playwright against both brands on fleet), `build-brett.yml` (auto build+rollout both brands on `brett/**` push to main), `build-docs.yml` (auto build on `docs/**`/docs-script push to main, plus manual dispatch), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` (auto build+rollout on `components/website/**` push to main — **one** workflow builds a brand-neutral image that feeds both the mentolder and korczewski deploy jobs; there is no separate korczewski website workflow, see T001229/T001276).
-Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.yml` was removed in PR #993 (2026-05-23); `build-tracking.yml` and `track-plans.yml` are gone — both parts of the tracking pipeline are fully removed. The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
+- **Test inventory check**: re-runs `task test:inventory` and fails the job if `components/website/src/data/test-inventory.json` differs from committed version.
+- **Test- und BATS-Konventionen -> [`tests/CLAUDE.md`](tests/CLAUDE.md)**: Verzeichnisaufbau `tests/spec/<spec-slug>/`, Runner-Pfad, `$output`-Matching, Positiv-Anker-Pflicht. **Kernregel, die hier bleibt:** Tests pruefen **command output** und Resultate (output verification) statt der Implementierungsquelle, und die Zusicherung haengt an der Semantik des Outputs (Exit-Code, Vorhandensein eines Werts), nicht an dessen Darstellung.
+- **Release notes**: Generate structured release notes via `bash scripts/vda.sh release-notes generate` or `task release:notes`. Publish with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
+- Systembrett template validation (`scripts/tests/systembrett-template.test.sh`), Security scan (`k3d/*.yaml`).
+- Other workflows: `renovate.yml`, `e2e.yml`, `build-brett.yml`, `build-docs.yml`, `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` (builds brand-neutral image for both brands; no separate korczewski website workflow).
 
 ## Image Exclusions
 
 The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`).
-This ensures that Infrastructure and Dev workflows correctly identify these as "live" targets that do not require manual digest pinning.
 
 ## Development Rules
 
-1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). Prod is deployed **pull-based via FluxCD GitOps** (primary path: `.github/workflows/render-fleet-artifact.yml` → OCI artifact → Flux reconciliation on fleet). The legacy `task workspace:deploy ENV=<brand>` / `task feature:*` push-based path exists as **break-glass fallback** only — prefer Flux reconciliation.
+1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). Prod is deployed **pull-based via FluxCD GitOps** (primary path: `.github/workflows/render-fleet-artifact.yml` → OCI artifact → Flux reconciliation on fleet; `task workspace:deploy ENV=<brand>` is break-glass fallback).
 2. All changes via Pull Requests -- no direct pushes to `main`.
 3. Use **squash-and-merge** to keep `main` history clean.
 4. CI must be green before merge.
@@ -199,40 +154,27 @@ This ensures that Infrastructure and Dev workflows correctly identify these as "
 
 ## Gotchas & Footguns
 
-Non-obvious repo behaviors are documented in full at
-[`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
+Non-obvious repo behaviors are documented in full at [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
 
 Covered sub-topics (reference file, not repeated here):
 - **Security & Session**: security-guidance rewake, agent-lock.sh claim/release/reap protocol, ENV= explicit targeting, cluster node placement (wg-fleet flannel-iface).
 - **Overlays & Config**: prod-fleet/* only (never bare prod/, $patch:delete), env-resolve.sh sourcing, envsubst lists, DB queries (never SELECT * on ticket_plans.content).
-- **Ops & Infra**: cluster reset order, push-based/pull-first, CONFLICTING PR suppresses CI, ENV=staging, Kore design system, local-first LLM pipeline, dev.mentolder.de stack, alt-worktrees submodule gitdirs.
-- **gitleaks: lokal installieren, aber die CI-Version (T002506/T002554)**: Fehlt `gitleaks`, wird der lokale Pre-Commit-Secret-Scan **stillschweigend übersprungen** (`⚠ gitleaks binary not found — skipping secret scan`); CI ist fail-closed, aber ein versehentlich committeter Schlüssel fällt dann erst **nach dem Push** auf — nach dem Zeitpunkt, ab dem er als kompromittiert gilt.
-  > **Nicht `apt install`** — das liefert 8.16.0, während `.github/workflows/ci.yml` per curl **8.18.2** holt. Lokal und CI würden unterschiedlich prüfen. Stattdessen dieselbe Version installieren:
-  > ```bash
-  > curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
-  >   | tar -xz -C /tmp gitleaks && install -m 0755 /tmp/gitleaks ~/.local/bin/gitleaks
-  > ```
-  > Hook und CI rufen gitleaks mit `--no-git` auf, scannen also den **Arbeitsbaum** statt der Versionierung. Der CI-Job `security-scan` führt kein `npm ci` aus und hat deshalb weder `node_modules` noch `tmp/` — lokal existieren beide. Bis T002554 blockierten daraus 85 Fehlalarme jeden lokalen Commit: gitleaks zu *installieren* machte den Commit-Pfad kaputt, und brauchbar war der Hook nur, solange das Binary fehlte und er fail-open übersprang. Beide Pfade stehen jetzt in `allowlist.paths` (sie sind gitignored, können also nie in einen Commit gelangen). Wer eine neue gitignorierte Fundquelle hinzufügt, ergänzt sie dort — nicht den Hook abschalten.
+- **Ops & Infra**: cluster reset order, push-based/pull-first, CONFLICTING PR suppresses CI, ENV=staging, Kore design system, local-first LLM pipeline, dev.mentolder.de stack, alt-worktrees submodule gitdirs, gitleaks local install & allowlist.
 
 ### PowerShell-Skripte aus WSL (.ps1) [T002495-M7]
 
-ASCII-Pflicht (kein BOM), Parser-Check vor dem Commit und `-Encoding ASCII` fuer generierte `.conf`-Dateien -> [`scripts/llm/CLAUDE.md`](scripts/llm/CLAUDE.md). Laedt automatisch bei Arbeit unter `scripts/llm/`.
+ASCII-Pflicht (kein BOM), Parser-Check vor dem Commit und `-Encoding ASCII` fuer generierte `.conf`-Dateien -> [`scripts/llm/CLAUDE.md`](scripts/llm/CLAUDE.md).
 
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 
-**Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst** — kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate (broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen, Ziel ≤ 15 % über 8 Wochen; ein ungeticketer `fix()`-Commit zählt als verschleierter Bug und verschlechtert den Proxy-Wert, ohne in der DORA-Auswertung unter `/admin/dora` zu erscheinen.
-
+**Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst** — kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate (broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen (Ziel ≤ 15 % über 8 Wochen).
 Ablauf: Bug entdecken → `bash scripts/ticket.sh create --type bug --title "..." --description "..."` → Branch + PR → nach Merge wird Ticket automatisch `done`.
 
 ### Mess-Konvention [T002717]
 
 **Wer eine Messung als Entscheidungsgrundlage in ein Ticket schreibt, notiert den ausführbaren Befehl mit, der sie erzeugt hat.** Ohne ihn ist die Zahl kein Beleg, sondern eine Behauptung — und der Zweck des Festhaltens („damit die Analyse nicht wiederholt werden muss") ist verfehlt, weil genau die Wiederholung unmöglich wird.
 
-Der belegte Fall: T002700 stellte einen Vorgang zurück, weil eine Messung ihn zu teuer erscheinen ließ — „rund 23 lebende Dateien". Die Nachmessung bei der späteren Umsetzung ergab 149 Vorkommen in 63 Dateien, Faktor ~2,6. Eine Entscheidung, etwas **nicht** zu tun, ruhte damit auf einer Zahl, die niemand nachrechnen konnte.
-
-**Das fehlende Stück ist das Suchmuster, nicht die Methode.** Das ist die unscheinbare Stelle: T002700 nannte Datum, Match-Modus und Ausschlussverzeichnisse (`MESSUNG (2026-08-08, Fixed-String, ohne node_modules/.git/.opencode)`) — es sah vollständig aus. Bei gleichen dokumentierten Randbedingungen liefert die Suche je nach **Suchmuster** aber 66 oder 216 Dateien; keine der Rekonstruktionen trifft die genannte Zahl. Ein Metadaten-Block ohne das Muster dokumentiert die Sorgfalt, nicht die Messung.
-
-Konkret gehört in die Beschreibung ein Block, der so ausführbar ist:
+**Das fehlende Stück ist das Suchmuster, nicht die Methode.** Ein Metadaten-Block ohne das konkrete Suchmuster dokumentiert die Sorgfalt, nicht die reproduzierbare Messung. Konkret gehört in die Beschreibung ein Code-Block mit dem ausführbaren Befehl und dem Commit-Stand:
 
 ```bash
 # Stand, gegen den gemessen wurde — sonst ist die Zahl später nicht nachstellbar
@@ -240,7 +182,5 @@ PRE=6a6d4c302c1afcb4a12a6c0b7c2401505f5fd602
 git grep -F -l 'Taskfile.' "$PRE" -- . ':!openspec/changes/archive' ':!docs/superpowers/plans' | wc -l
 ```
 
-Den **Commit** mitnennen, gegen den gemessen wurde: Ein Guard, der später prüfen wollte, ob die Zahl stimmt, hätte den Repo-Stand des Messzeitpunkts nicht mehr — deshalb ist diese Regel nicht automatisierbar und liegt beim Schreibenden.
-
-**Redaktioneller Hinweis, kein automatisierter Guard** — dieselbe Klasse wie der Deliverable-Check (M10, T002506). Maschinell geprüft wird ausschließlich, **dass diese Regel im Repo steht** (`tests/spec/agent-skills/messung-mit-befehl.bats`, Drift-Schutz für den Text); ob sie befolgt wird, ist zum Lesezeitpunkt nicht entscheidbar. Eine Heuristik „Beschreibung enthält `MESSUNG` ⇒ muss einen Code-Fence tragen" hätte den realen Fall in beide Richtungen verfehlt: T002700 trug bereits Methoden-Metadaten und hätte sie bestanden, und wer sie umgehen will, lässt das Wort weg.
+**Redaktioneller Hinweis, kein automatisierter Guard** — dieselbe Klasse wie der Deliverable-Check (M10, T002506). Maschinell geprüft wird ausschließlich, dass diese Regel im Repo steht (`tests/spec/agent-skills/messung-mit-befehl.bats`).
 

@@ -26,6 +26,7 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 20. [Assertions dürfen nur an der geprüften Sache scheitern](#assertions-durfen-nur-an-der-gepruften-sache-scheitern-t002834t002850t002878) — Helper-Funktionen ohne `return 0`, mutierende Freshness-Checks, feste `sleep`-Wartezeiten
 21. [Kubelet-Serving-Zertifikat nach Docker-IP-Tausch (T002999)](#kubelet-serving-zertifikat-nach-docker-ip-tausch-t002999) — "tls: failed to verify certificate" betrifft nicht die DB, sondern das Kubelet
 22. [Taskfile deps & Includes (T005899)](#taskfile-deps--includes-t005899) — deps laufen parallel, nicht seriell; Cross-Include-Aufrufe brauchen führenden Doppelpunkt
+23. [gitleaks: lokal installieren, aber die CI-Version (T002506/T002554)](#gitleaks-lokal-installieren-aber-die-ci-version-t002506t002554) — Hook vs CI-Version und allowlist.paths
 
 ---
 
@@ -358,3 +359,14 @@ sed-Range), statt die dokumentweite Suche mit `head -1` zu beschneiden.
 
 - **`deps:` laufen parallel, nicht seriell.** go-task führt mehrere Abhängigkeiten eines Tasks gleichzeitig aus (Doku: „Dependencies run in parallel"); die deklarierte Listenreihenfolge garantiert keine Ausführungsreihenfolge (empirisch: 5 Läufe eines 4-deps-Tasks → 5 verschiedene Reihenfolgen). Serielle Ketten sind per Design nur über `cmds: - task:` möglich („Call Tasks Serially"). Wer Sequencing braucht, deklariert **keine** deps — das hat 2026-08-14 den geplanten Refactor T005604/T005787 gekippt, weil `feature:deploy`-artige Ketten als deps zu „verify vor deploy"-Risiko geführt hätten.
 - **Cross-Include-Aufrufe aus included Taskfiles brauchen den führenden Doppelpunkt.** Ein `task: dev:firewall:open` in einem include-namespaced Taskfile wird relativ zum eigenen Namespace aufgelöst (`brainstorm:dev:firewall:open` → „does not exist"). Root-Adressierung: `task: :dev:firewall:open` (führender Doppelpunkt). War der Defekt hinter `brainstorm:firewall:open` (T005899).
+
+### gitleaks: lokal installieren, aber die CI-Version (T002506/T002554)
+
+Fehlt `gitleaks`, wird der lokale Pre-Commit-Secret-Scan **stillschweigend übersprungen** (`⚠ gitleaks binary not found — skipping secret scan`); CI ist fail-closed, aber ein versehentlich committeter Schlüssel fällt dann erst **nach dem Push** auf — nach dem Zeitpunkt, ab dem er als kompromittiert gilt.
+
+> **Nicht `apt install`** — das liefert 8.16.0, während `.github/workflows/ci.yml` per curl **8.18.2** holt. Lokal und CI würden unterschiedlich prüfen. Stattdessen dieselbe Version installieren:
+> ```bash
+> curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
+>   | tar -xz -C /tmp gitleaks && install -m 0755 /tmp/gitleaks ~/.local/bin/gitleaks
+> ```
+> Hook und CI rufen gitleaks mit `--no-git` auf, scannen also den **Arbeitsbaum** statt der Versionierung. Der CI-Job `security-scan` führt kein `npm ci` aus und hat deshalb weder `node_modules` noch `tmp/` — lokal existieren beide. Bis T002554 blockierten daraus 85 Fehlalarme jeden lokalen Commit: gitleaks zu *installieren* machte den Commit-Pfad kaputt, und brauchbar war der Hook nur, solange das Binary fehlte und er fail-open übersprang. Beide Pfade stehen jetzt in `allowlist.paths` (sie sind gitignored, können also nie in einen Commit gelangen). Wer eine neue gitignorierte Fundquelle hinzufügt, ergänzt sie dort — nicht den Hook abschalten.

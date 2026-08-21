@@ -78,7 +78,7 @@ psql -At -c "SELECT c.body FROM tickets.ticket_comments c
 # erwartet: 10 Eintrags-Tasks, keine Watchdog-Zeile
 ```
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

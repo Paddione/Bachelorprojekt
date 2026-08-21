@@ -13,9 +13,22 @@ data:
   # web.<suffix>/api/auth/callback aus POCKET_ID_FRONTEND_URL ab. Mit
   # sdlc.localhost sendet die Console eine redirect_uri, die Pocket ID nicht
   # kennt. sdlc.localhost bleibt als zweiter Ingress-Host erreichbar.
-  SITE_URL: "http://web.localhost"
-  POCKET_ID_FRONTEND_URL: "http://auth.localhost"
-  POCKET_ID_URL: "http://pocket-id:1411"
+  #
+  # Die drei Werte kommen aus SDLC_CONSOLE_* (Taskfile.sdlc.yml), NICHT aus
+  # POCKET_ID_FRONTEND_URL/POCKET_ID_URL: dieselben Namen steuern im selben
+  # Kustomize-Build den pocket-id-client-seed-Job, der daraus seine
+  # Callback-Hosts ableitet. Ein gemeinsamer Name haette den lokalen Seed-Job
+  # im Prod-Auth-Modus dazu gebracht, Callbacks fuer web.<PROD_DOMAIN> in die
+  # LOKALE Pocket ID zu schreiben.
+  #
+  # Prod-Auth-Modus (SDLC_AUTH=prod): zeigt auf https://auth.<PROD_DOMAIN>.
+  # Grund ist WebAuthn, nicht Bequemlichkeit — ein Passkey ist an die RP-ID
+  # der Pocket-ID-Domain gebunden und gegen auth.localhost nicht verwendbar.
+  # Siehe docs/sdlc-stack/prod-auth.md.
+  SITE_URL: "${SDLC_CONSOLE_SITE_URL}"
+  POCKET_ID_FRONTEND_URL: "${SDLC_CONSOLE_POCKET_ID_FRONTEND_URL}"
+  POCKET_ID_URL: "${SDLC_CONSOLE_POCKET_ID_URL}"
+  POCKET_ID_CLIENT_ID: "${SDLC_CONSOLE_POCKET_ID_CLIENT_ID}"
   POCKET_ID_FALLBACK_FRONTEND_URL: "${POCKET_ID_FALLBACK_FRONTEND_URL}"
   POCKET_ID_FALLBACK_URL: "${POCKET_ID_FALLBACK_URL}"
   PORTAL_ADMIN_USERNAME: "gekko,paddione,quamain,test-admin,tina-merlin@web.de"

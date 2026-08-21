@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.295.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.2...website-v1.295.3) (2026-08-21)
+
+
+### Bug Fixes
+
+* **db:** add missing FK indexes and brand check constraints [T013031] ([#4915](https://github.com/Paddione/Bachelorprojekt/issues/4915)) ([74efb45](https://github.com/Paddione/Bachelorprojekt/commit/74efb4523b4137f81bc5cefdb539947a5984c277))
+
 ## [1.295.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.1...website-v1.295.2) (2026-08-21)
 
 

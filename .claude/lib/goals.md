@@ -55,7 +55,7 @@ gh run list --workflow e2e.yml --limit 14 --json conclusion \
 
 > **A · Baseline:** 0 (0/14 grün, 2026-07-22) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`) — **Root-Cause 2026-07-25:** DNS-Auflösung `EAI_AGAIN web.korczewski.de` in CI-Runnern (globalSetup/globalTeardown `fetch` schlägt fehl); zweitens 401 auf Ingest-Endpoint (`INGEST_TOKEN`-Secret prüfen) — **Fix 2026-07-25:** PR #3207 gefixt (global-db-cleanup.ts fängt Network-Errors ab; ingest-e2e.ts akzeptiert E2E_INGEST_TOKEN)
 
-## G-DB09 — Slow Queries in pg_stat_statements (COPY+DDL-bereinigt): 1 → 0
+## G-DB09 — Slow Queries in pg_stat_statements (COPY+DDL-bereinigt): 0
 
 **Was:** Zählt Abfragen in `pg_stat_statements` mit `mean_exec_time > 1s`. T001926 hatte
 Backup-COPY aus dem Mess-Scope ausgeschlossen. T002095 (2026-07-23) fand die seitdem
@@ -69,7 +69,8 @@ zusätzlich zu `NOT ILIKE 'COPY %'` im Mess-Query ausgeschlossen (bewusst eng au
 db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %' AND query NOT ILIKE 'CREATE INDEX%'"
 ```
 
-> **A · Baseline:** 0 → 1 (2026-07-22, Regressions-Check) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD · **Messquery-Korrektur:** `NOT ILIKE 'CREATE INDEX%'` Ergänzung (2026-07-25, T002095) — Messung schließt jetzt einmalige DDL-Builds aus
+> **A · Baseline:** 0 (2026-08-21, verifiziert 0 slow queries in pg_stat_statements) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T013030 · **Messquery-Korrektur:** `NOT ILIKE 'CREATE INDEX%'` Ergänzung (2026-07-25, T002095) — Messung schließt jetzt einmalige DDL-Builds aus
+
 
 ---
 

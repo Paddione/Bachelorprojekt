@@ -207,10 +207,10 @@ SQL
     # Format JSON template
     cat <<EOF
 {
-  "slug": "$adapter",          // TODO: Operator setzt Loadout-Slug
+  "slug": "$adapter",
   "label": "Adapter $adapter (basiert auf $base_model)",
-  "model": "$adapter.gguf",     // TODO: GGUF-Pfad setzen
-  "port": 0,                      // TODO: Port setzen
+  "model": "$adapter.gguf",
+  "port": 0,
   "fit": {
     "enabled": true,
     "targetMarginMib": 256,

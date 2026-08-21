@@ -3566,7 +3566,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 792,
+      "file_count": 793,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4229,6 +4229,7 @@
         "scripts/rig_for_mixamo.py",
         "scripts/rigger_server.py",
         "scripts/runtime-drift-check.sh",
+        "scripts/sdlc-auth-mode.sh",
         "scripts/sdlc-cockpit-smoke.mjs",
         "scripts/sdlc-sync-oidc-secret.sh",
         "scripts/sdlc/api-inventory.mjs",

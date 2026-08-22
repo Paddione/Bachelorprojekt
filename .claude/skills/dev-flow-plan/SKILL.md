@@ -117,6 +117,8 @@ Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`
 - **Preflight: Check merged ticket** (T002279) — beide Pfade, vor der Worktree-Anlage:
   `bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"` (`rc=1` = auf `main` schon gefixt →
   Ticket `done`, abbrechen). Exit-Codes: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md) §Preflight.
+- **Kollisions-Check vor der Worktree-Anlage** (T002444): `bash scripts/agent-collision.sh check --branch "$BRANCH"` —
+  meldet von anderen Sessions belegte Branches/Worktrees, bevor `scripts/worktree-create.sh` läuft.
 - **Brainstorming ist nicht optional** — in keinem der beiden Pfade. Es entscheidet, was überhaupt
   gebaut wird; ein Plan ohne vorherige Klärung plant die falsche Sache sorgfältig.
 - **Ticket vor Branch** (T001917, T002050): Steht die `TICKET_EXT_ID` fest, trägt der Branch sie als
@@ -134,7 +136,8 @@ Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`
   Export-Vollständigkeit. Unpassende Assets werden **verworfen**, nicht mitkopiert (T000756).
 
 ### Schritt 3.7: Plan-Erstellung — Decompose, dann paralleler Fan-out (T002074)
-Zweistufig: Der Orchestrator **decomposed** aus `intel.json` in Partials mit disjunkten
+Zweistufig: Der Orchestrator **decomposed** aus `intel.json` (deterministisch erzeugt von
+`scripts/plan-intel.sh`, nicht von Hand) in Partials mit disjunkten
 `target_files` (Tests immer separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten**
 je ihre `tasks.d/pX-<name>.md`. Der Orchestrator schreibt den `tasks.md`-Index mit
 Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und
@@ -284,8 +287,8 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 |-------|-----------|
 | `openspec-explore` (`/opsx:explore`) | **Vorgelagert** — Denkpartner ohne Artefakt; übergibt verdichtet an diese Skill, sobald Code entstehen soll |
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
-| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Claude Code built-in; opencode: inlined in `opencode-flow-plan` |
-| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Claude Code built-in; opencode: inlined in `opencode-flow-plan` |
+| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Claude Code built-in; opencode: inlined in diesem Skill (Shared Source) |
+| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Claude Code built-in; opencode: inlined in diesem Skill (Shared Source) |
 | `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
 | `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
@@ -298,5 +301,5 @@ Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über
 | Framework | Availability |
 |-----------|-------------|
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
-| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **opencode** | Full — geladen als `opencode-flow-plan` (Directory-Symlink auf diese Shared Source). Sub-Delegation über `background-agents.ts` (`delegate` für read-only, native write-capable Delegation sonst); alle CLI-/MCP-Aufrufe sind framework-agnostisch |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

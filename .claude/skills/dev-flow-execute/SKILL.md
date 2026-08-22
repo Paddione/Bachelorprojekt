@@ -46,6 +46,15 @@ stehen in [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude
 > ausschließlich `type=feature`. Ein `task`-Ticket, das `auto-enqueue` aus `plan_staged` gezogen
 > hat, belegt einen Slot und wird nie bearbeitet — hier immer manuell weiterfahren.
 
+### Schritt −1.1: Branch-Claim ist branch-scoped (T003102)
+
+Der Pre-Flight-Lock claimt **branch-scoped** — niemals über das Ticket:
+`bash scripts/agent-lock.sh claim branch "$BRANCH"`. Die Claim-Verifikation prüft den
+Scope gegen den ausgecheckten Branch: `bash scripts/agent-lock.sh check branch "$(git branch --show-current)"`.
+Der Release liegt nicht inline in diesem Skill, sondern in der idempotenten
+Finalize-Einheit (`scripts/devflow-post-merge-finalize.sh`, Schritt 3.9), die ihn dem
+Finalizer als Pflicht aufträgt — ebenfalls branch-scoped (T003102, T006284).
+
 ## Schritt 1.8: Ticket freigeben (release hold)
 
 Wenn das Ticket per `stage-plan --hold` gestaged wurde (interaktiver dev-flow-plan-Pfad), ist
@@ -75,8 +84,8 @@ Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden v
 > **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
 Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md):
 * **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
-* **Claude Code CLI:** Spawne über das `Agent`/`Task`-Tool einen Subagenten (`subagent_type: general-purpose`) — Modell nach Plan-Charakter (Implementer-Default: `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive.
-* **opencode:** Nutze `delegate(prompt, agent="researcher")` für read-only Subagenten oder die native write-capable Delegation. Die Worktree-`cd`-Pflicht und Modell-Effort-Formulierungen stehen in der Reference (SSOT, nicht hier wiederholen).
+* **Claude Code CLI:** Spawne über den nativen Subagenten-Dispatch einen `general-purpose`-Subagenten — Modell nach Plan-Charakter (Implementer-Default: `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive.
+* **opencode:** Nutze das `background-agents.ts`-Plugin: `delegate(prompt, agent="researcher")` für read-only Subagenten oder die native write-capable Delegation. Die Worktree-`cd`-Pflicht und Modell-Effort-Formulierungen stehen in der Reference (SSOT, nicht hier wiederholen).
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
@@ -219,7 +228,8 @@ Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
 > nachgeholt werden. Die Härtung entfernt die Gelegenheit, statt die Direktive zu verschärfen
 > (Muster T002365/T001571).
 
-Spawne einen **frischen Finalizer-Subagenten** (`subagent_type: general-purpose`; Modell
+Spawne einen **frischen Finalizer-Subagenten** (nativer Subagenten-Dispatch, Typ
+`general-purpose`; Modell
 `sonnet`, mechanisch `haiku`) mit kompaktem Lagebild — er hat KEINEN Kontext, gib ihm alles
 explizit: Ticket-ID `$TICKET_ID`, PR-Nummer `$PR_NUM`, Branch `$BRANCH`, Worktree-Pfad
 `$MAIN_REPO/.worktrees/<slug>`, Plan-Pfad `$PLAN_FILE`, Resolution (`shipped`/`fixed`).

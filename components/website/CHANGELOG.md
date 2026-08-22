@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.302.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.1...website-v1.302.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** bind CONTAINER_ID as psql parameter instead of SQL interpolation [T013919] ([#5054](https://github.com/Paddione/Bachelorprojekt/issues/5054)) ([7d22ac1](https://github.com/Paddione/Bachelorprojekt/commit/7d22ac1f9f8b2f688d1c78a39f150eb03b0e2079))
+
 ## [1.302.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.0...website-v1.302.1) (2026-08-22)
 
 

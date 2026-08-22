@@ -165,7 +165,7 @@ teardown() {
 }
 
 @test "TCC-gate: Plan ohne tasks.d/ wird von I1 nicht beruehrt" {
-  local single_plan="$REPO/openspec/changes/admin-fundament-konsolidierung/tasks.md"
+  local single_plan="$REPO/openspec/changes/archive/2026-08-04-gpu-arbitrierung-trainings-vorrang/tasks.md"
   [ -f "$single_plan" ] || { echo "Plan ohne tasks.d/ nicht gefunden"; false; }
   run bash "$REPO/scripts/plan-lint.sh" "$single_plan"
   [ "$status" -eq 0 ] || { echo "lint failed auf Plan ohne tasks.d/: $output"; false; }

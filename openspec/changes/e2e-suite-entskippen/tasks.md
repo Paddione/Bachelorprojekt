@@ -2,13 +2,13 @@
 
 ## File Structure
 
-- tests/e2e/lib/agent-guide.ts
-- tests/e2e/lib/sdlc-guard.ts
-- tests/e2e/playwright.config.ts
-- tests/e2e/playwright.local.config.ts
-- tests/e2e/specs/
-- .github/workflows/e2e.yml
-- tests/spec/e2e-test-infrastructure/
+- `tests/e2e/lib/agent-guide.ts`
+- `tests/e2e/lib/sdlc-guard.ts`
+- `tests/e2e/playwright.config.ts`
+- `tests/e2e/playwright.local.config.ts`
+- `tests/e2e/specs/`
+- `.github/workflows/e2e.yml`
+- `tests/spec/e2e-test-infrastructure/`
 
 ## 1. Helper-Defekt beheben (F1/D5)
 

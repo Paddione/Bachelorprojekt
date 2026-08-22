@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.300.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.1...website-v1.300.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **infra:** clone lifecycle hardening for pvc-backup [T013044] ([#5002](https://github.com/Paddione/Bachelorprojekt/issues/5002)) ([f77d76b](https://github.com/Paddione/Bachelorprojekt/commit/f77d76b2bbd5f4c128c12310347b320c15e42a82))
+
 ## [1.300.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.0...website-v1.300.1) (2026-08-22)
 
 

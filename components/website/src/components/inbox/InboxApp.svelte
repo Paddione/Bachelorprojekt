@@ -51,6 +51,7 @@
   // refs into children
   let searchInput: HTMLInputElement | null = $state(null);
   let replyTextarea: HTMLTextAreaElement | null = $state(null);
+  let awaitingG = false;
   let pointerFine = $state(true);
 
   // ── Compose (Neue Nachricht) ──────────────────────────────────────────────

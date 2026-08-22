@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.298.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.2...website-v1.298.0) (2026-08-22)
+
+
+### Features
+
+* **factory:** Mishap-Rollup Loop-Closure — Rezurrenz, Watchlist, Eskalation, Janitor [T013305] ([#4967](https://github.com/Paddione/Bachelorprojekt/issues/4967)) ([4ef3efe](https://github.com/Paddione/Bachelorprojekt/commit/4ef3efe49deb9c51c6ba7cb9659c3b5ccc234aaf))
+
 ## [1.297.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.1...website-v1.297.2) (2026-08-22)
 
 

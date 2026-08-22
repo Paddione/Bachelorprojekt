@@ -48,6 +48,4 @@ test.describe('NFA-02: Performance / Antwortzeiten', () => {
     expect([200, 301, 302]).toContain(res.status());
     expect(elapsed).toBeLessThan(3000);
   });
-
-  test.skip(true, 'T4: Core Web Vitals via Lighthouse erfordern manuelle Ausführung');
 });

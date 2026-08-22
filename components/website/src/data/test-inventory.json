@@ -24,22 +24,10 @@
     "kind": "shell"
   },
   {
-    "id": "AK-03",
-    "file": "tests/e2e/specs/ak-03-technical.spec.ts",
-    "category": "AK",
-    "kind": "playwright"
-  },
-  {
     "id": "AK-04",
     "file": "tests/local/AK-04.sh",
     "category": "AK",
     "kind": "shell"
-  },
-  {
-    "id": "AK-04",
-    "file": "tests/e2e/specs/ak-04-prototype.spec.ts",
-    "category": "AK",
-    "kind": "playwright"
   },
   {
     "id": "E2E:a11y-axe",
@@ -782,12 +770,6 @@
   {
     "id": "FA-28",
     "file": "tests/e2e/specs/fa-28-messaging.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-29",
-    "file": "tests/e2e/specs/fa-29-cockpit.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -1674,22 +1656,10 @@
     "kind": "shell"
   },
   {
-    "id": "NFA-08",
-    "file": "tests/e2e/specs/nfa-08-production-deploy.spec.ts",
-    "category": "NFA",
-    "kind": "playwright"
-  },
-  {
     "id": "NFA-09",
     "file": "tests/local/NFA-09.sh",
     "category": "NFA",
     "kind": "shell"
-  },
-  {
-    "id": "NFA-09",
-    "file": "tests/e2e/specs/nfa-09-static-dns.spec.ts",
-    "category": "NFA",
-    "kind": "playwright"
   },
   {
     "id": "NFA-10",
@@ -3320,6 +3290,18 @@
   {
     "id": "e2e-test-infrastructure/bats-missing-file-exit0",
     "file": "tests/spec/e2e-test-infrastructure/bats-missing-file-exit0.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-test-infrastructure/no-group-modifiers",
+    "file": "tests/spec/e2e-test-infrastructure/no-group-modifiers.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-test-infrastructure/no-wrong-reporoot-resolution",
+    "file": "tests/spec/e2e-test-infrastructure/no-wrong-reporoot-resolution.bats",
     "category": "e2e-test-infrastructure",
     "kind": "shell"
   },

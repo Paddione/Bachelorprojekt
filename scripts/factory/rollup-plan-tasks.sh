@@ -23,6 +23,8 @@
 #          --count    Anzahl echter Mishap-Eintraege auf stdout (auch 0), Exit 0
 #          --batches  nur die Batch-Kommentare, ohne Automatik-Rauschen
 #          ohne Flag: Aufgaben-Sektion auf stdout
+# Env: ROLLUP_RECURRENCE_FILE — Ausgabe von rollup-recurrence.sh --all; Eintraege
+#          mit Rezurrenz bekommen '×N' plus Vorzyklus-Referenz in den Kopf [T013305]
 # Exit: 0 = gerendert bzw. gezaehlt | 2 = Aufruffehler
 set -euo pipefail
 
@@ -78,13 +80,14 @@ cat <<'HEADEOF'
 ## Aufgaben — ein Eintrag, eine Entscheidung
 
 So wird dieser Container abgearbeitet: **jeder Eintrag unten bekommt eine Disposition**, und
-zwar genau eine der drei folgenden. Erst dann wird seine Box abgehakt.
+zwar genau eine der vier folgenden. Erst dann wird seine Box abgehakt.
 
 | Disposition | Wann | Was sie verlangt |
 |---|---|---|
 | **gefixt** | der Eintrag beschreibt ein Problem, das in diesem Zyklus behoben wird | Code- oder Konfigaenderung **plus** ein Test, der das Fehlverhalten vorher reproduziert |
 | **bereits gefixt** | das Problem ist zwischenzeitlich anderswo behoben worden | den Beleg nennen (PR-Nummer oder Commit) und gegenpruefen, dass er auf `main` liegt |
-| **kein Repo-Fix** | transientes Laufzeitereignis, Bedienfehler, oder bewusst so gewollt | begruenden, warum keine Repo-Aenderung folgt |
+| **kein Repo-Fix** | transientes Laufzeitereignis, Bedienfehler, oder bewusst so gewollt — und NICHT wiederholungsanfaellig | begruenden, warum keine Repo-Aenderung folgt UND warum kein Ablaufdatum noetig ist |
+| **beobachten (bis Zyklus <JJJJ-MM-TT>)** | transient, aber wiederholungsanfaellig — der Workaround soll proaktiv im Blick bleiben | ein Ablaufdatum: der Generator fuehrt den Eintrag bis dahin in jedem Zyklus fort, danach wird er in ein eigenes Ticket eskaliert |
 
 Ein Eintrag darf offen bleiben, wenn er den Rahmen dieses Zyklus sprengt — dann bleibt seine
 Box leer und der Grund steht dahinter. Was nicht zulaessig ist: eine Box abhaken, ohne die
@@ -92,6 +95,21 @@ Disposition hinzuschreiben. Die Dispositionen zusammen sind der Nachweis, dass d
 abgearbeitet wurde und nicht nur geschlossen.
 
 HEADEOF
+
+# ── Rezurrenz-Karte laden [T013305] ──────────────────────────────────────────
+# Format (rollup-recurrence.sh --all): '<count>\t<title>\t<meta>\t<slug,...>'.
+# Schluessel ist der normalisierte Titel+Meta; gematcht wird gegen die
+# normaliserten Werte des jeweiligen Eintrags.
+declare -A REC_N=() REC_SLUGS=()
+_norm_key() { printf '%s|%s' "$1" "$2" | tr '[:upper:]' '[:lower:]' | tr -s '[:space:]' ' '; }
+if [[ -n "${ROLLUP_RECURRENCE_FILE:-}" && -s "$ROLLUP_RECURRENCE_FILE" ]]; then
+  while IFS=$'\t' read -r n title meta slugs; do
+    [[ -n "${n:-}" && -n "${title:-}" ]] || continue
+    k="$(_norm_key "$title" "$meta")"
+    REC_N[$k]="$n"
+    REC_SLUGS[$k]="${slugs:-}"
+  done < "$ROLLUP_RECURRENCE_FILE"
+fi
 
 if [[ "${#ENTRIES[@]}" -eq 0 ]]; then
   echo "_Keine Mishap-Eintraege in den Container-Kommentaren gefunden._"
@@ -101,8 +119,13 @@ else
     num="$(printf '%s\n' "$entry"   | sed -E 's/^\*\*([0-9]+)\. .*$/\1/')"
     title="$(printf '%s\n' "$entry" | sed -E 's/^\*\*[0-9]+\. (.*)\*\* \(.*\)$/\1/')"
     meta="$(printf '%s\n' "$entry"  | sed -E 's/^\*\*[0-9]+\. .*\*\* \((.*)\)$/\1/')"
-    printf -- '- [ ] **%s. %s** (%s) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung\n' \
-      "$num" "$title" "$meta"
+    recur=""
+    k="$(_norm_key "$title" "$meta")"
+    if [[ -n "${REC_N[$k]:-}" ]]; then
+      recur=" **×${REC_N[$k]}** (Rezurrenz: ${REC_SLUGS[$k]})"
+    fi
+    printf -- '- [ ] **%s. %s** (%s)%s — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung\n' \
+      "$num" "$title" "$meta" "$recur"
   done
   echo
 fi

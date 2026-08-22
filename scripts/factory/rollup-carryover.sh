@@ -19,10 +19,19 @@
 # liefern also keine Treffer. Der Carry-over greift ab dem ersten Zyklus, der
 # mit der neuen Plan-Struktur erzeugt wurde.
 #
-# Usage: rollup-carryover.sh --plan <tasks.md> --slug <quell-slug>
-#          gibt den Batch-Body auf stdout aus
+# Usage: rollup-carryover.sh --plan <tasks.md> --slug <quell-slug> [--exclude-file <f>]
+#          gibt den Batch-Body auf stdout aus; Titel in der Exclude-Datei (eine
+#          pro Zeile) sind ausgeschieden [T013305 — eskalierte Eintraege]
 #        rollup-carryover.sh --scan <repo-root> --container <aktuelle-id>
 #          listet uebertragbare Zyklen als '<slug>\t<plan-pfad>' auf stdout
+#        rollup-carryover.sh --escalations <repo-root> --container <aktuelle-id>
+#          Eintraege offen in >=2 abgeschlossenen Zyklen als
+#          '<title>\t<meta>\t<slug1,slug2>' [T013305 Mechanismus C]
+#        rollup-carryover.sh --watchlist-live <root> --today <JJJJ-MM-TT>
+#          [--exclude-file <f>]  lebende 'beobachten'-Eintraege als Batch-Body
+#          zur Injektion in den Generatorlauf [T013305 Mechanismus B]
+#        rollup-carryover.sh --watchlist-expired <root> --today <JJJJ-MM-TT>
+#          abgelaufene Beobachtungen als '<title>\t<meta>\t<faellig>\t<slug>'
 # Exit: 0 = Ausgabe erzeugt | 3 = nichts zu uebertragen | 2 = Aufruffehler
 set -euo pipefail
 
@@ -30,13 +39,18 @@ usage() {
   sed -n 's/^# \(Usage:.*\)$/\1/p; s/^#        \(rollup-carryover.sh .*\)$/  \1/p' "$0"
 }
 
-MODE="" PLAN="" SLUG="" SCAN_ROOT="" CONTAINER=""
+MODE="" PLAN="" SLUG="" SCAN_ROOT="" CONTAINER="" TODAY="" EXCLUDE_FILE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --plan)      MODE="plan"; PLAN="$2"; shift 2 ;;
-    --slug)      SLUG="$2"; shift 2 ;;
-    --scan)      MODE="scan"; SCAN_ROOT="$2"; shift 2 ;;
-    --container) CONTAINER="$2"; shift 2 ;;
+    --plan)          MODE="plan"; PLAN="$2"; shift 2 ;;
+    --slug)          SLUG="$2"; shift 2 ;;
+    --scan)          MODE="scan"; SCAN_ROOT="$2"; shift 2 ;;
+    --escalations)   MODE="escalations"; SCAN_ROOT="$2"; shift 2 ;;
+    --watchlist-live) MODE="wl_live"; SCAN_ROOT="$2"; shift 2 ;;
+    --watchlist-expired) MODE="wl_expired"; SCAN_ROOT="$2"; shift 2 ;;
+    --container)     CONTAINER="$2"; shift 2 ;;
+    --today)         TODAY="$2"; shift 2 ;;
+    --exclude-file)  EXCLUDE_FILE="$2"; shift 2 ;;
     --help)      usage; exit 0 ;;
     *) echo "rollup-carryover: unbekanntes Argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -47,6 +61,34 @@ done
 # keine Nummer und fallen damit heraus.
 _open_entries() {
   grep -E '^- \[ \] \*\*[0-9]+\. ' "$1" 2>/dev/null || true
+}
+
+# Alle Zyklus-Plaene (offen + archiviert) als '<slug>\t<plan-pfad>'.
+_cycle_plans() {
+  find "$1" -type f -name tasks.md -path '*mishap-incident-rollup-*' 2>/dev/null \
+    | while IFS= read -r p; do
+        printf '%s\t%s\n' "$(basename "$(dirname "$p")")" "$p"
+      done | sort
+}
+
+# Titel aus einer offenen Eintragszeile.
+_line_title() {
+  printf '%s\n' "$1" | sed -E 's/^- \[.\] \*\*[0-9]+\. (.*)\*\* \(([^)]*)\).*$/\1/'
+}
+_line_meta() {
+  printf '%s\n' "$1" | sed -E 's/^- \[.\] \*\*[0-9]+\. (.*)\*\* \(([^)]*)\).*$/\2/'
+}
+
+# Exclude-Filter [T013305]: ein Titel gilt als ausgeschieden, wenn er (nach
+# Whitespace-Normalisierung) in der Exclude-Datei steht.
+_is_excluded() {
+  [[ -n "${EXCLUDE_FILE:-}" && -s "${EXCLUDE_FILE:-}" ]] || return 1
+  local t; t="$(printf '%s' "$1" | tr -s '[:space:]' ' ')"
+  while IFS= read -r ex; do
+    ex="$(printf '%s' "$ex" | tr -s '[:space:]' ' ')"
+    if [[ "$t" == "$ex" ]]; then return 0; fi
+  done < "$EXCLUDE_FILE"
+  return 1
 }
 
 # ── Modus: scan ─────────────────────────────────────────────────────────────
@@ -85,6 +127,109 @@ if [[ "$MODE" == "scan" ]]; then
   exit 0
 fi
 
+# ── Modus: escalations [T013305 Mechanismus C] ───────────────────────────────
+# Ein Eintrag, der in >= 2 ABGESCHLOSSENEN Zyklen offen blieb (sein Container
+# ist nicht der laufende), wird zum Zombie — er wird eskaliert.
+if [[ "$MODE" == "escalations" ]]; then
+  [[ -n "$SCAN_ROOT" && -n "$CONTAINER" ]] || {
+    echo "rollup-carryover: --escalations braucht --container" >&2; usage >&2; exit 2; }
+
+  declare -A ESC_CYCLES=() ; declare -A ESC_META=() ; declare -A ESC_TITLE=()
+  found=0
+  while IFS=$'\t' read -r slug plan; do
+    # Der laufende Zyklus zaehlt nicht — sein Container ist noch offen, der
+    # Eintrag hat dort seine erste echte Chance.
+    if [[ "$slug" == *-"$CONTAINER" ]]; then continue; fi
+    while IFS= read -r line; do
+      t="$(_line_title "$line")"; m="$(_line_meta "$line")"
+      [[ -n "$t" ]] || continue
+      key="$(printf '%s|%s' "$(printf '%s' "$t" | tr '[:upper:]' '[:lower:]' | tr -s '[:space:]' ' ')" \
+                          "$(printf '%s' "$m" | tr '[:upper:]' '[:lower:]' | tr -s '[:space:]' ' ')")"
+      if [[ -z "${ESC_TITLE[$key]:-}" ]]; then
+        ESC_TITLE[$key]="$t"; ESC_META[$key]="$m"; ESC_CYCLES[$key]="$slug"
+      elif [[ ";${ESC_CYCLES[$key]};" != *";${slug};"* ]]; then
+        ESC_CYCLES[$key]="${ESC_CYCLES[$key]},${slug}"
+      fi
+    done < <(_open_entries "$plan")
+  done < <(_cycle_plans "$SCAN_ROOT")
+
+  for key in "${!ESC_TITLE[@]}"; do
+    c="${ESC_CYCLES[$key]}"
+    n="$(printf '%s' "$c" | awk -F',' '{print NF}')"
+    [[ "$n" -ge 2 ]] || continue
+    _is_excluded "${ESC_TITLE[$key]}" && continue
+    printf '%s\t%s\t%s\n' "${ESC_TITLE[$key]}" "${ESC_META[$key]}" "$c"
+    found=1
+  done
+  [[ "$found" -eq 1 ]] || exit 3
+  exit 0
+fi
+
+# ── Modus: watchlist-live / watchlist-expired [T013305 Mechanismus B] ────────
+# Dispositionszeilen 'beobachten (bis Zyklus <JJJJ-MM-TT>)' vergangener Plaene:
+#   lebend  (heute <= Ablauf)  → Batch-Body zur Injektion in den Generatorlauf
+#   abgelaufen (heute > Ablauf) → Eskalations-Zeile
+if [[ "$MODE" == "wl_live" || "$MODE" == "wl_expired" ]]; then
+  [[ -n "$SCAN_ROOT" && -n "$TODAY" ]] || {
+    echo "rollup-carryover: --watchlist-* braucht --today" >&2; usage >&2; exit 2; }
+
+  wl_found=0
+  wl_titles=() wl_metas=() wl_dues=() wl_slugs=()
+  while IFS=$'\t' read -r slug plan; do
+    while IFS= read -r line; do
+      parsed="$(printf '%s\n' "$line" | sed -nE 's/^- \[x\] \*\*[0-9]+\. (.*)\*\* \(([^)]*)\) .*Disposition: beobachten \(bis Zyklus ([0-9]{4}-[0-9]{2}-[0-9]{2})\).*$/\1\t\2\t\3/p')"
+      [[ -n "$parsed" ]] || continue
+      title="$(printf '%s' "$parsed" | cut -f1)"
+      meta="$(printf '%s' "$parsed" | cut -f2)"
+      due="$(printf '%s'  "$parsed" | cut -f3)"
+      _is_excluded "$title" && continue
+      if [[ "$MODE" == "wl_live" ]]; then
+        # lebendig, solange heute <= Ablaufdatum (ISO-Datum: Stringvergleich)
+        { [[ "$TODAY" < "$due" ]] || [[ "$TODAY" == "$due" ]]; } || continue
+      else
+        [[ "$TODAY" > "$due" ]] || continue
+      fi
+      wl_titles+=("$title"); wl_metas+=("$meta"); wl_dues+=("$due"); wl_slugs+=("$slug")
+      wl_found=$((wl_found + 1))
+    done < "$plan"
+  done < <(_cycle_plans "$SCAN_ROOT")
+
+  if [[ "$MODE" == "wl_expired" ]]; then
+    i=0
+    while [[ "$i" -lt "$wl_found" ]]; do
+      printf '%s\t%s\t%s\t%s\n' "${wl_titles[$i]}" "${wl_metas[$i]}" "${wl_dues[$i]}" "${wl_slugs[$i]}"
+      i=$((i + 1))
+    done
+    [[ "$wl_found" -gt 0 ]] || exit 3
+    exit 0
+  fi
+
+  # Live: als Flusher-Batch rendern, damit die Injektion durch dieselbe Tuer
+  # geht wie ein Carry-over (mishap-rollup.sh haengt den Body an COMMENTS_FILE).
+  if [[ "$wl_found" -eq 0 ]]; then exit 3; fi
+  printf '### Mishap-Rollup — %d Eintraege (Watchlist)\n\n' "$wl_found"
+  printf 'Beobachtungspunkte vergangener Zyklen: diese Eintraege wurden als transient\n'
+  printf 'eingeschaetzt, aber wiederholungsanfaellig befunden und laufen bis zu ihrem\n'
+  printf 'Ablaufdatum in jedem Zyklus erneut auf. Danach Eskalation [T013305].\n\n'
+  printf '| # | Typ | Komponente | Titel | Beobachten bis | Quelle |\n|---|---|---|---|---|---|\n'
+  i=0
+  while [[ "$i" -lt "$wl_found" ]]; do
+    typ="${wl_metas[$i]%%,*}"
+    komp="${wl_metas[$i]#*, }"
+    printf '| %d | %s | %s | %s | %s | %s |\n' "$((i + 1))" "$typ" "$komp" \
+      "${wl_titles[$i]}" "${wl_dues[$i]}" "${wl_slugs[$i]}"
+    i=$((i + 1))
+  done
+  printf '\n'
+  i=0
+  while [[ "$i" -lt "$wl_found" ]]; do
+    printf '**%d. %s** (%s)\n\n' "$((i + 1))" "${wl_titles[$i]}" "${wl_metas[$i]}"
+    printf 'Watchlist-Eintrag aus `%s` — beobachten bis Zyklus %s.\n' "${wl_slugs[$i]}" "${wl_dues[$i]}"
+    i=$((i + 1))
+  done
+  exit 0
+fi
+
 # ── Modus: plan ─────────────────────────────────────────────────────────────
 if [[ "$MODE" != "plan" ]]; then
   echo "rollup-carryover: --plan oder --scan ist Pflicht" >&2; usage >&2; exit 2
@@ -106,6 +251,16 @@ done
 
 # Body im Flusher-Format (scripts/ticket-mcp/go/internal/tools/mishap.go):
 # Header, Tabelle, dann je Eintrag ein '**N. Titel** (meta)'-Block.
+# Eskalierte Eintraege (Exclude-Datei) sind ausgeschieden [T013305].
+kept_titles=() kept_metas=()
+for i in "${!titles[@]}"; do
+  _is_excluded "${titles[$i]}" && continue
+  kept_titles+=("${titles[$i]}")
+  kept_metas+=("${metas[$i]}")
+done
+[[ "${#kept_titles[@]}" -gt 0 ]] || exit 3
+titles=("${kept_titles[@]}"); metas=("${kept_metas[@]}")
+
 printf '### Mishap-Rollup — %d Eintraege (Carry-over aus %s)\n\n' "${#OPEN[@]}" "$SLUG"
 printf 'Uebertrag aus dem abgeschlossenen Zyklus `%s`: diese Eintraege blieben dort ohne\n' "$SLUG"
 printf 'Disposition. Sie werden hier weitergefuehrt, damit sie mit dem Container nicht\n'

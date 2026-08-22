@@ -18,16 +18,23 @@ setup() {
   mkdir -p "$WORK"
 }
 
+# Zwei abgeschlossene Zyklen: der junge haelt die lebende Beobachtung, der
+# alte den abgelaufenen Eintrag.
 _plan_with_watchlist() {
-  cat <<'EOF'
+  local dir="$1"
+  mkdir -p "$dir/mishap-incident-rollup-2026-08-21-T012973"
+  cat > "$dir/mishap-incident-rollup-2026-08-21-T012973/tasks.md" <<'EOF'
 - [x] **1. MTP-Crash transient** (broken, llm-proxy) — Disposition: beobachten (bis Zyklus 2026-08-25), Workaround operativ
-- [x] **2. Alter Beobachtungspunkt** (degraded, scs-embed) — Disposition: beobachten (bis Zyklus 2026-08-01), laengst abgelaufen
 - [x] **3. Erledigt ohne Beobachtung** (drift, factory) — Disposition: kein Repo-Fix, einmalig
+EOF
+  mkdir -p "$dir/mishap-incident-rollup-2026-08-20-T012909"
+  cat > "$dir/mishap-incident-rollup-2026-08-20-T012909/tasks.md" <<'EOF'
+- [x] **2. Alter Beobachtungspunkt** (degraded, scs-embed) — Disposition: beobachten (bis Zyklus 2026-08-01), laengst abgelaufen
 EOF
 }
 
 @test "das Plan-Template kennt die vierte Disposition beobachten" {
-  printf '' | run bash "$PLAN_TASKS"
+  run bash "$PLAN_TASKS" < /dev/null
   [ "$status" -eq 0 ]
   # Positiv-Anker: die drei etablierten Dispositionen sind weiterhin genannt ...
   printf '%s\n' "$output" | grep -qF 'kein Repo-Fix'
@@ -36,8 +43,8 @@ EOF
 }
 
 @test "lebende Watchlist-Eintraege werden als Batch zur Wiederaufnahme gerendert" {
-  _plan_with_watchlist > "$WORK/tasks.md"
-  run bash "$CARRY" --watchlist-live "$WORK" --today 2026-08-22 --slug mishap-incident-rollup-2026-08-22-T013107
+  _plan_with_watchlist "$WORK"
+  run bash "$CARRY" --watchlist-live "$WORK" --today 2026-08-22
   [ "$status" -eq 0 ]
   # Der lebende Eintrag ist im Flusher-Batch-Format ...
   printf '%s\n' "$output" | grep -qF '### Mishap-Rollup'
@@ -46,18 +53,18 @@ EOF
   printf '%s\n' "$output" > "$WORK/comment.txt"
   count="$(bash "$PLAN_TASKS" --count < "$WORK/comment.txt")"
   [ "$count" -eq 1 ]
-  # ... und nennt seinen Quell-Zyklus fuer die Idempotenz.
-  printf '%s\n' "$output" | grep -qF 'mishap-incident-rollup-2026-08-22-T013107'
+  # ... und nennt seinen Quell-Zyklus.
+  printf '%s\n' "$output" | grep -qF 'mishap-incident-rollup-2026-08-21-T012973'
 }
 
 @test "abgelaufene Watchlist-Eintraege gehen an die Eskalation, nicht in den Batch" {
-  _plan_with_watchlist > "$WORK/tasks.md"
+  _plan_with_watchlist "$WORK"
   run bash "$CARRY" --watchlist-expired "$WORK" --today 2026-08-22
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" | grep -qF 'Alter Beobachtungspunkt'
   printf '%s\n' "$output" | grep -qF '2026-08-01'
 
-  run bash "$CARRY" --watchlist-live "$WORK" --today 2026-08-22 --slug x
+  run bash "$CARRY" --watchlist-live "$WORK" --today 2026-08-22
   [ "$status" -eq 0 ]
   live_out="$(printf '%s\n' "$output")"
   # Positiv-Anker zuerst: der lebende Eintrag ist im Live-Batch ...
@@ -70,7 +77,7 @@ EOF
   cat <<'EOF' > "$WORK/tasks.md"
 - [x] **1. Normal erledigt** (drift, factory) — Disposition: gefixt, PR #1234
 EOF
-  run bash "$CARRY" --watchlist-live "$WORK" --today 2026-08-22 --slug x
+  run bash "$CARRY" --watchlist-live "$WORK" --today 2026-08-22
   [ "$status" -eq 3 ]
   [ "$(printf '%s' "$output" | tr -d '[:space:]')" = "" ]
 }

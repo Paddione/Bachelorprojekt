@@ -3588,6 +3588,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/dashboard-rescan",
+    "file": "tests/spec/health-goals/dashboard-rescan.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/g-git03",
     "file": "tests/spec/health-goals/g-git03.bats",
     "category": "health-goals",

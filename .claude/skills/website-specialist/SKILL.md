@@ -22,45 +22,50 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro/Svelt
 - **Content Model**: components/website/src/data/*.json, MDX via @astrojs/mdx
 
 ## Commands
+Alle Website-Scripts laufen über `--prefix components/website` (das Top-Level-Verzeichnis `website/` ist leer — der Code liegt in `components/website/`):
 ```bash
 # Dev & build
-npm run dev                    # start dev server on localhost:4321
-npm run build                  # production build to components/website/dist/
-npm run preview                # preview prod build
+npm --prefix components/website run dev      # start dev server on localhost:4321
+npm --prefix components/website run build    # production build to components/website/dist/
+npm --prefix components/website run preview  # preview prod build
 
 # Tests
-npm --prefix website run test          # Vitest unit tests
-npm --prefix website run test:e2e      # Playwright E2E
+npm --prefix components/website run test        # Vitest unit tests
+npm --prefix components/website run test:unit   # Vitest (Alias)
 
-# Type checking
-npm run typecheck                    # TypeScript across monorepo
+# Playwright-E2E: kein npm-Script — läuft über tests/runner.sh bzw. task systemtest:*
+bash tests/runner.sh local <FA-XX oder SA-XX>
+
+# Type checking & Lint
+npm --prefix components/website run lint        # ESLint + astro-check
+npm run typecheck                               # TypeScript monorepo-weit (Repo-Root)
 ```
 
 ## Content pages
 - `components/website/src/pages/index.astro` — Homepage (hero, features, brands)
-- `components/website/src/pages/{slug}.astro` — Dynamic content pages from `content/`
-- Service pages in `components/website/src/pages/services/` (consulting, coaching, trainings)
-- Blog posts via MDX: `components/website/content/blog/*.mdx`
+- `components/website/src/pages/[service].astro` — dynamische Service-Seiten, gespeist aus `src/data/*.json` (Content-Modell in `src/content-schema/`)
+- Weitere statische Seiten flach unter `src/pages/` (`agb.astro`, `impressum.astro`, `404.astro`, `en/`, …)
+- Blog-/Inhaltsseiten sind data-getrieben (JSON), nicht MDX — es gibt keine `.mdx`-Dateien im Package
 
 ## Component architecture
 - `components/website/src/lib/components-db.ts` — central component registry
 - Layout components: `Layout.astro`, `Header.astro`, `Footer.astro`
-- UI primitives in Svelte: `components/website/src/lib/ui/` (buttons, forms, modals)
+- UI primitives in Svelte: `components/website/src/components/ui/` (buttons, forms, modals)
 - Design system integration from `assets/design-overviews/kore-design-system/`
 
 ## Brand routing
 Both brands share the same codebase with environment-based configuration:
 ```astro
 ---
-import { CONFIG } from '../config.js';
-const brand = import.meta.env.APP_BRAND; // 'mentolder' or 'korczewski'
+import { config } from '../config/index'; // src/config/index.ts — exportiert `config: BrandConfig`
+const brand = config.brand; // 'mentolder' | 'korczewski'
 ---
 ```
 
 ## CI gates
-- `npm run typecheck` — strict TypeScript
-- `npm run lint` — ESLint + astro-check
-- `npm run test:unit` — Vitest coverage ≥ 80%
+- `npm run typecheck` (Repo-Root) — strict TypeScript, monorepo-weit
+- `npm --prefix components/website run lint` — ESLint + astro-check
+- `npm --prefix components/website run test:unit` — Vitest coverage ≥ 80%
 - Build size budget tracked via G-FE02
 
 ## Design system integration

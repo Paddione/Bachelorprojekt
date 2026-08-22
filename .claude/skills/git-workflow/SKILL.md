@@ -10,7 +10,7 @@ description: 'Use whenever committing, pushing, creating a PR, or finishing work
 Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** — die `dev-flow-*`-Skills
 verweisen auf die Schritte hier statt sie zu duplizieren. Für read/view-GitHub-Flows (Anzeige) den
 Wrapper `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist: `gh` direkt (T004612)
-([gh-axi](file:///home/patrick/Bachelorprojekt/.claude/skills/references/gh-axi.md)).
+([gh-axi](.claude/skills/references/gh-axi.md)).
 
 ---
 
@@ -123,7 +123,7 @@ Rebase in Schritt 0, für den Rebase-Preflight hier und für jeden `git rebase`/
 `git pull --rebase` im CI-Fix-Loop (Schritt 5).
 
 Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste zum Stagen):
-**SSOT** in [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
+**SSOT** in [verification-block](.claude/skills/references/verification-block.md).
 
 Kurzform: `task freshness:regenerate` (Artefakte aktuell halten, dann stagen) +
 `task freshness:check` (CI-Äquivalent, S1-Ratchet). Falls S1 rot: Datei wirklich verkleinern,
@@ -142,7 +142,7 @@ nicht kosmetisch Zeilen zusammenziehen.
 Header ≤ 100 Zeichen, Ticket-ID immer anhängen. Die vollständige `type`/`scope`-Liste, Beispiele,
 die PR-Body-Vorlage und das Vorgehen für einen **noch nicht registrierten Scope**
 (`scripts/register-scope.sh` + `commitlint.config.cjs` mitcommitten, T001364) stehen in
-[git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
+[git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
 
 > **Scope vorab gegen SSOT-Allowlist prüfen [T001395]:** `preflight-pr-scope.sh` (Schritt 4) läuft
 > erst kurz vor `gh pr create` — also NACH dem Commit. Ein falsch geratener Scope führt dann zu
@@ -216,7 +216,7 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 
 `gh pr create --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" --body ...` — die
 Body-Vorlage (Summary + Test Plan) und der REST-Fallback für nachträgliche Titel-Edits stehen in
-[git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
+[git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
 
 ---
 
@@ -224,7 +224,7 @@ Body-Vorlage (Summary + Test Plan) und der REST-Fallback für nachträgliche Tit
 
 Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird.
 
-Detaillierte Checkliste (SSOT): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)
+Detaillierte Checkliste (SSOT): [ci-fix-loop](.claude/skills/references/ci-fix-loop.md)
 
 Kurzfassung:
 1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind
@@ -239,7 +239,7 @@ Kurzfassung:
 > geändert hat — der Scheduler hat generierte Artefakte auf `main` committet. Kein echter
 > Merge-Konflikt; der Rebase muss dann um `task freshness:regenerate` ergänzt werden, **bevor**
 > gepusht wird. Befehlsfolge:
-> [git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
+> [git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
 
 ---
 
@@ -280,8 +280,8 @@ git worktree remove "$WORKTREE_PATH"
 git worktree prune
 
 # T004612: der Merge löscht den Remote-Branch NICHT mehr (kein --delete-branch,
-# delete_branch_on_merge=false) — die Archivierung (Schritt 7) brauchte ihn. Erst
-# hier, NACH dem Archiv, remote + lokal löschen:
+# delete_branch_on_merge=false) — die Archivierung (dev-flow-execute post-merge,
+# Schritte 6.4–7.5) brauchte ihn. Erst hier, NACH dem Archiv, remote + lokal löschen:
 git push origin --delete "$BRANCH_NAME"
 # Der Squash-Commit auf main ist ein neuer Commit — Git erkennt den Branch nicht
 # als "merged", `git branch -d` würde fehlschlagen; `-D` ist nötig.
@@ -297,7 +297,7 @@ fi
 Schritt-Übersicht (0–7 auf einen Blick) und die Fehlertabelle „Symptom → Diagnose → Fix"
 (Commit landet nicht, CI startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher
 Cluster) stehen in
-[git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
+[git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
 
 ---
 

@@ -420,7 +420,7 @@
     }
   },
   "factory": {
-    "model": "gemma26-throughput",
+    "model": "qwen38-220k",
     "locked": false
   }
 }

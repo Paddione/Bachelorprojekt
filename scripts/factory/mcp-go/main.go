@@ -50,6 +50,12 @@ func resolveAuthKey(apiKeyEnv string) string {
 }
 
 // resolveLLM calls route-provider.sh to get baseUrl + modelId + slotId + apiKeyEnv + ctx from provider_config DB.
+// [T013434] Der Fallback zeigte bis 2026-08-22 auf ein LM Studio unter
+// 192.168.100.10:1234 mit Modell "hermes-3-llama-3.1-8b" — beides existiert nicht
+// mehr. Wenn route-provider.sh ausfiel, antwortete factory_ask deshalb nicht mit
+// einem Transportfehler, sondern mit "no healthy backend" gegen ein Modell, das
+// der Proxy gar nicht fuehrt. Der Fallback zeigt jetzt auf dasselbe Gateway und
+// dasselbe Loadout wie der Normalpfad.
 func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 	script := repo() + "/scripts/factory/route-provider.sh"
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -57,8 +63,8 @@ func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 	out, err := exec.CommandContext(timeoutCtx, "bash", script, "factory-ask", "haiku").Output()
 	if err != nil {
 		// Fallback: env overrides (backwards compat for local dev)
-		return envOr("FACTORY_LLM_URL", "http://192.168.100.10:1234/v1"),
-			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b"),
+		return envOr("FACTORY_LLM_URL", "http://127.0.0.1:18235/v1"),
+			envOr("FACTORY_LLM_MODEL", "qwen38-220k"),
 			"", "", 0
 	}
 	var route struct {
@@ -70,8 +76,8 @@ func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 		Ctx       int     `json:"ctx"`
 	}
 	if err := json.Unmarshal(bytes.TrimSpace(out), &route); err != nil || route.BaseURL == nil || *route.BaseURL == "" {
-		return envOr("FACTORY_LLM_URL", "http://192.168.100.10:1234/v1"),
-			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b"),
+		return envOr("FACTORY_LLM_URL", "http://127.0.0.1:18235/v1"),
+			envOr("FACTORY_LLM_MODEL", "qwen38-220k"),
 			"", "", 0
 	}
 	// Resolve nullable slotId/apiKeyEnv from pointers to empty strings.

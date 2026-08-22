@@ -2,7 +2,7 @@
 title: Default-Factory-Modell im llm-proxy-Webinterface waehlbar und sperrbar
 ticket_id: T013144
 domains: [llm-proxy, software-factory]
-status: plan_staged
+status: implemented
 ---
 
 # factory-model-lock — Implementation Plan
@@ -49,19 +49,19 @@ P1 zuerst — P2 und P3 lesen beide die Route, die P1 anlegt. P2 und P3 sind dan
 voneinander unabhaengig. P4 laeuft zuletzt, weil sein Failing-Test-Step gegen die
 Schnittstellen aus P1 bis P3 schreibt.
 
-## Task 1 — P1: Proxy-Kern (Validierung, Admin-Route, Seed)
+## Task 1 — P1: Proxy-Kern (Validierung, Admin-Route, Seed) ✅
 
 Siehe `tasks.d/p1-proxy-core.md`.
 
-## Task 2 — P2: Auswahl im Webinterface
+## Task 2 — P2: Auswahl im Webinterface ✅
 
 Siehe `tasks.d/p2-admin-ui.md`.
 
-## Task 3 — P3: Factory-Konsumenten
+## Task 3 — P3: Factory-Konsumenten ✅
 
 Siehe `tasks.d/p3-factory-consumers.md`.
 
-## Task 4 — P4: Tests und Runner-Registrierung
+## Task 4 — P4: Tests und Runner-Registrierung ✅
 
 Siehe `tasks.d/p4-tests.md`.
 

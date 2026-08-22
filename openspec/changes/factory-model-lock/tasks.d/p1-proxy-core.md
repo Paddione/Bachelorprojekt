@@ -2,7 +2,7 @@
 title: P1 — Proxy-Kern (Validierung, Admin-Route, Seed)
 ticket_id: T013144
 domains: [llm-proxy]
-status: plan_staged
+status: implemented
 ---
 
 # P1 — Proxy-Kern

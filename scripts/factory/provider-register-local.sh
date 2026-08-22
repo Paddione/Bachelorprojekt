@@ -23,8 +23,11 @@
 # provider_config, eine Codeaenderung dort ist nicht noetig.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$HERE/lib.sh"
 
-MODEL_ID="${FACTORY_MODEL_ID:-gemma26-throughput}"
+PIN="$(factory_model_pin)"; IFS=$'\t' read -r PIN_MODEL _ <<< "${PIN:-}"
+MODEL_ID="${PIN_MODEL:-${FACTORY_MODEL_ID:-gemma26-throughput}}"
 # Immer das vereinheitlichte Gateway, nie ein Backend-Port. Welches Backend
 # dahinter haengt, entscheidet die Registry tickets.llm_proxy_backends.
 # [T003492] OHNE '/v1' — die Konsumenten haengen '/v1/chat/completions' selbst an

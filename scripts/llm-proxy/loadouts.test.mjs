@@ -26,6 +26,12 @@ const valid = {
   }],
 }
 
+test('factory.model muss ein existierender Loadout-Slug sein', () => {
+  const doc = structuredClone(valid)
+  doc.factory = { model: 'gibt-es-nicht', locked: true }
+  assert.throws(() => parseLoadouts(JSON.stringify(doc)), /gibt-es-nicht/)
+})
+
 test('parseLoadouts: gueltiges Dokument kommt unveraendert zurueck', () => {
   const doc = parseLoadouts(JSON.stringify(valid))
   assert.equal(doc.loadouts.length, 1)

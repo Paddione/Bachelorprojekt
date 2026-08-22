@@ -15,6 +15,8 @@ REPO="$(cd "$HERE/../.." && pwd)"
 # die einzige Implementierung dieser Regel bleibt.
 # shellcheck source=scripts/factory/readiness-check.sh
 source "$HERE/readiness-check.sh"
+# shellcheck source=/dev/null
+source "$HERE/lib.sh"
 PREP_FILE="${1:-}"; shift || true
 DRY_RUN=false
 for arg; do case "$arg" in --dry-run) DRY_RUN=true;; esac; done
@@ -64,6 +66,18 @@ for row in "${launch_rows[@]}"; do
   [[ "$DRY_RUN" == "true" ]] && dry_run_val=true
   attempt="$(echo "$row" | jq -r '.attempt // 1')"
   model_tier="$(echo "$row" | jq -r '.model_tier // "flash"')"
+  PIN="$(factory_model_pin)"
+  if [[ -n "$PIN" ]]; then
+    IFS=$'\t' read -r PIN_MODEL PIN_LOCKED <<< "$PIN"
+    export FACTORY_MODEL_ID="$PIN_MODEL"
+    if [[ "$PIN_LOCKED" == "1" ]]; then
+      export FACTORY_MODEL_LOCKED=1
+      model_tier="flash"
+      echo "dispatcher-bridge: Factory-Modell gesperrt auf '$PIN_MODEL' — tier auf flash gepinnt." >&2
+    else
+      unset FACTORY_MODEL_LOCKED
+    fi
+  fi
 
   # Readiness-Gate [T003773] — VOR dem Budget-Guard, damit eine planlose Zeile
   # weder Budget noch Gang-Slot verbraucht. Der Guard existierte samt Requirement

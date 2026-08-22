@@ -4,7 +4,7 @@ import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
 import { readFileSync, existsSync } from 'node:fs';
-import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive, isLoadoutEnabled } from './loadouts.mjs';
+import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive, isLoadoutEnabled, factoryModel, factoryLocked } from './loadouts.mjs';
 import os from 'node:os';
 import { scanModels, resolveModelPath } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs, toolsRuntimeMissing } from './runner.mjs';
@@ -595,6 +595,31 @@ const server = http.createServer((req, res) => {
         return sendJson(res, 200, { status });
       } catch (err) {
         return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
+      }
+    }
+    if (path === '/admin/factory' && method === 'GET') {
+      try {
+        const { doc, mtimeMs } = readLoadouts(DEFAULT_PATH);
+        return sendJson(res, 200, {
+          model: factoryModel(doc), locked: factoryLocked(doc), mtimeMs,
+          selectable: doc.loadouts.filter(isLoadoutEnabled).map(({ slug, label, port }) => ({ slug, label, port })),
+        });
+      } catch (err) {
+        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
+      }
+    }
+    if (path === '/admin/factory' && method === 'PUT') {
+      try {
+        const body = await readBody(req);
+        const { doc } = readLoadouts(DEFAULT_PATH);
+        doc.factory = { model: body.model, locked: body.locked === true };
+        writeLoadouts(doc, DEFAULT_PATH, body.mtimeMs ?? null);
+        const { mtimeMs } = readLoadouts(DEFAULT_PATH);
+        return sendJson(res, 200, { saved: true, mtimeMs });
+      } catch (err) {
+        const conflict = /conflict|geaendert/i.test(err.message);
+        return sendJson(res, conflict ? 409 : 400,
+          { error: { code: conflict ? 'stale_write' : 'invalid', message: err.message } });
       }
     }
     const startMatch = path.match(/^\/admin\/loadouts\/([a-z0-9-]+)\/start$/);

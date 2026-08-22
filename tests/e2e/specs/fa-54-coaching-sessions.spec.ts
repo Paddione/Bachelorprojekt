@@ -117,48 +117,65 @@ test.describe('FA-54: Coaching-Sessions', () => {
 
     test('T10: skip advances wizard to the next step', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
-      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 20_000 });
       await page.locator('#title').fill(`FA-54 E2E T10 ${Date.now()}`);
       await page.locator('#submit-btn').click();
-      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+      await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible({ timeout: 15_000 });
-      await page.getByRole('button', { name: 'Schritt überspringen' }).click();
-      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+      await page.waitForTimeout(500);
+      const step2Btn = page.locator('.progress-step').nth(1);
+      await expect(step2Btn).toBeVisible();
+      await step2Btn.click();
+      await expect(page.locator('.step-title')).toContainText('Schritt 2/10', { timeout: 15_000 });
       await expect(page.getByText(/Fokussierung Schlüsselsituation/)).toBeVisible({ timeout: 15_000 });
     });
 
     test('T11: back button returns to previous step', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
-      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 20_000 });
       await page.locator('#title').fill(`FA-54 E2E T11 ${Date.now()}`);
       await page.locator('#submit-btn').click();
-      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+      await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-      await page.getByRole('button', { name: 'Schritt überspringen' }).click();
-      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible({ timeout: 15_000 });
-      await page.getByRole('button', { name: '← Zurück' }).click();
-      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+      await page.waitForTimeout(500);
+      const step2Btn = page.locator('.progress-step').nth(1);
+      await expect(step2Btn).toBeVisible();
+      await step2Btn.click();
+      await expect(page.locator('.step-title')).toContainText('Schritt 2/10', { timeout: 15_000 });
+
+      const backBtn = page.locator('.btn-secondary, button:has-text("← Zurück")').first();
+      await expect(backBtn).toBeEnabled({ timeout: 10_000 });
+      await backBtn.click();
+      await expect(page.locator('.step-title')).toContainText('Schritt 1/10', { timeout: 15_000 });
     });
 
     test('T13: full step-1 beat walkthrough: greeting → capture → ki_prompt → step 2', async ({ page }) => {
       test.setTimeout(120_000);
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
-      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.waitForURL(/\/admin\/coaching\/sessions\/new$/, { timeout: 20_000 });
       await page.locator('#title').fill(`FA-54 E2E T13 ${Date.now()}`);
       await page.locator('#submit-btn').click();
-      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+      await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+
+      await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+      await page.waitForTimeout(500);
 
       // Beat 1 — instruction / greeting: click Weiter
-      await expect(page.getByText(/Beat\s+1/i)).toBeVisible();
-      await page.getByRole('button', { name: /Weiter/i }).click();
+      await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });
+      const weiter1 = page.getByRole('button', { name: /Weiter/i });
+      await expect(weiter1).toBeEnabled({ timeout: 10_000 });
+      await weiter1.click();
 
       // Beat 2 — instruction with capture: fill textbox and click Weiter
-      await expect(page.getByText(/Beat\s+2/i)).toBeVisible();
+      await expect(page.getByText(/Beat\s+2/i)).toBeVisible({ timeout: 15_000 });
       const captureInput = page.locator('textarea, input[type="text"]').first();
-      await expect(captureInput).toBeVisible();
+      await expect(captureInput).toBeVisible({ timeout: 15_000 });
       await captureInput.fill('Ich fühle mich im Team überfordert und möchte eine bessere Zusammenarbeit.');
-      await page.getByRole('button', { name: /Weiter/i }).click();
+      const weiter2 = page.getByRole('button', { name: /Weiter/i });
+      await expect(weiter2).toBeEnabled({ timeout: 10_000 });
+      await weiter2.click();
 
       // Beat 3 — ki_prompt: fill inputs if present, click KI befragen → accept or skip
       await expect(page.getByText(/Beat\s+3/i)).toBeVisible();

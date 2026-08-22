@@ -113,11 +113,17 @@ test.describe('FA-admin-db-crud-followups', () => {
     const projectName = `e2e-zeit-projekt-${ts}`;
 
     // ── 1. Create a project to attach time entries to ──
+    await page.goto(`${BASE}/admin/projekte`);
+    await page.waitForLoadState('domcontentloaded');
+    const customerSelect = page.locator('select[name="customerId"] option:not([value=""])').first();
+    const customerId = (await customerSelect.getAttribute('value')) || '';
+
     const projCreateRes = await page.request.post(`${BASE}/api/admin/projekte/create`, {
       form: {
-        name:     projectName,
-        status:   'aktiv',
-        priority: 'mittel',
+        name:       projectName,
+        status:     'aktiv',
+        priority:   'mittel',
+        customerId: customerId,
       },
       maxRedirects: 0,
     });

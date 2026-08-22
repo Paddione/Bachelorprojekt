@@ -2316,6 +2316,12 @@
     "kind": "shell"
   },
   {
+    "id": "backup-pipeline/filen-remote-retention",
+    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
+    "category": "backup-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "batch-git-worktree-integrity",
     "file": "tests/spec/batch-git-worktree-integrity.bats",
     "category": "batch-git-worktree-integrity",
@@ -3774,6 +3780,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/factory-model-lock",
+    "file": "tests/spec/local-llm-proxy/factory-model-lock.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/gateway-consumer-lint",
     "file": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
     "category": "local-llm-proxy",
@@ -3878,6 +3890,12 @@
   {
     "id": "local-llm-proxy/proxy-tests-registered",
     "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/qwen38-default-backend",
+    "file": "tests/spec/local-llm-proxy/qwen38-default-backend.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4136,6 +4154,12 @@
   {
     "id": "mishap-rollup/generator-cycle-artifacts",
     "file": "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/rollup-carryover",
+    "file": "tests/spec/mishap-rollup/rollup-carryover.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },
@@ -5156,6 +5180,12 @@
   {
     "id": "software-factory/factory-model-id-default",
     "file": "tests/spec/software-factory/factory-model-id-default.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/factory-model-lock",
+    "file": "tests/spec/software-factory/factory-model-lock.bats",
     "category": "software-factory",
     "kind": "shell"
   },

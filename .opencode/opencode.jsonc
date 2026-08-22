@@ -1,22 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Lokales Gemma 4 12B QAT mit drei Slots als Standard — das Loadout
-  // gemma12-vision auf Port 8089 (Backend llamacpp-gemma12). Es ist das einzige
-  // vision-faehige lokale Loadout, hat mit 262.144 den groessten Kontext und
-  // faehrt MTP-Speculative-Decoding.
+  // Qwen 3.8 27B IQ3_XXS als Standard — das Loadout qwen38-220k auf Port 8094
+  // (Backend llamacpp-qwen38). Es ist der textbasierte Primary mit 220.000
+  // Kontext. Fuer Vision muss gemma12-primary bzw. gemma26-vision explizit
+  // gewaehlt werden.
   //
-  // WARUM NICHT MEHR gemma26-factory [2026-08-20]: Alle chat-gpu-Loadouts teilen
+  // WARUM DER DEFAULT DAS GEWUENSCHTE LOADOUT SEIN MUSS: Alle chat-gpu-Loadouts teilen
   // eine exclusiveGroup, es laeuft also immer nur eines. Solange der Default auf
   // ein anderes Loadout zeigte als das, mit dem gearbeitet wird, stoppte jede
   // neue opencode-Session zuerst das laufende, um den Default zu starten. Als
-  // gemma26-factory nach dem llama.cpp-Upgrade nicht mehr startete (Tool-Name
-  // get_datetime -> get_info), riss dieser Wechsel gemma12-vision jedes Mal mit
-  // herunter und opencode meldete durchgehend "no healthy backend". Der Default
-  // gehoert deshalb auf das Loadout, das tatsaechlich laufen soll.
+  // ein anderes Default-Loadout fordert, wird qwen38-220k gestoppt und der Client
+  // meldet "no healthy backend", waehrend stattdessen Gemma geladen wird. Der
+  // Default gehoert deshalb auf das Loadout, das tatsaechlich laufen soll.
   //
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
-  "model": "llamacpp-local/gemma12-vision",
+  "model": "llamacpp-local/qwen38-220k",
   "permission": {
     "read": "allow",
     "edit": "allow",

@@ -256,7 +256,9 @@ spec:
                                 UPLOAD_PATH=\$(cat /staging/.filen_path)
                                 echo "Installing Filen CLI..."
                                 export HOME=/tmp
-                                npm install -g @filen/cli --prefix /tmp/npm-global 2>&1 \
+                                # Version pin [T013300]: die Remote-Retention unten haengt am
+                                # ls/rm-Verhalten der CLI — bewusst heben, nicht blind.
+                                npm install -g @filen/cli@0.0.39 --prefix /tmp/npm-global 2>&1 \
                                   || { echo "ERROR: filen-cli install failed"; exit 1; }
                                 export PATH="/tmp/npm-global/bin:\$PATH"
                                 echo "Uploading \${STAMP} to Filen: \${UPLOAD_PATH}/\${STAMP}/"
@@ -267,6 +269,63 @@ spec:
                                   exit 1
                                 fi
                                 echo "Filen upload done"
+
+                                # ── Remote retention [T013300] ──────────────
+                                # Remote Generationen wachsen um ~154 MiB/Tag; ohne Prune ist
+                                # der Filen-Account (10 GiB Free Tier) in ~2 Monaten voll
+                                # ("Maximum storage reached", Vorgeschichte T013037). Behalte
+                                # nur die neuesten N Generationen unter UPLOAD_PATH. CLI-
+                                # Mechanik laut T013037-Messung: jeder Aufruf ist ein Login
+                                # (~30/min Limit → sleep-Throttle), trash-empty/trash-delete
+                                # hängen (nur Soft-Delete via rm -y), jeder Call braucht ein
+                                # timeout (CLI kann stallen).
+                                RETENTION=\${FILEN_REMOTE_RETENTION:-14}
+                                PRUNE_FAILED=0
+                                echo "Remote retention: listing \${UPLOAD_PATH} ..."
+                                if timeout 120 filen --skip-update --no-autocomplete \
+                                     --email "\${FILEN_EMAIL}" --password "\${FILEN_PASSWORD}" \
+                                     ls "\${UPLOAD_PATH}" > /tmp/remote-ls.txt 2>/dev/null; then
+                                  # Streng auf Generierungs-Muster begrenzt (db-Stamps und
+                                  # pvc--Stamps) — alles andere im Verzeichnis wird nie
+                                  # angefasst. Lexikografische Sortierung von
+                                  # YYYYMMDD-HHMMSS-Namen IST chronologische Ordnung.
+                                  tr -s ' \t' '\n' < /tmp/remote-ls.txt \
+                                    | grep -E '^(pvc-)?[0-9]{8}-[0-9]{6}$' | sort > /tmp/generations.txt
+                                  COUNT=\$(wc -l < /tmp/generations.txt)
+                                  DELETE_COUNT=\$((COUNT - RETENTION))
+                                  if [ "\${DELETE_COUNT}" -gt 0 ]; then
+                                    echo "Remote retention: \${COUNT} Generationen gefunden — lösche älteste \${DELETE_COUNT}, behalte neueste \${RETENTION}"
+                                    head -n "\${DELETE_COUNT}" /tmp/generations.txt > /tmp/delete.txt
+                                    FAILS=0
+                                    # Redirection statt Pipe: eine gepipe while-Schleife läuft
+                                    # in einer Subshell und verliert FAILS/PRUNE_FAILED.
+                                    while IFS= read -r GEN; do
+                                      [ -z "\${GEN}" ] && continue
+                                      if timeout 90 filen --skip-update --no-autocomplete \
+                                           --email "\${FILEN_EMAIL}" --password "\${FILEN_PASSWORD}" \
+                                           rm -y "\${UPLOAD_PATH}/\${GEN}"; then
+                                        echo "  pruned old generation: \${GEN}"
+                                      else
+                                        echo "ERROR: prune failed for \${UPLOAD_PATH}/\${GEN}"
+                                        FAILS=\$((FAILS + 1))
+                                        PRUNE_FAILED=1
+                                        # Kaputter Account/CLI würde Logins sinnlos verbrennen — früh abbrechen.
+                                        [ "\${FAILS}" -ge 5 ] && { echo "ABORT: too many prune failures"; break; }
+                                      fi
+                                      sleep 3
+                                    done < /tmp/delete.txt
+                                  else
+                                    echo "Remote retention: \${COUNT}/\${RETENTION} Generationen — nichts zu prunen"
+                                  fi
+                                else
+                                  echo "ERROR: could not list \${UPLOAD_PATH} for retention"
+                                  PRUNE_FAILED=1
+                                fi
+                                # Ein fehlgeschlagener Prune darf nicht still geschluckt werden:
+                                # er reproduziert die Quota-Voll-Outage schleichend. Exit non-zero,
+                                # damit der Fehler als Failed Job sichtbar wird (gleiche
+                                # Philosophie wie beim Upload-Fehler oben).
+                                [ "\${PRUNE_FAILED}" -eq 0 ] || exit 1
                             env:
                               - name: FILEN_EMAIL
                                 valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_EMAIL, optional: true } }

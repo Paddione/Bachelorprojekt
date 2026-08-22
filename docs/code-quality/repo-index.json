@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1147,
+      "file_count": 1152,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -411,6 +411,7 @@
         "tests/spec/auto-triage-grounding-T002399.bats",
         "tests/spec/background-agents-fallback.bats",
         "tests/spec/backup-pipeline.bats",
+        "tests/spec/backup-pipeline/filen-remote-retention.bats",
         "tests/spec/batch-git-worktree-integrity.bats",
         "tests/spec/batch-local-test-runner-fixes/runner-fixes.bats",
         "tests/spec/batch-openspec-embed-fixes.bats",
@@ -658,6 +659,7 @@
         "tests/spec/local-llm-proxy/embed-bge-fallback.bats",
         "tests/spec/local-llm-proxy/embed-probe-timeout.bats",
         "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
+        "tests/spec/local-llm-proxy/factory-model-lock.bats",
         "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
         "tests/spec/local-llm-proxy/gemma-kv-quant.bats",
         "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
@@ -677,6 +679,7 @@
         "tests/spec/local-llm-proxy/pick-small-model-deterministic.bats",
         "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
         "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
+        "tests/spec/local-llm-proxy/qwen38-default-backend.bats",
         "tests/spec/local-llm-proxy/support-model-slots.bats",
         "tests/spec/local-llm-proxy/tools-runtime-sandbox.bats",
         "tests/spec/local-llm-proxy/ui-config-seed.bats",
@@ -721,6 +724,7 @@
         "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
         "tests/spec/mishap-rollup/container-resolution-real-db.bats",
         "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
+        "tests/spec/mishap-rollup/rollup-carryover.bats",
         "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
         "tests/spec/mishap-rollup/rollup-cycle-push.bats",
         "tests/spec/mishap-rollup/rollup-direct-dispatch.bats",
@@ -911,6 +915,7 @@
         "tests/spec/software-factory/factory-claims-lock-before-write.bats",
         "tests/spec/software-factory/factory-e2e-pipeline-coverage.bats",
         "tests/spec/software-factory/factory-model-id-default.bats",
+        "tests/spec/software-factory/factory-model-lock.bats",
         "tests/spec/software-factory/factory-prep-stdout-json.bats",
         "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
         "tests/spec/software-factory/merged-dispatch-gate.bats",
@@ -1160,7 +1165,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 65,
+      "file_count": 66,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -1226,7 +1231,8 @@
         "scripts/migrations/2026-08-10-provider-config-baseurl-drop-v1.sql",
         "scripts/migrations/2026-08-19-factory-model-gemma12.sql",
         "scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql",
-        "scripts/migrations/2026-08-21-disable-dead-llm-proxy-backends.sql"
+        "scripts/migrations/2026-08-21-disable-dead-llm-proxy-backends.sql",
+        "scripts/migrations/2026-08-22-llm-proxy-qwen38-backend.sql"
       ]
     },
     {
@@ -3571,7 +3577,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 794,
+      "file_count": 796,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3909,6 +3915,7 @@
         "scripts/factory/review-pattern-enforcer.prompt.md",
         "scripts/factory/review-perf-reviewer.prompt.md",
         "scripts/factory/review-security-auditor.prompt.md",
+        "scripts/factory/rollup-carryover.sh",
         "scripts/factory/rollup-plan-tasks.sh",
         "scripts/factory/rollup-publish.sh",
         "scripts/factory/route-provider.sh",
@@ -4063,6 +4070,7 @@
         "scripts/llm-proxy/discovery-probe-auth.test.mjs",
         "scripts/llm-proxy/discovery.mjs",
         "scripts/llm-proxy/exclusive-conflict.test.mjs",
+        "scripts/llm-proxy/factory-pin.test.mjs",
         "scripts/llm-proxy/fixups.mjs",
         "scripts/llm-proxy/fixups.test.mjs",
         "scripts/llm-proxy/gpu-lock.mjs",

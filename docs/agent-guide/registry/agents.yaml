@@ -71,6 +71,11 @@ runtimes:
     model: llamacpp-local/gemma12-vision
     write_capable: false
     note: "gemma12 family: Gemma 4 12B QAT + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx — groesster lokaler Kontext und einziges vision-faehiges Loadout. Seit T003204 als Subagent dispatchbar (vorher nur Tab-waehlbar via gemma12-primary)"
+  qwen38:
+    mode: subagent
+    model: llamacpp-local/qwen38-220k
+    write_capable: false
+    note: "qwen38 family: Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 220000 ctx, text-only (kein mmproj). EIN Slot (parallel=1) — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [2026-08-22]"
   gemma26-primary:
     mode: primary
     model: llamacpp-local/gemma12-vision
@@ -105,6 +110,11 @@ runtimes:
     model: llamacpp-local/gemma12-vision
     write_capable: false
     note: "Tab-selectable primary. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP; 307-489 tok/s gesamt bei drei gleichzeitigen Anfragen, 106-183 je Einzelstrom). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T003065/T012409/T012414]"
+  qwen38-primary:
+    mode: primary
+    model: llamacpp-local/qwen38-220k
+    write_capable: false
+    note: "Tab-selectable text-only primary on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, Port 8094, 220000 ctx, one slot, q4_0 KV cache) [T013109]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
@@ -139,7 +149,7 @@ runtimes:
     mode: primary
     model: llamacpp-local/gemma12-vision
     write_capable: true
-    note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially"
+    note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12/qwen38) sequentially — qwen38 np=1, gemma12-vision bis zu 3 Slots"
   alibaba-primary:
     mode: primary
     model: alibaba-intl/qwen3.8-max

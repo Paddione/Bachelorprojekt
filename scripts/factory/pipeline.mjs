@@ -23,14 +23,16 @@ if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.
 // Chat-Modell — die unterste Sprosse der Leiter war unbesetzt. Sie geht jetzt
 // ueber dasselbe Gateway wie alles andere; FACTORY_MODEL_ID bleibt der einzige
 // Regler fuer den Modellnamen.
-const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'gemma26-factory'
+const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'gemma26-throughput'
 const MODEL_TIERS = {
   flash:  { provider: 'llamacpp', modelId: LOCAL_MODEL_ID, baseUrl: 'http://127.0.0.1:18235' },
   haiku:  { provider: 'deepseek', modelId: 'deepseek-chat',  baseUrl: null },
   sonnet: { provider: 'deepseek', modelId: 'deepseek-reasoner', baseUrl: null },
 }
 
-const FACTORY_MODEL = MODEL_TIERS[args?.model_tier] ?? MODEL_TIERS.flash
+const FACTORY_MODEL = process.env.FACTORY_MODEL_LOCKED === '1'
+  ? MODEL_TIERS.flash
+  : (MODEL_TIERS[args?.model_tier] ?? MODEL_TIERS.flash)
 
 // Delegate any Node-API-requiring operation to pipeline-runner.js (host-side, has
 // require/fs/child_process) by spawning an agent that shells out to it and returns

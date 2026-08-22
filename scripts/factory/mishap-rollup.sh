@@ -70,6 +70,41 @@ CHANGE_DIR="openspec/changes/${SLUG}"
 PLAN_PATH="${CHANGE_DIR}/tasks.md"
 WT="$REPO/.worktrees/${SLUG}"
 
+# ── Carry-over unerledigter Eintraege [T013108] ─────────────────────────────
+# Ein Container schliesst per Merge=Closure, sobald irgendein PR auf seinem
+# Zyklus-Branch merged. Ohne diesen Schritt verfallen dabei alle Eintraege, die
+# keine Disposition bekommen haben (Zyklus 08-20/T012909: 3 von 10 erledigt,
+# Container trotzdem done/fixed). Der Uebertrag laeuft VOR dem Lesen der
+# Kommentare, damit die uebernommenen Eintraege im selben Lauf mitgezaehlt und
+# geplant werden.
+#
+# Idempotent ueber den Quell-Slug im Kommentar-Header: ein Zyklus wird an
+# denselben Container nie zweimal uebertragen. Ein Fehlschlag hier bricht den
+# Rollup NICHT ab — der Zyklus laeuft dann ohne Uebertrag weiter, und der
+# naechste Lauf holt ihn nach (der Quell-Plan bleibt ja liegen).
+while IFS=$'\t' read -r src_slug src_plan; do
+  [[ -n "${src_slug:-}" && -n "${src_plan:-}" ]] || continue
+  already=$(cat <<SQL | factory_psql 2>/dev/null | head -1
+SELECT COUNT(*)::int FROM tickets.ticket_comments c
+JOIN tickets.tickets t ON t.id = c.ticket_id
+WHERE t.external_id = '${CONTAINER_ID}'
+  AND c.body LIKE '%Carry-over aus ${src_slug}%';
+SQL
+  )
+  if [[ "${already:-0}" -ne 0 ]]; then
+    echo "mishap-rollup: Carry-over aus ${src_slug} liegt bereits auf ${CONTAINER_ID} — skip"
+    continue
+  fi
+  carry_body="$(bash "$REPO/scripts/factory/rollup-carryover.sh" --plan "$src_plan" --slug "$src_slug" 2>/dev/null)" || continue
+  [[ -n "$carry_body" ]] || continue
+  if BRAND="$BRAND" bash "$REPO/scripts/ticket.sh" add-comment --id "$CONTAINER_ID" \
+       --body "$carry_body" --author mishap-rollup --visibility internal >/dev/null 2>&1; then
+    echo "mishap-rollup: Carry-over aus ${src_slug} an ${CONTAINER_ID} angehaengt"
+  else
+    echo "mishap-rollup: WARNUNG — Carry-over aus ${src_slug} konnte nicht angehaengt werden" >&2
+  fi
+done < <(bash "$REPO/scripts/factory/rollup-carryover.sh" --scan "$REPO" --container "$CONTAINER_ID" 2>/dev/null || true)
+
 # ── Kommentare lesen und echte Mishap-Eintraege zaehlen ─────────────────────
 # [T013043] Der Kommentar-Strom wird EINMAL gelesen — hier, vor der Worktree-
 # Anlage, damit der No-op-Pfad ohne Worktree erhalten bleibt. Gezaehlt werden

@@ -20,6 +20,15 @@ setup() {
   BATS_BIN="$REPO_ROOT/tests/unit/lib/bats-core/bin/bats"
   GUARD_BATS="$REPO_ROOT/tests/spec/ci-cd/spec-tracked-file-guard.bats"
   DECOY_FILE="$REPO_ROOT/docs/agent-guide/registry/mcp.yaml"
+  DECOY_MTIME_REF="$BATS_TEST_TMPDIR/mcp.yaml.mtime-ref"
+  cp -a "$DECOY_FILE" "$DECOY_MTIME_REF"
+}
+
+teardown() {
+  # The test intentionally touches the real tracked file. Restore its exact
+  # timestamp afterwards so the outer suite guard observes no leaked mutation.
+  # Content is never changed by this test.
+  touch -r "$DECOY_MTIME_REF" "$DECOY_FILE"
 }
 
 @test "T003001: guard's T002779 assertion stays green under concurrent real-file touches" {

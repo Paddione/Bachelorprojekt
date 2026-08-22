@@ -3973,6 +3973,24 @@
       "status": "archived"
     }
   ],
+  "T013108": [
+    {
+      "slug": "2026-08-22-mishap-rollup-carryover",
+      "status": "archived"
+    }
+  ],
+  "T013144": [
+    {
+      "slug": "2026-08-22-factory-model-lock",
+      "status": "archived"
+    }
+  ],
+  "T013300": [
+    {
+      "slug": "2026-08-22-fix-t013300-filen-remote-retention",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

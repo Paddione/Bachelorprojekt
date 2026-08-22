@@ -1,0 +1,331 @@
+{
+  "meta": {
+    "slug": "factory-model-lock",
+    "ticket_id": "T013144",
+    "generated_from": "main@cf220a72b",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "config",
+      "loc": 879,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5495,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/dispatcher-bridge.sh",
+      "language": "bash",
+      "loc": 194,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 606
+    },
+    {
+      "path": "scripts/factory/lib.sh",
+      "language": "bash",
+      "loc": 134,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 666
+    },
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 850,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/provider-register-local.sh",
+      "language": "bash",
+      "loc": 60,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 740
+    },
+    {
+      "path": "scripts/factory/route-provider.sh",
+      "language": "bash",
+      "loc": 174,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 626
+    },
+    {
+      "path": "scripts/llm-proxy/factory-pin.test.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/loadouts.mjs",
+      "language": "javascript",
+      "loc": 414,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 386
+    },
+    {
+      "path": "scripts/llm-proxy/loadouts.test.mjs",
+      "language": "javascript",
+      "loc": 355,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 445
+    },
+    {
+      "path": "scripts/llm-proxy/server.mjs",
+      "language": "javascript",
+      "loc": 679,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 121
+    },
+    {
+      "path": "scripts/llm-proxy/server.test.mjs",
+      "language": "javascript",
+      "loc": 201,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 599
+    },
+    {
+      "path": "scripts/llm-proxy/ui/index.html",
+      "language": "text",
+      "loc": 109,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/loadouts.json",
+      "language": "config",
+      "loc": 424,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/factory-model-lock.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/factory-model-lock.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3884:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3884:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3884:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3885:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3885:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3885:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3886:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3886:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3886:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3887:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3887:        _run()  {(...)",
+      "type_text": "3887:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5078:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5078:        kexec_psql() {(...)",
+      "type_text": "5078:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:37:factory_resolve_data_ns() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "37:factory_resolve_data_ns() {(...)",
+      "type_text": "37:factory_resolve_data_ns() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:63:factory_resolve() { factory_resolve_data_ns; }",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "63:factory_resolve() { factory_resolve_data_ns; }(...)",
+      "type_text": "63:factory_resolve() { factory_resolve_data_ns; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:82:factory_pgpod() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "82:factory_pgpod() {(...)",
+      "type_text": "82:factory_pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:106:factory_psql() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "106:factory_psql() {(...)",
+      "type_text": "106:factory_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:124:factory_backlog_count() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "124:factory_backlog_count() {(...)",
+      "type_text": "124:factory_backlog_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:119:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "119:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "type_text": "119:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:121:function validateLoadout(l, index, seen) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "121:function validateLoadout(l, index, seen) {(...)",
+      "type_text": "121:function validateLoadout(l, index, seen) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:326:function _portAliveSync(port) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "326:function _portAliveSync(port) {(...)",
+      "type_text": "326:function _portAliveSync(port) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:34:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "34:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "type_text": "34:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:118:function sendJson(res, status, obj) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "118:function sendJson(res, status, obj) {(...)",
+      "type_text": "118:function sendJson(res, status, obj) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:293:function withSwitchLock(fn) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "293:function withSwitchLock(fn) {(...)",
+      "type_text": "293:function withSwitchLock(fn) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:328:function portInUse(doc, port, exceptSlug) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "328:function portInUse(doc, port, exceptSlug) {(...)",
+      "type_text": "328:function portInUse(doc, port, exceptSlug) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:672:  stopBridge();",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "672:  stopBridge();(...)",
+      "type_text": "672:  stopBridge();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/ui/index.html:103:  refresh()",
+      "kind": "function",
+      "file": "scripts/llm-proxy/ui/index.html",
+      "signature": "103:  refresh()(...)",
+      "type_text": "103:  refresh()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/ui/index.html:106:refresh()",
+      "kind": "function",
+      "file": "scripts/llm-proxy/ui/index.html",
+      "signature": "106:refresh()(...)",
+      "type_text": "106:refresh()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/ui/index.html:107:loadModels()",
+      "kind": "function",
+      "file": "scripts/llm-proxy/ui/index.html",
+      "signature": "107:loadModels()(...)",
+      "type_text": "107:loadModels()(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

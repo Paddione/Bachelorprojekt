@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.296.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.1...website-v1.296.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **test:** nightly e2e suite fixes — inbox sidebar/search re-integrated, pocket-id pagination [T013218] ([#4946](https://github.com/Paddione/Bachelorprojekt/issues/4946)) ([6837a16](https://github.com/Paddione/Bachelorprojekt/commit/6837a16a43db9af43827ade7e140498d1523d9b6))
+
+## [1.296.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.0...website-v1.296.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **db:** Remote-Retention auf Filen — 14 Generationen je Pfad [T013300] ([#4945](https://github.com/Paddione/Bachelorprojekt/issues/4945)) ([22b14ac](https://github.com/Paddione/Bachelorprojekt/commit/22b14ac3ef718f0041bbc6c32550013269cabea3))
+
+## [1.296.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.7...website-v1.296.0) (2026-08-22)
+
+
+### Features
+
+* **factory:** add proxy model lock [T013144] ([#4941](https://github.com/Paddione/Bachelorprojekt/issues/4941)) ([7818f15](https://github.com/Paddione/Bachelorprojekt/commit/7818f150b068e4fb47c1a6d4e84c18607bdacd08))
+
+## [1.295.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.6...website-v1.295.7) (2026-08-21)
+
+
+### Bug Fixes
+
+* **factory:** Carry-over unerledigter Mishap-Eintraege + SSOT-Spec-Korrektur [T013108] ([#4934](https://github.com/Paddione/Bachelorprojekt/issues/4934)) ([8be7a61](https://github.com/Paddione/Bachelorprojekt/commit/8be7a61564b72bcce0a822b01d5acd3b7b3c1ad5))
+
 ## [1.295.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.5...website-v1.295.6) (2026-08-21)
 
 

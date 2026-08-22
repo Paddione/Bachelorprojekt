@@ -259,8 +259,21 @@ export function parseLoadouts(text) {
       });
     }
   }
+  if (doc.factory != null) {
+    const f = doc.factory;
+    if (typeof f !== 'object' || Array.isArray(f)) fail('factory muss ein Objekt sein');
+    for (const k of Object.keys(f)) {
+      if (k !== 'model' && k !== 'locked') fail(`factory: unbekanntes Feld '${k}'`);
+    }
+    if (typeof f.model !== 'string' || !f.model) fail('factory.model muss ein nicht-leerer String sein');
+    if (!doc.loadouts.some((l) => l.slug === f.model)) fail(`factory.model '${f.model}' existiert nicht in loadouts`);
+    if (f.locked != null && typeof f.locked !== 'boolean') fail('factory.locked muss ein Boolean sein');
+  }
   return doc;
 }
+
+export function factoryModel(doc) { return doc?.factory?.model ?? null; }
+export function factoryLocked(doc) { return doc?.factory?.locked === true; }
 
 export function readLoadouts(path = DEFAULT_PATH) {
   const text = readFileSync(path, 'utf8');

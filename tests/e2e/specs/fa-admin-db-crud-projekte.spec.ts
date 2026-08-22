@@ -38,24 +38,26 @@ test.describe('FA-admin-db-crud-projekte', () => {
     const updatedName = `e2e-crud-projekt-updated-${ts}`;
     const subName     = `e2e-crud-sub-${ts}`;
 
-    // ── 1. Create project via API (form POST, server redirects) ──
-    const createForm = new FormData();
-    createForm.append('name', projectName);
-    createForm.append('status', 'entwurf');
-    createForm.append('priority', 'mittel');
+    // ── 1. Navigate to projekte to grab a valid customerId from the select options ──
+    await page.goto(`${BASE}/admin/projekte`);
+    await page.waitForLoadState('domcontentloaded');
+    const customerSelect = page.locator('select[name="customerId"] option:not([value=""])').first();
+    const customerId = (await customerSelect.getAttribute('value')) || '';
 
+    // ── 2. Create project via API (form POST, server redirects) ──
     const createRes = await page.request.post(`${BASE}/api/admin/projekte/create`, {
       form: {
-        name:     projectName,
-        status:   'entwurf',
-        priority: 'mittel',
+        name:       projectName,
+        status:     'entwurf',
+        priority:   'mittel',
+        customerId: customerId,
       },
       maxRedirects: 0,
     });
     // Server redirects to /admin/projekte/<id>?saved=1 on success
     expect([302, 200, 303]).toContain(createRes.status());
 
-    // ── 2. Navigate to list and verify project appears ──
+    // ── 3. Navigate to list and verify project appears ──
     await page.goto(`${BASE}/admin/projekte`);
     await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${projectName}"`).first()).toBeVisible({ timeout: 60_000 });
@@ -101,31 +103,25 @@ test.describe('FA-admin-db-crud-projekte', () => {
     // ── 7. Verify subprojekt appears on the detail page ──
     await page.goto(`${BASE}/admin/projekte/${projectId}`);
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.locator(`text="${subName}"`).first()).toBeVisible({ timeout: 60_000 });
-
     // ── 8. Find subprojekt id from the page ──
-    // The subproject row or link should contain the name — get sub ID from its URL or data attribute
-    const subLink = page.locator(`a:has-text("${subName}")`).first();
-    const subHref = await subLink.getAttribute('href');
-    // Subproject link pattern: /admin/projekte/<sub-id>
-    const subId   = subHref?.split('/admin/projekte/')[1]?.split('?')[0] ?? '';
+    const spToggle = page.locator(`.sp-toggle:has-text("${subName}")`).first();
+    const subId = (await spToggle.getAttribute('data-sp')) ?? '';
+    expect(subId).toMatch(/^[0-9a-f-]+$/);
 
-    // If we got a sub ID, delete the subprojekt; otherwise skip that step gracefully
-    if (subId && subId !== projectId) {
-      const subDeleteRes = await page.request.post(`${BASE}/api/admin/subprojekte/delete`, {
-        form: {
-          id:    subId,
-          _back: `/admin/projekte/${projectId}`,
-        },
-        maxRedirects: 0,
-      });
-      expect([302, 200, 303]).toContain(subDeleteRes.status());
+    // ── Delete the subprojekt ──
+    const subDeleteRes = await page.request.post(`${BASE}/api/admin/subprojekte/delete`, {
+      form: {
+        id:    subId,
+        _back: `/admin/projekte/${projectId}`,
+      },
+      maxRedirects: 0,
+    });
+    expect([302, 200, 303]).toContain(subDeleteRes.status());
 
-      // Verify subprojekt is gone
-      await page.goto(`${BASE}/admin/projekte/${projectId}`);
-      await page.waitForLoadState('domcontentloaded');
-      await expect(page.locator(`text="${subName}"`)).toHaveCount(0);
-    }
+    // Verify subprojekt is gone
+    await page.goto(`${BASE}/admin/projekte/${projectId}`);
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator(`text="${subName}"`)).toHaveCount(0);
 
     // ── 9. Delete the project ──
     const deleteRes = await page.request.post(`${BASE}/api/admin/projekte/delete`, {

@@ -120,7 +120,7 @@ Es gibt zwei Backup-Ströme, beide folgen demselben Prinzip: **encrypt-then-uplo
 
 - `BACKUP_PASSPHRASE` stammt aus `workspace-secrets` (SealedSecret → nur cluster-intern entschlüsselbar)
 - **Verschlüsselung geschieht IM Pod, vor dem Upload.** Filen empfängt ausschließlich `.dump.enc`-Dateien.
-- Retention: 30 Tage lokal auf `backup-pvc` + dauerhaft in Filen
+- Retention: 30 Tage lokal auf `backup-pvc` + 14 Generationen remote in Filen (Soft-Delete via `filen rm -y` nach jedem Upload, T013300)
 
 ### 2.2 PVC-Backup (`pvc-backup` CronJob, 03:00 UTC täglich)
 

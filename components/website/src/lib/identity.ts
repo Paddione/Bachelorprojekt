@@ -55,7 +55,13 @@ export async function createUser(params: CreateUserParams): Promise<{ success: b
 
   if (res.status === 201) {
     const location = res.headers.get('Location') || '';
-    const userId = location.split('/').pop() || '';
+    let userId = location.split('/').pop() || '';
+    if (!userId) {
+      try {
+        const body = (await res.json()) as { id?: string };
+        if (body?.id) userId = body.id;
+      } catch { /* ignore */ }
+    }
     return { success: true, userId };
   }
 
@@ -115,10 +121,18 @@ export interface PiUser {
 }
 
 export async function listUsers(): Promise<PiUser[]> {
-  const res = await piApi('GET', '/api/users');
-  if (!res.ok) throw new Error(`Failed to list Pocket ID users: ${res.status}`);
-  const body = (await res.json()) as { data: PiUser[] };
-  return body.data ?? [];
+  let page = 1;
+  const allUsers: PiUser[] = [];
+  while (true) {
+    const res = await piApi('GET', `/api/users?page=${page}`);
+    if (!res.ok) throw new Error(`Failed to list Pocket ID users: ${res.status}`);
+    const body = (await res.json()) as { data?: PiUser[]; pagination?: { totalPages: number } };
+    if (!body.data || body.data.length === 0) break;
+    allUsers.push(...body.data);
+    if (!body.pagination || page >= body.pagination.totalPages) break;
+    page++;
+  }
+  return allUsers;
 }
 
 export async function getUserById(userId: string): Promise<PiUser | null> {

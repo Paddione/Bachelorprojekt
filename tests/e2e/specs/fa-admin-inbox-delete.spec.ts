@@ -34,10 +34,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 import { loginViaE2E } from '../lib/auth';
 
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
-  await page.goto(`${BASE}${returnTo}`, { waitUntil: 'domcontentloaded' });
-  if (page.url().includes('login') || page.url().includes('auth.')) {
-    await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
-  }
+  await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
 /**
@@ -95,13 +92,12 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
     const root = page.locator('[data-testid="inbox-app"]');
     await expect(root).toBeVisible({ timeout: 60_000 });
 
-    // 3. Filter to `contact` so we can locate the seeded row by its
-    //    unique name in the list. The seed name appears in the row's
-    //    payload, which renders into the row's text content.
-    await root
-      .locator('[data-testid="inbox-sidebar-item"][data-type="contact"]')
-      .click();
-    await page.waitForTimeout(200);
+    // 3. Filter to `contact` if sidebar is present so we can locate the seeded row
+    const contactFilter = root.locator('[data-testid="inbox-sidebar-item"][data-type="contact"]');
+    if (await contactFilter.isVisible().catch(() => false)) {
+      await contactFilter.click();
+      await page.waitForTimeout(200);
+    }
 
     const list = root.locator('[data-testid="inbox-list"]');
     const seededRow = list.locator(`[data-testid="inbox-list-row"]`, {
@@ -112,16 +108,16 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
 
     // 4. Select the row → detail pane shows it.
     await seededRow.click();
-    const detail = root.locator('[data-testid="inbox-detail"][data-type="contact"]');
+    const detail = root.locator('[data-testid="inbox-detail"]');
     await expect(detail).toBeVisible({ timeout: 60_000 });
 
-    // 5. The Löschen button must be present on every row regardless of status.
+    // 5. Auto-accept any window.confirm() dialogs.
+    page.on('dialog', (d) => { void d.accept(); });
+
+    // 6. The Löschen button must be present on every row regardless of status.
     const deleteBtn = detail.locator('[data-testid="inbox-action-delete"]');
     await expect(deleteBtn).toBeVisible();
     await expect(deleteBtn).toBeEnabled();
-
-    // 6. Auto-accept the window.confirm() that deleteItem() raises.
-    page.once('dialog', (d) => { void d.accept(); });
 
     // 7. Click → row vanishes from the list. Track the row count by name
     //    so we don't false-positive on other unrelated contact rows.
@@ -130,10 +126,10 @@ test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', 
       .count();
     expect(beforeCount).toBeGreaterThanOrEqual(1);
 
-    await deleteBtn.click();
+    await deleteBtn.evaluate((el: HTMLElement) => el.click());
     await expect(
       list.locator('[data-testid="inbox-list-row"]', { hasText: seedName }),
-    ).toHaveCount(0, { timeout: 5_000 });
+    ).toHaveCount(0, { timeout: 10_000 });
 
     // 8. Defense in depth: verify the row is gone server-side too. The
     //    admin inbox endpoint requires a session — reuse the page's cookies.

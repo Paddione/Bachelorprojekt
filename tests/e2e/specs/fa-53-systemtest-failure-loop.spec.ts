@@ -21,6 +21,7 @@
 import { test, expect } from '@playwright/test';
 import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const isKorczewski = BASE.includes('korczewski.de');
@@ -38,20 +39,24 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 }
 
 test.describe('FA-53: System-test failure loop kanban', () => {
-  test('T1: /sdlc/systemtest/board redirects unauthenticated users to login', async ({ page }) => {
+  test('T1: /sdlc/systemtest/board redirects unauthenticated users to login', async ({ page, request }) => {
+    await guardSdlc(request);
     await page.goto(`${BASE}/sdlc/systemtest/board`);
     // Expect either Keycloak (if SITE_URL/login configured) or the local
     // /admin/login redirect — never the board itself.
     await expect(page).not.toHaveURL(/\/sdlc\/systemtest\/board$/);
   });
 
-  test('T2: /sdlc/api/systemtest/board requires admin auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/sdlc/api/systemtest/board`);
+  test('T2: /sdlc/api/systemtest/board requires admin auth', async ({ playwright }) => {
+    const unauthContext = await playwright.request.newContext({ storageState: undefined });
+    const res = await unauthContext.get(`${BASE}/sdlc/api/systemtest/board`);
     expect([401, 403, 404]).toContain(res.status());
+    await unauthContext.dispose();
   });
 
   test.describe('authenticated kanban checks', () => {
     test.beforeEach(async ({ request }, testInfo) => {
+      await guardSdlc(request);
       await assertAuthenticatedReachable(
         request,
         `${BASE}/sdlc/systemtest/board`,

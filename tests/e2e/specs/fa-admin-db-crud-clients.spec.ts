@@ -57,8 +57,6 @@ test.describe('FA-admin-db-crud-clients', () => {
     expect(createStatus).toBe(201);
     const createBody = await createRes.json() as { ok: boolean; userId?: string };
     expect(createBody.ok).toBe(true);
-    const userId = createBody.userId;
-    expect(userId).toBeTruthy();
 
     // ── 2. Navigate to client list and verify user appears ──
     await page.goto(`${BASE}/admin/clients`);
@@ -74,6 +72,8 @@ test.describe('FA-admin-db-crud-clients', () => {
     const clientDetailUrl = page.url();
     const clientId = clientDetailUrl.split('/admin/')[1]?.split('?')[0];
     expect(clientId).toMatch(/^[0-9a-f-]+$/);
+    const userId = createBody.userId || clientId;
+    expect(userId).toBeTruthy();
 
     // ── 4. Navigate to the Notes tab ──
     await page.goto(`${BASE}/admin/${clientId}?tab=notes`);

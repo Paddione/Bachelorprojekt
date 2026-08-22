@@ -2,9 +2,11 @@
      Orchestrator for the admin inbox: owns state, fetches, keyboard handlers
      and the top status bar. Delegates rendering to Sidebar / List / Detail. -->
 <script lang="ts">
-  import type { InboxItem, InboxStatus, Message } from '../../lib/messaging-db';
+  import type { InboxItem, InboxType, InboxStatus, Message } from '../../lib/messaging-db';
+  import InboxSidebar from './InboxSidebar.svelte';
   import InboxList    from './InboxList.svelte';
   import InboxDetail  from './InboxDetail.svelte';
+  import { TYPE_META, TYPE_ORDER } from './type-meta';
   import { handle as handleShortcut } from './inbox-shortcuts';
   import { primaryActionFor } from './inbox-actions';
   import { browserLogger } from '$lib/browser-logger';
@@ -31,6 +33,8 @@
   }
 
   let activeStatus = $state<InboxStatus>(readInitialStatus());
+  let activeType   = $state<InboxType | 'all'>('all');
+  let searchQuery  = $state('');
 
   let selectedId   = $state<number | null>(initialItems[0]?.id ?? null);
 
@@ -45,7 +49,9 @@
   let mobileView = $state<'list' | 'detail'>('list');
 
   // refs into children
+  let searchInput: HTMLInputElement | null = $state(null);
   let replyTextarea: HTMLTextAreaElement | null = $state(null);
+  let pointerFine = $state(true);
 
   // ── Compose (Neue Nachricht) ──────────────────────────────────────────────
   interface CustomerOption { id: string; name: string; email: string; }
@@ -113,13 +119,26 @@
       composeSending = false;
     }
   }
-  let awaitingG = false;
-  let pointerFine = $state(true);
+  function matchesSearch(i: InboxItem, q: string): boolean {
+    const haystack = JSON.stringify(i.payload ?? {}).toLowerCase()
+      + ' ' + (i.bug_ticket_id ?? '').toLowerCase()
+      + ' ' + (i.reference_id ?? '').toLowerCase()
+      + ' ' + i.type;
+    return haystack.includes(q.toLowerCase());
+  }
 
   // ── Derived ──────────────────────────────────────────────────────────────
-  const visible = $derived(items);
+  const visible = $derived(items
+    .filter(i => activeType === 'all' || i.type === activeType)
+    .filter(i => searchQuery.trim() === '' || matchesSearch(i, searchQuery)));
 
   const selected = $derived(visible.find(i => i.id === selectedId) ?? null);
+
+  const typeCounts = $derived.by((): Record<string, number> => {
+    const out: Record<string, number> = {};
+    for (const it of items) out[it.type] = (out[it.type] ?? 0) + 1;
+    return out;
+  });
 
   const visibleTotal = $derived(visible.length);
 
@@ -233,9 +252,17 @@
     switch (action.kind) {
       case 'select-next': moveSelection(+1); break;
       case 'select-prev': moveSelection(-1); break;
+      case 'set-type':    setType(action.type); break;
       case 'set-status':  setStatus(action.status); break;
+      case 'focus-search': searchInput?.focus(); searchInput?.select(); break;
       case 'focus-reply':  replyTextarea?.focus(); break;
       case 'send-reply':   void sendReply(); break;
+      case 'clear':
+        if (searchQuery) searchQuery = '';
+        else if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+        break;
       case 'action':
         if (action.name === 'primary') void runPrimary();
         else void runSecondary();
@@ -248,6 +275,11 @@
     const idx = visible.findIndex(i => i.id === selectedId);
     const next = idx === -1 ? 0 : Math.min(visible.length - 1, Math.max(0, idx + delta));
     selectedId = visible[next].id;
+  }
+
+  function setType(t: InboxType | 'all'): void {
+    activeType = t;
+    selectedId = null;
   }
 
 
@@ -460,8 +492,18 @@
 
   </header>
 
-  <!-- Two columns: list + detail -->
+  <!-- Three columns: sidebar + list + detail -->
   <div class="cols" data-mobile-view={mobileView}>
+    <div class="col col-sidebar">
+      <InboxSidebar
+        types={TYPE_ORDER}
+        counts={typeCounts}
+        total={items.length}
+        activeType={activeType}
+        typeMeta={TYPE_META}
+        onSelect={setType}
+      />
+    </div>
 
     <div class="col col-list">
       <div class="mobile-back-row">
@@ -470,10 +512,13 @@
       <InboxList
         items={visible}
         selectedId={selectedId}
+        searchQuery={searchQuery}
         activeStatus={activeStatus}
         busy={busy}
         onSelect={selectItem}
+        onSearch={(q) => { searchQuery = q; }}
         onQuickDone={(id) => { void quickDone(id); }}
+        bindSearchInput={(el) => { searchInput = el; }}
       />
     </div>
 
@@ -934,6 +979,7 @@
     .cols { flex-direction: column; }
     .col { display: none; }
 
+    .cols[data-mobile-view="list"] .col-sidebar,
     .cols[data-mobile-view="list"] .col-list {
       display: flex;
     }

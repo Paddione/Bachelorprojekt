@@ -53,10 +53,11 @@ function writeEmptyState(filename: string): void {
 // ── Admin login ──────────────────────────────────────────────────────────────
 setup('authenticate mentolder website admin', async ({ page, request }, testInfo) => {
   setup.setTimeout(60_000);
+  const secret = process.env.CRON_SECRET ?? '';
   // Fail closed. Degrading to an empty storageState here used to leave this
   // test green while every dependent `mentolder` test ran without a session —
   // 33 locator timeouts that read like product defects (T002199).
-  if (!CRON_SECRET) {
+  if (!secret) {
     throw new Error(
       '[mentolder-setup] CRON_SECRET is not set. loginViaE2E authenticates via ' +
       '/api/auth/e2e-login?token=$CRON_SECRET, so the admin session cannot be ' +

@@ -16,8 +16,6 @@ export function getBaseUrl(): string {
   return (process.env.WEBSITE_URL ?? 'http://localhost:4321').replace(/\/$/, '');
 }
 
-const CRON_SECRET = process.env.CRON_SECRET ?? '';
-
 export async function loginViaE2E(
   page: Page,
   baseUrl: string,
@@ -25,7 +23,8 @@ export async function loginViaE2E(
   returnTo = '/admin',
 ): Promise<void> {
   const cleanBase = baseUrl.replace(/\/$/, '');
-  const token = CRON_SECRET ? `&token=${encodeURIComponent(CRON_SECRET)}` : '';
+  const secret = process.env.CRON_SECRET ?? '';
+  const token = secret ? `&token=${encodeURIComponent(secret)}` : '';
   const url = `${cleanBase}/api/auth/e2e-login?username=${encodeURIComponent(user)}&returnTo=${encodeURIComponent(returnTo)}${token}`;
 
   let attempts = 0;

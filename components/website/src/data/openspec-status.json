@@ -3955,6 +3955,12 @@
       "status": "plan_staged"
     }
   ],
+  "T012973": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-21-T012973",
+      "status": "plan_staged"
+    }
+  ],
   "T013029": [
     {
       "slug": "2026-08-21-fix-e2e-suite-flakes",

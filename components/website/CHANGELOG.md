@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.297.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.3...website-v1.297.0) (2026-08-22)
+
+
+### Features
+
+* **website:** Repo-Health-Dashboard Rescan + Ticket-Erzeugung [T013306] ([#4957](https://github.com/Paddione/Bachelorprojekt/issues/4957)) ([a41e0d1](https://github.com/Paddione/Bachelorprojekt/commit/a41e0d12f30b789865215783f113147eb7ca0185))
+
 ## [1.296.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.2...website-v1.296.3) (2026-08-22)
 
 

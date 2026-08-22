@@ -55,6 +55,15 @@ if [[ -z "${CONTAINER_ID}" ]]; then
 fi
 echo "mishap-rollup: Container-Ticket = ${CONTAINER_ID} (${BRAND})"
 
+# [T013919] CONTAINER_ID fliesst in SQL (gebundene Parameter), Slugs und
+# Branch-Namen — vor jeder Nutzung strikt validieren (fail-closed). Das
+# Muster entspricht den external_ids des Ticket-Systems (T[0-9]{6,} plus
+# aehnliche Formen).
+if [[ ! "${CONTAINER_ID}" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "mishap-rollup: FEHLER — Container-ID '${CONTAINER_ID}' entspricht nicht dem erwarteten Muster" >&2
+  exit 1
+fi
+
 # ── Slug/Branch pro Zyklus ──────────────────────────────────────────────────
 # [T004898] Jeder Zyklus bekommt einen eigenen Slug: Datum + Container-ID. Die
 # Container-ID macht den Slug auch bei mehreren Zyklen am selben Tag eindeutig
@@ -96,11 +105,11 @@ while IFS=$'\t' read -r esc_title esc_meta esc_cycles; do
     echo "mishap-rollup: Eskalation '${esc_title}' sieht nach Plan-Boilerplate aus — skip [T013843]"
     continue
   fi
-  already=$(cat <<SQL | factory_psql 2>/dev/null | head -1
+  already=$(cat <<'SQL' | factory_psql -v container_id="$CONTAINER_ID" -v esc_title="$esc_title" 2>/dev/null | head -1
 SELECT COUNT(*)::int FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
-WHERE t.external_id = '${CONTAINER_ID}'
-  AND c.body LIKE '%Eskaliert: ${esc_title}%';
+WHERE t.external_id = :'container_id'
+  AND c.body LIKE ('%Eskaliert: ' || :'esc_title' || '%');
 SQL
   )
   if [[ "${already:-0}" -ne 0 ]]; then
@@ -166,11 +175,11 @@ while IFS=$'\t' read -r src_slug src_plan; do
     exclude_args+=(--exclude-plan "$earlier_plan")
   done
   earlier_plans+=("$src_plan")
-  already=$(cat <<SQL | factory_psql 2>/dev/null | head -1
+  already=$(cat <<'SQL' | factory_psql -v container_id="$CONTAINER_ID" -v src_slug="$src_slug" 2>/dev/null | head -1
 SELECT COUNT(*)::int FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
-WHERE t.external_id = '${CONTAINER_ID}'
-  AND c.body LIKE '%Carry-over aus ${src_slug}%';
+WHERE t.external_id = :'container_id'
+  AND c.body LIKE ('%Carry-over aus ' || :'src_slug' || '%');
 SQL
   )
   if [[ "${already:-0}" -ne 0 ]]; then
@@ -203,10 +212,10 @@ COMMENTS_FILE=$(mktemp)
 # psql reiht sie sonst ohne Trenner aneinander und ein Folgekommentar (etwa
 # eine Watchdog-Notiz) waere nicht vom Ende des Batches zu unterscheiden.
 # Der Wert ist mit COMMENT_SENTINEL in rollup-plan-tasks.sh abgestimmt.
-cat <<SQL | factory_psql 2>/dev/null > "$COMMENTS_FILE"
+cat <<'SQL' | factory_psql -v container_id="$CONTAINER_ID" 2>/dev/null > "$COMMENTS_FILE"
 SELECT E'<<<ROLLUP-COMMENT>>>\n' || c.body FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
-WHERE t.external_id = '${CONTAINER_ID}'
+WHERE t.external_id = :'container_id'
   AND c.body NOT LIKE 'FACTORY-PLAN-REF%'
 ORDER BY c.created_at ASC;
 SQL
@@ -257,10 +266,10 @@ BATCH_COUNT="${BATCH_COUNT:-0}"
 # Bedingungen nachweislich zutreffen: unter der Eintrags-Schwelle UND juenger
 # als das Max-Alter.
 if [[ "${BATCH_COUNT}" -lt "${ROLLUP_MIN_ENTRIES}" ]]; then
-  oldest_ts="$(cat <<SQL | factory_psql 2>/dev/null | head -1
+  oldest_ts="$(cat <<'SQL' | factory_psql -v container_id="$CONTAINER_ID" 2>/dev/null | head -1
 SELECT min(c.created_at) FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
-WHERE t.external_id = '${CONTAINER_ID}'
+WHERE t.external_id = :'container_id'
   AND c.body NOT LIKE 'FACTORY-PLAN-REF%';
 SQL
 )" || true

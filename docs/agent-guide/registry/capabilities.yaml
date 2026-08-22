@@ -317,6 +317,15 @@ capabilities:
       tier: safe
       deep_ref: ".claude/skills/gitops-repo-audit/SKILL.md"
 
+  system-audit:
+    skill:system-audit:
+      state: canonical
+      use_when: "Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki) — endet je Befund in Ticket + OpenSpec-Proposal."
+      avoid_when: "Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill."
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/system-audit/SKILL.md"
+
   # ─── Sicherheit ─────────────────────────────────────────────────────────────────────
   security-analyse:
     skill:security-specialist:

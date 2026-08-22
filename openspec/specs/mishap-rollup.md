@@ -59,7 +59,7 @@ container SHALL be found regardless of its workflow status.
 
 - **GIVEN** an open rollup container whose batch comments were turned into a generated plan
 - **WHEN** the generator finishes publishing the plan
-- **THEN** the container ticket SHALL be `done` with `resolution=obsolete`
+- **THEN** the container ticket SHALL be `done` with `resolution=fixed`
 - **AND** the next flush SHALL create a fresh container
 
 ### Requirement: Rollup change SHALL merge to main per cycle

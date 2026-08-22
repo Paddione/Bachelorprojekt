@@ -26,9 +26,11 @@ _cycle_plan() {
 }
 
 @test "ein Eintrag, der in zwei Zyklen offen blieb, wird eskaliert" {
-  _cycle_plan "$WORK/mishap-incident-rollup-2026-08-20-T012909" \
+  # [T013316 #10] Plaene liegen unter openspec/changes/ — genau dort sucht
+  # _cycle_plans() seit der Scan-Verankerung.
+  _cycle_plan "$WORK/openspec/changes/mishap-incident-rollup-2026-08-20-T012909" \
     '- [ ] **2. SCS-Embed unerreichbar** (degraded, localhost:8081) — Disposition: _<...>_ + Begruendung'
-  _cycle_plan "$WORK/mishap-incident-rollup-2026-08-22-T013107" \
+  _cycle_plan "$WORK/openspec/changes/mishap-incident-rollup-2026-08-22-T013107" \
     '- [ ] **2. SCS-Embed unerreichbar** (degraded, localhost:8081) — Disposition: _<...>_ + Begruendung' \
     '- [ ] **3. Einmal offen** (drift, factory) — Disposition: _<...>_ + Begruendung'
 
@@ -43,10 +45,10 @@ _cycle_plan() {
 }
 
 @test "ein im aktuellen Container laufender Zyklus zaehlt nicht als Eskalationsgrund" {
-  _cycle_plan "$WORK/mishap-incident-rollup-2026-08-20-T012909" \
+  _cycle_plan "$WORK/openspec/changes/mishap-incident-rollup-2026-08-20-T012909" \
     '- [ ] **1. Frisch uebernommen** (drift, factory) — Disposition: offen'
   # T099999 ist der LAUFENDE Container — sein Plan ist kein abgeschlossener Zyklus.
-  _cycle_plan "$WORK/mishap-incident-rollup-2026-08-22-T099999" \
+  _cycle_plan "$WORK/openspec/changes/mishap-incident-rollup-2026-08-22-T099999" \
     '- [ ] **1. Frisch uebernommen** (drift, factory) — Disposition: offen'
 
   run bash "$CARRY" --escalations "$WORK" --container T099999

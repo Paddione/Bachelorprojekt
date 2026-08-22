@@ -59,7 +59,7 @@ own the exact invariant.
 
 ## Execution order and gates
 
-- [ ] **RED — encode the new lifecycle before rewriting prose.** Add the cross-skill BATS
+- [x] **RED — encode the new lifecycle before rewriting prose.** Add the cross-skill BATS
   assertions and invert the existing E2E `feature/*` expectation to ticketed `chore/*`.
   Assert that `assert-phase-chain` occurs before `gh pr merge --auto`, that the CI/conflict
   loop remains active until `MERGED`, and that a corrective push re-enters invalidated gates.
@@ -73,20 +73,20 @@ tests/unit/lib/bats-core/bin/bats \
 # expected: FAIL — current E2E branch contract is feature/* and Execute places the phase gate after auto-merge
 ```
 
-- [ ] **GREEN — implement p1–p3.** Introduce the transition SSOT, slim the four skills, and
+- [x] **GREEN — implement p1–p3.** Introduce the transition SSOT, slim the four skills, and
   preserve all existing literal guard anchors unless p4 intentionally migrates their owning
   regression test. Do not weaken git-crypt, worktree, SID, review, Freshness, merge-wait or
   finalizer idempotency contracts.
 
-- [ ] **Late CI/conflict loop proof.** Cover a later required check turning red,
+- [x] **Late CI/conflict loop proof.** Cover a later required check turning red,
   `DIRTY`/`CONFLICTING` after `main` advances, replacement checks after an Implementer push,
   re-review of the new commit, repeated phase-chain assertion, and Finalizer refusal to close
   before `state=MERGED`.
 
-- [ ] **Mirror and legacy-guard audit.** Enumerate every BATS file that reads the four skills,
+- [x] **Mirror and legacy-guard audit.** Enumerate every BATS file that reads the four skills,
   run that complete set, and verify every corresponding mirror pair with `cmp -s`.
 
-- [ ] **Final Verification.** Regenerate inventory after the new BATS file, stage generated
+- [x] **Final Verification.** Regenerate inventory after the new BATS file, stage generated
   artifacts, then run the mandatory gates:
 
 ```bash

@@ -5,6 +5,8 @@ description: 'Use when on a feature/* or fix/* branch that has a staged plan in 
 
 # dev-flow-execute — Plan-Ausführung & PR
 
+Der Rollen- und Übergabevertrag steht im gemeinsamen [dev-flow-lifecycle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md); diese Skill behält nur Execute-Gates und delegiert Mechanik an die verlinkten Referenzen.
+
 > **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
 > `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
 > Die T002357-Falle schlägt auch im Bash-Git-Pfad zu: `cd` wirkt nur auf den
@@ -193,7 +195,11 @@ Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
 3. Findings gehen per `SendMessage` an den **bereits gespawnten** Implementer zurück (Muster
    Exit 3/4 aus T002365 — kein neuer Spawn, Doppel-Push-Risiko aus T001408); nach dessen Push
    erneut reviewen.
-4. Erst wenn der Reviewer "Approved" gegeben hat, fordere den Auto-Merge an:
+4. Erst wenn der Reviewer "Approved" gegeben hat, prüfe fail-closed die Phase-Chain und fordere danach den Auto-Merge an:
+
+```bash
+./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
+```
 
 ```bash
 # Auto-Merge sofort anfordern — GitHub merged selbstständig, sobald Required Checks grün sind.

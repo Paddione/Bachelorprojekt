@@ -11,6 +11,8 @@ description: 'Use to choose the development path (feature/fix/chore), run brains
 > `git commit` im Haupt-Checkout), und ab Phase B tragen **alle** Read/Write/Edit-Pfade den
 > Worktree-Präfix. Gilt für dieses ganze Dokument und wird unten nicht wiederholt.
 
+Der Plan ist der behavior-change-Einstieg des gemeinsamen [Lifecycle-Vertrags](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md): Ausgang ist ein Request, Ausgang ein gestagter, gepushter Plan ohne PR; danach übernimmt `dev-flow-execute`. Proposal, Plan-Lint, staged-plan und No-Early-PR-Gates bleiben hier normativ.
+
 ## Wann diese Skill greift
 Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 **Sage zu Beginn:** "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."

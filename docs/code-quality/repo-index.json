@@ -537,6 +537,7 @@
         "tests/spec/ci-cd/taskfile-no-stale-website-root.bats",
         "tests/spec/ci-cd/taskfiles-dir-convention.bats",
         "tests/spec/ci-cd/test-inventory-coverage.bats",
+        "tests/spec/ci-cd/unit-tests-no-dependency-skips.bats",
         "tests/spec/ci-cd/unknown-scope-names-source.bats",
         "tests/spec/ci-cd/website-fast-path.bats",
         "tests/spec/ci-cd/workflow-self-trigger.bats",

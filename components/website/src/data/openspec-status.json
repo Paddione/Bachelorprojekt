@@ -4141,6 +4141,12 @@
       "status": "archived"
     }
   ],
+  "T013915": [
+    {
+      "slug": "mishap-rollup-coalescing",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

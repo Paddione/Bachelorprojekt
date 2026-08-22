@@ -72,9 +72,9 @@
           }
         },
         "qwen38-220k": {
-          "name": "Qwen 3.8 27B UD-IQ3_XXS (Text, Loadout qwen38-220k auf Port 8094, 220.000 ctx) - exclusiveGroup chat-gpu",
+          "name": "Qwen 3.8 27B UD-IQ3_XXS (Text, Loadout qwen38-220k auf Port 8094, 114.688 ctx) - exclusiveGroup chat-gpu",
           "limit": {
-            "context": 220000,
+            "context": 114688,
             "output": 8192
           }
         }
@@ -352,7 +352,7 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -368,7 +368,7 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -378,7 +378,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -394,7 +394,7 @@
     // Der Eintrag in der Permission-Liste weiter unten gehoert dazu: ohne ihn
     // existiert der Agent, ist aber nicht dispatchbar.
     "gemma12": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -404,14 +404,14 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     // 2026-08-22: qwen38 als fuenfter Familien-Subagent. Zeigt auf das Loadout
-    // qwen38-220k (Port 8094, Qwen 3.8 27B UD-IQ3_XXS, fixierte 220.000 ctx,
+    // qwen38-220k (Port 8094, Qwen 3.8 27B UD-IQ3_XXS, fixierte 114.688 ctx,
     // q4_0 KV) — dasselbe Modell wie der Tab-waehlbare qwen38-primary, aber
     // per `task` dispatchbar. EIN Slot (parallel=1 in loadouts.json): dieser
     // Agent ist bewusst NICHT parallel zu sich selbst oder zu den anderen
     // lokalen Familien dispatchbar — sequenziell, einer nach dem anderen.
     // Text-only: kein mmproj in diesem Loadout.
     "qwen38": {
-      "description": "Local subagent for the qwen38 family (Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 220000 ctx, via llm-proxy :18235). Text-only — no mmproj in this loadout. ONE parallel instance only: the loadout runs np=1 (single slot), so dispatch sequentially, never alongside another local agent (exclusiveGroup chat-gpu). Write-capable delegation.",
+      "description": "Local subagent for the qwen38 family (Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 114688 ctx, via llm-proxy :18235). Text-only — no mmproj in this loadout. ONE parallel instance only: the loadout runs np=1 (single slot), so dispatch sequentially, never alongside another local agent (exclusiveGroup chat-gpu). Write-capable delegation.",
       "mode": "subagent",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -442,7 +442,7 @@
     // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
     // Orchestrator davor.
     "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094). Text-only. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
+      "description": "Primary (Tab-selectable) local agent on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094). Text-only. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
@@ -465,7 +465,7 @@
     // "Kein mmproj." — der mmproj-Pfad wurde T002886 entfernt, weil die Datei
     // am erwarteten Pfad fehlte). Vision gibt es nur auf gemma12-vision (:8089).
     "gemma26-vision": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. No subagent dispatch — for focused local work that must stay on-device.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. No subagent dispatch — for focused local work that must stay on-device.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
@@ -493,7 +493,7 @@
     // opencode-routes-via-proxy.bats prueft die Deklaration gegen den LAUFENDEN
     // Server in einem +/-20-%-Korridor.
     "gptoss-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
@@ -503,7 +503,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "devstral-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
@@ -513,7 +513,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "gemma12-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch any subagent.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch any subagent.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
@@ -523,7 +523,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "gemma26-throughput-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
@@ -533,7 +533,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "qwen38-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx). Tab-selectable text-only singleagent on the qwen38-220k loadout (Port 8094). Can dispatch any subagent.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx). Tab-selectable text-only singleagent on the qwen38-220k loadout (Port 8094). Can dispatch any subagent.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",

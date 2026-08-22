@@ -3615,7 +3615,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 804,
+      "file_count": 805,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4093,6 +4093,7 @@
         "scripts/lib/route-manifest.mjs",
         "scripts/lib/route-manifest.test.mjs",
         "scripts/lib/run-bats.sh",
+        "scripts/lib/running-chat-gpu.py",
         "scripts/lib/runtime-browser-audit.mjs",
         "scripts/lib/runtime-health-measure.py",
         "scripts/lib/scan.sh",

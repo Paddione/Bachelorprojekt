@@ -313,9 +313,9 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent on gemma12-vision loadout (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -329,9 +329,9 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent on gemma12-vision loadout (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -339,9 +339,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent on gemma12-vision loadout (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -355,9 +355,9 @@
     // Der Eintrag in der Permission-Liste weiter unten gehoert dazu: ohne ihn
     // existiert der Agent, ist aber nicht dispatchbar.
     "gemma12": {
-      "description": "Local subagent for the gemma12 family (Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx, via llm-proxy :18235). The only vision-capable local loadout and the largest local context. Write-capable delegation; shares exclusiveGroup chat-gpu.",
+      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F0ABFC",
       "temperature": 0.4,
@@ -384,7 +384,7 @@
     // 2026-08-22: qwen-cloud als erste Cloud-Eskalationsstufe nach lokal.
     // Qwen 3.8 Max via Alibaba Cloud Intl Token Plan — selbe Modell-Familie
     // wie der Orchestrator, staerker als jedes lokale Modell, 131k ctx.
-    // Eskalationskette: lokal (gemma12-vision 12B) → qwen38 (27B lokal) →
+    // Eskalationskette: lokal (qwen38-220k 27B) →
     // qwen-cloud (Qwen3.8-Max) → deepseek-helper → deepseek-pro.
     "qwen-cloud": {
       "description": "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). First cloud escalation tier after local models fail. Same model family as the orchestrator. Write-capable.",
@@ -403,9 +403,9 @@
     // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
     // Orchestrator davor.
     "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on gemma12-vision (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089). Vision-capable. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
+      "description": "Primary (Tab-selectable) local agent on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, 220000 ctx, Port 8094). Text-only. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#6EE7B7",
       // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
@@ -426,9 +426,9 @@
     // "Kein mmproj." — der mmproj-Pfad wurde T002886 entfernt, weil die Datei
     // am erwarteten Pfad fehlte). Vision gibt es nur auf gemma12-vision (:8089).
     "gemma26-vision": {
-      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. No subagent dispatch — for focused local work that must stay on-device.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. No subagent dispatch — for focused local work that must stay on-device.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#A78BFA",
       "temperature": 0.3,
@@ -454,9 +454,9 @@
     // opencode-routes-via-proxy.bats prueft die Deklaration gegen den LAUFENDEN
     // Server in einem +/-20-%-Korridor.
     "gptoss-primary": {
-      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#34D399",
       "temperature": 0.3,
@@ -464,9 +464,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "devstral-primary": {
-      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#60A5FA",
       "temperature": 0.3,
@@ -474,9 +474,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "gemma12-primary": {
-      "description": "PRIMARY: Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP (262.144 ctx). Tab-selectable singleagent on the gemma12-vision loadout (Port 8089). Vision-capable (mmproj loaded), speculative decoding via MTP drafter. Can dispatch any subagent.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#F472B6",
       "temperature": 0.3,
@@ -484,9 +484,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "gemma26-throughput-primary": {
-      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#FBBF24",
       "temperature": 0.3,

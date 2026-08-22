@@ -4045,6 +4045,12 @@
       "status": "archived"
     }
   ],
+  "T013468": [
+    {
+      "slug": "ci-fast-path-optimizations",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

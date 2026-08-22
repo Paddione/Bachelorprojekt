@@ -24,7 +24,7 @@ tests/spec/ci-cd/website-fast-path.bats
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add BATS test validating step-level website path filter and actionlint caching in `.github/workflows/ci.yml`.
+- [x] **Failing-Test-Step (RED).** Add BATS test validating step-level website path filter and actionlint caching in `.github/workflows/ci.yml`.
       The test must FAIL on the current branch. Use the phrase
       `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
 
@@ -33,13 +33,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/website-fast-path.bats
 # expected: FAIL (red — the fix is not yet implemented)
 ```
 
-- [ ] **Task 1: Add Fast-Path check to `Vitest (website)` in `.github/workflows/ci.yml`.**
+- [x] **Task 1: Add Fast-Path check to `Vitest (website)` in `.github/workflows/ci.yml`.**
       Add a diff filter step against `origin/main` right after checkout. Guard subsequent pnpm install, lint, vitest/astro/knip parallel steps, and coverage gate with `if: steps.filter.outputs.run_website == 'true'`.
 
-- [ ] **Task 2: Add actions/cache or optimization for actionlint in `BATS Unit + Quality Gates`.**
+- [x] **Task 2: Add actions/cache or optimization for actionlint in `BATS Unit + Quality Gates`.**
       Cache actionlint binary to avoid repeated curl downloads across workflow runs.
 
-- [ ] **Fix-Step (GREEN).** Verify BATS spec tests pass.
+- [x] **Fix-Step (GREEN).** Verify BATS spec tests pass.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/website-fast-path.bats
@@ -52,4 +52,5 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
 

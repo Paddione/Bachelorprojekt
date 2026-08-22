@@ -2,7 +2,7 @@
 title: "Runtime-nahe Health Goals erweitern — Implementation Plan"
 ticket_id: T013429
 domains: [ci-cd, infrastructure, website, testing]
-status: active
+status: completed
 file_locks:
   - scripts/health-goals-check.sh
   - scripts/lib/runtime-health-measure.py

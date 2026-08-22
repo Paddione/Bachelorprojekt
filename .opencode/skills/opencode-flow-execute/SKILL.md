@@ -426,7 +426,7 @@ Nur bei deploy-pflichtigen Bereichen:
 bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 ```
 
-Deploy-Mapping: `.claude/skills/references/deploy-routing.md`.
+Deploy-Mapping: `.agents/skills/references/deploy-routing.md`.
 
 ## Nachbereitung & Mishap Report
 

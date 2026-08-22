@@ -91,7 +91,7 @@ Invoke `mishap-tracker` with your accumulated `MISHAP_LOG`.
 |-------|--------------|
 | `ticket-ops` | Follow-up: PR management, ticket triage for human-fixable items |
 | `mishap-tracker` | Converts execution mishaps to tickets |
-| `cluster-deployment` | Cross-brand incident handling (Phase 5) |
+| `infra-ops` | Cross-brand incident handling and infrastructure deployment (Phase 5) |
 
 
 ## Framework mapping

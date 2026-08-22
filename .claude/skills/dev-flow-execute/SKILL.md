@@ -239,7 +239,7 @@ Orchestrator-Kontext bleibt nur für die CI-Fix-Schleife (5.5) zuständig, solan
 
 ## Schritt 4: Dev-Iteration (optional)
 
-Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
+Für schnelles iteratives Testen von Änderungen im lokalen k3d Dev-Cluster (siehe [deploy-routing.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md)): `task dev:redeploy:website` bzw. `task dev:redeploy:brett`.
 > **⚠ Freshness-Guard (vor dem Commit):** Wenn Schritt 3 (`task freshness:regenerate`) übersprungen oder der Subagent es vergessen hat, schlägt CI mit "stale artifact" fehl. Prüfe: `git diff --name-only` sollte keine generierten Indexdateien zeigen. Falls doch: `task freshness:regenerate && git add` nachholen. Der Pre-commit-Hook automatisiert das nach `task secrets:install-hooks`.
 
 ## Schritt 5: PR erstellen
@@ -356,7 +356,6 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 | Skill | Beziehung |
 |-------|-----------|
 | `dev-flow-plan` | **Vorgänger im Kreislauf** — liefert Branch + committiertem Plan |
-| `dev-flow-iterate` | Alternative — inkrementelle Dev-Iteration |
 | `dev-flow-e2e` | Folge — schreibt E2E-Tests nach Deploy |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
 

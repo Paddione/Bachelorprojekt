@@ -42,9 +42,7 @@ while IFS=$'\t' read -r model burl; do
     FAILED=1
   fi
 done < <(factory_psql <<'SQL'
-SELECT model_id||E'\t'||COALESCE(base_url,'') FROM tickets.provider_config WHERE enabled = true
-UNION
-SELECT model_id||E'\t'||COALESCE(base_url,'') FROM tickets.factory_model_slots;
+SELECT model_id||E'\t'||COALESCE(base_url,'') FROM tickets.provider_config WHERE enabled = true;
 SQL
 )
 

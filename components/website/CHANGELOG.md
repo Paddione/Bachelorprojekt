@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.297.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.0...website-v1.297.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** archive rollups and carry backlog [T013330] ([#4963](https://github.com/Paddione/Bachelorprojekt/issues/4963)) ([7626a88](https://github.com/Paddione/Bachelorprojekt/commit/7626a88636b2e2523ceda840a328bbcb17489269))
+
+## [1.297.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.3...website-v1.297.0) (2026-08-22)
+
+
+### Features
+
+* **website:** Repo-Health-Dashboard Rescan + Ticket-Erzeugung [T013306] ([#4957](https://github.com/Paddione/Bachelorprojekt/issues/4957)) ([a41e0d1](https://github.com/Paddione/Bachelorprojekt/commit/a41e0d12f30b789865215783f113147eb7ca0185))
+
+## [1.296.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.2...website-v1.296.3) (2026-08-22)
+
+
+### Tests
+
+* **website:** rot-Zusicherungen für eine KI-Deck-Tabelle [T013302] ([#4951](https://github.com/Paddione/Bachelorprojekt/issues/4951)) ([5f6ab1f](https://github.com/Paddione/Bachelorprojekt/commit/5f6ab1fa53c9d8eb29848e95773bef69576c2f6e))
+
 ## [1.296.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.1...website-v1.296.2) (2026-08-22)
 
 

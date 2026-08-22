@@ -48,6 +48,15 @@ _plan_all_done() {
 EOF
 }
 
+_publish_repo() {
+  local root="$1"
+  git -C "$root" init -q
+  git -C "$root" config user.email test@example.invalid
+  git -C "$root" config user.name Test
+  git -C "$root" add openspec/changes
+  git -C "$root" commit -qm "publish finished cycles"
+}
+
 @test "aus einem Zyklus-Plan entsteht ein Batch mit genau den offenen Eintraegen" {
   _plan_with_open_entries > "$WORK/tasks.md"
   run bash "$CARRY" --plan "$WORK/tasks.md" --slug mishap-incident-rollup-2026-08-20-T012909
@@ -93,23 +102,59 @@ EOF
   [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ]
 }
 
-@test "--scan liefert nur den juengsten Zyklus, nicht jeden mit offenen Eintraegen" {
+@test "ein juengerer Zyklus filtert Eintraege aus seiner Quell-Lineage" {
+  _plan_with_open_entries > "$WORK/source-a.md"
+  {
+    _plan_with_open_entries
+    printf '%s\n' '- [ ] **4. Neuer Eintrag B** (drift, scripts/b.sh) — Disposition: offen'
+  } > "$WORK/source-b.md"
+
+  run bash "$CARRY" --plan "$WORK/source-b.md" \
+    --slug mishap-incident-rollup-2026-08-21-T099002 \
+    --exclude-plan "$WORK/source-a.md"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qF 'Neuer Eintrag B'
+  [ "$(printf '%s\n' "$output" | grep -cF 'Offener Eintrag zwei')" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -cF 'Offener Eintrag drei')" -eq 0 ]
+}
+
+@test "--scan liefert alle unarchivierten Zyklen mit offenen Eintraegen" {
   local root="$WORK/repo-multi"
-  mkdir -p "$root/openspec/changes/archive/2026-08-18-mishap-incident-rollup-2026-08-18-T012402"
-  mkdir -p "$root/openspec/changes/archive/2026-08-20-mishap-incident-rollup-2026-08-20-T012909"
-  _plan_with_open_entries > "$root/openspec/changes/archive/2026-08-18-mishap-incident-rollup-2026-08-18-T012402/tasks.md"
-  printf 'T012402' > "$root/openspec/changes/archive/2026-08-18-mishap-incident-rollup-2026-08-18-T012402/.ticket"
-  _plan_with_open_entries > "$root/openspec/changes/archive/2026-08-20-mishap-incident-rollup-2026-08-20-T012909/tasks.md"
-  printf 'T012909' > "$root/openspec/changes/archive/2026-08-20-mishap-incident-rollup-2026-08-20-T012909/.ticket"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/tasks.md"
+  printf 'T012402' > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/.ticket"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/tasks.md"
+  printf 'T012909' > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/.ticket"
+  _publish_repo "$root"
 
   run bash "$CARRY" --scan "$root" --container T099999
   [ "$status" -eq 0 ]
-  # Positiv-Anker: der juengste Zyklus ist dabei ...
+  # Beide Quellen kommen in stabiler Zyklus-Reihenfolge zurueck.
+  printf '%s\n' "$output" | sed -n '1p' | grep -qF '2026-08-18-T012402'
   printf '%s\n' "$output" | grep -qF '2026-08-20-T012909'
-  # ... und genau eine Zeile kommt zurueck, der aeltere Zyklus nicht. Sonst
-  # kaeme derselbe Eintrag nach zwei folgenlosen Zyklen doppelt im Plan an.
-  [ "$(printf '%s\n' "$output" | grep -c 'mishap-incident-rollup')" -eq 1 ]
-  [ "$(printf '%s\n' "$output" | grep -cF 'T012402')" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -c 'mishap-incident-rollup')" -eq 2 ]
+}
+
+@test "T013330: --scan liefert alle unarchivierten Zyklen und keinen archivierten" {
+  local root="$WORK/repo-backlog"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909"
+  mkdir -p "$root/openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/tasks.md"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/tasks.md"
+  _plan_with_open_entries > "$root/openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445/tasks.md"
+  printf 'T012402' > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/.ticket"
+  printf 'T012909' > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/.ticket"
+  printf 'T012445' > "$root/openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445/.ticket"
+  _publish_repo "$root"
+
+  run bash "$CARRY" --scan "$root" --container T099999
+  [ "$status" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -c 'mishap-incident-rollup')" -eq 2 ]
+  printf '%s\n' "$output" | sed -n '1p' | grep -qF '2026-08-18-T012402'
+  printf '%s\n' "$output" | sed -n '2p' | grep -qF '2026-08-20-T012909'
+  [ "$(printf '%s\n' "$output" | grep -cF 'T012445')" -eq 0 ]
 }
 
 @test "--scan findet Zyklus-Plaene mit offenen Eintraegen und ueberspringt den laufenden" {
@@ -125,6 +170,7 @@ EOF
   # selbst uebertragen.
   _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-25-T099999/tasks.md"
   printf 'T099999' > "$root/openspec/changes/mishap-incident-rollup-2026-08-25-T099999/.ticket"
+  _publish_repo "$root"
 
   run bash "$CARRY" --scan "$root" --container T099999
   [ "$status" -eq 0 ]
@@ -133,4 +179,22 @@ EOF
   # ... der vollstaendig erledigte nicht, und der laufende auch nicht.
   [ "$(printf '%s\n' "$output" | grep -cF 'T012445')" -eq 0 ]
   [ "$(printf '%s\n' "$output" | grep -cF 'T099999')" -eq 0 ]
+}
+
+@test "--scan ignoriert einen noch nicht in HEAD publizierten Zyklus" {
+  local root="$WORK/repo-finished"
+  local done="$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909"
+  local running="$root/openspec/changes/mishap-incident-rollup-2026-08-21-T099001"
+  mkdir -p "$done"
+  _plan_with_open_entries > "$done/tasks.md"
+  printf 'T012909' > "$done/.ticket"
+  _publish_repo "$root"
+  mkdir -p "$running"
+  _plan_with_open_entries > "$running/tasks.md"
+  printf 'T099001' > "$running/.ticket"
+
+  run bash "$CARRY" --scan "$root" --container T099999
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qF 'T012909'
+  [ "$(printf '%s\n' "$output" | grep -cF 'T099001')" -eq 0 ]
 }

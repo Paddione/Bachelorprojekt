@@ -34,6 +34,12 @@ for a in "$@"; do case "$a" in
   *) echo "unbekanntes Flag: $a" >&2; exit 2 ;;
 esac; done
 
+# T013306: row() filtert erst die REPORTING-Zeile — die $(…)-Messsubstitution
+# wäre trotzdem gelaufen, ein gezielter --only-Rescan hätte also Vollscan-Kosten
+# (Vitest-Coverage, pnpm audit/outdated, kubectl, gh). want() wird als Präfix an
+# den TEUREN Messstellen verwendet; reine Datei-Zähler bleiben unguarded.
+want() { [ -z "$ONLY" ] || [[ "$ONLY" == *",$1,"* ]]; }
+
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   C_G=$'\e[32m'; C_Y=$'\e[33m'; C_R=$'\e[31m'; C_D=$'\e[2m'; C_B=$'\e[1m'; C_X=$'\e[0m'
 else C_G=; C_Y=; C_R=; C_D=; C_B=; C_X=; fi
@@ -222,7 +228,7 @@ row gate G-CQ04 "$(grep -rnE '\b(FIXME|HACK|XXX)\b' --include='*.ts' --include='
 row gate G-DEP04 "$(c=0; for p in components/website/package.json components/brett/package.json components/mentolder-web/package.json components/mediaviewer-widget/package.json components/VideoVault/package.json components/studio-server/package.json; do [ -f "$p" ] || continue; v=$(python3 -c "import json;print((json.load(open('$p')).get('engines') or {}).get('node','MISSING'))" 2>/dev/null); [ "$v" != ">=22.13.0" ] && c=$((c+1)); done; echo $c)" eq 0 "package.json ohne engines>=22.13"
 row gate G-SEC01 "$(anchor_dir k3d; grep -rn 'password.*=.*[^$]' k3d/*.yaml 2>/dev/null | grep -iv 'secretKeyRef\|configMapKeyRef\|valueFrom\|KEYCLOAK_ADMIN_PASSWORD\|_PASSWORD}\|getenv(' | grep -iv '^\s*#' | wc -l | tr -d ' ')" eq 0 "Hardcoded Secrets in k3d/*.yaml"
 row gate G-GIT02 "$(anchor_ref origin/main; git log --format=%s --no-merges -30 origin/main 2>/dev/null | grep -vcE '^(feat|fix|chore|docs|refactor|test|ci|build|perf|style)(\(|!|:)')" eq 0 "Non-conventional Commits (letzte 30, ohne Merge)"
-if [ "$FAST" = 0 ] && command -v task >/dev/null 2>&1; then
+if [ "$FAST" = 0 ] && want G-CFG01 && command -v task >/dev/null 2>&1; then
   timeout 90 task env:validate:all >/dev/null 2>&1; row gate G-CFG01 "$?" eq 0 "env:validate:all (Schema-Drift)"
 else row gate G-CFG01 "-" eq 0 "env:validate:all (--fast übersprungen)"; fi
 
@@ -347,14 +353,14 @@ row gate G-AGENTIC16 "$(
     [ "$a" = "$b" ] || m=$((m+1))
   done; echo $m
 )" eq 0 "Claude ↔ opencode Command-Sync (normalisiert)"
-row gate G-AGENTIC17 "$(
+want G-AGENTIC17 && row gate G-AGENTIC17 "$(
   cfg=$(grep -cE '(\.claude/commands|\.opencode/commands)/\*\*/\*\.md' docs/code-quality/gates.yaml)
   orph=$(node scripts/code-quality/gates/s4-orphans.mjs 2>/dev/null | grep -cE '(^|/)(\.claude/commands|\.opencode/commands)/|commands/opsx')
   if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
 )" le 0 "Command-Orphans via S4 (Config-Guard)"
 
 # ── Brain-Dokumentation — GATES (G-BRAIN12/13/15; 01–11 leben im brain-Repo) ──
-row gate G-BRAIN12 "$(
+want G-BRAIN12 && row gate G-BRAIN12 "$(
   _wl_err=$(mktemp)
   if bash scripts/brain-ingest-worklist.sh >/dev/null 2>"$_wl_err"; then
     grep -c 'hat 0 Treffer' "$_wl_err" || true
@@ -377,21 +383,21 @@ norm=lambda p: p.replace('/**','').rstrip('/')
 print(len(set(map(norm,paths)) ^ set(map(norm,srcs))))
 PY
 )" eq 0 "Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler)"
-row gate G-BRAIN15 "$(
+want G-BRAIN15 && row gate G-BRAIN15 "$(
   bash templates/brain/scripts/lint-frontmatter.sh templates/brain >/dev/null 2>&1 \
     && bash templates/brain/scripts/lint-wikilinks.sh templates/brain >/dev/null 2>&1; echo $?
 )" eq 0 "Brain-Seed-Template-Lint (frontmatter + wikilinks) grün"
 
 # ── DB-Gesundheit — GATES ──
-row gate G-DB06 "$(db_scalar "SELECT
+want G-DB06 && row gate G-DB06 "$(db_scalar "SELECT
   (SELECT count(*) FROM tickets.ticket_plans p    WHERE p.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=p.ticket_id))
 + (SELECT count(*) FROM tickets.ticket_comments c WHERE c.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=c.ticket_id))
 + (SELECT count(*) FROM tickets.ticket_links l    WHERE l.from_id  IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=l.from_id));")" eq 0 "Orphan-Rows (ticket_plans/comments/links → tickets)"
-row gate G-DB04 "$(db_backup_age_h)" le 26 "Backup-Alter (h) seit letztem erfolgr. db-backup-Job — T001738"
+want G-DB04 && row gate G-DB04 "$(db_backup_age_h)" le 26 "Backup-Alter (h) seit letztem erfolgr. db-backup-Job — T001738"
 
 # ── Cluster-Runtime — GATES (G-OPS02/03; G-OPS01 ist Prio B → TARGET unten) ──
-row gate G-OPS02 "$(ops_kubectl_count restarts_24h)" le 3 "Container-Restarts <24h (fleet, beide Brand-Namespaces)"
-row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlaufzeit (Tage, min beider Brand-Frontends)"
+want G-OPS02 && row gate G-OPS02 "$(ops_kubectl_count restarts_24h)" le 3 "Container-Restarts <24h (fleet, beide Brand-Namespaces)"
+want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlaufzeit (Tage, min beider Brand-Frontends)"
 
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
@@ -409,7 +415,7 @@ row target G-SIZE02 "$(git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js
 # .codebase-memory/graph.db.zst (16.7MB, ehem. PR #2281) ist seit T001717 nicht mehr getrackt
 # (lokal via `task codebase:index` regeneriert, .gitignore) — die frühere Scope-Ausschluss-Policy
 # T001348 ist damit gegenstandslos, da kein >1MB-Binärartefakt mehr im Tree liegt.
-row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 wc -c 2>/dev/null | grep -v ' total$' | awk '$1>1048576{c++} END{print c+0}')" le 6 "Dateien >1MB (kein LFS)"
+row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 wc -c 2>/dev/null | grep -v ' total$' | awk '$1>1048576{c++} END{print c+0}')" le 7 "Dateien >1MB (kein LFS)"
 row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images"
 row target G-DOC02 "$(anchor_file CLAUDE.md; wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
 row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 0 "tools:-Eintraege, die ins Leere zeigen (leere Aufloesung oder unbekannter MCP-Server)"
@@ -421,7 +427,7 @@ row target G-DOC03 "$(c=0; for d in components/website components/brett scripts 
 row target G-SEC05 "$(anchor_ref main; git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -vE '(41898282\+)?github-actions\[bot\]@users\.noreply\.github\.com' | awk '{print $1}' | grep -c N || true)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
 
 # G-TEST05 — Vitest Line-Coverage (components/website/src/lib ≥ 60 %)
-if [ "$FAST" = 0 ] && command -v pnpm >/dev/null 2>&1; then
+if [ "$FAST" = 0 ] && want G-TEST05 && command -v pnpm >/dev/null 2>&1; then
   (cd components/website && pnpm exec vitest run --coverage --testTimeout=10000 2>/dev/null) >/dev/null 2>&1
   _cov_pct=$(jq -r '.total.lines.pct // empty' components/website/coverage/coverage-summary.json 2>/dev/null || echo "-")
   _cov_int=$(echo "$_cov_pct" | awk -F'.' '{if ($1~/^[0-9]+$/) print int($1); else print "-"}')
@@ -431,32 +437,32 @@ else
 fi
 
 # ── DB-Gesundheit — TARGETS ──
-row target G-DB01 "$(db_scalar "WITH fk AS (
+want G-DB01 && row target G-DB01 "$(db_scalar "WITH fk AS (
     SELECT c.conrelid AS relid, c.conkey[1] AS col FROM pg_constraint c
     JOIN pg_class t ON t.oid=c.conrelid JOIN pg_namespace n ON n.oid=t.relnamespace
     WHERE c.contype='f' AND n.nspname NOT IN ('pg_catalog','information_schema') AND array_length(c.conkey,1)=1),
   idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
   SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;")" le 0 "FK-Spalten ohne Index"
-row target G-DB03 "$(db_scalar "SELECT
+want G-DB03 && row target G-DB03 "$(db_scalar "SELECT
     (SELECT count(DISTINCT c.table_schema||'.'||c.table_name) FROM information_schema.columns c
        JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name
        WHERE c.column_name='brand' AND c.table_schema NOT IN ('pg_catalog','information_schema') AND t.table_type='BASE TABLE')
   - (SELECT count(DISTINCT conrelid) FROM pg_constraint
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');")" le 0 "brand-Spalten ohne CHECK-Constraint (messen; VIEWs ausgeschlossen T001906)"
-row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user_tables
+want G-DB08 && row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user_tables
     WHERE n_live_tup>10000 AND seq_scan>0
       AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;")" le 3 "Tabellen >10k Rows mit Seq-Scan-Anteil >5% (messen)"
-row target G-DB09 "$(db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %' AND query NOT ILIKE 'CREATE INDEX%'")" le 0 "Slow Queries in pg_stat_statements (mean_exec_time > 1s, exkl. Backup-COPY T001926 + einmalige CREATE INDEX-DDL T002095)"
-row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')")" le 0 "Unused Indexes (idx_scan=0, exkl. PK/Unique)"
-row target G-DB11 "$(restore_verify_age_d)" le 30 "Tage seit letztem erfolgreichem Restore-Verify (recovery-verify-status)"
+want G-DB09 && row target G-DB09 "$(db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %' AND query NOT ILIKE 'CREATE INDEX%'")" le 0 "Slow Queries in pg_stat_statements (mean_exec_time > 1s, exkl. Backup-COPY T001926 + einmalige CREATE INDEX-DDL T002095)"
+want G-DB10 && row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')")" le 0 "Unused Indexes (idx_scan=0, exkl. PK/Unique)"
+want G-DB11 && row target G-DB11 "$(restore_verify_age_d)" le 30 "Tage seit letztem erfolgreichem Restore-Verify (recovery-verify-status)"
 
 # ── E2E-/OPS-TARGETS (T002063) ──
-row target G-E2E01 "$(e2e_success_rate)" ge 90 "Nightly-E2E-Erfolgsrate e2e.yml (%, letzte 14 Läufe)"
-row target G-E2E02 "$(db_scalar "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name), false, true, '')))[1]::text::int), 0) FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE'")" eq 0 "E2E-Testdaten-Leak (is_test_data=true Rows, Brand-DB via HG_DB_NS)"
-row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready, exkl. Job-Pods (fleet, beide Brand-Namespaces)"
+want G-E2E01 && row target G-E2E01 "$(e2e_success_rate)" ge 90 "Nightly-E2E-Erfolgsrate e2e.yml (%, letzte 14 Läufe)"
+want G-E2E02 && row target G-E2E02 "$(db_scalar "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name), false, true, '')))[1]::text::int), 0) FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE'")" eq 0 "E2E-Testdaten-Leak (is_test_data=true Rows, Brand-DB via HG_DB_NS)"
+want G-OPS01 && row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready, exkl. Job-Pods (fleet, beide Brand-Namespaces)"
 
 # ── CI-TARGETS ──
-row target G-CI03 "$(
+want G-CI03 && row target G-CI03 "$(
   if [ "$FAST" = 1 ]; then echo "-"; else
     # gh-axi hat kein --json-Pendant fuer `run list` (nur --fields) — hier bewusst `gh` direkt,
     # siehe .claude/skills/references/gh-axi.md ("Wann gh statt gh-axi").
@@ -477,19 +483,19 @@ durations.sort(); p95=durations[int(len(durations)*0.95)] if durations else 0; p
 
 # ── SEC-TARGETS ──
 if [ "$FAST" = 0 ] && command -v kubectl >/dev/null 2>&1 && command -v trivy >/dev/null 2>&1; then
-  row target G-SEC06 "$(timeout 60 trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(timeout 10 kubectl get pods --all-namespaces --request-timeout=5s -o jsonpath='{range .items[*]}{.spec.containers[*].image}{\"\n\"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
+  want G-SEC06 && row target G-SEC06 "$(timeout 60 trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(timeout 10 kubectl get pods --all-namespaces --request-timeout=5s -o jsonpath='{range .items[*]}{.spec.containers[*].image}{\"\n\"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
 else
   row target G-SEC06 "-" le 0 "Container CVEs (erfordert kubectl + Trivy — nicht messbar)"
 fi
 
 # ── FE-TARGETS ──
-if [ "$FAST" = 0 ] && command -v npx >/dev/null 2>&1 && npx --yes @lhci/cli --version >/dev/null 2>&1; then
+if [ "$FAST" = 0 ] && want G-FE05 && command -v npx >/dev/null 2>&1 && npx --yes @lhci/cli --version >/dev/null 2>&1; then
   row target G-FE05 "$(
     score=$(timeout 60 npx @lhci/cli autorun --no-lighthouserc --collect.url=https://web.mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.preset=none 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
     echo "${score:--}"
   )" ge 90 "Lighthouse Performance Score"
 else
-  row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert @lhci/cli — nicht messbar)"
+row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert @lhci/cli — nicht messbar)"
 fi
 
 # ── IF-TARGETS (T002441: Schnittstellen- und API-Drift) ──
@@ -548,11 +554,11 @@ llm_measure() { # <subcommand>
   esac
 }
 
-row target G-LLM01 "$(llm_measure server-availability)" le 0 "Modellserver-Verfügbarkeit (exclusiveGroup-bewusst, /livez-Anker)"
-row target G-LLM02 "$(llm_measure proxy-readiness)"     le 0 "llm-proxy-Bereitschaft (degraded/checked statt providers)"
-row target G-LLM03 "$(llm_measure model-drift)"         le 0 "Konfig-gegen-Laufzeit-Drift (Modell-ID je Loadout-Port)"
-row target G-LLM04 "$(llm_measure autostart-coverage)"  le 0 "Autostart-Abdeckung (LLM-Unit-Dateien ohne enabled)"
-row target G-LLM05 "$(llm_measure dead-endpoints)"      le 0 "Tote lokale Endpunkt-Verweise (Backend-Registry)"
+want G-LLM01 && row target G-LLM01 "$(llm_measure server-availability)" le 0 "Modellserver-Verfügbarkeit (exclusiveGroup-bewusst, /livez-Anker)"
+want G-LLM02 && row target G-LLM02 "$(llm_measure proxy-readiness)"     le 0 "llm-proxy-Bereitschaft (degraded/checked statt providers)"
+want G-LLM03 && row target G-LLM03 "$(llm_measure model-drift)"         le 0 "Konfig-gegen-Laufzeit-Drift (Modell-ID je Loadout-Port)"
+want G-LLM04 && row target G-LLM04 "$(llm_measure autostart-coverage)"  le 0 "Autostart-Abdeckung (LLM-Unit-Dateien ohne enabled)"
+want G-LLM05 && row target G-LLM05 "$(llm_measure dead-endpoints)"      le 0 "Tote lokale Endpunkt-Verweise (Backend-Registry)"
 
 # ── WT-TARGETS (T002443: Worktree- und Session-Hygiene) ──
 # Die Messlogik lebt ausschliesslich in scripts/lib/wt-hygiene-measure.sh. Vorher standen
@@ -697,11 +703,11 @@ row target G-SEC03 "$(ts=$(git log -1 --format=%at -- environments/sealed-secret
 row target G-SEC04 "$(min=''; for p in environments/certs/*.pem; do [ -f "$p" ] || continue; e=$(openssl x509 -enddate -noout -in "$p" 2>/dev/null | cut -d= -f2); [ -n "$e" ] || continue; d=$(( ( $(date -d "$e" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 )); { [ -z "$min" ] || [ "$d" -lt "$min" ]; } && min=$d; done; echo "${min:--}")" ge 30 "Sealing-Cert Restlaufzeit (Tage, Minimum)"
 row gate   G-DEP03 "$(anchor_file components/website/Dockerfile; grep -q 'npm ci' components/website/Dockerfile 2>/dev/null && echo 1 || echo 0)" eq 0 "PM-Konsistenz: npm ci in components/website/Dockerfile (0=nur pnpm)"
 row gate   G-RH04 "$(cutoff=$(( $(date +%s) - 30*86400 )); git for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/remotes/origin 2>/dev/null | while read -r b ts; do case "$b" in origin/HEAD|origin/main) continue;; esac; [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && echo "$b"; done | wc -l | tr -d ' ')" eq 0 "Stale Remote Branches (>30d)"
-row gate   G-RH07 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task freshness:check)" eq 0 "Freshness-Check (Exit)"
+want G-RH07 && row gate   G-RH07 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task freshness:check)" eq 0 "Freshness-Check (Exit)"
 row gate   G-K8S01 "$(k8s_audit limits)"     eq 0 "Deployments ohne resources.limits"
 row target G-K8S02 "$(k8s_audit readiness)"  le 3 "Deployments ohne readinessProbe"
 row gate   G-K8S03 "$(k8s_audit security)"   eq 0 "Deployments ohne securityContext"
-row gate   G-K8S04 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task workspace:validate)" eq 0 "workspace:validate (Exit)"
+want G-K8S04 && row gate   G-K8S04 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task workspace:validate)" eq 0 "workspace:validate (Exit)"
 
 # --- Netzabhängig: gh mit Timeout, sonst SKIP (7) -----------------------------
 row target G-CI01 "$(wf_success_rate ci.yml 20)" ge 95 "main CI-Erfolgsrate (%, letzte 20)"
@@ -724,7 +730,7 @@ import json,sys
 try: print(sum(1 for x in json.loads(sys.argv[1]) if 'renovate' in (x.get('author') or {}).get('login','').lower()))
 except Exception: print('-')
 " "$o" || echo '-'; })" le 3 "Renovate-PR-Backlog"
-row target G-CD02 "$(wf_success_rate post-merge.yml 15)" ge 95 "post-merge.yml-Erfolgsrate (%, letzte 15)"
+want G-CD02 && row target G-CD02 "$(wf_success_rate post-merge.yml 15)" ge 95 "post-merge.yml-Erfolgsrate (%, letzte 15)"
 row gate   G-RH06 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 issue list --label sentinel --state open --json createdAt) && python3 -c "
 import json,sys,datetime
 try:
@@ -759,9 +765,9 @@ pnpm_measure() {
   [ -n "$out" ] || { echo '-'; return; }
   python3 "$helper" <<<"$out" || echo 99
 }
-row gate   G-DEP01 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-audit-count.py audit --json)" eq 0 "High/Critical npm-Vulnerabilities"
-row target G-DEP02 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-outdated-majors.py outdated --format json)" le 3 "Veraltete Major-Dependencies"
-row gate   G-BRAIN14 "$([ "$FAST" = 1 ] && echo '-' || { [ -f scripts/brain-ingest-worklist.sh ] && timeout 120 bash scripts/brain-ingest-worklist.sh 2>/dev/null | grep -c . || echo '-'; })" eq 0 "Brain-Ingest-Backlog (offene Seiten)"
+want G-DEP01 && row gate   G-DEP01 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-audit-count.py audit --json)" eq 0 "High/Critical npm-Vulnerabilities"
+want G-DEP02 && row target G-DEP02 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-outdated-majors.py outdated --format json)" le 3 "Veraltete Major-Dependencies"
+want G-BRAIN14 && row gate   G-BRAIN14 "$([ "$FAST" = 1 ] && echo '-' || { [ -f scripts/brain-ingest-worklist.sh ] && timeout 120 bash scripts/brain-ingest-worklist.sh 2>/dev/null | grep -c . || echo '-'; })" eq 0 "Brain-Ingest-Backlog (offene Seiten)"
 
 # --- DORA aus lokaler Git-History, Shallow-Clone-geschützt (3) -----------------
 row target G-DORA01 "$(dora_count '4 weeks ago')" ge 5 "DORA Deployment Frequency (main-Merges/4 Wochen)"

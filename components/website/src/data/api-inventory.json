@@ -500,20 +500,6 @@
       "deprecated": null
     },
     {
-      "path": "/sdlc/api/factory-model-slots",
-      "file": "factory-model-slots.ts",
-      "methods": [
-        "GET",
-        "PUT"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
       "path": "/sdlc/api/factory-observability",
       "file": "factory-observability.ts",
       "methods": [
@@ -547,6 +533,32 @@
       ],
       "backend": [
         "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/health-goals/rescan",
+      "file": "health-goals/rescan.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/health-goals/tickets",
+      "file": "health-goals/tickets.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
       ],
       "description": null,
       "tier": null,
@@ -643,6 +655,33 @@
       ],
       "backend": [
         "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/catalog",
+      "file": "llm-proxy/catalog.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/factory",
+      "file": "llm-proxy/factory.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "backend": [
+        "unknown"
       ],
       "description": null,
       "tier": null,

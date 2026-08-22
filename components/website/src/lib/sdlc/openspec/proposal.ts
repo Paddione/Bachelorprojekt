@@ -1,20 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { existsSync } from 'fs';
-
-function findRepoRoot(): string {
-  if (process.env.OPENSPEC_REPO_ROOT) {
-    return process.env.OPENSPEC_REPO_ROOT;
-  }
-  let current = process.cwd();
-  while (current !== path.dirname(current)) {
-    if (existsSync(path.join(current, 'openspec'))) {
-      return current;
-    }
-    current = path.dirname(current);
-  }
-  return path.resolve(process.cwd(), '../../..');
-}
+import { findRepoRoot } from '../repo-root';
 
 const REPO_ROOT = findRepoRoot();
 

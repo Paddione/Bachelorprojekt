@@ -53,7 +53,7 @@
         "--ctx-checkpoints",
         "0"
       ],
-      "notes": "Text-only loadout for the Unsloth Qwen3.8-27B UD-IQ3_XXS GGUF. One slot, fixed 220000-token request with auto-fit disabled, all layers on GPU, q4_0 KV cache, flash attention, ngram-mod speculation, no MTP drafter, and deliberately no mmproj/vision head. The model's native context is 262144; 220K and q4_0 KV were selected for additional VRAM headroom on the RTX 5070 Ti 16 GiB.",
+      "notes": "Gemessen: 220.000 ctx. Text-only loadout for the Unsloth Qwen3.8-27B UD-IQ3_XXS GGUF. One slot, fixed 220000-token request with auto-fit disabled, all layers on GPU, q4_0 KV cache, flash attention, ngram-mod speculation, no MTP drafter, and deliberately no mmproj/vision head. The model's native context is 262144; 220K and q4_0 KV were selected for additional VRAM headroom on the RTX 5070 Ti 16 GiB.",
       "exclusiveGroup": "chat-gpu"
     },
     {

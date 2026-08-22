@@ -130,8 +130,14 @@ done < "$ESCALATION_FILE"
 # denselben Container nie zweimal uebertragen. Ein Fehlschlag hier bricht den
 # Rollup NICHT ab — der Zyklus laeuft dann ohne Uebertrag weiter, und der
 # naechste Lauf holt ihn nach (der Quell-Plan bleibt ja liegen).
+earlier_plans=()
 while IFS=$'\t' read -r src_slug src_plan; do
   [[ -n "${src_slug:-}" && -n "${src_plan:-}" ]] || continue
+  exclude_args=()
+  for earlier_plan in "${earlier_plans[@]}"; do
+    exclude_args+=(--exclude-plan "$earlier_plan")
+  done
+  earlier_plans+=("$src_plan")
   already=$(cat <<SQL | factory_psql 2>/dev/null | head -1
 SELECT COUNT(*)::int FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
@@ -143,7 +149,7 @@ SQL
     echo "mishap-rollup: Carry-over aus ${src_slug} liegt bereits auf ${CONTAINER_ID} — skip"
     continue
   fi
-  carry_body="$(bash "$REPO/scripts/factory/rollup-carryover.sh" --plan "$src_plan" --slug "$src_slug" --exclude-file "$EXCLUDE_FILE" 2>/dev/null)" || continue
+  carry_body="$(bash "$REPO/scripts/factory/rollup-carryover.sh" --plan "$src_plan" --slug "$src_slug" "${exclude_args[@]}" --exclude-file "$EXCLUDE_FILE" 2>/dev/null)" || continue
   [[ -n "$carry_body" ]] || continue
   if BRAND="$BRAND" bash "$REPO/scripts/ticket.sh" add-comment --id "$CONTAINER_ID" \
        --body "$carry_body" --author mishap-rollup --visibility internal >/dev/null 2>&1; then

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.297.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.1...website-v1.297.2) (2026-08-22)
+
+
+### Documentation
+
+* **plans:** Proposal e2e-suite-entskippen [T013329] ([#4962](https://github.com/Paddione/Bachelorprojekt/issues/4962)) ([764a0c3](https://github.com/Paddione/Bachelorprojekt/commit/764a0c35e29110e122603e19c04a238d559ef6f4))
+
 ## [1.297.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.0...website-v1.297.1) (2026-08-22)
 
 

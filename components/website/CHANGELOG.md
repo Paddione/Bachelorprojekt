@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.296.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.2...website-v1.296.3) (2026-08-22)
+
+
+### Tests
+
+* **website:** rot-Zusicherungen für eine KI-Deck-Tabelle [T013302] ([#4951](https://github.com/Paddione/Bachelorprojekt/issues/4951)) ([5f6ab1f](https://github.com/Paddione/Bachelorprojekt/commit/5f6ab1fa53c9d8eb29848e95773bef69576c2f6e))
+
 ## [1.296.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.1...website-v1.296.2) (2026-08-22)
 
 

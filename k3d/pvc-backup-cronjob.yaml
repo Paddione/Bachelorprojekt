@@ -100,8 +100,26 @@ spec:
                   trap cleanup EXIT
 
                   # Stale clones from a crashed prior run would block creation.
+                  # Wait for them to vanish; a PVC stuck in Terminating means a
+                  # pod still references it — fail loudly with diagnostics so the
+                  # operator can clear the blocker instead of a silent timeout.
                   for c in $CLONES; do
-                    kubectl -n "$NS" delete pvc "$c" --ignore-not-found || true
+                    if ! kubectl -n "$NS" delete pvc "$c" --ignore-not-found --wait=true --timeout=120s; then
+                      echo "ERROR: clone $c stuck in Terminating — pods still referencing it:"
+                      # jq is NOT in alpine/k8s:1.36.2 — use kubectl jsonpath.
+                      for p in $(kubectl -n "$NS" get pods -o name 2>/dev/null); do
+                        claims=$(kubectl -n "$NS" get "$p" -o jsonpath='{.spec.volumes[*].persistentVolumeClaim.claimName}' 2>/dev/null || true)
+                        for cl in $claims; do
+                          if [ "$cl" = "$c" ]; then
+                            phase=$(kubectl -n "$NS" get "$p" -o jsonpath='{.status.phase}' 2>/dev/null || echo "?")
+                            node=$(kubectl -n "$NS" get "$p" -o jsonpath='{.spec.nodeName}' 2>/dev/null || echo "?")
+                            echo "  $p phase=$phase node=$node"
+                            break
+                          fi
+                        done
+                      done
+                      exit 1
+                    fi
                   done
 
                   if [ -n "$CLONES" ]; then
@@ -129,6 +147,8 @@ spec:
                     for c in $CLONES; do
                       for i in $(seq 1 60); do
                         PHASE=$(kubectl -n "$NS" get pvc "$c" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
+                        DEL=$(kubectl -n "$NS" get pvc "$c" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || echo "")
+                        [ -n "$DEL" ] && { echo "ERROR: clone $c is being deleted (since $DEL)"; exit 1; }
                         [ "$PHASE" = "Bound" ] && break
                         sleep 5
                       done
@@ -139,6 +159,10 @@ spec:
                     echo "No longhorn-backed data PVCs — all sources mounted live (local-path)."
                   fi
 
+                  # Remove stale mounter Jobs from a crashed prior run — they
+                  # hold node resources and can mask a new run's logs. [T013044]
+                  kubectl -n "$NS" delete jobs -l app=pvc-backup,role=mounter --ignore-not-found || true
+
                   echo "Launching mounter Job $MOUNTER..."
                   kubectl -n "$NS" apply -f - <<MJOB
                   apiVersion: batch/v1
@@ -148,6 +172,7 @@ spec:
                     labels: { app: pvc-backup, role: mounter }
                   spec:
                     backoffLimit: 0
+                    ttlSecondsAfterFinished: 86400
                     activeDeadlineSeconds: 3000
                     template:
                       metadata:

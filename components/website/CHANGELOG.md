@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.301.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.5...website-v1.301.6) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** mishap-rollup T013678 abarbeiten, Dispositionen und drei Fixes [T013678] ([#5032](https://github.com/Paddione/Bachelorprojekt/issues/5032)) ([4763b15](https://github.com/Paddione/Bachelorprojekt/commit/4763b15929dfe28d65f79cc9c3821d88e0c805b2))
+
 ## [1.301.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.4...website-v1.301.5) (2026-08-22)
 
 

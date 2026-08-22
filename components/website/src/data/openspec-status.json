@@ -3979,6 +3979,12 @@
       "status": "archived"
     }
   ],
+  "T013144": [
+    {
+      "slug": "factory-model-lock",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

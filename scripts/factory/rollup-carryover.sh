@@ -69,18 +69,29 @@ _open_entries() {
 
 # Alle Zyklus-Plaene (offen + archiviert) als '<slug>\t<plan-pfad>'.
 _cycle_plans() {
-  find "$1" -type f -name tasks.md -path '*mishap-incident-rollup-*' 2>/dev/null \
+  # [T013316 #10] Bewusst auf "$1/openspec/changes" verankert, nicht auf den
+  # Scan-Root selbst: ein Worktree, dessen NAME das Rollup-Muster traegt
+  # (.worktrees/mishap-incident-rollup-…-reuse/), sonst als Scan-Ziel gilt und
+  # ~700 archivierte Feature-Plaene in die Rezurrenz-Bewertung spuelt
+  # (False-Positive-Eskalationen T013420/T013421/T013422). Zyklus-Plaene
+  # liegen im Produktionssystem ausschliesslich unter openspec/changes/.
+  find "$1/openspec/changes" -type f -name tasks.md -path '*mishap-incident-rollup-*' 2>/dev/null \
     | while IFS= read -r p; do
         printf '%s\t%s\n' "$(basename "$(dirname "$p")")" "$p"
       done | sort
 }
 
 # Titel aus einer offenen Eintragszeile.
+# [T013316 #10] -n mit /p-Anker: matcht die Zeile das Muster nicht, ist die
+# Antwort LEER statt der Rohzeile. Boilerplate wie "- [ ] **7. Final
+# Verification.** …" ohne (meta)-Suffix ist kein Urteil und darf nicht als
+# Titel durchgehen — sonst gilt identische Vorlagen-Prosa in >= 2 Plaenen
+# faelschlich als Rezurrenz.
 _line_title() {
-  printf '%s\n' "$1" | sed -E 's/^- \[.\] \*\*[0-9]+\. (.*)\*\* \(([^)]*)\).*$/\1/'
+  printf '%s\n' "$1" | sed -nE 's/^- \[.\] \*\*[0-9]+\. (.*)\*\* \(([^)]*)\).*$/\1/p'
 }
 _line_meta() {
-  printf '%s\n' "$1" | sed -E 's/^- \[.\] \*\*[0-9]+\. (.*)\*\* \(([^)]*)\).*$/\2/'
+  printf '%s\n' "$1" | sed -nE 's/^- \[.\] \*\*[0-9]+\. (.*)\*\* \(([^)]*)\).*$/\2/p'
 }
 
 # Exclude-Filter [T013305]: ein Titel gilt als ausgeschieden, wenn er (nach

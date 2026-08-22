@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.301.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.3...website-v1.301.4) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** anchor rollup escalation scan to openspec/changes, discard non-matching titles [T013316] ([#5021](https://github.com/Paddione/Bachelorprojekt/issues/5021)) ([baead7f](https://github.com/Paddione/Bachelorprojekt/commit/baead7fe2f0bd6e2f9648becf035f02bf6935550))
+
+## [1.301.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.2...website-v1.301.3) (2026-08-22)
+
+
+### Bug Fixes
+
+* **scripts:** replace basename/sed subprocess forks with bash builtins [T013673] ([#5018](https://github.com/Paddione/Bachelorprojekt/issues/5018)) ([4a3ba6c](https://github.com/Paddione/Bachelorprojekt/commit/4a3ba6c1cd6793f3bc147da84f31d2c68e2d170f))
+
 ## [1.301.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.1...website-v1.301.2) (2026-08-22)
 
 

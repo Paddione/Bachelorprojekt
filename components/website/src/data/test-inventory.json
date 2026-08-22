@@ -2952,6 +2952,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/website-fast-path",
+    "file": "tests/spec/ci-cd/website-fast-path.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/workflow-self-trigger",
     "file": "tests/spec/ci-cd/workflow-self-trigger.bats",
     "category": "ci-cd",

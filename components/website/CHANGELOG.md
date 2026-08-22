@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.301.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.1...website-v1.301.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **ci:** install website+pnpm deps in test-bats, remove self-skips, cut BATS runtime [T013674] ([#5019](https://github.com/Paddione/Bachelorprojekt/issues/5019)) ([e69640d](https://github.com/Paddione/Bachelorprojekt/commit/e69640d58bfda8cd76b7a18921716fa9df0ece28))
+* **scripts:** sdlc defaults to qwen38-220k, stage-plan help documents --no-hold [T013328] ([#5022](https://github.com/Paddione/Bachelorprojekt/issues/5022)) ([08a74c2](https://github.com/Paddione/Bachelorprojekt/commit/08a74c2bbd3aab6342540bcf34400384011828ce))
+
 ## [1.301.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.0...website-v1.301.1) (2026-08-22)
 
 

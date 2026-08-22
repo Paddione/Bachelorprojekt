@@ -34,6 +34,10 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${REPO_DIR:-$(cd "$HERE/.." && pwd)}"
 TICKET_SH="$REPO_DIR/scripts/ticket.sh"
+# [T013315/F1] Invocations-cwd VOR dem ersten cd merken — Schritt 10 braucht ihn,
+# um zu erkennen, dass die aufrufende Session im zu entfernenden Worktree steht
+# (beobachtet im T013043-Lauf: danach "fatal: cannot change to ...", getcwd-Fehler).
+INVOCATION_DIR="$PWD"
 cd "$REPO_DIR"
 
 usage() {
@@ -79,8 +83,11 @@ fi
 DONE_COUNT=0
 SKIP_COUNT=0
 WARN_COUNT=0
+SKIP_STEPS=()
 mark_ok()   { echo "[ok]   $1"; DONE_COUNT=$((DONE_COUNT + 1)); }
-mark_skip() { echo "[skip] $1"; SKIP_COUNT=$((SKIP_COUNT + 1)); }
+# [T013315/F3] Jeder Skip wird fuer die Schlusszeile aufgehoben — "N erledigt,
+# M uebersprungen" las sich wie Erfolg, ohne zu sagen, WAS uebersprungen wurde.
+mark_skip() { echo "[skip] $1"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=("$1"); }
 # [T012256/B2] mark_warn trennt "Eingabe nicht aufloesbar" von "bereits erledigt".
 # Beide erschienen als [skip] und zaehlten als uebersprungen; das Skript endete
 # mit Exit 0 und "abgeschlossen". Genau so blieb T012243 unsichtbar: Schritt 10
@@ -235,6 +242,27 @@ fi
 if [[ -z "$PLAN_FILE" || -z "$SLUG" ]]; then
   mark_skip "Schritt 7: kein FACTORY-PLAN-REF mit Plan-Pfad — Plan-Archiv uebersprungen"
 else
+  # [T013315/F2] Vor der Archivierung den Plan-Pfad im Arbeitsbaum pruefen.
+  # Fehlt er, obwohl der Branch-Commit ihn traegt, hing der lokale Haupt-Checkout
+  # typischerweise hinter origin/main und der gemergte Plan dort noch fehlt
+  # (beobachtet im T013108-Lauf: generisches "ERROR: Schritt 7 — archive-plan
+  # fehlgeschlagen", das auf die falsche Stelle zeigte). Idempotent heilbar per
+  # git pull --ff-only — die Meldung nennt jetzt die Stelle zum Pullen.
+  if [[ ! -s "$PLAN_FILE" ]] && git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}" 2>/dev/null; then
+    git fetch origin main >/dev/null 2>&1 || true
+    _local_main="$(git -C "$REPO_DIR" rev-parse refs/heads/main 2>/dev/null || true)"
+    _origin_main="$(git -C "$REPO_DIR" rev-parse origin/main 2>/dev/null || true)"
+    if [[ -n "$_local_main" && -n "$_origin_main" && "$_local_main" != "$_origin_main" ]] \
+       && ! git -C "$REPO_DIR" merge-base --is-ancestor "$_origin_main" "$_local_main" 2>/dev/null; then
+      mark_warn "Schritt 7: Plan $PLAN_FILE fehlt im Arbeitsbaum und lokaler main ist hinter origin/main — erst 'git pull --ff-only' im Haupt-Checkout ausfuehren, dann Finalize erneut aufrufen (idempotent)"
+      PLAN_FILE=""
+    else
+      mark_warn "Schritt 7: Plan $PLAN_FILE fehlt im Arbeitsbaum (liegt aber im Branch-Commit) — Ursache im Haupt-Checkout pruefen"
+    fi
+  fi
+fi
+
+if [[ -n "$PLAN_FILE" && -n "$SLUG" ]]; then
   # Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird (plan-archive-steps).
   # Best-effort: die Datei liegt im Worktree oder nur im Branch-Commit (T004269).
   [[ -s "$PLAN_FILE" ]] && sed -E -i 's/^status: (active|plan_staged|in_progress|planning)$/status: completed/' "$PLAN_FILE" 2>/dev/null || true
@@ -497,6 +525,34 @@ esac
 # Schritt 10 — Worktree und Branch bereinigen (Reihenfolge: erst Worktree, dann
 # lokaler Branch, dann Remote-Delete — der Merge loescht nicht mehr, T004612).
 if [[ -d "$WORKTREE" ]]; then
+  # [T013315/F1] Selbstloeschungs-Guard. Beobachtet im T013043-Lauf: Wurde das
+  # Skript aus dem Worktree heraus aufgerufen, loeste REPO_DIR zum Worktree auf,
+  # und Schritt 10 entfernte den eigenen Standbaum — Folgeausgaben "fatal:
+  # cannot change to ...", getcwd-Fehler, der nachgelagerte Reaper-Lauf lief
+  # ins Leere, das Skript meldete trotzdem Erfolg. Vor dem Remove daher:
+  #   a) Prozess-cwd aus dem zu entfernenden Baum re-anchor auf das echte Haupt-Repo
+  #      (git-common-dir gilt ueber alle Worktrees desselben Repos),
+  #   b) REPO_DIR umziehen, wenn es selbst im Worktree liegt (alle Folgeschritte
+  #      nutzen es als Git-Anker),
+  #   c) steht die AUFRUFENDE Session im Worktree, klar warnen — ihr cwd wird
+  #      durch den Remove ungueltig; der Cleanup selbst bleibt davon unberuehrt.
+  MAIN_REPO_ABS="$(dirname "$(git -C "$REPO_DIR" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "")")"
+  if [[ -n "$MAIN_REPO_ABS" && "$MAIN_REPO_ABS" != "/" && -d "$MAIN_REPO_ABS" ]]; then
+    _pwd_now="$(pwd -P)"
+    if [[ "$_pwd_now" == "$WORKTREE" || "$_pwd_now" == "$WORKTREE"/* ]]; then
+      echo "WARN: Prozess-cwd liegt im zu entfernenden Worktree — re-anchor auf $MAIN_REPO_ABS (T013315)" >&2
+      cd "$MAIN_REPO_ABS"
+    fi
+    if [[ "$REPO_DIR" == "$WORKTREE" || "$REPO_DIR" == "$WORKTREE"/* ]]; then
+      echo "WARN: REPO_DIR ($REPO_DIR) liegt im zu entfernenden Worktree — Folgeschritte laufen gegen $MAIN_REPO_ABS (T013315)" >&2
+      REPO_DIR="$MAIN_REPO_ABS"
+    fi
+    if [[ "$INVOCATION_DIR" == "$WORKTREE" || "$INVOCATION_DIR" == "$WORKTREE"/* ]]; then
+      mark_warn "Schritt 10: die aufrufende Session steht im entfernten Worktree ($WORKTREE) — ihr cwd wird dadurch ungueltig, ggf. neu einsteigen"
+    fi
+  else
+    mark_warn "Schritt 10: Haupt-Repo-Pfad nicht bestimmbar — Selbstloeschungs-Guard uebersprungen (T013315)"
+  fi
   if git -C "$REPO_DIR" worktree remove "$WORKTREE" --force; then
     mark_ok "Schritt 10: Worktree $WORKTREE entfernt"
   else
@@ -555,5 +611,14 @@ if [[ "$WARN_COUNT" -gt 0 ]]; then
   echo "    $WARN_COUNT Schritt(e) konnten ihre Eingabe nicht aufloesen — siehe [warn] oben. Erneut aufrufbar (idempotent)." >&2
 else
   echo "--- Finalize $TICKET_ID abgeschlossen: $DONE_COUNT erledigt, $SKIP_COUNT uebersprungen, $WARN_COUNT Warnung(en) ---"
+fi
+# [T013315/F3] Uebersprungene Schritte explizit aufloesen — die Zahl allein las
+# sich wie Erfolg lesen. Der Exit-Code bleibt 0 (Idempotenz: ein Wiederholungslauf
+# nach abgeschlossenem Cleanup ist ein legitimer All-Skip-Noop, kein Fehler).
+if [[ "${#SKIP_STEPS[@]}" -gt 0 ]]; then
+  echo "    Uebersprungene Schritte (${#SKIP_STEPS[@]}):" >&2
+  for _skipped in "${SKIP_STEPS[@]}"; do
+    echo "      - $_skipped" >&2
+  done
 fi
 exit 0

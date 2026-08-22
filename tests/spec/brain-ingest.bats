@@ -116,7 +116,11 @@ EOF
 }
 
 @test "T013040 secret gate scans the current deliverable instead of immutable history" {
-  grep -Fq 'gitleaks detect --source . --no-git --no-banner' "$INGEST"
+  # T013844: Der Scan-Scope wurde von '.' auf 'wiki/' verengt (raw/-Dokumente sind
+  # exempt). Der semantische Anker dieses Tests ist --no-git — der Arbeitsbaum wird
+  # gescannt, nie die Historie — nicht das konkrete Source-Argument.
+  grep -Fq 'gitleaks detect' "$INGEST"
+  grep -Fq -- '--no-git' "$INGEST"
 }
 
 @test "orchestrator requires --brain-repo argument" {

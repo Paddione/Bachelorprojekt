@@ -552,9 +552,9 @@ if ! bash scripts/lint-wikilinks.sh . 2>&1; then
     file="$(echo "$line" | awk '{print $2}')"
     dead_slug="$(echo "$line" | grep -oE '\[\[[A-Za-z0-9._-]+\]\]' | head -1 | tr -d '[]')"
     if [ -n "$file" ] && [ -n "$dead_slug" ] && [ -f "$file" ]; then
-      # Remove the dead wikilink (keep the text if aliased)
-      sed -i "s/\[\[${dead_slug}\]\]/${dead_slug}/g" "$file"
-      sed -i "s/\[\[${dead_slug}|[^]]*\]\]/${dead_slug}/g" "$file"
+      # Remove the dead wikilink (keep the text if aliased or anchored)
+      sed -i -E "s/\[\[${dead_slug}(#[^]|]*)?(\|([^]]*))?\]\]/\3\1${dead_slug}/g" "$file" 2>/dev/null \
+        || sed -i "s/\[\[${dead_slug}\]\]/${dead_slug}/g" "$file"
     fi
   done < <(bash scripts/lint-wikilinks.sh . 2>&1 | grep "dead wikilink:" || true)
 
@@ -570,11 +570,9 @@ echo "  Wikilink lint: PASS"
 # Secret scan (if gitleaks available)
 if command -v gitleaks &>/dev/null; then
   echo "Running secret scan..."
-  # Scan the deliverable tree, including generated/untracked pages, rather than
-  # immutable commits already present in the external Brain repository. A
-  # history scan makes every future ingest fail forever on any pre-existing
-  # historical finding, even when the complete current tree is clean.
-  if ! gitleaks detect --source . --no-git --no-banner 2>&1; then
+  # Scan the deliverable tree (wiki/), including generated/untracked pages, rather than
+  # immutable commits or exempt raw/ documents in the external Brain repository.
+  if ! gitleaks detect --source wiki --no-git --no-banner 2>&1; then
     echo "FAIL: Secret scan failed" >&2
     cd "$REPO_ROOT"
     exit 1

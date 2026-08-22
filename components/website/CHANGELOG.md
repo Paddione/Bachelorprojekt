@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.302.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.7...website-v1.302.0) (2026-08-22)
+
+
+### Features
+
+* **llm-proxy:** LLM-Proxy-Administration vollstaendig ins SDLC-Cockpit verlagern [T013909] ([#5041](https://github.com/Paddione/Bachelorprojekt/issues/5041)) ([8ad27fa](https://github.com/Paddione/Bachelorprojekt/commit/8ad27faaed3f06957dd6954eb6e8f33518eb85ae))
+
 ## [1.301.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.6...website-v1.301.7) (2026-08-22)
 
 

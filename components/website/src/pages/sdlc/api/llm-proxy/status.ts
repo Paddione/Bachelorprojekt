@@ -1,10 +1,9 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { listBackends } from '../../../../lib/sdlc/llm-proxy-db';
+import { proxyFetch, classifyProxyError } from '../../../../lib/sdlc/llm-proxy-client';
 
 export const prerender = false;
-
-const PROXY_URL = process.env.LLM_PROXY_URL ?? 'http://127.0.0.1:18235';
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -20,21 +19,29 @@ export const GET: APIRoute = async ({ request, locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 1500);
-    try {
-      const res = await fetch(`${PROXY_URL}/admin/state`, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      return json({ proxy: 'ok', ...data });
-    } finally {
-      clearTimeout(timer);
+    const res = await proxyFetch('/admin/state');
+    if (!res.ok) {
+      const errClassification = classifyProxyError(new Error(`HTTP ${res.status}`), res.status);
+      locals?.requestLogger?.warn({ status: res.status }, '[api/admin/llm-proxy/status] proxy error status, DB fallback');
+      const backends = await listBackends();
+      return json({
+        proxy: errClassification.kind,
+        address: errClassification.address,
+        message: errClassification.message,
+        backends,
+      });
     }
+    const data = (await res.json()) as Record<string, unknown>;
+    return json({ proxy: 'online', ...data });
   } catch (err) {
-    // Offline-tolerant: the cluster website cannot reach the host-local proxy.
-    // Fall back to the DB registry so the GUI can still render backends.
-    locals?.requestLogger?.warn({ err }, '[api/admin/llm-proxy/status] proxy offline, DB fallback');
+    const errClassification = classifyProxyError(err);
+    locals?.requestLogger?.warn({ err }, '[api/admin/llm-proxy/status] proxy unreachable, DB fallback');
     const backends = await listBackends();
-    return json({ proxy: 'offline', backends });
+    return json({
+      proxy: errClassification.kind,
+      address: errClassification.address,
+      message: errClassification.message,
+      backends,
+    });
   }
 };

@@ -14,19 +14,20 @@ async function guard(request: Request): Promise<Response | null> {
   return null;
 }
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const GET: APIRoute = async ({ request, locals }) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
   try {
-    const res = await proxyFetch('/admin/reload', { method: 'POST' });
+    const res = await proxyFetch('/admin/models');
     if (!res.ok) {
       const err = classifyProxyError(new Error(`HTTP ${res.status}`), res.status);
-      return json({ proxy: err.kind, reloaded: false, message: err.message }, res.status);
+      return json({ error: err }, res.status);
     }
-    return json({ ok: true });
+    const data = await res.json();
+    return json(data);
   } catch (err) {
     const classified = classifyProxyError(err);
-    locals?.requestLogger?.warn({ err }, '[api/admin/llm-proxy/reload] proxy offline');
-    return json({ proxy: classified.kind, reloaded: false, message: classified.message });
+    locals?.requestLogger?.error({ err }, '[api/sdlc/llm-proxy/models] GET error');
+    return json({ error: classified }, 503);
   }
 };

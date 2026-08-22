@@ -110,6 +110,13 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: GITHUB_PAT
+            - name: LLM_PROXY_URL
+              value: "http://llm-proxy-host.workspace.svc.cluster.local:18235"
+            - name: LLM_PROXY_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: LLM_PROXY_ADMIN_TOKEN
           ports:
             - name: http
               # Der Astro-Node-Adapter lauscht ohne gesetztes PORT auf 4321 —

@@ -141,6 +141,15 @@ tasks:
         # waehrend der Proxy laeuft und nur ein Backend fehlt. /health kommt danach
         # als eigene Zeile dazu: sie ist die interessante Auskunft, wenn er lebt.
         if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
+          echo "── Listeners ──"
+          echo "Loopback: 127.0.0.1:$PORT"
+          BRIDGE_IP=$(docker network inspect "${LLM_PROXY_K3D_NETWORK:-k3d-mentolder-dev}" -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' 2>/dev/null || true)
+          if [ -n "$BRIDGE_IP" ]; then
+            echo "Bridge:   $BRIDGE_IP:$PORT (requires bearer token)"
+          else
+            echo "Bridge:   closed (k3d network not discovered)"
+          fi
+          echo "── Health & State ──"
           curl -sS "http://127.0.0.1:$PORT/health" | jq '{ready, degraded}'
           curl -fsS "http://127.0.0.1:$PORT/admin/state" | jq .
         else

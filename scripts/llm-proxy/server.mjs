@@ -3,7 +3,8 @@ import http from 'node:http';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
+import { startListeners } from './listeners.mjs';
 import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive, isLoadoutEnabled, factoryModel, factoryLocked } from './loadouts.mjs';
 import os from 'node:os';
 import { scanModels, resolveModelPath } from './models.mjs';
@@ -503,7 +504,7 @@ async function startRequestedLoadout(doc, slug) {
   return p;
 }
 
-const server = http.createServer((req, res) => {
+const requestHandler = (req, res) => {
   const { method, url } = req;
   const path = url.split('?')[0];
   (async () => {
@@ -535,6 +536,9 @@ const server = http.createServer((req, res) => {
     if (path === '/admin/state' && method === 'GET') {
       const state = getState(getBackends);
       const limits = new Map(getBackends().map((b) => [b.name, b.maxInflight ?? 1]));
+      state.port = PORT;
+      state.uptimeSec = Math.floor(process.uptime());
+      state.version = '1.0.0';
       state.backends = state.backends.map((b) => ({
         ...b,
         inflight: inflightOf(b.name),
@@ -546,9 +550,8 @@ const server = http.createServer((req, res) => {
 
     // --- Loadout-Verwaltung -------------------------------------------------
     if ((path === '/admin' || path === '/admin/') && method === 'GET') {
-      const html = readFileSync(new URL('./ui/index.html', import.meta.url), 'utf8');
-      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      return res.end(html);
+      res.writeHead(410, { 'content-type': 'text/plain; charset=utf-8' });
+      return res.end('Die LLM-Proxy-Administration befindet sich im SDLC-Cockpit unter /sdlc.');
     }
     if (path === '/admin/models' && method === 'GET') {
       try {
@@ -726,17 +729,22 @@ const server = http.createServer((req, res) => {
     if (path.startsWith('/v1/') && method === 'POST') return proxyV1(req, res, path.slice(3));
     return sendJson(res, 404, { error: { code: 'not_found', message: path } });
   })().catch((err) => sendJson(res, 502, { error: { code: 'proxy_error', message: err.message } }));
-});
+};
 
 await discovery.probeNow();
 // T003277 — Dispatch-Mitschnitt. Der Timer schreibt gebuendelt; ohne ihn
 // bliebe der Puffer bis zum Herunterfahren liegen.
 requestLog.start();
-server.listen(PORT, '127.0.0.1', () => console.log(`[llm-proxy] listening on 127.0.0.1:${PORT}`));
+const listeners = startListeners(requestHandler, PORT, {
+  bindOverride: process.env.LLM_PROXY_HOST_BIND || null,
+  token: process.env.LLM_PROXY_ADMIN_TOKEN || null,
+  network: process.env.LLM_PROXY_K3D_NETWORK || 'k3d-mentolder-dev',
+});
 
 // Graceful shutdown: stop MCP bridge processes on exit
 async function shutdown(signal) {
-  console.log(`[llm-proxy] ${signal}: stopping bridge...`);
+  console.log(`[llm-proxy] ${signal}: stopping bridge and listeners...`);
+  for (const s of listeners) s.close();
   stopBridge();
   // Den Puffer noch leeren, statt die letzten Mitschnitte zu verlieren.
   // Wirft nie — stop() kapselt den Schreibfehler.

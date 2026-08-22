@@ -86,17 +86,11 @@ running_chat_gpu() {
   status="$(curl -sf "${PROXY_URL}/admin/loadouts/status")" || {
     log "Proxy nicht erreichbar (${PROXY_URL})."; return 1
   }
-  python3 - "$LOADOUTS" "$SLUG" << PYEOF
-import json, sys
-status = json.loads('''${status}''')
-loadouts = json.load(open(sys.argv[1]))
-group = {l["slug"]: l.get("exclusiveGroup") for l in loadouts.get("loadouts", [])}
-for entry in status.get("status", []):
-    slug = entry.get("slug")
-    if entry.get("running") and slug != sys.argv[2] and group.get(slug) == "chat-gpu":
-        print(slug)
-        break
-PYEOF
+  # Die Antwort geht ueber stdin, NICHT per Heredoc-Interpolation in den
+  # Python-Quelltext: eine Antwort, die Anfuehrungszeichen oder einen Backslash
+  # enthaelt, wuerde den Interpreter sonst mit ihrem INHALT fuettern statt mit
+  # ihren Daten — eine Injektionsflaeche ueber eine Netzwerkantwort.
+  printf '%s' "$status" | python3 "${SCRIPT_DIR}/lib/running-chat-gpu.py" "$LOADOUTS" "$SLUG"
 }
 
 # Warten, bis kein Request mehr laeuft. Laufende Requests werden NICHT

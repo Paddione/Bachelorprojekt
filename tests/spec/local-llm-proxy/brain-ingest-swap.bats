@@ -43,8 +43,13 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/admin/loadouts/status":
             log("GET status")
+            extra = {}
+            if os.environ.get("FAKE_QUOTED_LABEL"):
+                # Ein Feld, das Anfuehrungszeichen und Backslash traegt. Wird die
+                # Antwort in Quelltext interpoliert, zerlegt es den Interpreter.
+                extra = {"label": "drei ''' und ein backslash \\\\"}
             return self._send(200, {"status": [
-                {"slug": "gemma4", "port": 8090, "running": RUNNING == "gemma4"},
+                {"slug": "gemma4", "port": 8090, "running": RUNNING == "gemma4", **extra},
                 {"slug": "gemma12-vision", "port": 8089, "running": RUNNING == "gemma12-vision"},
                 {"slug": "brain-ingest", "port": 8100, "running": RUNNING == "brain-ingest"},
             ]})
@@ -233,4 +238,17 @@ SHEOF
   run cat "$LOG"
   [[ "$output" == *"start gemma4"* ]]
   [ ! -f "$PIN_FILE" ]
+}
+
+@test "T013593: eine Antwort mit Anfuehrungszeichen zerlegt den Wrapper nicht" {
+  # Die Proxy-Antwort ist Netzwerk-Eingabe. Wird sie in Python-Quelltext
+  # interpoliert statt ueber stdin gelesen, bricht sie den Interpreter mit
+  # ihrem Inhalt — ein Slug-Name muss dafuer nicht einmal exotisch sein.
+  FAKE_QUOTED_LABEL=1 start_proxy "gemma4"
+  run_swap
+  [ "$status" -eq 0 ]
+
+  run cat "$LOG"
+  [[ "$output" == *"stop gemma4"* ]]
+  [[ "$output" == *"start gemma4"* ]]
 }

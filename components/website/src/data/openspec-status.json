@@ -3933,8 +3933,8 @@
   ],
   "T012909": [
     {
-      "slug": "mishap-incident-rollup-2026-08-20-T012909",
-      "status": "plan_staged"
+      "slug": "2026-08-22-mishap-incident-rollup-2026-08-20-T012909",
+      "status": "archived"
     }
   ],
   "T012913": [
@@ -3957,8 +3957,8 @@
   ],
   "T012973": [
     {
-      "slug": "mishap-incident-rollup-2026-08-21-T012973",
-      "status": "plan_staged"
+      "slug": "2026-08-22-mishap-incident-rollup-2026-08-21-T012973",
+      "status": "archived"
     }
   ],
   "T013029": [
@@ -4025,6 +4025,12 @@
     {
       "slug": "2026-08-22-health-dashboard-rescan",
       "status": "archived"
+    }
+  ],
+  "T013329": [
+    {
+      "slug": "e2e-suite-entskippen",
+      "status": "plan_staged"
     }
   ],
   "T013330": [

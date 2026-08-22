@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1181,
+      "file_count": 1182,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -491,6 +491,7 @@
         "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
         "tests/spec/ci-cd/docs-content-guards.bats",
         "tests/spec/ci-cd/e2e-project-selection.bats",
+        "tests/spec/ci-cd/factory-shard-optimization.bats",
         "tests/spec/ci-cd/fetch-refspec-forced.bats",
         "tests/spec/ci-cd/fix-ticket-commit-guard.bats",
         "tests/spec/ci-cd/freshness-check-base-mismatch.bats",

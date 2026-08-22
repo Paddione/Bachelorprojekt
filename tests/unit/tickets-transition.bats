@@ -51,11 +51,6 @@ db_available() {
   psql "$PGURL" -c "SELECT 1" >/dev/null 2>&1
 }
 
-# tsx runtime tests require components/website/node_modules (including pg) to be installed.
-tsx_available() {
-  [[ -d "${PROJECT_DIR}/components/website/node_modules/pg" ]]
-}
-
 seed_ticket() {
   local status="${1:-triage}"
   psql "$PGURL" >/dev/null <<SQL
@@ -145,7 +140,7 @@ SQL
 # ── Runtime: validation errors (no DB needed) ─────────────────────
 
 @test "runtime: rejects unknown status" {
-  if ! tsx_available; then skip "components/website/node_modules not installed (run npm install in components/website/)"; fi
+
   output=$(SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
     import { transitionTicket } from '${PROJECT_DIR}/components/website/src/lib/tickets/transition.ts';
     transitionTicket('00000000-0000-0000-0000-000000000000', { status: 'banana' as any, actor: { label: 'test' } })
@@ -156,7 +151,7 @@ SQL
 }
 
 @test "runtime: rejects done without resolution" {
-  if ! tsx_available; then skip "components/website/node_modules not installed (run npm install in components/website/)"; fi
+
   output=$(SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
     import { transitionTicket } from '${PROJECT_DIR}/components/website/src/lib/tickets/transition.ts';
     transitionTicket('00000000-0000-0000-0000-000000000000', { status: 'done', actor: { label: 'test' } })
@@ -167,7 +162,7 @@ SQL
 }
 
 @test "runtime: rejects archived without resolution" {
-  if ! tsx_available; then skip "components/website/node_modules not installed (run npm install in components/website/)"; fi
+
   output=$(SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
     import { transitionTicket } from '${PROJECT_DIR}/components/website/src/lib/tickets/transition.ts';
     transitionTicket('00000000-0000-0000-0000-000000000000', { status: 'archived', actor: { label: 'test' } })
@@ -178,7 +173,7 @@ SQL
 }
 
 @test "runtime: rejects unknown resolution" {
-  if ! tsx_available; then skip "components/website/node_modules not installed (run npm install in components/website/)"; fi
+
   output=$(SESSIONS_DATABASE_URL="$PGURL" $TSX_BIN -e "
     import { transitionTicket } from '${PROJECT_DIR}/components/website/src/lib/tickets/transition.ts';
     transitionTicket('00000000-0000-0000-0000-000000000000', { status: 'done', resolution: 'banana' as any, actor: { label: 'test' } })

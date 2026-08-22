@@ -1,0 +1,379 @@
+{
+  "meta": {
+    "slug": "llm-proxy-admin-cockpit",
+    "ticket_id": "T013909",
+    "generated_from": "main@df8ac0aa2",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/components/sdlc/factory/LlmLoadoutPanel.svelte",
+      "language": "svelte",
+      "loc": 0,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "language": "svelte",
+      "loc": 168,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 932
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5870,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/__tests__/llm-proxy-client.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/llm-proxy-client.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/llm-proxy-factory.ts",
+      "language": "javascript",
+      "loc": 101,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 799
+    },
+    {
+      "path": "components/website/src/lib/sdlc/model-catalog.ts",
+      "language": "javascript",
+      "loc": 180,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 720
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/llm-proxy/loadouts.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/llm-proxy/loadouts/[slug]/[action].ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/llm-proxy/loadouts/pin.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/llm-proxy/loadouts/status.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/llm-proxy/models.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/llm-proxy/status.ts",
+      "language": "javascript",
+      "loc": 40,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 860
+    },
+    {
+      "path": "k3d/sdlc-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 28,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sdlc-stack/llm-proxy-host.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sdlc-stack/sdlc-console.yaml",
+      "language": "config",
+      "loc": 157,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/secrets.yaml",
+      "language": "config",
+      "loc": 133,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/listeners.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/listeners.test.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/llm-proxy.service",
+      "language": "text",
+      "loc": 69,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/server.mjs",
+      "language": "javascript",
+      "loc": 742,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 58
+    },
+    {
+      "path": "scripts/llm-proxy/ui/index.html",
+      "language": "text",
+      "loc": 149,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.llm.yml",
+      "language": "config",
+      "loc": 298,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/host-listener-auth.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:28:  function blankForm() {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "28:  function blankForm() {(...)",
+      "type_text": "28:  function blankForm() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:68:  function toggleEnabled(b: BackendState) { patchBackend(b.id, { enabled: !b.enabled }); }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "68:  function toggleEnabled(b: BackendState) { patchBackend(b.id, { enabled: !b.enabled }); }(...)",
+      "type_text": "68:  function toggleEnabled(b: BackendState) { patchBackend(b.id, { enabled: !b.enabled }); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:69:  function bump(b: BackendState, delta: number) { patchBackend(b.id, { priority: Math.max(0, b.priority + delta) }); }",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "69:  function bump(b: BackendState, delta: number) { patchBackend(b.id, { priority: Math.max(0, b.priority + delta) }); }(...)",
+      "type_text": "69:  function bump(b: BackendState, delta: number) { patchBackend(b.id, { priority: Math.max(0, b.priority + delta) }); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte:83:  function startEdit(b: BackendState) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/factory/LlmProxyPanel.svelte",
+      "signature": "83:  function startEdit(b: BackendState) {(...)",
+      "type_text": "83:  function startEdit(b: BackendState) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sdlc/model-catalog.ts:84:function healthyBackends(backends: BackendState[]): { name: string; models: string[] }[] {",
+      "kind": "function",
+      "file": "components/website/src/lib/sdlc/model-catalog.ts",
+      "signature": "84:function healthyBackends(backends: BackendState[]): { name: string; models: string[] }[] {(...)",
+      "type_text": "84:function healthyBackends(backends: BackendState[]): { name: string; models: string[] }[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sdlc/model-catalog.ts:105:    loadConfiguredRows().catch(() => ({ rows: [] as never[] })),",
+      "kind": "function",
+      "file": "components/website/src/lib/sdlc/model-catalog.ts",
+      "signature": "105:    loadConfiguredRows().catch(() => ({ rows: [] as never[] })),(...)",
+      "type_text": "105:    loadConfiguredRows().catch(() => ({ rows: [] as never[] })),(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sdlc/model-catalog.ts:106:    fetchProxyBackends(),",
+      "kind": "function",
+      "file": "components/website/src/lib/sdlc/model-catalog.ts",
+      "signature": "106:    fetchProxyBackends(),(...)",
+      "type_text": "106:    fetchProxyBackends(),(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sdlc/model-catalog.ts:139:    loadConfiguredRows(),",
+      "kind": "function",
+      "file": "components/website/src/lib/sdlc/model-catalog.ts",
+      "signature": "139:    loadConfiguredRows(),(...)",
+      "type_text": "139:    loadConfiguredRows(),(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sdlc/model-catalog.ts:140:    fetchProxyBackends(),",
+      "kind": "function",
+      "file": "components/website/src/lib/sdlc/model-catalog.ts",
+      "signature": "140:    fetchProxyBackends(),(...)",
+      "type_text": "140:    fetchProxyBackends(),(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:35:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "35:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "type_text": "35:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:119:function sendJson(res, status, obj) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "119:function sendJson(res, status, obj) {(...)",
+      "type_text": "119:function sendJson(res, status, obj) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:294:function withSwitchLock(fn) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "294:function withSwitchLock(fn) {(...)",
+      "type_text": "294:function withSwitchLock(fn) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:329:function portInUse(doc, port, exceptSlug) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "329:function portInUse(doc, port, exceptSlug) {(...)",
+      "type_text": "329:function portInUse(doc, port, exceptSlug) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:735:  stopBridge();",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "735:  stopBridge();(...)",
+      "type_text": "735:  stopBridge();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/ui/index.html:117:  refresh()",
+      "kind": "function",
+      "file": "scripts/llm-proxy/ui/index.html",
+      "signature": "117:  refresh()(...)",
+      "type_text": "117:  refresh()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/ui/index.html:143:  refresh()",
+      "kind": "function",
+      "file": "scripts/llm-proxy/ui/index.html",
+      "signature": "143:  refresh()(...)",
+      "type_text": "143:  refresh()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/ui/index.html:146:refresh()",
+      "kind": "function",
+      "file": "scripts/llm-proxy/ui/index.html",
+      "signature": "146:refresh()(...)",
+      "type_text": "146:refresh()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/ui/index.html:147:loadModels()",
+      "kind": "function",
+      "file": "scripts/llm-proxy/ui/index.html",
+      "signature": "147:loadModels()(...)",
+      "type_text": "147:loadModels()(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

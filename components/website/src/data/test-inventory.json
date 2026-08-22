@@ -4158,6 +4158,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/lifecycle",
+    "file": "tests/spec/mishap-rollup/lifecycle.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/rollup-carryover",
     "file": "tests/spec/mishap-rollup/rollup-carryover.bats",
     "category": "mishap-rollup",

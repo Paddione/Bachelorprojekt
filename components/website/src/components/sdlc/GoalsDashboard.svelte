@@ -1,15 +1,113 @@
 <script lang="ts">
   import { GOALS, ACTIVE_GOALS, GREEN_GATES, CATEGORIES, healthPercent } from '../../lib/sdlc/goals-data';
   import type { HealthGoal } from '../../lib/sdlc/goals-data';
+  import type { ScanResult } from '../../lib/sdlc/health-scan';
+  import type { TicketOutcome } from '../../lib/sdlc/health-goal-tickets';
 
   let selectedCategory = 'Alle';
   let expandedId: string | null = null;
+
+  // T013306 — Auswahl & Aktionen
+  const MAX_IDS_PER_REQUEST = 25; // Spiegel der Obergrenze aus api/health-goals/*
+  let selected = new Set<string>();
+  let scanning = false;
+  let creatingTickets = false;
+  let actionError = '';
+  let scanResults: Record<string, ScanResult> = {};
+  let scannedAt: string | null = null;
+  let ticketOutcomes: TicketOutcome[] = [];
 
   $: categoryList = ['Alle', ...CATEGORIES];
 
   $: filtered = selectedCategory === 'Alle'
     ? ACTIVE_GOALS
     : ACTIVE_GOALS.filter(g => g.category === selectedCategory);
+
+  // Gesamtzahl zählt übergreifend zum Filter — sonst verschickt der Button
+  // mehr Ziele, als der Nutzer sieht.
+  $: selectedCount = selected.size;
+  $: overLimit = selectedCount > MAX_IDS_PER_REQUEST;
+  $: busy = scanning || creatingTickets;
+
+  function toggleSelected(id: string) {
+    if (selected.has(id)) {
+      selected.delete(id);
+    } else {
+      selected.add(id);
+    }
+    selected = new Set(selected); // Svelte 4 erkennt Set-Mutationen nicht
+  }
+
+  function clearSelection() {
+    selected = new Set<string>();
+    actionError = '';
+  }
+
+  async function rescanSelected() {
+    if (selectedCount === 0 || busy || overLimit) return;
+    scanning = true;
+    actionError = '';
+    scanResults = {};
+    scannedAt = null;
+    try {
+      const res = await fetch('/sdlc/api/health-goals/rescan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [...selected] }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        actionError = `Rescan fehlgeschlagen (${res.status}): ${body.error ?? 'unbekannter Fehler'}`;
+      } else {
+        const map: Record<string, ScanResult> = {};
+        for (const r of body.results as ScanResult[]) map[r.id] = r;
+        scanResults = map;
+        scannedAt = body.scannedAt ?? null;
+      }
+    } catch (err) {
+      actionError = `Rescan fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`;
+    } finally {
+      scanning = false;
+    }
+  }
+
+  async function createTicketsForSelection() {
+    if (selectedCount === 0 || busy || overLimit) return;
+    creatingTickets = true;
+    actionError = '';
+    ticketOutcomes = [];
+    try {
+      const res = await fetch('/sdlc/api/health-goals/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [...selected] }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        actionError = `Tickets erzeugen fehlgeschlagen (${res.status}): ${body.error ?? 'unbekannter Fehler'}`;
+      } else {
+        ticketOutcomes = body.outcomes as TicketOutcome[];
+      }
+    } catch (err) {
+      actionError = `Tickets erzeugen fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`;
+    } finally {
+      creatingTickets = false;
+    }
+  }
+
+  function outcomeLabel(o: TicketOutcome): string {
+    if (o.status === 'created') return `${o.id}: Ticket ${o.ticketId} angelegt`;
+    if (o.status === 'skipped') return `${o.id}: übersprungen — bereits offen: „${o.existingTitle}”`;
+    return `${o.id}: FEHLER — ${o.error ?? 'unbekannt'}`;
+  }
+
+  function driftLabel(r: ScanResult, goal: HealthGoal): string {
+    if (!r.measurable) return '';
+    if (goal.current !== null && r.actual !== undefined && r.actual !== goal.current) {
+      return '⚠ abweichend vom dokumentierten Wert';
+    }
+    return '✓ entspricht dokumentiertem Wert';
+  }
 
   function toggle(id: string) {
     expandedId = expandedId === id ? null : id;
@@ -63,6 +161,9 @@
       {ACTIVE_GOALS.filter(g => g.status === 'critical').length} kritisch ·
       {ACTIVE_GOALS.filter(g => g.status === 'at_risk').length} gefährdet ·
       {GREEN_GATES.length} Gates grün
+      {#if scannedAt}
+        · <span class="scan-stamp">↻ Rescan: {new Date(scannedAt).toLocaleString('de-DE')}</span>
+      {/if}
     </p>
   </header>
 
@@ -78,15 +179,66 @@
     {/each}
   </nav>
 
+  <!-- Aktionsleiste: sticky, sobald etwas markiert ist -->
+  {#if selectedCount > 0}
+    <div class="action-bar" role="toolbar" aria-label="Aktionen für markierte Ziele">
+      <div class="action-row">
+        <span class="selection-count">{selectedCount} markiert</span>
+        <button class="action-btn" on:click={clearSelection}>Auswahl aufheben</button>
+        <button
+          class="action-btn primary"
+          disabled={busy || overLimit}
+          on:click={rescanSelected}
+        >
+          {scanning ? '⏳ Scanne…' : '⟳ Neu scannen'}
+        </button>
+        <button
+          class="action-btn primary"
+          disabled={busy || overLimit}
+          on:click={createTicketsForSelection}
+        >
+          {creatingTickets ? '⏳ Lege Tickets an…' : '🎫 Tickets erzeugen'}
+        </button>
+      </div>
+      {#if overLimit}
+        <p class="action-warn">Maximal {MAX_IDS_PER_REQUEST} Ziele je Anfrage — Auswahl reduzieren.</p>
+      {/if}
+      {#if actionError}
+        <p class="action-error">⚠ {actionError}</p>
+      {/if}
+      {#if scanning}
+        <p class="action-hint">Rescan läuft — ein Lauf mehrerer Ziele kann Minuten dauern.</p>
+      {/if}
+      {#if ticketOutcomes.length > 0}
+        <ul class="ticket-outcomes">
+          {#each ticketOutcomes as o (o.id)}
+            <li class:class-ok={o.status === 'created'} class:class-skip={o.status === 'skipped'} class:class-fail={o.status === 'failed'}>
+              {outcomeLabel(o)}
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+  {/if}
+
   <div class="goals-grid" role="list">
     {#each filtered as goal (goal.id)}
       {@const pct = healthPercent(goal)}
+      {@const scan = scanResults[goal.id]}
       <article
         class="goal-card"
         class:expanded={expandedId === goal.id}
         data-priority={goal.priority}
         role="listitem"
       >
+        <div class="goal-select">
+          <input
+            type="checkbox"
+            checked={selected.has(goal.id)}
+            on:change={() => toggleSelected(goal.id)}
+            aria-label="{goal.id} {goal.title} markieren"
+          />
+        </div>
         <button class="goal-header" on:click={() => toggle(goal.id)} aria-expanded={expandedId === goal.id}>
           <div class="goal-meta">
             <span class="goal-id">{goal.id}</span>
@@ -115,6 +267,20 @@
           <span class="status-pill">{statusLabel(goal)}</span>
           <span class="goal-category">{goal.category}</span>
         </div>
+
+        <!-- Rescan-Overlay: frischer Wert NEBEN dem dokumentierten (REQ-HEALTH-GOALS-011),
+             "nicht messbar" im Klartext statt Wert (REQ-HEALTH-GOALS-012) -->
+        {#if scan}
+          <div class="scan-overlay" data-measurable={scan.measurable}>
+            {#if scan.measurable}
+              <span class="scan-fresh">↻ frisch: <strong>{scan.actual}{goal.unit === '%' ? '%' : goal.unit !== 'Exit' ? ' ' + goal.unit : ''}</strong></span>
+              <span class="scan-drift" data-drift={driftLabel(scan, goal).startsWith('⚠') ? 'warn' : 'ok'}>{driftLabel(scan, goal)}</span>
+            {:else}
+              <span class="scan-unmeasurable">nicht messbar</span>
+              <span class="scan-drift">Messung lieferte keinen Wert</span>
+            {/if}
+          </div>
+        {/if}
 
         <!-- Expanded calibration info -->
         {#if expandedId === goal.id}
@@ -150,6 +316,12 @@
       <ul class="gates-list">
         {#each GREEN_GATES as g}
           <li class="gate-item">
+            <input
+              type="checkbox"
+              checked={selected.has(g.id)}
+              on:change={() => toggleSelected(g.id)}
+              aria-label="{g.id} {g.title} markieren"
+            />
             <span class="gate-id">{g.id}</span>
             <span class="gate-title">{g.title}</span>
             {#if g.current !== null}
@@ -224,11 +396,97 @@
     border-radius: 8px;
     overflow: hidden;
     transition: border-color 0.15s;
+    position: relative;
   }
   .goal-card:hover { border-color: #334155; }
   .goal-card[data-priority="A"] { border-left: 3px solid #ef4444; }
   .goal-card[data-priority="B"] { border-left: 3px solid #f59e0b; }
   .goal-card[data-priority="C"] { border-left: 3px solid #22c55e; }
+
+  /* T013306 — Auswahl-Checkbox: bewusst AUSSERHALB des goal-header-buttons
+     (input in button wäre ungültiges Markup und würde das Ausklappen triggern) */
+  .goal-select {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.6rem;
+    z-index: 2;
+  }
+  .goal-select input {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+    accent-color: #38bdf8;
+  }
+
+  .scan-overlay {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.68rem;
+    border-top: 1px dashed #334155;
+    background: #0c1424;
+  }
+  .scan-fresh { color: #38bdf8; }
+  .scan-fresh strong { color: #7dd3fc; }
+  .scan-drift { color: #94a3b8; }
+  .scan-drift[data-drift="warn"] { color: #f59e0b; }
+  .scan-unmeasurable {
+    color: #f87171;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .scan-stamp { color: #38bdf8; }
+
+  /* Aktionsleiste */
+  .action-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #020617;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .selection-count { color: #f8fafc; font-weight: 700; margin-right: 0.25rem; }
+  .action-btn {
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .action-btn:hover:not(:disabled) { color: #e2e8f0; border-color: #64748b; }
+  .action-btn.primary { border-color: #0369a1; color: #38bdf8; }
+  .action-btn.primary:hover:not(:disabled) { background: #0c4a6e; color: #bae6fd; }
+  .action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .action-warn { color: #f59e0b; font-size: 0.7rem; margin: 0.4rem 0 0; }
+  .action-error { color: #ef4444; font-size: 0.7rem; margin: 0.4rem 0 0; word-break: break-word; }
+  .action-hint { color: #64748b; font-size: 0.68rem; margin: 0.4rem 0 0; }
+  .ticket-outcomes {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0.4rem 0 0;
+    border-top: 1px solid #1e293b;
+    font-size: 0.68rem;
+  }
+  .ticket-outcomes li { padding: 0.15rem 0; word-break: break-word; }
+  .ticket-outcomes li.class-ok { color: #22c55e; }
+  .ticket-outcomes li.class-skip { color: #f59e0b; }
+  .ticket-outcomes li.class-fail { color: #ef4444; }
 
   .goal-header {
     width: 100%; background: none; border: none; cursor: pointer;

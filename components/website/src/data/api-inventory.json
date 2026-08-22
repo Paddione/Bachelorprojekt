@@ -539,6 +539,32 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/health-goals/rescan",
+      "file": "health-goals/rescan.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/health-goals/tickets",
+      "file": "health-goals/tickets.ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/ki/catalog",
       "file": "ki/catalog.ts",
       "methods": [

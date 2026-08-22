@@ -4009,6 +4009,12 @@
       "status": "archived"
     }
   ],
+  "T013306": [
+    {
+      "slug": "health-dashboard-rescan",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

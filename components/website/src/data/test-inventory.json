@@ -4524,6 +4524,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/half-archive-unprefixed",
+    "file": "tests/spec/openspec-workflow/half-archive-unprefixed.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/main-staging-guard",
     "file": "tests/spec/openspec-workflow/main-staging-guard.bats",
     "category": "openspec-workflow",

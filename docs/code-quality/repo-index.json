@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1186,
+      "file_count": 1187,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -801,6 +801,7 @@
         "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
         "tests/spec/openspec-workflow/delta-scenario-guard.bats",
         "tests/spec/openspec-workflow/design-location-guard.bats",
+        "tests/spec/openspec-workflow/half-archive-fork-scaling.bats",
         "tests/spec/openspec-workflow/half-archive-guard.bats",
         "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
         "tests/spec/openspec-workflow/main-staging-guard.bats",

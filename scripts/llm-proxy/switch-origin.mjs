@@ -34,18 +34,32 @@ function firstHeader(headers, names) {
  * leere Zeichenkette waere im Journal von "kein Client" nicht zu unterscheiden
  * — dieselbe Verwechslung, die den Blind Spot ausmachte.
  *
+ * Die Remote-Adresse steht dabei neben dem Client-Namen und nicht an seiner
+ * Stelle: der Proxy bindet 127.0.0.1, die Adresse trennt die Loopback-Clients
+ * also nicht — sie belegt nur, DASS der Aufruf lokal kam. Bei Incident T013527
+ * fehlte beides, weshalb opencode/agy/factory/codex einzeln von Hand
+ * ausgeschlossen werden mussten [T013540].
+ *
  * @param {Record<string, string|undefined>} headers Request-Header (lowercase)
  * @param {string|null} requestedModel Das Modell, das die Anfrage verlangt hat
- * @returns {string} z.B. `model=qwen38-220k client=opencode/1.4 ticket=T013527`
+ * @param {string|null} remoteAddress req.socket.remoteAddress des Aufrufers
+ * @returns {string} z.B. `model=qwen38-220k client=opencode/1.4 addr=127.0.0.1 ticket=T013527`
  */
-export function switchOrigin(headers = {}, requestedModel = null) {
+export function switchOrigin(headers = {}, requestedModel = null, remoteAddress = null) {
   const client = firstHeader(headers, CLIENT_HEADERS) ?? UNKNOWN
   const ticket = firstHeader(headers, ['x-dispatch-ticket'])
   const model = requestedModel != null && String(requestedModel).trim() !== ''
     ? String(requestedModel).trim()
     : UNKNOWN
 
-  const parts = [`model=${model}`, `client=${client}`]
+  // x-forwarded-for gewinnt gegen die Socket-Adresse: laeuft ein Gateway
+  // davor, ist dessen Adresse die uninteressante von beiden.
+  const addr = firstHeader(headers, ['x-forwarded-for'])
+    ?? (remoteAddress != null && String(remoteAddress).trim() !== ''
+      ? String(remoteAddress).trim()
+      : UNKNOWN)
+
+  const parts = [`model=${model}`, `client=${client}`, `addr=${addr}`]
   if (ticket) parts.push(`ticket=${ticket}`)
   return parts.join(' ')
 }

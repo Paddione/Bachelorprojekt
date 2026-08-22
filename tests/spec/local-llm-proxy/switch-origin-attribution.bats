@@ -62,3 +62,20 @@ _call() {
   [ "$status" -eq 0 ]
   [ "$output" = "starte qwen38-220k" ]
 }
+
+@test "T013540: switchOrigin nennt die Remote-Adresse des Aufrufers" {
+  # Der Proxy bindet 127.0.0.1, aber die Adresse trennt die Loopback-Clients
+  # nicht — sie belegt, DASS der Aufruf lokal kam. Bei der Attribution von
+  # Incident T013527 wurden opencode/agy/factory/codex nur manuell
+  # ausgeschlossen, weil die Zeile keinen einzigen Herkunftshinweis trug.
+  run _call switchOrigin '[{"user-agent":"opencode/1.4"},"qwen38-220k","127.0.0.1"]'
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qF -e '127.0.0.1'
+  echo "$output" | grep -qF -e 'opencode/1.4'
+}
+
+@test "T013540: switchOrigin weist eine fehlende Remote-Adresse aus statt sie wegzulassen" {
+  run _call switchOrigin '[{"user-agent":"opencode/1.4"},"qwen38-220k",null]'
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qF -e 'addr=unbekannt'
+}

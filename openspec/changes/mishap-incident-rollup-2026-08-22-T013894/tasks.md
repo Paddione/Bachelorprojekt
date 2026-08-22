@@ -31,8 +31,8 @@ openspec/changes/mishap-incident-rollup-2026-08-22-T013328/tasks.md  Eintrag 5 d
 
 Dieser Container ist der vierte in Folge, der denselben einzigen Eintrag traegt: er wurde aus
 `T013328` nach `T013784`, `T013893` und hierher weitergereicht, weil er dort nie eine Disposition
-bekam (`T013328` #5 stand auf **OFFEN** mit Verweis auf das dispatchte Ticket T013540 — dieses ist
-in der am 2026-08-18 verworfenen Ticket-DB nicht mehr auffindbar). Der Carry-over-Scan
+bekam (`T013328` #5 stand auf **OFFEN** mit Verweis auf das dispatchte Ticket T013540 — dieses stand
+unbearbeitet im backlog und wird mit diesem Zyklus geschlossen). Der Carry-over-Scan
 (`scripts/factory/rollup-carryover.sh --scan`) liest ausschliesslich Plaene aus dem
 Repository-HEAD; die Plaene von T013784 und T013893 lagen nur branch-lokal vor und waren damit nie
 Quelle, sondern selbst nur Kopien. Mit der Disposition in `T013328` und hier faellt die Quelle weg:

@@ -85,14 +85,16 @@ RP="scripts/factory/route-provider.sh"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # D3 — route-provider.sh: Skip-Phase-Pin für Escalation
+# Seit T013302 existiert der Phasen-Pin gar nicht mehr — die Escalation-Leiter
+# kann deshalb strukturell nicht mehr übersteuert werden. Die Tests wachen
+# darüber, dass der Pin nicht zurückkommt.
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T002369-D3: route-provider.sh unterstützt ROUTE_SKIP_PINNED" {
-  grep -q 'ROUTE_SKIP_PINNED' "$RP"
-}
-
-@test "T002369-D3: route-provider.sh überspringt Phase-Pin wenn ROUTE_SKIP_PINNED=true" {
-  grep -q 'ROUTE_SKIP_PINNED.*true' "$RP"
+@test "T002369-D3/T013302: kein ROUTE_SKIP_PINNED und kein Phasen-Pin im Router" {
+  run grep -q 'ROUTE_SKIP_PINNED' "$RP"
+  [ "$status" -ne 0 ]
+  run grep -q 'factory_model_slots' "$RP"
+  [ "$status" -ne 0 ]
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

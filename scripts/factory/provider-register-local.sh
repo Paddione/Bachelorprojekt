@@ -19,8 +19,8 @@
 # 2026-07-23 Redesign (unveraendert gueltig): der Server laeuft mit einem Slot —
 # gleichzeitige Factory-/Orchestrator-Dispatches serialisieren in der FIFO-Queue
 # von scripts/llm-proxy, daher max_concurrent=1. Scout/Plan behalten ihr
-# Routing; route-provider.sh bevorzugt factory_model_slots (Phasen-Pin) vor
-# provider_config, eine Codeaenderung dort ist nicht noetig.
+# Routing; seit T013302 laeuft das Routing ausschliesslich ueber
+# provider_config, der fruehere Phasen-Pin ist entfallen.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
@@ -50,14 +50,6 @@ ON CONFLICT (source, tier, priority) DO UPDATE
   SET provider = EXCLUDED.provider, model_id = EXCLUDED.model_id,
       base_url = EXCLUDED.base_url, max_concurrent = EXCLUDED.max_concurrent,
       enabled = true, updated_at = now();
-
-INSERT INTO tickets.factory_model_slots (phase, provider, model_id, base_url, set_by)
-VALUES
-  ('implement', 'llamacpp', :'model_id', :'base_url', 'provider-register-local'),
-  ('verify',    'llamacpp', :'model_id', :'base_url', 'provider-register-local')
-ON CONFLICT (phase) DO UPDATE
-  SET provider = EXCLUDED.provider, model_id = EXCLUDED.model_id,
-      base_url = EXCLUDED.base_url, set_by = EXCLUDED.set_by, updated_at = now();
 SQL
   echo "local provider registered for $b — model=$MODEL_ID url=$GATEWAY_URL"
 done

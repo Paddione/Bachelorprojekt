@@ -30,9 +30,9 @@ export const leitstandPurposes: Record<string, LeitstandPurpose> = {
     aktionen: ['Kill-Switch umschalten', 'DryRun umschalten'],
   },
   'deck-ki': {
-    zweck: 'LLM-Routing, Modell-Slots, Dispatch-Mitschnitt und Insights an einem Ort buendeln.',
-    datenquelle: 'LlmProxyPanel/KiRoutingPanel/FactoryModelSlots-Adapter, listDispatches, leitstand-metrics.ts',
-    aktionen: ['Routing-Regel aendern', 'Modell-Slot zuweisen'],
+    zweck: 'LLM-Routing mit Factory-Default, Dispatch-Mitschnitt und Insights an einem Ort buendeln.',
+    datenquelle: 'LlmProxyPanel/KiRoutingPanel-Adapter (/sdlc/api/llm-proxy/*), listDispatches, leitstand-metrics.ts',
+    aktionen: ['Routing-Regel aendern', 'Factory-Standardmodell setzen'],
   },
   'deck-wissen': {
     zweck: 'API-Katalog und OpenSpec-Suche als Nachschlage-Deck anbieten.',

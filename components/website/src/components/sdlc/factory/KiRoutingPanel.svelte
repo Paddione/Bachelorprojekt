@@ -13,10 +13,43 @@
   interface Health {
     provider: string; cooldown_until: string | null; active_agents: number;
   }
+  interface FactorySelectable { slug: string; label: string; port: number }
+  interface FactoryDefault {
+    model: string | null;
+    locked: boolean;
+    mtimeMs: number;
+    selectable: FactorySelectable[];
+  }
+  interface CatalogEntry {
+    provider: string;
+    modelId: string;
+    available: boolean | null;
+  }
+  interface PhaseResolution {
+    phase: string;
+    source: string;
+    configuredModel: string | null;
+    inheritsDefault: boolean;
+    servedModel: string | null;
+    fallback: boolean;
+    backendName: string | null;
+  }
 
   let providerEntries = $state<ProviderEntry[]>([]);
   let providerHealth = $state<Health[]>([]);
   let catalog = $state<InterfaceDef[]>([]);
+  // Modell-Auswahlliste (Proxy ∪ DB) und effektive Auflösung pro Phase —
+  // berechnet serverseitig in lib/sdlc/model-catalog.ts, hier nur Anzeige.
+  let modelChoices = $state<CatalogEntry[]>([]);
+  let resolutions = $state<PhaseResolution[]>([]);
+  let catalogError = $state<string | null>(null);
+
+  // Factory-Default (llm-proxy loadouts.json factory.model)
+  let factoryDefault = $state<FactoryDefault | null>(null);
+  let factoryOffline = $state(false);
+  let savingFactory = $state(false);
+  let factoryConflict = $state(false);
+
   let openDrawerPhase = $state<string | null>(null);
   let editId = $state<number | null>(null);
   let confirmingDelete = $state<number | null>(null);
@@ -34,23 +67,108 @@
     }
   }
 
-  async function loadProvidersAndCatalog() {
+  async function fetchJson<T>(url: string): Promise<{ ok: boolean; body: T | null; status: number }> {
     try {
-      const [provRes, catRes] = await Promise.all([
-        fetch('/sdlc/api/ki/providers', { credentials: 'same-origin' }),
-        fetch('/sdlc/api/ki/catalog', { credentials: 'same-origin' }),
-      ]);
-      if (provRes.ok) {
-        const { entries: e, health: h } = await provRes.json();
-        providerEntries = e ?? [];
-        providerHealth = h ?? [];
+      const res = await fetch(url, { credentials: 'same-origin' });
+      const ok = res.ok;
+      return { ok, status: res.status, body: ok ? ((await res.json()) as T) : null };
+    } catch {
+      return { ok: false, status: 0, body: null };
+    }
+  }
+
+  async function loadProvidersAndCatalog() {
+    const [provRes, catRes] = await Promise.all([
+      fetchJson<{ entries: ProviderEntry[]; health: Health[] }>('/sdlc/api/ki/providers'),
+      fetchJson<{ catalog: InterfaceDef[] }>('/sdlc/api/ki/catalog'),
+    ]);
+    if (provRes.ok && provRes.body) {
+      providerEntries = provRes.body.entries ?? [];
+      providerHealth = provRes.body.health ?? [];
+    }
+    if (catRes.ok && catRes.body) {
+      catalog = catRes.body.catalog ?? [];
+    }
+  }
+
+  async function loadFactoryDefault() {
+    const res = await fetchJson<FactoryDefault & { error?: string }>('/sdlc/api/llm-proxy/factory');
+    if (res.ok && res.body) {
+      factoryDefault = {
+        model: res.body.model ?? null,
+        locked: res.body.locked === true,
+        mtimeMs: res.body.mtimeMs ?? 0,
+        selectable: res.body.selectable ?? [],
+      };
+      factoryOffline = false;
+    } else {
+      // Der Proxy wird ausdrücklich als nicht erreichbar benannt — kein leerer
+      // Default darf ihn vortäuschen.
+      factoryOffline = true;
+      factoryDefault = null;
+    }
+  }
+
+  async function loadCatalogAndResolutions() {
+    const res = await fetchJson<{
+      entries: CatalogEntry[];
+      resolutions: PhaseResolution[];
+      error?: string;
+    }>('/sdlc/api/llm-proxy/catalog');
+    if (res.ok && res.body) {
+      modelChoices = res.body.entries ?? [];
+      resolutions = res.body.resolutions ?? [];
+      catalogError = null;
+    } else {
+      catalogError = 'Modell-Katalog nicht ladbar';
+    }
+  }
+
+  async function reloadAll() {
+    await Promise.all([loadProvidersAndCatalog(), loadFactoryDefault(), loadCatalogAndResolutions()]);
+  }
+
+  function resolutionFor(phase: string): PhaseResolution | undefined {
+    return resolutions.find((r) => r.phase === phase);
+  }
+
+  function showToast(msg: string) {
+    toast = msg;
+    setTimeout(() => { if (toast === msg) toast = ''; }, 5000);
+  }
+
+  async function saveFactoryDefault(slug: string) {
+    if (!factoryDefault || !slug) return;
+    savingFactory = true;
+    factoryConflict = false;
+    try {
+      const res = await fetch('/sdlc/api/llm-proxy/factory', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          model: slug,
+          locked: factoryDefault.locked,
+          mtimeMs: factoryDefault.mtimeMs,
+        }),
+      });
+      if (res.status === 409) {
+        // Jemand anders hat geschrieben — nicht still überschreiben, sondern
+        // den Konflikt benennen und das Nachladen anbieten.
+        factoryConflict = true;
+        showToast('Standard wurde anderswo geändert — bitte neu laden.');
+        return;
       }
-      if (catRes.ok) {
-        const { catalog: c } = await catRes.json();
-        catalog = c ?? [];
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        showToast(body.error ?? `Fehler ${res.status}`);
+        return;
       }
-    } catch (err) {
-      browserLogger.error({ err }, '[KiRoutingPanel] Failed to load providers');
+      const body = (await res.json()) as { saved: boolean; mtimeMs: number };
+      factoryDefault = { ...factoryDefault, model: slug, mtimeMs: body.mtimeMs };
+      showToast(`Standard auf ${slug} gesetzt.`);
+    } finally {
+      savingFactory = false;
     }
   }
 
@@ -66,41 +184,45 @@
     return mapping[phase] || '*';
   }
 
-  function activeConfigForPhase(phase: string, allEntries: ProviderEntry[]): ProviderEntry | undefined {
-    const src = sourceForPhase(phase);
-    const specific = allEntries.filter(e => e.source === src && e.enabled).sort((a, b) => a.priority - b.priority);
-    if (specific.length) return specific[0];
-    const global = allEntries.filter(e => e.source === '*' && e.enabled).sort((a, b) => a.priority - b.priority);
-    if (global.length) return global[0];
-    return undefined;
+  function entryKey(entry: CatalogEntry): string {
+    return `${entry.provider}|${entry.modelId}`;
   }
 
-  let activeConfigsByPhase = $derived<Record<string, ProviderEntry | undefined>>({
-    scout: activeConfigForPhase('scout', providerEntries),
-    design: activeConfigForPhase('design', providerEntries),
-    plan: activeConfigForPhase('plan', providerEntries),
-    implement: activeConfigForPhase('implement', providerEntries),
-    verify: activeConfigForPhase('verify', providerEntries),
-    deploy: activeConfigForPhase('deploy', providerEntries),
-  });
-
-  const PHASE_LABELS: Record<string, string> = {
-    scout: 'Sichten (factory-scout)',
-    design: 'Entwurf (factory-plan)',
-    plan: 'Planung (factory-plan)',
-    implement: 'Umsetzung (factory-implement)',
-    verify: 'Prüfung (factory-review)',
-    deploy: 'Auslieferung (factory-implement)',
-  };
-
-  function entriesForPhase(phase: string): ProviderEntry[] {
-    const src = sourceForPhase(phase);
-    return providerEntries.filter((e) => e.source === src).sort((a, b) => a.priority - b.priority);
+  function configuredKey(phase: string): string {
+    const r = resolutionFor(phase);
+    if (!r?.configuredModel) return '';
+    const match = modelChoices.find((e) => e.modelId === r.configuredModel);
+    return match ? entryKey(match) : `raw|${r.configuredModel}`;
   }
 
-  function showToast(msg: string) {
-    toast = msg;
-    setTimeout(() => { if (toast === msg) toast = ''; }, 5000);
+  async function changePhaseModel(phase: string, key: string) {
+    if (!key) return;
+    const [provider, modelId] = key.startsWith('raw|')
+      ? ['local', key.slice(4)]
+      : [key.slice(0, key.indexOf('|')), key.slice(key.indexOf('|') + 1)];
+    if (!modelId) return;
+    const source = sourceForPhase(phase);
+    const existing = providerEntries
+      .filter((e) => e.source === source)
+      .sort((a, b) => a.priority - b.priority)[0];
+
+    const payload = existing
+      ? { provider, model_id: modelId }
+      : { source, tier: 'sonnet', priority: 1, provider, model_id: modelId, base_url: null, max_concurrent: 3, enabled: true };
+
+    const res = await fetch(existing ? `/sdlc/api/ki/providers/${existing.id}` : '/sdlc/api/ki/providers', {
+      method: existing ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      showToast(body.error ?? `Zuordnung fehlgeschlagen (${res.status})`);
+      return;
+    }
+    await loadCatalogAndResolutions();
+    await loadProvidersAndCatalog();
   }
 
   function closeDrawer() { openDrawerPhase = null; editId = null; confirmingDelete = null; }
@@ -133,7 +255,7 @@
       return;
     }
     editId = null;
-    await loadProvidersAndCatalog();
+    await reloadAll();
   }
 
   async function changePriority(e: ProviderEntry, delta: number) {
@@ -159,22 +281,120 @@
       showToast(body.error ?? 'Löschen fehlgeschlagen');
       return;
     }
-    await loadProvidersAndCatalog();
+    await Promise.all([loadProvidersAndCatalog(), loadCatalogAndResolutions()]);
   }
 
-  onMount(() => { void loadProvidersAndCatalog(); });
+  const PHASE_LABELS: Record<string, string> = {
+    scout: 'Sichten (factory-scout)',
+    design: 'Entwurf (factory-plan)',
+    plan: 'Planung (factory-plan)',
+    implement: 'Umsetzung (factory-implement)',
+    verify: 'Prüfung (factory-review)',
+    deploy: 'Auslieferung (factory-implement)',
+  };
+
+  function entriesForPhase(phase: string): ProviderEntry[] {
+    const src = sourceForPhase(phase);
+    return providerEntries.filter((e) => e.source === src).sort((a, b) => a.priority - b.priority);
+  }
+
+  onMount(() => { void reloadAll(); browserLogger.debug('[KiRoutingPanel] geladen'); });
 </script>
 
 <div class="ki-routing-panel">
   <h3 class="kr-title">KI-Routing</h3>
-  <div class="kr-phases">
-    {#each Object.entries(PHASE_LABELS) as [phase, label]}
-      <button class="kr-phase-btn" onclick={() => { openDrawerPhase = phase; }}>
-        <span class="kr-phase-label">{label}</span>
-        <span class="kr-phase-model">{activeConfigsByPhase[phase]?.model_id ?? '–'}</span>
-      </button>
-    {/each}
-  </div>
+
+  <table class="kr-table" data-testid="ki-phase-table">
+    <thead>
+      <tr><th>Phase</th><th>Konfiguriert</th><th>Liefert derzeit</th><th></th></tr>
+    </thead>
+    <tbody>
+      <!-- Kopfzeile: der Factory-Default (source='*'-Äquivalent am Proxy) -->
+      <tr class="kr-default-row" data-testid="ki-factory-default">
+        <td class="kr-phase-label">Standard / Alle Phasen</td>
+        <td colspan="2">
+          {#if factoryOffline}
+            <span class="kr-offline">llm-proxy nicht erreichbar — Standard nur lesbar, kein Schreiben möglich.</span>
+          {:else if factoryDefault}
+            <div class="kr-default-controls">
+              <select
+                aria-label="Factory-Standardmodell"
+                value={factoryDefault.model ?? ''}
+                onchange={(e) => void saveFactoryDefault((e.target as HTMLSelectElement).value)}
+                disabled={savingFactory}
+              >
+                <option value="" disabled>— Standard wählen —</option>
+                {#each factoryDefault.selectable as opt (opt.slug)}
+                  <option value={opt.slug}>{opt.label} ({opt.slug})</option>
+                {/each}
+              </select>
+              {#if factoryDefault.model}<code class="kr-current">{factoryDefault.model}</code>{/if}
+              {#if factoryDefault.locked}<span class="kr-badge">fixiert</span>{/if}
+              {#if factoryConflict}
+                <button class="ff-pill ff-pill--ghost" onclick={() => void loadFactoryDefault()}>
+                  Neu laden
+                </button>
+              {/if}
+            </div>
+          {:else}
+            <span class="kr-mute">Standard wird geladen…</span>
+          {/if}
+        </td>
+        <td></td>
+      </tr>
+
+      {#each PHASE_LABELS as [phase, label] (phase)}
+        {@const r = resolutionFor(phase)}
+        <tr data-testid={`ki-phase-${phase}`}>
+          <td class="kr-phase-label">
+            {label}
+            {#if r?.inheritsDefault}<span class="kr-badge kr-badge--inherits">erbt Standard</span>{/if}
+          </td>
+          <td>
+            {#if catalogError}
+              <span class="kr-offline">{catalogError}</span>
+            {:else}
+              <select
+                aria-label={`Konfiguriertes Modell für ${label}`}
+                value={configuredKey(phase)}
+                onchange={(e) => void changePhaseModel(phase, (e.target as HTMLSelectElement).value)}
+              >
+                <option value="">— wie Standard —</option>
+                {#each modelChoices as entry (entryKey(entry))}
+                  <option value={entryKey(entry)}>
+                    {entry.provider} / {entry.modelId}{entry.available === false ? ' · nicht verfügbar' : ''}
+                  </option>
+                {/each}
+                {#if r?.configuredModel && !modelChoices.some((e) => e.modelId === r.configuredModel)}
+                  <option value={`raw|${r.configuredModel}`}>{r.configuredModel}</option>
+                {/if}
+              </select>
+            {/if}
+          </td>
+          <td>
+            {#if r?.servedModel}
+              {#if r.fallback}
+                <span class="kr-fallback">→ {r.servedModel}</span>
+              {:else}
+                {r.servedModel}
+              {/if}
+              {#if r.backendName}<span class="kr-backend"> @ {r.backendName}</span>{/if}
+            {:else}
+              <span class="kr-mute">—</span>
+            {/if}
+          </td>
+          <td>
+            <button
+              class="ff-pill ff-pill--ghost"
+              onclick={() => { openDrawerPhase = phase; }}
+              aria-label={`Routing für ${label} bearbeiten`}
+            >Kette…</button>
+          </td>
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+
   <a href="/sdlc/cockpit?deck=ki" class="kr-link">→ Key- & Provider-Konfiguration</a>
 
   {#if openDrawerPhase}
@@ -216,32 +436,92 @@
     color: var(--admin-text-mute, #8c96a3);
     margin: 0 0 1rem 0;
   }
-  .kr-phases {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .kr-phase-btn {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
+  .kr-table {
+    width: 100%;
+    border-collapse: collapse;
     background: var(--admin-surface, #161b22);
     border: 1px solid var(--admin-border, #21262d);
     border-radius: var(--admin-radius, 0.375rem);
-    color: var(--admin-text, #e6edf3);
-    cursor: pointer;
-    transition: background 0.15s;
+    overflow: hidden;
+    font-size: 13px;
   }
-  .kr-phase-btn:hover {
-    background: var(--admin-surface-hover, #1c2129);
+  .kr-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--admin-font-mono, monospace);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--admin-text-mute, #8c96a3);
+    border-bottom: 1px solid var(--admin-border, #21262d);
+  }
+  .kr-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--admin-border, #21262d);
+    vertical-align: middle;
+  }
+  .kr-table tr:last-child td {
+    border-bottom: none;
+  }
+  .kr-default-row td {
+    background: rgba(129, 140, 248, 0.06);
   }
   .kr-phase-label {
     font-size: 13px;
+    white-space: nowrap;
   }
-  .kr-phase-model {
+  .kr-default-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .kr-current {
     font-family: var(--admin-font-mono, monospace);
     font-size: 11px;
+    color: var(--admin-text-mute, #8c96a3);
+  }
+  .kr-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-family: var(--admin-font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(129, 140, 248, 0.15);
+    color: var(--admin-primary, #818cf8);
+  }
+  .kr-badge--inherits {
+    margin-left: 0.5rem;
+    background: rgba(139, 148, 158, 0.15);
+    color: var(--admin-text-mute, #8c96a3);
+  }
+  .kr-select,
+  select {
+    width: 100%;
+    max-width: 320px;
+    background: var(--admin-surface-hover, #1c2129);
+    border: 1px solid var(--admin-border, #21262d);
+    border-radius: var(--admin-radius, 0.375rem);
+    color: var(--admin-text, #e6edf3);
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  .kr-fallback {
+    color: var(--admin-warning, #d29922);
+  }
+  .kr-backend {
+    font-family: var(--admin-font-mono, monospace);
+    font-size: 11px;
+    color: var(--admin-text-mute, #8c96a3);
+  }
+  .kr-offline {
+    color: var(--danger, #f85149);
+    font-family: var(--admin-font-mono, monospace);
+    font-size: 12px;
+  }
+  .kr-mute {
     color: var(--admin-text-mute, #8c96a3);
   }
   .kr-link {

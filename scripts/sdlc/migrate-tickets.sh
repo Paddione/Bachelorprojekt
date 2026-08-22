@@ -301,7 +301,7 @@ cmd_restore() {
   # Das Zielschema wird VOR dem Restore fallen gelassen. Ohne das schlaegt der
   # Restore fehl, und zwar irrefuehrend: E2 laesst `initTicketsSchema()` das
   # lokale Schema bootstrappen, und dessen Stand weicht von fleet ab (gemessen
-  # 2026-08-08: `api_key_env` in factory_model_slots und `claimed_at` in
+  # 2026-08-08: `api_key_env` in der damaligen Slot-Tabelle und `claimed_at` in
   # provider_health fehlten lokal). pg_restore stolpert dann ueber bestehende
   # Objekte, die COPYs laufen in Fremdschluesselverletzungen, und am Ende
   # stehen leere Tabellen ohne erkennbaren Grund.

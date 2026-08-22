@@ -104,7 +104,7 @@ be removed.
 
 The rollup container ticket created by `scripts/ticket.sh rollup-container` SHALL NOT describe
 itself as permanently open. Its description SHALL state the ephemeral lifecycle: the container
-collects one batch and is closed (`done · resolution=obsolete`) after the generator has consumed
+collects one batch and is closed (`done · resolution=fixed`) after the generator has consumed
 it.
 
 #### Scenario: Fresh container description states the ephemeral lifecycle

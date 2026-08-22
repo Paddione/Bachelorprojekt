@@ -3,8 +3,8 @@
   Startet llama-server.exe fuer Gemma 4 12B QAT mit MTP-Draft-Head (Port 8091).
 .DESCRIPTION
   Chat-Modell fuer die Factory-Phasen plan/implement/verify. Die
-  Routing-Entscheidung faellt NICHT hier, sondern in tickets.factory_model_slots
-  bzw. tickets.provider_config (siehe
+  Routing-Entscheidung faellt NICHT hier, sondern in tickets.provider_config
+  (siehe
   scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql). Dieses Skript
   startet nur den Server.
 

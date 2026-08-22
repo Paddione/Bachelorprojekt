@@ -14,7 +14,6 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$HERE/lib.sh"; factory_resolve
 SOURCE="${1:?source required}"; TIER="${2:?tier required}"
-PHASE="${3:-}"
 
 PIN="$(factory_model_pin)"
 PIN_MODEL=""; PIN_LOCKED="0"
@@ -27,15 +26,6 @@ if [[ -n "$PIN" ]]; then
   fi
 fi
 FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-gemma26-throughput}}"
-
-if [[ -z "$PHASE" ]]; then
-  case "$SOURCE" in
-    factory-scout)     PHASE="scout" ;;
-    factory-plan)      PHASE="plan" ;;
-    factory-implement) PHASE="implement" ;;
-    factory-review)    PHASE="verify" ;;
-  esac
-fi
 
 # Tier "opus": Modell aus der Registry, aber OHNE Slot-Claim.
 #
@@ -98,43 +88,9 @@ SQL
   exit 0
 fi
 
-# Der Phase-Pin aus factory_model_slots ist Kandidat #0, nicht das Ergebnis [T002359].
-# Bis hierher returnte dieser Block beim ersten Treffer und uebersprang damit
-# Priority-Kette, provider_health, Cooldown und Claim vollstaendig — die gesamte
-# Fallback-Logik darunter war fuer plan/implement/verify toter Code.
-#
-# factory_model_slots hat keine max_concurrent-Spalte; der Literalwert 3 haelt das
-# Feldformat mit provider_config deckungsgleich, damit beide Quellen dieselbe
-# Claim-Schleife durchlaufen.
-#
-# FELDTRENNER \x1f STATT TAB [T002359]: Tab ist fuer bash ein IFS-WHITESPACE-Zeichen —
-# aufeinanderfolgende Tabs verschmelzen zu einem einzigen Trenner und leere Felder
-# verschwinden spurlos. Bei einer Cloud-Zeile ohne context_budget rutschte dadurch
-# api_key_env in die budget-Variable, und der Claim brach mit
-# `invalid input syntax for type integer: "DEEPSEEK_API_KEY_PK"` ab — also ausgerechnet
-# auf der Fallback-Stufe, die dieses Ticket ueberhaupt erst erreichbar macht. Der Unit
-# Separator ist kein Whitespace, daher bleiben leere Felder als leere Felder erhalten.
-PINNED=""
-# T002369: ROUTE_SKIP_PINNED=true überspringt den Phase-Pin (factory_model_slots)
-# und sucht direkt in provider_config. Die Escalation-Leiter (haiku/sonnet) darf
-# nicht vom lokalen Phase-Pin übersteuert werden.
-if [[ -n "$PHASE" && "${ROUTE_SKIP_PINNED:-false}" != "true" ]]; then
-  # max_concurrent kommt NICHT als Literal: factory_model_slots fuehrt die Spalte nicht,
-  # aber der Cap gehoert zum Provider, nicht zur Tier-Zeile. Ein fester Wert wuerde den
-  # konfigurierten Cap unterlaufen — registriert provider-register-local.sh llamacpp mit
-  # max_concurrent=1, liessen drei parallele Ticks trotzdem drei Claims gegen das Literal
-  # durch. MIN() ueber die enabled provider_config-Zeilen desselben Providers waehlt
-  # bewusst den strengsten konfigurierten Cap; 3 bleibt nur der Fallback fuer einen
-  # Provider, der ueberhaupt keine Zeile hat.
-  PINNED=$(factory_psql -v phase="$PHASE" <<'SQL'
-SELECT s.provider||E'\x1f'||s.model_id||E'\x1f'||COALESCE(s.base_url,'')
-       ||E'\x1f'||COALESCE((SELECT MIN(c.max_concurrent) FROM tickets.provider_config c
-                             WHERE c.provider = s.provider AND c.enabled = true), 3)
-       ||E'\x1f'||0||E'\x1f'||''||E'\x1f'||COALESCE(s.api_key_env,'')
-FROM tickets.factory_model_slots s WHERE s.phase = :'phase';
-SQL
-)
-fi
+# T013302: Der fruehere Phase-Pin aus der damaligen Slot-Tabelle ist entfernt —
+# provider_config ist die einzige DB-Quelle des Routings. Der Factory-Default
+# lebt am llm-proxy (factory_model_pin oben) und greift dort, wo er gesperrt ist.
 
 # Ordered candidates: source-specific before '*', then priority asc.
 CANDS=$(factory_psql -v src="$SOURCE" -v tier="$TIER" <<'SQL'
@@ -146,7 +102,6 @@ WHERE (source=:'src' OR source='*') AND tier=:'tier' AND enabled=true
 ORDER BY (source=:'src') DESC, priority ASC;
 SQL
 )
-[[ -n "$PINNED" ]] && CANDS="${PINNED}"$'\n'"${CANDS}"
 
 while IFS=$'\x1f' read -r prov model burl maxc ctx budget keyenv; do
   [[ -z "$prov" ]] && continue

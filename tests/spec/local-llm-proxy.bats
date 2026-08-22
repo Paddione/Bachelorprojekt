@@ -127,17 +127,17 @@ _skip_if_no_db() {
   grep -q '"no_backend"' /tmp/llmproxy_body
 }
 
-@test "route-provider.sh factory-implement sonnet -> Pin :18235 (kein :8093)" {
+@test "route-provider.sh factory-implement sonnet -> Gateway :18235 (kein :8093)" {
   _skip_if_no_db
   # Bis T002359 gab der Phase-Zweig den Pin bedingungslos zurueck — ohne Claim, ohne
-  # Health-Check. Deshalb war eine Laufzeit-Assertion auf die baseUrl hier stabil.
-  # Seit T002359 ist der Pin nur noch Kandidat #0: ist sein Slot belegt, waehlt die
-  # Kette bewusst den naechsten Provider. Der Test wird darum in zwei Teile zerlegt.
+  # Health-Check. Seit T013302 existiert der Phasen-Pin gar nicht mehr: die
+  # implement-Konfiguration lebt ausschliesslich in provider_config. Der Test
+  # wurde darum in zwei Teile zerlegt.
 
-  # Teil 1 — Konfiguration, deterministisch: der Pin fuer die implement-Phase muss auf
+  # Teil 1 — Konfiguration, deterministisch: die implement-Zuordnung muss auf
   # den Proxy zeigen. Das ist die eigentliche T002277-Aussage und haengt an keinem Slot.
   run bash -c "source '${REPO_ROOT}/scripts/factory/lib.sh'; factory_resolve; \
-    factory_psql -t -A -c \"SELECT COALESCE(base_url,'') FROM tickets.factory_model_slots WHERE phase='implement'\""
+    factory_psql -t -A -c \"SELECT DISTINCT COALESCE(base_url,'') FROM tickets.provider_config WHERE source IN ('factory-implement','factory-review') AND enabled=true\""
   [ "$status" -eq 0 ]
   echo "$output" | grep -q '127.0.0.1:18235'
 

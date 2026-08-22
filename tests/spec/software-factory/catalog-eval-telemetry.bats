@@ -695,9 +695,14 @@ STUB
   [ "$status" -ne 0 ]
 }
 
-@test "FA-SF-72: route-provider.sh queries factory_model_slots and accepts a phase argument" {
-  grep -q "tickets.factory_model_slots" scripts/factory/route-provider.sh
-  grep -Eq "PHASE=" scripts/factory/route-provider.sh
+@test "FA-SF-72: route-provider.sh routet ohne Phasen-Pin ausschliesslich ueber provider_config [T013302]" {
+  # T013302: tickets.factory_model_slots ist entfernt — der Router darf die
+  # Tabelle weder lesen noch einen Phasen-Pin als Kandidat #0 einspeisen.
+  run grep -q "factory_model_slots" scripts/factory/route-provider.sh
+  [ "$status" -ne 0 ]
+  # Ein drittes Argument (Phase) hat keinen Effekt mehr: kein PHASE=-Pin-Pfad.
+  run grep -Eq '^PHASE=' scripts/factory/route-provider.sh
+  [ "$status" -ne 0 ]
 }
 
 @test "T001806: factory-prep.sh must not pipe watchdog into the non-reading log() function" {

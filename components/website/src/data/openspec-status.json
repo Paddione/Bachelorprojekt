@@ -3955,6 +3955,12 @@
       "status": "plan_staged"
     }
   ],
+  "T012973": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-21-T012973",
+      "status": "plan_staged"
+    }
+  ],
   "T013029": [
     {
       "slug": "2026-08-21-fix-e2e-suite-flakes",
@@ -3988,6 +3994,12 @@
   "T013300": [
     {
       "slug": "2026-08-22-fix-t013300-filen-remote-retention",
+      "status": "archived"
+    }
+  ],
+  "T013302": [
+    {
+      "slug": "2026-08-22-ki-deck-modell-konsolidierung",
       "status": "archived"
     }
   ],

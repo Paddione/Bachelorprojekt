@@ -4158,6 +4158,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/lifecycle",
+    "file": "tests/spec/mishap-rollup/lifecycle.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/rollup-carryover",
     "file": "tests/spec/mishap-rollup/rollup-carryover.bats",
     "category": "mishap-rollup",
@@ -4826,6 +4832,12 @@
   {
     "id": "sdlc-cockpit/k9-stil-datenbank",
     "file": "tests/spec/sdlc-cockpit/k9-stil-datenbank.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/ki-deck-eine-tabelle",
+    "file": "tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

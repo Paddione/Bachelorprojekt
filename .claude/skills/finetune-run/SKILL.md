@@ -15,10 +15,10 @@ Ein Trainingslauf **innerhalb dieses Repos** — nicht eine allgemeine Unsloth/T
 ## Warum ein eigenes Repo-Skill statt direkt unsloth-buddy
 
 `unsloth-buddy` kennt Unsloth/TRL, aber nicht die Vorbedingungen, die der Vorversuch
-(`unsloth_training_setup/`, siehe T002587) teuer gelernt hat: ein geratenes `max_seq_length`
-kuerzte 45% des Korpus, ein driftendes Chat-Template kostete Trainings-/Serving-Konsistenz.
-Dieses Skill erzwingt die Reihenfolge; die eigentliche Unsloth/TRL-Fachkompetenz kommt vom
-Plugin.
+(inzwischen ersetzt durch `scripts/finetune/` — siehe `scripts/finetune/README.md`, T002587)
+teuer gelernt hat: ein geratenes `max_seq_length` kuerzte 45% des Korpus, ein driftendes
+Chat-Template kostete Trainings-/Serving-Konsistenz. Dieses Skill erzwingt die Reihenfolge;
+die eigentliche Unsloth/TRL-Fachkompetenz kommt vom Plugin.
 
 ## Ablauf
 

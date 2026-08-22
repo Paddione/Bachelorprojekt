@@ -14,6 +14,11 @@ Für sofortige manuelle Ausführung: Skill explizit aufrufen.
 
 ## Ablauf (Referenz)
 
+> **⚠ Historisch:** Die Pfade in den Phasen unten sind überholt (`website/` ist leer — der
+> Code liegt in `components/website/`, und pnpm wird im Repo nicht verwendet; `brett/` hat
+> kein package.json). Die Befehle dienen als Ablauf-Muster, nicht als ausführbare Anleitung;
+> bei manueller Ausführung Pfade gegen den aktuellen Stand prüfen.
+
 ### Phase 1: Audit
 
 ```bash

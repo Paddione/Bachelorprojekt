@@ -27,7 +27,6 @@ setup() {
   LOCK_SH="$REPO/scripts/agent-lock.sh"
   EXEC_SKILL="$REPO/.opencode/skills/opencode-flow-execute/SKILL.md"
   EXEC_PHASES="$REPO/.claude/skills/references/dev-flow-execute-phases.md"
-  PREFLIGHT="$REPO/.claude/skills/references/ticket-preflight-lock.md"
   FACTORY_PREP="$REPO/scripts/vda/factory-prep.sh"
 }
 
@@ -119,11 +118,11 @@ _section() {  # <file> <start-regex>
   [ "$(printf '%s\n' "$block" | grep -cF 'check-and-claim ticket')" -eq 0 ]
 }
 
-@test "ticket-preflight-lock −1.2 claimt branch-scoped, kein check-and-claim ticket" {
-  block="$(_section "$PREFLIGHT" '^### Schritt −1\.2')"
+@test "dev-flow-execute-phases Pre-Flight behandelt Claim-Exit-Codes (ehem. ticket-preflight-lock.md, T014027)" {
+  block="$(_section "$EXEC_PHASES" '^## Schritt −1 bis 0\.5')"
   [ -n "$block" ]
-  [ "$(printf '%s\n' "$block" | grep -cF 'claim branch')" -gt 0 ]
-  [ "$(printf '%s\n' "$block" | grep -cF 'check-and-claim ticket')" -eq 0 ]
+  [ "$(printf '%s\n' "$block" | grep -cF 'case $RET in')" -gt 0 ]
+  [ "$(printf '%s\n' "$block" | grep -cF 'exit 1')" -ge 2 ]
 }
 
 @test "Claim-Verifikation + Release im opencode-flow-execute sind branch-scoped" {

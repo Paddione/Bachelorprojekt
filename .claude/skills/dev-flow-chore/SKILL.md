@@ -10,7 +10,7 @@ description: 'Use for maintenance with NO behavior change — documentation, dep
 > `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
 > Haupt-Checkout landen (T002357-Falle).
 
-Der gemeinsame [Lifecycle-Vertrag](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md) besitzt hier den No-Behavior-Change-Einstieg und delegiert Git-, Verifikations- und Cleanup-Mechanik an `git-workflow` bzw. `verification-block`. Reine Playwright-Änderungen laufen als spezialisierter test-only Chore über `dev-flow-e2e`.
+Der gemeinsame [Lifecycle-Vertrag](.claude/skills/references/dev-flow-lifecycle.md) besitzt hier den No-Behavior-Change-Einstieg und delegiert Git-, Verifikations- und Cleanup-Mechanik an `git-workflow` bzw. `verification-block`. Reine Playwright-Änderungen laufen als spezialisierter test-only Chore über `dev-flow-e2e`.
 
 ## Wann diese Skill greift
 
@@ -43,27 +43,13 @@ einem Rutsch erledigt und gemergt. Für Features/Fixes stattdessen `dev-flow-pla
 
 ## Schritt 0: Reaper & Pull-First
 
-Bei fremder Aktivität im Haupt-Checkout wird der Sync übersprungen (siehe
-`scripts/lib/main-checkout-foreign-guard.sh`, T003078/T003097) — der lokale
-`main`-Sync ist Hygiene, keine Korrektheitsvoraussetzung für den nachfolgenden
+Läuft nach **`git-workflow` Schritt 0** (SSOT — dort die vollständige Sequenz inkl.
+`git-stash-net.sh pop --by-message` und der Stash-Pop-Verifikation; hier keine eigene
+Kopie pflegen). Nur chore-spezifisch: Bei fremder Aktivität im Haupt-Checkout wird der
+lokale `main`-Sync übersprungen — `mc_foreign_activity_detected` aus
+`scripts/lib/main-checkout-foreign-guard.sh` entscheidet das (T003078/T003097). Der
+lokale `main`-Sync ist Hygiene, keine Korrektheitsvoraussetzung für den nachfolgenden
 `worktree-create.sh`-Aufruf, der ohnehin von `origin/main` aus anlegt.
-
-```bash
-bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombies/stale Worktrees/tote Locks räumen
-git fetch origin main
-if git diff --quiet HEAD; then
-  git pull --rebase origin main
-else
-  . scripts/lib/main-checkout-foreign-guard.sh
-  if mc_foreign_activity_detected "$(pwd)"; then
-    echo "dev-flow-chore: main checkout ist dirty UND ein fremder Agent-Prozess ist dort aktiv — lokaler main-Sync wird übersprungen. scripts/worktree-create.sh (Schritt 1) erstellt den Worktree direkt von origin/main." >&2
-  else
-    git stash
-    git pull --rebase origin main
-    git stash pop
-  fi
-fi
-```
 
 ## Schritt 0.5: Wiederkehrend oder einmalig?
 
@@ -117,7 +103,7 @@ bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label
 > Matching case-insensitiv (T001873), Groß-/Kleinschreibung im Slug spielt also keine Rolle.
 
 Claim-Semantik, main-checkout-Sonderfall (`claim main-checkout`) und Release:
-[session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
+[session-coordination](.claude/skills/references/session-coordination.md).
 
 Überspringe die Ticket-Erstellung, wenn bereits eine `TICKET_EXT_ID` gesetzt ist (z.B.
 bei Wiederverwendung eines bestehenden Tickets). Sonst lege ein minimales Audit-Ticket
@@ -137,19 +123,19 @@ fi
 ## Schritt 2: Änderungen vornehmen
 
 Setze die Wartung um. Bei mechanischer Arbeit über mehrere Dateien kannst du an einen passend
-provisionierten Subagenten delegieren (siehe [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Chores sind i.d.R. `haiku`/`sonnet`, Effort low).
+provisionierten Subagenten delegieren (siehe [subagent-provisioning](.claude/skills/references/subagent-provisioning.md) — Chores sind i.d.R. `haiku`/`sonnet`, Effort low).
 
 ## Schritt 3: Verifizieren
 
 Verify-Block ausführen (die vier Befehle, Freshness-Guard, S1-Ratchet-Erklärung) — **SSOT:**
-[verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
+[verification-block](.claude/skills/references/verification-block.md).
 
 > **⚠ S1-Gate-Guard (Chores ohne Plan!):** Chores haben kein Zeilenbudget-Planungsschritt.
 > Berührt die Chore Code-Dateien (`.ts/.svelte/.astro/.sh/.mjs/...`), vor dem Commit den
 > **Restbudget-Check** aus dem verification-block laufen lassen (`plan-lint.sh residual_budget`-
 > Schleife) — bei Restbudget ≤ 0 die Datei **echt verkleinern**, nicht kosmetisch zusammenziehen.
 
-Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm-Gotchas in Worktrees.
+Siehe [dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm-Gotchas in Worktrees.
 
 ## Schritt 4: Commit, Push & PR
 
@@ -174,7 +160,7 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 ## Schritt 6: Worktree & Branch bereinigen
 
 **`git-workflow` Schritt 7** (SSOT): Im Haupt-Repo zuerst den Agent-Lock freigeben
-([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md) —
+([session-coordination](.claude/skills/references/session-coordination.md) —
 `release ticket` + `release branch`, ohne stderr-Unterdrückung, T006290), dann
 `git -C "$MAIN_REPO" worktree remove .worktrees/<slug> --force && git -C "$MAIN_REPO" branch -D chore/<slug> && git -C "$MAIN_REPO" push origin --delete chore/<slug>` im Haupt-Repo.
 
@@ -184,7 +170,7 @@ Beim Test-only-Kurzpfad (Schritt 1) gibt es keinen Worktree zu entfernen — nur
 ## Schritt 7: Deploy (falls nötig)
 
 Nur wenn die Chore deploybare Pfade berührt — Mapping in
-[deploy-routing](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md) (Single Source of Truth).
+[deploy-routing](.claude/skills/references/deploy-routing.md) (Single Source of Truth).
 
 ---
 

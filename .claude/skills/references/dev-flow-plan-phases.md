@@ -22,7 +22,7 @@ bash scripts/plan-intel.sh <slug>
 ```
 Das Skript befüllt `openspec/changes/<slug>/intel.json` aus der Plan-Datei (target_files),
 berechnet S1-Budgets via `scripts/plan-lint.sh`-Hooks und extrahiert Symbole per `grep`.
-Schema + Quellen-Mapping: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+Schema + Quellen-Mapping: [plan-intel-bundle](.claude/skills/references/plan-intel-bundle.md).
 `api_contracts` und `external_types` bleiben beim Planner — der Generator überschreibt nicht,
 was der Planner von Hand ergänzt hat. Fehlt eine Quelle, entsteht ein `risks[]`-Eintrag.
 Das Bundle informiert bereits das Brainstorming (A.4).
@@ -92,7 +92,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 Übertrage den Brainstorming-Output (WARUM + WAS) nach `openspec/changes/<slug>/proposal.md`.
 Der Implementierungsplan wird **ausschließlich** in `openspec/changes/<slug>/tasks.md` geschrieben.
 #### Schritt A.6: Playwright-Projekt-Gate (optional)
-Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
+Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
 ### Phase B: Worktree anlegen + Branch pushen (Pipeline-Start)
 
 🚨 **Pipeline-Prinzip:** Der Branch und Worktree werden JETZT angelegt und gepusht,
@@ -263,7 +263,7 @@ deklarieren (D2 — `scripts/plan-lint.sh` validiert Referenzen und Azyklizität
 sein Manifest-Eintrag, die Ausgabe von
 `bash scripts/plan-intel-filter.sh <slug> <target_files...>` (deterministisch
 gefilterte `intel.json` für genau seine Dateien) und die
-[plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)-Referenz.
+[plan-quality-gates](.claude/skills/references/plan-quality-gates.md)-Referenz.
 Jeder schreibt SEINE `openspec/changes/<slug>/tasks.d/pX-<name>.md`; der Orchestrator
 schreibt den `tasks.md`-**Index** mit der `## Partials`-Manifest-Tabelle
 (`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> |`), der `## File Structure`
@@ -275,7 +275,7 @@ den jeder Fan-out-Subagent für sein Partial bekommt):
 
 Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt ein **zur Plan-Komplexität passendes Modell + Effort**. Du selbst behältst den vollen Brainstorming-Kontext.
 1. Committe und pushe die Spec-Datei auf den Feature-Branch.
-2. Spawne einen Subagenten, provisioniert gemäß [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md):
+2. Spawne einen Subagenten, provisioniert gemäß [subagent-provisioning](.claude/skills/references/subagent-provisioning.md):
    - **Claude Code:** Über das `Agent`/`Task`-Tool (`subagent_type: general-purpose`) — Plan-Schreiben ist reasoning-lastige Meta-Arbeit: Modell-Default `opus` (triviale chore-artige Pläne: `sonnet`), Effort high; bei großen multi-subsystem-Specs die ultra-Stufe (`Workflow`-Fan-out).
    - **opencode:** Über `delegate(prompt, agent="researcher")` für read-only oder native write-capable Delegation. Effort-Formulierungen, Worktree-`cd`-Pflicht und Eskalations-Rubrik stehen in der Reference (SSOT, nicht hier wiederholen).
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
@@ -286,14 +286,14 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        Guardrails (currentColor statt `<img>`, keine Stray-Hex, Export-Vollständigkeit) als
        Acceptance-Kriterien notieren. `new/` enthält nur geprüfte, passende Assets.
      - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
-      - **CI-/Quality-Gates:** [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
+      - **CI-/Quality-Gates:** [plan-quality-gates](.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
      - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` — der Plan-Subagent MUSS
        ausschließlich reale Signaturen/Typen aus `intel.json` referenzieren (keine erfundenen Typen),
        die vorberechneten `s1_budget`-Werte aus `impact_files` für die S1-Notation pro Datei nutzen und
        DB-Spalten/API-Contracts aus den `db_tables`/`api_contracts`-Sektionen zitieren. Format/Quellen:
-       [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+       [plan-intel-bundle](.claude/skills/references/plan-intel-bundle.md).
     - **plan-lint Hard Rules (PFLICHT — vom Subagenten verbatim zu befolgen):**
-      SSOT: [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
+      SSOT: [plan-quality-gates](.claude/skills/references/plan-quality-gates.md)
       §"plan-lint Hard Rules" — der Subagent MUSS die Datei lesen (F1/F2/STRUCT1–3/P1/B1a/B1b)
       und die tasks.md dagegen schreiben (`scripts/plan-lint.sh` ist das maschinelle Gate dazu).
 

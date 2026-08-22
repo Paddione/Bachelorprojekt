@@ -6,7 +6,7 @@ agent: bachelorprojekt-test
 
 # dev-flow-e2e — Playwright E2E Tests schreiben & ausführen
 
-Der test-only Chore folgt dem gemeinsamen [dev-flow-lifecycle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md); diese Skill besitzt die Playwright-spezifischen Entscheidungen und Live-Gates.
+Der test-only Chore folgt dem gemeinsamen [dev-flow-lifecycle](.claude/skills/references/dev-flow-lifecycle.md); diese Skill besitzt die Playwright-spezifischen Entscheidungen und Live-Gates.
 
 ## Wann diese Skill greift
 
@@ -154,7 +154,7 @@ testMatch: [
 > - **Working directory:** alle Playwright-Aufrufe laufen aus `tests/e2e/` (dort liegen die Configs wie `playwright.config.ts`).
 > - **node_modules:** frische Worktrees haben kein `tests/e2e/node_modules` — deshalb `[[ -x ./node_modules/.bin/playwright ]] || npm ci` (siehe [T000245] in dev-flow-gotchas).
 > - **`SKIP_DB_PURGE=1`:** überspringt den Prod-DB-Purge im globalen Setup/Teardown (`tests/e2e/specs/global-db-cleanup.ts`) — nötig, wenn `CRON_SECRET` nicht gesetzt ist.
-> - **Playwright-Projekt-Zuordnung:** siehe [dev-flow-gotchas #t000418](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md#t000418) (Playwright Project Assignment).
+> - **Playwright-Projekt-Zuordnung:** siehe [dev-flow-gotchas #t000418](.claude/skills/references/dev-flow-gotchas.md#t000418) (Playwright Project Assignment).
 
 ```bash
 # E2E Tests ausführen
@@ -286,7 +286,7 @@ Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…RE
 
 ## Übergabe — Kreislauf geschlossen
 
-**Zustand nach Schritt 7:**
+**Zustand nach Schritt 9 (Endzustand des Skills):**
 - E2E-Spec `tests/e2e/specs/<neu>.spec.ts` committed + gepusht
 - `components/website/src/data/test-inventory.json` aktualisiert
 - Tests laufen lokal grün gegen Live-URL

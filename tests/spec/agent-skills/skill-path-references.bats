@@ -35,6 +35,11 @@ EXCLUDED_SKILLS=(gitops-repo-audit gitops-knowledge gitops-cluster-debug vitest 
 # und nicht den Substring website/src/... (der nicht mehr existiert).
 PATH_PATTERN='\b((components/website)|(openspec|scripts|tests|docs|website|k3d|environments|flux))/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
 
+# Zweites Muster (T014027): Verweise auf Pfade unter .claude/skills/ — v. a. die
+# Referenz-Links der Form `](.claude/skills/references/…)`. Kein \b-Präfix nötig: der
+# Präfix `.claude/skills/` ist eindeutig, und \b matcht vor einem führenden Punkt nie.
+SKILL_PATH_PATTERN='\.claude/skills/[A-Za-z0-9_./-]+\.(md|bats|sh|ts|tsx|js|json|yaml|yml|py|go|spec\.ts)[A-Za-z0-9_./:-]*'
+
 # Alle zu prüfenden Skill-Dateien: `.md` unter `.claude/skills/` rekursiv (inkl.
 # `references/`), außer `OVERVIEW.md` an der Wurzel und außer der Ausnahmeliste.
 # Liefert absolute Pfade, damit `extract_paths` unabhängig vom Arbeitsverzeichnis greift.
@@ -54,8 +59,9 @@ skill_files() {
 # Extrahiert alle repo-relativen Pfadverweise aus einer Datei, strippt Anhänge
 # (`:45`, `REQ-…`, `)`) und dedupliziert.
 extract_paths() {
-  grep -oE "$PATH_PATTERN" "$1" 2>/dev/null \
-    | sed -E 's/:[0-9]+$//; s/REQ-[A-Za-z0-9-]+$//; s/\)$//' \
+  { grep -oE "$PATH_PATTERN" "$1" 2>/dev/null
+    grep -oE "$SKILL_PATH_PATTERN" "$1" 2>/dev/null
+  } | sed -E 's/:[0-9]+$//; s/REQ-[A-Za-z0-9-]+$//; s/\)$//' \
     | sort -u
 }
 

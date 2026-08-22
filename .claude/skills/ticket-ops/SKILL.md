@@ -14,13 +14,13 @@ Ticket-Inhalte: Vollständigkeit, Klärung, Parallelisierung. Für zeitkritische
 
 **Aufbau:** Dieser Body führt den Ablauf und **jede Invariante**. Die ausformulierten Schritte,
 SQL-Queries, Rubriken und die Subagent-Matrix stehen in
-[`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md)
+[`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md)
 und werden gelesen, wenn die jeweilige Phase dran ist.
 
 ## Workflow at a glance
 
-Ein vollständiger Durchlauf hat vier Phasen. Für eine enge Anfrage direkt in die passende Phase
-springen; für „triagiere alles / was kann ich parallel machen" 1 → 2 → 3 → 4 der Reihe nach.
+Ein vollständiger Durchlauf hat vier Phasen (im Body als Phase 1, 1.5, 2 und 3 nummeriert). Für eine enge Anfrage direkt in die passende Phase
+springen; für „triagiere alles / was kann ich parallel machen" 1 → 1.5 → 2 → 3 der Reihe nach.
 
 1. **Completeness triage** — alle offenen Tickets holen, pro Ticket berechnen *was fehlt*,
    klassifizieren. Der Agent entscheidet Severity, Component, Areas und Readiness-Flags
@@ -40,7 +40,7 @@ springen; für „triagiere alles / was kann ich parallel machen" 1 → 2 → 3 
 Repo-Housekeeping (stale Worktrees/Branches, PR-Triage, Issue-Intake, Factory-Queue) ist **nicht
 mehr Teil dieses Skills** — es liegt vollständig bei [`repo-hygiene`](../repo-hygiene/SKILL.md),
 mechanisch beschrieben in
-[`repo-hygiene-ops`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/repo-hygiene-ops.md).
+[`repo-hygiene-ops`](.claude/skills/references/repo-hygiene-ops.md).
 
 ## Invarianten (gelten in allen Phasen)
 
@@ -91,11 +91,11 @@ per FACTORY-PLAN-REF dispatcht war → T011656 als Ersatz neu angelegt).
 
 **M1: Line-Nummern-Prüfung vor sed-Extraktion (T002469):** Vor jeder Extraktion mit `sed -n 'start,endp'` die Zeilennummern gegen `wc -l` der Quelldatei prüfen. `end > wc -l` verursacht Syntaxfehler (T2 Extraction befand: falscher Zeilenbereich → Syntax-Error). Positiv-Anker: die extrahierte Sektion auf `bash -n` prüfen, bevor die Originaldatei gelöscht wird.
 
-**M3: Planning- vs. Execution-Dispatch (T002469):** Der Orchestrator (DeepSeek/o1) führt die Planung selbst durch; gemma-4-12b wird nur für Execution-Dispatches genutzt. Phase 3 unterscheidet zwischen `dispatch_for_planning` (→ Orchestrator, behält Control) und `dispatch_for_execution` (→ gemma, gibt ab). Ein gemma-Planungs-Dispatch wird abgelehnt — der User hat das explizit so entschieden.
+**M3: Planning- vs. Execution-Dispatch (T002469):** Der Orchestrator (Modell laut `.opencode/agent-models.jsonc`, dort ist es konfiguriert — hier nicht hartkodieren) führt die Planung selbst durch; das Execution-Modell (ebenfalls dort konfiguriert, gemma-Reihe) wird nur für Execution-Dispatches genutzt. Phase 3 unterscheidet zwischen `dispatch_for_planning` (→ Orchestrator, behält Control) und `dispatch_for_execution` (→ Execution-Modell, gibt ab). Ein Execution-Modell-Planungs-Dispatch wird abgelehnt — der User hat das explizit so entschieden.
 
 **M5: Agent-Lock-Prüfung in DoR (T002469):** Vor der Einplanung eines Tickets den Agent-Lock-Status prüfen: `bash scripts/agent-lock.sh check ticket <id>` → `held` bedeutet, eine andere Session arbeitet aktiv daran. Solche Tickets in `in_progress` lassen und NICHT in den Masterplan aufnehmen. Die DoR-Prüfung in Phase 1 liest den agent-lock-Status und setzt `attention_mode=auto` bei live-claimed Tickets.
 
-**Claim-Timing-Regel (T004602):** Der branch-scoped Claim im Dispatch wird bei unplanned Tickets erst NACH der `dev-flow-plan`-Proposal-Phase (Phase A im Haupt-Checkout) gehalten, da ein aktiver Worktree-Claim sonst Write-Tools im Haupt-Checkout blockiert; Details in [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) Step 3.6 `[T004602]`.
+**Claim-Timing-Regel (T004602):** Der branch-scoped Claim im Dispatch wird bei unplanned Tickets erst NACH der `dev-flow-plan`-Proposal-Phase (Phase A im Haupt-Checkout) gehalten, da ein aktiver Worktree-Claim sonst Write-Tools im Haupt-Checkout blockiert; Details in [`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md) Step 3.6 `[T004602]`.
 
 **M2: mcp-postgres Fallback (T002469):** Wenn `mcp__mcp-postgres__query` nicht erreichbar ist (curl-Probe 000), auf den `kubectl exec` psql-Fallback ausweichen. Der Fallback ist in `scripts/ticket.sh` via `BRAND`-Routing dokumentiert. Vor jedem Bulk-Triage-Lauf die Erreichbarkeit mit `curl -s -o /dev/null -w '%{http_code}' localhost:13001/health` prüfen.
 
@@ -112,7 +112,7 @@ alles Mehrdeutige bleibt unangetastet und wird zur Phase-2-Frage.
 
 **DB-Zugriff:** Reads MCP-first via `mcp__mcp-postgres__query` (read-only). Writes gehen über
 `ticket-mcp`-Wrapper oder den `psql()`-Helper — SSOT:
-[`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §mcp-postgres.
+[`MCP-Tool-Guide`](.claude/skills/references/mcp-tool-guide.md) §mcp-postgres.
 
 **Batch-Grouping-Regel [T003550]:** Bei >10 offenen Tickets im Backlog lohnt sich Batch-Gruppierung.
 Tickets, die in denselben `areas` liegen, keine disjunkten Dateimengen berühren und keinen
@@ -128,13 +128,13 @@ oder Tickets, die bereits einen gestagten Plan haben.
 Entscheidungsrubrik (severity/component/areas/readiness mit Eskalationsschwellen), die
 Enriched-Fetch-Query, die Tier-A/Tier-B-Berechnung der `missing[]`-Liste, das Laden des
 OpenSpec-Status und die Klassifikation (resolved · obsolete · ready · incomplete):
-[`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 1.
+[`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md) §Phase 1.
 
 ## Phase 1.5 — Backlog Grouping Scan
 
 Nachdem alle Tickets klassifiziert sind: zusammengehörige Tickets zu Batch-Gruppen bündeln.
 Die Heuristiken, Parent-Ticket-Erstellung und die Ausgabe als `batch-map.json`:
-[`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 1.5.
+[`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md) §Phase 1.5.
 
 > **Wann lohnt sich das?** Ab ~10 offenen Tickets im Backlog. Darunter ist der Overhead
 > (Parent-Ticket anlegen, `child_of`-Links setzen) größer als der Gewinn durch gebündelte
@@ -145,7 +145,7 @@ Die Heuristiken, Parent-Ticket-Erstellung und die Ausgabe als `batch-map.json`:
 Auswahl der Eskalationsmenge, Subagent-Dispatch zur Validierung, Herleitung der Fragen aus den
 Lücken (spiegelt `components/website/src/lib/sdlc/clarification-questions.ts`), der interaktive Frageweg je
 Harness und das Zurückschreiben per JSONB-Merge:
-[`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 2.
+[`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md) §Phase 2.
 
 > Beim Zurückschreiben der DoR-Flags **immer** per JSONB-Merge (`readiness || '{…}'::jsonb`) —
 > ein direktes Setzen überschreibt die übrigen Flags.
@@ -155,7 +155,7 @@ Harness und das Zurückschreiben per JSONB-Merge:
 Aufbau des Abhängigkeitsgraphen aus beiden Quellen, topologische Sortierung in Wellen
 (Impact-gewichtet, Batch-Gruppen als Einheiten), Quick-Win-Detection, das
 Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
-[`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 3.
+[`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md) §Phase 3.
 
 > **Soft-Conflict-Kante:** Zwei fertige Tickets, die sich einen `areas`-Eintrag teilen, haben
 > Datei-Kollisionsrisiko und dürfen **nicht** in dieselbe Welle. Bewusst konservativ — die
@@ -172,7 +172,7 @@ Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
 > zusätzlich der Ticket-Zustand jedes Wave-1-Tickets re-fetcht (status + `FACTORY-PLAN-REF`-Marker)
 > und nur Tickets dispatched, die seit dem Masterplan-Snapshot unveraendert sind — Abweichungen
 > werden als `STALE-STATE` gemeldet und NICHT dispatched (laufende Parallelsession). Query und
-> Stale-Regel: [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md)
+> Stale-Regel: [`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md)
 > §Step 3.6.
 >
 > **Beide Lock-Scopes prüfen [T002498-M6]:** `check ticket` allein greift nicht — die
@@ -180,7 +180,7 @@ Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
 > (T002497). Zusätzlich `check branch <vorgesehener-branch>` sowie
 > `agent-lock.sh list | grep <ext-id>` (Locks jeden Scopes) und ein Porcelain-Check auf
 > Worktrees mit der ID im Namen ausführen — Details in
-> [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md)
+> [`ticket-ops-procedures`](.claude/skills/references/ticket-ops-procedures.md)
 > §Step 3.3.
 
 **Merge = Abschluss:** Jedes Ticket schließt über seinen eigenen grünen Auto-Merge; der

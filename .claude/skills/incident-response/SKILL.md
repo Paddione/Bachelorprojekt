@@ -21,7 +21,7 @@ Internal tickets live in `tickets.tickets` on the `mentolder` (`website` DB). En
 
 **DB-Zugriff:** Reads MCP-first via `mcp__mcp-postgres__query`; der `psql()`-Fallback-Helper
 (zugleich Pflichtweg für Writes wie das `INSERT` in Schritt 2) ist SSOT im
-[`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §mcp-postgres —
+[`MCP-Tool-Guide`](.claude/skills/references/mcp-tool-guide.md) §mcp-postgres —
 die `psql -c`-Aufrufe unten setzen diesen Helper voraus.
 
 ---
@@ -52,7 +52,7 @@ Cluster-Status-Reads — **MCP-first** (`mcp-kubernetes`, read-only):
 > Logs: `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<pod>" })`
 > Einzelnes Pod-Detail: `mcp__mcp-kubernetes__pods_get({ namespace: "workspace", name: "<pod>" })`
 
-Fallback (mcp-kubernetes nicht erreichbar — Verfügbarkeits-Guard siehe [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md)):
+Fallback (mcp-kubernetes nicht erreichbar — Verfügbarkeits-Guard siehe [`MCP-Tool-Guide`](.claude/skills/references/mcp-tool-guide.md)):
 
 * **Pod status:** `task workspace:status ENV=mentolder` (CrashLoopBackOff, OOMKilled, Pending).
 * **Logs:** `task workspace:logs ENV=<env> -- <service>`.

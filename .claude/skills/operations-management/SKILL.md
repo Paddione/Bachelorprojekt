@@ -5,7 +5,7 @@ description: 'Routing hub for operational work — decides between incident-resp
 
 # operations-management
 
-This skill has been split into two focused sub-skills. Use the decision tree below to route to the correct one.
+This skill routes to three focused sub-skills. Use the decision tree below to route to the correct one.
 
 ---
 
@@ -16,9 +16,11 @@ Is a core service DOWN or DEGRADED right now?
 ├── YES → Use incident-response
 │          (production triage, diagnose, fix/rollback, post-mortem)
 │
-└── NO  → Use ticket-ops
-           (DB ticket triage, stale worktrees/branches, PR merge→close,
-            GitHub issue intake)
+├── NO, ticket CONTENT (triage, missing info, parallel planning)
+│        → Use ticket-ops
+│
+└── NO, repository STATE (branches, worktrees, PRs, factory queue)
+         → Use repo-hygiene
 ```
 
 ### Quick reference
@@ -27,32 +29,31 @@ Is a core service DOWN or DEGRADED right now?
 |-----------|-------|
 | Pocket ID/Nextcloud/Website/Brett/DB is down or crashing | `incident-response` |
 | Triage open tickets, mark AI-fixable or needs-human | `ticket-ops` |
-| Clean up stale worktrees and branches | `ticket-ops` |
-| Review & merge open PRs, close linked tickets | `ticket-ops` |
-| Funnel GitHub issues into internal tracker | `ticket-ops` |
+| Clean up stale worktrees and branches | `repo-hygiene` |
+| Review & merge open PRs, close linked tickets | `repo-hygiene` |
+| Funnel GitHub issues into internal tracker | `repo-hygiene` |
 
 ---
 
 ## Software-Factory operations (MCP-first)
 
 Factory-Queue-Status und manuelles Anstoßen: MCP-first via `factory-mcp` — Health-Guard, Tools und
-Fallbacks sind SSOT im [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §factory-mcp.
+Fallbacks sind SSOT im [`MCP-Tool-Guide`](.claude/skills/references/mcp-tool-guide.md) §factory-mcp.
 
 ---
 
 ## Mishap Tracking
 
-Both sub-skills carry the mishap tracking preamble. After completing either, invoke `mishap-tracker` if any mishaps were accumulated.
+All three sub-skills carry the mishap tracking preamble. After completing either, invoke `mishap-tracker` if any mishaps were accumulated.
 
 ## Related Skills
 
 | Skill | Relationship |
 |-------|--------------|
 | `incident-response` | Production incident triage & recovery |
-| `ticket-ops` | Daily ticket management & PR workflow |
+| `ticket-ops` | Ticket content: triage, missing information, parallel-work planning |
+| `repo-hygiene` | Repository state: branches, worktrees, PRs, factory queue |
 | `mishap-tracker` | Converts execution mishaps to tickets |
-
-> This skill was split from a combined runbook. If you find you need content from the other sub-skill frequently, consider running them in sequence.
 
 
 ## Framework mapping

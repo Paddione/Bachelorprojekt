@@ -4021,6 +4021,12 @@
       "status": "archived"
     }
   ],
+  "T013303": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-22-T013303",
+      "status": "plan_staged"
+    }
+  ],
   "T013304": [
     {
       "slug": "2026-08-22-rollup-brand-agnostic",
@@ -4037,6 +4043,12 @@
     {
       "slug": "2026-08-22-health-dashboard-rescan",
       "status": "archived"
+    }
+  ],
+  "T013316": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-22-T013316",
+      "status": "plan_staged"
     }
   ],
   "T013328": [

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1187,
+      "file_count": 1188,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -745,6 +745,7 @@
         "tests/spec/mishap-categorize-erden.bats",
         "tests/spec/mishap-docker-wsl-T002250.bats",
         "tests/spec/mishap-rollup/archive-janitor.bats",
+        "tests/spec/mishap-rollup/carryover-worktree-scan.bats",
         "tests/spec/mishap-rollup/container-create-description.bats",
         "tests/spec/mishap-rollup/container-finds-blocked-status.bats",
         "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",

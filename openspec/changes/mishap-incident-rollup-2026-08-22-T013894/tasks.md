@@ -21,8 +21,24 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 ## File Structure
 
 ```
-<Der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/llm-proxy/switch-origin.mjs                       (neu) Attributions-Label fuer [switch]-Zeilen
+scripts/llm-proxy/server.mjs                              ensureLoadoutForModel reicht origin durch; 5 [switch]-Zeilen
+tests/spec/local-llm-proxy/switch-origin-attribution.bats (neu) RED-Test des Moduls
+openspec/changes/mishap-incident-rollup-2026-08-22-T013328/tasks.md  Eintrag 5 dispositioniert (Quelle der Rotation)
 ```
+
+## Zyklus-Konsolidierung
+
+Dieser Container ist der vierte in Folge, der denselben einzigen Eintrag traegt: er wurde aus
+`T013328` nach `T013784`, `T013893` und hierher weitergereicht, weil er dort nie eine Disposition
+bekam (`T013328` #5 stand auf **OFFEN** mit Verweis auf das dispatchte Ticket T013540 — dieses ist
+in der am 2026-08-18 verworfenen Ticket-DB nicht mehr auffindbar). Der Carry-over-Scan
+(`scripts/factory/rollup-carryover.sh --scan`) liest ausschliesslich Plaene aus dem
+Repository-HEAD; die Plaene von T013784 und T013893 lagen nur branch-lokal vor und waren damit nie
+Quelle, sondern selbst nur Kopien. Mit der Disposition in `T013328` und hier faellt die Quelle weg:
+der Scan liefert Exit 3 (keine Kandidaten), und der naechste Generatorlauf legt keinen weiteren
+Container an. Die Branches `chore/mishap-incident-rollup-2026-08-22-T013784` und `…-T013893`
+werden ohne Merge entfernt — ihr Inhalt ist in diesem Zyklus vollstaendig enthalten.
 
 ## Mishap-Batches
 
@@ -58,9 +74,11 @@ Box leer und der Grund steht dahinter. Was nicht zulaessig ist: eine Box abhaken
 Disposition hinzuschreiben. Die Dispositionen zusammen sind der Nachweis, dass der Container
 abgearbeitet wurde und nicht nur geschlossen.
 
-- [ ] **1. llm_proxy_request_log verliert erfolgreiches Dispatch (Blind Spot bei Incident-Analyse)** (suspicious, llm-proxy/request-log) **×4** (Rezurrenz: T013328,T013784,T013893,T013894) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
+- [x] **1. llm_proxy_request_log verliert erfolgreiches Dispatch (Blind Spot bei Incident-Analyse)** (suspicious, llm-proxy/request-log) **×4** (Rezurrenz: T013328,T013784,T013893,T013894) — Disposition: **gefixt** — Der Eintrag nennt zwei Fix-Richtungen. Die erste ("Flush-Fehler zumindest mit Warn-Zeile ins Journal") liegt seit T003277 (af949ec91, 2026-08-11 — also vor dem Vorfall) im Code: `flush()` in scripts/llm-proxy/request-log.mjs schreibt `[request-log] N Mitschnitt(e) verworfen: …`, und `shutdown()` in server.mjs leert den Puffer bei SIGTERM/SIGINT. Der beobachtete Verlust vom 22.08. 14:40:44 ist damit kein stiller Schreibfehler, sondern liegt im 5-Sekunden-Puffer eines Prozesses, der den Loadout-Swap nicht ueberlebt hat — nicht reproduzierbar und ohne Signal nicht nachtraeglich belegbar. Umgesetzt ist deshalb die zweite Richtung, die den Blind Spot strukturell schliesst: scripts/llm-proxy/switch-origin.mjs baut aus requested_model, Client-Header und Dispatch-Ticket ein Attributions-Label, das jede der fuenf [switch]-Zeilen in server.mjs mitfuehrt. Wer einen Loadout-Wechsel ausgeloest hat, steht damit im Journal selbst und haengt nicht mehr am Request-Mitschnitt — dem Weg, der bei Incident T013527 ausfiel und die Client-Zuordnung nur indirekt zuliess.
 
-- [ ] **Failing-Test-Step (RED).** Fuer jeden Eintrag, der die Disposition **gefixt** bekommt,
+- [x] **Failing-Test-Step (RED).** Eintrag 1 bekam **gefixt**: `tests/spec/local-llm-proxy/switch-origin-attribution.bats`
+      war vor dem Fix 5/5 rot (das Modul existierte nicht) und ist danach 5/5 gruen.
+      Urspruenglicher Text: Fuer jeden Eintrag, der die Disposition **gefixt** bekommt,
       zuerst einen Test schreiben, der das beschriebene Fehlverhalten reproduziert. Er gehoert
       nach `tests/spec/<spec-slug>/<kurz-slug>.bats` — das Verzeichnis der Spec, die das
       Verhalten abdeckt. Eintraege mit den beiden anderen Dispositionen brauchen keinen Test.
@@ -70,7 +88,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/<spec-slug>/
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
 ```
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

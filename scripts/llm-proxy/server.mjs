@@ -16,6 +16,7 @@ import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, LOADOUT_START_BU
 import { respondBuffered, respondStreamed } from './respond.mjs';
 import { requestLog } from './request-log.mjs';
 import { evaluatePin, pinGuard, acquirePin, releasePin, pinFilePath } from './loadout-pin.mjs';
+import { switchOrigin, formatSwitchLine } from './switch-origin.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -149,7 +150,11 @@ async function proxyV1(req, res, subpath) {
   // wieder gestoppt werden (Preemption), bevor wir es benutzen. Wir pruefen
   // nach dem Routing, ob das angeforderte Modell noch lebt — wenn nicht,
   // retryen wir den Switch einmal.
-  let auto = await ensureLoadoutForModel(requestedModel);
+  // T013894 — Wer den Wechsel ausloest, gehoert in die [switch]-Zeile: ein
+  // Loadout-Wechsel evictet fremde Arbeit, und der Request-Mitschnitt als
+  // einziger Attributionsweg fiel bei Incident T013527 genau dort aus.
+  const origin = switchOrigin(req.headers, requestedModel);
+  let auto = await ensureLoadoutForModel(requestedModel, origin);
   if (auto?.conflict) {
     return sendJson(res, 409, { error: { code: 'exclusive_conflict', message:
       `${requestedModel} teilt exclusiveGroup mit dem laufenden Loadout ${auto.conflict}. `
@@ -172,8 +177,8 @@ async function proxyV1(req, res, subpath) {
   // T002753: Wenn das Modell nach dem Switch nicht mehr gefunden wird (von
   // einem anderen Request gestoppt), genau einen Retry.
   if (!routed && auto?.started) {
-    console.log(`[switch] ${auto.started} wurde vor Routing gestoppt — retry (resolveModel ergab null)`);
-    auto = await ensureLoadoutForModel(requestedModel);
+    console.log(`[switch] ${formatSwitchLine(`${auto.started} wurde vor Routing gestoppt — retry (resolveModel ergab null)`, origin)}`);
+    auto = await ensureLoadoutForModel(requestedModel, origin);
     if (auto?.failed) {
       const e = auto.failed;
       return sendJson(res, e.status ?? 502, { error: { code: e.code ?? 'start_error', message: e.message } });
@@ -418,7 +423,7 @@ const startsInFlight = new Map();
 const SWITCH_GRACE_MS = 3_000;
 const loadoutStartedAt = new Map(); // slug -> timestamp (Date.now())
 
-async function ensureLoadoutForModel(model) {
+async function ensureLoadoutForModel(model, origin = '') {
   let doc;
   try { ({ doc } = readLoadouts(DEFAULT_PATH)); } catch { return null; }
 
@@ -461,13 +466,13 @@ async function ensureLoadoutForModel(model) {
         return at && (Date.now() - at) < SWITCH_GRACE_MS;
       });
       if (inGrace.length > 0) {
-        console.log(`[switch] ${reDecide.slug}: Konflikt-Loadout(s) ${inGrace.join(',')} in Grace-Period — switch abgelehnt`);
+        console.log(`[switch] ${formatSwitchLine(`${reDecide.slug}: Konflikt-Loadout(s) ${inGrace.join(',')} in Grace-Period — switch abgelehnt`, origin)}`);
         return { failed: new LoadoutStartError(503, 'grace_period',
           `${inGrace.join(', ')} wurde gerade erst gestartet (Grace-Period ${SWITCH_GRACE_MS}ms). `
           + `Bitte in ${Math.ceil(SWITCH_GRACE_MS / 1000)}s erneut versuchen.`) };
       }
       for (const slug of toStop) {
-        console.log(`[switch] ${reDecide.slug}: stoppe Konflikt-Loadout ${slug} (Gruppe '${group}')`);
+        console.log(`[switch] ${formatSwitchLine(`${reDecide.slug}: stoppe Konflikt-Loadout ${slug} (Gruppe '${group}')`, origin)}`);
         try { stopUnit(slug); } catch (err) {
           return { failed: new LoadoutStartError(502, 'stop_error',
             `Konnte ${slug} nicht stoppen: ${err.message}`) };
@@ -477,12 +482,12 @@ async function ensureLoadoutForModel(model) {
           return { failed: new LoadoutStartError(502, 'stop_timeout',
             `${slug} wurde nach 30s nicht inaktiv`) };
         }
-        console.log(`[switch] ${slug} gestoppt`);
+        console.log(`[switch] ${formatSwitchLine(`${slug} gestoppt`, origin)}`);
       }
       await discovery.probeNow();
     }
 
-    console.log(`[switch] starte ${reDecide.slug}`);
+    console.log(`[switch] ${formatSwitchLine(`starte ${reDecide.slug}`, origin)}`);
     return startRequestedLoadout(doc, reDecide.slug);
   });
 }

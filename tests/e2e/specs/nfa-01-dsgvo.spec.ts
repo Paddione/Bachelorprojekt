@@ -53,6 +53,4 @@ test.describe('NFA-01: Datenschutz / DSGVO', () => {
     await page.waitForLoadState('networkidle');
     expect(cloudRequests).toHaveLength(0);
   });
-
-  test.skip(true, 'T1-T3: Container-Image-Prüfungen, Storage-Backends und Telemetrie erfordern kubectl-Zugriff');
 });

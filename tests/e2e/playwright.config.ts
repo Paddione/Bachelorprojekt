@@ -103,42 +103,33 @@ export default defineConfig({
     {
       name: 'mentolder',
       dependencies: ['mentolder-setup'],
+      // T013329 F3/D2: Die guardSdlc-Specs (dev-status-tabs, fa-42, fa-43,
+      // fa-48, fa-49, fa-53, fa-58, fa-factory-floor, fa-factory-injection,
+      // fa-kommissionierung, fa-mobile-factory, fa-planning-office, sa-21)
+      // sind in playwright.local.config.ts (Projekt sdlc-local) gewandert —
+      // die SDLC-Routen existieren im Prod-Build absichtlich nicht.
       testMatch: [
         '**/fa-21-*.spec.ts',             // service catalog & billing lifecycle
-        '**/fa-48-*.spec.ts',
-        '**/fa-49-*.spec.ts',             // /admin/factory-observability OTel dashboard (admin-gated)
         '**/fa-46-*.spec.ts',
         '**/fa-45-*.spec.ts',
-        '**/fa-42-*.spec.ts',             // platform asset inventory (admin-gated)
         '**/fa-content-hub-price-ssot.spec.ts',
         '**/fa-content-hub-editability.spec.ts',
         '**/fa-content-hub-legal-ssot.spec.ts',
         '**/fa-content-hub-editor.spec.ts',
         '**/fa-content-hub-versioning.spec.ts',
         '**/fa-content-hub-service-consolidation.spec.ts',
-        '**/fa-factory-injection.spec.ts', // /dev-status inject form smoke (admin-gated) [factory-injection]
-        '**/fa-factory-floor.spec.ts',     // /dev-status hall render (admin-gated)
-        '**/fa-kommissionierung.spec.ts',  // /dev-status Kommissionierung column (admin-gated)
-        '**/fa-planning-office.spec.ts',   // /admin/planungsbuero CRUD/rank/DoR (admin-gated)
-        '**/dev-status-tabs.spec.ts',      // FA-UNIF-01..08 — unified tabs, redirect, mobile (admin-gated)
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
-        '**/fa-mobile-factory.spec.ts',           // FA-MOBILE-01..06 mobile factory parity (admin-gated)
-        '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
         '**/fa-51-*.spec.ts',             // sidekick navigation (T000965)
         '**/factory-qs-abnahme.spec.ts',  // QS-Abnahme-Flow /dev-status (T000730)
-        '**/fa-58-admin-cockpit.spec.ts', // FA-58: Admin-Menü, SDLC Cockpit & Git-Flows (admin-gated)
         '**/fa-admin-monitoring.spec.ts',       // admin monitoring page auth
         '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
         '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
-        '**/fa-bug-*.spec.ts',                  // dedicated bug reproductions
         '**/fa-admin-inbox.spec.ts',            // /admin/inbox two-pane rework (spec 2026-05-08)
         '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
         '**/fa-29-*.spec.ts',                   // Projekt-Cockpit E2E (T000752)
-        '**/fa-53-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
         '**/fa-54-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
         '**/fa-55-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
         '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
-        '**/fa-43-ticket-widget.spec.ts',           // TicketWidgetBar showEdit fix + portal widget regression
         '**/fa-admin-db-crud-*.spec.ts',             // DB-object CRUD via web UI: projekte, followups, clients, shortcuts
         '**/fa-m3-*.spec.ts',                        // M3 onboarding flow
         '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
@@ -167,12 +158,10 @@ export default defineConfig({
         '**/fa-27-*.spec.ts',    // Systemisches Brett service
         // brett-mayhem now lives in its own authenticated project (brett-mentolder)
         '**/fa-30-einvoice.spec.ts', // E-Rechnung / XRechnung (einvoice-sidecar)
-        '**/fa-32-*.spec.ts',    // LLM-Router bge-m3 Embeddings
-        '**/fa-33-*.spec.ts',    // LLM-Router voyage-multilingual-2
-        '**/fa-34-*.spec.ts',    // LLM-Router strict-fail (kein silent fallback)
         '**/fa-35-*.spec.ts',    // LLM MixedEmbeddingModelError
-        '**/fa-36-*.spec.ts',    // Rerank-Endpunkt
-        '**/fa-37-*.spec.ts',    // workspace-chat Roundtrip
+        // T013329 F3/D2: fa-32/33/34/36/37 (LLM-Router) und nfa-11 (GPU-VRAM)
+        // sind in playwright.local.config.ts (Projekt llm-local) — der Router
+        // sitzt auf dem GPU-Host im wg-mesh, für GitHub-Runner nicht erreichbar.
         '**/sa-01-*.spec.ts',    // Transportverschlüsselung (TLS + security headers)
         '**/sa-02-*.spec.ts',    // Authentication (wrong password → Keycloak error)
         '**/sa-03-*.spec.ts',    // Passwörter (Hash, Policy, kein Klartext)
@@ -191,16 +180,13 @@ export default defineConfig({
         '**/nfa-05-*.spec.ts',   // usability / mobile
         '**/nfa-06-*.spec.ts',   // Website Neustart-Resilienz
         '**/nfa-07-*.spec.ts',   // Open-Source-Lizenz
-        '**/nfa-08-*.spec.ts',   // Produktions-Deployment (Hetzner/k3s)
-        '**/nfa-09-*.spec.ts',   // Statisches DNS (kein DDNS)
+        // T013329 F4/D3: nfa-08, nfa-09, ak-03, ak-04 entfernt — Repo-Datei-
+        // Asserts bzw. Dubletten; die E2E-Anteile leben in nfa-03/nfa-07 weiter.
         '**/nfa-10-*.spec.ts',   // Arena Health-Endpoint Performance
-        '**/nfa-11-*.spec.ts',   // GPU-VRAM nach Modell-Rotation
         '**/nfa-12-*.spec.ts',   // Brainstorm-Tunnel ConfigMap-Persistenz
         '**/nfa-13-*.spec.ts',   // Unified-fleet korczewski deploy GATE (red until Phase 2b)
         '**/nfa-infra-health-sweep.spec.ts', // Service health sweep (all 17 services)
         '**/sa-15-*.spec.ts',    // Cross-cluster health verification
-        '**/ak-03-*.spec.ts',    // Technische Machbarkeit
-        '**/ak-04-*.spec.ts',    // Prototyp-Betrieb
         '**/fa-content-hub-concurrency.spec.ts',
       ],
       use: {

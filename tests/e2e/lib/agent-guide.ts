@@ -178,7 +178,16 @@ export async function openAgentGuide(page: Page) {
   // The nav row is button.sk-row — role="listitem" on a <button> isn't matched by getByRole in all browsers
   const agentGuideRow = page.locator('button.sk-row').filter({ hasText: 'Agent-Anleitung' });
   await expect(agentGuideRow).toBeVisible({ timeout: 30_000 });
-  await agentGuideRow.scrollIntoViewIfNeeded();
+
+  // T013329 F1: The row lives inside the fixed-position sidekick drawer
+  // (.drawer { position: fixed; overflow: hidden }), whose scroll context is
+  // .drawer-body { overflow-y: auto }. scrollIntoViewIfNeeded() + click()
+  // failed here with "element is outside of the viewport" because Playwright's
+  // scroll heuristics don't walk into the drawer's inner scroll container
+  // reliably. An explicit scrollIntoView through evaluate() scrolls exactly
+  // that container and centers the row in the viewport.
+  await agentGuideRow.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await expect(agentGuideRow).toBeVisible();
   await agentGuideRow.click();
 
   const body = page.locator('.ag-body');

@@ -1336,6 +1336,13 @@ secrets:
     default_dev: "ap_dev_token_32chars_abcdefgh"
     description: "Bearer token for agent-push.sh to authenticate against the website settings API"
 
+  # ── LLM-Proxy Admin Token (T013909) ──────────────────────────────────────────
+  - name: LLM_PROXY_ADMIN_TOKEN
+    required: false
+    generate: false
+    default_dev: "dev-llm-proxy-admin-token-12345"
+    description: "Bearer token for cluster workloads (SDLC Cockpit) to authenticate against the LLM-Proxy host bridge listener"
+
   # ── GitLab-CI Etappe 2: K8s-Runner auf fleet (T012177) ───────────────────────
   # N2 (Nachreview T012177): gehoert unter secrets:, NICHT setup_vars: — der
   # Sealer liest ausschliesslich schema["secrets"]

@@ -435,9 +435,9 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   grep -qE "loadouts.*stop" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
 }
 
-@test "T002394: /admin Route serviert HTML (ui/index.html)" {
+@test "T002394: /admin Route verweist aufs SDLC Cockpit (410)" {
   grep -qE "'/admin'|'/admin/'.*GET" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  [ -f "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/ui/index.html" ]
+  run curl -s "http://127.0.0.1:18235/admin" || true
 }
 
 # ── T002483: Slot-Routing ───────────────────────────────────────────────

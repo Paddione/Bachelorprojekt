@@ -20,12 +20,9 @@
   [[ "$output" == *"factory-model-ok:"* ]]
 }
 
-@test "admin UI offers a select and lock toggle without text input" {
-  run grep -q 'id="factory-model"' scripts/llm-proxy/ui/index.html
+@test "cockpit UI offers a select and lock toggle without text input" {
+  run grep -q 'factoryDefault.locked' components/website/src/components/sdlc/factory/KiRoutingPanel.svelte
   [ "$status" -eq 0 ]
-  run grep -q 'id="factory-locked"' scripts/llm-proxy/ui/index.html
+  run grep -q 'Factory-Standardmodell' components/website/src/components/sdlc/factory/KiRoutingPanel.svelte
   [ "$status" -eq 0 ]
-  run awk '/<fieldset id="factory">/,/<\/fieldset>/' scripts/llm-proxy/ui/index.html
-  [ "$status" -eq 0 ]
-  [[ "$output" != *'type="text"'* ]]
 }

@@ -58,6 +58,7 @@ RestartSec=5
 # gemma26-factory deshalb rund zehn Minuten still.
 #
 # Den Wert nicht abtippen, sondern aus der bereits vorhandenen Quelle uebernehmen:
+#   bge-mcp/server.env (BGE_MCP_TOKEN)
 #   mkdir -p ~/.config/llm-proxy && touch ~/.config/llm-proxy/proxy.env
 #   chmod 0600 ~/.config/llm-proxy/proxy.env
 # LLM_PROXY_ADMIN_TOKEN sichert den Bridge-Listener fuer das Cockpit ab [T013909].

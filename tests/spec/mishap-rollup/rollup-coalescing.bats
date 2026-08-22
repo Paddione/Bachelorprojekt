@@ -4,7 +4,8 @@
 # SSOT: openspec/specs/mishap-rollup.md
 # PRUEFMODUS (T002448-M4): Statement-Verifikation gegen das Generator-Skript —
 # das Coalescing-Gate wird ueber seine emittierten Marker gepinnt (Env-Defaults,
-# No-op-Pfad vor der Worktree-Anlage, Altersmessung ueber min(created_at)).
+# No-op-Pfad vor der Worktree-Anlage, Altersmessung ueber min(created_at),
+# Schwellen-Vergleiche als -lt, Fail-open-Guard der Altersmessung).
 #
 # Hintergrund: Am 2026-08-22 entstanden 18 Rollup-Container in 40 Minuten, weil
 # der Generator jeden Container sofort stagte (ab 1 Eintrag, inkl. Carry-over).
@@ -47,4 +48,41 @@ setup() {
   # Gates — gemessen wird der aelteste Batch-Kommentar auf dem Container.
   run grep -n "min(c.created_at)" "$SCRIPT"
   [ "$status" -eq 0 ]
+}
+
+@test "T013915: Schwelle erreicht → Gate greift nicht (-lt-Vergleich bleibt)" {
+  # Ein -gt-Regressionswurf (Gate blockt erst UEBER der Schwelle) wuerde die
+  # Coalescing-Semantik invertieren und bliebe ohne Pinning gruen — der
+  # Eintrags-Vergleich muss -lt sein.
+  run grep -F 'if [[ "${BATCH_COUNT}" -lt "${ROLLUP_MIN_ENTRIES}" ]]; then' "$SCRIPT"
+  [ "$status" -eq 0 ]
+}
+
+@test "T013915: Alter-Zweig vergleicht age_h gegen Max-Alter (-lt)" {
+  # Der Alters-Fallback haengt am Vergleich des gemessenen Alters gegen die
+  # Max-Alter-Grenze — ein Vertauschen der Operanden wuerde den Alters-Zweig
+  # still aushebeln.
+  run grep -F 'if [[ "${age_h}" -lt "${ROLLUP_MAX_AGE_H}" ]]; then' "$SCRIPT"
+  [ "$status" -eq 0 ]
+}
+
+@test "T013915: Fail-open — leeres Alter blockt nicht (exit 0 nur hinter Alters-Guard)" {
+  # Negativ-Assert mit Positiv-Anker (T002356-M1): erst nachweisen, dass
+  # Alters-Guard und Alter-Vergleich existieren und in der richtigen
+  # Reihenfolge stehen; dann, dass das erste exit 0 nach dem Guard erst NACH
+  # dem Alter-Vergleich kommt. Ein leeres Altersergebnis passiert den Guard
+  # nicht, erreicht das Gate-exit 0 nie und laeuft in den Staging-Pfad —
+  # wuerde ein exit 0 vor den Guard rutschen, stuende der Fail-open-Kontrakt
+  # (Staging trotz fehlgeschlagener Altersmessung) auf dem Spiel.
+  guard_line=$(grep -nF 'if [[ -n "${oldest_ts:-}" ]]; then' "$SCRIPT" | head -1 | cut -d: -f1)
+  [ -n "$guard_line" ]
+  age_line=$(grep -nF 'if [[ "${age_h}" -lt "${ROLLUP_MAX_AGE_H}" ]]; then' "$SCRIPT" | head -1 | cut -d: -f1)
+  [ -n "$age_line" ]
+  [ "$guard_line" -lt "$age_line" ]
+  collect_line=$(grep -n 'sammelt weiter' "$SCRIPT" | head -1 | cut -d: -f1)
+  [ -n "$collect_line" ]
+  exit_line=$(awk -v s="$guard_line" 'NR > s && /exit 0/ { print NR; exit }' "$SCRIPT")
+  [ -n "$exit_line" ]
+  [ "$exit_line" -gt "$age_line" ]
+  [ "$collect_line" -lt "$exit_line" ]
 }

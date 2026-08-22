@@ -263,13 +263,19 @@ JOIN tickets.tickets t ON t.id = c.ticket_id
 WHERE t.external_id = '${CONTAINER_ID}'
   AND c.body NOT LIKE 'FACTORY-PLAN-REF%';
 SQL
-)"
+)" || true
   if [[ -n "${oldest_ts:-}" ]]; then
     oldest_epoch="$(date -u -d "${oldest_ts}" +%s 2>/dev/null || true)"
     if [[ -n "${oldest_epoch:-}" ]]; then
       age_h=$(( ($(date -u +%s) - oldest_epoch) / 3600 ))
       if [[ "${age_h}" -lt "${ROLLUP_MAX_AGE_H}" ]]; then
         echo "mishap-rollup: Coalescing-Gate — ${BATCH_COUNT} Eintrag(e), aeltester ${age_h} h alt (< ${ROLLUP_MIN_ENTRIES} Eintraege, < ${ROLLUP_MAX_AGE_H} h) — Container sammelt weiter, kein stage-plan [T013915]" >&2
+        # [T013915] Der cleanup_wt-Trap ist hier noch nicht registriert
+        # (Worktree-Management laeuft erst hinter dem Gate) — Temps manuell
+        # raeumen, sonst bleiben COMMENTS_FILE und die Loop-Closure-Dateien
+        # pro Collect-Lauf in /tmp liegen.
+        rm -f "${COMMENTS_FILE:-}" 2>/dev/null || true
+        cleanup_loop_closure 2>/dev/null || true
         exit 0
       fi
     fi

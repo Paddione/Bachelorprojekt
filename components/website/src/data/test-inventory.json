@@ -4278,6 +4278,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/rollup-coalescing",
+    "file": "tests/spec/mishap-rollup/rollup-coalescing.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/rollup-container-empty-list-selfheal",
     "file": "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
     "category": "mishap-rollup",

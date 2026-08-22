@@ -236,8 +236,45 @@ ORDER BY c.created_at ASC;
 SQL
 bash "$REPO/scripts/factory/rollup-recurrence.sh" --all < "$HISTORY_FILE" > "$RECURRENCE_FILE" 2>/dev/null || true
 
+# ── Coalescing-Gate [T013915] ────────────────────────────────────────────────
+# Env-Defaults (per Umgebung uebersteuerbar): Container unter der Schwelle
+# (ROLLUP_MIN_ENTRIES Eintraege / ROLLUP_MAX_AGE_H h) bleiben im Collect Mode —
+# der Generator beendet den Lauf vor der Worktree-Anlage mit exit 0, Flusher
+# und Carry-over verwenden denselben Container weiter. Hintergrund: Am
+# 2026-08-22 entstanden 18 Rollup-Container in 40 Minuten, weil der Generator
+# jeden Container ab 1 Eintrag sofort stagte (inkl. Carry-over).
+ROLLUP_MIN_ENTRIES="${ROLLUP_MIN_ENTRIES:-3}"
+ROLLUP_MAX_AGE_H="${ROLLUP_MAX_AGE_H:-24}"
+
 BATCH_COUNT="$(bash "$REPO/scripts/factory/rollup-plan-tasks.sh" --count < "$COMMENTS_FILE")"
 BATCH_COUNT="${BATCH_COUNT:-0}"
+
+# Altersmessung: aeltester Batch-Kommentar auf dem Container (min(created_at),
+# analog zum COMMENTS_FILE-Read, Filter body NOT LIKE 'FACTORY-PLAN-REF%').
+# Fail-open: eine leere Antwort (Abfragefehler) zaehlt als "Alter nicht
+# ermittelbar" und blockt das Gate nicht — der bestehende Staging-Pfad laeuft
+# dann unveraendert (keine Container-Leiche). Das Gate blockt NUR, wenn BEIDE
+# Bedingungen nachweislich zutreffen: unter der Eintrags-Schwelle UND juenger
+# als das Max-Alter.
+if [[ "${BATCH_COUNT}" -lt "${ROLLUP_MIN_ENTRIES}" ]]; then
+  oldest_ts="$(cat <<SQL | factory_psql 2>/dev/null | head -1
+SELECT min(c.created_at) FROM tickets.ticket_comments c
+JOIN tickets.tickets t ON t.id = c.ticket_id
+WHERE t.external_id = '${CONTAINER_ID}'
+  AND c.body NOT LIKE 'FACTORY-PLAN-REF%';
+SQL
+)"
+  if [[ -n "${oldest_ts:-}" ]]; then
+    oldest_epoch="$(date -u -d "${oldest_ts}" +%s 2>/dev/null || true)"
+    if [[ -n "${oldest_epoch:-}" ]]; then
+      age_h=$(( ($(date -u +%s) - oldest_epoch) / 3600 ))
+      if [[ "${age_h}" -lt "${ROLLUP_MAX_AGE_H}" ]]; then
+        echo "mishap-rollup: Coalescing-Gate — ${BATCH_COUNT} Eintrag(e), aeltester ${age_h} h alt (< ${ROLLUP_MIN_ENTRIES} Eintraege, < ${ROLLUP_MAX_AGE_H} h) — Container sammelt weiter, kein stage-plan [T013915]" >&2
+        exit 0
+      fi
+    fi
+  fi
+fi
 
 if [[ "${BATCH_COUNT}" -eq 0 ]]; then
   echo "mishap-rollup: keine Mishap-Eintraege auf ${CONTAINER_ID} — nichts zu tun, exit 0"

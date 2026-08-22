@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1195,
+      "file_count": 1196,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -762,6 +762,7 @@
         "tests/spec/mishap-rollup/lifecycle.bats",
         "tests/spec/mishap-rollup/recurrence-tag.bats",
         "tests/spec/mishap-rollup/rollup-carryover.bats",
+        "tests/spec/mishap-rollup/rollup-coalescing.bats",
         "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
         "tests/spec/mishap-rollup/rollup-cycle-push.bats",
         "tests/spec/mishap-rollup/rollup-direct-dispatch.bats",

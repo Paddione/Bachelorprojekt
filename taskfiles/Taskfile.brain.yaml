@@ -54,40 +54,31 @@ tasks:
     desc: "Full brain ingestion pipeline (LLM-assisted, creates PR)"
     cmds:
       - |-
-        LM_STUDIO_URL="${LM_STUDIO_URL:-http://127.0.0.1:8089}" \
-        LM_MODEL="${LM_MODEL:-gemma12-vision}" \
         LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" \
         LM_MAX_TOKENS="${LM_MAX_TOKENS:-65536}" \
         LM_TIMEOUT="${LM_TIMEOUT:-3600}" \
         MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-150000}" \
-        MAX_PARALLEL="${MAX_PARALLEL:-1}" \
-          bash scripts/brain-ingest.sh --brain-repo ~/brain "$@"
+          bash scripts/brain-ingest-swap.sh --brain-repo ~/brain "$@"
 
   ingest:pilot:
     desc: "Run ingestion on 20 pages (pilot batch)"
     cmds:
       - |-
-        LM_STUDIO_URL="${LM_STUDIO_URL:-http://127.0.0.1:8089}" \
-        LM_MODEL="${LM_MODEL:-gemma12-vision}" \
         LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" \
         LM_MAX_TOKENS="${LM_MAX_TOKENS:-65536}" \
         LM_TIMEOUT="${LM_TIMEOUT:-3600}" \
         MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-150000}" \
-        MAX_PARALLEL="${MAX_PARALLEL:-1}" \
-          bash scripts/brain-ingest.sh --brain-repo ~/brain --pilot 20 "$@"
+          bash scripts/brain-ingest-swap.sh --brain-repo ~/brain --pilot 20 "$@"
 
   ingest:dry:
     desc: "Dry-run ingestion (no PR, no writes to brain repo)"
     cmds:
       - |-
-        LM_STUDIO_URL="${LM_STUDIO_URL:-http://127.0.0.1:8089}" \
-        LM_MODEL="${LM_MODEL:-gemma12-vision}" \
         LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" \
         LM_MAX_TOKENS="${LM_MAX_TOKENS:-65536}" \
         LM_TIMEOUT="${LM_TIMEOUT:-3600}" \
         MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-150000}" \
-        MAX_PARALLEL="${MAX_PARALLEL:-1}" \
-          bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run "$@"
+          bash scripts/brain-ingest-swap.sh --brain-repo ~/brain --dry-run "$@"
 
   brain:chunk:
     desc: "Run the section-aware chunker (T002679)"

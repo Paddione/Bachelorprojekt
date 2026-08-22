@@ -112,3 +112,39 @@ forward_ports() {
   run bash -c "grep -F \"'${BACKEND}'\" '$MIGRATION' | grep -c 'true'"
   [ "$output" -eq 0 ]
 }
+
+# T013593 — die Task-Defaults sind die vierte Deklaration derselben Wahrheit.
+# Der Check oben prueft loadouts.json, brain-ingest.sh und die Migration; der
+# Taskfile-Default blieb dabei unsichtbar und zeigte auf einen anderen Port als
+# das Loadout. Ein gruener Guard bei falsch laufendem Ingest ist schlimmer als
+# gar keiner — er behauptet Konsistenz, die es nicht gibt.
+#
+# Seit T013593 nennen die Tasks GAR KEINEN Port mehr: der Wrapper
+# scripts/brain-ingest-swap.sh liest ihn aus loadouts.json. Die gepruefte Menge
+# ist im Normalfall also leer, und der Test ist ein Regressionsschutz gegen das
+# Wiedereinfuehren eines zweiten Port-Defaults. Genau dafuer steht der
+# Positiv-Anker davor: er belegt, dass die drei Tasks ueberhaupt existieren,
+# sodass die leere Menge "kein fremder Port" heisst und nicht "kein Taskfile".
+@test "T013593: kein brain:ingest-Task nennt einen anderen Port als das Loadout" {
+  TASKFILE="${REPO_ROOT}/taskfiles/Taskfile.brain.yaml"
+  [ -f "$TASKFILE" ]
+
+  loadout_port="$(jq -r --arg s "$SLUG" '.loadouts[] | select(.slug == $s) | .port' "$LOADOUTS")"
+  [[ "$loadout_port" =~ ^[0-9]+$ ]]
+
+  # POSITIV-ANKER: die ingest-Tasks muessen ueberhaupt existieren. Ohne diesen
+  # Beleg bestuende die Aussage unten auch dann, wenn der Taskfile leer waere.
+  run grep -cE '^\s{2}ingest:(run|pilot|dry):' "$TASKFILE"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 3 ]
+
+  # Jeder in den Tasks genannte lokale Backend-Port muss der Loadout-Port sein.
+  foreign="$(grep -oE 'LM_STUDIO_URL="\$\{LM_STUDIO_URL:-http://(127\.0\.0\.1|localhost):[0-9]+' "$TASKFILE" \
+    | grep -oE '[0-9]+$' | sort -u | grep -v "^${loadout_port}$" || true)"
+
+  [ -z "$foreign" ] || {
+    echo "Taskfile.brain.yaml nennt Port(s) $foreign, das brain-ingest-Loadout aber $loadout_port" >&2
+    grep -nE 'LM_STUDIO_URL=' "$TASKFILE" >&2
+    false
+  }
+}

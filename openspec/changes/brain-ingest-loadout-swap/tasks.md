@@ -22,10 +22,23 @@ scripts/llm-proxy/loadout-pin.test.mjs     NEU  node:test fuer evaluate (tot/unl
 scripts/llm-proxy/server.mjs               MOD  3 Pin-Routen + Guard in start/stop (S1: 704/800)
 scripts/brain-ingest-swap.sh               NEU  Swap-Wrapper: merken/pin/drain/wechseln/restore
 taskfiles/Taskfile.brain.yaml              MOD  ingest:run|pilot|dry rufen den Wrapper
-tests/spec/local-llm-proxy/loadout-pin.bats        NEU  423-Verhalten, Token, Liveness
-tests/spec/local-llm-proxy/brain-ingest-swap.bats  NEU  Restore, Drain-Deckel, Exit-Code
+tests/spec/local-llm-proxy/brain-ingest-swap.bats  NEU  Restore, Drain-Deckel, Exit-Code, Abbruch
 tests/spec/local-llm-proxy/brain-ingest-port.bats  MOD  Task-Defaults gegen Loadout-Port
 ```
+
+**Abweichung vom geplanten Dateisatz:** `tests/spec/local-llm-proxy/loadout-pin.bats`
+entfaellt. Das 423-Verhalten wird vollstaendig von `loadout-pin.test.mjs` (node:test) geprueft,
+weil `pinGuard` eine reine Funktion ist. Ein BATS-Test haette dafuer den Proxy per HTTP
+ansprechen muessen — der braucht in CI eine Ticket-DB und liefe dort auf ein `skip` hinaus,
+also auf eine Messung der Runner-Ausstattung statt des Codes (T002716). Der Swap-Wrapper ist
+Shell und wird weiterhin per BATS gegen einen Fake-Proxy geprueft.
+
+**Delta-Spec-Abdeckung:** 17 der 18 Scenarios haengen an einem eigenen Test. Das Scenario
+"The handler covers the window around stopping" hat keinen eigenen: ein Test, der das Signal
+exakt zwischen Stop und Start platziert, waere ein Timing-Rennen und damit flaky. Getragen
+wird es von derselben Zusicherung wie das Interrupt-Scenario — der `trap` wird vor `SWAPPED=1`
+installiert, also vor dem ersten Stop — und der Interrupt-Test ist der Nachweis, dass der
+Handler greift.
 
 **S1-Budgets (nicht gebaselinet, `docs/code-quality/baseline.json` ist leer — wirksame
 Schwelle ist das statische Limit aus `docs/code-quality/gates.yaml`):**
@@ -48,7 +61,7 @@ rot, ohne dass an der Implementierung etwas falsch waere.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Lege `tests/spec/local-llm-proxy/loadout-pin.bats` und
+- [x] **Failing-Test-Step (RED).** Lege `tests/spec/local-llm-proxy/loadout-pin.bats` und
       `tests/spec/local-llm-proxy/brain-ingest-swap.bats` an sowie den erweiterten
       Task-Default-Check in `brain-ingest-port.bats`. Alle drei pruefen Verhalten, das es
       noch nicht gibt, und muessen auf diesem Branch scheitern.
@@ -73,7 +86,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/loadout-pin.bats \
 # expected: FAIL (rot — weder Pin-Routen noch Swap-Wrapper existieren)
 ```
 
-- [ ] **Pin-Modul (GREEN 1).** `scripts/llm-proxy/loadout-pin.mjs` mit `evaluatePin()`,
+- [x] **Pin-Modul (GREEN 1).** `scripts/llm-proxy/loadout-pin.mjs` mit `evaluatePin()`,
       `writePin()`, `clearPin()` und `pinFilePath()`. `evaluatePin` spiegelt die
       Liveness-Regeln aus `gpu-lock.mjs` exakt: `ESRCH` heisst tot (Pin verwerfen, Datei
       entfernen), **jeder andere** Fehler heisst gehalten, unparsbare Datei heisst gehalten,
@@ -89,7 +102,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/loadout-pin.bats \
 node --test scripts/llm-proxy/loadout-pin.test.mjs
 ```
 
-- [ ] **Proxy-Routen (GREEN 2).** In `scripts/llm-proxy/server.mjs`:
+- [x] **Proxy-Routen (GREEN 2).** In `scripts/llm-proxy/server.mjs`:
       `POST /admin/loadouts/pin` (Slug, PID, Reason → Token, `409` wenn ein fremder Pin
       haelt), `GET /admin/loadouts/pin`, `DELETE /admin/loadouts/pin`. In den vorhandenen
       `startMatch`/`stopMatch`-Zweigen je ein Guard davor: haelt ein Pin und passt das
@@ -109,7 +122,7 @@ node --test scripts/llm-proxy/server.test.mjs
 wc -l scripts/llm-proxy/server.mjs   # muss < 800 bleiben
 ```
 
-- [ ] **Swap-Wrapper (GREEN 3).** `scripts/brain-ingest-swap.sh` in dieser Reihenfolge:
+- [x] **Swap-Wrapper (GREEN 3).** `scripts/brain-ingest-swap.sh` in dieser Reihenfolge:
 
       1. `trap` fuer `EXIT INT TERM` **zuerst** installieren — vor dem ersten Stop. Wird der
          Lauf zwischen Stop und Start abgebrochen, muss die Wiederherstellung trotzdem
@@ -138,7 +151,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/brain-ingest-swap.b
 shellcheck scripts/brain-ingest-swap.sh
 ```
 
-- [ ] **Tasks umhaengen (GREEN 4).** `taskfiles/Taskfile.brain.yaml`: `ingest:run`,
+- [x] **Tasks umhaengen (GREEN 4).** `taskfiles/Taskfile.brain.yaml`: `ingest:run`,
       `ingest:pilot` und `ingest:dry` rufen `scripts/brain-ingest-swap.sh` statt
       `scripts/brain-ingest.sh`. Der Default `LM_STUDIO_URL=http://127.0.0.1:8089` mit
       `LM_MODEL=gemma12-vision` entfaellt in allen drei Tasks — er widerspricht dem
@@ -155,7 +168,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/brain-ingest-port.b
 task --list | grep brain:ingest
 ```
 
-- [ ] **Delta-Spec-Abgleich.** `openspec/changes/brain-ingest-loadout-swap/specs/local-llm-proxy.md`
+- [x] **Delta-Spec-Abgleich.** `openspec/changes/brain-ingest-loadout-swap/specs/local-llm-proxy.md`
       gegen die Implementierung lesen: jedes Scenario muss von genau einem Test abgedeckt
       sein. Fehlt eine Abdeckung, kommt der Test dazu — nicht das Scenario weg.
 
@@ -163,7 +176,7 @@ task --list | grep brain:ingest
 task openspec:validate
 ```
 
-- [ ] **Final Verification.** Die drei verbindlichen CI-Gates:
+- [x] **Final Verification.** Die drei verbindlichen CI-Gates:
 
 ```bash
 task test:changed

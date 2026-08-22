@@ -69,8 +69,9 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf gemma26-factory" {
-  run grep -c 'gemma26-factory' "${AGENTS}"
+@test "T002545: die Agentendefinitionen verweisen auf qwen38-220k" {
+  # T013360: alle lokalen Agenten auf qwen38-220k umgestellt — kein GPU-Swap mehr.
+  run grep -c 'qwen38-220k' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }

@@ -3997,6 +3997,12 @@
       "status": "archived"
     }
   ],
+  "T013305": [
+    {
+      "slug": "rollup-loop-closure",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

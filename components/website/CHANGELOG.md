@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.296.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.1...website-v1.296.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **test:** nightly e2e suite fixes — inbox sidebar/search re-integrated, pocket-id pagination [T013218] ([#4946](https://github.com/Paddione/Bachelorprojekt/issues/4946)) ([6837a16](https://github.com/Paddione/Bachelorprojekt/commit/6837a16a43db9af43827ade7e140498d1523d9b6))
+
 ## [1.296.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.0...website-v1.296.1) (2026-08-22)
 
 

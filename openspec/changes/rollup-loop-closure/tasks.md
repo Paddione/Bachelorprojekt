@@ -21,9 +21,11 @@ scripts/factory/rollup-recurrence.sh            — NEU: Rezurrenz-Suche über C
 scripts/factory/rollup-plan-tasks.sh            — Dispositions-Vokabular erweitern (beobachten bis Zyklus N), ×N-Rendering
 scripts/factory/rollup-carryover.sh             — Watchlist-Re-Inclusion + Carryover-Zähler ≥2 → Eskalation
 scripts/factory/mishap-rollup.sh                — Eskalations-Promotion vor dem Staging (ticket.sh create --needs-human-Äquivalent)
+scripts/factory/rollup-archive-janitor.sh       — NEU: Scan „Ticket done + Dir unarchiviert" → move nach archive/<datum>-<slug>
 tests/spec/mishap-rollup/recurrence-tag.bats    — NEU
 tests/spec/mishap-rollup/watchlist-disposition.bats — NEU
 tests/spec/mishap-rollup/escalation-rule.bats   — NEU
+tests/spec/mishap-rollup/archive-janitor.bats   — NEU
 ```
 
 ## Tasks
@@ -35,9 +37,13 @@ tests/spec/mishap-rollup/escalation-rule.bats   — NEU
    Dispositionszeilen vergangener Pläne; Re-Inclusion im Generatorlauf; Ablauf → Eskalation.
 4. Eskalation: Carryover-Zähler (Consecutive-Open-Zyklen) bestimmen, Promotion in eigenes
    Ticket mit Zyklen-Historie, Aussortieren aus dem Batch.
-5. Sequencing-Gate: Change erst mergen, wenn kein Rollup-Zyklus mid-flight ist
+5. Archive-Janitor: Scan analog rollup-carryover.sh --scan (Ticketstatus via SQL, .ticket-Datei
+   als Dir-Verankerung); Move nach archive/<datum>-<slug> in einem Commit; aktive Zyklen
+   (Container nicht done/archived) bleiben unberührt. Aufruf im Tick vor dem Generator oder
+   im Generator vor dem Batch-Read.
+6. Sequencing-Gate: Change erst mergen, wenn kein Rollup-Zyklus mid-flight ist
    (T013107-Abhängigkeit im Ticket notiert).
-6. Final Verification: drei CI-Gates.
+7. Final Verification: drei CI-Gates.
 
 ## Verify (RED → GREEN)
 

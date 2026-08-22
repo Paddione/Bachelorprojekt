@@ -50,3 +50,26 @@ entry SHALL leave the rollup loop.
 - **WHEN** the generator prepares the third cycle's plan
 - **THEN** a standalone ticket is created with the entry's full description and cycle history
 - **AND** the entry no longer appears in subsequent batches
+
+### Requirement: Completed rollup cycles are archived by the machine
+
+The factory tick (or the rollup generator before batch rendering) SHALL run an archive janitor
+that detects completed rollup cycles — a cycle whose container ticket is `done` or `archived`
+while its change directory still sits under `openspec/changes/` — and moves each such directory
+to `openspec/changes/archive/<cycle-date>-<slug>`. Archival SHALL no longer depend on a session
+manually running `devflow-post-merge-finalize.sh`.
+
+#### Scenario: Unarchived cycle from a rescued executor run
+
+- **GIVEN** cycle `mishap-incident-rollup-2026-08-19-T012445` with its container ticket
+  `done/fixed` and its change directory still under `openspec/changes/`
+- **WHEN** the archive janitor runs
+- **THEN** the directory is moved to `openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445`
+  in one commit on the janitor's own branch
+
+#### Scenario: Active cycle is never archived
+
+- **GIVEN** cycle `mishap-incident-rollup-2026-08-22-T013107` with its container ticket still
+  `plan_staged`
+- **WHEN** the archive janitor runs
+- **THEN** that cycle's directory remains untouched

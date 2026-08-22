@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.296.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.0...website-v1.296.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **db:** Remote-Retention auf Filen — 14 Generationen je Pfad [T013300] ([#4945](https://github.com/Paddione/Bachelorprojekt/issues/4945)) ([22b14ac](https://github.com/Paddione/Bachelorprojekt/commit/22b14ac3ef718f0041bbc6c32550013269cabea3))
+
 ## [1.296.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.7...website-v1.296.0) (2026-08-22)
 
 

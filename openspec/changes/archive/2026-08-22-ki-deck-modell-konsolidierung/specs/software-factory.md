@@ -97,6 +97,26 @@ id. Specifically:
 - `scripts/factory/dispatcher-bridge.sh` SHALL export `FACTORY_MODEL_ID` and
   `FACTORY_MODEL_LOCKED=1` into the pipeline process and SHALL pin `model_tier` to `flash`.
 
+#### Scenario: Every tier resolves to the locked model
+
+- **GIVEN** `factory.locked` is true with `factory.model = "gemma26-throughput"`
+- **WHEN** `route-provider.sh factory-implement sonnet` and `route-provider.sh factory-scout opus` run
+- **THEN** both emit `{"provider":"llamacpp","modelId":"gemma26-throughput","baseUrl":"http://127.0.0.1:18235",...}`
+
+#### Scenario: The lock claims no provider slot
+
+- **GIVEN** `factory.locked` is true
+- **WHEN** `route-provider.sh` runs ten times in a row
+- **THEN** `tickets.provider_health.active_agents` is unchanged, because the locked branch returns
+  before the claim loop and therefore incurs no release obligation
+
+#### Scenario: A locked run does not escalate on retry
+
+- **GIVEN** `factory.locked` is true and a ticket enters its third attempt with `model_tier=sonnet`
+- **WHEN** `dispatcher-bridge.sh` launches the pipeline
+- **THEN** the pipeline runs on the locked local model, `FACTORY_MODEL_LOCKED=1` is set in its
+  environment, and no request reaches an external provider
+
 #### Scenario: The locked branch is not silent
 
 - **GIVEN** `factory.locked` is true

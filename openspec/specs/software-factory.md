@@ -1493,15 +1493,24 @@ unchanged (Merge = Abschluss).
 
 ### Requirement: Bonsai Provider Registration for Implement and Review
 
-`scripts/factory/provider-register-local.sh` SHALL register the local chat model for implement and review in `tickets.provider_config` and `tickets.factory_model_slots`, using the unified gateway `http://127.0.0.1:18235/v1` as `base_url` — never a backend port directly. The model id SHALL NOT be a source-code literal. It SHALL be resolved in this order, first hit wins:
+`scripts/factory/provider-register-local.sh` SHALL register the local chat model for implement and review in
+`tickets.provider_config`, using the unified gateway `http://127.0.0.1:18235/v1` as `base_url` — never a backend
+port directly. The model id SHALL NOT be a source-code literal. It SHALL be resolved in this order, first hit wins:
 
 1. `factory.model` from `scripts/llm/loadouts.json`, read over `GET /admin/factory`
 2. the environment variable `FACTORY_MODEL_ID`
 3. the script's built-in default
 
-The file outranks the environment because the file is the only one of the three that is validated against the loadouts that actually exist. The environment variable stays the path for callers with no reachable proxy — CI, a one-off run against a different model — and therefore keeps its meaning unchanged for every existing caller.
+The file outranks the environment because the file is the only one of the three that is validated against the
+loadouts that actually exist. The environment variable stays the path for callers with no reachable proxy — CI, a
+one-off run against a different model — and therefore keeps its meaning unchanged for every existing caller.
 
-The resolution SHALL live in exactly one place, `factory_model_pin` in `scripts/factory/lib.sh`, and SHALL be fail-soft with a bounded timeout: an unreachable proxy means "no pin", never an abort. A gateway that stops the factory because a web UI is not running would be a new failure source in service of a convenience feature.
+The resolution SHALL live in exactly one place, `factory_model_pin` in `scripts/factory/lib.sh`, and SHALL be
+fail-soft with a bounded timeout: an unreachable proxy means "no pin", never an abort. A gateway that stops the
+factory because a web UI is not running would be a new failure source in service of a convenience feature.
+
+Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Slot-Tabelle;
+`tickets.provider_config` ist der einzige Speicher, den es befuellt und den Runtime-Code liest.
 
 **Renamed-to:** Local Provider Registration for Implement and Review
 
@@ -1852,36 +1861,6 @@ flag SHALL require an explicit human action
   key in its `readiness` object
 - **WHEN** `queue.sh` runs for its brand
 - **THEN** T002400 appears in the returned JSON array
-
-### Requirement: Phase Pin Is the First Candidate, Not a Shortcut
-
-`scripts/factory/route-provider.sh` SHALL treat a matching row in `tickets.factory_model_slots` as
-the highest-priority candidate of the same selection chain that evaluates `tickets.provider_config`,
-and SHALL NOT return from the phase branch without passing through the cooldown check and the atomic
-slot claim. A phase pin expresses a preference, not a bypass: returning early skipped the priority
-chain, `provider_health`, the cooldown window and the claim entirely, which made the whole fallback
-logic dead code for the `plan`, `implement` and `verify` phases.
-
-#### Scenario: Pinned provider is claimed like any other candidate
-
-- **GIVEN** `tickets.factory_model_slots` holds a row for phase `implement`
-- **WHEN** `route-provider.sh factory-implement sonnet` runs against a reachable database
-- **THEN** the pinned provider is offered to the same claim loop as the `provider_config` rows, and
-  the emitted JSON carries a non-null `slotId` because a slot was actually claimed
-
-#### Scenario: Blocked pin falls through to the next candidate
-
-- **GIVEN** the pinned provider for a phase sits at `active_agents = max_concurrent`
-- **WHEN** the router resolves that phase
-- **THEN** the pin is skipped and the next candidate from `provider_config` is claimed, instead of
-  the router returning the blocked provider
-
-#### Scenario: Exhausted chain is announced, not returned silently
-
-- **GIVEN** every candidate for a source/tier is claimed out or on cooldown
-- **WHEN** the router falls through to the emergency branch
-- **THEN** it writes a diagnostic naming the source and tier to stderr, and the emitted JSON carries
-  `emergency: true` together with a model id that a reachable backend actually serves
 
 ### Requirement: Provider API Keys Are Resolved by Variable Name from the Routing Row
 
@@ -3536,28 +3515,12 @@ When `factory.locked` is true in `scripts/llm/loadouts.json`, the Software Facto
 id. Specifically:
 
 - `scripts/factory/route-provider.sh` SHALL emit the locked model over the gateway
-  `http://127.0.0.1:18235` for **every** tier, including `opus`, before the `factory_model_slots`
-  phase pin and before the `provider_config` candidate chain are read, and SHALL NOT claim a
-  provider slot for it. No claim means no release obligation — the same reasoning that already
-  governs the `opus` branch, which returns `slotId:null` precisely because its callers have no
+  `http://127.0.0.1:18235` for **every** tier, including `opus`, before the `provider_config`
+  candidate chain is read, and SHALL NOT claim a provider slot for it. No claim means no release obligation — the
+  same reasoning that already governs the `opus` branch, which returns `slotId:null` precisely because its callers have no
   release path.
 - `scripts/factory/dispatcher-bridge.sh` SHALL export `FACTORY_MODEL_ID` and
   `FACTORY_MODEL_LOCKED=1` into the pipeline process and SHALL pin `model_tier` to `flash`.
-- `scripts/factory/pipeline.mjs` SHALL ignore `args.model_tier` when `FACTORY_MODEL_LOCKED=1` is
-  set, so the escalation ladder `flash -> haiku -> sonnet` cannot raise a retry onto an external
-  provider.
-
-The escalation ladder being inert is the intended consequence, not a side effect. A ticket that
-fails on the locked model fails again on the next attempt instead of moving to the cloud. A lock
-that lifts itself on the second failure would not be a lock; the way to get the ladder back is to
-clear the toggle in the same web UI.
-
-The locked branch SHALL log one line to stderr naming the locked model. Without it, the branch
-would silently swallow the existing "all candidates claimed or on cooldown" warning, which is the
-only signal that the factory is running at capacity.
-
-When `factory.locked` is false or the block is absent, model resolution SHALL behave exactly as it
-does today, with `factory.model` serving only as the default in place of the built-in literals.
 
 #### Scenario: Every tier resolves to the locked model
 
@@ -3588,15 +3551,44 @@ does today, with `factory.model` serving only as the default in place of the bui
 
 #### Scenario: Unlocked leaves the database chain untouched
 
-- **GIVEN** `factory.locked` is false and `tickets.factory_model_slots` carries a row for phase `implement`
+- **GIVEN** `factory.locked` is false
 - **WHEN** `route-provider.sh factory-implement flash` runs
-- **THEN** the phase pin is used as candidate #0 exactly as before, and the claim loop runs unchanged
+- **THEN** the ordinary `provider_config` candidate chain is evaluated unchanged — priority order,
+  cooldown check and claim loop behave exactly as in the locked-absent case
 
 #### Scenario: No proxy means no lock
 
 - **GIVEN** nothing is listening on `127.0.0.1:18235`
 - **WHEN** `route-provider.sh factory-implement flash` runs
 - **THEN** it walks the ordinary candidate chain, because an unreadable pin is treated as absent
+
+### Requirement: Provider_config ist die einzige Kandidatenquelle des Routers
+
+Der fruehere Phasen-Pin aus der entfernten Tabelle `tickets.factory_model_slots` war eine zweite
+Wahrheit neben `tickets.provider_config`: zwei Oberflaechen fuer dieselbe Entscheidung, von denen
+nur eine von Runtime-Code gelesen wurde [T013302]. Der Router wertet deshalb ausschliesslich
+`tickets.provider_config` aus.
+
+`scripts/factory/route-provider.sh` SHALL evaluate its candidates solely from
+`tickets.provider_config`, passing every candidate through the same priority order, the
+`provider_health` cooldown check and the atomic slot claim. The router SHALL NOT query any
+per-phase pin table, and the script SHALL NOT carry a `ROUTE_SKIP_PINNED` switch, because there
+is no pin left to skip: the escalation ladder (`factory-escalation-ladder`) can no longer be
+overridden by a local phase preference.
+
+#### Scenario: Retired pin rows are ignored
+
+- **GIVEN** legacy rows still exist in `tickets.factory_model_slots`
+- **WHEN** `route-provider.sh factory-implement sonnet` runs against a reachable database
+- **THEN** no statement in the script reads that table, and the candidate chain comes entirely
+  from `provider_config`
+
+#### Scenario: Exhausted chain is announced, not returned silently
+
+- **GIVEN** every candidate for a source/tier is claimed out or on cooldown
+- **WHEN** the router falls through to the emergency branch
+- **THEN** it writes a diagnostic naming the source and tier to stderr, and the emitted JSON carries
+  `emergency: true` together with a model id that a reachable backend actually serves
 
 ## Testszenarien
 
@@ -5567,3 +5559,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (957a075c3ebc) -->
 
 <!-- merged from change delta software-factory.md (d7f4a0044813) -->
+
+<!-- merged from change delta software-factory.md (acc5b1537dd0) -->

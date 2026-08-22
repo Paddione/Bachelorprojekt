@@ -56,9 +56,32 @@ Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Sl
 #### Scenario: Registration writes gateway URL and configurable model id
 
 - **GIVEN** the registration script runs against a brand database
-- **WHEN** it registers the implement and review models
-- **THEN** only `tickets.provider_config` carries rows for `factory-implement` and `factory-review`, and each row's
-  `base_url` is the unified gateway root without `/v1`
+- **WHEN** its idempotent upserts complete
+- **THEN** every row it touched has `base_url = http://127.0.0.1:18235/v1` and `model_id` equal to the resolved pin, and re-running it never reintroduces `:8093`
+
+#### Scenario: The file outranks the environment variable
+
+- **GIVEN** `loadouts.json` carries `factory.model = "gemma26-throughput"` and `FACTORY_MODEL_ID` is set to `gemma12-vision`
+- **WHEN** any routing surface resolves the model id
+- **THEN** it resolves `gemma26-throughput`
+
+#### Scenario: An unreachable proxy falls back, it does not fail
+
+- **GIVEN** nothing is listening on `127.0.0.1:18235`
+- **WHEN** `factory_model_pin` runs
+- **THEN** it returns empty within its timeout and the caller proceeds with `FACTORY_MODEL_ID` or its built-in default, exactly as before this change
+
+#### Scenario: Retired model ids never reach a routing surface
+
+- **GIVEN** the routing surfaces `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh` and `scripts/factory/pipeline.mjs`
+- **WHEN** the spec BATS suite runs in CI
+- **THEN** any non-comment line naming a retired model id (`ternary-bonsai-27b`, `gemma-4-12b`) fails the test, because no backend serves those ids and the proxy would silently reroute the request instead of erroring
+
+#### Scenario: Emergency fallback routes through the gateway
+
+- **GIVEN** every candidate provider for a source/tier is claimed or on cooldown
+- **WHEN** `route-provider.sh` emits its emergency fallback
+- **THEN** the emitted `baseUrl` is the gateway `http://127.0.0.1:18235` and the `modelId` is the resolved pin — not an LM Studio backend port, which since T002551 serves embedding and reranking models only and therefore hosts no chat model at all
 
 ### Requirement: A locked factory model overrides every other model choice
 

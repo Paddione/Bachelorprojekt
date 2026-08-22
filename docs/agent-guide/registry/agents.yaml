@@ -172,9 +172,9 @@ runtimes:
     note: "Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
   orchestrator:
     mode: primary
-    model: alibaba-intl/qwen3.8-max
+    model: opencode-zen/laguna-s-2.1-free
     write_capable: true
-    note: "Primary orchestrator on Qwen 3.8 Max (Alibaba Cloud, 131k ctx). Dispatches local family subagents + cloud escalation (qwen-cloud/deepseek-*). Eskalationskette: lokal → qwen-cloud → deepseek-helper → deepseek-pro [T013360]"
+    note: "Primary orchestrator on Laguna S 2.1 Free (OpenCode Zen, Poolside agentic coding model, free tier, 256k ctx per models.dev; live-smoke-tested 2026-08-22). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches local family subagents + cloud escalation (qwen-cloud/deepseek-*). Eskalationskette: lokal → qwen-cloud → deepseek-helper → deepseek-pro [T013360]"
   alibaba-primary:
     mode: primary
     model: alibaba-intl/qwen3.8-max

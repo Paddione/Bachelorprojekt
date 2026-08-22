@@ -15,6 +15,12 @@ diese Pfade sonst ab — auch für reine Statusabfragen.
 Vor jeder Worktree- oder Branch-Aufräumaktion den Arbeitsbaum des Hauptcheckouts und die
 Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftaucht.
 
+**Factory-Tick-Vorcheck.** Läuft ein Factory-Tick (`/tmp/factory-tick.lock` gehalten, derselbe
+Lock-Test wie in §1 [T003227]), mutiert das Repo unter der Messung — auch die §0-Snapshots
+(`git status`, `git stash list`) veralten dann lautlos. Ein Snapshot, der während eines Ticks
+entstanden ist, ist kein Messwert: vor der Aufräumentscheidung erneut messen. Real beobachtet
+am 2026-08-22: Worktree- und Branch-Bestände mutierten während desselben Laufs mehrfach.
+
 1. **Befund im Hauptcheckout.** `git status --porcelain` im Hauptcheckout — nicht leer ist ein
    Befund, kein Rauschen. Pro Änderung entscheiden: gehört sie zu einem laufenden Ticket
    (→ in dessen Worktree ziehen), oder ist es ein funktionaler Patch ohne Ticket

@@ -1,0 +1,187 @@
+{
+  "meta": {
+    "slug": "health-dashboard-rescan",
+    "ticket_id": "T013306",
+    "generated_from": "main@00efbc3d6",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "language": "svelte",
+      "loc": 349,
+      "s1_limit": 1100,
+      "s1_baseline": null,
+      "s1_budget": 751
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5744,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/health-goal-tickets.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/health-goal-tickets.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/health-scan.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/health-scan.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/sdlc/openspec/proposal.ts",
+      "language": "javascript",
+      "loc": 52,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 848
+    },
+    {
+      "path": "components/website/src/lib/sdlc/repo-root.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/health-goals/rescan.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/health-goals/tickets.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/health-goals-scan.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/health-goals/dashboard-rescan.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:14:  function toggle(id: string) {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "14:  function toggle(id: string) {(...)",
+      "type_text": "14:  function toggle(id: string) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:18:  function statusColor(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "18:  function statusColor(g: HealthGoal): string {(...)",
+      "type_text": "18:  function statusColor(g: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:28:  function statusLabel(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "28:  function statusLabel(g: HealthGoal): string {(...)",
+      "type_text": "28:  function statusLabel(g: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:38:  function barColor(pct: number | null): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "38:  function barColor(pct: number | null): string {(...)",
+      "type_text": "38:  function barColor(pct: number | null): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:46:  function formatValue(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "46:  function formatValue(g: HealthGoal): string {(...)",
+      "type_text": "46:  function formatValue(g: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/components/sdlc/GoalsDashboard.svelte:51:  function formatTarget(g: HealthGoal): string {",
+      "kind": "function",
+      "file": "components/website/src/components/sdlc/GoalsDashboard.svelte",
+      "signature": "51:  function formatTarget(g: HealthGoal): string {(...)",
+      "type_text": "51:  function formatTarget(g: HealthGoal): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sdlc/openspec/proposal.ts:5:function findRepoRoot(): string {",
+      "kind": "function",
+      "file": "components/website/src/lib/sdlc/openspec/proposal.ts",
+      "signature": "5:function findRepoRoot(): string {(...)",
+      "type_text": "5:function findRepoRoot(): string {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

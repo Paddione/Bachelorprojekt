@@ -2,7 +2,7 @@
 title: "brain-ingest-stale-branch-T013041 — Implementation Plan"
 ticket_id: T013041
 domains: [scripts]
-status: active
+status: completed
 file_locks: [scripts/brain-ingest.sh]
 shared_changes: false
 batch_id: null

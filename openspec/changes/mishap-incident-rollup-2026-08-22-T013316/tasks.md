@@ -89,28 +89,35 @@ Box leer und der Grund steht dahinter. Was nicht zulaessig ist: eine Box abhaken
 Disposition hinzuschreiben. Die Dispositionen zusammen sind der Nachweis, dass der Container
 abgearbeitet wurde und nicht nur geschlossen.
 
-- [ ] **1. Delegation für Review-/Finalizer-Subagenten im Subagent-Kontext unbrauchbar** (process, infra) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **2. Finalizer-Schritt 7 scheitert, wenn Plan-Datei nur im Worktree liegt** (process, scripts) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **3. svelte-check in components/website nicht installiert — Plan-Verifikationsschritt nicht ausführbar** (process, website) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **4. Bekannte Worktree/Test-Frictions: SID-Drift, BATS stderr-Mixing, pnpm-TTY-Abbruch, commitlint-Scopes** (process, scripts) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **5. freshness:regenerate erzeugt Kollateral-Drift an .opencode/package.json** (drift, Taskfile freshness:regenerate) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **6. Flaky G-CD03 --self-test in CI-Spec-Shards (PR #4959)** (suspicious, tests/spec health-goals G-CD03) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **7. agent-lock.sh claim aus Subshell erzeugt SID, die ticket.sh als fremde Session wertet** (degraded, scripts/agent-lock.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **8. test(mishap-rollup)-Scope fehlt in der test:changed-Allowlist** (degraded, task test:changed / find-changed-tests) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **9. Ad-hoc git-worktree-Parsing entfernte das falsche Worktree (selbst korrigiert)** (suspicious, scripts/hygiene worktree cleanup) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
-- [ ] **10. Rollup-Eskalation scannt fremde Pläne über Worktree-Namen — False-Positive-needs_human-Tickets** (degraded, scripts/factory/rollup-carryover.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix | beobachten (bis Zyklus <JJJJ-MM-TT>)>_ + Begruendung
+- [x] **1. Delegation für Review-/Finalizer-Subagenten im Subagent-Kontext unbrauchbar** (process, infra) — Disposition: **kein Repo-Fix** — Harness-Eigenschaft, nicht Repo-Code. Die Delegations-Pfade sind seit T013360 in AGENTS.md dokumentiert (`delegate` für Read-only, `task` für Write-capable); der dokumentierte In-Context-Fallback (Review mit Checkliste gegen den echten Diff, idempotenter `devflow-post-merge-finalize.sh`) ist funktional. Kein Ablaufdatum nötig — die Dokumentation bildet den Zustand ab, es gibt keinen offenen Workaround zu überwachen.
+- [x] **2. Finalizer-Schritt 7 scheitert, wenn Plan-Datei nur im Worktree liegt** (process, scripts) — Disposition: **bereits gefixt** — `scripts/devflow-post-merge-finalize.sh` auf main löst den Worktree-Pfad früh auf (`git worktree list --porcelain`, Zeilen 162–179) und wählt das Archivziel über `$WORKTREE/openspec/changes/$SLUG` (Zeilen 348–349); der Plan-Fund im Worktree geht damit denselben Pfad wie Schritt 8.
+- [x] **3. svelte-check in components/website nicht installiert — Plan-Verifikationsschritt nicht ausführbar** (process, website) — Disposition: **kein Repo-Fix** — Das Projekt prüft Svelte-in-Astro über `astro check` (`@astrojs/check` ^0.9.9, Script `astro:check` in package.json) plus Produktionsbuild; beide sind installiert und lauffähig. svelte-check zusätzlich aufzunehmen wäre Redundanz. Plan-Vorlagen nennen künftig `astro check + build` als Verifikation — Autoren-Disziplin, kein Code-Defekt; die Fehlermeldung des fehlenden Tools führt unmittelbar zur Umstellung.
+- [x] **4. Bekannte Worktree/Test-Frictions: SID-Drift, BATS stderr-Mixing, pnpm-TTY-Abbruch, commitlint-Scopes** (process, scripts) — Disposition: **kein Repo-Fix** — Vier bekannte Patterns mit je dokumentiertem Workaround: fixe `AGENT_LOCK_SID` (T002381), `run --separate-stderr` + `bats_require_minimum_version 1.5.0`, `CI=true pnpm install --prefer-offline`, gültige Scopes scripts/website/test. Alles in tests/CLAUDE.md bzw. Hook-Fehlermeldungen verankert; keine Wiederholungsanfälligkeit über das dokumentierte Maß hinaus.
+- [x] **5. freshness:regenerate erzeugt Kollateral-Drift an .opencode/package.json** (drift, Taskfile freshness:regenerate) — Disposition: **beobachten (bis Zyklus 2026-09-05)** — Transient und im Nachfolge-Lauf nicht reproduzierbar ("vermutlich kontextabhängig"), aber die Ursache ist ungeklärt und der Eingriff (manueller Revert vor Commit) war real. Zwei Zyklen im Blick behalten; bei Rezurrenz Ursache in Taskfile/Regenerierung messen.
+- [x] **6. Flaky G-CD03 --self-test in CI-Spec-Shards (PR #4959)** (suspicious, tests/spec health-goals G-CD03) — Disposition: **beobachten (bis Zyklus 2026-09-05)** — Einmaliger Fehlalarm, Re-Trigger grün, vermutete Ursache (zeit-/umgebungsabhängiger Vergleich CI-Runner vs. Worktree) unbelegt. Bei erneutem Auftreten Eskalation mit Messung statt Spekulation.
+- [x] **7. agent-lock.sh claim aus Subshell erzeugt SID, die ticket.sh als fremde Session wertet** (degraded, scripts/agent-lock.sh) — Disposition: **kein Repo-Fix** — Bekanntes Pattern (T001268/T002381). agent-lock.sh warnt seit [T002381-M1] laut auf fehlende Session-Env ("SID driftet pro Bash-Call") und nennt die Abhilfe; Subshell-Aufrufe erben die Harness-Env, der Vorfall betraf den Fallback-Pfad ohne Env. Fix bleibt: stabile `AGENT_LOCK_SID` exportieren.
+- [x] **8. test(mishap-rollup)-Scope fehlt in der test:changed-Allowlist** (degraded, task test:changed / find-changed-tests) — Disposition: **beobachten (bis Zyklus 2026-09-05)** — Teilweise entschärft: Änderungen an `rollup-carryover.sh` matchen inzwischen über die Verzeichnisform auf `tests/spec/mishap-rollup/rollup-carryover.bats`. Für `mishap-rollup.sh` selbst findet sich kein gleichnamiger Test (Suite heißt lifecycle/wakeup/…), manuelle Auswahl bleibt nötig. Bei erneutem Friction-Fall Namens-Mapping in find-changed-tests.sh ergänzen.
+- [x] **9. Ad-hoc git-worktree-Parsing entfernte das falsche Worktree (selbst korrigiert)** (suspicious, scripts/hygiene worktree cleanup) — Disposition: **beobachten (bis Zyklus 2026-09-05)** — REZIDIV während dieses Rollup-Zyklus selbst beobachtet: der T013316-reuse-Worktree wurde mid-session extern neu erstellt (leerer Reflog, Stand Original-Commit), ein uncommitteter RED-Test ging verloren und wurde neu geschrieben. Lehre steht im Eintrag: Entfernung nur per direktem Pfad aus `git worktree list --porcelain`, nie via grep-Ableitung.
+- [x] **10. Rollup-Eskalation scannt fremde Pläne über Worktree-Namen — False-Positive-needs_human-Tickets** (degraded, scripts/factory/rollup-carryover.sh) — Disposition: **gefixt** — RED-Test `tests/spec/mishap-rollup/carryover-worktree-scan.bats` (Decoy-Worktree mit Boilerplate-Plänen floss vor dem Fix in die Eskalation). Fix in `_cycle_plans()` (find auf `$SCAN_ROOT/openspec/changes` verankert) und `_line_title()`/`_line_meta()` (`sed -nE … p` verwirft Nicht-Matches statt Rohzeile durchzulassen). Fixture-Layouts von escalation-rule/watchlist-disposition aufs Produktionslayout korrigiert; volle mishap-rollup-Suite (52 Tests) grün.
 
-- [ ] **Failing-Test-Step (RED).** Fuer jeden Eintrag, der die Disposition **gefixt** bekommt,
-      zuerst einen Test schreiben, der das beschriebene Fehlverhalten reproduziert. Er gehoert
-      nach `tests/spec/<spec-slug>/<kurz-slug>.bats` — das Verzeichnis der Spec, die das
-      Verhalten abdeckt. Eintraege mit den beiden anderen Dispositionen brauchen keinen Test.
+## File Structure
 
-```bash
-tests/unit/lib/bats-core/bin/bats -r tests/spec/<spec-slug>/
-# expected: FAIL (rot — der Fix ist noch nicht implementiert)
+```
+scripts/factory/rollup-carryover.sh                      | geändert | Scan-Verankerung + Titel-Fallback [T013316 #10]
+tests/spec/mishap-rollup/carryover-worktree-scan.bats    | neu      | RED/GREEN gegen .worktrees-Decoy
+tests/spec/mishap-rollup/escalation-rule.bats            | geändert | Fixture-Layout openspec/changes/
+tests/spec/mishap-rollup/watchlist-disposition.bats      | geändert | Fixture-Layout openspec/changes/
+openspec/changes/mishap-incident-rollup-2026-08-22-T013316/tasks.md | geändert | Dispositionen
 ```
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Failing-Test-Step (RED).** Eintrag 10 bekam **gefixt**: `tests/spec/mishap-rollup/carryover-worktree-scan.bats` war vor dem Fix rot (Boilerplate aus dem Decoy-Worktree erschien in der Eskalationsausgabe), nach dem Fix grün. Die übrigen neun Dispositionen sind bereits gefixt / kein Repo-Fix / beobachten und brauchen keinen Test.
+
+```bash
+tests/unit/lib/bats-core/bin/bats -r tests/spec/mishap-rollup/
+# expected: 52 ok, 0 not ok
+```
+
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

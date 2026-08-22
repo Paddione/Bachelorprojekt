@@ -22,13 +22,14 @@ setup() {
 # alte den abgelaufenen Eintrag.
 _plan_with_watchlist() {
   local dir="$1"
-  mkdir -p "$dir/mishap-incident-rollup-2026-08-21-T012973"
-  cat > "$dir/mishap-incident-rollup-2026-08-21-T012973/tasks.md" <<'EOF'
+  # [T013316 #10] Plaene liegen unter openspec/changes/ — der Scan-Suchort von _cycle_plans().
+  mkdir -p "$dir/openspec/changes/mishap-incident-rollup-2026-08-21-T012973"
+  cat > "$dir/openspec/changes/mishap-incident-rollup-2026-08-21-T012973/tasks.md" <<'EOF'
 - [x] **1. MTP-Crash transient** (broken, llm-proxy) — Disposition: beobachten (bis Zyklus 2026-08-25), Workaround operativ
 - [x] **3. Erledigt ohne Beobachtung** (drift, factory) — Disposition: kein Repo-Fix, einmalig
 EOF
-  mkdir -p "$dir/mishap-incident-rollup-2026-08-20-T012909"
-  cat > "$dir/mishap-incident-rollup-2026-08-20-T012909/tasks.md" <<'EOF'
+  mkdir -p "$dir/openspec/changes/mishap-incident-rollup-2026-08-20-T012909"
+  cat > "$dir/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/tasks.md" <<'EOF'
 - [x] **2. Alter Beobachtungspunkt** (degraded, scs-embed) — Disposition: beobachten (bis Zyklus 2026-08-01), laengst abgelaufen
 EOF
 }

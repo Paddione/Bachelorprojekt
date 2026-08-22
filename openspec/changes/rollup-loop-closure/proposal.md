@@ -18,7 +18,7 @@ Drei Mechanismen, im Generator verankert (die Daten liegen alle bereits in `tick
 
 **C. Eskalationsregel** — ein Eintrag, der ≥ 2 Zyklen offen bleibt (Carryover-Zähler) oder dessen Watchlist-Zyklus abläuft, wird beim nächsten Generator-Lauf automatisch in ein eigenes Ticket promoted (`needs_human`) und verlässt die Rollup-Loop, statt zum Zombie zu werden.
 
-**D. Archive-Janitor (Zyklusebene)** — Archivierung ist heute session-owned Prosa (`devflow-post-merge-finalize` steht nur im dev-flow-execute-Skill; kein Tick, kein Workflow ruft es), weshalb die letzten vier abgeschlossenen Zyklen (T012445/T012909/T012973 + Rescue) unarchiviert liegen. Der Janitor scannt wie der Carryover-Scan (`Ticket done/archived + Dir noch in openspec/changes/`) und verschiebt nach `archive/<datum>-<slug>` — maschinen-owned, Bestand und Zukunft. Die Finalize-Fehlermoden selbst (Mishaps #2/#4 des Batches 08-22) werden als separater Chore T013306 gefixt.
+**D. Archive-Janitor (Zyklusebene)** — Archivierung ist heute session-owned Prosa (`devflow-post-merge-finalize` steht nur im dev-flow-execute-Skill; kein Tick, kein Workflow ruft es), weshalb die letzten vier abgeschlossenen Zyklen (T012445/T012909/T012973 + Rescue) unarchiviert liegen. Der Janitor scannt wie der Carryover-Scan (`Ticket done/archived + Dir noch in openspec/changes/`) und verschiebt nach `archive/<datum>-<slug>` — maschinen-owned, Bestand und Zukunft. Die Finalize-Fehlermoden selbst (Mishaps #2/#4 des Batches 08-22) werden als separater Chore T013315 gefixt.
 
 Sequencing: Das ändert das Plan-Template-Vokabular — der Change sollte landen, wenn kein Rollup-Zyklus mid-flight ist (T013107 war bei Erstellung dieses Proposals gerade gestaged).
 

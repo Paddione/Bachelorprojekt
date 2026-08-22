@@ -2958,6 +2958,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/unit-tests-no-dependency-skips",
+    "file": "tests/spec/ci-cd/unit-tests-no-dependency-skips.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/unknown-scope-names-source",
     "file": "tests/spec/ci-cd/unknown-scope-names-source.bats",
     "category": "ci-cd",

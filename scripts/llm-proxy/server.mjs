@@ -15,6 +15,7 @@ import { enqueue, inflightOf, extractSlotId } from './slot-queue.mjs';
 import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, LOADOUT_START_BUDGET_MS } from './bge-routes.mjs';
 import { respondBuffered, respondStreamed } from './respond.mjs';
 import { requestLog } from './request-log.mjs';
+import { evaluatePin, pinGuard, acquirePin, releasePin, pinFilePath } from './loadout-pin.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -620,6 +621,43 @@ const server = http.createServer((req, res) => {
         const conflict = /conflict|geaendert/i.test(err.message);
         return sendJson(res, conflict ? 409 : 400,
           { error: { code: conflict ? 'stale_write' : 'invalid', message: err.message } });
+      }
+    }
+    // T013593 — Loadout-Pin. Waehrend ein Pin gehalten wird, duerfen nur sein
+    // Besitzer Loadouts starten und stoppen; das Token reist im Header
+    // 'x-loadout-pin'. Die Auswertung liegt vollstaendig in loadout-pin.mjs,
+    // damit diese Datei ihr Zeilenbudget nicht fuer Fail-closed-Zweige ausgibt.
+    if (path === '/admin/loadouts/pin') {
+      const pinFile = pinFilePath();
+      if (method === 'GET') return sendJson(res, 200, evaluatePin(pinFile));
+      if (method === 'POST') {
+        try {
+          const body = await readBody(req);
+          if (!body?.slug || !body?.pid) {
+            return sendJson(res, 400, { error: { code: 'invalid', message: 'slug und pid sind Pflicht.' } });
+          }
+          return sendJson(res, 201, acquirePin(pinFile, body));
+        } catch (err) {
+          return sendJson(res, err.status || 400,
+            { error: { code: err.code || 'invalid', message: err.message } });
+        }
+      }
+      if (method === 'DELETE') {
+        try {
+          releasePin(pinFile, req.headers['x-loadout-pin'] || null);
+          return sendJson(res, 200, { released: true });
+        } catch (err) {
+          return sendJson(res, err.status || 400,
+            { error: { code: err.code || 'invalid', message: err.message } });
+        }
+      }
+    }
+    const pinnedChange = path.match(/^\/admin\/loadouts\/[a-z0-9-]+\/(start|stop)$/);
+    if (pinnedChange && method === 'POST') {
+      const g = pinGuard(evaluatePin(pinFilePath()), req.headers['x-loadout-pin'] || null);
+      if (!g.allowed) {
+        return sendJson(res, g.status,
+          { error: { code: g.code, message: g.message, slug: g.slug, pid: g.pid } });
       }
     }
     const startMatch = path.match(/^\/admin\/loadouts\/([a-z0-9-]+)\/start$/);

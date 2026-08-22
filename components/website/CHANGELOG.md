@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.301.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.3...website-v1.301.4) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** anchor rollup escalation scan to openspec/changes, discard non-matching titles [T013316] ([#5021](https://github.com/Paddione/Bachelorprojekt/issues/5021)) ([baead7f](https://github.com/Paddione/Bachelorprojekt/commit/baead7fe2f0bd6e2f9648becf035f02bf6935550))
+
 ## [1.301.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.2...website-v1.301.3) (2026-08-22)
 
 

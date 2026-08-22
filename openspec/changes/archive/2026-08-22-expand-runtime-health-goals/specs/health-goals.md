@@ -104,7 +104,7 @@ value and require at least 99.5 percent availability.
 - **WHEN** G-SLO01 is measured
 - **THEN** the measurement returns `-` rather than treating the present Brand as complete
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: G-FE05 uses machine-readable Lighthouse results
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.301.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.2...website-v1.301.3) (2026-08-22)
+
+
+### Bug Fixes
+
+* **scripts:** replace basename/sed subprocess forks with bash builtins [T013673] ([#5018](https://github.com/Paddione/Bachelorprojekt/issues/5018)) ([4a3ba6c](https://github.com/Paddione/Bachelorprojekt/commit/4a3ba6c1cd6793f3bc147da84f31d2c68e2d170f))
+
 ## [1.301.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.1...website-v1.301.2) (2026-08-22)
 
 

@@ -26,3 +26,9 @@ under `components/website/` were touched, expensive steps (`pnpm install`, `astr
 - **THEN** setzt der Filter `run_website=true`
 - **THEN** werden Dependencies installiert und `vitest run --changed`, `astro:check` und `knip` ausgeführt
 
+#### Scenario: Vitest-Befehl bleibt required Check auf jedem PR
+- **GIVEN** der `Vitest (website)`-Check ist als required Check in der Branch-Protection konfiguriert
+- **WHEN** ein chore-PR geöffnet wird, der keine `website/`-Dateien berührt
+- **THEN** läuft der `vitest-website`-Job trotzdem und reported grün — der Check ist nicht "skipped" / "missing"
+
+

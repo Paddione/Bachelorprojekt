@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.299.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.298.0...website-v1.299.0) (2026-08-22)
+
+
+### Features
+
+* **ops:** measure runtime health goals [T013429] ([#4986](https://github.com/Paddione/Bachelorprojekt/issues/4986)) ([1278ec3](https://github.com/Paddione/Bachelorprojekt/commit/1278ec398e3db644331e5d1a28e5a8e7b91b96a4))
+
 ## [1.298.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.2...website-v1.298.0) (2026-08-22)
 
 

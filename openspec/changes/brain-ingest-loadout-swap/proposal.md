@@ -78,6 +78,14 @@ Die drei `brain:ingest:*`-Tasks rufen kuenftig den Wrapper. Die bisherigen
 Env-Defaults bleiben ueberschreibbar, damit ein Lauf gegen ein anderes Backend
 weiterhin moeglich ist.
 
+**Ersetzte Entscheidung:** T013042 ("default Brain ingest tasks to local Gemma settings") hatte
+die sieben Task-Defaults eingefuehrt, abgesichert durch
+`tests/spec/brain-ingest-task-defaults.bats`. Der Zweck war Bequemlichkeit — Aufrufer sollten die
+funktionierenden lokalen Einstellungen nicht wiederholen muessen —, und die Werte wurden dafuer
+vom damaligen Ist-Zustand abgeschrieben, mitsamt des Port-Widerspruchs. Drei davon entfallen hier
+(`LM_STUDIO_URL`, `LM_MODEL`, `MAX_PARALLEL`); die Zusicherung, dass vorgesetzte Werte gegen jeden
+Default gewinnen, bleibt und wird weiterhin geprueft.
+
 **Nicht Teil dieser Aenderung:** die Wahl des Ingest-Modells selbst
 (Gemma 4 12B QAT bleibt, belegt durch den Spike in T012905) und ein
 Cloud-Fallback fuer den Ingest.

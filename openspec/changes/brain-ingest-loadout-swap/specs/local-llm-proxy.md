@@ -170,6 +170,14 @@ one the `brain-ingest` loadout declares. The existing cross-declaration check SH
 cover the task definitions, so a task default that walks away from the loadout port fails the same
 way a script default already does.
 
+This REPLACES the three task defaults introduced by T013042 (`LM_STUDIO_URL=http://127.0.0.1:8089`,
+`LM_MODEL=gemma12-vision`, `MAX_PARALLEL=1`). Those were copied from the then-current state for
+caller convenience and carried the port contradiction with them; backend URL, model and slot count
+now come from the `brain-ingest` loadout, which is the source the port requirement already names.
+The remaining four defaults (`LM_DISABLE_THINKING`, `LM_MAX_TOKENS`, `LM_TIMEOUT`,
+`MAX_SOURCE_CHARS`) stay in the tasks, and the T013042 guarantee that explicitly pre-set values
+beat every default SHALL continue to hold.
+
 #### Scenario: A task default naming a foreign port fails the check
 
 - **GIVEN** a `brain:ingest:*` task declares a default backend URL on a port other than the

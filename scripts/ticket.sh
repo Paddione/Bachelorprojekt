@@ -1020,9 +1020,9 @@ cmd_rollup_container() {
   # werden nie zurueckgegeben — neue Flushes sollen einen frischen Container
   # anlegen, solange der alte vom Executor bearbeitet wird.
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"
-  local creation_brand="korczewski" # Pinned constant for cross-brand rollup container
+  local brand="${BRAND:-mentolder}"
   while [[ $# -gt 0 ]]; do case "$1" in
-      --brand) shift 2 ;; # Deprecated / ignored: lane is brand-agnostic
+      --brand) brand="$2"; shift 2 ;;
       *)       echo "Unknown rollup-container option: $1" >&2; exit 2 ;;
     esac; done
   # Resolve db pod via shared pg helper
@@ -1046,9 +1046,9 @@ cmd_rollup_container() {
     return 0
   fi
   # Step 2: Erstellen — keiner im Collect Mode gefunden
-  echo "rollup-container: kein offener Container, lege neuen an (brand=$creation_brand)" >&2
-  ext_id=$(bash "$(dirname "${BASH_SOURCE[0]}")/ticket.sh" create \
-    --type chore --brand "$creation_brand" \
+  echo "rollup-container: kein offener Container, lege neuen an (brand=$brand)" >&2
+  ext_id=$(BRAND="$brand" bash "$(dirname "${BASH_SOURCE[0]}")/ticket.sh" create \
+    --type chore --brand "$brand" \
     --title "$ROLLUP_TITLE" \
     --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Der Container sammelt einen Batch; der Generator staged den daraus erzeugten Plan auf dieses Ticket, und es wird geschlossen (done · resolution=fixed), sobald der Executor-PR fuer den Plan gemergt ist." \
     --status triage --severity minor 2>&1)

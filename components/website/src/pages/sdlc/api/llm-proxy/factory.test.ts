@@ -102,9 +102,8 @@ describe('PUT /sdlc/api/llm-proxy/factory', () => {
   });
 
   it('übersetzt einen Konflikt des Proxy in einen eigenen 409 mit Fehlerschlüssel', async () => {
-    const conflict = new Error('stale');
-    conflict.name = 'FactoryWriteConflictError';
-    writeFactoryDefault.mockRejectedValueOnce(conflict);
+    const { FactoryWriteConflictError } = await import('../../../../lib/sdlc/llm-proxy-factory');
+    writeFactoryDefault.mockRejectedValueOnce(new FactoryWriteConflictError());
     const res = await PUT(call('admin', {
       method: 'PUT',
       body: JSON.stringify({ model: 'gemma12-vision', locked: false, mtimeMs: 1 }),

@@ -45,7 +45,7 @@ under `set -euo pipefail` before reaching the create path.
 The rollup container ticket SHALL no longer stay open permanently. The buffer flusher SHALL
 append to the single open container (oldest first); once the generator has produced the cycle
 plan from the container's batches, the generator SHALL close the container with
-`done` and `resolution=obsolete`. At most one open container SHALL exist at a time, and an open
+`done` and `resolution=fixed`. At most one open container SHALL exist at a time, and an open
 container SHALL be found regardless of its workflow status.
 
 #### Scenario: An open blocked container is found and reused
@@ -83,7 +83,7 @@ be removed.
 
 The rollup container ticket created by `scripts/ticket.sh rollup-container` SHALL NOT describe
 itself as permanently open. Its description SHALL state the ephemeral lifecycle: the container
-collects one batch and is closed (`done · resolution=obsolete`) after the generator has consumed
+collects one batch and is closed (`done · resolution=fixed`) after the generator has consumed
 it.
 
 #### Scenario: Fresh container description states the ephemeral lifecycle

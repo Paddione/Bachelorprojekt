@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.300.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.0...website-v1.300.1) (2026-08-22)
+
+
+### Performance
+
+* **ci:** optimize factory shard setup and update spec runtime weights [T013528] ([#5003](https://github.com/Paddione/Bachelorprojekt/issues/5003)) ([319bf3c](https://github.com/Paddione/Bachelorprojekt/commit/319bf3c2d1bd9258a8c3d83b25f3305e1082cee0))
+
 ## [1.300.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.299.0...website-v1.300.0) (2026-08-22)
 
 

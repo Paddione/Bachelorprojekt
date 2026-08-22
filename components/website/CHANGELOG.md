@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.296.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.7...website-v1.296.0) (2026-08-22)
+
+
+### Features
+
+* **factory:** add proxy model lock [T013144] ([#4941](https://github.com/Paddione/Bachelorprojekt/issues/4941)) ([7818f15](https://github.com/Paddione/Bachelorprojekt/commit/7818f150b068e4fb47c1a6d4e84c18607bdacd08))
+
 ## [1.295.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.295.6...website-v1.295.7) (2026-08-21)
 
 

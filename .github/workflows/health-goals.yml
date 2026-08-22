@@ -69,7 +69,7 @@ jobs:
       - name: Install pinned browser and Lighthouse
         run: |
           npx playwright install --with-deps chromium
-          npx --yes lighthouse@12.8.2 --version
+          timeout 60 npx --yes lighthouse@12.8.2 --version
 
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
         with:
@@ -109,8 +109,8 @@ jobs:
         run: |
           mkdir -p "${RUNNER_TEMP}/health-goals"
           node scripts/lib/runtime-browser-audit.mjs "${RUNNER_TEMP}/health-goals/axe.json"
-          npx --yes lighthouse@12.8.2 https://web.mentolder.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-mentolder.json"
-          npx --yes lighthouse@12.8.2 https://web.korczewski.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-korczewski.json"
+          timeout 120 npx --yes lighthouse@12.8.2 https://web.mentolder.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-mentolder.json"
+          timeout 120 npx --yes lighthouse@12.8.2 https://web.korczewski.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-korczewski.json"
           jq -n --slurpfile mentolder "${RUNNER_TEMP}/health-goals/lh-mentolder.json" --slurpfile korczewski "${RUNNER_TEMP}/health-goals/lh-korczewski.json" \
             '{reports:{mentolder:$mentolder[0],korczewski:$korczewski[0]}}' > "${RUNNER_TEMP}/health-goals/lighthouse.json"
 

@@ -124,12 +124,27 @@ runtimes:
     mode: primary
     model: opencode-zen/big-pickle
     write_capable: true
-    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]"
+    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-08-22 task-dispatch allowed for the same subagent set as the orchestrator (local families + qwen-cloud + deepseek-*)."
+  ox-alpha-free:
+    mode: primary
+    model: opencode-zen/laguna-s-2.1-free
+    write_capable: true
+    note: "PRIMARY: Ox Alpha Free next to big-pickle — second free-tier Zen agent on laguna-s-2.1-free (Poolside agentic coding model, 256k ctx per models.dev, live-smoke-tested 2026-08-22; deepseek-v4-flash-free was tested in the same run and is upstream-unavailable). Same subagent dispatch set as the orchestrator."
   deepseek-helper:
     mode: subagent
     model: deepseek/deepseek-v4-flash
     write_capable: true
     note: "Escalation: DeepSeek-V4 Flash (1M ctx) via direct DeepSeek API [T002632]"
+  deepseek-helper-go:
+    mode: subagent
+    model: opencode-go/deepseek-v4-flash
+    write_capable: true
+    note: "ESCALATION twin of deepseek-helper over OpenCode Go instead of the direct API — helper tier multi-backend (direct + Go + Alibaba) since 2026-08-22."
+  deepseek-helper-alibaba:
+    mode: subagent
+    model: alibaba-intl/deepseek-v4-flash-0731
+    write_capable: true
+    note: "ESCALATION twin of deepseek-helper over the Alibaba Intl Token Plan. Model ID deepseek-v4-flash-0731 (differs from direct/Go). Measured 2026-08-22 after alibaba-intl key rotation (smoke test answered); context limit declared conservatively, unmeasured."
   deepseek-pro:
     mode: all
     model: opencode-go/deepseek-v4-pro
@@ -140,6 +155,11 @@ runtimes:
     model: deepseek/deepseek-v4-pro
     write_capable: true
     note: "Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
+  deepseek-pro-alibaba:
+    mode: all
+    model: alibaba-intl/deepseek-v4-pro
+    write_capable: true
+    note: "Same model as deepseek-pro, over the Alibaba Intl Token Plan — third route (Go + direct + Alibaba) since 2026-08-22 after key rotation; smoke-tested. Context limit declared conservatively, unmeasured."
   deepseek-flash:
     mode: all
     model: opencode-go/deepseek-v4-flash

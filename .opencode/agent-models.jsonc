@@ -103,6 +103,29 @@
             "context": 131072,
             "output": 8192
           }
+        },
+        // 2026-08-22 GEMESSEN nach Key-Rotation: GET /compatible-mode/v1/models
+        // listet beide DeepSeek-Modelle; chat/completions-Smoke antwortet
+        // (pro: "OK"/finish=stop; flash-0731: "OK"/finish=length — das ist der
+        // bekannte Reasoning-Budget-Effekt, kein Fehler). ACHTUNG: die ID
+        // heisst hier "deepseek-v4-flash-0731", NICHT "deepseek-v4-flash" wie
+        // auf der direkten API / Go-Gateway.
+        // Kontext-/Output-Limits sind NICHT gemessen — konservative Deklaration
+        // (upstream ist DeepSeek V4 mit 1M ctx, aber das Token-Plan-Gateway-
+        // Limit ist unbelegt; opencode nutzt die Zahl nur fuer Auto-Compact).
+        "deepseek-v4-flash-0731": {
+          "name": "DeepSeek V4 Flash 0731 (Alibaba Intl Token Plan, compatible-mode)",
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
+        "deepseek-v4-pro": {
+          "name": "DeepSeek V4 Pro (Alibaba Intl Token Plan, compatible-mode)",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
         }
       }
     },
@@ -170,6 +193,22 @@
           "limit": {
             "context": 1000000,
             "output": 16384
+          }
+        },
+        // GEMESSEN [2026-08-22]: per GET /zen/v1/models gelistet UND per
+        // chat/completions gegengeprueft (Antwort "OK", finish_reason=stop).
+        // limit laut models.dev-Registry (opencode-Provider): 256k ctx,
+        // 32k output, cost 0/0 — agentic coding model von Poolside,
+        // tool_call=true. models.dev markiert es als deprecated; im Liveversuch
+        // antwortete es trotzdem. deepseek-v4-flash-free wurde im selben Lauf
+        // ebenfalls getestet und ist UPSTREAM NICHT VERFUEGBAR ("Model is
+        // unavailable") — deshalb steht hier laguna, nicht das naheliegendere
+        // DeepSeek-Free.
+        "laguna-s-2.1-free": {
+          "name": "Laguna S 2.1 Free (OpenCode Zen, free tier, Poolside agentic coding model, models.dev: 256k ctx)",
+          "limit": {
+            "context": 256000,
+            "output": 32000
           }
         }
       }
@@ -520,6 +559,39 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
+    // 2026-08-22: Ausweich-Zwilling von deepseek-helper ueber OpenCode Go.
+    // deepseek-helper laeuft bewusst auf der direkten API (Fallback-Pfad);
+    // damit ist die Helper-Stufe jetzt MEHRGLEISIG: direkt (deepseek-helper)
+    // UND Go (deepseek-helper-go) — dieselbe Logik wie beim pro/flash-Paar.
+    // Dritte Schiene (Alibaba Token Plan): am 2026-08-22 erst VERWORFEN
+    // (gespeicherter Key lieferte "InvalidApiKey"), nach Key-Rotation am selben
+    // Tag erfolgreich nachgemessen — siehe deepseek-helper-alibaba /
+    // deepseek-pro-alibaba unten.
+    "deepseek-helper-go": {
+      "description": "ESCALATION twin of deepseek-helper via OpenCode Go (DeepSeek V4 Flash, 1M ctx). Same role and prompt as deepseek-helper (which uses the direct API on purpose) — dispatch this route when the direct API is down or rate-limited. Mode subagent: escalation-only, not tab-selectable.",
+      "mode": "subagent",
+      "model": "opencode-go/deepseek-v4-flash",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#F97316",
+      "temperature": 0.3,
+      "steps": 150,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    // 2026-08-22: dritte Helper-Schiene ueber den Alibaba Token Plan, nach
+    // Key-Rotation gemessen (Model-ID: deepseek-v4-flash-0731 — abweichend von
+    // der direkten API; Smoke-Test antwortete). Damit ist die Helper-Stufe
+    // dreigleisig: direkt (deepseek-helper), Go (deepseek-helper-go),
+    // Alibaba (deepseek-helper-alibaba).
+    "deepseek-helper-alibaba": {
+      "description": "ESCALATION twin of deepseek-helper via the Alibaba Cloud Intl Token Plan (DeepSeek V4 Flash 0731). Same role and prompt — third route when both the direct DeepSeek API and OpenCode Go fail. Mode subagent: escalation-only, not tab-selectable.",
+      "mode": "subagent",
+      "model": "alibaba-intl/deepseek-v4-flash-0731",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#F97316",
+      "temperature": 0.3,
+      "steps": 150,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
     // Tiefer Analyse-Agent: DeepSeek-R1 mit maximaler Reasoning-Tiefe fuer
     // komplexe Architektur-Debugging, mehrschrittiges Reasoning und harte
     // Multi-File-Refactorings, die ueber das hinausgehen, was deepseek-helper
@@ -544,6 +616,20 @@
       "description": "FALLBACK twin of deepseek-pro on the direct DeepSeek API (1M ctx). Identical role and prompt — dispatch this instead of deepseek-pro when OpenCode Go is exhausted, rate-limited, or down. Not a second parallel slot: it is the same tier via another route. Mode all: tab-selectable AND task-dispatchable.",
       "mode": "all",
       "model": "deepseek/deepseek-v4-pro",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#EF4444",
+      "temperature": 0.1,
+      "steps": 150,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    // 2026-08-22: dritte Pro-Schiene ueber den Alibaba Token Plan, nach
+    // Key-Rotation gemessen (Smoke-Test: "OK", finish=stop). Damit ist die
+    // Pro-Stufe dreigleisig: Go (deepseek-pro), direkt (deepseek-pro-direct),
+    // Alibaba (deepseek-pro-alibaba).
+    "deepseek-pro-alibaba": {
+      "description": "FALLBACK twin of deepseek-pro via the Alibaba Cloud Intl Token Plan (DeepSeek V4 Pro). Same role and prompt — third route when both OpenCode Go and the direct API fail. Mode all: tab-selectable AND task-dispatchable.",
+      "mode": "all",
+      "model": "alibaba-intl/deepseek-v4-pro",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#EF4444",
       "temperature": 0.1,
@@ -604,13 +690,20 @@
           // nach lokal, selbe Modell-Familie wie der Orchestrator selbst.
           "qwen-cloud": "allow",
           "deepseek-helper": "allow",
+          // 2026-08-22: Go-route twin of deepseek-helper (direct API stays the
+          // default escalation path; this is the alternate rail).
+          "deepseek-helper-go": "allow",
+          // 2026-08-22: Alibaba-Token-Plan-Routen (nach Key-Rotation gemessen):
+          // dritte Schiene fuer Helper und Pro.
+          "deepseek-helper-alibaba": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow",
           // Ausweich-Zwillinge auf der direkten API. Bewusst freigegeben, aber
           // als Ausweichweg gedacht: erst Go, bei Ausfall diese. Der
           // Orchestrator-Prompt beschreibt, wann.
           "deepseek-pro-direct": "allow",
-          "deepseek-flash-direct": "allow"
+          "deepseek-flash-direct": "allow",
+          "deepseek-pro-alibaba": "allow"
         }
       }
     },
@@ -629,15 +722,79 @@
     },
     // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
     // Free-Kontingent verbraucht ist, danach auf die deepseek-Primaries wechseln.
+    //
+    // 2026-08-22: task von "deny" auf dieselbe benannte Allow-Liste wie der
+    // Orchestrator umgestellt (Prinzip T002298: exakte Namen statt Wildcard) —
+    // Big Pickle kann damit dieselben Subagenten dispatchen wie der Orchestrator
+    // bzw. qwen-cloud-Eskalation (lokale Familien + Cloud-Eskalation).
     "big-pickle": {
-      "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to the deepseek-pro/flash primaries. Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog.",
+      "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to the deepseek-pro/flash primaries. Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog. Can dispatch the same subagent set as the orchestrator.",
       "mode": "primary",
       "model": "opencode-zen/big-pickle",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F472B6",
       "temperature": 0.2,
       "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "gptoss": "allow",
+          "devstral": "allow",
+          "gemma": "allow",
+          "gemma12": "allow",
+          "qwen38": "allow",
+          "qwen-cloud": "allow",
+          "deepseek-helper": "allow",
+          "deepseek-helper-go": "allow",
+          "deepseek-helper-alibaba": "allow",
+          "deepseek-pro": "allow",
+          "deepseek-flash": "allow",
+          "deepseek-pro-direct": "allow",
+          "deepseek-flash-direct": "allow",
+          "deepseek-pro-alibaba": "allow"
+        }
+      }
+    },
+    // Ox Alpha Free — zweiter Free-Tier-Primary neben Big Pickle [2026-08-22].
+    // Zeigt auf opencode-zen/laguna-s-2.1-free (live gegen chat/completions
+    // gemessen, siehe Kommentar beim Provider oben) und traegt dieselbe
+    // Task-Allow-Liste wie Big Pickle bzw. der Orchestrator: kann also
+    // dieselben Subagenten spawnen (lokale Familien, qwen-cloud, deepseek-*).
+    "ox-alpha-free": {
+      "description": "PRIMARY: Ox Alpha Free on OpenCode Zen (laguna-s-2.1-free, Poolside agentic coding model, free tier, 256k ctx per models.dev). Tab-selectable singleagent next to big-pickle. Live-smoke-tested 2026-08-22. Can dispatch the same subagent set as the orchestrator.",
+      "mode": "primary",
+      "model": "opencode-zen/laguna-s-2.1-free",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#38BDF8",
+      "temperature": 0.2,
+      "steps": 150,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "gptoss": "allow",
+          "devstral": "allow",
+          "gemma": "allow",
+          "gemma12": "allow",
+          "qwen38": "allow",
+          "qwen-cloud": "allow",
+          "deepseek-helper": "allow",
+          "deepseek-helper-go": "allow",
+          "deepseek-helper-alibaba": "allow",
+          "deepseek-pro": "allow",
+          "deepseek-flash": "allow",
+          "deepseek-pro-direct": "allow",
+          "deepseek-flash-direct": "allow",
+          "deepseek-pro-alibaba": "allow"
+        }
+      }
     }
   }
 }

@@ -197,13 +197,16 @@ awk -F'\t' '{print $3}' "$CHUNKS_TSV" | jq -R . | jq -s . > "$SLUGS_JSON"
 echo "Slug inventory: $(jq length "$SLUGS_JSON") slugs (including MOCs)"
 
 # Create/update branch in brain repo
+# [T013041] Immer frisch von main: Der Ingest ist ein Full-Regeneration-Modell
+# (wiki/-Baum wird pro Lauf neu geschrieben) — die Historie eines alten
+# Delivery-Branches traegt keinen Wert, nur das Risiko eines stale PR-Basis.
 echo "Preparing brain repo branch: $BRANCH"
 cd "$BRAIN_REPO"
 git fetch origin 2>/dev/null || true
-if git rev-parse --verify "origin/$BRANCH" >/dev/null 2>&1; then
-  git checkout -B "$BRANCH" "origin/$BRANCH" 2>/dev/null
+if git rev-parse --verify origin/main >/dev/null 2>&1; then
+  git checkout -B "$BRANCH" origin/main
 else
-  git checkout -B "$BRANCH" origin/main 2>/dev/null || git checkout -B "$BRANCH" main 2>/dev/null
+  git checkout -B "$BRANCH" main
 fi
 # Ensure wiki/ directory exists
 mkdir -p "$BRAIN_REPO/wiki"
@@ -608,11 +611,26 @@ echo "  Committed $PROCESSED pages"
 
 # Push branch
 if git remote get-url origin &>/dev/null; then
-  git push origin "$BRANCH" 2>&1 || {
-    echo "WARN: git push failed — manual push required"
+  # Staleness-Gate [T013041]: main darf waehrend der Generierung nicht gewandert sein.
+  # Der generierte Commit beruehrt nur wiki/ + index.md; ein Rebase schlaegt nur fehl,
+  # wenn main dieselben Pfade geaendert hat — dann ist Abbruch (nicht der Merge eines
+  # halben Baums) die richtige Reaktion.
+  git fetch origin 2>/dev/null || true
+  BASE_AT_START=$(git rev-parse "$BRANCH"~1 2>/dev/null || git rev-parse HEAD~1)
+  MAIN_NOW=$(git rev-parse origin/main 2>/dev/null || echo "")
+  if [ -n "$MAIN_NOW" ] && [ "$BASE_AT_START" != "$MAIN_NOW" ]; then
+    echo "WARN: origin/main moved during generation — rebasing generated commit onto new main"
+    if ! git rebase origin/main; then
+      echo "ERROR: rebase onto new origin/main failed — manual resolution required"
+      cd "$REPO_ROOT"
+      exit 1
+    fi
+  fi
+  if ! git push origin "$BRANCH" 2>&1; then
+    echo "ERROR: git push failed (non-fast-forward = stale/diverged remote branch) — delivery aborted"
     cd "$REPO_ROOT"
-    exit 0
-  }
+    exit 1
+  fi
   echo "  Pushed to origin/$BRANCH"
 
   # Create PR

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1183,
+      "file_count": 1184,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -453,6 +453,7 @@
         "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
         "tests/spec/brain-k4-brain-wiki/chunking.bats",
         "tests/spec/brain-k4-brain-wiki/coverage-gate.bats",
+        "tests/spec/brain-k4-brain-wiki/delivery-branch-staleness.bats",
         "tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats",
         "tests/spec/brain-k4-brain-wiki/mcp-registry.bats",
         "tests/spec/brain-k4-brain-wiki/parent-moc.bats",

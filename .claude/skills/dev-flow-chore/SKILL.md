@@ -10,6 +10,8 @@ description: 'Use for maintenance with NO behavior change — documentation, dep
 > `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
 > Haupt-Checkout landen (T002357-Falle).
 
+Der gemeinsame [Lifecycle-Vertrag](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md) besitzt hier den No-Behavior-Change-Einstieg und delegiert Git-, Verifikations- und Cleanup-Mechanik an `git-workflow` bzw. `verification-block`. Reine Playwright-Änderungen laufen als spezialisierter test-only Chore über `dev-flow-e2e`.
+
 ## Wann diese Skill greift
 
 Eine **Chore**: Wartung ohne Verhaltensänderung — Doku, Dependency-Bumps, Config/Rename, CI-Tweaks,
@@ -220,4 +222,3 @@ Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende über `mishap-tr
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-

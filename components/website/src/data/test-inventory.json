@@ -24,22 +24,10 @@
     "kind": "shell"
   },
   {
-    "id": "AK-03",
-    "file": "tests/e2e/specs/ak-03-technical.spec.ts",
-    "category": "AK",
-    "kind": "playwright"
-  },
-  {
     "id": "AK-04",
     "file": "tests/local/AK-04.sh",
     "category": "AK",
     "kind": "shell"
-  },
-  {
-    "id": "AK-04",
-    "file": "tests/e2e/specs/ak-04-prototype.spec.ts",
-    "category": "AK",
-    "kind": "playwright"
   },
   {
     "id": "E2E:a11y-axe",
@@ -782,12 +770,6 @@
   {
     "id": "FA-28",
     "file": "tests/e2e/specs/fa-28-messaging.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-29",
-    "file": "tests/e2e/specs/fa-29-cockpit.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -1674,22 +1656,10 @@
     "kind": "shell"
   },
   {
-    "id": "NFA-08",
-    "file": "tests/e2e/specs/nfa-08-production-deploy.spec.ts",
-    "category": "NFA",
-    "kind": "playwright"
-  },
-  {
     "id": "NFA-09",
     "file": "tests/local/NFA-09.sh",
     "category": "NFA",
     "kind": "shell"
-  },
-  {
-    "id": "NFA-09",
-    "file": "tests/e2e/specs/nfa-09-static-dns.spec.ts",
-    "category": "NFA",
-    "kind": "playwright"
   },
   {
     "id": "NFA-10",
@@ -2172,6 +2142,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/dev-flow-lifecycle-contract",
+    "file": "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/devflow-worktree-cwd-guard",
     "file": "tests/spec/agent-skills/devflow-worktree-cwd-guard.bats",
     "category": "agent-skills",
@@ -2484,6 +2460,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-k4-brain-wiki/delivery-branch-staleness",
+    "file": "tests/spec/brain-k4-brain-wiki/delivery-branch-staleness.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
     "id": "brain-k4-brain-wiki/max-source-chars-guard",
     "file": "tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats",
     "category": "brain-k4-brain-wiki",
@@ -2708,6 +2690,12 @@
   {
     "id": "ci-cd/e2e-project-selection",
     "file": "tests/spec/ci-cd/e2e-project-selection.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/factory-shard-optimization",
+    "file": "tests/spec/ci-cd/factory-shard-optimization.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2976,8 +2964,20 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/unit-tests-no-dependency-skips",
+    "file": "tests/spec/ci-cd/unit-tests-no-dependency-skips.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/unknown-scope-names-source",
     "file": "tests/spec/ci-cd/unknown-scope-names-source.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/website-fast-path",
+    "file": "tests/spec/ci-cd/website-fast-path.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3324,6 +3324,18 @@
     "kind": "shell"
   },
   {
+    "id": "e2e-test-infrastructure/no-group-modifiers",
+    "file": "tests/spec/e2e-test-infrastructure/no-group-modifiers.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-test-infrastructure/no-wrong-reporoot-resolution",
+    "file": "tests/spec/e2e-test-infrastructure/no-wrong-reporoot-resolution.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-test-infrastructure/purge-test-data-missing-table",
     "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
     "category": "e2e-test-infrastructure",
@@ -3636,6 +3648,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/runtime-health-goals",
+    "file": "tests/spec/health-goals/runtime-health-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/worktree-hygiene-goals",
     "file": "tests/spec/health-goals/worktree-hygiene-goals.bats",
     "category": "health-goals",
@@ -3770,6 +3788,12 @@
   {
     "id": "local-llm-proxy/brain-ingest-port",
     "file": "tests/spec/local-llm-proxy/brain-ingest-port.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/brain-ingest-swap",
+    "file": "tests/spec/local-llm-proxy/brain-ingest-swap.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4146,6 +4170,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/archive-janitor",
+    "file": "tests/spec/mishap-rollup/archive-janitor.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/container-create-description",
     "file": "tests/spec/mishap-rollup/container-create-description.bats",
     "category": "mishap-rollup",
@@ -4154,6 +4184,12 @@
   {
     "id": "mishap-rollup/container-finds-blocked-status",
     "file": "tests/spec/mishap-rollup/container-finds-blocked-status.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/container-resolution",
+    "file": "tests/spec/mishap-rollup/container-resolution.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },
@@ -4170,6 +4206,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/escalation-rule",
+    "file": "tests/spec/mishap-rollup/escalation-rule.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/generator-cycle-artifacts",
     "file": "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
     "category": "mishap-rollup",
@@ -4178,6 +4220,12 @@
   {
     "id": "mishap-rollup/lifecycle",
     "file": "tests/spec/mishap-rollup/lifecycle.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/recurrence-tag",
+    "file": "tests/spec/mishap-rollup/recurrence-tag.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },
@@ -4214,6 +4262,18 @@
   {
     "id": "mishap-rollup/rollup-plan-per-entry-tasks",
     "file": "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/wakeup-single-run",
+    "file": "tests/spec/mishap-rollup/wakeup-single-run.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/watchlist-disposition",
+    "file": "tests/spec/mishap-rollup/watchlist-disposition.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },
@@ -4394,6 +4454,12 @@
   {
     "id": "openspec-workflow/design-location-guard",
     "file": "tests/spec/openspec-workflow/design-location-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/half-archive-fork-scaling",
+    "file": "tests/spec/openspec-workflow/half-archive-fork-scaling.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },
@@ -5042,6 +5108,12 @@
   {
     "id": "sdlc-isolation/llm-up-health",
     "file": "tests/spec/sdlc-isolation/llm-up-health.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-isolation/sdlc-default-loadout",
+    "file": "tests/spec/sdlc-isolation/sdlc-default-loadout.bats",
     "category": "sdlc-isolation",
     "kind": "shell"
   },

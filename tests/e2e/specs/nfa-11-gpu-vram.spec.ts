@@ -41,6 +41,4 @@ test.describe('NFA-11: GPU-VRAM nach Modell-Rotation', () => {
       console.log(`Model ${model}: OK`);
     }
   });
-
-  test.skip(true, 'T2: nvidia-smi VRAM-Prüfung (< 14 GB) erfordert SSH-Zugriff auf GPU-Host');
 });

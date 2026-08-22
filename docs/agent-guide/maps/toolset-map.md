@@ -54,7 +54,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Read-only SQL gegen die mentolder-DB, Nicht-Ticket-Tabellen.
   - _Nicht:_ INSERT/UPDATE/DELETE/DDL — jede Query läuft READ ONLY und scheitert.
   - _Fallback:_ `kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)`
-  - _Rollen:_ `bachelorprojekt-db`, `orchestrator`
+  - _Rollen:_ `bachelorprojekt-db`, `orchestrator`, `big-pickle`
   - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `postgres-schreiben`
@@ -253,6 +253,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Live-Cluster-Zustand — dafür gitops-cluster-debug.
   - _Rollen:_ `bachelorprojekt-infra`
   - _Tiefe:_ `.claude/skills/gitops-repo-audit/SKILL.md`
+
+## Fähigkeit: `system-audit`
+
+- **`skill:system-audit`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki) — endet je Befund in Ticket + OpenSpec-Proposal.
+  - _Nicht:_ Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill.
+  - _Rollen:_ `orchestrator`
+  - _Tiefe:_ `.claude/skills/system-audit/SKILL.md`
 
 ## Fähigkeit: `security-analyse`
 

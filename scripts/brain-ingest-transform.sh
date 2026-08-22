@@ -139,18 +139,18 @@ call_llm() {
   # Gemma 4 uses chat_template_kwargs.enable_thinking; DeepSeek uses thinking.type.
   # Send both — unknown keys are harmlessly ignored by each provider. [T002533]
   [ "${LM_DISABLE_THINKING:-0}" = "1" ] && think='{"thinking":{"type":"disabled"},"chat_template_kwargs":{"enable_thinking":false}}'
-  response="$(jq -n --rawfile prompt /dev/fd/4 \
-      --arg model "$LM_MODEL" \
-      --argjson max_tokens "$LM_MAX_TOKENS" \
-      --argjson think "$think" \
-      '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: $max_tokens, top_p: 0.9} + $think' \
-      4<<<"$prompt" \
-    | curl -sf --config /dev/fd/3 --max-time "$LM_TIMEOUT" "${LM_URL}/v1/chat/completions" \
-        -H "Content-Type: application/json" --data-binary @- 3<<<"$curl_cfg" 2>&1)" || {
-    echo "error: chat completion request failed (${LM_URL}, model ${LM_MODEL})" >&2
-    echo "$response" >&2
-    exit 1
-  }
+    response="$(jq -n --rawfile prompt /dev/fd/4 \
+        --arg model "$LM_MODEL" \
+        --argjson max_tokens "$LM_MAX_TOKENS" \
+        --argjson think "$think" \
+        '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: $max_tokens, top_p: 0.9} + $think' \
+        4<<<"$prompt" \
+      | curl -s -S --config /dev/fd/3 --max-time "$LM_TIMEOUT" "${LM_URL}/v1/chat/completions" \
+          -H "Content-Type: application/json" --data-binary @- 3<<<"$curl_cfg" 2>&1)" || {
+      echo "error: chat completion request failed (${LM_URL}, model ${LM_MODEL})" >&2
+      echo "$response" >&2
+      exit 1
+    }
 
   OUTPUT="$(echo "$response" | jq -r '.choices[0].message.content // empty')"
   if [ -z "$OUTPUT" ]; then

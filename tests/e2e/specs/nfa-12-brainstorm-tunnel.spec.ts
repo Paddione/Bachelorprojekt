@@ -19,6 +19,4 @@ test.describe('NFA-12: Brainstorm-Tunnel ConfigMap-Persistenz', () => {
     const status = response?.status() ?? 0;
     expect([200, 301, 302, 404, 502]).toContain(status);
   });
-
-  test.skip(true, 'T1-T4: kubectl ConfigMap-Prüfungen, Flux-Reconciliation und SSH-Tunnel erfordern Cluster-Zugriff');
 });

@@ -41,17 +41,19 @@ g_sec05_filter() {
 }
 
 # --- T001953: unbounded network calls (G-SEC06 / G-FE05) must be timeout-wrapped ---
-# Mishap: health-goals-check.sh hung indefinitely after printing its header
-# because the G-FE05 (Lighthouse via npx @lhci/cli, hits a live URL) and
+# Mishap: the health measurement hung indefinitely because G-FE05
+# (Lighthouse via npx, hits live URLs) and
 # G-SEC06 (trivy image scan piped from `kubectl get pods`) checks had no
 # `timeout` guard, unlike every other kubectl call in this script which
 # uses --request-timeout. Regression-guard: both call sites must be wrapped
 # in `timeout <n>` so a slow/unreachable network dependency can never hang
 # the whole report.
 
-@test "G-FE05: the Lighthouse npx call is wrapped in a timeout" {
-  run grep -E 'score=\$\(timeout [0-9]+ npx @lhci/cli autorun' "$SCRIPT"
+@test "G-FE05: both Lighthouse npx calls are wrapped in a timeout" {
+  run grep -Ec 'timeout [0-9]+ npx --yes lighthouse@[0-9.]+ https://web\.(mentolder|korczewski)\.de' \
+    "$REPO_ROOT/.github/workflows/health-goals.yml"
   [ "$status" -eq 0 ]
+  [ "$output" -eq 2 ]
 }
 
 @test "G-SEC06: the trivy image scan and its kubectl pod list are wrapped in a timeout" {

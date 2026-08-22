@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-08-18T03:35:11.114Z
-> Nodes: 94 | Edges: 1922 | Isolated: 5
+> Generated: 2026-08-22T11:22:03.240Z
+> Nodes: 95 | Edges: 1923 | Isolated: 5
 
 ## Ranking (transitive Abhängige)
 
@@ -83,11 +83,12 @@
 | 75 | bge-embed | 1 | 1 | 1 |
 | 76 | bge-rerank | 1 | 1 | 1 |
 | 77 | mediaviewer-widget | 1 | 1 | 1 |
-| 78 | monitoring-kube-state-metrics | 1 | 1 | 1 |
-| 79 | monitoring-operator | 1 | 1 | 1 |
-| 80 | nextcloud-redis | 1 | 1 | 1 |
-| 81 | sealed-secrets-controller | 1 | 1 | 1 |
-| 82 | whisper | 1 | 1 | 1 |
+| 78 | blackbox-exporter | 1 | 1 | 1 |
+| 79 | monitoring-kube-state-metrics | 1 | 1 | 1 |
+| 80 | monitoring-operator | 1 | 1 | 1 |
+| 81 | nextcloud-redis | 1 | 1 | 1 |
+| 82 | sealed-secrets-controller | 1 | 1 | 1 |
+| 83 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -474,6 +475,11 @@
 ### mediaviewer-widget
 **Direkte Abhängige:** 1 — mediaviewer-widget
 **Transitive Abhängige:** 1 — mediaviewer-widget
+**Upstream (In-Degree):** 1
+
+### blackbox-exporter
+**Direkte Abhängige:** 1 — blackbox-exporter
+**Transitive Abhängige:** 1 — blackbox-exporter
 **Upstream (In-Degree):** 1
 
 ### monitoring-kube-state-metrics

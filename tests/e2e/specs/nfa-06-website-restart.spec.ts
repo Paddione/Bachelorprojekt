@@ -24,6 +24,4 @@ test.describe('NFA-06: Website Neustart-Resilienz', () => {
     const bodyText = await page.locator('body').textContent();
     expect(bodyText!.trim().length).toBeGreaterThan(50);
   });
-
-  test.skip(true, 'T1-T4: kubectl rollout-Operationen erfordern Cluster-Zugriff');
 });

@@ -70,7 +70,55 @@ CHANGE_DIR="openspec/changes/${SLUG}"
 PLAN_PATH="${CHANGE_DIR}/tasks.md"
 WT="$REPO/.worktrees/${SLUG}"
 
-# ── Carry-over unerledigter Eintraege [T013108] ─────────────────────────────
+# ── Loop-Closure [T013305]: Eskalation, Watchlist, Rezurrenz ────────────────
+# Mechanismus C: Ein Eintrag, der >= 2 abgeschlossene Zyklen ueberlebt hat oder
+# dessen Watchlist-Ablaufdatum verstrichen ist, wird VOR dem Carry-over promoted
+# (eigenes Ticket, attention_mode=needs_human) und aus allen Uebertraegen
+# ausgeschieden — er verlaesst die Rollup-Loop, statt zum Zombie zu werden.
+# Idempotent ueber den 'Eskaliert:'-Marker-Kommentar auf dem Container.
+EXCLUDE_FILE=$(mktemp); ESCALATION_FILE=$(mktemp); HISTORY_FILE=$(mktemp); RECURRENCE_FILE=$(mktemp)
+cleanup_loop_closure() {
+  rm -f "$EXCLUDE_FILE" "$ESCALATION_FILE" "$HISTORY_FILE" "$RECURRENCE_FILE" 2>/dev/null || true
+}
+
+{
+  bash "$REPO/scripts/factory/rollup-carryover.sh" --escalations "$REPO" --container "$CONTAINER_ID" 2>/dev/null || true
+  bash "$REPO/scripts/factory/rollup-carryover.sh" --watchlist-expired "$REPO" --today "$(date -u '+%Y-%m-%d')" 2>/dev/null || true
+} > "$ESCALATION_FILE"
+
+while IFS=$'\t' read -r esc_title esc_meta esc_cycles; do
+  [[ -n "${esc_title:-}" ]] || continue
+  already=$(cat <<SQL | factory_psql 2>/dev/null | head -1
+SELECT COUNT(*)::int FROM tickets.ticket_comments c
+JOIN tickets.tickets t ON t.id = c.ticket_id
+WHERE t.external_id = '${CONTAINER_ID}'
+  AND c.body LIKE '%Eskaliert: ${esc_title}%';
+SQL
+  )
+  if [[ "${already:-0}" -ne 0 ]]; then
+    echo "mishap-rollup: Eskalation '${esc_title}' bereits promoted — skip"
+    continue
+  fi
+  new_id="$(BRAND="$BRAND" bash "$REPO/scripts/ticket.sh" create \
+    --type fix \
+    --title "[Rollup] ${esc_title}" \
+    --description "$(printf 'Aus der Mishap-Rollup-Loop eskaliert [T013305]. Der Eintrag blieb in %s Zyklen offen bzw. seine Beobachtung lief ab.\n\nMeta: %s\nZyklen: %s\n\nUrspruengliche Beschreibung: Batch-Kommentare auf Container %s und die Zyklus-Plaene unter openspec/changes/*mishap-incident-rollup-*.' "${esc_cycles//,/ /}" "${esc_meta:-}" "$esc_cycles" "$CONTAINER_ID")" \
+    --attention-mode needs_human \
+    --severity minor \
+    --brand "$BRAND" 2>/dev/null | cut -d'|' -f1 || true)"
+  if [[ -n "$new_id" ]]; then
+    BRAND="$BRAND" bash "$REPO/scripts/ticket.sh" add-comment --id "$CONTAINER_ID" \
+      --body "Eskaliert: ${esc_title} (Zyklen: ${esc_cycles}) → ${new_id}" \
+      --author mishap-rollup --visibility internal >/dev/null 2>&1 || true
+    printf '%s\n' "$esc_title" >> "$EXCLUDE_FILE"
+    echo "mishap-rollup: eskaliert '${esc_title}' → Ticket ${new_id}"
+  else
+    echo "mishap-rollup: WARNUNG — Promotion von '${esc_title}' fehlgeschlagen; bleibt in der Loop" >&2
+  fi
+done < "$ESCALATION_FILE"
+
+# Carry-over unerledigter Eintraege [T013108] — eskalierte Titel sind
+# ausgeschieden (--exclude-file).
 # Ein Container schliesst per Merge=Closure, sobald irgendein PR auf seinem
 # Zyklus-Branch merged. Ohne diesen Schritt verfallen dabei alle Eintraege, die
 # keine Disposition bekommen haben (Zyklus 08-20/T012909: 3 von 10 erledigt,
@@ -82,8 +130,14 @@ WT="$REPO/.worktrees/${SLUG}"
 # denselben Container nie zweimal uebertragen. Ein Fehlschlag hier bricht den
 # Rollup NICHT ab — der Zyklus laeuft dann ohne Uebertrag weiter, und der
 # naechste Lauf holt ihn nach (der Quell-Plan bleibt ja liegen).
+earlier_plans=()
 while IFS=$'\t' read -r src_slug src_plan; do
   [[ -n "${src_slug:-}" && -n "${src_plan:-}" ]] || continue
+  exclude_args=()
+  for earlier_plan in "${earlier_plans[@]}"; do
+    exclude_args+=(--exclude-plan "$earlier_plan")
+  done
+  earlier_plans+=("$src_plan")
   already=$(cat <<SQL | factory_psql 2>/dev/null | head -1
 SELECT COUNT(*)::int FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
@@ -95,7 +149,7 @@ SQL
     echo "mishap-rollup: Carry-over aus ${src_slug} liegt bereits auf ${CONTAINER_ID} — skip"
     continue
   fi
-  carry_body="$(bash "$REPO/scripts/factory/rollup-carryover.sh" --plan "$src_plan" --slug "$src_slug" 2>/dev/null)" || continue
+  carry_body="$(bash "$REPO/scripts/factory/rollup-carryover.sh" --plan "$src_plan" --slug "$src_slug" "${exclude_args[@]}" --exclude-file "$EXCLUDE_FILE" 2>/dev/null)" || continue
   [[ -n "$carry_body" ]] || continue
   if BRAND="$BRAND" bash "$REPO/scripts/ticket.sh" add-comment --id "$CONTAINER_ID" \
        --body "$carry_body" --author mishap-rollup --visibility internal >/dev/null 2>&1; then
@@ -129,6 +183,31 @@ WHERE t.external_id = '${CONTAINER_ID}'
 ORDER BY c.created_at ASC;
 SQL
 
+# ── Watchlist-Re-Inclusion [T013305 Mechanismus B] ──────────────────────────
+# Lebende 'beobachten (bis Zyklus <Datum>)'-Eintraege vergangener Plaene werden
+# als synthetischer Batch in den Kommentar-Strom INJEKTIERT (nicht auf den
+# Container geschrieben) — der Lauf rechnet sie frisch aus den Plan-Dateien,
+# damit gibt es kein Idempotenzproblem; abgelaufene sind oben schon eskaliert.
+wl_body="$(bash "$REPO/scripts/factory/rollup-carryover.sh" --watchlist-live "$REPO" \
+  --today "$(date -u '+%Y-%m-%d')" --exclude-file "$EXCLUDE_FILE" 2>/dev/null || true)"
+if [[ -n "$wl_body" ]]; then
+  printf '%s\n' "$wl_body" >> "$COMMENTS_FILE"
+  echo "mishap-rollup: Watchlist-Eintraege re-injiziert"
+fi
+
+# ── Verlauf + Rezurrenz [T013305 Mechanismus A] ─────────────────────────────
+# Alle Batch-Kommentare ueber ALLE Container hinweg (auch geschlossene) — die
+# Basis fuer das ×N-Rendering im Plan. Fail-open: ohne Verlauf rendert der Plan
+# eben ohne Rezurrenz-Marker.
+cat <<SQL | factory_psql 2>/dev/null > "$HISTORY_FILE" || true
+SELECT E'<<<ROLLUP-CYCLE>>>' || chr(9) || t.external_id || E'\n<<<ROLLUP-COMMENT>>>\n' || c.body
+FROM tickets.ticket_comments c
+JOIN tickets.tickets t ON t.id = c.ticket_id
+WHERE c.body LIKE '### Mishap-Rollup%'
+ORDER BY c.created_at ASC;
+SQL
+bash "$REPO/scripts/factory/rollup-recurrence.sh" --all < "$HISTORY_FILE" > "$RECURRENCE_FILE" 2>/dev/null || true
+
 BATCH_COUNT="$(bash "$REPO/scripts/factory/rollup-plan-tasks.sh" --count < "$COMMENTS_FILE")"
 BATCH_COUNT="${BATCH_COUNT:-0}"
 
@@ -157,6 +236,7 @@ cleanup_wt() {
   git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true
   # [T013043] Der oben gelesene Kommentar-Strom liegt in einer Temp-Datei.
   rm -f "${COMMENTS_FILE:-}" 2>/dev/null || true
+  cleanup_loop_closure 2>/dev/null || true
 }
 trap cleanup_wt EXIT
 
@@ -184,6 +264,24 @@ fi
 bash "$REPO/scripts/agent-lock.sh" claim branch "$BRANCH" --worktree "$WT" --label mishap-rollup >/dev/null 2>&1 || true
 
 cd "$WT"
+
+# ── Archive-Janitor [T013305 Mechanismus D] ─────────────────────────────────
+# Maschine-owned Archivierung abgeschlossener Zyklen: Ticket done/archived +
+# Change-Dir noch unarchiviert → move nach archive/<datum>-<slug>. Der Move
+# landet mit dem Plan in EINEM Commit auf dem Zyklus-Branch und kommt per PR
+# auf main. Fail-open: ein Janitor-Fehler haelt den Zyklus nicht an.
+echo "mishap-rollup: Archive-Janitor ..."
+jan_out="$(bash "$REPO/scripts/factory/rollup-archive-janitor.sh" --apply "$WT" 2>&1)" || {
+  jan_rc=$?
+  case "$jan_rc" in
+    3) echo "mishap-rollup: Archive-Janitor — nichts zu archivieren" ;;
+    *) echo "mishap-rollup: WARNUNG — Archive-Janitor fehlgeschlagen (rc=${jan_rc}):" >&2
+       printf '%s\n' "$jan_out" >&2 ;;
+  esac
+}
+if [[ -n "${jan_out:-}" && "$jan_rc" != "3" ]]; then
+  printf '%s\n' "$jan_out"
+fi
 
 # ── Plan-Erzeugung / -Update ────────────────────────────────────────────────
 # Sammle alle Content-Kommentare (non-FACTORY-PLAN-REF) als Plan-Beschreibung.
@@ -262,7 +360,9 @@ PLANEOF
 
   # [T013043] Aufgaben-Sektion: eine abhakbare Task pro Mishap-Eintrag mit
   # Pflicht-Disposition statt drei generischer Sammel-Checkboxen.
-  bash "$REPO/scripts/factory/rollup-plan-tasks.sh" < "$COMMENTS_FILE"
+  # [T013305] ROLLUP_RECURRENCE_FILE gibt dem Renderer die ×N-Marker vor.
+  ROLLUP_RECURRENCE_FILE="$RECURRENCE_FILE" \
+    bash "$REPO/scripts/factory/rollup-plan-tasks.sh" < "$COMMENTS_FILE"
 } > "$WT/$PLAN_PATH"
 
 # [T005031] openspec-Validierbarkeit des Change: openspec.sh validate ist

@@ -3893,12 +3893,12 @@
   ],
   "T012445": [
     {
-      "slug": "mishap-incident-rollup-2026-08-19-T012445",
-      "status": "plan_staged"
+      "slug": "2026-08-22-mishap-incident-rollup-2026-08-19-T012445",
+      "status": "archived"
     },
     {
-      "slug": "mishap-incident-rollup-2026-08-21-T012445",
-      "status": "plan_staged"
+      "slug": "2026-08-22-mishap-incident-rollup-2026-08-21-T012445",
+      "status": "archived"
     }
   ],
   "T012446": [
@@ -3933,8 +3933,8 @@
   ],
   "T012909": [
     {
-      "slug": "mishap-incident-rollup-2026-08-20-T012909",
-      "status": "plan_staged"
+      "slug": "2026-08-22-mishap-incident-rollup-2026-08-20-T012909",
+      "status": "archived"
     }
   ],
   "T012913": [
@@ -3951,14 +3951,14 @@
   ],
   "T012964": [
     {
-      "slug": "remove-korczewski-cronjobs",
-      "status": "plan_staged"
+      "slug": "2026-08-22-remove-korczewski-cronjobs",
+      "status": "archived"
     }
   ],
   "T012973": [
     {
-      "slug": "mishap-incident-rollup-2026-08-21-T012973",
-      "status": "plan_staged"
+      "slug": "2026-08-22-mishap-incident-rollup-2026-08-21-T012973",
+      "status": "archived"
     }
   ],
   "T013029": [
@@ -3973,16 +3973,28 @@
       "status": "archived"
     }
   ],
+  "T013041": [
+    {
+      "slug": "2026-08-22-brain-ingest-stale-branch-T013041",
+      "status": "archived"
+    }
+  ],
   "T013043": [
     {
       "slug": "2026-08-22-mishap-rollup-plan-selfexplaining",
       "status": "archived"
     }
   ],
+  "T013044": [
+    {
+      "slug": "pvc-backup-clone-stuck-T013044",
+      "status": "plan_staged"
+    }
+  ],
   "T013107": [
     {
-      "slug": "mishap-incident-rollup-2026-08-22-T013107",
-      "status": "plan_staged"
+      "slug": "2026-08-22-mishap-incident-rollup-2026-08-22-T013107",
+      "status": "archived"
     }
   ],
   "T013108": [
@@ -4015,10 +4027,82 @@
       "status": "plan_staged"
     }
   ],
+  "T013304": [
+    {
+      "slug": "2026-08-22-rollup-brand-agnostic",
+      "status": "archived"
+    }
+  ],
+  "T013305": [
+    {
+      "slug": "2026-08-22-rollup-loop-closure",
+      "status": "archived"
+    }
+  ],
   "T013306": [
     {
       "slug": "2026-08-22-health-dashboard-rescan",
       "status": "archived"
+    }
+  ],
+  "T013328": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-22-T013328",
+      "status": "plan_staged"
+    }
+  ],
+  "T013329": [
+    {
+      "slug": "2026-08-22-e2e-suite-entskippen",
+      "status": "archived"
+    }
+  ],
+  "T013330": [
+    {
+      "slug": "2026-08-22-rollup-archive-no-merge",
+      "status": "archived"
+    }
+  ],
+  "T013429": [
+    {
+      "slug": "2026-08-22-expand-runtime-health-goals",
+      "status": "archived"
+    }
+  ],
+  "T013468": [
+    {
+      "slug": "2026-08-22-ci-fast-path-optimizations",
+      "status": "archived"
+    }
+  ],
+  "T013482": [
+    {
+      "slug": "2026-08-22-dev-flow-lifecycle-contract",
+      "status": "archived"
+    }
+  ],
+  "T013528": [
+    {
+      "slug": "2026-08-22-optimize-factory-shard-runtimes",
+      "status": "archived"
+    }
+  ],
+  "T013593": [
+    {
+      "slug": "2026-08-22-brain-ingest-loadout-swap",
+      "status": "archived"
+    }
+  ],
+  "T013673": [
+    {
+      "slug": "half-archive-check-forks",
+      "status": "plan_staged"
+    }
+  ],
+  "T013674": [
+    {
+      "slug": "ci-node-deps-bats-outliers",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

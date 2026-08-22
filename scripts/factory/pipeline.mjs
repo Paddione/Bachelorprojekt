@@ -23,7 +23,7 @@ if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.
 // Chat-Modell — die unterste Sprosse der Leiter war unbesetzt. Sie geht jetzt
 // ueber dasselbe Gateway wie alles andere; FACTORY_MODEL_ID bleibt der einzige
 // Regler fuer den Modellnamen.
-const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'gemma26-throughput'
+const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'qwen38-220k'
 const MODEL_TIERS = {
   flash:  { provider: 'llamacpp', modelId: LOCAL_MODEL_ID, baseUrl: 'http://127.0.0.1:18235' },
   haiku:  { provider: 'deepseek', modelId: 'deepseek-chat',  baseUrl: null },

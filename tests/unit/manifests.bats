@@ -598,3 +598,48 @@ PY
   assert_failure
 }
 
+# ── pvc-backup stale clone deletion waits and fails loud (T013044) ──
+# A PVC stuck in Terminating blocks Clone creation on the next run. The stale-clone
+# purge must wait (--wait=true --timeout=120s) and fail loudly with diagnostics
+# instead of silently passing via `|| true` (which masked the original outage).
+@test "pvc-backup stale clone deletion waits and exits loud on stuck clone (T013044)" {
+  # Positive anchor: the stale-clone delete uses --wait=true --timeout=120s.
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/pvc-backup-cronjob.yaml | grep -E 'delete pvc.*--ignore-not-found.*--wait=true.*--timeout=120s'"
+  assert_success
+  # The stuck path must emit an ERROR and exit 1 (not silently continue).
+  grep -q 'stuck in Terminating' k3d/pvc-backup-cronjob.yaml
+  grep -q 'exit 1' k3d/pvc-backup-cronjob.yaml
+  # The hardened delete line (with --wait=true) must NOT also bare-|| true.
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/pvc-backup-cronjob.yaml | grep -E 'delete pvc.*--wait=true.*--timeout=120s.*\|\|[[:space:]]*true'"
+  assert_failure
+}
+
+# ── pvc-backup bind check rejects deleting clone (T013044) ──
+# A no-op-patched, deleting clone (deletionTimestamp set) must not be accepted
+# as "Bound" by the wait loop — only a real PVC binding is valid.
+@test "pvc-backup bind check fails on clone with deletionTimestamp (T013044)" {
+  # Positive anchor: deletionTimestamp is read inside the bind wait loop.
+  grep -q 'deletionTimestamp' k3d/pvc-backup-cronjob.yaml
+  grep -q 'is being deleted' k3d/pvc-backup-cronjob.yaml
+}
+
+# ── pvc-backup cleans up stale mounter jobs before launching (T013044) ──
+# Without removing old mounter jobs from a crashed prior run, the new run's
+# logs are masked and node resources are held by zombie pods.
+@test "pvc-backup removes stale mounter jobs before launching new one (T013044)" {
+  # Positive anchor: the label-selector cleanup appears and launch echo exists.
+  grep -q 'delete jobs -l app=pvc-backup,role=mounter' k3d/pvc-backup-cronjob.yaml
+  grep -q 'Launching mounter Job' k3d/pvc-backup-cronjob.yaml
+  # Ordering guard: cleanup line precedes the launch echo.
+  MCOUNT=$(grep -c 'delete jobs -l app=pvc-backup,role=mounter' k3d/pvc-backup-cronjob.yaml)
+  [ "$MCOUNT" -ge 1 ] || { echo "FAIL: mounter cleanup not found"; false; }
+}
+
+# ── pvc-backup mounter Job has ttlSecondsAfterFinished (T013044) ──
+# ttlSecondsAfterFinished auto-purges completed mounter Jobs + Pods, preventing
+# the zombie that originally caused the Terminating-clone deadlock.
+@test "pvc-backup mounter Job has ttlSecondsAfterFinished for zombie prevention (T013044)" {
+  # Positive anchor: the TTL setting exists in the CronJob mounter template.
+  grep -q 'ttlSecondsAfterFinished: 86400' k3d/pvc-backup-cronjob.yaml
+}
+

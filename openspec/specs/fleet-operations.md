@@ -586,6 +586,16 @@ CronJob declared in `prod/reflector.yaml`.
 - **THEN** enthält keines der Wildcard-Certificate-Manifeste eine `reflector.v1.emberstack.eu`-Annotation
 - **AND** `prod/reflector.yaml` deklariert den `tls-sync` CronJob als Sync-Mechanismus
 
+### Requirement: No failing CronJobs in the korczewski overlay
+
+The korczewski prod overlay SHALL exclude the `pvc-backup` and `error-log-retention` CronJobs from the rendered manifest, because their target Deployments (vaultwarden, nextcloud, website) are scaled to 0 replicas in korczewski and the jobs would fail on every run.
+
+#### Scenario: Kustomize build renders no backup or retention CronJobs
+
+- **GIVEN** the korczewski overlay with delete-patches for `pvc-backup` and `error-log-retention`
+- **WHEN** the fleet manifest for korczewski is rendered (`kustomize build prod-korczewski`)
+- **THEN** the output contains no `batch/v1 CronJob` named `pvc-backup` and none named `error-log-retention`
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -821,3 +831,5 @@ The system SHALL pass smoke tests for Pocket ID OIDC discovery (issuer, endpoint
 <!-- merged from change delta fleet-operations.md (383ea450f657) -->
 
 <!-- merged from change delta fleet-operations.md (cff77522a3d8) -->
+
+<!-- merged from change delta fleet-operations.md (2dac0e7bdd68) -->

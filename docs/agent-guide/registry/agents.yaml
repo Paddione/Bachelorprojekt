@@ -53,78 +53,98 @@ runtimes:
   # das Backend llamacpp-qwen bleibt per Migration deaktiviert.
   gptoss:
     mode: subagent
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "NAME luegt ueber das Modell. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst. Der Name bleibt, weil er die Dispatch-Schnittstelle des Orchestrators ist — Umbenennen ist ein eigener Vorgang [T003204/T012414]"
+    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, Port 8094, 114688 ctx, text-only, np=1). Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig. Name bleibt als Dispatch-Schnittstelle."
   devstral:
     mode: subagent
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "NAME luegt ueber das Modell. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst — Name bleibt als Dispatch-Schnittstelle [T003204/T012414]"
+    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig."
   gemma:
     mode: subagent
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "gemma family: NAME luegt ueber das Modell. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T012409/T012414]"
+    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout."
   gemma12:
     mode: subagent
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "gemma12 family: Gemma 4 12B QAT + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx — groesster lokaler Kontext und einziges vision-faehiges Loadout. Seit T003204 als Subagent dispatchbar (vorher nur Tab-waehlbar via gemma12-primary)"
+    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout."
   qwen38:
     mode: subagent
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "qwen38 family: Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 220000 ctx, text-only (kein mmproj). EIN Slot (parallel=1) — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [2026-08-22]"
+    note: "qwen38 family: Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 114688 ctx, text-only (kein mmproj). EIN Slot (parallel=1) — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [2026-08-22]"
+  qwen-cloud:
+    mode: subagent
+    model: alibaba-intl/qwen3.8-max
+    write_capable: true
+    note: "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). Erste Cloud-Eskalationsstufe nach lokalen Modellen. Selbe Modell-Familie wie der Orchestrator [T013360]"
   gemma26-primary:
     mode: primary
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary local agent. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T002753/T012414]"
+    note: "Tab-selectable primary local agent. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only). Alle lokalen Agenten teilen dieses eine Loadout."
   gemma26-vision:
     mode: primary
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Max context, no subagent dispatch. Vision IS available — gemma12-vision laedt mmproj-F16.gguf. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T012414]"
+    note: "Tab-selectable primary, no subagent dispatch. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   # [T003065] Ein tab-waehlbarer Primaeragent pro lokalem GGUF-Modell. Alle
   # Kontextwerte sind in scripts/llm/loadouts.json als Messwert belegt — keine
   # n_ctx_train-Zahlen. Der Semaphor in scripts/llm-proxy/server.mjs serialisiert
   # den Modellwechsel, deshalb duerfen diese Agenten Subagenten dispatchen.
   gptoss-primary:
     mode: primary
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst. Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze [T003065/T003204/T012414]"
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only). Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze."
   devstral-primary:
     mode: primary
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary, code-quality review — devstral-quality ist abgeschaltet. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T003065/T003204/T012414]"
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   gemma12-primary:
     mode: primary
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary on gemma12-vision (Port 8089), 262144 ctx measured, vision-capable via mmproj-F16 [T003065]"
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   gemma26-throughput-primary:
     mode: primary
-    model: llamacpp-local/gemma12-vision
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary. Seit T012414 auf gemma12-vision (Port 8089, 262144 ctx gemessen, -np 3 -kvu, MTP; 307-489 tok/s gesamt bei drei gleichzeitigen Anfragen, 106-183 je Einzelstrom). Alle lokalen Agenten teilen dieses eine Loadout, weil exclusiveGroup 'chat-gpu' immer nur eines laufen laesst [T003065/T012409/T012414]"
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   qwen38-primary:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable text-only primary on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, Port 8094, 220000 ctx, one slot, q4_0 KV cache) [T013109]"
+    note: "Tab-selectable text-only primary on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, Port 8094, 114688 ctx, one slot, q4_0 KV cache) [T013109]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
     write_capable: true
-    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]"
+    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-08-22 task-dispatch allowed for the same subagent set as the orchestrator (local families + qwen-cloud + deepseek-*)."
+  ox-alpha-free:
+    mode: primary
+    model: opencode-zen/laguna-s-2.1-free
+    write_capable: true
+    note: "PRIMARY: Ox Alpha Free next to big-pickle — second free-tier Zen agent on laguna-s-2.1-free (Poolside agentic coding model, 256k ctx per models.dev, live-smoke-tested 2026-08-22; deepseek-v4-flash-free was tested in the same run and is upstream-unavailable). Same subagent dispatch set as the orchestrator."
   deepseek-helper:
     mode: subagent
     model: deepseek/deepseek-v4-flash
     write_capable: true
     note: "Escalation: DeepSeek-V4 Flash (1M ctx) via direct DeepSeek API [T002632]"
+  deepseek-helper-go:
+    mode: subagent
+    model: opencode-go/deepseek-v4-flash
+    write_capable: true
+    note: "ESCALATION twin of deepseek-helper over OpenCode Go instead of the direct API — helper tier multi-backend (direct + Go + Alibaba) since 2026-08-22."
+  deepseek-helper-alibaba:
+    mode: subagent
+    model: alibaba-intl/deepseek-v4-flash-0731
+    write_capable: true
+    note: "ESCALATION twin of deepseek-helper over the Alibaba Intl Token Plan. Model ID deepseek-v4-flash-0731 (differs from direct/Go). Measured 2026-08-22 after alibaba-intl key rotation (smoke test answered); context limit declared conservatively, unmeasured."
   deepseek-pro:
     mode: all
     model: opencode-go/deepseek-v4-pro
@@ -135,6 +155,11 @@ runtimes:
     model: deepseek/deepseek-v4-pro
     write_capable: true
     note: "Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
+  deepseek-pro-alibaba:
+    mode: all
+    model: alibaba-intl/deepseek-v4-pro
+    write_capable: true
+    note: "Same model as deepseek-pro, over the Alibaba Intl Token Plan — third route (Go + direct + Alibaba) since 2026-08-22 after key rotation; smoke-tested. Context limit declared conservatively, unmeasured."
   deepseek-flash:
     mode: all
     model: opencode-go/deepseek-v4-flash
@@ -147,9 +172,9 @@ runtimes:
     note: "Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
   orchestrator:
     mode: primary
-    model: llamacpp-local/gemma12-vision
+    model: opencode-zen/laguna-s-2.1-free
     write_capable: true
-    note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12/qwen38) sequentially — qwen38 np=1, gemma12-vision bis zu 3 Slots"
+    note: "Primary orchestrator on Laguna S 2.1 Free (OpenCode Zen, Poolside agentic coding model, free tier, 256k ctx per models.dev; live-smoke-tested 2026-08-22). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches local family subagents + cloud escalation (qwen-cloud/deepseek-*). Eskalationskette: lokal → qwen-cloud → deepseek-helper → deepseek-pro [T013360]"
   alibaba-primary:
     mode: primary
     model: alibaba-intl/qwen3.8-max

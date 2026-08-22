@@ -10,24 +10,29 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`gemma12`/`qwen38`) sequentially; gemma12-vision allows up to 3 in parallel (llm-proxy max_inflight=3, server -np 3), qwen38 runs np=1 |
-| `gptoss` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local bulk work. **Der Name lügt über das Modell seit T003204** — `gptoss-context` ist abgeschaltet, der Name bleibt als Dispatch-Schnittstelle. `write=deny`, `edit=allow` |
-| `devstral` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local work. **Name lügt über das Modell seit T003204** — `devstral-quality` war in allen Dimensionen dominiert und ist abgeschaltet |
-| `gemma` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local work, gemma family |
-| `gemma12` | `llamacpp-local/gemma12-vision` (Gemma 4 12B QAT + mmproj-F16, :8089) | Local work, 262144 ctx — größter lokaler Kontext und einziges vision-fähiges Loadout. Seit T003204 per `task` dispatchbar |
-| `qwen38` | `llamacpp-local/qwen38-220k` (Qwen 3.8 27B UD-IQ3_XXS, :8094) | Local work, text-only, 220000 ctx. Seit T013301 per `task` dispatchbar — **1 Instanz** (Loadout np=1), nur sequenziell dispatchen |
-| `gemma26-primary` | `llamacpp-local/gemma12-vision`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task`. Name historisch — seit T012414 auf `gemma12-vision` |
-| `gemma26-vision` | `llamacpp-local/gemma12-vision`, `mode: primary` | Max local context (262144, measured), no subagent dispatch. Seit T012414 auf `gemma12-vision` — das laedt ein mmproj und kann damit tatsaechlich Vision, anders als frueher |
-| `gptoss-primary` | `llamacpp-local/gemma26-throughput`, `mode: primary` | Tab-selectable primary, 118016 ctx (:8092) — seit T003204 |
-| `devstral-primary` | `llamacpp-local/gemma12-vision`, `mode: primary` | Tab-selectable primary, code-quality review — seit T003204, Loadout seit T012414 `gemma12-vision` (:8089) |
-| `gemma12-primary` | `llamacpp-local/gemma12-vision`, `mode: primary` | Tab-selectable primary, 262144 ctx measured. **Vision-capable** via mmproj-F16 (:8089) |
-| `gemma26-throughput-primary` | `llamacpp-local/gemma26-throughput`, `mode: primary` | Tab-selectable primary, 118016 ctx measured, 159-169 tok/s (:8092) |
-| `qwen38-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable text-only Qwen 3.8 27B UD-IQ3_XXS primary, 220000 ctx (:8094) |
-| `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries |
-| `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted |
+| `orchestrator` | `alibaba-intl/qwen3.8-max` (Alibaba Cloud, 131k ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches local subagents + cloud escalation (`qwen-cloud`/`deepseek-*`). Eskalationskette: lokal → qwen-cloud → deepseek-helper → deepseek-pro [T013360] |
+| `gptoss` | `llamacpp-local/qwen38-220k` (Qwen 3.8 27B UD-IQ3_XXS, :8094) | Local bulk work. **Name lügt** — alle lokalen Subagenten seit T013360 auf qwen38-220k. `write=deny`, `edit=allow` |
+| `devstral` | `llamacpp-local/qwen38-220k` (Qwen 3.8 27B UD-IQ3_XXS, :8094) | Local work. **Name lügt** — alle lokalen Subagenten seit T013360 auf qwen38-220k |
+| `gemma` | `llamacpp-local/qwen38-220k` (Qwen 3.8 27B UD-IQ3_XXS, :8094) | Local work. **Name lügt** — seit T013360 auf qwen38-220k |
+| `gemma12` | `llamacpp-local/qwen38-220k` (Qwen 3.8 27B UD-IQ3_XXS, :8094) | Local work. **Name lügt** — seit T013360 auf qwen38-220k |
+| `qwen38` | `llamacpp-local/qwen38-220k` (Qwen 3.8 27B UD-IQ3_XXS, :8094) | Local work, text-only, 114688 ctx. **1 Instanz** (np=1), sequenziell dispatchen |
+| `qwen-cloud` | `alibaba-intl/qwen3.8-max` (Alibaba Cloud, 131k ctx), `mode: subagent`, write-capable | Cloud-Eskalation: Qwen 3.8 Max, erste Stufe nach lokal. Selbe Modell-Familie wie Orchestrator [T013360] |
+| `gemma26-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Fully-local tab-selectable agent. Name historisch — seit T013360 auf `qwen38-220k` |
+| `gemma26-vision` | `llamacpp-local/qwen38-220k`, `mode: primary` | No subagent dispatch. Seit T013360 auf `qwen38-220k` (text-only, 112k ctx) |
+| `gptoss-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable primary, 114688 ctx (:8094) — seit T013360 |
+| `devstral-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable primary, 114688 ctx (:8094) — seit T013360 |
+| `gemma12-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable primary, 114688 ctx (:8094) — seit T013360 |
+| `gemma26-throughput-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable primary, 114688 ctx (:8094) — seit T013360 |
+| `qwen38-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable text-only Qwen 3.8 27B UD-IQ3_XXS primary, 114688 ctx (:8094) |
+| `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries. Since 2026-08-22 can dispatch the same subagent set as the orchestrator |
+| `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free`, `mode: primary`, write-capable | Second free-tier primary next to big-pickle (Poolside agentic coding model, 256k ctx per models.dev, smoke-tested 2026-08-22). Same subagent dispatch set as the orchestrator |
+| `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted; twin `deepseek-helper-go` rides OpenCode Go |
+| `deepseek-helper-go` | `opencode-go/deepseek-v4-flash`, write-capable | Same escalation tier as `deepseek-helper` via the Go gateway — alternate rail when the direct API is down |
+| `deepseek-helper-alibaba` | `alibaba-intl/deepseek-v4-flash-0731`, write-capable | Same escalation tier via the Alibaba Token Plan — third rail after the 2026-08-22 key rotation (note the `-0731` model ID) |
 | `deepseek-pro` | `opencode-go/deepseek-v4-pro`, `mode: all`, write-capable | Deep analysis, complex debugging, hard refactors; tab-selectable AND task-dispatchable |
 | `deepseek-flash` | `opencode-go/deepseek-v4-flash`, `mode: all`, write-capable | Parallel throughput, up to 3 at a time; tab-selectable AND task-dispatchable |
 | `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), `mode: all`, write-capable | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `deepseek-pro-alibaba` | `alibaba-intl/deepseek-v4-pro`, `mode: all`, write-capable | Same model as `deepseek-pro` via the Alibaba Token Plan — third rail (Go, direct, alibaba) |
 | `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), `mode: all`, write-capable | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
 | `alibaba-primary` | `alibaba-intl/qwen3.8-max` (Alibaba Cloud Intl Token Plan, 131072 ctx), `mode: primary` | PRIMARY: Qwen3.8 Max via Alibaba Cloud Intl Token Plan — tab-selectable singleagent, replaces deepseek-v4-flash as the default model [T004396] |
 | `explore` / `general` | built-in | Read-only exploration / research |

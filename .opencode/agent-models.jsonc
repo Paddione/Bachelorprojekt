@@ -662,12 +662,17 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      // 2026-08-22: Umgestellt von llamacpp-local/gemma12-vision (12B lokal)
-      // auf alibaba-intl/qwen3.8-max (Cloud, 131k ctx) — staerkeres Modell
-      // fuer Orchestrierung. Fallback: gemma12-vision lokal, wenn Cloud down.
-      "description": "Primary orchestrator: Qwen 3.8 Max via Alibaba Cloud Intl (131k ctx). Dispatches local family subagents (gptoss/devstral/gemma/gemma12/qwen38) and cloud escalation (qwen-cloud/deepseek-*). Tab-selectable via Tab key.",
+      // 2026-08-22 (zweiter Wechsel am selben Tag): von alibaba-intl/qwen3.8-max
+      // auf opencode-zen/laguna-s-2.1-free (Poolside agentic coding model,
+      // Free-Tier, models.dev: 256k ctx, live gegen chat/completions gemessen —
+      // siehe Provider-Kommentar oben). Motivation: der Factory-Executor
+      // (opencode-exec.sh) faehrt denselben Agenten — damit laufen Orchestrierung
+      // UND Factory-Ticks im Free-Kontingent statt auf dem Alibaba Token Plan.
+      // Vorheriger Stand: alibaba-intl/qwen3.8-max (Cloud, 131k ctx), davor
+      // llamacpp-local/gemma12-vision (12B lokal).
+      "description": "Primary orchestrator: Laguna S 2.1 Free via OpenCode Zen (Poolside agentic coding model, free tier, 256k ctx per models.dev). Dispatches local family subagents (gptoss/devstral/gemma/gemma12/qwen38) and cloud escalation (qwen-cloud/deepseek-*). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "alibaba-intl/qwen3.8-max",
+      "model": "opencode-zen/laguna-s-2.1-free",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,

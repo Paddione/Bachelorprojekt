@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1194,
+      "file_count": 1195,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -711,6 +711,7 @@
         "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
         "tests/spec/local-llm-proxy/qwen38-default-backend.bats",
         "tests/spec/local-llm-proxy/support-model-slots.bats",
+        "tests/spec/local-llm-proxy/switch-origin-attribution.bats",
         "tests/spec/local-llm-proxy/tools-runtime-sandbox.bats",
         "tests/spec/local-llm-proxy/ui-config-seed.bats",
         "tests/spec/lockfile-drift.bats",
@@ -3636,7 +3637,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 806,
+      "file_count": 807,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4164,6 +4165,7 @@
         "scripts/llm-proxy/slot-queue.mjs",
         "scripts/llm-proxy/strip-markers.mjs",
         "scripts/llm-proxy/strip-markers.test.mjs",
+        "scripts/llm-proxy/switch-origin.mjs",
         "scripts/llm-pull-models.sh",
         "scripts/llm/CLAUDE.md",
         "scripts/llm/README-laptop-bge.md",

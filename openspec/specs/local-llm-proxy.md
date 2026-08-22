@@ -16,7 +16,7 @@ GPU-Belegung an genau einer Stelle entschieden werden statt in jedem Konsumenten
 
 ### Requirement: Proxy as sole LLM gateway
 
-The Node proxy (`scripts/llm-proxy/server.mjs`) SHALL be the sole listener on port 18235 and the sole LLM endpoint all local harnesses (factory orchestrator, factory phase agents, opencode, other agents) use. The legacy ad-hoc proxy (`bonsai-msg-fixup-proxy.service`) SHALL be stopped and disabled by the cutover procedure; no enabled `tickets.provider_config` or `tickets.factory_model_slots` row and no tracked agent-config surface may reference a backend port (`:8093`, `:1234`) directly.
+The Node proxy (`scripts/llm-proxy/server.mjs`) SHALL be the sole listener on port 18235 and the sole LLM endpoint all local harnesses (factory orchestrator, factory phase agents, opencode, other agents) use. The legacy ad-hoc proxy (`bonsai-msg-fixup-proxy.service`) SHALL be stopped and disabled by the cutover procedure; no enabled `tickets.provider_config` row and no tracked agent-config surface may reference a backend port (`:8093`, `:1234`) directly.
 
 The static lint that enforces this SHALL exist as an executable test, not as a description alone: `tests/spec/local-llm-proxy/gateway-consumer-lint.bats`. Until T002582 this scenario described a lint that was never implemented, and `provider-register-bonsai.sh` carried four `:8093` literals that nothing caught.
 
@@ -1369,8 +1369,8 @@ Backends `llamacpp-bonsai` SHALL denselben Port nennen.
 Qwen3-Coder-30B-A3B-Instruct (UD-Q4_K_XL) on port 8097 within `exclusiveGroup: "chat-gpu"`, and
 `tickets.llm_proxy_backends` SHALL carry a matching enabled entry for that port on both brands.
 
-Adding this loadout SHALL NOT change model routing: no row in `tickets.provider_config` and no
-row in `tickets.factory_model_slots` may be modified by this change. The loadout is started on
+Adding this loadout SHALL NOT change model routing: no row in `tickets.provider_config` may be
+modified by this change. The loadout is started on
 demand; the default path remains whichever backend the routing tables already name.
 
 The loadout SHALL rely on `--fit` for layer placement and MUST NOT pin `ctx` or `ngl`, because the
@@ -1394,7 +1394,7 @@ measured value, so a later reader does not mistake it for one.
 #### Scenario: Backend registration leaves routing untouched
 
 - **GIVEN** the migration registering `llamacpp-qwen3coder` has been applied to a brand database
-- **WHEN** `tickets.provider_config` and `tickets.factory_model_slots` are read back
+- **WHEN** `tickets.provider_config` is read back
 - **THEN** no row references `qwen3-coder`, and the previously configured model ids for every
   tier are unchanged
 
@@ -1404,8 +1404,6 @@ measured value, so a later reader does not mistake it for one.
 - **WHEN** its `args.ctx` and `args.ngl` are read
 - **THEN** both are null, satisfying the existing guard that no loadout using `--fit` pins either
   value
-
-<!-- merged from change delta local-llm-proxy.md (f914be33bda0) -->
 
 ### Requirement: Loadout auxiliary files SHALL resolve against the model roots
 
@@ -1695,3 +1693,34 @@ that is not loaded.
   serializer
 
 <!-- merged from change delta local-llm-proxy.md (8405885cab02) -->
+
+### Requirement: Das Session-Modell folgt dem Factory-Default
+
+Eine Session lief bisher potenziell auf einem anderen Modell als alles andere im System, ohne dass
+das irgendwo sichtbar wurde: `DEFAULT_CLAUDE_SESSION_MODEL` ist ein fest notiertes Modell, und die
+Auflösungskette fiel über eine Umgebungsvariable darauf zurück.
+
+Session model resolution SHALL derive its model from the factory default (`factory.model` in
+`scripts/llm/loadouts.json`, read through the proxy) instead of carrying an independent default.
+`DEFAULT_CLAUDE_SESSION_MODEL` SHALL remain only as the last fallback for the case where the proxy
+yields no value, and SHALL NOT be reached while the proxy answers.
+
+#### Scenario: A session uses the model everything else uses
+
+- **GIVEN** the factory default names a model
+- **WHEN** a session resolves its model
+- **THEN** it resolves to that same model
+
+#### Scenario: Changing the default moves the sessions with it
+
+- **GIVEN** the factory default is changed
+- **WHEN** a new session resolves its model
+- **THEN** it resolves to the new value without any separate session-side change
+
+#### Scenario: The hard-coded fallback stays reachable only when nothing else answers
+
+- **GIVEN** the proxy does not answer and no factory default can be read
+- **WHEN** a session resolves its model
+- **THEN** it falls back to `DEFAULT_CLAUDE_SESSION_MODEL`, and the fallback is logged as such
+
+<!-- merged from change delta local-llm-proxy.md (3c50c38c0aca) -->

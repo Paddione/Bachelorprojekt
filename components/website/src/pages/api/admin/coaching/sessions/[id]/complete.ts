@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getSession as getCoachingSession, completeSession } from '../../../../../../lib/coaching-session-db';
-import { DEFAULT_CLAUDE_SESSION_MODEL } from '../../../../../../lib/claude-session-agent.ts';
+import { resolveSessionModel } from '../../../../../../lib/claude-session-agent.ts';
 import { pool } from '../../../../../../lib/website-db';
 import { getProviderByName } from '../../../../../../lib/provider-config';
 import { buildProtocol, buildExecutiveSummaryInput } from '../../../../../../lib/coaching-report';
@@ -32,11 +32,9 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   let report = '# Abschlussbericht\n\n*(KI nicht verfügbar — bitte manuell ergänzen)*';
 
   let apiKey: string | undefined;
-  let resolvedModel: string | undefined;
   try {
     const cfg = await getProviderByName('anthropic');
     apiKey = cfg.apiKey || undefined;
-    resolvedModel = cfg.modelId;
   } catch {
     apiKey = process.env.ANTHROPIC_API_KEY;
   }
@@ -46,8 +44,13 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
 
     try {
       const client = new Anthropic({ apiKey });
+      // T013302: Session folgt dem globalen Factory-Default; die
+      // Konstante greift nur, wenn gar kein Wert zu holen ist (wird dort
+      // protokolliert). COACHING_SESSION_MODEL hat keinen Platz mehr in der
+      // Kette — wo die Variable gesetzt war, folgt die Session dem Default.
+      const model = await resolveSessionModel();
       const msg = await client.messages.create({
-        model: resolvedModel ?? process.env.COACHING_SESSION_MODEL ?? DEFAULT_CLAUDE_SESSION_MODEL,
+        model,
         max_tokens: 1200,
         system: `Du bist ein Coaching-Protokollant. Erstelle aus den 10 Schritten einer Coaching-Session eine strukturierte Zusammenfassung auf Deutsch.
 Abschnitte: ## Ausgangslage, ## Analyse, ## Lösungsansatz, ## Vereinbarte Schritte, ## Bewertung.

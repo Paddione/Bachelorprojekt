@@ -148,6 +148,12 @@ Modell: `sonnet`, Effort: `low` für Freshness-Fehler, `medium` für TS/BATS.
 
 ## PR-Merge-Wait-Loop
 
+Der Orchestrator betrachtet den Flow erst bei bestätigtem `state=MERGED` als beendet. Später
+rot werdende Checks, Ersatzläufe nach einem Implementer-Push sowie `DIRTY` oder `CONFLICTING`
+nach Main-Fortschritt gehen an denselben Implementer zurück; Review, Phase-Chain und alle
+invalidierten CI-Gates werden danach erneut durchlaufen. Der Finalizer schließt bei keinem
+Timeout, offenen/geschlossenen PR oder Konflikt ein Ticket.
+
 Genutzt von `dev-flow-execute` (Schritt 6.4). `gh pr merge --auto` kehrt sofort zurück — der eigentliche Merge passiert asynchron im Hintergrund. Warten, bis der Merge tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Drift T001149-M1).
 
 ```bash

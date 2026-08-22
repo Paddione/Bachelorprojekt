@@ -1,0 +1,323 @@
+{
+  "meta": {
+    "slug": "dev-flow-lifecycle-contract",
+    "ticket_id": "T013482",
+    "generated_from": "main@78512bca9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".agents/skills/OVERVIEW.md",
+      "language": "markdown",
+      "loc": 248,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/dev-flow-chore/SKILL.md",
+      "language": "markdown",
+      "loc": 223,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/dev-flow-e2e/SKILL.md",
+      "language": "markdown",
+      "loc": 309,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/dev-flow-execute/SKILL.md",
+      "language": "markdown",
+      "loc": 372,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/dev-flow-plan/SKILL.md",
+      "language": "markdown",
+      "loc": 300,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/references/ci-fix-loop.md",
+      "language": "markdown",
+      "loc": 187,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/references/dev-flow-execute-phases.md",
+      "language": "markdown",
+      "loc": 375,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/references/dev-flow-gotchas.md",
+      "language": "markdown",
+      "loc": 145,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".agents/skills/references/dev-flow-lifecycle.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/dev-flow-chore/SKILL.md",
+      "language": "markdown",
+      "loc": 223,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/dev-flow-e2e/SKILL.md",
+      "language": "markdown",
+      "loc": 309,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/dev-flow-execute/SKILL.md",
+      "language": "markdown",
+      "loc": 372,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/dev-flow-plan/SKILL.md",
+      "language": "markdown",
+      "loc": 300,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/ci-fix-loop.md",
+      "language": "markdown",
+      "loc": 187,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/dev-flow-execute-phases.md",
+      "language": "markdown",
+      "loc": 375,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/dev-flow-gotchas.md",
+      "language": "markdown",
+      "loc": 145,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/dev-flow-lifecycle.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 5792,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/review-gate-before-auto-merge.bats",
+      "language": "bash",
+      "loc": 55,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd.bats",
+      "language": "bash",
+      "loc": 2104,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
+      "language": "bash",
+      "loc": 72,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-e2e.bats",
+      "language": "bash",
+      "loc": 119,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/agent-skills/review-gate-before-auto-merge.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/review-gate-before-auto-merge.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:432:_schema_env_vars() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "432:_schema_env_vars() {(...)",
+      "type_text": "432:_schema_env_vars() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:438:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "438:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)(...)",
+      "type_text": "438:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:453:_website_deploy_list() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "453:_website_deploy_list() {(...)",
+      "type_text": "453:_website_deploy_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:461:_render_placeholders() { # $1 = overlay dir",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "461:_render_placeholders() { # $1 = overlay dir(...)",
+      "type_text": "461:_render_placeholders() { # $1 = overlay dir(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:467:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "467:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)(...)",
+      "type_text": "467:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1289:flux_render_script() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1289:flux_render_script() {(...)",
+      "type_text": "1289:flux_render_script() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1541:_extract_renovate_step() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1541:_extract_renovate_step() {(...)",
+      "type_text": "1541:_extract_renovate_step() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1553:_write_docker_mock() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1553:_write_docker_mock() {(...)",
+      "type_text": "1553:_write_docker_mock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1562:setup_renovate_mock() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1562:setup_renovate_mock() {(...)",
+      "type_text": "1562:setup_renovate_mock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats:10:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
+      "signature": "10:setup() {(...)",
+      "type_text": "10:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-e2e.bats:14:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-e2e.bats",
+      "signature": "14:setup() {(...)",
+      "type_text": "14:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

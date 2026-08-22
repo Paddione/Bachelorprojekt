@@ -2,6 +2,8 @@
 
 This section aggregates known operational issues, gotchas, and workarounds for the `dev-flow` pipeline. Refer to these when executing plans, creating tickets, or deploying components.
 
+The shared [dev-flow-lifecycle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md) owns transitions and roles; executable Git, verification and merge mechanics remain in their referenced SSOTs.
+
 ### [T000321] Main Branch Guard (Branch Protection)
 **Context**: Never commit or push directly to `main`.
 **Rule**: Always create a feature, fix, or chore worktree/branch. `dev-flow-plan` and `dev-flow-execute` verify that the active branch is not `main` before commiting/pushing changes.

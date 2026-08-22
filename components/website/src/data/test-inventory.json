@@ -2142,6 +2142,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/dev-flow-lifecycle-contract",
+    "file": "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/devflow-worktree-cwd-guard",
     "file": "tests/spec/agent-skills/devflow-worktree-cwd-guard.bats",
     "category": "agent-skills",

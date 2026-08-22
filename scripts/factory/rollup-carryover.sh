@@ -72,16 +72,16 @@ if [[ "$MODE" == "scan" ]]; then
     slug="$(basename "$dir")"
     cycle_date="$(printf '%s\n' "$slug" | sed -E 's/^.*mishap-incident-rollup-([0-9]{4}-[0-9]{2}-[0-9]{2}).*$/\1/')"
     candidates+=("${cycle_date}"$'\t'"${slug}"$'\t'"${plan}")
-  done < <(find "$SCAN_ROOT/openspec/changes" -type f -name tasks.md -path '*mishap-incident-rollup-*' 2>/dev/null | sort)
+  done < <(find "$SCAN_ROOT/openspec/changes" -mindepth 2 -maxdepth 2 -type f \
+    -path '*/mishap-incident-rollup-*/tasks.md' 2>/dev/null | sort)
 
   [[ "${#candidates[@]}" -gt 0 ]] || exit 3
 
-  # NUR der juengste Zyklus wird uebertragen. Begruendung: sein Plan enthaelt
-  # per Konstruktion bereits die Uebernahmen aller aelteren Zyklen — die wurden
-  # in seinen Container getragen und dort mitgerendert. Wuerde der Scan alle
-  # Kandidaten liefern, kaeme derselbe Eintrag nach zwei folgenlosen Zyklen
-  # doppelt im naechsten Plan an.
-  printf '%s\n' "${candidates[@]}" | sort | tail -1 | cut -f2,3
+  # Alle noch unarchivierten Zyklen bleiben Kandidaten. Ein vorausgegangener
+  # Transfer ist erst dann dauerhaft erledigt, wenn sein Quell-Change
+  # archiviert wurde; die direkte Pfadsuche oben schliesst archivierte Zyklen
+  # aus. Die aufrufende Container-Logik dedupliziert je Quell-Zyklus.
+  printf '%s\n' "${candidates[@]}" | sort | cut -f2,3
   exit 0
 fi
 

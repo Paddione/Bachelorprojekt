@@ -427,7 +427,11 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # gemergten Commit verweigern kann).
       git fetch origin main
       git checkout -B "$ARCHIVE_BRANCH" origin/main
-      bash scripts/openspec.sh archive "$SLUG"
+      archive_args=()
+      if [[ "$SLUG" == mishap-incident-rollup-* ]]; then
+        archive_args+=(--no-merge)
+      fi
+      bash scripts/openspec.sh archive "$SLUG" "${archive_args[@]}"
       # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —
       # Regeneration und explizites Staging nach plan-archive-steps (T002252).
       # [T006371] Ohne `|| true`: eine fehlgeschlagene Regeneration bricht die

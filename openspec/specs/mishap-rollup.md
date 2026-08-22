@@ -21,7 +21,7 @@ under `openspec/changes/` on a per-cycle branch named after the cycle slug
 (`mishap-incident-rollup-<suffix>`), and that change SHALL pass OpenSpec validation. The generator
 SHALL create the change artifacts itself: a `.ticket` file containing the container ticket ID and
 a `specs/<slug>.md` delta that lists the bundle's findings as `ADDED Requirements` — the bundle
-has no parent SSOT spec and is archived with `--create-new`.
+has no parent SSOT spec and is archived with `--no-merge`.
 
 #### Scenario: Change directory passes openspec validation
 
@@ -198,10 +198,9 @@ entries which received no disposition do not expire together with their containe
 SHALL name its source cycle, SHALL be idempotent per source cycle and container, and SHALL run
 before the batch count is taken, so that carried-over entries are planned in the same run.
 
-The scan SHALL consider only the most recent finished cycle. That cycle's plan already contains
-the transfers of all older cycles — they were appended to its container and rendered into its
-plan — so transferring every candidate would deliver the same entry twice after two consecutive
-cycles that resolved nothing.
+The scan SHALL consider every unarchived finished cycle with checkbox-based open entries. It
+SHALL ignore cycles already below `openspec/changes/archive/`. Plans from before checkbox-based
+disposition tracking are not reconstructed implicitly.
 
 The cycle belonging to the current container SHALL be excluded from the scan, and a failed
 transfer SHALL NOT abort the rollup run: the source plan stays in place and the next run retries.
@@ -221,11 +220,11 @@ transfer SHALL NOT abort the rollup run: the source plan stays in place and the 
 - **WHEN** the rollup generator runs again
 - **THEN** no second transfer of that cycle SHALL be appended
 
-#### Scenario: Only the most recent finished cycle is transferred
+#### Scenario: All unarchived finished cycles are transferred
 
 - **GIVEN** two finished cycles that both hold unresolved entry tasks
 - **WHEN** the transfer candidates are scanned
-- **THEN** only the cycle with the most recent cycle date SHALL be reported
+- **THEN** both cycles SHALL be reported in cycle-date order
 
 #### Scenario: A resolved cycle produces no transfer
 

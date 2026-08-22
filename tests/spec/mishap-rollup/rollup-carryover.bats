@@ -93,23 +93,21 @@ EOF
   [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ]
 }
 
-@test "--scan liefert nur den juengsten Zyklus, nicht jeden mit offenen Eintraegen" {
+@test "--scan liefert alle unarchivierten Zyklen mit offenen Eintraegen" {
   local root="$WORK/repo-multi"
-  mkdir -p "$root/openspec/changes/archive/2026-08-18-mishap-incident-rollup-2026-08-18-T012402"
-  mkdir -p "$root/openspec/changes/archive/2026-08-20-mishap-incident-rollup-2026-08-20-T012909"
-  _plan_with_open_entries > "$root/openspec/changes/archive/2026-08-18-mishap-incident-rollup-2026-08-18-T012402/tasks.md"
-  printf 'T012402' > "$root/openspec/changes/archive/2026-08-18-mishap-incident-rollup-2026-08-18-T012402/.ticket"
-  _plan_with_open_entries > "$root/openspec/changes/archive/2026-08-20-mishap-incident-rollup-2026-08-20-T012909/tasks.md"
-  printf 'T012909' > "$root/openspec/changes/archive/2026-08-20-mishap-incident-rollup-2026-08-20-T012909/.ticket"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/tasks.md"
+  printf 'T012402' > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/.ticket"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/tasks.md"
+  printf 'T012909' > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/.ticket"
 
   run bash "$CARRY" --scan "$root" --container T099999
   [ "$status" -eq 0 ]
-  # Positiv-Anker: der juengste Zyklus ist dabei ...
+  # Beide Quellen kommen in stabiler Zyklus-Reihenfolge zurueck.
+  printf '%s\n' "$output" | sed -n '1p' | grep -qF '2026-08-18-T012402'
   printf '%s\n' "$output" | grep -qF '2026-08-20-T012909'
-  # ... und genau eine Zeile kommt zurueck, der aeltere Zyklus nicht. Sonst
-  # kaeme derselbe Eintrag nach zwei folgenlosen Zyklen doppelt im Plan an.
-  [ "$(printf '%s\n' "$output" | grep -c 'mishap-incident-rollup')" -eq 1 ]
-  [ "$(printf '%s\n' "$output" | grep -cF 'T012402')" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -c 'mishap-incident-rollup')" -eq 2 ]
 }
 
 @test "T013330: --scan liefert alle unarchivierten Zyklen und keinen archivierten" {

@@ -29,7 +29,7 @@ openspec/changes/rollup-archive-no-merge/specs/mishap-rollup.md # Requirement-De
 
 | Datei | Ist | Wirksames Budget |
 |---|---:|---:|
-| `scripts/devflow-post-merge-finalize.sh` | 555 | 245 |
+| `scripts/devflow-post-merge-finalize.sh` | 559 | 241 |
 | `scripts/factory/rollup-carryover.sh` | 124 | 676 |
 
 Die beiden BATS-Dateien und Markdown-Specs sind nicht baselined und haben in
@@ -44,7 +44,7 @@ Ausnahme wird ergänzt.
 
 ## Tasks
 
-- [ ] **Failing-Test-Step (RED).** Die beiden T013330-Regressionstests gezielt
+- [x] **Failing-Test-Step (RED).** Die beiden T013330-Regressionstests gezielt
       ausführen. Der Finalizer-Test scheitert am fehlenden `--no-merge`; der
       Carry-over-Test scheitert, weil nur ein Kandidat ausgegeben wird.
 
@@ -55,14 +55,14 @@ tests/unit/lib/bats-core/bin/bats \
 # expected: FAIL (2 T013330-Tests rot; bestehende Regressionen grün)
 ```
 
-- [ ] **Finalizer-Fix (GREEN).** In `scripts/devflow-post-merge-finalize.sh`
+- [x] **Finalizer-Fix (GREEN).** In `scripts/devflow-post-merge-finalize.sh`
       vor dem Archivaufruf ein Argument-Array bestimmen: Slugs mit Präfix
       `mishap-incident-rollup-` erhalten `--no-merge`, alle anderen keine
       Zusatzargumente. Den Befehl weiterhin genau einmal im bestehenden
       Archiv-Branch/Trap-Pfad ausführen. Danach den Finalizer-Test einzeln
       ausführen.
 
-- [ ] **Carry-over-Fix (GREEN).** In `scripts/factory/rollup-carryover.sh` nur
+- [x] **Carry-over-Fix (GREEN).** In `scripts/factory/rollup-carryover.sh` nur
       direkte `openspec/changes/mishap-incident-rollup-*/tasks.md`-Kandidaten
       sammeln, das `tail -1` entfernen und alle qualifizierten Kandidaten nach
       Zyklusdatum sortiert ausgeben. Den bestehenden Test „nur der jüngste
@@ -70,17 +70,17 @@ tests/unit/lib/bats-core/bin/bats \
       und Exit-3-Verhalten erhalten. Danach das komplette Carry-over-BATS-
       Bundle ausführen.
 
-- [ ] **SSOT synchronisieren.** Das MODIFIED-Delta nach
+- [x] **SSOT synchronisieren.** Das MODIFIED-Delta nach
       `openspec/specs/mishap-rollup.md` übernehmen: Prozessnotizen werden mit
       `--no-merge` statt `--create-new` archiviert; alle unarchivierten
       checkbox-basierten Zyklen werden übertragen. Keine heuristische
       Rückwirkung für alte Pläne ohne Checkboxen ergänzen.
 
-- [ ] **Testinventar aktualisieren.** Weil bestehende BATS-Dateien geändert
+- [x] **Testinventar aktualisieren.** Weil bestehende BATS-Dateien geändert
       wurden, `task test:inventory` ausführen und die resultierende
       `components/website/src/data/test-inventory.json`-Änderung mitführen.
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

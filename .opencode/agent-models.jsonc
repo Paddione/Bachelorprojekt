@@ -371,6 +371,23 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
+    // 2026-08-22: qwen38 als fuenfter Familien-Subagent. Zeigt auf das Loadout
+    // qwen38-220k (Port 8094, Qwen 3.8 27B UD-IQ3_XXS, fixierte 220.000 ctx,
+    // q4_0 KV) — dasselbe Modell wie der Tab-waehlbare qwen38-primary, aber
+    // per `task` dispatchbar. EIN Slot (parallel=1 in loadouts.json): dieser
+    // Agent ist bewusst NICHT parallel zu sich selbst oder zu den anderen
+    // lokalen Familien dispatchbar — sequenziell, einer nach dem anderen.
+    // Text-only: kein mmproj in diesem Loadout.
+    "qwen38": {
+      "description": "Local subagent for the qwen38 family (Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 220000 ctx, via llm-proxy :18235). Text-only — no mmproj in this loadout. ONE parallel instance only: the loadout runs np=1 (single slot), so dispatch sequentially, never alongside another local agent (exclusiveGroup chat-gpu). Write-capable delegation.",
+      "mode": "subagent",
+      "model": "llamacpp-local/qwen38-220k",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#22D3EE",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
     // Primaerer (Tab-waehlbarer) Lokal-Agent auf gemma26-factory.
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
     // summonbar. Kann beliebige Subagenten dispatchen (deepseek + lokal).
@@ -557,7 +574,7 @@
       // Umgestellt auf das einzige live Loadout gemma26-throughput (Port 8092 via
       // llm-proxy :18235). Rueckbau auf deepseek-v4-flash erst nach Limit-Reset
       // oder freigeschaltetem Balance-Usage.
-      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) up to 3 in parallel for implementation - the llm-proxy allows max_inflight=3. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12/qwen38) sequentially — qwen38 runs np=1, the gemma12-vision loadout allows up to 3 in parallel (llm-proxy max_inflight=3). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -575,6 +592,9 @@
           // nicht dispatchbar — die Liste nennt bewusst exakte Namen statt einer
           // Wildcard (Prinzip aus T002298).
           "gemma12": "allow",
+          // 2026-08-22: fuenfte lokale Familie — Qwen 3.8 27B auf dem
+          // qwen38-220k-Loadout (Port 8094, np=1). Nur sequenziell dispatchen.
+          "qwen38": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow",

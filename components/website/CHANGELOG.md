@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.301.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.6...website-v1.301.7) (2026-08-22)
+
+
+### Bug Fixes
+
+* **scripts:** [switch]-Zeilen fuehren Client-Attribution, Rollup-Rotation gestoppt [T013894] ([#5038](https://github.com/Paddione/Bachelorprojekt/issues/5038)) ([3482f84](https://github.com/Paddione/Bachelorprojekt/commit/3482f84cc1d3dd56f5c864027fff2f87ed4618e3))
+
 ## [1.301.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.5...website-v1.301.6) (2026-08-22)
 
 

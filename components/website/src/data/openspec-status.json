@@ -3979,6 +3979,12 @@
       "status": "archived"
     }
   ],
+  "T013107": [
+    {
+      "slug": "mishap-incident-rollup-2026-08-22-T013107",
+      "status": "plan_staged"
+    }
+  ],
   "T013108": [
     {
       "slug": "2026-08-22-mishap-rollup-carryover",
@@ -4003,9 +4009,27 @@
       "status": "archived"
     }
   ],
+  "T013304": [
+    {
+      "slug": "rollup-brand-agnostic",
+      "status": "plan_staged"
+    }
+  ],
+  "T013306": [
+    {
+      "slug": "2026-08-22-health-dashboard-rescan",
+      "status": "archived"
+    }
+  ],
   "T013329": [
     {
       "slug": "e2e-suite-entskippen",
+      "status": "plan_staged"
+    }
+  ],
+  "T013330": [
+    {
+      "slug": "rollup-archive-no-merge",
       "status": "plan_staged"
     }
   ],

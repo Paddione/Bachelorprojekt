@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.300.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.299.0...website-v1.300.0) (2026-08-22)
+
+
+### Features
+
+* **ci:** implement website fast-path and actionlint caching [T013468] ([#4992](https://github.com/Paddione/Bachelorprojekt/issues/4992)) ([ba8094d](https://github.com/Paddione/Bachelorprojekt/commit/ba8094d6d2d3d2612d024039dc2df1eb6401c532))
+
 ## [1.299.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.298.0...website-v1.299.0) (2026-08-22)
 
 

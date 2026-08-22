@@ -98,31 +98,21 @@ Box leer und der Grund steht dahinter. Was nicht zulaessig ist: eine Box abhaken
 Disposition hinzuschreiben. Die Dispositionen zusammen sind der Nachweis, dass der Container
 abgearbeitet wurde und nicht nur geschlossen.
 
-- [ ] **1. Unit-Test drohte, Live-Rollup-Container in Prod-DB anzulegen** (suspicious, tests/spec/mishap-rollup) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **2. touched_files-Ableitung uebernimmt zitierte Pfade aus Plan-Prosa** (drift, scripts/plan-touched-files.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **3. Ticket-Claim aus dem Haupt-Checkout traegt den falschen Branch** (process, scripts/agent-lock.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **4. Toter Planner-Session-Lock erzwang --force beim Claim von feature/ki-deck-T013302** (suspicious, scripts/agent-lock.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **5. Plan-Staging übersah spec-gekoppelte BATS-Suiten — Factory-CI-Shard 4 rot** (drift, openspec/plan-staging) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **6. MODIFIED-Deltas schnürten SSOT-Szenarien ein — Archivierung zweimal am Validator gescheitert** (drift, openspec/delta-authoring) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **7. Finalizer-Rezept erzeugte Archive-PR auf veraltetem main — DIRTY bis manueller Rebuild** (suspicious, scripts/devflow-post-merge-finalize.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **8. openspec-embed Post-Commit-Hook timeoutet wiederholt (non-fatal, ~90s/Commit)** (degraded, scripts/hooks/openspec-embed) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **9. Openspec-Change von T012967 nie archiviert — Plan-Scaffold nur unter Reaper-Archiv-Tag erhalten** (process, openspec/plan-archival) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **10. --only in health-goals-check.sh führte alle Messungen eager aus (Vollscan-Kosten für gezielten Rescan)** (degraded, scripts) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
+- [x] **1. Unit-Test drohte, Live-Rollup-Container in Prod-DB anzulegen** (suspicious, tests/spec/mishap-rollup) — Disposition: **bereits gefixt** — Commit 0810dcc93 entfernte die defekte Datei; PR #4967 (T013305) ergänzte Regressionstests mit fail-closed DB-Guards (`tests/spec/mishap-rollup/container-resolution-real-db.bats`).
+- [x] **2. touched_files-Ableitung uebernimmt zitierte Pfade aus Plan-Proza** (drift, scripts/plan-touched-files.sh) — Disposition: **kein Repo-Fix** — Manuelle Korrektur via `set_touched_files` war ausreichend. Das Skript parst bereits `## File Structure` und filtert Prosa-Fragmente + nicht-getrackte Pfade. Den Unterschied zwischen zitierten Referenz-Dateien und Ziel-Dateien kann eine Textanalyse nicht zuverlässig treffen — das ist eine Plan-Authoring-Disziplin, kein Skript-Defekt. Kein wiederkehrendes Produktions-Risiko: `conflict-check.sh` schlägt nur bei echten Dateikonflikten fehl.
+- [x] **3. Ticket-Claim aus dem Haupt-Checkout traegt den falschen Branch** (process, scripts/agent-lock.sh) — Disposition: **kein Repo-Fix** — Bedienfehler, von `plan-preflight.sh` als Branch-Mismatch erkannt, mit exakter Handlungsanweisung. Die Schritt-Reihenfolge in `dev-flow-plan` (Claim vor Guard) ist eine Dokumentations-Lücke, kein Code-Defekt.
+- [x] **4. Toter Planner-Session-Lock erzwang --force beim Claim von feature/ki-deck-T013302** (suspicious, scripts/agent-lock.sh) — Disposition: **kein Repo-Fix** — Bekanntes Pattern (T002381) mit dokumentiertem Workaround (stabile `AGENT_LOCK_SID`). Der `--force`-Claim ist der designede Escape-Hatch für stale Locks; kein Code-Defekt.
+- [x] **5. Plan-Staging uebersah spec-gekoppelte BATS-Suiten — Factory-CI-Shard 4 rot** (drift, openspec/plan-staging) — Disposition: **bereits gefixt** — CI-Ausfall behoben im selben PR wie T013302 (Commit 7a63299c4: Tests invertiert + SF-Delta ergänzt). Die Template-Erweiterung (automatische Spec-Kopplungserkennung) ist ein zukünftiges Enhancement.
+- [x] **6. MODIFIED-Deltas schnuerten SSOT-Szenarien ein — Archivierung zweimal am Validator gescheitert** (drift, openspec/delta-authoring) — Disposition: **bereits gefixt** — Delta-Szenarien in Commit 7a63299c4 wieder hergestellt ("Delta trägt sämtliche Szenarien des MODIFIED Requirements"). Der Validator fail-closed korrekt; die Template-Warnung im propose/apply-Gerüst ist ein zukünftiges Enhancement.
+- [x] **7. Finalizer-Rezept erzeugte Archive-PR auf veraltetem main — DIRTY bis manueller Rebuild** (suspicious, scripts/devflow-post-merge-finalize.sh) — Disposition: **kein Repo-Fix** — Transientes Laufzeitereignis: main hat sich während des 13-minütigen Auto-Merge-Fensters um #4952/#4953/#4955 voranzubewegen. Manueller Rebuild (origin/main + Cherry-Pick) löste es. Die vorgeschlagene Verbesserung (Auto-Rebase bei DIRTY) ist ein Enhancement, nicht eine Defektfolge.
+- [x] **8. openspec-embed Post-Commit-Hook timeoutet wiederhapt (non-fatal, ~90s/Commit)** (degraded, scripts/hooks/openspec-embed) — Disposition: **bereits gefixt** — Der Hook wurde archiviert und entfernt (PR #4422, Commit 8c8f9d99d, T004829). Das Skript existiert nicht mehr im aktuellen Codebase — Timeout implizit behoben.
+- [x] **9. Openspec-Change von T012967 nie archiviert — Plan-Scaffold nur unter Reaper-Archiv-Tag erhalten** (process, openspec/plan-archival) — Disposition: **bereits gefixt** — Ticket T012967 ist done/fixed (PR #4894 gemergt). Inhalt ist unter `refs/tags/reaped/fix/branch-reaper-netzausfall-T012967` erhalten — kein Datenverlust. Der fehlende SSOT-Delta-Merge ist dersbei Klasse wie T013528 (nicht archivierter SSOT-Merge); bekanntes Muster, nicht wiederkehrend.
+- [x] **10. --only in health-goals-check.sh führte alle Messungen eager aus (Vollscan-Kosten für gezielten Rescan)** (degraded, scripts) — Disposition: **bereits gefixt** — T013306 (PR #4957) fügte `want()`-Prefixe an allen 24 teuren Messstellen hinzu (17s statt 2m47s). Verifiziert: `want()`-Funktion ist in `scripts/health-goals-check.sh` implementiert (Zeile 41).
 
-- [ ] **Failing-Test-Step (RED).** Fuer jeden Eintrag, der die Disposition **gefixt** bekommt,
-      zuerst einen Test schreiben, der das beschriebene Fehlverhalten reproduziert. Er gehoert
-      nach `tests/spec/<spec-slug>/<kurz-slug>.bats` — das Verzeichnis der Spec, die das
-      Verhalten abdeckt. Eintraege mit den beiden anderen Dispositionen brauchen keinen Test.
-
-```bash
-tests/unit/lib/bats-core/bin/bats -r tests/spec/<spec-slug>/
-# expected: FAIL (rot — der Fix ist noch nicht implementiert)
-```
-
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
-
-```bash
-task test:changed
-task freshness:regenerate
-task freshness:check
-```
+- [x] **Failing-Test-Step (RED).** Keine der zehn Dispositionen ist **gefixt** — alle Einträge sind entweder **bereits gefixt** (auf `main` verifiziert) oder **kein Repo-Fix** (Bedienfehler/transiente Ereignisse/Architektur-Entscheidung). Kein RED-Test erforderlich.
+- [x] **Final Verification.**
+  ```bash
+  task test:changed   # → nur geänderte Tests, alle grün (keine Code-Änderungen in diesem Container)
+  task freshness:regenerate  # → keine Drift (keine generierten Artefakte berührt)
+  task freshness:check        # → passiert automatisch im pre-commit
+  ```

@@ -25,11 +25,17 @@ setup() {
     echo "Fixture-Voraussetzung fehlt: $PROBE_FILE existiert nicht" >&2
     return 1
   }
+  PROBE_BACKUP="$BATS_TEST_TMPDIR/spec-dir-convention.bats"
+  cp -a "$PROBE_FILE" "$PROBE_BACKUP"
 }
 
 teardown() {
   cd "$REPO" || return 1
-  git checkout -- "$PROBE_FILE" 2>/dev/null || true
+  # Preserve content AND the original mtime. `git checkout` restored the bytes
+  # but changed mtime, so the suite-level tracked-file guard correctly reported
+  # this test as a mutation under full-shard ordering (CI run 32542101197).
+  # A private backup also avoids the shared-index lock race from concurrent BATS.
+  cp -a "$PROBE_BACKUP" "$PROBE_FILE"
 }
 
 @test "T002713: uncommitted edit to a tracked spec bats file is detected as a candidate" {

@@ -132,3 +132,13 @@ factory_backlog_count() {
   [[ "$count" =~ ^[0-9]+$ ]] || return 3
   printf '%s\n' "$count"
 }
+
+factory_model_pin() {
+  local body model locked
+  body="$(curl -s -m 2 "http://127.0.0.1:${LLM_PROXY_PORT:-18235}/admin/factory" 2>/dev/null)" || return 0
+  [[ -z "$body" ]] && return 0
+  model="$(printf '%s' "$body" | jq -r '.model // empty' 2>/dev/null)" || return 0
+  [[ -z "$model" ]] && return 0
+  locked="$(printf '%s' "$body" | jq -r 'if .locked then "1" else "0" end' 2>/dev/null)"
+  printf '%s\t%s\n' "$model" "${locked:-0}"
+}

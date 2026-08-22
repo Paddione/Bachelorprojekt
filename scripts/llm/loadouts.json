@@ -420,5 +420,9 @@
         "loadout:bge-rerank-cpu"
       ]
     }
+  },
+  "factory": {
+    "model": "gemma26-throughput",
+    "locked": false
   }
 }

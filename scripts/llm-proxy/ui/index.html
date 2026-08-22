@@ -21,6 +21,14 @@
 <h1>LLM-Loadouts</h1>
 <div id="msg"></div>
 
+<fieldset id="factory">
+  <legend>Default-Factory-Modell</legend>
+  <select id="factory-model"></select>
+  <label><input type="checkbox" id="factory-locked"> sperren</label>
+  <button id="factory-save">speichern</button>
+  <p id="factory-hint"></p>
+</fieldset>
+
 <table id="loadouts">
   <thead><tr><th></th><th>Loadout</th><th>Port</th><th>Kontext</th><th>Modell</th><th></th></tr></thead>
   <tbody></tbody>
@@ -43,6 +51,7 @@ const msg = (text, isErr = false) => {
   el.style.display = text ? 'block' : 'none'
 }
 const gb = (n) => `${(n / 1e9).toFixed(2)} GB`
+let factoryMtime = null
 
 async function api(path, opts) {
   const r = await fetch(path, opts)
@@ -74,7 +83,38 @@ async function refresh() {
       tr.lastElementChild.append(btn)
       return tr
     }))
+    await loadFactory(status)
   } catch (err) { msg(err.message, true) }
+}
+
+async function loadFactory(status) {
+  const f = await api('/admin/factory')
+  factoryMtime = f.mtimeMs
+  const byslug = Object.fromEntries((status ?? []).map((s) => [s.slug, s]))
+  if (document.activeElement !== $('#factory-model')) {
+    $('#factory-model').replaceChildren(...f.selectable.map((s) => {
+      const o = document.createElement('option')
+      o.value = s.slug
+      o.textContent = `${s.label} (${s.slug}) — ${byslug[s.slug]?.running ? 'laeuft' : 'gestoppt'}`
+      o.selected = s.slug === f.model
+      return o
+    }))
+  }
+  $('#factory-locked').checked = f.locked
+  $('#factory-hint').textContent = f.locked
+    ? 'Gesperrt: die Factory benutzt ausschliesslich dieses Modell. Die Eskalation auf ein externes Modell ist damit abgeschaltet.'
+    : 'Nicht gesperrt: der Wert ist nur der Default. Phase-Pin und Provider-Kette in der Datenbank entscheiden weiterhin.'
+}
+
+$('#factory-save').onclick = async () => {
+  $('#factory-save').disabled = true
+  try {
+    await api('/admin/factory', { method: 'PUT', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: $('#factory-model').value, locked: $('#factory-locked').checked, mtimeMs: factoryMtime }) })
+    msg('Default-Factory-Modell gespeichert.')
+  } catch (err) { msg(err.message, true) }
+  $('#factory-save').disabled = false
+  refresh()
 }
 
 async function loadModels() {

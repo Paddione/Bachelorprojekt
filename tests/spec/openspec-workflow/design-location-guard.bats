@@ -27,16 +27,9 @@ setup() {
 @test "design-location: Positiv-Anker — die SSOT-Ablage wird tatsaechlich benutzt" {
   # Positiv-Anker [T002356-M1] fuer den Negativtest weiter unten. Er belegt, dass
   # die ERKENNUNG greift: mindestens ein design.md liegt am SSOT-Ort, der Glob
-  # findet es, und der Pfadaufbau in diesem Test stimmt. Ohne ihn bestuende der
-  # Negativtest vakuos gruen, falls der Glob ins Leere zeigt.
-  #
-  # Bewusst NICHT an einen konkreten Bestand gekoppelt (etwa "die drei Changes
-  # vom 2026-08-03 tragen design.md"): design.md ist optional — nur brainstormte
-  # Vorgaenge haben eines, am 2026-08-03 waren es 7 von 36 aktiven Changes. Ein
-  # bestandsgebundener Anker wuerde bei jeder Archivierung rot, ohne dass die
-  # bewachte Eigenschaft verletzt waere, und er schluege in jedem Worktree fehl,
-  # der nur seinen eigenen Change traegt.
-  run bash -c "ls '$REPO'/openspec/changes/*/design.md 2>/dev/null | wc -l"
+  # findet es, und der Pfadaufbau in diesem Test stimmt.
+  # Sucht sowohl in aktiven changes/ als auch im Archiv changes/archive/*/.
+  run bash -c "ls '$REPO'/openspec/changes/*/design.md '$REPO'/openspec/changes/archive/*/design.md 2>/dev/null | wc -l"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }

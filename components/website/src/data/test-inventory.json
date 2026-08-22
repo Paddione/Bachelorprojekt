@@ -3618,6 +3618,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/runtime-health-goals",
+    "file": "tests/spec/health-goals/runtime-health-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/worktree-hygiene-goals",
     "file": "tests/spec/health-goals/worktree-hygiene-goals.bats",
     "category": "health-goals",

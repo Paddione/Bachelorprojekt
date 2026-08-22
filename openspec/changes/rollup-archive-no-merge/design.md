@@ -18,10 +18,17 @@ Der Finalizer entscheidet ausschließlich anhand des stabilen
 `mishap-incident-rollup-*`-Slug-Präfixes, ob `--no-merge` ergänzt wird. Damit
 bleibt der normale Mergepfad für alle übrigen Changes unangetastet.
 
-Der Scan begrenzt seine Kandidaten auf direkte offene Change-Verzeichnisse und
-gibt alle passenden Zyklen chronologisch aus. Archivierte Pläne werden nicht
-erneut zugestellt. Die bestehende Idempotenzprüfung des aufrufenden Generators
-verhindert doppelte Batch-Kommentare je Quellzyklus und Container.
+Der Scan begrenzt seine Kandidaten auf direkte offene Change-Verzeichnisse,
+deren Plan im aktuellen Repository-`HEAD` publiziert ist. Das ist der
+deterministische Offline-Nachweis für einen abgeschlossenen Zyklus; untracked
+oder nur branch-lokale Pläne gelten als laufend. Archivierte Pläne werden nicht
+erneut zugestellt.
+
+Alle passenden Zyklen werden chronologisch verarbeitet. Jeder jüngere Plan
+erhält die älteren Pläne als Ausschluss-Lineage; Einträge mit identischem
+normalisiertem Titel und Metadaten werden dadurch nur aus ihrer ältesten Quelle
+übertragen. Die bestehende Idempotenzprüfung verhindert zusätzlich doppelte
+Batch-Kommentare je Quellzyklus und Container.
 
 ## Boundaries
 

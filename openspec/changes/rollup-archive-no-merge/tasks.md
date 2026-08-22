@@ -18,6 +18,7 @@ _Ticket: T013330_
 
 ```
 scripts/devflow-post-merge-finalize.sh                         # Slug-spezifischer Archivmodus
+scripts/factory/mishap-rollup.sh                               # Lineage-Ausschlüsse an Carry-over übergeben
 scripts/factory/rollup-carryover.sh                            # Alle offenen, unarchivierten Zyklen scannen
 tests/spec/openspec-workflow/archive-status-offline-staging.bats # Finalizer-Regression
 tests/spec/mishap-rollup/rollup-carryover.bats                 # Backlog-Scan-Regression
@@ -30,7 +31,8 @@ openspec/changes/rollup-archive-no-merge/specs/mishap-rollup.md # Requirement-De
 | Datei | Ist | Wirksames Budget |
 |---|---:|---:|
 | `scripts/devflow-post-merge-finalize.sh` | 559 | 241 |
-| `scripts/factory/rollup-carryover.sh` | 124 | 676 |
+| `scripts/factory/mishap-rollup.sh` | 342 | 458 |
+| `scripts/factory/rollup-carryover.sh` | 148 | 652 |
 
 Die beiden BATS-Dateien und Markdown-Specs sind nicht baselined und haben in
 `docs/code-quality/gates.yaml` kein eigenes S1-Extension-Limit. Keine Baseline-
@@ -79,6 +81,19 @@ tests/unit/lib/bats-core/bin/bats \
 - [x] **Testinventar aktualisieren.** Weil bestehende BATS-Dateien geändert
       wurden, `task test:inventory` ausführen und die resultierende
       `components/website/src/data/test-inventory.json`-Änderung mitführen.
+
+- [x] **Review: Delta-Ziel korrigieren.** Das MODIFIED-Delta auf den bestehenden
+      SSOT-Requirement-Namen `Mishap rollup generates compliant change per run`
+      ausrichten und den belegten `--no-merge`-Archivvertrag vollständig
+      beschreiben.
+
+- [x] **Review: Lineage-Deduplizierung.** Ältere Quellpläne chronologisch als
+      Ausschlüsse an jüngere Carry-over-Batches übergeben; Titel plus Metadaten
+      als stabile Eintragsidentität verwenden und A-in-B per BATS abdecken.
+
+- [x] **Review: Finished-Signal.** Nur direkte Zykluspläne berücksichtigen, die
+      im aktuellen Repository-`HEAD` publiziert sind; einen untracked laufenden
+      Zyklus als Negativfall testen.
 
 - [x] **Final Verification.** Run the three mandatory CI gates:
 

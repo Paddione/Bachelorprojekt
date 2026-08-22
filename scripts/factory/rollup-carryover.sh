@@ -19,7 +19,7 @@
 # liefern also keine Treffer. Der Carry-over greift ab dem ersten Zyklus, der
 # mit der neuen Plan-Struktur erzeugt wurde.
 #
-# Usage: rollup-carryover.sh --plan <tasks.md> --slug <quell-slug>
+# Usage: rollup-carryover.sh --plan <tasks.md> --slug <quell-slug> [--exclude-plan <tasks.md>]...
 #          gibt den Batch-Body auf stdout aus
 #        rollup-carryover.sh --scan <repo-root> --container <aktuelle-id>
 #          listet uebertragbare Zyklen als '<slug>\t<plan-pfad>' auf stdout
@@ -31,12 +31,14 @@ usage() {
 }
 
 MODE="" PLAN="" SLUG="" SCAN_ROOT="" CONTAINER=""
+EXCLUDE_PLANS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --plan)      MODE="plan"; PLAN="$2"; shift 2 ;;
     --slug)      SLUG="$2"; shift 2 ;;
     --scan)      MODE="scan"; SCAN_ROOT="$2"; shift 2 ;;
     --container) CONTAINER="$2"; shift 2 ;;
+    --exclude-plan) EXCLUDE_PLANS+=("$2"); shift 2 ;;
     --help)      usage; exit 0 ;;
     *) echo "rollup-carryover: unbekanntes Argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -58,6 +60,11 @@ if [[ "$MODE" == "scan" ]]; then
   candidates=()
   while IFS= read -r plan; do
     [[ -f "$plan" ]] || continue
+    rel_plan="${plan#"$SCAN_ROOT"/}"
+    # Ein Zyklus ist fuer den Offline-Scan erst fertig, wenn sein Plan im
+    # aktuellen Repository-HEAD publiziert ist. Untracked/branch-lokale Pläne
+    # sind noch in Arbeit und duerfen nicht als Carry-over-Quelle dienen.
+    git -C "$SCAN_ROOT" cat-file -e "HEAD:${rel_plan}" 2>/dev/null || continue
     dir="$(dirname "$plan")"
     # Der laufende Zyklus gehoert dem aktuellen Container und darf sich nicht
     # selbst uebertragen — sonst verdoppelt jeder Lauf seine eigenen Eintraege.
@@ -93,7 +100,24 @@ fi
   echo "rollup-carryover: --plan braucht --slug" >&2; usage >&2; exit 2; }
 [[ -f "$PLAN" ]] || { echo "rollup-carryover: Plan nicht lesbar: $PLAN" >&2; exit 2; }
 
-mapfile -t OPEN < <(_open_entries "$PLAN")
+declare -A EXCLUDED=()
+for exclude_plan in "${EXCLUDE_PLANS[@]}"; do
+  [[ -f "$exclude_plan" ]] || {
+    echo "rollup-carryover: Ausschluss-Plan nicht lesbar: $exclude_plan" >&2; exit 2; }
+  while IFS= read -r line; do
+    key="$(printf '%s\n' "$line" | sed -E 's/^- \[ \] \*\*[0-9]+\. (.*\*\* \([^)]*\)).*$/\1/')"
+    EXCLUDED["$key"]=1
+  done < <(_open_entries "$exclude_plan")
+done
+
+OPEN=()
+declare -A INCLUDED=()
+while IFS= read -r line; do
+  key="$(printf '%s\n' "$line" | sed -E 's/^- \[ \] \*\*[0-9]+\. (.*\*\* \([^)]*\)).*$/\1/')"
+  [[ -n "${EXCLUDED[$key]:-}" || -n "${INCLUDED[$key]:-}" ]] && continue
+  INCLUDED["$key"]=1
+  OPEN+=("$line")
+done < <(_open_entries "$PLAN")
 [[ "${#OPEN[@]}" -gt 0 ]] || exit 3
 
 # Eintrags-Zeile → Titel und Meta. Die Dispositions-Anweisung hinter dem

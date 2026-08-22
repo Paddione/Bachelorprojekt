@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.302.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.0...website-v1.302.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** Mishap-Rollup-Coalescing-Gate [T013915] ([#5049](https://github.com/Paddione/Bachelorprojekt/issues/5049)) ([42c13db](https://github.com/Paddione/Bachelorprojekt/commit/42c13db8c0b4008ddd949d06c5b49185137a2b34))
+
 ## [1.302.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.7...website-v1.302.0) (2026-08-22)
 
 

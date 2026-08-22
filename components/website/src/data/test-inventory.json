@@ -4128,6 +4128,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/archive-janitor",
+    "file": "tests/spec/mishap-rollup/archive-janitor.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/container-create-description",
     "file": "tests/spec/mishap-rollup/container-create-description.bats",
     "category": "mishap-rollup",
@@ -4158,6 +4164,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/escalation-rule",
+    "file": "tests/spec/mishap-rollup/escalation-rule.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/generator-cycle-artifacts",
     "file": "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
     "category": "mishap-rollup",
@@ -4166,6 +4178,12 @@
   {
     "id": "mishap-rollup/lifecycle",
     "file": "tests/spec/mishap-rollup/lifecycle.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/recurrence-tag",
+    "file": "tests/spec/mishap-rollup/recurrence-tag.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },
@@ -4208,6 +4226,12 @@
   {
     "id": "mishap-rollup/wakeup-single-run",
     "file": "tests/spec/mishap-rollup/wakeup-single-run.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/watchlist-disposition",
+    "file": "tests/spec/mishap-rollup/watchlist-disposition.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },

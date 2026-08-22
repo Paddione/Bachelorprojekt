@@ -4015,6 +4015,12 @@
       "status": "plan_staged"
     }
   ],
+  "T013305": [
+    {
+      "slug": "rollup-loop-closure",
+      "status": "plan_staged"
+    }
+  ],
   "T013306": [
     {
       "slug": "2026-08-22-health-dashboard-rescan",

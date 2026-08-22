@@ -1,7 +1,7 @@
 ---
 title: Default-Factory-Modell im llm-proxy-Webinterface waehlbar und sperrbar
 ticket_id: T013144
-domains: [llm-proxy, software-factory]
+domains: [llm, factory, scripts, test]
 status: implemented
 ---
 

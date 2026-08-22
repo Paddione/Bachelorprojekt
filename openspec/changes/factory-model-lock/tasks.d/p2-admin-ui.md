@@ -1,7 +1,7 @@
 ---
 title: P2 — Auswahl im Webinterface
 ticket_id: T013144
-domains: [llm-proxy]
+domains: [llm, ui]
 status: implemented
 ---
 

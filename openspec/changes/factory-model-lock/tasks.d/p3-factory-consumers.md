@@ -1,7 +1,7 @@
 ---
 title: P3 — Factory-Konsumenten
 ticket_id: T013144
-domains: [software-factory]
+domains: [factory, scripts]
 status: implemented
 ---
 

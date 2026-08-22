@@ -1,7 +1,7 @@
 ---
 title: P4 — Tests und Runner-Registrierung
 ticket_id: T013144
-domains: [llm-proxy, software-factory]
+domains: [test, llm, factory]
 status: implemented
 ---
 

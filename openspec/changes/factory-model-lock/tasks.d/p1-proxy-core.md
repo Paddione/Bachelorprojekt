@@ -1,7 +1,7 @@
 ---
 title: P1 — Proxy-Kern (Validierung, Admin-Route, Seed)
 ticket_id: T013144
-domains: [llm-proxy]
+domains: [llm, scripts]
 status: implemented
 ---
 

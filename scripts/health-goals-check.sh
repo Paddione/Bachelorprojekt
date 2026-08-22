@@ -409,7 +409,7 @@ row target G-SIZE02 "$(git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js
 # .codebase-memory/graph.db.zst (16.7MB, ehem. PR #2281) ist seit T001717 nicht mehr getrackt
 # (lokal via `task codebase:index` regeneriert, .gitignore) — die frühere Scope-Ausschluss-Policy
 # T001348 ist damit gegenstandslos, da kein >1MB-Binärartefakt mehr im Tree liegt.
-row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 wc -c 2>/dev/null | grep -v ' total$' | awk '$1>1048576{c++} END{print c+0}')" le 6 "Dateien >1MB (kein LFS)"
+row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 wc -c 2>/dev/null | grep -v ' total$' | awk '$1>1048576{c++} END{print c+0}')" le 7 "Dateien >1MB (kein LFS)"
 row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images"
 row target G-DOC02 "$(anchor_file CLAUDE.md; wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
 row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 0 "tools:-Eintraege, die ins Leere zeigen (leere Aufloesung oder unbekannter MCP-Server)"

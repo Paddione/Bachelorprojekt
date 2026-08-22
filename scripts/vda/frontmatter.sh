@@ -51,13 +51,15 @@ CANON_ROLES="infra website db ops test security"
 # Derive canonical role tokens from content on stdin (mirrors CLAUDE.md routing).
 _derive_domains() {
     local content; content="$(cat)"
+    # Strip markdown code blocks before searching text to avoid false positives from code snippets (T013107)
+    local stripped; stripped=$(printf '%s\n' "$content" | sed '/^```/,/^```/d')
     local domains=()
-    grep -qiE 'website/|astro|svelte|component|homepage|kore|brand|css|ui|frontend' <<<"$content" && domains+=(website)
-    grep -qiE 'k3d/|prod[-/]|manifest|kustomize|overlay|Taskfile|environments/|deploy.*k8s' <<<"$content" && domains+=(infra)
-    grep -qiE 'database|postgresql|psql|schema|query|backup.*db|restore.*db|tickets\.|v_timeline' <<<"$content" && domains+=(db)
-    grep -qiE 'pod |logs |kubectl|deployment|crash|CrashLoop|health.*check' <<<"$content" && domains+=(ops)
-    grep -qiE 'tests/|\.bats|\.spec\.ts|playwright|runner\.sh|BATS|FA-|SA-|NFA-|AK-' <<<"$content" && domains+=(test)
-    grep -qiE 'SealedSecret|Keycloak|OIDC|DSGVO|credentials|rotate|certificate|secret' <<<"$content" && domains+=(security)
+    grep -qiE 'website/|astro|svelte|component|homepage|kore|brand|css|ui|frontend' <<<"$stripped" && domains+=(website)
+    grep -qiE 'k3d/|prod[-/]|manifest|kustomize|overlay|Taskfile|environments/|deploy.*k8s' <<<"$stripped" && domains+=(infra)
+    grep -qiE 'database|postgresql|psql|schema|query|backup.*db|restore.*db|tickets\.|v_timeline' <<<"$stripped" && domains+=(db)
+    grep -qiE 'pod |logs |kubectl|deployment|crash|CrashLoop|health.*check' <<<"$stripped" && domains+=(ops)
+    grep -qiE 'tests/|\.bats|\.spec\.ts|playwright|runner\.sh|BATS|FA-|SA-|NFA-|AK-' <<<"$stripped" && domains+=(test)
+    grep -qiE 'SealedSecret|Keycloak|OIDC|DSGVO|credentials|rotate|certificate|secret' <<<"$stripped" && domains+=(security)
     printf '%s\n' "${domains[@]}"
 }
 
@@ -72,7 +74,7 @@ _derive_domains_from_paths() {
     local paths
     paths=$(printf '%s\n' "$content" | sed -n '/^## File Structure/,/^## /{/```/,/```/p}' | sed '/```/d')
     if [[ -z "$paths" ]]; then
-        # Kein File Structure Block: fallback auf alte textbasierte Logik
+        # Kein File Structure Block: fallback auf _derive_domains (mit Code-Block-Ausschluss)
         printf '%s\n' "$content" | _derive_domains
         return
     fi
@@ -81,9 +83,10 @@ _derive_domains_from_paths() {
     grep -qiE '(^|/)\.agents/skills/' <<<"$paths" && domains+=(ops)
     grep -qiE '(^|/)tests/' <<<"$paths" && domains+=(test)
     grep -qiE '(^|/)openspec/' <<<"$paths" && domains+=(docs)
-    # db und security haben keine dedizierten Pfadmuster — aus File Structure allein nicht ableitbar
-    grep -qiE 'database|postgresql|psql|schema' <<<"$content" && domains+=(db)
-    grep -qiE 'SealedSecret|Keycloak|OIDC|DSGVO|credentials' <<<"$content" && domains+=(security)
+    # Strip code blocks from content before searching for db/security text keywords
+    local stripped; stripped=$(printf '%s\n' "$content" | sed '/^```/,/^```/d')
+    grep -qiE 'database|postgresql|psql|schema' <<<"$stripped" && domains+=(db)
+    grep -qiE 'SealedSecret|Keycloak|OIDC|DSGVO|credentials' <<<"$stripped" && domains+=(security)
     printf '%s\n' "${domains[@]}"
 }
 

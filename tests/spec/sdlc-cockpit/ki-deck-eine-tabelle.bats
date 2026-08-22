@@ -36,13 +36,15 @@ setup() {
 }
 
 @test "(b) Positiv-Anker: die Quellensuche findet provider_config als verbleibende Quelle" {
-  run git -C "$REPO" grep -l "provider_config" -- components/website/src scripts/
+  run git -C "$REPO" grep -l "provider_config" -- components/website/src 'scripts/' ':!scripts/migrations'
   [ "$status" -eq 0 ]
   [ "${lines[0]}" != "" ]
 }
 
 @test "(b) kein getrackter Pfad nennt factory_model_slots" {
-  run git -C "$REPO" grep -l "factory_model_slots" -- components/website/src scripts/
+  # scripts/migrations bleibt ausgenommen: historische Migrationen sind
+  # unveraenderliche Geschichte, kein Code, der die Tabelle liest oder schreibt.
+  run git -C "$REPO" grep -l "factory_model_slots" -- components/website/src 'scripts/' ':!scripts/migrations'
   [ "$status" -ne 0 ]
 }
 
@@ -52,9 +54,9 @@ setup() {
 }
 
 @test "(c) DeckKi.svelte mountet KiKonfiguration nicht mehr" {
-  ! grep -q "KiKonfiguration" "$SRC/components/leitstand/decks/DeckKi.svelte"
+  ! grep -qE "import KiKonfiguration|<KiKonfiguration" "$SRC/components/leitstand/decks/DeckKi.svelte"
 }
 
 @test "(c) DeckKi.svelte mountet FactoryModelSlots nicht mehr" {
-  ! grep -q "FactoryModelSlots" "$SRC/components/leitstand/decks/DeckKi.svelte"
+  ! grep -qE "import FactoryModelSlots|<FactoryModelSlots" "$SRC/components/leitstand/decks/DeckKi.svelte"
 }

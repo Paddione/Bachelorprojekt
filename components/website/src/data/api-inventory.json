@@ -500,20 +500,6 @@
       "deprecated": null
     },
     {
-      "path": "/sdlc/api/factory-model-slots",
-      "file": "factory-model-slots.ts",
-      "methods": [
-        "GET",
-        "PUT"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
       "path": "/sdlc/api/factory-observability",
       "file": "factory-observability.ts",
       "methods": [
@@ -643,6 +629,33 @@
       ],
       "backend": [
         "postgres"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/catalog",
+      "file": "llm-proxy/catalog.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/factory",
+      "file": "llm-proxy/factory.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "backend": [
+        "unknown"
       ],
       "description": null,
       "tier": null,

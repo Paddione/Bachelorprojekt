@@ -13,8 +13,8 @@
 #     (tickets.provider_health) ausloest.
 #
 # WAS DIESES SKRIPT ABSICHTLICH NICHT TUT:
-# Es schreibt NICHT in tickets.factory_model_slots. Das ist der Phase-Pin, den
-# route-provider.sh gegenueber provider_config BEVORZUGT — ihn zu setzen wuerde
+# Es setzt NICHT den Factory-Default-Pin am llm-proxy (factory.model via
+# /admin/factory). Der Pin gilt fuer alle Phasen — ihn zu setzen wuerde
 # das Live-Routing umstellen. Der Umstieg auf gpt-oss ist eine bewusste,
 # separate Entscheidung und soll erst nach einem A/B ueber
 # scripts/factory/eval-replay.mjs fallen.
@@ -69,4 +69,4 @@ echo "   WHERE source LIKE 'factory-%' ORDER BY source, priority;"
 echo "  Q"
 echo ""
 echo "A/B fahren:  node scripts/factory/eval-replay.mjs --help"
-echo "Umschalten (BEWUSST, aendert das Live-Routing): tickets.factory_model_slots"
+echo "Umschalten (BEWUSST, aendert das Live-Routing): Factory-Default via llm-proxy /admin/factory"

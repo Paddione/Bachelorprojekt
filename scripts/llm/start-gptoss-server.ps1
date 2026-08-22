@@ -5,7 +5,7 @@
   Zweiter Modellkandidat fuer die Factory-Phasen implement/review, gedacht fuer
   den A/B-Vergleich gegen Ternary-Bonsai (:8093) via scripts/factory/eval-replay.mjs.
   Laeuft parallel zu Bonsai bzw. anstelle davon - die Routing-Entscheidung faellt
-  NICHT hier, sondern in tickets.factory_model_slots (siehe
+  NICHT hier, sondern in tickets.provider_config (siehe
   scripts/factory/provider-register-gptoss.sh).
   VRAM-Notausstieg via Umgebungsvariable LLM_GPTOSS_NGL (Default 999).
 

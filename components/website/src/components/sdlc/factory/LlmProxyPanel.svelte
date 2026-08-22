@@ -12,18 +12,16 @@
     port?: number; uptimeSec?: number; version?: string;
     backends: BackendState[];
   }
-  interface ModelSlot { phase: string; provider: string; modelId: string; baseUrl: string | null }
 
   const KINDS = ['llamacpp', 'lmstudio', 'openai-remote'] as const;
 
   let state = $state<ProxyState | null>(null);
-  let slots = $state<ModelSlot[]>([]);
   let loading = $state(true);
   let error = $state<string | null>(null);
   let probing = $state(false);
   let expanded = $state<Record<number, boolean>>({});
 
-  // Inline create/edit form (FactoryModelSlots-Muster — kein Drawer).
+  // Inline create/edit form (kein Drawer).
   let editId = $state<number | null>(null);
   let form = $state(blankForm());
 
@@ -36,13 +34,9 @@
   async function load() {
     try {
       loading = true;
-      const [stRes, slotRes] = await Promise.all([
-        fetch('/sdlc/api/llm-proxy/status', { credentials: 'same-origin' }),
-        fetch('/sdlc/api/factory-model-slots', { credentials: 'same-origin' }),
-      ]);
+      const stRes = await fetch('/sdlc/api/llm-proxy/status', { credentials: 'same-origin' });
       if (!stRes.ok) throw new Error(`HTTP ${stRes.status}`);
       state = (await stRes.json()) as ProxyState;
-      if (slotRes.ok) slots = (await slotRes.json()).slots ?? [];
       error = null;
     } catch (err) {
       error = err instanceof Error ? err.message : 'Laden fehlgeschlagen';
@@ -89,19 +83,6 @@
   function startEdit(b: BackendState) {
     editId = b.id;
     form = { name: b.name, kind: b.kind, base_url: b.base_url, api_key_env: '', priority: b.priority, enabled: b.enabled };
-  }
-
-  // Effektive Auflösung: pro Factory-Phase das Modell, das der Proxy JETZT bedienen würde.
-  function resolvePhase(slot: ModelSlot): { served: string; fallback: boolean; backend: string } {
-    const healthy = (state?.backends ?? [])
-      .filter((b) => b.enabled && b.health === 'ok')
-      .sort((a, b) => a.priority - b.priority);
-    for (const b of healthy) {
-      if (b.models.some((m) => m.id === slot.modelId)) return { served: slot.modelId, fallback: false, backend: b.name };
-    }
-    const top = healthy[0];
-    if (top && top.models[0]) return { served: top.models[0].id, fallback: true, backend: top.name };
-    return { served: '—', fallback: false, backend: '—' };
   }
 
   onMount(load);
@@ -175,18 +156,6 @@
       <button class="ff-pill" onclick={saveForm}>{editId ? 'Speichern' : 'Anlegen'}</button>
       {#if editId}<button class="ff-pill ff-pill--ghost" onclick={() => { editId = null; form = blankForm(); }}>Abbrechen</button>{/if}
     </div>
-
-    <div class="lp-resolution">
-      <h4>Effektive Auflösung pro Phase</h4>
-      {#each slots as slot (slot.phase)}
-        {@const r = resolvePhase(slot)}
-        <div class="lp-res-row">
-          <span class="lp-phase">{slot.phase}</span>
-          <span>{r.served} <span class="lp-mute">@ {r.backend}</span></span>
-          {#if r.fallback}<span class="lp-fallback">→ Fallback auf {r.served}</span>{/if}
-        </div>
-      {/each}
-    </div>
   {/if}
 </div>
 
@@ -196,5 +165,4 @@
   .lp-offline { color: var(--danger); font-family: var(--mono); font-size: 13px; }
   .lp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .lp-badge--unhealthy { color: var(--danger); }
-  .lp-fallback { color: var(--brass); font-size: 12px; }
 </style>

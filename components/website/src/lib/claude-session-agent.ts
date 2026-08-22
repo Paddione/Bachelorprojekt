@@ -8,12 +8,43 @@ import {
   draftSessionReportTool,
 } from './session-tools.ts';
 import { getProviderByName } from './provider-config.ts';
+import { pool } from './website-db.ts';
+import { logger } from './logger.ts';
 
 const MAX_TOOL_ROUNDS = 3;
 
-// Letzter Fallback, wenn weder kiConfig.modelName noch COACHING_SESSION_MODEL gesetzt sind.
-// Eine Stelle statt drei (T001672) — auch von complete.ts konsumiert.
+// Letzter Rückfall (T013302): nur erreichbar, wenn die globale Default-Zeile
+// nicht gelesen werden kann. Eine Stelle statt drei (T001672) — auch von
+// complete.ts konsumiert.
 export const DEFAULT_CLAUDE_SESSION_MODEL = 'claude-haiku-4-5-20251001';
+
+/**
+ * Session-Modell folgt dem globalen Factory-Default (provider_config
+ * source='*'). Ändert sich der Default, wechseln die Sessions mit — ohne
+ * eigene sessionseitige Konfiguration. Nur wenn gar kein Wert zu holen ist
+ * (DB-Fehler oder keine aktive '*'-Zeile), greift DEFAULT_CLAUDE_SESSION_MODEL,
+ * und dieser Fall wird protokolliert, damit er nicht unbemerkt zur Regel wird.
+ */
+export async function resolveSessionModel(): Promise<string> {
+  try {
+    const { rows } = await pool.query(
+      `SELECT model_id FROM tickets.provider_config
+        WHERE source = '*' AND enabled = true
+        ORDER BY priority ASC LIMIT 1`,
+    );
+    const modelId = (rows[0] as { model_id?: unknown } | undefined)?.model_id;
+    if (typeof modelId === 'string' && modelId) return modelId;
+    logger.warn(
+      '[claude-session-agent] keine aktive Factory-Default-Zeile (source=\'*\') — Fallback auf DEFAULT_CLAUDE_SESSION_MODEL',
+    );
+  } catch (err) {
+    logger.warn(
+      { err },
+      '[claude-session-agent] Factory-Default nicht lesbar — Fallback auf DEFAULT_CLAUDE_SESSION_MODEL',
+    );
+  }
+  return DEFAULT_CLAUDE_SESSION_MODEL;
+}
 
 export class ClaudeSessionAgent implements SessionAgent {
   private async buildClient(kiConfig: GenerateOptions['kiConfig']): Promise<Anthropic> {
@@ -49,7 +80,7 @@ export class ClaudeSessionAgent implements SessionAgent {
   async generate(options: GenerateOptions): Promise<GenerateResult> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt, sessionId } = options;
     const client = await this.buildClient(kiConfig);
-    const model = kiConfig.modelName ?? DEFAULT_CLAUDE_SESSION_MODEL;
+    const model = kiConfig.modelName ?? (await resolveSessionModel());
     const startMs = Date.now();
 
     const messages: MessageParam[] = [
@@ -100,7 +131,7 @@ export class ClaudeSessionAgent implements SessionAgent {
   async *stream(options: GenerateOptions): AsyncIterable<string> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt } = options;
     const client = await this.buildClient(kiConfig);
-    const model = kiConfig.modelName ?? DEFAULT_CLAUDE_SESSION_MODEL;
+    const model = kiConfig.modelName ?? (await resolveSessionModel());
 
     const messages: MessageParam[] = [
       ...history.map(t => ({ role: t.role, content: t.content } as MessageParam)),

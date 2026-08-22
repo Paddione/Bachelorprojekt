@@ -168,6 +168,9 @@ describe('Session-Modell-Auflösung (Factory-Default)', () => {
   beforeEach(() => {
     vi.resetModules(); vi.clearAllMocks();
     getProviderByNameMock.mockReset();
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'claude', modelId: 'claude-haiku-4-5-20251001', baseUrl: null, apiKey: 'test-key',
+    });
     mockQuery.mockReset();
   });
 
@@ -182,33 +185,34 @@ describe('Session-Modell-Auflösung (Factory-Default)', () => {
   });
 
   it('folgt einer Änderung des Defaults ohne weitere Konfiguration', async () => {
-    mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'gemma26-throughput' }] });
-    let model: string;
-    const createSpy = vi.fn((args: { model: string }) => { model = args.model; return {}; });
+    const createSpy = vi.fn();
     mockSdk(createSpy);
     const { ClaudeSessionAgent, resolveSessionModel } = await import('./claude-session-agent');
-    await resolveSessionModel();
-    expect(model!).toBe('gemma26-throughput');
+
+    mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'gemma26-throughput' }] });
+    expect(await resolveSessionModel()).toBe('gemma26-throughput');
 
     mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'qwen3.8-27b' }] });
     expect(await resolveSessionModel()).toBe('qwen3.8-27b');
 
-    const agent = new ClaudeSessionAgent();
     mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'qwen3.8-27b' }] });
+    const agent = new ClaudeSessionAgent();
     await agent.generate(optsWithoutModel());
-    expect(createSpy).toHaveBeenLastCalledWith(expect.objectContaining({ model: 'qwen3.8-27b' }));
+    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ model: 'qwen3.8-27b' }));
   });
 
   it('erreicht DEFAULT_CLAUDE_SESSION_MODEL nur, wenn gar kein Wert zu holen ist', async () => {
-    mockQuery.mockRejectedValueOnce(new Error('DB down'));
     const warn = vi.fn();
     vi.doMock('./logger', () => ({ logger: { warn, error: vi.fn(), info: vi.fn() } }));
+    const createSpy = vi.fn();
+    mockSdk(createSpy);
     const { ClaudeSessionAgent, DEFAULT_CLAUDE_SESSION_MODEL, resolveSessionModel } = await import('./claude-session-agent');
+
+    mockQuery.mockRejectedValueOnce(new Error('DB down'));
     expect(await resolveSessionModel()).toBe(DEFAULT_CLAUDE_SESSION_MODEL);
     expect(warn).toHaveBeenCalled();
 
-    const createSpy = vi.fn();
-    mockSdk(createSpy);
+    mockQuery.mockRejectedValueOnce(new Error('DB down'));
     const agent = new ClaudeSessionAgent();
     await agent.generate(optsWithoutModel());
     expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ model: DEFAULT_CLAUDE_SESSION_MODEL }));

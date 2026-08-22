@@ -6,6 +6,8 @@ agent: bachelorprojekt-test
 
 # dev-flow-e2e — Playwright E2E Tests schreiben & ausführen
 
+Der test-only Chore folgt dem gemeinsamen [dev-flow-lifecycle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md); diese Skill besitzt die Playwright-spezifischen Entscheidungen und Live-Gates.
+
 ## Wann diese Skill greift
 
 `dev-flow-execute` hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Für die Live-Erkundung werden Standard-Browser/HTTP-Tools oder native Playwright-Mittel eingesetzt.
@@ -26,8 +28,8 @@ agent: bachelorprojekt-test
 ```
 
 **EINSTIEG:** `main` nach Merge — Feature deployed auf Live-Umgebung  
-**AUSSTIEG:** E2E-Spec committed + gepusht auf neuen `feature/*`-Branch oder direkt auf `main`-Nachfolger  
-> `test/*`-Branches sind nicht erlaubt — `.githooks/pre-commit` (T002093) lässt nur `feature/ fix/ chore/ docs/ feat/batch-*` zu; E2E-Branches nutzen `feature/`.
+**AUSSTIEG:** E2E-Spec committed + gepusht auf ticketed `chore/*`-Branch, als PR gemergt und bereinigt
+> `test/*`-Branches sind nicht erlaubt — `.githooks/pre-commit` (T002093) lässt nur `feature/ fix/ chore/ docs/ feat/batch-*` zu; test-only E2E-Branches nutzen ticketed `chore/`.
 **Voraussetzung:** `dev-flow-execute` Schritt 8 (Post-Merge Deploy) abgeschlossen, Live-URL erreichbar
 
 ---
@@ -223,6 +225,11 @@ cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_mod
 
 ---
 
+Die Repository-Änderung folgt anschließend dem test-only Chore/Git-Lifecycle: PR erstellen,
+CI abwarten, Merge über `git-workflow` anfordern und erst nach bestätigtem Merge Worktree und
+Branch bereinigen. Kein direkter Push auf `main` und kein `feature/*`-Branch für diese reine
+Teständerung.
+
 ## Schritt 8.5: Optionale Stufe `headed-verify` (T002467)
 
 **Explizit optional — kein Pflichtschritt, kein CI-Gate.** Headed-Läufe gegen die Live-Umgebung
@@ -306,4 +313,3 @@ Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…RE
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-

@@ -1,6 +1,6 @@
 # Skills Overview
 
-33 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+34 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
@@ -27,7 +27,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-plan`](dev-flow-plan/SKILL.md) | **Entry point** for feature/fix changes — runs brainstorming, creates spec + plan, commits to branch, then **stops**. Routes chores to [`dev-flow-chore`](dev-flow-chore/SKILL.md). |
 | [`dev-flow-chore`](dev-flow-chore/SKILL.md) | Maintenance with no behavior change (docs, dep bumps, config, CI) — executes and merges **inline**, no plan/execute handoff. |
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
-| [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — writes + runs Playwright E2E tests against live environment. |
+| [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
 
 ---
 
@@ -145,6 +145,7 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 | [`incident-response`](incident-response/SKILL.md) | Production incident triage & recovery — scope, diagnose, fix/rollback, post-mortem. Use when a core service is down or degraded. |
 | [`ticket-ops`](ticket-ops/SKILL.md) | **Ticket-Inhalte** — Triage auf Vollständigkeit, fehlende Angaben beim Menschen erfragen, Parallelarbeit über Tickets planen. Nicht für Branch-/Worktree-/PR-Housekeeping — das ist [`repo-hygiene`](repo-hygiene/SKILL.md). |
 | [`repo-hygiene`](repo-hygiene/SKILL.md) | **Repo-Zustand** — veraltete Branches und Worktrees, offene PRs mergen und schließen, GitHub-Issue-Intake, Factory-Queue-Status. Nicht für Ticket-Inhalte — das ist [`ticket-ops`](ticket-ops/SKILL.md). |
+| [`system-audit`](system-audit/SKILL.md) | **Audit-Hub** — ein Einstiegspunkt für Audits aller Systeme (GitOps-Repo, Live-Cluster, Brand-Seiten, Repo-Zustand, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki). Delegiert an die Spezial-Skills, schließt deren Audit-Lücken per Checkliste; jeder Critical/Warning-Befund endet als Ticket mit angehängtem OpenSpec-Proposal in der Factory-Backlog. Kein Merge-Gate. |
 | [`mishap-tracker`](mishap-tracker/SKILL.md) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |
 | [`update-dependencies`](update-dependencies/SKILL.md) | Update workspace packages, fix deprecation warnings, and handle security audits/Major version bumps across all directories. Läuft als biweekly Cloud-Routine; `archived: true`, deshalb ohne `description` und nicht in der Session-Liste. |
 

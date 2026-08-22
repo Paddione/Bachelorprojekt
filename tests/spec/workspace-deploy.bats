@@ -503,7 +503,9 @@ PY
     skip "flux CLI not installed in this context"
   fi
   # flux v2.8.8 has no `schema`/`validate` subcommand — skip until a CLI provides one.
-  if flux schema --help >/dev/null 2>&1; then
+  if flux schema validate --help >/dev/null 2>&1; then
+    run flux schema validate "$FLUX_CLUSTER_DIR" --skip-missing-schemas
+  elif flux schema --help >/dev/null 2>&1; then
     run flux schema validate --path "$FLUX_CLUSTER_DIR"
   elif flux validate --help >/dev/null 2>&1; then
     run flux validate --path "$FLUX_CLUSTER_DIR"
@@ -512,6 +514,7 @@ PY
   fi
   [ "$status" -eq 0 ]
 }
+
 
 
 # ── Image-Tag reaches the rendered manifest (T002209) ──────────────────

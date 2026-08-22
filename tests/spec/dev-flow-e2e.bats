@@ -4,7 +4,7 @@
 #
 # Verification and regression tests for the dev-flow-e2e skill:
 # - Agent routing (bachelorprojekt-test)
-# - Branch naming constraints (no test/* branches, feature/* only per T002093)
+# - Branch naming constraints (no test/* branches, ticketed chore/* for test-only work)
 # - Commit scope conventions (test(test): ... not e2e per T002328)
 # - Playwright working directory and setup expectations (tests/e2e/ and SKIP_DB_PURGE=1)
 # - Tag annotation requirement for scoped PR runs (@tag)
@@ -36,8 +36,8 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "dev-flow-e2e: enforces feature/* branch prefix for E2E changes" {
-  run grep -n "E2E-Branches nutzen \`feature/\`" "$SKILL"
+@test "dev-flow-e2e: enforces ticketed chore/* branch prefix for E2E changes" {
+  run grep -nE "E2E-Branches nutzen.*\`chore/\`|ticketed.*\`chore/\`" "$SKILL"
   [ "$status" -eq 0 ]
 }
 

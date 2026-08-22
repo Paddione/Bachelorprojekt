@@ -4039,6 +4039,30 @@
       "status": "archived"
     }
   ],
+  "T013429": [
+    {
+      "slug": "2026-08-22-expand-runtime-health-goals",
+      "status": "archived"
+    }
+  ],
+  "T013468": [
+    {
+      "slug": "2026-08-22-ci-fast-path-optimizations",
+      "status": "archived"
+    }
+  ],
+  "T013482": [
+    {
+      "slug": "2026-08-22-dev-flow-lifecycle-contract",
+      "status": "archived"
+    }
+  ],
+  "T013528": [
+    {
+      "slug": "optimize-factory-shard-runtimes",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

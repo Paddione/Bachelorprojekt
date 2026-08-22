@@ -214,6 +214,12 @@ import json,sys
 r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]
 print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else '-')" 2>/dev/null || echo "-"
 }
+runtime_measure() { # fail-closed helper; fixture paths can be injected by tests/CI
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  local mode="$1" input_var="HG_${1^^}_INPUT" input="${!input_var:-}" args=()
+  [ -n "$input" ] && args=(--input "$input")
+  python3 scripts/lib/runtime-health-measure.py "$mode" "${args[@]}" 2>/dev/null || echo "-"
+}
 
 [ "$QUIET" = 0 ] && printf "%sRepository-Health — reproduzierbare Ziele (.claude/lib/goals.md)%s\n\n" "$C_B" "$C_X"
 
@@ -460,6 +466,10 @@ want G-DB11 && row target G-DB11 "$(restore_verify_age_d)" le 30 "Tage seit letz
 want G-E2E01 && row target G-E2E01 "$(e2e_success_rate)" ge 90 "Nightly-E2E-Erfolgsrate e2e.yml (%, letzte 14 Läufe)"
 want G-E2E02 && row target G-E2E02 "$(db_scalar "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name), false, true, '')))[1]::text::int), 0) FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE'")" eq 0 "E2E-Testdaten-Leak (is_test_data=true Rows, Brand-DB via HG_DB_NS)"
 want G-OPS01 && row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready, exkl. Job-Pods (fleet, beide Brand-Namespaces)"
+want G-FLUX01 && row target G-FLUX01 "$(runtime_measure flux)" le 0 "Flux-Ressourcen nicht Ready, suspendiert oder generation-stale"
+want G-OBS01 && row target G-OBS01 "$(runtime_measure scrape)" le 0 "Aktive Prometheus-Scrape-Targets down"
+want G-CAP01 && row target G-CAP01 "$(runtime_measure capacity)" le 0 "Produktive PVCs mit weniger als 20% freiem Speicher"
+want G-SLO01 && row target G-SLO01 "$(runtime_measure slo)" ge 995 "7-Tage-Verfügbarkeit beider Brand-Health-Endpunkte (Promille)"
 
 # ── CI-TARGETS ──
 want G-CI03 && row target G-CI03 "$(
@@ -489,14 +499,8 @@ else
 fi
 
 # ── FE-TARGETS ──
-if [ "$FAST" = 0 ] && want G-FE05 && command -v npx >/dev/null 2>&1 && npx --yes @lhci/cli --version >/dev/null 2>&1; then
-  row target G-FE05 "$(
-    score=$(timeout 60 npx @lhci/cli autorun --no-lighthouserc --collect.url=https://web.mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.preset=none 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
-    echo "${score:--}"
-  )" ge 90 "Lighthouse Performance Score"
-else
-row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert @lhci/cli — nicht messbar)"
-fi
+want G-A11Y01 && row target G-A11Y01 "$(runtime_measure axe)" le 0 "Critical/serious axe-Verstöße auf kanonischen Routen beider Brands"
+want G-FE05 && row target G-FE05 "$(runtime_measure lighthouse)" ge 90 "Niedrigerer Lighthouse-JSON Performance Score beider Brands"
 
 # ── IF-TARGETS (T002441: Schnittstellen- und API-Drift) ──
 # Der Prober meldet einen Strukturbruch (leere Kandidatenmenge) als Verletzung

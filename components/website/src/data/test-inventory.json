@@ -2142,6 +2142,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/dev-flow-lifecycle-contract",
+    "file": "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/devflow-worktree-cwd-guard",
     "file": "tests/spec/agent-skills/devflow-worktree-cwd-guard.bats",
     "category": "agent-skills",
@@ -2682,6 +2688,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/factory-shard-optimization",
+    "file": "tests/spec/ci-cd/factory-shard-optimization.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
     "category": "ci-cd",
@@ -2948,6 +2960,12 @@
   {
     "id": "ci-cd/unknown-scope-names-source",
     "file": "tests/spec/ci-cd/unknown-scope-names-source.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/website-fast-path",
+    "file": "tests/spec/ci-cd/website-fast-path.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3614,6 +3632,12 @@
   {
     "id": "health-goals/measurement-integrity",
     "file": "tests/spec/health-goals/measurement-integrity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/runtime-health-goals",
+    "file": "tests/spec/health-goals/runtime-health-goals.bats",
     "category": "health-goals",
     "kind": "shell"
   },

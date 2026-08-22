@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import publicRoutes from '../lib/public-routes.json';
 
 // Brand-Erkennung env-basiert (S3: keine Domain-Literale im Code).
 const PROD_DOMAIN = process.env.PROD_DOMAIN ?? 'mentolder.de';
 const isKore = PROD_DOMAIN === 'korczewski.de';
 
 // Kern-Routen je Marke (Override per A11Y_ROUTES=kommagetrennt für Iterationen).
-const DEFAULT_ROUTES = isKore ? ['/'] : ['/', '/ueber-mich', '/kontakt', '/coaching'];
+const DEFAULT_ROUTES = isKore ? publicRoutes.korczewski : publicRoutes.mentolder;
 const CORE_ROUTES = process.env.A11Y_ROUTES
   ? process.env.A11Y_ROUTES.split(',').map((r) => r.trim()).filter(Boolean)
   : DEFAULT_ROUTES;

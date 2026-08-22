@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.300.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.0...website-v1.300.1) (2026-08-22)
+
+
+### Performance
+
+* **ci:** optimize factory shard setup and update spec runtime weights [T013528] ([#5003](https://github.com/Paddione/Bachelorprojekt/issues/5003)) ([319bf3c](https://github.com/Paddione/Bachelorprojekt/commit/319bf3c2d1bd9258a8c3d83b25f3305e1082cee0))
+
+## [1.300.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.299.0...website-v1.300.0) (2026-08-22)
+
+
+### Features
+
+* **ci:** implement website fast-path and actionlint caching [T013468] ([#4992](https://github.com/Paddione/Bachelorprojekt/issues/4992)) ([ba8094d](https://github.com/Paddione/Bachelorprojekt/commit/ba8094d6d2d3d2612d024039dc2df1eb6401c532))
+
+## [1.299.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.298.0...website-v1.299.0) (2026-08-22)
+
+
+### Features
+
+* **ops:** measure runtime health goals [T013429] ([#4986](https://github.com/Paddione/Bachelorprojekt/issues/4986)) ([1278ec3](https://github.com/Paddione/Bachelorprojekt/commit/1278ec398e3db644331e5d1a28e5a8e7b91b96a4))
+
 ## [1.298.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.2...website-v1.298.0) (2026-08-22)
 
 

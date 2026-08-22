@@ -10,11 +10,12 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`gemma12`) up to 3 in parallel (llm-proxy max_inflight=3, server -np 3) |
+| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`gemma12`/`qwen38`) sequentially; gemma12-vision allows up to 3 in parallel (llm-proxy max_inflight=3, server -np 3), qwen38 runs np=1 |
 | `gptoss` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local bulk work. **Der Name lügt über das Modell seit T003204** — `gptoss-context` ist abgeschaltet, der Name bleibt als Dispatch-Schnittstelle. `write=deny`, `edit=allow` |
 | `devstral` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local work. **Name lügt über das Modell seit T003204** — `devstral-quality` war in allen Dimensionen dominiert und ist abgeschaltet |
 | `gemma` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local work, gemma family |
 | `gemma12` | `llamacpp-local/gemma12-vision` (Gemma 4 12B QAT + mmproj-F16, :8089) | Local work, 262144 ctx — größter lokaler Kontext und einziges vision-fähiges Loadout. Seit T003204 per `task` dispatchbar |
+| `qwen38` | `llamacpp-local/qwen38-220k` (Qwen 3.8 27B UD-IQ3_XXS, :8094) | Local work, text-only, 220000 ctx. Seit T013301 per `task` dispatchbar — **1 Instanz** (Loadout np=1), nur sequenziell dispatchen |
 | `gemma26-primary` | `llamacpp-local/gemma12-vision`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task`. Name historisch — seit T012414 auf `gemma12-vision` |
 | `gemma26-vision` | `llamacpp-local/gemma12-vision`, `mode: primary` | Max local context (262144, measured), no subagent dispatch. Seit T012414 auf `gemma12-vision` — das laedt ein mmproj und kann damit tatsaechlich Vision, anders als frueher |
 | `gptoss-primary` | `llamacpp-local/gemma26-throughput`, `mode: primary` | Tab-selectable primary, 118016 ctx (:8092) — seit T003204 |

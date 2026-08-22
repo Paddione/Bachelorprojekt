@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.301.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.2...website-v1.301.0) (2026-08-22)
+
+
+### Features
+
+* **scripts:** pin loadout during brain ingest and restore it after [T013593] ([#5007](https://github.com/Paddione/Bachelorprojekt/issues/5007)) ([50ac60d](https://github.com/Paddione/Bachelorprojekt/commit/50ac60d4bdb42cd8794641d6e82636c0276088ef))
+
 ## [1.300.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.1...website-v1.300.2) (2026-08-22)
 
 

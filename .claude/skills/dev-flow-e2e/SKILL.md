@@ -173,6 +173,29 @@ task test:inventory
 git diff components/website/src/data/test-inventory.json
 ```
 
+### Lokaler Lauf für SDLC- und LLM/GPU-Specs (T013329)
+
+Zwei Spec-Klassen laufen bewusst **nicht** im Nightly (`e2e.yml` / `playwright.config.ts`),
+sondern nur lokal über `playwright.local.config.ts`:
+
+- **`sdlc-local`** — die 14 `guardSdlc`-Specs (SDLC-Cockpit, dev-status, Factory-Ansichten).
+  Die Routen sind im Prod-Build absichtlich entfernt; der Guard skippt dort weiterhin und
+  wirft gegen eine Dev-/localhost-Instanz ohne SDLC-Routen einen Fehler (fail-loud).
+  Benötigt Admin-Auth (`mentolder-setup` läuft als Dependency mit).
+- **`llm-local`** — LLM-Router- (fa-32/33/34/36/37) und GPU-VRAM-Specs (nfa-11). Der Router
+  sitzt auf dem GPU-Host im wg-mesh; ohne `LLM_HOST_IP`/`LLM_ROUTER_URL` skippen die Specs
+  selbständig.
+
+```bash
+cd tests/e2e/ && [[ -x ./node_modules/.bin/playwright ]] || npm ci
+# SDLC-Cockpit-Specs gegen eine Dev-Instanz mit SDLC-Build:
+SKIP_DB_PURGE=1 WEBSITE_URL=http://localhost:4321 ./node_modules/.bin/playwright test \
+  --config playwright.local.config.ts --project sdlc-local
+# LLM-Router/GPU-Specs aus dem wg-mesh:
+SKIP_DB_PURGE=1 ./node_modules/.bin/playwright test \
+  --config playwright.local.config.ts --project llm-local
+```
+
 ---
 
 ## Schritt 7: Commit & Push

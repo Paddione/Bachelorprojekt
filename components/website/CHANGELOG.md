@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.301.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.4...website-v1.301.5) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** mishap-rollup T013719 abarbeiten, Tick-Vorcheck in §0, BATS-Negations-Konvention [T013719] ([#5030](https://github.com/Paddione/Bachelorprojekt/issues/5030)) ([f68aab4](https://github.com/Paddione/Bachelorprojekt/commit/f68aab444aeaff5c17829f7da5ae94dd90f14713))
+
 ## [1.301.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.3...website-v1.301.4) (2026-08-22)
 
 

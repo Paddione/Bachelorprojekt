@@ -8,30 +8,37 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu harness-workflow-split e
 
 ### Requirement: opencode has native dev-flow and git-workflow skills
 
-opencode SHALL provide four native skills under `.opencode/skills/` —
-`opencode-flow-plan`, `opencode-flow-execute`, `opencode-flow-chore`, and
-`opencode-git-workflow` — that mirror the workflow of their Claude counterparts
-(`dev-flow-plan`/`-execute`/`-chore`, `git-workflow`) but are built on opencode's
-own orchestration primitives (`background-agents.ts` for delegation, `worktree.ts`
-plus the git-crypt-safe `scripts/worktree-create.sh` for isolation). These skills
-SHALL NOT contain Claude-only tool references (`AskUserQuestion`, `TodoWrite`,
-`subagent_type`, or the `Task tool` delegation primitive).
+opencode SHALL provide four workflow skill entries under `.opencode/skills/`:
+`opencode-flow-plan`, `opencode-flow-execute`, `opencode-flow-chore` (directory
+symlinks resolving to the harness-neutral sources `.claude/skills/dev-flow-plan`,
+`.claude/skills/dev-flow-execute`, and `.claude/skills/dev-flow-chore`) and
+`opencode-git-workflow` (a native file, kept because it carries opencode-specific
+git-crypt/worktree glue). The shared sources SHALL be harness-neutral: they SHALL NOT
+contain raw Claude-only tool syntax (`AskUserQuestion`, `TodoWrite`,
+`subagent_type`, or the literal `Task tool`) anywhere in the file, and SHALL carry
+per-harness dispatch guidance as clearly labeled matrix entries instead. The symlink
+mechanism SHALL follow the established `openspec-*` pattern
+(`.opencode/skills/<name> -> ../../.claude/skills/<source>`).
 
-#### Scenario: opencode drives a plan without Claude-only tools
+#### Scenario: opencode loads the shared source under its native name
 
 - **GIVEN** an opencode session on a feature request in this repo
 - **WHEN** opencode invokes `opencode-flow-plan`
-- **THEN** the skill delegates sub-work through `background-agents.ts` (`delegate`
-  for read-only sub-agents, native write-capable delegation otherwise) and asks the
-  user with plain-text questions — never `AskUserQuestion`, `TodoWrite`, or `Task tool`
+- **THEN** the loaded content is byte-identical to `.claude/skills/dev-flow-plan/SKILL.md`
+  and delegates sub-work through the labeled harness matrix (`background-agents.ts` /
+  `delegate` for opencode, the native subagent dispatch for Claude Code) — never via raw
+  `AskUserQuestion`, `TodoWrite`, `subagent_type`, or `Task tool` syntax
 
-#### Scenario: BATS guard confirms the four skills exist and are Claude-tool-free
+#### Scenario: BATS guard confirms symlinks resolve to token-free sources
 
 - **GIVEN** the guard `tests/spec/harness-workflow-split.bats`
 - **WHEN** `bats tests/spec/harness-workflow-split.bats` runs
-- **THEN** it asserts all four `.opencode/skills/opencode-*/SKILL.md` files exist,
-  collectively reference `background-agents.ts` and `worktree.ts`, and contain none
-  of `AskUserQuestion`, `TodoWrite`, `subagent_type`, `Task tool`
+- **THEN** it asserts the three flow-skill entries are symlinks resolving into
+  `.claude/skills/dev-flow-*`, that `opencode-git-workflow/SKILL.md` is a regular file,
+  that all four resolved contents collectively reference `background-agents.ts` and
+  `worktree.ts`, contain none of the forbidden tokens, and that the flow skills
+  reference `git-workflow` while `opencode-git-workflow` references
+  `scripts/worktree-create.sh`
 
 ### Requirement: shared openspec-* skills are harness-neutral
 
@@ -53,20 +60,6 @@ dropped. The symlink mechanism SHALL remain unchanged.
 - **WHEN** it greps the four `openspec-*` SKILL.md files
 - **THEN** none contain `AskUserQuestion`, `TodoWrite`, `subagent_type`, or `Task tool`,
   and `openspec-archive-change/SKILL.md` still contains `openspec-sync-specs`
-
-### Requirement: AGENTS.md declares an opencode-native dispatch protocol
-
-The `## Skill Dispatch Protocol` section of `AGENTS.md` (opencode's loaded
-instructions file) SHALL describe subagent dispatch via the `background-agents.ts`
-plugin (`delegate`/`delegation_read`) and SHALL NOT contain Claude tool names.
-The shared agent-routing table SHALL remain unchanged.
-
-#### Scenario: dispatch section is opencode-native
-
-- **GIVEN** `AGENTS.md`
-- **WHEN** the `## Skill Dispatch Protocol` section is extracted
-- **THEN** it references `background-agents.ts` and `delegate`, and contains none of
-  `AskUserQuestion`, `TodoWrite`, `subagent_type`, `Task tool`
 
 ### Requirement: the tool registry records a harness per entry
 
@@ -121,9 +114,8 @@ antigravity CLI is absent, keeping CI green on machines without it.
 
 ### Requirement: opencode worktree isolation stays git-crypt-safe
 
-Because `.opencode/skills/dev-flow/worktree.ts` runs `git worktree add` with checkout and does
-not neutralize the git-crypt smudge filter (unlike `scripts/worktree-create.sh`), the
-`opencode-git-workflow` skill SHALL create worktrees via the git-crypt-safe
+Because only `opencode-git-workflow` remains a native file, its git-crypt-safe worktree
+requirement applies verbatim: the skill SHALL create worktrees via the git-crypt-safe
 `scripts/worktree-create.sh` and document the `worktree.ts` limitation, so encrypted
 paths under `environments/.secrets/**` neither fail checkout nor leak encrypted-at-rest
 content with a stale smudge filter.
@@ -136,6 +128,18 @@ content with a stale smudge filter.
   filter) rather than a bare `worktree.ts` `worktree_create`, and the BATS guard asserts
   the skill references `scripts/worktree-create.sh`
 
-<!-- merged from change delta harness-workflow-split.md (55fba28a0606) -->
+### Requirement: AGENTS.md declares the shared-source routing
 
-<!-- merged from change delta harness-workflow-split.md (ac8a6bb05c63) -->
+The `## Skill Dispatch Protocol` section of `AGENTS.md` SHALL describe that opencode
+loads the same dev-flow sources as Claude Code via the `opencode-flow-*` symlinks, and
+SHALL NOT instruct agents to avoid the `dev-flow-*` flow skills. The section SHALL
+remain free of raw Claude tool names.
+
+#### Scenario: routing reflects the shared source
+
+- **GIVEN** `AGENTS.md`
+- **WHEN** the `## Skill Dispatch Protocol` section is extracted
+- **THEN** it states that `opencode-flow-*` resolve to the `dev-flow-*` sources and
+  contains none of `AskUserQuestion`, `TodoWrite`, `subagent_type`, `Task tool`
+
+<!-- merged from change delta harness-workflow-split.md (365b3d9750ed) -->

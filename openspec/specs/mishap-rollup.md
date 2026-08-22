@@ -263,3 +263,129 @@ transfer SHALL NOT abort the rollup run: the source plan stays in place and the 
 - **THEN** that cycle SHALL NOT be reported
 
 <!-- merged from change delta mishap-rollup.md (ce960d7d9aac) -->
+
+<<<<<<< HEAD
+### Requirement: Rollup container resolution is brand-agnostic
+
+The rollup container resolution (`scripts/ticket.sh rollup-container`) SHALL resolve and create
+the rollup container without any brand predicate. The `--brand` option SHALL either be removed
+or accepted-and-ignored with a deprecation note, and container creation SHALL pin a documented
+constant brand (`ROLLUP_CONTAINER_BRAND`). The function header SHALL state that the rollup lane
+is deliberately cross-brand.
+
+#### Scenario: Generator adopts the open container regardless of invoking brand
+
+- **GIVEN** an open rollup container exists with `brand='korczewski'`
+- **WHEN** the generator runs without any brand context
+- **THEN** resolution returns that container's `external_id`
+- **AND** no new container is created
+
+#### Scenario: Container creation uses the pinned constant brand
+
+- **GIVEN** no open rollup container exists in collect mode
+- **WHEN** `scripts/ticket.sh rollup-container` creates a new one
+- **THEN** the created ticket carries the brand from `ROLLUP_CONTAINER_BRAND`, independent of
+  any ambient `BRAND` environment value
+
+### Requirement: Mishap-rollup generator runs once per tick
+
+The factory tick (`scripts/factory/wakeup.sh`) SHALL invoke `scripts/factory/mishap-rollup.sh`
+exactly once per tick, not once per brand. The mishap buffer flush step immediately before it
+SHALL remain per-brand.
+
+#### Scenario: Single generator invocation per tick
+
+- **GIVEN** a factory tick reaches the mishap-rollup driver section
+- **WHEN** wakeup.sh executes the rollup generation steps
+- **THEN** `mishap-rollup.sh` runs exactly once
+- **AND** the preceding `--flush-stale-mishaps` invocations still run once per brand
+
+### Requirement: Rollup tickets carry consistent brand across read paths
+
+For a given ticket row, all ticket read interfaces (`get_ticket` and the timeline export) SHALL
+report the same `brand` value as stored in the database.
+
+#### Scenario: Timeline export matches get_ticket on brand
+
+- **GIVEN** ticket T013107 with `brand='korczewski'` in `tickets.tickets`
+- **WHEN** both `get_ticket` and the timeline export are queried without explicit brand
+- **THEN** both report `korczewski`
+
+<!-- merged from change delta mishap-rollup.md (f84329c25b0d) -->
+=======
+### Requirement: Generator tags recurring entries across cycles
+
+The rollup generator SHALL search all historical batch comments on mishap-rollup container
+tickets (including closed ones) for entries with the same component and equal/similar title,
+and SHALL render a recurrence marker (`×N`) plus references to the prior cycles in the entry
+header of the generated plan. A first-time occurrence renders without marker.
+
+#### Scenario: Second occurrence of an already-batched failure
+
+- **GIVEN** batch 08-20 contained entry "SCS post-commit Reindex schlägt fehl (embed
+  localhost:8081 unerreichbar)" and a new buffer flush produces the same component/title again
+- **WHEN** the generator renders the new plan
+- **THEN** the entry header carries `×2` and links to the 08-20 cycle comment
+- **AND** a first-time entry renders without any recurrence marker
+
+### Requirement: Watchlist disposition keeps entries alive until expiry
+
+The plan template SHALL accept a fourth entry disposition, `beobachten (bis Zyklus <N>)`,
+alongside `gefixt`, `bereits gefixt` and `kein Repo-Fix`. The generator SHALL re-include every
+live watchlist entry from prior plans into each newly generated batch, until the named cycle is
+reached or the entry is explicitly closed.
+
+#### Scenario: Watchlist entry resurfaces automatically
+
+- **GIVEN** cycle 2026-08-19 dispositioned entry "gemma12-vision MTP draft crashes" as
+  `beobachten (bis Zyklus 3)`
+- **WHEN** any later cycle before that boundary generates its plan
+- **THEN** the MTP entry appears in the batch again, marked as watchlist carryover with its
+  origin cycle referenced
+
+#### Scenario: Expired watchlist entry escalates instead of resurfacing
+
+- **GIVEN** a watchlist entry whose boundary cycle has passed
+- **WHEN** the next generator run executes
+- **THEN** the entry is NOT silently included in the batch again
+- **AND** it is escalated per the escalation requirement below
+
+### Requirement: Stalled entries escalate out of the rollup loop
+
+The generator SHALL promote an entry into its own standalone ticket (`needs_human`) when either
+the entry has been carried over unresolved for at least 2 consecutive cycles or its watchlist
+boundary cycle has expired. The promoted ticket SHALL reference the originating cycles, and the
+entry SHALL leave the rollup loop.
+
+#### Scenario: Twice-carried entry becomes its own ticket
+
+- **GIVEN** an entry was unchecked in two consecutive cycle plans and carried over both times
+- **WHEN** the generator prepares the third cycle's plan
+- **THEN** a standalone ticket is created with the entry's full description and cycle history
+- **AND** the entry no longer appears in subsequent batches
+
+### Requirement: Completed rollup cycles are archived by the machine
+
+The factory tick (or the rollup generator before batch rendering) SHALL run an archive janitor
+that detects completed rollup cycles — a cycle whose container ticket is `done` or `archived`
+while its change directory still sits under `openspec/changes/` — and moves each such directory
+to `openspec/changes/archive/<cycle-date>-<slug>`. Archival SHALL no longer depend on a session
+manually running `devflow-post-merge-finalize.sh`.
+
+#### Scenario: Unarchived cycle from a rescued executor run
+
+- **GIVEN** cycle `mishap-incident-rollup-2026-08-19-T012445` with its container ticket
+  `done/fixed` and its change directory still under `openspec/changes/`
+- **WHEN** the archive janitor runs
+- **THEN** the directory is moved to `openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445`
+  in one commit on the janitor's own branch
+
+#### Scenario: Active cycle is never archived
+
+- **GIVEN** cycle `mishap-incident-rollup-2026-08-22-T013107` with its container ticket still
+  `plan_staged`
+- **WHEN** the archive janitor runs
+- **THEN** that cycle's directory remains untouched
+
+<!-- merged from change delta mishap-rollup.md (762662dfc1f2) -->
+>>>>>>> 5e5558b07 (chore(plans): archive rollup-loop-closure → postgres + openspec/archive [T013305])

@@ -38,7 +38,9 @@ while IFS= read -r d; do
   offen+=("$name")
 done < <(find "$CHANGES" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
 
-if [ ! -d "$ARCHIVE" ] || [ "${#offen[@]}" -eq 0 ]; then
+# Nur bei fehlendem Archiv kurzschliessen — NICHT bei offen==0: ein praefixloser
+# Archiveintrag ist auch ohne offene Changes ein Befund [T013715].
+if [ ! -d "$ARCHIVE" ]; then
   echo "openspec-half-archive-check: ✓ kein halb archivierter Change."
   exit 0
 fi
@@ -63,14 +65,16 @@ while IFS= read -r d; do
 done < <(find "$ARCHIVE" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
 
 treffer=0
-for slug in "${offen[@]}"; do
-  if [ -n "${archiviert[$slug]:-}" ]; then
-    treffer=$((treffer + 1))
-    echo "openspec-half-archive-check: HALB ARCHIVIERT: '$slug'" >&2
-    echo "  offen:      openspec/changes/$slug/" >&2
-    echo "  archiviert: openspec/changes/archive/${archiviert[$slug]}/" >&2
-  fi
-done
+if [ "${#offen[@]}" -gt 0 ]; then
+  for slug in "${offen[@]}"; do
+    if [ -n "${archiviert[$slug]:-}" ]; then
+      treffer=$((treffer + 1))
+      echo "openspec-half-archive-check: HALB ARCHIVIERT: '$slug'" >&2
+      echo "  offen:      openspec/changes/$slug/" >&2
+      echo "  archiviert: openspec/changes/archive/${archiviert[$slug]}/" >&2
+    fi
+  done
+fi
 
 # Beide Befundklassen werden gemeldet, bevor der Check failt — nicht entweder/oder.
 fehler=0

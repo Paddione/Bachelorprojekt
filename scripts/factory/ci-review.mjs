@@ -9,17 +9,26 @@ import Anthropic from '@anthropic-ai/sdk'
 import { parseChangedLines, filterFindings, formatChangedLinesHint } from './review-finding-filter.mjs'
 
 const {
+  OPENCODE_API_KEY, OPENCODE_ZEN_API_KEY,
+  OPENCODE_ZEN_BASE_URL = 'https://opencode.ai/zen/v1',
+  GEMINI_API_KEY, GOOGLE_API_KEY,
   ANTHROPIC_BASE_URL, ANTHROPIC_API_KEY,
+  OPENAI_BASE_URL, OPENAI_API_KEY,
   CLEAN_DIFF_PATH, TIER_JSON_PATH,
-  PR_NUMBER, CI_REVIEW_MODEL = 'deepseek-chat',
+  PR_NUMBER,
+  CI_REVIEW_MODEL,
   CI_REVIEW_CONFIDENCE_THRESHOLD,
 } = process.env
+
+const opencodeKey = OPENCODE_API_KEY || OPENCODE_ZEN_API_KEY
+const geminiKey = GEMINI_API_KEY || GOOGLE_API_KEY
+const model = CI_REVIEW_MODEL || (opencodeKey ? 'laguna-s-2.1-free' : geminiKey ? 'gemini-3.1-pro' : 'deepseek-chat')
 const confidenceThreshold = (() => { const v = Number(CI_REVIEW_CONFIDENCE_THRESHOLD); return Number.isNaN(v) ? 0.6 : v })()
 
 const PROMPT_DIR = new URL('.', import.meta.url).pathname
 
-if (!ANTHROPIC_API_KEY) {
-  console.warn('ci-review: ANTHROPIC_API_KEY unset — skipping AI review (advisory).')
+if (!opencodeKey && !geminiKey && !ANTHROPIC_API_KEY && !OPENAI_API_KEY) {
+  console.warn('ci-review: OPENCODE_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY unset — skipping AI review (advisory).')
   process.exit(0)
 }
 
@@ -37,7 +46,11 @@ const TIER_LENSES = {
 }
 
 const readPrompt = (lens) => readFileSync(PROMPT_DIR + LENS_FILE[lens], 'utf8')
-const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY, ...(ANTHROPIC_BASE_URL ? { baseURL: ANTHROPIC_BASE_URL } : {}) })
+
+let anthropicClient = null
+if (ANTHROPIC_API_KEY) {
+  anthropicClient = new Anthropic({ apiKey: ANTHROPIC_API_KEY, ...(ANTHROPIC_BASE_URL ? { baseURL: ANTHROPIC_BASE_URL } : {}) })
+}
 
 function parseJson(text, fallback) {
   // Strip Markdown code fences that LLMs wrap around JSON responses.
@@ -50,14 +63,91 @@ function parseJson(text, fallback) {
   try { return JSON.parse(m[0]) } catch { return fallback }
 }
 
-async function callModel(systemPrompt, userContent) {
-  const res = await client.messages.create({
-    model: CI_REVIEW_MODEL,
+async function callOpenCodeZen(systemPrompt, userContent) {
+  const endpoint = `${OPENCODE_ZEN_BASE_URL.replace(/\/+$/, '')}/chat/completions`
+  const payload = {
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent }
+    ],
+    max_tokens: 4096,
+    temperature: 0.2
+  }
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${opencodeKey}`
+    },
+    body: JSON.stringify(payload)
+  })
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    throw new Error(`OpenCode Zen API error (${res.status}): ${errText}`)
+  }
+
+  const data = await res.json()
+  return data.choices?.[0]?.message?.content || ''
+}
+
+async function callGemini(systemPrompt, userContent) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`
+  const payload = {
+    system_instruction: {
+      parts: [{ text: systemPrompt }]
+    },
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: userContent }]
+      }
+    ],
+    generationConfig: {
+      maxOutputTokens: 4096,
+      temperature: 0.2,
+      responseMimeType: 'application/json'
+    }
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    throw new Error(`Gemini API error (${res.status}): ${errText}`)
+  }
+
+  const data = await res.json()
+  return data.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || ''
+}
+
+async function callAnthropic(systemPrompt, userContent) {
+  const res = await anthropicClient.messages.create({
+    model,
     max_tokens: 4096,
     system: systemPrompt,
     messages: [{ role: 'user', content: userContent }],
   })
   return res.content.map((b) => (b.type === 'text' ? b.text : '')).join('')
+}
+
+async function callModel(systemPrompt, userContent) {
+  if (opencodeKey) {
+    return callOpenCodeZen(systemPrompt, userContent)
+  }
+  if (geminiKey) {
+    return callGemini(systemPrompt, userContent)
+  }
+  if (anthropicClient) {
+    return callAnthropic(systemPrompt, userContent)
+  }
+  throw new Error('No supported LLM provider configured')
 }
 
 async function runLens(lens, diff, hint) {

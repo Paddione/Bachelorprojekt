@@ -80,16 +80,6 @@
         }
       }
     },
-    // Ollama (local) — nach Gemma/Ollama ziehen per `ollama pull <model>`
-    "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama (local)",
-      "options": {
-        "baseURL": "http://127.0.0.1:11434/v1"
-      },
-      "models": {}
-    },
-
     // ── Alibaba Cloud International (Token Plan) ───────────────────────
     // OpenAI-compatible Endpoint für Qwen/Claude Modelle via Alibaba MaaS.
     // Kein "apiKey" hier [2026-08-14, T004808]: Der Key stand plaintext im
@@ -224,6 +214,9 @@
         }
       }
     },
+    // LM Studio — Modelle auf den zwei im LAN angeschlossenen Laptops
+    // (Embedding-Modelle und kleine lokale Modelle). Kein Agent dispatcht
+    // direkt hierauf; dient als Provider-Registry fuer die LAN-Geraete.
     "lmstudio": {
       "models": {
         "qwen3.5-9b@q4_k_xl": {
@@ -320,7 +313,7 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the gptoss-context loadout was disabled in T003204; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
+      "description": "Local subagent on gemma12-vision loadout (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
       "mode": "subagent",
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -336,7 +329,7 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; updated to gemma26-throughput to share the live loadout with orchestrator and gptoss without GPU swapping. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
+      "description": "Local subagent on gemma12-vision loadout (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
       "mode": "subagent",
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -346,7 +339,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent for the gemma family (Gemma 4 26B A4B QAT UD-Q4_K_XL, Loadout gemma26-throughput auf Port 8092, via llm-proxy :18235). Write-capable delegation; shares the live GPU loadout with orchestrator/gptoss without swapping.",
+      "description": "Local subagent on gemma12-vision loadout (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Write-capable delegation; up to 3 parallel slots (max_inflight=3).",
       "mode": "subagent",
       "model": "llamacpp-local/gemma12-vision",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -388,6 +381,21 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
+    // 2026-08-22: qwen-cloud als erste Cloud-Eskalationsstufe nach lokal.
+    // Qwen 3.8 Max via Alibaba Cloud Intl Token Plan — selbe Modell-Familie
+    // wie der Orchestrator, staerker als jedes lokale Modell, 131k ctx.
+    // Eskalationskette: lokal (gemma12-vision 12B) → qwen38 (27B lokal) →
+    // qwen-cloud (Qwen3.8-Max) → deepseek-helper → deepseek-pro.
+    "qwen-cloud": {
+      "description": "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). First cloud escalation tier after local models fail. Same model family as the orchestrator. Write-capable.",
+      "mode": "subagent",
+      "model": "alibaba-intl/qwen3.8-max",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#FF6900",
+      "temperature": 0.3,
+      "steps": 100,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
     // Primaerer (Tab-waehlbarer) Lokal-Agent auf gemma26-factory.
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
     // summonbar. Kann beliebige Subagenten dispatchen (deepseek + lokal).
@@ -395,10 +403,10 @@
     // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
     // Orchestrator davor.
     "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on gemma26-factory (Gemma 4 26B A4B IQ4_XS, 161024 ctx measured, np=3 -kvu q4_0). Use for fully local work without the DeepSeek orchestrator in front. Can dispatch any subagent (deepseek + local).",
+      "description": "Primary (Tab-selectable) local agent on gemma12-vision (Gemma 4 12B QAT + mmproj-F16, 262144 ctx, Port 8089). Vision-capable. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#6EE7B7",
       // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
       // plant UND implementiert. Deutlich hoehere Werte riskieren den
@@ -418,10 +426,10 @@
     // "Kein mmproj." — der mmproj-Pfad wurde T002886 entfernt, weil die Datei
     // am erwarteten Pfad fehlte). Vision gibt es nur auf gemma12-vision (:8089).
     "gemma26-vision": {
-      "description": "Local agent on gemma26-factory with no subagent dispatch \u2014 for long-context work that must stay on-device. No vision: gemma26-factory loads no mmproj (see loadouts.json); for vision use the gemma12-vision loadout instead.",
+      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. No subagent dispatch — for focused local work that must stay on-device.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#A78BFA",
       "temperature": 0.3,
       "steps": 50,
@@ -446,20 +454,20 @@
     // opencode-routes-via-proxy.bats prueft die Deklaration gegen den LAUFENDEN
     // Server in einem +/-20-%-Korridor.
     "gptoss-primary": {
-      "description": "PRIMARY: Gemma 4 26B A4B QAT UD-Q4_K_XL (118.016 ctx). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092) — moved off the gptoss-context loadout, disabled in T003204. Broad general knowledge. Can dispatch any subagent.",
+      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#34D399",
       "temperature": 0.3,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "devstral-primary": {
-      "description": "PRIMARY: Gemma 4 26B A4B UD-IQ4_XS (177.920 ctx). Tab-selectable singleagent on the gemma26-factory loadout (Port 8091) — moved off the devstral-quality loadout, disabled in T003204 (dominated in every dimension). Optimised for code quality review. Can dispatch any subagent.",
+      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#60A5FA",
       "temperature": 0.3,
       "steps": 50,
@@ -469,17 +477,17 @@
       "description": "PRIMARY: Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP (262.144 ctx). Tab-selectable singleagent on the gemma12-vision loadout (Port 8089). Vision-capable (mmproj loaded), speculative decoding via MTP drafter. Can dispatch any subagent.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#F472B6",
       "temperature": 0.3,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "gemma26-throughput-primary": {
-      "description": "PRIMARY: Gemma 4 26B A4B QAT-Q4_K_XL (118.016 ctx, 159-169 tok/s). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092). Fastest 26B option — QAT quant trades some quality for 30% higher throughput. Can dispatch any subagent.",
+      "description": "PRIMARY: Gemma 4 12B QAT + mmproj-F16 (262.144 ctx, Port 8089). Tab-selectable singleagent on the gemma12-vision loadout. Vision-capable. Can dispatch subagents.",
       "mode": "primary",
       "model": "llamacpp-local/gemma12-vision",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#FBBF24",
       "temperature": 0.3,
       "steps": 50,
@@ -489,7 +497,7 @@
       "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (220.000 ctx). Tab-selectable text-only singleagent on the qwen38-220k loadout (Port 8094). Can dispatch any subagent.",
       "mode": "primary",
       "model": "llamacpp-local/qwen38-220k",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#A855F7",
       "temperature": 0.3,
       "steps": 50,
@@ -568,15 +576,12 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      // T011579: opencode-go/deepseek-v4-flash erschoepfte am 2026-08-17 sein
-      // Monatskontingent (AI_APICallError "Monthly usage limit reached", Reset in
-      // 16 Tagen) — alle Factory-Laeufe hingen, bevor ein Subagent dispatcht war.
-      // Umgestellt auf das einzige live Loadout gemma26-throughput (Port 8092 via
-      // llm-proxy :18235). Rueckbau auf deepseek-v4-flash erst nach Limit-Reset
-      // oder freigeschaltetem Balance-Usage.
-      "description": "Primary orchestrator: gemma26-throughput lokal (Gemma 4 26B A4B QAT, 118016 ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12/qwen38) sequentially — qwen38 runs np=1, the gemma12-vision loadout allows up to 3 in parallel (llm-proxy max_inflight=3). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      // 2026-08-22: Umgestellt von llamacpp-local/gemma12-vision (12B lokal)
+      // auf alibaba-intl/qwen3.8-max (Cloud, 131k ctx) — staerkeres Modell
+      // fuer Orchestrierung. Fallback: gemma12-vision lokal, wenn Cloud down.
+      "description": "Primary orchestrator: Qwen 3.8 Max via Alibaba Cloud Intl (131k ctx). Dispatches local family subagents (gptoss/devstral/gemma/gemma12/qwen38) and cloud escalation (qwen-cloud/deepseek-*). Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "llamacpp-local/gemma12-vision",
+      "model": "alibaba-intl/qwen3.8-max",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,
@@ -595,6 +600,9 @@
           // 2026-08-22: fuenfte lokale Familie — Qwen 3.8 27B auf dem
           // qwen38-220k-Loadout (Port 8094, np=1). Nur sequenziell dispatchen.
           "qwen38": "allow",
+          // 2026-08-22: Qwen 3.8 Max via Alibaba Cloud — erste Eskalationsstufe
+          // nach lokal, selbe Modell-Familie wie der Orchestrator selbst.
+          "qwen-cloud": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow",
@@ -613,7 +621,7 @@
       "description": "PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx). Tab-selectable singleagent — replaces opencode-go/deepseek-v4-flash as the default. Runs through token-plan endpoint (compatible-mode OpenAI format). Can dispatch any subagent.",
       "mode": "primary",
       "model": "alibaba-intl/qwen3.8-max",
-      "prompt": "{file:./prompts/local-subagent.md}",
+      "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#FF6900",
       "temperature": 0.3,
       "steps": 50,

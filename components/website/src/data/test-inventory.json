@@ -4314,6 +4314,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/sql-parameterized-queries",
+    "file": "tests/spec/mishap-rollup/sql-parameterized-queries.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/wakeup-single-run",
     "file": "tests/spec/mishap-rollup/wakeup-single-run.bats",
     "category": "mishap-rollup",

@@ -154,7 +154,7 @@ async function proxyV1(req, res, subpath) {
   // T013894 — Wer den Wechsel ausloest, gehoert in die [switch]-Zeile: ein
   // Loadout-Wechsel evictet fremde Arbeit, und der Request-Mitschnitt als
   // einziger Attributionsweg fiel bei Incident T013527 genau dort aus.
-  const origin = switchOrigin(req.headers, requestedModel);
+  const origin = switchOrigin(req.headers, requestedModel, req.socket?.remoteAddress ?? null);
   let auto = await ensureLoadoutForModel(requestedModel, origin);
   if (auto?.conflict) {
     return sendJson(res, 409, { error: { code: 'exclusive_conflict', message:

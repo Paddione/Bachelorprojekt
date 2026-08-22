@@ -1431,11 +1431,11 @@
     "priority": "C",
     "direction": "lower",
     "baseline": null,
-    "current": 602,
+    "current": 0,
     "target": 26,
     "unit": "",
     "status": "unknown",
-    "measurement": "db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738",
+    "measurement": "db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738; Fix T013037: Filen-Reroute auf korczewski-Account (2FA-Hang), Remote-Prune 9,9 GiB → 257 MiB",
     "source": ".claude/lib/goals.md · G-DB04",
     "measured_at": "2026-08-21"
   },

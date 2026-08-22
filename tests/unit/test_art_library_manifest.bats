@@ -5,14 +5,14 @@
 
 REPO="${BATS_TEST_DIRNAME}/../.."
 
-# assets/art-library/_tooling/ hat ein eigenes package.json getrennt vom
-# Root-node_modules. Nur `task test:art-library` installiert es vorab; ein
-# direkter bats-Aufruf (GitLab-Pipeline, manueller Lauf) lief sonst in
-# ERR_MODULE_NOT_FOUND. Der Test macht sich hier selbst lauffaehig.
+# Die Installation der Abhängigkeiten erfolgt ueber einen CI-Step
+# ('Install art-library tooling dependencies' in .github/workflows/ci.yml).
+# Fehlt das Verzeichnis lokal, ist das ein fehlgeschlagener CI-Step — der Test
+# schlägt hart fehl statt still zu überspringen.
 setup_file() {
   if [[ ! -d "${REPO}/assets/art-library/_tooling/node_modules" ]]; then
-    ( cd "${REPO}/assets/art-library/_tooling" && npm install --silent ) \
-      || skip "art-library tooling dependencies not installable (npm install failed)"
+    echo "art-library tooling dependencies missing — run: npm install --prefix assets/art-library/_tooling" >&2
+    exit 1
   fi
 }
 

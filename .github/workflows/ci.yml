@@ -83,6 +83,10 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a  # v5.4.0
+        with:
+          version: 10
+
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
         with:
           version: 3.x
@@ -90,6 +94,12 @@ jobs:
 
       - name: Install node dependencies
         run: npm ci
+
+      - name: Install website dependencies
+        run: pnpm install --frozen-lockfile --dir components/website
+
+      - name: Install art-library tooling dependencies
+        run: npm install --silent --prefix assets/art-library/_tooling
 
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh

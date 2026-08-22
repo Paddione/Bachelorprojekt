@@ -98,3 +98,14 @@ setup() {
   [ "$status" -ne 0 ]
   [[ "$output" == *"Unknown update-status option"* ]]
 }
+
+@test "T013328: stage-plan-Hilfe nennt --no-hold und die Hold-Pflicht" {
+  # [T013328 #3] Die Hilfe zeigte nur '[--hold]' als optional — der Aufruf ohne
+  # eine der beiden Flags scheitert jedoch seit T003267 mit Exit 1. --no-hold
+  # tauchte in der Hilfe gar nicht auf.
+  run bash "$SCRIPT" help stage-plan
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"--no-hold"* ]]
+  [[ "$output" == *"(--hold|--no-hold)"* ]]
+}

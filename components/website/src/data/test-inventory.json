@@ -4134,6 +4134,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/carryover-worktree-scan",
+    "file": "tests/spec/mishap-rollup/carryover-worktree-scan.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/container-create-description",
     "file": "tests/spec/mishap-rollup/container-create-description.bats",
     "category": "mishap-rollup",

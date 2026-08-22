@@ -4140,6 +4140,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/container-resolution",
+    "file": "tests/spec/mishap-rollup/container-resolution.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/container-resolution-and-unattended-worktree",
     "file": "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
     "category": "mishap-rollup",
@@ -4196,6 +4202,12 @@
   {
     "id": "mishap-rollup/rollup-plan-per-entry-tasks",
     "file": "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/wakeup-single-run",
+    "file": "tests/spec/mishap-rollup/wakeup-single-run.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },

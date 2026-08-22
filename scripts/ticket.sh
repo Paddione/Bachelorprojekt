@@ -965,6 +965,7 @@ plan_events AS (
   FROM tickets.ticket_plans tp
   WHERE tp.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
     AND tp.archived_at IS NOT NULL
+    AND tp.brand = :'brand'
 ),
 all_events AS (
   SELECT * FROM comments
@@ -979,7 +980,7 @@ SELECT jsonb_build_object(
       'title', t.title,
       'status', t.status,
       'type', t.type,
-      'brand', :'brand',
+      'brand', t.brand,
       'created_at', t.created_at,
       'done_at', t.done_at,
       'resolution', t.resolution
@@ -1011,21 +1012,22 @@ cmd_rollup_container() {
   # Mode, bevorzugt den aeltesten. Erst wenn keiner im Collect Mode ist, wird
   # ein neuer angelegt. Ausgabe: nur die external_id auf stdout.
   #
-  # [T007056] Collect Mode = Batch noch nicht in einen Plan uebergegangen:
+  # [T007056/T013304] CROSS-BRAND LANE: Rollup-Container sind markenübergreifend.
+  # Collect Mode = Batch noch nicht in einen Plan uebergegangen:
   # triage/backlog/planning. Ein blocked-Container wird nur gefunden, wenn er
   # KEINEN FACTORY-PLAN-REF-Kommentar traegt (dann ist er noch nicht dispatcht);
   # dispatchte Container (plan_staged/in_progress/qa_review/awaiting_deploy)
   # werden nie zurueckgegeben — neue Flushes sollen einen frischen Container
   # anlegen, solange der alte vom Executor bearbeitet wird.
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"
-  local brand="mentolder"
+  local creation_brand="korczewski" # Pinned constant for cross-brand rollup container
   while [[ $# -gt 0 ]]; do case "$1" in
-      --brand) brand="$2"; shift 2 ;;
+      --brand) shift 2 ;; # Deprecated / ignored: lane is brand-agnostic
       *)       echo "Unknown rollup-container option: $1" >&2; exit 2 ;;
     esac; done
   # Resolve db pod via shared pg helper
   local pod; pod=$(_pgpod)
-  # Step 1: Finden — Collect Mode (siehe Kommentar oben), aeltester zuerst
+  # Step 1: Finden — Collect Mode (ohne Brand-Filter), aeltester zuerst
   local ext_id
   ext_id=$(_exec_sql "$pod" -c "
     SELECT external_id FROM tickets.tickets
@@ -1044,9 +1046,9 @@ cmd_rollup_container() {
     return 0
   fi
   # Step 2: Erstellen — keiner im Collect Mode gefunden
-  echo "rollup-container: kein offener Container, lege neuen an (brand=$brand)" >&2
+  echo "rollup-container: kein offener Container, lege neuen an (brand=$creation_brand)" >&2
   ext_id=$(bash "$(dirname "${BASH_SOURCE[0]}")/ticket.sh" create \
-    --type chore --brand "$brand" \
+    --type chore --brand "$creation_brand" \
     --title "$ROLLUP_TITLE" \
     --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Der Container sammelt einen Batch; der Generator staged den daraus erzeugten Plan auf dieses Ticket, und es wird geschlossen (done · resolution=fixed), sobald der Executor-PR fuer den Plan gemergt ist." \
     --status triage --severity minor 2>&1)

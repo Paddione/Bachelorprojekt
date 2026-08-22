@@ -39,7 +39,7 @@ tests/spec/mishap-rollup/wakeup-single-run.bats — NEU: Generator läuft genau 
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
+- [x] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
       bug. The test must FAIL on the current branch. Use the phrase
       `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
 
@@ -50,10 +50,10 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mishap-rollup/
 # expected: FAIL (red — the fix is not yet implemented)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
+- [x] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
       previous step must now pass.
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

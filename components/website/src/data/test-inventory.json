@@ -2460,6 +2460,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-k4-brain-wiki/delivery-branch-staleness",
+    "file": "tests/spec/brain-k4-brain-wiki/delivery-branch-staleness.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
     "id": "brain-k4-brain-wiki/max-source-chars-guard",
     "file": "tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats",
     "category": "brain-k4-brain-wiki",
@@ -3776,6 +3782,12 @@
   {
     "id": "local-llm-proxy/brain-ingest-port",
     "file": "tests/spec/local-llm-proxy/brain-ingest-port.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/brain-ingest-swap",
+    "file": "tests/spec/local-llm-proxy/brain-ingest-swap.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },

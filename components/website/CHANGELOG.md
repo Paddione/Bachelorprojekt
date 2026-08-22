@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.297.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.0...website-v1.297.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** archive rollups and carry backlog [T013330] ([#4963](https://github.com/Paddione/Bachelorprojekt/issues/4963)) ([7626a88](https://github.com/Paddione/Bachelorprojekt/commit/7626a88636b2e2523ceda840a328bbcb17489269))
+
 ## [1.297.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.296.3...website-v1.297.0) (2026-08-22)
 
 

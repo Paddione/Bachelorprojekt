@@ -56,7 +56,6 @@ CHUNK_TARGET_CHARS="${BRAIN_CHUNK_TARGET_CHARS:-8000}"
 # leaving it alone would reject essentially every chunk this script produces.
 # Two chunk targets of headroom: brain-chunk.sh emits a single paragraph that is
 # larger than the target as one oversized chunk rather than dropping text, and
-# only a pathological source (one paragraph past 16k) should trip the guard.
 export MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-$((CHUNK_TARGET_CHARS * 2))}"
 export BRAIN_CHUNK_TARGET_CHARS="$CHUNK_TARGET_CHARS"
 # transform.sh runs as a child process per page — it needs its own copy of
@@ -425,7 +424,11 @@ while IFS=$'\t' read -r src_path chunk_file chunk_slug idx heading; do
     fi
     printf '%s\t%s\t%s\n' "$rc" "$src_path" "$chunk_chars" > "$RESULTS_DIR/$CURRENT"
   ) &
-  printf "\r[%d/%d] dispatched: %s " "$CURRENT" "$CHUNK_TOTAL" "$chunk_slug"
+  if [ -t 1 ]; then
+    printf "\r[%d/%d] dispatched: %s " "$CURRENT" "$CHUNK_TOTAL" "$chunk_slug"
+  else
+    printf "[%d/%d] dispatched: %s\n" "$CURRENT" "$CHUNK_TOTAL" "$chunk_slug"
+  fi
 done < "$CHUNKS_TSV"
 
 wait

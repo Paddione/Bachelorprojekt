@@ -3408,6 +3408,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory/vda-frontmatter",
+    "file": "tests/spec/factory/vda-frontmatter.bats",
+    "category": "factory",
+    "kind": "shell"
+  },
+  {
     "id": "feature-product-linking",
     "file": "tests/spec/feature-product-linking.bats",
     "category": "feature-product-linking",
@@ -3579,6 +3585,18 @@
     "id": "health-goals-erden",
     "file": "tests/spec/health-goals-erden.bats",
     "category": "health-goals-erden",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/dashboard-rescan",
+    "file": "tests/spec/health-goals/dashboard-rescan.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/g-git03",
+    "file": "tests/spec/health-goals/g-git03.bats",
+    "category": "health-goals",
     "kind": "shell"
   },
   {
@@ -4146,6 +4164,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/container-resolution",
+    "file": "tests/spec/mishap-rollup/container-resolution.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/container-resolution-and-unattended-worktree",
     "file": "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
     "category": "mishap-rollup",
@@ -4214,6 +4238,12 @@
   {
     "id": "mishap-rollup/rollup-plan-per-entry-tasks",
     "file": "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/wakeup-single-run",
+    "file": "tests/spec/mishap-rollup/wakeup-single-run.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },
@@ -4856,6 +4886,12 @@
   {
     "id": "sdlc-cockpit/k9-stil-datenbank",
     "file": "tests/spec/sdlc-cockpit/k9-stil-datenbank.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/ki-deck-eine-tabelle",
+    "file": "tests/spec/sdlc-cockpit/ki-deck-eine-tabelle.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

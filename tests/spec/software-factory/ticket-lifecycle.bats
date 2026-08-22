@@ -790,15 +790,16 @@ SH
   fi
 }
 
-@test "T002407-M7f: wakeup.sh ruft mishap-rollup.sh pro Brand auf" {
+@test "T002407-M7f: wakeup.sh ruft mishap-rollup.sh markenuebergreifend einmal pro Tick auf" {
   local script="$REPO/scripts/factory/wakeup.sh"
-  # Nach mishap-flush und vor auto-chore-plan: mishap-rollup.sh pro Brand
+  # Nach mishap-flush und vor auto-chore-plan: mishap-rollup.sh (T013304: markenübergreifende Single-Lane)
   run grep -q "mishap-rollup.sh" "$script"
   [ "$status" -eq 0 ] || { echo "wakeup.sh ruft mishap-rollup.sh nicht auf"; false; }
-  # Die Referenz steht in einem for-Block (mentolder+korczewski). Prüfe auf das Loop-Muster
-  # und dass der Aufruf im Loop-Body liegt.
-  run bash -c "grep -A3 'for .*_mr_brand' '$script' | grep -q 'mishap-rollup.sh'"
-  [ "$status" -eq 0 ] || { echo "mishap-rollup.sh nicht im Brand-Loop"; false; }
+  # Läuft genau einmal und nicht in einer Brand-Schleife
+  local count
+  count=$(grep -c "mishap-rollup.sh" "$script" || true)
+  [ "$count" -eq 1 ]
+  ! grep -B 2 'mishap-rollup\.sh' "$script" | grep -q 'for .* in mentolder korczewski'
 }
 
 @test "T002407-M7g: migrate-mishap-bundles.sh existiert und hat --dry-run und --help" {

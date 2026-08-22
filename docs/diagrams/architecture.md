@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-94 Services · 1922 Abhängigkeitskanten · 291 API-Endpoints
+95 Services · 1923 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -47,6 +47,7 @@ flowchart LR
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
+  blackbox_exporter["blackbox-exporter"]:::default
   monitoring_grafana["monitoring-grafana"]:::default
   monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
   monitoring_operator["monitoring-operator"]:::default
@@ -234,6 +235,7 @@ flowchart LR
   mailpit -->|"selector"| mailpit
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   mentolder_web -->|"selector"| mentolder_web
+  blackbox_exporter -->|"selector"| blackbox_exporter
   monitoring_kube_state_metrics -->|"selector"| monitoring_kube_state_metrics
   monitoring_operator -->|"selector"| monitoring_operator
   otel_collector -->|"selector"| otel_collector
@@ -2069,6 +2071,7 @@ flowchart TB
     registry_cache["registry-cache"]
   end
   subgraph monitoring["monitoring"]
+    blackbox_exporter["blackbox-exporter"]
     monitoring_grafana["monitoring-grafana"]
     monitoring_kube_state_metrics["monitoring-kube-state-metrics"]
     monitoring_operator["monitoring-operator"]

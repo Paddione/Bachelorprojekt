@@ -1,0 +1,1 @@
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"brand":"mentolder","sample_coverage":"1"},"value":[1,"0.999"]},{"metric":{"brand":"korczewski","sample_coverage":"1"},"value":[1,"0.998"]}]}}

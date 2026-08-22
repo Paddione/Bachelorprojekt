@@ -4039,6 +4039,12 @@
       "status": "archived"
     }
   ],
+  "T013429": [
+    {
+      "slug": "expand-runtime-health-goals",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

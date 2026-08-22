@@ -66,6 +66,11 @@ jobs:
       - name: Install root npm deps
         run: npm ci
 
+      - name: Install pinned browser and Lighthouse
+        run: |
+          npx playwright install --with-deps chromium
+          npx --yes lighthouse@12.8.2 --version
+
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
         with:
           version: 3.x
@@ -100,6 +105,15 @@ jobs:
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
+      - name: Collect machine-readable browser measurements
+        run: |
+          mkdir -p "${RUNNER_TEMP}/health-goals"
+          node scripts/lib/runtime-browser-audit.mjs "${RUNNER_TEMP}/health-goals/axe.json"
+          npx --yes lighthouse@12.8.2 https://web.mentolder.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-mentolder.json"
+          npx --yes lighthouse@12.8.2 https://web.korczewski.de --quiet --chrome-flags="--headless --no-sandbox" --output=json --output-path="${RUNNER_TEMP}/health-goals/lh-korczewski.json"
+          jq -n --slurpfile mentolder "${RUNNER_TEMP}/health-goals/lh-mentolder.json" --slurpfile korczewski "${RUNNER_TEMP}/health-goals/lh-korczewski.json" \
+            '{reports:{mentolder:$mentolder[0],korczewski:$korczewski[0]}}' > "${RUNNER_TEMP}/health-goals/lighthouse.json"
+
       # --full, never --fast: db_scalar() opens with
       #   [ "$FAST" = 1 ] && { echo "-"; return; }
       # so --fast would silently skip every database goal and leave its documented
@@ -116,7 +130,15 @@ jobs:
           # Via env: rather than inline ${{ }} — keeps the dispatch input out of the
           # shell command string (workflow-injection hardening).
           DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+          HG_AXE_INPUT: ${{ runner.temp }}/health-goals/axe.json
+          HG_LIGHTHOUSE_INPUT: ${{ runner.temp }}/health-goals/lighthouse.json
         run: |
+          kubectl -n monitoring --context fleet port-forward svc/monitoring-prometheus 19090:9090 >"${RUNNER_TEMP}/prometheus-port-forward.log" 2>&1 &
+          pf_pid=$!
+          trap 'kill "$pf_pid" 2>/dev/null || true' EXIT
+          for _ in {1..20}; do curl -fsS http://127.0.0.1:19090/-/ready >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:19090/-/ready >/dev/null
+          export HG_PROMETHEUS_URL=http://127.0.0.1:19090
           if [[ "$DRY_RUN" == "1" ]]; then
             task health:goals:update -- --full --dry-run
             echo "dry=true" >> "$GITHUB_OUTPUT"

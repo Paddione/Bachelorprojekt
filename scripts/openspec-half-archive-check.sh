@@ -31,7 +31,7 @@ ARCHIVE="$CHANGES/archive"
 offen=()
 while IFS= read -r d; do
   [ -n "$d" ] || continue
-  name="$(basename "$d")"
+  name="${d##*/}"
   [ "$name" = "archive" ] && continue
   offen+=("$name")
 done < <(find "$CHANGES" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
@@ -47,9 +47,9 @@ fi
 declare -A archiviert=()
 while IFS= read -r d; do
   [ -n "$d" ] || continue
-  base="$(basename "$d")"
-  slug="$(printf '%s' "$base" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-//')"
-  [ "$slug" = "$base" ] && continue   # kein Datumspraefix — kein regulaerer Archiveintrag
+  base="${d##*/}"
+  [[ $base =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]] || continue   # kein Datumspraefix — kein regulaerer Archiveintrag
+  slug="${BASH_REMATCH[1]}"
   archiviert["$slug"]="$base"
 done < <(find "$ARCHIVE" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
 

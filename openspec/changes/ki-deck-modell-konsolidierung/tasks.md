@@ -205,3 +205,23 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+## Nachtrag (Ausführung, 2026-08-22)
+
+Während der Ausführung gefundene Plan-Lücken, die dieser Change zusätzlich abdeckt:
+
+- `scripts/factory/route-provider.sh`: der Phasen-Pin las `tickets.factory_model_slots`
+  als Kandidat #0 — der Block ist ersatzlos entfernt (D1 folgt: provider_config ist die
+  einzige DB-Quelle). `ROUTE_SKIP_PINNED` entfällt mit dem Pin.
+- `scripts/factory/provider-register-local.sh`: schrieb Phasen-Zeilen in die Slot-Tabelle;
+  der zweite INSERT ist entfernt.
+- `scripts/factory/provider-register-gptoss.sh`, `scripts/llm/start-gemma-server.ps1`,
+  `start-gptoss-server.ps1`, `scripts/sdlc/migrate-tickets.sh`: Kommentare nennen nicht
+  mehr die entfernte Tabelle.
+- Neu `openspec/changes/.../specs/software-factory.md` (Delta): MODIFIED
+  "Bonsai Provider Registration" und "A locked factory model overrides ...",
+  REMOVED "Phase Pin Is the First Candidate, Not a Shortcut",
+  ADDED "Provider_config ist die einzige Kandidatenquelle des Routers".
+- Tests aktualisiert: FA-SF-72 (catalog-eval-telemetry), T002369-D3
+  (factory-escalation-ladder), local-llm-proxy Teil-1-Assertion jetzt gegen
+  provider_config statt die Slot-Tabelle.

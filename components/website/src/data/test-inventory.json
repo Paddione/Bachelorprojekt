@@ -3972,6 +3972,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/switch-origin-attribution",
+    "file": "tests/spec/local-llm-proxy/switch-origin-attribution.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/tools-runtime-sandbox",
     "file": "tests/spec/local-llm-proxy/tools-runtime-sandbox.bats",
     "category": "local-llm-proxy",

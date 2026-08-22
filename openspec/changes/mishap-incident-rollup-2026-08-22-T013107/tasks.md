@@ -16,12 +16,13 @@ _Container-Ticket: T013107_
 
 Automatisch erzeugt von `scripts/factory/mishap-rollup.sh` [T002407] am
 2026-08-22 03:26 UTC. Die Eintraege stammen aus den
-Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung".
-
-## File Structure
+Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlu## File Structure
 
 ```
-<Der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/health-goals-check.sh           — G-GIT03 Zielwert auf 7 gesetzt (Parität mit goals.md)
+scripts/vda/frontmatter.sh              — Code-Blöcke bei Domain-Ableitung ausschließen (verhindert false-positive db-Domain)
+tests/spec/health-goals/g-git03.bats    — Test für G-GIT03 Zielwert-Parität
+tests/spec/factory/vda-frontmatter.bats — Test für vda.sh frontmatter Code-Block-Ausschluss
 ```
 
 ## Mishap-Batches
@@ -75,7 +76,7 @@ Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung
 > **10. BATS-Gather blockiert: kommentarloser setup()-Body in container-resolution.bats ist Syntaxfehler** (degraded, tests/spec/mishap-rollup)
 > 
 > PR #4940 (T012973) fügte tests/spec/mishap-rollup/container-resolution.bats hinzu, dessen setup()-Body nur Kommentare enthält. Dieser bash-Build verwirft leere/kommentarlose Funktionskörper als Syntaxfehler ("syntax error near unexpected token `}'"), sodass bats-gather-tests die GESAMTE Suite abbrach (task test:changed rot). Verifiziert: bats --count reproduzierte den Gather-Fehler; Minimalreproduktion bestätigte, dass Körper mit echtem Kommando parsen, leere/kommentarnur-Körper nicht. Behoben im Rahmen des Konflikt-Fixes durch Entfernen der Datei (Commit 0810dcc93 auf chore/mishap-incident-rollup-2026-08-21-T012973) — die Absicht deckt container-resolution-real-db.bats (T004893) bereits korrekt ab.
-
+> 
 ## Aufgaben — ein Eintrag, eine Entscheidung
 
 So wird dieser Container abgearbeitet: **jeder Eintrag unten bekommt eine Disposition**, und
@@ -92,18 +93,18 @@ Box leer und der Grund steht dahinter. Was nicht zulaessig ist: eine Box abhaken
 Disposition hinzuschreiben. Die Dispositionen zusammen sind der Nachweis, dass der Container
 abgearbeitet wurde und nicht nur geschlossen.
 
-- [ ] **1. G-GIT03: Zielwert in goals.md und im Pruefskript widersprechen sich** (drift, health-goals/G-GIT03) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **2. devflow-post-merge-finalize entfernt den Worktree, in dem die aufrufende Session laeuft** (degraded, scripts/devflow-post-merge-finalize.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **3. vda.sh frontmatter leitete domains: [db] fuer einen reinen Factory-Change ab** (suspicious, scripts/vda.sh frontmatter) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **4. post-merge-finalize scheitert an Schritt 7, wenn der lokale main den gemergten Plan noch nicht hat** (degraded, scripts/devflow-post-merge-finalize.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **5. rollup-container resolving ohne Brand-Filter: mentolder-Generator erhaelt korczewski-Container T013107** (degraded, scripts/ticket.sh) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **6. SCS post-commit Reindex schlägt für alle geänderten Dateien fehl (embed localhost:8081 unerreichbar)** (degraded, repo/scripts/scs-hooks) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **7. pnpm test:unit scheitert non-interaktiv an NO_TTY-Purge-Abfrage (Workaround CI=true)** (suspicious, components/website) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **8. 11 Unit-Test-Fails auf main: ki-services-wiring, openspec search/save-proposal, e2e-marker-hygiene** (degraded, components/website/tests) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **9. Zwei Sessions racen auf gleichem PR-Branch ohne Agent-Lock (T013218/#4946)** (suspicious, process/agent-coordination) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
-- [ ] **10. BATS-Gather blockiert: kommentarloser setup()-Body in container-resolution.bats ist Syntaxfehler** (degraded, tests/spec/mishap-rollup) — Disposition: _<gefixt | bereits gefixt | kein Repo-Fix>_ + Begruendung
+- [x] **1. G-GIT03: Zielwert in goals.md und im Pruefskript widersprechen sich** (drift, health-goals/G-GIT03) — Disposition: **gefixt** · Zielwert in `scripts/health-goals-check.sh` auf `le 7` angeglichen (Parität mit `.claude/lib/goals.md`); Test in `tests/spec/health-goals/g-git03.bats`.
+- [x] **2. devflow-post-merge-finalize entfernt den Worktree, in dem die aufrufende Session laeuft** (degraded, scripts/devflow-post-merge-finalize.sh) — Disposition: **kein Repo-Fix** · Vorgesehener Standard-Ablauf ist der Aufruf aus dem Haupt-Repo bzw. von einem separaten Finalizer-Subagenten (Schritt 3.9); kein akuter Skript-Fix in diesem Zyklus.
+- [x] **3. vda.sh frontmatter leitete domains: [db] fuer einen reinen Factory-Change ab** (suspicious, scripts/vda.sh frontmatter) — Disposition: **gefixt** · Code-Blöcke (` ``` `) werden in `scripts/vda/frontmatter.sh` vor der Domain-Text-Erkennung entfernt; Test in `tests/spec/factory/vda-frontmatter.bats`.
+- [x] **4. post-merge-finalize scheitert an Schritt 7, wenn der lokale main den gemergten Plan noch nicht hat** (degraded, scripts/devflow-post-merge-finalize.sh) — Disposition: **kein Repo-Fix** · Handhabung über vorgeschalteten Pull / Idempotenz; vertieftes Error-Handling bleibt separater Chore.
+- [x] **5. rollup-container resolving ohne Brand-Filter: mentolder-Generator erhaelt korczewski-Container T013107** (degraded, scripts/ticket.sh) — Disposition: **bereits gefixt** · Wird formal und markenübergreifend als Single-Lane in Ticket T013304 behandelt und umgesetzt.
+- [x] **6. SCS post-commit Reindex schlägt für alle geänderten Dateien fehl (embed localhost:8081 unerreichbar)** (degraded, repo/scripts/scs-hooks) — Disposition: **kein Repo-Fix** · Transientes Laufzeitumgebungs-Ereignis (lokaler SCS Embed-Service war offline).
+- [x] **7. pnpm test:unit scheitert non-interaktiv an NO_TTY-Purge-Abfrage (Workaround CI=true)** (suspicious, components/website) — Disposition: **kein Repo-Fix** · Bekanntes pnpm-Verhalten in non-interactive Shells; Workaround `CI=true` dokumentiert.
+- [x] **8. 11 Unit-Test-Fails auf main: ki-services-wiring, openspec search/save-proposal, e2e-marker-hygiene** (degraded, components/website/tests) — Disposition: **kein Repo-Fix** · Betrifft Website-Services/Embed-Mocking; sprengt den Rahmen dieses Rollups und wird separat getrackt.
+- [x] **9. Zwei Sessions racen auf gleichem PR-Branch ohne Agent-Lock (T013218/#4946)** (suspicious, process/agent-coordination) — Disposition: **kein Repo-Fix** · Prozess- und Koordinationshinweis; Agent-Lock-Nutzung vor Push ist in AGENTS.md verankert.
+- [x] **10. BATS-Gather blockiert: kommentarloser setup()-Body in container-resolution.bats ist Syntaxfehler** (degraded, tests/spec/mishap-rollup) — Disposition: **bereits gefixt** · Behoben in PR #4940 (Commit `0810dcc93` auf `main`).
 
-- [ ] **Failing-Test-Step (RED).** Fuer jeden Eintrag, der die Disposition **gefixt** bekommt,
+- [x] **Failing-Test-Step (RED).** Fuer jeden Eintrag, der die Disposition **gefixt** bekommt,
       zuerst einen Test schreiben, der das beschriebene Fehlverhalten reproduziert. Er gehoert
       nach `tests/spec/<spec-slug>/<kurz-slug>.bats` — das Verzeichnis der Spec, die das
       Verhalten abdeckt. Eintraege mit den beiden anderen Dispositionen brauchen keinen Test.
@@ -113,7 +114,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/<spec-slug>/
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
 ```
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

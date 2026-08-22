@@ -56,7 +56,6 @@ CHUNK_TARGET_CHARS="${BRAIN_CHUNK_TARGET_CHARS:-8000}"
 # leaving it alone would reject essentially every chunk this script produces.
 # Two chunk targets of headroom: brain-chunk.sh emits a single paragraph that is
 # larger than the target as one oversized chunk rather than dropping text, and
-# only a pathological source (one paragraph past 16k) should trip the guard.
 export MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-$((CHUNK_TARGET_CHARS * 2))}"
 export BRAIN_CHUNK_TARGET_CHARS="$CHUNK_TARGET_CHARS"
 # transform.sh runs as a child process per page — it needs its own copy of
@@ -197,13 +196,16 @@ awk -F'\t' '{print $3}' "$CHUNKS_TSV" | jq -R . | jq -s . > "$SLUGS_JSON"
 echo "Slug inventory: $(jq length "$SLUGS_JSON") slugs (including MOCs)"
 
 # Create/update branch in brain repo
+# [T013041] Immer frisch von main: Der Ingest ist ein Full-Regeneration-Modell
+# (wiki/-Baum wird pro Lauf neu geschrieben) — die Historie eines alten
+# Delivery-Branches traegt keinen Wert, nur das Risiko eines stale PR-Basis.
 echo "Preparing brain repo branch: $BRANCH"
 cd "$BRAIN_REPO"
 git fetch origin 2>/dev/null || true
-if git rev-parse --verify "origin/$BRANCH" >/dev/null 2>&1; then
-  git checkout -B "$BRANCH" "origin/$BRANCH" 2>/dev/null
+if git rev-parse --verify origin/main >/dev/null 2>&1; then
+  git checkout -B "$BRANCH" origin/main
 else
-  git checkout -B "$BRANCH" origin/main 2>/dev/null || git checkout -B "$BRANCH" main 2>/dev/null
+  git checkout -B "$BRANCH" main
 fi
 # Ensure wiki/ directory exists
 mkdir -p "$BRAIN_REPO/wiki"
@@ -422,7 +424,11 @@ while IFS=$'\t' read -r src_path chunk_file chunk_slug idx heading; do
     fi
     printf '%s\t%s\t%s\n' "$rc" "$src_path" "$chunk_chars" > "$RESULTS_DIR/$CURRENT"
   ) &
-  printf "\r[%d/%d] dispatched: %s " "$CURRENT" "$CHUNK_TOTAL" "$chunk_slug"
+  if [ -t 1 ]; then
+    printf "\r[%d/%d] dispatched: %s " "$CURRENT" "$CHUNK_TOTAL" "$chunk_slug"
+  else
+    printf "[%d/%d] dispatched: %s\n" "$CURRENT" "$CHUNK_TOTAL" "$chunk_slug"
+  fi
 done < "$CHUNKS_TSV"
 
 wait
@@ -608,11 +614,26 @@ echo "  Committed $PROCESSED pages"
 
 # Push branch
 if git remote get-url origin &>/dev/null; then
-  git push origin "$BRANCH" 2>&1 || {
-    echo "WARN: git push failed — manual push required"
+  # Staleness-Gate [T013041]: main darf waehrend der Generierung nicht gewandert sein.
+  # Der generierte Commit beruehrt nur wiki/ + index.md; ein Rebase schlaegt nur fehl,
+  # wenn main dieselben Pfade geaendert hat — dann ist Abbruch (nicht der Merge eines
+  # halben Baums) die richtige Reaktion.
+  git fetch origin 2>/dev/null || true
+  BASE_AT_START=$(git rev-parse "$BRANCH"~1 2>/dev/null || git rev-parse HEAD~1)
+  MAIN_NOW=$(git rev-parse origin/main 2>/dev/null || echo "")
+  if [ -n "$MAIN_NOW" ] && [ "$BASE_AT_START" != "$MAIN_NOW" ]; then
+    echo "WARN: origin/main moved during generation — rebasing generated commit onto new main"
+    if ! git rebase origin/main; then
+      echo "ERROR: rebase onto new origin/main failed — manual resolution required"
+      cd "$REPO_ROOT"
+      exit 1
+    fi
+  fi
+  if ! git push origin "$BRANCH" 2>&1; then
+    echo "ERROR: git push failed (non-fast-forward = stale/diverged remote branch) — delivery aborted"
     cd "$REPO_ROOT"
-    exit 0
-  }
+    exit 1
+  fi
   echo "  Pushed to origin/$BRANCH"
 
   # Create PR

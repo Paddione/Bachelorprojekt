@@ -159,10 +159,40 @@ Das Muster ist in allen vieren dasselbe: **nicht** sofort antworten, sondern den
 
 There's no required ending. Discovery might:
 
-- **Flow into a proposal**: "Ready to start? I can create a change proposal."
+- **Flow into planning**: "Ready to start? I can hand this to `dev-flow-plan`." (siehe unten)
 - **Result in artifact updates**: "Updated design.md with these decisions"
 - **Just provide clarity**: User has what they need, moves on
 - **Continue later**: "We can pick this up anytime"
+
+### Optionaler Übergang: Brainstorming in dev-flow-plan [Repo-lokal]
+
+Wenn sich beim Explorieren eine Richtung verfestigt und daraus **Code** entstehen soll, ist der
+nächste Schritt **nicht** `/opsx:propose`, sondern **`dev-flow-plan`**. Es ruft `propose` selbst
+in seiner Phase A auf und liefert das, was ein direkter Propose-Aufruf auslässt: Ticket vor
+Branch, Worktree + agent-lock, Prior-Art-Suche, `superpowers:brainstorming`,
+Partial-Decompose und das fail-closed `plan-lint`-Gate. Ein Change, der ohne diesen Weg entsteht,
+kann von `dev-flow-execute` nicht aufgenommen werden — es liest den Plan über die
+`FACTORY-PLAN-REF` aus der DB, nicht über einen Dateipfad.
+
+**Angeboten, nicht erzwungen** — die Explore-Haltung gilt weiter. Formuliere es als Frage:
+
+> "Das trägt. Soll ich mit dev-flow-plan weitermachen? Ich nehme unsere Erkenntnisse als
+> Brainstorming-Input mit, dann laufen Ticket, Worktree und Plan-Gates in einem Zug."
+
+Sagt der User ja, übergib **verdichtet** statt den Gesprächsverlauf zu wiederholen:
+
+- **Problem** — was tatsächlich behoben/gebaut wird (nicht das Symptom, das der User zuerst nannte)
+- **Gewählte Richtung** — samt der verworfenen Alternativen und *warum* sie ausfielen
+- **Constraints** — bestehende Requirements/Guards, die die Lösung nicht verletzen darf
+- **Offene Fragen** — was `dev-flow-plan` im Brainstorming noch klären muss
+
+Die verworfenen Alternativen sind der wertvollste Teil der Übergabe: sie hinterlassen im Code
+definitionsgemäß keine Spur, und ohne sie stellt `dev-flow-plan` in Schritt 0.7 dieselbe
+Architekturfrage ein zweites Mal.
+
+Reicht das Explorieren dagegen für eine reine Doku-/Spec-Änderung ohne Implementierung, bleibt
+der direkte `/opsx:propose`-Weg richtig.
+
 
 When it feels like things are crystallizing, you might summarize:
 

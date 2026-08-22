@@ -83,6 +83,10 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a  # v5.4.0
+        with:
+          version: 10
+
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
         with:
           version: 3.x
@@ -90,6 +94,12 @@ jobs:
 
       - name: Install node dependencies
         run: npm ci
+
+      - name: Install website dependencies
+        run: pnpm install --frozen-lockfile --dir components/website
+
+      - name: Install art-library tooling dependencies
+        run: npm install --silent --prefix assets/art-library/_tooling
 
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
@@ -114,12 +124,20 @@ jobs:
       - name: Code-quality gates (always)
         run: node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
 
+      - name: Cache actionlint binary
+        id: cache-actionlint
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/bin/actionlint
+          key: actionlint-1.7.7-linux-amd64
+
       # [T012414] Die self-hosted Runner haben kein passwortloses sudo — und
       # sollen es nicht brauchen. Installiert wird in ein vom Runner-User
       # beschreibbares bin-Verzeichnis, das ueber GITHUB_PATH fuer die
       # Folgeschritte auf den PATH kommt. Ein bereits vorhandenes actionlint
       # der gepinnten Version wird wiederverwendet.
       - name: Install actionlint (pinned)
+        if: steps.cache-actionlint.outputs.cache-hit != 'true'
         run: |
           BIN="$HOME/.local/bin"
           mkdir -p "$BIN"
@@ -134,6 +152,13 @@ jobs:
           fi
           actionlint --version
 
+      - name: Ensure actionlint in PATH
+        run: |
+          BIN="$HOME/.local/bin"
+          mkdir -p "$BIN"
+          echo "$BIN" >> "$GITHUB_PATH"
+
+
       - name: Workflow lint (always)
         run: bash scripts/lint-workflows.sh
 
@@ -147,7 +172,7 @@ jobs:
       # handgepflegte Liste ab jetzt gegen die vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - name: llm-proxy routing + readiness (always)
-        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/factory-pin.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
+        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/factory-pin.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/loadout-pin.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
       - name: API auth regression gate
         run: |
@@ -256,6 +281,19 @@ jobs:
       - name: Install node dependencies
         run: npm ci
 
+      - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Run ticket-mcp Go tests
+        run: task ticket-mcp:test
+
       - name: OpenSpec validation
         run: npm run test:openspec
 
@@ -313,11 +351,6 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      # MUSS nach setup-task stehen: der Step ruft `task` auf, und das Binary
-      # existiert erst danach (sonst Exit 127 "task: command not found").
-      - name: Run ticket-mcp Go tests
-        run: task ticket-mcp:test
 
       - name: Install node dependencies
         run: npm ci
@@ -599,26 +632,43 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 1
           fetch-tags: false
 
+      - name: Fetch origin/main for diffing (shallow)
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
+
+      - name: Check if website files changed
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+          if echo "$CHANGED" | grep -qE '^(components/website/|\.github/workflows/ci\.yml)'; then
+            echo "run_website=true" >> "$GITHUB_OUTPUT"
+            echo "Website-relevant files changed, running full website suite"
+          else
+            echo "run_website=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No components/website/ changes — skipping website build, lint, and vitest (fast exit)"
+          fi
+
       - name: Set up pnpm
+        if: steps.filter.outputs.run_website == 'true'
         uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a  # v5.4.0
         with:
           version: 10
 
       - uses: actions/setup-node@v7
+        if: steps.filter.outputs.run_website == 'true'
         with:
           node-version: '24'
           cache: 'pnpm'
           cache-dependency-path: components/website/pnpm-lock.yaml
 
       - name: Install website dependencies
+        if: steps.filter.outputs.run_website == 'true'
         run: cd components/website && pnpm install --frozen-lockfile
 
-      - name: Fetch origin/main for --changed diffing
-        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
-
       - name: Check coverage relevance
+        if: steps.filter.outputs.run_website == 'true'
         id: check-cov
         run: |
           CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
@@ -629,6 +679,7 @@ jobs:
           fi
 
       - name: Run ESLint (--max-warnings 0 fail-closed gate)
+        if: steps.filter.outputs.run_website == 'true'
         run: cd components/website && pnpm lint
 
       - name: Run vitest + Astro check + Knip (parallel)
@@ -643,6 +694,7 @@ jobs:
         # Default 5s per-test timeout is too tight for DB-heavy tests
         # (e.g. tickets/cockpit-db.test.ts seeds 1005 rows) when vitest
         # runs ~243 files in parallel on shared CI runners. [T001336, T001651]
+        if: steps.filter.outputs.run_website == 'true'
         run: |
           cd components/website
           ARGS="run --changed origin/main --testTimeout=30000"
@@ -662,7 +714,7 @@ jobs:
       - name: Upload Vitest JUnit report
         # Runs even if the tests above failed, so a red PR still gets a
         # downloadable per-test breakdown (not just the raw log).
-        if: always()
+        if: always() && steps.filter.outputs.run_website == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: vitest-junit-report
@@ -678,6 +730,7 @@ jobs:
         #      the PR doesn't touch src/lib/), or
         #   b) --changed found zero components/website/ source changes (pct: "Unknown").
         # In both cases there is no source delta to regress. [T001651, T003164]
+        if: steps.filter.outputs.run_website == 'true'
         run: |
           cd components/website
           if [ ! -f coverage/coverage-summary.json ]; then
@@ -693,6 +746,7 @@ jobs:
           awk -v cov="$COV" 'BEGIN { if (cov + 0 < 60) { print "::error::Coverage gate failed: " cov "% < 60%"; exit 1 } else { print "::notice::Coverage gate passed: " cov "% >= 60%" } }'
 
       - name: Build website
+        if: steps.filter.outputs.run_website == 'true'
         run: cd components/website && pnpm build
 
       - name: Check client-JS bundle budget
@@ -701,9 +755,11 @@ jobs:
         # ran this script. Folding it into vitest-website saves ~30s of job
         # startup + artifact upload/download overhead. check-bundle-size.mjs
         # uses only Node built-ins (fs, path, zlib) — no npm deps needed.
+        if: steps.filter.outputs.run_website == 'true'
         run: node scripts/check-bundle-size.mjs --check --fail --threshold=5
 
       - name: Upload website dist artifact
+        if: steps.filter.outputs.run_website == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: website-dist

@@ -453,7 +453,12 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-DB11** | Tage seit letztem Restore-Verify | 30 ✓ | ≤ 30 | `kubectl get configmap recovery-verify-status -o jsonpath=...` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 3 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
-| **G-FE05** | Lighthouse Performance Score | 90 ✓ | ≥ 90 | `npx @lhci/cli autorun --collect.url=... --assert.performance=0.9` |
+| **G-FLUX01** | Flux Reconciliation Health | n/a | 0 | `python3 scripts/lib/runtime-health-measure.py flux` — clusterweit, leer/fehlerhaft ⇒ n/a |
+| **G-OBS01** | Prometheus Scrape Health | n/a | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` — aktive `up`-Serien, leer ⇒ n/a |
+| **G-CAP01** | PVC Storage Headroom <20 % | n/a | 0 | `python3 scripts/lib/runtime-health-measure.py capacity` — `workspace` + `workspace-korczewski` |
+| **G-A11Y01** | Critical/serious axe-Verstöße | n/a | 0 | `node scripts/lib/runtime-browser-audit.mjs` + `runtime-health-measure.py axe`, beide Brands vollständig |
+| **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | n/a | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
+| **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
 | **G-BRAIN14** | Brain-Ingest-Backlog | 172 ⚠ | 0 | `bash scripts/brain-ingest-worklist.sh` + State-File-Hash-Vergleich |
 | **G-IF01** | MCP-Endpunkte ohne Listener | 4 ⚠ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
@@ -515,8 +520,8 @@ bash scripts/health-goals-llm-fill.sh --apply      # schreibt Prio-C-Aktuell mit
 
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
-- **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05, G-BRAIN12, G-BRAIN13, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
+- **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03, G-FLUX01, G-OBS01, G-CAP01, G-A11Y01, G-FE05, G-SLO01
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-BRAIN12, G-BRAIN13, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14, G-AGENTIC09, G-DB11
 - **Nur lokal (nicht in CI):** G-WT01–G-WT06, G-LLM01–G-LLM05. Diese Familien messen lokalen Maschinenzustand — Worktrees, Hauptcheckout-Branch, agent-locks, `main`-Divergenz sowie den Betrieb des lokalen LLM-Stacks (Modellserver, Proxy, Loadouts, Units, Backend-Endpunkte). Ein CI-Runner hat davon nichts; die Ziele wären dort strukturell immer grün und damit wertlos. Messort sind `task health:wt` und `task health:llm` (Ziel-IDs aus der Taskfile-Variable `HG_LOCAL_ONLY_GOALS`) sowie ein **nicht failender** Warn-Block in `task freshness:check`, der in CI mit sichtbarer Notiz übersprungen wird. [T002443] [T002442]
 

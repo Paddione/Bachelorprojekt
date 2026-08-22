@@ -55,7 +55,7 @@ runtimes:
     mode: subagent
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, Port 8094, 220000 ctx, text-only, np=1). Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig. Name bleibt als Dispatch-Schnittstelle."
+    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, Port 8094, 114688 ctx, text-only, np=1). Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig. Name bleibt als Dispatch-Schnittstelle."
   devstral:
     mode: subagent
     model: llamacpp-local/qwen38-220k
@@ -75,7 +75,7 @@ runtimes:
     mode: subagent
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "qwen38 family: Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 220000 ctx, text-only (kein mmproj). EIN Slot (parallel=1) — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [2026-08-22]"
+    note: "qwen38 family: Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 114688 ctx, text-only (kein mmproj). EIN Slot (parallel=1) — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [2026-08-22]"
   qwen-cloud:
     mode: subagent
     model: alibaba-intl/qwen3.8-max
@@ -85,12 +85,12 @@ runtimes:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary local agent. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 220000 ctx, text-only). Alle lokalen Agenten teilen dieses eine Loadout."
+    note: "Tab-selectable primary local agent. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only). Alle lokalen Agenten teilen dieses eine Loadout."
   gemma26-vision:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary, no subagent dispatch. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 220000 ctx, text-only)."
+    note: "Tab-selectable primary, no subagent dispatch. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   # [T003065] Ein tab-waehlbarer Primaeragent pro lokalem GGUF-Modell. Alle
   # Kontextwerte sind in scripts/llm/loadouts.json als Messwert belegt — keine
   # n_ctx_train-Zahlen. Der Semaphor in scripts/llm-proxy/server.mjs serialisiert
@@ -99,27 +99,27 @@ runtimes:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 220000 ctx, text-only). Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze."
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only). Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze."
   devstral-primary:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 220000 ctx, text-only)."
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   gemma12-primary:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 220000 ctx, text-only)."
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   gemma26-throughput-primary:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 220000 ctx, text-only)."
+    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
   qwen38-primary:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Tab-selectable text-only primary on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, Port 8094, 220000 ctx, one slot, q4_0 KV cache) [T013109]"
+    note: "Tab-selectable text-only primary on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, Port 8094, 114688 ctx, one slot, q4_0 KV cache) [T013109]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
@@ -172,9 +172,9 @@ runtimes:
     note: "Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
   orchestrator:
     mode: primary
-    model: alibaba-intl/qwen3.8-max
+    model: opencode-zen/laguna-s-2.1-free
     write_capable: true
-    note: "Primary orchestrator on Qwen 3.8 Max (Alibaba Cloud, 131k ctx). Dispatches local family subagents + cloud escalation (qwen-cloud/deepseek-*). Eskalationskette: lokal → qwen-cloud → deepseek-helper → deepseek-pro [T013360]"
+    note: "Primary orchestrator on Laguna S 2.1 Free (OpenCode Zen, Poolside agentic coding model, free tier, 256k ctx per models.dev; live-smoke-tested 2026-08-22). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches local family subagents + cloud escalation (qwen-cloud/deepseek-*). Eskalationskette: lokal → qwen-cloud → deepseek-helper → deepseek-pro [T013360]"
   alibaba-primary:
     mode: primary
     model: alibaba-intl/qwen3.8-max

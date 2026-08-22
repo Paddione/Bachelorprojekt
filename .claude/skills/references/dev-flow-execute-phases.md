@@ -1,6 +1,6 @@
 # dev-flow-execute — Phasen im Detail
 
-Referenz zu [`dev-flow-execute`](../dev-flow-execute/SKILL.md). Der Skill-Body führt den Ablauf,
+Referenz zu [`dev-flow-execute`](../dev-flow-execute/SKILL.md) und dem gemeinsamen [Lifecycle-Vertrag](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md). Der Skill-Body führt den Ablauf,
 die Delegation an den Implementer und **alle Gates**; hier stehen die ausformulierten
 Befehlsfolgen der mechanischen Schritte.
 

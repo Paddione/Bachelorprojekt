@@ -25,7 +25,7 @@ if [[ -n "$PIN" ]]; then
     exit 0
   fi
 fi
-FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-gemma26-throughput}}"
+FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-qwen38-220k}}"
 
 # Tier "opus": Modell aus der Registry, aber OHNE Slot-Claim.
 #

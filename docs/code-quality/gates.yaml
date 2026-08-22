@@ -146,6 +146,9 @@ s3:
   # hardcoded app config value.
   allowlist_files:
     - k3d/configmap-domains.yaml
+    # Synthetic monitoring intentionally targets both public brand identities;
+    # unlike application routing, these are the measurement subjects themselves.
+    - k3d/monitoring/blackbox-exporter.yaml
     - components/website/src/pages/sitemap.xml.ts
     - prod-fleet/mentolder/sessions-server.yaml
     - prod-mentolder/kustomization.yaml
@@ -267,4 +270,3 @@ s5:
     - path: "components/mentolder-web"
       allowed: ["pnpm-lock.yaml"]
       forbidden: ["package-lock.json"]
-

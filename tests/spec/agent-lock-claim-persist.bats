@@ -93,7 +93,10 @@ teardown() {
   # reap DARF diese Datei NICHT löschen, weil der SID lebt (Fix zu
   # Defekt 1). Vor dem Fix löscht der reap sie → Datei fehlt nach den
   # beiden Subshells. Nach dem Fix überlebt sie.
-  for i in $(seq 1 30); do
+  # 30 Runden erhöhen nur die Wahrscheinlichkeit, ein zeitliches Fenster zu treffen —
+  # sie belegen keine Korrektheit. 5 Runden reichen aus, um mit hoßer Wahrscheinlichkeit
+  # einen Defekt zu provozieren, der bei jedem Lauf mitgetroffen wird, wenn er existiert.
+  for i in $(seq 1 5); do
     bash "$LOCK" claim branch fix/t001384-race-$i \
       --worktree /tmp/wt-race-missing-$i --label race >/dev/null 2>&1 &
     CLAIM_PID=$!

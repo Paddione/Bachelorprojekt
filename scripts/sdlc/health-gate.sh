@@ -19,7 +19,8 @@ LLM_PROXY_PORT="${LLM_PROXY_PORT:-18235}"
 LLM_PROXY_LIVEZ="${LLM_PROXY_LIVEZ:-http://127.0.0.1:${LLM_PROXY_PORT}/livez}"
 LLM_PROXY_HEALTH="${LLM_PROXY_HEALTH:-http://127.0.0.1:${LLM_PROXY_PORT}/health}"
 LLM_PROXY_STATUS="${LLM_PROXY_STATUS:-http://127.0.0.1:${LLM_PROXY_PORT}/admin/loadouts/status}"
-SDLC_LLM_LOADOUT="${SDLC_LLM_LOADOUT:-gemma26-throughput}"
+# [T013328 #4] Default seit qwen38-Cutover (T013434/T013360), siehe llm-up.sh.
+SDLC_LLM_LOADOUT="${SDLC_LLM_LOADOUT:-qwen38-220k}"
 
 declare -a FAILED=()
 EXIT=0

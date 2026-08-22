@@ -48,32 +48,27 @@ files were touched.
 
 The `vitest-website` job SHALL stay present and required on every PR (no job-level
 path filter) so branch protection's `Vitest (website)` check always reports — the
-smart selection happens inside the `pnpm vitest run` command, not at the workflow
-level.
+smart selection happens inside the job via a step-level diff check: when no files
+under `components/website/` were touched, expensive steps (`pnpm install`, `astro:check`,
+`knip`, `vitest`) SHALL be skipped, allowing the job to finish green in under 10 seconds.
 
-#### Scenario: Chore-PR ohne website-Änderungen besteht Vitest-Gate
+#### Scenario: Chore-PR ohne website-Änderungen nutzt Fast-Exit
+- **GIVEN** ein PR ändert nur `openspec/` und `AGENTS.md` (keine Datei unter `components/website/`)
+- **WHEN** der `vitest-website`-Job den Diff-Filter gegen `origin/main` ausführt
+- **THEN** setzt der Filter `run_website=false`
+- **THEN** werden `pnpm install`, `vitest`, `astro:check`, `knip` und `Vitest line coverage gate` übersprungen
+- **THEN** meldet der Job `Vitest (website)` sofort Success (Exit 0) für GitHub Branch Protection
 
-- **GIVEN** ein PR ändert nur `openspec/` und `AGENTS.md` (keine Datei unter `website/`)
-- **WHEN** der `vitest-website`-Job `pnpm exec vitest run --changed --coverage` ausführt
-- **THEN** beendet Vitest mit Exit-Code 0 (keine Tests, da keine `website/`-Diffs seit `origin/main`)
-- **THEN** schreibt `coverage/coverage-summary.json` mit `pct: "Unknown"` (kein Source-Coverage-Sample)
-- **THEN** der Coverage-Gate-Schritt erkennt `pct: "Unknown"`, gibt `::notice::Coverage pct: Unknown (--changed found no website/ changes) — skipping gate` aus und beendet sich mit Exit-Code 0
-
-#### Scenario: Website-Feature-PR läuft nur betroffene Tests
-
-- **GIVEN** ein PR ändert `components/website/src/lib/auth/magic-link.ts` und `components/website/src/lib/auth/magic-link.test.ts`
-- **WHEN** der `vitest-website`-Job `pnpm exec vitest run --changed --coverage` ausführt
-- **THEN** läuft nur `magic-link.test.ts` (und ggf. transitiv abhängige Tests), nicht die vollen ~243 Vitest-Dateien
-- **THEN** schreibt `coverage/coverage-summary.json` einen realen `pct`-Wert für `src/lib/auth/magic-link.ts`
-- **THEN** der Coverage-Gate-Schritt wertet diesen Wert aus und blockt den Merge bei `< 60 %`
+#### Scenario: Website-Feature-PR führt vollständige Suite aus
+- **GIVEN** ein PR ändert `components/website/src/lib/auth/magic-link.ts`
+- **WHEN** der `vitest-website`-Job den Diff-Filter gegen `origin/main` ausführt
+- **THEN** setzt der Filter `run_website=true`
+- **THEN** werden Dependencies installiert und `vitest run --changed`, `astro:check` und `knip` ausgeführt
 
 #### Scenario: Vitest-Befehl bleibt required Check auf jedem PR
-
 - **GIVEN** der `Vitest (website)`-Check ist als required Check in der Branch-Protection konfiguriert
 - **WHEN** ein chore-PR geöffnet wird, der keine `website/`-Dateien berührt
 - **THEN** läuft der `vitest-website`-Job trotzdem und reported grün — der Check ist nicht "skipped" / "missing"
-
----
 
 ### Requirement: PR-Gate — E2E PR mit Changed-Spec-Selection
 
@@ -2865,6 +2860,24 @@ that title against the same type list.
 - **WHEN** der Commit-Lint-Job laeuft
 - **THEN** prueft er zusaetzlich diesen Titel gegen dieselbe Typ-Liste
 
+### Requirement: Factory Shard Setup Minimization
+Each shard of the `test-factory-shard` matrix MUST only execute setup steps strictly required for running the assigned subset of BATS spec tests.
+
+#### Scenario: ticket-mcp tests executed in fast gate job
+- **GIVEN** a CI workflow triggered on pull request or push
+- **WHEN** the `test-factory-openspec` job runs
+- **THEN** it executes `task ticket-mcp:test` alongside OpenSpec validations
+- **AND** the 4 `test-factory-shard` jobs do NOT execute `task ticket-mcp:test` redundantly
+
+### Requirement: Spec Runtime Manifest Completeness
+The runtime manifest `tests/spec/.spec-runtime.tsv` MUST provide measured runtime weights for at least 95% of all `.bats` files present under `tests/spec/`.
+
+#### Scenario: LPT shard balancing with up-to-date weights
+- **GIVEN** the complete list of spec test files in `tests/spec/`
+- **WHEN** `scripts/spec-shard.sh --verify --of 4` is executed
+- **THEN** the load balance between the lightest and heaviest shard is within 90-100%
+- **AND** missing test weights do not cause severe tail latency in any shard
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -3434,3 +3447,7 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (65339c7f7fac) -->
 
 <!-- merged from change delta ci-cd.md (a6aa459e81f1) -->
+
+<!-- merged from change delta ci-cd.md (7695daaf0cc8) -->
+
+<!-- merged from change delta ci-cd.md (214d53b59a78) -->

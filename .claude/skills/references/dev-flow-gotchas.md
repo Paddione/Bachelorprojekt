@@ -2,6 +2,8 @@
 
 This section aggregates known operational issues, gotchas, and workarounds for the `dev-flow` pipeline. Refer to these when executing plans, creating tickets, or deploying components.
 
+The shared [dev-flow-lifecycle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md) owns transitions and roles; executable Git, verification and merge mechanics remain in their referenced SSOTs.
+
 ### [T000321] Main Branch Guard (Branch Protection)
 **Context**: Never commit or push directly to `main`.
 **Rule**: Always create a feature, fix, or chore worktree/branch. `dev-flow-plan` and `dev-flow-execute` verify that the active branch is not `main` before commiting/pushing changes.
@@ -123,3 +125,23 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 **Context**: Nach der sdlc/-Verschiebung (T002624) waren Testpfade in `tests/` nicht nachgezogen. Das kam über DREI CI-Runden einzeln hoch (dashboard.bats; dann G-CQ02 in zwei Kopien; dann pipeline-interface/openspec-pgvector/brain-link-derivation), weil jeweils nur der gemeldete Fehler behoben wurde — statt einmal die Gesamtliste zu erheben. Ein Teil zeigte sogar auf eine ZWISCHENFORM der Verschiebung (`components/website/src/sdlc/components/`), die nie existierte.
 **Rule**: Bei einer Massenverschiebung VOR dem ersten Commit systematisch alle Referenzen auf die alten Pfade suchen (git grep über den ganzen Baum, inkl. tests/), NICHT CI-Runde für CI-Runde die gemeldeten Fehler abarbeiten. Erwartete Fehlerliste einmal vollständig erheben und abhaken.
 
+
+### [T002673] stage-plan läuft NACH dem Commit, nicht davor
+**Context**: `stage-plan` liest die Plandatei über `git cat-file -p "${branch}:${plan}"` aus dem **Branch-Commit**, nicht aus dem Arbeitsbaum (`scripts/vda/ticket/stage-plan.sh`). Wird es vor dem Commit aufgerufen, steht dort noch das `propose`-Skeleton; die `touched_files`-Ableitung meldet dann `keine Pfade ableitbar` und lässt die Spalte leer — ohne dass es auffällt, weil die Meldung nur auf stderr steht und der Stage trotzdem Erfolg meldet. Die Ableitung selbst funktioniert (`scripts/plan-touched-files.sh` liefert gegen die reale Datei die vollständige Liste).
+**Rule**: In dev-flow-plan Schritt 4.5 nur Ticket anlegen und claimen (der Claim muss vor dem Pre-Commit-Guard liegen), `stage-plan` erst in Schritt 5 nach `git commit`/`git push`. `stage-plan` ist idempotent und vereinigt `touched_files` in SQL — ein späterer Zweitaufruf ist unschädlich, die richtige Reihenfolge erspart ihn nur.
+
+### [T002820] Externe Abhängigkeiten schon in der Rotphase absichern
+**Context**: Setzt ein failing Test ein externes Binary oder einen externen Dienst voraus (Drittanbieter-CLI, erreichbarer Cluster, laufende DB), ist er in CI ohne Guard dauerhaft rot und misst die Ausstattung des Runners statt den Zustand des Codes. Damit ist der Zweck der Rotphase zerstört: „rot, weil Implementierung fehlt" und „rot, weil das Binary fehlt" sind in der CI-Ausgabe nicht zu unterscheiden.
+**Rule**: Der Verfügbarkeits-Guard gehört in die **Rotphase**, nicht erst in die Grünphase — `command -v <binary> >/dev/null 2>&1 || skip "<binary> binary not installed"`. Etabliertes Muster: `tests/spec/sealed-secret-cluster-drift.bats`. Vor dem Schreiben prüfen, ob CI die Abhängigkeit überhaupt einrichtet (`grep -rn '<binary>' .github/workflows/`; **0 Treffer heißt: in CI nicht vorhanden**). Beide Richtungen verifizieren — mit dem Binary im PATH läuft der Test, mit `PATH=/usr/bin:/bin` skippt er sauber.
+
+### [T002816] Kein fertig aussehender PR aus dem Plan-Stand
+**Context**: Ein offener PR, dessen Titel einen fertigen Fix ankündigt, während der Branch nur `chore: anchor branch` und `chore(plans): add failing test + stage plan` trägt, liest sich von außen als „kaputter Fix, Diagnose nötig" statt als „Plan gestagt, Implementierung ausstehend". Die roten Checks stammen dann aus der schlicht nicht committeten Implementierung — untracked `specs/`-Delta („missing specs/ delta dir") und uncommittete SSOT-Ergänzung, auf die ein BATS-Guard greppt. In einer Queue mit mehreren PRs kostet das gezielt Zeit an der falschen Stelle (beobachtet an PR #3918/T002719).
+**Rule**: Der Plan-Stand ist ein gepushter Branch ohne PR. Wird aus anderem Grund dennoch früh ein PR gebraucht, dann als Draft (`gh pr create --draft`) mit Titel-Präfix `[plan-only]`, damit der Zustand aus der PR-Liste ablesbar ist. Den regulären PR eröffnet `dev-flow-execute` nach der Implementierung.
+
+### [T002817] Prior-Art-Suche geht über die Requirements, nicht nur über den Code
+**Context**: Die Frage „gemeinsame Quelle vs. Allowlist spiegeln" war in `openspec/specs/divergence-guard.md` (aus T002470) bereits zugunsten der Duplikation entschieden und mit drei Drift-Tests abgesichert. Gefunden wurde das erst beim Schreiben des failing Tests — also nach der Nutzerfrage, die daraufhin ein zweites Mal beantwortet werden musste. Eine bewusst verworfene Lösungsrichtung hinterlässt im Code definitionsgemäß keine Spur; sie steht nur im Spec.
+**Rule**: dev-flow-plan Schritt 0.7 vor der ersten Architekturfrage. Liefert die Suche ein Requirement zum selben Gegenstand, wird es zitiert (Datei + Zeilen) und die Frage lautet nicht mehr „welche Richtung?", sondern „bestehende Entscheidung beibehalten oder ersetzen?". Ersetzen geht über ein `RENAMED`/`MODIFIED`-Delta auf den SSOT-Spec, nicht durch stilles Danebenschreiben. Verwandt, aber nicht dasselbe: T002448-M5 verlangt, dass die **Ursache** vor dem Lösungsdesign belegt ist — dieser Punkt verlangt zusätzlich, dass die **Lösungsrichtung** nicht schon einmal bewusst verworfen wurde.
+
+### [T001434] Plan-Stage-Commits heißen `chore(plans):`, nie `fix(`/`feat(`
+**Context**: Der Stage-Commit enthält nur den RED-Test und Plan-Artefakte, keinen Production-Code. Ein `fix(…)`/`feat(…)`/`refactor(…)`/`perf(…)`-Präfix wäre eine Lüge, und der nachfolgende `dev-flow-execute`-Implementer vertraut dem Titel und überspringt den eigentlichen Fix — exakt das ist bei T001434 passiert.
+**Rule**: Immer `chore(plans):`. Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` blockieren solche Commits; Notfall-Bypass `SKIP_COMMIT_VS_DIFF=1`.

@@ -20,11 +20,19 @@
 # Konstruktion keine Datei mehr unerfasst bleiben — ein Guard-Test waere vakuos. Der Guard
 # ist reiner Regressionsschutz fuer kuenftige Aenderungen an der Erfassungslogik.
 
+setup_file() {
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  BUILDER="${REPO_ROOT}/scripts/build-test-inventory.sh"
+  SANDBOX="${BATS_FILE_TMPDIR}/inventory.json"
+  COMMITTED="${REPO_ROOT}/components/website/src/data/test-inventory.json"
+  build_sandbox_inventory
+}
+
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   BUILDER="${REPO_ROOT}/scripts/build-test-inventory.sh"
   COMMITTED="${REPO_ROOT}/components/website/src/data/test-inventory.json"
-  SANDBOX="${BATS_TEST_TMPDIR}/inventory.json"
+  SANDBOX="${BATS_FILE_TMPDIR}/inventory.json"
   STRAY_REL="tests/spec/ci-cd/stray-ignored-test-T002664.bats"
 }
 
@@ -57,7 +65,6 @@ build_sandbox_inventory() {
 }
 
 @test "inventory: Datei unter der T002416-Verzeichniskonvention erzeugt einen Eintrag" {
-  build_sandbox_inventory
   # Positiv-Anker: die Beispieldatei existiert wirklich — sonst waere die Suche trivial leer.
   [ -f "${REPO_ROOT}/tests/spec/ci-cd/spec-dir-convention.bats" ]
   run jq --arg p 'tests/spec/ci-cd/spec-dir-convention.bats' \
@@ -67,7 +74,6 @@ build_sandbox_inventory() {
 }
 
 @test "inventory: category einer Unterverzeichnis-Datei ist der SSOT-Spec-Slug" {
-  build_sandbox_inventory
   [ -f "${REPO_ROOT}/tests/spec/openspec-workflow/half-archive-guard.bats" ]
   # Der Anforderungsbezug steckt im Verzeichnis, nicht im Dateinamen: das Verzeichnis
   # openspec-workflow entspricht openspec/specs/openspec-workflow.md.
@@ -78,7 +84,6 @@ build_sandbox_inventory() {
 }
 
 @test "inventory: Bestandsdatei auf oberster Ebene ohne ID erzeugt einen Eintrag" {
-  build_sandbox_inventory
   [ -f "${REPO_ROOT}/tests/spec/ci-cd.bats" ]
   run jq --arg p 'tests/spec/ci-cd.bats' \
     '[.[] | select(.file == $p)] | length' "$SANDBOX"
@@ -87,25 +92,24 @@ build_sandbox_inventory() {
 }
 
 @test "inventory: jede tests/spec-Datei ist erfasst" {
-  build_sandbox_inventory
   # Positiv-Anker: es gibt ueberhaupt Dateien zu pruefen — ohne ihn waere eine leere
   # Kandidatenliste ein stiller Durchlaeufer.
   run bash -c "find '${REPO_ROOT}/tests/spec' -name '*.bats' | wc -l"
   [ "$output" -ge 100 ]
 
-  local uncovered=0 f rel
-  while IFS= read -r f; do
-    rel="${f#${REPO_ROOT}/}"
-    if [ "$(jq --arg p "$rel" '[.[] | select(.file == $p)] | length' "$SANDBOX")" -eq 0 ]; then
-      echo "nicht erfasst: $rel" >&2
-      uncovered=$((uncovered + 1))
-    fi
-  done < <(find "${REPO_ROOT}/tests/spec" -name '*.bats' | sort)
-  [ "$uncovered" -eq 0 ]
+  # Ein einziger jq-Aufruf extrahiert alle erfassten Pfade; danach verglichen
+  # comm -23 (nicht-erfasst vs. gefunden) — statt 659 Einzel-Querys pro Testlauf.
+  local found inventoried uncovered
+  found="$(cd "${REPO_ROOT}" && find tests/spec -name '*.bats' | sort)"
+  inventoried="$(jq -r '.[].file' "$SANDBOX" | sort)"
+  uncovered="$(comm -23 <(printf '%s\n' "$found") <(printf '%s\n' "$inventoried"))"
+  if [ -n "$uncovered" ]; then
+    printf 'nicht erfasst:\n%s\n' "$uncovered" >&2
+  fi
+  [ -z "$uncovered" ]
 }
 
 @test "inventory: Dateien mit strukturierten IDs behalten ihre Eintraege" {
-  build_sandbox_inventory
   # Waechter gegen ein Ueberschiessen des Fixes: der Slug-Fallback darf NUR greifen, wo
   # keine ID gefunden wurde. Die Software-Factory-Suite liefert 55 FA-SF-Eintraege — die
   # duerfen weder verschwinden noch durch einen einzelnen Slug-Eintrag ersetzt werden.
@@ -122,7 +126,6 @@ build_sandbox_inventory() {
 }
 
 @test "inventory: Schema bleibt unveraendert (id, file, category, kind; kein tier)" {
-  build_sandbox_inventory
   # Der Konsument components/website/src/pages/sdlc/api/tests/traceability.ts liest genau diese Felder.
   # tier ist ein Zwischenfeld des Builders und wird vor dem Schreiben entfernt.
   run jq '[.[] | select((.id|type) != "string" or (.file|type) != "string"
@@ -134,7 +137,6 @@ build_sandbox_inventory() {
 }
 
 @test "inventory: committetes JSON ist mit dem Builder-Ergebnis deckungsgleich" {
-  build_sandbox_inventory
   # Schliesst die Luecke, die den Bug selbstverdeckend machte: der Fix muss das committete
   # Inventar mitregenerieren, nicht nur den Builder aendern.
   run bash -c "diff <(jq -S . '$COMMITTED') <(jq -S . '$SANDBOX')"

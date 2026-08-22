@@ -22,7 +22,10 @@ set -euo pipefail
 
 # Umgebung (Defaults wie in scripts/sdlc/health-gate.sh)
 LLM_PROXY_PORT="${LLM_PROXY_PORT:-18235}"
-SDLC_LLM_LOADOUT="${SDLC_LLM_LOADOUT:-gemma26-throughput}"
+# [T013328 #4] Default seit qwen38-Cutover (T013434/T013360): das alte
+# gemma26-throughput-Default belegte bei jedem Aufruf die exclusiveGroup
+# chat-gpu mit dem falschen Loadout (Ausloeser-Klasse T013527).
+SDLC_LLM_LOADOUT="${SDLC_LLM_LOADOUT:-qwen38-220k}"
 
 PROXY_BASE="http://127.0.0.1:${LLM_PROXY_PORT}"
 POLL_TIMEOUT_S=120

@@ -1,5 +1,55 @@
 # Changelog
 
+## [1.301.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.1...website-v1.301.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **ci:** install website+pnpm deps in test-bats, remove self-skips, cut BATS runtime [T013674] ([#5019](https://github.com/Paddione/Bachelorprojekt/issues/5019)) ([e69640d](https://github.com/Paddione/Bachelorprojekt/commit/e69640d58bfda8cd76b7a18921716fa9df0ece28))
+* **scripts:** sdlc defaults to qwen38-220k, stage-plan help documents --no-hold [T013328] ([#5022](https://github.com/Paddione/Bachelorprojekt/issues/5022)) ([08a74c2](https://github.com/Paddione/Bachelorprojekt/commit/08a74c2bbd3aab6342540bcf34400384011828ce))
+
+## [1.301.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.0...website-v1.301.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **scripts:** brain-ingest fresh branch base + staleness gate [T013041] ([#5012](https://github.com/Paddione/Bachelorprojekt/issues/5012)) ([80a5875](https://github.com/Paddione/Bachelorprojekt/commit/80a5875821294241f06b20c5cb1aa0c15041b564))
+
+## [1.301.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.2...website-v1.301.0) (2026-08-22)
+
+
+### Features
+
+* **scripts:** pin loadout during brain ingest and restore it after [T013593] ([#5007](https://github.com/Paddione/Bachelorprojekt/issues/5007)) ([50ac60d](https://github.com/Paddione/Bachelorprojekt/commit/50ac60d4bdb42cd8794641d6e82636c0276088ef))
+
+## [1.300.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.1...website-v1.300.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **infra:** clone lifecycle hardening for pvc-backup [T013044] ([#5002](https://github.com/Paddione/Bachelorprojekt/issues/5002)) ([f77d76b](https://github.com/Paddione/Bachelorprojekt/commit/f77d76b2bbd5f4c128c12310347b320c15e42a82))
+
+## [1.300.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.300.0...website-v1.300.1) (2026-08-22)
+
+
+### Performance
+
+* **ci:** optimize factory shard setup and update spec runtime weights [T013528] ([#5003](https://github.com/Paddione/Bachelorprojekt/issues/5003)) ([319bf3c](https://github.com/Paddione/Bachelorprojekt/commit/319bf3c2d1bd9258a8c3d83b25f3305e1082cee0))
+
+## [1.300.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.299.0...website-v1.300.0) (2026-08-22)
+
+
+### Features
+
+* **ci:** implement website fast-path and actionlint caching [T013468] ([#4992](https://github.com/Paddione/Bachelorprojekt/issues/4992)) ([ba8094d](https://github.com/Paddione/Bachelorprojekt/commit/ba8094d6d2d3d2612d024039dc2df1eb6401c532))
+
+## [1.299.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.298.0...website-v1.299.0) (2026-08-22)
+
+
+### Features
+
+* **ops:** measure runtime health goals [T013429] ([#4986](https://github.com/Paddione/Bachelorprojekt/issues/4986)) ([1278ec3](https://github.com/Paddione/Bachelorprojekt/commit/1278ec398e3db644331e5d1a28e5a8e7b91b96a4))
+
 ## [1.298.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.297.2...website-v1.298.0) (2026-08-22)
 
 

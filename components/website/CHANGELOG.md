@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.302.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.2...website-v1.302.3) (2026-08-22)
+
+
+### Bug Fixes
+
+* **website:** remove unused LoadoutDocItem interface [T013918] ([#5057](https://github.com/Paddione/Bachelorprojekt/issues/5057)) ([974f473](https://github.com/Paddione/Bachelorprojekt/commit/974f473081445f4fed9e6fb58bcacb4d5df3253a))
+
 ## [1.302.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.1...website-v1.302.2) (2026-08-22)
 
 

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1197,
+      "file_count": 1198,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -768,6 +768,7 @@
         "tests/spec/mishap-rollup/rollup-direct-dispatch.bats",
         "tests/spec/mishap-rollup/rollup-plan-lint-scope-examples.bats",
         "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
+        "tests/spec/mishap-rollup/sql-parameterized-queries.bats",
         "tests/spec/mishap-rollup/wakeup-single-run.bats",
         "tests/spec/mishap-rollup/watchlist-disposition.bats",
         "tests/spec/mishap-t002422.bats",

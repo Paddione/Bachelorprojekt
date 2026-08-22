@@ -88,6 +88,14 @@ cleanup_loop_closure() {
 
 while IFS=$'\t' read -r esc_title esc_meta esc_cycles; do
   [[ -n "${esc_title:-}" ]] || continue
+  # [T013843] Belt-and-Suspenders zum Parser-Fix in rollup-carryover.sh
+  # (T013316): ein Titel, der wie eine Plan-Checkbox aussieht, ist kein Befund.
+  # Die strenge _line_title-Extraktion darf solche Zeilen gar nicht mehr
+  # liefern; dieser Guard stellt das Unabhaengig davon sicher.
+  if [[ "$esc_title" == '- ['* ]]; then
+    echo "mishap-rollup: Eskalation '${esc_title}' sieht nach Plan-Boilerplate aus — skip [T013843]"
+    continue
+  fi
   already=$(cat <<SQL | factory_psql 2>/dev/null | head -1
 SELECT COUNT(*)::int FROM tickets.ticket_comments c
 JOIN tickets.tickets t ON t.id = c.ticket_id
@@ -97,6 +105,26 @@ SQL
   )
   if [[ "${already:-0}" -ne 0 ]]; then
     echo "mishap-rollup: Eskalation '${esc_title}' bereits promoted — skip"
+    continue
+  fi
+  # [T013843] Global-Dedupe ueber Container-Rotation: die 'Eskaliert:'-Marker
+  # haengen am ephemeren Container — der naechste Zyklus bekommt einen frischen
+  # und sah die alten Marker nie. Real: 4 Wellen identischer Tickets
+  # (T013679…T013739) aus 5 Containern heraus am 2026-08-22. Gebundener
+  # Parameter statt Interpolation (Quote-sicher), Fail-open bei DB-Ausfall
+  # wie beim Container-Marker oben.
+  open_elsewhere=$(factory_psql -v esc_title="[Rollup] ${esc_title}" <<'SQL' 2>/dev/null | head -1
+SELECT COUNT(*)::int FROM tickets.tickets
+WHERE title = :'esc_title'
+  AND status NOT IN ('done', 'archived');
+SQL
+  )
+  if [[ "${open_elsewhere:-0}" -ne 0 ]]; then
+    echo "mishap-rollup: '[Rollup] ${esc_title}' existiert bereits als offenes Ticket — Marker nachgetragen, skip [T013843]"
+    BRAND="$BRAND" bash "$REPO/scripts/ticket.sh" add-comment --id "$CONTAINER_ID" \
+      --body "Eskaliert: ${esc_title} (Zyklen: ${esc_cycles}) → bereits als offenes Ticket vorhanden, keine Re-Promotion [T013843]" \
+      --author mishap-rollup --visibility internal >/dev/null 2>&1 || true
+    printf '%s\n' "$esc_title" >> "$EXCLUDE_FILE"
     continue
   fi
   new_id="$(BRAND="$BRAND" bash "$REPO/scripts/ticket.sh" create \

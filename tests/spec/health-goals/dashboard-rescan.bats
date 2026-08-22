@@ -18,6 +18,7 @@
 # ausfuehrbare Form.
 
 setup() {
+  bats_require_minimum_version 1.5.0
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   cd "$REPO_ROOT" || return 1
   WRAPPER="$REPO_ROOT/scripts/health-goals-scan.sh"
@@ -26,7 +27,7 @@ setup() {
 }
 
 @test "messbares Ziel (G-CQ06): exit 0, genau ein Eintrag, measurable true, actual Zahl" {
-  run bash "$WRAPPER" G-CQ06
+  run --separate-stderr bash "$WRAPPER" G-CQ06
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" > "$BATS_TEST_TMPDIR/out.json"
   python3 - "$BATS_TEST_TMPDIR/out.json" <<'PY'
@@ -42,7 +43,7 @@ PY
 }
 
 @test "Positiv-Anker: Anzahl Eintraege == Anzahl angeforderter IDs" {
-  run bash "$WRAPPER" G-CQ06 G-TEST05 --fast
+  run --separate-stderr bash "$WRAPPER" G-CQ06 G-TEST05 --fast
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" > "$BATS_TEST_TMPDIR/out.json"
   python3 -c '
@@ -52,7 +53,7 @@ assert len(data) == 2, f"erwartet 2 Eintraege, gefunden {len(data)}"' "$BATS_TES
 }
 
 @test "nicht messbares Ziel (G-TEST05, --fast): measurable false, kein actual, kein dokumentierter Wert" {
-  run bash "$WRAPPER" --fast G-TEST05
+  run --separate-stderr bash "$WRAPPER" --fast G-TEST05
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" > "$BATS_TEST_TMPDIR/out.json"
   python3 - "$BATS_TEST_TMPDIR/out.json" "$ARTIFACT" <<'PY'
@@ -71,28 +72,31 @@ PY
 }
 
 @test "unbekannte ID wird abgelehnt: exit != 0, stderr nennt die ID" {
-  run bash "$WRAPPER" G-NICHT-EXISTENT
+  run --separate-stderr bash "$WRAPPER" G-NICHT-EXISTENT
   [ "$status" -ne 0 ]
-  [[ "$output" == *"G-NICHT-EXISTENT"* ]]
+  [[ "$stderr" == *"G-NICHT-EXISTENT"* ]]
+  [ -z "$output" ]
 }
 
 @test "ID mit Shell-Metazeichen wird abgelehnt" {
-  run bash "$WRAPPER" 'G-BAD;echo injected'
+  run --separate-stderr bash "$WRAPPER" 'G-BAD;echo injected'
   [ "$status" -ne 0 ]
-  [[ "$output" == *"G-BAD"* ]]
-  [[ "$output" != *"injected ok"* ]]
+  [[ "$stderr" == *"G-BAD"* ]]
+  [[ "$stderr" != *"injected ok"* ]]
+  [ -z "$output" ]
 }
 
 @test "ohne Argumente: Usage auf stderr, exit 2" {
-  run bash "$WRAPPER"
+  run --separate-stderr bash "$WRAPPER"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"Usage:"* ]]
+  [[ "$stderr" == *"Usage:"* ]]
+  [ -z "$output" ]
 }
 
 @test "SSOT bleibt byte-gleich: goals.md und generiertes Artefakt unverändert" {
   BEFORE_MD="$(sha256sum .claude/lib/goals.md | cut -d' ' -f1)"
   BEFORE_JSON="$(sha256sum components/website/src/lib/sdlc/goals-data.generated.json | cut -d' ' -f1)"
-  run bash "$WRAPPER" G-CQ06 --fast G-TEST05
+  run --separate-stderr bash "$WRAPPER" G-CQ06 --fast G-TEST05
   [ "$status" -eq 0 ]
   AFTER_MD="$(sha256sum .claude/lib/goals.md | cut -d' ' -f1)"
   AFTER_JSON="$(sha256sum components/website/src/lib/sdlc/goals-data.generated.json | cut -d' ' -f1)"

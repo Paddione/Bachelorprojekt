@@ -688,6 +688,73 @@
       "deprecated": null
     },
     {
+      "path": "/sdlc/api/llm-proxy/loadouts",
+      "file": "llm-proxy/loadouts.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/loadouts/[slug]/[action]",
+      "file": "llm-proxy/loadouts/[slug]/[action].ts",
+      "methods": [
+        "POST"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/loadouts/pin",
+      "file": "llm-proxy/loadouts/pin.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/loadouts/status",
+      "file": "llm-proxy/loadouts/status.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
+      "path": "/sdlc/api/llm-proxy/models",
+      "file": "llm-proxy/models.ts",
+      "methods": [
+        "GET"
+      ],
+      "backend": [
+        "unknown"
+      ],
+      "description": null,
+      "tier": null,
+      "deprecated": null
+    },
+    {
       "path": "/sdlc/api/llm-proxy/reload",
       "file": "llm-proxy/reload.ts",
       "methods": [

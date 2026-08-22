@@ -60,7 +60,11 @@ RestartSec=5
 # Den Wert nicht abtippen, sondern aus der bereits vorhandenen Quelle uebernehmen:
 #   mkdir -p ~/.config/llm-proxy && touch ~/.config/llm-proxy/proxy.env
 #   chmod 0600 ~/.config/llm-proxy/proxy.env
-#   grep '^BGE_MCP_TOKEN=' ~/.config/bge-mcp/server.env >> ~/.config/llm-proxy/proxy.env
+# LLM_PROXY_ADMIN_TOKEN sichert den Bridge-Listener fuer das Cockpit ab [T013909].
+# Fehlt der Wert, erzeugt dies keinen harten Ausfall, sondern laesst den Bridge-Listener
+# geschlossen (Loopback auf 127.0.0.1 bleibt weiterhin aktiv).
+# Erzeugungsbefehl:
+#   printf 'LLM_PROXY_ADMIN_TOKEN=%s\n' "$(openssl rand -hex 32)" >> ~/.config/llm-proxy/proxy.env
 #
 # `task llm:proxy:install-service` warnt, wenn die Variable fehlt.
 EnvironmentFile=-%h/.config/llm-proxy/proxy.env

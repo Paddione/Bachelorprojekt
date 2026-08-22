@@ -8,9 +8,7 @@
 // Reine Berechnung ohne Rück-Import auf UI-Module: das Panel zeigt nur noch an.
 
 import { pool } from '../db-pool';
-
-const PROXY_URL = process.env.LLM_PROXY_URL ?? 'http://127.0.0.1:18235';
-const PROXY_TIMEOUT_MS = 1500;
+import { proxyFetch } from './llm-proxy-client';
 
 export interface ModelCatalogEntry {
   /** DB-Provider der Zeile; 'local' für nur vom Proxy entdeckte Modelle. */
@@ -66,18 +64,14 @@ export interface PhaseResolution {
 }
 
 async function fetchProxyBackends(): Promise<BackendState[] | null> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), PROXY_TIMEOUT_MS);
   try {
-    const res = await fetch(`${PROXY_URL}/admin/state`, { signal: ctrl.signal });
+    const res = await proxyFetch('/admin/state');
     if (!res.ok) return null;
-    const data = (await res.json()) as { status?: BackendState[] } | BackendState[];
-    const list = Array.isArray(data) ? data : data.status;
+    const data = (await res.json()) as { backends?: BackendState[]; status?: BackendState[] } | BackendState[];
+    const list = Array.isArray(data) ? data : data.backends ?? data.status;
     return Array.isArray(list) ? list : null;
   } catch {
     return null;
-  } finally {
-    clearTimeout(timer);
   }
 }
 

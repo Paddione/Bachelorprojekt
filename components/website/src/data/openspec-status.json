@@ -4129,6 +4129,12 @@
       "status": "archived"
     }
   ],
+  "T013909": [
+    {
+      "slug": "llm-proxy-admin-cockpit",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -3876,6 +3876,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/host-listener-auth",
+    "file": "tests/spec/local-llm-proxy/host-listener-auth.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/kv-probe-endpoint-guard",
     "file": "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
     "category": "local-llm-proxy",
@@ -5060,6 +5066,12 @@
   {
     "id": "sdlc-cockpit/pipeline-slot-uebernahme",
     "file": "tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/proxy-unreachable-vs-stopped",
+    "file": "tests/spec/sdlc-cockpit/proxy-unreachable-vs-stopped.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

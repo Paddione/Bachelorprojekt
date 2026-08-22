@@ -1,11 +1,12 @@
 <script lang="ts">
   import LlmProxyPanel from '../../sdlc/factory/LlmProxyPanel.svelte';
+  import LlmLoadoutPanel from '../../sdlc/factory/LlmLoadoutPanel.svelte';
   import KiRoutingPanel from '../../sdlc/factory/KiRoutingPanel.svelte';
   import DispatchLogPanel from '../../cockpit/DispatchLogPanel.svelte';
   import InsightsTab from '../../sdlc/factory/InsightsTab.svelte';
 </script>
 
-<!-- KI-Deck (T007957/E3, p2 Task 3; konsolidiert T013302): alle Karten laden
+<!-- KI-Deck (T007957/E3, p2 Task 3; konsolidiert T013302; Loadout-Panel T013909): alle Karten laden
      sich selbst. DispatchLogPanel kommt OHNE initial-Prop -- sein eigener
      Default `[]` gilt, die Liste waechst per Adapter-Stream nach.
      T013302: FactoryModelSlots und KiKonfiguration sind entfernt — die eine
@@ -13,6 +14,8 @@
 <section class="deck-ki" data-testid="deck-panel-ki" data-purpose-id="deck-ki">
   <h3 class="deck-ki__sub">LLM-Proxy</h3>
   <LlmProxyPanel />
+  <h3 class="deck-ki__sub">Loadouts & Modelle</h3>
+  <LlmLoadoutPanel />
   <h3 class="deck-ki__sub">KI-Routing</h3>
   <KiRoutingPanel />
   <h3 class="deck-ki__sub">Dispatch-Mitschnitt</h3>

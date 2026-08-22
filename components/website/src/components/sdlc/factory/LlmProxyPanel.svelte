@@ -8,7 +8,8 @@
     fixups: string[]; models: DiscoveredModel[];
   }
   interface ProxyState {
-    proxy: 'online' | 'offline';
+    proxy: 'online' | 'unreachable' | 'unauthorized' | 'error';
+    address?: string; message?: string;
     port?: number; uptimeSec?: number; version?: string;
     backends: BackendState[];
   }
@@ -29,7 +30,7 @@
     return { name: '', kind: 'llamacpp' as string, base_url: '', api_key_env: '', priority: 10, enabled: true };
   }
 
-  const isOffline = $derived(state?.proxy === 'offline');
+  const isOnline = $derived(state?.proxy === 'online');
 
   async function load() {
     try {
@@ -101,8 +102,18 @@
   {:else if error && !state}
     <div class="lp-error"><p>{error}</p><button class="ff-pill ff-pill--ghost" onclick={load}>Erneut</button></div>
   {:else if state}
-    {#if isOffline}
-      <div class="lp-offline">Proxy offline — Start: <code>task llm:proxy:start</code></div>
+    {#if state.proxy === 'unreachable'}
+      <div class="lp-offline">
+        Proxy unter <code>{state.address ?? 'Host-Adresse'}</code> nicht erreichbar ({state.message ?? 'Verbindungsfehler'})
+      </div>
+    {:else if state.proxy === 'unauthorized'}
+      <div class="lp-unauthorized">
+        Authentifizierung abgelehnt ({state.address ?? 'Host-Adresse'}). Bitte <code>LLM_PROXY_ADMIN_TOKEN</code> in <code>proxy.env</code> und Cluster-Secret abgleichen.
+      </div>
+    {:else if state.proxy === 'error'}
+      <div class="lp-offline">
+        Fehler vom Proxy ({state.address ?? 'Host-Adresse'}): {state.message ?? 'Fehler'}
+      </div>
     {:else}
       <div class="lp-status">
         <span class="lp-dot lp-dot--ok"></span> online · Port {state.port ?? '—'} ·
@@ -121,8 +132,8 @@
             <td><span class="lp-badge lp-badge--{b.health}">{b.health}</span></td>
             <td class="lp-prio">
               {b.priority}
-              <button aria-label="höher" onclick={() => bump(b, -1)} disabled={isOffline}>↑</button>
-              <button aria-label="niedriger" onclick={() => bump(b, 1)} disabled={isOffline}>↓</button>
+              <button aria-label="höher" onclick={() => bump(b, -1)} disabled={!isOnline}>↑</button>
+              <button aria-label="niedriger" onclick={() => bump(b, 1)} disabled={!isOnline}>↓</button>
             </td>
             <td><input type="checkbox" checked={b.enabled} onchange={() => toggleEnabled(b)} /></td>
             <td>
@@ -163,6 +174,7 @@
   .llm-proxy-panel { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
   .lp-header { display: flex; align-items: center; justify-content: space-between; }
   .lp-offline { color: var(--danger); font-family: var(--mono); font-size: 13px; }
+  .lp-unauthorized { color: var(--warning, #e0a82e); font-family: var(--mono); font-size: 13px; }
   .lp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .lp-badge--unhealthy { color: var(--danger); }
 </style>

@@ -1,0 +1,35 @@
+# k3d/sdlc-stack/llm-proxy-host.yaml
+# Service + manueller Endpoints-Eintrag fuer den auf dem Host (WSL/Linux)
+# laufenden LLM-Proxy [T013909].
+#
+# WARUM EIN SERVICE OHNE SELEKTOR:
+# host.k3d.internal ist in diesem Cluster nicht auflösbar (CoreDNS fuehrt nur
+# k3d-Nodes). Ein Service ohne Selektor bleibt bestehen und wird nicht vom
+# Endpoints-Controller geleert, sondern bindet manuell die Bridge-IP des Hosts.
+#
+# IP-ERMITTLUNG:
+#   docker network inspect k3d-mentolder-dev -f '{{range .IPAM.Config}}{{.Gateway}}{{"\n"}}{{end}}'
+#
+# HINWEIS:
+# Eine falsche IP zeigt sich als "Cockpit erreicht den Proxy nicht" (unreachable),
+# nicht als Manifest-Fehler.
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-proxy-host
+spec:
+  ports:
+    - name: http
+      port: 18235
+      targetPort: 18235
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-proxy-host
+subsets:
+  - addresses:
+      - ip: 172.23.0.1
+    ports:
+      - name: http
+        port: 18235

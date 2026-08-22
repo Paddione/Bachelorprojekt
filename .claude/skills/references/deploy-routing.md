@@ -2,7 +2,7 @@
 
 Diese Tabelle ist die **einzige** verbindliche Quelle dafür, welcher Deploy-Task zu welchen
 geänderten Pfaden gehört. `dev-flow-execute` (Post-Merge-Deploy), `dev-flow-chore` (Schritt 7)
-und `dev-flow-iterate` (Dev-Cluster-Redeploy) verweisen alle hierher — **nicht** die Tabelle
+und lokale Dev-Redeploys (k3d) verweisen alle hierher — **nicht** die Tabelle
 kopieren, sondern verlinken.
 
 > **Pull-basiertes Deploy-Modell (Flux, T002083).** Prod wird auf dem fleet-Cluster von
@@ -56,7 +56,7 @@ kubectl --context fleet get pods -n workspace            | grep -v Running
 kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
 ```
 
-### Dev-Cluster-Redeploy (für `dev-flow-iterate`, k3d)
+### Dev-Cluster-Redeploy (k3d)
 
 | SURFACE | Redeploy-Task | Watched pods |
 |---------|--------------|--------------|

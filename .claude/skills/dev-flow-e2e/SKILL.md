@@ -8,7 +8,7 @@ agent: bachelorprojekt-test
 
 ## Wann diese Skill greift
 
-`dev-flow-execute` hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Die Live-Erkundung nutzt die `chrome-devtools-axi`-Skill (CLI, kein MCP-Browser-Server).
+`dev-flow-execute` hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Für die Live-Erkundung werden Standard-Browser/HTTP-Tools oder native Playwright-Mittel eingesetzt.
 
 **Sage zu Beginn:** "Ich nutze dev-flow-e2e für Playwright E2E Tests."
 
@@ -47,7 +47,7 @@ gh pr view "$PR_NUM" --json files -q '.files[].path' | sort
 
 Ermittle daraus:
 - **Welche URLs/Endpunkte** wurden neu erstellt oder verändert?
-- **Welches Playwright-Projekt** passt: `website` (web.*), `services` (brett.*, files.*, vault.*), `korczewski` (korczewski brand on fleet)?
+- **Welches Playwright-Projekt** passt: `website` (web.*), `services` (brett.*, files.*, vault.*)?
 - **Ticket-ID** aus dem PR-Titel (Format `T######`)?
 
 ---
@@ -55,12 +55,11 @@ Ermittle daraus:
 ## Schritt 1: Ziel-URL bestimmen
 
 | Geänderte Dateien | Live-URL | Playwright project |
-|---|---|---|---|
+|---|---|---|
 | `components/website/src/**` | `https://web.mentolder.de` | `website` |
 | `components/brett/**` | `https://brett.mentolder.de` | `services`, `brett-mentolder` |
 | `k3d/nextcloud*.yaml` | `https://files.mentolder.de` | `services` |
-# LiveKit removed per T002184
-| korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` |
+| korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` *(deaktiviert / frozen per T002602)* |
 | Übergreifender Smoke-Test | — | `smoke` |
 | System-Test (DB, Config, API) | — | `systemtest` |
 | Unit-Tests | — | `unit` |
@@ -71,7 +70,7 @@ Ermittle daraus:
 BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 ```
 
-### Credentials
+### Credentials & Brand-Status
 
 Es gibt **kein** separates E2E-Test-Passwort für Korczewski: Der Brand ist
 eingefroren (T002602 — Flux-Kustomizations suspendiert, Deployments in
@@ -83,14 +82,16 @@ in `.github/workflows/e2e.yml`).
 
 ---
 
-## Schritt 2: Live-Erkundung mit chrome-devtools-axi
+## Schritt 2: Live-Erkundung & Endpunkt-Prüfung
 
-Navigiere mit der `chrome-devtools-axi`-Skill zur implementierten Funktion und verschaffe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.
+Verschaffe dir ein vollständiges Bild der implementierten Funktion: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen und DOM-Elemente existieren.
 
 ```bash
-# Beispiel (chrome-devtools-axi CLI):
-chrome-devtools-axi navigate "$BASE_URL/<pfad>"
-chrome-devtools-axi snapshot
+# HTTP-Erreichbarkeit & Headers prüfen
+curl -sI "$BASE_URL/<pfad>"
+
+# Falls nötig HTML-Struktur / Selektoren sichten
+curl -sL "$BASE_URL/<pfad>" | head -n 50
 ```
 
 ---
@@ -250,8 +251,8 @@ Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…RE
 
 ## Schritt 9: Beendigung und Nachbereitung
 
-1. **Mishap Report**: Melde am Ende dieses Skills alle aufgetretenen Fehler über `mishap-tracker`.
-2. **Operations**: Fahre danach mit `operations-management` fort, um den Status des zugehörigen PRs oder Tickets zu überwachen.
+1. **Mishap Report**: Melde am Ende dieses Skills alle aufgetretenen Frictions über `mishap-tracker`.
+2. **Operations & Pipeline-Abschluss**: Fahre danach mit `operations-management` fort, um den Status des zugehörigen PRs / Tests zu überwachen bzw. `agent-lock release ticket <id>` durchzuführen.
 
 ## Übergabe — Kreislauf geschlossen
 
@@ -270,8 +271,9 @@ Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…RE
 |-------|-----------|
 | `dev-flow-execute` | **Vorgänger im Kreislauf** — Feature muss deployt sein |
 | `git-workflow` | Commit/Push-Konventionen für Schritt 7 (Freshness Guard, Scope-Preflight) |
-| `cluster-deployment` | Querschnitt — Cross-Brand-Tests |
+| `infra-ops` | Querschnitt — Infrastruktur- und Service-Status |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
+| `operations-management` | Nachbereitung — PRs/Tickets/Locks aufräumen |
 
 
 ## Framework mapping

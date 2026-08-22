@@ -92,7 +92,7 @@ Erst danach `task freshness:regenerate` ausführen — sonst regeneriert man geg
 veraltete Basis und der Zyklus beginnt von vorn.
 
 Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste zum Stagen):
-**SSOT** in `.claude/skills/references/verification-block.md`.
+**SSOT** in `.agents/skills/references/verification-block.md`.
 
 Kurzform: `task freshness:regenerate` + `task freshness:check` (CI-Äquivalent, S1-Ratchet).
 
@@ -202,7 +202,7 @@ EOF
 
 ## Schritt 5 — CI Fix Loop
 
-Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird. SSOT: `.claude/skills/references/ci-fix-loop.md`.
+Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird. SSOT: `.agents/skills/references/ci-fix-loop.md`.
 
 Kurzfassung:
 1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind
@@ -307,7 +307,7 @@ bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 | `opencode-flow-execute` | Feature/Fix-Ablauf (nutzt diesen Skill intern) |
 | `scripts/worktree-create.sh` | Git-crypt-safe worktree creator |
 | `worktree.ts` Plugin | Opencode-native primitive (git-crypt-limited) |
-| `.claude/skills/references/git-workflow-procedures.md` | Detail-Referenz (Schritt-Übersicht, Fehlertabelle) |
+| `.agents/skills/references/git-workflow-procedures.md` | Detail-Referenz (Schritt-Übersicht, Fehlertabelle) |
 | `using-git-worktrees` | Worktree korrekt anlegen (git-crypt-safe) |
 
 

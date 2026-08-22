@@ -911,6 +911,7 @@
         "tests/spec/sdlc-isolation/fleet-sequence-split.bats",
         "tests/spec/sdlc-isolation/kubelet-cert-guard.bats",
         "tests/spec/sdlc-isolation/llm-up-health.bats",
+        "tests/spec/sdlc-isolation/sdlc-default-loadout.bats",
         "tests/spec/sdlc-isolation/sdlc-up-command.bats",
         "tests/spec/sdlc/dev-admin-session-guards.bats",
         "tests/spec/sealed-secret-cluster-drift.bats",

@@ -350,12 +350,14 @@ HELP
       ;;
     stage-plan)
       cat <<'HELP'
-Usage: ticket.sh stage-plan --id <external_id> --branch <branch> --plan <tasks.md> --partials <1..9> [--hold]
+Usage: ticket.sh stage-plan --id <external_id> --branch <branch> --plan <tasks.md> --partials <1..9> (--hold|--no-hold)
   --id <external_id>      Ticket-ID (required)
   --branch <branch>       Feature/Fix-Branch (required)
   --plan|--plan-file <p>  Pfad zur Plan-Datei (required, muss im Git-Tree liegen)
   --partials <1..9>       Partial-Anzahl (required, auch fuer einen einzelnen Plan)
-  --hold                  Ticket NICHT sofort factory-greifbar machen
+  --hold                  Ticket NICHT sofort factory-greifbar machen (Operator gibt spaeter frei)
+  --no-hold               Factory greift sofort zu. Pflicht: genau eines von
+                          --hold/--no-hold — ohne beide bricht stage-plan ab (T003267).
 HELP
       ;;
     assert-phase-chain)

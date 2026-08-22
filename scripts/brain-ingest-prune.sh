@@ -48,33 +48,51 @@ for page in "$BRAIN_REPO"/wiki/*.md; do
   slug="$(basename "$page" .md)"
   src_line="$(grep -m1 '^source:: ' "$page" || true)"
   src_path=""
-  state_src=""
+  state_key=""
   candidate=0
 
-  if [[ "$src_line" == "source:: Bachelorprojekt "* ]]; then
-    src_path="${src_line#source:: Bachelorprojekt }"
-    if [ ! -e "$ROOT/$src_path" ] && ! cut -f1 "$WORKLIST" | grep -qxF "$src_path"; then
-      candidate=1
+  # Check source:: header if present
+  if [ -n "$src_line" ]; then
+    src_val="${src_line#source:: }"
+    case "$src_val" in
+      "Bachelorprojekt "*) src_path="${src_val#Bachelorprojekt }" ;;
+      "$ROOT"/*)           src_path="${src_val#$ROOT/}" ;;
+      /*)                  src_path="" ;; # other absolute path outside ROOT
+      "self"|"test")       src_path="" ;; # meta page
+      *)                   src_path="$src_val" ;;
+    esac
+    if [ -n "$src_path" ]; then
+      if [ ! -e "$ROOT/$src_path" ] && ! cut -f1 "$WORKLIST" | grep -qxF "$src_path"; then
+        candidate=1
+      fi
     fi
-  elif [ -z "$src_line" ] || [[ "$src_line" != "source:: Bachelorprojekt "* ]]; then
-    state_src="$(jq -r --arg s "$slug" 'to_entries[] | select(.value.slug == $s) | .key' "$STATE_FILE" | head -1)"
-    if [ -n "$state_src" ] && [ ! -e "$ROOT/$state_src" ] \
-       && ! cut -f1 "$WORKLIST" | grep -qxF "$state_src"; then
-      candidate=1
+  fi
+
+  # If no candidate yet and no source:: line matched, check state reverse-map
+  if [ "$candidate" -eq 0 ] && [ -z "$src_path" ]; then
+    state_key="$(jq -r --arg s "$slug" 'to_entries[] | select(.value.slug == $s) | .key' "$STATE_FILE" | head -1)"
+    if [ -n "$state_key" ]; then
+      state_src="${state_key%%#*}"
+      if [ ! -e "$ROOT/$state_src" ] && ! cut -f1 "$WORKLIST" | grep -qxF "$state_src"; then
+        candidate=1
+        src_path="$state_src"
+      fi
     fi
-    # Weder Bachelorprojekt-source:: noch State-Eintrag → Meta-Seite, NIE löschen
   fi
 
   [ "$candidate" -eq 1 ] || continue
   CANDIDATES=$((CANDIDATES + 1))
 
-  echo "PRUNE-CANDIDATE: wiki/$slug.md (source: ${src_path:-$state_src})"
+  echo "PRUNE-CANDIDATE: wiki/$slug.md (source: ${src_path:-$state_key})"
   if [ "$DO_PRUNE" -eq 1 ]; then
     rm -f "$page"
     (
       flock -x 200
       tmp="$(mktemp)"
-      jq --arg k "${src_path:-$state_src}" 'del(.[$k])' "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
+      # Delete all state entries matching this slug or src_path
+      jq --arg s "$slug" --arg p "$src_path" \
+        'with_entries(select(.value.slug != $s and (.key | split("#")[0]) != $p))' \
+        "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
     ) 200>"$STATE_FILE.lock"
     echo "PRUNED: wiki/$slug.md"
   fi

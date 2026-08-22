@@ -2688,6 +2688,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/factory-shard-optimization",
+    "file": "tests/spec/ci-cd/factory-shard-optimization.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
     "category": "ci-cd",

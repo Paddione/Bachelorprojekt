@@ -3979,6 +3979,12 @@
       "status": "archived"
     }
   ],
+  "T013044": [
+    {
+      "slug": "pvc-backup-clone-stuck-T013044",
+      "status": "plan_staged"
+    }
+  ],
   "T013107": [
     {
       "slug": "2026-08-22-mishap-incident-rollup-2026-08-22-T013107",
@@ -4055,6 +4061,12 @@
     {
       "slug": "2026-08-22-dev-flow-lifecycle-contract",
       "status": "archived"
+    }
+  ],
+  "T013528": [
+    {
+      "slug": "optimize-factory-shard-runtimes",
+      "status": "plan_staged"
     }
   ],
   "T013593": [

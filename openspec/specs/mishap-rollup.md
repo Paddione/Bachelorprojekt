@@ -207,42 +207,34 @@ empty cycle is started.
 
 ### Requirement: Unresolved entries SHALL carry over into the next container
 
-Before producing a cycle plan, the rollup generator SHALL collect the unresolved entry tasks of
-finished rollup cycles and append them to the current container as a regular batch, so that
-entries which received no disposition do not expire together with their container. The transfer
-SHALL name its source cycle, SHALL be idempotent per source cycle and container, and SHALL run
-before the batch count is taken, so that carried-over entries are planned in the same run.
+Before producing a cycle plan, the rollup generator SHALL collect the unresolved
+entry tasks of every unarchived finished rollup cycle and append them to the
+current container as regular batches. The transfer SHALL name each source
+cycle, SHALL be idempotent per source cycle and container, and SHALL run before
+the batch count is taken.
 
-The scan SHALL consider every unarchived cycle whose checkbox-based plan is published in the scan
-repository's current `HEAD`; committed-HEAD membership is the offline finished-cycle signal. It
-SHALL ignore cycles already below `openspec/changes/archive/`, untracked or branch-local plans,
-and plans from before checkbox-based disposition tracking. When a newer source plan contains an
-entry already present in an older source plan, the entry SHALL be emitted only for the oldest
-source, using its normalized title and metadata as identity.
+The scan SHALL consider all unarchived cycle directories whose checkbox-based
+plan is published in the scan repository's current `HEAD`; this committed-HEAD
+membership is the offline finished-cycle signal. It SHALL ignore cycles already
+below `openspec/changes/archive/`, untracked or branch-local plans, and the cycle
+belonging to the current container. When a newer source plan contains an entry
+already present in an older source plan, the entry SHALL be emitted only for
+the oldest source, using its normalized title and metadata as identity. Plans
+from before checkbox-based disposition tracking are not reconstructed implicitly.
+A failed transfer SHALL NOT abort the rollup run: the source plan stays in place
+and the next run retries.
 
-The cycle belonging to the current container SHALL be excluded from the scan, and a failed
-transfer SHALL NOT abort the rollup run: the source plan stays in place and the next run retries.
+#### Scenario: Multiple unarchived cycles are transferred
 
-#### Scenario: An unresolved entry survives its container
-
-- **GIVEN** a finished rollup cycle whose plan still holds an unresolved entry task
-- **AND** a current rollup container that has not yet received that cycle's transfer
-- **WHEN** the rollup generator runs
-- **THEN** a batch containing that entry SHALL be appended to the current container
-- **AND** the batch SHALL name the source cycle
-- **AND** the entry SHALL be counted towards the current cycle's batch count
-
-#### Scenario: The same cycle is never transferred twice
-
-- **GIVEN** a container that already carries a transfer from a given source cycle
-- **WHEN** the rollup generator runs again
-- **THEN** no second transfer of that cycle SHALL be appended
-
-#### Scenario: All unarchived finished cycles are transferred
-
-- **GIVEN** two finished cycles that both hold unresolved entry tasks
+- **GIVEN** two unarchived finished cycles that both hold unresolved checkbox entry tasks
 - **WHEN** the transfer candidates are scanned
 - **THEN** both cycles SHALL be reported in cycle-date order
+
+#### Scenario: Archived cycles are not transferred again
+
+- **GIVEN** an archived cycle and an unarchived cycle with unresolved entry tasks
+- **WHEN** the transfer candidates are scanned
+- **THEN** only the unarchived cycle SHALL be reported
 
 #### Scenario: Transitive entries are emitted once
 
@@ -256,13 +248,11 @@ transfer SHALL NOT abort the rollup run: the source plan stays in place and the 
 - **WHEN** the transfer candidates are scanned
 - **THEN** only the plan committed in `HEAD` SHALL be reported
 
-#### Scenario: A resolved cycle produces no transfer
+#### Scenario: The current cycle and resolved cycles are excluded
 
-- **GIVEN** a finished cycle whose entry tasks all carry a disposition
+- **GIVEN** a cycle belonging to the current container and a cycle whose entry tasks are all resolved
 - **WHEN** the transfer candidates are scanned
-- **THEN** that cycle SHALL NOT be reported
-
-<!-- merged from change delta mishap-rollup.md (ce960d7d9aac) -->
+- **THEN** neither cycle SHALL be reported
 
 ### Requirement: Rollup container resolution is brand-agnostic
 
@@ -387,3 +377,5 @@ manually running `devflow-post-merge-finalize.sh`.
 - **THEN** that cycle's directory remains untouched
 
 <!-- merged from change delta mishap-rollup.md (762662dfc1f2) -->
+
+<!-- merged from change delta mishap-rollup.md (ea9ea6e7d176) -->

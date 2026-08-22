@@ -2,11 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { GenerateOptions } from './session-agent.ts';
 import type { KiConfig } from './coaching-ki-config-db';
 
-const { getProviderByNameMock } = vi.hoisted(() => ({
+const { getProviderByNameMock, mockQuery } = vi.hoisted(() => ({
   getProviderByNameMock: vi.fn(),
+  mockQuery: vi.fn(),
 }));
 vi.mock('./provider-config', () => ({
   getProviderByName: (...a: unknown[]) => getProviderByNameMock(...a),
+}));
+vi.mock('./website-db', () => ({
+  pool: {
+    query: (text: string, params?: unknown[]) =>
+      params !== undefined ? mockQuery(text, params) : mockQuery(text),
+  },
 }));
 
 const mockKiConfig: KiConfig = {
@@ -36,6 +43,7 @@ describe('ClaudeSessionAgent', () => {
   beforeEach(() => {
     vi.resetModules(); vi.clearAllMocks();
     getProviderByNameMock.mockReset();
+    mockQuery.mockReset();
   });
 
   it('returns text response when Claude responds with text directly', async () => {
@@ -132,5 +140,90 @@ describe('ClaudeSessionAgent', () => {
     const agent = new ClaudeSessionAgent();
     const result = await agent.generate(baseOpts());
     expect(typeof result.aiResponse).toBe('string');
+  });
+});
+
+describe('Session-Modell-Auflösung (Factory-Default)', () => {
+  // kiConfig.modelName null → die Auflösung entscheidet
+  const optsWithoutModel = (): GenerateOptions => ({
+    ...baseOpts(),
+    kiConfig: { ...mockKiConfig, modelName: null },
+  });
+
+  function mockSdk(createSpy: ReturnType<typeof vi.fn>) {
+    vi.doMock('@anthropic-ai/sdk', () => ({
+      default: vi.fn().mockImplementation(function () {
+        return {
+          messages: {
+            create: createSpy.mockResolvedValue({
+              stop_reason: 'end_turn',
+              content: [{ type: 'text', text: 'ok' }],
+            }),
+          },
+        };
+      }),
+    }));
+  }
+
+  beforeEach(() => {
+    vi.resetModules(); vi.clearAllMocks();
+    getProviderByNameMock.mockReset();
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'claude', modelId: 'claude-haiku-4-5-20251001', baseUrl: null, apiKey: 'test-key',
+    });
+    mockQuery.mockReset();
+  });
+
+  it('liefert den Factory-Default aus der globalen Provider-Zeile', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'gemma26-throughput' }] });
+    const createSpy = vi.fn();
+    mockSdk(createSpy);
+    const { ClaudeSessionAgent } = await import('./claude-session-agent');
+    const agent = new ClaudeSessionAgent();
+    await agent.generate(optsWithoutModel());
+    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ model: 'gemma26-throughput' }));
+  });
+
+  it('folgt einer Änderung des Defaults ohne weitere Konfiguration', async () => {
+    const createSpy = vi.fn();
+    mockSdk(createSpy);
+    const { ClaudeSessionAgent, resolveSessionModel } = await import('./claude-session-agent');
+
+    mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'gemma26-throughput' }] });
+    expect(await resolveSessionModel()).toBe('gemma26-throughput');
+
+    mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'qwen3.8-27b' }] });
+    expect(await resolveSessionModel()).toBe('qwen3.8-27b');
+
+    mockQuery.mockResolvedValueOnce({ rows: [{ model_id: 'qwen3.8-27b' }] });
+    const agent = new ClaudeSessionAgent();
+    await agent.generate(optsWithoutModel());
+    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ model: 'qwen3.8-27b' }));
+  });
+
+  it('erreicht DEFAULT_CLAUDE_SESSION_MODEL nur, wenn gar kein Wert zu holen ist', async () => {
+    const warn = vi.fn();
+    vi.doMock('./logger', () => ({ logger: { warn, error: vi.fn(), info: vi.fn() } }));
+    const createSpy = vi.fn();
+    mockSdk(createSpy);
+    const { ClaudeSessionAgent, DEFAULT_CLAUDE_SESSION_MODEL, resolveSessionModel } = await import('./claude-session-agent');
+
+    mockQuery.mockRejectedValueOnce(new Error('DB down'));
+    expect(await resolveSessionModel()).toBe(DEFAULT_CLAUDE_SESSION_MODEL);
+    expect(warn).toHaveBeenCalled();
+
+    mockQuery.mockRejectedValueOnce(new Error('DB down'));
+    const agent = new ClaudeSessionAgent();
+    await agent.generate(optsWithoutModel());
+    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining({ model: DEFAULT_CLAUDE_SESSION_MODEL }));
+  });
+
+  it('erreicht den Fallback auch bei leerer Default-Menge', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+    const warn = vi.fn();
+    vi.doMock('./logger', () => ({ logger: { warn, error: vi.fn(), info: vi.fn() } }));
+    const { DEFAULT_CLAUDE_SESSION_MODEL, resolveSessionModel } = await import('./claude-session-agent');
+    expect(await resolveSessionModel()).toBe(DEFAULT_CLAUDE_SESSION_MODEL);
+    expect(warn).toHaveBeenCalled();
   });
 });

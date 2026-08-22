@@ -112,6 +112,26 @@ EOF
   [ "$(printf '%s\n' "$output" | grep -cF 'T012402')" -eq 0 ]
 }
 
+@test "T013330: --scan liefert alle unarchivierten Zyklen und keinen archivierten" {
+  local root="$WORK/repo-backlog"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402"
+  mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909"
+  mkdir -p "$root/openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/tasks.md"
+  _plan_with_open_entries > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/tasks.md"
+  _plan_with_open_entries > "$root/openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445/tasks.md"
+  printf 'T012402' > "$root/openspec/changes/mishap-incident-rollup-2026-08-18-T012402/.ticket"
+  printf 'T012909' > "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909/.ticket"
+  printf 'T012445' > "$root/openspec/changes/archive/2026-08-19-mishap-incident-rollup-2026-08-19-T012445/.ticket"
+
+  run bash "$CARRY" --scan "$root" --container T099999
+  [ "$status" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -c 'mishap-incident-rollup')" -eq 2 ]
+  printf '%s\n' "$output" | sed -n '1p' | grep -qF '2026-08-18-T012402'
+  printf '%s\n' "$output" | sed -n '2p' | grep -qF '2026-08-20-T012909'
+  [ "$(printf '%s\n' "$output" | grep -cF 'T012445')" -eq 0 ]
+}
+
 @test "--scan findet Zyklus-Plaene mit offenen Eintraegen und ueberspringt den laufenden" {
   local root="$WORK/repo"
   mkdir -p "$root/openspec/changes/mishap-incident-rollup-2026-08-20-T012909"

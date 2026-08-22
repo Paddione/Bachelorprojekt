@@ -128,3 +128,15 @@ STUB
     return 1
   fi
 }
+
+@test "T013330: Finalizer archiviert Mishap-Rollups mit --no-merge" {
+  FINALIZE="${REPO_ROOT}/scripts/devflow-post-merge-finalize.sh"
+  [ -f "$FINALIZE" ]
+
+  run awk '/git checkout -B "\$ARCHIVE_BRANCH"/,/task freshness:regenerate/' "$FINALIZE"
+  [ "$status" -eq 0 ]
+  [ -n "$output" ]
+  printf '%s\n' "$output" | grep -qF 'mishap-incident-rollup-'
+  printf '%s\n' "$output" | grep -qF -- '--no-merge'
+  printf '%s\n' "$output" | grep -qF 'bash scripts/openspec.sh archive "$SLUG"'
+}

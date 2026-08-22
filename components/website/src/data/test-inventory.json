@@ -2316,6 +2316,12 @@
     "kind": "shell"
   },
   {
+    "id": "backup-pipeline/filen-remote-retention",
+    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
+    "category": "backup-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "batch-git-worktree-integrity",
     "file": "tests/spec/batch-git-worktree-integrity.bats",
     "category": "batch-git-worktree-integrity",

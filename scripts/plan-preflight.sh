@@ -45,7 +45,7 @@ cmd_pre_commit() {
   staged="$(git diff --cached --name-only)"
   foreign="$(printf '%s\n' "$staged" | grep -v -E '^(tests/|openspec/changes/|components/website/src/data/openspec-status\.json$|components/website/src/data/test-inventory\.json$)' || true)"
   [ -z "$foreign" ] \
-    || fail "Fremd-Datei im Staged-Set: $(printf '%s' "$foreign" | tr '\n' ' ') — Abhilfe: 'git restore --staged <pfad>' und nur Plan-Artefakte stagen (tests/, openspec/changes/, components/website/src/data/openspec-status.json, components/website/src/data/test-inventory.json)."
+    || fail "Fremd-Datei im Staged-Set: $(printf '%s' "$foreign" | tr '\n' ' ') — Abhilfe: 'git restore --staged <pfad>' und nur Plan-Artefakte stagen (tests/, openspec/changes/, components/website/src/data/openspec-status.json, components/website/src/data/test-inventory.json). Hinweis: docs/code-quality/repo-index.json ist ein regeneriertes Nicht-Freshness-Artefakt, kein Guard-Defekt — Abhilfe: 'git restore docs/code-quality/repo-index.json'."
 
   command -v jq >/dev/null 2>&1 \
     || envfail "jq fehlt (wird fuer das .branch-Feld der Lock-Datei gebraucht) — Abhilfe: sudo apt-get install -y jq."

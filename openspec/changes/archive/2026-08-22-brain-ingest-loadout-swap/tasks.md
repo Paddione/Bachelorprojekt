@@ -2,7 +2,7 @@
 title: "brain-ingest-loadout-swap — Implementation Plan"
 ticket_id: T013593
 domains: [llm-pipeline, scripts, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

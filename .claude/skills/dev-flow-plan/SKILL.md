@@ -99,7 +99,7 @@ und committed Proposals, nicht nur das eigene Branch-Delta. Erst danach entsteht
 | Phase | Wo | Was |
 |---|---|---|
 | **A — Proposal** | `main` | Assets sammeln, Codebase erkunden, Plan Intel Bundle (`intel.json`) füllen, Design-Bundle co-lokalisieren, Lavish-Board, **Brainstorming**, `/opsx:propose <slug>` — Design-Spec-Frontmatter per `scripts/vda.sh frontmatter` |
-| **B — Branch live** | Worktree | `scripts/worktree-create.sh`, agent-lock claimen, Artefakte verschieben, Scaffold-Commit + Push |
+| **B — Branch live** | Worktree | `scripts/worktree-create.sh <branch> <path>`, agent-lock claimen, Artefakte verschieben, Scaffold-Commit + Push |
 | **C — Partial-Pipeline** | Worktree | Decompose in Partials, pro Partial: Plan schreiben → committen → stagen → enqueuen; danach plan-lint, Embedding, finaler Push |
 
 Vollständige Schrittfolge samt Befehlen, Decompose-/Fan-out-Mechanik und Kontext-Injektion für

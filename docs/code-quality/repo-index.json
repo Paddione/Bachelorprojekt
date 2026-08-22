@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1179,
+      "file_count": 1180,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -535,6 +535,7 @@
         "tests/spec/ci-cd/taskfiles-dir-convention.bats",
         "tests/spec/ci-cd/test-inventory-coverage.bats",
         "tests/spec/ci-cd/unknown-scope-names-source.bats",
+        "tests/spec/ci-cd/website-fast-path.bats",
         "tests/spec/ci-cd/workflow-self-trigger.bats",
         "tests/spec/ci-cd/worktrees-not-tracked.bats",
         "tests/spec/coaching-sessions-polish-guide.bats",

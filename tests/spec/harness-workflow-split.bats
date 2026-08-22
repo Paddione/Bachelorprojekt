@@ -1,23 +1,39 @@
 #!/usr/bin/env bats
 # T001611 harness-workflow-split — one file per OpenSpec SSOT spec (harness-workflow-split).
+# T013724: opencode-flow-{plan,execute,chore} sind Directory-Symlinks auf die
+# harness-neutralen dev-flow-* Shared Sources (openspec-*-Muster); nur
+# opencode-git-workflow bleibt eine echte Datei. Prüfmodus: Source-Grep —
+# dokumentierte Ausnahme von T002448-M4 (Doku-Konvention, manifestiert sich
+# ausschließlich im Quelltext).
 # Forbidden Claude-only tokens (see plan "Forbidden-token contract"):
 FORBIDDEN='AskUserQuestion|TodoWrite|subagent_type|Task tool'
 OPENSPEC_SKILLS='openspec-propose openspec-apply-change openspec-archive-change openspec-explore'
-OC_SKILLS='opencode-flow-plan opencode-flow-execute opencode-flow-chore opencode-git-workflow'
+OC_FLOW_LINKS='opencode-flow-plan opencode-flow-execute opencode-flow-chore'
+OC_SKILLS="$OC_FLOW_LINKS opencode-git-workflow"
 
-@test "HWS-1: the four opencode-flow/-git-workflow skills exist" {
-  for s in $OC_SKILLS; do [ -f ".opencode/skills/$s/SKILL.md" ]; done
+@test "HWS-1: flow entries are symlinks resolving to dev-flow sources; git-workflow stays native" {
+  for s in $OC_FLOW_LINKS; do
+    local p=".opencode/skills/$s"
+    [ -L "$p" ]
+    readlink "$p" | grep -qF '../../.claude/skills/'
+    [ -f "$p/SKILL.md" ]
+  done
+  [ -f ".opencode/skills/opencode-git-workflow/SKILL.md" ]
+  [ ! -L ".opencode/skills/opencode-git-workflow" ]
 }
 
 @test "HWS-2: opencode skills carry no Claude-only tool syntax" {
+  # Positiv-Anker: Ziele sind lesbar und nicht leer (HWS-1 sichert Existenz)
   for s in $OC_SKILLS; do
+    [ -s ".opencode/skills/$s/SKILL.md" ]
     run grep -nE "$FORBIDDEN" ".opencode/skills/$s/SKILL.md"
     [ "$status" -ne 0 ]
   done
 }
 
-@test "HWS-3: opencode skills reference both opencode primitives (collectively)" {
-  grep -rqF 'background-agents.ts' .opencode/skills/opencode-flow-plan .opencode/skills/opencode-flow-execute
+@test "HWS-3: shared sources reference both harness primitives (collectively)" {
+  grep -qF 'background-agents.ts' .claude/skills/dev-flow-plan/SKILL.md
+  grep -qF 'background-agents.ts' .claude/skills/dev-flow-execute/SKILL.md
   grep -rqF 'worktree.ts' .opencode/skills
 }
 
@@ -25,9 +41,9 @@ OC_SKILLS='opencode-flow-plan opencode-flow-execute opencode-flow-chore opencode
   grep -qF 'scripts/worktree-create.sh' .opencode/skills/opencode-git-workflow/SKILL.md
 }
 
-@test "HWS-5: opencode-flow-execute/-chore call the opencode-git-workflow skill" {
-  grep -qF 'opencode-git-workflow' .opencode/skills/opencode-flow-execute/SKILL.md
-  grep -qF 'opencode-git-workflow' .opencode/skills/opencode-flow-chore/SKILL.md
+@test "HWS-5: flow-skill sources hand over to git-workflow" {
+  grep -qF 'git-workflow' .claude/skills/dev-flow-execute/SKILL.md
+  grep -qF 'git-workflow' .claude/skills/dev-flow-chore/SKILL.md
 }
 
 @test "HWS-6: shared openspec-* skills are free of Claude-only tool syntax" {

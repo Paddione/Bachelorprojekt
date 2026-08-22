@@ -29,6 +29,8 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
 
+> **Shared Source (T013724):** `opencode-flow-plan`/`-execute`/`-chore` unter `.opencode/skills/` sind Directory-Symlinks auf genau diese drei Skills (Muster wie `openspec-*`) — ein Inhalt, zwei Einstiegspunkte. Nur `opencode-git-workflow` bleibt eine echte opencode-eigene Datei.
+
 ---
 
 ## Feature Discovery (vorgelagert zur Pipeline)

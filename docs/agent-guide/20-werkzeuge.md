@@ -378,9 +378,9 @@ Lade opencode-git-workflow – ich brauche Git-Operationen in einer OpenCode-Ses
 
 **Skill** · 🟡 **Vorsicht**
 
-OpenCode-native Planung: Brainstorming, Feature/Fix/Chore-Entscheidung, OpenSpec-Plan-Erstellung.
+Planung unter opencode: Brainstorming, Feature/Fix/Chore-Entscheidung, OpenSpec-Plan-Erstellung.
 
-**Wofür?** Ersetzt dev-flow-plan in OpenCode. Nutzt delegate() für Read-Only-Recherche und scripts/worktree-create.sh für Git-crypt-sichere Worktrees.
+**Wofür?** Seit T013724 ein Directory-Symlink auf die Shared Source .claude/skills/dev-flow-plan — identischer Inhalt wie dev-flow-plan, nur der opencode-Einstiegsname. Sub-Delegation via background-agents.ts, Worktrees git-crypt-sicher über scripts/worktree-create.sh.
 
 **So startest du:** Beschreibe die Änderung – der Skill entscheidet über den Pfad (Feature/Fix/Chore).
 

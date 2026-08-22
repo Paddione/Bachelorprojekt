@@ -34,9 +34,9 @@
     "skill": {
       "*": "allow",
       // ── Claude Code stubs (opencode has native equivalents) ──────────
-      "dev-flow-plan": "deny",
-      "dev-flow-execute": "deny",
-      "dev-flow-chore": "deny",
+      // T013724: dev-flow-plan/-execute/-chore sind KEINE Stubs mehr — sie sind
+      // dieselben Shared Sources wie opencode-flow-* (Directory-Symlinks) und
+      // bleiben geladen, damit skill-interne Querverweise auflösen.
       "dev-flow-e2e": "deny",
       // ── Generic meta / skill discovery ───────────────────────────────
       "agent-orchestration": "deny",

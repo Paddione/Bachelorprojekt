@@ -16,13 +16,8 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `gemma` | `freetoken-local/Qwen3.6-35B-A3B-NVFP4` (FreeToken-native, :1919) | Local work. **Name lügt** — seit T014028 auf FreeToken-native |
 | `gemma12` | `freetoken-local/Qwen3.6-35B-A3B-NVFP4` (FreeToken-native, :1919) | Local work. **Name lügt** — seit T014028 auf FreeToken-native |
 | `qwen38` | `freetoken-local/Qwen3.6-35B-A3B-NVFP4` (FreeToken-native, :1919) | Local work, text-only, 262144 ctx nativ. Name historisch — seit T014028 FreeToken statt Loadout |
+| `freetoken-primary` | `freetoken-local/Qwen3.6-35B-A3B-NVFP4` (FreeToken-native, :1919) | PRIMARY: einziger lokaler Primary seit T014028. Text-only, 262144 ctx nativ, ~103 tok/s warm. Tab-selectable, kann Subagenten dispatchen |
 | `qwen-cloud` | `alibaba-intl/qwen3.8-max` (Alibaba Cloud, 131k ctx), `mode: subagent`, write-capable | Cloud-Eskalation: Qwen 3.8 Max, erste Stufe nach lokal. Selbe Modell-Familie wie Orchestrator [T013360] |
-| `gemma26-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Fully-local tab-selectable agent. Name historisch — seit T013360 auf `qwen38-220k` |
-| `gemma26-vision` | `llamacpp-local/qwen38-220k`, `mode: primary` | No subagent dispatch. Seit T013360 auf `qwen38-220k` (text-only, 112k ctx) |
-| `gptoss-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable primary, 114688 ctx (:8094) — seit T013360 |
-| `devstral-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable primary, 114688 ctx (:8094) — seit T013360 |
-| `gemma12-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable primary, 114688 ctx (:8094) — seit T013360 |
-| `qwen38-primary` | `llamacpp-local/qwen38-220k`, `mode: primary` | Tab-selectable text-only Qwen 3.8 27B UD-IQ3_XXS primary, 114688 ctx (:8094) |
 | `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries. Since 2026-08-22 can dispatch the same subagent set as the orchestrator |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free`, `mode: primary`, write-capable | Second free-tier primary next to big-pickle (Poolside agentic coding model, 256k ctx per models.dev, smoke-tested 2026-08-22). Same subagent dispatch set as the orchestrator |
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted; twin `deepseek-helper-go` rides OpenCode Go |

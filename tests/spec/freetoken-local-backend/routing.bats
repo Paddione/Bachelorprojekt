@@ -44,6 +44,26 @@ if(!ft.models["Qwen3.6-35B-A3B-NVFP4"]) throw new Error("Modell fehlt");
   ! grep -q '"gemma26-throughput-primary"' "$REPO/.opencode/agent-models.jsonc"
 }
 
+@test "agent-models.jsonc: freetoken-primary ist der einzige lokale Primary" {
+  node -e '
+const fs=require("fs");
+let s=fs.readFileSync(process.argv[1],"utf8");
+let out="",i=0,str=false,esc=false;
+while(i<s.length){const c=s[i];
+ if(str){out+=c;if(esc)esc=false;else if(c==="\\")esc=true;else if(c===String.fromCharCode(34))str=false;i++;continue;}
+ if(c===String.fromCharCode(34)){str=true;out+=c;i++;continue;}
+ if(c==="/"&&s[i+1]==="/"){while(i<s.length&&s[i]!=="\n")i++;continue;}
+ if(c==="/"&&s[i+1]==="*"){i+=2;while(i<s.length&&!(s[i]==="*"&&s[i+1]==="/"))i++;i+=2;continue;}
+ out+=c;i++;}
+const o=JSON.parse(out);
+const locals=Object.entries(o.agent)
+  .filter(([,a])=>String(a.model||"").startsWith("freetoken-local")||String(a.model||"").startsWith("llamacpp-local"))
+  .filter(([,a])=>a.mode==="primary")
+  .map(([n])=>n);
+if(locals.length!==1||locals[0]!=="freetoken-primary") throw new Error("lokale Primaries: "+locals.join(","));
+' "$REPO/.opencode/agent-models.jsonc"
+}
+
 @test "route-provider.sh: Fallback emittiert FreeToken statt llama-Proxy" {
   grep -q 'FT_LOCAL_BASEURL="http://127.0.0.1:1919/v1"' "$REPO/scripts/factory/route-provider.sh"
   ! grep -q '"baseUrl":"http://127.0.0.1:18235"' "$REPO/scripts/factory/route-provider.sh"

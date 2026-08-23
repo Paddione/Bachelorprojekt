@@ -81,42 +81,6 @@ runtimes:
     model: alibaba-intl/qwen3.8-max
     write_capable: true
     note: "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). Erste Cloud-Eskalationsstufe nach lokalen Modellen. Selbe Modell-Familie wie der Orchestrator [T013360]"
-  gemma26-primary:
-    mode: primary
-    model: freetoken-local/Qwen3.6-35B-A3B-NVFP4
-    write_capable: false
-    note: "Tab-selectable primary local agent. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only). Alle lokalen Agenten teilen dieses eine Loadout."
-  gemma26-vision:
-    mode: primary
-    model: freetoken-local/Qwen3.6-35B-A3B-NVFP4
-    write_capable: false
-    note: "Tab-selectable primary, no subagent dispatch. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only)."
-  # [T003065] Ein tab-waehlbarer Primaeragent pro lokalem GGUF-Modell. Alle
-  # Kontextwerte sind in scripts/llm/loadouts.json als Messwert belegt — keine
-  # n_ctx_train-Zahlen. Der Semaphor in scripts/llm-proxy/server.mjs serialisiert
-  # den Modellwechsel, deshalb duerfen diese Agenten Subagenten dispatchen.
-  gptoss-primary:
-    mode: primary
-    model: freetoken-local/Qwen3.6-35B-A3B-NVFP4
-    write_capable: false
-    note: "Tab-selectable primary. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, 114688 ctx, text-only). Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze."
-  devstral-primary:
-    mode: primary
-    model: freetoken-local/Qwen3.6-35B-A3B-NVFP4
-    write_capable: false
-    note: "ENTFERNT mit T014028 (FreeToken-Migration): diente nur dem Loadout gemma26-throughput auf :8092. qwen38-primary deckt den Zweck ab."
-  gemma12-primary:
-    mode: primary
-    model: freetoken-local/Qwen3.6-35B-A3B-NVFP4
-    write_capable: false
-    note: "ENTFERNT mit T014028 (FreeToken-Migration): diente nur dem Loadout gemma26-throughput auf :8092. qwen38-primary deckt den Zweck ab."
-  # T014028: gemma26-throughput-primary entfernt (Loadout stillgelegt,
-  # qwen38-primary deckt den Zweck ab).
-  qwen38-primary:
-    mode: primary
-    model: freetoken-local/Qwen3.6-35B-A3B-NVFP4
-    write_capable: false
-    note: "Tab-selectable text-only primary on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, Port 8094, 114688 ctx, one slot, q4_0 KV cache) [T013109]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
@@ -127,6 +91,11 @@ runtimes:
     model: opencode-zen/laguna-s-2.1-free
     write_capable: true
     note: "PRIMARY: Ox Alpha Free next to big-pickle — second free-tier Zen agent on laguna-s-2.1-free (Poolside agentic coding model, 256k ctx per models.dev, live-smoke-tested 2026-08-22; deepseek-v4-flash-free was tested in the same run and is upstream-unavailable). Same subagent dispatch set as the orchestrator."
+  freetoken-primary:
+    mode: primary
+    model: freetoken-local/Qwen3.6-35B-A3B-NVFP4
+    write_capable: false
+    note: "Einziger lokaler Primary seit T014028. FreeToken-native Qwen3.6-35B-A3B-NVFP4 (:1919, 262144 ctx nativ, ~103 tok/s warm). Text-only — lokale VisionOption entfaellt."
   deepseek-helper:
     mode: subagent
     model: deepseek/deepseek-v4-flash

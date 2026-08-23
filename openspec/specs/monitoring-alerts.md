@@ -36,6 +36,30 @@ an existing mechanism (e.g. a GitHub Actions workflow) instead of a redundant in
 - **THEN** the file does not exist, because the health-goals measurement responsibility is fully owned by
   `.github/workflows/health-goals.yml` (`task health:goals:update` / `scripts/health-goals-check.sh`)
 
+### Requirement: Monitoring-Hauptcontainer haben Resource Requests und Limits
+
+Der Prod-Patch `prod/monitoring/resource-limits-patch.yaml` MUSS über den bestehenden
+Grafana-Block hinaus folgende Workloads mit `resources.requests` (cpu, memory) und
+`resources.limits` (cpu, memory) versorgen:
+
+- Deployment `monitoring-grafana`: Sidecar-Container `grafana-sc-dashboard` und
+  `grafana-sc-datasources` (strategic merge ergänzt Listeneinträge per Container-Namen)
+- DaemonSet `monitoring-prometheus-node-exporter`: Container `node-exporter`
+  (Achtung: eigener `kind: DaemonSet`-Patch, nicht Deployment)
+- Deployment `monitoring-kube-state-metrics`: Hauptcontainer
+- Deployment `monitoring-operator`: Container `kube-prometheus-stack`
+
+Die Werte folgen der Größenordnung der bestehenden Blöcke in
+`k3d/monitoring/values/kube-prometheus-stack-prod-values.yaml`.
+
+#### Scenario: Patch deckt alle Hauptcontainer ab
+
+- **GIVEN** die Datei `prod/monitoring/resource-limits-patch.yaml`
+- **WHEN** die deklarierten Patches geprüft werden
+- **THEN** existieren Einträge für grafana-sidecars (grafana-sc-dashboard,
+  grafana-sc-datasources), node-exporter (DaemonSet), kube-state-metrics und den
+  operator (kube-prometheus-stack), jeweils mit requests und limits
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -243,3 +267,5 @@ through the CLI gate `vda.sh cfr` and direct `tickets.pr_events` queries.
 <!-- merged from change delta monitoring-alerts.md (329d8c40680b) -->
 
 <!-- merged from change delta monitoring-alerts.md (ad774fac777e) -->
+
+<!-- merged from change delta monitoring-alerts.md (fe99050d468f) -->

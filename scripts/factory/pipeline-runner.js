@@ -24,7 +24,7 @@ const evalCtxModule = await import('./eval-context.cjs');
 // brach jeden host-side Spawn in fremden Checkouts (CI-Runner, Worktrees):
 // agent-lock.sh & Co. liefen dort ins ENOENT, die lock-claim/lock-check/lock-release
 // Kommandos antworteten ok:false/state:error. Aufloesung jetzt: FACTORY_REPO-Override
-// (Konvention wie mcp-server.mjs/qa-lens.mjs), sonst Ableitung aus der eigenen
+// (Konvention wie factory-mcp/qa-lens.mjs), sonst Ableitung aus der eigenen
 // Dateilage — auf dem Produktionshost identisch zum bisherigen Pfad.
 const REPO = process.env.FACTORY_REPO
   || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');

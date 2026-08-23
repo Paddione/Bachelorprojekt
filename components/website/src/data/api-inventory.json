@@ -1868,7 +1868,7 @@
     },
     {
       "name": "factory_queue",
-      "description": "List waiting tickets (backlog + plan_staged)",
+      "description": "List exactly the tickets the next factory tick would pick (dispatchable lanes from scripts/factory/queue.sh) — not the raw backlog inventory (see factory_status *_total).",
       "tier": null,
       "deprecated": null
     },

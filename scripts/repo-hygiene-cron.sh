@@ -47,13 +47,13 @@ bash "$HERE/agent-lock.sh" reap >&2 2>/dev/null || true
 # (beobachtet: 5 von 7 Worktrees mutierten während der Messung). Die Worktree-Messung
 # auf veraltetem Stand ist wertlos — die Sektion wird dann übersprungen und als
 # "skipped" ausgewiesen, statt falsche Zahlen zu liefern. Dasselbe Lock-Test-Muster
-# wie scripts/factory/mcp-server.mjs factory_status.
+# wie scripts/factory/mcp-go/main.go (factory_status) [T014936].
 # [T012414] Der Pfad ist überschreibbar, damit ein Test nicht auf den echten,
 # geteilten Lock angewiesen ist. Auf einem self-hosted Runner gehört
 # /tmp/factory-tick.lock einem anderen User; der Test scheiterte dort schon beim
 # Anlegen ("Permission denied") und maß dann die Eigenschaft gar nicht. Der
 # Default bleibt der geteilte Pfad — die Absprache mit der Factory
-# (scripts/factory/mcp-server.mjs factory_status) hängt genau daran.
+# (scripts/factory/mcp-go/main.go factory_status) hängt genau daran.
 FACTORY_TICK_LOCK="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
 tick_running() {
   test -f "$FACTORY_TICK_LOCK" || return 1

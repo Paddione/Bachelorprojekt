@@ -53,11 +53,11 @@ setup() {
 
 # ── MCP tool ──────────────────────────────────────────────────────────
 
-@test "factory-mcp server script exists" {
-  [ -f "$REPO/scripts/factory/mcp-server.mjs" ]
+@test "factory-mcp Go server exists (SSOT since T014936)" {
+  [ -f "$REPO/scripts/factory/mcp-go/main.go" ]
 }
 
 @test "factory-mcp registers openspec_find_similar tool" {
-  run grep -q 'openspec_find_similar\|openspec.*find.*similar' "$REPO/scripts/factory/mcp-server.mjs"
+  run grep -q 'openspec_find_similar' "$REPO/scripts/factory/mcp-go/main.go"
   [ "$status" -eq 0 ]
 }

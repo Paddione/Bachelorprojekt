@@ -54,7 +54,7 @@ The system SHALL add a `--semantic <query>` flag to `scripts/plan-context.sh` th
 
 ### Requirement: MCP-Tool openspec_find_similar
 
-The system SHALL expose an MCP tool `openspec_find_similar` (registered in `scripts/factory/mcp-server.mjs`) that wraps `/api/openspec/search` for agent-side discovery.
+The system SHALL expose an MCP tool `openspec_find_similar` (registered in `scripts/factory/mcp-go/main.go`; the legacy `mcp-server.mjs` was removed with T014936) that wraps `/api/openspec/search` for agent-side discovery.
 
 #### Scenario: Agent finds similar specs via MCP
 

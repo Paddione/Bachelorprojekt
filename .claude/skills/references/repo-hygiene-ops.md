@@ -65,7 +65,7 @@ Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit
 > **Factory-Tick-Vorcheck [T003227]:** Läuft gerade ein Factory-Tick (`/tmp/factory-tick.lock`
 > gehalten, siehe `factory_status` → `tick_running`), verändert er Worktrees und Branches
 > unter dem Lauf — real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Der
-> Vorcheck ist derselbe Lock-Test wie in `scripts/factory/mcp-server.mjs`:
+> Vorcheck ist derselbe Lock-Test wie in `scripts/factory/mcp-go/main.go`
 > ```bash
 > tick_running() {
 >   test -f /tmp/factory-tick.lock || return 1

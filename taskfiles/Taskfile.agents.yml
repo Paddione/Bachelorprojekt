@@ -9,10 +9,10 @@ tasks:
   factory-mcp:start:
     desc: "Start the Factory MCP server in the background (PID file)"
     cmds:
-      # Build the Go binary on first run, then launch it detached. The Node
-      # implementation (scripts/factory/mcp-server.mjs) is kept around for
-      # fallback — the Go binary at scripts/factory/mcp-go/bin/factory-mcp
-      # speaks the same Streamable-HTTP MCP shape on 127.0.0.1:13003.
+      # Build the Go binary on first run, then launch it detached. The Go
+      # binary at scripts/factory/mcp-go/bin/factory-mcp is the SSOT for the
+      # Streamable-HTTP MCP shape on 127.0.0.1:13003; the legacy Node
+      # implementation was removed with T014936.
       - |
         bash -c '
           set -euo pipefail

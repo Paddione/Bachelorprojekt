@@ -1,8 +1,11 @@
 # factory-mcp (Go)
 
 Lightweight Streamable-HTTP MCP server for the Software Factory. Stdlib-only
-Go rewrite of `scripts/factory/mcp-server.mjs` with one new tool:
+Go implementation (successor of the legacy `scripts/factory/mcp-server.mjs`,
+removed with T014936). Adds one extra tool over the classic surface:
 `factory_ask` (LLM Q&A backed by the local LMStudio instance).
+Queue truth (factory_status/factory_queue) comes exclusively from
+`scripts/factory/queue.sh` — this server keeps no duplicate queue SQL [T014936].
 
 ## Build & run
 

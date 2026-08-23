@@ -23,7 +23,7 @@ setup() {
 if [[ "\$*" == *"get pod"* ]]; then printf '%s\n' "\${POD_LINES:-pod/shared-db-0}"; exit 0; fi
 if [[ "\$*" == *"exec"* ]]; then
   input="\$(cat)"
-  if [[ "\$input" == *"db_identity"* ]]; then printf '%s' "\${IDENTITY_ANSWER:-$EXPECTED_UUID}"; fi
+  if [[ "\$input" == *"db_identity"* ]]; then printf '%s' "\${IDENTITY_ANSWER-}"; fi
   exit 0
 fi
 exit 0

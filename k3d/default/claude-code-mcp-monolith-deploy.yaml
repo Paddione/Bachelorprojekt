@@ -30,7 +30,8 @@
     "template": {
       "metadata": {
         "annotations": {
-          "kubectl.kubernetes.io/restartedAt": "2026-07-02T15:38:37+02:00"
+          "kubectl.kubernetes.io/restartedAt": "2026-07-02T15:38:37+02:00",
+          "runasnonroot-exceptions.t015293/security": "# runAsNonRoot-Ausnahme: postgres: Runtime npm-install-g braucht root-owned /usr/local; playwright: dito; github: dito; github-binary (Init): schreibt Binary in shared emptyDir"
         },
         "labels": {
           "app": "claude-code-mcp-monolith"
@@ -93,6 +94,11 @@
                 "cpu": "50m",
                 "memory": "64Mi"
               }
+            },
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 1000,
+              "allowPrivilegeEscalation": false
             },
             "terminationMessagePath": "/dev/termination-log",
             "terminationMessagePolicy": "File"
@@ -295,7 +301,12 @@
         ],
         "restartPolicy": "Always",
         "schedulerName": "default-scheduler",
-        "securityContext": {},
+        "securityContext": {
+          "runAsNonRoot": true,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
         "serviceAccount": "claude-code-agent",
         "serviceAccountName": "claude-code-agent",
         "terminationGracePeriodSeconds": 30,

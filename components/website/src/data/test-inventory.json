@@ -5184,6 +5184,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/auto-close-uuid-guard",
+    "file": "tests/spec/software-factory/auto-close-uuid-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/auto-triage-type-vocab",
     "file": "tests/spec/software-factory/auto-triage-type-vocab.bats",
     "category": "software-factory",

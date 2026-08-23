@@ -43,12 +43,12 @@ scripts/llm/routing-check.sh                                — unverändert erw
 
 ## Task List
 
-- [ ] **Konsumenten prüfen.** Bevor Zeilen deaktiviert werden: grep über `scripts/` und
+- [x] **Konsumenten prüfen.** Bevor Zeilen deaktiviert werden: grep über `scripts/` und
       `.opencode/agent-models.jsonc`, ob irgendein Konsument noch aktiv
       `gemma12-vision@:18235` auflöst (Erwartung laut AGENTS.md: nein — seit T014105
       zeigen alle lokalen Agenten auf den FreeToken-Alias). Falls doch: Zeilen auf
       `http://127.0.0.1:1919` repointen statt deaktivieren.
-- [ ] **Stale-Zeilen deaktivieren.** Ohne Konsumenten:
+- [x] **Stale-Zeilen deaktivieren.** Ohne Konsumenten:
 
 ```sql
 UPDATE tickets.provider_config
@@ -62,7 +62,7 @@ WHERE enabled = true
       Die drei Duplikate sind zugleich ein Hygiene-Befund: neue Einträge sollten
       dedupliziert werden, damit ein Tick nicht N Warnungen für denselben Drift wirft.
 
-- [ ] **GREEN-Nachweis.** `bash scripts/llm/routing-check.sh` ausführen:
+- [x] **GREEN-Nachweis.** `bash scripts/llm/routing-check.sh` ausführen:
       keine FEHLT-Zeile für `gemma12-vision` mehr; Abschlusszeile
       `routing-check: alle lokalen Modell-IDs haben ein Backend.` (oder ausschließlich
       legitime, aktuelle Meldungen). Danach einen Factory-Tick beobachten: das Log muss
@@ -70,7 +70,7 @@ WHERE enabled = true
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Spec anlegen, die den Soll-Zustand prüft — sie muss
+- [x] **Failing-Test-Step (RED).** Spec anlegen, die den Soll-Zustand prüft — sie muss
       gegen den aktuellen Drift rot sein:
 
 ```bash
@@ -86,12 +86,12 @@ tests/unit/lib/bats-core/bin/bats tests/spec/routing-check-freetoken.bats
 # expected: FAIL (rot — der provider_config-Drift ist noch nicht behoben)
 ```
 
-- [ ] **Fix-Step (GREEN).** DB-Fix nach Vollzug der Task List; derselbe BATS-Lauf ist
+- [x] **Fix-Step (GREEN).** DB-Fix nach Vollzug der Task List; derselbe BATS-Lauf ist
       grün und der manuelle Lauf frei von der Meldung. Einträge, die sich bei der Recon
       als nicht zutreffend erweisen, werden im PR-Text begründet verworfen statt
       stillschweigend übergangen.
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.5...website-v1.303.6) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** pause korczewski admin CronJobs [T014537] ([#5100](https://github.com/Paddione/Bachelorprojekt/issues/5100)) ([6069873](https://github.com/Paddione/Bachelorprojekt/commit/60698738eb173c74e6ac3d279fd0a7919728cdf2))
+
 ## [1.303.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.4...website-v1.303.5) (2026-08-23)
 
 

@@ -2,7 +2,7 @@
 title: "staging-verdrahtung — Implementation Plan"
 ticket_id: T015004
 domains: [infra, gitops]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1182,
+      "file_count": 1183,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -491,6 +491,7 @@
         "tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats",
         "tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats",
         "tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats",
+        "tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats",
         "tests/spec/ci-cd/devflow-ciwatch-ticket-path.bats",
         "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
         "tests/spec/ci-cd/docs-content-guards.bats",

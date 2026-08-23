@@ -2448,6 +2448,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-ingest/delivery-rebase-before-push",
+    "file": "tests/spec/brain-ingest/delivery-rebase-before-push.bats",
+    "category": "brain-ingest",
+    "kind": "shell"
+  },
+  {
     "id": "brain-initial-ingest",
     "file": "tests/spec/brain-initial-ingest.bats",
     "category": "brain-initial-ingest",
@@ -4304,6 +4310,12 @@
   {
     "id": "mishap-rollup/rollup-plan-per-entry-tasks",
     "file": "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/wakeup-auto-close-timeout",
+    "file": "tests/spec/mishap-rollup/wakeup-auto-close-timeout.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },

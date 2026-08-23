@@ -226,6 +226,16 @@ brain-worklist.txt
 # ── lobehub market-cli — locally installed skills (not vetted/shared) ──
 .claude/skills/haniakrim21-*/
 
+# ── HuggingFace skill pack — auto-installed 2026-08-23 (not vetted/shared) [T015174] ──
+# scan.mjs liest mit --exclude-standard: ignorierte Pfade fallen aus dem
+# Quality-Scan-Universe (S1-Limit), pre-push-Hook bleibt entblockt.
+# Vetted Skill-Isolate lebt auf chore/opencode-skills-freetoken-T015173 (T015173).
+.opencode/skills/hf-mem/
+.opencode/skills/huggingface-*/
+.opencode/skills/train-sentence-transformers/
+.opencode/skills/transformers-js/
+.opencode/skills/trl-training/
+
 # ── ticket-mcp Go-Binary (Build-Artefakt, 12 MB — gehoert nicht in den Tree) ──
 scripts/ticket-mcp/go/ticket-mcp
 

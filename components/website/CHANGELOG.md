@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.305.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.0...website-v1.305.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** post-merge closure verifiziert Ticket-Identitaet per UUID-Ankern [T015010] ([#5149](https://github.com/Paddione/Bachelorprojekt/issues/5149)) ([3cf2c7e](https://github.com/Paddione/Bachelorprojekt/commit/3cf2c7e1257cd1c052c3dfbfa7c7fd7256322137))
+
 ## [1.305.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.304.1...website-v1.305.0) (2026-08-23)
 
 

@@ -141,6 +141,9 @@ HELP
 Usage: ticket.sh get --id <external_id>
   --id <external_id>      Ticket-ID (required; positionales Argument erlaubt)
   Ausgabe: Ticket-Zeile im Tabellenformat.
+  Exit: 0 = Treffer (JSON auf stdout), 2 = Bedienfehler, 4 = Ticket nicht gefunden,
+        9 = Offline-Refusal (TICKET_OFFLINE=1). Ein leeres Ergebnis mit Exit 0 gibt
+        es nicht — 4 unterscheidet "gibt es nicht" von "kein Treffer" [T014386].
 HELP
       ;;
     set-touched-files)
@@ -301,6 +304,9 @@ Usage: ticket.sh list [options]
   --limit <n>                Max. Zeilen (default 200)
   --sort <spalte>            Sortierung
   --include-test-data        Testdaten einschliessen
+  Exit: 0 = gueltige Anfrage (JSON-Array, ggf. leer), 2 = ungueltiger Wert fuer
+        --status/--type/--attention-mode. Die Fehlermeldung nennt den abgelehnten
+        und die erlaubten Werte. Die Pruefung laeuft vor dem DB-Zugriff [T014386].
 HELP
       ;;
     backfill-id)

@@ -24,6 +24,15 @@ main() {
   local order_dir="DESC"
   [[ "$sort" == "asc" ]] && order_dir="ASC"
 
+  # [T014386] Filter-Validierung VOR jedem DB-Zugriff. Die Reihenfolge ist die
+  # eigentliche Zusicherung: CI stellt keine Ticket-DB bereit, ein Guard hinter
+  # dem Verbindungsaufbau waere dort dauerhaft uebersprungen statt wirksam.
+  # Vorher lieferte ein unbekannter Filterwert '[]' mit Exit 0 — nicht von
+  # "kein Treffer" unterscheidbar.
+  [[ -n "$status" ]]         && { _ticket_validate_enum_list status "$status" "$TICKET_VALID_STATUS" || exit 2; }
+  [[ -n "$type" ]]           && { _ticket_validate_enum type "$type" "$TICKET_VALID_TYPE" || exit 2; }
+  [[ -n "$attention_mode" ]] && { _ticket_validate_enum attention-mode "$attention_mode" "$TICKET_VALID_ATTENTION" || exit 2; }
+
   if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then
     echo "ticket list [DRY-RESOLVE]: brand=${brand}"
     exit 0
@@ -32,11 +41,14 @@ main() {
   local pod; pod=$(_pgpod)
 
   local where="brand = :'brand'"
-  # T012972: --status nimmt eine Komma-Liste ("open,triage"). Ein zweites --status-Flag
+  # T012972: --status nimmt eine Komma-Liste ("triage,planning"). Ein zweites --status-Flag
   # waere kein Ausweg — die Schleife oben ueberschreibt den Wert, und der Aufrufer bekaeme
   # still die Treffer des LETZTEN Werts statt der Vereinigung. Die Aufloesung gehoert
   # deshalb hierher, wo die Liste als Ganzes ankommt. Leerzeichen werden entfernt, damit
-  # "open, triage" nicht an einem Wert mit fuehrendem Blank scheitert.
+  # "triage, planning" nicht an einem Wert mit fuehrendem Blank scheitert.
+  # [T014386] Die Werte sind vorher gegen TICKET_VALID_STATUS geprueft — frueher
+  # stand hier "open,triage" als Beispiel, obwohl 'open' kein definierter Status
+  # ist. Der Kommentar lehrte damit genau den Wert, den die CLI still verschluckte.
   [[ -n "$status" ]]         && where+=" AND status = ANY(string_to_array(replace(:'status', ' ', ''), ','))"
   [[ -n "$type" ]]           && where+=" AND type = :'type'"
   [[ -n "$attention_mode" ]] && where+=" AND attention_mode = :'attn'"

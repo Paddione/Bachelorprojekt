@@ -4165,6 +4165,12 @@
       "status": "archived"
     }
   ],
+  "T014386": [
+    {
+      "slug": "ticket-read-fail-closed",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

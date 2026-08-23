@@ -1,0 +1,30 @@
+# scripts/dev-host-units/k3d-dev-ingress-bridge@.service
+# System-Template: Localhost-Bruecke zum ausgelagerten Dev-Cluster (ws-1c8987).
+#
+# WARUM: *.localhost wird per RFC 6761 hart auf 127.0.0.1 aufgeloest -
+# /etc/hosts greift fuer diese Namen nicht. Die Bruecke haelt die gewohnten
+# Dev-URLs (auth.localhost, web.localhost, ...) gueltig und damit auch die
+# WebAuthn-RP-ID auth.localhost (registrierte Passkeys bleiben nutzbar).
+#
+# WARUM SYSTEM-UNIT: Port 80 ist privilegiert; net.ipv4.ip_unprivileged_port_start
+# ist hier nicht abgesenkt. Ein User-Unit-Socat stirbt an EPERM, ein ad-hoc
+# "sudo socat" ueberlebt keinen Reboot.
+#
+# Installation (Instanz fuer Port 80):
+#   sudo cp scripts/dev-host-units/k3d-dev-ingress-bridge@.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now k3d-dev-ingress-bridge@80
+#
+# Rollback: sudo systemctl disable --now k3d-dev-ingress-bridge@80
+
+[Unit]
+Description=Localhost-Bruecke Port %i zum ausgelagerten k3d-Dev-Cluster (10.0.33.1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/socat TCP4-LISTEN:%i,fork,reuseaddr,bind=127.0.0.1 TCP4:10.0.33.1:%i
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

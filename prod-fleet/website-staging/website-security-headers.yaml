@@ -1,0 +1,18 @@
+# Security-headers Middleware for the website-staging namespace (T015004).
+# Mirrors prod-fleet/website-mentolder/website-security-headers.yaml, but WITHOUT
+# X-Robots-Tag: noindex — the public website must be crawlable (T002052).
+# The shared workspace/security-headers keeps noindex for internal services;
+# only the public site opts out via this override.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: website-security-headers
+  namespace: website-staging
+spec:
+  headers:
+    customResponseHeaders:
+      X-Frame-Options: "SAMEORIGIN"
+      X-Content-Type-Options: "nosniff"
+      X-XSS-Protection: "1; mode=block"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"

@@ -50,25 +50,29 @@ tasks:
     cmds:
       - cut -f2 brain-worklist.txt | sort | uniq -c | sort -rn
 
+  # T014339 P3-Nachzug: der Swap-Wrapper ist obsolet — beide Tasks rufen
+  # brain-ingest.sh direkt auf. Backend-URL und Modell bewusst HIER NICHT
+  # gesetzt: das Skript ist die alleinige Quelle (FreeToken-native :1919,
+  # Qwen3.6-35B-A3B-NVFP4), damit es keinen zweiten Port-Default gibt, den
+  # der Guard in tests/spec/local-llm-proxy/brain-ingest-port.bats nicht
+  # sehen kann. Vorgesetzte LM_*/MAX_*-Werte gewinnen weiterhin (env-
+  # Vererbung), LM_MAX_TOKENS/MAX_SOURCE_CHARS/MAX_PARALLEL verwaltet das
+  # Skript selbst (Chunker-Ära: 3072 Output-Tokens, 16k-Chunks, np=4).
   ingest:run:
     desc: "Full brain ingestion pipeline (LLM-assisted, creates PR)"
     cmds:
       - |-
         LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" \
-        LM_MAX_TOKENS="${LM_MAX_TOKENS:-65536}" \
-        LM_TIMEOUT="${LM_TIMEOUT:-3600}" \
-        MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-150000}" \
-          bash scripts/brain-ingest-swap.sh --brain-repo ~/brain "$@"
+        LM_TIMEOUT="${LM_TIMEOUT:-600}" \
+          bash scripts/brain-ingest.sh --brain-repo ~/brain {{.CLI_ARGS}}
 
   ingest:pilot:
     desc: "Run ingestion on 20 pages (pilot batch)"
     cmds:
       - |-
         LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" \
-        LM_MAX_TOKENS="${LM_MAX_TOKENS:-65536}" \
-        LM_TIMEOUT="${LM_TIMEOUT:-3600}" \
-        MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-150000}" \
-          bash scripts/brain-ingest-swap.sh --brain-repo ~/brain --pilot 20 "$@"
+        LM_TIMEOUT="${LM_TIMEOUT:-600}" \
+          bash scripts/brain-ingest.sh --brain-repo ~/brain --pilot 20 {{.CLI_ARGS}}
 
 
 

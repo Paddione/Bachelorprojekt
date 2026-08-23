@@ -314,14 +314,42 @@ EOF
   render_component prod-fleet/website-korczewski "${OUT_DIR}/website-korczewski/website-korczewski.yaml"
 )
 
+# 5b. Staging app stack (T015004) — workspace-staging via prod-fleet/staging.
+#     Verdrahtet den bislang GitOps-verwaisten Staging-Namespace (Ursache von
+#     T014538/SA-FC-02) in den Flux-Pfad.
+(
+  set +u
+  source scripts/env-resolve.sh staging 2>/dev/null
+  apply_schema_defaults
+  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
+  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
+  mkdir -p "${OUT_DIR}/staging"
+  render_component prod-fleet/staging "${OUT_DIR}/staging/staging.yaml"
+)
+
+# 5c. Website Staging (T015004) — website-staging namespace, Ziel der
+#     Staging-CronJobs (website.website-staging.svc.cluster.local).
+(
+  set +u
+  source scripts/env-resolve.sh staging 2>/dev/null
+  apply_schema_defaults
+  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
+  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
+  mkdir -p "${OUT_DIR}/website-staging"
+  render_component prod-fleet/website-staging "${OUT_DIR}/website-staging/website-staging.yaml"
+)
+
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
 # Nested per-brand: both files carry a SealedSecret for the shared
 # grafana-oidc secret (namespace monitoring), so a single flat kustomize
 # build across both would collide on that resource id. Separate
 # directories give kustomize-controller one independent build per brand.
-mkdir -p "${OUT_DIR}/sealed-secrets/mentolder" "${OUT_DIR}/sealed-secrets/korczewski"
+mkdir -p "${OUT_DIR}/sealed-secrets/mentolder" "${OUT_DIR}/sealed-secrets/korczewski" "${OUT_DIR}/sealed-secrets/staging"
 cp environments/sealed-secrets/fleet-mentolder.yaml "${OUT_DIR}/sealed-secrets/mentolder/fleet-mentolder.yaml"
 cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/korczewski/fleet-korczewski.yaml"
+# T015004: Staging-SealedSecrets sind bereits auf workspace-staging/
+# website-staging/monitoring gesealed (environments/sealed-secrets/staging.yaml).
+cp environments/sealed-secrets/staging.yaml "${OUT_DIR}/sealed-secrets/staging/staging.yaml"
 
 # 7. Cluster CRs (top-level only under flux/clusters/fleet/, excluding bootstrap/)
 mkdir -p "${OUT_DIR}/clusters/fleet"
@@ -333,7 +361,7 @@ find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clus
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/gitlab-runner"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/gitlab-runner"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

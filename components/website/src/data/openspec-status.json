@@ -4237,15 +4237,33 @@
       "status": "archived"
     }
   ],
+  "T014550": [
+    {
+      "slug": "flux-oci-sha-pinning-t014550",
+      "status": "plan_staged"
+    }
+  ],
   "T014552": [
     {
       "slug": "2026-08-23-routing-check-freetoken-t014552",
       "status": "archived"
     }
   ],
+  "T014566": [
+    {
+      "slug": "infra-kleinfixes-t014566",
+      "status": "plan_staged"
+    }
+  ],
   "T014735": [
     {
       "slug": "ticket-mcp-freshness-guard-t014735",
+      "status": "plan_staged"
+    }
+  ],
+  "T015004": [
+    {
+      "slug": "staging-verdrahtung",
       "status": "plan_staged"
     }
   ],

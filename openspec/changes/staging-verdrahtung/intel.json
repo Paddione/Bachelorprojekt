@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "slug": "staging-verdrahtung",
+    "ticket_id": "T015004",
+    "generated_from": "main@714ff4149",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 186,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/staging.yaml",
+      "language": "config",
+      "loc": 97,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/ks-sealed-secrets.yaml",
+      "language": "config",
+      "loc": 31,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/ks-staging.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/ks-website-staging.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/website-staging/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/website-staging/website-ingress-web.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/website-staging/website-patch.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/website-staging/website-security-headers.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/flux-render-artifact.sh",
+      "language": "bash",
+      "loc": 411,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 389
+    },
+    {
+      "path": "tests/spec/fleet-operations/staging-flux-wiring.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:66:apply_schema_defaults() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "66:apply_schema_defaults() {(...)",
+      "type_text": "66:apply_schema_defaults() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:71:render_component() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "71:render_component() {(...)",
+      "type_text": "71:render_component() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

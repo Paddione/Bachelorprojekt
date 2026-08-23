@@ -37,11 +37,16 @@ data:
     }
     server {
         listen 8080 default_server;
-        location /health {
+        # T015167: return ist eine Rewrite-Phasen-Direktive — auf Server-Level
+        # feuert sie VOR dem Location-Matching und wuerde /health mit 404
+        # abschiessen. Deshalb die 404er als Location statt server-level.
+        location = /health {
             return 200 "ok\n";
             add_header Content-Type text/plain;
         }
-        return 404;
+        location / {
+            return 404;
+        }
     }
 ---
 apiVersion: apps/v1
@@ -115,6 +120,12 @@ spec:
         - name: nginx-conf
           configMap:
             name: sessions-server-nginx
+            # T015167: items-Filter — ohne ihn landet der nginx.conf-Key mit im
+            # conf.d-Include-Verzeichnis und nginx bricht mit "[emerg]
+            # worker_processes directive is not allowed here" ab.
+            items:
+              - key: default.conf
+                path: default.conf
         - name: nginx-main-conf
           configMap:
             name: sessions-server-nginx

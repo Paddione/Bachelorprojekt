@@ -30,3 +30,18 @@ setup() {
   echo "$dep_block" | grep -qE 'runAsNonRoot:[[:space:]]*true'
   echo "$dep_block" | grep -qE 'readOnlyRootFilesystem:[[:space:]]*true'
 }
+
+@test "sessions-server: conf.d-Volume filtert auf default.conf (T015167)" {
+  # Das nginx-conf-Volume mountet die ConfigMap nach /etc/nginx/conf.d — dem
+  # Include-Verzeichnis des Servers. Ohne items-Filter landet der nginx.conf-Key
+  # (Main-Konfiguration, worker_processes etc.) mit im Include und nginx bricht
+  # mit "[emerg] worker_processes directive is not allowed here" ab.
+  # Positiv-Anker: der items-Filter existiert.
+  grep -qE 'key:[[:space:]]*default\.conf' "$MANIFEST"
+  # Block des nginx-conf-Volumes (Volumes-Ebene = 8 Spaces) bis zum naechsten
+  # Volume-Eintrag; letztere Zeile wird per $d wieder entfernt.
+  vol_block="$(sed -n '/^        - name: nginx-conf$/,/^        - name: /p' "$MANIFEST" | sed '$d')"
+  echo "$vol_block" | grep -qE 'key:[[:space:]]*default\.conf'
+  leaked="$(echo "$vol_block" | grep -cE 'key:[[:space:]]*nginx\.conf' || true)"
+  [ "$leaked" -eq 0 ]
+}

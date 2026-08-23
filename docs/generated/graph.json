@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-22T11:17:20.399Z",
+  "generatedAt": "2026-08-23T16:20:55.790Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1458,18 +1458,6 @@
     {
       "from": "blackbox-exporter",
       "to": "blackbox-exporter",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "monitoring-kube-state-metrics",
-      "to": "monitoring-kube-state-metrics",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "monitoring-operator",
-      "to": "monitoring-operator",
       "via": "selector",
       "kind": "selector"
     },

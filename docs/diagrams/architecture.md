@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-95 Services · 1923 Abhängigkeitskanten · 291 API-Endpoints
+95 Services · 1921 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -236,8 +236,6 @@ flowchart LR
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   mentolder_web -->|"selector"| mentolder_web
   blackbox_exporter -->|"selector"| blackbox_exporter
-  monitoring_kube_state_metrics -->|"selector"| monitoring_kube_state_metrics
-  monitoring_operator -->|"selector"| monitoring_operator
   otel_collector -->|"selector"| otel_collector
   nextcloud_redis -->|"selector"| nextcloud_redis
   ntfy -->|"selector"| ntfy

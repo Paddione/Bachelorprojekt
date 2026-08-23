@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-08-22T11:22:03.240Z
-> Nodes: 95 | Edges: 1923 | Isolated: 5
+> Generated: 2026-08-23T16:20:56.755Z
+> Nodes: 95 | Edges: 1921 | Isolated: 7
 
 ## Ranking (transitive Abhängige)
 
@@ -84,11 +84,9 @@
 | 76 | bge-rerank | 1 | 1 | 1 |
 | 77 | mediaviewer-widget | 1 | 1 | 1 |
 | 78 | blackbox-exporter | 1 | 1 | 1 |
-| 79 | monitoring-kube-state-metrics | 1 | 1 | 1 |
-| 80 | monitoring-operator | 1 | 1 | 1 |
-| 81 | nextcloud-redis | 1 | 1 | 1 |
-| 82 | sealed-secrets-controller | 1 | 1 | 1 |
-| 83 | whisper | 1 | 1 | 1 |
+| 79 | nextcloud-redis | 1 | 1 | 1 |
+| 80 | sealed-secrets-controller | 1 | 1 | 1 |
+| 81 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -480,16 +478,6 @@
 ### blackbox-exporter
 **Direkte Abhängige:** 1 — blackbox-exporter
 **Transitive Abhängige:** 1 — blackbox-exporter
-**Upstream (In-Degree):** 1
-
-### monitoring-kube-state-metrics
-**Direkte Abhängige:** 1 — monitoring-kube-state-metrics
-**Transitive Abhängige:** 1 — monitoring-kube-state-metrics
-**Upstream (In-Degree):** 1
-
-### monitoring-operator
-**Direkte Abhängige:** 1 — monitoring-operator
-**Transitive Abhängige:** 1 — monitoring-operator
 **Upstream (In-Degree):** 1
 
 ### nextcloud-redis

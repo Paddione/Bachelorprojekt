@@ -2,6 +2,23 @@
 # brain-ingest-worklist.sh — Generator für Brain-Doku Worklist (TAB-separated)
 #
 # Usage: brain-ingest-worklist.sh [--root <dir>] [--manifest <file>]
+#        brain-ingest-worklist.sh --pending [--state <file>] [--root <dir>]
+#
+# --pending gibt STATT der Zeilenliste eine einzelne Zahl aus: die Menge der
+# Chunks, die beim naechsten Ingest-Lauf tatsaechlich Arbeit waeren. [T013916]
+#
+# Warum das ein eigener Modus ist und keine Ableitung der Zeilenzahl: die
+# Worklist ist eine reine Manifest-Expansion. Sie zaehlt ALLE Quellen, nicht die
+# offenen. G-BRAIN14 las diese Zahl als "Backlog" und blieb damit bei Ziel 0
+# dauerhaft rot — unabhaengig von jeder erledigten Arbeit (172 gemeldet, 17
+# tatsaechlich offen).
+#
+# Die Pending-Semantik ist dieselbe wie in brain-ingest.sh process_page: der
+# sha256 des QUELL-Chunks (vor jeder Transformation) gegen den State-Eintrag
+# '<src_path>#<index>'. Deshalb braucht dieser Modus weder LLM noch Netz —
+# brain-chunk.sh ist ausdruecklich "no LLM, no network". brain-ingest.sh
+# --dry-run waere keine Alternative: es verlangt LM_MODEL (T002533) auch im
+# Dry-Run, und CI hat keine LLM-Konfiguration.
 #
 # Emits TAB-separated rows "<relative-path>\t<slug>\t<group>" for every
 # candidate source file under --root, honoring the `exclude:` prefix list
@@ -11,11 +28,16 @@ set -euo pipefail
 
 ROOT="."
 MANIFEST="scripts/brain/ingest-sources.yaml"
+PENDING_MODE=0
+STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --root)     ROOT="${2:?--root requires a value}"; shift ;;
     --manifest) MANIFEST="${2:?--manifest requires a value}"; shift ;;
+    --pending)  PENDING_MODE=1 ;;
+    --state)    STATE_FILE="${2:?--state requires a value}"; shift ;;
+    --help|-h)  sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
@@ -116,6 +138,36 @@ find "$ROOT" \
   slug="$(slugify "$rel")"
   printf '%s\t%s\t%s\n' "$rel" "$slug" "$grp"
 done > "$WORKLIST_TMP"
+
+# [T013916] --pending: statt der Zeilenliste die Zahl der Chunks ausgeben, die
+# beim naechsten Ingest wirklich Arbeit waeren. Semantik-Zwilling von
+# brain-ingest.sh process_page (sha256 des Quell-Chunks gegen '<src>#<idx>').
+if [[ "$PENDING_MODE" -eq 1 ]]; then
+  _chunk_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/brain-chunk.sh"
+  if [[ ! -x "$_chunk_script" ]]; then
+    echo "Fehler: brain-chunk.sh fehlt ($_chunk_script)" >&2
+    exit 1
+  fi
+  _tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$_tmpdir"' EXIT
+  _pending=0
+  while IFS=$'\t' read -r _src _slug _grp; do
+    [[ -n "${_src:-}" ]] || continue
+    [[ -f "$ROOT/$_src" ]] || continue
+    _out="$_tmpdir/$(printf '%s' "$_slug" | tr -c 'a-zA-Z0-9' '_')"
+    mkdir -p "$_out"
+    while IFS=$'\t' read -r _cf _cslug _idx _heading; do
+      [[ -n "${_cf:-}" ]] || continue
+      _h="$(sha256sum "$_cf" | cut -d' ' -f1)"
+      _e="$(jq -r --arg k "${_src}#${_idx}" '.[$k].hash // ""' "$STATE_FILE" 2>/dev/null || echo "")"
+      [[ "$_h" == "$_e" ]] || _pending=$((_pending + 1))
+    done < <(bash "$_chunk_script" --source "$ROOT/$_src" --slug "$_slug" --out-dir "$_out" 2>/dev/null || true)
+  done < "$WORKLIST_TMP"
+  # Fehlt das State-File, ist ALLES pending — das ist die ehrliche Antwort und
+  # kein Fehler: ein frischer Rechner hat den Ingest noch nie gefahren.
+  printf '%s\n' "$_pending"
+  exit 0
+fi
 
 cat "$WORKLIST_TMP"
 

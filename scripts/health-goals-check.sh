@@ -409,14 +409,16 @@ want G-OPS03 && row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlauf
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
 row target G-CQ05 "$(grep -rnE '\bTODO\b' --include='*.ts' --include='*.svelte' --include='*.astro' --include='*.sh' --include='*.js' --include='*.mjs' components/website/src scripts tests k3d components/brett/src 2>/dev/null | grep -vE 'node_modules|/dist/|plan-lint.sh|plan-qa-check.sh|openspec.sh|openspec-validate|openspec-merge' | wc -l | tr -d ' ')" le 1 "Echte TODO-Marker (kein Netto-Zuwachs)"
-row target G-RH01 "$(n_baseline_gate ALL)" le 30 "Baselined Gate-Violations gesamt"
+# [T013916] 30 -> 5, Ist 0. Ratchet-Regel: .claude/lib/goals.md §Rueckbau.
+row target G-RH01 "$(n_baseline_gate ALL)" le 5 "Baselined Gate-Violations gesamt"
 row target G-CQ07 "$(n_baseline_gate S2)" le 0  "S2 Import-Zyklen"
-row target G-CQ09 "$(n_baseline_gate S3)" le 10 "S3 hartkodierte Hostnames"
+row target G-CQ09 "$(n_baseline_gate S3)" le 2 "S3 hartkodierte Hostnames"   # [T013916] 10 -> 2, Ist 0
 row target G-CQ10 "$(n_baseline_gate S4)" le 4  "S4 verwaiste Scripts/Manifeste"
-row target G-CQ02 "$(anchor_dir components/website/src; grep -rn ': any\|<any>\|as any' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | wc -l | tr -d ' ')" le 280 "explizite any-Verwendungen"
+row target G-CQ02 "$(anchor_dir components/website/src; grep -rn ': any\|<any>\|as any' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | wc -l | tr -d ' ')" le 10 "explizite any-Verwendungen"   # [T013916] 280 -> 10, Ist 0
 row target G-FE03 "$(anchor_dir components/website/src; grep -rEn 'console\.(error|warn)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger\.ts' | grep -v 'logger\.ts' | grep -v 'error-log-store\.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" le 0 "rohe console.error/warn Aufrufe (exkl. browser-logger/logger/error-log-store Selbstschutz-Fallbacks, exkl. Tests) — T001299"
 row target G-FE04 "$(anchor_dir components/website/src; grep -rEn 'console\.(log|debug|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" eq 0 "Stray console.log/debug/info"
-row target G-SIZE03 "$( [ -f components/website/src/lib/website-db.ts ] && wc -l < components/website/src/lib/website-db.ts | tr -d ' ' || echo - )" le 3000 "God-File website-db.ts (Zeilen)"
+# [T013916] 3000 -> 600: Ist 311, das God-File existiert nicht mehr.
+row target G-SIZE03 "$( [ -f components/website/src/lib/website-db.ts ] && wc -l < components/website/src/lib/website-db.ts | tr -d ' ' || echo - )" le 600 "website-db.ts (Zeilen)"
 row target G-SIZE02 "$(git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' | grep -v node_modules | while read -r f; do [ -L "$f" ] || echo "$f"; done | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l | tr -d ' ')" le 3 "Großdateien außerhalb Gate-Scope (>1000 Zeilen)"
 # .codebase-memory/graph.db.zst (16.7MB, ehem. PR #2281) ist seit T001717 nicht mehr getrackt
 # (lokal via `task codebase:index` regeneriert, .gitignore) — die frühere Scope-Ausschluss-Policy
@@ -701,7 +703,7 @@ row target G-TEST03 "$(anchor_dir components/website/src; grep -rnE '(describe|i
 row gate   G-TEST04 "$(git status --porcelain components/website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
 row gate   G-SPEC01 "$(exit_code_of_script scripts/openspec.sh validate)" eq 0 "openspec validate (Exit)"
 row gate   G-SPEC02 "$(c=0; cutoff=$(( $(date +%s) - 30*86400 )); for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; ts=$(git log -1 --format=%at -- "$d" 2>/dev/null); [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && c=$((c+1)); done; echo $c)" eq 0 "OpenSpec-Changes ohne Aktivitaet >30 Tage"
-row target G-SPEC03 "$(m=0; for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; [ -f "$d/.ticket" ] || m=$((m+1)); done; echo $m)" le 41 "Proposals ohne .ticket-Verknuepfung (Ist 41 bei Aufnahme T002598)"
+row target G-SPEC03 "$(m=0; for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; [ -f "$d/.ticket" ] || m=$((m+1)); done; echo $m)" le 5 "Proposals ohne .ticket-Verknuepfung"   # [T013916] 41 -> 5, Ist 0
 row gate   G-SEC02 "$(exit_code_of_script scripts/git-crypt-guard.sh check-tracked)" eq 0 "git-crypt Guard (Exit)"
 row target G-SEC03 "$(ts=$(git log -1 --format=%at -- environments/sealed-secrets/*.yaml 2>/dev/null); [ -n "$ts" ] && echo $(( ( $(date +%s) - ts ) / 86400 )) || echo '-')" le 90 "Tage seit letzter SealedSecret-Rotation"
 row target G-SEC04 "$(min=''; for p in environments/certs/*.pem; do [ -f "$p" ] || continue; e=$(openssl x509 -enddate -noout -in "$p" 2>/dev/null | cut -d= -f2); [ -n "$e" ] || continue; d=$(( ( $(date -d "$e" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 )); { [ -z "$min" ] || [ "$d" -lt "$min" ]; } && min=$d; done; echo "${min:--}")" ge 30 "Sealing-Cert Restlaufzeit (Tage, Minimum)"
@@ -771,10 +773,12 @@ pnpm_measure() {
 }
 want G-DEP01 && row gate   G-DEP01 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-audit-count.py audit --json)" eq 0 "High/Critical npm-Vulnerabilities"
 want G-DEP02 && row target G-DEP02 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-outdated-majors.py outdated --format json)" le 3 "Veraltete Major-Dependencies"
-want G-BRAIN14 && row gate   G-BRAIN14 "$([ "$FAST" = 1 ] && echo '-' || { [ -f scripts/brain-ingest-worklist.sh ] && timeout 120 bash scripts/brain-ingest-worklist.sh 2>/dev/null | grep -c . || echo '-'; })" eq 0 "Brain-Ingest-Backlog (offene Seiten)"
+# [T013916] --pending zaehlt offene Chunks (Hash gegen State), nicht alle Quellen.
+want G-BRAIN14 && row gate   G-BRAIN14 "$([ "$FAST" = 1 ] && echo '-' || { [ -f scripts/brain-ingest-worklist.sh ] && timeout 120 bash scripts/brain-ingest-worklist.sh --pending 2>/dev/null || echo '-'; })" eq 0 "Brain-Ingest-Backlog (offene Chunks)"
 
 # --- DORA aus lokaler Git-History, Shallow-Clone-geschützt (3) -----------------
-row target G-DORA01 "$(dora_count '4 weeks ago')" ge 5 "DORA Deployment Frequency (main-Merges/4 Wochen)"
+# [T013916] 5 -> 20: Doku nennt 5/Woche, gemessen werden 4 Wochen.
+row target G-DORA01 "$(dora_count '4 weeks ago')" ge 20 "DORA Deployment Frequency (main-Merges/4 Wochen, Ziel 5/Woche)"
 row target G-DORA03 "$(t=$(dora_count '8 weeks ago'); f=$(dora_count '8 weeks ago' '^(fix|revert)'); { [ "$t" = "-" ] || [ "$f" = "-" ] || [ "$t" -eq 0 ]; } && echo '-' || echo $(( f * 100 / t )))" le 15 "DORA Change Failure Rate (fix/revert-Anteil in %)"
 row target G-DORA04 "$(dora_count '8 weeks ago' 'revert|hotfix')" le 5 "DORA MTTR-Proxy (revert/hotfix-Commits in 8 Wochen)"
 

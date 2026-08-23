@@ -30,7 +30,7 @@ openspec/changes/pvc-backup-escaping-T014535/   # neu — proposal, design, delt
 
 ## Verify (RED → GREEN)
 
-- [ ] **Task 1 (RED).** Failing BATS-Test liegt im Branch:
+- [x] **Task 1 (RED).** Failing BATS-Test liegt im Branch:
       `tests/spec/backup-pipeline/render-escaping.bats`. Er reproduziert die Flux-Render-Logik
       auf `k3d/pvc-backup-cronjob.yaml`, expandiert das MJOB-Heredoc und
       prüft `bash -n` auf dem generierten Mounter-Script, die Abwesenheit
@@ -41,7 +41,7 @@ timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-
 # expected: FAIL (red — the fix is not yet implemented)
 ```
 
-- [ ] **Task 2 (Escaping-Fix in k3d/pvc-backup-cronjob.yaml).** Alle
+- [x] **Task 2 (Escaping-Fix in k3d/pvc-backup-cronjob.yaml).** Alle
       `${VAR}`-/`\${VAR}`-Formen nach den zwei Klassen umstellen:
       - **Klasse B — Mounter-Runtime-Variablen** (Werte setzt der
         Mounter-Pod selbst; expandieren erst zur Pod-Laufzeit):
@@ -65,7 +65,7 @@ timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-
         je +1 Zeichen) — keine Strukturänderung, keine neuen Symbole;
         Datei (~370 Zeilen) bleibt weit unter jeder S1-Schwelle.
 
-- [ ] **Task 3 (Push-Pfad-Unwrap in Taskfile.yml).** In der
+- [x] **Task 3 (Push-Pfad-Unwrap in Taskfile.yml).** In der
       `workspace:deploy`-Render-Strecke (Umgebung: `envsubst "$ENVSUBST_VARS"`)
       die Unwrap-Regex auf die breite Form anheben — Parität mit dem
       Flux-Renderer (T012503):
@@ -76,7 +76,7 @@ timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-
       Ohne diese Änderung bleibt `\$$(date ...)` im Push-/Dev-Pfad als
       `$$(date ...)` stehen (PID-Expansion → Syntaxfehler im Pod).
 
-- [ ] **Task 4 (GREEN).** Der BATS-Test aus Task 1 muss jetzt grün sein:
+- [x] **Task 4 (GREEN).** Der BATS-Test aus Task 1 muss jetzt grün sein:
 
 ```bash
 timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-escaping.bats

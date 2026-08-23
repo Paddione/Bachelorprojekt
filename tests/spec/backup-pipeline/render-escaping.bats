@@ -8,7 +8,7 @@
 # Orchestrator-Pod und prüft bash -n auf dem generierten Mounter-Script.
 
 setup() {
-  REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+  REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   PVC_CRONJOB="$REPO/k3d/pvc-backup-cronjob.yaml"
 }
 

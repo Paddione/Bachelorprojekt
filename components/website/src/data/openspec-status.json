@@ -4237,6 +4237,12 @@
       "status": "archived"
     }
   ],
+  "T014550": [
+    {
+      "slug": "flux-oci-sha-pinning-t014550",
+      "status": "plan_staged"
+    }
+  ],
   "T014552": [
     {
       "slug": "2026-08-23-routing-check-freetoken-t014552",

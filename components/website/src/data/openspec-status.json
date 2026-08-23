@@ -4195,6 +4195,36 @@
       "status": "archived"
     }
   ],
+  "T014466": [
+    {
+      "slug": "ci-watch-fail-closed",
+      "status": "plan_staged"
+    }
+  ],
+  "T014535": [
+    {
+      "slug": "2026-08-23-pvc-backup-escaping-T014535",
+      "status": "archived"
+    }
+  ],
+  "T014537": [
+    {
+      "slug": "2026-08-23-korczewski-brand-pause",
+      "status": "archived"
+    }
+  ],
+  "T014542": [
+    {
+      "slug": "2026-08-23-remove-pushover-alert-routing",
+      "status": "archived"
+    }
+  ],
+  "T014552": [
+    {
+      "slug": "2026-08-23-routing-check-freetoken-t014552",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

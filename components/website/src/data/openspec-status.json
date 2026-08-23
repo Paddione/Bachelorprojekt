@@ -3387,6 +3387,12 @@
       "status": "archived"
     }
   ],
+  "T004339": [
+    {
+      "slug": "decommission-orphaned-loadouts-T014339",
+      "status": "plan_staged"
+    }
+  ],
   "T004592": [
     {
       "slug": "2026-08-14-stub-delta-pr-gate",
@@ -4183,6 +4189,12 @@
       "status": "archived"
     }
   ],
+  "T014384": [
+    {
+      "slug": "2026-08-23-dispatch-gate-cap-order-t014384",
+      "status": "archived"
+    }
+  ],
   "T014386": [
     {
       "slug": "2026-08-23-ticket-read-fail-closed",
@@ -4195,9 +4207,33 @@
       "status": "plan_staged"
     }
   ],
+  "T014535": [
+    {
+      "slug": "2026-08-23-pvc-backup-escaping-T014535",
+      "status": "archived"
+    }
+  ],
+  "T014537": [
+    {
+      "slug": "2026-08-23-korczewski-brand-pause",
+      "status": "archived"
+    }
+  ],
   "T014542": [
     {
       "slug": "2026-08-23-remove-pushover-alert-routing",
+      "status": "archived"
+    }
+  ],
+  "T014543": [
+    {
+      "slug": "2026-08-23-add-brain-ingest-dry-task",
+      "status": "archived"
+    }
+  ],
+  "T014545": [
+    {
+      "slug": "2026-08-23-factory-control-primary-key",
       "status": "archived"
     }
   ],

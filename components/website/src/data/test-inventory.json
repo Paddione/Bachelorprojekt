@@ -2298,14 +2298,14 @@
     "kind": "shell"
   },
   {
-    "id": "backup-pipeline",
-    "file": "tests/spec/backup-pipeline.bats",
+    "id": "backup-pipeline/filen-remote-retention",
+    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
     "category": "backup-pipeline",
     "kind": "shell"
   },
   {
-    "id": "backup-pipeline/filen-remote-retention",
-    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
+    "id": "backup-pipeline/render-escaping",
+    "file": "tests/spec/backup-pipeline/render-escaping.bats",
     "category": "backup-pipeline",
     "kind": "shell"
   },
@@ -3686,6 +3686,12 @@
   {
     "id": "health-goals/id-parity",
     "file": "tests/spec/health-goals/id-parity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/korczewski-brand-pause",
+    "file": "tests/spec/health-goals/korczewski-brand-pause.bats",
     "category": "health-goals",
     "kind": "shell"
   },
@@ -5258,6 +5264,12 @@
   {
     "id": "software-factory/factory-e2e-pipeline-coverage",
     "file": "tests/spec/software-factory/factory-e2e-pipeline-coverage.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/factory-mcp-queue-ssot",
+    "file": "tests/spec/software-factory/factory-mcp-queue-ssot.bats",
     "category": "software-factory",
     "kind": "shell"
   },

@@ -29,9 +29,9 @@ AFFECTED_FILES=(
   ".claude/skills/references/dev-flow-plan-phases.md"
   ".claude/skills/dev-flow-execute/SKILL.md"
   ".claude/skills/dev-flow-chore/SKILL.md"
-  ".opencode/skills/opencode-flow-plan/SKILL.md"
-  ".opencode/skills/opencode-flow-execute/SKILL.md"
-  ".opencode/skills/opencode-flow-chore/SKILL.md"
+  ".opencode/skills/dev-flow-plan/SKILL.md"
+  ".opencode/skills/dev-flow-execute/SKILL.md"
+  ".opencode/skills/dev-flow-chore/SKILL.md"
 )
 
 @test "T006367: jede dev-flow-Skill-Datei traegt die Regel-Phrase 'nie auf implizites cwd vertrauen'" {

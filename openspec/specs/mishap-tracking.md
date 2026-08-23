@@ -20,21 +20,12 @@ Factory-Fix-Tickets, die von `mishap.go` aus nicht-kritischen Mishaps erzeugt we
 - **THEN** das Ticket hat `--status triage`
 - **AND** das Ticket hat NICHT `--status plan_staged`
 
-#### Scenario: Rollup-Container bleibt plan_staged
-
-- **GIVEN** der Mishap-Rollup-Container wird via `buildCreateRollupTicketArgs` angelegt
-- **WHEN** die Args gebaut werden
-- **THEN** der Container hat `--status plan_staged` (unverändert)
-- **AND** der Container wird weiterhin von `mishap-rollup.sh` verwaltet
-
 #### Scenario: Incident-Tickets unverändert
 
 - **GIVEN** ein Incident-Mishap (`broken`, `security`) wird gemeldet
 - **WHEN** `buildIncidentTicketArgs` die Ticket-Args baut
 - **THEN** das Ticket hat `--status triage` (unverändert)
 - **AND** `--attention-mode needs_human` (unverändert)
-
-<!-- merged from change delta mishap-tracking.md (401b41da6e36) -->
 
 ### Requirement: Der Mishap-Buffer aggregiert, er konvertiert nicht
 
@@ -119,3 +110,52 @@ ausführt. Ein Testziel, das in keinem Runner registriert ist, ist kein Gate.
 - **AND** dieses Ziel ist aus `.github/workflows/ci.yml` erreichbar
 
 <!-- merged from change delta mishap-tracking.md (a37f7d82bb63) -->
+
+### Requirement: Nicht-kritische Mishaps werden am Verursacher-Ticket vermerkt
+
+Ein nicht-kritischer Mishap, der während der Bearbeitung eines Tickets auftritt, SHALL als
+Kommentar an genau dieses Ticket geschrieben werden. Es SHALL kein Sammel-Container, kein
+Zyklus-Plan und kein eigenes Folge-Ticket dafür erzeugt werden.
+
+Fehlt der Ticket-Kontext, SHALL der Mishap auf stderr protokolliert und verworfen werden. Das
+Fehlen eines Ticket-Kontexts SHALL NICHT dazu führen, dass ein Ticket angelegt wird.
+
+#### Scenario: Mishap mit Ticket-Kontext landet als Kommentar
+
+- **GIVEN** `scripts/hooks/mishap-tracker.sh` läuft am Ende eines dev-flow-Skills
+- **AND** die Umgebung trägt eine Ticket-ID des bearbeiteten Tickets
+- **AND** ein nicht-kritischer Mishap-Eintrag liegt vor
+- **WHEN** der Tracker den Eintrag verarbeitet
+- **THEN** ruft er `ticket.sh comment` mit genau dieser Ticket-ID auf
+- **AND** legt kein weiteres Ticket an
+
+#### Scenario: Mishap ohne Ticket-Kontext erzeugt kein Ticket
+
+- **GIVEN** `scripts/hooks/mishap-tracker.sh` läuft ohne Ticket-ID in der Umgebung
+- **AND** ein nicht-kritischer Mishap-Eintrag liegt vor
+- **WHEN** der Tracker den Eintrag verarbeitet
+- **THEN** wird der Eintrag auf stderr protokolliert
+- **AND** es wird kein Ticket und kein Container angelegt
+- **AND** der Exit-Code ist 0
+
+### Requirement: Kein Automat erzeugt Mishap-Sammelcontainer
+
+Es SHALL keinen periodisch laufenden Prozess geben, der ein Sammel-Ticket für Mishaps anlegt,
+einen Plan daraus generiert oder Einträge über Zyklen hinweg weiterreicht. Insbesondere SHALL
+`scripts/factory/wakeup.sh` keinen Rollup-Generator aufrufen und `scripts/ticket.sh` kein
+Kommando bereitstellen, das bei erfolgloser Suche ein Sammel-Ticket anlegt.
+
+#### Scenario: wakeup.sh ruft keinen Rollup-Generator
+
+- **GIVEN** das Repository auf `main`
+- **WHEN** `scripts/factory/wakeup.sh` nach `mishap-rollup` durchsucht wird
+- **THEN** enthält die Datei keinen Aufruf eines Rollup-Generators
+
+#### Scenario: ticket.sh kennt kein rollup-container-Kommando
+
+- **GIVEN** das Repository auf `main`
+- **WHEN** `scripts/ticket.sh rollup-container` aufgerufen wird
+- **THEN** ist der Exit-Code ungleich 0
+- **AND** es wird kein Ticket mit dem Titel `Mishap Rollup — fortlaufende Sammlung` angelegt
+
+<!-- merged from change delta mishap-tracking.md (8c4f04290a92) -->

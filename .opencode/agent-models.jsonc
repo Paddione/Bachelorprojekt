@@ -63,28 +63,70 @@
             "context": 262144,
             "output": 8192
           }
+        },
+        "gemma26-throughput": {
+          "name": "Gemma 4 26B A4B QAT-Q4_K_XL (Durchsatz, Loadout gemma26-throughput auf Port 8092, gemessen 118.016 ctx, 159-169 tok/s) - exclusiveGroup chat-gpu",
+          "limit": {
+            "context": 118016,
+            "output": 8192
+          }
+        },
+        "qwen38-220k": {
+          "name": "Qwen 3.8 27B UD-IQ3_XXS (Text, Loadout qwen38-220k auf Port 8094, 114.688 ctx) - exclusiveGroup chat-gpu",
+          "limit": {
+            "context": 114688,
+            "output": 8192
+          }
         }
-        // T014028: gemma26-throughput und qwen38-220k sind STILLGELEGT —
-        // FreeToken-native ersetzt die llama-Loadouts als lokales Backend
-        // (Provider "freetoken-local" unten). Die Loadout-Eintraege bleiben
-        // in scripts/llm/loadouts.json mit enabled:false stehen.
       }
     },
-    // ── FreeToken-native (Windows, MoE-Serving) ────────────────────────
-    // T014028: lokales Standard-Backend. OpenAI-compatible API auf :1919,
-    // Modell Qwen3.6-35B-A3B-NVFP4 (262.144 ctx nativ, elastisches KV).
-    // Kein apiKey noetig (localhost). Betrieb: docs/runbooks/freetoken-native.md.
+    // ── FreeToken-native (Windows pk-desktop, Port 1919) ───────────────
+    // T014105/T014028: FreeToken serviert EIN residentes MoE-Modell auf dem
+    // gemeinsamen Port; der Daemon (:1900) wechselt per /engine/switch. Der
+    // Server ignoriert das model-Feld von Anfragen (live gegengeprueft
+    // 2026-08-23) — deshalb zeigen alle lokalen Agenten auf den Alias
+    // "active" statt auf konkrete Checkpoints.
+    //
+    // Kontext-Limits sind GEMESSEN (2026-08-23, pk-desktop, RTX 5070 Ti,
+    // FreeToken 0.1.1+g30aa89115), NICHT advertised: der Server meldet
+    // max_model_len=262144, nutzbar sind aber nur die KV-Pages der jeweiligen
+    // Serve-Konfiguration. opencode kompaktiert bei 95% der deklarierten
+    // Grenze — die advertised Zahl reproduziert exakt die
+    // "Input sequence length exceeds"-Drops, gegen die die Kalibrierung
+    // gebaut wurde. Das Plugin .opencode/plugin/freetoken-active.ts setzt
+    // Limit+Name des Alias beim opencode-Start auf das residente Modell.
     "freetoken-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "FreeToken-native (Qwen3.6-35B-A3B NVFP4, Windows)",
+      "name": "FreeToken-native (drei MoE-FTW-Checkpoints auf pk-desktop/Windows, je EINER resident auf :1919, Wechsel ueber Daemon :1900 /engine/switch)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1"
       },
       "models": {
         "Qwen3.6-35B-A3B-NVFP4": {
-          "name": "Qwen3.6-35B-A3B NVFP4 (FreeToken-native, gemessen ~103 tok/s warm, KV elastisch)",
+          "name": "Qwen3.6-35B-A3B NVFP4 (FreeToken-native, GDN-Hybrid, gemessen 2026-08-23: ~104 tok/s Decode kurz / 62-70 tok/s bei 63k Kontext, 131072 KV-Reserve = 34% Experten resident, text-only)",
           "limit": {
-            "context": 262144,
+            "context": 131072,
+            "output": 8192
+          }
+        },
+        "gpt-oss-20b": {
+          "name": "gpt-oss-20b FTW (FreeToken-native, gemessen 2026-08-23: ~112 tok/s Decode bei 64k KV / ~128 tok/s bei 32k KV, 75.7% Experten resident, Reasoning-Stufen low/medium/high statt on/off, text-only by architecture)",
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
+        },
+        "Gemma-4-26B-A4B-NVFP4": {
+          "name": "Gemma-4-26B-A4B NVFP4 (FreeToken-native, gemessen 2026-08-23: ~73 tok/s Decode bei 32k KV nach Window-Pool-Trimmung --swa 8777 --moe 1540, 40% Experten resident, text-only bis Vision-Rekonvertierung — FTW-Checkpoint enthaelt null Vision-Tensoren)",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "active": {
+          "name": "FreeToken-active (modellagnostischer Alias — serviert immer das gerade auf :1919 residente Modell; Limit wird vom Plugin freetoken-active beim Start auf das residente Modell gesetzt, Fallback hier: Qwen)",
+          "limit": {
+            "context": 131072,
             "output": 8192
           }
         }
@@ -362,9 +404,9 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "freetoken-local/active",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -378,9 +420,9 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "freetoken-local/active",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -388,9 +430,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "freetoken-local/active",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -404,9 +446,9 @@
     // Der Eintrag in der Permission-Liste weiter unten gehoert dazu: ohne ihn
     // existiert der Agent, ist aber nicht dispatchbar.
     "gemma12": {
-      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "freetoken-local/active",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F0ABFC",
       "temperature": 0.4,
@@ -421,9 +463,9 @@
     // lokalen Familien dispatchbar — sequenziell, einer nach dem anderen.
     // Text-only: kein mmproj in diesem Loadout.
     "qwen38": {
-      "description": "Local subagent for the qwen38 family — name retained as dispatch handle; faehrt seit T014028 FreeToken-native (Qwen3.6-35B-A3B-NVFP4, :1919). Text-only. Write-capable delegation.",
+      "description": "Local subagent for the qwen38 family — name retained as dispatch handle; faehrt seit T014028 FreeToken-native (:1919), modellagnostisch via Alias 'active' (serviert immer das residente Modell). Text-only. Write-capable delegation.",
       "mode": "subagent",
-      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "freetoken-local/active",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.4,
@@ -451,6 +493,22 @@
     //
     // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
     // Orchestrator davor.
+    "gemma26-primary": {
+      "description": "Primary (Tab-selectable) local agent on FreeToken-native (:1919), modellagnostisch via Alias 'active'. Text-only. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
+      "mode": "primary",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#6EE7B7",
+      // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
+      // plant UND implementiert. Deutlich hoehere Werte riskieren den
+      // Tool-Call-im-<think>-Block-Fehler aus der fablevibes-Diagnose.
+      "temperature": 0.3,
+      "steps": 50,
+      // write=deny aus demselben Grund wie beim Subagenten - das ist eine
+      // Modell-Eigenschaft (Ganzdatei-Overwrite statt Edit), keine Frage des
+      // Agent-Modus. Neue Dateien legt der Benutzer bzw. ein Folgeschritt an.
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
     // Maximaler lokaler Kontext (161024, gemessen beim Laden am 2026-08-09,
     // np=3 -kvu q4_0 fitt 128, gemeinsamer Pool).
     // Keinerlei Subagent-Dispatch — rein lokale Arbeit ohne Netzanbindung.
@@ -458,6 +516,21 @@
     // Kein Vision: gemma26-factory laedt KEIN mmproj (loadouts.json, notes
     // "Kein mmproj." — der mmproj-Pfad wurde T002886 entfernt, weil die Datei
     // am erwarteten Pfad fehlte). Vision gibt es nur auf gemma12-vision (:8089).
+    "gemma26-vision": {
+      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. No subagent dispatch — for focused local work that must stay on-device.",
+      "mode": "primary",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#A78BFA",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": {
+        "edit": "allow",
+        "write": "deny",
+        "bash": "allow",
+        "task": "deny"
+      }
+    },
     // ── Primaere (Tab-waehlbare) Agenten fuer jedes lokale Modell ───────
     //
     // Ergaenzung zu gemma26-primary / gemma26-vision: ein primaerer Agent pro
@@ -471,27 +544,73 @@
     // 118.016 fuehrte zu falsch getimtem Compact. Der Guard
     // opencode-routes-via-proxy.bats prueft die Deklaration gegen den LAUFENDEN
     // Server in einem +/-20-%-Korridor.
-    // T014028: gemma26-throughput-primary entfernt — der Tab-Agent diente nur
-    // dem gleichnamigen Loadout auf :8092, das mit der FreeToken-Migration
-    // stillgelegt wurde. qwen38-primary deckt denselben Zweck ab.
-    // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
-    // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
-    // beides nicht reicht, wird hier dispatcht. Verwendet die direkte
-    // DeepSeek-API (deepseek-chat / V3) fuer schnelle Hilfestellung.
-    // T014028: einziger lokaler Primary — FreeToken-native statt der sechs
-    // Alt-Namen-Primaries (gemma26-primary/-vision, gptoss/devstral/gemma12/
-    // qwen38-primary), die historische Loadout-Namen trugen. Text-only;
-    // lokale VisionOption entfaellt damit (Cloud deckt das ab).
-    "freetoken-primary": {
-      "description": "PRIMARY: Qwen3.6-35B-A3B-NVFP4 via FreeToken-native (:1919, 262144 ctx nativ, ~103 tok/s warm). Tab-selectable singleagent, text-only. Can dispatch subagents.",
+    "gptoss-primary": {
+      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch subagents.",
       "mode": "primary",
-      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#34D399",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "devstral-primary": {
+      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch subagents.",
+      "mode": "primary",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#60A5FA",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "gemma12-primary": {
+      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#F472B6",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "gemma26-throughput-primary": {
+      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch subagents.",
+      "mode": "primary",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#FBBF24",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "qwen38-primary": {
+      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable text-only singleagent on the freetoken-local provider. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#A855F7",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    // T014105: aus der Global-Config (T014028) nachgetragen — dedizierter
+    // Tab-waehlbarer Primary auf dem FreeToken-Alias, damit der lokale Stack
+    // auch ohne Familien-Namen direkt waehlbar bleibt.
+    "freetoken-primary": {
+      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert immer das gerade residente Modell (Qwen ~104 tok/s kurz / gpt-oss ~112 / Gemma ~73; Plugin freetoken-active setzt das Kontext-Limit beim Start). Tab-selectable singleagent, text-only. Can dispatch subagents.",
+      "mode": "primary",
+      "model": "freetoken-local/active",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#22D3EE",
       "temperature": 0.3,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
+    // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
+    // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
+    // beides nicht reicht, wird hier dispatcht. Verwendet die direkte
+    // DeepSeek-API (deepseek-chat / V3) fuer schnelle Hilfestellung.
     "deepseek-helper": {
       "description": "ESCALATION: DeepSeek V4 Flash via the direct DeepSeek API (1M ctx) — dispatch when a local subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed. Uses the direct API rather than OpenCode Go on purpose: this is the fallback path, so it stays usable when the Go subscription is exhausted or Zen is down.",
       "mode": "subagent",

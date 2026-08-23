@@ -108,7 +108,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `externes-task-management`
 
 - **`mcp:task-master-ai`** — Status `suppressed`
-  - _Grund:_ Kein erreichbarer Server: task-master-ai existiert weder in docs/agent-guide/registry/mcp.yaml noch in .opencode/opencode.jsonc. PRD-getriebene Task-Zerlegung laeuft ueber ticket-mcp und die dev-flow-/opencode-flow-Skills.
+  - _Grund:_ Kein erreichbarer Server: task-master-ai existiert weder in docs/agent-guide/registry/mcp.yaml noch in .opencode/opencode.jsonc. PRD-getriebene Task-Zerlegung laeuft ueber ticket-mcp und die dev-flow-Skills.
 
 ## Fähigkeit: `mishap-erfassung`
 

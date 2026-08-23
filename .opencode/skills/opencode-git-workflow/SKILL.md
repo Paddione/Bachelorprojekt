@@ -7,7 +7,7 @@ description: Use whenever committing, pushing, creating a PR, or finishing work 
 
 **Sage zu Beginn:** "Ich nutze opencode-git-workflow für den Commit/PR-Ablauf."
 
-Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** in opencode. Die `opencode-flow-*`-Skills verweisen auf die Schritte hier statt sie zu duplizieren. Für GitHub-Read/View-Flows (Anzeige) `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist: `gh` direkt (T004612, Repos: `Paddione/Bachelorprojekt`).
+Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** in opencode. Die `dev-flow-*`-Skills verweisen auf die Schritte hier statt sie zu duplizieren. Für GitHub-Read/View-Flows (Anzeige) `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist: `gh` direkt (T004612, Repos: `Paddione/Bachelorprojekt`).
 
 ---
 
@@ -303,8 +303,8 @@ bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 
 | Skill | Beziehung |
 |-------|-----------|
-| `opencode-flow-chore` | Chore-Ablauf (nutzt diesen Skill intern) |
-| `opencode-flow-execute` | Feature/Fix-Ablauf (nutzt diesen Skill intern) |
+| `dev-flow-chore` | Chore-Ablauf (nutzt diesen Skill intern) |
+| `dev-flow-execute` | Feature/Fix-Ablauf (nutzt diesen Skill intern) |
 | `scripts/worktree-create.sh` | Git-crypt-safe worktree creator |
 | `worktree.ts` Plugin | Opencode-native primitive (git-crypt-limited) |
 | `.agents/skills/references/git-workflow-procedures.md` | Detail-Referenz (Schritt-Übersicht, Fehlertabelle) |

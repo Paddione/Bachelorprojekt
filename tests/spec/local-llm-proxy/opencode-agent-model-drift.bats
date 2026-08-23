@@ -69,12 +69,9 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf freetoken-local" {
-  # T014028: alle lokalen Agenten hängen am FreeToken-Backend — der Provider
-  # "freetoken-local" in agent-models.jsonc trifft das residente Modell auf
-  # :1919. Geprueft werden die AKTIVEN "model"-Verweise, nicht Textvorkommen:
-  # historische Kommentare duerfen qwen38-220k weiter nennen.
-  run bash -c "grep -oE '\"model\": \"freetoken-local/[^\"]+\"' '${AGENTS}' | wc -l"
+@test "T002545: die Agentendefinitionen verweisen auf qwen38-220k" {
+  # T013360: alle lokalen Agenten auf qwen38-220k umgestellt — kein GPU-Swap mehr.
+  run grep -c 'qwen38-220k' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }
@@ -145,14 +142,14 @@ setup() {
   [ -f "${LOADOUTS}" ]
 
   # Positiv-Anker 1 [T002356-M1]: es gibt ueberhaupt Agent-Modellzuweisungen auf
-  # ein lokales Backend. Zwei Formen existieren: 'llamacpp-local/<slug>' (der
-  # Slug ist die zweite Pfadkomponente) und seit T014028 'freetoken-local/…'
-  # (das Loadout heisst wie der Provider, T014028). Greift der Parser ins Leere
-  # (Pfad umbenannt, Format geaendert), waere die Negativ-Aussage unten trivial
-  # erfuellt.
-  run bash -c "{ grep -oE '\"model\": \"llamacpp-local/[a-z0-9-]+\"' '${AGENTS}' | grep -oE 'llamacpp-local/[a-z0-9-]+' | cut -d/ -f2; grep -qE '\"model\": \"freetoken-local/' '${AGENTS}' && echo freetoken-local || true; } | sort -u"
+  # llamacpp-local/. Greift der Parser ins Leere (Pfad umbenannt, Format
+  # geaendert), waere die Negativ-Aussage unten trivial erfuellt.
+  # T014105: Diese Klasse ist LEGITIM LEER gezogen worden — alle lokalen
+  # Agenten fahren jetzt freetoken-local/active. Der Zweig bleibt fuer den
+  # Fall bestehen, dass wieder llama.cpp-Agenten dazukommen; nicht-leer sein
+  # muss stattdessen die FreeToken-Menge (Anker 3).
+  run bash -c "grep -oE '\"model\": \"llamacpp-local/[a-z0-9-]+\"' '${AGENTS}' | grep -oE 'llamacpp-local/[a-z0-9-]+' | cut -d/ -f2 | sort -u"
   [ "${status}" -eq 0 ]
-  [ -n "${output}" ]
   local referenced="${output}"
 
   # Positiv-Anker 2: loadouts.json wird gelesen UND enthaelt tatsaechlich
@@ -161,6 +158,28 @@ setup() {
   run jq -r '[.loadouts[] | select(.enabled == false)] | length' "${LOADOUTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
+
+  # Positiv-Anker 3 [T014105]: der neue Stack ist referenziert und jede
+  # freetoken-local-Referenz trifft einen existierenden Provider-Eintrag —
+  # das FreToken-Pendant zu "kein Verweis auf ein totes Loadout".
+  run bash -c "grep -oE '\"model\": \"freetoken-local/[A-Za-z0-9._-]+\"' '${AGENTS}' | sort -u"
+  [ "${status}" -eq 0 ]
+  [ -n "${output}" ]
+  run node -e "
+    const j5 = require('json5');
+    const fs = require('fs');
+    const d = j5.parse(fs.readFileSync('${AGENTS}', 'utf8'));
+    const known = new Set(Object.keys(((d.provider || {})['freetoken-local'] || {}).models || {}));
+    const refs = new Set();
+    for (const a of Object.values(d.agent || {})) {
+      const m = String(a.model || '');
+      if (m.startsWith('freetoken-local/')) refs.add(m.split('/')[1]);
+    }
+    const dead = [...refs].filter((r) => !known.has(r));
+    if (dead.length) { console.error('tote freetoken-local-Referenzen: ' + dead.join(',')); process.exit(1); }
+    process.exit(0);
+  "
+  [ "${status}" -eq 0 ]
 
   local offenders=0 slug
   for slug in ${referenced}; do
@@ -173,10 +192,8 @@ setup() {
       '.loadouts[] | select(.slug == $s) | if has("enabled") then .enabled else true end' "${LOADOUTS}"
     if [ "${output}" = "false" ]; then
       # Meldung nennt Loadout UND Agent — "drift" allein zwingt zum Suchen.
-      # Beide Referenzformen treffen: 'llamacpp-local/<slug>' und (seit T014028,
-      # Loadout heisst wie der Provider) 'freetoken-local/<modell>'.
       echo "FAIL: Loadout '${slug}' ist abgeschaltet, wird aber referenziert von:"
-      grep -B12 "\"model\": \"[a-z0-9-]*${slug}[^\"]*\"" "${AGENTS}" \
+      grep -B12 "\"model\": \"llamacpp-local/${slug}\"" "${AGENTS}" \
         | grep -oE '^    "[a-z0-9-]+": \{' | tail -1
       offenders=$((offenders + 1))
     fi
@@ -195,9 +212,9 @@ setup() {
   [ -n "${output}" ]
   local allowed="${output}"
 
-  # Familien-Subagenten sind die mode=subagent-Eintraege auf einem lokalen
-  # Backend: 'llamacpp-local/<slug>' oder seit T014028 'freetoken-local/…'.
-  run bash -c "grep -B4 '\"model\": \"\\(llamacpp-local/[a-z0-9-]*\\|freetoken-local/\\)' '${AGENTS}' | grep -oE '^    \"[a-z0-9-]+\": \{' | grep -oE '\"[a-z0-9-]+\"' | tr -d '\"' | sort -u"
+  # Familien-Subagenten sind die mode=subagent-Eintraege auf freetoken-local/
+  # (T014105: der lokale Stack faehrt FreeToken, nicht mehr llamacpp-local).
+  run bash -c "grep -B4 '\"model\": \"freetoken-local/' '${AGENTS}' | grep -oE '^    \"[a-z0-9-]+\": \{' | grep -oE '\"[a-z0-9-]+\"' | tr -d '\"' | sort -u"
   [ "${status}" -eq 0 ]
   [ -n "${output}" ]
 

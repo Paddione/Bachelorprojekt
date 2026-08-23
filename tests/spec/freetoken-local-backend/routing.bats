@@ -46,11 +46,15 @@ if(!ft.models["Qwen3.6-35B-A3B-NVFP4"]) throw new Error("Modell fehlt");
   ! grep -q '"model": "llamacpp-local/qwen38-220k"' "$REPO/.opencode/agent-models.jsonc"
 }
 
-@test "agent-models.jsonc: gemma26-throughput-primary ist entfernt" {
-  ! grep -q '"gemma26-throughput-primary"' "$REPO/.opencode/agent-models.jsonc"
+@test "agent-models.jsonc: kein Agent referenziert noch ein llama-Backend" {
+  # T014105 hat die Konsolidierung ueberholt: mehrere lokale Primaries sind
+  # geblieben, aber ALLE lokalen Agenten (Primary wie Subagent) fahren den
+  # FreeToken-Provider. Eine einzelne llamacpp-local-Referenz waere ein
+  # Rueckfall auf ein stillgelegtes Backend.
+  ! grep -q '"model": "llamacpp-local/' "$REPO/.opencode/agent-models.jsonc"
 }
 
-@test "agent-models.jsonc: freetoken-primary ist der einzige lokale Primary" {
+@test "agent-models.jsonc: jeder lokale Primary faehrt den FreeToken-Provider" {
   node -e '
 const fs=require("fs");
 let s=fs.readFileSync(process.argv[1],"utf8");
@@ -62,11 +66,14 @@ while(i<s.length){const c=s[i];
  if(c==="/"&&s[i+1]==="*"){i+=2;while(i<s.length&&!(s[i]==="*"&&s[i+1]==="/"))i++;i+=2;continue;}
  out+=c;i++;}
 const o=JSON.parse(out);
+// T014028/T014105: "lokal" = Provider-Teil ist freetoken-local oder
+// llamacpp-local. Positiv-Anker zuerst: es gibt ueberhaupt welche.
 const locals=Object.entries(o.agent)
   .filter(([,a])=>String(a.model||"").startsWith("freetoken-local")||String(a.model||"").startsWith("llamacpp-local"))
-  .filter(([,a])=>a.mode==="primary")
-  .map(([n])=>n);
-if(locals.length!==1||locals[0]!=="freetoken-primary") throw new Error("lokale Primaries: "+locals.join(","));
+  .filter(([,a])=>a.mode==="primary");
+if(locals.length<1) throw new Error("kein lokaler Primary vorhanden");
+const foreign=locals.filter(([,a])=>!String(a.model).startsWith("freetoken-local"));
+if(foreign.length) throw new Error("lokale Primaries ausserhalb von freetoken-local: "+foreign.map(([n])=>n).join(","));
 ' "$REPO/.opencode/agent-models.jsonc"
 }
 
@@ -75,6 +82,10 @@ if(locals.length!==1||locals[0]!=="freetoken-primary") throw new Error("lokale P
   ! grep -q '"baseUrl":"http://127.0.0.1:18235"' "$REPO/scripts/factory/route-provider.sh"
 }
 
-@test "Mirror-Stand: agents.yaml kennt keinen gemma26-throughput-primary mehr" {
-  ! grep -q '^  gemma26-throughput-primary:' "$REPO/docs/agent-guide/registry/agents.yaml"
+@test "Mirror-Stand: agents.yaml kennt die lokalen Agenten auf dem FreeToken-Alias" {
+  # T014105: der Mirror folgt agent-models.jsonc — lokale Agenten stehen auf
+  # freetoken-local/active, und kein Mirror-Eintrag zeigt mehr auf ein
+  # llama-Loadout-Modell.
+  grep -q 'model: freetoken-local/active' "$REPO/docs/agent-guide/registry/agents.yaml"
+  ! grep -qE '^    model: llamacpp-local/' "$REPO/docs/agent-guide/registry/agents.yaml"
 }

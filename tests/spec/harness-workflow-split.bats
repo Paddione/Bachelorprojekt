@@ -1,23 +1,29 @@
 #!/usr/bin/env bats
 # T001611 harness-workflow-split — one file per OpenSpec SSOT spec (harness-workflow-split).
-# T013724: opencode-flow-{plan,execute,chore} sind Directory-Symlinks auf die
-# harness-neutralen dev-flow-* Shared Sources (openspec-*-Muster); nur
-# opencode-git-workflow bleibt eine echte Datei. Prüfmodus: Source-Grep —
-# dokumentierte Ausnahme von T002448-M4 (Doku-Konvention, manifestiert sich
-# ausschließlich im Quelltext).
+# T013724: die Flow-Skills sind Directory-Symlinks auf die harness-neutralen
+# dev-flow-* Shared Sources (openspec-*-Muster). T014086: beide Harnesses nutzen
+# dieselben Namen dev-flow-{plan,execute,chore}; die alten opencode-flow-* Aliase
+# sind entfernt. Nur opencode-git-workflow bleibt eine echte Datei. Prüfmodus:
+# Source-Grep — dokumentierte Ausnahme von T002448-M4 (Doku-Konvention,
+# manifestiert sich ausschließlich im Quelltext).
 # Forbidden Claude-only tokens (see plan "Forbidden-token contract"):
 FORBIDDEN='AskUserQuestion|TodoWrite|subagent_type|Task tool'
 OPENSPEC_SKILLS='openspec-propose openspec-apply-change openspec-archive-change openspec-explore'
-OC_FLOW_LINKS='opencode-flow-plan opencode-flow-execute opencode-flow-chore'
+OC_FLOW_LINKS='dev-flow-plan dev-flow-execute dev-flow-chore'
 OC_SKILLS="$OC_FLOW_LINKS opencode-git-workflow"
 
 @test "HWS-1: flow entries are symlinks resolving to dev-flow sources; git-workflow stays native" {
   for s in $OC_FLOW_LINKS; do
     local p=".opencode/skills/$s"
     [ -L "$p" ]
-    readlink "$p" | grep -qF '../../.claude/skills/'
+    readlink "$p" | grep -qF '../../.claude/skills/dev-flow-'
     [ -f "$p/SKILL.md" ]
   done
+  # Positiv-Anker zuerst (T002356-M1), dann Negativ-Aussage:
+  # die alten opencode-flow-* Alias-Einträge dürfen nicht mehr existieren.
+  [ -L ".opencode/skills/dev-flow-plan" ]
+  leftover="$(find .opencode/skills -maxdepth 1 -name 'opencode-flow-*' 2>/dev/null || true)"
+  [ -z "$leftover" ]
   [ -f ".opencode/skills/opencode-git-workflow/SKILL.md" ]
   [ ! -L ".opencode/skills/opencode-git-workflow" ]
 }

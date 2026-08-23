@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.302.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.6...website-v1.302.7) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** remove self-resurrecting mishap-rollup automaton [T014104] ([#5069](https://github.com/Paddione/Bachelorprojekt/issues/5069)) ([617ea14](https://github.com/Paddione/Bachelorprojekt/commit/617ea14af237acf8996f77aae8e82d6e4481c7a5))
+
+## [1.302.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.5...website-v1.302.6) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ops:** port freetoken-local provider + model-agnostic alias into repo SSOT [T014105] ([#5066](https://github.com/Paddione/Bachelorprojekt/issues/5066)) ([8c87e61](https://github.com/Paddione/Bachelorprojekt/commit/8c87e614ff1caf54c1ab9cfe743411bad69819e2))
+
+## [1.302.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.4...website-v1.302.5) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ops:** port freetoken-local provider + model-agnostic alias into repo SSOT [T014105] ([#5064](https://github.com/Paddione/Bachelorprojekt/issues/5064)) ([e6c79c6](https://github.com/Paddione/Bachelorprojekt/commit/e6c79c69bf70d091881b2fc196ff6adffdbb042d))
+
+## [1.302.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.3...website-v1.302.4) (2026-08-23)
+
+
+### Code Refactoring
+
+* **skills:** rename opencode-flow-* skill entries to dev-flow-* [T014086] ([#5062](https://github.com/Paddione/Bachelorprojekt/issues/5062)) ([1c5c061](https://github.com/Paddione/Bachelorprojekt/commit/1c5c061c2b3f09a6b04ecf6fd9b4a24b779782ae))
+
 ## [1.302.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.2...website-v1.302.3) (2026-08-22)
 
 

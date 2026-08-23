@@ -2,19 +2,19 @@
 
 ### Requirement: FreeToken-native serves all local agent traffic
 
-FreeToken-native (Windows-detached, OpenAI-compatible API on `127.0.0.1:1919/v1`, resident model `Qwen3.6-35B-A3B-NVFP4`, 262144 context measured) SHALL be the local backend for opencode and the local family subagents. The opencode config `.opencode/agent-models.jsonc` SHALL define provider `freetoken-local` (`@ai-sdk/openai-compatible`, `baseURL http://127.0.0.1:1919/v1`) and every local family subagent (`gptoss`, `devstral`, `gemma`, `gemma12`, `qwen38`) plus the dedicated local primaries SHALL reference `freetoken-local/Qwen3.6-35B-A3B-NVFP4`. The mirror surfaces (`docs/agent-guide/registry/agents.yaml`, `AGENTS.md`) SHALL stay in sync via the roster sync gate.
+FreeToken-native (Windows-detached, OpenAI-compatible API on `127.0.0.1:1919/v1`, resident model served via the model-agnostic alias, 262144 advertised context) SHALL be the local backend for opencode and the local family subagents. The opencode config `.opencode/agent-models.jsonc` SHALL define provider `freetoken-local` (`@ai-sdk/openai-compatible`, `baseURL http://127.0.0.1:1919/v1`) and every local agent entry (family subagents such as `gptoss`, `devstral`, `gemma`, `gemma12`, `qwen38` as well as every local tab-selectable primary) SHALL reference that provider instead of any `llamacpp-local` backend. The mirror surfaces (`docs/agent-guide/registry/agents.yaml`, `AGENTS.md`) SHALL stay in sync via the roster sync gate.
 
 #### Scenario: Local subagents resolve through the FreeToken provider
 
 - **GIVEN** `.opencode/agent-models.jsonc` defines provider `freetoken-local`
 - **WHEN** the structural suite runs
-- **THEN** every `"model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4"` reference resolves to that provider, its baseURL is exactly `http://127.0.0.1:1919/v1`, and no active agent entry still references `llamacpp-local/qwen38-220k`
+- **THEN** every local agent's `"model"` reference resolves to a model of that provider, its baseURL is exactly `http://127.0.0.1:1919/v1`, and no active agent entry still references a `llamacpp-local/` model
 
-#### Scenario: Exactly one local primary remains
+#### Scenario: Every local primary rides the FreeToken provider
 
-- **GIVEN** the consolidation of tab-selectable primaries
+- **GIVEN** several tab-selectable primaries remain on the local stack
 - **WHEN** the suite enumerates agents whose model starts with a local provider and whose mode is `primary`
-- **THEN** the result is exactly one agent named `freetoken-primary`
+- **THEN** at least one exists and none points outside the `freetoken-local` provider
 
 ### Requirement: Retired llama loadouts stay documented but disabled
 

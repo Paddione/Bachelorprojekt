@@ -190,10 +190,14 @@ jobs:
       - name: Ensure freshness artifacts are up to date
         if: github.event_name == 'pull_request'
         env:
-          # T015249: baseline-key-count-assertion.mjs liest den PR-Body via
-          # `gh pr view`. Ohne Token ist gh auf dem Hosted Runner unauthentifiziert,
-          # der stumme Catch liefert '' und der Guard meldet fälschlich "Tag fehlt".
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # T015249: baseline-key-count-assertion.mjs liest den PR-Body. Der
+          # gh-pr-view-Fallback scheitert im Runner ZWEIFACH still: (1) ohne
+          # Token ist gh unauthentifiziert, (2) selbst mit Token findet gh in
+          # detached HEAD (actions/checkout auf refs/pull/N/merge) keinen
+          # Branch — "could not determine current branch". Der stumme Catch
+          # lieferte '' und der Guard meldete fälschlich "Tag fehlt".
+          # PR_BODY aus dem Event-Kontext umgeht beide Fehlermodi.
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           if ! task freshness:check; then
             echo ""

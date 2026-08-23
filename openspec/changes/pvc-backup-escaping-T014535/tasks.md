@@ -82,7 +82,7 @@ timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-
 timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-escaping.bats
 ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

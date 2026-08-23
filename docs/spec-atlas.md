@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2257 · Scenarios: 5024
+Specs: 145 · Requirements: 2260 · Scenarios: 5031
 
 ## factory-pipeline
 
@@ -444,6 +444,13 @@ Last touches:
 ### datev-export
 Reqs: 12 · Scenarios: 22 · Lines: 220
 Paths: website/src/lib/datev, website/src/lib/skr, website/src/lib/legal
+
+### db-identity-guard
+Reqs: 3 · Scenarios: 7 · Lines: 74
+Last touches:
+  - Shared-db pod selection is unambiguous | T015168 | 2026-08-24 | ADDED
+  - Database identity marker probe | T015168 | 2026-08-24 | ADDED
+  - Identity constant parity between migration and guard | T015168 | 2026-08-24 | ADDED
 
 ### devflow-selection-archive-hardening
 Reqs: 5 · Scenarios: 12 · Lines: 134

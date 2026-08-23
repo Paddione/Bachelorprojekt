@@ -31,6 +31,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/backup-secrets.yaml]="backup"
   [k3d/pvc-backup-cronjob.yaml]="backup"
   [k3d/pvc-backup-rbac.yaml]="backup"
+  [k3d/backup-restore-verify-cronjob.yaml]="db-restore-verify"
   [k3d/knowledge-ingest-cronjob.yaml]="knowledge"
   [k3d/notify-unread-cronjob.yaml]="cronjobs"
   [k3d/admin-actions-cronjobs.yaml]="cronjobs"

@@ -40,6 +40,8 @@ resources:
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-cronjob.yaml
+  # G-DB05: wöchentliche Restore-Verifikation der Backups [T014544]
+  - backup-restore-verify-cronjob.yaml
   - pvc-backup-cronjob.yaml
   - pvc-backup-rbac.yaml
   - backup-config.yaml

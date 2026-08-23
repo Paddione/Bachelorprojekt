@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.308.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.308.0...website-v1.308.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** isolate client-seed job pod label from pocket-id service selector [T014938] ([#5144](https://github.com/Paddione/Bachelorprojekt/issues/5144)) ([2dd0bcb](https://github.com/Paddione/Bachelorprojekt/commit/2dd0bcbea8623940f4708f7518458490212b256e))
+
+## [1.308.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.307.0...website-v1.308.0) (2026-08-23)
+
+
+### Features
+
+* **infra:** rustdesk on-demand lifecycle [T015170] ([#5162](https://github.com/Paddione/Bachelorprojekt/issues/5162)) ([d963f66](https://github.com/Paddione/Bachelorprojekt/commit/d963f66a927d75b3dca135d4f7164d4acd8c8720))
+
+## [1.307.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.306.0...website-v1.307.0) (2026-08-23)
+
+
+### Features
+
+* **db:** weekly automated backup restore verification (G-DB05) [T014544] ([#5139](https://github.com/Paddione/Bachelorprojekt/issues/5139)) ([320869d](https://github.com/Paddione/Bachelorprojekt/commit/320869dff90467a8b3bd1e306996ee9bfa304b35))
+
+## [1.306.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.2...website-v1.306.0) (2026-08-23)
+
+
+### Features
+
+* **plans:** spec atlas generator with provenance and in-flight index [T015012] ([#5145](https://github.com/Paddione/Bachelorprojekt/issues/5145)) ([b88ec28](https://github.com/Paddione/Bachelorprojekt/commit/b88ec280beb32ca14ad0562903cb27292229b85c))
+
+## [1.305.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.1...website-v1.305.2) (2026-08-23)
+
+
+### Bug Fixes
+
+* **db:** [T015009] Delete-Guard und ueberlebendes Delete-Audit fuer tickets.tickets ([#5151](https://github.com/Paddione/Bachelorprojekt/issues/5151)) ([8f209c8](https://github.com/Paddione/Bachelorprojekt/commit/8f209c8684cdf0683fb83fa769b2bc85f79b98d4))
+
+## [1.305.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.0...website-v1.305.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** post-merge closure verifiziert Ticket-Identitaet per UUID-Ankern [T015010] ([#5149](https://github.com/Paddione/Bachelorprojekt/issues/5149)) ([3cf2c7e](https://github.com/Paddione/Bachelorprojekt/commit/3cf2c7e1257cd1c052c3dfbfa7c7fd7256322137))
+
 ## [1.305.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.304.1...website-v1.305.0) (2026-08-23)
 
 

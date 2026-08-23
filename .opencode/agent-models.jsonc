@@ -20,6 +20,16 @@
         "chunkTimeout": 120000
       },
       "models": {
+        "hauhau-qwen36": {
+          "name": "Qwen3.6-35B-A3B Uncensored (HauhauCS Aggressive, Q4_K_M), Loadout hauhau-qwen36 auf Port 8097 - Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start",
+          // ctx 131072 = Loadout-Flag, noch nicht gemessen (T015175) — nach Erststart
+          // gegen n_ctx_slot kalibrieren. Abliteration: 0/465 Refusals, kann
+          // Instruktionsfolge vs. Baseline-Qwen3.6 leicht verschlechtern.
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
         "gptoss-context": {
           "name": "gpt-oss-20b Q8_0 (MXFP4-nativ), Loadout gptoss-context auf Port 8098 - Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/gptoss-context/start",
           // 105472 ist GEMESSEN (llama-server meldete n_ctx_slot=105472 beim Laden am

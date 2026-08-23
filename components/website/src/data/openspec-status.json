@@ -4231,6 +4231,12 @@
       "status": "archived"
     }
   ],
+  "T014544": [
+    {
+      "slug": "db-restore-verification",
+      "status": "plan_staged"
+    }
+  ],
   "T014545": [
     {
       "slug": "2026-08-23-factory-control-primary-key",
@@ -4267,9 +4273,27 @@
       "status": "plan_staged"
     }
   ],
+  "T014938": [
+    {
+      "slug": "pocket-id-seed-label-isolation",
+      "status": "plan_staged"
+    }
+  ],
   "T015004": [
     {
       "slug": "2026-08-23-staging-verdrahtung",
+      "status": "archived"
+    }
+  ],
+  "T015012": [
+    {
+      "slug": "2026-08-23-spec-atlas",
+      "status": "archived"
+    }
+  ],
+  "T015170": [
+    {
+      "slug": "2026-08-23-rustdesk-on-demand",
       "status": "archived"
     }
   ],

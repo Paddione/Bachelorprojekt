@@ -4,6 +4,15 @@
 # not yet advanced to done. Closes the auto-close gap observed in T001415
 # (T001371, T001412, T414 all merged without their tickets transitioning).
 #
+# [T015010] Identity-Guard: Der Titel-Tag wird NICHT blind per external_id
+# geschlossen. Vor dem Closure-Schreibzugriff prüft eine gemeinsame Query,
+# ob Pre-Merge-Anker (ticket_links kind='pr' für die PR-Nummer,
+# ticket_plans für Branch/PR) auf dieselbe Ticket-UUID zeigen. Existieren
+# Anker und keiner passt zur gefundenen Zeile, liegt ein ID-Reuse vor
+# (Vorfall T014936 / Incident T015005: gelöschte external_id wurde neu
+# herausgegeben, die Automation schloss das FALSCHE Ticket) — dann wird
+# laut geskippt statt falsch zu schließen.
+#
 # USAGE: BRAND=<brand> bash scripts/factory/auto-close-merged.sh [--dry-run]
 #
 # ENV:
@@ -37,6 +46,22 @@ extract_ticket_ids_from_title() {
   fi
 }
 
+# identity_guard_blocks <anchor_count> <anchor_match> — [T015010] reine
+# Entscheidungsfunktion (ohne DB-Zugriff, von den Bats-Tests sourcbar).
+#   anchor_count — Anzahl gefundener Pre-Merge-Anker (ticket_links/ticket_plans)
+#   anchor_match — 't' wenn mindestens ein Anker auf die Kandidaten-UUID zeigt,
+#                  sonst 'f' (psql-Boolean-Darstellung)
+# Rückkehr 0 = blockieren (Anker existieren, aber keiner passt → ID-Reuse-
+# Verdacht, Closure skippen). Rückkehr 1 = weitermachen: entweder keine Anker
+# vorhanden (Legacy-Pfad, z.B. manuelle Chores ohne Plan/Link) oder mindestens
+# ein Anker bestätigt die Identität. Ein LEERER anchor_count (unparseierbare
+# Query-Antwort) blockiert ebenfalls — fail-closed [T015010].
+identity_guard_blocks() {
+  local anchor_count="${1-}" anchor_match="${2:-f}"
+  if [[ -z "$anchor_count" ]]; then return 0; fi
+  [[ "$anchor_count" != "0" && "$anchor_match" != "t" ]]
+}
+
 # Direct execution only; sourcing this file (tests) must not run the poller.
 main() {
 DRY_RUN=false
@@ -46,6 +71,7 @@ while [[ $# -gt 0 ]]; do case "$1" in
     echo "Usage: BRAND=<brand> bash $(basename "${BASH_SOURCE[0]}") [--dry-run]"
     echo "  auto-close-merged: merged PRs with [T-NNNNNN] → ticket.sh update-status done"
     # T001580: Skips plan-only/archive branches to avoid premature closure
+    echo "  [T015010] Identity-Guard: Closure nur bei UUID-Konsens mit Pre-Merge-Ankern (PR-Link/Plan)"
     exit 0 ;;
   *) echo "Unknown option: $1" >&2; exit 2 ;;
 esac; done
@@ -162,18 +188,51 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
   # DB-/Cluster-Ausfaelle: unter `set -euo pipefail` wuerde ein fehlgeschlagener
   # Lookup den gesamten Batch-Lauf abbrechen und die restlichen Kinder (und PRs)
   # offen lassen. Leere row → "existiert nicht"-Skip, wie bei unbekannten IDs.
+  #
+  # [T015010] Identity-Guard: Kandidaten-Zeile und Pre-Merge-Anker werden in
+  # EINER Query aufgeloest. Anker sind (a) ticket_links-Zeilen kind='pr' zur
+  # PR-Nummer (from_id = Ticket-UUID, self-linked) und (b) ticket_plans-Zeilen
+  # zum PR-Branch bzw. zur PR-Nummer (ticket_id = Ticket-UUID). Beide Anker
+  # entstehen VOR dem Merge und ueberleben Loesch/Reuse der external_id.
+  # anchor_count = Anzahl Anker, anchor_match = 't', wenn mindestens ein Anker
+  # auf die UUID der Kandidaten-Zeile zeigt.
   row=$(cat <<SQL | factory_psql 2>/dev/null || true
-SELECT status, type, title FROM tickets.tickets WHERE external_id = '$ticket' LIMIT 1;
+WITH cand AS (
+  SELECT id, status, type, title FROM tickets.tickets WHERE external_id = '$ticket' LIMIT 1
+), anchors AS (
+  SELECT from_id AS ticket_uuid FROM tickets.ticket_links
+    WHERE kind = 'pr' AND pr_number = $pr_num
+  UNION
+  SELECT p.ticket_id FROM tickets.ticket_plans p
+    WHERE p.branch = '$branch' OR p.pr_number = $pr_num
+)
+SELECT c.status, c.type, c.title,
+       (SELECT count(*) FROM anchors)::text AS anchor_count,
+       EXISTS (SELECT 1 FROM anchors a WHERE a.ticket_uuid = c.id)::text AS anchor_match
+FROM cand c LIMIT 1;
 SQL
 )
   [[ -z "$row" ]] && { echo "auto-close-merged: $ticket (PR #$pr_num) existiert nicht in ${BRAND} — skip [T001580]" >&2; continue; }
   status=$(printf '%s' "$row" | awk -F'|' '{print $1}' | tr -d ' ')
   ttype=$(printf '%s' "$row" | awk -F'|' '{print $2}' | tr -d ' ')
   title=$(printf '%s' "$row" | awk -F'|' '{print $3}' | tr -d ' ')
+  anchor_count=$(printf '%s' "$row" | awk -F'|' '{print $4}' | tr -d ' ')
+  anchor_match=$(printf '%s' "$row" | awk -F'|' '{print $5}' | tr -d ' ')
 
   case "$status" in
     done|archived) echo "auto-close-merged: $ticket (PR #$pr_num) bereits $status — skip [T001580]" >&2; continue ;;
   esac
+
+  # [T015010] Identity-Guard: Anker existieren, aber keiner zeigt auf diese
+  # Ticket-UUID → die external_id wurde seit dem Merge-Tag neu herausgegeben
+  # (ID-Reuse, Vorfall T014936). Das hier gefundene Ticket ist NICHT das
+  # gemeinte — laut skippen statt es falsch zu schließen. Bewusst NACH dem
+  # Terminal-Status-Check: bei done/archived findet kein Schreibzugriff statt,
+  # dort wäre die Guard-Meldung nur Lärm.
+  if identity_guard_blocks "$anchor_count" "$anchor_match"; then
+    echo "auto-close-merged [T015010]: $ticket (PR #$pr_num) NICHT geschlossen — Identity-Guard: Pre-Merge-Anker (PR-Link/Plan) zeigen auf ein anderes Ticket (ID-Reuse-Verdacht, Incident T015005). Manuell pruefen." >&2
+    continue
+  fi
 
   resolution="shipped"
   # Dual-Vokabular [T002329]: 'bug' bleibt gueltig, bis Teil D (T002331) es aus dem

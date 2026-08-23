@@ -72,11 +72,19 @@ spec:
       # InitContainer scheitert mit "Permission denied" beim Schreiben nach
       # /models - 2026-08-02 als Ursache eines 4h40min-CrashLoopBackOff
       # gefunden (live per kubectl patch behoben, hier fuer GitOps persistiert).
+      # SA-GR-06: runAsNonRoot auf Pod-Ebene ist nur die Pruefung; die
+      # expliziten UIDs liegen auf Container-Ebene, damit der Pod-Level-Wert
+      # die Init-Container nicht ueberschreibt.
       securityContext:
+        runAsNonRoot: true
         fsGroup: 101
       initContainers:
         - name: model-download
           image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            allowPrivilegeEscalation: false
           command: ["sh", "-c"]
           args:
             - |
@@ -99,6 +107,10 @@ spec:
       containers:
         - name: llama-cpp
           image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
           args:
             - "-m"
             - "/models/bge-m3-Q8_0.gguf"
@@ -226,11 +238,17 @@ spec:
         app: bge-rerank
     spec:
       # fsGroup 101: siehe bge-embed weiter oben - gleiche Ursache, gleicher Fix.
+      # SA-GR-06: runAsNonRoot auf Pod-Ebene, UIDs auf Container-Ebene.
       securityContext:
+        runAsNonRoot: true
         fsGroup: 101
       initContainers:
         - name: model-download
           image: curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            allowPrivilegeEscalation: false
           command: ["sh", "-c"]
           args:
             - |
@@ -253,6 +271,10 @@ spec:
       containers:
         - name: llama-cpp
           image: ghcr.io/ggml-org/llama.cpp:server-b10223@sha256:2ab03529fa9ea9b7a0bcafad00b14619d733c255a9817232c450fe316e03f557
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
           args:
             - "-m"
             - "/models/bge-reranker-v2-m3-Q8_0.gguf"

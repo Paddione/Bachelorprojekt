@@ -92,7 +92,15 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache node modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install node dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Install website dependencies
@@ -278,7 +286,15 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Cache node modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install node dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
@@ -352,7 +368,15 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache node modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install node dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Create CI dummy secrets

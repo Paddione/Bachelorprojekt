@@ -64,6 +64,13 @@ case "\$args" in
   *"--json mergeStateStatus"*) echo "" ;;
   *"--json mergeable "*|*"--json mergeable") echo "MERGEABLE" ;;
   *"--json state -q .state") cat "$MARKER_DIR/pr-state" 2>/dev/null || echo "OPEN" ;;
+  *"--json headRefName -q .headRefName")
+    # [T014466] Der Run-Lookup fragt jetzt den PR-Branch ab statt den lokalen.
+    # Ohne diese Stub-Antwort faende der Fix keinen Branch und bliebe
+    # fail-closed — der T003224-Fall unten pruefte dann nicht mehr das, was er
+    # pruefen soll (aggregierter failure-Run OHNE failure-Jobs ist harmlos).
+    echo "feature/stub-branch"
+    ;;
   *"--json headRefOid -q .headRefOid")
     if [[ -f "$MARKER_DIR/mock-head-ref-oid" ]]; then
       cat "$MARKER_DIR/mock-head-ref-oid"

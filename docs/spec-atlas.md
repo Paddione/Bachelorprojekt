@@ -1047,6 +1047,8 @@ Last touches:
   - Test Cases Are Unseen By Training | T002606 | 2026-08-10 | ADDED
   - Language Control | T002606 | 2026-08-10 | ADDED
   - Regression Gate Blocks Delivery | T002606 | 2026-08-10 | ADDED
+In-flight:
+  - Tandem-Kleinstmodell-Evaluation ist dokumentiert | T015248 | active | ADDED
 
 ### vaultwarden-integration
 Reqs: 11 · Scenarios: 23 · Lines: 245

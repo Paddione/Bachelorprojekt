@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1199,
+      "file_count": 1200,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1044,6 +1044,7 @@
         "tests/spec/unsloth-eval-harness/gguf-fixture-bridge.bats",
         "tests/spec/unsloth-eval-harness/regression-gate.bats",
         "tests/spec/unsloth-eval-harness/scoring-rules.bats",
+        "tests/spec/unsloth-eval-harness/tandem-candidates.bats",
         "tests/spec/unsloth-eval-harness/testset-shape.bats",
         "tests/spec/unsloth-training-env/agent-discovery.bats",
         "tests/spec/unsloth-training-env/factory-traces.bats",

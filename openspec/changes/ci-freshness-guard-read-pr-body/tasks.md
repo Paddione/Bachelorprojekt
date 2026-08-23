@@ -26,16 +26,16 @@ scripts/code-quality/baseline-key-count-assertion.mjs
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the bug. The test must FAIL on the current branch. `expected: FAIL`
+- [x] **Failing-Test-Step (RED).** Add the BATS test that reproduces the bug. The test must FAIL on the current branch. `expected: FAIL`
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/baseline-guard-read-pr-body.bats
 # expected: FAIL
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix in `scripts/code-quality/baseline-key-count-assertion.mjs`.
+- [x] **Fix-Step (GREEN).** Implement the fix in `scripts/code-quality/baseline-key-count-assertion.mjs`.
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

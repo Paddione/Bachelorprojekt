@@ -70,6 +70,7 @@ Last touches:
   - Build-Artefakte werden in eine zweite Registry gespiegelt | T012415 | 2026-08-20 | ADDED
   - Das signierte OCI-Artefakt wird mitsamt Signatur gespiegelt | T012415 | 2026-08-20 | ADDED
 In-flight:
+  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | active | MODIFIED
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED

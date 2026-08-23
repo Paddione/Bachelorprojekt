@@ -4315,6 +4315,12 @@
       "status": "archived"
     }
   ],
+  "T015384": [
+    {
+      "slug": "ci-freshness-guard-read-pr-body",
+      "status": "plan_staged"
+    }
+  ],
   "T015670": [
     {
       "slug": "closure-identity-guard",

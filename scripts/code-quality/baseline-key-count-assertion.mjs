@@ -5,7 +5,8 @@
 //
 // Exit codes:
 //   0 — pass (no new keys OR new keys have explicit allow tag)
-//   1 — fail (new keys without allow tag, or baseline grew beyond frozen main violations)
+//   1 — fail (new keys without allow tag, baseline grew beyond frozen main violations,
+//       or PR body unreadable via ALL sources — T015384)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
@@ -32,18 +33,46 @@ function readPrBody() {
   // branch" in detached-HEAD checkouts) — so a fallback failure must be
   // VISIBLE, never read as an empty body.
   if (process.env.PR_BODY) return process.env.PR_BODY;
+
+  // T015384: second source — the github.event payload mounted at
+  // GITHUB_EVENT_PATH. Independent of gh auth and branch detection.
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  if (eventPath) {
+    try {
+      const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+      if (typeof event?.pull_request?.body === 'string') {
+        return event.pull_request.body;
+      }
+      console.error(
+        `[baseline-guard] WARN: ${eventPath} contains no .pull_request.body (non-PR event?) — falling back to gh pr view.`,
+      );
+    } catch (err) {
+      console.error(
+        `[baseline-guard] WARN: could not read PR body from ${eventPath} (` +
+          `${String(err && err.message ? err.message : err).split('\n')[0]}) — falling back to gh pr view.`,
+      );
+    }
+  }
+
   try {
     return execSync('gh pr view --json body -q .body', {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });
   } catch (err) {
+    // T015384: an unreadable measurement is NOT an empty body. Every source
+    // failed — hard-fail instead of silently evaluating "tag missing"
+    // (error class §3: a failed read must never count as a negative verdict).
     console.error(
-      `[baseline-guard] WARN: PR body unreadable ($PR_BODY unset, gh pr view failed: ` +
-        `${String(err && err.message ? err.message : err).split('\n')[0]}) — ` +
-        `treating as empty. If this PR HAS a [baseline-allow:] tag, the guard result is a false negative.`,
+      `[baseline-guard] ERROR: PR body unreadable via ALL sources ` +
+        `(PR_BODY unset, ${eventPath ? `GITHUB_EVENT_PATH=${eventPath} unusable` : 'GITHUB_EVENT_PATH unset'}, ` +
+        `gh pr view failed: ${String(err && err.message ? err.message : err).split('\n')[0]}).`,
     );
-    return '';
+    console.error(
+      `[baseline-guard] Refusing to evaluate [baseline-allow:] against an empty body — ` +
+        `a missing tag here would be a false negative, not a verdict.`,
+    );
+    process.exit(1);
   }
 }
 

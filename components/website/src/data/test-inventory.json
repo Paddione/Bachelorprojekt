@@ -4608,6 +4608,12 @@
     "kind": "shell"
   },
   {
+    "id": "pocket-id-seed-label-isolation/client-seed-service-endpoint-isolation",
+    "file": "tests/spec/pocket-id-seed-label-isolation/client-seed-service-endpoint-isolation.bats",
+    "category": "pocket-id-seed-label-isolation",
+    "kind": "shell"
+  },
+  {
     "id": "pr-refresh",
     "file": "tests/spec/pr-refresh.bats",
     "category": "pr-refresh",

@@ -226,6 +226,22 @@ _reapable() {
     # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID: non-numeric UUIDs
     # gelten immer als "alive" — ein alter Heartbeat zeigt aber einen toten Halter.
     if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then
+      # T014468: Wenn im Worktree noch ein Prozess läuft (z. B. ein langer Testlauf),
+      # lebt die Session nachweislich — die TTL darf den Lock dann nicht abräumen.
+      if [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ]; then
+        local _pid _cwd
+        local _active=0
+        for _pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
+          _cwd="$(readlink "/proc/$_pid/cwd" 2>/dev/null)" || continue
+          if [[ "$_cwd" = "$wt" || "$_cwd" = "$wt"/* ]]; then
+            _active=1
+            break
+          fi
+        done
+        if [ "$_active" -eq 1 ]; then
+          return 1
+        fi
+      fi
       _reap_log "$f" heartbeat-ttl; return 0
     fi
     return 1
@@ -243,6 +259,14 @@ _reapable() {
     wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
     if [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ]; then
       if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then
+        local _pid _cwd _active=0
+        for _pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
+          _cwd="$(readlink "/proc/$_pid/cwd" 2>/dev/null)" || continue
+          if [[ "$_cwd" = "$wt" || "$_cwd" = "$wt"/* ]]; then _active=1; break; fi
+        done
+        if [ "$_active" -eq 1 ]; then
+          return 1
+        fi
         _reap_log "$f" heartbeat-ttl; return 0
       fi
       # T002849: a crashed holder leaves a matching worktree+branch but a dead

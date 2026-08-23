@@ -170,6 +170,7 @@ case "\$args" in
   *"--json mergeStateStatus"*) echo "" ;;
   *"--json mergeable "*|*"--json mergeable") echo "MERGEABLE" ;;
   *"--json state -q .state") echo "OPEN" ;;
+  *"--json headRefName -q .headRefName"*) echo "feature/stub-branch" ;;
   *"checks --watch"*) touch "$MARKER_DIR/watch-called"; exit 0 ;;
   *"--json headRefOid -q .headRefOid"*) echo "\$HEAD_SHA" ;;
   *"check-runs"*"failure"*) cat "$WORK/check-runs-failures.txt" 2>/dev/null || true ;;

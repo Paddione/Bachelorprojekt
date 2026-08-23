@@ -2688,6 +2688,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/devflow-ci-watch-run-lookup",
+    "file": "tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/devflow-ciwatch-ticket-path",
     "file": "tests/spec/ci-cd/devflow-ciwatch-ticket-path.bats",
     "category": "ci-cd",

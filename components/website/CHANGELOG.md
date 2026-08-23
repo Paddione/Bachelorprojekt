@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.11...website-v1.303.12) (2026-08-23)
+
+
+### Bug Fixes
+
+* **scripts:** make MCP binary staleness visible — drift-guard --notify, server_stale, buildInfo [T015003] ([#5124](https://github.com/Paddione/Bachelorprojekt/issues/5124)) ([91509d0](https://github.com/Paddione/Bachelorprojekt/commit/91509d0ad0ec9002c3c39b297e4bc1097971a498))
+
 ## [1.303.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.10...website-v1.303.11) (2026-08-23)
 
 

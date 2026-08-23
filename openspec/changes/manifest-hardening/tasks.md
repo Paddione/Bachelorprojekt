@@ -52,7 +52,7 @@ Kein Partial berührt eine Datei eines anderen.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED), Partial p5 Task 1:** die neuen BATS-Assertions in
+- [x] **Failing-Test-Step (RED), Partial p5 Task 1:** die neuen BATS-Assertions in
       `tests/spec/rustdesk-server.bats` laufen gegen den Branch-Stand vor der
       Implementierung:
 
@@ -61,7 +61,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/rustdesk-server.bats
 # expected: FAIL (red — Härtung aus p1 noch nicht angewendet)
 ```
 
-- [ ] **Fix-Steps (GREEN):** p1–p4 setzen die Manifest-Änderungen um; danach laufen
+- [x] **Fix-Steps (GREEN):** p1–p4 setzen die Manifest-Änderungen um; danach laufen
       alle vier Spec-Bats grün:
 
 ```bash
@@ -72,7 +72,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/monitoring-alerts.bats
 task workspace:validate
 ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

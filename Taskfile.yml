@@ -1221,6 +1221,11 @@ tasks:
     cmds:
       - bash scripts/openspec-status-map.sh
 
+  openspec:atlas:
+    desc: "Regenerate docs/spec-atlas.md from openspec/specs + changes archive [T015012]"
+    cmds:
+      - bash scripts/openspec-atlas.sh
+
   routes:manifest:
     desc: Regenerate components/website/src/data/route-manifest.json (page files + brand service slugs -> sweep route manifest)
     cmds:
@@ -1314,6 +1319,7 @@ tasks:
       - task: graph:build    # LAD: K8s graph artifacts
       - task: graph:build-docs
       - task: openspec:status-map
+      - task: openspec:atlas
       - task: health:goals:emit
       - task: networks:map   # T012645: docs/agent-guide/maps/networks-map.md
 
@@ -1405,6 +1411,7 @@ tasks:
           components/website/src/lib/learning-assets.generated.json
           components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
           components/website/src/data/openspec-status.json
+          docs/spec-atlas.md
           docs/diagrams/architecture.md
           components/website/src/lib/sdlc/goals-data.generated.json
           docs/agent-guide/10-ziele.md

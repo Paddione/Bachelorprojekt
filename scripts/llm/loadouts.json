@@ -414,6 +414,33 @@
       ],
       "notes": "Serverseite fuer scripts/brain-ingest.sh. Umgestellt von gpt-oss-20b auf Gemma 4 12B QAT (T012905, Operator-Entscheidung). BELEG: Spike am 2026-08-19 gegen Repo-Stand 73ca48ccc, drei echte Quellen durch scripts/brain-ingest-transform.sh gegen einen manuell gestarteten llama-server (/home/patrick/.unsloth/llama.cpp/build/bin/llama-server, Build b10241, -ngl 999 -c 32768 -fa on --jinja -np 1 --port 8100 --alias gemma-4-12b-qat). Ergebnis 3/3 rc=0 in 16/39/58 s, jeweils gueltiges Frontmatter und genau eine source::-Zeile; die bei Reasoning-Modellen bekannte Falle (Antwort in reasoning_content, content leer) trat nicht auf. Befehl zur Nachstellung: export LM_STUDIO_URL=http://127.0.0.1:8100 LM_MODEL=gemma-4-12b-qat; bash scripts/brain-ingest-transform.sh openspec/specs/phase-events.md note phase-events <slugs.json> '[\"note\"]'. PARAMETER: ctx auf 65536 erhoeht (T012911): Chunk-Ziel 8k chars (~4k tokens) + Prompt + 4k Output + headroom fuer parallel=3. parallel=3 bleibt gemessen optimal (siehe Notiz zu gemma12-vision, T012414: -np 4 liefert 319 statt 489 tok/s). KV auf f16 und fit deaktiviert mit explizitem ctx, analog gemma12-vision; -fit on laedt sonst n_ctx_train und bindet den Rest als KV-Cache. reasoningBudget=0 bleibt aus dem gpt-oss-Eintrag stehen: Gemma hat keine Denkphase, die Einstellung ist damit wirkungslos, aber auch unschaedlich. Port 8100 unveraendert (8093 belegt der kubectl-Forward auf llm-gateway-rerank, 8097 ein Factory-Provider). Kein mmproj und kein MTP-Drafter: der Ingest ist reiner Text, und der Drafter halbiert laut Messung den Prefill. HISTORIE zum reasoningBudget (aus T003204, gilt weiter, falls hier je wieder ein Reasoning-Modell laeuft): abgeschaltet wird das Denken ueber reasoningBudget (--reasoning-budget 0) und NICHT ueber args.reasoning — '-rea' steuert nur, ob llama-server reasoning_content PARST (siehe runner.mjs). args.reasoning auf null zu setzen laesst die Denkphase unberuehrt und unterdrueckt bloss deren Ausgabe, die Tokens fallen weiter an.",
       "exclusiveGroup": "chat-gpu"
+    },
+    {
+      "slug": "freetoken-local",
+      "label": "FreeToken native · Qwen3.6-35B-A3B NVFP4",
+      "model": "freetoken/Qwen3.6-35B-A3B-NVFP4.gguf",
+      "port": 1919,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 0,
+        "minCtx": 4096
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": false
+      },
+      "speculative": {},
+      "mcp": {},
+      "extraArgs": [],
+      "managed": "external",
+      "notes": "Extern verwalteter FreeToken-Server (T014028): Windows-nativ detached, OpenAI-kompatible API auf :1919/v1, kein systemd-Unit, kein llama-server. Liveness ueber Port-Probe; Start/Stop siehe docs/runbooks/freetoken-native.md. Gemessen: 262.144 Kontext (~103 tok/s warm). factory.model verweist auf diesen Slug, weil die Factory-Registry nur Loadout-Slugs kennt."
     }
   ],
   "roles": {
@@ -432,7 +459,7 @@
     }
   },
   "factory": {
-    "model": "Qwen3.6-35B-A3B-NVFP4",
+    "model": "freetoken-local",
     "locked": false
   }
 }

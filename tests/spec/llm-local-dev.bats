@@ -167,7 +167,7 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc provides a primary gemma agent with measured context (T002545)" {
+@test "agent-models.jsonc provides a local primary with measured context (T002545, T014028)" {
   # T002545: mode:primary, und der genannte Kontext ist ein GEMESSENER Wert,
   # kein n_ctx_train.
   #
@@ -194,18 +194,26 @@ EOF"
     const ld = JSON.parse(fs.readFileSync('$REPO/scripts/llm/loadouts.json','utf8'));
     // Messwerte stehen im notes-Feld des Loadouts, mit deutschem Tausenderpunkt
     // und in wechselnder Formulierung ('Gemessen: 262.144 Kontext',
-    // 'gemessen 118.016 ctx'). Das groesste genannte Maximum gilt.
-    const measuredFor = (slug) => {
-      const l = (ld.loadouts || []).find((x) => x.slug === slug);
-      const notes = (l && l.notes) || '';
-      const ms = [...notes.matchAll(/([0-9][0-9.]*)\s*(?:Kontext|ctx)/gi)]
-        .map((m) => parseInt(m[1].replace(/\./g, ''), 10))
-        .filter((n) => Number.isInteger(n) && n > 0);
+    // 'gemessen 118.016 ctx'). Das groesstte genannte Maximum gilt.
+    // T014028: bei 'freetoken-local/Qwen3.6-…' ist der Loadout-Slug der PROVIDER-
+    // Teil (das Loadout heisst wie der Provider), bei 'llamacpp-local/<slug>'
+    // der Modellteil — daher beide Kandidaten pruefen.
+    const measuredFor = (...candidates) => {
+      const ms = candidates.flatMap((slug) => {
+        const l = (ld.loadouts || []).find((x) => x.slug === slug);
+        const notes = (l && l.notes) || '';
+        return [...notes.matchAll(/([0-9][0-9.]*)\s*(?:Kontext|ctx)/gi)]
+          .map((m) => parseInt(m[1].replace(/\./g, ''), 10))
+          .filter((n) => Number.isInteger(n) && n > 0);
+      });
       return ms.length ? Math.max(...ms) : null;
     };
+    // T014028: der Anker ist der PROVIDER, nicht der Namenspraefix — seit der
+    // Konsolidierung heisst der einzige lokale Primary 'freetoken-primary'
+    // (Modell freetoken-local/…); ein gemma*-Primary existiert nicht mehr.
     const prim = Object.entries(o.agent || {})
-      .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
-    if (prim.length < 1) { console.error('no primary gemma agents found'); process.exit(1); }
+      .filter(([n,v]) => String(v.model||'').startsWith('freetoken-local/') && v.mode === 'primary');
+    if (prim.length < 1) { console.error('no primary agent on the local provider found'); process.exit(1); }
     for (const [name, agent] of prim) {
       const model = agent.model;
       const [prov, mid] = model.split('/');
@@ -214,9 +222,9 @@ EOF"
         console.error(name + ' ctx ' + ctx + ' is not a positive integer');
         process.exit(1);
       }
-      const max = measuredFor(mid);
+      const max = measuredFor(prov, mid);
       if (max === null) {
-        console.error(name + ': loadout ' + mid + ' dokumentiert keinen gemessenen Kontext in loadouts.json');
+        console.error(name + ': weder Provider ' + prov + ' noch Modell ' + mid + ' dokumentiert einen gemessenen Kontext in loadouts.json');
         process.exit(1);
       }
       // Kleiner als gemessen ist zulaessig (konservativ, z.B. geteilter -kvu-Pool).

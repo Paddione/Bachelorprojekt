@@ -13,7 +13,13 @@ d = json.load(open("$REPO/scripts/llm/loadouts.json"))
 by = {lo.get("slug"): lo for lo in d["loadouts"]}
 for slug in ("gemma26-throughput", "qwen38-220k"):
     assert by[slug].get("enabled") is False, f"{slug} ist nicht stillgelegt"
-assert d["factory"]["model"] == "Qwen3.6-35B-A3B-NVFP4", "factory.model nicht migriert"
+# T014028: factory.model muss ein Loadout-Slug sein (Validator-Regel in
+# scripts/llm-proxy/loadouts.mjs) — der Modellname 'Qwen3.6-35B-A3B-NVFP4'
+# allein war kein gueltiger Wert, weil dafuer kein Loadout existierte.
+assert d["factory"]["model"] == "freetoken-local", "factory.model nicht auf den FreeToken-Slug umgehängt"
+ft = [lo for lo in d["loadouts"] if lo.get("slug") == "freetoken-local"]
+assert ft and ft[0].get("managed") == "external" and ft[0].get("port") == 1919, \
+    "freetoken-local fehlt oder ist nicht managed=external auf :1919"
 EOF
 }
 

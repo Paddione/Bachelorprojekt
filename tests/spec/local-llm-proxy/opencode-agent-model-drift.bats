@@ -69,9 +69,12 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf qwen38-220k" {
-  # T013360: alle lokalen Agenten auf qwen38-220k umgestellt — kein GPU-Swap mehr.
-  run grep -c 'qwen38-220k' "${AGENTS}"
+@test "T002545: die Agentendefinitionen verweisen auf freetoken-local" {
+  # T014028: alle lokalen Agenten hängen am FreeToken-Backend — der Provider
+  # "freetoken-local" in agent-models.jsonc trifft das residente Modell auf
+  # :1919. Geprueft werden die AKTIVEN "model"-Verweise, nicht Textvorkommen:
+  # historische Kommentare duerfen qwen38-220k weiter nennen.
+  run bash -c "grep -oE '\"model\": \"freetoken-local/[^\"]+\"' '${AGENTS}' | wc -l"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }
@@ -142,9 +145,12 @@ setup() {
   [ -f "${LOADOUTS}" ]
 
   # Positiv-Anker 1 [T002356-M1]: es gibt ueberhaupt Agent-Modellzuweisungen auf
-  # llamacpp-local/. Greift der Parser ins Leere (Pfad umbenannt, Format
-  # geaendert), waere die Negativ-Aussage unten trivial erfuellt.
-  run bash -c "grep -oE '\"model\": \"llamacpp-local/[a-z0-9-]+\"' '${AGENTS}' | grep -oE 'llamacpp-local/[a-z0-9-]+' | cut -d/ -f2 | sort -u"
+  # ein lokales Backend. Zwei Formen existieren: 'llamacpp-local/<slug>' (der
+  # Slug ist die zweite Pfadkomponente) und seit T014028 'freetoken-local/…'
+  # (das Loadout heisst wie der Provider, T014028). Greift der Parser ins Leere
+  # (Pfad umbenannt, Format geaendert), waere die Negativ-Aussage unten trivial
+  # erfuellt.
+  run bash -c "{ grep -oE '\"model\": \"llamacpp-local/[a-z0-9-]+\"' '${AGENTS}' | grep -oE 'llamacpp-local/[a-z0-9-]+' | cut -d/ -f2; grep -qE '\"model\": \"freetoken-local/' '${AGENTS}' && echo freetoken-local || true; } | sort -u"
   [ "${status}" -eq 0 ]
   [ -n "${output}" ]
   local referenced="${output}"
@@ -167,8 +173,10 @@ setup() {
       '.loadouts[] | select(.slug == $s) | if has("enabled") then .enabled else true end' "${LOADOUTS}"
     if [ "${output}" = "false" ]; then
       # Meldung nennt Loadout UND Agent — "drift" allein zwingt zum Suchen.
+      # Beide Referenzformen treffen: 'llamacpp-local/<slug>' und (seit T014028,
+      # Loadout heisst wie der Provider) 'freetoken-local/<modell>'.
       echo "FAIL: Loadout '${slug}' ist abgeschaltet, wird aber referenziert von:"
-      grep -B12 "\"model\": \"llamacpp-local/${slug}\"" "${AGENTS}" \
+      grep -B12 "\"model\": \"[a-z0-9-]*${slug}[^\"]*\"" "${AGENTS}" \
         | grep -oE '^    "[a-z0-9-]+": \{' | tail -1
       offenders=$((offenders + 1))
     fi
@@ -187,8 +195,9 @@ setup() {
   [ -n "${output}" ]
   local allowed="${output}"
 
-  # Familien-Subagenten sind die mode=subagent-Eintraege auf llamacpp-local/.
-  run bash -c "grep -B4 '\"model\": \"llamacpp-local/' '${AGENTS}' | grep -oE '^    \"[a-z0-9-]+\": \{' | grep -oE '\"[a-z0-9-]+\"' | tr -d '\"' | sort -u"
+  # Familien-Subagenten sind die mode=subagent-Eintraege auf einem lokalen
+  # Backend: 'llamacpp-local/<slug>' oder seit T014028 'freetoken-local/…'.
+  run bash -c "grep -B4 '\"model\": \"\\(llamacpp-local/[a-z0-9-]*\\|freetoken-local/\\)' '${AGENTS}' | grep -oE '^    \"[a-z0-9-]+\": \{' | grep -oE '\"[a-z0-9-]+\"' | tr -d '\"' | sort -u"
   [ "${status}" -eq 0 ]
   [ -n "${output}" ]
 

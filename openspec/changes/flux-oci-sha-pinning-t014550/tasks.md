@@ -2,6 +2,16 @@
 
 _Ticket: T014550_ · Domänen: gitops, ci · Aufwand: klein
 
+## File Structure
+
+```
+flux/clusters/fleet/oci-source.yaml                     — ref.tag pinnen
+flux/clusters/fleet/oci-source-gitlab.yaml              — ref.tag pinnen
+.github/workflows/render-fleet-artifact.yml             — Bump-Schritt + Permissions
+tests/spec/ci-cd/flux-oci-sha-pinning.bats              — Guard (neu)
+openspec/changes/flux-oci-sha-pinning-t014550/tasks.md  — dieser Plan
+```
+
 ## Task List
 
 - [ ] **Initiales Pin auflösen.** Aktuellen sha-Tag des letzten erfolgreichen

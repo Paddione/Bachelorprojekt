@@ -3648,6 +3648,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/goal-integrity",
+    "file": "tests/spec/health-goals/goal-integrity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/goals-data-path-consistency",
     "file": "tests/spec/health-goals/goals-data-path-consistency.bats",
     "category": "health-goals",

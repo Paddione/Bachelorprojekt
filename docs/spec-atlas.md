@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2242 · Scenarios: 4988
+Specs: 144 · Requirements: 2249 · Scenarios: 5000
 
 ## factory-pipeline
 
@@ -75,16 +75,18 @@ In-flight:
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
+  - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED
+  - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 43 · Scenarios: 83 · Lines: 835
+Reqs: 45 · Scenarios: 88 · Lines: 907
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
+  - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
+  - Rendered Staging CronJobs Target the Staging Website | T015004 | 2026-08-23 | ADDED
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
   - Cluster Membership Matches the Declared Node Registry | T002630 | 2026-08-10 | ADDED
-  - Dedicated Development Node Repels Production Workloads | T002630 | 2026-08-10 | ADDED
-  - Cluster Development Stack Has Its Own Environment File | T002630 | 2026-08-10 | ADDED
 
 ### workspace-deploy
 Reqs: 90 · Scenarios: 167 · Lines: 1926
@@ -99,14 +101,14 @@ Last touches:
 ## llm
 
 ### llm-pipeline
-Reqs: 85 · Scenarios: 201 · Lines: 1983
+Reqs: 86 · Scenarios: 202 · Lines: 2001
 Paths: website/src/lib/llm, website/src/lib/embeddings, k3d/llm
 Last touches:
+  - LLM-GPU-Deployments laufen als Non-Root | T014553 | 2026-08-23 | ADDED
   - startUrl-Schema-Allowlist (http/https) | T005901 | 2026-08-14 | ADDED
   - bge-embed Memory-Limit ueber gemessenem Peak | T002580 | 2026-08-10 | ADDED
   - bge-m3 als primärer Embedding-Provider mit Voyage-Fallback | T002570 | 2026-08-10 | ADDED
   - LLM_EMBED_URL in knowledge-ingest CronJobs verdrahtet | T002570 | 2026-08-10 | ADDED
-  - LLM_RERANKER_URL im website-Deployment verdrahtet | T002570 | 2026-08-10 | ADDED
 
 ### local-llm-proxy
 Reqs: 76 · Scenarios: 175 · Lines: 2023
@@ -768,9 +770,10 @@ Last touches:
   - Model Registry tracks adapters across suitability, stats, provenance, and deployment | T002629 | 2026-08-14 | ADDED
 
 ### monitoring-alerts
-Reqs: 14 · Scenarios: 23 · Lines: 245
+Reqs: 15 · Scenarios: 24 · Lines: 271
 Paths: k3d/prometheus, k3d/alertmanager, k3d/grafana
 Last touches:
+  - Monitoring-Hauptcontainer haben Resource Requests und Limits | T014553 | 2026-08-23 | ADDED
   - Pushover Notification Receiver | T014542 | 2026-08-23 | MODIFIED
   - No Unregistered Resource Manifests in k3d/monitoring | T002185 | 2026-08-02 | ADDED
   - Placeholder CronJobs Are Not Committed | T002185 | 2026-08-02 | ADDED
@@ -927,13 +930,13 @@ Last touches:
   - Routing checks use only enabled provider configurations | T014552 | 2026-08-23 | ADDED
 
 ### rustdesk-server
-Reqs: 6 · Scenarios: 9 · Lines: 112
+Reqs: 8 · Scenarios: 12 · Lines: 155
 Last touches:
+  - RustDesk-Server-Pods laufen als Non-Root | T014553 | 2026-08-23 | ADDED
+  - NetworkPolicy-Bypass-Ausnahme ist dokumentiert | T014553 | 2026-08-23 | ADDED
   - REQ-RUSTDESK-WEB-001 — SSO-gegateter Web-Client-Zugriff | T012645 | 2026-08-20 | MODIFIED
   - REQ-RUSTDESK-RELAY-004 — Minimale Portfläche ohne Web-Client | T001381 | 2026-08-02 | RENAMED
   - REQ-RUSTDESK-RELAY-006 — Secret-Rotation-Runbook für hbbs subPath-Mount | T001382 | 2026-07-02 | ADDED
-  - REQ-RUSTDESK-CLIENT-001 — Automatisch vorkonfigurierter Windows-Installer | T001378 | 2026-07-01 | ADDED
-  - REQ-RUSTDESK-CLIENT-002 — Unattended-Access ohne manuelle Passworteingabe | T001378 | 2026-07-01 | ADDED
 
 ### scripts
 Reqs: 6 · Scenarios: 9 · Lines: 107
@@ -974,9 +977,10 @@ Last touches:
 Reqs: 2 · Scenarios: 4 · Lines: 82
 
 ### sessions-server
-Reqs: 12 · Scenarios: 22 · Lines: 224
+Reqs: 13 · Scenarios: 24 · Lines: 251
 Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
+  - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
   - BATS Placeholder Test Coverage | T002010 | 2026-07-21 | ADDED
 
 ### sidekick-assistant

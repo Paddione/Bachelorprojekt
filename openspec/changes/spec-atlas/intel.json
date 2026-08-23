@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "slug": "spec-atlas",
+    "ticket_id": "T015012",
+    "generated_from": "main@714ff4149",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/openspec-atlas.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/openspec-atlas-lib.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/openspec-atlas-groups.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5500,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/spec-atlas.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-workflow/spec-atlas-generator.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-workflow/spec-atlas-grammar-parity.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3884:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3884:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3884:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3885:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3885:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3885:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3886:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3886:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3886:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3887:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3887:        _run()  {(...)",
+      "type_text": "3887:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5078:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5078:        kexec_psql() {(...)",
+      "type_text": "5078:        kexec_psql() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

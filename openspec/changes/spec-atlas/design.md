@@ -29,12 +29,13 @@ vor der ersten Gruppe platzieren würde — stille Fehlplatzierung ohne Fehler.
 
 ### D2 — Parser-Grammatik geteilt, nicht geforkt
 
-Der Atlas liest Delta-Dateien (Archive + aktiv) mit derselben Sektion/Heading-
-Grammatik wie `openspec-merge.mjs` (`## (ADDED|MODIFIED|REMOVED|RENAMED)
-Requirements`, `### Requirement:`, `#### Scenario:`). Die Regexes werden als
-gemeinsames Modul extrahiert oder exakt gespiegelt — Drift zwischen beiden
-Parse-Varianten wäre eine stille Falsch-Provenance-Quelle. Die bestehenden
-Merge-Tests bleiben die Absicherung der Grammatik.
+Der Atlas liest Delta-Dateien (Archive + aktiv) mit derselben Sektion-/Heading-
+Grammatik wie `scripts/openspec-merge.mjs`. Da `parseDelta(text)` dort bereits
+exportiert ist und der CLI-Einstieg über `import.meta.url` abgesichert ist,
+importiert `openspec-atlas-lib.mjs` die Funktion direkt — Drift zwischen beiden
+Parse-Varianten ist damit konstruktiv ausgeschlossen. Der Paritätstest sichert
+zusätzliche ab, dass die Import-Beziehung bestehen bleibt (kein stiller lokaler
+Re-Import einer Kopie), und deckt alle vier Ops inklusive RENAMED ab.
 
 ### D3 — Artefakt-Pfad docs/spec-atlas.md, Frische über freshness:regenerate
 

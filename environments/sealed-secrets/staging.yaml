@@ -1,5 +1,5 @@
 # Neu versiegelt 2026-08-23 (T015100): workspace-secrets auf aktuellen Stand
-# (Pocket-ID-Key-Generation + Seed-Secrets) + ntfy-tokens ergänzt.
+# (Pocket-ID-Key-Generation + Seed-Secrets) + ntfy-tokens ergaenzt.
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -83,7 +83,6 @@ spec:
       name: workspace-secrets
       namespace: workspace-staging
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -98,7 +97,6 @@ spec:
       name: website-content-token
       namespace: website-staging
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -114,7 +112,6 @@ spec:
       name: grafana-oidc
       namespace: monitoring
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -155,7 +152,6 @@ spec:
       name: website-secrets
       namespace: website-staging
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -171,7 +167,6 @@ spec:
       name: knowledge-secrets
       namespace: workspace-staging
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -187,7 +182,6 @@ spec:
       name: alertmanager-pushover
       namespace: monitoring
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -202,7 +196,6 @@ spec:
       name: collabora-secrets
       namespace: workspace-office
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -217,7 +210,6 @@ spec:
       name: alertmanager-smtp
       namespace: monitoring
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
@@ -232,7 +224,6 @@ spec:
       name: ipv64-api-key
       namespace: cert-manager
     type: Opaque
---- null
 ---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret

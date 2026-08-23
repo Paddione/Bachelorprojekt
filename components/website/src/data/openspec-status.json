@@ -4189,6 +4189,12 @@
       "status": "archived"
     }
   ],
+  "T014384": [
+    {
+      "slug": "dispatch-gate-cap-order-t014384",
+      "status": "plan_staged"
+    }
+  ],
   "T014386": [
     {
       "slug": "2026-08-23-ticket-read-fail-closed",

@@ -42,7 +42,6 @@ plan='[]'
 mapfile -t candidates < <(BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/queue.sh" | jq -c '.[]')
 for c in "${candidates[@]}"; do
   [[ -z "$c" ]] && continue
-  [[ "$global_used" -ge "$GLOBAL_CAP" ]] && break
   ext_id=$(echo "$c" | jq -r '.external_id')
 
   # ── Merged-PR-Gate (T006297) ─────────────────────────────────────────────
@@ -63,6 +62,8 @@ for c in "${candidates[@]}"; do
   elif [[ "$merged_rc" -eq 2 ]]; then
     echo "schedule: WARN check-merged rc 2 fuer ${ext_id} (kein origin/main) — Dispatch ungeprueft [T006297]" >&2
   fi
+
+  [[ "$global_used" -ge "$GLOBAL_CAP" ]] && break
 
   # Dependency blocker gate (TDR-2): skip tickets whose depends_on predecessors
   # are not all done. Queries the DB directly via factory_psql.

@@ -2,7 +2,7 @@
 title: "collabora-runasnonroot — Implementation Plan"
 ticket_id: T014549
 domains: [infra, security]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

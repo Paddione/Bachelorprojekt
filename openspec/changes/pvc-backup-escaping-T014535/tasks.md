@@ -24,20 +24,20 @@ Flux-Renderer die `\${VAR}`-Escapes nicht als Runtime-Marker kennt und
 ```
 k3d/pvc-backup-cronjob.yaml            # geändert — Escaping auf Renderer-Konvention
 Taskfile.yml                           # geändert — Unwrap deckt $$( ab
-tests/spec/backup-pipeline.bats        # neu — RED-Test (liegt im Branch)
+tests/spec/backup-pipeline/render-escaping.bats        # neu — RED-Test (liegt im Branch)
 openspec/changes/pvc-backup-escaping-T014535/   # neu — proposal, design, delta-spec, tasks
 ```
 
 ## Verify (RED → GREEN)
 
 - [ ] **Task 1 (RED).** Failing BATS-Test liegt im Branch:
-      `tests/spec/backup-pipeline.bats`. Er reproduziert die Flux-Render-Logik
+      `tests/spec/backup-pipeline/render-escaping.bats`. Er reproduziert die Flux-Render-Logik
       auf `k3d/pvc-backup-cronjob.yaml`, expandiert das MJOB-Heredoc und
       prüft `bash -n` auf dem generierten Mounter-Script, die Abwesenheit
       von `\ `-Substitutionsresten sowie die Push-Pfad-Unwrap-Parität.
 
 ```bash
-timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline.bats
+timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-escaping.bats
 # expected: FAIL (red — the fix is not yet implemented)
 ```
 
@@ -79,7 +79,7 @@ timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline.bats
 - [ ] **Task 4 (GREEN).** Der BATS-Test aus Task 1 muss jetzt grün sein:
 
 ```bash
-timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline.bats
+timeout 120 tests/unit/lib/bats-core/bin/bats tests/spec/backup-pipeline/render-escaping.bats
 ```
 
 - [ ] **Final Verification.** Run the three mandatory CI gates:

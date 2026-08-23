@@ -75,18 +75,6 @@ erzeugt ein wiederholtes Upstream-Signal (Factory-Tick, Cron-Re-Fail, Event-Repl
 Beinahe-Duplikate. Gilt in Phase 1 bei der Klassifikation **und** im Issue-Intake von
 [`repo-hygiene`](../repo-hygiene/SKILL.md).
 
-**Rollup-Container-Ausnahme (T011789):** Tickets mit dem Titel `Mishap Rollup — fortlaufende
-Sammlung` (`type=chore`) bilden eine **ephemerale Serie** (T004898/T007056): ein dispatchter
-Container verlässt den Collect Mode, und der nächste Flush legt bewusst einen frischen an.
-Deshalb ist ein Titel-Treffer hier nur dann ein Duplikat, wenn das gefundene Ticket im
-**Collect Mode** steht — derselbe Filter wie `ticket.sh rollup-container`:
-`status IN ('triage','backlog','planning')` bzw. `blocked` ohne FACTORY-PLAN-REF-Kommentar.
-Ein gleichnamiges Ticket, dessen Vorgänger dispatched (`plan_staged`/`in_progress`/…) oder
-geschlossen ist, ist der **designierte Nachfolge-Container** und darf nicht als `obsolete`
-geschlossen werden — sonst legt der nächste Flush einen Ersatz an und die Container vermehren
-sich (beobachtet 2026-08-17: T011583 als „Duplikat" von T009369 obsoletet, obwohl T009369
-per FACTORY-PLAN-REF dispatcht war → T011656 als Ersatz neu angelegt).
-
 **Vollständige Beschreibungen lesen:** Ticket-Beschreibungen nie kürzen (z.B. `left(description,700)`). Die wichtigsten Einschränkungen ("haengt an X", "wird dort mit erledigt") stehen typischerweise am ENDE der Beschreibung. Vor jedem Dispatch die Beschreibung vollständig lesen, um verfrühte Dispatches zu vermeiden.
 
 **M1: Line-Nummern-Prüfung vor sed-Extraktion (T002469):** Vor jeder Extraktion mit `sed -n 'start,endp'` die Zeilennummern gegen `wc -l` der Quelldatei prüfen. `end > wc -l` verursacht Syntaxfehler (T2 Extraction befand: falscher Zeilenbereich → Syntax-Error). Positiv-Anker: die extrahierte Sektion auf `bash -n` prüfen, bevor die Originaldatei gelöscht wird.

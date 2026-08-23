@@ -459,7 +459,9 @@ SH
 }
 
 @test "T002390: the skill points at the script instead of duplicating the procedure" {
-  run bash -c "grep -Eq 'auto-chore-plan\.sh|mishap-rollup\.sh' '$REPO_ROOT/.claude/skills/mishap-tracker/SKILL.md'"
+  # [T014104] mishap-rollup.sh ist abgebaut; der Verweis-Vertrag gilt weiter
+  # fuer auto-chore-plan.sh.
+  run bash -c "grep -q 'auto-chore-plan\.sh' '$REPO_ROOT/.claude/skills/mishap-tracker/SKILL.md'"
   [ "$status" -eq 0 ]
 }
 
@@ -656,116 +658,6 @@ SH
 
 # ── [T002407-M7] Container-Lifecycle: plan_staged, Recycling, Treiber-Idempotenz ──#
 
-@test "T002407-M7a: mishap-rollup.sh erzeugt pro Zyklus Slug mit Datum+Container-ID (kein Abbruch bei Existenz)" {
-  # [T004898] Der Treiber erzeugt pro Zyklus einen eigenen Slug/Branch
-  # (Datum + Container-ID statt festem Slug). Existiert der Change-Dir bereits
-  # (Re-Run des gleichen Containers), wird tasks.md neu erzeugt — kein exit 3.
-  local script="$REPO/scripts/factory/mishap-rollup.sh"
-  [ -f "$script" ]
-  run bash -n "$script"
-  [ "$status" -eq 0 ]
-  # Slug pro Zyklus: Datum + Container-ID, daraus wird der Branch gebaut
-  run grep -Fq 'SLUG="mishap-incident-rollup-$(date' "$script"
-  [ "$status" -eq 0 ]
-  run grep -Fq 'BRANCH="chore/${SLUG}"' "$script"
-  [ "$status" -eq 0 ]
-  run grep -Fq 'CONTAINER_ID}' "$script"
-  [ "$status" -eq 0 ]
-  # Update statt Abbruch: existiert change dir → kein exit 3
-  run grep -Eq "exit 3" "$script"
-  [ "$status" -ne 0 ] || { echo "mishap-rollup.sh darf kein exit 3 enthalten"; false; }
-}
-
-@test "T002407-M7b: mishap-rollup.sh hat No-op-Pfad (keine Batches → exit 0 ohne Worktree)" {
-  local script="$REPO/scripts/factory/mishap-rollup.sh"
-  # No-op bei leerem Container: Suche nach Kommentar, der auf den No-op-Pfad hinweist
-  run grep -qi "nichts zu tun\|noop\|no-op\|keine .*batches\|nothing to do" "$script"
-  [ "$status" -eq 0 ] || { echo "No-op-Hinweis fehlt in mishap-rollup.sh"; false; }
-  # Der No-op-Pfad muss vor der Worktree-Anlage exit 0 geben — prüfe Zeilen-Reihenfolge.
-  # [T003796] `exit 0` kommt 5x im Skript vor; das dokumentweite head -1 nimmt den
-  # fruehesten, nicht den des No-op-Zweigs. Der No-op-exit ist der letzte Treffer im
-  # "nichts zu tun"-Zweig (Zeile 77) — per awk der erste nach dem No-op-Hinweis.
-  local wt_line noop_exit_line
-  wt_line=$(grep -n 'worktree-create\|WORKTREE_CREATE' "$script" | head -1 | cut -d: -f1)
-  noop_exit_line=$(awk '/keine Content-Kommentare|nichts zu tun/ { found=1 } found && /exit 0/ { print NR; exit }' "$script")
-  if [[ -n "$wt_line" && -n "$noop_exit_line" ]]; then
-    [ "$noop_exit_line" -lt "$wt_line" ] || skip "No-op-Pfad liegt nicht vor worktree-create (exit 0 ist später)"
-  fi
-}
-
-@test "T002407-M7c: rollup-publish.sh committet und pusht normal (kein Rebase-Rebuild)" {
-  # [T004898] Die Amend-/Lease-/Rebase-Maschinerie (T002914/T002931) ist ersatzlos
-  # entfallen: pro Zyklus existiert genau ein Generator-Commit, der Publisher
-  # committet und pusht normal. Ein divergierter Remote-Stand bricht den Push ab
-  # (Exit 1), statt umzubauen.
-  local script="$REPO/scripts/factory/rollup-publish.sh"
-  [ -f "$script" ] || { echo "rollup-publish.sh fehlt"; false; }
-  run bash -n "$script"
-  [ "$status" -eq 0 ] || { echo "rollup-publish.sh ist syntaktisch kaputt: $output" >&2; false; }
-  # Positiv-Anker (T002356-M1): der normale Push ist vorhanden — sonst waere die
-  # Negativ-Aussage unten vakuos.
-  run grep -Fq 'push -q -u origin "$BRANCH"' "$script"
-  [ "$status" -eq 0 ] || { echo "normaler Push (push -u origin \${BRANCH}) fehlt in rollup-publish.sh"; false; }
-  # Negativ-Aussage: keine Rebase-/Reset-/Force-Logik mehr im Code (Kommentarzeilen
-  # zaehlen nicht, wie in T002913-M8a).
-  run bash -c "grep -nE '\b(reset|rebase|force-with-lease)\b' '$script' | grep -vE '^[0-9]+:[[:space:]]*#'"
-  [ "$status" -ne 0 ] || { echo "rollup-publish.sh enthaelt noch Rebase-/Force-Logik (T004898)"; false; }
-}
-
-@test "T002913-M8a: kein Rebase/Commit in rollup-publish.sh laeuft mit aktiven Hooks" {
-  # Der post-commit-embed-Hook feuert bei JEDEM rebasierten/committeten Commit und
-  # kann am Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so
-  # hing der Factory-Tick stundenlang im Rollup-Rebase, hielt den Flock und blockierte
-  # alle weiteren Ticks.
-  #
-  # Seit T002931 leben alle git-Schreiboperationen (commit, reset, rebase) in
-  # rollup-publish.sh und laufen ueber die zentrale GIT-Variable mit
-  # core.hooksPath=/dev/null.
-  local script="$REPO/scripts/factory/rollup-publish.sh"
-  [ -f "$script" ]
-
-  # Positiv-Anker: die zentrale GIT-Variable traegt core.hooksPath=/dev/null und
-  # wird tatsaechlich fuer Schreiboperationen (commit/reset) benutzt — sonst waere
-  # die Aussage unten leer erfuellt.
-  run grep -nE '^GIT=.*core.hooksPath=/dev/null' "$script"
-  [ "$status" -eq 0 ] || { echo "GIT-Variable ohne core.hooksPath=/dev/null fehlt"; false; }
-  local hook_calls
-  hook_calls=$(grep -nE '\$GIT (commit|reset|rebase)' "$script" || true)
-  [ -n "$hook_calls" ] \
-    || { echo "kein \$GIT commit/reset/rebase-Aufruf in rollup-publish.sh — Anker verfehlt"; false; }
-
-  # Kein nacktes `git commit/reset/rebase` ohne Hook-Abschirmung. Die GIT-Variable
-  # ist der EINZIGE Weg, hier zu schreiben; ein direkter git-Aufruf waere ein
-  # Regress. Kommentarzeilen zaehlen nicht.
-  local unguarded
-  unguarded=$(grep -nE '\bgit\b (commit|reset|rebase)' "$script" | grep -vE '^[0-9]+:[[:space:]]*#' || true)
-  [ -z "$unguarded" ] \
-    || { echo "Hook-tragendes git ohne core.hooksPath=/dev/null:"; printf '%s\n' "$unguarded"; false; }
-}
-
-@test "T002407-M7d: mishap-rollup.sh hat plan-lint als Hard Gate" {
-  local script="$REPO/scripts/factory/mishap-rollup.sh"
-  run grep -q "plan-lint" "$script"
-  [ "$status" -eq 0 ] || { echo "plan-lint Gate fehlt in mishap-rollup.sh"; false; }
-}
-
-@test "T002407-M7e: auto-close-merged schliesst Rollup-Container per Merge=Closure (T007056)" {
-  # auto-close-merged.sh muss den Container-Titel erkennen und ihn mit
-  # done/resolution=fixed schliessen statt zu recyceln — der Container ist seit
-  # T007056 ein Dispatch-Ticket, der naechste Flush legt einen frischen an.
-  local script="$REPO/scripts/factory/auto-close-merged.sh"
-  run bash -n "$script"
-  [ "$status" -eq 0 ]
-  # Container-Erkennung: muss den ROLLUP_TICKET_TITLE oder eine eindeutige Markierung prüfen
-  run grep -q "Mishap Rollup\|ROLLUP_TICKET_TITLE\|Rollup" "$script"
-  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh erkennt Rollup-Container nicht"; false; }
-  # Merge=Closure: done + resolution=fixed statt plan_staged-Recycling
-  run grep -Eq "resolution = 'fixed'" "$script"
-  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh schliesst Rollup-Container nicht mit fixed"; false; }
-  run grep -Eq "status = 'done'" "$script"
-  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh setzt Rollup-Container nicht auf done"; false; }
-}
-
 @test "T003765: auto-close-merged prueft plan-only-Inhalt fuer ALLE Branch-Familien" {
   # Der plan-only-Skip (T001580/T002598-M1) griff frueher nur bei chore/openspec-*.
   # Ein reiner Plan-PR auf feature/* (z.B. feature/batch-ticket-ops-meta-T003541) fiel
@@ -788,18 +680,6 @@ SH
       [ "$g" -lt "$call_line" ] || { echo "chore/openspec-Gate NACH dem plan-only-Aufruf (Zeile $g > $call_line) — Aufruf ist weiterhin gate-ed"; false; }
     done
   fi
-}
-
-@test "T002407-M7f: wakeup.sh ruft mishap-rollup.sh markenuebergreifend einmal pro Tick auf" {
-  local script="$REPO/scripts/factory/wakeup.sh"
-  # Nach mishap-flush und vor auto-chore-plan: mishap-rollup.sh (T013304: markenübergreifende Single-Lane)
-  run grep -q "mishap-rollup.sh" "$script"
-  [ "$status" -eq 0 ] || { echo "wakeup.sh ruft mishap-rollup.sh nicht auf"; false; }
-  # Läuft genau einmal und nicht in einer Brand-Schleife
-  local count
-  count=$(grep -c "mishap-rollup.sh" "$script" || true)
-  [ "$count" -eq 1 ]
-  ! grep -B 2 'mishap-rollup\.sh' "$script" | grep -q 'for .* in mentolder korczewski'
 }
 
 @test "T002407-M7g: migrate-mishap-bundles.sh existiert und hat --dry-run und --help" {

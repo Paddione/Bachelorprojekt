@@ -488,9 +488,11 @@
         "-ub",
         "512",
         "--n-cpu-moe",
-        "999"
+        "999",
+        "--cache-ram",
+        "12288"
       ],
-      "notes": "Uncensored Abliteration von HauhauCS (0/465 Refusals, imatrix-Quants), empfohlen gegen LuffyTheFox Genesis V10 (davon abgeleitet, unverifiziertes SVD-Verfahren). GGUF-only -> FreeToken kann Qwen3.6-GGUF nicht laden (nur Gemma-4), laeuft daher ueber llama.cpp. --n-cpu-moe 999 haelt alle Experten im RAM (~17 GB), Attention+KV auf der GPU; GDN-Hybrid macht KV guenstig (20 KiB/Token vollattention-only). Vision via mmproj-hauhau/mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf bewusst NICHT aktiviert (VRAM, Text-only-Nutzung) - bei Bedarf --mmproj in extraArgs ergaenzen. Download: huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive (Q4_K_M, 21 GB). Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start. Noch nicht gemessen - ctx/Durchsatz nach Erststart kalibrieren."
+      "notes": "Uncensored Abliteration von HauhauCS (0/465 Refusals, imatrix-Quants), empfohlen gegen LuffyTheFox Genesis V10 (davon abgeleitet, unverifiziertes SVD-Verfahren). GGUF-only -> FreeToken kann Qwen3.6-GGUF nicht laden (nur Gemma-4), laeuft daher ueber llama.cpp. --n-cpu-moe 999 haelt alle Experten im RAM (~17 GB), Attention+KV auf der GPU; GDN-Hybrid macht KV guenstig (20 KiB/Token vollattention-only). Vision via mmproj-hauhau/mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf bewusst NICHT aktiviert (VRAM, Text-only-Nutzung) - bei Bedarf --mmproj in extraArgs ergaenzen. Download: huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive (Q4_K_M, 21 GB). Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start. Noch nicht gemessen - ctx/Durchsatz nach Erststart kalibrieren. Ergaenzung T015175: --cache-ram 12288 (Hausmessung qwen38/T002753) rettet Hybrid-Agenten-Zustaende, sonst voller Re-Prefill je Agentenwechsel."
     }
   ],
   "roles": {

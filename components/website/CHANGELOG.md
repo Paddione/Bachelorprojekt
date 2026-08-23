@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.302.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.6...website-v1.302.7) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** remove self-resurrecting mishap-rollup automaton [T014104] ([#5069](https://github.com/Paddione/Bachelorprojekt/issues/5069)) ([617ea14](https://github.com/Paddione/Bachelorprojekt/commit/617ea14af237acf8996f77aae8e82d6e4481c7a5))
+
 ## [1.302.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.5...website-v1.302.6) (2026-08-23)
 
 

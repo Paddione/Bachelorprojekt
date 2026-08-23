@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.308.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.308.0...website-v1.308.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** isolate client-seed job pod label from pocket-id service selector [T014938] ([#5144](https://github.com/Paddione/Bachelorprojekt/issues/5144)) ([2dd0bcb](https://github.com/Paddione/Bachelorprojekt/commit/2dd0bcbea8623940f4708f7518458490212b256e))
+
 ## [1.308.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.307.0...website-v1.308.0) (2026-08-23)
 
 

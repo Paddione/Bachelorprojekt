@@ -2,7 +2,12 @@
 
 ## Purpose
 
-_Purpose fehlt — beim nächsten inhaltlichen Delta zu mishap-tracking ergänzen._
+Verfolgung von Ausführungs-Frictions (Mishaps) über den `mishap-tracker`-Skill und die
+ticket-mcp-Mishap-Werkzeuge: kritische Vorfälle (`incident`, `broken`, `security`) erzeugen
+sofort ein menschlich zu triagendes Ticket; nicht-kritische Einträge laufen über einen
+persistenten Buffer, dessen Abflusspfade ausschließlich protokollieren und verwerfen —
+ohne Sammel-Container, ohne Ticket-Konvertierung [T014104]. Mishaps mit Ticket-Kontext
+landen als Kommentar am Verursacher-Ticket.
 
 ## Requirements
 
@@ -30,28 +35,33 @@ Factory-Fix-Tickets, die von `mishap.go` aus nicht-kritischen Mishaps erzeugt we
 ### Requirement: Der Mishap-Buffer aggregiert, er konvertiert nicht
 
 Beim Erreichen des Buffer-Schwellwerts MUST `report_mishap` die gepufferten Einträge
-ausschließlich als **einen** Kommentar an den Rollup-Container anhängen. Es MUST NOT für
-einzelne Buffer-Einträge zusätzlich eigenständige Tickets angelegt werden. Dasselbe gilt für
-`FlushStaleBuffer`. Damit verhalten sich alle drei Abflusspfade (Schwelle, Watchdog,
-manueller `flush_mishap_buffer`) gleich und entsprechen der Zusage des `mishap-tracker`-Skills.
+ausschließlich auf stderr protokollieren und verwerfen. Es MUST NOT für einzelne Buffer-Einträge
+eigenständige Tickets angelegt werden, und es MUST NOT einen Sammel-Container-Append geben —
+ein Rollup-Container existiert seit T014104 nicht mehr. Dasselbe gilt für `FlushStaleBuffer`
+und den manuellen `flush_mishap_buffer`. Damit verhalten sich alle drei Abflusspfade
+(Schwelle, Watchdog, manueller Flush) gleich und entsprechen der Zusage des
+`mishap-tracker`-Skills.
 
 Incident-Mishaps (`incident`, `broken`, `security`) sind davon nicht berührt: sie gehen am
 Buffer vorbei und legen weiterhin je ein Ticket über `createIncidentTicket` an.
 
-#### Scenario: Schwellwert erreicht — ein Append, keine Einzeltickets
+#### Scenario: Schwellwert erreicht — Protokollierung und Verwerfen, keine Konvertierung
 
 - **GIVEN** zehn nicht-kritische Mishaps sind über `report_mishap` gemeldet worden
 - **AND** `ticket.sh` ist durch einen protokollierenden Stub ersetzt (`TICKET_SH`, `TICKET_MCP_REPO_ROOT`)
 - **WHEN** der Buffer-Schwellwert erreicht wird
-- **THEN** das Aufruflog enthält genau einen Rollup-Container-Append mit allen zehn Einträgen
+- **THEN** werden alle zehn Einträge auf stderr protokolliert
 - **AND** das Aufruflog enthält null Aufrufe mit `create --type fix`
+- **AND** das Aufruflog enthält null Aufrufe mit `rollup-container`
+- **AND** der Buffer enthält danach nur die nach dem Schwellwert gemeldeten Einträge
 
 #### Scenario: Watchdog-Flush verhält sich wie der Schwellwert-Pfad
 
 - **GIVEN** ein überalteter Buffer wird von `FlushStaleBuffer` verarbeitet
 - **WHEN** der Flush ausgeführt wird
-- **THEN** das Aufruflog enthält genau einen Rollup-Container-Append
+- **THEN** werden alle Einträge auf stderr protokolliert und verworfen
 - **AND** das Aufruflog enthält null Aufrufe mit `create --type fix`
+- **AND** das Aufruflog enthält null Aufrufe mit `rollup-container`
 
 #### Scenario: Incident-Pfad bleibt unverändert
 

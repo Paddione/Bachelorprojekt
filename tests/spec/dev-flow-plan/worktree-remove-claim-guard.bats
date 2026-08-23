@@ -53,6 +53,17 @@ EOF
   [ "$status" -eq 1 ]
   grep -qiF "claim" <<<"$output"
 
+  rm "$AGENT_LOCK_DIR/branch__feature-wt-T009888.json"
+
+  # T014468: Fremder, lebender ticket-Claim für denselben Worktree → rc=1.
+  cat > "$AGENT_LOCK_DIR/ticket__T14468.json" <<EOF
+{"scope":"ticket","id":"T14468","owner_sid":"fremde-session-123","owner_pid":999999,"tool":"claude","label":"dev-flow-plan","worktree":"$TEST_DIR","branch":"feature/wt-T009888","ticket":"T14468","host":"other","created_at":$now,"heartbeat_at":$now}
+EOF
+
+  run bash "$SCRIPT" "$TEST_DIR"
+  [ "$status" -eq 1 ]
+  grep -qiF "ticket-scoped" <<<"$output"
+
   # Querschnitts-Test (Ausnahme-Klasse): der Skill-Text nennt den Claim-Guard
   # vor dem Fremd-Remove — ohne ihn haette der Befund keine wirksame Anweisung.
   skill="$REPO_ROOT/.claude/skills/dev-flow-plan/SKILL.md"

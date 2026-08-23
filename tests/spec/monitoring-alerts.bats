@@ -64,9 +64,18 @@ setup() {
   [ -f "$ALERTMANAGER" ]
 }
 
-@test "alertmanager-config.yaml configures Pushover receiver" {
-  run grep -qi 'pushover' "$ALERTMANAGER"
+@test "alertmanager-config.yaml routes via email while Pushover creds are absent" {
+  # Positiv-Anker: das E-Mail-Routing muss konfiguriert sein.
+  run grep -q 'emailConfigs:' "$ALERTMANAGER"
   [ "$status" -eq 0 ]
+  # PUSHOVER_USER/TOKEN sind seit #1552 leer — ein pushoverConfigs-Block mit
+  # leerem userKey lässt den Operator die KOMPLETTE Config verwerfen
+  # ("mandatory field userKey is empty"), womit auch die E-Mail-Zustellung
+  # stirbt. Solange keine gesealten Credentials vorliegen, darf der Block
+  # nicht gebaut werden. [T014542]
+  local pushover
+  pushover=$(grep -c 'pushoverConfigs:' "$ALERTMANAGER" || true)
+  [ "$pushover" -eq 0 ]
 }
 
 # ── Resource Registration in kustomization.yaml ─────────────────────────

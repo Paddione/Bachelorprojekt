@@ -2298,14 +2298,14 @@
     "kind": "shell"
   },
   {
-    "id": "backup-pipeline",
-    "file": "tests/spec/backup-pipeline.bats",
+    "id": "backup-pipeline/filen-remote-retention",
+    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
     "category": "backup-pipeline",
     "kind": "shell"
   },
   {
-    "id": "backup-pipeline/filen-remote-retention",
-    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
+    "id": "backup-pipeline/render-escaping",
+    "file": "tests/spec/backup-pipeline/render-escaping.bats",
     "category": "backup-pipeline",
     "kind": "shell"
   },
@@ -2684,6 +2684,12 @@
   {
     "id": "ci-cd/devflow-ci-watch-rollup-headsha",
     "file": "tests/spec/ci-cd/devflow-ci-watch-rollup-headsha.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/devflow-ci-watch-run-lookup",
+    "file": "tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3552,6 +3558,12 @@
     "kind": "shell"
   },
   {
+    "id": "flux-render-security/no-default-secrets",
+    "file": "tests/spec/flux-render-security/no-default-secrets.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
     "id": "flux-render-security/runtime-var-unwrapping",
     "file": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
     "category": "flux-render-security",
@@ -3668,6 +3680,12 @@
   {
     "id": "health-goals/id-parity",
     "file": "tests/spec/health-goals/id-parity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/korczewski-brand-pause",
+    "file": "tests/spec/health-goals/korczewski-brand-pause.bats",
     "category": "health-goals",
     "kind": "shell"
   },
@@ -4683,6 +4701,12 @@
     "id": "repo-structure/website-moved",
     "file": "tests/spec/repo-structure/website-moved.bats",
     "category": "repo-structure",
+    "kind": "shell"
+  },
+  {
+    "id": "routing-check-freetoken",
+    "file": "tests/spec/routing-check-freetoken.bats",
+    "category": "routing-check-freetoken",
     "kind": "shell"
   },
   {

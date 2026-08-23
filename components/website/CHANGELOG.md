@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.303.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.5...website-v1.303.6) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** pause korczewski admin CronJobs [T014537] ([#5100](https://github.com/Paddione/Bachelorprojekt/issues/5100)) ([6069873](https://github.com/Paddione/Bachelorprojekt/commit/60698738eb173c74e6ac3d279fd0a7919728cdf2))
+
+## [1.303.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.4...website-v1.303.5) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** restore alertmanager email routing by removing uncredentialed pushover receiver [T014542] ([#5096](https://github.com/Paddione/Bachelorprojekt/issues/5096)) ([2bb9c5f](https://github.com/Paddione/Bachelorprojekt/commit/2bb9c5f64a5571790713645ba03cc54e5665187b))
+
+## [1.303.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.3...website-v1.303.4) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ops:** remove admin/admin from Grafana fleet artifact [T014536] ([#5092](https://github.com/Paddione/Bachelorprojekt/issues/5092)) ([d4b3cd4](https://github.com/Paddione/Bachelorprojekt/commit/d4b3cd4cf0e016bec45040fae142ca971bc6ccdf))
+
+
+### Tests
+
+* **scripts:** guard FreeToken routing drift [T014552] ([#5091](https://github.com/Paddione/Bachelorprojekt/issues/5091)) ([10f85f5](https://github.com/Paddione/Bachelorprojekt/commit/10f85f50d8bf22e2a4082dc993f86629d3c1b763))
+
+## [1.303.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.2...website-v1.303.3) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ci:** ci-watch fail-closed and run lookup [T014466] ([#5087](https://github.com/Paddione/Bachelorprojekt/issues/5087)) ([a862da4](https://github.com/Paddione/Bachelorprojekt/commit/a862da4d2aac4a34dd1ec075d67f6d67faa9264e))
+
 ## [1.303.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.1...website-v1.303.2) (2026-08-23)
 
 

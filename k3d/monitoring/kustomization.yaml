@@ -13,7 +13,6 @@ resources:
   - servicemonitor-otel-collector.yaml
   - prometheus-rules.yaml
   - alertmanager-config.yaml
-  - alertmanager-pushover-secret.yaml
   - alertmanager-smtp-secret.yaml
   - grafana-oidc-secret.yaml
   - grafana-ingress.yaml

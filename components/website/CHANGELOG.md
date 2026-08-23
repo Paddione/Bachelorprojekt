@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.310.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.309.1...website-v1.310.0) (2026-08-23)
+
+
+### Features
+
+* **llm:** tandem small-model evaluation deliverables [T015248] ([#5183](https://github.com/Paddione/Bachelorprojekt/issues/5183)) ([020fb55](https://github.com/Paddione/Bachelorprojekt/commit/020fb55d2fb3152b83ab10c1f40a43a8d6b2ece7))
+
 ## [1.309.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.309.0...website-v1.309.1) (2026-08-23)
 
 

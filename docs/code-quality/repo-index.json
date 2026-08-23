@@ -3097,7 +3097,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 523,
+      "file_count": 522,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3402,7 +3402,6 @@
         "k3d/mediaviewer-widget.yaml",
         "k3d/mentolder-web.yaml",
         "k3d/monitoring/alertmanager-config.yaml",
-        "k3d/monitoring/alertmanager-pushover-secret.yaml",
         "k3d/monitoring/alertmanager-secret-template.yaml",
         "k3d/monitoring/alertmanager-smtp-secret.yaml",
         "k3d/monitoring/blackbox-exporter.yaml",

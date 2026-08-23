@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# T000617 — Grafana alert rules + Pushover Alertmanager config validation.
+# T000617 — Grafana alert rules + Alertmanager config validation.
 
 RULES_FILE="k3d/monitoring/prometheus-rules.yaml"
 AM_FILE="k3d/monitoring/alertmanager-config.yaml"
@@ -29,8 +29,14 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "alertmanager-config.yaml declares a pushover receiver" {
-  grep -q "pushoverConfigs:" "$AM_FILE"
+@test "alertmanager-config.yaml has no pushover receiver while creds are absent" {
+  # Positiv-Anker zuerst: der Email-Receiver muss vorhanden sein.
+  grep -q "emailConfigs:" "$AM_FILE"
+  # Ein pushoverConfigs mit leerem userKey verwirft die komplette Config am
+  # Prometheus-Operator ("mandatory field userKey is empty"). [T014542]
+  local pushover
+  pushover=$(grep -c 'pushoverConfigs:' "$AM_FILE" || true)
+  [ "$pushover" -eq 0 ]
 }
 
 @test "alertmanager-config.yaml declares an email receiver" {

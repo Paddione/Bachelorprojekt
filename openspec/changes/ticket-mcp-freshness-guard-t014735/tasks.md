@@ -2,6 +2,17 @@
 
 _Ticket: T014735_ · Domänen: ci, scripts · Aufwand: klein
 
+## File Structure
+
+```
+scripts/ticket-mcp/go/Makefile                          — ldflags-Versionseinbettung
+scripts/ticket-mcp/go/cmd/ticket-mcp/main.go            — buildSHA-Var + --version
+scripts/ticket-mcp/freshness-check.sh                   — Guard-Skript (neu)
+Taskfile.yml                                            — ticket-mcp:freshness + Verkettung
+tests/spec/ci-cd/ticket-mcp-freshness-guard.bats        — Guard (neu)
+openspec/changes/ticket-mcp-freshness-guard-t014735/tasks.md — dieser Plan
+```
+
 ## Task List
 
 - [ ] **Version einbetten.** `scripts/ticket-mcp/go/Makefile`: Build-Ziel um

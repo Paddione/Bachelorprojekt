@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.10...website-v1.303.11) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** batch infra-kleinfixes — CI image refs + staging cronjob triage [T014566] ([#5122](https://github.com/Paddione/Bachelorprojekt/issues/5122)) ([c780286](https://github.com/Paddione/Bachelorprojekt/commit/c780286a4fbfcdb123937313790ca60d1ee2d96d))
+
 ## [1.303.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.9...website-v1.303.10) (2026-08-23)
 
 

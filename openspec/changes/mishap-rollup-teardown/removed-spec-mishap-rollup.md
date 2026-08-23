@@ -1,3 +1,11 @@
+<!-- Kein Delta mehr, sondern Beleg [T014104].
+
+Diese Datei lag als `specs/mishap-rollup.md` im Change und listete die 18
+Requirements, die mit dem Abbau entfallen. Der Abbau hat `openspec/specs/mishap-rollup.md`
+im selben PR geloescht — damit ist das REMOVED bereits vollzogen und der
+Archiv-Merger kann es nicht mehr anwenden (`Target … does not exist`). Die Liste
+bleibt hier als Nachweis, welche Requirements weggefallen sind. -->
+
 ## REMOVED Requirements
 
 ### Requirement: Mishap rollup generates compliant change per run

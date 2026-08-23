@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.7...website-v1.303.8) (2026-08-23)
+
+
+### Bug Fixes
+
+* **db:** add bigserial pk and nulls not distinct to factory control [T014545] ([#5106](https://github.com/Paddione/Bachelorprojekt/issues/5106)) ([d3550ac](https://github.com/Paddione/Bachelorprojekt/commit/d3550ac6536c46695ec5a16cfe577f46b16c2901))
+
 ## [1.303.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.6...website-v1.303.7) (2026-08-23)
 
 

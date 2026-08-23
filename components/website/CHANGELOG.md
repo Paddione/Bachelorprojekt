@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.306.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.2...website-v1.306.0) (2026-08-23)
+
+
+### Features
+
+* **plans:** spec atlas generator with provenance and in-flight index [T015012] ([#5145](https://github.com/Paddione/Bachelorprojekt/issues/5145)) ([b88ec28](https://github.com/Paddione/Bachelorprojekt/commit/b88ec280beb32ca14ad0562903cb27292229b85c))
+
 ## [1.305.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.1...website-v1.305.2) (2026-08-23)
 
 

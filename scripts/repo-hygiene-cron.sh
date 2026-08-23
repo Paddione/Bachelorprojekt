@@ -65,6 +65,25 @@ if tick_running; then
   TICK_RUNNING=1
 fi
 
+# ── Step 2.7: Runtime-Drift-Guard [T014940] ──────────────────────────────
+# Laufende MCP-Prozesse gegen ihre Binaries prüfen (T003825-Detektor). Ohne
+# diesen täglichen Anlauf war Drift unsichtbar, bis etwas schiefging — der
+# Operator will DEUTLICH gewarnt werden. --auto-kill heilt stdio-Drift durch
+# SIGTERM (Respawn mit dem neuen Binary beim nächsten Tool-Aufruf); HTTP-
+# Server-Drift und DB-Marker-Drift werden als Ticket-Kommentar gemeldet.
+DRIFT_FINDINGS=0
+log "runtime-drift-check (--auto-kill, notify → $HYGIENE_TRACKING_TICKET)"
+drift_out="$(bash "$HERE/runtime-drift-check.sh" --auto-kill --notify "$HYGIENE_TRACKING_TICKET" 2>&1 || true)"
+drift_findings="$(printf '%s\n' "$drift_out" | grep -c '^DRIFT:' || true)"
+drift_findings="${drift_findings//[!0-9]/}"
+if [ -n "$drift_findings" ] && [ "$drift_findings" -gt 0 ]; then
+  DRIFT_FINDINGS="$drift_findings"
+  log "DRIFT: $drift_findings Befund(e) — Details im Ticket-Kommentar / Log:"
+  printf '%s\n' "$drift_out" >&2
+else
+  log "kein Laufzeit-Drift"
+fi
+
 # ── Step 3: Collect metrics ─────────────────────────────────────────────
 log "collecting metrics"
 
@@ -152,6 +171,7 @@ JSON="$(jq -n \
   --argjson open_prs "$pr_count" \
   --argjson stale_total "$stale_total" \
   --argjson reaper_candidates "$reaper_candidates" \
+  --argjson runtime_drift_findings "$DRIFT_FINDINGS" \
   '{
     timestamp: $timestamp,
     mode: $mode,
@@ -159,7 +179,8 @@ JSON="$(jq -n \
       worktrees: { total: $worktrees_total, gone: $worktrees_gone, no_upstream: $worktrees_no_upstream, skipped: $worktrees_skipped },
       branches: { gone: $branches_gone, remote_non_main: $remote_branches },
       prs: { open: $open_prs },
-      reaper: { candidates: $reaper_candidates }
+      reaper: { candidates: $reaper_candidates },
+      runtime_drift: { findings: $runtime_drift_findings }
     },
     stale_total: $stale_total,
     warning: ($stale_total > 10)

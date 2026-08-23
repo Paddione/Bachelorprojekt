@@ -28,11 +28,22 @@ set -uo pipefail
 
 # ── Argument-Parsing ───────────────────────────────────────────────────────
 AUTO_KILL=false
-for arg in "$@"; do
-  case "$arg" in
+NOTIFY_TICKET=""
+while [ $# -gt 0 ]; do
+  case "$1" in
     --auto-kill) AUTO_KILL=true ;;
-    *) echo "Usage: $0 [--auto-kill]" >&2; echo "Unbekanntes Argument: $arg" >&2; exit 2 ;;
+    --notify)
+      shift
+      NOTIFY_TICKET="${1:-}"
+      if [ -z "$NOTIFY_TICKET" ]; then
+        echo "Usage: $0 [--auto-kill] [--notify <external_id>]" >&2
+        echo "--notify braucht eine Ticket-external_id (z.B. T003486)" >&2
+        exit 2
+      fi
+      ;;
+    *) echo "Usage: $0 [--auto-kill] [--notify <external_id>]" >&2; echo "Unbekanntes Argument: $1" >&2; exit 2 ;;
   esac
+  shift
 done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -42,10 +53,12 @@ DB_CTX="${RUNTIME_DRIFT_CTX:-k3d-mentolder-dev}"
 DB_NS="${RUNTIME_DRIFT_NS:-workspace}"
 
 DRIFT_COUNT=0
+DRIFT_LINES=()
 
 report() {
   DRIFT_COUNT=$((DRIFT_COUNT + 1))
   echo "DRIFT: $*"
+  DRIFT_LINES+=("$*")
 }
 
 # ── Pruefer 1: MCP-Prozesse gegen ihre Binaries ───────────────────────────
@@ -167,11 +180,43 @@ check_db() {
   done < <(find "$MIGRATIONS_DIR" -maxdepth 1 -name '*.sql' -print0)
 }
 
+# ── Notify: Befund als Ticket-Kommentar sichtbar machen [T014940] ─────────
+# Der Detektor allein war das Problem: er lief nur in Hygiene-Läufen und der
+# Operator sah Drift erst, wenn etwas schon schiefging. Mit --notify landet
+# der Befund als Kommentar auf dem Tracking-Ticket — auch aus dem Daily-Cron.
+notify_ticket() {
+  [ -n "$NOTIFY_TICKET" ] || return 0
+  local heal_note=""
+  if [ "$AUTO_KILL" = true ]; then
+    heal_note="Stdio-Befunde wurden per SIGTERM geheilt (der Server startet beim nächsten Tool-Aufruf mit dem neuen Binary). HTTP-Server (factory-mcp) brauchen einen manuellen Restart: \`task agents:factory-mcp:start\` bzw. \`systemctl --user restart factory-mcp.service\`."
+  else
+    heal_note="Nur meldend, kein Eingriff. Heilen mit \`bash scripts/runtime-drift-check.sh --auto-kill\` bzw. Restart der HTTP-Server."
+  fi
+  local body findings=""
+  findings="$(printf ' - %s\n' "${DRIFT_LINES[@]}")"
+  body="## ⚠️ Runtime-Drift-Guard — $(date -u '+%Y-%m-%d %H:%M UTC')
+
+**$DRIFT_COUNT Drift-Befund(e):** gemergte Fixes laufen nicht auf den MCP-Prozessen.
+
+$findings
+$heal_note
+
+_Gesendet von scripts/runtime-drift-check.sh (--auto-kill=$AUTO_KILL)._"
+
+  if bash "$REPO_ROOT/scripts/ticket.sh" add-comment \
+       --id "$NOTIFY_TICKET" --author "runtime-drift-guard" --body "$body" >/dev/null 2>&1; then
+    echo "runtime-drift-check: Befund an Ticket $NOTIFY_TICKET gemeldet."
+  else
+    echo "runtime-drift-check: WARNUNG — Ticket-Kommentar an $NOTIFY_TICKET fehlgeschlagen (DB unerreichbar?)." >&2
+  fi
+}
+
 # ── Hauptlauf ─────────────────────────────────────────────────────────────
 echo "runtime-drift-check: Registry=$REGISTRY Migrations=$MIGRATIONS_DIR"
 check_processes
 check_db
 if [ "$DRIFT_COUNT" -gt 0 ]; then
+  notify_ticket
   if [ "$AUTO_KILL" = true ]; then
     echo "runtime-drift-check: $DRIFT_COUNT Drift-Befund(e) — geheilt (SIGTERM gesendet)."
     exit 0

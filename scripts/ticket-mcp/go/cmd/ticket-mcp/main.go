@@ -24,7 +24,19 @@ func main() {
 	flushBrand := flag.String("brand", "mentolder", "Brand für --flush-stale-mishaps")
 	flushMaxAgeDays := flag.Float64("flush-max-age-days", float64(tools.MISHAP_MAX_AGE)/float64(24*time.Hour),
 		"Alter in Tagen, ab dem --flush-stale-mishaps schneidet")
+	versionFlag := flag.Bool("version", false, "Build-Info ausgeben und beenden [T014940]")
 	flag.Parse()
+
+	// Build-Info auf einen Blick — der Operator muss erraten können, welche
+	// Binary ein laufender Prozess hält (vgl. Drift-Inzident 2026-08-23).
+	if *versionFlag {
+		fmt.Printf("ticket-mcp-go build=%q\n", buildInfo)
+		return
+	}
+
+	// Deutliche Warnung, wenn dieser Prozess eine alte Binary hält (Rebuild
+	// während Laufzeit). Stdio-safe: nur stderr, nie stdout.
+	warnIfStale(os.Stderr)
 
 	// Periodischer Schnitt (Factory-Tick, scripts/factory/wakeup.sh) — läuft
 	// bewusst als kurzlebiger Prozess und NICHT als MCP-Server, damit der Tick

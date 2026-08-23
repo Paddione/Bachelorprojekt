@@ -56,11 +56,15 @@ run_task() {  # <task-name>, ohne vorgesetzte Ingest-Variablen
 
   # Die fünf bewusst nicht gesetzten Variablen kommen LEER an (Skript-Default
   # gilt), sie sind also nicht nur unsichtbar, sondern belegt nicht gesetzt.
-  [[ "$output" == *$'\nurl=\n'* ]]
-  [[ "$output" == *$'\nmodel=\n'* ]]
-  [[ "$output" == *$'\nmax_tokens=\n'* ]]
-  [[ "$output" == *$'\nmax_source_chars=\n'* ]]
-  [[ "$output" == *$'\nmax_parallel=\n'* ]]
+  # Zeilen-verankerte Greps statt $'\n..\n'-Substrings: der task-Banner laeuft
+  # ueber STDERR, der Fake-bash-Output ueber STDOUT — deren Interleaving ist
+  # umgebungsabhaengig (lokal Banner-zuerst, CI teils Output-zuerst), sodass
+  # ein fuehrendes \n vor "url=" NICHT garantiert ist [T015012-CI-Fix].
+  printf '%s\n' "$output" | grep -qx 'url='
+  printf '%s\n' "$output" | grep -qx 'model='
+  printf '%s\n' "$output" | grep -qx 'max_tokens='
+  printf '%s\n' "$output" | grep -qx 'max_source_chars='
+  printf '%s\n' "$output" | grep -qx 'max_parallel='
 }
 
 @test "the ingest tasks name no backend URL, model or retired endpoint" {
@@ -106,6 +110,6 @@ run_task() {  # <task-name>, ohne vorgesetzte Ingest-Variablen
     [[ "$output" == *"script=scripts/brain-ingest.sh"* ]]
     [[ "$output" == *"disable_thinking=1"* ]]
     [[ "$output" == *$'\ntimeout=600\n'* ]]
-    [[ "$output" == *$'\nurl=\n'* ]]
+    printf '%s\n' "$output" | grep -qx 'url='   # siehe Kommentar in Fall 1 [T015012-CI-Fix]
   done
 }

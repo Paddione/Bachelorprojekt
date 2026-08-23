@@ -153,23 +153,40 @@ while true; do
   # Nur wenn mindestens ein Job conclusion=="failure" hat, gilt der Check als echt rot —
   # sonst FAILED_CHECKS leeren, damit der Lauf als grün weiterläuft.
   if [[ -n "$FAILED_CHECKS" ]]; then
-    FAILED_RUN_ID=$(gh run list --branch "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)" \
-      --json databaseId,headSha,status,conclusion \
-      | jq -r --arg head "$PR_HEAD_OID" '[.[] | select(.conclusion == "failure" and .headSha == $head)] | sort_by(.databaseId) | last | .databaseId // empty')
+    # [T014466] Der Branch kommt aus dem PR, NICHT aus dem cwd. Vorher stand hier
+    # `git rev-parse --abbrev-ref HEAD` — dev-flow-execute ruft dieses Skript aber
+    # ausdruecklich aus dem Haupt-Checkout auf (Schritt 3.8/5.5: cd "$MAIN_REPO"),
+    # wo main ausgecheckt ist. Der Lookup lief damit gegen den falschen Branch,
+    # fand nie einen failure-Run, und der else-Zweig loeschte den echten Fehler.
+    # Beobachtet an PR #5081: "18 CI-Checks, alle gruen" bei
+    # mergeStateStatus=BLOCKED und zwei FAILURE-Checks.
+    PR_BRANCH=$(gh pr view "$PR_URL" --json headRefName -q '.headRefName' 2>/dev/null || echo "")
+    if [[ -z "$PR_BRANCH" ]]; then
+      echo "⚠ PR-Branch nicht bestimmbar — die Gegenprobe kann rote Checks nicht entlasten." >&2
+    fi
+    FAILED_RUN_ID=""
+    if [[ -n "$PR_BRANCH" ]]; then
+      FAILED_RUN_ID=$(gh run list --branch "$PR_BRANCH" \
+        --json databaseId,headSha,status,conclusion 2>/dev/null \
+        | jq -r --arg head "$PR_HEAD_OID" '[.[] | select(.conclusion == "failure" and .headSha == $head)] | sort_by(.databaseId) | last | .databaseId // empty' 2>/dev/null || echo "")
+    fi
     if [[ -n "$FAILED_RUN_ID" ]]; then
       REAL_FAILURES=$(gh api "repos/Paddione/Bachelorprojekt/actions/runs/${FAILED_RUN_ID}/jobs" \
         --jq '[.jobs[] | select(.conclusion == "failure")] | length' 2>/dev/null || echo "")
       if [[ "$REAL_FAILURES" =~ ^[0-9]+$ ]] && [ "$REAL_FAILURES" -eq 0 ]; then
+        # Einzige zulaessige Entwarnung: der Run wurde GEFUNDEN und seine Jobs
+        # tragen nachweislich keinen failure (cancelled/skipped).
         echo "ℹ Check $FAILED_RUN_ID meldet failure, aber KEIN Job ist failure (cancelled/skipped) — kein Codefehler, weiter beobachten."
         FAILED_CHECKS=""
       fi
     else
-      # Kein failure-Run am aktuellen HEAD gefunden, obwohl die check-runs-API für
-      # diesen Commit failure meldet: die Meldung stammt von einem abgebrochenen/
-      # leeren Lauf — beides ist kein echter Codefehler. (Die check-runs-Abfrage ist
-      # per URL bereits auf den PR-HEAD gebunden.)
-      echo "ℹ check-runs meldet failure, aber kein failure-Run am aktuellen HEAD — kein Codefehler, weiter beobachten."
-      FAILED_CHECKS=""
+      # [T014466] FAIL-CLOSED: "kein Run gefunden" heisst NICHT "kein Fehler".
+      # Es heisst, dass die Gegenprobe nichts belegen konnte — die check-runs-API
+      # meldet fuer diesen Commit sehr wohl failure. Frueher wurde hier
+      # FAILED_CHECKS geleert und der Lauf als gruen fortgesetzt; damit konnte ein
+      # PR mit rotem CI in den Auto-Merge laufen.
+      echo "⚠ check-runs meldet failure, aber kein zugehoeriger Run war ueber Branch '${PR_BRANCH:-?}' auffindbar." >&2
+      echo "   Die Gegenprobe kann den Fehler weder bestaetigen noch entlasten — er bleibt bestehen (fail-closed, T014466)." >&2
     fi
   fi
 

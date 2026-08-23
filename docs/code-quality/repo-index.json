@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1185,
+      "file_count": 1186,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -660,6 +660,7 @@
         "tests/spec/health-goals/goals-data-path-consistency.bats",
         "tests/spec/health-goals/goals-data-sdlc-target.bats",
         "tests/spec/health-goals/id-parity.bats",
+        "tests/spec/health-goals/korczewski-brand-pause.bats",
         "tests/spec/health-goals/llm-stack-goals.bats",
         "tests/spec/health-goals/measured-at-field.bats",
         "tests/spec/health-goals/measurement-integrity.bats",

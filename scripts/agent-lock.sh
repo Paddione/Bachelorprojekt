@@ -204,16 +204,7 @@ _reapable() {
       # T014468: Wenn im Worktree noch ein Prozess läuft (z. B. ein langer Testlauf),
       # lebt die Session nachweislich — die TTL darf den Lock dann nicht abräumen.
       if [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ]; then
-        local _pid _cwd
-        local _active=0
-        for _pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
-          _cwd="$(readlink "/proc/$_pid/cwd" 2>/dev/null)" || continue
-          if [[ "$_cwd" = "$wt" || "$_cwd" = "$wt"/* ]]; then
-            _active=1
-            break
-          fi
-        done
-        if [ "$_active" -eq 1 ]; then
+        if _worktree_has_active_process "$wt"; then
           return 1
         fi
       fi
@@ -234,12 +225,7 @@ _reapable() {
     wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
     if [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ]; then
       if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then
-        local _pid _cwd _active=0
-        for _pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
-          _cwd="$(readlink "/proc/$_pid/cwd" 2>/dev/null)" || continue
-          if [[ "$_cwd" = "$wt" || "$_cwd" = "$wt"/* ]]; then _active=1; break; fi
-        done
-        if [ "$_active" -eq 1 ]; then
+        if _worktree_has_active_process "$wt"; then
           return 1
         fi
         _reap_log "$f" heartbeat-ttl; return 0

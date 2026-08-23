@@ -1,6 +1,6 @@
 ---
 name: dev-flow-plan
-description: 'Use to choose the development path (feature/fix/chore), run brainstorming, and generate a design spec and implementation plan.'
+description: 'Use to choose the development path for a work request in this repo — feature, fix, or chore. Triggers on work request, neue Funktion, feature request, bug fix, chore, dev-flow-plan, plan erstellen. Features/Fixes: brainstorming, spec, staged plan, then dev-flow-execute takes over. Chores route to dev-flow-chore.'
 ---
 # dev-flow-plan — Pfad-Wahl, Brainstorming & Plan
 
@@ -11,7 +11,7 @@ description: 'Use to choose the development path (feature/fix/chore), run brains
 > `git commit` im Haupt-Checkout), und ab Phase B tragen **alle** Read/Write/Edit-Pfade den
 > Worktree-Präfix. Gilt für dieses ganze Dokument und wird unten nicht wiederholt.
 
-Der Plan ist der behavior-change-Einstieg des gemeinsamen [Lifecycle-Vertrags](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md): Ausgang ist ein Request, Ausgang ein gestagter, gepushter Plan ohne PR; danach übernimmt `dev-flow-execute`. Proposal, Plan-Lint, staged-plan und No-Early-PR-Gates bleiben hier normativ.
+Der Plan ist der behavior-change-Einstieg des gemeinsamen [Lifecycle-Vertrags](.claude/skills/references/dev-flow-lifecycle.md): Ausgang ist ein Request, Ausgang ein gestagter, gepushter Plan ohne PR; danach übernimmt `dev-flow-execute`. Proposal, Plan-Lint, staged-plan und No-Early-PR-Gates bleiben hier normativ.
 
 ## Wann diese Skill greift
 Bei jeder Anfrage in diesem Repo, die etwas verändern will.
@@ -34,9 +34,9 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 
 ## Schritt −3: Deep Grilling (optional)
 Bei komplexem oder unklarem Feature den User nach einer Grilling-Session fragen. Fragenkatalog:
-[dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md). Q/A-Session über `lavish`
+[dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md). Q/A-Session über `lavish`
 (`.lavish/<slug>-grilling.html`, Input-Playbook). Ticket-Anlage, Attachments und das
-Persistieren der Antworten (`ticket.sh grill`): [grilling-to-ticket](file:///home/patrick/Bachelorprojekt/.claude/skills/references/grilling-to-ticket.md).
+Persistieren der Antworten (`ticket.sh grill`): [grilling-to-ticket](.claude/skills/references/grilling-to-ticket.md).
 
 ## Schritt −2: Main-Branch sync (Pull-First)
 ```bash
@@ -50,7 +50,7 @@ fi
 
 ## Schritt −1: Reaper & Stale-Worktree-Audit
 Tote Sessions/Zombies/stale Worktrees räumen und sehen, wer gerade was bearbeitet —
-Lock-Lebenszyklus-SSOT: [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md) [T000510]:
+Lock-Lebenszyklus-SSOT: [session-coordination](.claude/skills/references/session-coordination.md) [T000510]:
 ```bash
 bash scripts/agent-lock.sh reap            # cwd-tote Prozesse killen, Worktrees prunen, tote Locks räumen
 bash scripts/agent-lock.sh list            # "Wer macht was": laufende Claims anderer Sessions
@@ -59,7 +59,7 @@ git worktree list && bash scripts/worktree-git-op-guard.sh
 ```
 Stale Worktrees nur nach bestandenem Vorcheck löschen [T005115]:
 `bash scripts/worktree-clean-check.sh <path>` lehnt dirty-Worktrees UND solche mit aktivem
-fremden branch-Claim ab (`agent-lock.sh check branch <branch>` — laufende Lauf-/Rollup-Session!).
+fremden branch-Claim ab (`agent-lock.sh check branch <branch>` — laufende Lauf-/Batch-Session!).
 Bei rc 1 den Worktree stehen lassen, sonst
 `git worktree remove <path> --force && git branch -D <branch>`.
 
@@ -74,7 +74,7 @@ Diese Skill plant nur (Feature/Fix) und stoppt vor der Umsetzung; die übernimmt
 
 **Artefakt-Ebene:** Die feature/fix/chore-Wahl ist die *Pfad*-Wahl; davor steht die *Artefakt*-Wahl
 (PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket). Entscheidungstabelle + PRD-Checkliste:
-[plan-artifact-level](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-artifact-level.md).
+[plan-artifact-level](.claude/skills/references/plan-artifact-level.md).
 
 ## Schritt 0.7: Prior-Art-Suche vor der ersten Architekturfrage [T002829]
 Bevor dem User eine **Architekturfrage** gestellt wird („gemeinsame Quelle oder duplizieren?",
@@ -88,7 +88,7 @@ grep -rln '<pfad/der/betroffenen/datei>' tests/spec/                            
 ```
 Treffer werden zitiert (Datei + Zeilen); die Frage lautet dann „bestehende Entscheidung behalten
 oder ersetzen?". Ersetzen geht über ein `RENAMED`/`MODIFIED`-Delta auf den SSOT-Spec. Begründung
-und Fallbeispiel: T002817 in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+und Fallbeispiel: T002817 in [dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md).
 
 ## Feature-Pfad
 
@@ -103,7 +103,7 @@ und committed Proposals, nicht nur das eigene Branch-Delta. Erst danach entsteht
 | **C — Partial-Pipeline** | Worktree | Decompose in Partials, pro Partial: Plan schreiben → committen → stagen → enqueuen; danach plan-lint, Embedding, finaler Push |
 
 Vollständige Schrittfolge samt Befehlen, Decompose-/Fan-out-Mechanik und Kontext-Injektion für
-Plan-Subagenten: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md).
+Plan-Subagenten: [dev-flow-plan-phases](.claude/skills/references/dev-flow-plan-phases.md).
 
 **Intel-Quellen des Bundles** (Phase A.1.5) — jede Sektion ist an ihre Quelle gebunden, damit der
 Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`/`type_text` und
@@ -111,12 +111,12 @@ Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`
 (read-only); `external_types` aus **context7**; `impact_files`/`s1_*` aus `wc -l` +
 `docs/code-quality/baseline.json`. Ist eine Quelle samt Fallback nicht erreichbar, wird ein
 `risks[]`-Eintrag gesetzt statt die Sektion still leer zu lassen. Format:
-[plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+[plan-intel-bundle](.claude/skills/references/plan-intel-bundle.md).
 
 ### Guards des Feature-Pfads
 - **Preflight: Check merged ticket** (T002279) — beide Pfade, vor der Worktree-Anlage:
   `bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"` (`rc=1` = auf `main` schon gefixt →
-  Ticket `done`, abbrechen). Exit-Codes: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md) §Preflight.
+  Ticket `done`, abbrechen). Exit-Codes: [dev-flow-plan-phases](.claude/skills/references/dev-flow-plan-phases.md) §Preflight.
 - **Kollisions-Check vor der Worktree-Anlage** (T002444): `bash scripts/agent-collision.sh check --branch "$BRANCH"` —
   meldet von anderen Sessions belegte Branches/Worktrees, bevor `scripts/worktree-create.sh` läuft.
 - **Brainstorming ist nicht optional** — in keinem der beiden Pfade. Es entscheidet, was überhaupt
@@ -141,14 +141,14 @@ Zweistufig: Der Orchestrator **decomposed** aus `intel.json` (deterministisch er
 `target_files` (Tests immer separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten**
 je ihre `tasks.d/pX-<name>.md`. Der Orchestrator schreibt den `tasks.md`-Index mit
 Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und
-Provisionierung: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md).
+Provisionierung: [dev-flow-plan-phases](.claude/skills/references/dev-flow-plan-phases.md).
 
 **SID-Propagation (PFLICHT, T006365):** Ermittle deine Session-SID mit
 `bash scripts/agent-lock.sh mine` und weise die Plan-Subagenten an, in jedem Bash-Call zuerst
 `export AGENT_LOCK_SID=<deine-sid>` auszuführen — sonst blockiert der Worktree-Write-Guard ihre
 Datei-Tools.
 
-**Der Subagent-Prompt MUSS [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) verbindlich einbinden** —
+**Der Subagent-Prompt MUSS [plan-quality-gates](.claude/skills/references/plan-quality-gates.md) verbindlich einbinden** —
 der Subagent liest die Datei und schreibt den Plan dagegen. Sie ist SSOT für die plan-lint Hard
 Rules: Frontmatter mit `title`, `ticket_id`, `domains`, `status` (F1), `## File Structure` nach der
 H1 (STRUCT1), ein Failing-Test-Step mit der wörtlichen Phrase `expected: FAIL` **plus** echtem
@@ -171,7 +171,7 @@ bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
 ### Schritt 4: Plan prüfen & übernehmen
 Du behältst deinen vollen Brainstorming-Kontext: lies den zurückgegebenen Plan und prüfe ihn gegen
 die im Brainstorming getroffenen Entscheidungen. Zusätzlich die Gate-Konformität (Checkliste in
-[plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)): S1-Budgets gegen die **wirksame Schwelle**
+[plan-quality-gates](.claude/skills/references/plan-quality-gates.md)): S1-Budgets gegen die **wirksame Schwelle**
 (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter
 Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task mit
 `task test:changed` + `task freshness:regenerate` + `task freshness:check`? Keine
@@ -179,7 +179,7 @@ Brand-Domain-Literale in den Code-Snippets? Bei Lücken erneut delegieren (Schri
 konkreten Korrektur-Hinweisen.
 
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
-SSOT für Ticket-Anlage, Claim, Stage und Embedding: [ticket-stage-procedure](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-stage-procedure.md).
+SSOT für Ticket-Anlage, Claim, Stage und Embedding: [ticket-stage-procedure](.claude/skills/references/ticket-stage-procedure.md).
 
 Hier werden **nur Ticket angelegt und geclaimt** — der Claim muss laufen, bevor der
 Pre-Commit-Guard aus Schritt 5 die Lock-Datei liest:
@@ -188,7 +188,7 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
   --branch "$(git -C "$WT" branch --show-current)" --worktree "$WT" --label dev-flow-plan
 ```
 `stage-plan` läuft dagegen **erst nach dem Commit** (Grund: T002673 in
-[dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md)).
+[dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md)).
 
 ### Schritt 5: Commit & Push, dann stagen — dann STOPP
 **Pre-Commit Guard (PFLICHT) [T001268]:** `plan-preflight.sh` bündelt drei Checks; hier steht der
@@ -227,7 +227,7 @@ bash scripts/ticket.sh stage-plan \
 ### Schritt 6: Optionaler Plan-Review (interaktiv)
 Der Plan lässt sich annotierbar rendern und im Browser reviewen
 (`bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md`). Details:
-[plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
+[plan-review-ui](.claude/skills/references/plan-review-ui.md).
 
 **STOPP.** Branch, Spec und Plan sind committed und gepusht. Ticket ist per
 `execution_released=false` vom Factory-Dispatch zurückgehalten, bis `dev-flow-execute` es mit
@@ -244,7 +244,7 @@ externes Binary oder einen externen Dienst voraus, gehört der Verfügbarkeits-G
 `grep -rn '<binary>' .github/workflows/`; **0 Treffer heißt: in CI nicht vorhanden**, und ohne
 Guard misst der Test dann die Ausstattung des Runners statt den Zustand des Codes.
 Vollständige Begründung: T002820 in
-[dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+[dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md).
 
 **Bug-Triage: Ursachen-Verifikation vor Brainstorming [T002448-M5]:** Eine Bug-Beschreibung
 enthält oft Symptom und Ursachen-Hypothese in einem Satz. Vor dem Brainstorming MUSS unterschieden
@@ -256,7 +256,7 @@ and validate the cause with evidence before designing the solution.
 
 Schritte 1–5 im Detail (Ticket, Worktree, Claims, Lavish-Board, Brainstorming mit
 Root-Cause-Fokus, failing Test, Plan, `stage-plan`, Commit):
-[dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md) §Fix-Pfad. Der abschließende Stage-Commit:
+[dev-flow-plan-phases](.claude/skills/references/dev-flow-plan-phases.md) §Fix-Pfad. Der abschließende Stage-Commit:
 
 ```bash
 git -C "$WT" add tests/ openspec/changes/<slug>/tasks.md

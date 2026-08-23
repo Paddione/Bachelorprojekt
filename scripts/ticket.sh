@@ -1004,57 +1004,6 @@ cmd_triage() {
   main "$@"
 }
 
-ROLLUP_TITLE="Mishap Rollup — fortlaufende Sammlung"
-
-cmd_rollup_container() {
-  # Gemeinsame Container-Aufloesung fuer mishap-rollup.sh (Leser) und ticket-mcp
-  # (Schreiber/Flusher). Sucht einen Rollup-Container (type=chore) in Collect
-  # Mode, bevorzugt den aeltesten. Erst wenn keiner im Collect Mode ist, wird
-  # ein neuer angelegt. Ausgabe: nur die external_id auf stdout.
-  #
-  # [T007056/T013304] CROSS-BRAND LANE: Rollup-Container sind markenübergreifend.
-  # Collect Mode = Batch noch nicht in einen Plan uebergegangen:
-  # triage/backlog/planning. Ein blocked-Container wird nur gefunden, wenn er
-  # KEINEN FACTORY-PLAN-REF-Kommentar traegt (dann ist er noch nicht dispatcht);
-  # dispatchte Container (plan_staged/in_progress/qa_review/awaiting_deploy)
-  # werden nie zurueckgegeben — neue Flushes sollen einen frischen Container
-  # anlegen, solange der alte vom Executor bearbeitet wird.
-  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"
-  local brand="${BRAND:-mentolder}"
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --brand) brand="$2"; shift 2 ;;
-      *)       echo "Unknown rollup-container option: $1" >&2; exit 2 ;;
-    esac; done
-  # Resolve db pod via shared pg helper
-  local pod; pod=$(_pgpod)
-  # Step 1: Finden — Collect Mode (ohne Brand-Filter), aeltester zuerst
-  local ext_id
-  ext_id=$(_exec_sql "$pod" -c "
-    SELECT external_id FROM tickets.tickets
-     WHERE type = 'chore'
-       AND title = 'Mishap Rollup — fortlaufende Sammlung'
-       AND ( status IN ('triage','backlog','planning')
-          OR ( status = 'blocked'
-               AND NOT EXISTS (
-                     SELECT 1 FROM tickets.ticket_comments c
-                      WHERE c.ticket_id = tickets.tickets.id
-                        AND c.body LIKE 'FACTORY-PLAN-REF%' ) ) )
-     ORDER BY created_at ASC LIMIT 1;
-  " 2>/dev/null | grep -v '^$' | head -1 || true)
-  if [[ -n "$ext_id" ]]; then
-    echo "$ext_id"
-    return 0
-  fi
-  # Step 2: Erstellen — keiner im Collect Mode gefunden
-  echo "rollup-container: kein offener Container, lege neuen an (brand=$brand)" >&2
-  ext_id=$(BRAND="$brand" bash "$(dirname "${BASH_SOURCE[0]}")/ticket.sh" create \
-    --type chore --brand "$brand" \
-    --title "$ROLLUP_TITLE" \
-    --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Der Container sammelt einen Batch; der Generator staged den daraus erzeugten Plan auf dieses Ticket, und es wird geschlossen (done · resolution=fixed), sobald der Executor-PR fuer den Plan gemergt ist." \
-    --status triage --severity minor 2>&1)
-  echo "$ext_id"
-}
-
 if [[ $# -lt 1 ]]; then
   # [T002843] Usage-Block lebt jetzt in scripts/lib/ticket-help.sh. Ein Aufruf
   # ohne Kommando bleibt ein Fehlaufruf (Exit 1) — ticket-usage-hints.bats
@@ -1131,7 +1080,6 @@ case "$cmd" in
   link-tickets|link) cmd_link_tickets "$@" ;;
   get-ticket-links)  cmd_get_ticket_links "$@" ;;
   get-timeline)      cmd_get_timeline "$@" ;;
-  rollup-container)  cmd_rollup_container "$@" ;;
   find-similar)      source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/find-similar.sh" && cmd_find_similar "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac

@@ -67,7 +67,7 @@ werden nie gelöscht.
 - `<brain-repo>/wiki/*.md` (transformierte Wiki-Seiten mit Citations, im externen
   `Paddione/brain`-Repo, nicht in diesem Repo)
 - `scripts/brain-ingest-prune.sh` (Deletion-Sync: entfernt Wiki-Seiten ohne lebende
-  Bachelorprojekt-Quelle, default dry-run, siehe Schritt 4)
+  Bachelorprojekt-Quelle, default dry-run, siehe Schritt 5)
 - Ein PR gegen `Paddione/brain` (Phase 4 von `brain-ingest.sh`, übersprungen bei `--dry-run`)
 
 ## Next Steps

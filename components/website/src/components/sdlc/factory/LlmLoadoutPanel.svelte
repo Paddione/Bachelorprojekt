@@ -12,15 +12,6 @@
     chosen: { ctx: number | null } | null;
   }
 
-  interface LoadoutDocItem {
-    slug: string;
-    label?: string;
-    model?: string;
-    port?: number;
-    enabled?: boolean;
-    exclusiveGroup?: string;
-  }
-
   interface PinStatus {
     pinned: boolean;
     slug?: string;

@@ -11,14 +11,14 @@ description: 'Use for the state of the repository itself — stale branches and 
 Day-to-day repository hygiene, PR merging, issue intake, and Software Factory queue management.
 
 Der interne Postgres-Tracker `tickets.tickets` ist die SSOT für Issues. DB-Zugriff (MCP-first,
-`psql()`-Helper): [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §mcp-postgres.
+`psql()`-Helper): [`MCP-Tool-Guide`](.claude/skills/references/mcp-tool-guide.md) §mcp-postgres.
 
 ---
 
 ## Ablauf
 
 Die gesamte Housekeeping-Mechanik ist **SSOT** in
-[`repo-hygiene-ops`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/repo-hygiene-ops.md) —
+[`repo-hygiene-ops`](.claude/skills/references/repo-hygiene-ops.md) —
 die acht Abschnitte der Reihe nach ausführen:
 
 0. **Arbeitsbaum & Stashes** — §0
@@ -62,7 +62,7 @@ After completing all steps in this skill, invoke `mishap-tracker` with your accu
 | Skill | Relationship |
 |-------|--------------|
 | `operations-management` | Routing hub that dispatches repository housekeeping |
-| `ticket-ops` | Handles completeness triage and human clarification (Phase 4 = dieselbe SSOT-Reference) |
+| `ticket-ops` | Handles completeness triage and human clarification (SSOT: `ticket-ops-procedures.md`) |
 | `mishap-tracker` | Converts execution mishaps to tickets |
 
 

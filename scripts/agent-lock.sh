@@ -46,7 +46,7 @@ AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 #       abschliessen. Das Dispatch-Gate in factory-prep.sh sieht einen
 #       branch-Lock ueber die Ticket-ID im Branch-Namen (*-<ext-id>).
 #     * Empfehlung: Standard-Scope fuer Dispatch und Implementierung
-#       (ticket-ops Step 3.6, dev-flow-execute/opencode-flow-execute).
+#       (ticket-ops Step 3.6, dev-flow-execute (in beiden Harnesses)).
 #
 #   Komponenten, die den ticket-scoped Lock pruefen (T003102-Analyse):
 #     - scripts/vda/ticket/_ticket-core.sh:_ticket_lock_guard — Schreibpfad

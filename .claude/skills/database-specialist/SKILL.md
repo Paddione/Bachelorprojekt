@@ -50,12 +50,13 @@ task workspace:db:restore -- all <timestamp>          # restore all DBs from one
 ```
 
 ## Schema migration pattern
-1. Draft migration in `scripts/db/migrations/XX-<description>.sql`
+1. Draft migration in `scripts/migrations/XX-<description>.sql`
+   (Website-eigene DB-Migrationen liegen separat in `components/website/src/db/migrations/`)
 2. Review with `EXPLAIN ANALYZE <query>` for performance impact
 3. Apply to both namespaces:
    ```bash
-   task workspace:psql ENV=mentolder -- pocket_id -f scripts/db/migrations/XX-something.sql
-   task workspace:psql ENV=korczewski -- pocket_id -f scripts/db/migrations/XX-something.sql
+   task workspace:psql ENV=mentolder -- pocket_id -f scripts/migrations/XX-something.sql
+   task workspace:psql ENV=korczewski -- pocket_id -f scripts/migrations/XX-something.sql
    ```
 
 ## Password drift warning

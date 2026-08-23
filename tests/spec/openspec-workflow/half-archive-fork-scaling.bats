@@ -93,29 +93,24 @@ _count_forks() { # $1 = Anzahl Archiveinträge
   [ "$klein" -eq "$gross" ]
 }
 
-@test "T013673: Archiveintrag ohne Datumspraefix wird weiterhin uebersprungen" {
-  # Regressionsschutz für die Ersetzung der sed-Pipeline: '${base#????-??-??-}' waere
-  # falsch, weil '?' jedes Zeichen matcht und nicht nur Ziffern. Neun Eintraege dieser
-  # Form liegen real im Archiv (brain-ingest-pruefen, t001537, …), ein Fehlgriff hier
-  # meldete sie faelschlich als halb archiviert.
+@test "T013673/T013715: praefixloser Eintrag wird als undatiert gemeldet, nie als halb archiviert" {
+  # Regressionsschutz für die Ersetzung der sed-Pipeline (T013673): '${base#????-??-??-}'
+  # waere falsch, weil '?' jedes Zeichen matcht und nicht nur Ziffern. Seit T013715
+  # meldet der Check praefixlose Eintraege als OHNE DATUMSPRAEFIX — die Fehlklassifikation
+  # als HALB ARCHIVIERT bleibt verboten.
   local root="${BATS_TEST_TMPDIR}/root-nodate"
   _mk_sandbox 3 "$root"
-  mkdir -p "$root/openspec/changes/ohne-datum" \
+  mkdir -p "$root/openspec/changes/echt-doppelt" \
+           "$root/openspec/changes/archive/2026-01-01-echt-doppelt" \
            "$root/openspec/changes/archive/ohne-datum"
 
-  # Positiv-Anker: derselbe Baum meldet einen ECHTEN Doppel-Slug — der Check ist also
-  # scharf gestellt und schweigt nicht aus einem unbeteiligten Grund.
-  mkdir -p "$root/openspec/changes/echt-doppelt" \
-           "$root/openspec/changes/archive/2026-01-01-echt-doppelt"
   run env OPENSPEC_ROOT="$root/openspec" bash "$CHECK"
   [ "$status" -ne 0 ]
-  printf '%s\n' "$output" | grep -qF 'echt-doppelt'
-  # Die praefixlose Doppelung darf dabei NICHT gemeldet werden.
-  ! printf '%s\n' "$output" | grep -qF 'ohne-datum'
-
-  # Und ohne den echten Treffer laeuft derselbe Baum sauber durch.
-  rm -rf "$root/openspec/changes/echt-doppelt" \
-         "$root/openspec/changes/archive/2026-01-01-echt-doppelt"
-  run env OPENSPEC_ROOT="$root/openspec" bash "$CHECK"
-  [ "$status" -eq 0 ]
+  # Der echte Doppel-Slug wird als halb archiviert gemeldet …
+  printf '%s\n' "$output" | grep -qF "HALB ARCHIVIERT: 'echt-doppelt'"
+  # … der praefixlose Eintrag dagegen nur als undatiert.
+  printf '%s\n' "$output" | grep -qF "OHNE DATUMSPRAEFIX: 'ohne-datum'"
+  # Keine Vermischung der Klassen:
+  vermischung="$(printf '%s\n' "$output" | grep -cF 'HALB ARCHIVIERT: '"'"'ohne-datum'"'" || true)"
+  [ "$vermischung" -eq 0 ]
 }

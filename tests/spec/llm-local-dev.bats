@@ -206,13 +206,31 @@ EOF"
     const prim = Object.entries(o.agent || {})
       .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
     if (prim.length < 1) { console.error('no primary gemma agents found'); process.exit(1); }
+    // T014105: FreeToken-Agenten sind NICHT an loadouts.json gebunden — ihre
+    // gemessenen Limits (KV-Pages, nicht advertised max_model_len) stehen als
+    // konkrete Eintraege im Provider und werden von den T014105-Guards exakt
+    // zugersichert. Die Loadout-Bindung unten gilt nur fuer llama.cpp-Modelle.
+    const ftModels = ((o.provider['freetoken-local'] || {}).models || {});
+    const ftLimits = new Set(Object.values(ftModels).map((m) => m.limit.context));
     for (const [name, agent] of prim) {
       const model = agent.model;
       const [prov, mid] = model.split('/');
-      const ctx = o.provider[prov].models[mid].limit.context;
+      const entry = ((o.provider[prov] || {}).models || {})[mid];
+      if (!entry) {
+        console.error(name + ': model ' + model + ' fehlt im Provider ' + prov);
+        process.exit(1);
+      }
+      const ctx = entry.limit.context;
       if (!Number.isInteger(ctx) || ctx <= 0) {
         console.error(name + ' ctx ' + ctx + ' is not a positive integer');
         process.exit(1);
+      }
+      if (prov === 'freetoken-local') {
+        if (!ftLimits.has(ctx)) {
+          console.error(name + ' ctx ' + ctx + ' ist kein gemessener FreeToken-Limit-Wert');
+          process.exit(1);
+        }
+        continue;
       }
       const max = measuredFor(mid);
       if (max === null) {
@@ -243,5 +261,72 @@ EOF"
     if (wild.length) { console.error('wildcard gemma grants: ' + JSON.stringify(wild)); process.exit(1); }
     process.exit(0);
   "
+  [ "$status" -eq 0 ]
+}
+
+# ── FreeToken provider in the opencode SSOT (T014105) ────────────────────
+# SSOT: openspec/specs/llm-local-dev.md — "Single Definition Site for the
+# opencode freetoken-local Provider" und Folge-Requirements. FreeToken laeuft
+# Windows-nativ auf :1919 (ein Modell resident, Wechsel ueber Daemon :1900);
+# der Server ignoriert das model-Feld von Anfragen, deshalb zeigen alle
+# lokalen Agenten auf den Alias "active". Die Kontext-Limits sind GEMESSEN
+# (2026-08-23, pk-desktop): der Server advertiert max_model_len=262144,
+# nutzbar sind aber nur die KV-Pages der Serve-Konfiguration.
+
+@test "T014105: agent-models.jsonc declares the freetoken-local provider on :1919" {
+  run node -e "
+    const j5 = require('json5');
+    const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const p = (d.provider || {})['freetoken-local'];
+    if (!p) { console.error('freetoken-local provider missing'); process.exit(1); }
+    if (p.options.baseURL !== 'http://127.0.0.1:1919/v1') { console.error('baseURL=' + p.options.baseURL); process.exit(1); }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T014105: freetoken-local carries three measured checkpoints with measured limits" {
+  # Gemessen 2026-08-23: Qwen 131072 KV-Reserve, gpt-oss 65536, Gemma 32768.
+  # Der advertised max_model_len=262144 ist hier bewusst FALSCH — deklariert
+  # wird die nutzbare KV-Pages-Zahl, weil opencode bei 95% davon kompaktiert.
+  run node -e "
+    const j5 = require('json5');
+    const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const m = ((d.provider || {})['freetoken-local'] || {}).models || {};
+    const want = { 'Qwen3.6-35B-A3B-NVFP4': 131072, 'gpt-oss-20b': 65536, 'Gemma-4-26B-A4B-NVFP4': 32768 };
+    for (const [id, ctx] of Object.entries(want)) {
+      const e = m[id];
+      if (!e) { console.error('model missing: ' + id); process.exit(1); }
+      if (e.limit.context !== ctx) { console.error(id + ' context=' + e.limit.context + ', expected ' + ctx); process.exit(1); }
+    }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T014105: all local-family agents reference the model-agnostic active alias" {
+  run node -e "
+    const j5 = require('json5');
+    const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const agents = d.agent || {};
+    const local = ['gptoss','devstral','gemma','gemma12','qwen38',
+      'gemma26-primary','gemma26-vision','gptoss-primary','devstral-primary',
+      'gemma12-primary','gemma26-throughput-primary','qwen38-primary','freetoken-primary'];
+    const bad = local.filter(n => !agents[n] || agents[n].model !== 'freetoken-local/active');
+    if (bad.length) { console.error('not on alias: ' + bad.join(',')); process.exit(1); }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T014105: the freetoken-active plugin ships in the repo and queries the daemon" {
+  local plugin="$REPO/.opencode/plugin/freetoken-active.ts"
+  [ -f "$plugin" ]
+  run grep -qF '1900/engine/status' "$plugin"
+  [ "$status" -eq 0 ]
+}
+
+@test "T014105: opencode-sync-agents.sh distributes plugins to the global config" {
+  run grep -qE 'plugin' "$REPO/scripts/opencode-sync-agents.sh"
   [ "$status" -eq 0 ]
 }

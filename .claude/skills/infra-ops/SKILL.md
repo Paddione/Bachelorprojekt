@@ -1,6 +1,6 @@
 ---
 name: infra-ops
-description: 'Explicit-invoke-only infrastructure runbook — DO NOT auto-trigger. Use when the user explicitly asks for: cluster setup or reset, workspace deploy (task workspace:setup/deploy/post-setup), host node networking (Hetzner, WireGuard wg-fleet, UFW), Pocket ID / SSO / OIDC client seeding, LLM pipeline and GPU host (task llm:*), secret and SealedSecret rotation (task env:seal, env:fetch-cert), or database migrations and backup/restore (task recovery:*). Seven former single-purpose skills are consolidated here; the ordering guards in this body are the reason it exists.'
+description: 'Explicit-invoke-only infrastructure runbook — DO NOT auto-trigger. Use when the user explicitly asks for: cluster setup or reset, workspace deploy (task workspace:setup/deploy/post-setup), host node networking (Hetzner, WireGuard wg-fleet, UFW), Pocket ID / SSO / OIDC client seeding, LLM pipeline and GPU host (task llm:*), secret and SealedSecret rotation (task env:seal, env:fetch-cert), or database migrations and backup/restore (task recovery:*).'
 agent: bachelorprojekt-infra
 ---
 
@@ -51,7 +51,7 @@ Secrets sind unbrauchbar oder werden von Dev-Platzhaltern überschrieben.
 6. **DNS API Secret** (`cert:secret`) — in beiden Namespaces vor dem Deploy.
 7. **Longhorn** — vor `workspace:deploy`.
 8. **CoreDNS scale** — nach Longhorn, vor `workspace:deploy`. ⚠️ k3s re-applies on restart — nach jedem k3s-Upgrade `task coredns:scale` neu ausführen.
-9. **Alle Services deployen** — `workspace:deploy` deckt nur die Base-Kustomization; Collabora, CoTURN, Website, Arena brauchen eigene Deploy-Tasks.
+9. **Alle Services deployen** — `workspace:deploy` deckt nur die Base-Kustomization; Collabora, CoTURN, Website brauchen eigene Deploy-Tasks.
 10. **Ingress Accessibility Verification** — `task workspace:check-connectivity ENV=<env>`.
 
 Phasen 0, 1, 2 und 5 samt Troubleshooting: [`references/runbooks-deploy.md`](references/runbooks-deploy.md) §1.
@@ -61,8 +61,10 @@ Phasen 0, 1, 2 und 5 samt Troubleshooting: [`references/runbooks-deploy.md`](ref
 Detaillierter Sub-Step-Guide für `workspace:setup` und optionale Provisioning-Tasks.
 
 `task workspace:setup ENV=<env>` ist die Klammer und ruft der Reihe nach `workspace:deploy` →
-`office:deploy` → `mcp:deploy` → `post-setup` → `talk-setup` → `recording-setup` →
-`transcriber-setup`. **Prod-only** danach separat: `workspace:coturn:deploy`, `website:deploy`.
+`workspace:office:deploy` → `workspace:post-setup` → `workspace:talk-setup` →
+`workspace:recording-setup` → `workspace:transcriber-setup`. **Prod-only** danach separat:
+`workspace:coturn:deploy`, `website:deploy`. MCP-Registrierung gehört nicht in die Kette —
+sie läuft über `task mcp:sync` (regeneriert `.mcp.json` aus `docs/agent-guide/registry/mcp.yaml`).
 
 > ⚠️ `task workspace:admin-users-setup` ist **defekt** (T002171): Das Skript nutzt noch
 > `KC_*`-Variablen aus der Keycloak-Zeit und kann in dieser Form nicht funktionieren.

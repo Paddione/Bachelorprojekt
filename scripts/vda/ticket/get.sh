@@ -16,7 +16,14 @@ main() {
   # for state validation. See T001242 M3.
   if _ticket_offline_refuse_read "get" "--id" "$id"; then exit 9; fi
   local pod; pod=$(_pgpod)
-  _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+  # [T014386] Das Ergebnis wird eingesammelt statt direkt ausgegeben, damit ein
+  # leeres Resultat von einem Treffer unterschieden werden kann. Vorher lief die
+  # Ausgabe durch und ein nicht existierendes Ticket ergab '' mit Exit 0 — von
+  # "kein Treffer" nicht unterscheidbar, und drei Aufrufer haben sich deshalb
+  # eine eigene Leer-Pruefung gebaut (ticket-reclaim.sh, scout-drift.sh,
+  # devflow-post-merge-finalize.sh).
+  local _row
+  _row=$(_exec_sql "$pod" -v ext_id="$id" <<'EOF'
 SELECT json_build_object(
   'external_id', t.external_id, 'id', t.id, 'type', t.type, 'brand', t.brand,
   'title', t.title, 'status', t.status, 'priority', t.priority,
@@ -30,6 +37,13 @@ SELECT json_build_object(
   )
 ) FROM tickets.tickets t WHERE t.external_id = :'ext_id';
 EOF
+  )
+  # Exit 4 trennt "gibt es nicht" von Bedienfehler (2) und Offline-Refusal (9).
+  if [[ -z "${_row//[[:space:]]/}" ]]; then
+    echo "ERROR: Ticket '${id}' nicht gefunden." >&2
+    return 4
+  fi
+  printf '%s\n' "$_row"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

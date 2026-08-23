@@ -1,5 +1,66 @@
 # Changelog
 
+## [1.303.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.7...website-v1.303.0) (2026-08-23)
+
+
+### Features
+
+* **factory:** migrate local backend to FreeToken-native [T014028] ([#5061](https://github.com/Paddione/Bachelorprojekt/issues/5061)) ([0354b3d](https://github.com/Paddione/Bachelorprojekt/commit/0354b3d24209abbd4c79f3aaed18feb115a4f076))
+
+
+### Bug Fixes
+
+* **scripts:** make ticket.sh read paths fail closed [T014386] ([#5074](https://github.com/Paddione/Bachelorprojekt/issues/5074)) ([7c6f05c](https://github.com/Paddione/Bachelorprojekt/commit/7c6f05cbcc6022309e225ea25ba51fbb98607fa4))
+
+## [1.302.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.6...website-v1.302.7) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** remove self-resurrecting mishap-rollup automaton [T014104] ([#5069](https://github.com/Paddione/Bachelorprojekt/issues/5069)) ([617ea14](https://github.com/Paddione/Bachelorprojekt/commit/617ea14af237acf8996f77aae8e82d6e4481c7a5))
+
+## [1.302.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.5...website-v1.302.6) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ops:** port freetoken-local provider + model-agnostic alias into repo SSOT [T014105] ([#5066](https://github.com/Paddione/Bachelorprojekt/issues/5066)) ([8c87e61](https://github.com/Paddione/Bachelorprojekt/commit/8c87e614ff1caf54c1ab9cfe743411bad69819e2))
+
+## [1.302.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.4...website-v1.302.5) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ops:** port freetoken-local provider + model-agnostic alias into repo SSOT [T014105] ([#5064](https://github.com/Paddione/Bachelorprojekt/issues/5064)) ([e6c79c6](https://github.com/Paddione/Bachelorprojekt/commit/e6c79c69bf70d091881b2fc196ff6adffdbb042d))
+
+## [1.302.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.3...website-v1.302.4) (2026-08-23)
+
+
+### Code Refactoring
+
+* **skills:** rename opencode-flow-* skill entries to dev-flow-* [T014086] ([#5062](https://github.com/Paddione/Bachelorprojekt/issues/5062)) ([1c5c061](https://github.com/Paddione/Bachelorprojekt/commit/1c5c061c2b3f09a6b04ecf6fd9b4a24b779782ae))
+
+## [1.302.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.2...website-v1.302.3) (2026-08-22)
+
+
+### Bug Fixes
+
+* **website:** remove unused LoadoutDocItem interface [T013918] ([#5057](https://github.com/Paddione/Bachelorprojekt/issues/5057)) ([974f473](https://github.com/Paddione/Bachelorprojekt/commit/974f473081445f4fed9e6fb58bcacb4d5df3253a))
+
+## [1.302.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.1...website-v1.302.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** bind CONTAINER_ID as psql parameter instead of SQL interpolation [T013919] ([#5054](https://github.com/Paddione/Bachelorprojekt/issues/5054)) ([7d22ac1](https://github.com/Paddione/Bachelorprojekt/commit/7d22ac1f9f8b2f688d1c78a39f150eb03b0e2079))
+
+## [1.302.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.0...website-v1.302.1) (2026-08-22)
+
+
+### Bug Fixes
+
+* **factory:** Mishap-Rollup-Coalescing-Gate [T013915] ([#5049](https://github.com/Paddione/Bachelorprojekt/issues/5049)) ([42c13db](https://github.com/Paddione/Bachelorprojekt/commit/42c13db8c0b4008ddd949d06c5b49185137a2b34))
+
 ## [1.302.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.301.7...website-v1.302.0) (2026-08-22)
 
 

@@ -5,7 +5,7 @@ description: 'Use when on a feature/* or fix/* branch that has a staged plan in 
 
 # dev-flow-execute — Plan-Ausführung & PR
 
-Der Rollen- und Übergabevertrag steht im gemeinsamen [dev-flow-lifecycle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md); diese Skill behält nur Execute-Gates und delegiert Mechanik an die verlinkten Referenzen.
+Der Rollen- und Übergabevertrag steht im gemeinsamen [dev-flow-lifecycle](.claude/skills/references/dev-flow-lifecycle.md); diese Skill behält nur Execute-Gates und delegiert Mechanik an die verlinkten Referenzen.
 
 > **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
 > `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
@@ -20,7 +20,7 @@ Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `do
 ## Pre-Flight (Schritte −1 bis 1.7)
 
 Bevor irgendetwas implementiert wird, laufen sechs mechanische Schritte. Ihre Befehlsfolgen
-stehen in [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md); hier nur, was sie leisten und woran sie scheitern:
+stehen in [dev-flow-execute-phases](.claude/skills/references/dev-flow-execute-phases.md); hier nur, was sie leisten und woran sie scheitern:
 
 | Schritt | Leistet | Bricht ab, wenn |
 |---|---|---|
@@ -37,7 +37,7 @@ stehen in [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude
 
 > **Worktree-Isolation ist Pflicht** [T001363]: Läuft die Execute-Phase versehentlich im
 > Haupt-Checkout (z. B. nach einem Session-Neustart), schreibt der Implementer direkt ins
-> Haupt-Repo statt in eine isolierte Kopie. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [factory-resume-contract](file:///home/patrick/Bachelorprojekt/.claude/skills/references/factory-resume-contract.md).
+> Haupt-Repo statt in eine isolierte Kopie. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [factory-resume-contract](.claude/skills/references/factory-resume-contract.md).
 
 > **Pipeline-Modus:** Bei `slot_count > 1` hat die Factory bereits begonnen. Dann erst warten,
 > bis alle N Partials im Branch sichtbar sind, und danach implementieren.
@@ -81,20 +81,20 @@ Fallback:
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
 ```
 Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
-> **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
-Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md):
+> **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** $\rightarrow$ Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning](.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
+Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](.claude/skills/references/subagent-provisioning.md):
 * **Gemini/Antigravity CLI:** call `invoke_subagent` with `TypeName: "self"` (inherits permissions and tools), `Role: "Implementer <TICKET_ID>"`, and `Workspace: "share"` (or `"inherit"`).
 * **Claude Code CLI:** Spawne über den nativen Subagenten-Dispatch einen `general-purpose`-Subagenten — Modell nach Plan-Charakter (Implementer-Default: `sonnet`; mechanisch `haiku`, komplex/riskant `opus`), Effort per Prompt-Direktive.
 * **opencode:** Nutze das `background-agents.ts`-Plugin: `delegate(prompt, agent="researcher")` für read-only Subagenten oder die native write-capable Delegation. Die Worktree-`cd`-Pflicht und Modell-Effort-Formulierungen stehen in der Reference (SSOT, nicht hier wiederholen).
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
-  - **Plan Intel Bundle (Optional):** Sofern vorhanden: `bash scripts/task-context.sh <slug>` — gemeinsamer Assembler, liefert statischen Kern aus intel.json + frische Signale. Format: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md). Fehlt die Datei, ist das kein Blocker — der Implementer kann die Typen-Wahrheit selbst erheben.
+  - **Plan Intel Bundle (Optional):** Sofern vorhanden: `bash scripts/task-context.sh <slug>` — gemeinsamer Assembler, liefert statischen Kern aus intel.json + frische Signale. Format: [plan-intel-bundle](.claude/skills/references/plan-intel-bundle.md). Fehlt die Datei, ist das kein Blocker — der Implementer kann die Typen-Wahrheit selbst erheben.
 - **⚠️ BATS-Pflicht:** Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die
   OpenSpec-Spec, die das Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage:
   `tests/spec/software-factory/`); ohne klare Spec-Zuordnung `tests/unit/` erweitern.
   Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy und werden **nicht** neu angelegt.
-  Vorgehen im Detail: [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md) §BATS.
+  Vorgehen im Detail: [dev-flow-execute-phases](.claude/skills/references/dev-flow-execute-phases.md) §BATS.
 - **Auftrag:**
   - **Ein-Ebenen-Regel (PFLICHT, wörtlich Teil dieses Prompts):** Spawne selbst KEINE Subagenten/Sub-Implementer — rufe `superpowers:executing-plans` IN-CONTEXT auf. Wenn du glaubst, einen Sub-Implementer für einen Teil-Task zu brauchen, STOPPE und eskaliere stattdessen an den Orchestrator zurück, statt selbst zu delegieren. Verschachtelte Delegation ist nicht erlaubt (siehe subagent-provisioning.md, 162k-Prompt-Lehre).
   - **SID-Propagation (PFLICHT, T006365):** Ermittle deine Session-SID mit
@@ -106,7 +106,7 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
   - *Feature:* Rufe `superpowers:executing-plans` (Claude Code — built-in; opencode: steps inlined in `opencode-flow-execute`) + `test-driven-development` (Claude Code — built-in; opencode: see `vitest/SKILL.md`) auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
-  - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
+  - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
   - **Hintergrund-Monitore für lange Test-Runs verboten [T001969 Mishap 1].** Während der Verifikation (lange `task test:changed`/`gh run watch`/CI-Polls) **keine** Background-Tasks starten, auf deren Output der Subagent in einer Monitor-Schleife wartet ("I'll wait for the monitor"). Stattdessen synchron mit explizitem Timeout ausführen: `timeout 600 task test:changed` und auf das Resultat warten. Bei Stop-Events: Arbeit fortsetzen oder an den Orchestrator eskalieren — nicht auf einen Monitor-Loop warten.
   - Erstelle einen PR (OHNE Auto-Merge-Anforderung — die erfolgt erst nach bestandenem
     Code-Review-Gate durch den Orchestrator, Schritt 3.8).
@@ -153,7 +153,7 @@ Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-firs
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
 Verifikation ausführen — die vier Befehle + `./tests/runner.sh local <FA-XX oder SA-XX>` bei
-Manifest-Änderungen. **SSOT:** [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
+Manifest-Änderungen. **SSOT:** [verification-block](.claude/skills/references/verification-block.md).
 
 > **`freshness:check` kann erst NACH dem Commit der regenerierten Artefakte grün werden
 > [T002523-M5].** Dieser Schritt steht vor Schritt 5 (Commit & Push), `check` prüft aber nicht
@@ -173,7 +173,7 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeilen bleiben Pflicht — d
 # nach den Tests:
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 ```
-Siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
+Siehe [dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
 
 ## Schritt 3.5: Admin-Menu Placement Gate
 
@@ -235,7 +235,7 @@ explizit: Ticket-ID `$TICKET_ID`, PR-Nummer `$PR_NUM`, Branch `$BRANCH`, Worktre
 `$MAIN_REPO/.worktrees/<slug>`, Plan-Pfad `$PLAN_FILE`, Resolution (`shipped`/`fixed`).
 
 Auftrag an den Finalizer (wörtlich Teil des Prompts):
-- **Merge-Wait-Loop zuerst (T001149-M1):** [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)
+- **Merge-Wait-Loop zuerst (T001149-M1):** [ci-fix-loop](.claude/skills/references/ci-fix-loop.md)
   §"PR-Merge-Wait-Loop" lesen und den Loop von dort ausführen. Bei Timeout KEIN Ticket
   schließen (Drift Ticket=done bei PR=OPEN) — stattdessen strukturiert berichten.
 - **Abschluss über die idempotente Einheit,** keine freie Rekonstruktion der Einzelschritte:
@@ -255,7 +255,7 @@ Orchestrator-Kontext bleibt nur für die CI-Fix-Schleife (5.5) zuständig, solan
 
 ## Schritt 4: Dev-Iteration (optional)
 
-Für schnelles iteratives Testen von Änderungen im lokalen k3d Dev-Cluster (siehe [deploy-routing.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md)): `task dev:redeploy:website` bzw. `task dev:redeploy:brett`.
+Für schnelles iteratives Testen von Änderungen im lokalen k3d Dev-Cluster (siehe [deploy-routing.md](.claude/skills/references/deploy-routing.md)): `task dev:redeploy:website` bzw. `task dev:redeploy:brett`.
 > **⚠ Freshness-Guard (vor dem Commit):** Wenn Schritt 3 (`task freshness:regenerate`) übersprungen oder der Subagent es vergessen hat, schlägt CI mit "stale artifact" fehl. Prüfe: `git diff --name-only` sollte keine generierten Indexdateien zeigen. Falls doch: `task freshness:regenerate && git add` nachholen. Der Pre-commit-Hook automatisiert das nach `task secrets:install-hooks`.
 
 ## Schritt 5: PR erstellen
@@ -275,7 +275,7 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 ## Schritt 5.5: CI/CD-Fix-Schleife (Orchestrator-Zuständigkeit, T002365)
 
-**Orchestrator-Schritt, nicht Implementer** — der läuft daher nie als Hintergrund-Monitor [T001969 Mishap 1, T002351-M3]. Nach der Implementer-Rückmeldung überwacht der Orchestrator CI — Auto-Merge ist bereits angefordert (Schritt 3.8, nach bestandenem Review-Gate) und greift, sobald die Required Checks grün sind. Details/Required-Check-Liste: [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+**Orchestrator-Schritt, nicht Implementer** — der läuft daher nie als Hintergrund-Monitor [T001969 Mishap 1, T002351-M3]. Nach der Implementer-Rückmeldung überwacht der Orchestrator CI — Auto-Merge ist bereits angefordert (Schritt 3.8, nach bestandenem Review-Gate) und greift, sobald die Required Checks grün sind. Details/Required-Check-Liste: [ci-fix-loop](.claude/skills/references/ci-fix-loop.md).
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
@@ -288,7 +288,7 @@ Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet
 > **Schritt 6 läuft im Orchestrator; die Finalisierung (Schritte 6.4–7.5) ist an den frischen
 > Finalizer delegiert (Schritt 3.9)** — der Implementer hat bereits zurückgemeldet. `E2E PR`
 > ist kein required check (T000722) — blockiert den Merge NICHT. Die
-> Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+> Required-Check-Liste lebt in [ci-fix-loop](.claude/skills/references/ci-fix-loop.md).
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
 Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
 zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann mergen.
@@ -307,7 +307,7 @@ zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann m
 `gh pr merge --auto` kehrt **sofort** zurück; der Merge passiert asynchron. Erst warten, bis er
 durch ist, dann das Ticket schließen — sonst entsteht die Drift Ticket=done bei PR=OPEN
 (Mishap T001149-M1). Der Merge-Wait-Loop läuft über die
-[ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)-Referenz
+[ci-fix-loop](.claude/skills/references/ci-fix-loop.md)-Referenz
 §"PR-Merge-Wait-Loop" (die Datei lesen, den Loop von dort ausführen — nicht aus dem Gedächtnis
 rekonstruieren); bei Timeout kein Ticket schließen, sondern strukturiert berichten.
 
@@ -331,9 +331,9 @@ Die Closure im Skript (Schritt 5) — `resolution` ist `shipped` (Feature) oder 
 ```
 
 Vollständige Befehlsfolgen inklusive Poll-Loop und MCP-first-Aufrufen:
-[dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md).
+[dev-flow-execute-phases](.claude/skills/references/dev-flow-execute-phases.md).
 Die Archivierung samt Push-Verifikation [T001268] und PR-Creation-Verifikation [T001331] steht in
-[plan-archive-steps](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-archive-steps.md).
+[plan-archive-steps](.claude/skills/references/plan-archive-steps.md).
 
 > **Merge = Abschluss (T001092):** Das Ticket schließt beim grünen Merge nach `main`. Der
 > Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status **nicht**. `qa_review` und
@@ -351,7 +351,7 @@ Die Archivierung samt Push-Verifikation [T001268] und PR-Creation-Verifikation [
 ```bash
 bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 ```
-**Deploy-Mapping (Single Source of Truth):** Pfad→Task-Tabelle und Pod-Verify-Schleife leben in [deploy-routing](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md). Bei Änderungen am Deploy-Mapping **nur** diese Referenz pflegen.
+**Deploy-Mapping (Single Source of Truth):** Pfad→Task-Tabelle und Pod-Verify-Schleife leben in [deploy-routing](.claude/skills/references/deploy-routing.md). Bei Änderungen am Deploy-Mapping **nur** diese Referenz pflegen.
 Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.
 > **Mitten in der Umsetzung blockiert?** Nutzer mit `lavish` grillen — erstelle `.lavish/<slug>-grilling.html` (Input-Playbook) und poll auf Antworten. Danach die Antworten ans Ticket
 > hängen: `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`. Siehe

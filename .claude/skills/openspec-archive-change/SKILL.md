@@ -1,7 +1,7 @@
 ---
 name: openspec-archive-change
 description: 'Use to archive a finished OpenSpec change and merge its delta into the SSOT spec. Triggers on /opsx:archive, openspec archive, task openspec:archive, scripts/openspec.sh archive, --create-new, "finalize the change", move change to openspec/changes/archive/. Run only after the change is merged — dev-flow-execute calls this in its post-merge step.'
-compatibility: Requires openspec CLI.
+compatibility: Uses the repo wrapper `scripts/openspec.sh` — the raw `openspec` CLI is NOT installed in this repo.
 # FORK — nicht upstream-synchron. Stammt aus dem OpenSpec-Upstream
 # (https://github.com/Fission-AI/OpenSpec), installiert mit T001263 / PR #2188, und wurde
 # seitdem hier weiterentwickelt (u.a. Framework-Mapping-Tabelle, PR #2702) ohne je gegen
@@ -18,22 +18,21 @@ Archive a completed change in the experimental workflow.
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Ask the user to select.
+   List the active changes directly (the raw `openspec` CLI is not installed in this repo):
 
-   Show only active changes (not already archived).
-   Include the schema used for each change if available.
+   ```bash
+   ls openspec/changes/
+   ```
+
+   Ask the user to select. Show only active changes (not already archived).
 
    **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
 
 2. **Check artifact completion status**
 
-   Run `openspec status --change "<name>" --json` to check artifact completion.
+   Read the change directory (`openspec/changes/<name>/`: proposal.md, design.md, tasks.md, specs/).
 
-   Parse the JSON to understand:
-   - `schemaName`: The workflow being used
-   - `artifacts`: List of artifacts with their status (`done` or other)
-
-   **If any artifacts are not `done`:**
+   **If any artifacts are missing or look incomplete:**
    - Display warning listing incomplete artifacts
    - Ask the user to confirm they want to proceed
    - Proceed if user confirms
@@ -55,33 +54,35 @@ Archive a completed change in the experimental workflow.
 
    Check for delta specs at `openspec/changes/<name>/specs/`. If none exist, proceed without sync prompt.
 
-   **If delta specs exist:**
-   - Compare each delta spec with its corresponding main spec at `openspec/specs/<capability>/spec.md`
-   - Determine what changes would be applied (adds, modifications, removals, renames)
-   - Show a combined summary before prompting
+   **If delta specs exist:** show a short summary of what the delta would change in
+   `openspec/specs/<capability>/spec.md` (adds, modifications, removals, renames) and ask
+   the user to confirm.
 
-   **Prompt options:**
-   - If changes needed: "Sync now (recommended)", "Archive without syncing"
-   - If already synced: "Archive now", "Sync anyway", "Cancel"
+   Delegate the sync to a sub-agent via the repo wrapper: instruct it to run
+   `bash scripts/openspec.sh archive <change-name>` (if your harness cannot delegate,
+   run the wrapper inline). The legacy `openspec-sync-specs` skill does not exist in
+   this repo — the wrapper performs the delta merge itself, so no separate sync skill
+   is invoked. Proceed to archive regardless of the sync choice.
 
-   If the user chooses sync, delegate the spec-sync to a general sub-agent: invoke the `openspec-sync-specs` skill with the analyzed delta-spec summary (if your harness cannot delegate, perform the sync inline). Proceed to archive regardless of choice.
+5. **Archive via the repo wrapper (move + SSOT delta merge in one step)**
 
-5. **Perform the archive**
-
-   Create the archive directory if it doesn't exist:
-   ```bash
-   mkdir -p openspec/changes/archive
-   ```
-
-   Generate target name using current date: `YYYY-MM-DD-<change-name>`
-
-   **Check if target already exists:**
-   - If yes: Fail with error, suggest renaming existing archive or using different date
-   - If no: Move the change directory to archive
+   Do NOT do a manual `mv` into `openspec/changes/archive/` — that skips the delta merge
+   into the parent SSOT spec and all guards. The repo wrapper does both:
 
    ```bash
-   mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
+   bash scripts/openspec.sh archive <change-name> [--create-new]
    ```
+
+   Flags:
+   - `--create-new`: the delta targets a NEW SSOT component. Without it, archive fails
+     when the target SSOT spec does not exist yet (Delta-Spec-Konvention T001304).
+   - `--no-merge`: move to archive WITHOUT delta merge (process notes like `mishap-*`
+     bundles whose skeleton delta was never filled in).
+   - `--allow-shrink`: merge a MODIFIED delta with FEWER scenarios than the SSOT
+     requirement (deliberate consolidation; without it the archive aborts).
+
+   The wrapper runs fail-closed: stub/target guard, `.ticket` presence guard, and the
+   deliverable-presence check against `touched_files` (M10, T002506).
 
 6. **Display summary**
 
@@ -107,12 +108,10 @@ All artifacts complete. All tasks complete.
 
 **Guardrails**
 - Always prompt for change selection if not provided
-- Use artifact graph (openspec status --json) for completion checking
+- Use the repo wrapper `scripts/openspec.sh archive` — never a manual `mv` into `openspec/changes/archive/`
 - Don't block archive on warnings - just inform and confirm
-- Preserve .openspec.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
-- If sync is requested, use openspec-sync-specs approach (agent-driven)
-- If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- If delta specs exist, always show the sync summary before prompting
 
 
 ## Framework mapping

@@ -14,7 +14,9 @@
 # Spec-Inhalten): der Halbzustand ist an der Doppelung eindeutig erkennbar, und ein
 # inhaltlicher Vergleich waere gegenueber legitimen SSOT-Aenderungen falsch-positiv.
 #
-# Exit: 0 = kein Slug doppelt, 1 = mindestens einer liegt in changes/ UND im Archiv.
+# Exit: 0 = kein Slug doppelt und alle Archiveintraege datiert,
+#       1 = mindestens einer liegt in changes/ UND im Archiv, oder ein
+#           Archiveintrag ohne <YYYY-MM-DD>-Praefix [T013715].
 
 set -euo pipefail
 
@@ -36,7 +38,9 @@ while IFS= read -r d; do
   offen+=("$name")
 done < <(find "$CHANGES" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
 
-if [ ! -d "$ARCHIVE" ] || [ "${#offen[@]}" -eq 0 ]; then
+# Nur bei fehlendem Archiv kurzschliessen — NICHT bei offen==0: ein praefixloser
+# Archiveintrag ist auch ohne offene Changes ein Befund [T013715].
+if [ ! -d "$ARCHIVE" ]; then
   echo "openspec-half-archive-check: ✓ kein halb archivierter Change."
   exit 0
 fi
@@ -44,25 +48,36 @@ fi
 # Archivierte Slugs: Verzeichnisnamen der Form <YYYY-MM-DD>-<slug>; das Datumspraefix faellt
 # weg. Ein Slug darf selbst Bindestriche enthalten, deshalb nur die ersten drei Segmente
 # abschneiden statt am ersten Bindestrich zu trennen.
+# [T013715] Eintraege OHNE Datumspraefix werden nicht mehr stillschweigend uebersprungen,
+# sondern gesammelt und unten gemeldet — sie verdecken sonst halbe Archivierungen genau
+# dann, wenn ein undatierter Eintrag denselben Slug wie ein offener Change traegt.
 declare -A archiviert=()
+unpraefixiert=()
 while IFS= read -r d; do
   [ -n "$d" ] || continue
   base="${d##*/}"
-  [[ $base =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]] || continue   # kein Datumspraefix — kein regulaerer Archiveintrag
+  if ! [[ $base =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)$ ]]; then
+    unpraefixiert+=("$base")   # kein Datumspraefix — kein regulaerer Archiveintrag
+    continue
+  fi
   slug="${BASH_REMATCH[1]}"
   archiviert["$slug"]="$base"
 done < <(find "$ARCHIVE" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
 
 treffer=0
-for slug in "${offen[@]}"; do
-  if [ -n "${archiviert[$slug]:-}" ]; then
-    treffer=$((treffer + 1))
-    echo "openspec-half-archive-check: HALB ARCHIVIERT: '$slug'" >&2
-    echo "  offen:      openspec/changes/$slug/" >&2
-    echo "  archiviert: openspec/changes/archive/${archiviert[$slug]}/" >&2
-  fi
-done
+if [ "${#offen[@]}" -gt 0 ]; then
+  for slug in "${offen[@]}"; do
+    if [ -n "${archiviert[$slug]:-}" ]; then
+      treffer=$((treffer + 1))
+      echo "openspec-half-archive-check: HALB ARCHIVIERT: '$slug'" >&2
+      echo "  offen:      openspec/changes/$slug/" >&2
+      echo "  archiviert: openspec/changes/archive/${archiviert[$slug]}/" >&2
+    fi
+  done
+fi
 
+# Beide Befundklassen werden gemeldet, bevor der Check failt — nicht entweder/oder.
+fehler=0
 if [ "$treffer" -gt 0 ]; then
   cat >&2 <<'EOF'
 
@@ -75,8 +90,31 @@ Ein Slug darf nicht gleichzeitig offen und archiviert sein. Heilen:
   3. Die offene Quelle unter openspec/changes/<slug>/ entfernen.
   4. bash scripts/openspec-status-map.sh
 EOF
-  exit 1
+  fehler=1
 fi
+
+# [T013715] Undatierte Archiveintraege sind kein regelkonformer Zustand — der fruehere
+# Stillschweigend-Skip hat neun Altlasten (T002471-Bulk-Archiv 2026-07-29, t001537,
+# ein Stray neben 2026-07-11-factory-provider-baseurl-routing) unentdeckt gelassen.
+if [ "${#unpraefixiert[@]}" -gt 0 ]; then
+  for base in "${unpraefixiert[@]}"; do
+    echo "openspec-half-archive-check: OHNE DATUMSPRAEFIX: '$base'" >&2
+    echo "  archiviert: openspec/changes/archive/$base/" >&2
+  done
+  cat >&2 <<'EOF'
+
+Archiv-Eintraege muessen die Form <YYYY-MM-DD>-<slug> tragen. Heilen:
+  git mv "openspec/changes/archive/<eintrag>" \
+         "openspec/changes/archive/<archivierungsdatum>-<eintrag>"
+Das Archivierungsdatum steht in der git-Historie des Eintrags
+(git log --diff-filter=A --format='%ad' --date=short -- <pfad> | tail -1).
+Existiert fuer den Slug bereits ein datierter Eintrag, ist der undatierte
+ein Stray aus einem abgebrochenen Lauf — Inhalt vergleichen und entfernen.
+EOF
+  fehler=1
+fi
+
+[ "$fehler" -eq 0 ] || exit 1
 
 echo "openspec-half-archive-check: ✓ kein halb archivierter Change (${#offen[@]} offen, ${#archiviert[@]} archiviert)."
 exit 0

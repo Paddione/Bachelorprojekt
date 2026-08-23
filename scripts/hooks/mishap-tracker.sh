@@ -3,7 +3,10 @@
 # Record a process friction encountered during a dev-flow / factory run.
 #   mishap-tracker.sh --friction "<text>" [--ticket T000XXX] [--severity minor|major|critical]
 # With --ticket: appends an internal ticket comment via ticket.sh add-comment.
-# Without --ticket: appends a line to ./.mishaps.log (gitignored).
+# Without --ticket: logs to stderr and appends a line to ./.mishaps.log
+# (gitignored) — the entry is recorded, but NO ticket and NO collection container
+# is created [T014104]. The rollup automaton that used to build one was removed:
+# it recreated its own container on every tick and disposed of nothing.
 # Never hard-fails a caller's flow: a failed comment write degrades to the log.
 set -euo pipefail
 
@@ -42,5 +45,9 @@ if [[ -n "$TICKET_ID" ]] && [[ -x "$TICKET_SH" ]]; then
   echo "WARNING: comment write failed — falling back to .mishaps.log" >&2
 fi
 
+# Kein Ticket-Kontext: protokollieren und verwerfen. Exit 0 — ein Mishap ohne
+# Ticket darf den Lauf des Aufrufers nicht scheitern lassen [T014104].
+printf '[mishap] no ticket context — recorded and discarded [%s]: %s\n' "$SEVERITY" "$FRICTION" >&2
 printf '%s [%s] %s\n' "$(date -Iseconds)" "$SEVERITY" "$FRICTION" >> .mishaps.log
 echo "mishap appended to .mishaps.log [${SEVERITY}]"
+exit 0

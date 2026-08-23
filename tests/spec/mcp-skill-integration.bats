@@ -184,22 +184,6 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "T002407-M5c: buildRollupContainerArgs verwendet rollup-container (T002783)" {
-  # T002783: Die gemeinsame Container-Aufloesung verwendet ticket.sh rollup-container.
-  run grep -Fq '"rollup-container"' \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
-  [ "$status" -eq 0 ] || { echo "rollup-container fehlt in buildRollupContainerArgs"; false; }
-}
-
-@test "T002407-M5d: findOrCreateRollupTicket nutzt rollup-container, nicht list/create (T002783)" {
-  # T002783: Vorher wurde der Container ueber list/create geloest. Jetzt ueber
-  # das gemeinsame rollup-container-Kommando, das beides in ticket.sh kapselt.
-  run bash -c "grep -A10 'findOrCreateRollupTicket' \
-    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' 2>/dev/null \
-    | grep -c 'rollup-container'"
-  [ "$output" != "0" ]
-}
-
 @test "T002407-M5e: kein Pfad in mishap.go erzeugt type=task" {
   # Die Migration von Bundle zu incident/chore darf nirgendwo task verwenden.
   # task ist ein Legacy-Typ, der in T002331 entfernt wird. [T002329]
@@ -212,69 +196,3 @@ setup() {
 # findOrCreateRollupTicket erzeugt den Container mit status=plan_staged, nie triage.
 # Das ermöglicht dem Rollup-Treiber, direkt auf den Plan zuzugreifen.
 
-@test "T002407-M6a: Rollup-Container-Status wird von ticket.sh rollup-container verwaltet (T002783)" {
-  # T002783: Der Go-Code traegt keinen eigenen --status mehr. ticket.sh rollup-container
-  # verwaltet den Status intern (plant_staged bei Neuanlage).
-  run bash -c "grep -A5 'buildRollupContainerArgs' \
-    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' 2>/dev/null \
-    | grep -c 'status'"
-  [ "$output" = "0" ] || { echo "buildRollupContainerArgs darf keinen --status hartcodieren — ticket.sh managed das"; false; }
-}
-
-@test "T002407-M6b: rollup-container legt den Container als triage an [T003027]" {
-  # Pruefmodus: Quelltext-Pruefung. cmd_rollup_container loest seinen Pod ueber
-  # _pgpod auf und braucht damit eine lebende DB — in der Offline-CI nicht
-  # ausfuehrbar. Das ist die in CLAUDE.md (T002448-M4) dokumentierte Ausnahme fuer
-  # Querschnittstests, nicht die bequeme Abkuerzung: eine Output-Verifikation waere
-  # hier schlicht nicht lauffaehig.
-  #
-  # Sachlage (T003027): Bis T002876 legte rollup-container den Container direkt als
-  # plan_staged an. Seit T002876 lehnt update-status.sh genau das fail-closed ab —
-  # plan_staged ohne FACTORY-PLAN-REF ist ein widerspruechlicher Zustand. Der
-  # Container entsteht deshalb als triage; stage-plan hebt ihn spaeter zusammen mit
-  # dem Plan-Ref auf plan_staged.
-  local block
-  block=$(awk '/^cmd_rollup_container\(\)/,/^\}/' "$REPO/scripts/ticket.sh")
-
-  # Positiv-Anker 1 — ohne ihn liefe alles Folgende auf leerem Text vakuos durch.
-  [ -n "$block" ] || { echo "cmd_rollup_container nicht in scripts/ticket.sh gefunden"; false; }
-
-  # Positiv-Anker 2: der Anlage-Pfad setzt ueberhaupt einen expliziten Status.
-  local status_flag
-  status_flag=$(printf '%s\n' "$block" | grep -oE '\-\-status[[:space:]]+[a-z_]+' | head -1)
-  [ -n "$status_flag" ] || { echo "cmd_rollup_container legt den Container ohne explizites --status an"; false; }
-
-  # Zusicherung: dieser Status ist triage (und damit nicht plan_staged).
-  printf '%s' "$status_flag" | grep -q 'triage' \
-    || { echo "rollup-container muss den Container als triage anlegen, gefunden: $status_flag"; false; }
-
-  # [T004898 → T007056] Der Wiederfinde-Pfad nutzt seit dem Staged-Lane-Muster
-  # (T007056, Teil-Ruecknahme von T004898) einen EXPLIZITEN Collect-Mode statt
-  # NOT IN ('done','archived'): Dispatchete Container (plan_staged) muessen vom
-  # Finder ausgeschlossen bleiben, damit neue Flushes einen frischen Container
-  # anlegen — sonst sammelte jeder Lauf weiter in den bereits gestagten
-  # Container. Collect-Mode = triage/backlog/planning (+ blocked ohne
-  # FACTORY-PLAN-REF); der Anlage-Pfad (triage) bleibt davon unberuehrt.
-  printf '%s\n' "$block" | grep -qE "status IN \('triage','backlog','planning'\)" \
-    || { echo "SELECT im Wiederfinde-Pfad fehlt der Collect-Mode (triage/backlog/planning) — T007056"; false; }
-  # Negativ-Anker: plan_staged darf nicht in der Collect-Mode-Statusliste stehen.
-  if printf '%s\n' "$block" | grep -qE "status IN \([^)]*plan_staged"; then
-    echo "plan_staged darf NICHT im Collect-Mode-Wiederfinde stehen (T007056: dispatched ausschliessen)"
-    false
-  fi
-}
-
-@test "T002407-M6c: ROLLUP_TICKET_TITLE ist definiert" {
-  run bash -c "grep -q 'ROLLUP_TICKET_TITLE' \
-    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go'"
-  [ "$status" -eq 0 ]
-}
-
-@test "T002407-M6d: SKILL.md verweist auf mishap-rollup.sh statt auto-chore-plan.sh" {
-  local skill="$REPO/.claude/skills/mishap-tracker/SKILL.md"
-  run grep -q 'mishap-rollup.sh' "$skill"
-  [ "$status" -eq 0 ] || { echo "mishap-rollup.sh fehlt in SKILL.md"; false; }
-  # Step-3.5-Sektion darf auto-chore-plan nicht mehr im Titel/Lead erwähnen
-  run bash -c "grep -A3 'Step 3.5' '$skill' | grep -c 'auto-chore-plan'"
-  [ "$output" = "0" ] || { echo "Step 3.5 erwähnt noch auto-chore-plan"; false; }
-}

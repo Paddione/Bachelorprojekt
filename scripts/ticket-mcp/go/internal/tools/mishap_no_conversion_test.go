@@ -22,10 +22,12 @@ import (
 //
 // Der Stub beantwortet die beiden Aufrufe, auf deren Rückgabewert der Produktivcode
 // angewiesen ist:
-//   - `rollup-container` → "T009999|00000000-0000-0000-0000-000000000000"
+//   - `rollup-container` → antwortet weiterhin, damit die Assertion "null
+//     rollup-container-Aufrufe" aussagekraeftig bleibt: der Stub koennte
+//     antworten, wird aber nicht mehr gerufen [T014104].
 //   - `list`            → "[]" (kein offenes Ticket gleichen Titels; Dedupe-Guard)
 //
-// Alles andere gibt leer zurück. Damit läuft appendToRollupContainer durch, ohne
+// Alles andere gibt leer zurück. Damit läuft discardBuffer durch, ohne
 // eine Datenbank zu berühren.
 func newStubRepo(t *testing.T) (repoRoot, logPath string) {
 	t.Helper()
@@ -108,9 +110,11 @@ func countCallsWithPrefix(calls []string, prefix string) int {
 	return n
 }
 
-// TestFlushStaleBuffer_AppendsOnceAndCreatesNoTickets deckt das SSOT-Szenario
-// "Watchdog-Flush verhält sich wie der Schwellwert-Pfad" ab.
-func TestFlushStaleBuffer_AppendsOnceAndCreatesNoTickets(t *testing.T) {
+// TestFlushStaleBuffer_DiscardsAndCreatesNoTickets deckt das SSOT-Szenario
+// "Watchdog-Flush verhält sich wie der Schwellwert-Pfad" ab. Seit T014104 ist
+// der Sammel-Container entfernt: der Flush protokolliert und verwirft, statt
+// irgendein Ticket anzufassen.
+func TestFlushStaleBuffer_DiscardsAndCreatesNoTickets(t *testing.T) {
 	_, logPath := newStubRepo(t)
 	seedStaleBuffer(t, 10)
 
@@ -121,22 +125,27 @@ func TestFlushStaleBuffer_AppendsOnceAndCreatesNoTickets(t *testing.T) {
 	calls := readCalls(t, logPath)
 
 	// POSITIV-ANKER (CLAUDE.md → Positiv-Anker-Pflicht bei Negativtests):
-	// Erst belegen, dass der Abflusspfad überhaupt gelaufen ist. Ohne diesen
-	// Anker wäre die Negativ-Aussage unten bei einem stillen Frühabbruch vakuos.
-	if got := countCallsWithPrefix(calls, "rollup-container"); got != 1 {
-		t.Fatalf("genau ein Rollup-Container-Aufruf erwartet, gefunden %d\nAufruflog:\n%s",
-			got, strings.Join(calls, "\n"))
-	}
-	if got := countCallsWithPrefix(calls, "add-comment"); got != 1 {
-		t.Fatalf("genau ein add-comment (der Rollup-Append) erwartet, gefunden %d\nAufruflog:\n%s",
-			got, strings.Join(calls, "\n"))
+	// Erst belegen, dass der Abflusspfad ueberhaupt gelaufen ist — sonst waere
+	// die Negativ-Aussage unten bei einem stillen Fruehabbruch vakuos. Der Beleg
+	// ist jetzt der geleerte Buffer, nicht mehr ein Container-Aufruf.
+	if got := len(readBuffer()); got != 0 {
+		t.Fatalf("Buffer muss nach dem Flush leer sein, enthaelt noch %d Eintraege", got)
 	}
 
-	// Die eigentliche Zusicherung: null Einzeltickets.
+	// Die eigentliche Zusicherung: kein Ticket wird angefasst — weder ein
+	// Einzelticket noch ein Sammel-Container [T014104].
 	if got := countCallsWithPrefix(calls, "create --type fix"); got != 0 {
 		t.Errorf("null Aufrufe mit 'create --type fix' erwartet, gefunden %d — der Buffer "+
 			"konvertiert statt zu aggregieren (openspec/specs/mishap-tracking.md:39)\nAufruflog:\n%s",
 			got, strings.Join(calls, "\n"))
+	}
+	if got := countCallsWithPrefix(calls, "rollup-container"); got != 0 {
+		t.Errorf("null Rollup-Container-Aufrufe erwartet, gefunden %d — der Automat ist "+
+			"abgebaut (T014104)\nAufruflog:\n%s", got, strings.Join(calls, "\n"))
+	}
+	if got := countCallsWithPrefix(calls, "add-comment"); got != 0 {
+		t.Errorf("null add-comment erwartet, gefunden %d — ohne Ticket-Kontext wird "+
+			"verworfen, nicht kommentiert\nAufruflog:\n%s", got, strings.Join(calls, "\n"))
 	}
 }
 

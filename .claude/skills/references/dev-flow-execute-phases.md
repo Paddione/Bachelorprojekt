@@ -1,6 +1,6 @@
 # dev-flow-execute — Phasen im Detail
 
-Referenz zu [`dev-flow-execute`](../dev-flow-execute/SKILL.md) und dem gemeinsamen [Lifecycle-Vertrag](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-lifecycle.md). Der Skill-Body führt den Ablauf,
+Referenz zu [`dev-flow-execute`](../dev-flow-execute/SKILL.md) und dem gemeinsamen [Lifecycle-Vertrag](.claude/skills/references/dev-flow-lifecycle.md). Der Skill-Body führt den Ablauf,
 die Delegation an den Implementer und **alle Gates**; hier stehen die ausformulierten
 Befehlsfolgen der mechanischen Schritte.
 
@@ -11,7 +11,7 @@ Befehlsfolgen der mechanischen Schritte.
 Falls `TICKET_ID` nicht bereits im Kontext gesetzt ist (z.B. vom User oder aus dem Branch-Namen ableitbar):
 Plan-Metadaten aus der DB holen — **MCP-first** (`mcp-postgres`, READ-ONLY, nimmt nur `sql`):
 > `mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`
-Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-tool-guide.md`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md)):
+Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md)):
 ```bash
 kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
   "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
@@ -23,21 +23,48 @@ Bei mehreren staged plans den User via `AskUserQuestion` (Claude Code) oder `que
 
 ## Schritt −1 bis 0.5 — Pre-Flight, Sync, Worktree-Konsistenz, Rebase
 
-Vor jeder Git-Operation MUSS das Ticket atomisch geclaimed werden (verhindert die Race
-zwischen dev-flow-execute und der Factory-Pipeline — Claim VOR dem ersten Factory-Check).
-Vollständige Mechanik (Status-Check, branch-scoped Claim [T003102], Exit-Code-Semantik, Broadcast):
-[ticket-preflight-lock](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-preflight-lock.md).
+Vor jeder Git-Operation MUSS das Ticket geclaimed werden (verhindert die Race zwischen
+dev-flow-execute und der Factory-Pipeline — Claim VOR dem ersten Factory-Check, [T002038]).
+
+**Status-Check vor dem Claim:** Ein bereits abgeschlossenes Ticket abbrechen lassen:
 ```bash
 TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID" 2>/dev/null || echo '{}')
+TICKET_STATUS=$(echo "$TICKET_JSON" | jq -r '.status // empty')
+case "$TICKET_STATUS" in
+  done|archived)
+    echo "🛑 Ticket $TICKET_ID ist bereits $TICKET_STATUS — kein dev-flow-execute nötig." >&2
+    exit 1
+    ;;
+  plan_staged)
+    echo "✅ Ticket $TICKET_ID ist plan_staged — fortfahren."
+    ;;
+esac
+```
+
+**Branch atomic claimen — [T003102] branch-scoped statt ticket-scoped:** ein ticket-scoped
+Lock der auftraggebenden Session blockt den späteren Abschluss durch Subagent/ticket-mcp/
+post-merge (je eigene SID). Der branch-scoped Claim schützt den Worktree, den diese Session
+betritt, und blockt den Status-Schreibpfad nicht; die Factory sieht ihn über die Ticket-ID im
+Branch-Namen (`factory-prep.sh` prüft beide Scopes). Der Status-Check oben ersetzt den
+atomaren Status-Check von `check-and-claim`.
+```bash
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-# [T003102] branch-scoped statt ticket-scoped: ein ticket-scoped Lock der
-# auftraggebenden Session blockt den Abschluss durch Subagent/ticket-mcp/
-# post-merge (je eigene SID). Der branch-scoped Claim schuetzt den Worktree,
-# den diese Session betritt, und blockt den Status-Schreibpfad nicht; die
-# Factory sieht ihn ueber die Ticket-ID im Branch-Namen.
-bash scripts/agent-lock.sh claim branch "$CURRENT_BRANCH" --worktree "$(pwd)" --label dev-flow-execute \
-  || { echo "🛑 siehe ticket-preflight-lock.md für Exit-Code-Behandlung"; exit 1; }
-bash scripts/agent-msg.sh post "dev-flow-execute startet Arbeit an Ticket $TICKET_ID" --to all
+bash scripts/agent-lock.sh claim branch "$CURRENT_BRANCH" --worktree "$(pwd)" --label dev-flow-execute
+RET=$?
+case $RET in
+  0) echo "✅ Branch $CURRENT_BRANCH erfolgreich geclaimed." ;;
+  1) echo "🛑 Branch $CURRENT_BRANCH wird bereits von einer anderen Session bearbeitet." >&2
+     echo "   → Mit paralleler Session koordinieren:" >&2
+     echo "     bash scripts/agent-msg.sh read --mine --unread" >&2
+     exit 1 ;;
+  2) echo "🛑 Branch $CURRENT_BRANCH bereits geclaimed — Status-Check verweigert." >&2
+     exit 1 ;;
+esac
+```
+
+**Ankündigung broadcasten:**
+```bash
+bash scripts/agent-msg.sh post "dev-flow-execute startet Arbeit an Ticket $TICKET_ID (Branch $CURRENT_BRANCH)" --to all
 ```
 
 
@@ -54,7 +81,7 @@ else
   git fetch origin main && git pull --rebase origin main
 fi
 ```
-Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md).
+Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](.claude/skills/references/session-coordination.md).
 
 ## Schritt 0: Worktree-Konsistenz prüfen
 
@@ -174,7 +201,7 @@ bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$
 ```
 
 Prüfe zusätzlich den Registry-Overlap für geteilte Hochfrequenz-Dateien (SSOT:
-[session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)):
+[session-coordination](.claude/skills/references/session-coordination.md)):
 
 ## Schritt 1.4.5: Pipeline-Modus erkennen (T002110)
 
@@ -296,7 +323,7 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 Vor dem Skript-Aufruf steht der Merge-Wait-Loop — erst warten, bis der PR
 tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Ticket=done bei
 PR=OPEN+CONFLICTING Drift, Mishap T001149-M1). Voller Poll-Loop mit Timeout/State-Handling
-(`MERGED`/`CLOSED`/Timeout-Exit-Codes): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)
+(`MERGED`/`CLOSED`/Timeout-Exit-Codes): [ci-fix-loop](.claude/skills/references/ci-fix-loop.md)
 §"PR-Merge-Wait-Loop" — der Finalizer MUSS die Datei lesen und den Loop von dort ausführen
 (nicht aus dem Gedächtnis rekonstruieren). Bei Timeout KEIN Ticket schließen (T001149-M1) —
 strukturiert berichten; die offenen Schritte sind über das Skript nachholbar.
@@ -335,7 +362,7 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Re
 Zwei Schritte: (1) `tasks.md` nach postgres (`ticket-mcp` `archive_plan` bzw. `ticket.sh archive-plan`),
 (2) der gesamte OpenSpec-Change-Ordner ins Archiv via `scripts/openspec.sh archive` — inkl.
 Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständige Mechanik:
-[plan-archive-steps](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-archive-steps.md).
+[plan-archive-steps](.claude/skills/references/plan-archive-steps.md).
 
 
 ## Schritt 7.5: Worktree & Branch bereinigen
@@ -349,7 +376,7 @@ Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständig
 > sein `--delete-branch` (plan-archive-steps).
 
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
-Claims freigeben VOR dem Worktree-Remove ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)), dann:
+Claims freigeben VOR dem Worktree-Remove ([session-coordination](.claude/skills/references/session-coordination.md)), dann:
 ```bash
 git worktree remove "$MAIN_REPO/.worktrees/<slug>" --force
 git branch -D "<branch>"

@@ -70,15 +70,7 @@ tasks:
         MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-150000}" \
           bash scripts/brain-ingest-swap.sh --brain-repo ~/brain --pilot 20 "$@"
 
-  ingest:dry:
-    desc: "Dry-run ingestion (no PR, no writes to brain repo)"
-    cmds:
-      - |-
-        LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" \
-        LM_MAX_TOKENS="${LM_MAX_TOKENS:-65536}" \
-        LM_TIMEOUT="${LM_TIMEOUT:-3600}" \
-        MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-150000}" \
-          bash scripts/brain-ingest-swap.sh --brain-repo ~/brain --dry-run "$@"
+
 
   brain:chunk:
     desc: "Run the section-aware chunker (T002679)"

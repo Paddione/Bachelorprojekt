@@ -66,6 +66,10 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       nodeSelector:
         kubernetes.io/hostname: ${TURN_NODE}
       containers:
@@ -73,6 +77,10 @@ spec:
           image: canyan/janus-gateway:master_cefca79700bdadd32d759ce65ba3805552a4d312@sha256:cddf2da2dba7947c2a3aa7b2e77b363b1200cd6874dbebe32b5148fe187a0d89
           imagePullPolicy: Always
           command: ["/usr/local/bin/janus", "--configs-folder", "/etc/janus"]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
           ports:
             - containerPort: 8188
               hostPort: 8188

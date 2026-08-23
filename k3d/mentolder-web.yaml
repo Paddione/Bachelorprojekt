@@ -30,6 +30,8 @@ spec:
         # the pre-built bundle, so none is set.
         # :latest is intentional — rebuilt on every release (build-mentolder-web.yml, see gotchas-footguns.md)
         - name: mentolder-web
+          # runAsNonRoot-Ausnahme: nginx-Root-Entrypoint-Design (CHOWN/SETUID/SETGID-Caps,
+          # Port 80) — Non-root-Umstellung braucht eigenen Change (uid 101 + Listen-Port)
           image: ghcr.io/paddione/mentolder-web:latest
           imagePullPolicy: Always
           securityContext:

@@ -4315,6 +4315,12 @@
       "status": "archived"
     }
   ],
+  "T015293": [
+    {
+      "slug": "runasnonroot-hardening-followup",
+      "status": "plan_staged"
+    }
+  ],
   "T015670": [
     {
       "slug": "closure-identity-guard",

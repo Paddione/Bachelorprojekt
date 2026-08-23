@@ -975,6 +975,8 @@ Last touches:
 
 ### security
 Reqs: 2 · Scenarios: 4 · Lines: 82
+In-flight:
+  - Run-as-non-root baseline | T015293 | active | ADDED
 
 ### sessions-server
 Reqs: 13 · Scenarios: 24 · Lines: 251

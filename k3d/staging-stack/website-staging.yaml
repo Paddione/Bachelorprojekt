@@ -43,10 +43,18 @@ spec:
       labels:
         app: website
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: website
           image: $STAGING_IMAGE
           imagePullPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
           ports:
             - containerPort: 4321
           envFrom:

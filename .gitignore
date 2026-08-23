@@ -242,3 +242,4 @@ out/
 # Hardware (MAC-Adressen) statt das Repo. Vorlage: scripts/iso/node-map.example
 build/iso/
 scripts/iso/node-map
+tests/spec/ci-cd/stray-ignored-test-T002664.bats

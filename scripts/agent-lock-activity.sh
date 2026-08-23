@@ -62,3 +62,77 @@ cmd_activity() {
 
   return 0
 }
+
+# 0 = true, 1 = false. Checks if any active process holds a cwd inside the worktree
+_worktree_has_active_process() {
+  local wt="$1" _pid _cwd
+  local -A _my_pids
+  local _p="$$"
+  while [[ -n "$_p" && "$_p" -gt 1 ]]; do
+    _my_pids[$_p]=1
+    _p=$(ps -o ppid= -p "$_p" 2>/dev/null | tr -d '[:space:]')
+    [[ -z "$_p" ]] && break
+  done
+  for _pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
+    [[ -n "${_my_pids[$_pid]:-}" ]] && continue
+    _cwd="$(readlink "/proc/$_pid/cwd" 2>/dev/null)" || continue
+    if [[ "$_cwd" = "$wt" || "$_cwd" = "$wt"/* ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# T014468: Query if ANY active lock holds the exact worktree path
+_worktree_is_live_claimed() {
+  local target_wt="$1" f wt
+  for f in "$AGENT_LOCK_DIR"/branch__*.json "$AGENT_LOCK_DIR"/ticket__*.json; do
+    [ -f "$f" ] || continue
+    wt="$(_lock_field "$f" worktree)"
+    if [ "$wt" = "$target_wt" ]; then
+      if ! _reapable "$f"; then
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
+cmd_check_worktree_live() {
+  if [ -z "${1:-}" ]; then echo "Missing worktree path" >&2; return 1; fi
+  if _worktree_is_live_claimed "$(cd "$1" 2>/dev/null && pwd || echo "$1")"; then
+    echo "live"
+    return 0
+  else
+    echo "free"
+    return 1
+  fi
+}
+
+# Check if a git branch has a live (non-reapable) agent-lock claim. [T001448 M3]
+_branch_is_live_claimed() {
+  local br="$1" d f
+  d="$(_lock_dir)"
+  [ -d "$d" ] || return 1
+  for f in "$d"/*.json; do
+    [ -e "$f" ] || continue
+    [ "$(_lock_field "$f" branch)" = "$br" ] || continue
+    _reapable "$f" && continue
+    return 0
+  done
+  return 1
+}
+
+# T001448 M3: Guard commands for external callers. Allows scripts like
+# worktree-create.sh und cleanup.sh, einen live Agent-Claim zu respektieren,
+# ohne die interne Logik von _branch_is_live_claimed zu duplizieren.
+cmd_check_branch_live() {
+  local br="$1"
+  if _branch_is_live_claimed "$br"; then
+    echo "live"
+    return 0
+  else
+    echo "free"
+    return 1
+  fi
+}

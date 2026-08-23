@@ -3174,7 +3174,7 @@ tasks:
           # $$ -> $ Collapse wie im kustomize-Hauptpfad: shared-db.yaml traegt $$-escapte
           # Shell-Vars; roh applied setzt der postStart-Hook sonst alle DB-Passwoerter
           # auf '<PID>{VAR}' (Incident T001673).
-          sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' k3d/shared-db.yaml \
+          sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' k3d/shared-db.yaml \
             | kubectl apply -n workspace -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
@@ -3212,7 +3212,7 @@ tasks:
               | TURN_OVERLAY_IP="${TURN_OVERLAY_IP:-172.17.0.1}" \
                 TERMINAL_OVERLAY_IP="${TERMINAL_OVERLAY_IP:-172.17.0.1}" \
                 envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_HOST_IP \$LLM_ROUTER_URL \$LLM_EMBED_URL \$LLM_RERANKER_URL \$STUDIO_IMAGE \$WEBSITE_NAMESPACE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER \$POCKET_ID_SMTP_TLS \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$POCKET_ID_DOMAIN \$TURN_OVERLAY_IP \$TERMINAL_OVERLAY_IP" \
-              | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+              | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
               | kubectl apply --server-side --force-conflicts -f -
           # Tests retention CronJob — applied separately so its Role+RoleBinding
           # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
@@ -3306,7 +3306,7 @@ tasks:
           # ohne ihn landet '$${VAR}' literal im postStart-Hook und die Shell expandiert
           # $$ zur PID — alle DB-User-Passwoerter werden zu '<PID>{VAR}' (Incident T001673).
           sed "s/namespace: workspace$/namespace: ${_ws_ns}/g" k3d/shared-db.yaml \
-            | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+            | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
             | kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" apply -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n "${_ws_ns}" --timeout=120s
@@ -3400,7 +3400,7 @@ tasks:
           kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
             | envsubst "$ENVSUBST_VARS" \
-            | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+            | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
           # Tests retention CronJob — applied separately so its Role+RoleBinding
           # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
@@ -3532,7 +3532,7 @@ tasks:
         kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
           | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
           | envsubst "$ENVSUBST_VARS" \
-          | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+          | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
           | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts \
             -l "app in ({{.PARTIAL_SERVICES}})" -f -
         echo "Partial-deploy applied. Rollout status per service:"
@@ -4327,7 +4327,7 @@ tasks:
           kustomize build "$WEBSITE_OVERLAY" --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
             | envsubst "\$WEBSITE_IMAGE \$WEBSITE_IMAGE_TAG \$WEBSITE_IMAGE_DIGEST \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$BRAIN_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_EMBED_URL \$LLM_RERANKER_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" \
-            | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+            | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
             > "$_WEB_RENDER"
           # T002154/T002156: siehe Dev-Zweig oben — Hash NACH envsubst ueber den
           # website-config-data-Block, via gemeinsamem Helper.
@@ -5432,6 +5432,11 @@ tasks:
     desc: "Generiere TAB-separated Worklist für Brain-Doku-Kompilierung"
     cmds:
       - bash scripts/brain-ingest-worklist.sh
+
+  brain:ingest:dry:
+    desc: "Dry-Run der Brain-Ingest-Pipeline (setzt LM_MODEL-Default + Ingest-Pool :8093; SA-BW-01/T014543). Usage: task brain:ingest:dry"
+    cmds:
+      - LM_MODEL="${LM_MODEL:-gemma-4-12b-qat}" LM_STUDIO_URL="${LM_STUDIO_URL:-http://localhost:8093}" bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run {{.CLI_ARGS}}
 
   brain:bootstrap:
     desc: "Seede (und optional erstelle/pushe) das brain-Wiki-Fundament. Usage: task brain:bootstrap -- <target-dir>|--create-remote --collaborator <handle>"

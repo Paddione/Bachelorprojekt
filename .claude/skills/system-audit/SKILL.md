@@ -116,7 +116,9 @@ Betrieb und Loadout-Wechsel: infra-ops §5.
 
 ### brain-wiki → delegiert an `brain-ingest`
 
-Dry-Run der Ingest-Pipeline (`task brain:ingest:dry` bzw. Worklist-Generierung). Jede
+Dry-Run der Ingest-Pipeline (`task brain:ingest:dry` bzw. Worklist-Generierung; der Task setzt
+LM_MODEL-Default `gemma-4-12b-qat` und den Ingest-Pool `:8093`, überschreibbar via Environment).
+Jede
 Quelle, die eine Wiki-Seite ändern würde, ist ein Warning-Befund (Wiki driftet); ein
 fehlgeschlagener Dry-Run ist Critical.
 

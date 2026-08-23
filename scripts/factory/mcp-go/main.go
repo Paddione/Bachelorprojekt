@@ -1,10 +1,11 @@
 // factory-mcp — lightweight Streamable-HTTP MCP server for the Software Factory.
 //
-// Re-implements scripts/factory/mcp-server.mjs in Go (stdlib only) and adds
-// `factory_ask`, an LLM-backed Q&A tool that proxies to a local Qwen 3.5 9B
-// served by LMStudio. Default endpoint matches the project's OPENAI_BASE_URL
-// (see .opencode/opencode.jsonc). Protocol surface is identical to the
-// previous Node version so .mcp.json / .opencode/opencode.jsonc do not change.
+// Go-SSOT für die Factory-MCP-Oberfläche (Nachfolger des 2026-08-23 entfernten
+// Legacy-Node-Servers) und ergänzt `factory_ask`, einen LLM-backed Q&A-Tool,
+// das an ein lokales Qwen 3.5 9B via LMStudio proxyt. Default endpoint matches
+// the project's OPENAI_BASE_URL (see .opencode/opencode.jsonc).
+// Queue-Wahrheit (Status/Listing) kommt ausschließlich aus
+// scripts/factory/queue.sh [T014936] — dieses File dupliziert kein Queue-SQL.
 package main
 
 import (
@@ -279,12 +280,12 @@ func toolList() []mcpTool {
 	return []mcpTool{
 		{
 			Name:        "factory_status",
-			Description: "Show factory queue depth and whether a tick is running",
+			Description: "Queue depth and tick state. backlog/plan_staged = dispatchable counts from scripts/factory/queue.sh (incl. lastenheft_locked, execution_released, factory_excluded gates); *_total = raw row counts without gates; tick_running = lock state.",
 			InputSchema: map[string]any{"type": "object", "properties": map[string]any{}},
 		},
 		{
 			Name:        "factory_queue",
-			Description: "List waiting tickets (backlog + plan_staged)",
+			Description: "List exactly the tickets the next factory tick would pick (dispatchable lanes from scripts/factory/queue.sh) — not the raw backlog inventory (see factory_status *_total).",
 			InputSchema: map[string]any{"type": "object", "properties": map[string]any{}},
 		},
 		{
@@ -397,29 +398,84 @@ SQL`, r, sql)
 	return strings.TrimSpace(string(out))
 }
 
+// ---------- queue SSOT [T014936] ----------
+
+// queueJSON exec't scripts/factory/queue.sh und liefert dessen JSON-Array.
+// Die Dispatch-Wahrheit (Lanes, Gates: lastenheft_locked / execution_released /
+// factory_excluded / is_test_data) lebt ausschließlich dort; dieser Server
+// pflegt bewusst KEIN zweites Queue-SQL — das Duplikat war am 2026-08-23 ohne
+// Gates auseinandergedriftet und hat MCP-Konsumenten falsche Backlog-Zahlen
+// geliefert. Gleicher Datenpfad wie psqlJSON (lib.sh → kubectl exec psql).
+func queueJSON() (string, error) {
+	script := repo() + "/scripts/factory/queue.sh"
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "bash", script).Output()
+	if err != nil {
+		bb, _ := exec.CommandContext(ctx, "bash", script).CombinedOutput()
+		return "", fmt.Errorf("queue.sh failed: %s", strings.TrimSpace(string(bb)))
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// countByStatus zählt Einträge eines queue.sh-JSON-Arrays je status-Wert.
+// Rein syntaktisch, damit unit-testbar ohne Cluster.
+func countByStatus(raw string) map[string]int {
+	counts := map[string]int{}
+	var entries []struct {
+		Status string `json:"status"`
+	}
+	if err := json.Unmarshal([]byte(raw), &entries); err != nil {
+		return counts
+	}
+	for _, e := range entries {
+		counts[e.Status]++
+	}
+	return counts
+}
+
+// atoiOrRaw wandelt eine psql-Zahl in ein JSON-int; bei unerwartetem Format
+// bleibt der Rohwert sichtbar statt still zu einer 0 zu werden.
+func atoiOrRaw(s string) any {
+	n, err := strconv.Atoi(strings.TrimSpace(s))
+	if err != nil {
+		return s
+	}
+	return n
+}
+
 // ---------- tool implementations ----------
 
 func toolFactoryStatus() (string, bool, error) {
-	// Mirrors mcp-server.mjs:27 — flock -n returns 0 when lock is FREE.
+	// flock -n returns 0 when lock is FREE.
 	lockHeld, err := runShell(`test -f /tmp/factory-tick.lock || { echo 'false'; exit; }; (flock -n 9 2>/dev/null && echo 'false' || echo 'true') 9>/tmp/factory-tick.lock`, 3*time.Second)
 	if err != nil {
 		return "", false, err
 	}
-	lockHeld = strings.TrimSpace(lockHeld)
-	backlog := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog' AND is_test_data = false")
-	planStaged := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged' AND is_test_data = false")
+	queueRaw, err := queueJSON()
+	if err != nil {
+		return "", false, err
+	}
+	dispatchable := countByStatus(queueRaw)
+	backlogTotal := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog' AND is_test_data = false")
+	planStagedTotal := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged' AND is_test_data = false")
 	out := map[string]any{
-		"backlog":      backlog,
-		"plan_staged":  planStaged,
-		"tick_running": lockHeld == "true",
+		"backlog":           dispatchable["backlog"],
+		"plan_staged":       dispatchable["plan_staged"],
+		"backlog_total":     atoiOrRaw(backlogTotal),
+		"plan_staged_total": atoiOrRaw(planStagedTotal),
+		"tick_running":      strings.TrimSpace(lockHeld) == "true",
 	}
 	b, _ := json.MarshalIndent(out, "", "  ")
 	return string(b), false, nil
 }
 
 func toolFactoryQueue() (string, bool, error) {
-	sql := `SELECT COALESCE(json_agg(row_to_json(q)), '[]') FROM (SELECT external_id, title, priority, status FROM tickets.tickets WHERE status IN ('backlog','plan_staged') AND is_test_data = false ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 ELSE 3 END, created_at) q;`
-	return psqlJSON(sql), false, nil
+	out, err := queueJSON()
+	if err != nil {
+		return "", false, err
+	}
+	return out, false, nil
 }
 
 func toolFactoryEnqueue(ticketID string) (string, bool, error) {

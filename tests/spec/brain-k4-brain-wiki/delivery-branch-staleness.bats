@@ -45,8 +45,8 @@ build_fixture() {
   # Staleness-Gate-Test (frischer Branch-Name) abschaltbar.
   if [ "$with_stale" != "no-stale-branch" ]; then
     git -C "$seed" checkout -q -b stale-seed HEAD~1
-    printf 'stale\n' > "$seed/stale-only.txt"
-    git -C "$seed" add stale-only.txt
+    printf 'stale\n' > "$seed/index.md"
+    git -C "$seed" add index.md
     git -C "$seed" commit -q -m s1
     git -C "$seed" push -q origin "stale-seed:$BRANCH_NAME"
     git -C "$seed" checkout -q main
@@ -135,6 +135,7 @@ run_ingest() {
   remote_before="$(git -C "$WORK/origin.git" rev-parse "refs/heads/$br")"
 
   run_ingest ""
+  echo "$output"
   [ "$status" -ne 0 ]
   [[ "$output" == *"delivery aborted"* ]]
 
@@ -164,4 +165,30 @@ run_ingest() {
   # Und der Push ist angekommen.
   pushed_remote="$(git -C "$WORK/origin.git" rev-parse "refs/heads/$BRANCH_NAME")"
   [ "$pushed_remote" = "$(git -C "$WORK/brain" rev-parse "$BRANCH_NAME")" ]
+}
+
+@test "[T014737] Angehaengter Remote-Commit am Delivery-Branch (Fast-Forward-Fall) liefert per Rebase sauber" {
+  # E9-Fall (T013914): ein konkurrierender Lauf haengt an den Delivery-Branch an,
+  # ohne die Basis zu veraendern — der Rebase muss diesen Anhang erhalten und
+  # sauber liefern (Gegenstueck zum Divergenz-Abbruch im Test darueber).
+  build_fixture no-stale-branch
+  git -C "$WORK/seed" checkout -q -b ff-append main
+  printf 'appended\n' > "$WORK/seed/appended.txt"
+  git -C "$WORK/seed" add appended.txt
+  git -C "$WORK/seed" commit -q -m e9-append
+  git -C "$WORK/seed" push -q origin "ff-append:$BRANCH_NAME"
+  git -C "$WORK/seed" checkout -q main
+  local appended_tip
+  appended_tip="$(git -C "$WORK/origin.git" rev-parse "refs/heads/$BRANCH_NAME")"
+
+  run_ingest ""
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Pushed to origin/$BRANCH_NAME"* ]]
+
+  # Positiv-Anker: der gelieferte Commit sitzt auf dem angehaengten Remote-Tip.
+  local remote_tip delivered_parent
+  remote_tip="$(git -C "$WORK/origin.git" rev-parse "refs/heads/$BRANCH_NAME")"
+  delivered_parent="$(git -C "$WORK/brain" rev-parse "$BRANCH_NAME~1")"
+  [ "$delivered_parent" = "$appended_tip" ]
+  [ "$remote_tip" = "$(git -C "$WORK/brain" rev-parse "$BRANCH_NAME")" ]
 }

@@ -13,6 +13,9 @@
 # ABGRENZUNG: Loadouts mit "managed": "external" (unsloth-studio) tragen keinen
 # Dateipfad, sondern eine Kennung — sie werden von einem fremden Prozess
 # gestartet und sind hier ausgenommen.
+# T002753/P2: Loadouts mit top-level "enabled": false (T014339) sind zur
+# Laufzeit bereits vom Proxy ausgeschlossen (isLoadoutEnabled) — sie werden
+# ebenfalls übersprungen und nicht als MISSING gemeldet.
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -26,7 +29,9 @@ _resolve_all() {
     import { readFileSync } from 'node:fs';
     const doc = JSON.parse(readFileSync('${LOADOUTS}', 'utf8'));
     for (const l of doc.loadouts) {
-      if (l.managed === 'external') continue;
+      // T002753/P2: disabled loadouts (enabled:false) are excluded from GGUF check.
+      // isLoadoutEnabled() in loadouts.mjs already skips them at runtime.
+      if (l.managed === 'external' || l.enabled === false) continue;
       console.log(l.slug + ' ' + (resolveModelPath(doc, l) ? 'OK' : 'MISSING'));
     }
   "
@@ -76,7 +81,7 @@ _resolve_all() {
   echo "Loadouts ohne Modelldatei: ${missing:-<keine>}"
 
   # Und dass ein konkretes, nachweislich vorhandenes Loadout durchlaeuft.
-  echo "$output" | grep -qx 'gptoss-context OK'
+  echo "$output" | grep -qx 'qwen38-220k OK'
 
   [ -z "$missing" ]
 }

@@ -85,6 +85,15 @@ forward_ports() {
   loadout_port="$(jq -r --arg s "$SLUG" '.loadouts[] | select(.slug == $s) | .port' "$LOADOUTS")"
   [[ "$loadout_port" =~ ^[0-9]+$ ]]
 
+  # T014339: Das Loadout ist stillgelegt (enabled:false) — brain-ingest.sh spricht
+  # seither die FreeToken-native Engine an, nicht mehr den lokalen GGUF-Server.
+  # Die Drei-Wege-Gleichheit ist dann keine Invariante mehr, sondern das Gegenteil:
+  # das Skript DARF den toten Port nicht mehr nennen. Geprueft wird deshalb
+  # fallweise, mit demselben Positiv-Anker je Quelle.
+  loadout_enabled="$(jq -r --arg s "$SLUG" \
+    '.loadouts[] | select(.slug == $s) | if has("enabled") then (.enabled|tostring) else "true" end' "$LOADOUTS")"
+  [ -n "$loadout_enabled" ]
+
   # POSITIV-ANKER je Quelle, bevor verglichen wird: zwei leere Zeichenketten sind gleich,
   # der Vergleich waere also auch dann gruen, wenn eine Deklaration ganz fehlte.
   script_port="$(grep -E '^LM_URL=' "$INGEST_SH" \
@@ -95,8 +104,15 @@ forward_ports() {
     | grep -oE 'http://127\.0\.0\.1:[0-9]+' | grep -oE '[0-9]+$' | head -1)"
   [ -n "$migration_port" ]
 
-  [ "$loadout_port" = "$script_port" ]
-  [ "$loadout_port" = "$migration_port" ]
+  if [ "$loadout_enabled" = "true" ]; then
+    [ "$loadout_port" = "$script_port" ]
+    [ "$loadout_port" = "$migration_port" ]
+  else
+    [ "$loadout_port" != "$script_port" ] || {
+      echo "brain-ingest.sh zeigt weiter auf den stillgelegten Loadout-Port $loadout_port" >&2
+      false
+    }
+  fi
 }
 
 @test "T003203: die Migration laesst llamacpp-bonsai deaktiviert" {
@@ -134,9 +150,9 @@ forward_ports() {
 
   # POSITIV-ANKER: die ingest-Tasks muessen ueberhaupt existieren. Ohne diesen
   # Beleg bestuende die Aussage unten auch dann, wenn der Taskfile leer waere.
-  run grep -cE '^\s{2}ingest:(run|pilot|dry):' "$TASKFILE"
+  run grep -cE '^\s{2}ingest:(run|pilot):' "$TASKFILE"
   [ "$status" -eq 0 ]
-  [ "$output" -eq 3 ]
+  [ "$output" -eq 2 ]
 
   # Jeder in den Tasks genannte lokale Backend-Port muss der Loadout-Port sein.
   foreign="$(grep -oE 'LM_STUDIO_URL="\$\{LM_STUDIO_URL:-http://(127\.0\.0\.1|localhost):[0-9]+' "$TASKFILE" \

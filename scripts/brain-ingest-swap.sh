@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# scripts/brain-ingest-swap.sh — Loadout-Swap um den Brain-Ingest herum. [T013593]
+# scripts/brain-ingest-swap.sh — DEPRECATED (T014339) — Loadout-Swap um den Brain-Ingest herum.
 #
-# Merkt sich das laufende chat-gpu-Loadout, wechselt auf 'brain-ingest', faehrt
-# den Ingest und stellt danach den vorherigen Zustand wieder her — auch bei
-# Fehler oder Abbruch. Waehrend des Laufs haelt ein Loadout-Pin die Modellwahl
-# fest: der Proxy weist fremde start/stop-Aufrufe mit 423 ab.
+# Die brain-ingest-Pipeline ist seit T014339 auf die FreeToken-native Engine
+# (:1919) migriert und laeuft nicht mehr gegen das lokale GGUF-Loadout auf
+# Port 8100. Dieses Skript mit Loadout-Pin-Mechanismus ist damit obsolet —
+# es wird nicht mehr vom brain-ingest-Skill aufgerufen.
+#
+# Historie: [T013593] — Merkte sich das laufende chat-gpu-Loadout, wechselte
+# auf 'brain-ingest', faehrte den Ingest und stellte danach den vorherigen
+# Zustand wieder.
 #
 # Env: SWAP_PROXY_URL GPU_PIN_FILE SWAP_DRAIN_TIMEOUT SWAP_HEALTH_TIMEOUT
 #      SWAP_LOADOUTS BRAIN_INGEST_SH  sowie alle LM_*/MAX_* des Ingests

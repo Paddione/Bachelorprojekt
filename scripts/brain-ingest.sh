@@ -6,17 +6,13 @@
 # Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune] [--from-scratch]
 #
 # Env:
-#   LM_STUDIO_URL    — llama-server ingest-pool API URL (default:
-#                      http://localhost:8093 — standalone llama-server.exe,
-#                      NOT LM Studio's :1234 despite the var name; kept for
-#                      backward compat with existing callers/CI config)
-#                      T002258: was :8095 — that port now serves the bge-m3
-#                      EMBEDDING model (T002110/PR #3150), not a chat model.
-#                      T002551: bge embed/rerank sind seither Cluster-CPU-
-#                      Deployments (k3d/llm-gpu.yaml); die Host-Ports 8095/8096
-#                      existieren nicht mehr. Einziger Host-Server:
-#                        8093 = Bonsai chat / ingest pool (-np 4)
-#   LM_MODEL         — Model to use (PFLICHT, kein Default; siehe T002533)
+#   LM_STUDIO_URL    — llama-server / FreeToken-native ingest-pool API URL
+#                      (default: http://127.0.0.1:1919 — FreeToken-native
+#                      :1919, seit T014339 Migration von lokalem GGUF-Server
+#                      Port 8100; var name kept for backward compat with
+#                      existing callers/CI config)
+#   LM_MODEL         — Model to use (default: Qwen3.6-35B-A3B-NVFP4 from
+#                      FreeToken :1919; override for hosted providers)
 #   MAX_PARALLEL     — Concurrent process_page() jobs (default: 4, matching
 #                      the ingest-pool server's -np slot count — raising this
 #                      above the server's slot count just queues requests)
@@ -47,8 +43,8 @@ PRUNE=0
 FROM_SCRATCH=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
-LM_URL="${LM_STUDIO_URL:-http://localhost:8100}"
-LM_MODEL="${LM_MODEL:?LM_MODEL ist Pflicht (siehe T002533)}"
+LM_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}"
+LM_MODEL="${LM_MODEL:-Qwen3.6-35B-A3B-NVFP4}"
 MAX_PARALLEL="${MAX_PARALLEL:-4}"
 CHUNK_TARGET_CHARS="${BRAIN_CHUNK_TARGET_CHARS:-8000}"
 # transform.sh's MAX_SOURCE_CHARS is a fail-closed guard since T002679 — it no
@@ -630,7 +626,19 @@ if git remote get-url origin &>/dev/null; then
   # T013914 E9: Staleness-Gate fuer das Branch selbst. Bei zwei konkurrierenden
   # brain-ingest-Laeufen kann der zweite Push scheitern, weil das remote Branch
   # um Commits des ersten Läufs vorausgeschritten ist.
+  # [T014737] Der Rebase ist nur zulaessig, wenn der Remote-Branch ein
+  # Fast-Forward unserer Delivery-Basis ist (der konkurrierende Lauf haengt nur
+  # an). Ein divergierter Remote-Branch — etwa ein stale Delivery-Branch von
+  # einem aelteren main-Stand — bricht hier ab, statt vom Blind-Rebase geglaettet
+  # zu werden: sonst greift der Non-Fast-Forward-Schutz aus T013041 nie mehr.
   if git rev-parse --verify "origin/$BRANCH" &>/dev/null 2>&1; then
+    REMOTE_TIP="$(git rev-parse "origin/$BRANCH")"
+    LOCAL_BASE="$(git rev-parse HEAD~1)"
+    if ! git merge-base --is-ancestor "$LOCAL_BASE" "$REMOTE_TIP"; then
+      echo "ERROR: origin/$BRANCH diverged from delivery base (non-fast-forward) — delivery aborted"
+      cd "$REPO_ROOT"
+      exit 1
+    fi
     git rebase "origin/$BRANCH" 2>/dev/null || {
       echo "ERROR: rebase onto origin/$BRANCH failed — delivery aborted"
       cd "$REPO_ROOT"

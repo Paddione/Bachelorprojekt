@@ -226,32 +226,32 @@ spec:
                               - |
                                 set -euo pipefail
                                 sleep 5
-                                STAMP=\$(date +%Y%m%d-%H%M%S)
-                                BACKUP_DIR=/backups/pvc-\${STAMP}
-                                mkdir -p "\${BACKUP_DIR}"
+                                STAMP=\$$(date +%Y%m%d-%H%M%S)
+                                BACKUP_DIR=/backups/pvc-\$${STAMP}
+                                mkdir -p "\$${BACKUP_DIR}"
                                 FAILED=0
                                 backup_dir() {
                                   SRC="\$1"; OUT="\$2"; LABEL="\$3"
-                                  echo "Backing up \${LABEL} (\${SRC})..."
-                                  if [ "\$(ls -A "\${SRC}" 2>/dev/null)" ]; then
-                                    tar czf - -C "\${SRC}" . \
+                                  echo "Backing up \$${LABEL} (\$${SRC})..."
+                                  if [ "\$$(ls -A "\$${SRC}" 2>/dev/null)" ]; then
+                                    tar czf - -C "\$${SRC}" . \
                                       | openssl enc -aes-256-cbc -salt -pbkdf2 \
-                                          -out "\${BACKUP_DIR}/\${OUT}" -pass env:BACKUP_PASSPHRASE \
-                                      && echo "  ✓ \${LABEL} OK (\$(ls -lh "\${BACKUP_DIR}/\${OUT}" | awk '{print \$5}'))" \
-                                      || { echo "  ✗ \${LABEL} FAILED"; FAILED=\$((FAILED+1)); }
+                                          -out "\$${BACKUP_DIR}/\$${OUT}" -pass env:BACKUP_PASSPHRASE \
+                                      && echo "  ✓ \$${LABEL} OK (\$$(ls -lh "\$${BACKUP_DIR}/\$${OUT}" | awk '{print \$5}'))" \
+                                      || { echo "  ✗ \$${LABEL} FAILED"; FAILED=\$$((FAILED+1)); }
                                   else
-                                    echo "  ⚠ \${SRC} empty — skipping"
+                                    echo "  ⚠ \$${SRC} empty — skipping"
                                   fi
                                 }
                                 backup_dir /nextcloud-data   nextcloud-files.tar.gz.enc  nextcloud-data
                                 backup_dir /vaultwarden-data vaultwarden-data.tar.gz.enc vaultwarden-data
 
                                 find /backups -maxdepth 1 -type d -name 'pvc-*' -mtime +30 -exec rm -rf {} +
-                                printf '%s' "\${FILEN_DEFAULT_UPLOAD_PATH}" > /staging/.filen_path
-                                printf '%s' "pvc-\${STAMP}" > /staging/.done
-                                echo "PVC backup complete: \${BACKUP_DIR}"
-                                ls -lh "\${BACKUP_DIR}/"
-                                [ "\${FAILED}" -eq 0 ] || { echo "WARN: \${FAILED} backup(s) failed"; exit 1; }
+                                printf '%s' "\$${FILEN_DEFAULT_UPLOAD_PATH}" > /staging/.filen_path
+                                printf '%s' "pvc-\$${STAMP}" > /staging/.done
+                                echo "PVC backup complete: \$${BACKUP_DIR}"
+                                ls -lh "\$${BACKUP_DIR}/"
+                                [ "\$${FAILED}" -eq 0 ] || { echo "WARN: \$${FAILED} backup(s) failed"; exit 1; }
                             volumeMounts:
                               - { name: backup-storage,   mountPath: /backups }
                               - { name: nextcloud-data,   mountPath: /nextcloud-data,   readOnly: true }
@@ -270,15 +270,15 @@ spec:
                             command: ["/bin/sh", "-c"]
                             args:
                               - |
-                                if [ -z "\${FILEN_EMAIL}" ] || [ -z "\${FILEN_PASSWORD}" ]; then
+                                if [ -z "\$${FILEN_EMAIL}" ] || [ -z "\$${FILEN_PASSWORD}" ]; then
                                   echo "Filen not configured — skipping remote backup"
                                   until [ -f /staging/.done ]; do sleep 2; done
                                   exit 0
                                 fi
                                 echo "Waiting for backup to complete..."
                                 until [ -f /staging/.done ]; do sleep 2; done
-                                STAMP=\$(cat /staging/.done)
-                                UPLOAD_PATH=\$(cat /staging/.filen_path)
+                                STAMP=\$$(cat /staging/.done)
+                                UPLOAD_PATH=\$$(cat /staging/.filen_path)
                                 echo "Installing Filen CLI..."
                                 export HOME=/tmp
                                 # Version pin [T013300]: die Remote-Retention unten haengt am
@@ -286,10 +286,10 @@ spec:
                                 npm install -g @filen/cli@0.0.39 --prefix /tmp/npm-global 2>&1 \
                                   || { echo "ERROR: filen-cli install failed"; exit 1; }
                                 export PATH="/tmp/npm-global/bin:\$PATH"
-                                echo "Uploading \${STAMP} to Filen: \${UPLOAD_PATH}/\${STAMP}/"
-                                if ! filen --email "\${FILEN_EMAIL}" --password "\${FILEN_PASSWORD}" \
-                                     upload "/backups/\${STAMP}/" "\${UPLOAD_PATH}/\${STAMP}/"; then
-                                  echo "ERROR: Filen remote upload failed for \${STAMP} — local backup on backup-pvc is intact."
+                                echo "Uploading \$${STAMP} to Filen: \$${UPLOAD_PATH}/\$${STAMP}/"
+                                if ! filen --email "\$${FILEN_EMAIL}" --password "\$${FILEN_PASSWORD}" \
+                                     upload "/backups/\$${STAMP}/" "\$${UPLOAD_PATH}/\$${STAMP}/"; then
+                                  echo "ERROR: Filen remote upload failed for \$${STAMP} — local backup on backup-pvc is intact."
                                   echo "       Likely cause: invalid credentials, or 2FA enabled (this job requires 2FA OFF)."
                                   exit 1
                                 fi
@@ -304,53 +304,53 @@ spec:
                                 # (~30/min Limit → sleep-Throttle), trash-empty/trash-delete
                                 # hängen (nur Soft-Delete via rm -y), jeder Call braucht ein
                                 # timeout (CLI kann stallen).
-                                RETENTION=\${FILEN_REMOTE_RETENTION:-14}
+                                RETENTION=\$${FILEN_REMOTE_RETENTION:-14}
                                 PRUNE_FAILED=0
-                                echo "Remote retention: listing \${UPLOAD_PATH} ..."
+                                echo "Remote retention: listing \$${UPLOAD_PATH} ..."
                                 if timeout 120 filen --skip-update --no-autocomplete \
-                                     --email "\${FILEN_EMAIL}" --password "\${FILEN_PASSWORD}" \
-                                     ls "\${UPLOAD_PATH}" > /tmp/remote-ls.txt 2>/dev/null; then
+                                     --email "\$${FILEN_EMAIL}" --password "\$${FILEN_PASSWORD}" \
+                                     ls "\$${UPLOAD_PATH}" > /tmp/remote-ls.txt 2>/dev/null; then
                                   # Streng auf Generierungs-Muster begrenzt (db-Stamps und
                                   # pvc--Stamps) — alles andere im Verzeichnis wird nie
                                   # angefasst. Lexikografische Sortierung von
                                   # YYYYMMDD-HHMMSS-Namen IST chronologische Ordnung.
                                   tr -s ' \t' '\n' < /tmp/remote-ls.txt \
                                     | grep -E '^(pvc-)?[0-9]{8}-[0-9]{6}$' | sort > /tmp/generations.txt
-                                  COUNT=\$(wc -l < /tmp/generations.txt)
-                                  DELETE_COUNT=\$((COUNT - RETENTION))
-                                  if [ "\${DELETE_COUNT}" -gt 0 ]; then
-                                    echo "Remote retention: \${COUNT} Generationen gefunden — lösche älteste \${DELETE_COUNT}, behalte neueste \${RETENTION}"
-                                    head -n "\${DELETE_COUNT}" /tmp/generations.txt > /tmp/delete.txt
+                                  COUNT=\$$(wc -l < /tmp/generations.txt)
+                                  DELETE_COUNT=\$$((COUNT - RETENTION))
+                                  if [ "\$${DELETE_COUNT}" -gt 0 ]; then
+                                    echo "Remote retention: \$${COUNT} Generationen gefunden — lösche älteste \$${DELETE_COUNT}, behalte neueste \$${RETENTION}"
+                                    head -n "\$${DELETE_COUNT}" /tmp/generations.txt > /tmp/delete.txt
                                     FAILS=0
                                     # Redirection statt Pipe: eine gepipe while-Schleife läuft
                                     # in einer Subshell und verliert FAILS/PRUNE_FAILED.
                                     while IFS= read -r GEN; do
-                                      [ -z "\${GEN}" ] && continue
+                                      [ -z "\$${GEN}" ] && continue
                                       if timeout 90 filen --skip-update --no-autocomplete \
-                                           --email "\${FILEN_EMAIL}" --password "\${FILEN_PASSWORD}" \
-                                           rm -y "\${UPLOAD_PATH}/\${GEN}"; then
-                                        echo "  pruned old generation: \${GEN}"
+                                           --email "\$${FILEN_EMAIL}" --password "\$${FILEN_PASSWORD}" \
+                                           rm -y "\$${UPLOAD_PATH}/\$${GEN}"; then
+                                        echo "  pruned old generation: \$${GEN}"
                                       else
-                                        echo "ERROR: prune failed for \${UPLOAD_PATH}/\${GEN}"
-                                        FAILS=\$((FAILS + 1))
+                                        echo "ERROR: prune failed for \$${UPLOAD_PATH}/\$${GEN}"
+                                        FAILS=\$$((FAILS + 1))
                                         PRUNE_FAILED=1
                                         # Kaputter Account/CLI würde Logins sinnlos verbrennen — früh abbrechen.
-                                        [ "\${FAILS}" -ge 5 ] && { echo "ABORT: too many prune failures"; break; }
+                                        [ "\$${FAILS}" -ge 5 ] && { echo "ABORT: too many prune failures"; break; }
                                       fi
                                       sleep 3
                                     done < /tmp/delete.txt
                                   else
-                                    echo "Remote retention: \${COUNT}/\${RETENTION} Generationen — nichts zu prunen"
+                                    echo "Remote retention: \$${COUNT}/\$${RETENTION} Generationen — nichts zu prunen"
                                   fi
                                 else
-                                  echo "ERROR: could not list \${UPLOAD_PATH} for retention"
+                                  echo "ERROR: could not list \$${UPLOAD_PATH} for retention"
                                   PRUNE_FAILED=1
                                 fi
                                 # Ein fehlgeschlagener Prune darf nicht still geschluckt werden:
                                 # er reproduziert die Quota-Voll-Outage schleichend. Exit non-zero,
                                 # damit der Fehler als Failed Job sichtbar wird (gleiche
                                 # Philosophie wie beim Upload-Fehler oben).
-                                [ "\${PRUNE_FAILED}" -eq 0 ] || exit 1
+                                [ "\$${PRUNE_FAILED}" -eq 0 ] || exit 1
                             env:
                               - name: FILEN_EMAIL
                                 valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_EMAIL, optional: true } }

@@ -53,8 +53,16 @@ _status_once() {
 # Branch, detached HEAD) lassen den bisherigen Kontrakt unverändert.
 _claim_guard() {
   local branch lock_out lock_rc
+  
+  # Check if there is any live lock (ticket or otherwise) mapped to this worktree path
+  if lock_out="$(cd "$HERE/.." && bash "$HERE/agent-lock.sh" check-worktree-live "$1" 2>&1)" && [ "$lock_out" = "live" ]; then
+    echo "Befund: Worktree '$1' ist durch eine aktive Session belegt (ticket-scoped oder worktree-gebunden)." >&2
+    return 1
+  fi
+
   branch="$(git -C "$1" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
   [ -n "$branch" ] && [ "$branch" != "HEAD" ] || return 0
+  
   # cwd = Repo-Root (nicht der gepruefte Pfad): "mine" entscheidet sich ueber die
   # Worktree-Containment des cwd (agent-lock.sh _lock_is_mine, T003110) — liefe
   # der Check aus dem geprueften Worktree selbst, stuende dort jeder Fremd-Claim
@@ -65,6 +73,7 @@ _claim_guard() {
     printf '%s\n' "$lock_out" >&2
     return 1
   fi
+
   return 0
 }
 

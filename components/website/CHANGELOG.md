@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.303.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.9...website-v1.303.10) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** couple factory-mcp status/queue to queue.sh SSOT, drop legacy Node server [T014936] ([#5118](https://github.com/Paddione/Bachelorprojekt/issues/5118)) ([db4e001](https://github.com/Paddione/Bachelorprojekt/commit/db4e001b53f13f8de9f12aaba88e752f754ef28c))
+
+## [1.303.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.8...website-v1.303.9) (2026-08-23)
+
+
+### Bug Fixes
+
+* dispatch gate cap order T014384 ([#5110](https://github.com/Paddione/Bachelorprojekt/issues/5110)) ([2464e8e](https://github.com/Paddione/Bachelorprojekt/commit/2464e8e6dd5ded08d9154f72784a8045128fe69b))
+
+## [1.303.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.7...website-v1.303.8) (2026-08-23)
+
+
+### Bug Fixes
+
+* **db:** add bigserial pk and nulls not distinct to factory control [T014545] ([#5106](https://github.com/Paddione/Bachelorprojekt/issues/5106)) ([d3550ac](https://github.com/Paddione/Bachelorprojekt/commit/d3550ac6536c46695ec5a16cfe577f46b16c2901))
+
+## [1.303.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.6...website-v1.303.7) (2026-08-23)
+
+
+### Code Refactoring
+
+* **ops:** decommission orphaned loadouts, migrate brain-ingest to FreeToken [T014339] ([#5082](https://github.com/Paddione/Bachelorprojekt/issues/5082)) ([f0c8106](https://github.com/Paddione/Bachelorprojekt/commit/f0c81067f2d44a9cadf23b846037654d73b3fa06))
+
+## [1.303.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.5...website-v1.303.6) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** pause korczewski admin CronJobs [T014537] ([#5100](https://github.com/Paddione/Bachelorprojekt/issues/5100)) ([6069873](https://github.com/Paddione/Bachelorprojekt/commit/60698738eb173c74e6ac3d279fd0a7919728cdf2))
+
 ## [1.303.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.4...website-v1.303.5) (2026-08-23)
 
 

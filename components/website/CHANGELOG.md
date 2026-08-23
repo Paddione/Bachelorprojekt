@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.9...website-v1.303.10) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** couple factory-mcp status/queue to queue.sh SSOT, drop legacy Node server [T014936] ([#5118](https://github.com/Paddione/Bachelorprojekt/issues/5118)) ([db4e001](https://github.com/Paddione/Bachelorprojekt/commit/db4e001b53f13f8de9f12aaba88e752f754ef28c))
+
 ## [1.303.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.8...website-v1.303.9) (2026-08-23)
 
 

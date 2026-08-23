@@ -13,6 +13,7 @@
       "label": "Qwen 3.8 27B IQ3_XXS · 112K Text + MTP",
       "model": "qwen38/Qwen3.8-27B-UD-IQ3_XXS.gguf",
       "port": 8094,
+      "enabled": false,
       "fit": {
         "enabled": false,
         "targetMarginMib": 256,
@@ -51,7 +52,7 @@
         "--cache-ram",
         "12288"
       ],
-      "notes": "Gemessen: 114.688 ctx (Slug haelt '220k' nur noch als Identitaet — er wird von AGENTS.md, .opencode/*, tests/spec/local-llm-proxy/*.bats und scripts/migrations/2026-08-22-llm-proxy-qwen38-backend.sql referenziert). Text-only loadout fuer das Unsloth Qwen3.8-27B UD-IQ3_XXS GGUF, ein Slot, alle Layer auf GPU, q4_0 KV, Flash Attention, ngram-mod-Spekulation, kein MTP-Drafter, bewusst kein mmproj/Vision-Head. Natives Kontextfenster 262144.\n\nMESSUNG 2026-08-22 (RTX 5070 Ti 16 GiB, Build 0adcc3bb5, vier verschiedene ~34k-Prompts):\n```bash\n# Server je Variante frisch starten, dann vier unterschiedliche 34k-Prompts kalt schicken\n~/opt/llama-current/bin/llama-server -m ~/models/gguf/qwen38/Qwen3.8-27B-UD-IQ3_XXS.gguf \\\n  --port 8194 -fit off -c <CTX> -ngl 999 -np <NP> -ctk q4_0 -ctv q4_0 -lm mmap -fa on \\\n  --jinja --metrics -rea auto --spec-type ngram-mod --no-context-shift -b 2048 -ub <UB> --cache-ram <CRAM>\ncurl -s localhost:8194/v1/chat/completions -d @prompt.json | jq .timings\n```\n| Variante | frei VRAM | Prefill | Decode | Agentenwechsel |\n| -c 220000 -ub 512 --cache-ram 0 --ctx-checkpoints 0 (ALT) | 636 MiB | 1341 -> 605 -> 257 -> 254 t/s | 36 -> 11 t/s | 137 s |\n| -c 220000 -ub 512 --cache-ram 12288 | 636 MiB | 1176-1206 t/s | 32-37 t/s | 2,5 s |\n| -c 220000 -ub 1024 --cache-ram 12288 | 484 MiB | 264-273 t/s | 8-9 t/s | - |\n| -c 196608 -ub 512 --cache-ram 12288 | 803 MiB | 1437-1463 t/s | 39-43 t/s | - |\n| -c 163840 -ub 512 --cache-ram 12288 (ohne MTP) | 1798 MiB | 1430-1456 t/s | 38-43 t/s | 1,6-2,4 s |\n| -c 131072 -ub 512 --cache-ram 12288 | 2468 MiB | 1428-1452 t/s | 30-43 t/s | 0,5 s |\n\nWARUM --cache-ram 12288 statt 0: qwen35 ist laut llm_arch_is_hybrid() eine Hybrid-Architektur (SSM-/Linear-Attention-Layer neben Full-Attention). Deren Zustand laesst sich nicht teilweise zurueckrollen; llama.cpp faellt ohne Kontext-Checkpoint auf 'forcing full prompt re-processing due to lack of cache data (likely due to SWA or hybrid/recurrent memory)' zurueck. '--cache-ram 0' schaltete zusaetzlich '--cache-idle-slots' ab (Startwarnung '--cache-idle-slots requires --cache-ram, disabling'), also genau den Mechanismus, der den Slot-Zustand eines pausierten Agenten in den Host-RAM rettet. Folge im Factory-Betrieb: JEDER Wechsel zwischen zwei Agenten hat den vollen Prompt neu prefillt. Drei rotierende Agenten kosten jetzt 1,6-2,4 s statt >130 s. '--ctx-checkpoints 0' ist ersatzlos entfallen (Default 32). RAM-Kosten: ~1 GiB je 34k-Zustand, Server-RSS 4,1 GiB bei drei gecachten Agenten.\n\nWARUM 163840 statt 220000: bei 220000 bleiben nur 636 MiB VRAM frei, und die Konfiguration kippt bereits bei kleinen Aenderungen ueber die Kante — '-ub 1024' allein drueckt den Prefill von 1200 auf 264 t/s (identische Flags bei 131072: 1462 t/s). 163840 laesst 1,8 GiB Luft und liefert reproduzierbar ~1440 t/s ueber vier verschiedene kalte Prompts. Der Verlust von 56k Kontext kostet nichts, solange Agenten unter 160k bleiben; wer mehr braucht, zahlt den Faktor 5.\n\nWARUM np=1 OHNE -kvu: '-np 2 -kvu' gibt zwar beiden Slots das volle Fenster (n_ctx_seq = n_ctx, src/llama-context.cpp:291) und kostet kein zusaetzliches VRAM, bricht auf dieser Hybrid-Architektur aber den Prefill auf 207-237 t/s ein. '-np 2' OHNE -kvu bleibt schnell (1073-1318 t/s), halbiert aber das Fenster je Slot auf 81920 — die Alternative, falls echte Parallelitaet wichtiger wird als Kontextlaenge. Mit np=1 plus Host-Prompt-Cache wechseln sequenzielle Agenten ohnehin in ~2 s.\n\nMTP AKTIV seit 2026-08-22 (Operator-Entscheidung; ctx deshalb 114688 statt 163840): Das GGUF traegt den Multi-Token-Prediction-Head (`qwen35.nextn_predict_layers: 1`, Tensoren `blk.64.nextn.*` — blk.0..63 sind die echten Layer), und der Build kennt `--spec-type draft-mtp`. Kontrollmessung bei IDENTISCHEM -c 98304, nur der spec-type unterschiedlich:\n| Prompt | ngram-mod | draft-mtp |\n| kurzer Prosa-Prompt, 400 Token Ausgabe | 54,9 t/s | 66,3 t/s |\n| Code-Generierung, 400 Token | 53,9 t/s | 66,6 t/s |\n| 34k Kontext + 400 Token | 45,5 t/s | 58,7 t/s |\nMTP kostet ~1235 MiB VRAM, also rund 49k Kontext: bei -c 163840 startet der Server zwar (15851 MiB belegt), stirbt aber beim ersten echten Request mit 'CUDA error ... cuMemSetAccess' in ggml-cuda.cu:648. `-ctkd q4_0 -ctvd q4_0` hilft NICHT (15946 MiB). Groesstes stabiles Fenster mit MTP: -c 114688 (14875 MiB beim Laden, 15164 MiB unter Last, ueber vier kalte Prompts stabil bei 1334-1362 t/s Prefill). Der Host-Prompt-Cache funktioniert mit MTP weiter (Rotation dreier Agenten in 2,6-6,5 s). '--spec-type draft-mtp,ngram-mod' kostet kein zusaetzliches VRAM und liegt beim Decode gleichauf oder minimal darueber (64-74 t/s) — wer MTP nimmt, nimmt die Kombination.\nABWAEGUNG: MTP kauft 21-45 % Decode fuer 49k Kontext und 8 % Prefill. Lohnt sich, sobald kein lokaler Agent ueber 112k Kontext braucht; alle lokalen Agenten teilen dieses eine Loadout, die Entscheidung trifft also alle.",
+      "notes": "STILLGELEGT seit T014028 (2026-08-23): verhungert neben FreeToken-native (~10 tok/s gemessen); Familien-Subagenten sind auf freetoken-local/Qwen3.6-35B-A3B-NVFP4 umgehängt.",
       "exclusiveGroup": "chat-gpu"
     },
     {
@@ -295,6 +296,7 @@
       "label": "Gemma 4 26B A4B QAT-Q4_K_XL · Durchsatz",
       "model": "gemma4-26A4-qat/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8092,
+      "enabled": false,
       "fit": {
         "enabled": true,
         "targetMarginMib": 64,
@@ -324,7 +326,7 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "QAT-Q4_K_XL Quant (15,2 GB). Gemessen bei np=1 mit q4_0 KV: 118.016 Kontext, 159-169 tok/s (30% schneller als IQ4_XS).",
+      "notes": "STILLGELEGT seit T014028 (2026-08-23): FreeToken-native ersetzt die llama-Loadouts als lokales Backend (Operator-Entscheid). Messwerte bleiben stehen.",
       "exclusiveGroup": "chat-gpu"
     },
     {
@@ -430,7 +432,7 @@
     }
   },
   "factory": {
-    "model": "qwen38-220k",
+    "model": "Qwen3.6-35B-A3B-NVFP4",
     "locked": false
   }
 }

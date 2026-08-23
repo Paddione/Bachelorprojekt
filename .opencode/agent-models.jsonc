@@ -63,18 +63,28 @@
             "context": 262144,
             "output": 8192
           }
-        },
-        "gemma26-throughput": {
-          "name": "Gemma 4 26B A4B QAT-Q4_K_XL (Durchsatz, Loadout gemma26-throughput auf Port 8092, gemessen 118.016 ctx, 159-169 tok/s) - exclusiveGroup chat-gpu",
+        }
+        // T014028: gemma26-throughput und qwen38-220k sind STILLGELEGT —
+        // FreeToken-native ersetzt die llama-Loadouts als lokales Backend
+        // (Provider "freetoken-local" unten). Die Loadout-Eintraege bleiben
+        // in scripts/llm/loadouts.json mit enabled:false stehen.
+      }
+    },
+    // ── FreeToken-native (Windows, MoE-Serving) ────────────────────────
+    // T014028: lokales Standard-Backend. OpenAI-compatible API auf :1919,
+    // Modell Qwen3.6-35B-A3B-NVFP4 (262.144 ctx nativ, elastisches KV).
+    // Kein apiKey noetig (localhost). Betrieb: docs/runbooks/freetoken-native.md.
+    "freetoken-local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "FreeToken-native (Qwen3.6-35B-A3B NVFP4, Windows)",
+      "options": {
+        "baseURL": "http://127.0.0.1:1919/v1"
+      },
+      "models": {
+        "Qwen3.6-35B-A3B-NVFP4": {
+          "name": "Qwen3.6-35B-A3B NVFP4 (FreeToken-native, gemessen ~103 tok/s warm, KV elastisch)",
           "limit": {
-            "context": 118016,
-            "output": 8192
-          }
-        },
-        "qwen38-220k": {
-          "name": "Qwen 3.8 27B UD-IQ3_XXS (Text, Loadout qwen38-220k auf Port 8094, 114.688 ctx) - exclusiveGroup chat-gpu",
-          "limit": {
-            "context": 114688,
+            "context": 262144,
             "output": 8192
           }
         }
@@ -352,9 +362,9 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -368,9 +378,9 @@
     // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
     // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -378,9 +388,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -394,9 +404,9 @@
     // Der Eintrag in der Permission-Liste weiter unten gehoert dazu: ohne ihn
     // existiert der Agent, ist aber nicht dispatchbar.
     "gemma12": {
-      "description": "Local subagent on qwen38-220k loadout (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094, via llm-proxy :18235). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
+      "description": "Local subagent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4 MoE, 262144 ctx nativ, elastisches KV, :1919). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch (np=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F0ABFC",
       "temperature": 0.4,
@@ -411,9 +421,9 @@
     // lokalen Familien dispatchbar — sequenziell, einer nach dem anderen.
     // Text-only: kein mmproj in diesem Loadout.
     "qwen38": {
-      "description": "Local subagent for the qwen38 family (Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 114688 ctx, via llm-proxy :18235). Text-only — no mmproj in this loadout. ONE parallel instance only: the loadout runs np=1 (single slot), so dispatch sequentially, never alongside another local agent (exclusiveGroup chat-gpu). Write-capable delegation.",
+      "description": "Local subagent for the qwen38 family — name retained as dispatch handle; faehrt seit T014028 FreeToken-native (Qwen3.6-35B-A3B-NVFP4, :1919). Text-only. Write-capable delegation.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.4,
@@ -442,9 +452,9 @@
     // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
     // Orchestrator davor.
     "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on qwen38-220k (Qwen 3.8 27B UD-IQ3_XXS, 114688 ctx, Port 8094). Text-only. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
+      "description": "Primary (Tab-selectable) local agent on FreeToken-native (Qwen3.6-35B-A3B-NVFP4, :1919). Text-only. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#6EE7B7",
       // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
@@ -465,9 +475,9 @@
     // "Kein mmproj." — der mmproj-Pfad wurde T002886 entfernt, weil die Datei
     // am erwarteten Pfad fehlte). Vision gibt es nur auf gemma12-vision (:8089).
     "gemma26-vision": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. No subagent dispatch — for focused local work that must stay on-device.",
+      "description": "PRIMARY: Qwen3.6-35B-A3B-NVFP4 (262.144 ctx nativ). Tab-selectable singleagent on FreeToken-native (:1919). Text-only. No subagent dispatch — for focused local work that must stay on-device.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#A78BFA",
       "temperature": 0.3,
@@ -493,9 +503,9 @@
     // opencode-routes-via-proxy.bats prueft die Deklaration gegen den LAUFENDEN
     // Server in einem +/-20-%-Korridor.
     "gptoss-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen3.6-35B-A3B-NVFP4 (262.144 ctx nativ). Tab-selectable singleagent on FreeToken-native (:1919). Text-only. Can dispatch subagents.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#34D399",
       "temperature": 0.3,
@@ -503,9 +513,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "devstral-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
+      "description": "PRIMARY: Qwen3.6-35B-A3B-NVFP4 (262.144 ctx nativ). Tab-selectable singleagent on FreeToken-native (:1919). Text-only. Can dispatch subagents.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#60A5FA",
       "temperature": 0.3,
@@ -513,29 +523,22 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "gemma12-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch any subagent.",
+      "description": "PRIMARY: Qwen3.6-35B-A3B-NVFP4 (262.144 ctx nativ). Tab-selectable singleagent on FreeToken-native (:1919). Text-only. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#F472B6",
       "temperature": 0.3,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
-    "gemma26-throughput-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx, Port 8094). Tab-selectable singleagent on the qwen38-220k loadout. Text-only. Can dispatch subagents.",
-      "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#FBBF24",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
+    // T014028: gemma26-throughput-primary entfernt — der Tab-Agent diente nur
+    // dem gleichnamigen Loadout auf :8092, das mit der FreeToken-Migration
+    // stillgelegt wurde. qwen38-primary deckt denselben Zweck ab.
     "qwen38-primary": {
-      "description": "PRIMARY: Qwen 3.8 27B UD-IQ3_XXS (114.688 ctx). Tab-selectable text-only singleagent on the qwen38-220k loadout (Port 8094). Can dispatch any subagent.",
+      "description": "PRIMARY: Qwen3.6-35B-A3B-NVFP4 (262.144 ctx nativ). Tab-selectable text-only singleagent on FreeToken-native (:1919). Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "freetoken-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/primary-agent.md}",
       "color": "#A855F7",
       "temperature": 0.3,

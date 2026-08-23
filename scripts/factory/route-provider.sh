@@ -17,15 +17,19 @@ SOURCE="${1:?source required}"; TIER="${2:?tier required}"
 
 PIN="$(factory_model_pin)"
 PIN_MODEL=""; PIN_LOCKED="0"
+# T014028: lokaler Default ist FreeToken-native (OpenAI-compatible, :1919),
+# nicht mehr der llama-Proxy auf :18235.
+FT_LOCAL_PROVIDER="freetoken"
+FT_LOCAL_BASEURL="http://127.0.0.1:1919/v1"
 if [[ -n "$PIN" ]]; then
   IFS=$'\t' read -r PIN_MODEL PIN_LOCKED <<< "$PIN"
   if [[ "$PIN_LOCKED" == "1" ]]; then
     echo "route-provider: Factory-Modell gesperrt auf '$PIN_MODEL' (source=$SOURCE tier=$TIER) — DB-Routing uebersprungen." >&2
-    printf '{"provider":"llamacpp","modelId":"%s","baseUrl":"http://127.0.0.1:18235","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":false}\n' "$PIN_MODEL"
+    printf '{"provider":"%s","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":false}\n' "$FT_LOCAL_PROVIDER" "$PIN_MODEL" "$FT_LOCAL_BASEURL"
     exit 0
   fi
 fi
-FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-qwen38-220k}}"
+FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}}"
 
 # Tier "opus": Modell aus der Registry, aber OHNE Slot-Claim.
 #
@@ -63,7 +67,7 @@ FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-qwen38-220k}}"
 # aussieht. Der Default zeigt jetzt auf 'gemma26-throughput' (Port 8092, geladen).
 # Dass es zweimal passierte, lag nicht am Wert, sondern daran, dass niemand
 # routing-check.sh aufrief — wakeup.sh tut das seither pro Tick (fail-soft).
-OPUS_FALLBACK=$'llamacpp\t'"$FACTORY_DEFAULT_MODEL"$'\thttp://127.0.0.1:18235'
+OPUS_FALLBACK=$'freetoken\t'"$FACTORY_DEFAULT_MODEL"$'\thttp://127.0.0.1:1919/v1'
 if [[ "$TIER" == "opus" ]]; then
   OPUS_ROW=$(factory_psql -v src="$SOURCE" 2>/dev/null <<'SQL' || true
 SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')
@@ -138,4 +142,4 @@ done <<< "$CANDS"
 # regulaere Weg; damit gibt es nur noch eine Stelle, die ein Modell benennen kann.
 echo "route-provider: ALLE Kandidaten fuer source=$SOURCE tier=$TIER belegt oder auf Cooldown." >&2
 echo "  Emergency-Fallback aktiv — pruefe 'bash scripts/factory/reap-provider-slots.sh --dry-run'." >&2
-printf '{"provider":"llamacpp","modelId":"%s","baseUrl":"http://127.0.0.1:18235","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n' "$FACTORY_DEFAULT_MODEL"
+printf '{"provider":"%s","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n' "$FT_LOCAL_PROVIDER" "$FACTORY_DEFAULT_MODEL" "$FT_LOCAL_BASEURL"

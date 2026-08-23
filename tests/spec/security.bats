@@ -63,14 +63,14 @@ setup() {
 import sys, yaml
 repo = sys.argv[1]
 targets = [
-    ("k3d/coturn-stack/janus.yaml", "janus"),
-    ("k3d/default/claude-code-mcp-monolith-deploy.yaml", "claude-code-mcp-monolith"),
-    ("k3d/dev-stack/brett-dev.yaml", "brett"),
-    ("k3d/dev-stack/website-dev.yaml", "website"),
-    ("k3d/staging-stack/website-staging.yaml", "website"),
+    ("k3d/coturn-stack/janus.yaml", "janus", True),
+    ("k3d/default/claude-code-mcp-monolith-deploy.yaml", "claude-code-mcp-monolith", False),
+    ("k3d/dev-stack/brett-dev.yaml", "brett", True),
+    ("k3d/dev-stack/website-dev.yaml", "website", True),
+    ("k3d/staging-stack/website-staging.yaml", "website", True),
 ]
 fails = []
-for rel, dep in targets:
+for rel, dep, expect_pod_nonroot in targets:
     docs = [d for d in yaml.safe_load_all(open(f"{repo}/{rel}")) if d]
     depdoc = next((d for d in docs if d.get("kind") == "Deployment"
                    and d["metadata"]["name"] == dep), None)
@@ -78,7 +78,9 @@ for rel, dep in targets:
         fails.append(f"{rel}: Deployment {dep} fehlt")
         continue
     sc = depdoc["spec"]["template"]["spec"].get("securityContext") or {}
-    if sc.get("runAsNonRoot") is not True:
+    # Monolith: Root-Container bleiben (annotierte Ausnahme) — pod-level runAsNonRoot
+    # wuerde das Pod an der Admission hindern; dort wird nur Seccomp assertiert.
+    if expect_pod_nonroot and sc.get("runAsNonRoot") is not True:
         fails.append(f"{rel}:{dep}: pod-level runAsNonRoot != true")
     secc = (sc.get("seccompProfile") or {}).get("type")
     if secc != "RuntimeDefault":

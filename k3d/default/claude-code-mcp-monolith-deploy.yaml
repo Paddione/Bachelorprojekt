@@ -31,7 +31,7 @@
       "metadata": {
         "annotations": {
           "kubectl.kubernetes.io/restartedAt": "2026-07-02T15:38:37+02:00",
-          "runasnonroot-exceptions.t015293/security": "# runAsNonRoot-Ausnahme: postgres: Runtime npm-install-g braucht root-owned /usr/local; playwright: dito; github: dito; github-binary (Init): schreibt Binary in shared emptyDir"
+          "runasnonroot-exceptions.t015293/security": "# runAsNonRoot-Ausnahme: postgres: Runtime npm-install-g braucht root-owned /usr/local; playwright: dito; github: dito; github-binary (Init): schreibt Binary in shared emptyDir. Pod-level runAsNonRoot bewusst NICHT gesetzt (wuerde die Root-Container an der Admission hindern); Non-root-Assertion nur container-scoped am kubernetes-Container."
         },
         "labels": {
           "app": "claude-code-mcp-monolith"
@@ -302,7 +302,6 @@
         "restartPolicy": "Always",
         "schedulerName": "default-scheduler",
         "securityContext": {
-          "runAsNonRoot": true,
           "seccompProfile": {
             "type": "RuntimeDefault"
           }

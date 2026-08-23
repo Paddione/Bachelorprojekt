@@ -21,6 +21,7 @@ _Ticket: T015293 · SA-GR-06 Rest-Scope (7 Deployments)_
 | D6 | janus-Risiko (hostNetwork, Image-Internals)? | **Harden mit Rollout-Verifikation; Kontingenz: Ausnahme-Marker** | Ports >1024, keine Runtime-Writes erkennbar. Falls Runtime-Writes (/var/run/janus) scheitern, Downgrade auf Marker — Delta-Spec bleibt erfüllt. startupProbe tcp/8188 liefert das Execute-Signal. |
 | D7 | Test-Placement | `tests/spec/security.bats` (python3+yaml-Stil wie collabora-Guard) | SSOT-Mapping: Delta hängt an openspec/specs/security.md. |
 | D8 | Plan-Form & Verifikation | **Single-Partial** (kein tasks.d/); `task workspace:validate` + Rollout-Smoke im Execute | 8 kleine Dateiänderungen, ehrliches Red-Green in einem Executor. |
+| D9 | Monolith: pod-level runAsNonRoot? | **NEIN — nur container-scoped am `kubernetes`-Container** | Execute-Review-Fund: pod-level `runAsNonRoot: true` validiert ALLE Container auf uid≠0; die annotierten Root-Container (postgres/playwright/github) würden das gesamte Pod an der Admission hindern (CreateContainerConfigError). Pod-Level trägt daher nur Seccomp RuntimeDefault; die Non-root-Assertion ist container-scoped. Delta-Spec hat ein eigenes Scenario „Gemischtes Deployment". |
 
 ## Befund-Evidenz
 

@@ -10,13 +10,25 @@ oder mit einem expliziten, maschinenprüfbaren Ausnahme-Kommentar
 
 #### Scenario: Gehardenedes Deployment
 
-- **GIVEN** die Deployments janus, claude-code-mcp-monolith (Container
-  `kubernetes`), brett (dev), website (dev) und website (staging)
+- **GIVEN** die Deployments janus, brett (dev), website (dev) und website
+  (staging)
 - **WHEN** deren securityContext geprüft wird
 - **THEN** tragen sie pod-level `runAsNonRoot: true` +
   `seccompProfile: {type: RuntimeDefault}`
 - **AND** ihre Container tragen `runAsNonRoot: true`, `runAsUser: 1000` und
   `allowPrivilegeEscalation: false`
+
+#### Scenario: Gemischtes Deployment (Monolith)
+
+- **GIVEN** das Deployment claude-code-mcp-monolith mit dem gehardeneden
+  Container `kubernetes` und den als Ausnahme dokumentierten Root-Containern
+  postgres, playwright, github (+ Init github-binary)
+- **WHEN** dessen securityContext geprüft wird
+- **THEN** trägt es pod-level `seccompProfile: {type: RuntimeDefault}`
+- **AND** pod-level `runAsNonRoot` ist bewusst NICHT gesetzt (würde die
+  annotierten Root-Container an der Admission hindern)
+- **AND** der Container `kubernetes` trägt container-level `runAsNonRoot:
+  true`, `runAsUser: 1000`, `allowPrivilegeEscalation: false`
 
 #### Scenario: Dokumentierte Ausnahme
 

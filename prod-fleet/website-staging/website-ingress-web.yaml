@@ -1,0 +1,56 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-ingress-web
+  namespace: website-staging
+  annotations:
+    # T002052 pattern: use the website-scoped security-headers (no noindex) so the
+    # public site stays crawlable. Internal services keep workspace-security-headers.
+    # T015004: middleware namespace prefixes are envsubst-resolved from the staging
+    # profile (${WORKSPACE_NAMESPACE}=workspace-staging, ${WEBSITE_NAMESPACE}=
+    # website-staging) instead of the hardcoded prod namespaces in the brand clones.
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      ${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WEBSITE_NAMESPACE}-website-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-web@kubernetescrd,${WEBSITE_NAMESPACE}-website-compress@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - web.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: web.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-ingress-astro
+  namespace: website-staging
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      ${WEBSITE_NAMESPACE}-website-compress@kubernetescrd,${WEBSITE_NAMESPACE}-website-static-cache@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - web.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: web.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /_astro/
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80

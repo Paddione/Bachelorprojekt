@@ -4255,6 +4255,12 @@
       "status": "plan_staged"
     }
   ],
+  "T015004": [
+    {
+      "slug": "staging-verdrahtung",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

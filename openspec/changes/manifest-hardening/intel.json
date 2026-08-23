@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "manifest-hardening",
+    "ticket_id": "T014553",
+    "generated_from": "main@d3c4bc6f4",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "k3d/README.md",
+      "language": "markdown",
+      "loc": 44,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod/monitoring/resource-limits-patch.yaml",
+      "language": "config",
+      "loc": 13,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/rustdesk-stack/hbbs.yaml",
+      "language": "config",
+      "loc": 69,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/rustdesk-stack/hbbr.yaml",
+      "language": "config",
+      "loc": 48,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sessions-server.yaml",
+      "language": "config",
+      "loc": 97,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/llm-gpu.yaml",
+      "language": "config",
+      "loc": 318,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/rustdesk-server.bats",
+      "language": "bash",
+      "loc": 204,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sessions-server.bats",
+      "language": "bash",
+      "loc": 10,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-pipeline.bats",
+      "language": "bash",
+      "loc": 631,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/monitoring-alerts.bats",
+      "language": "bash",
+      "loc": 124,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/rustdesk-server.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/rustdesk-server.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline.bats:59:dev_llm_host_ip() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline.bats",
+      "signature": "59:dev_llm_host_ip() {(...)",
+      "type_text": "59:dev_llm_host_ip() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline.bats:115:_skip_if_no_llm_gateway() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline.bats",
+      "signature": "115:_skip_if_no_llm_gateway() {(...)",
+      "type_text": "115:_skip_if_no_llm_gateway() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline.bats:253:assert_var_not_declared() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline.bats",
+      "signature": "253:assert_var_not_declared() {(...)",
+      "type_text": "253:assert_var_not_declared() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/monitoring-alerts.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/monitoring-alerts.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

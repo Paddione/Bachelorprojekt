@@ -1538,6 +1538,22 @@ HTTP 400 ab; die Admin-UI rendert einen `startUrl`-Wert nur bei http(s)-Schema a
 **THEN** wird der Wert als Text ohne `<a href>` dargestellt, während ein `https:`-Wert
 weiterhin als Link gerendert wird.
 
+### Requirement: LLM-GPU-Deployments laufen als Non-Root
+
+Die Deployments in `k3d/llm-gpu.yaml` (bge-embed, bge-rerank) MÜSSEN auf Pod-Ebene
+`runAsNonRoot: true` setzen. Das bestehende `fsGroup: 101` (PVC-Gruppenzugriff für die
+Modelldateien) bleibt unverändert — Kubernetes fügt es jedem Container als Supplemental
+Group hinzu, sodass der llama.cpp-Server als non-root-UID weiterhin lesend auf `/models`
+zugreifen kann. Die Init-Container laufen bereits als uid 100 (curl_user) und bleiben
+unverändert.
+
+#### Scenario: llm-gpu-Manifest deklariert Non-Root
+
+- **GIVEN** das Deployment-Manifest `k3d/llm-gpu.yaml`
+- **WHEN** der Pod-Spec eines Deployments (bge-embed oder bge-rerank) geprüft wird
+- **THEN** enthält er `securityContext.runAsNonRoot: true`
+- **AND** das bestehende `securityContext.fsGroup: 101` ist erhalten
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1981,3 +1997,5 @@ The system SHALL require authentication for all coaching knowledge admin endpoin
 <!-- merged from change delta llm-pipeline.md (0360526d37a5) -->
 
 <!-- merged from change delta llm-pipeline.md (e13ca93d3126) -->
+
+<!-- merged from change delta llm-pipeline.md (66ec90517830) -->

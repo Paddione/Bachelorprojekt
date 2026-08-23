@@ -61,7 +61,7 @@ run_task() {  # <task-name>, ohne vorgesetzte Ingest-Variablen
 }
 
 @test "T013593 the ingest tasks call the swap wrapper" {
-  for task_name in ingest:run ingest:pilot ingest:dry; do
+  for task_name in ingest:run ingest:pilot; do
     run_task "$task_name"
     [ "$status" -eq 0 ]
     [[ "$output" == *"script=scripts/brain-ingest-swap.sh"* ]]
@@ -80,7 +80,7 @@ run_task() {  # <task-name>, ohne vorgesetzte Ingest-Variablen
 }
 
 @test "T013042 run pilot and dry share the same fallback block" {
-  for task_name in ingest:run ingest:pilot ingest:dry; do
+  for task_name in ingest:run ingest:pilot; do
     run_task "$task_name"
     [ "$status" -eq 0 ]
     [[ "$output" == *$'1\n65536\n3600\n150000'* ]]

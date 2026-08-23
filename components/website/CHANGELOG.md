@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.311.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.310.0...website-v1.311.0) (2026-08-23)
+
+
+### Features
+
+* **infra:** runAsNonRoot hardening followup for 7 deployments [T015293] ([#5186](https://github.com/Paddione/Bachelorprojekt/issues/5186)) ([0d74cb3](https://github.com/Paddione/Bachelorprojekt/commit/0d74cb3cdadcd2b38a2c37cff617b4f58760d7b7))
+
 ## [1.310.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.309.1...website-v1.310.0) (2026-08-23)
 
 

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2252 · Scenarios: 5007
+Specs: 144 · Requirements: 2253 · Scenarios: 5011
 
 ## factory-pipeline
 
@@ -926,15 +926,13 @@ Last touches:
   - Routing checks use only enabled provider configurations | T014552 | 2026-08-23 | ADDED
 
 ### rustdesk-server
-Reqs: 8 · Scenarios: 12 · Lines: 155
+Reqs: 9 · Scenarios: 16 · Lines: 194
 Last touches:
   - RustDesk-Server-Pods laufen als Non-Root | T014553 | 2026-08-23 | ADDED
   - NetworkPolicy-Bypass-Ausnahme ist dokumentiert | T014553 | 2026-08-23 | ADDED
+  - REQ-RUSTDESK-RELAY-007 — On-Demand-Lifecycle für hbbs/hbbr | T015170 | 2026-08-23 | ADDED
   - REQ-RUSTDESK-WEB-001 — SSO-gegateter Web-Client-Zugriff | T012645 | 2026-08-20 | MODIFIED
   - REQ-RUSTDESK-RELAY-004 — Minimale Portfläche ohne Web-Client | T001381 | 2026-08-02 | RENAMED
-  - REQ-RUSTDESK-RELAY-006 — Secret-Rotation-Runbook für hbbs subPath-Mount | T001382 | 2026-07-02 | ADDED
-In-flight:
-  - REQ-RUSTDESK-RELAY-007 — On-Demand-Lifecycle für hbbs/hbbr | T015170 | active | ADDED
 
 ### scripts
 Reqs: 6 · Scenarios: 9 · Lines: 107

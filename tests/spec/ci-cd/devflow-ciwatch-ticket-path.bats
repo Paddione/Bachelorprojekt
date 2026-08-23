@@ -63,6 +63,7 @@ case "$args" in
   *"--json mergeStateStatus"*) echo "CLEAN" ;;
   *"--json mergeable"*) echo "MERGEABLE" ;;
   *"--json state -q .state") cat "$MARKER_DIR/pr-state" 2>/dev/null || echo "OPEN" ;;
+  *"--json headRefName -q .headRefName") echo "feature/stub-branch" ;;
   *"--json headRefOid -q .headRefOid")
     if [[ -f "$MARKER_DIR/mock-head-ref-oid" ]]; then cat "$MARKER_DIR/mock-head-ref-oid"
     else git -C "$WORK" rev-parse HEAD; fi

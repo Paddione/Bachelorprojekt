@@ -36,6 +36,12 @@ Get-Process ft | Stop-Process -Force
 
 Bereitschaft: Log-Zeile `API server is ready to serve on 0.0.0.0:1919`.
 
+**KV-Budget:** Ohne Größenflag wählt `--moe-cache-auto` nur ~8200 KV-Tokens
+(0,16 GiB) — Requests über `prompt + generation > 8199` werden mit
+`context_length_exceeded` abgewiesen (beobachtet beim Brain-Ingest,
+2026-08-23). Für große Prompts explizit setzen, z. B. `--num-tokens 32768`
+(kostet ~0,62 GiB VRAM; Log-Zeile `Allocating N tokens for KV cache`).
+
 ## Messwerte (2026-08-23)
 
 | Metrik | Wert |

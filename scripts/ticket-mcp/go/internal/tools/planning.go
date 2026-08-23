@@ -12,6 +12,11 @@ import (
 	"github.com/korczewski/bachelorprojekt/ticket-mcp/internal/runner"
 )
 
+// readinessFlags ist die gemeinsame Quelle für Schema-Enum und Handler-Validierung
+// von set_readiness_flag [T014842]: Drift zwischen beidem war die Ursache dafür, dass
+// MCP-Clients factory_excluded nicht senden konnten, obwohl der Handler es akzeptierte.
+var readinessFlags = []string{"spec_skizziert", "abhaengigkeiten_klar", "offene_fragen_geklaert", "aufwand_geschaetzt", "lastenheft_locked", "factory_excluded", "execution_released"}
+
 func RegisterPlanningTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("set_plan_meta",
@@ -75,12 +80,12 @@ func RegisterPlanningTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("set_readiness_flag",
-			mcp.WithDescription("Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked)."),
+			mcp.WithDescription("Setzt ein einzelnes Readiness-Flag (" + strings.Join(readinessFlags, ", ") + ")."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
-			mcp.WithString("flag", mcp.Description("spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked"),
-				mcp.Enum("spec_skizziert", "abhaengigkeiten_klar", "offene_fragen_geklaert", "aufwand_geschaetzt", "lastenheft_locked"),
+			mcp.WithString("flag", mcp.Description(strings.Join(readinessFlags, ", ")),
+				mcp.Enum(readinessFlags...),
 				mcp.Required(),
 			),
 			mcp.WithBoolean("value", mcp.Description("true oder false"), mcp.Required()),
@@ -95,9 +100,8 @@ func RegisterPlanningTools(s *server.MCPServer) {
 			flag, _ := a["flag"].(string)
 			value, _ := a["value"].(bool)
 
-			validFlags := []string{"spec_skizziert", "abhaengigkeiten_klar", "offene_fragen_geklaert", "aufwand_geschaetzt", "lastenheft_locked", "factory_excluded", "execution_released"}
-			if !slices.Contains(validFlags, flag) {
-				return mcp.NewToolResultError(fmt.Sprintf("Ungültiger flag: %s. Erlaubt: %s", flag, strings.Join(validFlags, ", "))), nil
+			if !slices.Contains(readinessFlags, flag) {
+				return mcp.NewToolResultError(fmt.Sprintf("Ungültiger flag: %s. Erlaubt: %s", flag, strings.Join(readinessFlags, ", "))), nil
 			}
 
 			readiness := fmt.Sprintf("%s=%t", flag, value)

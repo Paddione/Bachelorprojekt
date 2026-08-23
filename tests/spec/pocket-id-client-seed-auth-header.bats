@@ -22,7 +22,10 @@ setup() {
   # The bug: AUTH="Authorization: Bearer ${POCKET_ID_API_KEY}" makes every
   # admin API call 401 regardless of key validity. Pocket ID v2.9.0 requires
   # X-API-KEY instead.
-  run grep -qE 'AUTH="X-API-KEY: \$\{POCKET_ID_API_KEY\}"' "$MANIFEST"
+  # [T015100] Das Manifest schuetzt ${POCKET_ID_API_KEY} gegen envsubst
+  # ($$-Escaping im kustomize/patch-Pfad) — der Kontrakt akzeptiert daher
+  # sowohl "$${POCKET_ID_API_KEY}" als auch "${POCKET_ID_API_KEY}".
+  run grep -qE 'AUTH="X-API-KEY: [$][$]?\{POCKET_ID_API_KEY\}"' "$MANIFEST"
   [ "$status" -eq 0 ]
 }
 

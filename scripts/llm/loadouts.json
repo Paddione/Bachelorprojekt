@@ -445,6 +445,52 @@
       "extraArgs": [],
       "managed": "external",
       "notes": "Extern verwalteter FreeToken-Server (T014028): Windows-nativ detached, OpenAI-kompatible API auf :1919/v1, kein systemd-Unit, kein llama-server. Liveness ueber Port-Probe; Start/Stop siehe docs/runbooks/freetoken-native.md. Gemessen: 262.144 Kontext (~103 tok/s warm). factory.model verweist auf diesen Slug, weil die Factory-Registry nur Loadout-Slugs kennt."
+    },
+    {
+      "slug": "hauhau-qwen36",
+      "label": "Qwen3.6-35B-A3B Uncensored (HauhauCS Aggressive) Q4_K_M - 131K, MoE-CPU-Offload",
+      "model": "hauhau/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf",
+      "port": 8097,
+      "enabled": false,
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": 256,
+        "minCtx": 131072
+      },
+      "args": {
+        "ctx": 131072,
+        "ngl": 999,
+        "parallel": 1,
+        "cacheTypeK": "q4_0",
+        "cacheTypeV": "q4_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null,
+        "temperature": 1,
+        "topP": 0.95,
+        "topK": 20
+      },
+      "speculative": {
+        "specType": null,
+        "draftModelPath": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [
+        "--no-context-shift",
+        "-b",
+        "2048",
+        "-ub",
+        "512",
+        "--n-cpu-moe",
+        "999"
+      ],
+      "notes": "Uncensored Abliteration von HauhauCS (0/465 Refusals, imatrix-Quants), empfohlen gegen LuffyTheFox Genesis V10 (davon abgeleitet, unverifiziertes SVD-Verfahren). GGUF-only -> FreeToken kann Qwen3.6-GGUF nicht laden (nur Gemma-4), laeuft daher ueber llama.cpp. --n-cpu-moe 999 haelt alle Experten im RAM (~17 GB), Attention+KV auf der GPU; GDN-Hybrid macht KV guenstig (20 KiB/Token vollattention-only). Vision via mmproj-hauhau/mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf bewusst NICHT aktiviert (VRAM, Text-only-Nutzung) - bei Bedarf --mmproj in extraArgs ergaenzen. Download: huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive (Q4_K_M, 21 GB). Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start. Noch nicht gemessen - ctx/Durchsatz nach Erststart kalibrieren."
     }
   ],
   "roles": {

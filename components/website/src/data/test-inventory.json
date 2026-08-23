@@ -2778,6 +2778,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/gitlab-ci-image-refs",
+    "file": "tests/spec/ci-cd/gitlab-ci-image-refs.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/gitlab-job-coverage",
     "file": "tests/spec/ci-cd/gitlab-job-coverage.bats",
     "category": "ci-cd",
@@ -5372,6 +5378,12 @@
   {
     "id": "software-factory/retry-limit",
     "file": "tests/spec/software-factory/retry-limit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/runtime-drift-notify",
+    "file": "tests/spec/software-factory/runtime-drift-notify.bats",
     "category": "software-factory",
     "kind": "shell"
   },

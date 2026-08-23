@@ -11,6 +11,8 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -27,11 +29,49 @@ import (
 
 // ---------- env ----------
 
+// buildInfo wird per -ldflags "-X main.buildInfo=..." eingesetzt (Taskfile
+// agents:factory-mcp:start). Leer = Dev-Build ohne Versionsembedding [T014940].
+var buildInfo string
+
 func envOr(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
 	return def
+}
+
+// ---------- Staleness-Selbstcheck [T014940] ----------
+//
+// Der Operator will DEUTLICH gewarnt werden, wenn ein laufender MCP-Prozess
+// eine alte Binary hält (real am 2026-08-23: ticket-mcp-Session auf alter
+// Inode nach Rebuild). Der Server kann das selbst messen: /proc/self/exe
+// zeigt auf den Inode-INHALT des gestarteten Binaries, os.Executable() auf
+// denselben Pfad — liest man beides und unterscheiden sich die Hashes, hat
+// jemand neu gebaut, während dieser Prozess alt blieb.
+
+func hashFile(path string) string {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	sum := sha256.Sum256(b)
+	return hex.EncodeToString(sum[:])
+}
+
+// serverStale vergleicht den eigenen Prozess-Binary-Inhalt mit dem File on
+// disk. Fail-open bei unlesbaren Pfaden (false): fehlende Messung ist kein
+// Drift-Urteil — dieselbe Regel wie im runtime-drift-check.sh §1.
+func serverStale() bool {
+	exe, err := os.Executable()
+	if err != nil || exe == "" {
+		return false
+	}
+	hProc := hashFile("/proc/self/exe")
+	hDisk := hashFile(exe)
+	if hProc == "" || hDisk == "" {
+		return false
+	}
+	return hProc != hDisk
 }
 
 func repo() string   { return envOr("FACTORY_REPO", "/home/patrick/Bachelorprojekt") }
@@ -176,7 +216,15 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"ok":true,"server":"factory-mcp"}`))
+		stale := serverStale()
+		if stale {
+			// Deutlich sichtbar: Log-Zeile bei jeder Health-Probe, solange der
+			// Prozess alt ist. Der Operator soll den Zustand nicht übersehen.
+			log.Printf("WARNUNG: laufender factory-mcp hält eine ALTE Binary (build=%q) — Neustart: task agents:factory-mcp:start", buildInfo)
+		}
+		resp := map[string]any{"ok": true, "server": "factory-mcp", "build": buildInfo, "stale": stale}
+		b, _ := json.Marshal(resp)
+		_, _ = w.Write(b)
 	})
 	mux.HandleFunc("/mcp", handleMCP)
 	addr := "127.0.0.1:" + port()
@@ -465,6 +513,9 @@ func toolFactoryStatus() (string, bool, error) {
 		"backlog_total":     atoiOrRaw(backlogTotal),
 		"plan_staged_total": atoiOrRaw(planStagedTotal),
 		"tick_running":      strings.TrimSpace(lockHeld) == "true",
+		// [T014940] true = dieser Server-Prozess hält eine alte Binary (Rebuild
+		// während Laufzeit). Jede Session, die factory_status ruft, sieht es.
+		"server_stale": serverStale(),
 	}
 	b, _ := json.MarshalIndent(out, "", "  ")
 	return string(b), false, nil

@@ -403,6 +403,16 @@ EOF
   systemctl --user start --no-block factory.service 2>/dev/null || true
 }
 
+cmd_seq_repair() {
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_seq-repair-sql.sh"
+  if _ticket_offline_skip "seq-repair"; then return 0; fi
+  local pod; pod=$(_pgpod)
+  echo "Repairing tickets.external_id_seq against max numeric external_id..."
+  local out
+  out=$(_exec_sql "$pod" <<< "$(_seq_repair_sql)")
+  echo "external_id_seq now at: $out"
+}
+
 cmd_set_touched_files() {
   local id="" files=""
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -1078,6 +1088,7 @@ case "$cmd" in
   enqueue)           cmd_enqueue "$@" ;;
   stage-plan)        cmd_stage_plan "$@" ;;
   release-hold)      cmd_release_hold "$@" ;;
+  seq-repair)        cmd_seq_repair "$@" ;;
   assert-phase-chain) cmd_assert_phase_chain "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;
   unfactory)         cmd_unfactory "$@" ;;

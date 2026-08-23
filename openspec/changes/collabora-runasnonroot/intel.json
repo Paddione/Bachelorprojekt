@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "slug": "collabora-runasnonroot",
+    "ticket_id": "T014549",
+    "generated_by": "manual (orchestrator) — plan-intel.sh kann in Single-Mode-Plänen (ohne tasks.d/-Manifest) keine target_files ableiten",
+    "generated_at": "2026-08-23"
+  },
+  "impact_files": [
+    {
+      "path": "k3d/office-stack/collabora.yaml",
+      "loc": 119,
+      "s1_limit": null,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "note": "Änderung: +1 Zeile (runAsNonRoot: true) im Container-securityContext"
+    },
+    {
+      "path": "tests/spec/collabora-integration.bats",
+      "loc": 8,
+      "s1_limit": null,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "note": "Ersetzt Stub (8 Zeilen) durch echten Guard-Test"
+    }
+  ],
+  "symbols": [],
+  "call_graph": [],
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    "plan-intel.sh lieferte keine automatischen Symbole/Budgets (Single-Mode-Plan ohne tasks.d/) — Executor liest die beiden kleinen Zieldateien direkt",
+    "allowPrivilegeEscalation darf NICHT auf false gesetzt werden (Setcap-/User-Namespace-Design, design.md D2) — Regression würde collabora beim Start brechen",
+    "Namespace-PSA ist privileged; AppArmor/Seccomp Unconfined sind bewusst so (dokumentiert im Manifest-Kommentar)"
+  ]
+}

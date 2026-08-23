@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-95 Services · 1923 Abhängigkeitskanten · 291 API-Endpoints
+96 Services · 2007 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -15,6 +15,7 @@ flowchart LR
   admin_actions_prune["admin-actions-prune"]:::default
   sessions_purge["sessions-purge"]:::default
   db_backup["db-backup"]:::default
+  db_restore_verify["db-restore-verify"]:::default
   brain["brain"]:::default
   brett["brett"]:::default
   coturn["coturn"]:::default
@@ -115,6 +116,7 @@ flowchart LR
   db_backup -->|"command"| nextcloud
   db_backup -->|"command"| vaultwarden
   db_backup -->|"command"| website
+  db_restore_verify -->|"command"| shared_db
   brett -->|"DATABASE_URL"| shared_db
   brett -->|"DATABASE_URL"| website
   billing_dunning_detection -->|"command"| website
@@ -236,8 +238,6 @@ flowchart LR
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   mentolder_web -->|"selector"| mentolder_web
   blackbox_exporter -->|"selector"| blackbox_exporter
-  monitoring_kube_state_metrics -->|"selector"| monitoring_kube_state_metrics
-  monitoring_operator -->|"selector"| monitoring_operator
   otel_collector -->|"selector"| otel_collector
   nextcloud_redis -->|"selector"| nextcloud_redis
   ntfy -->|"selector"| ntfy
@@ -261,6 +261,8 @@ flowchart LR
   sessions_purge -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| billing_dunning_detection
@@ -340,6 +342,8 @@ flowchart LR
   sessions_purge -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| billing_dunning_detection
@@ -417,6 +421,8 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| admin_actions_prune
   sessions_purge -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| billing_dunning_detection
@@ -493,6 +499,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| sessions_purge
+  db_backup -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| billing_dunning_detection
@@ -566,6 +574,81 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| db_backup
+  db_restore_verify -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| error_log_retention
+  error_log_retention -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_docs
+  oauth2_proxy_docs -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_downloads
+  oauth2_proxy_downloads -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
+  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_terminal
+  oauth2_proxy_terminal -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| pocket_id
+  pocket_id -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| sdlc_console
+  sdlc_console -->|"secret:workspace-s…"| db_restore_verify
+  shared_db -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| db_restore_verify
   brett -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| monthly_billing
@@ -1983,6 +2066,7 @@ flowchart TB
     admin_actions_prune(["admin-actions-prune"])
     sessions_purge(["sessions-purge"])
     db_backup(["db-backup"])
+    db_restore_verify(["db-restore-verify"])
     brain["brain"]
     brett["brett"]
     billing_dunning_detection(["billing-dunning-detection"])

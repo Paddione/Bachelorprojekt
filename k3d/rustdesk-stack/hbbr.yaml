@@ -26,12 +26,21 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       nodeSelector:
         kubernetes.io/hostname: ${TURN_NODE}
+      # Non-Root (SA-GR-06), analog hbbs: Ports 21117/21119 sind
+      # unprivilegiert; workingDir /var/lib/rustdesk auf emptyDir, da
+      # /root (Mode 700) fuer uid 65534 unlesbar ist.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: hbbr
           image: rustdesk/rustdesk-server:1.1.16@sha256:8ecdab65deb7c84652a626380e31d11a8f1fbafd97916d57f95c20628f943c00
           imagePullPolicy: IfNotPresent
           command: ["hbbr"]
-          workingDir: /root
+          workingDir: /var/lib/rustdesk
           ports:
             - containerPort: 21117
               hostPort: 21117
@@ -39,6 +48,13 @@ spec:
             - containerPort: 21119
               hostPort: 21119
               protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: workdir
+              mountPath: /var/lib/rustdesk
           resources:
             requests:
               memory: 32Mi
@@ -46,3 +62,6 @@ spec:
             limits:
               memory: 128Mi
               cpu: "200m"
+      volumes:
+        - name: workdir
+          emptyDir: {}

@@ -102,6 +102,7 @@ _FRESHNESS_FILES=(
   components/website/src/lib/learning-assets.generated.json
   components/website/public/learning-assets/THIRD-PARTY-ASSETS.md
   components/website/src/data/openspec-status.json
+  docs/spec-atlas.md
   docs/diagrams/architecture.md
   components/website/src/lib/sdlc/goals-data.generated.json
   docs/agent-guide/10-ziele.md

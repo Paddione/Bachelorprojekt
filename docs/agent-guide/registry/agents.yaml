@@ -134,7 +134,12 @@ runtimes:
     mode: primary
     model: opencode-zen/laguna-s-2.1-free
     write_capable: true
-    note: "PRIMARY: Ox Alpha Free next to big-pickle — second free-tier Zen agent on laguna-s-2.1-free (Poolside agentic coding model, 256k ctx per models.dev, live-smoke-tested 2026-08-22; deepseek-v4-flash-free was tested in the same run and is upstream-unavailable). Same subagent dispatch set as the orchestrator."
+    note: "PRIMARY: Ox Alpha Free next to big-pickle — second free-tier Zen agent on laguna-s-2.1-free (Poolside agentic coding model, 256k ctx per models.dev, live-smoke-tested 2026-08-22; deepseek-v4-flash-free was tested in the same run and is upstream-unavailable). Since 2026-08-23 dispatches ONLY ox-alpha subagents."
+  ox-alpha:
+    mode: subagent
+    model: opencode-zen/laguna-s-2.1-free
+    write_capable: true
+    note: "Subagent twin of ox-alpha-free on the same laguna-s-2.1-free model [2026-08-23] — sole dispatch target of ox-alpha-free, keeping parallel work in the same free-tier family."
   deepseek-helper:
     mode: subagent
     model: deepseek/deepseek-v4-flash

@@ -189,6 +189,11 @@ jobs:
 
       - name: Ensure freshness artifacts are up to date
         if: github.event_name == 'pull_request'
+        env:
+          # T015249: baseline-key-count-assertion.mjs liest den PR-Body via
+          # `gh pr view`. Ohne Token ist gh auf dem Hosted Runner unauthentifiziert,
+          # der stumme Catch liefert '' und der Guard meldet fälschlich "Tag fehlt".
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if ! task freshness:check; then
             echo ""

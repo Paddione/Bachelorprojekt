@@ -15,6 +15,10 @@
 # lives there, not in workspace). The kustomize top-level `namespace: workspace`
 # transformer would otherwise force these into the wrong ns, so this manifest is
 # applied separately by `task workspace:deploy` via envsubst (see Taskfile).
+#
+# [T014541] All three jobs are SUSPENDED on purpose (staging systemtest pipeline
+# dormant since ~2026-06-26). Registered exception — see
+# docs/runbooks/flux-suspensions.md before unsuspending.
 ---
 
 apiVersion: batch/v1
@@ -26,6 +30,8 @@ metadata:
     app: cronjobs
 spec:
   schedule: "0 * * * *"
+  # [T014541] Suspended on purpose — registry: docs/runbooks/flux-suspensions.md
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -82,6 +88,8 @@ metadata:
     app: cronjobs
 spec:
   schedule: "0 */6 * * *"
+  # [T014541] Suspended on purpose — registry: docs/runbooks/flux-suspensions.md
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -138,6 +146,8 @@ metadata:
     app: cronjobs
 spec:
   schedule: "*/5 * * * *"
+  # [T014541] Suspended on purpose — registry: docs/runbooks/flux-suspensions.md
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3

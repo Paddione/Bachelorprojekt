@@ -40,6 +40,7 @@ k3d/docs-content-built/**                     merge=ours linguist-generated=true
 # collide on rebase. Keeping the branch version is always safe since CI will
 # regenerate the canonical artifact post-merge (<https://github.com/Paddione/Bachelorprojekt/actions/workflows/freshness-regen.yml>).
 components/website/src/data/openspec-status.json         merge=ours linguist-generated=true
+docs/spec-atlas.md                                       merge=ours linguist-generated=true
 components/website/src/data/test-inventory.json          merge=ours linguist-generated=true
 components/website/src/data/api-inventory.json           merge=ours linguist-generated=true
 design/leitstand-ds/_tokens.css                          merge=ours linguist-generated=true

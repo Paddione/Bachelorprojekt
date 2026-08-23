@@ -62,3 +62,56 @@ Migrationen liegen historisch in fünf Verzeichnissen (`scripts/migrations/`,
 (OpenSpec-Change `migrations-factory-runner`) konsolidiert davon nur
 `scripts/migrations/` ↔ `website/src/db/migrations/` — `scripts/datamodel/` und
 `scripts/one-shot/` bleiben unkonsolidiert und gehören in jedes künftige Audit.
+
+## Restore-Verifikation (G-DB05) [T014544]
+
+**Zweck:** Ein Backup ohne Restore-Test ist eine Hypothese. Der CronJob
+`db-restore-verify` (`k3d/backup-restore-verify-cronjob.yaml`) stellt wöchentlich
+die jüngste verschlüsselte Dump-Generation aus `backup-pvc` in Wegwerf-Datenbanken
+auf `shared-db` wieder her und protokolliert das Ergebnis als maschinenlesbaren
+Evidence-Log — damit ist G-DB05 (Restore-Test-Frequenz) automatisiert nachweisbar.
+
+**Schedule:** `30 3 * * 0` (sonntags 03:30 UTC, nach dem täglichen 02:00-Backup).
+`concurrencyPolicy: Forbid`; der Job schreibt ausschließlich auf Datenbanken mit
+Prefix `restore_verify_` und löscht diese immer (per-DB sofort + EXIT-Trap als
+Schutznetz), auch bei Teilerfolg.
+
+**Ablauf je Datenbank:** jüngstes `/backups/<stamp>`-Verzeichnis ermitteln
+(lexikografische Sortierung = chronologische Ordnung; `.done`-Marker liegen auf
+dem per-Pod emptyDir und erreichen das PVC nie) → AES-decrypten
+(`BACKUP_PASSPHRASE`) → `pg_restore --no-owner --no-privileges` in
+`restore_verify_<db>` → Verifikation gilt nur als **ok**, wenn pg_restore Exit 0
+liefert UND `information_schema.tables` > 0 Zeilen in `public` zählt.
+
+**JSONL-Schema** (`/backups/restore-verification.jsonl`, eine Zeile pro DB):
+
+| Feld | Bedeutung |
+|---|---|
+| `stamp` | Backup-Generation (`YYYYMMDD-HHMMSS`), die verifiziert wurde |
+| `db` | Datenbankname (aus `<db>.dump.enc`) |
+| `status` | `ok` oder `fail` |
+| `duration_s` | Dauer des Decrypt+Restore+Verify-Laufs in Sekunden |
+| `tables_restored` | Anzahl Tabellen in Schema `public` der Wegwerf-DB |
+
+Beispielzeile:
+
+```json
+{"stamp":"20260823-020001","db":"website","status":"ok","duration_s":42,"tables_restored":37}
+```
+
+**Manuelle Auswertung:**
+
+```bash
+kubectl -n workspace exec deploy/db-backup -- tail -n 20 /backups/restore-verification.jsonl
+# bzw. gegen einen frischen Verify-Pod:
+kubectl -n workspace get pods -l app=db-restore-verify
+```
+
+**Interpretation eines fehlgeschlagenen Laufs:** Der Job endet bewusst non-zero
+(fail-loud), wenn mindestens eine DB `fail` verzeichnet — der Fehler wird so als
+Failed Job sichtbar statt still geschluckt. `status:"fail"` mit Decrypt-Fehler
+deutet auf Passphrase-/Encrypt-Drift hin; `pg_restore`-Fehler auf korrupte Dumps;
+Exit 0 mit `tables_restored: 0` auf einen leeren/falschen Dump. In jedem Fall:
+zugehörige `*.dump.enc` der Generation prüfen, Backup-Pipeline
+(`k3d/backup-cronjob.yaml`) nicht neu starten, bevor die Ursache klar ist — und
+den Vorfall ins Mishap-Log nehmen.

@@ -122,3 +122,18 @@ setup() {
   # NOT by an in-cluster CronJob. Assert the dead manifest is absent.
   [ ! -f "$REPO/k3d/monitoring/health-goals-cronjob.yaml" ]
 }
+
+# ── Manifest-Hardening: Resource-Limits (T014553, SA-GR-05) ──────────
+# prod/monitoring/resource-limits-patch.yaml muss alle Hauptcontainer des
+# kube-prometheus-stack abdecken — inklusive DaemonSet-Patch für den
+# node-exporter und der beiden Grafana-Sidecars.
+
+@test "monitoring: limits-patch deckt Hauptcontainer ab" {
+  patch="$REPO/prod/monitoring/resource-limits-patch.yaml"
+  grep -qE '^kind: DaemonSet' "$patch"
+  grep -q 'name: monitoring-prometheus-node-exporter' "$patch"
+  for c in node-exporter grafana-sc-dashboard grafana-sc-datasources kube-state-metrics kube-prometheus-stack; do
+    entry="$(grep -A3 -- "- name: $c" "$patch" | grep -c 'resources:' || true)"
+    [ "$entry" -ge 1 ] || { echo "Container $c hat kein resources-Patch"; false; }
+  done
+}

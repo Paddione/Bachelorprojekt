@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.302.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.3...website-v1.302.4) (2026-08-23)
+
+
+### Code Refactoring
+
+* **skills:** rename opencode-flow-* skill entries to dev-flow-* [T014086] ([#5062](https://github.com/Paddione/Bachelorprojekt/issues/5062)) ([1c5c061](https://github.com/Paddione/Bachelorprojekt/commit/1c5c061c2b3f09a6b04ecf6fd9b4a24b779782ae))
+
 ## [1.302.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.2...website-v1.302.3) (2026-08-22)
 
 

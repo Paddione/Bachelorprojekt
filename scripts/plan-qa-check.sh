@@ -3,7 +3,7 @@ set -euo pipefail
 
 # === Config ===
 MAX_ITERATIONS=2
-MODEL="${PLAN_QA_MODEL:-gemma26-throughput}"
+MODEL="${PLAN_QA_MODEL:-Qwen3.6-35B-A3B-NVFP4}"
 GATEWAY_BASE_URL="${GATEWAY_BASE_URL:-http://127.0.0.1:18235}"
 
 # === Helpers ===

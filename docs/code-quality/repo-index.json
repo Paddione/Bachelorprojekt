@@ -637,6 +637,7 @@
         "tests/spec/flux-render-security/bootstrap-envsubst.bats",
         "tests/spec/flux-render-security/immutable-image-refs.bats",
         "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
+        "tests/spec/freetoken-local-backend/routing.bats",
         "tests/spec/g-cq02-any-types.bats",
         "tests/spec/g-cq08-knip-dead-code.bats",
         "tests/spec/g-dep01-npm-vuln.bats",

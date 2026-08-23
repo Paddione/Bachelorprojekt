@@ -27,7 +27,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/lib.sh"
 
 PIN="$(factory_model_pin)"; IFS=$'\t' read -r PIN_MODEL _ <<< "${PIN:-}"
-MODEL_ID="${PIN_MODEL:-${FACTORY_MODEL_ID:-qwen38-220k}}"
+# T014028: lokaler Default ist FreeToken-native (Modell-ID, kein Loadout-Slug —
+# dieselbe Konvention wie route-provider.sh, damit der Default-Konsistenzguard
+# in tests/spec/software-factory/factory-model-id-default.bats gruen bleibt).
+MODEL_ID="${PIN_MODEL:-${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}}"
 # Immer das vereinheitlichte Gateway, nie ein Backend-Port. Welches Backend
 # dahinter haengt, entscheidet die Registry tickets.llm_proxy_backends.
 # [T003492] OHNE '/v1' — die Konsumenten haengen '/v1/chat/completions' selbst an

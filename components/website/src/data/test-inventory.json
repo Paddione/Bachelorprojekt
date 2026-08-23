@@ -3552,6 +3552,12 @@
     "kind": "shell"
   },
   {
+    "id": "freetoken-local-backend/routing",
+    "file": "tests/spec/freetoken-local-backend/routing.bats",
+    "category": "freetoken-local-backend",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",

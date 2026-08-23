@@ -125,7 +125,12 @@ fi
 # (Dual-Write-Split-Brain-Gefahr). Nur Write-Kommandos, nur online; Reads und
 # das diagnose-only --resolve-ns-only (oben, kein Cluster-Zugriff) bleiben
 # unguardiert. Das Alias `comment` teilt den Write-Pfad mit add-comment.
-if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
+#
+# Unter BATS entfaellt der Guard: _ticket-core.sh repointet den CTX dort auf
+# den Sentinel `bats-no-cluster-t002224` (fail-closed gegen Live-Writes), und
+# Offline-Tests mit kubectl-Stubs erwarten ihre eigenen Validierungsfehler,
+# bevor irgendwer die Config anfasst. Dieselbe Bedingung wie T002224.
+if [[ "${TICKET_OFFLINE:-0}" != "1" && -z "${BATS_TEST_NAME:-}${BATS_VERSION:-}" ]]; then
   case "${1:-}" in
     create|update-status|update-fields|set-parent|add-comment|comment|archive-plan|enqueue|stage-plan|release-hold)
       bash "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ctx-guard.sh" "$CTX"

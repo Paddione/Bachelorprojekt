@@ -54,6 +54,8 @@ Last touches:
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
   - Provider_config ist die einzige Kandidatenquelle des Routers | T013302 | 2026-08-22 | ADDED
   - PR-CI-Babysitter Scan und Kandidatenwahl | T012239 | 2026-08-18 | MODIFIED
+In-flight:
+  - Batch-PR closure resolves delivered child tickets from the PR title | T015014 | active | MODIFIED
 
 ## delivery
 
@@ -138,6 +140,8 @@ Last touches:
   - Ticket-Status-Werte sind in einem zentralen SSOT-Modul definiert | T007955 | 2026-08-15 | ADDED
   - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T002871 | 2026-08-10 | ADDED
   - Ticket listings hide test data by default | T002781 | 2026-08-10 | ADDED
+In-flight:
+  - DELETE on tickets.tickets writes an audit entry | T015014 | active | ADDED
 
 ### website-core
 Reqs: 56 · Scenarios: 118 · Lines: 1139
@@ -856,6 +860,9 @@ Last touches:
   - Epics Start In The Editable State | T002617 | 2026-08-10 | ADDED
   - Locking An Epic Freezes Its Lastenheft | T002617 | 2026-08-10 | ADDED
   - Epics Are Distinguishable From Features In The Planning List | T002617 | 2026-08-10 | ADDED
+In-flight:
+  - Ideas carry an origin marker | T015014 | active | ADDED
+  - cleanupEphemeral deletes only origin-marked ideas | T015014 | active | ADDED
 
 ### pocket-id-seed-early-abort
 Reqs: 1 · Scenarios: 2 · Lines: 32

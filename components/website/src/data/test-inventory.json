@@ -5268,6 +5268,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/closure-id-reuse-guard",
+    "file": "tests/spec/software-factory/closure-id-reuse-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/conflict-gate",
     "file": "tests/spec/software-factory/conflict-gate.bats",
     "category": "software-factory",

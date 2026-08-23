@@ -31,22 +31,24 @@ The system SHALL run Collabora Online in a dedicated `workspace-office` namespac
 
 ### Requirement: Custom Setcap Image
 
-The system SHALL use a custom-built Collabora image (`ghcr.io/paddione/collabora-code`) that applies file capabilities (`setcap`) to `coolwsd`, `coolforkit-caps`, and `coolforkit-ns`, enabling bind-mount jail creation by the non-root `cool` user.
+The system SHALL den Collabora-Container mit einem expliziten
+`securityContext.runAsNonRoot: true` betreiben, während das Custom-Setcap-
+Image (`collabora-code:*-setcap`) als non-root `cool`-User läuft und die
+Per-Document-Jails über effektive File-Capabilities bedient.
 
 #### Scenario: Bind-Mount-Jail ohne Root
 
-- **GIVEN** das Custom-Image ist deployed
-- **WHEN** coolwsd eine neue Dokument-Session startet
-- **THEN** nutzt coolwsd den `coolforkit-caps`-Pfad (nicht den langsameren `coolforkit-ns`-Pfad)
-- **AND** die Collabora Admin-Console zeigt keinen roten "Langsame Einrichtung des Kit-Jails" Fehler
+- **GIVEN** das Deployment `collabora` in `k3d/office-stack/collabora.yaml`
+- **WHEN** der Container-securityContext geprüft wird
+- **THEN** enthält er `runAsNonRoot: true`
+- **AND** `allowPrivilegeEscalation` ist bewusst NICHT auf `false` gesetzt
+  (Setcap-/User-Namespace-Design benötigt effektive File-Caps beim exec)
 
 #### Scenario: Multi-Arch Image Build
 
 - **GIVEN** ein Commit ändert `docker/collabora/Dockerfile`
 - **WHEN** der CI-Workflow `build-collabora.yml` läuft
 - **THEN** wird ein multi-arch Image (`linux/amd64`, `linux/arm64`) gebaut und nach `ghcr.io/paddione/collabora-code:<tag>-setcap` gepusht
-
----
 
 ### Requirement: WOPI Integration Contract with Nextcloud
 
@@ -421,3 +423,5 @@ The system SHALL keep the collaborative whiteboard service (`board.localhost`) r
 - **THEN** ist der HTTP-Status weder 502 noch 503 — kein Upstream-Fehler
 
 <!-- merged from change delta collabora-integration.md (cb4ecd91b90a) -->
+
+<!-- merged from change delta collabora-integration.md (eaa8101659e4) -->

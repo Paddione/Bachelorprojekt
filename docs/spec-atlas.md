@@ -420,12 +420,11 @@ Last touches:
   - Session-Detailansicht als Popout-Fenster | T001638 | 2026-07-08 | ADDED
 
 ### collabora-integration
-Reqs: 20 · Scenarios: 50 · Lines: 423
+Reqs: 20 · Scenarios: 50 · Lines: 427
 Paths: k3d/collabora, k3d/office-stack
 Last touches:
+  - Custom Setcap Image | T014549 | 2026-08-24 | MODIFIED
   - Spec-BATS smoke coverage | T002012 | 2026-07-21 | ADDED
-In-flight:
-  - Custom Setcap Image | T014549 | active | MODIFIED
 
 ### database-schema
 Reqs: 1 · Scenarios: 1 · Lines: 19

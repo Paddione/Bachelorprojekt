@@ -206,13 +206,31 @@ EOF"
     const prim = Object.entries(o.agent || {})
       .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
     if (prim.length < 1) { console.error('no primary gemma agents found'); process.exit(1); }
+    // T014105: FreeToken-Agenten sind NICHT an loadouts.json gebunden — ihre
+    // gemessenen Limits (KV-Pages, nicht advertised max_model_len) stehen als
+    // konkrete Eintraege im Provider und werden von den T014105-Guards exakt
+    // zugersichert. Die Loadout-Bindung unten gilt nur fuer llama.cpp-Modelle.
+    const ftModels = ((o.provider['freetoken-local'] || {}).models || {});
+    const ftLimits = new Set(Object.values(ftModels).map((m) => m.limit.context));
     for (const [name, agent] of prim) {
       const model = agent.model;
       const [prov, mid] = model.split('/');
-      const ctx = o.provider[prov].models[mid].limit.context;
+      const entry = ((o.provider[prov] || {}).models || {})[mid];
+      if (!entry) {
+        console.error(name + ': model ' + model + ' fehlt im Provider ' + prov);
+        process.exit(1);
+      }
+      const ctx = entry.limit.context;
       if (!Number.isInteger(ctx) || ctx <= 0) {
         console.error(name + ' ctx ' + ctx + ' is not a positive integer');
         process.exit(1);
+      }
+      if (prov === 'freetoken-local') {
+        if (!ftLimits.has(ctx)) {
+          console.error(name + ' ctx ' + ctx + ' ist kein gemessener FreeToken-Limit-Wert');
+          process.exit(1);
+        }
+        continue;
       }
       const max = measuredFor(mid);
       if (max === null) {

@@ -42,3 +42,14 @@ if [[ -d "$PROMPTS_SRC" ]]; then
   echo "Successfully synced prompt files to $PROMPTS_TGT"
 fi
 
+# T014105: Plugins analog zu den Prompts verteilen — die Global-Config
+# referenziert das Plugin per Pfad relativ zum globalen Config-Verzeichnis,
+# ohne Verteilung wuerde der Repo-Stand dort nie ankommen.
+PLUGINS_SRC="$REPO_DIR/.opencode/plugin"
+PLUGINS_TGT="$(dirname "$TARGET_FILE")/plugin"
+if [[ -d "$PLUGINS_SRC" ]]; then
+  mkdir -p "$PLUGINS_TGT"
+  cp -f "$PLUGINS_SRC"/*.ts "$PLUGINS_TGT"/ 2>/dev/null || true
+  echo "Successfully synced plugin files to $PLUGINS_TGT"
+fi
+

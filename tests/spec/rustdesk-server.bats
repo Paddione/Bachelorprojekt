@@ -202,3 +202,47 @@ setup() {
   grep -q '__RUSTDESK_CONFIG__' "${REPO_ROOT}/rustdesk-installer/provision.cmd"
   grep -q '__RUSTDESK_PASSWORD__' "${REPO_ROOT}/rustdesk-installer/provision.cmd"
 }
+
+# ── Manifest-Hardening: Non-Root + NetPol-Ausnahme (T014553, SA-GR-04/06) ──
+# SSOT: openspec/specs/rustdesk-server.md. hbbs/hbbr laufen non-root (uid
+# 65534) mit workingDir /var/lib/rustdesk; die hostNetwork-Bypass-Ausnahme
+# ist kanonisch in k3d/README.md dokumentiert.
+
+@test "rustdesk: hbbs pod spec declares runAsNonRoot" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  out="$(kustomize build "$STACK")"
+  hbbs_block="$(echo "$out" | awk '/^  name: hbbs$/{f=1} f{print} f&&/^---$/{exit}')"
+  echo "$hbbs_block" | grep -qE 'runAsNonRoot:[[:space:]]*true'
+  echo "$hbbs_block" | grep -qE 'runAsUser:[[:space:]]*65534'
+  echo "$hbbs_block" | grep -qE 'seccompProfile:'
+  echo "$hbbs_block" | grep -qE 'type:[[:space:]]*RuntimeDefault'
+  echo "$hbbs_block" | grep -qE 'allowPrivilegeEscalation:[[:space:]]*false'
+}
+
+@test "rustdesk: hbbr pod spec declares runAsNonRoot" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  out="$(kustomize build "$STACK")"
+  hbbr_block="$(echo "$out" | awk '/^  name: hbbr$/{f=1} f{print} f&&/^---$/{exit}')"
+  echo "$hbbr_block" | grep -qE 'runAsNonRoot:[[:space:]]*true'
+  echo "$hbbr_block" | grep -qE 'runAsUser:[[:space:]]*65534'
+  echo "$hbbr_block" | grep -qE 'seccompProfile:'
+  echo "$hbbr_block" | grep -qE 'type:[[:space:]]*RuntimeDefault'
+  echo "$hbbr_block" | grep -qE 'allowPrivilegeEscalation:[[:space:]]*false'
+}
+
+@test "rustdesk: workingDir ist nicht /root" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  out="$(kustomize build "$STACK")"
+  # Positiv-Anker: workingDir existiert und zeigt auf das non-root-Verzeichnis
+  echo "$out" | grep -qE 'workingDir:[[:space:]]*/var/lib/rustdesk'
+  # Negativ-Aussage: /root darf als workingDir nicht mehr vorkommen
+  root_wd="$(echo "$out" | grep -cE 'workingDir:[[:space:]]*/root' || true)"
+  [ "$root_wd" -eq 0 ]
+}
+
+@test "rustdesk: README dokumentiert NetPol-Ausnahme" {
+  readme="${REPO_ROOT}/k3d/README.md"
+  grep -qE '^## hostNetwork-Pods' "$readme"
+  grep -q 'NetworkPolicy' "$readme"
+  grep -q '${TURN_NODE}' "$readme"
+}

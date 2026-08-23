@@ -629,3 +629,22 @@ assert_var_not_declared() {
 # ersetzen Poll-Loop und Start-Process. Damit entfaellt auch die Frage nach
 # einem zweiten Chat-Modell im Windows-Autostart — es gibt keinen Autostart
 # mehr, Gemma laeuft als Linux-Loadout.
+
+# ── Manifest-Hardening: Non-Root (T014553, SA-GR-06) ─────────────────
+# k3d/llm-gpu.yaml: beide bge-Deployments deklarieren runAsNonRoot auf
+# Pod-Ebene; die expliziten UIDs liegen auf Container-Ebene (curl 100,
+# llama-cpp 10001), damit der Pod-Level-Wert die Init-Container nicht
+# ueberschreibt. fsGroup 101 bleibt je Block erhalten (PVC-Leserecht).
+
+@test "llm-gpu: beide Deployments deklarieren runAsNonRoot" {
+  manifest="$REPO/k3d/llm-gpu.yaml"
+  # Genau zwei Pod-Level-securityContext-Bloecke (6-Space-Einrückung)
+  pod_ctx="$(grep -cE '^      securityContext:$' "$manifest")"
+  [ "$pod_ctx" -eq 2 ]
+  # ... jeweils mit runAsNonRoot: true ...
+  non_root="$(grep -A1 -E '^      securityContext:$' "$manifest" | grep -cE 'runAsNonRoot:[[:space:]]*true')"
+  [ "$non_root" -eq 2 ]
+  # ... und fsGroup 101 bleibt je Block erhalten (Modell-Lesezugriff)
+  fs_group="$(grep -A2 -E '^      securityContext:$' "$manifest" | grep -cE 'fsGroup:[[:space:]]*101')"
+  [ "$fs_group" -eq 2 ]
+}

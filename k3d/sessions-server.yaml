@@ -7,9 +7,28 @@ metadata:
   name: sessions-server-nginx
   namespace: workspace
 data:
+  # Main-Konfiguration fuer non-root-Betrieb (SA-GR-06): pid und alle
+  # temp-Pfade nach /tmp, Logs nach stdout/stderr. Das Image-Default
+  # schreibt nach root-owned Pfaden und ist fuer uid 101 unbrauchbar.
+  nginx.conf: |
+    worker_processes  1;
+    pid               /tmp/nginx.pid;
+    error_log         /dev/stderr notice;
+    events { worker_connections  1024; }
+    http {
+        include        /etc/nginx/mime.types;
+        default_type   application/octet-stream;
+        access_log     /dev/stdout;
+        client_body_temp_path  /tmp/client_temp;
+        proxy_temp_path        /tmp/proxy_temp;
+        fastcgi_temp_path      /tmp/fastcgi_temp;
+        uwsgi_temp_path        /tmp/uwsgi_temp;
+        scgi_temp_path         /tmp/scgi_temp;
+        include /etc/nginx/conf.d/*.conf;
+    }
   default.conf: |
     server {
-        listen 80;
+        listen 8080;
         server_name ~^session-(?<slug>[a-z0-9-]+)\.sessions\.mentolder\.de$;
         root /srv/sessions/$slug;
         index index.html;
@@ -17,7 +36,7 @@ data:
         add_header X-Session-Slug $slug always;
     }
     server {
-        listen 80 default_server;
+        listen 8080 default_server;
         location /health {
             return 200 "ok\n";
             add_header Content-Type text/plain;
@@ -42,21 +61,31 @@ spec:
       labels:
         app: sessions-server
     spec:
+      # Non-Root (SA-GR-06): uid/gid 101 = nginx-user im alpine-Image.
+      # fsGroup macht die emptyDirs group-writable, damit der kubectl-cp-
+      # Pfad nach /srv/sessions als non-root weiterfunktioniert.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: nginx
           image: nginx:1.31-alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           readinessProbe:
             tcpSocket:
-              port: 80
+              port: 8080
             initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
           livenessProbe:
             tcpSocket:
-              port: 80
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 30
             timeoutSeconds: 5
@@ -64,8 +93,14 @@ spec:
           volumeMounts:
             - name: nginx-conf
               mountPath: /etc/nginx/conf.d
+            - name: nginx-main-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
             - name: sessions
               mountPath: /srv/sessions
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 10m
@@ -75,11 +110,20 @@ spec:
               memory: 64Mi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
       volumes:
         - name: nginx-conf
           configMap:
             name: sessions-server-nginx
+        - name: nginx-main-conf
+          configMap:
+            name: sessions-server-nginx
+            items:
+              - key: nginx.conf
+                path: nginx.conf
         - name: sessions
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}
 ---
 apiVersion: v1
@@ -94,4 +138,4 @@ spec:
     app: sessions-server
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080

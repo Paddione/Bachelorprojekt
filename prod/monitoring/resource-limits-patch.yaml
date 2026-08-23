@@ -11,3 +11,55 @@ spec:
           resources:
             requests: { cpu: 50m, memory: 128Mi }
             limits:   { cpu: 500m, memory: 512Mi }
+        # SA-GR-05 (T014553): Sidecars ohne Limits liefen BestEffort.
+        - name: grafana-sc-dashboard
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+            limits:   { cpu: 100m, memory: 128Mi }
+        - name: grafana-sc-datasources
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+            limits:   { cpu: 100m, memory: 128Mi }
+---
+# SA-GR-05 (T014553): node-exporter ist ein DaemonSet — eigenes Patch-Dokument.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: monitoring-prometheus-node-exporter
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      containers:
+        - name: node-exporter
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-kube-state-metrics
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      containers:
+        - name: kube-state-metrics
+          resources:
+            requests: { cpu: 15m, memory: 64Mi }
+            limits:   { cpu: 200m, memory: 256Mi }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-operator
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      containers:
+        - name: kube-prometheus-stack
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 512Mi }

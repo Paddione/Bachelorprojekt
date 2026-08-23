@@ -132,7 +132,7 @@ spec:
               # via SELECT aus der users-Tabelle aufgelöst. api_keys-INSERT
               # nur, wenn ein Admin gefunden wurde; sonst SKIP-Meldung.
               psql -v ON_ERROR_STOP=1 --username postgres --host shared-db --dbname pocket_id \
-                -v admin_user="paddione" <<EOSQL
+                -v admin_user="paddione" -v api_key="$${POCKET_ID_API_KEY}" <<EOSQL
               -- Admin-User idempotent anlegen (nur wenn nicht vorhanden)
               INSERT INTO users (id, created_at, username, email, first_name, last_name, is_admin, display_name, email_verified)
               SELECT gen_random_uuid(), now(), 'paddione', 'admin@bootstrap.invalid', 'Admin', 'Bootstrap', true, 'Admin (Bootstrap)', true
@@ -144,7 +144,7 @@ spec:
               )
               INSERT INTO api_keys (id, name, key, description, expires_at, created_at, user_id)
               SELECT gen_random_uuid(), 'seed-deploy',
-                     encode(sha256(convert_to('$POCKET_ID_API_KEY', 'UTF8')), 'hex'),
+                     encode(sha256(convert_to(:'api_key', 'UTF8')), 'hex'),
                      'bootstrap key for pocket-id-client-seed (sha256 of workspace-secrets.POCKET_ID_API_KEY)',
                      '4051-01-01T00:00:00Z', now(), admin.id
               FROM admin

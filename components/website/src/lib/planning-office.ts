@@ -190,13 +190,30 @@ export async function officeCount(): Promise<number> {
 
 // Löscht alle nicht-gepinnten planning-Ideen — wird vor jedem neuen Ideengenerierungslauf
 // aufgerufen, damit nur explizit bewahrte Ideen erhalten bleiben.
+//
+// [T015009] Der DELETE-Guard-Trigger (trg_tickets_guard_delete) blockiert
+// Löschungen von non-test-data-Tickets. cleanupEphemeral ist der eine
+// legitime Ausnahme — sie gibt den Guard deshalb transaktionslokal über
+// app.allow_ticket_hard_delete frei (SET LOCAL gilt nur für diese
+// Transaktion und leakt nicht in andere Pool-Verbindungen).
 export async function cleanupEphemeral(): Promise<number> {
-  const r = await pool.query(
-    `DELETE FROM tickets.tickets
-      WHERE status = 'planning' AND pinned = false
-     RETURNING id`,
-  );
-  return r.rowCount ?? 0;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query("SET LOCAL app.allow_ticket_hard_delete = 'true'");
+    const r = await client.query(
+      `DELETE FROM tickets.tickets
+        WHERE status = 'planning' AND pinned = false
+       RETURNING id`,
+    );
+    await client.query('COMMIT');
+    return r.rowCount ?? 0;
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export const CLARIFY_EFFORTS = ['klein', 'mittel', 'gross'] as const;

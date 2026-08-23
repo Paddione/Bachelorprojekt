@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.4...website-v1.303.5) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** restore alertmanager email routing by removing uncredentialed pushover receiver [T014542] ([#5096](https://github.com/Paddione/Bachelorprojekt/issues/5096)) ([2bb9c5f](https://github.com/Paddione/Bachelorprojekt/commit/2bb9c5f64a5571790713645ba03cc54e5665187b))
+
 ## [1.303.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.3...website-v1.303.4) (2026-08-23)
 
 

@@ -1,0 +1,103 @@
+# ═══════════════════════════════════════════════════════════════════
+# rustdesk-sleeper — TTL-Wind-down Job für den On-Demand-Lifecycle (T015170)
+# ═══════════════════════════════════════════════════════════════════
+# ⚠️  Diese Datei wird AUSSCHLIESSLICH vom wake-Task angewendet
+#     (`task rustdesk:wake|deploy` — delete+apply, da eine Job-Spec
+#     immutabel ist). Sie darf NIE Teil eines Kustomize-Builds werden:
+#     ein GitOps-Reconcile würde das Scale-to-0 des Sleepers zurücknehmen.
+#     Der Guard-Test in tests/spec/rustdesk-server/on-demand-lifecycle.bats
+#     ("on-demand.yaml bleibt außerhalb des Kustomize-Builds") sichert das ab.
+#
+# Ablauf: sleep 1800 (30 min TTL) → scale hbbs+hbbr auf replicas=0.
+# Laufende RustDesk-Sessions überleben den Wind-down (Rendezvous nur beim
+# Verbindungsaufbau nötig); Re-Wake per `task rustdesk:wake`.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rustdesk-sleeper
+  namespace: rustdesk
+  labels:
+    app: rustdesk-sleeper
+---
+# Minimal-RBAC: der Job darf ausschließlich skalieren und lesen —
+# kein delete/create/watch, keine anderen Ressourcen.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rustdesk-sleeper
+  namespace: rustdesk
+  labels:
+    app: rustdesk-sleeper
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rustdesk-sleeper
+  namespace: rustdesk
+  labels:
+    app: rustdesk-sleeper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rustdesk-sleeper
+subjects:
+  - kind: ServiceAccount
+    name: rustdesk-sleeper
+    namespace: rustdesk
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rustdesk-sleeper
+  namespace: rustdesk
+  labels:
+    app: rustdesk-sleeper
+spec:
+  backoffLimit: 0
+  # Job-Rest räumt sich nach dem Lauf selbst ab; erneutes Anlegen übernimmt
+  # der wake-Task (delete --ignore-not-found && apply).
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: rustdesk-sleeper
+    spec:
+      restartPolicy: Never
+      serviceAccountName: rustdesk-sleeper
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: sleeper
+          # alpine/k8s ships kubectl + /bin/sh; digest-pinned wie der
+          # Präzedenzfall k3d/tests-retention-cronjob.yaml (T015170).
+          image: alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "rustdesk sleeper: winding down in 1800s"
+              sleep 1800
+              kubectl scale deployment hbbs hbbr --replicas=0 -n rustdesk
+              echo "rustdesk wound down"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

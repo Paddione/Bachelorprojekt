@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.6...website-v1.303.7) (2026-08-23)
+
+
+### Code Refactoring
+
+* **ops:** decommission orphaned loadouts, migrate brain-ingest to FreeToken [T014339] ([#5082](https://github.com/Paddione/Bachelorprojekt/issues/5082)) ([f0c8106](https://github.com/Paddione/Bachelorprojekt/commit/f0c81067f2d44a9cadf23b846037654d73b3fa06))
+
 ## [1.303.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.5...website-v1.303.6) (2026-08-23)
 
 

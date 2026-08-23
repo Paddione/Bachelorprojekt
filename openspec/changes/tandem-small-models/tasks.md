@@ -17,9 +17,9 @@ _Ticket: T015248 · Tandem-Kleinstmodelle-Evaluation (Research-Deliverable)_
 ## File Structure
 
 ```
-docs/finetune/tandem-candidates.json        # new: Kandidaten-Matrix (strukturiert)
-docs/finetune/tandem-model-evaluation.md    # new: Empfehlung + Trainingsplan
-tests/spec/finetune-tandem-eval.bats        # new: Guard-Test gegen beide Artefakte
+docs/finetune/tandem-candidates.json                          # new: Kandidaten-Matrix (strukturiert)
+docs/finetune/tandem-model-evaluation.md                      # new: Empfehlung + Trainingsplan
+tests/spec/unsloth-eval-harness/tandem-candidates.bats        # new: Guard-Test gegen beide Artefakte
 ```
 
 ## Partials
@@ -28,7 +28,7 @@ tests/spec/finetune-tandem-eval.bats        # new: Guard-Test gegen beide Artefa
 |----|------|------|--------------|------------|
 | p1 | tasks.d/p1-candidates-matrix.md | research | docs/finetune/tandem-candidates.json | |
 | p2 | tasks.d/p2-evaluation-doc.md | docs | docs/finetune/tandem-model-evaluation.md | p1 |
-| p3 | tasks.d/p3-guard-test.md | tests | tests/spec/finetune-tandem-eval.bats | p1, p2 |
+| p3 | tasks.d/p3-guard-test.md | tests | tests/spec/unsloth-eval-harness/tandem-candidates.bats | p1, p2 |
 
 ## Kontext für alle Partials
 
@@ -45,11 +45,16 @@ tests/spec/finetune-tandem-eval.bats        # new: Guard-Test gegen beide Artefa
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Guard-Test in `tests/spec/finetune-tandem-eval.bats`
-      ergänzen und scheitern lassen, solange die Artefakte fehlen:
+- [ ] **Failing-Test-Step (RED).** Guard-Test in
+      `tests/spec/unsloth-eval-harness/tandem-candidates.bats`
+      ergänzen und scheitern lassen, solange die Artefakte fehlen
+      (Korrektur gegenüber der ursprünglich geplanten Sammeldatei
+      `tests/spec/finetune-tandem-eval.bats`: neue `@test`-Blöcke gehören seit
+      T002416 in eine eigene Datei unter dem Spec-Verzeichnis des SSOT —
+      hier `tests/spec/unsloth-eval-harness/`):
 
 ```bash
-tests/unit/lib/bats-core/bin/bats tests/spec/finetune-tandem-eval.bats
+tests/unit/lib/bats-core/bin/bats tests/spec/unsloth-eval-harness/tandem-candidates.bats
 # expected: FAIL (red — docs/finetune/-Artefakte existieren noch nicht)
 ```
 

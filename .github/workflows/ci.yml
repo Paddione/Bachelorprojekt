@@ -194,6 +194,11 @@ jobs:
           # `gh pr view`. Ohne Token ist gh auf dem Hosted Runner unauthentifiziert,
           # der stumme Catch liefert '' und der Guard meldet fälschlich "Tag fehlt".
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # T015557: GH_TOKEN allein genügt nicht — der Runner checkt den
+          # Merge-Ref in Detached HEAD aus, `gh pr view` scheitert dort an der
+          # Branch-Erkennung ("not on any branch"), der Catch liefert wieder ''.
+          # Der Skript-Fallback PR_BODY umgeht die gh-Auflösung vollständig.
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           if ! task freshness:check; then
             echo ""

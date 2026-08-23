@@ -3558,6 +3558,12 @@
     "kind": "shell"
   },
   {
+    "id": "flux-render-security/no-default-secrets",
+    "file": "tests/spec/flux-render-security/no-default-secrets.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
     "id": "flux-render-security/runtime-var-unwrapping",
     "file": "tests/spec/flux-render-security/runtime-var-unwrapping.bats",
     "category": "flux-render-security",

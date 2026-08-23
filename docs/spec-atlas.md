@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2249 · Scenarios: 5000
+Specs: 144 · Requirements: 2252 · Scenarios: 5007
 
 ## factory-pipeline
 
@@ -34,20 +34,16 @@ Last touches:
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
 
 ### openspec-workflow
-Reqs: 64 · Scenarios: 143 · Lines: 1574
+Reqs: 67 · Scenarios: 150 · Lines: 1654
 Paths: scripts/openspec, openspec/
 Last touches:
+  - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | 2026-08-23 | ADDED
+  - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
+  - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
+  - Freshness-Check sichert Konsistenz der generierten Artefakte | T015012 | 2026-08-23 | MODIFIED
   - Der Archiv-Flow verifiziert die Status-Map vor dem Push | T006369 | 2026-08-15 | ADDED
-  - Batch-healed archive states stay archived (regression pin) | T003813 | 2026-08-14 | ADDED
-  - pre-commit rejects new OpenSpec change staging in the main checkout | T003980 | 2026-08-14 | ADDED
-  - Archiv-Commit der Referenz staged die SSOT-Delta-Dateien | T004271 | 2026-08-14 | ADDED
-  - Stub-Deltas failen den PR-Gate | T004592 | 2026-08-14 | ADDED
 In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
-  - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | active | ADDED
-  - Atlas nutzt die kanonische Delta-Grammatik | T015012 | active | ADDED
-  - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | active | ADDED
-  - Freshness-Check sichert Konsistenz der generierten Artefakte | T015012 | active | MODIFIED
 
 ### software-factory
 Reqs: 201 · Scenarios: 621 · Lines: 5563

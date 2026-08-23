@@ -5376,6 +5376,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/runtime-drift-notify",
+    "file": "tests/spec/software-factory/runtime-drift-notify.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/sandbox-egress",
     "file": "tests/spec/software-factory/sandbox-egress.bats",
     "category": "software-factory",

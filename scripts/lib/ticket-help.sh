@@ -28,7 +28,7 @@ ticket_help_wanted() {
 
 ticket_usage() {
   echo "Usage: $0 <command> [options]"
-  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, find-similar"
+  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, seq-repair, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, find-similar"
 }
 
 ticket_help_subcommand() {
@@ -179,6 +179,14 @@ HELP
 Usage: ticket.sh release-hold --id <external_id>
   --id <external_id>      Ticket-ID (required)
   Setzt readiness.execution_released=true und weckt factory.service.
+HELP
+      ;;
+    seq-repair)
+      cat <<'HELP'
+Usage: ticket.sh seq-repair
+  Setzt tickets.external_id_seq auf GREATEST(last_value, max numerischer external_id).
+  Nach manuellen Imports/Backfills mit expliziten T-IDs ausführen, damit die
+  Sequenz keine vergebene Nummer wiederverwendet (Vorfall T015011/T014936).
 HELP
       ;;
     touch)

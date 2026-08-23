@@ -3558,6 +3558,12 @@
     "kind": "shell"
   },
   {
+    "id": "freetoken-local-backend/routing",
+    "file": "tests/spec/freetoken-local-backend/routing.bats",
+    "category": "freetoken-local-backend",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",
@@ -4194,12 +4200,6 @@
     "kind": "shell"
   },
   {
-    "id": "mishap-bundle/rollup-heredoc-substitution",
-    "file": "tests/spec/mishap-bundle/rollup-heredoc-substitution.bats",
-    "category": "mishap-bundle",
-    "kind": "shell"
-  },
-  {
     "id": "mishap-categorize-erden",
     "file": "tests/spec/mishap-categorize-erden.bats",
     "category": "mishap-categorize-erden",
@@ -4209,126 +4209,6 @@
     "id": "mishap-docker-wsl-T002250",
     "file": "tests/spec/mishap-docker-wsl-T002250.bats",
     "category": "mishap-docker-wsl-T002250",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/archive-janitor",
-    "file": "tests/spec/mishap-rollup/archive-janitor.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/carryover-worktree-scan",
-    "file": "tests/spec/mishap-rollup/carryover-worktree-scan.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/container-create-description",
-    "file": "tests/spec/mishap-rollup/container-create-description.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/container-finds-blocked-status",
-    "file": "tests/spec/mishap-rollup/container-finds-blocked-status.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/container-resolution",
-    "file": "tests/spec/mishap-rollup/container-resolution.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/container-resolution-and-unattended-worktree",
-    "file": "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/container-resolution-real-db",
-    "file": "tests/spec/mishap-rollup/container-resolution-real-db.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/escalation-rule",
-    "file": "tests/spec/mishap-rollup/escalation-rule.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/generator-cycle-artifacts",
-    "file": "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/lifecycle",
-    "file": "tests/spec/mishap-rollup/lifecycle.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/recurrence-tag",
-    "file": "tests/spec/mishap-rollup/recurrence-tag.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/rollup-carryover",
-    "file": "tests/spec/mishap-rollup/rollup-carryover.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/rollup-container-empty-list-selfheal",
-    "file": "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/rollup-cycle-push",
-    "file": "tests/spec/mishap-rollup/rollup-cycle-push.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/rollup-direct-dispatch",
-    "file": "tests/spec/mishap-rollup/rollup-direct-dispatch.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/rollup-plan-lint-scope-examples",
-    "file": "tests/spec/mishap-rollup/rollup-plan-lint-scope-examples.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/rollup-plan-per-entry-tasks",
-    "file": "tests/spec/mishap-rollup/rollup-plan-per-entry-tasks.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/wakeup-auto-close-timeout",
-    "file": "tests/spec/mishap-rollup/wakeup-auto-close-timeout.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/wakeup-single-run",
-    "file": "tests/spec/mishap-rollup/wakeup-single-run.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-rollup/watchlist-disposition",
-    "file": "tests/spec/mishap-rollup/watchlist-disposition.bats",
-    "category": "mishap-rollup",
     "kind": "shell"
   },
   {
@@ -4352,6 +4232,12 @@
   {
     "id": "mishap-tracking/go-tests-registriert",
     "file": "tests/spec/mishap-tracking/go-tests-registriert.bats",
+    "category": "mishap-tracking",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-tracking/rollup-teardown",
+    "file": "tests/spec/mishap-tracking/rollup-teardown.bats",
     "category": "mishap-tracking",
     "kind": "shell"
   },
@@ -4526,6 +4412,12 @@
   {
     "id": "openspec-workflow/half-archive-uncommitted",
     "file": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/half-archive-unprefixed",
+    "file": "tests/spec/openspec-workflow/half-archive-unprefixed.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },
@@ -5508,6 +5400,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/wakeup-auto-close-timeout",
+    "file": "tests/spec/software-factory/wakeup-auto-close-timeout.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/wakeup-pull-loud-failure",
     "file": "tests/spec/software-factory/wakeup-pull-loud-failure.bats",
     "category": "software-factory",
@@ -5678,6 +5576,12 @@
   {
     "id": "ticket-system/list-test-data-filter",
     "file": "tests/spec/ticket-system/list-test-data-filter.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system/read-path-fail-closed",
+    "file": "tests/spec/ticket-system/read-path-fail-closed.bats",
     "category": "ticket-system",
     "kind": "shell"
   },

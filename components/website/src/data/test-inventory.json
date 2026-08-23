@@ -4488,6 +4488,18 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/spec-atlas-generator",
+    "file": "tests/spec/openspec-workflow/spec-atlas-generator.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/spec-atlas-grammar-parity",
+    "file": "tests/spec/openspec-workflow/spec-atlas-grammar-parity.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",

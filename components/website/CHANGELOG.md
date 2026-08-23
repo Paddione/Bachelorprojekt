@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.304.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.13...website-v1.304.0) (2026-08-23)
+
+
+### Features
+
+* **infra:** Staging voll verdrahten — prod-fleet/staging als ks-staging in Flux aufnehmen [T015004] ([#5133](https://github.com/Paddione/Bachelorprojekt/issues/5133)) ([082b46d](https://github.com/Paddione/Bachelorprojekt/commit/082b46da62c2665182509bf7e049a27000e0edce))
+
 ## [1.303.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.12...website-v1.303.13) (2026-08-23)
 
 

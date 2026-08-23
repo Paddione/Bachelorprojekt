@@ -11,7 +11,7 @@ vi.mock('pg', () => {
       done_at timestamptz, created_at timestamptz, updated_at timestamptz);
     CREATE TABLE tickets.factory_phase_events (
       id serial, ticket_id text, phase text, state text, detail text, driver text, at timestamptz);
-    CREATE TABLE tickets.factory_control (key text, brand text, value text, set_by text, updated_at timestamptz);
+    CREATE TABLE tickets.factory_control (id bigserial primary key, key text, brand text, value text, set_by text, updated_at timestamptz);
     CREATE TABLE tickets.ticket_links (
       id serial, from_id text, to_id text, kind text, pr_number int, created_at timestamptz);
     CREATE TABLE tickets.ticket_comments (id serial, ticket_id text, author_label text, kind text, body text, visibility text, created_at timestamptz);

@@ -171,28 +171,6 @@ SQL
   ttype=$(printf '%s' "$row" | awk -F'|' '{print $2}' | tr -d ' ')
   title=$(printf '%s' "$row" | awk -F'|' '{print $3}' | tr -d ' ')
 
-  # [T007056] Rollup-Container schliessen statt recyceln. Der Container ist seit
-  # T007056 ein Dispatch-Ticket: der Generator staged den Batch-Plan darauf, der
-  # Executor setzt ihn um, und der Container schliesst hier per Merge=Closure
-  # (done · resolution=fixed). Das Recycling nach plan_staged+held (T002407,
-  # persistentes Modell) entfaellt — der naechste Flush legt ueber den
-  # Collect-Mode-Finder (ticket.sh rollup-container) einen frischen Container an.
-  if [[ "$title" == "Mishap Rollup — fortlaufende Sammlung" ]]; then
-    echo "auto-close-merged: $ticket (PR #$pr_num) ist Rollup-Container — Merge=Closure (done/fixed)" >&2
-    cat <<SQL | factory_psql >/dev/null 2>&1 || true
-UPDATE tickets.tickets
-   SET status = 'done',
-       resolution = 'fixed'
- WHERE external_id = '$ticket';
-SQL
-    BRAND="$BRAND" bash "$(dirname "${BASH_SOURCE[0]}")/../ticket.sh" add-comment \
-      --id "$ticket" \
-      --body "Rollup-Container geschlossen nach Merge von PR #${pr_num} (done/fixed, Merge=Closure T007056)" \
-      --author "auto-close-merged" \
-      --visibility "internal" >/dev/null 2>&1 || true
-    continue
-  fi
-
   case "$status" in
     done|archived) echo "auto-close-merged: $ticket (PR #$pr_num) bereits $status — skip [T001580]" >&2; continue ;;
   esac

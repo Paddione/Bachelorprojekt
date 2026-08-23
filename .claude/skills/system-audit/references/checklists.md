@@ -52,8 +52,9 @@ Backup-Audit und Restore-Prozedur: infra-ops §7. Hier nur Prüfungen (read-only
    Tabellen ohne Primärschlüssel in `tickets` ⇒ Warning.
 4. **Wachstum/Laufzeit** — DB-Größen-Trend, langlebige Idle-In-Transaction-Verbindungen
    (> 30 min) ⇒ Warning.
-5. **Ticket-DB-Hygiene** — verwaiste Plan-Zeilen ohne Ticketbezug, Rollup-Container-
-   Alter (mishap-tracker-Konvention) ⇒ Info/Warning je Ausprägung.
+5. **Ticket-DB-Hygiene** — verwaiste Plan-Zeilen ohne Ticketbezug ⇒ Info/Warning je
+   Ausprägung. Tickets mit dem Titel `Mishap Rollup — fortlaufende Sammlung` sind Altlasten
+   des abgebauten Automaten [T014104] und dürfen geschlossen werden.
 
 ## 4. llm-pipeline (GPU, Proxy, Loadouts)
 

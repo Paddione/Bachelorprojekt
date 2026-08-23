@@ -21,9 +21,6 @@ import (
 const MISHAP_TRIGGER = 10
 const MISHAP_MAX_AGE = 7 * 24 * time.Hour
 
-const ROLLUP_TICKET_TITLE = "Mishap Rollup — fortlaufende Sammlung"
-const ROLLUP_BRANCH = "chore/mishap-incident-rollup"
-const ROLLUP_CHANGE_DIR = "openspec/changes/mishap-incident-rollup"
 
 type MishapEntry struct {
 	Title       string `json:"title"`
@@ -199,74 +196,30 @@ func createFactoryFixTicket(entry MishapEntry, brand string) (string, error) {
 	return ext, nil
 }
 
-// rollupTicket is the minimal projection needed for container lookup.
-type rollupTicket struct {
+// ticketProjection is the minimal projection needed by the dedupe guard.
+type ticketProjection struct {
 	ExternalID *string `json:"external_id"`
 	Title      string  `json:"title"`
 	Status     string  `json:"status"`
 }
 
-func parseTicketList(raw string) []rollupTicket {
-	var tickets []rollupTicket
+func parseTicketList(raw string) []ticketProjection {
+	var tickets []ticketProjection
 	if err := json.Unmarshal([]byte(strings.TrimSpace(raw)), &tickets); err != nil {
 		return nil
 	}
 	return tickets
 }
 
-func findOrCreateRollupTicket(brand string) (string, error) {
-	// T002783: Gemeinsame Container-Aufloesung ueber ticket.sh rollup-container.
-	// Der Shell-Code sucht offene Chore-Tickets (nicht done/archived) und legt
-	// notfalls einen neuen Container an. Beide Seiten (Flush und Rollup-Treiber)
-	// loesen denselben Code-Pfad auf — das verhindert die Diskrepanz, die
-	// den Doppel-Container-Vorfall T002597/T002601 und die gestrandeten Batches
-	// verursacht hat.
-	out, err := runner.RunTicket(buildRollupContainerArgs(brand), map[string]string{"BRAND": brand})
-	if err != nil {
-		return "", fmt.Errorf("Rollup-Container-Aufloesung fehlgeschlagen: %w", err)
-	}
-	ext := strings.TrimSpace(out)
-	if i := strings.Index(ext, "|"); i >= 0 {
-		ext = ext[:i]
-	}
-	if ext == "" {
-		return "", fmt.Errorf("Rollup-Container-Aufloesung lieferte leere ID")
-	}
-	return ext, nil
-}
-
-func buildRollupContainerArgs(brand string) []string {
-	return []string{
-		"rollup-container", "--brand", brand,
-	}
-}
-
-func appendToRollupContainer(entries []MishapEntry, brand string) error {
-	if len(entries) == 0 {
-		return nil
-	}
-	containerID, err := findOrCreateRollupTicket(brand)
-	if err != nil {
-		return err
-	}
-	var lines []string
-	lines = append(lines, fmt.Sprintf("### Mishap-Rollup — %d Eintraege (%s)", len(entries), time.Now().UTC().Format("2006-01-02 15:04 UTC")))
-	lines = append(lines, "")
-	lines = append(lines, "| # | Typ | Komponente | Titel |")
-	lines = append(lines, "|---|---|---|---|")
+// discardBuffer verwirft nicht-kritische Mishaps, fuer die kein Ticket-Kontext
+// vorliegt [T014104]. Der frueher hier angehaengte Sammel-Container ist entfernt:
+// er war selbst-resurrektierend und hat ueber vier Zyklen nichts disponiert.
+// Mishaps mit Ticket-Kontext werden von scripts/hooks/mishap-tracker.sh als
+// Kommentar an das Verursacher-Ticket geschrieben, bevor sie hier landen.
+func discardBuffer(entries []MishapEntry, brand string) error {
 	for i, e := range entries {
-		lines = append(lines, fmt.Sprintf("| %d | %s | %s | %s |", i+1, e.Type, e.Component, e.Title))
-	}
-	lines = append(lines, "")
-	for i, e := range entries {
-		lines = append(lines, fmt.Sprintf("**%d. %s** (%s, %s)\n\n%s", i+1, e.Title, e.Type, e.Component, e.Description))
-	}
-	body := strings.Join(lines, "\n")
-	_, err = runner.RunTicket([]string{
-		"add-comment", "--id", containerID, "--body", body, "--author", "ticket-mcp", "--visibility", "internal",
-	}, map[string]string{"BRAND": brand})
-	if err != nil {
-		return fmt.Errorf("Rollup-Comment fehlgeschlagen: %w", err)
+		fmt.Fprintf(os.Stderr, "[mishap] verworfen (kein Ticket-Kontext, brand=%s) %d/%d: %s (%s, %s)\n",
+			brand, i+1, len(entries), e.Title, e.Type, e.Component)
 	}
 	return nil
 }
@@ -274,7 +227,7 @@ func appendToRollupContainer(entries []MishapEntry, brand string) error {
 func RegisterMishapTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("report_mishap",
-			mcp.WithDescription(fmt.Sprintf("Fuegt einen Mishap in den Buffer ein. Incident-Typen erzeugen sofort ein Ticket. Bei >=%d nicht-kritischen Eintraegen: Rollup-Container-Append.", MISHAP_TRIGGER)),
+			mcp.WithDescription(fmt.Sprintf("Fuegt einen Mishap in den Buffer ein. Incident-Typen erzeugen sofort ein Ticket. Bei >=%d nicht-kritischen Eintraegen: Buffer wird protokolliert und geleert.", MISHAP_TRIGGER)),
 			mcp.WithString("title", mcp.Description("Kurztitel"), mcp.Required()),
 			mcp.WithString("description", mcp.Description("Beschreibung"), mcp.Required()),
 			mcp.WithString("component", mcp.Description("Komponente"), mcp.Required()),
@@ -308,23 +261,23 @@ func RegisterMishapTools(s *server.MCPServer) {
 			buffer = append(buffer, entry)
 			if len(buffer) < MISHAP_TRIGGER {
 				writeBuffer(buffer)
-				return mcp.NewToolResultText(fmt.Sprintf("Mishap gespeichert (%d/%d). Noch %d bis zum Rollup-Container-Append.", len(buffer), MISHAP_TRIGGER, MISHAP_TRIGGER-len(buffer))), nil
+				return mcp.NewToolResultText(fmt.Sprintf("Mishap gespeichert (%d/%d). Noch %d bis zum Buffer-Flush.", len(buffer), MISHAP_TRIGGER, MISHAP_TRIGGER-len(buffer))), nil
 			}
-			if err := appendToRollupContainer(buffer[:MISHAP_TRIGGER], brand); err != nil {
+			if err := discardBuffer(buffer[:MISHAP_TRIGGER], brand); err != nil {
 				writeBuffer(buffer)
 				return nil, err
 			}
 			// [T003553] Der Buffer aggregiert, er konvertiert nicht — SSOT:
 			// openspec/specs/mishap-tracking.md, Requirement "Der Mishap-Buffer
-			// aggregiert, er konvertiert nicht". Vorher entstand hier zusaetzlich
-			// je ein Factory-Fix-Ticket pro Buffer-Eintrag; damit erzeugte ein
-			// einzelner Flush 10 Tickets statt einen Sammel-Append.
+			// aggregiert, er konvertiert nicht". Es entsteht hier weder ein
+			// Factory-Fix-Ticket pro Eintrag noch ein Sammel-Container
+			// [T014104]: die Eintraege werden protokolliert und verworfen.
 			//
 			// Incident-Typen sind davon nicht beruehrt: sie gehen oben am Buffer
 			// vorbei und legen weiterhin je ein Ticket ueber createIncidentTicket an.
 			writeBuffer(buffer[MISHAP_TRIGGER:])
 			remaining := len(buffer) - MISHAP_TRIGGER
-			return mcp.NewToolResultText(fmt.Sprintf("Rollup-Container-Append: %d Mishaps an den Container angehaengt. Verbleibend: %d.", MISHAP_TRIGGER, remaining)), nil
+			return mcp.NewToolResultText(fmt.Sprintf("%d Mishaps protokolliert und verworfen. Verbleibend: %d.", MISHAP_TRIGGER, remaining)), nil
 		},
 	)
 	s.AddTool(
@@ -342,7 +295,7 @@ func RegisterMishapTools(s *server.MCPServer) {
 		},
 	)
 	s.AddTool(
-		mcp.NewTool("flush_mishap_buffer", mcp.WithDescription(fmt.Sprintf("Erzwingt einen Append des Buffers an den Rollup-Container, auch unterhalb %d Eintraege.", MISHAP_TRIGGER)),
+		mcp.NewTool("flush_mishap_buffer", mcp.WithDescription(fmt.Sprintf("Leert den Buffer sofort: die Eintraege werden protokolliert und verworfen, auch unterhalb %d Eintraege. Es entsteht kein Ticket [T014104].", MISHAP_TRIGGER)),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski"), mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -355,11 +308,11 @@ func RegisterMishapTools(s *server.MCPServer) {
 			if len(buffer) == 0 {
 				return mcp.NewToolResultText("Mishap-Buffer ist leer."), nil
 			}
-			if err := appendToRollupContainer(buffer, brand); err != nil {
+			if err := discardBuffer(buffer, brand); err != nil {
 				return nil, err
 			}
 			writeBuffer([]MishapEntry{})
-			return mcp.NewToolResultText(fmt.Sprintf("%d Mishaps an den Rollup-Container angehaengt. Buffer geleert.", len(buffer))), nil
+			return mcp.NewToolResultText(fmt.Sprintf("%d Mishaps protokolliert und verworfen. Buffer geleert.", len(buffer))), nil
 		},
 	)
 }
@@ -385,12 +338,12 @@ func FlushStaleBuffer(brand string, maxAge time.Duration) (string, error) {
 	if !BufferIsStale(buffer, time.Now(), maxAge) {
 		return "", nil
 	}
-	if err := appendToRollupContainer(buffer, brand); err != nil {
+	if err := discardBuffer(buffer, brand); err != nil {
 		return "", err
 	}
 	// [T003553] Keine Konversion zu Einzeltickets — derselbe Vertrag wie im
 	// Schwellwert-Pfad. Die SSOT-Spec verlangt ausdruecklich, dass sich alle drei
 	// Abfluesse (Schwelle, Watchdog, manueller flush_mishap_buffer) gleich verhalten.
 	writeBuffer([]MishapEntry{})
-	return "rollup-container", nil
+	return "discarded", nil
 }

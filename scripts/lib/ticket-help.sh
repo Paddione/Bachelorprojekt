@@ -28,7 +28,7 @@ ticket_help_wanted() {
 
 ticket_usage() {
   echo "Usage: $0 <command> [options]"
-  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, rollup-container, find-similar"
+  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, find-similar"
 }
 
 ticket_help_subcommand() {
@@ -331,13 +331,6 @@ Usage: ticket.sh get-timeline --id <external_id> [--brand <brand>]
   --id <external_id>      Ticket-ID (required)
   --brand <brand>         mentolder|korczewski
   Ausgabe: chronologisches JSON aus Kommentaren, Phasen-Events, PR-Links und Plaenen.
-HELP
-      ;;
-    rollup-container)
-      cat <<'HELP'
-Usage: ticket.sh rollup-container [--brand <brand>]
-  --brand <brand>         mentolder|korczewski
-  Findet oder erstellt den offenen Mishap-Rollup-Container. Ausgabe: nur die external_id.
 HELP
       ;;
     enqueue)

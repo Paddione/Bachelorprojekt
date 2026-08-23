@@ -4023,8 +4023,8 @@
   ],
   "T013303": [
     {
-      "slug": "mishap-incident-rollup-2026-08-22-T013303",
-      "status": "plan_staged"
+      "slug": "2026-08-23-mishap-incident-rollup-2026-08-22-T013303",
+      "status": "archived"
     }
   ],
   "T013304": [
@@ -4047,14 +4047,14 @@
   ],
   "T013316": [
     {
-      "slug": "mishap-incident-rollup-2026-08-22-T013316",
-      "status": "plan_staged"
+      "slug": "2026-08-23-mishap-incident-rollup-2026-08-22-T013316",
+      "status": "archived"
     }
   ],
   "T013328": [
     {
-      "slug": "mishap-incident-rollup-2026-08-22-T013328",
-      "status": "plan_staged"
+      "slug": "2026-08-23-mishap-incident-rollup-2026-08-22-T013328",
+      "status": "archived"
     }
   ],
   "T013329": [
@@ -4113,14 +4113,14 @@
   ],
   "T013678": [
     {
-      "slug": "mishap-incident-rollup-2026-08-22-T013678",
-      "status": "plan_staged"
+      "slug": "2026-08-23-mishap-incident-rollup-2026-08-22-T013678",
+      "status": "archived"
     }
   ],
   "T013719": [
     {
-      "slug": "mishap-incident-rollup-2026-08-22-T013719",
-      "status": "plan_staged"
+      "slug": "2026-08-23-mishap-incident-rollup-2026-08-22-T013719",
+      "status": "archived"
     }
   ],
   "T013724": [
@@ -4131,8 +4131,8 @@
   ],
   "T013894": [
     {
-      "slug": "mishap-incident-rollup-2026-08-22-T013894",
-      "status": "plan_staged"
+      "slug": "2026-08-23-mishap-incident-rollup-2026-08-22-T013894",
+      "status": "archived"
     }
   ],
   "T013909": [
@@ -4150,6 +4150,12 @@
   "T014086": [
     {
       "slug": "unify-dev-flow-skill-names",
+      "status": "plan_staged"
+    }
+  ],
+  "T014104": [
+    {
+      "slug": "mishap-rollup-teardown",
       "status": "plan_staged"
     }
   ],

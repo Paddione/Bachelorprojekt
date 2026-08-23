@@ -116,18 +116,6 @@ func TestGitCommonDirResolvesWorktreeGitFile(t *testing.T) {
 	}
 }
 
-func TestRollupConstants(t *testing.T) {
-	if ROLLUP_TICKET_TITLE == "" {
-		t.Error("ROLLUP_TICKET_TITLE must be set")
-	}
-	if ROLLUP_BRANCH == "" {
-		t.Error("ROLLUP_BRANCH must be set")
-	}
-	if ROLLUP_CHANGE_DIR == "" {
-		t.Error("ROLLUP_CHANGE_DIR must be set")
-	}
-}
-
 // Flag helpers for args inspection.
 
 func flagValue(args []string, flag string) string {
@@ -196,44 +184,6 @@ func TestIncidentTicketArgs_BrandAndSeverity(t *testing.T) {
 	}
 }
 
-// --- Rollup-Container-Args (T002783: gemeinsame ticket.sh rollup-container Aufloesung) ---
-
-func TestRollupContainerArgs_BrandIsSet(t *testing.T) {
-	args := buildRollupContainerArgs("mentolder")
-	if !hasFlagValue(args, "--brand", "mentolder") {
-		t.Errorf("buildRollupContainerArgs missing --brand mentolder; got args: %v", args)
-	}
-}
-
-func TestRollupContainerArgs_UsesRollupContainer(t *testing.T) {
-	args := buildRollupContainerArgs("mentolder")
-	if len(args) < 2 || args[0] != "rollup-container" {
-		t.Errorf("buildRollupContainerArgs must start with 'rollup-container'; got args: %v", args)
-	}
-}
-
-func TestRollupContainerArgs_NotListOrCreate(t *testing.T) {
-	args := buildRollupContainerArgs("mentolder")
-	for _, banned := range []string{"list", "create", "find"} {
-		if args[0] == banned {
-			t.Errorf("buildRollupContainerArgs must not use '%s' — T002783 unified into rollup-container", banned)
-		}
-	}
-}
-
-func TestRollupConstants_BranchMatchesMishapRollupSh(t *testing.T) {
-	// T002783: Rollup-Container-Branch muss mit mishap-rollup.sh:BRANCH identisch sein.
-	// Vor T002783 stand hier "chore/mishap-rollup", aber mishap-rollup.sh verwendete
-	// "chore/mishap-incident-rollup". Der Mismatch versteckte sich hinter dem Umstand,
-	// dass der Go-Code den Container nur aufloeste, nicht den Branch anlegte.
-	if ROLLUP_BRANCH != "chore/mishap-incident-rollup" {
-		t.Errorf("ROLLUP_BRANCH=%q, erwartet 'chore/mishap-incident-rollup' — muss mit mishap-rollup.sh synchron sein", ROLLUP_BRANCH)
-	}
-	if ROLLUP_CHANGE_DIR != "openspec/changes/mishap-incident-rollup" {
-		t.Errorf("ROLLUP_CHANGE_DIR=%q, erwartet 'openspec/changes/mishap-incident-rollup'", ROLLUP_CHANGE_DIR)
-	}
-}
-
 // --- Dispatch: incident types go to createIncidentTicket, others to buffer ---
 
 func TestIncidentTypeDispatch(t *testing.T) {
@@ -289,20 +239,7 @@ func TestNoTaskTypeInAnyBuilder(t *testing.T) {
 		}
 	}
 	assertNoTask("buildIncidentTicketArgs", buildIncidentTicketArgs(entry, "mentolder"))
-	assertNoTask("buildRollupContainerArgs", buildRollupContainerArgs("mentolder"))
-}
-
-func TestNoTriageStatusInRollupContainer(t *testing.T) {
-	// T002783: rollup-container manages its own status; the Go side
-	// delegates the decision entirely to ticket.sh.
-	args := buildRollupContainerArgs("mentolder")
-	if args[0] != "rollup-container" {
-		t.Errorf("expected 'rollup-container', got %q", args[0])
-	}
-	// rollup-container should not carry any --status flag — ticket.sh decides
-	if hasFlagValue(args, "--status", "triage") || hasFlagValue(args, "--status", "plan_staged") {
-		t.Error("rollup-container args must not carry --status — ticket.sh manages status internally")
-	}
+	assertNoTask("buildFactoryFixTicketArgs", buildFactoryFixTicketArgs(entry, "mentolder"))
 }
 
 func TestBuildersAreDeterministic(t *testing.T) {

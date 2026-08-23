@@ -59,7 +59,7 @@ git worktree list && bash scripts/worktree-git-op-guard.sh
 ```
 Stale Worktrees nur nach bestandenem Vorcheck löschen [T005115]:
 `bash scripts/worktree-clean-check.sh <path>` lehnt dirty-Worktrees UND solche mit aktivem
-fremden branch-Claim ab (`agent-lock.sh check branch <branch>` — laufende Lauf-/Rollup-Session!).
+fremden branch-Claim ab (`agent-lock.sh check branch <branch>` — laufende Lauf-/Batch-Session!).
 Bei rc 1 den Worktree stehen lassen, sonst
 `git worktree remove <path> --force && git branch -D <branch>`.
 

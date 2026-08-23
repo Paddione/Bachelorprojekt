@@ -4249,6 +4249,12 @@
       "status": "archived"
     }
   ],
+  "T014553": [
+    {
+      "slug": "manifest-hardening",
+      "status": "plan_staged"
+    }
+  ],
   "T014566": [
     {
       "slug": "infra-kleinfixes-t014566",

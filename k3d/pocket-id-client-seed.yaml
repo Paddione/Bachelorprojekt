@@ -67,7 +67,9 @@ spec:
   template:
     metadata:
       labels:
-        app: pocket-id
+        # T014938: darf NICHT dem Service-Selector (app: pocket-id) entsprechen,
+        # sonst wird der Seed-Pod zum Service-Endpoint (Connection Refused).
+        app: pocket-id-client-seed
     spec:
       restartPolicy: OnFailure
       serviceAccountName: pocket-id-client-seed

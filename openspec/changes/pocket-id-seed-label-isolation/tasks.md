@@ -29,12 +29,12 @@ verifiziert rot (`not ok 1 ... matcht den Service-Selector`).
 
 ## Partial P1 — p1-seed-label
 
-- [ ] **P1.1 Label ändern.** In `k3d/pocket-id-client-seed.yaml` im
+- [x] **P1.1 Label ändern.** In `k3d/pocket-id-client-seed.yaml` im
       Pod-Template (`spec.template.metadata.labels`) `app: pocket-id`
       durch `app: pocket-id-client-seed` ersetzen. Das Label am Job-Objekt
       selbst (`metadata.labels`, Zeile ~64) bleibt unverändert.
 
-- [ ] **P1.2 Struktur-Verifikation (GREEN).** Der RED-Test aus dem
+- [x] **P1.2 Struktur-Verifikation (GREEN).** Der RED-Test aus dem
       Stage-Commit muss jetzt grün sein:
 
 ```bash

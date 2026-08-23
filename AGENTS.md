@@ -26,7 +26,8 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `qwen38-primary` | `freetoken-local/active`, `mode: primary` | Tab-selectable text-only primary — seit T014105 auf dem FreeToken-Alias |
 | `freetoken-primary` | `freetoken-local/active`, `mode: primary` | Dedizierter Primary auf dem FreeToken-Alias — tab-selectable, text-only [T014105] |
 | `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries. Since 2026-08-22 can dispatch the same subagent set as the orchestrator |
-| `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free`, `mode: primary`, write-capable | Second free-tier primary next to big-pickle (Poolside agentic coding model, 256k ctx per models.dev, smoke-tested 2026-08-22). Same subagent dispatch set as the orchestrator |
+| `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free`, `mode: primary`, write-capable | Second free-tier primary next to big-pickle (Poolside agentic coding model, 256k ctx per models.dev, smoke-tested 2026-08-22). Dispatches ONLY `ox-alpha` subagents |
+| `ox-alpha` | `opencode-zen/laguna-s-2.1-free`, `mode: subagent`, write-capable | Subagent twin of `ox-alpha-free` — its sole dispatch target [2026-08-23], keeping parallel work in the same free-tier family |
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted; twin `deepseek-helper-go` rides OpenCode Go |
 | `deepseek-helper-go` | `opencode-go/deepseek-v4-flash`, write-capable | Same escalation tier as `deepseek-helper` via the Go gateway — alternate rail when the direct API is down |
 | `deepseek-helper-alibaba` | `alibaba-intl/deepseek-v4-flash-0731`, write-capable | Same escalation tier via the Alibaba Token Plan — third rail after the 2026-08-22 key rotation (note the `-0731` model ID) |

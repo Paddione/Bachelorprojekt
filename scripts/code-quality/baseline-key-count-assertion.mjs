@@ -26,15 +26,23 @@ function readMainBaseline() {
 }
 
 function readPrBody() {
-  // In CI, gh-axi / gh pr view provides the body. Locally, fall back to
-  // $PR_BODY env var (set by the calling Taskfile step).
+  // $PR_BODY first (set by the CI step from github.event.pull_request.body,
+  // T015249). gh pr view is only a fallback: it fails silently in runners
+  // (unauthenticated without GH_TOKEN, and "could not determine current
+  // branch" in detached-HEAD checkouts) — so a fallback failure must be
+  // VISIBLE, never read as an empty body.
   if (process.env.PR_BODY) return process.env.PR_BODY;
   try {
     return execSync('gh pr view --json body -q .body', {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });
-  } catch {
+  } catch (err) {
+    console.error(
+      `[baseline-guard] WARN: PR body unreadable ($PR_BODY unset, gh pr view failed: ` +
+        `${String(err && err.message ? err.message : err).split('\n')[0]}) — ` +
+        `treating as empty. If this PR HAS a [baseline-allow:] tag, the guard result is a false negative.`,
+    );
     return '';
   }
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.309.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.308.1...website-v1.309.0) (2026-08-23)
+
+
+### Features
+
+* **infra:** collabora runAsNonRoot hardening [T014549] ([#5174](https://github.com/Paddione/Bachelorprojekt/issues/5174)) ([14eb0e4](https://github.com/Paddione/Bachelorprojekt/commit/14eb0e4336c7316487b991b61a9e003f44dd097a))
+
 ## [1.308.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.308.0...website-v1.308.1) (2026-08-23)
 
 

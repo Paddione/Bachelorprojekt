@@ -58,7 +58,7 @@ Repo; der Rollout passiert durch das `apply` im deploy/wake-Task.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED), Partial p3:** die neuen BATS-Assertions laufen gegen
+- [x] **Failing-Test-Step (RED), Partial p3:** die neuen BATS-Assertions laufen gegen
       den Branch-Stand vor der Implementierung:
 
 ```bash
@@ -66,7 +66,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/rustdesk-server.bats
 # expected: FAIL (red — Taskfile-Rustdesk und Sleeper-Manifest existieren noch nicht)
 ```
 
-- [ ] **Fix-Steps (GREEN):** p1–p2 setzen die Umsetzung um; danach läuft die Spec
+- [x] **Fix-Steps (GREEN):** p1–p2 setzen die Umsetzung um; danach läuft die Spec
       grün und die Builds validieren:
 
 ```bash
@@ -74,7 +74,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/rustdesk-server.bats
 task workspace:validate
 ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

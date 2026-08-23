@@ -4740,6 +4740,12 @@
     "kind": "shell"
   },
   {
+    "id": "rustdesk-server/on-demand-lifecycle",
+    "file": "tests/spec/rustdesk-server/on-demand-lifecycle.bats",
+    "category": "rustdesk-server",
+    "kind": "shell"
+  },
+  {
     "id": "s1-violations",
     "file": "tests/spec/s1-violations.bats",
     "category": "s1-violations",

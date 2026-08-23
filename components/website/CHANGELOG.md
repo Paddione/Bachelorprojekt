@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.309.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.309.0...website-v1.309.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** loopback ctx-guard in ticket write path [T015008] ([#5176](https://github.com/Paddione/Bachelorprojekt/issues/5176)) ([3737f09](https://github.com/Paddione/Bachelorprojekt/commit/3737f09b145e4d0555b4e65949ecb03c0fe4b0b3))
+
 ## [1.309.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.308.1...website-v1.309.0) (2026-08-23)
 
 

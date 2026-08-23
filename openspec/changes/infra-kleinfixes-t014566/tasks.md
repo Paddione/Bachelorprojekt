@@ -82,12 +82,12 @@ Manifeste: `k3d/admin-actions-cronjobs.yaml`, `k3d/cronjob-scheduled-publish.yam
       **Auflösung (2026-08-23, ticket-ops-Ausführung):** Ursache verifiziert und vertieft —
       `workspace-staging` ist GitOps-verwaist (keine Flux-Kustomization targetiert die
       Staging-Namespaces; das Repo-Overlay `prod-fleet/staging/` war nie verdrahtet).
-      Operator-Entscheidung: Staging **voll verdrahten** — Nachfolger-Feature **T014937**
+      Operator-Entscheidung: Staging **voll verdrahten** — Nachfolger-Feature (Staging-Verdrahtung; Ticket-ID folgt nach Tracker-Restaurierung 2026-08-23)
       (prod-fleet/staging als ks-staging in Flux aufnehmen). Interim: die 4 fehlschlagenden
       CronJobs (scheduled-publish, admin-actions-cleanup, notify-unread,
       tests-results-retention) per kubectl suspendiert (Stop-the-Bleeding, reversibel);
-      Rücknahme erfolgt nach T014937 per GitOps.
-- [x] **GREEN-Nachweis T014538.** Verschoben nach T014937: solange die CronJobs suspendiert
+      Rücknahme erfolgt nach dem Nachfolger-Ticket per GitOps.
+- [x] **GREEN-Nachweis T014538.** Verschoben nach dem Nachfolger-Ticket: solange die CronJobs suspendiert
       sind, gibt es keinen Lauf zum Nachweisen. Akzeptanzkriterium wandert ins Nachfolger-
       Ticket (Pod exit 0 gegen die staging-Website, kein `relation … does not exist`).
 - [x] **Failing-Test-Step (RED → GREEN).**

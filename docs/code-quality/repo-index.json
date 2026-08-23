@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1195,
+      "file_count": 1196,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -559,6 +559,7 @@
         "tests/spec/database.bats",
         "tests/spec/datev-export.bats",
         "tests/spec/db-quality-goals.bats",
+        "tests/spec/db-restore-verification/restore-verify-cronjob.bats",
         "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
         "tests/spec/dev-flow-e2e.bats",
         "tests/spec/dev-flow-execute.bats",
@@ -3108,7 +3109,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 526,
+      "file_count": 527,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3349,6 +3350,7 @@
         "k3d/backup-config.yaml",
         "k3d/backup-cronjob.yaml",
         "k3d/backup-pvc.yaml",
+        "k3d/backup-restore-verify-cronjob.yaml",
         "k3d/backup-secrets.yaml",
         "k3d/brain.yaml",
         "k3d/brett.yaml",

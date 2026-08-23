@@ -3096,6 +3096,12 @@
     "kind": "shell"
   },
   {
+    "id": "db-restore-verification/restore-verify-cronjob",
+    "file": "tests/spec/db-restore-verification/restore-verify-cronjob.bats",
+    "category": "db-restore-verification",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-chore-ticket-ops-mishaps",
     "file": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
     "category": "dev-flow-chore-ticket-ops-mishaps",

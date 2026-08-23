@@ -1,0 +1,182 @@
+# ═══════════════════════════════════════════════════════════════════
+# Automated DB Backup Restore Verification — weekly G-DB05 evidence
+# T014544: Sundays 03:30 UTC, restores the newest encrypted dump set into
+# disposable restore_verify_* databases and logs JSONL evidence to the PVC.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-restore-verify
+  namespace: workspace
+  labels:
+    app: db-restore-verify
+  annotations:
+    graph.bachelorprojekt.de/depends-on: shared-db
+spec:
+  schedule: "30 3 * * 0"
+  # Runs after the daily 02:00 backup has produced a fresh generation; a
+  # second concurrent verify run would race on the throwaway DB names.
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 3600
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: db-restore-verify
+        spec:
+          restartPolicy: OnFailure
+          # Co-locate with shared-db when possible (same reasoning as db-backup).
+          affinity:
+            podAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchLabels:
+                        app: shared-db
+                    topologyKey: kubernetes.io/hostname
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            fsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: restore-verify
+              # Same Debian-based image as db-backup: openssl + pg_restore pre-installed.
+              image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: BACKUP_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: BACKUP_PASSPHRASE
+                - name: SHARED_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: SHARED_DB_PASSWORD
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
+              command: ["/bin/bash", "-c"]
+              # Shell vars below ($${...}) are evaluated by the container shell at
+              # runtime — NOT Taskfile envsubst targets (same convention as db-backup).
+              args:
+                - |
+                  # fail-loud: -e exits on any error, -u catches missing env vars,
+                  # -o pipefail propagates failures through pipes.
+                  set -euo pipefail
+                  sleep 15
+
+                  if ! pg_isready -h shared-db -t 30 -q; then
+                    echo "FATAL: shared-db is not reachable — refusing to run restore verification." >&2
+                    exit 1
+                  fi
+
+                  export PGPASSWORD="$${SHARED_DB_PASSWORD}"
+
+                  # Safety net: drop every leftover restore_verify_* database on exit,
+                  # even after partial failure — verification runs must not accumulate
+                  # throwaway databases on the production instance.
+                  cleanup() {
+                    for d in $(psql -h shared-db -U postgres -t -A \
+                        -c "SELECT datname FROM pg_database WHERE datname LIKE 'restore_verify_%'" 2>/dev/null); do
+                      psql -h shared-db -U postgres -q -c "DROP DATABASE IF EXISTS $${d}" || true
+                    done
+                  }
+                  trap cleanup EXIT
+
+                  # Newest DB backup generation on the PVC. Stamp dirs are named
+                  # YYYYMMDD-HHMMSS; lexicographic order IS chronological order
+                  # (same convention as the remote retention in backup-cronjob).
+                  # NOTE [T014544]: the plan asked for a .done marker, but .done is
+                  # written to the per-pod emptyDir /staging and never reaches the
+                  # PVC — directory presence plus *.dump.enc content is the
+                  # completeness proxy here. pvc-* generations are excluded.
+                  LATEST=$(find /backups -maxdepth 1 -mindepth 1 -type d \
+                    -regex '.*/[0-9]\{8\}-[0-9]\{6\}' | sort | tail -n 1)
+                  if [ -z "$${LATEST}" ]; then
+                    echo "FATAL: no backup generation found under /backups" >&2
+                    exit 1
+                  fi
+                  STAMP=$(basename "$${LATEST}")
+                  echo "Verifying backup generation: $${STAMP}"
+
+                  DUMPS=$(find "$${LATEST}" -maxdepth 1 -type f -name '*.dump.enc' | sort)
+                  if [ -z "$${DUMPS}" ]; then
+                    echo "FATAL: no *.dump.enc files in $${LATEST}" >&2
+                    exit 1
+                  fi
+
+                  FAILED=0
+                  while IFS= read -r ENC; do
+                    DB=$(basename "$${ENC}" .dump.enc)
+                    VERIFY_DB="restore_verify_$${DB}"
+                    START=$(date +%s)
+                    STATUS="fail"
+                    TABLES=0
+                    TMP=$(mktemp /tmp/$${DB}.XXXXXX.dump)
+
+                    psql -h shared-db -U postgres -q -c "DROP DATABASE IF EXISTS $${VERIFY_DB}" || true
+
+                    if openssl enc -d -aes-256-cbc -pbkdf2 \
+                         -in "$${ENC}" -out "$${TMP}" -pass env:BACKUP_PASSPHRASE \
+                       && psql -h shared-db -U postgres -q -c "CREATE DATABASE $${VERIFY_DB}" \
+                       && pg_restore --no-owner --no-privileges \
+                            -h shared-db -U postgres -d "$${VERIFY_DB}" "$${TMP}"; then
+                      TABLES=$(psql -h shared-db -U postgres -t -A -d "$${VERIFY_DB}" \
+                        -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'")
+                      case "$${TABLES}" in
+                        ''|*[!0-9]*) TABLES=0 ;;
+                      esac
+                      if [ "$${TABLES}" -gt 0 ]; then
+                        STATUS="ok"
+                        echo "  $${DB}: OK ($${TABLES} public tables restored)"
+                      else
+                        echo "ERROR: $${DB}: pg_restore exited 0 but public schema is empty" >&2
+                        FAILED=1
+                      fi
+                    else
+                      echo "ERROR: $${DB}: decrypt/create/restore failed" >&2
+                      FAILED=1
+                    fi
+
+                    END=$(date +%s)
+                    DURATION=$((END - START))
+                    # G-DB05 evidence log: one JSONL line per verified database.
+                    printf '{"stamp":"%s","db":"%s","status":"%s","duration_s":%s,"tables_restored":%s}\n' \
+                      "$${STAMP}" "$${DB}" "$${STATUS}" "$${DURATION}" "$${TABLES}" \
+                      >> /backups/restore-verification.jsonl
+
+                    rm -f "$${TMP}"
+                    psql -h shared-db -U postgres -q -c "DROP DATABASE IF EXISTS $${VERIFY_DB}" || true
+                  done <<< "$${DUMPS}"
+
+                  if [ "$${FAILED}" -ne 0 ]; then
+                    echo "Restore verification FAILED for at least one database — see /backups/restore-verification.jsonl" >&2
+                    exit 1
+                  fi
+                  echo "Restore verification complete: all databases OK ($${STAMP})"
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: "200m"
+                limits:
+                  memory: 512Mi
+                  cpu: "1"
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc

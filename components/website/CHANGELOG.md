@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.302.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.4...website-v1.302.5) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ops:** port freetoken-local provider + model-agnostic alias into repo SSOT [T014105] ([#5064](https://github.com/Paddione/Bachelorprojekt/issues/5064)) ([e6c79c6](https://github.com/Paddione/Bachelorprojekt/commit/e6c79c69bf70d091881b2fc196ff6adffdbb042d))
+
 ## [1.302.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.3...website-v1.302.4) (2026-08-23)
 
 

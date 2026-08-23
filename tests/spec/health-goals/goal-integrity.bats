@@ -38,13 +38,34 @@ setup() {
   [[ "$output" =~ ^[0-9]+$ ]]
 }
 
-@test "--pending liegt unter der Gesamtzahl der Quellen" {
-  # Der Kern des Befunds: vorher meldete das Goal ALLE Quellen als Backlog.
-  local total pending
-  total=$(bash "$WORKLIST" --root "$REPO_ROOT" | grep -c .)
-  pending=$(bash "$WORKLIST" --root "$REPO_ROOT" --pending)
-  [ "$total" -gt 0 ]
-  [ "$pending" -lt "$total" ]
+@test "--pending faellt, sobald der State Chunks als bekannt fuehrt" {
+  # Der Kern des Befunds: vorher meldete das Goal ALLE Quellen als Backlog,
+  # unabhaengig von erledigter Arbeit.
+  #
+  # Der Test baut seinen State SELBST, statt den der Maschine zu benutzen. Ein
+  # Vergleich gegen ~/.brain-ingest-state.json haette gemessen, ob auf diesem
+  # Rechner schon ein Ingest lief — in CI existiert die Datei nicht, dort ist
+  # alles pending, und die Aussage waere umgebungsabhaengig statt code-bezogen.
+  # (Genau so ist dieser Fall beim ersten CI-Lauf rot geworden.)
+  local empty_state seeded_state n_empty n_seeded
+  empty_state="$BATS_TEST_TMPDIR/empty.json"
+  seeded_state="$BATS_TEST_TMPDIR/seeded.json"
+  echo '{}' > "$empty_state"
+
+  n_empty=$(bash "$WORKLIST" --root "$REPO_ROOT" --pending --state "$empty_state")
+  [ "$n_empty" -gt 0 ]   # Positiv-Anker: ohne State ist alles offen
+
+  # Einen echten Chunk-Hash in den State schreiben — danach MUSS pending sinken.
+  local src slug outdir cf idx h
+  read -r src slug _ < <(bash "$WORKLIST" --root "$REPO_ROOT" | head -1)
+  outdir="$BATS_TEST_TMPDIR/chunks"; mkdir -p "$outdir"
+  read -r cf _ idx _ < <(bash "$REPO_ROOT/scripts/brain-chunk.sh" \
+      --source "$REPO_ROOT/$src" --slug "$slug" --out-dir "$outdir" | head -1)
+  h=$(sha256sum "$cf" | cut -d' ' -f1)
+  jq -n --arg k "${src}#${idx}" --arg h "$h" '{($k): {hash: $h}}' > "$seeded_state"
+
+  n_seeded=$(bash "$WORKLIST" --root "$REPO_ROOT" --pending --state "$seeded_state")
+  [ "$n_seeded" -lt "$n_empty" ]
 }
 
 @test "G-BRAIN14 misst ueber den --pending-Modus" {

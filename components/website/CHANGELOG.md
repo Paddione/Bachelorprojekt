@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.0...website-v1.303.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **factory:** add timeout 60 to auto-close-merged + rebase before brain-ingest push [T013914] ([#5060](https://github.com/Paddione/Bachelorprojekt/issues/5060)) ([ac0772a](https://github.com/Paddione/Bachelorprojekt/commit/ac0772a472a7798c9abbf4e324a1d29f85ca140c))
+
 ## [1.303.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.7...website-v1.303.0) (2026-08-23)
 
 

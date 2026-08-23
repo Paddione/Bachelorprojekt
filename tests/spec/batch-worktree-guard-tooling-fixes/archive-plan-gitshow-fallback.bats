@@ -20,6 +20,11 @@ setup() {
   # Test den Plan-Inhalt (git-show-Fallback) im Log nachweisen kann.
   cat <<'KUBECTL' > "$STUB_BIN/kubectl"
 #!/bin/bash
+# T015008: ctx-guard probe vor dem Write — LAN-Server vorgaukeln.
+if [[ "$*" == *"config view"* ]]; then
+  if [[ "$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 if [[ "$1" == "get" ]]; then
   echo "pod/shared-db-0"
 elif [[ "$1" == "exec" ]]; then

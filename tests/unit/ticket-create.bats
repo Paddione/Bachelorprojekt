@@ -11,6 +11,12 @@ setup() {
   cat > "$MOCKDIR/kubectl" <<EOF
 #!/usr/bin/env bash
 if [[ "\$*" == *"get pod"* ]]; then echo "pod/shared-db-0"; exit 0; fi
+# T015008: the ctx-guard probes the kubeconfig before every write; emulate a
+# LAN-resolved context so the guard passes and the INSERT path is reached.
+if [[ "\$*" == *"config view"* ]]; then
+  if [[ "\$*" == *".contexts["* ]]; then echo "mock-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 if [[ "\$*" == *"exec"* ]]; then cat >> "$CAP"; echo "T000999|fake-uuid-1234"; exit 0; fi
 exit 0
 EOF

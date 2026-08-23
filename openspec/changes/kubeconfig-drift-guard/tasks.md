@@ -27,7 +27,7 @@ Disjunkte Partials (D1): p1 berührt `scripts/vda/ticket/_ctx-guard.sh` +
 
 ## Partial P1 — p1-impl
 
-- [ ] **P1.1 Guard-Skript.** `scripts/vda/ticket/_ctx-guard.sh`: Aufruf
+- [x] **P1.1 Guard-Skript.** `scripts/vda/ticket/_ctx-guard.sh`: Aufruf
       `bash _ctx-guard.sh <CTX>` (und sourcable als Funktion). Liest
       `kubectl config view --context <CTX> -o jsonpath='{.contexts[?(@.name=="<CTX>")].context.cluster}'`
       → Clustername → `.clusters[?(@.name==…)].cluster.server` → Host-Extraktion.
@@ -37,19 +37,19 @@ Disjunkte Partials (D1): p1 berührt `scripts/vda/ticket/_ctx-guard.sh` +
       `WARN:`-Zeile auf stderr und Exit 0. Fehlender Context/Server → Exit 1
       (fail-closed). Kein Cluster-Zugriff nötig (nur lokale Config-Datei).
 
-- [ ] **P1.2 Wire-In ticket.sh.** Nach dem CTX-Case-Block (~Zeile 115), vor dem
+- [x] **P1.2 Wire-In ticket.sh.** Nach dem CTX-Case-Block (~Zeile 115), vor dem
       Source von `_ticket-core.sh`: wenn `$TICKET_OFFLINE != 1` und das Kommando
       im Write-Set liegt (create, update-status, update-fields, set-parent,
       add-comment, archive-plan, enqueue, stage-plan, release-hold),
       `bash "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ctx-guard.sh" "$CTX"` ausführen.
 
-- [ ] **P1.3 Smoke.** `bash scripts/ticket.sh get --id T014735` (Read-Pfad,
+- [x] **P1.3 Smoke.** `bash scripts/ticket.sh get --id T014735` (Read-Pfad,
       unguardiert) funktioniert weiterhin; ein Write mit manipulierter
       Fixture-Kubeconfig bricht mit Drift-Meldung ab.
 
 ## Partial P2 — p2-tests (Tests-Rolle, STRUCT2)
 
-- [ ] **P2.1 Failing-Test-Step (RED).** Der Guard
+- [x] **P2.1 Failing-Test-Step (RED).** Der Guard
       `tests/spec/db-guard/kubeconfig-drift-guard.bats` liegt dem Stage-Commit
       bei und ist dort rot verifiziert (Exit 127 — Skript fehlt):
 
@@ -58,7 +58,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/db-guard/
 # expected: FAIL (red — Guard-Skript existiert vor P1 nicht)
 ```
 
-- [ ] **P2.2 GREEN-Nachweis.** Nach P1 müssen alle 5 Tests grün sein:
+- [x] **P2.2 GREEN-Nachweis.** Nach P1 müssen alle 5 Tests grün sein:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/db-guard/

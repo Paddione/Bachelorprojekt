@@ -227,6 +227,11 @@ _t002366_stub_dir() {
   mkdir -p "$d"
   cat >"$d/kubectl" <<'SH'
 #!/usr/bin/env bash
+# T015008: ctx-guard probe vor dem Write — LAN-Server vorgaukeln.
+if [[ "$*" == *"config view"* ]]; then
+  if [[ "$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 case "$1" in
   get)  echo "pod/shared-db-0" ;;
   exec) cat >/dev/null ;;

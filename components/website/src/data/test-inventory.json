@@ -3090,6 +3090,12 @@
     "kind": "shell"
   },
   {
+    "id": "db-guard/kubeconfig-drift-guard",
+    "file": "tests/spec/db-guard/kubeconfig-drift-guard.bats",
+    "category": "db-guard",
+    "kind": "shell"
+  },
+  {
     "id": "db-quality-goals",
     "file": "tests/spec/db-quality-goals.bats",
     "category": "db-quality-goals",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1186,
+      "file_count": 1187,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -946,6 +946,7 @@
         "tests/spec/software-factory/enqueue-preserves-plan-staged.bats",
         "tests/spec/software-factory/factory-claims-lock-before-write.bats",
         "tests/spec/software-factory/factory-e2e-pipeline-coverage.bats",
+        "tests/spec/software-factory/factory-mcp-queue-ssot.bats",
         "tests/spec/software-factory/factory-model-id-default.bats",
         "tests/spec/software-factory/factory-model-lock.bats",
         "tests/spec/software-factory/factory-prep-stdout-json.bats",
@@ -3628,7 +3629,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 801,
+      "file_count": 800,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3924,7 +3925,6 @@
         "scripts/factory/mcp-go/go.mod",
         "scripts/factory/mcp-go/main.go",
         "scripts/factory/mcp-go/main_test.go",
-        "scripts/factory/mcp-server.mjs",
         "scripts/factory/merge-hooks.sh",
         "scripts/factory/metrics.sh",
         "scripts/factory/migrate-mishap-bundles.sh",

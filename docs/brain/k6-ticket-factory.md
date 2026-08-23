@@ -64,26 +64,26 @@
 
 
 ┌───────────────────────────────────────────────────────────────────────┐
-│           factory-mcp — HTTP, Port :13003 (ZWEI Implementierungen)     │
+│           factory-mcp — HTTP, Port :13003 (Go-SSOT, seit T014936)      │
 │                                                                         │
-│  ┌─────────────────────────────┐      ┌─────────────────────────────┐ │
-│  │ scripts/factory/mcp-go/      │      │ scripts/factory/             │ │
-│  │  main.go                     │      │  mcp-server.mjs               │ │
-│  │  Go, Streamable-HTTP          │      │  Node, Streamable-HTTP        │ │
-│  │  PORT: FACTORY_MCP_PORT      │      │  PORT: FACTORY_MCP_PORT      │ │
-│  │  (Default 13003)             │      │  (Default 13003)             │ │
-│  │  systemd-Unit:                │      │  KEINE systemd-Unit gefunden │ │
-│  │  factory-mcp.service          │      │  (nur historisch referenziert│ │
-│  │  ("task agents:factory-mcp:  │      │  in mcp-go/README.md als     │ │
-│  │  install")                    │      │  Vorgänger)                   │ │
-│  │  + factory_ask (LLM Q&A)     │      │  laut mcp-go/README.md: Go   │ │
-│  └───────────────┬───────────────┘      │  ist "Rewrite of mcp-server. │ │
-│                  │ aktiv (systemd)       │  mjs mit einem neuen Tool"   │ │
-│                  │                        └─────────────────────────────┘ │
-│                  ▼                                                     │
-│         Registry-Eintrag docs/agent-guide/registry/mcp.yaml:           │
-│         endpoint http://localhost:13003/mcp, harness claude_code:      │
-│         type http                                                      │
+│  ┌─────────────────────────────┐                                       │
+│  │ scripts/factory/mcp-go/      │                                       │
+│  │  main.go                     │                                       │
+│  │  Go, Streamable-HTTP          │                                      │
+│  │  PORT: FACTORY_MCP_PORT      │                                        │
+│  │  (Default 13003)             │                                       │
+│  │  systemd-Unit:                │                                      │
+│  │  factory-mcp.service          │                                      │
+│  │  ("task agents:factory-mcp:   │                                      │
+│  │  install")                    │                                      │
+│  │  + factory_ask (LLM Q&A)     │                                        │
+│  └───────────────┬───────────────┘                                       │
+│                  │ aktiv (systemd)                                        │
+│                  ▼                                                        │
+│         Queue-Wahrheit: scripts/factory/queue.sh (SSOT [T014936])        │
+│         Registry-Eintrag docs/agent-guide/registry/mcp.yaml:             │
+│         endpoint http://localhost:13003/mcp, harness claude_code:        │
+│         type http                                                        │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -122,9 +122,9 @@
 | Implementierung | Datei | Sprache | Default-Port-Env | systemd-Unit | Status |
 |------------------|-------|---------|-------------------|--------------|--------|
 | Go | `scripts/factory/mcp-go/main.go` (`func port()`, Zeile 36) | Go, Streamable-HTTP, stdlib-only | `FACTORY_MCP_PORT` (Default `13003`) | `scripts/factory/mcp-go/factory-mcp.service` — aktiv installiert via `task agents:factory-mcp:install` | **aktiv** (registrierter systemd-Dienst) |
-| Node | `scripts/factory/mcp-server.mjs` (Zeile 9) | Node, `@modelcontextprotocol/sdk` | `FACTORY_MCP_PORT` (Default `13003`) | keine gefunden | **tot/dupliziert** — laut `scripts/factory/mcp-go/README.md` Zeile 4 ist Go "Go rewrite of `scripts/factory/mcp-server.mjs` with one new tool (`factory_ask`)" |
+| Node | ~~`scripts/factory/mcp-server.mjs`~~ | Node, `@modelcontextprotocol/sdk` | `FACTORY_MCP_PORT` (Default `13003`) | keine | **entfernt (T014936)** — war tot/dupliziert; Go ist SSOT |
 
-**Latenter Konflikt:** Beide Implementierungen binden denselben Default-Port über dieselbe Env-Variable. Würde die `.mjs`-Datei manuell gestartet, während der Go-systemd-Dienst bereits `:13003` hält, kollidieren beide (Bind-Fehler oder gegenseitiges Verdrängen je nach Startreihenfolge). Die `.mjs`-Datei ist im Repo nicht gelöscht, obwohl sie durch die Go-Implementierung ersetzt wurde — eine formal existierende, faktisch tote zweite Schnittstelle auf demselben Port.
+**Ehemaliger latenter Konflikt (aufgelöst T014936):** Beide Implementierungen banden denselben Default-Port über dieselbe Env-Variable; die `.mjs`-Datei blieb als tote Zweitschnittstelle liegen (Bind-Risiko bei manuellem Start). Mit T014936 entfernt — der Go-Server ist die einzige factory-mcp-Implementierung und bezieht Queue-Wahrheit ausschließlich aus `scripts/factory/queue.sh`.
 
 ### Factory-Queue-Selektivität (Dispatcher)
 
@@ -152,7 +152,7 @@
 | # | Pfad | Befund | Sichtbarkeit |
 |---|------|--------|--------------|
 | 1 | `tickets.ticket_plans` | **Widerlegt für mentolder** (293 Zeilen, 291 mit Inhalt) — siehe Defekt-Referenz unten für die Einordnung der ursprünglichen Epic-Aussage | per COUNT-Query verifiziert |
-| 2 | `scripts/factory/mcp-server.mjs` neben `scripts/factory/mcp-go/main.go` | Beide binden `:13003` per Default über dieselbe Env-Var; die `.mjs`-Fassung ist per README als abgelöst dokumentiert, aber nicht gelöscht — keine aktive Kollision, solange niemand sie manuell startet, aber eine tote Zweitschnittstelle mit Bind-Risiko | keine Laufzeit-Warnung; nur README-Text |
+| 2 | ~~`scripts/factory/mcp-server.mjs` neben `scripts/factory/mcp-go/main.go`~~ | **Behoben (T014936):** Legacy-.mjs gelöscht; Go-Server einzige Implementierung, Queue-SQL nur noch in queue.sh (SSOT-Guardrail: `tests/spec/software-factory/factory-mcp-queue-ssot.bats`) | Guardrail-Test fällt bei Wiedereinführung aus |
 | 3 | CLI-Statusübergänge (`scripts/ticket.sh update-status`) vs. Timeline | **Teilweise widerlegt**: `scripts/vda/ticket/update-status.sh` emittiert seit T001444 automatisch Phase-Events für `in_progress`, `in_review`, `qa_review`, `done`, `blocked` (Zeilen 21-27). Für alle anderen Statuswerte (`backlog`, `plan_staged`, `triage`, `archived`, …) gibt es **keine** automatische Emission — diese Übergänge bleiben in `factory_phase_events`/`v_timeline` unsichtbar | kein Log/Warnung bei fehlender Emission — stiller Lückenpfad für die nicht gelisteten Statuswerte |
 
 ### Zusätzlich beobachtet (NEU, nicht Teil der Epic-D-Liste D1-D9)

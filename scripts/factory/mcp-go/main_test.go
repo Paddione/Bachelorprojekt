@@ -246,3 +246,32 @@ func TestResolveToolCallAnswer_AllowlistContent(t *testing.T) {
 	}
 }
 
+
+// T014936: factory_status leitet die dispatchablen Counts aus dem queue.sh-JSON
+// ab. Der Parser muss leere Arrays, fremde Status-Werte und kaputtes JSON
+// überleben (letzteres als leere Map — der Fehlerfall wird upstream als
+// queue.sh-Fehler gemeldet, nicht hier still zu 0).
+func TestCountByStatus(t *testing.T) {
+	if got := countByStatus(`[]`); len(got) != 0 {
+		t.Fatalf("empty array: want empty map, got %v", got)
+	}
+	raw := `[{"external_id":"T1","status":"backlog"},{"external_id":"T2","status":"plan_staged"},{"external_id":"T3","status":"plan_staged"},{"external_id":"T4","status":"weird"}]`
+	got := countByStatus(raw)
+	if got["backlog"] != 1 || got["plan_staged"] != 2 || got["weird"] != 1 {
+		t.Fatalf("unexpected counts: %v", got)
+	}
+	if got := countByStatus(`not json`); len(got) != 0 {
+		t.Fatalf("unparsable input must yield empty map, got %v", got)
+	}
+}
+
+// T014936: atoiOrRaw darf einen nicht-numerischen DB-Wert nicht still zu 0
+// degenerieren — der Rohwert bleibt sichtbar (Fail-Closed-Anzeige).
+func TestAtoiOrRaw(t *testing.T) {
+	if v := atoiOrRaw("12"); v != 12 {
+		t.Fatalf("want 12, got %v", v)
+	}
+	if v := atoiOrRaw(" oops "); !((v == " oops ") || (v == "oops")) {
+		t.Fatalf("raw value must pass through, got %v", v)
+	}
+}

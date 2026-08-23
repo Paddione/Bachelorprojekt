@@ -555,6 +555,11 @@ _pt_capture_stub() {   # $CAP_FILE muss vor dem Aufruf exportiert sein
   local dir; dir="$(mktemp -d)"
   cat > "$dir/kubectl" <<'STUB'
 #!/usr/bin/env bash
+# T015008: ctx-guard probe vor dem Write — LAN-Server vorgaukeln.
+if [[ "$*" == *"config view"* ]]; then
+  if [[ "$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 mode=""
 for a in "$@"; do case "$a" in get) mode=get;; exec) mode=exec;; esac; done
 if [[ "$mode" == get ]]; then echo "pod/shared-db-0"; exit 0; fi
@@ -646,6 +651,11 @@ _pt_rows_stub() {   # $1 = phase:state-Zeilen, die der exec-Call zurückgibt
   local rows="$1" dir; dir="$(mktemp -d)"
   cat > "$dir/kubectl" <<STUB
 #!/usr/bin/env bash
+# T015008: ctx-guard probe vor dem Write — LAN-Server vorgaukeln.
+if [[ "\$*" == *"config view"* ]]; then
+  if [[ "\$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 for a in "\$@"; do case "\$a" in get) echo "pod/shared-db-0"; exit 0;; esac; done
 printf '%s' "$rows"
 exit 0

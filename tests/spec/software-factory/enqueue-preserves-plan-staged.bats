@@ -29,6 +29,12 @@ make_kubectl_stub() {
   local reported_status="$1"
   cat > "$STUBDIR/kubectl" <<STUB
 #!/usr/bin/env bash
+# T015008: der ctx-guard probt vor jedem Write die kubeconfig ab — LAN-Server
+# vorgaukeln, damit der Stub-Write-Pfad erreicht wird.
+if [[ "\$*" == *"config view"* ]]; then
+  if [[ "\$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 for a in "\$@"; do
   if [[ "\$a" == "get" ]]; then echo "pod/shared-db-stub"; exit 0; fi
 done

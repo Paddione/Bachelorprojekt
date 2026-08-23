@@ -110,6 +110,10 @@ teardown() {
   cap="$mockdir/captured.sql"
   cat > "$mockdir/kubectl" <<'MOCKEOF'
 #!/usr/bin/env bash
+if [[ "$*" == *"config view"* ]]; then
+  if [[ "$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 if [[ "$*" == *"get pod"* ]]; then echo "pod/shared-db-0"; exit 0; fi
 if [[ "$*" == *"exec"* ]]; then
   input="$(cat)"
@@ -138,6 +142,10 @@ MOCKEOF
   cap="$mockdir/captured.sql"
   cat > "$mockdir/kubectl" <<'MOCKEOF'
 #!/usr/bin/env bash
+if [[ "$*" == *"config view"* ]]; then
+  if [[ "$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 if [[ "$*" == *"get pod"* ]]; then echo "pod/shared-db-0"; exit 0; fi
 if [[ "$*" == *"exec"* ]]; then
   input="$(cat)"
@@ -166,6 +174,10 @@ MOCKEOF
   cap="$mockdir/captured.sql"
   cat > "$mockdir/kubectl" <<'MOCKEOF'
 #!/usr/bin/env bash
+if [[ "$*" == *"config view"* ]]; then
+  if [[ "$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
+  exit 0
+fi
 if [[ "$*" == *"get pod"* ]]; then echo "pod/shared-db-0"; exit 0; fi
 if [[ "$*" == *"exec"* ]]; then
   input="$(cat)"

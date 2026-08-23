@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.303.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.3...website-v1.303.4) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ops:** remove admin/admin from Grafana fleet artifact [T014536] ([#5092](https://github.com/Paddione/Bachelorprojekt/issues/5092)) ([d4b3cd4](https://github.com/Paddione/Bachelorprojekt/commit/d4b3cd4cf0e016bec45040fae142ca971bc6ccdf))
+
+
+### Tests
+
+* **scripts:** guard FreeToken routing drift [T014552] ([#5091](https://github.com/Paddione/Bachelorprojekt/issues/5091)) ([10f85f5](https://github.com/Paddione/Bachelorprojekt/commit/10f85f50d8bf22e2a4082dc993f86629d3c1b763))
+
 ## [1.303.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.2...website-v1.303.3) (2026-08-23)
 
 

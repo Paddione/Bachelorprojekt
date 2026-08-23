@@ -1,7 +1,7 @@
 ---
 title: "spec-atlas P1 — Generator-Kern"
 ticket_id: T015012
-domains: [openspec, tooling]
+domains: [scripts, dev-tooling]
 status: planned
 ---
 

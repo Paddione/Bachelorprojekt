@@ -4255,6 +4255,12 @@
       "status": "plan_staged"
     }
   ],
+  "T014735": [
+    {
+      "slug": "ticket-mcp-freshness-guard-t014735",
+      "status": "plan_staged"
+    }
+  ],
   "T015004": [
     {
       "slug": "2026-08-23-staging-verdrahtung",

@@ -1,7 +1,7 @@
 ---
 title: "pvc-backup-escaping-T014535 — Implementation Plan"
 ticket_id: T014535
-domains: [backup]
+domains: [infra]
 status: active
 file_locks: []
 shared_changes: false

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.305.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.1...website-v1.305.2) (2026-08-23)
+
+
+### Bug Fixes
+
+* **db:** [T015009] Delete-Guard und ueberlebendes Delete-Audit fuer tickets.tickets ([#5151](https://github.com/Paddione/Bachelorprojekt/issues/5151)) ([8f209c8](https://github.com/Paddione/Bachelorprojekt/commit/8f209c8684cdf0683fb83fa769b2bc85f79b98d4))
+
 ## [1.305.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.0...website-v1.305.1) (2026-08-23)
 
 

@@ -269,15 +269,15 @@ func RegisterMishapTools(s *server.MCPServer) {
 			}
 			// [T003553] Der Buffer aggregiert, er konvertiert nicht — SSOT:
 			// openspec/specs/mishap-tracking.md, Requirement "Der Mishap-Buffer
-			// aggregiert, er konvertiert nicht". Vorher entstand hier zusaetzlich
-			// je ein Factory-Fix-Ticket pro Buffer-Eintrag; damit erzeugte ein
-			// einzelner Flush 10 Tickets statt einen Sammel-Append.
+			// aggregiert, er konvertiert nicht". Es entsteht hier weder ein
+			// Factory-Fix-Ticket pro Eintrag noch ein Sammel-Container
+			// [T014104]: die Eintraege werden protokolliert und verworfen.
 			//
 			// Incident-Typen sind davon nicht beruehrt: sie gehen oben am Buffer
 			// vorbei und legen weiterhin je ein Ticket ueber createIncidentTicket an.
 			writeBuffer(buffer[MISHAP_TRIGGER:])
 			remaining := len(buffer) - MISHAP_TRIGGER
-			return mcp.NewToolResultText(fmt.Sprintf("Rollup-Container-Append: %d Mishaps an den Container angehaengt. Verbleibend: %d.", MISHAP_TRIGGER, remaining)), nil
+			return mcp.NewToolResultText(fmt.Sprintf("%d Mishaps protokolliert und verworfen. Verbleibend: %d.", MISHAP_TRIGGER, remaining)), nil
 		},
 	)
 	s.AddTool(
@@ -295,7 +295,7 @@ func RegisterMishapTools(s *server.MCPServer) {
 		},
 	)
 	s.AddTool(
-		mcp.NewTool("flush_mishap_buffer", mcp.WithDescription(fmt.Sprintf("Erzwingt einen Append des Buffers an den Rollup-Container, auch unterhalb %d Eintraege.", MISHAP_TRIGGER)),
+		mcp.NewTool("flush_mishap_buffer", mcp.WithDescription(fmt.Sprintf("Leert den Buffer sofort: die Eintraege werden protokolliert und verworfen, auch unterhalb %d Eintraege. Es entsteht kein Ticket [T014104].", MISHAP_TRIGGER)),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski"), mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

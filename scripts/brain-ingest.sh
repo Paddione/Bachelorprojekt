@@ -626,7 +626,19 @@ if git remote get-url origin &>/dev/null; then
   # T013914 E9: Staleness-Gate fuer das Branch selbst. Bei zwei konkurrierenden
   # brain-ingest-Laeufen kann der zweite Push scheitern, weil das remote Branch
   # um Commits des ersten Läufs vorausgeschritten ist.
+  # [T014737] Der Rebase ist nur zulaessig, wenn der Remote-Branch ein
+  # Fast-Forward unserer Delivery-Basis ist (der konkurrierende Lauf haengt nur
+  # an). Ein divergierter Remote-Branch — etwa ein stale Delivery-Branch von
+  # einem aelteren main-Stand — bricht hier ab, statt vom Blind-Rebase geglaettet
+  # zu werden: sonst greift der Non-Fast-Forward-Schutz aus T013041 nie mehr.
   if git rev-parse --verify "origin/$BRANCH" &>/dev/null 2>&1; then
+    REMOTE_TIP="$(git rev-parse "origin/$BRANCH")"
+    LOCAL_BASE="$(git rev-parse HEAD~1)"
+    if ! git merge-base --is-ancestor "$LOCAL_BASE" "$REMOTE_TIP"; then
+      echo "ERROR: origin/$BRANCH diverged from delivery base (non-fast-forward) — delivery aborted"
+      cd "$REPO_ROOT"
+      exit 1
+    fi
     git rebase "origin/$BRANCH" 2>/dev/null || {
       echo "ERROR: rebase onto origin/$BRANCH failed — delivery aborted"
       cd "$REPO_ROOT"

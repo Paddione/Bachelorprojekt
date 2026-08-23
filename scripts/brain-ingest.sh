@@ -627,6 +627,16 @@ if git remote get-url origin &>/dev/null; then
       exit 1
     fi
   fi
+  # T013914 E9: Staleness-Gate fuer das Branch selbst. Bei zwei konkurrierenden
+  # brain-ingest-Laeufen kann der zweite Push scheitern, weil das remote Branch
+  # um Commits des ersten Läufs vorausgeschritten ist.
+  if git rev-parse --verify "origin/$BRANCH" &>/dev/null 2>&1; then
+    git rebase "origin/$BRANCH" 2>/dev/null || {
+      echo "ERROR: rebase onto origin/$BRANCH failed — delivery aborted"
+      cd "$REPO_ROOT"
+      exit 1
+    }
+  fi
   if ! git push origin "$BRANCH" 2>&1; then
     echo "ERROR: git push failed (non-fast-forward = stale/diverged remote branch) — delivery aborted"
     cd "$REPO_ROOT"

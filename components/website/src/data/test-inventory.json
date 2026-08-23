@@ -2448,6 +2448,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-ingest/delivery-rebase-before-push",
+    "file": "tests/spec/brain-ingest/delivery-rebase-before-push.bats",
+    "category": "brain-ingest",
+    "kind": "shell"
+  },
+  {
     "id": "brain-initial-ingest",
     "file": "tests/spec/brain-initial-ingest.bats",
     "category": "brain-initial-ingest",
@@ -5390,6 +5396,12 @@
   {
     "id": "software-factory/update-status-id-allowlist-T002906",
     "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/wakeup-auto-close-timeout",
+    "file": "tests/spec/software-factory/wakeup-auto-close-timeout.bats",
     "category": "software-factory",
     "kind": "shell"
   },

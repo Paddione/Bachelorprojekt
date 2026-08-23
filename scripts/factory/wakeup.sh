@@ -242,7 +242,7 @@ while true; do
   # T001415: Auto-Close von Tickets deren PR bereits gemergt ist
   # (worktree-lifecycle, dev-flow-execute, tickets/status-lifecycle).
   for _acm_brand in mentolder korczewski; do
-    BRAND="$_acm_brand" bash "${REPO}/scripts/factory/auto-close-merged.sh" 2>&1 \
+    BRAND="$_acm_brand" timeout 60 bash "${REPO}/scripts/factory/auto-close-merged.sh" 2>&1 \
       | sed "s/^/[auto-close-merged:${_acm_brand}] /" >&2 || true
   done
   # T001443: Status-Drift-Watchdog — awaiting_deploy+done_at, terminal-pr-unmerged, terminal-no-pr

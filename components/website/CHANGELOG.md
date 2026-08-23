@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.305.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.304.1...website-v1.305.0) (2026-08-23)
+
+
+### Features
+
+* **infra:** manifest hardening SA-GR-04/05/06 [T014553] ([#5137](https://github.com/Paddione/Bachelorprojekt/issues/5137)) ([bd258ff](https://github.com/Paddione/Bachelorprojekt/commit/bd258ff0ca0dc6b0437798fbe22586da270cfe80))
+
 ## [1.304.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.304.0...website-v1.304.1) (2026-08-23)
 
 

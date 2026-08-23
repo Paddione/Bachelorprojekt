@@ -1,2 +1,8 @@
 {
+  "S1:.opencode/skills/huggingface-vision-trainer/scripts/dataset_inspector.py": {
+    "path": ".opencode/skills/huggingface-vision-trainer/scripts/dataset_inspector.py",
+    "metric": 814,
+    "detail": "814 lines > 800 limit (.py)",
+    "reason": "upstream huggingface/skills file (T015173) — nicht teilen, Original bleibt review-bar"
+  }
 }

@@ -3387,6 +3387,12 @@
       "status": "archived"
     }
   ],
+  "T004339": [
+    {
+      "slug": "decommission-orphaned-loadouts-T014339",
+      "status": "plan_staged"
+    }
+  ],
   "T004592": [
     {
       "slug": "2026-08-14-stub-delta-pr-gate",

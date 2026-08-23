@@ -37,17 +37,17 @@ openspec/changes/dispatch-gate-cap-order-t014384/tasks.md  — dieser Plan
 
 ## Task List
 
-- [ ] **schedule.sh — Gate hoisten.** Den Merged-PR-Gate-Block (check-merged →
+- [x] **schedule.sh — Gate hoisten.** Den Merged-PR-Gate-Block (check-merged →
       update-status done/resolution → Close-Kommentar → continue) VOR die Zeile
       `[[ "$global_used" -ge "$GLOBAL_CAP" ]] && break` ziehen. Der Break gilt danach
       nur noch für den Dispatch-Pfad. Verhalten ohne Merge-Beleg (rc=0/2) unverändert.
-- [ ] **Fixture härten.** Im INSERT des Fixtures (bats-Zeile ~96) statt `now()` ein
+- [x] **Fixture härten.** Im INSERT des Fixtures (bats-Zeile ~96) statt `now()` ein
       historisches `created_at` setzen (z. B. `now() - interval '30 days'`), damit
       T001108 deterministisch vor dem Anker und allen Echtzeit-Kandidaten sortiert.
-- [ ] **Skip-Semantik dokumentieren.** Kommentar am `_skip_if_pool_busy`-Guard im Test:
+- [x] **Skip-Semantik dokumentieren.** Kommentar am `_skip_if_pool_busy`-Guard im Test:
       Skip bleibt Skip (Schutz des Live-Dev-DB-Modus); Flakiness ist durch die beiden
       Schritte oben beseitigt, nicht durch einen harten Fehler.
-- [ ] **Failing-Test-Step (RED → GREEN).**
+- [x] **Failing-Test-Step (RED → GREEN).**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/merged-dispatch-gate.bats
@@ -58,7 +58,7 @@ openspec/changes/dispatch-gate-cap-order-t014384/tasks.md  — dieser Plan
 
 ## Verify
 
-- [ ] `./tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/merged-dispatch-gate.bats` → grün oder sichtbarer Skip
-- [ ] `./tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/scheduling.bats` → keine Regression
-- [ ] `task test:changed` → grün
-- [ ] `task freshness:regenerate && task freshness:check` → grün
+- [x] `./tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/merged-dispatch-gate.bats` → grün oder sichtbarer Skip
+- [x] `./tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/scheduling.bats` → keine Regression
+- [x] `task test:changed` → grün
+- [x] `task freshness:regenerate && task freshness:check` → grün

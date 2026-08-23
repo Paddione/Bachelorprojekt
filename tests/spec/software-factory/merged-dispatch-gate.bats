@@ -52,6 +52,10 @@ teardown() {
 # pipeline_slot IS NOT NULL AND status='in_progress' (nur belegte Slots
 # zaehlen; ein besetzter Pool mit freien Restplaetzen ist KEIN Grund zum
 # Skip — "busy > 0" waere zu streng).
+#
+# Skip bleibt Skip (Schutz des Live-Dev-DB-Modus); Flakiness ist durch die
+# beiden Schritte (Gate hoisten + Fixture härten) beseitigt, nicht durch
+# einen harten Fehler.
 _skip_if_pool_busy() {
   local need=2 used b global_used free
   used=$(env BRAND=mentolder FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}" bash scripts/factory/slots.sh count 2>/dev/null) || used=0
@@ -93,7 +97,7 @@ _fixture_psql() {
 
   # ── Gemergtes Fixture (PR #2083): plan_staged + execution_released=true
   # (Staged-Lane von queue.sh, is_test_data=false).
-  _fixture_psql "INSERT INTO tickets.tickets (external_id, brand, type, title, status, readiness, is_test_data, created_at) VALUES ('T001108', 'mentolder', 'fix', 'SF-REAL-merged-sched-T001108', 'plan_staged', '{\"execution_released\": true}'::jsonb, false, now()) ON CONFLICT (external_id) DO NOTHING;" >/dev/null
+  _fixture_psql "INSERT INTO tickets.tickets (external_id, brand, type, title, status, readiness, is_test_data, created_at) VALUES ('T001108', 'mentolder', 'fix', 'SF-REAL-merged-sched-T001108', 'plan_staged', '{\"execution_released\": true}'::jsonb, false, now() - interval '30 days') ON CONFLICT (external_id) DO NOTHING;" >/dev/null
   local exists
   exists=$(_fixture_psql "SELECT count(*) FROM tickets.tickets WHERE external_id='T001108';" | tr -d '[:space:]')
   [ "$exists" = "1" ]

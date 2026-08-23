@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "title": "Tandem-Kleinstmodelle-Kandidatenmatrix",
+    "ticket": "T015248",
+    "date": "2026-08-24",
+    "change": "openspec/changes/tandem-small-models",
+    "resident_model": {
+      "label": "Qwen3.6-35B-A3B NVFP4 (FTW-Checkpoint)",
+      "hf_repo": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+      "serving": "FreeToken-native :1919, extern verwaltet (Loadout-Slug freetoken-local, managed=external); Wechsel der drei MoE-FTW-Checkpoints ueber Daemon :1900 /engine/switch",
+      "architecture": "Qwen3_5MoeForConditionalGeneration (GDN-Hybrid, MoE 35B/A3B, text-only)",
+      "vocab_size": 248320,
+      "context_limit_declared_by_plugin": 131072
+    },
+    "gpu_budget": {
+      "gpu": "NVIDIA GeForce RTX 5070 Ti",
+      "vram_gb": 16,
+      "shared_with_serving": true,
+      "arbitration": "exclusiveGroup chat-gpu: nur ein GPU-Loadout zugleich; Training entkoppelt via scripts/gpu-lock.sh (Lauf 1: 15087 MiB frei, 4800 MiB angefordert)"
+    },
+    "hard_criteria": {
+      "params_b_max": 8,
+      "gguf_exportable": "Export via scripts/finetune/export_gguf.py bzw. vorhandener offizieller GGUF-Pfad ins llama.cpp-Loadout-Setup",
+      "qlora_vram_fit_16gb_shared": "QLoRA-Trainingsfit auf 16 GB geteilt mit Serving-Budget, sequenziell (design.md D4)",
+      "draft_tokenizer_match": "Vocab-/Merge-Identitaet mit dem Residentmodell ist harte Bedingung fuer die Draft-Rolle (design.md D3) — Speculative Decoding scheitert an Vocab-Mismatch"
+    },
+    "evidence_legend": {
+      "local-hf-cache": "Lokale Pruefung im Hugging-Face-Cache (~/.cache/huggingface/hub), 2026-08-24: tokenizer.json der Modelle geparst, Vocab-Inhalt (Token-ID-Paare, 248044 Eintraege) und Merge-Regeln als Menge verglichen; Added-Tokens-Differenz gelistet",
+      "local-safetensors": "Parameterzahl aus den Header-Metadaten der lokalen safetensors-Shards summiert (keine Schaetzung)",
+      "lauf1": "Artefakte von Lauf 1 (scripts/finetune/outputs/: lauf1-config.json, measure-report-s3-qwen35-lauf1.json, lauf1-train.log, lauf1-eval-report.json; gitignored, lokal vorhanden)",
+      "loadouts": "scripts/llm/loadouts.json",
+      "agent-models": ".opencode/agent-models.jsonc",
+      "model-card-public": "Oeffentliches Modellkarten-Wissen, nicht lokal verifiziert — konservativ angegeben"
+    }
+  },
+  "candidates": [
+    {
+      "slug": "qwen35-text-4b-lauf1",
+      "hf_repo": "techwithsergiu/Qwen3.5-text-4B",
+      "family": "qwen3.5",
+      "params_b": 4.33,
+      "gguf_exportable": true,
+      "tokenizer_match_with_resident": true,
+      "qlora_vram_fit_16gb_shared": true,
+      "roles": {
+        "draft": {
+          "fit": "recommended",
+          "reasons": [
+            "Vocab- und Merge-Identitaet mit dem Residentmodell lokal verifiziert: identischer Vocab-Inhalt (248044 Token, gleicher Inhalt-Hash), Merge-Regeln als Menge identisch; einzige Differenz sind 7 Audio-/TTS-Special-Token ab ID 248070 in den Added-Tokens, die Text-Entkaeufe nicht beruehren",
+            "Reine CausalLM-Architektur (Qwen3_5ForCausalLM laut config.json) — kein ConditionalGeneration-Wrapper mit Vision-/Audio-Projektor, ladbar als kompakter Draft im llama.cpp-Server (Pfad: --spec-type mit draftModelPath wie im Bestand bei gemma12-vision praktiziert)",
+            "Einziger Kandidat, dessen Pipeline bereits end-to-end lief: Lauf 1 trainierte genau dieses Modell und exportierte ein benanntes GGUF (qwen35-text-4b-lauf1.gguf)"
+          ]
+        },
+        "router": {
+          "fit": "candidate",
+          "reasons": [
+            "4.33 B sind fuer reine Intent-Klassifikation moeglich, aber groesser als noetig; Qwen3.5-2B erreicht dieselbe Tokener-Linie mit weniger Gewicht"
+          ]
+        },
+        "worker": {
+          "fit": "candidate",
+          "reasons": [
+            "Text-only-Variante ohne Vision-/Audio-Turm; Qualitaetsrisiko aus Lauf 1 (tuned aggregate 0.0 im Eval-Report) ist fuer diesen konkreten Checkpoint offen und muss zuerst geklaert werden"
+          ]
+        }
+      },
+      "evidence": [
+        { "id": "tok-match", "claim": "Vocab/Merge-Identitaet mit Resident", "source": "local-hf-cache" },
+        { "id": "arch-clm", "claim": "Architektur Qwen3_5ForCausalLM, vocab_size 248320", "source": "local-hf-cache", "note": "config.json des HF-Cache-Snapshots" },
+        { "id": "params", "claim": "4326350848 Parameter (4.33 B)", "source": "local-safetensors" },
+        { "id": "lauf1-pipeline", "claim": "Trainingslauf + GGUF-Export dieses Modells existieren", "source": "lauf1" },
+        { "id": "lauf1-vram", "claim": "QLoRA auf RTX 5070 Ti: 15087 MiB frei, 4800 MiB angefordert, 60 Steps/886 s, Loss 1.657", "source": "lauf1" },
+        { "id": "lauf1-eval", "claim": "tuned aggregate 0.0, Regressionen overall+action", "source": "lauf1" }
+      ]
+    },
+    {
+      "slug": "qwen35-4b",
+      "hf_repo": "unsloth/Qwen3.5-4B",
+      "family": "qwen3.5",
+      "params_b": 4.66,
+      "gguf_exportable": true,
+      "tokenizer_match_with_resident": true,
+      "qlora_vram_fit_16gb_shared": true,
+      "roles": {
+        "draft": {
+          "fit": "candidate",
+          "reasons": [
+            "Dieselbe verifizierte Vocab-/Merge-Linie wie der Resident (gleicher tokenizer.json-Inhalt wie qwen35-text-4b-lauf1)",
+            "ConditionalGeneration-Wrapper (Qwen3_5ForConditionalGeneration) inkl. Preprocessor-Konfiguration — als Draft unnoetig schwer und im llama.cpp-Pfad empfindlicher als die CausalLM-Variante"
+          ]
+        },
+        "router": {
+          "fit": "candidate",
+          "reasons": [
+            "Funktional geeignet, aber fuer eine immer-wieder-aufgerufene Klassifikationsrolle unwirtschaftlich gegenueber 2.27 B"
+          ]
+        },
+        "worker": {
+          "fit": "recommended",
+          "reasons": [
+            "Groesstes dense instruct-tuned Mitglied der kompatiblen Qwen3.5-Familie innerhalb der 8-B-Grenze — bestes Qualitaetspotenzial fuer Summarize/Tag/Extract bei bewiesenem Trainingsfit",
+            "Instruct-Variante mit Chat-Template; Template-Guard-Pflicht aus Lauf 1 (Hub-Template ohne Generation-Marker, gepatchtes Template noetig) ist bekannt und wiederholbar",
+            "VRAM-Fit durch Lauf 1 gedeckt: das 4.33-B-Geschwister brauchte 4800 MiB angefordertes Budget; Feasibility-Matrix stuft selbst 7 B bei Seq-Len 3072 auf ~6.5 GB (Schaetzung) als fit ein"
+          ]
+        }
+      },
+      "evidence": [
+        { "id": "tok-match", "claim": "tokenizer.json byte-identisch mit techwithsergiu/Qwen3.5-text-4B", "source": "local-hf-cache" },
+        { "id": "arch-cond", "claim": "Architektur Qwen3_5ForConditionalGeneration, vocab_size 248320", "source": "local-hf-cache" },
+        { "id": "params", "claim": "4659865088 Parameter (4.66 B)", "source": "local-safetensors" },
+        { "id": "feas-7b", "claim": "Feasibility qwen2.5-7b: estimated_vram_gb 6.47 bei Seq-Len 3072, fits=true", "source": "lauf1", "note": "Heuristische Schaetzung aus measure_corpus.py, kein gemessener Trainingslauf" }
+      ]
+    },
+    {
+      "slug": "qwen35-2b",
+      "hf_repo": "unsloth/Qwen3.5-2B",
+      "family": "qwen3.5",
+      "params_b": 2.27,
+      "gguf_exportable": true,
+      "tokenizer_match_with_resident": true,
+      "qlora_vram_fit_16gb_shared": true,
+      "roles": {
+        "draft": {
+          "fit": "candidate",
+          "reasons": [
+            "Verifiziert kompatibel (identischer tokenizer.json-Inhalt); kleinerer Draft akzeptiert mehr Tokens pro Zyklus, aber die Akzeptanzrate eines 2.27-B-Drafts ist unbelegt und muss im Paired-Measurement gezeigt werden"
+          ]
+        },
+        "router": {
+          "fit": "recommended",
+          "reasons": [
+            "Kleinstes instruct-tuned Mitglied der kompatiblen Familie — fuer Intent-Klassifikation (route/clarify/no-op) reicht Instruct-Qualitaet dieser Groesse klassischerweise, und die Rolle wird ohnehin per LoRA auf Factory-Traces geformt",
+            "Im sequenziellen chat-gpu-Betrieb minimales Umschaltgewicht; Akzeptanz entscheidet das Intent-Micro-Bench, nicht die Modellkarte"
+          ]
+        },
+        "worker": {
+          "fit": "candidate",
+          "reasons": [
+            "Fallback fuer die Worker-Rolle, falls das 4.66-B-Modell im Paired-Measurement die Schwellen nicht erreicht oder das VRAM-Fenster unter Serving-Restlast zu knapp bleibt"
+          ]
+        }
+      },
+      "evidence": [
+        { "id": "tok-match", "claim": "tokenizer.json byte-identisch mit techwithsergiu/Qwen3.5-text-4B", "source": "local-hf-cache" },
+        { "id": "arch-cond", "claim": "Architektur Qwen3_5ForConditionalGeneration, vocab_size 248320, 24 Layer", "source": "local-hf-cache" },
+        { "id": "params", "claim": "2274069824 Parameter (2.27 B)", "source": "local-safetensors" }
+      ]
+    },
+    {
+      "slug": "qwen35-08b-base",
+      "hf_repo": "unsloth/Qwen3.5-0.8B-Base",
+      "family": "qwen3.5",
+      "params_b": 0.85,
+      "gguf_exportable": true,
+      "tokenizer_match_with_resident": true,
+      "qlora_vram_fit_16gb_shared": true,
+      "roles": {
+        "draft": {
+          "fit": "candidate",
+          "reasons": [
+            "Verifiziert kompatibel (gleicher tokenizer.json-Inhalt wie die Qwen3.5-Geschwister) und mit 0.85 B der schnellste moegliche Draft der Familie",
+            "Base-Modell ohne Instruct-Tuning — fuer die Draft-Rolle unkritisch, da nur die Next-Token-Verteilung zaehlt; Akzeptanzrate aber unbelegt"
+          ]
+        },
+        "router": {
+          "fit": "candidate",
+          "reasons": [
+            "Nur nach vollem Verhaltensaufbau per SFT denkbar; angesichts des Signalqualitaets-Befunds aus Lauf 1 (Eval-Regression trotz Loss 1.657) ist das Risiko hoeher als beim 2.27-B-instruct"
+          ]
+        },
+        "worker": {
+          "fit": "excluded",
+          "reasons": [
+            "Base-Modell ohne Instruction-Tuning ist fuer Summarize/Tag/Extract ohne vollstaendiges Verhaltenstraining ungeeignet; LoRA-Nachjustierung allein traegt diese Rolle erfahrungsgemaess nicht (Lauf-1-Lektion)"
+          ]
+        }
+      },
+      "evidence": [
+        { "id": "tok-match", "claim": "tokenizer.json byte-identisch mit techwithsergiu/Qwen3.5-text-4B", "source": "local-hf-cache" },
+        { "id": "arch-base", "claim": "Architektur Qwen3_5ForConditionalGeneration, vocab_size 248320, 24 Layer, hidden 1024", "source": "local-hf-cache" },
+        { "id": "params", "claim": "852985920 Parameter (0.85 B)", "source": "local-safetensors" }
+      ]
+    },
+    {
+      "slug": "qwen3-06b-legacy",
+      "hf_repo": "unsloth/Qwen3-0.6B",
+      "family": "qwen3 (vorherige Generation)",
+      "params_b": 0.6,
+      "gguf_exportable": true,
+      "tokenizer_match_with_resident": false,
+      "qlora_vram_fit_16gb_shared": true,
+      "roles": {
+        "draft": {
+          "fit": "excluded",
+          "reasons": [
+            "Harter D3-Ausschluss mit lokalem Beleg: vocab_size 151936 gegenueber 248320 beim Resident — andere Vocab-Aera derselben vendors; 'gleicher Hersteller' ist keine Kompatibilitaetsgarantie"
+          ]
+        },
+        "router": {
+          "fit": "candidate",
+          "reasons": [
+            "Aelteste, kleinste Option; nur als Fallback relevant, wenn die Qwen3.5-Kandidaten im Micro-Bench unerwartet scheitern"
+          ]
+        },
+        "worker": {
+          "fit": "candidate",
+          "reasons": [
+            "Vorherige Generation, kleinstes Qualitaetsfenster; nur als Notfall-Fallback sinnvoll"
+          ]
+        }
+      },
+      "evidence": [
+        { "id": "vocab-mismatch", "claim": "vocab_size 151936 != 248320 (Resident)", "source": "local-hf-cache" },
+        { "id": "arch-legacy", "claim": "Architektur Qwen3ForCausalLM (vorherige Generation, 28 Layer)", "source": "local-hf-cache" },
+        { "id": "params-card", "claim": "0.6 B", "source": "model-card-public", "note": "lokale bnb-4bit-Datei liefert keine verlaessliche Header-Summe; Modellname/-karte als Quelle" }
+      ]
+    },
+    {
+      "slug": "gemma4-e2b-it",
+      "hf_repo": "unsloth/gemma-4-E2B-it-qat-GGUF",
+      "family": "gemma-4 (Kontrastfamilie)",
+      "params_b": 2.0,
+      "gguf_exportable": true,
+      "tokenizer_match_with_resident": false,
+      "qlora_vram_fit_16gb_shared": true,
+      "roles": {
+        "draft": {
+          "fit": "excluded",
+          "reasons": [
+            "Andere Tokenizer-Familie (SentencePiece-Linie gegenueber Qwen-BPE) — Vocab-Paritaet mit dem Resident ist nicht gegeben; lokal nicht verifizierbar, modellkartenseitig hinreichend klar fuer einen harten D3-Ausschluss",
+            "Das vorhandene MTP-Draft-Modul mtp-gemma-4-E2B-it.gguf paart sich mit Gemma-Zielen (Bestand: gemma12-vision nutzt mtp-gemma-4-12B-it.gguf), nicht mit dem Qwen-Resident"
+          ]
+        },
+        "router": {
+          "fit": "candidate",
+          "reasons": [
+            "Einziger Kandidat, dessen Architektur vom FreeToken-native-Server direkt als GGUF bedient wird (FreeToken serviert GGUF nur fuer Gemma-Architekturen); Qwen-Kandidaten ride den llamacpp-Fallback-Pfad (vgl. T015175)",
+            "Kontrastwert: zeigt, ob der Serving-Pfad-Vorteil den Pipeline-Rueckstand (Unsloth/Template-Erfahrung ist Qwen-seitig) aufwiegt"
+          ]
+        },
+        "worker": {
+          "fit": "candidate",
+          "reasons": [
+            "Zweite Kontrastoption fuer die Worker-Rolle mit demselben Serving-Pfad-Vorteil; QAT-Variante ist exportnah, ein eigener QLoRA-Lauf auf dieser Familie ist aber Pipeline-Neuland"
+          ]
+        }
+      },
+      "evidence": [
+        { "id": "mtp-module", "claim": "GGUF-Snapshot enthaelt mmproj-F16.gguf und mtp-gemma-4-E2B-it.gguf", "source": "local-hf-cache" },
+        { "id": "freetoken-gemma-only", "claim": "FreeToken serviert GGUF nur fuer Gemma-Architekturen; Nicht-Gemma ride llamacpp-Fallback (T015175)", "source": "openspec/changes/tandem-small-models/design.md" },
+        { "id": "params-card", "claim": "~2 B effektiv (E-Serie-Naming)", "source": "model-card-public", "note": "Roh-Checkpoint groesser als der effektive Wert; konservativ unter der 8-B-Grenze eingeordnet" }
+      ]
+    },
+    {
+      "slug": "llama32-1b-class",
+      "hf_repo": "meta-llama/Llama-3.2-1B-Instruct (Klasse)",
+      "family": "llama (Kontrastfamilie)",
+      "params_b": 1.24,
+      "gguf_exportable": true,
+      "tokenizer_match_with_resident": false,
+      "qlora_vram_fit_16gb_shared": true,
+      "roles": {
+        "draft": {
+          "fit": "excluded",
+          "reasons": [
+            "Eigenes SentencePiece-basiertes Vokabular (~128k-Token-Aera) ohne Paritaet zum Qwen-Resident — harter D3-Ausschluss nach Modellkartenlage, nicht lokal verifiziert (Repo nicht im Cache)"
+          ]
+        },
+        "router": {
+          "fit": "candidate",
+          "reasons": [
+            "Reine Kontrastfamilie aus oeffentlicher Modellkartenlage: wettbewerbsfaehige Kleinstmodelle existieren, aber weder lokale Pipeline-Erfahrung noch Cache-Präsenz sprechen dafuer, sie vorzuziehen"
+          ]
+        },
+        "worker": {
+          "fit": "candidate",
+          "reasons": [
+            "Als Kontrast gelistet; vor einer tatsaechlichen Auswahl waere zunaechst der lokale Download plus Measure/Guard-Zyklus Pflicht"
+          ]
+        }
+      },
+      "evidence": [
+        { "id": "params-card", "claim": "1.24 B, eigenes ~128k-Vocab, breite GGUF-Versorgung", "source": "model-card-public" }
+      ]
+    }
+  ],
+  "role_summary": {
+    "draft": {
+      "recommended": "qwen35-text-4b-lauf1",
+      "non_excluded": ["qwen35-text-4b-lauf1", "qwen35-4b", "qwen35-2b", "qwen35-08b-base"]
+    },
+    "router": {
+      "recommended": "qwen35-2b",
+      "non_excluded": ["qwen35-text-4b-lauf1", "qwen35-4b", "qwen35-2b", "qwen35-08b-base", "qwen3-06b-legacy", "gemma4-e2b-it", "llama32-1b-class"]
+    },
+    "worker": {
+      "recommended": "qwen35-4b",
+      "non_excluded": ["qwen35-text-4b-lauf1", "qwen35-4b", "qwen35-2b", "qwen3-06b-legacy", "gemma4-e2b-it", "llama32-1b-class"]
+    }
+  }
+}

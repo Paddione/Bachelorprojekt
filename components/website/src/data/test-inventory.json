@@ -5790,6 +5790,12 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-eval-harness/tandem-candidates",
+    "file": "tests/spec/unsloth-eval-harness/tandem-candidates.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
     "id": "unsloth-eval-harness/testset-shape",
     "file": "tests/spec/unsloth-eval-harness/testset-shape.bats",
     "category": "unsloth-eval-harness",

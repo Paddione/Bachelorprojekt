@@ -424,6 +424,8 @@ Reqs: 20 · Scenarios: 50 · Lines: 423
 Paths: k3d/collabora, k3d/office-stack
 Last touches:
   - Spec-BATS smoke coverage | T002012 | 2026-07-21 | ADDED
+In-flight:
+  - Custom Setcap Image | T014549 | active | MODIFIED
 
 ### database-schema
 Reqs: 1 · Scenarios: 1 · Lines: 19

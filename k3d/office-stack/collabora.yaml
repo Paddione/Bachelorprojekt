@@ -57,6 +57,7 @@ spec:
           #   unconditionally, even with CAP_SYS_ADMIN present. The
           #   privileged PSA on this namespace allows Unconfined.
           securityContext:
+            runAsNonRoot: true
             capabilities:
               add: ["SYS_ADMIN", "MKNOD", "SETUID", "SETGID"]
             appArmorProfile:

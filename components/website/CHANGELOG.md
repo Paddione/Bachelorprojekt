@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.2...website-v1.303.3) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ci:** ci-watch fail-closed and run lookup [T014466] ([#5087](https://github.com/Paddione/Bachelorprojekt/issues/5087)) ([a862da4](https://github.com/Paddione/Bachelorprojekt/commit/a862da4d2aac4a34dd1ec075d67f6d67faa9264e))
+
 ## [1.303.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.1...website-v1.303.2) (2026-08-23)
 
 

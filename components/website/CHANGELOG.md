@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.308.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.307.0...website-v1.308.0) (2026-08-23)
+
+
+### Features
+
+* **infra:** rustdesk on-demand lifecycle [T015170] ([#5162](https://github.com/Paddione/Bachelorprojekt/issues/5162)) ([d963f66](https://github.com/Paddione/Bachelorprojekt/commit/d963f66a927d75b3dca135d4f7164d4acd8c8720))
+
 ## [1.307.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.306.0...website-v1.307.0) (2026-08-23)
 
 

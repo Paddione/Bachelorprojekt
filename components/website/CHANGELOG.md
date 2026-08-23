@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.303.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.7...website-v1.303.0) (2026-08-23)
+
+
+### Features
+
+* **factory:** migrate local backend to FreeToken-native [T014028] ([#5061](https://github.com/Paddione/Bachelorprojekt/issues/5061)) ([0354b3d](https://github.com/Paddione/Bachelorprojekt/commit/0354b3d24209abbd4c79f3aaed18feb115a4f076))
+
+
+### Bug Fixes
+
+* **scripts:** make ticket.sh read paths fail closed [T014386] ([#5074](https://github.com/Paddione/Bachelorprojekt/issues/5074)) ([7c6f05c](https://github.com/Paddione/Bachelorprojekt/commit/7c6f05cbcc6022309e225ea25ba51fbb98607fa4))
+
 ## [1.302.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.302.6...website-v1.302.7) (2026-08-23)
 
 

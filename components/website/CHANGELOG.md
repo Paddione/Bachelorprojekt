@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.8...website-v1.303.9) (2026-08-23)
+
+
+### Bug Fixes
+
+* dispatch gate cap order T014384 ([#5110](https://github.com/Paddione/Bachelorprojekt/issues/5110)) ([2464e8e](https://github.com/Paddione/Bachelorprojekt/commit/2464e8e6dd5ded08d9154f72784a8045128fe69b))
+
 ## [1.303.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.7...website-v1.303.8) (2026-08-23)
 
 

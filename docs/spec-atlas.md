@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2255 · Scenarios: 5018
+Specs: 144 · Requirements: 2257 · Scenarios: 5024
 
 ## factory-pipeline
 
@@ -46,17 +46,14 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 201 · Scenarios: 621 · Lines: 5563
+Reqs: 203 · Scenarios: 627 · Lines: 5631
 Paths: scripts/factory
 Last touches:
+  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
+  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
   - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
   - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
-  - Provider_config ist die einzige Kandidatenquelle des Routers | T013302 | 2026-08-22 | ADDED
-  - PR-CI-Babysitter Scan und Kandidatenwahl | T012239 | 2026-08-18 | MODIFIED
-In-flight:
-  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | active | ADDED
-  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | active | ADDED
 
 ## delivery
 

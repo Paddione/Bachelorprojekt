@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2253 · Scenarios: 5011
+Specs: 144 · Requirements: 2254 · Scenarios: 5014
 
 ## factory-pipeline
 
@@ -1040,15 +1040,13 @@ Last touches:
   - Every curated instance carries injectable usage semantics | T002592 | 2026-08-03 | ADDED
 
 ### unsloth-eval-harness
-Reqs: 6 · Scenarios: 9 · Lines: 98
+Reqs: 7 · Scenarios: 12 · Lines: 126
 Last touches:
+  - Tandem-Kleinstmodell-Evaluation ist dokumentiert | T015248 | 2026-08-24 | ADDED
   - Paired Base-Versus-Tuned Measurement | T002606 | 2026-08-10 | ADDED
   - Test Set Covers Negative And Underspecified Cases | T002606 | 2026-08-10 | ADDED
   - Test Cases Are Unseen By Training | T002606 | 2026-08-10 | ADDED
   - Language Control | T002606 | 2026-08-10 | ADDED
-  - Regression Gate Blocks Delivery | T002606 | 2026-08-10 | ADDED
-In-flight:
-  - Tandem-Kleinstmodell-Evaluation ist dokumentiert | T015248 | active | ADDED
 
 ### vaultwarden-integration
 Reqs: 11 · Scenarios: 23 · Lines: 245

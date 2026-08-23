@@ -26,6 +26,29 @@ Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
 ---
 
+## Wann ein Ziel zurückgebaut wird [T013916]
+
+Ein Ziel, das nicht rot werden kann, steuert nichts — es kostet nur Aufmerksamkeit und
+gewöhnt daran, die Ampel zu ignorieren. Drei Muster, die einen Rückbau oder eine Korrektur
+auslösen; alle drei traten am 2026-08-23 gleichzeitig auf:
+
+1. **Die Schwelle passt nicht zum Messfenster.** `G-DORA01` verglich eine 4-Wochen-Messung
+   gegen „5/Woche" und war um Faktor 4 zu locker — bei einem Ist von ~1900 ohnehin nie
+   verletzbar.
+2. **Das Ratchet zieht nach gelöstem Problem nicht nach.** `G-SPEC03`, `G-CQ02`, `G-CQ09` und
+   `G-RH01` standen alle auf Ist 0, ihre Schwellen aber weiter auf dem Baseline-Wert der
+   Aufnahme (41 / 280 / 10 / 30). Sie erlaubten damit stillschweigend die Rückkehr zum alten
+   Zustand. Eine Schwelle gehört nach einem Erfolg auf **Ist + kleine Reserve**.
+3. **Die Messung misst etwas anderes als der Titel behauptet.** `G-BRAIN14` zählte die
+   Manifestgröße (172) statt des offenen Backlogs (17) und blieb bei Ziel 0 dauerhaft rot,
+   unabhängig von jeder erledigten Arbeit. `G-SIZE03` maß ein „God-File" mit 311 Zeilen gegen
+   eine Schwelle von 3000.
+
+**Prüffrage vor jeder Zielaufnahme:** Unter welchen realistischen Umständen wird dieses Ziel
+rot? Gibt es keine, ist es kein Ziel.
+
+---
+
 ## Abschnitte
 
 1. [Priorität A — Aktive Defekte](#prio-a)
@@ -412,7 +435,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
-| **G-RH01** | Gate-Violations (baseline.json) | 0 ✓ | ≤ 30 | `python3 -c "import json,sys; print(len(json.load(sys.stdin)))" < docs/code-quality/baseline.json` |
+| **G-RH01** | Gate-Violations (baseline.json) | 0 ✓ | ≤ 5 | `python3 -c "import json,sys; print(len(json.load(sys.stdin)))" < docs/code-quality/baseline.json` |
 | **G-RH02** | TypeScript-Suppressionen | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -r '@ts-ignore\|@ts-expect-error' components/website/src --include='*.ts' \| grep -v goals-data.ts \| wc -l` |
 | **G-RH04** | Stale Remote Branches | 0 ✓ | 0 | `git for-each-ref ... refs/remotes/origin \| while IFS='|' read b ts; do [[ $ts -lt $CUTOFF ]] && echo $b; done \| wc -l` |
 | **G-RH06** | Sentinel-Issues >48h | 0 ✓ | 0 | `gh-axi issue list --label sentinel --state open --json createdAt` |
@@ -421,14 +444,14 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | Positiv-Anker: `components/website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\.only\b' components/website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 1 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" components/website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain components/website/src/data/test-inventory.json \| wc -l` |
-| **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 280 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
+| **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 10 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
 | **G-CQ05** | Echte TODO-Marker | 0 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... components/website/src scripts tests k3d brett/src \| wc -l` |
 | **G-CQ06** | `@deprecated`-Symbole | 0 ✓ | ≤ 1 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' components/website/src \| grep -v goals-data.generated.json \| wc -l` |
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
-| **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
+| **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 2 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
-| **G-SIZE03** | God-File `components/website/src/lib/website-db.ts` | 311 ✓ | ≤ 3000 | `wc -l < components/website/src/lib/website-db.ts` |
+| **G-SIZE03** | `components/website/src/lib/website-db.ts` (Zeilen) | 311 ✓ | ≤ 600 | `wc -l < components/website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
 | **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 7 ⚠ | ≤ 7 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348). Target 7 (hochgesetzt 2026-08-17): 2 Nutzer-Assets + 2 legacy-docs + 2 k3d-docs-built + 1 kube-prometheus-stack-rendered.yaml — alle legitime Bestandsdateien. Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0) |
@@ -449,7 +472,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SEC05** | Unsignierte Commits (adj.) | 0/50 adj. ✓ (Mess-Bug fix: Skript filtert beide github-actions[bot] Mail-Varianten) | ≤ 5 % | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
 | **G-SPEC01** | openspec:validate grün | Exit 0 ✓ | Exit 0 | `bash scripts/openspec.sh validate` |
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
-| **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
+| **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | ≤ 5 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
 | **G-DB11** | Tage seit letztem Restore-Verify | 30 ✓ | ≤ 30 | `kubectl get configmap recovery-verify-status -o jsonpath=...` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 3 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
@@ -459,7 +482,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-A11Y01** | Critical/serious axe-Verstöße | n/a | 0 | `node scripts/lib/runtime-browser-audit.mjs` + `runtime-health-measure.py axe`, beide Brands vollständig |
 | **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | n/a | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
-| **G-BRAIN14** | Brain-Ingest-Backlog | 172 ⚠ | 0 | `bash scripts/brain-ingest-worklist.sh` + State-File-Hash-Vergleich |
+| **G-BRAIN14** | Brain-Ingest-Backlog (offene Chunks) | 17 ⚠ | 0 | `bash scripts/brain-ingest-worklist.sh --pending` (Chunk-Hash gegen State-File, dieselbe Semantik wie `brain-ingest.sh process_page`) |
 | **G-IF01** | MCP-Endpunkte ohne Listener | 4 ⚠ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
@@ -471,7 +494,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CI03** | CI Pipeline p95 Duration (min) | 3 ✓ | ≤ 12 | `gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \| python3 -c "..p95.."` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt) |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
-| **G-DORA01** | Deployment Frequency | Elite ✓ | ≥ 5/Wo | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
+| **G-DORA01** | Deployment Frequency | Elite ✓ | ≥ 20/4 Wo (= 5/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
 | **G-DORA02** | Lead Time (PR→merge) | Median 0.03h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
 | **G-DORA03** | Change Failure Rate (Proxy) | 20 ⚠ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
 | **G-DORA04** | MTTR | 3 ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |

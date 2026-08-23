@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1181,
+      "file_count": 1182,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -654,6 +654,7 @@
         "tests/spec/health-goals.bats",
         "tests/spec/health-goals/dashboard-rescan.bats",
         "tests/spec/health-goals/g-git03.bats",
+        "tests/spec/health-goals/goal-integrity.bats",
         "tests/spec/health-goals/goals-data-path-consistency.bats",
         "tests/spec/health-goals/goals-data-sdlc-target.bats",
         "tests/spec/health-goals/id-parity.bats",

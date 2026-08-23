@@ -54,6 +54,9 @@ Last touches:
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
   - Provider_config ist die einzige Kandidatenquelle des Routers | T013302 | 2026-08-22 | ADDED
   - PR-CI-Babysitter Scan und Kandidatenwahl | T012239 | 2026-08-18 | MODIFIED
+In-flight:
+  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | active | ADDED
+  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | active | ADDED
 
 ## delivery
 

@@ -60,3 +60,26 @@ setup() {
   grep -q 'NICHT geschlossen — Identity-Guard' "$SCRIPT"
   grep -q 'T015005' "$SCRIPT"
 }
+
+# [T015670] Spec-Gap-Schließung (Change closure-identity-guard): die beiden
+# folgenden Verhalten sind im Delta-Spec beschrieben, aber bislang ungetestet.
+
+@test "T015010: Konsens-Kantfall — Match-Flag ohne Anker blockiert nicht" {
+  # anchor_count=0 ist der Legacy-Pfad (z.B. manueller Chore ohne Plan/Link);
+  # der Guard darf dort unabhängig vom Match-Flag weitermachen.
+  run bash -c 'source "'"$SCRIPT"'"; identity_guard_blocks 0 t'
+  [ "$status" -eq 1 ]  # keine Anker → weiter, auch bei anchor_match='t'
+}
+
+@test "T015010: Terminal-Status-Skip (done/archived) läuft VOR dem Identity-Guard" {
+  # Struktureller Fakt wie in "Guard sitzt VOR dem Closure-Schreibzugriff":
+  # er manifestiert sich ausschließlich in der Quellreihenfolge. Positionen
+  # verifiziert gegen main (T015670): done|archived=223, Guard=232.
+  [ -f "$SCRIPT" ]
+  local term_line guard_line
+  term_line=$(grep -n 'done|archived' "$SCRIPT" | head -1 | cut -d: -f1)
+  guard_line=$(grep -n 'identity_guard_blocks "\$anchor_count"' "$SCRIPT" | head -1 | cut -d: -f1)
+  [ -n "$term_line" ] || { echo "FAIL: Terminal-Status-Check fehlt"; false; }
+  [ -n "$guard_line" ] || { echo "FAIL: Identity-Guard-Aufruf fehlt"; false; }
+  [ "$term_line" -lt "$guard_line" ] || { echo "FAIL: Terminal-Skip muss VOR dem Guard liegen"; false; }
+}

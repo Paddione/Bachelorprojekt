@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Merged-PR-Gate schließt gemergte Tickets vor dem Dispatch
 

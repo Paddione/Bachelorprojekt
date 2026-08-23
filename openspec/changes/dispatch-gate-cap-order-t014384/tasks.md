@@ -2,7 +2,7 @@
 title: "dispatch-gate-cap-order-t014384 — Implementation Plan"
 ticket_id: T014384
 domains: [ci, tests]
-status: active
+status: completed
 file_locks: ["scripts/factory/schedule.sh", "tests/spec/software-factory/merged-dispatch-gate.bats"]
 shared_changes: false
 batch_id: null

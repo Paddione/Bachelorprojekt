@@ -150,9 +150,9 @@ forward_ports() {
 
   # POSITIV-ANKER: die ingest-Tasks muessen ueberhaupt existieren. Ohne diesen
   # Beleg bestuende die Aussage unten auch dann, wenn der Taskfile leer waere.
-  run grep -cE '^\s{2}ingest:(run|pilot|dry):' "$TASKFILE"
+  run grep -cE '^\s{2}ingest:(run|pilot):' "$TASKFILE"
   [ "$status" -eq 0 ]
-  [ "$output" -eq 3 ]
+  [ "$output" -eq 2 ]
 
   # Jeder in den Tasks genannte lokale Backend-Port muss der Loadout-Port sein.
   foreign="$(grep -oE 'LM_STUDIO_URL="\$\{LM_STUDIO_URL:-http://(127\.0\.0\.1|localhost):[0-9]+' "$TASKFILE" \

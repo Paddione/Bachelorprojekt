@@ -831,11 +831,14 @@
     },
     // Ox Alpha Free — zweiter Free-Tier-Primary neben Big Pickle [2026-08-22].
     // Zeigt auf opencode-zen/laguna-s-2.1-free (live gegen chat/completions
-    // gemessen, siehe Kommentar beim Provider oben) und traegt dieselbe
-    // Task-Allow-Liste wie Big Pickle bzw. der Orchestrator: kann also
-    // dieselben Subagenten spawnen (lokale Familien, qwen-cloud, deepseek-*).
+    // gemessen, siehe Kommentar beim Provider oben).
+    //
+    // 2026-08-23: Task-Allow-Liste eingedampft auf den ox-alpha-Familien-
+    // Subagenten (Prinzip T002298: exakte Namen statt Wildcard) — dieser
+    // Primary dispatcht ausschliesslich ox-alpha, keine lokalen Familien,
+    // kein qwen-cloud, keine deepseek-*.
     "ox-alpha-free": {
-      "description": "PRIMARY: Ox Alpha Free on OpenCode Zen (laguna-s-2.1-free, Poolside agentic coding model, free tier, 256k ctx per models.dev). Tab-selectable singleagent next to big-pickle. Live-smoke-tested 2026-08-22. Can dispatch the same subagent set as the orchestrator.",
+      "description": "PRIMARY: Ox Alpha Free on OpenCode Zen (laguna-s-2.1-free, Poolside agentic coding model, free tier, 256k ctx per models.dev). Tab-selectable singleagent next to big-pickle. Live-smoke-tested 2026-08-22. Dispatches ONLY ox-alpha subagents.",
       "mode": "primary",
       "model": "opencode-zen/laguna-s-2.1-free",
       "prompt": "{file:./prompts/primary-agent.md}",
@@ -849,22 +852,22 @@
         "webfetch": "deny",
         "websearch": "deny",
         "task": {
-          "gptoss": "allow",
-          "devstral": "allow",
-          "gemma": "allow",
-          "gemma12": "allow",
-          "qwen38": "allow",
-          "qwen-cloud": "allow",
-          "deepseek-helper": "allow",
-          "deepseek-helper-go": "allow",
-          "deepseek-helper-alibaba": "allow",
-          "deepseek-pro": "allow",
-          "deepseek-flash": "allow",
-          "deepseek-pro-direct": "allow",
-          "deepseek-flash-direct": "allow",
-          "deepseek-pro-alibaba": "allow"
+          "ox-alpha": "allow"
         }
       }
+    },
+    // Ox Alpha Familien-Subagent [2026-08-23] — einziger Dispatch-Tuer von
+    // ox-alpha-free. Dasselbe Modell wie der Primary (laguna-s-2.1-free via
+    // OpenCode Zen), derselbe Helper-Prompt wie die anderen Cloud-Subagenten.
+    "ox-alpha": {
+      "description": "Subagent twin of ox-alpha-free on OpenCode Zen (same laguna-s-2.1-free model, Poolside agentic coding model, free tier). Sole dispatch target of ox-alpha-free — keeps parallel/specialized work inside the same free-tier model family. Write-capable.",
+      "mode": "subagent",
+      "model": "opencode-zen/laguna-s-2.1-free",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#0EA5E9",
+      "temperature": 0.2,
+      "steps": 150,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     }
   }
 }

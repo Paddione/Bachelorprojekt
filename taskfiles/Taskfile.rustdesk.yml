@@ -1,0 +1,88 @@
+# Taskfile.rustdesk.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# RustDesk-Relay (hbbs/hbbr, ns rustdesk) — on-demand lifecycle (T015170).
+#
+# Der Stack bleibt bewusst AUSSERHALB Flux/Kustomize-Roots: ein GitOps-
+# Reconcile würde das imperative Scale-to-0 des Sleeper-Jobs zurücknehmen
+# (Präzedenz: coturn/janus werden ebenfalls separat betrieben). Die Render-
+# Pipeline ist 1:1 aus `fleet:shared-services` übernommen; deploy/wake rollieren
+# damit auch die T014553-Härtung der Manifeste aus.
+#
+# Usage:
+#   task rustdesk:deploy          # vollständiges Bring-up + Sleeper-Job
+#   task rustdesk:wake            # schnell: scale-up + Sleeper-TTL neu starten
+#   task rustdesk:sleep           # sofort: Scale-to-0 + Sleeper löschen
+#   task rustdesk:status          # Deployments/Pods + Replica-Zähler
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+vars:
+  # Informativ — der Kontext ist fest `fleet`; ENV wählt nur das Env-File,
+  # aus dem ${TURN_NODE} (Node-Pinning der Relay-Ports) stammt.
+  ENV: '{{.ENV | default "mentolder"}}'
+
+tasks:
+
+  deploy:
+    desc: "Full bring-up of the rustdesk relay stack on fleet (render pipeline like fleet:shared-services) + sleeper job. Usage: task rustdesk:deploy [ENV=mentolder]"
+    preconditions:
+      - sh: kubectl --context fleet cluster-info --request-timeout=5s > /dev/null 2>&1
+        msg: "fleet cluster not reachable."
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "fleet-{{.ENV}}"
+        kustomize build k3d/rustdesk-stack \
+          | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
+          | envsubst '$TURN_NODE' \
+          | kubectl --context fleet apply -f -
+        kubectl --context fleet rollout status deploy/hbbs -n rustdesk --timeout=180s
+        kubectl --context fleet rollout status deploy/hbbr -n rustdesk --timeout=180s
+        # Sleeper-Job anlegen (identisch zu wake — Job-Spec ist immutabel)
+        kubectl --context fleet delete job rustdesk-sleeper -n rustdesk --ignore-not-found
+        kubectl --context fleet apply -n rustdesk -f k3d/rustdesk-stack/on-demand.yaml
+
+  wake:
+    desc: "Wake the relay: scale hbbs+hbbr to 1 (full deploy if missing) and restart the TTL sleeper job. Usage: task rustdesk:wake [ENV=mentolder]"
+    preconditions:
+      - sh: kubectl --context fleet cluster-info --request-timeout=5s > /dev/null 2>&1
+        msg: "fleet cluster not reachable."
+    cmds:
+      - |
+        set -euo pipefail
+        if kubectl --context fleet get deploy hbbs -n rustdesk > /dev/null 2>&1; then
+          kubectl --context fleet scale deployment hbbs hbbr --replicas=1 -n rustdesk
+          kubectl --context fleet rollout status deploy/hbbs -n rustdesk --timeout=180s
+          kubectl --context fleet rollout status deploy/hbbr -n rustdesk --timeout=180s
+          # Sleeper-TTL neu starten: Job-Spec ist immutabel → delete+apply ist
+          # der einzige Weg, den Timer zurückzusetzen.
+          kubectl --context fleet delete job rustdesk-sleeper -n rustdesk --ignore-not-found
+          kubectl --context fleet apply -n rustdesk -f k3d/rustdesk-stack/on-demand.yaml
+        else
+          # Stack noch nie deployt (oder Namespace weg) — Erstbring-up.
+          task rustdesk:deploy
+        fi
+
+  sleep:
+    desc: "Wind down immediately: scale hbbs+hbbr to 0 and remove the sleeper job. Usage: task rustdesk:sleep"
+    preconditions:
+      - sh: kubectl --context fleet cluster-info --request-timeout=5s > /dev/null 2>&1
+        msg: "fleet cluster not reachable."
+    cmds:
+      - |
+        set -euo pipefail
+        kubectl --context fleet scale deployment hbbs hbbr --replicas=0 -n rustdesk
+        kubectl --context fleet delete job rustdesk-sleeper -n rustdesk --ignore-not-found
+
+  status:
+    desc: "Show relay deployments/pods plus replica counters (read-only). Usage: task rustdesk:status"
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        kubectl --context fleet get deploy,pods -n rustdesk -o wide
+        for d in hbbs hbbr; do
+          desired="$(kubectl --context fleet get deploy "$d" -n rustdesk -o jsonpath='{.spec.replicas}' 2>/dev/null || echo '—')"
+          ready="$(kubectl --context fleet get deploy "$d" -n rustdesk -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo '0')"
+          echo "$d replicas: desired=${desired:-0} ready=${ready:-0}"
+        done

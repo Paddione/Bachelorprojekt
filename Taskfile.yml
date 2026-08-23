@@ -76,6 +76,12 @@ includes:
   agents:
     taskfile: ./taskfiles/Taskfile.agents.yml
     dir: .
+  # RustDesk-Relay on-demand (T015170): bewusst NICHT über Flux/Kustomize-
+  # Roots verwaltet — Reconcile würde das imperative Scale-to-0 des
+  # Sleeper-Jobs zurücknehmen. Siehe openspec/changes/rustdesk-on-demand.
+  rustdesk:
+    taskfile: ./taskfiles/Taskfile.rustdesk.yml
+    dir: .
   # Software Factory — Phase 1 pipeline documentation wrapper.
   # See scripts/factory/pipeline.mjs + docs/superpowers/references/factory-usage.md.
   factory:

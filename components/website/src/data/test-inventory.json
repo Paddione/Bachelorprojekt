@@ -3102,6 +3102,12 @@
     "kind": "shell"
   },
   {
+    "id": "db-restore-verification/restore-verify-cronjob",
+    "file": "tests/spec/db-restore-verification/restore-verify-cronjob.bats",
+    "category": "db-restore-verification",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-chore-ticket-ops-mishaps",
     "file": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
     "category": "dev-flow-chore-ticket-ops-mishaps",
@@ -4494,6 +4500,18 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/spec-atlas-generator",
+    "file": "tests/spec/openspec-workflow/spec-atlas-generator.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/spec-atlas-grammar-parity",
+    "file": "tests/spec/openspec-workflow/spec-atlas-grammar-parity.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",
@@ -4593,6 +4611,12 @@
     "id": "pocket-id-proxy-ip",
     "file": "tests/spec/pocket-id-proxy-ip.bats",
     "category": "pocket-id-proxy-ip",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-seed-label-isolation/client-seed-service-endpoint-isolation",
+    "file": "tests/spec/pocket-id-seed-label-isolation/client-seed-service-endpoint-isolation.bats",
+    "category": "pocket-id-seed-label-isolation",
     "kind": "shell"
   },
   {
@@ -4730,6 +4754,12 @@
   {
     "id": "rustdesk-server",
     "file": "tests/spec/rustdesk-server.bats",
+    "category": "rustdesk-server",
+    "kind": "shell"
+  },
+  {
+    "id": "rustdesk-server/on-demand-lifecycle",
+    "file": "tests/spec/rustdesk-server/on-demand-lifecycle.bats",
     "category": "rustdesk-server",
     "kind": "shell"
   },
@@ -5190,6 +5220,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/auto-close-uuid-guard",
+    "file": "tests/spec/software-factory/auto-close-uuid-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/auto-triage-type-vocab",
     "file": "tests/spec/software-factory/auto-triage-type-vocab.bats",
     "category": "software-factory",
@@ -5607,6 +5643,12 @@
     "id": "ticket-ops/wave1-state-refetch",
     "file": "tests/spec/ticket-ops/wave1-state-refetch.bats",
     "category": "ticket-ops",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-seq-integrity/seq-repair",
+    "file": "tests/spec/ticket-seq-integrity/seq-repair.bats",
+    "category": "ticket-seq-integrity",
     "kind": "shell"
   },
   {

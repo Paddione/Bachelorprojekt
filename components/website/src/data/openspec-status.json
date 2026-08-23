@@ -4231,10 +4231,22 @@
       "status": "archived"
     }
   ],
+  "T014544": [
+    {
+      "slug": "db-restore-verification",
+      "status": "plan_staged"
+    }
+  ],
   "T014545": [
     {
       "slug": "2026-08-23-factory-control-primary-key",
       "status": "archived"
+    }
+  ],
+  "T014549": [
+    {
+      "slug": "collabora-runasnonroot",
+      "status": "plan_staged"
     }
   ],
   "T014550": [
@@ -4246,6 +4258,12 @@
   "T014552": [
     {
       "slug": "2026-08-23-routing-check-freetoken-t014552",
+      "status": "archived"
+    }
+  ],
+  "T014553": [
+    {
+      "slug": "2026-08-23-manifest-hardening",
       "status": "archived"
     }
   ],
@@ -4261,6 +4279,12 @@
       "status": "plan_staged"
     }
   ],
+  "T014938": [
+    {
+      "slug": "pocket-id-seed-label-isolation",
+      "status": "plan_staged"
+    }
+  ],
   "T015004": [
     {
       "slug": "2026-08-23-staging-verdrahtung",
@@ -4271,6 +4295,18 @@
     {
       "slug": "kubeconfig-drift-guard",
       "status": "plan_staged"
+    }
+  ],
+  "T015012": [
+    {
+      "slug": "2026-08-23-spec-atlas",
+      "status": "archived"
+    }
+  ],
+  "T015170": [
+    {
+      "slug": "2026-08-23-rustdesk-on-demand",
+      "status": "archived"
     }
   ],
   "TBD": [

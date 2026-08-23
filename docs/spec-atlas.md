@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2254 · Scenarios: 5014
+Specs: 144 · Requirements: 2255 · Scenarios: 5018
 
 ## factory-pipeline
 
@@ -974,9 +974,9 @@ Last touches:
   - Keycloak-era OIDC key names stay retired | T003141 | 2026-08-11 | ADDED
 
 ### security
-Reqs: 2 · Scenarios: 4 · Lines: 82
-In-flight:
-  - Run-as-non-root baseline | T015293 | active | ADDED
+Reqs: 3 · Scenarios: 8 · Lines: 130
+Last touches:
+  - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
 
 ### sessions-server
 Reqs: 13 · Scenarios: 24 · Lines: 251

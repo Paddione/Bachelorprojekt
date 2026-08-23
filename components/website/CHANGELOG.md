@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.12...website-v1.303.13) (2026-08-23)
+
+
+### Documentation
+
+* **plans:** add file structure for touched-file derivation [T014550] ([#5126](https://github.com/Paddione/Bachelorprojekt/issues/5126)) ([ee14056](https://github.com/Paddione/Bachelorprojekt/commit/ee14056ce577a035ac5d6ad1d5b1e353b8df4569))
+
 ## [1.303.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.11...website-v1.303.12) (2026-08-23)
 
 

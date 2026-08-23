@@ -46,12 +46,12 @@ Manifeste: `k3d/admin-actions-cronjobs.yaml`, `k3d/cronjob-scheduled-publish.yam
 
 ## Task List
 
-- [ ] **T014540 — Image-Refs hartkodieren.** In `.gitlab-ci.yml` alle 9 Fundstellen
+- [x] **T014540 — Image-Refs hartkodieren.** In `.gitlab-ci.yml` alle 9 Fundstellen
       `${CI_REGISTRY_IMAGE:-registry.gitlab.com/p.korczewski/bachelorprojekt/ci}/<img>:<tag>`
       durch `registry.gitlab.com/p.korczewski/bachelorprojekt/ci/<img>:<tag>` ersetzen.
       Keine neue Variable einführen (Präzedenz-Falle). Kommentar an den ersten beiden
       Fundstellen mit Verweis auf diesen Plan und das InspectFailed-Ereignis ergänzen.
-- [ ] **T014538 — Diagnose (vor jedem Fix).**
+- [x] **T014538 — Diagnose (vor jedem Fix).**
       1. Frische Logs je Staging-Job: `kubectl --context fleet logs -n workspace-staging
          job/admin-actions-cleanup-<ts>` (analog scheduled-publish, notify-unread,
          tests-results-retention).
@@ -69,11 +69,20 @@ Manifeste: `k3d/admin-actions-cronjobs.yaml`, `k3d/cronjob-scheduled-publish.yam
       `k3d/kustomization.yaml`-Verbund dokumentieren. Manifeste nur anfassen, wenn die
       Diagnose einen echten Manifest-Fehler zeigt (erwartet: nein — Manifeste sind korrekt
       gepinnt und gehärtet).
+
+      **Blocker (2026-08-23):** Der Live-Zustand entspricht dem Plan nicht: `workspace-staging`
+      besitzt keine `website`-Deployment/Service, `website-staging` ist leer, und die
+      CronJobs referenzieren weiterhin `website.website.svc.cluster.local`. Die Staging-DB
+      enthält deshalb nur die Init-Schemata (9 Public-Tabellen), während Prod durch den
+      separaten Website-Overlay und dessen Migration Runner `public.admin_actions` und die
+      übrigen Anwendungstabellen erhält. Ein DDL-Init im Shared-DB-Manifest würde die fehlende
+      Website-Ausrollung und den falschen Service-Endpunkt nicht beheben; dafür braucht es eine
+      separate Staging-Website-/Flux-Entscheidung.
 - [ ] **GREEN-Nachweis T014538.** Nächsten CronJob-Lauf abwarten oder Job manuell triggern
       (`kubectl --context fleet create job --from=cronjob/admin-actions-cleanup
       admin-actions-cleanup-manual -n workspace-staging`); Pod muss mit exit 0 enden und
       ohne `relation … does not exist`.
-- [ ] **Failing-Test-Step (RED → GREEN).**
+- [x] **Failing-Test-Step (RED → GREEN).**
 
 ```bash
 ./tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/gitlab-ci-image-refs.bats
@@ -83,7 +92,7 @@ Manifeste: `k3d/admin-actions-cronjobs.yaml`, `k3d/cronjob-scheduled-publish.yam
 
 ## Verify
 
-- [ ] `./tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/gitlab-ci-image-refs.bats` → 3/3 grün
-- [ ] `task test:changed` → grün
-- [ ] `task freshness:regenerate && task freshness:check` → grün
-- [ ] `task workspace:validate` → kustomize Dry-Run grün
+- [x] `./tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/gitlab-ci-image-refs.bats` → 3/3 grün
+- [ ] `task test:changed` → grün (breite Suite enthält unabhängige Factory-/Umgebungsfehler)
+- [x] `task freshness:regenerate && task freshness:check` → grün
+- [x] `task workspace:validate` → kustomize Dry-Run grün

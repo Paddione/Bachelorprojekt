@@ -1,0 +1,27 @@
+[
+  {
+    "id": "tool-loop-weather",
+    "system": "You are a helpful assistant with access to tools. Call tools when they help answer the request; answer directly when no tool is needed.",
+    "user": "What's the weather in Berlin right now?",
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Get current weather for a city.",
+          "parameters": {
+            "type": "object",
+            "properties": { "location": { "type": "string" }, "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] } },
+            "required": ["location"]
+          }
+        }
+      }
+    ],
+    "tool_results": { "get_weather": "{\"temperature\": 14, \"condition\": \"cloudy\", \"unit\": \"celsius\"}" }
+  },
+  {
+    "id": "direct-answer-knowledge",
+    "system": "You are a helpful assistant with access to tools. Call tools when they help answer the request; answer directly when no tool is needed.",
+    "user": "Who wrote the novel '1984'?"
+  }
+]

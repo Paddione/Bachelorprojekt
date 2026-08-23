@@ -4219,6 +4219,12 @@
       "status": "archived"
     }
   ],
+  "T014545": [
+    {
+      "slug": "factory-control-primary-key",
+      "status": "plan_staged"
+    }
+  ],
   "T014552": [
     {
       "slug": "2026-08-23-routing-check-freetoken-t014552",

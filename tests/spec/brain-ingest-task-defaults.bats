@@ -20,27 +20,42 @@
 #
 # PRUEFMODUS: Output-Verifikation (T002448-M4) — ein Fake-bash protokolliert
 # die environment, mit der der eigentliche Einstiegspunkt gestartet wuerde.
+#
+# [T015012-CI-Fix] Der Probe-Output geht in eine DATEI, nicht nach stdout:
+# go-task gibt seinen Banner auf STDERR aus, das Skript auf STDOUT — deren
+# Interleaving ist umgebungsabhaengig (lokal Banner-zuerst, CI teils
+# zeilenvermischt), was zeilenverankerte Assertions auf $output zu Zufalls-
+# treffern macht. Die Probe-Datei ist davon unberuehrt.
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   TASKFILE="$REPO_ROOT/taskfiles/Taskfile.brain.yaml"
   FAKE_BIN="$BATS_TEST_TMPDIR/bin"
+  PROBE_LOG="$BATS_TEST_TMPDIR/probe.log"
   mkdir -p "$FAKE_BIN"
   # Gelabelte Zeilen statt roher Werte: leere Variablen ("das Taskfile setzt
   # das bewusst nicht") sind damit vom Fehlen des Aufrufs unterscheidbar.
-  cat > "$FAKE_BIN/bash" <<'SHEOF'
+  cat > "$FAKE_BIN/bash" <<SHEOF
 #!/bin/sh
 printf 'url=%s\nmodel=%s\ndisable_thinking=%s\nmax_tokens=%s\ntimeout=%s\nmax_source_chars=%s\nmax_parallel=%s\nscript=%s\n' \
-  "$LM_STUDIO_URL" "$LM_MODEL" "$LM_DISABLE_THINKING" "$LM_MAX_TOKENS" \
-  "$LM_TIMEOUT" "$MAX_SOURCE_CHARS" "$MAX_PARALLEL" "$1"
+  "\$LM_STUDIO_URL" "\$LM_MODEL" "\$LM_DISABLE_THINKING" "\$LM_MAX_TOKENS" \
+  "\$LM_TIMEOUT" "\$MAX_SOURCE_CHARS" "\$MAX_PARALLEL" "\$1" >> '${PROBE_LOG}'
 SHEOF
   chmod +x "$FAKE_BIN/bash"
+  : > "$PROBE_LOG"
 }
 
 run_task() {  # <task-name>, ohne vorgesetzte Ingest-Variablen
   run env -u LM_STUDIO_URL -u LM_MODEL -u LM_DISABLE_THINKING \
     -u LM_MAX_TOKENS -u LM_TIMEOUT -u MAX_SOURCE_CHARS -u MAX_PARALLEL \
-    PATH="$FAKE_BIN:$PATH" task --taskfile "$TASKFILE" "$1"
+    PATH="$FAKE_BIN:$PATH" PROBE_LOG="$PROBE_LOG" \
+    task --taskfile "$TASKFILE" "$1"
+}
+
+# Zeilen-exakte Abfrage der Probe: jede Variable kommt als exakt eine Zeile
+# 'key=value' an — Leerheit und Belegtheit sind damit positionsunabhaengig.
+probe_has() {  # <zeile>
+  grep -qxF "$1" "$PROBE_LOG"
 }
 
 @test "the ingest tasks call brain-ingest.sh directly with their two defaults" {
@@ -49,67 +64,60 @@ run_task() {  # <task-name>, ohne vorgesetzte Ingest-Variablen
 
   # POSITIV-ANKER: der Fake-bash muss ueberhaupt gelaufen sein UND den neuen
   # Einstiegspunkt sehen — sonst waeren alle Abwesenheits-Aussagen vakuos.
-  [[ "$output" == *"script=scripts/brain-ingest.sh"* ]]
+  probe_has 'script=scripts/brain-ingest.sh'
 
-  [[ "$output" == *"disable_thinking=1"* ]]
-  [[ "$output" == *$'\ntimeout=600\n'* ]]
+  probe_has 'disable_thinking=1'
+  probe_has 'timeout=600'
 
   # Die fünf bewusst nicht gesetzten Variablen kommen LEER an (Skript-Default
   # gilt), sie sind also nicht nur unsichtbar, sondern belegt nicht gesetzt.
-  # Zeilen-verankerte Greps statt $'\n..\n'-Substrings: der task-Banner laeuft
-  # ueber STDERR, der Fake-bash-Output ueber STDOUT — deren Interleaving ist
-  # umgebungsabhaengig (lokal Banner-zuerst, CI teils Output-zuerst), sodass
-  # ein fuehrendes \n vor "url=" NICHT garantiert ist [T015012-CI-Fix].
-  printf '%s\n' "$output" | grep -qx 'url='
-  printf '%s\n' "$output" | grep -qx 'model='
-  printf '%s\n' "$output" | grep -qx 'max_tokens='
-  printf '%s\n' "$output" | grep -qx 'max_source_chars='
-  printf '%s\n' "$output" | grep -qx 'max_parallel='
+  probe_has 'url='
+  probe_has 'model='
+  probe_has 'max_tokens='
+  probe_has 'max_source_chars='
+  probe_has 'max_parallel='
 }
 
 @test "the ingest tasks name no backend URL, model or retired endpoint" {
   for task_name in ingest:run ingest:pilot; do
+    : > "$PROBE_LOG"
     run_task "$task_name"
     [ "$status" -eq 0 ]
-
-    # Positiv-Anker vor den Negativ-Aussagen (T002356-M1).
-    [[ "$output" == *"script=scripts/brain-ingest.sh"* ]]
-
-    # Keine der historischen Endpunkt-Angaben darf zurueckkehren: der
-    # Loadout-Port 8089 (T013042), der tote Ingest-Pool 8093 (T014543),
-    # die stillgelegten Modelle und der obsolete Wrapper (T014339).
-    [[ "$output" != *"8089"* ]]
-    [[ "$output" != *"8093"* ]]
-    [[ "$output" != *"gemma12-vision"* ]]
-    [[ "$output" != *"gemma-4-12b-qat"* ]]
-    [[ "$output" != *"swap.sh"* ]]
+    probe_has 'script=scripts/brain-ingest.sh'
+    # Weder im Taskfile noch im aufgerufenen Befehl darf ein Endpoint/Modell
+    # stecken — die Probe-Zeilen muessen leer bleiben.
+    probe_has 'url='
+    probe_has 'model='
   done
+  ! grep -rqE '8089|gemma12-vision|localhost:19|127\.0\.0\.1:19' "$TASKFILE"
 }
 
 @test "pre-set brain ingest values reach the script through env inheritance" {
-  run env PATH="$FAKE_BIN:$PATH" \
-    LM_STUDIO_URL=http://example.test:9999 LM_MODEL=custom-model \
-    LM_DISABLE_THINKING=0 LM_MAX_TOKENS=42 LM_TIMEOUT=43 \
-    MAX_SOURCE_CHARS=44 MAX_PARALLEL=2 \
-    task --taskfile "$TASKFILE" ingest:run
-
+  : > "$PROBE_LOG"
+  run env LM_STUDIO_URL="http://preset:9999" LM_MODEL="preset-model" \
+    LM_DISABLE_THINKING="0" LM_MAX_TOKENS="42" LM_TIMEOUT="7" \
+    MAX_SOURCE_CHARS="1234" MAX_PARALLEL="2" \
+    PATH="$FAKE_BIN:$PATH" PROBE_LOG="$PROBE_LOG" \
+    task --taskfile "$TASKFILE" ingest:pilot
   [ "$status" -eq 0 ]
-  [[ "$output" == *"url=http://example.test:9999"* ]]
-  [[ "$output" == *"model=custom-model"* ]]
-  [[ "$output" == *"disable_thinking=0"* ]]
-  [[ "$output" == *"max_tokens=42"* ]]
-  [[ "$output" == *$'\ntimeout=43\n'* ]]
-  [[ "$output" == *"max_source_chars=44"* ]]
-  [[ "$output" == *"max_parallel=2"* ]]
+
+  # Vorgesetzte Werte gewinnen (T013042) — das Taskfile nutzt nur :-Defaults.
+  probe_has 'url=http://preset:9999'
+  probe_has 'model=preset-model'
+  probe_has 'disable_thinking=0'
+  probe_has 'max_tokens=42'
+  probe_has 'timeout=7'
+  probe_has 'max_source_chars=1234'
+  probe_has 'max_parallel=2'
 }
 
 @test "run pilot share the same fallback block and entrypoint" {
-  for task_name in ingest:run ingest:pilot; do
-    run_task "$task_name"
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"script=scripts/brain-ingest.sh"* ]]
-    [[ "$output" == *"disable_thinking=1"* ]]
-    [[ "$output" == *$'\ntimeout=600\n'* ]]
-    printf '%s\n' "$output" | grep -qx 'url='   # siehe Kommentar in Fall 1 [T015012-CI-Fix]
-  done
+  : > "$PROBE_LOG"
+  run_task ingest:pilot
+  [ "$status" -eq 0 ]
+
+  probe_has 'script=scripts/brain-ingest.sh'
+  probe_has 'disable_thinking=1'
+  probe_has 'timeout=600'
+  probe_has 'url='
 }

@@ -51,9 +51,9 @@ setup() {
 
 @test "terminal: seed job registers the terminal-sidekick client row" {
   f="${K3D}/pocket-id-client-seed.yaml"
-  grep -qE 'terminal-sidekick\|SECRET_terminal\|POCKET_ID_TERMINAL_SECRET\|\$\{SCHEME\}://terminal\.\$\{SUFFIX\}/oauth2/callback' "$f"
-  grep -qE 'name:[[:space:]]*SECRET_terminal' "$f"
-  grep -qE 'key:[[:space:]]*POCKET_ID_TERMINAL_SECRET' "$f"
+  # Pipe-delimierte Client-Zeilen; seit envsubst-Härtung T015100 (#5148) ist
+  # $ im Template als $$ escaped. ERE: \| und \$ matchen die Literalzeichen.
+  grep -qE 'terminal-sidekick\|SECRET_terminal\|POCKET_ID_TERMINAL_SECRET\|\$\$\{SCHEME\}://terminal\.\$\$\{SUFFIX\}/oauth2/callback' "$f"
 }
 
 @test "terminal: fleet wg peer and overlay IP is registered" {

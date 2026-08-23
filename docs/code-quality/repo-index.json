@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1190,
+      "file_count": 1191,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1012,6 +1012,7 @@
         "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
         "tests/spec/ticket-ops/triage-status-ssot.bats",
         "tests/spec/ticket-ops/wave1-state-refetch.bats",
+        "tests/spec/ticket-seq-integrity/seq-repair.bats",
         "tests/spec/ticket-system.bats",
         "tests/spec/ticket-system/areas-csv-trim.bats",
         "tests/spec/ticket-system/backfill-id-sequence.bats",
@@ -3636,7 +3637,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 808,
+      "file_count": 809,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4420,6 +4421,7 @@
         "scripts/vda/promote.sh",
         "scripts/vda/release-notes.sh",
         "scripts/vda/ticket.sh",
+        "scripts/vda/ticket/_seq-repair-sql.sh",
         "scripts/vda/ticket/_ticket-core.sh",
         "scripts/vda/ticket/assert-phase-chain.sh",
         "scripts/vda/ticket/backfill-id.sh",

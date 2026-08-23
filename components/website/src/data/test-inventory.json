@@ -5604,6 +5604,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-seq-integrity/seq-repair",
+    "file": "tests/spec/ticket-seq-integrity/seq-repair.bats",
+    "category": "ticket-seq-integrity",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-system",
     "file": "tests/spec/ticket-system.bats",
     "category": "ticket-system",

@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
-# tests/spec/mishap-rollup/wakeup-auto-close-timeout.bats — T013914 Entry 5
+# tests/spec/software-factory/wakeup-auto-close-timeout.bats — T013914 Entry 5
+# (umgezogen aus tests/spec/mishap-rollup/ — das Verzeichnis wurde mit T014104
+#  geloescht; der Test prueft wakeup.sh, nicht den Rollup.)
 #
 # Pruefmodus: SOURCE-VERIFIKATION [T002448-M4]. wakeup.sh ist ein Shell-Skript
 # ohne externe Abhaengigkeiten im auto-close-Merged-Aufruf. Der Source-Text wird

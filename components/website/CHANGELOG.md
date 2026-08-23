@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.311.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.311.0...website-v1.311.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** db identity guard against ghost shared-db [T015168] ([#5190](https://github.com/Paddione/Bachelorprojekt/issues/5190)) ([a6b00b4](https://github.com/Paddione/Bachelorprojekt/commit/a6b00b4333cf791e7e4e360b497b21e7b4847ffc))
+
 ## [1.311.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.310.0...website-v1.311.0) (2026-08-23)
 
 

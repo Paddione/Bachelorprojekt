@@ -349,6 +349,7 @@ SH
   run env PATH="$fake_bin:$PATH" LM_STUDIO_URL=http://fixture.invalid LM_MODEL=fixture \
     MAX_PARALLEL=1 BRAIN_CHUNK_TARGET_CHARS=800 BRAIN_OBSERVED_AT="$observed" \
     bash "$source_root/scripts/brain-ingest.sh" --brain-repo "$brain" --state "$state" --dry-run
+  echo "$output"
   [ "$status" -eq 0 ]
 
   local policy_hash policy_pages approved_hash approved_pages

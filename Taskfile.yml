@@ -5433,6 +5433,11 @@ tasks:
     cmds:
       - bash scripts/brain-ingest-worklist.sh
 
+  brain:ingest:dry:
+    desc: "Dry-Run der Brain-Ingest-Pipeline (setzt LM_MODEL-Default + Ingest-Pool :8093; SA-BW-01/T014543). Usage: task brain:ingest:dry"
+    cmds:
+      - LM_MODEL="${LM_MODEL:-gemma-4-12b-qat}" LM_STUDIO_URL="${LM_STUDIO_URL:-http://localhost:8093}" bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run {{.CLI_ARGS}}
+
   brain:bootstrap:
     desc: "Seede (und optional erstelle/pushe) das brain-Wiki-Fundament. Usage: task brain:bootstrap -- <target-dir>|--create-remote --collaborator <handle>"
     cmds:

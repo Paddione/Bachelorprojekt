@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.303.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.1...website-v1.303.2) (2026-08-23)
+
+
+### Bug Fixes
+
+* **ci:** repair health goals that cannot go red [T013916] ([#5081](https://github.com/Paddione/Bachelorprojekt/issues/5081)) ([47c1088](https://github.com/Paddione/Bachelorprojekt/commit/47c1088fa9c0ed4d53a0b285ffea2c9c85442de5))
+
 ## [1.303.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.303.0...website-v1.303.1) (2026-08-23)
 
 

@@ -62,7 +62,7 @@ Manifeste: `k3d/admin-actions-cronjobs.yaml`, `k3d/cronjob-scheduled-publish.yam
          notify-unread/tests-results-retention).
       3. Festhalten, wie Prod sein Schema bekommt (Website-Migrationen beim Deploy?) und
          warum staging davon abweicht.
-- [ ] **T014538 — Fix Richtung Schema-Parität.** Bevorzugt: denselben Migrationsweg, den
+- [x] **T014538 — Fix Richtung Schema-Parität.** Bevorzugt: denselben Migrationsweg, den
       Prod nutzt, einmalig gegen staging ausführen (Datenverlust-Risiko staging bewusst
       nein: nur DDL, keine Löschung). Falls der Migrationsweg staging strukturell nicht
       erreicht, stattdessen einen Init-/Sync-Schritt ergänzen und im
@@ -78,10 +78,18 @@ Manifeste: `k3d/admin-actions-cronjobs.yaml`, `k3d/cronjob-scheduled-publish.yam
       übrigen Anwendungstabellen erhält. Ein DDL-Init im Shared-DB-Manifest würde die fehlende
       Website-Ausrollung und den falschen Service-Endpunkt nicht beheben; dafür braucht es eine
       separate Staging-Website-/Flux-Entscheidung.
-- [ ] **GREEN-Nachweis T014538.** Nächsten CronJob-Lauf abwarten oder Job manuell triggern
-      (`kubectl --context fleet create job --from=cronjob/admin-actions-cleanup
-      admin-actions-cleanup-manual -n workspace-staging`); Pod muss mit exit 0 enden und
-      ohne `relation … does not exist`.
+
+      **Auflösung (2026-08-23, ticket-ops-Ausführung):** Ursache verifiziert und vertieft —
+      `workspace-staging` ist GitOps-verwaist (keine Flux-Kustomization targetiert die
+      Staging-Namespaces; das Repo-Overlay `prod-fleet/staging/` war nie verdrahtet).
+      Operator-Entscheidung: Staging **voll verdrahten** — Nachfolger-Feature **T014937**
+      (prod-fleet/staging als ks-staging in Flux aufnehmen). Interim: die 4 fehlschlagenden
+      CronJobs (scheduled-publish, admin-actions-cleanup, notify-unread,
+      tests-results-retention) per kubectl suspendiert (Stop-the-Bleeding, reversibel);
+      Rücknahme erfolgt nach T014937 per GitOps.
+- [x] **GREEN-Nachweis T014538.** Verschoben nach T014937: solange die CronJobs suspendiert
+      sind, gibt es keinen Lauf zum Nachweisen. Akzeptanzkriterium wandert ins Nachfolger-
+      Ticket (Pod exit 0 gegen die staging-Website, kein `relation … does not exist`).
 - [x] **Failing-Test-Step (RED → GREEN).**
 
 ```bash

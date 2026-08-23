@@ -83,13 +83,16 @@ function main() {
   const mainKeys = new Set(Object.keys(mainBase));
 
   const newKeys = [...currentKeys].filter((k) => !mainKeys.has(k));
-  const prBody = readPrBody();
-  const hasAllowTag = /\[baseline-allow:[^\]]+\]/i.test(prBody);
 
   if (newKeys.length === 0) {
     console.log(`✓ baseline.json has no new keys vs origin/main (${currentKeys.size} total)`);
     return 0;
   }
+
+  // T015384: nur konsultieren, wenn ein Urteil tatsaechlich vom Body abhaengt —
+  // ohne neue Keys ist ein unlesbarer Body irrelevant (kein falsch-negativ moeglich).
+  const prBody = readPrBody();
+  const hasAllowTag = /\[baseline-allow:[^\]]+\]/i.test(prBody);
 
   if (hasAllowTag) {
     const match = prBody.match(/\[baseline-allow:([^\]]+)\]/i);

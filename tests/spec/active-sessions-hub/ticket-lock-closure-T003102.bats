@@ -25,7 +25,7 @@ setup() {
   TICKET_CORE="$REPO/scripts/vda/ticket/_ticket-core.sh"
   UPDATE_STATUS="$REPO/scripts/vda/ticket/update-status.sh"
   LOCK_SH="$REPO/scripts/agent-lock.sh"
-  EXEC_SKILL="$REPO/.opencode/skills/opencode-flow-execute/SKILL.md"
+  EXEC_SKILL="$REPO/.opencode/skills/dev-flow-execute/SKILL.md"
   EXEC_PHASES="$REPO/.claude/skills/references/dev-flow-execute-phases.md"
   FACTORY_PREP="$REPO/scripts/vda/factory-prep.sh"
 }
@@ -104,7 +104,7 @@ _section() {  # <file> <start-regex>
   awk -v s="$2" '$0 ~ s{f=1;next} f && /^#{2,4} /{exit} f' "$1"
 }
 
-@test "opencode-flow-execute −1.1 claimt branch-scoped, kein check-and-claim ticket" {
+@test "dev-flow-execute (opencode) −1.1 claimt branch-scoped, kein check-and-claim ticket" {
   block="$(_section "$EXEC_SKILL" '^### Schritt −1\.1')"
   [ -n "$block" ]
   [ "$(printf '%s\n' "$block" | grep -cF 'claim branch')" -gt 0 ]
@@ -125,11 +125,11 @@ _section() {  # <file> <start-regex>
   [ "$(printf '%s\n' "$block" | grep -cF 'exit 1')" -ge 2 ]
 }
 
-@test "Claim-Verifikation + Release im opencode-flow-execute sind branch-scoped" {
+@test "Claim-Verifikation + Release im dev-flow-execute sind branch-scoped" {
   run grep -F 'check branch "$(git branch --show-current)"' "$EXEC_SKILL"
   [ "$status" -eq 0 ]
   # T006284: Der Release liegt nicht mehr inline im Skill, sondern in der
-  # idempotenten Finalize-Einheit, die opencode-flow-execute Schritt 6.2
+  # idempotenten Finalize-Einheit, die dev-flow-execute Schritt 6.2
   # dem Finalizer als Pflicht aufträgt (branch-scoped, T003102).
   run grep -F 'release branch "$BRANCH"' "$REPO/scripts/devflow-post-merge-finalize.sh"
   [ "$status" -eq 0 ]

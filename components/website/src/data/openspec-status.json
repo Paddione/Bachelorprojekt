@@ -4243,6 +4243,12 @@
       "status": "archived"
     }
   ],
+  "T014735": [
+    {
+      "slug": "ticket-mcp-freshness-guard-t014735",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

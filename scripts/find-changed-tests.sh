@@ -152,7 +152,19 @@ while IFS= read -r file; do
         fi
       else
         # For unit selection, fallback to run all for safety
-        _trigger_run_all "$file"
+        # UNLESS the script is covered by a spec test instead
+        has_spec=""
+        [ -f "tests/spec/$name.bats" ] && has_spec=1
+        [ -z "$has_spec" ] && [ -n "$(find tests/spec -mindepth 2 -name "$name.bats" -type f -print -quit 2>/dev/null)" ] && has_spec=1
+        [ -z "$has_spec" ] && [ -f "tests/spec/vda-$name.bats" ] && has_spec=1
+        [ -z "$has_spec" ] && [ -f "tests/spec/ticket-$name.bats" ] && has_spec=1
+        [ -z "$has_spec" ] && [ -f "tests/spec/factory-$name.bats" ] && has_spec=1
+        
+        if [ -n "$has_spec" ]; then
+          echo "note: '$file' changed — no unit match but spec test exists, skipping FULL unit suite fallback" >&2
+        else
+          _trigger_run_all "$file"
+        fi
       fi
     fi
     continue

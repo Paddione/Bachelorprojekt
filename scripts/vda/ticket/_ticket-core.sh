@@ -243,3 +243,51 @@ EOF
   fi
   echo "$uuid"
 }
+
+# ── Filter-Validierung fuer die Lesepfade [T014386] ─────────────────────────
+# Die Wertemengen spiegeln die CHECK-Constraints der Ticket-Tabelle. Sie wurden
+# aus der lebenden DB erhoben, nicht aus der Doku abgeschrieben:
+#
+#   psql -d website -tAc "SELECT pg_get_constraintdef(oid) FROM pg_constraint
+#                          WHERE conname IN ('tickets_status_check','tickets_type_check');"
+#
+# Hinweis: 'incident' steht im type-Constraint, wird aber im SSOT-Requirement
+# "Ticket-Typ nutzt das Conventional-Commit-Vokabular" nicht aufgefuehrt. Die
+# Validierung folgt dem Constraint — sonst lehnte sie Tickets ab, die die
+# Datenbank akzeptiert (mishap.go legt `--type incident` an).
+TICKET_VALID_STATUS="triage planning plan_staged backlog in_progress in_review qa_review blocked awaiting_deploy done archived"
+TICKET_VALID_TYPE="fix feat chore project incident docs refactor perf test ci build bug feature task"
+TICKET_VALID_ATTENTION="auto ai_ready needs_human"
+
+# _ticket_validate_enum <feldname> <wert> <erlaubte-werte>
+# Endet mit Exit 2 bei unbekanntem Wert. Die Meldung nennt den abgelehnten Wert
+# UND die erlaubten — ohne beides muss der Aufrufer raten.
+_ticket_validate_enum() {
+  local field="$1" value="$2" allowed="$3" v
+  for v in $allowed; do
+    [[ "$value" == "$v" ]] && return 0
+  done
+  echo "ERROR: ungueltiger Wert fuer --${field}: '${value}'" >&2
+  echo "       erlaubt: ${allowed// /, }" >&2
+  return 2
+}
+
+# _ticket_validate_enum_list <feldname> <komma-liste> <erlaubte-werte>
+# Zerlegt eine Komma-Liste (Leerzeichen werden entfernt, wie in der SQL) und
+# lehnt die ganze Liste ab, sobald ein Glied ungueltig ist. Ein stillschweigend
+# ignoriertes Glied waere schlimmer als die Ablehnung: der Aufrufer bekaeme die
+# Treffer der uebrigen und hielte sie fuer die Antwort auf seine Frage.
+_ticket_validate_enum_list() {
+  local field="$1" list="$2" allowed="$3" item
+  # Kein `local IFS=','` hier: bash scoped dynamisch, das gesetzte IFS gaelte
+  # auch in _ticket_validate_enum und liesse dessen `for v in $allowed` ueber
+  # Kommas statt Leerzeichen laufen — jeder Wert waere dann ungueltig. Statt
+  # dessen einmal in ein Array zerlegen und mit Default-IFS weiterarbeiten.
+  local -a items
+  IFS=',' read -r -a items <<< "${list// /}"
+  for item in "${items[@]}"; do
+    [[ -n "$item" ]] || continue
+    _ticket_validate_enum "$field" "$item" "$allowed" || return 2
+  done
+  return 0
+}

@@ -1,7 +1,7 @@
 ---
 title: "add-brain-ingest-dry-task — Implementation Plan"
 ticket_id: T014543
-domains: [tools, docs]
+domains: [scripts]
 status: active
 file_locks: []
 shared_changes: false

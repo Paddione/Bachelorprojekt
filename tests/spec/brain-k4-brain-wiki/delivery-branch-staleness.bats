@@ -45,8 +45,8 @@ build_fixture() {
   # Staleness-Gate-Test (frischer Branch-Name) abschaltbar.
   if [ "$with_stale" != "no-stale-branch" ]; then
     git -C "$seed" checkout -q -b stale-seed HEAD~1
-    printf 'stale\n' > "$seed/stale-only.txt"
-    git -C "$seed" add stale-only.txt
+    printf 'stale\n' > "$seed/index.md"
+    git -C "$seed" add index.md
     git -C "$seed" commit -q -m s1
     git -C "$seed" push -q origin "stale-seed:$BRANCH_NAME"
     git -C "$seed" checkout -q main
@@ -135,6 +135,7 @@ run_ingest() {
   remote_before="$(git -C "$WORK/origin.git" rev-parse "refs/heads/$br")"
 
   run_ingest ""
+  echo "$output"
   [ "$status" -ne 0 ]
   [[ "$output" == *"delivery aborted"* ]]
 

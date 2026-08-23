@@ -4231,6 +4231,12 @@
       "status": "archived"
     }
   ],
+  "T014544": [
+    {
+      "slug": "db-restore-verification",
+      "status": "plan_staged"
+    }
+  ],
   "T014545": [
     {
       "slug": "2026-08-23-factory-control-primary-key",
@@ -4276,6 +4282,18 @@
   "T015004": [
     {
       "slug": "2026-08-23-staging-verdrahtung",
+      "status": "archived"
+    }
+  ],
+  "T015012": [
+    {
+      "slug": "2026-08-23-spec-atlas",
+      "status": "archived"
+    }
+  ],
+  "T015170": [
+    {
+      "slug": "2026-08-23-rustdesk-on-demand",
       "status": "archived"
     }
   ],

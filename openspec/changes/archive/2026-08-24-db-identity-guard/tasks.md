@@ -2,7 +2,7 @@
 title: "db-identity-guard — Implementation Plan"
 ticket_id: T015168
 domains: [infra, tickets]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -55,8 +55,8 @@ task workspace:validate                          # Kustomize dry-run
 ## Workflow Rules
 
 - Branches: `feature/*`, `fix/*`, `chore/*`, `docs/*`. All changes via PRs → squash-merge. No direct pushes to `main`. `scripts/preflight-pr-scope.sh` enforces worktrees for `feature/*`/`fix/*`.
-- opencode dev flow: `opencode-flow-plan` → `opencode-flow-execute`; chores via `opencode-flow-chore`. Seit T013724 sind das Directory-Symlinks auf dieselben Shared Sources wie `dev-flow-plan`/`-execute`/`-chore` — beide Namensfamilien laden identischen Inhalt; `dev-flow-e2e` bleibt Claude-seitig.
-- **Pipeline-Prinzip:** Planning-Agents (opencode-flow-plan) legen Worktree + Branch sofort an und enqueuen jedes Partial-Plan einzeln in die Factory, sobald es geschrieben ist. Die Factory beginnt mit der Ausführung, während der Planner das nächste Partial schreibt. Siehe `opencode-flow-plan` SKILL.md Phase B/C.
+- opencode dev flow: `dev-flow-plan` → `dev-flow-execute`; chores via `dev-flow-chore`. Seit T014086 lädt opencode die Shared Sources `.claude/skills/dev-flow-*` unter denselben Namen wie Claude Code (Directory-Symlinks, Nachfolger der T013724-Dualbenennung); `dev-flow-e2e` bleibt Claude-seitig.
+- **Pipeline-Prinzip:** Planning-Agents (dev-flow-plan) legen Worktree + Branch sofort an und enqueuen jedes Partial-Plan einzeln in die Factory, sobald es geschrieben ist. Die Factory beginnt mit der Ausführung, während der Planner das nächste Partial schreibt. Siehe `dev-flow-plan` SKILL.md Phase B/C.
 - CI gate — **vor** PR-Create lokal laufen lassen: `task test:changed` + `task freshness:check` + `task workspace:validate`.
 - **Merge = closure** (T001092): ticket closes on green auto-merge. Prod deploy is decoupled — it does **not** change the ticket status.
 
@@ -146,7 +146,7 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
 - Claude Code only: a skill with `agent:` dispatches via `background-agents.ts` (read-only → `delegate`, write-capable → `task`); without `agent:` it loads inline. Skill → agent map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`→website.
-- opencode: `opencode-flow-plan`/`-execute`/`-chore` sind Directory-Symlinks auf dieselben Shared Sources wie `dev-flow-plan`/`-execute`/`-chore` (T013724) — beide Namen laden identischen Inhalt. Domain skills bleiben via agent routing dispatched (`deny` in `.opencode/opencode.jsonc`).
+- opencode: `dev-flow-plan`/`-execute`/`-chore` sind seit T014086 Directory-Symlinks auf dieselben Shared Sources wie bei Claude Code — beide Harnesses nutzen dieselben Namen (Nachfolger der T013724-Dualbenennung `opencode-flow-*`). Domain skills bleiben via agent routing dispatched (`deny` in `.opencode/opencode.jsonc`).
 </details>
 
 <details>

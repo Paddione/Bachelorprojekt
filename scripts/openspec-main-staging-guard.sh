@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Block commits that stage NEW openspec/changes/<slug>/ directories in the
 # main checkout.  Linked worktrees are exempt — the sanctioned flow moves
-# the change scaffold into a worktree before committing (opencode-flow-plan B.2).
+# the change scaffold into a worktree before committing (dev-flow-plan B.2).
 #
 # Bypass: SKIP_MAIN_STAGING_GUARD=1 git commit ...
 # See: T003980, openspec/changes/main-staging-guard/
@@ -52,7 +52,7 @@ if [ ${#new_slugs[@]} -gt 0 ]; then
   done
   echo "" >&2
   echo "OpenSpec changes must be committed in a worktree, not the main checkout." >&2
-  echo "Fix: move the change to a worktree (scripts/worktree-create.sh or opencode-flow-plan B.2)." >&2
+  echo "Fix: move the change to a worktree (scripts/worktree-create.sh or dev-flow-plan B.2)." >&2
   echo "Bypass (emergency only): SKIP_MAIN_STAGING_GUARD=1 git commit ..." >&2
   exit 1
 fi

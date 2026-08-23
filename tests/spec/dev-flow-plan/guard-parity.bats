@@ -41,7 +41,7 @@ setup() {
   local candidates=""
   for skill_file in \
     "$REPO_ROOT/.claude/skills/dev-flow-plan/SKILL.md" \
-    "$REPO_ROOT/.opencode/skills/opencode-flow-plan/SKILL.md"; do
+    "$REPO_ROOT/.opencode/skills/dev-flow-plan/SKILL.md"; do
     [ -f "$skill_file" ] && candidates+="$(grep -hoE 'gemma[0-9a-z-]*-factory|gemma[0-9]+-[a-z]+|gptoss-[a-z]+|devstral-[a-z]+|qwen[0-9a-z-]+' "$skill_file" || true)"$'\n'
   done
 

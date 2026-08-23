@@ -325,7 +325,7 @@ cmd_archive() {
 
   # [T003136] Status-Map-Ergebnis sofort stagen. cmd_archive regeneriert
   # openspec-status.json zwar nach dem Move, aber der Archiv-Commit des
-  # Aufrufers (opencode-flow-execute Step 7 / plan-archive-steps.md) staged
+  # Aufrufers (dev-flow-execute Step 7 / plan-archive-steps.md) staged
   # bisher nur die openspec/changes/-Verschiebung — die JSON blieb unstaged
   # und der Freshness-Gate meldete sie danach als stale (PR #4083). Das
   # Staging hier macht das Ergebnis unabhaengig vom pre-commit-Hook

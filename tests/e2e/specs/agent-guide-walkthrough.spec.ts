@@ -120,18 +120,22 @@ test('Schnellstart-Shelf kopiert den Init-Prompt eines Skills', async ({ page, c
 
 test('Harness-Badge: opencode-Tool zeigt Badge, both-Tool nicht', async ({ page }) => {
   await openAgentGuide(page);
-  const oc = tools.find(t => t.id === 'opencode-flow-plan')!;
+  const oc = tools.find(t => t.id === 'opencode-git-workflow')!;
   const both = tools.find(t => t.id === 'agent-website')!;
+  const bothFlow = tools.find(t => t.id === 'dev-flow-plan')!;
   const ocCard = page.locator('.ag-card').filter({ has: page.locator('.ag-name', { hasText: oc.name_de }) }).first();
   await expect(ocCard.locator('.ag-harness-badge')).toHaveText('opencode');
   const bothCard = page.locator('.ag-card').filter({ has: page.locator('.ag-name', { hasText: both.name_de }) }).first();
   await expect(bothCard.locator('.ag-harness-badge')).toHaveCount(0);
+  // T014086: die Flow-Skills sind seit der Namens-Vereinheitlichung both
+  const flowCard = page.locator('.ag-card').filter({ has: page.locator('.ag-name', { hasText: bothFlow.name_de }) }).first();
+  await expect(flowCard.locator('.ag-harness-badge')).toHaveCount(0);
 });
 
 test('Harness-Filter auf "opencode" versteckt Claude-Tools, laesst Ziele + both', async ({ page }) => {
   await openAgentGuide(page);
-  const claudeTool = tools.find(t => t.id === 'dev-flow-plan')!;
-  const ocTool = tools.find(t => t.id === 'opencode-flow-plan')!;
+  const claudeTool = tools.find(t => t.id === 'dev-flow-e2e')!;
+  const ocTool = tools.find(t => t.id === 'opencode-git-workflow')!;
   const bothTool = tools.find(t => t.id === 'agent-website')!;
   await page.locator('.ag-harness-toggle', { hasText: 'opencode' }).click();
   await expect(page.locator('.ag-name', { hasText: claudeTool.name_de })).toHaveCount(0);
@@ -143,7 +147,7 @@ test('Harness-Filter auf "opencode" versteckt Claude-Tools, laesst Ziele + both'
 
 test('Init-Prompt-Label: opencode-Skill zeigt "In opencode einfügen"', async ({ page }) => {
   await openAgentGuide(page);
-  const oc = tools.find(t => t.id === 'opencode-flow-plan')!;
+  const oc = tools.find(t => t.id === 'opencode-git-workflow')!;
   const card = await expandCardByTitle(page, oc.name_de);
   await expect(card.locator('.ag-prompt-init')).toContainText('In opencode einfügen');
   await expect(card.locator('.ag-prompt-init')).not.toContainText('In Claude Code einfügen');
@@ -151,7 +155,7 @@ test('Init-Prompt-Label: opencode-Skill zeigt "In opencode einfügen"', async ({
 
 test('Init-Prompt-Label: Claude-Skill behaelt "In Claude Code einfügen"', async ({ page }) => {
   await openAgentGuide(page);
-  const cl = tools.find(t => t.id === 'dev-flow-plan')!;
+  const cl = tools.find(t => t.id === 'dev-flow-e2e')!;
   const card = await expandCardByTitle(page, cl.name_de);
   await expect(card.locator('.ag-prompt-init')).toContainText('In Claude Code einfügen');
 });

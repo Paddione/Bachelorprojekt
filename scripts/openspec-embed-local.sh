@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/openspec-embed-local.sh — fail-visible wrapper around openspec-embed.mjs
-# for dev-flow-plan / opencode-flow-plan (Hybrid-Kontext-Transfer Teil 2).
+# for dev-flow-plan (beide Harnesses) (Hybrid-Kontext-Transfer Teil 2).
 #
 # Problem: openspec-embed.mjs ist best-effort und skippt STILL, wenn
 # SESSIONS_DATABASE_URL fehlt oder das TEI-Embedding-Backend down ist — der

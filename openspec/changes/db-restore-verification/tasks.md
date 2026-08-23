@@ -28,7 +28,7 @@ Stage-Commit vor und ist gegen den ungefixten Stand rot verifiziert.
 
 ## Partial P1 — p1-manifest (`k3d/backup-restore-verify-cronjob.yaml`, `k3d/kustomization.yaml`)
 
-- [ ] **P1.1 CronJob anlegen.** `k3d/backup-restore-verify-cronjob.yaml` nach dem
+- [x] **P1.1 CronJob anlegen.** `k3d/backup-restore-verify-cronjob.yaml` nach dem
       Vorbild von `k3d/backup-cronjob.yaml` (gleiches Image `pgvector/pgvector:0.8.5-pg16`,
       gleiche Secret-Mounts aus `workspace-secrets`, fail-loud `set -euo pipefail`,
       resource requests/limits, securityContext runAsNonRoot). Schedule
@@ -43,14 +43,14 @@ Stage-Commit vor und ist gegen den ungefixten Stand rot verifiziert.
       Superuser-Passwort aus `workspace-secrets:SHARED_DB_PASSWORD` (PGPASSWORD).
       Kein Schreiben auf Produktivdatenbanken; Wegwerf-DBs nur mit Prefix `restore_verify_`.
 
-- [ ] **P1.2 Wire-In.** Resource-Eintrag `backup-restore-verify-cronjob.yaml`
+- [x] **P1.2 Wire-In.** Resource-Eintrag `backup-restore-verify-cronjob.yaml`
       in `k3d/kustomization.yaml` ergänzen.
 
-- [ ] **P1.3 Deploy-Verifikation.** `task workspace:validate` muss grün sein.
+- [x] **P1.3 Deploy-Verifikation.** `task workspace:validate` muss grün sein.
 
 ## Partial P2 — p2-docs (`docs/runbooks/db-audit-playbook.md`)
 
-- [ ] **P2.1 Runbook-Abschnitt.** In `docs/runbooks/db-audit-playbook.md` einen
+- [x] **P2.1 Runbook-Abschnitt.** In `docs/runbooks/db-audit-playbook.md` einen
       Abschnitt „Restore-Verifikation (G-DB05)" ergänzen: Zweck, Schedule,
       JSONL-Schema (Feldliste + Beispielzeile), wie man den Log manuell auswertet
       (`kubectl exec … tail /backups/restore-verification.jsonl`) und wie ein
@@ -58,7 +58,7 @@ Stage-Commit vor und ist gegen den ungefixten Stand rot verifiziert.
 
 ## Partial P3 — p3-tests (Tests-Rolle, STRUCT2)
 
-- [ ] **P3.1 Failing-Test-Step (RED).** Der Guard
+- [x] **P3.1 Failing-Test-Step (RED).** Der Guard
       `tests/spec/db-restore-verification/restore-verify-cronjob.bats` liegt dem
       Stage-Commit bei und ist dort rot verifiziert:
 
@@ -67,13 +67,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/db-restore-verification/
 # expected: FAIL (red — Manifest existiert vor P1 nicht; 4 Tests schlagen zuverlässig fehl)
 ```
 
-- [ ] **P3.2 GREEN-Nachweis.** Nach P1/P2 müssen alle 4 Tests grün sein:
+- [x] **P3.2 GREEN-Nachweis.** Nach P1/P2 müssen alle 4 Tests grün sein:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/db-restore-verification/
 ```
 
-- [ ] **P3.3 Final Verification.**
+- [x] **P3.3 Final Verification.**
 
 ```bash
 task test:changed

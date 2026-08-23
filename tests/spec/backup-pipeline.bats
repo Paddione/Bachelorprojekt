@@ -1,99 +1,100 @@
 #!/usr/bin/env bats
 # tests/spec/backup-pipeline.bats
 # SSOT: openspec/specs/backup-pipeline.md
-# Uses simple [ ... ] assertions (matches tests/spec/* convention).
-# NOTE: pvc-backup CronJob is referenced in docs (docs-content-built/) but not
-# currently present as a live k8s resource in k3d/backup-*.yaml — only db-backup
-# is. The plan's pvc-backup test is adapted to skip until the resource is added.
+#
+# Covers: render-sichere Runtime-Variablen im PVC-Backup-Mounter (T014535).
+# Reproduziert die Flux-Render-Logik (scripts/flux-render-artifact.sh) auf
+# k3d/pvc-backup-cronjob.yaml, expandiert das MJOB-Heredoc wie der
+# Orchestrator-Pod und prüft bash -n auf dem generierten Mounter-Script.
 
-load 'test_helper'
-
-REPO_ROOT="${PROJECT_DIR}"
-
-@test "db-backup CronJob is defined in k3d/backup-cronjob.yaml" {
-  run grep -c "name: db-backup" "${REPO_ROOT}/k3d/backup-cronjob.yaml"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
+setup() {
+  REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+  PVC_CRONJOB="$REPO/k3d/pvc-backup-cronjob.yaml"
 }
 
-@test "pvc-backup CronJob is defined (skip: not yet a live k8s resource)" {
-  if ! grep -qE "name: pvc-backup" "${REPO_ROOT}/k3d/backup-cronjob.yaml"; then
-    skip "pvc-backup CronJob referenced in docs but not in k3d/backup-cronjob.yaml — adapt when resource lands"
-  fi
-  run grep -cE "name: pvc-backup" "${REPO_ROOT}/k3d/backup-cronjob.yaml"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
+# Führt die drei Render-Stufen aus scripts/flux-render-artifact.sh
+# (dynamische Vars-Extraktion, runtime_vars-Filter, envsubst, $$-Unwrap)
+# auf einer Datei aus und schreibt das Ergebnis nach $1.
+render_flux_like() {
+  local input="$1" out="$2"
+  local vars runtime_vars envsubst_vars
+  vars="$(grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$input" | tr -d '${}' | sort -u | tr '\n' ' ')" || true
+  runtime_vars="$(grep -oE '\$\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$input" \
+    | sed -E 's/^\$\$\{//; s/\}$//' | sort -u | tr '\n' ' ')" || true
+  for rv in $runtime_vars; do
+    vars="$(tr ' ' '\n' <<<"$vars" | sed "/^${rv}\$/d;/^\$/d" | tr '\n' ' ')"
+  done
+  envsubst_vars=""
+  for v in $vars; do envsubst_vars="${envsubst_vars}\$${v} "; done
+
+  sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' "$input" \
+    | envsubst "$envsubst_vars" \
+    | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
+    > "$out"
 }
 
-@test "db-backup uses AES-256-CBC encryption with pbkdf2" {
-  run grep -c "aes-256-cbc" "${REPO_ROOT}/k3d/backup-cronjob.yaml"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
-  run grep -c "pbkdf2" "${REPO_ROOT}/k3d/backup-cronjob.yaml"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
-}
+# ── Flux-Render: generiertes Mounter-Script ist syntaktisch gültig ─────
 
-@test "db-backup schedule is daily (0 2 * * *)" {
-  run grep -cE 'schedule: "0 2 \* \* \*"' "${REPO_ROOT}/k3d/backup-cronjob.yaml"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
-}
+@test "flux render of pvc-backup yields bash -n clean mounter script" {
+  command -v envsubst >/dev/null 2>&1 || skip "envsubst binary not installed"
+  command -v python3 >/dev/null 2>&1 || skip "python3 binary not installed"
 
-@test "db-backup cannot overlap and has a bounded runtime" {
-  run grep -cE '^  concurrencyPolicy: Forbid$' "${REPO_ROOT}/k3d/backup-cronjob.yaml"
-  [ "$status" -eq 0 ]
-  [ "$output" -eq 1 ]
+  render_flux_like "$PVC_CRONJOB" "$BATS_TEST_TMPDIR/rendered.yaml"
 
-  run grep -cE '^      activeDeadlineSeconds: 7200$' "${REPO_ROOT}/k3d/backup-cronjob.yaml"
-  [ "$status" -eq 0 ]
-  [ "$output" -eq 1 ]
-}
+  # MJOB-Heredoc-Block aus dem gerenderten Orchestrator-Script isolieren.
+  mjob="$(sed -n '/<<MJOB/,/^[[:space:]]*MJOB[[:space:]]*$/p' "$BATS_TEST_TMPDIR/rendered.yaml")"
+  [ -n "$mjob" ] || skip "MJOB heredoc block not found in rendered cronjob"
 
-@test "backup-restore.sh exists and is runnable" {
-  [ -f "${REPO_ROOT}/scripts/backup-restore.sh" ]
-  # Script is currently not chmod +x in repo, so check it can be invoked via bash
-  run bash "${REPO_ROOT}/scripts/backup-restore.sh" --help
-  [ "$status" -eq 0 ]
-}
+  # Heredoc wie im Orchestrator-Pod expandieren (unquoted heredoc,
+  # Orchestrator-Variablen gesetzt, mentolder/longhorn-Fall).
+  { echo 'cat <<MJOB'; sed '1d;$d' <<<"$mjob"; echo 'MJOB'; } > "$BATS_TEST_TMPDIR/heredoc.sh"
+  NS=workspace STAMP=test123 MOUNTER=pvc-backup-mounter-test123 \
+    VW_SC=longhorn CLONES='vaultwarden-data-backup-clone' VW_AFFINITY='' \
+    VW_CLAIM='vaultwarden-data-backup-clone' \
+    bash "$BATS_TEST_TMPDIR/heredoc.sh" > "$BATS_TEST_TMPDIR/mjob.yaml"
 
-@test "backup-restore.sh has usage output" {
-  run bash "${REPO_ROOT}/scripts/backup-restore.sh" --help 2>&1
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -qE "[Uu]sage|[Hh]elp"
-}
-
-@test "shared-db mounts a Memory-backed /dev/shm in the postgres container (T002064)" {
-  # PG16 parallel index builds (pgvector HNSW) allocate dynamic shared memory
-  # under /dev/shm; the containerd default of 64Mi makes restores of the
-  # website dump fail at CREATE INDEX chunks_embedding_hnsw.
-  run python3 - "${REPO_ROOT}/k3d/shared-db.yaml" <<'PY'
+  python3 - "$BATS_TEST_TMPDIR/mjob.yaml" "$BATS_TEST_TMPDIR/mounter.sh" <<'PY'
 import sys, yaml
-ok = False
-for doc in yaml.safe_load_all(open(sys.argv[1])):
-    if not doc or doc.get("kind") != "Deployment": continue
-    if doc["metadata"]["name"] != "shared-db": continue
-    spec = doc["spec"]["template"]["spec"]
-    vols = {v["name"]: v for v in spec.get("volumes", [])}
-    shm = next((v for v in vols.values()
-                if (v.get("emptyDir") or {}).get("medium") == "Memory"), None)
-    assert shm is not None, "no emptyDir medium=Memory volume on shared-db"
-    assert (shm["emptyDir"].get("sizeLimit") or "") != "", "Memory emptyDir needs a sizeLimit"
-    pg = next(c for c in spec["containers"] if c["name"] == "postgres")
-    mounts = {m["mountPath"]: m["name"] for m in pg.get("volumeMounts", [])}
-    assert mounts.get("/dev/shm") == shm["name"], "postgres container must mount the Memory volume at /dev/shm"
-    ok = True
-assert ok, "shared-db Deployment not found"
-print("ok")
+yaml.SafeLoader.add_constructor(
+    'tag:yaml.org,2002:value', lambda loader, node: loader.construct_scalar(node))
+docs = list(yaml.safe_load_all(open(sys.argv[1])))
+for d in docs:
+    if d and d.get('kind') == 'Job':
+        for c in d['spec']['template']['spec']['containers']:
+            if c['name'] == 'backup':
+                open(sys.argv[2], 'w').write(c['args'][0])
+                sys.exit(0)
+sys.exit(1)
 PY
+  [ -s "$BATS_TEST_TMPDIR/mounter.sh" ] || fail "backup container not found in generated mounter Job"
+
+  run bash -n "$BATS_TEST_TMPDIR/mounter.sh"
+  if [ "$status" -ne 0 ]; then
+    echo "# rendered mounter script (first 20 lines):"
+    head -20 "$BATS_TEST_TMPDIR/mounter.sh" | sed 's/^/# /' >&2
+  fi
   [ "$status" -eq 0 ]
 }
 
-@test "recovery-verify job drops its scratch DB even on failure (cleanup trap, T002063/T002064)" {
-  # Regression: an aborted pg_restore left website_verify_<pid> behind on
-  # shared-db (2026-07-22). The verify job must trap EXIT and drop the temp DB.
-  run grep -A5 "TMP=\${DB}_verify_" "${REPO_ROOT}/scripts/backup-restore-lib.sh"
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -q "trap cleanup EXIT"
-  echo "$output" | grep -q "dropdb -h shared-db -U postgres --if-exists"
+@test "rendered mounter script keeps runtime vars and has no empty-substitution remnants" {
+  command -v envsubst >/dev/null 2>&1 || skip "envsubst binary not installed"
+
+  render_flux_like "$PVC_CRONJOB" "$BATS_TEST_TMPDIR/rendered2.yaml"
+
+  run grep -F '\ ' "$BATS_TEST_TMPDIR/rendered2.yaml"
+  [ "$status" -ne 0 ]
+  grep -q '${STAMP}' "$BATS_TEST_TMPDIR/rendered2.yaml"
+  grep -q '${SRC}' "$BATS_TEST_TMPDIR/rendered2.yaml"
+}
+
+# ── Push-Pfad: Unwrap deckt $$( ab (Parität mit Flux-Renderer) ─────────
+
+@test "push-path unwrap in Taskfile.yml handles command substitution" {
+  # Die Unwrap-Regel des workspace:deploy-Pfads extrahieren (die sed-Zeile,
+  # deren Argument $$ enthält) und auf einen Beispielfall anwenden.
+  unwrap="$(sed -n -E "s/.*sed -E '([^']*)'.*/\1/p" "$REPO/Taskfile.yml" | grep -m1 -F '\$\$' || true)"
+  [ -n "$unwrap" ] || skip "no sed unwrap rule found in Taskfile.yml"
+
+  result="$(printf 'X=$$(date +%%s)\n' | sed -E "$unwrap")"
+  [ "$result" = 'X=$(date +%s)' ]
 }

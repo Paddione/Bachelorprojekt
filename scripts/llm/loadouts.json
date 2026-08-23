@@ -299,7 +299,6 @@
       "label": "Gemma 4 26B A4B QAT-Q4_K_XL · Durchsatz",
       "model": "gemma4-26A4-qat/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8092,
-      "enabled": false,
       "fit": {
         "enabled": true,
         "targetMarginMib": 64,
@@ -377,10 +376,10 @@
       "notes": "DECOMMISSIONED (T014339): enabled:false seit FreeToken-Migration (T014105) — alle Agenten laufen auf freetoken-local/active (:1919), GGUF entfernt. Messwerte als Referenz erhalten. Auf Durchsatz mit DREI Slots und geteiltem KV ausgelegt (T012414). Messung scripts/llm/measurements/2026-08-19-gemma12-slots.md: mit -np 3 -kvu 307-489 tok/s gesamt gegen 255 bei einem Slot, Einzelstrom 106-183 statt 289, MTP-Annahme 92-95 %. Der Kontext wird NICHT gedrittelt (n_ctx_slot bleibt 262144), der VRAM-Bedarf steigt kaum (15909 statt 15869 MiB). -np 4 ist SCHLECHTER als 3 (319 tok/s), -np 6 laedt gar nicht erst — der MTP-Drafter bricht mit vector::_M_range_check ab. Drei ist also gemessen, nicht gewaehlt. Der Proxy muss mitziehen: ohne max_inflight=3 auf dem Backend serialisiert er trotzdem alles (scripts/migrations/2026-08-19-llm-proxy-parallel-slots.sql). MESSUNG 2026-08-18 auf RTX 5070 Ti 16 GiB, llama.cpp b10241, scripts/llm/bench-decode.sh 8089 (n_predict=512, cache_prompt=false); A/B durch VOLLSTAENDIGES Entfernen der Spec-Flags, nicht durch ein angehaengtes --spec-type none — das ueberschreibt die fruehere Angabe NICHT, der Drafter lief weiter und beide Seiten massen dasselbe. Decode: 246-287 tok/s mit MTP gegen 80-86 tok/s ohne, also ~3,2x; MTP-Annahmequote 93-99 %. Prefill (6902-Token-Prompt): 1797 tok/s mit MTP gegen 3380 tok/s ohne — der Drafter verarbeitet den Prompt mit, MTP HALBIERT den Prefill. Umschlagpunkt daraus: MTP lohnt, sobald mehr als etwa ein Token je 33 Prompt-Token erzeugt wird (bei 7k Prompt ab ~210 erzeugten Token) — fuer Chat und Codegenerierung immer, fuer reines Prompt-Durchreichen nicht. Belegt geladen: 262144 Kontext (n_ctx_slot), n_slots=1, kv_unified=true, 15869 von 16303 MiB. KV-Rechnung aus den GGUF-Metadaten: 48 Layer im Muster 5x SWA + 1x global; die 40 SWA-Layer (8 KV-Heads, 256+256, Fenster 1024) kosten fest ~320 MiB @f16, die 8 globalen Layer haben nur EINEN KV-Head (512+512, unified) und kosten 16 KiB/Token — der volle Kontext also 4,0 GiB. Reicht es nicht, zuerst -ub auf 1024 senken, erst danach den Kontext. MTP: der Drafter ist eine eigene Datei (gemma4-assistant, 423M, nextn_predict_layers=4) — im Haupt-GGUF steckt er NICHT (667 Tensoren, alle textuell, geprueft mit scripts/llm/gguf-tensor-names.py); die Auto-Erkennung der Modellkarte greift nur beim Start ueber -hf, nicht ueber einen lokalen -m-Pfad. Vorher: -fit on, q8_0-KV, 137-149 tok/s Prosa ohne wirksames MTP. DENKPHASE (2026-08-20, Build 61/0adcc3bb5): Dieses Modell denkt unter dem aktuellen llama.cpp, unter b10241 tat es das nicht — die Antwort landet vollstaendig in reasoning_content und 'content' bleibt leer, bis das Denken abgeschlossen ist. Jeder Aufrufer mit engem Token-Fenster bekommt dadurch eine LEERE Antwort statt einer kurzen (in opencode betrifft das den title-Agenten, der mit small=true laeuft). MESSUNG gegen den laufenden Server, Prompt 'What is 17*23? Answer with the number only.' bei max_tokens=300: default/'high'/'medium' antworten korrekt mit rund 90-95 Denk-Token, 'low' mit rund 61 — 'minimal' dagegen fuellt das ganze Fenster mit Denken und liefert GAR KEINE Antwort. Die Stufen sind also nicht monoton; die Gemma-4-Vorlage kennt 'minimal' offenbar nicht. Deshalb 'low'. Befehl zur Nachstellung: curl -s -m 90 -X POST http://127.0.0.1:8089/v1/chat/completions -H 'Content-Type: application/json' -d '{\"model\":\"gemma12-vision\",\"max_tokens\":300,\"reasoning_effort\":\"low\",\"messages\":[{\"role\":\"user\",\"content\":\"What is 17*23? Answer with the number only.\"}]}'. Wer das Denken ganz abschalten will, setzt args.reasoning='off' — NICHT chatTemplateKwargs.",
       "exclusiveGroup": "chat-gpu"
     },
-  {
-    "slug": "brain-ingest",
-    "enabled": false,
-    "label": "Gemma 4 12B QAT - Brain-Ingest-Pool",
+    {
+      "slug": "brain-ingest",
+      "enabled": false,
+      "label": "Gemma 4 12B QAT - Brain-Ingest-Pool",
       "model": "gemma4-12qat/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8100,
       "fit": {

@@ -119,7 +119,7 @@ spec:
           env:
             - name: POCKET_ID_FRONTEND_URL
               value: "${POCKET_ID_FRONTEND_URL}"
-            - name: WEBSITE_NAMESPACE
+            - name: WEBSITE_NS
               value: "${WEBSITE_NAMESPACE}"
             - name: API
               value: "http://pocket-id:1411"
@@ -312,14 +312,14 @@ spec:
                   -X PATCH \
                   "https://kubernetes.default.svc/api/v1/namespaces/$${ns}/secrets/workspace-secrets" \
                   -d "$body" </dev/null >/dev/null
-                if [ "$key" = "POCKET_ID_WEBSITE_SECRET" ] && [ -n "${WEBSITE_NAMESPACE:-}" ]; then
+                if [ "$key" = "POCKET_ID_WEBSITE_SECRET" ] && [ -n "${WEBSITE_NS:-}" ]; then
                   curl -fsS $CURL_RETRY --cacert "$${KSA_DIR}/ca.crt" \
                     -H "Authorization: Bearer $(cat $${KSA_DIR}/token)" \
                     -H "Content-Type: application/merge-patch+json" \
                     -X PATCH \
-                    "https://kubernetes.default.svc/api/v1/namespaces/$${WEBSITE_NAMESPACE}/secrets/website-secrets" \
+                    "https://kubernetes.default.svc/api/v1/namespaces/$${WEBSITE_NS}/secrets/website-secrets" \
                     -d "$body" </dev/null >/dev/null
-                  echo "  (also synced to $${WEBSITE_NAMESPACE}/website-secrets)"
+                  echo "  (also synced to $${WEBSITE_NS}/website-secrets)"
                 fi
               }
 
@@ -376,7 +376,7 @@ spec:
                     exit 1
                   fi
                   patch_secret "$secret_key" "$plaintext"
-                  echo "created $${cid} (id=$${new_id}), secret generated + written back to workspace-secrets/$${secret_key}${WEBSITE_NAMESPACE:+ + website-secrets/$${secret_key}}"
+                  echo "created $${cid} (id=$${new_id}), secret generated + written back to workspace-secrets/$${secret_key}${WEBSITE_NS:+ + website-secrets/$${secret_key}}"
                 fi
               }
 

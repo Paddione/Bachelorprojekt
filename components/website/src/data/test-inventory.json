@@ -4692,6 +4692,12 @@
     "kind": "shell"
   },
   {
+    "id": "routing-check-freetoken",
+    "file": "tests/spec/routing-check-freetoken.bats",
+    "category": "routing-check-freetoken",
+    "kind": "shell"
+  },
+  {
     "id": "rustdesk-server",
     "file": "tests/spec/rustdesk-server.bats",
     "category": "rustdesk-server",

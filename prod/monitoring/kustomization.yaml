@@ -25,6 +25,20 @@ patches:
       kind: Secret
       metadata: { name: grafana-oidc }
       $patch: delete
+  # T014536: The kube-prometheus-stack chart renders a `monitoring-grafana`
+  # Secret with the hardcoded default credentials admin/admin (base64
+  # YWRtaW4=). Prod overrides the password via the grafana-oidc SealedSecret
+  # (GRAFANA_ADMIN_PASSWORD) and patches all sidecar/grafana env vars that
+  # consumed the old secret — the Secret itself is dead credential material and
+  # must not survive into the rendered fleet artifact.
+  - target: { kind: Secret, name: monitoring-grafana, namespace: monitoring }
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: monitoring-grafana
+        namespace: monitoring
+      $patch: delete
   - target: { kind: IngressRoute, name: grafana }
     patch: |
       apiVersion: traefik.io/v1alpha1

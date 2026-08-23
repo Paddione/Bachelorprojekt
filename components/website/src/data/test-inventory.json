@@ -3090,6 +3090,12 @@
     "kind": "shell"
   },
   {
+    "id": "db-guard/db-identity-guard",
+    "file": "tests/spec/db-guard/db-identity-guard.bats",
+    "category": "db-guard",
+    "kind": "shell"
+  },
+  {
     "id": "db-guard/kubeconfig-drift-guard",
     "file": "tests/spec/db-guard/kubeconfig-drift-guard.bats",
     "category": "db-guard",

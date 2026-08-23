@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.307.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.306.0...website-v1.307.0) (2026-08-23)
+
+
+### Features
+
+* **db:** weekly automated backup restore verification (G-DB05) [T014544] ([#5139](https://github.com/Paddione/Bachelorprojekt/issues/5139)) ([320869d](https://github.com/Paddione/Bachelorprojekt/commit/320869dff90467a8b3bd1e306996ee9bfa304b35))
+
 ## [1.306.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.305.2...website-v1.306.0) (2026-08-23)
 
 

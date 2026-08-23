@@ -15,7 +15,9 @@ setup() {
 }
 
 @test "G-RH03: backup-pipeline spec hat eine BATS-Datei" {
-  [ -f "$REPO_ROOT/tests/spec/backup-pipeline.bats" ]
+  # T002416: Spec-dir-Form (tests/spec/<spec>/<slug>.bats) oder Flat-Form.
+  [ -f "$REPO_ROOT/tests/spec/backup-pipeline.bats" ] \
+    || [ -n "$(find "$REPO_ROOT/tests/spec/backup-pipeline" -maxdepth 1 -name '*.bats' 2>/dev/null | head -1)" ]
 }
 
 @test "G-RH03: OpenSpec Coverage ist >= 23% (12+ BATS von 53 Specs)" {

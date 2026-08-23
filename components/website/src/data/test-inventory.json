@@ -2298,14 +2298,14 @@
     "kind": "shell"
   },
   {
-    "id": "backup-pipeline",
-    "file": "tests/spec/backup-pipeline.bats",
+    "id": "backup-pipeline/filen-remote-retention",
+    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
     "category": "backup-pipeline",
     "kind": "shell"
   },
   {
-    "id": "backup-pipeline/filen-remote-retention",
-    "file": "tests/spec/backup-pipeline/filen-remote-retention.bats",
+    "id": "backup-pipeline/render-escaping",
+    "file": "tests/spec/backup-pipeline/render-escaping.bats",
     "category": "backup-pipeline",
     "kind": "shell"
   },

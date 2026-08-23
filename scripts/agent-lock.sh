@@ -136,33 +136,8 @@ _lock_file() { # <scope> [id]
 
 _lock_field() { sed -n "s/.*\"$2\": *\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -1; }
 
-# Check if a git branch has a live (non-reapable) agent-lock claim. [T001448 M3]
-_branch_is_live_claimed() {
-  local br="$1" d f
-  d="$(_lock_dir)"
-  [ -d "$d" ] || return 1
-  for f in "$d"/*.json; do
-    [ -e "$f" ] || continue
-    [ "$(_lock_field "$f" branch)" = "$br" ] || continue
-    _reapable "$f" && continue
-    return 0
-  done
-  return 1
-}
 
-_worktree_is_live_claimed() {
-  local wt="$1" d f
-  wt="$(cd "$PWD" && cd "$(dirname "$wt")" 2>/dev/null && echo "$PWD/$(basename "$wt")" || echo "$PWD/$wt")"
-  d="$(_lock_dir)"
-  [ -d "$d" ] || return 1
-  for f in "$d"/*.json; do
-    [ -e "$f" ] || continue
-    [ "$(_lock_field "$f" worktree)" = "$wt" ] || continue
-    _reapable "$f" && continue
-    return 0
-  done
-  return 1
-}
+
 
 _reap_log() {  # <lock-file> <reason>
   local _sc _id _what
@@ -654,29 +629,9 @@ cmd_check_and_claim() {
 }
 
 # [T002896] Oeffentlicher Wrapper um _branch_is_live_claimed — erlaubt
-# worktree-create.sh und cleanup.sh, einen live Agent-Claim zu respektieren,
-# ohne die interne Logik von _branch_is_live_claimed zu duplizieren.
-cmd_check_branch_live() {
-  local br="$1"
-  if _branch_is_live_claimed "$br"; then
-    echo "live"
-    return 0
-  else
-    echo "free"
-    return 1
-  fi
-}
 
-cmd_check_worktree_live() {
-  local wt="$1"
-  if _worktree_is_live_claimed "$wt"; then
-    echo "live"
-    return 0
-  else
-    echo "free"
-    return 1
-  fi
-}
+
+
 
 cmd_list() {
   local d; d="$(_lock_dir)"; [ -d "$d" ] || { echo "(keine aktiven Claims)"; return 0; }

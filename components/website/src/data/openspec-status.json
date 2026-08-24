@@ -4351,6 +4351,12 @@
       "status": "archived"
     }
   ],
+  "T015712": [
+    {
+      "slug": "backup-alerting",
+      "status": "plan_staged"
+    }
+  ],
   "T015783": [
     {
       "slug": "2026-08-24-finalize-archive-self-verify",

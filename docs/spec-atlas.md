@@ -785,6 +785,13 @@ Last touches:
   - Pushover Notification Receiver | T014542 | 2026-08-23 | MODIFIED
   - No Unregistered Resource Manifests in k3d/monitoring | T002185 | 2026-08-02 | ADDED
   - Placeholder CronJobs Are Not Committed | T002185 | 2026-08-02 | ADDED
+In-flight:
+  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T015712 | active | ADDED
+  - Backup-Job-Failures lösen kritischen Alert aus | T015712 | active | ADDED
+  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | active | ADDED
+  - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | active | ADDED
+  - Backup-Alerts decken beide Brands ab | T015712 | active | ADDED
+  - Mandatory Alert Set | T015712 | active | MODIFIED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

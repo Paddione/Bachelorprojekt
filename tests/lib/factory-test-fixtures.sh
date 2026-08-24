@@ -29,6 +29,20 @@
 # regardless of the BATS working directory.
 _FIXTURE_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# _fixture_marker_comment <brand> <ctx> <ext_id> — setzt den Isolations-Marker
+# (ticket_comments.author_label='factory-test'), an dem watchdog.sh::_stale_query
+# Test-Seeds beidseitig erkennt [T015983]: Betrieb schließt markierte Rows aus,
+# Test-Scope (EXCLUDE_TEST_SEEDS=0) sieht NUR markierte. Ohne Marker waere ein
+# Seed im Betrieb sweep-bar und im Testmodus unsichtbar. Fail-loud: schlägt das
+# Insert fehl, ist der Seed isolationstechnisch wertlos — der Aufrufer soll es
+# sofort merken statt nach einem vakuosen Sweep zu suchen.
+_fixture_marker_comment() {
+  local brand="$1" ctx="$2" ext_id="$3"
+  BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" \
+    add-comment --id "$ext_id" --author factory-test \
+    --body "factory-test-seed isolation marker [T015983]"
+}
+
 # seed_test_feature <brand> [touched_file ...] → echoes the new external_id
 seed_test_feature() {
   local brand="$1"; shift
@@ -48,6 +62,7 @@ seed_test_feature() {
   if [[ -n "$files" ]]; then
     BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" set-touched-files --id "$ext_id" --files "$files" >/dev/null
   fi
+  _fixture_marker_comment "$brand" "$ctx" "$ext_id" >/dev/null
   echo "$ext_id"
 }
 
@@ -98,6 +113,7 @@ seed_real_feature() {
   if [[ -n "$files" ]]; then
     BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" set-touched-files --id "$ext_id" --files "$files" >/dev/null
   fi
+  _fixture_marker_comment "$brand" "$ctx" "$ext_id" >/dev/null
   echo "$ext_id"
 }
 

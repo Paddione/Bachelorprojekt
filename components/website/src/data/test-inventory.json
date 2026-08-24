@@ -4374,6 +4374,12 @@
     "kind": "shell"
   },
   {
+    "id": "monitoring-alerts/backup-recipient-daily-repeat",
+    "file": "tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats",
+    "category": "monitoring-alerts",
+    "kind": "shell"
+  },
+  {
     "id": "newsletter-system",
     "file": "tests/spec/newsletter-system.bats",
     "category": "newsletter-system",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.313.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.3...website-v1.313.4) (2026-08-24)
+
+
+### Bug Fixes
+
+* **ops:** Backup-Alert-Korrekturen aus T015712-Review [T016124] ([#5232](https://github.com/Paddione/Bachelorprojekt/issues/5232)) ([191cdc1](https://github.com/Paddione/Bachelorprojekt/commit/191cdc1d561a74fd57a943c93310fb567b90073a))
+
 ## [1.313.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.2...website-v1.313.3) (2026-08-24)
 
 

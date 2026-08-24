@@ -14,6 +14,8 @@ Last touches:
   - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
   - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
   - Execute role and gate ordering | T013482 | 2026-08-22 | ADDED
+In-flight:
+  - Interrupted git operations in worktrees are surfaced as a finding | T015784 | active | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

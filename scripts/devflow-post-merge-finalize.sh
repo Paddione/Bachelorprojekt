@@ -467,18 +467,29 @@ else
   # ARCHIVE_DIR blieb leer, und der ganze folgende Block entfiel.
   ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
   _ARCHIVE_RESUME_DIR=""
+  _ARCHIVE_VERDICT=""
   for _cand in "$WORKTREE" "$REPO_DIR"; do
     [[ -n "$_cand" && -d "$_cand" ]] || continue
     if _st="$(_archive_state "$_cand")"; then
       case "$_st" in
-        archived) mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (belegt: $_st) — uebersprungen (idempotent)"; break ;;
-        half)     _ARCHIVE_RESUME_DIR="$_cand"; break ;;
+        archived) _ARCHIVE_VERDICT="archived"
+                  mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (belegt: archived) — uebersprungen (idempotent)"; break ;;
+        half)     _ARCHIVE_VERDICT="half"; _ARCHIVE_RESUME_DIR="$_cand"; break ;;
+        *)        _ARCHIVE_VERDICT="pending" ;;
       esac
     else
       mark_err "Schritt 8: Archiv-Zustand fuer $SLUG nicht bestimmbar (origin nicht erreichbar) — kein Urteil, Lauf abgebrochen"
       exit 1
     fi
   done
+  # Ohne diesen Zweig faellt der Fall "Ordner nirgends, nichts archiviert, nichts
+  # halb" still durch — Schritt 8 meldete dann GAR nichts, waehrend vorher
+  # wenigstens ein [skip] erschien. Das waere stilles Nichtstun in genau dem
+  # Fix, der stilles Nichtstun beseitigt (T012256/B2: [warn] trennt "Eingabe
+  # nicht aufloesbar" von "bereits erledigt" und aendert den Exit-Code nicht).
+  if [[ -z "$_ARCHIVE_VERDICT" || "$_ARCHIVE_VERDICT" == "pending" ]]; then
+    mark_warn "Schritt 8: Change-Ordner openspec/changes/$SLUG in keinem Arbeitsbaum gefunden und nichts archiviert — nichts zu tun, aber auch nichts erledigt (Slug pruefen)"
+  fi
   if [[ -n "$_ARCHIVE_RESUME_DIR" ]]; then
     # Unterbrochene Archivierung: die Verschiebung liegt uncommittet vor.
     # Wiederaufnehmen statt neu archivieren — und ausdruecklich KEIN mark_skip.
@@ -623,10 +634,13 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
     fi
     # Exit-Code getrennt von der Ausgabe auswerten: "gh konnte nicht antworten"
     # und "es gibt keinen PR" erzeugen beide eine leere Ausgabe (T002523-M7).
-    if ! _pr_raw="$(gh pr list --head "$ARCHIVE_BRANCH" --state all --json number 2>&1)"; then
+    # `gh --jq` statt einer jq-Pipe: das Skript vermeidet jq bewusst als externe
+    # Abhaengigkeit (siehe json_field oben, "grep/sed statt jq"). gh bringt den
+    # Ausdruck selbst mit, und sein Exit-Code wird hier ohnehin getrennt geprueft.
+    if ! _pr_raw="$(gh pr list --head "$ARCHIVE_BRANCH" --state all --json number -q '.[0].number' 2>&1)"; then
       mark_err "Schritt 8: PR-Abfrage fuer $ARCHIVE_BRANCH fehlgeschlagen ($(printf '%s' "$_pr_raw" | head -1)) — Abschluss nicht belegt"
       _archive_done_ok=0
-    elif [[ -z "$(printf '%s' "$_pr_raw" | jq -r '.[0].number // empty')" ]]; then
+    elif [[ -z "$_pr_raw" ]]; then
       mark_err "Schritt 8: kein Archiv-PR fuer $ARCHIVE_BRANCH gefunden — Abschluss nicht belegt"
       _archive_done_ok=0
     fi

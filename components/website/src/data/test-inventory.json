@@ -5274,6 +5274,30 @@
     "kind": "shell"
   },
   {
+    "id": "sessions-server/annotation-links",
+    "file": "tests/spec/sessions-server/annotation-links.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/deregister-reap",
+    "file": "tests/spec/sessions-server/deregister-reap.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/form-lifecycle",
+    "file": "tests/spec/sessions-server/form-lifecycle.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/register-list",
+    "file": "tests/spec/sessions-server/register-list.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
     "id": "sidekick-assistant",
     "file": "tests/spec/sidekick-assistant.bats",
     "category": "sidekick-assistant",

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2278 · Scenarios: 5065
+Specs: 145 · Requirements: 2278 · Scenarios: 5066
 
 ## factory-pipeline
 
@@ -151,13 +151,15 @@ Last touches:
 ## Ungrouped
 
 ### active-sessions-hub
-Reqs: 19 · Scenarios: 56 · Lines: 631
+Reqs: 19 · Scenarios: 55 · Lines: 632
 Last touches:
   - Branch-scoped release refuses while the cwd is inside the lock's worktree | T006290 | 2026-08-15 | ADDED
   - Harness-Stable Session Identity for agent-lock | T005676 | 2026-08-14 | MODIFIED
   - Pre-Commit Guards in dev-flow-plan | T003116 | 2026-08-10 | MODIFIED
   - Mandatory Worktree Scoping for File-Writing Tools | T003116 | 2026-08-10 | MODIFIED
   - Deliberate Main-Checkout Reclaim for Bookkeeping Locks | T002809 | 2026-08-10 | ADDED
+In-flight:
+  - Session-Registry als Single Source of Truth | T016250 | active | MODIFIED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114
@@ -988,11 +990,13 @@ Last touches:
   - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
 
 ### sessions-server
-Reqs: 13 · Scenarios: 24 · Lines: 251
+Reqs: 13 · Scenarios: 26 · Lines: 267
 Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
   - BATS Placeholder Test Coverage | T002010 | 2026-07-21 | ADDED
+In-flight:
+  - BATS Placeholder Test Coverage | T016250 | active | MODIFIED
 
 ### sidekick-assistant
 Reqs: 36 · Scenarios: 68 · Lines: 712

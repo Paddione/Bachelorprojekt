@@ -80,13 +80,29 @@ The system SHALL replace an existing registry entry (not duplicate it) when a se
 
 The system SHALL have a dedicated BATS spec file (`tests/spec/sessions-server.bats`) that establishes
 initial, spec-linked test coverage for the sessions-server SSOT spec, per the "one BATS file per
-OpenSpec SSOT spec" convention.
+OpenSpec SSOT spec" convention. Behavioral coverage of the `session-hub.sh` subcommands (`register`,
+`list`, `deregister`, `reap`, `start-form`, `regen`) SHALL live in per-topic BATS files under
+`tests/spec/sessions-server/` (T002416 directory convention) and SHALL verify command output and
+registry JSON state — not source-code patterns. The `<!-- bats: … -->` annotations in this spec
+SHALL reference these existing files.
 
 #### Scenario: Placeholder test passes
 
 - **GIVEN** the BATS suite `tests/spec/sessions-server.bats` exists
 - **WHEN** `bats tests/spec/sessions-server.bats` is run
 - **THEN** the placeholder test `sessions-server spec covered` passes
+
+#### Scenario: Behavioural suite exists and passes
+
+- **GIVEN** the per-topic suites exist under `tests/spec/sessions-server/`
+- **WHEN** `tests/unit/lib/bats-core/bin/bats -r tests/spec/sessions-server*` is run
+- **THEN** all tests pass with exit code 0
+
+#### Scenario: Annotations reference existing files
+
+- **GIVEN** the `<!-- bats: … -->` annotations in this SSOT spec
+- **WHEN** each referenced path is resolved against the repository root
+- **THEN** every referenced BATS file exists on disk
 
 ### Requirement: Sessions-Server-Nginx läuft als Non-Root
 
@@ -118,7 +134,7 @@ Volumes legen, damit `readOnlyRootFilesystem` möglich bleibt. Der externe Traff
 <!-- merged from BATS unit tests and Playwright e2e tests -->
 
 ### Requirement: Form Session Start with Ticket Association
-<!-- bats: session-hub.bats -->
+<!-- bats: tests/spec/sessions-server/form-lifecycle.bats -->
 
 The system SHALL store the `ticket_id` in the registry entry and inject it into the served HTML when `start-form` is called with `--ticket-id`.
 
@@ -137,7 +153,7 @@ The system SHALL store the `ticket_id` in the registry entry and inject it into 
 ---
 
 ### Requirement: Form Re-Upload (regen)
-<!-- bats: session-hub.bats -->
+<!-- bats: tests/spec/sessions-server/form-lifecycle.bats -->
 
 The system SHALL re-serve the form from the stored `source_file` path when `regen` is called, and SHALL fail with a non-zero exit code when no `source_file` is recorded.
 

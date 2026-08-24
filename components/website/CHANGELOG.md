@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.313.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.1...website-v1.313.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* **scripts:** heartbeat-based lock liveness keeps active-session locks [T015822] ([#5227](https://github.com/Paddione/Bachelorprojekt/issues/5227)) ([fd44461](https://github.com/Paddione/Bachelorprojekt/commit/fd444612dd054d20642c6fbd9fa7555e7a7e0de9))
+
 ## [1.313.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.0...website-v1.313.1) (2026-08-24)
 
 

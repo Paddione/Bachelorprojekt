@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2278 · Scenarios: 5066
+Specs: 145 · Requirements: 2280 · Scenarios: 5070
 
 ## factory-pipeline
 
@@ -533,13 +533,13 @@ Last touches:
   - Parallel Gang Execution in pipeline.mjs | T002129 | 2026-08-02 | ADDED
 
 ### factory-reclaim-lock-respect
-Reqs: 4 · Scenarios: 10 · Lines: 127
+Reqs: 6 · Scenarios: 14 · Lines: 169
 Last touches:
+  - Activity heartbeat keeps claims alive | T015822 | 2026-08-24 | ADDED
+  - Active-process check precedes pid-based reap | T015822 | 2026-08-24 | ADDED
   - A public branch-liveness check is available to reap paths | T002896 | 2026-08-10 | ADDED
   - worktree-create.sh's idempotency-remove respects a live foreign claim | T002896 | 2026-08-10 | ADDED
   - factory cleanup.sh skips branches and worktrees under a live foreign claim | T002896 | 2026-08-10 | ADDED
-  - A dead pid reaps a worktree-matched claim after the grace period | T002849 | 2026-08-09 | ADDED
-  - A live holder process keeps its agent-lock alive | T002267 | 2026-08-02 | ADDED
 
 ### factory-scout-backoff
 Reqs: 2 · Scenarios: 3 · Lines: 43

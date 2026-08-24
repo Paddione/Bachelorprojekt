@@ -1,0 +1,34 @@
+# docker/factory-runner/Dockerfile — Laufzeitumgebung für den fleet-nativen
+# Factory-Dispatcher [T016422, T2.3 option b].
+#
+# Der Pod hält den Repo-Clone unter /workspace und wird vom Tick-CronJob per
+# `kubectl exec ... bash scripts/factory/wakeup.sh` benutzt (wakeup.sh bleibt
+# NICHT geändert). Deshalb muss hier drin alles liegen, was wakeup.sh und der
+# Dispatcher-Tick brauchen: git + git-crypt (Repo-Unlock), gh (PR-Flow), jq,
+# go-task (Core Commands), node + @anthropic-ai/claude-code (Dispatcher-Tick),
+# bash.
+#
+# Build & Push läuft über .github/workflows/build-factory-runner.yml; gepinnt
+# wird im Manifest laut Kommentar-Strategie in k3d/dev-stack/factory-runner.yaml
+# (Tag bis zum ersten CI-Build, Digest hart vor dem Cutover).
+FROM node:22-bookworm-slim
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      bash \
+      ca-certificates \
+      git \
+      git-crypt \
+      gh \
+      jq \
+      curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && curl -sL https://github.com/go-task/task/releases/latest/download/task_linux_amd64.tar.gz \
+      | tar -xz -C /usr/local/bin task \
+ && npm install -g --silent @anthropic-ai/claude-code
+
+# Non-root, UID 1000 — passt zu fsGroup 1000 der factory-runner-workdir-PVC
+# (k3d/dev-stack/factory-runner.yaml) und zum restricted Pod-Security-Standard.
+RUN useradd -m -u 1000 -s /bin/bash runner
+USER runner
+WORKDIR /workspace

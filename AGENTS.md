@@ -111,6 +111,19 @@ Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace
 
 ---
 
+## Status Protocol (every reply, non-negotiable)
+
+1. **Status footer** — end every substantive reply with one fenced block:
+   ```
+   STATUS: <one-line what just happened>
+   RUNNING: <background tasks/delegations or "none">
+   BLOCKED: <blockers or "none">
+   NEXT: <top-ranked next objective + why, one line>
+   CONF: <high|medium|low> — certainty of the NEXT pick
+   ```
+2. **Next objective** — rank candidates from `factory_status`/`factory_queue`/open tickets by value-vs-effort; propose the top pick in NEXT. You override with one word.
+3. **Risk-based autonomy** — act without asking on reversible, low-risk steps (edits, local tests, reads). Ask before: destructive ops (delete/force-push/prod deploy), anything costly, or ambiguous scope. State CONF when acting on judgment.
+
 ## Reference Sections (read on-demand, do not frontload)
 
 The following sections contain detailed reference material. **Do not load them into context at session start.** Read them only when the current task requires it.

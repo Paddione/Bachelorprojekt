@@ -271,7 +271,11 @@ EOF"
 # der Server ignoriert das model-Feld von Anfragen, deshalb zeigen alle
 # lokalen Agenten auf den Alias "active". Die Kontext-Limits sind GEMESSEN
 # (2026-08-23, pk-desktop): der Server advertiert max_model_len=262144,
-# nutzbar sind aber nur die KV-Pages der Serve-Konfiguration.
+# nutzbar sind aber nur die KV-Pages der Serve-Konfiguration. AUSNAHME seit
+# T016416: Qwen3.6-35B deklariert die KV-Ladder-Decke (200000) statt des
+# kalibrierten Werts — der Operator wächst den KV-Pool budgetkonform bis
+# dorthin (`ft ctl cache --kv`), das Plugin advertisiert höchstens
+# SDLC_CONTEXT_CEILING und nur bei laufender Engine mit Headroom >= 100000.
 
 @test "T014105: agent-models.jsonc declares the freetoken-local provider on :1919" {
   run node -e "
@@ -287,13 +291,16 @@ EOF"
 
 @test "T014105: freetoken-local carries three measured checkpoints with measured limits" {
   # Gemessen 2026-08-23: Qwen 131072 KV-Reserve, gpt-oss 65536, Gemma 32768.
-  # Der advertised max_model_len=262144 ist hier bewusst FALSCH — deklariert
-  # wird die nutzbare KV-Pages-Zahl, weil opencode bei 95% davon kompaktiert.
+  # Seit T016416 deklariert Qwen statt des kalibrierten Werts die Ladder-Decke
+  # 200000 (limit.context == LADDER_CEILING); gpt-oss/Gemma behalten ihre
+  # kalibrierten Limits. Der advertised max_model_len=262144 ist hier bewusst
+  # FALSCH — deklariert wird die nutzbare KV-Pages-Zahl, weil opencode bei 95%
+  # davon kompaktiert.
   run node -e "
     const j5 = require('json5');
     const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
     const m = ((d.provider || {})['freetoken-local'] || {}).models || {};
-    const want = { 'Qwen3.6-35B-A3B-NVFP4': 131072, 'gpt-oss-20b': 65536, 'Gemma-4-26B-A4B-NVFP4': 32768 };
+    const want = { 'Qwen3.6-35B-A3B-NVFP4': 200000, 'gpt-oss-20b': 65536, 'Gemma-4-26B-A4B-NVFP4': 32768 };
     for (const [id, ctx] of Object.entries(want)) {
       const e = m[id];
       if (!e) { console.error('model missing: ' + id); process.exit(1); }

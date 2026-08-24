@@ -4397,6 +4397,12 @@
       "status": "archived"
     }
   ],
+  "T016416": [
+    {
+      "slug": "kv-ladder-autostart",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

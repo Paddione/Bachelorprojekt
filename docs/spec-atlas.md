@@ -644,6 +644,9 @@ Last touches:
   - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
   - Sync Distributes opencode Plugins | T014105 | 2026-08-23 | ADDED
   - Brainstorm Tunnel Runs on Dev Node Only | T002705 | 2026-08-08 | MODIFIED
+In-flight:
+  - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
+  - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

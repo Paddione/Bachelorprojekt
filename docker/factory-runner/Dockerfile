@@ -33,8 +33,10 @@ RUN apt-get update \
  && rm -rf "/tmp/gh_${GH_VERSION}_linux_amd64" \
  && npm install -g --silent @anthropic-ai/claude-code
 
-# Non-root, UID 1000 — passt zu fsGroup 1000 der factory-runner-workdir-PVC
+# Non-root UID 1000 — passt zu fsGroup 1000 der factory-runner-workdir-PVC
 # (k3d/dev-stack/factory-runner.yaml) und zum restricted Pod-Security-Standard.
-RUN useradd -m -u 1000 -s /bin/bash runner
+# Das node-Basisimage bringt UID 1000 bereits als User 'node' mit (ein zweiter
+# useradd auf dieselbe UID wuerde mit Exit 4 scheitern) — wir benennen ihn nur.
+RUN usermod -l runner -d /home/runner -m node && groupmod -n runner node
 USER runner
 WORKDIR /workspace

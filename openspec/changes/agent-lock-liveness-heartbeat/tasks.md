@@ -24,7 +24,7 @@ tests/spec/agent-lock-liveness-heartbeat.bats # neu
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
+- [x] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
       bug. The test must FAIL on the current branch. Use the phrase
       `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
 

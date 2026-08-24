@@ -2,7 +2,7 @@
 title: "runasnonroot-hardening-followup — Implementation Plan"
 ticket_id: T015293
 domains: [infra, security]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2280 · Scenarios: 5073
+Specs: 145 · Requirements: 2282 · Scenarios: 5076
 
 ## factory-pipeline
 
@@ -636,14 +636,14 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 21 · Scenarios: 47 · Lines: 492
+Reqs: 23 · Scenarios: 50 · Lines: 549
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
+  - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
+  - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
   - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
-  - Model-Agnostic Active Alias for FreeToken-Native Agents | T014105 | 2026-08-23 | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
-  - Sync Distributes opencode Plugins | T014105 | 2026-08-23 | ADDED
-  - Brainstorm Tunnel Runs on Dev Node Only | T002705 | 2026-08-08 | MODIFIED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

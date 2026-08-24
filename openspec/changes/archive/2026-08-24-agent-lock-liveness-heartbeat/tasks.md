@@ -2,7 +2,7 @@
 title: "agent-lock-liveness-heartbeat — Implementation Plan"
 ticket_id: T015822
 domains: [repo-infra]
-status: active
+status: completed
 file_locks: ["scripts/agent-lock.sh", "scripts/agent-lock-guards.sh", "tests/spec/agent-lock-liveness-heartbeat.bats"]
 shared_changes: false
 batch_id: null

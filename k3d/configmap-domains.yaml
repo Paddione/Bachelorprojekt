@@ -17,6 +17,7 @@ data:
   DOWNLOADS_DOMAIN: "downloads.localhost"
   RECOVER_DOMAIN: "recover.localhost"
   WEB_DOMAIN: "web.localhost"
+  SESSIONS_DOMAIN: "sessions.localhost"
   REMOTE_DOMAIN: "remote.localhost"
   TRAEFIK_DOMAIN: "traefik.localhost"
   # Env-registry values (dev defaults — prod overlay overrides these)

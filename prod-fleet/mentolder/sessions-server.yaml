@@ -23,8 +23,22 @@ spec:
   entryPoints:
     - websecure
   routes:
+    # T016251: /oauth2-Callback-Route VOR dem Board-Gate — sie bedient den
+    # OAuth2-Roundtrip (redirect_url=https://session-login.sessions.mentolder.de/
+    # oauth2/callback). Der Slug "login" ist damit reserviert.
+    - kind: Rule
+      match: HostRegexp(`^session-[a-z0-9-]+\.sessions\.mentolder\.de$`) && PathPrefix(`/oauth2`)
+      priority: 20
+      services:
+        - name: oauth2-proxy-session-hub
+          port: 4180
+    # T016251: Pocket-ID-Gate (forwardAuth) — Muster aus k3d/dev-stack/
+    # oauth2-proxy-sessions.yaml, hier für die Prod-Wildcard-Hosts.
     - kind: Rule
       match: HostRegexp(`^session-[a-z0-9-]+\.sessions\.mentolder\.de$`)
+      middlewares:
+        - name: session-hub-auth
+        - name: session-hub-errors
       services:
         - name: sessions-server
           port: 80

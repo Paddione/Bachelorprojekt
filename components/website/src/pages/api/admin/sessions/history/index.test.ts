@@ -48,36 +48,33 @@ describe('History and Purge API Endpoints', () => {
       expect(res.status).toBe(401);
     });
 
-    it('returns own items for authenticated user, and all items for admin', async () => {
-      // Create three archived sessions
+    it('returns 403 for authenticated non-admin and all items for admin [T016251]', async () => {
+      // T016251: Admin-only an der Route — die Registry trägt keinen Owner,
+      // es gibt keinen Own-Items-Scope mehr.
       const now = new Date();
-      const metaGekko1 = { id: 'g1', slug: 'g1', type: 'form', title: 'G1', date: now.toISOString(), owner: 'gekko', participants: [], content_available: true };
-      const metaGekko2 = { id: 'g2', slug: 'g2', type: 'brainstorm', title: 'G2', date: new Date(now.getTime() - 1000).toISOString(), owner: 'gekko', participants: [], content_available: true };
-      const metaPaddione = { id: 'p1', slug: 'p1', type: 'form', title: 'P1', date: new Date(now.getTime() - 2000).toISOString(), owner: 'paddione', participants: [], content_available: true };
+      const metaGekko1 = { id: 'g1', slug: 'g1', type: 'form', title: 'G1', date: now.toISOString(), ticket_id: null, content_type: 'md', content_available: true };
+      const metaGekko2 = { id: 'g2', slug: 'g2', type: 'brainstorm', title: 'G2', date: new Date(now.getTime() - 1000).toISOString(), ticket_id: null, content_type: 'md', content_available: true };
+      const metaPaddione = { id: 'p1', slug: 'p1', type: 'form', title: 'P1', date: new Date(now.getTime() - 2000).toISOString(), ticket_id: null, content_type: 'md', content_available: true };
 
       writeFileSync(join(tmpArchiveDir, 'g1.meta.json'), JSON.stringify(metaGekko1));
       writeFileSync(join(tmpArchiveDir, 'g2.meta.json'), JSON.stringify(metaGekko2));
       writeFileSync(join(tmpArchiveDir, 'p1.meta.json'), JSON.stringify(metaPaddione));
 
-      // 1. Non-admin Gekko user
+      // 1. Non-admin -> 403
       vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as unknown as Awaited<ReturnType<typeof getSession>>);
       vi.mocked(isAdmin).mockReturnValue(false);
 
       let req = new Request('http://x/api/admin/sessions/history');
       let res = await getHistoryList({ request: req, locals } as unknown as RouteContext);
-      expect(res.status).toBe(200);
-      let body = await res.json();
-      expect(body.total).toBe(2);
-      expect(body.items.map((i: { id: string }) => i.id)).toEqual(['g1', 'g2']);
+      expect(res.status).toBe(403);
 
-      // 2. Admin user sees all
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as unknown as Awaited<ReturnType<typeof getSession>>);
+      // 2. Admin sees all
       vi.mocked(isAdmin).mockReturnValue(true);
 
       req = new Request('http://x/api/admin/sessions/history');
       res = await getHistoryList({ request: req, locals } as unknown as RouteContext);
       expect(res.status).toBe(200);
-      body = await res.json();
+      const body = await res.json();
       expect(body.total).toBe(3);
       expect(body.items.map((i: { id: string }) => i.id)).toEqual(['g1', 'g2', 'p1']);
     });
@@ -91,15 +88,15 @@ describe('History and Purge API Endpoints', () => {
           type: 'form',
           title: `S ${i}`,
           date: new Date(now.getTime() - i * 1000).toISOString(),
-          owner: 'gekko',
-          participants: [],
+          ticket_id: null,
+          content_type: 'md',
           content_available: true
         };
         writeFileSync(join(tmpArchiveDir, `s-${i}.meta.json`), JSON.stringify(meta));
       }
 
       vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as unknown as Awaited<ReturnType<typeof getSession>>);
-      vi.mocked(isAdmin).mockReturnValue(false);
+      vi.mocked(isAdmin).mockReturnValue(true);
 
       const req = new Request('http://x/api/admin/sessions/history?offset=0&limit=2');
       const res = await getHistoryList({ request: req, locals } as unknown as RouteContext);
@@ -113,14 +110,14 @@ describe('History and Purge API Endpoints', () => {
 
     it('filters by type', async () => {
       const now = new Date();
-      const metaForm = { id: 's1', slug: 's1', type: 'form', title: 'S1', date: now.toISOString(), owner: 'gekko', participants: [], content_available: true };
-      const metaBrainstorm = { id: 's2', slug: 's2', type: 'brainstorm', title: 'S2', date: now.toISOString(), owner: 'gekko', participants: [], content_available: true };
+      const metaForm = { id: 's1', slug: 's1', type: 'form', title: 'S1', date: now.toISOString(), ticket_id: null, content_type: 'md', content_available: true };
+      const metaBrainstorm = { id: 's2', slug: 's2', type: 'brainstorm', title: 'S2', date: now.toISOString(), ticket_id: null, content_type: 'md', content_available: true };
 
       writeFileSync(join(tmpArchiveDir, 's1.meta.json'), JSON.stringify(metaForm));
       writeFileSync(join(tmpArchiveDir, 's2.meta.json'), JSON.stringify(metaBrainstorm));
 
       vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as unknown as Awaited<ReturnType<typeof getSession>>);
-      vi.mocked(isAdmin).mockReturnValue(false);
+      vi.mocked(isAdmin).mockReturnValue(true);
 
       const req = new Request('http://x/api/admin/sessions/history?type=form');
       const res = await getHistoryList({ request: req, locals } as unknown as RouteContext);
@@ -132,9 +129,7 @@ describe('History and Purge API Endpoints', () => {
   });
 
   describe('GET /api/admin/sessions/history/[id]', () => {
-    it('returns markdown content for own files or admin, 403 otherwise, and enforces traversal checks', async () => {
-      const metaGekko = { id: 'g1', slug: 'g1', type: 'form', title: 'G1', date: new Date().toISOString(), owner: 'gekko', participants: [], content_available: true };
-      writeFileSync(join(tmpArchiveDir, 'g1.meta.json'), JSON.stringify(metaGekko));
+    it('serves content admin-only with correct content-type and enforces traversal checks [T016251]', async () => {
       writeFileSync(join(tmpArchiveDir, 'g1.md'), '# Gekko Markdown Content');
 
       // 1. Unauthenticated -> 401
@@ -142,28 +137,29 @@ describe('History and Purge API Endpoints', () => {
       let res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as unknown as RouteContext);
       expect(res.status).toBe(401);
 
-      // 2. Authenticated non-owner -> 403
+      // 2. Authenticated non-admin -> 403
       vi.mocked(getSession).mockResolvedValue({ preferred_username: 'paddione' } as unknown as Awaited<ReturnType<typeof getSession>>);
       vi.mocked(isAdmin).mockReturnValue(false);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as unknown as RouteContext);
       expect(res.status).toBe(403);
 
-      // 3. Authenticated owner -> 200
-      vi.mocked(getSession).mockResolvedValue({ preferred_username: 'gekko' } as unknown as Awaited<ReturnType<typeof getSession>>);
-      vi.mocked(isAdmin).mockReturnValue(false);
-      res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as unknown as RouteContext);
-      expect(res.status).toBe(200);
-      expect(await res.text()).toBe('# Gekko Markdown Content');
-
-      // 4. Admin sees others -> 200
+      // 3. Admin -> 200 mit Markdown-Content-Type
       vi.mocked(getSession).mockResolvedValue({ preferred_username: 'admin' } as unknown as Awaited<ReturnType<typeof getSession>>);
       vi.mocked(isAdmin).mockReturnValue(true);
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g1' }, locals } as unknown as RouteContext);
       expect(res.status).toBe(200);
+      expect(await res.text()).toBe('# Gekko Markdown Content');
+      expect(res.headers.get('content-type')).toContain('text/markdown');
 
-      // 5. Invalid path/traversal check -> 400
+      // 4. Invalid path/traversal check -> 400
       res = await getHistoryItem({ request: new Request('http://x'), params: { id: '../g1' }, locals } as unknown as RouteContext);
       expect(res.status).toBe(400);
+
+      // 5. HTML-Archiv wird als text/html ausgeliefert [T016251]
+      writeFileSync(join(tmpArchiveDir, 'g2.html'), '<p>Board</p>');
+      res = await getHistoryItem({ request: new Request('http://x'), params: { id: 'g2' }, locals } as unknown as RouteContext);
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toContain('text/html');
     });
   });
 

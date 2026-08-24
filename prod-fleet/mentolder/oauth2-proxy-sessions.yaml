@@ -1,0 +1,212 @@
+# ═══════════════════════════════════════════════════════════════════
+# OAuth2 Proxy — Pocket ID SSO gate für session-*.<SESSIONS_DOMAIN> [T016251]
+#
+# Port des etablierten Dev-Musters (k3d/dev-stack/oauth2-proxy-sessions.yaml)
+# auf die Prod-Wildcard-Hosts hinter dem sessions-server-Ingress:
+#   browser -> Traefik (sessions-server IngressRoute, websecure)
+#           -> ForwardAuth-Middleware session-hub-auth
+#           -> oauth2-proxy-session-hub /oauth2/auth
+#           -> [202 pass] -> sessions-server nginx (/srv/sessions/<slug>/)
+#
+# ForwardAuth/reverse-proxy mode (--upstream=static://202). Pocket ID hat
+# keine Gruppen — das Gate läuft über --authenticated-emails-file
+# (ConfigMap oauth2-proxy-session-hub-allowed-emails, unten).
+#
+# Secrets: OAUTH2_PROXY_COOKIE_SECRET und POCKET_ID_SESSION_HUB_SECRET sind
+# bereits im fleet-mentolder-Sealed-Bestand vorhanden (environments/
+# sealed-secrets/fleet-mentolder.yaml) und landen als workspace-secrets.
+# Operator-Vorbedingung: OIDC-Client "session-hub" im PROD-Pocket-ID mit
+# redirect_url https://session-login.sessions.mentolder.de/oauth2/callback
+# anlegen; der Slug "login" ist damit reserviert.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-session-hub-allowed-emails
+  namespace: workspace
+  labels:
+    app: oauth2-proxy-session-hub
+data:
+  # Session-hub allow-list. Must match users' Pocket ID email addresses.
+  allowed-emails: |
+    patrick@korczewski.de
+    quamain@web.de
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-session-hub
+  namespace: workspace
+  labels:
+    app: oauth2-proxy-session-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy-session-hub
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy-session-hub
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: write-cookie-secret
+          image: busybox:1.38.0@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - printf 'cookie_secret = "%s"\n' "$(printf '%s' "$OAUTH2_PROXY_COOKIE_SECRET" | cut -c1-32)" > /run/config/oauth2-extra.cfg
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.3@sha256:10a1165743a192e1940b4708fb9647027185ce11a681a1c5519b442ff7f1f561
+          imagePullPolicy: Always
+          args:
+            - --config=/run/config/oauth2-extra.cfg
+            - --provider=oidc
+            - --client-id=session-hub
+            - --client-secret=$(POCKET_ID_SESSION_HUB_SECRET)
+            # Prod: https + öffentliche Autorize-URL, interne Token/JWKS-Endpunkte.
+            - --redirect-url=https://session-login.sessions.mentolder.de/oauth2/callback
+            - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
+            - --ssl-insecure-skip-verify=true
+            - --skip-oidc-discovery=true
+            - --login-url=https://auth.mentolder.de/authorize
+            - --redeem-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/token
+            - --oidc-jwks-url=http://pocket-id.workspace.svc.cluster.local:1411/.well-known/jwks.json
+            - --profile-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/userinfo
+            - --upstream=static://202
+            - --reverse-proxy=true
+            - --http-address=0.0.0.0:4180
+            - --cookie-secure=true
+            - --cookie-name=_oauth2_proxy_session_hub
+            - --authenticated-emails-file=/etc/oauth2/allowed-emails
+            - --pass-access-token=true
+            - --pass-authorization-header=true
+            - --set-xauthrequest=true
+            - --skip-provider-button=true
+            - --code-challenge-method=S256
+            - --insecure-oidc-allow-unverified-email=true
+            - --oidc-extra-audience=session-hub
+            - --scope=openid email profile
+            - --whitelist-domain=sessions.mentolder.de
+            - --whitelist-domain=*.sessions.mentolder.de
+          env:
+            - name: POCKET_ID_SESSION_HUB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: POCKET_ID_SESSION_HUB_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+              readOnly: true
+            - name: allowed-emails
+              mountPath: /etc/oauth2
+              readOnly: true
+      volumes:
+        - name: oauth2-config
+          emptyDir: {}
+        - name: allowed-emails
+          configMap:
+            name: oauth2-proxy-session-hub-allowed-emails
+            items:
+              - key: allowed-emails
+                path: allowed-emails
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-session-hub
+  namespace: workspace
+  labels:
+    app: oauth2-proxy-session-hub
+spec:
+  selector:
+    app: oauth2-proxy-session-hub
+  ports:
+    - port: 4180
+      targetPort: 4180
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: session-hub-auth
+  namespace: workspace
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-session-hub.workspace.svc.cluster.local:4180/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - X-Auth-Request-Access-Token
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: session-hub-errors
+  namespace: workspace
+spec:
+  errors:
+    status:
+      - "401"
+    service:
+      name: oauth2-proxy-session-hub
+      port: 4180
+    query: "/oauth2/sign_in?rd={url}"

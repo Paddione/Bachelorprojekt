@@ -57,6 +57,9 @@ Zustandsabfrage (ohne DB-/Cluster-Zugriff, T015783):
                   Schreibt archived | half | pending nach stdout und endet mit 0.
                   Ist der Zustand nicht bestimmbar (origin nicht erreichbar),
                   endet der Aufruf ungleich 0 OHNE einen Zustand zu behaupten.
+  --frontmatter-state <slug> [--repo <dir>]  [T015916]
+                  Schreibt completed | stale nach stdout (Exit 0); fehlt
+                  openspec/changes/<slug>/tasks.md → ungleich 0 ohne Ausgabe.
 
 Exit: 0 = erledigt/uebersprungen, 1 = Fehler, 2 = Usage-/Env-Fehler.
 EOF
@@ -66,19 +69,21 @@ TICKET_ID=""
 PR_NUM=""
 BRANCH=""
 ARCHIVE_STATE_SLUG=""
+FRONTMATTER_STATE_SLUG=""
 
 while [[ $# -gt 0 ]]; do case "$1" in
   --help|-h) usage; exit 0 ;;
   --pr)      PR_NUM="$2"; shift 2 ;;
   --branch)  BRANCH="$2"; shift 2 ;;
   --archive-state) ARCHIVE_STATE_SLUG="$2"; shift 2 ;;
+  --frontmatter-state) FRONTMATTER_STATE_SLUG="$2"; shift 2 ;;
   --repo)    REPO_DIR="$(cd "$2" && pwd)"; TICKET_SH="$REPO_DIR/scripts/ticket.sh"; cd "$REPO_DIR"; shift 2 ;;
   -*)        echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   *)         if [[ -z "$TICKET_ID" ]]; then TICKET_ID="$1"; shift
              else echo "Unexpected argument: $1" >&2; usage >&2; exit 2; fi ;;
 esac; done
 
-if [[ -z "$TICKET_ID" && -z "$ARCHIVE_STATE_SLUG" ]]; then
+if [[ -z "$TICKET_ID" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" ]]; then
   echo "ERROR: Ticket-ID fehlt." >&2
   usage >&2
   exit 2
@@ -86,11 +91,19 @@ fi
 
 # [T015783] --archive-state ist vom Offline-Guard ausgenommen: es liest nur
 # Arbeitsbaum und Remote-Refs, nie die Ticket-DB. Der Guard schuetzt die
-# Closure-Schritte, nicht die Zustandsabfrage.
-if [[ -n "${TICKET_OFFLINE:-}" && -z "$ARCHIVE_STATE_SLUG" ]]; then
+# Closure-Schritte, nicht die Zustandsabfrage. [T015916] --frontmatter-state
+# ebenso: liest nur den Arbeitsbaum.
+if [[ -n "${TICKET_OFFLINE:-}" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" ]]; then
   echo "ERROR: Finalize-Skript benoetigt Cluster-/DB-Zugriff (ticket.sh); TICKET_OFFLINE ist gesetzt." >&2
   exit 2
 fi
+
+# [T015916] Frontmatter-Helfer im Fragment (S1-Budget); die Status-Alternation
+# steht genau einmal HIER — der verstreute Schritt-7-Sed ist entfernt.
+_PLAN_STATUS_ACTIVE_ALT='(active|plan_staged|in_progress|planning)'
+_FINALIZE_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/finalize-frontmatter.sh
+source "$_FINALIZE_HERE/lib/finalize-frontmatter.sh"
 
 DONE_COUNT=0
 SKIP_COUNT=0
@@ -224,6 +237,9 @@ if [[ -n "$ARCHIVE_STATE_SLUG" ]]; then
   exit $?
 fi
 
+# [T015916] Frueher Ausstieg --frontmatter-state, gleiches Muster wie oben.
+[[ -n "$FRONTMATTER_STATE_SLUG" ]] && { _plan_frontmatter_state "$FRONTMATTER_STATE_SLUG" "$REPO_DIR"; exit $?; }
+
 echo "--- devflow-post-merge-finalize: Ticket $TICKET_ID ---"
 
 # Schritt 1 — Ticket laden: unbekannte ID ist ein Fehler (Exit 1); Status
@@ -268,9 +284,11 @@ mark_ok "Schritt 1: Ticket geladen (status=$TICKET_STATUS, type=$TICKET_TYPE)"
 # Ticket-DB (Format: "FACTORY-PLAN-REF branch=<b> plan=<pfad>"). Branch ist
 # Pflicht fuer PR-Aufloesung und Cleanup — ohne ihn Abbruch.
 PLAN_FILE=""
+PLAN_REL=""
 if [[ -n "$PLAN_REF" ]]; then
   [[ -z "$BRANCH" ]] && BRANCH="$(echo "$PLAN_REF" | grep -oE 'branch=[^ ]+' | head -1 | sed 's/^branch=//' || true)"
-  PLAN_FILE="$(echo "$PLAN_REF" | grep -oE 'plan=[^ ]+' | head -1 | sed 's/^plan=//' || true)"
+  PLAN_REL="$(echo "$PLAN_REF" | grep -oE 'plan=[^ ]+' | head -1 | sed 's/^plan=//' || true)"
+  PLAN_FILE="$PLAN_REL"
   [[ -n "$PLAN_FILE" && "$PLAN_FILE" != /* ]] && PLAN_FILE="$REPO_DIR/$PLAN_FILE"
 fi
 if [[ -z "$BRANCH" ]]; then
@@ -390,9 +408,9 @@ else
 fi
 
 if [[ -n "$PLAN_FILE" && -n "$SLUG" ]]; then
-  # Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird (plan-archive-steps).
-  # Best-effort: die Datei liegt im Worktree oder nur im Branch-Commit (T004269).
-  [[ -s "$PLAN_FILE" ]] && sed -E -i 's/^status: (active|plan_staged|in_progress|planning)$/status: completed/' "$PLAN_FILE" 2>/dev/null || true
+  # [T015916] Der alte Frontmatter-Sed gegen "$PLAN_FILE" ist entfernt: er traf
+  # den Haupt-Checkout, Schritt 8 archivierte den frischen checkout--B-Baum
+  # weiter mit `status: active`. Der Wechsel passiert jetzt im Archiv-Baum.
   ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$PLAN_FILE")
   [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
   if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
@@ -573,6 +591,8 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # gemergten Commit verweigern kann).
       git fetch origin main
       git checkout -B "$ARCHIVE_BRANCH" origin/main
+      # [T015916] Frontmatter-Wechsel im Archiv-Baum: nach checkout -B, vor archive.
+      _apply_plan_frontmatter_completed "$ARCHIVE_DIR"
       if [[ "${ARCHIVE_RESUME:-0}" == 1 ]]; then
         # [T015783] Resume-Pfad: die Verschiebung ist bereits vollzogen, nur nie
         # committet. Ein zweiter `openspec.sh archive`-Aufruf haette hier keine
@@ -581,6 +601,9 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
         # bereits"); beide Guards greifen fail-closed. Alles danach (Freshness,
         # add, commit, push, PR) schliesst den vorhandenen Zustand ab.
         echo "resume: $SLUG — vorhandene Verschiebung wird committet (kein erneutes archive)"
+        # [T015916] Resume: Wechsel auf die bereits verschobene archivierte tasks.md.
+        _fm_archived="$(ls -d openspec/changes/archive/*-"$SLUG"/tasks.md 2>/dev/null | head -1 || true)"
+        [[ -n "$_fm_archived" ]] && _apply_plan_frontmatter_completed_path "$ARCHIVE_DIR/$_fm_archived"
       else
         archive_args=()
         if [[ "$SLUG" == mishap-incident-rollup-* ]]; then

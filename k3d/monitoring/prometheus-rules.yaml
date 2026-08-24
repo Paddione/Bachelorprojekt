@@ -100,30 +100,47 @@ spec:
             description: "Node {{ $labels.instance }} Root-FS ({{ $labels.mountpoint }}) > 85% voll."
     - name: backup.rules
       rules:
+        # max_over_time statt increase: kube_job_status_failed traegt ein reason-Label
+        # (BackoffLimitExceeded, DeadlineExceeded, ...). Ein Job, der in Sekunden
+        # scheitert, liefert eine Serie, die ab ihrem ersten Sample konstant 1 ist —
+        # increase() darauf ist 0, der Alert bliebe stumm. max_over_time ist immun,
+        # braucht aber das Alters-Gate: ohne es feuern die alten Failed-Job-Objekte
+        # (live 80 Serien statt 7). max without (reason) aggregiert die reason-Serien
+        # zu einem Alert je Job. [T016124]
         - alert: BackupJobFailed
           expr: |
-            increase(kube_job_status_failed{namespace=~"workspace|workspace-korczewski",job_name=~"(pvc-backup|db-backup|backup-restore-verify).*"}[12h]) > 0
+            (
+              max without (reason) (
+                max_over_time(kube_job_status_failed{namespace=~"workspace|workspace-korczewski",job_name=~"(pvc-backup|db-backup|db-restore-verify).*"}[12h])
+              ) > 0
+            )
+            and on(namespace, job_name) (time() - kube_job_created < 43200)
           for: 5m
           labels:
             severity: critical
           annotations:
             summary: "Backup-Job {{ $labels.job_name }} fehlgeschlagen ({{ $labels.namespace }})"
-            description: "Backup-Job {{ $labels.job_name }} in {{ $labels.namespace }} hat in den letzten 12 h Failed-Pods. Offsite-Kopie pruefen."
+            description: "Backup-Job {{ $labels.job_name }} in {{ $labels.namespace }} ist in den letzten 12 h fehlgeschlagen. Offsite-Kopie pruefen."
         # last_successful_time, NICHT last_schedule_time: ein CronJob, der jede Nacht
         # planmaessig startet und dann scheitert, haelt die Schedule-Metrik dauerhaft
         # frisch und wuerde nie alarmieren — genau der Ausfall, den dieser Alert findet.
-        # Der suspend-Filter haelt bewusst eingefrorene CronJobs still (sonst Dauerrot),
-        # der unless-Zweig faengt CronJobs ohne jede Erfolgs-Serie. [T015712]
+        # Der suspend-Filter haelt bewusst eingefrorene CronJobs still, der unless-Zweig
+        # faengt CronJobs ohne jede Erfolgs-Serie — dieser aber erst, wenn der CronJob
+        # aelter ist als sein eigenes Intervall, sonst ist jeder frisch angelegte
+        # Backup-CronJob sofort kritisch. [T015712, T016124]
         - alert: BackupCronJobStale
           expr: |
             (
-              (time() - kube_cronjob_status_last_successful_time{namespace=~"workspace|workspace-korczewski",cronjob=~"(pvc-backup|db-backup|backup-restore-verify)"} > 93600)
+              (time() - kube_cronjob_status_last_successful_time{namespace=~"workspace|workspace-korczewski",cronjob=~"(pvc-backup|db-backup)"} > 93600)
               and on(namespace, cronjob) (kube_cronjob_spec_suspend == 0)
             )
             or
             (
-              (kube_cronjob_spec_suspend{namespace=~"workspace|workspace-korczewski",cronjob=~"(pvc-backup|db-backup|backup-restore-verify)"} == 0)
-              unless on(namespace, cronjob) kube_cronjob_status_last_successful_time
+              (
+                (kube_cronjob_spec_suspend{namespace=~"workspace|workspace-korczewski",cronjob=~"(pvc-backup|db-backup)"} == 0)
+                unless on(namespace, cronjob) kube_cronjob_status_last_successful_time
+              )
+              and on(namespace, cronjob) (time() - kube_cronjob_created > 93600)
             )
           for: 15m
           labels:
@@ -131,3 +148,26 @@ spec:
           annotations:
             summary: "Backup-CronJob {{ $labels.cronjob }} seit >26 h ohne Erfolg ({{ $labels.namespace }})"
             description: "Letzter ERFOLGREICHER Lauf von {{ $labels.cronjob }} in {{ $labels.namespace }} liegt mehr als 26 h zurueck, oder es gab noch nie einen. Suspendierte CronJobs sind ausgenommen."
+        # Eigene Regel, weil db-restore-verify woechentlich laeuft ("30 3 * * 0").
+        # Mit der 26h-Schwelle der taeglichen Jobs waere dieser Alert an sechs von
+        # sieben Tagen kritisch. Schwelle: 8 d + 1 h. [T016124]
+        - alert: RestoreVerifyStale
+          expr: |
+            (
+              (time() - kube_cronjob_status_last_successful_time{namespace=~"workspace|workspace-korczewski",cronjob="db-restore-verify"} > 694800)
+              and on(namespace, cronjob) (kube_cronjob_spec_suspend == 0)
+            )
+            or
+            (
+              (
+                (kube_cronjob_spec_suspend{namespace=~"workspace|workspace-korczewski",cronjob="db-restore-verify"} == 0)
+                unless on(namespace, cronjob) kube_cronjob_status_last_successful_time
+              )
+              and on(namespace, cronjob) (time() - kube_cronjob_created > 694800)
+            )
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Restore-Verifikation {{ $labels.cronjob }} seit >8 Tagen ohne Erfolg ({{ $labels.namespace }})"
+            description: "Der woechentliche Restore-Verify-Lauf in {{ $labels.namespace }} war seit mehr als 8 Tagen nicht erfolgreich, oder es gab noch nie einen erfolgreichen Lauf."

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.313.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.3...website-v1.313.4) (2026-08-24)
+
+
+### Bug Fixes
+
+* **ops:** Backup-Alert-Korrekturen aus T015712-Review [T016124] ([#5232](https://github.com/Paddione/Bachelorprojekt/issues/5232)) ([191cdc1](https://github.com/Paddione/Bachelorprojekt/commit/191cdc1d561a74fd57a943c93310fb567b90073a))
+
+## [1.313.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.2...website-v1.313.3) (2026-08-24)
+
+
+### Bug Fixes
+
+* **scripts:** apply plan frontmatter on the archive tree after checkout -B [T015916] ([#5231](https://github.com/Paddione/Bachelorprojekt/issues/5231)) ([b4ec8bb](https://github.com/Paddione/Bachelorprojekt/commit/b4ec8bb7621a8faa22ec68c701a4c09dd24285d0))
+
 ## [1.313.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.1...website-v1.313.2) (2026-08-24)
 
 

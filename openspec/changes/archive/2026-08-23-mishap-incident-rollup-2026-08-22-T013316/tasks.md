@@ -2,7 +2,7 @@
 title: "mishap-incident-rollup-2026-08-22-T013316 — Implementation Plan"
 ticket_id: T013316
 domains: [factory]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

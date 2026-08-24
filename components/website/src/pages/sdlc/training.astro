@@ -1,0 +1,172 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
+import { getSession, isAdmin } from '../../lib/auth';
+import { buildLoginRedirect } from '../../lib/login-redirect';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(buildLoginRedirect(Astro.url));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+export const prerender = false;
+
+// LLM-Finetuning-Nachschlag (T-frei: Explorationslauf 2026-08-24).
+// Statische Referenz — keine API, keine Secrets. Pfade zeigen in das
+// git-versionierte Repo bzw. auf die Windows-Seite des Trainingshosts.
+
+interface Step {
+  n: string;
+  cmd: string;
+  what: string;
+}
+
+const PIPELINE: Step[] = [
+  { n: '0', cmd: 'collect_teacher_traces.py --scenarios s.json --out corpus.jsonl --model <teacher>', what: 'Teacher-Traces aufzeichnen (lokal :1919 oder Cloud, Redaction inklusive)' },
+  { n: '1', cmd: 'measure_corpus.py', what: 'Token-Laengen + VRAM-Machbarkeit — IMMER zuerst' },
+  { n: '2', cmd: 'template_guard.py', what: 'Chat-Template Byte-Gleichheit Hub vs. gepatcht' },
+  { n: '3', cmd: 'train.py', what: 'QLoRA-SFT-Lauf (bricht ab, wenn 1./2. fehlen)' },
+  { n: '4', cmd: 'eval_quick.py', what: 'Verhaltens-Fixfaelle gegen den Adapter' },
+  { n: '5', cmd: 'export_gguf.py', what: 'Merge + GGUF fuer llama.cpp/Ollama' },
+];
+
+const ENV = [
+  { k: 'Trainingshost', v: 'Windows (WSL2-Interop), RTX 5070 Ti 16 GB' },
+  { k: 'venv', v: 'C:\\Users\\PatrickKorczewski\\unsloth-train\\.venv (Py 3.12.11)' },
+  { k: 'Stack', v: 'torch 2.11.0+cu128 · unsloth 2026.8.19 · xformers 0.0.35' },
+  { k: 'Repo-Artefakte', v: 'scripts/finetune/windows-native/qwen3-4b-tooluse-sft_2026_08_24/' },
+  { k: 'Trace-Collector', v: 'scripts/finetune/collect_teacher_traces.py' },
+];
+
+const LESSONS = [
+  'Datensatz-Balance: mind. ~40 % No-Tool-Beispiele, sonst ruft das Modell immer Tools auf.',
+  'Kontext-Dekorrelation: Tool-Blockgroesse darf nicht mit dem Zielverhalten korrelieren (pad_tools).',
+  'Eval-Systemprompt muss dem Trainingsprompt byte-gleich sein.',
+  'train_on_responses_only: nur Assistant-Turns trainieren (+~1 % Genauigkeit).',
+  'Loss < 0.2 = Overfitting-Zone; 1 Epoche haelt das Verhalten flexibel.',
+  'Adapter-Load per Base-vs-Adapter-Vergleich verifizieren, nicht annehmen.',
+];
+
+const OPEN = 'no_tool_direct bleibt offen: mit sichtbaren Tools ruft das feintunte Modell unnötig auf (Base verhaelt sich richtig). Optionen: 60 %+ negativer Anteil, GRPO mit Straf-Reward, oder Orchestrierungs-Filter.';
+---
+
+<AdminLayout title="LLM Training">
+  <div style="max-width:88rem; margin:0 auto; padding:1.5rem 1.5rem 0;">
+    <AdminPageHeader
+      title="LLM Fine-Tuning"
+      description="Unsloth/QLoRA-Pipeline — Umgebung, Korpus-Kette und Erkenntnisse"
+    >
+      <span slot="actions" class="env-badge">RTX 5070 Ti · Windows-native</span>
+    </AdminPageHeader>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Umgebung</h2>
+        <dl>
+          {ENV.map((e) => (
+            <div class="row"><dt>{e.k}</dt><dd>{e.v}</dd></div>
+          ))}
+        </dl>
+      </section>
+
+      <section class="panel">
+        <h2>Pipeline-Reihenfolge</h2>
+        <ol class="steps">
+          {PIPELINE.map((s) => (
+            <li>
+              <span class="step-n">{s.n}</span>
+              <div>
+                <code>{s.cmd}</code>
+                <p>{s.what}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="panel">
+        <h2>Erkenntnisse (6 Iterationen, 2026-08-24)</h2>
+        <ul class="lessons">
+          {LESSONS.map((l) => <li>{l}</li>)}
+        </ul>
+      </section>
+
+      <section class="panel warn">
+        <h2>Offener Punkt</h2>
+        <p>{OPEN}</p>
+      </section>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .env-badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: var(--admin-primary-muted);
+    border: 1px solid var(--admin-border-bright);
+    color: var(--admin-primary);
+    font-size: 0.625rem;
+    white-space: nowrap;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+    gap: 1rem;
+    padding-bottom: 2rem;
+  }
+  .panel {
+    background: var(--admin-bg-card);
+    border: 1px solid var(--admin-border);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+  }
+  .panel h2 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+    color: var(--admin-text-primary);
+  }
+  .panel.warn { border-color: var(--admin-warning, #b45309); }
+  dl { margin: 0; }
+  .row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.375rem 0;
+    border-bottom: 1px solid var(--admin-border);
+    font-size: 0.8125rem;
+  }
+  .row:last-child { border-bottom: none; }
+  dt { flex: 0 0 9.5rem; color: var(--admin-text-secondary); }
+  dd { margin: 0; word-break: break-all; }
+  ol.steps { list-style: none; margin: 0; padding: 0; }
+  ol.steps li {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  ol.steps li:last-child { border-bottom: none; }
+  .step-n {
+    flex: 0 0 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--admin-primary-muted);
+    color: var(--admin-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  ol.steps code {
+    font-size: 0.75rem;
+    background: var(--admin-bg-subtle, rgba(127,127,127,0.12));
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    word-break: break-all;
+  }
+  ol.steps p { margin: 0.25rem 0 0; font-size: 0.8125rem; color: var(--admin-text-secondary); }
+  ul.lessons { margin: 0; padding-left: 1.1rem; }
+  ul.lessons li { font-size: 0.8125rem; padding: 0.25rem 0; }
+  .warn p { font-size: 0.8125rem; margin: 0; }
+</style>

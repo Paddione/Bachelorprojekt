@@ -2,18 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2255 · Scenarios: 5018
+Specs: 145 · Requirements: 2264 · Scenarios: 5045
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 58 · Scenarios: 116 · Lines: 1439
+Reqs: 61 · Scenarios: 128 · Lines: 1599
 Last touches:
+  - Interrupted git operations in worktrees are surfaced as a finding | T015784 | 2026-08-24 | MODIFIED
+  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
   - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
-  - Execute role and gate ordering | T013482 | 2026-08-22 | ADDED
-  - E2E follows the test-only Chore lifecycle | T013482 | 2026-08-22 | ADDED
-  - Progressive disclosure preserves safety contracts | T013482 | 2026-08-22 | ADDED
-  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T008014 | 2026-08-18 | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -46,29 +46,26 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 201 · Scenarios: 621 · Lines: 5563
+Reqs: 203 · Scenarios: 627 · Lines: 5631
 Paths: scripts/factory
 Last touches:
+  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
+  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
   - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
   - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
-  - Provider_config ist die einzige Kandidatenquelle des Routers | T013302 | 2026-08-22 | ADDED
-  - PR-CI-Babysitter Scan und Kandidatenwahl | T012239 | 2026-08-18 | MODIFIED
-In-flight:
-  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | active | ADDED
-  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | active | ADDED
 
 ## delivery
 
 ### ci-cd
-Reqs: 111 · Scenarios: 327 · Lines: 3453
+Reqs: 112 · Scenarios: 329 · Lines: 3471
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
   - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
   - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
   - Build-Artefakte werden in eine zweite Registry gespiegelt | T012415 | 2026-08-20 | ADDED
-  - Das signierte OCI-Artefakt wird mitsamt Signatur gespiegelt | T012415 | 2026-08-20 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | active | ADDED
@@ -447,6 +444,13 @@ Last touches:
 ### datev-export
 Reqs: 12 · Scenarios: 22 · Lines: 220
 Paths: website/src/lib/datev, website/src/lib/skr, website/src/lib/legal
+
+### db-identity-guard
+Reqs: 3 · Scenarios: 7 · Lines: 74
+Last touches:
+  - Shared-db pod selection is unambiguous | T015168 | 2026-08-24 | ADDED
+  - Database identity marker probe | T015168 | 2026-08-24 | ADDED
+  - Identity constant parity between migration and guard | T015168 | 2026-08-24 | ADDED
 
 ### devflow-selection-archive-hardening
 Reqs: 5 · Scenarios: 12 · Lines: 134

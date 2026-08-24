@@ -4305,8 +4305,8 @@
   ],
   "T015168": [
     {
-      "slug": "db-identity-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-24-db-identity-guard",
+      "status": "archived"
     }
   ],
   "T015170": [
@@ -4327,10 +4327,28 @@
       "status": "archived"
     }
   ],
+  "T015384": [
+    {
+      "slug": "2026-08-24-ci-freshness-guard-read-pr-body",
+      "status": "archived"
+    }
+  ],
   "T015670": [
     {
-      "slug": "closure-identity-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-24-closure-identity-guard",
+      "status": "archived"
+    }
+  ],
+  "T015783": [
+    {
+      "slug": "2026-08-24-finalize-archive-self-verify",
+      "status": "archived"
+    }
+  ],
+  "T015784": [
+    {
+      "slug": "2026-08-24-worktree-git-op-finish",
+      "status": "archived"
     }
   ],
   "TBD": [

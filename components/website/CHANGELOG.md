@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.312.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.1...website-v1.312.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-git-op-guard --finish schliesst den sicheren Rebase-Fall ab [T015784] ([#5204](https://github.com/Paddione/Bachelorprojekt/issues/5204)) ([4d599a9](https://github.com/Paddione/Bachelorprojekt/commit/4d599a9ca01e159ea631a8221469a6ad593f2dab))
+
+## [1.312.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.0...website-v1.312.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **ci:** baseline guard liest PR-Body aus event-Payload und failt hart bei unlesbarem Body [T015384] ([#5196](https://github.com/Paddione/Bachelorprojekt/issues/5196)) ([cc3b328](https://github.com/Paddione/Bachelorprojekt/commit/cc3b328857a9f02d8c9c7a4aa051013af97a9d1a))
+* **scripts:** finalize belegt Archiv-Abschluss statt ihn zu vermuten [T015783] ([#5197](https://github.com/Paddione/Bachelorprojekt/issues/5197)) ([90dddf0](https://github.com/Paddione/Bachelorprojekt/commit/90dddf089cd6b912329f463f32f497c60ee533c0))
+
+## [1.312.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.311.1...website-v1.312.0) (2026-08-23)
+
+
+### Features
+
+* **scripts:** teacher-trace-collector + windows-native trainingsartefakte [T015768] ([#5194](https://github.com/Paddione/Bachelorprojekt/issues/5194)) ([d8224ce](https://github.com/Paddione/Bachelorprojekt/commit/d8224cef2cb65ce6ef733505bbc699ed38f913f9))
+
+## [1.311.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.311.0...website-v1.311.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** db identity guard against ghost shared-db [T015168] ([#5190](https://github.com/Paddione/Bachelorprojekt/issues/5190)) ([a6b00b4](https://github.com/Paddione/Bachelorprojekt/commit/a6b00b4333cf791e7e4e360b497b21e7b4847ffc))
+
 ## [1.311.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.310.0...website-v1.311.0) (2026-08-23)
 
 

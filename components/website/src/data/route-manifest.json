@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 106,
+  "count": 107,
   "routes": [
     {
       "route": "/",
@@ -870,6 +870,14 @@
       "authTier": "public",
       "brand": "both",
       "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/training",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
       "excludeFromSweep": false,
       "media": false
     },

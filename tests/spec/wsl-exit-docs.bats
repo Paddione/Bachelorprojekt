@@ -20,8 +20,9 @@ setup() {
   local ga="${REPO_ROOT}/.gitattributes"
   [ -f "$ga" ]
   for suffix in sh yaml yml bats mjs; do
-    grep -qE "\*\.${suffix}[[:space:]]+text eol=lf" "$ga" ||
-      fail "missing eol=lf rule for *.${suffix}"
+    if ! grep -qE "^[[:space:]]*\\*"\."${suffix}""[[:space:]]+text eol=lf" "$ga"; then
+      echo "missing eol=lf rule for *.${suffix}"; return 1
+    fi
   done
 }
 

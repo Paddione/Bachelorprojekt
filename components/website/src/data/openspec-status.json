@@ -4445,6 +4445,12 @@
       "status": "archived"
     }
   ],
+  "T016425": [
+    {
+      "slug": "wsl-exit-hetzner2-decommission",
+      "status": "plan_staged"
+    }
+  ],
   "T016430": [
     {
       "slug": "wsl-exit-internal-endpoints",

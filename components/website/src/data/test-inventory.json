@@ -3618,6 +3618,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/hetzner2-decommission",
+    "file": "tests/spec/fleet-operations/hetzner2-decommission.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/internal-endpoints",
     "file": "tests/spec/fleet-operations/internal-endpoints.bats",
     "category": "fleet-operations",

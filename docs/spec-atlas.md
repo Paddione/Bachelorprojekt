@@ -87,6 +87,8 @@ Last touches:
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
 In-flight:
+  - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
+  - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED
   - Der Datenbank-Endpoint ist fail-closed | T016430 | active | ADDED
   - Hostnamen bleiben zentral registriert | T016430 | active | ADDED

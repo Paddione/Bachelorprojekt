@@ -122,6 +122,22 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+# Regression aus dem Selbst-Review dieses PRs: liefern beide Kandidaten
+# "pending", fiel der Zweig zunächst still durch — Schritt 8 meldete GAR nichts,
+# während vorher wenigstens ein [skip] erschien. Stilles Nichtstun im Fix gegen
+# stilles Nichtstun.
+@test "T015783: unauffindbarer Change-Ordner meldet [warn] statt nichts" {
+  run grep -qF 'in keinem Arbeitsbaum gefunden und nichts archiviert' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+# Das Skript vermeidet jq bewusst (json_field: "grep/sed statt jq"). Der
+# PR-Beleg darf diese Entscheidung nicht unterlaufen.
+@test "T015783: der PR-Beleg fügt keine jq-Abhängigkeit hinzu" {
+  run grep -qE "printf '%s' \"\\\$_pr_raw\" \| jq" "$FINALIZE"
+  [ "$status" -ne 0 ]
+}
+
 @test "T015783: nicht belegter Abschluss endet als Fehler, nicht als Skip" {
   run grep -qF 'Schritt 8 ohne belegten Abschluss' "$FINALIZE"
   [ "$status" -eq 0 ]

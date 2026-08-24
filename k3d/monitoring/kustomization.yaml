@@ -29,3 +29,4 @@ resources:
 # would be overwritten on the next `task loki:render`).
 patches:
   - path: loki-sc-rules-resources-patch.yaml
+  - path: alertmanager-matcher-strategy-patch.yaml

@@ -98,3 +98,36 @@ spec:
           annotations:
             summary: "Node-Root-Filesystem fast voll ({{ $labels.instance }})"
             description: "Node {{ $labels.instance }} Root-FS ({{ $labels.mountpoint }}) > 85% voll."
+    - name: backup.rules
+      rules:
+        - alert: BackupJobFailed
+          expr: |
+            increase(kube_job_status_failed{namespace=~"workspace|workspace-korczewski",job_name=~"(pvc-backup|db-backup|backup-restore-verify).*"}[12h]) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Backup-Job {{ $labels.job_name }} fehlgeschlagen ({{ $labels.namespace }})"
+            description: "Backup-Job {{ $labels.job_name }} in {{ $labels.namespace }} hat in den letzten 12 h Failed-Pods. Offsite-Kopie pruefen."
+        # last_successful_time, NICHT last_schedule_time: ein CronJob, der jede Nacht
+        # planmaessig startet und dann scheitert, haelt die Schedule-Metrik dauerhaft
+        # frisch und wuerde nie alarmieren — genau der Ausfall, den dieser Alert findet.
+        # Der suspend-Filter haelt bewusst eingefrorene CronJobs still (sonst Dauerrot),
+        # der unless-Zweig faengt CronJobs ohne jede Erfolgs-Serie. [T015712]
+        - alert: BackupCronJobStale
+          expr: |
+            (
+              (time() - kube_cronjob_status_last_successful_time{namespace=~"workspace|workspace-korczewski",cronjob=~"(pvc-backup|db-backup|backup-restore-verify)"} > 93600)
+              and on(namespace, cronjob) (kube_cronjob_spec_suspend == 0)
+            )
+            or
+            (
+              (kube_cronjob_spec_suspend{namespace=~"workspace|workspace-korczewski",cronjob=~"(pvc-backup|db-backup|backup-restore-verify)"} == 0)
+              unless on(namespace, cronjob) kube_cronjob_status_last_successful_time
+            )
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Backup-CronJob {{ $labels.cronjob }} seit >26 h ohne Erfolg ({{ $labels.namespace }})"
+            description: "Letzter ERFOLGREICHER Lauf von {{ $labels.cronjob }} in {{ $labels.namespace }} liegt mehr als 26 h zurueck, oder es gab noch nie einen. Suspendierte CronJobs sind ausgenommen."

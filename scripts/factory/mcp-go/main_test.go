@@ -265,6 +265,19 @@ func TestCountByStatus(t *testing.T) {
 	}
 }
 
+// T015960: Der Parser liest das Feld `status`. Liefert queue.sh die Spalte
+// nicht (Regression vom 2026-08-24: SELECT ohne status → Lane-Counts dauerhaft
+// 0 trotz 8 dispatchbarer Rows), zählt jede Row still als "". Dieser Test
+// dokumentiert den Kontrakt: rows OHNE status-Feld dürfen NICHT in einer Lane
+// landen — deshalb muss queue.sh status SELECTieren (Gegenstück im BATS-
+// Wiring-Guard factory-status-lane-status-field.bats).
+func TestCountByStatusRowsWithoutStatusFieldAreNotCounted(t *testing.T) {
+	got := countByStatus(`[{"external_id":"T1"},{"external_id":"T2"}]`)
+	if got["backlog"] != 0 || got["plan_staged"] != 0 {
+		t.Fatalf("rows without a status field must not be counted into any lane: %v", got)
+	}
+}
+
 // T014936: atoiOrRaw darf einen nicht-numerischen DB-Wert nicht still zu 0
 // degenerieren — der Rohwert bleibt sichtbar (Fail-Closed-Anzeige).
 func TestAtoiOrRaw(t *testing.T) {

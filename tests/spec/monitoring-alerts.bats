@@ -58,6 +58,20 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+# Pflicht-Set auf zehn erweitert [T015712] — Detailpruefung der beiden
+# Backup-Alerts (Metrik, Suspend-Filter, Routing) liegt in
+# tests/spec/monitoring-alerts/backup-alerting.bats.
+
+@test "prometheus-rules.yaml declares BackupJobFailed alert" {
+  run grep -q 'BackupJobFailed' "$RULES"
+  [ "$status" -eq 0 ]
+}
+
+@test "prometheus-rules.yaml declares BackupCronJobStale alert" {
+  run grep -q 'BackupCronJobStale' "$RULES"
+  [ "$status" -eq 0 ]
+}
+
 # ── Alertmanager Configuration ────────────────────────────────────────
 
 @test "alertmanager-config.yaml exists" {

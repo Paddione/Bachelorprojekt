@@ -1,17 +1,8 @@
 import type { APIRoute } from 'astro';
-import { readFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getArchivedMarkdown } from '../../../../../lib/sessions/archive.ts';
+import { getArchivedContent } from '../../../../../lib/sessions/archive.ts';
 
 export const prerender = false;
-
-function getArchiveDir(): string {
-  const p = process.env.SESSIONS_ARCHIVE_DIR;
-  if (p) return p;
-  return join(homedir(), '.local/share/bachelorprojekt/sessions-archive');
-}
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -20,10 +11,14 @@ function json(body: unknown, status: number): Response {
   });
 }
 
-export const GET: APIRoute = async ({ request, params, locals }) => {
+export const GET: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session) {
     return json({ error: 'Unauthorized' }, 401);
+  }
+  // T016251: Admin-only — die Registry/das Meta trägt keinen Owner mehr.
+  if (!isAdmin(session)) {
+    return json({ error: 'Forbidden' }, 403);
   }
 
   const { id } = params;
@@ -31,34 +26,14 @@ export const GET: APIRoute = async ({ request, params, locals }) => {
     return json({ error: 'Invalid ID' }, 400);
   }
 
-  const archiveDir = getArchiveDir();
-  const metaPath = join(archiveDir, `${id}.meta.json`);
-
-  let meta: { owner?: string };
-  try {
-    const rawMeta = await readFile(metaPath, 'utf8');
-    meta = JSON.parse(rawMeta) as { owner?: string };
-  } catch (err: unknown) {
-    if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
-      return json({ error: 'Not Found' }, 404);
-    }
-    locals.requestLogger.error({ err }, `[api/admin/sessions/history/${id}] failed to read meta:`);
-    return json({ error: 'Read error' }, 500);
-  }
-
-  // Auth check: Admin sees all, user only their own
-  const viewer = session.preferred_username || 'unknown';
-  if (!isAdmin(session) && meta.owner !== viewer) {
-    return json({ error: 'Forbidden' }, 403);
-  }
-
-  const markdown = await getArchivedMarkdown(id);
-  if (markdown === null) {
+  // T016251: Endung am Content (md/html), nicht pauschal markdown.
+  const archived = await getArchivedContent(id);
+  if (archived === null) {
     return json({ error: 'Not Found' }, 404);
   }
 
-  return new Response(markdown, {
+  return new Response(archived.content, {
     status: 200,
-    headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+    headers: { 'Content-Type': `${archived.contentType}; charset=utf-8` },
   });
 };

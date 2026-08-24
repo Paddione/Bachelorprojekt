@@ -47,6 +47,9 @@ spec:
           type: RuntimeDefault
       imagePullSecrets:
         - name: ghcr-pull-secret
+      volumes:
+        - name: tmp
+          emptyDir: {}
       containers:
         - name: website
           image: ghcr.io/paddione/website:dev
@@ -55,6 +58,9 @@ spec:
             runAsNonRoot: true
             runAsUser: 1000
             allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           ports:
             - containerPort: 4321
           envFrom:

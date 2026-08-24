@@ -118,6 +118,9 @@ resources:
   - oauth2-proxy-brain.yaml
   # Agentic Terminal SSO bridge (T001565) — ttyd on the WSL host via wg-fleet
   - terminal-sidekick.yaml
+  # Interne bge-Endpoints für wg-Mesh-Konsumenten + shared-db-Expositions-Policy [T016430]
+  - llm-gateway-ingress.yaml
+  - shared-db-endpoint-policy.yaml
   - oauth2-proxy-terminal.yaml
   # Ingress
   - ingress.yaml

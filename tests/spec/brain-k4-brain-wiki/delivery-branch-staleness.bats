@@ -93,6 +93,9 @@ if [ -n "${ADVANCE_MAIN_SEED:-}" ] && [ -n "${ADVANCE_MARKER:-}" ] && [ ! -e "$A
   git -C "$ADVANCE_MAIN_SEED" commit -q -m c3-midrun
   git -C "$ADVANCE_MAIN_SEED" push -q origin main
 fi
+# Request-Body drainen, sonst stirbt jq unter pipefail an SIGPIPE (Race mit
+# diesem Exit — gleiche Fehlerklasse wie der brain-ingest-Flake T016499).
+cat >/dev/null
 content="$(printf '%s\n' '---' 'type: note' 'tags: [fixture]' \
   'status: active' '---' '# Fixture page' '' \
   "source:: Bachelorprojekt ${BRAIN_SOURCE_PATH:?}" '' 'See [[index-moc]].')"

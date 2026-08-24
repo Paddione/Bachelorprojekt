@@ -72,6 +72,11 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+@test "prometheus-rules.yaml declares RestoreVerifyStale alert" {
+  run grep -q 'RestoreVerifyStale' "$RULES"
+  [ "$status" -eq 0 ]
+}
+
 # ── Alertmanager Configuration ────────────────────────────────────────
 
 @test "alertmanager-config.yaml exists" {

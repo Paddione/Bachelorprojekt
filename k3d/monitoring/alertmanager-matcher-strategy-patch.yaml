@@ -9,6 +9,13 @@
 #   amtool config routes test ... namespace=workspace  -> null
 #   amtool config routes test ... namespace=monitoring -> monitoring/workspace-alerts/email
 #
+# Bewusst OnNamespaceExceptForAlertmanagerNamespace statt None: workspace-alerts liegt
+# im Alertmanager-eigenen Namespace (monitoring), wird also freigestellt, waehrend jede
+# kuenftige AlertmanagerConfig in einem anderen Namespace ihr Namespace-Scoping behaelt.
+# Mit None wuerde die route in alertmanager-config.yaml — die weder matchers noch
+# continue traegt — zur Catch-all fuer den ganzen Cluster und wuerde spaeter angehaengte
+# Routen verdecken. [T016124]
+#
 # Strategic Merge statt Neu-Rendern: der Stack wird als pre-rendered YAML angewendet
 # (kube-prometheus-stack-rendered.yaml), das Muster existiert in derselben kustomization
 # bereits fuer loki-sc-rules-resources-patch.yaml. [T015712]
@@ -19,4 +26,4 @@ metadata:
   namespace: monitoring
 spec:
   alertmanagerConfigMatcherStrategy:
-    type: None
+    type: OnNamespaceExceptForAlertmanagerNamespace

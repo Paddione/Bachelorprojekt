@@ -788,6 +788,12 @@ Last touches:
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | 2026-08-24 | ADDED
   - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | 2026-08-24 | ADDED
   - Backup-Alerts decken beide Brands ab | T015712 | 2026-08-24 | ADDED
+In-flight:
+  - Mandatory Alert Set | T016124 | active | MODIFIED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016124 | active | MODIFIED
+  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
+  - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
+  - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

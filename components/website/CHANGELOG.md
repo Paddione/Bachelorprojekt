@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.316.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.315.0...website-v1.316.0) (2026-08-24)
+
+
+### Features
+
+* **infra:** internal bge endpoints (wg-whitelisted) + shared-db fail-closed policy [T016430] ([#5252](https://github.com/Paddione/Bachelorprojekt/issues/5252)) ([9f198c4](https://github.com/Paddione/Bachelorprojekt/commit/9f198c42172b583ba4c3797be896beb30939e7a0))
+
 ## [1.315.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.314.1...website-v1.315.0) (2026-08-24)
 
 

@@ -4371,8 +4371,8 @@
   ],
   "T015822": [
     {
-      "slug": "agent-lock-liveness-heartbeat",
-      "status": "plan_staged"
+      "slug": "2026-08-24-agent-lock-liveness-heartbeat",
+      "status": "archived"
     }
   ],
   "T016250": [

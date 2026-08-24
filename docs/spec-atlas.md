@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2286 · Scenarios: 5082
+Specs: 145 · Requirements: 2287 · Scenarios: 5084
 
 ## factory-pipeline
 
@@ -76,17 +76,20 @@ In-flight:
   - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 45 · Scenarios: 88 · Lines: 907
+Reqs: 46 · Scenarios: 90 · Lines: 933
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
+  - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
   - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
   - Rendered Staging CronJobs Target the Staging Website | T015004 | 2026-08-23 | ADDED
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
-  - Cluster Membership Matches the Declared Node Registry | T002630 | 2026-08-10 | ADDED
 In-flight:
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
+  - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED
+  - Der Datenbank-Endpoint ist fail-closed | T016430 | active | ADDED
+  - Hostnamen bleiben zentral registriert | T016430 | active | ADDED
 
 ### workspace-deploy
 Reqs: 90 · Scenarios: 167 · Lines: 1926
@@ -221,6 +224,9 @@ Last touches:
   - G-AGENTIC08 No Dead Script/Task References In Skills Gate | T002303 | 2026-07-27 | MODIFIED
   - G-AGENTIC02 Subagent Routing Table Drift Gate | T001398 | 2026-07-01 | ADDED
   - G-AGENTIC03 Subagent Frontmatter Completeness Gate | T001398 | 2026-07-01 | ADDED
+In-flight:
+  - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
+  - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -801,6 +807,8 @@ In-flight:
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
   - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
+  - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331
@@ -1008,6 +1016,11 @@ Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
   - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
+In-flight:
+  - Dead Process Reaping | T016251 | active | MODIFIED
+  - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
+  - Auth-Gating für session-* Subdomains | T016251 | active | ADDED
+  - Zentrale Session-Domain-Konfiguration | T016251 | active | ADDED
 
 ### sidekick-assistant
 Reqs: 36 · Scenarios: 68 · Lines: 712

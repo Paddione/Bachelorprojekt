@@ -2,7 +2,7 @@
 title: "rustdesk-on-demand — Implementation Plan"
 ticket_id: T015170
 domains: [infra, security, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -140,6 +140,8 @@ spec:
           volumeMounts:
             - name: workdir
               mountPath: /workspace
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 100m
@@ -151,6 +153,8 @@ spec:
         - name: workdir
           persistentVolumeClaim:
             claimName: factory-runner-workdir
+        - name: tmp
+          emptyDir: {}
 # ── SealedSecret-Platzhalter (T2.7) ─────────────────────────────────────────
 # Der Operator versiegelt VOR dem Erstdeploy per kubeseal (Prozess: ADR-007-
 # Anhang) ein Secret `factory-runner-secrets` in diesem Namespace und mountet

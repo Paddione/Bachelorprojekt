@@ -11,14 +11,19 @@
 # with SESSION_HUB_REGISTRY (used by tests). Set SESSION_HUB_NO_TUNNEL=1 to skip
 # the kubectl cp calls (unit tests / dry runs).
 #
-# Domain: SESSION_HUB_DOMAIN (default: sessions.mentolder.de).
-# DNS: *.sessions.mentolder.de CNAME mentolder.de (einmalig setzen).
+# Domain: SESSION_HUB_DOMAIN > SESSIONS_DOMAIN > sessions.mentolder.de
+# (Legacy-Fallback). SESSIONS_DOMAIN kommt aus der zentralen Domain-Konfiguration
+# (k3d/configmap-domains.yaml bzw. environments/*.yaml) [T016251].
+# DNS: *.<SESSIONS_DOMAIN> CNAME auf den Cluster (einmalig setzen).
 #
-# Subcommands: start-form | register | list | deregister | reap
+# Subcommands: start-form | regen | register | list | deregister | reap
 set -uo pipefail
 
 REGISTRY="${SESSION_HUB_REGISTRY:-$HOME/.local/share/bachelorprojekt/active-sessions.json}"
-SESSION_HUB_DOMAIN="${SESSION_HUB_DOMAIN:-sessions.mentolder.de}"
+SESSION_HUB_DOMAIN="${SESSION_HUB_DOMAIN:-${SESSIONS_DOMAIN:-sessions.mentolder.de}}"
+# Registry-Mirror-Ziele ("context/namespace" leerzeichengetrennt), Default:
+# Dev-Website-Pod + Prod-Website-Pod auf fleet [T016251].
+SESSION_HUB_SYNC_TARGETS="${SESSION_HUB_SYNC_TARGETS:-k3d-mentolder-dev/workspace-dev fleet/workspace}"
 
 _now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 _slug() { printf '%s' "$1" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }
@@ -34,22 +39,25 @@ _write() {
   _sync_to_pod 2>/dev/null || true
 }
 
-# Spiegelt die Registry in den aktiven website-Pod (k3d-mentolder-dev).
-# Läuft still, bricht nichts wenn kubectl fehlt oder kein Pod läuft.
+# Spiegelt die Registry in die aktiven website-Pods (Default: Dev + Prod,
+# siehe SESSION_HUB_SYNC_TARGETS). Läuft still, bricht nichts wenn kubectl
+# fehlt oder kein Pod läuft — jeder Ziel-Fehler ist ein Skip.
 _sync_to_pod() {
   [ -n "${SESSION_HUB_NO_TUNNEL:-}" ] && return 0
   command -v kubectl >/dev/null 2>&1 || return 0
-  local ctx="k3d-mentolder-dev" ns="workspace-dev"
-  local pod
-  pod="$(kubectl --context "$ctx" get pod -n "$ns" -l app=website \
-          -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)" || return 0
-  [ -n "$pod" ] || return 0
-  local pod_home
-  pod_home="$(kubectl --context "$ctx" exec -n "$ns" "$pod" -- \
-    sh -c 'echo $HOME' 2>/dev/null)" || return 0
-  local dest="${pod_home}/.local/share/bachelorprojekt"
-  kubectl --context "$ctx" exec -n "$ns" "$pod" -- mkdir -p "$dest" 2>/dev/null || return 0
-  kubectl --context "$ctx" cp "$REGISTRY" "${ns}/${pod}:${dest}/active-sessions.json" 2>/dev/null || true
+  local target ctx ns pod pod_home dest
+  for target in $SESSION_HUB_SYNC_TARGETS; do
+    ctx="${target%%/*}" ns="${target##*/}"
+    [ -n "$ctx" ] && [ -n "$ns" ] || continue
+    pod="$(kubectl --context "$ctx" get pod -n "$ns" -l app=website \
+            -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)" || continue
+    [ -n "$pod" ] || continue
+    pod_home="$(kubectl --context "$ctx" exec -n "$ns" "$pod" -- \
+      sh -c 'echo $HOME' 2>/dev/null)" || continue
+    dest="${pod_home}/.local/share/bachelorprojekt"
+    kubectl --context "$ctx" exec -n "$ns" "$pod" -- mkdir -p "$dest" 2>/dev/null || continue
+    kubectl --context "$ctx" cp "$REGISTRY" "${ns}/${pod}:${dest}/active-sessions.json" 2>/dev/null || true
+  done
 }
 
 _pid_alive() { [ -n "${1:-}" ] && [ "$1" != "null" ] && [ "$1" -gt 0 ] 2>/dev/null && kill -0 "$1" 2>/dev/null; }
@@ -144,7 +152,7 @@ cmd_start_form() {
   dir="$(cd "$(dirname "$file")" && pwd)"; base="$(basename "$file")"
   abs_file="$(cd "$dir" && pwd)/${base}"
   generated_at="$(_now_iso)"
-  local effective_api="${api_url:-https://web.mentolder.de/api/tickets/comment}"
+  local effective_api="${api_url:-https://${WEB_DOMAIN:-web.mentolder.de}/api/tickets/comment}"
   local effective_tid="${ticket_id:-}"
 
   # Inject __SESSION_* placeholders into a temp copy before upload
@@ -197,7 +205,7 @@ cmd_regen() {
   [ -f "$src_file"  ] || { echo "regen: source file not found: $src_file" >&2; return 1; }
 
   local generated_at; generated_at="$(_now_iso)"
-  local effective_api="${api_url:-https://web.mentolder.de/api/tickets/comment}"
+  local effective_api="${api_url:-https://${WEB_DOMAIN:-web.mentolder.de}/api/tickets/comment}"
   local effective_tid="${ticket_id:-}"
 
   local upload_file="$src_file"
@@ -244,8 +252,11 @@ cmd_reap() {
   local survivors="[]"
   while IFS= read -r row; do
     [ -n "$row" ] || continue
-    local spid; spid="$(printf '%s' "$row" | jq -r '.server_pid')"
-    if _pid_alive "$spid"; then
+    local spid; spid="$(printf '%s' "$row" | jq -r '.server_pid // 0')"
+    # Ungetrackte PIDs (fehlend oder <=0, z.B. via `register`) sind kein toter
+    # Prozess — solche Einträge überleben den Reap [T016251]. Nur positive
+    # PIDs werden auf Lebendigkeit geprüft.
+    if ! [[ "$spid" =~ ^[0-9]+$ ]] || [ "$spid" -eq 0 ] || _pid_alive "$spid"; then
       survivors="$(jq -c --argjson r "$row" '. + [$r]' <<<"$survivors")"
     fi
   done < <(jq -c '.[]' "$REGISTRY")

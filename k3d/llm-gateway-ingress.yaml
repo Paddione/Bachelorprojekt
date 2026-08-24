@@ -1,0 +1,59 @@
+# k3d/llm-gateway-ingress.yaml [T016430]
+# Interne Endpoints für bge-embed/-rerank (Services llm-gateway-embed/-rerank,
+# ns workspace) — für MCPs/Agenten außerhalb des Clusters über das wg-Mesh.
+#
+# Fail-closed: ipWhiteList erlaubt ausschließlich die wg-Mesh-Quellen
+# (WG_INTERNAL_CIDR, default 192.168.100.0/24). Der Website-Suche bedienen die
+# Pods in-cluster direkt über die ClusterIPs — sie brauchen diese Routes nicht.
+#
+# Prod-Hosts: prod-fleet/mentolder|korczewski bge-internal-endpoints.yaml
+# (bge-embed.<brand>.de / bge-rerank.<brand>.de).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: wg-only
+  namespace: workspace
+  labels:
+    app: llm-gateway
+spec:
+  ipWhiteList:
+    sourceRange:
+      - 192.168.100.0/24
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: llm-gateway-embed
+  namespace: workspace
+  labels:
+    app: llm-gateway
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`embed.localhost`)
+      middlewares:
+        - name: wg-only
+      services:
+        - name: llm-gateway-embed
+          port: 8081
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: llm-gateway-rerank
+  namespace: workspace
+  labels:
+    app: llm-gateway
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`rerank.localhost`)
+      middlewares:
+        - name: wg-only
+      services:
+        - name: llm-gateway-rerank
+          port: 8081

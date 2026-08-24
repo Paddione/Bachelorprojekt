@@ -288,6 +288,24 @@ env_vars:
     required: false
     default_dev: "http://mail.localhost"
 
+  - name: BGE_EMBED_HOST
+    required: true
+    default_dev: "embed.localhost"
+    validate: "^[a-z0-9.-]+$"
+    description: "Internal host of bge-embed (llm-gateway-embed) for wg-mesh consumers [T016430]. Dev: embed.localhost; prod: bge-embed.${PROD_DOMAIN}."
+
+  - name: BGE_RERANK_HOST
+    required: true
+    default_dev: "rerank.localhost"
+    validate: "^[a-z0-9.-]+$"
+    description: "Internal host of bge-rerank (llm-gateway-rerank) for wg-mesh consumers [T016430]. Dev: rerank.localhost; prod: bge-rerank.${PROD_DOMAIN}."
+
+  - name: WG_INTERNAL_CIDR
+    required: true
+    default_dev: "192.168.100.0/24"
+    validate: "^[0-9./]+$"
+    description: "wg-mesh source CIDR allowed on internal endpoints (fail-closed ipWhiteList, T016430)."
+
   - name: BRETT_DOMAIN
     required: true
     default_dev: "brett.localhost"

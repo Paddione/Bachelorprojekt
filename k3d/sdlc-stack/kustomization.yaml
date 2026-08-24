@@ -20,7 +20,6 @@ resources:
   - ../pocket-id-client-seed-rbac.yaml
   - ../pocket-id-client-seed-website-rbac.yaml
   - ../llm-gpu.yaml
-  - llm-proxy-host.yaml
   - sdlc-console.yaml
   - sdlc-console-rbac.yaml
   - sdlc-ingress.yaml

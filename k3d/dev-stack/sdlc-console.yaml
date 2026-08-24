@@ -1,60 +1,12 @@
-# ════════════════════════════════════════════════════════════════════════════
-# sdlc-console — Fleet-Variante [T016422]
-# ════════════════════════════════════════════════════════════════════════════
-# Adaptiert aus k3d/sdlc-stack/sdlc-console.yaml — NICHT inkludiert, sondern als
-# eigenständige Datei im dev-stack (Design D4). Entfernte WSL-Abhängigkeiten:
-#
-#   1. KEIN llm-proxy-Bridge-Hack mehr: der manuelle Endpoints-Eintrag auf die
-#      k3d-Host-Bridge-IP existiert im Fleet nicht und ist mit dem llm-proxy-
-#      Retire ohnehin hinfällig (FreeToken-native hat den Proxy obsolet gemacht,
-#      siehe ADR-007). Der Code kommt ohne LLM_PROXY_URL aus:
-#      llm-proxy-client.ts fällt auf 127.0.0.1 zurück und stuft den Proxy im
-#      Cockpit sauber als "unreachable" ein statt zu crashen.
-#   2. `LLM_PROXY_ADMIN_TOKEN` entfällt entsprechend.
-#
-# Secrets: die vier Keys WEBSITE_DB_PASSWORD / POCKET_ID_WEBSITE_SECRET /
-# CRON_SECRET / GITHUB_PAT kommen aus EINEM Secret `website-secrets`, das der
-# Operator vor dem Erstdeploy per kubeseal nach workspace-dev versiegelt
-# (Befehl im ADR-007-Anhang) — kein Inline-Passwort.
-# ════════════════════════════════════════════════════════════════════════════
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: sdlc-console
-  labels:
-    app: sdlc-console
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: sdlc-console-monitoring-role
-  labels:
-    app: sdlc-console
-rules:
-  - apiGroups: [""]
-    resources: ["pods", "events"]
-    verbs: ["get", "list"]
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list", "patch"]
-  - apiGroups: ["batch"]
-    resources: ["jobs", "cronjobs"]
-    verbs: ["get", "list"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: sdlc-console-monitoring-rolebinding
-  labels:
-    app: sdlc-console
-subjects:
-  - kind: ServiceAccount
-    name: sdlc-console
-roleRef:
-  kind: Role
-  name: sdlc-console-monitoring-role
-  apiGroup: rbac.authorization.k8s.io
----
+# k3d/dev-stack/sdlc-console.yaml [T016429]
+# Fleet-Heimat der SDLC-Console (Umzug aus dem lokalen k3d/sdlc-stack, ADR-007).
+# Anpassungen gegenüber dem alten Stand:
+#   * DB: shared-db-dev statt prod-shared-db (Dev-Stack-Konvention wie brett-dev)
+#   * LLM: bewusst deaktiviert (fail-closed) bis P0-Spike C
+#     (Fleet→Windows:1919 über wg/NAT, Runbook docs/windows-dev-setup.md) grün ist.
+#     Der Bridge-IP-Endpoints-Hack des alten lokalen Stacks wird damit nicht übernommen.
+#   * Secrets: Platzhalter-Patch sdlc-console-secrets.yaml (bewusst unbrauchbar,
+#     Muster sdlc-secrets-patch.yaml) — echte Werte folgen mit dem Spike.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -64,24 +16,8 @@ metadata:
 data:
   BRAND_ID: "mentolder"
   BRAND: "mentolder"
-  CLUSTER_ENV: "sdlc-fleet"
+  CLUSTER_ENV: "fleet-dev"
   PINO_LOG_LEVEL: "info"
-  # Muss zum registrierten OIDC-Callback passen: der Seed-Job leitet ihn als
-  # web.<suffix>/api/auth/callback aus POCKET_ID_FRONTEND_URL ab. Mit
-  # sdlc.localhost sendet die Console eine redirect_uri, die Pocket ID nicht
-  # kennt. sdlc.localhost bleibt als zweiter Ingress-Host erreichbar.
-  #
-  # Die drei Werte kommen aus SDLC_CONSOLE_* (Taskfile.sdlc.yml), NICHT aus
-  # POCKET_ID_FRONTEND_URL/POCKET_ID_URL: dieselben Namen steuern im selben
-  # Kustomize-Build den pocket-id-client-seed-Job, der daraus seine
-  # Callback-Hosts ableitet. Ein gemeinsamer Name haette den lokalen Seed-Job
-  # im Prod-Auth-Modus dazu gebracht, Callbacks fuer web.<PROD_DOMAIN> in die
-  # LOKALE Pocket ID zu schreiben.
-  #
-  # Prod-Auth-Modus (SDLC_AUTH=prod): zeigt auf https://auth.<PROD_DOMAIN>.
-  # Grund ist WebAuthn, nicht Bequemlichkeit — ein Passkey ist an die RP-ID
-  # der Pocket-ID-Domain gebunden und gegen auth.localhost nicht verwendbar.
-  # Siehe docs/sdlc-stack/prod-auth.md.
   SITE_URL: "${SDLC_CONSOLE_SITE_URL}"
   POCKET_ID_FRONTEND_URL: "${SDLC_CONSOLE_POCKET_ID_FRONTEND_URL}"
   POCKET_ID_URL: "${SDLC_CONSOLE_POCKET_ID_URL}"
@@ -89,10 +25,13 @@ data:
   POCKET_ID_FALLBACK_FRONTEND_URL: "${POCKET_ID_FALLBACK_FRONTEND_URL}"
   POCKET_ID_FALLBACK_URL: "${POCKET_ID_FALLBACK_URL}"
   PORTAL_ADMIN_USERNAME: "gekko,paddione,quamain,test-admin,tina-merlin@web.de"
-  LLM_ENABLED: "true"
-  LLM_RERANK_ENABLED: "true"
-  # bge-Paar liegt im workspace-Namespace — Cross-Namespace-FQDN statt der
-  # same-ns-Kurznamen aus dem k3d-Original.
+  # Fail-closed [T016429]: LLM bleibt aus, bis der Fleet→Windows-Routen-Spike
+  # einen erreichbaren Endpoint liefert. Die Console startet und bedient alles
+  # Nicht-LLM ohne Crash.
+  LLM_ENABLED: "false"
+  LLM_RERANK_ENABLED: "false"
+  # In-cluster bge-Gateways (ns workspace) — nutzbar sobald T016430 gemerged
+  # ist und die Flags oben auf true gehen.
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
   LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace.svc.cluster.local:8081"
   LLM_EMBED_MODEL: "bge-m3"
@@ -118,10 +57,6 @@ spec:
       serviceAccountName: sdlc-console
       imagePullSecrets:
         - name: ghcr-pull-secret
-      dnsConfig:
-        options:
-          - name: ndots
-            value: "3"
       nodeSelector:
         kubernetes.io/arch: amd64
       containers:
@@ -141,47 +76,32 @@ spec:
             - configMapRef:
                 name: sdlc-console-config
           env:
-            # Reihenfolge PFLICHT: WEBSITE_DB_PASSWORD muss VOR
-            # SESSIONS_DATABASE_URL stehen — k8s löst $(VAR)-Referenzen nur aus
-            # früher in der Liste stehenden Env-Einträgen auf (Muster wie in
-            # website-dev.yaml).
+            - name: PORT
+              value: "4321"
+            - name: SESSIONS_DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev:5432/website"
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: website-secrets
-                  key: WEBSITE_DB_PASSWORD
-            # Tickets-DB of Record liegt im Fleet-workspace (Explore-Fund,
-            # T016422) — deshalb shared-db.workspace statt des k3d-lokalen
-            # shared-db mit Inline-Dev-Passwort.
-            - name: SESSIONS_DATABASE_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+                  name: shared-db-dev-secrets
+                  key: DEV_WEBSITE_DB_PASSWORD
             - name: POCKET_ID_WEBSITE_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: website-secrets
+                  name: sdlc-console-placeholders
                   key: POCKET_ID_WEBSITE_SECRET
             - name: CRON_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: website-secrets
+                  name: sdlc-console-placeholders
                   key: CRON_SECRET
-            # C3 (T002643): ci_rerun spricht die GitHub REST API an (kein
-            # gh-axi im Container). PAT aus website-secrets (workspace-dev-
-            # Kopie, kubeseal laut ADR-007-Anhang). FLUX_WEBHOOK_URL/TOKEN
-            # werden hier bewusst NICHT gesetzt — die flux-Aktionen liefern
-            # dann sauber 503 statt zu scheitern.
             - name: GITHUB_PAT
               valueFrom:
                 secretKeyRef:
-                  name: website-secrets
+                  name: sdlc-console-placeholders
                   key: GITHUB_PAT
           ports:
             - name: http
-              # Der Astro-Node-Adapter lauscht ohne gesetztes PORT auf 4321 —
-              # so wie k3d/website.yaml es auch deklariert. Hier stand 8080,
-              # ohne dass PORT gesetzt wurde: auf 8080 lauschte nie etwas, die
-              # Readiness-Probe lief dauerhaft in "connection refused" und der
-              # Rollout in seine progress deadline.
               containerPort: 4321
           resources:
             requests:
@@ -216,7 +136,5 @@ spec:
     app: sdlc-console
   ports:
     - name: http
-      # Service-Port bleibt 8080 (der Ingress verweist darauf); nur das Ziel im
-      # Container wandert auf den tatsächlichen Astro-Port 4321.
       port: 8080
       targetPort: 4321

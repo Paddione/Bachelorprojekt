@@ -3564,6 +3564,12 @@
     "kind": "shell"
   },
   {
+    "id": "finetune-hf-jobs",
+    "file": "tests/spec/finetune-hf-jobs.bats",
+    "category": "finetune-hf-jobs",
+    "kind": "shell"
+  },
+  {
     "id": "finetune/model-registry",
     "file": "tests/spec/finetune/model-registry.bats",
     "category": "finetune",

@@ -794,6 +794,8 @@ Last touches:
 Reqs: 1 · Scenarios: 4 · Lines: 37
 Last touches:
   - Model Registry tracks adapters across suitability, stats, provenance, and deployment | T002629 | 2026-08-14 | ADDED
+In-flight:
+  - Der Trainingspfad ist von der lokalen Laufzeit entkoppelt | T016438 | active | ADDED
 
 ### monitoring-alerts
 Reqs: 20 · Scenarios: 31 · Lines: 362

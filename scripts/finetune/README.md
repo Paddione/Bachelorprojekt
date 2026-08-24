@@ -112,3 +112,24 @@ der identische Pfad fuer Tests (Kommentarzeilen: `{"ticket_id": <int>, "author":
 
 `outputs/`, `*.gguf` und Unsloth-Kompilat-Caches sind ueber `scripts/finetune/.gitignore`
 ausgeschlossen (umgezogen aus dem entfernten `unsloth_training_setup/.gitignore`).
+
+## Trainingspfad nach dem WSL-Exit: HF Jobs Cloud (primär)
+
+Mit dem WSL-Exit (ADR-007) verlieren die lokalen Unsloth-Venvs (~/.venvs) ihr
+Zuhause — Fleet-Worker haben keine GPU. Der primäre Trainingspfad ist jetzt
+**HF Jobs Cloud**:
+
+```bash
+# Voraussetzung: HF_TOKEN exportiert (write-Scope für Artefakt-Upload)
+task finetune:hf-jobs:train CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json>
+task finetune:hf-jobs:export RUN=<job-id> OUT=<registry-pfad>
+```
+
+* Skripte laufen als UV-Inline-Scripts (PEP 723) — keine venv-Pflege mehr.
+* Monitoring über **Trackio** (Dashboard im Hub); Messwerte fließen in die
+  Modell-Registry (Eignung, Stat-Requirements, Provenienz, Einsatz-Anleitung).
+* Der GGUF-Export landet im Registry-Pfad wie lokal (`export_gguf.py` läuft
+  im Job; Download des Artefakts via `hf download`).
+* Die lokalen Targets (`finetune:train/export` mit gpu-lock.sh) bleiben
+  funktionsfähig, sind aber **deprecated**: sie setzen eine WSL/GPU-Laufzeit
+  voraus, die es nach dem WSL-Shutdown nicht mehr gibt.

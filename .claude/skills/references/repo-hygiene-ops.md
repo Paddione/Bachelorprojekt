@@ -148,7 +148,7 @@ er ist Filterbeschreibung, nicht der operative Aufruf.
 # Nicht-allowlistete Abweichungen — nur diese blockieren den Remove.
 git -C <path> status --porcelain | cut -c4- \
   | grep -Ev '^(openspec/changes/|docs/code-quality/|components/website/src/data/)' \
-  | grep -Ev '^(\.release-please-manifest\.json|components/website/CHANGELOG\.md|components/website/package\.json)$'
+  | grep -Ev '^(\.release-please-manifest\.json|components/website/CHANGELOG\.md|components/website/package\.json|docs/spec-atlas\.md)$'
 ```
 
 Bleibt die Ausgabe leer, ist der Worktree im Sinne dieses Runbooks sauber. `--force` ist dann

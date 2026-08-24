@@ -14,6 +14,16 @@
 set -euo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
+# [T015556] Readiness-Gate vor dem Slot-Claim: schedule.sh claimed sonst planlose
+# Rows (kein FACTORY-PLAN-REF → branch/plan leer), die dispatcher-bridge sie
+# am Readiness-Gate [T003773] wieder ueberspringt — Ticket strandet auf
+# in_progress mit belegtem Slot, der Watchdog bounct es zurueck (INFRA-Klasse,
+# kein Phasen-Write), der naechste Tick claimed erneut: Bounce-Loop
+# (T014546/T014551). Gate hier = Claim-vor-Readiness abschalten; das Bridge-Gate
+# bleibt als zweiter Riegel (Defense-in-depth, Design factory-infra-bounce-loop).
+# Sourcen statt aufrufen, damit der Guard die einzige Implementierung bleibt.
+# shellcheck source=scripts/factory/readiness-check.sh
+source "$HERE/readiness-check.sh"
 BRAND="${BRAND:-}"
 factory_resolve
 [[ -n "${FACTORY_DRY_RESOLVE:-}" ]] && { echo "resolved: ctx=${FACTORY_CTX} ns=${FACTORY_NS}"; exit 0; }
@@ -135,6 +145,26 @@ SQL
   [[ "$rc" -eq 1 ]] && continue
   if [[ "$rc" -eq 2 ]]; then
     echo "WARN: conflict-check rc 2 fuer $ext_id (keine touched_files oder Fehler) — schedule ungeprueft [T002418]" >&2
+  fi
+
+  # ── Readiness-Gate (T015556) ──────────────────────────────────────────────
+  # branch/plan_path aus plan_ref parsen — dieselbe Konvention wie
+  # factory-prep.sh (grep -oP 'branch=\K\S+'). Der plan_ref ist der juengste
+  # FACTORY-PLAN-REF-Kommentar (ableitbar via ticket.sh get, Spalte existiert
+  # nicht — dieselbe Ableitung wie scripts/vda/ticket/get.sh). Ohne plan_ref
+  # bleibt beides leer → check_ticket_readiness liefert missing_args →
+  # Kandidat wird mit Journal-Line uebersprungen, Status bleibt backlog,
+  # KEIN Claim.
+  plan_ref=$(printf '%s' "SELECT COALESCE((SELECT c.body FROM tickets.ticket_comments c JOIN tickets.tickets t ON t.id = c.ticket_id WHERE t.external_id = :'ext_id' AND c.body LIKE 'FACTORY-PLAN-REF %' ORDER BY c.created_at DESC LIMIT 1), '');" \
+    | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql -v ext_id="$ext_id")
+  gate_branch=""
+  gate_plan=""
+  [[ -n "$plan_ref" ]] && gate_branch="$(printf '%s' "$plan_ref" | grep -oP 'branch=\K\S+' || true)"
+  [[ -n "$plan_ref" ]] && gate_plan="$(printf '%s' "$plan_ref" | grep -oP 'plan=\K\S+' || true)"
+  if ! readiness_json="$(check_ticket_readiness "$gate_branch" "$gate_plan")"; then
+    readiness_reason="$(printf '%s' "$readiness_json" | jq -r '.reason // "unknown"' 2>/dev/null || echo unknown)"
+    echo "schedule: ${ext_id} not ready (readiness=${readiness_reason}) — not claimed [T015556]" >&2
+    continue
   fi
 
   # Gang-Bedarf des Kandidaten (Design §3): slot_count wird von stage-plan

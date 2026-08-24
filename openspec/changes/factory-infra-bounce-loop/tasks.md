@@ -30,7 +30,7 @@ Fallback, keine parallelen Pfade).
 
 ## Tasks
 
-- [ ] **p1 — Failing-Test (RED).** Neue Datei
+- [x] **p1 — Failing-Test (RED).** Neue Datei
       `tests/spec/software-factory/bounce-loop-guard.bats` mit vier Tests
       (je Delta-Szenario aus specs/factory-watchdog.md): (1) planloses
       locked-Feat wird von schedule.sh nicht geclaimt (Status bleibt backlog),
@@ -45,14 +45,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/bounce-loop-guard.
 # expected: FAIL (red — Gates und Fail-safe existieren noch nicht)
 ```
 
-- [ ] **p2 — Fix schedule.sh (GREEN Teil 1).** Vor `slots.sh claim-gang`
+- [x] **p2 — Fix schedule.sh (GREEN Teil 1).** Vor `slots.sh claim-gang`
       (Zeile ~173) denselben Readiness-Check wie dispatcher-bridge.sh
       (`check_ticket_readiness` aus lib.sh) ausführen; bei missing_args:
       Journal-Line `schedule: $ext_id not ready (readiness=missing_args) —
       not claimed`, Row aus Launch-Liste ausschließen, kein Claim. Test 1 muss
       danach grün sein.
 
-- [ ] **p3 — Fix watchdog.sh (GREEN Teil 2).** (a) `2>/dev/null` am
+- [x] **p3 — Fix watchdog.sh (GREEN Teil 2).** (a) `2>/dev/null` am
       Counter-Aufruf entfernen, Fehler auf stderr; (b) konsekutive unlesbare
       Runden über Key `factory_infra_unreadable:<ext_id>` zählen, ab
       MAX_INFRA_ATTEMPTS → escalate=1, Kommentar-Suffix `ERR` statt `?`;
@@ -61,7 +61,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/bounce-loop-guard.
       Opt-out `FACTORY_ALLOW_STALE_MIN_ZERO=1` + Journal-Zeile. Tests 2–4
       müssen grün sein.
 
-- [ ] **p4 — Final Verification.** Alle drei CI-Gates:
+- [x] **p4 — Final Verification.** Alle drei CI-Gates:
 
 ```bash
 task test:changed

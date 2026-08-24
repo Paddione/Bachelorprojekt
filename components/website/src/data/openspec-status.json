@@ -4315,6 +4315,12 @@
       "status": "archived"
     }
   ],
+  "T015556": [
+    {
+      "slug": "factory-infra-bounce-loop",
+      "status": "plan_staged"
+    }
+  ],
   "T015670": [
     {
       "slug": "closure-identity-guard",

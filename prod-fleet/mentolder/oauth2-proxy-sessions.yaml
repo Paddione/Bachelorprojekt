@@ -94,7 +94,6 @@ spec:
             # Prod: https + öffentliche Autorize-URL, interne Token/JWKS-Endpunkte.
             - --redirect-url=https://session-login.${SESSIONS_DOMAIN}/oauth2/callback
             - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
-            - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
             - --login-url=https://${POCKET_ID_DOMAIN}/authorize
             - --redeem-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/token
@@ -111,7 +110,6 @@ spec:
             - --set-xauthrequest=true
             - --skip-provider-button=true
             - --code-challenge-method=S256
-            - --insecure-oidc-allow-unverified-email=true
             - --oidc-extra-audience=session-hub
             - --scope=openid email profile
             - --whitelist-domain=${SESSIONS_DOMAIN}

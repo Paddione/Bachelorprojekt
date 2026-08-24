@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.312.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.2...website-v1.312.3) (2026-08-24)
+
+
+### Bug Fixes
+
+* **factory:** readiness gate vor Slot-Claim + Watchdog INFRA fail-safe/Eskalation [T015556] ([#5203](https://github.com/Paddione/Bachelorprojekt/issues/5203)) ([3a2d81b](https://github.com/Paddione/Bachelorprojekt/commit/3a2d81b041229b80c54269f0fb78b666cfd0a64e))
+
 ## [1.312.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.1...website-v1.312.2) (2026-08-24)
 
 

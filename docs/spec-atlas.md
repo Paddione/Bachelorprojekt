@@ -16,6 +16,8 @@ Last touches:
   - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
+  - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
+  - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -85,6 +87,8 @@ Last touches:
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
 In-flight:
+  - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
+  - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED
   - Der Datenbank-Endpoint ist fail-closed | T016430 | active | ADDED
   - Hostnamen bleiben zentral registriert | T016430 | active | ADDED
@@ -655,6 +659,9 @@ Last touches:
   - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
   - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
+In-flight:
+  - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
+  - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -789,6 +796,8 @@ Last touches:
 Reqs: 1 · Scenarios: 4 · Lines: 37
 Last touches:
   - Model Registry tracks adapters across suitability, stats, provenance, and deployment | T002629 | 2026-08-14 | ADDED
+In-flight:
+  - Der Trainingspfad ist von der lokalen Laufzeit entkoppelt | T016438 | active | ADDED
 
 ### monitoring-alerts
 Reqs: 20 · Scenarios: 31 · Lines: 362

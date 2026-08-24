@@ -19,7 +19,6 @@ resources:
   - oauth2-proxy-sessions.yaml
   - dev-ingress.yaml
   - internal-mcp-ingress.yaml
-  - sdlc-console.yaml
 patches:
   - path: dev-node-binding.yaml
     target:

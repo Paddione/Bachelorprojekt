@@ -3564,6 +3564,12 @@
     "kind": "shell"
   },
   {
+    "id": "finetune-hf-jobs",
+    "file": "tests/spec/finetune-hf-jobs.bats",
+    "category": "finetune-hf-jobs",
+    "kind": "shell"
+  },
+  {
     "id": "finetune/model-registry",
     "file": "tests/spec/finetune/model-registry.bats",
     "category": "finetune",
@@ -3608,6 +3614,12 @@
   {
     "id": "fleet-operations/firewall-program-match",
     "file": "tests/spec/fleet-operations/firewall-program-match.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/hetzner2-decommission",
+    "file": "tests/spec/fleet-operations/hetzner2-decommission.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },

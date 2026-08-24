@@ -4409,6 +4409,12 @@
       "status": "plan_staged"
     }
   ],
+  "T016416": [
+    {
+      "slug": "kv-ladder-autostart",
+      "status": "plan_staged"
+    }
+  ],
   "T016418": [
     {
       "slug": "watchdog-worktree-activity",
@@ -4419,6 +4425,12 @@
     {
       "slug": "2026-08-24-freetoken-agent-roster-cleanup",
       "status": "archived"
+    }
+  ],
+  "T016420": [
+    {
+      "slug": "sdlc-autopilot-skill-adoption",
+      "status": "plan_staged"
     }
   ],
   "T016422": [
@@ -4433,6 +4445,12 @@
       "status": "archived"
     }
   ],
+  "T016425": [
+    {
+      "slug": "wsl-exit-hetzner2-decommission",
+      "status": "plan_staged"
+    }
+  ],
   "T016429": [
     {
       "slug": "wsl-exit-sdlc-console-fleet",
@@ -4442,6 +4460,12 @@
   "T016430": [
     {
       "slug": "wsl-exit-internal-endpoints",
+      "status": "plan_staged"
+    }
+  ],
+  "T016438": [
+    {
+      "slug": "wsl-exit-hf-jobs",
       "status": "plan_staged"
     }
   ],

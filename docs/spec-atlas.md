@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2269 · Scenarios: 5054
+Specs: 145 · Requirements: 2273 · Scenarios: 5058
 
 ## factory-pipeline
 
@@ -561,14 +561,13 @@ Last touches:
   - Secret-Redaktion erstreckt sich auf angereicherte Felder | T006252 | 2026-08-15 | ADDED
 
 ### factory-watchdog
-Reqs: 1 · Scenarios: 1 · Lines: 20
+Reqs: 5 · Scenarios: 5 · Lines: 77
 Last touches:
+  - Claim-Readiness-Gate vor Gang-Slot-Claim | T015556 | 2026-08-24 | ADDED
+  - Unlesbarer INFRA-Counter blockiert Eskalation nicht dauerhaft | T015556 | 2026-08-24 | ADDED
+  - DB-Identitätscheck vor Reset-Writes | T015556 | 2026-08-24 | ADDED
+  - STALE_MIN-Floor in Produktion | T015556 | 2026-08-24 | ADDED
   - Ticket-Status-Reaper für verwaiste in_progress | T002770 | 2026-08-09 | ADDED
-In-flight:
-  - Claim-Readiness-Gate vor Gang-Slot-Claim | T015556 | active | ADDED
-  - Unlesbarer INFRA-Counter blockiert Eskalation nicht dauerhaft | T015556 | active | ADDED
-  - DB-Identitätscheck vor Reset-Writes | T015556 | active | ADDED
-  - STALE_MIN-Floor in Produktion | T015556 | active | ADDED
 
 ### fix-factory-lock-worktree-safety
 Reqs: 4 · Scenarios: 8 · Lines: 80

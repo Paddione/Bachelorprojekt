@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-96 Services · 2007 Abhängigkeitskanten · 291 API-Endpoints
+98 Services · 2009 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -27,9 +27,12 @@ flowchart LR
   systemtest_purge_all["systemtest-purge-all"]:::default
   systemtest_outbox["systemtest-outbox"]:::default
   claude_code_mcp_monolith["claude-code-mcp-monolith"]:::default
+  factory_runner["factory-runner"]:::default
+  factory_tick["factory-tick"]:::default
   oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]:::default
   oauth2_proxy_dev["oauth2-proxy-dev"]:::default
   oauth2_proxy_session_hub["oauth2-proxy-session-hub"]:::default
+  sdlc_console["sdlc-console"]:::default
   shared_db_dev["shared-db-dev"]:::default
   sish["sish"]:::default
   website["website"]:::default
@@ -77,7 +80,6 @@ flowchart LR
   oauth2_proxy_recovery["oauth2-proxy-recovery"]:::default
   hbbr["hbbr"]:::default
   hbbs["hbbs"]:::default
-  sdlc_console["sdlc-console"]:::default
   sealed_secrets_controller["sealed-secrets-controller"]:::default
   sessions_server["sessions-server"]:::default
   shared_db["shared-db"]:::db
@@ -97,13 +99,13 @@ flowchart LR
   ddns_updater["ddns-updater"]:::default
   dev_db_refresh["dev-db-refresh"]:::default
   traefik["traefik"]:::ingress
+  llm_gateway_embed["llm-gateway-embed"]:::default
+  llm_gateway_rerank["llm-gateway-rerank"]:::default
   apiinternal["api@internal"]:::default
   WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]:::default
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
-  llm_gateway_embed["llm-gateway-embed"]:::default
-  llm_gateway_rerank["llm-gateway-rerank"]:::default
   keycloak["keycloak"]:::auth
   tracking["tracking"]:::default
   docuseal["docuseal"]:::default
@@ -128,6 +130,8 @@ flowchart LR
   claude_code_mcp_monolith -->|"DATABASE_URL"| shared_db
   claude_code_mcp_monolith -->|"DATABASE_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
+  sdlc_console -->|"SESSIONS_DATABASE_…"| shared_db
+  sdlc_console -->|"SESSIONS_DATABASE_…"| website
   error_log_retention -->|"command"| website
   knowledge_ingest_prs -->|"PGHOST"| shared_db
   knowledge_ingest_prs -->|"PGDATABASE"| website
@@ -150,8 +154,6 @@ flowchart LR
   pvc_backup -->|"command"| nextcloud
   pvc_backup -->|"command"| vaultwarden
   oauth2_proxy_recovery -->|"command"| recovery_browser
-  sdlc_console -->|"SESSIONS_DATABASE_…"| shared_db
-  sdlc_console -->|"SESSIONS_DATABASE_…"| website
   shared_db -->|"configmap:shared-d…"| nextcloud
   shared_db -->|"configmap:shared-d…"| vaultwarden
   shared_db -->|"configmap:shared-d…"| website
@@ -184,6 +186,8 @@ flowchart LR
   dev_db_refresh -->|"SOURCE_PGHOST"| shared_db
   traefik -->|"ingress"| brett
   traefik -->|"ingress"| oauth2_proxy_dev
+  traefik -->|"ingress"| llm_gateway_embed
+  traefik -->|"ingress"| llm_gateway_rerank
   traefik -->|"ingress"| oauth2_proxy_brainstorm
   traefik -->|"ingress"| sish
   traefik -->|"ingress"| oauth2_proxy_session_hub
@@ -225,6 +229,7 @@ flowchart LR
   oauth2_proxy_brainstorm -->|"selector"| oauth2_proxy_brainstorm
   oauth2_proxy_dev -->|"selector"| oauth2_proxy_dev
   oauth2_proxy_session_hub -->|"selector"| oauth2_proxy_session_hub
+  sdlc_console -->|"selector"| sdlc_console
   shared_db_dev_lb -->|"selector"| shared_db_dev
   shared_db_dev -->|"selector"| shared_db_dev
   sish -->|"selector"| sish
@@ -244,7 +249,6 @@ flowchart LR
   collabora -->|"selector"| collabora
   recovery_browser -->|"selector"| recovery_browser
   oauth2_proxy_recovery -->|"selector"| oauth2_proxy_recovery
-  sdlc_console -->|"selector"| sdlc_console
   sealed_secrets_controller -->|"selector"| sealed_secrets_controller
   sessions_server -->|"selector"| sessions_server
   shared_db_staging -->|"selector"| shared_db_staging
@@ -2072,8 +2076,11 @@ flowchart TB
     billing_dunning_detection(["billing-dunning-detection"])
     monthly_billing(["monthly-billing"])
     scheduled_publish(["scheduled-publish"])
+    factory_runner["factory-runner"]
+    factory_tick(["factory-tick"])
     oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]
     oauth2_proxy_session_hub["oauth2-proxy-session-hub"]
+    sdlc_console["sdlc-console"]
     shared_db_dev["shared-db-dev"]
     sish["sish"]
     website["website"]
@@ -2110,7 +2117,6 @@ flowchart TB
     pvc_backup(["pvc-backup"])
     recovery_browser["recovery-browser"]
     oauth2_proxy_recovery["oauth2-proxy-recovery"]
-    sdlc_console["sdlc-console"]
     sessions_server["sessions-server"]
     shared_db["shared-db"]
     studio_server["studio-server"]
@@ -2124,13 +2130,13 @@ flowchart TB
     whisper["whisper"]
     ddns_updater(["ddns-updater"])
     traefik["traefik"]
+    llm_gateway_embed["llm-gateway-embed"]
+    llm_gateway_rerank["llm-gateway-rerank"]
     apiinternal["api@internal"]
     WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
     shared_db_dev_lb["shared-db-dev-lb"]
-    llm_gateway_embed["llm-gateway-embed"]
-    llm_gateway_rerank["llm-gateway-rerank"]
     keycloak["keycloak"]
     tracking["tracking"]
     docuseal["docuseal"]

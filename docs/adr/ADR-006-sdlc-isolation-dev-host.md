@@ -1,5 +1,7 @@
 # ADR-006: SDLC-Isolation — Entwicklungsfläche auf den Dev-Host, Produktion bleibt auf fleet
 
+> **SUPERSEDED by ADR-007 (2026-08-24)**
+
 **Status:** Accepted — teilweise umgesetzt (E1 gemergt, E2–E6 offen)
 **Datum:** 2026-08-03 · Ist-Stand nachgezogen 2026-08-04
 **Ticket:** T002623 (Entscheidung) · T002624 (E1) · T002646 (Ist-Stand)

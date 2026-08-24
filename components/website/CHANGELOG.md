@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.312.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.1...website-v1.312.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-git-op-guard --finish schliesst den sicheren Rebase-Fall ab [T015784] ([#5204](https://github.com/Paddione/Bachelorprojekt/issues/5204)) ([4d599a9](https://github.com/Paddione/Bachelorprojekt/commit/4d599a9ca01e159ea631a8221469a6ad593f2dab))
+
 ## [1.312.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.0...website-v1.312.1) (2026-08-24)
 
 

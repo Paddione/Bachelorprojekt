@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2266 · Scenarios: 5051
+Specs: 145 · Requirements: 2269 · Scenarios: 5054
 
 ## factory-pipeline
 
@@ -308,15 +308,14 @@ Last touches:
   - [gone]-Prune-Reihenfolge korrigieren | T003490 | 2026-08-11 | ADDED
 
 ### billing-pipeline
-Reqs: 21 · Scenarios: 48 · Lines: 425
+Reqs: 24 · Scenarios: 51 · Lines: 456
 Paths: website/src/lib/billing, website/src/lib/invoice, website/src/lib/stripe, website/src/api/billing, website/src/pages/billing
 Last touches:
+  - Test Data Isolation in Billing | T015362 | 2026-08-24 | ADDED
+  - GoBD Exemption for Test Data | T015362 | 2026-08-24 | ADDED
+  - Test Data Purge of Billing Entities | T015362 | 2026-08-24 | ADDED
   - Invoice Lifecycle — Partial and Full Payment via UI and API | T002193 | 2026-07-26 | MODIFIED
   - Time Entry Date Falls Back to CURRENT_DATE When Omitted | T001351 | 2026-07-02 | ADDED
-In-flight:
-  - Test Data Isolation in Billing | T015362 | active | ADDED
-  - GoBD Exemption for Test Data | T015362 | active | ADDED
-  - Test Data Purge of Billing Entities | T015362 | active | ADDED
 
 ### brain-foundation
 Reqs: 28 · Scenarios: 66 · Lines: 729

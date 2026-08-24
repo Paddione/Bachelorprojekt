@@ -1,7 +1,7 @@
 ---
 title: "callable-ai-council — Implementation Plan"
 ticket_id: T016501
-domains: [plan-authoring]
+domains: [agents, scripts, test]
 status: active
 file_locks: []
 shared_changes: false
@@ -12,31 +12,41 @@ depends_on_plans: []
 
 # callable-ai-council — Implementation Plan
 
-_Ticket: T016501_
-
 ## File Structure
 
-```
-<author fills this in — list of new/changed files>
-```
+| Path | Change |
+|---|---|
+| `scripts/council/decision.mjs` | New pure ballot parser and deterministic outcome state machine |
+| `scripts/council/prompts.mjs` | New prompt builders for openings, cross-examination, synthesis, revisions, and ballots |
+| `scripts/vda/council.mjs` | New CLI, registry resolver, process runner, scheduler, and run-artifact writer |
+| `scripts/vda.sh` | Add the canonical `council` command and help entry |
+| `.gitignore` | Ignore local `.council/` run artifacts |
+| `docs/agent-guide/registry/tools.yaml` | Register the Council as a discoverable advisory tool |
+| `components/website/src/lib/agent-guide.generated.json` | Regenerated agent-guide web surface |
+| `components/website/src/lib/platform-descriptions.generated.json` | Regenerated platform descriptions if registry emission changes it |
+| `docs/agent-guide/20-werkzeuge.md` | Regenerated Council tool documentation |
+| `docs/agent-guide/maps/tools-map.md` | Regenerated Council tool map |
+| `tests/unit/council-decision.test.mjs` | New offline decision/parser tests |
+| `tests/unit/vda-council.bats` | New offline CLI, SSOT, read-only dispatch, and failure-contract tests |
+| `components/website/src/data/test-inventory.json` | Regenerated test inventory |
 
-## Verify (RED → GREEN)
+## Partials
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+| id | plan | role | target_files | depends_on |
+|---|---|---|---|---|
+| p1-engine | tasks.d/p1-engine.md | impl | scripts/council/decision.mjs, scripts/council/prompts.mjs, scripts/vda/council.mjs | |
+| p2-surface | tasks.d/p2-surface.md | impl | scripts/vda.sh, .gitignore, docs/agent-guide/registry/tools.yaml, components/website/src/lib/agent-guide.generated.json, components/website/src/lib/platform-descriptions.generated.json, docs/agent-guide/20-werkzeuge.md, docs/agent-guide/maps/tools-map.md | p1-engine |
+| p3-tests | tasks.d/p3-tests.md | tests | tests/unit/council-decision.test.mjs, tests/unit/vda-council.bats, components/website/src/data/test-inventory.json | p1-engine, p2-surface |
 
-```bash
-# Example: run the BATS test the author will add in their first task
-# (eigene Datei unter tests/spec/<spec-slug>/<kurz-slug>.bats, T002416)
-tests/unit/lib/bats-core/bin/bats tests/spec/ai-council/
-# expected: FAIL (red — the fix is not yet implemented)
-```
+## Partial Plans
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
+- [p1-engine](tasks.d/p1-engine.md)
+- [p2-surface](tasks.d/p2-surface.md)
+- [p3-tests](tasks.d/p3-tests.md)
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+## Final Verification
+
+- [ ] Run the mandatory repository gates after all partials are complete:
 
 ```bash
 task test:changed

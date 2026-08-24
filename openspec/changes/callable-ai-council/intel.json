@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "callable-ai-council",
+    "ticket_id": "T016501",
+    "generated_from": "main@cf533e1c4",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".gitignore",
+      "language": "text",
+      "loc": 254,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6026,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/agent-guide.generated.json",
+      "language": "config",
+      "loc": 2161,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/platform-descriptions.generated.json",
+      "language": "config",
+      "loc": 142,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/20-werkzeuge.md",
+      "language": "markdown",
+      "loc": 375,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/maps/tools-map.md",
+      "language": "markdown",
+      "loc": 38,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/tools.yaml",
+      "language": "config",
+      "loc": 272,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/council/decision.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/council/prompts.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/vda.sh",
+      "language": "bash",
+      "loc": 107,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 693
+    },
+    {
+      "path": "scripts/vda/council.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/council-decision.test.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/vda-council.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/vda.sh:8:show_help() {",
+      "kind": "function",
+      "file": "scripts/vda.sh",
+      "signature": "8:show_help() {(...)",
+      "type_text": "8:show_help() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda.sh:27:show_version() { echo \"vda.sh 1.0.0\"; }",
+      "kind": "function",
+      "file": "scripts/vda.sh",
+      "signature": "27:show_version() { echo \"vda.sh 1.0.0\"; }(...)",
+      "type_text": "27:show_version() { echo \"vda.sh 1.0.0\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda.sh:29:main() {",
+      "kind": "function",
+      "file": "scripts/vda.sh",
+      "signature": "29:main() {(...)",
+      "type_text": "29:main() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

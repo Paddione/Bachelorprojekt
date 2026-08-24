@@ -4369,6 +4369,12 @@
       "status": "archived"
     }
   ],
+  "T015822": [
+    {
+      "slug": "agent-lock-liveness-heartbeat",
+      "status": "plan_staged"
+    }
+  ],
   "T016250": [
     {
       "slug": "consolidate-sessions-specs",

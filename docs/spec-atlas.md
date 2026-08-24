@@ -2,18 +2,20 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2273 · Scenarios: 5058
+Specs: 145 · Requirements: 2280 · Scenarios: 5073
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 61 · Scenarios: 128 · Lines: 1599
+Reqs: 61 · Scenarios: 131 · Lines: 1626
 Last touches:
   - Interrupted git operations in worktrees are surfaced as a finding | T015784 | 2026-08-24 | MODIFIED
+  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T015916 | 2026-08-24 | MODIFIED
   - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
   - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
   - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
-  - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
+In-flight:
+  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -151,13 +153,13 @@ Last touches:
 ## Ungrouped
 
 ### active-sessions-hub
-Reqs: 19 · Scenarios: 56 · Lines: 631
+Reqs: 19 · Scenarios: 55 · Lines: 630
 Last touches:
+  - Session-Registry als Single Source of Truth | T016250 | 2026-08-24 | MODIFIED
   - Branch-scoped release refuses while the cwd is inside the lock's worktree | T006290 | 2026-08-15 | ADDED
   - Harness-Stable Session Identity for agent-lock | T005676 | 2026-08-14 | MODIFIED
   - Pre-Commit Guards in dev-flow-plan | T003116 | 2026-08-10 | MODIFIED
   - Mandatory Worktree Scoping for File-Writing Tools | T003116 | 2026-08-10 | MODIFIED
-  - Deliberate Main-Checkout Reclaim for Bookkeeping Locks | T002809 | 2026-08-10 | ADDED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114
@@ -531,13 +533,13 @@ Last touches:
   - Parallel Gang Execution in pipeline.mjs | T002129 | 2026-08-02 | ADDED
 
 ### factory-reclaim-lock-respect
-Reqs: 4 · Scenarios: 10 · Lines: 127
+Reqs: 6 · Scenarios: 14 · Lines: 169
 Last touches:
+  - Activity heartbeat keeps claims alive | T015822 | 2026-08-24 | ADDED
+  - Active-process check precedes pid-based reap | T015822 | 2026-08-24 | ADDED
   - A public branch-liveness check is available to reap paths | T002896 | 2026-08-10 | ADDED
   - worktree-create.sh's idempotency-remove respects a live foreign claim | T002896 | 2026-08-10 | ADDED
   - factory cleanup.sh skips branches and worktrees under a live foreign claim | T002896 | 2026-08-10 | ADDED
-  - A dead pid reaps a worktree-matched claim after the grace period | T002849 | 2026-08-09 | ADDED
-  - A live holder process keeps its agent-lock alive | T002267 | 2026-08-02 | ADDED
 
 ### factory-scout-backoff
 Reqs: 2 · Scenarios: 3 · Lines: 43
@@ -778,25 +780,20 @@ Last touches:
   - Model Registry tracks adapters across suitability, stats, provenance, and deployment | T002629 | 2026-08-14 | ADDED
 
 ### monitoring-alerts
-Reqs: 15 · Scenarios: 24 · Lines: 271
+Reqs: 20 · Scenarios: 31 · Lines: 362
 Paths: k3d/prometheus, k3d/alertmanager, k3d/grafana
 Last touches:
-  - Monitoring-Hauptcontainer haben Resource Requests und Limits | T014553 | 2026-08-23 | ADDED
-  - Pushover Notification Receiver | T014542 | 2026-08-23 | MODIFIED
-  - No Unregistered Resource Manifests in k3d/monitoring | T002185 | 2026-08-02 | ADDED
-  - Placeholder CronJobs Are Not Committed | T002185 | 2026-08-02 | ADDED
+  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T015712 | 2026-08-24 | ADDED
+  - Backup-Job-Failures lösen kritischen Alert aus | T015712 | 2026-08-24 | ADDED
+  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | 2026-08-24 | ADDED
+  - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | 2026-08-24 | ADDED
+  - Backup-Alerts decken beide Brands ab | T015712 | 2026-08-24 | ADDED
 In-flight:
   - Mandatory Alert Set | T016124 | active | MODIFIED
   - Backup-Job-Failures lösen kritischen Alert aus | T016124 | active | MODIFIED
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
   - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
-  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T015712 | active | ADDED
-  - Backup-Job-Failures lösen kritischen Alert aus | T015712 | active | ADDED
-  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | active | ADDED
-  - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | active | ADDED
-  - Backup-Alerts decken beide Brands ab | T015712 | active | ADDED
-  - Mandatory Alert Set | T015712 | active | MODIFIED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331
@@ -999,11 +996,11 @@ Last touches:
   - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
 
 ### sessions-server
-Reqs: 13 · Scenarios: 24 · Lines: 251
+Reqs: 13 · Scenarios: 26 · Lines: 269
 Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
+  - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
-  - BATS Placeholder Test Coverage | T002010 | 2026-07-21 | ADDED
 
 ### sidekick-assistant
 Reqs: 36 · Scenarios: 68 · Lines: 712

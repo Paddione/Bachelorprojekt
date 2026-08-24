@@ -49,13 +49,25 @@ fi
 # Branch-Claims werden bewusst NICHT als Fortschritt gewertet, da hängende Pipelines
 # selbst Claims hinterlassen. Dasselbe Gate wie in queue.sh (beide Dispatch-Lanes)
 # deckt beide Sweep-Pfade ab (Reset und Eskalation).
+#
+# [T015983] Zweiseitige Test-Isolation über den factory-test-Marker
+# (ticket_comments.author_label='factory-test', gesetzt automatisch von beiden
+# Seed-Funktionen in tests/lib/factory-test-fixtures.sh): Im Betrieb sieht der
+# Sweep NIE Test-Seeds; im Testmodus (FACTORY_STALE_EXCLUDE_TEST_SEEDS=0, wie von
+# scheduling.bats/orphan-slot-reap.bats gesetzt) AUSSCHLIESSLICH diese. Die alte
+# Semantik bedeutete bei =0 "gar kein Filter" — der Sweep lief global über die
+# geteilte Dev-DB und resetzte echte in_progress-Tickets mitten in der Ausführung
+# (T015712: drei Resets "stale > 0min" aus SF-Test-Sweeps am 2026-08-24). =1 und
+# unset bedeuten weiterhin "Seeds ausgeschlossen" (Betrieb); nur exakt "0" schaltet
+# in den Test-Scope um — bewusst nicht-invertierbar dokumentiert, damit ein
+# Tippfehler auf der sicheren Seite landet.
 _stale_query() {
-  local extra_filter=""
-  if [[ "${FACTORY_STALE_EXCLUDE_TEST_SEEDS:-}" == "1" ]]; then
-    extra_filter=" AND is_test_data = false"
+  local marker="NOT EXISTS (SELECT 1 FROM tickets.ticket_comments c WHERE c.ticket_id = tickets.tickets.id AND c.author_label = 'factory-test')"
+  if [[ "${FACTORY_STALE_EXCLUDE_TEST_SEEDS:-}" == "0" ]]; then
+    marker="EXISTS (SELECT 1 FROM tickets.ticket_comments c WHERE c.ticket_id = tickets.tickets.id AND c.author_label = 'factory-test')"
   fi
-  printf "SELECT external_id, type FROM tickets.tickets WHERE type NOT IN (%s) AND status='in_progress' AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false AND updated_at < now() - make_interval(mins => %s)%s;" \
-    "$STALE_EXCLUDED_TYPES" "$STALE_MIN" "$extra_filter"
+  printf "SELECT external_id, type FROM tickets.tickets WHERE type NOT IN (%s) AND status='in_progress' AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false AND updated_at < now() - make_interval(mins => %s) AND %s;" \
+    "$STALE_EXCLUDED_TYPES" "$STALE_MIN" "$marker"
 }
 
 # Diagnosemodus: gibt die Stale-Query aus, ohne Cluster oder DB anzufassen.

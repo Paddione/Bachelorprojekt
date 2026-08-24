@@ -2130,6 +2130,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-lock-liveness-heartbeat",
+    "file": "tests/spec/agent-lock-liveness-heartbeat.bats",
+    "category": "agent-lock-liveness-heartbeat",
+    "kind": "shell"
+  },
+  {
     "id": "agent-lock-session-identity",
     "file": "tests/spec/agent-lock-session-identity.bats",
     "category": "agent-lock-session-identity",
@@ -2186,6 +2192,12 @@
   {
     "id": "agent-skills/executor-post-merge-death",
     "file": "tests/spec/agent-skills/executor-post-merge-death.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/finalize-archive-frontmatter",
+    "file": "tests/spec/agent-skills/finalize-archive-frontmatter.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -3518,6 +3530,12 @@
   {
     "id": "factory-watchdog/merged-ticket-close",
     "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+    "category": "factory-watchdog",
+    "kind": "shell"
+  },
+  {
+    "id": "factory-watchdog/stale-scope-isolation",
+    "file": "tests/spec/factory-watchdog/stale-scope-isolation.bats",
     "category": "factory-watchdog",
     "kind": "shell"
   },
@@ -5264,6 +5282,30 @@
   {
     "id": "sessions-server",
     "file": "tests/spec/sessions-server.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/annotation-links",
+    "file": "tests/spec/sessions-server/annotation-links.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/deregister-reap",
+    "file": "tests/spec/sessions-server/deregister-reap.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/form-lifecycle",
+    "file": "tests/spec/sessions-server/form-lifecycle.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/register-list",
+    "file": "tests/spec/sessions-server/register-list.bats",
     "category": "sessions-server",
     "kind": "shell"
   },

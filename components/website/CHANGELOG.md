@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.313.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.2...website-v1.313.3) (2026-08-24)
+
+
+### Bug Fixes
+
+* **scripts:** apply plan frontmatter on the archive tree after checkout -B [T015916] ([#5231](https://github.com/Paddione/Bachelorprojekt/issues/5231)) ([b4ec8bb](https://github.com/Paddione/Bachelorprojekt/commit/b4ec8bb7621a8faa22ec68c701a4c09dd24285d0))
+
+## [1.313.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.1...website-v1.313.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* **scripts:** heartbeat-based lock liveness keeps active-session locks [T015822] ([#5227](https://github.com/Paddione/Bachelorprojekt/issues/5227)) ([fd44461](https://github.com/Paddione/Bachelorprojekt/commit/fd444612dd054d20642c6fbd9fa7555e7a7e0de9))
+
+## [1.313.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.0...website-v1.313.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **factory:** zweiseitige Test-Isolation im Watchdog-Stale-Sweep [T015983] ([#5223](https://github.com/Paddione/Bachelorprojekt/issues/5223)) ([bac20cd](https://github.com/Paddione/Bachelorprojekt/commit/bac20cdfd9d64e41e42859f8d104513c754232cf))
+
 ## [1.313.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.4...website-v1.313.0) (2026-08-24)
 
 

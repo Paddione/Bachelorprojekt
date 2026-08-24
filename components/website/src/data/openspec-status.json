@@ -4353,8 +4353,8 @@
   ],
   "T015712": [
     {
-      "slug": "backup-alerting",
-      "status": "plan_staged"
+      "slug": "2026-08-24-backup-alerting",
+      "status": "archived"
     }
   ],
   "T015783": [
@@ -4369,10 +4369,32 @@
       "status": "archived"
     }
   ],
+  "T015822": [
+    {
+      "slug": "2026-08-24-agent-lock-liveness-heartbeat",
+      "status": "archived"
+    }
+  ],
+  "T015916": [
+    {
+      "slug": "archive-frontmatter-completed-on-archive-branch",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-08-24-archive-frontmatter-completed",
+      "status": "archived"
+    }
+  ],
   "T016124": [
     {
       "slug": "backup-alert-corrections",
       "status": "plan_staged"
+    }
+  ],
+  "T016250": [
+    {
+      "slug": "2026-08-24-consolidate-sessions-specs",
+      "status": "archived"
     }
   ],
   "TBD": [

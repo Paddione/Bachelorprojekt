@@ -42,7 +42,7 @@ Subagenten-Familien, `openspec/specs/local-llm-proxy.md`.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Die Tests in p3 werden gegen den Ist-Stand
+- [x] **Failing-Test-Step (RED).** Die Tests in p3 werden gegen den Ist-Stand
       des Branches geschrieben und müssen VOR den Impl-Partials rot liegen:
       der Roster-Assert zählt genau einen lokalen Primary, der Default-Assert
       verlangt `freetoken-local/active` — beides trifft auf dem Scaffold-Stand

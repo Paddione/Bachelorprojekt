@@ -63,6 +63,7 @@ ALLOWLIST=(
   '.release-please-manifest.json'
   'components/website/CHANGELOG.md'
   'components/website/package.json'
+  'docs/spec-atlas.md'
 )
 
 TICKET_ID=""

@@ -1,0 +1,22 @@
+# Hebt den namespace="monitoring"-Matcher auf, den der Prometheus Operator sonst per
+# Default (alertmanagerConfigMatcherStrategy=OnNamespace) an die AlertmanagerConfig
+# workspace-alerts haengt. Ohne diesen Patch fallen ALLE Alerts aus workspace und
+# workspace-korczewski auf den Default-Receiver "null" und werden verworfen — auch die
+# acht vorbestehenden Pflicht-Alerts, die saemtlich
+# namespace=~"workspace|workspace-korczewski" tragen.
+#
+# Nachgewiesen am fleet-Cluster (2026-08-24):
+#   amtool config routes test ... namespace=workspace  -> null
+#   amtool config routes test ... namespace=monitoring -> monitoring/workspace-alerts/email
+#
+# Strategic Merge statt Neu-Rendern: der Stack wird als pre-rendered YAML angewendet
+# (kube-prometheus-stack-rendered.yaml), das Muster existiert in derselben kustomization
+# bereits fuer loki-sc-rules-resources-patch.yaml. [T015712]
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: monitoring-alertmanager
+  namespace: monitoring
+spec:
+  alertmanagerConfigMatcherStrategy:
+    type: None

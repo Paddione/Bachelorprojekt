@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.313.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.4...website-v1.313.5) (2026-08-24)
+
+
+### Documentation
+
+* **plans:** propose watchdog-worktree-activity change [T016418] ([#5240](https://github.com/Paddione/Bachelorprojekt/issues/5240)) ([a8b4a7b](https://github.com/Paddione/Bachelorprojekt/commit/a8b4a7ba3de16c739387bd7dccc7713ab233fead))
+
 ## [1.313.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.3...website-v1.313.4) (2026-08-24)
 
 

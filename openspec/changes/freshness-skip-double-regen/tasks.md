@@ -108,6 +108,19 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/merge-ours-rebase-direction.b
       wenn KEIN Regen in flight ist — genau diese Kombination (Rebase ohne Folgeregeneration)
       ist die Falle. Fehlt sie in einem Pfad, im selben PR nachziehen.
 
+- [ ] **Pre-Flight-Skip im Workflow.** In `.github/workflows/freshness-regen.yml` vor
+      `task freshness:regenerate` einen Step ergaenzen, der mit `gh pr list --state open`
+      (Muster: `scripts/factory/pr-ready.sh:38-40`) prueft, ob bereits ein offener PR mit
+      Head-Branch-Praefix `chore/freshness-regen-` oder `chore/plan-archive-` existiert.
+      Treffer ⇒ Regen ueberspringen mit sichtbarem Notice (der Merge des offenen PR
+      triggert den naechsten Lauf ohnehin). **Fail-open:** Fehler von `gh` (Rate-Limit,
+      Netzwerk) ⇒ WARN-Annotation + regulaerer Regen, damit im CI-Hauptpfad kein neuer
+      Fail-Closed-Blocker entsteht. Der Detektor aus dem vorigen Schritt deckt die drei
+      Skriptpfade ab, dieser Step den push-getriggerten Workflow selbst — beide zusammen
+      schliessen den Zyklus. Die bestehende Post-hoc-Bereinigung "Close superseded regen
+      PRs" (T006998) bleibt unangetastet.
+      _Uebernommen aus dem verworfenen Parallelplan `freshness-regen-dedupe` (T015827)._
+
 ## Verify (RED → GREEN)
 
 - [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:

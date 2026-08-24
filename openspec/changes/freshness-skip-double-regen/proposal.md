@@ -34,7 +34,7 @@ Rebase-Regen-Zyklus. Timeline-Evidenz (gh):
 
 ## What
 
-Zwei Gruppen:
+Drei Gruppen:
 
 1. **Skip-Guard gegen den Doppelzyklus:** Ein gemeinsamer Detektor
    (`scripts/freshness-regen-in-flight.sh`) erkennt „Regen bereits offen/läuft" (offener
@@ -47,5 +47,16 @@ Zwei Gruppen:
    Rebase-Richtung („ours" = neues Base → Branch-seitige Artefakt-Änderungen werden
    verworfen; Regeneration nach dem Rebase ist Pflicht). Das falsche Szenario in der
    SSOT-Spec wird im Delta dieser Changes korrigiert.
+
+3. **Pre-Flight-Skip im push-getriggerten Workflow:** `.github/workflows/freshness-regen.yml`
+   feuert bei JEDEM main-Push, auch bei den eigenen Archive- und Regen-PRs. Vor
+   `task freshness:regenerate` prüft ein Step, ob bereits ein offener
+   `chore/freshness-regen-*`- oder `chore/plan-archive-*`-PR existiert, und überspringt den
+   Regen dann. **Fail-open** bei `gh`-Fehlern (Rate-Limit, Netzwerk): WARN + regulärer Regen,
+   damit im CI-Hauptpfad kein neuer Fail-Closed-Blocker entsteht. Gruppe 1 deckt die drei
+   Skriptpfade ab, Gruppe 3 den Workflow-Trigger selbst.
+
+   _Übernommen aus dem verworfenen Parallelplan `freshness-regen-dedupe`, der für dasselbe
+   Ticket T015827 gestaged war und nur diesen einen Pfad abdeckte._
 
 _Ticket: T015827_

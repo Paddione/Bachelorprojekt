@@ -1,5 +1,11 @@
 [
   {
+    "id": "ADR-007",
+    "file": "tests/spec/wsl-exit-docs.bats",
+    "category": "ADR",
+    "kind": "shell"
+  },
+  {
     "id": "AGENT-LOCK-01",
     "file": "tests/local/AGENT-LOCK-01-core.bats",
     "category": "AGENT",

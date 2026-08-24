@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.315.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.314.1...website-v1.315.0) (2026-08-24)
+
+
+### Features
+
+* **scripts:** plan cbm index single-flight guard [T016447] ([#5251](https://github.com/Paddione/Bachelorprojekt/issues/5251)) ([c2b969a](https://github.com/Paddione/Bachelorprojekt/commit/c2b969ab46bbfc19e3cea94f5023501b73405276))
+
 ## [1.314.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.314.0...website-v1.314.1) (2026-08-24)
 
 

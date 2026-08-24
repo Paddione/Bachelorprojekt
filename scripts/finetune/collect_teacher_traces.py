@@ -89,8 +89,11 @@ def load_scenarios(path: str) -> list[dict]:
 
 
 def chat(base_url: str, model: str, api_key: str | None, payload: dict,
-         timeout: int, retries: int = 2) -> dict:
-    """Ein Chat-Completions-Call mit einfachem Retry bei 429/5xx."""
+         timeout: int, retries: int = 2) -> dict | None:
+    """Ein Chat-Completions-Call mit einfachem Retry bei 429/5xx/Timeout.
+
+    Gibt None zurueck, wenn der Request auch nach Retries fehlschlaegt —
+    eine einzelne toede Episode soll den Sammellauf nicht abbrechen."""
     url = base_url.rstrip("/") + "/chat/completions"
     body = json.dumps(payload).encode("utf-8")
     headers = {"Content-Type": "application/json"}
@@ -107,11 +110,18 @@ def chat(base_url: str, model: str, api_key: str | None, payload: dict,
             if e.code in (429, 500, 502, 503, 504) and attempt < retries:
                 time.sleep(2 ** attempt * 2)
                 continue
-            raise SystemExit(f"FEHLER: Teacher-API {e.code}: {e.reason}") from e
-        except urllib.error.URLError as e:
-            raise SystemExit(
-                f"FEHLER: Teacher nicht erreichbar unter {url}: {e.reason}") from e
-    raise SystemExit(f"FEHLER: Teacher-API nach Retries gescheitert: {last_err}")
+            print(f"  FEHLER: Teacher-API {e.code}: {e.reason}", file=sys.stderr)
+            return None
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            # TimeoutError/OSError: Socket-Timeout beim Body-Read umgeht URLError.
+            last_err = e
+            if attempt < retries:
+                time.sleep(2 ** attempt * 2)
+                continue
+            print(f"  FEHLER: Teacher nicht erreichbar ({type(e).__name__}: {e})", file=sys.stderr)
+            return None
+    print(f"  FEHLER: Teacher-API nach Retries gescheitert: {last_err}", file=sys.stderr)
+    return None
 
 
 def assistant_message(choice: dict) -> dict | None:
@@ -155,6 +165,8 @@ def run_episode(scenario: dict, base_url: str, model: str, api_key: str | None,
     hops = 0
     while True:
         resp = chat(base_url, model, api_key, payload, timeout)
+        if resp is None:
+            return None  # Request fehlgeschlagen — Episode verwerfen, Lauf fortsetzen.
         choices = resp.get("choices") or []
         if not choices:
             return None
@@ -181,7 +193,9 @@ def run_episode(scenario: dict, base_url: str, model: str, api_key: str | None,
         hops += 1
 
     # Meta: Modell, Szenario, Zeitstempel — Redaction greift erst beim Schreiben.
-    return {
+    # tools wandern mit in die Episode, damit das Korpus selbstdokumentierend ist
+    # und train.py beim Template-Rendering denselben Tools-Block injizieren kann.
+    episode = {
         "messages": messages,
         "meta": {
             "scenario_id": scenario["id"],
@@ -190,6 +204,9 @@ def run_episode(scenario: dict, base_url: str, model: str, api_key: str | None,
             "collected_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         },
     }
+    if tools:
+        episode["tools"] = tools
+    return episode
 
 
 def fingerprint(episode: dict) -> str:
@@ -210,6 +227,10 @@ def main(argv=None) -> int:
                         help="Name der ENV-Variable mit dem Bearer-Key (optional)")
     parser.add_argument("--timeout", type=int, default=120,
                         help="Request-Timeout in Sekunden (Default 120)")
+    parser.add_argument("--resume", action="store_true",
+                        help="Existierende Ausgabedatei fortsetzen: bereits aufgezeichnete "
+                             "scenario_ids werden uebersprungen, neue Episoden werden "
+                             "angehaengt (Crash-sicherer Sammellauf).")
     args = parser.parse_args(argv)
 
     api_key = None
@@ -224,9 +245,23 @@ def main(argv=None) -> int:
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    kept = skipped_dup = skipped_empty = 0
+    done_ids: set[str] = set()
+    mode = "w"
+    if args.resume and out_path.exists():
+        for line in out_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                done_ids.add(json.loads(line)["meta"]["scenario_id"])
+            except (json.JSONDecodeError, KeyError):
+                continue  # halbe Zeile (Crash mitten im Schreiben) — wird neu geholt
+        scenarios = [s for s in scenarios if s["id"] not in done_ids]
+        mode = "a"
+        print(f"Resume: {len(done_ids)} Episoden vorhanden, {len(scenarios)} Szenarien uebrig.")
+
+    kept = skipped_dup = skipped_empty = skipped_failed = 0
     seen: set[str] = set()
-    with out_path.open("w", encoding="utf-8") as fh:
+    with out_path.open(mode, encoding="utf-8") as fh:
         for scenario in scenarios:
             try:
                 episode = run_episode(scenario, args.base_url, args.model,
@@ -235,7 +270,7 @@ def main(argv=None) -> int:
                 raise
             if episode is None:
                 skipped_empty += 1
-                print(f"  verworfen (leer/refusal): {scenario['id']}")
+                print(f"  verworfen (leer/refusal/fehler): {scenario['id']}")
                 continue
             fp = fingerprint(episode)
             if fp in seen:
@@ -251,7 +286,7 @@ def main(argv=None) -> int:
             print(f"  aufgezeichnet: {scenario['id']} ({len(episode['messages'])} Turns)")
 
     print(f"Korpus geschrieben: {out_path} ({kept} Episoden, "
-          f"{skipped_dup} Duplikate, {skipped_empty} leer verworfen).")
+          f"{skipped_dup} Duplikate, {skipped_empty} leer/fehler verworfen).")
     return 0
 
 

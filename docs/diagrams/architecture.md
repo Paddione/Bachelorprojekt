@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 2009 Abhängigkeitskanten · 291 API-Endpoints
+98 Services · 2015 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -130,7 +130,6 @@ flowchart LR
   claude_code_mcp_monolith -->|"DATABASE_URL"| shared_db
   claude_code_mcp_monolith -->|"DATABASE_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
-  sdlc_console -->|"SESSIONS_DATABASE_…"| shared_db
   sdlc_console -->|"SESSIONS_DATABASE_…"| website
   error_log_retention -->|"command"| website
   knowledge_ingest_prs -->|"PGHOST"| shared_db
@@ -154,6 +153,7 @@ flowchart LR
   pvc_backup -->|"command"| nextcloud
   pvc_backup -->|"command"| vaultwarden
   oauth2_proxy_recovery -->|"command"| recovery_browser
+  sdlc_console -->|"SESSIONS_DATABASE_…"| shared_db
   shared_db -->|"configmap:shared-d…"| nextcloud
   shared_db -->|"configmap:shared-d…"| vaultwarden
   shared_db -->|"configmap:shared-d…"| website
@@ -2054,6 +2054,8 @@ flowchart LR
   website -->|"secret:website-sec…"| sdlc_console
   brett -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| brett
+  sdlc_console -->|"secret:shared-db-d…"| shared_db_dev
+  shared_db_dev -->|"secret:shared-db-d…"| sdlc_console
   shared_db_dev -->|"secret:shared-db-d…"| website
   website -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_staging -->|"secret:staging-db-…"| website

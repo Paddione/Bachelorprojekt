@@ -15,6 +15,10 @@
 # stammen aus agent-lock.sh und sind zum Sourcing-Zeitpunkt definiert.
 
 cmd_guard_precommit() {
+  # [T015822] Herzschlag: dieser Hook-Lauf beweist, dass diese Session in ihrem
+  # Worktree arbeitet — Heartbeats ihrer Locks erneuern, bevor reap sie als
+  # pid-dead/sid-dead ernten kann. Best-effort, nie blockierend.
+  _touch_own_worktree_heartbeats || true
   [ -n "${AGENT_LOCK_FORCE:-}" ] && return 0
   local f; f="$(_lock_file main-checkout)"
   _with_lock
@@ -40,6 +44,7 @@ cmd_guard_precommit() {
 }
 
 cmd_guard_postcheckout() {
+  _touch_own_worktree_heartbeats || true  # [T015822] Herzschlag, siehe guard-precommit
   local f; f="$(_lock_file main-checkout)"
   [ -f "$f" ] || return 0
   _reapable "$f" && return 0

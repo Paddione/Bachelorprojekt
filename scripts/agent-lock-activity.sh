@@ -83,6 +83,45 @@ _worktree_has_active_process() {
   return 1
 }
 
+# [T015822] heartbeat_at auf einem bestehenden Lock erneuern, ohne Identitäts-
+# felder anzutasten. Atomar unter dem Registry-flock (_with_lock-Stil), per
+# tmp+mv; best-effort — ein Guard darf nie am Schreiben hindern.
+_touch_heartbeat() {  # <lock-file>
+  local f="$1" tmp now
+  [ -f "$f" ] || return 0
+  now="$(_now)"
+  tmp="$f.tmp.$$"
+  _with_lock
+  if sed "s/\"heartbeat_at\": *\"[0-9]*\"/\"heartbeat_at\": \"${now}\"/" "$f" > "$tmp" 2>/dev/null && [ -s "$tmp" ]; then
+    mv -f "$tmp" "$f" 2>/dev/null || rm -f "$tmp"
+  else
+    rm -f "$tmp"
+  fi
+  return 0
+}
+
+# [T015822] Ein erfolgreicher Git-Hook-Aufruf ist der Living-Proof dieser
+# Session: sie arbeitet gerade in ihrem Worktree. Erneuere die Heartbeats ALLER
+# eigenen Locks, deren verzeichneter Worktree den aktuellen Standort enthält —
+# sonst erntet der Dead-Pfad in _reapable genau diese Locks als pid-dead/
+# sid-dead, obwohl die Session mitten in der Arbeit steckt (der Hook-Prozess
+# hat eine andere PID als der Claimende, und driftende Unix-SIDs treffen den
+# owner_sid-Vergleich ohnehin nicht).
+_touch_own_worktree_heartbeats() {
+  local d f lwt
+  d="$(_lock_dir)"
+  [ -d "$d" ] || return 0
+  for f in "$d"/*.json; do
+    [ -e "$f" ] || continue
+    [ "$(basename "$f")" = "main-checkout.json" ] && continue
+    [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || continue
+    lwt="$(_lock_field "$f" worktree)"
+    [ -n "$lwt" ] && [ "$lwt" != "-" ] || continue
+    _cwd_inside_worktree "$lwt" && _touch_heartbeat "$f"
+  done
+  return 0
+}
+
 # T014468: Query if ANY active lock holds the exact worktree path
 _worktree_is_live_claimed() {
   local target_wt="$1" f wt

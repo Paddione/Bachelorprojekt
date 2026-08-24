@@ -39,7 +39,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-liveness-heartbeat.bats
 # expected: FAIL (red)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
+- [x] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
       previous step must now pass.
       - `_touch_heartbeat` in agent-lock.sh (atomar via bestehendem
         `_with_lock`-flock-Stil); Guards rufen es für passende Einträge.
@@ -51,7 +51,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-liveness-heartbeat.bats
 # expected: PASS
 ```
 
-- [ ] **Regression.** Bestehende Lock-Specs bleiben grün:
+- [x] **Regression.** Bestehende Lock-Specs bleiben grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats \

@@ -239,6 +239,9 @@ _reapable() {
       if [ -n "$pid" ] && ! _pid_alive "$pid"; then
         age=$(( now - age_base ))
         if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
+          # [T015822] Vor dem Reap-Entscheid die Worktree-Aktivität fragen —
+          # ein lebender Prozess im Worktree widerlegt das Dead-Signal.
+          if _holder_active_in_worktree "$f"; then return 1; fi
           _reap_log "$f" pid-dead; return 0
         fi
       fi
@@ -253,6 +256,7 @@ _reapable() {
     if ! _pid_alive "$pid"; then
       age=$(( now - age_base ))
       if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
+        if _holder_active_in_worktree "$f"; then return 1; fi  # [T015822]
         _reap_log "$f" pid-dead; return 0
       fi
     fi
@@ -264,11 +268,23 @@ _reapable() {
     # calls must not drop a fresh claim. Fall through to the heartbeat-TTL check.
     age=$(( now - age_base ))
     if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
+      if _holder_active_in_worktree "$f"; then return 1; fi  # [T015822]
       _reap_log "$f" sid-dead; return 0
     fi
   fi
   if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then _reap_log "$f" heartbeat-ttl; return 0; fi
   return 1
+}
+
+# [T015822] 0 = der Halter arbeitet nachweislich noch: ein fremder, lebender
+# Prozess (/proc-cwd) sitzt im verzeichneten Worktree. owner_pid gehört nur an
+# einen kurzen Toolcall, nicht an die Session selbst — sein Tod beweist nichts.
+# Wird vor jedem Dead-Signal-Reap (pid-dead / sid-dead) gefragt, damit reap
+# keine aktive Session ernten kann. Ohne nutzbaren Worktree: false.
+_holder_active_in_worktree() {  # <lock-file>
+  local wt; wt="$(_lock_field "$1" worktree)"
+  [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] || return 1
+  _worktree_has_active_process "$wt"
 }
 
 # 0 = this lock belongs to the caller — either by matching owner_sid, or by
@@ -500,6 +516,10 @@ _cwd_inside_worktree() {  # <worktree-path>
   [ "$my_toplevel" = "$wt" ] || [[ "$my_toplevel" = "$wt"/* ]] \
     || [ "$PWD" = "$wt" ] || [[ "$PWD" = "$wt"/* ]]
 }
+
+# [T015822] heartbeat-Helfer (_touch_heartbeat, _touch_own_worktree_heartbeats)
+# liegen im Fragment scripts/agent-lock-activity.sh — S1-Limit und thematisch
+# neben _worktree_has_active_process.
 
 # NOTE: cmd_release compares SID with _my_sid. When claim happened in a subshell
 # the SID may differ — see T001268.

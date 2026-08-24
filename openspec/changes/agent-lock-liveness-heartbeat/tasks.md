@@ -61,7 +61,7 @@ tests/unit/lib/bats-core/bin/bats \
   tests/spec/active-sessions-hub/
 ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

@@ -3993,8 +3993,8 @@
   ],
   "T013044": [
     {
-      "slug": "pvc-backup-clone-stuck-T013044",
-      "status": "plan_staged"
+      "slug": "2026-08-24-pvc-backup-clone-stuck-T013044",
+      "status": "archived"
     }
   ],
   "T013107": [
@@ -4203,8 +4203,8 @@
   ],
   "T014466": [
     {
-      "slug": "ci-watch-fail-closed",
-      "status": "plan_staged"
+      "slug": "2026-08-24-ci-watch-fail-closed",
+      "status": "archived"
     }
   ],
   "T014535": [
@@ -4305,8 +4305,8 @@
   ],
   "T015168": [
     {
-      "slug": "db-identity-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-24-db-identity-guard",
+      "status": "archived"
     }
   ],
   "T015170": [
@@ -4327,10 +4327,40 @@
       "status": "archived"
     }
   ],
+  "T015362": [
+    {
+      "slug": "2026-08-24-billing-testdata-purge",
+      "status": "archived"
+    }
+  ],
+  "T015384": [
+    {
+      "slug": "2026-08-24-ci-freshness-guard-read-pr-body",
+      "status": "archived"
+    }
+  ],
+  "T015556": [
+    {
+      "slug": "2026-08-24-factory-infra-bounce-loop",
+      "status": "archived"
+    }
+  ],
   "T015670": [
     {
-      "slug": "closure-identity-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-24-closure-identity-guard",
+      "status": "archived"
+    }
+  ],
+  "T015783": [
+    {
+      "slug": "2026-08-24-finalize-archive-self-verify",
+      "status": "archived"
+    }
+  ],
+  "T015784": [
+    {
+      "slug": "2026-08-24-worktree-git-op-finish",
+      "status": "archived"
     }
   ],
   "TBD": [

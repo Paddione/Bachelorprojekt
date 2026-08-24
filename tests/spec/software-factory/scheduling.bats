@@ -186,8 +186,14 @@ teardown() { _sf_teardown; }
     # damit sie in queue.sh (ORDER BY priority, created_at) deterministisch vor fremden
     # Kandidaten stehen und den Headroom erhalten. Status-Reset raeumt Bewegungen
     # durch Ticker/watchdog zwischen den Versuchen weg.
+    # [T015556] plan_ref auf branch=main/README.md: das neue Readiness-Gate in
+    # schedule.sh skipped planlose Rows VOR dem Claim (missing_args) — der Test
+    # prueft das Slot-Claiming, also bekommen die Seeds einen gueltigen
+    # FACTORY-PLAN-REF-Kommentar (plan_ref lebt in ticket_comments, nicht als
+    # Spalte). Vorher alte Gate-Kommentare der Seeds entfernen (Idempotenz
+    # ueber Retry-Versuche).
     kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
-      psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1, status='backlog', priority='hoch', created_at='2000-01-01' WHERE external_id IN ('$e1','$e2');"
+      psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1, status='backlog', priority='hoch', created_at='2000-01-01' WHERE external_id IN ('$e1','$e2'); DELETE FROM tickets.ticket_comments WHERE kind='comment' AND author_label='factory-test' AND ticket_id IN (SELECT id FROM tickets.tickets WHERE external_id IN ('$e1','$e2')); INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility) SELECT id, 'factory-test', 'FACTORY-PLAN-REF branch=main plan=README.md', 'internal' FROM tickets.tickets WHERE external_id IN ('$e1','$e2');"
     local base_used=0 n b
     for b in mentolder korczewski; do
       n=$(BRAND="$b" FACTORY_CTX="$FACTORY_CTX" bash scripts/factory/slots.sh count 2>/dev/null) || n=0
@@ -242,8 +248,10 @@ teardown() { _sf_teardown; }
     # [T008757] Seed-Ranking wie im Test oben (priority='hoch' + created_at=2000-01-01),
     # damit r1/r2 in queue.sh vor fremden Kandidaten stehen. Status-Reset raeumt
     # Bewegungen durch Ticker/watchdog zwischen den Versuchen weg.
+    # [T015556] plan_ref wie im Test oben — sonst skipped das Readiness-Gate
+    # die planlosen Seeds vor dem Claim (Kommentar-INSERT statt Spalte).
     kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
-      psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1, status='backlog', priority='hoch', created_at='2000-01-01' WHERE external_id IN ('$r1','$r2');"
+      psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1, status='backlog', priority='hoch', created_at='2000-01-01' WHERE external_id IN ('$r1','$r2'); DELETE FROM tickets.ticket_comments WHERE kind='comment' AND author_label='factory-test' AND ticket_id IN (SELECT id FROM tickets.tickets WHERE external_id IN ('$r1','$r2')); INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility) SELECT id, 'factory-test', 'FACTORY-PLAN-REF branch=main plan=README.md', 'internal' FROM tickets.tickets WHERE external_id IN ('$r1','$r2');"
     local base_used=0 n b
     for b in mentolder korczewski; do
       n=$(BRAND="$b" FACTORY_CTX="$FACTORY_CTX" bash scripts/factory/slots.sh count 2>/dev/null) || n=0
@@ -309,7 +317,7 @@ teardown() { _sf_teardown; }
   # also im $output. Output-Vertrag des Skripts: `echo "$escalated"` ist die
   # letzte Ausgabe, alle Warnungen stehen davor — die letzte Zeile ist
   # deterministisch das JSON-Array.
-  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 FACTORY_ORPHAN_SLOT_MIN=999 \
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ALLOW_STALE_MIN_ZERO=1 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 FACTORY_ORPHAN_SLOT_MIN=999 \
     bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.
@@ -346,7 +354,7 @@ teardown() { _sf_teardown; }
   # [T005029] Kein `2>/dev/null` am run-Aufruf: BATS 1.x merged stderr in
   # $output und ueberschreibt die Redirection mit seinem internen `2>&1` —
   # siehe Kommentar im Watchdog-Test darueber. Die letzte Zeile ist das JSON.
-  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 FACTORY_ORPHAN_SLOT_MIN=999 \
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ALLOW_STALE_MIN_ZERO=1 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 FACTORY_ORPHAN_SLOT_MIN=999 \
     bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.

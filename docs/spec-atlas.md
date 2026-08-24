@@ -2,18 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2255 · Scenarios: 5018
+Specs: 145 · Requirements: 2273 · Scenarios: 5058
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 58 · Scenarios: 116 · Lines: 1439
+Reqs: 61 · Scenarios: 128 · Lines: 1599
 Last touches:
+  - Interrupted git operations in worktrees are surfaced as a finding | T015784 | 2026-08-24 | MODIFIED
+  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
   - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
-  - Execute role and gate ordering | T013482 | 2026-08-22 | ADDED
-  - E2E follows the test-only Chore lifecycle | T013482 | 2026-08-22 | ADDED
-  - Progressive disclosure preserves safety contracts | T013482 | 2026-08-22 | ADDED
-  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T008014 | 2026-08-18 | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -46,32 +46,28 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 201 · Scenarios: 621 · Lines: 5563
+Reqs: 203 · Scenarios: 627 · Lines: 5631
 Paths: scripts/factory
 Last touches:
+  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
+  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
   - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
   - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
-  - Provider_config ist die einzige Kandidatenquelle des Routers | T013302 | 2026-08-22 | ADDED
-  - PR-CI-Babysitter Scan und Kandidatenwahl | T012239 | 2026-08-18 | MODIFIED
-In-flight:
-  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | active | ADDED
-  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | active | ADDED
 
 ## delivery
 
 ### ci-cd
-Reqs: 111 · Scenarios: 327 · Lines: 3453
+Reqs: 113 · Scenarios: 332 · Lines: 3509
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
+  - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
   - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
   - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
-  - Build-Artefakte werden in eine zweite Registry gespiegelt | T012415 | 2026-08-20 | ADDED
-  - Das signierte OCI-Artefakt wird mitsamt Signatur gespiegelt | T012415 | 2026-08-20 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
-  - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED
@@ -247,16 +243,14 @@ Last touches:
   - Auto-Triage hängt optionale Tool-Definitionen an und bleibt fail-soft | T002399 | 2026-08-03 | ADDED
 
 ### backup-pipeline
-Reqs: 31 · Scenarios: 82 · Lines: 739
+Reqs: 32 · Scenarios: 85 · Lines: 765
 Paths: scripts/backup, k3d/backup
 Last touches:
+  - PVC-Clone-Lifecycle-Hygiene | T013044 | 2026-08-24 | ADDED
   - Render-sichere Runtime-Variablen im PVC-Backup-Skript | T014535 | 2026-08-23 | ADDED
   - Remote-Retention auf Filen (14 Generationen je Pfad) | T013300 | 2026-08-22 | ADDED
   - Erste-Fail-Alert für db-backup | T001738 | 2026-08-02 | ADDED
   - Manueller Diagnose-Trigger für db-backup | T001738 | 2026-08-02 | ADDED
-  - Dokumentierte Filen Fail-Modes | T001738 | 2026-08-02 | ADDED
-In-flight:
-  - PVC-Clone-Lifecycle-Hygiene | T013044 | active | ADDED
 
 ### batch-coaching-llm-insights
 Reqs: 5 · Scenarios: 10 · Lines: 89
@@ -314,9 +308,12 @@ Last touches:
   - [gone]-Prune-Reihenfolge korrigieren | T003490 | 2026-08-11 | ADDED
 
 ### billing-pipeline
-Reqs: 21 · Scenarios: 48 · Lines: 425
+Reqs: 24 · Scenarios: 51 · Lines: 456
 Paths: website/src/lib/billing, website/src/lib/invoice, website/src/lib/stripe, website/src/api/billing, website/src/pages/billing
 Last touches:
+  - Test Data Isolation in Billing | T015362 | 2026-08-24 | ADDED
+  - GoBD Exemption for Test Data | T015362 | 2026-08-24 | ADDED
+  - Test Data Purge of Billing Entities | T015362 | 2026-08-24 | ADDED
   - Invoice Lifecycle — Partial and Full Payment via UI and API | T002193 | 2026-07-26 | MODIFIED
   - Time Entry Date Falls Back to CURRENT_DATE When Omitted | T001351 | 2026-07-02 | ADDED
 
@@ -448,6 +445,13 @@ Last touches:
 Reqs: 12 · Scenarios: 22 · Lines: 220
 Paths: website/src/lib/datev, website/src/lib/skr, website/src/lib/legal
 
+### db-identity-guard
+Reqs: 3 · Scenarios: 7 · Lines: 74
+Last touches:
+  - Shared-db pod selection is unambiguous | T015168 | 2026-08-24 | ADDED
+  - Database identity marker probe | T015168 | 2026-08-24 | ADDED
+  - Identity constant parity between migration and guard | T015168 | 2026-08-24 | ADDED
+
 ### devflow-selection-archive-hardening
 Reqs: 5 · Scenarios: 12 · Lines: 134
 Last touches:
@@ -557,8 +561,12 @@ Last touches:
   - Secret-Redaktion erstreckt sich auf angereicherte Felder | T006252 | 2026-08-15 | ADDED
 
 ### factory-watchdog
-Reqs: 1 · Scenarios: 1 · Lines: 20
+Reqs: 5 · Scenarios: 5 · Lines: 77
 Last touches:
+  - Claim-Readiness-Gate vor Gang-Slot-Claim | T015556 | 2026-08-24 | ADDED
+  - Unlesbarer INFRA-Counter blockiert Eskalation nicht dauerhaft | T015556 | 2026-08-24 | ADDED
+  - DB-Identitätscheck vor Reset-Writes | T015556 | 2026-08-24 | ADDED
+  - STALE_MIN-Floor in Produktion | T015556 | 2026-08-24 | ADDED
   - Ticket-Status-Reaper für verwaiste in_progress | T002770 | 2026-08-09 | ADDED
 
 ### fix-factory-lock-worktree-safety

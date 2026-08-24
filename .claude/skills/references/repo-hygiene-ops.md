@@ -92,6 +92,19 @@ git worktree list
 # Commit auf einem Branch erzeugen, den der Aufrufer nicht besitzt).
 bash scripts/worktree-git-op-guard.sh
 
+# [T015784] --finish raeumt den EINEN Fall ab, in dem dabei kein neuer Inhalt
+# entsteht: Rebase, Konflikte alle geloest, keine Kommandos mehr offen, Working
+# Tree nach Allowlist sauber. Dort schreibt `rebase --continue` nur fest, was der
+# Operator bereits geloest hat. Merges, Cherry-Picks und Rebases mit offenen
+# Konflikten bleiben auch mit dem Flag reine Meldung.
+#
+# Der Abschluss wird am Positiv-Signal belegt, nicht am Exit-Code: das
+# Zustandsverzeichnis ist verschwunden UND der Branch-Ref zeigt auf HEAD.
+# `git rebase --continue` endete im Fundfall mit rc=0 und schrieb zugleich
+# `error: update_ref failed` — dieselbe Signalklasse wie §3 unten. Was nicht
+# nachweislich abgeschlossen ist, bleibt Befund (Exit ≠ 0).
+bash scripts/worktree-git-op-guard.sh --finish
+
 # Integritäts-Vorcheck des gemeinsamen Objektspeichers (T002994, T002998):
 bash scripts/git-worktree-health.sh objects   # 0 intakt, 1 Befund, 2 nicht prüfbar
 bash scripts/git-worktree-health.sh orphans   # 0 sauber, 1 Orphan(s), 2 nicht prüfbar

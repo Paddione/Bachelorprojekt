@@ -2878,6 +2878,58 @@ The runtime manifest `tests/spec/.spec-runtime.tsv` MUST provide measured runtim
 - **THEN** the load balance between the lightest and heaviest shard is within 90-100%
 - **AND** missing test weights do not cause severe tail latency in any shard
 
+### Requirement: Baseline Guard PR Body Fallback and Hard Fail
+
+The baseline assertion script SHALL attempt to read the PR body from the `GITHUB_EVENT_PATH` payload if the `PR_BODY` environment variable is unset. If reading from the payload fails, it SHALL fall back to `gh pr view`. If all methods fail, the script SHALL exit with a non-zero status code and an explicit error message, rather than returning an empty string and failing silently on missing tags.
+
+#### Scenario: PR body cannot be read
+
+- **GIVEN** a CI run where `PR_BODY` is empty, `GITHUB_EVENT_PATH` is unavailable or invalid, and `gh pr view` fails
+- **WHEN** the baseline guard evaluates `readPrBody()`
+- **THEN** it throws an error or calls `process.exit(1)` with a clear message indicating the read failure, instead of proceeding with an empty string.
+
+#### Scenario: PR body is read from GITHUB_EVENT_PATH
+
+- **GIVEN** a CI run where `PR_BODY` is empty but `GITHUB_EVENT_PATH` points to a valid JSON payload containing `.pull_request.body`
+- **WHEN** the baseline guard evaluates `readPrBody()`
+- **THEN** it successfully returns the PR body from the JSON payload.
+
+### Requirement: Die CI-Gegenprobe entlastet nur mit Belegen
+
+`scripts/devflow-ci-watch.sh` SHALL einen als `failure` gemeldeten Check nur dann als
+unbedenklich einstufen, wenn der zugehörige Workflow-Run **gefunden** wurde und dessen Jobs
+nachweislich keine `failure`-Conclusion tragen.
+
+Kann der Run nicht bestimmt werden — weil kein passender Run gefunden wurde oder der PR-Branch
+nicht ermittelbar ist —, SHALL der gemeldete Fehler bestehen bleiben und das Skript SHALL NICHT
+mit Exit 0 „alle grün" melden.
+
+Der Run-Lookup SHALL den Branch aus dem Pull Request beziehen und NICHT aus dem lokalen
+Arbeitsverzeichnis: der dokumentierte Aufrufweg führt über das Haupt-Checkout, in dem `main`
+ausgecheckt ist.
+
+#### Scenario: Kein zugehöriger Run auffindbar
+
+- **GIVEN** die check-runs-API meldet für den PR-HEAD eine `failure`-Conclusion
+- **AND** zu diesem HEAD ist über den PR-Branch kein Run auffindbar
+- **WHEN** `devflow-ci-watch.sh` die Checks bewertet
+- **THEN** meldet es nicht „alle grün"
+- **AND** der Exit-Code ist ungleich 0
+
+#### Scenario: PR-Branch nicht bestimmbar
+
+- **GIVEN** die check-runs-API meldet eine `failure`-Conclusion
+- **AND** der PR-Branch ist nicht ermittelbar
+- **WHEN** `devflow-ci-watch.sh` die Checks bewertet
+- **THEN** meldet es nicht „alle grün"
+
+#### Scenario: Nachweislich harmloses Aggregat bleibt grün
+
+- **GIVEN** ein Run wurde über den PR-Branch gefunden
+- **AND** keiner seiner Jobs trägt die Conclusion `failure`
+- **WHEN** `devflow-ci-watch.sh` die Checks bewertet
+- **THEN** gilt der Check als entlastet und der Lauf endet mit Exit 0
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -3451,3 +3503,7 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (7695daaf0cc8) -->
 
 <!-- merged from change delta ci-cd.md (214d53b59a78) -->
+
+<!-- merged from change delta ci-cd.md (6e81f2a62d49) -->
+
+<!-- merged from change delta ci-cd.md (8af7f6caa108) -->

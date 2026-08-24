@@ -3336,6 +3336,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-stack-tmp-mounts",
+    "file": "tests/spec/dev-stack-tmp-mounts.bats",
+    "category": "dev-stack-tmp-mounts",
+    "kind": "shell"
+  },
+  {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
     "category": "devflow-selection-archive-hardening",
@@ -4370,6 +4376,12 @@
   {
     "id": "monitoring-alerts/backup-alerting",
     "file": "tests/spec/monitoring-alerts/backup-alerting.bats",
+    "category": "monitoring-alerts",
+    "kind": "shell"
+  },
+  {
+    "id": "monitoring-alerts/backup-recipient-daily-repeat",
+    "file": "tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats",
     "category": "monitoring-alerts",
     "kind": "shell"
   },
@@ -5630,6 +5642,12 @@
   {
     "id": "software-factory/watchdog-parallel-isolation",
     "file": "tests/spec/software-factory/watchdog-parallel-isolation.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/wsl-exit-fleet-factory",
+    "file": "tests/spec/software-factory/wsl-exit-fleet-factory.bats",
     "category": "software-factory",
     "kind": "shell"
   },

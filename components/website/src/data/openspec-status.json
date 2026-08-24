@@ -4397,6 +4397,36 @@
       "status": "archived"
     }
   ],
+  "T016415": [
+    {
+      "slug": "backup-mail-routing",
+      "status": "plan_staged"
+    }
+  ],
+  "T016418": [
+    {
+      "slug": "watchdog-worktree-activity",
+      "status": "plan_staged"
+    }
+  ],
+  "T016419": [
+    {
+      "slug": "2026-08-24-freetoken-agent-roster-cleanup",
+      "status": "archived"
+    }
+  ],
+  "T016422": [
+    {
+      "slug": "2026-08-24-wsl-exit-fleet-factory",
+      "status": "archived"
+    }
+  ],
+  "T016424": [
+    {
+      "slug": "wsl-exit-brett-dev-tmp",
+      "status": "plan_staged"
+    }
+  ],
   "T016433": [
     {
       "slug": "wsl-exit-factory-runner",

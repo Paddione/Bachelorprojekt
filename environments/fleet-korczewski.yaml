@@ -12,6 +12,8 @@ env_vars:
   BRAND_NAME: "KORE"
   BRAND_ID: korczewski
   CONTACT_EMAIL: info@korczewski.de
+  # Operator-Mailbox fuer Backup-Fail-Warnungen (Alertmanager backup-email)
+  BACKUP_ALERT_EMAIL: patrick@korczewski.de
   CONTACT_PHONE: ""
   CONTACT_CITY: "Lüneburg"
   CONTACT_NAME: "Patrick Korczewski"

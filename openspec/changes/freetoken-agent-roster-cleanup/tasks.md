@@ -66,7 +66,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-roster.bats tests/spec/freeto
       nicht-viablen Checkpoints `/mnt/c/Users/PatrickKorczewski/models/Qwen3.6-27B-NVFP4`
       (19 GB, Pfad vorher auf Existenz+Größe prüfen).
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

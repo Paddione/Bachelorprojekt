@@ -1,5 +1,9 @@
-"""QLoRA SFT of unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit on tool-use data."""
+"""QLoRA SFT of unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit on tool-use data.
+
+Corpus override via env: CORPUS_TRAIN / CORPUS_VAL (default: synthetic dataset).
+"""
 import json
+import os
 import time
 from pathlib import Path
 
@@ -8,7 +12,8 @@ from datasets import Dataset
 from unsloth import FastLanguageModel
 from trl import SFTConfig, SFTTrainer
 
-BASE_MODEL = "unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit"
+BASE_MODEL = os.environ.get(
+    "MODEL", "unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit")
 MAX_SEQ = 2048
 SEED = 3407
 HERE = Path(__file__).parent
@@ -46,8 +51,8 @@ def to_text(rows):
         texts.append({"text": t})
     return texts
 
-train_rows = load_rows(HERE / "data" / "tooluse_train.jsonl")
-val_rows = load_rows(HERE / "data" / "tooluse_val.jsonl")
+train_rows = load_rows(HERE / "data" / os.environ.get("CORPUS_TRAIN", "tooluse_train.jsonl"))
+val_rows = load_rows(HERE / "data" / os.environ.get("CORPUS_VAL", "tooluse_val.jsonl"))
 train_ds = Dataset.from_list(to_text(train_rows))
 print(f"train: {len(train_ds)} rendered examples")
 print("--- sample rendered text ---")

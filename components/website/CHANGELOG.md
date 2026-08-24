@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.314.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.5...website-v1.314.0) (2026-08-24)
+
+
+### Features
+
+* **infra:** wsl-exit fleet-native factory + windows-native dev [T016422] ([#5245](https://github.com/Paddione/Bachelorprojekt/issues/5245)) ([8bcbe3e](https://github.com/Paddione/Bachelorprojekt/commit/8bcbe3e83f6470758c1991c698e5d9c5f835a322))
+
 ## [1.313.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.4...website-v1.313.5) (2026-08-24)
 
 

@@ -20,9 +20,6 @@ spec:
           type: RuntimeDefault
       imagePullSecrets:
         - name: ghcr-pull-secret
-      volumes:
-        - name: tmp
-          emptyDir: {}
       containers:
         - name: brett
           image: ghcr.io/paddione/workspace-brett:dev
@@ -34,9 +31,6 @@ spec:
             runAsUser: 1000
             capabilities:
               drop: [ALL]
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
           ports:
             - containerPort: 3000
           env:

@@ -570,6 +570,10 @@ Last touches:
   - DB-Identitätscheck vor Reset-Writes | T015556 | 2026-08-24 | ADDED
   - STALE_MIN-Floor in Produktion | T015556 | 2026-08-24 | ADDED
   - Ticket-Status-Reaper für verwaiste in_progress | T002770 | 2026-08-09 | ADDED
+In-flight:
+  - Worktree-Aktivitätsschutz vor Zombie-Löschung | T016418 | active | ADDED
+  - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T016418 | active | ADDED
+  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T016418 | active | ADDED
 
 ### fix-factory-lock-worktree-safety
 Reqs: 4 · Scenarios: 8 · Lines: 80

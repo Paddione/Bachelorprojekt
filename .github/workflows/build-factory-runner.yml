@@ -81,3 +81,14 @@ jobs:
             ${{ steps.tags.outputs.sha_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Mirror image to GitLab registry
+        if: ${{ github.event_name != 'pull_request' }}
+        continue-on-error: true
+        env:
+          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
+          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+          SOURCE_TAGS: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.sha_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        run: bash scripts/mirror-image-to-gitlab.sh

@@ -4403,6 +4403,12 @@
       "status": "archived"
     }
   ],
+  "T016422": [
+    {
+      "slug": "wsl-exit-fleet-factory",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

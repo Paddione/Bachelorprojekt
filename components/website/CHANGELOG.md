@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.312.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.311.1...website-v1.312.0) (2026-08-23)
+
+
+### Features
+
+* **scripts:** teacher-trace-collector + windows-native trainingsartefakte [T015768] ([#5194](https://github.com/Paddione/Bachelorprojekt/issues/5194)) ([d8224ce](https://github.com/Paddione/Bachelorprojekt/commit/d8224cef2cb65ce6ef733505bbc699ed38f913f9))
+
+## [1.311.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.311.0...website-v1.311.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* **infra:** db identity guard against ghost shared-db [T015168] ([#5190](https://github.com/Paddione/Bachelorprojekt/issues/5190)) ([a6b00b4](https://github.com/Paddione/Bachelorprojekt/commit/a6b00b4333cf791e7e4e360b497b21e7b4847ffc))
+
+## [1.311.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.310.0...website-v1.311.0) (2026-08-23)
+
+
+### Features
+
+* **infra:** runAsNonRoot hardening followup for 7 deployments [T015293] ([#5186](https://github.com/Paddione/Bachelorprojekt/issues/5186)) ([0d74cb3](https://github.com/Paddione/Bachelorprojekt/commit/0d74cb3cdadcd2b38a2c37cff617b4f58760d7b7))
+
 ## [1.310.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.309.1...website-v1.310.0) (2026-08-23)
 
 

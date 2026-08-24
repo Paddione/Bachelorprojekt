@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 144 · Requirements: 2254 · Scenarios: 5014
+Specs: 145 · Requirements: 2260 · Scenarios: 5031
 
 ## factory-pipeline
 
@@ -46,17 +46,14 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 201 · Scenarios: 621 · Lines: 5563
+Reqs: 203 · Scenarios: 627 · Lines: 5631
 Paths: scripts/factory
 Last touches:
+  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
+  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
   - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
   - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
-  - Provider_config ist die einzige Kandidatenquelle des Routers | T013302 | 2026-08-22 | ADDED
-  - PR-CI-Babysitter Scan und Kandidatenwahl | T012239 | 2026-08-18 | MODIFIED
-In-flight:
-  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | active | ADDED
-  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | active | ADDED
 
 ## delivery
 
@@ -448,6 +445,13 @@ Last touches:
 ### datev-export
 Reqs: 12 · Scenarios: 22 · Lines: 220
 Paths: website/src/lib/datev, website/src/lib/skr, website/src/lib/legal
+
+### db-identity-guard
+Reqs: 3 · Scenarios: 7 · Lines: 74
+Last touches:
+  - Shared-db pod selection is unambiguous | T015168 | 2026-08-24 | ADDED
+  - Database identity marker probe | T015168 | 2026-08-24 | ADDED
+  - Identity constant parity between migration and guard | T015168 | 2026-08-24 | ADDED
 
 ### devflow-selection-archive-hardening
 Reqs: 5 · Scenarios: 12 · Lines: 134
@@ -975,7 +979,9 @@ Last touches:
   - Keycloak-era OIDC key names stay retired | T003141 | 2026-08-11 | ADDED
 
 ### security
-Reqs: 2 · Scenarios: 4 · Lines: 82
+Reqs: 3 · Scenarios: 8 · Lines: 130
+Last touches:
+  - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
 
 ### sessions-server
 Reqs: 13 · Scenarios: 24 · Lines: 251

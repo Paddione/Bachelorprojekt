@@ -12,6 +12,12 @@
 : "${DB:=website}"
 USER="website"
 
+# [T015168] Erwartete DB-Identitaet der SSOT. Geschrieben durch die Migration
+# migrations/20260824-db-identity-marker.sql; _assert_db_identity probt sie nach
+# der Pod-Aufloesung (fail-closed bei Fehlen/Abweichung). Die Paritaet dieses
+# Literals mit der Migration erzwingt tests/spec/db-guard/db-identity-guard.bats.
+TICKET_DB_IDENTITY_EXPECTED="${TICKET_DB_IDENTITY_EXPECTED:-9f1d3c6e-4b2a-4f8a-9c1d-7e5b3a2f1d00}"
+
 # [T002224] Fail-closed test guard. A BATS test that reaches this file must have
 # stubbed the cluster itself (the repo idiom: prepend a mock `kubectl` to PATH,
 # see tests/spec/feature-product-linking.bats). When it has not, the real
@@ -47,10 +53,51 @@ fi
 # dagegen ist scripts/check-pod-phase-filter.sh (seit T002439 ein eigenes Skript
 # statt inline im Test; er prueft pro Treffer, nicht pro Datei, und deckt
 # scripts/ UND tests/ ab). Aufrufbar als `task quality:pod-phase-filter`.
+# [T015168] Identity-Probe gegen Ghost-shared-db-Instanzen (zweite Split-Brain-
+# Episode): nach der Pod-Aufloesung muss die DB den Marker der SSOT tragen. Einmal
+# pro Prozess gecacht; unter dem BATS-Sentinel-Regime (T002224) skip — dort
+# stubben Tests den Cluster selbst und die Probe wuerde jeden Offline-Test
+# fail-closed schliessen. Bewusster Ausnahme-Modus: TICKET_ALLOW_UNVERIFIED_DB=1.
+_TICKET_DB_IDENTITY_VERIFIED=""
+_assert_db_identity() {
+  local pod="$1" got
+  if [[ -n "$_TICKET_DB_IDENTITY_VERIFIED" ]]; then return 0; fi
+  if [[ -n "${BATS_TEST_NAME:-}${BATS_VERSION:-}" && "${TICKET_TEST_DB_OK:-0}" != "1" ]]; then
+    return 0
+  fi
+  if [[ "${TICKET_ALLOW_UNVERIFIED_DB:-0}" == "1" ]]; then
+    echo "WARN [T015168]: db identity unverified by design (TICKET_ALLOW_UNVERIFIED_DB=1, pod $pod)" >&2
+    return 0
+  fi
+  got="$(_exec_sql "$pod" <<< "SELECT identity FROM tickets.db_identity")" || true
+  if [[ -z "$got" ]]; then
+    echo "ERROR [T015168]: resolved shared-db pod has NO identity marker (tickets.db_identity missing/empty) — refusing a possible ghost instance." >&2
+    echo "  Remediation: apply the marker migration first: task db:migrate ENV=mentolder" >&2
+    echo "  Bewusster Ausnahme-Modus: TICKET_ALLOW_UNVERIFIED_DB=1" >&2
+    exit 1
+  fi
+  if [[ "$got" != "$TICKET_DB_IDENTITY_EXPECTED" ]]; then
+    echo "ERROR [T015168]: db identity MISMATCH — expected $TICKET_DB_IDENTITY_EXPECTED, got $got. This is not the SSOT database." >&2
+    echo "  Remediation: TICKET_CTX pruefen bzw. Restore-Situation klaeren; Ausnahme bewusst: TICKET_ALLOW_UNVERIFIED_DB=1" >&2
+    exit 1
+  fi
+  _TICKET_DB_IDENTITY_VERIFIED=1
+}
+
 _pgpod() {
   local pod all
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
-    --field-selector status.phase=Running -o name 2>/dev/null | head -1)
+  local -a pods=()
+  mapfile -t pods < <(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
+    --field-selector status.phase=Running -o name 2>/dev/null)
+  # [T015168] Ghost-Klasse: mehrere Running-Pods auf dem Selector machen die Wahl
+  # des "richtigen" Pods zum Gluecksspiel (frueher: blindes head -1). Fail-closed.
+  if (( ${#pods[@]} > 1 )); then
+    echo "ERROR [T015168]: ambiguous shared-db selection — ${#pods[@]} Running pods match the selector in namespace $NS (context $CTX):" >&2
+    printf '  %s\n' "${pods[@]}" >&2
+    echo "  Remediation: identify the ghost pod (kubectl get pod -n $NS -o wide) and delete it before any ticket command." >&2
+    exit 1
+  fi
+  pod="${pods[0]:-}"
   if [[ -z "$pod" ]]; then
     # Only on the error path: ask again unfiltered to tell "no pod at all" apart
     # from "pods exist, none Running". The happy path keeps its single API call.
@@ -65,6 +112,7 @@ _pgpod() {
     fi
     exit 1
   fi
+  _assert_db_identity "$pod"
   echo "$pod"
 }
 

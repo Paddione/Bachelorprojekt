@@ -4303,6 +4303,12 @@
       "status": "archived"
     }
   ],
+  "T015168": [
+    {
+      "slug": "2026-08-24-db-identity-guard",
+      "status": "archived"
+    }
+  ],
   "T015170": [
     {
       "slug": "2026-08-23-rustdesk-on-demand",
@@ -4315,6 +4321,12 @@
       "status": "archived"
     }
   ],
+  "T015293": [
+    {
+      "slug": "2026-08-24-runasnonroot-hardening-followup",
+      "status": "archived"
+    }
+  ],
   "T015384": [
     {
       "slug": "ci-freshness-guard-read-pr-body",
@@ -4323,8 +4335,8 @@
   ],
   "T015670": [
     {
-      "slug": "closure-identity-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-24-closure-identity-guard",
+      "status": "archived"
     }
   ],
   "TBD": [

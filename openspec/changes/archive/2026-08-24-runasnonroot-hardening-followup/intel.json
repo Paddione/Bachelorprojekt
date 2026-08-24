@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "slug": "runasnonroot-hardening-followup",
+    "ticket_id": "T015293",
+    "generated_by": "manual (orchestrator, ticket-ops Phase 3) — Single-Mode-Plan",
+    "generated_at": "2026-08-23"
+  },
+  "impact_files": [
+    {"path": "k3d/coturn-stack/janus.yaml", "loc": null, "note": "+pod-level sc, +container-sc (runAsNonRoot/APE:false/runAsUser:1000/seccomp)"},
+    {"path": "k3d/default/claude-code-mcp-monolith-deploy.yaml", "loc": null, "note": "pod-level {} ersetzt; container `kubernetes` gescoped; 4 Ausnahme-Marker"},
+    {"path": "k3d/dev-stack/brett-dev.yaml", "loc": null, "note": "+pod-level sc, +container-sc vollstaendig nach brett.yaml-Muster (inkl. RO-fs, caps drop ALL)"},
+    {"path": "k3d/dev-stack/sish.yaml", "note": "+Ausnahme-Marker (:80-Bind)"},
+    {"path": "k3d/dev-stack/website-dev.yaml", "loc": null, "note": "+pod-level sc, +container-sc"},
+    {"path": "k3d/staging-stack/website-staging.yaml", "loc": null, "note": "+pod-level sc, +container-sc"},
+    {"path": "k3d/mentolder-web.yaml", "note": "+Ausnahme-Marker (nginx-Root-Entrypoint)"},
+    {"path": "tests/spec/security.bats", "loc": null, "note": "+Guard-Sektion run-as-non-root baseline (python3+yaml)"}
+  ],
+  "symbols": [],
+  "call_graph": [],
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    "janus mit hostNetwork:true: falls Runtime-Writes (/var/run/janus) als uid 1000 scheitern, Downgrade auf dokumentierte Ausnahme laut tasks.md Task 4 (Delta-Spec bleibt erfuellt)",
+    "monolith postgres/playwright/github bleiben bewusst root (Runtime npm-install-g); Remediation = Deps ins Image backen, eigener Follow-up, NICHT Teil dieses Plans",
+    "staging-Image $STAGING_IMAGE wird erst zur Deploy-Zeit aufgeloest — USER-node-Annahme stuetzt sich auf identische Dockerfile-Basis wie dev",
+    "readOnlyRootFilesystem nur fuer brett-dev (Prod-proven); bewusst nicht auf website/janus ausgeweitet (out of Ticket-Scope)"
+  ]
+}

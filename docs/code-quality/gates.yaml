@@ -151,6 +151,10 @@ s3:
     - k3d/monitoring/blackbox-exporter.yaml
     - components/website/src/pages/sitemap.xml.ts
     - prod-fleet/mentolder/sessions-server.yaml
+    # T016430: bge-hosts-patch tauscht nur die internen bge-Routen-Hosts der
+    # eigenen Brand im brand-scoped Overlay (gleiche Legitimation wie
+    # sessions-server.yaml) — Fail-closed via wg-only-Middleware.
+    - prod-fleet/mentolder/bge-hosts-patch.yaml
     - prod-mentolder/kustomization.yaml
     - prod-korczewski/kustomization.yaml
     - prod-korczewski/ddns-updater.yaml

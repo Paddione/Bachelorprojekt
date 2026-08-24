@@ -4353,8 +4353,8 @@
   ],
   "T015712": [
     {
-      "slug": "2026-08-24-backup-alerting",
-      "status": "archived"
+      "slug": "backup-alerting",
+      "status": "plan_staged"
     }
   ],
   "T015783": [
@@ -4367,6 +4367,12 @@
     {
       "slug": "2026-08-24-worktree-git-op-finish",
       "status": "archived"
+    }
+  ],
+  "T015960": [
+    {
+      "slug": "factory-status-lanes-autoclose-fallback",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

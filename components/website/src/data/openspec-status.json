@@ -4409,6 +4409,12 @@
       "status": "plan_staged"
     }
   ],
+  "T016416": [
+    {
+      "slug": "kv-ladder-autostart",
+      "status": "plan_staged"
+    }
+  ],
   "T016418": [
     {
       "slug": "watchdog-worktree-activity",

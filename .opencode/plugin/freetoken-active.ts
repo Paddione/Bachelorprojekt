@@ -46,9 +46,26 @@ export default async () => {
         const ref = models[id]
         if (!ref?.limit?.context) return // unbekanntes Modell: Fallback-Limit behalten
 
-        models.active.limit = { ...ref.limit }
+        // SDLC-Ceiling (T-los, 2026-08-24): Fuer autonome Laeufe advertise ich
+        // bis zu SDLC_CONTEXT_CEILING (Default 200000) statt des kalibrierten
+        // Werts. Der Native-Auto-Compact greift bei 95% des advertisierten
+        // Kontexts — bei 200k also ~190k. DAS GEHT NUR, wenn der Server die
+        // KV-Seiten dorthin mitwachsen laesst ("ft ctl cache --kv <n>" zieht
+        // Kontext auf Kosten der unbedeutenden MoE-Slot-Caches hoch); das
+        // bedient der Operator serverseitig, nicht dieses Plugin.
+        //
+        // Guard: nur bei laufender Engine und nur fuer Modelle mit
+        // dokumentiertem Headroom (kalibriert >= 100000 — nach Matrix ist das
+        // Qwen3.6-35B-offload; gpt-oss/Gemma behalten ihr sicheres Limit).
+        // Daemon nicht erreichbar oder Engine gestoppt => Kalibrierung bleibt.
+        const ceiling = Number(process.env.SDLC_CONTEXT_CEILING ?? 200_000)
+        const calibrated = ref.limit.context
+        const grow = ceiling > calibrated && st.running && calibrated >= 100_000
+
+        models.active.limit = { ...ref.limit, ...(grow ? { context: ceiling } : {}) }
         models.active.name =
-          `FreeToken-active → ${id} (${ref.limit.context} ctx nutzbar` +
+          `FreeToken-active → ${id} (${models.active.limit.context} ctx` +
+          `${grow ? `, Ceiling ${ceiling} aktiv — KV muss via ft ctl cache mitwachsen` : " nutzbar"}` +
           `${st.running ? "" : " — Engine gestoppt, Limit gilt beim naechsten Start"})`
       } catch {
         // Daemon nicht erreichbar: Alias behaelt statische Defaults.

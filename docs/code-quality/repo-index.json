@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1206,
+      "file_count": 1207,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -627,6 +627,7 @@
         "tests/spec/factory-reclaim-lock-respect/worktree-reaper-lock-guard-T002896.bats",
         "tests/spec/factory-watchdog/factory-excluded-scope.bats",
         "tests/spec/factory-watchdog/merged-ticket-close.bats",
+        "tests/spec/factory-watchdog/stale-scope-isolation.bats",
         "tests/spec/factory-watchdog/stale-type-coverage.bats",
         "tests/spec/factory/vda-frontmatter.bats",
         "tests/spec/factory/watchdog-red-green.bats",

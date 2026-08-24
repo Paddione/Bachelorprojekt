@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.313.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.0...website-v1.313.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **factory:** zweiseitige Test-Isolation im Watchdog-Stale-Sweep [T015983] ([#5223](https://github.com/Paddione/Bachelorprojekt/issues/5223)) ([bac20cd](https://github.com/Paddione/Bachelorprojekt/commit/bac20cdfd9d64e41e42859f8d104513c754232cf))
+
 ## [1.313.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.4...website-v1.313.0) (2026-08-24)
 
 

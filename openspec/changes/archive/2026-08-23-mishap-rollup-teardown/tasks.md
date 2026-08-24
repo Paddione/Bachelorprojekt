@@ -2,7 +2,7 @@
 title: "mishap-rollup-teardown — Implementation Plan"
 ticket_id: T014104
 domains: [factory, tickets]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

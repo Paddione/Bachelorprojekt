@@ -2,7 +2,7 @@
 title: "ci-freshness-guard-read-pr-body — Implementation Plan"
 ticket_id: T015384
 domains: [ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

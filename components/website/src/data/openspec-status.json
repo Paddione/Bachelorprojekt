@@ -4369,6 +4369,12 @@
       "status": "archived"
     }
   ],
+  "T015822": [
+    {
+      "slug": "2026-08-24-agent-lock-liveness-heartbeat",
+      "status": "archived"
+    }
+  ],
   "T016250": [
     {
       "slug": "2026-08-24-consolidate-sessions-specs",

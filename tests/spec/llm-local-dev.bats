@@ -168,9 +168,11 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc provides a primary gemma agent with measured context (T002545)" {
+@test "agent-models.jsonc provides a local primary with measured context (T002545/T016419)" {
   # T002545: mode:primary, und der genannte Kontext ist ein GEMESSENER Wert,
-  # kein n_ctx_train.
+  # kein n_ctx_train. T016419: der einzige lokale Primary ist freetoken-primary —
+  # die frueheren gemma-Primaries waren Klon-Leichen und sind entfernt; geprueft
+  # wird jetzt jeder Primary auf dem LOKALEN Stack (freetoken-local/llamacpp-local).
   #
   # [T003065] Vorher lautete die Bedingung
   #   ctx === 262144 || ctx <= 50000 || ctx >= 200000  ->  implausible
@@ -205,8 +207,8 @@ EOF"
       return ms.length ? Math.max(...ms) : null;
     };
     const prim = Object.entries(o.agent || {})
-      .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
-    if (prim.length < 1) { console.error('no primary gemma agents found'); process.exit(1); }
+      .filter(([n,v]) => v.mode === 'primary' && /^(freetoken-local|llamacpp-local)\//.test(v.model || ''));
+    if (prim.length < 1) { console.error('no local-stack primary agent found'); process.exit(1); }
     // T014105: FreeToken-Agenten sind NICHT an loadouts.json gebunden — ihre
     // gemessenen Limits (KV-Pages, nicht advertised max_model_len) stehen als
     // konkrete Eintraege im Provider und werden von den T014105-Guards exakt

@@ -54,14 +54,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev.bats tests/spec/local
 # expected: FAIL (red — impl partials not applied yet)
 ```
 
-- [ ] **Fix-Step (GREEN).** Nach p1+p2 laufen dieselben Tests grün; zusätzlich
+- [x] **Fix-Step (GREEN).** Nach p1+p2 laufen dieselben Tests grün; zusätzlich
       P4.x-Roster-Gates (`agent-roster.bats`) und die FreeToken-Routing-Guards.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-roster.bats tests/spec/freetoken-local-backend/routing.bats tests/spec/routing-check-freetoken.bats
 ```
 
-- [ ] **Ops-Schritte (p2):** `bash scripts/opencode-sync-agents.sh` (Global-
+- [x] **Ops-Schritte (p2):** `bash scripts/opencode-sync-agents.sh` (Global-
       Config); `task agent-guide:maps` (P4.5-Freshness); Löschung des
       nicht-viablen Checkpoints `/mnt/c/Users/PatrickKorczewski/models/Qwen3.6-27B-NVFP4`
       (19 GB, Pfad vorher auf Existenz+Größe prüfen).

@@ -4,9 +4,12 @@
 
 ### Requirement: Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp
 
-Dev-Stack-Deployments in `k3d/dev-stack/`, die mit `runAsUser != 0` laufen,
-MÜSSEN ein `emptyDir`-Volume auf `/tmp` mounten, damit Images, die zur
-Laufzeit unter `/tmp` anlegen (z. B. tsx, npm), nicht beim Start crashen.
+Dev-Stack-Deployments in `k3d/dev-stack/`, die mit `runAsUser != 0` und
+`readOnlyRootFilesystem: true` laufen, MÜSSEN jeden zur Laufzeit beschriebenen
+Pfad als `emptyDir` einbinden. Für Node-basierte Images (tsx, npm) ist das
+explizit `/tmp` — deren Laufzeit legt dort Zustand an (`/tmp/tsx-<uid>`,
+npm-Cache). Bilder, die nachweislich nicht nach `/tmp` schreiben (oauth2-proxy-
+Familie), stehen im Test unter begründeter Allowlist.
 
 #### Scenario: Brett-Dev-Pod startet als uid 1000
 
@@ -17,6 +20,8 @@ Laufzeit unter `/tmp` anlegen (z. B. tsx, npm), nicht beim Start crashen.
 
 #### Scenario: Neue dev-stack-Deployments erben das Muster
 
-- **GIVEN** ein Deployment in `k3d/dev-stack/` setzt `runAsUser != 0`
+- **GIVEN** ein Deployment in `k3d/dev-stack/` setzt `runAsUser != 0` und
+  `readOnlyRootFilesystem: true`
 - **WHEN** das Manifest per BATS-Test geprüft wird
-- **THEN** enthält der Container ein `/tmp`-Volume vom Typ `emptyDir`
+- **THEN** enthält der Container einen `/tmp`-emptyDir-Mount oder steht mit
+  schriftlicher Begründung in der Test-Allowlist

@@ -79,6 +79,54 @@ setup() {
   [ "$output" = "archived" ]
 }
 
+# --- Resume-Pfad und Abschluss-Beleg ---------------------------------------
+#
+# PRÜFMODUS ab hier: Source-Grep. Beide Zusagen liegen im Laufzeitpfad hinter
+# Schritt 1 (`ticket.sh get`), der Cluster-/DB-Zugriff braucht und in CI nicht
+# existiert — dieselbe dokumentierte Ausnahme wie in
+# tests/spec/agent-skills/post-merge-finalize-guards.bats. Ohne diese Tests
+# blieben zwei Requirements der Delta-Spec ganz ungeschützt.
+
+# Positiv-Anker (T002356-M1): Der Archiv-Aufruf existiert überhaupt. Ohne ihn
+# wäre die Aussage des nächsten Tests auch dann erfüllt, wenn die ganze
+# Archiv-Sektion verschwunden wäre.
+@test "T015783: Archiv-Sektion ruft openspec.sh archive (Anker)" {
+  run grep -qF 'bash scripts/openspec.sh archive "$SLUG"' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T015783: Resume-Pfad überspringt das erneute Archivieren" {
+  run grep -qF 'ARCHIVE_RESUME:-0}" == 1' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+# Gesucht ist der AUFRUF, nicht die Erwähnung: der Kommentar oberhalb des
+# Zweigs zitiert die entfernte Zeile absichtlich, damit nachvollziehbar bleibt,
+# was dort stand. Ein Grep auf den Meldungstext allein träfe diesen Kommentar
+# und wäre rot, obwohl der Defekt behoben ist.
+@test "T015783: der ratende mark_skip-Aufruf ist entfernt" {
+  run grep -qF 'mark_skip "Schritt 8: Change-Ordner openspec/changes/$SLUG existiert nicht mehr' "$FINALIZE"
+  [ "$status" -ne 0 ]
+}
+
+@test "T015783: Abschluss wird am Archiv-Branch auf origin belegt" {
+  run grep -qF 'ls-remote --exit-code --heads origin "$ARCHIVE_BRANCH"' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+# Der Beleg braucht BEIDE Signale: Branch UND PR. Ein `gh pr list`, dessen
+# Exit-Code ungeprüft bleibt, wäre wertlos — "gh konnte nicht antworten" und
+# "es gibt keinen PR" liefern dieselbe leere Ausgabe (T002523-M7).
+@test "T015783: PR-Beleg wertet den gh-Exit-Code getrennt von der Ausgabe aus" {
+  run grep -qF 'if ! _pr_raw="$(gh pr list --head "$ARCHIVE_BRANCH"' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T015783: nicht belegter Abschluss endet als Fehler, nicht als Skip" {
+  run grep -qF 'Schritt 8 ohne belegten Abschluss' "$FINALIZE"
+  [ "$status" -eq 0 ]
+}
+
 # Fail-closed: eine nicht durchführbare Messung ist kein Messwert. Ohne
 # erreichbares origin darf das Subkommando keinen Zustand behaupten.
 @test "T015783: --archive-state urteilt nicht, wenn origin nicht erreichbar ist" {

@@ -14,6 +14,10 @@ Last touches:
   - E2E follows the test-only Chore lifecycle | T013482 | 2026-08-22 | ADDED
   - Progressive disclosure preserves safety contracts | T013482 | 2026-08-22 | ADDED
   - Post-Merge-Finalisierung als idempotente Skript-Einheit | T008014 | 2026-08-18 | MODIFIED
+In-flight:
+  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | active | ADDED
+  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | active | ADDED
+  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

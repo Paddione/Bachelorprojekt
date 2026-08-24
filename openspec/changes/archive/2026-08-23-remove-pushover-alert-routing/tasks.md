@@ -2,7 +2,7 @@
 title: "remove-pushover-alert-routing — Implementation Plan"
 ticket_id: T014542
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -2,7 +2,7 @@
 title: "korczewski-brand-pause — Implementation Plan"
 ticket_id: T014537
 domains: [flux, kubernetes-operations, documentation]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

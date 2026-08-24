@@ -2,7 +2,7 @@
 title: "routing-check-freetoken-t014552 — Implementation Plan"
 ticket_id: T014552
 domains: [scripts]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

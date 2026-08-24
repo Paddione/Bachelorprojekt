@@ -1,7 +1,8 @@
 #!/usr/bin/env bats
-# T013141 — OpenCode-Default und persistente Proxy-Registry muessen gemeinsam
-# auf qwen38-220k zeigen; sonst kann ein Default-Request Gemma laden und Qwen aus
-# der gemeinsamen chat-gpu exclusiveGroup verdraengen.
+# T016419 — Der Projekt-Default zeigt auf den modellagnostischen FreeToken-Alias
+# "active". Der alte llama.cpp-Stack (:18235) ist stillgelegt — ein Default auf
+# llamacpp-local/qwen38-220k waere ein toter Backend-Aufruf. Der Migrations-Pin
+# auf das historische qwen38-Backend bleibt unveraendert (Historie, kein Ist).
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -9,8 +10,8 @@ setup() {
   MIGRATION="${REPO_ROOT}/scripts/migrations/2026-08-22-llm-proxy-qwen38-backend.sql"
 }
 
-@test "T013141: project default selects qwen38-220k" {
-  run grep -F '"model": "llamacpp-local/qwen38-220k"' "${CONFIG}"
+@test "T016419: project default selects the freetoken alias" {
+  run grep -F '"model": "freetoken-local/active"' "${CONFIG}"
   [ "${status}" -eq 0 ]
 }
 

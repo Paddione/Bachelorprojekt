@@ -2190,6 +2190,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/finalize-archive-state",
+    "file": "tests/spec/agent-skills/finalize-archive-state.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/finalize-hardening",
     "file": "tests/spec/agent-skills/finalize-hardening.bats",
     "category": "agent-skills",
@@ -2246,6 +2252,12 @@
   {
     "id": "agent-skills/skill-path-references",
     "file": "tests/spec/agent-skills/skill-path-references.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/worktree-git-op-finish",
+    "file": "tests/spec/agent-skills/worktree-git-op-finish.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -2600,6 +2612,12 @@
   {
     "id": "ci-cd/awk-interval-portability",
     "file": "tests/spec/ci-cd/awk-interval-portability.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/baseline-guard-read-pr-body",
+    "file": "tests/spec/ci-cd/baseline-guard-read-pr-body.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -3111,6 +3129,12 @@
     "id": "datev-export",
     "file": "tests/spec/datev-export.bats",
     "category": "datev-export",
+    "kind": "shell"
+  },
+  {
+    "id": "db-guard/db-identity-guard",
+    "file": "tests/spec/db-guard/db-identity-guard.bats",
+    "category": "db-guard",
     "kind": "shell"
   },
   {

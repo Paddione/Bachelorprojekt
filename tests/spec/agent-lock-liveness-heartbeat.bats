@@ -98,10 +98,12 @@ _now_field() { sed -n 's/.*"heartbeat_at": *"\([^"]*\)".*/\1/p' "$1"; }
 #     (BEFORE fix the guard never touched branch locks -> heartbeat stale.)
 # ---------------------------------------------------------------------------
 @test "T3: guard-precommit refreshes the heartbeat of a worktree-matched lock" {
-  local wt_top br hb_before hb_after
-  wt_top="$(git -C "$REPO_ROOT" rev-parse --show-toplevel 2>/dev/null)"
-  br="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null)"
-  # own lock, matching worktree (the real repo) + branch, non-numeric alive sid,
+  local hb_before hb_after
+  # Wegwerf-Repo als Guard-Kontext [T003045]: der Lauf passiert mit cwd im
+  # Fixture-$WT aus setup() (Branch fix/demo-T015822) — dessen Toplevel/Branch
+  # stellen die Matchkriterien des Locks. Der Branch des lebenden Checkouts
+  # wird nie gelesen.
+  # own lock, matching worktree + branch, non-numeric alive sid,
   # heartbeat 600s old (< TTL) -> survives cmd_reap via the sid-alive branch.
   cat > "$AGENT_LOCK_DIR/branch__heartbeat.json" <<EOF
 {
@@ -111,8 +113,8 @@ _now_field() { sed -n 's/.*"heartbeat_at": *"\([^"]*\)".*/\1/p' "$1"; }
   "owner_pid": "$$",
   "tool": "claude",
   "label": "heartbeat-T015822",
-  "worktree": "$wt_top",
-  "branch": "$br",
+  "worktree": "$WT",
+  "branch": "fix/demo-T015822",
   "ticket": "",
   "host": "testhost",
   "created_at": "$(( $(date +%s) - 600 ))",
@@ -120,7 +122,7 @@ _now_field() { sed -n 's/.*"heartbeat_at": *"\([^"]*\)".*/\1/p' "$1"; }
 }
 EOF
   hb_before="$(_now_field "$AGENT_LOCK_DIR/branch__heartbeat.json")"
-  run bash "$AGENT_LOCK" guard-precommit
+  run bash -c "cd '$WT' && bash '$AGENT_LOCK' guard-precommit"
   [ "$status" -eq 0 ]
   hb_after="$(_now_field "$AGENT_LOCK_DIR/branch__heartbeat.json")"
   # AFTER fix: _touch_own_worktree_heartbeats bumped heartbeat_at to ~now.

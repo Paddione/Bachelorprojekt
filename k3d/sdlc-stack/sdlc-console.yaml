@@ -110,8 +110,12 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: GITHUB_PAT
+            # Legacy-Local-Stack [T016429]: der Host-Proxy entfällt mit dem
+            # WSL-Exit; ohne laufenden Proxy degradiert die Console hier
+            # fail-closed (LLM-Pfade antworten mit Verbindungsfehler statt
+            # Crash — LLM_ENABLED steuert das Flag).
             - name: LLM_PROXY_URL
-              value: "http://llm-proxy-host.workspace.svc.cluster.local:18235"
+              value: ""
             - name: LLM_PROXY_ADMIN_TOKEN
               valueFrom:
                 secretKeyRef:

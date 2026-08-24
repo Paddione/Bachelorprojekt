@@ -994,6 +994,8 @@ Last touches:
   - sdlc:up starts the local chat loadout before the health gate | T002656 | 2026-08-13 | ADDED
   - sdlc:down stops the chat loadout before the proxy | T002656 | 2026-08-13 | ADDED
   - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T002623 | 2026-08-10 | ADDED
+In-flight:
+  - Die SDLC-Oberfläche hat eine Laufzeit-Heimat | T016429 | active | MODIFIED
 
 ### secret-rotation
 Reqs: 45 · Scenarios: 106 · Lines: 883

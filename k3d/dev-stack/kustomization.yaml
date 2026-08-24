@@ -2,6 +2,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: workspace-dev
 resources:
+  # SDLC-Console (Fleet-Heimat, T016429) — RBAC/Manifeste/Platzhalter-Secret
+  - sdlc-console-rbac.yaml
+  - sdlc-console-secrets.yaml
+  - sdlc-console.yaml
   - namespace.yaml
   - shared-db-dev.yaml
   - website-dev.yaml
@@ -15,7 +19,6 @@ resources:
   - oauth2-proxy-sessions.yaml
   - dev-ingress.yaml
   - internal-mcp-ingress.yaml
-  - sdlc-console.yaml
 patches:
   - path: dev-node-binding.yaml
     target:

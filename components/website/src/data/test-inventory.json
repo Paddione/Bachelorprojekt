@@ -3648,6 +3648,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/sdlc-console-fleet",
+    "file": "tests/spec/fleet-operations/sdlc-console-fleet.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/staging-flux-wiring",
     "file": "tests/spec/fleet-operations/staging-flux-wiring.bats",
     "category": "fleet-operations",

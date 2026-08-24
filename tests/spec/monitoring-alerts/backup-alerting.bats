@@ -20,14 +20,14 @@ setup() {
 }
 
 @test "prometheus-rules.yaml declares BackupJobFailed with severity critical" {
-  run grep -A6 'alert: BackupJobFailed' "$RULES"
+  run grep -A14 'alert: BackupJobFailed' "$RULES"
   [ "$status" -eq 0 ]
   [[ "$output" == *"kube_job_status_failed"* ]]
   [[ "$output" == *"severity: critical"* ]]
 }
 
 @test "BackupJobFailed covers both brand namespaces" {
-  run grep -A3 'alert: BackupJobFailed' "$RULES"
+  run grep -A10 'alert: BackupJobFailed' "$RULES"
   [ "$status" -eq 0 ]
   [[ "$output" == *'namespace=~"workspace|workspace-korczewski"'* ]]
 }
@@ -66,11 +66,13 @@ setup() {
 # workspace-alerts AlertmanagerConfig and every workspace* alert falls through
 # to the default receiver "null".
 
-@test "alertmanager matcher-strategy patch exists and disables the namespace matcher" {
+@test "alertmanager matcher-strategy patch exists and frees the workspace-alerts config" {
   [ -f "$PATCH" ]
   run grep -A2 'alertmanagerConfigMatcherStrategy' "$PATCH"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"type: None"* ]]
+  [[ "$output" == *"type: "* ]]
+  # nicht der Operator-Default, sonst bleibt der namespace-Matcher haengen
+  [[ "$output" != *"type: OnNamespace"$'\n'* ]]
 }
 
 @test "matcher-strategy patch targets the Alertmanager CR" {
@@ -86,4 +88,57 @@ setup() {
   [[ "$output" == *"alertmanager-matcher-strategy-patch.yaml"* ]]
   # Positiv-Anker: der vorbestehende Patch-Eintrag bleibt erhalten
   [[ "$output" == *"loki-sc-rules-resources-patch.yaml"* ]]
+}
+
+# ── Review-Korrekturen T016124 ────────────────────────────────────────
+
+@test "alerts target the real CronJob name db-restore-verify" {
+  # Die DATEI heisst backup-restore-verify-cronjob.yaml, der CronJob darin
+  # heisst db-restore-verify. Prometheus-Regexe sind voll verankert, ein
+  # falscher Name matcht schlicht nie.
+  run grep -c 'backup-restore-verify' "$RULES"
+  [ "$output" -eq 0 ]
+  run grep -q 'db-restore-verify' "$RULES"
+  [ "$status" -eq 0 ]
+}
+
+@test "the weekly restore-verify job has its own threshold, not the daily one" {
+  # 30 3 * * 0 — mit der 26h-Schwelle waere der Alert an sechs von sieben
+  # Tagen kritisch.
+  run grep -q 'alert: RestoreVerifyStale' "$RULES"
+  [ "$status" -eq 0 ]
+  run grep -A12 'alert: RestoreVerifyStale' "$RULES"
+  [[ "$output" == *"694800"* ]]
+  # Positiv-Anker: die taegliche Regel behaelt ihre 26h-Schwelle
+  run grep -A12 'alert: BackupCronJobStale' "$RULES"
+  [[ "$output" == *"93600"* ]]
+}
+
+@test "stale alerts gate the never-succeeded branch on CronJob age" {
+  # Ohne das Gate ist jeder frisch angelegte Backup-CronJob sofort kritisch,
+  # bis sein erster Lauf gelingt.
+  run grep -A16 'alert: BackupCronJobStale' "$RULES"
+  [[ "$output" == *"kube_cronjob_created"* ]]
+  run grep -A16 'alert: RestoreVerifyStale' "$RULES"
+  [[ "$output" == *"kube_cronjob_created"* ]]
+}
+
+@test "BackupJobFailed survives a fast-failing Job and ignores old ones" {
+  # kube_job_status_failed traegt ein reason-Label; eine Serie, die ab ihrem
+  # ersten Sample konstant 1 ist, hat increase()=0. max_over_time ist immun,
+  # braucht aber ein Alters-Gate (sonst feuern 80 alte Serien).
+  run grep -A14 'alert: BackupJobFailed' "$RULES"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"max_over_time"* ]]
+  [[ "$output" != *"increase("* ]]
+  [[ "$output" == *"kube_job_created"* ]]
+}
+
+@test "matcher strategy is scoped to the alertmanager namespace, not disabled outright" {
+  # workspace-alerts liegt im Alertmanager-eigenen Namespace, daher loest
+  # OnNamespaceExceptForAlertmanagerNamespace das Problem exakt. type=None
+  # macht die matcher-lose route zur Catch-all fuer den ganzen Cluster.
+  run grep -A2 'alertmanagerConfigMatcherStrategy' "$PATCH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OnNamespaceExceptForAlertmanagerNamespace"* ]]
 }

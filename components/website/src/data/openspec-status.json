@@ -4421,6 +4421,12 @@
       "status": "archived"
     }
   ],
+  "T016420": [
+    {
+      "slug": "sdlc-autopilot-skill-adoption",
+      "status": "plan_staged"
+    }
+  ],
   "T016422": [
     {
       "slug": "2026-08-24-wsl-exit-fleet-factory",

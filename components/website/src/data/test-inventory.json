@@ -5454,6 +5454,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-runner",
+    "file": "tests/spec/software-factory/factory-runner.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/factory-status-lane-status-field",
     "file": "tests/spec/software-factory/factory-status-lane-status-field.bats",
     "category": "software-factory",

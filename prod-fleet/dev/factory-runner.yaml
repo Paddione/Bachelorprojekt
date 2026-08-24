@@ -1,0 +1,149 @@
+# prod-fleet/dev/factory-runner.yaml [T016433]
+# Fleet-nativer Factory-Dispatcher (ersetzt den systemd User-Timer des
+# WSL-Hosts, ADR-007). single-replica + Recreate: agent-lock.sh File-Locks
+# bleiben gültig, weil es nie zwei gleichzeitige Runner gibt.
+#
+# Credentials: SealedSecret factory-runner-secrets (Operator erzeugt sie via
+# scripts/factory/seal-factory-secrets.sh — Werte NIE ins Repo).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factory-runner
+  namespace: workspace-dev
+  labels:
+    app: factory-runner
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: factory-runner
+  template:
+    metadata:
+      labels:
+        app: factory-runner
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: runner
+          image: ghcr.io/paddione/factory-runner:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+          workingDir: /work/repo
+          command: ["sleep", "infinity"]
+          volumeMounts:
+            - name: workdir
+              mountPath: /work
+            - name: factory-env
+              mountPath: /run/factory-env
+              readOnly: true
+            - name: kube-api
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              readOnly: true
+          env:
+            - name: FACTORY_REPO
+              value: /work/repo
+            - name: FACTORY_ENV_FILE
+              value: /run/factory-env/autopilot.env
+            - name: FACTORY_DRY_RUN
+              value: "false"
+            - name: GIT_CRYPT_KEY_FILE
+              value: /run/factory-env/bp-secrets.key
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 2Gi
+              cpu: "1"
+      volumes:
+        - name: workdir
+          persistentVolumeClaim:
+            claimName: factory-workdir
+        - name: factory-env
+          secret:
+            secretName: factory-runner-secrets
+        - name: kube-api
+          emptyDir: {}
+---
+# Tick-Anstoß per CronJob statt systemd-Timer. Der Hang-Kill ersetzt die
+# systemd RuntimeMaxSec durch timeout; idle-retick bleibt in wakeup.sh.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: factory-tick
+  namespace: workspace-dev
+  labels:
+    app: factory-runner
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: factory-runner
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: tick
+              image: ghcr.io/paddione/factory-runner:latest
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: [ALL]
+              workingDir: /work/repo
+              # RUNTIME_MAX_SEC-Äquivalent zur systemd RuntimeMaxSec [T002662]:
+              # 3600s hartes Limit pro Tick, danach killt timeout den Lauf.
+              command:
+                - bash
+                - -c
+                - >-
+                  timeout 3600 bash scripts/factory/wakeup.sh;
+                  exit $?
+              env:
+                - name: FACTORY_REPO
+                  value: /work/repo
+                - name: FACTORY_ENV_FILE
+                  value: /run/factory-env/autopilot.env
+                - name: FACTORY_DRY_RUN
+                  value: "false"
+                - name: GIT_CRYPT_KEY_FILE
+                  value: /run/factory-env/bp-secrets.key
+              volumeMounts:
+                - name: workdir
+                  mountPath: /work
+                - name: factory-env
+                  mountPath: /run/factory-env
+                  readOnly: true
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: 100m
+                limits:
+                  memory: 1Gi
+                  cpu: 500m
+          volumes:
+            - name: workdir
+              persistentVolumeClaim:
+                claimName: factory-workdir
+            - name: factory-env
+              secret:
+                secretName: factory-runner-secrets

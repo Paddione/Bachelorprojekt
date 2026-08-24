@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-96 Services · 2007 Abhängigkeitskanten · 291 API-Endpoints
+98 Services · 2009 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -96,6 +96,8 @@ flowchart LR
   whisper["whisper"]:::default
   ddns_updater["ddns-updater"]:::default
   dev_db_refresh["dev-db-refresh"]:::default
+  factory_runner["factory-runner"]:::default
+  factory_tick["factory-tick"]:::default
   traefik["traefik"]:::ingress
   apiinternal["api@internal"]:::default
   WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]:::default
@@ -2054,6 +2056,8 @@ flowchart LR
   website -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_staging -->|"secret:staging-db-…"| website
   website -->|"secret:staging-db-…"| shared_db_staging
+  factory_runner -->|"secret:factory-run…"| factory_tick
+  factory_tick -->|"secret:factory-run…"| factory_runner
 ```
 
 ## K8s-Topology
@@ -2149,6 +2153,8 @@ flowchart TB
   end
   subgraph workspace_dev["workspace-dev"]
     oauth2_proxy_dev["oauth2-proxy-dev"]
+    factory_runner["factory-runner"]
+    factory_tick(["factory-tick"])
   end
   subgraph gitlab_runner["gitlab-runner"]
     gitlab_runner["gitlab-runner"]

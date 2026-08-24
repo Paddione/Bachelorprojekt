@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-08-23T18:40:20.025Z
-> Nodes: 96 | Edges: 2007 | Isolated: 7
+> Generated: 2026-08-24T16:10:46.110Z
+> Nodes: 98 | Edges: 2009 | Isolated: 7
 
 ## Ranking (transitive Abhängige)
 
@@ -75,19 +75,21 @@
 | 67 | keycloak | 1 | 55 | 1 |
 | 68 | tracking | 1 | 55 | 1 |
 | 69 | docuseal | 1 | 55 | 1 |
-| 70 | brain | 1 | 1 | 1 |
-| 71 | claude-code-mcp-monolith | 1 | 1 | 1 |
-| 72 | docs | 1 | 1 | 1 |
-| 73 | downloads | 1 | 1 | 1 |
-| 74 | einvoice-sidecar | 1 | 1 | 1 |
-| 75 | registry-cache | 1 | 1 | 1 |
-| 76 | bge-embed | 1 | 1 | 1 |
-| 77 | bge-rerank | 1 | 1 | 1 |
-| 78 | mediaviewer-widget | 1 | 1 | 1 |
-| 79 | blackbox-exporter | 1 | 1 | 1 |
-| 80 | nextcloud-redis | 1 | 1 | 1 |
-| 81 | sealed-secrets-controller | 1 | 1 | 1 |
-| 82 | whisper | 1 | 1 | 1 |
+| 70 | factory-runner | 1 | 2 | 1 |
+| 71 | factory-tick | 1 | 2 | 1 |
+| 72 | brain | 1 | 1 | 1 |
+| 73 | claude-code-mcp-monolith | 1 | 1 | 1 |
+| 74 | docs | 1 | 1 | 1 |
+| 75 | downloads | 1 | 1 | 1 |
+| 76 | einvoice-sidecar | 1 | 1 | 1 |
+| 77 | registry-cache | 1 | 1 | 1 |
+| 78 | bge-embed | 1 | 1 | 1 |
+| 79 | bge-rerank | 1 | 1 | 1 |
+| 80 | mediaviewer-widget | 1 | 1 | 1 |
+| 81 | blackbox-exporter | 1 | 1 | 1 |
+| 82 | nextcloud-redis | 1 | 1 | 1 |
+| 83 | sealed-secrets-controller | 1 | 1 | 1 |
+| 84 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -434,6 +436,16 @@
 ### docuseal
 **Direkte Abhängige:** 1 — shared-db
 **Transitive Abhängige:** 55 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
+**Upstream (In-Degree):** 1
+
+### factory-runner
+**Direkte Abhängige:** 1 — factory-tick
+**Transitive Abhängige:** 2 — factory-runner, factory-tick
+**Upstream (In-Degree):** 1
+
+### factory-tick
+**Direkte Abhängige:** 1 — factory-runner
+**Transitive Abhängige:** 2 — factory-runner, factory-tick
 **Upstream (In-Degree):** 1
 
 ### brain

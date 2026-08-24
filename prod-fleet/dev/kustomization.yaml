@@ -4,6 +4,9 @@ namespace: workspace-dev
 
 resources:
   - ../../k3d/dev-stack
+  # Fleet-nativer Factory-Dispatcher [T016433] — ADR-007
+  - factory-workdir-pvc.yaml
+  - factory-runner.yaml
 
 patches:
   - target:

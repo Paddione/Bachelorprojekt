@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T18:40:19.825Z",
+  "generatedAt": "2026-08-24T16:10:45.977Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -510,6 +510,18 @@
       "namespace": "${WORKSPACE_NAMESPACE}",
       "type": "CronJob",
       "name": "dev-db-refresh"
+    },
+    {
+      "id": "factory-runner",
+      "namespace": "workspace-dev",
+      "type": "Deployment",
+      "name": "factory-runner"
+    },
+    {
+      "id": "factory-tick",
+      "namespace": "workspace-dev",
+      "type": "CronJob",
+      "name": "factory-tick"
     },
     {
       "id": "traefik",
@@ -12619,6 +12631,18 @@
       "from": "website",
       "to": "shared-db-staging",
       "via": "secret:staging-db-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "factory-runner",
+      "to": "factory-tick",
+      "via": "secret:factory-runner-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "factory-tick",
+      "to": "factory-runner",
+      "via": "secret:factory-runner-secrets",
       "kind": "secret"
     }
   ]

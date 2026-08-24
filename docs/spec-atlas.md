@@ -56,6 +56,10 @@ Last touches:
   - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
   - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
+In-flight:
+  - Der Dispatcher ist ortsunabhängig triggerbar | T016433 | active | MODIFIED
+  - Credentials sind sealed und nur im Cluster sichtbar | T016433 | active | MODIFIED
+  - Doppelticks über die Host→Fleet-Migration sind ausgeschlossen | T016433 | active | ADDED
 
 ## delivery
 

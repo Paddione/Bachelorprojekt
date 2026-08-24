@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2264 · Scenarios: 5045
+Specs: 145 · Requirements: 2266 · Scenarios: 5051
 
 ## factory-pipeline
 
@@ -58,17 +58,16 @@ Last touches:
 ## delivery
 
 ### ci-cd
-Reqs: 112 · Scenarios: 329 · Lines: 3471
+Reqs: 113 · Scenarios: 332 · Lines: 3509
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
   - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
+  - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
   - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
   - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
-  - Build-Artefakte werden in eine zweite Registry gespiegelt | T012415 | 2026-08-20 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
-  - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED
@@ -244,16 +243,14 @@ Last touches:
   - Auto-Triage hängt optionale Tool-Definitionen an und bleibt fail-soft | T002399 | 2026-08-03 | ADDED
 
 ### backup-pipeline
-Reqs: 31 · Scenarios: 82 · Lines: 739
+Reqs: 32 · Scenarios: 85 · Lines: 765
 Paths: scripts/backup, k3d/backup
 Last touches:
+  - PVC-Clone-Lifecycle-Hygiene | T013044 | 2026-08-24 | ADDED
   - Render-sichere Runtime-Variablen im PVC-Backup-Skript | T014535 | 2026-08-23 | ADDED
   - Remote-Retention auf Filen (14 Generationen je Pfad) | T013300 | 2026-08-22 | ADDED
   - Erste-Fail-Alert für db-backup | T001738 | 2026-08-02 | ADDED
   - Manueller Diagnose-Trigger für db-backup | T001738 | 2026-08-02 | ADDED
-  - Dokumentierte Filen Fail-Modes | T001738 | 2026-08-02 | ADDED
-In-flight:
-  - PVC-Clone-Lifecycle-Hygiene | T013044 | active | ADDED
 
 ### batch-coaching-llm-insights
 Reqs: 5 · Scenarios: 10 · Lines: 89

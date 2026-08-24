@@ -54,6 +54,9 @@ spec:
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               memory: 128Mi
@@ -61,6 +64,13 @@ spec:
             limits:
               memory: 256Mi
               cpu: 250m
+      volumes:
+        # T016422: tsx legt IPC-Tempdirs als /tmp/<uid> an (hier /tmp/tsx-1000);
+        # readOnlyRootFilesystem macht das Container-Layer read-only, das mkdir
+        # schlug mit ENOENT fehl -> CrashLoopBackOff (152 Restarts), bis der
+        # flux-dev-Kustomization jeder weitere Fortschritt blockiert war.
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

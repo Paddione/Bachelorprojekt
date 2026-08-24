@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "slug": "freetoken-agent-roster-cleanup",
+    "ticket_id": "T016419",
+    "generated_from": "main@321a1645c",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".opencode/agent-models.jsonc",
+      "language": "text",
+      "loc": 883,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/opencode.jsonc",
+      "language": "text",
+      "loc": 218,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/freetoken-setup/SKILL.md",
+      "language": "markdown",
+      "loc": 60,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "loc": 192,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/agents.yaml",
+      "language": "config",
+      "loc": 192,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-local-dev.bats",
+      "language": "bash",
+      "loc": 332,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/qwen38-default-backend.bats",
+      "language": "bash",
+      "loc": 28,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/llm-local-dev.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/qwen38-default-backend.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/qwen38-default-backend.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

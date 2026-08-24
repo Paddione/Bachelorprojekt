@@ -7,11 +7,15 @@ context: fleet
 domain: mentolder.de
 
 env_vars:
+  BGE_EMBED_HOST: "bge-embed.mentolder.de"
+  BGE_RERANK_HOST: "bge-rerank.mentolder.de"
   PROD_DOMAIN: mentolder.de
   CLUSTER_ENV: fleet-mentolder
   BRAND_NAME: "Mentolder"
   BRAND_ID: mentolder
   CONTACT_EMAIL: info@mentolder.de
+  # Operator-Mailbox fuer Backup-Fail-Warnungen (Alertmanager backup-email)
+  BACKUP_ALERT_EMAIL: patrick@korczewski.de
   CONTACT_PHONE: "+49 151 508 32 601"
   CONTACT_CITY: "Hamburg"
   CONTACT_NAME: "Gerald Korczewski"
@@ -53,6 +57,8 @@ env_vars:
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   BRETT_DOMAIN: brett.mentolder.de
   MEDIAVIEWER_HOST: mediaviewer.mentolder.de
+  # Session-Subdomain für session-<slug>.<SESSIONS_DOMAIN> [T016251].
+  SESSIONS_DOMAIN: sessions.mentolder.de
   VIDEOVAULT_DOMAIN: videovault.mentolder.de
   OTEL_DOMAIN: otel.mentolder.de
   RECOVER_DOMAIN: recover.mentolder.de

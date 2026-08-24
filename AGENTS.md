@@ -17,14 +17,7 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `gemma12` | `freetoken-local/active` (FreeToken-native :1919) | Local work. **Name lügt** weiterhin; seit T014105 modellagnostisch |
 | `qwen38` | `freetoken-local/active` (FreeToken-native :1919) | Local work, text-only. Seit T014105 modellagnostisch; FreeToken serviert ein Modell resident — sequenziell dispatchen |
 | `qwen-cloud` | `alibaba-intl/qwen3.8-max` (Alibaba Cloud, 131k ctx), `mode: subagent`, write-capable | Cloud-Eskalation: Qwen 3.8 Max, erste Stufe nach lokal. Selbe Modell-Familie wie Orchestrator [T013360] |
-| `gemma26-primary` | `freetoken-local/active`, `mode: primary` | Fully-local tab-selectable agent. Name historisch; seit T014105 auf dem FreeToken-Alias |
-| `gemma26-vision` | `freetoken-local/active`, `mode: primary` | No subagent dispatch. Seit T014105 auf dem FreeToken-Alias (text-only) |
-| `gptoss-primary` | `freetoken-local/active`, `mode: primary` | Tab-selectable primary — seit T014105 auf dem FreeToken-Alias |
-| `devstral-primary` | `freetoken-local/active`, `mode: primary` | Tab-selectable primary — seit T014105 auf dem FreeToken-Alias |
-| `gemma12-primary` | `freetoken-local/active`, `mode: primary` | Tab-selectable primary — seit T014105 auf dem FreeToken-Alias |
-| `gemma26-throughput-primary` | `freetoken-local/active`, `mode: primary` | Tab-selectable primary — seit T014105 auf dem FreeToken-Alias |
-| `qwen38-primary` | `freetoken-local/active`, `mode: primary` | Tab-selectable text-only primary — seit T014105 auf dem FreeToken-Alias |
-| `freetoken-primary` | `freetoken-local/active`, `mode: primary` | Dedizierter Primary auf dem FreeToken-Alias — tab-selectable, text-only [T014105] |
+| `freetoken-primary` | `freetoken-local/active`, `mode: primary` | Dedizierter Primary auf dem FreeToken-Alias — tab-selectable, text-only [T014105]. Einziger lokaler Tab-Primary seit T016419 |
 | `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries. Since 2026-08-22 can dispatch the same subagent set as the orchestrator |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free`, `mode: primary`, write-capable | Second free-tier primary next to big-pickle (Poolside agentic coding model, 256k ctx per models.dev, smoke-tested 2026-08-22). Dispatches ONLY `ox-alpha` subagents |
 | `ox-alpha` | `opencode-zen/laguna-s-2.1-free`, `mode: subagent`, write-capable | Subagent twin of `ox-alpha-free` — its sole dispatch target [2026-08-23], keeping parallel work in the same free-tier family |
@@ -43,7 +36,9 @@ Dispatch:
 - `task` for the local family subagents (`gptoss`, `devstral`, `gemma`, `gemma12`) and the deepseek agents — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
 - Local family agents `edit` but cannot `write` new files (`write=deny`) — the orchestrator creates new files from their output. Read-only work uses `delegate` (explore/general).
 - SSOT is `.opencode/agent-models.jsonc` — the only source of truth for agent→model mapping. `docs/agent-guide/registry/agents.yaml` mirrors it for the agent-guide docs; `tests/spec/agent-roster.bats` (P4.3b) fails on any model-string drift, so the mirror cannot lag silently. Global config sync: `bash scripts/opencode-sync-agents.sh`.
-- **Local subagents are named by model FAMILY since 2026-08-04** (`gptoss`/`devstral`/`gemma`/`gemma12`), each serving its own loadout through the llm-proxy. The old `gemma26-1/2`, `gemma9-1/2` names all pointed at gptoss-context — the name lied about the model. Every GPU loadout shares `exclusiveGroup "chat-gpu"`: only one loadout runs at a time (all of `loadouts.json` except the two CPU bge loadouts), but within the active loadout (`gemma12-vision`) up to **3 parallel slots** are available (`-np 3`, `max_inflight=3`). The weightless loadouts (`gemma-factory`, `gemma-multiagent`, `gemma9-factory`) were removed on 2026-08-09 (T002753); **T012414: die lokalen Familien-Subagenten liegen auf `gemma12-vision`** (Gemma 4 12B QAT, 262144 ctx gemessen, `-np 3 -kvu`, MTP-Drafter). Der zusaetzliche `qwen38-primary` ist seit T013109 direkt tab-waehlbar und nutzt exklusiv `qwen38-220k`; wegen `exclusiveGroup "chat-gpu"` laeuft weiterhin immer nur ein GPU-Loadout zugleich. Die Ablösung von `gemma26-factory` beruht auf einer Messung (`scripts/llm/measurements/2026-08-19-gemma12-slots.md`): drei Slots mit geteiltem KV liefern mehr Gesamtdurchsatz bei vollem Kontext je Slot. Geprueft statt angenommen wurde dabei die Tool-Faehigkeit — das 26B fuhr ein eigenes Template (`gemma4-26b-tools.jinja`), fuer das 12B gibt es keines; der Loadout-Start des Proxy meldet fuer `gemma12-vision` `toolCallOk: true`, das eingebaute Chat-Template reicht also. T003204/T012414: die alte Familie `qwen` und ihr Loadout `qwen3-coder-30b` wurden entfernt, weil deren Gewichte nicht mehr auf der Platte lagen; das per Migration deaktivierte Backend `llamacpp-qwen` bleibt davon unberuehrt. `qwen38-220k` ist ein neuer, vorhandener Text-Loadout ueber den gemeinsamen `llamacpp-local`-Provider. **T014028/T014105: der lokale Stack laeuft jetzt auf FreeToken-native (:1919, Windows)** — alle lokalen Agenten zeigen auf den modellagnostischen Alias `freetoken-local/active`, der immer das residente Modell trifft (FreeToken ignoriert das model-Feld); das Plugin `.opencode/plugin/freetoken-active.ts` setzt das Kontext-Limit beim Start. Der `llamacpp-local`-Provider bleibt als Rueckfallebene bestehen.
+- **Backend note-down (T016419):** FreeToken-native auf Windows/pk-desktop — Server `:1919`, Daemon `:1900` (`/engine/switch`). Drei viable MoE-FTW-Checkpoints unter `C:\Users\PatrickKorczewski\models`: Qwen3.6-35B-A3B-NVFP4, gpt-oss-20b, Gemma-4-26B-A4B-NVFP4. Der Alias `freetoken-local/active` trifft immer das residente Modell; das Plugin `.opencode/plugin/freetoken-active.ts` setzt Limit + Name beim opencode-Start.
+- **Constraint:** dense Modelle passen nicht ins VRAM-Budget — Qwen3.6-27B-NVFP4 wurde deshalb T016419 gelöscht (19 GB), nicht deklariert.
+- **Altlasten-Prosa (korrigiert):** Alle GPU-Chat-Loadouts sind seit dem FreeToken-Cutover deaktiviert; drei GGUF-Katalogeinträge (`hauhau-qwen36`, `gemma12-vision`, `qwen38-220k`) bleiben über den `llamacpp-local`-Provider als Rückfallebene deklariert. Die Familien-Subagenten heißen seit 2026-08-04 nach Modell-FAMILIE (`gptoss`/`devstral`/`gemma`/`gemma12`) und sind seit T014105 modellagnostisch auf dem Alias; frühere Loadout-Bindungen, exclusiveGroup-Verdrängung und Slot-Messungen (`scripts/llm/measurements/`) sind Vergangenheit.
 
 ## Core Commands
 
@@ -110,6 +105,19 @@ Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace
 - After installing the OpenSpec CLI, run `openspec completion install` once to enable shell completions (bash/zsh/fish/powershell).
 
 ---
+
+## Status Protocol (every reply, non-negotiable)
+
+1. **Status footer** — end every substantive reply with one fenced block:
+   ```
+   STATUS: <one-line what just happened>
+   RUNNING: <background tasks/delegations or "none">
+   BLOCKED: <blockers or "none">
+   NEXT: <top-ranked next objective + why, one line>
+   CONF: <high|medium|low> — certainty of the NEXT pick
+   ```
+2. **Next objective** — rank candidates from `factory_status`/`factory_queue`/open tickets by value-vs-effort; propose the top pick in NEXT. You override with one word.
+3. **Risk-based autonomy** — act without asking on reversible, low-risk steps (edits, local tests, reads). Ask before: destructive ops (delete/force-push/prod deploy), anything costly, or ambiguous scope. State CONF when acting on judgment.
 
 ## Reference Sections (read on-demand, do not frontload)
 

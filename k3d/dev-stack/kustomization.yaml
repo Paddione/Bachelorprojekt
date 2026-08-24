@@ -6,6 +6,7 @@ resources:
   - shared-db-dev.yaml
   - website-dev.yaml
   - brett-dev.yaml
+  - factory-runner.yaml
   - sish.yaml
   - traefik-wildcard-ingress.yaml
   - shared-db-dev-lb.yaml
@@ -13,6 +14,8 @@ resources:
   - oauth2-proxy-brainstorm.yaml
   - oauth2-proxy-sessions.yaml
   - dev-ingress.yaml
+  - internal-mcp-ingress.yaml
+  - sdlc-console.yaml
 patches:
   - path: dev-node-binding.yaml
     target:
@@ -30,5 +33,8 @@ patches:
       version: v1
       kind: Job
 # images: populated by `task dev:deploy` with concrete tags at apply time.
+# factory-runner ist die Ausnahme: statisch auf ghcr.io/paddione/factory-runner
+# gepinnt (Tag :latest bis zum ersten CI-Build, Digest hart vor dem Cutover —
+# Strategie-Kommentar in factory-runner.yaml, T016422 T2.3).
 # Note: cert-manager.yaml + traefik-tls.yaml are applied OUTSIDE this bundle by
 # the dev:apply bootstrap (CRDs-first / kube-system namespace). [T000363]

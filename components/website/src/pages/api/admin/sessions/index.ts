@@ -17,6 +17,9 @@ interface SessionEntry {
   public_url: string;
   local_url: string;
   started_at: string;
+  // T016251: Felder, die session-hub.sh bei Form-Sessions zusätzlich schreibt.
+  source_file?: string;
+  ticket_id?: string;
 }
 
 function registryPath(): string {

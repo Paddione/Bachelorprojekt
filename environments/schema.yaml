@@ -27,6 +27,15 @@ env_vars:
     default_dev: "dev@localhost"
     validate: "^.+@.+$"
 
+  # Empfänger der Backup-Fail-Warnmails (Alertmanager-Route "backup-email" in
+  # k3d/monitoring/alertmanager-config.yaml). Bewusst getrennt von CONTACT_EMAIL:
+  # die Brand-Adresse ist die öffentliche Kontaktadresse, Backup-Warnungen
+  # gehören zum Betreiber.
+  - name: BACKUP_ALERT_EMAIL
+    required: true
+    default_dev: "dev@localhost"
+    validate: "^.+@.+$"
+
   - name: CONTACT_PHONE
     required: false
     default_dev: "+49 000 000 00 000"
@@ -279,6 +288,24 @@ env_vars:
     required: false
     default_dev: "http://mail.localhost"
 
+  - name: BGE_EMBED_HOST
+    required: true
+    default_dev: "embed.localhost"
+    validate: "^[a-z0-9.-]+$"
+    description: "Internal host of bge-embed (llm-gateway-embed) for wg-mesh consumers [T016430]. Dev: embed.localhost; prod: bge-embed.${PROD_DOMAIN}."
+
+  - name: BGE_RERANK_HOST
+    required: true
+    default_dev: "rerank.localhost"
+    validate: "^[a-z0-9.-]+$"
+    description: "Internal host of bge-rerank (llm-gateway-rerank) for wg-mesh consumers [T016430]. Dev: rerank.localhost; prod: bge-rerank.${PROD_DOMAIN}."
+
+  - name: WG_INTERNAL_CIDR
+    required: true
+    default_dev: "192.168.100.0/24"
+    validate: "^[0-9./]+$"
+    description: "wg-mesh source CIDR allowed on internal endpoints (fail-closed ipWhiteList, T016430)."
+
   - name: BRETT_DOMAIN
     required: true
     default_dev: "brett.localhost"
@@ -502,6 +529,36 @@ env_vars:
     required: false
     default_dev: ""
     description: "Public hostname of the dev Brett (auto-derived as brett.${DEV_DOMAIN})."
+
+  - name: DEV_BGE_EMBED_HOST
+    required: false
+    default_dev: ""
+    description: "Internal wg-mesh hostname of the bge-embed endpoint (T016422). Consumed by k3d/dev-stack/internal-mcp-ingress.yaml; operator DNS resolves it to the fleet edge."
+
+  - name: DEV_BGE_RERANK_HOST
+    required: false
+    default_dev: ""
+    description: "Internal wg-mesh hostname of the bge-rerank endpoint (T016422). Consumed by k3d/dev-stack/internal-mcp-ingress.yaml; operator DNS resolves it to the fleet edge."
+
+  - name: SDLC_CONSOLE_SITE_URL
+    required: false
+    default_dev: ""
+    description: "Public base URL of the fleet sdlc-console (T016422). The Flux render has no Taskfile.sdlc.yml env — without an explicit value here the ConfigMap placeholder would silently substitute empty (T002174 error class)."
+
+  - name: SDLC_CONSOLE_POCKET_ID_FRONTEND_URL
+    required: false
+    default_dev: ""
+    description: "Pocket ID frontend URL used by the fleet sdlc-console OIDC flow (prod-auth mode, RP-ID bound)."
+
+  - name: SDLC_CONSOLE_POCKET_ID_URL
+    required: false
+    default_dev: ""
+    description: "Pocket ID backend URL used by the fleet sdlc-console OIDC flow."
+
+  - name: SDLC_CONSOLE_POCKET_ID_CLIENT_ID
+    required: false
+    default_dev: ""
+    description: "Registered Pocket ID client id for the fleet sdlc-console; client registration is an operator step (ADR-007 appendix A.5)."
 
   - name: DEV_SSH_USER
     required: false

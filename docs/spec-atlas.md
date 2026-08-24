@@ -316,6 +316,10 @@ Paths: website/src/lib/billing, website/src/lib/invoice, website/src/lib/stripe,
 Last touches:
   - Invoice Lifecycle — Partial and Full Payment via UI and API | T002193 | 2026-07-26 | MODIFIED
   - Time Entry Date Falls Back to CURRENT_DATE When Omitted | T001351 | 2026-07-02 | ADDED
+In-flight:
+  - Test Data Isolation in Billing | T015362 | active | ADDED
+  - GoBD Exemption for Test Data | T015362 | active | ADDED
+  - Test Data Purge of Billing Entities | T015362 | active | ADDED
 
 ### brain-foundation
 Reqs: 28 · Scenarios: 66 · Lines: 729

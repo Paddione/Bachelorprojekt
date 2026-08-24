@@ -4327,6 +4327,12 @@
       "status": "archived"
     }
   ],
+  "T015362": [
+    {
+      "slug": "billing-testdata-purge",
+      "status": "plan_staged"
+    }
+  ],
   "T015384": [
     {
       "slug": "2026-08-24-ci-freshness-guard-read-pr-body",

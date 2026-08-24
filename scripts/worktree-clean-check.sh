@@ -42,7 +42,7 @@ _status_once() {
   # Allowlist: SSOT ist ALLOWLIST= in scripts/branch-reaper.sh (dieselbe Unterscheidung für
   # Branches). Die Muster hier sind eine Arbeitskopie des dortigen Ausdrucks — wächst die
   # Liste dort, muss der Ausdruck hier (und in der Runbook-Referenz §1) nachgezogen werden.
-  printf "%s" "$out" | cut -c4- | grep -vE '^(openspec/changes/|docs/code-quality/|components/website/src/data/)' | grep -vE '^(\.release-please-manifest\.json|components/website/CHANGELOG\.md|components/website/package\.json)$' || true
+  printf "%s" "$out" | cut -c4- | grep -vE '^(openspec/changes/|docs/code-quality/|components/website/src/data/)' | grep -vE '^(\.release-please-manifest\.json|components/website/CHANGELOG\.md|components/website/package\.json|docs/spec-atlas\.md)$' || true
 }
 
 # ── Claim-Guard [T005115]: aktiver fremder branch-Claim blockiert das Entfernen ─

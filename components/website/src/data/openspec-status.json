@@ -4403,6 +4403,12 @@
       "status": "plan_staged"
     }
   ],
+  "T016447": [
+    {
+      "slug": "cbm-index-single-flight",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

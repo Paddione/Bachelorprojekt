@@ -21,19 +21,23 @@ export async function createCustomer(p: {
   brand: string; name: string; email: string; company?: string;
   addressLine1?: string; city?: string; postalCode?: string;
   vatNumber?: string; leitwegId?: string;
+  /** T015362: von E2E/Systemtests erzeugte Kunden werden markiert (Purge-Pfad). */
+  isTestData?: boolean;
 }): Promise<Customer> {
   await initBillingTables();
   const r = await pool.query(
-    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number, typ, leitweg_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'Kunde',$9)
+    `INSERT INTO billing_customers (brand, name, email, company, address_line1, city, postal_code, vat_number, typ, leitweg_id, is_test_data)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'Kunde',$9,$10)
      ON CONFLICT (brand, email, typ) DO UPDATE
        SET name=EXCLUDED.name, company=EXCLUDED.company,
            address_line1=EXCLUDED.address_line1, city=EXCLUDED.city,
            postal_code=EXCLUDED.postal_code, vat_number=EXCLUDED.vat_number,
-           leitweg_id=EXCLUDED.leitweg_id
+           leitweg_id=EXCLUDED.leitweg_id,
+           is_test_data = billing_customers.is_test_data OR EXCLUDED.is_test_data
      RETURNING *`,
     [p.brand, p.name, p.email, p.company??null, p.addressLine1??null,
-     p.city??null, p.postalCode??null, p.vatNumber??null, p.leitwegId??null]
+     p.city??null, p.postalCode??null, p.vatNumber??null, p.leitwegId??null,
+     p.isTestData ?? false]
   );
   return mapCustomer(r.rows[0]);
 }
@@ -86,6 +90,8 @@ export async function createInvoice(params: {
   supplyType?: string;
   kind?: 'regular' | 'prepayment' | 'final' | 'gutschrift';
   parentInvoiceId?: string;
+  /** T015362: von E2E/Systemtests erzeugte Rechnungen werden markiert (Purge-Pfad). */
+  isTestData?: boolean;
 }): Promise<Invoice> {
   await initBillingTables();
   // Reverse charge enforcement
@@ -129,22 +135,22 @@ export async function createInvoice(params: {
          service_period_start, service_period_end, tax_mode, net_amount, tax_rate,
          tax_amount, gross_amount, notes, payment_reference, leitweg_id,
          currency, currency_rate, net_amount_eur, gross_amount_eur, supply_type,
-         kind, parent_invoice_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
+         kind, parent_invoice_id, is_test_data)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`,
       [p.brand, number, p.customerId, p.issueDate,
        dueDate.toISOString().split('T')[0],
        p.servicePeriodStart??null, p.servicePeriodEnd??null,
        p.taxMode, netAmount, taxRate, taxAmount, grossAmount,
        p.notes??null, paymentRef, p.leitwegId??null,
        currency, currencyRate, netAmountEur, grossAmountEur, p.supplyType??null,
-       kind, p.parentInvoiceId??null]
+       kind, p.parentInvoiceId??null, p.isTestData ?? false]
     );
     const inv = r.rows[0];
     await Promise.all(p.lines.map(l =>
       client.query(
-        `INSERT INTO billing_invoice_line_items (invoice_id,description,quantity,unit,unit_price,net_amount)
-         VALUES ($1,$2,$3,$4,$5,$6)`,
-        [inv.id, l.description, l.quantity, l.unit??null, l.unitPrice, l.quantity*l.unitPrice]
+        `INSERT INTO billing_invoice_line_items (invoice_id,description,quantity,unit,unit_price,net_amount,is_test_data)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [inv.id, l.description, l.quantity, l.unit??null, l.unitPrice, l.quantity*l.unitPrice, p.isTestData ?? false]
       )
     ));
     await client.query('COMMIT');

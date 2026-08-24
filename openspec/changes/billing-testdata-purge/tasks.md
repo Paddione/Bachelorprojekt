@@ -57,3 +57,10 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+## Status (2026-08-24)
+
+- [x] p1-schema.md — `is_test_data` auf `billing_customers`/`billing_invoices`/`billing_invoice_line_items`; GoBD-Trigger exempien Testdaten (`billing-db.ts`)
+- [x] p2-app-logic.md — Erzeugungspfade (`native-billing.ts`, `stripe-billing.ts`, API-Endpoints) setzen `is_test_data=true` im E2E/Systemtest-Kontext
+- [x] p3-purge.md — `purge-fn-v8.sql` Step 12: Kundenschutz nur noch gegen Echtrechnungen (`bi.is_test_data = false`, Fallback alter Schutz ohne Spalte); `purge-billing-testdata.sql` neu (bewusster GoBD-Eingriff, Acknowledgement-Gate, invoice_counters-Reset nur kommentiert)
+- [x] p4-tests.md — grep-Assertionen in `tests/spec/billing-pipeline.bats` RED→GREEN; `astro:check` 0 errors

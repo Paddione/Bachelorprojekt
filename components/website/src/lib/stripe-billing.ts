@@ -123,8 +123,10 @@ function mapAdminRow(row: Record<string, unknown>): AdminBillingInvoice {
 
 export async function getOrCreateCustomer(params: {
   brand: string; name: string; email: string; company?: string;
+  /** T015362: E2E/Systemtest-Kontext → is_test_data=true (Purge-Pfad). */
+  isTestData?: boolean;
 }): Promise<BillingCustomer> {
-  const c = await nativeCreateCustomer({ brand: params.brand, name: params.name, email: params.email, company: params.company });
+  const c = await nativeCreateCustomer({ brand: params.brand, name: params.name, email: params.email, company: params.company, isTestData: params.isTestData });
   return { id: c.id, name: c.name, email: c.email };
 }
 
@@ -229,6 +231,8 @@ export async function createBillingInvoice(params: {
   serviceKey: ServiceKey;
   quantity?: number;
   sendEmail?: boolean;
+  /** T015362: E2E/Systemtest-Kontext → is_test_data=true (Purge-Pfad). */
+  isTestData?: boolean;
 }): Promise<BillingInvoice> {
   const brand = process.env.BRAND || 'mentolder';
   const service = SERVICES[params.serviceKey];
@@ -260,6 +264,7 @@ export async function createBillingInvoice(params: {
       unitPrice: unitPriceEur,
       unit: service.unit,
     }],
+    isTestData: params.isTestData,
   });
 
   return {

@@ -2,12 +2,16 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { createInvoice, type InvoiceLine } from '../../../../lib/native-billing';
 import { getCustomerByEmail, createCustomer } from '../../../../lib/native-billing';
+import { isE2ETestRequest } from '../../../../lib/e2e-marker';
 
 export const POST: APIRoute = async ({ request , locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
   try {
+    // T015362: Testkontext erkennen und auf Kunde + Rechnung markieren
+    // (fail-closed, siehe e2e-marker), damit der Purge-Pfad sie entfernen kann.
+    const isTestData = isE2ETestRequest(request);
     const body = await request.json();
     const {
       name, email, company, addressLine1, city, postalCode, vatNumber,
@@ -25,7 +29,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
     let customer = await getCustomerByEmail(brand, email);
     if (!customer) {
       customer = await createCustomer({
-        brand, name, email, company, addressLine1, city, postalCode, vatNumber
+        brand, name, email, company, addressLine1, city, postalCode, vatNumber,
+        isTestData,
       });
     }
 
@@ -44,7 +49,8 @@ export const POST: APIRoute = async ({ request , locals }) => {
       currency,
       supplyType,
       kind,
-      parentInvoiceId
+      parentInvoiceId,
+      isTestData
     });
 
     return new Response(JSON.stringify({ success: true, data: invoice }), { status: 200 });

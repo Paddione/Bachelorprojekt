@@ -46,6 +46,12 @@ DECLARE
   has_messages_flag BOOLEAN;
   has_coaching_flag BOOLEAN;
   has_is_test_data  BOOLEAN;
+  has_billing_test  BOOLEAN;
+  has_billing_cust_test BOOLEAN;
+  has_billing_audit BOOLEAN;
+  has_billing_dunnings  BOOLEAN;
+  has_billing_payments  BOOLEAN;
+  has_billing_lines BOOLEAN;
   cust_sql          TEXT;
   keep_emails       TEXT[] := ARRAY[
                        'patrick@korczewski.de',
@@ -72,6 +78,27 @@ BEGIN
   SELECT EXISTS(SELECT 1 FROM information_schema.tables
                  WHERE table_schema='public' AND table_name='billing_invoices')
     INTO has_billing_inv;
+  -- T015362: Spalten-Probes fuer den Billing-Testdaten-Sweep. Fehlt die
+  -- Kennzeichnung (altes Schema), bleibt es beim bisherigen Schutz — der
+  -- Sweep wird NICHT aggressiver, nur weil die Migration noch nicht lief.
+  SELECT EXISTS(SELECT 1 FROM information_schema.columns
+                 WHERE table_schema='public' AND table_name='billing_invoices' AND column_name='is_test_data')
+    INTO has_billing_test;
+  SELECT EXISTS(SELECT 1 FROM information_schema.columns
+                 WHERE table_schema='public' AND table_name='billing_customers' AND column_name='is_test_data')
+    INTO has_billing_cust_test;
+  SELECT EXISTS(SELECT 1 FROM information_schema.tables
+                 WHERE table_schema='public' AND table_name='billing_audit_log')
+    INTO has_billing_audit;
+  SELECT EXISTS(SELECT 1 FROM information_schema.tables
+                 WHERE table_schema='public' AND table_name='billing_invoice_dunnings')
+    INTO has_billing_dunnings;
+  SELECT EXISTS(SELECT 1 FROM information_schema.tables
+                 WHERE table_schema='public' AND table_name='billing_invoice_payments')
+    INTO has_billing_payments;
+  SELECT EXISTS(SELECT 1 FROM information_schema.tables
+                 WHERE table_schema='public' AND table_name='billing_invoice_line_items')
+    INTO has_billing_lines;
   SELECT EXISTS(SELECT 1 FROM information_schema.tables
                  WHERE table_schema='public' AND table_name='meetings')
     INTO has_meetings;
@@ -394,6 +421,56 @@ BEGIN
   END IF;
 
   ----------------------------------------------------------------------------
+  -- 11f) ── Billing test-data sweep (NEW in v9 / T015362). ──────────────────
+  --     Systemtests erzeugten Rechnungen in der Prod-DB; kein Mechanismus
+  --     raeumte sie ab, weil (a) die is_test_data-Spalte fehlte und (b) die
+  --     GoBD-Trigger jede gelockte Rechnung unantastbar machten. Seit
+  --     T015362 markieren die Erzeugungspfade is_test_data=true und die
+  --     Trigger exempten Testdaten. Dieser Sweep loescht Kinder zuerst
+  --     (audit/dunnings/payments haben FKs ohne CASCADE), dann Positionen,
+  --     dann Rechnungen, dann Test-Kunden — ohne Trigger-Deaktivierung.
+  ----------------------------------------------------------------------------
+  IF has_billing_inv AND has_billing_test THEN
+    IF has_billing_audit THEN
+      DELETE FROM billing_audit_log a USING billing_invoices bi
+       WHERE a.invoice_id = bi.id AND bi.is_test_data;
+      GET DIAGNOSTICS cnt = ROW_COUNT;
+      result := result || jsonb_build_object('billing_audit_log', cnt);
+    END IF;
+
+    IF has_billing_dunnings THEN
+      DELETE FROM billing_invoice_dunnings d USING billing_invoices bi
+       WHERE d.invoice_id = bi.id AND bi.is_test_data;
+      GET DIAGNOSTICS cnt = ROW_COUNT;
+      result := result || jsonb_build_object('billing_invoice_dunnings', cnt);
+    END IF;
+
+    IF has_billing_payments THEN
+      DELETE FROM billing_invoice_payments p USING billing_invoices bi
+       WHERE p.invoice_id = bi.id AND bi.is_test_data;
+      GET DIAGNOSTICS cnt = ROW_COUNT;
+      result := result || jsonb_build_object('billing_invoice_payments', cnt);
+    END IF;
+
+    IF has_billing_lines THEN
+      DELETE FROM billing_invoice_line_items li USING billing_invoices bi
+       WHERE li.invoice_id = bi.id AND bi.is_test_data;
+      GET DIAGNOSTICS cnt = ROW_COUNT;
+      result := result || jsonb_build_object('billing_invoice_line_items', cnt);
+    END IF;
+
+    DELETE FROM billing_invoices WHERE is_test_data;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('billing_invoices', cnt);
+  END IF;
+
+  IF has_billing_cust_test THEN
+    DELETE FROM billing_customers WHERE is_test_data;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('billing_customers', cnt);
+  END IF;
+
+  ----------------------------------------------------------------------------
   -- 12) Customer allowlist sweep.
   --
   --     Dynamisch zusammengesetzt (T002894). Ein fehlendes optionales Relation
@@ -412,6 +489,13 @@ BEGIN
   --     TRUE, und `TRUE AND x` ist `x`. Der Sweep wird durch das Weglassen also
   --     nicht aggressiver — was hier zaehlt, weil das Statement `customers`
   --     loescht.
+  --
+  --     T015362: Testrechnungen schuetzen den Kunden nicht mehr. Der Guard
+  --     zaehlt nur noch Echtrechnungen (`bi.is_test_data = false`); ein Kunde,
+  --     dessen Rechnungen ausschliesslich Testdaten sind, wird mitgesweeped.
+  --     Fehlt die Spalte (has_billing_test = false), greift der alte Schutz
+  --     weiter — das Statement darf auf Bestaenden ohne Migration nicht an
+  --     `column "is_test_data" does not exist` scheitern.
   ----------------------------------------------------------------------------
   cust_sql :=
     'DELETE FROM customers c'
@@ -427,7 +511,12 @@ BEGIN
     || '   AND NOT EXISTS (SELECT 1 FROM brett_snapshots      WHERE customer_id        = c.id)'
     || '   AND NOT EXISTS (SELECT 1 FROM tickets.tickets      WHERE customer_id        = c.id)';
 
-  IF has_billing_inv THEN
+  IF has_billing_inv AND has_billing_test THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM billing_invoices bi'
+      || '                 WHERE bi.customer_id = c.id::text AND bi.is_test_data = false)';
+  ELSIF has_billing_inv THEN
+    -- Fallback ohne is_test_data-Spalte: alter Schutz (jede Rechnung schuetzt).
     cust_sql := cust_sql
       || '   AND NOT EXISTS (SELECT 1 FROM billing_invoices bi WHERE bi.customer_id = c.id::text)';
   END IF;

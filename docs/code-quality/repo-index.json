@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1217,
+      "file_count": 1218,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -634,6 +634,7 @@
         "tests/spec/factory/vda-frontmatter.bats",
         "tests/spec/factory/watchdog-red-green.bats",
         "tests/spec/feature-product-linking.bats",
+        "tests/spec/finetune-hf-jobs.bats",
         "tests/spec/finetune/model-registry.bats",
         "tests/spec/fix-ci-concurrency.bats",
         "tests/spec/fix-ticket-tracking-T002279.bats",

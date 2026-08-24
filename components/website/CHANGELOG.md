@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.312.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.3...website-v1.312.4) (2026-08-24)
+
+
+### Bug Fixes
+
+* **website:** is_test_data-Kennzeichnung + Purge-Pfade fuer Billing-Testdaten [T015362] ([#5207](https://github.com/Paddione/Bachelorprojekt/issues/5207)) ([e87c79d](https://github.com/Paddione/Bachelorprojekt/commit/e87c79d52bdee524b489c303d34f48915eb25a9e))
+
 ## [1.312.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.2...website-v1.312.3) (2026-08-24)
 
 

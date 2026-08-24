@@ -31,6 +31,16 @@ source "$HERE/lib.sh"
 STALE_EXCLUDED_TYPES="'project','incident'"
 STALE_MIN="${FACTORY_STALE_MIN:-30}"
 
+# [T015556] Floor gegen 0-Minuten-Sweeps gegen die geteilte Dev-DB: Prod-Sweeps
+# ohne explizites Env produzierten Bounce-Kommentare der Form "stale > 0min" —
+# jedes frisch geclaimte Ticket war sofort stale. STALE_MIN<5 wird auf 5
+# angehoben; das explizite Opt-out FACTORY_ALLOW_STALE_MIN_ZERO=1 bleibt den
+# Tests vorbehalten (Isolation), nicht dem Betrieb.
+if [[ "$STALE_MIN" =~ ^[0-9]+$ ]] && (( STALE_MIN < 5 )) && [[ "${FACTORY_ALLOW_STALE_MIN_ZERO:-}" != "1" ]]; then
+  echo "watchdog: FACTORY_STALE_MIN=${STALE_MIN} unter dem Floor — auf 5 angehoben (Opt-out: FACTORY_ALLOW_STALE_MIN_ZERO=1) [T015556]" >&2
+  STALE_MIN=5
+fi
+
 # [T006364] factory_excluded-Gate: Tickets, die manuell übernommen wurden (T005560,
 # Fortsetzungs-Kontrakt T002327), werden bewusst von der Factory ferngehalten.
 # Ohne diesen Filter resettet der Watchdog bei FACTORY_STALE_MIN=0 ein aktives
@@ -70,6 +80,29 @@ MAX_ATTEMPTS="${FACTORY_MAX_ATTEMPTS:-3}"
 # (T002389). Default 3 as well; a higher value means the watchdog will retry on
 # the same level more often before escalating.
 MAX_INFRA_ATTEMPTS="${FACTORY_INFRA_MAX_ATTEMPTS:-3}"
+
+# ── DB-Identitätscheck (T015556) ─────────────────────────────────────────────
+# Einmal pro Sweep, VOR dem ersten Write: der Watchdog liest seinen Stale-Bestand
+# und die Counter über factory_psql (BRAND → FACTORY_CTX/FACTORY_NS), schreibt
+# Status/Kommentare aber über ticket.sh (TICKET_CTX + eigene NS-Ableitung).
+# Zeigen die beiden Routen auf unterschiedliche Datenbanken (Split-Brain,
+# beobachtet als Ghost-Counter-Zeile in factory_control), landet der Reset auf
+# der fremden DB, während der Kommentar in der SSOT verschwindet. Der Check
+# vergleicht daher die aufgelösten Namespaces beider Routen — ticket.sh
+# --resolve-ns-only [T002280] liefert seine NS-Ableitung ohne Cluster-Zugriff.
+# Bei Abweichung: Sweep-Abbruch rc!=0, KEIN einziger Reset-Write. Der
+# ticket.sh-seitige Identitätsguard ist T015168 — dort Andockpunkt, hier
+# Factory-Seite.
+_wd_ns_ticket="$(BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" --resolve-ns-only 2>/dev/null || true)"
+_wd_ns_ticket="${_wd_ns_ticket#NS=}"
+if [[ -z "$_wd_ns_ticket" ]]; then
+  echo "watchdog: ERROR DB-Identitätscheck fehlgeschlagen (ticket.sh-Route nicht auflösbar) — Sweep abgebrochen, keine Writes [T015556]" >&2
+  exit 1
+fi
+if [[ "${FACTORY_NS:-}" != "$_wd_ns_ticket" ]]; then
+  echo "watchdog: ERROR DB-Mismatch zwischen factory_psql (ns=${FACTORY_NS:-?}) und ticket.sh-Route (ns=${_wd_ns_ticket}) — Sweep-Abbruch ohne Reset-Writes [T015556]" >&2
+  exit 1
+fi
 
 mapfile -t stale < <(_stale_query | factory_psql)
 
@@ -157,7 +190,10 @@ for row in "${stale[@]}"; do
   # Distinguish INFRA (no phase events ever written — pipeline never started)
   # from MODEL (phase events exist but stalled mid-execution). INFRA failures
   # use a separate counter key so they do NOT consume the MODEL attempt budget.
-  has_phase="$(factory_psql -v ext_id="$ext_id" 2>/dev/null <<'SQL' || echo ""
+  # [T015556] Kein 2>/dev/null mehr: ein fehlgeschlagener Has-Phase-Query war
+  # von aussen nicht von "keine Phasen-Events" unterscheidbar und fälschte die
+  # INFRA/MODEL-Klassifikation. Fehler laufen jetzt sichtbar auf stderr.
+  has_phase="$(factory_psql -v ext_id="$ext_id" <<'SQL' || echo ""
 SELECT EXISTS(
   SELECT 1 FROM tickets.factory_phase_events pe
   JOIN tickets.tickets t ON t.id = pe.ticket_id
@@ -176,7 +212,9 @@ SQL
     echo "watchdog: INFRA failure for $ext_id (no phase events) — separate counter" >&2
   fi
 
-  attempt="$(factory_psql -v ext_id="$ext_id" -v key="$counter_key" -v brand="$BRAND" 2>/dev/null <<'SQL' || true
+  # [T015556] Auch hier: Fehler sichtbar auf stderr statt 2>/dev/null — ein
+  # still scheiternder Counter-Aufruf war der Ausgangspunkt des '?'-Zählers.
+  attempt="$(factory_psql -v ext_id="$ext_id" -v key="$counter_key" -v brand="$BRAND" <<'SQL' || true
 WITH tgt AS (
   SELECT id FROM tickets.tickets WHERE external_id = :'ext_id'
 ), prog AS (
@@ -205,12 +243,31 @@ SQL
   # Fail-open on purpose: an unreadable/unwritable counter must NOT push tickets
   # into the terminal state. A database hiccup that silences the queue would be a
   # worse failure mode than the livelock this guards against.
+  #
+  # [T015556] Fail-safe statt Endlosschleife: ein unlesbarer Counter zählt jetzt
+  # als gescheiterte Runde. Konsekutive unlesbare Runden laufen über den separaten
+  # Key factory_infra_unreadable:<ext_id>; ab MAX_INFRA_ATTEMPTS eskaliert der
+  # Sweep zum unfactory (ERR-Suffix im Kommentar), statt endlos mit '?'/plain
+  # Reset zu bouncen — genau die beobachtete [INFRA ?/3]-Endlosschleife auf
+  # T014546/T014551. Ist auch der Fail-safe-Zähler unlesbar (DB komplett weg),
+  # bleibt es beim sichtbaren plain reset — mehr kann ein Watchdog ohne DB nicht
+  # leisten.
   escalate=0
   if [[ "$attempt" =~ ^[0-9]+$ ]]; then
     if (( attempt >= max_allowed )); then escalate=1; fi
+    # Wieder lesbar → Fail-safe-Streak zurücksetzen (best effort, Fehler sichtbar).
+    if ! printf "DELETE FROM tickets.factory_control WHERE key = :'ukey' AND brand = :'brand';" \
+      | factory_psql -v ukey="factory_infra_unreadable:$ext_id" -v brand="$BRAND" >/dev/null; then
+      echo "watchdog: WARN could not reset factory_infra_unreadable streak for $ext_id" >&2
+    fi
   else
-    echo "watchdog: ${failure_class:-?} attempt counter for $ext_id unreadable — falling back to plain reset" >&2
-    attempt="?"
+    echo "watchdog: ${failure_class:-?} attempt counter for $ext_id unreadable — counting consecutive unreadable round (fail-safe escalation) [T015556]" >&2
+    attempt="ERR"
+    unreadable_rounds="$(printf %s "INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at) VALUES (:'ukey', :'brand', '1', 'watchdog', now()) ON CONFLICT (key, brand) DO UPDATE SET value = ((CASE WHEN tickets.factory_control.value ~ '^[0-9]+\$' THEN tickets.factory_control.value::int ELSE 0 END) + 1)::text, set_by = 'watchdog', updated_at = now() RETURNING value;" \
+      | factory_psql -v ukey="factory_infra_unreadable:$ext_id" -v brand="$BRAND" || true)"
+    if [[ "$unreadable_rounds" =~ ^[0-9]+$ ]] && (( unreadable_rounds >= max_allowed )); then
+      escalate=1
+    fi
   fi
 
   if (( escalate == 1 )); then

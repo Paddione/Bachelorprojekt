@@ -202,7 +202,8 @@ _osr_toplevel_local() {
   # bei jedem Update, ein Backdating bliebe wirkungslos und die Stale-Liste leer
   # — dann liefe das Skript durch und der Test bestuende vakuos.
   # Test-isolation: FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 (dieser Test prueft den Stale-Sweep gegen eigene Test-Seeds).
-  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 bash scripts/factory/watchdog.sh
+  # [T015556] Opt-out fuer den neuen STALE_MIN-Floor: der Test braucht Schwelle 0.
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ALLOW_STALE_MIN_ZERO=1 FACTORY_STALE_EXCLUDE_TEST_SEEDS=0 bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # Auf die Fehlerzeile eingegrenzt statt gegen das gesamte $output zu matchen.
   [ "$(printf '%s\n' "$output" | grep -c 'can only be used in a function')" -eq 0 ]
@@ -217,10 +218,11 @@ _osr_toplevel_local() {
 # ── T002610: Dispatcher meldet fehlgeschlagene Claims ───────────────────────#
 
 @test "T002610: schedule.sh reports a candidate whose slot claim fails" {
-  # expected: FAIL bis schedule.sh den claim-gang-Fehlschlag meldet statt ihn
-  # mit `>/dev/null 2>&1` zu verschlucken.
-  # RED-Beweis: ein Ticket im Waisen-Zustand steht in der Queue, kann nie
-  # geclaimt werden und erzeugt heute keinerlei Ausgabe.
+  # [T015556] Umgestellt auf den neuen Readiness-Kontrakt: planlose Rows werden
+  # VOR dem Claim am Readiness-Gate uebersprungen (Journal-Line statt stiller
+  # Durchlauf) — der Waisen-Zustand aus T002482 (geclaimt, nie gestartet,
+  # Ausgabe verschluckt) entsteht gar nicht erst. Der T002610-Intent bleibt:
+  # kein Kandidat darf UNSICHTBAR durchlaufen.
   _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-g.txt")
@@ -245,18 +247,20 @@ _osr_toplevel_local() {
   # GLOBAL_CAP (Summe der in_progress-Slots BEIDER Brands) bzw. free==0 vor dem
   # Claim-Versuch ab. In der geteilten Dev-DB haelt die laufende Factory reale
   # in_progress-Slots (T003533/T003795/T003810 belegen derzeit 1-3), wodurch
-  # beide Defaults (3) ausgeschoepft waeren und der WARN-Pfad nie erreicht
-  # wuerde. Die Kapazitaet muss nur groesser als die belegten Slots sein — das
-  # Szenario selbst (Waisen-Ticket kann nicht geclaimt werden) bleibt identisch.
+  # beide Defaults (3) ausgeschoepft waeren und der Skip-Pfad nie erreicht
+  # wuerde. Die Kapazitaet muss nur groesser als die belegten Slots sein.
   run env BRAND="$brand" FACTORY_GLOBAL_CAP=8 FACTORY_SLOTS_PER_BRAND=8 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]
   # Flag zurueck, damit fn_purge_test_data die Fixture trotzdem raeumt
   # (is_test_data=false oben war nur fuer die Queue-Sichtbarkeit).
   _osr_psql "$brand" "UPDATE tickets.tickets SET is_test_data=true WHERE external_id='${ext}';"
 
-  # Meldung auf die WARN-Zeile eingegrenzt: ein ungefilterter Vergleich gegen
-  # $output koennte allein durch den Worktree-Pfad in einer Usage-Zeile passen.
-  [ "$(printf '%s\n' "$output" | grep 'WARN' | grep -c "$ext")" -ge 1 ]
+  # [T015556] Sichtbare Skip-Zeile fuer den planlosen Kandidaten, auf die
+  # Ticket-ID eingegrenzt (fremde Kandidaten duerfen ebenfalls skippen).
+  [ "$(printf '%s\n' "$output" | grep "$ext" | grep -c 'not ready (readiness=missing_args)')" -ge 1 ]
+  # Kein neuer Claim UND keine Freigabe: der Slot bleibt exakt auf dem
+  # Seed-Wert 1 stehen (schedule.sh fasst den Waisen nicht an).
+  [ "$(_osr_psql "$brand" "SELECT COALESCE(pipeline_slot::text,'null') FROM tickets.tickets WHERE external_id='${ext}';")" = "1" ]
   # Fail-open: stdout bleibt ein gueltiger Launch-Plan.
   printf '%s\n' "$output" | grep '^\[' | tail -1 | jq -e 'type == "array"'
 }

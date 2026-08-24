@@ -218,6 +218,9 @@ Last touches:
   - G-AGENTIC08 No Dead Script/Task References In Skills Gate | T002303 | 2026-07-27 | MODIFIED
   - G-AGENTIC02 Subagent Routing Table Drift Gate | T001398 | 2026-07-01 | ADDED
   - G-AGENTIC03 Subagent Frontmatter Completeness Gate | T001398 | 2026-07-01 | ADDED
+In-flight:
+  - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
+  - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112

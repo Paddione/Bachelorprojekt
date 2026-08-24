@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2280 · Scenarios: 5073
+Specs: 145 · Requirements: 2287 · Scenarios: 5084
 
 ## factory-pipeline
 
@@ -48,14 +48,14 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 203 · Scenarios: 627 · Lines: 5631
+Reqs: 207 · Scenarios: 633 · Lines: 5710
 Paths: scripts/factory
 Last touches:
   - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
   - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
-  - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
-  - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
-  - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
+  - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
+  - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
+  - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
 
 ## delivery
 
@@ -76,14 +76,18 @@ In-flight:
   - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 45 · Scenarios: 88 · Lines: 907
+Reqs: 46 · Scenarios: 90 · Lines: 933
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
+  - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
   - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
   - Rendered Staging CronJobs Target the Staging Website | T015004 | 2026-08-23 | ADDED
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
-  - Cluster Membership Matches the Declared Node Registry | T002630 | 2026-08-10 | ADDED
+In-flight:
+  - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED
+  - Der Datenbank-Endpoint ist fail-closed | T016430 | active | ADDED
+  - Hostnamen bleiben zentral registriert | T016430 | active | ADDED
 
 ### workspace-deploy
 Reqs: 90 · Scenarios: 167 · Lines: 1926
@@ -218,6 +222,9 @@ Last touches:
   - G-AGENTIC08 No Dead Script/Task References In Skills Gate | T002303 | 2026-07-27 | MODIFIED
   - G-AGENTIC02 Subagent Routing Table Drift Gate | T001398 | 2026-07-01 | ADDED
   - G-AGENTIC03 Subagent Frontmatter Completeness Gate | T001398 | 2026-07-01 | ADDED
+In-flight:
+  - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
+  - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -570,6 +577,10 @@ Last touches:
   - DB-Identitätscheck vor Reset-Writes | T015556 | 2026-08-24 | ADDED
   - STALE_MIN-Floor in Produktion | T015556 | 2026-08-24 | ADDED
   - Ticket-Status-Reaper für verwaiste in_progress | T002770 | 2026-08-09 | ADDED
+In-flight:
+  - Worktree-Aktivitätsschutz vor Zombie-Löschung | T016418 | active | ADDED
+  - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T016418 | active | ADDED
+  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T016418 | active | ADDED
 
 ### fix-factory-lock-worktree-safety
 Reqs: 4 · Scenarios: 8 · Lines: 80
@@ -636,14 +647,14 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 21 · Scenarios: 47 · Lines: 492
+Reqs: 23 · Scenarios: 50 · Lines: 549
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
+  - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
+  - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
   - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
-  - Model-Agnostic Active Alias for FreeToken-Native Agents | T014105 | 2026-08-23 | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
-  - Sync Distributes opencode Plugins | T014105 | 2026-08-23 | ADDED
-  - Brainstorm Tunnel Runs on Dev Node Only | T002705 | 2026-08-08 | MODIFIED
 In-flight:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
@@ -797,6 +808,8 @@ In-flight:
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
   - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
+  - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331
@@ -1004,6 +1017,11 @@ Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
   - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
+In-flight:
+  - Dead Process Reaping | T016251 | active | MODIFIED
+  - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
+  - Auth-Gating für session-* Subdomains | T016251 | active | ADDED
+  - Zentrale Session-Domain-Konfiguration | T016251 | active | ADDED
 
 ### sidekick-assistant
 Reqs: 36 · Scenarios: 68 · Lines: 712

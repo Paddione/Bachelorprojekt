@@ -18,6 +18,7 @@ In-flight:
   - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | active | ADDED
   - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | active | ADDED
   - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | active | ADDED
+  - Interrupted git operations in worktrees are surfaced as a finding | T015784 | active | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

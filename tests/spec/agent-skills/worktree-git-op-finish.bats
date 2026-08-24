@@ -119,6 +119,23 @@ _rebase_dir() { git -C "$WT" rev-parse --git-path rebase-merge 2>/dev/null; }
   [ -f "$merge_head" ]
 }
 
+# Bedingung 4 der Schnittmenge: Working Tree nach Generat-Allowlist sauber.
+# Eine NICHT-allowlistete Abweichung (hier eine gewoehnliche Quelldatei) macht den
+# Rebase unantastbar, auch wenn Konflikte geloest und Kommandos abgearbeitet sind.
+#
+# Dieser Test entstand aus dem Selbst-Review: der Pruefer wurde zunaechst unter
+# "$repo_root/scripts/" gesucht. Im Fixture — einem fremden Repo ohne scripts/ —
+# fand `[ -f ]` ihn nicht, und die Bedingung wurde still uebersprungen. Der
+# gefaehrlichste der vier Checks war damit fail-OPEN und ungetestet.
+@test "T015784: --finish fasst einen Rebase mit nicht-allowlisteter Abweichung nicht an" {
+  _make_fixture --mid-rebase
+  state="$(_rebase_dir)"
+  echo "unerwartete arbeit" > "$WT/eigene-quelldatei.txt"
+  run bash "$GUARD" --finish "$FIXTURE"
+  [ "$status" -ne 0 ]
+  [ -d "$state" ]
+}
+
 # Die Default-Zusage bleibt: ohne --finish wird nichts angefasst. Dieser Test
 # steht bewusst auch hier und nicht nur in worktree-mid-rebase-guard.bats — er
 # ist die Grenze, die --finish nicht verschieben darf.

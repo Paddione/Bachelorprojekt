@@ -72,6 +72,14 @@ conflicts.
 - **THEN** besteht das Rebase-Zustandsverzeichnis danach unverändert fort
 - **AND** endet der Guard mit einem Exit-Code ungleich 0
 
+#### Scenario: --finish fasst einen Rebase mit nicht-allowlisteter Abweichung nicht an
+
+- **GIVEN** ein Worktree mit unterbrochenem Rebase ohne offene Konflikte und ohne verbleibende
+  Kommandos, dessen Working Tree aber eine Abweichung außerhalb der Generat-Allowlist trägt
+- **WHEN** der Guard mit `--finish` ausgeführt wird
+- **THEN** besteht das Rebase-Zustandsverzeichnis danach unverändert fort
+- **AND** endet der Guard mit einem Exit-Code ungleich 0
+
 #### Scenario: --finish fasst einen unterbrochenen Merge nicht an
 
 - **GIVEN** ein Worktree mit einem unterbrochenen Merge (`MERGE_HEAD` vorhanden)

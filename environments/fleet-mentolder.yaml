@@ -12,6 +12,8 @@ env_vars:
   BRAND_NAME: "Mentolder"
   BRAND_ID: mentolder
   CONTACT_EMAIL: info@mentolder.de
+  # Operator-Mailbox fuer Backup-Fail-Warnungen (Alertmanager backup-email)
+  BACKUP_ALERT_EMAIL: patrick@korczewski.de
   CONTACT_PHONE: "+49 151 508 32 601"
   CONTACT_CITY: "Hamburg"
   CONTACT_NAME: "Gerald Korczewski"

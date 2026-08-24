@@ -800,6 +800,8 @@ In-flight:
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
   - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
+  - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

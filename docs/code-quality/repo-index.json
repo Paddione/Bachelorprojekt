@@ -775,6 +775,7 @@
         "tests/spec/mishap-tracking/rollup-teardown.bats",
         "tests/spec/monitoring-alerts.bats",
         "tests/spec/monitoring-alerts/backup-alerting.bats",
+        "tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats",
         "tests/spec/network-address-plan/fixtures/declared-overlap.yaml",
         "tests/spec/network-address-plan/fixtures/duplicate-id.yaml",
         "tests/spec/network-address-plan/fixtures/prefix-span-overlap.yaml",

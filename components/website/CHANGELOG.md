@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.313.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.4...website-v1.313.0) (2026-08-24)
+
+
+### Features
+
+* **infra:** Backup-Alerts und Alertmanager-Routing-Fix [T015712] ([#5218](https://github.com/Paddione/Bachelorprojekt/issues/5218)) ([59fd185](https://github.com/Paddione/Bachelorprojekt/commit/59fd185ba5f058186c76b9de0a03bf76800df619))
+
 ## [1.312.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.312.3...website-v1.312.4) (2026-08-24)
 
 

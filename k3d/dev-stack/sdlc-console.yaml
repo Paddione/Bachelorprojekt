@@ -116,6 +116,9 @@ spec:
         app: sdlc-console
     spec:
       serviceAccountName: sdlc-console
+      volumes:
+        - name: tmp
+          emptyDir: {}
       imagePullSecrets:
         - name: ghcr-pull-secret
       dnsConfig:
@@ -140,6 +143,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: sdlc-console-config
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           env:
             # Reihenfolge PFLICHT: WEBSITE_DB_PASSWORD muss VOR
             # SESSIONS_DATABASE_URL stehen — k8s löst $(VAR)-Referenzen nur aus

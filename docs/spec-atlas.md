@@ -786,6 +786,11 @@ Last touches:
   - No Unregistered Resource Manifests in k3d/monitoring | T002185 | 2026-08-02 | ADDED
   - Placeholder CronJobs Are Not Committed | T002185 | 2026-08-02 | ADDED
 In-flight:
+  - Mandatory Alert Set | T016124 | active | MODIFIED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016124 | active | MODIFIED
+  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
+  - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
+  - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
   - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T015712 | active | ADDED
   - Backup-Job-Failures lösen kritischen Alert aus | T015712 | active | ADDED
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | active | ADDED

@@ -330,6 +330,11 @@ tag_defaults:
 YAML
   cat > "$fake_bin/curl" <<'SH'
 #!/usr/bin/env bash
+# Der Request-Body (jq-Payload) MUSS gelesen werden: transform.sh laeuft unter
+# pipefail — exitet die Fixture, bevor jq den Payload geschrieben hat, stirbt
+# jq an SIGPIPE und der Lauf meldet "chat completion request failed", obwohl
+# die Antwort valide war (CI-Flakes 32638947716 / 32761123726).
+cat >/dev/null
 content="$(printf '%s\n' '---' 'type: note' 'tags: [github-reviewed, expertise]' \
   'status: active' '---' '# Reviewed source' '' \
   "source:: Bachelorprojekt ${BRAIN_SOURCE_PATH:?}" '' 'See [[index-moc]].')"

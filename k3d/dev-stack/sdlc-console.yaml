@@ -55,6 +55,9 @@ spec:
         app: sdlc-console
     spec:
       serviceAccountName: sdlc-console
+      volumes:
+        - name: tmp
+          emptyDir: {}
       imagePullSecrets:
         - name: ghcr-pull-secret
       nodeSelector:
@@ -75,6 +78,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: sdlc-console-config
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           env:
             - name: PORT
               value: "4321"

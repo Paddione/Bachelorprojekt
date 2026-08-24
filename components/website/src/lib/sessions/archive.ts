@@ -26,9 +26,8 @@ interface RegistryEntry {
   started_at?: string;
   type?: string;
   title?: string;
-  participants?: string[];
-  owner?: string;
-  preferred_username?: string;
+  ticket_id?: string;
+  source_file?: string;
   local_url?: string;
 }
 
@@ -95,6 +94,9 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
 
     let markdownContent = 'Inhalt nicht verfügbar';
     let contentAvailable = false;
+    // T016251: Endung am tatsächlichen Content festmachen statt HTML
+    // pauschal als .md zu labeln.
+    let contentExt = 'md';
 
     if (entry.local_url) {
       const controller = new AbortController();
@@ -104,6 +106,8 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
         if (res.ok) {
           markdownContent = await res.text();
           contentAvailable = true;
+          const ct = res.headers.get('content-type') || '';
+          contentExt = ct.includes('text/html') ? 'html' : 'md';
         }
       } catch {
         // Fetch failed or timed out
@@ -112,7 +116,7 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
       }
     }
 
-    const mdPath = join(archiveDir, `${id}.md`);
+    const mdPath = join(archiveDir, `${id}.${contentExt}`);
     const metaPath = join(archiveDir, `${id}.meta.json`);
 
     const meta = {
@@ -121,8 +125,8 @@ export async function purgeOldSessions({ maxAgeDays = 30 }: { maxAgeDays?: numbe
       type: entry.type || 'unknown',
       title: entry.title || entry.slug,
       date: startedAtIso,
-      participants: entry.participants || [],
-      owner: entry.owner || entry.preferred_username || 'unknown',
+      ticket_id: entry.ticket_id || null,
+      content_type: contentExt,
       content_available: contentAvailable
     };
 
@@ -145,20 +149,16 @@ export interface ArchivedSession {
   type: string;
   title: string;
   date: string;
-  participants: string[];
-  owner: string;
+  ticket_id: string | null;
+  content_type: string;
   content_available: boolean;
 }
 
 export async function listArchivedSessions({
-  viewer,
-  isAdmin,
   offset = 0,
   limit = 50,
   type
 }: {
-  viewer: string;
-  isAdmin: boolean;
   offset?: number;
   limit?: number;
   type?: string;
@@ -185,8 +185,7 @@ export async function listArchivedSessions({
         !parsed ||
         typeof parsed !== 'object' ||
         typeof parsed.id !== 'string' ||
-        typeof parsed.slug !== 'string' ||
-        typeof parsed.owner !== 'string'
+        typeof parsed.slug !== 'string'
       ) {
         continue;
       }
@@ -197,11 +196,9 @@ export async function listArchivedSessions({
     }
   }
 
-  // Visibility check: admin sees all, non-admin only own
-  let filtered = sessions.filter(s => {
-    if (isAdmin) return true;
-    return s.owner === viewer;
-  });
+  // T016251: Kein Owner-Vergleich mehr — die Registry trägt keinen Owner.
+  // Sichtbarkeit ist Routen-Sache (Admin-Guard), nicht Listen-Sache.
+  let filtered = sessions;
 
   // Type filter
   if (type) {
@@ -226,16 +223,24 @@ export async function listArchivedSessions({
   };
 }
 
-export async function getArchivedMarkdown(id: string): Promise<string | null> {
+// T016251: Endung hängt am gespeicherten Content (meta.content_type bzw.
+// Fallback-Reihenfolge), nicht mehr pauschal .md.
+export async function getArchivedContent(id: string): Promise<{ content: string; contentType: string } | null> {
   if (!/^[a-z0-9-]+$/.test(id)) {
     return null;
   }
   const archiveDir = getArchiveDir();
-  const filePath = join(archiveDir, `${id}.md`);
-  try {
-    return await readFile(filePath, 'utf8');
-  } catch {
-    return null;
+  for (const ext of ['md', 'html']) {
+    try {
+      const content = await readFile(join(archiveDir, `${id}.${ext}`), 'utf8');
+      return {
+        content,
+        contentType: ext === 'html' ? 'text/html' : 'text/markdown'
+      };
+    } catch {
+      // try next extension
+    }
   }
+  return null;
 }
 

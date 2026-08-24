@@ -17,6 +17,7 @@ data:
   DOWNLOADS_DOMAIN: "downloads.localhost"
   RECOVER_DOMAIN: "recover.localhost"
   WEB_DOMAIN: "web.localhost"
+  SESSIONS_DOMAIN: "sessions.localhost"
   REMOTE_DOMAIN: "remote.localhost"
   TRAEFIK_DOMAIN: "traefik.localhost"
   # Env-registry values (dev defaults — prod overlay overrides these)
@@ -29,6 +30,10 @@ data:
   TURN_NODE: "k3d-dev-server-0"
   ADMIN_USERNAME: "admin"
   ADMIN_EMAIL: "admin@localhost"
+  # Internal endpoints for wg-mesh consumers [T016430] — prod overrides via
+  # environments/fleet-*.yaml (bge-embed.${PROD_DOMAIN} / bge-rerank.${PROD_DOMAIN})
+  BGE_EMBED_HOST: "embed.localhost"
+  BGE_RERANK_HOST: "rerank.localhost"
   BRETT_DOMAIN: "brett.localhost"
   BRAINSTORM_DOMAIN: "brainstorm.localhost"
   AI_DOMAIN: "ai.localhost"

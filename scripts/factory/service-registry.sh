@@ -89,6 +89,8 @@ INFRA_FILES=(
   "k3d/network-policies.yaml"
   "k3d/network-policies-dev.yaml"
   "k3d/configmap-domains.yaml"
+  "k3d/llm-gateway-ingress.yaml"
+  "k3d/shared-db-endpoint-policy.yaml"
   "k3d/secrets.yaml"
   "k3d/sealed-secrets-controller.yaml"
   "k3d/seed.yaml"

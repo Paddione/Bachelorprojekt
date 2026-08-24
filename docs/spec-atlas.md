@@ -84,6 +84,8 @@ Last touches:
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
   - Cluster Membership Matches the Declared Node Registry | T002630 | 2026-08-10 | ADDED
+In-flight:
+  - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | active | ADDED
 
 ### workspace-deploy
 Reqs: 90 · Scenarios: 167 · Lines: 1926

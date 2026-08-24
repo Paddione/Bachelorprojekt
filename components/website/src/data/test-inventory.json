@@ -3336,6 +3336,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-stack-tmp-mounts",
+    "file": "tests/spec/dev-stack-tmp-mounts.bats",
+    "category": "dev-stack-tmp-mounts",
+    "kind": "shell"
+  },
+  {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
     "category": "devflow-selection-archive-hardening",

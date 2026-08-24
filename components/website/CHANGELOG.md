@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.318.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.317.0...website-v1.318.0) (2026-08-24)
+
+
+### Features
+
+* **infra:** sdlc-console moves to fleet dev-stack, bridge-ip hack retired [T016429] ([#5257](https://github.com/Paddione/Bachelorprojekt/issues/5257)) ([ff16f47](https://github.com/Paddione/Bachelorprojekt/commit/ff16f47318dd97fd8578f89f50e9f91abc1317a3))
+
 ## [1.317.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.316.0...website-v1.317.0) (2026-08-24)
 
 

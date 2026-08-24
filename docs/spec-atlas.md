@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2282 · Scenarios: 5076
+Specs: 145 · Requirements: 2286 · Scenarios: 5082
 
 ## factory-pipeline
 
@@ -48,14 +48,14 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 203 · Scenarios: 627 · Lines: 5631
+Reqs: 207 · Scenarios: 633 · Lines: 5710
 Paths: scripts/factory
 Last touches:
   - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
   - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
-  - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
-  - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
-  - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
+  - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
+  - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
+  - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
 
 ## delivery
 
@@ -570,6 +570,10 @@ Last touches:
   - DB-Identitätscheck vor Reset-Writes | T015556 | 2026-08-24 | ADDED
   - STALE_MIN-Floor in Produktion | T015556 | 2026-08-24 | ADDED
   - Ticket-Status-Reaper für verwaiste in_progress | T002770 | 2026-08-09 | ADDED
+In-flight:
+  - Worktree-Aktivitätsschutz vor Zombie-Löschung | T016418 | active | ADDED
+  - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T016418 | active | ADDED
+  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T016418 | active | ADDED
 
 ### fix-factory-lock-worktree-safety
 Reqs: 4 · Scenarios: 8 · Lines: 80

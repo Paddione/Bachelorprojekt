@@ -4397,9 +4397,21 @@
       "status": "archived"
     }
   ],
+  "T016418": [
+    {
+      "slug": "watchdog-worktree-activity",
+      "status": "plan_staged"
+    }
+  ],
   "T016419": [
     {
       "slug": "2026-08-24-freetoken-agent-roster-cleanup",
+      "status": "archived"
+    }
+  ],
+  "T016422": [
+    {
+      "slug": "2026-08-24-wsl-exit-fleet-factory",
       "status": "archived"
     }
   ],

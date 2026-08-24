@@ -8,7 +8,7 @@ setup() {
 }
 
 @test "ADR-007 exists and supersedes ADR-006 in both directions" {
-  local adr7="${REPO_ROOT}/docs/adr/ADR-007-wsl-exit-fleet-native-factory.md"
+  local adr7="${REPO_ROOT}/docs/adr/ADR-007-wsl-exit-fleet-native.md"
   local adr6="${REPO_ROOT}/docs/adr/ADR-006-sdlc-isolation-dev-host.md"
   [ -f "$adr7" ]
   grep -qi "supersedes" "$adr7"

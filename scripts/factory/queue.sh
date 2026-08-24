@@ -12,7 +12,12 @@ factory_resolve
 cat <<'SQL' | factory_psql
 SELECT COALESCE(json_agg(row_to_json(q)), '[]')
 FROM (
-  SELECT external_id, title, type, priority, touched_files, created_at
+  SELECT external_id, title, type, priority, touched_files, created_at,
+         -- [T015960] countByStatus (mcp-go/main.go) zählt die dispatchablen
+         -- Lane-Counts über das Feld `status`. Ohne diese Spalte blieben
+         -- factory_status backlog/plan_staged dauerhaft 0 (Feld fehlte im
+         -- JSON → leerer Key), obwohl queue.sh Rows lieferte.
+         status
   FROM tickets.tickets
   WHERE (
       -- factory_excluded (T002361) gates BOTH branches below. It is the durable half

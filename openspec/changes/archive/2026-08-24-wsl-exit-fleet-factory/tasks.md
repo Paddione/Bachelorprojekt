@@ -2,7 +2,7 @@
 title: "wsl-exit-fleet-factory — Implementation Plan"
 ticket_id: T016422
 domains: [infra]
-status: active
+status: completed
 file_locks:
   - k3d/dev-stack/brett-dev.yaml
   - k3d/dev-stack/factory-runner.yaml

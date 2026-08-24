@@ -2,22 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2261 · Scenarios: 5033
+Specs: 145 · Requirements: 2264 · Scenarios: 5040
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 58 · Scenarios: 116 · Lines: 1439
+Reqs: 61 · Scenarios: 123 · Lines: 1536
 Last touches:
+  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
   - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
   - Execute role and gate ordering | T013482 | 2026-08-22 | ADDED
-  - E2E follows the test-only Chore lifecycle | T013482 | 2026-08-22 | ADDED
-  - Progressive disclosure preserves safety contracts | T013482 | 2026-08-22 | ADDED
-  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T008014 | 2026-08-18 | MODIFIED
-In-flight:
-  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | active | ADDED
-  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | active | ADDED
-  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

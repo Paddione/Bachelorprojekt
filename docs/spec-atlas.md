@@ -2,22 +2,19 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2260 · Scenarios: 5031
+Specs: 145 · Requirements: 2264 · Scenarios: 5040
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 58 · Scenarios: 116 · Lines: 1439
+Reqs: 61 · Scenarios: 123 · Lines: 1536
 Last touches:
+  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
   - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
   - Execute role and gate ordering | T013482 | 2026-08-22 | ADDED
-  - E2E follows the test-only Chore lifecycle | T013482 | 2026-08-22 | ADDED
-  - Progressive disclosure preserves safety contracts | T013482 | 2026-08-22 | ADDED
-  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T008014 | 2026-08-18 | MODIFIED
 In-flight:
-  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | active | ADDED
-  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | active | ADDED
-  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | active | ADDED
   - Interrupted git operations in worktrees are surfaced as a finding | T015784 | active | MODIFIED
 
 ### dev-flow-plan
@@ -63,16 +60,15 @@ Last touches:
 ## delivery
 
 ### ci-cd
-Reqs: 111 · Scenarios: 327 · Lines: 3453
+Reqs: 112 · Scenarios: 329 · Lines: 3471
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
   - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
   - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
   - Build-Artefakte werden in eine zweite Registry gespiegelt | T012415 | 2026-08-20 | ADDED
-  - Das signierte OCI-Artefakt wird mitsamt Signatur gespiegelt | T012415 | 2026-08-20 | ADDED
 In-flight:
-  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | active | MODIFIED
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED

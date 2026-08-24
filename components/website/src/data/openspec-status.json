@@ -4329,8 +4329,8 @@
   ],
   "T015384": [
     {
-      "slug": "ci-freshness-guard-read-pr-body",
-      "status": "plan_staged"
+      "slug": "2026-08-24-ci-freshness-guard-read-pr-body",
+      "status": "archived"
     }
   ],
   "T015670": [
@@ -4341,8 +4341,8 @@
   ],
   "T015783": [
     {
-      "slug": "finalize-archive-self-verify",
-      "status": "plan_staged"
+      "slug": "2026-08-24-finalize-archive-self-verify",
+      "status": "archived"
     }
   ],
   "T015784": [

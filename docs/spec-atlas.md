@@ -2,20 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2264 · Scenarios: 5040
+Specs: 145 · Requirements: 2264 · Scenarios: 5045
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 61 · Scenarios: 123 · Lines: 1536
+Reqs: 61 · Scenarios: 128 · Lines: 1599
 Last touches:
+  - Interrupted git operations in worktrees are surfaced as a finding | T015784 | 2026-08-24 | MODIFIED
   - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
   - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
   - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
   - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
-  - Execute role and gate ordering | T013482 | 2026-08-22 | ADDED
-In-flight:
-  - Interrupted git operations in worktrees are surfaced as a finding | T015784 | active | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

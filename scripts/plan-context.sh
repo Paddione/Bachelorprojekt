@@ -16,7 +16,7 @@ set -euo pipefail
 _role_allowlist() {
     case "$1" in
         bachelorprojekt-website)   echo "website frontend design ui svelte astro css brett" ;;
-        bachelorprojekt-ops)       echo "ops llm k8s observability monitoring factory-watchdog" ;;
+        bachelorprojekt-ops)       echo "ops llm k8s observability monitoring factory-watchdog infra-monitoring" ;;
         bachelorprojekt-infra)     echo "infra deploy deployment k3d kustomize prod environments taskfile" ;;
         bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling" ;;
         bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;

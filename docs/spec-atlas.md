@@ -2,18 +2,20 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2280 · Scenarios: 5070
+Specs: 145 · Requirements: 2282 · Scenarios: 5076
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 61 · Scenarios: 128 · Lines: 1599
+Reqs: 61 · Scenarios: 131 · Lines: 1626
 Last touches:
   - Interrupted git operations in worktrees are surfaced as a finding | T015784 | 2026-08-24 | MODIFIED
+  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T015916 | 2026-08-24 | MODIFIED
   - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
   - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
   - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
-  - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
+In-flight:
+  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -151,15 +153,13 @@ Last touches:
 ## Ungrouped
 
 ### active-sessions-hub
-Reqs: 19 · Scenarios: 55 · Lines: 632
+Reqs: 19 · Scenarios: 55 · Lines: 630
 Last touches:
+  - Session-Registry als Single Source of Truth | T016250 | 2026-08-24 | MODIFIED
   - Branch-scoped release refuses while the cwd is inside the lock's worktree | T006290 | 2026-08-15 | ADDED
   - Harness-Stable Session Identity for agent-lock | T005676 | 2026-08-14 | MODIFIED
   - Pre-Commit Guards in dev-flow-plan | T003116 | 2026-08-10 | MODIFIED
   - Mandatory Worktree Scoping for File-Writing Tools | T003116 | 2026-08-10 | MODIFIED
-  - Deliberate Main-Checkout Reclaim for Bookkeeping Locks | T002809 | 2026-08-10 | ADDED
-In-flight:
-  - Session-Registry als Single Source of Truth | T016250 | active | MODIFIED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114
@@ -636,14 +636,14 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 21 · Scenarios: 47 · Lines: 492
+Reqs: 23 · Scenarios: 50 · Lines: 549
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
+  - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
+  - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
   - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
-  - Model-Agnostic Active Alias for FreeToken-Native Agents | T014105 | 2026-08-23 | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
-  - Sync Distributes opencode Plugins | T014105 | 2026-08-23 | ADDED
-  - Brainstorm Tunnel Runs on Dev Node Only | T002705 | 2026-08-08 | MODIFIED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -788,6 +788,12 @@ Last touches:
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | 2026-08-24 | ADDED
   - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | 2026-08-24 | ADDED
   - Backup-Alerts decken beide Brands ab | T015712 | 2026-08-24 | ADDED
+In-flight:
+  - Mandatory Alert Set | T016124 | active | MODIFIED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016124 | active | MODIFIED
+  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
+  - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
+  - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331
@@ -990,13 +996,12 @@ Last touches:
   - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
 
 ### sessions-server
-Reqs: 13 · Scenarios: 26 · Lines: 267
+Reqs: 13 · Scenarios: 26 · Lines: 269
 Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
+  - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
-  - BATS Placeholder Test Coverage | T002010 | 2026-07-21 | ADDED
 In-flight:
-  - BATS Placeholder Test Coverage | T016250 | active | MODIFIED
   - Dead Process Reaping | T016251 | active | MODIFIED
   - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
   - Auth-Gating für session-* Subdomains | T016251 | active | ADDED

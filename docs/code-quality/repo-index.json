@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1208,
+      "file_count": 1209,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -770,6 +770,7 @@
         "tests/spec/mishap-tracking/go-tests-registriert.bats",
         "tests/spec/mishap-tracking/rollup-teardown.bats",
         "tests/spec/monitoring-alerts.bats",
+        "tests/spec/monitoring-alerts/backup-alerting.bats",
         "tests/spec/network-address-plan/fixtures/declared-overlap.yaml",
         "tests/spec/network-address-plan/fixtures/duplicate-id.yaml",
         "tests/spec/network-address-plan/fixtures/prefix-span-overlap.yaml",
@@ -3122,7 +3123,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 669,
+      "file_count": 670,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3569,6 +3570,7 @@
         "k3d/mediaviewer-widget.yaml",
         "k3d/mentolder-web.yaml",
         "k3d/monitoring/alertmanager-config.yaml",
+        "k3d/monitoring/alertmanager-matcher-strategy-patch.yaml",
         "k3d/monitoring/alertmanager-secret-template.yaml",
         "k3d/monitoring/alertmanager-smtp-secret.yaml",
         "k3d/monitoring/blackbox-exporter.yaml",

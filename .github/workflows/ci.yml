@@ -407,8 +407,18 @@ jobs:
       # Kein `|| true`: schlaegt der Start fehl, muss der Job abbrechen. Ein
       # geschluckter Fehler brächte genau den stillen Zustand zurueck, den
       # dieser Schritt beendet.
+      #
+      # [T016499] Port pro Run zufaellig aus 20000-29999: der Default 39152
+      # liegt in der Linux-Ephemeral-Range (32768-60999) und kollidierte mit
+      # ausgehenden Verbindungen des Runners — EADDRINUSE ohne Lauscher
+      # (Run 32758843629, Shard 2). Unterhalb der Range ist eine solche
+      # Kollision ausgeschlossen; die BATS-Tests lesen COCKPIT_DAEMON_PORT
+      # (daemon-helper.bash), deshalb genuegt der Export ueber GITHUB_ENV.
       - name: Start cockpit daemon (shard ${{ matrix.shard }}/4)
-        run: task cockpit:daemon
+        run: |
+          COCKPIT_DAEMON_PORT="$(shuf -i 20000-29999 -N 1)"
+          echo "COCKPIT_DAEMON_PORT=${COCKPIT_DAEMON_PORT}" >> "$GITHUB_ENV"
+          task cockpit:daemon PORT="${COCKPIT_DAEMON_PORT}"
 
       # [T002517] Diagnose: Auf Shard 1 konnte GNU parallel (von `bats -j`
       # genutzt) keinen einzigen Ausgabepuffer nach /tmp schreiben — "Cannot

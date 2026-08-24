@@ -540,6 +540,9 @@ Last touches:
   - factory cleanup.sh skips branches and worktrees under a live foreign claim | T002896 | 2026-08-10 | ADDED
   - A dead pid reaps a worktree-matched claim after the grace period | T002849 | 2026-08-09 | ADDED
   - A live holder process keeps its agent-lock alive | T002267 | 2026-08-02 | ADDED
+In-flight:
+  - Activity heartbeat keeps claims alive | T015822 | active | ADDED
+  - Active-process check precedes pid-based reap | T015822 | active | ADDED
 
 ### factory-scout-backoff
 Reqs: 2 · Scenarios: 3 · Lines: 43

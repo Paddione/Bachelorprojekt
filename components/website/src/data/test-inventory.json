@@ -2130,6 +2130,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-lock-liveness-heartbeat",
+    "file": "tests/spec/agent-lock-liveness-heartbeat.bats",
+    "category": "agent-lock-liveness-heartbeat",
+    "kind": "shell"
+  },
+  {
     "id": "agent-lock-session-identity",
     "file": "tests/spec/agent-lock-session-identity.bats",
     "category": "agent-lock-session-identity",

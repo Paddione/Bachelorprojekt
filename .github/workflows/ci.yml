@@ -416,7 +416,7 @@ jobs:
       # (daemon-helper.bash), deshalb genuegt der Export ueber GITHUB_ENV.
       - name: Start cockpit daemon (shard ${{ matrix.shard }}/4)
         run: |
-          COCKPIT_DAEMON_PORT="$(shuf -i 20000-29999 -N 1)"
+          COCKPIT_DAEMON_PORT="$(shuf -i 20000-29999 -n 1)"
           echo "COCKPIT_DAEMON_PORT=${COCKPIT_DAEMON_PORT}" >> "$GITHUB_ENV"
           task cockpit:daemon PORT="${COCKPIT_DAEMON_PORT}"
 

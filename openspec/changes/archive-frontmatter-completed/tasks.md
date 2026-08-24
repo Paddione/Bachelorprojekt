@@ -46,13 +46,13 @@ Der failing Test liegt bereits auf diesem Branch vor:
 `tests/spec/agent-skills/finalize-archive-frontmatter.bats` (5 Tests, alle rot gegen
 den Ist-Stand). Der rote Stand wurde vor dem Plan-Schreiben gemessen.
 
-- [ ] Testlauf notieren: `tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/finalize-archive-frontmatter.bats`
+- [x] Testlauf notieren: `tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/finalize-archive-frontmatter.bats`
       expected: FAIL (5 von 5 rot: `--frontmatter-state` unbekannt, Helper fehlt,
       Reihenfolge verletzt, verstreuter Sed vorhanden)
 
 ## T2 — Fragment scripts/lib/finalize-frontmatter.sh anlegen
 
-- [ ] Datei `scripts/lib/finalize-frontmatter.sh` mit drei Teilen:
+- [x] Datei `scripts/lib/finalize-frontmatter.sh` mit drei Teilen:
       1. Konstante `_PLAN_STATUS_ACTIVE_RE='^(active|plan_staged|in_progress|planning)$'`
       2. `_apply_plan_frontmatter_completed <base_dir>` — sed auf
          `<base_dir>/"$PLAN_REL"` (nur wenn Datei existiert und nicht leer; fehlt sie,
@@ -60,30 +60,30 @@ den Ist-Stand). Der rote Stand wurde vor dem Plan-Schreiben gemessen.
       3. `_plan_frontmatter_state <slug> <repo_dir>` — liest
          `<repo_dir>/openspec/changes/<slug>/tasks.md`, gibt `completed` oder `stale`
          nach stdout aus (Exit 0), bei fehlender Datei Exit 1 ohne Ausgabe
-- [ ] Keine neuen Abhängigkeiten; gleicher grep/sed-Stil wie das Hauptskript (kein jq)
+- [x] Keine neuen Abhängigkeiten; gleicher grep/sed-Stil wie das Hauptskript (kein jq)
 
 ## T3 — Hauptskript verdrahten
 
-- [ ] Fragment früh source-n (`source "$HERE/lib/finalize-frontmatter.sh"`)
-- [ ] Schritt 7: den verstreuten Sed (`sed -E -i 's/^status: …/' "$PLAN_FILE"`)
+- [x] Fragment früh source-n (`source "$HERE/lib/finalize-frontmatter.sh"`)
+- [x] Schritt 7: den verstreuten Sed (`sed -E -i 's/^status: …/' "$PLAN_FILE"`)
       ENTFERNEN — inklusive der Zeile, nicht nur auskommentiert
-- [ ] Archiv-Subshell nach `git checkout -B "$ARCHIVE_BRANCH" origin/main`, VOR dem
+- [x] Archiv-Subshell nach `git checkout -B "$ARCHIVE_BRANCH" origin/main`, VOR dem
       Resume-Zweig bzw. `openspec.sh archive`: `_apply_plan_frontmatter_completed "$ARCHIVE_DIR"`
-- [ ] Resume-Zweig (`ARCHIVE_RESUME=1`): Helper zusätzlich auf die verschobene Datei
+- [x] Resume-Zweig (`ARCHIVE_RESUME=1`): Helper zusätzlich auf die verschobene Datei
       unter `openspec/changes/archive/` anwenden (Pfad über denselben
       Datumspräfix-Slug-Vergleich wie `_archive_state` auflösen)
-- [ ] Neues Argument `--frontmatter-state <slug>`: Parsen neben `--archive-state`,
+- [x] Neues Argument `--frontmatter-state <slug>`: Parsen neben `--archive-state`,
       Offline-Guard-Ausnahme ergänzen (wie Zeile 90-Muster), Handler ruft
       `_plan_frontmatter_state "$SLUG" "$REPO_DIR"` und endet mit deren Exit-Code
-- [ ] Usage-Text um den neuen Modus ergänzen
+- [x] Usage-Text um den neuen Modus ergänzen
 
 ## T4 — Grün fahren
 
-- [ ] `tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/finalize-archive-frontmatter.bats`
+- [x] `tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/finalize-archive-frontmatter.bats`
       expected: PASS (5 von 5 grün)
-- [ ] Bestehende Finalize-Tests bleiben grün:
+- [x] Bestehende Finalize-Tests bleiben grün:
       `tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/finalize-archive-state.bats tests/spec/agent-skills/post-merge-finalize-guards.bats tests/spec/agent-skills/finalize-hardening.bats`
-- [ ] `bash -n scripts/devflow-post-merge-finalize.sh scripts/lib/finalize-frontmatter.sh`
+- [x] `bash -n scripts/devflow-post-merge-finalize.sh scripts/lib/finalize-frontmatter.sh`
 
 ## Finale Verifikation
 

@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Baseline Guard PR Body Fallback and Hard Fail
 

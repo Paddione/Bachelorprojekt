@@ -2,31 +2,32 @@
 
 ## Purpose
 
-Das Active Sessions Hub ist ein lokales Dev-Only-Feature, das laufende Dev-Sessions (HTML-Formulare, Brainstorm-Boards, Visual Companions) als klickbare Karten im Mediaviewer-Panel der Website sichtbar macht. Externe Nutzer (z.B. `gekko`) erreichen diese Sessions über Pocket-ID-gate-geschützte `sish`-Reverse-SSH-Tunnels hinter `session-*.${DEV_DOMAIN}`.
+Das Active Sessions Hub ist ein lokales Dev-Only-Feature, das laufende Dev-Sessions (HTML-Formulare, Brainstorm-Boards, Visual Companions) als klickbare Karten im Mediaviewer-Panel der Website sichtbar macht. `scripts/session-hub.sh` pflegt die Registry und spiegelt sie in die Website-Pods; die öffentliche Auslieferung der Session-Inhalte erfolgt über den sessions-server (nginx auf fleet) hinter `session-*.<SESSIONS_DOMAIN>` — siehe SSOT-Spec `sessions-server`.
 
 ## Requirements
 
 ### Requirement: Session-Registry als Single Source of Truth
 
-The system SHALL maintain a JSON registry at `~/.local/share/bachelorprojekt/active-sessions.json` whose entries describe one dev session each with the fields `{slug, type, title, port, public_url, local_url, tunnel_pid, server_pid, started_at}`. Mutations SHALL be atomic (write to `.tmp` then `mv`) and SHALL be performed exclusively through `scripts/session-hub.sh` subcommands.
+The system SHALL maintain a JSON registry at `~/.local/share/bachelorprojekt/active-sessions.json`.
+Mutations SHALL be atomic (write to `.tmp` then `mv`) and SHALL be performed exclusively through
+`scripts/session-hub.sh` subcommands. The normative definition of the registry entry schema and of
+the lifecycle semantics (registration, listing, deregistration, reaping, idempotent
+re-registration) SHALL live in the `sessions-server` SSOT spec (`openspec/specs/sessions-server.md`);
+this spec SHALL NOT duplicate it. The `tunnel_pid` field is deprecated — the implementation writes
+a constant `0` and no consumer reads it.
 
 #### Scenario: Register schreibt einen Eintrag in eine leere Registry
 
 - **GIVEN** die Registry-Datei existiert nicht oder ist leer
 - **WHEN** `bash scripts/session-hub.sh register --name foo --port 18080 --type brainstorm --title "Foo"` aufgerufen wird
-- **THEN** enthält die Registry genau einen Eintrag mit `slug=foo` und `public_url=https://session-foo.${DEV_DOMAIN}`
+- **THEN** enthält die Registry genau einen Eintrag mit `slug=foo` und `public_url=https://session-foo.${SESSION_HUB_DOMAIN}`
 
-#### Scenario: Register ist idempotent pro Slug (replace statt duplicate)
+#### Scenario: Registry-Mutationen laufen ausschließlich über session-hub.sh
 
-- **GIVEN** ein Eintrag mit `slug=dup` ist bereits in der Registry
-- **WHEN** `register --name dup --port 2 --type form --title "v2"` ein zweites Mal aufgerufen wird
-- **THEN** enthält die Registry genau einen Eintrag mit `slug=dup` und `port=2` (kein Duplikat)
-
-#### Scenario: Reap entfernt Einträge deren PIDs nicht mehr laufen
-
-- **GIVEN** ein Registry-Eintrag referenziert `tunnel_pid=999999` und `server_pid=999999`
-- **WHEN** `bash scripts/session-hub.sh reap` aufgerufen wird
-- **THEN** wird der Eintrag aus der Registry entfernt
+- **GIVEN** eine bestehende Registry-Datei
+- **WHEN** ein Eintrag erzeugt, geändert oder entfernt wird
+- **THEN** geschieht dies über einen `scripts/session-hub.sh`-Subcommand (oder den von ihm
+  aufgerufenen atomaren Schreibpfad), nicht durch ad-hoc-Bearbeitung der Datei
 
 <!-- from archive/2026-06-21-active-sessions-hub/tasks.md lines 50-244, 280-700 -->
 

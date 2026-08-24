@@ -4415,6 +4415,12 @@
       "status": "archived"
     }
   ],
+  "T016425": [
+    {
+      "slug": "wsl-exit-hetzner2-decommission",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -87,7 +87,7 @@ den Ist-Stand). Der rote Stand wurde vor dem Plan-Schreiben gemessen.
 
 ## Finale Verifikation
 
-- [ ] `task test:changed`
-- [ ] `task freshness:regenerate`
-- [ ] `task freshness:check`
-- [ ] `bash scripts/plan-lint.sh openspec/changes/archive-frontmatter-completed/tasks.md`
+- [x] `task test:changed`
+- [x] `task freshness:regenerate`
+- [x] `task freshness:check`
+- [x] `bash scripts/plan-lint.sh openspec/changes/archive-frontmatter-completed/tasks.md`

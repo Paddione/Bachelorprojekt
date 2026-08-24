@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2263 · Scenarios: 5038
+Specs: 145 · Requirements: 2264 · Scenarios: 5040
 
 ## factory-pipeline
 
@@ -58,16 +58,15 @@ Last touches:
 ## delivery
 
 ### ci-cd
-Reqs: 111 · Scenarios: 327 · Lines: 3453
+Reqs: 112 · Scenarios: 329 · Lines: 3471
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
   - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
   - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
   - Build-Artefakte werden in eine zweite Registry gespiegelt | T012415 | 2026-08-20 | ADDED
-  - Das signierte OCI-Artefakt wird mitsamt Signatur gespiegelt | T012415 | 2026-08-20 | ADDED
 In-flight:
-  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | active | MODIFIED
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED

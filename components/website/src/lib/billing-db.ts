@@ -47,7 +47,9 @@ async function installInvoiceImmutabilityTriggersInner(): Promise<void> {
   await pool.query(`
     CREATE OR REPLACE FUNCTION billing_invoices_immutable() RETURNS trigger AS $fn$
     BEGIN
-      IF OLD.locked = true THEN
+      -- T015362: Testdaten sind vom GoBD-Schutz ausgenommen, damit der
+      -- Purge-Pfad sie entfernen kann. Echtdaten bleiben unantastbar.
+      IF OLD.locked = true AND OLD.is_test_data = false THEN
         IF NEW.net_amount   IS DISTINCT FROM OLD.net_amount   OR
            NEW.tax_rate     IS DISTINCT FROM OLD.tax_rate     OR
            NEW.tax_amount   IS DISTINCT FROM OLD.tax_amount   OR
@@ -69,7 +71,8 @@ async function installInvoiceImmutabilityTriggersInner(): Promise<void> {
   await pool.query(`
     CREATE OR REPLACE FUNCTION billing_invoices_no_delete() RETURNS trigger AS $fn$
     BEGIN
-      IF OLD.locked = true THEN
+      -- T015362: Testdaten sind vom GoBD-Schutz ausgenommen (Purge-Pfad).
+      IF OLD.locked = true AND OLD.is_test_data = false THEN
         RAISE EXCEPTION 'GoBD: locked invoice % cannot be deleted', OLD.id;
       END IF;
       RETURN OLD;
@@ -77,11 +80,12 @@ async function installInvoiceImmutabilityTriggersInner(): Promise<void> {
   `);
   await pool.query(`
     CREATE OR REPLACE FUNCTION billing_lines_immutable() RETURNS trigger AS $fn$
-    DECLARE inv_locked boolean;
+    DECLARE inv_locked boolean; inv_is_test boolean;
     BEGIN
-      SELECT locked INTO inv_locked FROM billing_invoices
+      SELECT locked, is_test_data INTO inv_locked, inv_is_test FROM billing_invoices
         WHERE id = COALESCE(NEW.invoice_id, OLD.invoice_id);
-      IF inv_locked = true THEN
+      -- T015362: Testdaten sind vom GoBD-Schutz ausgenommen (Purge-Pfad).
+      IF inv_locked = true AND COALESCE(inv_is_test, false) = false THEN
         RAISE EXCEPTION 'GoBD: cannot modify lines of locked invoice %', COALESCE(NEW.invoice_id, OLD.invoice_id);
       END IF;
       RETURN COALESCE(NEW, OLD);
@@ -122,6 +126,7 @@ export async function initBillingTables(): Promise<void> {
       sepa_mandate_date DATE,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
       typ           TEXT NOT NULL DEFAULT 'Kunde',
+      is_test_data  BOOLEAN NOT NULL DEFAULT false,
       CONSTRAINT billing_customers_brand_email_typ_key UNIQUE (brand, email, typ)
     );
       DO $$
@@ -133,6 +138,9 @@ export async function initBillingTables(): Promise<void> {
   `);
   await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS default_leitweg_id TEXT`);
   await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS customers_id UUID REFERENCES customers(id)`);
+  // T015362: Testdaten-Kennzeichnung fuer den Purge-Pfad (systemtest-purge-all
+  // haengt an is_test_data=true; ohne Spalte bleiben Billing-Testdaten unantastbar).
+  await pool.query(`ALTER TABLE billing_customers ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false`);
   await pool.query(`
     DO $$
     BEGIN
@@ -206,7 +214,8 @@ export async function initBillingTables(): Promise<void> {
       retain_until  DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '10 years'),
       pdf_path      TEXT,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      is_test_data  BOOLEAN NOT NULL DEFAULT false
     );
       DO $$
       BEGIN
@@ -217,6 +226,8 @@ export async function initBillingTables(): Promise<void> {
   `);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS pdf_path TEXT`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS leitweg_id TEXT`);
+  // T015362: Testdaten-Kennzeichnung — GoBD-Trigger exempten is_test_data-Zeilen.
+  await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS einvoice_validated_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE billing_invoices ADD COLUMN IF NOT EXISTS einvoice_validation_report JSONB`);
   await pool.query(`
@@ -270,9 +281,12 @@ export async function initBillingTables(): Promise<void> {
       quantity    NUMERIC(10,2) NOT NULL DEFAULT 1,
       unit        TEXT,
       unit_price  NUMERIC(12,2) NOT NULL,
-      net_amount  NUMERIC(12,2) NOT NULL
+      net_amount  NUMERIC(12,2) NOT NULL,
+      is_test_data BOOLEAN NOT NULL DEFAULT false
     )
   `);
+  // T015362: Testdaten-Kennzeichnung auch fuer Bestandstabellen.
+  await pool.query(`ALTER TABLE billing_invoice_line_items ADD COLUMN IF NOT EXISTS is_test_data BOOLEAN NOT NULL DEFAULT false`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS billing_invoice_payments (
       id           BIGSERIAL PRIMARY KEY,

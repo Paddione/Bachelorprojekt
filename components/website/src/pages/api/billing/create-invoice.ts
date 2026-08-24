@@ -6,9 +6,13 @@ import {
   SERVICES,
 } from '../../../lib/stripe-billing';
 import type { ServiceKey } from '../../../lib/stripe-billing';
+import { isE2ETestRequest } from '../../../lib/e2e-marker';
 
 export const POST: APIRoute = async ({ request , locals }) => {
   try {
+    // T015362: Testkontext erkennen und auf den erzeugten Zeilen markieren,
+    // damit der Purge-Pfad sie entfernen kann (fail-closed, siehe e2e-marker).
+    const isTestData = isE2ETestRequest(request);
     const body = await request.json();
     const {
       name, email, company,
@@ -31,6 +35,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
 
     const customer = await getOrCreateCustomer({
       brand: process.env.BRAND || 'mentolder', name, email, company,
+      isTestData,
     });
 
     if (!customer) {
@@ -59,6 +64,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
       serviceKey: key,
       quantity: quantity || 1,
       sendEmail: shouldSendEmail !== false,
+      isTestData,
     });
 
     return new Response(

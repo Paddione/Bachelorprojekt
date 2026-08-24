@@ -58,7 +58,10 @@ export const POST: APIRoute = async ({ params, request , locals }) => {
       kind: 'final',
       parentInvoiceId: prepayment.id,
       currency: prepayment.currency,
-      supplyType: prepayment.supplyType
+      supplyType: prepayment.supplyType,
+      // T015362: die Schlussrechnung erbt die Testdaten-Markierung der
+      // Vorauszahlung, damit der Purge-Pfad beide fassen kann.
+      isTestData: (prepayment as { is_test_data?: boolean }).is_test_data === true
     });
 
     return new Response(JSON.stringify({ success: true, data: finalInvoice }), { status: 200 });

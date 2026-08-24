@@ -16,6 +16,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
   if (!session) {
     return json({ error: 'Unauthorized' }, 401);
   }
+  // T016251: Sessions-Archiv ist admin-only — die Registry trägt keinen
+  // Owner, also entscheidet der Admin-Guard an der Route.
+  if (!isAdmin(session)) {
+    return json({ error: 'Forbidden' }, 403);
+  }
 
   const url = new URL(request.url);
   const offsetParam = url.searchParams.get('offset');
@@ -30,12 +35,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
   if (limit > 50) limit = 50;
 
   try {
-    const viewer = session.preferred_username || 'unknown';
-    const isUserAdmin = isAdmin(session);
-
     const result = await listArchivedSessions({
-      viewer,
-      isAdmin: isUserAdmin,
       offset,
       limit,
       type,

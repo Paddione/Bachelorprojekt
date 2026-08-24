@@ -1,0 +1,307 @@
+{
+  "meta": {
+    "slug": "session-hub-reap-purge-fixes",
+    "ticket_id": "T016251",
+    "generated_from": "main@df79a3a10",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/lib/sessions/archive.ts",
+      "language": "javascript",
+      "loc": 241,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 659
+    },
+    {
+      "path": "components/website/src/pages/api/admin/sessions/index.ts",
+      "language": "javascript",
+      "loc": 98,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 802
+    },
+    {
+      "path": "k3d/configmap-domains.yaml",
+      "language": "config",
+      "loc": 40,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sessions-server.yaml",
+      "language": "config",
+      "loc": 152,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/mentolder/oauth2-proxy-sessions.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/mentolder/sessions-server.yaml",
+      "language": "config",
+      "loc": 32,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/session-hub.sh",
+      "language": "bash",
+      "loc": 284,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 516
+    },
+    {
+      "path": "tests/spec/sessions-server/domain-config.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sessions-server/reap-untracked.bats",
+      "language": "bash",
+      "loc": 27,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/website/src/lib/sessions/archive.ts:5:function getRegistryPath(): string {",
+      "kind": "function",
+      "file": "components/website/src/lib/sessions/archive.ts",
+      "signature": "5:function getRegistryPath(): string {(...)",
+      "type_text": "5:function getRegistryPath(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/sessions/archive.ts:11:function getArchiveDir(): string {",
+      "kind": "function",
+      "file": "components/website/src/lib/sessions/archive.ts",
+      "signature": "11:function getArchiveDir(): string {(...)",
+      "type_text": "11:function getArchiveDir(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/api/admin/sessions/index.ts:22:function registryPath(): string {",
+      "kind": "function",
+      "file": "components/website/src/pages/api/admin/sessions/index.ts",
+      "signature": "22:function registryPath(): string {(...)",
+      "type_text": "22:function registryPath(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/api/admin/sessions/index.ts:27:function json(body: unknown, status: number): Response {",
+      "kind": "function",
+      "file": "components/website/src/pages/api/admin/sessions/index.ts",
+      "signature": "27:function json(body: unknown, status: number): Response {(...)",
+      "type_text": "27:function json(body: unknown, status: number): Response {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/api/admin/sessions/index.ts:34:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {",
+      "kind": "function",
+      "file": "components/website/src/pages/api/admin/sessions/index.ts",
+      "signature": "34:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "type_text": "34:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:23:_now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "23:_now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }(...)",
+      "type_text": "23:_now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:24:_slug() { printf '%s' \"$1\" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "24:_slug() { printf '%s' \"$1\" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }(...)",
+      "type_text": "24:_slug() { printf '%s' \"$1\" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:26:_ensure_registry() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "26:_ensure_registry() {(...)",
+      "type_text": "26:_ensure_registry() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:31:_write() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "31:_write() {(...)",
+      "type_text": "31:_write() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:39:_sync_to_pod() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "39:_sync_to_pod() {(...)",
+      "type_text": "39:_sync_to_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:55:_pid_alive() { [ -n \"${1:-}\" ] && [ \"$1\" != \"null\" ] && [ \"$1\" -gt 0 ] 2>/dev/null && kill -0 \"$1\" 2>/dev/null; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "55:_pid_alive() { [ -n \"${1:-}\" ] && [ \"$1\" != \"null\" ] && [ \"$1\" -gt 0 ] 2>/dev/null && kill -0 \"$1\" 2>/dev/null; }(...)",
+      "type_text": "55:_pid_alive() { [ -n \"${1:-}\" ] && [ \"$1\" != \"null\" ] && [ \"$1\" -gt 0 ] 2>/dev/null && kill -0 \"$1\" 2>/dev/null; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:61:_upload_to_sessions_server() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "61:_upload_to_sessions_server() {(...)",
+      "type_text": "61:_upload_to_sessions_server() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:76:_remove_from_sessions_server() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "76:_remove_from_sessions_server() {(...)",
+      "type_text": "76:_remove_from_sessions_server() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:88:_upsert() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "88:_upsert() {(...)",
+      "type_text": "88:_upsert() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:105:cmd_register() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "105:cmd_register() {(...)",
+      "type_text": "105:cmd_register() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:120:_inject_placeholders() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "120:_inject_placeholders() {(...)",
+      "type_text": "120:_inject_placeholders() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:129:cmd_start_form() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "129:cmd_start_form() {(...)",
+      "type_text": "129:cmd_start_form() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:181:cmd_regen() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "181:cmd_regen() {(...)",
+      "type_text": "181:cmd_regen() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:221:cmd_list() { _ensure_registry; cat \"$REGISTRY\"; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "221:cmd_list() { _ensure_registry; cat \"$REGISTRY\"; }(...)",
+      "type_text": "221:cmd_list() { _ensure_registry; cat \"$REGISTRY\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:223:cmd_deregister() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "223:cmd_deregister() {(...)",
+      "type_text": "223:cmd_deregister() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:240:cmd_reap() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "240:cmd_reap() {(...)",
+      "type_text": "240:cmd_reap() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:257:usage() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "257:usage() {(...)",
+      "type_text": "257:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:270:main() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "270:main() {(...)",
+      "type_text": "270:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sessions-server/reap-untracked.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sessions-server/reap-untracked.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sessions-server/reap-untracked.bats:16:teardown() { rm -rf \"${TMP_DIR:-}\"; }",
+      "kind": "function",
+      "file": "tests/spec/sessions-server/reap-untracked.bats",
+      "signature": "16:teardown() { rm -rf \"${TMP_DIR:-}\"; }(...)",
+      "type_text": "16:teardown() { rm -rf \"${TMP_DIR:-}\"; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

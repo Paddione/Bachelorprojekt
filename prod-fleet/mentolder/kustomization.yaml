@@ -10,6 +10,7 @@ resources:
   - ../../prod-mentolder
   - ../../prod/monitoring
   - sessions-server.yaml
+  - oauth2-proxy-sessions.yaml
   - studio-ingress.yaml
 patches:
   - path: bge-hosts-patch.yaml

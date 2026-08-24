@@ -1014,6 +1014,11 @@ Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
   - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
+In-flight:
+  - Dead Process Reaping | T016251 | active | MODIFIED
+  - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
+  - Auth-Gating für session-* Subdomains | T016251 | active | ADDED
+  - Zentrale Session-Domain-Konfiguration | T016251 | active | ADDED
 
 ### sidekick-assistant
 Reqs: 36 · Scenarios: 68 · Lines: 712

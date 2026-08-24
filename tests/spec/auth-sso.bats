@@ -64,10 +64,10 @@ _render_korczewski() {
   [ "$count" -eq 9 ] || { echo "FAIL: expected 9 gates with groups scope, got ${count}"; return 1; }
 }
 
-@test "prod render (mentolder): the 3 allowlist gates keep --authenticated-emails-file" {
+@test "prod render (mentolder): the 4 allowlist gates keep --authenticated-emails-file" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --authenticated-emails-file' <<< "$RENDER" || true)"
-  [ "$count" -eq 3 ] || { echo "FAIL: expected 3 authenticated-emails-file gates, got ${count}"; return 1; }
+  [ "$count" -eq 4 ] || { echo "FAIL: expected 3 authenticated-emails-file gates, got ${count}"; return 1; }
 }
 
 @test "prod render (korczewski): no insecure flags anywhere" {

@@ -57,6 +57,8 @@ env_vars:
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   BRETT_DOMAIN: brett.mentolder.de
   MEDIAVIEWER_HOST: mediaviewer.mentolder.de
+  # Session-Subdomain für session-<slug>.<SESSIONS_DOMAIN> [T016251].
+  SESSIONS_DOMAIN: sessions.mentolder.de
   VIDEOVAULT_DOMAIN: videovault.mentolder.de
   OTEL_DOMAIN: otel.mentolder.de
   RECOVER_DOMAIN: recover.mentolder.de

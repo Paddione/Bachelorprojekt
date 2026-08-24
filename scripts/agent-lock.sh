@@ -252,11 +252,14 @@ _reapable() {
   pid="$(_lock_field "$f" owner_pid)"
   if [ -n "$pid" ] && _pid_alive "$pid"; then return 1; fi
   # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
+  #    Bewusst OHNE Worktree-Probe [T015822]: dieser Pfad trifft Locks ohne
+  #    Branch-Match (u.a. auf den Main-Checkout) — dort würde jede fremde
+  #    Session den Lock unsterblich machen (T002267-A1-Gegenprobe,
+  #    factory-reclaim-lock-respect.bats „bleibt reapable").
   if [ -n "$pid" ]; then
     if ! _pid_alive "$pid"; then
       age=$(( now - age_base ))
       if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
-        if _holder_active_in_worktree "$f"; then return 1; fi  # [T015822]
         _reap_log "$f" pid-dead; return 0
       fi
     fi
@@ -266,9 +269,10 @@ _reapable() {
     # Dead numeric SID: a young claim (< AGENT_LOCK_GRACE) is protected from a
     # reap on the SID check alone — a transient session-id mismatch between tool
     # calls must not drop a fresh claim. Fall through to the heartbeat-TTL check.
+    # Bewusst OHNE Worktree-Probe [T015822] — siehe pid-dead-Kommentar oben
+    # (T002267-A1-Gegenprobe: kein Branch-Match, keine Probe).
     age=$(( now - age_base ))
     if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
-      if _holder_active_in_worktree "$f"; then return 1; fi  # [T015822]
       _reap_log "$f" sid-dead; return 0
     fi
   fi
@@ -279,8 +283,10 @@ _reapable() {
 # [T015822] 0 = der Halter arbeitet nachweislich noch: ein fremder, lebender
 # Prozess (/proc-cwd) sitzt im verzeichneten Worktree. owner_pid gehört nur an
 # einen kurzen Toolcall, nicht an die Session selbst — sein Tod beweist nichts.
-# Wird vor jedem Dead-Signal-Reap (pid-dead / sid-dead) gefragt, damit reap
-# keine aktive Session ernten kann. Ohne nutzbaren Worktree: false.
+# Eingesetzt NUR im Block 0b (Worktree+Branch-Match): dort gehört der Worktree
+# nachweislich zum Lock. In den generischen pid-dead/sid-dead-Pfaden bewusst
+# KEINE Probe — ein Lock auf den Main-Checkout würde sonst von jeder fremden
+# Session unsterblich (T002267-A1-Gegenprobe).
 _holder_active_in_worktree() {  # <lock-file>
   local wt; wt="$(_lock_field "$1" worktree)"
   [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] || return 1

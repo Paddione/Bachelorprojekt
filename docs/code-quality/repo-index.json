@@ -403,6 +403,7 @@
         "tests/spec/agent-skills/dev-flow-lifecycle-contract.bats",
         "tests/spec/agent-skills/devflow-worktree-cwd-guard.bats",
         "tests/spec/agent-skills/executor-post-merge-death.bats",
+        "tests/spec/agent-skills/finalize-archive-state.bats",
         "tests/spec/agent-skills/finalize-hardening.bats",
         "tests/spec/agent-skills/finalize-plan-ref-whitespace.bats",
         "tests/spec/agent-skills/finalize-worktree-branch-validation.bats",

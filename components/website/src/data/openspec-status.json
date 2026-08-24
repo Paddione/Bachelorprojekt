@@ -4375,16 +4375,38 @@
       "status": "archived"
     }
   ],
+  "T015916": [
+    {
+      "slug": "archive-frontmatter-completed-on-archive-branch",
+      "status": "plan_staged"
+    },
+    {
+      "slug": "2026-08-24-archive-frontmatter-completed",
+      "status": "archived"
+    }
+  ],
+  "T016124": [
+    {
+      "slug": "backup-alert-corrections",
+      "status": "plan_staged"
+    }
+  ],
   "T016250": [
     {
-      "slug": "consolidate-sessions-specs",
-      "status": "plan_staged"
+      "slug": "2026-08-24-consolidate-sessions-specs",
+      "status": "archived"
     }
   ],
   "T016251": [
     {
       "slug": "session-hub-reap-purge-fixes",
       "status": "plan_staged"
+    }
+  ],
+  "T016419": [
+    {
+      "slug": "2026-08-24-freetoken-agent-roster-cleanup",
+      "status": "archived"
     }
   ],
   "TBD": [

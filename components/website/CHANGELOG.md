@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.312.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.311.1...website-v1.312.0) (2026-08-23)
+
+
+### Features
+
+* **scripts:** teacher-trace-collector + windows-native trainingsartefakte [T015768] ([#5194](https://github.com/Paddione/Bachelorprojekt/issues/5194)) ([d8224ce](https://github.com/Paddione/Bachelorprojekt/commit/d8224cef2cb65ce6ef733505bbc699ed38f913f9))
+
 ## [1.311.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.311.0...website-v1.311.1) (2026-08-23)
 
 

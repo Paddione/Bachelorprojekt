@@ -27,6 +27,15 @@ env_vars:
     default_dev: "dev@localhost"
     validate: "^.+@.+$"
 
+  # Empfänger der Backup-Fail-Warnmails (Alertmanager-Route "backup-email" in
+  # k3d/monitoring/alertmanager-config.yaml). Bewusst getrennt von CONTACT_EMAIL:
+  # die Brand-Adresse ist die öffentliche Kontaktadresse, Backup-Warnungen
+  # gehören zum Betreiber.
+  - name: BACKUP_ALERT_EMAIL
+    required: true
+    default_dev: "dev@localhost"
+    validate: "^.+@.+$"
+
   - name: CONTACT_PHONE
     required: false
     default_dev: "+49 000 000 00 000"

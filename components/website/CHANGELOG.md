@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.317.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.316.0...website-v1.317.0) (2026-08-24)
+
+
+### Features
+
+* **ops:** autostart FreeToken KV ladder and advertise 200k ceiling [T016416] ([#5267](https://github.com/Paddione/Bachelorprojekt/issues/5267)) ([db1de86](https://github.com/Paddione/Bachelorprojekt/commit/db1de867a74733e30425cd1bd61010540334c92a))
+* **scripts:** hf jobs cloud as primary finetuning path post wsl-exit [T016438] ([#5258](https://github.com/Paddione/Bachelorprojekt/issues/5258)) ([59a2953](https://github.com/Paddione/Bachelorprojekt/commit/59a2953b2b8678511c8b658362561149862105bc))
+* **skills:** track sdlc-autopilot skill in opencode roster [T016420] ([#5266](https://github.com/Paddione/Bachelorprojekt/issues/5266)) ([cde3cbf](https://github.com/Paddione/Bachelorprojekt/commit/cde3cbf7e4dde86e8c42458842ddd9b6b393ef2d))
+
 ## [1.316.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.315.0...website-v1.316.0) (2026-08-24)
 
 

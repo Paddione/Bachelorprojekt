@@ -101,3 +101,35 @@ tasks:
           --slot-name "{{.SLOT_NAME}}" \
           {{if .HUB_TEMPLATE}}--hub-template "{{.HUB_TEMPLATE}}"{{end}} \
           {{if .DRY_RUN}}--dry-run{{end}}
+
+  # ── HF Jobs Cloud (primärer Pfad nach dem WSL-Exit, ADR-007 / T016438) ──
+  hf-jobs:train:
+    desc: "Trainingslauf auf HF Jobs Cloud. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [FLAVOR=<cpu-basic|l4x1|a10g|...>] (HF_TOKEN erforderlich)"
+    preconditions:
+      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
+        msg: "CORPUS=, MODEL= und MEASURE_REPORT= sind erforderlich."
+      - sh: '[ -n "${HF_TOKEN:-}" ]'
+        msg: "HF_TOKEN ist nicht gesetzt — `hf auth login` oder export HF_TOKEN=…"
+    cmds:
+      - |
+        uvx --from "huggingface_hub" hf jobs uv run \
+          {{if .FLAVOR}}--flavor {{.FLAVOR}}{{end}} \
+          --secrets HF_TOKEN \
+          scripts/finetune/train.py \
+          --corpus "{{.CORPUS}}" --model "{{.MODEL}}" \
+          --measure-report "{{.MEASURE_REPORT}}" \
+          {{if .CONFIG}}--config "{{.CONFIG}}"{{end}} \
+          {{if .DRY_RUN}}--dry-run{{end}}
+
+  hf-jobs:export:
+    desc: "GGUF-Export als HF Job + Artefakt-Download in den Registry-Pfad. RUN=<job-ref> OUT=<pfad>"
+    preconditions:
+      - sh: '[ -n "{{.RUN}}" ] && [ -n "{{.OUT}}" ]'
+        msg: "RUN= und OUT= sind erforderlich."
+    cmds:
+      - |
+        uvx --from "huggingface_hub" hf jobs uv run \
+          --flavor l4x1 --secrets HF_TOKEN \
+          scripts/finetune/export_gguf.py --run "{{.RUN}}"
+        mkdir -p "{{.OUT}}"
+        uvx --from "huggingface_hub" hf download "{{.RUN}}" --local-dir "{{.OUT}}"

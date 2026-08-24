@@ -75,9 +75,9 @@
       },
       "models": {
         "Qwen3.6-35B-A3B-NVFP4": {
-          "name": "Qwen3.6-35B-A3B NVFP4 (FreeToken-native, GDN-Hybrid, gemessen 2026-08-23: ~104 tok/s Decode kurz / 62-70 tok/s bei 63k Kontext, 131072 KV-Reserve = 34% Experten resident, text-only)",
+          "name": "Qwen3.6-35B-A3B NVFP4 (FreeToken-native, GDN-Hybrid, gemessen 2026-08-23: ~104 tok/s Decode kurz / 62-70 tok/s bei 63k Kontext, KV-Ladder: Start bei 131072 KV, wachsend budgetkonform bis zur 200000er Decke — limit.context = LADDER_CEILING, text-only)",
           "limit": {
-            "context": 131072,
+            "context": 200000,
             "output": 8192
           }
         },

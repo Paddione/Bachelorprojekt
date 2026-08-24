@@ -5328,6 +5328,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/close-branch-suffix-fallback",
+    "file": "tests/spec/software-factory/close-branch-suffix-fallback.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/conflict-gate",
     "file": "tests/spec/software-factory/conflict-gate.bats",
     "category": "software-factory",
@@ -5396,6 +5402,12 @@
   {
     "id": "software-factory/factory-prep-worktree-reuse",
     "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/factory-status-lane-status-field",
+    "file": "tests/spec/software-factory/factory-status-lane-status-field.bats",
     "category": "software-factory",
     "kind": "shell"
   },

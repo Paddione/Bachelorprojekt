@@ -46,6 +46,20 @@ extract_ticket_ids_from_title() {
   fi
 }
 
+# extract_ticket_id_from_branch <branch> — [T015960] Fallback für PRs, deren
+# Titel keinen [T-NNNNNN]-Tag trägt (z. B. "chore: reaper spec atlas allowlist
+# T015919", PR #5214): die Ticket-ID steht dann per Branch-Konvention im
+# Suffix (-T<id>). Liefert das LETZTE T[0-9]{6}-Match (Slug-Teile können
+# selbst Ziffern tragen), leer wenn kein Match.
+extract_ticket_id_from_branch() {
+  local branch="${1:-}" hit
+  # `|| true`: unter set -euo pipefail würde greps Exit 1 bei Nicht-Treffer die
+  # Zuordnung (und damit den ganzen Loop) abbrechen — leer ist hier ein gültiger
+  # Messwert ("Branch trägt keine ID"), kein Fehlerfall.
+  hit=$(printf '%s' "$branch" | grep -oE 'T[0-9]{6}' | tail -1 || true)
+  printf '%s\n' "$hit"
+}
+
 # identity_guard_blocks <anchor_count> <anchor_match> — [T015010] reine
 # Entscheidungsfunktion (ohne DB-Zugriff, von den Bats-Tests sourcbar).
 #   anchor_count — Anzahl gefundener Pre-Merge-Anker (ticket_links/ticket_plans)
@@ -71,6 +85,7 @@ while [[ $# -gt 0 ]]; do case "$1" in
     echo "Usage: BRAND=<brand> bash $(basename "${BASH_SOURCE[0]}") [--dry-run]"
     echo "  auto-close-merged: merged PRs with [T-NNNNNN] → ticket.sh update-status done"
     # T001580: Skips plan-only/archive branches to avoid premature closure
+    echo "  [T015960] Titel ohne [T-Tag]: Fallback auf die Ticket-ID im Branch-Suffix (-T<id>)"
     echo "  [T015010] Identity-Guard: Closure nur bei UUID-Konsens mit Pre-Merge-Ankern (PR-Link/Plan)"
     exit 0 ;;
   *) echo "Unknown option: $1" >&2; exit 2 ;;
@@ -138,9 +153,21 @@ fi
 # ones. The parent tag is `[T-NNNNNN]` (literal `[T` + 6 digits + `]`, e.g.
 # [T123456] or [T001415]); children are the T-IDs inside round brackets.
 echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
-  # Skip if no ticket tag in title
+  # [T015960] Titel ohne [T-NNNNNN]-Tag sind kein Grund zum Skip mehr, wenn die
+  # Branch-Konvention (-T<id>-Suffix) die ID liefert — sonst bleibt ein gemergter
+  # PR ohne Closure liegen (real: PR #5214 → T015919). Der Identity-Guard
+  # [T015010] validiert den Fallback-Kandidaten wie jeden anderen: Anker
+  # (ticket_links/ticket_plans) müssen zur Ticket-UUID passen, bevor geschrieben
+  # wird. Erst wenn AUCH der Branch keine ID trägt, wird geskippt.
   tickets=$(extract_ticket_ids_from_title "$title")
-  [[ -z "$tickets" ]] && continue
+  if [[ -z "$tickets" ]]; then
+    fallback_ticket=$(extract_ticket_id_from_branch "$branch")
+    if [[ -z "$fallback_ticket" ]]; then
+      continue
+    fi
+    echo "auto-close-merged [T015960]: PR #$pr_num — Titel ohne [T-Tag], Fallback auf Branch-Suffix ($branch → $fallback_ticket)" >&2
+    tickets="$fallback_ticket"
+  fi
   # First extracted ID is the parent — used in the PR-level skip messages below
   # (before the per-ticket loop assigns $ticket).
   parent_ticket=$(printf '%s\n' "$tickets" | head -1)

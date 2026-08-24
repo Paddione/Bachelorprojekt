@@ -1,5 +1,5 @@
 # sessions.mentolder.de — Wildcard-Cert + IngressRoute für session-<slug>.sessions.mentolder.de
-# Benutzer setzt: *.sessions.mentolder.de CNAME mentolder.de (oder fleet-IP direkt).
+# Benutzer setzt: *.${SESSIONS_DOMAIN} CNAME mentolder.de (oder fleet-IP direkt).
 # Cert wird via DNS-01 (ipv64-Webhook) automatisch ausgestellt.
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -12,7 +12,7 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - "*.sessions.mentolder.de"
+    - "*.${SESSIONS_DOMAIN}"
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -27,7 +27,7 @@ spec:
     # OAuth2-Roundtrip (redirect_url=https://session-login.sessions.mentolder.de/
     # oauth2/callback). Der Slug "login" ist damit reserviert.
     - kind: Rule
-      match: HostRegexp(`^session-[a-z0-9-]+\.sessions\.mentolder\.de$`) && PathPrefix(`/oauth2`)
+      match: HostRegexp(`^session-[a-z0-9-]+\.${SESSIONS_DOMAIN}$`) && PathPrefix(`/oauth2`)
       priority: 20
       services:
         - name: oauth2-proxy-session-hub
@@ -35,7 +35,7 @@ spec:
     # T016251: Pocket-ID-Gate (forwardAuth) — Muster aus k3d/dev-stack/
     # oauth2-proxy-sessions.yaml, hier für die Prod-Wildcard-Hosts.
     - kind: Rule
-      match: HostRegexp(`^session-[a-z0-9-]+\.sessions\.mentolder\.de$`)
+      match: HostRegexp(`^session-[a-z0-9-]+\.${SESSIONS_DOMAIN}$`)
       middlewares:
         - name: session-hub-auth
         - name: session-hub-errors

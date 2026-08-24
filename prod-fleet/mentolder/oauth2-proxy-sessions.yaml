@@ -16,7 +16,7 @@
 # bereits im fleet-mentolder-Sealed-Bestand vorhanden (environments/
 # sealed-secrets/fleet-mentolder.yaml) und landen als workspace-secrets.
 # Operator-Vorbedingung: OIDC-Client "session-hub" im PROD-Pocket-ID mit
-# redirect_url https://session-login.sessions.mentolder.de/oauth2/callback
+# redirect_url https://session-login.${SESSIONS_DOMAIN}/oauth2/callback
 # anlegen; der Slug "login" ist damit reserviert.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: v1
@@ -92,11 +92,11 @@ spec:
             - --client-id=session-hub
             - --client-secret=$(POCKET_ID_SESSION_HUB_SECRET)
             # Prod: https + öffentliche Autorize-URL, interne Token/JWKS-Endpunkte.
-            - --redirect-url=https://session-login.sessions.mentolder.de/oauth2/callback
+            - --redirect-url=https://session-login.${SESSIONS_DOMAIN}/oauth2/callback
             - --oidc-issuer-url=http://pocket-id.workspace.svc.cluster.local:1411
             - --ssl-insecure-skip-verify=true
             - --skip-oidc-discovery=true
-            - --login-url=https://auth.mentolder.de/authorize
+            - --login-url=https://${POCKET_ID_DOMAIN}/authorize
             - --redeem-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/token
             - --oidc-jwks-url=http://pocket-id.workspace.svc.cluster.local:1411/.well-known/jwks.json
             - --profile-url=http://pocket-id.workspace.svc.cluster.local:1411/api/oidc/userinfo
@@ -114,8 +114,8 @@ spec:
             - --insecure-oidc-allow-unverified-email=true
             - --oidc-extra-audience=session-hub
             - --scope=openid email profile
-            - --whitelist-domain=sessions.mentolder.de
-            - --whitelist-domain=*.sessions.mentolder.de
+            - --whitelist-domain=${SESSIONS_DOMAIN}
+            - --whitelist-domain=*.${SESSIONS_DOMAIN}
           env:
             - name: POCKET_ID_SESSION_HUB_SECRET
               valueFrom:

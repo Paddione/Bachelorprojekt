@@ -26,7 +26,7 @@ Stand zurueck, in dem das Merge-Gate weiter falsch gruen meldet.
 
 ## Tasks
 
-- [ ] **1. Failing test (RED).** Der Test liegt im Branch. Vor der ersten Aenderung laufen
+- [x] **1. Failing test (RED).** Der Test liegt im Branch. Vor der ersten Aenderung laufen
       lassen und den roten Stand bestaetigen:
 
       ```bash
@@ -38,19 +38,19 @@ Stand zurueck, in dem das Merge-Gate weiter falsch gruen meldet.
       Die Anker sind hier nicht optional: ein Skript, das an allem scheitert, wuerde die
       Negativ-Aussage zufaellig erfuellen.
 
-- [ ] **2. Run-Lookup an den PR-Branch binden.** In `scripts/devflow-ci-watch.sh` den Aufruf
+- [x] **2. Run-Lookup an den PR-Branch binden.** In `scripts/devflow-ci-watch.sh` den Aufruf
       `gh run list --branch "$(git rev-parse --abbrev-ref HEAD …)"` durch den Branch aus dem PR
       ersetzen (`gh pr view "$PR_URL" --json headRefName`). Der bisherige Ausdruck las den
       Branch aus dem cwd des Aufrufers — und der dokumentierte Aufrufweg fuehrt ueber das
       Haupt-Checkout (`dev-flow-execute` Schritt 3.8 und 5.5: `cd "$MAIN_REPO"`), wo `main`
       ausgecheckt ist.
 
-- [ ] **3. else-Zweig fail-closed machen.** Wird kein Run gefunden, darf `FAILED_CHECKS` NICHT
+- [x] **3. else-Zweig fail-closed machen.** Wird kein Run gefunden, darf `FAILED_CHECKS` NICHT
       geleert werden. Die Meldung soll benennen, dass die Gegenprobe nichts belegen konnte, und
       den verwendeten Branch nennen — sonst ist der Fall spaeter nicht diagnostizierbar. Ebenso
       bei nicht bestimmbarem PR-Branch.
 
-- [ ] **4. Die zulaessige Entwarnung unveraendert lassen.** Ein gefundener Run ohne
+- [x] **4. Die zulaessige Entwarnung unveraendert lassen.** Ein gefundener Run ohne
       failure-Jobs bleibt eine gueltige Entlastung (cancelled/skipped-Aggregate). Der
       entsprechende Testfall darf nicht rot werden:
 
@@ -58,7 +58,7 @@ Stand zurueck, in dem das Merge-Gate weiter falsch gruen meldet.
       ./tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats -f "harmloses Aggregat"
       ```
 
-- [ ] **5. Bestehende ci-watch-Guards gegenpruefen.** Drei Suiten pinnen das Verhalten dieses
+- [x] **5. Bestehende ci-watch-Guards gegenpruefen.** Drei Suiten pinnen das Verhalten dieses
       Skripts; keine darf brechen:
 
       ```bash
@@ -68,7 +68,7 @@ Stand zurueck, in dem das Merge-Gate weiter falsch gruen meldet.
       Erwartet: keine `not ok`-Zeile. Insbesondere `devflow-ci-watch-rollup-headsha.bats`
       (T012239) und `devflow-ci-watch-merged-exit.bats` (T002671) muessen gruen bleiben.
 
-- [ ] **6. Final Verification.** Der neue Test vollstaendig gruen und die Repo-Gates intakt:
+- [x] **6. Final Verification.** Der neue Test vollstaendig gruen und die Repo-Gates intakt:
 
       ```bash
       ./tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/devflow-ci-watch-run-lookup.bats

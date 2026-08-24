@@ -3993,8 +3993,8 @@
   ],
   "T013044": [
     {
-      "slug": "pvc-backup-clone-stuck-T013044",
-      "status": "plan_staged"
+      "slug": "2026-08-24-pvc-backup-clone-stuck-T013044",
+      "status": "archived"
     }
   ],
   "T013107": [
@@ -4203,8 +4203,8 @@
   ],
   "T014466": [
     {
-      "slug": "ci-watch-fail-closed",
-      "status": "plan_staged"
+      "slug": "2026-08-24-ci-watch-fail-closed",
+      "status": "archived"
     }
   ],
   "T014535": [

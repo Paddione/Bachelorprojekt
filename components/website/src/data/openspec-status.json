@@ -4397,6 +4397,18 @@
       "status": "archived"
     }
   ],
+  "T016251": [
+    {
+      "slug": "session-hub-reap-purge-fixes",
+      "status": "plan_staged"
+    }
+  ],
+  "T016415": [
+    {
+      "slug": "backup-mail-routing",
+      "status": "plan_staged"
+    }
+  ],
   "T016418": [
     {
       "slug": "watchdog-worktree-activity",
@@ -4415,9 +4427,27 @@
       "status": "archived"
     }
   ],
+  "T016424": [
+    {
+      "slug": "2026-08-24-wsl-exit-brett-dev-tmp",
+      "status": "archived"
+    }
+  ],
+  "T016430": [
+    {
+      "slug": "wsl-exit-internal-endpoints",
+      "status": "plan_staged"
+    }
+  ],
   "T016438": [
     {
       "slug": "wsl-exit-hf-jobs",
+      "status": "plan_staged"
+    }
+  ],
+  "T016447": [
+    {
+      "slug": "cbm-index-single-flight",
       "status": "plan_staged"
     }
   ],

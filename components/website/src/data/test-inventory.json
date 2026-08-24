@@ -3336,6 +3336,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-stack-tmp-mounts",
+    "file": "tests/spec/dev-stack-tmp-mounts.bats",
+    "category": "dev-stack-tmp-mounts",
+    "kind": "shell"
+  },
+  {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
     "category": "devflow-selection-archive-hardening",
@@ -3608,6 +3614,12 @@
   {
     "id": "fleet-operations/firewall-program-match",
     "file": "tests/spec/fleet-operations/firewall-program-match.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/internal-endpoints",
+    "file": "tests/spec/fleet-operations/internal-endpoints.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },
@@ -4376,6 +4388,12 @@
   {
     "id": "monitoring-alerts/backup-alerting",
     "file": "tests/spec/monitoring-alerts/backup-alerting.bats",
+    "category": "monitoring-alerts",
+    "kind": "shell"
+  },
+  {
+    "id": "monitoring-alerts/backup-recipient-daily-repeat",
+    "file": "tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats",
     "category": "monitoring-alerts",
     "kind": "shell"
   },
@@ -5304,8 +5322,20 @@
     "kind": "shell"
   },
   {
+    "id": "sessions-server/domain-config",
+    "file": "tests/spec/sessions-server/domain-config.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
     "id": "sessions-server/form-lifecycle",
     "file": "tests/spec/sessions-server/form-lifecycle.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server/reap-untracked",
+    "file": "tests/spec/sessions-server/reap-untracked.bats",
     "category": "sessions-server",
     "kind": "shell"
   },

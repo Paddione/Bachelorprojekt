@@ -141,16 +141,20 @@ spec:
             - configMapRef:
                 name: sdlc-console-config
           env:
-            # Tickets-DB of Record liegt im Fleet-workspace (Explore-Fund,
-            # T016422) — deshalb shared-db.workspace statt des k3d-lokalen
-            # shared-db mit Inline-Dev-Passwort.
-            - name: SESSIONS_DATABASE_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+            # Reihenfolge PFLICHT: WEBSITE_DB_PASSWORD muss VOR
+            # SESSIONS_DATABASE_URL stehen — k8s löst $(VAR)-Referenzen nur aus
+            # früher in der Liste stehenden Env-Einträgen auf (Muster wie in
+            # website-dev.yaml).
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: website-secrets
                   key: WEBSITE_DB_PASSWORD
+            # Tickets-DB of Record liegt im Fleet-workspace (Explore-Fund,
+            # T016422) — deshalb shared-db.workspace statt des k3d-lokalen
+            # shared-db mit Inline-Dev-Passwort.
+            - name: SESSIONS_DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
             - name: POCKET_ID_WEBSITE_SECRET
               valueFrom:
                 secretKeyRef:

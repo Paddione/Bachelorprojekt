@@ -2,7 +2,7 @@
 title: "wsl-exit-brett-dev-tmp — Implementation Plan"
 ticket_id: T016424
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

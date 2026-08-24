@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2286 · Scenarios: 5082
+Specs: 145 · Requirements: 2287 · Scenarios: 5084
 
 ## factory-pipeline
 
@@ -76,16 +76,14 @@ In-flight:
   - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 45 · Scenarios: 88 · Lines: 907
+Reqs: 46 · Scenarios: 90 · Lines: 933
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
+  - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
   - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
   - Rendered Staging CronJobs Target the Staging Website | T015004 | 2026-08-23 | ADDED
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
-  - Cluster Membership Matches the Declared Node Registry | T002630 | 2026-08-10 | ADDED
-In-flight:
-  - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | active | ADDED
 
 ### workspace-deploy
 Reqs: 90 · Scenarios: 167 · Lines: 1926

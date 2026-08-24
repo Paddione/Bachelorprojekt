@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2273 · Scenarios: 5058
+Specs: 145 · Requirements: 2278 · Scenarios: 5065
 
 ## factory-pipeline
 
@@ -778,20 +778,14 @@ Last touches:
   - Model Registry tracks adapters across suitability, stats, provenance, and deployment | T002629 | 2026-08-14 | ADDED
 
 ### monitoring-alerts
-Reqs: 15 · Scenarios: 24 · Lines: 271
+Reqs: 20 · Scenarios: 31 · Lines: 362
 Paths: k3d/prometheus, k3d/alertmanager, k3d/grafana
 Last touches:
-  - Monitoring-Hauptcontainer haben Resource Requests und Limits | T014553 | 2026-08-23 | ADDED
-  - Pushover Notification Receiver | T014542 | 2026-08-23 | MODIFIED
-  - No Unregistered Resource Manifests in k3d/monitoring | T002185 | 2026-08-02 | ADDED
-  - Placeholder CronJobs Are Not Committed | T002185 | 2026-08-02 | ADDED
-In-flight:
-  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T015712 | active | ADDED
-  - Backup-Job-Failures lösen kritischen Alert aus | T015712 | active | ADDED
-  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | active | ADDED
-  - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | active | ADDED
-  - Backup-Alerts decken beide Brands ab | T015712 | active | ADDED
-  - Mandatory Alert Set | T015712 | active | MODIFIED
+  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T015712 | 2026-08-24 | ADDED
+  - Backup-Job-Failures lösen kritischen Alert aus | T015712 | 2026-08-24 | ADDED
+  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | 2026-08-24 | ADDED
+  - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | 2026-08-24 | ADDED
+  - Backup-Alerts decken beide Brands ab | T015712 | 2026-08-24 | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

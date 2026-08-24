@@ -1,0 +1,50 @@
+# ════════════════════════════════════════════════════════════════════════════
+# internal-mcp-ingress — interne Endpoints für das bge-Paar [T016422]
+# ════════════════════════════════════════════════════════════════════════════
+# Verbraucher sind die lokalen MCP-Server (bge-mcp) auf dem Windows-Arbeitsplatz;
+# die Erreichbarkeit ist NUR aus dem wg-mesh gegeben (Operator-DNS trägt die
+# .internal-Hosts auf die Fleet-Edge). Die bisherigen localhost-Tunnel
+# (:8081/:8093) sterben mit der WSL-Stilllegung.
+#
+# Kein TLS: es existiert kein Zertifikat für .internal (Wildcard deckt nur
+# ${DEV_DOMAIN}); die Route hängt bewusst am Plain-HTTP-Entrypoint — der Traffic
+# läuft innerhalb des WireGuard-Mesh und trägt keine Brand-Domains (S3).
+# Hostnamen kommen aus den ConfigMap-Vars DEV_BGE_*_HOST
+# (k3d/configmap-domains.yaml, Render-Werte in environments/dev-cluster.yaml)
+# statt literal ins Match geschrieben.
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bge-embed-internal
+  labels:
+    app: llm-gateway-embed
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`${DEV_BGE_EMBED_HOST}`)
+      kind: Rule
+      services:
+        # Cross-Namespace: die bge-Services laufen im Brand-Namespace workspace,
+        # dieser Stack in workspace-dev.
+        - name: llm-gateway-embed
+          namespace: workspace
+          port: 8081
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bge-rerank-internal
+  labels:
+    app: llm-gateway-rerank
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`${DEV_BGE_RERANK_HOST}`)
+      kind: Rule
+      services:
+        - name: llm-gateway-rerank
+          namespace: workspace
+          port: 8081

@@ -38,3 +38,8 @@ data:
   VIDEOVAULT_DOMAIN: "videovault.localhost"
   STUDIO_DOMAIN: "studio.localhost"
   STUDIO_IMAGE: "studio-server:latest"
+  # Interne wg-mesh-Endpunkte für das bge-Paar (T016422) — bewusst OHNE
+  # Brand-Domain; Operator-DNS trägt die Hosts, Konsum über k3d/dev-stack/
+  # internal-mcp-ingress.yaml.
+  DEV_BGE_EMBED_HOST: "bge-embed.internal"
+  DEV_BGE_RERANK_HOST: "bge-rerank.internal"

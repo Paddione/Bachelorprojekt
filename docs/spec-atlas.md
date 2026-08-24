@@ -56,6 +56,11 @@ Last touches:
   - Bonsai Provider Registration for Implement and Review | T013302 | 2026-08-22 | MODIFIED
   - Phase Pin Is the First Candidate, Not a Shortcut | T013302 | 2026-08-22 | REMOVED
   - A locked factory model overrides every other model choice | T013302 | 2026-08-22 | MODIFIED
+In-flight:
+  - Factory Dispatcher Runs In-Cluster | T016422 | active | ADDED
+  - Dev-Stack Pods Have a Writable Temp Directory | T016422 | active | ADDED
+  - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | active | ADDED
+  - Internal MCP Endpoints for the bge Pair | T016422 | active | ADDED
 
 ## delivery
 

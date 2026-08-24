@@ -503,6 +503,36 @@ env_vars:
     default_dev: ""
     description: "Public hostname of the dev Brett (auto-derived as brett.${DEV_DOMAIN})."
 
+  - name: DEV_BGE_EMBED_HOST
+    required: false
+    default_dev: ""
+    description: "Internal wg-mesh hostname of the bge-embed endpoint (T016422). Consumed by k3d/dev-stack/internal-mcp-ingress.yaml; operator DNS resolves it to the fleet edge."
+
+  - name: DEV_BGE_RERANK_HOST
+    required: false
+    default_dev: ""
+    description: "Internal wg-mesh hostname of the bge-rerank endpoint (T016422). Consumed by k3d/dev-stack/internal-mcp-ingress.yaml; operator DNS resolves it to the fleet edge."
+
+  - name: SDLC_CONSOLE_SITE_URL
+    required: false
+    default_dev: ""
+    description: "Public base URL of the fleet sdlc-console (T016422). The Flux render has no Taskfile.sdlc.yml env — without an explicit value here the ConfigMap placeholder would silently substitute empty (T002174 error class)."
+
+  - name: SDLC_CONSOLE_POCKET_ID_FRONTEND_URL
+    required: false
+    default_dev: ""
+    description: "Pocket ID frontend URL used by the fleet sdlc-console OIDC flow (prod-auth mode, RP-ID bound)."
+
+  - name: SDLC_CONSOLE_POCKET_ID_URL
+    required: false
+    default_dev: ""
+    description: "Pocket ID backend URL used by the fleet sdlc-console OIDC flow."
+
+  - name: SDLC_CONSOLE_POCKET_ID_CLIENT_ID
+    required: false
+    default_dev: ""
+    description: "Registered Pocket ID client id for the fleet sdlc-console; client registration is an operator step (ADR-007 appendix A.5)."
+
   - name: DEV_SSH_USER
     required: false
     default_dev: "root"

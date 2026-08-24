@@ -1,0 +1,94 @@
+name: Build factory-runner
+
+# Rebuilds the fleet factory-runner runtime image (T016422) whenever its
+# Dockerfile changes, and publishes to ghcr.io/paddione/factory-runner.
+# Tag semantics follow the build-collabora pattern: :latest moves on main,
+# a :sha-<sha> tag pins every build so the cutover can hard-pin the digest.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docker/factory-runner/Dockerfile"
+      - ".github/workflows/build-factory-runner.yml"
+  pull_request:
+    paths:
+      - "docker/factory-runner/Dockerfile"
+      - ".github/workflows/build-factory-runner.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: build-factory-runner-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: paddione/factory-runner
+
+  OPENSPEC_TELEMETRY: '0'
+jobs:
+  build-push:
+    name: Build and push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags
+        id: tags
+        run: |
+          SHA_TAG="${REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA::12}"
+          {
+            echo "tags=${REGISTRY}/${IMAGE_NAME}:latest"
+            echo "sha_tag=${SHA_TAG}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build (PR — no push)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/factory-runner/Dockerfile
+          push: false
+          tags: ${{ steps.tags.outputs.tags }}
+
+      - name: Build and push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/factory-runner/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.tags.outputs.tags }}
+            ${{ steps.tags.outputs.sha_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Mirror image to GitLab registry
+        if: ${{ github.event_name != 'pull_request' }}
+        continue-on-error: true
+        env:
+          GITLAB_REGISTRY_PREFIX: ${{ secrets.GITLAB_REGISTRY_PREFIX }}
+          GITLAB_REGISTRY_TOKEN: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+          SOURCE_TAGS: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.sha_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        run: bash scripts/mirror-image-to-gitlab.sh

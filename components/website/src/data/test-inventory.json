@@ -5628,6 +5628,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/wsl-exit-fleet-factory",
+    "file": "tests/spec/software-factory/wsl-exit-fleet-factory.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "studio-sessions-reorganize",
     "file": "tests/spec/studio-sessions-reorganize.bats",
     "category": "studio-sessions-reorganize",

@@ -22,7 +22,7 @@ wirksame Schwelle = `.sh`-Limit 800 aus `docs/code-quality/gates.yaml`):
 
 | Datei | Ist-Zeilen | Restbudget | Plan-Delta |
 |---|---|---|---|
-| `scripts/devflow-post-merge-finalize.sh` | 776 | budget 24 | ca. +16 (Quelle des verstreuten Seds -1, Source-Zeile +1, Subshell-Aufrufe +4, `--frontmatter-state`-Parsing/Handler +12) — passt ins Budget |
+| `scripts/devflow-post-merge-finalize.sh` | 799 | budget 1 | +23 umgesetzt (Quelle des verstreuten Seds -1, Source-Zeile +1, Subshell-Aufrufe +4, `--frontmatter-state`-Parsing/Handler +12; Kommentare zugunsten des S1-Limits verdichtet) |
 | `tests/spec/agent-skills/finalize-archive-frontmatter.bats` | neu (RED liegt bereits vor) | — | wächst nur in der neuen Datei |
 
 Neue Dateien:

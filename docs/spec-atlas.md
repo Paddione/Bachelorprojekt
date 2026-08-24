@@ -14,6 +14,9 @@ Last touches:
   - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
   - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
   - Shared dev-flow lifecycle contract | T013482 | 2026-08-22 | ADDED
+In-flight:
+  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T015916 | active | MODIFIED
+  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

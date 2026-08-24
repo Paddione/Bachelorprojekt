@@ -2,7 +2,7 @@
 title: "spec-atlas — Implementation Plan"
 ticket_id: T015012
 domains: [scripts, dev-tooling]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

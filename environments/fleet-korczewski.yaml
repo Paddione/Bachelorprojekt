@@ -7,11 +7,15 @@ context: fleet
 domain: korczewski.de
 
 env_vars:
+  BGE_EMBED_HOST: "bge-embed.korczewski.de"
+  BGE_RERANK_HOST: "bge-rerank.korczewski.de"
   PROD_DOMAIN: korczewski.de
   CLUSTER_ENV: fleet-korczewski
   BRAND_NAME: "KORE"
   BRAND_ID: korczewski
   CONTACT_EMAIL: info@korczewski.de
+  # Operator-Mailbox fuer Backup-Fail-Warnungen (Alertmanager backup-email)
+  BACKUP_ALERT_EMAIL: patrick@korczewski.de
   CONTACT_PHONE: ""
   CONTACT_CITY: "Lüneburg"
   CONTACT_NAME: "Patrick Korczewski"

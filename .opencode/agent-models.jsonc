@@ -2,6 +2,12 @@
   "provider": {
     // Lokaler llama.cpp-Provider ueber den llm-proxy.
     //
+    // Seit T014028/T014105 laeuft der lokale Stack auf FreeToken-native (:1919);
+    // dieser Provider ist nur noch Rueckfallebene mit deaktivierten Loadouts.
+    // Die Eintraege gptoss-context, gemma26-factory, gemma4 und
+    // gemma26-throughput wurden T016419 entfernt — deren GGUFs sind von der
+    // Platte.
+    //
     // Ersetzt die frueheren Bloecke llamacpp-gemma26 und llamacpp-gemma9 [2026-08-03].
     // Deren Modelle (gemma26-factory, gemma9-factory) sind Loadouts, deren GGUF-Dateien
     // auf diesem Host nicht mehr existieren — von den acht Loadouts in
@@ -30,54 +36,10 @@
             "output": 8192
           }
         },
-        "gptoss-context": {
-          "name": "gpt-oss-20b Q8_0 (MXFP4-nativ), Loadout gptoss-context auf Port 8098 - Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/gptoss-context/start",
-          // 105472 ist GEMESSEN (llama-server meldete n_ctx_slot=105472 beim Laden am
-          // 2026-08-03), nicht n_ctx_train. Durchsatz derselbe Lauf: 165 tok/s prompt,
-          // 147 tok/s decode.
-          "limit": {
-            "context": 105472,
-            "output": 8192
-          }
-        },
-        "gemma26-factory": {
-          "name": "Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091 (np=3, -kvu, q4_0, fitt 128) - exclusiveGroup chat-gpu",
-          // 161024 ist GEMESSEN (n_ctx_slot im Serverlog, 2026-08-09, b10241, np=3 -kvu
-          // q4_0 fitt 128): GEMEINSAMER Pool ueber die drei Slots, nicht je Slot.
-          "limit": {
-            "context": 161024,
-            "output": 8192
-          }
-        },
-        // 2026-08-04: Familiensubagenten brauchten eigene Loadouts — gemma4
-        // (Port 8090) und qwen3-coder-30b (Port 8094) lagen auf der Platte.
-        // Beide teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
-        // T003204/T012414: qwen3-coder-30b ist abgeschaltet und aus
-        // loadouts.json entfernt (vorher nur enabled: false in
-        // loadouts.json) — gleicher VRAM wie gemma26-factory bei aggressiverer
-        // Quantisierung, weniger Kontext, langsamer gemessen; kein Agent
-        // referenziert das Modell mehr.
-        // gemma4 faengt seit T002886 (2026-08-09) Gemma 4 26B A4B UD-IQ4_XS
-        // und ist ein Serving-Familientraeger ohne Agenten-Referenz (der gemma-
-        // Agent zeigt auf gemma26-factory).
-        "gemma4": {
-          "name": "Gemma 4 26B A4B UD-IQ4_XS (Serving, Loadout gemma4 auf Port 8090, np=1, q4_0 KV, gemessen 177.920 ctx) - exclusiveGroup chat-gpu",
-          "limit": {
-            "context": 177920,
-            "output": 8192
-          }
-        },
         "gemma12-vision": {
           "name": "Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP-Drafter, Loadout gemma12-vision auf Port 8089 - exclusiveGroup chat-gpu. Vision-capable.",
           "limit": {
             "context": 262144,
-            "output": 8192
-          }
-        },
-        "gemma26-throughput": {
-          "name": "Gemma 4 26B A4B QAT-Q4_K_XL (Durchsatz, Loadout gemma26-throughput auf Port 8092, gemessen 118.016 ctx, 159-169 tok/s) - exclusiveGroup chat-gpu",
-          "limit": {
-            "context": 118016,
             "output": 8192
           }
         },
@@ -406,10 +368,12 @@
     // Der urspruengliche Hinweis aus T002298 bleibt gueltig: "-np" heisst in
     // llama.cpp "number of server slots", nicht "Parallelitaet". Wer die Namen
     // zusammenstreicht, nimmt jedem Agenten seinen Praefix-Cache.
-    // T003204: faehrt seit dem Abschalten von gptoss-context das Loadout
-    // gemma26-throughput (118.016 ctx). Der NAME bleibt "gptoss", obwohl er nun
-    // ueber das Modell luegt — er ist die Aufruf-Schnittstelle des Orchestrators
-    // ("gptoss": "allow" in dessen Permission-Liste) und steht zusaetzlich in
+    // T016419: modellagnostisch auf dem FreeToken-Alias, siehe
+    // freetoken-local-Provider — die frueheren Loadout-Zuweisungen
+    // (zuletzt gptoss-context, dann gemma26-throughput) sind mit deren
+    // GGUFs von der Platte. Der NAME bleibt "gptoss": er ist die
+    // Aufruf-Schnittstelle des Orchestrators ("gptoss": "allow" in dessen
+    // Permission-Liste) und steht zusaetzlich in
     // docs/agent-guide/registry/agents.yaml sowie in der Skill-Dokumentation.
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
@@ -426,9 +390,9 @@
       // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // T003204: faehrt seit dem Abschalten von devstral-quality das Loadout
-    // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
-    // bei "gptoss" oben.
+    // T016419: modellagnostisch auf dem FreeToken-Alias, siehe
+    // freetoken-local-Provider (vorher devstral-quality, zuletzt
+    // gemma26-factory — beide GGUF-Bestaende sind entfernt).
     "devstral": {
       "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
@@ -465,13 +429,9 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // 2026-08-22: qwen38 als fuenfter Familien-Subagent. Zeigt auf das Loadout
-    // qwen38-220k (Port 8094, Qwen 3.8 27B UD-IQ3_XXS, fixierte 114.688 ctx,
-    // q4_0 KV) — dasselbe Modell wie der Tab-waehlbare qwen38-primary, aber
-    // per `task` dispatchbar. EIN Slot (parallel=1 in loadouts.json): dieser
-    // Agent ist bewusst NICHT parallel zu sich selbst oder zu den anderen
-    // lokalen Familien dispatchbar — sequenziell, einer nach dem anderen.
-    // Text-only: kein mmproj in diesem Loadout.
+    // 2026-08-22: qwen38 als fuenfter Familien-Subagent, seit T014028/T014105
+    // modellagnostisch auf dem FreeToken-Alias wie die anderen Familien
+    // (siehe freetoken-local-Provider). Per `task` dispatchbar; Text-only.
     "qwen38": {
       "description": "Local subagent for the qwen38 family — name retained as dispatch handle; faehrt seit T014028 FreeToken-native (:1919), modellagnostisch via Alias 'active' (serviert immer das residente Modell). Text-only. Write-capable delegation.",
       "mode": "subagent",
@@ -496,113 +456,6 @@
       "temperature": 0.3,
       "steps": 100,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // Primaerer (Tab-waehlbarer) Lokal-Agent auf gemma26-factory.
-    // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
-    // summonbar. Kann beliebige Subagenten dispatchen (deepseek + lokal).
-    //
-    // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
-    // Orchestrator davor.
-    "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on FreeToken-native (:1919), modellagnostisch via Alias 'active'. Text-only. Use for fully local work without the cloud orchestrator. Can dispatch subagents.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#6EE7B7",
-      // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
-      // plant UND implementiert. Deutlich hoehere Werte riskieren den
-      // Tool-Call-im-<think>-Block-Fehler aus der fablevibes-Diagnose.
-      "temperature": 0.3,
-      "steps": 50,
-      // write=deny aus demselben Grund wie beim Subagenten - das ist eine
-      // Modell-Eigenschaft (Ganzdatei-Overwrite statt Edit), keine Frage des
-      // Agent-Modus. Neue Dateien legt der Benutzer bzw. ein Folgeschritt an.
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
-    // Maximaler lokaler Kontext (161024, gemessen beim Laden am 2026-08-09,
-    // np=3 -kvu q4_0 fitt 128, gemeinsamer Pool).
-    // Keinerlei Subagent-Dispatch — rein lokale Arbeit ohne Netzanbindung.
-    //
-    // Kein Vision: gemma26-factory laedt KEIN mmproj (loadouts.json, notes
-    // "Kein mmproj." — der mmproj-Pfad wurde T002886 entfernt, weil die Datei
-    // am erwarteten Pfad fehlte). Vision gibt es nur auf gemma12-vision (:8089).
-    "gemma26-vision": {
-      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. No subagent dispatch — for focused local work that must stay on-device.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#A78BFA",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": {
-        "edit": "allow",
-        "write": "deny",
-        "bash": "allow",
-        "task": "deny"
-      }
-    },
-    // ── Primaere (Tab-waehlbare) Agenten fuer jedes lokale Modell ───────
-    //
-    // Ergaenzung zu gemma26-primary / gemma26-vision: ein primaerer Agent pro
-    // lokalem GGUF-Modell, damit der Benutzer jedes Modell direkt per Tab
-    // auswaehlen kann, ohne den Orchestrator davor. Alle nutzen den gleichen
-    // Prompt (local-subagent.md) und das gleiche Berechtigungsprofil:
-    // edit=allow, write=deny, bash=allow, task nur deepseek-Eskalation.
-    // T003204: Kontextzahl mitgezogen — sie ist NICHT kosmetisch. opencode nutzt
-    // die deklarierte Zahl zur Laufzeit fuer Auto-Compact (fasst bei 95 % der
-    // Grenze zusammen); eine stehengebliebene 105.472 gegen die tatsaechlichen
-    // 118.016 fuehrte zu falsch getimtem Compact. Der Guard
-    // opencode-routes-via-proxy.bats prueft die Deklaration gegen den LAUFENDEN
-    // Server in einem +/-20-%-Korridor.
-    "gptoss-primary": {
-      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch subagents.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#34D399",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
-    "devstral-primary": {
-      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch subagents.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#60A5FA",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
-    "gemma12-primary": {
-      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch any subagent.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#F472B6",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
-    "gemma26-throughput-primary": {
-      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable singleagent on the freetoken-local provider. Text-only. Can dispatch subagents.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#FBBF24",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
-    "qwen38-primary": {
-      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919, Alias 'active' = residentes Modell). Tab-selectable text-only singleagent on the freetoken-local provider. Can dispatch any subagent.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#A855F7",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     // T014105: aus der Global-Config (T014028) nachgetragen — dedizierter
     // Tab-waehlbarer Primary auf dem FreeToken-Alias, damit der lokale Stack

@@ -1,7 +1,7 @@
 ---
 title: "archive-frontmatter-completed-on-archive-branch — Implementation Plan"
 ticket_id: T015916
-domains: [scripts-infra]
+domains: [scripts, infra]
 status: active
 file_locks: []
 shared_changes: false

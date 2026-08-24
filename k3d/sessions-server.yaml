@@ -1,4 +1,5 @@
-# Sessions Server — statischer nginx für session-<slug>.sessions.mentolder.de
+# Sessions Server — statischer nginx für session-<slug>.${SESSIONS_DOMAIN}
+# (Domain aus der zentralen Konfiguration, T016251).
 # Dateien landen via kubectl cp in /srv/sessions/<slug>/index.html.
 # IngressRoute + Certificate nur im prod-fleet/mentolder/ Overlay.
 apiVersion: v1
@@ -27,9 +28,13 @@ data:
         include /etc/nginx/conf.d/*.conf;
     }
   default.conf: |
+    # T016251: Die Domain kommt aus der zentralen Konfiguration — der
+    # ${SESSIONS_DOMAIN}-Platzhalter wird beim Deploy substituiert (Dev:
+    # envsubst-Liste im workspace:setup-Task, Prod: flux-render-artifact.sh
+    # extrahiert ${VAR}-Referenzen automatisch; Wert aus environments/*.yaml).
     server {
         listen 8080;
-        server_name ~^session-(?<slug>[a-z0-9-]+)\.sessions\.mentolder\.de$;
+        server_name ~^session-(?<slug>[a-z0-9-]+)\.${SESSIONS_DOMAIN}$;
         root /srv/sessions/$slug;
         index index.html;
         try_files $uri /index.html =404;
@@ -40,9 +45,11 @@ data:
         # T015167: return ist eine Rewrite-Phasen-Direktive — auf Server-Level
         # feuert sie VOR dem Location-Matching und wuerde /health mit 404
         # abschiessen. Deshalb die 404er als Location statt server-level.
+        # T016251: Content-Type via default_type statt add_header — add_header
+        # DUPLIZIERT den Header, nginx setzt ihn bereits aus default_type.
+        default_type text/plain;
         location = /health {
             return 200 "ok\n";
-            add_header Content-Type text/plain;
         }
         location / {
             return 404;

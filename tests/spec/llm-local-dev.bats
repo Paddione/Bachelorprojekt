@@ -138,15 +138,16 @@ EOF"
   # einem Slot 99840 gemessen, bei drei (T002545) nur noch 88832, weil der
   # geteilte -kvu-Puffer fuer drei Sequenzen reichen muss. Eine gepflegte Zahl
   # driftet damit bei jeder Loadout-Aenderung — genau die Klasse, die dieses
-  # Ticket schliesst. Der Traeger ist seit T002633 gptoss-context (gpt-oss-20b),
+  # Ticket schliesst. Traeger ist seit T016419 qwen38-220k (Qwen3.8-27B,
+  # gemessen 114688); gptoss-context wurde mit seinen toten GGUFs entfernt,
   # die Eigenschaft bleibt dieselbe.
   #
   # Geprueft wird deshalb die EIGENSCHAFT: plausibel und nicht n_ctx_train
-  # (131072 fuer gpt-oss-20b), das ueber dem real Verfuegbaren liegt.
-  ctx="$(awk '/"gptoss-context": *\{/,/"context"/' \
+  # (262144 fuer Qwen3.8-27B), das ueber dem real Verfuegbaren liegt.
+  ctx="$(awk '/"qwen38-220k": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
   [ -n "$ctx" ]
-  [ "$ctx" != "131072" ]
+  [ "$ctx" != "262144" ]
   [ "$ctx" -gt 50000 ]
   [ "$ctx" -lt 200000 ]
 }
@@ -167,9 +168,11 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc provides a primary gemma agent with measured context (T002545)" {
+@test "agent-models.jsonc provides a local primary with measured context (T002545/T016419)" {
   # T002545: mode:primary, und der genannte Kontext ist ein GEMESSENER Wert,
-  # kein n_ctx_train.
+  # kein n_ctx_train. T016419: der einzige lokale Primary ist freetoken-primary —
+  # die frueheren gemma-Primaries waren Klon-Leichen und sind entfernt; geprueft
+  # wird jetzt jeder Primary auf dem LOKALEN Stack (freetoken-local/llamacpp-local).
   #
   # [T003065] Vorher lautete die Bedingung
   #   ctx === 262144 || ctx <= 50000 || ctx >= 200000  ->  implausible
@@ -204,8 +207,8 @@ EOF"
       return ms.length ? Math.max(...ms) : null;
     };
     const prim = Object.entries(o.agent || {})
-      .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
-    if (prim.length < 1) { console.error('no primary gemma agents found'); process.exit(1); }
+      .filter(([n,v]) => v.mode === 'primary' && /^(freetoken-local|llamacpp-local)\//.test(v.model || ''));
+    if (prim.length < 1) { console.error('no local-stack primary agent found'); process.exit(1); }
     // T014105: FreeToken-Agenten sind NICHT an loadouts.json gebunden — ihre
     // gemessenen Limits (KV-Pages, nicht advertised max_model_len) stehen als
     // konkrete Eintraege im Provider und werden von den T014105-Guards exakt
@@ -316,11 +319,50 @@ EOF"
     const j5 = require('json5');
     const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
     const agents = d.agent || {};
-    const local = ['gptoss','devstral','gemma','gemma12','qwen38',
-      'gemma26-primary','gemma26-vision','gptoss-primary','devstral-primary',
-      'gemma12-primary','gemma26-throughput-primary','qwen38-primary','freetoken-primary'];
+    const local = ['gptoss','devstral','gemma','gemma12','qwen38','freetoken-primary'];
     const bad = local.filter(n => !agents[n] || agents[n].model !== 'freetoken-local/active');
     if (bad.length) { console.error('not on alias: ' + bad.join(',')); process.exit(1); }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T016419: retired clone primaries are gone" {
+  # Die sieben Klon-Primaries (seit T014105 byte-identisch mit freetoken-primary)
+  # sind entfernt; ihre Namen referenzierten retired Loadouts.
+  # Positiv-Anker zuerst [T002356-M1]: der verbleibende lokale Primary muss
+  # existieren und auf dem Alias liegen, sonst laeuft der Negativ-Assert vakuos.
+  run node -e "
+    const j5 = require('json5');
+    const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const agents = d.agent || {};
+    if (!agents['freetoken-primary'] || agents['freetoken-primary'].model !== 'freetoken-local/active') {
+      console.error('positive anchor failed: freetoken-primary on ' + ((agents['freetoken-primary'] || {}).model || 'nothing'));
+      process.exit(1);
+    }
+    const clones = ['gemma26-primary','gemma26-vision','gptoss-primary','devstral-primary',
+      'gemma12-primary','gemma26-throughput-primary','qwen38-primary'];
+    const alive = clones.filter(n => agents[n] && agents[n].mode === 'primary');
+    if (alive.length) { console.error('retired clone primaries still present: ' + alive.join(',')); process.exit(1); }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T016419: dead checkpoint catalog entries are removed" {
+  # GGUF-Verzeichnisse zu gptoss-context/gemma26-factory/gemma4/gemma26-throughput
+  # existieren nicht mehr auf Disk; der llamacpp-local-Katalog darf sie nicht
+  # mehr deklarieren. Statisch geprueft — bewusst KEIN Filesystem-Check gegen
+  # GGUF-Pfade (CI hat weder /mnt/c noch ~/models).
+  run node -e "
+    const j5 = require('json5');
+    const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
+    const keep = ['hauhau-qwen36','gemma12-vision','qwen38-220k'].filter(k => k in m);
+    if (!keep.length) { console.error('positive anchor failed: no surviving llamacpp-local entry'); process.exit(1); }
+    const dead = ['gptoss-context','gemma26-factory','gemma4','gemma26-throughput']
+      .filter(k => k in m);
+    if (dead.length) { console.error('dead catalog entries still declared: ' + dead.join(',')); process.exit(1); }
     process.exit(0);
   "
   [ "$status" -eq 0 ]

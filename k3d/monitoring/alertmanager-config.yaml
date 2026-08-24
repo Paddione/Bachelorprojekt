@@ -12,11 +12,31 @@ spec:
     groupInterval: 5m
     repeatInterval: 4h
     receiver: email
+    # Backup-Warnungen gehen an den Betreiber, nicht an die öffentliche
+    # Brand-Kontaktadresse, und wiederholen sich maximal einmal pro Tag.
+    # Identisch in beiden Brand-Renders — verhindert Flip-Flop des Receivers,
+    # wenn mentolder/korczewski dieselbe Ressource abwechselnd applizieren.
+    routes:
+      - matchers:
+          - alertname =~ "BackupJobFailed|BackupCronJobStale"
+        receiver: backup-email
+        repeatInterval: 24h
   receivers:
     - name: email
       emailConfigs:
         - sendResolved: true
           to: ${CONTACT_EMAIL}
+          from: ${SMTP_FROM}
+          smarthost: ${SMTP_HOST}:${SMTP_PORT}
+          authUsername: ${SMTP_USER}
+          authPassword:
+            name: alertmanager-smtp
+            key: SMTP_PASSWORD
+          requireTLS: true
+    - name: backup-email
+      emailConfigs:
+        - sendResolved: true
+          to: ${BACKUP_ALERT_EMAIL}
           from: ${SMTP_FROM}
           smarthost: ${SMTP_HOST}:${SMTP_PORT}
           authUsername: ${SMTP_USER}

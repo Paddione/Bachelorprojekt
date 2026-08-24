@@ -2,7 +2,7 @@
 title: "ci-watch-fail-closed — Implementation Plan"
 ticket_id: T014466
 domains: [ci]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

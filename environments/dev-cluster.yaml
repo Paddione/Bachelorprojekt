@@ -18,6 +18,19 @@ env_vars:
   # keine dev-Defaults zieht (environment != dev).
   DEV_WEBSITE_HOST: web.dev.mentolder.de
   DEV_BRETT_HOST: brett.dev.mentolder.de
+  # Interne bge-Endpoints (T016422) — wg-mesh-only, keine Brand-Domain.
+  DEV_BGE_EMBED_HOST: bge-embed.internal
+  DEV_BGE_RERANK_HOST: bge-rerank.internal
+  # sdlc-console OIDC-Werte (T016422): der Flux-Render kennt das lokale
+  # Taskfile.sdlc.yml-Env nicht und wuerde die Platzhalter still LEER
+  # substituieren (T002174-Fehlerklasse). Prod-Auth-Modus wie im lokalen
+  # Muster — WebAuthn bindet Passkeys an die RP-ID auth.mentolder.de.
+  # Pocket-ID-Client-Registrierung fuer den Console-Host: Operator-Schritt,
+  # ADR-007 Anhang A.5.
+  SDLC_CONSOLE_SITE_URL: https://web.dev.mentolder.de
+  SDLC_CONSOLE_POCKET_ID_FRONTEND_URL: https://auth.mentolder.de
+  SDLC_CONSOLE_POCKET_ID_URL: https://auth.mentolder.de
+  SDLC_CONSOLE_POCKET_ID_CLIENT_ID: website
   # Die Dev-Workloads referenzieren den Prod-Auth (auth.${PROD_DOMAIN}) und
   # brainstorm.${PROD_DOMAIN} — die Traefik-Routen fuer *.dev.${PROD_DOMAIN}.
   PROD_DOMAIN: mentolder.de

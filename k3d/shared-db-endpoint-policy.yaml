@@ -1,0 +1,32 @@
+# k3d/shared-db-endpoint-policy.yaml [T016430]
+#
+# FAIL-CLOSED-POLICY für shared-db (5432):
+#
+# Die Tickets-DB wird bewusst NICHT über Traefik (web/websecure) oder einen
+# NodePort/LB exponiert — beides wäre aus dem öffentlichen Internet erreichbar
+# oder von der Hetzner-Firewall abhängig. Stattdessen gilt:
+#
+#   * In-cluster-Konsumenten (factory-runner, website, sdlc-console) nutzen die
+#     ClusterIP svc/shared-db:5432 direkt.
+#   * Externe wg-Konsumenten (Windows-Desktop-MCPs) tunneln über den bereits
+#     betriebenen sish-TCP-SSH-Dienst (auth-gated, kein kubectl port-forward):
+#       ssh -L 15432:shared-db.workspace.svc.cluster.local:5432 <sish-host>
+#
+# Dieser BATS-bewachte Grundsatz wird in tests/spec/fleet-operations/
+# internal-endpoints.bats negativ abgesichert: kein Manifest darf 5432 auf
+# web/websecure/NodePort/LB legen.
+#
+# Dieses Manifest ist Absichts-Dokumentation; es deklariert bewusst KEINE
+# Netzwerk-Ressource.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shared-db-endpoint-policy
+  namespace: workspace
+  labels:
+    app: shared-db
+    policy: endpoint-fail-closed
+data:
+  policy: "no-public-exposure"
+  transport: "in-cluster ClusterIP; external wg consumers via auth-gated sish TCP tunnel"
+  port: "5432"

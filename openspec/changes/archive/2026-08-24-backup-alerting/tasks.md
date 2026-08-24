@@ -2,7 +2,7 @@
 title: "backup-alerting — Implementation Plan"
 ticket_id: T015712
 domains: [infra, monitoring]
-status: active
+status: completed
 file_locks: [k3d/monitoring/prometheus-rules.yaml, k3d/monitoring/kustomization.yaml, k3d/monitoring/alertmanager-matcher-strategy-patch.yaml, tests/spec/monitoring-alerts/backup-alerting.bats]
 shared_changes: false
 batch_id: null

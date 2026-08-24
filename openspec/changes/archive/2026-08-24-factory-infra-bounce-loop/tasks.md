@@ -2,7 +2,7 @@
 title: "factory-infra-bounce-loop — Implementation Plan"
 ticket_id: T015556
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

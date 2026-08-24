@@ -1,0 +1,215 @@
+# ════════════════════════════════════════════════════════════════════════════
+# factory-runner — fleet-nativer Software-Factory-Dispatcher [T016422]
+# ════════════════════════════════════════════════════════════════════════════
+#
+# Ersetzt den WSL-Dispatcher (systemd User-Timer → scripts/factory/wakeup.sh).
+# Design D1–D3 aus openspec/changes/wsl-exit-fleet-factory/design.md.
+#
+# Architektur: EIN long-lived Pod (Deployment, replicas: 1) hält den Repo-Clone
+# auf einer RWX-Longhorn-PVC unter /workspace. Der Tick-CronJob unten exec't per
+# `kubectl exec` hinein und ruft wakeup.sh auf — das Skript bleibt NICHT geändert,
+# der Pod stellt nur seine Laufzeitumgebung (alpine/k8s-exec-Muster wie in
+# k3d/rustdesk-stack/on-demand.yaml). Single-Flight bleibt im wakeup-flock;
+# deshalb bewusst KEIN HPA und kein RollingUpdate-maxSurge-Spiel: File-Locks
+# (agent-lock.sh), Worktree-Claims und .worktrees/* sind single-writer by design.
+#
+# Image-Strategie (T2.3):
+#   Referenz:   ghcr.io/paddione/factory-runner (gebaut aus docker/factory-runner/
+#               Dockerfile — node:22-bookworm-slim + git, git-crypt, gh, jq,
+#               go-task, @anthropic-ai/claude-code).
+#   Pinning:    bis zum ersten CI-Build Tag-Pin :latest (Konvention der
+#               self-built Images Website/Brett/Docs). VOR dem Cutover wird der
+#               Digest hart gepinnt (`scripts/resolve-image-digest.sh`-Muster,
+#               Operator-Schritt im ADR-007-Anhang) — ein Runner mit fremdem
+#               Image hätte Repo-Schreibrechte über den Clone.
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: factory-runner-workdir
+  labels:
+    app: factory-runner
+spec:
+  # RWX (nicht RWO): CronJob-Pod exec't zwar hinein statt zu mounten, aber
+  # Debug-/Recovery-Zugriffe (zweiter Pod gegen dieselbe PVC) sollen möglich
+  # bleiben, ohne die Single-Writer-Semantik von flock zu verletzen — lesen
+  # parallel ist erlaubt, schreiben serialisiert wakeup.sh selbst.
+  accessModes: [ReadWriteMany]
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 20Gi # Repo-Clone + .worktrees/ (mehrere parallele Partials)
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: factory-tick
+  labels:
+    app: factory-runner
+---
+# RBAC für den Tick-Anstoß (T2.5): der CronJob-Pod darf NUR in deploy/factory-
+# runner exec'en und dessen Logs lesen — kein ClusterRole, keine weiteren Rechte
+# (E17-Gegenmaßnahme: Credentials bündeln sich im Runner, der Anstoß bleibt
+# minimalprivilegiert).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: factory-tick-exec
+  labels:
+    app: factory-runner
+rules:
+  # kubectl exec deploy/factory-runner löst Deployment → ReplicaSet → Pod auf:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: factory-tick-exec
+  labels:
+    app: factory-runner
+subjects:
+  - kind: ServiceAccount
+    name: factory-tick
+roleRef:
+  kind: Role
+  name: factory-tick-exec
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factory-runner
+  labels:
+    app: factory-runner
+spec:
+  # Single-Writer: genau ein Replica, kein Surge (siehe Dateikopf).
+  replicas: 1
+  strategy:
+    type: Recreate # Worktree-Claims überleben keinen Parallel-Betrieb zweier Pods
+  selector:
+    matchLabels:
+      app: factory-runner
+  template:
+    metadata:
+      labels:
+        app: factory-runner
+    spec:
+      serviceAccountName: factory-tick
+      automountServiceAccountToken: false # der Runner braucht keine API
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000 # Longhorn-PVC für UID 1000 beschreibbar (Vorbild registry-cache)
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: runner
+          image: ghcr.io/paddione/factory-runner:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sleep", "infinity"] # Laufzeitumgebung für den CronJob-exec
+          workingDir: /workspace
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 1000
+          env:
+            - name: FACTORY_REPO
+              value: "/workspace"
+            - name: FACTORY_GITCRYPT_KEY
+              value: "/workspace/.secrets/bp-secrets.key"
+            - name: FACTORY_ENV_FILE
+              value: "/workspace/.secrets/autopilot.env"
+            - name: LLM_BASE_URL # FreeToken via wg-mesh; P0-Spike 3 verifiziert die Route
+              value: "http://192.168.100.10:1919/v1"
+            - name: LLM_FALLBACK_PROVIDER # Eskalationskette First-Class (Design D3)
+              value: "deepseek"
+          volumeMounts:
+            - name: workdir
+              mountPath: /workspace
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: workdir
+          persistentVolumeClaim:
+            claimName: factory-runner-workdir
+        - name: tmp
+          emptyDir: {}
+# ── SealedSecret-Platzhalter (T2.7) ─────────────────────────────────────────
+# Der Operator versiegelt VOR dem Erstdeploy per kubeseal (Prozess: ADR-007-
+# Anhang) ein Secret `factory-runner-secrets` in diesem Namespace und mountet
+# es als Dateien nach /workspace/.secrets/. KEINE Werte hier im Repo:
+#   - bp-secrets.key       (git-crypt-Key → FACTORY_GITCRYPT_KEY)
+#   - autopilot.env        (Dispatcher-Konfig → FACTORY_ENV_FILE)
+#   - GITHUB_PAT
+#   - DEEPSEEK_API_KEY
+#   - ALIBABA_API_KEY
+#   - OPENCODE_ZEN_KEY
+# Bis dahin läuft der Runner, aber jeder Tick scheitert sauber am git-crypt-
+# Unlock bzw. am fehlenden Env-File — absichtlich fail-closed.
+# ────────────────────────────────────────────────────────────────────────────
+---
+# Tick-CronJob: bisheriger Timer-Takt (factory.timer OnUnitInactiveSec=5min).
+# Image digest-gepinnt identisch k3d/tests-retention-cronjob.yaml. Single-Flight
+# bleibt im wakeup-flock — concurrencyPolicy Forbid ist nur zweite Belt.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: factory-tick
+  labels:
+    app: factory-runner
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: factory-runner
+        spec:
+          restartPolicy: Never
+          serviceAccountName: factory-tick
+          containers:
+            - name: tick
+              image: alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
+              imagePullPolicy: IfNotPresent
+              command:
+                - kubectl
+                - --namespace
+                - workspace-dev
+                - exec
+                - deploy/factory-runner
+                - --
+                - bash
+                - scripts/factory/wakeup.sh
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi

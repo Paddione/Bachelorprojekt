@@ -81,7 +81,11 @@ _resolve_all() {
   echo "Loadouts ohne Modelldatei: ${missing:-<keine>}"
 
   # Und dass ein konkretes, nachweislich vorhandenes Loadout durchlaeuft.
-  echo "$output" | grep -qx 'qwen38-220k OK'
+  # T016419: seit dem FreeToken-Cutover sind alle GPU-Chat-Loadouts
+  # enabled:false — einziger zur Laufzeit aktiver Traeger ist bge-rerank-cpu.
+  # Der alte Anker qwen38-220k pinnte ein deaktiviertes Loadout und war lokal
+  # dauerhaft rot (CI skippt ueber das modelRoots-Gate, bevor diese Zeile laeuft).
+  echo "$output" | grep -qx 'bge-rerank-cpu OK'
 
   [ -z "$missing" ]
 }

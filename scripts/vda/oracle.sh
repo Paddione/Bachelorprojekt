@@ -189,18 +189,35 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
 
   REPO_FP="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-  # Validate task exists in the Taskfile
+  # Validate task exists in the Taskfile. `task --list-all` kann unter Last
+  # transient scheitern; die Liste ist dann STILL leer und der Fast-Path
+  # meldet fuer eine gueltige Task "Unknown task" (CI-Shard-Flake, Run
+  # 32761123726: Test 310 gruen, Test 311 Sekunden spaeter rot, identischer
+  # Aufruf). Deshalb bis zu 3 Versuche; stderr fliesst erst in den
+  # endgueltigen Fehlerfall ein, statt still verworfen zu werden.
+  FP_TASK_ERR="$(mktemp "${TMPDIR:-/tmp}/vda-oracle-listall.XXXXXX")"
   set +o pipefail
-  # NO_COLOR=1: siehe Begruendung an der ALL_TASKS-Stelle oben [T002587].
-  VALID_FP=$(cd "$REPO_FP" && NO_COLOR=1 task --list-all 2>/dev/null \
-    | grep '^\* ' | sed 's/^\* //' \
-    | awk '{n=split($0,p,/:  +/); if(n>=2) print p[1]}')
+  VALID_FP=""
+  for _fp_attempt in 1 2 3; do
+    # NO_COLOR=1: siehe Begruendung an der ALL_TASKS-Stelle oben [T002587].
+    VALID_FP=$(cd "$REPO_FP" && NO_COLOR=1 task --list-all 2>"$FP_TASK_ERR" \
+      | grep '^\* ' | sed 's/^\* //' \
+      | awk '{n=split($0,p,/:  +/); if(n>=2) print p[1]}')
+    echo "$VALID_FP" | grep -qxF "$FP_TASK" && break
+    [ "$_fp_attempt" -lt 3 ] && sleep 1
+  done
   set -o pipefail
 
   if ! echo "$VALID_FP" | grep -qxF "$FP_TASK"; then
     echo "✗ Unknown task: '${FP_TASK}' — run 'task --list-all' to see valid tasks" >&2
+    if [ -s "$FP_TASK_ERR" ]; then
+      echo "── task --list-all stderr (letzte Diagnose) ──" >&2
+      cat "$FP_TASK_ERR" >&2
+    fi
+    rm -f "$FP_TASK_ERR"
     exit 1
   fi
+  rm -f "$FP_TASK_ERR"
 
   FP_FINAL="$FP_TASK"
   FP_EXEC_ENV=""

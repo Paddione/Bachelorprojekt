@@ -180,6 +180,10 @@ WHERE t.external_id = :'ext_id'
   );
 EOF
 
+  # [T015668] SSOT read-back verification: confirm the write landed
+  # (not just that psql returned rc=0).
+  _verify_write_effect "$pod" "$id" "status=$status" || exit 1
+
   echo "Ticket $id status updated to $status"
 }
 

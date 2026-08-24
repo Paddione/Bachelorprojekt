@@ -17,6 +17,7 @@ setup() {
   SQLLOG="$BATS_TEST_TMPDIR/sql.log"
   mkdir -p "$STUBDIR"
   : > "$SQLLOG"
+  rm -f "$SQLLOG.written" 2>/dev/null || true
 }
 
 # make_kubectl_stub <status-den-die-db-meldet>
@@ -25,12 +26,18 @@ setup() {
 #   `kubectl get pod …`  → ein Pod-Name, damit _pgpod nicht abbricht
 #   `kubectl exec … psql` → protokolliert das SQL von stdin und liefert den
 #                           übergebenen Status zurück (für Status-Vorabfragen)
+#
+# [T015668] Read-back simulation: ein marker-File ($SQLLOG.written) wird nach
+# jedem UPDATE angelegt; SELECT…status-Queries ab dann liefern 'backlog' (der
+# persistierte Wert), Queries davor liefern $reported_status (Alter Zustand).
+# Dadurch simuliert der Stub sowohl konsistente Writes (Test 3) als auch
+# das Vorhandensein des Write-Pfads (ohne Write bleibt der marker fehlt).
 make_kubectl_stub() {
   local reported_status="$1"
   cat > "$STUBDIR/kubectl" <<STUB
 #!/usr/bin/env bash
 # T015008: der ctx-guard probt vor jedem Write die kubeconfig ab — LAN-Server
-# vorgaukeln, damit der Stub-Write-Pfad erreicht wird.
+# vorgauckeln, damit der Stub-Write-Pfad erreicht wird.
 if [[ "\$*" == *"config view"* ]]; then
   if [[ "\$*" == *".contexts["* ]]; then echo "stub-cluster"; else echo "https://10.0.33.1:6443"; fi
   exit 0
@@ -41,9 +48,18 @@ done
 # exec-Pfad: SQL von stdin mitschreiben
 sql="\$(cat)"
 printf '%s\n---\n' "\$sql" >> "$SQLLOG"
-# Status-Vorabfragen beantworten; alles andere liefert leer
+# [T015668] Track write state: after an UPDATE, read-back should return 'backlog'.
+if [[ "\$sql" == *"UPDATE"* ]]; then
+  touch "$SQLLOG.written"
+fi
+# Status-Vorabfragen beantworten; liefert post-write 'backlog' nach einem UPDATE,
+# sonst den übergebenen Status (Vor-Write-Zustand).
 if [[ "\$sql" == *"SELECT"* && "\$sql" == *"status"* ]]; then
-  printf '%s\n' "$reported_status"
+  if [[ -f "$SQLLOG.written" ]]; then
+    printf '%s\n' "backlog"
+  else
+    printf '%s\n' "$reported_status"
+  fi
 fi
 exit 0
 STUB

@@ -288,6 +288,9 @@ EOF
     exit 1
   fi
 
+  # [T015668] SSOT read-back verification: confirm the plan comment was committed.
+  _verify_write_effect "$pod" "$id" "plan_ref=non-empty" || exit 1
+
   echo "Plan successfully archived for ticket $id"
 }
 

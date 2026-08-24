@@ -163,6 +163,8 @@ EOF
       echo "WARN: stage-plan: force-tick flag write failed — factory will tick on the next factory.timer interval" >&2
     fi
   fi
+  # [T015668] SSOT read-back verification: confirm status and plan_ref committed.
+  _verify_write_effect "$pod" "$id" "status=plan_staged" "plan_ref=non-empty" || exit 1
   if [[ "$hold" == "1" ]]; then
     echo "Ticket $id staged in Kommissionierung (status=plan_staged, execution held)"
   else

@@ -143,6 +143,87 @@ _exec_sql() {
   return $rc
 }
 
+# _verify_write_effect <pod> <ext_id> <field=expected>... [T015668]
+#
+# Re-reads the SSOT after a write verb and aborts loudly on mismatch.
+# psql rc=0 only proves transport success, not that the row landed — the
+# Ghost-shared-db episode (T015168) showed writes can silently land in
+# the wrong pod.  This helper builds a per-field SELECT by external_id,
+# compares each field to the expected value, and exits non-zero on drift.
+#
+# Supported field names:
+#   <column>      — compared as t.<column> = :ext_id row's column
+#   plan_ref      — subquery on tickets.ticket_comments (FACTORY-PLAN-REF %)
+#   <field>=non-empty — asserts the value is present (not NULL/empty)
+_verify_write_effect() {
+  local pod="$1" ext_id="$2"; shift 2
+
+  # Offline mode: skip verification entirely — the write was already skipped.
+  _ticket_offline_skip "SSOT read-back verification" && return 0
+
+  # Build the SELECT clause from field=expected pairs.
+  local select_clause="" sep="" field expected
+  local -a expected_vals=()
+  for field in "$@"; do
+    expected="${field#*=}"
+    expected_vals+=("$expected")
+    field="${field%%=*}"
+    case "$field" in
+      plan_ref)
+        select_clause="${select_clause}${sep}(SELECT c.body FROM tickets.ticket_comments c WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %' ORDER BY c.created_at DESC LIMIT 1)"
+        ;;
+      *)
+        select_clause="${select_clause}${sep}t.${field}"
+        ;;
+    esac
+    sep=", "
+  done
+
+  local row
+  row="$(_exec_sql "$pod" -v ext_id="$ext_id" <<SQL
+SELECT ${select_clause}
+FROM tickets.tickets t
+WHERE t.external_id = :'ext_id'
+SQL
+  )" || {
+    echo "ERROR [T015668]: SSOT read-back query failed for ticket ${ext_id}." >&2
+    echo "  Remediation: verify the ticket exists in the SSOT and the pod is reachable." >&2
+    return 1
+  }
+
+  if [[ -z "$row" ]]; then
+    echo "ERROR [T015668]: SSOT read-back returned no row for ticket ${ext_id}." >&2
+    echo "  Remediation: verify the ticket exists in the SSOT." >&2
+    return 1
+  fi
+
+  # Parse pipe-separated output from psql -qtA (default field separator is |).
+  local i=0 actual expected
+  local -a values=()
+  IFS='|' read -ra values <<< "$row"
+  for field in "$@"; do
+    expected="${field#*=}"
+    actual="${values[$i]:-}"
+    # psql -A renders NULL as an empty string
+    [[ "$actual" == "NULL" ]] && actual=""
+
+    if [[ "$expected" == "non-empty" ]]; then
+      if [[ -z "$actual" ]]; then
+        echo "ERROR [T015668]: SSOT read-back MISMATCH on ticket ${ext_id} field '${field%%=*}' — expected a non-empty value, got empty." >&2
+        echo "  Remediation: verify the write-side-effect (e.g. plan_ref comment) committed. Re-run the command or inspect the SSOT." >&2
+        return 1
+      fi
+    elif [[ "$actual" != "$expected" ]]; then
+      echo "ERROR [T015668]: SSOT read-back MISMATCH on ticket ${ext_id} field '${field%%=*}' — expected '${expected}', got '${actual}'." >&2
+      echo "  Remediation: check pod logs (kubectl logs ${pod}) and re-run the write verb." >&2
+      return 1
+    fi
+    i=$((i + 1))
+  done
+
+  return 0
+}
+
 # TICKET_OFFLINE=1 — skip the cluster call for writes (dev-flow-execute best-effort).
 # Mirrors scripts/openspec.sh so the same env var works for both CLIs.
 # [T001582-M3] Moved here from scripts/ticket.sh so both scripts/ticket.sh and

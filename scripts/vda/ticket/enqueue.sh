@@ -37,6 +37,8 @@ EOF
     _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET status='backlog' WHERE external_id = :'ext_id';
 EOF
+    # [T015668] SSOT read-back verification
+    _verify_write_effect "$pod" "$id" "status=backlog" || exit 1
   fi
   if [[ -n "$branch" || -n "$plan" ]]; then
     _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null

@@ -2,7 +2,7 @@
 title: "pvc-backup-clone-stuck-T013044 — Implementation Plan"
 ticket_id: T013044
 domains: [infra]
-status: active
+status: completed
 file_locks: [k3d/pvc-backup-cronjob.yaml]
 shared_changes: false
 batch_id: null

@@ -2,7 +2,7 @@
 title: "ticket-read-fail-closed — Implementation Plan"
 ticket_id: T014386
 domains: [tickets]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

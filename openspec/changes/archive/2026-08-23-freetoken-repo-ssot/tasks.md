@@ -2,7 +2,7 @@
 title: "freetoken-repo-ssot — Implementation Plan"
 ticket_id: T014105
 domains: [llm-local-dev, agent-guide]
-status: active
+status: completed
 file_locks:
   - .opencode/agent-models.jsonc
   - docs/agent-guide/registry/agents.yaml

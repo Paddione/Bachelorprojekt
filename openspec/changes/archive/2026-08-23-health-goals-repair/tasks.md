@@ -2,7 +2,7 @@
 title: "health-goals-repair — Implementation Plan"
 ticket_id: T013916
 domains: [ci, tools]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

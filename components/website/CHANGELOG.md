@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.314.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.314.0...website-v1.314.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **infra:** give brett/website uid-1000 containers writable /tmp emptyDir [T016424] ([#5246](https://github.com/Paddione/Bachelorprojekt/issues/5246)) ([fd844b0](https://github.com/Paddione/Bachelorprojekt/commit/fd844b0c7249eeeed0a807c834bbf9d9964329fb))
+* **ops:** route backup alerts to operator mailbox with 24h repeat [T016415] ([#5241](https://github.com/Paddione/Bachelorprojekt/issues/5241)) ([cebe568](https://github.com/Paddione/Bachelorprojekt/commit/cebe56854b6533f813dd335805adc2276d735d35))
+
 ## [1.314.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.313.5...website-v1.314.0) (2026-08-24)
 
 

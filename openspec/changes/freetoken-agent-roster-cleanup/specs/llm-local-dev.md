@@ -70,10 +70,10 @@ recurring). The dense NVFP4 checkpoint Qwen3.6-27B-NVFP4 was deleted by operator
 decision — dense models do not fit the VRAM budget, so only the three MoE FTW
 checkpoints remain viable under FreeToken (T016419).
 
-#### Scenario: Catalog entries have weights on disk
+#### Scenario: Dead catalog keys are absent
 
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc`
-- **WHEN** each entry's loadout model path from `scripts/llm/loadouts.json` is
-  resolved against the filesystem
-- **THEN** no declared entry points at a missing weight file
+- **WHEN** its keys are inspected
+- **THEN** none of `gptoss-context`, `gemma26-factory`, `gemma4`,
+  `gemma26-throughput` is declared, and at least one fallback entry remains

@@ -56,11 +56,19 @@ HEALTH_GOAL_SCOPE_RE='^G-[A-Z][A-Z0-9]+$'
 # Load the named scope list from commitlint.config.cjs (single source of truth).
 load_allowed_scopes() {
   if command -v node >/dev/null 2>&1 && [ -f "$CONFIG" ]; then
-    node -e "
-      const cfg = require('$CONFIG');
+    # [T016595] Der Pfad geht als process.argv[1] hinein, NICHT interpoliert:
+    #   * Unter Git-Bash ist $CONFIG ein POSIX-Pfad (/c/Users/...), den Node
+    #     unter Windows nicht aufloest. path.resolve macht daraus einen
+    #     gueltigen Pfad; ohne das blieb die Allowlist still leer und
+    #     preflight-pr-scope.sh brach fail-closed ab.
+    #   * Ein Pfad mit Anfuehrungszeichen oder Backslashes koennte den
+    #     require()-String sonst zerlegen.
+    node -e '
+      const path = require("path");
+      const cfg = require(path.resolve(process.argv[1]));
       const scopes = cfg.namedScopes || [];
-      process.stdout.write(scopes.join(' '));
-    " 2>/dev/null
+      process.stdout.write(scopes.join(" "));
+    ' "$CONFIG" 2>/dev/null
   fi
 }
 

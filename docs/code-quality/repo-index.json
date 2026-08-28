@@ -3845,7 +3845,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 830,
+      "file_count": 829,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4675,7 +4675,6 @@
         "scripts/worktree-clean-check.sh",
         "scripts/worktree-create.sh",
         "scripts/worktree-git-op-guard.sh",
-        "scripts/wsl-dns-fix.sh",
         "scripts/wsl-open.sh"
       ]
     },

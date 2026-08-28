@@ -68,7 +68,7 @@ tasks:
       - |
         set -euo pipefail
         if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host (WSL without lingering?)."
+          echo "No systemd --user manager on this host (WSL (or native Windows) without lingering?)."
           echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: use task agents:factory-mcp:start."
           exit 1
         fi
@@ -176,7 +176,7 @@ tasks:
       - |
         set -euo pipefail
         if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host (WSL without lingering?)."
+          echo "No systemd --user manager on this host (WSL (or native Windows) without lingering?)."
           echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: use task agents:mcp-gateway:start."
           exit 1
         fi

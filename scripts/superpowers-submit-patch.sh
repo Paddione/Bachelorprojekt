@@ -99,12 +99,10 @@ function handleSubmit(req, res) {
     } catch (e) { /* persist best-effort */ }
     try {
       const { spawn } = require('child_process');
-      const abs = '/mnt/c/Windows/System32/clip.exe';
-      const clipBin = fs.existsSync(abs) ? abs : 'clip.exe';
-      const clip = spawn(clipBin, { stdio: ['pipe', 'ignore', 'ignore'] });
+      const clip = spawn('clip.exe', { stdio: ['pipe', 'ignore', 'ignore'] });
       clip.on('error', () => {});
       if (clip.stdin) { clip.stdin.on('error', () => {}); try { clip.stdin.end(md); } catch (e) {} }
-    } catch (e) { /* clipboard optional (non-WSL) */ }
+    } catch (e) { /* clipboard optional */ }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end('{"ok":true}');
   });

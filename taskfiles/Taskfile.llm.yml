@@ -164,7 +164,7 @@ tasks:
   # ── llm-proxy als systemd USER service (T002277) ────────────────────────
   # Gleiche Form wie agents:factory-mcp:install. Der Windows-Startup-Ordner
   # (bis T002551 install-startup-autostart.ps1) startete die llama.cpp-Server
-  # auf der Windows-Seite; der Proxy ist ein WSL-Node-Prozess und gehoert hierher.
+  # auf der Windows-Seite; der Proxy laeuft als Windows-Prozess und gehoert hierher.
   proxy:install-service:
     desc: "Install the LLM proxy as a persistent systemd USER service (autostart + Restart=always)"
     silent: true
@@ -172,7 +172,7 @@ tasks:
       - |
         set -euo pipefail
         if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host (WSL without lingering?)."
+          echo "No systemd --user manager on this host (native Windows without lingering?)."
           echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: task llm:proxy:start."
           exit 1
         fi

@@ -61,7 +61,6 @@ kubectl --context fleet -n workspace-korczewski delete job pocket-id-client-seed
 
 | Kontext | GPU Host IP | Services | Task-Prefix |
 |---------|-------------|----------|-------------|
-| WSL local dev | `10.10.0.3` | Ollama, LM Studio | `task openclaw:*` |
 | Dev k3d | `172.17.0.1` | TEI embed, LM Studio | `task llm:* ENV=dev` |
 | Prod fleet | `192.168.100.10` | TEI embed, LM Studio, ComfyUI, Rigger | `task llm:* ENV=mentolder\|korczewski` |
 

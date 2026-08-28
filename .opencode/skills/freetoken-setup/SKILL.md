@@ -16,7 +16,7 @@ Optimal per-model configs for the local FreeToken engine on PK-Desktop
 | Models dir | `C:\Users\PatrickKorczewski\models` |
 | Server | `http://127.0.0.1:1919` (`--host 0.0.0.0` for LAN) |
 | Daemon | `http://127.0.0.1:1900/engine/status` — reports resident model |
-| Restart w/ flags | `scripts/llm/restart-freetoken.ps1` (from WSL: `powershell.exe -NoProfile -File ...`) |
+| Restart w/ flags | `scripts/llm/restart-freetoken.ps1` (from Git Bash: `powershell.exe -NoProfile -File ...`) |
 | Prefill A/B | `scripts/llm/bench-freetoken-prefill.sh` |
 
 ## Golden rules (from the FreeToken source, engine.py)

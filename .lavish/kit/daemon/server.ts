@@ -193,7 +193,7 @@ server.on('error', (err: NodeJS.ErrnoException) => {
   console.error(
     `[cockpit-daemon] FEHLER: Port ${PORT} auf 127.0.0.1 ist belegt oder reserviert (EADDRINUSE).\n` +
     `  Laeuft bereits ein Daemon?      cat ${PID_FILE}  bzw.  ss -ltnp | grep ${PORT}\n` +
-    `  Auf WSL2 kann der Port auch OHNE Lauscher reserviert sein:\n` +
+    `  Auf Windows kann der Port auch OHNE Lauscher reserviert sein:\n` +
     `    netsh.exe interface ipv4 show excludedportrange protocol=tcp\n` +
     `  Anderen Port waehlen:           COCKPIT_DAEMON_PORT=<frei> npx tsx .lavish/kit/daemon/server.ts`
   );

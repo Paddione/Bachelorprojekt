@@ -13,7 +13,7 @@ constant-size recurrent state instead of growing KV, which is why 131k tokens
 fit alongside a streamed expert set.
 
 ```powershell
-# via restart script (from WSL), = baseline of 2026-08-23
+# via restart script (from Git Bash), = baseline of 2026-08-23
 powershell.exe -NoProfile -File scripts/llm/restart-freetoken.ps1 `
   -Model "$env:USERPROFILE\models\Qwen3.6-35B-A3B-NVFP4" -NumTokens 131072
 ```
@@ -89,7 +89,7 @@ Do not add serve flags for it here; revisit only after a hardware change.
 ## Validation recipe
 
 ```bash
-# from WSL, against the Windows host
+# from Git Bash, against the FreeToken backend on localhost
 bash .opencode/skills/freetoken-setup/scripts/smoke-test.sh
 ```
 

@@ -256,9 +256,9 @@ manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als re
      && echo "Vision verfuegbar" \
      || echo "kein Vision-Endpunkt — Punkt 3 ueberspringen"
    ```
-   **Nicht direkt auf Port 8089 prüfen.** Der llama.cpp-Server läuft auf dem Windows-GPU-Host
-   und ist aus WSL nicht erreichbar (`curl localhost:8089` liefert HTTP-Code 000, der Proxy
-   liefert 200). Der Proxy ist zugleich die Stelle, an der `max_inflight=3` durchgesetzt wird.
+    **Nicht direkt auf Port 8089 prüfen.** Der llama.cpp-Server läuft auf dem Windows-GPU-Host
+    und ist von k3d aus nicht erreichbar (`curl localhost:8089` liefert HTTP-Code 000, der Proxy
+    liefert 200). Der Proxy ist zugleich die Stelle, an der `max_inflight=3` durchgesetzt wird.
 
    > **Bis T012781 stand hier Port 8094 mit 8091 als Rückfall.** Beides war wirkungslos: 8094
    > hat in `scripts/llm/loadouts.json` keinen Eintrag, und das Loadout auf 8091

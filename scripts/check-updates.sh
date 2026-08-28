@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # check-updates.sh – Compare running container image digests against their registries.
 # Reports which services have newer images available and which ":latest" images
 # will refresh when restarted (imagePullPolicy: Always).

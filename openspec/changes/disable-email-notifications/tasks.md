@@ -46,7 +46,7 @@ ein Modul-Split ist nicht erforderlich.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Lege `tests/spec/website-core/email-notifications.bats` an und
+- [x] **Failing-Test-Step (RED).** Lege `tests/spec/website-core/email-notifications.bats` an und
       erweitere `components/website/src/lib/notifications.test.ts`, bevor irgendein Produktivcode
       angefasst wird. Die BATS-Datei prüft, dass `k3d/notify-unread-cronjob.yaml` auf `spec`-Ebene
       `suspend: true` trägt, dass `k3d/monitoring/alertmanager-config.yaml` keinen
@@ -67,7 +67,7 @@ cd components/website && npx vitest run src/lib/notifications.test.ts
 # expected: FAIL (rot — der Kill-Switch ist noch nicht implementiert)
 ```
 
-- [ ] **Task 1 — Kill-Switch in `notifications.ts` (GREEN für die Vitest-Fälle).**
+- [x] **Task 1 — Kill-Switch in `notifications.ts` (GREEN für die Vitest-Fälle).**
       In `sendAdminNotification()` als allererste Anweisung, **vor** dem `Promise.all` mit den
       `getSiteSetting`-Aufrufen, aussteigen wenn
       `process.env.EMAIL_NOTIFICATIONS_ENABLED !== 'true'`. Die Prüfung muss vor den DB-Lookups
@@ -77,14 +77,14 @@ cd components/website && npx vitest run src/lib/notifications.test.ts
       angefasst; transaktionale Pfade (`api/dsgvo-request.ts`, `api/booking.ts`, `api/register.ts`,
       `api/contact.ts`) rufen es direkt auf und bleiben zustellfähig.
 
-- [ ] **Task 2 — `notify-unread` CronJob suspendieren.**
+- [x] **Task 2 — `notify-unread` CronJob suspendieren.**
       In `k3d/notify-unread-cronjob.yaml` `suspend: true` auf `spec`-Ebene ergänzen (neben
       `schedule` und `concurrencyPolicy`). Den Eintrag in `k3d/kustomization.yaml` **stehen
       lassen** — die Abschaltung soll ein umlegbares Feld sein, kein entferntes Manifest.
       `components/website/src/pages/api/cron/notify-unread.ts` bleibt unverändert: der Endpunkt
       ist durch `CRON_SECRET` geschützt und ohne Trigger wirkungslos.
 
-- [ ] **Task 3 — Alertmanager auf Blackhole-Receiver umstellen.**
+- [x] **Task 3 — Alertmanager auf Blackhole-Receiver umstellen.**
       In `k3d/monitoring/alertmanager-config.yaml` beide Receiver `email` und `backup-email`
       samt ihrer `emailConfigs` entfernen und durch einen einzigen Receiver ersetzen, der nur
       `- name: "null"` trägt. `spec.route.receiver` auf `"null"` setzen und die
@@ -96,7 +96,7 @@ cd components/website && npx vitest run src/lib/notifications.test.ts
       `envsubst`-Liste in `Taskfile.yml` deklariert, damit eine Wiedereinführung keinen
       Schema-Eingriff braucht.
 
-- [ ] **Task 4 — Nextcloud Activity-Digest abschalten.**
+- [x] **Task 4 — Nextcloud Activity-Digest abschalten.**
       Neues Manifest `k3d/nextcloud-notification-config-job.yaml` nach dem Muster von
       `k3d/vaultwarden-seed-job.yaml`: ein `batch/v1` Job im Namespace `workspace`, der per
       `kubectl exec`-freiem Weg im Nextcloud-Image `occ config:app:set activity default_setting`
@@ -108,7 +108,7 @@ cd components/website && npx vitest run src/lib/notifications.test.ts
       SMTP-Konfiguration trägt ausschließlich transaktionale Mails (Einladung, 2FA,
       Signaturanfrage), siehe `design.md` E5.
 
-- [ ] **Task 5 — Bestehende Monitoring-Guards nachziehen (GREEN für BATS).**
+- [x] **Task 5 — Bestehende Monitoring-Guards nachziehen (GREEN für BATS).**
       In `tests/spec/monitoring-alerts.bats` den Test
       `alertmanager-config.yaml routes via email while Pushover creds are absent` auf den
       Blackhole-Zustand umstellen: er darf `emailConfigs:` nicht mehr erwarten, sondern muss den
@@ -119,7 +119,7 @@ cd components/website && npx vitest run src/lib/notifications.test.ts
       `tests/spec/monitoring-alerts/backup-alerting.bats` bleiben unverändert: sie prüfen
       Prometheus-Regeln und den Matcher-Strategy-Patch, die beide bestehen bleiben.
 
-- [ ] **Task 6 — Delta-Specs gegen die Implementierung gegenprüfen.**
+- [x] **Task 6 — Delta-Specs gegen die Implementierung gegenprüfen.**
       `openspec/changes/disable-email-notifications/specs/monitoring-alerts.md` entfernt die
       Requirement „Email Notification Receiver", ändert „Alerts aus den Workspace-Namespaces
       erreichen einen Empfänger" und „Backup-Job-Failures lösen kritischen Alert aus" und ergänzt

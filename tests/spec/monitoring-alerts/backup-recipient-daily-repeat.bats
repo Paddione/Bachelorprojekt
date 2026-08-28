@@ -1,39 +1,22 @@
 #!/usr/bin/env bats
 # tests/spec/monitoring-alerts/backup-recipient-daily-repeat.bats
-# SSOT: openspec/specs/monitoring-alerts.md (Email Notification Receiver)
+# SSOT: openspec/specs/monitoring-alerts.md (Blackhole Receiver)
 #
-# Backup-Warnungen gehen an die Operator-Mailbox (${BACKUP_ALERT_EMAIL}),
-# nicht an die öffentliche Brand-Kontaktadresse (${CONTACT_EMAIL}), und ein
-# weiterfeuernder Backup-Alert wiederholt sich maximal einmal pro Tag.
-# Prüfmodus: Source-Verifikation (Querschnittstest — das Verhalten manifestiert
-# sich ausschließlich im gerenderten Manifest; der Render selbst wird im
-# Deploy-Pfad envsubst'd und ist hier nicht ausführbar).
+# T016592 hat alle ausgehenden Benachrichtigungs-E-Mails abgeschaltet. Damit
+# sind die frueheren Guards dieser Datei gegenstandslos geworden: der
+# backup-email-Receiver, die BackupJobFailed/BackupCronJobStale-Kindroute und
+# das repeatInterval: 24h existieren nicht mehr — die Requirement "Email
+# Notification Receiver", die sie absicherten, wurde entfernt.
+#
+# Was bleibt: ${BACKUP_ALERT_EMAIL} ist weiterhin im Schema deklariert und in
+# allen Nicht-dev-Umgebungen gesetzt, damit ein Wiedereinschalten der
+# Alarmierung keinen Schema-Eingriff braucht. Genau das prueft dieser Test.
+# Pruefmodus: Source-Verifikation (Querschnittstest — das Verhalten
+# manifestiert sich ausschliesslich in den Konfigurationsdateien).
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   AM="$REPO/k3d/monitoring/alertmanager-config.yaml"
-}
-
-@test "backup child route matches both backup alerts" {
-  run grep -A3 'alertname =~ "BackupJobFailed|BackupCronJobStale"' "$AM"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"backup-email"* ]]
-}
-
-@test "backup route repeats at most once per day" {
-  # Positiv-Anker: der Route-Block muss den backup-email Receiver tragen
-  run grep -B1 -A2 'receiver: backup-email' "$AM"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"repeatInterval: 24h"* ]]
-}
-
-@test "backup-email receiver targets the operator mailbox variable" {
-  # ${BACKUP_ALERT_EMAIL}, NICHT ${CONTACT_EMAIL} — die Brand-Adresse ist die
-  # öffentliche Kontaktseite, nicht der Betreiber.
-  run grep -A8 'name: backup-email' "$AM"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'${BACKUP_ALERT_EMAIL}'* ]]
-  [[ "$output" != *'${CONTACT_EMAIL}'* ]]
 }
 
 @test "BACKUP_ALERT_EMAIL is declared in schema and set in every non-dev env" {
@@ -48,4 +31,17 @@ setup() {
       "$REPO/environments/$f.yaml"
     [ "$status" -eq 0 ]
   done
+}
+
+@test "the alertmanager config no longer routes backup alerts to a mailbox" {
+  # Gegenprobe zum Test oben: die Variable bleibt deklariert, wird aber
+  # nirgends mehr im Alertmanager verdrahtet. Nur nicht kommentierte Zeilen —
+  # der Erklaerblock im Manifest nennt die entfallene Variable absichtlich.
+  run grep -vE '^\s*#' "$AM"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"BACKUP_ALERT_EMAIL"* ]]
+
+  # Positiv-Anker: die Datei existiert und traegt weiterhin eine Route.
+  run grep -q '^  route:' "$AM"
+  [ "$status" -eq 0 ]
 }

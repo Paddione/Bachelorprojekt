@@ -19,12 +19,16 @@ const mockSend = sendEmail as unknown as ReturnType<typeof vi.fn>;
 describe('sendAdminNotification', () => {
   const ORIGINAL_BRAND = process.env.BRAND;
   const ORIGINAL_CONTACT = process.env.CONTACT_EMAIL;
+  const ORIGINAL_SWITCH = process.env.EMAIL_NOTIFICATIONS_ENABLED;
 
   beforeEach(() => {
     mockGet.mockReset();
     mockSend.mockReset();
     delete process.env.BRAND;
     delete process.env.CONTACT_EMAIL;
+    // T016592: der Kill-Switch ist per Default aus. Die Bestandsfaelle unten
+    // beschreiben das Verhalten UNTER dem Switch und brauchen ihn deshalb an.
+    process.env.EMAIL_NOTIFICATIONS_ENABLED = 'true';
   });
 
   afterEach(() => {
@@ -32,6 +36,8 @@ describe('sendAdminNotification', () => {
     else process.env.BRAND = ORIGINAL_BRAND;
     if (ORIGINAL_CONTACT === undefined) delete process.env.CONTACT_EMAIL;
     else process.env.CONTACT_EMAIL = ORIGINAL_CONTACT;
+    if (ORIGINAL_SWITCH === undefined) delete process.env.EMAIL_NOTIFICATIONS_ENABLED;
+    else process.env.EMAIL_NOTIFICATIONS_ENABLED = ORIGINAL_SWITCH;
   });
 
   it('returns silently when no notification email and no CONTACT_EMAIL fallback are set', async () => {
@@ -102,5 +108,67 @@ describe('sendAdminNotification', () => {
     } finally {
       warnSpy.mockRestore();
     }
+  });
+});
+
+// T016592 — globaler Kill-Switch. Er greift VOR jedem site_setting-Lookup,
+// damit er auch ohne erreichbare Datenbank wirkt.
+describe('sendAdminNotification — EMAIL_NOTIFICATIONS_ENABLED Kill-Switch', () => {
+  const ORIGINAL_BRAND = process.env.BRAND;
+  const ORIGINAL_CONTACT = process.env.CONTACT_EMAIL;
+  const ORIGINAL_SWITCH = process.env.EMAIL_NOTIFICATIONS_ENABLED;
+
+  beforeEach(() => {
+    mockGet.mockReset();
+    mockSend.mockReset();
+    // Alles so konfiguriert, dass OHNE Switch eine Mail rausginge — nur der
+    // Switch darf den Unterschied machen.
+    mockGet.mockImplementation(async (_brand: string, key: string) => {
+      if (key === 'notification_email') return 'admin@example.com';
+      if (key.startsWith('notify_')) return 'true';
+      return undefined;
+    });
+    mockSend.mockResolvedValue(true);
+    process.env.CONTACT_EMAIL = 'fallback@example.com';
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_BRAND === undefined) delete process.env.BRAND;
+    else process.env.BRAND = ORIGINAL_BRAND;
+    if (ORIGINAL_CONTACT === undefined) delete process.env.CONTACT_EMAIL;
+    else process.env.CONTACT_EMAIL = ORIGINAL_CONTACT;
+    if (ORIGINAL_SWITCH === undefined) delete process.env.EMAIL_NOTIFICATIONS_ENABLED;
+    else process.env.EMAIL_NOTIFICATIONS_ENABLED = ORIGINAL_SWITCH;
+  });
+
+  it('sends nothing when the switch is unset', async () => {
+    delete process.env.EMAIL_NOTIFICATIONS_ENABLED;
+    await sendAdminNotification({ type: 'contact', subject: 'x', text: 'y' });
+    expect(mockSend).not.toHaveBeenCalled();
+  });
+
+  it('sends nothing when the switch is any value other than "true"', async () => {
+    for (const value of ['false', '1', 'TRUE', '']) {
+      mockSend.mockClear();
+      process.env.EMAIL_NOTIFICATIONS_ENABLED = value;
+      await sendAdminNotification({ type: 'bug', subject: 'x', text: 'y' });
+      expect(mockSend, `switch value ${JSON.stringify(value)}`).not.toHaveBeenCalled();
+    }
+  });
+
+  it('short-circuits before any site_setting lookup', async () => {
+    delete process.env.EMAIL_NOTIFICATIONS_ENABLED;
+    await sendAdminNotification({ type: 'registration', subject: 'x', text: 'y' });
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('restores the previous behaviour when explicitly set to "true"', async () => {
+    process.env.EMAIL_NOTIFICATIONS_ENABLED = 'true';
+    await sendAdminNotification({ type: 'contact', subject: 'New ticket', text: 'Hello' });
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'admin@example.com' }),
+      undefined,
+    );
   });
 });

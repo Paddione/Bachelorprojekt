@@ -621,15 +621,7 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # zu pushen (PR #4529/#4533).
       # Pfade seit T006999 (p4): website/ -> components/website/.
       task freshness:regenerate
-      # [T016597] Gezielt stagen statt ueber den ganzen Change-Baum.
-      # `git add openspec/changes/` nahm auch untracked Dateien mit — und damit
-      # die unfertige Arbeit jeder parallel laufenden Session (belegt bei
-      # T016592/PR #5288). Der Archiv-Move braucht genau zwei Pfade: das Ziel
-      # und die Quelle (fuer die Rename-Erkennung). `-u` bei den uebrigen
-      # haelt untracked Fremdarbeit generell draussen.
-      git add -A -- openspec/changes/archive/*-"$SLUG" "openspec/changes/$SLUG" 2>/dev/null || true
-      git add -u -- openspec/specs components/website/src/data components/website/src/lib components/website/public/learning-assets docs
-      archive_assert_staged_scope "$SLUG"
+      archive_stage_commit "$SLUG"
       git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
       # Pre-Push-Freshness-Verifikation (T006371): freshness:check diffet die
       # regenerierten Artefakte gegen HEAD. Meldet er Drift, werden die
@@ -638,11 +630,7 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # "regenerated but not staged", PR #4529/#4533).
       if ! task freshness:check; then
         echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
-        # [T016597] Gleiche Einschraenkung wie oben — der Amend-Pfad stagte
-        # bisher ebenfalls ueber den ganzen Change-Baum.
-        git add -A -- openspec/changes/archive/*-"$SLUG" "openspec/changes/$SLUG" 2>/dev/null || true
-        git add -u -- openspec/specs components/website/src/data components/website/src/lib components/website/public/learning-assets docs
-        archive_assert_staged_scope "$SLUG"
+        archive_stage_commit "$SLUG"
         git commit --amend --no-edit
         task freshness:check
       fi

@@ -62,3 +62,15 @@ archive_assert_staged_scope() {
   fi
   return 0
 }
+
+# Stage only the archived change and already-tracked generated artifacts. Keeping
+# this operation here prevents both finalize paths from drifting back to a broad
+# `git add openspec/changes/`, which can capture another session's work.
+archive_stage_commit() {
+  local slug="$1"
+
+  git add -A -- openspec/changes/archive/*-"$slug" "openspec/changes/$slug" 2>/dev/null || true
+  git add -u -- openspec/specs components/website/src/data components/website/src/lib \
+    components/website/public/learning-assets docs
+  archive_assert_staged_scope "$slug"
+}

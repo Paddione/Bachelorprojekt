@@ -59,7 +59,7 @@ setup() {
   # bats waere wirkungslos.
   run bash -c "
     awk '/^  test:spec:changed:/{f=1} f' Taskfile.yml \
-      | awk '/unset FIND_CHANGED_TESTS_FILES/{u=NR} /bats-core\/bin\/bats/{if(!b)b=NR} END{print (u && b && u < b) ? \"OK\" : \"FAIL u=\" u \" b=\" b}'
+      | awk '/unset FIND_CHANGED_TESTS_FILES/{u=NR} /tests\/bats|bats-core\/bin\/bats/{if(!b)b=NR} END{print (u && b && u < b) ? \"OK\" : \"FAIL u=\" u \" b=\" b}'
   "
   [ "$status" -eq 0 ]
   [ "$output" = "OK" ]

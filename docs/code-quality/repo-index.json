@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1244,
+      "file_count": 1232,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -33,7 +33,6 @@
         "tests/batch/batch-gap-analysis.bats",
         "tests/batch/batch-workflow-gen.bats",
         "tests/bats",
-        "tests/bats.bat",
         "tests/e2e/brett-globals.d.ts",
         "tests/e2e/fixtures/test-screenshot.png",
         "tests/e2e/helpers/billing.ts",

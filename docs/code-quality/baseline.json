@@ -4,5 +4,11 @@
     "metric": 814,
     "detail": "814 lines > 800 limit (.py)",
     "reason": "upstream huggingface/skills file (T015173) — nicht teilen, Original bleibt review-bar"
+  },
+  "S1:scripts/devflow-post-merge-finalize.sh": {
+    "path": "scripts/devflow-post-merge-finalize.sh",
+    "metric": 812,
+    "detail": "812 lines > 800 limit (.sh)",
+    "reason": "upstream growth past S1 .sh cap on origin/main; NOT from this PR (T016422 infra change) — separate chore to refactor"
   }
 }

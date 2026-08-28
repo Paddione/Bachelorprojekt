@@ -727,19 +727,13 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 # und Flux lieferte weiter den alten Stand mit leerer checksum/config aus. Ohne
 # workflow_dispatch gab es zudem keine Moeglichkeit, einen Rebuild anzustossen.
 
-@test "T002157: render-fleet-artifact triggert auf den Renderer selbst" {
+@test "T002157: render-fleet-artifact triggert ohne Pfadfilter auf jedem main-Push" {
   local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   local wf="${repo_root}/.github/workflows/render-fleet-artifact.yml"
-  local missing=""
-  for input in flux-render-artifact.sh website-config-sha.sh Taskfile.yml; do
-    grep -q "$input" "$wf" || missing="$missing $input"
-  done
-  [ -z "$missing" ] || {
-    echo "FAIL: render-fleet-artifact.yml triggert nicht auf:$missing"
-    echo "      Diese Dateien bestimmen den Inhalt des OCI-Artefakts — ohne Trigger"
-    echo "      bleibt das Artefakt stale und Flux rollt eine veraltete Version aus."
-    return 1
-  }
+  grep -qE '^[[:space:]]+branches: \[main\]' "$wf"
+  run grep -cE '^[[:space:]]+paths:' "$wf"
+  [ "$status" -eq 1 ]
+  [ "$output" -eq 0 ]
 }
 
 @test "T002157: render-fleet-artifact ist manuell ausloesbar" {

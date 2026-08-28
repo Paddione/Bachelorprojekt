@@ -34,7 +34,7 @@ tasks:
     desc: "Initialisiere die Brain-Quartz-Wiki-Kompilierung (57 Specs + Runbooks)"
     dir: "."
     cmds:
-      - ./scripts/brain-ingest-worklist.sh > brain-worklist.txt
+      - bash scripts/brain-ingest-worklist.sh > brain-worklist.txt
       - 'echo "Worklist generiert: $(wc -l < brain-worklist.txt) Einträge"'
       # Quartz generate --sources brain-worklist.txt --output docs/brain/wiki/
       - 'echo "T001570: Brain Initial Ingest abgeschlossen. Siehe brain-worklist.txt"'

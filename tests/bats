@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# tests/bats — Aufruf-Wrapper um den vendorten BATS-Runner. [T016594]
+#
+# Zwei Gruende, warum die Taskfiles den Runner nicht mehr direkt aufrufen:
+#
+# 1) SHEBANG. go-task benutzt den eingebauten mvdan/sh-Interpreter. Fuehrt der
+#    eine Datei direkt aus (./pfad), muss er ihren Shebang selbst aufloesen.
+#    Unter Windows behandelt er den absoluten POSIX-Pfad /usr/bin/env als
+#    relativ zum Arbeitsverzeichnis und bricht mit einem nackten "not found"
+#    und Exit 127 ab. Deshalb rufen die Taskfiles Skripte grundsaetzlich ueber
+#    den Interpreter auf: `bash tests/bats ...`.
+#
+# 2) ARBEITSVERZEICHNIS. go-task uebergibt PWD in Windows-Form
+#    (C:/Users/...), Git-Bash arbeitet mit /c/Users/... BATS prueft
+#    Library-Pfade mit `[[ $path == /* ]]` und lehnt die Windows-Form ab:
+#      "Passed library load path is not an absolute path: C:/Users/.../test_helper.bash"
+#    Der Wrapper normalisiert das Arbeitsverzeichnis, bevor BATS startet.
+#
+# Auf Linux/macOS/CI ist beides ein No-op: cygpath existiert dort nicht, und
+# PWD traegt ohnehin nie eine Laufwerksangabe. Der Wrapper ist damit
+# plattformneutral und aendert das Verhalten ausserhalb von Windows nicht.
+#
+# Nutzung identisch zum Runner selbst:  bash tests/bats <bats-argumente>
+
+set -euo pipefail
+
+# Skriptverzeichnis VOR dem cd aufloesen — danach waere ein relativer
+# BASH_SOURCE-Pfad nicht mehr gueltig.
+_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Windows-Laufwerkspfad in POSIX-Form bringen, sofern wir unter MSYS laufen.
+# Die case-Bedingung haelt den Aufruf von cygpath von Nicht-Windows fern.
+case "${PWD:-}" in
+  [A-Za-z]:[\\/]*)
+    if command -v cygpath >/dev/null 2>&1; then
+      cd "$(cygpath -u "$PWD")"
+    fi
+    ;;
+esac
+
+exec "$_here/unit/lib/bats-core/bin/bats" "$@"

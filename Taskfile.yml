@@ -352,7 +352,7 @@ tasks:
           fi
         done
         TEST_FILES="$TEST_FILES tests/unit/scripts/dev-reset.test.sh tests/spec/mcp-tooling.bats"
-        ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $TEST_FILES
+        bash tests/bats -j $JOBS --no-parallelize-within-files $TEST_FILES
       - bash tests/figure-pack-assets.test.sh
       - task: test:unit:coverage-guard
 
@@ -360,118 +360,118 @@ tasks:
   test:unit:agent-push:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-push.bats
+      - bash tests/bats tests/unit/agent-push.bats
 
   test:unit:sessions-purge:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/sessions-purge.bats
+      - bash tests/bats tests/unit/sessions-purge.bats
 
   test:unit:build-graph:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/build-graph.bats
+      - bash tests/bats tests/unit/build-graph.bats
 
   test:unit:freshness-graph:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/freshness-graph.bats
+      - bash tests/bats tests/unit/freshness-graph.bats
 
   test:unit:ticket-graph:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-graph.bats
+      - bash tests/bats tests/unit/ticket-graph.bats
 
   test:unit:T000668-graph-api:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/T000668-graph-api.bats
+      - bash tests/bats tests/unit/T000668-graph-api.bats
 
   test:unit:factory-blocked:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-blocked.bats
+      - bash tests/bats tests/unit/factory-blocked.bats
 
   test:unit:factory-readiness:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-readiness.bats
+      - bash tests/bats tests/unit/factory-readiness.bats
 
   test:unit:factory-scout-quality:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-quality.bats
+      - bash tests/bats tests/unit/factory-scout-quality.bats
 
   test:unit:factory-scout-drift:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory-scout-drift.bats
+      - bash tests/bats tests/unit/factory-scout-drift.bats
 
   test:unit:readiness-webhook:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/readiness-webhook.bats
+      - bash tests/bats tests/unit/readiness-webhook.bats
 
   test:unit:staging:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/staging.bats
+      - bash tests/bats tests/unit/staging.bats
 
   test:unit:api-auth-gate:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/api-auth-gate.bats
+      - bash tests/bats tests/unit/api-auth-gate.bats
 
   test:unit:changed-manifests:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/changed-manifests.bats
+      - bash tests/bats tests/unit/changed-manifests.bats
 
   test:unit:collabora-wopi-discovery:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/collabora-wopi-discovery.bats
+      - bash tests/bats tests/unit/collabora-wopi-discovery.bats
 
   test:unit:collabora-wopi-single-brand-guard:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/collabora-wopi-single-brand-guard.bats
+      - bash tests/bats tests/unit/collabora-wopi-single-brand-guard.bats
 
   test:unit:ticket-triage:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-triage.bats
+      - bash tests/bats tests/unit/ticket-triage.bats
 
   test:unit:website-ci-deploy:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/website-ci-deploy.bats
+      - bash tests/bats tests/unit/website-ci-deploy.bats
 
   test:unit:assert:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/assert_lib.bats
+      - bash tests/bats tests/unit/assert_lib.bats
 
   test:unit:scripts:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/session-hub.bats
+      - bash tests/bats tests/unit/scripts.bats
+      - bash tests/bats tests/unit/session-hub.bats
 
   test:unit:secret-task-guards:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/secret-task-guards.bats
+      - bash tests/bats tests/unit/secret-task-guards.bats
 
   test:unit:dev-reset:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts/dev-reset.test.sh
+      - bash tests/bats tests/unit/scripts/dev-reset.test.sh
 
   test:unit:agents:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-ops-output-trust.bats
+      - bash tests/bats tests/unit/agent-ops-output-trust.bats
 
   test:unit:figure-pack:
     internal: true
@@ -481,87 +481,87 @@ tasks:
   test:unit:discover-versions:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/discover-versions.bats
+      - bash tests/bats tests/unit/discover-versions.bats
 
   test:unit:render-cloud-init:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/render-cloud-init.bats
+      - bash tests/bats tests/unit/render-cloud-init.bats
 
   test:unit:flux-render-runtime-vars:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/flux-render-runtime-vars.bats
+      - bash tests/bats tests/unit/flux-render-runtime-vars.bats
 
   test:unit:flux-healthchecks:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/flux-healthchecks.bats
+      - bash tests/bats tests/unit/flux-healthchecks.bats
 
   test:unit:fleet-phase2b:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/fleet-phase2b.bats
+      - bash tests/bats tests/unit/fleet-phase2b.bats
 
   test:unit:shared-db-initdb-selfheal:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/shared-db-initdb-selfheal.bats
+      - bash tests/bats tests/unit/shared-db-initdb-selfheal.bats
 
   test:unit:wg-mesh-fullmesh:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-fullmesh.bats
+      - bash tests/bats tests/unit/wg-mesh-fullmesh.bats
 
   test:unit:recovery-domain-durability:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/recovery-domain-durability.bats
+      - bash tests/bats tests/unit/recovery-domain-durability.bats
 
   test:unit:mediaviewer-host-durability:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/mediaviewer-host-durability.bats
+      - bash tests/bats tests/unit/mediaviewer-host-durability.bats
 
   test:unit:agent-collision:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-collision.bats
+      - bash tests/bats tests/unit/agent-collision.bats
 
   test:unit:agent-msg:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-msg.bats
+      - bash tests/bats tests/unit/agent-msg.bats
 
   test:unit:website-domain-config-overlay:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/website-domain-config-overlay.bats
+      - bash tests/bats tests/unit/website-domain-config-overlay.bats
 
   test:unit:ticket-external-id:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-external-id-sequence.bats
+      - bash tests/bats tests/unit/ticket-external-id-sequence.bats
 
   test:unit:vda-frontmatter:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-frontmatter.bats
+      - bash tests/bats tests/unit/vda-frontmatter.bats
 
   test:unit:check-commit-vs-diff:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/check-commit-vs-diff.bats
+      - bash tests/bats tests/unit/check-commit-vs-diff.bats
 
   test:unit:plan-lint:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/plan-lint.bats
+      - bash tests/bats tests/unit/plan-lint.bats
 
   test:unit:mishap-tracker:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/mishap-tracker.bats
+      - bash tests/bats tests/unit/mishap-tracker.bats
 
   mishap:categorize:
     desc: "Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback"
@@ -581,68 +581,68 @@ tasks:
   test:unit:ticket-add-pr-link:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-add-pr-link.bats
+      - bash tests/bats tests/unit/ticket-add-pr-link.bats
 
   test:unit:ticket-create:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-create.bats
+      - bash tests/bats tests/unit/ticket-create.bats
 
   test:unit:ticket-grill:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-grill.bats
+      - bash tests/bats tests/unit/ticket-grill.bats
 
   test:unit:ticket-lastenheft:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-lastenheft.bats
+      - bash tests/bats tests/unit/ticket-lastenheft.bats
 
   test:unit:worktree-create:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/worktree-create.bats
+      - bash tests/bats tests/unit/worktree-create.bats
 
   test:unit:preflight-pr-scope:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/preflight-pr-scope.bats
+      - bash tests/bats tests/unit/preflight-pr-scope.bats
 
   test:unit:test-tasks-node-deps:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/test-tasks-node-deps.bats
+      - bash tests/bats tests/unit/test-tasks-node-deps.bats
 
   test:unit:quality-loop:
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/quality-loop.bats
+      - bash tests/bats tests/unit/quality-loop.bats
 
   test:unit:vda-core:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-core.bats
+      - bash tests/bats tests/unit/vda-core.bats
 
   test:unit:oracle-task-vars:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/oracle-task-vars.bats
+      - bash tests/bats tests/unit/oracle-task-vars.bats
 
   test:unit:vda-ticket-smoke:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-ticket-smoke.bats
+      - bash tests/bats tests/unit/vda-ticket-smoke.bats
 
   test:unit:vda-release-notes-smoke:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/vda-release-notes-smoke.bats
+      - bash tests/bats tests/unit/vda-release-notes-smoke.bats
 
   test:unit:offline-batch:
     internal: true
     # Offline-safe unit bats wired in by the 2026-06-06 coverage audit (single bats call).
     cmds:
       - >-
-        ./tests/unit/lib/bats-core/bin/bats
+        bash tests/bats
         tests/unit/admin-nav.bats
         tests/unit/brainstorm-extract-choice.bats
         tests/unit/git-crypt-guard.bats
@@ -664,12 +664,12 @@ tasks:
   test:unit:bats-runner-path:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/bats-runner-path.bats
+      - bash tests/bats tests/unit/bats-runner-path.bats
 
   test:unit:verification-block-order:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/verification-block-order.bats
+      - bash tests/bats tests/unit/verification-block-order.bats
 
   test:unit:coverage-guard:
     internal: true
@@ -680,23 +680,23 @@ tasks:
   test:unit:scs-index:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scs-index.bats
+      - bash tests/bats tests/unit/scs-index.bats
 
   test:unit:scs-search:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scs-search.bats
+      - bash tests/bats tests/unit/scs-search.bats
 
   test:art-library:
     desc: "Validate every assets/art-library/sets/* manifest"
     cmds:
       - cd assets/art-library/_tooling && npm install --silent
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/test_art_library_manifest.bats
+      - bash tests/bats tests/unit/test_art_library_manifest.bats
 
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats
+      - bash tests/bats tests/unit/manifests.bats
 
   test:menu-gate:
     desc: Enforce admin-menu rules (R1, R2, R4, R5, R7)
@@ -795,7 +795,7 @@ tasks:
       # ENTFERNT — dieselbe Lehre, diesmal beim Aufteilen statt beim Zusammenfuehren
       # beachtet. `-r` auf das Verzeichnis, damit kuenftige Dateien ohne Aenderung hier
       # mitlaufen; ein Glob wuerde sie stillschweigend auslassen.
-      - ./tests/unit/lib/bats-core/bin/bats -r tests/spec/software-factory/ tests/local/FA-AR-*.bats
+      - bash tests/bats -r tests/spec/software-factory/ tests/local/FA-AR-*.bats
 
   test:spec:build-mcp-runner:
     cmds:
@@ -876,7 +876,7 @@ tasks:
         REPORT_DIR="$(mktemp -d)"
         echo "→ Full spec suite mit junit-Report ($(printf '%s' "$FILES" | grep -c .) Dateien) — kann >10 min dauern"
         set +e
-        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files --report-formatter junit -o "$REPORT_DIR" $FILES
+        bash tests/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files --report-formatter junit -o "$REPORT_DIR" $FILES
         BATS_STATUS=$?
         set -e
         bash scripts/spec-junit-weights.sh "$REPORT_DIR"/report.xml --to tests/spec/.spec-runtime.tsv
@@ -946,7 +946,7 @@ tasks:
         fi
 
         set +e
-        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $CHANGED_FILES
+        bash tests/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $CHANGED_FILES
         BATS_STATUS=$?
         bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
         GUARD_STATUS=$?
@@ -963,12 +963,12 @@ tasks:
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/spec/mcp-tooling.bats
+      - bash tests/bats tests/spec/mcp-tooling.bats
 
   test:agent-library:
     desc: "Guardrail: .claude/agents/*.md <-> AGENTS.md routing-table library assertions"
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/spec/agent-library.bats
+      - bash tests/bats tests/spec/agent-library.bats
 
   test:openspec:
     desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest)."
@@ -984,7 +984,7 @@ tasks:
   test:unit:openspec:
     internal: true
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats
+      - bash tests/bats tests/unit/openspec.bats
 
   openspec:propose:
     desc: "Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>"
@@ -1040,7 +1040,7 @@ tasks:
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-*.bats
+      - bash tests/bats tests/local/AGENT-LOCK-*.bats
 
   test:all:
     desc: "Run tests for changed files only (smart selection) — delegates to test:changed"
@@ -1115,7 +1115,7 @@ tasks:
           echo "→ running changed unit tests in parallel"
           CHANGED_FILES=$(bash scripts/find-changed-tests.sh unit)
           if [ -n "$CHANGED_FILES" ]; then
-            ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
+            bash tests/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
           else
             echo "No matching unit tests found for changes."
           fi
@@ -1130,7 +1130,7 @@ tasks:
           task test:spec:build-mcp-runner
           CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
           if [ -n "$CHANGED_FILES" ]; then
-            ./tests/unit/lib/bats-core/bin/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
+            bash tests/bats -j $JOBS --no-parallelize-within-files $CHANGED_FILES
           else
             echo "No matching spec tests found for changes."
           fi
@@ -1498,7 +1498,7 @@ tasks:
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats --formatter tap tests/unit/
+      - bash tests/bats --formatter tap tests/unit/
 
   test:e2e:
     desc: "Run Playwright e2e suite against ENV=mentolder|korczewski (default mentolder)"
@@ -3936,7 +3936,7 @@ tasks:
         _run "build-learning-assets.test" node --test scripts/build-learning-assets.test.mjs
 
         _step "5/5: Systembrett template validation"
-        _run "systembrett-template.test.sh" ./scripts/tests/systembrett-template.test.sh
+        _run "systembrett-template.test.sh" bash scripts/tests/systembrett-template.test.sh
 
         echo
         echo "========================================"

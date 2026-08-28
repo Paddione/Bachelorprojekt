@@ -66,18 +66,15 @@ _workflows_with_paths() {
   fi
 }
 
-@test "workflow-self-trigger: render-fleet-artifact listet sich selbst" {
-  # Der konkrete Ausloeser dieses Tickets, separat gefuehrt: er ist der Workflow, dessen
-  # Ausfall die gesamte Deploy-Kette anhaelt (kein Artefakt -> Flux rollt den alten Stand
-  # weiter aus). Ein Sammeltest wuerde bei einer spaeteren Lockerung mitwandern.
+@test "workflow-self-trigger: render-fleet-artifact laeuft bei jedem main-Push" {
+  # Dieser Workflow ist die Ausnahme zur Self-Listing-Konvention: die Render-Eingaben
+  # umfassen mehr als ein stabiler paths-Filter abbilden kann. Ohne Artefakt-Run rollt
+  # Flux den alten Stand weiter aus, daher muss jeder main-Push den Renderer ausloesen.
   WF="${WF_DIR}/render-fleet-artifact.yml"
   [ -f "$WF" ]
 
-  # Positiv-Anker: der Workflow hat ueberhaupt einen paths-Filter. Ohne ihn liefe er bei
-  # jedem Push und die Forderung waere gegenstandslos.
+  grep -qE '^[[:space:]]+branches: \[main\]' "$WF"
   run grep -cE '^[[:space:]]+paths:' "$WF"
-  [ "$status" -eq 0 ]
-  [ "$output" -gt 0 ]
-
-  grep -q "\.github/workflows/render-fleet-artifact\.yml" "$WF"
+  [ "$status" -eq 1 ]
+  [ "$output" -eq 0 ]
 }

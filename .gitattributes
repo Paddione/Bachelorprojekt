@@ -59,8 +59,6 @@ docs/agent-guide/maps/danger-map.md           merge=ours linguist-generated=true
 docs/agent-guide/maps/agents-map.md           merge=ours linguist-generated=true
 docs/diagrams/architecture.md                 merge=ours linguist-generated=true
 
-# ── git-crypt-managed secrets (encrypted at rest in this PUBLIC repo) ──
-environments/.secrets/**            filter=git-crypt diff=git-crypt
 # T016422: Windows-native Dev — Shell-/YAML-Sourcen strikt LF
 *.sh    text eol=lf
 *.bats  text eol=lf
@@ -69,4 +67,10 @@ environments/.secrets/**            filter=git-crypt diff=git-crypt
 *.yaml  text eol=lf
 *.yml   text eol=lf
 *.mjs   text eol=lf
+
+# ── git-crypt-managed secrets (encrypted at rest in this PUBLIC repo) ──
+# MUST come after *.yaml/*.yml text rules so the more-specific path pattern
+# wins: the git-crypt blobs are binary, so text/eol normalization would
+# corrupt them (T016422 quirk). -text keeps them stored verbatim.
+environments/.secrets/**            filter=git-crypt diff=git-crypt -text
 

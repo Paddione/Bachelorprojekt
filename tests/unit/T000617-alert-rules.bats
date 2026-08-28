@@ -30,8 +30,10 @@ setup() {
 }
 
 @test "alertmanager-config.yaml has no pushover receiver while creds are absent" {
-  # Positiv-Anker zuerst: der Email-Receiver muss vorhanden sein.
-  grep -q "emailConfigs:" "$AM_FILE"
+  # Positiv-Anker zuerst: der receivers-Block muss vorhanden sein. Seit T016592
+  # traegt er den leeren null-Receiver statt eines Email-Receivers — eine
+  # AlertmanagerConfig ganz ohne Receiver waere ungueltig.
+  grep -q '^  receivers:' "$AM_FILE"
   # Ein pushoverConfigs mit leerem userKey verwirft die komplette Config am
   # Prometheus-Operator ("mandatory field userKey is empty"). [T014542]
   local pushover
@@ -39,8 +41,15 @@ setup() {
   [ "$pushover" -eq 0 ]
 }
 
-@test "alertmanager-config.yaml declares an email receiver" {
-  grep -q "emailConfigs:" "$AM_FILE"
+@test "alertmanager-config.yaml routes to the blackhole receiver" {
+  # T016592: alle ausgehenden Benachrichtigungen sind abgeschaltet. Die
+  # Requirement "Email Notification Receiver" wurde entfernt, an ihre Stelle
+  # tritt "Blackhole Receiver".
+  grep -q '^    - name: "null"' "$AM_FILE"
+  grep -q '^    receiver: "null"' "$AM_FILE"
+  local mail
+  mail=$(grep -c 'emailConfigs:' "$AM_FILE" || true)
+  [ "$mail" -eq 0 ]
 }
 
 @test "alertmanager-config.yaml has no hardcoded brand domain" {

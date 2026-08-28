@@ -8,6 +8,36 @@ setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
 }
 
+# -- FreeToken-native calibrated profiles (T016600) -------------------
+
+@test "FreeToken restart defaults to the fixed Qwen 200k single-request profile" {
+  profile="$REPO/scripts/llm/restart-freetoken.ps1"
+  run grep -qE '\$Profile[[:space:]]*=[[:space:]]*"qwen-200k"' "$profile"
+  [ "$status" -eq 0 ]
+  run grep -qE '\$NumTokens[[:space:]]*=[[:space:]]*200000' "$profile"
+  [ "$status" -eq 0 ]
+  run grep -q '"--max-running-requests", "1"' "$profile"
+  [ "$status" -eq 0 ]
+}
+
+@test "FreeToken profiles force plain offload and reserve their KV budget" {
+  profile="$REPO/scripts/llm/restart-freetoken.ps1"
+  run grep -q '"--moe-backend", "offload"' "$profile"
+  [ "$status" -eq 0 ]
+  run grep -q '"--moe-cpu-layers", "0"' "$profile"
+  [ "$status" -eq 0 ]
+  run grep -q '"--kv-reserve-tokens", "\$NumTokens"' "$profile"
+  [ "$status" -eq 0 ]
+}
+
+@test "Gemma Vision profile loads the vision-enabled FTW checkpoint" {
+  profile="$REPO/scripts/llm/restart-freetoken.ps1"
+  run grep -q 'Gemma-4-26B-A4B-NVFP4-Vision-Enabled-FTW' "$profile"
+  [ "$status" -eq 0 ]
+  run grep -q 'FREETOKEN_LOAD_VISION=1' "$profile"
+  [ "$status" -eq 0 ]
+}
+
 # ── Embedding infrastructure ──────────────────────────────────────────
 
 @test "embeddings.ts exists for embedding routing" {

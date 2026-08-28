@@ -11,7 +11,10 @@
 #   ft serve --model C:\Users\<user>\models\Qwen3.6-35B-A3B-NVFP4 --host 0.0.0.0 --num-tokens 32768
 #
 # Usage (Windows, powershell im Repo-Root):
-#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Tag hit-d2d -ExtraArgs "--moe-prefill-hit-d2d"
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Profile gptoss-65k
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Profile gemma-vision-32k
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Profile custom -Tag hit-d2d -ExtraArgs "--moe-prefill-hit-d2d"
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Tag solo -ExtraArgs "--moe-prefill-hit-d2d --max-running-requests 1 --graph 1"
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Tag ssm-bf16 -ExtraArgs "--moe-prefill-hit-d2d" -EnvVars "FREETOKEN_MAMBA_SSM_DTYPE=bfloat16"
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Stop
@@ -26,11 +29,13 @@
 # Ladder-Decke entsprechen (200000).
 
 param(
+    [ValidateSet("qwen-200k", "gptoss-65k", "gemma-vision-32k", "custom")]
+    [string]$Profile = "qwen-200k",
     [string]$Tag = "run",
     [string]$ExtraArgs = "",
     [string]$EnvVars = "",
-    [string]$Model = "$env:USERPROFILE\models\Qwen3.6-35B-A3B-NVFP4",
-    [int]$NumTokens = 32768,
+    [string]$Model = "",
+    [int]$NumTokens = 0,
     [int]$ReadyTimeoutSec = 900,
     [switch]$Stop,
     [switch]$NoLadder
@@ -42,6 +47,45 @@ $LogDir  = "$env:LOCALAPPDATA\FreeToken\logs"
 $BaseUrl = "http://127.0.0.1:1919"
 # Pfad zum Windows-nativen KV-Ladder-Skript (Repo-Lage ist fix).
 $LadderScript = Join-Path $PSScriptRoot "freetoken-kv-ladder.ps1"
+
+# Calibrated on pk-desktop (RTX 5070 Ti 16 GB, 2026-08-28). These profiles
+# intentionally use plain offload and one request; additional agents queue.
+$profileArgs = @()
+$profileEnv = @()
+switch ($Profile) {
+    "qwen-200k" {
+        if (-not $Model) { $Model = "$env:USERPROFILE\models\Qwen3.6-35B-A3B-NVFP4" }
+        if ($NumTokens -eq 0) { $NumTokens = 200000 }
+        $profileArgs = @("--moe-prefill-hit-d2d")
+    }
+    "gptoss-65k" {
+        if (-not $Model) { $Model = "$env:USERPROFILE\models\gpt-oss-20b" }
+        if ($NumTokens -eq 0) { $NumTokens = 65536 }
+    }
+    "gemma-vision-32k" {
+        if (-not $Model) { $Model = "$env:USERPROFILE\models\Gemma-4-26B-A4B-NVFP4-Vision-Enabled-FTW" }
+        if ($NumTokens -eq 0) { $NumTokens = 32768 }
+        $profileEnv = @("FREETOKEN_LOAD_VISION=1")
+    }
+    "custom" {
+        if (-not $Model) { $Model = "$env:USERPROFILE\models\Qwen3.6-35B-A3B-NVFP4" }
+        if ($NumTokens -eq 0) { $NumTokens = 32768 }
+    }
+}
+
+$commonProfileArgs = @(
+    "--max-running-requests", "1",
+    "--graph", "1",
+    "--moe-backend", "offload",
+    "--moe-cpu-layers", "0",
+    "--moe-cache-auto",
+    "--kv-reserve-tokens", "$NumTokens",
+    "--max-prefill-length", "8192",
+    "--cache-type", "radix",
+    "--memory-ratio", "0.90",
+    "--sampling-defaults", "model",
+    "--enable-cache-report"
+)
 
 function Stop-FreeToken {
     # Alten KV-Ladder-Poller zuerst stoppen -- sonst pollt ein Zombie den
@@ -75,13 +119,15 @@ New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
 Stop-FreeToken
 
-foreach ($kv in ($EnvVars -split '\s+' | Where-Object { $_ })) {
+foreach ($kv in ($profileEnv + ($EnvVars -split '\s+' | Where-Object { $_ }))) {
     $name, $value = $kv -split '=', 2
     Write-Host "env $name=$value"
     [Environment]::SetEnvironmentVariable($name, $value, "Process")
 }
 
 $argList = @("serve", "--model", $Model, "--host", "0.0.0.0", "--num-tokens", "$NumTokens")
+$argList += $commonProfileArgs
+$argList += $profileArgs
 $argList += ($ExtraArgs -split '\s+' | Where-Object { $_ })
 
 $stamp  = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -106,8 +152,8 @@ while ((Get-Date) -lt $deadline) {
         $h = Invoke-RestMethod -Uri "$BaseUrl/health" -TimeoutSec 5
         if ($h.status -eq "ok" -and $h.maintenance -eq "serving") {
             Write-Host "bereit nach $([int]((Get-Date) - (Get-Item $outLog).CreationTime).TotalSeconds) s -- model=$($h.model) version=$($h.version)"
-            if ($NoLadder) {
-                Write-Host "KV-Ladder uebersprungen (-NoLadder)."
+            if ($NoLadder -or $Profile -ne "custom") {
+                Write-Host "KV-Ladder uebersprungen (Profil hat festen KV-Pool)."
             } else {
                 # Wachsenden KV-Pool als detached Windows-Prozess starten.
                 # Der Poller ueberlebt die aufrufende Shell (eigener powershell.exe-

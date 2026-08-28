@@ -167,6 +167,8 @@ spec:
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_BRAIN_SECRET, optional: true } }
             - name: SECRET_terminal
               valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_TERMINAL_SECRET, optional: true } }
+            - name: SECRET_penpot
+              valueFrom: { secretKeyRef: { name: workspace-secrets, key: POCKET_ID_PENPOT_SECRET, optional: true } }
           command:
             - /bin/sh
             - -ec
@@ -259,6 +261,7 @@ spec:
               rustdesk-web|SECRET_rustdeskweb|POCKET_ID_RUSTDESK_WEB_SECRET|$${SCHEME}://remote.$${SUFFIX}/oauth2/callback
               brain|SECRET_brain|POCKET_ID_BRAIN_SECRET|$${SCHEME}://brain.$${SUFFIX}/oauth2/callback
               terminal-sidekick|SECRET_terminal|POCKET_ID_TERMINAL_SECRET|$${SCHEME}://terminal.$${SUFFIX}/oauth2/callback
+              penpot|SECRET_penpot|POCKET_ID_PENPOT_SECRET|$${SCHEME}://design.$${SUFFIX}/api/external-auth
               "
 
               # Resolve a client's REAL pocket-id id by NAME. pocket-id:v2.9.0

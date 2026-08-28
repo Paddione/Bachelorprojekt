@@ -81,6 +81,7 @@ data:
   ENABLE_ASSISTANT_PORTAL: "true"
   # Brett
   BRETT_DOMAIN: "${BRETT_DOMAIN}"
+  PENPOT_DOMAIN: "${PENPOT_DOMAIN}"
   BRETT_INTERNAL_URL: "http://brett.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
   # Arena (last-man-standing game server; same host on both brands — mentolder only)
   ARENA_WS_URL: "${ARENA_WS_URL}"

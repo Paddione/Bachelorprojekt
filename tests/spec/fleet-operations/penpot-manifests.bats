@@ -1,0 +1,86 @@
+#!/usr/bin/env bats
+# tests/spec/fleet-operations/penpot-manifests.bats
+# SSOT: openspec/changes/add-penpot-service/specs/fleet-operations.md
+#
+# Validates: Penpot domain registry, manifest structure, shared-db role,
+# and absence of hardcoded hostnames.
+
+setup() {
+  load '../test_helper.bash'
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+}
+
+@test "Penpot domain is registered (dev configmap + schema + prod overlays)" {
+  grep -q 'PENPOT_DOMAIN' "${REPO_ROOT}/k3d/configmap-domains.yaml"
+  grep -q 'PENPOT_DOMAIN' "${REPO_ROOT}/environments/schema.yaml"
+  grep -q 'PENPOT_DOMAIN' "${REPO_ROOT}/prod/configmap-domains.yaml"
+  # Der Prod-Wert kommt brand-neutral aus der Env-Registry durch envsubst,
+  # nicht aus einem per-Brand-Patch mit hartkodiertem Host (S3-Gate).
+  grep -q 'PENPOT_DOMAIN' "${REPO_ROOT}/environments/mentolder.yaml"
+  grep -q 'PENPOT_DOMAIN' "${REPO_ROOT}/environments/korczewski.yaml"
+  # Ohne Eintrag in beiden ENVSUBST_VARS-Listen (workspace:deploy und
+  # flux:render) bliebe der Platzhalter im gerenderten ConfigMap stehen.
+  [ "$(grep -cF '\$BRETT_DOMAIN \$PENPOT_DOMAIN"' "${REPO_ROOT}/Taskfile.yml")" -eq 2 ]
+}
+
+@test "Penpot dev domain resolves to design.localhost" {
+  grep -q 'PENPOT_DOMAIN: "design.localhost"' "${REPO_ROOT}/k3d/configmap-domains.yaml"
+}
+
+@test "Penpot manifest exists with Deployment and Service" {
+  local f="${REPO_ROOT}/k3d/penpot.yaml"
+  [ -f "$f" ]
+  grep -q 'kind: Deployment' "$f"
+  grep -q 'kind: Service' "$f"
+  grep -q 'penpot-gateway' "$f"
+  grep -q 'app: penpot' "$f"
+  grep -q 'app: penminio' "$f"
+}
+
+@test "Penpot deployment has three containers (backend, frontend, gateway)" {
+  local f="${REPO_ROOT}/k3d/penpot.yaml"
+  [ -f "$f" ]
+  grep -q 'name: penpot-backend' "$f"
+  grep -q 'name: penpot-frontend' "$f"
+  grep -q 'name: penpot-gateway' "$f"
+}
+
+@test "Penpot IngressRoute exists and references design domain" {
+  local f="${REPO_ROOT}/k3d/penpot-ingress.yaml"
+  [ -f "$f" ]
+  grep -q 'design.localhost' "$f"
+  grep -q 'penpot-gateway' "$f"
+}
+
+@test "Penpot role exists in shared-db" {
+  local f="${REPO_ROOT}/k3d/shared-db.yaml"
+  [ -f "$f" ]
+  grep -q "penpot" "$f"
+  # Check that penpot is in the DO $$ BEGIN block
+  grep -q 'rolname = .penpot.' "$f" || grep -q "rolname = 'penpot'" "$f"
+}
+
+@test "Penpot secrets exist in workspace-secrets" {
+  grep -q 'PENPOT_DB_PASSWORD' "${REPO_ROOT}/k3d/secrets.yaml"
+  grep -q 'POCKET_ID_PENPOT_SECRET' "${REPO_ROOT}/k3d/secrets.yaml"
+  grep -q 'PENPOT_SECRET_KEY' "${REPO_ROOT}/k3d/secrets.yaml"
+  grep -q 'PENPOT_MINIO_SECRET_KEY' "${REPO_ROOT}/k3d/secrets.yaml"
+}
+
+@test "Penpot is in pocket-id-client-seed" {
+  grep -q 'penpot' "${REPO_ROOT}/k3d/pocket-id-client-seed.yaml"
+  grep -q 'POCKET_ID_PENPOT_SECRET' "${REPO_ROOT}/k3d/pocket-id-client-seed.yaml"
+  grep -q 'design.' "${REPO_ROOT}/k3d/pocket-id-client-seed.yaml"
+}
+
+@test "Penpot kustomization includes penpot resources" {
+  grep -q 'penpot.yaml' "${REPO_ROOT}/k3d/kustomization.yaml"
+  grep -q 'penpot-ingress.yaml' "${REPO_ROOT}/k3d/kustomization.yaml"
+}
+
+@test "No hardcoded .de hostnames in Penpot dev manifests" {
+  # Dev manifests must NOT contain real production domains
+  local bad=""
+  grep -rl 'mentolder\.de' "${REPO_ROOT}/k3d/penpot.yaml" "${REPO_ROOT}/k3d/penpot-ingress.yaml" 2>/dev/null && bad="yes"
+  [ -z "$bad" ] || { echo "FAIL: hardcoded mentolder.de in dev manifests"; return 1; }
+}

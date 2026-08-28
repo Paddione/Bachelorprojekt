@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { buildNavSections, type NavItem, type NavSection } from './nav-items';
 import { resolveRedirect } from '../../middleware/redirect-map';
 
-const OPTS = { inboxPending: 3, brettUrl: 'https://brett.example.invalid' };
+const OPTS = { inboxPending: 3, brettUrl: 'https://brett.example.invalid', penpotUrl: 'http://design.localhost' };
 
 /** Folgt der Redirect-Kette bis zum Endziel. Ein Eintrag kann über mehrere Sprünge
  *  in /sdlc/ landen; eine einstufige Prüfung würde das übersehen. */

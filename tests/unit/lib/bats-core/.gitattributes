@@ -1,3 +1,4 @@
 * text=auto
 *.sh eol=lf
 libexec/* eol=lf
+bin/* eol=lf

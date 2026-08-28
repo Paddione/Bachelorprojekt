@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1229,
+      "file_count": 1230,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -575,6 +575,7 @@
         "tests/spec/dev-flow-execute.bats",
         "tests/spec/dev-flow-plan-ticket-sh-mishaps.bats",
         "tests/spec/dev-flow-plan.bats",
+        "tests/spec/dev-flow-plan/archive-staged-scope.bats",
         "tests/spec/dev-flow-plan/domains-vocabulary.bats",
         "tests/spec/dev-flow-plan/guard-parity.bats",
         "tests/spec/dev-flow-plan/junit-shard-ignore.bats",
@@ -3832,7 +3833,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 829,
+      "file_count": 830,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4300,6 +4301,7 @@
         "scripts/knowledge/package.json",
         "scripts/knowledge/reindex.sh",
         "scripts/knowledge/search-similar.mjs",
+        "scripts/lib/archive-staged-scope.sh",
         "scripts/lib/branch-allowlist.sh",
         "scripts/lib/ci-checks.sh",
         "scripts/lib/count-unresolved-agent-tools.sh",

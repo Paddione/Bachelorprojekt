@@ -6,6 +6,11 @@ metadata:
   labels:
     app: cronjobs
 spec:
+  # T016592: alle ausgehenden Benachrichtigungs-E-Mails sind abgeschaltet.
+  # Bewusst suspendiert statt entfernt — das Wiedereinschalten soll ein
+  # umgelegtes Feld sein, kein Manifest-Neubau. Der Endpunkt
+  # /api/cron/notify-unread bleibt bestehen und ist per CRON_SECRET geschuetzt.
+  suspend: true
   schedule: "0 */6 * * *"
   concurrencyPolicy: Forbid
   jobTemplate:

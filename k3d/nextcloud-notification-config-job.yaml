@@ -1,0 +1,82 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nextcloud-notification-config
+  namespace: workspace
+  labels:
+    app: nextcloud
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: disable-activity-digest
+          # T016592: schaltet Nextclouds Activity-Digest-Mails ab.
+          #
+          # Warum ueber die Datenbank und nicht per `occ config:app:set`: occ
+          # braucht das App-Verzeichnis aus dem PVC nextcloud-app. Das ist RWO
+          # und liegt am Deployment-Pod — ein eigener Job koennte es auf einem
+          # anderen Node nicht mitmounten. Nextcloud liest oc_appconfig und
+          # oc_preferences zur Laufzeit, der Weg ist also aequivalent und
+          # kommt ohne PVC-Kopplung aus.
+          #
+          # Transaktionale Nextcloud-Mails (Passwort-Reset, Freigabe-Einladung)
+          # bleiben unberuehrt — hier faellt nur der Aktivitaets-Digest.
+          image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              echo "Disabling Nextcloud activity digest mail (T016592)..."
+              psql -v ON_ERROR_STOP=1 <<'SQL'
+              -- Admin-Default: kein Aktivitaets-Digest, keine Digest-Mails.
+              INSERT INTO oc_appconfig (appid, configkey, configvalue)
+              VALUES ('activity', 'default_setting_email', '0'),
+                     ('activity', 'email_send_option', 'never')
+              ON CONFLICT (appid, configkey)
+              DO UPDATE SET configvalue = EXCLUDED.configvalue;
+
+              -- Bestehende Nutzer-Opt-ins zuruecksetzen: ohne das gewinnt die
+              -- gespeicherte Nutzereinstellung ueber den neuen Admin-Default.
+              UPDATE oc_preferences
+                 SET configvalue = '0'
+               WHERE appid = 'activity'
+                 AND configkey LIKE 'notify_email_%'
+                 AND configvalue <> '0';
+              SQL
+              echo "Nextcloud activity digest disabled."
+          env:
+            - name: PGHOST
+              value: nextcloud-db
+            - name: PGDATABASE
+              value: nextcloud
+            - name: PGUSER
+              value: nextcloud
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: NEXTCLOUD_DB_PASSWORD
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi

@@ -29,6 +29,14 @@ export async function sendAdminNotification(params: {
   html?: string;
   replyTo?: string;
 }, request?: Request): Promise<void> {
+  // T016592 — globaler Kill-Switch. Bewusst VOR den getSiteSetting-Lookups:
+  // so greift er auch, wenn die Datenbank nicht erreichbar ist, und die
+  // bestehenden site_settings-Zeilen notify_* koennen ihn nicht ueberstimmen.
+  // Fehlend oder != 'true' bedeutet aus — dadurch sind beide Brands, staging
+  // und dev ohne Aenderung an environments/*.yaml still.
+  // Transaktionale Mails gehen direkt ueber sendEmail() und bleiben unberuehrt.
+  if (process.env.EMAIL_NOTIFICATIONS_ENABLED !== 'true') return;
+
   const brand = process.env.BRAND || 'mentolder';
 
   const [notifEmail, enabled, fromName, fromAddress] = await Promise.all([

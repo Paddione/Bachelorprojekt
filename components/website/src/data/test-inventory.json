@@ -6018,6 +6018,12 @@
     "kind": "shell"
   },
   {
+    "id": "website-core/email-notifications",
+    "file": "tests/spec/website-core/email-notifications.bats",
+    "category": "website-core",
+    "kind": "shell"
+  },
+  {
     "id": "website-core/portrait-derivate-crop",
     "file": "tests/spec/website-core/portrait-derivate-crop.bats",
     "category": "website-core",

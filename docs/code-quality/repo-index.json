@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1226,
+      "file_count": 1227,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1078,6 +1078,7 @@
         "tests/spec/vaultwarden-integration.bats",
         "tests/spec/website-core.bats",
         "tests/spec/website-core/admin-nav-no-sdlc-routes.bats",
+        "tests/spec/website-core/email-notifications.bats",
         "tests/spec/website-core/imgsize.py",
         "tests/spec/website-core/portrait-derivate-crop.bats",
         "tests/spec/website-core/web-audit.bats",
@@ -3140,7 +3141,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 680,
+      "file_count": 681,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3632,6 +3633,7 @@
         "k3d/network-policies-dev.yaml",
         "k3d/network-policies.yaml",
         "k3d/nextcloud-extra-config.php",
+        "k3d/nextcloud-notification-config-job.yaml",
         "k3d/nextcloud-oidc-dev.php",
         "k3d/nextcloud-redis.yaml",
         "k3d/nextcloud.yaml",

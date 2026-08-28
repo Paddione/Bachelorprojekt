@@ -2,10 +2,9 @@
 # tests/spec/mishap-docker-wsl-T002250.bats
 # T002250 — Mishap-Bundle: environment/docker-wsl
 #
-# Prüfmodus [T002448-M4]: M1 ist Resultat-Verifikation (setup.sh wird ausgeführt,
-# geprüft wird die geschriebene config.json). M2 ist Source-Verifikation — die
-# Ausnahme für CI-Konfiguration: dass ein Workflow bzw. ein docker-run-Aufruf ein
-# bestimmtes Flag trägt, manifestiert sich ausschliesslich im Quelltext.
+# Prüfmodus [T002448-M4]: M1 ist Confirmation-of-Fix (WSL-spezifische Funktion
+# fix_wsl_docker_creds() wurde entfernt, da WSL-Host decommissioned ist).
+# M2 ist Source-Verifikation — die Ausnahme für CI-Konfiguration.
 
 load 'test_helper'
 
@@ -13,34 +12,26 @@ setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
 }
 
-@test "T002250-M1: setup.sh removes credsStore in WSL" {
-  local mock_home
-  mock_home=$(mktemp -d)
-  mkdir -p "$mock_home/.docker"
-  
-  # Create a mock config.json containing credsStore
-  echo '{"auths":{"ghcr.io":{}},"credsStore":"desktop.exe"}' > "$mock_home/.docker/config.json"
-  
-  # Run setup.sh with mock HOME and WSL env.
-  # Der Exitcode wird BEWUSST nicht assertet: setup.sh --check bündelt in ihm die
-  # Prerequisite-Prüfung (kubectl/docker/k3d/kustomize/yq + laufender Docker-Daemon)
-  # und liefert auf einem CI-Runner zwangsläufig 1 — mit dem credsStore-Fix hat das
-  # nichts zu tun. Geprüft wird deshalb die Wirkung, nicht der Sammel-Exitcode.
-  # [T002511]
-  HOME="$mock_home" WSL_DISTRO_NAME="test-wsl" run bash "$REPO/scripts/setup.sh" --check
+@test "T002250-M1: setup.sh no longer has WSL credsStore fix (WSL decommissioned)" {
+  # T016438: WSL-Exit. Der WSL-Host (10.0.0.26) ist decommissioned — die
+  # WSL-spezifischen Fixes in setup.sh (fix_wsl_docker_creds, check_wsl_dns)
+  # wurden entfernt. Der Test bestätigt die Entferung, nicht die Funktion.
+  local script="$REPO/scripts/setup.sh"
+  [ -f "$script" ]
 
-  # Verify config.json exists and credsStore is removed
-  [ -f "$mock_home/.docker/config.json" ]
-  local creds
-  creds=$(jq -r '.credsStore // empty' "$mock_home/.docker/config.json")
-  [ -z "$creds" ]
-  # Positiv-Anker [T002356-M1]: die Datei wurde umgeschrieben, nicht geleert oder
-  # zerstört. Ohne ihn wäre "credsStore ist leer" auch bei kaputtem JSON grün.
-  local auths
-  auths=$(jq -r '.auths | keys[]' "$mock_home/.docker/config.json")
-  [ "$auths" = "ghcr.io" ]
+  # Positiv-Anker (T002356-M1): die Datei existiert und ist lauffähig.
+  run bash -n "$script"
+  [ "$status" -eq 0 ]
 
-  rm -rf "$mock_home"
+  # Negativ: die WSL-Docker-Creds-Funktion existiert nicht mehr.
+  local has_fix
+  has_fix=$(grep -c 'fix_wsl_docker_creds' "$script" || true)
+  [ "$has_fix" -eq 0 ]
+
+  # Negativ: der WSL-DNS-Check existiert nicht mehr.
+  local has_dns
+  has_dns=$(grep -c 'check_wsl_dns' "$script" || true)
+  [ "$has_dns" -eq 0 ]
 }
 
 @test "T002250-M2: renovate workflow has --dns 1.1.1.1" {

@@ -8,36 +8,6 @@
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-# T002250-M1: WSL Docker Desktop credsStore fix
-# Docker Desktop sets credsStore=desktop.exe which breaks docker CLI in WSL.
-# Strip it automatically so docker pull/push work inside WSL distros.
-fix_wsl_docker_creds() {
-  if [ -z "${WSL_DISTRO_NAME:-}" ]; then return 0; fi
-  local cfg="${HOME:-~}/.docker/config.json"
-  if [ -f "$cfg" ] && grep -q '"credsStore"' "$cfg" 2>/dev/null; then
-    local tmp; tmp="$(mktemp)"
-    if jq 'del(.credsStore)' "$cfg" > "$tmp" 2>/dev/null; then
-      mv "$tmp" "$cfg"
-      echo "  [FIX]  stripped credsStore from $cfg (WSL compat)" >&2
-    else
-      rm -f "$tmp"
-    fi
-  fi
-}
-fix_wsl_docker_creds
-
-# WSL-DNS-Flakiness: Host-Prozesse (git push, Subagenten-Calls) scheitern transient
-# mit "Could not resolve host" wenn resolv.conf auf den WSL-NAT-Gateway zeigt.
-# Non-fataler Warnhinweis — anwenden tut scripts/wsl-dns-fix.sh --apply.
-check_wsl_dns() {
-  if [ -z "${WSL_DISTRO_NAME:-}" ]; then return 0; fi
-  if bash "$(dirname "${BASH_SOURCE[0]}")/wsl-dns-fix.sh" --check >/dev/null 2>&1; then
-    echo "  [OK]  WSL DNS — stabile Resolver konfiguriert"
-  else
-    echo "  [WARN] WSL DNS flaky — resolv.conf zeigt auf den NAT-Gateway. Fix: sudo scripts/wsl-dns-fix.sh --apply (danach 'wsl --shutdown')" >&2
-  fi
-}
-
 check_prerequisites() {
   local exit_code=0
 
@@ -76,7 +46,6 @@ check_prerequisites() {
 case "${1:-}" in
   --check|"")
     echo "Checking prerequisites..."
-    check_wsl_dns
     if check_prerequisites; then
       echo ""
       echo "All required prerequisites met."

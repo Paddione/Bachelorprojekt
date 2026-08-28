@@ -10,6 +10,8 @@ detect_os() {
     echo "wsl"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "macos"
+  elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
+    echo "native-win"
   else
     echo "linux"
   fi
@@ -17,11 +19,14 @@ detect_os() {
 
 OS_TYPE=$(detect_os)
 
-# Windows-Benutzerprofil aus WSL auflösen
+# Windows-Benutzerprofil auflösen (WSL oder native Windows/Git-Bash)
 get_windows_home() {
   if [[ "$OS_TYPE" == "wsl" ]]; then
     WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r\n')
     echo "/mnt/c/Users/${WIN_USER}"
+  elif [[ "$OS_TYPE" == "native-win" ]]; then
+    # Git-Bash: $HOME ist /c/Users/<User>, das ist direkt nutzbar
+    echo "$HOME"
   fi
 }
 

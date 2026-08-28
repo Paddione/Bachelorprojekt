@@ -2,7 +2,7 @@
   "version": 1,
   "modelRoots": [
     "~/models/gguf",
-    "/mnt/c/Users/PatrickKorczewski/.lmstudio/models"
+    "~/.lmstudio/models"
   ],
   "defaults": {
     "host": "0.0.0.0"

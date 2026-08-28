@@ -315,6 +315,11 @@ env_vars:
     default_dev: "design.localhost"
     description: "Public host of the Penpot design platform (e.g. design.korczewski.de)"
 
+  - name: PENPOT_PUBLIC_URI
+    required: true
+    default_dev: "http://design.localhost"
+    description: "Public URI of the Penpot design platform used for generated links, CORS and OIDC redirects (e.g. https://design.korczewski.de)"
+
   - name: MEDIAVIEWER_HOST
     required: true
     default_dev: "mediaviewer.localhost"

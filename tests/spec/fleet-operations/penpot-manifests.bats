@@ -20,7 +20,10 @@ setup() {
   grep -q 'PENPOT_DOMAIN' "${REPO_ROOT}/environments/korczewski.yaml"
   # Ohne Eintrag in beiden ENVSUBST_VARS-Listen (workspace:deploy und
   # flux:render) bliebe der Platzhalter im gerenderten ConfigMap stehen.
-  [ "$(grep -cF '\$BRETT_DOMAIN \$PENPOT_DOMAIN"' "${REPO_ROOT}/Taskfile.yml")" -eq 2 ]
+  # Anker ist der ENVSUBST_VARS-Kontext, nicht das Zeilenende (T900002): am Zeilenende
+  # verankert brach die Zusicherung, sobald eine weitere Variable angehaengt wurde; ganz
+  # ohne Anker matchen auch die beiden Website-envsubst-Listen (Z. 4309/4345).
+  [ "$(grep -cF 'ENVSUBST_VARS \$BRETT_DOMAIN \$PENPOT_DOMAIN' "${REPO_ROOT}/Taskfile.yml")" -eq 2 ]
 }
 
 @test "Penpot dev domain resolves to design.localhost" {
@@ -83,4 +86,37 @@ setup() {
   local bad=""
   grep -rl 'mentolder\.de' "${REPO_ROOT}/k3d/penpot.yaml" "${REPO_ROOT}/k3d/penpot-ingress.yaml" 2>/dev/null && bad="yes"
   [ -z "$bad" ] || { echo "FAIL: hardcoded mentolder.de in dev manifests"; return 1; }
+}
+
+@test "T900002: PENPOT_PUBLIC_URI ist envsubst-verdrahtet statt auf die Dev-URL festgenagelt" {
+  # Der Bug: k3d/penpot.yaml trug "http://design.localhost" als Literal, und kein
+  # Prod-Overlay ueberschrieb es — der Prod-Render beider Brands emittierte die
+  # Dev-URL als oeffentliche URI (Links, CORS, OIDC-Redirects).
+  # Konvention wie POCKET_ID_FRONTEND_URL -> APP_URL in k3d/pocket-id.yaml.
+  local f="${REPO_ROOT}/k3d/penpot.yaml"
+
+  # 1. Kein Dev-Literal mehr am PENPOT_PUBLIC_URI-Schluessel.
+  run grep -A 1 'name: PENPOT_PUBLIC_URI' "$f"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"design.localhost"* ]]
+
+  # 2. Beide Container tragen den Platzhalter.
+  [ "$(grep -cF 'value: "${PENPOT_PUBLIC_URI}"' "$f")" -eq 2 ]
+
+  # 3. Ohne Eintrag in BEIDEN ENVSUBST_VARS-Listen (workspace:deploy und
+  #    flux:render) bliebe der Platzhalter literal im Prod-Manifest stehen —
+  #    das waere schlimmer als der urspruengliche Bug.
+  [ "$(grep -cF '$PENPOT_PUBLIC_URI' "${REPO_ROOT}/Taskfile.yml")" -ge 2 ]
+
+  # 4. Registry-Eintrag mit Dev-Default, damit dev ohne env-Datei aufloest.
+  run grep -A 3 'name: PENPOT_PUBLIC_URI' "${REPO_ROOT}/environments/schema.yaml"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"default_dev"* ]]
+
+  # 5. Jede Prod-Umgebung setzt einen eigenen Wert — sonst faellt sie still
+  #    auf den Dev-Default zurueck und der Bug ist zurueck.
+  local e
+  for e in mentolder korczewski fleet-mentolder fleet-korczewski staging; do
+    grep -q 'PENPOT_PUBLIC_URI' "${REPO_ROOT}/environments/${e}.yaml"       || { echo "environments/${e}.yaml definiert PENPOT_PUBLIC_URI nicht" >&2; return 1; }
+  done
 }

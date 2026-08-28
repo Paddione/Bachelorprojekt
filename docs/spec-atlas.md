@@ -90,6 +90,7 @@ In-flight:
   - Penpot-Domain in der Registry registriert | T016593 | active | ADDED
   - Penpot-Manifeste folgen dem Repo-Muster | T016593 | active | ADDED
   - Penpot-Datenbank auf shared-db | T016593 | active | ADDED
+  - Penpot kennt seine eigene öffentliche URL | T900002 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED

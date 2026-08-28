@@ -121,7 +121,7 @@ spec:
             - name: PENPOT_OIDC_SCOPE
               value: "openid email profile"
             - name: PENPOT_PUBLIC_URI
-              value: "http://design.localhost"
+              value: "${PENPOT_PUBLIC_URI}"
             - name: TZ
               value: Europe/Berlin
           ports:
@@ -159,7 +159,7 @@ spec:
               type: RuntimeDefault
           env:
             - name: PENPOT_PUBLIC_URI
-              value: "http://design.localhost"
+              value: "${PENPOT_PUBLIC_URI}"
             - name: TZ
               value: Europe/Berlin
           ports:

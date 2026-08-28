@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.319.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.0...website-v1.319.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **ci:** normalise generator paths to POSIX separators [T016596] ([#5292](https://github.com/Paddione/Bachelorprojekt/issues/5292)) ([8a6eb51](https://github.com/Paddione/Bachelorprojekt/commit/8a6eb51af203e86ee661af69fe7f5accbc137388))
+
 ## [1.319.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.318.1...website-v1.319.0) (2026-08-28)
 
 

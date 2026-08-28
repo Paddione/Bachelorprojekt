@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.319.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.318.1...website-v1.319.0) (2026-08-28)
+
+
+### Features
+
+* **website:** disable all outbound notification e-mail [T016592] ([#5286](https://github.com/Paddione/Bachelorprojekt/issues/5286)) ([50f1953](https://github.com/Paddione/Bachelorprojekt/commit/50f1953f8a6a82385f595d344a6cea98ee46a9a5))
+
 ## [1.318.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.318.0...website-v1.318.1) (2026-08-28)
 
 

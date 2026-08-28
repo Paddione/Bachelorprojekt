@@ -74,7 +74,7 @@ task workspace:validate                          # Kustomize dry-run
 - `scripts/task-oracle.sh` is **DEPRECATED** → use `bash scripts/vda.sh oracle`.
 - Never `SELECT *` from `tickets.ticket_plans` (multi-MB `content` column).
 - OpenSpec archival ONLY in worktree — main-checkout commits leave orphaned files.
-- Website/Brett/Docs/etc. images use `:latest` intentionally — do not "fix" to digests.
+- Website/Brett/Docs/Factory-Runner/etc. images use `:latest` intentionally — do not "fix" to digests.
 - Pre-commit blocks main-checkout when another session holds the lock. Use worktrees.
 - `components/website/` is pnpm-only (its package-lock.json was deleted, T001224); root and `components/brett/` use npm. Never `npm install` inside `components/website/`.
 

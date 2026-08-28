@@ -1,0 +1,97 @@
+# k3d/dev-stack/factory-runner-bootstrap.yaml
+# [T016422 / ADR-007 A.5, vor Schritt 4] Operator-Bootstrap: legt den Repo-Clone
+# auf die factory-runner-workdir-PVC (.git + Checkout) und entsperrt git-crypt.
+#
+# Absichtlich KEIN Teil von kustomization.yaml: ein einmaliger Job, nicht
+# langlebig. Wird nach erfolgreichem Lauf vom Operator entfernt
+# (`kubectl delete job factory-runner-bootstrap`). Der Factory-Tick (CronJob)
+# exec't danach `bash scripts/factory/wakeup.sh` in den langlebigen Runner-Pod,
+# der denselben /workspace-Clone benutzt.
+#
+# Voraussetzung (Reihenfolge zwingend — ADR-007 A.4 VOR A.5):
+#   Das SealedSecret 'factory-runner-secrets' existiert im Namespace, mit
+#   mindestens den Keys:
+#     - GITHUB_PAT      (Privat-Repo-Zugriff; wird NUR in den Dependency-Clone
+#                        gegeben, nie im persistenten .git/config gespeichert)
+#     - bp-secrets.key  (git-crypt-Key → task secrets:unlock)
+#
+# Anwenden (Operator):
+#   kubectl apply -f k3d/dev-stack/factory-runner-bootstrap.yaml
+#   kubectl -n workspace-dev logs -f job/factory-runner-bootstrap   # → BOOTSTRAP_OK
+#   kubectl -n workspace-dev delete job factory-runner-bootstrap    # danach entfernen
+#   kubectl -n workspace-dev exec deploy/factory-runner -- bash -lc 'git status -sb; head -c 16 environments/.secrets/mentolder.yaml'
+#     # → 'main', kein GITCRYPT-Magic-Header = Tree entsperrt
+#
+# Idempotent: ist /workspace bereits ein git-Repo, wird nur gepullt statt geklont.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: factory-runner-bootstrap
+  labels:
+    app: factory-runner
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: factory-runner
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000 # beschreibbar für die LONGHORN-PVC (UID 1000, wie Runner)
+      containers:
+        - name: bootstrap
+          image: ghcr.io/paddione/factory-runner:latest # hat git, git-crypt, task
+          imagePullPolicy: IfNotPresent
+          workingDir: /workspace
+          env:
+            - name: REPO_URL
+              value: https://github.com/Paddione/Bachelorprojekt.git
+            - name: GITHUB_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: factory-runner-secrets
+                  key: GITHUB_PAT
+          command:
+            - /bin/bash
+            - -euxo
+            - pipefail
+            - -c
+            - |
+              cd /workspace
+              if [[ -d /workspace/.git ]]; then
+                echo "clone already present — pulling origin/main"
+                git -c credential.helper='!f() { echo "username=x-access-token"; echo "password=${GITHUB_PAT}"; }; f' \
+                  pull --ff-only origin main
+              else
+                if [[ -n "$(ls -A /workspace)" ]]; then
+                  echo "ABORT: /workspace ist nicht leer und kein git-Repo — PVC manuell pruefen" >&2
+                  exit 1
+                fi
+                echo "cloning ${REPO_URL}"
+                # Hilfs-Helfer authentifiziert den Clone, ohne das Token in
+                # .git/config zu persistieren (E17-Konvention, ADR-007 Konsequenz 2).
+                git -c credential.helper='!f() { echo "username=x-access-token"; echo "password=${GITHUB_PAT}"; }; f' \
+                  clone "${REPO_URL}" /workspace
+              fi
+              git checkout -B main origin/main
+              # git-crypt-Key aus dem Secret (mit task, konsistent zu wakeup.sh:137)
+              task secrets:unlock KEY=/secrets/bp-secrets.key
+              echo "BOOTSTRAP_OK"
+          volumeMounts:
+            - name: workdir
+              mountPath: /workspace
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+      volumes:
+        - name: workdir
+          persistentVolumeClaim:
+            claimName: factory-runner-workdir
+        - name: secrets
+          secret:
+            secretName: factory-runner-secrets

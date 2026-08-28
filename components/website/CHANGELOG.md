@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.320.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.320.0...website-v1.320.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **infra:** resolve PENPOT_PUBLIC_URI to the brand domain [T900002] ([#5305](https://github.com/Paddione/Bachelorprojekt/issues/5305)) ([c2a97bf](https://github.com/Paddione/Bachelorprojekt/commit/c2a97bf49325a38c7165eb01ad591200fbc71332))
+
 ## [1.320.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.3...website-v1.320.0) (2026-08-28)
 
 

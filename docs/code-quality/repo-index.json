@@ -3150,7 +3150,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 687,
+      "file_count": 688,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3527,6 +3527,7 @@
         "environments/sealed-secrets/korczewski.yaml",
         "environments/sealed-secrets/mentolder.yaml",
         "environments/sealed-secrets/staging.yaml",
+        "environments/sealed-secrets/workspace-dev-factory-runner.yaml",
         "environments/staging.yaml",
         "environments/versions.yaml",
         "k3d/README.md",

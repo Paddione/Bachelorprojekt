@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.318.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.318.0...website-v1.318.1) (2026-08-28)
+
+
+### Documentation
+
+* **infra:** ADR-007 supersedes ADR-006 — WSL-Exit, eol=lf guard, windows dev setup [T016436] ([#5248](https://github.com/Paddione/Bachelorprojekt/issues/5248)) ([084942a](https://github.com/Paddione/Bachelorprojekt/commit/084942ad0a2c6d6624d07b8a89b6e1307e922474))
+
 ## [1.318.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.317.0...website-v1.318.0) (2026-08-24)
 
 

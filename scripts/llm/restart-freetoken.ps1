@@ -10,18 +10,20 @@
 # Der Basisaufruf ist der, der am 2026-08-23 lief:
 #   ft serve --model C:\Users\<user>\models\Qwen3.6-35B-A3B-NVFP4 --host 0.0.0.0 --num-tokens 32768
 #
-# Usage (aus WSL):
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File restart-freetoken.ps1 -Tag hit-d2d -ExtraArgs "--moe-prefill-hit-d2d"
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File restart-freetoken.ps1 -Tag solo -ExtraArgs "--moe-prefill-hit-d2d --max-running-requests 1 --graph 1"
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File restart-freetoken.ps1 -Tag ssm-bf16 -ExtraArgs "--moe-prefill-hit-d2d" -EnvVars "FREETOKEN_MAMBA_SSM_DTYPE=bfloat16"
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File restart-freetoken.ps1 -Stop
+# Usage (Windows, powershell im Repo-Root):
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Tag hit-d2d -ExtraArgs "--moe-prefill-hit-d2d"
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Tag solo -ExtraArgs "--moe-prefill-hit-d2d --max-running-requests 1 --graph 1"
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Tag ssm-bf16 -ExtraArgs "--moe-prefill-hit-d2d" -EnvVars "FREETOKEN_MAMBA_SSM_DTYPE=bfloat16"
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Stop
 #
-# KV-Ladder (seit 2026-08-24): Nach Bereitschaft startet das Skript automatisch
-# den wachsenden KV-Pool (scripts/llm/freetoken-kv-ladder.sh) als Hintergrund-
-# Prozess in WSL; beim Stoppen wird ein alter Poller mitgekillt, damit kein
-# Zombie auf den toten Server zeigt. -NoLadder unterdrueckt das. Der Poller
-# loggt nach /tmp/opencode/kv-ladder.log. Vertrag: limit.context des Modells
-# in .opencode/agent-models.jsonc muss der Ladder-Decke entsprechen (200000).
+# KV-Ladder (seit 2026-08-24, WSL-Exit 2026-08-28): Nach Bereitschaft startet das
+# Skript automatisch den wachsenden KV-Pool (scripts/llm/freetoken-kv-ladder.ps1)
+# als detached Windows-Hintergrundprozess; beim Stoppen wird ein alter Poller
+# mitgekillt, damit kein Zombie auf den toten Server zeigt. -NoLadder
+# unterdrueckt das. Der Poller loggt nach %LOCALAPPDATA%\FreeToken\logs\
+# (kv-ladder.out.log / kv-ladder.err.log -- getrennt, PS 5.1 Start-Process).
+# Vertrag: limit.context des Modells in .opencode/agent-models.jsonc muss der
+# Ladder-Decke entsprechen (200000).
 
 param(
     [string]$Tag = "run",
@@ -31,21 +33,25 @@ param(
     [int]$NumTokens = 32768,
     [int]$ReadyTimeoutSec = 900,
     [switch]$Stop,
-    [switch]$NoLadder,
-    [string]$WslDistro = "k3d-dev"
+    [switch]$NoLadder
 )
 
 $ErrorActionPreference = "Stop"
 $FtExe   = "$env:LOCALAPPDATA\FreeToken\venv\Scripts\ft.exe"
 $LogDir  = "$env:LOCALAPPDATA\FreeToken\logs"
 $BaseUrl = "http://127.0.0.1:1919"
-# WSL-seitiger Pfad zum Ladder-Skript (Repo-Lage ist fix).
-$LadderScript = "/home/patrick/Bachelorprojekt/scripts/llm/freetoken-kv-ladder.sh"
+# Pfad zum Windows-nativen KV-Ladder-Skript (Repo-Lage ist fix).
+$LadderScript = Join-Path $PSScriptRoot "freetoken-kv-ladder.ps1"
 
 function Stop-FreeToken {
     # Alten KV-Ladder-Poller zuerst stoppen -- sonst pollt ein Zombie den
     # bald toten Port weiter und ein Neustart wrde einen zweiten erzeugen.
-    & wsl.exe -d $WslDistro --exec pkill -f freetoken-kv-ladder.sh | Out-Null
+    Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -like "*freetoken-kv-ladder.ps1*" } |
+        ForEach-Object {
+            Write-Host "stoppe KV-Ladder-Poller PID $($_.ProcessId)"
+            taskkill.exe /PID $_.ProcessId /T /F 2>&1 | Out-Null
+        }
     $procs = Get-CimInstance Win32_Process -Filter "Name='ft.exe'" |
              Where-Object { $_.CommandLine -like "*serve*" }
     foreach ($p in $procs) {
@@ -103,10 +109,19 @@ while ((Get-Date) -lt $deadline) {
             if ($NoLadder) {
                 Write-Host "KV-Ladder uebersprungen (-NoLadder)."
             } else {
-                # Wachsenden KV-Pool als detached WSL-Hintergrundprozess starten.
-                # nohup + Redirect aller FDs, damit der Poller wsl.exe ueberlebt.
-                $ladderCmd = 'mkdir -p /tmp/opencode && nohup bash ' + $LadderScript + ' >> /tmp/opencode/kv-ladder.log 2>&1 & echo ladder_pid=$!'
-                & wsl.exe -d $WslDistro --exec bash -c $ladderCmd
+                # Wachsenden KV-Pool als detached Windows-Prozess starten.
+                # Der Poller ueberlebt die aufrufende Shell (eigener powershell.exe-
+                # Prozess); Logs nach %LOCALAPPDATA%\FreeToken\logs\
+                # (kv-ladder.out.log / kv-ladder.err.log -- PS 5.1 Start-Process
+                # verlangt getrennte Dateien fuer stdout/stderr).
+                $ladderOut = Join-Path $LogDir "kv-ladder.out.log"
+                $ladderErr = Join-Path $LogDir "kv-ladder.err.log"
+                Start-Process -FilePath "powershell.exe" `
+                    -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $LadderScript) `
+                    -RedirectStandardOutput $ladderOut `
+                    -RedirectStandardError $ladderErr `
+                    -WindowStyle Hidden | Out-Null
+                Write-Host "KV-Ladder gestartet (out: $ladderOut / err: $ladderErr)"
             }
             exit 0
         }

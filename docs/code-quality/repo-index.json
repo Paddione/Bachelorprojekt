@@ -4375,7 +4375,7 @@
         "scripts/llm/bench-decode.sh",
         "scripts/llm/bench-freetoken-prefill.sh",
         "scripts/llm/bench-guff.sh",
-        "scripts/llm/freetoken-kv-ladder.sh",
+        "scripts/llm/freetoken-kv-ladder.ps1",
         "scripts/llm/gguf-tensor-names.py",
         "scripts/llm/github-mcp-wrapper.sh",
         "scripts/llm/harden-gpu-firewall.ps1",

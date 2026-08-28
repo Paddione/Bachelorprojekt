@@ -60,7 +60,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/penpot-manifests.b
 # expected: FAIL — "not ok 11", die übrigen 10 Tests ok
 ```
 
-- [ ] **Registry-Variable anlegen.** In `environments/schema.yaml` neben den übrigen
+- [x] **Registry-Variable anlegen.** In `environments/schema.yaml` neben den übrigen
       Service-URLs einen Eintrag `PENPOT_PUBLIC_URI` mit `required: true`,
       `default_dev: "http://design.localhost"` und einer Beschreibung ergänzen, die die
       Rolle benennt (öffentliche URI für generierte Links, CORS und OIDC-Redirects). Vorbild
@@ -72,7 +72,7 @@ grep -A 4 'name: POCKET_ID_FRONTEND_URL' environments/schema.yaml   # Vorbild
 grep -A 4 'name: PENPOT_PUBLIC_URI' environments/schema.yaml        # Ergebnis
 ```
 
-- [ ] **Werte je Umgebung setzen.** In den sechs `environments/*.yaml` unter `env_vars`
+- [x] **Werte je Umgebung setzen.** In den sechs `environments/*.yaml` unter `env_vars`
       jeweils `PENPOT_PUBLIC_URI` ergänzen, konsistent zum dort bereits vorhandenen
       `PENPOT_DOMAIN` derselben Datei: Dev mit Schema `http`, alle übrigen mit `https`.
       Den Host **nicht** neu erfinden, sondern aus dem `PENPOT_DOMAIN`-Wert derselben Datei
@@ -85,7 +85,7 @@ done
 # erwartet: pro Datei zwei Zeilen, Host identisch, Schema http nur in dev.yaml
 ```
 
-- [ ] **Manifest auf den Platzhalter umstellen.** In `k3d/penpot.yaml` beide Vorkommen
+- [x] **Manifest auf den Platzhalter umstellen.** In `k3d/penpot.yaml` beide Vorkommen
       `value: "http://design.localhost"` unter `name: PENPOT_PUBLIC_URI` durch
       `value: "${PENPOT_PUBLIC_URI}"` ersetzen (Backend- und Frontend-Container).
       `PENPOT_OIDC_AUTH_SERVER_URL` in Zeile 113 bleibt unverändert — siehe Non-Goals im
@@ -96,7 +96,7 @@ grep -A 1 'name: PENPOT_PUBLIC_URI' k3d/penpot.yaml
 # erwartet: zweimal value: "${PENPOT_PUBLIC_URI}", kein design.localhost
 ```
 
-- [ ] **Beide envsubst-Listen ergänzen.** In `Taskfile.yml` `\$PENPOT_PUBLIC_URI` in die
+- [x] **Beide envsubst-Listen ergänzen.** In `Taskfile.yml` `\$PENPOT_PUBLIC_URI` in die
       `ENVSUBST_VARS`-Zeile von `workspace:deploy` **und** in die spiegelgleiche Zeile von
       `flux:render` aufnehmen — dort, wo bereits `\$BRETT_DOMAIN \$PENPOT_DOMAIN` steht.
       Fehlt einer der beiden Einträge, überlebt der Platzhalter literal im gerenderten
@@ -109,7 +109,7 @@ grep -cF '$PENPOT_PUBLIC_URI' Taskfile.yml
 # erwartet: 2
 ```
 
-- [ ] **Prod-Render gegenprüfen (Kern der Verifikation).** Das Manifest beider Brands durch
+- [x] **Prod-Render gegenprüfen (Kern der Verifikation).** Das Manifest beider Brands durch
       den echten envsubst-Vertrag rendern und belegen, dass weder die Dev-URL noch ein
       unaufgelöster Platzhalter übrig bleibt. Dieser Schritt ist das eigentliche
       Gegenstück zum Reproducer aus dem Proposal — der BATS-Guard prüft die Verdrahtung,
@@ -126,14 +126,14 @@ done
 # verboten:  design.localhost ODER ein literales ${PENPOT_PUBLIC_URI}
 ```
 
-- [ ] **Guard auf grün.** Derselbe BATS-Lauf wie im RED-Schritt, jetzt vollständig grün.
+- [x] **Guard auf grün.** Derselbe BATS-Lauf wie im RED-Schritt, jetzt vollständig grün.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/penpot-manifests.bats
 # erwartet: 11 Tests, alle ok
 ```
 
-- [ ] **Manifest-Validierung.** Kustomize muss nach der Änderung weiterhin für alle
+- [x] **Manifest-Validierung.** Kustomize muss nach der Änderung weiterhin für alle
       Overlays bauen.
 
 ```bash

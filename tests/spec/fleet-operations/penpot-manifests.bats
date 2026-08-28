@@ -20,7 +20,10 @@ setup() {
   grep -q 'PENPOT_DOMAIN' "${REPO_ROOT}/environments/korczewski.yaml"
   # Ohne Eintrag in beiden ENVSUBST_VARS-Listen (workspace:deploy und
   # flux:render) bliebe der Platzhalter im gerenderten ConfigMap stehen.
-  [ "$(grep -cF '\$BRETT_DOMAIN \$PENPOT_DOMAIN"' "${REPO_ROOT}/Taskfile.yml")" -eq 2 ]
+  # Anker ist der ENVSUBST_VARS-Kontext, nicht das Zeilenende (T900002): am Zeilenende
+  # verankert brach die Zusicherung, sobald eine weitere Variable angehaengt wurde; ganz
+  # ohne Anker matchen auch die beiden Website-envsubst-Listen (Z. 4309/4345).
+  [ "$(grep -cF 'ENVSUBST_VARS \$BRETT_DOMAIN \$PENPOT_DOMAIN' "${REPO_ROOT}/Taskfile.yml")" -eq 2 ]
 }
 
 @test "Penpot dev domain resolves to design.localhost" {

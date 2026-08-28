@@ -52,17 +52,11 @@ _shebang_invocations() {
 }
 
 @test "T016594: der BATS-Runner wird ueber den Interpreter gestartet (Positiv-Anker)" {
-  # Gezielter Anker auf den haeufigsten Fall: der Runner-Wrapper muss im
-  # Taskfile vorkommen, und zwar mit bash-Praefix.
-  run bash -c "grep -rc 'bash tests/bats' '$REPO_ROOT/Taskfile.yml'"
+  # Gezielter Anker auf den haeufigsten Fall: der Runner muss im Taskfile
+  # vorkommen, und zwar mit bash-Praefix.
+  run bash -c "grep -rc 'bash tests/unit/lib/bats-core/bin/bats' '$REPO_ROOT/Taskfile.yml'"
   [ "$status" -eq 0 ]
   [ "$output" -gt 0 ]
-}
-
-@test "T016594: der Wrapper existiert und ruft den vendorten Runner auf" {
-  [ -f "$REPO_ROOT/tests/bats" ]
-  run grep -q 'unit/lib/bats-core/bin/bats' "$REPO_ROOT/tests/bats"
-  [ "$status" -eq 0 ]
 }
 
 @test "T016594: kein Taskfile-Kommando startet ein Skript per Shebang" {

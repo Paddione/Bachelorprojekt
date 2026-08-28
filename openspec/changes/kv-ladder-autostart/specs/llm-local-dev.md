@@ -9,7 +9,7 @@ capacity of the serving configuration: `65536` for `gpt-oss-20b`, `32768` for
 `Gemma-4-26B-A4B-NVFP4`. For `Qwen3.6-35B-A3B-NVFP4` the declared `limit.context` SHALL equal the
 KV-ladder ceiling (`LADDER_CEILING`, currently `200000`) instead of the static calibrated value,
 because the operator grows that model's KV pool budget-conform up to the ceiling via the KV
-ladder (`scripts/llm/freetoken-kv-ladder.sh`). A plugin `freetoken-active.ts` SHALL set the alias
+ladder (`scripts/llm/freetoken-kv-ladder.ps1`). A plugin `freetoken-active.ts` SHALL set the alias
 entry's limit at opencode startup from the daemon's resident-model report and SHALL advertise at
 most `SDLC_CONTEXT_CEILING` (default `200000`) — and only when the engine is running AND the
 calibrated limit is at least `100000`; with the daemon unreachable the calibrated static fallback
@@ -50,10 +50,13 @@ cache (`ft ctl cache --kv <n>`); the plugin itself never touches the server.
 ### Requirement: Restart autostarts the KV ladder and reaps stale pollers
 
 `scripts/llm/restart-freetoken.ps1` SHALL start the KV ladder
-(`scripts/llm/freetoken-kv-ladder.sh`) as a detached WSL background process after the FreeToken
-server reports readiness, logging to `/tmp/opencode/kv-ladder.log`. Before starting a new
-instance it SHALL terminate any stale ladder poller still bound to the previous engine port, so a
-restart never leaves two pollers racing. A `-NoLadder` switch SHALL skip the autostart entirely.
+(`scripts/llm/freetoken-kv-ladder.ps1`) as a detached Windows (PowerShell) background process
+after the FreeToken server reports readiness, logging to
+`%LOCALAPPDATA%\FreeToken\logs\kv-ladder.*.log`. Before starting a new instance it SHALL
+terminate any stale ladder poller still bound to the previous engine port, so a restart never
+leaves two pollers racing. A `-NoLadder` switch SHALL skip the autostart entirely. The ladder
+SHALL be a native PowerShell implementation free of any WSL dependency, so it keeps working
+after the WSL host is shut down.
 
 #### Scenario: Restart leaves exactly one poller
 

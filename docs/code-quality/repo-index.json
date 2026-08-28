@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1225,
+      "file_count": 1226,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1091,6 +1091,7 @@
         "tests/spec/worktree-create-real-path-T004604.bats",
         "tests/spec/worktree-divergence-guard-T002387.bats",
         "tests/spec/worktree-divergence-guard/stash-restore-visible.bats",
+        "tests/spec/wsl-exit-docs.bats",
         "tests/sql/software-history.sql",
         "tests/unit/.coverage-allowlist",
         "tests/unit/T000617-alert-rules.bats",

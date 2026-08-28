@@ -71,6 +71,12 @@ environments/.secrets/**            filter=git-crypt diff=git-crypt
 # liegen jetzt in ~/.claude/settings.json (User-Scope) — injected by dotfiles/install.sh.
 # Traegst du dort wieder ein Secret ein, gehoert es nach environments/.secrets/dev-tools.yaml
 # (SSOT) — NICHT hierher zurueck.
-# T016422: Windows-native Dev — Shell-Skripte strikt LF
-*.sh   text eol=lf
-*.bats text eol=lf
+# T016422: Windows-native Dev — Shell-/YAML-Sourcen strikt LF
+*.sh    text eol=lf
+*.bats  text eol=lf
+# Linux-interpreted sources must stay LF — NTFS checkout (Windows-native dev,
+# ADR-007) would otherwise introduce CRLF and break bash/yaml parsing.
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.mjs   text eol=lf
+

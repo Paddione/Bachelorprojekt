@@ -56,3 +56,21 @@ state; `task secrets:lock` re-encrypts the working tree.
 **Never commit without the key unlocked** — the `.githooks/pre-commit` hook and
 the CI `security-scan` step both reject any managed secret committed in
 plaintext (verified via the git-crypt magic header by `scripts/git-crypt-guard.sh`).
+
+---
+
+## Shutdown-Checkliste (WSL-Exit, ADR-007)
+
+Der WSL-Host wird stillgelegt. Reihenfolge zwingend:
+
+1. [ ] Factory-Timer disabled: `systemctl --user disable --now factory.timer`
+   (NUR NACHDEM der Fleet-CronJob aktiv ist — Reihenfolge disable-vor-enable, T016433)
+2. [ ] WSL-Docker: Container `gitlab-registry-cache` entfernen —
+   `docker rm -f gitlab-registry-cache` (Duplikat des In-Cluster-Deployments, T016428)
+3. [ ] Laufende Sessions/Worktrees prüfen: `bash scripts/agent-lock.sh list`,
+   offene PRs mergen
+4. [ ] Port-Forward-User-Units stoppen (`bge-forward-*`, `pgvector-forward`,
+   `mcp-gateway`, `tickets-db-forward`)
+5. [ ] Letzter git pull/push im Haupt-Checkout; kein dirty state
+6. [ ] **`wsl --shutdown` als finaler Schritt** — danach ist diese Anleitung
+   Archiv.

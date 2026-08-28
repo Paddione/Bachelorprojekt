@@ -2826,6 +2826,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/generated-path-separators",
+    "file": "tests/spec/ci-cd/generated-path-separators.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/ghcr-digest-auth",
     "file": "tests/spec/ci-cd/ghcr-digest-auth.bats",
     "category": "ci-cd",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1227,
+      "file_count": 1228,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -509,6 +509,7 @@
         "tests/spec/ci-cd/freshness-paths-exist.bats",
         "tests/spec/ci-cd/freshness-regen-rebase-guard.bats",
         "tests/spec/ci-cd/generated-artifacts-registry.bats",
+        "tests/spec/ci-cd/generated-path-separators.bats",
         "tests/spec/ci-cd/ghcr-digest-auth.bats",
         "tests/spec/ci-cd/git-flow-poll-and-branch-order.bats",
         "tests/spec/ci-cd/gitlab-batsunit-toolchain.bats",

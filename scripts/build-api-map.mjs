@@ -13,7 +13,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'fs';
-import { join, relative } from 'path';
+import { join, relative, sep } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -43,7 +43,9 @@ function globTs(dir) {
 
 // ── File path → URL path ──────────────────────────────────────────────────────
 function fileToUrlPath(filePath) {
-  const rel = relative(join(ROOT, 'components/website/src/pages'), filePath);
+  // [T016596] An der Quelle normalisieren: relative() liefert unter Windows
+  // Backslashes, und die landen sonst im committeten Artefakt.
+  const rel = relative(join(ROOT, 'components/website/src/pages'), filePath).split(sep).join('/');
   // Remove .ts extension
   let urlPath = rel.replace(/\.ts$/, '');
   // Convert [param] → {param}
@@ -121,7 +123,8 @@ function main() {
 
     const path = fileToUrlPath(filePath);
     const auth = extractAuthLevel(content, path);
-    const fileRel = relative(ROOT, filePath);
+    // [T016596] Diese Spalte war der Ursprung des 584-Zeilen-Backslash-Churns.
+    const fileRel = relative(ROOT, filePath).split(sep).join('/');
 
     endpoints.push({ path, methods, auth, file: fileRel });
   }

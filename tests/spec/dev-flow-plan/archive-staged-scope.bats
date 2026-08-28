@@ -32,7 +32,8 @@ setup() {
   git config user.email t@example.com
   git config user.name Test
 
-  mkdir -p openspec/changes/archive/2026-01-01-my-slug openspec/specs components/website/src/data
+  mkdir -p "$FIXTURE/openspec/changes/archive/2026-01-01-my-slug" \
+    "$FIXTURE/openspec/specs" "$FIXTURE/components/website/src/data"
   echo x > openspec/changes/archive/2026-01-01-my-slug/tasks.md
   echo y > openspec/specs/some-spec.md
   echo z > components/website/src/data/openspec-status.json
@@ -55,7 +56,7 @@ setup() {
 }
 
 @test "T016597: eine fremde untracked Datei im Staged-Set bricht fail-closed ab" {
-  mkdir -p openspec/changes/fremder-change
+  mkdir -p "$FIXTURE/openspec/changes/fremder-change"
   echo fremd > openspec/changes/fremder-change/proposal.md
   echo neu > openspec/changes/archive/2026-01-01-my-slug/proposal.md
   # Genau das tat der alte Aufruf: git add ueber das ganze Verzeichnis.
@@ -70,7 +71,7 @@ setup() {
   # Abgrenzung: der Guard misst den INDEX, nicht den Arbeitsbaum. Unfertige
   # Arbeit einer anderen Session darf danebenliegen, solange sie nicht
   # gestaged ist.
-  mkdir -p openspec/changes/fremder-change
+  mkdir -p "$FIXTURE/openspec/changes/fremder-change"
   echo fremd > openspec/changes/fremder-change/proposal.md
   echo neu > openspec/changes/archive/2026-01-01-my-slug/proposal.md
   git add openspec/changes/archive/2026-01-01-my-slug

@@ -552,6 +552,7 @@
         "tests/spec/ci-cd/unit-tests-no-dependency-skips.bats",
         "tests/spec/ci-cd/unknown-scope-names-source.bats",
         "tests/spec/ci-cd/website-fast-path.bats",
+        "tests/spec/ci-cd/windows-path-portability.bats",
         "tests/spec/ci-cd/workflow-self-trigger.bats",
         "tests/spec/ci-cd/worktrees-not-tracked.bats",
         "tests/spec/coaching-sessions-polish-guide.bats",

@@ -8,6 +8,12 @@ Mechanik und die Schritte des Fix-Pfads.
 > `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
 > `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
 > Haupt-Checkout landen (T002357-Falle).
+>
+> **Der Guard vergleicht normalisiert, nicht als Zeichenkette [T016595]:** unter
+> Git-Bash liefert `git rev-parse --show-toplevel` die Windows-Form (`C:/Users/…`),
+> `$PWD` die POSIX-Form (`/c/Users/…`). Ein direkter Stringvergleich schlägt dort
+> **immer** fehl und lässt den Guard grundlos abbrechen — deshalb steht die
+> Toplevel-Seite in `cd … && pwd`.
 
 ---
 
@@ -160,7 +166,7 @@ cd "${WT}"
 
 ```bash
 # [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT absolut, s. B.2)
-cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
+cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
 git add openspec/changes/<slug>/
 git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
@@ -189,7 +195,7 @@ FOR each partial pX (p1, p2, ...):
   │
   ├─► Schritt C.2c: Commit + Push
   │     # [T006367] cwd-Guard — nie auf implizites cwd vertrauen
-  │     cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
+  │     cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
   │     git add openspec/changes/<slug>/
   │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
   │     git push origin feature/<slug>-T<id>
@@ -224,7 +230,7 @@ NACH dem letzten Partial (Tests):
   │
   └─► Schritt C.5: Finaler Commit + Push
         # [T006367] cwd-Guard — nie auf implizites cwd vertrauen
-        cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
+        cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
         git add openspec/changes/<slug>/
         git commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
         git push origin $(git branch --show-current)
@@ -374,7 +380,7 @@ Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flo
 Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:
 ```bash
 # [T006367] cwd-Guard — nie auf implizites cwd vertrauen (WT aus Fix-Schritt 2)
-cd "$WT" && [ "$(git rev-parse --show-toplevel)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
+cd "$WT" && [ "$(cd "$(git rev-parse --show-toplevel)" && pwd)" = "$PWD" ] || { echo "FATAL: cwd != worktree"; exit 1; }
 git add tests/ openspec/changes/<slug>/tasks.md
 git commit -m "chore(plans): add failing test + stage plan [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)

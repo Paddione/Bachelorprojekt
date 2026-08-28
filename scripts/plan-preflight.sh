@@ -52,7 +52,15 @@ cmd_pre_commit() {
   local toplevel common lock_dir slug lock_file claimed
   toplevel="$(git rev-parse --show-toplevel)"
   common="$(cd "$toplevel" && git rev-parse --git-common-dir)"
-  case "$common" in /*) : ;; *) common="$(cd "$toplevel/$common" && pwd)";; esac
+  # [T016595] Absolut heisst unter Git-Bash auch "C:/..." oder "C:\...":
+  # `git rev-parse --git-common-dir` gibt die Windows-Form aus, waehrend die
+  # Shell in POSIX-Form arbeitet. Ein blosses /* haelt die Windows-Form fuer
+  # relativ und setzt sie hinter $toplevel — ein Pfad aus zwei absoluten
+  # Pfaden, an dem `cd` scheitert und `set -e` das Skript beendet.
+  case "$common" in
+    /*|[A-Za-z]:/*|[A-Za-z]:\\*) : ;;
+    *) common="$(cd "$toplevel/$common" && pwd)" ;;
+  esac
   lock_dir="${AGENT_LOCK_DIR:-$common/agent-locks}"
   slug="${branch//\//-}"
   lock_file="$lock_dir/ticket__${TICKET}.json"

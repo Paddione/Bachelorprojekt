@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.319.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.2...website-v1.319.3) (2026-08-28)
+
+
+### Bug Fixes
+
+* **ci:** invoke test scripts via interpreter so go-task works on Windows [T016594] ([#5289](https://github.com/Paddione/Bachelorprojekt/issues/5289)) ([d6fb3d9](https://github.com/Paddione/Bachelorprojekt/commit/d6fb3d9cc60a02e53c7b5a6c0cd6e1c5b84d7919))
+* **factory:** scope the archive commit to the change being archived [T016597] ([#5294](https://github.com/Paddione/Bachelorprojekt/issues/5294)) ([1c0590d](https://github.com/Paddione/Bachelorprojekt/commit/1c0590d57022ed474312ba46dd1d2cf3f79f8057))
+
 ## [1.319.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.1...website-v1.319.2) (2026-08-28)
 
 

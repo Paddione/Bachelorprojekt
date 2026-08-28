@@ -13,6 +13,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/oauth2-proxy-brain.yaml]="brain"
   [k3d/nextcloud.yaml]="nextcloud"
   [k3d/nextcloud-redis.yaml]="nextcloud"
+  [k3d/nextcloud-notification-config-job.yaml]="nextcloud"
   [k3d/shared-db.yaml]="shared-db"
   [k3d/vaultwarden.yaml]="vaultwarden"
   [k3d/vaultwarden-seed-job.yaml]="vaultwarden"

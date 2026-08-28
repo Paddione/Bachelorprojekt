@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2287 · Scenarios: 5084
+Specs: 145 · Requirements: 2289 · Scenarios: 5089
 
 ## factory-pipeline
 
@@ -149,17 +149,14 @@ Last touches:
   - Ticket listings hide test data by default | T002781 | 2026-08-10 | ADDED
 
 ### website-core
-Reqs: 56 · Scenarios: 118 · Lines: 1139
+Reqs: 58 · Scenarios: 122 · Lines: 1192
 Paths: website/src
 Last touches:
+  - Globaler Kill-Switch für Admin-Benachrichtigungs-Mails | T016592 | 2026-08-28 | ADDED
+  - notify-unread CronJob ist suspendiert | T016592 | 2026-08-28 | ADDED
   - Admin-Sidebar-Navigation | T003826 | 2026-08-11 | MODIFIED
   - routes:manifest suppresses raw Node stderr from the failed primary attempt | T002666 | 2026-08-10 | ADDED
   - The model id is resolved at runtime | T002612 | 2026-08-10 | ADDED
-  - The model receives a semantic extract, not raw HTML | T002612 | 2026-08-10 | ADDED
-  - Thinking is disabled client-side | T002612 | 2026-08-10 | ADDED
-In-flight:
-  - Globaler Kill-Switch für Admin-Benachrichtigungs-Mails | T016592 | active | ADDED
-  - notify-unread CronJob ist suspendiert | T016592 | active | ADDED
 
 ## Ungrouped
 
@@ -803,14 +800,14 @@ In-flight:
   - Der Trainingspfad ist von der lokalen Laufzeit entkoppelt | T016438 | active | ADDED
 
 ### monitoring-alerts
-Reqs: 20 · Scenarios: 31 · Lines: 362
+Reqs: 20 · Scenarios: 32 · Lines: 394
 Paths: k3d/prometheus, k3d/alertmanager, k3d/grafana
 Last touches:
-  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T015712 | 2026-08-24 | ADDED
-  - Backup-Job-Failures lösen kritischen Alert aus | T015712 | 2026-08-24 | ADDED
+  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T016592 | 2026-08-28 | MODIFIED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016592 | 2026-08-28 | MODIFIED
+  - Blackhole Receiver | T016592 | 2026-08-28 | ADDED
+  - Email Notification Receiver | T016592 | 2026-08-28 | REMOVED
   - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | 2026-08-24 | ADDED
-  - Suspendierte CronJobs erzeugen keinen Alarm | T015712 | 2026-08-24 | ADDED
-  - Backup-Alerts decken beide Brands ab | T015712 | 2026-08-24 | ADDED
 In-flight:
   - Mandatory Alert Set | T016124 | active | MODIFIED
   - Backup-Job-Failures lösen kritischen Alert aus | T016124 | active | MODIFIED
@@ -819,10 +816,6 @@ In-flight:
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
   - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
   - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
-  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T016592 | active | MODIFIED
-  - Backup-Job-Failures lösen kritischen Alert aus | T016592 | active | MODIFIED
-  - Blackhole Receiver | T016592 | active | ADDED
-  - Email Notification Receiver | T016592 | active | REMOVED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

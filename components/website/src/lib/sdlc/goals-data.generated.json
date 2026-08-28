@@ -10,7 +10,7 @@
     "target": 90,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "gh run list --workflow e2e.yml --limit 14 --json conclusion \\\n  | python3 -c \"import json,sys; r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]; print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else 'n/a')\"",
     "source": ".claude/lib/goals.md · G-E2E01",
     "measured_at": "2026-08-22"
   },
@@ -25,7 +25,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "db_scalar \"SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %' AND query NOT ILIKE 'CREATE INDEX%'\"",
     "source": ".claude/lib/goals.md · G-DB09",
     "measured_at": "2026-08-22"
   },
@@ -40,7 +40,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "python3 -c \"\nimport json,subprocess\nn=0\nfor ns in ('workspace','workspace-korczewski'):\n    d=json.loads(subprocess.check_output(['kubectl','get','pods','-n',ns,'--context','fleet','-o','json']))\n    for p in d['items']:\n        ph=p['status'].get('phase')\n        if ph=='Succeeded': continue\n        cs=p['status'].get('containerStatuses',[])\n        if ph!='Running' or any(not c.get('ready') for c in cs): n+=1\nprint(n)\"",
     "source": ".claude/lib/goals.md · G-OPS01",
     "measured_at": "2026-08-22"
   },
@@ -55,7 +55,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "WITH fk AS (\n  SELECT c.conrelid AS relid, c.conkey[1] AS col FROM pg_constraint c\n  JOIN pg_class t ON t.oid=c.conrelid JOIN pg_namespace n ON n.oid=t.relnamespace\n  WHERE c.contype='f' AND n.nspname NOT IN ('pg_catalog','information_schema') AND array_length(c.conkey,1)=1),\nidx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)\nSELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;",
     "source": ".claude/lib/goals.md · G-DB01",
     "measured_at": "2026-08-22"
   },
@@ -70,7 +70,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "SELECT\n    (SELECT count(DISTINCT c.table_schema||'.'||c.table_name) FROM information_schema.columns c\n       JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name\n       WHERE c.column_name='brand' AND c.table_schema NOT IN ('pg_catalog','information_schema') AND t.table_type='BASE TABLE')\n  - (SELECT count(DISTINCT conrelid) FROM pg_constraint\n       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');",
     "source": ".claude/lib/goals.md · G-DB03",
     "measured_at": "2026-08-22"
   },
@@ -85,7 +85,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "db_scalar \"SELECT count(*) FROM pg_stat_user_indexes s JOIN pg_index i ON i.indexrelid = s.indexrelid WHERE s.idx_scan = 0 AND i.indisready AND NOT i.indisprimary AND s.indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')\"",
     "source": ".claude/lib/goals.md · G-DB10",
     "measured_at": "2026-08-22"
   },
@@ -100,7 +100,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "# Messung (lokal):\nbash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'\n# CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)",
     "source": ".claude/lib/goals.md · G-SEC06",
     "measured_at": "2026-08-22"
   },
@@ -115,7 +115,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/llm-stack-measure.sh server-availability",
     "source": ".claude/lib/goals.md · G-LLM01",
     "measured_at": "2026-08-22"
   },
@@ -130,7 +130,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/llm-stack-measure.sh proxy-readiness",
     "source": ".claude/lib/goals.md · G-LLM02",
     "measured_at": "2026-08-22"
   },
@@ -145,7 +145,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/llm-stack-measure.sh autostart-coverage",
     "source": ".claude/lib/goals.md · G-LLM04",
     "measured_at": "2026-08-22"
   },
@@ -160,7 +160,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/llm-stack-measure.sh dead-endpoints",
     "source": ".claude/lib/goals.md · G-LLM05",
     "measured_at": "2026-08-22"
   },
@@ -175,7 +175,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/wt-hygiene-measure.sh main-checkout",
     "source": ".claude/lib/goals.md · G-WT01",
     "measured_at": "2026-08-22"
   },
@@ -190,7 +190,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/wt-hygiene-measure.sh stale-worktrees",
     "source": ".claude/lib/goals.md · G-WT02",
     "measured_at": "2026-08-22"
   },
@@ -205,7 +205,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/wt-hygiene-measure.sh orphan-locks",
     "source": ".claude/lib/goals.md · G-WT03",
     "measured_at": "2026-08-22"
   },
@@ -220,7 +220,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/wt-hygiene-measure.sh unsafe-worktrees",
     "source": ".claude/lib/goals.md · G-WT04",
     "measured_at": "2026-08-22"
   },
@@ -235,7 +235,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/wt-hygiene-measure.sh main-divergence",
     "source": ".claude/lib/goals.md · G-WT05",
     "measured_at": "2026-08-22"
   },
@@ -250,7 +250,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "",
+    "measurement": "bash scripts/lib/wt-hygiene-measure.sh phantom-scope-locks",
     "source": ".claude/lib/goals.md · G-WT06",
     "measured_at": "2026-08-22"
   },

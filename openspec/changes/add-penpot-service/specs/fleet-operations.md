@@ -6,8 +6,10 @@
 
 Penpot ist unter `design.<PROD_DOMAIN>` erreichbar. Der Hostname `PENPOT_DOMAIN`
 MUSS zentral in `k3d/configmap-domains.yaml` (dev: `design.localhost`) definiert
-und im Fleet-Overlay auf `design.<PROD_DOMAIN>` gesetzt werden. Hardcodierte
-Hostnamen in Penpot-Manifesten sind verboten.
+werden. Der Prod-Wert kommt brand-neutral aus der Env-Registry:
+`prod/configmap-domains.yaml` traegt den envsubst-Platzhalter, die Brand-Werte stehen in
+`environments/<brand>.yaml`. Hardcodierte Hostnamen in Penpot-Manifesten sind verboten —
+das S3-Gate (`scripts/code-quality/gates/s3-hostnames.mjs`) weist sie zurueck.
 
 #### Scenario: Dev-Domain ist design.localhost
 
@@ -18,8 +20,9 @@ Hostnamen in Penpot-Manifesten sind verboten.
 #### Scenario: Prod-Domain ist design.<PROD_DOMAIN>
 
 - **GIVEN** ein Fleet-Overlay (mentolder oder korczewski)
-- **WHEN** `PENPOT_DOMAIN` aus dem Domänen-Patch gelesen wird
+- **WHEN** das Overlay durch den envsubst-Vertrag gerendert wird
 - **THEN** ist der Wert `design.<PROD_DOMAIN>` (z.B. `design.mentolder.de`)
+- **AND** stammt er aus `environments/<brand>.yaml`, nicht aus einem Brand-Patch
 
 ### Requirement: Penpot-Manifeste folgen dem Repo-Muster
 

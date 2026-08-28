@@ -4483,7 +4483,13 @@
   ],
   "T016592": [
     {
-      "slug": "disable-email-notifications",
+      "slug": "2026-08-28-disable-email-notifications",
+      "status": "archived"
+    }
+  ],
+  "T016593": [
+    {
+      "slug": "add-penpot-service",
       "status": "plan_staged"
     }
   ],

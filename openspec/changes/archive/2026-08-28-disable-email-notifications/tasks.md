@@ -2,7 +2,7 @@
 title: "disable-email-notifications — Implementation Plan"
 ticket_id: T016592
 domains: [website, infra, monitoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

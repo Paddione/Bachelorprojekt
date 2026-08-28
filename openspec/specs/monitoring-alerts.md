@@ -65,14 +65,21 @@ Die Werte folgen der Größenordnung der bestehenden Blöcke in
 The Alertmanager CR SHALL set `spec.alertmanagerConfigMatcherStrategy.type` to `None`, so that the
 Prometheus Operator does not append a `namespace="monitoring"` matcher to the `workspace-alerts`
 AlertmanagerConfig. Without it, every alert originating from `workspace` or `workspace-korczewski`
-falls through to the default receiver `null` and is discarded — including all mandatory alerts.
+falls through to the Operator's own default receiver and is discarded outside of the routing tree
+declared in `k3d/monitoring/alertmanager-config.yaml`.
 
-#### Scenario: Routing test resolves to the email receiver
+Since T016592 the receiver that alerts resolve to is the intentional blackhole receiver `null` —
+a receiver declared with a name and no notification configs. Alerts SHALL therefore reach the
+routing tree declared in `workspace-alerts` and terminate there without producing a notification.
+The matcher strategy remains required: it is what keeps routing under the control of this
+repository's configuration rather than the Operator's default.
+
+#### Scenario: Routing test resolves to the blackhole receiver
 
 - **GIVEN** the Alertmanager CR carries `alertmanagerConfigMatcherStrategy.type: None`
 - **WHEN** `amtool config routes test` is run with labels `namespace=workspace` and
   `alertname=BackupJobFailed`
-- **THEN** the resolved receiver is the email receiver of `workspace-alerts`, not `null`
+- **THEN** the resolved receiver is the `null` receiver of `workspace-alerts`
 
 #### Scenario: Patch is registered in the kustomization
 
@@ -81,20 +88,28 @@ falls through to the default receiver `null` and is discarded — including all 
 - **THEN** its `patches:` list contains `alertmanager-matcher-strategy-patch.yaml`
   (Positiv-Anker: the pre-existing entry `loki-sc-rules-resources-patch.yaml` is still present)
 
+---
+
 ### Requirement: Backup-Job-Failures lösen kritischen Alert aus
 
 Every failed Kubernetes Job created by a backup CronJob (`pvc-backup`, `db-backup`,
 `backup-restore-verify`) in namespace `workspace` or `workspace-korczewski` SHALL raise a
 Prometheus alert `BackupJobFailed` with label `severity: critical` within the rule evaluation
-window, so that a failed nightly run is signaled immediately instead of at the next manual audit.
+window.
+
+Since T016592 the alert SHALL NOT produce an outbound notification: it is observable in the
+Prometheus and Alertmanager UI only. Detecting a failed nightly run therefore depends on a manual
+audit, which is the consequence the operator accepted when all email notification was switched
+off.
 
 #### Scenario: Forced failed backup run produces a signal
 
 - **GIVEN** the PrometheusRule `workspace-alerts` contains the group `backup.rules`
 - **WHEN** a backup Job in one of the covered namespaces transitions to failed
   (`increase(kube_job_status_failed[12h]) > 0`)
-- **THEN** the alert `BackupJobFailed` fires with `severity: critical` and is routed to the email
-  receiver of `workspace-alerts`
+- **THEN** the alert `BackupJobFailed` fires with `severity: critical` and is visible in the
+  Alertmanager UI
+- **AND** it resolves to the `null` receiver, so no mail is sent
 
 ### Requirement: Ausgebliebene Backup-Erfolge lösen Stale-Alert aus
 
@@ -146,6 +161,33 @@ The backup alert expressions SHALL match namespaces `workspace` and `workspace-k
 - **GIVEN** the `backup.rules` group in `k3d/monitoring/prometheus-rules.yaml`
 - **WHEN** the alert expressions are inspected
 - **THEN** each expression filters `namespace=~"workspace|workspace-korczewski"`
+
+
+### Requirement: Blackhole Receiver
+
+The system SHALL declare exactly one receiver named `null` in
+`k3d/monitoring/alertmanager-config.yaml`, carrying a name and no notification configs of any
+kind, and `spec.route.receiver` SHALL reference it.
+
+An `AlertmanagerConfig` without any receiver is invalid and is discarded wholesale by the
+Prometheus Operator — the same failure mode that the T014542 comment in the file already records
+for empty Pushover credentials. The blackhole receiver is therefore how "no notification" is
+expressed, rather than by deleting the receivers outright.
+
+#### Scenario: Blackhole-Receiver ist deklariert und referenziert *(BATS)*
+
+- **GIVEN** die Datei `k3d/monitoring/alertmanager-config.yaml` existiert
+- **WHEN** ihr Inhalt geprüft wird
+- **THEN** enthält `spec.receivers` einen Eintrag `name: "null"` ohne `emailConfigs`,
+  `pushoverConfigs` oder `webhookConfigs`
+- **AND** `spec.route.receiver` ist `"null"`
+
+#### Scenario: Keine Benachrichtigungs-Konfiguration mehr vorhanden *(BATS)*
+
+- **GIVEN** die Datei `k3d/monitoring/alertmanager-config.yaml` existiert
+- **WHEN** ihr Inhalt auf Benachrichtigungs-Konfigurationen geprüft wird
+- **THEN** enthält sie keinen `emailConfigs:`-Eintrag
+  (Positiv-Anker: der `receivers:`-Block existiert weiterhin und trägt den `null`-Receiver)
 
 ## Testszenarien
 
@@ -217,18 +259,6 @@ values for both keys. Email remains the active routing channel in the meantime.
   Environment-Files gepflegt und über `env-seal.sh` in `alertmanager-pushover-secret.yaml` gesealt
 - **WHEN** die Alertmanager-Konfiguration gebaut und angewendet wird
 - **THEN** akzeptiert der Prometheus Operator die Config inklusive Pushover-Receivers
-
-### Requirement: Email Notification Receiver
-<!-- bats: T000617-alert-rules.bats -->
-
-The system SHALL configure an email receiver in the Alertmanager configuration at `k3d/monitoring/alertmanager-config.yaml`.
-
-#### Scenario: E-Mail-Empfänger konfiguriert *(BATS)*
-- **GIVEN** die Datei `k3d/monitoring/alertmanager-config.yaml` existiert
-- **WHEN** der Inhalt auf Receiver-Konfigurationen geprüft wird
-- **THEN** enthält die Datei mindestens einen Eintrag `emailConfigs:`
-
----
 
 ### Requirement: Brand-Neutral Alertmanager Config
 <!-- bats: T000617-alert-rules.bats -->
@@ -360,3 +390,5 @@ through the CLI gate `vda.sh cfr` and direct `tickets.pr_events` queries.
 <!-- merged from change delta monitoring-alerts.md (fe99050d468f) -->
 
 <!-- merged from change delta monitoring-alerts.md (66b98634b5ad) -->
+
+<!-- merged from change delta monitoring-alerts.md (b3ce0ca2dc77) -->

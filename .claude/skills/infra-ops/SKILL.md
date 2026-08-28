@@ -82,7 +82,7 @@ Hetzner-Provisioning, WireGuard-Mesh (`wg-fleet`), UFW-Firewall, OpenClaw.
 Netzwerk-Architektur, vollständige Portliste und Troubleshooting:
 [`references/runbooks-deploy.md`](references/runbooks-deploy.md) §3.
 Provisionierung im Detail: [`references/hetzner-provisioning-network.md`](references/hetzner-provisioning-network.md),
-[`references/wsl-openclaw.md`](references/wsl-openclaw.md).
+[`references/wsl-openclaw.md`](references/archive/wsl-openclaw.md).
 
 ## §4 — Pocket ID OIDC Client Seeding
 
@@ -103,7 +103,7 @@ State-Tabelle, Phasen und Troubleshooting:
 
 ## §5 — LLM Ops
 
-LLM-Pipeline über alle drei GPU-Host-Kontexte (WSL dev · k3d dev · prod fleet).
+LLM-Pipeline über alle drei GPU-Host-Kontexte (k3d dev · prod fleet · FreeToken lokal).
 
 > **Kein in-cluster LiteLLM-Router** (seit PR #895). Apps rufen die Gateway-Services direkt:
 > `llm-gateway-embed` → TEI bge-m3 (`:8081`); `llm-gateway-lmstudio` → LM Studio (`:1234`).

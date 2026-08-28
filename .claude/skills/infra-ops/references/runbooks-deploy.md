@@ -179,11 +179,10 @@ task workspace:vaultwarden:seed-logs ENV=<env> # Logs prüfen
 [ Fleet Cluster: pk-hetzner-4/6/8 (CP) + gekko-hetzner-3/4 (Worker) ]
                       │  WireGuard overlay (wg-fleet)
                       ▼
-[ WSL Host / OpenClaw ] ◄──► [ GPU Worker — 10.10.0.3 ]
+[ GPU Worker — 10.10.0.3 ] ◄──► [ Fleet cluster — 10.0.0.x ]
 ```
 
 Hetzner-Provisioning-Details: [`hetzner-provisioning-network.md`](hetzner-provisioning-network.md)
-OpenClaw-Setup: [`wsl-openclaw.md`](wsl-openclaw.md)
 
 ### Phase 2 — UFW Firewall Ports
 

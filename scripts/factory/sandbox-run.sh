@@ -135,10 +135,10 @@ EOF
     return 0
   fi
 
-  # WSL-DNS-Workaround (T002250): --dns 1.1.1.1 bekommt der PROXY (er haengt am
-  # Default-Bridge, 1.1.1.1 ist dort erreichbar) — die Sandbox-Container
-  # brauchen ihn nicht: im internalen Netz waere 1.1.1.1 unerreichbar und
-  # wuerde die Proxy-Hostname-Aufloesung (eingebetteter Docker-DNS) brechen.
+  # DNS-Eintrag für Proxy: auf WSL2-Hosts muss 1.1.1.1 als DNS verwendet werden,
+  # da der Proxy an der Default-Bridge hängt und 1.1.1.1 dort erreichbar ist.
+  # Die Sandbox-Container (internes Netz) brauchen ihn nicht — 1.1.1.1 wäre
+  # dort unerreichbar und würde die Proxy-Hostname-Auflösung brechen.
   local dns_opts=""
   if [ -n "${WSL_DISTRO_NAME:-}" ]; then
     dns_opts="--dns 1.1.1.1"

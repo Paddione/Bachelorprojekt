@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Strukturiertes Eskalations-Signal für feststeckende Agenten.
 # Agenten rufen dieses Script auf, wenn sie blockiert sind — statt blind weiterzumachen.
 

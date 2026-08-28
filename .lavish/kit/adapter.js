@@ -8,8 +8,8 @@
 
 const data = (() => {
   // Port 39152, nicht 49152: der alte Wert lag im Bereich, den Windows/Hyper-V
-  // auf WSL2-Hosts reserviert [T002708]. Muss mit dem Default in
-  // .lavish/kit/daemon/server.ts uebereinstimmen.
+  // auf WSL2-Hosts und nativen Windows-Installationen reserviert [T002708].
+  // Muss mit dem Default in .lavish/kit/daemon/server.ts uebereinstimmen.
   const DAEMON_BASE = 'http://127.0.0.1:39152';
   const brand = 'mentolder';
 

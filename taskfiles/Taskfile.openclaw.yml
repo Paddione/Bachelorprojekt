@@ -93,7 +93,7 @@ tasks:
         echo "Backend reachability check (Ollama on localhost:11434):"
         curl -sS --max-time 3 http://localhost:11434/v1/models | head -c 400 \
           && echo "" \
-          || echo "WARNING: Ollama not reachable from WSL"
+          || echo "WARNING: Ollama not reachable from localhost:11434"
 
   logs:
     desc: "Tail daemon log via journalctl --user"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.320.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.3...website-v1.320.0) (2026-08-28)
+
+
+### Features
+
+* **infra:** add Penpot design collaboration service [T016593] ([#5302](https://github.com/Paddione/Bachelorprojekt/issues/5302)) ([0c87d26](https://github.com/Paddione/Bachelorprojekt/commit/0c87d264440ad6934c2e52bd80886a51253dac9d))
+
 ## [1.319.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.2...website-v1.319.3) (2026-08-28)
 
 

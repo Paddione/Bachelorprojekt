@@ -24,7 +24,7 @@
 // sich aber vollständig — ein grep fände das nicht.
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 
@@ -209,9 +209,12 @@ function cell(text) {
 }
 
 function renderMap(entries, registryPath) {
-  const rel = registryPath.startsWith(REPO)
+  // [T016596] Der relative Pfad entsteht hier per slice() auf dem absoluten
+  // Pfad und erbt dessen Trenner — unter Windows also Backslashes, die sonst
+  // im Kartenkopf des committeten Artefakts landen.
+  const rel = (registryPath.startsWith(REPO)
     ? registryPath.slice(REPO.length + 1)
-    : registryPath;
+    : registryPath).split(sep).join('/');
   const sorted = [...entries].sort((a, b) => {
     const pa = (() => {
       try {

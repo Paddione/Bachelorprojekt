@@ -39,7 +39,7 @@ const SCOPE_ALIAS_GROUPS = {
     'assets', 'api', 'stream', 'planungsbuero', 'mediaviewer', 'newsletter'],
   infra: ['k3d', 'fleet', 'flux', 'korczewski', 'mentolder', 'prod', 'deploy', 'env',
     'config', 'netpol', 'nextcloud', 'collabora', 'coturn', 'janus', 'platform',
-    'dev-stack', 'dev', 'argocd', 'whiteboard', 'wg', 'talk'],
+    'dev-stack', 'dev', 'argocd', 'whiteboard', 'wg', 'talk', 'penpot'],
   db: ['database', 'schema', 'backup'],
   security: ['secrets', 'sso', 'auth', 'pocket-id', 'rbac', 'keycloak', 'pentest'],
   ops: ['llm', 'terminal', 'recovery', 'monitoring', 'graph', 'oracle', 'gemini', 'claude'],

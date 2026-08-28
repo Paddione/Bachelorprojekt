@@ -6,6 +6,7 @@ kind: Kustomization
 resources:
   - ../../prod-korczewski
   - ../../prod/monitoring
+  - penpot-ingress-route.yaml
 components:
   - ../components/fleet-common
   - ../components/llm-models-longhorn

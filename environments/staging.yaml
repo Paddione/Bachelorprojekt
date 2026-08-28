@@ -57,6 +57,7 @@ env_vars:
   TRAEFIK_EXTERNAL_URL: "https://traefik.staging.korczewski.de"
   MAIL_EXTERNAL_URL: "https://mail.staging.korczewski.de"
   BRETT_DOMAIN: brett.staging.korczewski.de
+  PENPOT_DOMAIN: design.staging.korczewski.de
   MEDIAVIEWER_HOST: mediaviewer.staging.korczewski.de
   VIDEOVAULT_DOMAIN: videovault.staging.korczewski.de
   RECOVER_DOMAIN: recover.staging.korczewski.de

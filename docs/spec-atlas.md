@@ -995,6 +995,9 @@ Last touches:
   - sdlc:down stops the chat loadout before the proxy | T002656 | 2026-08-13 | ADDED
   - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T002623 | 2026-08-10 | ADDED
 In-flight:
+  - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
+  - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
+  - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED
   - Die SDLC-Oberfläche hat eine Laufzeit-Heimat | T016429 | active | MODIFIED
 
 ### secret-rotation

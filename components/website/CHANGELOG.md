@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.319.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.1...website-v1.319.2) (2026-08-28)
+
+
+### Bug Fixes
+
+* **ci:** stop mixing POSIX and Windows path forms in dev-flow guards [T016595] ([#5290](https://github.com/Paddione/Bachelorprojekt/issues/5290)) ([415e058](https://github.com/Paddione/Bachelorprojekt/commit/415e0585af4bde919f563bf90dcdf6fcc86c214c))
+
 ## [1.319.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.319.0...website-v1.319.1) (2026-08-28)
 
 

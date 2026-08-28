@@ -157,6 +157,9 @@ Last touches:
   - The model id is resolved at runtime | T002612 | 2026-08-10 | ADDED
   - The model receives a semantic extract, not raw HTML | T002612 | 2026-08-10 | ADDED
   - Thinking is disabled client-side | T002612 | 2026-08-10 | ADDED
+In-flight:
+  - Globaler Kill-Switch für Admin-Benachrichtigungs-Mails | T016592 | active | ADDED
+  - notify-unread CronJob ist suspendiert | T016592 | active | ADDED
 
 ## Ungrouped
 
@@ -816,6 +819,10 @@ In-flight:
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
   - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
   - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
+  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T016592 | active | MODIFIED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016592 | active | MODIFIED
+  - Blackhole Receiver | T016592 | active | ADDED
+  - Email Notification Receiver | T016592 | active | REMOVED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

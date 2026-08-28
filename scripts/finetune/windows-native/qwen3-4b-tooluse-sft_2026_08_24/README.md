@@ -14,12 +14,11 @@ dieses Verzeichnis sichert die Skripte und die Erkenntnisse fuer Nachlaeufe.
 | unsloth / unsloth_zoo | 2026.8.19 / 2026.8.13, xformers 0.0.35 |
 | GPU | RTX 5070 Ti 16 GB — Training und llama.cpp-Serving schliessen sich gegenseitig aus |
 
-Aufruf aus WSL (PowerShell-Interop, kein pwsh im WSL noetig):
+Aufruf aus PowerShell (native Windows):
 
-```bash
-/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command '
-  Set-Location "$env:USERPROFILE\unsloth-train\qwen3-4b-tooluse-sft_2026_08_24"
-  & "$env:USERPROFILE\unsloth-train\.venv\Scripts\python.exe" train.py'
+```powershell
+Set-Location "$env:USERPROFILE\unsloth-train\qwen3-4b-tooluse-sft_2026_08_24"
+& "$env:USERPROFILE\unsloth-train\.venv\Scripts\python.exe" train.py
 ```
 
 Tipp: Ausgabe per `*> logs\<name>.log` in Datei umlenken — PowerShell-Pipes

@@ -123,20 +123,6 @@
 
     },
 
-    "composio": {
-
-      // Links OpenCode to 1,000+ toolkits (GitHub, Linear, Slack, Figma) via MCP.
-      // Requires COMPOSIO_API_KEY — disabled until the key is set.
-      "type": "remote",
-
-      "url": "https://mcp.composio.com/mcp",
-
-      "headers": {"Authorization":"Bearer {env:COMPOSIO_API_KEY}"},
-
-      "enabled": false
-
-    },
-
     "docfork": {
 
       "type": "local",
@@ -154,20 +140,6 @@
       "url": "http://localhost:13003/mcp",
 
       "enabled": true
-
-    },
-
-    "firecrawl": {
-
-      // Full live web search, site scraping, crawling, and Playwright browser
-      // control. Requires FIRECRAWL_API_KEY — disabled until the key is set.
-      "type": "local",
-
-      "command": ["npx","-y","firecrawl-mcp"],
-
-      "environment": {"FIRECRAWL_API_KEY":"{env:FIRECRAWL_API_KEY}"},
-
-      "enabled": false
 
     },
 

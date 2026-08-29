@@ -190,7 +190,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 scripts/lib/runtime-health-measure.py svc-oidc",
+    "measurement": "python3 scripts/lib/runtime-health-measure.py infra-http",
     "source": ".claude/lib/goals.md · G-SVC02",
     "measured_at": "2026-08-22"
   },
@@ -205,7 +205,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 scripts/lib/runtime-health-measure.py svc-nextcloud",
+    "measurement": "python3 scripts/lib/runtime-health-measure.py infra-http",
     "source": ".claude/lib/goals.md · G-SVC03",
     "measured_at": "2026-08-22"
   },
@@ -220,7 +220,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 scripts/lib/runtime-health-measure.py svc-whiteboard",
+    "measurement": "python3 scripts/lib/runtime-health-measure.py infra-http",
     "source": ".claude/lib/goals.md · G-SVC04",
     "measured_at": "2026-08-22"
   },

@@ -139,6 +139,16 @@ networks:
     status: active
     source: Docker-Daemon
 
+  - id: docker-k3d-mentolder-dev
+    cidr: 172.23.0.0/16
+    owner: Docker (Entwicklungsrechner)
+    purpose: Netz des k3d-Clusters k3d-mentolder-dev (abgebaut)
+    status: retired
+    source: Docker-Daemon (k3d)
+    notes: >-
+      Der Cluster wurde mit PR #5316 endgültig entfernt; der Bereich bleibt
+      als retired stehen, damit eine Neuvergabe als Kollision auffällt.
+
   - id: mentolder-mesh
     cidr: 192.168.100.0/24
     owner: mentolder

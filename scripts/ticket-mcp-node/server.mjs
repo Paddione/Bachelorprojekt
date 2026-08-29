@@ -255,6 +255,322 @@ const TOOLS = [
       required: [],
     },
   },
+  // 7. create_ticket
+  {
+    name: 'create_ticket',
+    description: 'Legt ein Ticket an. Gibt external_id|uuid zurück (Skills parsen cut -d| -f1).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        type: { type: 'string', description: 'fix|feat|chore|project|docs|refactor|perf|test|ci|build (bug/feature/task deprecated)', enum: ['fix', 'feat', 'chore', 'project', 'docs', 'refactor', 'perf', 'test', 'ci', 'build', 'bug', 'feature', 'task'], required: true },
+        title: { type: 'string', description: 'Ticket-Titel', required: true },
+        description: { type: 'string', description: 'Beschreibung (Pflicht in create.sh)', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+        priority: { type: 'string', description: 'hoch|mittel|niedrig (default mittel)', enum: ['hoch', 'mittel', 'niedrig'] },
+        severity: { type: 'string', description: 'critical|major|minor|trivial', enum: ['critical', 'major', 'minor', 'trivial'] },
+        status: { type: 'string', description: 'Start-Status (default triage)' },
+        attention_mode: { type: 'string', description: 'auto|ai_ready|needs_human', enum: ['auto', 'ai_ready', 'needs_human'] },
+        areas: { type: 'string', description: 'Komma-separierte Bereiche z.B. auth,chat' },
+        product_id: { type: 'string', description: "Optional: UUID oder external_id eines type='project'-Tickets im selben Brand — setzt parent_id" },
+      },
+      required: ['type', 'title', 'description'],
+    },
+  },
+  // 8. update_fields
+  {
+    name: 'update_fields',
+    description: 'Bulk-Patch: ändert title, description oder notes eines Tickets.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+        title: { type: 'string', description: 'Neuer Titel' },
+        description: { type: 'string', description: 'Neue Beschreibung' },
+        notes: { type: 'string', description: 'Wird an bestehende notes angehängt' },
+      },
+      required: ['id'],
+    },
+  },
+  // 9. transition_status
+  {
+    name: 'transition_status',
+    description: 'Ändert den Status eines Tickets. Bei done/archived ist resolution erforderlich.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+        status: { type: 'string', description: 'triage, planning, plan_staged, backlog, in_progress, in_review, qa_review, blocked, awaiting_deploy, done, archived', enum: ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'blocked', 'awaiting_deploy', 'done', 'archived'], required: true },
+        resolution: { type: 'string', description: 'fixed, shipped, obsolete', enum: ['fixed', 'shipped', 'obsolete'] },
+        notes: { type: 'string', description: 'Optionaler Notiztext' },
+      },
+      required: ['id', 'status'],
+    },
+  },
+  // 10. stage_plan
+  {
+    name: 'stage_plan',
+    description: 'Stellt ein Ticket in die Kommissionierung (status=plan_staged) mit Branch + Plan-Pfad.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        branch: { type: 'string', description: 'Feature/Fix-Branch', required: true },
+        plan: { type: 'string', description: 'Plan-Datei-Pfad', required: true },
+        hold: { type: 'boolean', description: 'true => --hold (execution_released=false, Operator gibt später frei); false/weggelassen => --no-hold (Factory greift sofort zu). stage-plan verlangt genau eines der Flags.' },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id', 'branch', 'plan'],
+    },
+  },
+  // 11. archive_plan
+  {
+    name: 'archive_plan',
+    description: 'Archiviert einen Plan und mergt den Delta-Spec in die SSOT.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        slug: { type: 'string', description: 'OpenSpec-Change-Slug', required: true },
+        branch: { type: 'string', description: 'Feature/Fix-Branch', required: true },
+        plan_file: { type: 'string', description: 'Pfad zur Plan-Datei', required: true },
+        pr: { type: 'string', description: 'Optionale PR-Nummer (integer)' },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id', 'slug', 'branch', 'plan_file'],
+    },
+  },
+  // 12. enqueue_ticket
+  {
+    name: 'enqueue_ticket',
+    description: 'Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist über die Staged-Lane schon dispatchbar.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        branch: { type: 'string', description: 'Optionaler Branch' },
+        plan: { type: 'string', description: 'Optionaler Plan-Pfad' },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id'],
+    },
+  },
+  // 13. prepare_feature
+  {
+    name: 'prepare_feature',
+    description: 'Convenience: setzt alle Pflichtfelder für ein Feature-Ticket in einem Call und transitioniert zu planning. Führt intern set_plan_meta + alle Readiness-Flags + transition_status(planning) aus.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+        priority: { type: 'string', description: 'wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)', enum: ['hoch', 'mittel', 'niedrig'] },
+        severity: { type: 'string', description: 'wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)', enum: ['critical', 'major', 'minor', 'trivial'] },
+        attention_mode: { type: 'string', description: 'auto, ai_ready, needs_human', enum: ['auto', 'ai_ready', 'needs_human'] },
+        value_prop: { type: 'string', description: 'Kern-Nutzen des Features' },
+        effort: { type: 'string', description: 'klein, mittel, gross', enum: ['klein', 'mittel', 'gross'] },
+        areas: { type: 'string', description: 'Komma-separierte Bereiche z.B. auth,chat' },
+        depends_on: { type: 'string', description: 'Komma-separierte Ticket-IDs z.B. T000100,T000101' },
+        product_id: { type: 'string', description: "Optional: UUID oder external_id eines type='project'-Tickets im selben Brand — setzt parent_id via ticket.sh set-parent" },
+        spec_skizziert: { type: 'boolean', description: 'Readiness-Flag' },
+        abhaengigkeiten_klar: { type: 'boolean', description: 'Readiness-Flag' },
+        offene_fragen_geklaert: { type: 'boolean', description: 'Readiness-Flag' },
+        aufwand_geschaetzt: { type: 'boolean', description: 'Readiness-Flag' },
+      },
+      required: ['id'],
+    },
+  },
+  // 14. add_comment
+  {
+    name: 'add_comment',
+    description: 'Fügt einem Ticket einen Kommentar hinzu.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+        body: { type: 'string', description: 'Kommentartext (Markdown)', required: true },
+        author: { type: 'string', description: 'default: claude-code' },
+        visibility: { type: 'string', description: 'internal oder public', enum: ['internal', 'public'] },
+      },
+      required: ['id', 'body'],
+    },
+  },
+  // 15. set_touched_files
+  {
+    name: 'set_touched_files',
+    description: 'Setzt die touched_files eines Tickets (Konflikt-/Scope-Tracking).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        files: { type: 'string', description: 'Komma- oder Whitespace-getrennte Pfade (wie ticket.sh erwartet)', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id', 'files'],
+    },
+  },
+  // 16. set_readiness_flag
+  {
+    name: 'set_readiness_flag',
+    description: 'Setzt ein einzelnes Readiness-Flag (spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+        flag: { type: 'string', description: 'spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'factory_excluded', 'execution_released'], required: true },
+        value: { type: 'boolean', description: 'true oder false', required: true },
+      },
+      required: ['id', 'flag', 'value'],
+    },
+  },
+  // 17. add_pr_link
+  {
+    name: 'add_pr_link',
+    description: 'Verknüpft eine PR-Nummer mit einem Ticket (tickets.ticket_links kind=pr).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        pr: { type: 'string', description: 'PR-Nummer (integer)', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id', 'pr'],
+    },
+  },
+  // 18. get_ticket_links
+  {
+    name: 'get_ticket_links',
+    description: 'Gibt alle Dependency-Links eines Tickets zurück: blocks (von diesem Ticket ausgehend), blocked_by (auf dieses Ticket zeigend), relates (symmetrisch), child_of (Elternticket).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id'],
+    },
+  },
+  // 19. link_tickets
+  {
+    name: 'link_tickets',
+    description: 'Erstellt einen gerichteten Dependency-Link zwischen zwei Tickets (pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of). Idempotent — mehrfacher Aufruf mit gleichen Argumenten erzeugt keinen Duplikat-Eintrag. HINWEIS: CLI-Statusübergänge via ticket.sh update-status erscheinen nicht in der Timeline (bekannte Lücke).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        from: { type: 'string', description: 'external_id des Quell-Tickets, z.B. T000100', required: true },
+        to: { type: 'string', description: 'external_id des Ziel-Tickets, z.B. T000200', required: true },
+        kind: { type: 'string', description: 'Art der Verknüpfung: pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of', enum: ['pr', 'relates_to', 'blocks', 'blocked_by', 'duplicate_of', 'fixes', 'fixed_by', 'child_of'], required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['from', 'to', 'kind'],
+    },
+  },
+  // 20. record_phase_event
+  {
+    name: 'record_phase_event',
+    description: 'Schreibt ein Factory/Devflow-Phasen-Event (tickets.factory_phase_events).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        phase: { type: 'string', description: 'scout|design|plan|implement|verify|deploy', enum: ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'], required: true },
+        state: { type: 'string', description: 'entered|done|blocked', enum: ['entered', 'done', 'blocked'], required: true },
+        detail: { type: 'string', description: 'Optionaler Detailtext' },
+        driver: { type: 'string', description: 'factory|devflow (default: factory)', enum: ['factory', 'devflow'] },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id', 'phase', 'state'],
+    },
+  },
+  // 21. report_mishap
+  {
+    name: 'report_mishap',
+    description: 'Fuegt einen Mishap in den Buffer ein. Incident-Typen erzeugen sofort ein Ticket. Bei >=10 nicht-kritischen Eintraegen: Buffer wird protokolliert und geleert.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Kurztitel', required: true },
+        description: { type: 'string', description: 'Beschreibung', required: true },
+        component: { type: 'string', description: 'Komponente', required: true },
+        type: { type: 'string', description: 'incident (sofort Ticket) | broken, degraded, suspicious, security, drift, process', enum: ['incident', 'broken', 'degraded', 'suspicious', 'security', 'drift', 'process'], required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['title', 'description', 'component', 'type'],
+    },
+  },
+  // 22. get_mishap_buffer
+  {
+    name: 'get_mishap_buffer',
+    description: 'Zeigt den aktuellen Inhalt des Mishap-Buffers.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+      required: [],
+    },
+  },
+  // 23. flush_mishap_buffer
+  {
+    name: 'flush_mishap_buffer',
+    description: 'Leert den Buffer sofort: die Eintraege werden protokolliert und verworfen, auch unterhalb 10 Eintraegen. Es entsteht kein Ticket [T014104].',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        brand: { type: 'string', description: 'mentolder oder korczewski', enum: ['mentolder', 'korczewski'] },
+      },
+      required: [],
+    },
+  },
+  // 24. record_grill_answers
+  {
+    name: 'record_grill_answers',
+    description: 'Persistiert Grilling-Antworten (tickets.grilling_answers JSONB). answers: eine Zeile pro Antwort als qid=text.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        answers: { type: 'string', description: 'Antworten, eine pro Zeile: qid=text', required: true },
+        questionnaire: { type: 'string', description: 'default: coaching-sessions-v1' },
+        no_comment: { type: 'boolean', description: 'Kein Timeline-Kommentar (default false)' },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id', 'answers'],
+    },
+  },
+  // 25. get_attachments
+  {
+    name: 'get_attachments',
+    description: 'Lädt die Attachments eines Tickets in ein Zielverzeichnis (out_dir Pflicht).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        out_dir: { type: 'string', description: 'Zielverzeichnis (wird angelegt)', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+      },
+      required: ['id', 'out_dir'],
+    },
+  },
+  // 26. set_plan_meta
+  {
+    name: 'set_plan_meta',
+    description: 'Setzt Planungs-Metadaten: value_prop, effort, areas, depends_on, planning_rank.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
+        value_prop: { type: 'string', description: 'Kern-Nutzen des Features' },
+        effort: { type: 'string', description: 'klein, mittel, gross', enum: ['klein', 'mittel', 'gross'] },
+        areas: { type: 'string', description: 'Komma-separierte Bereiche z.B. auth,chat' },
+        depends_on: { type: 'string', description: 'Komma-separierte Ticket-IDs z.B. T000100,T000101' },
+        rank: { type: 'integer', description: 'Planungs-Rang (niedrig = höhere Prio)' },
+      },
+      required: ['id'],
+    },
+  },
 ];
 
 // Continue in next append...

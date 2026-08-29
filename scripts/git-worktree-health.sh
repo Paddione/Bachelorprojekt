@@ -77,7 +77,10 @@ if [ "$CMD" = "orphans" ]; then
   # Registrierte Worktree-Pfade aus git worktree list --porcelain
   registered="$(mktemp)"
   trap "rm -f '$registered'" EXIT
-  git worktree list --porcelain 2>/dev/null | grep '^worktree ' | sed 's/^worktree //' > "$registered"
+  # Registrierung statt Filesystem-Glob — Ableitung aus scripts/lib/worktree-set.sh
+  # (dieselbe Menge, die worktree-list.sh ausgibt).
+  . "$(dirname "$0")/lib/worktree-set.sh"
+  worktree_set_paths "$REPO_ROOT" > "$registered"
 
   found_orphan=0
   for wt_dir in "$REPO_ROOT"/.worktrees/*/; do

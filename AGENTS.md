@@ -82,7 +82,12 @@ bash scripts/agent-lock.sh claim ticket <id> --branch <b> --worktree <wt> --labe
 bash scripts/agent-lock.sh release ticket <id>
 bash scripts/agent-lock.sh list
 bash scripts/agent-msg.sh read --unread          # Session messaging
+bash scripts/worktree-list.sh [--json] [--all]   # Welche Worktrees existieren gerade (--all: + factory-runner-Pod)
 ```
+
+Der Worktree-*Ort* ist Konvention (`.worktrees/<slug>`), die *aktuelle Liste* steht in der
+git-Registrierung: erfragen statt konfigurieren — `worktree-list.sh` ist die gemeinsame Abfrage
+für alle Harnesses.
 
 ## Escalation (when subagent is stuck)
 

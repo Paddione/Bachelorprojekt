@@ -22,13 +22,19 @@ cmd_activity() {
   # Resolve git-common-dir which may be absolute or relative
   case "$common" in /*) worktrees_root="$(dirname "$common")" ;; *) worktrees_root="$(cd "$toplevel/$common" 2>/dev/null && pwd)" || worktrees_root="$toplevel"; worktrees_root="$(dirname "$worktrees_root")" ;; esac
 
-  # Collect worktree roots: main checkout + all git-worktree worktrees
+  # Collect worktree roots: main checkout + all git-worktree worktrees.
+  # Die Menge kommt aus scripts/lib/worktree-set.sh — dieselbe Ableitung, die
+  # worktree-list.sh und git-worktree-health.sh benutzen.
   local -A _wt_roots
   _wt_roots["$toplevel"]=1
-  while IFS= read -r wt_line; do
-    [[ "$wt_line" =~ ^worktree\ (.*) ]] || continue
-    _wt_roots["${BASH_REMATCH[1]}"]=1
-  done < <(git worktree list --porcelain 2>/dev/null)
+  local _wt_lib="${BASH_SOURCE[0]%/*}/lib/worktree-set.sh"
+  if [ -r "$_wt_lib" ]; then
+    # shellcheck source=lib/worktree-set.sh
+    . "$_wt_lib"
+    while IFS= read -r wt_line; do
+      [ -n "$wt_line" ] && _wt_roots["$wt_line"]=1
+    done < <(worktree_set_paths "$toplevel")
+  fi
 
   # Build our ancestor PID set (self + parent chain) so we don't report ourselves
   local -A _my_pids
@@ -124,8 +130,13 @@ _touch_own_worktree_heartbeats() {
 
 # T014468: Query if ANY active lock holds the exact worktree path
 _worktree_is_live_claimed() {
-  local target_wt="$1" f wt
-  for f in "$AGENT_LOCK_DIR"/branch__*.json "$AGENT_LOCK_DIR"/ticket__*.json; do
+  local target_wt="$1" f wt d
+  # _lock_dir() statt $AGENT_LOCK_DIR: die Variable ist nur gesetzt, wenn der
+  # Aufrufer sie exportiert. Unter `set -u` brach die Funktion sonst ab, und
+  # worktree-clean-check.sh las den Abbruch als "nicht live" — ein fremd
+  # gehaltener Worktree galt damit als loeschbar.
+  d="$(_lock_dir)"
+  for f in "$d"/branch__*.json "$d"/ticket__*.json; do
     [ -f "$f" ] || continue
     wt="$(_lock_field "$f" worktree)"
     if [ "$wt" = "$target_wt" ]; then

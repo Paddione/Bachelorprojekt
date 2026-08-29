@@ -686,6 +686,8 @@ Last touches:
   - update-status.sh uses heredoc and guards terminal transitions | T003072 | 2026-08-14 | MODIFIED
   - agy Headless MCP Tool Permission Bypass | T002719 | 2026-08-10 | ADDED
   - Spec Tests Never Mutate Tracked MCP Config Artifacts | T002941 | 2026-08-10 | ADDED
+In-flight:
+  - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
 
 ### mcp-skill-integration
 Reqs: 7 · Scenarios: 17 · Lines: 183

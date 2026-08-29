@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2289 · Scenarios: 5089
+Specs: 145 · Requirements: 2290 · Scenarios: 5091
 
 ## factory-pipeline
 
@@ -660,7 +660,7 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 23 · Scenarios: 50 · Lines: 549
+Reqs: 24 · Scenarios: 52 · Lines: 591
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED

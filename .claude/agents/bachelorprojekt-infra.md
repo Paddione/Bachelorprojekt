@@ -4,7 +4,7 @@ description: >
   Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations,
   environment management, sealed secrets, and full workspace deployment (including
   workspace:setup/post-setup/talk/recording/transcriber) in the Bachelorprojekt
-  workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile,
+  workspace.   Triggers on: fleet/, prod*/, manifest, kustomize, overlay, Taskfile,
   ENV=, environments/, deploy (when referring to k8s resources), workspace:setup.
 model: opus
 # [T002221] No `tools:` key on purpose — see bachelorprojekt-db.md for the full
@@ -36,9 +36,9 @@ You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform
   - `fleet` alone — platform-level only (cert-manager, Traefik, sealed-secrets); overlay `prod-fleet/platform`.
 - The standalone `mentolder` cluster was decommissioned; the standalone `korczewski` cluster was torn down earlier. The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for everything. Pod counts are deliberately not pinned here — read them live.
 - DNS for both `mentolder.de` and `korczewski.de` routes to the `fleet` cluster.
+- **Dev stack:** runs on the same fleet cluster in namespace `workspace-dev` (gekko-hetzner-2 with `role=dev` taint). No local k3d cluster, no WSL — dev is a namespace on fleet (T002630).
 - Each brand has its own `shared-db` instance, Pocket ID instance, and SealedSecrets. Cross-cutting changes (DB password rotations, OIDC tweaks, schema migrations) must be applied to **both namespaces** explicitly (`workspace` and `workspace-korczewski`), via the `fleet` context.
 - Always use `WORKSPACE_NAMESPACE` env var; never hardcode `-n workspace`.
-- **Dev cluster:** `k3s-1` has been permanently **DECOMMISSIONED** (memory corruption 2026-05-31). Dev now runs via local k3d on the workstation (Proxmox VM 10.0.0.26). Context `k3d-mentolder-dev`.
 
 ## Workspace deploy
 For full-stack deployment beyond base kustomize — `workspace:setup`, post-setup,
@@ -48,7 +48,7 @@ talk/recording/transcriber setup, admin-users, vaultwarden seed — use
 kustomize layer; `infra-ops` orchestrates the full sequence.
 
 ## Kustomize layer cake
-- `k3d/` — base manifests (dev values, placeholder secrets)
+- `fleet/` — base manifests (dev values, placeholder secrets)
 - `prod/` — shared production patches (TLS, resources, `$patch: delete` on dev secrets) — NEVER apply directly
 - `prod-mentolder/` / `prod-korczewski/` — legacy per-brand overlays, consumed by `prod-fleet/` wrappers. Never applied directly in prod.
 - `prod-fleet/` — active fleet overlay tree: `platform/`, `mentolder/`, `korczewski/`, and `components/fleet-common/` (shared `secrets-replacement.yaml`). This is what `workspace:deploy` applies for all prod ENVs.

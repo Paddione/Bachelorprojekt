@@ -24,7 +24,7 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 - `task-oracle` — Task-Orakel (task-oracle)
 
 **Guardrails (transitiv):**
-- `G-CONTEXT-CHECK` — Kubectl-Kontext prüfen
+- `G-CONTEXT-CHECK` — Namespace prüfen (Single-Cluster)
 - `G-ENV-EXPLICIT` — ENV immer explizit setzen
 - `G-PR-NOT-MAIN` — Nie direkt auf main
 - `G-PULL-FIRST` — Erst ziehen, dann arbeiten
@@ -47,7 +47,7 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 - `dev-flow-plan` — Planungs-Skill (dev-flow-plan)
 
 **Guardrails (transitiv):**
-- `G-CONTEXT-CHECK` — Kubectl-Kontext prüfen
+- `G-CONTEXT-CHECK` — Namespace prüfen (Single-Cluster)
 - `G-ENV-EXPLICIT` — ENV immer explizit setzen
 - `G-PR-NOT-MAIN` — Nie direkt auf main
 - `G-PULL-FIRST` — Erst ziehen, dann arbeiten

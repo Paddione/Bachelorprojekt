@@ -255,7 +255,7 @@ Orchestrator-Kontext bleibt nur für die CI-Fix-Schleife (5.5) zuständig, solan
 
 ## Schritt 4: Dev-Iteration (optional)
 
-Für schnelles iteratives Testen von Änderungen im lokalen k3d Dev-Cluster (siehe [deploy-routing.md](.claude/skills/references/deploy-routing.md)): `task dev:redeploy:website` bzw. `task dev:redeploy:brett`.
+Für schnelles iteratives Testen von Änderungen im Dev-Namespace `workspace-dev` auf Fleet (siehe [deploy-routing.md](.claude/skills/references/deploy-routing.md)): `task dev:redeploy:website` bzw. `task dev:redeploy:brett`.
 > **⚠ Freshness-Guard (vor dem Commit):** Wenn Schritt 3 (`task freshness:regenerate`) übersprungen oder der Subagent es vergessen hat, schlägt CI mit "stale artifact" fehl. Prüfe: `git diff --name-only` sollte keine generierten Indexdateien zeigen. Falls doch: `task freshness:regenerate && git add` nachholen. Der Pre-commit-Hook automatisiert das nach `task secrets:install-hooks`.
 
 ## Schritt 5: PR erstellen

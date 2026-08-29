@@ -114,11 +114,11 @@ Wandelt Secrets in verschlüsselte 'SealedSecrets', die gefahrlos eingecheckt we
 
 Automatisiert TLS-Zertifikate, damit alle Domains gültiges HTTPS haben.
 
-### ☸️ k3s / k3d
+### ☸️ k3s (Fleet)
 
 🔴 **Niemals allein**
 
-Leichtgewichtige Kubernetes-Variante (k3s in Prod, k3d lokal). Trägt alle Workloads.
+Leichtgewichte Kubernetes-Variante (k3s) auf dem Fleet-Cluster in Helsinki. Trägt alle Workloads beider Marken (mentolder + korczewski) sowie den Dev-Namespace (workspace-dev). Dev-Cluster (k3d) ist seit T002630 abgeschafft.
 
 ### 🔗 WireGuard (wg-mesh)
 
@@ -186,7 +186,7 @@ Dritter Worker-Knoten des Fleet-Clusters (gekko-Reihe).
 
 🟠 **Nur mit Hilfe**
 
-Stillgelegt; die Dev-Umgebung (Kontext k3d-mentolder-dev) läuft heute lokal auf dem WSL-Host, nicht mehr hier.
+Stillgelegt; Dev-Umgebung läuft heute im workspace-dev-Namespace auf dem Fleet-Cluster (gekko-hetzner-2), nicht mehr lokal.
 
 ### 🏠 k3s-2
 

@@ -35,7 +35,7 @@ FA-01..FA-08, FA-09 (InvoiceNinja bucket), FA-22, SA-06, SA-09 — Mattermost/In
 
 ## Commands
 ```bash
-./tests/runner.sh local              # all tests against k3d
+./tests/runner.sh local              # all tests against fleet (workspace-dev namespace)
 ./tests/runner.sh local <TEST-ID>    # single test (e.g. FA-03, SA-08)
 ./tests/runner.sh local --verbose    # verbose output
 ./tests/runner.sh report             # generate Markdown report
@@ -45,11 +45,12 @@ task test:all                        # all offline tests: unit + manifests + dry
 ```
 
 ## Cluster targeting (Fleet Stage 3)
-Live prod ENV identifiers a test run might target:
-- `mentolder` and `korczewski` — both brands on the unified `fleet` cluster (context `fleet`); `mentolder` serves `mentolder.de` (ns `workspace`), `korczewski` serves `korczewski.de` (ns `workspace-korczewski`).
-- `dev` — k3d (`dev.mentolder.de`), context `k3d-mentolder-dev`.
+All tests run against the unified `fleet` cluster (context `fleet`). There is no separate dev cluster — dev runs on the same cluster in namespace `workspace-dev` (T002630).
+- `mentolder` brand — `ENV=mentolder`, ns `workspace`, domain `mentolder.de`.
+- `korczewski` brand — `ENV=korczewski`, ns `workspace-korczewski`, domain `korczewski.de`.
+- `dev` — `ENV=dev`, ns `workspace-dev` on fleet, domain `dev.mentolder.de`.
 
-The old standalone `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` context for all live tests.
+The old standalone `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` context for all tests.
 
 ## Test file locations
 - `tests/` — all test scripts and fixtures

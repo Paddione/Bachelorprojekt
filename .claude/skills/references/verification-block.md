@@ -66,7 +66,7 @@ das alte Muster laufen. Dann gilt die Reihenfolge: erst `git add <neue Datei>`, 
 steigt beim zweiten Lauf um genau 1 (beobachtet 548 → 549, T002255/T002267).
 
 **(b) Rote E2E-Services bei reinen Manifest-Änderungen sind KEIN PR-Blocker.**
-`task test:changed` startet bei `k3d/`-, `environments/`- oder `components/VideoVault/`-Änderungen die
+`task test:changed` startet bei `fleet/`-, `environments/`- oder `components/VideoVault/`-Änderungen die
 Gruppe `test:e2e:services` gegen `localhost:4321`. Ohne laufenden Dev-Stack sind 13
 `ERR_CONNECTION_REFUSED` das erwartete Ergebnis. Seit T002375-p4 überspringt `test:changed`
 die Gruppe mit sichtbarer Meldung, wenn der Port nicht antwortet.

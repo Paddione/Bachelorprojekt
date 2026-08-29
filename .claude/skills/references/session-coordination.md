@@ -39,7 +39,7 @@ bash scripts/agent-lock.sh claim ticket "<T00XXXX>" --branch "<branch>" --worktr
 Vor Änderungen an geteilten Registry-Dateien weiche Warnung + Claim:
 
 ```bash
-for hf in k3d/configmap-domains.yaml environments/schema.yaml Taskfile.yml k3d/kustomization.yaml; do
+for hf in fleet/configmap-domains.yaml environments/schema.yaml Taskfile.yml fleet/kustomization.yaml; do
   git diff --name-only origin/main | grep -qx "$hf" || continue
   [ "$(bash scripts/agent-lock.sh check registry "$hf" | head -1)" = "held" ] \
     && echo "⚠ $hf wird parallel bearbeitet → Keep-both-Rebase erwarten."

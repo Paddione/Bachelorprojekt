@@ -56,21 +56,11 @@ networks:
           Pro erreichbarem Knoten wird dessen podCIDR als /24 über den Tunnel
           geroutet. Fehlt eine dieser Routen, läuft der Verkehr still ins LAN —
           die Fehlerklasse aus T002491.
-      - with: pod-cidr-k3d-dev
-        reason: Das /8 umfasst 10.42.0.0/16 vollständig.
-        mitigation: >-
-          Der lokale k3d-Cluster ist über die Docker-Bridge erreichbar, nicht
-          über eine 10.42-Route auf dem Host.
       - with: service-cidr-fleet
         reason: Das /8 umfasst 10.43.0.0/16 vollständig.
         mitigation: >-
           Service-Adressen werden nie vom Host aus adressiert, nur clusterintern
           über kube-proxy.
-      - with: service-cidr-k3d-dev
-        reason: Das /8 umfasst 10.43.0.0/16 vollständig.
-        mitigation: >-
-          Wie beim fleet-Service-Netz: clusterintern, nie vom Host adressiert.
-
   - id: korczewski-mesh
     cidr: 10.13.14.0/24
     owner: korczewski (abgebaut)
@@ -113,34 +103,6 @@ networks:
       - with: home-lan
         reason: Liegt vollständig im /8 des Heimnetzes.
         mitigation: Je erreichbarem Knoten eine explizite /24-Route über den Tunnel.
-      - with: pod-cidr-k3d-dev
-        reason: >-
-          Identischer Bereich — k3s benutzt in beiden Clustern denselben Default,
-          fleet vergibt daraus 10.42.0.0/24 bis 10.42.6.0/24, der lokale
-          Dev-Cluster 10.42.0.0/24 und 10.42.1.0/24.
-        mitigation: >-
-          Die beiden Cluster sind auf dem Entwicklungsrechner nicht gleichzeitig
-          über 10.42er Routen erreichbar. Deshalb lassen sich die Pod-CIDRs der
-          fleet-Control-Plane dort NICHT als Route nachtragen — sie kollidierten
-          mit dem lokalen Cluster. Wer Pods der CP-Knoten vom Host aus erreichen
-          muss, geht über kubectl port-forward statt über eine Route.
-
-  - id: pod-cidr-k3d-dev
-    cidr: 10.42.0.0/16
-    owner: k3d-mentolder-dev (lokaler Entwicklungscluster)
-    purpose: Pod-Netz des lokalen k3d-Clusters
-    status: active
-    source: .spec.podCIDR der k3d-Knoten (k3s-Default)
-    overlaps:
-      - with: home-lan
-        reason: Liegt vollständig im /8 des Heimnetzes.
-        mitigation: Erreichbarkeit läuft über die Docker-Bridge, nicht über Host-Routen.
-      - with: pod-cidr-fleet
-        reason: Identischer Bereich, derselbe k3s-Default in beiden Clustern.
-        mitigation: >-
-          Siehe pod-cidr-fleet — auf dem Entwicklungsrechner ist immer nur einer
-          der beiden Bereiche routbar.
-
   - id: service-cidr-fleet
     cidr: 10.43.0.0/16
     owner: fleet-Cluster
@@ -151,24 +113,6 @@ networks:
       - with: home-lan
         reason: Liegt vollständig im /8 des Heimnetzes.
         mitigation: Clusterintern über kube-proxy, nie vom Host adressiert.
-      - with: service-cidr-k3d-dev
-        reason: Identischer Bereich, derselbe k3s-Default in beiden Clustern.
-        mitigation: Clusterintern, keine Host-Route in beiden Fällen.
-
-  - id: service-cidr-k3d-dev
-    cidr: 10.43.0.0/16
-    owner: k3d-mentolder-dev (lokaler Entwicklungscluster)
-    purpose: Service-Netz des lokalen k3d-Clusters
-    status: active
-    source: k3s-Default
-    overlaps:
-      - with: home-lan
-        reason: Liegt vollständig im /8 des Heimnetzes.
-        mitigation: Clusterintern über kube-proxy, nie vom Host adressiert.
-      - with: service-cidr-fleet
-        reason: Identischer Bereich, derselbe k3s-Default in beiden Clustern.
-        mitigation: Clusterintern, keine Host-Route in beiden Fällen.
-
   - id: tailscale
     cidr: 100.64.0.0/10
     owner: Tailnet (p.korczewski)
@@ -198,9 +142,12 @@ networks:
   - id: docker-k3d-mentolder-dev
     cidr: 172.23.0.0/16
     owner: Docker (Entwicklungsrechner)
-    purpose: Netz des k3d-Clusters k3d-mentolder-dev
-    status: active
+    purpose: Netz des k3d-Clusters k3d-mentolder-dev (abgebaut)
+    status: retired
     source: Docker-Daemon (k3d)
+    notes: >-
+      Der Cluster wurde mit PR #5316 endgültig entfernt; der Bereich bleibt
+      als retired stehen, damit eine Neuvergabe als Kollision auffällt.
 
   - id: mentolder-mesh
     cidr: 192.168.100.0/24

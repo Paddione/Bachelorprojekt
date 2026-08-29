@@ -1026,9 +1026,9 @@
       "name_de": "Dev-Iterations-Skill (dev-flow-iterate)",
       "kind": "skill",
       "kind_de": "Fertigkeit",
-      "summary_de": "Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren.",
-      "what_for_de": "Shortcut für 'deploy + Logs ansehen + debuggen' im lokalen Dev-Cluster (dev.mentolder.de).",
-      "how_to_start_de": "Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Cluster live sehen willst.",
+      "summary_de": "Deployt Änderungen in den Dev-Namespace (workspace-dev) auf dem Fleet-Cluster und zeigt Logs – zum schnellen Ausprobieren.",
+      "what_for_de": "Shortcut für 'deploy + Logs ansehen + debuggen' im Dev-Namespace auf dem Fleet-Cluster (dev.mentolder.de). Der lokale Dev-Cluster (k3d) ist seit T002630 abgeschafft.",
+      "how_to_start_de": "Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Namespace live sehen willst.",
       "what_could_go_wrong_de": "Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen.",
       "danger": "caution",
       "guardrails": [
@@ -1040,9 +1040,9 @@
         },
         {
           "id": "G-CONTEXT-CHECK",
-          "name_de": "Kubectl-Kontext prüfen",
-          "rule_de": "Vor jeder Cluster-Aktion prüfen, auf welchen Cluster (Kontext) du gerade zeigst.",
-          "why_de": "Der aktive Kontext könnte ein anderer Cluster sein als gedacht."
+          "name_de": "Namespace prüfen (Single-Cluster)",
+          "rule_de": "Vor jeder Cluster-Aktion prüfen, ob der Befehl in workspace, workspace-korczewski oder workspace-dev läuft.",
+          "why_de": "Es gibt nur einen Cluster (fleet) — der falsche Namespace betrifft die falsche Marke oder den Dev-Stack."
         }
       ],
       "related": [
@@ -1055,7 +1055,7 @@
         "dev",
         "iterieren",
         "ausprobieren",
-        "dev-cluster"
+        "dev-namespace"
       ],
       "common": false,
       "order": 999,
@@ -1064,7 +1064,7 @@
         "code",
         "deploy"
       ],
-      "init_prompt_de": "/dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs."
+      "init_prompt_de": "/dev-flow-iterate – deploye in den Dev-Namespace auf Fleet und zeig mir die Logs."
     },
     {
       "id": "dev-flow-e2e",
@@ -1189,9 +1189,9 @@
       "guardrails": [
         {
           "id": "G-CONTEXT-CHECK",
-          "name_de": "Kubectl-Kontext prüfen",
-          "rule_de": "Vor jeder Cluster-Aktion prüfen, auf welchen Cluster (Kontext) du gerade zeigst.",
-          "why_de": "Der aktive Kontext könnte ein anderer Cluster sein als gedacht."
+          "name_de": "Namespace prüfen (Single-Cluster)",
+          "rule_de": "Vor jeder Cluster-Aktion prüfen, ob der Befehl in workspace, workspace-korczewski oder workspace-dev läuft.",
+          "why_de": "Es gibt nur einen Cluster (fleet) — der falsche Namespace betrifft die falsche Marke oder den Dev-Stack."
         }
       ],
       "related": [
@@ -1735,9 +1735,9 @@
     "k3s": {
       "slug": "k3s",
       "kind": "software",
-      "name": "k3s / k3d",
+      "name": "k3s (Fleet)",
       "emoji": "☸️",
-      "summary_de": "Das schlanke Kubernetes, auf dem alle Dienste laufen. Das Fundament der Plattform.",
+      "summary_de": "Das schlanke Kubernetes, auf dem die Fleet-Plattform läuft. Das Fundament der Plattform.",
       "sensitivity": "forbidden",
       "url": null,
       "area": "plattform",
@@ -1841,7 +1841,7 @@
       "kind": "hardware",
       "name": "k3s-1",
       "emoji": "🏠",
-      "summary_de": "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31). Dev läuft jetzt lokal via k3d auf dem WSL-Host.",
+      "summary_de": "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31).",
       "sensitivity": "assisted",
       "url": null
     },
@@ -2116,7 +2116,7 @@
           },
           {
             "slug": "k3s",
-            "name": "k3s / k3d",
+            "name": "k3s (Fleet)",
             "emoji": "☸️",
             "sensitivity": "forbidden",
             "theme": "ausrollen",

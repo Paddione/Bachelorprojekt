@@ -82,7 +82,7 @@ Hetzner-Provisioning, WireGuard-Mesh (`wg-fleet`), UFW-Firewall, OpenClaw.
 Netzwerk-Architektur, vollständige Portliste und Troubleshooting:
 [`references/runbooks-deploy.md`](references/runbooks-deploy.md) §3.
 Provisionierung im Detail: [`references/hetzner-provisioning-network.md`](references/hetzner-provisioning-network.md),
-[`references/wsl-openclaw.md`](references/archive/wsl-openclaw.md).
+[`references/llm-gateway-proxy.md`](references/llm-gateway-proxy.md).
 
 ## §4 — Pocket ID OIDC Client Seeding
 
@@ -95,7 +95,7 @@ OIDC-Clients reconcilen — Redirect-URIs, Client-Secrets, SSO-Login-Fehler.
 
 > **Nie** Clients direkt im Pocket-ID-Admin-UI anlegen oder ändern — der Seed-Job läuft bei
 > **jedem** `task workspace:deploy` und überschreibt UI-Änderungen. Änderungen gehören in
-> `k3d/pocket-id-client-seed.yaml`.
+> `fleet/pocket-id-client-seed.yaml`.
 
 Der Client-State liegt ausschließlich in der DB (`pocket_id.oidc_clients`), nicht in Git.
 State-Tabelle, Phasen und Troubleshooting:
@@ -103,7 +103,7 @@ State-Tabelle, Phasen und Troubleshooting:
 
 ## §5 — LLM Ops
 
-LLM-Pipeline über alle drei GPU-Host-Kontexte (k3d dev · prod fleet · FreeToken lokal).
+LLM-Pipeline über GPU-Host (wg-fleet, 10.10.0.3) und den Dev-Namespace (workspace-dev) auf Fleet.
 
 > **Kein in-cluster LiteLLM-Router** (seit PR #895). Apps rufen die Gateway-Services direkt:
 > `llm-gateway-embed` → TEI bge-m3 (`:8081`); `llm-gateway-lmstudio` → LM Studio (`:1234`).

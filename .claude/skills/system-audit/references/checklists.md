@@ -27,7 +27,7 @@ Kontext `fleet`. MCP-first (`mcp-kubernetes_*`, Flux-MCP), Fallback `kubectl --c
 Fachprozeduren für Rotation/Seeding: infra-ops §6/§4. Hier nur Prüfungen:
 
 1. **Plaintext-Secrets im Git-Baum** — `kind: Secret` ohne `sops:`-Metadaten und ohne
-   SealedSecret-Bezug in `k3d/`, `prod-fleet/`, `flux/` ⇒ Critical.
+   SealedSecret-Bezug in `fleet/`, `prod-fleet/`, `flux/` ⇒ Critical.
 2. **SealedSecrets-Alter** — Erzeugungsdatum der SealedSecret-Manifeste gegen die
    Rotationsrichtlinie (infra-ops §6): überfällig ⇒ Warning, deutlich überfällig (> 2×
    Richtwert) ⇒ Critical.

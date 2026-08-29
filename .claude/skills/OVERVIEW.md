@@ -111,7 +111,7 @@ Skills. Die Sektionen sind einzeln adressierbar; die ausformulierten Phasen lieg
 |---|---|
 | [`infra-ops`](infra-ops/SKILL.md) §1 | Cluster Deployment — neue Kubernetes-Umgebung aufsetzen, Ressourcen ausrollen, degradierten Cluster diagnostizieren (Gap-Analyse), Cross-Brand-Fleet-Operationen (`task feature:*`-Fan-out, `feature:promote`-Smoke-Gate). |
 | [`infra-ops`](infra-ops/SKILL.md) §2 | Workspace Deploy — `workspace:setup`, post-setup, talk/recording/transcriber-setup, optionales admin-users- und vaultwarden-Seeding. Alles, was nicht allein über die Base-Kustomize ausgeliefert wird. |
-| [`infra-ops`](infra-ops/SKILL.md) §3 | Host Node Networking — Hetzner-Provisionierung, cloud-init, Rescue-Mode-Resets, WireGuard-Mesh-Topologie, UFW-Ports. |
+| [`infra-ops`](infra-ops/SKILL.md) §3 | Host Node Networking — Hetzner-Provisionierung, cloud-init, Rescue-Mode-Resets, WireGuard-Mesh-Topologie, UFW-Ports, LLM-Gateway-Proxy. |
 | [`infra-ops`](infra-ops/SKILL.md) §4 | Pocket ID / SSO — OIDC-Clients neu seeden, Client-State in `pocket_id.oidc_clients`. |
 | [`infra-ops`](infra-ops/SKILL.md) §5 | LLM-Pipeline — GPU-Host-Bootstrap, Model-Management, Deploy/Status/Test der LLM-Gateway-Dienste. |
 | [`infra-ops`](infra-ops/SKILL.md) §6 | Secret-Rotation — DB-Passwörter, API-Keys, SealedSecrets-Keypair (nach Reset), Claude-Code-Tokens, Service-Credentials über beide Brands auf dem Fleet-Cluster. |

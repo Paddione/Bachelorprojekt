@@ -118,7 +118,7 @@ gleichzeitig) — teilen sich das Hauptkontext-Fenster von 262k** auf einer 16-G
 > **immer nur eines gleichzeitig geladen sein**. Alle Subagenten-Dispatches laufen serialisiert
 > (1 gleichzeitig). Vor dem ersten `delegate()`-Aufruf: `lms ps` prüfen, ob die passende Datei
 > bereits läuft; falls nicht, mit dem entsprechenden `lms load <file> --identifier <id> -y` nachladen
-> (siehe `k3d`/lokale LLM-Referenz-Memory) — das entlädt automatisch das vorher geladene Profil.
+> (siehe `fleet`/lokale LLM-Referenz-Memory) — das entlädt automatisch das vorher geladene Profil.
 >
 > **Serialisierung einhalten:** Nie mehr gleichzeitige `delegate()`-Aufrufe an einen der `qwen35*`
 > Agents schicken — LM Studio queued überzählige Requests, was Latenz kostet statt Fehler zu werfen

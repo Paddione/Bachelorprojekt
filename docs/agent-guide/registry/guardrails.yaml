@@ -4,9 +4,9 @@
   why_de: "Ohne ENV= wird 'dev' angenommen und der Befehl trifft heimlich die falsche Umgebung."
   enforced_by: hook-env-explicit
 - id: G-CONTEXT-CHECK
-  name_de: "Kubectl-Kontext prüfen"
-  rule_de: "Vor jeder Cluster-Aktion prüfen, auf welchen Cluster (Kontext) du gerade zeigst."
-  why_de: "Der aktive Kontext könnte ein anderer Cluster sein als gedacht."
+  name_de: "Namespace prüfen (Single-Cluster)"
+  rule_de: "Vor jeder Cluster-Aktion prüfen, ob der Befehl in workspace, workspace-korczewski oder workspace-dev läuft."
+  why_de: "Es gibt nur einen Cluster (fleet) — der falsche Namespace betrifft die falsche Marke oder den Dev-Stack."
   enforced_by: docs-only
 - id: G-PULL-FIRST
   name_de: "Erst ziehen, dann arbeiten"

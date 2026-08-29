@@ -69,8 +69,8 @@
       "en": "cert-manager — ACME / DNS-01 TLS certificate automation"
     },
     "k3s": {
-      "de": "Das schlanke Kubernetes, auf dem alle Dienste laufen. Das Fundament der Plattform.",
-      "en": "Lightweight Kubernetes distribution"
+      "de": "Das schlanke Kubernetes, auf dem die Fleet-Plattform läuft. Das Fundament der Plattform.",
+      "en": "Lightweight Kubernetes distribution (Fleet cluster)"
     },
     "wireguard": {
       "de": "Das verschlüsselte Netz (VPN-Mesh), das alle Server-Knoten privat verbindet.",
@@ -115,8 +115,8 @@
       "en": "Worker Helsinki"
     },
     "k3s-1": {
-      "de": "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31). Dev läuft jetzt lokal via k3d auf dem WSL-Host.",
-      "en": "Home Worker 1"
+      "de": "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31).",
+      "en": "Home Worker 1 — DECOMMISSIONED"
     },
     "k3s-2": {
       "de": "Heim-Server (zuhause).",

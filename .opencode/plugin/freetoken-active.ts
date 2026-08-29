@@ -24,6 +24,8 @@
 // alten Modells bis dahin.
 
 const DAEMON_STATUS = "http://127.0.0.1:1900/engine/status"
+const THINKING_MODEL = "active-thinking"
+const FAST_MODEL = "active-fast"
 
 export default async () => {
   return {
@@ -31,6 +33,32 @@ export default async () => {
       try {
         const models = cfg?.provider?.["freetoken-local"]?.models
         if (!models?.active) return
+
+        // @ai-sdk/openai-compatible does not preserve arbitrary nested request
+        // fields from agent options. Inject the Qwen chat-template switch at the
+        // final fetch boundary instead. The model aliases are local routing keys;
+        // FreeToken deliberately ignores the request model and serves the resident
+        // checkpoint, so no engine restart is needed when agents change mode.
+        const upstreamFetch = cfg.provider["freetoken-local"].options?.fetch ?? fetch
+        cfg.provider["freetoken-local"].options.fetch = async (
+          input: RequestInfo | URL,
+          init?: RequestInit,
+        ) => {
+          if (typeof init?.body !== "string") return upstreamFetch(input, init)
+          try {
+            const body = JSON.parse(init.body)
+            if (body.model === THINKING_MODEL || body.model === FAST_MODEL) {
+              body.chat_template_kwargs = {
+                ...(body.chat_template_kwargs ?? {}),
+                enable_thinking: body.model === THINKING_MODEL,
+              }
+              init = { ...init, body: JSON.stringify(body) }
+            }
+          } catch {
+            // Non-JSON request bodies pass through unchanged.
+          }
+          return upstreamFetch(input, init)
+        }
 
         const res = await fetch(DAEMON_STATUS, { signal: AbortSignal.timeout(1500) })
         if (!res.ok) return
@@ -67,6 +95,23 @@ export default async () => {
           `FreeToken-active → ${id} (${models.active.limit.context} ctx` +
           `${grow ? `, Ceiling ${ceiling} aktiv — KV muss via ft ctl cache mitwachsen` : " nutzbar"}` +
           `${st.running ? "" : " — Engine gestoppt, Limit gilt beim naechsten Start"})`
+
+        // Purpose-specific aliases keep their requested budgets. They still get
+        // the resident model name for visibility, while request mode is selected
+        // dynamically by the fetch wrapper above.
+        if (models[THINKING_MODEL]) {
+          const thinkingContext = grow ? ceiling : Math.min(ceiling, calibrated)
+          models[THINKING_MODEL].limit = {
+            ...models[THINKING_MODEL].limit,
+            context: thinkingContext,
+          }
+          models[THINKING_MODEL].name = `FreeToken thinking → ${id} (${thinkingContext} ctx)`
+        }
+        if (models[FAST_MODEL]) {
+          const fastContext = Math.min(85_000, grow ? ceiling : calibrated)
+          models[FAST_MODEL].limit = { ...models[FAST_MODEL].limit, context: fastContext }
+          models[FAST_MODEL].name = `FreeToken non-thinking → ${id} (${fastContext} ctx)`
+        }
       } catch {
         // Daemon nicht erreichbar: Alias behaelt statische Defaults.
       }

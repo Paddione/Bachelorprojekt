@@ -101,6 +101,20 @@
             "context": 131072,
             "output": 8192
           }
+        },
+        "active-thinking": {
+          "name": "FreeToken active · thinking enabled (dynamic resident model, 200k context)",
+          "limit": {
+            "context": 200000,
+            "output": 16384
+          }
+        },
+        "active-fast": {
+          "name": "FreeToken active · thinking disabled (dynamic resident model, 85k context)",
+          "limit": {
+            "context": 85000,
+            "output": 8192
+          }
         }
       }
     },
@@ -470,6 +484,53 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
+    "freetoken-thinking": {
+      "description": "FreeToken reasoning agent: dynamically enables Qwen thinking for every request, advertises 200k context, and is selectable as a primary or dispatchable as a subagent. Shares the single resident FreeToken engine and runs sequentially with other local agents.",
+      "mode": "all",
+      "model": "freetoken-local/active-thinking",
+      "prompt": "{file:./prompts/primary-agent.md}",
+      "color": "#A78BFA",
+      "temperature": 0.3,
+      "steps": 100,
+      "permission": {
+        "edit": "allow", "write": "deny", "bash": "allow",
+        "task": {
+          "freetoken-fast-1": "allow",
+          "freetoken-fast-2": "allow",
+          "freetoken-fast-3": "allow"
+        }
+      }
+    },
+    "freetoken-fast-1": {
+      "description": "FreeToken non-thinking worker 1 of 3. Separate OpenCode conversation context, 85k context cap; shared resident engine and KV pool, sequential dispatch.",
+      "mode": "all",
+      "model": "freetoken-local/active-fast",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#2DD4BF",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    "freetoken-fast-2": {
+      "description": "FreeToken non-thinking worker 2 of 3. Separate OpenCode conversation context, 85k context cap; shared resident engine and KV pool, sequential dispatch.",
+      "mode": "all",
+      "model": "freetoken-local/active-fast",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#14B8A6",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    "freetoken-fast-3": {
+      "description": "FreeToken non-thinking worker 3 of 3. Separate OpenCode conversation context, 85k context cap; shared resident engine and KV pool, sequential dispatch.",
+      "mode": "all",
+      "model": "freetoken-local/active-fast",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#0D9488",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
     // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
     // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
     // beides nicht reicht, wird hier dispatcht. Verwendet die direkte
@@ -619,6 +680,10 @@
           // 2026-08-22: fuenfte lokale Familie — Qwen 3.8 27B auf dem
           // qwen38-220k-Loadout (Port 8094, np=1). Nur sequenziell dispatchen.
           "qwen38": "allow",
+          "freetoken-thinking": "allow",
+          "freetoken-fast-1": "allow",
+          "freetoken-fast-2": "allow",
+          "freetoken-fast-3": "allow",
           // 2026-08-22: Qwen 3.8 Max via Alibaba Cloud — erste Eskalationsstufe
           // nach lokal, selbe Modell-Familie wie der Orchestrator selbst.
           "qwen-cloud": "allow",
@@ -680,6 +745,10 @@
           "gemma": "allow",
           "gemma12": "allow",
           "qwen38": "allow",
+          "freetoken-thinking": "allow",
+          "freetoken-fast-1": "allow",
+          "freetoken-fast-2": "allow",
+          "freetoken-fast-3": "allow",
           "qwen-cloud": "allow",
           "deepseek-helper": "allow",
           "deepseek-helper-go": "allow",

@@ -327,6 +327,41 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
+@test "T900005: FreeToken thinking and fast aliases carry explicit budgets" {
+  run node -e "
+    const j5 = require('json5');
+    const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const models = d.provider['freetoken-local'].models;
+    if (models['active-thinking'].limit.context !== 200000) process.exit(1);
+    if (models['active-fast'].limit.context !== 85000) process.exit(1);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T900005: thinking and three fast workers join the selectable dispatch pool" {
+  run node -e "
+    const j5 = require('json5');
+    const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const a = d.agent;
+    if (a['freetoken-thinking'].mode !== 'all' || a['freetoken-thinking'].model !== 'freetoken-local/active-thinking') process.exit(1);
+    for (let i = 1; i <= 3; i++) {
+      const worker = a['freetoken-fast-' + i];
+      if (!worker || worker.mode !== 'all' || worker.model !== 'freetoken-local/active-fast') process.exit(1);
+      if (a.orchestrator.permission.task['freetoken-fast-' + i] !== 'allow') process.exit(1);
+    }
+    if (a.orchestrator.permission.task['freetoken-thinking'] !== 'allow') process.exit(1);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T900005: plugin injects enable_thinking from the selected alias" {
+  local plugin="$REPO/.opencode/plugin/freetoken-active.ts"
+  run grep -qF 'enable_thinking: body.model === THINKING_MODEL' "$plugin"
+  [ "$status" -eq 0 ]
+  run grep -qF 'body.model === THINKING_MODEL || body.model === FAST_MODEL' "$plugin"
+  [ "$status" -eq 0 ]
+}
+
 @test "T016419: retired clone primaries are gone" {
   # Die sieben Klon-Primaries (seit T014105 byte-identisch mit freetoken-primary)
   # sind entfernt; ihre Namen referenzierten retired Loadouts.

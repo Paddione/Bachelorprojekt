@@ -712,3 +712,149 @@ capabilities:
       use_when: "Secrets rotieren, OIDC-Clients, SealedSecrets und DSGVO-Prüfungen delegieren."
       roles: [orchestrator]
       tier: assisted
+
+  # ─── opencode npm-Plugins: nur im opencode-Harness verfügbar ─────────────────────────
+  # Die vier npm-Plugins aus .opencode/package.json registrieren ihre Tools ausschließlich
+  # im opencode-Harness. Claude-Code-Domänenagenten (bachelorprojekt-*) finden sie nicht vor —
+  # deshalb sind die Rollen auf die opencode-Rollen (orchestrator, big-pickle) begrenzt, nie
+  # `all`. collect.mjs liest die opencode-Plugin-Liste nicht (nur .claude/settings.json
+  # enabledPlugins), die Einträge sind manuell kuratiert und erscheinen nie als unreviewed.
+
+  kontext-kompression:
+    plugin:opencode-dcp:compress@npm:
+      state: canonical
+      use_when: "Session-Kontext komprimieren, wenn das Budget knapp wird (lange Läufe, große Diffs)."
+      roles: [orchestrator, big-pickle]
+      tier: caution
+
+  env-schluessel-liste:
+    plugin:envsitter-guard:envsitter_keys@npm:
+      state: canonical
+      use_when: "Vor envsitter-Fingerprint: vorhandene Umgebungsvariablen-Schlüssel auflisten."
+      roles: [orchestrator, big-pickle]
+      tier: safe
+
+  env-fingerprint:
+    plugin:envsitter-guard:envsitter_fingerprint@npm:
+      state: canonical
+      use_when: "Fingerprint der Umgebung erstellen, um spätere Abweichungen zu erkennen."
+      roles: [orchestrator, big-pickle]
+      tier: safe
+
+  env-abgleich:
+    plugin:envsitter-guard:envsitter_match@npm:
+      state: canonical
+      use_when: "Aktuelle Umgebung gegen einen Fingerprint prüfen (Drift-/Leak-Erkennung)."
+      roles: [orchestrator, big-pickle]
+      tier: safe
+
+  agent-memory-lesen:
+    plugin:opencode-agent-memory:memory_list@npm:
+      state: canonical
+      use_when: "Gespeicherte Agent-Memory-Einträge auflisten (Session-übergreifender Kontext)."
+      roles: [orchestrator, big-pickle]
+      tier: safe
+
+  agent-memory-schreiben:
+    plugin:opencode-agent-memory:memory_set@npm:
+      state: canonical
+      use_when: "Fakten/Entscheidungen als Memory-Eintrag persistieren (Session-übergreifend)."
+      roles: [orchestrator, big-pickle]
+      tier: caution
+
+  agent-memory-ersetzen:
+    plugin:opencode-agent-memory:memory_replace@npm:
+      state: canonical
+      use_when: "Veralteten Memory-Eintrag durch aktualisierten Inhalt ersetzen."
+      roles: [orchestrator, big-pickle]
+      tier: caution
+
+  journal-lesen:
+    plugin:opencode-agent-memory:journal_read@npm:
+      state: canonical
+      use_when: "Journal-Einträge eines Tages lesen (Arbeitsprotokoll nachvollziehen)."
+      roles: [orchestrator, big-pickle]
+      tier: safe
+
+  journal-suchen:
+    plugin:opencode-agent-memory:journal_search@npm:
+      state: canonical
+      use_when: "Journal nach Stichworten durchsuchen (frühere Arbeit wiederfinden)."
+      roles: [orchestrator, big-pickle]
+      tier: safe
+
+  journal-schreiben:
+    plugin:opencode-agent-memory:journal_write@npm:
+      state: canonical
+      use_when: "Tagesjournal-Eintrag schreiben (was wurde getan, was ist offen)."
+      roles: [orchestrator, big-pickle]
+      tier: caution
+
+  hintergrund-task-abbrechen:
+    plugin:oh-my-opencode-slim:task_cancel@npm:
+      state: canonical
+      use_when: "Verfolgten Hintergrund-Spezialisten-Task abbrechen (nur als Orchestrator)."
+      roles: [orchestrator]
+      tier: caution
+
+  hintergrund-task-nachricht:
+    plugin:oh-my-opencode-slim:task_message@npm:
+      state: canonical
+      use_when: "Kurze Nachricht an einen laufenden Hintergrund-Task senden (nur Orchestrator)."
+      roles: [orchestrator]
+      tier: caution
+
+  hintergrund-task-ergebnis:
+    plugin:oh-my-opencode-slim:task_result@npm:
+      state: canonical
+      use_when: "Endergebnis eines abgeschlossenen Hintergrund-Tasks abrufen (nur Orchestrator)."
+      roles: [orchestrator]
+      tier: safe
+
+  hintergrund-task-revive:
+    plugin:oh-my-opencode-slim:task_revive@npm:
+      state: canonical
+      use_when: "Behaltenen Hintergrund-Task mit neuem Prompt wiederbeleben (nur Orchestrator)."
+      roles: [orchestrator]
+      tier: caution
+
+  hintergrund-task-status:
+    plugin:oh-my-opencode-slim:task_status@npm:
+      state: canonical
+      use_when: "Status eines verfolgten Hintergrund-Tasks lesen (nur Orchestrator)."
+      roles: [orchestrator]
+      tier: safe
+
+  nutzer-warten:
+    plugin:oh-my-opencode-slim:wait_for_user@npm:
+      state: canonical
+      use_when: "Automatische Fortsetzung pausieren, bis der Nutzer extern gehandelt hat."
+      avoid_when: "Für Antworten/Entscheidungen — dafür das question-Tool."
+      roles: [orchestrator, big-pickle]
+      tier: caution
+
+  webfetch-erweitert:
+    plugin:oh-my-opencode-slim:webfetch@npm:
+      state: canonical
+      use_when: "Webseiten abrufen und parsen (jsdom-basiert, ersetzt den Built-in-webfetch)."
+      roles: [orchestrator, big-pickle]
+      tier: caution
+
+  code-struktur-suche:
+    plugin:oh-my-opencode-slim:ast_grep_search@npm:
+      state: canonical
+      use_when: "Strukturierte Code-Suche nach Syntax-Mustern (AST-basiert)."
+      roles: [orchestrator, big-pickle]
+      tier: safe
+
+  code-struktur-ersetzen:
+    plugin:oh-my-opencode-slim:ast_grep_replace@npm:
+      state: canonical
+      use_when: "Strukturierte Code-Ersetzung nach Syntax-Mustern (AST-basiert)."
+      roles: [orchestrator, big-pickle]
+      tier: caution
+
+  acp-agent-ausfuehren:
+    plugin:oh-my-opencode-slim:acp_run@npm:
+      state: suppressed
+      reason: "Keine ACP-Agenten konfiguriert — das Tool wird nicht registriert (acpRunTools leer)."

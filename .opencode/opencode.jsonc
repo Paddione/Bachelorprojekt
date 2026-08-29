@@ -9,6 +9,24 @@
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
   "model": "freetoken-local/active",
+  // ── Third-party opencode plugins (installed via npm into .opencode/) ──────
+  // Loaded from npm through the `plugin` array. Packages are declared in
+  // .opencode/package.json. Composio + Firecrawl are MCP servers (see `mcp`
+  // below), not opencode plugins.
+  "plugin": [
+    // Dynamic Context Pruning
+    "@tarquinen/opencode-dcp",
+    // Envsitter Guard (.env secret leak guard)
+    "envsitter-guard",
+    // NOTE: @devcxl/opencode-worktree DROPPED — broken as published (missing
+    // dist/server.js) AND clashes with the pre-existing dev-flow worktree
+    // plugin (.opencode/skills/dev-flow/worktree.ts): both register the same
+    // tools worktree_create/worktree_delete. The repo's own plugin is kept.
+    // Agent Memory (Letta-style memory blocks)
+    "opencode-agent-memory",
+    // Oh My OpenCode / OmO Slim (multi-agent)
+    "oh-my-opencode-slim"
+  ],
   "permission": {
     "read": "allow",
     "edit": "allow",
@@ -105,6 +123,20 @@
 
     },
 
+    "composio": {
+
+      // Links OpenCode to 1,000+ toolkits (GitHub, Linear, Slack, Figma) via MCP.
+      // Requires COMPOSIO_API_KEY — disabled until the key is set.
+      "type": "remote",
+
+      "url": "https://mcp.composio.com/mcp",
+
+      "headers": {"Authorization":"Bearer {env:COMPOSIO_API_KEY}"},
+
+      "enabled": false
+
+    },
+
     "docfork": {
 
       "type": "local",
@@ -122,6 +154,20 @@
       "url": "http://localhost:13003/mcp",
 
       "enabled": true
+
+    },
+
+    "firecrawl": {
+
+      // Full live web search, site scraping, crawling, and Playwright browser
+      // control. Requires FIRECRAWL_API_KEY — disabled until the key is set.
+      "type": "local",
+
+      "command": ["npx","-y","firecrawl-mcp"],
+
+      "environment": {"FIRECRAWL_API_KEY":"{env:FIRECRAWL_API_KEY}"},
+
+      "enabled": false
 
     },
 

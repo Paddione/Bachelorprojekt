@@ -6,9 +6,17 @@ Enthaelt **keine** Credentials — die Keys liegen git-crypt-verschluesselt unte
 
 ## Grundsatz: kein Passwort, nur Keys
 
-Alle Hetzner-Nodes akzeptieren ausschliesslich **Public-Key-Auth** als `root`.
-Ein Passwort gibt es nicht; Cloud-Init legt den Key beim Provisioning ab
+Alle Hetzner-Nodes akzeptieren ausschliesslich **Public-Key-Auth**. Ein Passwort
+gibt es nicht; Cloud-Init legt den Key beim Provisioning ab
 (`scripts/hetzner/render-cloud-init.sh --ssh-key`).
+
+Regulaerer Zugang ist der persoenliche Account **`patrick`** mit
+`~/.ssh/patrick_ed25519` (im Repo als
+`environments/.secrets/.ssh/patrick_ed25519` hinterlegt). Node-Operationen —
+k3s-Dienst, WireGuard, UFW — laufen darueber mit `sudo`.
+
+> Aeltere Runbooks (`cluster-dev-node-umbau.md`) zeigen `ssh root@<ip>`. Das war
+> der Provisioning-Zugang; fuer den Alltag ist `patrick` + `sudo` der Weg.
 
 ## SSOT fuer Aliase: die Repo-Config
 
@@ -40,8 +48,8 @@ Zielt auf **gekko-hetzner-2** (`178.104.169.206`) — die Dev-Node.
 ```
 Host fleet-dev
   HostName 178.104.169.206
-  User root
-  IdentityFile ~/.ssh/id_ed25519_hetzner
+  User patrick
+  IdentityFile ~/.ssh/patrick_ed25519
   IdentitiesOnly yes
 ```
 
@@ -49,30 +57,32 @@ Host fleet-dev
 geladenen Keys der Reihe nach an und laeuft bei mehreren Keys in
 `Too many authentication failures`, bevor der richtige an der Reihe ist.
 
-Der Key-Pfad ist der Default, den auch `scripts/llm-pull-models.sh` annimmt
-(`SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519_hetzner}"`). Wer stattdessen den
-Repo-Key nutzt, setzt `IdentityFile environments/.secrets/.ssh/gekko_ed25519`
-— der Name deutet auf genau diesen Host.
+**Zu den Key-Namen:** im Repo liegen mehrere. `patrick_ed25519` ist der
+persoenliche Zugang und hier der richtige. `gekko_ed25519` traegt den Namen des
+Hosts, `scripts/llm-pull-models.sh` faellt auf `~/.ssh/id_ed25519_hetzner`
+zurueck (`SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519_hetzner}"`) und
+`.claude/settings.json` nennt `~/.ssh/gekko_id_ed25519`. Wer einen davon
+verwendet, weiss warum — Default ist `patrick_ed25519`.
 
 ## Control-Plane-Nodes
 
 ```
 Host fleet-4
   HostName 204.168.244.104
-  User root
-  IdentityFile ~/.ssh/id_ed25519_hetzner
+  User patrick
+  IdentityFile ~/.ssh/patrick_ed25519
   IdentitiesOnly yes
 
 Host fleet-6
   HostName 37.27.251.38
-  User root
-  IdentityFile ~/.ssh/id_ed25519_hetzner
+  User patrick
+  IdentityFile ~/.ssh/patrick_ed25519
   IdentitiesOnly yes
 
 Host fleet-8
   HostName 62.238.23.79
-  User root
-  IdentityFile ~/.ssh/id_ed25519_hetzner
+  User patrick
+  IdentityFile ~/.ssh/patrick_ed25519
   IdentitiesOnly yes
 ```
 
@@ -88,7 +98,7 @@ fragen — nur so ist das Ergebnis ein eindeutiges Ja/Nein zur Key-Auth.
 Schlaegt es mit `Permissions 0644 ... are too open` fehl:
 
 ```bash
-chmod 600 ~/.ssh/id_ed25519_hetzner
+chmod 600 ~/.ssh/patrick_ed25519
 ```
 
 Siehe `docs/superpowers/references/gotchas-footguns.md` — aus Windows-Mounts

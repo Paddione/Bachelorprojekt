@@ -4956,6 +4956,18 @@
     "kind": "shell"
   },
   {
+    "id": "scripts/check-worktree-live-no-env",
+    "file": "tests/spec/scripts/check-worktree-live-no-env.bats",
+    "category": "scripts",
+    "kind": "shell"
+  },
+  {
+    "id": "scripts/worktree-list",
+    "file": "tests/spec/scripts/worktree-list.bats",
+    "category": "scripts",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/action-inventory",
     "file": "tests/spec/sdlc-cockpit/action-inventory.bats",
     "category": "sdlc-cockpit",

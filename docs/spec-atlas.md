@@ -686,6 +686,8 @@ Last touches:
   - update-status.sh uses heredoc and guards terminal transitions | T003072 | 2026-08-14 | MODIFIED
   - agy Headless MCP Tool Permission Bypass | T002719 | 2026-08-10 | ADDED
   - Spec Tests Never Mutate Tracked MCP Config Artifacts | T002941 | 2026-08-10 | ADDED
+In-flight:
+  - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
 
 ### mcp-skill-integration
 Reqs: 7 · Scenarios: 17 · Lines: 183
@@ -825,6 +827,11 @@ In-flight:
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
   - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
   - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
+  - Blackbox-Probe-Coverage aller öffentlichen Services | T005321 | active | ADDED
+  - Internal infrastructure services reachable | T005321 | active | ADDED
+  - CronJob success detection | T005321 | active | ADDED
+  - Alertmanager receiver configuration | T005321 | active | ADDED
+  - Deployment config drift detection | T005321 | active | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

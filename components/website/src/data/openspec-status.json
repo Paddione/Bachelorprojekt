@@ -3531,6 +3531,12 @@
       "status": "archived"
     }
   ],
+  "T005321": [
+    {
+      "slug": "service-health-goals",
+      "status": "plan_staged"
+    }
+  ],
   "T005559": [
     {
       "slug": "2026-08-14-worktree-write-guard-phase-a-allowlist",

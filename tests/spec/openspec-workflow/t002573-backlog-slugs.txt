@@ -30,6 +30,7 @@ mishap-t001972
 mishap-t002408
 mishap-t002424
 mishap-test-repo-hygiene-T002347
+node-mcp-servers
 release-notes-erden
 remove-keycloak-sidecar
 renovate-app-token

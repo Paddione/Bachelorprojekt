@@ -289,6 +289,141 @@ bash scripts/lib/llm-stack-measure.sh dead-endpoints
 
 > **B · Baseline:** 2 → 0 (2026-08-21, T013003: Backend llamacpp-gemma disabled) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
+## G-SVC01 — Öffentliche Services ohne Blackbox-Health-Check: 23 → 0
+
+**Was:** Zählt öffentlich zugängliche Services (aus Ingress-Manifesten in `k3d/`, `prod-fleet/*/`),
+die keine blackbox HTTP health probe in `k3d/monitoring/blackbox-exporter.yaml` haben.
+Services ohne Probe werden bei Ausfall nicht durch Prometheus `probe_success` erkannt.
+
+```bash
+python3 scripts/lib/runtime-health-measure.py svc-probe
+```
+
+> **B · Baseline:** 23 (2026-08-29, viele Ingress backends ohne Probe) · **Target:** 0 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-SVC02 — Pocket-ID OIDC Discovery erreichbar: 0 → 0
+
+**Was:** Prüft, ob die Pocket-ID OIDC Discovery (`/.well-known/openid-configuration`) auf HTTP-Ebene
+gültig antwortet (HTTP 200, JSON mit `issuer` und `authorization_endpoint`).
+
+```bash
+python3 scripts/lib/runtime-health-measure.py infra-http
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-SVC03 — Nextcloud Health-Endpoint antwortet: 0 → 0
+
+**Was:** Prüft, ob Nextcloud `/status.php` HTTP 200 mit `installed: true` zurückgibt.
+
+```bash
+python3 scripts/lib/runtime-health-measure.py infra-http
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-SVC04 — Whiteboard/WebSocket erreichbar: 0 → 0
+
+**Was:** Prüft, ob der Whiteboard/WebSocket-Service auf HTTP-Ebene erreichbar ist.
+
+```bash
+python3 scripts/lib/runtime-health-measure.py infra-http
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-INF01 — TURN-Server antwortet auf STUN: 0 → 0
+
+**Was:** Prüft TCP-Erreichbarkeit von Coturn auf Port 3478 (STUN).
+
+```bash
+python3 scripts/lib/runtime-health-measure.py infra-tcp
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-INF02 — NATS-Listener erreichbar: 0 → 0
+
+**Was:** Prüft TCP-Erreichbarkeit von NATS auf Port 4222.
+
+```bash
+python3 scripts/lib/runtime-health-measure.py infra-tcp
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-INF03 — Janus-Gateway antwortet auf /stats: 0 → 0
+
+**Was:** Prüft HTTP-Response von Janus `/stats` (erwartet JSON mit `"janus"` key).
+
+```bash
+python3 scripts/lib/runtime-health-measure.py infra-http
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-INF04 — Redis-Verbindung möglich: 0 → 0
+
+**Was:** Prüft TCP-Erreichbarkeit von Nextcloud-Redis auf Port 6379.
+
+```bash
+python3 scripts/lib/runtime-health-measure.py infra-tcp
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-CJ01 — CronJob-Lauf erfolgreich, nicht nur frisch: 2 → 0
+
+**Was:** Zählt CronJobs in `workspace`, deren letzter Lauf FAILED ist oder deren
+`lastScheduleTime > lastSuccessfulTime` (geplant, aber nicht erfolgreich ausgeführt).
+
+```bash
+bash scripts/lib/cronjob-check.sh
+```
+
+> **B · Baseline:** 2 (2026-08-29, 2 CronJobs never ran oder ls > lss) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-ALR01 — Alertmanager-Receiver konfiguriert (nicht null): 1 → 0
+
+**Was:** Prüft, ob `alertmanager-config.yaml` einen aktiven receiver (email, webhook, pushover)
+statt "null" hat. "null" = blackhole, keine Benachrichtigungen.
+
+```bash
+python3 scripts/lib/runtime-health-measure.py alert-status
+```
+
+> **B · Baseline:** 1 (2026-08-29, receiver ist "null" — intentional blackhole) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-DRIFT01 — Deployment-Replikation expected == live: 0 → 0
+
+**Was:** Zählt Deployments, deren `spec.replicas` vom `status.replicas` abweicht.
+
+```bash
+bash scripts/lib/manifest-drift-check.sh replicas
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-DRIFT02 — Probe-Konfiguration manifest == live: 1 → 0
+
+**Was:** Zählt Container, denen ein readinessProbe fehlt.
+
+```bash
+bash scripts/lib/manifest-drift-check.sh probes
+```
+
+> **B · Baseline:** 1 (2026-08-29, 1 Container ohne readinessProbe) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T005321
+
+## G-DRIFT03 — SealedSecret-Decryption konsistent: 0 → 0
+
+**Was:** Zählt SealedSecrets mit `status.conditions[].type == "Unsealed"` und `status == "False"`.
+
+```bash
+bash scripts/lib/manifest-drift-check.sh sealed
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T005321
+
 ---
 
 ## G-WT01 — Hauptcheckout auf main und sauber: 1 → 0

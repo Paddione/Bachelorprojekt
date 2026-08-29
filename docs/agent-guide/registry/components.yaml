@@ -195,12 +195,12 @@
   theme: sicherheit
 - slug: k3s
   kind: software
-  name: "k3s / k3d"
+  name: "k3s (Fleet)"
   emoji: "☸️"
   sensitivity: forbidden
-  placeholder_en: "Lightweight Kubernetes distribution"
-  summary_de: "Das schlanke Kubernetes, auf dem alle Dienste laufen. Das Fundament der Plattform."
-  what_for_de: "Leichtgewichtige Kubernetes-Variante (k3s in Prod, k3d lokal). Trägt alle Workloads."
+  placeholder_en: "Lightweight Kubernetes distribution (Fleet cluster)"
+  summary_de: "Das schlanke Kubernetes, auf dem die Fleet-Plattform läuft. Das Fundament der Plattform."
+  what_for_de: "Leichtgewichte Kubernetes-Variante (k3s) auf dem Fleet-Cluster in Helsinki. Trägt alle Workloads beider Marken (mentolder + korczewski) sowie den Dev-Namespace (workspace-dev). Dev-Cluster (k3d) ist seit T002630 abgeschafft."
   url: null
   links: []
   area: plattform
@@ -316,9 +316,9 @@
   name: "k3s-1"
   emoji: "🏠"
   sensitivity: assisted
-  placeholder_en: "Home Worker 1"
-  summary_de: "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31). Dev läuft jetzt lokal via k3d auf dem WSL-Host."
-  what_for_de: "Stillgelegt; die Dev-Umgebung (Kontext k3d-mentolder-dev) läuft heute lokal auf dem WSL-Host, nicht mehr hier."
+  placeholder_en: "Home Worker 1 — DECOMMISSIONED"
+  summary_de: "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31)."
+  what_for_de: "Stillgelegt; Dev-Umgebung läuft heute im workspace-dev-Namespace auf dem Fleet-Cluster (gekko-hetzner-2), nicht mehr lokal."
   url: null
   links: []
 - slug: k3s-2

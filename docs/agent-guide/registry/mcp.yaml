@@ -349,12 +349,12 @@ clients:
     note: "Nur in opencode (disabled)."
 
 cluster:
-  # In-Cluster-Monolith: k3d/default/claude-code-mcp-monolith-{deploy,svc}.yaml
+  # In-Cluster-Monolith: fleet/default/claude-code-mcp-monolith-{deploy,svc}.yaml
   # Namespace: default, Context: fleet
   # Port-forward-Bruecke (systemd user unit):
   #   scripts/mcp-gateway/mcp-gateway.service
   #   Taskfile.agents.yml -> mcp-gateway:start
-  #   kubectl port-forward svc/claude-code-mcp-monolith 18080:8080 13000:3000 13001:3001 13002:3002
+  #   kubectl --context fleet port-forward svc/claude-code-mcp-monolith 18080:8080 13000:3000 13001:3001 13002:3002
   # Bekannte Defekte:
   #   T002312: Der SSOT-Spec behauptet, dieser Monolith sei dekommissioniert (falsch)
   note: "5/5 Running, 55 Restarts. Service 56d alt, Pod 18d alt."

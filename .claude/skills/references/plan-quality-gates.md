@@ -57,14 +57,14 @@ Helper-Module als **pure Module** ohne Rück-Import auf DB-/API-Schichten planen
 
 ### S3 — Hardcodierte Hostnamen
 
-In `k3d/`, `prod*/`, `components/website/src/` sind String-Literale `*.mentolder.de` / `*.korczewski.de`
+In `fleet/`, `prod*/`, `components/website/src/` sind String-Literale `*.mentolder.de` / `*.korczewski.de`
 verboten (Kommentarzeilen ausgenommen). Im Plan immer Env-/Config-basierte Auflösung
 vorsehen (`PROD_DOMAIN`, `configmap-domains.yaml`-ConfigMap, `{ns}`-Templates) — nie
 Brand-Domains in Code-Snippets vorgeben.
 
 ### S4 — Orphan-Manifeste/-Skripte
 
-Jedes neue `k3d/*.yaml` muss in einer `kustomization.yaml` referenziert sein, jedes neue
+Jedes neue `fleet/*.yaml` muss in einer `kustomization.yaml` referenziert sein, jedes neue
 `scripts/*.sh`/`*.mjs` von Taskfile/CI/Doku/anderem Skript aus erreichbar — sonst Orphan-Violation.
 
 ### CQ02 — Explizite `any`-Typen in `components/website/src` (Health-Goal)

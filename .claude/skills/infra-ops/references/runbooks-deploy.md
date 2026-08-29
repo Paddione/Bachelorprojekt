@@ -60,7 +60,7 @@ task workspace:check-connectivity ENV=<env>
 
 ```bash
 # Prerequisites
-for tool in docker kubectl task k3d git kubeseal helm; do
+for tool in docker kubectl task fleet git kubeseal helm; do
   command -v $tool >/dev/null 2>&1 && echo "✅ $tool" || echo "❌ $tool MISSING"
 done
 
@@ -179,10 +179,11 @@ task workspace:vaultwarden:seed-logs ENV=<env> # Logs prüfen
 [ Fleet Cluster: pk-hetzner-4/6/8 (CP) + gekko-hetzner-3/4 (Worker) ]
                       │  WireGuard overlay (wg-fleet)
                       ▼
-[ GPU Worker — 10.10.0.3 ] ◄──► [ Fleet cluster — 10.0.0.x ]
+[ WSL Host / OpenClaw ] ◄──► [ GPU Worker — 10.10.0.3 ]
 ```
 
 Hetzner-Provisioning-Details: [`hetzner-provisioning-network.md`](hetzner-provisioning-network.md)
+OpenClaw-Setup: [`wsl-openclaw.md`](wsl-openclaw.md)
 
 ### Phase 2 — UFW Firewall Ports
 

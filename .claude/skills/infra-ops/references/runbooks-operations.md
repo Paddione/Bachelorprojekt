@@ -12,10 +12,10 @@ nicht hier — diese Datei enthält die Befehlsfolgen.
 
 | Ebene | Ort |
 |-------|-----|
-| Provider | `k3d/pocket-id.yaml` (`ghcr.io/pocket-id/pocket-id`), eigene Postgres-Instanz |
+| Provider | `fleet/pocket-id.yaml` (`ghcr.io/pocket-id/pocket-id`), eigene Postgres-Instanz |
 | Client-State | **DB** `pocket_id.oidc_clients` — keine Datei, kein Git-Artefakt |
-| Provisionierung | Job `pocket-id-client-seed` (`k3d/pocket-id-client-seed.yaml`) via Pocket-ID Admin REST API, läuft bei **jedem** `task workspace:deploy` |
-| Secret-Rückschreibung | `workspace-secrets`; der **website**-Client zusätzlich in `website-secrets` (andere Namespace, T001435 — RBAC: `k3d/pocket-id-client-seed-website-rbac.yaml`) |
+| Provisionierung | Job `pocket-id-client-seed` (`fleet/pocket-id-client-seed.yaml`) via Pocket-ID Admin REST API, läuft bei **jedem** `task workspace:deploy` |
+| Secret-Rückschreibung | `workspace-secrets`; der **website**-Client zusätzlich in `website-secrets` (andere Namespace, T001435 — RBAC: `fleet/pocket-id-client-seed-website-rbac.yaml`) |
 
 ### Phases
 
@@ -31,7 +31,7 @@ task workspace:status ENV=<env>  # pocket-id pod: 1/1 Running?
 task workspace:logs ENV=<env> -- pocket-id
 
 # Phase 2: Seed-Job-Definition anpassen (falls Client-Config sich ändert)
-#   k3d/pocket-id-client-seed.yaml — Clients, Redirect-URIs, Secret-Keys
+#   fleet/pocket-id-client-seed.yaml — Clients, Redirect-URIs, Secret-Keys
 
 # Phase 3: Seed neu ausführen
 # Der Job hat einen stabilen Namen und wird beim Deploy angelegt; zum Erzwingen löschen:
@@ -61,7 +61,8 @@ kubectl --context fleet -n workspace-korczewski delete job pocket-id-client-seed
 
 | Kontext | GPU Host IP | Services | Task-Prefix |
 |---------|-------------|----------|-------------|
-| Dev k3d | `172.17.0.1` | TEI embed, LM Studio | `task llm:* ENV=dev` |
+| WSL local dev | `10.10.0.3` | Ollama, LM Studio | `task openclaw:*` |
+| Dev workspace-dev | `172.17.0.1` | TEI embed, LM Studio | `task llm:* ENV=dev` |
 | Prod fleet | `192.168.100.10` | TEI embed, LM Studio, ComfyUI, Rigger | `task llm:* ENV=mentolder\|korczewski` |
 
 ### Phase 1 — GPU Host Bootstrap
@@ -284,5 +285,5 @@ task recovery:unstage ENV=mentolder -- <ts> -y
 | Symptom | Fix |
 |---------|-----|
 | Migration fails: "must be owner" | Via `psql -U postgres` im shared-db-Pod direkt |
-| Backup CronJob not found | `k3d/backup-cronjob.yaml` anwenden, altes `backup-postgres` CronJob löschen |
+| Backup CronJob not found | `fleet/backup-cronjob.yaml` anwenden, altes `backup-postgres` CronJob löschen |
 | `db-backup` Job Failed, lokale Dumps OK | Filen-Upload-Fehler — 2FA aus? Credentials korrekt? Logs: `filen-upload` Container |

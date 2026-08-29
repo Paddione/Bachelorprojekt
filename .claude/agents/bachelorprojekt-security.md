@@ -55,21 +55,21 @@ Jeder neue Secret-Block muss in die fleet-Dateien (außer `legacy_only: true`).
 `realm-workspace-*.json` exists anymore, and no `quay.io/keycloak` image is referenced by any
 manifest. Anything describing realm exports is stale.
 
-- Provider: `k3d/pocket-id.yaml` (`ghcr.io/pocket-id/pocket-id`), own PostgreSQL instance.
+- Provider: `fleet/pocket-id.yaml` (`ghcr.io/pocket-id/pocket-id`), own PostgreSQL instance.
 - Clients live in the DB (`pocket_id.oidc_clients`), provisioned by the `pocket-id-client-seed`
-  Job (`k3d/pocket-id-client-seed.yaml`) through the Pocket ID Admin REST API on **every**
+  Job (`fleet/pocket-id-client-seed.yaml`) through the Pocket ID Admin REST API on **every**
   `task workspace:deploy`. Hand-editing clients in the UI creates drift the next deploy
   overwrites.
 - Secret write-back: generated client secrets go into `workspace-secrets`. The **website** client
   additionally needs `website-secrets` in the `website` namespace (cross-namespace, T001435) —
-  RBAC for that is in `k3d/pocket-id-client-seed-website-rbac.yaml`.
+  RBAC for that is in `fleet/pocket-id-client-seed-website-rbac.yaml`.
 - SSO consumers (~20 seeded clients): website, nextcloud, vaultwarden, brett, docs, downloads,
   grafana, mediaviewer, studio, videovault, brain, brainstorm, comfy, terminal, traefik, mail,
   rustdesk-web, session-hub, recovery, claude-code. Services without native OIDC sit behind an
   `oauth2-proxy` gate instead of talking to the provider directly. Note: the Tracking pipeline
   was fully removed (PRs #788/#993) — Tracking is no longer an active SSO consumer.
 
-> **Two brands, two of everything (Fleet Stage 3).** Both brands run on the unified `fleet` cluster (context `fleet`), each with its own SealedSecrets, Pocket ID instance, and `shared-db` in its own namespace. Secret rotation and OIDC-client seeding span both namespaces (`workspace` for mentolder, `workspace-korczewski` for korczewski) but always via `--context fleet`. The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for everything.
+> **Two brands, two of everything (Fleet Stage 3).** Both brands run on the unified `fleet` cluster (context `fleet`), each with its own SealedSecrets, Pocket ID instance, and `shared-db` in its own namespace. Secret rotation and OIDC-client seeding span both namespaces (`workspace` for mentolder, `workspace-korczewski` for korczewski) but always via `--context fleet`. There is only one kubeconfig context: `fleet`. The old standalone `mentolder` and `korczewski` contexts are DEAD.
 
 ## DSGVO compliance
 ```bash

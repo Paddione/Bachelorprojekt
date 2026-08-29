@@ -41,8 +41,8 @@ Each brand has its own SealedSecrets, Pocket ID instance, and shared-db instance
 
 **No realm JSON files exist** — the platform migrated from Keycloak to Pocket ID (T002169). Client
 state lives in the DB `pocket_id.oidc_clients` and is provisioned by the `pocket-id-client-seed`
-Job (`k3d/pocket-id-client-seed.yaml`) through the Pocket ID Admin REST API on every
-`task workspace:deploy`. Provider manifest: `k3d/pocket-id.yaml`, reachable at `auth.<domain>`.
+Job (`fleet/pocket-id-client-seed.yaml`) through the Pocket ID Admin REST API on every
+`task workspace:deploy`. Provider manifest: `fleet/pocket-id.yaml`, reachable at `auth.<domain>`.
 
 Client secrets are written back into `workspace-secrets`; the **website** client additionally into
 `website-secrets` in the `website` namespace (cross-namespace, T001435). Hand-editing clients in the

@@ -2,7 +2,7 @@
 
 Diese Tabelle ist die **einzige** verbindliche Quelle dafür, welcher Deploy-Task zu welchen
 geänderten Pfaden gehört. `dev-flow-execute` (Post-Merge-Deploy), `dev-flow-chore` (Schritt 7)
-und lokale Dev-Redeploys (k3d) verweisen alle hierher — **nicht** die Tabelle
+und lokale Dev-Redeploys (workspace-dev auf Fleet) verweisen alle hierher — **nicht** die Tabelle
 kopieren, sondern verlinken.
 
 > **Pull-basiertes Deploy-Modell (Flux, T002083).** Prod wird auf dem fleet-Cluster von
@@ -19,9 +19,9 @@ kopieren, sondern verlinken.
 > die Website. Filter: `scripts/filter-generated.sh`; er liest ausschließlich das
 > Git-Attribut, führt also **keine** eigene Pfadliste.
 
-> **SDLC-Stack löst kein Prod-Deploy aus (T003982).** `k3d/sdlc-stack/**` wird vor der
-> Selektion aus `$CHANGED` entfernt — der Stack existiert nur auf dem lokalen k3d-Dev-
-> Cluster. `grep -E` kann kein Lookahead, deshalb läuft der Ausschluss als vorgeschalteter
+> **Dev-Namespace-Stack löst kein Prod-Deploy aus (T003982).** `fleet/sdlc-stack/**` wird vor der
+> Selektion aus `$CHANGED` entfernt — der Stack existiert nur im Dev-Namespace (`workspace-dev`)
+> auf Fleet. `grep -E` kann kein Lookahead, deshalb läuft der Ausschluss als vorgeschalteter
 > `sed`-Filter in `scripts/devflow-post-merge-deploy.sh`.
 
 ### Prod-Deploy (nach Merge — beide Brands auf fleet)
@@ -31,19 +31,19 @@ kopieren, sondern verlinken.
 | `components/website/**` | `.github/workflows/build-website.yml` (baut + rollt aus). Break-Glass: `task feature:website` — braucht GHCR-Login. |
 | `components/brett/**` | `.github/workflows/build-brett.yml`. Break-Glass: `task feature:brett`. |
 | `docs/**` | `.github/workflows/build-docs.yml`. Break-Glass: `task docs:deploy`. |
-| `k3d/**`, `prod*/**`, `prod-fleet/**`, `environments/**` | Flux reconciled das OCI-Artefakt. Break-Glass: `task feature:deploy` (kein Registry-Login nötig). |
-| `k3d/sdlc-stack/**` | **kein Deploy** — rein lokaler Stack (k3d-Dev-Cluster), existiert nicht auf fleet; wird vor dem `k3d/**`-Match aus `$CHANGED` gefiltert (T003982) |
+| `fleet/**`, `prod*/**`, `prod-fleet/**`, `environments/**` | Flux reconciled das OCI-Artefakt. Break-Glass: `task feature:deploy` (kein Registry-Login nötig). |
+| `fleet/sdlc-stack/**` | **kein Deploy** — Dev-Namespace auf Fleet (`workspace-dev`), existiert nicht als Prod-Overlay; wird vor dem `fleet/**`-Match aus `$CHANGED` gefiltert (T003982) |
 | `linguist-generated`-Pfade | **kein Deploy** — aus der Selektion gefiltert |
 | Mehrere Bereiche | Alle zutreffenden Wege |
 
 **Auto-Detection (implementiert in `scripts/devflow-post-merge-deploy.sh`, Schritt 8):**
 ```bash
 MERGE_COMMIT=$(git log origin/main -1 --format="%H")
-CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh | sed '/^k3d\/sdlc-stack\//d')
+CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh | sed '/^fleet\/sdlc-stack\//d')
 echo "$CHANGED" | grep -qE '^components/website/'  && echo "→ build-website.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^components/brett/'    && echo "→ build-brett.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^docs/'     && echo "→ build-docs.yml (kein lokaler Build)"
-echo "$CHANGED" | grep -qE '^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' && task feature:deploy
+echo "$CHANGED" | grep -qE '^(fleet/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' && task feature:deploy
 ```
 
 Das Skript baut bewusst **keine** Container-Images mehr: der lokale Build scheiterte
@@ -56,7 +56,7 @@ kubectl --context fleet get pods -n workspace            | grep -v Running
 kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
 ```
 
-### Dev-Cluster-Redeploy (k3d)
+### Dev-Redeploy (workspace-dev auf Fleet)
 
 | SURFACE | Redeploy-Task | Watched pods |
 |---------|--------------|--------------|

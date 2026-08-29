@@ -13,7 +13,7 @@ Guards; hier stehen das Commit-Format im Detail, die Schritt-Übersicht und die 
 - `type`: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`
 - `scope`: einer von 14 (T002328) — sechs Domänen `website`, `infra`, `db`, `security`, `ops`,
   `test` (deckungsgleich mit den Agent-Rollen) plus `plans`, `factory`, `agents`, `ci`,
-  `scripts`, `docs`, `mcp`, `deps`. Ein konsolidierter Altname wie `k3d` oder `pocket-id`
+  `scripts`, `docs`, `mcp`, `deps`. Ein konsolidierter Altname wie `fleet-dev` oder `pocket-id`
   wird abgelehnt, die Meldung nennt aber das Ziel (`infra` bzw. `security`).
 - `TICKET_EXT_ID`: z. B. `T001026` — **immer anhängen** wenn ein Ticket existiert
 - Body-Zeilen ebenfalls < 100 Zeichen

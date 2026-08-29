@@ -18,7 +18,7 @@ angehängten Proposals.
 
 | Ziel | System | Deckung | Modus |
 |---|---|---|---|
-| `gitops-repo` | Flux-Manifeste dieses Repos (`k3d/`, `prod-fleet/`, `flux/`) | Skill `gitops-repo-audit` | delegiert |
+| `gitops-repo` | Flux-Manifeste dieses Repos (`fleet/`, `prod-fleet/`, `flux/`) | Skill `gitops-repo-audit` | delegiert |
 | `flux-cluster` | Live-Fleet-Cluster (ns `workspace`, `workspace-korczewski`) | Checkliste [§1](references/checklists.md#1-flux-cluster-live-sweep) | eigen |
 | `website` | Brand-Seiten mentolder + korczewski | Skill `web-audit` | delegiert |
 | `repo` | Repo-Zustand, PRs, Factory-Queue | Skill `repo-hygiene` §0–§7 inkl. Runtime-Drift | delegiert |
@@ -57,7 +57,7 @@ ein einzelnes fehlgeschlagenes Ziel bricht den Lauf nicht ab — es wird im Repo
 ### gitops-repo → delegiert an `gitops-repo-audit`
 
 Führe den Analysis-Workflow des Skills auf diesem Repo aus (Discovery → Validation →
-API Compliance → Best Practices → Security → Report). Scope: `k3d/`, `prod-fleet/`,
+API Compliance → Best Practices → Security → Report). Scope: `fleet/`, `prod-fleet/`,
 `flux/`. Dessen Report-Sektionen werden 1:1 in den Sammelreport übernommen; jede
 Empfehlung wird zu einem normierten Befund nach Phase B.
 

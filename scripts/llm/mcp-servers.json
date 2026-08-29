@@ -1,5 +1,27 @@
 {
   "mcpServers": {
+    "brain-mcp": {
+      "command": "node",
+      "args": [
+        "/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"
+      ],
+      "env": {
+        "BRAIN_WIKI_DIR": "~/brain/wiki"
+      },
+      "cwd": "/home/patrick/Bachelorprojekt",
+      "timeout_ms": 30000
+    },
+    "brain-mcp-node": {
+      "command": "node",
+      "args": [
+        "/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"
+      ],
+      "env": {
+        "BRAIN_WIKI_DIR": "~/brain/wiki"
+      },
+      "cwd": "/home/patrick/Bachelorprojekt",
+      "timeout_ms": 30000
+    },
     "codebase-memory-mcp": {
       "command": "/home/patrick/.local/bin/codebase-memory-mcp",
       "cwd": "/home/patrick/Bachelorprojekt",
@@ -10,6 +32,14 @@
       "env": {
         "TICKET_MCP_REPO_ROOT": "/home/patrick/Bachelorprojekt"
       },
+      "cwd": "/home/patrick/Bachelorprojekt",
+      "timeout_ms": 30000
+    },
+    "ticket-mcp-node": {
+      "command": "node",
+      "args": [
+        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"
+      ],
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 30000
     }

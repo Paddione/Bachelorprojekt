@@ -137,6 +137,74 @@ clients:
       qwen_code:
         httpUrl: http://localhost:13005/mcp
 
+  # Node.js ports of the custom MCP servers — zero npm dependencies, stdlib only.
+  # Old Go/Python sources are deprecated (P6: cleanup old sources).
+  brain-mcp-node:
+    transport: stdio
+    command: node
+    args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+    env:
+      BRAIN_WIKI_DIR: ~/brain/wiki
+    harness:
+      claude_code:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+      agy:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+      opencode:
+        type: local
+        command: [node, /home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        environment:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+        enabled: true
+      llamacpp:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 30000
+
+  factory-mcp-node:
+    transport: http
+    endpoint: http://localhost:13003/mcp
+    harness:
+      claude_code:
+        type: http
+        url: http://localhost:13003/mcp
+      agy:
+        serverUrl: http://localhost:13003/mcp
+      opencode:
+        type: remote
+        url: http://localhost:13003/mcp
+        enabled: true
+
+  ticket-mcp-node:
+    transport: stdio
+    command: node
+    args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+    harness:
+      claude_code:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+      agy:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+      opencode:
+        type: local
+        command: [node, /home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        enabled: true
+      llamacpp:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 30000
+
   mcp-task-runner:
     transport: stdio
     browser_endpoint: http://127.0.0.1:18235/mcp/mcp-task-runner
@@ -222,6 +290,13 @@ clients:
         environment:
           BRAIN_WIKI_DIR: ~/brain/wiki
         enabled: true
+      llamacpp:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 30000
 
   # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
   # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)

@@ -113,6 +113,18 @@
 
     },
 
+    "brain-mcp-node": {
+
+      "type": "local",
+
+      "command": ["node","/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"],
+
+      "environment": {"BRAIN_WIKI_DIR":"~/brain/wiki"},
+
+      "enabled": true
+
+    },
+
     "codebase-memory-mcp": {
 
       "type": "local",
@@ -134,6 +146,16 @@
     },
 
     "factory-mcp": {
+
+      "type": "remote",
+
+      "url": "http://localhost:13003/mcp",
+
+      "enabled": true
+
+    },
+
+    "factory-mcp-node": {
 
       "type": "remote",
 
@@ -210,6 +232,16 @@
       "type": "local",
 
       "command": ["ticket-mcp-go"],
+
+      "enabled": true
+
+    },
+
+    "ticket-mcp-node": {
+
+      "type": "local",
+
+      "command": ["node","/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"],
 
       "enabled": true
 

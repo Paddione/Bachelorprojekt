@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.321.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.320.1...website-v1.321.0) (2026-08-29)
+
+
+### Features
+
+* **service-health-goals:** 13 neue Health-Goals (T005321) ([#5322](https://github.com/Paddione/Bachelorprojekt/issues/5322)) ([1c0f7a0](https://github.com/Paddione/Bachelorprojekt/commit/1c0f7a0690069a423b067a2db5d50200be863f1b))
+
 ## [1.320.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.320.0...website-v1.320.1) (2026-08-28)
 
 

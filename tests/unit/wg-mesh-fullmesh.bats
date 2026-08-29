@@ -53,12 +53,17 @@ GEKKO4_IP="10.20.0.6"
   for self in gekko-hetzner-2 gekko-hetzner-3 gekko-hetzner-4; do
     run bash "$SCRIPT" --env fleet --node-name "$self" --private-key "$DUMMY_KEY"
     assert_success
-    # 6 peers expected (7 fleet nodes minus self).
-    local peer_count
-    peer_count=$(grep -c '^\[Peer\]' <<<"$output")
-    [ "$peer_count" -eq 6 ] || {
-      echo "node $self produced $peer_count peers, want 6" >&2
-      return 1
-    }
+    # Erwartet: jeder fleet-Knoten ausser self genau einmal als Peer. Die Menge
+    # kommt aus der Registry statt aus einer Konstanten — eine feste Zahl faellt,
+    # sobald ein Knoten dazukommt, obwohl der Mesh vollstaendig ist (Semantik
+    # statt Darstellung, tests/CLAUDE.md T002716). Beobachtet mit wsl2-gpu-fleet
+    # und terminal-sidekick: 8 fleet-Knoten, der Test erwartete weiter 6 Peers.
+    local other
+    while read -r other; do
+      [ "$other" = "$self" ] && continue
+      assert_output --partial "# $other"
+    done < <(awk '/^fleet:/{f=1;next} /^[^[:space:]#]/{f=0} f && /- name:/{print $3}' \
+             "${PROJECT_DIR}/wireguard/wg-mesh-nodes.yaml")
+    refute_output --partial "# $self"
   done
 }

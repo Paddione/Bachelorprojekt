@@ -153,7 +153,7 @@ setup() {
 
 @test "goals.md: alle 13 neuen Goal-IDs als H2-Sektion vorhanden (T005321)" {
   for id in G-SVC01 G-SVC02 G-SVC03 G-SVC04 G-INF01 G-INF02 G-INF03 G-INF04 G-CJ01 G-ALR01 G-DRIFT01 G-DRIFT02 G-DRIFT03; do
-    grep -qx "## $id" "$GOALS_MD" || {
+    grep -q "^## ${id} " "$GOALS_MD" || {
       echo "FAIL: '$id' fehlt als H2-Sektion in goals.md."
       return 1
     }

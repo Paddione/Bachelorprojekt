@@ -259,11 +259,21 @@ fleet:
       public_key: "H8R7yyZ6W8lS2rlKUNF0bP0oYNtxnn1bjoy3SwmRvCY="
       k8s_node: true
 
+    # GPU host — WSL2 on Windows with FreeToken/plan9 (RTX 5070 Ti, 16 GB)
+    # wg-fleet interface on WSL2 — uses existing mentolder-mesh keypair.
+    # Endpoint is dynamic (WSL2 behind Windows NAT) — the host initiates outbound.
+    - name: wsl2-gpu-fleet
+      endpoint: ""        # dynamic NAT (initiates outbound)
+      wg_ip: "10.20.0.10"
+      schema_key: WG_MESH_WSL2_GPU_FLEET
+      public_key: "5FN+c5UwO4VDwkwaCkG7uoBGDriItwUKolQVVjhQ3U4="
+      keepalive: 25
+
     # terminal-sidekick — WSL host on dev machine. No public endpoint (behind NAT);
     # reachable from fleet nodes only when the WireGuard tunnel is up. Key generated
     # by scripts/terminal-sidekick-host.sh on first run.
     - name: terminal-sidekick
       endpoint: ""
-      wg_ip: "10.20.0.10"
+      wg_ip: "10.20.0.11"
       schema_key: WG_MESH_TERMINAL_SIDEKICK
       public_key: ""

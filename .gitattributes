@@ -59,18 +59,6 @@ docs/agent-guide/maps/danger-map.md           merge=ours linguist-generated=true
 docs/agent-guide/maps/agents-map.md           merge=ours linguist-generated=true
 docs/diagrams/architecture.md                 merge=ours linguist-generated=true
 
-# ── git-crypt-managed secrets (encrypted at rest in this PUBLIC repo) ──
-# NOTE: environments/certs/*.pem are PUBLIC sealing certs — intentionally NOT listed here.
-# SSOT: dev-tools.yaml lives under environments/.secrets/ (wildcard below catches it)
-environments/.secrets/**            filter=git-crypt diff=git-crypt
-# deploy/mcp/claude-code-secrets.yaml — REMOVED (file never existed on main)
-# dotfiles/opencode/config.json — REMOVED: secrets now only in SSOT (environments/.secrets/dev-tools.yaml)
-# dotfiles/agy/settings.json      — REMOVED: secrets now only in SSOT (environments/.secrets/dev-tools.yaml)
-# .claude/settings.json ist NICHT mehr git-crypt-verschluesselt (T002213): die
-# beiden einzigen Secrets (GITHUB_PERSONAL_ACCESS_TOKEN, BRAINTRUST_API_KEY)
-# liegen jetzt in ~/.claude/settings.json (User-Scope) — injected by dotfiles/install.sh.
-# Traegst du dort wieder ein Secret ein, gehoert es nach environments/.secrets/dev-tools.yaml
-# (SSOT) — NICHT hierher zurueck.
 # T016422: Windows-native Dev — Shell-/YAML-Sourcen strikt LF
 *.sh    text eol=lf
 *.bats  text eol=lf
@@ -79,4 +67,10 @@ environments/.secrets/**            filter=git-crypt diff=git-crypt
 *.yaml  text eol=lf
 *.yml   text eol=lf
 *.mjs   text eol=lf
+
+# ── git-crypt-managed secrets (encrypted at rest in this PUBLIC repo) ──
+# MUST come after *.yaml/*.yml text rules so the more-specific path pattern
+# wins: the git-crypt blobs are binary, so text/eol normalization would
+# corrupt them (T016422 quirk). -text keeps them stored verbatim.
+environments/.secrets/**            filter=git-crypt diff=git-crypt -text
 

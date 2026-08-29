@@ -825,6 +825,11 @@ In-flight:
   - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
   - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
   - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
+  - Blackbox-Probe-Coverage aller öffentlichen Services | T005321 | active | ADDED
+  - Internal infrastructure services reachable | T005321 | active | ADDED
+  - CronJob success detection | T005321 | active | ADDED
+  - Alertmanager receiver configuration | T005321 | active | ADDED
+  - Deployment config drift detection | T005321 | active | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331

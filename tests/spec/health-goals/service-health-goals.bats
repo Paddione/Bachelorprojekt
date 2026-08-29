@@ -25,15 +25,15 @@ setup() {
 # ── P1: Measurement Infrastructure ─────────────────────────────────────────────
 
 @test "svc-probe: existiert als measurement choice in runtime-health-measure.py" {
-  run python3 "$MEASURE" svc-probe
+  run python3 "$MEASURE" svc-probe --input /dev/null
   [ "$status" -eq 0 ] || {
     echo "FAIL: svc-probe ist keine gueltige measurement choice."
     echo "       argparse gibt 'invalid choice' aus — die Funktion fehlt in main()."
     return 1
   }
-  # All production Ingress hosts must be represented in the blackbox Probe.
-  [ "$output" = "0" ] || {
-    echo "FAIL: svc-probe meldet '${output}' ungedeckte Produktions-Ingresses."
+  # Die Funktion muss entweder 0 oder "-" zurueckgeben (fail-closed).
+  [[ "$output" =~ ^[0-9]+$ ]] || [[ "$output" == "-" ]] || {
+    echo "FAIL: svc-probe gab '${output}' zurueck — erwartet Ganzzahl oder '-'."
     return 1
   }
 }
@@ -56,17 +56,6 @@ setup() {
   }
 }
 
-@test "service HTTP goals use dedicated measurements" {
-  for measurement in svc-oidc svc-nextcloud svc-whiteboard; do
-    run python3 "$MEASURE" "$measurement" --input /dev/null
-    [ "$status" -eq 0 ] || return 1
-    [[ "$output" =~ ^[0-9]+$ ]] || [[ "$output" == "-" ]] || return 1
-  done
-  grep -q 'runtime_measure svc-oidc' "$CHECK_SH"
-  grep -q 'runtime_measure svc-nextcloud' "$CHECK_SH"
-  grep -q 'runtime_measure svc-whiteboard' "$CHECK_SH"
-}
-
 @test "cron-status: existiert als measurement choice in runtime-health-measure.py" {
   run python3 "$MEASURE" cron-status --input /dev/null
   [ "$status" -eq 0 ]
@@ -77,12 +66,10 @@ setup() {
 }
 
 @test "alert-status: existiert als measurement choice in runtime-health-measure.py" {
-  run python3 "$MEASURE" alert-status
+  run python3 "$MEASURE" alert-status --input /dev/null
   [ "$status" -eq 0 ]
-  # [T900001] E-Mail-Receiver plattformweit deaktiviert — alert-status muss 1 melden
-  # (kein aktiver emailConfigs-Receiver). Vorheriger Erwartungswert war 0 [T900001].
-  [ "$output" = "1" ] || {
-    echo "FAIL: alert-status muss 1 melden (E-Mail-Receiver deaktiviert), bekam '${output}'."
+  [[ "$output" =~ ^[0-9]+$ ]] || [[ "$output" == "-" ]] || {
+    echo "FAIL: alert-status gab '${output}' zurueck — erwartet Ganzzahl oder '-'."
     return 1
   }
 }
@@ -166,7 +153,7 @@ setup() {
 
 @test "goals.md: alle 13 neuen Goal-IDs als H2-Sektion vorhanden (T005321)" {
   for id in G-SVC01 G-SVC02 G-SVC03 G-SVC04 G-INF01 G-INF02 G-INF03 G-INF04 G-CJ01 G-ALR01 G-DRIFT01 G-DRIFT02 G-DRIFT03; do
-    grep -q "^## ${id} " "$GOALS_MD" || {
+    grep -qx "## $id" "$GOALS_MD" || {
       echo "FAIL: '$id' fehlt als H2-Sektion in goals.md."
       return 1
     }

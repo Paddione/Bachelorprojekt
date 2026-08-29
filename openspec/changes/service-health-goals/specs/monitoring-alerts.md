@@ -7,8 +7,6 @@ Konfiguration, CronJob-Erfolg sowie Deployment-Drift prüfen._
 
 ---
 
-## ADDED Requirements
-
 ### Requirement: Blackbox-Probe-Coverage aller öffentlichen Services
 
 Das System SHALL sicherstellen, dass jeder öffentlich zugängliche Service (definiert über

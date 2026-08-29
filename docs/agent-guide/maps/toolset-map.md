@@ -578,6 +578,126 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Secrets rotieren, OIDC-Clients, SealedSecrets und DSGVO-Prüfungen delegieren.
   - _Rollen:_ `orchestrator`
 
+## Fähigkeit: `kontext-kompression`
+
+- **`plugin:opencode-dcp:compress@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Session-Kontext komprimieren, wenn das Budget knapp wird (lange Läufe, große Diffs).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `env-schluessel-liste`
+
+- **`plugin:envsitter-guard:envsitter_keys@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Vor envsitter-Fingerprint: vorhandene Umgebungsvariablen-Schlüssel auflisten.
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `env-fingerprint`
+
+- **`plugin:envsitter-guard:envsitter_fingerprint@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Fingerprint der Umgebung erstellen, um spätere Abweichungen zu erkennen.
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `env-abgleich`
+
+- **`plugin:envsitter-guard:envsitter_match@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Aktuelle Umgebung gegen einen Fingerprint prüfen (Drift-/Leak-Erkennung).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `agent-memory-lesen`
+
+- **`plugin:opencode-agent-memory:memory_list@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Gespeicherte Agent-Memory-Einträge auflisten (Session-übergreifender Kontext).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `agent-memory-schreiben`
+
+- **`plugin:opencode-agent-memory:memory_set@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Fakten/Entscheidungen als Memory-Eintrag persistieren (Session-übergreifend).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `agent-memory-ersetzen`
+
+- **`plugin:opencode-agent-memory:memory_replace@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Veralteten Memory-Eintrag durch aktualisierten Inhalt ersetzen.
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `journal-lesen`
+
+- **`plugin:opencode-agent-memory:journal_read@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Journal-Einträge eines Tages lesen (Arbeitsprotokoll nachvollziehen).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `journal-suchen`
+
+- **`plugin:opencode-agent-memory:journal_search@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Journal nach Stichworten durchsuchen (frühere Arbeit wiederfinden).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `journal-schreiben`
+
+- **`plugin:opencode-agent-memory:journal_write@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Tagesjournal-Eintrag schreiben (was wurde getan, was ist offen).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `hintergrund-task-abbrechen`
+
+- **`plugin:oh-my-opencode-slim:task_cancel@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Verfolgten Hintergrund-Spezialisten-Task abbrechen (nur als Orchestrator).
+  - _Rollen:_ `orchestrator`
+
+## Fähigkeit: `hintergrund-task-nachricht`
+
+- **`plugin:oh-my-opencode-slim:task_message@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Kurze Nachricht an einen laufenden Hintergrund-Task senden (nur Orchestrator).
+  - _Rollen:_ `orchestrator`
+
+## Fähigkeit: `hintergrund-task-ergebnis`
+
+- **`plugin:oh-my-opencode-slim:task_result@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Endergebnis eines abgeschlossenen Hintergrund-Tasks abrufen (nur Orchestrator).
+  - _Rollen:_ `orchestrator`
+
+## Fähigkeit: `hintergrund-task-revive`
+
+- **`plugin:oh-my-opencode-slim:task_revive@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Behaltenen Hintergrund-Task mit neuem Prompt wiederbeleben (nur Orchestrator).
+  - _Rollen:_ `orchestrator`
+
+## Fähigkeit: `hintergrund-task-status`
+
+- **`plugin:oh-my-opencode-slim:task_status@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Status eines verfolgten Hintergrund-Tasks lesen (nur Orchestrator).
+  - _Rollen:_ `orchestrator`
+
+## Fähigkeit: `nutzer-warten`
+
+- **`plugin:oh-my-opencode-slim:wait_for_user@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Automatische Fortsetzung pausieren, bis der Nutzer extern gehandelt hat.
+  - _Nicht:_ Für Antworten/Entscheidungen — dafür das question-Tool.
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `webfetch-erweitert`
+
+- **`plugin:oh-my-opencode-slim:webfetch@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Webseiten abrufen und parsen (jsdom-basiert, ersetzt den Built-in-webfetch).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `code-struktur-suche`
+
+- **`plugin:oh-my-opencode-slim:ast_grep_search@npm`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Strukturierte Code-Suche nach Syntax-Mustern (AST-basiert).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `code-struktur-ersetzen`
+
+- **`plugin:oh-my-opencode-slim:ast_grep_replace@npm`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Strukturierte Code-Ersetzung nach Syntax-Mustern (AST-basiert).
+  - _Rollen:_ `orchestrator`, `big-pickle`
+
+## Fähigkeit: `acp-agent-ausfuehren`
+
+- **`plugin:oh-my-opencode-slim:acp_run@npm`** — Status `suppressed`
+  - _Grund:_ Keine ACP-Agenten konfiguriert — das Tool wird nicht registriert (acpRunTools leer).
+
 ## Residuale Mehrdeutigkeiten
 
 Keine — jede Instanz ist kuriert, und jede unterdrückte Instanz ist technisch durchsetzbar.

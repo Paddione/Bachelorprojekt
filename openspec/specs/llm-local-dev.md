@@ -189,11 +189,11 @@ definition in the project config would silently override it (T002159, T014105).
 ### Requirement: Model-Agnostic Active Alias for FreeToken-Native Agents
 
 The `freetoken-local` provider SHALL declare an alias model entry `active`
-alongside the concrete checkpoint entries. Every local-family subagent
+alongside the concrete checkpoint entries. Every legacy local-family subagent
 (`gptoss`, `devstral`, `gemma`, `gemma12`, `qwen38`) and the single local
 primary agent (`freetoken-primary`) SHALL reference `freetoken-local/active`
-as its model. No other primary agent SHALL target the `freetoken-local`
-provider.
+as its model. Purpose-specific aliases MAY target the same resident engine when
+they carry an explicit request policy and context budget.
 
 Rationale: FreeToken serves one resident model at a time on a shared port and
 ignores the `model` field of incoming requests (verified live 2026-08-23), so a
@@ -220,6 +220,47 @@ they still carry meaning: as subagent dispatch handles.
   `gptoss-primary`, `devstral-primary`, `gemma12-primary`,
   `gemma26-throughput-primary`, or `qwen38-primary` with `mode: "primary"`
 - **THEN** none of them exists
+
+### Requirement: Dynamic Thinking Pool for FreeToken
+
+The `freetoken-local` provider SHALL expose `active-thinking` with a `200000`
+context limit and `active-fast` with an `85000` context limit. The
+`freetoken-active.ts` plugin SHALL inject
+`chat_template_kwargs.enable_thinking` into the final OpenAI-compatible request
+body according to the selected alias: `true` for `active-thinking` and `false`
+for `active-fast`.
+
+At startup the plugin SHALL cap both purpose-specific aliases to the resident
+checkpoint's safe context when that checkpoint cannot support their Qwen-sized
+fallback budgets. Thus Qwen keeps 200k/85k, while a switch to a smaller
+checkpoint cannot advertise more KV capacity than that checkpoint provides.
+
+The agent roster SHALL provide `freetoken-thinking` with `mode: all`, making it
+both primary-selectable and dispatchable, plus exactly three non-thinking
+agents (`freetoken-fast-1`, `freetoken-fast-2`, `freetoken-fast-3`) also using
+`mode: all`. The
+thinking agent and the regular orchestrator pool SHALL be able to dispatch the
+three fast workers. Separate agent names provide independent OpenCode
+conversation contexts; they do not claim separate FreeToken engines, KV pools,
+or parallel GPU execution.
+
+#### Scenario: Thinking is selected per request without an engine restart
+
+- **GIVEN** the FreeToken engine serves one resident checkpoint
+- **WHEN** OpenCode sends a request through `active-thinking` and then through
+  `active-fast`
+- **THEN** the final request bodies carry `enable_thinking: true` and
+  `enable_thinking: false`, respectively
+- **AND** both requests target the same FreeToken endpoint
+
+#### Scenario: Reasoning agent joins the dispatch pool
+
+- **GIVEN** the parsed OpenCode agent roster
+- **WHEN** `freetoken-thinking` and the three `freetoken-fast-*` agents are
+  inspected
+- **THEN** the thinking agent has mode `all` and a 200k model alias
+- **AND** each fast agent is primary-selectable and dispatchable using the 85k
+  non-thinking alias
 
 ### Requirement: Measured Context Limits for FreeToken Checkpoints
 

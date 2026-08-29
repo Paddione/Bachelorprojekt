@@ -22,14 +22,22 @@ fi
 CLEAN_SRC=$(sed -E 's/^[[:space:]]*\/\/.*$//g' "$SOURCE_FILE")
 CLEAN_TGT=$(sed -E 's/^[[:space:]]*\/\/.*$//g' "$TARGET_FILE")
 
+TEMP_SRC=$(mktemp)
+TEMP_TGT=$(mktemp)
 TEMP_OUT=$(mktemp)
-trap 'rm -f "$TEMP_OUT"' EXIT
+trap 'rm -f "$TEMP_SRC" "$TEMP_TGT" "$TEMP_OUT"' EXIT
+
+# Real files instead of <(...) process substitution: Git Bash on Windows does
+# not expose /proc/<pid>/fd, so jq cannot reopen those pseudo-paths. Plain
+# temporary files work on Linux, macOS, Git Bash, and WSL alike.
+printf '%s\n' "$CLEAN_SRC" > "$TEMP_SRC"
+printf '%s\n' "$CLEAN_TGT" > "$TEMP_TGT"
 
 jq -s '
   .[1].agent = .[0].agent |
   .[1].provider = (.[1].provider * .[0].provider) |
   .[1]
-' <(echo "$CLEAN_SRC") <(echo "$CLEAN_TGT") > "$TEMP_OUT"
+' "$TEMP_SRC" "$TEMP_TGT" > "$TEMP_OUT"
 
 mv "$TEMP_OUT" "$TARGET_FILE"
 echo "Successfully synced agent models to $TARGET_FILE"
@@ -52,4 +60,3 @@ if [[ -d "$PLUGINS_SRC" ]]; then
   cp -f "$PLUGINS_SRC"/*.ts "$PLUGINS_TGT"/ 2>/dev/null || true
   echo "Successfully synced plugin files to $PLUGINS_TGT"
 fi
-

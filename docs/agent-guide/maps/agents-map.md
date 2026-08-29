@@ -31,7 +31,11 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | deepseek-pro-alibaba | all | alibaba-intl/deepseek-v4-pro | ja | Same model as deepseek-pro, over the Alibaba Intl Token Plan — third route (Go + direct + Alibaba) since 2026-08-22 after key rotation; smoke-tested. Context limit declared conservatively, unmeasured. |
 | deepseek-pro-direct | all | deepseek/deepseek-v4-pro | ja | Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633] |
 | devstral | subagent | freetoken-local/active | nein | NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig. |
+| freetoken-fast-1 | all | freetoken-local/active-fast | nein | Non-thinking FreeToken worker 1/3 with a separate 85k OpenCode conversation context; shared engine/KV pool. |
+| freetoken-fast-2 | all | freetoken-local/active-fast | nein | Non-thinking FreeToken worker 2/3 with a separate 85k OpenCode conversation context; shared engine/KV pool. |
+| freetoken-fast-3 | all | freetoken-local/active-fast | nein | Non-thinking FreeToken worker 3/3 with a separate 85k OpenCode conversation context; shared engine/KV pool. |
 | freetoken-primary | primary | freetoken-local/active | nein | Dedizierter Tab-selectable Primary auf dem modellagnostischen FreeToken-Alias 'active' (:1919) [T014105] |
+| freetoken-thinking | all | freetoken-local/active-thinking | nein | 200k FreeToken reasoning agent; selectable as primary and dispatchable as subagent. Thinking is injected dynamically per request. |
 | gemma | subagent | freetoken-local/active | nein | NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout. |
 | gemma12 | subagent | freetoken-local/active | nein | NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout. |
 | gptoss | subagent | freetoken-local/active | nein | NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, Port 8094, 114688 ctx, text-only, np=1). Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig. Name bleibt als Dispatch-Schnittstelle. |

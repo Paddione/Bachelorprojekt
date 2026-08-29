@@ -2814,6 +2814,18 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/freshness-heal-e2e-filter",
+    "file": "tests/spec/ci-cd/freshness-heal-e2e-filter.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/freshness-heal-on-pr",
+    "file": "tests/spec/ci-cd/freshness-heal-on-pr.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/freshness-paths-exist",
     "file": "tests/spec/ci-cd/freshness-paths-exist.bats",
     "category": "ci-cd",

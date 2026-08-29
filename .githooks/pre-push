@@ -129,8 +129,11 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
     fi
   fi
 
-  CHANGED_BATS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep '\.bats$' || true)
-  [[ -z "$CHANGED_BATS" ]] && continue
+  # [T-PENDING] freshness-heal-on-pr: Gate-Bedingung von .bats-nur auf ALLE
+  # Guard-Inputs erweitert (dieselben Regexes wie im Guard-Skript) — sonst
+  # laeuft der erweiterte Guard bei Openspec-/Goals-/Registry-Commits nie.
+  CHANGED_INPUTS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep -E '\.bats$|^tests/.*\.sh$|^tests/e2e/specs/.*\.spec\.ts$|^openspec/changes/|^\.claude/lib/goals\.md$|^docs/agent-guide/registry/' || true)
+  [[ -z "$CHANGED_INPUTS" ]] && continue
 
   # [T002672] Jedes generierte Artefakt EINZELN pruefen. Vorher lief das ueber
   # einen ODER-grep ueber beide Dateinamen: lag eines im Push, galt die Lage als

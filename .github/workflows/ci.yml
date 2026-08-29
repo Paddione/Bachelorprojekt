@@ -198,16 +198,11 @@ jobs:
           # lieferte '' und der Guard meldete fälschlich "Tag fehlt".
           # PR_BODY aus dem Event-Kontext umgeht beide Fehlermodi.
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          if ! task freshness:check; then
-            echo ""
-            echo "❌ Freshness / quality gate failed — see above for the specific cause."
-            echo ""
-            echo "   Stale generated artifacts  →  task freshness:regenerate  (then commit + push)"
-            echo "   New code-quality violation →  task quality:check  (then fix or 'task quality:baseline:freeze')"
-            exit 1
-          fi
-          echo "✅ Freshness and quality gates passed"
+          # Heal-on-PR (T-PENDING): GH_PAT fuer den Bot-Push, PR_NUMBER fuer
+          # den Kommentar. Fehlt der PAT, failt das Skript laut (D2).
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: bash scripts/heal-freshness.sh
 
       - name: OpenSpec spec-drift advisory gate [T001979]
         if: github.event_name == 'pull_request'

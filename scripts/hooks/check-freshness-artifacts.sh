@@ -48,6 +48,24 @@ _needs_test_inventory() {
   printf '%s\n' "$changed" | grep -qE '\.bats$|^tests/.*\.sh$|^tests/e2e/specs/.*\.spec\.ts$'
 }
 
+# [T-PENDING] freshness-heal-on-pr: weitere Input→Artefakt-Mappings warn-only.
+# openspec/changes/** speist openspec-status.json (openspec:status-map) und
+# spec-atlas.md (openspec:atlas); .claude/lib/goals.md speist
+# goals-data.generated.json (health:goals:emit); docs/agent-guide/registry/**
+# speist agent-guide.generated.json + platform-descriptions.generated.json +
+# networks-map.md (agent-guide:emit / networks:map).
+_needs_openspec_artifacts() {
+  printf '%s\n' "$changed" | grep -qE '^openspec/changes/'
+}
+
+_needs_goals_artifacts() {
+  printf '%s\n' "$changed" | grep -qxF '.claude/lib/goals.md'
+}
+
+_needs_registry_artifacts() {
+  printf '%s\n' "$changed" | grep -qE '^docs/agent-guide/registry/'
+}
+
 rc=0
 _require() {
   local artifact="$1"
@@ -58,5 +76,11 @@ _require() {
 }
 
 _needs_test_inventory && _require "components/website/src/data/test-inventory.json"
+_needs_openspec_artifacts && _require "components/website/src/data/openspec-status.json"
+_needs_openspec_artifacts && _require "docs/spec-atlas.md"
+_needs_goals_artifacts && _require "components/website/src/lib/sdlc/goals-data.generated.json"
+_needs_registry_artifacts && _require "components/website/src/lib/agent-guide.generated.json"
+_needs_registry_artifacts && _require "components/website/src/lib/platform-descriptions.generated.json"
+_needs_registry_artifacts && _require "docs/agent-guide/maps/networks-map.md"
 
 exit "$rc"

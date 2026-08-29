@@ -71,7 +71,22 @@ jobs:
         id: filter
         run: |
           CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || echo "")
-          if echo "$CHANGED" | grep -qE '^(components/website/|tests/e2e/|\.github/workflows/e2e-pr\.yml)'; then
+          # Freshness-Artefakte (FILES-Liste aus freshness:check, T-PENDING)
+          # loesen KEINE E2E aus — der Heal-Commit darf die Playwright-Kette
+          # nicht erneut starten. Pro-Datei-Pruefung: ein Commit, der Artefakt
+          # UND echte Seite aendert, laeuft weiter (D3). Kein paths-ignore auf
+          # Trigger-Ebene: der Workflow ist Required Check und muss bei jedem
+          # PR reporten, sonst blockiert der Skip den Merge.
+          run_e2e=false
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if echo "$f" | grep -qE '^(components/website/|tests/e2e/|\.github/workflows/e2e-pr\.yml)' \
+               && ! echo "$f" | grep -qE '^components/website/(src/data/(test-inventory|api-inventory|route-manifest|openspec-status)\.json|src/lib/(learning-assets\.generated|agent-guide\.generated|platform-descriptions\.generated|sdlc/goals-data\.generated)\.json|public/learning-assets/THIRD-PARTY-ASSETS\.md)$'; then
+              run_e2e=true
+              break
+            fi
+          done <<< "$CHANGED"
+          if [ "$run_e2e" = "true" ]; then
             echo "run_e2e=true" >> "$GITHUB_OUTPUT"
             echo "E2E-relevant files changed, running tests"
           else

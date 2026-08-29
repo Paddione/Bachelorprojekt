@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1236,
+      "file_count": 1238,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -884,6 +884,8 @@
         "tests/spec/scout-llm-fallback-erden.bats",
         "tests/spec/scout-prediction-quality.bats",
         "tests/spec/scripts/agent-lock-stale-holder.bats",
+        "tests/spec/scripts/check-worktree-live-no-env.bats",
+        "tests/spec/scripts/worktree-list.bats",
         "tests/spec/sdlc-cockpit/action-inventory.bats",
         "tests/spec/sdlc-cockpit/adapter-contract.bats",
         "tests/spec/sdlc-cockpit/adapter-sdlc-paths.bats",
@@ -3846,7 +3848,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 829,
+      "file_count": 831,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4346,6 +4348,7 @@
         "scripts/lib/ticket-links.sh",
         "scripts/lib/vda-core.sh",
         "scripts/lib/worktree-real-path.sh",
+        "scripts/lib/worktree-set.sh",
         "scripts/lib/wt-hygiene-measure.sh",
         "scripts/lib/zielfamilien-audit.sh",
         "scripts/lint-workflows.sh",
@@ -4676,6 +4679,7 @@
         "scripts/worktree-clean-check.sh",
         "scripts/worktree-create.sh",
         "scripts/worktree-git-op-guard.sh",
+        "scripts/worktree-list.sh",
         "scripts/wsl-open.sh"
       ]
     },

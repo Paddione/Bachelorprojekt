@@ -249,8 +249,10 @@ spec:
             - name: MINIO_ROOT_USER
               value: "penpot"
           ports:
-            - containerPort: 9000
-            - containerPort: 9001
+            - name: api
+              containerPort: 9000
+            - name: console
+              containerPort: 9001
           volumeMounts:
             - name: data
               mountPath: /data
@@ -289,7 +291,9 @@ spec:
   selector:
     app: penminio
   ports:
-    - port: 9000
+    - name: api
+      port: 9000
       targetPort: 9000
-    - port: 9001
+    - name: console
+      port: 9001
       targetPort: 9001

@@ -292,3 +292,38 @@ löst JIT-Loading aus und kollidiert dann mit FreeToken. Vorher deshalb:
 ```bash
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Stop
 ```
+
+## OpenDesign als BYOK-Client — Vision-Einschraenkung (T900009)
+
+FreeToken kann über HTTP **grundsätzlich kein Vision** — für kein Modell und mit keinem
+Checkpoint. Belegstelle: `freetoken/server/generation.py:240`, `_flatten_text_parts` wirft
+bedingungslos bei jedem Nicht-Text-Part, ohne Modell- oder Flag-Pruefung. Die bisherige
+Formulierung "nimmt Bildinhalte noch nicht verlaesslich an" ist zu schwach.
+
+`qwen3_5_moe` traegt in FreeToken `vision_config=None` ("text-only milestone");
+`FREETOKEN_LOAD_VISION` greift nur in `gemma4` und `minimax_m3`.
+
+Der funktionierende Weg ist LM Studio auf `:1234` mit `gemma-4-26b-a4b-it`
+(`type: "vlm"`, `capabilities: ["tool_use"]`), Vision 4/4 Merkmale erkannt.
+
+### Messreihe (RTX 5070 Ti 16 GB, 128k Kontext, K `q8_0` / V `q4_0`, `mmproj-F16`)
+
+| Quant | offloadRatio | Durchsatz | VRAM-Reserve |
+|-------|--------------|-----------|--------------|
+| MXFP4_MOE | 0,76 | 33,1 tok/s | 772 MiB |
+| IQ4_XS | 0,90 | 44,0 tok/s | 1328 MiB |
+| IQ4_XS | 0,95 | 50,1 tok/s | 579 MiB, ein Lauf brach ab |
+
+**Gegenintuitive Erkenntnis:** Mehr GPU-Offload ist unterhalb einer VRAM-Reserveschwelle
+langsamer statt schneller. MXFP4 lieferte bei `0,82` nur 26,8 tok/s (350 MiB Reserve),
+bei `0,76` dagegen 33,1 tok/s. Das Optimum liegt knapp unterhalb des Limits, nicht am Limit.
+
+**Fallstricke:** FreeToken und LM Studio koennen nicht gleichzeitig laden. FreeToken sauber
+stoppen NICHT ueber `restart-freetoken.ps1 -Stop` — das findet eine von der Desktop-App
+gestartete Engine nicht, weil sie als `python.exe` unter einem `ft.exe daemon` laeuft.
+Stattdessen die Daemon-Control-API: `POST http://127.0.0.1:1900/engine/stop`, Start ueber
+`POST /engine/start` mit `{model, port, args}`.
+
+LM Studio loest Nicht-Standard-Quantnamen (`MXFP4_MOE`, `UD-IQ4_XS`) nicht als Varianten
+auf und zeigt `@?`. Abhilfe: die Variante in einen eigenen `publisher/repo`-Ordner legen —
+sie wird dann sofort als eigenes Modell erkannt, ohne App-Neustart.

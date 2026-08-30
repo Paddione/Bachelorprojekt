@@ -91,6 +91,10 @@ In-flight:
   - Penpot-Manifeste folgen dem Repo-Muster | T016593 | active | ADDED
   - Penpot-Datenbank auf shared-db | T016593 | active | ADDED
   - Penpot kennt seine eigene öffentliche URL | T900002 | active | ADDED
+  - Base Ingresses Deleted in the Prod Overlay | T900009 | active | ADDED
+  - Multi-Port Services Declare Port Names | T900009 | active | ADDED
+  - Single Patches Block per Kustomization | T900009 | active | ADDED
+  - Penpot Reachable Under the Brand Design Domain with OIDC | T900009 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED

@@ -1,14 +1,5 @@
 {
   "mcpServers": {
-    "brain-mcp": {
-      "command": "python3",
-      "args": [
-        "/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py"
-      ],
-      "env": {
-        "BRAIN_WIKI_DIR": "~/brain/wiki"
-      }
-    },
     "brain-mcp-node": {
       "command": "node",
       "args": [
@@ -20,10 +11,6 @@
     },
     "codebase-memory-mcp": {
       "command": "/home/patrick/.local/bin/codebase-memory-mcp"
-    },
-    "factory-mcp": {
-      "type": "http",
-      "url": "http://localhost:13003/mcp"
     },
     "factory-mcp-node": {
       "type": "http",
@@ -52,9 +39,6 @@
         "-y",
         "@playwright/mcp@latest"
       ]
-    },
-    "ticket-mcp": {
-      "command": "ticket-mcp-go"
     },
     "ticket-mcp-node": {
       "command": "node",

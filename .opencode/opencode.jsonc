@@ -101,18 +101,6 @@
 
     },
 
-    "brain-mcp": {
-
-      "type": "local",
-
-      "command": ["python3","/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py"],
-
-      "environment": {"BRAIN_WIKI_DIR":"~/brain/wiki"},
-
-      "enabled": true
-
-    },
-
     "brain-mcp-node": {
 
       "type": "local",
@@ -142,16 +130,6 @@
       "command": ["npx","-y","docfork"],
 
       "enabled": false
-
-    },
-
-    "factory-mcp": {
-
-      "type": "remote",
-
-      "url": "http://localhost:13003/mcp",
-
-      "enabled": true
 
     },
 
@@ -224,16 +202,6 @@
       "command": ["npx","-y","@modelcontextprotocol/server-sequential-thinking"],
 
       "enabled": false
-
-    },
-
-    "ticket-mcp": {
-
-      "type": "local",
-
-      "command": ["ticket-mcp-go"],
-
-      "enabled": true
 
     },
 

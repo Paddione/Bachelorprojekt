@@ -32,7 +32,8 @@
       }
     },
     "ticket-mcp": {
-      "command": "ticket-mcp-go"
+      "command": "node",
+      "args": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"]
     }
   }
 }

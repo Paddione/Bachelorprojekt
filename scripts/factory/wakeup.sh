@@ -285,14 +285,11 @@ while true; do
   # Zyklus verbraucht — nicht konvergent. Der Schnitt hängt jetzt am Alter des
   # ältesten Eintrags (Default 7 Tage), nicht an einer Session-Grenze, und
   # bündelt daher unabhängig vom Durchsatz höchstens ein Ticket pro Woche.
-  # Das Binary ist gitignored und liegt erst nach `task ticket-mcp:build` auf
-  # dem PATH — fehlt es, wird der Schritt still übersprungen (best-effort).
-  if command -v ticket-mcp-go >/dev/null 2>&1; then
-    for _mf_brand in mentolder korczewski; do
-      TICKET_MCP_REPO_ROOT="${REPO}" ticket-mcp-go --flush-stale-mishaps --brand "$_mf_brand" 2>&1 \
-        | sed "s/^/[mishap-flush:${_mf_brand}] /" >&2 || true
-    done
-  fi
+  # Das Node.js-Binary liegt im Repo, kein Build nötig.
+  for _mf_brand in mentolder korczewski; do
+    node "${REPO}/scripts/ticket-mcp-node/runner.mjs" --flush-stale-mishaps --brand "$_mf_brand" 2>&1 \
+      | sed "s/^/[mishap-flush:${_mf_brand}] /" >&2 || true
+  done
   # T014104: Der Mishap-Rollup-Treiber ist entfernt. Er war selbst-resurrektierend
   # (ein entfernter Container war die Ausloesebedingung fuer den naechsten) und hat
   # ueber vier Zyklen keinen Eintrag disponiert. Nicht-kritische Mishaps landen jetzt

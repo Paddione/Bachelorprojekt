@@ -15,11 +15,37 @@ diese Pfade sonst ab — auch für reine Statusabfragen.
 Vor jeder Worktree- oder Branch-Aufräumaktion den Arbeitsbaum des Hauptcheckouts und die
 Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftaucht.
 
-**Factory-Tick-Vorcheck.** Läuft ein Factory-Tick (`/tmp/factory-tick.lock` gehalten, derselbe
-Lock-Test wie in §1 [T003227]), mutiert das Repo unter der Messung — auch die §0-Snapshots
-(`git status`, `git stash list`) veralten dann lautlos. Ein Snapshot, der während eines Ticks
-entstanden ist, ist kein Messwert: vor der Aufräumentscheidung erneut messen. Real beobachtet
-am 2026-08-22: Worktree- und Branch-Bestände mutierten während desselben Laufs mehrfach.
+**Vorcheck — ein Befehl, nicht zwei Prosa-Regeln [T900016].**
+
+```bash
+bash scripts/repo-hygiene-precheck.sh          # 0 = frei, 1 = Befund, 2 = nicht prüfbar
+```
+
+Er prüft beides: den laufenden Factory-Tick **und** den `main-checkout`-Claim aus
+`scripts/agent-lock.sh`. Der zweite Teil ist die Lehre aus dem 2026-08-30: der alte Vorcheck
+kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/factory-tick.lock`.
+An diesem Tag geschah das zweimal in einem Lauf — einmal ein `git reset` auf `origin/main`,
+einmal ein Branch-Wechsel, der einen Commit auf einem fremden Branch landen ließ. Während beider
+Vorfälle war `agent-lock.sh list` leer: der Scope, der genau diesen Konflikt verhindert, wurde
+nie beansprucht. Wer auf dem Hauptcheckout arbeitet, beansprucht ihn:
+
+```bash
+bash scripts/agent-lock.sh claim main-checkout
+```
+
+**Der Fingerabdruck schlägt die Aufzählung.** Mutationsquellen aufzuzählen scheitert an der
+nächsten, die niemand kannte — beide Vorfälle waren genau das. Deshalb misst der Vorcheck den
+Zustand statt des Verursachers: Snapshot vor der Messung, Prüfung vor der Entscheidung.
+
+```bash
+fp=$(bash scripts/repo-hygiene-precheck.sh --snapshot)
+# … messen (git status, git stash list, git worktree list, Branch-Bestand) …
+bash scripts/repo-hygiene-precheck.sh --verify "$fp"   # rc 1 → neu messen
+```
+
+Ein Snapshot, unter dem sich das Repo bewegt hat, ist kein Messwert — gleich ob ein Tick, eine
+Fremdsession oder etwas Drittes ihn überholt hat. Real beobachtet am 2026-08-22: Worktree- und
+Branch-Bestände mutierten während desselben Laufs mehrfach.
 
 1. **Befund im Hauptcheckout.** `git status --porcelain` im Hauptcheckout — nicht leer ist ein
    Befund, kein Rauschen. Pro Änderung entscheiden: gehört sie zu einem laufenden Ticket
@@ -62,10 +88,12 @@ am 2026-08-22: Worktree- und Branch-Bestände mutierten während desselben Laufs
 
 Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit-Bereich allein reicht nicht — ein Worktree kann ungetrackte Änderungen enthalten, die kein `git log` anzeigt.
 
-> **Factory-Tick-Vorcheck [T003227]:** Läuft gerade ein Factory-Tick (`/tmp/factory-tick.lock`
-> gehalten, siehe `factory_status` → `tick_running`), verändert er Worktrees und Branches
-> unter dem Lauf — real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Der
-> Vorcheck ist derselbe Lock-Test wie in `scripts/factory/mcp-go/main.go`
+> **Vorcheck [T003227, erweitert T900016]:** Läuft gerade ein Factory-Tick — oder hält eine
+> andere Session den `main-checkout`-Claim —, verändern sich Worktrees und Branches unter dem
+> Lauf; real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Maßgeblich ist der
+> gemeinsame Vorcheck aus §0 (`bash scripts/repo-hygiene-precheck.sh`); der Lock-Test darunter
+> ist dessen Kern und steht hier nur noch zur Erläuterung — er entspricht
+> `scripts/factory/mcp-go/main.go`
 > ```bash
 > tick_running() {
 >   test -f /tmp/factory-tick.lock || return 1

@@ -97,7 +97,7 @@
 
       "headers": {"Authorization":"Bearer {env:BGE_MCP_TOKEN}"},
 
-      "enabled": true
+      "enabled": false
 
     },
 
@@ -105,7 +105,7 @@
 
       "type": "local",
 
-      "command": ["node","/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"],
+      "command": ["node","C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"],
 
       "environment": {"BRAIN_WIKI_DIR":"~/brain/wiki"},
 
@@ -119,16 +119,6 @@
 
       "command": ["/home/patrick/.local/bin/codebase-memory-mcp"],
 
-      "enabled": true
-
-    },
-
-    "docfork": {
-
-      "type": "local",
-
-      "command": ["npx","-y","docfork"],
-
       "enabled": false
 
     },
@@ -140,16 +130,6 @@
       "url": "http://localhost:13003/mcp",
 
       "enabled": true
-
-    },
-
-    "github-mcp": {
-
-      "type": "local",
-
-      "command": ["/home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh"],
-
-      "enabled": false
 
     },
 
@@ -177,7 +157,7 @@
 
       "type": "local",
 
-      "command": ["mcp-task-runner","--otel-endpoint","localhost:4317","--taskfile","/home/patrick/Bachelorprojekt/Taskfile.yml"],
+      "command": ["node","C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/mcp-task-runner/server.mjs","--taskfile","C:/Users/PatrickKorczewski/Bachelorprojekt/Taskfile.yml"],
 
       "enabled": true
 
@@ -193,33 +173,13 @@
 
     },
 
-    "sequential-thinking": {
-
-      "type": "local",
-
-      "command": ["npx","-y","@modelcontextprotocol/server-sequential-thinking"],
-
-      "enabled": false
-
-    },
-
     "ticket-mcp-node": {
 
       "type": "local",
 
-      "command": ["node","/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"],
+      "command": ["node","C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"],
 
       "enabled": true
-
-    },
-
-    "webresearch": {
-
-      "type": "local",
-
-      "command": ["npx","-y","@mzxrai/mcp-webresearch@latest"],
-
-      "enabled": false
 
     }
 

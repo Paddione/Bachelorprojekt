@@ -41,9 +41,6 @@ capabilities:
       roles: [all]
       tier: caution
       deep_ref: ".claude/skills/references/gh-axi.md"
-    mcp:github-mcp:
-      state: suppressed
-      reason: "gh-axi ist der mandatierte GitHub-Pfad."
     plugin:github@claude-plugins-official:
       state: suppressed
       reason: "Doppelt gh-axi und zieht rund 40 Tool-Schemata in den Kontext."
@@ -391,9 +388,6 @@ capabilities:
       avoid_when: "Refactoring, Business-Logik, allgemeine Programmierkonzepte."
       roles: [all]
       tier: safe
-    mcp:docfork:
-      state: suppressed
-      reason: "Vermeidet Kontext-Bloat; context7 deckt den Doku-Lookup ab."
 
   websuche:
     plugin:brightdata-plugin@claude-plugins-official:
@@ -402,9 +396,6 @@ capabilities:
       avoid_when: "Repo-interne Fragen — dafür codebase-memory und Grep."
       roles: [orchestrator]
       tier: caution
-    mcp:webresearch:
-      state: suppressed
-      reason: "Vermeidet Kontext-Bloat."
 
   # ─── Frontend ───────────────────────────────────────────────────────────────────────
   website-entwicklung:
@@ -653,11 +644,6 @@ capabilities:
     plugin:trace-claude-code@braintrust-claude-plugin:
       state: suppressed
       reason: "Nicht aktiviert; Telemetrie läuft über tickets.factory_phase_events."
-
-  sequentielles-denken:
-    mcp:sequential-thinking:
-      state: suppressed
-      reason: "Nur in opencode (disabled)."
 
   # ─── Lokal installierte, nicht versionierte Skills ──────────────────────────────────
   # Beide liegen nur im Arbeitsplatz-Checkout unter .claude/skills/ und sind NICHT im Repo

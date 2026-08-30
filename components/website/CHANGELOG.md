@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.322.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.321.0...website-v1.322.0) (2026-08-30)
+
+
+### Features
+
+* port brain, factory, ticket MCP servers to Node.js (zero deps) ([#5330](https://github.com/Paddione/Bachelorprojekt/issues/5330)) ([db5b816](https://github.com/Paddione/Bachelorprojekt/commit/db5b8160191da9e0ede1061a7d55d2b9b77f77ab))
+
 ## [1.321.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.320.1...website-v1.321.0) (2026-08-29)
 
 

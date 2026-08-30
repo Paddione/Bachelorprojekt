@@ -120,3 +120,35 @@ setup() {
     grep -q 'PENPOT_PUBLIC_URI' "${REPO_ROOT}/environments/${e}.yaml"       || { echo "environments/${e}.yaml definiert PENPOT_PUBLIC_URI nicht" >&2; return 1; }
   done
 }
+
+@test "T900009: Ingress-Eindeutigkeit unter envsubst - genau eins" {
+  command -v envsubst >/dev/null 2>&1 || skip "envsubst not installed"
+  source scripts/env-resolve.sh mentolder >/dev/null
+  # Render mit ersetzten Variablen (so wie Flux es macht)
+  local rendered
+  rendered="$(kubectl kustomize prod-fleet/mentolder --load-restrictor=LoadRestrictionsNone \
+    | envsubst)"
+  # Erwartet: genau ein Ingress namens workspace-ingress-penpot
+  local count
+  count="$(echo "$rendered" | grep -c 'name: workspace-ingress-penpot')"
+  [ "$count" -eq 1 ]
+  # Der Host muss design.<PROD_DOMAIN> sein, NICHT design.localhost
+  [[ "$rendered" == *"design.${PROD_DOMAIN}"* ]]
+}
+
+@test "T900009: penminio-Ports sind benannt (api + console)" {
+  local f="${REPO_ROOT}/k3d/penpot.yaml"
+  # Beide Ports muessen einen Namen haben — Name steht vor port:, also -B1 nutzen.
+  local content
+  content="$(grep -B1 -A2 'port: 9000' "$f")"
+  echo "$content" | grep -q 'name: api'
+  content="$(grep -B1 -A2 'port: 9001' "$f")"
+  echo "$content" | grep -q 'name: console'
+}
+
+@test "T900009: kustomization.yaml hat genau einen patches:-Schlussel" {
+  local f="${REPO_ROOT}/prod-fleet/mentolder/kustomization.yaml"
+  local count
+  count="$(grep -c '^patches:' "$f")"
+  [ "$count" -eq 1 ]
+}

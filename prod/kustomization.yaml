@@ -123,6 +123,18 @@ patches:
       metadata:
         name: workspace-ingress-internal
       $patch: delete
+  # Delete base Ingress so only the brand-overlay variant survives envsubst.
+  # Without this, both k3d/penpot-ingress.yaml and prod-fleet/<brand>/penpot-ingress-route.yaml
+  # emit the same resource id (workspace-ingress-penpot) after Flux envsubst → whole Kustomization fails.
+  - target:
+      kind: Ingress
+      name: workspace-ingress-penpot
+    patch: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-penpot
+      $patch: delete
   - target:
       kind: Ingress
       name: bachelorprojekt

@@ -13,8 +13,6 @@ resources:
   - oauth2-proxy-sessions.yaml
   - studio-ingress.yaml
   - penpot-ingress-route.yaml
-patches:
-  - path: bge-hosts-patch.yaml
 components:
   - ../components/fleet-common
   - ../components/llm-models-longhorn
@@ -28,7 +26,14 @@ components:
 # mentolder wrapper (NOT fleet-common — korczewski has no equivalents, so a shared
 # delete would error). The harmless *.localhost dev IngressRoutes are left intact.
 patches:
+  # BGE-Embed/Rerank IngressRoutes — interne MCP-Endpunkte (T016430).
+  # Ohne diesen Patch still ignoriert (YAML-Schlüssel-Ueberschreibung, T900009).
+  - path: bge-hosts-patch.yaml
+  # Coaching Studio — prod overlay for mentolder brand on the fleet
+  # cluster. Pins image-digest, prod-issuer, prod TLS, and node-affinity
+  # for fleet pk nodes. (T001002)
   - path: studio-patch.yaml
+  # Brett prod patch
   - target:
       kind: Deployment
       name: brett

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1239,
+      "file_count": 1240,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -760,6 +760,7 @@
         "tests/spec/mcp-gateway/mcp-postgres-multistatement.bats",
         "tests/spec/mcp-gateway/mcp-postgres-readonly-role.bats",
         "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
+        "tests/spec/mcp-gateway/node-mcp-server-startup.bats",
         "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
         "tests/spec/mcp-gateway/qwen-token-expansion.bats",
         "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",

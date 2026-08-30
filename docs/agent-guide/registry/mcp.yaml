@@ -53,6 +53,11 @@ clients:
         type: remote
         url: http://localhost:18080/mcp
         enabled: true
+    windows_note: >-
+      Windows: Port-Forward manuell starten (kubectl fleet-Kontext):
+      kubectl --context fleet port-forward -n default svc/claude-code-mcp-monolith
+      18080:8080 13000:3000 13001:3001 13002:3002. In WSL uebernimmt das die
+      systemd-Unit scripts/mcp-gateway/mcp-gateway.service.
 
   mcp-postgres:
     transport: http
@@ -78,6 +83,11 @@ clients:
         type: remote
         url: http://localhost:13001/mcp
         enabled: true
+    windows_note: >-
+      Windows: gleicher Port-Forward wie mcp-kubernetes (13001:3001). Alternativ
+      scripts/mcp-gateway/mcp-postgres-local.mjs (T002767) — braucht aber lokales
+      k3d-Postgres auf :15432, das auf pk-desktop nicht laeuft; der fleet-Monolith
+      ist hier die richtige Quelle.
 
   # T002426 — bge-MCP-Shim: Embedding und Reranking als MCP-Ressource.
   # llama-server kann sich NICHT selbst als MCP-Server exponieren; --mcp-servers-config
@@ -117,9 +127,12 @@ clients:
       agy:
         serverUrl: http://localhost:13005/mcp
       opencode:
+        # Shim + bge-Backends laufen als systemd-Services in WSL (k3d-dev) —
+        # auf Windows (pk-desktop) nicht erreichbar, solange WSL gestoppt ist.
+        # Fuer claude_code/agy/qwen_code (WSL) bleibt der Server aktiv.
         type: remote
         url: http://localhost:13005/mcp
-        enabled: true
+        enabled: false
       qwen_code:
         httpUrl: http://localhost:13005/mcp
 
@@ -143,15 +156,28 @@ clients:
         env:
           BRAIN_WIKI_DIR: ~/brain/wiki
       opencode:
+        # Windows (pk-desktop): opencode laeuft nativ auf Windows, die
+        # /home/patrick-Pfade sind WSL (k3d-dev). Der Server ist stdio und
+        # laeuft dort, wo der Harness laeuft — also Windows-Pfad hier.
         type: local
-        command: [node, /home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        command: [node, C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
         environment:
           BRAIN_WIKI_DIR: ~/brain/wiki
         enabled: true
+        note: >-
+          Wiki liegt in WSL (~/brain/wiki) bzw. im externen Paddione/brain-Repo —
+          auf Windows startet der Server, liefert aber leere Ergebnisse, solange
+          kein lokales Wiki existiert.
 
   factory-mcp-node:
     transport: http
     endpoint: http://localhost:13003/mcp
+    windows_start: >-
+      Windows (pk-desktop): Server starten mit
+      FACTORY_REPO=C:/Users/PatrickKorczewski/Bachelorprojekt FACTORY_CTX=fleet
+      node scripts/factory-mcp-node/server.mjs (kubectl fleet-Kontext noetig;
+      getestet 2026-08-30, factory_status liefert echte Daten). In WSL laeuft
+      er mit dem FACTORY_REPO-Default /home/patrick/Bachelorprojekt.
     harness:
       claude_code:
         type: http
@@ -176,7 +202,7 @@ clients:
         args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
       opencode:
         type: local
-        command: [node, /home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        command: [node, C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
         enabled: true
       llamacpp:
         command: node
@@ -206,8 +232,11 @@ clients:
         command: mcp-task-runner
         args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
       opencode:
+        # Windows: kein mcp-task-runner-Binary auf PATH — direkt ueber node.
+        # --otel-endpoint entfaellt: der Parameter wird im Server nur geparst,
+        # nie benutzt (kein Collector noetig).
         type: local
-        command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+        command: [node, C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/mcp-task-runner/server.mjs, --taskfile, C:/Users/PatrickKorczewski/Bachelorprojekt/Taskfile.yml]
         enabled: true
 
   # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
@@ -226,9 +255,12 @@ clients:
       agy:
         command: /home/patrick/.local/bin/codebase-memory-mcp
       opencode:
+        # Binary /home/patrick/.local/bin/codebase-memory-mcp existiert auf
+        # Windows nicht (kein Windows-Build, MCPB-Bundle-Ersatz T002301 offen).
+        # Fuer claude_code/agy (WSL) bleibt der Server aktiv.
         type: local
         command: [/home/patrick/.local/bin/codebase-memory-mcp]
-        enabled: true
+        enabled: false
       llamacpp:
         command: /home/patrick/.local/bin/codebase-memory-mcp
         cwd: /home/patrick/Bachelorprojekt
@@ -238,35 +270,8 @@ clients:
   # Diese Server existieren nur in opencode als Disabled-Overrides.
   # Sie haben kein Gegenstück in claude_code oder agy und werden hier
   # nur für die Registry-Vollständigkeit dokumentiert.
-
-  github-mcp:
-    transport: stdio
-    browser_endpoint: http://127.0.0.1:18235/mcp/github-mcp
-    # T002547: offizieller Go-Server github/github-mcp-server statt
-    # @modelcontextprotocol/server-github — letzteres ist bei npm als
-    # deprecated markiert ("Package no longer supported").
-    #
-    # Der Wrapper existiert aus zwei Gruenden, die beide nicht kosmetisch sind:
-    # er holt den Token zur LAUFZEIT per 'gh auth token' (kein Credential auf
-    # Platte), und er adressiert das Binary absolut, weil die llm-proxy-Unit
-    # PATH=/usr/local/bin:/usr/bin:/bin setzt und ~/.local/bin darin fehlt.
-    command: /home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh
-    bridge:
-      url: http://127.0.0.1:18235/mcp/github-mcp
-      bind: 127.0.0.1:18235
-      auth: null
-    harness:
-      opencode:
-        type: local
-        # T002547: wie Top-Level auf den offiziellen Go-Server umgestellt —
-        # @modelcontextprotocol/server-github ist bei npm deprecated
-        # ("Package no longer supported") und wird hier nicht mehr referenziert.
-        # GITHUB_TOKEN wird zur Laufzeit vom Wrapper per 'gh auth token' bezogen;
-        # ein statisches environment-Feld wuerde sonst ein zweites,
-        # abweichendes Credential einfuehren.
-        command: [/home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh]
-        enabled: false
-    note: "Nur in opencode (disabled). gh-axi ist der mandatierte GitHub-Pfad."
+  # Entfernt 2026-08-30 (stale): github-mcp (gh-axi mandatiert), docfork,
+  # sequential-thinking, webresearch — reine Disabled-Overrides ohne Nutzer.
 
   playwright:
     transport: stdio
@@ -287,57 +292,6 @@ clients:
         command: [npx, -y, "@playwright/mcp@latest"]
         enabled: false
     note: "In Claude Code aktiv (T002678) — Browser-Automatisierung fuer dev-flow-e2e und web-audit. In opencode weiterhin disabled. Das offizielle Paket ist @playwright/mcp; das unscoped playwright-mcp ist ein anderes Projekt und darf hier nicht eingetragen werden."
-
-  docfork:
-    transport: stdio
-    command: npx
-    args:
-      - -y
-      - docfork
-    bridge:
-      url: http://127.0.0.1:18235/mcp/docfork
-      bind: 127.0.0.1:18235
-      auth: null
-    harness:
-      opencode:
-        type: local
-        command: [npx, -y, docfork]
-        enabled: false
-    note: "Nur in opencode (disabled). Vermeidet Kontext-Bloat."
-
-  sequential-thinking:
-    transport: stdio
-    command: npx
-    args:
-      - -y
-      - "@modelcontextprotocol/server-sequential-thinking"
-    bridge:
-      url: http://127.0.0.1:18235/mcp/sequential-thinking
-      bind: 127.0.0.1:18235
-      auth: null
-    harness:
-      opencode:
-        type: local
-        command: [npx, -y, "@modelcontextprotocol/server-sequential-thinking"]
-        enabled: false
-    note: "Nur in opencode (disabled)."
-
-  webresearch:
-    transport: stdio
-    command: npx
-    args:
-      - -y
-      - "@mzxrai/mcp-webresearch@latest"
-    bridge:
-      url: http://127.0.0.1:18235/mcp/webresearch
-      bind: 127.0.0.1:18235
-      auth: null
-    harness:
-      opencode:
-        type: local
-        command: [npx, -y, "@mzxrai/mcp-webresearch@latest"]
-        enabled: false
-    note: "Nur in opencode (disabled)."
 
 cluster:
   # In-Cluster-Monolith: fleet/default/claude-code-mcp-monolith-{deploy,svc}.yaml

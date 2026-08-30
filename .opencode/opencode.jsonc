@@ -105,11 +105,11 @@
 
       "type": "local",
 
-      "command": ["node","C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"],
+      "command": ["node","scripts/brain-mcp-node/server.mjs"],
 
       "environment": {"BRAIN_WIKI_DIR":"~/brain/wiki"},
 
-      "enabled": true
+      "enabled": false
 
     },
 
@@ -157,9 +157,9 @@
 
       "type": "local",
 
-      "command": ["node","C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/mcp-task-runner/server.mjs","--taskfile","C:/Users/PatrickKorczewski/Bachelorprojekt/Taskfile.yml"],
+      "command": ["mcp-task-runner","--otel-endpoint","localhost:4317","--taskfile","/home/patrick/Bachelorprojekt/Taskfile.yml"],
 
-      "enabled": true
+      "enabled": false
 
     },
 
@@ -177,7 +177,7 @@
 
       "type": "local",
 
-      "command": ["node","C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"],
+      "command": ["node","scripts/ticket-mcp-node/server.mjs"],
 
       "enabled": true
 

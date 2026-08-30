@@ -26,20 +26,27 @@ set -euo pipefail
 # weil diese Datei namentlich auf der s1.ignore-Liste steht [T002267].
 source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-help.sh"
 
-# Default-Kontext der SDLC-Datenhoheit [T002626, ADR-006 E3].
-# Seit E3 liegt das tickets-Schema lokal; die fleet-Kopie ist eingefroren
-# (SELECT ja, INSERT/UPDATE/DELETE nein). `TICKET_CTX=fleet` bleibt als
-# Override gueltig, um die eingefrorene Historie zu lesen.
+# Default-Kontext der SDLC-Datenhoheit [ADR-007, loest ADR-006 E3 ab].
+# ADR-007 (Accepted 2026-08-24, T016422) erklaert die Fleet-shared-db zur
+# "tickets-DB of record". Der frueher hier beschriebene Zustand — tickets-Schema
+# lokal, fleet-Kopie eingefroren (SELECT ja, Writes nein) — gilt seitdem NICHT
+# mehr; der Default zeigte trotzdem weiter auf k3d-mentolder-dev.
 #
-# Derselbe Default steht in scripts/vda/ticket/_ticket-core.sh — die Datei wird
-# erst weiter unten gesourct, CTX wird hier aber schon fuer die
-# Namespace-Ableitung gebraucht. Beide Stellen zusammen aendern.
+# Nebeneffekt des Wechsels: k3d-mentolder-dev ist genau der Context, der die
+# Dual-Write-Split-Brain-Vorfaelle ausgeloest hat (T015005/T015008 — Aufloesung
+# auf 127.0.0.1 nach Docker-Restart). Der Loopback-Guard in
+# scripts/vda/ticket/_ctx-guard.sh bleibt bestehen, aber der Default-Pfad
+# laeuft nicht mehr durch diese Fehlerklasse.
 #
-# Der Default nennt den mentolder-Cluster, weil dort der lokale SDLC-Stack
-# laeuft. Er ist NICHT brand-spezifisch: die Zeilen beider Brands liegen in
-# genau dieser Datenbank, korczewski-Tickets eingeschlossen [T002689]. Wer die
-# eingefrorene fleet-Historie lesen will, setzt TICKET_CTX=fleet.
-CTX="${TICKET_CTX:-k3d-mentolder-dev}"
+# Der Default ist NICHT brand-spezifisch: die Zeilen beider Brands liegen in
+# genau dieser Datenbank, korczewski-Tickets eingeschlossen [T002689].
+#
+# DIESELBEN DEFAULTS stehen in scripts/vda/ticket/_ticket-core.sh,
+# scripts/batch-gap-analysis.sh, scripts/mishap-categorize.sh,
+# scripts/ticket-attach.sh und scripts/vda/ticket/readiness-audit.sh.
+# Alle sechs Stellen zusammen aendern — der frueher hier stehende Hinweis nannte
+# nur zwei, die uebrigen vier sind seither unbemerkt dazugekommen.
+CTX="${TICKET_CTX:-fleet}"
 NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"
@@ -104,8 +111,10 @@ esac
 # darueber, in welchem Namespace er seine Datenbank betreibt. Deshalb wird der
 # Sonderfall jetzt explizit aufgezaehlt statt gemustert.
 case "$CTX" in
-  # SDLC-Cluster (E2/E3): Stack liegt in `workspace`, kein Suffix.
-  k3d-mentolder-dev|k3d-korczewski-dev) : ;;
+  # Prod-Cluster (ADR-007, Default) und SDLC-Cluster (E2/E3): Stack liegt in
+  # `workspace`, kein Suffix. fleet wird explizit genannt statt sich darauf zu
+  # verlassen, dass der Name zufaellig nicht auf *-dev endet.
+  fleet|k3d-mentolder-dev|k3d-korczewski-dev) : ;;
   # Historischer dev-Stack auf fleet: dort existieren die -dev-Namespaces.
   *-dev)
     case "$NS" in

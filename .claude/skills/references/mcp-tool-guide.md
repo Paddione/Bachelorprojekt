@@ -97,15 +97,18 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer
   und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
   `mcp__ticket-mcp__*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
-- ⚠️ **Eingefrorene fleet-Kopie, nicht die lokale SSOT [T002785-4].** Port 13001 wird per
-  `kubectl --context fleet port-forward` auf die **fleet**-Postgres-Kopie bedient (ADR-006 E3:
-  SELECT ja, Writes nein) — nicht auf die lokale Dev-DB. Der Freeze ist historisch gewachsen
-  und steht bisher nur im Kopf von `scripts/ticket.sh`. Ein Triage-Lauf las dadurch drei
-  bereits-done Tickets als offen und löste redundante Closure-Writes aus. Für
-  **Ticket-Zustand** (offen/geschlossen, Status, `readiness`) IMMER `mcp__ticket-mcp__*` oder
-  den `psql()`-Fallback gegen die richtige DB nutzen (der Helper unten zielt auf
-  `workspace-dev`, BRAND-Routing [T006285]); `mcp-postgres` nur für Nicht-Ticket-Reads
-  (`knowledge.*`, `v_timeline`), deren Freeze-Stand unkritisch ist.
+- ⚠️ **Bedient die fleet-DB — seit ADR-007 die SSOT, keine Kopie mehr [T900013].** Port 13001
+  wird per `kubectl --context fleet port-forward` auf die **fleet**-Postgres bedient. Bis
+  2026-08-30 stand hier die Warnung, das sei eine *eingefrorene* Kopie (ADR-006 E3: SELECT ja,
+  Writes nein) und die eigentliche SSOT liege lokal. Das ist seit ADR-007 (Accepted
+  2026-08-24, T016422) falsch herum: die Fleet-shared-db IST die "tickets-DB of record".
+  Der damalige Fehlermodus — ein Triage-Lauf las drei bereits-done Tickets als offen und
+  loeste redundante Closure-Writes aus — kann aus dieser Richtung nicht mehr auftreten.
+- ⚠️ **Trotzdem nicht fuer Ticket-Zustand.** Der Grund ist jetzt ein anderer: `external_id`
+  ist nur pro Brand eindeutig (siehe Punkt oben). Fuer **Ticket-Zustand** (offen/geschlossen,
+  Status, `readiness`) IMMER `mcp__ticket-mcp__*` mit explizitem `brand` oder den
+  `psql()`-Fallback unten nutzen (zielt auf `fleet`/`workspace`, BRAND-Routing [T006285]);
+  `mcp-postgres` nur fuer Nicht-Ticket-Reads (`knowledge.*`, `v_timeline`).
 - **Wann bevorzugen:** Read-only SELECTs gegen `knowledge.*`, `v_timeline` oder andere
   Nicht-Ticket-Tabellen. Für Ticket-Queries → `mcp__ticket-mcp__get_ticket` /
   `mcp__ticket-mcp__list_tickets` mit gesetztem `brand`.
@@ -115,17 +118,19 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   ```bash
   # --field-selector ist Pflicht [T002307]: ohne ihn kann ein Completed-Pod vorne einsortiert
   # werden und jeder folgende exec stirbt an "cannot exec into a container in a completed pod".
-  # BRAND-Routing wie scripts/ticket.sh [T002689]: die Ticket-SSOT liegt lokal auf
-  # workspace-dev (beide Brands in dieser einen DB) — die fleet-Kopie ist eingefroren
-  # [T002785-4]. fleet-Historie nur via explizitem TICKET_CTX=fleet (wie ticket.sh) [T006285].
-  PGPOD=$(kubectl get pod -n workspace --context workspace-dev -l app=shared-db \
+  # BRAND-Routing wie scripts/ticket.sh [T002689]: die Ticket-SSOT ist seit ADR-007
+  # (loest ADR-006 E3 ab) die Fleet-shared-db — beide Brands liegen in dieser einen DB,
+  # korczewski eingeschlossen. Der frueher hier genannte Context `workspace-dev` existiert
+  # nicht (kubectl config get-contexts kennt nur fleet und hetzner) — der Helper war so
+  # nicht lauffaehig.
+  PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db \
     --field-selector status.phase=Running -o name | head -1)
-  psql() { kubectl exec "$PGPOD" -n workspace --context workspace-dev -c postgres -- psql -U website -d website "$@"; }
+  psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
   ```
-- ⚠️ **kubectl exec Timeout [T002261]:** Der Helper oben zielt auf die dev-Namespace workspace-dev auf Fleet — der
-  Verbindungsweg ist kurz, Timeouts sind dort unkritisch. Wer den Kontext bewusst auf `fleet`
-  umstellt (`TICKET_CTX=fleet`, siehe `ticket.sh`), braucht großzügige Timeouts (≥120s) — der
-  Verbindungsabbau über WireGuard dauert messbar länger als lokaler `psql`. Ein Exit-Code 143
+- ⚠️ **kubectl exec Timeout [T002261]:** Der Helper oben laeuft ueber WireGuard gegen Fleet —
+  seit ADR-007 ist das der Normalfall, nicht mehr die bewusste Ausnahme. Grosszuegige Timeouts
+  (≥120s) sind deshalb **immer** noetig: der Verbindungsabbau dauert messbar laenger als ein
+  lokaler `psql`. Ein Exit-Code 143
   (SIGTERM/Timeout) bedeutet **nicht**, dass
   das `UPDATE` fehlgeschlagen sein muss — oft war das Statement bereits committed, bevor der
   Timeout den Session-Abbau trifft. Ergebnis deshalb grundsätzlich per separatem `SELECT`

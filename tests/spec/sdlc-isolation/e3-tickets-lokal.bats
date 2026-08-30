@@ -53,7 +53,11 @@ setup() {
 
 # ── Default-Kontext ─────────────────────────────────────────────────────────
 
-@test "E3: ohne TICKET_CTX adressiert der Ticket-Pfad den lokalen Cluster" {
+@test "T900013: ohne TICKET_CTX adressiert der Ticket-Pfad den fleet-Cluster" {
+  # ABGELOEST: bis 2026-08-30 erwartete dieser Test hier k3d-mentolder-dev und
+  # belegte, dass fleet NICHT angesprochen wird — der ADR-006-E3-Vertrag.
+  # ADR-007 (Accepted 2026-08-24, T016422) erklaert die Fleet-shared-db zur
+  # "tickets-DB of record"; die Erwartung ist damit genau umgedreht [T900013].
   # Gemessen wird der Kontext, mit dem kubectl TATSAECHLICH aufgerufen wird —
   # ueber einen Stub, der ihn protokolliert. Das ist im Repo das etablierte
   # Idiom (T002224 nennt es ausdruecklich) und hier zwingend: derselbe
@@ -87,16 +91,25 @@ STUB
   # Positiv-Anker ZUERST: der Aufloesungspfad wurde ueberhaupt betreten.
   # Ohne ihn bestuende die Negativ-Aussage auch bei leerem Protokoll (T002356-M1).
   [ -s "$KUBECTL_LOG" ]
-  grep -q 'CONTEXT=k3d-mentolder-dev' "$KUBECTL_LOG"
-  # Erst jetzt: fleet wurde nicht angesprochen.
-  run grep -c 'CONTEXT=fleet' "$KUBECTL_LOG"
+  grep -q 'CONTEXT=fleet' "$KUBECTL_LOG"
+  # Erst jetzt: der abgeloeste lokale Default wurde nicht angesprochen.
+  run grep -c 'CONTEXT=k3d-mentolder-dev' "$KUBECTL_LOG"
   [ "$output" = "0" ]
 }
 
-@test "E3: TICKET_CTX=fleet bleibt als Override wirksam" {
+@test "T900013: ein expliziter TICKET_CTX ueberschreibt den fleet-Default" {
+  # Frueher pruefte dieser Test "TICKET_CTX=fleet bleibt als Override wirksam".
+  # Seit fleet der Default ist, belegt das nichts mehr — die tragende Zusicherung
+  # ist, dass ein ABWEICHENDER Context weiterhin greift [T900013].
   run env TICKET_CTX=fleet BRAND=mentolder bash "$TICKET_SH" --resolve-ns-only get --id T000001
   [ "$status" -eq 0 ]
   [ "$output" = "NS=workspace" ]
+
+  # Gegenprobe: der abgeloeste lokale Context ist weiterhin waehlbar und
+  # behaelt seine eigene Namespace-Ableitung.
+  run env TICKET_CTX=gekko-hetzner-2-dev BRAND=mentolder bash "$TICKET_SH" --resolve-ns-only get --id T000001
+  [ "$status" -eq 0 ]
+  [ "$output" = "NS=workspace-dev" ]
 }
 
 # ── Migrationswerkzeug ──────────────────────────────────────────────────────

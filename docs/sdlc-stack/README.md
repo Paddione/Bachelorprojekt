@@ -137,26 +137,34 @@ task sdlc:cluster:delete
 - **website/src/lib/auth/provider.ts** — fail-closed Provider-Auswahl
 - **tests/spec/sdlc-isolation/e2-local-stack.bats** — Struktur- + DoD-Guard
 
-## Datenhoheit seit E3 (T002626)
+## Datenhoheit: Fleet ist DB of record (ADR-007, loest E3/ADR-006 ab)
 
-Das `tickets`-Schema liegt **lokal**. Der Default-Kontext aller Ticket-Befehle ist
-`k3d-mentolder-dev`; die fleet-Kopie ist eingefroren (`SELECT` ja, Schreibzugriffe nein).
-Ablauf und Rückweg: [e3-cutover.md](e3-cutover.md).
+[ADR-007](../adr/ADR-007-wsl-exit-fleet-native.md) (Accepted 2026-08-24, T016422) erklaert die
+**Fleet-shared-db** zur "tickets-DB of record". Der Default-Kontext aller Ticket-Befehle ist
+deshalb `fleet` (Namespace `workspace`).
 
-### Verfügbarkeitserwartung
+> **Was hier bis 2026-08-30 stand:** E3 (T002626) hatte das `tickets`-Schema lokal verortet
+> (`k3d-mentolder-dev`) und die fleet-Kopie als eingefroren beschrieben — `SELECT` ja,
+> Schreibzugriffe nein. Das gilt seit ADR-007 nicht mehr. Die Defaults in den sechs
+> Ticket-Skripten zeigten allerdings noch auf `k3d-mentolder-dev`; nachgezogen mit T900013.
+> Ablauf und Rueckweg der damaligen Umstellung: [e3-cutover.md](e3-cutover.md).
 
-**Ticket-Operationen setzen ab jetzt einen laufenden lokalen Cluster voraus.** Ohne ihn
-scheitert jeder Befehl mit `no shared-db pod found` — das ist die beabsichtigte Konsequenz von
-ADR-006, kein Defekt. Ein stiller Rückfall auf fleet wäre die schlechtere Alternative: er
-ließe Schreibvorgänge in einer toten Kopie landen, ohne dass es auffällt.
+### Verfuegbarkeitserwartung
 
-Die eingefrorene Historie lesen:
+**Ticket-Operationen setzen einen erreichbaren fleet-Cluster voraus** (WireGuard). Ohne ihn
+scheitert jeder Befehl mit `no shared-db pod found`. Der Loopback-Guard in
+`scripts/vda/ticket/_ctx-guard.sh` [T015008] bleibt bestehen: er bricht ab, wenn ein Context
+auf `127.0.0.1` aufloest — genau der Fehlermodus, der unter dem alten Default zu den
+Dual-Write-Split-Brain-Vorfaellen T015005/T015008 gefuehrt hat.
+
+Ein Ticket lesen:
 
 ```bash
-TICKET_CTX=fleet bash scripts/ticket.sh get --id T000123
+bash scripts/ticket.sh get --id T000123
 ```
 
-Korczewski-Tickets liegen weiterhin auf fleet und brauchen dieses explizite `TICKET_CTX`.
+Seit ADR-007 braucht das kein explizites `TICKET_CTX` mehr. Korczewski-Tickets liegen in
+derselben DB (Namespace `workspace`, nicht `workspace-korczewski`).
 
 ### Zwei `provider_config`-Instanzen
 

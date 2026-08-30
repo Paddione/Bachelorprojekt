@@ -13,22 +13,20 @@ spec:
     repeatInterval: 4h
     receiver: operator-email
   receivers:
-    # T900001: E-Mail-Receiver deaktiviert — kein ausgehender Benachrichtigungs-Mails mehr.
-    # SMTP-Credentials verbleiben im SealedSecret (alertmanager-smtp), werden aber nicht mehr
-    # in einer Receiver-Route verwendet. Wiedereinschalten = emailConfigs-Wiederherstellung.
-    # Vorheriger Receiver (deaktiviert, deklarativ im Repo verankert):
-    #   - name: operator-email
-    #     emailConfigs:
-    #       - sendResolved: true
-    #         to: korczewski@mailbox.org
-    #         from: ${SMTP_FROM}
-    #         smarthost: ${SMTP_HOST}:${SMTP_PORT}
-    #         authUsername: ${SMTP_USER}
-    #         authPassword:
-    #           name: alertmanager-smtp
-    #           key: SMTP_PASSWORD
-    #         requireTLS: true
+    # Explicitly authorized for operational Alertmanager delivery (T005321).
+    # SMTP credentials are supplied by the existing alertmanager-smtp
+    # SealedSecret in production; no credential is stored in this manifest.
     - name: operator-email
+      emailConfigs:
+        - sendResolved: true
+          to: korczewski@mailbox.org
+          from: ${SMTP_FROM}
+          smarthost: ${SMTP_HOST}:${SMTP_PORT}
+          authUsername: ${SMTP_USER}
+          authPassword:
+            name: alertmanager-smtp
+            key: SMTP_PASSWORD
+          requireTLS: true
 # Pushover-Routing bewusst entfernt [T014542]: PUSHOVER_USER/PUSHOVER_TOKEN waren
 # nie gesetzt (environments/*.yaml führen "" seit #1552), das SealedSecret
 # entschlüsselt zu leeren Werten — der Prometheus Operator verwirft deshalb die

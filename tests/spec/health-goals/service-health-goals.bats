@@ -79,10 +79,8 @@ setup() {
 @test "alert-status: existiert als measurement choice in runtime-health-measure.py" {
   run python3 "$MEASURE" alert-status
   [ "$status" -eq 0 ]
-  # [T900001] E-Mail-Receiver plattformweit deaktiviert — alert-status muss 1 melden
-  # (kein aktiver emailConfigs-Receiver). Vorheriger Erwartungswert war 0 [T900001].
-  [ "$output" = "1" ] || {
-    echo "FAIL: alert-status muss 1 melden (E-Mail-Receiver deaktiviert), bekam '${output}'."
+  [ "$output" = "0" ] || {
+    echo "FAIL: alert-status muss den konfigurierten E-Mail-Receiver als 0 melden, bekam '${output}'."
     return 1
   }
 }

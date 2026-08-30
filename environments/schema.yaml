@@ -629,18 +629,21 @@ secrets:
   - name: PENPOT_DB_PASSWORD
     required: false
     generate: true
+    legacy_only: true
     length: 32
     description: "Penpot database password; optional until Penpot is enabled for an environment."
 
   - name: PENPOT_SECRET_KEY
     required: false
     generate: true
+    legacy_only: true
     length: 64
     description: "Penpot application signing key; optional until Penpot is enabled for an environment."
 
   - name: PENPOT_MINIO_SECRET_KEY
     required: false
     generate: true
+    legacy_only: true
     length: 32
     description: "Penpot MinIO credential; optional until Penpot is enabled for an environment."
 

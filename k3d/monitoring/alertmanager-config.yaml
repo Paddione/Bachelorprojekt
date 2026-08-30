@@ -11,30 +11,22 @@ spec:
     groupWait: 30s
     groupInterval: 5m
     repeatInterval: 4h
-    receiver: "null"
+    receiver: operator-email
   receivers:
-    # T016592: saemtliche ausgehenden Benachrichtigungs-E-Mails sind
-    # abgeschaltet. Die frueheren Receiver `email` (${CONTACT_EMAIL}) und
-    # `backup-email` (${BACKUP_ALERT_EMAIL}) samt der BackupJobFailed/
-    # BackupCronJobStale-Kindroute sind entfallen.
-    #
-    # Bewusst ein leerer Receiver statt gar keinem: eine AlertmanagerConfig
-    # ohne Receiver ist ungueltig und wird vom Prometheus Operator komplett
-    # verworfen — derselbe Fehlermodus, den der T014542-Kommentar unten fuer
-    # leere Pushover-Credentials festhaelt. Der `null`-Receiver ist die
-    # Alertmanager-uebliche Form von "nirgendwohin".
-    #
-    # FOLGE, bewusst akzeptiert: Es gibt keinerlei Alarmierung mehr. Die
-    # Alert-Regeln feuern weiter und sind in der Prometheus-/Alertmanager-UI
-    # sichtbar, aber niemand wird benachrichtigt — auch nicht bei
-    # fehlgeschlagenen Backups. Ausgebliebene Backups faellt nur noch ein
-    # manuelles Audit auf.
-    #
-    # Wiedereinschalten: Receiver mit emailConfigs (Vorlage in der
-    # Git-Historie dieses Commits) zurueckholen und route.receiver umbiegen.
-    # ${CONTACT_EMAIL}, ${BACKUP_ALERT_EMAIL} und ${SMTP_*} bleiben in
-    # environments/schema.yaml und der envsubst-Liste deklariert.
-    - name: "null"
+    # Explicitly authorized for operational Alertmanager delivery (T005321).
+    # SMTP credentials are supplied by the existing alertmanager-smtp
+    # SealedSecret in production; no credential is stored in this manifest.
+    - name: operator-email
+      emailConfigs:
+        - sendResolved: true
+          to: korczewski@mailbox.org
+          from: ${SMTP_FROM}
+          smarthost: ${SMTP_HOST}:${SMTP_PORT}
+          authUsername: ${SMTP_USER}
+          authPassword:
+            name: alertmanager-smtp
+            key: SMTP_PASSWORD
+          requireTLS: true
 # Pushover-Routing bewusst entfernt [T014542]: PUSHOVER_USER/PUSHOVER_TOKEN waren
 # nie gesetzt (environments/*.yaml führen "" seit #1552), das SealedSecret
 # entschlüsselt zu leeren Werten — der Prometheus Operator verwirft deshalb die

@@ -307,7 +307,7 @@ python3 scripts/lib/runtime-health-measure.py svc-probe
 gültig antwortet (HTTP 200, JSON mit `issuer` und `authorization_endpoint`).
 
 ```bash
-python3 scripts/lib/runtime-health-measure.py infra-http
+python3 scripts/lib/runtime-health-measure.py svc-oidc
 ```
 
 > **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
@@ -317,7 +317,7 @@ python3 scripts/lib/runtime-health-measure.py infra-http
 **Was:** Prüft, ob Nextcloud `/status.php` HTTP 200 mit `installed: true` zurückgibt.
 
 ```bash
-python3 scripts/lib/runtime-health-measure.py infra-http
+python3 scripts/lib/runtime-health-measure.py svc-nextcloud
 ```
 
 > **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
@@ -327,7 +327,7 @@ python3 scripts/lib/runtime-health-measure.py infra-http
 **Was:** Prüft, ob der Whiteboard/WebSocket-Service auf HTTP-Ebene erreichbar ist.
 
 ```bash
-python3 scripts/lib/runtime-health-measure.py infra-http
+python3 scripts/lib/runtime-health-measure.py svc-whiteboard
 ```
 
 > **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321

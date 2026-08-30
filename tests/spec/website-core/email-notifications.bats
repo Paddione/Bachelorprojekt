@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
 # tests/spec/website-core/email-notifications.bats
 # SSOT: openspec/specs/website-core.md (notify-unread CronJob ist suspendiert)
-#       openspec/specs/monitoring-alerts.md (Blackhole Receiver)
+#       openspec/specs/monitoring-alerts.md (operator email receiver)
 #
 # T016592 schaltet alle ausgehenden Benachrichtigungs-E-Mails ab. Die drei
 # manifest-getragenen Anteile werden hier abgesichert: der suspendierte
-# notify-unread-CronJob, der Alertmanager-Blackhole-Receiver und die
+# notify-unread-CronJob, der Alertmanager-Operator-Receiver und die
 # Registrierung des Nextcloud-occ-Jobs.
 #
 # Prüfmodus: Source-Verifikation (Querschnittstest — das Verhalten manifestiert
@@ -33,22 +33,22 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "alertmanager-config deklariert den null-Receiver" {
-  run grep -E '^    - name: "null"' "$AM"
+@test "alertmanager-config deklariert den Operator-Receiver" {
+  run grep -E '^    - name: operator-email' "$AM"
   [ "$status" -eq 0 ]
 }
 
-@test "alertmanager-config routet auf den null-Receiver" {
-  run grep -E '^    receiver: "null"' "$AM"
+@test "alertmanager-config routet auf den Operator-Receiver" {
+  run grep -E '^    receiver: operator-email' "$AM"
   [ "$status" -eq 0 ]
 }
 
-@test "alertmanager-config traegt keine emailConfigs mehr" {
+@test "alertmanager-config traegt die autorisierte E-Mail-Konfiguration" {
   run grep -F 'emailConfigs:' "$AM"
-  [ "$status" -ne 0 ]
+  [ "$status" -eq 0 ]
+  run grep -F 'to: korczewski@mailbox.org' "$AM"
+  [ "$status" -eq 0 ]
 
-  # Positiv-Anker: der receivers-Block existiert weiterhin — der Test misst die
-  # Abwesenheit der Mail-Konfiguration, nicht eine zerstoerte Datei.
   run grep -E '^  receivers:' "$AM"
   [ "$status" -eq 0 ]
 }

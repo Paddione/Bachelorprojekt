@@ -90,7 +90,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       # `task workspace:deploy` ruft INTERN `task website:migrate` auf
-      # (Taskfile.yml:2629/:2758), das wiederum `pnpm --dir website db:migrate`
+      # (Taskfile.yml:4015), das wiederum `pnpm --dir components/website db:migrate`
       # startet. Die pnpm-Abhaengigkeit ist hier also indirekt ueber die
       # Task-Kette und im Workflow-Text nicht sichtbar — genau deshalb hat der
       # Guard aus T002121 diesen Job uebersehen. [T002124]
@@ -137,7 +137,7 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      # `task website:migrate` ruft intern `pnpm --dir website db:migrate` auf.
+      # `task website:migrate` ruft intern `pnpm --dir components/website db:migrate` auf.
       # Ohne diese drei Schritte stirbt der Job mit
       # '"pnpm": executable file not found in $PATH' (exit 127) — und riss
       # damit auch "Mark ticket done" mit, das im selben Job liegt. [T002121]

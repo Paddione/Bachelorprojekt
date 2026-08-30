@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.322.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.3...website-v1.322.4) (2026-08-30)
+
+
+### Bug Fixes
+
+* **scripts:** S2-Gate startet madge plattformneutral [T900015] ([#5349](https://github.com/Paddione/Bachelorprojekt/issues/5349)) ([c808f5b](https://github.com/Paddione/Bachelorprojekt/commit/c808f5b48b2cc0786d22d1f209ed1daccf792427))
+
 ## [1.322.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.2...website-v1.322.3) (2026-08-30)
 
 

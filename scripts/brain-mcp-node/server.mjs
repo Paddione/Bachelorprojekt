@@ -21,8 +21,10 @@ function fail(requestId, code, message) {
 }
 
 function writeMsg(message) {
-  process.stdout.write(JSON.stringify(message, false) + "\n");
-  process.stdout.flush();
+  // Kein process.stdout.flush(): die Methode existiert in Node nicht und warf
+  // bei jeder Antwort einen TypeError, der den Server nach dem ersten Frame
+  // beendete. process.stdout.write reicht fuer stdio-Pipes aus.
+  process.stdout.write(JSON.stringify(message) + "\n");
 }
 
 const TOOLS = [

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { join, dirname, resolve } from 'node:path';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -12,13 +13,16 @@ function findRepoRoot() {
   const env = process.env.TICKET_MCP_REPO_ROOT;
   if (env) return env;
   let dir = dirname(resolve(process.argv[1] || '.'));
-  while (dir !== '/' && dir !== '.' && dir.length > 0) {
+  // Abbruch am Fixpunkt statt an '/': auf Windows liefert dirname('C:\')
+  // wieder 'C:\', die Schleife endet dort sonst nie.
+  for (;;) {
     try {
       if (existsSync(join(dir, '.git')) && existsSync(join(dir, 'scripts', 'ticket.sh'))) return dir;
     } catch {}
-    dir = dirname(dir);
+    const parent = dirname(dir);
+    if (parent === dir) return '';
+    dir = parent;
   }
-  return '';
 }
 
 let initialRepoRoot = findRepoRoot();
@@ -156,19 +160,25 @@ async function flushStaleMishaps(brand, maxAgeDays) {
 
 const cli = parseArgs(process.argv);
 
-if (cli.version) {
+// server.mjs importiert runner.mjs statisch (runTicket). Ohne diesen Guard
+// liefe der Entrypoint-Block auch bei diesem Import und startete den Server
+// ein zweites Mal.
+const IS_ENTRY = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (IS_ENTRY && cli.version) {
   console.log('ticket-mcp-node version=1.0.0');
   process.exit(0);
-}
-
-if (cli.flushStaleMishaps) {
+} else if (IS_ENTRY && cli.flushStaleMishaps) {
   flushStaleMishaps(cli.brand, cli.flushMaxAgeDays)
     .then(() => process.exit(0))
     .catch((err) => {
       console.error(`flush-stale-mishaps fehlgeschlagen: ${err.message}`);
       process.exit(1);
     });
-} else {
-  // Default: start as MCP server (stdio mode)
-  await import('./server.mjs');
+} else if (IS_ENTRY) {
+  // Default: start as MCP server (stdio mode). Bewusst NICHT awaiten:
+  // server.mjs importiert runner.mjs statisch zurueck. Ein top-level await
+  // hier laesst beide Module aufeinander warten — der Prozess erreicht die
+  // stdio-Schleife nie und antwortet auf kein einziges JSON-RPC-Frame.
+  import('./server.mjs').catch((err) => { console.error(err); process.exit(1); });
 }

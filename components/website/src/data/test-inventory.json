@@ -4290,6 +4290,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/node-mcp-server-startup",
+    "file": "tests/spec/mcp-gateway/node-mcp-server-startup.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/opencode-env-placeholder",
     "file": "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
     "category": "mcp-gateway",

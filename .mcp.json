@@ -10,7 +10,7 @@
       }
     },
     "codebase-memory-mcp": {
-      "command": "/home/patrick/.local/bin/codebase-memory-mcp"
+      "command": "codebase-memory-mcp"
     },
     "factory-mcp-node": {
       "type": "http",

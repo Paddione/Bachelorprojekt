@@ -192,6 +192,22 @@ spec:
       labels:
         app: pocket-id
     spec:
+      # Das PVC pocket-id-data ist ein local-path-Volume und liegt physisch auf
+      # gekko-hetzner-4. Der Pod kann deshalb NUR auf diesem Node laufen — die
+      # PV-Node-Affinity schliesst alle anderen aus, unabhaengig von deren
+      # Auslastung. Seit auf dem Node der Taint role=dev:NoSchedule sitzt, ist
+      # jede Neuplatzierung unmoeglich: der laufende Pod ueberlebte den Taint
+      # (NoSchedule verdraengt nicht), aber der erste Rollout danach blieb
+      # dauerhaft Pending und der Prod-IdP war weg.
+      #
+      # Diese Toleration ist die Notbremse, nicht die Loesung. Sauber waere,
+      # pocket-id-data von einem als dev deklarierten Node herunterzubekommen
+      # — das ist Datenmigration und gehoert in ein eigenes Ticket.
+      tolerations:
+        - key: role
+          operator: Equal
+          value: dev
+          effect: NoSchedule
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534

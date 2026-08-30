@@ -79,7 +79,7 @@ setup() {
   links="$(git -C "$REPO_ROOT" ls-files -s | awk '$1 == "120000" { print $4 }')"
   [ -n "$links" ] || { echo "FATAL: kein getrackter Symlink gefunden — Extraktion defekt"; return 1; }
 
-  while IFS read -r p; do
+  while IFS= read -r p; do
     [ -e "$REPO_ROOT/$p" ] || { missing=1; offenders="$offenders$p "; }
   done <<< "$links"
 

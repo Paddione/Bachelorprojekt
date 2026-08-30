@@ -239,30 +239,27 @@ clients:
         command: [node, C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/mcp-task-runner/server.mjs, --taskfile, C:/Users/PatrickKorczewski/Bachelorprojekt/Taskfile.yml]
         enabled: true
 
-  # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
-  # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
+  # codebase-memory-mcp: plattformneutral ueber PATH aufloesen. Der offizielle
+  # Installer stellt das Binary fuer Windows und Linux unter diesem Namen bereit.
   codebase-memory-mcp:
     transport: stdio
     browser_endpoint: http://127.0.0.1:18235/mcp/codebase-memory-mcp
-    command: /home/patrick/.local/bin/codebase-memory-mcp
+    command: codebase-memory-mcp
     bridge:
       url: http://127.0.0.1:18235/mcp/codebase-memory-mcp
       bind: 127.0.0.1:18235
       auth: null
     harness:
       claude_code:
-        command: /home/patrick/.local/bin/codebase-memory-mcp
+        command: codebase-memory-mcp
       agy:
-        command: /home/patrick/.local/bin/codebase-memory-mcp
+        command: codebase-memory-mcp
       opencode:
-        # Binary /home/patrick/.local/bin/codebase-memory-mcp existiert auf
-        # Windows nicht (kein Windows-Build, MCPB-Bundle-Ersatz T002301 offen).
-        # Fuer claude_code/agy (WSL) bleibt der Server aktiv.
         type: local
-        command: [/home/patrick/.local/bin/codebase-memory-mcp]
-        enabled: false
+        command: [codebase-memory-mcp]
+        enabled: true
       llamacpp:
-        command: /home/patrick/.local/bin/codebase-memory-mcp
+        command: codebase-memory-mcp
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
 

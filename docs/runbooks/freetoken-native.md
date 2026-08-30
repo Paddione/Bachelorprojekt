@@ -109,6 +109,19 @@ HTTP-Multimodalpfad upstream funktioniert und separat getestet ist.
 - **FreeToken kennt den Proxy-[switch]-Mechanismus nicht:** Der llama-Proxy
   evictet FreeToken nicht und umgekehrt. Wer llama-Loadouts braucht, muss
   FreeToken vorher stoppen.
+- **Die `hf`-CLI ist auf pk-desktop ein verwaister Launcher:**
+  `%APPDATA%\Python\Python313\Scripts\hf.exe` zeigt auf `C:\Python313\python.exe`,
+  die nicht mehr existiert (der Interpreter ist heute 3.14). Jeder Aufruf —
+  auch `hf --help` — endet **wortlos mit rc=1**; in einer Pipe sieht das aus wie
+  ein fehlgeschlagener Download statt wie eine kaputte CLI. Funktionierender Weg
+  ist die Bibliothek statt des Wrappers:
+  ```bash
+  py -3.14 -c "from huggingface_hub import snapshot_download; \
+    snapshot_download(repo_id='ggml-org/gpt-oss-20b-GGUF', \
+                      local_dir=r'F:\models\ggml-org\gpt-oss-20b-GGUF')"
+  ```
+  `huggingface_hub` 1.21.0 liegt unter `py -3.14`; `HF_TOKEN` aus der Umgebung
+  wird automatisch verwendet.
 
 ## Routing
 
@@ -118,3 +131,122 @@ HTTP-Multimodalpfad upstream funktioniert und separat getestet ist.
   `baseUrl=http://127.0.0.1:1919/v1` (`scripts/factory/route-provider.sh`).
 - DB-Seite (Deployment): `tickets.provider_config` muss eine FreeToken-Zeile
   bekommen; llama-Zeilen demoten.
+
+## OpenDesign als BYOK-Client (T900008)
+
+[OpenDesign](https://github.com/nexu-io/open-design) (Electron, v0.21.0, Installation
+unter `%LOCALAPPDATA%\Programs\Open Design`) spricht FreeToken direkt als
+OpenAI-kompatiblen Endpunkt an. Es braucht **kein** zweites Backend und keinen
+Modellwechsel.
+
+| Feld | Wert |
+|------|------|
+| Base-URL | `http://127.0.0.1:1919/v1` |
+| Modell | `Qwen3.6-35B-A3B-NVFP4` |
+| Preset | „vLLM" oder „LM Studio" (beide generisch OpenAI-kompatibel) |
+
+Konfiguriert wird das in OpenDesigns GUI (BYOK); `%APPDATA%\Open Design\` enthält vor
+dem ersten Start nur eine `installationId`, keine Provider-Datei zum Vorbelegen.
+
+### Verifikation (2026-08-30, ft `0.1.2+g816c324d0`, Profil `qwen-200k`)
+
+Geprüft wurde genau das, was OpenDesigns BYOK-Proxy voraussetzt — Streaming und
+Tool-Calls:
+
+```bash
+# Erreichbarkeit + Kontextfenster: status=ok/serving, context_length=262144
+curl -sS http://127.0.0.1:1919/health
+curl -sS http://127.0.0.1:1919/v1/models
+
+# Tool-Calls => finish_reason "tool_calls" + valides arguments-JSON
+curl -sS -X POST http://127.0.0.1:1919/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"Qwen3.6-35B-A3B-NVFP4","max_tokens":600,
+       "messages":[{"role":"user","content":"What is the weather in Berlin? Use the tool."}],
+       "tools":[{"type":"function","function":{"name":"get_weather",
+         "parameters":{"type":"object","properties":{"city":{"type":"string"}},
+                       "required":["city"]}}}]}'
+
+# Streaming => korrekte chat.completion.chunk-Frames
+curl -sS -N -X POST http://127.0.0.1:1919/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"Qwen3.6-35B-A3B-NVFP4","max_tokens":16,"stream":true,
+       "messages":[{"role":"user","content":"Count: 1 2 3"}]}'
+```
+
+### Warum Vision hier nicht gebraucht wird
+
+FreeToken lehnt Bildinhalte ab, solange ein Text-Checkpoint geladen ist:
+
+```
+HTTP 400 {"error":{"message":"Unsupported content part type for text-only server: image_url"}}
+```
+
+Das ist für OpenDesign folgenlos, weil dessen **BYOK-Chat-Pfad keine Bild-Parts
+baut**. Nachgesehen im ausgelieferten Daemon
+(`resources/app/prebundled/daemon/chunks/server-NJQOALF6.mjs`): alle 23
+`image_url`-Konstruktionen liegen im Media-Generierungspfad
+(`buildOpenAIImageEditUrl`, `body2.frame_images`/`frame_type:"first_frame"`,
+`buildSeedanceContent`, `FAL_IMAGE_SIZES`/`falQueueRun`) und gehen an separate
+Media-Provider — keine im Chat-Proxy
+(`/api/proxy/{openai,anthropic,google,azure,ollama,aihubmix}/stream`).
+
+> **Falle bei der Nachprüfung:** Eine naive Suche nach `vision` in diesem Bundle
+> liefert 482 Treffer, die **ausnahmslos Substring-Artefakte** sind — `revision`
+> (145), `revisions` (32), `revisionClock` (30), `stardivision`, `provisionalKey`.
+> Kein einziger Treffer betrifft Bildverarbeitung. Wer die Zahl ungeprüft
+> übernimmt, dokumentiert das Gegenteil des Befunds. Nachstellbar mit:
+> ```bash
+> py -3.14 -c "import re,collections; \
+>   s=open(r'<pfad>\server-NJQOALF6.mjs',encoding='utf-8',errors='replace').read(); \
+>   print(collections.Counter(re.findall(r'\w*vision\w*',s,re.I)).most_common(5))"
+> ```
+
+**Funktionsgrenze:** OpenDesign bietet im Brief „Match a reference site / screenshot
+— I'll attach it" an. Angehängte Referenzbilder landen als Datei im Projekt; der
+Agent greift per Dateizugriff darauf zu, **sieht** sie aber nicht. Wer erwartet,
+dass das Modell ein Mockup visuell interpretiert, wird enttäuscht — mit jedem
+text-only Backend gleichermaßen.
+
+### Einschränkung: Requests queuen
+
+Alle Profile pinnen `--max-running-requests 1` (siehe „Kalibrierte Profile").
+OpenDesign-Requests laufen daher **nicht** parallel zu opencode-Subagenten, sondern
+reihen sich hinter ihnen ein.
+
+### Alternativweg: LM Studio — NICHT verifiziert
+
+Ein zweiter Weg ist LM Studio als lokaler OpenAI-Endpunkt. Der Modellordner ist
+`F:\models` in der LM-Studio-Struktur `publisher/repo/datei.gguf`:
+
+```bash
+py -3.14 -c "from huggingface_hub import snapshot_download; \
+  snapshot_download(repo_id='ggml-org/gpt-oss-20b-GGUF', \
+                    local_dir=r'F:\models\ggml-org\gpt-oss-20b-GGUF')"
+```
+
+Modellbegründung nicht hier duplizieren — sie steht mit Benchmark-Belegen im
+Kopfkommentar von [`scripts/llm/start-gptoss-server.ps1`](../../scripts/llm/start-gptoss-server.ps1)
+(kurz: Rang 2 auf LiquidAI/ifstruct für strukturiertes Instruction-Following, also
+die tool_calls-Disziplin, bei nativ MXFP4 und ~12 GB).
+
+**Was daran gemessen ist** (2026-08-30): `lms ls` listet nach dem Download
+`gpt-oss-20b@mxfp4` (arch `gpt-oss`, 12,11 GB) als lokales Modell — die
+Ordnerstruktur wird also erkannt. Die beiden `eagle3-*.gguf` erscheinen als eigene
+Einträge (Drafter für Speculative Decoding).
+
+**Was NICHT gemessen ist:** ob OpenDesign gegen LM Studio als Backend trägt. Dieser
+Abschnitt ist Setup-Anleitung, keine Verifikation.
+
+Zwei harte Randbedingungen:
+
+- **NVFP4 ist für LM Studio unbrauchbar.** Es ist ein vLLM/TensorRT-Format; LM
+  Studio fährt llama.cpp (GGUF). Bestätigt: nach dem Download von
+  `nvidia/Qwen3.6-35B-A3B-NVFP4` nach `F:\models\nvidia\…` taucht es in `lms ls`
+  **nicht** auf, während `gpt-oss-20b@mxfp4` gelistet wird.
+- **LM Studio und FreeToken können nicht gleichzeitig laden.** FreeToken belegt
+  ~15,7 von 16 GB — siehe „Messwerte": VRAM **exklusiv**. Vor dem Start von LM
+  Studio deshalb:
+  ```bash
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Stop
+  ```

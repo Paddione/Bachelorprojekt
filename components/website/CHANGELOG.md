@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.322.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.4...website-v1.322.5) (2026-08-30)
+
+
+### Bug Fixes
+
+* **mcp:** factory-mcp-node Streamable-HTTP + id=0-Handling [T900017] ([#5361](https://github.com/Paddione/Bachelorprojekt/issues/5361)) ([bab2a1f](https://github.com/Paddione/Bachelorprojekt/commit/bab2a1fdada18aee88551da4cb5098366a9ff8b4))
+
 ## [1.322.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.3...website-v1.322.4) (2026-08-30)
 
 

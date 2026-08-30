@@ -43,7 +43,7 @@ main() {
     *) echo "ERROR: unknown brand '$brand' (use mentolder|korczewski)" >&2; exit 2 ;;
   esac
   # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
-  CTX="${TICKET_CTX:-k3d-mentolder-dev}"
+  CTX="${TICKET_CTX:-fleet}"
 
   local pod; pod=$(_pgpod)
 

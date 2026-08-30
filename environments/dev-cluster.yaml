@@ -35,6 +35,7 @@ env_vars:
   # brainstorm.${PROD_DOMAIN} — die Traefik-Routen fuer *.dev.${PROD_DOMAIN}.
   PROD_DOMAIN: mentolder.de
   CONTACT_EMAIL: info@mentolder.de
+  EMAIL_NOTIFICATIONS_ENABLED: "false"
 
 # Ziel-Namespace des gerenderten Dev-Stacks (k3d/dev-stack + prod-fleet/dev).
 workspace_namespace: workspace-dev

@@ -92,6 +92,7 @@ env_vars:
   DEV_SSH_ALLOWLIST: ""
   PUSHOVER_TOKEN: ""
   PUSHOVER_USER: ""
+  EMAIL_NOTIFICATIONS_ENABLED: "false"
   FACTORY_OTLP_TOKEN: "staging-factory-otlp-token-placeholder"
 
 overlay: prod-fleet/staging

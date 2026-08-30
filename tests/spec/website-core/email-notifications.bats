@@ -43,7 +43,13 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "alertmanager-config traegt die autorisierte E-Mail-Konfiguration" {
+@test "alertmanager-config deklariert operator-email (T900001: E-Mail-Konfig deaktiviert, Receiver bleibt)" {
+  # T900001: Der Receiver-Name bleibt erhalten, die emailConfigs sind aber
+  # auskommentiert — kein ausgehender Alertmanager-Mails mehr.
+  run grep -E '^    - name: operator-email' "$AM"
+  [ "$status" -eq 0 ]
+
+  # emailConfigs-Block existiert als auskommentierter Comment (Declarative)
   run grep -F 'emailConfigs:' "$AM"
   [ "$status" -eq 0 ]
   run grep -F 'to: korczewski@mailbox.org' "$AM"

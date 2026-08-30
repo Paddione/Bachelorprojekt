@@ -6,11 +6,11 @@ import { logger } from './logger';
 export type NotificationType = 'registration' | 'booking' | 'contact' | 'bug' | 'message' | 'followup';
 
 const TYPE_DEFAULTS: Record<NotificationType, string> = {
-  registration: 'true',
-  booking:      'true',
-  contact:      'true',
-  bug:          'true',
-  message:      'true',
+  registration: 'false',
+  booking:      'false',
+  contact:      'false',
+  bug:          'false',
+  message:      'false',
   followup:     'false',
 };
 

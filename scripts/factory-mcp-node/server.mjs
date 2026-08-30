@@ -621,6 +621,18 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // MCP-Endpoint — GET: 405 statt SSE-Stream. Streamable-HTTP-Clients
+  // (opencode, Claude Code) oeffnen nach dem initialize-POST einen GET-Stream;
+  // laut Spec darf ein Server ohne Server→Client-Nachrichten mit 405 antworten
+  // (Allow: POST), woraufhin der Client in den POST-only-Modus faellt. Ein
+  // offener SSE-Stream wuerde den Client dagegen haengen lassen (Timeout).
+  // Referenz: supergateway im fleet-Monolith antwortet identisch auf GET /mcp.
+  if (req.url === '/mcp' && req.method === 'GET') {
+    res.writeHead(405, { Allow: 'POST', 'Content-Type': 'text/plain' });
+    res.end('Method Not Allowed');
+    return;
+  }
+
   // MCP-Endpoint — nur POST
   if (req.url === '/mcp' && req.method === 'POST') {
     let body;
@@ -641,8 +653,12 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    // Notifications have no ID — no reply per JSON-RPC 2.0
-    if (!reqObj?.id || reqObj.id === null || reqObj.id === 'null' || reqObj.id === '') {
+    // Notifications have no ID — no reply per JSON-RPC 2.0. WICHTIG: id=0 ist
+    // ein gueltiger Request-Id (SDK-Clients starten bei 0) — nur undefined/null
+    // kennzeichnen eine Notification. Ein `!id`-Check wuerde id=0 faelschlich
+    // als Notification behandeln und 204 ohne Content-Type zurueckgeben, was
+    // Streamable-HTTP-Clients mit "Unexpected content type: null" abbricht.
+    if (reqObj?.id === undefined || reqObj.id === null) {
       res.writeHead(204).end();
       return;
     }
@@ -675,8 +691,23 @@ const server = createServer(async (req, res) => {
       result = { isError: true, content: [{ type: 'text', text: 'internal error: ' + err.message }] };
     }
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ jsonrpc: '2.0', id, result }));
+    const payload = JSON.stringify({ jsonrpc: '2.0', id, result });
+    // Streamable-HTTP: Clients mit Accept: text/event-stream erwarten SSE-Frames
+    // plus Mcp-Session-Id-Header (wie supergateway im fleet-Monolith). Der
+    // Server ist zustandslos — die Session-Id wird generiert und ignoriert.
+    const accept = String(req.headers.accept || '');
+    if (accept.includes('text/event-stream')) {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Mcp-Session-Id': `factory-${process.pid}`,
+      });
+      res.write(`event: message\ndata: ${payload}\n\n`);
+      res.end();
+    } else {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(payload);
+    }
     return;
   }
 

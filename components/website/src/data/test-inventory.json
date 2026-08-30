@@ -3138,6 +3138,12 @@
     "kind": "shell"
   },
   {
+    "id": "code-quality/s2-madge-invocation",
+    "file": "tests/spec/code-quality/s2-madge-invocation.bats",
+    "category": "code-quality",
+    "kind": "shell"
+  },
+  {
     "id": "collabora-integration",
     "file": "tests/spec/collabora-integration.bats",
     "category": "collabora-integration",

@@ -43,15 +43,30 @@ export function cyclesToViolations(graphId, graphPath, cycles) {
  *  baseline, the exact silent-pass this gate exists to prevent. The only
  *  tolerated non-zero exit is madge finding cycles, which still emits its JSON
  *  array on stdout; that path is parsed and returned normally. */
-function resolveMadgeBinary(repoRoot) {
+/** Argv-Praefix fuer madge: [befehl, ...fuehrende Argumente].
+ *
+ *  Bewusst NICHT node_modules/.bin/madge [T900015]: das ist ein
+ *  `#!/bin/sh`-Shim. execFileSync startet ohne `shell: true` direkt einen
+ *  Prozess und kann ihn unter Windows nicht ausfuehren -> ENOENT, und der
+ *  Aufrufer wirft "S2: madge failed". Das Gate war damit auf Windows generell
+ *  nicht lauffaehig — seit ADR-007 (Windows-native Dev) die primaere
+ *  Entwicklungsplattform. Der Nachbar madge.cmd hilft nicht: .cmd braucht
+ *  `shell: true` (Node CVE-2024-27980) und liefert sonst EINVAL.
+ *
+ *  Stattdessen die JS-CLI mit dem laufenden Node starten. Das kennt keine
+ *  Shim-, Shell- oder Endungsfragen und verhaelt sich auf allen Plattformen
+ *  gleich. */
+export function resolveMadgeCommand(repoRoot) {
   const candidates = [
-    join(repoRoot, 'node_modules', '.bin', 'madge'),
-    join(process.cwd(), 'node_modules', '.bin', 'madge'),
+    join(repoRoot, 'node_modules', 'madge', 'bin', 'cli.js'),
+    join(process.cwd(), 'node_modules', 'madge', 'bin', 'cli.js'),
   ];
   for (const c of candidates) {
-    if (existsSync(c)) return c;
+    if (existsSync(c)) return [process.execPath, c];
   }
-  return 'madge';
+  // Letzter Ausweg: madge aus dem PATH. Fehlt es auch dort, wirft
+  // execFileSync ENOENT — und das Gate faellt fail-closed, wie vorgesehen.
+  return ['madge'];
 }
 
 function madgeCycles(repoRoot, tsconfig) {
@@ -60,13 +75,13 @@ function madgeCycles(repoRoot, tsconfig) {
   if (!existsSync(dir)) {
     throw new Error(`S2: graph dir missing for ${tsconfig} (looked in ${dir})`);
   }
-  const madgeBin = resolveMadgeBinary(repoRoot);
+  const [madgeCmd, ...madgePrefix] = resolveMadgeCommand(repoRoot);
   try {
     // stderr is piped (not ignored) so a genuine failure's diagnostic is
     // available on err.stderr for the thrown Error below.
     const out = execFileSync(
-      madgeBin,
-      ['--circular', '--json', '--extensions', 'ts,tsx', '.'],
+      madgeCmd,
+      [...madgePrefix, '--circular', '--json', '--extensions', 'ts,tsx', '.'],
       { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
     );
     // (a) success path: exit 0 → stdout is the (possibly empty) cycle array.

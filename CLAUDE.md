@@ -141,7 +141,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 
 ## Image Exclusions
 
-The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`).
+The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`), Factory-Runner (`factory-runner`).
 
 ## Development Rules
 
@@ -184,4 +184,3 @@ git grep -F -l 'Taskfile.' "$PRE" -- . ':!openspec/changes/archive' ':!docs/supe
 ```
 
 **Redaktioneller Hinweis, kein automatisierter Guard** — dieselbe Klasse wie der Deliverable-Check (M10, T002506). Maschinell geprüft wird ausschließlich, dass diese Regel im Repo steht (`tests/spec/agent-skills/messung-mit-befehl.bats`).
-

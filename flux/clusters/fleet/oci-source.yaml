@@ -7,7 +7,7 @@ spec:
   interval: 10m
   url: oci://ghcr.io/paddione/fleet-manifests
   ref:
-    tag: latest
+    tag: sha-ed95da519
   secretRef:
     name: ghcr-auth
   # Supply-chain verification: every artifact must carry a cosign signature

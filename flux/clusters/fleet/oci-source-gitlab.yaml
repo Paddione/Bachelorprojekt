@@ -25,7 +25,7 @@ spec:
   interval: 10m
   url: oci://registry.gitlab.com/p.korczewski/bachelorprojekt/fleet-manifests
   ref:
-    tag: latest
+    tag: sha-ed95da519
   secretRef:
     name: gitlab-registry-auth
   verify:

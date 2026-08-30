@@ -300,6 +300,67 @@ spec:
     - port: 8188
       protocol: TCP
 ---
+# RustDesk hbbs/hbbr — hostNetwork:true, pinned on ${TURN_NODE} via nodeSelector.
+# Their pod IPs resolve to k3d node IPs (172.19.0.0/16) or wg-mesh node IPs,
+# so egress from rustdesk namespace pods needs the same node-network exceptions
+# as the Janus policy above. Without this, the rustdesk web-client cannot
+# reach hbbs/hbbr on their native ports (21115-21119).
+#
+# SA-GR-04 (T014547): hostNetwork pods bypass NetworkPolicies by design.
+# This exception exists for other pods that need to reach rustdesk services
+# FROM within the cluster (e.g., the rustdesk-web-bridge in workspace namespace).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-rustdesk-ingress-hostnet
+  namespace: rustdesk
+spec:
+  podSelector:
+    matchLabels:
+      app: hbbs
+  policyTypes:
+  - Ingress
+  ingress:
+  # Direct node network (hostNetwork IP — k3d node CIDR)
+  - from:
+    - ipBlock:
+        cidr: 172.19.0.0/16
+    ports:
+    - port: 21115
+      protocol: TCP
+    - port: 21116
+      protocol: TCP
+    - port: 21116
+      protocol: UDP
+    - port: 21118
+      protocol: TCP
+  # wg-mesh node IPs (fleet)
+  - from:
+    - ipBlock:
+        cidr: 10.20.0.0/24
+    ports:
+    - port: 21115
+      protocol: TCP
+    - port: 21116
+      protocol: TCP
+    - port: 21116
+      protocol: UDP
+    - port: 21118
+      protocol: TCP
+  # wg-mesh node IPs (korzkewski)
+  - from:
+    - ipBlock:
+        cidr: 10.13.14.0/24
+    ports:
+    - port: 21115
+      protocol: TCP
+    - port: 21116
+      protocol: TCP
+    - port: 21116
+      protocol: UDP
+    - port: 21118
+      protocol: TCP
+---
 # Nextcloud → Collabora (workspace-office Namespace, WOPI Port 9980)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

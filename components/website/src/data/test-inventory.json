@@ -4854,6 +4854,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-hygiene/precheck-foreign-session",
+    "file": "tests/spec/repo-hygiene/precheck-foreign-session.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
     "id": "repo-hygiene/signal-gaps",
     "file": "tests/spec/repo-hygiene/signal-gaps.bats",
     "category": "repo-hygiene",

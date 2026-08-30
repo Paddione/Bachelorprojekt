@@ -7,6 +7,22 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
+# MSYS/Git-Bash (Windows): `pwd` liefert /c/... (POSIX-Form), node interpretiert
+# das als C:\c\... und schlaegt mit ENOENT fehl (beobachtet 2026-08-30 bei
+# `mcp-sync.sh check` auf dem Windows-Host). cygpath -m liefert C:/... mit
+# Forward-Slashes — das verstehen node UND bash gleichermassen. HOME wird
+# mitkonvertiert, weil AGY_TARGET/QWEN_TARGET in node -e interpoliert werden.
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    REPO="$(cygpath -m "$REPO")"
+    HOME="$(cygpath -m "$HOME")"
+    # Test-Overrides koennen ebenfalls POSIX-Form tragen (bats-TMPDIRs) —
+    # dieselbe Konvertierung, sonst ENOENT in den node -e-Aufrufen.
+    if [ -n "${MCP_REGISTRY:-}" ]; then MCP_REGISTRY="$(cygpath -m "$MCP_REGISTRY")"; fi
+    if [ -n "${MCP_OUT_DIR:-}" ]; then MCP_OUT_DIR="$(cygpath -m "$MCP_OUT_DIR")"; fi
+    ;;
+esac
+
 # MCP_REGISTRY / MCP_OUT_DIR sind Test-Overrides (T002487). Ohne sie verhaelt sich
 # das Skript exakt wie zuvor. Mit ihnen laesst sich `render` gegen eine
 # Fixture-Registry in ein temporaeres Verzeichnis fahren, statt die echten

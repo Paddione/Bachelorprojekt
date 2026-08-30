@@ -3,14 +3,14 @@
     "brain-mcp-node": {
       "command": "node",
       "args": [
-        "/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"
+        "scripts/brain-mcp-node/server.mjs"
       ],
       "env": {
         "BRAIN_WIKI_DIR": "~/brain/wiki"
       }
     },
     "codebase-memory-mcp": {
-      "command": "/home/patrick/.local/bin/codebase-memory-mcp"
+      "command": "codebase-memory-mcp"
     },
     "factory-mcp-node": {
       "type": "http",
@@ -43,7 +43,7 @@
     "ticket-mcp-node": {
       "command": "node",
       "args": [
-        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"
+        "scripts/ticket-mcp-node/server.mjs"
       ]
     }
   }

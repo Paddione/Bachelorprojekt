@@ -138,6 +138,10 @@ clients:
 
   # Node.js ports of the custom MCP servers — zero npm dependencies, stdlib only.
   # Old Go/Python sources are deprecated (P6: cleanup old sources).
+  # Pfad-Split (2026-08-30): claude_code + opencode nutzen den repo-relativen
+  # Pfad (portabel — beide Harnesses starten aus dem Repo-Root; G-AGENTIC14
+  # vergleicht genau diese beiden). top-level/agy/llamacpp behalten den
+  # absoluten Linux-Pfad: agy/llamacpp laufen nur auf dem Linux-Host.
   brain-mcp-node:
     transport: stdio
     command: node
@@ -147,7 +151,7 @@ clients:
     harness:
       claude_code:
         command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        args: [scripts/brain-mcp-node/server.mjs]
         env:
           BRAIN_WIKI_DIR: ~/brain/wiki
       agy:
@@ -160,14 +164,13 @@ clients:
         # /home/patrick-Pfade sind WSL (k3d-dev). Der Server ist stdio und
         # laeuft dort, wo der Harness laeuft — also Windows-Pfad hier.
         type: local
-        command: [node, C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        # Windows-Host: kein Brain-Wiki-Checkout unter ~/brain/wiki (siehe
+        # brain-ingest) — der Server ist hier nicht startbar, bis das Brain-Repo
+        # ausgecheckt ist. Disabled statt toter Pfad; Pfad ist trotzdem portabel.
+        command: [node, scripts/brain-mcp-node/server.mjs]
         environment:
           BRAIN_WIKI_DIR: ~/brain/wiki
-        enabled: true
-        note: >-
-          Wiki liegt in WSL (~/brain/wiki) bzw. im externen Paddione/brain-Repo —
-          auf Windows startet der Server, liefert aber leere Ergebnisse, solange
-          kein lokales Wiki existiert.
+        enabled: false
 
   factory-mcp-node:
     transport: http
@@ -196,13 +199,13 @@ clients:
     harness:
       claude_code:
         command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        args: [scripts/ticket-mcp-node/server.mjs]
       agy:
         command: node
         args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
       opencode:
         type: local
-        command: [node, C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        command: [node, scripts/ticket-mcp-node/server.mjs]
         enabled: true
       llamacpp:
         command: node
@@ -236,33 +239,36 @@ clients:
         # --otel-endpoint entfaellt: der Parameter wird im Server nur geparst,
         # nie benutzt (kein Collector noetig).
         type: local
-        command: [node, C:/Users/PatrickKorczewski/Bachelorprojekt/scripts/mcp-task-runner/server.mjs, --taskfile, C:/Users/PatrickKorczewski/Bachelorprojekt/Taskfile.yml]
-        enabled: true
+        # Windows-Host: mcp-task-runner ist nicht auf dem PATH installiert
+        # (Linux-Binary, MCPB-Bundle-Ersatz T002301). Disabled statt toter Pfad.
+        command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+        enabled: false
 
-  # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
-  # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
+  # codebase-memory-mcp: plattformneutral ueber PATH aufloesen. Der offizielle
+  # Installer stellt das Binary fuer Windows und Linux unter diesem Namen bereit.
   codebase-memory-mcp:
     transport: stdio
     browser_endpoint: http://127.0.0.1:18235/mcp/codebase-memory-mcp
-    command: /home/patrick/.local/bin/codebase-memory-mcp
+    command: codebase-memory-mcp
     bridge:
       url: http://127.0.0.1:18235/mcp/codebase-memory-mcp
       bind: 127.0.0.1:18235
       auth: null
     harness:
       claude_code:
-        command: /home/patrick/.local/bin/codebase-memory-mcp
+        command: codebase-memory-mcp
       agy:
-        command: /home/patrick/.local/bin/codebase-memory-mcp
+        command: codebase-memory-mcp
       opencode:
-        # Binary /home/patrick/.local/bin/codebase-memory-mcp existiert auf
-        # Windows nicht (kein Windows-Build, MCPB-Bundle-Ersatz T002301 offen).
-        # Fuer claude_code/agy (WSL) bleibt der Server aktiv.
+        # Kommando plattformneutral ueber PATH (offizieller Installer liefert
+        # das Binary fuer Windows und Linux). Auf diesem Windows-Host ist es
+        # aber noch nicht installiert — disabled, bis `codebase-memory-mcp`
+        # auf dem PATH liegt.
         type: local
-        command: [/home/patrick/.local/bin/codebase-memory-mcp]
+        command: [codebase-memory-mcp]
         enabled: false
       llamacpp:
-        command: /home/patrick/.local/bin/codebase-memory-mcp
+        command: codebase-memory-mcp
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
 

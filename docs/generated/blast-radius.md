@@ -1,14 +1,14 @@
 # Blast-Radius-Report
-> Generated: 2026-08-28T18:41:00.804Z
-> Nodes: 101 | Edges: 2194 | Isolated: 9
+> Generated: 2026-08-30T10:19:19.570Z
+> Nodes: 101 | Edges: 2193 | Isolated: 9
 
 ## Ranking (transitive Abhängige)
 
 | Rang | Service | Direkt abhängig | Transitiv abhängig | In-Degree |
 |------|---------|-----------------|--------------------| ----------|
 | 1 | coturn | 4 | 60 | 4 |
-| 2 | mailpit | 4 | 59 | 4 |
-| 3 | janus | 3 | 59 | 3 |
+| 2 | janus | 3 | 59 | 3 |
+| 3 | mailpit | 3 | 59 | 3 |
 | 4 | sish | 2 | 59 | 2 |
 | 5 | mentolder-web | 2 | 59 | 2 |
 | 6 | otel-collector | 2 | 59 | 2 |
@@ -101,14 +101,14 @@
 **Transitive Abhängige:** 60 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, coturn, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, penminio, penpot, penpot-gateway, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, tls-sync, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 4
 
-### mailpit
-**Direkte Abhängige:** 4 — mailpit, nextcloud, traefik, vaultwarden
-**Transitive Abhängige:** 59 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, mailpit, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, penminio, penpot, penpot-gateway, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
-**Upstream (In-Degree):** 4
-
 ### janus
 **Direkte Abhängige:** 3 — ddns-updater, janus, spreed-signaling
 **Transitive Abhängige:** 59 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, error-log-retention, janus, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, penminio, penpot, penpot-gateway, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
+**Upstream (In-Degree):** 3
+
+### mailpit
+**Direkte Abhängige:** 3 — mailpit, nextcloud, traefik
+**Transitive Abhängige:** 59 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, mailpit, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, penminio, penpot, penpot-gateway, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 3
 
 ### sish

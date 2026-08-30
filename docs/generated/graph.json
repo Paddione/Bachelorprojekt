@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-28T18:41:00.417Z",
+  "generatedAt": "2026-08-30T10:19:19.423Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1075,12 +1075,6 @@
       "from": "vaultwarden",
       "to": "shared-db",
       "via": "env:DATABASE_URL",
-      "kind": "env"
-    },
-    {
-      "from": "vaultwarden",
-      "to": "mailpit",
-      "via": "env:SMTP_HOST",
       "kind": "env"
     },
     {

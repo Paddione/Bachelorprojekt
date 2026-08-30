@@ -1,0 +1,484 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# ── Debug-Logging fuer die Staging-Umgebung [T900018] ────────────────────────
+#
+# Zweck: Nach einem Restart sollen die Logs ALLER Services in workspace-staging
+# auf fehlende Implementierungen (501, "not implemented", stub-Handler, tote
+# Routen, fehlende Env-Vars) durchsuchbar sein. Ausgewertet wird mit
+# `scripts/collect-debug-logs.sh` bzw. `task logs:debug-scan ENV=staging`.
+#
+# NUR STAGING. Diese Component wird bewusst NICHT von prod-fleet/mentolder oder
+# prod-fleet/korczewski eingebunden: Debug-Logs enthalten regelmaessig
+# Request-Bodies, Header und User-IDs — in Prod waere das ein DSGVO-Problem und
+# ausserdem ein Loki-Volumen-Problem.
+#
+# Mechanik: Jeder Patch setzt eine explizite `env`-Variable am Container.
+# Explizite `env`-Eintraege gewinnen in Kubernetes gegen `envFrom`-Werte aus
+# ConfigMaps — die `PINO_LOG_LEVEL: "info"`-Defaults in den ConfigMaps werden
+# dadurch ueberschrieben, ohne dass die ConfigMap selbst angefasst werden muss.
+#
+# ── Bewusst NICHT abgedeckt (kein Env-Schalter vorhanden) ────────────────────
+# Diese Container konfigurieren ihren Log-Level ueber Kommandozeilen-Argumente
+# oder Config-Dateien. Ein strategic-merge-Patch auf `args` ERSETZT die Liste
+# vollstaendig, statt sie zu ergaenzen — das wuerde die Start-Parameter dieser
+# Dienste stillschweigend zerstoeren. Sie werden stattdessen zur Laufzeit vom
+# Sammelskript behandelt (siehe scripts/collect-debug-logs.sh --runtime):
+#   * nats             (-DV als arg)
+#   * nextcloud-redis  (--loglevel debug als arg)
+#   * shared-db        (postgres -c log_min_messages=... als arg)
+#   * spreed-signaling (server.conf, ConfigMap-basiert)
+#   * talk-recording   (recording.conf, ConfigMap-basiert)
+#   * penpot           (logback.xml im Image)
+#   * penminio         (MinIO kennt keinen Log-Level-Schalter)
+#   * sessions-server  (nginx error_log, nur via nginx.conf)
+#   * nextcloud        (occ config:system:set loglevel — Laufzeit, siehe Skript)
+
+patches:
+  # ── Eigene Node-/Astro-Dienste ────────────────────────────────────────────
+  - target: { kind: Deployment, name: brett }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: brett }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: brett
+                env:
+                  - name: LOG_LEVEL
+                    value: "debug"
+                  - name: PINO_LOG_LEVEL
+                    value: "debug"
+
+  - target: { kind: Deployment, name: videovault }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: videovault }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: videovault
+                env:
+                  - name: LOG_LEVEL
+                    value: "debug"
+                  - name: PINO_LOG_LEVEL
+                    value: "debug"
+
+  - target: { kind: Deployment, name: studio-server }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: studio-server }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: studio-server
+                env:
+                  - name: LOG_LEVEL
+                    value: "debug"
+
+  - target: { kind: Deployment, name: einvoice-sidecar }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: einvoice-sidecar }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: sidecar
+                env:
+                  - name: LOG_LEVEL
+                    value: "debug"
+
+  # ── static-web-server (SWS) Dienste ───────────────────────────────────────
+  #     Erkennbar an SERVER_ROOT/SERVER_PORT im Container-Env.
+  #     mediaviewer-widget und mentolder-web sind bewusst NICHT dabei: sie
+  #     fuehren keine SERVER_*-Variablen und sind damit kein SWS.
+  - target: { kind: Deployment, name: brain }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: brain }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: brain
+                env:
+                  - name: SERVER_LOG_LEVEL
+                    value: "debug"
+
+  - target: { kind: Deployment, name: docs }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: docs }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: docs
+                env:
+                  - name: SERVER_LOG_LEVEL
+                    value: "debug"
+
+  - target: { kind: Deployment, name: downloads }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: downloads }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: downloads
+                env:
+                  - name: SERVER_LOG_LEVEL
+                    value: "debug"
+
+  # ── Identity / Secrets / Kollaboration ────────────────────────────────────
+  - target: { kind: Deployment, name: pocket-id }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: pocket-id }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: pocket-id
+                env:
+                  - name: LOG_LEVEL
+                    value: "debug"
+
+  - target: { kind: Deployment, name: vaultwarden }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: vaultwarden }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: vaultwarden
+                env:
+                  - name: LOG_LEVEL
+                    value: "debug"
+                  - name: EXTENDED_LOGGING
+                    value: "true"
+
+  - target: { kind: Deployment, name: whiteboard }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: whiteboard }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: whiteboard
+                env:
+                  - name: LOG_LEVEL
+                    value: "debug"
+
+  # ── Mail / Notifications ──────────────────────────────────────────────────
+  - target: { kind: Deployment, name: mailpit }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: mailpit }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: mailpit
+                env:
+                  - name: MP_VERBOSE
+                    value: "true"
+
+  - target: { kind: Deployment, name: ntfy }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: ntfy }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: ntfy
+                env:
+                  - name: NTFY_LOG_LEVEL
+                    value: "debug"
+
+  # ── LLM-Gateways (llama.cpp server) ───────────────────────────────────────
+  #     llama.cpp liest LLAMA_ARG_* als Env-Aequivalent seiner CLI-Flags, damit
+  #     die bestehende args-Liste unangetastet bleibt.
+  - target: { kind: Deployment, name: bge-embed }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: bge-embed }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: llama-cpp
+                env:
+                  - name: LLAMA_ARG_VERBOSE
+                    value: "1"
+
+  - target: { kind: Deployment, name: bge-rerank }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: bge-rerank }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: llama-cpp
+                env:
+                  - name: LLAMA_ARG_VERBOSE
+                    value: "1"
+
+  # ── oauth2-proxy-Gates ────────────────────────────────────────────────────
+  #     Die Gateway-Schicht macht fehlende Endpunkte an der Kante sichtbar:
+  #     Request-Logging protokolliert jeden 404/501, den ein Upstream liefert.
+  #     SILENCE_PING_LOGGING bleibt auf true — /ping ist Health-Check-Rauschen
+  #     und wuerde die interessanten Zeilen im Log begraben.
+  #     Gepatcht wird nur der Container `oauth2-proxy`; der busybox-initContainer
+  #     jedes Deployments bleibt unberuehrt.
+  - target: { kind: Deployment, name: oauth2-proxy-brain }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-brain }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-brett }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-brett }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-comfy }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-comfy }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-docs }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-docs }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-downloads }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-downloads }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-mailpit }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-mailpit }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-mediaviewer }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-mediaviewer }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-rustdesk-web }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-rustdesk-web }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-studio }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-studio }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-terminal }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-terminal }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-traefik }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-traefik }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"
+  - target: { kind: Deployment, name: oauth2-proxy-videovault }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-videovault }
+      spec:
+        template:
+          spec:
+            containers:
+              - name: oauth2-proxy
+                env:
+                  - name: OAUTH2_PROXY_STANDARD_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_AUTH_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_REQUEST_LOGGING
+                    value: "true"
+                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
+                    value: "true"

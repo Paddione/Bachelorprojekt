@@ -8,3 +8,12 @@ spec:
       containers:
         - name: website
           image: ghcr.io/paddione/${WEBSITE_IMAGE}@${WEBSITE_IMAGE_DIGEST}
+          # Debug-Logging fuer Staging [T900018]. Der explizite env-Eintrag
+          # gewinnt gegen PINO_LOG_LEVEL: "info" aus der website-config
+          # ConfigMap (envFrom), die weiterhin unveraendert bleibt.
+          # Bewusst NUR hier — prod-fleet/website-mentolder bleibt auf info.
+          env:
+            - name: PINO_LOG_LEVEL
+              value: "debug"
+            - name: LOG_LEVEL
+              value: "debug"

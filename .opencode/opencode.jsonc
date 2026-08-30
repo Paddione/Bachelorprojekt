@@ -147,9 +147,7 @@
 
       "type": "local",
 
-      "command": ["npx","-y","@modelcontextprotocol/server-github"],
-
-      "environment": {"GITHUB_TOKEN":"{env:GITHUB_TOKEN}"},
+      "command": ["/home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh"],
 
       "enabled": false
 

@@ -258,9 +258,13 @@ clients:
     harness:
       opencode:
         type: local
-        command: [npx, -y, "@modelcontextprotocol/server-github"]
-        environment:
-          GITHUB_TOKEN: "{env:GITHUB_TOKEN}"
+        # T002547: wie Top-Level auf den offiziellen Go-Server umgestellt —
+        # @modelcontextprotocol/server-github ist bei npm deprecated
+        # ("Package no longer supported") und wird hier nicht mehr referenziert.
+        # GITHUB_TOKEN wird zur Laufzeit vom Wrapper per 'gh auth token' bezogen;
+        # ein statisches environment-Feld wuerde sonst ein zweites,
+        # abweichendes Credential einfuehren.
+        command: [/home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh]
         enabled: false
     note: "Nur in opencode (disabled). gh-axi ist der mandatierte GitHub-Pfad."
 

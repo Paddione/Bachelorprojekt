@@ -23,9 +23,9 @@ angehängten Proposals.
 | `website` | Brand-Seiten mentolder + korczewski | Skill `web-audit` | delegiert |
 | `repo` | Repo-Zustand, PRs, Factory-Queue | Skill `repo-hygiene` §0–§7 inkl. Runtime-Drift | delegiert |
 | `toolset` | Tool-Registry (`capabilities.yaml`) | Skill `toolset-curate` Schritt 1–2 | delegiert |
-| `security` | SealedSecrets, OIDC, DSGVO, Secret-Alter | Checkliste [§2](references/checklists.md#2-security-sealedsecrets-oidc-dsgvo) (+ infra-ops §6) | eigen |
-| `database` | PostgreSQL (Backups, Schema, Wachstum) | Checkliste [§3](references/checklists.md#3-datenbank-postgresql) (+ infra-ops §7) | eigen |
-| `llm-pipeline` | GPU-Host, llm-proxy, Loadouts | Checkliste [§4](references/checklists.md#4-llm-pipeline-gpu-proxy-loadouts) (+ infra-ops §5) | eigen |
+| `security` | SealedSecrets, OIDC, DSGVO, Secret-Alter | Checkliste [§2](references/checklists.md#2-security-sealedsecrets-oidc-dsgvo) (+ infra-ops `references/runbooks-operations.md` §6) | eigen |
+| `database` | PostgreSQL (Backups, Schema, Wachstum) | Checkliste [§3](references/checklists.md#3-datenbank-postgresql) (+ infra-ops `references/runbooks-operations.md` §7) | eigen |
+| `llm-pipeline` | GPU-Host, llm-proxy, Loadouts | Checkliste [§4](references/checklists.md#4-llm-pipeline-gpu-proxy-loadouts) (+ infra-ops `references/runbooks-operations.md` §5) | eigen |
 | `brain-wiki` | Brain-Wiki-Frische gegen die Quellen | Skill `brain-ingest` Dry-Run | delegiert |
 | `all` | alle Ziele oben | sequenziell, ein Sammelreport | — |
 
@@ -100,11 +100,11 @@ dafür bleibt es bei `toolset-curate`.
 
 SealedSecrets-Status und -Alter, OIDC-Clients DB-vs-Manifest-Drift, Plaintext-Secrets
 im Git-Baum, DSGVO-Basics der Brand-Seiten. Details: [Checkliste §2](references/checklists.md#2-security-sealedsecrets-oidc-dsgvo).
-Rotationsprozeduren selbst: infra-ops §6.
+Rotationsprozeduren selbst: infra-ops `references/runbooks-operations.md` §6.
 
 ### database → Checkliste §3
 
-Backup-Frische und Restore-Verifikation (infra-ops §7 Audit), plus read-only SQL-Checks
+Backup-Frische und Restore-Verifikation (infra-ops `references/runbooks-operations.md` §7 Audit), plus read-only SQL-Checks
 über `mcp-postgres`. Nie `SELECT *` von `tickets.ticket_plans` (Multi-MB-Content).
 Details: [Checkliste §3](references/checklists.md#3-datenbank-postgresql).
 
@@ -112,14 +112,14 @@ Details: [Checkliste §3](references/checklists.md#3-datenbank-postgresql).
 
 Proxy-Erreichbarkeit, Backend-Gesundheit, Loadout-Konfiguration vs. laufende Realität,
 GPU-Speicher. Details: [Checkliste §4](references/checklists.md#4-llm-pipeline-gpu-proxy-loadouts).
-Betrieb und Loadout-Wechsel: infra-ops §5.
+Betrieb und Loadout-Wechsel: infra-ops `references/runbooks-operations.md` §5.
 
-### brain-wiki → delegiert an `brain-ingest`
+### brain-wiki → `task brain:ingest:dry` (direkt, nicht über `brain-ingest`-Skill)
 
-Dry-Run der Ingest-Pipeline (`task brain:ingest:dry` bzw. Worklist-Generierung; der Task setzt
+Der `brain-ingest`-Skill ist write-heavy (kompiliert und publishet die Wiki). Für den Audit
+reicht der Dry-Run-Task: `task brain:ingest:dry` (bzw. Worklist-Generierung; der Task setzt
 LM_MODEL-Default `gemma-4-12b-qat` und den Ingest-Pool `:8093`, überschreibbar via Environment).
-Jede
-Quelle, die eine Wiki-Seite ändern würde, ist ein Warning-Befund (Wiki driftet); ein
+Jede Quelle, die eine Wiki-Seite ändern würde, ist ein Warning-Befund (Wiki driftet); ein
 fehlgeschlagener Dry-Run ist Critical.
 
 ## Phase B — Befunde normalisieren und Report schreiben

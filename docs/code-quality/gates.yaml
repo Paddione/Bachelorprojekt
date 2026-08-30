@@ -116,6 +116,12 @@ s1:
     # path itself, not its target, so it needs its own ignore entry (T001686).
     - ".opencode/plugins/background-agents.ts"
     - ".opencode/plugins/worktree.ts"
+    # scripts/ticket-mcp-node/server.mjs is the single-file stdio MCP server holding
+    # all ~26 ticket tools as thin wrappers over runner.mjs (node-mcp-servers port of
+    # the former Go server). Every tool shares one readline/RPC dispatch surface, so
+    # splitting would duplicate the handler plumbing without reducing semantic bulk —
+    # the same rationale as the sanctioned scripts/ticket.sh single-file CLI entry.
+    - "scripts/ticket-mcp-node/server.mjs"
 
 s2:
   graphs:

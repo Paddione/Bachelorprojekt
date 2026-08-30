@@ -5,19 +5,19 @@ load 'test_helper'
 
 MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 
-@test "factory-mcp is registered at :13003/mcp in BOTH .mcp.json and .opencode/opencode.jsonc" {
+@test "factory-mcp-node is registered at :13003/mcp in BOTH .mcp.json and .opencode/opencode.jsonc" {
   local opencode_json mcp_servers=()
   
   opencode_json=$(cat ".opencode/opencode.jsonc")
   
-  # Check .mcp.json (project-level Claude Code MCP config) for factory-mcp
-  if ! grep -q '"factory-mcp"' ".mcp.json"; then
-    echo "# ERROR: factory-mcp not registered in .mcp.json" && exit 1
+  # Check .mcp.json (project-level Claude Code MCP config) for factory-mcp-node
+  if ! grep -q '"factory-mcp-node"' ".mcp.json"; then
+    echo "# ERROR: factory-mcp-node not registered in .mcp.json" && exit 1
   fi
   
   # Check .opencode/opencode.jsonc for all MCP servers
-  if ! echo "$opencode_json" | grep -q '"factory-mcp"'; then
-    echo "# ERROR: factory-mcp not registered in opencode.jsonc" && exit 1
+  if ! echo "$opencode_json" | grep -q '"factory-mcp-node"'; then
+    echo "# ERROR: factory-mcp-node not registered in opencode.jsonc" && exit 1
   fi
   
   if ! echo "$opencode_json" | grep -q '"mcp-kubernetes"'; then

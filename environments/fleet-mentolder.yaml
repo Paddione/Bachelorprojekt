@@ -88,6 +88,7 @@ env_vars:
   DEV_SSH_ALLOWLIST: ""
   PUSHOVER_TOKEN: ""
   PUSHOVER_USER: ""
+  EMAIL_NOTIFICATIONS_ENABLED: "false"
 
 # overlay points at the fleet wrapper (reuses prod-mentolder + deletes the
 # platform-owned cluster singletons via the fleet-common component). workspace:deploy

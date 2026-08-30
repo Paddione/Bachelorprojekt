@@ -28,6 +28,7 @@ env_vars:
   LLM_HOST_IP: "192.168.100.10"
   TURN_OVERLAY_IP: "172.17.0.1"
   TERMINAL_OVERLAY_IP: "172.17.0.1"
+  EMAIL_NOTIFICATIONS_ENABLED: "false"
 
   MEDIAVIEWER_HOST: mediaviewer.localhost
   VIDEOVAULT_DOMAIN: videovault.localhost

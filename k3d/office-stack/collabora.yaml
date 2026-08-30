@@ -58,6 +58,7 @@ spec:
           #   privileged PSA on this namespace allows Unconfined.
           securityContext:
             runAsNonRoot: true
+            allowPrivilegeEscalation: false
             capabilities:
               add: ["SYS_ADMIN", "MKNOD", "SETUID", "SETGID"]
             appArmorProfile:

@@ -38,6 +38,43 @@ if (fs.existsSync(claudeSettingsPath)) {
   console.log(`Updated ${claudeSettingsPath}`);
 }
 
+// 3. Sync plugin: curation decisions → registry/settings.json
+//    T014551: The sync was missing plugin: decisions — only mcp: was handled.
+//    Every harness that reads the capabilities registry should also see
+//    the curated plugin state so it can enforce the decision (enable/disable).
+const pluginInstances = {};
+for (const [capName, instances] of Object.entries(registry.capabilities)) {
+  for (const [instKey, instCfg] of Object.entries(instances)) {
+    if (instKey.startsWith('plugin:')) {
+      pluginInstances[instKey] = {
+        state: instCfg.state,
+        reason: instCfg.reason || null,
+        // Preserve any extra fields from the registry (description, version, etc.)
+        ...Object.fromEntries(
+          Object.entries(instCfg).filter(([k]) => !['state', 'reason'].includes(k))
+        ),
+      };
+    }
+  }
+}
+
+if (Object.keys(pluginInstances).length > 0) {
+  const settingsDir = path.join(outDir, 'registry');
+  fs.mkdirSync(settingsDir, { recursive: true });
+  const settingsPath = path.join(settingsDir, 'settings.json');
+  const settings = {};
+  try {
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  } catch { /* fresh file */ }
+
+  settings.plugins = pluginInstances;
+
+  const tmpPath = `${settingsPath}.tmp.${Date.now()}`;
+  fs.writeFileSync(tmpPath, JSON.stringify(settings, null, 2) + '\n');
+  fs.renameSync(tmpPath, settingsPath);
+  console.log(`Updated ${settingsPath} (${Object.keys(pluginInstances).length} plugin decisions)`);
+}
+
 // 2. Surgical update of .opencode/opencode.jsonc
 const opencodeConfigPath = path.join(outDir, '.opencode', 'opencode.jsonc');
 if (fs.existsSync(opencodeConfigPath)) {

@@ -1,0 +1,82 @@
+# .github/workflows/sentinel.yml
+# Daily sentinel: check workflow health and report genuinely inactive workflows.
+#
+# SA-SC-01 (T014467): Filter state=deleted so removed workflows (e.g. track-pr.yml,
+# deleted in PR #993) are excluded from the inactive-workflow scan. The GitHub REST
+# API returns all states by default when using the `gh workflow list` JSON output
+# without explicit filtering — state=active restricts to living workflows only.
+name: sentinel
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # 06:00 UTC daily
+  workflow_dispatch:
+
+env:
+  OPENSPEC_TELEMETRY: '0'
+
+jobs:
+  sentinel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check inactive workflows (state=active only)
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          # List ONLY active workflows (state=deleted is explicitly excluded — T014467)
+          # state=active ensures deleted/removed workflows like track-pr.yml are skipped.
+          workflows=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows" \
+            --jq '.workflows[] | select(.state == "active")' \
+            --method GET)
+
+          now=$(date -u +%s)
+          threshold=$((30 * 86400))  # 30 days
+          inactive=()
+
+          while IFS= read -r wf; do
+            name=$(echo "$wf" | jq -r '.name')
+            # Get the last run for this workflow
+            last_run=$(gh api \
+              "repos/${{ github.repository }}/actions/workflows/${name}/runs" \
+              --jq '.workflow_runs[0] | .created_at // empty' 2>/dev/null || true)
+
+            if [[ -z "$last_run" ]]; then
+              inactive+=("$name (no runs found)")
+              continue
+            fi
+
+            run_time=$(date -d "$last_run" -u +%s 2>/dev/null || echo 0)
+            if [[ "$run_time" -gt 0 ]]; then
+              diff=$((now - run_time))
+              if [[ "$diff" -gt "$threshold" ]]; then
+                inactive+=("$name (last run: $last_run)")
+              fi
+            fi
+          done <<< "$workflows"
+
+          if [[ ${#inactive[@]} -gt 0 ]]; then
+            echo "INACTIVE_WORKFLOWS=${#inactive[@]}" >> "$GITHUB_OUTPUT"
+            for wf in "${inactive[@]}"; do
+              echo "  - $wf"
+            done
+          else
+            echo "INACTIVE_WORKFLOWS=0" >> "$GITHUB_OUTPUT"
+            echo "All active workflows are healthy."
+          fi
+
+      - name: Create sentinel issue on findings
+        if: steps.check.outputs.INACTIVE_WORKFLOWS > 0
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          count=${{ steps.check.outputs.INACTIVE_WORKFLOWS }}
+          gh issue create \
+            --title "Sentinel: $count inactive workflow(s) detected" \
+            --label "sentinel" \
+            --label "SA-SC-01" \
+            --body "Daily sentinel found $count inactive workflow(s) (last run > 30 days ago). Only active workflows are scanned (deleted workflows are filtered per T014467)."

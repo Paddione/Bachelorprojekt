@@ -21,7 +21,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: disable-activity-digest
-          # T016592: schaltet Nextclouds Activity-Digest-Mails ab.
+          # T016592/T900001: schaltet Nextclouds Activity-Digest- und
+          # Mail-App-Mails ab.
           #
           # Warum ueber die Datenbank und nicht per `occ config:app:set`: occ
           # braucht das App-Verzeichnis aus dem PVC nextcloud-app. Das ist RWO
@@ -31,7 +32,8 @@ spec:
           # kommt ohne PVC-Kopplung aus.
           #
           # Transaktionale Nextcloud-Mails (Passwort-Reset, Freigabe-Einladung)
-          # bleiben unberuehrt — hier faellt nur der Aktivitaets-Digest.
+          # bleiben unberuehrt — hier faellt nur der Aktivitaets-Digest und die
+          # Mail-App (T900001).
           image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
           securityContext:
             allowPrivilegeEscalation: false
@@ -44,7 +46,7 @@ spec:
           args:
             - |
               set -eu
-              echo "Disabling Nextcloud activity digest mail (T016592)..."
+              echo "Disabling Nextcloud notification mails (T016592/T900001)..."
               psql -v ON_ERROR_STOP=1 <<'SQL'
               -- Admin-Default: kein Aktivitaets-Digest, keine Digest-Mails.
               INSERT INTO oc_appconfig (appid, configkey, configvalue)
@@ -60,8 +62,17 @@ spec:
                WHERE appid = 'activity'
                  AND configkey LIKE 'notify_email_%'
                  AND configvalue <> '0';
+
+              -- T900001: Mail-App komplett deaktivieren — keine transaktionalen
+              -- oder Benachrichtigungs-E-Mails mehr. Der Mail-Config-Receiver
+              -- (mail_domain, mail_from_address etc.) bleibt bestehen, damit
+              -- bei Reactivierung kein manueller Neuaufbau noetig ist.
+              INSERT INTO oc_appconfig (appid, configkey, configvalue)
+              VALUES ('mail', 'enabled', 'no')
+              ON CONFLICT (appid, configkey)
+              DO UPDATE SET configvalue = EXCLUDED.configvalue;
               SQL
-              echo "Nextcloud activity digest disabled."
+              echo "Nextcloud notification mails disabled (activity + mail app)."
           env:
             - name: PGHOST
               value: nextcloud-db

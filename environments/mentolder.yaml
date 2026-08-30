@@ -93,6 +93,7 @@ env_vars:
   DEV_SSH_ALLOWLIST: "217.195.151.153/32"
   PUSHOVER_TOKEN: ""
   PUSHOVER_USER: ""
+  EMAIL_NOTIFICATIONS_ENABLED: "false"
 
 overlay: prod-fleet/mentolder
 workspace_namespace: workspace

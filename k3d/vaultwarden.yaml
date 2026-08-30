@@ -120,20 +120,11 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: POCKET_ID_DOMAIN
-            # ── SMTP via Mailpit (dev) ────────────────────────────
-            - name: SMTP_HOST
-              value: "mailpit"
-            - name: SMTP_PORT
-              value: "1025"
-            - name: SMTP_SECURITY
-              value: "off"
-            - name: SMTP_FROM
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: SMTP_FROM
-            - name: SMTP_FROM_NAME
-              value: "Vaultwarden"
+            # T900001: SMTP abgeschaltet — keine Benachrichtigungs- oder
+            # Passwort-Zuruecksetzen-Mails mehr. Config bleibt im Manifest
+            # (Reactivierung = SMTP-Variablen wieder einsetzen).
+            - name: DISABLE_PASSWORD_CHANGE
+              value: "true"
             - name: TZ
               value: Europe/Berlin
           ports:

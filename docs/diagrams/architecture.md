@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-101 Services · 2194 Abhängigkeitskanten · 291 API-Endpoints
+101 Services · 2193 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -173,7 +173,6 @@ flowchart LR
   talk_recording -->|"HPB_DOMAIN"| spreed_signaling
   tests_results_retention -->|"command"| website
   vaultwarden -->|"DATABASE_URL"| shared_db
-  vaultwarden -->|"SMTP_HOST"| mailpit
   vaultwarden -->|"configmap:domain-c…"| brett
   vaultwarden -->|"configmap:domain-c…"| traefik
   videovault -->|"DATABASE_URL"| shared_db

@@ -5,11 +5,11 @@
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 30000
     },
-    "ticket-mcp": {
-      "command": "ticket-mcp-go",
-      "env": {
-        "TICKET_MCP_REPO_ROOT": "/home/patrick/Bachelorprojekt"
-      },
+    "ticket-mcp-node": {
+      "command": "node",
+      "args": [
+        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"
+      ],
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 30000
     }

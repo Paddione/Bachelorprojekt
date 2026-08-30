@@ -101,11 +101,11 @@
 
     },
 
-    "brain-mcp": {
+    "brain-mcp-node": {
 
       "type": "local",
 
-      "command": ["python3","/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py"],
+      "command": ["node","/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"],
 
       "environment": {"BRAIN_WIKI_DIR":"~/brain/wiki"},
 
@@ -133,7 +133,7 @@
 
     },
 
-    "factory-mcp": {
+    "factory-mcp-node": {
 
       "type": "remote",
 
@@ -205,11 +205,11 @@
 
     },
 
-    "ticket-mcp": {
+    "ticket-mcp-node": {
 
       "type": "local",
 
-      "command": ["ticket-mcp-go"],
+      "command": ["node","/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"],
 
       "enabled": true
 

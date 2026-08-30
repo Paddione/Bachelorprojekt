@@ -79,20 +79,6 @@ clients:
         url: http://localhost:13001/mcp
         enabled: true
 
-  factory-mcp:
-    transport: http
-    endpoint: http://localhost:13003/mcp
-    harness:
-      claude_code:
-        type: http
-        url: http://localhost:13003/mcp
-      agy:
-        serverUrl: http://localhost:13003/mcp
-      opencode:
-        type: remote
-        url: http://localhost:13003/mcp
-        enabled: true
-
   # T002426 — bge-MCP-Shim: Embedding und Reranking als MCP-Ressource.
   # llama-server kann sich NICHT selbst als MCP-Server exponieren; --mcp-servers-config
   # ist sein MCP-*Client*-Pfad. Deshalb dieser eigene Shim
@@ -137,6 +123,67 @@ clients:
       qwen_code:
         httpUrl: http://localhost:13005/mcp
 
+  # Node.js ports of the custom MCP servers — zero npm dependencies, stdlib only.
+  # Old Go/Python sources are deprecated (P6: cleanup old sources).
+  brain-mcp-node:
+    transport: stdio
+    command: node
+    args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+    env:
+      BRAIN_WIKI_DIR: ~/brain/wiki
+    harness:
+      claude_code:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+      agy:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+      opencode:
+        type: local
+        command: [node, /home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
+        environment:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+        enabled: true
+
+  factory-mcp-node:
+    transport: http
+    endpoint: http://localhost:13003/mcp
+    harness:
+      claude_code:
+        type: http
+        url: http://localhost:13003/mcp
+      agy:
+        serverUrl: http://localhost:13003/mcp
+      opencode:
+        type: remote
+        url: http://localhost:13003/mcp
+        enabled: true
+
+  ticket-mcp-node:
+    transport: stdio
+    command: node
+    args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+    harness:
+      claude_code:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+      agy:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+      opencode:
+        type: local
+        command: [node, /home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        enabled: true
+      llamacpp:
+        command: node
+        args: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs]
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 30000
+
   mcp-task-runner:
     transport: stdio
     browser_endpoint: http://127.0.0.1:18235/mcp/mcp-task-runner
@@ -161,66 +208,6 @@ clients:
       opencode:
         type: local
         command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
-        enabled: true
-
-  # ticket-mcp: ueber den PATH-Namen referenziert (T002301). Installiert von
-  # `task ticket-mcp:build` nach /usr/local/bin, analog mcp-task-runner.
-  ticket-mcp:
-    transport: stdio
-    browser_endpoint: http://127.0.0.1:18235/mcp/ticket-mcp
-    command: ticket-mcp-go
-    bridge:
-      url: http://127.0.0.1:18235/mcp/ticket-mcp
-      bind: 127.0.0.1:18235
-      auth: null
-    harness:
-      claude_code:
-        command: ticket-mcp-go
-      agy:
-        command: ticket-mcp-go
-      opencode:
-        type: local
-        command: [ticket-mcp-go]
-        enabled: true
-      llamacpp:
-        command: ticket-mcp-go
-        env:
-          TICKET_MCP_REPO_ROOT: /home/patrick/Bachelorprojekt
-        cwd: /home/patrick/Bachelorprojekt
-        timeout_ms: 30000
-
-  # brain-mcp (T002679): Retrieval ueber das Brain-Wiki (BM25, brain_search +
-  # brain_read). BEWUSST OHNE harness.llamacpp — jeder Eintrag dort wird ein
-  # Kindprozess bei jedem Modellstart (Kommentarkopf oben), und der Lesepfad
-  # gehoert zu den Agenten-Harnesses, nicht zum Modellserver. Folge: der Server
-  # erscheint NICHT in scripts/llm/mcp-servers.json. Das ist beabsichtigt.
-  brain-mcp:
-    transport: stdio
-    browser_endpoint: http://127.0.0.1:18235/mcp/brain-mcp
-    command: python3
-    args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
-    bridge:
-      url: http://127.0.0.1:18235/mcp/brain-mcp
-      bind: 127.0.0.1:18235
-      auth: null
-    env:
-      BRAIN_WIKI_DIR: ~/brain/wiki
-    harness:
-      claude_code:
-        command: python3
-        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
-        env:
-          BRAIN_WIKI_DIR: ~/brain/wiki
-      agy:
-        command: python3
-        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
-        env:
-          BRAIN_WIKI_DIR: ~/brain/wiki
-      opencode:
-        type: local
-        command: [python3, /home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
-        environment:
-          BRAIN_WIKI_DIR: ~/brain/wiki
         enabled: true
 
   # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp

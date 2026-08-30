@@ -152,12 +152,16 @@ setup() {
   [ "$fail" -eq 0 ]
 }
 
-@test "T002301: ticket-mcp is referenced by PATH name" {
+@test "T002301: ticket-mcp-node is launched via the PATH-resolved node binary" {
+  # Der Node-Port (P2/P3 der node-mcp-servers Migration) braucht keinen Go-Build
+  # mehr: command ist `node` (PATH-aufgeloest), das Repo-Skript kommt via args.
   local reg="$REPO/docs/agent-guide/registry/mcp.yaml"
-  run grep -A3 '^  ticket-mcp:' "$reg"
+  run grep -A5 '^  ticket-mcp-node:' "$reg"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"command: ticket-mcp-go"* ]] \
-    || { echo "ticket-mcp wird nicht ueber den PATH-Namen referenziert:"; echo "$output"; return 1; }
+  [[ "$output" == *"command: node"* ]] \
+    || { echo "ticket-mcp-node wird nicht ueber den PATH-Namen (node) referenziert:"; echo "$output"; return 1; }
+  [[ "$output" == *"scripts/ticket-mcp-node/server.mjs"* ]] \
+    || { echo "ticket-mcp-node args zeigen nicht auf das Repo-Server-Skript:"; echo "$output"; return 1; }
 }
 
 @test "T002301: ticket-mcp:build installs onto the PATH like mcp-task-runner" {

@@ -67,7 +67,7 @@ render_claude_json() {
         out.mcpServers[name] = server;
       }
     }
-    fs.writeFileSync('/dev/stdout', JSON.stringify(out, null, 2) + '\n');
+    process.stdout.write(JSON.stringify(out, null, 2) + '\n');
   "
 }
 
@@ -150,7 +150,7 @@ render_agy_json() {
         'Der Platzhalter bleibt stehen; agy wird den Server mit HTTP 401 verwerfen.\n'
       );
     }
-    fs.writeFileSync('/dev/stdout', JSON.stringify(out, null, 4) + '\n');
+    process.stdout.write(JSON.stringify(out, null, 4) + '\n');
   "
 }
 # llama.cpp (T002398): Cursor-Format "mcpServers". Opt-in ueber harness.llamacpp --
@@ -186,7 +186,7 @@ render_llamacpp_json() {
       if (h.timeout_ms) server.timeout_ms = h.timeout_ms;
       out.mcpServers[name] = server;
     }
-    fs.writeFileSync('/dev/stdout', JSON.stringify(out, null, 2) + '\n');
+    process.stdout.write(JSON.stringify(out, null, 2) + '\n');
   "
 }
 
@@ -330,7 +330,7 @@ render_qwen_json() {
     let settings = {};
     try { settings = JSON.parse(fs.readFileSync('$QWEN_TARGET', 'utf8')); } catch {}
     settings.mcpServers = out.mcpServers;
-    fs.writeFileSync('/dev/stdout', JSON.stringify(settings, null, 2) + '\n');
+    process.stdout.write(JSON.stringify(settings, null, 2) + '\n');
   "
 }
 

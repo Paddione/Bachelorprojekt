@@ -1,11 +1,9 @@
 {
   "servers": {
     "ticket-mcp": {
-      "command": "ticket-mcp-go",
-      "args": [],
-      "env": {
-        "TICKET_MCP_REPO_ROOT": "/home/patrick/Bachelorprojekt"
-      },
+      "command": "node",
+      "args": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp-node/server.mjs"],
+      "env": {},
       "cwd": "/home/patrick/Bachelorprojekt",
       "enabled": true,
       "bearerTokenEnv": null

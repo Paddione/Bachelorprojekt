@@ -1757,7 +1757,7 @@
       "deprecated": null
     },
     {
-      "name": "brain-mcp",
+      "name": "brain-mcp-node",
       "transport": "stdio",
       "endpoint": null,
       "description": null,
@@ -1781,7 +1781,7 @@
       "deprecated": null
     },
     {
-      "name": "factory-mcp",
+      "name": "factory-mcp-node",
       "transport": "http",
       "endpoint": "http://localhost:13003/mcp",
       "description": null,
@@ -1837,7 +1837,7 @@
       "deprecated": null
     },
     {
-      "name": "ticket-mcp",
+      "name": "ticket-mcp-node",
       "transport": "stdio",
       "endpoint": null,
       "description": null,

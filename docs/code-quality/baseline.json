@@ -10,5 +10,11 @@
     "metric": 812,
     "detail": "812 lines > 800 limit (.sh)",
     "reason": "upstream growth past S1 .sh cap on origin/main; NOT from this PR (T016422 infra change) — separate chore to refactor"
+  },
+  "S1:scripts/health-goals-check.sh": {
+    "path": "scripts/health-goals-check.sh",
+    "metric": 813,
+    "detail": "813 lines > 800 limit (.sh)",
+    "reason": "T005321: 13 neue Service/Infra-Health-Goals = je eine row()-Zeile; pro Ziel zwingend, nicht kuerzbar. Der Ratchet haelt die Datei ab hier bei 813."
   }
 }

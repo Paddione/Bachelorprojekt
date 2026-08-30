@@ -373,10 +373,9 @@ factory-shard:
   variables:
     SPEC_SHARD: "$CI_NODE_INDEX"
     SPEC_SHARDS: "$CI_NODE_TOTAL"
-    # scripts/ticket-mcp/go/go.mod verlangt go 1.26.4 — eine aeltere Toolchain
-    # bricht den Build ab, den task test:spec voraussetzt. GitHub nutzt hier
-    # setup-go mit 'stable' und bekommt die Anforderung automatisch erfuellt;
-    # bei einem direkten Download muss die Version dem go.mod folgen.
+    # Go wird fuer den mcp-task-runner-Build gebraucht, den task test:spec
+    # voraussetzt. GitHub nutzt hier setup-go mit 'stable'; bei einem direkten
+    # Download muss die Version dem go.mod des mcp-task-runner folgen.
     GO_VERSION: "1.26.4"
     YQ_VERSION: "4.53.3"
     # Dieselbe kubectl-Version wie im manifests-Job — der Paritaets-Guard
@@ -431,11 +430,9 @@ factory-shard:
     - corepack enable && corepack prepare pnpm@10 --activate
     - npm ci
     - bash scripts/ci-dummy-secrets.sh
-    # Die beiden folgenden Schritte hat das GitHub-Gegenstueck ebenfalls, und ohne
-    # sie ist der Job kein Gegenstueck, sondern nur gleichnamig: ticket-mcp:test
-    # baut das Go-Binary mit, das task test:spec voraussetzt, und ein Teil der
-    # Spec-Suite spricht mit dem Cockpit-Daemon.
-    - task ticket-mcp:test
+    # Das GitHub-Gegenstueck hat den selben Schritt, und ohne ihn ist der Job kein
+    # Gegenstueck, sondern nur gleichnamig: Ein Teil der Spec-Suite spricht mit
+    # dem Cockpit-Daemon.
     - task cockpit:daemon
   script:
     - export PATH="/usr/local/go/bin:$PATH"

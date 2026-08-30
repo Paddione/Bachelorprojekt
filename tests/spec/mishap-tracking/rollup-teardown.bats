@@ -8,7 +8,7 @@ setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   WAKEUP_SH="${REPO_ROOT}/scripts/factory/wakeup.sh"
   TICKET_SH="${REPO_ROOT}/scripts/ticket.sh"
-  MISHAP_GO="${REPO_ROOT}/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  MCP_NODE="${REPO_ROOT}/scripts/ticket-mcp-node/server.mjs"
 }
 
 @test "wakeup.sh ruft keinen Rollup-Generator auf" {
@@ -31,11 +31,11 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
-@test "mishap.go traegt keine ROLLUP-Konstanten mehr" {
-  [ -f "$MISHAP_GO" ]
-  grep -q 'package tools' "$MISHAP_GO"
+@test "ticket-mcp-node traegt keine ROLLUP-Konstanten mehr" {
+  [ -f "$MCP_NODE" ]
+  grep -q 'report_mishap' "$MCP_NODE"
 
-  run grep -n 'ROLLUP_BRANCH\|ROLLUP_CHANGE_DIR\|rollup-container' "$MISHAP_GO"
+  run grep -n 'ROLLUP_BRANCH\|ROLLUP_CHANGE_DIR\|rollup-container' "$MCP_NODE"
   [ "$status" -ne 0 ]
 }
 

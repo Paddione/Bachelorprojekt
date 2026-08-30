@@ -164,14 +164,6 @@ setup() {
     || { echo "ticket-mcp-node args zeigen nicht auf das Repo-Server-Skript:"; echo "$output"; return 1; }
 }
 
-@test "T002301: ticket-mcp:build installs onto the PATH like mcp-task-runner" {
-  # Ohne Install-Schritt bleibt das Binary im Repo liegen und der PATH-Name greift ins Leere.
-  run grep -A12 '^  ticket-mcp:build:' "$REPO/Taskfile.yml"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"/usr/local/bin"* ]] \
-    || { echo "ticket-mcp:build installiert nicht auf den PATH:"; echo "$output"; return 1; }
-}
-
 # ── MCP Postgres Bridge Child-Process Containment (T002321) ────────────
 #
 # Der postgres-Container wurde 56x OOMKilled: supergateway --stateless spawnt

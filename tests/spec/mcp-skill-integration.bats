@@ -2,7 +2,7 @@
 # tests/spec/mcp-skill-integration.bats
 # SSOT: openspec/specs/mcp-skill-integration.md
 #
-# Covers: ticket-mcp adapter completeness, Go binary, mishap buffer tools.
+# Covers: ticket-mcp adapter completeness, node server, mishap buffer tools.
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
@@ -20,14 +20,10 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-# ── Go binary ─────────────────────────────────────────────────────────
+# ── Node server ────────────────────────────────────────────────────────
 
-@test "ticket-mcp Go source directory exists" {
-  [ -d "$REPO/scripts/ticket-mcp" ]
-}
-
-@test "ticket-mcp Go tools directory exists" {
-  [ -d "$REPO/scripts/ticket-mcp/go" ] || [ -d "$REPO/scripts/ticket-mcp/go/internal/tools" ] || skip "Go source not yet extracted"
+@test "ticket-mcp-node server exists" {
+  [ -f "$REPO/scripts/ticket-mcp-node/server.mjs" ]
 }
 
 # ── Mishap buffer tools ───────────────────────────────────────────────
@@ -62,8 +58,8 @@ setup() {
 # einen einzigen Mishap zu verlieren.
 
 @test "T002383: MISHAP_TRIGGER is raised above the per-cycle emission rate" {
-  local src="$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
-  run grep -Eq '^const MISHAP_TRIGGER = 10$' "$src"
+  local src="$REPO/scripts/ticket-mcp-node/server.mjs"
+  run grep -Fq 'const MISHAP_TRIGGER = 10;' "$src"
   [ "$status" -eq 0 ]
 }
 
@@ -87,7 +83,7 @@ setup() {
 @test "T002383: the mishap buffer path resolves the shared git dir" {
   # In einem git-Worktree ist .git eine DATEI — filepath.Join(root, ".git", …)
   # laeuft dort in ENOTDIR und writeBuffer verwarf den Fehler still.
-  local src="$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  local src="$REPO/scripts/ticket-mcp-node/server.mjs"
   run grep -q 'git-common-dir' "$src"
   [ "$status" -eq 0 ]
 }
@@ -123,13 +119,13 @@ setup() {
 }
 
 # ── [T002407-M4] Incident-Typen umgehen den Buffer ────────────────────────────#
-# Der Go-Code in mishap.go hat zwei Pfade: incident-Typen erzeugen sofort ein
+# Der ticket-mcp-node-Server hat zwei Pfade: incident-Typen erzeugen sofort ein
 # Ticket, nicht-kritische Typen sammeln im Buffer. Die Tests assertieren den
 # Quelltext-Pfad (statisch, kein Go-Kompilat nötig).
 
 @test "T002407-M4a: isIncidentType erkennt incident" {
-  run grep -Fq 'return mtype == "incident" || mtype == "broken" || mtype == "security"' \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  run grep -Fq "mtype === 'incident' || mtype === 'broken' || mtype === 'security'" \
+    "$REPO/scripts/ticket-mcp-node/server.mjs"
   [ "$status" -eq 0 ]
 }
 
@@ -137,34 +133,34 @@ setup() {
   # broken ist ein Alias für incident — beide erzeugen sofort ein Ticket.
   # Die isIncidentType-Funktion muss beide abdecken, nicht nur den Primärtyp.
   # Die Funktion steht auf einer Zeile, daher mit grep -A Kontext prüfen.
-  run grep -A3 'func isIncidentType' "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
-  [[ "$output" == *'"broken"'* ]]
+  run grep -A2 'function isIncidentType' "$REPO/scripts/ticket-mcp-node/server.mjs"
+  [[ "$output" == *"'broken'"* ]]
 }
 
 @test "T002407-M4c: isIncidentType erkennt security (Alias)" {
-  run grep -A3 'func isIncidentType' "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
-  [[ "$output" == *'"security"'* ]]
+  run grep -A2 'function isIncidentType' "$REPO/scripts/ticket-mcp-node/server.mjs"
+  [[ "$output" == *"'security'"* ]]
 }
 
 @test "T002407-M4d: incident erzeugt createIncidentTicket-Aufruf (Sofort-Ticket)" {
   # Im report_mishap-Handler: wenn isIncidentType() → createIncidentTicket aufrufen.
   # Der Test sucht nach dem if-Zweig, der das Ticket erzeugt.
-  run grep -Fq "createIncidentTicket(entry, brand)" \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  run grep -Fq "createIncidentTicket" \
+    "$REPO/scripts/ticket-mcp-node/server.mjs"
   [ "$status" -eq 0 ] || { echo "createIncidentTicket-Aufruf fehlt"; false; }
   run grep -Fq 'Incident-Ticket angelegt' \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+    "$REPO/scripts/ticket-mcp-node/server.mjs"
   [ "$status" -eq 0 ]
 }
 
 @test "T002407-M4e: nicht-kritische Typen (degraded) gehen in den Buffer" {
   # Der else-Pfad (nicht incident) schreibt in den Buffer.
   # Ein degraded-Mishap darf KEIN sofortiges Ticket auslösen.
-  run grep -Fq "buffer = append(buffer, entry)" \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  run grep -Fq "buf.push(" \
+    "$REPO/scripts/ticket-mcp-node/server.mjs"
   [ "$status" -eq 0 ]
   run grep -Fq 'Mishap gespeichert' \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+    "$REPO/scripts/ticket-mcp-node/server.mjs"
   [ "$status" -eq 0 ]
 }
 
@@ -173,22 +169,22 @@ setup() {
 # mit --type chore. Der Wert 'task' kommt in keinem Pfad vor. [T002329]
 
 @test "T002407-M5a: buildIncidentTicketArgs verwendet --type incident" {
-  run grep -Fq '"create", "--type", "incident"' \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  run grep -Fq "'create', '--type', 'incident'" \
+    "$REPO/scripts/ticket-mcp-node/server.mjs"
   [ "$status" -eq 0 ]
 }
 
 @test "T002407-M5b: buildIncidentTicketArgs verwendet --attention-mode needs_human" {
-  run grep -Fq '"--attention-mode", "needs_human"' \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  run grep -Fq "'--attention-mode', 'needs_human'" \
+    "$REPO/scripts/ticket-mcp-node/server.mjs"
   [ "$status" -eq 0 ]
 }
 
-@test "T002407-M5e: kein Pfad in mishap.go erzeugt type=task" {
+@test "T002407-M5e: kein Pfad in ticket-mcp-node erzeugt type=task" {
   # Die Migration von Bundle zu incident/chore darf nirgendwo task verwenden.
   # task ist ein Legacy-Typ, der in T002331 entfernt wird. [T002329]
-  run bash -c "grep -F '\"task\"' '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' \
-    | grep -v '//.*\"task\"' | grep -v 'legacy.*task\|TODO\|FIXME' | wc -l"
+  run bash -c "grep -F \"'task'\" '$REPO/scripts/ticket-mcp-node/server.mjs' \
+    | grep -v '//.*task' | grep -v 'legacy.*task\|TODO\|FIXME' | wc -l"
   [ "$output" = "0" ]
 }
 

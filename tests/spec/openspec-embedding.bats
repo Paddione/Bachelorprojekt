@@ -52,8 +52,8 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
 }
 
-@test "factory-mcp registers openspec_find_similar (Go-SSOT, T014936)" {
-  run grep -q "openspec_find_similar" "$REPO/scripts/factory/mcp-go/main.go"
+@test "factory-mcp-node registers openspec_find_similar (node-mcp-servers SSOT, T014936)" {
+  run grep -q "openspec_find_similar" "$REPO/scripts/factory-mcp-node/server.mjs"
   [ "$status" -eq 0 ]
 }
 

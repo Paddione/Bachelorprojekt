@@ -135,9 +135,11 @@ def svc_probe(data):
     import glob as glob_mod
     import yaml
 
-    # Collect all Ingress backend service names from manifests.
-    ingress_services = set()
-    manifest_dirs = ["k3d", "prod-fleet/mentolder", "prod-fleet/korczewski"]
+    # A blackbox probe observes the public *host*, not the Kubernetes Service
+    # behind it.  Comparing service names with probe URLs (the previous
+    # implementation) can never establish coverage.
+    ingress_hosts = set()
+    manifest_dirs = ["prod-fleet/mentolder", "prod-fleet/korczewski"]
     for d in manifest_dirs:
         for path in sorted(glob_mod.glob(f"{d}/**/*.yaml", recursive=True)) + sorted(glob_mod.glob(f"{d}/**/*.yml", recursive=True)):
             try:
@@ -148,20 +150,10 @@ def svc_probe(data):
             for d_obj in docs:
                 if not isinstance(d_obj, dict) or d_obj.get("kind") != "Ingress":
                     continue
-                # Extract backend service names from rules.
                 for rule in d_obj.get("spec", {}).get("rules", []) or []:
-                    http = rule.get("http", {}) or {}
-                    for path_entry in http.get("paths", []) or []:
-                        backend = path_entry.get("backend", {}) or {}
-                        # k8s 1.19+: service.name
-                        svc = backend.get("service", {}) or {}
-                        name = svc.get("name")
-                        if name:
-                            ingress_services.add(name.lower())
-                        # Legacy: serviceName (pre-1.19)
-                        svc_name = backend.get("serviceName")
-                        if svc_name:
-                            ingress_services.add(svc_name.lower())
+                    host = rule.get("host")
+                    if host:
+                        ingress_hosts.add(host.lower())
 
     # Collect blackbox probe targets from the exporter config.
     probe_targets = set()
@@ -175,18 +167,24 @@ def svc_probe(data):
         for d_obj in docs:
             if not isinstance(d_obj, dict) or d_obj.get("kind") != "Probe":
                 continue
-            # The Probe's metadata.name is the target identifier.
-            target_name = d_obj.get("metadata", {}).get("name")
-            if target_name:
-                probe_targets.add(target_name.lower())
-            # Also check spec.target for the actual host:port.
-            spec = d_obj.get("spec", {}) or {}
-            target = spec.get("target")
-            if target:
-                probe_targets.add(target.lower())
+            static = (d_obj.get("spec", {}).get("targets", {}) or {}).get("staticConfig", {}).get("static", [])
+            for target in static or []:
+                host = urllib.parse.urlparse(target).hostname
+                if host:
+                    probe_targets.add(host.lower())
 
-    # Services not covered by any probe target.
-    uncovered = ingress_services - probe_targets
+    if not ingress_hosts or not probe_targets:
+        raise ValueError("incomplete public probe basis")
+
+    # Host templates use ${PROD_DOMAIN}; compare their stable subdomain label
+    # to the concrete brand targets in the shared Probe resource.
+    def covered(host):
+        if host in probe_targets:
+            return True
+        label = host.split(".", 1)[0]
+        return any(target.split(".", 1)[0] == label for target in probe_targets)
+
+    uncovered = [host for host in ingress_hosts if not covered(host)]
     return len(uncovered)
 
 
@@ -209,59 +207,44 @@ def infra_tcp(data):
     ]
 
     failed = 0
-    # Use a single busybox/alpine pod per namespace to test connectivity.
-    # We'll try to exec into any pod and run a TCP test.
-    # Simplified: check if the service endpoint is reachable via kubectl.
-
-    # Get a pod to use as a test client.
-    try:
-        pods = _kube_get(["kubectl", "get", "pods", "-n", ns, "--context", ctx,
-                          "-o", "jsonpath={.items[0].metadata.name}"])
-    except Exception:
-        return 0  # Can't get a pod, count as 0 (fail-closed)
+    # Pick a running pod.  This deliberately raises when the cluster cannot
+    # provide a test client; main() then emits '-' instead of a false green 0.
+    pods = _kube_get(["kubectl", "get", "pods", "-n", ns, "--context", ctx, "-o", "json"])
+    pod = next((item.get("metadata", {}).get("name") for item in pods.get("items", [])
+                if item.get("status", {}).get("phase") == "Running"), None)
+    if not pod:
+        raise ValueError("no running pod for TCP probe")
 
     for svc_name, port in targets:
-        # Use wget/curl with timeout to test TCP connectivity.
-        # We'll try to connect via /dev/tcp or wget.
         test_cmd = [
-            "kubectl", "exec", pods, "-n", ns, "--context", ctx,
-            "--", "sh", "-c",
-            f"echo >/dev/tcp/{svc_name}.{ns}.svc.cluster.local/{port} 2>/dev/null && echo ok || echo fail"
+            "kubectl", "exec", pod, "-n", ns, "--context", ctx, "--",
+            "sh", "-c", f"nc -z -w 5 {svc_name}.{ns}.svc.cluster.local {port}"
         ]
         try:
-            out = _kube_cmd(test_cmd).strip()
-            if out != "ok":
-                failed += 1
+            _kube_cmd(test_cmd)
         except Exception:
             failed += 1
 
     return failed
 
 
-def infra_http(data):
-    """G-INF03: Count internal HTTP services with bad responses.
-
-    Janus /stats endpoint: expects JSON with "janus" key.
-    Returns count of services with bad responses.
-    """
+def _internal_http(url, marker):
+    """Return 0/1 for one HTTP contract, or raise without a live basis."""
     ctx = os.environ.get("HG_OPS_CTX", "fleet")
     ns = "workspace"
 
     bad = 0
 
-    # Get a pod to use as a test client.
-    try:
-        pods = _kube_get(["kubectl", "get", "pods", "-n", ns, "--context", ctx,
-                          "-o", "jsonpath={.items[0].metadata.name}"])
-    except Exception:
-        return 0
+    pods = _kube_get(["kubectl", "get", "pods", "-n", ns, "--context", ctx, "-o", "json"])
+    pod = next((item.get("metadata", {}).get("name") for item in pods.get("items", [])
+                if item.get("status", {}).get("phase") == "Running"), None)
+    if not pod:
+        raise ValueError("no running pod for HTTP probe")
 
-    # Test Janus /stats endpoint.
-    janus_url = "http://janus.workspace.svc.cluster.local:8188/stats"
     test_cmd = [
-        "kubectl", "exec", pods, "-n", ns, "--context", ctx,
+        "kubectl", "exec", pod, "-n", ns, "--context", ctx,
         "--", "sh", "-c",
-        f"wget -qO- '{janus_url}' 2>/dev/null | grep -q '\"janus\"' && echo ok || echo fail"
+        f"wget -qO- '{url}' 2>/dev/null | grep -q '{marker}' && echo ok || echo fail"
     ]
     try:
         out = _kube_cmd(test_cmd).strip()
@@ -271,6 +254,26 @@ def infra_http(data):
         bad += 1
 
     return bad
+
+
+def svc_oidc(data):
+    """G-SVC02: Pocket-ID discovery returns its OIDC issuer metadata."""
+    return _internal_http("http://pocket-id.workspace.svc.cluster.local:1411/.well-known/openid-configuration", '"issuer"')
+
+
+def svc_nextcloud(data):
+    """G-SVC03: Nextcloud reports itself installed."""
+    return _internal_http("http://nextcloud.workspace.svc.cluster.local/status.php", '"installed":true')
+
+
+def svc_whiteboard(data):
+    """G-SVC04: Whiteboard accepts an HTTP request on its service port."""
+    return _internal_http("http://whiteboard.workspace.svc.cluster.local:3002/", "")
+
+
+def infra_http(data):
+    """G-INF03: Janus /stats returns its expected JSON marker."""
+    return _internal_http("http://janus.workspace.svc.cluster.local:8188/stats", '"janus"')
 
 
 def cron_status(data):
@@ -345,12 +348,11 @@ def alert_status(data):
     except Exception:
         return 1
 
-    route = config.get("spec", {}).get("route", {}) or {}
-    receiver = route.get("receiver") or ""
-
-    if receiver and receiver.lower() != "null":
-        return 0
-
+    spec = config.get("spec", {}) or {}
+    receiver = (spec.get("route", {}) or {}).get("receiver") or ""
+    for configured in spec.get("receivers", []) or []:
+        if configured.get("name") == receiver and configured.get("emailConfigs"):
+            return 0
     return 1
 
 
@@ -382,7 +384,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("measurement", choices=(
         "flux", "scrape", "capacity", "axe", "lighthouse", "slo",
-        "svc-probe", "infra-tcp", "infra-http", "cron-status", "alert-status", "drift",
+        "svc-probe", "svc-oidc", "svc-nextcloud", "svc-whiteboard", "infra-tcp", "infra-http", "cron-status", "alert-status", "drift",
     ))
     parser.add_argument("--input")
     args = parser.parse_args()

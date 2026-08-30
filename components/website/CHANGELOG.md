@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.322.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.2...website-v1.322.3) (2026-08-30)
+
+
+### Bug Fixes
+
+* **ops:** complete service health goals [T005321] ([#5347](https://github.com/Paddione/Bachelorprojekt/issues/5347)) ([8cdaf79](https://github.com/Paddione/Bachelorprojekt/commit/8cdaf790f4128528d41f949224f2cd33b2eff827))
+
 ## [1.322.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.1...website-v1.322.2) (2026-08-30)
 
 

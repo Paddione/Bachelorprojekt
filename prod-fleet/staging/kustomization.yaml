@@ -18,6 +18,10 @@ resources:
 
 components:
   - ../components/fleet-common
+  # Debug-Log-Level fuer alle Services mit Env-Schalter [T900018].
+  # NUR hier eingebunden — prod-fleet/mentolder und /korczewski bleiben auf info
+  # (DSGVO: Debug-Logs fuehren Request-Bodies und User-IDs).
+  - ../components/debug-logging
 
 generatorOptions:
   disableNameSuffixHash: true

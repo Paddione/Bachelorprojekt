@@ -2425,6 +2425,28 @@ tasks:
         NS="${WORKSPACE_NAMESPACE:-workspace}"
         kubectl $CTX logs -n "$NS" deploy/{{.CLI_ARGS}} -f --tail=50
 
+  logs:debug-restart:
+    desc: "Staging: Rollout-Restart aller Deployments, damit die Debug-Log-Patches greifen [T900018]"
+    vars:
+      ENV: '{{.ENV | default "staging"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/collect-debug-logs.sh --restart
+
+  logs:debug-runtime:
+    desc: "Staging: Log-Level fuer Container ohne Env-Schalter setzen (nextcloud/redis/postgres) [T900018]"
+    vars:
+      ENV: '{{.ENV | default "staging"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/collect-debug-logs.sh --runtime
+
+  logs:debug-scan:
+    desc: "Staging: Debug-Logs aller Services sammeln und auf fehlende Implementierungen scannen [T900018]"
+    vars:
+      ENV: '{{.ENV | default "staging"}}'
+      SINCE: '{{.SINCE | default "1h"}}'
+    cmds:
+      - ENV={{.ENV}} bash scripts/collect-debug-logs.sh --since {{.SINCE}}
+
   workspace:psql:
     desc: 'Open psql shell to shared-db (usage: task workspace:psql -- <dbname>, default: postgres)'
     vars:

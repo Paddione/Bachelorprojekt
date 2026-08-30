@@ -25,15 +25,15 @@ setup() {
 # ── P1: Measurement Infrastructure ─────────────────────────────────────────────
 
 @test "svc-probe: existiert als measurement choice in runtime-health-measure.py" {
-  run python3 "$MEASURE" svc-probe --input /dev/null
+  run python3 "$MEASURE" svc-probe
   [ "$status" -eq 0 ] || {
     echo "FAIL: svc-probe ist keine gueltige measurement choice."
     echo "       argparse gibt 'invalid choice' aus — die Funktion fehlt in main()."
     return 1
   }
-  # Die Funktion muss entweder 0 oder "-" zurueckgeben (fail-closed).
-  [[ "$output" =~ ^[0-9]+$ ]] || [[ "$output" == "-" ]] || {
-    echo "FAIL: svc-probe gab '${output}' zurueck — erwartet Ganzzahl oder '-'."
+  # All production Ingress hosts must be represented in the blackbox Probe.
+  [ "$output" = "0" ] || {
+    echo "FAIL: svc-probe meldet '${output}' ungedeckte Produktions-Ingresses."
     return 1
   }
 }
@@ -56,6 +56,17 @@ setup() {
   }
 }
 
+@test "service HTTP goals use dedicated measurements" {
+  for measurement in svc-oidc svc-nextcloud svc-whiteboard; do
+    run python3 "$MEASURE" "$measurement" --input /dev/null
+    [ "$status" -eq 0 ] || return 1
+    [[ "$output" =~ ^[0-9]+$ ]] || [[ "$output" == "-" ]] || return 1
+  done
+  grep -q 'runtime_measure svc-oidc' "$CHECK_SH"
+  grep -q 'runtime_measure svc-nextcloud' "$CHECK_SH"
+  grep -q 'runtime_measure svc-whiteboard' "$CHECK_SH"
+}
+
 @test "cron-status: existiert als measurement choice in runtime-health-measure.py" {
   run python3 "$MEASURE" cron-status --input /dev/null
   [ "$status" -eq 0 ]
@@ -66,10 +77,10 @@ setup() {
 }
 
 @test "alert-status: existiert als measurement choice in runtime-health-measure.py" {
-  run python3 "$MEASURE" alert-status --input /dev/null
+  run python3 "$MEASURE" alert-status
   [ "$status" -eq 0 ]
-  [[ "$output" =~ ^[0-9]+$ ]] || [[ "$output" == "-" ]] || {
-    echo "FAIL: alert-status gab '${output}' zurueck — erwartet Ganzzahl oder '-'."
+  [ "$output" = "0" ] || {
+    echo "FAIL: alert-status muss den konfigurierten E-Mail-Receiver als 0 melden, bekam '${output}'."
     return 1
   }
 }

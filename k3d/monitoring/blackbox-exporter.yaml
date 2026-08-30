@@ -76,6 +76,11 @@ spec:
       static:
         - https://web.mentolder.de/api/health
         - https://web.korczewski.de/api/health
+        # Public production Ingress hosts.  Keep this list in sync with the
+        # production Ingress manifests; G-SVC01 validates the coverage.
+        - https://design.mentolder.de
+        - https://design.korczewski.de
+        - https://studio.mentolder.de
       relabelingConfigs:
         - sourceLabels: [__param_target]
           regex: https://web\.mentolder\.de/.*

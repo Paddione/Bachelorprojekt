@@ -83,30 +83,21 @@ setup() {
   [ -f "$ALERTMANAGER" ]
 }
 
-@test "alertmanager-config.yaml routes to the blackhole receiver, no notification configs" {
-  # T016592: alle ausgehenden Benachrichtigungen sind abgeschaltet. Der
-  # frühere emailConfigs-Anker ist damit entfallen.
-  #
-  # Positiv-Anker: der receivers-Block existiert weiterhin und trägt den
-  # null-Receiver — eine AlertmanagerConfig OHNE Receiver wäre ungültig und
-  # würde vom Operator komplett verworfen, dieselbe Klasse wie T014542.
+@test "alertmanager-config.yaml routes to the authorized operator mailbox" {
   run grep -q '^  receivers:' "$ALERTMANAGER"
   [ "$status" -eq 0 ]
-  run grep -q '^    - name: "null"' "$ALERTMANAGER"
+  run grep -q '^    - name: operator-email' "$ALERTMANAGER"
   [ "$status" -eq 0 ]
-  run grep -q '^    receiver: "null"' "$ALERTMANAGER"
+  run grep -q '^    receiver: operator-email' "$ALERTMANAGER"
   [ "$status" -eq 0 ]
 
-  # Keine Benachrichtigungs-Konfiguration irgendeiner Art. Der
-  # pushoverConfigs-Teil bleibt aus dem ursprünglichen Grund bestehen:
-  # PUSHOVER_USER/TOKEN sind seit #1552 leer, ein Block mit leerem userKey
-  # lässt den Operator die KOMPLETTE Config verwerfen ("mandatory field
-  # userKey is empty"). [T014542]
-  local configs
-  for configs in emailConfigs pushoverConfigs webhookConfigs; do
-    run grep -c "${configs}:" "$ALERTMANAGER"
-    [ "$output" -eq 0 ]
-  done
+  run grep -q 'emailConfigs:' "$ALERTMANAGER"
+  [ "$status" -eq 0 ]
+  run grep -q 'to: korczewski@mailbox.org' "$ALERTMANAGER"
+  [ "$status" -eq 0 ]
+  run grep -q 'authPassword:' "$ALERTMANAGER"
+  [ "$status" -eq 0 ]
+  ! grep -q 'pushoverConfigs:' "$ALERTMANAGER"
 }
 
 # ── Resource Registration in kustomization.yaml ─────────────────────────

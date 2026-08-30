@@ -41,15 +41,11 @@ setup() {
   [ "$pushover" -eq 0 ]
 }
 
-@test "alertmanager-config.yaml routes to the blackhole receiver" {
-  # T016592: alle ausgehenden Benachrichtigungen sind abgeschaltet. Die
-  # Requirement "Email Notification Receiver" wurde entfernt, an ihre Stelle
-  # tritt "Blackhole Receiver".
-  grep -q '^    - name: "null"' "$AM_FILE"
-  grep -q '^    receiver: "null"' "$AM_FILE"
-  local mail
-  mail=$(grep -c 'emailConfigs:' "$AM_FILE" || true)
-  [ "$mail" -eq 0 ]
+@test "alertmanager-config.yaml routes alerts to the authorized operator mailbox" {
+  grep -q '^    - name: operator-email' "$AM_FILE"
+  grep -q '^    receiver: operator-email' "$AM_FILE"
+  grep -q 'emailConfigs:' "$AM_FILE"
+  grep -q 'to: korczewski@mailbox.org' "$AM_FILE"
 }
 
 @test "alertmanager-config.yaml has no hardcoded brand domain" {

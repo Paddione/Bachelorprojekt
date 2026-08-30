@@ -139,6 +139,15 @@ unter `%LOCALAPPDATA%\Programs\Open Design`) spricht FreeToken direkt als
 OpenAI-kompatiblen Endpunkt an. Es braucht **kein** zweites Backend und keinen
 Modellwechsel.
 
+OpenDesign kennt zwei Betriebsarten, und die Wahl bestimmt, wo der Provider
+konfiguriert wird:
+
+1. **BYOK-Direktanbindung** — OpenDesign spricht den Endpunkt selbst an. Das ist
+   der hier zuerst beschriebene, gemessene Weg.
+2. **Über einen lokalen Coding-Agent** — OpenDesign steuert eine mitgelieferte
+   Agent-CLI, die ihrerseits einen Provider hat. Für dieses Repo relevant, weil
+   **opencode im Bundle liegt**; siehe „Der Weg führt über opencode" weiter unten.
+
 | Feld | Wert |
 |------|------|
 | Base-URL | `http://127.0.0.1:1919/v1` |
@@ -230,23 +239,56 @@ Kopfkommentar von [`scripts/llm/start-gptoss-server.ps1`](../../scripts/llm/star
 (kurz: Rang 2 auf LiquidAI/ifstruct für strukturiertes Instruction-Following, also
 die tool_calls-Disziplin, bei nativ MXFP4 und ~12 GB).
 
-**Was daran gemessen ist** (2026-08-30): `lms ls` listet nach dem Download
-`gpt-oss-20b@mxfp4` (arch `gpt-oss`, 12,11 GB) als lokales Modell — die
-Ordnerstruktur wird also erkannt. Die beiden `eagle3-*.gguf` erscheinen als eigene
-Einträge (Drafter für Speculative Decoding).
+**Was daran gemessen ist** (2026-08-30): der LM-Studio-Server läuft auf
+`:1234` und listet nach dem Download beide Modelle —
+`gpt-oss-20b@mxfp4` (arch `gpt-oss`, 12,11 GB) und
+`qwen3.6-35b-a3b-nvfp4` (arch `qwen3_5_moe`, 23,46 GB), beide `DEVICE=Local`.
+Die Ordnerstruktur wird also erkannt. Die zwei `eagle3-*.gguf` erscheinen als
+eigene Einträge (Drafter für Speculative Decoding).
 
-**Was NICHT gemessen ist:** ob OpenDesign gegen LM Studio als Backend trägt. Dieser
-Abschnitt ist Setup-Anleitung, keine Verifikation.
+```bash
+lms server status          # -> "The server is running on port 1234."
+lms ls                     # vollstaendig lesen, NICHT durch head abschneiden
+curl -sS http://127.0.0.1:1234/v1/models
+```
 
-Zwei harte Randbedingungen:
+> **NVFP4 ist für LM Studio NICHT unbrauchbar** — eine frühere Fassung dieses
+> Abschnitts behauptete das und lag falsch. Die Fehlbehauptung entstand aus einem
+> `lms ls | head -12`: `qwen3.6-…` steht alphabetisch unterhalb des Schnitts, das
+> abgeschnittene Listing wurde als Abwesenheitsbeweis gelesen. **Abwesenheit in
+> einer gekürzten Ausgabe ist kein Beleg.** Ungeprüft bleibt allein, ob LM Studio
+> das Modell auch tatsächlich *lädt* — Listing ist nicht Ladefähigkeit, und der
+> Ladeversuch scheitert an der VRAM-Exklusivität unten.
 
-- **NVFP4 ist für LM Studio unbrauchbar.** Es ist ein vLLM/TensorRT-Format; LM
-  Studio fährt llama.cpp (GGUF). Bestätigt: nach dem Download von
-  `nvidia/Qwen3.6-35B-A3B-NVFP4` nach `F:\models\nvidia\…` taucht es in `lms ls`
-  **nicht** auf, während `gpt-oss-20b@mxfp4` gelistet wird.
-- **LM Studio und FreeToken können nicht gleichzeitig laden.** FreeToken belegt
-  ~15,7 von 16 GB — siehe „Messwerte": VRAM **exklusiv**. Vor dem Start von LM
-  Studio deshalb:
-  ```bash
-  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Stop
-  ```
+**Was NICHT gemessen ist:** ob OpenDesign über diesen Weg trägt, und ob LM Studio
+das NVFP4 wirklich lädt. Dieser Abschnitt ist Setup-Anleitung, keine Verifikation.
+
+### Der Weg führt über opencode, nicht über BYOK-Direktanbindung
+
+OpenDesign bringt **opencode als Coding-Agent mit** — `opencode.exe`
+(Version `0.0.0--202608120330`) liegt im Bundle unter
+`resources/open-design/bin/libexec/opencode/`. Neben der oben beschriebenen
+BYOK-Direktanbindung ist das der zweite, für dieses Repo natürlichere Pfad:
+
+```
+OpenDesign ──► opencode ──► Provider (freetoken :1919  ODER  lmstudio :1234)
+```
+
+opencode kennt LM Studio bereits als Provider — `.opencode/opencode.jsonc`
+definiert `lmstudio` über `@ai-sdk/openai-compatible` mit
+`baseURL: http://127.0.0.1:1234/v1`. In `.opencode/agent-models.jsonc` ist
+`lmstudio` bislang allerdings nur **Registry für die LAN-Geräte**; laut Kommentar
+dort dispatcht kein Agent direkt darauf. Wer OpenDesign über opencode gegen LM
+Studio fahren will, muss also erst eine Agent-Zuordnung anlegen — der Provider
+allein genügt nicht.
+
+### VRAM: die harte Trennung
+
+**LM Studio und FreeToken können nicht gleichzeitig laden.** FreeToken belegt
+~15,7 von 16 GB — siehe „Messwerte": VRAM **exklusiv**. Der LM-Studio-*Server*
+darf laufen (er hält ohne geladenes Modell kein VRAM), aber der erste Request
+löst JIT-Loading aus und kollidiert dann mit FreeToken. Vorher deshalb:
+
+```bash
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoken.ps1 -Stop
+```

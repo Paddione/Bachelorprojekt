@@ -3156,7 +3156,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 688,
+      "file_count": 689,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3628,6 +3628,7 @@
         "k3d/monitoring/grafana-dashboards/traefik-dashboard.json",
         "k3d/monitoring/grafana-ingress.yaml",
         "k3d/monitoring/grafana-oidc-secret.yaml",
+        "k3d/monitoring/grafana-sidecar-resources-patch.yaml",
         "k3d/monitoring/kube-prometheus-stack-rendered.yaml",
         "k3d/monitoring/kustomization.yaml",
         "k3d/monitoring/loki-grafana-datasource.yaml",

@@ -30,3 +30,4 @@ resources:
 patches:
   - path: loki-sc-rules-resources-patch.yaml
   - path: alertmanager-matcher-strategy-patch.yaml
+  - path: grafana-sidecar-resources-patch.yaml

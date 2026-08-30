@@ -86,10 +86,14 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 @test "T002398: mcp-sync render erzeugt gueltiges scripts/llm/mcp-servers.json" {
   # [T002779] Render in tmpdir statt auf die getrackten Dateien.
   local tmpd="$BATS_TEST_TMPDIR/mcp-render-valid"
+  # Windows/MSYS: node braucht C:/... statt /tmp/... (POSIX-Pfade loest node
+  # als C:\tmp\... auf und findet die Datei nicht). cygpath nur auf Windows.
+  local tmpw="$tmpd"
+  case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) tmpw="$(cygpath -m "$tmpd")" ;; esac
   mkdir -p "$tmpd/scripts/llm"
   run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh render
   [ "$status" -eq 0 ]
-  run node -e "const d=require('$tmpd/scripts/llm/mcp-servers.json'); if(typeof d.mcpServers!=='object') process.exit(1)"
+  run node -e "const d=require('$tmpw/scripts/llm/mcp-servers.json'); if(typeof d.mcpServers!=='object') process.exit(1)"
   [ "$status" -eq 0 ]
 }
 
@@ -119,6 +123,8 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
   # MCP_OUT_DIR leitet den Output in die Sandbox um; die echte Datei bleibt
   # unangetastet — keine Race mit parallel laufenden Spec-Dateien mehr.
   local tmpd="$BATS_TEST_TMPDIR/mcp-check"
+  local tmpw="$tmpd"
+  case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) tmpw="$(cygpath -m "$tmpd")" ;; esac
   mkdir -p "$tmpd/scripts/llm" "$tmpd/.opencode"
 
   # Alle drei Ziel-Dateien kopieren — check vergleicht gegen alle Targets.
@@ -139,7 +145,7 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
     const d=JSON.parse(fs.readFileSync(fn,"utf8"));
     d.mcpServers["drift-probe"]={command:"nope"};
     fs.writeFileSync(fn, JSON.stringify(d,null,2)+"\n");
-  ' "$tmpd"
+  ' "$tmpw"
   run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh check
   [ "$status" -ne 0 ]
 }
@@ -149,6 +155,8 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
   # MCP_REGISTRY setzt auf eine Sandbox-Kopie, MCP_OUT_DIR leitet alle Outputs
   # dorthin um, und HOME verhindert Seiteneffekte des agy-Renderers.
   local tmpd="$BATS_TEST_TMPDIR/mcp-llamacpp"
+  local tmpw="$tmpd"
+  case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) tmpw="$(cygpath -m "$tmpd")" ;; esac
   mkdir -p "$tmpd/fakehome"
 
   # Positiv-Anker [T002356-M1]: die Fixture muss existieren und der
@@ -165,7 +173,7 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
     const httpName=Object.entries(reg.clients).find(([,c])=>c.transport==="http")[0];
     reg.clients[httpName].harness.llamacpp={command:"should-not-be-emitted"};
     fs.writeFileSync(process.argv[1], yaml.stringify(reg));
-  ' "$tmpd/registry.yaml"
+  ' "$tmpw/registry.yaml"
   run env HOME="$tmpd/fakehome" MCP_REGISTRY="$tmpd/registry.yaml" MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh render
   [ "$status" -ne 0 ]
 }

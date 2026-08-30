@@ -6,6 +6,9 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+  # Windows/MSYS: node braucht C:/... statt /c/... (POSIX-Pfade loest node als
+  # C:\c\... auf und findet die Datei nicht). cygpath nur auf Windows.
+  case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) REPO="$(cygpath -m "$REPO")" ;; esac
 }
 
 # ── OAuth2 Proxy MCP Path Bypass ──────────────────────────────────────

@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "codebase-memory-mcp": {
-      "command": "/home/patrick/.local/bin/codebase-memory-mcp",
+      "command": "codebase-memory-mcp",
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 30000
     },

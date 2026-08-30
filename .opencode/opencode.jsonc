@@ -117,9 +117,9 @@
 
       "type": "local",
 
-      "command": ["/home/patrick/.local/bin/codebase-memory-mcp"],
+      "command": ["codebase-memory-mcp"],
 
-      "enabled": false
+      "enabled": true
 
     },
 

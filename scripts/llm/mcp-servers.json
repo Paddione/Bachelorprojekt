@@ -1,16 +1,5 @@
 {
   "mcpServers": {
-    "brain-mcp-node": {
-      "command": "node",
-      "args": [
-        "/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs"
-      ],
-      "env": {
-        "BRAIN_WIKI_DIR": "~/brain/wiki"
-      },
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "timeout_ms": 30000
-    },
     "codebase-memory-mcp": {
       "command": "/home/patrick/.local/bin/codebase-memory-mcp",
       "cwd": "/home/patrick/Bachelorprojekt",

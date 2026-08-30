@@ -148,13 +148,6 @@ clients:
         environment:
           BRAIN_WIKI_DIR: ~/brain/wiki
         enabled: true
-      llamacpp:
-        command: node
-        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-node/server.mjs]
-        env:
-          BRAIN_WIKI_DIR: ~/brain/wiki
-        cwd: /home/patrick/Bachelorprojekt
-        timeout_ms: 30000
 
   factory-mcp-node:
     transport: http

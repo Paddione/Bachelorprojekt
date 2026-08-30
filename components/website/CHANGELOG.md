@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.322.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.1...website-v1.322.2) (2026-08-30)
+
+
+### Bug Fixes
+
+* **mcp:** Node-MCP-Server starten wieder (ticket, brain) ([#5342](https://github.com/Paddione/Bachelorprojekt/issues/5342)) ([af576e4](https://github.com/Paddione/Bachelorprojekt/commit/af576e4442e9a8e4fd007283501efe1298165a63))
+
 ## [1.322.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.0...website-v1.322.1) (2026-08-30)
 
 

@@ -38,6 +38,7 @@ minimumReleaseAgeExclude:
   - 'electron-to-chromium@1.5.392'
   - 'openai@6.47.0'
   - tailwindcss@4.3.3
+  - zod@4.5.4
 
 overrides:
   yaml: "^2.9.0"

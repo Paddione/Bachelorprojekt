@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.322.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.0...website-v1.322.1) (2026-08-30)
+
+
+### Bug Fixes
+
+* **infra:** penpot ingress conflicts, port naming, runbooks [T900009] ([#5338](https://github.com/Paddione/Bachelorprojekt/issues/5338)) ([532f21b](https://github.com/Paddione/Bachelorprojekt/commit/532f21b6334bbf80165561dcda6664b83fb3097e))
+
 ## [1.322.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.321.0...website-v1.322.0) (2026-08-30)
 
 

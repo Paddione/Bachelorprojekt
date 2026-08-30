@@ -16,9 +16,10 @@ function writeMsg(msg) { process.stdout.write(JSON.stringify(msg) + '\n'); }
 
 function brandOf(a) { return (a?.brand || 'mentolder'); }
 
-function textResult(raw, err) {
+async function textResult(raw, err) {
   if (err) throw err;
-  return { content: [{ type: 'text', text: raw.trimEnd() || '_(keine Ausgabe)_' }] };
+  const s = await raw;
+  return { content: [{ type: 'text', text: String(s).trimEnd() || '_(keine Ausgabe)_' }] };
 }
 
 // ---- Mishap buffer helpers ----
@@ -66,12 +67,12 @@ function normalizeTitle(s) {
   return s.toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
-function findOpenTicketByTitle(root, brand, title) {
+async function findOpenTicketByTitle(root, brand, title) {
   const want = normalizeTitle(title);
   const openStatuses = ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'blocked', 'qa_review'];
   for (const statusFilter of openStatuses) {
     try {
-      const raw = runTicket(['list', '--brand', brand, '--status', statusFilter, '--limit', '200'], { BRAND: brand });
+      const raw = await runTicket(['list', '--brand', brand, '--status', statusFilter, '--limit', '200'], { BRAND: brand });
       const trimmed = raw.trim();
       if (!trimmed) continue;
       const tickets = JSON.parse(trimmed);
@@ -95,11 +96,11 @@ function buildIncidentTicketArgs(entry, brand) {
   ];
 }
 
-function createIncidentTicket(root, entry, brand) {
-  const existing = findOpenTicketByTitle(root, brand, entry.title);
+async function createIncidentTicket(root, entry, brand) {
+  const existing = await findOpenTicketByTitle(root, brand, entry.title);
   if (existing) {
     try {
-      runTicket(
+      await runTicket(
         ['add-comment', '--id', existing, '--body',
           'Mishap erneut gemeldet (Typ=' + entry.type + ', Komponente=' + entry.component + ') — bereits als ' + existing + ' erfasst, kein neues Ticket.',
           '--author', 'ticket-mcp', '--visibility', 'internal'],
@@ -108,7 +109,7 @@ function createIncidentTicket(root, entry, brand) {
     } catch { /* ignore */ }
     return existing;
   }
-  const out = runTicket(buildIncidentTicketArgs(entry, brand), { BRAND: brand });
+  const out = await runTicket(buildIncidentTicketArgs(entry, brand), { BRAND: brand });
   const ext = out.trim();
   const i = ext.indexOf('|');
   return i >= 0 ? ext.slice(0, i) : ext;
@@ -135,11 +136,11 @@ function buildFactoryFixTicketArgs(entry, brand) {
   ];
 }
 
-function createFactoryFixTicket(root, entry, brand) {
-  const existing = findOpenTicketByTitle(root, brand, entry.title);
+async function createFactoryFixTicket(root, entry, brand) {
+  const existing = await findOpenTicketByTitle(root, brand, entry.title);
   if (existing) {
     try {
-      runTicket(
+      await runTicket(
         ['add-comment', '--id', existing, '--body',
           'Mishap erneut gemeldet (Typ=' + entry.type + ', Komponente=' + entry.component + ') — bereits als ' + existing + ' erfasst, kein neues Ticket.',
           '--author', 'ticket-mcp', '--visibility', 'internal'],
@@ -148,7 +149,7 @@ function createFactoryFixTicket(root, entry, brand) {
     } catch { /* ignore */ }
     return existing;
   }
-  const out = runTicket(buildFactoryFixTicketArgs(entry, brand), { BRAND: brand });
+  const out = await runTicket(buildFactoryFixTicketArgs(entry, brand), { BRAND: brand });
   const ext = out.trim();
   const i = ext.indexOf('|');
   return i >= 0 ? ext.slice(0, i) : ext;
@@ -987,13 +988,13 @@ function handleToolCall(name, args) {
 }
 
 
-function handlePrepareFeature(id, brand, args) {
+async function handlePrepareFeature(id, brand, args) {
   var env = { BRAND: brand };
   var lines = [];
-  function log(r) { var t = (r || '').trim(); if (t) lines.push(t); }
+  async function log(r) { var t = (String(await r) || '').trim(); if (t) lines.push(t); }
   function err(e) { lines.push('FEHLER: ' + e.message); }
   if (args.product_id) {
-    try { log(runTicket(['set-parent', '--id', id, '--product-id', args.product_id], env)); }
+    try { await log(runTicket(['set-parent', '--id', id, '--product-id', args.product_id], env)); }
     catch(e) { err(e); }
   }
   var ma = ['plan-meta', 'set', '--id', id];
@@ -1001,41 +1002,41 @@ function handlePrepareFeature(id, brand, args) {
   if (args.effort) ma.push('--effort', args.effort);
   if (args.areas) ma.push('--areas', args.areas);
   if (args.depends_on) ma.push('--depends-on', args.depends_on);
-  if (ma.length > 4) { try { log(runTicket(ma, env)); } catch(e) { err(e); } }
-  ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt'].forEach(function(f) {
+  if (ma.length > 4) { try { await log(runTicket(ma, env)); } catch(e) { err(e); } }
+  for (const f of ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt']) {
     if (args[f] !== undefined) {
-      try { log(runTicket(['plan-meta', 'set', '--id', id, '--readiness', f + '=' + args[f]], env)); }
+      try { await log(runTicket(['plan-meta', 'set', '--id', id, '--readiness', f + '=' + args[f]], env)); }
       catch(e) { err(e); }
     }
-  });
+  }
   if (args.attention_mode) {
-    try { log(runTicket(['inject', '--id', id, '--fields', 'attention_mode=' + args.attention_mode], env)); }
+    try { await log(runTicket(['inject', '--id', id, '--fields', 'attention_mode=' + args.attention_mode], env)); }
     catch(e) { err(e); }
   }
-  try { log(runTicket(['update-status', '--id', id, '--status', 'planning'], env)); }
+  try { await log(runTicket(['update-status', '--id', id, '--status', 'planning'], env)); }
   catch(e) { err(e); }
   return { content: [{ type: 'text', text: lines.join('\n') || '_()' }] };
 }
 
-function handleUpdateFields(id, brand, args) {
+async function handleUpdateFields(id, brand, args) {
   if (!args.title && !args.description && !args.notes)
     return { content: [{ type: 'text', text: 'Keine Felder zum Aktualisieren angegeben.' }] };
   var outputs = [];
   if (args.title || args.description) {
-    outputs.push(runTicket(['update-fields', '--id', id, '--title', args.title, '--description', args.description], { BRAND: brand }).trimEnd());
+    outputs.push((await runTicket(['update-fields', '--id', id, '--title', args.title, '--description', args.description], { BRAND: brand })).trimEnd());
   }
   if (args.notes) {
-    outputs.push(runTicket(['add-comment', '--id', id, '--body', args.notes, '--author', 'ticket-mcp', '--visibility', 'internal'], { BRAND: brand }).trimEnd());
+    outputs.push((await runTicket(['add-comment', '--id', id, '--body', args.notes, '--author', 'ticket-mcp', '--visibility', 'internal'], { BRAND: brand })).trimEnd());
   }
   return { content: [{ type: 'text', text: outputs.join('\n') }] };
 }
 
-function handleReportMishap(title, desc, comp, type, brand) {
+async function handleReportMishap(title, desc, comp, type, brand) {
   var vt = ['incident', 'broken', 'degraded', 'suspicious', 'security', 'drift', 'process'];
   if (vt.indexOf(type) < 0)
     return { isError: true, content: [{ type: 'text', text: 'Ungueltiger Typ: ' + type }] };
   if (isIncidentType(type)) {
-    var extID = createIncidentTicket('', { title: title, description: desc, component: comp, type: type, reported_at: new Date().toISOString() }, brand);
+    var extID = await createIncidentTicket('', { title: title, description: desc, component: comp, type: type, reported_at: new Date().toISOString() }, brand);
     return { content: [{ type: 'text', text: 'Incident-Ticket angelegt: ' + extID + ' (attention_mode=needs_human). Kein Buffer-Eintrag.' }] };
   }
   var buf = readBuffer('');
@@ -1071,7 +1072,7 @@ function handleFlushMishapBuffer(brand) {
 }
 // ---- Main stdio loop ----
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: false });
-rl.on('line', (line) => {
+rl.on('line', async (line) => {
   var trimmed = line.trim();
   if (!trimmed) return;
   var message;
@@ -1089,7 +1090,7 @@ rl.on('line', (line) => {
     } else if (method === 'tools/list') {
       writeMsg(ok(id, { tools: TOOLS }));
     } else if (method === 'tools/call') {
-      writeMsg(ok(id, handleToolCall(params && params.name, params && params.arguments || {})));
+      writeMsg(ok(id, await handleToolCall(params && params.name, params && params.arguments || {})));
     } else {
       writeMsg(fail(id, -32601, 'Method not found: ' + method));
     }

@@ -42,13 +42,13 @@ function ticketShPath() {
 }
 
 export function runTicket(args, extraEnv = {}) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolvePromise, rejectPromise) => {
     const repoRoot = currentRepoRoot();
     const ticketSh = ticketShPath();
     const cleaned = resolve(ticketSh);
     const root = resolve(repoRoot || '.');
     if (!cleaned.startsWith(root)) {
-      reject(new Error(`ticket.sh path ${cleaned} is outside repo root ${repoRoot}`));
+      rejectPromise(new Error(`ticket.sh path ${cleaned} is outside repo root ${repoRoot}`));
       return;
     }
     const child = spawn('bash', [ticketSh, ...args], { cwd: repoRoot, maxBuffer: MAX_BUFFER });
@@ -64,10 +64,10 @@ export function runTicket(args, extraEnv = {}) {
     child.on('close', (code) => {
       const out = Buffer.concat(stdout).toString();
       const err = Buffer.concat(stderr).toString();
-      if (code === 0) resolve(out.trimEnd());
-      else reject(new Error(`ticket.sh failed (exit code ${code}): ${err.trim() || 'unknown error'}`));
+      if (code === 0) resolvePromise(out.trimEnd());
+      else rejectPromise(new Error(`ticket.sh failed (exit code ${code}): ${err.trim() || 'unknown error'}`));
     });
-    child.on('error', reject);
+    child.on('error', rejectPromise);
   });
 }
 

@@ -2991,11 +2991,22 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         mkdir -p environments/certs
+        # [T900021] Symlink-Ziel aufloesen: unter core.symlinks=false (Windows)
+        # ueberschreibt '>' die Symlink-Textdatei mit Zertifikatstext. Ist der
+        # Zielpfad im Git-Tree ein Symlink (Mode 120000), in dessen Ziel schreiben.
+        out="environments/certs/{{.ENV}}.pem"
+        mode=$(git ls-files -s "$out" 2>/dev/null | awk '{print $1}')
+        if [ "$mode" = "120000" ]; then
+          target=$(git cat-file -p ":$out" 2>/dev/null || true)
+          if [ -n "$target" ]; then
+            out="$(dirname "$out")/$target"
+          fi
+        fi
         kubeseal --controller-name=sealed-secrets \
                  --controller-namespace=sealed-secrets \
                  --context "$ENV_CONTEXT" \
-                 --fetch-cert > "environments/certs/{{.ENV}}.pem"
-        echo "Certificate saved to environments/certs/{{.ENV}}.pem"
+                 --fetch-cert > "$out"
+        echo "Certificate saved to $out"
 
   env:init:
     desc: Create a new environment file from schema template

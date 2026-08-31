@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.323.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.2...website-v1.323.3) (2026-08-31)
+
+
+### Bug Fixes
+
+* **infra:** log failed Traefik requests in effective chart config ([#5388](https://github.com/Paddione/Bachelorprojekt/issues/5388)) ([487a875](https://github.com/Paddione/Bachelorprojekt/commit/487a875522f0cc573582d75bf646be8eaada5df5))
+
 ## [1.323.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.1...website-v1.323.2) (2026-08-31)
 
 

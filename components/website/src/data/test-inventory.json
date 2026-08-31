@@ -6036,6 +6036,12 @@
     "kind": "shell"
   },
   {
+    "id": "traefik-access-log",
+    "file": "tests/spec/traefik-access-log.bats",
+    "category": "traefik-access-log",
+    "kind": "shell"
+  },
+  {
     "id": "ts-suppression",
     "file": "tests/spec/ts-suppression.bats",
     "category": "ts-suppression",

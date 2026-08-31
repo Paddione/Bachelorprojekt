@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.323.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.3...website-v1.323.4) (2026-08-31)
+
+
+### Bug Fixes
+
+* **infra:** restore Penpot MinIO availability [T900026] ([#5390](https://github.com/Paddione/Bachelorprojekt/issues/5390)) ([f00b20b](https://github.com/Paddione/Bachelorprojekt/commit/f00b20bfffac5ead6b79c219aeaf87e4c3f995ee))
+
 ## [1.323.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.2...website-v1.323.3) (2026-08-31)
 
 

@@ -60,10 +60,13 @@ SHIMEOF
   [[ "$output" != *"No such file or directory"* ]]
 }
 
-@test "list still succeeds and reports its table header under a Windows drive path" {
-  # Positiv-Anker: der Befehl bleibt funktionsfaehig, nicht nur fehlerfrei.
+@test "list still completes its own logic under a Windows drive path" {
+  # Positiv-Anker: der Befehl laeuft bis zu einer seiner beiden regulaeren Ausgaben
+  # durch, statt in der Pfadaufloesung zu sterben. Welche der beiden es ist, haengt
+  # davon ab, ob das Lock-Verzeichnis existiert (cmd_list, agent-lock.sh:655) — das
+  # ist nicht Gegenstand dieses Tests.
   cd "$REPO"
   run bash "$AGENT_LOCK" list
   [ "$status" -eq 0 ]
-  [[ "$output" == *"SCOPE"* ]]
+  [[ "$output" == *"SCOPE"* || "$output" == *"keine aktiven Claims"* ]]
 }

@@ -2,41 +2,43 @@
 
 ## Why
 
-`scripts/agent-lock.sh` ist unter Windows aus jedem Worktree heraus unbenutzbar, solange
-`AGENT_LOCK_DIR` nicht von Hand gesetzt wird. Damit faellt die gesamte Session-Koordination
-auf Windows auf einen Workaround zurueck, den jede Session einzeln kennen muss.
+`scripts/agent-lock.sh` war unter Windows aus jedem Worktree heraus unbenutzbar, solange
+`AGENT_LOCK_DIR` nicht von Hand gesetzt wurde: `_lock_dir()` prueft mit
+`case "$common" in /*)` auf absolute Pfade, Git-for-Windows liefert aus einem Worktree
+aber `C:/…/.git` ohne fuehrenden Slash. Der else-Zweig haengte den Laufwerkspfad an
+`$toplevel`, das `cd` scheiterte und das Lock-Verzeichnis wurde zu `/agent-locks`.
 
-Ursache (verifiziert, Stand 8e54c8695): `_lock_dir()` in scripts/agent-lock.sh:126 prueft
-mit `case "$common" in /*)` auf absolute Pfade. Aus einem Worktree liefert
-Git-for-Windows aber:
-
-```bash
-cd "$(git rev-parse --show-toplevel)/.worktrees/mcp-cleanup2"
-git rev-parse --git-common-dir
-# C:/Users/PatrickKorczewski/Bachelorprojekt/.git
-env -u AGENT_LOCK_DIR bash ../../scripts/agent-lock.sh list
-# scripts/agent-lock.sh: line 126: cd: C:/…/.worktrees/mcp-cleanup2/C:/…/.git: No such file or directory
-```
-
-Der Laufwerkspfad hat keinen fuehrenden Slash, das Muster greift nicht, und der
-else-Zweig haengt ihn an `$toplevel`. Das `cd` scheitert, `$( … && pwd )` liefert den
-leeren String, und das Lock-Verzeichnis wird zu `/agent-locks`.
-
-Im Haupt-Checkout antwortet Git mit `.git` (relativ) und der else-Zweig trifft zufaellig
-das Richtige — deshalb faellt der Fehler nur in Worktrees auf.
+**Der Muster-Fix ist waehrend der Planung direkt auf `main` gelandet** — Commit
+`d60c3704` (2026-08-31 04:47) setzt `[A-Za-z]:[/\]*` und `\*`. Verifiziert aus einem
+Worktree ohne `AGENT_LOCK_DIR`: die Aufloesung funktioniert. Dieser Change dokumentiert
+das Verhalten nachtraeglich als Requirement und sichert es mit einem Guard ab, der die
+Windows-Laufwerksform ueber einen `git`-Shim auch auf Linux-CI erzwingt — ohne den waere
+der Test dort dauerhaft gruen und wuerde nichts schuetzen.
 
 Verworfen: `git rev-parse --path-format=absolute --git-common-dir`. Gemessen mit
 git 2.55.0.windows.5 liefert auch diese Form `C:/…` ohne fuehrenden Slash — die
 Git-Invocation zu tauschen loest das Muster-Problem nicht.
 
-## What
+## Der Restumfang
 
-1. `_lock_dir()` erkennt Windows-Laufwerkspfade (`C:/…`, `C:\…`) als absolut.
-2. BATS-Guard, der die Windows-Form ueber einen `git`-Shim auch auf Linux-CI erzwingt —
-   ohne ihn waere der Test dort dauerhaft gruen und wuerde nichts schuetzen.
-3. `worktree-create.sh`: Die main-Guard-Diagnose nennt `--unattended` als Ausweg, statt
-   nur zu blockieren.
-4. opencode-Startton: Ursache belegen, bevor etwas geaendert wird. Drei Kandidaten aus
-   dem Log; der Fix folgt erst dem Reproducer.
+Derselbe Commit hat zwei Folgen hinterlassen, die offen sind:
+
+1. **`main` ist im Quality-Gate rot.** `scripts/agent-lock.sh` steht bei 806 Zeilen bei
+   einem S1-Limit von 800; `node scripts/code-quality/check.mjs` meldet
+   `✗ NEW: S1:scripts/agent-lock.sh — 806 lines > 800 limit (.sh)`. Behoben wird das
+   durch Aufteilen — der Reap-Block wandert nach `scripts/agent-lock-reap.sh`, nach dem
+   Muster der vier bereits vorhandenen Fragmente. Eine untrackte Vorarbeit dazu
+   (230 Zeilen) lag im Haupt-Checkout und wurde vor dessen Bereinigung gesichert; sie
+   wird nach Review uebernommen statt neu geschrieben.
+
+2. **Der main-Checkout-Guard in `worktree-create.sh` wurde entfernt**, nicht verbessert —
+   ohne Ticket-Referenz in der Commit-Message und ohne Spec-Delta. Deshalb meldet
+   `agent-lock.sh check-merged T900023` bis heute "NOT found on main", obwohl der Fix
+   dort liegt. Ob die Entfernung tragfaehig ist oder der Guard mit handlungsfaehiger
+   Diagnose zurueckkommt, wird geprueft statt vorweggenommen.
+
+Unveraendert offen bleibt der **opencode-Startton**. Die Ursache ist nicht belegt; es
+gibt drei Kandidaten aus dem Log. Der Reproducer steht vor dem Fix — ein Fix auf Verdacht
+faellt unter die Bug-Triage-Konvention.
 
 _Ticket: T900023_

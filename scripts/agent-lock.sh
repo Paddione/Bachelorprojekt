@@ -553,12 +553,15 @@ cmd_reclaim_main_checkout() {
 
 
 _AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Git-Hook-Guards in eigener Datei [T002375-p1] unter S1-Limit. Fail-loud: stumm = schlimmer.
-# Beide Fragmente sind ausgelagert, damit diese Datei unter dem S1-Limit von
-# 500 Zeilen bleibt (guards: T002214, merged/check-merged: T002279).
+# Teile der Logik liegen in eigenen Fragmenten, damit diese Datei unter dem S1-Limit
+# von 800 Zeilen bleibt. Fail-loud: stumm = schlimmer.
+#   identity  T002375-p1 | guards T002214 | merged/check-merged T002279
+#   activity             | reap   T900023 (S1-Bruch nach d60c3704)
+# shellcheck source=scripts/agent-lock-identity.sh
 # shellcheck source=scripts/agent-lock-guards.sh
 # shellcheck source=scripts/agent-lock-merged.sh
-# shellcheck source=scripts/agent-lock-identity.sh
+# shellcheck source=scripts/agent-lock-activity.sh
+# shellcheck source=scripts/agent-lock-reap.sh
 for _agent_lock_frag in agent-lock-identity.sh agent-lock-guards.sh agent-lock-merged.sh agent-lock-activity.sh agent-lock-reap.sh; do
   [ -f "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag" ] || {
     echo "AGENT-LOCK: FATAL — scripts/$_agent_lock_frag fehlt neben $0" >&2; exit 1; }

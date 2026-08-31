@@ -2022,8 +2022,20 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/agent-lock-s1-budget-T900023",
+    "file": "tests/spec/active-sessions-hub/agent-lock-s1-budget-T900023.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/agent-lock-scope-regelwerk",
     "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
+    "id": "active-sessions-hub/agent-lock-windows-drive-path-T900023",
+    "file": "tests/spec/active-sessions-hub/agent-lock-windows-drive-path-T900023.bats",
     "category": "active-sessions-hub",
     "kind": "shell"
   },

@@ -179,6 +179,9 @@ Last touches:
   - Harness-Stable Session Identity for agent-lock | T005676 | 2026-08-14 | MODIFIED
   - Pre-Commit Guards in dev-flow-plan | T003116 | 2026-08-10 | MODIFIED
   - Mandatory Worktree Scoping for File-Writing Tools | T003116 | 2026-08-10 | MODIFIED
+In-flight:
+  - Platform-independent lock directory resolution | T900023 | active | ADDED
+  - agent-lock logic stays within its size limit through fragments | T900023 | active | ADDED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114

@@ -146,6 +146,15 @@ setup() {
   echo "$content" | grep -q 'name: console'
 }
 
+@test "T900026: penminio verwendet ein verifiziert verfuegbares MinIO-Release" {
+  local f="${REPO_ROOT}/k3d/penpot.yaml"
+
+  # Der zuvor eingetragene Tag existiert nicht in Docker Hub und hielt Penpot
+  # dauerhaft im wait-for-minio-Init-Container fest.
+  ! grep -qF 'minio/minio:RELEASE.2024-11-22T13-35-48Z' "$f"
+  grep -qF 'minio/minio:RELEASE.2025-04-22T22-12-26Z' "$f"
+}
+
 @test "T900009: kustomization.yaml hat genau einen patches:-Schlussel" {
   local f="${REPO_ROOT}/prod-fleet/mentolder/kustomization.yaml"
   local count

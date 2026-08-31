@@ -2,7 +2,7 @@
 title: "agent-lock-windows-drive-path — Implementation Plan"
 ticket_id: T900023
 domains: [tooling, windows, agent-coordination]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

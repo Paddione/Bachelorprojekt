@@ -182,6 +182,7 @@ Last touches:
 In-flight:
   - Platform-independent lock directory resolution | T900023 | active | ADDED
   - agent-lock logic stays within its size limit through fragments | T900023 | active | ADDED
+  - Actionable main-checkout guard in worktree-create | T900023 | active | ADDED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114

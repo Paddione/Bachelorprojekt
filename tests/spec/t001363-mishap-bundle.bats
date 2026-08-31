@@ -12,7 +12,8 @@ setup() {
 
 @test "T001363: agent-lock.sh reap() prunes orphaned git worktree admin entries" {
   [ -f "$REPO/scripts/agent-lock.sh" ]
-  run grep -F 'git worktree prune' "$REPO/scripts/agent-lock.sh"
+  # [T900023] reap() liegt seit der S1-Aufteilung in scripts/agent-lock-reap.sh.
+  run grep -F 'git worktree prune' "$REPO"/scripts/agent-lock*.sh
   [ "$status" -eq 0 ]
 }
 

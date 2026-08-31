@@ -132,9 +132,9 @@ Last touches:
   - A loadout pin blocks foreign start and stop | T013593 | 2026-08-22 | ADDED
   - A pin dies with its owner and fails closed when unreadable | T013593 | 2026-08-22 | ADDED
 In-flight:
-  - bge reaches the proxy through role-based routes | T-PENDING | active | MODIFIED
-  - The bge chain is ordered desktop first, portable devices last | T-PENDING | active | MODIFIED
-  - An embed backend is admitted only after passing the equivalence gate | T-PENDING | active | ADDED
+  - bge reaches the proxy through role-based routes | T900006 | active | MODIFIED
+  - The bge chain is ordered desktop first, portable devices last | T900006 | active | MODIFIED
+  - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
 

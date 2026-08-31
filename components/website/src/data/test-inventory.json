@@ -4014,6 +4014,18 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/bge-no-probe-import",
+    "file": "tests/spec/local-llm-proxy/bge-no-probe-import.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/bge-registry-roles",
+    "file": "tests/spec/local-llm-proxy/bge-registry-roles.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/bge-role-routes",
     "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
     "category": "local-llm-proxy",

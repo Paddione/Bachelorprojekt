@@ -1,6 +1,6 @@
 ---
 title: "bge-role-registry-routing — Design"
-ticket_id: T-PENDING
+ticket_id: T900006
 status: planning
 domains: [website, db, ops, test]
 file_locks: []

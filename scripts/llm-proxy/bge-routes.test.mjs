@@ -14,7 +14,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { loadRoles, roleForPath, routeRequest } from './bge-routes.mjs';
+import { loadRoles, roleForPath, routeRequest, rolesFromRegistry, resolveRoleChain } from './bge-routes.mjs';
 
 function listen(handler) {
   return new Promise((resolve) => {
@@ -75,6 +75,47 @@ test('loadRoles: leere Kette wirft', () => {
 test('loadRoles: unbekannter Praefix wirft mit nennendem Text', () => {
   assert.throws(() => loadRoles({ roles: { embed: { chain: ['blub:bge'] } } }), /unbekannter Ketten-Eintrag/)
 })
+
+// ── Registry-Rollenaufloesung ───────────────────────────────────────────
+test('rolesFromRegistry: sortiert nach priority und filtert disabled', () => {
+  const backends = [
+    { name: 'b-mid', enabled: true, priority: 20, roles: ['embed', 'rerank'], baseUrl: 'http://127.0.0.1:1234' },
+    { name: 'b-first', enabled: true, priority: 1, roles: ['embed'], baseUrl: 'http://127.0.0.1:8085' },
+    { name: 'b-disabled', enabled: false, priority: 5, roles: ['embed'], baseUrl: 'http://127.0.0.1:9999' },
+    { name: 'b-loadout', enabled: true, priority: 30, roles: ['rerank'], baseUrl: 'http://127.0.0.1:18235', loadoutSlug: 'bge-rerank-cpu' },
+    { name: 'b-second', enabled: true, priority: 10, roles: ['embed', 'rerank'], baseUrl: 'http://127.0.0.1:8081' },
+  ];
+  const roles = rolesFromRegistry(backends);
+  assert.deepEqual(roles.get('embed'), [
+    { kind: 'url', baseUrl: 'http://127.0.0.1:8085' },
+    { kind: 'url', baseUrl: 'http://127.0.0.1:8081' },
+    { kind: 'url', baseUrl: 'http://127.0.0.1:1234' },
+  ]);
+  assert.deepEqual(roles.get('rerank'), [
+    { kind: 'url', baseUrl: 'http://127.0.0.1:8081' },
+    { kind: 'url', baseUrl: 'http://127.0.0.1:1234' },
+    { kind: 'loadout', slug: 'bge-rerank-cpu' },
+  ]);
+});
+
+test('resolveRoleChain: faellt auf loadouts.json zurueck bei leerer Registry', () => {
+  const doc = {
+    roles: {
+      embed: { chain: ['http://127.0.0.1:8085', 'http://127.0.0.1:8081'] },
+      rerank: { chain: ['loadout:bge-rerank-cpu'] },
+    },
+  };
+  const fallback = resolveRoleChain('embed', [], doc);
+  assert.equal(fallback.length, 2);
+  assert.equal(fallback[0].baseUrl, 'http://127.0.0.1:8085');
+
+  const regBackends = [
+    { name: 'reg-embed', enabled: true, priority: 1, roles: ['embed'], baseUrl: 'http://127.0.0.1:9000' },
+  ];
+  const reg = resolveRoleChain('embed', regBackends, doc);
+  assert.equal(reg.length, 1);
+  assert.equal(reg[0].baseUrl, 'http://127.0.0.1:9000');
+});
 
 // ── Failover gegen Stubs ────────────────────────────────────────────────
 test('totes erstes Glied -> zweites antwortet, Header nennt das zweite', async (t) => {

@@ -57,4 +57,4 @@ Health-State aus `discovery.mjs` wird fuer die bge-Rollen **nicht** ausgewertet.
 Ein Probe beantwortet "lebt der Prozess", nicht "kann er meine Anfrage
 bedienen" — der Incident vom 2026-08-09 (T002838) bleibt gueltig.
 
-_Ticket: T-PENDING_
+_Ticket: T900006_

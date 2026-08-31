@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1242,
+      "file_count": 1244,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -714,6 +714,8 @@
         "tests/spec/local-llm-proxy/bge-cpu-parallel-start.bats",
         "tests/spec/local-llm-proxy/bge-loadout-cpu-bound.bats",
         "tests/spec/local-llm-proxy/bge-mcp-upstream-timeout.bats",
+        "tests/spec/local-llm-proxy/bge-no-probe-import.bats",
+        "tests/spec/local-llm-proxy/bge-registry-roles.bats",
         "tests/spec/local-llm-proxy/bge-role-routes.bats",
         "tests/spec/local-llm-proxy/bge-token-ssot.bats",
         "tests/spec/local-llm-proxy/brain-ingest-port.bats",
@@ -1255,7 +1257,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 68,
+      "file_count": 69,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -1324,7 +1326,8 @@
         "scripts/migrations/2026-08-21-disable-dead-llm-proxy-backends.sql",
         "scripts/migrations/2026-08-22-factory-model-qwen38.sql",
         "scripts/migrations/2026-08-22-llm-proxy-qwen38-backend.sql",
-        "scripts/migrations/2026-08-23-tickets-delete-guard-audit.sql"
+        "scripts/migrations/2026-08-23-tickets-delete-guard-audit.sql",
+        "scripts/migrations/2026-08-29-bge-role-registry.sql"
       ]
     },
     {

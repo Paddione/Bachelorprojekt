@@ -17,7 +17,7 @@ keine Secrets — Penpot startet dort nicht (beabsichtigt).
 | `penpot-backend` | `penpotapp/backend:2.17.2` | 6060 | Java/Tomcat — Core-Logik, API, Events |
 | `penpot-frontend` | `penpotapp/frontend:2.17.2` | 8080 | ClojureScript — Web-Oberfläche |
 | `penpot-gateway` | `penpotapp/gateway:latest` | 80 | Nginx — Reverse-Proxy, TLS-termination |
-| `minio` (penminio) | `minio/minio:RELEASE.2024-11-22T13-35-48Z` | 9000/9001 | S3-kompatibler Speicher für Assets |
+| `minio` (penminio) | `minio/minio:RELEASE.2025-04-22T22-12-26Z` | 9000/9001 | S3-kompatibler Speicher für Assets |
 
 ### Infrastruktur
 
@@ -103,6 +103,16 @@ Fix: `$patch: delete` für `workspace-ingress-penpot` in `prod/kustomization.yam
 Symptom: `flux-staging` READY=False mit `spec.ports[0].name: Required value`
 
 Fix: Ports 9000/9001 im penminio-Service benennen (`api`/`console`) — k3d/penpot.yaml (T900009).
+
+### MinIO-Image nicht verfügbar
+
+Symptom: Der `penminio`-Pod bleibt in `ImagePullBackOff`; die Registry meldet für den
+manifestierten Image-Tag `NotFound`. Dadurch wartet Penpot dauerhaft im Init-Container
+`wait-for-minio` und der öffentliche Einstieg kann HTTP 503 liefern.
+
+Prüfung: Zuerst den in `k3d/penpot.yaml` manifestierten Tag direkt gegen die Registry
+prüfen, zum Beispiel mit `docker manifest inspect minio/minio:<TAG>`. Der aktuell
+verifizierte Multiarch-Release ist `RELEASE.2025-04-22T22-12-26Z` (T900026).
 
 ### Double patches:-Key
 

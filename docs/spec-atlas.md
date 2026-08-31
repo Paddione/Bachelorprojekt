@@ -90,6 +90,7 @@ In-flight:
   - Penpot-Domain in der Registry registriert | T016593 | active | ADDED
   - Penpot-Manifeste folgen dem Repo-Muster | T016593 | active | ADDED
   - Penpot-Datenbank auf shared-db | T016593 | active | ADDED
+  - Penpot object storage uses an available release image | T900026 | active | ADDED
   - Penpot kennt seine eigene öffentliche URL | T900002 | active | ADDED
   - Base Ingresses Deleted in the Prod Overlay | T900009 | active | ADDED
   - Multi-Port Services Declare Port Names | T900009 | active | ADDED

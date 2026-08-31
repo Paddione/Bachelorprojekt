@@ -25,6 +25,10 @@ setup() {
   ln -s "$(pwd)/scripts/agent-lock-guards.sh" "$FIXTURE/scripts/agent-lock-guards.sh"
   ln -s "$(pwd)/scripts/agent-lock-merged.sh" "$FIXTURE/scripts/agent-lock-merged.sh"
   ln -s "$(pwd)/scripts/agent-lock-activity.sh" "$FIXTURE/scripts/agent-lock-activity.sh"
+  # [T900023] Reap-Logik liegt seit der S1-Aufteilung in einem eigenen Fragment.
+  # Fehlt es in der Fixture, bricht der Fail-loud-Loop in agent-lock.sh ab und der
+  # pre-commit-Hook scheitert aus einem anderen Grund als dem geprueften.
+  ln -s "$(pwd)/scripts/agent-lock-reap.sh" "$FIXTURE/scripts/agent-lock-reap.sh"
 
   # PATH stub for gitleaks
   echo '#!/bin/bash' > "$FIXTURE/bin/gitleaks"

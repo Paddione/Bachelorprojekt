@@ -2054,7 +2054,8 @@ MOCKEOF
 
 @test "T002341-M3: agent-lock.sh cmd_reap entfernt lock-Dateien mit dead SID" {
   [ -f "$REPO_ROOT/scripts/agent-lock.sh" ] || skip "agent-lock.sh nicht gefunden"
-  grep -qP 'sid-dead.*return 0|_reap_log.*sid-dead' "$REPO_ROOT/scripts/agent-lock.sh" \
+  # [T900023] Reap-Logik liegt seit der S1-Aufteilung in scripts/agent-lock-reap.sh.
+  grep -qP 'sid-dead.*return 0|_reap_log.*sid-dead' "$REPO_ROOT"/scripts/agent-lock*.sh \
     || { echo "MISSING sid-dead reap path in agent-lock.sh"; return 1; }
 }
 

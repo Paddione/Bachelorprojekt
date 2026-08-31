@@ -54,8 +54,10 @@ teardown() {
 @test "T002502-G1: cmd_reap referenziert den Fetch-TTL-Guard im Quellcode" {
   # Statischer Check analog T001384-D3: der Guard MUSS da sein, sonst ist der
   # Fix nicht vorhanden. Gesucht wird die TTL-Variable und der Marker-Pfad.
-  grep -Eq 'AGENT_LOCK_FETCH_TTL' "$LOCK"
-  grep -Eq '\.last-fetch' "$LOCK"
+  # [T900023] cmd_reap liegt seit der S1-Aufteilung in scripts/agent-lock-reap.sh;
+  # gesucht wird deshalb ueber das Skript UND seine Fragmente.
+  grep -Eq 'AGENT_LOCK_FETCH_TTL' "$LOCK" "$REPO"/scripts/agent-lock-*.sh
+  grep -Eq '\.last-fetch' "$LOCK" "$REPO"/scripts/agent-lock-*.sh
 }
 
 @test "T002502-G2: reap ohne Marker legt den .last-fetch-Marker an" {

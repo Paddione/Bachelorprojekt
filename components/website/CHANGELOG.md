@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.323.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.0...website-v1.323.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* **scripts:** extract agent-lock reap helpers to restore S1 budget [T900023] ([#5379](https://github.com/Paddione/Bachelorprojekt/issues/5379)) ([8e33c53](https://github.com/Paddione/Bachelorprojekt/commit/8e33c5370e5dd68f223f81443ffd21612df102bd))
+
 ## [1.323.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.5...website-v1.323.0) (2026-08-31)
 
 

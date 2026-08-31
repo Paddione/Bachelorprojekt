@@ -1,6 +1,6 @@
 ---
 title: "bge-role-registry-routing — Implementation Plan"
-ticket_id: T-PENDING
+ticket_id: T900006
 domains: [db, ops, test]
 status: active
 file_locks: []

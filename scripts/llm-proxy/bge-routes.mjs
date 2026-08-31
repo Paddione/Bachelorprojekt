@@ -25,8 +25,9 @@ import { join } from 'node:path';
 
 // Versionsneutraler Symlink wie in server.mjs (T002536): 'opt/llama-current'
 // zeigt auf den aktuellen llama.cpp-Build.
+const HOME_DIR = process.env.HOME || process.env.USERPROFILE || '';
 const LLAMA_BIN = process.env.LLAMA_SERVER_BIN
-  || join(process.env.HOME, 'opt/llama-current/bin/llama-server');
+  || (HOME_DIR ? join(HOME_DIR, 'opt/llama-current/bin/llama-server') : 'llama-server');
 
 // Default-Timeout je Glied: 30000 ms, gleich BGE_MCP_UPSTREAM_TIMEOUT_MS im
 // Shim, damit die beiden Zeitschranken nicht gegeneinander laufen.
@@ -83,6 +84,75 @@ export function loadRoles(doc) {
     out.set(role, chain);
   }
   return out;
+}
+
+/**
+ * Baut die Rollen-Ketten aus der Backend-Registry (tickets.llm_proxy_backends).
+ * - Zeilen mit enabled === false werden verworfen
+ * - Sortierung nach priority aufsteigend
+ * - loadoutSlug (oder loadout_slug) gesetzt => { kind: 'loadout', slug }
+ * - sonst => { kind: 'url', baseUrl }
+ *
+ * @param {Array<object>} backends
+ * @returns {Map<string, Array<{kind:'loadout'|'url', slug?:string, baseUrl?:string}>>}
+ */
+export function rolesFromRegistry(backends) {
+  const out = new Map();
+  if (!Array.isArray(backends)) return out;
+
+  const valid = backends
+    .filter((b) => b && b.enabled !== false)
+    .slice()
+    .sort((a, b) => (Number(a.priority) || 100) - (Number(b.priority) || 100));
+
+  for (const b of valid) {
+    const roles = Array.isArray(b.roles) ? b.roles : [];
+    const slug = b.loadoutSlug || b.loadout_slug;
+    const entry = slug
+      ? { kind: 'loadout', slug }
+      : { kind: 'url', baseUrl: b.baseUrl || b.base_url };
+
+    for (const r of roles) {
+      if (typeof r !== 'string' || !r) continue;
+      if (!out.has(r)) out.set(r, []);
+      out.get(r).push(entry);
+    }
+  }
+  return out;
+}
+
+let lastFallbackLogState = false;
+
+/**
+ * Loest die Kette fuer eine Rolle auf: zunaechst ueber die Registry, bei Fehler
+ * oder leerer Kette ueber den Rueckfall in loadouts.json (E3).
+ * Loggt genau eine Warnung pro Zustandswechsel.
+ *
+ * @param {string} role 'embed' | 'rerank'
+ * @param {Array<object>} backends Registry-Array (getBackends())
+ * @param {object} doc geparstes loadouts.json-Dokument
+ * @returns {Array<{kind:'loadout'|'url', slug?:string, baseUrl?:string}>}
+ */
+export function resolveRoleChain(role, backends, doc) {
+  try {
+    const fromReg = rolesFromRegistry(backends);
+    const chain = fromReg.get(role);
+    if (Array.isArray(chain) && chain.length > 0) {
+      if (lastFallbackLogState) {
+        console.info(`[bge-routes] registry chain restored for role "${role}"`);
+        lastFallbackLogState = false;
+      }
+      return chain;
+    }
+  } catch {
+    // Registry-Auswertung fehlgeschlagen -> Fallback unten
+  }
+
+  if (!lastFallbackLogState) {
+    console.warn(`[bge-routes] registry chain empty or unavailable for role "${role}", falling back to loadouts.json`);
+    lastFallbackLogState = true;
+  }
+  return loadRoles(doc).get(role) || [];
 }
 
 function parseBody(text) {

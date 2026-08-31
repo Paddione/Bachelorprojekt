@@ -3,11 +3,12 @@ import { execFileSync } from 'node:child_process';
 
 /** @typedef {{ name:string, kind:'llamacpp'|'lmstudio'|'openai-remote',
  *   baseUrl:string, apiKeyEnv:string|null, enabled:boolean, priority:number,
- *   fixups:string[], modelAliases:Record<string,string>, maxInflight:number }} Backend */
+ *   fixups:string[], modelAliases:Record<string,string>, maxInflight:number,
+ *   roles:string[], loadoutSlug:string|null }} Backend */
 
 const SQL = `SELECT name||E'\\t'||kind||E'\\t'||base_url||E'\\t'||COALESCE(api_key_env,'')
   ||E'\\t'||enabled||E'\\t'||priority||E'\\t'||fixups::text||E'\\t'||model_aliases::text
-  ||E'\\t'||max_inflight
+  ||E'\\t'||max_inflight||E'\\t'||roles::text||E'\\t'||COALESCE(loadout_slug,'')
   FROM tickets.llm_proxy_backends WHERE enabled ORDER BY priority ASC;`;
 
 /** @returns {Backend[]} */
@@ -21,7 +22,7 @@ export function loadBackendsOnce() {
     env: { ...process.env, BRAND: process.env.BRAND || 'mentolder' },
   });
   return out.split('\n').filter(Boolean).map((line) => {
-    const [name, kind, baseUrl, apiKeyEnv, enabled, priority, fixups, aliases, maxInflight] = line.split('\t');
+    const [name, kind, baseUrl, apiKeyEnv, enabled, priority, fixups, aliases, maxInflight, roles, loadoutSlug] = line.split('\t');
     return {
       name, kind, baseUrl,
       apiKeyEnv: apiKeyEnv || null,
@@ -30,6 +31,8 @@ export function loadBackendsOnce() {
       fixups: JSON.parse(fixups || '[]'),
       modelAliases: JSON.parse(aliases || '{}'),
       maxInflight: Number(maxInflight) || 1,
+      roles: JSON.parse(roles || '[]'),
+      loadoutSlug: loadoutSlug || null,
     };
   });
 }

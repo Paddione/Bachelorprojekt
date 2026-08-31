@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
 import { enqueue, inflightOf, extractSlotId } from './slot-queue.mjs';
-import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, LOADOUT_START_BUDGET_MS } from './bge-routes.mjs';
+import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, LOADOUT_START_BUDGET_MS, resolveRoleChain } from './bge-routes.mjs';
 import { respondBuffered, respondStreamed } from './respond.mjs';
 import { requestLog } from './request-log.mjs';
 import { evaluatePin, pinGuard, acquirePin, releasePin, pinFilePath } from './loadout-pin.mjs';
@@ -26,8 +26,9 @@ const POLL_MS = 30_000;
 // zu einer Code-Aenderung und verhinderte, dass der abgeloeste Build entfernt
 // werden kann. 'opt/llama-current' zeigt auf den jeweils aktuellen Build; ein
 // Versionswechsel ist damit ein Symlink-Umhaengen ohne Repo-Aenderung.
+const HOME_DIR = process.env.HOME || process.env.USERPROFILE || '';
 const LLAMA_BIN = process.env.LLAMA_SERVER_BIN
-  || join(process.env.HOME, 'opt/llama-current/bin/llama-server');
+  || (HOME_DIR ? join(HOME_DIR, 'opt/llama-current/bin/llama-server') : 'llama-server');
 const HEALTH_TIMEOUT_MS = 240_000;
 
 startRegistryPoll(POLL_MS);
@@ -712,8 +713,9 @@ const requestHandler = (req, res) => {
         const body = await readBody(req);
         const { doc } = readLoadouts(DEFAULT_PATH);
         const role = roleForPath(path);
+        const chain = resolveRoleChain(role, getBackends(), doc);
         const result = await routeRequest({
-          role, path, body, chain: loadRoles(doc).get(role), doc,
+          role, path, body, chain, doc,
           timeoutMs: ROLE_TIMEOUT_MS, startBudgetMs: LOADOUT_START_BUDGET_MS,
         });
         const headers = { 'content-type': result.contentType ?? 'application/json' };

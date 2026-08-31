@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.323.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.4...website-v1.323.5) (2026-08-31)
+
+
+### Bug Fixes
+
+* **staging:** add missing Penpot DB and Minio secrets ([#5392](https://github.com/Paddione/Bachelorprojekt/issues/5392)) ([844372c](https://github.com/Paddione/Bachelorprojekt/commit/844372c5813d5d2f9e6659dfb37368a2d7440f78))
+
 ## [1.323.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.3...website-v1.323.4) (2026-08-31)
 
 

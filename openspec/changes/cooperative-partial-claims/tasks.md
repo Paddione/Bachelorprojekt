@@ -34,21 +34,23 @@ und `wc -l`:
 
 | Datei | LOC | Budget |
 |---|---|---|
-| `scripts/agent-lock.sh` | 800 | 0 |
+| `scripts/agent-lock.sh` | 806 | -6 |
 | `scripts/hooks/worktree-write-guard.sh` | 229 | 571 |
 
-`scripts/agent-lock.sh` sitzt exakt auf dem S1-Limit von 800. Die Luft dafuer schafft
-T900023 (Extraktion des Reap-Blocks nach `scripts/agent-lock-reap.sh`) — dieser Plan
-setzt sie voraus und schafft sie nicht erneut. Steht T900023 beim Start dieses Plans
-noch nicht auf `main`, ist Task 1 blockiert und der Plan wartet; ein zweiter
-Extraktionsschritt hier wuerde mit dem aus T900023 kollidieren.
+`scripts/agent-lock.sh` liegt bereits **ueber** dem S1-Limit von 800 — der Windows-Fix
+`d60c3704` hat es auf `main` gerissen. Die Luft schafft T900023 (Aufteilen: Reap-Block
+nach `scripts/agent-lock-reap.sh`); dieser Plan setzt sie voraus und schafft sie nicht
+erneut. Steht T900023 beim Start noch nicht auf `main`, ist Task 2 blockiert — ein
+zweiter Extraktionsschritt hier wuerde mit jenem kollidieren.
 
 ## Abhaengigkeit
 
-Blockiert von **T900023**. Zwei Gruende, beide hart:
-`_lock_dir()` findet unter Windows ohne den dortigen Fix sein Verzeichnis nicht — jede
-Claim-Logik liefe ins Leere. Und das S1-Budget von `agent-lock.sh` ist ohne die dortige
-Extraktion null.
+Blockiert von **T900023** — der Grund hat sich waehrend der Planung verschoben.
+Die Windows-Pfadaufloesung ist seit `d60c3704` auf `main` erledigt und damit KEIN
+Blocker mehr. Geblieben ist der zweite Grund, und der ist haerter geworden: das
+S1-Budget von `agent-lock.sh` ist nicht null, sondern **negativ (-6)** — `main` ist im
+Quality-Gate rot. Task 2 dieses Plans fuegt der Datei weitere Zeilen hinzu und kann
+erst laufen, wenn T900023 sie aufgeteilt hat.
 
 ## Tasks
 
@@ -76,9 +78,9 @@ tests/unit/lib/bats-core/bin/bats \
 
 ```bash
 git fetch origin main -q
-git show origin/main:scripts/agent-lock-reap.sh >/dev/null 2>&1   || { echo "BLOCKIERT: T900023 (Extraktion) ist nicht auf main — Task 2 nicht beginnen"; exit 1; }
-PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh _ext_limit scripts/agent-lock.sh
-wc -l scripts/agent-lock.sh
+git show origin/main:scripts/agent-lock-reap.sh >/dev/null 2>&1   || { echo "BLOCKIERT: T900023 (Aufteilung) ist nicht auf main — Task 2 nicht beginnen"; exit 1; }
+budget="$(bash scripts/plan-lint.sh residual_budget scripts/agent-lock.sh)"
+[ "$budget" -gt 0 ] || { echo "BLOCKIERT: Restbudget $budget — keine Luft fuer Task 2"; exit 1; }
 ```
 
       Reicht die Luft danach immer noch nicht fuer die Aenderung aus Task 2, wird

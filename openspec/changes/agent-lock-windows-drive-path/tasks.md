@@ -49,11 +49,15 @@ Ermittelt mit `bash scripts/plan-lint.sh residual_budget <datei>` und `wc -l`:
 
 | Datei | LOC | Budget |
 |---|---|---|
-| `scripts/agent-lock.sh` | 806 | -6 |
+| `scripts/agent-lock.sh` | 590 | 210 |
 | `scripts/worktree-create.sh` | 582 | 218 |
 
-Das negative Budget ist kein Randbefund, sondern der Kern des Restumfangs. Es wird durch
-Aufteilen behoben (Task 2), nicht durch Zusammenziehen von Zeilen.
+Ausgangslage vor der Aufteilung: `agent-lock.sh` stand bei 806 Zeilen und damit sechs
+ueber dem Limit von 800 — Restbudget minus sechs. Nach der Aufteilung (221 Zeilen nach
+`scripts/agent-lock-reap.sh`) sind es 590 Zeilen.
+
+Das negative Budget war der Kern des Restumfangs. Behoben wurde es durch Aufteilen
+(Task 2), nicht durch Zusammenziehen von Zeilen.
 
 ## Vorarbeit, die schon existiert
 
@@ -164,10 +168,24 @@ grep -iE "duplicate skill name|ECONNREFUSED|NTFY_BASE_URL" \
       Analyse nicht wiederholt werden muss. Laesst sich kein Reproducer herstellen, wird
       der Punkt als eigenes Ticket ausgegliedert statt geraten.
 
-- [ ] **5 — Final Verification.** Die drei verbindlichen CI-Gates:
+- [x] **5 — Final Verification.** Die drei verbindlichen CI-Gates:
 
 ```bash
 task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+## Verifikationsergebnis (Stand 0d6cd4af7)
+
+- `task freshness:regenerate` + `task freshness:check` — gruen, Arbeitsbaum sauber.
+- Quality-Gate: `node scripts/code-quality/check.mjs` meldet keinen S1-Befund mehr fuer
+  `scripts/agent-lock.sh` (590 Zeilen + `agent-lock-reap.sh` 221).
+- `task test:changed` ist in dieser Umgebung **nicht lauffaehig**: GNU `parallel` fehlt,
+  BATS fuehrt dann 0 statt 769 Tests aus (`bats-exec-suite: parallel: command not found`).
+  Ersatzweise seriell ausgefuehrt: `tests/unit` = 936 Tests, 12 Fehler.
+- Die 12 Fehler (`factory-scout-drift.bats`, `dead-node-affinity.bats`) sind **vorbestehend**:
+  derselbe Lauf auf `origin/main` liefert dieselben 12. Keiner betrifft agent-lock.
+- `tests/spec/agent-lock-liveness-heartbeat.bats` T1 ist rot — ebenfalls **vorbestehend auf
+  `origin/main`** und nicht von der Extraktion verursacht (`agent-lock-activity.sh` ist auf
+  diesem Branch byte-identisch mit `origin/main`). Erfasst als **T900025**.

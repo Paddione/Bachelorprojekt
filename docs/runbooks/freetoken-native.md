@@ -77,10 +77,12 @@ Die verifizierte Konvertierung enthaelt 356 Vision-/Projector-Tensoren (rund
 1,07 GB); der aeltere Text-Checkpoint enthaelt diese nicht.
 
 Vision wurde ueber FreeTokens Python-API (`LLM.generate(mm_inputs=...)`)
-erfolgreich verifiziert. Im verwendeten FreeToken-Stand nimmt die OpenAI-/
-Anthropic-kompatible HTTP-Schicht Bildinhalte noch nicht verlaesslich an.
-OpenCode bleibt deshalb ueber `freetoken-local/active` text-only, bis der
-HTTP-Multimodalpfad upstream funktioniert und separat getestet ist.
+erfolgreich verifiziert. Die HTTP-Schicht kann es **nicht** — und zwar
+grundsaetzlich, nicht bloss unzuverlaessig: siehe
+[Vision-Einschraenkung (T900009)](#opendesign-als-byok-client--vision-einschraenkung-t900009).
+Dieses Profil laedt also die Vision-Tensoren, ohne dass ein HTTP-Client sie
+nutzen koennte; erreichbar sind sie nur ueber die Python-API. OpenCode bleibt
+ueber `freetoken-local/active` text-only.
 
 ## Messwerte (2026-08-23)
 
@@ -223,7 +225,7 @@ Alle Profile pinnen `--max-running-requests 1` (siehe „Kalibrierte Profile").
 OpenDesign-Requests laufen daher **nicht** parallel zu opencode-Subagenten, sondern
 reihen sich hinter ihnen ein.
 
-### Alternativweg: LM Studio — NICHT verifiziert
+### Alternativweg: LM Studio — verifiziert (2026-08-31)
 
 Ein zweiter Weg ist LM Studio als lokaler OpenAI-Endpunkt. Der Modellordner ist
 `F:\models` in der LM-Studio-Struktur `publisher/repo/datei.gguf`:
@@ -260,8 +262,10 @@ curl -sS http://127.0.0.1:1234/v1/models
 > das Modell auch tatsächlich *lädt* — Listing ist nicht Ladefähigkeit, und der
 > Ladeversuch scheitert an der VRAM-Exklusivität unten.
 
-**Was NICHT gemessen ist:** ob OpenDesign über diesen Weg trägt, und ob LM Studio
-das NVFP4 wirklich lädt. Dieser Abschnitt ist Setup-Anleitung, keine Verifikation.
+**Stand 2026-08-31:** LM Studio *laedt* und *bedient* das Gemma-Vision-Modell —
+gemessen unten unter „Verifikation LM Studio". Offen bleibt allein, ob LM Studio das
+**NVFP4** laedt (Listing ist nicht Ladefaehigkeit) und ob OpenDesign den Weg im Alltag
+traegt; dessen Chat-Proxy schickt jedenfalls keine Bilder (siehe T900009).
 
 ### Der Weg führt über opencode, nicht über BYOK-Direktanbindung
 
@@ -327,3 +331,82 @@ Stattdessen die Daemon-Control-API: `POST http://127.0.0.1:1900/engine/stop`, St
 LM Studio loest Nicht-Standard-Quantnamen (`MXFP4_MOE`, `UD-IQ4_XS`) nicht als Varianten
 auf und zeigt `@?`. Abhilfe: die Variante in einen eigenen `publisher/repo`-Ordner legen —
 sie wird dann sofort als eigenes Modell erkannt, ohne App-Neustart.
+
+### Verifikation LM Studio (2026-08-31, `gemma-4-26b-a4b-it-iq4xs`)
+
+Gemessen wurde genau das, was OpenDesigns BYOK-Proxy voraussetzt — plus Vision,
+das FreeToken ueber HTTP prinzipiell nicht kann.
+
+| Merkmal | Ergebnis |
+|---|---|
+| Laden | 15,5 s, 13,77 GiB, `--gpu 0.90 --context-length 131072` |
+| VRAM | 14398 / 16303 MiB belegt — **1905 MiB Reserve** |
+| Vision | ✅ drei Farbbaender korrekt benannt, HTTP 200 in 3,6 s |
+| Tool-Calls | ✅ `finish_reason: tool_calls`, `{"city":"Berlin"}` |
+| Streaming | ✅ 198 gueltige `chat.completion.chunk`-Frames |
+| Durchsatz | ~51 tok/s (Messreihe oben: 44,0 bei `offloadRatio` 0,90) |
+
+Die VRAM-Reserve liegt hoeher als die 1328 MiB der Messreihe oben — dort war der
+FreeToken-Daemon vermutlich noch nicht vollstaendig gedrained.
+
+Nachstellbar (Bild lokal erzeugen, damit kein Rateweg offen bleibt — drei Baender
+in der *unerwarteten* Reihenfolge gruen/blau/rot):
+
+```bash
+lms server start && lms load gemma-4-26b-a4b-it-iq4xs --gpu 0.90 --context-length 131072 -y
+py -3.14 - <<'EOF'
+import zlib, struct, base64, json, urllib.request
+W = H = 96
+bands = [(0,170,0), (0,0,200), (220,0,0)]
+raw = b"".join(b"\x00" + bytes(bands[min(y*3//H, 2)]) * W for y in range(H))
+chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t+d) & 0xffffffff)
+png = (b"\x89PNG\r\n\x1a\n"
+       + chunk(b"IHDR", struct.pack(">IIBBBBB", W, H, 8, 2, 0, 0, 0))
+       + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+body = {"model": "gemma-4-26b-a4b-it-iq4xs", "max_tokens": 300, "messages": [{"role": "user", "content": [
+    {"type": "text", "text": "The image has three horizontal color bands. Name them from top to bottom."},
+    {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(png).decode()}}]}]}
+req = urllib.request.Request("http://127.0.0.1:1234/v1/chat/completions",
+    data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+print(json.load(urllib.request.urlopen(req, timeout=300))["choices"][0]["message"]["content"])
+EOF
+# erwartet: Green, blue, red
+```
+
+**Was das NICHT beweist:** dass OpenDesign davon profitiert. Der Client schickt keine
+Bilder (naechster Abschnitt) — die Faehigkeit liegt am Server, ungenutzt.
+
+### Befund reproduziert: OpenDesign schickt keine Bilder (2026-08-31)
+
+Der Befund aus T900008 wurde gegen die installierte App nachgeprueft, nicht uebernommen.
+Version weiterhin **0.21.0** (`resources/app/package.json`), gleiche Bundle-Datei,
+**23 `image_url`-Treffer** — Zahl identisch. Die vier Treffer, die im Kontext-Grep nach
+Chat-Content aussahen (`fullText`, `content`), im Volltext gelesen:
+
+- Treffer 3/4: Videogenerierung, `ctx.imageRef.dataUrl` → `POST /contents/generations/tasks`
+- Treffer 5/6: OpenRouter-**Bild**generierung, liest `image_url` aus der *Antwort*
+
+Alle im Media-Pfad, keiner im Chat-Proxy. **Der Flaschenhals ist der Client, nicht das
+Backend** — ein Vision-Modell am Endpunkt aendert an „Match a reference site / screenshot"
+nichts.
+
+```bash
+B="$LOCALAPPDATA/Programs/Open Design/resources/app/prebundled/daemon/chunks"
+grep -roh "image_url" "$B" | wc -l   # 23
+```
+
+### Fallstrick: `/engine/start` traf das falsche Modell
+
+Beim Zurueckschalten auf FreeToken lieferte `POST /engine/start` mit
+`{model: …Qwen3.6-35B-A3B-NVFP4, port, args}` zwar `{"pid":69800}`, resident war danach
+aber **gpt-oss-20b** unter einer voellig anderen PID (104772) — ein Supervisor bzw. die
+Desktop-App war schneller. Wer nach dem Start nicht **verifiziert, welches Modell
+tatsaechlich resident ist**, arbeitet ahnungslos gegen das falsche Modell; FreeToken
+ignoriert das `model`-Feld der Anfrage und meldet den Fehler also nie.
+
+```bash
+curl -sS http://127.0.0.1:1900/engine/status   # .model gegenpruefen, nicht nur .running
+```
+
+Abhilfe: `POST /engine/switch` mit `{model, port, args, force: true}` — das drainte die
+gpt-oss-Instanz sauber (Receipt) und brachte Qwen resident.

@@ -56,3 +56,29 @@ diagnostic, never degrade silently.
 - **GIVEN** a fragment listed in the source loop is absent
 - **WHEN** `agent-lock.sh` runs
 - **THEN** it SHALL abort with a message naming the missing fragment
+
+### Requirement: Actionable main-checkout guard in worktree-create
+
+`worktree-create.sh` SHALL refuse to run when the source checkout is not on `main`
+and no explicit override was given. The refusal SHALL name the supported override
+(`--unattended`, its argument position, and what it skips) rather than reporting
+only the refusal, so an operator who deliberately keeps the main checkout on a
+branch is not left without a way forward.
+
+The guard SHALL apply only where a canonical `origin/main` exists; ephemeral
+repositories without a remote keep the pre-existing warn path.
+
+#### Scenario: Source checkout on a feature branch
+
+- **GIVEN** the main checkout is on a branch other than `main`
+- **AND** `origin/main` exists
+- **WHEN** a session runs `worktree-create.sh` without `--unattended`
+- **THEN** the script SHALL exit non-zero
+- **AND** the message SHALL name `--unattended` and the condition under which it applies
+
+#### Scenario: Override supplied
+
+- **GIVEN** the same starting state
+- **WHEN** the session passes `--unattended` as the first argument
+- **THEN** the script SHALL proceed
+- **AND** the git-crypt setup of the new worktree SHALL be unaffected

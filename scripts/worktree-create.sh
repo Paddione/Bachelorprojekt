@@ -65,6 +65,24 @@ fi
 # main to protect. Mirrors the divergence-guard's origin/main precondition.
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+  if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
+    # [T900023] Der Guard war mit d60c3704 als "redundant" entfernt worden. Er ist es
+    # nicht: tests/spec/mishap-bundle-infra-testspec-ci.bats T002448-M1 fordert die
+    # Ablehnung, und ohne sie erbt der neue Worktree stillschweigend die node_modules
+    # und den git-crypt-Zustand eines fremden Branches.
+    #
+    # Die Meldung nennt jetzt den Ausweg. Vorher stand hier nur "Bitte: git checkout
+    # main" — wer den Haupt-Checkout absichtlich auf einem Branch stehen hat, wurde
+    # damit blockiert, ohne das dafuer vorgesehene --unattended zu erfahren.
+    echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts laufen." >&2
+    echo "       Aktueller Branch: $CURRENT_BRANCH" >&2
+    echo "       Entweder:  git checkout main" >&2
+    echo "       Oder:      scripts/worktree-create.sh --unattended <branch> <pfad>" >&2
+    echo "                  (--unattended als ERSTES Argument; ueberspringt diesen" >&2
+    echo "                   Guard und die Ticket-ID-Pruefung fuer allowlistete" >&2
+    echo "                   Branches. Die git-crypt-Mechanik bleibt unangetastet.)" >&2
+    exit 1
+  fi
 fi
 
 # --- branch-name guard: fail fast before divergence guard [T002470] ---

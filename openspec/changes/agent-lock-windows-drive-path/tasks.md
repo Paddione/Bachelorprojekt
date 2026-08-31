@@ -49,8 +49,8 @@ Ermittelt mit `bash scripts/plan-lint.sh residual_budget <datei>` und `wc -l`:
 
 | Datei | LOC | Budget |
 |---|---|---|
-| `scripts/agent-lock.sh` | 590 | 210 |
-| `scripts/worktree-create.sh` | 582 | 218 |
+| `scripts/agent-lock.sh` | 593 | 207 |
+| `scripts/worktree-create.sh` | 600 | 200 |
 
 Ausgangslage vor der Aufteilung: `agent-lock.sh` stand bei 806 Zeilen und damit sechs
 ueber dem Limit von 800 — Restbudget minus sechs. Nach der Aufteilung (221 Zeilen nach
@@ -122,14 +122,19 @@ tests/unit/lib/bats-core/bin/bats \
 node scripts/code-quality/check.mjs
 ```
 
-- [x] **3 — Entfernung des main-Checkout-Guards nachpruefen.**
+- [x] **3 — Entfernung des main-Checkout-Guards nachpruefen — Ergebnis: sie traegt nicht.**
       `d60c3704` hat den Guard in `worktree-create.sh` geloescht — ohne Ticket-Referenz
       in der Commit-Message und ohne Spec-Delta. `agent-lock.sh check-merged T900023`
       meldet deshalb bis heute "NOT found on main", obwohl der Fix dort liegt.
-      Zu klaeren und im Ticket festzuhalten: Wogegen schuetzte der Guard, und faengt der
-      explizite `base`-Parameter von `worktree-create.sh` denselben Fall ab? Wenn ja,
-      ist die Entfernung korrekt und wird im Delta-Spec dokumentiert. Wenn nein, kommt
-      der Guard mit handlungsfaehiger Diagnose zurueck.
+      **Befund:** die Entfernung ist nicht tragfaehig. `tests/spec/mishap-bundle-infra-
+      testspec-ci.bats` T002448-M1 fordert die Ablehnung explizit und ist seit `d60c3704`
+      rot — auf `main` wie auf diesem Branch (CI: Factory spec shards 1-3). Der
+      `base`-Parameter faengt den Fall nicht ab: er bestimmt die Basis des neuen
+      Worktrees, nicht den Zustand des Haupt-Checkouts, aus dem node_modules und der
+      git-crypt-Zustand verlinkt werden.
+      **Umsetzung:** Guard wiederhergestellt, Diagnose handlungsfaehig gemacht. Sie nennt
+      jetzt `--unattended`, dessen Argumentposition und was es ueberspringt — vorher stand
+      dort nur "Bitte: git checkout main", was genau die gemeldete Reibung erzeugte.
       Gegenprobe, dass die git-crypt-Mechanik unabhaengig davon intakt ist:
 
 ```bash

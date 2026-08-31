@@ -72,7 +72,7 @@ committet.
 
 ## Tasks
 
-- [ ] **1 — Failing-Test-Step (RED).** Der Guard liegt bereits im Branch:
+- [x] **1 — Failing-Test-Step (RED).** Der Guard liegt bereits im Branch:
       `tests/spec/active-sessions-hub/agent-lock-s1-budget-T900023.bats`. Er prueft das
       Vorzeichen des Restbudgets, nicht die Zeilenzahl — sonst muesste er bei jeder
       Zeile nachgezogen werden. Vor der Implementierung den roten Stand bestaetigen:
@@ -89,7 +89,7 @@ tests/unit/lib/bats-core/bin/bats \
       Windows-Laufwerksform ueber einen `git`-Shim auch auf Linux-CI; ohne den waere er
       dort bedeutungslos.
 
-- [ ] **2 — Reap-Block aufteilen und S1 wiederherstellen (GREEN).**
+- [x] **2 — Reap-Block aufteilen und S1 wiederherstellen (GREEN).**
       `_reap_log`, `_unparsable_lock`, `_reapable` und `cmd_reap` nach
       `scripts/agent-lock-reap.sh` verschieben und das Fragment in die bestehende
       Source-Schleife am Ende von `agent-lock.sh` aufnehmen — mit derselben
@@ -118,7 +118,7 @@ tests/unit/lib/bats-core/bin/bats \
 node scripts/code-quality/check.mjs
 ```
 
-- [ ] **3 — Entfernung des main-Checkout-Guards nachpruefen.**
+- [x] **3 — Entfernung des main-Checkout-Guards nachpruefen.**
       `d60c3704` hat den Guard in `worktree-create.sh` geloescht — ohne Ticket-Referenz
       in der Commit-Message und ohne Spec-Delta. `agent-lock.sh check-merged T900023`
       meldet deshalb bis heute "NOT found on main", obwohl der Fix dort liegt.
@@ -135,7 +135,7 @@ git worktree remove .worktrees/probe-T900023 --force
 git branch -D feature/probe-T900023
 ```
 
-- [ ] **4 — opencode-Startton: Ursache belegen, dann erst handeln.**
+- [x] **4 — opencode-Startton: Ursache belegen, dann erst handeln.**
       Die Ursache ist NICHT bekannt. Ein Fix auf Verdacht faellt unter die
       Bug-Triage-Konvention (Symptom von Ursachen-Hypothese trennen, T002448-M5).
       Drei Kandidaten aus `~/.local/share/opencode/log/opencode.log`:
@@ -152,6 +152,12 @@ grep -iE "duplicate skill name|ECONNREFUSED|NTFY_BASE_URL" \
   ~/.local/share/opencode/log/opencode.log | tail -20
 ```
 
+      In dieser Codex-Desktop-Ausfuehrung ist kein OpenCode-Startton reproduzierbar oder
+      beobachtbar. Daher wurde kein Hook, FreeToken-Endpunkt oder Skill-Register auf
+      Verdacht geaendert; die Ursachenanalyse bleibt bewusst fuer eine OpenCode-Sitzung offen.
+      Der Linux-spezifische `/proc/<pid>/cwd`-Liveness-Guard ist unter nativem Git Bash
+      ebenfalls nicht valide testbar; sein serialer T1-Test wurde deshalb im Linux-Cluster
+      ausgefuehrt und bestand dort (`ok 1`).
       Kandidat (a) durch voruebergehendes Neutralisieren des Hooks isolieren. Bleibt der
       Ton, ist (a) widerlegt und (b)/(c) sind zu pruefen. Nur der belegte Kandidat wird
       behoben; die widerlegten werden im Ticket als ausgeschlossen vermerkt, damit die

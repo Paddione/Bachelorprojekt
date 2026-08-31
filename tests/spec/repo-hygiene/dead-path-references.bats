@@ -64,24 +64,81 @@ setup() {
   [ "$missing" -eq 0 ] || { echo "FEHLT: Registry-Schluessel ohne Manifest: $offenders"; return 1; }
 }
 
-@test "T002688: kein getrackter Symlink haengt in der Luft" {
-  # [T002688-CI] Symlinks auf Windows/WSL werden vom CI-Runner nicht korrekt
-  # aufgelöst (git ls-files -s zeigt 120000, aber -e prueft den Dateityp
-  # auf dem Windows-FS, wo der Symlink-Target nie existiert). Skip hier,
-  # damit der Test nur in Unix-Umgebungen laeuft [T002688].
-  if uname -a | grep -qi 'microsoft\|wsl\|cygwin\|mingw'; then
-    skip "Symlink-Pruefung nicht unter Windows/WSL/CI-Runner"
-  fi
+# Helper: normalize relative path segments (e.g. "a/b/../c" -> "a/c", "./a" -> "a")
+_normalize_repo_relpath() {
+  local input="$1"
+  local -a parts=()
+  local IFS="/"
+  local segs
+  read -ra segs <<< "$input"
+  for seg in "${segs[@]}"; do
+    if [ -z "$seg" ] || [ "$seg" = "." ]; then
+      continue
+    elif [ "$seg" = ".." ]; then
+      if [ ${#parts[@]} -gt 0 ]; then
+        unset 'parts[${#parts[@]}-1]'
+        parts=("${parts[@]}")
+      fi
+    else
+      parts+=("$seg")
+    fi
+  done
+  local res
+  res=$(IFS="/"; echo "${parts[*]}")
+  echo "$res"
+}
 
-  local links missing=0 offenders=""
+@test "T002688: kein getrackter Symlink haengt in der Luft" {
+  # [T900021] Plattformunabhaengige Pruefung ueber den Git-Tree statt Arbeitsbaum.
+  # Auf Checkouts mit core.symlinks=false (Windows) ist ein Symlink im FS eine
+  # regulaere Textdatei, weshalb test -e das Ziel nie pruefen konnte und der Test
+  # per Skip deaktiviert war.
+  # Die Tree-basierte Pruefung liest den Blob-Inhalt des Symlinks (Git Mode 120000)
+  # via git cat-file, prueft auf einzeilige Zielpfade (faengt versehentlich
+  # ueberschriebene PEM-Zertifikate ab) und validiert die Existenz des Ziels
+  # im Git-Tree via git cat-file -e "HEAD:<ziel>".
+
+  local links missing=0 offenders="" candidates=0
 
   # Positiv-Anker: das Repo hat getrackte Symlinks (z.B. .agents/agents)
-  links="$(git -C "$REPO_ROOT" ls-files -s | awk '$1 == "120000" { print $4 }')"
+  links="$(git -C "$REPO_ROOT" ls-files -s | awk '$1 == "120000" { print $2, $4 }')"
   [ -n "$links" ] || { echo "FATAL: kein getrackter Symlink gefunden — Extraktion defekt"; return 1; }
 
-  while IFS= read -r p; do
-    [ -e "$REPO_ROOT/$p" ] || { missing=1; offenders="$offenders$p "; }
+  while read -r sha p; do
+    [ -n "$sha" ] && [ -n "$p" ] || continue
+    candidates=$((candidates + 1))
+
+    local target
+    target="$(git -C "$REPO_ROOT" cat-file -p "$sha" 2>/dev/null || true)"
+    [ -n "$target" ] || { missing=1; offenders="$offenders$p(unreadable-blob) "; continue; }
+
+    # Ein gueltiger Symlink enthaelt genau eine Zeile (faengt PEM-in-Symlink ab)
+    local line_count
+    line_count="$(printf '%s\n' "$target" | wc -l)"
+    if [ "$line_count" -gt 1 ]; then
+      missing=1
+      offenders="$offenders$p(multiline-content) "
+      continue
+    fi
+
+    # Zielpfad relativ zum Verzeichnis des Symlinks aufloesen
+    local dir combined resolved
+    dir="$(dirname "$p")"
+    if [ "$dir" = "." ]; then
+      combined="$target"
+    else
+      combined="$dir/$target"
+    fi
+    resolved="$(_normalize_repo_relpath "$combined")"
+
+    if ! git -C "$REPO_ROOT" cat-file -e "HEAD:$resolved" 2>/dev/null; then
+      missing=1
+      offenders="$offenders$p->$target "
+    fi
   done <<< "$links"
+
+  [ "$candidates" -gt 0 ] \
+    || { echo "FATAL: keine getrackten Symlinks verarbeitet — Extraktion defekt"; return 1; }
 
   [ "$missing" -eq 0 ] || { echo "FEHLT: Symlink haengt in der Luft: $offenders"; return 1; }
 }

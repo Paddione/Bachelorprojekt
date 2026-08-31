@@ -1,10 +1,4 @@
 {
-  "T-PENDING": [
-    {
-      "slug": "bge-role-registry-routing",
-      "status": "plan_staged"
-    }
-  ],
   "T000254": [
     {
       "slug": "2026-07-27-fix-korczewski-e2e-text-T000254",
@@ -4508,6 +4502,12 @@
   "T900002": [
     {
       "slug": "fix-penpot-public-uri",
+      "status": "plan_staged"
+    }
+  ],
+  "T900006": [
+    {
+      "slug": "bge-role-registry-routing",
       "status": "plan_staged"
     }
   ],

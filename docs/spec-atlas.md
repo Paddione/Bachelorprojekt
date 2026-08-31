@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2290 · Scenarios: 5091
+Specs: 145 · Requirements: 2293 · Scenarios: 5097
 
 ## factory-pipeline
 
@@ -172,17 +172,13 @@ Last touches:
 ## Ungrouped
 
 ### active-sessions-hub
-Reqs: 19 · Scenarios: 55 · Lines: 630
+Reqs: 22 · Scenarios: 61 · Lines: 715
 Last touches:
+  - Platform-independent lock directory resolution | T900023 | 2026-08-31 | ADDED
+  - agent-lock logic stays within its size limit through fragments | T900023 | 2026-08-31 | ADDED
+  - Actionable main-checkout guard in worktree-create | T900023 | 2026-08-31 | ADDED
   - Session-Registry als Single Source of Truth | T016250 | 2026-08-24 | MODIFIED
   - Branch-scoped release refuses while the cwd is inside the lock's worktree | T006290 | 2026-08-15 | ADDED
-  - Harness-Stable Session Identity for agent-lock | T005676 | 2026-08-14 | MODIFIED
-  - Pre-Commit Guards in dev-flow-plan | T003116 | 2026-08-10 | MODIFIED
-  - Mandatory Worktree Scoping for File-Writing Tools | T003116 | 2026-08-10 | MODIFIED
-In-flight:
-  - Platform-independent lock directory resolution | T900023 | active | ADDED
-  - agent-lock logic stays within its size limit through fragments | T900023 | active | ADDED
-  - Actionable main-checkout guard in worktree-create | T900023 | active | ADDED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114

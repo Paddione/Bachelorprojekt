@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.323.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.5...website-v1.323.0) (2026-08-31)
+
+
+### Features
+
+* **ops:** bge-Rollen ueber die Backend-Registry routen [T900006] ([#5377](https://github.com/Paddione/Bachelorprojekt/issues/5377)) ([732c26d](https://github.com/Paddione/Bachelorprojekt/commit/732c26d48c13b7dd3797c98a4b4dbaa6e4bd0940))
+
 ## [1.322.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.322.4...website-v1.322.5) (2026-08-30)
 
 

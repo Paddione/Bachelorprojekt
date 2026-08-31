@@ -10,6 +10,18 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |
+    # Access logs must live on the kube-system HelmChartConfig: k3d/ has a
+    # namespace transformer, so a HelmChartConfig placed in that base renders
+    # into each workspace namespace and is ignored by the k3s-managed Traefik
+    # chart. Keep only failed requests to make authentication/rate-limit
+    # incidents attributable without logging normal user traffic.
+    additionalArguments:
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--accesslog.filters.statuscodes=400-599"
+      - "--accesslog.fields.defaultmode=keep"
+      - "--accesslog.fields.headers.defaultmode=drop"
+      - "--accesslog.fields.headers.names.X-Request-ID=keep"
     metrics:
       prometheus:
         entryPoint: metrics

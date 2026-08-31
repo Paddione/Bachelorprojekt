@@ -65,11 +65,6 @@ fi
 # main to protect. Mirrors the divergence-guard's origin/main precondition.
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
-  if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
-    echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgefuehrt werden." >&2
-    echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
-    exit 1
-  fi
 fi
 
 # --- branch-name guard: fail fast before divergence guard [T002470] ---
@@ -206,12 +201,6 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
         fi
       fi
       if ! $_skipped_sync; then
-        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
-        if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
-          echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgeführt werden." >&2
-          echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
-          exit 1
-        fi
         # [T002673] Der Auto-Stash darf nicht stillschweigend liegenbleiben.
         # Vorher stand hier `git stash push … 2>/dev/null || true` und spiegelbildlich
         # `git stash pop 2>/dev/null || true`. Beides verschluckte Meldung UND

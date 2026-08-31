@@ -123,7 +123,13 @@ _lock_dir() {
   local toplevel common
   toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || { printf '/tmp/agent-locks\n'; echo "AGENT-LOCK: Fallback auf /tmp/agent-locks (kein Git-Repo erkennbar)" >&2; return; }
   common="$(cd "$toplevel" && git rev-parse --git-common-dir 2>/dev/null)" || { printf '/tmp/agent-locks\n'; echo "AGENT-LOCK: Fallback auf /tmp/agent-locks (git-common-dir nicht lesbar)" >&2; return; }
-  case "$common" in /*) : ;; *) common="$(cd "$toplevel/$common" && pwd)";; esac
+  case "$common" in
+    /*) ;;                          # Unix absolute (Git Bash /C/…)
+    [A-Za-z]:[/\]*) ;;             # Windows native C:\…
+    [A-Za-z]:*) ;;                 # Windows drive (no slash, e.g. "C:")
+    \\*) ;;                         # UNC \\server\…
+    *) common="$(cd "$toplevel/$common" && pwd)";;  # relative → resolve
+  esac
   printf '%s/agent-locks\n' "$common"
 }
 

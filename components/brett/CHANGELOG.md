@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.41.4](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.3...brett-v0.41.4) (2026-09-01)
+
+
+### Bug Fixes
+
+* **deps:** update postcss to 8.5.26 (GHSA-fxqj-rqcc-2cmp) ([#5396](https://github.com/Paddione/Bachelorprojekt/issues/5396)) ([837e6d3](https://github.com/Paddione/Bachelorprojekt/commit/837e6d3b7ebb73781ad57ea87aba5e165563ffaa))
+
 ## [0.41.3](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.2...brett-v0.41.3) (2026-08-18)
 
 

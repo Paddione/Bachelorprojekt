@@ -18,9 +18,17 @@ name: Merge Arbitration
 # PR und auf Zuruf. Ein Ausfall des Runners kostet damit höchstens einen
 # übersprungenen PR-Lauf statt einer wachsenden Warteschlange.
 
+# [T900040] Auch der pull_request-Trigger ist entfernt. Die Begruendung von
+# T002927 (oben) galt einem Runner, der ZEITWEISE offline war; seit dem WSL-Exit
+# (T016422) ist er DAUERHAFT weg: der einzige Runner mit dem Label fleet-gpu
+# hiess wsl-gpu-host und lebte in WSL. Jeder PR erzeugte damit einen Run, der
+# unbegrenzt in `queued` haengt — am 2026-09-02 waren 22 gleichzeitig offen.
+# Hinzu kommt, dass der Arbitration-Schritt den llm-proxy auf 127.0.0.1:18235
+# anspricht, der seit T016419 stillgelegt ist: der Job koennte seine Aufgabe
+# auch mit Runner nicht mehr erfuellen. Arbitration laeuft deshalb nur noch auf
+# Zuruf. Wer sie reaktiviert, braucht beides zurueck — einen Runner mit dem
+# Label UND einen erreichbaren llm-proxy.
 on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review]
   workflow_dispatch: {}
 
 env:

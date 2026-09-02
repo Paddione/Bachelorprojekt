@@ -457,6 +457,14 @@ _archive_lock() {
     mark_warn "Schritt 8: flock nicht verfuegbar — Archiv-Sektion laeuft unserialisiert"
     return 0
   fi
+  # [T900040] Auf Windows/MSYS existiert flock, kann aber nicht auf einem von bash
+  # geoeffneten FD sperren ("Bad file descriptor"). Der Rueckgabewert glich dem
+  # eines Timeouts, weshalb die Meldung unten faelschlich einen fremden Lock
+  # behauptete und Schritt 8 uebersprang (so blieb die Archivierung zu T900039
+  # liegen). Fail-open wie beim fehlenden Binary.
+  case "$(uname -s 2>/dev/null || echo unknown)" in
+    MINGW*|MSYS*|CYGWIN*) mark_warn "Schritt 8: flock auf Windows/MSYS nicht nutzbar — Archiv-Sektion laeuft unserialisiert"; return 0 ;;
+  esac
   exec {_ARCHIVE_LOCK_FD}>"$lockfile" || {
     mark_warn "Schritt 8: Lock-Datei $lockfile nicht oeffenbar — Archiv-Sektion laeuft unserialisiert"
     return 0

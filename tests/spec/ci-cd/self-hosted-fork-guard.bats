@@ -24,6 +24,20 @@ setup() {
   cd "$REPO" || return 1
 }
 
+# Gibt alle Workflow-Dateien mit mindestens einem self-hosted Job aus —
+# unabhaengig vom Trigger. Traegt seit T900040 den Positiv-Anker: die Liste der
+# self-hosted PR-Workflows darf legitim leer sein (arbitration.yml war der
+# letzte), der Filter-Mechanismus muss aber weiter nachweisbar funktionieren.
+_self_hosted_workflows() {
+  local f
+  for f in .github/workflows/*.yml .github/workflows/*.yaml; do
+    [ -f "$f" ] || continue
+    yq -e '[.jobs[] | select(.["runs-on"] | tostring | test("self-hosted"))] | length > 0'       "$f" >/dev/null 2>&1 || continue
+    printf '%s
+' "$f"
+  done
+}
+
 # Gibt alle Workflow-Dateien aus, die (a) mindestens einen self-hosted Job haben
 # und (b) auf pull_request triggern.
 _self_hosted_pr_workflows() {
@@ -37,11 +51,18 @@ _self_hosted_pr_workflows() {
   done
 }
 
-@test "T002927: es gibt ueberhaupt self-hosted pull_request-Workflows (Positiv-Anker)" {
+@test "T002927: es gibt ueberhaupt self-hosted Workflows (Positiv-Anker)" {
   # Positiv-Anker [T002356-M1]: ohne ihn ist die Negativ-Aussage im naechsten
   # Test vakuos — bei leerer Kandidatenliste gilt sie trivial, auch wenn yq
   # kaputt ist, das Glob nicht matcht oder der Filter falsch liegt.
-  run _self_hosted_pr_workflows
+  #
+  # [T900040] Der Anker haengt bewusst am trigger-UNABHAENGIGEN Filter. Seit
+  # arbitration.yml nicht mehr per pull_request startet, ist die Liste der
+  # self-hosted PR-Workflows leer — und zwar richtigerweise. Am alten Anker
+  # gemessen waere das ein Fehlschlag gewesen, obwohl der Filter intakt ist.
+  # Was der Anker absichern soll, ist der Mechanismus (Glob + yq + runs-on),
+  # nicht die Existenz eines gefaehrdeten Workflows.
+  run _self_hosted_workflows
   [ "$status" -eq 0 ]
   [ -n "$output" ] || {
     echo "Kandidatenliste leer — Filter oder yq defekt, kein gueltiges Urteil moeglich" >&2
@@ -71,17 +92,33 @@ _self_hosted_pr_workflows() {
   }
 }
 
-@test "T002927: arbitration.yml triggert nicht mehr per cron" {
+@test "T002927/T900040: arbitration.yml startet weder per cron noch per pull_request" {
   # Der schedule-Trigger erzeugte 48 Runs/Tag, die ohne online Runner
   # unbegrenzt in 'queued' haengen blieben — continue-on-error greift nur fuer
   # Schritte eines GESTARTETEN Jobs, nicht fuer einen, der nie anlaeuft.
+  #
+  # [T900040] Derselbe Effekt trat ueber den pull_request-Trigger erneut auf,
+  # nachdem der einzige fleet-gpu-Runner (wsl-gpu-host) mit dem WSL-Exit
+  # dauerhaft entfiel: 22 gleichzeitig queued Runs am 2026-09-02. Zuvor
+  # verlangte dieser Test den pull_request-Trigger noch als Vorbedingung.
   [ -f .github/workflows/arbitration.yml ]
-  run yq -e '.on | has("pull_request")' .github/workflows/arbitration.yml
-  [ "$status" -eq 0 ] || { echo "pull_request-Trigger fehlt — Datei unerwartet umgebaut"; false; }
 
   run yq -e '.on | has("schedule")' .github/workflows/arbitration.yml
   [ "$status" -ne 0 ] || {
     echo "schedule-Trigger ist zurueck — Zombie-Queue ohne online Runner" >&2
     false
   }
+
+  run yq -e '.on | has("pull_request")' .github/workflows/arbitration.yml
+  [ "$status" -ne 0 ] || {
+    echo "pull_request-Trigger ist zurueck — jeder PR erzeugt wieder einen queued Run" >&2
+    false
+  }
+}
+
+@test "T900040: arbitration.yml bleibt per workflow_dispatch ausloesbar" {
+  # Gegenstueck zum Test darueber: Arbitration soll nicht abgeschaltet, sondern
+  # auf Zuruf beschraenkt sein.
+  run yq -e '.on | has("workflow_dispatch")' .github/workflows/arbitration.yml
+  [ "$status" -eq 0 ]
 }

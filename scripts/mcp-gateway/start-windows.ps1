@@ -36,8 +36,25 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $RepoRoot
 
+# [T900040] Windows-Pendant zu EnvironmentFile= der systemd-Unit: fehlt der Token
+# in der Umgebung, wird er aus ~/.config/bge-mcp/server.env nachgeladen. Das ist
+# dieselbe Datei, aus der mcp-sync.sh den Authorization-Header aufloest - ohne
+# diesen Fallback muesste der Wert bei jedem Start von Hand gesetzt werden.
 if (-not $env:BGE_MCP_TOKEN -or $env:BGE_MCP_TOKEN.Trim() -eq "") {
-    Write-Host "FEHLER: BGE_MCP_TOKEN ist nicht gesetzt. Der bge-mcp-Shim verweigert ohne Token den Start."
+    $envFile = Join-Path $HOME ".config/bge-mcp/server.env"
+    if (Test-Path $envFile) {
+        foreach ($line in Get-Content $envFile) {
+            if ($line -match '^\s*BGE_MCP_TOKEN\s*=\s*(.+?)\s*$') {
+                $env:BGE_MCP_TOKEN = $Matches[1].Trim('"').Trim("'")
+                Write-Host "BGE_MCP_TOKEN aus $envFile geladen."
+                break
+            }
+        }
+    }
+}
+
+if (-not $env:BGE_MCP_TOKEN -or $env:BGE_MCP_TOKEN.Trim() -eq "") {
+    Write-Host "FEHLER: BGE_MCP_TOKEN ist weder gesetzt noch in ~/.config/bge-mcp/server.env zu finden."
     Write-Host 'Setzen mit: $env:BGE_MCP_TOKEN = "<token>"'
     exit 1
 }

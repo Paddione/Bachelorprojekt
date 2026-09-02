@@ -162,12 +162,6 @@ Model-Context-Protocol-Proxy: gibt KI-Agenten kontrollierten Zugriff auf Cluster
 
 Reverse-SSH-Tunnel (sish); macht das lokale Companion-Board von außen erreichbar.
 
-### 🎨 Penpot
-
-🟢 **Sicher**
-
-Vektor-Grafik, Wireframing und Prototyping – offen und selbstgehostet.
-
 ## Hardware
 
 ### 🖥️ Gekko Worker 1

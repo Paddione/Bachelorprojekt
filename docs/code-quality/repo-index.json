@@ -1337,7 +1337,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1818,
+      "file_count": 1817,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -1940,7 +1940,6 @@
         "components/website/src/db/migrations/20260813_coaching_questionnaire_insights_cache.sql",
         "components/website/src/db/migrations/20260813_coaching_session_summary.sql",
         "components/website/src/db/migrations/20260821_add_missing_fk_indexes_and_brand_checks.sql",
-        "components/website/src/db/migrations/20260902_add_penpot_to_platform_assets.sql",
         "components/website/src/db/migrations/error-log-schema.test.ts",
         "components/website/src/env.d.ts",
         "components/website/src/i18n/de.ts",

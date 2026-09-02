@@ -1809,15 +1809,6 @@
       "sensitivity": "caution",
       "url": null
     },
-    "penpot": {
-      "slug": "penpot",
-      "kind": "software",
-      "name": "Penpot",
-      "emoji": "🎨",
-      "summary_de": "Open-Source Design- und Prototyping-Plattform (Nachfolger von Whiteboard).",
-      "sensitivity": "safe",
-      "url": null
-    },
     "gekko-hetzner-2": {
       "slug": "gekko-hetzner-2",
       "kind": "hardware",

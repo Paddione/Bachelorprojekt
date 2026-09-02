@@ -276,16 +276,6 @@
   what_for_de: "Reverse-SSH-Tunnel (sish); macht das lokale Companion-Board von außen erreichbar."
   url: null
   links: []
-- slug: penpot
-  kind: software
-  name: "Penpot"
-  emoji: "🎨"
-  sensitivity: safe
-  placeholder_en: "Open-source design & prototyping platform"
-  summary_de: "Open-Source Design- und Prototyping-Plattform (Nachfolger von Whiteboard)."
-  what_for_de: "Vektor-Grafik, Wireframing und Prototyping – offen und selbstgehostet."
-  url: null
-  links: []
 
 # ── Hardware ──────────────────────────────────────────────────────────────────
 # NOTE: roles below reflect the CURRENT fleet topology (pk-* = control-plane,

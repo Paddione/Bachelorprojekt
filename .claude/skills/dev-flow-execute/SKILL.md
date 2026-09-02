@@ -189,9 +189,13 @@ Kontext als den Implementer (Self-Attestation ist kein Review, T005307). Ohne be
 Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
 
 1. Prüfe den Auto-Merge-Zustand des PRs (Regression T006282: extern aktiviertes Auto-Merge
-   ist für das Gate sonst unsichtbar):
+   ist für das Gate sonst unsichtbar). **Den Branch immer explizit übergeben** [T900040]:
+   ohne `--branch` leitet `gh` die PR-Nummer aus dem ausgecheckten Branch ab — im
+   Haupt-Checkout ist das `main`, und das Gate meldet dann `OK: Kein PR gefunden` (rc=0),
+   obwohl ein PR offen ist und Auto-Merge bereits läuft. Genau die Regression, die es
+   abfangen soll, bleibt so unsichtbar (beobachtet an PR #5409):
    ```bash
-   bash scripts/check-pr-automerge.sh
+   bash scripts/check-pr-automerge.sh --branch "$BRANCH"
    ```
    Semantik:
    - `rc=1`: Gate bricht fail-closed ab — die Meldung nennt die PR-Nummer; es wird KEIN

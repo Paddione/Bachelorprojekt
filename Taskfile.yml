@@ -277,6 +277,16 @@ tasks:
     cmds:
       - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/start-windows.ps1
 
+  mcp:autostart:register:
+    desc: "T900040: start-windows.ps1 als Autostart-Task registrieren (onlogon) — Windows-Pendant zu 'systemctl --user enable' der bge-mcp/mcp-gateway-Units"
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/register-autostart.ps1
+
+  mcp:autostart:remove:
+    desc: "T900040: den Autostart-Task aus mcp:autostart:register wieder entfernen"
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/register-autostart.ps1 -Remove
+
   # Netzwerk-Adressplan (T012645). SSOT: docs/agent-guide/registry/networks.yaml.
   # networks:check laeuft in test:changed mit, networks:map in freshness:regenerate.
   networks:check:

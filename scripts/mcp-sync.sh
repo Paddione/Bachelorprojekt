@@ -43,6 +43,38 @@ LLAMACPP_TARGET="$OUT_DIR/scripts/llm/mcp-servers.json"
 # render_opencode_jsonc erhaelt alles ausserhalb des "mcp"-Blocks, indem es die
 # Zieldatei einliest. Unter einem alternativen OUT_DIR existiert sie noch nicht --
 # dann dient die Repo-Variante als Vorlage.
+# [T900040] chmod-600-Aequivalent, das auch auf Windows greift. Auf NTFS ist
+# `chmod` aus Git Bash wirkungslos: die Datei behaelt die geerbten ACLs des
+# Profils (beobachtet an ~/.config/bge-mcp/server.env — nach `chmod 600` meldete
+# `ls -l` weiterhin -rw-r--r--). Fuer Dateien mit aufgeloestem Klartext-Token
+# (agy, qwen) ist das der Unterschied zwischen "nur ich" und "jeder lokale
+# Account mit Leserecht auf das Profil". icacls entfernt die Vererbung und setzt
+# ausschliesslich den aktuellen Benutzer auf Vollzugriff — die genaue
+# Entsprechung zu 600. Auf allen anderen Plattformen bleibt es beim chmod.
+harden_secret_file() {
+  local f="$1"
+  chmod 600 "$f" 2>/dev/null || true
+  case "$(uname -s 2>/dev/null || echo unknown)" in
+    MINGW*|MSYS*|CYGWIN*)
+      command -v icacls >/dev/null 2>&1 || { echo "mcp-sync: icacls nicht gefunden — $f behaelt geerbte ACLs" >&2; return 0; }
+      local win acct bs
+      win="$(cygpath -w "$f" 2>/dev/null || printf '%s' "$f")"
+      # NICHT `whoami`: Git Bash liefert den Kontonamen mit '+' statt '\'
+      # (AzureAD+Nutzer), und icacls kann ihn dann nicht aufloesen
+      # ("Zuordnungen von Kontennamen ... wurden nicht durchgefuehrt"). Die
+      # Windows-Variablen tragen Domaene und Namen getrennt und korrekt.
+      [ -n "${USERDOMAIN:-}" ] && [ -n "${USERNAME:-}" ] || { echo "mcp-sync: USERDOMAIN/USERNAME leer — $f behaelt geerbte ACLs" >&2; return 0; }
+      bs='\'
+      acct="${USERDOMAIN}${bs}${USERNAME}"
+      if icacls "$win" /inheritance:r /grant:r "${acct}:(F)" >/dev/null 2>&1; then
+        echo "mcp-sync: $f auf den eigenen Benutzer beschraenkt (icacls)"
+      else
+        echo "mcp-sync: WARN: icacls auf $f fehlgeschlagen — Datei behaelt geerbte ACLs" >&2
+      fi
+      ;;
+  esac
+}
+
 opencode_source() {
   if [ -f "$OPENCODE_TARGET" ]; then
     printf '%s' "$OPENCODE_TARGET"
@@ -386,7 +418,7 @@ cmd_render() {
     # deckt den Neuanlage-Fall ab, das chmod eine bereits bestehende Datei: eine
     # Ausgabe-Umlenkung auf eine existierende Datei laesst deren Rechte unberuehrt.
     ( umask 077; render_agy_json > "$AGY_TARGET" )
-    chmod 600 "$AGY_TARGET"
+    harden_secret_file "$AGY_TARGET"
   else
     echo "mcp-sync: render: $AGY_TARGET dir missing — skipped" >&2
   fi
@@ -398,7 +430,7 @@ cmd_render() {
     # traegt jetzt einen Klartext-Token; chmod 600 schuetzt ihn.
     ( umask 077; render_qwen_json > "${QWEN_TARGET}.tmp" )
     mv "${QWEN_TARGET}.tmp" "$QWEN_TARGET"
-    chmod 600 "$QWEN_TARGET"
+    harden_secret_file "$QWEN_TARGET"
   else
     echo "mcp-sync: render: $QWEN_TARGET dir missing — skipped" >&2
   fi

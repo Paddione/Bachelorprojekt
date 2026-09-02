@@ -692,6 +692,9 @@ Last touches:
   - agy Headless MCP Tool Permission Bypass | T002719 | 2026-08-10 | ADDED
   - Spec Tests Never Mutate Tracked MCP Config Artifacts | T002941 | 2026-08-10 | ADDED
 In-flight:
+  - bge-mcp shim resolves its router import as a file:// URL | T900039 | active | ADDED
+  - mcp-task-runner is invoked through node on hosts without the wrapper binary | T900039 | active | ADDED
+  - Windows hosts have a documented start mechanism for the local MCP servers | T900039 | active | ADDED
   - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
 
 ### mcp-skill-integration

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1247,
+      "file_count": 1248,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -761,6 +761,7 @@
         "tests/spec/mcp-gateway/authenticated-http-headers.bats",
         "tests/spec/mcp-gateway/bge-host-routing.bats",
         "tests/spec/mcp-gateway/bge-http-only-get.bats",
+        "tests/spec/mcp-gateway/bge-mcp-windows-esm-url.bats",
         "tests/spec/mcp-gateway/client-env-check.bats",
         "tests/spec/mcp-gateway/mcp-postgres-multistatement.bats",
         "tests/spec/mcp-gateway/mcp-postgres-readonly-role.bats",
@@ -3859,7 +3860,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 844,
+      "file_count": 845,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4465,6 +4466,7 @@
         "scripts/mcp-gateway/mcp-postgres-local.mjs",
         "scripts/mcp-gateway/mcp-postgres-local.service",
         "scripts/mcp-gateway/probe.sh",
+        "scripts/mcp-gateway/start-windows.ps1",
         "scripts/mcp-gateway/watchdog-check.sh",
         "scripts/mcp-sync.sh",
         "scripts/mcp-task-runner/install.sh",

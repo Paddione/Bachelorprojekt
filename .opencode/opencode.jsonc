@@ -97,7 +97,7 @@
 
       "headers": {"Authorization":"Bearer {env:BGE_MCP_TOKEN}"},
 
-      "enabled": false
+      "enabled": true
 
     },
 
@@ -157,9 +157,9 @@
 
       "type": "local",
 
-      "command": ["mcp-task-runner","--otel-endpoint","localhost:4317","--taskfile","/home/patrick/Bachelorprojekt/Taskfile.yml"],
+      "command": ["node","scripts/mcp-task-runner/server.mjs","--otel-endpoint","localhost:4317","--taskfile","Taskfile.yml"],
 
-      "enabled": false
+      "enabled": true
 
     },
 

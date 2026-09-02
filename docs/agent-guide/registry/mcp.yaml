@@ -127,12 +127,13 @@ clients:
       agy:
         serverUrl: http://localhost:13005/mcp
       opencode:
-        # Shim + bge-Backends laufen als systemd-Services in WSL (k3d-dev) —
-        # auf Windows (pk-desktop) nicht erreichbar, solange WSL gestoppt ist.
-        # Fuer claude_code/agy/qwen_code (WSL) bleibt der Server aktiv.
+        # T900039: Windows hat mit scripts/mcp-gateway/start-windows.ps1 jetzt
+        # einen eigenen Startmechanismus (Port-Forwards + Shim-Start), das WSL-
+        # systemd-Pendant zu scripts/bge-mcp/bge-mcp.service. Server ist damit
+        # auch auf Windows (pk-desktop) erreichbar, solange das Skript laeuft.
         type: remote
         url: http://localhost:13005/mcp
-        enabled: false
+        enabled: true
       qwen_code:
         httpUrl: http://localhost:13005/mcp
 
@@ -229,20 +230,23 @@ clients:
       auth: null
     harness:
       claude_code:
-        command: mcp-task-runner
-        args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+        # T900039: /usr/local/bin/mcp-task-runner ist nur ein Bash-Wrapper um
+        # `node server.mjs` (scripts/mcp-task-runner/install.sh) — der Server
+        # selbst ist reines Node.js, ohne Plattformbindung. Repo-relativer
+        # Aufruf statt Wrapper-Binary, weil beide Harnesses (claude_code,
+        # opencode) aus dem Repo-Root starten (G-AGENTIC14 vergleicht genau
+        # diese beiden).
+        command: node
+        args: [scripts/mcp-task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
       agy:
         command: mcp-task-runner
         args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
       opencode:
-        # Windows: kein mcp-task-runner-Binary auf PATH — direkt ueber node.
-        # --otel-endpoint entfaellt: der Parameter wird im Server nur geparst,
-        # nie benutzt (kein Collector noetig).
+        # T900039: kein mcp-task-runner-Binary auf dem Windows-PATH noetig —
+        # der Server ist reines Node.js. Selbe Begruendung wie harness.claude_code.
         type: local
-        # Windows-Host: mcp-task-runner ist nicht auf dem PATH installiert
-        # (Linux-Binary, MCPB-Bundle-Ersatz T002301). Disabled statt toter Pfad.
-        command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
-        enabled: false
+        command: [node, scripts/mcp-task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
+        enabled: true
 
   # codebase-memory-mcp: plattformneutral ueber PATH aufloesen. Der offizielle
   # Installer stellt das Binary fuer Windows und Linux unter diesem Namen bereit.

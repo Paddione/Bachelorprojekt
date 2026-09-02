@@ -37,12 +37,16 @@
 //   BGE_MCP_PORT (Default 13005), BGE_MCP_HOST (Default 127.0.0.1)
 
 import { createServer } from 'node:http';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve as resolvePath } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROUTER_PATH = resolvePath(HERE, '../../components/website/src/lib/bge-router.ts');
-const { resolveEndpoint, BgeRoutingError } = await import(ROUTER_PATH);
+// pathToFileURL() ist auf Windows Pflicht: ein absoluter Pfad mit Laufwerksbuchstaben
+// (z. B. C:\...) wird vom ESM-Loader als URL-Schema "c:" gelesen und mit
+// ERR_UNSUPPORTED_ESM_URL_SCHEME abgewiesen. Unter POSIX ist die Umwandlung ein
+// verlustfreier No-op.
+const { resolveEndpoint, BgeRoutingError } = await import(pathToFileURL(ROUTER_PATH).href);
 
 const HOST = process.env.BGE_MCP_HOST ?? '127.0.0.1';
 const PORT = Number.parseInt(process.env.BGE_MCP_PORT ?? '13005', 10);

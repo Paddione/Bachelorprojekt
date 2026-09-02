@@ -272,6 +272,11 @@ tasks:
     cmds:
       - bash scripts/mcp-sync.sh check
 
+  mcp:start-windows:
+    desc: "T900039: Windows-Pendant zu den bge-mcp/mcp-gateway systemd-Units — Port-Forwards + bge-mcp-Shim starten (powershell -File scripts/mcp-gateway/start-windows.ps1)"
+    cmds:
+      - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/start-windows.ps1
+
   # Netzwerk-Adressplan (T012645). SSOT: docs/agent-guide/registry/networks.yaml.
   # networks:check laeuft in test:changed mit, networks:map in freshness:regenerate.
   networks:check:

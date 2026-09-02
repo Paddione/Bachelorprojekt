@@ -25,12 +25,13 @@
       "url": "http://localhost:13001/mcp"
     },
     "mcp-task-runner": {
-      "command": "mcp-task-runner",
+      "command": "node",
       "args": [
+        "scripts/mcp-task-runner/server.mjs",
         "--otel-endpoint",
         "localhost:4317",
         "--taskfile",
-        "/home/patrick/Bachelorprojekt/Taskfile.yml"
+        "Taskfile.yml"
       ]
     },
     "playwright": {

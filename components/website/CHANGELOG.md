@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.0...website-v1.324.1) (2026-09-02)
+
+
+### Bug Fixes
+
+* **website:** fix platform-descriptions generation on Windows + regenerate [T000000] ([88adf43](https://github.com/Paddione/Bachelorprojekt/commit/88adf43fbc280426ddf717fe6b48a59e2b9588ac))
+
 ## [1.324.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.5...website-v1.324.0) (2026-09-02)
 
 

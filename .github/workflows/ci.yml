@@ -591,6 +591,14 @@ jobs:
       # bereits systemweit; sie wird geprueft und wiederverwendet, sonst wird in
       # ein runner-beschreibbares Verzeichnis installiert. Die Version bleibt
       # damit exakt gepinnt (CLAUDE.md: lokal und CI muessen dieselbe pruefen).
+      # --- stray-secret-dump guard (fail-closed, gitleaks-independent) [T900027] ---
+      - name: Stray secret-dump guard
+        run: |
+          if ! bash scripts/stray-secret-dump-guard.sh; then
+            echo "ERROR: stray secret-dump detected in repository" >&2
+            exit 1
+          fi
+
       - name: Install gitleaks (pinned 8.18.2)
         run: |
           BIN="$HOME/.local/bin"

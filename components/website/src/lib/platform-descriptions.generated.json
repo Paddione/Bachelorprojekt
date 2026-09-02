@@ -99,6 +99,10 @@
     "brainstorm": {
       "de": "Ein sicherer Tunnel, der das lokale Brainstorming-Board unter brainstorm.mentolder.de erreichbar macht.",
       "en": "Reverse-SSH tunnel endpoint for brainstorm.mentolder.de"
+    },
+    "penpot": {
+      "de": "Open-Source Design- und Prototyping-Plattform (Nachfolger von Whiteboard).",
+      "en": "Open-source design & prototyping platform"
     }
   },
   "hardware": {

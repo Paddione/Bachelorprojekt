@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.324.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.5...website-v1.324.0) (2026-09-02)
+
+
+### Features
+
+* **website:** add Penpot to platform.software_assets catalog [T000000] ([#5399](https://github.com/Paddione/Bachelorprojekt/issues/5399)) ([65a19a7](https://github.com/Paddione/Bachelorprojekt/commit/65a19a7415b219935bd10cafd03ace8d371032f6))
+
+
+### Bug Fixes
+
+* remove penpot component from registry + regenerate artifacts [T000000] ([678300f](https://github.com/Paddione/Bachelorprojekt/commit/678300fa6e497f44b3f9c431ff64820da77a0b9c))
+* **website:** remove penpot migration with hardcoded hostname [T000000] ([fae61ec](https://github.com/Paddione/Bachelorprojekt/commit/fae61ec6ff9396caa7660e0391dc834c36d7efd5))
+
 ## [1.323.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.323.4...website-v1.323.5) (2026-08-31)
 
 

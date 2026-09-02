@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'yaml';
 
 export function buildDescriptions(componentsPath) {
@@ -11,7 +12,7 @@ export function buildDescriptions(componentsPath) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (fileURLToPath(import.meta.url) === fileURLToPath(pathToFileURL(process.argv[1]))) {
   const repoRoot = process.cwd();
   const out = buildDescriptions(join(repoRoot, 'docs', 'agent-guide', 'registry', 'components.yaml'));
   const target = join(repoRoot, 'components', 'website', 'src', 'lib', 'platform-descriptions.generated.json');

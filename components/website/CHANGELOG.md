@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.1...website-v1.324.2) (2026-09-02)
+
+
+### Bug Fixes
+
+* **mcp:** bge-mcp laedt den Router als file://-URL [T900039] ([#5409](https://github.com/Paddione/Bachelorprojekt/issues/5409)) ([b4b21f5](https://github.com/Paddione/Bachelorprojekt/commit/b4b21f588ba9c8695ddbb2c6b51810d19b8fc774))
+
 ## [1.324.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.0...website-v1.324.1) (2026-09-02)
 
 

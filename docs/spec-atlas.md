@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2293 · Scenarios: 5097
+Specs: 145 · Requirements: 2296 · Scenarios: 5101
 
 ## factory-pipeline
 
@@ -683,18 +683,15 @@ Last touches:
   - Pre-Commit blockiert Commits auf main | T002631 | 2026-08-10 | ADDED
 
 ### mcp-gateway
-Reqs: 28 · Scenarios: 73 · Lines: 850
+Reqs: 31 · Scenarios: 77 · Lines: 914
 Paths: deploy/mcp/, .claude/skills/references/mcp-tool-guide.md, scripts/mcp
 Last touches:
+  - bge-mcp shim resolves its router import as a file:// URL | T900039 | 2026-09-02 | ADDED
+  - mcp-task-runner is invoked through node on hosts without the wrapper binary | T900039 | 2026-09-02 | ADDED
+  - Windows hosts have a documented start mechanism for the local MCP servers | T900039 | 2026-09-02 | ADDED
   - mcp-kubernetes und mcp-postgres laufen mit read-only Identität | T006335 | 2026-08-15 | MODIFIED
   - Multi-Statement Queries Rejected Instead of Empty Array | T006293 | 2026-08-15 | ADDED
-  - update-status.sh uses heredoc and guards terminal transitions | T003072 | 2026-08-14 | MODIFIED
-  - agy Headless MCP Tool Permission Bypass | T002719 | 2026-08-10 | ADDED
-  - Spec Tests Never Mutate Tracked MCP Config Artifacts | T002941 | 2026-08-10 | ADDED
 In-flight:
-  - bge-mcp shim resolves its router import as a file:// URL | T900039 | active | ADDED
-  - mcp-task-runner is invoked through node on hosts without the wrapper binary | T900039 | active | ADDED
-  - Windows hosts have a documented start mechanism for the local MCP servers | T900039 | active | ADDED
   - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
 
 ### mcp-skill-integration

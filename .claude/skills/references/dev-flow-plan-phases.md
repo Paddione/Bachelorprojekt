@@ -67,8 +67,8 @@ Constraints, Trade-offs, Entscheidungen), geöffnet mit `npx -y lavish-axi .lavi
 > Lehnt der User ab oder ist die Sitzung nicht interaktiv, läuft das Brainstorming über
 > `AskUserQuestion` mit Previews. Das ist ein vollwertiger Ersatz, kein Notbehelf.
 #### Schritt A.4: Brainstorming ⚡ IMMER — kein Überspringen
-Rufe `superpowers:brainstorming` auf (Claude Code — built-in) oder führe die Brainstorming-Schritte
-direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; lies die Spec und
+Rufe `superpowers:brainstorming` auf (Superpowers-Plugin; opencode: das Äquivalent ist als inlinede Steps in diesem Skill) oder führe die Brainstorming-Schritte
+direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; lies die Spec und
 arbeite die Schritte A.3→A.5 ohne Skill-Load durch).
 Nutze das `lavish`-Board (aus Schritt A.3) für visuelle Dokumentation und strukturiertes Feedback.
 Ergebnis: Design-Spec **im Change-Ordner** unter `openspec/changes/<slug>/design.md`
@@ -360,8 +360,8 @@ kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
 **Wo:** In `tests/spec/<spec-slug>.bats` (Spec zu diesem Fix aus `openspec/specs/`), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<spec-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/software-factory/`).
 ### Schritt 4: Plan schreiben
-Rufe `superpowers:writing-plans` auf (Claude Code — built-in) oder führe die Plan-Schreib-Schritte
-direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; schreibe den Plan nach
+Rufe `superpowers:writing-plans` auf (Superpowers-Plugin; opencode: das Äquivalent ist als inlinede Steps in diesem Skill) oder führe die Plan-Schreib-Schritte
+direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; schreibe den Plan nach
 `openspec/changes/<slug>/tasks.md` gemäß den plan-lint Hard Rules in Schritt 3.7).
 Wende das Frontmatter an und trage die Ticket-ID ein. **Erst committen und pushen, DANN stagen [T002673]:** `stage-plan` liest den Plan per `git cat-file -p "${branch}:${plan}"` aus dem Branch-Commit; vor dem Commit steht dort das propose-Skeleton, `touched_files` bliebe leer — seit T003267 bricht `stage-plan` dann mit Exit 1 ab (Override: `--allow-empty-touched`).
 ### Schritt 4.5: Plan stagen (Fix 6)

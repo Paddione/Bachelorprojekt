@@ -29,7 +29,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
 
-> **Shared Source (T013724):** `opencode-flow-plan`/`-execute`/`-chore` unter `.opencode/skills/` sind Directory-Symlinks auf genau diese drei Skills (Muster wie `openspec-*`) — ein Inhalt, zwei Einstiegspunkte. Nur `opencode-git-workflow` bleibt eine echte opencode-eigene Datei.
+> **Shared Source (T014086):** `dev-flow-plan`/`-execute`/`-chore` unter `.opencode/skills/` sind Directory-Symlinks auf genau diese drei Skills (Muster wie `openspec-*`) — ein Inhalt, zwei Einstiegspunkte. Nur `opencode-git-workflow` bleibt eine echte opencode-eigene Datei.
 
 ---
 
@@ -67,24 +67,24 @@ Sie zählen deshalb als projekteigen und unterliegen dem Zeilenbudget.
 
 ---
 
-## Schicht-Kontrakt: dev-flow orchestriert, Disziplin-Schritte sind inlined
+## Schicht-Kontrakt: dev-flow orchestriert, Disziplin-Schritte aus dem Plugin
 
-Die `dev-flow-*`-Skills sind **projektspezifische Orchestratoren**. Die ehemaligen generischen
-`superpowers:*`-Disziplin-Schritte (brainstorming, writing-plans, executing-plans,
-test-driven-development, verification-before-completion, requesting-code-review) sind in die
-jeweiligen `dev-flow-*`-Skills inlined — keine eigenen Skill-Verzeichnisse mehr.
+Die `dev-flow-*`-Skills sind **projektspezifische Orchestratoren**. Die `superpowers:*`-Disziplin-Schritte (brainstorming, writing-plans, executing-plans,
+test-driven-development, verification-before-completion, requesting-code-review) werden vom
+**Superpowers-Plugin** bereitgestellt. Fehlt das Plugin, meldet `plugin-doctor.sh` den Befund
+und `task plugins:sync` behebt ihn — kein stilles Wegfallen.
 
 **Regel:** Für Repo-Arbeit **immer über `dev-flow-*` einsteigen**.
 
-| dev-flow-Schritt | Disziplin-Schritt (inlined) |
-|---|---|
-| `dev-flow-plan` Schritt 3 | Brainstorming |
-| `dev-flow-plan` Schritt 3.7 (Subagent) | Plan-Schreibung |
-| `dev-flow-execute` Schritt 2 (Implementer) | executing-plans + test-driven-development |
-| `dev-flow-execute` Schritt 3 | verification-before-completion |
-| `dev-flow-execute` Schritt 3.8 | requesting-code-review (Code Review) |
+| dev-flow-Schritt | Disziplin-Schritt | Quelle |
+|---|---|---|
+| `dev-flow-plan` Schritt 3 | brainstorming | Superpowers-Plugin |
+| `dev-flow-plan` Schritt 3.7 (Subagent) | writing-plans | Superpowers-Plugin |
+| `dev-flow-execute` Schritt 2 (Implementer) | executing-plans + test-driven-development | Superpowers-Plugin |
+| `dev-flow-execute` Schritt 3 | verification-before-completion | Claude Code — built-in |
+| `dev-flow-execute` Schritt 3.8 | requesting-code-review (Code Review) | Claude Code — built-in |
 
-> **Worktrees:** `scripts/worktree-create.sh` (git-crypt-safe) übernimmt Worktree-Isolation im dev-flow-Pfad. Hintergrund: [`superpowers/using-git-worktrees`](superpowers/using-git-worktrees/SKILL.md).
+> **Worktrees:** `scripts/worktree-create.sh` (git-crypt-safe) übernimmt Worktree-Isolation im dev-flow-Pfad. Hintergrund: [dev-flow-gotchas#T001974](.claude/skills/references/dev-flow-gotchas.md#t001974) (Detached-HEAD-Falle, git-crypt exit 128).
 
 ### Verifikations-Leiter (wer prüft was — kein doppeltes Gate)
 
@@ -177,7 +177,7 @@ alle Skills als projekteigen — das Gate wird dann strenger, nicht schwächer.
 | `gitops-knowledge` | Flux CD / controlplane.io | Flux-Konzepte beantworten und schema-validiertes YAML für Flux-CRDs erzeugen. Dispatched as subagent. |
 | `gitops-repo-audit` | Flux CD / controlplane.io | GitOps-**Repo-Dateien** prüfen — Schema-Validierung, deprecated APIs, RBAC/Multi-Tenancy. Dispatched as subagent. |
 | `lavish` | Kun Chen (kunchenguid) | Komplexe oder visuelle Antworten als annotierbares HTML-Artefakt rendern (`lavish-axi`). Nur nach Zustimmung des Nutzers. |
-| `superpowers/using-git-worktrees` | Superpowers-Plugin | Hintergrund zur Worktree-Isolation. Im dev-flow-Pfad ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe). |
+| `superpowers:using-git-worktrees` | Superpowers-Plugin | Hintergrund zur Worktree-Isolation (Detached-HEAD, git-crypt). Im dev-flow-Pfad ersetzt durch `scripts/worktree-create.sh`. |
 | `ui-ux-pro-max` | Drittanbieter | UI/UX-Design-Intelligenz (Styles, Paletten, Font-Pairings) — für opencode via `permission: deny` deaktiviert. |
 | `unsloth-buddy` | TYH-labs (unsloth-buddy) | Fine-Tuning und RL mit Unsloth — LoRA-Patching, VRAM-Tuning, GGUF/vLLM/Ollama-Export. |
 | `vitest` | Anthony Fu (antfu/skills) | Vitest-Referenz — Mocking, Coverage-Konfiguration, Test-Filtering, Fixtures. |

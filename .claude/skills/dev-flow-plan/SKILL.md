@@ -287,8 +287,8 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 |-------|-----------|
 | `openspec-explore` (`/opsx:explore`) | **Vorgelagert** — Denkpartner ohne Artefakt; übergibt verdichtet an diese Skill, sobald Code entstehen soll |
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
-| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Claude Code built-in; opencode: inlined in diesem Skill (Shared Source) |
-| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Claude Code built-in; opencode: inlined in diesem Skill (Shared Source) |
+| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Superpowers-Plugin; opencode: inlined in diesem Skill (Shared Source) |
+| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Superpowers-Plugin; opencode: inlined in diesem Skill (Shared Source) |
 | `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
 | `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
@@ -301,5 +301,5 @@ Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über
 | Framework | Availability |
 |-----------|-------------|
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
-| **opencode** | Full — geladen als `opencode-flow-plan` (Directory-Symlink auf diese Shared Source). Sub-Delegation über `background-agents.ts` (`delegate` für read-only, native write-capable Delegation sonst); alle CLI-/MCP-Aufrufe sind framework-agnostisch |
+| **opencode** | Full — geladen als `dev-flow-plan` (Directory-Symlink auf diese Shared Source). Sub-Delegation über `background-agents.ts` (`delegate` für read-only, native write-capable Delegation sonst); alle CLI-/MCP-Aufrufe sind framework-agnostisch |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

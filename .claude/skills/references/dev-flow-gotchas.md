@@ -143,5 +143,19 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 **Rule**: dev-flow-plan Schritt 0.7 vor der ersten Architekturfrage. Liefert die Suche ein Requirement zum selben Gegenstand, wird es zitiert (Datei + Zeilen) und die Frage lautet nicht mehr „welche Richtung?", sondern „bestehende Entscheidung beibehalten oder ersetzen?". Ersetzen geht über ein `RENAMED`/`MODIFIED`-Delta auf den SSOT-Spec, nicht durch stilles Danebenschreiben. Verwandt, aber nicht dasselbe: T002448-M5 verlangt, dass die **Ursache** vor dem Lösungsdesign belegt ist — dieser Punkt verlangt zusätzlich, dass die **Lösungsrichtung** nicht schon einmal bewusst verworfen wurde.
 
 ### [T001434] Plan-Stage-Commits heißen `chore(plans):`, nie `fix(`/`feat(`
-**Context**: Der Stage-Commit enthält nur den RED-Test und Plan-Artefakte, keinen Production-Code. Ein `fix(…)`/`feat(…)`/`refactor(…)`/`perf(…)`-Präfix wäre eine Lüge, und der nachfolgende `dev-flow-execute`-Implementer vertraut dem Titel und überspringt den eigentlichen Fix — exakt das ist bei T001434 passiert.
+**Context**: Der Stage-Commit enthält nur den RED-Test und Plan-Artefakte, keinen Production-Code. Ein `fix(…)`/`feat(`/`refactor(`/`perf(`)-Präfix wäre eine Lüge, und der nachfolgende `dev-flow-execute`-Implementer vertraut dem Titel und überspringt den eigentlichen Fix — exakt das ist bei T001434 passiert.
 **Rule**: Immer `chore(plans):`. Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` blockieren solche Commits; Notfall-Bypass `SKIP_COMMIT_VS_DIFF=1`.
+
+### [T001974] Detached-HEAD-Falle bei `git worktree add <remote-ref>`
+**Context**: `git worktree add <path> <remote-ref>` (z. B. `git worktree add .worktrees/foo origin/feature/foo`) erstellt einen Worktree auf einem **detached HEAD**, nicht auf dem Branch. Commits landen als unerreichbare Objects — `git push` meldet "Everything up-to-date", weil der Commit auf detached HEAD liegt, nicht auf dem Branch. [T000426]
+**Rule**: Nach dem Worktree-Create sofort den benannten Branch checken, **vor** dem ersten Commit:
+```bash
+git worktree add .worktrees/foo origin/feature/foo
+cd .worktrees/foo
+git checkout feature/foo            # detach → branch; Commits verankern sich jetzt
+```
+Der Projekt-Helper `scripts/worktree-create.sh <branch> <path>` macht das korrekt (er leitet den Branch aus dem Namen ab und wechselt ihn an). In der `dev-flow`-Pipeline immer den Helper verwenden.
+
+### [T000426] Bare `git worktree add` stirbt mit exit 128 (git-crypt)
+**Context**: Seit git-crypt im Repo gelandet ist (PR #1303) führt ein bare `git worktree add` zu einem Smudge-Filter-Fehler mit **exit 128** — der git-crypt Smudge Filter läuft gegen ein key-less Worktree-gitdir. Der manuelle Äquivalent-Check `git worktree add` ohne den Helper schlägt still mit 128 fehl.
+**Rule**: Immer `scripts/worktree-create.sh <branch> <path>` verwenden (T000381, T000426, T001974). Er behandelt git-crypt-Key-Copy und node_modules-Symlink automatisch — kein manueller `git worktree add` ohne Helper.

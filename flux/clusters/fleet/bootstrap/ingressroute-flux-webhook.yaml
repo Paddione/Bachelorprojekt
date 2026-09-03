@@ -6,7 +6,7 @@ metadata:
 spec:
   entryPoints: [websecure]
   routes:
-    - match: Host(`${FLUX_WEBHOOK_HOST}`)
+    - match: Host(`flux-webhook.mentolder.de`)
       kind: Rule
       services:
         - name: notification-controller

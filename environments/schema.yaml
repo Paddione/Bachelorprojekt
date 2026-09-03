@@ -9,6 +9,12 @@ env_vars:
     default_dev: "localhost"
     validate: "^[a-z0-9.-]+$"
 
+  - name: SESSIONS_DOMAIN
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Subdomain base for session dynamic instances (e.g. sessions.mentolder.de)"
+
   - name: CLUSTER_ENV
     required: true
     default_dev: "dev"

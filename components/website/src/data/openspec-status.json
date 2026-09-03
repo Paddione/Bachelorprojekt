@@ -4529,6 +4529,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900042": [
+    {
+      "slug": "batch-sa-security-t900042",
+      "status": "plan_staged"
+    }
+  ],
   "T900046": [
     {
       "slug": "worktree-prune-cross-platform-fix",

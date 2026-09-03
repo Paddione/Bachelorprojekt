@@ -1896,6 +1896,18 @@
     "kind": "shell"
   },
   {
+    "id": "SA-SEC-01",
+    "file": "tests/spec/fleet-operations/security-cert-hygiene.bats",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
+    "id": "SA-SEC-02",
+    "file": "tests/spec/fleet-operations/security-cert-hygiene.bats",
+    "category": "SA",
+    "kind": "shell"
+  },
+  {
     "id": "T002196-1",
     "file": "tests/spec/website-interfaces.bats",
     "category": "T002196",

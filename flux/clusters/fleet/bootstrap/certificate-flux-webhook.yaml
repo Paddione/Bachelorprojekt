@@ -9,4 +9,4 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - "flux-webhook.${PROD_DOMAIN}"
+    - "flux-webhook.mentolder.de"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.325.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.11...website-v1.325.0) (2026-09-03)
+
+
+### Features
+
+* **scripts:** opencode serve lifecycle + monitoring [T900065] ([#5458](https://github.com/Paddione/Bachelorprojekt/issues/5458)) ([b0f8c82](https://github.com/Paddione/Bachelorprojekt/commit/b0f8c820209474feec5a9306fb80b3670c665aae))
+
 ## [1.324.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.10...website-v1.324.11) (2026-09-03)
 
 

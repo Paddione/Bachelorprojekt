@@ -4529,6 +4529,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900027": [
+    {
+      "slug": "stray-secret-dump-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T900039": [
     {
       "slug": "2026-09-02-bge-mcp-windows-start",

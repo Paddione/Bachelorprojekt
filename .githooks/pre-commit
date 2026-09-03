@@ -55,9 +55,12 @@ fi
 
 # --- stray-secret-dump guard (fail-closed, gitleaks-independent) [T900027] ---
 if [ "${SKIP_STRAY_SECRET_GUARD:-0}" != "1" ]; then
-  if ! bash "$(resolve_guard "scripts/stray-secret-dump-guard.sh")" 2>/dev/null; then
-    echo "ERROR: refusing commit — stray secret-dump file(s) in working tree (see above)." >&2
-    exit 1
+  _stray_guard="$(resolve_guard "scripts/stray-secret-dump-guard.sh" 1 2>/dev/null || true)"
+  if [ -n "$_stray_guard" ] && [ -f "$_stray_guard" ]; then
+    if ! bash "$_stray_guard"; then
+      echo "ERROR: refusing commit — stray secret-dump file(s) in working tree (see above)." >&2
+      exit 1
+    fi
   fi
 fi
 

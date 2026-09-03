@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.9...website-v1.324.10) (2026-09-03)
+
+
+### Bug Fixes
+
+* **agents:** resolve superpowers namespace collision, fix doku, update provider refs [T900056] ([#5439](https://github.com/Paddione/Bachelorprojekt/issues/5439)) ([d9b0e0c](https://github.com/Paddione/Bachelorprojekt/commit/d9b0e0caadba3ef509a76274886235d9b7b3e241))
+
 ## [1.324.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.8...website-v1.324.9) (2026-09-03)
 
 

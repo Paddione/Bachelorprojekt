@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.7...website-v1.324.8) (2026-09-03)
+
+
+### Bug Fixes
+
+* **mcp:** harden local MCP HTTP boundaries with shared security guard [T900052] ([#5440](https://github.com/Paddione/Bachelorprojekt/issues/5440)) ([6645589](https://github.com/Paddione/Bachelorprojekt/commit/664558925129c96f357af74e004106dda9893a0d))
+
 ## [1.324.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.6...website-v1.324.7) (2026-09-03)
 
 

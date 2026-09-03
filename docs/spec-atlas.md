@@ -96,6 +96,10 @@ In-flight:
   - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
   - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
+  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | active | ADDED
+  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | active | ADDED
+  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
+  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED

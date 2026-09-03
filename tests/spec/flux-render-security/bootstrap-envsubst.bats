@@ -40,11 +40,13 @@ _bootstrap_task() {
 @test "bootstrap-envsubst: jeder Platzhalter wird an envsubst uebergeben" {
   [ -d "$BOOTSTRAP_DIR" ]
 
-  # Positiv-Anker [T002356-M1]: es gibt ueberhaupt Platzhalter im Bootstrap.
-  # Ohne ihn waere die Aussage bei leerer Kandidatenmenge trivial erfuellt.
+  # [SEC-03] Bootstrap-Manifeste sind seither literal — kein Platzhalter mehr.
+  # Der positive Anker [T002356-M1] wurde entfernt, weil die Absicht sich
+  # umgekehrt hat: wir wollen KEINE Platzhalter in den bootstrap/ Files.
+  # Die Deckungspruefung bleibt aktiv — sie faellt, sobald jemand wieder
+  # einen Platzhalter einfaehrt, der nicht im Task abgedeckt ist.
   run _placeholders
   [ "$status" -eq 0 ]
-  [ -n "$output" ]
 
   # Zweiter Anker: der flux:bootstrap-Task ist auffindbar und ruft envsubst auf.
   task_text="$(_bootstrap_task)"

@@ -3873,7 +3873,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 853,
+      "file_count": 854,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4181,6 +4181,7 @@
         "scripts/factory/mcp-go/go.mod",
         "scripts/factory/mcp-go/main.go",
         "scripts/factory/mcp-go/main_test.go",
+        "scripts/factory/mcp-go/security_test.go",
         "scripts/factory/mcp-go/staleness_test.go",
         "scripts/factory/merge-hooks.sh",
         "scripts/factory/metrics.sh",

@@ -90,6 +90,12 @@ In-flight:
   - Penpot-Domain in der Registry registriert | T016593 | active | ADDED
   - Penpot-Manifeste folgen dem Repo-Muster | T016593 | active | ADDED
   - Penpot-Datenbank auf shared-db | T016593 | active | ADDED
+  - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
+  - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
+  - Monitoring (blackbox-exporter, Grafana) ist wieder verfügbar | T900041 | active | ADDED
+  - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
+  - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
+  - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
   - Penpot object storage uses an available release image | T900026 | active | ADDED
   - Penpot kennt seine eigene öffentliche URL | T900002 | active | ADDED
   - Base Ingresses Deleted in the Prod Overlay | T900009 | active | ADDED

@@ -3654,6 +3654,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/cronjob-hygiene",
+    "file": "tests/spec/fleet-operations/cronjob-hygiene.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/dev-env-split",
     "file": "tests/spec/fleet-operations/dev-env-split.bats",
     "category": "fleet-operations",
@@ -3672,6 +3678,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/ghcr-pull-secret",
+    "file": "tests/spec/fleet-operations/ghcr-pull-secret.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/hetzner2-decommission",
     "file": "tests/spec/fleet-operations/hetzner2-decommission.bats",
     "category": "fleet-operations",
@@ -3686,6 +3698,12 @@
   {
     "id": "fleet-operations/membership-drift",
     "file": "tests/spec/fleet-operations/membership-drift.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/monitoring-ready",
+    "file": "tests/spec/fleet-operations/monitoring-ready.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },
@@ -3716,6 +3734,12 @@
   {
     "id": "fleet-operations/staging-flux-wiring",
     "file": "tests/spec/fleet-operations/staging-flux-wiring.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/vaultwarden-smtp-from",
+    "file": "tests/spec/fleet-operations/vaultwarden-smtp-from.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },

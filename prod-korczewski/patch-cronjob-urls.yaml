@@ -66,23 +66,8 @@ spec:
                     -H "Content-Type: application/json" \
                     -H "X-Cron-Secret: $CRON_SECRET" \
                     http://website.website-korczewski.svc.cluster.local/api/admin/billing/create-monthly-invoices
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: scheduled-publish
-  namespace: workspace
-spec:
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-            - name: publish
-              command:
-                - sh
-                - -c
-                - |
-                  curl -sf -X GET \
-                    -H "Authorization: Bearer $CRON_SECRET" \
-                    http://website.website-korczewski.svc.cluster.local/api/cron/scheduled-publish
+# scheduled-publish wird hier NICHT mehr gepatcht: die Basis
+# (k3d/cronjob-scheduled-publish.yaml) setzt den Ziel-Host seit T900035 aus
+# ${WEBSITE_NAMESPACE} zusammen und loest damit pro Overlay selbst korrekt auf.
+# Ein zusaetzlicher Patch mit hartkodiertem Host waere wieder genau die
+# Drift-Quelle, die den urspruenglichen Bug erzeugt hat.

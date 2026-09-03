@@ -10,9 +10,13 @@ spec:
   timeZone: "Europe/Berlin"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      # Ohne ttlSecondsAfterFinished raeumt der Job-Controller die Pods
+      # beendeter Jobs nie ab - bei einem Lauf alle 5 Minuten stapelten sich
+      # die Fehl-Pods bis zu 11 Tage lang. [T900035]
+      ttlSecondsAfterFinished: 3600
       template:
         spec:
           restartPolicy: OnFailure
@@ -34,9 +38,31 @@ spec:
                 - sh
                 - -c
                 - |
-                  curl -sf -X GET \
-                    -H "Authorization: Bearer $${CRON_SECRET}" \
-                    http://website.website-staging.svc.cluster.local/api/cron/scheduled-publish
+                  # Drei Defekte lagen hier uebereinander und ergaben zusammen
+                  # den Befund "Job scheitert dauerhaft, Log ist leer". [T900035]
+                  #
+                  # 1. Der Token wurde als "$${CRON_SECRET}" referenziert. envsubst
+                  #    laesst $$ stehen, und in sh expandiert $$ zur PID: der Header
+                  #    lautete real "Bearer 467023{CRON_SECRET}". Richtig ist die
+                  #    einfache Form $CRON_SECRET, wie in jedem anderen CronJob.
+                  # 2. Der Ziel-Host stand fest auf "website.website-staging". In
+                  #    PROD (workspace) und in korczewski rief der Job damit die
+                  #    STAGING-Website auf. Der Namespace kommt jetzt wie ueberall
+                  #    sonst aus der Env-Registry.
+                  # 3. "curl -sf" ist silent+fail: der Container starb ohne jede
+                  #    Ausgabe. Jetzt wird der HTTP-Code geloggt und der Body bei
+                  #    Fehlschlag nach stderr geschrieben.
+                  code=$(curl -s -S -X GET \
+                    -o /tmp/publish-response \
+                    -w '%{http_code}' \
+                    -H "Authorization: Bearer $CRON_SECRET" \
+                    "http://website.$WEBSITE_NAMESPACE.svc.cluster.local/api/cron/scheduled-publish")
+                  echo "scheduled-publish: HTTP $code"
+                  if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+                    echo "scheduled-publish: response body follows" >&2
+                    head -c 2000 /tmp/publish-response >&2
+                    exit 1
+                  fi
               resources:
                 requests:
                   cpu: 10m
@@ -44,6 +70,12 @@ spec:
                 limits:
                   memory: 64Mi
               env:
+                # Der Ziel-Namespace muss zur Laufzeit im Container stehen, weil
+                # das Kommando ihn in die URL einsetzt. Der Platzhalter wird beim
+                # Render durch envsubst aufgeloest (WEBSITE_NAMESPACE steht in
+                # beiden ENVSUBST_VARS-Listen).
+                - name: WEBSITE_NAMESPACE
+                  value: "${WEBSITE_NAMESPACE}"
                 - name: CRON_SECRET
                   valueFrom:
                     secretKeyRef:

@@ -1,6 +1,19 @@
-# Monthly CronJob that copies workspace-wildcard-tls to coturn and other namespaces.
-# Uses the K8s API via curl + ServiceAccount token — no kubectl image needed.
-# Runs on the 1st of each month, well within Let's Encrypt's 90-day cert lifetime.
+# Weekly CronJob that copies cluster-wide secrets into the service namespaces
+# that need them: the wildcard TLS cert and the ghcr-pull-secret.
+# Uses the K8s API via curl + ServiceAccount token - no kubectl image needed.
+#
+# Weekly (was monthly) since T900036: the TLS part only has to beat Let's
+# Encrypt's 90-day lifetime, but a missing image-pull secret has to converge
+# faster than that. ghcr-pull-secret had been absent from workspace-office and
+# website-staging for so long that only the local image cache kept collabora
+# and the staging website running (34355 + 98 FailedToRetrieveImagePullSecret
+# events); the next pull would have failed.
+#
+# It used to be provisioned imperatively (task workspace:office:pull-secret /
+# task website:pull-secret). Prod is pull-based via Flux, so those tasks never
+# run there and every namespace nobody touched by hand drifted away. Syncing
+# from a namespace that already holds the secret keeps it declarative without
+# putting a GHCR_PAT into the repo.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -35,7 +48,7 @@ metadata:
   name: tls-sync
   namespace: ${WORKSPACE_NAMESPACE}
 spec:
-  schedule: "0 3 1 * *"
+  schedule: "0 3 * * 1"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
@@ -99,13 +112,55 @@ spec:
                     echo "synced $SRC_NS/$SRC -> $NS/$DST"
                   }
 
-                  # Sync the cluster's wildcard TLS cert to all service namespaces.
-                  # ${WORKSPACE_NAMESPACE} and ${TLS_SECRET_NAME} are substituted by
-                  # envsubst during workspace:deploy so the correct values per env land here.
-                  # Destinations that don't exist on a given cluster are skipped gracefully.
+                  # Same shape as sync_secret, but for a docker-registry secret: one
+                  # .dockerconfigjson field and type kubernetes.io/dockerconfigjson.
+                  # sync_secret above reads tls.crt/tls.key and would copy an empty
+                  # secret here. [T900036]
+                  sync_dockerconfig() {
+                    SRC_NS="$1" SRC="$2" NS="$3"
+                    CFG=$(curl -sf --cacert "$CA" -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$SRC_NS/secrets/$SRC" \
+                      | tr -d '\n' \
+                      | grep -o '"\.dockerconfigjson": *"[^"]*"' \
+                      | grep -o '"[^"]*"$' | tr -d '"')
+                    [ -n "$CFG" ] || { echo "skip: $SRC_NS/$SRC not found"; return; }
+                    BODY="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"$SRC\"},\"type\":\"kubernetes.io/dockerconfigjson\",\"data\":{\".dockerconfigjson\":\"$CFG\"}}"
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" --cacert "$CA" \
+                      -H "Authorization: Bearer $TOKEN" \
+                      "$API/api/v1/namespaces/$NS/secrets/$SRC")
+                    if [ "$STATUS" = "200" ]; then
+                      curl -sf --cacert "$CA" -X PATCH \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/strategic-merge-patch+json" \
+                        "$API/api/v1/namespaces/$NS/secrets/$SRC" \
+                        -d "$BODY" > /dev/null
+                    else
+                      curl -sf --cacert "$CA" -X POST \
+                        -H "Authorization: Bearer $TOKEN" \
+                        -H "Content-Type: application/json" \
+                        "$API/api/v1/namespaces/$NS/secrets" \
+                        -d "$BODY" > /dev/null
+                    fi
+                    echo "synced $SRC_NS/$SRC -> $NS/$SRC"
+                  }
+                  #
+                  # Wildcard TLS cert into every service namespace.
+                  # ${WORKSPACE_NAMESPACE}, ${WEBSITE_NAMESPACE} and ${TLS_SECRET_NAME}
+                  # are substituted by envsubst during the render, so the correct values
+                  # per env land here. Destinations that don't exist on a given cluster
+                  # are skipped gracefully.
                   for NS in coturn workspace-office ${WEBSITE_NAMESPACE}; do
                     sync_secret ${WORKSPACE_NAMESPACE} ${TLS_SECRET_NAME} ${TLS_SECRET_NAME} "$NS" || \
-                      echo "warn: sync to $NS failed or namespace absent — skipping"
+                      echo "warn: tls sync to $NS failed or namespace absent - skipping"
+                  done
+                  #
+                  # ghcr-pull-secret: coturn runs no GHCR image and is not a target. The
+                  # source namespace holds the secret on every env (workspace /
+                  # workspace-staging); the two destinations are exactly where the audit
+                  # found it missing. [T900036]
+                  for NS in workspace-office ${WEBSITE_NAMESPACE}; do
+                    sync_dockerconfig ${WORKSPACE_NAMESPACE} ghcr-pull-secret "$NS" || \
+                      echo "warn: ghcr-pull-secret sync to $NS failed or namespace absent - skipping"
                   done
               resources:
                 requests:

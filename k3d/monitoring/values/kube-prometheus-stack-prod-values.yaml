@@ -40,6 +40,12 @@ prometheus:
       limits:   { cpu: 1, memory: 2Gi }
 
 grafana:
+  # Recreate statt des Chart-Defaults RollingUpdate: Grafana mountet einen
+  # ReadWriteOnce-PVC. Beim Rolling-Update haelt der alte Pod das Volume,
+  # der neue haengt im Volume-Attach - der Rollout stand 3d14h in Init:0/1.
+  # Muss hier stehen, damit ein Re-Render des Charts den Fix nicht verliert. [T900034]
+  deploymentStrategy:
+    type: Recreate
   persistence:
     enabled: true
     storageClassName: longhorn

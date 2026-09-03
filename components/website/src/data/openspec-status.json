@@ -4571,6 +4571,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900056": [
+    {
+      "slug": "superpowers-namespace",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

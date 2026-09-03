@@ -18,6 +18,12 @@ In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
+  - Superpowers is declared in every harness that runs the dev-flow skills | T900056 | active | ADDED
+  - A plugin activation finding names an executable remedy | T900056 | active | ADDED
+  - Plugin-provided discipline skills do not compete with the dev-flow orchestrators | T900056 | active | ADDED
+  - opencode reaches the shared dev-flow reference material | T900056 | active | ADDED
+  - A skill names the provider of a skill it calls | T900056 | active | ADDED
+  - Plugin activation is checked against installation | T900056 | active | MODIFIED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
 
 ### dev-flow-plan

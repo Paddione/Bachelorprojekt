@@ -74,6 +74,7 @@ flowchart LR
   oauth2_proxy_traefik["oauth2-proxy-traefik"]:::default
   oauth2_proxy_videovault["oauth2-proxy-videovault"]:::default
   collabora["collabora"]:::default
+  penpot["penpot"]:::default
   penminio["penminio"]:::default
   pocket_id["pocket-id"]:::default
   pvc_backup["pvc-backup"]:::default
@@ -102,6 +103,7 @@ flowchart LR
   traefik["traefik"]:::ingress
   llm_gateway_embed["llm-gateway-embed"]:::default
   llm_gateway_rerank["llm-gateway-rerank"]:::default
+  penpot_gateway["penpot-gateway"]:::default
   apiinternal["api@internal"]:::default
   WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]:::default
   old_webspace["old-webspace"]:::default
@@ -148,6 +150,7 @@ flowchart LR
   notify_unread -->|"command"| website
   oauth2_proxy_brett -->|"command"| brett
   oauth2_proxy_traefik -->|"command"| traefik
+  penpot -->|"DATABASE_URL"| shared_db
   pocket_id -->|"DB_CONNECTION_STRING"| shared_db
   pocket_id -->|"configmap:domain-c…"| brett
   pocket_id -->|"configmap:domain-c…"| traefik
@@ -214,6 +217,7 @@ flowchart LR
   traefik -->|"ingress"| otel_collector
   traefik -->|"ingress"| ntfy
   traefik -->|"ingress"| collabora
+  traefik -->|"ingress"| penpot_gateway
   traefik -->|"ingress"| oauth2_proxy_recovery
   traefik -->|"ingress"| sdlc_console
   traefik -->|"ingress"| oauth2_proxy_traefik
@@ -247,6 +251,7 @@ flowchart LR
   nextcloud_redis -->|"selector"| nextcloud_redis
   ntfy -->|"selector"| ntfy
   collabora -->|"selector"| collabora
+  penpot_gateway -->|"selector"| penpot
   penminio -->|"selector"| penminio
   recovery_browser -->|"selector"| recovery_browser
   oauth2_proxy_recovery -->|"selector"| oauth2_proxy_recovery
@@ -318,6 +323,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| admin_actions_cleanup
+  admin_actions_cleanup -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| pocket_id
@@ -401,6 +408,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| admin_actions_prune
+  admin_actions_prune -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| pocket_id
@@ -482,6 +491,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| sessions_purge
+  sessions_purge -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| pocket_id
@@ -561,6 +572,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| db_backup
+  db_backup -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| pocket_id
@@ -637,6 +650,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| db_restore_verify
+  db_restore_verify -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| pocket_id
@@ -710,6 +725,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| brett
+  brett -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| pocket_id
@@ -780,6 +797,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| billing_dunning_detection
+  billing_dunning_detection -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| pocket_id
@@ -852,6 +871,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| monthly_billing
+  monthly_billing -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| pocket_id
@@ -922,6 +943,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| scheduled_publish
+  scheduled_publish -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| pocket_id
@@ -990,6 +1013,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
+  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| pocket_id
@@ -1056,6 +1081,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_dev
+  oauth2_proxy_dev -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| pocket_id
@@ -1120,6 +1147,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_session_hub
+  oauth2_proxy_session_hub -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| pocket_id
@@ -1182,6 +1211,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| error_log_retention
+  error_log_retention -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| pocket_id
@@ -1242,6 +1273,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| knowledge_ingest_prs
+  knowledge_ingest_prs -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| pocket_id
@@ -1299,6 +1332,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| knowledge_ingest_bugs
+  knowledge_ingest_bugs -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| pocket_id
@@ -1354,6 +1389,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| knowledge_reindex_all
+  knowledge_reindex_all -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| pocket_id
@@ -1407,6 +1444,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| nextcloud
+  nextcloud -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| pocket_id
@@ -1454,6 +1493,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| notify_unread
+  notify_unread -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| pocket_id
@@ -1504,6 +1545,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_brain
   oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_brain
+  oauth2_proxy_brain -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_brain
   oauth2_proxy_brain -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_brain
   oauth2_proxy_brain -->|"secret:workspace-s…"| pocket_id
@@ -1552,6 +1595,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_brett
+  oauth2_proxy_brett -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| pocket_id
@@ -1598,6 +1643,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_comfy
+  oauth2_proxy_comfy -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| pocket_id
@@ -1642,6 +1689,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_docs
+  oauth2_proxy_docs -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| pocket_id
@@ -1684,6 +1733,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_downloads
+  oauth2_proxy_downloads -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| pocket_id
@@ -1724,6 +1775,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_mailpit
+  oauth2_proxy_mailpit -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| pocket_id
@@ -1762,6 +1815,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
+  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| pocket_id
@@ -1798,6 +1853,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
+  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| pocket_id
@@ -1832,6 +1889,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_studio
+  oauth2_proxy_studio -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| pocket_id
@@ -1864,6 +1923,8 @@ flowchart LR
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_terminal
+  oauth2_proxy_terminal -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| pocket_id
@@ -1894,6 +1955,8 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_traefik -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| pocket_id
@@ -1922,6 +1985,8 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_traefik
+  oauth2_proxy_videovault -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| pocket_id
@@ -1950,6 +2015,33 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_videovault
+  penpot -->|"secret:workspace-s…"| penminio
+  penminio -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| pocket_id
+  pocket_id -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| oauth2_proxy_recovery
+  oauth2_proxy_recovery -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| sdlc_console
+  sdlc_console -->|"secret:workspace-s…"| penpot
+  shared_db -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| studio_server
+  studio_server -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| spreed_signaling
+  spreed_signaling -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| talk_recording
+  talk_recording -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| vaultwarden
+  vaultwarden -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| videovault
+  videovault -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| whiteboard
+  whiteboard -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| talk_transcriber
+  talk_transcriber -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| ddns_updater
+  ddns_updater -->|"secret:workspace-s…"| penpot
+  penpot -->|"secret:workspace-s…"| dev_db_refresh
+  dev_db_refresh -->|"secret:workspace-s…"| penpot
   penminio -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| penminio
   penminio -->|"secret:workspace-s…"| oauth2_proxy_recovery
@@ -2202,6 +2294,7 @@ flowchart TB
     oauth2_proxy_terminal["oauth2-proxy-terminal"]
     oauth2_proxy_traefik["oauth2-proxy-traefik"]
     oauth2_proxy_videovault["oauth2-proxy-videovault"]
+    penpot["penpot"]
     penminio["penminio"]
     pocket_id["pocket-id"]
     pvc_backup(["pvc-backup"])
@@ -2222,6 +2315,7 @@ flowchart TB
     traefik["traefik"]
     llm_gateway_embed["llm-gateway-embed"]
     llm_gateway_rerank["llm-gateway-rerank"]
+    penpot_gateway["penpot-gateway"]
     apiinternal["api@internal"]
     WEBSITE_PRIMARY_SERVICE["${WEBSITE_PRIMARY_SERVICE}"]
     old_webspace["old-webspace"]

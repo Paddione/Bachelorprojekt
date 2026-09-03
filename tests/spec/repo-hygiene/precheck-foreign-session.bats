@@ -90,8 +90,11 @@ teardown() {
 @test "T900016: der Vorcheck prueft den main-checkout-Claim, nicht nur den Factory-Tick" {
   run bash "$SCRIPT" --check
   echo "output: $output"
-  # rc 0 oder 1 sind beide gueltige Messergebnisse; 2 waere ein kaputter Aufruf.
-  [ "$status" -ne 2 ]
+  # rc 0, 1 und 2 sind alle gueltige Ergebnisse eines echten Laufs: frei,
+  # Befund, oder (seit T900061) nicht messbar, weil der Lock-Test auf dieser
+  # Plattform nicht durchfuehrbar ist. Was hier NICHT passieren darf, ist ein
+  # Abbruch im Argument-Parsing — der Vorcheck muss den Lauf erreichen.
+  [[ "$output" != *"Usage:"* ]]
   # Beide Quellen werden benannt — das war der Kern des Befunds: der alte
   # Vorcheck kannte nur die erste.
   [[ "$output" == *"Factory-Tick"* ]]

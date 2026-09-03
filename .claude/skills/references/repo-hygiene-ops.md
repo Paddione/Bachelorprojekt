@@ -21,6 +21,15 @@ Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftauch
 bash scripts/repo-hygiene-precheck.sh          # 0 = frei, 1 = Befund, 2 = nicht prüfbar
 ```
 
+**`2` heißt „unbekannt", nicht „blockiert" [T900061].** Unter Git Bash auf Windows ist der
+Lock-Test nicht durchführbar — `flock` scheitert am fd-Redirect, und `/tmp` zeigt dort nicht
+auf die Lock-Datei, die die Factory unter WSL hält. Bis T900061 fiel dieser Fehler in denselben
+Zweig wie „Lock gehalten": der Vorcheck meldete auf jedem Windows-Host dauerhaft einen
+laufenden Tick und blockierte §1 grundlos. Jetzt sagt er, dass er es nicht weiß. Die
+Konsequenz ist dieselbe wie bei einem echten Tick, aber aus dem richtigen Grund: die
+`--porcelain`-Prüfung unmittelbar vor jedem Remove wiederholen, statt sich auf den Vorcheck zu
+verlassen.
+
 Er prüft beides: den laufenden Factory-Tick **und** den `main-checkout`-Claim aus
 `scripts/agent-lock.sh`. Der zweite Teil ist die Lehre aus dem 2026-08-30: der alte Vorcheck
 kannte nur den Tick, und eine **interaktive Fremdsession** mutiert ohne `/tmp/factory-tick.lock`.

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.4...website-v1.324.5) (2026-09-03)
+
+
+### Bug Fixes
+
+* **security:** enforce core.hooksPath and worktree hooks setup [T900050] ([#5424](https://github.com/Paddione/Bachelorprojekt/issues/5424)) ([d2f60b5](https://github.com/Paddione/Bachelorprojekt/commit/d2f60b5d3e83b561aac4d5527bff839c1cf0c386))
+
 ## [1.324.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.3...website-v1.324.4) (2026-09-03)
 
 

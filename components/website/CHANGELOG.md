@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.10...website-v1.324.11) (2026-09-03)
+
+
+### Bug Fixes
+
+* **scripts:** repo-hygiene-Guards messen unter Windows wieder [T900061] ([#5452](https://github.com/Paddione/Bachelorprojekt/issues/5452)) ([518d346](https://github.com/Paddione/Bachelorprojekt/commit/518d346cb8155839739a2ef3a88d20dd2307551f))
+
 ## [1.324.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.9...website-v1.324.10) (2026-09-03)
 
 

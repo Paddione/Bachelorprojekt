@@ -29,6 +29,42 @@ powershell.exe -NoProfile -File scripts/llm/restart-freetoken.ps1 `
   restart script) - trades SSM state precision for speed.
 - opencode entry: `limit.context: 131072`.
 
+### Expert-cache sizing (`--moe` slots) — measured 2026-09-03
+
+Live `/v1/cache/status` geometry for this model (256 experts, top-k=8 + 1
+shared, 40 MoE layers):
+
+| Quantity | Value |
+|---|---|
+| Distinct expert instances | 256 × 40 = **10,240** |
+| VRAM / expert | **1,775,616 B ≈ 1.69 MiB** |
+| VRAM / KV token | **20,480 B ≈ 20 KiB** |
+| **1 expert ≈ 86.7 KV tokens** | the sizing tradeoff ratio |
+| Resident at 200k KV | **~3700 slots → ~36%** |
+| Engine slot ceiling | **6340** (not a sensible target — see below) |
+
+**Ideal for agentic work: keep `--moe` at ~3700–4000 (≈36% resident).** Raising
+residency cannibalizes context, and 1 expert costs ~86.7 KV tokens:
+
+- → 5000 slots (49%): +1293 experts ≈ 2.19 GB ≈ −112k KV tokens (200k → ~88k).
+- → 6340 ceiling (62%): context collapses toward ~0 — unusable.
+
+Context/KV is the scarce resource here, not decode bandwidth (offload/hybrid
+already streams experts at ~104 tok/s short-ctx / 62–70 @63k). The only experts
+that *must* be resident are the shared expert (40 instances, fires every token)
+plus the router's hot subset of the 256 — all kept warm automatically by the
+global LRU. Default:
+
+```bash
+ft ctl cache --kv 200000 --moe 3800
+```
+
+Only for a short-context throughput bench (not agentic runs):
+
+```bash
+ft ctl cache --kv 90000 --moe 5100
+```
+
 ## gpt-oss-20b
 
 Smallest model; the only one whose weights (13.8 GB MXFP4) *nearly* fit fused -

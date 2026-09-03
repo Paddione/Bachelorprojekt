@@ -2,7 +2,7 @@
 title: "freetoken-runtime-guard — Implementation Plan"
 ticket_id: T900051
 domains: [local-llm, testing, documentation]
-status: active
+status: completed
 file_locks:
   - .opencode/plugin/freetoken-active.ts
   - .opencode/skills/freetoken-setup/scripts/smoke-test.sh

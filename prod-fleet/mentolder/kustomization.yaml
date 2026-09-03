@@ -12,7 +12,6 @@ resources:
   - sessions-server.yaml
   - oauth2-proxy-sessions.yaml
   - studio-ingress.yaml
-  - penpot-ingress-route.yaml
 components:
   - ../components/fleet-common
   - ../components/llm-models-longhorn

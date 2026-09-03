@@ -4499,27 +4499,9 @@
       "status": "archived"
     }
   ],
-  "T016593": [
-    {
-      "slug": "add-penpot-service",
-      "status": "plan_staged"
-    }
-  ],
-  "T900002": [
-    {
-      "slug": "fix-penpot-public-uri",
-      "status": "plan_staged"
-    }
-  ],
   "T900006": [
     {
       "slug": "bge-role-registry-routing",
-      "status": "plan_staged"
-    }
-  ],
-  "T900009": [
-    {
-      "slug": "penpot-ingress-conflict-livegang",
       "status": "plan_staged"
     }
   ],
@@ -4527,12 +4509,6 @@
     {
       "slug": "2026-08-31-agent-lock-windows-drive-path",
       "status": "archived"
-    }
-  ],
-  "T900026": [
-    {
-      "slug": "fix-penpot-minio-image",
-      "status": "plan_staged"
     }
   ],
   "T900027": [

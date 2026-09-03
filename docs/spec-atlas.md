@@ -96,21 +96,12 @@ Last touches:
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
 In-flight:
-  - Penpot-Domain in der Registry registriert | T016593 | active | ADDED
-  - Penpot-Manifeste folgen dem Repo-Muster | T016593 | active | ADDED
-  - Penpot-Datenbank auf shared-db | T016593 | active | ADDED
   - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
   - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
   - Monitoring (blackbox-exporter, Grafana) ist wieder verfügbar | T900041 | active | ADDED
   - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
   - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
-  - Penpot object storage uses an available release image | T900026 | active | ADDED
-  - Penpot kennt seine eigene öffentliche URL | T900002 | active | ADDED
-  - Base Ingresses Deleted in the Prod Overlay | T900009 | active | ADDED
-  - Multi-Port Services Declare Port Names | T900009 | active | ADDED
-  - Single Patches Block per Kustomization | T900009 | active | ADDED
-  - Penpot Reachable Under the Brand Design Domain with OIDC | T900009 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
@@ -276,8 +267,6 @@ Last touches:
   - REQ-AUTHSSO-DBINIT-001 — Deterministic Pocket-ID database role provisioning | T002187 | 2026-08-02 | ADDED
   - REQ-AUTHSSO-DBINIT-002 — Database bootstrap fails loudly | T002187 | 2026-08-02 | ADDED
   - REQ-AUTHSSO-DBINIT-003 — API-key bootstrap resolves the real admin user | T002187 | 2026-08-02 | ADDED
-In-flight:
-  - Penpot-OIDC-Client wird vom Seed-Job provisioniert | T016593 | active | ADDED
 
 ### auto-triage-grounding-T002399
 Reqs: 2 · Scenarios: 4 · Lines: 50

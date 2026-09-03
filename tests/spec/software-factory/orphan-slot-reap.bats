@@ -217,6 +217,15 @@ _osr_toplevel_local() {
 
 # ── T002610: Dispatcher meldet fehlgeschlagene Claims ───────────────────────#
 
+@test "T900057: queue-visible orphan fixture uses registered real-feature cleanup" {
+  local block
+  block="$(sed -n '/@test "T002610: schedule.sh reports a candidate whose slot claim fails"/,/^}/p' "$BATS_TEST_FILENAME")"
+
+  printf '%s\n' "$block" | grep -q 'seed_real_feature'
+  ! printf '%s\n' "$block" | grep -q 'seed_test_feature'
+  ! printf '%s\n' "$block" | grep -Eq 'is_test_data[[:space:]]*=[[:space:]]*false'
+}
+
 @test "T002610: schedule.sh reports a candidate whose slot claim fails" {
   # [T015556] Umgestellt auf den neuen Readiness-Kontrakt: planlose Rows werden
   # VOR dem Claim am Readiness-Gate uebersprungen (Journal-Line statt stiller

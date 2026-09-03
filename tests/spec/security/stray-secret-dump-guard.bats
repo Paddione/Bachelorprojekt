@@ -51,3 +51,18 @@ setup() {
     exit 1
   }
 }
+
+@test "stray secret dump guard skips node_modules and .worktrees during scan" {
+  local scan_dir="${BATS_TEST_TMPDIR}/scan-prune"
+  mkdir -p "$scan_dir/node_modules" "$scan_dir/.worktrees/nested"
+  printf '%s' '{"kind":"Secret"}' > "$scan_dir/node_modules/ws-secret.json"
+  printf '%s' '{"kind":"Secret"}' > "$scan_dir/.worktrees/nested/ws-secret.json"
+  echo "clean root" > "$scan_dir/normal.txt"
+
+  run bash "$GUARD" --dir "$scan_dir"
+  [ "$status" -eq 0 ] || {
+    echo "expected: FAIL (node_modules and .worktrees must be pruned)"
+    exit 1
+  }
+}
+

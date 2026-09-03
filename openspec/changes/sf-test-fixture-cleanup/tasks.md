@@ -34,18 +34,18 @@ bash tests/unit/lib/bats-core/bin/bats --filter 'T900057:' tests/spec/software-f
 
 ## Task 2: Use registered real-feature cleanup
 
-- [ ] In the T002610 schedule scenario, replace `seed_test_feature` with
+- [x] In the T002610 schedule scenario, replace `seed_test_feature` with
   `seed_real_feature`; retain the existing touched-file argument and orphan
   setup.
-- [ ] Remove the redundant readiness update because `seed_real_feature`
+- [x] Remove the redundant readiness update because `seed_real_feature`
   establishes the Lastenheft lock through the canonical helper contract.
-- [ ] Remove both manual `is_test_data` updates so no dispatchable `SF-TEST`
+- [x] Remove both manual `is_test_data` updates so no dispatchable `SF-TEST`
   state exists between assertions.
-- [ ] Run the T900057 guard and the affected T002610 scenario; both must pass.
+- [x] Run the T900057 guard and the affected T002610 scenario; both must pass.
 
 ## Task 3: Refresh generated test metadata
 
-- [ ] Run `task test:inventory` and commit the resulting
+- [x] Run `task test:inventory` and commit the resulting
   `components/website/src/data/test-inventory.json` update.
 
 ## Task 4: Final Verification

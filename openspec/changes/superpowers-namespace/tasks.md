@@ -83,7 +83,7 @@ tests/spec/agent-skills/superpowers-harness-parity.bats     A   Guard (liegt ber
 
 ## M3 — Vom Befund zur ausführbaren Behebung
 
-- [ ] **T3.1** In `taskfiles/Taskfile.agents.yml` das Target `plugins:sync` **direkt neben dem
+- [x] **T3.1** In `taskfiles/Taskfile.agents.yml` das Target `plugins:sync` **direkt neben dem
       bestehenden `plugins:check`** (Zeile 336, T002651) anlegen — voller Name
       `agents:plugins:sync`. Es liest die `enabledPlugins`-Map aus `.claude/settings.json`,
       ermittelt über `~/.claude/plugins/installed_plugins.json` die fehlenden Einträge und ruft
@@ -94,14 +94,14 @@ tests/spec/agent-skills/superpowers-harness-parity.bats     A   Guard (liegt ber
       > Kein neues Taskfile und kein `includes:`-Eintrag: `plugins:check` wohnt bereits in
       > `Taskfile.agents.yml`, und Prüfung und Behebung derselben Sache gehören nebeneinander.
 
-- [ ] **T3.2** `claude plugin install` ist nicht auf jeder Maschine vorhanden. Das Target prüft
+- [x] **T3.2** `claude plugin install` ist nicht auf jeder Maschine vorhanden. Das Target prüft
       `command -v claude` und bricht mit verständlicher Meldung ab, statt in einen
       Shell-Fehler zu laufen.
-- [ ] **T3.3** `scripts/plugin-doctor.sh` so erweitern, dass jeder gemeldete Befund
+- [x] **T3.3** `scripts/plugin-doctor.sh` so erweitern, dass jeder gemeldete Befund
       `task agents:plugins:sync` als Behebung nennt. Der Exit-Code-Vertrag (0 sauber/nicht anwendbar, 1 Befund,
       2 unlesbares JSON) bleibt unverändert, ebenso das `--json`-Schema — es kommt ein Feld hinzu,
       keins fällt weg.
-- [ ] **T3.4** `tests/spec/agent-skills/plugin-activation.bats` gegenlesen: die bestehenden
+- [x] **T3.4** `tests/spec/agent-skills/plugin-activation.bats` gegenlesen: die bestehenden
       Fixture-Tests dürfen durch die zusätzliche Ausgabezeile nicht brechen.
 
       ```bash

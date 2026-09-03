@@ -338,6 +338,60 @@ tasks:
     cmds:
       - bash scripts/plugin-doctor.sh
 
+  plugins:sync:
+    desc: "T900056: Vom plugin-doctor-Befund zur Installation -- fehlende, im Repo aktivierte Plugins nachinstallieren"
+    cmds:
+      - |
+        set -euo pipefail
+        if ! command -v claude >/dev/null 2>&1; then
+          echo "agents:plugins:sync: 'claude' nicht gefunden -- kein Claude-Code-CLI auf dieser Maschine, nichts zu tun."
+          exit 0
+        fi
+        CLAUDE_HOME="${PLUGIN_DOCTOR_CLAUDE_HOME:-${HOME}/.claude}"
+        REPO_SETTINGS="${PLUGIN_DOCTOR_REPO_SETTINGS:-.claude/settings.json}"
+        if [ ! -d "$CLAUDE_HOME" ]; then
+          echo "agents:plugins:sync: nicht anwendbar -- kein Claude-Home ($CLAUDE_HOME)."
+          exit 0
+        fi
+        MISSING_RAW="$(python3 - "$REPO_SETTINGS" "$CLAUDE_HOME" <<'PY'
+        import json, os, sys
+
+        repo_path, claude_home = sys.argv[1], sys.argv[2]
+
+        def load_json(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except FileNotFoundError:
+                return {}
+
+        repo = load_json(repo_path)
+        repo_enabled = [k for k, v in (repo.get("enabledPlugins") or {}).items() if v is True]
+
+        installed_doc = load_json(os.path.join(claude_home, "plugins", "installed_plugins.json"))
+        installed = (installed_doc.get("plugins") or {}) if isinstance(installed_doc, dict) else {}
+
+        for p in repo_enabled:
+            if p not in installed:
+                print(p)
+        PY
+        )"
+        # Windows: python3 print() emits CRLF in text mode here, and the
+        # trailing CR (octal 015) survives $(...) capture -- observed
+        # corrupting the marketplace part of the plugin arg passed to
+        # `claude plugin install` below. Strip it explicitly rather than
+        # relying on `read` (which only trims the trailing LF).
+        MISSING="$(printf '%s' "$MISSING_RAW" | tr -d '\015')"
+        if [ -z "$MISSING" ]; then
+          echo "agents:plugins:sync: keine fehlenden Plugins -- sauber."
+          exit 0
+        fi
+        while IFS= read -r plugin; do
+          [ -n "$plugin" ] || continue
+          echo "agents:plugins:sync: installiere $plugin"
+          claude plugin install "$plugin"
+        done <<< "$MISSING"
+
   # ── stdio MCP servers — spawned per-session by the client (Claude Code /
   # opencode), not standalone daemons. Nothing to install/start here; this is
   # a read-only presence check for the stack overview below.

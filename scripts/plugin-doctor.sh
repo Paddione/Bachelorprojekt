@@ -111,10 +111,16 @@ for plugin in repo_enabled:
 
 if json_mode:
     print(json.dumps({"findings": findings,
-                      "status": "drift" if findings else "clean"}))
+                      "status": "drift" if findings else "clean",
+                      # T900056: additive field -- the finding alone left no
+                      # path from diagnosis to a fixed state; the fix is one
+                      # task away now.
+                      "fix": "task agents:plugins:sync" if findings else None}))
 else:
     for f in findings:
         print("plugin-doctor: Befund: %s" % f)
+    if findings:
+        print("plugin-doctor: Behebung: task agents:plugins:sync")
 
 sys.exit(1 if findings else 0)
 PY

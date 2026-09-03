@@ -29,7 +29,14 @@
     // superpowers (T900056): opencode does NOT inherit Claude Code's plugin
     // set -- each harness declares its own. See the upstream install notes at
     // https://github.com/obra/superpowers/blob/main/.opencode/INSTALL.md.
-    "superpowers@git+https://github.com/obra/superpowers.git"
+    // Pinned to the same commit as .opencode/package.json (verified against
+    // `git ls-remote` and the gitCommitSha Claude Code recorded for its own
+    // install of this plugin) -- an unpinned git ref would resolve to
+    // whatever is on upstream main at install time, defeating the
+    // reproducibility this ticket exists to restore. INSTALL.md documents
+    // the `#<ref>` pin syntax directly (its example pins to a tag; a commit
+    // SHA is immutable where a tag can move, so that's used here instead).
+    "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
   ],
   "permission": {
     "read": "allow",

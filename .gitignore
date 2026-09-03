@@ -174,6 +174,7 @@ dotfiles
 .gemini/agents/
 .gemini/skills/
 .gemini
+skills.json
 .antigravitycli/57aad7c6-140e-44df-8ff1-e4b0168ac305.json
 .github/.openclaw/workspace-state.json
 assets/grilling-brett-admin-panel/Brett Design System/_source/placement_spec.json

@@ -38,4 +38,20 @@ case "${PWD:-}" in
     ;;
 esac
 
+# LOCALE. BATS leitet aus jedem Testnamen einen Shell-Funktionsnamen ab. Ohne
+# UTF-8-faehige Locale zerlegt Bash Nicht-ASCII byteweise, der abgeleitete Name
+# trifft die definierte Funktion nicht mehr, und BATS bricht je Test mit
+# "unknown test name" ab -- Exit 1, der Test lief nie. Unter Git-Bash ist LANG
+# leer, weshalb 367 Testnamen mit Umlauten, Em-Dash und Pfeilen dort nie liefen;
+# auf Linux/CI ist die Locale gesetzt und alles laeuft. [T900065]
+#
+# Nur setzen, wenn LC_ALL nicht schon explizit vorgegeben ist (bewusste Wahl des
+# Aufrufers gewinnt) und C.UTF-8 wirklich existiert -- glibc und MSYS listen es
+# als "C.utf8", macOS kennt es oft gar nicht; dort bleibt dies ein No-op.
+# C.UTF-8 aendert nur die Zeichenklassifikation, nicht die Sortierreihenfolge,
+# die weiterhin byteweise ist wie unter C.
+if [ -z "${LC_ALL:-}" ] && locale -a 2>/dev/null | grep -qiE '^C\.utf-?8$'; then
+  export LC_ALL=C.UTF-8
+fi
+
 exec "$_here/unit/lib/bats-core/bin/bats" "$@"

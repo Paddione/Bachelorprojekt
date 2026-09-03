@@ -16,6 +16,9 @@
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   SERVER="$REPO/scripts/mcp-gateway/mcp-postgres-local.mjs"
+  # [T900052] Server verlangt jetzt ein Pflicht-Token; die Tests provisionieren
+  # ein festes Wegwerf-Token fuer den Adapter und senden es als Bearer.
+  TOKEN="test-postgres-token"
 
   command -v node >/dev/null 2>&1 || skip "node nicht verfuegbar"
   command -v curl >/dev/null 2>&1 || skip "curl nicht verfuegbar"
@@ -43,13 +46,14 @@ teardown() {
 # startet den Adapter mit gegebener DATABASE_URL und wartet auf den Listener
 start_server() {
   local db_url="$1"
-  DATABASE_URL="$db_url" PORT="$PORT" node "$SERVER" >/dev/null 2>&1 &
+  MCP_POSTGRES_TOKEN="$TOKEN" DATABASE_URL="$db_url" PORT="$PORT" node "$SERVER" >/dev/null 2>&1 &
   SERVER_PID=$!
 
   local up=""
   for _ in $(seq 1 60); do
     if curl -s -o /dev/null --max-time 1 -X POST \
          -H 'content-type: application/json' \
+         -H "Authorization: Bearer ${TOKEN}" \
          -d '{}' "http://127.0.0.1:${PORT}/mcp" 2>/dev/null; then
       up=yes
       break
@@ -65,6 +69,7 @@ start_server() {
 # query_call <id> <sql> → JSON-RPC tools/call Antwort des Test-Servers
 query_call() {
   curl -s -X POST -H 'content-type: application/json' \
+    -H "Authorization: Bearer ${TOKEN}" \
     -d "{\"jsonrpc\":\"2.0\",\"id\":$1,\"method\":\"tools/call\",\"params\":{\"name\":\"query\",\"arguments\":{\"sql\":\"$2\"}}}" \
     "http://127.0.0.1:${PORT}/mcp"
 }

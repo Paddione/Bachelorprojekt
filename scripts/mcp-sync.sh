@@ -284,9 +284,15 @@ render_opencode_jsonc() {
         // Harness ein eigenes headers-Feld in der SSOT braucht.
         // split/join statt Regex: der Ausdruck muesste sonst durch drei
         // Quoting-Ebenen (bash -> node -e -> RegExp) escaped werden.
-        if (cl.headers) {
+        // [T900052] Per-Harness-Header: harness.opencode.headers hat Vorrang vor
+        // dem Top-Level headers. Das erlaubt einem Server, in .mcp.json (Claude,
+        // kein \${VAR}) registriert zu bleiben, waehrend opencode den Auth-Header
+        // traegt — noetig fuer factory-mcp-node (T002779-Guard verlangt die
+        // Registrierung in .mcp.json).
+        const opencodeHeaders = h.headers || cl.headers;
+        if (opencodeHeaders) {
           const translated = {};
-          for (const [hk, hv] of Object.entries(cl.headers)) {
+          for (const [hk, hv] of Object.entries(opencodeHeaders)) {
             translated[hk] = String(hv).split('\${').join('{env:');
           }
           fields.push(c + J('headers') + ': ' + J(translated));

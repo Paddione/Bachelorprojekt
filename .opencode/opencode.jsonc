@@ -129,6 +129,8 @@
 
       "url": "http://localhost:13003/mcp",
 
+      "headers": {"Authorization":"Bearer {env:FACTORY_MCP_TOKEN}"},
+
       "enabled": true
 
     },
@@ -148,6 +150,8 @@
       "type": "remote",
 
       "url": "http://localhost:13001/mcp",
+
+      "headers": {"Authorization":"Bearer {env:MCP_POSTGRES_TOKEN}"},
 
       "enabled": true
 

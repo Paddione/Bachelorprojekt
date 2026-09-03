@@ -10,6 +10,13 @@ import { spawnSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve, normalize, sep } from 'node:path';
 import { createHash } from 'node:crypto';
+import {
+  allowedBrowserOrigins,
+  requireToken,
+  guardRequest,
+  corsHeadersFor,
+  writeSecurityError,
+} from '../lib/mcp-http-security.mjs';
 
 // ---------------------------------------------------------------------------
 // Env-Helfer
@@ -128,24 +135,37 @@ const SERVER_NAME = 'factory-mcp';
 const SERVER_VERSION = '2.0.0';
 
 // ---------------------------------------------------------------------------
-// CORS-Middleware
+// HTTP-Sicherheitsgrenze (T900052) — gemeinsame fail-closed Policy
 // ---------------------------------------------------------------------------
 
-const CORS_HEADERS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, OPTIONS',
-  'access-control-allow-headers': 'Authorization, Content-Type, Accept, mcp-protocol-version',
-  'access-control-max-age': '86400',
-};
+// Server-spezifisches Token (Pflicht). Fehlt es, wirft requireToken beim
+// Start: der Server bindet dann seinen Port NICHT. Kein Wildcard-CORS.
+const factoryToken = requireToken('FACTORY_MCP_TOKEN');
+const browserOrigins = allowedBrowserOrigins();
 
 function applyCORS(res, req) {
-  for (const [k, v] of Object.entries(CORS_HEADERS)) {
+  const origin = req?.headers?.origin;
+  for (const [k, v] of Object.entries(corsHeadersFor(validOriginFor(origin), browserOrigins))) {
     res.setHeader(k, v);
   }
-  const reqHeaders = req.headers['access-control-request-headers'];
-  if (reqHeaders) {
-    res.setHeader('access-control-allow-headers', reqHeaders);
+}
+
+// Gibt die Origin nur zurueck, wenn sie in der Allowlist steht (sonst keine
+// Reflexion; Browser-Fetch-Sperre gilt bereits im guardRequest).
+function validOriginFor(origin) {
+  return origin && browserOrigins.has(String(origin)) ? String(origin) : undefined;
+}
+
+// Fail-closed Grenze vor Body-Lesen/Dispatcher: Host → Origin → Bearer.
+// Rejected requests stoppen hier, ohne den Body zu lesen oder ein Tool
+// aufzurufen (testbar via "upstream nicht erreicht").
+function guardMCP(req, res) {
+  const r = guardRequest(req, { token: factoryToken, allowedOrigins: browserOrigins });
+  if (!r.ok) {
+    writeSecurityError(res, r.status, r.message);
+    return false;
   }
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -603,21 +623,24 @@ const server = createServer(async (req, res) => {
   // CORS auf ALLEN Antworten
   applyCORS(res, req);
 
-  // OPTIONS → Pre-flight
+  // OPTIONS → Pre-flight (Host/Origin validiert, kein Token — Browser
+  // sendet keine Authorization im Preflight). Fremde Hosts/Origins erhalten
+  // 403 und keine CORS-Freigabe.
   if (req.method === 'OPTIONS') {
+    const r = guardRequest(req, { token: factoryToken, allowedOrigins: browserOrigins, requireAuth: false });
+    if (!r.ok) {
+      writeSecurityError(res, r.status, r.message);
+      return;
+    }
     res.writeHead(204).end();
     return;
   }
 
-  // Health-Endpoint
+  // Health-Endpoint — minimale Liveness nur (ok + Name). Detaillierte
+  // Diagnose (stale) bleibt ueber das authentifizierte factory_status-Tool.
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      ok: true,
-      server: 'factory-mcp',
-      build: '',
-      stale: serverStale(),
-    }));
+    res.end(JSON.stringify({ ok: true, server: 'factory-mcp' }));
     return;
   }
 
@@ -635,6 +658,10 @@ const server = createServer(async (req, res) => {
 
   // MCP-Endpoint — nur POST
   if (req.url === '/mcp' && req.method === 'POST') {
+    // Fail-closed Grenze VOR dem Body-Lesen: Host, Origin, Bearer. Ein
+    // abgelehnter Request liest nie den Body und ruft keinen Dispatcher auf.
+    if (!guardMCP(req, res)) return;
+
     let body;
     try {
       body = await readBody(req);

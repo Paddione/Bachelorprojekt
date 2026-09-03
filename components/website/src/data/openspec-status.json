@@ -4565,9 +4565,9 @@
       "status": "archived"
     }
   ],
-  "T900057": [
+  "T900052": [
     {
-      "slug": "sf-test-fixture-cleanup",
+      "slug": "mcp-http-origin-auth-hardening",
       "status": "plan_staged"
     }
   ],

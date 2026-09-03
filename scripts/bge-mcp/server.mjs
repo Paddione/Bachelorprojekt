@@ -39,6 +39,13 @@
 import { createServer } from 'node:http';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve as resolvePath } from 'node:path';
+import {
+  allowedBrowserOrigins,
+  requireToken,
+  guardRequest,
+  corsHeadersFor,
+  writeSecurityError,
+} from '../lib/mcp-http-security.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROUTER_PATH = resolvePath(HERE, '../../components/website/src/lib/bge-router.ts');
@@ -50,15 +57,19 @@ const { resolveEndpoint, BgeRoutingError } = await import(pathToFileURL(ROUTER_P
 
 const HOST = process.env.BGE_MCP_HOST ?? '127.0.0.1';
 const PORT = Number.parseInt(process.env.BGE_MCP_PORT ?? '13005', 10);
-const TOKEN = process.env.BGE_MCP_TOKEN ?? '';
 const PROTOCOL_VERSION = '2025-06-18';
 
-const CORS_HEADERS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, OPTIONS',
-  'access-control-allow-headers': 'Authorization, Content-Type, Accept, mcp-protocol-version',
-  'access-control-max-age': '86400',
-};
+// [T900052] Gemeinsame fail-closed Grenze: Pflicht-Token + exakte Browser-
+// Origins statt Wildcard-CORS. Fehlt das Token, wirft requireToken bereits
+// hier (vor server.listen) — der Server bindet den Port dann nicht.
+const TOKEN = requireToken('BGE_MCP_TOKEN');
+const browserOrigins = allowedBrowserOrigins();
+
+// CORS-Header reflektieren nur eine zugelassene Origin exakt — nie '*'.
+function corsHeadersForReq(req) {
+  const origin = req?.headers?.origin;
+  return corsHeadersFor(origin && browserOrigins.has(String(origin)) ? String(origin) : undefined, browserOrigins);
+}
 
 const TOOLS = [
   {
@@ -229,10 +240,11 @@ async function handleRpc(msg) {
   }
 }
 
-function authorized(req) {
-  if (!TOKEN) return false;
-  const header = req.headers.authorization ?? '';
-  return header === `Bearer ${TOKEN}`;
+// [T900052] Fail-closed Grenze: Host (DNS-Rebinding), Origin (Browser-
+// Allowlist), Bearer-Token. Liegt ein Fehlerstatus vor, schreibt der Aufrufer
+// die 401/403-Antwort; der Body wird in dem Fall nie gelesen.
+function guarded(req) {
+  return guardRequest(req, { token: TOKEN, allowedOrigins: browserOrigins });
 }
 
 function readBody(req) {
@@ -245,24 +257,30 @@ function readBody(req) {
 }
 
 const server = createServer(async (req, res) => {
+  const cors = corsHeadersForReq(req);
   const send = (status, body, headers = {}) => {
-    res.writeHead(status, { 'content-type': 'application/json', ...CORS_HEADERS, ...headers });
+    res.writeHead(status, { 'content-type': 'application/json', ...cors, ...headers });
     res.end(typeof body === 'string' ? body : JSON.stringify(body));
   };
 
   if (req.method === 'OPTIONS') {
+    // Preflight: Host/Origin validieren (kein Token — Browser sendet keins).
+    const g = guardRequest(req, { token: TOKEN, allowedOrigins: browserOrigins, requireAuth: false });
+    if (!g.ok) {
+      writeSecurityError(res, g.status, g.message);
+      return undefined;
+    }
     const requested = req.headers['access-control-request-headers'];
-    res.writeHead(204, requested
-      ? { ...CORS_HEADERS, 'access-control-allow-headers': requested }
-      : CORS_HEADERS);
+    res.writeHead(204, requested ? { ...cors, 'access-control-allow-headers': requested } : cors);
     res.end();
     return undefined;
   }
 
-  if (!authorized(req)) {
-    // Bearer-Pflicht auch fuer GET: der Bind auf 127.0.0.1 schuetzt nur gegen
-    // das Netz, nicht gegen andere Prozesse auf demselben Host.
-    return send(401, { error: 'unauthorized' }, { 'www-authenticate': 'Bearer' });
+  // Gemeinsame Grenze: Host → Origin → Bearer, vor Body-Lesen.
+  const g = guarded(req);
+  if (!g.ok) {
+    writeSecurityError(res, g.status, g.message);
+    return undefined;
   }
 
   // GET wird bewusst abgelehnt und NICHT zu einem SSE-Kanal aufgewertet [T002703].
@@ -289,11 +307,6 @@ const server = createServer(async (req, res) => {
   if (answers.length === 0) return send(202, '');
   return send(200, Array.isArray(parsed) ? answers : answers[0]);
 });
-
-if (!TOKEN) {
-  console.error('bge-mcp: BGE_MCP_TOKEN is unset — refusing to start without authentication');
-  process.exit(1);
-}
 
 server.listen(PORT, HOST, () => {
   console.error(`bge-mcp listening on http://${HOST}:${PORT} (tools: bge_embed, bge_rerank)`);

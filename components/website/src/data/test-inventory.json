@@ -4332,6 +4332,18 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/guarded-proxy-streaming",
+    "file": "tests/spec/mcp-gateway/guarded-proxy-streaming.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/http-security-boundary",
+    "file": "tests/spec/mcp-gateway/http-security-boundary.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/mcp-postgres-multistatement",
     "file": "tests/spec/mcp-gateway/mcp-postgres-multistatement.bats",
     "category": "mcp-gateway",
@@ -4346,6 +4358,12 @@
   {
     "id": "mcp-gateway/mcp-sync-drift-no-secret-leak",
     "file": "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/native-server-startup-token",
+    "file": "tests/spec/mcp-gateway/native-server-startup-token.bats",
     "category": "mcp-gateway",
     "kind": "shell"
   },

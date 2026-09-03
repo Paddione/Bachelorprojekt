@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.3...website-v1.324.4) (2026-09-03)
+
+
+### Bug Fixes
+
+* **security:** stray secret-dump guard - fail-closed pre-commit + CI [T900027] ([#5413](https://github.com/Paddione/Bachelorprojekt/issues/5413)) ([cb7a267](https://github.com/Paddione/Bachelorprojekt/commit/cb7a267abd7799ff745378ba27d0d675536af2fa))
+
 ## [1.324.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.2...website-v1.324.3) (2026-09-03)
 
 

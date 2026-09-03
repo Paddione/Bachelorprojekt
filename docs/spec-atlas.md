@@ -700,6 +700,11 @@ Last touches:
   - mcp-kubernetes und mcp-postgres laufen mit read-only Identität | T006335 | 2026-08-15 | MODIFIED
   - Multi-Statement Queries Rejected Instead of Empty Array | T006293 | 2026-08-15 | ADDED
 In-flight:
+  - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
+  - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
+  - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED
+  - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | active | ADDED
+  - REQ-MCP-HTTP-005 MCP authentication secrets stay outside tracked artifacts | T900052 | active | ADDED
   - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
 
 ### mcp-skill-integration

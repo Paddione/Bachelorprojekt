@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1260,
+      "file_count": 1261,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -883,6 +883,7 @@
         "tests/spec/repo-hygiene/dead-path-references.bats",
         "tests/spec/repo-hygiene/precheck-foreign-session.bats",
         "tests/spec/repo-hygiene/signal-gaps.bats",
+        "tests/spec/repo-hygiene/windows-guards.bats",
         "tests/spec/repo-hygiene/worktree-clean-check-existence.bats",
         "tests/spec/repo-hygiene/worktree-remove-generat-allowlist.bats",
         "tests/spec/repo-hygiene/worktree-stash-inspection.bats",

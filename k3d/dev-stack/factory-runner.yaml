@@ -133,6 +133,10 @@ spec:
               value: "/workspace/.secrets/bp-secrets.key"
             - name: FACTORY_ENV_FILE
               value: "/workspace/.secrets/autopilot.env"
+            - name: FACTORY_CTX
+              value: "fleet"
+            - name: FACTORY_NS
+              value: "workspace-dev"
             - name: LLM_BASE_URL # FreeToken via wg-mesh; P0-Spike 3 verifiziert die Route
               value: "http://192.168.100.10:1919/v1"
             - name: LLM_FALLBACK_PROVIDER # Eskalationskette First-Class (Design D3)

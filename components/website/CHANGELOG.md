@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.8...website-v1.324.9) (2026-09-03)
+
+
+### Bug Fixes
+
+* **factory:** use registered real-feature cleanup for queue-visible orphan fixture [T900057] ([#5438](https://github.com/Paddione/Bachelorprojekt/issues/5438)) ([74c2526](https://github.com/Paddione/Bachelorprojekt/commit/74c25265e68936c9c42b7aa4e13fad833d1251dc))
+
 ## [1.324.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.7...website-v1.324.8) (2026-09-03)
 
 

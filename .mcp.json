@@ -12,6 +12,10 @@
     "codebase-memory-mcp": {
       "command": "codebase-memory-mcp"
     },
+    "factory-mcp-node": {
+      "type": "http",
+      "url": "http://localhost:13003/mcp"
+    },
     "mcp-kubernetes": {
       "type": "http",
       "url": "http://localhost:18080/mcp"

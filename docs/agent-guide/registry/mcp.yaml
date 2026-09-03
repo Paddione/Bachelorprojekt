@@ -184,8 +184,11 @@ clients:
   factory-mcp-node:
     transport: http
     endpoint: http://localhost:13003/mcp
-    headers:
-      Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
+    # Kein Top-Level-placeholder-Header: factory-mcp-node MUSS laut dem
+    # T002779-Guard (tests/spec/mcp-tooling.bats) in .mcp.json registriert
+    # bleiben — ein ${VAR}-Header wuerde ihn dort per T004272 entfernen.
+    # Der Auth-Header wird stattdessen pro-Harness an opencode gegeben
+    # (harness.opencode.headers), das {env:VAR} aufloesen kann.
     auth_note: >-
       Bind auf 127.0.0.1 plus Bearer-Token (FACTORY_MCP_TOKEN). Ohne gesetzten
       Token startet der Server nicht (Shared Guard: mcp-http-security.mjs).
@@ -207,6 +210,11 @@ clients:
         type: remote
         url: http://localhost:13003/mcp
         enabled: true
+        # [T900052] Auth-Header NUR fuer opencode ({env:VAR}-Notation loest es
+        # selbst auf). factory-mcp-node bleibt damit im getrackten .mcp.json
+        # registriert (T002779-Guard), nur opencode traegt den Token.
+        headers:
+          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
 
   ticket-mcp-node:
     transport: stdio

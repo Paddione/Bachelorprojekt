@@ -20,7 +20,7 @@ _role_allowlist() {
         # Ohne ihn faellt jedes Proposal mit dieser Domain durch den Corpus-Guard
         # T002614 und faerbt damit main rot [T016598].
         bachelorprojekt-ops)       echo "ops llm llm-local-dev k8s observability monitoring factory-watchdog infra-monitoring" ;;
-        bachelorprojekt-infra)     echo "infra deploy deployment k3d kustomize prod environments taskfile" ;;
+        bachelorprojekt-infra)     echo "infra deploy deployment k3d kustomize prod environments taskfile fleet-operations" ;;
         bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts scripts-infra ci-cd ci dev-tooling" ;;
         bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;
         bachelorprojekt-security)  echo "security secrets keycloak oidc sealed-secret dsgvo credentials" ;;

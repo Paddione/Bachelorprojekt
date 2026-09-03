@@ -8,6 +8,7 @@
 #   --branch    local branch to delete (e.g. feature/sf-t000469)
 #   --worktree  worktree path to remove (e.g. .worktrees/sf-t000469)
 set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/../lib/worktree-prune-safe.sh" 2>/dev/null || true
 
 BRANCH=""
 WT_PATH=""
@@ -43,6 +44,7 @@ trap _trap_cleanup EXIT
 if [[ -n "$BRANCH" ]] && bash "$(dirname "$0")/../agent-lock.sh" check-branch-live "$BRANCH" >/dev/null 2>&1; then
   echo "cleanup.sh: branch $BRANCH traegt einen live Agent-Lock — Worktree-Removal uebersprungen (T002896)" >&2
 elif [[ -n "$WT_PATH" ]] && [[ -d "$WT_PATH" ]]; then
+  git worktree unlock "$WT_PATH" 2>/dev/null || true
   if git worktree remove --force "$WT_PATH" 2>/dev/null; then
     cleaned+=("worktree $WT_PATH")
   else
@@ -55,7 +57,7 @@ elif [[ -n "$WT_PATH" ]]; then
 fi
 
 # 2) Prune stale worktree metadata (safe post-remove housekeeping).
-git worktree prune 2>/dev/null || true
+worktree_prune_safe 2>/dev/null || true
 
 # 3) Delete the local branch if it exists.
 # [T002896] Guard: ueberspringe Branch-Deletion, wenn der Branch einen live

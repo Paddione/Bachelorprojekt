@@ -18,6 +18,7 @@ In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
+  - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -58,6 +59,8 @@ Last touches:
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
   - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
+In-flight:
+  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | active | MODIFIED
 
 ## delivery
 
@@ -661,14 +664,14 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 24 · Scenarios: 52 · Lines: 591
+Reqs: 24 · Scenarios: 52 · Lines: 587
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Measured Context Limits for FreeToken Checkpoints | T900051 | 2026-09-03 | MODIFIED
   - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
   - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
   - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
   - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
-  - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
 In-flight:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
@@ -688,6 +691,11 @@ Last touches:
   - mcp-kubernetes und mcp-postgres laufen mit read-only Identität | T006335 | 2026-08-15 | MODIFIED
   - Multi-Statement Queries Rejected Instead of Empty Array | T006293 | 2026-08-15 | ADDED
 In-flight:
+  - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
+  - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
+  - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED
+  - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | active | ADDED
+  - REQ-MCP-HTTP-005 MCP authentication secrets stay outside tracked artifacts | T900052 | active | ADDED
   - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
 
 ### mcp-skill-integration

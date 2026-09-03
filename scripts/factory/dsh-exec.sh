@@ -17,6 +17,7 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
+. "$REPO/scripts/lib/worktree-prune-safe.sh" 2>/dev/null || true
 
 EXT_ID="${1:-}"; LAUNCH_DIR="${2:-}"; BRANCH="${3:-}"; PLAN_PATH="${4:-}"
 [[ -z "$EXT_ID" ]] && { echo "dsh-exec: missing ticket ext_id" >&2; exit 2; }
@@ -48,6 +49,7 @@ mapfile -t partial_ids < <(printf '%s\n' "$partials_manifest" \
 
 # --- helper: record one implement phase-event --------------------------------------
 phase_event() { # <state> <subagent> <partial> <duration_s> <exit> [reason]
+  [[ -n "${BATS_TEST_NAME:-}" ]] && return 0
   local detail
   detail="$(jq -cn --arg s "$2" --arg p "$3" --argjson d "${4:-0}" --argjson e "${5:-0}" --arg r "${6:-}" \
     '{executor:"dsh",subagent:$s,partial:$p,duration_s:$d,exit:$e,reason:$r}')"
@@ -210,8 +212,9 @@ elif [[ $ex -eq 6 ]]; then
       --body "Factory: 3 aufeinanderfolgende Läufe ohne Implementierungs-Commit (exit 6) — Plan mit dsh-Setup nicht umsetzbar. Ticket auf planning zurückgesetzt." >/dev/null 2>&1 || true
     bash "$REPO/scripts/ticket.sh" retry-count reset --id "$EXT_ID" >/dev/null 2>&1 || true
     if [[ "$LAUNCH_DIR" != "$REPO" ]]; then
+      git -C "$REPO" worktree unlock "$LAUNCH_DIR" 2>/dev/null || true
       if git -C "$REPO" worktree remove --force "$LAUNCH_DIR" 2>/dev/null; then
-        git -C "$REPO" worktree prune 2>/dev/null || true
+        worktree_prune_safe 2>/dev/null || true
       fi
     fi
   fi

@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 2014 Abhängigkeitskanten · 291 API-Endpoints
+98 Services · 2023 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -129,6 +129,7 @@ flowchart LR
   systemtest_outbox -->|"command"| website
   claude_code_mcp_monolith -->|"DATABASE_URL"| shared_db
   claude_code_mcp_monolith -->|"DATABASE_URL"| website
+  factory_runner -->|"FACTORY_PG_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
   sdlc_console -->|"SESSIONS_DATABASE_…"| website
   error_log_retention -->|"command"| website
@@ -2051,8 +2052,15 @@ flowchart LR
   sdlc_console -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| sdlc_console
+  brett -->|"secret:shared-db-d…"| factory_runner
+  factory_runner -->|"secret:shared-db-d…"| brett
   brett -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| brett
+  factory_runner -->|"secret:shared-db-d…"| sdlc_console
+  sdlc_console -->|"secret:shared-db-d…"| factory_runner
+  factory_runner -->|"secret:shared-db-d…"| shared_db_dev
+  shared_db_dev -->|"secret:shared-db-d…"| factory_runner
+  website -->|"secret:shared-db-d…"| factory_runner
   sdlc_console -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| sdlc_console
   shared_db_dev -->|"secret:shared-db-d…"| website

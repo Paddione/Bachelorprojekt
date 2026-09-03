@@ -36,6 +36,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/restart-freetoke
 
 Bereitschaft: Log-Zeile `API server is ready to serve on 0.0.0.0:1919`.
 
+Der Smoke-Test prüft zusätzlich Engine-Version, konsistente Modell-IDs, die
+tatsächlich nutzbare KV-Kapazität und auf Windows den laufenden Serve-Prozess
+auf `--max-running-requests 1`:
+
+```bash
+bash .opencode/skills/freetoken-setup/scripts/smoke-test.sh
+```
+
+Die Desktop-App kann einen gesunden Server starten, ohne dass der separate
+Daemon den Prozess adoptiert. In diesem Fall darf `:1900/engine/status` trotz
+laufendem `:1919` `running=false, model=null` melden; der OpenCode-Plugin fällt
+dann auf `/v1/models` und `/v1/stats` zurück.
+
 **KV-Budget:** Ohne Größenflag wählt `--moe-cache-auto` nur ~8200 KV-Tokens
 (0,16 GiB) — Requests über `prompt + generation > 8199` werden mit
 `context_length_exceeded` abgewiesen (beobachtet beim Brain-Ingest,

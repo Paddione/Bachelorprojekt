@@ -37,27 +37,44 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Set-Location $RepoRoot
 
 # [T900040] Windows-Pendant zu EnvironmentFile= der systemd-Unit: fehlt der Token
-# in der Umgebung, wird er aus ~/.config/bge-mcp/server.env nachgeladen. Das ist
+# in der Umgebung, wird er aus ~/.config/<service>/server.env nachgeladen. Das ist
 # dieselbe Datei, aus der mcp-sync.sh den Authorization-Header aufloest - ohne
 # diesen Fallback muesste der Wert bei jedem Start von Hand gesetzt werden.
-if (-not $env:BGE_MCP_TOKEN -or $env:BGE_MCP_TOKEN.Trim() -eq "") {
-    $envFile = Join-Path $HOME ".config/bge-mcp/server.env"
+# [T900052] Erweitert um FACTORY_MCP_TOKEN, MCP_POSTGRES_TOKEN und
+# MCP_KUBERNETES_TOKEN — alle drei werden vom Shared Guard (mcp-http-security.mjs)
+# als Pflicht-Token gefordert.
+function Load-TokenFromEnv {
+    param(
+        [string]$EnvKey,
+        [string]$ServiceName
+    )
+    $currentValue = [Environment]::GetEnvironmentVariable($EnvKey)
+    if ($currentValue -and $currentValue.Trim() -ne "") { return $true }
+    $envFile = Join-Path $HOME ".config/$ServiceName/server.env"
     if (Test-Path $envFile) {
         foreach ($line in Get-Content $envFile) {
-            if ($line -match '^\s*BGE_MCP_TOKEN\s*=\s*(.+?)\s*$') {
-                $env:BGE_MCP_TOKEN = $Matches[1].Trim('"').Trim("'")
-                Write-Host "BGE_MCP_TOKEN aus $envFile geladen."
-                break
+            if ($line -match "^\s*$([regex]::Escape($EnvKey))\s*=\s*(.+?)\s*$") {
+                [Environment]::SetEnvironmentVariable($EnvKey, $Matches[1].Trim('"').Trim("'"), "Process")
+                Write-Host "$EnvKey aus $envFile geladen."
+                return $true
             }
         }
     }
+    return $false
 }
 
-if (-not $env:BGE_MCP_TOKEN -or $env:BGE_MCP_TOKEN.Trim() -eq "") {
+# Token laden (BGE_MCP_TOKEN ist Pflicht fuer den Shim; die anderen sind
+# Pflicht fuer die jeweiligen Server, werden aber erst beim Start geprueft).
+if (-not (Load-TokenFromEnv "BGE_MCP_TOKEN" "bge-mcp")) {
     Write-Host "FEHLER: BGE_MCP_TOKEN ist weder gesetzt noch in ~/.config/bge-mcp/server.env zu finden."
     Write-Host 'Setzen mit: $env:BGE_MCP_TOKEN = "<token>"'
     exit 1
 }
+
+# Fuer die guarded Server (werden beim Start via requireToken geprueft)
+Load-TokenFromEnv "FACTORY_MCP_TOKEN" "factory-mcp-node" | Out-Null
+Load-TokenFromEnv "MCP_POSTGRES_TOKEN" "mcp-postgres" | Out-Null
+Load-TokenFromEnv "MCP_KUBERNETES_TOKEN" "mcp-cors-proxy" | Out-Null
 
 function Start-PortForward {
     param(

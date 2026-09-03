@@ -133,10 +133,27 @@ spec:
               value: "/workspace/.secrets/bp-secrets.key"
             - name: FACTORY_ENV_FILE
               value: "/workspace/.secrets/autopilot.env"
+            - name: FACTORY_CTX
+              value: "fleet"
+            - name: FACTORY_NS
+              value: "workspace-dev"
             - name: LLM_BASE_URL # FreeToken via wg-mesh; P0-Spike 3 verifiziert die Route
               value: "http://192.168.100.10:1919/v1"
             - name: LLM_FALLBACK_PROVIDER # Eskalationskette First-Class (Design D3)
               value: "deepseek"
+            # [T900052] In-cluster DB-Zugriff: der Runner hat absichtlich kein
+            # kubectl/SAT (automountServiceAccountToken:false), erreicht die
+            # SDLC-DB aber direkt ueber die ClusterIP svc/shared-db-dev:5432
+            # (k3d/shared-db-endpoint-policy.yaml). scripts/factory/lib.sh
+            # factory_psql nimmt diesen URL-Pfad, wenn FACTORY_PG_URL gesetzt ist;
+            # der Desktop-MCP behaelt den kubectl-Fallback.
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_WEBSITE_DB_PASSWORD
+            - name: FACTORY_PG_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
           volumeMounts:
             - name: workdir
               mountPath: /workspace

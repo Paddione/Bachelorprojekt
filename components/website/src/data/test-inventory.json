@@ -4332,6 +4332,18 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/guarded-proxy-streaming",
+    "file": "tests/spec/mcp-gateway/guarded-proxy-streaming.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/http-security-boundary",
+    "file": "tests/spec/mcp-gateway/http-security-boundary.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/mcp-postgres-multistatement",
     "file": "tests/spec/mcp-gateway/mcp-postgres-multistatement.bats",
     "category": "mcp-gateway",
@@ -4346,6 +4358,12 @@
   {
     "id": "mcp-gateway/mcp-sync-drift-no-secret-leak",
     "file": "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/native-server-startup-token",
+    "file": "tests/spec/mcp-gateway/native-server-startup-token.bats",
     "category": "mcp-gateway",
     "kind": "shell"
   },
@@ -5448,6 +5466,12 @@
     "kind": "shell"
   },
   {
+    "id": "security/githooks-installed-guard",
+    "file": "tests/spec/security/githooks-installed-guard.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
     "id": "security/stray-secret-dump-guard",
     "file": "tests/spec/security/stray-secret-dump-guard.bats",
     "category": "security",
@@ -6213,6 +6237,12 @@
     "id": "worktree-create-real-path-T004604",
     "file": "tests/spec/worktree-create-real-path-T004604.bats",
     "category": "worktree-create-real-path-T004604",
+    "kind": "shell"
+  },
+  {
+    "id": "worktree-cross-platform",
+    "file": "tests/spec/worktree-cross-platform.bats",
+    "category": "worktree-cross-platform",
     "kind": "shell"
   },
   {

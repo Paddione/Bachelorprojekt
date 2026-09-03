@@ -24,6 +24,7 @@ RUN apt-get update \
       git-crypt \
       jq \
       curl \
+      postgresql-client \
  && rm -rf /var/lib/apt/lists/* \
  && curl -sL "https://github.com/go-task/task/releases/latest/download/task_linux_amd64.tar.gz" \
       | tar -xz -C /usr/local/bin task \

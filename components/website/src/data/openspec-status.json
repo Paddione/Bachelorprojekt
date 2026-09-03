@@ -4529,6 +4529,30 @@
       "status": "plan_staged"
     }
   ],
+  "T900046": [
+    {
+      "slug": "worktree-prune-cross-platform-fix",
+      "status": "plan_staged"
+    }
+  ],
+  "T900051": [
+    {
+      "slug": "2026-09-03-freetoken-runtime-guard",
+      "status": "archived"
+    }
+  ],
+  "T900052": [
+    {
+      "slug": "mcp-http-origin-auth-hardening",
+      "status": "plan_staged"
+    }
+  ],
+  "T900057": [
+    {
+      "slug": "sf-test-fixture-cleanup",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

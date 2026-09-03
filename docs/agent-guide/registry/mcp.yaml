@@ -37,12 +37,13 @@ clients:
     browser_endpoint: http://localhost:18082/mcp
     browser_note: >-
       Fuer Browser-Clients (llama-Web-UI, http://localhost:8098) steht mcp-kubernetes
-      hinter dem CORS-Proxy scripts/mcp-cors-proxy unter :18082. Grund: das
-      OTS-Image kubernetes_mcp_server kann kein CORS und wirft 403 auf jede
-      Anfrage mit Origin-Header (eigener CSRF-Schutz). Der Proxy beantwortet
-      OPTIONS selbst, entfernt Origin/Referer beim Weiterreichen an :18080 und
-      setzt die CORS-Header am Antwortweg. CLI-Harnesses (kein Origin-Header)
-      koennen weiter :18080 direkt benutzen.
+      hinter dem guarded CORS-Proxy scripts/mcp-cors-proxy unter :18082. Der Proxy
+      validiert Host/Origin/Token ueber den Shared Guard (mcp-http-security.mjs):
+      CLI-Clients (kein Origin-Header) brauchen MCP_KUBERNETES_TOKEN als Bearer,
+      Browser-Clients brauchen zusaetzlich eine erlaubte Origin in MCP_BROWSER_ORIGINS.
+      Der OTS-Image kubernetes_mcp_server wirft 403 auf jede Anfrage mit Origin-Header
+      (eigener CSRF-Schutz) — der Proxy entfernt Origin/Referer beim Weiterreichen
+      an :18080 und setzt die CORS-Header am Antwortweg. [T900052]
     harness:
       claude_code:
         type: http
@@ -62,6 +63,13 @@ clients:
   mcp-postgres:
     transport: http
     endpoint: http://localhost:13001/mcp
+    headers:
+      Authorization: "Bearer ${MCP_POSTGRES_TOKEN}"
+    auth_note: >-
+      Bind auf 127.0.0.1 plus Bearer-Token (MCP_POSTGRES_TOKEN). Ohne gesetzten
+      Token startet der Server nicht (Shared Guard: mcp-http-security.mjs).
+      Token-Quelle: ~/.config/mcp-postgres/server.env (per EnvironmentFile
+      in der systemd-Unit oder start-windows.ps1 geladen).
     brand: mentolder
     database: shared-db.workspace.svc.cluster.local/website
     scope_warning: >-
@@ -176,6 +184,16 @@ clients:
   factory-mcp-node:
     transport: http
     endpoint: http://localhost:13003/mcp
+    # Kein Top-Level-placeholder-Header: factory-mcp-node MUSS laut dem
+    # T002779-Guard (tests/spec/mcp-tooling.bats) in .mcp.json registriert
+    # bleiben — ein ${VAR}-Header wuerde ihn dort per T004272 entfernen.
+    # Der Auth-Header wird stattdessen pro-Harness an opencode gegeben
+    # (harness.opencode.headers), das {env:VAR} aufloesen kann.
+    auth_note: >-
+      Bind auf 127.0.0.1 plus Bearer-Token (FACTORY_MCP_TOKEN). Ohne gesetzten
+      Token startet der Server nicht (Shared Guard: mcp-http-security.mjs).
+      Token-Quelle: ~/.config/factory-mcp-node/server.env (per EnvironmentFile
+      in der systemd-Unit oder start-windows.ps1 geladen).
     windows_start: >-
       Windows (pk-desktop): Server starten mit
       FACTORY_REPO=C:/Users/PatrickKorczewski/Bachelorprojekt FACTORY_CTX=fleet
@@ -192,6 +210,11 @@ clients:
         type: remote
         url: http://localhost:13003/mcp
         enabled: true
+        # [T900052] Auth-Header NUR fuer opencode ({env:VAR}-Notation loest es
+        # selbst auf). factory-mcp-node bleibt damit im getrackten .mcp.json
+        # registriert (T002779-Guard), nur opencode traegt den Token.
+        headers:
+          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
 
   ticket-mcp-node:
     transport: stdio

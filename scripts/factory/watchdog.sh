@@ -15,6 +15,7 @@
 set -euo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
+. "$HERE/../lib/worktree-prune-safe.sh" 2>/dev/null || true
 
 # [T002674] Ausschlussliste statt Allowlist — dieselbe Lektion, die queue.sh
 # unter T002329/T002333/T002407 bereits gelernt hat und dort ausformuliert
@@ -143,8 +144,9 @@ _wd_cleanup_worktree() {
     bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
       --body "Watchdog: zombie worktree $stale_wt has uncommitted changes — skipped force-remove, needs manual review" >/dev/null 2>&1 || true
   else
+    git worktree unlock "$stale_wt" 2>/dev/null || true
     git worktree remove --force "$stale_wt" 2>/dev/null || rm -rf "$stale_wt" 2>/dev/null || true
-    git worktree prune 2>/dev/null || true
+    worktree_prune_safe 2>/dev/null || true
   fi
 }
 

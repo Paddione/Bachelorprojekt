@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.324.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.8...website-v1.324.9) (2026-09-03)
+
+
+### Bug Fixes
+
+* **factory:** use registered real-feature cleanup for queue-visible orphan fixture [T900057] ([#5438](https://github.com/Paddione/Bachelorprojekt/issues/5438)) ([74c2526](https://github.com/Paddione/Bachelorprojekt/commit/74c25265e68936c9c42b7aa4e13fad833d1251dc))
+
+## [1.324.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.7...website-v1.324.8) (2026-09-03)
+
+
+### Bug Fixes
+
+* **mcp:** harden local MCP HTTP boundaries with shared security guard [T900052] ([#5440](https://github.com/Paddione/Bachelorprojekt/issues/5440)) ([6645589](https://github.com/Paddione/Bachelorprojekt/commit/664558925129c96f357af74e004106dda9893a0d))
+
+## [1.324.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.6...website-v1.324.7) (2026-09-03)
+
+
+### Bug Fixes
+
+* **ops:** harden FreeToken runtime discovery [T900051] ([#5431](https://github.com/Paddione/Bachelorprojekt/issues/5431)) ([a294ab6](https://github.com/Paddione/Bachelorprojekt/commit/a294ab687569fe0945dfaa99b6d137525aed57ad))
+
+## [1.324.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.5...website-v1.324.6) (2026-09-03)
+
+
+### Bug Fixes
+
+* **scripts:** protect cross-platform worktrees from prune destruction [T900046] ([#5428](https://github.com/Paddione/Bachelorprojekt/issues/5428)) ([a623e99](https://github.com/Paddione/Bachelorprojekt/commit/a623e9939f941f85e1d6702ff53d662d48b874e4))
+
+## [1.324.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.4...website-v1.324.5) (2026-09-03)
+
+
+### Bug Fixes
+
+* **security:** enforce core.hooksPath and worktree hooks setup [T900050] ([#5424](https://github.com/Paddione/Bachelorprojekt/issues/5424)) ([d2f60b5](https://github.com/Paddione/Bachelorprojekt/commit/d2f60b5d3e83b561aac4d5527bff839c1cf0c386))
+
 ## [1.324.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.3...website-v1.324.4) (2026-09-03)
 
 

@@ -243,10 +243,17 @@ tasks:
   hooks:install:
     desc: Install git hooks (branch naming, kustomize validation, secret scanning)
     cmds:
+      - git config extensions.worktreeConfig true
       - git config core.hooksPath .githooks
+      - git config --worktree core.hooksPath .githooks 2>/dev/null || true
       - echo '✓ Git hooks installed from .githooks/'
       - 'echo "  pre-commit:         blocks main commits, validates kustomize, scans secrets"'
       - 'echo "  prepare-commit-msg: auto-prefixes commit message from branch name"'
+
+  hooks:check:
+    desc: "Verify git hooks are active and core.hooksPath is configured"
+    cmds:
+      - bash scripts/check-hooks-path.sh
 
   opencode:sync-agents:
     desc: "Merge .opencode/agent-models.jsonc config into ~/.config/opencode/opencode.jsonc"
@@ -2091,7 +2098,9 @@ tasks:
   secrets:install-hooks:
     desc: "Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard + commit-vs-diff guard + merge drivers"
     cmds:
+      - git config extensions.worktreeConfig true
       - git config core.hooksPath .githooks
+      - git config --worktree core.hooksPath .githooks 2>/dev/null || true
       - chmod +x .githooks/pre-commit
       - chmod +x .githooks/commit-msg
       - chmod +x .githooks/pre-push

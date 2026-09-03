@@ -61,3 +61,52 @@ Der BATS-Guard `readiness.bats` prueft die Probe-Konfiguration und Deckung:
 # expected: FAIL (vor dem Fix 'Unhealthy'/connection-refused-Events)
 tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/readiness.bats
 ```
+
+## Ausfuehrungsergebnis 2026-09-03: NICHT umgesetzt — kein Repo-Deliverable
+
+Beide Annahmen des Partials sind gegen den Cluster gemessen worden; keine
+haelt einer Manifest-Aenderung stand.
+
+**nextcloud PROD — kein Probe-Timeout-Problem.** Der Plan wollte
+`timeoutSeconds`/`failureThreshold` gegen die gemessene Antwortzeit anpassen.
+Die Messung:
+
+```bash
+kubectl --context fleet -n workspace exec deploy/nextcloud -c nextcloud -- \
+  sh -c 'for i in 1 2 3; do curl -s -o /dev/null -w "code=%{http_code} t=%{time_total}\n" http://127.0.0.1:80/status.php; done'
+# code=200 t=0.014517 / code=200 t=0.016052 / code=200 t=0.015832
+```
+
+15 ms gegen ein Probe-Timeout von 1 s (Default, `k3d/nextcloud.yaml`
+setzt keinen eigenen Wert). Das "context deadline exceeded" aus dem Audit war
+transient waehrend eines Neustarts. Die Probe-Werte hochzusetzen waere ein Fix
+fuer einen Defekt, den es nicht gibt.
+
+**nextcloud Staging — App-Ebene, nicht Manifest-Ebene.**
+
+```bash
+kubectl --context fleet -n workspace-staging exec deploy/nextcloud -c nextcloud -- \
+  curl -s -w '\ncode=%{http_code}\n' http://127.0.0.1:80/status.php
+# code=500, leerer Body
+```
+
+Apache selbst laeuft sauber hoch (Log zeigt AH00094, normale Operation). Der
+500er mit leerem Body ist ein PHP-/Config-Fehler der Staging-Instanz und
+gehoert in eine `occ`-Diagnose, nicht in `k3d/nextcloud.yaml` oder
+`prod/patch-nextcloud.yaml`.
+
+**llm-proxy — verwaiste Cluster-Ressource ohne Manifest.** Das Deployment
+laeuft in `workspace-dev` (0/1, 4d18h), hat aber in diesem Repo keine Quelle:
+
+```bash
+grep -rln 'llm-proxy' k3d/ prod*/ flux/
+# k3d/docs-content-built/api-surface.html   (generiertes HTML)
+# k3d/secrets.yaml                          (nur der Token-Key)
+```
+
+Kein Deployment-Manifest, also auch nichts, was Flux prunen koennte. Der Abbau
+ist eine reine Cluster-Mutation (`kubectl delete deploy llm-proxy -n
+workspace-dev`) und braucht die Zustimmung des Betreibers — dieser Plan-Partial
+kann sie nicht liefern.
+
+**Kein Guard-Test angelegt** (gleiche Begruendung wie p2).

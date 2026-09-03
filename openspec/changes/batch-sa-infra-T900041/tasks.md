@@ -67,3 +67,19 @@ tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/
 ```bash
 task test:changed; task freshness:regenerate; task freshness:check
 ```
+
+## Ausfuehrungsergebnis 2026-09-03
+
+| id | Ticket | Ergebnis |
+|----|--------|----------|
+| p1 | T900028 | erledigt - SMTP_FROM in prod/patch-vaultwarden.yaml |
+| p2 | T900030 | **nicht erledigt** - Root-Cause widerlegt (Scope-Mismatch statt fehlendem env:seal), Fix = Prod-Secret-Rotation, security-Domaene. Siehe tasks.d/p2. |
+| p3 | T900034 | erledigt - blackbox runAsUser 65534; Grafana strategy=Recreate (RWO-PVC-Deadlock, nicht der Init-Container) |
+| p4 | T900035 | erledigt - scheduled-publish: $$-PID-Expansion, Ziel-Namespace, sichtbares Fehler-Logging; tests-retention: ttl + backoffLimit |
+| p5 | T900036 | erledigt - ghcr-pull-secret ueber den tls-sync CronJob verteilt (secret-frei, deklarativ) |
+| p6 | T900037 | **nicht erledigt** - kein Repo-Deliverable: PROD-Probe misst 15ms (kein Defekt), Staging-500er ist App-Ebene, llm-proxy hat kein Manifest. Siehe tasks.d/p6. |
+| p7 | T900041 | erledigt fuer p1/p3/p4/p5 - 11 Guards in tests/spec/fleet-operations/, alle vorher rot |
+
+Fuer p2 und p6 wurden bewusst **keine** Guard-Tests angelegt: ohne zugehoerigen
+Fix waeren sie sofort gruen gewesen und haetten einen behobenen Defekt
+vorgetaeuscht (tests/CLAUDE.md, "Konfiguration statt Laufzeit", T003548).

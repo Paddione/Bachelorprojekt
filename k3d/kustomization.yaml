@@ -122,7 +122,6 @@ resources:
   - llm-gateway-ingress.yaml
   - shared-db-endpoint-policy.yaml
   - oauth2-proxy-terminal.yaml
-  # Penpot — design tool (T016434)
   # Ingress
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)

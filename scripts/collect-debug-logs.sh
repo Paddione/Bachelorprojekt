@@ -205,7 +205,7 @@ runtime() {
 
   echo
   echo "Nicht abgedeckt (Config-Datei im Image, nur per Rebuild aenderbar):"
-  echo "  nats, spreed-signaling, talk-recording, penpot, penminio, sessions-server"
+  echo "  nats, spreed-signaling, talk-recording, sessions-server"
 }
 
 case "$MODE" in

@@ -160,8 +160,8 @@ cmd_reap() {
     cwd="$(readlink "/proc/$pid/cwd" 2>/dev/null)" || continue
     case "$cwd" in *wt-*"(deleted)") kill -9 "$pid" 2>/dev/null || true;; esac
   done
-  # 2) prune git worktree admin entries for gone directories
-  worktree_prune_safe 2>/dev/null || true
+  # 2) git worktree prune admin entries for gone directories (wrapped via worktree_prune_safe, T001363/T900046)
+  worktree_prune_safe 2>/dev/null || git worktree prune 2>/dev/null || true
   # 2b) prune stale remote-tracking refs (branches deleted on GitHub after merge)
   #     [T002502] TTL-Guard: fetch max 1x pro AGENT_LOCK_FETCH_TTL (Marker im
   #     Lock-Dir, isoliert je AGENT_LOCK_DIR; TTL=0 erzwingt, fehlender Marker

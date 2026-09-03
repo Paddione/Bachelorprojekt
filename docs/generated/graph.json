@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-03T06:22:14.038Z",
+  "generatedAt": "2026-09-03T15:39:05.753Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -380,18 +380,6 @@
       "name": "collabora"
     },
     {
-      "id": "penpot",
-      "namespace": "mentolder",
-      "type": "Deployment",
-      "name": "penpot"
-    },
-    {
-      "id": "penminio",
-      "namespace": "mentolder",
-      "type": "Deployment",
-      "name": "penminio"
-    },
-    {
       "id": "pocket-id",
       "namespace": "mentolder",
       "type": "Deployment",
@@ -552,12 +540,6 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "llm-gateway-rerank"
-    },
-    {
-      "id": "penpot-gateway",
-      "namespace": "mentolder",
-      "type": "Service",
-      "name": "penpot-gateway"
     },
     {
       "id": "api@internal",
@@ -926,18 +908,6 @@
       "to": "traefik",
       "via": "command",
       "kind": "command"
-    },
-    {
-      "from": "penpot",
-      "to": "shared-db",
-      "via": "env:DATABASE_URL",
-      "kind": "env"
-    },
-    {
-      "from": "penpot",
-      "to": "shared-db",
-      "via": "initContainer:wait",
-      "kind": "initContainer"
     },
     {
       "from": "pocket-id",
@@ -1367,12 +1337,6 @@
     },
     {
       "from": "traefik",
-      "to": "penpot-gateway",
-      "via": "ingress",
-      "kind": "ingress"
-    },
-    {
-      "from": "traefik",
       "to": "oauth2-proxy-recovery",
       "via": "ingress",
       "kind": "ingress"
@@ -1566,18 +1530,6 @@
     {
       "from": "collabora",
       "to": "collabora",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "penpot-gateway",
-      "to": "penpot",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "penminio",
-      "to": "penminio",
       "via": "selector",
       "kind": "selector"
     },
@@ -2003,30 +1955,6 @@
     },
     {
       "from": "admin-actions-cleanup",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "admin-actions-cleanup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-cleanup",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "admin-actions-cleanup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-cleanup",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2519,30 +2447,6 @@
     },
     {
       "from": "admin-actions-prune",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "admin-actions-prune",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-prune",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "admin-actions-prune",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-prune",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3023,30 +2927,6 @@
     },
     {
       "from": "sessions-purge",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3515,30 +3395,6 @@
     },
     {
       "from": "db-backup",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "db-backup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-backup",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "db-backup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-backup",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3995,30 +3851,6 @@
     },
     {
       "from": "db-restore-verify",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "db-restore-verify",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-restore-verify",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "db-restore-verify",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-restore-verify",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4463,30 +4295,6 @@
     },
     {
       "from": "brett",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4919,30 +4727,6 @@
     },
     {
       "from": "billing-dunning-detection",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "billing-dunning-detection",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "billing-dunning-detection",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "billing-dunning-detection",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "billing-dunning-detection",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5363,30 +5147,6 @@
     },
     {
       "from": "monthly-billing",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "monthly-billing",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "monthly-billing",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "monthly-billing",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "monthly-billing",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5795,30 +5555,6 @@
     },
     {
       "from": "scheduled-publish",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "scheduled-publish",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "scheduled-publish",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "scheduled-publish",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "scheduled-publish",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6215,30 +5951,6 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-brainstorm",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brainstorm",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-brainstorm",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brainstorm",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6623,30 +6335,6 @@
     },
     {
       "from": "oauth2-proxy-dev",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7019,30 +6707,6 @@
     },
     {
       "from": "oauth2-proxy-session-hub",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-session-hub",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-session-hub",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-session-hub",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-session-hub",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7403,30 +7067,6 @@
     },
     {
       "from": "error-log-retention",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "error-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "error-log-retention",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "error-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "error-log-retention",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7775,30 +7415,6 @@
     },
     {
       "from": "knowledge-ingest-prs",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8135,30 +7751,6 @@
     },
     {
       "from": "knowledge-ingest-bugs",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8483,30 +8075,6 @@
     },
     {
       "from": "knowledge-reindex-all",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8819,30 +8387,6 @@
     },
     {
       "from": "nextcloud",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "nextcloud",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "nextcloud",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "nextcloud",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "nextcloud",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9143,30 +8687,6 @@
     },
     {
       "from": "notify-unread",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "notify-unread",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "notify-unread",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "notify-unread",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "notify-unread",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9455,30 +8975,6 @@
     },
     {
       "from": "oauth2-proxy-brain",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-brain",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brain",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-brain",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brain",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9755,30 +9251,6 @@
     },
     {
       "from": "oauth2-proxy-brett",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brett",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brett",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10043,30 +9515,6 @@
     },
     {
       "from": "oauth2-proxy-comfy",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-comfy",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-comfy",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-comfy",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-comfy",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10319,30 +9767,6 @@
     },
     {
       "from": "oauth2-proxy-docs",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-docs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-docs",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-docs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-docs",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10583,30 +10007,6 @@
     },
     {
       "from": "oauth2-proxy-downloads",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-downloads",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-downloads",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-downloads",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-downloads",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10835,30 +10235,6 @@
     },
     {
       "from": "oauth2-proxy-mailpit",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-mailpit",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mailpit",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-mailpit",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mailpit",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11075,30 +10451,6 @@
     },
     {
       "from": "oauth2-proxy-mediaviewer",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-mediaviewer",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-mediaviewer",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11303,30 +10655,6 @@
     },
     {
       "from": "oauth2-proxy-rustdesk-web",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-rustdesk-web",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-rustdesk-web",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-rustdesk-web",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-rustdesk-web",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11519,30 +10847,6 @@
     },
     {
       "from": "oauth2-proxy-studio",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-studio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-studio",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-studio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-studio",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11723,30 +11027,6 @@
     },
     {
       "from": "oauth2-proxy-terminal",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-terminal",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-terminal",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-terminal",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-terminal",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11915,30 +11195,6 @@
     },
     {
       "from": "oauth2-proxy-traefik",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-traefik",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-traefik",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-traefik",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-traefik",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -12095,30 +11351,6 @@
     },
     {
       "from": "oauth2-proxy-videovault",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -12270,330 +11502,6 @@
     {
       "from": "dev-db-refresh",
       "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "pocket-id",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "pocket-id",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "oauth2-proxy-recovery",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-recovery",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "sdlc-console",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "shared-db",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "studio-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "studio-server",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "spreed-signaling",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "spreed-signaling",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "talk-recording",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-recording",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "vaultwarden",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "vaultwarden",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "videovault",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "whiteboard",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "whiteboard",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-transcriber",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "ddns-updater",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "ddns-updater",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penpot",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "penpot",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "pocket-id",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "pocket-id",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "oauth2-proxy-recovery",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-recovery",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "sdlc-console",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "shared-db",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "studio-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "studio-server",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "spreed-signaling",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "spreed-signaling",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "talk-recording",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-recording",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "vaultwarden",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "vaultwarden",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "videovault",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "whiteboard",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "whiteboard",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-transcriber",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "ddns-updater",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "ddns-updater",
-      "to": "penminio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "penminio",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "penminio",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

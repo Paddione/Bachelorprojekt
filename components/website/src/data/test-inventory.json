@@ -2352,12 +2352,6 @@
     "kind": "shell"
   },
   {
-    "id": "auth-sso/penpot-oidc",
-    "file": "tests/spec/auth-sso/penpot-oidc.bats",
-    "category": "auth-sso",
-    "kind": "shell"
-  },
-  {
     "id": "auto-triage-grounding-T002399",
     "file": "tests/spec/auto-triage-grounding-T002399.bats",
     "category": "auto-triage-grounding-T002399",
@@ -3714,8 +3708,8 @@
     "kind": "shell"
   },
   {
-    "id": "fleet-operations/penpot-manifests",
-    "file": "tests/spec/fleet-operations/penpot-manifests.bats",
+    "id": "fleet-operations/penpot-secret-keys",
+    "file": "tests/spec/fleet-operations/penpot-secret-keys.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },

@@ -32,7 +32,6 @@ env_vars:
 
   MEDIAVIEWER_HOST: mediaviewer.localhost
   VIDEOVAULT_DOMAIN: videovault.localhost
-  PENPOT_PUBLIC_URI: "http://design.localhost"
   POCKET_ID_FRONTEND_URL: "http://auth.localhost"
   # FQDN statt Kurzname: components/brett/src/server/auth.ts akzeptiert http nur für
   # localhost/*.svc.cluster.local (T001933) — Kurzname 'pocket-id' wirft beim

@@ -47,7 +47,10 @@ start_boundary() {
     if curl -s -o /dev/null --max-time 1 "http://127.0.0.1:${PORT}/hits" 2>/dev/null; then up=yes; break; fi
     sleep 0.1
   done
-  [ -n "$up" ] || { kill "$SRV_PID" 2>/dev/null || true; skip "Boundary-Listener auf $PORT nicht hoch" }
+  if [ -z "$up" ]; then
+    kill "$SRV_PID" 2>/dev/null || true
+    skip "Boundary-Listener auf $PORT nicht hoch"
+  fi
 }
 
 post_rpc() {

@@ -5454,6 +5454,12 @@
     "kind": "shell"
   },
   {
+    "id": "security/stray-secret-dump-guard",
+    "file": "tests/spec/security/stray-secret-dump-guard.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
     "id": "sessions-server",
     "file": "tests/spec/sessions-server.bats",
     "category": "sessions-server",

@@ -1044,6 +1044,9 @@ Last touches:
   - Deliberate dev absence is annotated, not allowlisted | T003141 | 2026-08-11 | ADDED
   - Stale dev_absent annotations are detected | T003141 | 2026-08-11 | ADDED
   - Keycloak-era OIDC key names stay retired | T003141 | 2026-08-11 | ADDED
+In-flight:
+  - Stray-Secret-Dump-Guard | T900027 | active | ADDED
+  - Exposed-Secret Cleanup Runbook | T900027 | active | ADDED
 
 ### security
 Reqs: 3 · Scenarios: 8 · Lines: 130

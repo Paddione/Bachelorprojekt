@@ -20,10 +20,6 @@
       "type": "http",
       "url": "http://localhost:18080/mcp"
     },
-    "mcp-postgres": {
-      "type": "http",
-      "url": "http://localhost:13001/mcp"
-    },
     "mcp-task-runner": {
       "command": "node",
       "args": [

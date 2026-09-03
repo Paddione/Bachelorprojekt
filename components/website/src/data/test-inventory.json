@@ -3678,6 +3678,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/hetzner2-rejoin",
+    "file": "tests/spec/fleet-operations/hetzner2-rejoin.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/internal-endpoints",
     "file": "tests/spec/fleet-operations/internal-endpoints.bats",
     "category": "fleet-operations",

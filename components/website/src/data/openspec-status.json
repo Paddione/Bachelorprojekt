@@ -4481,6 +4481,12 @@
       "status": "plan_staged"
     }
   ],
+  "T016442": [
+    {
+      "slug": "rejoin-gekko-hetzner2-fleet",
+      "status": "plan_staged"
+    }
+  ],
   "T016447": [
     {
       "slug": "cbm-index-single-flight",

@@ -113,7 +113,34 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST \
 ## Schritt 5 — Kontrollierter Neustart
 
 1. Proben auf temporaeren Ports (siehe `tasks.md` 5.1): authentifizierte
-   initialize/tools-list + erlaubte Browser-Origins.
+   initialize/tools-list + erlaubte Browser-Origins. Die folgenden Befehle
+   wurden gegen die guarded Server auf temporaeren Ports verifiziert
+   (T900052, Cutover-Probe):
+
+   ```bash
+   # factory-mcp-node (temporaerer Port 19910) — 401 ohne Token, 200 mit Token
+   FACTORY_MCP_TOKEN=cutover-token-abc FACTORY_MCP_PORT=19910 \
+     node scripts/factory-mcp-node/server.mjs &
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:19910/mcp \
+     -H 'content-type: application/json' \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'          # -> 401
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:19910/mcp \
+     -H 'content-type: application/json' \
+     -H 'Authorization: Bearer cutover-token-abc' \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'          # -> 200
+
+   # mcp-postgres-local (temporaerer Port 19911) — 401 ohne Token, 200 mit Token
+   MCP_POSTGRES_TOKEN=pg-token-xyz PORT=19911 \
+     node scripts/mcp-gateway/mcp-postgres-local.mjs &
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:19911/mcp \
+     -H 'content-type: application/json' \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'          # -> 401
+   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:19911/mcp \
+     -H 'content-type: application/json' \
+     -H 'Authorization: Bearer pg-token-xyz' \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'          # -> 200
+   ```
+
 2. Kanonische Listener wechseln: Live-Prozess auf `:13003` sauber stoppen
    (SIGTERM), mit neuem Code + `source`d Token-Env neu starten.
 3. Regression: `task mcp:check`, BATS-Suite `tests/spec/mcp-gateway/`,

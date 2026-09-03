@@ -73,25 +73,39 @@ PATTERNS=(
   '*secrets-dump*.json'
 )
 
+# Directories to prune from the scan tree (dependencies, worktrees, git objects)
+PRUNE_NAMES=(
+  .git
+  .worktrees
+  node_modules
+)
+
+PRUNE_EXPR=()
+for name in "${PRUNE_NAMES[@]}"; do
+  if [ ${#PRUNE_EXPR[@]} -gt 0 ]; then
+    PRUNE_EXPR+=(-o)
+  fi
+  PRUNE_EXPR+=(-name "$name")
+done
+
+PATTERN_EXPR=()
+for pattern in "${PATTERNS[@]}"; do
+  if [ ${#PATTERN_EXPR[@]} -gt 0 ]; then
+    PATTERN_EXPR+=(-o)
+  fi
+  PATTERN_EXPR+=(-iname "$pattern")
+done
+
 # --- Scan ---
 FOUND=0
 FOUND_FILES=""
 
 while IFS= read -r -d '' filepath; do
-  filename="$(basename "$filepath")"
-  for pattern in "${PATTERNS[@]}"; do
-    # Case-insensitive match via lowercasing
-    lower_name="${filename,,}"
-    lower_pattern="${pattern,,}"
-    if [[ "$lower_name" == $lower_pattern ]]; then
-      FOUND_FILES="$FOUND_FILES
+  FOUND_FILES="$FOUND_FILES
   $filepath"
-      echo "FOUND stray secret dump: $filepath" >&2
-      FOUND=$((FOUND + 1))
-      break  # Don't double-count files matching multiple patterns
-    fi
-  done
-done < <(find "$SCAN_DIR" -type f -print0 2>/dev/null)
+  echo "FOUND stray secret dump: $filepath" >&2
+  FOUND=$((FOUND + 1))
+done < <(find "$SCAN_DIR" \( "${PRUNE_EXPR[@]}" \) -prune -o -type f \( "${PATTERN_EXPR[@]}" \) -print0 2>/dev/null)
 
 # --- Report ---
 if [ "$FOUND" -gt 0 ]; then

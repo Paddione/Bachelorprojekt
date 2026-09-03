@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.5...website-v1.324.6) (2026-09-03)
+
+
+### Bug Fixes
+
+* **scripts:** protect cross-platform worktrees from prune destruction [T900046] ([#5428](https://github.com/Paddione/Bachelorprojekt/issues/5428)) ([a623e99](https://github.com/Paddione/Bachelorprojekt/commit/a623e9939f941f85e1d6702ff53d662d48b874e4))
+
 ## [1.324.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.4...website-v1.324.5) (2026-09-03)
 
 

@@ -8,11 +8,22 @@
 
 import { createServer } from 'node:http';
 import pg from 'pg';
+import {
+  allowedBrowserOrigins,
+  requireToken,
+  guardRequest,
+  corsHeadersFor,
+  writeSecurityError,
+} from '../lib/mcp-http-security.mjs';
 
 const { Pool } = pg;
 
 const DB_URL = process.env.DATABASE_URL || 'postgresql://mcp_readonly@localhost:15432/website';
 const PORT = parseInt(process.env.PORT || '13001', 10);
+
+// [T900052] Pflicht-Token (fail-fast vor server.listen) + exakte Browser-Origins.
+const mcpPostgresToken = requireToken('MCP_POSTGRES_TOKEN');
+const browserOrigins = allowedBrowserOrigins();
 
 const pool = new Pool({
   connectionString: DB_URL,
@@ -42,10 +53,10 @@ const tools = [
   },
 ];
 
-function json(res, status, body) {
+function json(res, status, body, origin) {
   res.writeHead(status, {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeadersFor(origin && browserOrigins.has(String(origin)) ? String(origin) : undefined, browserOrigins),
   });
   res.end(JSON.stringify(body));
 }
@@ -302,10 +313,17 @@ function getBody(req) {
 }
 
 const server = createServer(async (req, res) => {
-  // CORS preflight
+  const origin = req?.headers?.origin;
+
+  // CORS preflight — Host/Origin validiert (kein Token; Browser sendet keins).
   if (req.method === 'OPTIONS') {
+    const g = guardRequest(req, { token: mcpPostgresToken, allowedOrigins: browserOrigins, requireAuth: false });
+    if (!g.ok) {
+      writeSecurityError(res, g.status, g.message);
+      return;
+    }
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
+      ...corsHeadersFor(origin && browserOrigins.has(String(origin)) ? String(origin) : undefined, browserOrigins),
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Accept',
     });
@@ -313,20 +331,26 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Health endpoint
+  // Health endpoint — minimale Liveness.
   if (req.method === 'GET' && req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('ok');
     return;
   }
 
-  // MCP endpoint
+  // MCP endpoint — gemeinsame fail-closed Grenze VOR Body-Lesen/DB-Zugriff.
   if (req.method === 'POST' && req.url === '/mcp') {
+    const g = guardRequest(req, { token: mcpPostgresToken, allowedOrigins: browserOrigins });
+    if (!g.ok) {
+      writeSecurityError(res, g.status, g.message);
+      return;
+    }
+
     let payload;
     try {
       payload = await getBody(req);
     } catch (err) {
-      json(res, 400, rpcErr(null, err.code || -32700, err.message));
+      json(res, 400, rpcErr(null, err.code || -32700, err.message), origin);
       return;
     }
 
@@ -345,15 +369,15 @@ const server = createServer(async (req, res) => {
           result = await handleToolsCall(params);
           break;
         case 'notifications/initialized':
-          json(res, 200, rpc(id, {}));
+          json(res, 200, rpc(id, {}), origin);
           return;
         default:
-          json(res, 200, rpcErr(id, -32601, `Method not found: ${method}`));
+          json(res, 200, rpcErr(id, -32601, `Method not found: ${method}`), origin);
           return;
       }
-      json(res, 200, rpc(id, result));
+      json(res, 200, rpc(id, result), origin);
     } catch (err) {
-      json(res, 200, rpcErr(id, err.code || -32603, err.message));
+      json(res, 200, rpcErr(id, err.code || -32603, err.message), origin);
     }
     return;
   }

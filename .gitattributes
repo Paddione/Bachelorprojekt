@@ -62,6 +62,7 @@ docs/diagrams/architecture.md                 merge=ours linguist-generated=true
 # T016422: Windows-native Dev — Shell-/YAML-Sourcen strikt LF
 *.sh    text eol=lf
 *.bats  text eol=lf
+*.bash  text eol=lf
 # Linux-interpreted sources must stay LF — NTFS checkout (Windows-native dev,
 # ADR-007) would otherwise introduce CRLF and break bash/yaml parsing.
 *.yaml  text eol=lf

@@ -810,7 +810,7 @@ tasks:
       # ENTFERNT — dieselbe Lehre, diesmal beim Aufteilen statt beim Zusammenfuehren
       # beachtet. `-r` auf das Verzeichnis, damit kuenftige Dateien ohne Aenderung hier
       # mitlaufen; ein Glob wuerde sie stillschweigend auslassen.
-      - bash tests/bats -r tests/spec/software-factory/ tests/local/FA-AR-*.bats
+      - bash -c "tests/bats -r tests/spec/software-factory/ tests/local/FA-AR-*.bats"
 
   test:spec:build-mcp-runner:
     cmds:
@@ -1055,7 +1055,7 @@ tasks:
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
     cmds:
-      - bash tests/bats tests/local/AGENT-LOCK-*.bats
+      - bash -c "tests/bats tests/local/AGENT-LOCK-*.bats"
 
   test:all:
     desc: "Run tests for changed files only (smart selection) — delegates to test:changed"
@@ -4042,20 +4042,7 @@ tasks:
   gemini:sync:
     desc: "Mirror .claude/agents and .claude/skills into .gemini/ (per-worktree; .gemini/* is gitignored)"
     cmds:
-      - |
-        set -euo pipefail
-        for sub in agents skills; do
-          src=".claude/$sub"
-          dst=".gemini/$sub"
-          if [[ ! -d "$src" ]]; then
-            echo "✗ $src missing — nothing to mirror"; exit 1
-          fi
-          rm -rf "$dst"
-          mkdir -p "$dst"
-          # Copy with -L to dereference symlinks; -a to preserve attributes
-          cp -aL "$src"/. "$dst"/
-        done
-        echo "✓ .gemini/agents and .gemini/skills mirrored from .claude/ ($(find .gemini/agents .gemini/skills -type f | wc -l) files)"
+      - bash scripts/gemini-sync.sh
 
   # ─────────────────────────────────────────────
   # Website (Astro + Svelte)

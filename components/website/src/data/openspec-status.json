@@ -4553,6 +4553,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900054": [
+    {
+      "slug": "wsl-exit-nachzug",
+      "status": "plan_staged"
+    }
+  ],
   "T900056": [
     {
       "slug": "2026-09-03-superpowers-namespace",

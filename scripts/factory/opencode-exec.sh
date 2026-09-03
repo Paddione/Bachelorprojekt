@@ -18,6 +18,7 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
+. "$REPO/scripts/lib/worktree-prune-safe.sh" 2>/dev/null || true
 
 EXT_ID="${1:-}"; LAUNCH_DIR="${2:-}"; BRANCH="${3:-}"; PLAN_PATH="${4:-}"
 [[ -z "$EXT_ID" ]] && { echo "opencode-exec: missing ticket ext_id" >&2; exit 2; }
@@ -307,8 +308,9 @@ elif [[ $ex -eq 6 ]]; then
     # geaendert — der Force-Remove ist hier gefahrlos. Schlaegt er fehl (kein
     # registrierter Worktree), raeumt der Watchdog spaeter auf.
     if [[ "$LAUNCH_DIR" != "$REPO" ]]; then
+      git -C "$REPO" worktree unlock "$LAUNCH_DIR" 2>/dev/null || true
       if git -C "$REPO" worktree remove --force "$LAUNCH_DIR" 2>/dev/null; then
-        git -C "$REPO" worktree prune 2>/dev/null || true
+        worktree_prune_safe 2>/dev/null || true
       else
         echo "opencode-exec: worktree cleanup for $LAUNCH_DIR failed — watchdog will reap" >&2
       fi

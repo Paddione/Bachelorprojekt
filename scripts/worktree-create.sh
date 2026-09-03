@@ -30,6 +30,9 @@
 #   1  any other setup failure (the half-created worktree is rolled back)
 set -euo pipefail
 
+# Platform-aware worktree prune wrapper [T900046]
+. "$(dirname "${BASH_SOURCE[0]}")/lib/worktree-prune-safe.sh" 2>/dev/null || true
+
 # ── --help (vor allen Guards, T002783) ─────────────────────────────────────
 if [[ "${1:-}" == "--help" ]]; then
   cat <<'HELP'
@@ -324,8 +327,9 @@ if [ -d "$WT_PATH" ]; then
     exit 5
   fi
 fi
+git worktree unlock "$WT_PATH" 2>/dev/null || true
 git worktree remove --force "$WT_PATH" 2>/dev/null || true
-git worktree prune 2>/dev/null || true
+worktree_prune_safe 2>/dev/null || true
 
 # [T002327] Is the branch already checked out in ANOTHER worktree? Ask git instead
 # of parsing the failure message of `git worktree add`: its wording differs between
@@ -381,6 +385,8 @@ if [ "$BRANCH_EXISTS" -eq 1 ]; then
 else
     git worktree add --no-checkout -b "$BRANCH" "$WT_PATH" "$BASE"
 fi
+# Lock worktree to protect against cross-platform (WSL/Windows) prune [T900046]
+git worktree lock "$WT_PATH" --reason "managed agent worktree" 2>/dev/null || true
 
 # Roll back the half-created worktree (+ the branch ONLY if we created it) if any
 # later step fails (cp, checkout). Otherwise a retry hits a misleading
@@ -389,6 +395,7 @@ _ok=0
 _rollback() {
     [ "$_ok" -eq 1 ] && return
     echo "worktree-create: setup failed — rolling back $WT_PATH${BRANCH_EXISTS:+ (keeping existing branch $BRANCH)}" >&2
+    git worktree unlock "$WT_PATH" 2>/dev/null || true
     git worktree remove --force "$WT_PATH" 2>/dev/null || true
     [ "$BRANCH_EXISTS" -eq 0 ] && git branch -D "$BRANCH" 2>/dev/null || true
 }

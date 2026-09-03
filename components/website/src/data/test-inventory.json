@@ -6228,6 +6228,12 @@
     "kind": "shell"
   },
   {
+    "id": "worktree-cross-platform",
+    "file": "tests/spec/worktree-cross-platform.bats",
+    "category": "worktree-cross-platform",
+    "kind": "shell"
+  },
+  {
     "id": "worktree-divergence-guard-T002387",
     "file": "tests/spec/worktree-divergence-guard-T002387.bats",
     "category": "worktree-divergence-guard-T002387",

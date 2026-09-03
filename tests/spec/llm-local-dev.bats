@@ -410,6 +410,34 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
+@test "T900051: freetoken-active falls back to serving endpoint telemetry" {
+  local plugin="$REPO/.opencode/plugin/freetoken-active.ts"
+  run grep -qF 'const SERVER_MODELS = "http://127.0.0.1:1919/v1/models"' "$plugin"
+  [ "$status" -eq 0 ]
+  run grep -qF 'const SERVER_STATS = "http://127.0.0.1:1919/v1/stats"' "$plugin"
+  [ "$status" -eq 0 ]
+  run grep -qF 'const SERVER_CACHE = "http://127.0.0.1:1919/v1/cache/status"' "$plugin"
+  [ "$status" -eq 0 ]
+  run grep -qF 'const runtime = await discoverRuntime()' "$plugin"
+  [ "$status" -eq 0 ]
+  run grep -qF 'Math.min(ref.limit.context, runtime.kvTokens)' "$plugin"
+  [ "$status" -eq 0 ]
+}
+
+@test "T900051: FreeToken smoke test verifies version model KV and concurrency" {
+  local smoke="$REPO/.opencode/skills/freetoken-setup/scripts/smoke-test.sh"
+  run bash -n "$smoke"
+  [ "$status" -eq 0 ]
+  run grep -qF 'engine version:' "$smoke"
+  [ "$status" -eq 0 ]
+  run grep -qF 'model mismatch:' "$smoke"
+  [ "$status" -eq 0 ]
+  run grep -qF 'usable KV capacity:' "$smoke"
+  [ "$status" -eq 0 ]
+  run grep -qF -- '--max-running-requests 1' "$smoke"
+  [ "$status" -eq 0 ]
+}
+
 @test "T014105: opencode-sync-agents.sh distributes plugins to the global config" {
   run grep -qE 'plugin' "$REPO/scripts/opencode-sync-agents.sh"
   [ "$status" -eq 0 ]

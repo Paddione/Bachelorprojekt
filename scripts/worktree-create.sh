@@ -285,6 +285,7 @@ fi
 
 # Absolute path to the SHARED gitdir (.../.git), valid from main or a worktree.
 COMMON_DIR="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+MAIN_ROOT="$(dirname "$COMMON_DIR")"
 KEY_SRC="$COMMON_DIR/git-crypt/keys/default"
 
 # Does the branch already exist locally or on origin? Decides create-vs-checkout
@@ -418,6 +419,13 @@ else
     git -C "$WT_PATH" checkout
     echo "worktree-create: repo is git-crypt LOCKED — secrets left encrypted-at-rest in $WT_PATH" >&2
 fi
+
+# Worktree-scoped core.hooksPath: resolve relative path to repo .githooks [T900050]
+_rel_hooks="../../.githooks"
+if command -v node >/dev/null 2>&1; then
+    _rel_hooks="$(node -e 'console.log(require("path").relative(process.argv[1], process.argv[2]).replace(/\\/g, "/"))' "$WT_PATH" "$MAIN_ROOT/.githooks" 2>/dev/null || echo "../../.githooks")"
+fi
+git -C "$WT_PATH" config --worktree core.hooksPath "$_rel_hooks" 2>/dev/null || true
 
 # T001331/T001332/T002114: Post-checkout stale-smudge detection.
 # If the checkout above ran with a broken or stale smudge filter, secrets are

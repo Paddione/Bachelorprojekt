@@ -23,8 +23,9 @@ setup() {
   run env -u BGE_MCP_TOKEN node "$REPO/scripts/bge-mcp/server.mjs"
 
   # Positiv-Anker: der Start ist bis zur Token-Pruefung gekommen, der
-  # Router-Import also geglueckt.
-  [[ "$output" == *"BGE_MCP_TOKEN is unset"* ]]
+  # Router-Import also geglueckt. [T900052] Der Server fail-fasted jetzt mit
+  # der gemeinsamen MCP-HTTPSEC-Meldung statt der eigenen "is unset"-Ausgabe.
+  [[ "$output" == *"MCP-HTTPSEC: Pflicht-Token fehlt"* ]]
 }
 
 @test "bge-mcp shim scheitert nicht am ESM-URL-Schema" {

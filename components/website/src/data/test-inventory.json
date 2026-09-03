@@ -4164,6 +4164,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/lib/pick-small-model",
+    "file": "tests/spec/local-llm-proxy/lib/pick-small-model.sh",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/llama-tool-names-match-binary",
     "file": "tests/spec/local-llm-proxy/llama-tool-names-match-binary.bats",
     "category": "local-llm-proxy",

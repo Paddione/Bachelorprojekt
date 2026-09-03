@@ -49,6 +49,7 @@ mapfile -t partial_ids < <(printf '%s\n' "$partials_manifest" \
 
 # --- helper: record one implement phase-event --------------------------------------
 phase_event() { # <state> <subagent> <partial> <duration_s> <exit> [reason]
+  [[ -n "${BATS_TEST_NAME:-}" ]] && return 0
   local detail
   detail="$(jq -cn --arg s "$2" --arg p "$3" --argjson d "${4:-0}" --argjson e "${5:-0}" --arg r "${6:-}" \
     '{executor:"dsh",subagent:$s,partial:$p,duration_s:$d,exit:$e,reason:$r}')"

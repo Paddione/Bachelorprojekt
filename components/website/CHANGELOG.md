@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.324.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.2...website-v1.324.3) (2026-09-03)
+
+
+### Bug Fixes
+
+* **infra:** SA-Audit-Fixes Vaultwarden, Monitoring, CronJobs, ghcr-pull-secret [T900041] ([#5417](https://github.com/Paddione/Bachelorprojekt/issues/5417)) ([a5a7110](https://github.com/Paddione/Bachelorprojekt/commit/a5a7110d22dbed3e56fc4ead137a97114ef8623f))
+* rejoin gekko-hetzner-2 fleet node (runbook + verify-rejoin.sh) [T016442] ([#5414](https://github.com/Paddione/Bachelorprojekt/issues/5414)) ([c2b4bf7](https://github.com/Paddione/Bachelorprojekt/commit/c2b4bf7f711ad29e8caff6929a21d73cf14ffd6d))
+
 ## [1.324.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.1...website-v1.324.2) (2026-09-02)
 
 

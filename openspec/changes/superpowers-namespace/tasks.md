@@ -43,7 +43,7 @@ tests/spec/agent-skills/superpowers-harness-parity.bats     A   Guard (liegt ber
 
 ## M1 — Rotphase belegen
 
-- [ ] **T1.1** Guard ausführen und Rot dokumentieren.
+- [x] **T1.1** Guard ausführen und Rot dokumentieren.
       `tests/spec/agent-skills/superpowers-harness-parity.bats` liegt bereits vor und deckt alle
       sechs Zielzustände ab.
 
@@ -58,18 +58,18 @@ tests/spec/agent-skills/superpowers-harness-parity.bats     A   Guard (liegt ber
 
 ## M2 — opencode: Deklaration und Skill-Kuration
 
-- [ ] **T2.1** In `.opencode/opencode.jsonc` das `plugin`-Array um
+- [x] **T2.1** In `.opencode/opencode.jsonc` das `plugin`-Array um
       `"superpowers@git+https://github.com/obra/superpowers.git"` ergänzen, mit Kommentar auf
       `.opencode/INSTALL.md` des Upstream und dem Hinweis, dass opencode den Plugin-Satz von
       Claude Code nicht erbt.
-- [ ] **T2.2** Im `skill`-Block `"writing-plans": "deny"` und `"executing-plans": "deny"`
+- [x] **T2.2** Im `skill`-Block `"writing-plans": "deny"` und `"executing-plans": "deny"`
       ergänzen. Begründung als Kommentar: beide werden von `dev-flow-plan`/`-execute` als
       Unterschritt gerufen; als Einstieg würden sie Ticket, Worktree, plan-lint und stage-plan
       überspringen.
-- [ ] **T2.3** `"references": "deny"` entfernen. Die Sperre nimmt opencode den Zugang zu
+- [x] **T2.3** `"references": "deny"` entfernen. Die Sperre nimmt opencode den Zugang zu
       `dev-flow-plan-phases.md`, `plan-quality-gates.md` und `plan-intel-bundle.md` — dem
       normativen Kern der geteilten dev-flow-Skills.
-- [ ] **T2.4** Prüfen, ob `.opencode/package.json` einen Eintrag braucht. Die bisherigen
+- [x] **T2.4** Prüfen, ob `.opencode/package.json` einen Eintrag braucht. Die bisherigen
       `plugin`-Einträge sind npm-Namen mit Gegenstück in `dependencies`; ein `git+https`-Eintrag
       wird von opencode aufgelöst und ggf. in einer Lockfile gepinnt. Ergebnis im Commit
       festhalten — kein stilles Weglassen.

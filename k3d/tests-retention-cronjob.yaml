@@ -8,9 +8,17 @@ metadata:
 spec:
   schedule: '0 3 * * *'
   successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      # Ohne ttlSecondsAfterFinished raeumt der Job-Controller die Pods
+      # beendeter Jobs nie ab. In workspace-korczewski und workspace-staging
+      # standen dadurch je sieben Fehl-Pods pro Lauf, der aelteste 11 Tage.
+      # 24h reichen, um ein Fehl-Log noch am Folgetag lesen zu koennen. [T900035]
+      ttlSecondsAfterFinished: 86400
+      # backoffLimit begrenzt die Wiederholungen eines einzelnen Laufs. Der
+      # Default (6) erzeugte die sieben Pods je Lauf, die im Audit auffielen.
+      backoffLimit: 2
       template:
         spec:
           restartPolicy: Never

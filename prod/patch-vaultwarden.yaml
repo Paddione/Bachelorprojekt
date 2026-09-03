@@ -30,3 +30,9 @@ spec:
                   key: SMTP_PASSWORD
             - name: SMTP_FROM_NAME
               value: "Vaultwarden"
+            # Vaultwarden verweigert den Start, wenn SMTP_HOST gesetzt ist, aber
+            # SMTP_FROM fehlt ("Both SMTP_HOST and SMTP_FROM need to be set for
+            # email support without USE_SENDMAIL") - das hielt vault.mentolder.de
+            # 3d in CrashLoopBackOff (942 Neustarts, HTTP 503). [T900028]
+            - name: SMTP_FROM
+              value: "${SMTP_FROM}"

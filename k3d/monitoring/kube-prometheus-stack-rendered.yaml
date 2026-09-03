@@ -77105,7 +77105,11 @@ spec:
       app.kubernetes.io/name: grafana
       app.kubernetes.io/instance: monitoring
   strategy:
-    type: RollingUpdate
+    # Recreate statt RollingUpdate: das Deployment mountet den
+    # ReadWriteOnce-PVC monitoring-grafana (longhorn). Bei RollingUpdate
+    # haelt der alte Pod das Volume, waehrend der neue darauf wartet -
+    # der Rollout stand 3d14h in Init:0/1 fest. [T900034]
+    type: Recreate
   template:
     metadata:
       labels:

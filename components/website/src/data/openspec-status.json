@@ -4541,6 +4541,12 @@
       "status": "archived"
     }
   ],
+  "T900041": [
+    {
+      "slug": "batch-sa-infra-T900041",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

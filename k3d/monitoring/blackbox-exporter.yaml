@@ -13,6 +13,12 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        # Ohne runAsUser lehnt das Kubelet den Container ab: das Image
+        # deklariert root als USER, runAsNonRoot verbietet das
+        # ("container has runAsNonRoot and image will run as root") - der Pod
+        # stand 11 Tage in CreateContainerConfigError, damit lief kein
+        # Blackbox-Probe mehr. 65534 = nobody, wie in prod/reflector.yaml. [T900034]
+        runAsUser: 65534
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: blackbox-exporter

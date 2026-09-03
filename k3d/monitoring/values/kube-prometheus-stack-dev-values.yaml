@@ -43,6 +43,10 @@ prometheus:
 
 grafana:
   adminPassword: admin  # dev only — prod uses OIDC + GRAFANA_ADMIN_PASSWORD secret
+  # Recreate statt des Chart-Defaults RollingUpdate: Grafana mountet einen
+  # ReadWriteOnce-PVC, bei dem der alte Pod das Volume haelt. [T900034]
+  deploymentStrategy:
+    type: Recreate
   persistence:
     enabled: true
     storageClassName: local-path

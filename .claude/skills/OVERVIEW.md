@@ -31,6 +31,11 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 > **Shared Source (T014086):** `dev-flow-plan`/`-execute`/`-chore` unter `.opencode/skills/` sind Directory-Symlinks auf genau diese drei Skills (Muster wie `openspec-*`) — ein Inhalt, zwei Einstiegspunkte. Nur `opencode-git-workflow` bleibt eine echte opencode-eigene Datei.
 
+> **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
+> ticket-ops -> dev-flow-plan -> Factory selbststaendig ab, bis das Queue-Material erschoepft
+> ist. Es liegt unter `.opencode/skills/` und zaehlt deshalb **nicht** in die 34 oben
+> (die misst `git ls-files -- .claude/skills`), unterliegt aber denselben Konventionen.
+
 ---
 
 ## Feature Discovery (vorgelagert zur Pipeline)

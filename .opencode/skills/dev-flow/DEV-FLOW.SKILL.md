@@ -6,25 +6,24 @@ Skills for managing the OpenCode development workflow from brainstorming through
 
 ### Core Workflow
 - **dev-flow-plan** — Generate design specs and implementation plans via `/opsx:propose` or `openspec propose`
-- **dev-flow-execute** — Implement plans commit-by-commit, PR-by-PR (SSOT: [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md))
+- **dev-flow-execute** — Implement plans commit-by-commit, PR-by-PR (SSOT: [verification-block](.claude/skills/references/verification-block.md))
 
 ### Superpowers
 - **using-git-worktrees** — Isolated worktrees for feature branches ([T001364](https://github.com/Paddione/Bachelorprojekt/issues/T001364))
 - **vitest** — Fast unit testing (Vitest + Vite, Jest-compatible API)
 
 ### References
-- [references](file:///home/patrick/Bachelorprojekt/.claude/skills/references/SKILL.md) — Cross-cutting concepts (CI gates, deploy routing, session coordination)
-- [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) — Model selection and context injection
+- [references](.claude/skills/references/SKILL.md) — Cross-cutting concepts (CI gates, deploy routing, session coordination)
+- [subagent-provisioning](.claude/skills/references/subagent-provisioning.md) — Model selection and context injection
 
 ## Usage Flow
 
 ```bash
-# 1. Plan (dev-flow-plan skill)
-openspec propose t001xxx --ticket-id=T000XXX
+# 1. Plan (dev-flow-plan skill) — legt Ticket, Worktree und Plan an
+bash scripts/openspec.sh propose <slug> --ticket T000XXX
 
-# 2. Execute plan (dev-flow-execute skill)
-git checkout -b feature/t001xxx
-/devflow:implement { ticketId: "T000XXX" }
+# 2. Execute plan (dev-flow-execute skill) — den Plan-Pfad loest der Skill
+#    selbst ueber FACTORY-PLAN-REF aus der DB auf, es gibt kein Slash-Command
 
 # 3. Verify & Merge
 task test:changed
@@ -37,7 +36,7 @@ Before every commit, regenerates artifacts (test-inventory.json, quality-index.j
 
 ---
 
-**Documentation:** [dev-flow workflow](file:///home/patrick/Bachelorprojekt/.claude/skills/dev-flow-plan/SKILL.md), [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md)
+**Documentation:** [dev-flow workflow](.claude/skills/dev-flow-plan/SKILL.md), [verification-block](.claude/skills/references/verification-block.md)
 
 
 ## Framework mapping

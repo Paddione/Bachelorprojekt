@@ -164,8 +164,10 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 <details>
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
-- Claude Code only: a skill with `agent:` dispatches via `background-agents.ts` (read-only → `delegate`, write-capable → `task`); without `agent:` it loads inline. Skill → agent map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`→website.
+- Claude Code only: a skill with `agent:` dispatches via `background-agents.ts` (read-only → `delegate`, write-capable → `task`); without `agent:` it loads inline. Skill → agent map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`→website, `web-audit`→website.
 - opencode: `dev-flow-plan`/`-execute`/`-chore` sind seit T014086 Directory-Symlinks auf dieselben Shared Sources wie bei Claude Code — beide Harnesses nutzen dieselben Namen (Nachfolger der T013724-Dualbenennung `opencode-flow-*`). Domain skills bleiben via agent routing dispatched (`deny` in `.opencode/opencode.jsonc`).
+- opencode only: `sdlc-autopilot` (`.opencode/skills/`) faehrt ticket-ops -> dev-flow-plan ->
+  Factory autonom ab. Kein Claude-Code-Pendant; nicht Teil der `.claude/skills`-Zaehlung.
 </details>
 
 <details>

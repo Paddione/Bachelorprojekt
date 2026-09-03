@@ -310,16 +310,6 @@ env_vars:
     required: true
     default_dev: "brett.localhost"
 
-  - name: PENPOT_DOMAIN
-    required: true
-    default_dev: "design.localhost"
-    description: "Public host of the Penpot design platform (e.g. design.korczewski.de)"
-
-  - name: PENPOT_PUBLIC_URI
-    required: true
-    default_dev: "http://design.localhost"
-    description: "Public URI of the Penpot design platform used for generated links, CORS and OIDC redirects (e.g. https://design.korczewski.de)"
-
   - name: MEDIAVIEWER_HOST
     required: true
     default_dev: "mediaviewer.localhost"
@@ -626,32 +616,9 @@ env_vars:
     description: "Optional fallback Pocket ID internal URL for SDLC stack."
 
 secrets:
-  - name: PENPOT_DB_PASSWORD
-    required: false
-    generate: true
-    legacy_only: true
-    length: 32
-    description: "Penpot database password; optional until Penpot is enabled for an environment."
 
-  - name: PENPOT_SECRET_KEY
-    required: false
-    generate: true
-    legacy_only: true
-    length: 64
-    description: "Penpot application signing key; optional until Penpot is enabled for an environment."
 
-  - name: PENPOT_MINIO_SECRET_KEY
-    required: false
-    generate: true
-    legacy_only: true
-    length: 32
-    description: "Penpot MinIO credential; optional until Penpot is enabled for an environment."
 
-  - name: POCKET_ID_PENPOT_SECRET
-    required: false
-    generate: true
-    length: 32
-    description: "Pocket ID client secret for Penpot; optional until Penpot is enabled for an environment."
 
   - name: STUDIO_DB_URL
     required: false

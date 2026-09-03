@@ -30,8 +30,6 @@ export interface NavOptions {
   inboxPending: number;
   /** Absolute URL des Systembretts (brandabhängig, daher Parameter). */
   brettUrl: string;
-  /** Absolute URL der Penpot-Designplattform. */
-  penpotUrl: string;
 }
 
 /**
@@ -43,7 +41,7 @@ export interface NavOptions {
  * bei BUILD_TARGET=prod aus dem Route-Manifest entfernt. Erreichbar sind sie über die
  * lokale SDLC-Console.
  */
-export function buildNavSections({ inboxPending, brettUrl, penpotUrl }: NavOptions): NavSection[] {
+export function buildNavSections({ inboxPending, brettUrl }: NavOptions): NavSection[] {
   return [
     {
       items: [
@@ -109,7 +107,6 @@ export function buildNavSections({ inboxPending, brettUrl, penpotUrl }: NavOptio
         { href: '/admin/assets', label: 'Assets', icon: 'palette' },
         { href: '/admin/asset-generation', label: '3D Generator', icon: 'edit' },
         { href: brettUrl, label: 'Systembrett', icon: 'brett', external: true },
-        { href: penpotUrl, label: "Penpot", icon: "palette", external: true },
       ],
     },
     {

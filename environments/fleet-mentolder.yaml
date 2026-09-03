@@ -56,8 +56,6 @@ env_vars:
   TRAEFIK_EXTERNAL_URL: "https://traefik.mentolder.de"
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   BRETT_DOMAIN: brett.mentolder.de
-  PENPOT_DOMAIN: design.mentolder.de
-  PENPOT_PUBLIC_URI: "https://design.mentolder.de"
   MEDIAVIEWER_HOST: mediaviewer.mentolder.de
   # Session-Subdomain für session-<slug>.<SESSIONS_DOMAIN> [T016251].
   SESSIONS_DOMAIN: sessions.mentolder.de

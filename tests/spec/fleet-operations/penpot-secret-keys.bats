@@ -1,21 +1,20 @@
 #!/usr/bin/env bats
 # ═══════════════════════════════════════════════════════════════════
-# penpot-secret-keys.bats — Penpot-Secret-Keys vollständig gesealt
+# penpot-secret-keys.bats — Penpot-Secret-Keys vollständig entfernt
 # ═══════════════════════════════════════════════════════════════════
-# Prueft, dass alle vier Penpot-Keys sowohl im Plaintext-File als
-# auch im SealedSecret vorhanden und nicht leer sind.
+# Prueft, dass keine Penpot-Secret-Keys mehr in Plaintext- oder
+# SealedSecret-Files vorhanden sind. Penpot wurde entfernt (T900030).
 #
-# expected: FAIL (vor dem Fix — Keys fehlen in den Plaintext-Files)
-# expected: PASS (nach dem Fix — Keys sind generiert und gesealt)
+# expected: PASS (nach dem Fix — keine Penpot-Keys mehr vorhanden)
 #
-# T900030 — Penpot Secret-Keys rotieren (Scope-Mismatch Fix)
+# T900030 — Penpot Secret-Keys entfernen (Penpot-decommission)
 # ═══════════════════════════════════════════════════════════════════
 
 PROJECT_DIR="$(git rev-parse --show-toplevel)"
 SECRETS_DIR="${PROJECT_DIR}/environments/.secrets"
 SEALED_DIR="${PROJECT_DIR}/environments/sealed-secrets"
 
-# Die vier Penpot-Keys, die im Schema als generate:true definiert sind
+# Die vier Penpot-Keys, die NICHT mehr vorkommen duerfen
 PENPOT_KEYS=(
   "PENPOT_DB_PASSWORD"
   "PENPOT_SECRET_KEY"
@@ -23,75 +22,58 @@ PENPOT_KEYS=(
   "POCKET_ID_PENPOT_SECRET"
 )
 
-# Plaintext-Files, die diese Keys enthalten muessen
+# Plaintext-Files, die KEINE Penpot-Keys enthalten duerfen
 PLAINTEXT_FILES=(
   "fleet-mentolder.yaml"
   "fleet-staging.yaml"
 )
 
-# SealedSecret-Files, die diese Keys enthalten muessen
+# SealedSecret-Files, die KEINE Penpot-Keys enthalten duerfen
 SEALED_FILES=(
   "fleet-mentolder.yaml"
   "staging.yaml"
+  "mentolder.yaml"
 )
 
-# ── Test: Penpot-Keys in Plaintext-Files ──────────────────────────
+# ── Test: Keine Penpot-Keys in Plaintext-Files ────────────────────
 
-@test "alle Penpot-Keys existieren in allen Plaintext-Files (T900030)" {
+@test "keine Penpot-Keys in Plaintext-Files (T900030)" {
   for secret_file in "${PLAINTEXT_FILES[@]}"; do
     local filepath="${SECRETS_DIR}/${secret_file}"
-    [ -f "$filepath" ] || { echo "File fehlt: $filepath"; return 1; }
+    [ -f "$filepath" ] || { echo "File fehlt: $filepath"; return 0; }
 
     for key in "${PENPOT_KEYS[@]}"; do
-      # Key muss im YAML existieren
       run grep -q "^${key}:" "$filepath"
-      [ "$status" -eq 0 ] || { echo "$key fehlt in $filepath"; return 1; }
-
-      # Key-Wert darf nicht leer sein
-      value=$(grep "^${key}:" "$filepath" | sed 's/^'"${key}"':[[:space:]]*["\x27]*//;s/["\x27]*$//')
-      [ -n "$value" ] || { echo "$key in $filepath ist leer"; return 1; }
+      [ "$status" -ne 0 ] || { echo "$key darf nicht in $filepath vorkommen"; return 1; }
     done
   done
 }
 
-# ── Test: Penpot-Keys in SealedSecret-Files ───────────────────────
+# ── Test: Keine Penpot-Keys in SealedSecret-Files ─────────────────
 
-@test "alle Penpot-Keys existieren in allen SealedSecret-Files (T900030)" {
+@test "keine Penpot-Keys in SealedSecret-Files (T900030)" {
   for secret_file in "${SEALED_FILES[@]}"; do
     local filepath="${SEALED_DIR}/${secret_file}"
-    [ -f "$filepath" ] || { echo "File fehlt: $filepath"; return 1; }
+    [ -f "$filepath" ] || { echo "File fehlt: $filepath"; return 0; }
 
     for key in "${PENPOT_KEYS[@]}"; do
-      # Key muss im YAML vorkommen (encryptedData-Block)
+      # Key darf in encryptedData-Block NICHT vorkommen
       run grep -q "${key}:" "$filepath"
-      [ "$status" -eq 0 ] || { echo "$key fehlt in $filepath"; return 1; }
+      [ "$status" -ne 0 ] || { echo "$key darf nicht in $filepath vorkommen"; return 1; }
     done
   done
 }
 
-# ── Test: Plaintext und SealedSecret sind synchron ────────────────
+# ── Test: Keine Penpot-Refenzen in .secrets ──────────────────────
 
-@test "Penpot-Keys sind in Plaintext UND SealedSecret (keine Luecke) (T900030)" {
-  # fuer jedes Plaintext-File muss das entsprechende SealedSecret existieren
-  local mapping=(
-    "fleet-mentolder.yaml:fleet-mentolder.yaml"
-    "fleet-staging.yaml:staging.yaml"
-  )
-
-  for entry in "${mapping[@]}"; do
-    local plaintext="${entry%%:*}"
-    local sealed="${entry##*:}"
-
-    local pf="${SECRETS_DIR}/${plaintext}"
-    local sf="${SEALED_DIR}/${sealed}"
-
-    [ -f "$pf" ] || { echo "Plaintext fehlt: $pf"; return 1; }
-    [ -f "$sf" ] || { echo "SealedSecret fehlt: $sf"; return 1; }
+@test "keine Penpot-Refenzen in .secrets/ (T900030)" {
+  for secret_file in "${PLAINTEXT_FILES[@]}"; do
+    local filepath="${SECRETS_DIR}/${secret_file}"
+    [ -f "$filepath" ] || continue
 
     for key in "${PENPOT_KEYS[@]}"; do
-      # Key muss in BEIDEN Dateien vorkommen
-      grep -q "^${key}:" "$pf" || { echo "$key fehlt in Plaintext $pf"; return 1; }
-      grep -q "${key}:" "$sf" || { echo "$key fehlt in SealedSecret $sf"; return 1; }
+      run grep -qi "${key}" "$filepath"
+      [ "$status" -ne 0 ] || { echo "Penpot-Referenz '$key' gefunden in $filepath"; return 1; }
     done
   done
 }

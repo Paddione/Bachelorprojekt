@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { buildNavSections, type NavItem, type NavSection } from './nav-items';
 import { resolveRedirect } from '../../middleware/redirect-map';
 
-const OPTS = { inboxPending: 3, brettUrl: 'https://brett.example.invalid', penpotUrl: 'http://design.localhost' };
+const OPTS = { inboxPending: 3, brettUrl: 'https://brett.example.invalid' };
 
 /** Folgt der Redirect-Kette bis zum Endziel. Ein Eintrag kann über mehrere Sprünge
  *  in /sdlc/ landen; eine einstufige Prüfung würde das übersehen. */
@@ -79,7 +79,7 @@ describe('Admin-Sidebar — Gliederung', () => {
   it('enthält genau die zwölf freigegebenen Einträge', () => {
     const hrefs = allItems(buildNavSections(OPTS)).map((i) => i.href);
 
-    expect(hrefs).toHaveLength(12);
+    expect(hrefs).toHaveLength(11);
     for (const gone of [
       '/admin/cockpit',
       '/admin/app-catalog',

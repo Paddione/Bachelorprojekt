@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1252,
+      "file_count": 1253,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -658,6 +658,7 @@
         "tests/spec/fleet-operations/firewall-program-match.bats",
         "tests/spec/fleet-operations/ghcr-pull-secret.bats",
         "tests/spec/fleet-operations/hetzner2-decommission.bats",
+        "tests/spec/fleet-operations/hetzner2-rejoin.bats",
         "tests/spec/fleet-operations/internal-endpoints.bats",
         "tests/spec/fleet-operations/membership-drift.bats",
         "tests/spec/fleet-operations/monitoring-ready.bats",
@@ -3864,7 +3865,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 847,
+      "file_count": 848,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4244,6 +4245,7 @@
         "scripts/factory/triage-enums.json",
         "scripts/factory/usage-report.sh",
         "scripts/factory/verify-decommission.sh",
+        "scripts/factory/verify-rejoin.sh",
         "scripts/factory/wakeup.sh",
         "scripts/factory/watchdog.sh",
         "scripts/feature-promote.sh",

@@ -682,6 +682,7 @@ Last touches:
   - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
 In-flight:
+  - Measured Context Limits for FreeToken Checkpoints | T900051 | active | MODIFIED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 

@@ -103,7 +103,20 @@ factory_pgpod() {
 # factory_psql — reads SQL from stdin, returns tab-less single-column rows.
 # Forwards any extra args to psql (e.g. -v ext_id=… for bound params), mirroring
 # ticket.sh's _exec_sql so callers can avoid interpolating into SQL.
+#
+# [T900052] DB-Zugriff auf zwei Wegen:
+#   * FACTORY_PG_URL gesetzt (fleet-nativer factory-runner-Pod): spricht die
+#     ClusterIP svc/shared-db[-dev]:5432 direkt an (Design aus
+#     k3d/shared-db-endpoint-policy.yaml — der Runner hat absichtlich kein
+#     kubectl/SAT, automountServiceAccountToken:false). Beispiel:
+#     postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev:5432/website
+#   * sonst (lokaler Windows-MCP mit kubectl + FACTORY_CTX=fleet): kubectl exec.
+#     Der Fallback bleibt unveraendert, damit der Desktop-Pfad nicht bricht.
 factory_psql() {
+  if [[ -n "${FACTORY_PG_URL:-}" ]]; then
+    psql "$FACTORY_PG_URL" -qtA -v ON_ERROR_STOP=1 "$@"
+    return
+  fi
   local pod; pod=$(factory_pgpod)
   kubectl exec -i "$pod" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@"

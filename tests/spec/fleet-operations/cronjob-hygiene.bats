@@ -40,24 +40,20 @@ setup() {
   [ -z "$hardcoded" ] \
     || { echo "scheduled-publish zeigt fest auf website-staging: ${hardcoded}" >&2; return 1; }
 
-  # ... sondern der Namespace kommt aus der Env-Registry. Die URL wird zur
-  # Laufzeit im Container zusammengesetzt, deshalb steht in der Kommandozeile
-  # die Shell-Variable und daneben muss das Env die Variable auch liefern.
-  run grep -c 'website.$WEBSITE_NAMESPACE.svc.cluster.local' "$SP"
-  [ "$status" -eq 0 ] || { echo "scheduled-publish baut die URL nicht aus WEBSITE_NAMESPACE" >&2; return 1; }
+  # ... sondern der Namespace kommt beim Render aus der Env-Registry, wie bei
+  # jedem anderen CronJob (notify-unread, monthly-billing, error-log-retention).
+  run grep -c 'website.${WEBSITE_NAMESPACE}.svc.cluster.local' "$SP"
+  [ "$status" -eq 0 ] || { echo "scheduled-publish nutzt kein \${WEBSITE_NAMESPACE}" >&2; return 1; }
   [ "$output" -ge 1 ]
 
-  # Ohne den Env-Eintrag waere die Variable im Container leer und die URL
-  # wuerde zu 'website..svc.cluster.local' degenerieren.
-  run grep -c 'name: WEBSITE_NAMESPACE' "$SP"
-  [ "$status" -eq 0 ] || { echo "scheduled-publish reicht WEBSITE_NAMESPACE nicht ins Env durch" >&2; return 1; }
-  [ "$output" -ge 1 ]
-
-  # Und der '$${CRON_SECRET}'-Fehlgriff darf nicht zurueckkehren: envsubst
-  # laesst $$ stehen, in sh expandiert es zur PID.
-  local pid_expansion
-  pid_expansion="$(grep -F '$${CRON_SECRET}' "$SP" | grep -v '^ *#' || true)"
-  [ -z "$pid_expansion" ]     || { echo "scheduled-publish nutzt wieder \$\${CRON_SECRET} (PID-Expansion): ${pid_expansion}" >&2; return 1; }
+  # Gegenprobe zu T012907: der Token MUSS als Doppel-Dollar escaped bleiben.
+  # Der Renderer nimmt so markierte Variablen aus der envsubst-Liste und
+  # unwrapped sie danach, damit erst die Shell im Container sie aufloest.
+  # Ein Fix, der hier auf einfaches $CRON_SECRET umstellt, laesst envsubst den
+  # Token beim Render zu Leerstring ersetzen - der Job liefe dann ohne Auth.
+  run grep -cF 'Bearer $${CRON_SECRET}' "$SP"
+  [ "$status" -eq 0 ] || { echo "CRON_SECRET ist nicht mehr als \$\$ escaped (T012907)" >&2; return 1; }
+  [ "$output" -eq 1 ]
 }
 
 @test "T900035: scheduled-publish macht Fehlschlaege im Log sichtbar" {

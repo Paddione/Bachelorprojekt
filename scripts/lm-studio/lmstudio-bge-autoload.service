@@ -1,3 +1,7 @@
+# Status: Toter Zustand auf diesem Host. WSL-Exit 2026-09-03: die Unit setzt LM Studio als
+# GUI-App unter WSLg (DISPLAY=:0) voraus — beides existiert hier nicht mehr.
+# Pendant-Lücke: kein Windows-Pendant im Repo. Eigenes Ticket.
+# Siehe Runbook `docs/runbooks/remote-docker-context.md` → "Pendant-Lücke".
 # scripts/lm-studio/lmstudio-bge-autoload.service
 # systemd-USER-Service (oneshot): laedt bge-m3 in LM Studio nach, falls es
 # entladen wurde (GUI-Default-TTL 1h Idle, manuelles unload, Neustart).

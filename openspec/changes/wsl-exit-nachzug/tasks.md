@@ -57,7 +57,7 @@ openspec/changes/wsl-exit-hf-jobs/tasks.md
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Lege `tests/spec/software-factory/wsl-exit-nachzug.bats` an.
+- [x] **Failing-Test-Step (RED).** Lege `tests/spec/software-factory/wsl-exit-nachzug.bats` an.
       Der Test prüft die Zusicherungen dieses Changes und MUSS auf dem aktuellen Branch
       fehlschlagen, weil keine davon erfüllt ist:
       1. Kein `k3d-mentolder-dev` / `k3d-korczewski-dev` mehr in `CLAUDE.md` — die Kontexte
@@ -79,7 +79,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
 # expected: FAIL (rot — keine der sieben Zusicherungen ist erfüllt)
 ```
 
-- [ ] **Registries nachziehen (GREEN, Teil 1).**
+- [x] **Registries nachziehen (GREEN, Teil 1).**
       `capabilities.yaml:626` — die `powershell.exe`-Richtung hat sich umgekehrt: der Windows-Host
       IST jetzt der Host, nicht das Ziel aus WSL heraus.
       `components.yaml:234,236` — "OpenClaw daemon on WSL GPU host" wird zum Windows-GPU-Host.
@@ -91,7 +91,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       "/home/patrick-Pfade sind WSL (k3d-dev)" auf den Windows-Regelpfad umstellen
       (`task mcp:autostart:register` startet `start-windows.ps1`).
 
-- [ ] **Konfiguration und Doku (GREEN, Teil 2).**
+- [x] **Konfiguration und Doku (GREEN, Teil 2).**
       `environments/dev.yaml:25` — "wg-gpu-Adresse des WSL-Hosts" wird zum Windows-Host.
       `components/website/docker-entrypoint.dev.sh:5` — die Port-Forwards kommen nicht mehr
       "von der WSL-Distro".
@@ -102,7 +102,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       trägt die Herkunftsannahme im Titel; auf "PowerShell-Skripte (.ps1)" ziehen. Die
       ASCII-/Parser-Regeln dahinter bleiben unverändert gültig.
 
-- [ ] **ADR-007 präzisieren (GREEN, Teil 3).**
+- [x] **ADR-007 präzisieren (GREEN, Teil 3).**
       Die Aussage "Der Dev-Host verschwindet als Linux-Laufzeitumgebung vollständig
       (`wsl --shutdown`)" war so nie haltbar, solange Docker Desktop selbst auf WSL2 lief —
       `wsl -l -v` zeigte `docker-desktop` als laufende Distro. Den ADR **nicht** widerrufen, er
@@ -111,7 +111,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       "Verworfen" — installiert und technisch möglich, aber von Docker seit Jahren als deprecated
       geführt, und der Zweck (lokales k3d) ist entfallen.
 
-- [ ] **Break-Glass-Runbook (GREEN, Teil 4).**
+- [x] **Break-Glass-Runbook (GREEN, Teil 4).**
       `docs/runbooks/remote-docker-context.md`: Remote-Docker-Context per SSH auf einen
       Fleet-Host als Ersatz für die sechs lokalen Image-Builds (website, docs, brett,
       studio-server, talk-transcriber, einvoice-sidecar), die CI über `build-*.yml` ohnehin baut.
@@ -119,7 +119,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       (SSH-Key, Docker auf dem Zielhost) und den Hinweis, dass `k3d image import` damit
       **entfällt** — lokal gebaute Images gehen über die Registry, nicht über den k3d-Import.
 
-- [ ] **systemd-Units einordnen (GREEN, Teil 5).**
+- [x] **systemd-Units einordnen (GREEN, Teil 5).**
       Löschen, weil tot und ohne Nachfolger auf diesem Host: `scripts/llm-proxy/llm-proxy.service`,
       `scripts/llm-proxy/llm-proxy-lan.service`,
       `scripts/dev-host-units/k3d-dev-ingress-bridge@.service` (socat auf den nicht mehr
@@ -133,7 +133,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       `scripts/wsl-open.sh` einordnen: vorher `grep -rn 'wsl-open' --exclude-dir=.git .` ausführen
       und das Ergebnis im Commit-Text festhalten; ohne Verweis löschen, sonst kommentieren.
 
-- [ ] **Lücke dokumentieren: fleet-Forwards ohne Windows-Pendant.**
+- [x] **Lücke dokumentieren: fleet-Forwards ohne Windows-Pendant.**
       `scripts/mcp-gateway/mcp-postgres-local.service` und
       `scripts/semantic-code-search/pgvector-forward.service` binden beide
       `kubectl --context fleet port-forward`, sind also **nicht tot** — aber `start-windows.ps1`
@@ -142,7 +142,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       im Runbook aus Teil 4 hinterlegen. **Kein Windows-Pendant in diesem Change bauen** — das
       wäre neues Laufzeitverhalten und gehört in ein eigenes Ticket.
 
-- [ ] **Buchführung: Checkbox-Drift der fünf offenen wsl-exit-Changes.**
+- [x] **Buchführung: Checkbox-Drift der fünf offenen wsl-exit-Changes.**
       Der Deliverable-Check ist erbracht (M10, T002506): `docs/runbooks/decommission-k3s-node.md`,
       `scripts/factory/verify-decommission.sh`, `docs/windows-dev-setup.md` und
       `docs/adr/ADR-007-wsl-exit-fleet-native.md` liegen alle auf `origin/main`
@@ -154,7 +154,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       was fehlt. Ein pauschales Abhaken wäre genau die Drift, die dieser Change beseitigt.
       Das Archivieren der Changes ist **nicht** Teil dieses Plans.
 
-- [ ] **SSOT-Purpose-Prosa direkt nachziehen (Ausnahme, begründet).**
+- [x] **SSOT-Purpose-Prosa direkt nachziehen (Ausnahme, begründet).**
       Die Delta-Mechanik erreicht ausschließlich `### Requirement:`-Sektionen — der Archiver
       ersetzt nichts außerhalb davon. Die schädlichste Drift steht aber genau im Purpose-Text,
       also in dem, was ein Agent als Erstes liest:
@@ -167,7 +167,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/wsl-exit-nachzug.b
       Nur die WSL-/systemd-Herkunftsannahme wird korrigiert — keine inhaltliche Umformulierung
       der Purpose-Abschnitte darüber hinaus.
 
-- [ ] **Final Verification.** Die drei verbindlichen CI-Gates:
+- [x] **Final Verification.** Die drei verbindlichen CI-Gates:
 
 ```bash
 task test:changed

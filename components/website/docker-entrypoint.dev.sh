@@ -2,7 +2,7 @@
 # Entrypoint des lokalen Dev-Containers (T003055).
 #
 # Aufgabe: die .env des Hosts unverändert brauchbar machen. components/website/.env zeigt auf
-# 127.0.0.1-Ports, die von `kubectl port-forward` auf der WSL-Distro bereitgestellt
+# 127.0.0.1-Ports, die von `kubectl port-forward` auf dem Windows-Host bereitgestellt
 # werden. Im Container ist 127.0.0.1 ein anderer Netzwerk-Namespace — die Adressen
 # müssen deshalb zur Laufzeit auf host.docker.internal umgeschrieben werden.
 #

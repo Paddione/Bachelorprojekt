@@ -57,8 +57,8 @@ clients:
     windows_note: >-
       Windows: Port-Forward manuell starten (kubectl fleet-Kontext):
       kubectl --context fleet port-forward -n default svc/claude-code-mcp-monolith
-      18080:8080 13000:3000 13001:3001 13002:3002. In WSL uebernimmt das die
-      systemd-Unit scripts/mcp-gateway/mcp-gateway.service.
+      18080:8080 13000:3000 13001:3001 13002:3002. Auf Windows uebernimmt das
+      scripts/mcp-gateway/start-windows.ps1.
 
   mcp-postgres:
     transport: http
@@ -135,10 +135,9 @@ clients:
       agy:
         serverUrl: http://localhost:13005/mcp
       opencode:
-        # T900039: Windows hat mit scripts/mcp-gateway/start-windows.ps1 jetzt
-        # einen eigenen Startmechanismus (Port-Forwards + Shim-Start), das WSL-
-        # systemd-Pendant zu scripts/bge-mcp/bge-mcp.service. Server ist damit
-        # auch auf Windows (pk-desktop) erreichbar, solange das Skript laeuft.
+        # T900039: Windows hat mit scripts/mcp-gateway/start-windows.ps1 einen
+        # eigenen Startmechanismus (Port-Forwards + Shim-Start). Der Server ist
+        # damit auch auf Windows (pk-desktop) erreichbar, solange das Skript laeuft.
         type: remote
         url: http://localhost:13005/mcp
         enabled: true
@@ -169,9 +168,9 @@ clients:
         env:
           BRAIN_WIKI_DIR: ~/brain/wiki
       opencode:
-        # Windows (pk-desktop): opencode laeuft nativ auf Windows, die
-        # /home/patrick-Pfade sind WSL (k3d-dev). Der Server ist stdio und
-        # laeuft dort, wo der Harness laeuft — also Windows-Pfad hier.
+        # Windows (pk-desktop): opencode laeuft nativ auf Windows. Der
+        # Server ist stdio und laeuft dort, wo der Harness laeuft — also
+        # Windows-Pfad hier.
         type: local
         # Windows-Host: kein Brain-Wiki-Checkout unter ~/brain/wiki (siehe
         # brain-ingest) — der Server ist hier nicht startbar, bis das Brain-Repo
@@ -198,8 +197,7 @@ clients:
       Windows (pk-desktop): Server starten mit
       FACTORY_REPO=C:/Users/PatrickKorczewski/Bachelorprojekt FACTORY_CTX=fleet
       node scripts/factory-mcp-node/server.mjs (kubectl fleet-Kontext noetig;
-      getestet 2026-08-30, factory_status liefert echte Daten). In WSL laeuft
-      er mit dem FACTORY_REPO-Default /home/patrick/Bachelorprojekt.
+      getestet 2026-08-30, factory_status liefert echte Daten).
     harness:
       claude_code:
         type: http

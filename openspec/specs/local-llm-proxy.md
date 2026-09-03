@@ -9,6 +9,13 @@ verwaltet die Loadouts als transiente systemd-User-Units: er startet ein Loadout
 selbst und setzt dabei durch, dass sich Loadouts derselben `exclusiveGroup` nicht gegenseitig
 von der GPU verdrängen.
 
+> **Status (T900054, 2026-09-03):** Der oben beschriebene Mechanismus setzt den WSL-Dev-Host
+> voraus — systemd-User-Units gibt es dort seit dem WSL-Exit (ADR-007) nicht mehr, und das
+> `llm-proxy`-Deployment in `workspace-dev` steht auf 0/1. ADR-007 sieht für den Proxy
+> "retire statt portieren" vor. Diese Purpose-Beschreibung bleibt vorerst unverändert stehen,
+> weil der Rückbau Laufzeitverhalten ist und einem eigenen infra-Change gehört; sie beschreibt
+> also den historischen, nicht den laufenden Zustand.
+
 Der Zweck dieser Bündelung ist, dass Routing, Kontextbudget, Tool-Schema-Sanitizing und
 GPU-Belegung an genau einer Stelle entschieden werden statt in jedem Konsumenten einzeln.
 

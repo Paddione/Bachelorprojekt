@@ -2,18 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2301 · Scenarios: 5107
+Specs: 145 · Requirements: 2296 · Scenarios: 5101
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 66 · Scenarios: 137 · Lines: 1720
+Reqs: 61 · Scenarios: 131 · Lines: 1626
 Last touches:
-  - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
-  - Superpowers is declared in every harness that runs the dev-flow skills | T900056 | 2026-09-03 | ADDED
-  - A plugin activation finding names an executable remedy | T900056 | 2026-09-03 | ADDED
-  - Plugin-provided discipline skills do not compete with the dev-flow orchestrators | T900056 | 2026-09-03 | ADDED
-  - opencode reaches the shared dev-flow reference material | T900056 | 2026-09-03 | ADDED
+  - Interrupted git operations in worktrees are surfaced as a finding | T015784 | 2026-08-24 | MODIFIED
+  - Post-Merge-Finalisierung als idempotente Skript-Einheit | T015916 | 2026-08-24 | MODIFIED
+  - Der Post-Merge-Archivpfad unterscheidet archiviert von halb archiviert | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 nimmt eine unterbrochene Archivierung wieder auf | T015783 | 2026-08-24 | ADDED
+  - Schritt 8 belegt seinen Abschluss am Positiv-Signal | T015783 | 2026-08-24 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
@@ -60,7 +60,11 @@ Last touches:
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
   - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
 In-flight:
-  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | active | MODIFIED
+  - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
+  - Force-Tick Trigger | T900054 | active | MODIFIED
+  - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | active | MODIFIED
+  - Stage-Plan Wake Trigger | T900054 | active | MODIFIED
+  - REQ-SF-EXECUTOR-002 — opencode-Binary wird im Dienstkontext selbst aufgelöst | T900054 | active | MODIFIED
 
 ## delivery
 
@@ -90,16 +94,21 @@ Last touches:
   - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
   - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
 In-flight:
+  - Penpot-Domain in der Registry registriert | T016593 | active | ADDED
+  - Penpot-Manifeste folgen dem Repo-Muster | T016593 | active | ADDED
+  - Penpot-Datenbank auf shared-db | T016593 | active | ADDED
   - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
   - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
   - Monitoring (blackbox-exporter, Grafana) ist wieder verfügbar | T900041 | active | ADDED
   - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
   - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
-  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | active | ADDED
-  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | active | ADDED
-  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
-  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
+  - Penpot object storage uses an available release image | T900026 | active | ADDED
+  - Penpot kennt seine eigene öffentliche URL | T900002 | active | ADDED
+  - Base Ingresses Deleted in the Prod Overlay | T900009 | active | ADDED
+  - Multi-Port Services Declare Port Names | T900009 | active | ADDED
+  - Single Patches Block per Kustomization | T900009 | active | ADDED
+  - Penpot Reachable Under the Brand Design Domain with OIDC | T900009 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
@@ -130,7 +139,7 @@ Last touches:
   - LLM_EMBED_URL in knowledge-ingest CronJobs verdrahtet | T002570 | 2026-08-10 | ADDED
 
 ### local-llm-proxy
-Reqs: 76 · Scenarios: 175 · Lines: 2023
+Reqs: 76 · Scenarios: 175 · Lines: 2030
 Last touches:
   - Proxy as sole LLM gateway | T013302 | 2026-08-22 | MODIFIED
   - Backend registry and admin API | T013909 | 2026-08-22 | MODIFIED
@@ -143,6 +152,7 @@ In-flight:
   - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
+  - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product
 
@@ -265,6 +275,8 @@ Last touches:
   - REQ-AUTHSSO-DBINIT-001 — Deterministic Pocket-ID database role provisioning | T002187 | 2026-08-02 | ADDED
   - REQ-AUTHSSO-DBINIT-002 — Database bootstrap fails loudly | T002187 | 2026-08-02 | ADDED
   - REQ-AUTHSSO-DBINIT-003 — API-key bootstrap resolves the real admin user | T002187 | 2026-08-02 | ADDED
+In-flight:
+  - Penpot-OIDC-Client wird vom Seed-Job provisioniert | T016593 | active | ADDED
 
 ### auto-triage-grounding-T002399
 Reqs: 2 · Scenarios: 4 · Lines: 50
@@ -695,12 +707,8 @@ Last touches:
   - mcp-kubernetes und mcp-postgres laufen mit read-only Identität | T006335 | 2026-08-15 | MODIFIED
   - Multi-Statement Queries Rejected Instead of Empty Array | T006293 | 2026-08-15 | ADDED
 In-flight:
-  - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
-  - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
-  - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED
-  - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | active | ADDED
-  - REQ-MCP-HTTP-005 MCP authentication secrets stay outside tracked artifacts | T900052 | active | ADDED
   - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
+  - Windows hosts have a documented start mechanism for the local MCP servers | T900054 | active | MODIFIED
 
 ### mcp-skill-integration
 Reqs: 7 · Scenarios: 17 · Lines: 183
@@ -1027,6 +1035,10 @@ In-flight:
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
   - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED
+  - Local k3d cluster runs the SDLC stack from the production manifests | T900054 | active | MODIFIED
+  - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T900054 | active | MODIFIED
+  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900054 | active | MODIFIED
+  - Dev-Host WSL memory verified for the local stack | T900054 | active | REMOVED
   - Die SDLC-Oberfläche hat eine Laufzeit-Heimat | T016429 | active | MODIFIED
 
 ### secret-rotation

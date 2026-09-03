@@ -158,11 +158,8 @@ networks:
     status: active
     source: wireguard/wg-mesh-nodes.yaml (Sektion mentolder)
     notes: >-
-      Auf dem WSL-Entwicklungsrechner trägt .10 zweimal auf: einmal auf wg0 in
-      WSL und einmal auf dem gespiegelten Windows-Adapter wg-gpu (WSL läuft in
-      networkingMode = mirrored, Windows-Adapter erscheinen dort als eth*). Das
-      ist eine Doppelvergabe innerhalb desselben Bereichs, keine Überschneidung
-      zweier Bereiche, und deshalb nicht unter overlaps abgebildet.
+      Auf dem Windows-Entwicklungsrechner ist .10 der nativ zugewiesene
+      wg-gpu-Adresse (WireGuard-Mesh-Punkt).
     overlaps:
       - with: hetzner-private
         reason: >-

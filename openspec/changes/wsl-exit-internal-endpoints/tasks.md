@@ -27,41 +27,60 @@ tests/spec/fleet-operations/internal-endpoints.bats # NEU: Registry-Pflicht + fa
 
 ## Tasks
 
-- [ ] **Domain-Registry erweitern.** `BGE_EMBED_HOST`/`BGE_RERANK_HOST` in
+- [x] **Domain-Registry erweitern.** `BGE_EMBED_HOST`/`BGE_RERANK_HOST` in
       configmap-domains.yaml (dev: `embed.localhost`/`rerank.localhost`);
       Prod-Werte im Fleet-Overlay setzen. Muster: bestehende Keys wie
       BRAIN_DOMAIN.
-- [ ] **IngressRoute embed/rerank.** Neues Manifest nach dem
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      `k3d/configmap-domains.yaml:35-36` führt `BGE_EMBED_HOST`/`BGE_RERANK_HOST` (PR #5252).
+- [x] **IngressRoute embed/rerank.** Neues Manifest nach dem
       Wildcard-Cert-Muster (`prod-fleet/mentolder/sessions-server.yaml`);
       Backend = Service `llm-gateway-embed`/`llm-gateway-rerank`, Port 8081,
       Namespace workspace.
-- [ ] **DB-Route fail-closed.** TCP-IngressRoute oder LB-Service für
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      `k3d/llm-gateway-ingress.yaml` liegt auf `main` (PR #5252).
+- [x] **DB-Route fail-closed.** TCP-IngressRoute oder LB-Service für
       shared-db:5432, gebunden an den wg-internen Entrypoint; öffentliche
       Entrypoints explizit ausschließen. Kommentar im Manifest dokumentiert die
       Grenze.
-- [ ] **Env-Registry.** Falls environments/schema.yaml die neuen Hosts führen
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      Gelöst als `k3d/shared-db-endpoint-policy.yaml` (NetworkPolicy), nicht als die oben
+      geplante TCP-IngressRoute `k3d/shared-db-tcp-route.yaml` — die existiert auf `main` nicht.
+      Die Zusicherung (fail-closed, nur wg-interner Zugang) ist damit erfüllt, der Mechanismus
+      weicht ab. Die File-Structure oben ist an dieser Stelle überholt.
+- [x] **Env-Registry.** Falls environments/schema.yaml die neuen Hosts führen
       muss (legacy_only-Mechanik beachten), Keys dort ergänzen.
-- [ ] **BATS-Test.** Assertions: (a) neue Manifeste enthalten keinen literalen
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      `environments/schema.yaml:291,297` führt beide Keys (PR #5252).
+- [x] **BATS-Test.** Assertions: (a) neue Manifeste enthalten keinen literalen
       Hostnamen, sondern Referenzen auf die Registry-Keys; (b) das DB-Route-
       Manifest bindet an den internen Entrypoint und nicht an den öffentlichen.
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      `tests/spec/fleet-operations/internal-endpoints.bats` liegt auf `main` (PR #5252).
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** BATS-Test anlegen — FAIL, weil Manifeste/
+- [x] **Failing-Test-Step (RED).** BATS-Test anlegen — FAIL, weil Manifeste/
       Registry-Keys fehlen.
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      Test-Datei auf `main`; PR #5252 folgte dem RED→GREEN-Schritt.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/internal-endpoints.bats
 # expected: FAIL (red — endpoint manifests and domain keys do not exist yet)
 ```
 
-- [ ] **Fix-Step (GREEN).** Artefakte gemäß Tasks umsetzen; Test grün.
+- [x] **Fix-Step (GREEN).** Artefakte gemäß Tasks umsetzen; Test grün.
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      Alle Manifeste und der Test liegen gemeinsam auf `main` (PR #5252).
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/internal-endpoints.bats
 ```
 
-- [ ] **Final Verification.** Die drei Pflicht-Gates:
+- [x] **Final Verification.** Die drei Pflicht-Gates:
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      Über den gemergten PR #5252 belegt (Repo-Regel 4: CI grün vor Merge).
 
 ```bash
 task test:changed

@@ -22,7 +22,7 @@ env_vars:
   LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace.svc.cluster.local:8081"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
   LLM_EMBED_MODEL: "bge-m3"
-  # wg-gpu-Adresse des WSL-Hosts — derselbe GPU-Peer, den die Prod-Envs adressieren.
+  # wg-gpu-Adresse des Windows-Hosts — derselbe GPU-Peer, den die Prod-Envs adressieren.
   # Docker-Bridge-Adressen funktionieren hier nicht: Docker Desktop fährt den Daemon in
   # einer eigenen Distro, k3d vergibt pro Cluster ein zufälliges Subnetz. [T002109]
   LLM_HOST_IP: "192.168.100.10"

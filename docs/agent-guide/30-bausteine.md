@@ -136,7 +136,7 @@ Erzeugt Embeddings für die semantische Suche; nur verfügbar, solange der GPU-H
 
 🟡 **Vorsicht**
 
-Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud.
+Daemon auf dem Windows-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud.
 
 ### 🎙️ Whisper
 

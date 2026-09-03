@@ -108,6 +108,7 @@ spec:
 ---
 # LLM-Gateway-Hosts auf dem wg-mesh erreichen (192.168.100.x mentolder, 10.13.14.x korczewski)
 # allow-internet-egress blockiert RFC1918 — diese Policy öffnet gezielt die wg-mesh-Subnets.
+# [T016450] FreeToken-Port 1919, Kubernetes-API, DNS und Pod-Netzwerk hinzugefügt.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -117,6 +118,7 @@ spec:
   policyTypes:
   - Egress
   egress:
+  # LLM-Gateway auf dem wg-mesh (mentolder)
   - to:
     - ipBlock:
         cidr: 192.168.100.0/24
@@ -124,11 +126,14 @@ spec:
     - protocol: TCP
       port: 1234
     - protocol: TCP
+      port: 1919
+    - protocol: TCP
       port: 8081
     - protocol: TCP
       port: 8083
     - protocol: TCP
       port: 8189
+  # LLM-Gateway auf dem wg-mesh (korczewski)
   - to:
     - ipBlock:
         cidr: 10.13.14.0/24
@@ -136,11 +141,41 @@ spec:
     - protocol: TCP
       port: 1234
     - protocol: TCP
+      port: 1919
+    - protocol: TCP
       port: 8081
     - protocol: TCP
       port: 8083
     - protocol: TCP
       port: 8189
+  # Kubernetes API Server (ClusterIP + Node-IPs)
+  - to:
+    - ipBlock:
+        cidr: 10.43.0.0/16
+    - ipBlock:
+        cidr: 10.20.0.0/24
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 6443
+  # DNS (kube-system)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # In-cluster Services (shared-db, etc.)
+  - to:
+    - ipBlock:
+        cidr: 10.42.0.0/16
+    ports:
+    - protocol: TCP
+      port: 5432
 ---
 # Pod-zu-Pod-Kommunikation innerhalb des workspace-Namespace (Eingang) erlauben
 apiVersion: networking.k8s.io/v1

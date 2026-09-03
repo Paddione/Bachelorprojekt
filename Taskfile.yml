@@ -265,6 +265,21 @@ tasks:
     cmds:
       - bash scripts/agent-model-select.sh
 
+  opencode:serve:
+    desc: "Lifecycle management for opencode HTTP server (start/stop/restart/status/health)"
+    cmds:
+      - bash scripts/opencode-serve.sh "{{.OPENCODE_SERVE_CMD|start}}"
+
+  opencode:monitor:
+    desc: "Observe opencode serve: sessions, status, SSE events, session details, todos"
+    cmds:
+      - bash scripts/opencode-monitor.sh "{{.OPENCODE_MONITOR_CMD|help}}"
+
+  opencode:autostart:
+    desc: "Install/remove the opencode serve autostart block in ~/.bashrc (install/remove/status)"
+    cmds:
+      - bash scripts/setup-autostart.sh "{{.OPENCODE_AUTOSTART_CMD|status}}"
+
   # ── MCP Registry SSOT ────────────────────────────────────────────────────
   # Verwaltet die drei Harness-Konfigurationen aus einer Registry (SSOT).
   # Siehe docs/agent-guide/registry/mcp.yaml und scripts/mcp-sync.sh.

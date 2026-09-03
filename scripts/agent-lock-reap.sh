@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Reap helpers split from agent-lock.sh to keep the dispatcher within its S1 budget.
+. "$(dirname "${BASH_SOURCE[0]}")/lib/worktree-prune-safe.sh" 2>/dev/null || true
 
 _reap_log() {  # <lock-file> <reason>
   local _sc _id _what
@@ -159,8 +160,8 @@ cmd_reap() {
     cwd="$(readlink "/proc/$pid/cwd" 2>/dev/null)" || continue
     case "$cwd" in *wt-*"(deleted)") kill -9 "$pid" 2>/dev/null || true;; esac
   done
-  # 2) prune git worktree admin entries for gone directories
-  git worktree prune 2>/dev/null || true
+  # 2) git worktree prune admin entries for gone directories (wrapped via worktree_prune_safe, T001363/T900046)
+  worktree_prune_safe 2>/dev/null || git worktree prune 2>/dev/null || true
   # 2b) prune stale remote-tracking refs (branches deleted on GitHub after merge)
   #     [T002502] TTL-Guard: fetch max 1x pro AGENT_LOCK_FETCH_TTL (Marker im
   #     Lock-Dir, isoliert je AGENT_LOCK_DIR; TTL=0 erzwingt, fehlender Marker

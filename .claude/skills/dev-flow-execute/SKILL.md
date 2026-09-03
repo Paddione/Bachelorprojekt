@@ -103,7 +103,7 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](.claude/ski
     diese Propagation blockiert der Worktree-Write-Guard seine Edit/Write-Tools
     im geclaimten Worktree (eigene Session-ID des Subagenten ≠ owner_sid).
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**
-  - *Feature:* Rufe `superpowers:executing-plans` (Claude Code — built-in; opencode: steps inlined in `opencode-flow-execute`) + `test-driven-development` (Claude Code — built-in; opencode: see `vitest/SKILL.md`) auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
+  - *Feature:* Rufe `superpowers:executing-plans` (Superpowers-Plugin; opencode: Schritte als inlinede Steps in `dev-flow-execute`) + `test-driven-development` (Superpowers-Plugin; opencode: siehe `vitest/SKILL.md`) auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
   - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
@@ -148,7 +148,7 @@ aber nicht. Default `MAX_LOOP=3`, überschreibbar per `FACTORY_BUILD_LOOP_MAX`.
 ## Schritt 3: Lokale Verifikation
 
 Rufe das Skill **`verification-before-completion`** auf (Claude Code — built-in; opencode: siehe die
-inlined Steps in `opencode-flow-execute/SKILL.md` und den `references/verification-block.md`), um die Verifikation strukturiert zu steuern.
+inlined Steps in `dev-flow-execute/SKILL.md` und den `references/verification-block.md`), um die Verifikation strukturiert zu steuern.
 Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-first** (`ticket-mcp`):
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`

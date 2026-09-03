@@ -119,7 +119,7 @@ die dieser Branch seit Abzweigen von main geändert hat — egal ob committed od
 Das Skript erstellt oder wechselt nie einen Branch.
 
 **Empfohlener Workflow [T002444]:**
-1. Vor dem Plan-Schreiben (`opencode-flow-plan`): `agent-collision.sh check --branch`
+1. Vor dem Plan-Schreiben (`dev-flow-plan`): `agent-collision.sh check --branch`
 2. Pre-Commit-Hook: `agent-collision.sh check --staged`
 3. Vor dem PR-Erstellen: `agent-collision.sh check --branch` (stellt sicher, dass
    Merge-Konflikte mit anderen Branches früh erkannt werden)
@@ -188,7 +188,7 @@ Git-Operation in einem dedizierten Pre-Flight-Schritt (−1) platziert:
 ### Aufbau der Pre-Flight-Schritte
 
 Siehe `dev-flow-execute/SKILL.md` Schritte `−1.0` bis `−1.3` (Claude Code)
-bzw. `opencode-flow-execute/SKILL.md` Schritt `−1.0` bis `−1.2` (opencode).
+bzw. `dev-flow-execute/SKILL.md` Schritt `−1.0` bis `−1.2` (opencode).
 
 ### check-and-claim — atomische Operation
 

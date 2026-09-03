@@ -4547,6 +4547,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900056": [
+    {
+      "slug": "superpowers-namespace",
+      "status": "plan_staged"
+    }
+  ],
   "T900057": [
     {
       "slug": "sf-test-fixture-cleanup",

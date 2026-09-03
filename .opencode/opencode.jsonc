@@ -25,7 +25,18 @@
     // Agent Memory (Letta-style memory blocks)
     "opencode-agent-memory",
     // Oh My OpenCode / OmO Slim (multi-agent)
-    "oh-my-opencode-slim"
+    "oh-my-opencode-slim",
+    // superpowers (T900056): opencode does NOT inherit Claude Code's plugin
+    // set -- each harness declares its own. See the upstream install notes at
+    // https://github.com/obra/superpowers/blob/main/.opencode/INSTALL.md.
+    // Pinned to the same commit as .opencode/package.json (verified against
+    // `git ls-remote` and the gitCommitSha Claude Code recorded for its own
+    // install of this plugin) -- an unpinned git ref would resolve to
+    // whatever is on upstream main at install time, defeating the
+    // reproducibility this ticket exists to restore. INSTALL.md documents
+    // the `#<ref>` pin syntax directly (its example pins to a tag; a commit
+    // SHA is immutable where a tag can move, so that's used here instead).
+    "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
   ],
   "permission": {
     "read": "allow",
@@ -49,6 +60,13 @@
       // Shared Sources, die opencode seit T014086 unter denselben Namen wie
       // Claude Code lädt (Directory-Symlinks .opencode/skills/dev-flow-*).
       "dev-flow-e2e": "deny",
+      // T900056: writing-plans/executing-plans are called as SUB-steps by
+      // dev-flow-plan/dev-flow-execute. Allowing them as an entry point would
+      // let a repo work request skip ticket creation, worktree setup,
+      // plan-lint and stage-plan -- deny direct entry, dev-flow-* still
+      // reaches them internally as skill invocations.
+      "writing-plans": "deny",
+      "executing-plans": "deny",
       // ── Generic meta / skill discovery ───────────────────────────────
       "agent-orchestration": "deny",
       "project-overview": "deny",
@@ -64,7 +82,10 @@
       "website-specialist": "deny",
       // ── UI/design (not primary workflow) ─────────────────────────────
       "ui-ux-pro-max": "deny",
-      "references": "deny",
+      // T900056: references was denied here, cutting opencode off from
+      // dev-flow-plan-phases.md / plan-quality-gates.md / plan-intel-bundle.md
+      // -- the normative core the shared dev-flow-* skills depend on. Left
+      // allowed (falls through to the "*": "allow" default).
       // ── market-cli installed (not project-relevant, avoid context bloat) ─
       "lavish": "deny"
     }

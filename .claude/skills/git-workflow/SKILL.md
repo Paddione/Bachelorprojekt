@@ -305,8 +305,8 @@ Cluster) stehen in
 
 | Skill | Beziehung |
 |-------|-----------|
-| `superpowers:using-git-worktrees` | Worktree korrekt anlegen (git-crypt-safe) |
-| `superpowers:finishing-a-development-branch` | Optionen nach Implementierung |
+| `superpowers:using-git-worktrees` | **[Plugin]** Worktree korrekt anlegen (git-crypt-safe) |
+| `superpowers:finishing-a-development-branch` | **[Plugin]** Optionen nach Implementierung |
 | `dev-flow-chore` | Chore-Ablauf (nutzt diesen Skill intern) |
 | `dev-flow-execute` | Feature/Fix-Ablauf (nutzt diesen Skill intern) |
 

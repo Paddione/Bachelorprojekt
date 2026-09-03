@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1253,
+      "file_count": 1254,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -969,6 +969,7 @@
         "tests/spec/security.bats",
         "tests/spec/security/alibaba-token-key-guard.bats",
         "tests/spec/security/fixtures/alibaba-token-key-leak.txt",
+        "tests/spec/security/stray-secret-dump-guard.bats",
         "tests/spec/sessions-server.bats",
         "tests/spec/sessions-server/annotation-links.bats",
         "tests/spec/sessions-server/deregister-reap.bats",
@@ -3865,7 +3866,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 848,
+      "file_count": 849,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4604,6 +4605,7 @@
         "scripts/staging-db-anonymize.sh",
         "scripts/staging-id.sh",
         "scripts/start-comfyui.sh",
+        "scripts/stray-secret-dump-guard.sh",
         "scripts/superpowers-collab-patch.sh",
         "scripts/superpowers-collab/helper-collab.js",
         "scripts/superpowers-collab/relay-test.mjs",

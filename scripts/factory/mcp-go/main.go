@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -212,7 +213,145 @@ func initResult() map[string]any {
 
 // ---------- HTTP handler ----------
 
+// ---- shared HTTP security boundary (mirrors scripts/lib/mcp-http-security.mjs) ----
+
+// requireFactoryToken returns the FACTORY_MCP_TOKEN or fails-fast the process
+// if it is absent/empty (same fail-closed semantics as requireToken in the
+// shared Node module). [T900052]
+func requireFactoryToken() string {
+	t := strings.TrimSpace(os.Getenv("FACTORY_MCP_TOKEN"))
+	if t == "" {
+		log.Fatalf("MCP-HTTPSEC: Pflicht-Token fehlt — setze FACTORY_MCP_TOKEN in einer owner-lesbaren Umgebungsdatei, bevor der Server startet.")
+	}
+	return t
+}
+
+// allowedOrigins parses MCP_BROWSER_ORIGINS (comma-separated) into a set of
+// exact, normalized origins. Empty/invalid values are discarded; if nothing is
+// set, browser access is fully disabled (no wildcard allowance). [T900052]
+func allowedOrigins() map[string]bool {
+	out := map[string]bool{}
+	for _, part := range strings.Split(os.Getenv("MCP_BROWSER_ORIGINS"), ",") {
+		o := strings.TrimSpace(part)
+		if o == "" {
+			continue
+		}
+		// Only http(s)://host[:port] with an explicit scheme — no wildcards.
+		if matched, _ := regexp.MatchString(`^https?://[^/\s*]+$`, o); matched {
+			out[o] = true
+		}
+	}
+	return out
+}
+
+// isLocalHost reports whether the Host header is a loopback host
+// (127.0.0.1, localhost, ::1 with optional bracket/port). Rejects foreign
+// hostnames to prevent DNS-rebinding. [T900052]
+func isLocalHost(host string) bool {
+	h := strings.TrimSpace(host)
+	if strings.HasPrefix(h, "[") {
+		if idx := strings.IndexByte(h, ']'); idx >= 0 {
+			h = h[1:idx]
+		}
+	} else if colon := strings.IndexByte(h, ':'); colon >= 0 {
+		// Host:Port — but a bare IPv6 literal like ::1 has multiple colons.
+		if strings.Count(h, ":") <= 1 {
+			h = h[:colon]
+		}
+	}
+	lower := strings.ToLower(h)
+	return lower == "localhost" || lower == "127.0.0.1" || lower == "::1" || lower == "0:0:0:0:0:0:0:1"
+}
+
+// constantTimeBearer reports whether the Authorization header carries the exact
+// expected bearer token (constant-time compare to avoid leaking token length).
+// [T900052]
+func constantTimeBearer(authHeader, expected string) bool {
+	m := regexp.MustCompile(`(?i)^Bearer\s+(.+)$`).FindStringSubmatch(strings.TrimSpace(authHeader))
+	if len(m) != 2 {
+		return false
+	}
+	provided := []byte(strings.TrimSpace(m[1]))
+	want := []byte(expected)
+	if len(provided) == 0 || len(want) == 0 {
+		return false
+	}
+	// Hash both to fixed length so length difference does not leak timing.
+	pa := sha256.Sum256(provided)
+	wa := sha256.Sum256(want)
+	return subtle.ConstantTimeCompare(pa[:], wa[:]) == 1
+}
+
+// securityGuard wraps the mux with the shared fail-closed boundary: localhost
+// Host check, exact Origin allowlist, and constant-time bearer auth. Rejects
+// non-conforming requests with 401/403 BEFORE the body is read or a tool
+// dispatches. Replies replace wildcard CORS with exact-origin reflection.
+// [T900052]
+func securityGuard(next http.Handler, token string, origins map[string]bool) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 1. Host must be loopback (DNS-rebinding).
+		if !isLocalHost(r.Host) {
+			writeSecurityErr(w, http.StatusForbidden, "forbidden: host not allowed")
+			return
+		}
+		// 2. Origin (if present) must be in the exact allowlist.
+		origin := r.Header.Get("Origin")
+		originOK := origin == "" || origins[origin]
+		if !originOK {
+			writeSecurityErr(w, http.StatusForbidden, "forbidden: origin not allowed")
+			return
+		}
+		// OPTIONS preflight: Host/Origin only, no auth required.
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, mcp-protocol-version")
+			w.Header().Set("Access-Control-Max-Age", "86400")
+			w.Header().Set("Cache-Control", "no-store")
+			if origin != "" && origins[origin] {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Vary", "Origin")
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		// 3. Bearer token required.
+		if !constantTimeBearer(r.Header.Get("Authorization"), token) {
+			writeSecurityErr(w, http.StatusUnauthorized, "unauthorized: invalid or missing bearer token")
+			return
+		}
+		// Set exact-origin CORS header (never wildcard) for allowed origins.
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, mcp-protocol-version")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+		w.Header().Set("Cache-Control", "no-store")
+		if origin != "" && origins[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func writeSecurityErr(w http.ResponseWriter, status int, msg string) {
+	// Mirror the shared Node module (mcp-http-security.mjs::writeSecurityError):
+	// 401 -> -32001, 403 -> -32003. [T900052]
+	code := -32001
+	if status == http.StatusForbidden {
+		code = -32003
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"jsonrpc": "2.0",
+		"id":      nil,
+		"error":   map[string]any{"code": code, "message": msg},
+	})
+}
+
 func main() {
+	token := requireFactoryToken()
+	origins := allowedOrigins()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -231,7 +370,7 @@ func main() {
 	log.Printf("factory-mcp listening on %s (repo=%s)", addr, repo())
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           withCORS(mux),
+		Handler:           routeWithGuard(mux, token, origins),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	if err := srv.ListenAndServe(); err != nil {
@@ -239,22 +378,16 @@ func main() {
 	}
 }
 
-func withCORS(next http.Handler) http.Handler {
+// routeWithGuard routes /health publicly (minimal liveness) and passes every
+// other request (notably /mcp) through the security guard. [T900052]
+func routeWithGuard(mux *http.ServeMux, token string, origins map[string]bool) http.Handler {
+	guard := securityGuard(mux, token, origins)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Max-Age", "86400")
-		if requested := r.Header.Get("Access-Control-Request-Headers"); requested != "" {
-			w.Header().Set("Access-Control-Allow-Headers", requested)
-		} else {
-			w.Header().Set("Access-Control-Allow-Headers",
-				"Authorization, Content-Type, Accept, mcp-protocol-version")
-		}
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
+		if r.URL.Path == "/health" {
+			mux.ServeHTTP(w, r)
 			return
 		}
-		next.ServeHTTP(w, r)
+		guard.ServeHTTP(w, r)
 	})
 }
 

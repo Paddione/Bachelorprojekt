@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30T10:19:19.423Z",
+  "generatedAt": "2026-09-03T06:22:14.038Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -757,6 +757,12 @@
       "from": "claude-code-mcp-monolith",
       "to": "website",
       "via": "env:DATABASE_URL",
+      "kind": "env"
+    },
+    {
+      "from": "factory-runner",
+      "to": "website",
+      "via": "env:FACTORY_PG_URL",
       "kind": "env"
     },
     {
@@ -13649,6 +13655,18 @@
     },
     {
       "from": "brett",
+      "to": "factory-runner",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "factory-runner",
+      "to": "brett",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "sdlc-console",
       "via": "secret:shared-db-dev-secrets",
       "kind": "secret"
@@ -13680,6 +13698,42 @@
     {
       "from": "website",
       "to": "brett",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "factory-runner",
+      "to": "sdlc-console",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "factory-runner",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "factory-runner",
+      "to": "shared-db-dev",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db-dev",
+      "to": "factory-runner",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "factory-runner",
+      "to": "website",
+      "via": "secret:shared-db-dev-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website",
+      "to": "factory-runner",
       "via": "secret:shared-db-dev-secrets",
       "kind": "secret"
     },

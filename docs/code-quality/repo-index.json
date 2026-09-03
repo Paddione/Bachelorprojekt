@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1255,
+      "file_count": 1256,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1118,6 +1118,7 @@
         "tests/spec/workstation-cluster-iso/k3s-join-guards.bats",
         "tests/spec/workstation-cluster-pxe/setup-pxe-guards.bats",
         "tests/spec/worktree-create-real-path-T004604.bats",
+        "tests/spec/worktree-cross-platform.bats",
         "tests/spec/worktree-divergence-guard-T002387.bats",
         "tests/spec/worktree-divergence-guard/stash-restore-visible.bats",
         "tests/spec/wsl-exit-docs.bats",
@@ -3867,7 +3868,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 850,
+      "file_count": 851,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4378,6 +4379,7 @@
         "scripts/lib/ticket-help.sh",
         "scripts/lib/ticket-links.sh",
         "scripts/lib/vda-core.sh",
+        "scripts/lib/worktree-prune-safe.sh",
         "scripts/lib/worktree-real-path.sh",
         "scripts/lib/worktree-set.sh",
         "scripts/lib/wt-hygiene-measure.sh",

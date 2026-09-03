@@ -24,6 +24,14 @@
 #
 # Exit: 0 = unbedenklich, 1 = Befund (Fremdmutation moeglich/erfolgt),
 #       2 = nicht pruefbar (Vorbedingung fehlt).
+#
+# [T900061] Der Lock-Test faellt selbst unter 2: unter Git Bash auf Windows ist
+# er nicht durchfuehrbar (flock scheitert am fd-Redirect, und /tmp zeigt dort
+# ohnehin nicht auf die Lock-Datei der Factory unter WSL). Frueher lief dieser
+# Fehler in denselben Zweig wie "Lock gehalten" und meldete auf jedem
+# Windows-Host dauerhaft einen laufenden Tick. Ein nicht durchfuehrbarer Test
+# ist kein Befund — er wird als solcher ausgewiesen. Ein echter Befund
+# (fremder main-checkout-Claim) behaelt Vorrang und liefert weiterhin 1.
 
 set -uo pipefail
 
@@ -42,9 +50,35 @@ snapshot() {
   } | sha256sum | cut -d' ' -f1
 }
 
-tick_running() {
-  test -f /tmp/factory-tick.lock || return 1
-  (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+# [T012414] Pfad ueberschreibbar (wie scripts/repo-hygiene-cron.sh); der Default
+# bleibt der geteilte Pfad, an dem die Absprache mit der Factory haengt.
+FACTORY_TICK_LOCK="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
+
+# Ist der fd-Redirect-Lock-Test in DIESER Shell ueberhaupt durchfuehrbar?
+# [T900061] Unter Git Bash auf Windows ist er es nicht: `flock -n 9` bricht mit
+# "Bad file descriptor" ab. Der alte Test fing diesen Fehler nicht vom Fall
+# "Lock gehalten" ab (beides landete im `|| return 0`-Zweig) und meldete auf
+# jedem Windows-Host dauerhaft einen laufenden Tick. Die Sonde trennt beides.
+flock_usable() {
+  command -v flock >/dev/null 2>&1 || return 1
+  local probe
+  probe="$(mktemp 2>/dev/null)" || return 1
+  local rc=1
+  # Frische Datei, von niemandem gehalten: gelingt flock hier nicht, liegt es
+  # an der Shell/Plattform und nicht am Lock-Zustand.
+  if (flock -n 9) 9<>"$probe" 2>/dev/null; then rc=0; fi
+  rm -f "$probe"
+  return "$rc"
+}
+
+# 0 = Tick laeuft, 1 = kein Tick, 2 = nicht pruefbar.
+# `9<>` statt `9>`: der alte Redirect legte die Lock-Datei an bzw. kuerzte sie
+# auf 0 Byte — der blosse Vorcheck schrieb damit an fremdem Lock-Zustand herum.
+tick_state() {
+  test -f "$FACTORY_TICK_LOCK" || return 1
+  flock_usable || return 2
+  if (flock -n 9) 9<>"$FACTORY_TICK_LOCK" 2>/dev/null; then return 1; fi
+  return 0
 }
 
 case "${1:-}" in
@@ -80,15 +114,31 @@ case "${1:-}" in
 esac
 
 rc=0
+unknown=0
 
-if tick_running; then
-  echo "BEFUND: Factory-Tick laeuft (/tmp/factory-tick.lock gehalten)."
-  echo "  Worktrees und Branches mutieren waehrend der Messung. Sektion ueberspringen"
-  echo "  oder die Pruefung unmittelbar vor jedem Remove wiederholen."
-  rc=1
-else
-  echo "ok: kein laufender Factory-Tick."
-fi
+tick_state
+case "$?" in
+  0)
+    echo "BEFUND: Factory-Tick laeuft ($FACTORY_TICK_LOCK gehalten)."
+    echo "  Worktrees und Branches mutieren waehrend der Messung. Sektion ueberspringen"
+    echo "  oder die Pruefung unmittelbar vor jedem Remove wiederholen."
+    rc=1
+    ;;
+  1)
+    echo "ok: kein laufender Factory-Tick."
+    ;;
+  *)
+    echo "NICHT PRUEFBAR: der Factory-Tick laesst sich in dieser Shell nicht messen." >&2
+    echo "  'flock -n 9' scheitert hier an der Plattform (Git Bash unter Windows:" >&2
+    echo "  'Bad file descriptor'), nicht am Lock-Zustand. Ob ein Tick laeuft, ist" >&2
+    echo "  damit unbekannt — es wird KEIN Tick behauptet und keiner ausgeschlossen." >&2
+    echo "  Hinzu kommt: Git Bash bildet /tmp auf ein eigenes Verzeichnis ab, dies" >&2
+    echo "  ist also ohnehin nicht die Lock-Datei, die die Factory unter WSL haelt." >&2
+    echo "  Konsequenz fuers Runbook: die --porcelain-Pruefung unmittelbar vor jedem" >&2
+    echo "  Remove wiederholen, statt sich auf diesen Vorcheck zu verlassen." >&2
+    unknown=1
+    ;;
+esac
 
 # main-checkout-Claim. `check` gibt free|mine|<Halterdaten> aus.
 if [ -x scripts/agent-lock.sh ] || [ -f scripts/agent-lock.sh ]; then
@@ -123,4 +173,12 @@ echo "Stabilitaets-Fingerabdruck: $(snapshot)"
 echo "  Nach der Messung pruefen mit:"
 echo "  bash scripts/repo-hygiene-precheck.sh --verify <fingerabdruck>"
 
-exit "$rc"
+# Ein echter Befund (fremder Claim) ist handlungsleitender als ein nicht
+# durchfuehrbarer Teiltest und behaelt darum Vorrang vor rc 2.
+if [ "$rc" -ne 0 ]; then
+  exit "$rc"
+fi
+if [ "$unknown" -eq 1 ]; then
+  exit 2
+fi
+exit 0

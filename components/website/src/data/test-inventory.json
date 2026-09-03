@@ -4944,6 +4944,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-hygiene/windows-guards",
+    "file": "tests/spec/repo-hygiene/windows-guards.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
     "id": "repo-hygiene/worktree-clean-check-existence",
     "file": "tests/spec/repo-hygiene/worktree-clean-check-existence.bats",
     "category": "repo-hygiene",

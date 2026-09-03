@@ -82,14 +82,38 @@ if [ "$CMD" = "orphans" ]; then
   . "$(dirname "$0")/lib/worktree-set.sh"
   worktree_set_paths "$REPO_ROOT" > "$registered"
 
+  # [T900061] Beide Seiten auf EINE Schreibweise bringen, bevor verglichen wird.
+  # `git worktree list` liefert Windows-Pfade (C:/Users/...) oder WSL-Pfade
+  # (/mnt/c/Users/...), `pwd` unter Git Bash dagegen /c/Users/... . Der
+  # exakte Vergleich (grep -qFx) scheiterte daran und meldete JEDEN
+  # registrierten Worktree als Orphan (beobachtet: 6 von 6). Welche Zielform
+  # gewaehlt wird, ist gleichgueltig — entscheidend ist, dass beide Seiten
+  # dieselbe Abbildung durchlaufen.
+  canon_path() {
+    local p="${1%/}"
+    case "$p" in
+      [A-Za-z]:/*)     p="/$(printf '%s' "${p%%:*}" | tr '[:upper:]' '[:lower:]')${p#?:}" ;;
+      /mnt/[A-Za-z]/*) p="/${p#/mnt/}" ;;
+    esac
+    printf '%s\n' "$p"
+  }
+
+  canon_registered="$(mktemp)"
+  trap "rm -f '$registered' '$canon_registered'" EXIT
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    canon_path "$line"
+  done < "$registered" > "$canon_registered"
+
   found_orphan=0
   for wt_dir in "$REPO_ROOT"/.worktrees/*/; do
     [ -d "$wt_dir" ] || continue
     # Normalisiere Pfad (ohne trailing slash)
     wt_path="${wt_dir%/}"
     abs_path="$(cd "$wt_path" 2>/dev/null && pwd)" || continue
+    abs_path="$(canon_path "$abs_path")"
 
-    if ! grep -qFx "$abs_path" "$registered" 2>/dev/null; then
+    if ! grep -qFx "$abs_path" "$canon_registered" 2>/dev/null; then
       echo "ORPHAN-WORKTREE: $wt_path (kein Eintrag in 'git worktree list')"
       found_orphan=1
     fi

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.325.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.0...website-v1.325.1) (2026-09-03)
+
+
+### Bug Fixes
+
+* **infra:** SA-Security-Fixes (SEC-01..04) [T900042] ([#5457](https://github.com/Paddione/Bachelorprojekt/issues/5457)) ([19c32f6](https://github.com/Paddione/Bachelorprojekt/commit/19c32f6d72ecff18b11b8cf84c9cb7d64fd52739))
+
 ## [1.325.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.11...website-v1.325.0) (2026-09-03)
 
 

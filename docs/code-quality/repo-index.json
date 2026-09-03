@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1254,
+      "file_count": 1255,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -969,6 +969,7 @@
         "tests/spec/security.bats",
         "tests/spec/security/alibaba-token-key-guard.bats",
         "tests/spec/security/fixtures/alibaba-token-key-leak.txt",
+        "tests/spec/security/githooks-installed-guard.bats",
         "tests/spec/security/stray-secret-dump-guard.bats",
         "tests/spec/sessions-server.bats",
         "tests/spec/sessions-server/annotation-links.bats",
@@ -3866,7 +3867,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 849,
+      "file_count": 850,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4003,6 +4004,7 @@
         "scripts/check-commit-vs-diff.sh",
         "scripts/check-connectivity.sh",
         "scripts/check-fix-ticket-guard.sh",
+        "scripts/check-hooks-path.sh",
         "scripts/check-pod-phase-filter.sh",
         "scripts/check-pr-automerge.sh",
         "scripts/check-skip-ci-marker.sh",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.324.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.6...website-v1.324.7) (2026-09-03)
+
+
+### Bug Fixes
+
+* **ops:** harden FreeToken runtime discovery [T900051] ([#5431](https://github.com/Paddione/Bachelorprojekt/issues/5431)) ([a294ab6](https://github.com/Paddione/Bachelorprojekt/commit/a294ab687569fe0945dfaa99b6d137525aed57ad))
+
 ## [1.324.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.324.5...website-v1.324.6) (2026-09-03)
 
 

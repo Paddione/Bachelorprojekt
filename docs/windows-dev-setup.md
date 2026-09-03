@@ -65,4 +65,4 @@ Ziel: FreeToken (:1919 auf dem Windows-Desktop) ist aus dem Fleet erreichbar.
 - [ ] Drei Messnotizen existieren und sind verlinkt in den jeweiligen
       Feat-Tickets (T016429/T016430/T016433)
 - [ ] Erst dann: `wsl --shutdown` laut Checkliste in
-      [`docs/WSL-BOOTSTRAP.md`](WSL-BOOTSTRAP.md)
+      [`docs/archive/WSL-BOOTSTRAP.md`](archive/WSL-BOOTSTRAP.md#shutdown-checkliste-wsl-exit-adr-007)

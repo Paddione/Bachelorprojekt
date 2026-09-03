@@ -183,7 +183,7 @@ task workspace:vaultwarden:seed-logs ENV=<env> # Logs prüfen
 ```
 
 Hetzner-Provisioning-Details: [`hetzner-provisioning-network.md`](hetzner-provisioning-network.md)
-OpenClaw-Setup: [`wsl-openclaw.md`](wsl-openclaw.md)
+OpenClaw-Setup: [`archive/wsl-openclaw.md`](archive/wsl-openclaw.md)
 
 ### Phase 2 — UFW Firewall Ports
 

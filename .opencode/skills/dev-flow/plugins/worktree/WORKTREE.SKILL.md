@@ -43,4 +43,4 @@ worktree:cleanup {
 - `.opencode/worktree.jsonc` → config
 - `scripts/worktree-create.sh` → canonical bash harness (guards, git-crypt, agent-lock)
 
-**Related:** [dev-flow-execute](file:///home/patrick/Bachelorprojekt/.claude/skills/dev-flow-execute/SKILL.md)
+**Related:** [dev-flow-execute](.claude/skills/dev-flow-execute/SKILL.md)

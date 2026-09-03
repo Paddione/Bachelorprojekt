@@ -82,7 +82,7 @@ Hetzner-Provisioning, WireGuard-Mesh (`wg-fleet`), UFW-Firewall, OpenClaw.
 Netzwerk-Architektur, vollständige Portliste und Troubleshooting:
 [`references/runbooks-deploy.md`](references/runbooks-deploy.md) §3.
 Provisionierung im Detail: [`references/hetzner-provisioning-network.md`](references/hetzner-provisioning-network.md),
-[`references/llm-gateway-proxy.md`](references/llm-gateway-proxy.md).
+[`references/runbooks-operations.md`](references/runbooks-operations.md) §5 (LLM-Gateway-Proxy).
 
 ## §4 — Pocket ID OIDC Client Seeding
 

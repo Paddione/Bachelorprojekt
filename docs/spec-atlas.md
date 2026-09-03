@@ -59,6 +59,8 @@ Last touches:
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
   - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
+In-flight:
+  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | active | MODIFIED
 
 ## delivery
 

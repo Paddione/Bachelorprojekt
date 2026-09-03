@@ -217,6 +217,15 @@ _osr_toplevel_local() {
 
 # ── T002610: Dispatcher meldet fehlgeschlagene Claims ───────────────────────#
 
+@test "T900057: queue-visible orphan fixture uses registered real-feature cleanup" {
+  local block
+  block="$(sed -n '/@test "T002610: schedule.sh reports a candidate whose slot claim fails"/,/^}/p' "$BATS_TEST_FILENAME")"
+
+  printf '%s\n' "$block" | grep -q 'seed_real_feature'
+  ! printf '%s\n' "$block" | grep -q 'seed_test_feature'
+  ! printf '%s\n' "$block" | grep -Eq 'is_test_data[[:space:]]*=[[:space:]]*false'
+}
+
 @test "T002610: schedule.sh reports a candidate whose slot claim fails" {
   # [T015556] Umgestellt auf den neuen Readiness-Kontrakt: planlose Rows werden
   # VOR dem Claim am Readiness-Gate uebersprungen (Journal-Line statt stiller
@@ -225,17 +234,11 @@ _osr_toplevel_local() {
   # kein Kandidat darf UNSICHTBAR durchlaufen.
   _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
-  ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-g.txt")
+  ext=$(seed_real_feature "$brand" "tests/fixtures/osr-$$-g.txt")
   _osr_make_orphan "$brand" "$ext" 1
-  # queue.sh nimmt ein backlog-Feature nur mit lastenheft_locked=true auf
-  # (queue.sh:31). Ohne das Flag erscheint der Kandidat gar nicht erst, es gibt
-  # keinen Claim-Versuch — und der Test pruefte die Meldung, die er erwartet,
-  # niemals. Genau dieser Zustand (backlog + locked + Slot) ist der aus T002482.
-  _osr_psql "$brand" "UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{\"lastenheft_locked\":true}'::jsonb WHERE external_id='${ext}';"
-  # [T003810/P2] seed_test_feature markiert die Zeile is_test_data=true, und
-  # queue.sh blendet Testdaten aus (T002830) — der Positiv-Anker unten koennte
-  # damit nie feuern. Der Test simuliert ein ECHTES Waisen-Ticket: Flag loeschen.
-  _osr_psql "$brand" "UPDATE tickets.tickets SET is_test_data=false WHERE external_id='${ext}';"
+  # seed_real_feature etabliert den Lastenheft-Lock ueber den kanonischen
+  # Helper-Vertrag und registriert die queue-sichtbare Zeile fuer den
+  # fehlerunabhaengigen _sf_teardown-Cleanup.
 
   # Positiv-Anker [T002356-M1]: der Kandidat steht wirklich in der Queue. Ohne
   # ihn bestuende ein leerer Lauf als "keine WARN-Zeile noetig" durch.
@@ -251,9 +254,6 @@ _osr_toplevel_local() {
   # wuerde. Die Kapazitaet muss nur groesser als die belegten Slots sein.
   run env BRAND="$brand" FACTORY_GLOBAL_CAP=8 FACTORY_SLOTS_PER_BRAND=8 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]
-  # Flag zurueck, damit fn_purge_test_data die Fixture trotzdem raeumt
-  # (is_test_data=false oben war nur fuer die Queue-Sichtbarkeit).
-  _osr_psql "$brand" "UPDATE tickets.tickets SET is_test_data=true WHERE external_id='${ext}';"
 
   # [T015556] Sichtbare Skip-Zeile fuer den planlosen Kandidaten, auf die
   # Ticket-ID eingegrenzt (fremde Kandidaten duerfen ebenfalls skippen).

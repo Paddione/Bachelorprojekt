@@ -673,16 +673,15 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 24 · Scenarios: 52 · Lines: 591
+Reqs: 24 · Scenarios: 52 · Lines: 587
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Measured Context Limits for FreeToken Checkpoints | T900051 | 2026-09-03 | MODIFIED
   - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
   - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
   - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
   - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
-  - Measured Context Limits for FreeToken Checkpoints | T014105 | 2026-08-23 | ADDED
 In-flight:
-  - Measured Context Limits for FreeToken Checkpoints | T900051 | active | MODIFIED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 

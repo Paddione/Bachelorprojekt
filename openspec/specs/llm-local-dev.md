@@ -265,33 +265,28 @@ or parallel GPU execution.
 ### Requirement: Measured Context Limits for FreeToken Checkpoints
 
 The `limit.context` values in the `freetoken-local` provider SHALL equal the
-measured usable KV capacity, not the advertised `max_model_len`: `131072` for
+measured usable KV capacity, not the advertised `max_model_len`: `200000` for
 `Qwen3.6-35B-A3B-NVFP4`, `65536` for `gpt-oss-20b`, and `32768` for
-`Gemma-4-26B-A4B-NVFP4`. A plugin `freetoken-active.ts` SHALL set the alias
-entry's limit at opencode startup from the daemon's resident-model report and
-SHALL fail silent when the daemon is unreachable.
+`Gemma-4-26B-A4B-NVFP4`. The `freetoken-active.ts` plugin SHALL prefer a running
+model reported by the daemon. When the daemon does not report a running model
+but the serving endpoint is healthy, it SHALL fall back to `/v1/models` and
+cap the alias limit to usable KV geometry from `/v1/stats` or
+`/v1/cache/status`. It SHALL leave the static fallback unchanged only when
+neither discovery path identifies a configured checkpoint.
 
-Rationale: the server advertises `max_model_len=262144` while the calibrated
-serve configuration pins usable KV pages far below it; opencode auto-compacts
-at 95 % of the declared limit, so declaring the advertised number reproduces
-the dropped-request failure class (`Input sequence length exceeds`) the
-calibration removed (T014105).
+#### Scenario: Plugin resolves a Desktop-owned server without daemon adoption
 
-#### Scenario: Declared limits match the measured KV capacity
+- **GIVEN** the daemon reports no running resident model
+- **AND** the FreeToken server answers `/v1/models` and exposes usable KV geometry
+- **WHEN** OpenCode starts and the plugin's config hook runs
+- **THEN** the alias identifies the checkpoint served on port 1919
+- **AND** its context limit does not exceed the server's usable KV-token capacity
 
-- **GIVEN** the parsed `freetoken-local.models` object
-- **WHEN** each concrete checkpoint entry's `limit.context` is compared against
-  the measured values
-- **THEN** Qwen3.6-35B-A3B-NVFP4 declares 131072, gpt-oss-20b declares 65536,
-  and Gemma-4-26B-A4B-NVFP4 declares 32768
+#### Scenario: Discovery remains fail-silent while the engine is unavailable
 
-#### Scenario: Plugin resolves the alias limit from the daemon
-
-- **GIVEN** the FreeToken daemon answers `GET http://127.0.0.1:1900/engine/status`
-  with the resident model path
-- **WHEN** opencode starts and the plugin's config hook runs
-- **THEN** the alias entry carries the resident checkpoint's measured limit,
-  and with the daemon unreachable the static fallback remains unchanged
+- **GIVEN** neither the daemon nor the serving endpoint identifies a configured checkpoint
+- **WHEN** OpenCode starts and the plugin's config hook runs
+- **THEN** the static alias fallback remains unchanged
 
 ### Requirement: Sync Distributes opencode Plugins
 
@@ -588,3 +583,5 @@ The system SHALL keep `brainstorm.mentolder.de` reachable via the dev-stack sish
 <!-- merged from change delta llm-local-dev.md (483698ba5ed8) -->
 
 <!-- merged from change delta llm-local-dev.md (aa4b46c628fa) -->
+
+<!-- merged from change delta llm-local-dev.md (e484f9b929b3) -->

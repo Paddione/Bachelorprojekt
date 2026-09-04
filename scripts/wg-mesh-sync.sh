@@ -11,18 +11,30 @@
 #
 # reconcile: fuer jeden Node der Umgebung wird die Soll-Peer-Menge (aus der
 #   Registry gerendert) mit der Ist-Peer-Menge (`wg show <iface> peers`)
-#   verglichen. Fehlende Peers werden per `wg set` ergaenzt und in
-#   /etc/wireguard/<iface>.conf geschrieben (mit vorheriger Sicherung).
-#   Ueberzaehlige Peers werden NUR mit --prune entfernt, damit ein
+#   verglichen. Fehlende Peers werden per `wg set` ergaenzt (sofort wirksam)
+#   UND als [Peer]-Block an /etc/wireguard/<iface>.conf angehaengt (idempotent
+#   per grep gegen den bereits gelesenen Ist-Stand der Datei) — der bestehende
+#   [Interface]-Block bleibt dabei UNANGETASTET. `wg showconf` waere hier ein
+#   Datenverlust: es gibt im [Interface]-Block nur ListenPort und PrivateKey
+#   aus, `Address` (wg-quick-Erweiterung) fehlt dort und ginge beim
+#   Zurueckschreiben verloren — unbemerkt bis zum naechsten `wg-quick up`
+#   (Reboot), wo das Interface dann ohne IP hochkaeme (auf wg-fleet bindet
+#   dort flannel; ein clusterweiter Pod-Netzwerkausfall). Vor jeder Aenderung
+#   wird eine Sicherung angelegt; schlaegt sie fehl, bricht der Node-Durchlauf
+#   ab statt ungesichert weiterzumachen. Ueberzaehlige Peers werden NUR mit
+#   --prune entfernt (gezielt der betroffene [Peer]-Block), damit ein
 #   unvollstaendiger Registry-Stand keinen laufenden Tunnel abraeumt.
 #   --dry-run zeigt nur die Differenz, aendert nichts (keine SSH-Aktion, die
 #   den Zielzustand veraendert).
 #
 # drift: vergleicht Ist- gegen Soll-Peer-Menge je Node, ohne zu aendern.
 #   Abweichung -> Exit != 0 mit namentlicher Nennung. Sind die Nodes nicht
-#   erreichbar, Exit 0 mit Skip-Meldung — dasselbe Verhalten wie
-#   scripts/fleet-membership-check.sh, damit das Gate ohne Cluster-/Node-
-#   Zugang nicht faelschlich rot wird.
+#   erreichbar (ssh-Verbindung selbst scheitert, Exit 255), Exit 0 mit
+#   Skip-Meldung — dasselbe Verhalten wie scripts/fleet-membership-check.sh,
+#   damit das Gate ohne Cluster-/Node-Zugang nicht faelschlich rot wird. Steht
+#   die ssh-Verbindung, scheitert aber der Remote-Befehl (z. B. fehlende
+#   sudo-NOPASSWD-Regel), ist das KEIN Skip, sondern Exit != 0 — sonst waere
+#   ein gruenes Gate nicht dasselbe wie ein tatsaechlich geprueftes Mesh.
 #
 # Der Interface-Name kommt aus dem `interface:`-Key des Umgebungsblocks in
 # wireguard/wg-mesh-nodes.yaml. Fehlt er (aktuell: korczewski, nicht am
@@ -146,10 +158,40 @@ want_peers() {
 }
 
 # Ist-Peer-Menge eines Nodes ueber SSH: eine Public-Key-Zeile je Peer (Format
-# von `wg show <iface> peers`). Nicht erreichbar -> nichts auf stdout, Exit != 0.
+# von `wg show <iface> peers`).
+#
+# Rueckgabe unterscheidet ZWEI Fehlerarten, die vorher nicht zu unterscheiden
+# waren (Review-Befund PR #5489): eine SSH-Verbindung, die gar nicht zustande
+# kommt (Timeout, Refused, DNS) beendet den ssh-Client selbst mit Exit 255 —
+# das ist ein legitimer Skip (Node nicht erreichbar). Jeder ANDERE
+# Nicht-Null-Exit bedeutet: die Verbindung stand, aber der Remote-Befehl
+# scheiterte (z. B. fehlende NOPASSWD-Regel fuer sudo) — das ist eine echte
+# Stoerung und darf nicht als "offline" durchgehen, sonst ist ein gruenes
+# `drift`-Gate nicht dasselbe wie ein tatsaechlich geprueftes Mesh.
+#
+# Gibt die Ist-Peer-Menge auf stdout aus und propagiert den echten Exit-Code
+# des ssh-Aufrufs als eigenen Rueckgabewert (255 = ssh selbst gescheitert,
+# jeder andere Nicht-Null-Wert = Verbindung stand, Remote-Befehl scheiterte).
+# WICHTIG: dieser Code wird per $(...) im Aufrufer verwendet — Variablen, die
+# HIER gesetzt werden, ueberleben die Subshell-Grenze von $(...) nicht; nur
+# der Exit-Code (return/$?) tut das, deshalb wird ausschliesslich darueber
+# kommuniziert.
 have_peers() {
   local host="$1"
-  "$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" "sudo wg show ${INTERFACE} peers" 2>/dev/null
+  local err_file out rc
+  err_file="$(mktemp)"
+  out="$("$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" "sudo wg show ${INTERFACE} peers" 2>"$err_file")"
+  rc=$?
+  if [[ $rc -ne 0 ]]; then
+    if [[ $rc -ne 255 ]]; then
+      echo "STDERR ${host}: $(cat "$err_file")" >&2
+    fi
+    rm -f "$err_file"
+    return "$rc"
+  fi
+  rm -f "$err_file"
+  printf '%s' "$out"
+  return 0
 }
 
 NODE_LIST="$(list_nodes)"
@@ -159,6 +201,7 @@ if [[ -z "$NODE_LIST" ]]; then
 fi
 
 ANY_REACHABLE=false
+REMOTE_ERROR=false
 DRIFT_FOUND=false
 DRIFT_REPORT=()
 
@@ -170,8 +213,18 @@ while IFS=$'\t' read -r name host; do
     continue
   fi
 
-  if ! have_out="$(have_peers "$host")"; then
-    echo "SKIP ${name} (${host}): nicht erreichbar." >&2
+  if have_out="$(have_peers "$host")"; then
+    have_rc=0
+  else
+    have_rc=$?
+  fi
+  if [[ "$have_rc" -ne 0 ]]; then
+    if [[ "$have_rc" -eq 255 ]]; then
+      echo "SKIP ${name} (${host}): nicht erreichbar (SSH-Verbindung fehlgeschlagen)." >&2
+    else
+      echo "ERROR ${name} (${host}): Remote-Befehl fehlgeschlagen (Exit ${have_rc}) — ssh-Verbindung stand, 'sudo wg show' scheiterte (fehlende NOPASSWD-Regel?). Siehe STDERR-Zeile oben." >&2
+      REMOTE_ERROR=true
+    fi
     continue
   fi
   ANY_REACHABLE=true
@@ -206,28 +259,86 @@ while IFS=$'\t' read -r name host; do
       continue
     fi
 
-    # Sicherung der laufenden Config VOR jeder Aenderung.
-    "$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" \
-      "sudo cp /etc/wireguard/${INTERFACE}.conf /etc/wireguard/${INTERFACE}.conf.bak.\$(date +%Y%m%d%H%M%S) 2>/dev/null || true"
+    # `wg showconf` gibt im [Interface]-Block NUR ListenPort und PrivateKey
+    # aus — `Address` ist eine wg-quick-Erweiterung und fehlt dort (verifiziert
+    # 2026-09-04 gegen pk-hetzner-4, PR #5489 Review). Ein Rueckschreiben ueber
+    # `wg showconf | tee <iface>.conf` haette also bei jedem reconcile die
+    # Address-Zeile gelöscht — der laufende Tunnel haette es nicht bemerkt,
+    # aber der naechste `wg-quick up` (Reboot, Service-Restart) waere ohne IP
+    # hochgekommen. Auf wg-fleet bindet dort flannel via
+    # --flannel-iface=wg-fleet — ein clusterweiter Pod-Netzwerkausfall.
+    #
+    # Deshalb: der bestehende [Interface]-Block bleibt UNANGETASTET. Fehlende
+    # Peers werden als [Peer]-Bloecke an die vorhandene Datei angehaengt
+    # (idempotent per grep -qF <pubkey> gegen den bereits gelesenen Ist-Stand
+    # der Datei), analog zu dem, was in T900082 von Hand gemacht wurde.
+    existing_conf="$("$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" "sudo cat /etc/wireguard/${INTERFACE}.conf" 2>/dev/null)"
+    if [[ -z "$existing_conf" ]]; then
+      echo "ERROR ${name} (${host}): /etc/wireguard/${INTERFACE}.conf konnte nicht gelesen werden — abgebrochen, keine Aenderung." >&2
+      REMOTE_ERROR=true
+      continue
+    fi
 
+    # Sicherung der laufenden Config VOR jeder Aenderung. Bricht ab, wenn die
+    # Sicherung fehlschlaegt — sonst ueberschreibt eine fehlgeschlagene
+    # Sicherung stillschweigend weder Original noch Backup, aber der Rest des
+    # Laufs wuerde ohne Netz weitermachen (Review-Befund #2).
+    if ! "$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" \
+        "sudo cp /etc/wireguard/${INTERFACE}.conf /etc/wireguard/${INTERFACE}.conf.bak.\$(date +%Y%m%d%H%M%S)"; then
+      echo "ERROR ${name} (${host}): Sicherung von ${INTERFACE}.conf fehlgeschlagen — abgebrochen, keine Aenderung." >&2
+      REMOTE_ERROR=true
+      continue
+    fi
+
+    append_text=""
     while read -r pubkey; do
       [[ -z "$pubkey" ]] && continue
+      if printf '%s\n' "$existing_conf" | grep -qF "$pubkey"; then
+        continue  # bereits in der Datei — idempotent, nichts zu tun
+      fi
       allowed="$(printf '%s\n' "$want_out" | awk -v k="$pubkey" '$1==k{ $1=""; sub(/^ /,""); print }')"
       echo "APPLY ${name} (${host}): ergaenze Peer ${pubkey}"
       "$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" \
-        "sudo wg set ${INTERFACE} peer ${pubkey} allowed-ips ${allowed} && sudo wg-quick strip ${INTERFACE} > /dev/null 2>&1; sudo wg showconf ${INTERFACE} | sudo tee /etc/wireguard/${INTERFACE}.conf > /dev/null"
+        "sudo wg set ${INTERFACE} peer ${pubkey} allowed-ips ${allowed}"
+      append_text+=$'\n'"[Peer]"$'\n'"PublicKey = ${pubkey}"$'\n'"AllowedIPs = ${allowed}"$'\n'
     done <<<"$missing"
+
+    if [[ -n "$append_text" ]]; then
+      printf '%s' "$append_text" | "$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" \
+        "sudo tee -a /etc/wireguard/${INTERFACE}.conf > /dev/null"
+    fi
 
     if [[ "$PRUNE" == true ]]; then
       while read -r pubkey; do
         [[ -z "$pubkey" ]] && continue
         echo "APPLY ${name} (${host}): entferne ueberzaehligen Peer ${pubkey} (--prune)"
         "$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" \
-          "sudo wg set ${INTERFACE} peer ${pubkey} remove && sudo wg showconf ${INTERFACE} | sudo tee /etc/wireguard/${INTERFACE}.conf > /dev/null"
+          "sudo wg set ${INTERFACE} peer ${pubkey} remove"
+        # Nur den [Peer]-Block dieses Keys aus der Datei entfernen — der
+        # [Interface]-Block und alle anderen [Peer]-Bloecke bleiben stehen.
+        "$SSH_CMD" "${SSH_OPTS[@]}" "${SSH_USER}@${host}" "
+          key='PublicKey = ${pubkey}'
+          tmp=\$(mktemp)
+          sudo awk -v key=\"\$key\" '
+            /^\[Peer\]/ { if (buf != \"\" && buf !~ key) printf \"%s\", buf; buf=\$0 ORS; next }
+            { buf = buf \$0 ORS }
+            END { if (buf !~ key) printf \"%s\", buf }
+          ' /etc/wireguard/${INTERFACE}.conf | sudo tee \"\$tmp\" > /dev/null &&
+          sudo mv \"\$tmp\" /etc/wireguard/${INTERFACE}.conf
+        "
       done <<<"$extra"
     fi
   fi
 done <<<"$NODE_LIST"
+
+# Ein Node, dessen ssh-Verbindung stand, aber dessen Remote-Befehl scheiterte
+# (z. B. fehlende sudo-NOPASSWD-Regel), ist NICHT "nicht erreichbar" und darf
+# das Gate nicht gruen durchlassen — sonst ist ein gruenes drift/reconcile
+# nicht dasselbe wie ein tatsaechlich geprueftes Mesh (Review-Befund #3).
+if [[ "$REMOTE_ERROR" == true ]]; then
+  echo "wg-mesh-sync ${SUBCOMMAND}: mindestens ein Remote-Befehl ist fehlgeschlagen (siehe ERROR-Zeilen oben) — kein Skip, das ist eine echte Stoerung." >&2
+  exit 1
+fi
 
 if [[ "$ANY_REACHABLE" == false ]]; then
   echo "wg-mesh-sync ${SUBCOMMAND}: keine Node(s) von env '${ENV}' erreichbar — uebersprungen."

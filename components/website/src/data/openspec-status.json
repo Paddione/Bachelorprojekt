@@ -4541,6 +4541,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900047": [
+    {
+      "slug": "fix-worktree-write-guard-abspath-T900047",
+      "status": "plan_staged"
+    }
+  ],
   "T900051": [
     {
       "slug": "2026-09-03-freetoken-runtime-guard",

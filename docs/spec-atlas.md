@@ -16,6 +16,7 @@ Last touches:
   - opencode reaches the shared dev-flow reference material | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
+  - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED

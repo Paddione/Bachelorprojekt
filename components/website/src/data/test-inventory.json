@@ -2316,6 +2316,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/worktree-write-guard-abspath-T900047",
+    "file": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/worktree-write-guard-phase-a-allowlist",
     "file": "tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats",
     "category": "agent-skills",

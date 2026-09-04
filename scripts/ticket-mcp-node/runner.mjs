@@ -4,7 +4,6 @@ import { pathToFileURL } from 'node:url';
 import { join, dirname, resolve } from 'node:path';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-const MAX_BUFFER = 10 * 1024 * 1024;
 const MISHAP_MAX_AGE_DAYS = 7;
 
 // ── Repo root detection ────────────────────────────────────────────────────
@@ -41,6 +40,36 @@ function ticketShPath() {
   return join(currentRepoRoot(), 'scripts', 'ticket.sh');
 }
 
+// `spawn('bash')` loest je nach PATH des MCP-Hostprozesses ggf. den
+// WSL-Stub (System32) statt Git-bash auf — dort existiert /c/... nicht
+// (WSL nutzt /mnt/c/...), was exakt den Fehler
+// "/bin/bash: /c/.../ticket.sh: No such file or directory" (exit 127) gab.
+// Deshalb Git-bash auf Windows explizit bevorzugen, Fallback: 'bash'.
+function resolveBash() {
+  if (process.platform === 'win32') {
+    const candidates = [];
+    if (process.env.GIT_INSTALL_ROOT) candidates.push(join(process.env.GIT_INSTALL_ROOT, 'bin', 'bash.exe'));
+    candidates.push('C:\\Program Files\\Git\\bin\\bash.exe', 'C:\\Program Files\\Git\\usr\\bin\\bash.exe');
+    for (const c of candidates) {
+      try {
+        if (existsSync(c)) return c;
+      } catch {}
+    }
+  }
+  return 'bash';
+}
+
+const BASH_BIN = resolveBash();
+
+// Git-bash versteht keine Windows-Pfade (C:\x\y kam als "C:xy" an →
+// "No such file or directory", exit 127). Laufwerk in POSIX-Form bringen;
+// UNC- und POSIX-Pfade fallen unverändert (bis auf Backslashes) durch.
+function toBashPath(p) {
+  const m = /^([A-Za-z]):[\\/]/.exec(p);
+  if (m) return '/' + m[1].toLowerCase() + '/' + p.slice(3).replace(/\\/g, '/');
+  return p.replace(/\\/g, '/');
+}
+
 export function runTicket(args, extraEnv = {}) {
   return new Promise((resolvePromise, rejectPromise) => {
     const repoRoot = currentRepoRoot();
@@ -51,12 +80,13 @@ export function runTicket(args, extraEnv = {}) {
       rejectPromise(new Error(`ticket.sh path ${cleaned} is outside repo root ${repoRoot}`));
       return;
     }
-    const child = spawn('bash', [ticketSh, ...args], { cwd: repoRoot, maxBuffer: MAX_BUFFER });
+    // env gehört in die spawn-Optionen (child.env nachträglich zu setzen
+    // erreicht den Kindprozess nicht) — maxBuffer ist keine spawn-Option.
     const env = { ...process.env };
     for (const [k, v] of Object.entries(extraEnv)) {
       env[k] = v;
     }
-    child.env = env;
+    const child = spawn(BASH_BIN, [toBashPath(ticketSh), ...args], { cwd: repoRoot, env });
     const stdout = [];
     const stderr = [];
     child.stdout.on('data', (d) => stdout.push(d));

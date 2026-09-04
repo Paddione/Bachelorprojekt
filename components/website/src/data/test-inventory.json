@@ -6246,6 +6246,12 @@
     "kind": "shell"
   },
   {
+    "id": "workspace-deploy/flux-secrets-ordering",
+    "file": "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
+    "category": "workspace-deploy",
+    "kind": "shell"
+  },
+  {
     "id": "workstation-cluster-iso/assign-identity",
     "file": "tests/spec/workstation-cluster-iso/assign-identity.bats",
     "category": "workstation-cluster-iso",

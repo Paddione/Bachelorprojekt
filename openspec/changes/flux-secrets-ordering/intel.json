@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "slug": "flux-secrets-ordering",
+    "ticket_id": "T900014",
+    "generated_from": "main@c54e58250",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "flux/clusters/fleet/ks-korczewski.yaml",
+      "language": "config",
+      "loc": 35,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/ks-mentolder.yaml",
+      "language": "config",
+      "loc": 41,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "flux/clusters/fleet/ks-staging.yaml",
+      "language": "config",
+      "loc": 19,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
+      "language": "bash",
+      "loc": 89,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/workspace-deploy/flux-secrets-ordering.bats:14:setup() {",
+      "kind": "function",
+      "file": "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
+      "signature": "14:setup() {(...)",
+      "type_text": "14:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/workspace-deploy/flux-secrets-ordering.bats:20:_brand_depends_on() {",
+      "kind": "function",
+      "file": "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
+      "signature": "20:_brand_depends_on() {(...)",
+      "type_text": "20:_brand_depends_on() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -121,6 +121,8 @@ Last touches:
   - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
   - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
   - discover-versions.sh ermittelt Tool-Versionen ohne Flux | T002083 | 2026-08-02 | MODIFIED
+In-flight:
+  - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | active | ADDED
 
 ## llm
 

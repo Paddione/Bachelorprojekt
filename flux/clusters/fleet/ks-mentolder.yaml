@@ -9,6 +9,9 @@ spec:
   timeout: 10m
   dependsOn:
     - name: flux-infra-controllers
+    # T900014: Secrets VOR dem Brand-Stack reconcilen — sonst Race bei neuem
+    # Secret-Key (shared-db-Ausfall T900011: secretKeyRef live, Key noch nicht im Cluster).
+    - name: flux-sealed-secrets-mentolder
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests

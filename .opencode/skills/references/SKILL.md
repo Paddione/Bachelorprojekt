@@ -1,0 +1,52 @@
+---
+name: references
+description: 'Use when a dev-flow skill or subagent needs a shared cross-cutting reference — subagent provisioning (model/effort/context), plan quality gates (S1–S4 CI ratchet + plan-lint hard rules), plan-review UI, dev-flow gotchas and known issues (T000xxx), deploy routing (path→task), the MCP tool guide (mcp-postgres/mcp-kubernetes vs kubectl fallback, psql helper), verification block (freshness/S1), session coordination (agent-lock lifecycle), repo hygiene ops (stale worktrees/branches, working tree & stashes), the CI fix loop, grilling-to-ticket, or the gh-axi GitHub CLI wrapper.'
+---
+
+# Skill References — Shared Hub
+
+SSOT-Referenzbibliothek für `dev-flow`-Skills und Subagenten. Jede Referenz ist eine **eigene,
+on-demand ladbare Datei** in diesem Verzeichnis — Skill- und Subagent-Prompts verlinken gezielt
+auf die passende Datei (nicht den ganzen Hub laden, nicht die Inhalte duplizieren).
+
+> Früher ein 500-Zeilen-Monolith (`references.md`) mit Section-Ankern. In Pro-Thema-Dateien
+> aufgeteilt (Chore T001199), damit ein Verweis nur seinen Abschnitt in den Kontext zieht.
+
+## Inhalt
+
+| Referenz | Datei | Wann |
+|---|---|---|
+| Subagent-Provisioning | [`subagent-provisioning.md`](subagent-provisioning.md) | Arbeit an einen frischen Subagenten delegieren — Modell · Effort · Kontext wählen |
+| Plan-Quality-Gates | [`plan-quality-gates.md`](plan-quality-gates.md) | Implementierungsplan gegen die CI-Gates (S1–S4-Ratchet) schreiben/prüfen |
+| Plan-Review-UI | [`plan-review-ui.md`](plan-review-ui.md) | Plan im Browser line-by-line reviewen + Verdict einholen |
+| dev-flow Gotchas | [`dev-flow-gotchas.md`](dev-flow-gotchas.md) | Bekannte Footguns der dev-flow-Pipeline (T000xxx-Knowledge-Base) |
+| Deploy-Routing | [`deploy-routing.md`](deploy-routing.md) | Welcher Deploy-Task zu welchen geänderten Pfaden gehört (SSOT) |
+| MCP-Tool-Guide | [`mcp-tool-guide.md`](mcp-tool-guide.md) | MCP bevorzugen vs. kubectl-Fallback; Server/Port/Tool-Tabelle; `psql()`-Helper |
+| Grilling → Ticket | [`grilling-to-ticket.md`](grilling-to-ticket.md) | Q/A-Session an ein bestehendes Ticket senden |
+| gh-axi | [`gh-axi.md`](gh-axi.md) | GitHub-CLI-Wrapper — bevorzugt statt `gh` für read/view-Flows |
+| Verifikationsblock | [`verification-block.md`](verification-block.md) | Lokale CI-äquivalente Verifikation: die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste |
+| Session-Koordination | [`session-coordination.md`](session-coordination.md) | agent-lock-Lebenszyklus: reap/claim/release, Registry-Overlap, agent-msg |
+| Repo-Hygiene-Mechanik | [`repo-hygiene-ops.md`](repo-hygiene-ops.md) | Stale Worktrees/Branches, Arbeitsbaum/Stashes, PR-Triage→Ticket-Close, Issue-Intake, Factory-Queue |
+| CI-Fix-Schleife | [`ci-fix-loop.md`](ci-fix-loop.md) | PR-CI überwachen und fixen: devflow-ci-watch, Required Checks, Fix-Routine |
+| Lifecycle-Vertrag | [`dev-flow-lifecycle.md`](dev-flow-lifecycle.md) | Übergangs-SSOT der vier dev-flow-Skills — Rollen und Übergabezustände |
+| dev-flow-plan Phasen | [`dev-flow-plan-phases.md`](dev-flow-plan-phases.md) | Schrittfolge, Decompose-/Fan-out-Mechanik und Kontext-Injektion für Plan-Subagenten |
+| dev-flow-execute Phasen | [`dev-flow-execute-phases.md`](dev-flow-execute-phases.md) | Pre-Flight-, Rebase-, BATS- und Finalize-Befehlsfolgen im Detail |
+| Fortsetzungs-Kontrakt | [`factory-resume-contract.md`](factory-resume-contract.md) | Angefangenes Ticket fortschreiben statt neu beginnen (T002327) |
+| Plan & OpenSpec archivieren | [`plan-archive-steps.md`](plan-archive-steps.md) | Archivierungs-Mechanik nach Merge, Push-Verifikation (T001268), PR-Creation (T001331) |
+| Artefakt-Ebene | [`plan-artifact-level.md`](plan-artifact-level.md) | PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket — Entscheidungstabelle + PRD-Checkliste |
+| Plan Intel Bundle | [`plan-intel-bundle.md`](plan-intel-bundle.md) | `intel.json`-Format: schema-validierte Quellen (codebase-memory, LSP, mcp-postgres, context7) — Schemas in [`schemas/`](schemas/) |
+| Ticket-Stage-Prozedur | [`ticket-stage-procedure.md`](ticket-stage-procedure.md) | Ticket-Anlage, Claim, `stage-plan` (Flag-Semantik, `hold`-Pflicht, `--partials`) |
+| ticket-ops Prozeduren | [`ticket-ops-procedures.md`](ticket-ops-procedures.md) | Phasen-Mechanik zu `ticket-ops`: Dispatch-Skripte, DoR-Felder |
+| openspec-explore Katalog | [`openspec-explore-procedures.md`](openspec-explore-procedures.md) | Einstiegspunkte/Anwendungsfälle für den Explore-Skill |
+| git-workflow Nachschlagewerk | [`git-workflow-procedures.md`](git-workflow-procedures.md) | Befehlsfolgen zu `git-workflow`: commit, PR-Scope-Preflight, CI-Fix-Loop |
+| Agent-Active-Plans | [`agent-active-plans.md`](agent-active-plans.md) | Kontrakt zur Plan-Kontext-Injektion für `.claude/agents/bachelorprojekt-*.md` |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

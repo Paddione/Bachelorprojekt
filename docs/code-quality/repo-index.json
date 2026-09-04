@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1267,
+      "file_count": 1268,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -672,6 +672,7 @@
         "tests/spec/fleet-operations/staging-flux-wiring.bats",
         "tests/spec/fleet-operations/vaultwarden-smtp-from.bats",
         "tests/spec/fleet-operations/wg-gpu-pod-cidr.bats",
+        "tests/spec/fleet-operations/wg-mesh-sync.bats",
         "tests/spec/flux-artifact-versioning/flux-artifact-versioning.bats",
         "tests/spec/flux-render-security/bootstrap-envsubst.bats",
         "tests/spec/flux-render-security/immutable-image-refs.bats",
@@ -3876,7 +3877,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 857,
+      "file_count": 858,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4729,6 +4730,7 @@
         "scripts/web-audit.mjs",
         "scripts/website-config-sha.sh",
         "scripts/weekly-dep-schema-audit.sh",
+        "scripts/wg-mesh-sync.sh",
         "scripts/whiteboard-setup.sh",
         "scripts/worktree-clean-check.sh",
         "scripts/worktree-create.sh",

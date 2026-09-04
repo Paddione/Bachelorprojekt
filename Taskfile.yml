@@ -3092,6 +3092,16 @@ tasks:
     cmds:
       - bash scripts/fleet-membership-check.sh
 
+  wg:reconcile:
+    desc: "WireGuard-Mesh: traegt fehlende Peers (aus wireguard/wg-mesh-nodes.yaml gerendert) per SSH+wg auf allen erreichbaren Nodes einer Umgebung nach. --dry-run zeigt nur die Differenz; --prune entfernt ueberzaehlige Peers (sonst nur ergaenzen). Sichert /etc/wireguard/<iface>.conf vor jeder Aenderung. Exit 0 bei Erfolg/Dry-Run/Skip (keine Nodes erreichbar), Exit != 0 bei fehlendem interface:-Key (z.B. korczewski) oder Konfigurationsfehler. Usage: task wg:reconcile ENV=fleet [-- --dry-run|--prune|--node <name>]"
+    cmds:
+      - bash scripts/wg-mesh-sync.sh reconcile --env {{.ENV}} {{.CLI_ARGS}}
+
+  wg:drift:
+    desc: "WireGuard-Mesh: vergleicht Ist- gegen Soll-Peer-Menge je Node einer Umgebung, ohne zu aendern. Exit != 0 bei Abweichung mit namentlicher Nennung der Nodes und Peers; Exit 0 bei Deckungsgleichheit ODER wenn kein Node erreichbar ist (Skip, analog fleet:membership). Usage: task wg:drift ENV=fleet"
+    cmds:
+      - bash scripts/wg-mesh-sync.sh drift --env {{.ENV}}
+
   fleet:deploy:brand:
     desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
     requires:

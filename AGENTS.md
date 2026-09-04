@@ -11,17 +11,28 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | Agent | Model | Use case |
 |-------|-------|----------|
 | `orchestrator` | `alibaba-intl/qwen3.8-max` (131k ctx, primary, write) | Primary — dispatches local + cloud escalation [T013360] |
-| `gptoss` `devstral` `gemma` `gemma12` `qwen38` | `freetoken-local/active` (FreeToken :1919, modellagnostisch) | Local work (qwen38 text-only, sequenziell); `write=deny`, `edit=allow`; via `task` |
+| `gptoss` | `freetoken-local/active` (FreeToken :1919) | Local bulk work; `write=deny`, `edit=allow` |
+| `devstral` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
+| `gemma` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
+| `gemma12` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
+| `qwen38` | `freetoken-local/active` (FreeToken :1919) | Local work, text-only; sequenziell |
 | `qwen-cloud` | `alibaba-intl/qwen3.8-max` (131k ctx, subagent, write) | Cloud-Eskalation Stufe 1 |
 | `freetoken-primary` | `freetoken-local/active` (primary) | Tab-selectable lokaler Primary, text-only [T014105] |
 | `freetoken-thinking` | `freetoken-local/active-thinking` (all) | 200k-Reasoning, Thinking request-dynamisch |
-| `freetoken-fast-1` `freetoken-fast-2` `freetoken-fast-3` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell, shared Engine/KV-Pool |
+| `freetoken-fast-1` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
+| `freetoken-fast-2` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
+| `freetoken-fast-3` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
 | `big-pickle` | `opencode-zen/big-pickle` (primary, write) | Zen-Singleagent bis Free-Quota verbraucht |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free` (primary, write) | Free-Tier-Primary; dispatcht nur `ox-alpha` |
 | `ox-alpha` | `opencode-zen/laguna-s-2.1-free` (subagent, write) | Subagent-Zwilling von `ox-alpha-free` |
-| `deepseek-helper` `deepseek-helper-go` `deepseek-helper-alibaba` | `deepseek-v4-flash` (write) | Eskalation wenn lokal stuck/ctx-leer; 3 Rails |
-| `deepseek-pro` `deepseek-pro-direct` `deepseek-pro-alibaba` | `deepseek-v4-pro` (all, write) | Tiefe Analyse/harte Refactors; 3 Rails |
-| `deepseek-flash` `deepseek-flash-direct` | `deepseek-v4-flash` (all, write) | Parallel-Throughput bis 3; 2 Rails |
+| `deepseek-helper` | `deepseek/deepseek-v4-flash` (write) | Eskalation wenn lokal stuck/ctx-leer |
+| `deepseek-helper-go` | `opencode-go/deepseek-v4-flash` (write) | Alternative Rail (Go gateway) |
+| `deepseek-helper-alibaba` | `alibaba-intl/deepseek-v4-flash-0731` (write) | Dritte Rail (Alibaba Token Plan) |
+| `deepseek-pro` | `opencode-go/deepseek-v4-pro` (all, write) | Tiefe Analyse/harte Refactors |
+| `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API, all, write) | Direkte API (bypass Go gateway) |
+| `deepseek-pro-alibaba` | `alibaba-intl/deepseek-v4-pro` (all, write) | Dritte Rail (Alibaba Token Plan) |
+| `deepseek-flash` | `opencode-go/deepseek-v4-flash` (all, write) | Parallel-Throughupt bis 3 |
+| `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API, all, write) | Direkte API (bypass Go gateway) |
 | `reviewer` | `freetoken-local/active` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
 | `alibaba-primary` | `alibaba-intl/qwen3.8-max` (primary) | PRIMARY via Alibaba-Plan [T004396] |
 | `explore` / `general` | built-in | Read-only exploration / research |

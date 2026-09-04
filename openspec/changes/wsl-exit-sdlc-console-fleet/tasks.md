@@ -27,26 +27,43 @@ tests/spec/fleet-operations/sdlc-console-fleet.bats  # NEU
 
 ## Tasks
 
-- [ ] **Reconciliation-Kette lesen.** `flux/clusters/fleet/ks-dev.yaml`
+- [x] **Reconciliation-Kette lesen.** `flux/clusters/fleet/ks-dev.yaml`
       analysieren: reconciled prod-fleet/dev → welche Kustomize-Basis? Das
       bestimmt, ob das Manifest unter k3d/dev-stack/ oder einem Fleet-
       Verzeichnis liegt.
-- [ ] **Deployment umziehen.** Image ghcr.io/paddione/website-sdlc (:latest
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      Belegt durch das Ergebnis: `prod-fleet/dev/kustomization.yaml` bindet `../../k3d/dev-stack`,
+      und `k3d/dev-stack/sdlc-console.yaml` liegt dort (PR #5257).
+- [x] **Deployment umziehen.** Image ghcr.io/paddione/website-sdlc (:latest
       konventionsgemäß), BUILD_TARGET=sdlc; DB-Zugang über shared-db-Endpoint
       (T016430); Ressourcen-Limits wie die Dev-Stack-Siblings.
-- [ ] **LLM-Route ersetzen.** Statt llm-proxy-host: Service auf FreeToken via
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      `k3d/dev-stack/sdlc-console.yaml` liegt auf `main` (PR #5257).
+- [x] **LLM-Route ersetzen.** Statt llm-proxy-host: Service auf FreeToken via
       wg/NAT-Route (Hostnamen aus Domain-Registry, P0-Spike-Gate verweisen);
       readinessProbe darf vom LLM-Endpoint NICHT abhängen (fail-closed-
       Degradiert).
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      `k3d/sdlc-stack/llm-proxy-host.yaml` ist auf `main` entfernt; das neue Manifest setzt
+      `LLM_ENABLED: "false"` fail-closed und zeigt per Service-DNS auf `llm-gateway-embed`/
+      `-rerank` statt auf eine Bridge-IP (PR #5257).
 - [ ] **Rückbau.** k3d/sdlc-stack/-Manifeste entfernen; prüfen ob sonstige
       Referenzen existieren (grep über k3d/ + flux/).
-- [ ] **BATS-Test.** Assertions: kein Manifest enthält mehr manuelle Endpoints
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):** **OFFEN.**
+      `k3d/sdlc-stack/sdlc-console.yaml` und `sdlc-console-rbac.yaml` liegen weiterhin auf `main`
+      und werden von `k3d/sdlc-stack/kustomization.yaml:23-24` weiter eingebunden. Der Rückbau
+      ist also nur zur Hälfte erfolgt (llm-proxy-host ja, console-Duplikat nein).
+- [x] **BATS-Test.** Assertions: kein Manifest enthält mehr manuelle Endpoints
       auf eine Bridge-IP; console-Deployment referenziert Registry-Domain für
       den LLM-Route-Host; readiness hängt nicht am LLM.
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      `tests/spec/fleet-operations/sdlc-console-fleet.bats` liegt auf `main` (PR #5257).
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).**
+- [x] **Failing-Test-Step (RED).**
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):**
+      Test-Datei auf `main`; PR #5257 folgte dem RED→GREEN-Schritt.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/sdlc-console-fleet.bats
@@ -54,6 +71,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/sdlc-console-fleet
 ```
 
 - [ ] **Fix-Step (GREEN).** Umzug + Rückbau; Test grün; validate:
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):** **OFFEN,** solange der Rückbau-Task oben offen ist.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/sdlc-console-fleet.bats
@@ -61,6 +79,7 @@ task workspace:validate
 ```
 
 - [ ] **Final Verification.** Die drei Pflicht-Gates:
+      **Nachgezogen T900054 (2026-09-04, Deliverable-Check gegen `origin/main`):** **OFFEN,** solange der Rückbau-Task oben offen ist.
 
 ```bash
 task test:changed

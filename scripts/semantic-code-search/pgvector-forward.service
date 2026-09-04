@@ -1,3 +1,7 @@
+# Status: Nicht tot, aber kein Windows-Pendant. Bindet `kubectl --context fleet port-forward`
+# und ist also fleet-basiert. `start-windows.ps1` deckt ihn NICHT ab.
+# Pendant-Lücke: eigenes Ticket für Windows-Scheduled-Task/Start-Skript.
+# Siehe Runbook `docs/runbooks/remote-docker-context.md` → "Pendant-Lücke".
 # scripts/semantic-code-search/pgvector-forward.service
 # Port-Forward 127.0.0.1:5432 -> svc/shared-db (ClusterIP :5432), ns workspace.
 #

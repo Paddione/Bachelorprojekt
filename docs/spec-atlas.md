@@ -61,6 +61,11 @@ Last touches:
   - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
 In-flight:
   - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | active | MODIFIED
+  - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
+  - Force-Tick Trigger | T900054 | active | MODIFIED
+  - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | active | MODIFIED
+  - Stage-Plan Wake Trigger | T900054 | active | MODIFIED
+  - REQ-SF-EXECUTOR-002 — opencode-Binary wird im Dienstkontext selbst aufgelöst | T900054 | active | MODIFIED
 
 ## delivery
 
@@ -130,7 +135,7 @@ Last touches:
   - LLM_EMBED_URL in knowledge-ingest CronJobs verdrahtet | T002570 | 2026-08-10 | ADDED
 
 ### local-llm-proxy
-Reqs: 76 · Scenarios: 175 · Lines: 2023
+Reqs: 76 · Scenarios: 175 · Lines: 2030
 Last touches:
   - Proxy as sole LLM gateway | T013302 | 2026-08-22 | MODIFIED
   - Backend registry and admin API | T013909 | 2026-08-22 | MODIFIED
@@ -143,6 +148,7 @@ In-flight:
   - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
+  - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product
 
@@ -701,6 +707,7 @@ In-flight:
   - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | active | ADDED
   - REQ-MCP-HTTP-005 MCP authentication secrets stay outside tracked artifacts | T900052 | active | ADDED
   - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
+  - Windows hosts have a documented start mechanism for the local MCP servers | T900054 | active | MODIFIED
 
 ### mcp-skill-integration
 Reqs: 7 · Scenarios: 17 · Lines: 183
@@ -1027,6 +1034,10 @@ In-flight:
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
   - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED
+  - Local k3d cluster runs the SDLC stack from the production manifests | T900054 | active | MODIFIED
+  - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T900054 | active | MODIFIED
+  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900054 | active | MODIFIED
+  - Dev-Host WSL memory verified for the local stack | T900054 | active | REMOVED
   - Die SDLC-Oberfläche hat eine Laufzeit-Heimat | T016429 | active | MODIFIED
 
 ### secret-rotation

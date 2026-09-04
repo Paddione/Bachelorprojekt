@@ -1,3 +1,7 @@
+# Status: Toter Zustand auf diesem Host. WSL-Exit 2026-09-03: Linux-System-Unit, startet
+# /usr/local/bin/ollama unter dem Linux-Benutzer ollama — auf dem Windows-Host nicht lauffaehig.
+# Nachfolger: keiner im Repo. Die Unit bleibt als Referenz fuer Linux-GPU-Hosts erhalten.
+# Pendant-Lücke: eigenes Ticket. Siehe `docs/runbooks/remote-docker-context.md` → "Pendant-Lücke".
 [Unit]
 Description=Ollama (local LLM swap pool)
 After=network-online.target

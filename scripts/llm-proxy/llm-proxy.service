@@ -1,3 +1,11 @@
+# Status: Toter Zustand auf diesem Host. WSL-Exit 2026-09-03: Docker Desktop deinstalliert,
+# kein Linux-Laufzeitkontext mehr; das `llm-proxy`-Deployment in `workspace-dev` steht auf 0/1.
+# ADR-007 sieht fuer den Proxy "retire statt portieren" vor.
+# NICHT geloescht (T900054): der SSOT-Spec `openspec/specs/local-llm-proxy.md` beschreibt den
+# Proxy weiter als Requirement, und die Guards `tests/spec/local-llm-proxy.bats` (T002277) und
+# `tests/spec/local-llm-proxy/proxy-env-token-guard.bats` (T002556) setzen diese Datei voraus.
+# Die Unit faellt gemeinsam mit dem Requirement — im eigenen infra-Change fuer den Rueckbau,
+# nicht hier.
 # scripts/llm-proxy/llm-proxy.service
 # LLM-Proxy - systemd USER service. Long-running HTTP proxy auf 127.0.0.1:18235,
 # der Factory- und dev-flow-Anfragen auf die lokalen llama.cpp-Server bzw. LM

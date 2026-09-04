@@ -1,3 +1,7 @@
+# Status: Nicht tot, aber kein Windows-Pendant. Bindet `kubectl --context fleet port-forward`
+# und ist also fleet-basiert. `start-windows.ps1` deckt ihn NICHT ab.
+# Pendant-Lücke: eigenes Ticket für Windows-Scheduled-Task/Start-Skript.
+# Siehe Runbook `docs/runbooks/remote-docker-context.md` → "Pendant-Lücke".
 # scripts/mcp-gateway/mcp-postgres-local.service
 # T006996: ins Repo aufgenommen — vorher existierte die Unit nur auf dem Host
 # (~/.config/systemd/user/mcp-postgres-local.service, angelegt 2026-08-09).

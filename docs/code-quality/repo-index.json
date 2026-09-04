@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1263,
+      "file_count": 1264,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1055,6 +1055,7 @@
         "tests/spec/software-factory/wakeup.bats",
         "tests/spec/software-factory/watchdog-parallel-isolation.bats",
         "tests/spec/software-factory/wsl-exit-fleet-factory.bats",
+        "tests/spec/software-factory/wsl-exit-nachzug.bats",
         "tests/spec/studio-sessions-reorganize.bats",
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
         "tests/spec/t001353-mishap-bundle-ci-tickets.bats",
@@ -3872,7 +3873,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 857,
+      "file_count": 856,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4071,7 +4072,6 @@
         "scripts/dev-db-refresh.sh",
         "scripts/dev-host-units/README.md",
         "scripts/dev-host-units/install.sh",
-        "scripts/dev-host-units/k3d-dev-ingress-bridge@.service",
         "scripts/dev-host-units/uninstall.sh",
         "scripts/dev-reset.sh",
         "scripts/devflow-build-loop.sh",

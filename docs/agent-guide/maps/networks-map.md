@@ -43,5 +43,5 @@ beteiligten Bereiche einander nennen, mit Grund und Absicherung.
 - **`fleet-overlay`** — Die Präfixlänge ist /24, belegt am lebenden Cluster. openspec/specs/ rustdesk-server.md nannte bis T012645 fälschlich /16 — in einer ufw-Freigabe hätte das 255-mal mehr Adressen geöffnet als beabsichtigt.
 - **`tailscale`** — Der einzige Bereich, der ohne eigenes Zutun kollisionsfrei bleibt — Tailscale benutzt den für Carrier-Grade-NAT reservierten Block, den sonst niemand vergibt.
 - **`docker-k3d-mentolder-dev`** — Der Cluster wurde mit PR #5316 endgültig entfernt; der Bereich bleibt als retired stehen, damit eine Neuvergabe als Kollision auffällt.
-- **`mentolder-mesh`** — Auf dem WSL-Entwicklungsrechner trägt .10 zweimal auf: einmal auf wg0 in WSL und einmal auf dem gespiegelten Windows-Adapter wg-gpu (WSL läuft in networkingMode = mirrored, Windows-Adapter erscheinen dort als eth*). Das ist eine Doppelvergabe innerhalb desselben Bereichs, keine Überschneidung zweier Bereiche, und deshalb nicht unter overlaps abgebildet.
+- **`mentolder-mesh`** — Auf dem Windows-Entwicklungsrechner ist .10 der nativ zugewiesene wg-gpu-Adresse (WireGuard-Mesh-Punkt).
 - **`hetzner-private`** — Bis T012645 war dieser Bereich im Repo überhaupt nicht bekannt. Genau das ist der Grund für diese Registry: ein Netz, das niemand deklariert hat, kann mit keinem Prüflauf kollidieren.

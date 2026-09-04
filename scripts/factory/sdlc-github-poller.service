@@ -1,3 +1,8 @@
+# Status: Toter Zustand auf diesem Host. WSL-Exit 2026-09-03: Docker Desktop deinstalliert,
+# kein Linux-Laufzeitkontext mehr — die Unit bindet WSL-Pfade (/home/patrick/...).
+# Pendant-Lücke: `scripts/mcp-gateway/start-windows.ps1` deckt nur bge-mcp und die
+# mcp-gateway-Port-Forwards ab, diese Unit NICHT. Windows-Pendant = eigenes Ticket.
+# Siehe Runbook `docs/runbooks/remote-docker-context.md` → "Pendant-Lücke".
 # scripts/factory/sdlc-github-poller.service
 # GitHub-Rueckkanal im Pull-Modell — systemd USER service (E3/T002626, ADR-006).
 # Gepaart mit sdlc-github-poller.timer.

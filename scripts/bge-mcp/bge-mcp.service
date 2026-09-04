@@ -1,3 +1,6 @@
+# Status: Toter Zustand. WSL-Exit 2026-09-03: Docker Desktop deinstalliert, kein lokaler Dev-Cluster mehr.
+# Nachfolger: Windows-Skript `scripts/mcp-gateway/start-windows.ps1`
+# (startet `task mcp:autostart:register` → Scheduled Task `PK-MCP-Gateway`).
 # scripts/bge-mcp/bge-mcp.service
 # BGE MCP — systemd USER service. Embedding & Reranking MCP bridge
 # on 127.0.0.1:13005 (tools: bge_embed, bge_rerank).

@@ -8,8 +8,8 @@ Die Software Factory ist ein autonomes, mehrstufiges Pipeline-System, das Featur
 vom Backlog bis zum Production-Deploy verarbeitet. Sie besteht aus drei Kernkomponenten:
 dem **Dispatcher** (Queue-Poll, Slot-Management, Tick-Orchestrierung), der **Pipeline**
 (6-Phasen Scout→Design→Plan→Implement→Verify→Deploy pro Feature) und dem **Watchdog**
-(Stale-Eskalation, Slot-Freigabe, Zombie-Cleanup). Der Autopilot läuft als systemd-USER-Timer
-auf dem WSL-Host ohne offene Claude-Code-Session.
+(Stale-Eskalation, Slot-Freigabe, Zombie-Cleanup). Der Autopilot läuft als Fleet-CronJob `factory-tick`
+(in namespace `workspace-dev`) ohne offene Claude-Code-Session.
 
 ---
 

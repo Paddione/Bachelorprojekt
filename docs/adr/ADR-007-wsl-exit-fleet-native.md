@@ -51,6 +51,11 @@ FreeToken :1919 lokal.
 | Dev-in-Pod / Thin-Client (D) | Worker-RAM 85–112 %, WAN-Latenz, native Toolchain geht verloren |
 | llm-proxy migrieren | FreeToken-native (T014105) hat ihn obsolet gemacht — retire statt portieren |
 | WSL registry-cache behalten | Duplikat des In-Cluster-Deployments seit ~21.8. |
+| Docker Desktop Hyper-V-Backend | Installiert und technisch möglich, aber von Docker seit Jahren als deprecated geführt; der Zweck (lokales k3d) ist mit dem WSL-Exit entfallen. |
+
+**Nachtrag 2026-09-03 (Operator-Entscheidung): Docker Desktop deinstallieren.**
+
+`wsl -l -v` zeigte `docker-desktop` als laufende WSL2-Distro (0.1 GB), `k3d-dev` gestoppt (414.5 GB vhdx). `kubectl config get-contexts` listet keine k3d-Kontexte mehr (nur `fleet` und `hetzner`) — der lokale Dev-Cluster ist faktisch tot. Docker Desktop wird **deinstalliert** (nicht auf Hyper-V umgestellt). `wsl --shutdown` ist damit kein letzter Schritt mehr, sondern kann parallel zum letzten Cleanup erfolgen.
 
 ## Konsequenzen
 

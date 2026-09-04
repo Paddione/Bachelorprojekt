@@ -623,7 +623,7 @@ capabilities:
   desktop-steuerung:
     plugin:desktop-commander@claude-plugins-official:
       state: suppressed
-      reason: "Nicht aktiviert; der Windows-Host wird über powershell.exe aus WSL bedient."
+      reason: "Nicht aktiviert; der Windows-Host wird nativ über powershell.exe gesteuert."
 
   api-client:
     plugin:postman@claude-plugins-official:

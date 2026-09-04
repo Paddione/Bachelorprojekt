@@ -1,3 +1,6 @@
+# Status: Toter Zustand. WSL-Exit 2026-09-03: Docker Desktop deinstalliert, kein lokaler Dev-Cluster mehr.
+# Nachfolger: Fleet-CronJob `factory-tick` (*/5 * * * *), Namespace `workspace-dev`,
+# Deployment `factory-runner`. Siehe `flux/clusters/fleet/flux-factory-runner.yaml`.
 # scripts/factory/factory.timer
 # Software Factory — systemd USER timer. wakeup.sh loops internally while the
 # queue is non-empty (idle-retick), so this timer fires only as a fallback.

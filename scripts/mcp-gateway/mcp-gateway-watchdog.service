@@ -1,3 +1,8 @@
+# Status: Toter Zustand auf diesem Host. WSL-Exit 2026-09-03: Docker Desktop deinstalliert,
+# kein Linux-Laufzeitkontext mehr. Der Watchdog bewacht `mcp-gateway.service`, die selbst
+# tot ist — er faellt mit ihr weg.
+# Nachfolger: keiner. `scripts/mcp-gateway/start-windows.ps1` hat keine Liveness-Ueberwachung.
+# Pendant-Lücke: eigenes Ticket. Siehe `docs/runbooks/remote-docker-context.md` → "Pendant-Lücke".
 # scripts/mcp-gateway/mcp-gateway-watchdog.service
 # T002543 — Watchdog for mcp-gateway.service tunnel liveness.
 #

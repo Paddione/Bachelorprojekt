@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Status: Aktiv behalten. Wird von `scripts/vda/brainstorm.sh` (Z. 124, 150) aufgerufen —
+# dort allerdings als `$SELF_DIR/wsl-open.sh`, also `scripts/vda/wsl-open.sh`, das es nicht
+# gibt; der Aufruf laeuft ins Leere und wird von `|| true` geschluckt. Der Pfadfehler wird
+# hier nur festgehalten, nicht behoben (Laufzeitverhalten -> eigenes Ticket).
+# Der Name ist historisch: das Skript oeffnet URLs im Windows-Default-Browser aus Git Bash.
 # Native Windows URL opener (replaces WSL wsl-open.sh)
 # Opens a URL in the default Windows browser from Git Bash.
 set -euo pipefail

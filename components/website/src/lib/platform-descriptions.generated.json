@@ -82,7 +82,7 @@
     },
     "openclaw": {
       "de": "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit LM Studio).",
-      "en": "OpenClaw AI assistant daemon on WSL GPU host (talks to LM Studio 10.10.0.3:1234/v1)"
+      "en": "OpenClaw AI assistant daemon on Windows GPU host (talks to LM Studio 10.10.0.3:1234/v1)"
     },
     "whisper": {
       "de": "Wandelt gesprochene Sprache in Text um (Spracherkennung, OpenAI Whisper).",

@@ -2,7 +2,7 @@
 title: "freetoken-backend-evaluation — Implementation Plan"
 ticket_id: T900087
 domains: [ops, infra, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

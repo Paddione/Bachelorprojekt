@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.326.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.4...website-v1.326.0) (2026-09-04)
+
+
+### Features
+
+* **infra:** wg:reconcile and wg:drift for WireGuard mesh sync [T900083] ([#5489](https://github.com/Paddione/Bachelorprojekt/issues/5489)) ([eb95b48](https://github.com/Paddione/Bachelorprojekt/commit/eb95b482c59f22734e646480d7eb3ba8d608c553))
+
+
+### Bug Fixes
+
+* **scripts:** canonicalize worktree path in _worktree_has_active_process [T900025] ([#5476](https://github.com/Paddione/Bachelorprojekt/issues/5476)) ([a50e6f8](https://github.com/Paddione/Bachelorprojekt/commit/a50e6f8ed6e0e26d75bce840279ede6af142ed44))
+
+## [1.325.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.3...website-v1.325.4) (2026-09-04)
+
+
+### Bug Fixes
+
+* **scripts:** run openspec-embed main() on Windows too [T900084] ([#5481](https://github.com/Paddione/Bachelorprojekt/issues/5481)) ([d8d5010](https://github.com/Paddione/Bachelorprojekt/commit/d8d5010aa13cc6a8ce1156b3f81616a88fb1203b))
+
+## [1.325.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.2...website-v1.325.3) (2026-09-04)
+
+
+### Bug Fixes
+
+* **infra:** brand stacks wait for sealed-secrets via dependsOn [T900014] ([#5471](https://github.com/Paddione/Bachelorprojekt/issues/5471)) ([783b649](https://github.com/Paddione/Bachelorprojekt/commit/783b6496f7d0eba448087467514d745b351f2e91))
+* **scripts:** canonicalize absolute paths in worktree-write-guard [T900047] ([#5469](https://github.com/Paddione/Bachelorprojekt/issues/5469)) ([22a220b](https://github.com/Paddione/Bachelorprojekt/commit/22a220b8591c7d89abf1fbd376faecc4fa18d812))
+
 ## [1.325.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.1...website-v1.325.2) (2026-09-04)
 
 

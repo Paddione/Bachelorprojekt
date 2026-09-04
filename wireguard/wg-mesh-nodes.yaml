@@ -19,6 +19,12 @@ mentolder:
   # Note: design doc originally said 10.13.13.0/24 / port 51820 — corrected here.
   wg_subnet: "192.168.100.0/24"
   listen_port: 51821
+  # interface (T900083): am laufenden Node abgelesen via
+  #   ssh patrick@<NODE_IP> "sudo wg show interfaces"
+  # — verwendet von scripts/wg-mesh-sync.sh (reconcile/drift), NICHT von
+  # generate-wg-conf.sh (das erzeugt weiterhin eine [Interface]-freie
+  # --peers-only-Ausgabe bzw. eine vollstaendige Config ohne diesen Key).
+  interface: "wg-gpu"
   # Hetzner nodes des fleet-Clusters.
   #
   # pod_cidr (T002491): Der GPU-Host braucht fuer jeden Kubernetes-Peer NEBEN der
@@ -152,19 +158,25 @@ mentolder:
       endpoint: ""        # Home-NAT (FritzBox), PersistentKeepalive — initiates outbound
       wg_ip: "192.168.100.11"
       schema_key: WG_MESH_PKL1
-      public_key: "Uweq+Au4TQ05gn4HUKFYJNoWVdV3Kp19RmngJO4ozzU="
+      public_key: "cp8kd+vPbD9SstMDooH2tOeua/5InGGBKZRoumZfNhc="
       keepalive: 25
 
     - name: pk-tablet
       endpoint: ""        # Home-NAT (FritzBox), PersistentKeepalive — initiates outbound
       wg_ip: "192.168.100.12"
       schema_key: WG_MESH_PKT
-      public_key: "rW9Ac8GHNrg7gsC7DIXHFJhJ8YUYhlDb2zCeX2jUzlo="
+      public_key: "Ei2BOY4Fow7gmdek6N8/Py44/q8UlM05m1E/2tMPGWY="
       keepalive: 25
 
 korczewski:
   wg_subnet: "10.13.14.0/24"
   listen_port: 51820
+  # interface (T900083): bewusst KEIN Key hier. Anders als fleet (wg-fleet) und
+  # mentolder (wg-gpu) wurde der Interface-Name auf den korczewski-Nodes nie am
+  # laufenden System verifiziert (`sudo wg show interfaces`) — die Brand ist seit
+  # T002479 eingefroren, Replicas auf 0. scripts/wg-mesh-sync.sh lehnt diese
+  # Umgebung deshalb mit klarer Meldung ab statt einen Namen zu raten. Erst nach
+  # Verifikation an einem laufenden Node hier ergaenzen.
   nodes:
     - name: pk-hetzner-4
       endpoint: "204.168.244.104:51820"
@@ -210,6 +222,12 @@ fleet:
   # Unified consolidation cluster — fresh mesh (design 2026-05-30).
   wg_subnet: "10.20.0.0/24"
   listen_port: 51820
+  # interface (T900083): verifiziert am laufenden Node (2026-09-04) via
+  #   ssh patrick@204.168.244.104 "sudo wg show interfaces"
+  # — wg-fleet UND wg-gpu laufen parallel auf allen sechs fleet-Nodes; dieser
+  # Key sagt scripts/wg-mesh-sync.sh, welches der beiden fuer die fleet-Umgebung
+  # gemeint ist.
+  interface: "wg-fleet"
   nodes:
     - name: pk-hetzner-4
       endpoint: "204.168.244.104:51820"

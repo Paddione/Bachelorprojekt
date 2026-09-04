@@ -16,8 +16,11 @@ Last touches:
   - opencode reaches the shared dev-flow reference material | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
+  - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
+  - Repo-relative path references in first-party skills must resolve | T900078 | active | MODIFIED
+  - Skill shims and their targets must cover each other | T900078 | active | ADDED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
 
 ### dev-flow-plan
@@ -106,6 +109,9 @@ In-flight:
   - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
   - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
+  - WireGuard mesh reconcile applies the registry to every node | T900083 | active | ADDED
+  - WireGuard mesh drift is detected as a gate | T900083 | active | ADDED
+  - Reconcile and drift share one renderer | T900083 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED
@@ -121,6 +127,8 @@ Last touches:
   - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
   - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
   - discover-versions.sh ermittelt Tool-Versionen ohne Flux | T002083 | 2026-08-02 | MODIFIED
+In-flight:
+  - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | active | ADDED
 
 ## llm
 
@@ -252,6 +260,8 @@ Last touches:
 In-flight:
   - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | active | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | active | MODIFIED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -1025,6 +1035,8 @@ Last touches:
   - ticket write guard passes through stale holders | T005560 | 2026-08-15 | ADDED
   - plan-preflight pre-commit accepts the staged plan set | T004899 | 2026-08-14 | ADDED
   - Worktrees claimed by a live session survive foreign cleanups | T004899 | 2026-08-14 | ADDED
+In-flight:
+  - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | active | ADDED
 
 ### sdlc-isolation
 Reqs: 29 · Scenarios: 54 · Lines: 630
@@ -1076,6 +1088,7 @@ Last touches:
   - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
 In-flight:
+  - Sessions Wildcard Render Guard | T900029 | active | ADDED
   - Dead Process Reaping | T016251 | active | MODIFIED
   - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
   - Auth-Gating für session-* Subdomains | T016251 | active | ADDED

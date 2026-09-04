@@ -1,0 +1,76 @@
+---
+name: repo-hygiene
+description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, software factory queue status, proactive hygiene recommendations, and scheduling guidance. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", "factory queue status", "close resolved tickets", git worktree remove, gh pr merge, "repo health check", "hygiene recommendations", "what should I clean up". Not for the content of tickets — triage, missing information and parallel-work planning belong to ticket-ops.'
+---
+
+> **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
+> `mishap-tracker` auf — Eintragsformat und Ablauf: siehe `mishap-tracker` §Input.
+
+# repo-hygiene
+
+Day-to-day repository hygiene, PR merging, issue intake, and Software Factory queue management.
+
+Der interne Postgres-Tracker `tickets.tickets` ist die SSOT für Issues. DB-Zugriff (MCP-first,
+`psql()`-Helper): [`MCP-Tool-Guide`](.opencode/skills/references/mcp-tool-guide.md) §mcp-postgres.
+
+---
+
+## Ablauf
+
+Die gesamte Housekeeping-Mechanik ist **SSOT** in
+[`repo-hygiene-ops`](.opencode/skills/references/repo-hygiene-ops.md) —
+die acht Abschnitte der Reihe nach ausführen:
+
+0. **Arbeitsbaum & Stashes** — §0
+1. **Stale Git Worktrees** — §1
+2. **Stale Branches** (inkl. squash-`[gone]`-Prune) — §2
+3. **PR-Triage → verknüpftes Ticket schließen** — §3
+4. **GitHub-Issue-Intake** (Dedupe-Guard [T001210]) — §4
+5. **Software-Factory-Queue** (MCP-first via `factory-mcp`) — §5
+6. **Proactive Hygiene Recommendations** — §6 (nach jedem Lauf: Top-3-Empfehlungen, Aging-Report)
+7. **Scheduling & Trigger Guidance** — §7 (wann und wie oft Hygiene laufen sollte)
+
+Für Completeness-Triage, Klärungsrunden und Parallelisierungs-Masterplan (Phasen 1–4) →
+`ticket-ops`.
+
+---
+
+## Laufzeit-Drift
+
+Gemergte Fixes laufen nur, wenn sie auf dem laufenden System angekommen sind. Der Guard
+`bash scripts/runtime-drift-check.sh` (T003825) prüft das beim Hygiene-Lauf und listet seine
+Befunde neben den Branch-, Worktree- und Queue-Befunden:
+
+1. **MCP-Prozesse gegen ihre Binaries** — laufende stdio-Server, deren Binary ersetzt wurde
+   (Prozess läuft mit der alten Inode, `/proc/<pid>/exe` zeigt `(deleted)` oder weicht im
+   sha256 ab). Schließt automatisch `factory-mcp` ein (T003071).
+2. **DB-Funktionen gegen ihre Migrationen** — Funktionen, deren `pg_proc.prosrc` den in
+   `scripts/one-shot/*.sql` deklarierten `RUNTIME-CHECK`-Marker nicht trägt.
+
+Der Guard **meldet und greift nicht ein**: das Beenden eines driftenden Prozesses und das
+Einspielen einer Migration bleiben Entscheidungen des Betreibers. Unerreichbare DB oder nicht
+lesbare `/proc/<pid>/exe` (fremder Benutzer) gelten als übersprungen, nicht als Drift.
+
+---
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.
+
+## Related Skills
+
+| Skill | Relationship |
+|-------|--------------|
+| `operations-management` | Routing hub that dispatches repository housekeeping |
+| `ticket-ops` | Handles completeness triage and human clarification (SSOT: `ticket-ops-procedures.md`) |
+| `mishap-tracker` | Converts execution mishaps to tickets |
+
+
+## Framework mapping
+
+| Framework | Availability |
+|-----------|-------------|
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
+| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+

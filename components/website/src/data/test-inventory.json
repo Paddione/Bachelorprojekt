@@ -2316,6 +2316,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/worktree-write-guard-abspath-T900047",
+    "file": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/worktree-write-guard-phase-a-allowlist",
     "file": "tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats",
     "category": "agent-skills",
@@ -3774,6 +3780,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/wg-mesh-sync",
+    "file": "tests/spec/fleet-operations/wg-mesh-sync.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "flux-artifact-versioning/flux-artifact-versioning",
     "file": "tests/spec/flux-artifact-versioning/flux-artifact-versioning.bats",
     "category": "flux-artifact-versioning",
@@ -4628,6 +4640,12 @@
   {
     "id": "openspec-embedding/slug-literal-match-T004829",
     "file": "tests/spec/openspec-embedding/slug-literal-match-T004829.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-embedding/windows-entrypoint-T900084",
+    "file": "tests/spec/openspec-embedding/windows-entrypoint-T900084.bats",
     "category": "openspec-embedding",
     "kind": "shell"
   },
@@ -5556,6 +5574,12 @@
     "kind": "shell"
   },
   {
+    "id": "sessions-server/wildcard-render-guard",
+    "file": "tests/spec/sessions-server/wildcard-render-guard.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
     "id": "sidekick-assistant",
     "file": "tests/spec/sidekick-assistant.bats",
     "category": "sidekick-assistant",
@@ -6249,6 +6273,18 @@
     "id": "workspace-deploy-secrets-scope",
     "file": "tests/spec/workspace-deploy-secrets-scope.bats",
     "category": "workspace-deploy-secrets-scope",
+    "kind": "shell"
+  },
+  {
+    "id": "workspace-deploy/flux-secrets-ordering",
+    "file": "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
+    "category": "workspace-deploy",
+    "kind": "shell"
+  },
+  {
+    "id": "workspace-deploy/ntfy-token-escaping-T900059",
+    "file": "tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats",
+    "category": "workspace-deploy",
     "kind": "shell"
   },
   {

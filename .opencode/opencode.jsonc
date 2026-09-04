@@ -147,9 +147,9 @@
 
       "type": "local",
 
-      "command": ["codebase-memory-mcp"],
+      "command": ["npx","-y","codebase-memory-mcp@0.10.8"],
 
-      "enabled": false
+      "enabled": true
 
     },
 

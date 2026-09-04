@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "slug": "fix-sessions-wildcard-render-guard",
+    "ticket_id": "T900029",
+    "generated_from": "main@c54e58250",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5587,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/flux-render-artifact.sh",
+      "language": "bash",
+      "loc": 448,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 352
+    },
+    {
+      "path": "scripts/render-guard.sh",
+      "language": "bash",
+      "loc": 117,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 683
+    },
+    {
+      "path": "tests/spec/sessions-server/wildcard-render-guard.bats",
+      "language": "bash",
+      "loc": 114,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3984:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3984:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3984:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3985:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3985:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3985:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3986:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3986:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3986:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3987:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3987:        _run()  {(...)",
+      "type_text": "3987:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5165:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5165:        kexec_psql() {(...)",
+      "type_text": "5165:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:66:apply_schema_defaults() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "66:apply_schema_defaults() {(...)",
+      "type_text": "66:apply_schema_defaults() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/flux-render-artifact.sh:71:render_component() {",
+      "kind": "function",
+      "file": "scripts/flux-render-artifact.sh",
+      "signature": "71:render_component() {(...)",
+      "type_text": "71:render_component() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/render-guard.sh:42:check_file() {",
+      "kind": "function",
+      "file": "scripts/render-guard.sh",
+      "signature": "42:check_file() {(...)",
+      "type_text": "42:check_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sessions-server/wildcard-render-guard.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sessions-server/wildcard-render-guard.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sessions-server/wildcard-render-guard.bats:21:render_sessions() {",
+      "kind": "function",
+      "file": "tests/spec/sessions-server/wildcard-render-guard.bats",
+      "signature": "21:render_sessions() {(...)",
+      "type_text": "21:render_sessions() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

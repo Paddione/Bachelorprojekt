@@ -72,21 +72,21 @@ wie von der Vorarbeit gefordert: „liefert sofort eine Zahl, ohne auf Live-Verk
 
 ## Task 1: `scripts/llm/measure-factory-context.mjs` — Fixture-Kontextmessung
 
-- [ ] Datei `scripts/llm/measure-factory-context.mjs` neu anlegen (ESM, `#!/usr/bin/env node`).
-- [ ] Kopf-Kommentar mit den drei Ehrlichkeitspunkten aus dem Abschnitt oben (eval-context.cjs
+- [x] Datei `scripts/llm/measure-factory-context.mjs` neu anlegen (ESM, `#!/usr/bin/env node`).
+- [x] Kopf-Kommentar mit den drei Ehrlichkeitspunkten aus dem Abschnitt oben (eval-context.cjs
       ist kein Prompt-Builder; Fixtures = Untergrenze; Tokenisierung = deklarierte Näherung).
-- [ ] `readdirSync(tests/factory-eval/fixtures)` iteriert die acht Ticket-Verzeichnisse; pro
+- [x] `readdirSync(tests/factory-eval/fixtures)` iteriert die acht Ticket-Verzeichnisse; pro
       Verzeichnis `ticket.json` + `expected.json` laden, `promptText = JSON.stringify({ticket,
       expected})`, `charCount = promptText.length`, `approxTokens = Math.ceil(charCount / 4)`.
-- [ ] Optionaler `--tokenizer-endpoint <url>`: `POST {url}/tokenize` mit `{content: promptText}`
+- [x] Optionaler `--tokenizer-endpoint <url>`: `POST {url}/tokenize` mit `{content: promptText}`
       (identisches Shape zu `llm-proxy/server.mjs:measureTokens`), `AbortSignal.timeout(5000)`,
       bei Fehler/Nichterreichbarkeit `exact_tokens: null` (kein Crash, kein Hard-Fail).
-- [ ] `git rev-parse HEAD` (via `execFileSync`, mit try/catch → `null` bei Fehler) und der volle
+- [x] `git rev-parse HEAD` (via `execFileSync`, mit try/catch → `null` bei Fehler) und der volle
       Aufrufbefehl (`process.argv` rekonstruiert) fließen in `meta.commit` /
       `meta.invocation_command` — Mess-Konvention T002717 ist im Skript selbst verankert, nicht
       nur in der Prosa des Reports.
-- [ ] Aggregate `min`/`median`/`max` über `approx_tokens` aller Fixtures berechnen.
-- [ ] Ausgabe: maschinenlesbares JSON auf `stdout` (optional zusätzlich in `--out <pfad>`
+- [x] Aggregate `min`/`median`/`max` über `approx_tokens` aller Fixtures berechnen.
+- [x] Ausgabe: maschinenlesbares JSON auf `stdout` (optional zusätzlich in `--out <pfad>`
       geschrieben) **und** eine für Menschen lesbare Tabelle (`ticket_id | chars | ~tokens |
       exact`) auf `stderr`, damit `stdout | jq` sauber bleibt und P6 direkt daraus zitieren kann.
 

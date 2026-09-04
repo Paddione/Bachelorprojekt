@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.327.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.326.0...website-v1.327.0) (2026-09-04)
+
+
+### Features
+
+* **factory:** factory context tuning — compaction V2, roles, prompts, AGENTS slim [T900074] ([#5473](https://github.com/Paddione/Bachelorprojekt/issues/5473)) ([e512602](https://github.com/Paddione/Bachelorprojekt/commit/e512602b446bf73721a67adda38c59405582f920))
+
 ## [1.326.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.4...website-v1.326.0) (2026-09-04)
 
 

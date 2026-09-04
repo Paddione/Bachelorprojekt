@@ -100,9 +100,20 @@ Scratch-Ports. Das ist kein Notbehelf: die vorhandene qwen38-Messung in
 `scripts/llm/measurements/2026-09-04-freetoken-vs-llamacpp.md`. Jede Zahl trägt
 den ausführbaren Befehl und den Commit-Stand, gegen den gemessen wurde (T002717).
 
-**Offene Risiken, bewusst nicht geglättet:** Ob die acht Eval-Fixtures für
-Live-Prompts repräsentativ sind, ist ungeprüft — deshalb ist (2) das Korrektiv
-für (3). Und der Dynamic Thinking Pool (`enable_thinking` pro Request, 200k/85k)
+**Offene Risiken, bewusst nicht geglättet:** Die Planung hat die ursprüngliche
+Annahme hinter (3) widerlegt. `scripts/factory/eval-context.cjs` baut **nicht**
+den Dispatch-Prompt; die realen `contextHints` entstehen getrennt davon zur
+Laufzeit (`scripts/factory/provision.js:120`, `pipeline-decompose.cjs:64`) und
+sind laut Quellkommentar „a COMPACT list of context labels … NEVER a raw dump".
+Die acht Fixtures liefern damit eine **Untergrenze einer einzelnen Komponente**,
+nicht den Prompt. Eine Untergrenze entscheidet nur in eine Richtung: sie kann
+zeigen, dass der Bedarf ein Fenster sprengt, aber nicht, dass er klein ist. Der
+Nachweis, dass die 200.000 Tokens ungenutzt bleiben, kann deshalb nur aus (2)
+kommen. (3) bleibt im Change, weil eine sofort verfügbare Untergrenze mit
+deklariertem Fehlerbalken mehr wert ist als die unbelegte Zahl „31–37k", die
+heute in zwei Startskripten steht — aber die Beweislast liegt bei (2).
+
+Und der Dynamic Thinking Pool (`enable_thinking` pro Request, 200k/85k)
 ist eine FreeToken-Fähigkeit, die llama.cpp nur über einen Serverneustart
 nachbildet; ob das ein K.-o.-Kriterium darstellt, entscheidet die
 Nutzungsmessung aus (2) — nicht dieser Change im Voraus.

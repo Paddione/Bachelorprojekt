@@ -9,6 +9,8 @@ spec:
   timeout: 10m
   dependsOn:
     - name: flux-infra-controllers
+    # T900014: Secrets VOR dem Staging-Stack reconcilen (Race-Schutz, siehe ks-mentolder.yaml).
+    - name: flux-sealed-secrets-staging
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests

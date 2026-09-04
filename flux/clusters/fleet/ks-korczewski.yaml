@@ -13,6 +13,8 @@ spec:
   suspend: true
   dependsOn:
     - name: flux-infra-controllers
+    # T900014: Secrets VOR dem Brand-Stack reconcilen (Race-Schutz, siehe ks-mentolder.yaml).
+    - name: flux-sealed-secrets-korczewski
   sourceRef:
     kind: OCIRepository
     name: fleet-manifests

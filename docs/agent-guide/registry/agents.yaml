@@ -81,6 +81,11 @@ runtimes:
     model: alibaba-intl/qwen3.8-max
     write_capable: true
     note: "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). Erste Cloud-Eskalationsstufe nach lokalen Modellen. Selbe Modell-Familie wie der Orchestrator [T013360]"
+  reviewer:
+    mode: subagent
+    model: freetoken-local/active
+    write_capable: false
+    note: "Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
   freetoken-primary:
     mode: primary
     model: freetoken-local/active
@@ -171,3 +176,18 @@ runtimes:
     model: alibaba-intl/qwen3.8-max
     write_capable: false
     note: "PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx), tab-selectable singleagent via compatible-mode endpoint; replaces deepseek-v4-flash as the default model [T004396]"
+
+# T900074-p2: factory role declarations (mirror — SSOT is .opencode/agent-models.jsonc)
+factory_roles:
+  planner:
+    description: "Code search, read, ticket operations; dispatched via orchestrator (qwen38 is explorer-only, task:deny)"
+    agents: [orchestrator]
+  implementer:
+    description: "Full dev access: read/edit/bash/task; new files via orchestrator (write:deny by design, AGENTS.md:41)"
+    agents: [gptoss, devstral, gemma, gemma12, qwen-cloud, deepseek-pro, deepseek-pro-direct, deepseek-pro-alibaba, deepseek-flash, deepseek-flash-direct]
+  reviewer:
+    description: "Read/grep/glob/tests only; no edit/write/bash/task (edit:deny, write:deny, bash:deny, task:deny)"
+    agents: [reviewer]
+  dispatcher:
+    description: "Ticket/session ops only; no code tools"
+    agents: []

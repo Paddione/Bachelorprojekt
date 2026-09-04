@@ -695,6 +695,10 @@ Last touches:
 In-flight:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
+  - V2 Compaction Targets 100K Active Context | T900074 | active | ADDED
+  - Factory Roles Carry Minimal Toolsets | T900074 | active | ADDED
+  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | active | ADDED
+  - Global Instructions Stay Lean | T900074 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

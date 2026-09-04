@@ -4595,6 +4595,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900074": [
+    {
+      "slug": "opencode-factory-context-tuning",
+      "status": "plan_staged"
+    }
+  ],
   "T900078": [
     {
       "slug": "skill-path-guard-opencode-T900078",

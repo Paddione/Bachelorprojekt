@@ -4002,6 +4002,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/opencode-compaction",
+    "file": "tests/spec/llm-local-dev/opencode-compaction.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline",
     "file": "tests/spec/llm-pipeline.bats",
     "category": "llm-pipeline",

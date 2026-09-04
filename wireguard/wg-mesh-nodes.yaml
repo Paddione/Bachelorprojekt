@@ -152,14 +152,14 @@ mentolder:
       endpoint: ""        # Home-NAT (FritzBox), PersistentKeepalive — initiates outbound
       wg_ip: "192.168.100.11"
       schema_key: WG_MESH_PKL1
-      public_key: "Uweq+Au4TQ05gn4HUKFYJNoWVdV3Kp19RmngJO4ozzU="
+      public_key: "cp8kd+vPbD9SstMDooH2tOeua/5InGGBKZRoumZfNhc="
       keepalive: 25
 
     - name: pk-tablet
       endpoint: ""        # Home-NAT (FritzBox), PersistentKeepalive — initiates outbound
       wg_ip: "192.168.100.12"
       schema_key: WG_MESH_PKT
-      public_key: "rW9Ac8GHNrg7gsC7DIXHFJhJ8YUYhlDb2zCeX2jUzlo="
+      public_key: "Ei2BOY4Fow7gmdek6N8/Py44/q8UlM05m1E/2tMPGWY="
       keepalive: 25
 
 korczewski:

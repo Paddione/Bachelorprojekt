@@ -42,7 +42,7 @@ Referenzimplementierung gemessen, sondern eine eigene, unabgeglichene Nachbildun
 - [ ] Prüfen, dass `py -3.14` die Pakete `pyarrow` und `huggingface_hub` importieren kann —
       **nicht** `pandas` voraussetzen, das Skript in Task 2 liest die Datensatz-Parquet-Datei
       direkt über `pyarrow.parquet`, um keine ungeprüfte Zusatzabhängigkeit einzuführen.
-- [ ] Bestätigt (Vorrecherche dieses Plans, `hub_repo_details` gegen `LiquidAI/ifstruct-v1.0`):
+- [x] Bestätigt (Vorrecherche dieses Plans, `hub_repo_details` gegen `LiquidAI/ifstruct-v1.0`):
       Split `test`, 2.000 Zeilen, 10 Spalten — `doc_id, entity_type, prompt, output_format,
       top_level_count, top_level_key, require_wrapper_key, require_code_block,
       require_no_commentary, json_schema`. `top_level_count` und `json_schema` sind bereits als
@@ -73,36 +73,36 @@ Resume-Verhalten): Datensatz-Caching, Sharding als Wiederaufnahme-Einheit, Forts
 Bei 2.000 Prompts und grob 4–6 h Laufzeit pro Kandidat ist ein Verbindungsabbruch ohne Sharding
 ein Totalverlust — mit Sharding kostet er höchstens den laufenden Shard.
 
-- [ ] Argumente `<port> <model-id> [label]` (label default = model-id), `BASE_URL` daraus
+- [x] Argumente `<port> <model-id> [label]` (label default = model-id), `BASE_URL` daraus
       zusammensetzen.
-- [ ] Preflight: `uv`, `jq`, `py` vorhanden; `IFSTRUCT_REPO` ist ein `uv`-Projekt (Task 1);
+- [x] Preflight: `uv`, `jq`, `py` vorhanden; `IFSTRUCT_REPO` ist ein `uv`-Projekt (Task 1);
       `${BASE_URL}/models` erreichbar. Klarer Fehler + `exit 1` statt stillem Weiterlaufen.
-- [ ] Datensatz-Cache: falls `$DATASET_CACHE` fehlt oder leer ist, per `py -3.14 - <<'PYEOF'`
+- [x] Datensatz-Cache: falls `$DATASET_CACHE` fehlt oder leer ist, per `py -3.14 - <<'PYEOF'`
       (Heredoc-Muster aus `docs/runbooks/freetoken-native.md` Zeile 370, keine Variablen in den
       Python-String interpolieren — Pfade über `os.environ`) `hf_hub_download` gegen die
       Parquet-Datei (`default/test/0000.parquet`, `revision=refs/convert/parquet`) ausführen, mit
       `pyarrow.parquet` einlesen, zeilenweise als JSONL schreiben, `dataset_info(...).sha` in eine
       `.revision`-Begleitdatei schreiben.
-- [ ] Zeilenzahl-Check (`wc -l` = 2000) mit Warnung statt Abbruch — ein abweichender Cache soll
+- [x] Zeilenzahl-Check (`wc -l` = 2000) mit Warnung statt Abbruch — ein abweichender Cache soll
       auffallen, nicht den Lauf blockieren, falls die Ursache harmlos ist (z. B. Trailing Newline).
-- [ ] Sharding: `split -l "$SHARD_SIZE" -d -a 3` in `$OUT_DIR/shards/`; nur ausführen, wenn das
+- [x] Sharding: `split -l "$SHARD_SIZE" -d -a 3` in `$OUT_DIR/shards/`; nur ausführen, wenn das
       Shard-Verzeichnis leer ist (sonst würden zweite Läufe die Resume-Dateinamen verschieben).
-- [ ] Pro Shard: `$OUT_DIR/<shard>.result.json` bereits nicht-leer vorhanden → überspringen
+- [x] Pro Shard: `$OUT_DIR/<shard>.result.json` bereits nicht-leer vorhanden → überspringen
       (das **ist** die Wiederaufnahme nach Abbruch). Sonst `cd "$IFSTRUCT_REPO" && uv run
       ifstruct-eval …` mit **einem** Retry bei Fehlschlag; scheitert auch der zweite Versuch, wird
       der Shard als offen protokolliert und der Lauf setzt mit dem nächsten Shard fort (`set -uo
       pipefail`, bewusst **ohne** `-e` — ein einzelner Shard-Fehler darf den mehrstündigen Lauf
       nicht beenden).
-- [ ] Fortschrittsausgabe je Shard: `[i/N] <shard> -- fertig -- pass_rate=…`.
-- [ ] Abschlusszeile mit Mess-Konvention (T002717): erzeugender Befehl, `git rev-parse HEAD`,
+- [x] Fortschrittsausgabe je Shard: `[i/N] <shard> -- fertig -- pass_rate=…`.
+- [x] Abschlusszeile mit Mess-Konvention (T002717): erzeugender Befehl, `git rev-parse HEAD`,
       Endpunkt, Modell-ID, Datensatz-Revision, Anzahl fertiger Shards, aggregierte `jq -s`-Summe
       über alle `*.result.json`.
-- [ ] Kopfkommentar dokumentiert die Einschränkung wörtlich: ifstruct prüft **nur** die Struktur
+- [x] Kopfkommentar dokumentiert die Einschränkung wörtlich: ifstruct prüft **nur** die Struktur
       (gültiges JSON/YAML nach Schema), nicht inhaltliche Korrektheit oder Qualität — eine Antwort
       kann inhaltliche Anweisungen ignorieren und trotzdem bestehen. Als alleiniges Qualitätsmaß
       taugt der Benchmark deshalb nicht; er misst die eine Dimension, die für `tool_calls`
       entscheidet.
-- [ ] Kopfkommentar dokumentiert zusätzlich unverifiziert: das exakte Feldschema von
+- [x] Kopfkommentar dokumentiert zusätzlich unverifiziert: das exakte Feldschema von
       `<shard>.result.json` (`ifstruct-eval` dokumentiert nur "aggregate summary stats + per-sample
       results", keine Feldnamen) ist gegen die Aggregations-`jq`-Pfade **erst im Smoke-Lauf** (Task
       3) zu bestätigen — die `jq`-Ausdrücke in diesem Skript nutzen deshalb `//`-Fallback-Ketten
@@ -279,6 +279,17 @@ chmod +x scripts/llm/bench-ifstruct.sh
 ---
 
 ## Task 3: Smoke-Lauf gegen einen laufenden Endpunkt (5 Zeilen) vor dem vollen Lauf
+
+> **OFFEN — bewusst nicht ausgefuehrt (Scope-Grenze T900087-Lauf 2026-09-04).**
+> Weder `$HOME/ifstruct` (Validator-Klon) noch ein Endpunkt existiert auf diesem
+> Host: `:8194` und `:1919` sind tot, RTX 5070 Ti bei 0 MiB Belegung. Belegt ist
+> stattdessen, dass der Preflight fail-loud greift statt still weiterzulaufen:
+>
+> ```bash
+> bash scripts/llm/bench-ifstruct.sh 8194 gpt-oss-20b smoke-gptoss
+> # -> IFSTRUCT_REPO=/c/Users/PatrickKorczewski/ifstruct ist kein uv-Projekt ...
+> # -> exit 1
+> ```
 
 Bestätigt vor dem 4–6-h-Lauf pro Kandidat zwei unverifizierte Annahmen aus Task 2: dass
 `--api-key dummy-local` von `ifstruct-eval` gegen einen lokalen Server akzeptiert wird, und dass

@@ -4595,6 +4595,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900078": [
+    {
+      "slug": "skill-path-guard-opencode-T900078",
+      "status": "plan_staged"
+    }
+  ],
   "T900080": [
     {
       "slug": "mcp-registry-drift-T900080",

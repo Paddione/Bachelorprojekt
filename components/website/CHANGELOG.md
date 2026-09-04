@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.325.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.2...website-v1.325.3) (2026-09-04)
+
+
+### Bug Fixes
+
+* **infra:** brand stacks wait for sealed-secrets via dependsOn [T900014] ([#5471](https://github.com/Paddione/Bachelorprojekt/issues/5471)) ([783b649](https://github.com/Paddione/Bachelorprojekt/commit/783b6496f7d0eba448087467514d745b351f2e91))
+* **scripts:** canonicalize absolute paths in worktree-write-guard [T900047] ([#5469](https://github.com/Paddione/Bachelorprojekt/issues/5469)) ([22a220b](https://github.com/Paddione/Bachelorprojekt/commit/22a220b8591c7d89abf1fbd376faecc4fa18d812))
+
 ## [1.325.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.1...website-v1.325.2) (2026-09-04)
 
 

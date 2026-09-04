@@ -5556,6 +5556,12 @@
     "kind": "shell"
   },
   {
+    "id": "sessions-server/wildcard-render-guard",
+    "file": "tests/spec/sessions-server/wildcard-render-guard.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
     "id": "sidekick-assistant",
     "file": "tests/spec/sidekick-assistant.bats",
     "category": "sidekick-assistant",

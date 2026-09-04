@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.325.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.1...website-v1.325.2) (2026-09-04)
+
+
+### Documentation
+
+* **infra:** WSL-Herkunftsannahmen aus SSOT, Registries und Units nachziehen [T900054] ([#5466](https://github.com/Paddione/Bachelorprojekt/issues/5466)) ([97f258c](https://github.com/Paddione/Bachelorprojekt/commit/97f258c0d9d193596ed81f865fac0b161bcfeaaf))
+
 ## [1.325.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.0...website-v1.325.1) (2026-09-03)
 
 

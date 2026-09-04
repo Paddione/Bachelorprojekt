@@ -87,7 +87,7 @@ Beides sind **Ergebnisse, keine Fehlschläge**, und werden in P6 als solche beri
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der Guard aus P7 prüft die Alias-Telemetrie
+- [x] **Failing-Test-Step (RED).** Der Guard aus P7 prüft die Alias-Telemetrie
       aus P2. Vor deren Implementierung muss er fehlschlagen — läuft er grün,
       prüft er nicht, was er zu prüfen vorgibt.
 
@@ -96,14 +96,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/alias-telemetry.bats
 # expected: FAIL (rot — die Telemetrie aus P2 existiert noch nicht)
 ```
 
-- [ ] **Fix-Step (GREEN).** P2 implementieren; der Guard aus P7 läuft danach grün.
+- [x] **Fix-Step (GREEN).** P2 implementieren; der Guard aus P7 läuft danach grün.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/alias-telemetry.bats
 # expected: PASS
 ```
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

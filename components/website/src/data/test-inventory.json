@@ -6270,6 +6270,12 @@
     "kind": "shell"
   },
   {
+    "id": "workspace-deploy/ntfy-token-escaping-T900059",
+    "file": "tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats",
+    "category": "workspace-deploy",
+    "kind": "shell"
+  },
+  {
     "id": "workstation-cluster-iso/assign-identity",
     "file": "tests/spec/workstation-cluster-iso/assign-identity.bats",
     "category": "workstation-cluster-iso",

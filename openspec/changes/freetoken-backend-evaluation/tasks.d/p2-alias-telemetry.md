@@ -129,23 +129,23 @@ geworfener Fehler im äußeren `try`/`catch` der `config`-Hook (Zeilen
 
 ## Acceptance Criteria
 
-- [ ] **Alias exakt wie gesendet.** Ein Request mit `model: "active-thinking"`
+- [x] **Alias exakt wie gesendet.** Ein Request mit `model: "active-thinking"`
       erzeugt einen JSONL-Satz mit `alias: "active-thinking"`; ein Request mit
       `model: "active-fast"` erzeugt `alias: "active-fast"` (Requirement-
       Szenarien "A thinking request …" / "A non-thinking request …").
-- [ ] **Zeitstempel und Prompt-Größe vorhanden.** Jeder Satz trägt `ts`
+- [x] **Zeitstempel und Prompt-Größe vorhanden.** Jeder Satz trägt `ts`
       (ISO-8601) und `promptChars` (Zahl ≥ 0).
-- [ ] **Pfad außerhalb des Working Tree.** `TELEMETRY_PATH` löst über
+- [x] **Pfad außerhalb des Working Tree.** `TELEMETRY_PATH` löst über
       `process.env.LOCALAPPDATA` auf; `join(LOCALAPPDATA, "FreeToken", "logs",
       "alias-telemetry.jsonl")` kann nie unter dem Repo-Root liegen, weil
       `LOCALAPPDATA` per Definition außerhalb des Benutzer-Repos liegt
       (Requirement-Szenario "Telemetry never lives inside the working tree").
-- [ ] **Fehler bleiben unsichtbar.** Schlägt `appendFile` fehl (z.B. Zielordner
+- [x] **Fehler bleiben unsichtbar.** Schlägt `appendFile` fehl (z.B. Zielordner
       fehlt), wirft `recordAliasUsage` nichts, verändert `init`/`body` nicht
       und der `upstreamFetch(input, init)`-Aufruf danach ist identisch mit dem
       Erfolgsfall (Requirement-Szenario "A telemetry failure leaves the
       request untouched").
-- [ ] Datei bleibt unter ihrem Budget (Ist nach Änderung geschätzt ~215 LOC,
+- [x] Datei bleibt unter ihrem Budget (Ist nach Änderung geschätzt ~215 LOC,
       Budget 708).
 
 ## Not in Scope

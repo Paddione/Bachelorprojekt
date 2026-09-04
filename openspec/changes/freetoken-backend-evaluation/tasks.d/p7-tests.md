@@ -277,24 +277,24 @@ gar nicht erst importierbar ist.
 
 ## Acceptance Criteria
 
-- [ ] T0 (Positiv-Anker) bestätigt, dass das Plugin lädt und `config`
+- [x] T0 (Positiv-Anker) bestätigt, dass das Plugin lädt und `config`
       aufrufbar ist, bevor irgendeine Szenario-Assertion greift.
-- [ ] T1 belegt Requirement-Szenario 1: `active-thinking` → eigener Alias,
+- [x] T1 belegt Requirement-Szenario 1: `active-thinking` → eigener Alias,
       `promptChars` > 0, `ts` im ISO-8601-Präfix.
-- [ ] T2 belegt Requirement-Szenario 2: `active-fast` → eigener Alias.
-- [ ] T3 belegt Requirement-Szenario 3: Datei liegt nachweislich außerhalb
+- [x] T2 belegt Requirement-Szenario 2: `active-fast` → eigener Alias.
+- [x] T3 belegt Requirement-Szenario 3: Datei liegt nachweislich außerhalb
       `$REPO`, keine gleichnamige Datei im Repo-Baum.
-- [ ] T4 belegt Requirement-Szenario 4: kein Wurf, `status == 200`,
+- [x] T4 belegt Requirement-Szenario 4: kein Wurf, `status == 200`,
       `upstreamBody` identisch zum Erfolgsfall, keine Datei im kaputten
       `LOCALAPPDATA` entstanden.
-- [ ] Jeder Testfall mit eigenem `LOCALAPPDATA`-Verzeichnis und eigenem
+- [x] Jeder Testfall mit eigenem `LOCALAPPDATA`-Verzeichnis und eigenem
       `tsx`-Subprozess (Modul-Cache-Falle vermieden, siehe Design-
       Entscheidungen).
-- [ ] Kein laufender FreeToken-Server (`:1919`) und kein `:1900`-Daemon als
+- [x] Kein laufender FreeToken-Server (`:1919`) und kein `:1900`-Daemon als
       Testvoraussetzung.
-- [ ] Verfügbarkeits-Guard `[ -x "$REPO/node_modules/.bin/tsx" ] || skip …`
+- [x] Verfügbarkeits-Guard `[ -x "$REPO/node_modules/.bin/tsx" ] || skip …`
       in jedem `@test`, das `tsx` aufruft.
-- [ ] Suite läuft vor P2 rot (Schritt 7, `expected: FAIL`) und nach P2 grün
+- [x] Suite läuft vor P2 rot (Schritt 7, `expected: FAIL`) und nach P2 grün
       (Schritt 8).
 
 ## Not in Scope

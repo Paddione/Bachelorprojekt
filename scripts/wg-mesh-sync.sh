@@ -127,9 +127,16 @@ PY
   exit 1
 fi
 
+# Auch hier CR entfernen: ein \r im Interface-Namen wanderte sonst in jedes
+# Remote-Kommando (sudo wg show <iface>\r peers) und liesse es scheitern.
+INTERFACE="$(printf '%s' "$INTERFACE" | tr -d '\r')"
+
 # ── Nodes der Umgebung auflisten: "<name>\t<host-oder-leer>" ───────
 list_nodes() {
-  python3 - "$REGISTRY_FILE" "$ENV" "$NODE_FILTER" <<'PY'
+  # tr -d CR: Windows-Python schreibt CRLF. Ein Carriage-Return im Host laesst
+  # ssh mit "hostname contains invalid characters" (rc=255) scheitern — das sah
+  # hier wie ein toter Node aus, und drift endete faelschlich mit Exit 0.
+  python3 - "$REGISTRY_FILE" "$ENV" "$NODE_FILTER" <<'PY' | tr -d '\r'
 import sys, yaml
 
 mesh_file, env, node_filter = sys.argv[1:]
@@ -154,7 +161,7 @@ PY
 # Soll-Peer-Menge eines Nodes: Zeilen "<public_key> <allowed_ips>".
 want_peers() {
   local node_name="$1"
-  bash "$GEN_SCRIPT" --env "$ENV" --node-name "$node_name" --peers-only --mesh-file "$REGISTRY_FILE"
+  bash "$GEN_SCRIPT" --env "$ENV" --node-name "$node_name" --peers-only --mesh-file "$REGISTRY_FILE" | tr -d '\r'
 }
 
 # Ist-Peer-Menge eines Nodes ueber SSH: eine Public-Key-Zeile je Peer (Format
@@ -205,7 +212,10 @@ REMOTE_ERROR=false
 DRIFT_FOUND=false
 DRIFT_REPORT=()
 
-while IFS=$'\t' read -r name host; do
+# fd 3 statt stdin: jedes ssh in der Schleife wuerde sonst die restliche
+# Node-Liste als eigenen stdin verschlucken — die Schleife braeche nach dem
+# ERSTEN Node ab und das Gate meldete Gruen fuer ungeprueftes Mesh.
+while IFS=$'\t' read -r -u 3 name host; do
   [[ -z "$name" ]] && continue
 
   if [[ -z "$host" ]]; then
@@ -329,7 +339,7 @@ while IFS=$'\t' read -r name host; do
       done <<<"$extra"
     fi
   fi
-done <<<"$NODE_LIST"
+done 3<<<"$NODE_LIST"
 
 # Ein Node, dessen ssh-Verbindung stand, aber dessen Remote-Befehl scheiterte
 # (z. B. fehlende sudo-NOPASSWD-Regel), ist NICHT "nicht erreichbar" und darf

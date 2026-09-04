@@ -292,3 +292,58 @@ SSHSTUB
   # Positiv-Anker: der reine Unreachable-Fall (Exit 255) bleibt weiterhin ein
   # Skip mit Exit 0 (Test 7 oben) — dieser Test grenzt nur den ANDEREN Fall ab.
 }
+
+# ── Regression PR #5489: die Schleife muss JEDEN Node besuchen ──────────────
+# Vorher las die while-read-Schleife aus stdin. Jedes ssh darin verschlang die
+# restliche Node-Liste als eigenen stdin, worauf die Schleife nach dem ERSTEN
+# Node abbrach — bei sechs fleet-Nodes wurden fuenf ungeprueft als "gruen"
+# durchgewunken. Am lebenden fleet-Cluster nachgestellt: nur pk-hetzner-4
+# tauchte im Bericht auf, obwohl allen sechs Nodes derselbe Peer fehlte.
+@test "T900083: drift besucht jeden Node, nicht nur den ersten" {
+  cat > "$TMPDIR/registry.yaml" <<'EOF'
+fleet:
+  wg_subnet: "10.20.0.0/24"
+  listen_port: 51820
+  interface: "wg-fleet"
+  nodes:
+    - name: node-a
+      endpoint: "10.0.0.1:51820"
+      wg_ip: "10.20.0.1"
+      public_key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    - name: node-b
+      endpoint: "10.0.0.2:51820"
+      wg_ip: "10.20.0.2"
+      public_key: "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB="
+    - name: node-c
+      endpoint: "10.0.0.3:51820"
+      wg_ip: "10.20.0.3"
+      public_key: "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC="
+EOF
+
+  # Der Stub liest bewusst seinen stdin leer — genau das Verhalten von ssh,
+  # das den Defekt ausgeloest hat. Jeder Aufruf wird protokolliert.
+  cat > "$TMPDIR/ssh" <<'SSHSTUB'
+#!/usr/bin/env bash
+cat > /dev/null
+echo "$*" >> "$SSH_CALL_LOG"
+exit 0
+SSHSTUB
+  chmod +x "$TMPDIR/ssh"
+  export SSH_CALL_LOG="$TMPDIR/calls.log"
+  : > "$SSH_CALL_LOG"
+
+  SSH_CALL_LOG="$SSH_CALL_LOG" WG_MESH_SYNC_SSH="$TMPDIR/ssh" \
+    WG_REGISTRY_FILE="$TMPDIR/registry.yaml" \
+    run bash "$SYNC_SCRIPT" drift --env fleet
+
+  # Positiv-Anker: der Stub wurde ueberhaupt aufgerufen.
+  [ -s "$SSH_CALL_LOG" ] || { echo "ssh-Stub nie aufgerufen"; return 1; }
+  # Aussage: alle drei Hosts wurden kontaktiert, nicht nur der erste.
+  for h in 10.0.0.1 10.0.0.2 10.0.0.3; do
+    grep -qF "$h" "$SSH_CALL_LOG" || {
+      echo "Node $h nie kontaktiert — Schleife bricht vorzeitig ab"
+      cat "$SSH_CALL_LOG"
+      return 1
+    }
+  done
+}

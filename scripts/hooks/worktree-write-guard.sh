@@ -62,8 +62,36 @@ for k in ("file_path", "notebook_path", "path"):
 ' 2>/dev/null || true)"
 [ -n "$TARGET" ] || _allow
 
+# Pfad-Kanonisierung (T900047): Windows- und POSIX-Schreibweisen derselben
+# Stelle auf EINE Form abbilden, damit die Vergleiche unten nicht an der
+# Schreibweise scheitern. Kanonische Form ist die POSIX-Form (reine
+# Bash-Pfade; `[ -d ]` und `cd` funktionieren damit auf Linux UND Git-Bash):
+#   `C:\Users\x`  -> `/c/Users/x`   (Backslashes, Grossbuchstabe)
+#   `C:/Users/x`  -> `/c/Users/x`   (Grossbuchstabe)
+#   `/C/Users/x`  -> `/c/Users/x`   (nur Gross/Klein des Drives angleichen)
+#   `\\srv\share` -> `//srv/share`  (UNC, bleibt `/`-absolut)
+#   `/tmp/x`      -> `/tmp/x`       (reine POSIX-Pfade unverändert)
+#   `C:relativ`   -> `C:relativ`    (laufwerk-relativ ist NICHT absolut!)
+# Alle Vergleichsseiten (TARGET, MAIN_ROOT, Claim-Pfade aus `_abs_wt`) laufen
+# durch dieselbe Funktion — sonst matcht die kanonisierte Seite nie gegen eine
+# unkanonisierte (dieselbe Fallklasse wie T003131/T002412).
+_canon() {
+  local p="${1//\\//}"
+  if [[ "$p" =~ ^([A-Za-z]):/(.*)$ ]]; then
+    printf '/%s/%s\n' "${BASH_REMATCH[1],,}" "${BASH_REMATCH[2]}"
+  elif [[ "$p" =~ ^/([A-Za-z])/(.*)$ ]]; then
+    printf '/%s/%s\n' "${BASH_REMATCH[1],,}" "${BASH_REMATCH[2]}"
+  else
+    printf '%s\n' "$p"
+  fi
+}
+
 # Absolut machen; relative Pfade beziehen sich auf das Arbeitsverzeichnis des Hooks.
-case "$TARGET" in /*) ;; *) TARGET="$PWD/$TARGET";; esac
+# Vorher kanonisieren (T900047): Danach ist jede absolute Schreibweise (`C:\...`,
+# `C:/...`, `/c/...`, UNC `//...`) `/`-absolut und bekommt kein `$PWD/` mehr
+# vorangestellt — genau das erzeugte `Pfad: /c/.../Bachelorprojekt/C:\Users\...`.
+TARGET="$(_canon "$TARGET")"
+case "$TARGET" in /*) ;; *) TARGET="$(_canon "$PWD/$TARGET")";; esac
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 [ -n "$REPO_ROOT" ] || _allow
@@ -72,6 +100,9 @@ COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null || true)"
 [ -n "$COMMON_DIR" ] || _allow
 COMMON_DIR="$(cd "$COMMON_DIR" && pwd)"
 MAIN_ROOT="$(dirname "$COMMON_DIR")"
+# Kanonisiert vergleichen (T900047): `git rev-parse` liefert je nach Plattform
+# Windows- (`C:/...`, teils mit Backslashes) oder POSIX-Form (`/c/...`, `/tmp/...`).
+MAIN_ROOT="$(_canon "$MAIN_ROOT")"
 
 # 1) Außerhalb des Repos -> nicht unsere Zuständigkeit.
 case "$TARGET" in
@@ -131,6 +162,9 @@ _abs_wt() {
     local stripped="${wt%-T*}"
     [ -d "$stripped" ] && wt="$stripped"
   fi
+  # Kanonisiert vergleichen (T900047): Claim-Pfade in derselben Form wie TARGET,
+  # sonst matcht `C:\...`-TARGET nie gegen einen `/c/...`-Claim (und umgekehrt).
+  wt="$(_canon "$wt")"
   printf '%s\n' "$wt"
 }
 

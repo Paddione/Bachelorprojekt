@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.328.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.327.0...website-v1.328.0) (2026-09-04)
+
+
+### Features
+
+* **ops:** Messgrundlage FreeToken vs. llama.cpp — Telemetrie, Kontextmessung, Benchmarks [T900087] ([#5496](https://github.com/Paddione/Bachelorprojekt/issues/5496)) ([95a94ba](https://github.com/Paddione/Bachelorprojekt/commit/95a94ba9836c8e84bb4be03f22853973f6469ae5))
+
 ## [1.327.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.326.0...website-v1.327.0) (2026-09-04)
 
 

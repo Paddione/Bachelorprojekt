@@ -20,7 +20,14 @@
 set -euo pipefail
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
-OPCODE_SERVER_PASSWORD="${OPENCODE_SERVER_PASSWORD:-change-me}"
+# Passwort-Vorrang: $OPENCODE_SERVER_PASSWORD (Env) > Secret-Datei (Mode 600,
+# angelegt via setup-autostart.sh) > Platzhalter change-me.
+_OPCODE_SECRET_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/.server_password"
+OPCODE_SERVER_PASSWORD="${OPENCODE_SERVER_PASSWORD:-}"
+if [[ -z "$OPCODE_SERVER_PASSWORD" && -f "$_OPCODE_SECRET_FILE" ]]; then
+  OPCODE_SERVER_PASSWORD="$(cat "$_OPCODE_SECRET_FILE")"
+fi
+OPCODE_SERVER_PASSWORD="${OPCODE_SERVER_PASSWORD:-change-me}"
 OPCODE_SERVER_USERNAME="${OPENCODE_SERVER_USERNAME:-opencode}"
 OPCODE_SERVE_PORT="${OPENCODE_SERVE_PORT:-4100}"
 OPCODE_SERVE_HOSTNAME="${OPENCODE_SERVE_HOSTNAME:-127.0.0.1}"
@@ -82,7 +89,7 @@ cmd_start() {
 
   echo "Starting opencode-serve on ${OPCODE_SERVE_HOSTNAME}:${OPCODE_SERVE_PORT} …"
 
-  export OPENCODE_SERVER_PASSWORD
+  export OPENCODE_SERVER_PASSWORD="$OPCODE_SERVER_PASSWORD"
 
   nohup opencode serve \
     --port "$OPCODE_SERVE_PORT" \
@@ -96,9 +103,9 @@ cmd_start() {
   echo "Log: $LOG_FILE"
   echo "API: $(api_url)"
 
-  # Wait briefly and verify
+  # Wait briefly and verify (authenticated — the server requires Basic auth)
   sleep 2
-  if curl -s --max-time 5 "http://127.0.0.1:${OPCODE_SERVE_PORT}/global/health" >/dev/null 2>&1; then
+  if curl -s --max-time 5 -H "$(auth_header)" "http://127.0.0.1:${OPCODE_SERVE_PORT}/global/health" >/dev/null 2>&1; then
     echo "Health check OK."
   else
     echo "Warning: health check did not respond yet — check $LOG_FILE"
@@ -114,7 +121,7 @@ cmd_stop() {
     local i=0
     while kill -0 "$pid" 2>/dev/null && (( i < 20 )); do
       sleep 0.25
-      (( i++ ))
+      (( ++i ))
     done
     if kill -0 "$pid" 2>/dev/null; then
       echo "Force killing …"

@@ -22,6 +22,7 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `deepseek-helper` `deepseek-helper-go` `deepseek-helper-alibaba` | `deepseek-v4-flash` (write) | Eskalation wenn lokal stuck/ctx-leer; 3 Rails |
 | `deepseek-pro` `deepseek-pro-direct` `deepseek-pro-alibaba` | `deepseek-v4-pro` (all, write) | Tiefe Analyse/harte Refactors; 3 Rails |
 | `deepseek-flash` `deepseek-flash-direct` | `deepseek-v4-flash` (all, write) | Parallel-Throughput bis 3; 2 Rails |
+| `reviewer` | `freetoken-local/active` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
 | `alibaba-primary` | `alibaba-intl/qwen3.8-max` (primary) | PRIMARY via Alibaba-Plan [T004396] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 

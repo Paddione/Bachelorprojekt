@@ -19,6 +19,8 @@ In-flight:
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
+  - Repo-relative path references in first-party skills must resolve | T900078 | active | MODIFIED
+  - Skill shims and their targets must cover each other | T900078 | active | ADDED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
 
 ### dev-flow-plan

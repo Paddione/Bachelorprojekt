@@ -4638,6 +4638,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/windows-entrypoint-T900084",
+    "file": "tests/spec/openspec-embedding/windows-entrypoint-T900084.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-pgvector",
     "file": "tests/spec/openspec-pgvector.bats",
     "category": "openspec-pgvector",
@@ -6266,6 +6272,12 @@
   {
     "id": "workspace-deploy/flux-secrets-ordering",
     "file": "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
+    "category": "workspace-deploy",
+    "kind": "shell"
+  },
+  {
+    "id": "workspace-deploy/ntfy-token-escaping-T900059",
+    "file": "tests/spec/workspace-deploy/ntfy-token-escaping-T900059.bats",
     "category": "workspace-deploy",
     "kind": "shell"
   },

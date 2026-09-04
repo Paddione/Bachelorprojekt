@@ -4517,6 +4517,12 @@
       "status": "archived"
     }
   ],
+  "T900025": [
+    {
+      "slug": "fix-agent-lock-canonicalize-worktree-cwd",
+      "status": "plan_staged"
+    }
+  ],
   "T900027": [
     {
       "slug": "stray-secret-dump-guard",
@@ -4589,9 +4595,15 @@
       "status": "plan_staged"
     }
   ],
-  "T900083": [
+  "T900078": [
     {
-      "slug": "wg-mesh-reconcile-drift",
+      "slug": "skill-path-guard-opencode-T900078",
+      "status": "plan_staged"
+    }
+  ],
+  "T900080": [
+    {
+      "slug": "mcp-registry-drift-T900080",
       "status": "plan_staged"
     }
   ],

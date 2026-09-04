@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.325.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.3...website-v1.325.4) (2026-09-04)
+
+
+### Bug Fixes
+
+* **scripts:** run openspec-embed main() on Windows too [T900084] ([#5481](https://github.com/Paddione/Bachelorprojekt/issues/5481)) ([d8d5010](https://github.com/Paddione/Bachelorprojekt/commit/d8d5010aa13cc6a8ce1156b3f81616a88fb1203b))
+
 ## [1.325.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.2...website-v1.325.3) (2026-09-04)
 
 

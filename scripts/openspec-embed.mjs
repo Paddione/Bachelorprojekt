@@ -11,6 +11,7 @@
 import pg from 'pg';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export function stripFrontmatter(raw) {
   const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw);
@@ -494,7 +495,10 @@ async function main() {
     }
   }
   const repoRoot = process.env.OPENSPEC_EMBED_REPO
-    || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+    // [T900084] fileURLToPath statt URL.pathname: unter Windows liefert pathname
+    // '/C:/...' (fuehrender Slash vor dem Laufwerksbuchstaben), woraus
+    // path.resolve 'C:\C:\...' macht - das Change-Verzeichnis wird nie gefunden.
+    || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
   if (countSkipped) {
     const CONTEXT_LIMIT = 2048; // proposal/task_section/spec_section chunks (post-Task-2: max ~450)
@@ -553,6 +557,10 @@ async function main() {
   process.exit(0); // best-effort: never break the OpenSpec lifecycle
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// [T900084] pathToFileURL statt String-Konkatenation: unter Windows ist
+// import.meta.url 'file:///C:/...', die Konkatenation dagegen 'file://C:\...'.
+// Der Vergleich war immer falsch, main() lief nie, und der Prozess endete mit
+// Exit 0 und leerer Ausgabe - kein Plan wurde je indiziert.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

@@ -130,7 +130,7 @@ Schritt unten:
 
 ### Task P1.1 — GPU-Parameter und VRAM-Helper einführen
 
-- [ ] Ersetze den `param()`-Block (Zeilen 51-55) durch:
+- [x] Ersetze den `param()`-Block (Zeilen 51-55) durch:
 
 ```powershell
 param(
@@ -164,7 +164,7 @@ function Get-FreeVramMiB {
 }
 ```
 
-- [ ] Verifikation, dass der Bug vorher real war und der Ausdruck nachher trägt (beide
+- [x] Verifikation, dass der Bug vorher real war und der Ausdruck nachher trägt (beide
       Zeilen sind auf diesem Host ausführbar):
 
 ```bash
@@ -177,7 +177,7 @@ powershell.exe -NoProfile -Command '[int]("$(@(& nvidia-smi --query-gpu=memory.f
 
 ### Task P1.2 — Beide Messstellen und die Kartenwahl umstellen
 
-- [ ] Ersetze Zeile 84 durch den Helper-Aufruf und setze die Kartenwahl unmittelbar davor:
+- [x] Ersetze Zeile 84 durch den Helper-Aufruf und setze die Kartenwahl unmittelbar davor:
 
 ```powershell
 # Der Serverprozess sieht ausschliesslich die Zielkarte; sie traegt dort Index 0,
@@ -187,7 +187,7 @@ $env:CUDA_VISIBLE_DEVICES = $GpuUuid
 $freeMiB = Get-FreeVramMiB -Uuid $GpuUuid
 ```
 
-- [ ] Ergänze die Startausgabe (nach Zeile 89, `"  Free VRAM: ..."`) um eine Zeile, die die
+- [x] Ergänze die Startausgabe (nach Zeile 89, `"  Free VRAM: ..."`) um eine Zeile, die die
       gewählte Karte benennt — ohne sie ist im Log nicht unterscheidbar, welche der beiden
       Karten gemessen wurde:
 
@@ -195,12 +195,12 @@ $freeMiB = Get-FreeVramMiB -Uuid $GpuUuid
 Write-Output "  GPU:       $GpuUuid"
 ```
 
-- [ ] Ersetze in Zeile 140 (Erfolgsmeldung nach dem Health-Poll) den unrestringierten
+- [x] Ersetze in Zeile 140 (Erfolgsmeldung nach dem Health-Poll) den unrestringierten
       Aufruf durch `$(Get-FreeVramMiB -Uuid $GpuUuid)`. Die Schwelle in Zeile 90
       (`-lt 13500`) bleibt unverändert: sie war schon immer gegen die 16-GB-Karte gerechnet
       (12.11 GB Gewichte + KV + bge-Stack), und genau die ist jetzt der Default.
 
-- [ ] Verifikation, dass kein unrestringierter Aufruf mehr übrig ist:
+- [x] Verifikation, dass kein unrestringierter Aufruf mehr übrig ist:
 
 ```bash
 # erwartet: 0 Zeilen Ausgabe
@@ -210,7 +210,7 @@ grep -n 'query-gpu=memory.free' scripts/llm/start-gptoss-server.ps1 scripts/llm/
 
 ### Task P1.3 — `.DESCRIPTION` und `.PARAMETER` erweitern
 
-- [ ] Ergänze im Kopfblock (vor `.PARAMETER LlamaDir`, Zeile 45) einen neuen Absatz. Bestehende
+- [x] Ergänze im Kopfblock (vor `.PARAMETER LlamaDir`, Zeile 45) einen neuen Absatz. Bestehende
       Absätze bleiben wortwörtlich stehen:
 
 ```
@@ -225,7 +225,7 @@ grep -n 'query-gpu=memory.free' scripts/llm/start-gptoss-server.ps1 scripts/llm/
   nvidia-smi ohne --id zwei Zeilen liefert.
 ```
 
-- [ ] Ergänze nach `.PARAMETER LlamaDir` (Zeile 45-46):
+- [x] Ergänze nach `.PARAMETER LlamaDir` (Zeile 45-46):
 
 ```
 .PARAMETER GpuUuid
@@ -236,7 +236,7 @@ grep -n 'query-gpu=memory.free' scripts/llm/start-gptoss-server.ps1 scripts/llm/
   Karten auflisten: nvidia-smi --query-gpu=index,name,uuid --format=csv
 ```
 
-- [ ] Ergänze einen zweiten `.EXAMPLE` nach Zeile 48:
+- [x] Ergänze einen zweiten `.EXAMPLE` nach Zeile 48:
 
 ```
 .EXAMPLE
@@ -251,7 +251,7 @@ grep -n 'query-gpu=memory.free' scripts/llm/start-gptoss-server.ps1 scripts/llm/
 
 ### Task P1.4 — GPU-Parameter und VRAM-Helper einführen
 
-- [ ] Ergänze den `param()`-Block (Zeilen 149-162) um `$GpuUuid` — direkt nach `[int]$Port = 8091`,
+- [x] Ergänze den `param()`-Block (Zeilen 149-162) um `$GpuUuid` — direkt nach `[int]$Port = 8091`,
       damit die vorhandene Positionsreihenfolge der übrigen Parameter unberührt bleibt:
 
 ```powershell
@@ -261,29 +261,29 @@ grep -n 'query-gpu=memory.free' scripts/llm/start-gptoss-server.ps1 scripts/llm/
   [string]$GpuUuid = "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4",
 ```
 
-- [ ] Füge unmittelbar nach dem schliessenden `)` des `param()`-Blocks (Zeile 162) dieselbe
+- [x] Füge unmittelbar nach dem schliessenden `)` des `param()`-Blocks (Zeile 162) dieselbe
       `Get-FreeVramMiB`-Funktion ein wie in Task P1.1 (wortgleich, inklusive Kommentarblock).
       Die Duplikation ist beabsichtigt und in „Entwurfsentscheidungen" begründet.
 
 ### Task P1.5 — Beide Messstellen und die Kartenwahl umstellen
 
-- [ ] Ersetze Zeile 208 durch:
+- [x] Ersetze Zeile 208 durch:
 
 ```powershell
 $env:CUDA_VISIBLE_DEVICES = $GpuUuid
 $freeMiB = Get-FreeVramMiB -Uuid $GpuUuid
 ```
 
-- [ ] Ergänze nach Zeile 215 (`"  Free VRAM: $freeMiB MiB"`):
+- [x] Ergänze nach Zeile 215 (`"  Free VRAM: $freeMiB MiB"`):
 
 ```powershell
 Write-Output "  GPU:       $GpuUuid"
 ```
 
-- [ ] Ersetze in Zeile 382 (Erfolgsmeldung) den unrestringierten Aufruf durch
+- [x] Ersetze in Zeile 382 (Erfolgsmeldung) den unrestringierten Aufruf durch
       `$(Get-FreeVramMiB -Uuid $GpuUuid)`.
 
-- [ ] Die VRAM-Bedarfsrechnung in den Zeilen 216-243 bleibt inhaltlich unverändert
+- [x] Die VRAM-Bedarfsrechnung in den Zeilen 216-243 bleibt inhaltlich unverändert
       (`$perTokMiB`, `$baseMiB = 8000`, die Hinweisschwelle `-gt 15000`). Sie war gegen die
       16-GB-Karte gerechnet, und die ist jetzt der Default — die Zahlen werden durch diesen
       Partial korrekt, nicht falsch. Prüfbefehl, dass nichts verrutscht ist:
@@ -294,12 +294,12 @@ grep -n 'perTokMiB\|baseMiB\|-gt 15000' scripts/llm/start-gemma-server.ps1   # e
 
 ### Task P1.6 — `.DESCRIPTION` und `.PARAMETER` erweitern
 
-- [ ] Ergänze im Kopfblock vor `.PARAMETER LlamaDir` (Zeile 95) denselben
+- [x] Ergänze im Kopfblock vor `.PARAMETER LlamaDir` (Zeile 95) denselben
       `ZWEI-GPU-HOST (2026-09-04)`-Absatz wie in Task P1.3. Die bestehenden Blöcke
       (`WARUM FESTES -c 65536`, der Drafter-Sweep, die KV-Quantisierungstabelle, der
       Guardrail-Cache-Block) bleiben vollständig erhalten — keine Zeile wird gelöscht.
 
-- [ ] Ergänze einen `.PARAMETER GpuUuid`-Eintrag mit demselben Wortlaut wie in Task P1.3.
+- [x] Ergänze einen `.PARAMETER GpuUuid`-Eintrag mit demselben Wortlaut wie in Task P1.3.
 
 ### Task P1.7 — Toter `LlamaDir`-Default: dokumentieren, nicht umbiegen
 
@@ -324,7 +324,7 @@ Abbruch, sondern die Information, dass ein Repoint keine Lösung ist. Das Bescha
 Fork-Builds ist eine Provisionierungsaufgabe und gehört in den Partial, der ihn tatsächlich
 braucht (P4/P5), nicht in eine Skriptänderung.
 
-- [ ] Erweitere die Fehlermeldung in Zeile 168 um drei Zeilen, ohne die bestehende zu ändern:
+- [x] Erweitere die Fehlermeldung in Zeile 168 um drei Zeilen, ohne die bestehende zu ändern:
 
 ```powershell
   Write-Error "llama-server.exe not found under: $LlamaDir"
@@ -334,7 +334,7 @@ braucht (P4/P5), nicht in eine Skriptänderung.
   exit 1
 ```
 
-- [ ] Ergänze denselben Sachverhalt als Absatz im `WARUM DER FORK-BUILD`-Block (nach Zeile 38):
+- [x] Ergänze denselben Sachverhalt als Absatz im `WARUM DER FORK-BUILD`-Block (nach Zeile 38):
 
 ```
   STAND 2026-09-04: das Default-Verzeichnis llama-bonsai-cuda13.3 liegt auf
@@ -349,7 +349,7 @@ braucht (P4/P5), nicht in eine Skriptänderung.
 
 Jeder Befehl ist auf dem Windows-GPU-Host ausführbar und für sich prüfbar.
 
-- [ ] **Parser-Check** (Repo-Konvention `scripts/llm/CLAUDE.md`, Pflicht vor dem Commit).
+- [x] **Parser-Check** (Repo-Konvention `scripts/llm/CLAUDE.md`, Pflicht vor dem Commit).
       Erwartet für beide Dateien `OK` und Exit 0:
 
 ```bash
@@ -362,14 +362,14 @@ powershell.exe -NoProfile -Command '
   }'
 ```
 
-- [ ] **ASCII- und BOM-Guard** (bestehender Test, deckt beide Dateien über den
+- [x] **ASCII- und BOM-Guard** (bestehender Test, deckt beide Dateien über den
       `find scripts/llm -name '*.ps1'`-Sweep ab). Erwartet: alle Tests grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/fleet-operations/powershell-ascii-only.bats
 ```
 
-- [ ] **Struktur-Check der Kartenwahl.** Erwartet je Datei genau eine
+- [x] **Struktur-Check der Kartenwahl.** Erwartet je Datei genau eine
       `CUDA_VISIBLE_DEVICES`-Zuweisung und mindestens zwei Helper-Aufrufe; die harte
       Bedingung verhindert, dass ein leerer grep als Erfolg durchgeht:
 
@@ -382,11 +382,11 @@ for f in scripts/llm/start-gptoss-server.ps1 scripts/llm/start-gemma-server.ps1;
 done
 ```
 
-- [ ] **RED/GREEN am realen Ausdruck** (die beiden Befehle aus Task P1.1 erneut): der alte
+- [x] **RED/GREEN am realen Ausdruck** (die beiden Befehle aus Task P1.1 erneut): der alte
       Ausdruck wirft weiterhin, der neue liefert eine einzelne Zahl. Das belegt, dass der Fix
       die gemeldete Ursache trifft und nicht nur die Symptomzeile umschreibt.
 
-- [ ] **Kartengebundenheit der Messung.** Erwartet zwei verschiedene Zahlen in der
+- [x] **Kartengebundenheit der Messung.** Erwartet zwei verschiedene Zahlen in der
       Grössenordnung der jeweiligen Karte (ca. 15995 MiB bzw. ca. 7020 MiB am 2026-09-04) —
       belegt, dass `--id=` tatsächlich selektiert statt eine Gesamtzahl zu liefern:
 
@@ -396,7 +396,7 @@ for u in GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4 GPU-6b9ac882-e9e9-a364-4423-92
 done
 ```
 
-- [ ] **Startlauf.** Beide Skripte mit `-NoWait` aufrufen und prüfen, dass sie den VRAM-Block
+- [x] **Startlauf.** Beide Skripte mit `-NoWait` aufrufen und prüfen, dass sie den VRAM-Block
       passieren, also nicht mehr am Cast scheitern:
 
 ```bash

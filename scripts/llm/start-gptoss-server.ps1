@@ -42,17 +42,61 @@
 
   HEALTH-POLL-FENSTER: bis zu 240 Sekunden. Mit -NoWait kehrt das Skript sofort
   nach Start-Process zurueck und ueberspringt Health-Poll und Hinweistext.
+
+  ZWEI-GPU-HOST (2026-09-04): der Host traegt seit dem Einbau der zweiten Karte
+  eine RTX 3060 Ti (8192 MiB, PCIe 3.0 x4, treibt den Desktop) und eine
+  RTX 5070 Ti (16303 MiB, PCIe 4.0 x16). Alle Messwerte in loadouts.json und
+  docs/runbooks/freetoken-native.md beziehen sich auf die 5070 Ti; sie ist der
+  Default von -GpuUuid. Ausgewaehlt wird per UUID und NICHT per Index, weil CUDA
+  per Default nach "fastest first" sortiert und nvidia-smi nach PCI-Bus - die
+  Indizes duerfen auseinanderlaufen. Bis zu diesem Fix warf der VRAM-Check
+  "Cannot convert the System.Object[] value ... to type System.Int32", weil
+  nvidia-smi ohne --id zwei Zeilen liefert.
 .PARAMETER LlamaDir
   Verzeichnis mit llama-server.exe. Default: C:\Users\PatrickKorczewski\llama-b10090-13.3
+.PARAMETER GpuUuid
+  UUID der Zielkarte. Default: GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
+  (RTX 5070 Ti). Setzt CUDA_VISIBLE_DEVICES fuer den Serverprozess UND
+  restringiert die nvidia-smi-Messung - beide Werte stammen aus derselben
+  Variablen, damit der VRAM-Check die Karte misst, auf der der Server laeuft.
+  Karten auflisten: nvidia-smi --query-gpu=index,name,uuid --format=csv
 .EXAMPLE
   .\scripts\llm\start-gptoss-server.ps1
+.EXAMPLE
+  .\scripts\llm\start-gptoss-server.ps1 -GpuUuid GPU-6b9ac882-e9e9-a364-4423-92d838536b86
+  # Auf die 3060 Ti ausweichen. Nur 8192 MiB - der Warnschwellenwert 13500 MiB
+  # schlaegt dann berechtigt an; -Ctx entsprechend reduzieren.
 #>
 
 param(
   [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10090-13.3",
   [int]$Ctx = 40960,
+  # Zielkarte per UUID, nicht per Index: CUDA sortiert per Default nach
+  # "fastest first", nvidia-smi nach PCI-Bus - die Indizes duerfen
+  # auseinanderlaufen. Default ist die RTX 5070 Ti (16303 MiB, PCIe 4.0 x16,
+  # display_active=Disabled); die zweite Karte im Host ist eine RTX 3060 Ti
+  # (8192 MiB, x4-Link) und treibt den Desktop. Ueberschreibbar mit -GpuUuid.
+  [string]$GpuUuid = "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4",
   [switch]$NoWait
 )
+
+# Freier VRAM GENAU der Zielkarte. Ohne --id liefert nvidia-smi bei zwei Karten
+# zwei Zeilen; PowerShell bindet das als System.Object[], .Trim() existiert
+# darauf nicht und der [int]-Cast wirft "Cannot convert the System.Object[]
+# value of type System.Object[] to type System.Int32" (verifiziert 2026-09-04).
+# Eine unbekannte UUID liefert Exit 6 und "No devices were found" - das wird
+# fail-loud behandelt, nicht still zu 0 MiB degradiert.
+function Get-FreeVramMiB {
+  param([string]$Uuid)
+  $lines = @(& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits --id=$Uuid 2>&1)
+  if ($LASTEXITCODE -ne 0 -or $lines.Count -lt 1) {
+    Write-Error "nvidia-smi failed for GPU '$Uuid' (exit $LASTEXITCODE): $($lines -join ' ')"
+    Write-Output "  Vorhandene Karten auflisten:"
+    Write-Output "    nvidia-smi --query-gpu=index,name,uuid --format=csv"
+    exit 1
+  }
+  return [int]("$($lines[0])".Trim())
+}
 
 # Bei diesem Build liegt llama-server.exe flach im Root, nicht in \bin.
 $Exe = Join-Path $LlamaDir "llama-server.exe"
@@ -81,12 +125,17 @@ foreach ($c in $conns) {
   }
 }
 
-$freeMiB = [int](& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()
+# Der Serverprozess sieht ausschliesslich die Zielkarte; sie traegt dort Index 0,
+# weshalb -ngl 999 und die Default---main-gpu unveraendert korrekt bleiben.
+# Start-Process laeuft ohne -UseNewEnvironment und erbt diese Zuweisung.
+$env:CUDA_VISIBLE_DEVICES = $GpuUuid
+$freeMiB = Get-FreeVramMiB -Uuid $GpuUuid
 Write-Output "Starting gpt-oss-20b (MXFP4) on port 8097 ..."
 Write-Output "  Model:     $Model"
 Write-Output "  NGL:       $Ngl"
 Write-Output "  Context:   $Ctx  (KV q8_0 => ~$([math]::Round($Ctx * 24 / 1024 / 1024, 2)) GB)"
 Write-Output "  Free VRAM: $freeMiB MiB"
+Write-Output "  GPU:       $GpuUuid"
 if ($freeMiB -lt 13500) {
   Write-Output "  WARNUNG: unter 13500 MiB frei. Gewichte allein brauchen 12.11 GB."
   Write-Output "           Laeuft parallel ein Chat-Modell (Bonsai :8093 / Gemma :8091)? Dann"
@@ -137,7 +186,7 @@ if (-not $NoWait) {
 
   if ($healthy) {
     Write-Output "gpt-oss-20b: PID $($p.Id) healthy on :8097"
-    Write-Output "  VRAM danach: $((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()) MiB frei"
+    Write-Output "  VRAM danach: $(Get-FreeVramMiB -Uuid $GpuUuid) MiB frei"
     Write-Output ""
     Write-Output "Naechster Schritt - als Kandidat registrieren (priority 1, aendert das"
     Write-Output "Routing NICHT, Bonsai bleibt auf priority 0 scharf):"

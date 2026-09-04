@@ -47,16 +47,21 @@ setup() {
   grep -q 'docker context create' "$REPO_ROOT/docs/runbooks/remote-docker-context.md"
 }
 
-# 6. Vier tote Units sind geloescht
-@test "Die vier toten .service-Files existieren nicht" {
+# 6. Die tote k3d-Bridge-Unit ist geloescht
+@test "Die tote k3d-dev-ingress-bridge-Unit existiert nicht" {
   # Positiv-Anker: die Nachbarverzeichnisse existieren weiterhin
   [ -d "$REPO_ROOT/scripts/mcp-gateway" ]
-  for f in \
-    "scripts/llm-proxy/llm-proxy.service" \
-    "scripts/llm-proxy/llm-proxy-lan.service" \
-    "scripts/dev-host-units/k3d-dev-ingress-bridge@.service" \
-    "scripts/mcp-gateway/k3d-postgres-forward.service"; do
-    [ ! -f "$REPO_ROOT/$f" ]
+  [ ! -f "$REPO_ROOT/scripts/dev-host-units/k3d-dev-ingress-bridge@.service" ]
+}
+
+# 6b. Die drei nicht loeschbaren Units tragen die Begruendung, warum sie bleiben.
+# Der Plan sah ihre Loeschung vor; bestehende Guards (T002277, T002556, T002543)
+# und der SSOT-Spec local-llm-proxy.md setzen sie aber weiter voraus. Statt drei
+# Guards zu entkernen bleiben die Dateien stehen und sagen selbst, warum.
+@test "Die drei behaltenen Units nennen den Grund fuer ihr Bleiben" {
+  for f in     "scripts/llm-proxy/llm-proxy.service"     "scripts/llm-proxy/llm-proxy-lan.service"     "scripts/mcp-gateway/k3d-postgres-forward.service"; do
+    [ -f "$REPO_ROOT/$f" ]
+    grep -q 'NICHT geloescht (T900054)' "$REPO_ROOT/$f"
   done
 }
 

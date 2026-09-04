@@ -181,6 +181,23 @@ task freshness:check
 > verwerfen. Das in Teil 1 bewusst regenerierte `platform-descriptions.generated.json` ist davon
 > ausgenommen — dort ist der Diff inhaltlich.
 
+## Korrektur waehrend der Umsetzung (2026-09-04)
+
+Der Plan sah oben vor, **vier** tote Units zu loeschen. Drei davon liessen sich nicht loeschen,
+ohne bestehende Zusicherungen zu brechen — CI hat das gezeigt, nicht die Planung:
+
+| Unit | Was dagegen stand |
+|---|---|
+| `scripts/llm-proxy/llm-proxy.service` | `tests/spec/local-llm-proxy.bats` (T002277) und `tests/spec/local-llm-proxy/proxy-env-token-guard.bats` (T002556) setzen die Datei voraus; der SSOT-Spec `local-llm-proxy.md` fuehrt den Proxy weiter als Requirement — dessen Rueckbau ist hier ausdruecklich ausgeschlossen. |
+| `scripts/llm-proxy/llm-proxy-lan.service` | dito |
+| `scripts/mcp-gateway/k3d-postgres-forward.service` | `scripts/mcp-gateway/watchdog-check.sh:70-71` startet sie als Teil der Postgres-Kette neu, und `tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats` (T002543) prueft genau diese Kette. |
+
+Die Alternative waere gewesen, drei fremde Guards zu entkernen, um eine Datei loszuwerden — also
+genau die Drift zu erzeugen, die dieser Change beseitigt. Stattdessen bleiben die drei Dateien
+stehen und tragen eine `# Status:`-Kopfzeile, die sagt, dass sie tot sind **und warum sie
+trotzdem bleiben**. Geloescht wurde nur `scripts/dev-host-units/k3d-dev-ingress-bridge@.service`,
+auf die nichts zeigt. Der Guard dieses Changes prueft beides (Faelle 6 und 6b).
+
 ## Bewusst nicht in diesem Change
 
 Bei der Delta-Erstellung sind vier weitere Drift-Stellen aufgefallen. Sie bleiben draußen, weil

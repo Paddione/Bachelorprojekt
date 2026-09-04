@@ -1,0 +1,38 @@
+# Status: Toter Zustand auf diesem Host. WSL-Exit 2026-09-03: Docker Desktop deinstalliert,
+# kein Linux-Laufzeitkontext mehr; das `llm-proxy`-Deployment in `workspace-dev` steht auf 0/1.
+# ADR-007 sieht fuer den Proxy "retire statt portieren" vor.
+# NICHT geloescht (T900054): der SSOT-Spec `openspec/specs/local-llm-proxy.md` beschreibt den
+# Proxy weiter als Requirement, und die Guards `tests/spec/local-llm-proxy.bats` (T002277) und
+# `tests/spec/local-llm-proxy/proxy-env-token-guard.bats` (T002556) setzen diese Datei voraus.
+# Die Unit faellt gemeinsam mit dem Requirement — im eigenen infra-Change fuer den Rueckbau,
+# nicht hier.
+# scripts/llm-proxy/llm-proxy-lan.service
+# LAN-Brucke zum lokalen LLM-Proxy fuer den ausgelagerten Dev-Cluster.
+#
+# Kontext (Migration 2026-08-23, Dev-Cluster auf ws-1c8987): der Cluster erreicht
+# den Proxy nicht mehr ueber die alte Docker-Bridge-IP (172.23.0.1, siehe
+# k3d/sdlc-stack/llm-proxy-host.yaml), sondern ueber die Desktop-LAN-IP. Diese
+# Unit oeffnet Port 18236 ausschliesslich fuer Quellen aus dem WS-Subnetz
+# (socat range=) und forwarded auf den loopback-only llm-proxy (:18235).
+#
+# Installation (User-Unit, wie llm-proxy.service):
+#   ln -sf "$(pwd)/scripts/llm-proxy/llm-proxy-lan.service" \
+#     ~/.config/systemd/user/llm-proxy-lan.service
+#   systemctl --user daemon-reload && systemctl --user enable --now llm-proxy-lan.service
+#
+# Verbraucher im Cluster: Service llm-proxy-host (Endpoints -> <Desktop-IP>:18236).
+# Eine falsche/quergestellte Bridge zeigt sich als "Cockpit erreicht den Proxy
+# nicht", nicht als Manifest-Fehler.
+
+[Unit]
+Description=LAN-Bruecke zum lokalen LLM-Proxy (10.0.33.0/24 -> 127.0.0.1:18235)
+After=llm-proxy.service
+Wants=llm-proxy.service
+
+[Service]
+ExecStart=/usr/bin/socat TCP4-LISTEN:18236,fork,reuseaddr,range=10.0.33.0/24 TCP4:127.0.0.1:18235
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

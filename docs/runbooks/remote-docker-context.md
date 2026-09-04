@@ -41,6 +41,19 @@ sind nur unbedient.
 Diese Lücke ist bewusst **nicht** in diesem Change geschlossen — ein Windows-Scheduled-Task
 waere neues Laufzeitverhalten.
 
+### Nicht loeschbare tote Units
+
+Drei Units sind tot, bleiben aber im Repo, weil bestehende Zusicherungen sie voraussetzen
+(T900054). Ihre Kopfzeile nennt jeweils den Grund:
+
+| Unit | Was sie festhaelt |
+|---|---|
+| `scripts/llm-proxy/llm-proxy.service` / `-lan.service` | `tests/spec/local-llm-proxy.bats` (T002277), `proxy-env-token-guard.bats` (T002556) und der SSOT-Spec `local-llm-proxy.md` |
+| `scripts/mcp-gateway/k3d-postgres-forward.service` | `scripts/mcp-gateway/watchdog-check.sh:70-71` und `watchdog-tunnel-liveness.bats` (T002543) |
+
+Sie fallen mit ihrem jeweiligen Requirement — im llm-proxy-Rueckbau bzw. im Watchdog-Rueckbau,
+nicht einzeln.
+
 ### Linux-Units ohne Windows-Pendant
 
 Daneben stehen elf Units unter `scripts/`, die auf dem Windows-Host **gar nicht** mehr laufen

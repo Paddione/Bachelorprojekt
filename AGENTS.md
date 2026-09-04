@@ -4,9 +4,9 @@
 
 Auto-loaded by opencode from the repo root; referenced by `.opencode/prompts/orchestrator.md`.
 
-## Agent Routing (opencode local LLM)
+## Agent Routing
 
-opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/agents/`. The `.claude/agents/*.md` domain agents below are Claude Code only.
+SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/*.md`.
 
 | Agent | Model | Use case |
 |-------|-------|----------|
@@ -37,9 +37,7 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `alibaba-primary` | `alibaba-intl/qwen3.8-max` (primary) | PRIMARY via Alibaba-Plan [T004396] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
-Dispatch: `task` für local family + deepseek (Namen aus Tabelle, keine Wildcards, T002298). Lokale: `write=deny` → Orchestrator erzeugt Dateien; read-only via `delegate`. SSOT `.opencode/agent-models.jsonc` (Mirror `docs/agent-guide/registry/agents.yaml`, Sync `scripts/opencode-sync-agents.sh`, Guard `tests/spec/agent-roster.bats`).
-- FreeToken (:1919, Daemon :1900, Checkpoints unter `C:\Users\PatrickKorczewski\models`, Limit via Plugin — Details im `freetoken-setup`-Skill). GGUF-Rückfallebene via `llamacpp-local`; dichte Modelle passen nicht ins VRAM-Budget (T016419).
-
+Dispatch: `task` für local family + deepseek. Lokale: `write=deny` → Orchestrator erzeugt. SSOT `.opencode/agent-models.jsonc`.
 ## Core Commands
 
 ```bash
@@ -94,6 +92,10 @@ Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace
 - Proposals/specs under `openspec/`. Lifecycle: `/opsx:propose <slug>` → `/opsx:apply <slug>` → `/opsx:archive <slug>`.
 - Language: Purpose in German; Requirements/Scenarios in English (GIVEN/WHEN/THEN).
 - Delta files in `openspec/changes/<slug>/specs/` are named after the **parent SSOT slug**, not the change slug (`openspec.sh propose <change-slug> --ticket T… --target-spec <parent-slug>`). A genuinely new component needs `archive --create-new`.
+
+## Dev experience
+
+OpenSpec CLI completion: `openspec completion install`.
 
 ## Status Protocol (every reply, non-negotiable)
 

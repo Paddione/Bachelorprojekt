@@ -1074,6 +1074,7 @@ Last touches:
   - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
 In-flight:
+  - Sessions Wildcard Render Guard | T900029 | active | ADDED
   - Dead Process Reaping | T016251 | active | MODIFIED
   - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
   - Auth-Gating für session-* Subdomains | T016251 | active | ADDED

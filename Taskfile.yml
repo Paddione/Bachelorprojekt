@@ -3486,11 +3486,21 @@ tasks:
           # Delete immutable Jobs before re-apply so field changes don't cause
           # "field is immutable" errors (Jobs cannot be patched in-place).
           kubectl --context "$ENV_CONTEXT" -n "$_ws_ns" delete job pocket-id-client-seed --ignore-not-found=true
+          # T900029: Render-Guard (fail-closed) — leere Wildcard-Reste ("*.")
+          # und unsubstituierte ${VAR} in dnsNames/Host-Zeilen brechen den
+          # Deploy ab, BEVOR kubectl etwas appliziert. Temp-Datei statt Pipe,
+          # damit bei Guard-Fehler kein Teil-Manifest appliziert wird; das
+          # explizite "|| exit 1" gilt unabhaengig von den Shell-Flags des Tasks.
+          _guard_tmp="$(mktemp)"
           kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
             | envsubst "$ENVSUBST_VARS" \
             | sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' \
+            > "$_guard_tmp"
+          bash scripts/render-guard.sh "$_guard_tmp" || exit 1
+          cat "$_guard_tmp" \
             | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts -f -
+          rm -f "$_guard_tmp"
           # Tests retention CronJob — applied separately so its Role+RoleBinding
           # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
           # transformer would otherwise force them into the workspace ns,

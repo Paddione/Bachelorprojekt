@@ -4523,6 +4523,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900029": [
+    {
+      "slug": "fix-sessions-wildcard-render-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T900039": [
     {
       "slug": "2026-09-02-bge-mcp-windows-start",

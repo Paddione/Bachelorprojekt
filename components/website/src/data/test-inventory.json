@@ -4632,6 +4632,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/windows-entrypoint-T900084",
+    "file": "tests/spec/openspec-embedding/windows-entrypoint-T900084.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-pgvector",
     "file": "tests/spec/openspec-pgvector.bats",
     "category": "openspec-pgvector",

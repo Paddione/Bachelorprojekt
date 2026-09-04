@@ -205,19 +205,32 @@ bash scripts/llm/bench-engine-ab.sh --tag ab001
 cat scripts/llm/measurements/raw/ab001-summary.log   # traegt Commit-Stand selbst
 ```
 
-**Vorbedingung, die noch fehlt (gemessen 2026-09-04):** die gpt-oss-GGUF liegt
-auf diesem Host nicht auf der Platte. Das Proposal führt für Stufe 1 an, beide
-Artefakte lägen bereits vor („Download null") — für den llama.cpp-Arm trifft das
-**nicht** zu:
+**Vorbedingung: erfüllt. „Download null" für Stufe 1 stimmt** (nachgemessen
+2026-09-05, T900088). Beide Artefakte liegen auf diesem Host vor:
 
-```bash
-ls /c/Users/PatrickKorczewski/.lmstudio/models/ggml-org/gpt-oss-20b-GGUF/ 2>&1                                   # Verzeichnis fehlt
-find /c/Users/PatrickKorczewski/.cache/huggingface/hub/models--ggml-org--gpt-oss-20b-GGUF -name '*.gguf' | wc -l # 0
-ls /c/Users/PatrickKorczewski/models/gpt-oss-20b/*.ftw | wc -l                                                   # 2 (FreeToken-Format)
+```powershell
+# Modellablage dieses Hosts ist F:\models — NICHT das Benutzerprofil.
+Get-ChildItem -Path "F:\models" -Recurse -Filter '*gpt-oss*' |
+  ForEach-Object { "{0,-64} {1,7:N2} GB" -f $_.FullName, ($_.Length/1GB) }
+# F:\models\ggml-org\gpt-oss-20b-GGUF\gpt-oss-20b-MXFP4.gguf        11,28 GB  <- llama.cpp-Arm
+# F:\models\ggml-org\gpt-oss-20b-GGUF\eagle3-gpt-oss-20b-BF16.gguf   1,60 GB
+# F:\models\ggml-org\gpt-oss-20b-GGUF\eagle3-gpt-oss-20b-Q8_0.gguf   0,86 GB
 ```
 
-Vorhanden sind nur die FreeToken-Gewichte. Die Annahme „Download null" ist damit
-korrigiert: der llama.cpp-Arm braucht einen GGUF-Download, bevor Stufe 1 laufen kann.
+```bash
+ls "$USERPROFILE"/models/gpt-oss-20b/*.ftw | wc -l   # 2  <- FreeToken-Arm
+```
+
+**Warum hier vorher das Gegenteil stand** — die Fehlerquelle ist lehrreich genug,
+um sie festzuhalten: Die ursprüngliche Prüfung sah in `~/.lmstudio/models/`, im
+HF-Cache unter `~/.cache/huggingface/hub/` und in `~/models/*.ftw` nach, aber
+**nicht auf `F:`**. Alle drei Befunde waren einzeln korrekt, die Schlussfolgerung
+war es nicht: die Suche war unvollständig, nicht der Bestand. Wer den Bestand
+dieses Hosts prüft, muss `F:\models` einschließen.
+
+Damit bleibt die Engine-Isolation der **billigste erste Messschritt** — sie
+braucht keinen Download, während der Modellvergleich in Abschnitt 5 rund 26 GB
+zieht. Diese Reihenfolge ist der Grund, warum Abbruchpunkt 2 überhaupt Geld spart.
 
 **Abbruchpunkt 2, wenn der Lauf da ist:** verliert llama.cpp bereits bei
 identischen Gewichten in Decode-tok/s gegen FreeToken, ist der Modellvergleich
@@ -290,16 +303,13 @@ Empfehlung die Kombination aus (a) der Alias- und Prompt-Größen-Verteilung aus
 Abschnitt 3, die den realen Kontextbedarf an der Quelle misst, und (b) der
 Decode-Zahl aus Abschnitt 4, die Engine von Modell trennt.
 
-**Welche Gegenevidenz bereits vorliegt.** Drei Beobachtungen sprechen gegen einen
+**Welche Gegenevidenz bereits vorliegt.** Zwei Beobachtungen sprechen gegen einen
 schnellen Umstieg, unabhängig davon, wie die offenen Messungen ausfallen:
 
 1. **Der Ausgangsvergleich war nie kommensurabel** (Abschnitt 1) — der Eindruck
    „FreeToken ist schneller" ruht auf einem Modell-, nicht einem Engine-Vergleich.
    Er könnte sich in Abschnitt 4 in beide Richtungen auflösen.
-2. **Die Annahme „Download null" für Stufe 1 stimmt nicht** (Abschnitt 4) — der
-   llama.cpp-Arm braucht die gpt-oss-GGUF erst noch. Der billigste Teil des
-   Vergleichs ist teurer als geplant.
-3. **Der Fork-Build für den Gemma-Arm fehlt auf der Platte.**
+2. **Der Fork-Build für den Gemma-Arm fehlt auf der Platte.**
    `llama-bonsai-cuda13.3` existiert nicht (mehr); vorhanden ist nur
    `llama-b10090-13.3`. `--spec-type draft-mtp` gibt es im Upstream-Release
    nicht — ein Umbiegen von `-LlamaDir` wäre kein Fix, sondern ein stiller
@@ -322,3 +332,33 @@ llama.cpp aus, folgt ein eigener Change mit eigenen Spec-Deltas.
 | P5 | `scripts/llm/bench-ifstruct.sh` | Werkzeug fertig, Lauf offen |
 | P6 | dieser Bericht, `docs/runbooks/freetoken-native.md` | Ausgangslage + Korrekturen fertig |
 | P7 | `tests/spec/llm-local-dev/alias-telemetry.bats` | Guard grün (rot vor P2) |
+
+### Wie dieser Change tatsächlich verifiziert wurde (T900088)
+
+Der Plan hakte „Final Verification" mit `task test:changed` ab. **Dieser Befehl
+ist auf diesem Host nicht gelaufen** — GNU `parallel` fehlt, und der BATS-Runner
+bricht darauf ab:
+
+```
+bats-exec-suite: parallel: command not found
+Executed 0 instead of expected 769 tests
+```
+
+Gelaufen ist stattdessen der sequenzielle Ersatz über die betroffenen Specs:
+**42 von 43 grün.** Der eine Fehlschlag ist **vorbestehend auf `main`** und hat
+mit diesem Change nichts zu tun — `python3` bekommt im BATS-Kontext einen
+MSYS-Pfad, den es nicht auflösen kann:
+
+```bash
+tests/unit/lib/bats-core/bin/bats tests/spec/freetoken-local-backend/routing.bats
+# FileNotFoundError: [Errno 2] No such file or directory:
+#   '/c/Users/PatrickKorczewski/Bachelorprojekt/scripts/llm/loadouts.json'
+```
+
+Die Datei existiert; es ist ein Windows-Pfadproblem des Tests, kein
+Inhaltsfehler. Gegenprobe im sauberen Haupt-Checkout schlägt identisch fehl, und
+`git diff origin/main..HEAD -- scripts/llm/loadouts.json` ist leer.
+
+Der Archiv-Record unter `openspec/changes/archive/2026-09-04-freetoken-backend-evaluation/`
+bleibt unverändert: ein Archiv ist ein historischer Beleg und wird nicht
+rückwirkend geschönt. Diese Notiz hier ist die Korrektur.

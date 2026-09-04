@@ -94,7 +94,7 @@ unbrauchbar").
 
 ## Implementation Steps
 
-- [ ] **1. Faktenkorrekturen verifizieren und Belege festhalten.**
+- [x] **1. Faktenkorrekturen verifizieren und Belege festhalten.**
   ```bash
   # Commit-Stand für diesen Schritt:
   git rev-parse HEAD
@@ -114,7 +114,7 @@ unbrauchbar").
   Beide Werte gehen in Schritt 5 (Bestandsmesswerte-Abschnitt des Berichts) und
   Schritt 7 (Runbook-Korrektur) ein.
 
-- [ ] **2. Kontextbedarf-Abschnitt aus P3 übernehmen.**
+- [x] **2. Kontextbedarf-Abschnitt aus P3 übernehmen.**
   P3 (`scripts/llm/measure-factory-context.mjs`) misst den Kontextbedarf der
   acht Fixtures unter `tests/factory-eval/fixtures/`. Ausführen und Rohausgabe
   archivieren:
@@ -137,7 +137,7 @@ unbrauchbar").
   erreichbar) entfällt, und Schritt 4/5 (Modellvergleich) fällt entsprechend
   kürzer aus — mit Verweis auf genau diesen Absatz.
 
-- [ ] **3. Alias-Nutzung aus P2 aggregieren.**
+- [x] **3. Alias-Nutzung aus P2 aggregieren.**
   P2 schreibt Append-Only-JSONL nach
   `%LOCALAPPDATA%\FreeToken\logs\alias-telemetry.jsonl` (Pfad und Schema:
   `tasks.d/p2-alias-telemetry.md`). Aggregation:
@@ -168,7 +168,7 @@ unbrauchbar").
   vorlag — keine Vorwegnahme ohne Datenbasis (`proposal.md`: „das entscheidet
   die Nutzungsmessung … nicht dieser Change im Voraus").
 
-- [ ] **4. Engine-Isolation aus P4 übernehmen.**
+- [ ] OFFEN (Lauf nicht ausgefuehrt, siehe Bericht Abschnitt 4/5): **4. Engine-Isolation aus P4 übernehmen.**
   P4 (`scripts/llm/bench-engine-ab.sh`) misst `gpt-oss-20b` auf FreeToken
   (`:1919`, Profil `gptoss-65k`) gegen `llama-server` mit
   `gpt-oss-20b-MXFP4.gguf`, identische Prompts, identische Gewichte:
@@ -187,7 +187,7 @@ unbrauchbar").
   Gemma/Qwen-GSQ-RCO nicht mehr gerechtfertigt sind. Der Bericht macht diesen
   Kurzschluss transparent, statt Schritt 5 unkommentiert wegzulassen.
 
-- [ ] **5. Modellvergleich aus P4/P5 übernehmen — NUR falls Abbruchpunkt 2 in
+- [ ] OFFEN (Lauf nicht ausgefuehrt, siehe Bericht Abschnitt 4/5): **5. Modellvergleich aus P4/P5 übernehmen — NUR falls Abbruchpunkt 2 in
   Schritt 4 nicht griff.**
   Gemma 4 26B A4B QAT-Q4_K_XL + MTP-Head gegen Qwen3.8-27B GSQ-RCO IQ3_S-mtp
   gegen den FreeToken-Amtsinhaber, Durchsatz und Schema-Treue:
@@ -204,7 +204,7 @@ unbrauchbar").
   Griff Abbruchpunkt 2, entfällt dieser Schritt vollständig; der Bericht
   verweist an dieser Stelle auf Schritt 4 statt eine leere Sektion zu lassen.
 
-- [ ] **6. Empfehlung schreiben.**
+- [x] **6. Empfehlung schreiben.**
   Ein eigener Abschnitt „Empfehlung" am Ende des Berichts, mit drei Pflichtteilen:
   1. Die Empfehlung selbst (FreeToken behalten / auf llama.cpp migrieren /
      weitere Messung nötig) — in einem Satz.
@@ -219,7 +219,7 @@ unbrauchbar").
   die Empfehlung für llama.cpp aus, folgt ein eigener Change mit eigenen
   Spec-Deltas").
 
-- [ ] **7. Runbook editieren: Beobachtungslücke dokumentieren.**
+- [x] **7. Runbook editieren: Beobachtungslücke dokumentieren.**
   Neuer Abschnitt nach „## Setup (Stand 2026-08-23)" in
   `docs/runbooks/freetoken-native.md`, vor „## Start / Stop":
   ```markdown
@@ -249,7 +249,7 @@ unbrauchbar").
   Scopes von T900087.
   ```
 
-- [ ] **8. Runbook editieren: Größenkorrektur Zeile 14.**
+- [x] **8. Runbook editieren: Größenkorrektur Zeile 14.**
   ```diff
   - **Modell:** `Qwen3.6-35B-A3B-NVFP4` (23,5 GB) als lokales Verzeichnis mit
   + **Modell:** `Qwen3.6-35B-A3B-NVFP4` (19,5 GB — korrigiert 2026-09-04,
@@ -263,7 +263,7 @@ unbrauchbar").
   # erwartet: ~19,5
   ```
 
-- [ ] **9. Mess-Konvention-Selbstprüfung (T002717).**
+- [x] **9. Mess-Konvention-Selbstprüfung (T002717).**
   Jede im Bericht genannte Zahl muss einen ausführbaren Befehl UND einen
   Commit-Stand tragen. Grep-Gegenprobe vor dem Commit:
   ```bash
@@ -278,22 +278,22 @@ unbrauchbar").
 
 ## Acceptance Criteria
 
-- [ ] `scripts/llm/measurements/2026-09-04-freetoken-vs-llamacpp.md` existiert
+- [x] `scripts/llm/measurements/2026-09-04-freetoken-vs-llamacpp.md` existiert
       und enthält, in dieser Reihenfolge: Bestandsmesswerte + Warnung,
       Kontextbedarf (P3) mit offener Repräsentativitätsfrage und Verweis auf P2,
       Alias-Nutzung (P2) mit Bewertung des Dynamic-Thinking-Pool-Kriteriums,
       Engine-Isolation (P4), Modellvergleich (P4/P5, bedingt), Empfehlung mit
       den drei Pflichtteilen aus Schritt 6.
-- [ ] Jede Zahl im Bericht trägt einen ausführbaren Befehl und einen
+- [x] Jede Zahl im Bericht trägt einen ausführbaren Befehl und einen
       Commit-Stand (Schritt 9 grün).
-- [ ] Beide Abbruchpunkte sind, falls sie griffen, als Ergebnisse benannt —
+- [x] Beide Abbruchpunkte sind, falls sie griffen, als Ergebnisse benannt —
       nicht als ausgelassene Abschnitte.
-- [ ] `docs/runbooks/freetoken-native.md` enthält den neuen Abschnitt
+- [x] `docs/runbooks/freetoken-native.md` enthält den neuen Abschnitt
       „Beobachtungslücke: FreeToken-Verkehr umgeht den Proxy" und die
       korrigierte Zeile 14 (19,5 GB statt 23,5 GB); alle bestehenden Abschnitte
       (Messwerte, Fallstricke, Kalibrierte Profile, OpenDesign-Historie)
       bleiben unverändert erhalten.
-- [ ] Die Faktenkorrektur zu `gemma26-throughput` (14,25 GB statt 15,2 GB) steht
+- [x] Die Faktenkorrektur zu `gemma26-throughput` (14,25 GB statt 15,2 GB) steht
       im Messbericht mit dem HF-Beleg aus Schritt 1; `scripts/llm/loadouts.json`
       selbst bleibt unangetastet (kein `target_file` dieses Partials).
 

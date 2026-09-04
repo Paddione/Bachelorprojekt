@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1264,
+      "file_count": 1265,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1121,6 +1121,7 @@
         "tests/spec/website-interfaces.bats",
         "tests/spec/workspace-deploy-secrets-scope.bats",
         "tests/spec/workspace-deploy.bats",
+        "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
         "tests/spec/workstation-cluster-iso/assign-identity.bats",
         "tests/spec/workstation-cluster-iso/build-node-iso-guards.bats",
         "tests/spec/workstation-cluster-iso/k3s-join-guards.bats",

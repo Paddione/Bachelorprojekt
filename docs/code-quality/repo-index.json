@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1267,
+      "file_count": 1268,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -828,6 +828,7 @@
         "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
         "tests/spec/openspec-embedding/probe-diagnosis.bats",
         "tests/spec/openspec-embedding/slug-literal-match-T004829.bats",
+        "tests/spec/openspec-embedding/windows-entrypoint-T900084.bats",
         "tests/spec/openspec-pgvector.bats",
         "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
         "tests/spec/openspec-pgvector/context-retrieve-fallback.bats",

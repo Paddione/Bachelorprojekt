@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1270,
+      "file_count": 1271,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -713,6 +713,7 @@
         "tests/spec/kv-budget.bats",
         "tests/spec/lavish.bats",
         "tests/spec/llm-local-dev.bats",
+        "tests/spec/llm-local-dev/opencode-compaction.bats",
         "tests/spec/llm-pipeline.bats",
         "tests/spec/llm-pipeline/bge-thread-quota.bats",
         "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
@@ -4126,7 +4127,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 858,
+      "file_count": 859,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4380,6 +4381,7 @@
         "scripts/export-site-content.mjs",
         "scripts/factory-mcp-node/package.json",
         "scripts/factory-mcp-node/server.mjs",
+        "scripts/factory-task-packet.sh",
         "scripts/factory/AI-REVIEW-SETUP.md",
         "scripts/factory/README.md",
         "scripts/factory/_full_prep.sh",

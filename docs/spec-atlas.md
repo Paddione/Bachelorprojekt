@@ -255,6 +255,8 @@ Last touches:
 In-flight:
   - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | active | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | active | MODIFIED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112

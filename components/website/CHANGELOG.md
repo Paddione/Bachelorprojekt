@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.326.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.4...website-v1.326.0) (2026-09-04)
+
+
+### Features
+
+* **infra:** wg:reconcile and wg:drift for WireGuard mesh sync [T900083] ([#5489](https://github.com/Paddione/Bachelorprojekt/issues/5489)) ([eb95b48](https://github.com/Paddione/Bachelorprojekt/commit/eb95b482c59f22734e646480d7eb3ba8d608c553))
+
+
+### Bug Fixes
+
+* **scripts:** canonicalize worktree path in _worktree_has_active_process [T900025] ([#5476](https://github.com/Paddione/Bachelorprojekt/issues/5476)) ([a50e6f8](https://github.com/Paddione/Bachelorprojekt/commit/a50e6f8ed6e0e26d75bce840279ede6af142ed44))
+
 ## [1.325.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.3...website-v1.325.4) (2026-09-04)
 
 

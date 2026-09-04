@@ -19,7 +19,14 @@
 set -euo pipefail
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
-OPCODE_SERVER_PASSWORD="${OPENCODE_SERVER_PASSWORD:-change-me}"
+# Passwort-Vorrang: $OPENCODE_SERVER_PASSWORD (Env) > Secret-Datei (Mode 600,
+# angelegt via setup-autostart.sh) > Platzhalter change-me.
+_OPCODE_SECRET_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/.server_password"
+OPCODE_SERVER_PASSWORD="${OPENCODE_SERVER_PASSWORD:-}"
+if [[ -z "$OPCODE_SERVER_PASSWORD" && -f "$_OPCODE_SECRET_FILE" ]]; then
+  OPCODE_SERVER_PASSWORD="$(cat "$_OPCODE_SECRET_FILE")"
+fi
+OPCODE_SERVER_PASSWORD="${OPCODE_SERVER_PASSWORD:-change-me}"
 OPCODE_SERVER_USERNAME="${OPENCODE_SERVER_USERNAME:-opencode}"
 OPCODE_SERVE_PORT="${OPENCODE_SERVE_PORT:-4100}"
 OPCODE_SERVE_HOSTNAME="${OPENCODE_SERVE_HOSTNAME:-127.0.0.1}"

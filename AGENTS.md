@@ -77,9 +77,7 @@ bash scripts/agent-msg.sh read --unread          # Session messaging
 bash scripts/worktree-list.sh [--json] [--all]   # Welche Worktrees existieren gerade (--all: + factory-runner-Pod)
 ```
 
-Der Worktree-*Ort* ist Konvention (`.worktrees/<slug>`), die *aktuelle Liste* steht in der
-git-Registrierung: erfragen statt konfigurieren — `worktree-list.sh` ist die gemeinsame Abfrage
-für alle Harnesses.
+Worktree-*Ort* Konvention (`.worktrees/<slug>`), reale Liste via `git worktree list` — `worktree-list.sh` ist die gemeinsame Abfrage.
 
 ## Escalation (when subagent is stuck)
 
@@ -96,12 +94,6 @@ Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace
 - Proposals/specs under `openspec/`. Lifecycle: `/opsx:propose <slug>` → `/opsx:apply <slug>` → `/opsx:archive <slug>`.
 - Language: Purpose in German; Requirements/Scenarios in English (GIVEN/WHEN/THEN).
 - Delta files in `openspec/changes/<slug>/specs/` are named after the **parent SSOT slug**, not the change slug (`openspec.sh propose <change-slug> --ticket T… --target-spec <parent-slug>`). A genuinely new component needs `archive --create-new`.
-
-## Dev experience
-
-- After installing the OpenSpec CLI, run `openspec completion install` once to enable shell completions (bash/zsh/fish/powershell).
-
----
 
 ## Status Protocol (every reply, non-negotiable)
 

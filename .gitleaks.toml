@@ -35,6 +35,8 @@
     "(?i)openspec/changes/archive/.*",
     # Skill references with YAML examples containing fake private keys
     "(?i)\\.claude/skills/gitops-knowledge/references/.*",
+    # [T900077] SSOT-Flip: dieselben Dateien liegen jetzt unter .opencode/skills.
+    "(?i)\\.opencode/skills/gitops-knowledge/references/.*",
     # [T002554] Nicht versionierbare Pfade. Der pre-commit-Hook und der CI-Step
     # rufen gitleaks mit --no-git auf, scannen also den ARBEITSBAUM statt der
     # Versionierung — damit auch alles, was gitignored ist.

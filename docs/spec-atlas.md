@@ -109,6 +109,9 @@ In-flight:
   - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
   - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
+  - WireGuard mesh reconcile applies the registry to every node | T900083 | active | ADDED
+  - WireGuard mesh drift is detected as a gate | T900083 | active | ADDED
+  - Reconcile and drift share one renderer | T900083 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED

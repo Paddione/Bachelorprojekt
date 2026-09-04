@@ -4014,6 +4014,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/alias-telemetry",
+    "file": "tests/spec/llm-local-dev/alias-telemetry.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/opencode-compaction",
     "file": "tests/spec/llm-local-dev/opencode-compaction.bats",
     "category": "llm-local-dev",

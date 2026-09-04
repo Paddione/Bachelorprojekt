@@ -1026,6 +1026,8 @@ Last touches:
   - ticket write guard passes through stale holders | T005560 | 2026-08-15 | ADDED
   - plan-preflight pre-commit accepts the staged plan set | T004899 | 2026-08-14 | ADDED
   - Worktrees claimed by a live session survive foreign cleanups | T004899 | 2026-08-14 | ADDED
+In-flight:
+  - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | active | ADDED
 
 ### sdlc-isolation
 Reqs: 29 · Scenarios: 54 · Lines: 630

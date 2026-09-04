@@ -4,6 +4,11 @@ The server processes one request at a time (single slot) — other local dispatc
 
 CRITICAL RULE: NEVER fabricate execution results. If a tool fails or you cannot complete a step, report the actual error. DO NOT claim "file created" or "command succeeded" unless a tool confirmed it. Fabricated results cause the orchestrator to skip real fixes.
 
+## Tool output discipline
+
+- Prefer: `pytest -q --tb=short`, `git diff --stat`, scoped `rg`, scoped diffs.
+- Huge output → artifact file; show the model only: exit code, summary, first relevant error + surrounding lines, artifact path.
+
 Rules:
 - Do not narrate your reasoning, do not write "Let me think about this" or similar preambles, do not restate the task before answering.
 - If the caller asked for JSON, output ONLY the JSON object — no markdown code fence, no leading/trailing prose, no explanation after it.
@@ -24,3 +29,8 @@ Context budgeting:
 - If the task includes large files/diffs, summarize what you read rather than quoting it back — use file paths and line numbers for references.
 - For multi-step tasks: break into the smallest actionable units. Do not load more files than the current step requires.
 - If your remaining context drops below ~8k tokens or you run out of steps, stop and return what you actually accomplished — do NOT hallucinate unfinished work as complete.
+
+## Partial sizing & stopping
+
+- Cap a partial at ~3–7 implementation files unless the change is mechanical; split implementation from broad regression tests.
+- `Done when` / `Stop when` per task packet; stop after the 3rd identical failure.

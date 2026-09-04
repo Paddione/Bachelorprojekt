@@ -47,21 +47,17 @@ Slot count for the factory: **6** (`stage-plan --partials 6`).
 
 Detail per partial (test steps live in p6 by design):
 
-- [ ] **p1** — insert V2 block (`auto:true`, `keep.tokens:16000`,
-      `buffer:96000`) after `"model"`, with the threshold comment
-      `200000 − max(8192, 96000) = 104000`. No V1 keys.
-- [ ] **p2** — per-agent `permission` per role (reviewer `edit: deny`);
-      fallback + `risks[]` entry if V2 per-agent permission is unsupported.
-      Verify with sync script + `tests/spec/agent-roster.bats`.
-- [ ] **p3** — operating target 60–100k / 12–20k tail, fresh sessions,
-      research≠implement, Done/Stop, Rejected approaches, phase-transition
-      compaction, poisoning watch.
-- [ ] **p4** — condense `AGENTS.md` 211 → ≤160 lines in place
-      (no moves to other files).
-- [ ] **p5** — executable packet skeleton generator (Goal/Files/Expected/
-      Acceptance/Done/Stop/Rejected/Continuation), exit 2 on bad args.
-- [ ] **p6** — BATS guards for all six spec scenarios; carries the STRUCT2
-      failing step.
+- [x] **p1** — V2 block inserted after `"model"` with threshold comment
+      `200000 − max(8192, 96000) = 104000`. No V1 keys. (implemented, verified)
+- [x] **p2** — reviewer agent (`edit:deny/write:deny/bash:deny/task:deny`)
+      + `factory_roles` mirror; sync exit 0, parses OK. (implemented by
+      orchestrator after misplaced dev-1 run; see ticket comment)
+- [x] **p3** — operating target, fresh sessions, Done/Stop, Rejected,
+      phase-transition compaction, poisoning watch. (76/36 lines, verified)
+- [x] **p4** — `AGENTS.md` condensed to 154 lines (≤160). (verified)
+- [x] **p5** — `scripts/factory-task-packet.sh` executable, smoke green.
+      (verified)
+- [x] **p6** — BATS guards; RED 9/12 → GREEN 12/12. (verified)
 
 ## Verify (RED → GREEN)
 

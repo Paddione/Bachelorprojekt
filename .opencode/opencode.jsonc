@@ -9,6 +9,15 @@
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
   "model": "freetoken-local/active",
+  // ── V2 Compaction (Requirement: V2 Compaction Targets 100K Active Context) ──
+  // Factory model: Qwen3.6-35B-A3B, context=200000, output=8192.
+  // V2 threshold = 200000 − max(8192, 96000) = 104000
+  // → compaction at ~100k active context, keep.tokens: 16000 holds the tail.
+  "compaction": {
+    "auto": true,
+    "keep": { "tokens": 16000 },
+    "buffer": 96000
+  },
   // ── Third-party opencode plugins (installed via npm into .opencode/) ──────
   // Loaded from npm through the `plugin` array. Packages are declared in
   // .opencode/package.json. Composio + Firecrawl are MCP servers (see `mcp`

@@ -471,6 +471,18 @@
       "steps": 100,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
+    // T900074-p2: factory reviewer role — read-only review; the orchestrator
+    // applies review edits. Placed after qwen-cloud, before freetoken-primary.
+    "reviewer": {
+      "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
+      "mode": "subagent",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#FBBF24",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny", "task": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "todowrite": "allow", "question": "allow", "skill": "allow", "lsp": "allow" }
+    },
     // T014105: aus der Global-Config (T014028) nachgetragen — dedizierter
     // Tab-waehlbarer Primary auf dem FreeToken-Alias, damit der lokale Stack
     // auch ohne Familien-Namen direkt waehlbar bleibt.

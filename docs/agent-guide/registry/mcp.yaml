@@ -269,29 +269,34 @@ clients:
         command: [node, scripts/mcp-task-runner/server.mjs, --otel-endpoint, localhost:4317, --taskfile, Taskfile.yml]
         enabled: true
 
-  # codebase-memory-mcp: plattformneutral ueber PATH aufloesen. Der offizielle
-  # Installer stellt das Binary fuer Windows und Linux unter diesem Namen bereit.
+  # codebase-memory-mcp: als Node-Prozess ueber npx (npm-Wrapper, verifiziert
+  # 2026-09-04: 0.10.8 --help Exit 0, Default ist stdio-Server, OpenCode in der
+  # Client-Liste). Version gepinnt (Reproduzierbarkeit vor @latest-Drift, wie
+  # der superpowers-SHA-Pin). T002690: command UND args ueber alle
+  # Harness-Eintraege + Top-Level identisch — Ausnahme llamacpp: bleibt beim
+  # nativen Binary, weil npx den llama-Modellstart verzoegern wuerde.
   codebase-memory-mcp:
     transport: stdio
     browser_endpoint: http://127.0.0.1:18235/mcp/codebase-memory-mcp
-    command: codebase-memory-mcp
+    command: npx
+    args:
+      - -y
+      - codebase-memory-mcp@0.10.8
     bridge:
       url: http://127.0.0.1:18235/mcp/codebase-memory-mcp
       bind: 127.0.0.1:18235
       auth: null
     harness:
       claude_code:
-        command: codebase-memory-mcp
+        command: npx
+        args: [-y, codebase-memory-mcp@0.10.8]
       agy:
-        command: codebase-memory-mcp
+        command: npx
+        args: [-y, codebase-memory-mcp@0.10.8]
       opencode:
-        # Kommando plattformneutral ueber PATH (offizieller Installer liefert
-        # das Binary fuer Windows und Linux). Auf diesem Windows-Host ist es
-        # aber noch nicht installiert — disabled, bis `codebase-memory-mcp`
-        # auf dem PATH liegt.
         type: local
-        command: [codebase-memory-mcp]
-        enabled: false
+        command: [npx, -y, codebase-memory-mcp@0.10.8]
+        enabled: true
       llamacpp:
         command: codebase-memory-mcp
         cwd: /home/patrick/Bachelorprojekt

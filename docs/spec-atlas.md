@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2301 · Scenarios: 5107
+Specs: 145 · Requirements: 2302 · Scenarios: 5111
 
 ## factory-pipeline
 
@@ -684,16 +684,15 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 24 · Scenarios: 52 · Lines: 587
+Reqs: 25 · Scenarios: 56 · Lines: 641
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T900051 | 2026-09-03 | MODIFIED
   - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
   - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
   - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
-  - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
 In-flight:
-  - Alias Usage Telemetry for the FreeToken Plugin | T900087 | active | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
   - V2 Compaction Targets 100K Active Context | T900074 | active | ADDED

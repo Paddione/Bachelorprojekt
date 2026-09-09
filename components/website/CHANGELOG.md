@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.328.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.328.0...website-v1.328.1) (2026-09-09)
+
+
+### Bug Fixes
+
+* pr auto title sed T900095 ([#5509](https://github.com/Paddione/Bachelorprojekt/issues/5509)) ([8b15c87](https://github.com/Paddione/Bachelorprojekt/commit/8b15c87e4b0720b393615962bcc7c97f3970e6ac))
+
 ## [1.328.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.327.0...website-v1.328.0) (2026-09-04)
 
 

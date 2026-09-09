@@ -2070,6 +2070,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/partial-claims-T900024",
+    "file": "tests/spec/active-sessions-hub/partial-claims-T900024.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/release-foreign-lock-guard",
     "file": "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
     "category": "active-sessions-hub",
@@ -2258,6 +2264,12 @@
   {
     "id": "agent-skills/guard-semantics-konvention",
     "file": "tests/spec/agent-skills/guard-semantics-konvention.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/harness-guard-registration-T900024",
+    "file": "tests/spec/agent-skills/harness-guard-registration-T900024.bats",
     "category": "agent-skills",
     "kind": "shell"
   },

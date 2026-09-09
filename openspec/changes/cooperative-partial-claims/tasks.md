@@ -147,7 +147,7 @@ tests/unit/lib/bats-core/bin/bats \
   tests/spec/agent-skills/harness-guard-registration-T900024.bats
 ```
 
-- [ ] **6 — Git-Workflow-SSOT entdoppeln.**
+- [x] **6 — Git-Workflow-SSOT entdoppeln.**
       `.claude/skills/git-workflow/SKILL.md` (321 Zeilen) und
       `.opencode/skills/opencode-git-workflow/SKILL.md` (319 Zeilen) sind unabhaengige
       Kopien mit inhaltlicher Drift; die Claude-Code-Kopie zitiert `T069/T070`, wo die
@@ -167,7 +167,7 @@ bash tests/spec/../runner.sh local SYMLINK-GUARD 2>/dev/null || \
   tests/unit/lib/bats-core/bin/bats tests/spec/hygiene/
 ```
 
-- [ ] **7 — Reihenfolge-Audit je Harness.**
+- [x] **7 — Reihenfolge-Audit je Harness.**
       Fuer Claude Code, Codex, opencode und agy die tatsaechliche Schrittfolge gegen die
       SSOT pruefen: pull-first, Commit-Konventionen, freshness-Guard,
       Commit-Verifikation, PR-Scope-Preflight, CI-Fix-Loop, Auto-Merge,

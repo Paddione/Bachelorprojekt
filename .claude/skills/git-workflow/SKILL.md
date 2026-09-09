@@ -32,7 +32,7 @@ else
 fi
 ```
 
-> **Stash-Pop positive Verifikation (T069/T070).** Nach dem Pop den eigenen
+> **Stash-Pop positive Verifikation (T003069/T003070).** Nach dem Pop den eigenen
 > Eintrag (per Nachricht identifiziert) in `git stash list` suchen — er MUSS
 > verschwunden sein:
 >
@@ -48,7 +48,7 @@ fi
 > Datei mit `git checkout "stash@{0}" -- <pfad>` zurückholen. Der Eintrag bleibt
 > dabei als Sicherungsnetz liegen.
 
-> **Stash-Disziplin (T070).** `refs/stash` liegt im gemeinsamen Git-Verzeichnis —
+> **Stash-Disziplin (T003070).** `refs/stash` liegt im gemeinsamen Git-Verzeichnis —
 > der Stash-Stack ist über ALLE Worktrees geteilt, und die Indizes `stash@{0}`
 > verschieben sich durch fremde pushes. Bei Parallelarbeit daher statt eines
 > Stash einen **Wegwerf-Commit auf dem eigenen Branch** verwenden
@@ -289,6 +289,25 @@ if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" 2>/dev/null; then
   git branch -D "$BRANCH_NAME"
 fi
 ```
+
+---
+
+## Worktree-Erstellung — zwei Wege, nur einer ist git-crypt-sicher
+
+1. **`scripts/worktree-create.sh` (empfohlen):** legt den Worktree mit Kopie des
+   git-crypt-Keys an und neutralisiert die smudge/clean/required-Filter. Immer
+   verwenden, wenn der Branch `environments/.secrets/**` beruehrt.
+
+   ```bash
+   bash scripts/worktree-create.sh <branch> .worktrees/<slug>
+   ```
+
+2. **opencode-Plugin `worktree_create` (`worktree.ts`):** ruft `git worktree add`
+   mit Checkout auf, **ohne** die git-crypt-Filter zu neutralisieren. Auf diesem
+   Repo scheitert die Checkout-Phase dann auf verschluesselten Pfaden (exit 128)
+   oder hinterlaesst `environments/.secrets/**` mit einem veralteten
+   smudge-Filter unbrauchbar. **Bekannte Einschraenkung:** nur fuer Branches
+   sicher, die keine git-crypt-Pfade beruehren.
 
 ---
 

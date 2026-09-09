@@ -1,6 +1,7 @@
 {
   "version": 1,
   "modelRoots": [
+    "F:/models",
     "~/models/gguf",
     "~/.lmstudio/models"
   ],
@@ -10,18 +11,18 @@
   "loadouts": [
     {
       "slug": "qwen38-220k",
-      "label": "Qwen 3.8 27B IQ3_XXS · 112K Text + MTP",
-      "model": "qwen38/Qwen3.8-27B-UD-IQ3_XXS.gguf",
+      "label": "Qwen 3.8 27B UD-IQ4_XS - Dual-GPU-Split, ~205k Kontext (llama.cpp)",
+      "model": "models--unsloth--Qwen3.8-27B-GGUF/snapshots/4ca720788d1e01f1bff70c033e0d0028fd02e502/Qwen3.8-27B-UD-IQ4_XS.gguf",
       "port": 8094,
-      "enabled": false,
+      "enabled": true,
       "fit": {
-        "enabled": false,
-        "targetMarginMib": 256,
-        "minCtx": 114688
+        "enabled": true,
+        "targetMarginMib": "256,1500",
+        "minCtx": 205056
       },
       "args": {
-        "ctx": 114688,
-        "ngl": 999,
+        "ctx": null,
+        "ngl": null,
         "parallel": 1,
         "cacheTypeK": "q4_0",
         "cacheTypeV": "q4_0",
@@ -36,7 +37,7 @@
         "topK": 20
       },
       "speculative": {
-        "specType": "draft-mtp,ngram-mod",
+        "specType": "ngram-mod",
         "draftModelPath": null,
         "draftNgl": null
       },
@@ -50,10 +51,16 @@
         "-ub",
         "512",
         "--cache-ram",
-        "12288"
+        "12288",
+        "--cache-prompt",
+        "--cache-reuse",
+        "256"
       ],
-      "notes": "Gemessen: 114.688 ctx (Slug haelt '220k' nur noch als Identitaet — er wird von AGENTS.md, .opencode/*, tests/spec/local-llm-proxy/*.bats und scripts/migrations/2026-08-22-llm-proxy-qwen38-backend.sql referenziert). Text-only loadout fuer das Unsloth Qwen3.8-27B UD-IQ3_XXS GGUF, ein Slot, alle Layer auf GPU, q4_0 KV, Flash Attention, ngram-mod-Spekulation, kein MTP-Drafter, bewusst kein mmproj/Vision-Head. Natives Kontextfenster 262144.\n\nMESSUNG 2026-08-22 (RTX 5070 Ti 16 GiB, Build 0adcc3bb5, vier verschiedene ~34k-Prompts):\n```bash\n# Server je Variante frisch starten, dann vier unterschiedliche 34k-Prompts kalt schicken\n~/opt/llama-current/bin/llama-server -m ~/models/gguf/qwen38/Qwen3.8-27B-UD-IQ3_XXS.gguf \\\n  --port 8194 -fit off -c <CTX> -ngl 999 -np <NP> -ctk q4_0 -ctv q4_0 -lm mmap -fa on \\\n  --jinja --metrics -rea auto --spec-type ngram-mod --no-context-shift -b 2048 -ub <UB> --cache-ram <CRAM>\ncurl -s localhost:8194/v1/chat/completions -d @prompt.json | jq .timings\n```\n| Variante | frei VRAM | Prefill | Decode | Agentenwechsel |\n| -c 220000 -ub 512 --cache-ram 0 --ctx-checkpoints 0 (ALT) | 636 MiB | 1341 -> 605 -> 257 -> 254 t/s | 36 -> 11 t/s | 137 s |\n| -c 220000 -ub 512 --cache-ram 12288 | 636 MiB | 1176-1206 t/s | 32-37 t/s | 2,5 s |\n| -c 220000 -ub 1024 --cache-ram 12288 | 484 MiB | 264-273 t/s | 8-9 t/s | - |\n| -c 196608 -ub 512 --cache-ram 12288 | 803 MiB | 1437-1463 t/s | 39-43 t/s | - |\n| -c 163840 -ub 512 --cache-ram 12288 (ohne MTP) | 1798 MiB | 1430-1456 t/s | 38-43 t/s | 1,6-2,4 s |\n| -c 131072 -ub 512 --cache-ram 12288 | 2468 MiB | 1428-1452 t/s | 30-43 t/s | 0,5 s |\n\nWARUM --cache-ram 12288 statt 0: qwen35 ist laut llm_arch_is_hybrid() eine Hybrid-Architektur (SSM-/Linear-Attention-Layer neben Full-Attention). Deren Zustand laesst sich nicht teilweise zurueckrollen; llama.cpp faellt ohne Kontext-Checkpoint auf 'forcing full prompt re-processing due to lack of cache data (likely due to SWA or hybrid/recurrent memory)' zurueck. '--cache-ram 0' schaltete zusaetzlich '--cache-idle-slots' ab (Startwarnung '--cache-idle-slots requires --cache-ram, disabling'), also genau den Mechanismus, der den Slot-Zustand eines pausierten Agenten in den Host-RAM rettet. Folge im Factory-Betrieb: JEDER Wechsel zwischen zwei Agenten hat den vollen Prompt neu prefillt. Drei rotierende Agenten kosten jetzt 1,6-2,4 s statt >130 s. '--ctx-checkpoints 0' ist ersatzlos entfallen (Default 32). RAM-Kosten: ~1 GiB je 34k-Zustand, Server-RSS 4,1 GiB bei drei gecachten Agenten.\n\nWARUM 163840 statt 220000: bei 220000 bleiben nur 636 MiB VRAM frei, und die Konfiguration kippt bereits bei kleinen Aenderungen ueber die Kante — '-ub 1024' allein drueckt den Prefill von 1200 auf 264 t/s (identische Flags bei 131072: 1462 t/s). 163840 laesst 1,8 GiB Luft und liefert reproduzierbar ~1440 t/s ueber vier verschiedene kalte Prompts. Der Verlust von 56k Kontext kostet nichts, solange Agenten unter 160k bleiben; wer mehr braucht, zahlt den Faktor 5.\n\nWARUM np=1 OHNE -kvu: '-np 2 -kvu' gibt zwar beiden Slots das volle Fenster (n_ctx_seq = n_ctx, src/llama-context.cpp:291) und kostet kein zusaetzliches VRAM, bricht auf dieser Hybrid-Architektur aber den Prefill auf 207-237 t/s ein. '-np 2' OHNE -kvu bleibt schnell (1073-1318 t/s), halbiert aber das Fenster je Slot auf 81920 — die Alternative, falls echte Parallelitaet wichtiger wird als Kontextlaenge. Mit np=1 plus Host-Prompt-Cache wechseln sequenzielle Agenten ohnehin in ~2 s.\n\nMTP AKTIV seit 2026-08-22 (Operator-Entscheidung; ctx deshalb 114688 statt 163840): Das GGUF traegt den Multi-Token-Prediction-Head (`qwen35.nextn_predict_layers: 1`, Tensoren `blk.64.nextn.*` — blk.0..63 sind die echten Layer), und der Build kennt `--spec-type draft-mtp`. Kontrollmessung bei IDENTISCHEM -c 98304, nur der spec-type unterschiedlich:\n| Prompt | ngram-mod | draft-mtp |\n| kurzer Prosa-Prompt, 400 Token Ausgabe | 54,9 t/s | 66,3 t/s |\n| Code-Generierung, 400 Token | 53,9 t/s | 66,6 t/s |\n| 34k Kontext + 400 Token | 45,5 t/s | 58,7 t/s |\nMTP kostet ~1235 MiB VRAM, also rund 49k Kontext: bei -c 163840 startet der Server zwar (15851 MiB belegt), stirbt aber beim ersten echten Request mit 'CUDA error ... cuMemSetAccess' in ggml-cuda.cu:648. `-ctkd q4_0 -ctvd q4_0` hilft NICHT (15946 MiB). Groesstes stabiles Fenster mit MTP: -c 114688 (14875 MiB beim Laden, 15164 MiB unter Last, ueber vier kalte Prompts stabil bei 1334-1362 t/s Prefill). Der Host-Prompt-Cache funktioniert mit MTP weiter (Rotation dreier Agenten in 2,6-6,5 s). '--spec-type draft-mtp,ngram-mod' kostet kein zusaetzliches VRAM und liegt beim Decode gleichauf oder minimal darueber (64-74 t/s) — wer MTP nimmt, nimmt die Kombination.\nABWAEGUNG: MTP kauft 21-45 % Decode fuer 49k Kontext und 8 % Prefill. Lohnt sich, sobald kein lokaler Agent ueber 112k Kontext braucht; alle lokalen Agenten teilen dieses eine Loadout, die Entscheidung trifft also alle.\n\nSTILLGELEGT seit T014028 (2026-08-23): verhungert neben FreeToken-native (~10 tok/s gemessen); Familien-Subagenten sind auf freetoken-local umgehaengt.",
-      "exclusiveGroup": "chat-gpu"
+      "notes": "Text-only Loadout fuer Unsloth Qwen3.8-27B UD-IQ4_XS (13,27 GB) auf F:/models, verteilt ueber BEIDE GPUs (RTX 5070 Ti 16 GB + RTX 3060 Ti 8 GB). q4_0-KV fuer K und V, Flash Attention, ngram-mod-Spekulation, ein Slot.\n\nDER SPLIT IST EIN TAUSCH, KEIN GEWINN. Gemessen 2026-09-09 (Build b10881, je drei warme Laeufe a 300 Token, identischer Prompt):\n\n| Konfiguration | -fitt | n_ctx_slot | Decode | frei 3060 Ti |\n|---|---|---|---|---|\n| beide GPUs | 256 | 242.688 | ~22 t/s | 168 MiB |\n| beide GPUs | 1024 | 196.352 | - | 197 MiB |\n| beide GPUs (gewaehlt) | 256,1500 | 205.056 | - | 683 MiB |\n| nur 5070 Ti | 256 | 74.496 | ~50 t/s | - |\n\nDreifacher Kontext kostet mehr als die Haelfte des Durchsatzes: bei Layer-Split laeuft jeder Token durch beide Karten, und die 3060 Ti ist die langsamere. Das Modell passt mit 13,27 GB allein auf die 5070 Ti - der Split kauft ausschliesslich KV-Raum.\n\nNachstellbar:\n```powershell\npowershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/start-qwen-server.ps1\npowershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/start-qwen-server.ps1 -SingleGpu\n# Kontext aus dem Log: \"load_model: initializing, n_slots = 1, n_ctx_slot = N\"\n# Durchsatz: POST /v1/chat/completions, Feld .timings.predicted_per_second\n```\n\nWARUM targetMarginMib PRO GERAET (\"256,1500\") UND NICHT DER GROESSTE KONTEXT: mit einem einzelnen Wert blieben der 3060 Ti nur 168 MiB - auf der Karte haengt der Desktop. Ein Browser-Tab oder ein zweites CUDA-Programm kippt das. Die Reserve kostet 37k Kontext und vervierfacht die Reserve auf der Anzeige-Karte.\n\nGERAETE-REIHENFOLGE: env.CUDA_VISIBLE_DEVICES adressiert per UUID, nicht per Index - nvidia-smi zeigt die 3060 Ti als Index 0, llama.cpp meldet die 5070 Ti als CUDA0 (Sortierung nach Leistung). Die Reihenfolge in CUDA_VISIBLE_DEVICES bestimmt, worauf sich \"256,1500\" bezieht: erst 5070 Ti, dann 3060 Ti.\n\nVRAM IST EXKLUSIV: FreeToken (:1919) belegt ~15,7 von 16 GB und kann NICHT gleichzeitig mit diesem Loadout laden. Die beiden Backends sind Alternativen, kein Parallelbetrieb - siehe docs/runbooks/freetoken-native.md.\n\nSTILLLEGUNG AUFGEHOBEN (2026-09-09, T900094): seit T014028 stand dieses Loadout auf enabled:false, weil es neben FreeToken-native verhungerte (~10 tok/s). Mit dem Dual-GPU-Split und IQ4_XS ist es wieder tragfaehig; der Betrieb bleibt exklusiv zu FreeToken.",
+      "exclusiveGroup": "chat-gpu",
+      "env": {
+        "CUDA_VISIBLE_DEVICES": "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4,GPU-6b9ac882-e9e9-a364-4423-92d838536b86"
+      }
     },
     {
       "slug": "gptoss-context",

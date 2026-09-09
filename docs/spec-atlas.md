@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2305 · Scenarios: 5118
+Specs: 145 · Requirements: 2307 · Scenarios: 5120
 
 ## factory-pipeline
 
@@ -682,7 +682,7 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 25 · Scenarios: 56 · Lines: 641
+Reqs: 27 · Scenarios: 58 · Lines: 692
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED

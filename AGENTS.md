@@ -16,6 +16,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `gemma` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
 | `gemma12` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
 | `qwen38` | `freetoken-local/active` (FreeToken :1919) | Local work, text-only; sequenziell |
+| `qwen38-primary` | `llamacpp-local/qwen38-220k` (205.056 ctx gemessen, Dual-GPU-Split, primary, write) | Lokaler Primary (UD-IQ4_XS, llama.cpp); autonomer Ticket-Worker |
 | `qwen-cloud` | `alibaba-intl/qwen3.8-max` (131k ctx, subagent, write) | Cloud-Eskalation Stufe 1 |
 | `freetoken-primary` | `freetoken-local/active` (primary) | Tab-selectable lokaler Primary, text-only [T014105] |
 | `freetoken-thinking` | `freetoken-local/active-thinking` (all) | 200k-Reasoning, Thinking request-dynamisch |
@@ -155,6 +156,5 @@ Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-pla
 
 - `CLAUDE.md` — authoritative comprehensive reference (task lists, topology, all footguns)
 - `components/website/CLAUDE.md` — Astro/Svelte quick-start
-- `docs/agent-guide/README.md` — agent operating guide
-- `.agents/skills/OVERVIEW.md` — skill layering contract
+- `docs/agent-guide/README.md` — agent operating guide; `.agents/skills/OVERVIEW.md` — skill layering contract
 </details>

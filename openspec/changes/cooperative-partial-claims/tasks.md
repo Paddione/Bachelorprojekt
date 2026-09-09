@@ -27,30 +27,38 @@ tests/spec/agent-skills/harness-guard-registration-T900024.bats       (neu)
 openspec/changes/cooperative-partial-claims/                          (Proposal + Delta-Spec)
 ```
 
-## S1-Budget (gemessen, Stand 8e54c8695)
+## S1-Budget (gemessen nach der Umsetzung, Stand dieses Branches)
 
-Ermittelt mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh _ext_limit <datei>`
-und `wc -l`:
+Ermittelt mit:
+
+```bash
+for f in scripts/agent-lock.sh scripts/plan-lint.sh scripts/hooks/worktree-write-guard.sh; do
+  printf '%s  LOC=%s  Budget=%s\n' "$f" "$(wc -l < "$f")" "$(bash scripts/plan-lint.sh residual_budget "$f")"
+done
+```
 
 | Datei | LOC | Budget |
 |---|---|---|
-| `scripts/agent-lock.sh` | 806 | -6 |
-| `scripts/hooks/worktree-write-guard.sh` | 229 | 571 |
+| `scripts/agent-lock.sh` | 626 | 174 |
+| `scripts/plan-lint.sh` | 716 | 84 |
+| `scripts/hooks/worktree-write-guard.sh` | 329 | 471 |
 
-`scripts/agent-lock.sh` liegt bereits **ueber** dem S1-Limit von 800 — der Windows-Fix
-`d60c3704` hat es auf `main` gerissen. Die Luft schafft T900023 (Aufteilen: Reap-Block
-nach `scripts/agent-lock-reap.sh`); dieser Plan setzt sie voraus und schafft sie nicht
-erneut. Steht T900023 beim Start noch nicht auf `main`, ist Task 2 blockiert — ein
-zweiter Extraktionsschritt hier wuerde mit jenem kollidieren.
+Alle drei liegen im Plus. Regel B1a des plan-lint verlangt, dass eine im Plan
+behauptete Zahl EXAKT dem berechneten Budget entspricht — die urspruengliche
+Tabelle (`agent-lock.sh` 806 LOC, Budget -6) galt fuer `8e54c8695` und ist mit
+T900023 hinfaellig geworden.
 
 ## Abhaengigkeit
 
-Blockiert von **T900023** — der Grund hat sich waehrend der Planung verschoben.
-Die Windows-Pfadaufloesung ist seit `d60c3704` auf `main` erledigt und damit KEIN
-Blocker mehr. Geblieben ist der zweite Grund, und der ist haerter geworden: das
-S1-Budget von `agent-lock.sh` ist nicht null, sondern **negativ (-6)** — `main` ist im
-Quality-Gate rot. Task 2 dieses Plans fuegt der Datei weitere Zeilen hinzu und kann
-erst laufen, wenn T900023 sie aufgeteilt hat.
+Blockiert war dieser Plan von **T900023** (Aufteilung von `agent-lock.sh`, Reap-Block
+nach `scripts/agent-lock-reap.sh`), weil das S1-Budget der Datei negativ war und
+Task 2 ihr weitere Zeilen hinzufuegt. **Die Vorbedingung ist erfuellt** — gemessen
+in Task 1b:
+
+```bash
+git show origin/main:scripts/agent-lock-reap.sh >/dev/null && echo "T900023 auf main"
+bash scripts/plan-lint.sh residual_budget scripts/agent-lock.sh   # 207 vor Task 2
+```
 
 ## Tasks
 
@@ -89,7 +97,7 @@ budget="$(bash scripts/plan-lint.sh residual_budget scripts/agent-lock.sh)"
       `-guards.sh`, `-merged.sh`, `-activity.sh`). Verkleinern durch Zusammenziehen von
       Zeilen zaehlt nicht — das verschiebt das Problem nur.
 
-- [ ] **2 — Dateiliste am Claim.** `cmd_claim` (scripts/agent-lock.sh:408) nimmt die
+- [x] **2 — Dateiliste am Claim.** `cmd_claim` (scripts/agent-lock.sh:408) nimmt die
       `target_files` eines Partials entgegen und schreibt sie ins Lock-JSON. Ein neuer
       Scope-Name ist nicht noetig: Scopes sind freie Strings und werden nur ueber
       `_sanitize` zum Dateinamen (agent-lock.sh:130).
@@ -101,7 +109,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-claim-persist.bats \
   tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats
 ```
 
-- [ ] **3 — Guard entscheidet gegen die Dateiliste (GREEN).**
+- [x] **3 — Guard entscheidet gegen die Dateiliste (GREEN).**
       In `worktree-write-guard.sh` Entscheidungsschritt 3 ("Fremder LEBENDER Claim deckt
       den Pfad", Zeilen 5-24 dokumentieren das Warum) so aendern, dass er bei einem Lock
       mit Dateiliste nur deren Eintraege deckt. Ohne Dateiliste bleibt der Worktree-Pfad
@@ -115,7 +123,7 @@ tests/unit/lib/bats-core/bin/bats \
   tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats
 ```
 
-- [ ] **4 — Claim-Ableitung aus dem Partial-Manifest.**
+- [x] **4 — Claim-Ableitung aus dem Partial-Manifest.**
       Die `target_files` stammen aus dem `## Partials`-Manifest von `tasks.md`; plan-lint
       parst es bereits (plan-lint.sh:245-287) und garantiert ueber Regel D1, dass keine
       Datei in zwei Partials liegt. Diese Ableitung wiederverwenden statt ein zweites
@@ -126,7 +134,7 @@ tests/unit/lib/bats-core/bin/bats \
 bash scripts/plan-lint.sh openspec/changes/cooperative-partial-claims/tasks.md
 ```
 
-- [ ] **5 — Guard in allen Harnesses registrieren.**
+- [x] **5 — Guard in allen Harnesses registrieren.**
       Gemessener Stand: registriert in `.claude/settings.json:73` und `.codex/hooks.json`;
       NICHT in opencode und NICHT in `.agy/hooks.json` (dort steht `agent-lock`, nicht der
       Guard). Beide nachziehen. Neuer Guard

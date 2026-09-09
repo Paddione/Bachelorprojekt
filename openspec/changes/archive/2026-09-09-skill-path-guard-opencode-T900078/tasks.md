@@ -2,7 +2,7 @@
 title: Skill-Path-Guard — .opencode/skills-Abdeckung + Shim-Coverage
 ticket_id: T900078
 domains: [agent-skills, ci-cd]
-status: plan_staged
+status: completed
 ---
 
 # Skill-Path-Guard — .opencode/skills-Abdeckung + Shim-Coverage

@@ -3188,7 +3188,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 934,
+      "file_count": 933,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3260,7 +3260,6 @@
         ".opencode/prompts/local-subagent.md",
         ".opencode/prompts/orchestrator.md",
         ".opencode/prompts/primary-agent.md",
-        ".opencode/prompts/qwen38-primary.md",
         ".opencode/skills/OVERVIEW.md",
         ".opencode/skills/agentic-resource-lookup/SKILL.md",
         ".opencode/skills/brain-ingest/SKILL.md",
@@ -4130,7 +4129,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 864,
+      "file_count": 863,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4726,7 +4725,6 @@
         "scripts/llm/routing-check.sh",
         "scripts/llm/start-gemma-server.ps1",
         "scripts/llm/start-gptoss-server.ps1",
-        "scripts/llm/start-qwen-server.ps1",
         "scripts/llm/start-tablet-rerank.ps1",
         "scripts/llm/templates/gemma2-tools.jinja",
         "scripts/llm/templates/gemma4-26b-tools.jinja",

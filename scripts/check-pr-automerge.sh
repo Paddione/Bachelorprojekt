@@ -47,6 +47,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Require explicit context (--pr or --branch) [T900043]
+if [[ -z "${PR_NUM}" && -z "${BRANCH}" ]]; then
+  echo "Fehler: check-pr-automerge erfordert expliziten Kontext (--branch <name> oder --pr <number>)." >&2
+  usage
+  exit 2
+fi
+
 # Check if gh is installed
 if ! command -v gh >/dev/null 2>&1; then
   echo "Fehler: 'gh' CLI ist nicht installiert." >&2
@@ -62,19 +69,13 @@ fi
 # Determine target for gh pr view
 if [[ -n "$PR_NUM" ]]; then
   TARGET="$PR_NUM"
-elif [[ -n "$BRANCH" ]]; then
-  TARGET="$BRANCH"
 else
-  TARGET=""
+  TARGET="$BRANCH"
 fi
 
 # Execute gh command and capture output/error
 set +e
-if [[ -z "$TARGET" ]]; then
-  OUTPUT=$(gh pr view --json number,autoMergeRequest 2>&1)
-else
-  OUTPUT=$(gh pr view "$TARGET" --json number,autoMergeRequest 2>&1)
-fi
+OUTPUT=$(gh pr view "$TARGET" --json number,autoMergeRequest 2>&1)
 STATUS=$?
 set -e
 

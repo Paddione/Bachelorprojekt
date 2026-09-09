@@ -2202,6 +2202,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/check-pr-automerge-fail-closed",
+    "file": "tests/spec/agent-skills/check-pr-automerge-fail-closed.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
     "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
     "category": "agent-skills",
@@ -4172,12 +4178,6 @@
   {
     "id": "local-llm-proxy/kv-probe-endpoint-guard",
     "file": "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/lib/pick-small-model",
-    "file": "tests/spec/local-llm-proxy/lib/pick-small-model.sh",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -6285,6 +6285,12 @@
     "id": "worktree-divergence-guard-T002387",
     "file": "tests/spec/worktree-divergence-guard-T002387.bats",
     "category": "worktree-divergence-guard-T002387",
+    "kind": "shell"
+  },
+  {
+    "id": "worktree-divergence-guard/main-sync-optout",
+    "file": "tests/spec/worktree-divergence-guard/main-sync-optout.bats",
+    "category": "worktree-divergence-guard",
     "kind": "shell"
   },
   {

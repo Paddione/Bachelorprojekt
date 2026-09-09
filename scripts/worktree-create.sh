@@ -36,17 +36,29 @@ set -euo pipefail
 # ── --help (vor allen Guards, T002783) ─────────────────────────────────────
 if [[ "${1:-}" == "--help" ]]; then
   cat <<'HELP'
-Usage: scripts/worktree-create.sh [--unattended] <branch> <path> [<base>]
-  --unattended  Skips main-checkout and ticket-ID guards for allowlisted
-                branches. The allowlist lives in scripts/lib/branch-allowlist.sh
-                (shared with the pre-commit and pre-push hooks).
-                WT_SKIP_NAME_CHECK remains available as emergency bypass for any
-                branch.
-  <branch>      branch name, e.g. fix/foo
-  <path>        worktree path, e.g. .worktrees/foo
-  <base>        base ref for NEW branch (default: origin/main)
+Usage: scripts/worktree-create.sh [--unattended] [--no-main-sync] <branch> <path> [<base>]
+  --unattended    Skips main-checkout and ticket-ID guards for allowlisted
+                  branches. The allowlist lives in scripts/lib/branch-allowlist.sh
+                  (shared with the pre-commit and pre-push hooks).
+                  WT_SKIP_NAME_CHECK remains available as emergency bypass for any
+                  branch.
+  --no-main-sync  Skips synchronizing local main to origin/main when behind
+                  (can also be enabled via DEVFLOW_NO_MAIN_SYNC=1).
+  <branch>        branch name, e.g. fix/foo
+  <path>          worktree path, e.g. .worktrees/foo
+  <base>          base ref for NEW branch (default: origin/main)
 HELP
   exit 0
+fi
+
+# ── Opt-out für main-Sync (T900043) ─────────────────────────────────────────
+_no_main_sync=false
+if [ "${DEVFLOW_NO_MAIN_SYNC:-0}" = "1" ]; then
+  _no_main_sync=true
+fi
+if [[ "${1:-}" == "--no-main-sync" ]]; then
+  _no_main_sync=true
+  shift
 fi
 
 # ── --unattended (T002783) ─────────────────────────────────────────────────
@@ -59,6 +71,10 @@ _unattended=false
   && . "$(dirname "${BASH_SOURCE[0]}")/lib/branch-allowlist.sh"
 if [[ "${1:-}" == "--unattended" ]]; then
   _unattended=true
+  shift
+fi
+if [[ "${1:-}" == "--no-main-sync" ]]; then
+  _no_main_sync=true
   shift
 fi
 
@@ -208,55 +224,44 @@ _wc_stash_pop_or_warn() {
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   if ! git merge-base --is-ancestor origin/main main 2>/dev/null; then
     if git merge-base --is-ancestor main origin/main 2>/dev/null; then
-      echo "worktree-create: local main is behind origin/main — fast-forwarding..." >&2
-      # [T003078/T003097] Foreign activity guard: if another agent process (claude/opencode)
-      # is working with uncommitted changes in the main checkout, skip the local sync —
-      # the worktree will be created directly from origin/main (which is the correct BASE
-      # regardless). Stashing at this point would destroy that agent's in-progress work.
-      _skipped_sync=false
-      if [[ -r "${BASH_SOURCE[0]%/*}/lib/main-checkout-foreign-guard.sh" ]]; then
-        source "${BASH_SOURCE[0]%/*}/lib/main-checkout-foreign-guard.sh"
-        if mc_foreign_activity_detected "$(pwd)"; then
-          echo "worktree-create: main checkout ist dirty UND ein fremder Agent-Prozess ist dort aktiv — lokaler main-Sync wird übersprungen, Worktree wird direkt von origin/main erstellt." >&2
-          _skipped_sync=true
-        fi
-      fi
-      if ! $_skipped_sync; then
-        # [T002673] Der Auto-Stash darf nicht stillschweigend liegenbleiben.
-        # Vorher stand hier `git stash push … 2>/dev/null || true` und spiegelbildlich
-        # `git stash pop 2>/dev/null || true`. Beides verschluckte Meldung UND
-        # Exit-Code. Scheiterte der Pop — typisch, wenn der Stash mit inzwischen
-        # gemergten main-Aenderungen kollidiert — meldete das Skript trotzdem
-        # "ready", und die uncommitteten Aenderungen des Aufrufers lagen unbemerkt
-        # im Stash. Real passiert am 2026-08-04.
-        # Guard: tests/spec/worktree-divergence-guard/stash-restore-visible.bats
-        _needs_pop=false
+      if $_no_main_sync; then
+        echo "worktree-create: DEVFLOW_NO_MAIN_SYNC gesetzt — lokaler main-Sync wird übersprungen." >&2
+      else
+        # [T900043] Fail-closed: Wenn der Haupt-Checkout dirty ist, darf main nicht mutiert werden.
         if ! git diff --quiet HEAD 2>/dev/null; then
-          if git stash push -m "worktree-create-auto-stash" >/dev/null; then
-            _needs_pop=true
-          else
-            # Kein `|| true`: laeuft das Skript hier weiter, poppt der Schritt
-            # unten einen FREMDEN Stash-Eintrag in den Haupt-Checkout.
-            echo "FATAL: worktree-create: konnte den dirty Haupt-Checkout nicht stashen." >&2
-            echo "       Abbruch, damit kein fremder Stash-Eintrag angewendet wird." >&2
-            exit 1
+          echo "FATAL: worktree-create: Haupt-Checkout ist dirty und local main liegt hinter origin/main." >&2
+          echo "       Lokaler main-Sync bricht fail-closed ab (Baum und Stash bleiben unberührt)." >&2
+          echo "       Bereinige den Baum oder nutze --no-main-sync / DEVFLOW_NO_MAIN_SYNC=1." >&2
+          exit 1
+        fi
+        # [T003078/T003097] Foreign activity guard: if another agent process (claude/opencode)
+        # is working with uncommitted changes in the main checkout, skip the local sync —
+        # the worktree will be created directly from origin/main (which is the correct BASE
+        # regardless). Stashing at this point would destroy that agent's in-progress work.
+        _skipped_sync=false
+        if [[ -r "${BASH_SOURCE[0]%/*}/lib/main-checkout-foreign-guard.sh" ]]; then
+          source "${BASH_SOURCE[0]%/*}/lib/main-checkout-foreign-guard.sh"
+          if mc_foreign_activity_detected "$(pwd)"; then
+            echo "worktree-create: main checkout ist dirty UND ein fremder Agent-Prozess ist dort aktiv — lokaler main-Sync wird übersprungen, Worktree wird direkt von origin/main erstellt." >&2
+            _skipped_sync=true
           fi
         fi
-        if [ "$CURRENT_BRANCH" = "main" ]; then
-          git pull --rebase origin main 2>/dev/null || {
-            echo "FATAL: auto-sync failed — could not pull origin/main into main." >&2
-            if $_needs_pop; then _wc_stash_pop_or_warn; fi
-            exit 1
-          }
-        else
-          git fetch origin +refs/heads/main:refs/remotes/origin/main 2>/dev/null || {
-            echo "FATAL: auto-sync failed — could not fast-forward main." >&2
-            if $_needs_pop; then _wc_stash_pop_or_warn; fi
-            exit 1
-          }
+        if ! $_skipped_sync; then
+          echo "worktree-create: local main is behind origin/main — fast-forwarding..." >&2
+          echo "worktree-create: Synchronisiere local main mit origin/main..." >&2
+          if [ "$CURRENT_BRANCH" = "main" ]; then
+            git pull --rebase origin main 2>/dev/null || {
+              echo "FATAL: auto-sync failed — could not pull origin/main into main." >&2
+              exit 1
+            }
+          else
+            git fetch origin +refs/heads/main:refs/remotes/origin/main 2>/dev/null || {
+              echo "FATAL: auto-sync failed — could not fast-forward main." >&2
+              exit 1
+            }
+          fi
+          echo "worktree-create: local main synced to origin/main" >&2
         fi
-        if $_needs_pop; then _wc_stash_pop_or_warn; fi
-        echo "worktree-create: local main synced to origin/main" >&2
       fi
     else
       echo "FATAL: local 'main' has diverged from 'origin/main'." >&2

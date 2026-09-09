@@ -57,7 +57,7 @@ GHSTUB
 
 @test "T006366: kein PR für den Branch → rc=0 (Normalfall im Pre-Flight)" {
   _stub_gh NO_PR
-  run bash "$REPO_ROOT/scripts/check-pr-automerge.sh"
+  run bash "$REPO_ROOT/scripts/check-pr-automerge.sh" --branch fix/x
   [ "$status" -eq 0 ]
 }
 

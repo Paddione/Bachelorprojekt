@@ -16,6 +16,8 @@ Last touches:
   - A plugin activation finding names an executable remedy | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
+  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | active | MODIFIED
+  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED

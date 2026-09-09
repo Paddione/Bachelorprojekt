@@ -244,7 +244,7 @@ Prüfe, ob für den Branch bereits ein PR mit aktivem Auto-Merge existiert (para
 oder User-Aktion; Regression T006282):
 
 ```bash
-bash scripts/check-pr-automerge.sh
+bash scripts/check-pr-automerge.sh --branch "$BRANCH"
 ```
 
 - `rc=1`: Abbruch als Doppel-Execution-Situation (parallele Session oder der User hat bereits

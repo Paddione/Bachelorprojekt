@@ -34,15 +34,23 @@ setup() {
   COMMITTED="${REPO_ROOT}/components/website/src/data/test-inventory.json"
   SANDBOX="${BATS_FILE_TMPDIR}/inventory.json"
   STRAY_REL="tests/spec/ci-cd/stray-ignored-test-T002664.bats"
+  GITIGNORE_BAK="${BATS_FILE_TMPDIR}/gitignore.bak"
+  if [ -f "${REPO_ROOT}/.gitignore" ]; then
+    cp -p "${REPO_ROOT}/.gitignore" "$GITIGNORE_BAK"
+  fi
 }
 
 teardown() {
   rm -f "${REPO_ROOT:?}/${STRAY_REL:?}"
   # Nur die vom Test angehaengte Zeile entfernen. Ein 'git checkout -- .gitignore'
   # wuerde unbeteiligte lokale Aenderungen an der Datei mitverwerfen.
+  # spec-tracked-file-guard prueft mtime: Vorherigen Zeitstempel per touch -r restaurieren.
   local gitignore="${REPO_ROOT}/.gitignore"
   if [ -f "$gitignore" ] && grep -qF "$STRAY_REL" "$gitignore"; then
     grep -vF "$STRAY_REL" "$gitignore" > "${gitignore}.tmp" && mv "${gitignore}.tmp" "$gitignore"
+    if [ -f "${GITIGNORE_BAK:-}" ]; then
+      touch -r "$GITIGNORE_BAK" "$gitignore"
+    fi
   fi
 }
 

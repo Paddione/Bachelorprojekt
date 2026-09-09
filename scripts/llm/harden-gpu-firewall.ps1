@@ -34,7 +34,7 @@
 .EXAMPLE
   # Elevated ausfuehren:
   powershell -ExecutionPolicy Bypass -File scripts\llm\harden-gpu-firewall.ps1 `
-    -Program 'C:\Users\PatrickKorczewski\llama-b10090-13.3\llama-server.exe'
+    -Program 'C:\Users\PatrickKorczewski\llama-b10881-13.3\llama-server.exe'
 
 .NOTES
   Diese Datei ist bewusst rein ASCII. Aus WSL geschriebene UTF-8-Dateien liest

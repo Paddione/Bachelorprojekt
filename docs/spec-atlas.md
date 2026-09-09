@@ -2,12 +2,12 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2302 · Scenarios: 5111
+Specs: 145 · Requirements: 2304 · Scenarios: 5114
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 66 · Scenarios: 137 · Lines: 1720
+Reqs: 68 · Scenarios: 140 · Lines: 1768
 Last touches:
   - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
   - Superpowers is declared in every harness that runs the dev-flow skills | T900056 | 2026-09-03 | ADDED

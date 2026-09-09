@@ -1,7 +1,7 @@
 # Fortsetzungs-Kontrakt für angefangene Tickets [T002327]
 
 Referenz zu `dev-flow-execute`. Sie steht hier und nicht im Skill-Body, weil
-`.opencode/skills/dev-flow-execute/SKILL.md` exakt auf der 250-Zeilen-Grenze des
+der Skill-Body unter `.opencode/skills/dev-flow-execute` (Shim zu `.claude/skills/dev-flow-execute/SKILL.md`) exakt auf der 250-Zeilen-Grenze des
 fail-closed Gates **G-AGENTIC09** liegt und keine einzige Zeile Spielraum hat.
 
 Der Kontrakt gilt für **Mensch und Factory gleichermaßen**. Es gibt bewusst keinen

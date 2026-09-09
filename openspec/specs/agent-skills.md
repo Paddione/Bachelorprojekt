@@ -1718,3 +1718,50 @@ whether it was installed. Naming the plugin makes absence a checkable condition.
 - **THEN** it names the superpowers plugin, not a harness built-in
 
 <!-- merged from change delta agent-skills.md (80abd8e8101e) -->
+### Requirement: The dead-path-references guard MUST cover .opencode/skills/ paths
+
+The guard in `tests/spec/agent-skills/skill-path-references.bats` MUST extract repo-relative
+path references under `.opencode/skills/` alongside `.claude/skills/` and resolve them against
+the filesystem. `SKILL_PATH_PATTERN` MUST match both prefixes via an alternation, and
+`skill_files()` MUST include `.opencode/skills` as a scan source.
+
+`.agents/skills` is no longer a canonical location and MUST NOT be scanned: it is absent on
+Windows and a symlink to `.opencode/skills` elsewhere, so scanning it either fails or
+double-counts.
+
+Vendored third-party skills stay excluded from the path check — they reference upstream
+documentation that does not exist in this repository.
+
+#### Scenario: A reference under .opencode/skills/ is checked
+
+- **GIVEN** a skill file containing `(.opencode/skills/references/dev-flow-gotchas.md)`
+- **WHEN** the guard runs
+- **THEN** the path is extracted and its existence is asserted
+
+### Requirement: Shim coverage between .claude/skills and .opencode/skills is asserted in both directions
+
+Two guards MUST hold the SSOT layout together. A shim under `.claude/skills/` that names an
+`.opencode/skills/` target MUST resolve to an existing path. Conversely, every skill under
+`.opencode/skills/` MUST either have a `.claude/skills/` shim or appear in a declared
+`opencode_only` allowlist inside the test.
+
+The allowlist is the point of the second guard, not an exemption from it: it pins the explained
+state so that a *newly* unshimmed skill fails the build while the known opencode-only set does
+not. An entry added without a reason defeats the guard.
+
+Both tests MUST initialise their `fail` accumulator. bats runs a test body under `set -e`, so an
+uninitialised variable makes the closing `[ "$fail" -eq 0 ]` abort with "integer expected" — the
+test then fails to render a verdict instead of delivering one, which reads like a real finding.
+
+#### Scenario: A skill without a shim is added
+
+- **GIVEN** a new `.opencode/skills/<name>/SKILL.md` with no `.claude/skills/<name>` counterpart
+- **AND** `<name>` is absent from the `opencode_only` allowlist
+- **WHEN** the guard runs
+- **THEN** it fails and names the skill
+
+#### Scenario: A shim points at a removed target
+
+- **GIVEN** a `.claude/skills/<name>/SKILL.md` referencing `.opencode/skills/<gone>/SKILL.md`
+- **WHEN** the guard runs
+- **THEN** it fails and names both the shim and the missing target

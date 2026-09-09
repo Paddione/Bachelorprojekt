@@ -227,13 +227,6 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
       if $_no_main_sync; then
         echo "worktree-create: DEVFLOW_NO_MAIN_SYNC gesetzt — lokaler main-Sync wird übersprungen." >&2
       else
-        # [T900043] Fail-closed: Wenn der Haupt-Checkout dirty ist, darf main nicht mutiert werden.
-        if ! git diff --quiet HEAD 2>/dev/null; then
-          echo "FATAL: worktree-create: Haupt-Checkout ist dirty und local main liegt hinter origin/main." >&2
-          echo "       Lokaler main-Sync bricht fail-closed ab (Baum und Stash bleiben unberührt)." >&2
-          echo "       Bereinige den Baum oder nutze --no-main-sync / DEVFLOW_NO_MAIN_SYNC=1." >&2
-          exit 1
-        fi
         # [T003078/T003097] Foreign activity guard: if another agent process (claude/opencode)
         # is working with uncommitted changes in the main checkout, skip the local sync —
         # the worktree will be created directly from origin/main (which is the correct BASE
@@ -247,6 +240,13 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
           fi
         fi
         if ! $_skipped_sync; then
+          # [T900043] Fail-closed: Wenn der Haupt-Checkout dirty ist, darf main nicht mutiert werden.
+          if ! git diff --quiet HEAD 2>/dev/null; then
+            echo "FATAL: worktree-create: Haupt-Checkout ist dirty und local main liegt hinter origin/main." >&2
+            echo "       Lokaler main-Sync bricht fail-closed ab (Baum und Stash bleiben unberührt)." >&2
+            echo "       Bereinige den Baum oder nutze --no-main-sync / DEVFLOW_NO_MAIN_SYNC=1." >&2
+            exit 1
+          fi
           echo "worktree-create: local main is behind origin/main — fast-forwarding..." >&2
           echo "worktree-create: Synchronisiere local main mit origin/main..." >&2
           if [ "$CURRENT_BRANCH" = "main" ]; then

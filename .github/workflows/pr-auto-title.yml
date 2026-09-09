@@ -105,8 +105,13 @@ jobs:
           # SLUG is sanitized (alphanumeric + hyphens only after BRANCH sanitization).
           SCOPE=""
           # Pattern: optional "g-" then 2-4 alpha chars + 2-3 digits (OpenSpec category code)
+          # sed kennt kein -P: Perl-Regex gibt es nur in grep. Mit -nP druckt sed
+          # seine Hilfeseite und endet mit 1, der Job faellt rot aus (T900095).
+          # Deshalb hier ERE (-E), in das die Perl-Konstrukte uebersetzt sind:
+          # (?:...) existiert nicht -> normale Gruppe, \d -> [0-9]. Dadurch wird
+          # das optionale "g-" zu Gruppe 1 und der Code zu Gruppe 2.
           if printf '%s' "$SLUG" | grep -qP '^(?:g-)?([a-z]{1,4}\d{2,3})-'; then
-            SCOPE=$(printf '%s' "$SLUG" | sed -nP 's/^(?:g-)?([a-z]{1,4}\d{2,3})-.*/\1/p')
+            SCOPE=$(printf '%s' "$SLUG" | sed -nE 's/^(g-)?([a-z]{1,4}[0-9]{2,3})-.*/\2/p')
           fi
 
           # ── 3b. Validate the derived scope against the SSOT scope list ─────

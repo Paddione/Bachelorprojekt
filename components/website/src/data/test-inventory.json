@@ -3000,6 +3000,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/pr-auto-title-scope-extraction",
+    "file": "tests/spec/ci-cd/pr-auto-title-scope-extraction.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/pr-refresh-batch",
     "file": "tests/spec/ci-cd/pr-refresh-batch.bats",
     "category": "ci-cd",

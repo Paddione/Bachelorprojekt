@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1272,
+      "file_count": 1273,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -539,6 +539,7 @@
         "tests/spec/ci-cd/hybrid-runner-placement.bats",
         "tests/spec/ci-cd/main-direct-push-guard.bats",
         "tests/spec/ci-cd/mishap-t002425.bats",
+        "tests/spec/ci-cd/pr-auto-title-scope-extraction.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
         "tests/spec/ci-cd/pre-push-artifact-guard.bats",
         "tests/spec/ci-cd/pre-push-scope-base.bats",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.328.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.328.1...website-v1.328.2) (2026-09-09)
+
+
+### Bug Fixes
+
+* **agents:** main-checkout guards for check-pr-automerge and worktree-create [T900043] ([#5514](https://github.com/Paddione/Bachelorprojekt/issues/5514)) ([07e70a8](https://github.com/Paddione/Bachelorprojekt/commit/07e70a84c8254f3c121b6e71f686c50309810d9a))
+
 ## [1.328.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.328.0...website-v1.328.1) (2026-09-09)
 
 

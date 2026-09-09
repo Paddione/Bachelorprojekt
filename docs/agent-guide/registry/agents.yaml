@@ -86,6 +86,11 @@ runtimes:
     model: freetoken-local/active
     write_capable: false
     note: "Dedizierter Tab-selectable Primary auf dem modellagnostischen FreeToken-Alias 'active' (:1919) [T014105]"
+  qwen38-primary:
+    mode: primary
+    model: llamacpp-native/qwen3.8-27b
+    write_capable: true
+    note: "PRIMARY: Qwen 3.8 27B native llama.cpp (:8080) — 122.880 ctx, 4-bit KV cache, Flash Attention. Cache-optimiertes Prompting, Anti-Looping & Termination Guards."
   freetoken-thinking:
     mode: all
     model: freetoken-local/active-thinking

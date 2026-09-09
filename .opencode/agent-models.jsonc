@@ -52,6 +52,28 @@
         }
       }
     },
+    // ── Native llama.cpp (Qwen 3.8 27B UD-Q3_K_XL, Port 8080) ──────────
+    // Lokale Instanz von llama-server.exe mit nativem CUDA 13.3, 4-Bit KV-Cache
+    // (-ctk q4_0 -ctv q4_0), Flash Attention (-fa on) und gemessenen 122.880
+    // Kontext-Tokens auf der RTX 5070 Ti (16 GB VRAM).
+    "llamacpp-native": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Native llama.cpp Server (Qwen 3.8 27B, 120k ctx, 4-bit KV Cache auf Port 8080)",
+      "options": {
+        "baseURL": "http://127.0.0.1:8080/v1",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "qwen3.8-27b": {
+          "name": "Qwen 3.8 27B (Native llama.cpp, 122.880 ctx, 4-bit KV cache, Port 8080)",
+          "limit": {
+            "context": 122880,
+            "output": 8192
+          }
+        }
+      }
+    },
     // ── FreeToken-native (Windows pk-desktop, Port 1919) ───────────────
     // T014105/T014028: FreeToken serviert EIN residentes MoE-Modell auf dem
     // gemeinsamen Port; der Daemon (:1900) wechselt per /engine/switch. Der
@@ -483,6 +505,32 @@
       "temperature": 0.3,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    // Lokaler Primary auf nativem llama.cpp mit Qwen 3.8 27B (Port 8080)
+    // 122.880 Kontext-Tokens, 4-Bit KV-Cache, Anti-Loop-Prompting und
+    // KV-Cache-schonende Instruktionen.
+    "qwen38-primary": {
+      "description": "PRIMARY: Qwen 3.8 27B native llama.cpp (:8080) — 122.880 ctx, 4-bit KV cache, Flash Attention. Cache-optimiertes Prompting, Anti-Looping & Termination Guards. Tab-selectable singleagent.",
+      "mode": "primary",
+      "model": "llamacpp-native/qwen3.8-27b",
+      "prompt": "{file:./prompts/qwen38-primary.md}",
+      "color": "#10B981",
+      "temperature": 0.2,
+      "steps": 100,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "task": {
+          "gptoss": "allow",
+          "devstral": "allow",
+          "gemma": "allow",
+          "gemma12": "allow",
+          "qwen38": "allow",
+          "qwen-cloud": "allow",
+          "deepseek-helper": "allow"
+        }
+      }
     },
     "freetoken-thinking": {
       "description": "FreeToken reasoning agent: dynamically enables Qwen thinking for every request, advertises 200k context, and is selectable as a primary or dispatchable as a subagent. Shares the single resident FreeToken engine and runs sequentially with other local agents.",

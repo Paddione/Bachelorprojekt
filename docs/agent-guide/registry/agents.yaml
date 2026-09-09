@@ -180,7 +180,7 @@ runtimes:
     mode: primary
     model: llamacpp-local/qwen38-220k
     write_capable: true
-    note: "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (84k ctx / 85760 tokens gemessen, loadout qwen38-220k on port 8094). Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
+    note: "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (200k ctx / 205056 tokens gemessen, Dual-GPU-Split, loadout qwen38-220k on port 8094). Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
 
 # T900074-p2: factory role declarations (mirror — SSOT is .opencode/agent-models.jsonc)
 factory_roles:

@@ -11,14 +11,14 @@
   "loadouts": [
     {
       "slug": "qwen38-220k",
-      "label": "Qwen 3.8 27B UD-IQ4_XS · VRAM-safe Text (llama.cpp)",
+      "label": "Qwen 3.8 27B UD-IQ4_XS - Dual-GPU-Split, ~205k Kontext (llama.cpp)",
       "model": "models--unsloth--Qwen3.8-27B-GGUF/snapshots/4ca720788d1e01f1bff70c033e0d0028fd02e502/Qwen3.8-27B-UD-IQ4_XS.gguf",
       "port": 8094,
       "enabled": true,
       "fit": {
         "enabled": true,
-        "targetMarginMib": 0,
-        "minCtx": 85760
+        "targetMarginMib": "256,1500",
+        "minCtx": 205056
       },
       "args": {
         "ctx": null,
@@ -56,8 +56,11 @@
         "--cache-reuse",
         "256"
       ],
-      "notes": "Text-only loadout fuer das Unsloth Qwen3.8-27B UD-IQ4_XS (13,3 GB) GGUF auf F:/models. Ein Slot, q4_0 KV, Flash Attention und ngram-mod Spekulation. llama.cpp fit waehlt Kontext und GPU-Offload dynamisch, ohne zusaetzliche VRAM-Reserve; mindestens 16.384 Tokens. Intelligentes Kontext-Handling ueber --cache-ram 12288 (Host-RAM Slot-Cache), --cache-prompt und --cache-reuse 256 (Wiederverwendung praefix-gleicher Chunks). Natives Modellfenster 262144.",
-      "exclusiveGroup": "chat-gpu"
+      "notes": "Text-only Loadout fuer Unsloth Qwen3.8-27B UD-IQ4_XS (13,27 GB) auf F:/models, verteilt ueber BEIDE GPUs (RTX 5070 Ti 16 GB + RTX 3060 Ti 8 GB). q4_0-KV fuer K und V, Flash Attention, ngram-mod-Spekulation, ein Slot.\n\nDER SPLIT IST EIN TAUSCH, KEIN GEWINN. Gemessen 2026-09-09 (Build b10881, je drei warme Laeufe a 300 Token, identischer Prompt):\n\n| Konfiguration | -fitt | n_ctx_slot | Decode | frei 3060 Ti |\n|---|---|---|---|---|\n| beide GPUs | 256 | 242.688 | ~22 t/s | 168 MiB |\n| beide GPUs | 1024 | 196.352 | - | 197 MiB |\n| beide GPUs (gewaehlt) | 256,1500 | 205.056 | - | 683 MiB |\n| nur 5070 Ti | 256 | 74.496 | ~50 t/s | - |\n\nDreifacher Kontext kostet mehr als die Haelfte des Durchsatzes: bei Layer-Split laeuft jeder Token durch beide Karten, und die 3060 Ti ist die langsamere. Das Modell passt mit 13,27 GB allein auf die 5070 Ti - der Split kauft ausschliesslich KV-Raum.\n\nNachstellbar:\n```powershell\npowershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/start-qwen-server.ps1\npowershell -NoProfile -ExecutionPolicy Bypass -File scripts/llm/start-qwen-server.ps1 -SingleGpu\n# Kontext aus dem Log: \"load_model: initializing, n_slots = 1, n_ctx_slot = N\"\n# Durchsatz: POST /v1/chat/completions, Feld .timings.predicted_per_second\n```\n\nWARUM targetMarginMib PRO GERAET (\"256,1500\") UND NICHT DER GROESSTE KONTEXT: mit einem einzelnen Wert blieben der 3060 Ti nur 168 MiB - auf der Karte haengt der Desktop. Ein Browser-Tab oder ein zweites CUDA-Programm kippt das. Die Reserve kostet 37k Kontext und vervierfacht die Reserve auf der Anzeige-Karte.\n\nGERAETE-REIHENFOLGE: env.CUDA_VISIBLE_DEVICES adressiert per UUID, nicht per Index - nvidia-smi zeigt die 3060 Ti als Index 0, llama.cpp meldet die 5070 Ti als CUDA0 (Sortierung nach Leistung). Die Reihenfolge in CUDA_VISIBLE_DEVICES bestimmt, worauf sich \"256,1500\" bezieht: erst 5070 Ti, dann 3060 Ti.\n\nVRAM IST EXKLUSIV: FreeToken (:1919) belegt ~15,7 von 16 GB und kann NICHT gleichzeitig mit diesem Loadout laden. Die beiden Backends sind Alternativen, kein Parallelbetrieb - siehe docs/runbooks/freetoken-native.md.\n\nSTILLLEGUNG AUFGEHOBEN (2026-09-09, T900094): seit T014028 stand dieses Loadout auf enabled:false, weil es neben FreeToken-native verhungerte (~10 tok/s). Mit dem Dual-GPU-Split und IQ4_XS ist es wieder tragfaehig; der Betrieb bleibt exklusiv zu FreeToken.",
+      "exclusiveGroup": "chat-gpu",
+      "env": {
+        "CUDA_VISIBLE_DEVICES": "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4,GPU-6b9ac882-e9e9-a364-4423-92d838536b86"
+      }
     },
     {
       "slug": "gptoss-context",

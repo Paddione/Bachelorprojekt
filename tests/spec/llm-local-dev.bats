@@ -144,12 +144,32 @@ EOF"
   #
   # Geprueft wird deshalb die EIGENSCHAFT: plausibel und nicht n_ctx_train
   # (262144 fuer Qwen3.8-27B), das ueber dem real Verfuegbaren liegt.
+  #
+  # T900094: die fruehere Obergrenze "< 200000" war eine Heuristik aus der Zeit,
+  # als auf einer Karte hoechstens 114688 messbar waren. Mit dem Dual-GPU-Split
+  # sind 205056 real gemessen — die Heuristik haette einen ECHTEN Messwert
+  # abgelehnt. Statt die Schranke nachzuziehen (sie driftet beim naechsten
+  # Hardware-Wechsel wieder), wird jetzt die Kopplung geprueft: der Client-Wert
+  # muss dem entsprechen, was das Loadout als Untergrenze garantiert. Damit ist
+  # jede Zahl belegt, die der Server auch wirklich zusichert.
   ctx="$(awk '/"qwen38-220k": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
   [ -n "$ctx" ]
   [ "$ctx" != "262144" ]
   [ "$ctx" -gt 50000 ]
-  [ "$ctx" -lt 200000 ]
+
+  run python3 -c "
+import json, sys
+d = json.load(open('scripts/llm/loadouts.json', encoding='utf-8'))
+lo = next(l for l in d['loadouts'] if l.get('slug') == 'qwen38-220k')
+floor = (lo.get('fit') or {}).get('minCtx') or (lo.get('args') or {}).get('ctx')
+if floor is None:
+    print('qwen38-220k deklariert weder fit.minCtx noch args.ctx'); sys.exit(1)
+ctx = int('$ctx')
+if ctx != floor:
+    print(f'agent-models.jsonc nennt {ctx}, das Loadout garantiert {floor}'); sys.exit(1)
+"
+  [ "$status" -eq 0 ] || { echo "$output" >&2; return 1; }
 }
 
 @test "agent-models.jsonc defines three gemma subagents (T002545)" {

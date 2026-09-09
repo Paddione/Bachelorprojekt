@@ -143,6 +143,22 @@ function validateLoadout(l, index, seen) {
   const fit = l.fit ?? {};
   if (typeof fit.enabled !== 'boolean') fail(`${l.slug}: fit.enabled fehlt`);
 
+  // targetMarginMib ist entweder eine Zahl (auf alle Geraete gebroadcastet) oder
+  // eine Liste "MiB0,MiB1,…" pro Geraet — llama.cpp `-fitt` akzeptiert beides.
+  // Die Liste ist der Weg, einer Karte mit Desktop mehr Reserve zu lassen als
+  // der reinen Rechenkarte. Ungeprueft reichte runner.mjs jeden Wert per
+  // String() durch, auch Unsinn; ein Tippfehler waere erst beim Serverstart
+  // aufgefallen.
+  if (fit.targetMarginMib != null) {
+    const ok = typeof fit.targetMarginMib === 'number'
+      ? Number.isInteger(fit.targetMarginMib) && fit.targetMarginMib >= 0
+      : typeof fit.targetMarginMib === 'string'
+        && /^\d+(,\d+)*$/.test(fit.targetMarginMib)
+    if (!ok) {
+      fail(`${l.slug}: fit.targetMarginMib muss eine nicht-negative Ganzzahl oder eine Liste "N,N,…" sein`)
+    }
+  }
+
   const args = l.args ?? {};
   for (const k of Object.keys(args)) {
     if (!ARG_KEYS.has(k)) fail(`${l.slug}: unbekanntes args-Feld '${k}'`);

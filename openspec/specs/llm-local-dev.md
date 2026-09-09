@@ -639,3 +639,53 @@ The system SHALL keep `brainstorm.mentolder.de` reachable via the dev-stack sish
 <!-- merged from change delta llm-local-dev.md (e484f9b929b3) -->
 
 <!-- merged from change delta llm-local-dev.md (0e1fe85961ae) -->
+### Requirement: A local agent MAY use llama.cpp or FreeToken, but never a dead loadout
+
+Since T014028 the llama loadouts were switched off wholesale and every guard forbade any
+`llamacpp-local/*` reference. That ban was too coarse: it addressed a real failure — an agent
+pointing at a loadout that is not running — but also forbade the working case.
+
+A local agent MUST resolve to one of exactly two backends: the `freetoken-local` provider, or a
+llama.cpp loadout that is **enabled** in `scripts/llm/loadouts.json`. A reference to a loadout
+that is absent or `enabled: false` MUST fail the build. The backend name itself carries no
+verdict — liveness does.
+
+At least one local primary MUST run on `freetoken-local`. It is the backend without a GPU
+precondition and therefore the fallback when a llama loadout cannot load.
+
+The two backends are **alternatives, not concurrent**: FreeToken occupies roughly 15.7 of 16 GB
+of VRAM exclusively. Nothing in this spec implies they may run side by side.
+
+The Factory fallback (`scripts/factory/route-provider.sh`) and the project default MUST remain
+FreeToken. Widening the agent side does not widen the default.
+
+#### Scenario: An agent points at a disabled loadout
+
+- **GIVEN** `agent-models.jsonc` references `llamacpp-local/<slug>`
+- **AND** that loadout is `enabled: false` in `loadouts.json`, or absent entirely
+- **WHEN** the guard runs
+- **THEN** it fails and names the slug
+
+### Requirement: An active llama.cpp loadout MUST carry the configuration that makes it viable
+
+`qwen38-220k` was disabled because it starved next to FreeToken-native (~10 tok/s measured).
+It may be enabled again only with the configuration that removes that cause. While it is
+enabled it MUST declare a `q4_0` KV cache for both K and V, at least two GPUs in
+`env.CUDA_VISIBLE_DEVICES`, `fit.enabled: true`, and a `fit.minCtx` of at least 200000.
+
+Rationale for each: without `q4_0` the KV pool does not fit in VRAM; without the split the
+second card contributes nothing and the context collapses to roughly a third; without `fit` a
+fixed context breaks as soon as another process holds VRAM; and below 200k the split is not
+worth its throughput cost — measured, the split trades roughly half the decode rate for triple
+the context.
+
+The context advertised to clients in `agent-models.jsonc` MUST equal the floor the loadout
+guarantees (`fit.minCtx`). A client number that exceeds what the server assures is a promise
+nobody keeps.
+
+#### Scenario: The split is removed while the loadout stays enabled
+
+- **GIVEN** `qwen38-220k` has `enabled` other than `false`
+- **AND** `env.CUDA_VISIBLE_DEVICES` names a single GPU
+- **WHEN** the guard runs
+- **THEN** it fails, because the loadout no longer earns its reactivation

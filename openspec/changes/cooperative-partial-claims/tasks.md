@@ -54,7 +54,7 @@ erst laufen, wenn T900023 sie aufgeteilt hat.
 
 ## Tasks
 
-- [ ] **1 — Failing-Test-Step (RED): zwei Sessions, disjunkte Partials.**
+- [x] **1 — Failing-Test-Step (RED): zwei Sessions, disjunkte Partials.**
       Neuer Guard `tests/spec/active-sessions-hub/partial-claims-T900024.bats`.
       Er baut ein echtes Repo mit zwei Dateien, setzt fuer Session A einen Claim, der
       NUR Datei A deckt, und laesst Session B nach Datei B schreiben. Erwartet wird:
@@ -69,7 +69,7 @@ tests/unit/lib/bats-core/bin/bats \
 # expected: FAIL (Claims sind heute worktree-weit; B wird abgelehnt)
 ```
 
-- [ ] **1b — Vorbedingung hart pruefen: S1-Luft aus T900023 ist da.**
+- [x] **1b — Vorbedingung hart pruefen: S1-Luft aus T900023 ist da.**
       Task 2 fuegt `scripts/agent-lock.sh` Zeilen hinzu, dessen Budget heute 0 ist. Die
       noetige Extraktion (Reap-Block nach `scripts/agent-lock-reap.sh`) gehoert zu T900023
       und wird hier NICHT wiederholt — ein zweiter Extraktionsschritt wuerde mit jenem

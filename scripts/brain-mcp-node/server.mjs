@@ -5,6 +5,7 @@
  */
 
 import { homedir } from "node:os";
+import { join } from "node:path";
 import * as readline from "node:readline";
 import { BrainIndex, parseDateTime } from "./index.mjs";
 
@@ -140,7 +141,15 @@ function handleTool(requestId, params, index, wikiDir) {
   if (name === "brain_search") {
     try {
       const parsed = searchArguments(arguments_);
-      const results = index.search(parsed);
+      // index.search(query, topK, filters) — kein Objekt: das Objekt
+      // landete in _tokenize → "text.match is not a function".
+      const results = index.search(parsed.query, parsed.top_k, {
+        pageType: parsed.page_type,
+        tags: parsed.tags,
+        status: parsed.status,
+        sourceKind: parsed.source_kind,
+        asOf: parsed.as_of,
+      });
       const content = JSON.stringify({ results }, false);
       return ok(requestId, {
         content: [{ type: "text", text: content }],
@@ -181,8 +190,17 @@ function handleTool(requestId, params, index, wikiDir) {
 }
 
 function main() {
-  const defaultWiki = `${homedir()}/brain/wiki`;
-  const wikiDir = process.env.BRAIN_WIKI_DIR || defaultWiki;
+  const defaultWiki = join(homedir(), "brain", "wiki");
+  // "~" expandiert Node nicht von selbst — ohne diese Auflösung suchte der
+  // Server in einem literalen "~/brain/wiki"-Pfad (read meldete
+  // "searched in ~/brain/wiki", search fand nie etwas).
+  const rawWiki = process.env.BRAIN_WIKI_DIR || defaultWiki;
+  const wikiDir =
+    rawWiki === "~"
+      ? homedir()
+      : rawWiki.startsWith("~/") || rawWiki.startsWith("~\\")
+        ? join(homedir(), rawWiki.slice(2))
+        : rawWiki;
   const index = new BrainIndex(wikiDir);
 
   const rl = readline.createInterface({ input: process.stdin });

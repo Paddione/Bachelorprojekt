@@ -41,9 +41,9 @@ Locations in this repo:
 
 | Path | Purpose |
 |---|---|
-| `.opencode/skills/<name>/SKILL.md` | opencode skills (auto-discovered) |
-| `.claude/skills/<name>/` | shared sources; `.opencode/skills` symlinks dev-flow/openspec skills here |
-| `.agents/skills/<name>/` | Claude Code-only skills |
+| `.opencode/skills/<name>/` | SSOT (T900070) — canonical skill content, auto-discovered by opencode |
+| `.claude/skills/<name>/` | thin shim (frontmatter + pointer) for Claude Code compatibility |
+| `.agents/skills` | shim pointing at `.opencode/skills` |
 
 ## 3. Build (route to `skill-creator`)
 

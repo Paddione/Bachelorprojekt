@@ -16,6 +16,7 @@ Last touches:
   - opencode reaches the shared dev-flow reference material | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
+  - TODO | T900043 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
@@ -116,6 +117,8 @@ Last touches:
   - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
   - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
   - discover-versions.sh ermittelt Tool-Versionen ohne Flux | T002083 | 2026-08-02 | MODIFIED
+In-flight:
+  - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | active | ADDED
 
 ## llm
 
@@ -1061,6 +1064,7 @@ Last touches:
   - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
 In-flight:
+  - Sessions Wildcard Render Guard | T900029 | active | ADDED
   - Dead Process Reaping | T016251 | active | MODIFIED
   - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
   - Auth-Gating für session-* Subdomains | T016251 | active | ADDED

@@ -6,15 +6,15 @@ Skills for managing the OpenCode development workflow from brainstorming through
 
 ### Core Workflow
 - **dev-flow-plan** — Generate design specs and implementation plans via `/opsx:propose` or `openspec propose`
-- **dev-flow-execute** — Implement plans commit-by-commit, PR-by-PR (SSOT: [verification-block](.claude/skills/references/verification-block.md))
+- **dev-flow-execute** — Implement plans commit-by-commit, PR-by-PR (SSOT: [verification-block](.opencode/skills/references/verification-block.md))
 
 ### Superpowers
 - **using-git-worktrees** — Isolated worktrees for feature branches ([T001364](https://github.com/Paddione/Bachelorprojekt/issues/T001364))
 - **vitest** — Fast unit testing (Vitest + Vite, Jest-compatible API)
 
 ### References
-- [references](.claude/skills/references/SKILL.md) — Cross-cutting concepts (CI gates, deploy routing, session coordination)
-- [subagent-provisioning](.claude/skills/references/subagent-provisioning.md) — Model selection and context injection
+- [references](.opencode/skills/references/SKILL.md) — Cross-cutting concepts (CI gates, deploy routing, session coordination)
+- [subagent-provisioning](.opencode/skills/references/subagent-provisioning.md) — Model selection and context injection
 
 ## Usage Flow
 
@@ -36,7 +36,7 @@ Before every commit, regenerates artifacts (test-inventory.json, quality-index.j
 
 ---
 
-**Documentation:** [dev-flow workflow](.claude/skills/dev-flow-plan/SKILL.md), [verification-block](.claude/skills/references/verification-block.md)
+**Documentation:** [dev-flow workflow](.opencode/skills/dev-flow-plan/SKILL.md), [verification-block](.opencode/skills/references/verification-block.md)
 
 
 ## Framework mapping

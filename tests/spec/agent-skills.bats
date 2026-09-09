@@ -11,27 +11,27 @@ setup() {
 # ── dev-flow-chore: git-crypt smudge guard ────────────────────────────
 
 @test "dev-flow-chore SKILL.md exists" {
-  [ -f "$REPO/.claude/skills/dev-flow-chore/SKILL.md" ]
+  [ -f "$REPO/.opencode/skills/dev-flow-chore/SKILL.md" ]
 }
 
 @test "dev-flow-chore Step 4 has Secret-in-index-Guard for git-crypt artifacts" {
-  run grep -q 'Secret-in-index-Guard\|secret.*index.*guard\|git-crypt' "$REPO/.claude/skills/dev-flow-chore/SKILL.md"
+  run grep -q 'Secret-in-index-Guard\|secret.*index.*guard\|git-crypt' "$REPO/.opencode/skills/dev-flow-chore/SKILL.md"
   [ "$status" -eq 0 ]
 }
 
 @test "dev-flow-chore skill refuses bare git add -A (mentions git-crypt)" {
-  run grep -qi 'git.add.*-A\|git add -A\|git-crypt' "$REPO/.claude/skills/dev-flow-chore/SKILL.md"
+  run grep -qi 'git.add.*-A\|git add -A\|git-crypt' "$REPO/.opencode/skills/dev-flow-chore/SKILL.md"
   [ "$status" -eq 0 ]
 }
 
 # ── ticket-ops: intake deduplication ──────────────────────────────────
 
 @test "ticket-ops SKILL.md exists" {
-  [ -f "$REPO/.claude/skills/ticket-ops/SKILL.md" ]
+  [ -f "$REPO/.opencode/skills/ticket-ops/SKILL.md" ]
 }
 
 @test "ticket-ops skill mentions dedup or duplicate check" {
-  run grep -qi 'dedup\|duplicate\|same.*title\|vorhanden.*Ticket' "$REPO/.claude/skills/ticket-ops/SKILL.md"
+  run grep -qi 'dedup\|duplicate\|same.*title\|vorhanden.*Ticket' "$REPO/.opencode/skills/ticket-ops/SKILL.md"
   [ "$status" -eq 0 ]
 }
 
@@ -55,14 +55,14 @@ setup() {
 
 vendor_skills() {
   sed -n '/<!-- vendor-skills:begin -->/,/<!-- vendor-skills:end -->/p' \
-    "$REPO/.claude/skills/OVERVIEW.md" | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` '
+    "$REPO/.opencode/skills/OVERVIEW.md" | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` '
 }
 
 project_owned_skills() {
   local vendor; vendor="$(vendor_skills)"
   local f d
-  for f in $(cd "$REPO" && git ls-files -- .claude/skills | grep '/SKILL\.md$'); do
-    d="${f#.claude/skills/}"; d="${d%/SKILL.md}"
+  for f in $(cd "$REPO" && git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+    d="${f#.opencode/skills/}"; d="${d%/SKILL.md}"
     printf '%s\n' "$vendor" | grep -qx "$d" || echo "$d"
   done
 }
@@ -75,13 +75,13 @@ project_owned_skills() {
 
 @test "every vendor skill named in OVERVIEW.md has a directory" {
   for d in $(vendor_skills); do
-    [ -d "$REPO/.claude/skills/$d" ] || { echo "vendor skill without directory: $d"; return 1; }
+    [ -d "$REPO/.opencode/skills/$d" ] || { echo "vendor skill without directory: $d"; return 1; }
   done
 }
 
 @test "every active project-owned skill has a description in its frontmatter" {
   for d in $(project_owned_skills); do
-    f="$REPO/.claude/skills/$d/SKILL.md"
+    f="$REPO/.opencode/skills/$d/SKILL.md"
     # archived: true ist die bewusste Ausnahme — spiegelt G-AGENTIC07, das ebenfalls nur
     # Skills MIT description zählt (z.B. update-dependencies läuft als Cloud-Routine).
     awk 'BEGIN{n=0}/^---$/{n++;next} n==1&&/^archived:[[:space:]]*true/{found=1} END{exit !found}' "$f" && continue
@@ -102,7 +102,7 @@ project_owned_skills() {
   # abbrechen lassen und der Test waere aus dem falschen Grund rot.
   [[ "$limit" =~ ^[0-9]+$ ]] || { echo "G-AGENTIC09-Schwelle nicht lesbar: '$limit'"; return 1; }
   for d in $(project_owned_skills); do
-    n=$(wc -l < "$REPO/.claude/skills/$d/SKILL.md")
+    n=$(wc -l < "$REPO/.opencode/skills/$d/SKILL.md")
     [ "$n" -le "$limit" ] || { echo "$d has $n lines (limit $limit)"; return 1; }
   done
 }
@@ -115,7 +115,7 @@ try:
 except ImportError:
     print("SKIP: pyyaml missing"); sys.exit(0)
 repo = sys.argv[1]; bad = []
-pats = ('.claude/skills/*/SKILL.md', '.claude/skills/*/*/SKILL.md')
+pats = ('.opencode/skills/*/SKILL.md', '.opencode/skills/*/*/SKILL.md')
 for pat in pats:
     for f in glob.glob(os.path.join(repo, pat)):
         txt = open(f, encoding='utf-8').read()
@@ -136,13 +136,13 @@ PY
 @test "OVERVIEW.md links only to SKILL.md files that exist" {
   while read -r p; do
     [ -z "$p" ] && continue
-    [ -f "$REPO/.claude/skills/$p" ] || { echo "dead link: $p"; return 1; }
-  done < <(grep -oE '\]\([a-z0-9/-]+/SKILL\.md\)' "$REPO/.claude/skills/OVERVIEW.md" \
+    [ -f "$REPO/.opencode/skills/$p" ] || { echo "dead link: $p"; return 1; }
+  done < <(grep -oE '\]\([a-z0-9/-]+/SKILL\.md\)' "$REPO/.opencode/skills/OVERVIEW.md" \
            | sed 's/^](//; s/)$//' | sort -u)
 }
 
 @test "OVERVIEW.md does not link into the docs container build output" {
-  run grep -c 'docs-content-built' "$REPO/.claude/skills/OVERVIEW.md"
+  run grep -c 'docs-content-built' "$REPO/.opencode/skills/OVERVIEW.md"
   [ "$output" = "0" ]
 }
 

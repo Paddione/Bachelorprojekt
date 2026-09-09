@@ -89,12 +89,12 @@ count() { grep -rEn "$1" $2 --include="*.ts" --include="*.svelte" --include="*.a
 # Upstream-gepflegte Skills sind ausgenommen: eine Änderung dort kollidiert beim nächsten Sync.
 # Fehlt der Marker-Block, ist die Vendor-Liste leer und ALLE Skills gelten als projekteigen —
 # das Gate wird dann strenger, nie schwächer.
-project_owned_skills() { # gibt Verzeichnisnamen relativ zu .claude/skills aus
+project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus
   local vendor; vendor=$(sed -n '/<!-- vendor-skills:begin -->/,/<!-- vendor-skills:end -->/p' \
-    .claude/skills/OVERVIEW.md 2>/dev/null | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` ')
+    .opencode/skills/OVERVIEW.md 2>/dev/null | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` ')
   local f d
-  for f in $(git ls-files -- .claude/skills | grep '/SKILL\.md$'); do
-    d="${f#.claude/skills/}"; d="${d%/SKILL.md}"
+  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+    d="${f#.opencode/skills/}"; d="${d%/SKILL.md}"
     printf '%s\n' "$vendor" | grep -qx "$d" || echo "$d"
   done
 }
@@ -282,37 +282,37 @@ row gate G-AGENTIC05 "$(
   echo $(( $(comm -3 <(echo "$files") <(echo "$routing") | grep -c .) + $(comm -3 <(echo "$files") <(echo "$registry") | grep -c .) ))
 )" eq 0 "6-Agenten agent↔routing↔registry Cross-Reference"
 row gate G-AGENTIC06 "$(
-  claimed=$(grep -oE '[0-9]+ project-local skills' .claude/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
+  claimed=$(grep -oE '[0-9]+ project-local skills' .opencode/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+')
   # nur getrackte SKILL.md zählen — lokal via market-cli installierte Skills sind
   # nicht projekt-relevant und dürfen das Gate nicht kippen (Präzedenz T001783)
-  real=$(git ls-files -- .claude/skills | grep -c '/SKILL\.md$')
+  real=$(git ls-files -- .opencode/skills | grep -c '/SKILL\.md$')
   echo $(( claimed>real ? claimed-real : real-claimed ))
 )" eq 0 "OVERVIEW.md Skill-Zähler vs real (Drift, nur getrackte)"
 row gate G-AGENTIC07 "$(
   c=0
-  for f in $(git ls-files -- .claude/skills | grep '/SKILL\.md$'); do
-    d=$(echo "$f" | sed 's#.claude/skills/##;s#/SKILL.md##'); base=$(basename "$d")
+  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+    d=$(echo "$f" | sed 's#.opencode/skills/##;s#/SKILL.md##'); base=$(basename "$d")
     awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^description:/{print 1;exit}' "$f" | grep -q 1 || continue
-    n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .claude/skills/OVERVIEW.md 2>/dev/null
-           grep -rl --include=SKILL.md -- "$base" .claude/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
+    n=$( { grep -rl -- "$base" CLAUDE.md AGENTS.md .opencode/skills/OVERVIEW.md 2>/dev/null
+           grep -rl --include=SKILL.md -- "$base" .opencode/skills 2>/dev/null | grep -v "$d/SKILL.md"; } | sort -u | wc -l)
     [ "$n" -eq 0 ] && c=$((c+1))
   done; echo $c
 )" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur getrackte)"
 row gate G-AGENTIC08 "$(
   # Lookbehind verhindert False Positives, wenn "scripts/…" Teil eines längeren,
-  # existierenden Pfads ist (z.B. .claude/skills/<name>/scripts/foo.py)
+  # existierenden Pfads ist (z.B. .opencode/skills/<name>/scripts/foo.py)
   # Scope: alle .md der projekteigenen Skills (T002303) — vorher nur SKILL.md, wodurch
   # ausgelagerte references/ ungeprüft blieben. Vendor-Skills bleiben aussen vor, weil ihre
   # relativen scripts/-Pfade skill-lokal korrekt sind und hier falsch gelesen wuerden.
   c=0
-  dirs=""; for d in $(project_owned_skills); do dirs="$dirs .claude/skills/$d"; done
-  dirs="$dirs .claude/skills/references"
+  dirs=""; for d in $(project_owned_skills); do dirs="$dirs .opencode/skills/$d"; done
+  dirs="$dirs .opencode/skills/references"
   for p in $(grep -rhoP '(?<![A-Za-z0-9_./-])scripts/[A-Za-z0-9_./-]+\.(sh|mjs|py)' $dirs --include='*.md' | sort -u); do
     [ -f "$p" ] || c=$((c+1)); done; echo $c
 )" eq 0 "Tote Script-Pfade in projekteigenen Skill-.md"
 row gate G-AGENTIC09 "$(
   c=0; for d in $(project_owned_skills); do
-    [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c
+    [ "$(wc -l < ".opencode/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c
 )" eq 0 "Projekteigene SKILL.md >400 Zeilen"
 row gate G-AGENTIC11 "$(
   claimed=$(grep 'opencode runtime registers' CLAUDE.md | grep -oE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u)
@@ -321,11 +321,11 @@ row gate G-AGENTIC11 "$(
 )" eq 0 "CLAUDE.md opencode-Liste vs opencode.jsonc (sym. Diff)"
 row gate G-AGENTIC12 "$(
   c=0; for s in $(mcp_servers .mcp.json); do
-    grep -q -- "$s" .claude/skills/references/mcp-tool-guide.md || c=$((c+1)); done; echo $c
+    grep -q -- "$s" .opencode/skills/references/mcp-tool-guide.md || c=$((c+1)); done; echo $c
 )" eq 0 ".mcp.json-Server undokumentiert in mcp-tool-guide"
 row gate G-AGENTIC13 "$(
   reg=$( { mcp_servers .mcp.json; mcp_servers .opencode/opencode.jsonc; } | sort -u)
-  refs=$(grep -rhoE 'mcp__[a-z0-9-]+__|mcp-[a-z0-9-]+_browser_' .claude/skills --include=SKILL.md \
+  refs=$(grep -rhoE 'mcp__[a-z0-9-]+__|mcp-[a-z0-9-]+_browser_' .opencode/skills --include=SKILL.md \
          | sed -E 's/^mcp__//; s/__$//; s/_browser_$//' | sort -u)
   c=0; for s in $refs; do echo "$reg" | grep -qx "$s" || c=$((c+1)); done; echo $c
 )" eq 0 "Tote MCP-Server-Referenzen in SKILL.md"
@@ -345,7 +345,7 @@ PY
 row gate G-AGENTIC15 "$(
   valid=$( { for f in .claude/commands/opsx/*.md; do basename "$f" .md; done
              for f in .opencode/commands/opsx-*.md; do basename "$f" .md | sed 's/^opsx-//'; done; } | sort -u)
-  refs=$(grep -rhoE '/opsx[:-][a-z]+' CLAUDE.md AGENTS.md .claude/commands .opencode/commands .claude/skills --include='*.md' 2>/dev/null \
+  refs=$(grep -rhoE '/opsx[:-][a-z]+' CLAUDE.md AGENTS.md .claude/commands .opencode/commands .opencode/skills --include='*.md' 2>/dev/null \
          | sed -E 's#/opsx[:-]##' | sort -u)
   c=0; for r in $refs; do echo "$valid" | grep -qx "$r" || c=$((c+1)); done; echo $c
 )" eq 0 "Phantom-/opsx-Command-Referenzen"
@@ -429,7 +429,7 @@ row target G-DOC02 "$(anchor_file CLAUDE.md; wc -l < CLAUDE.md | tr -d ' ')" le 
 row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 0 "tools:-Eintraege, die ins Leere zeigen (leere Aufloesung oder unbekannter MCP-Server)"
 row target G-AGENTIC10 "$(
   c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
-    grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
+    grep -rlE "^agent:[[:space:]]*$a" .opencode/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
 )" le 0 "Agenten ohne dispatchende Skill (website/db/security)"
 row target G-DOC03 "$(c=0; for d in components/website components/brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -vE '(41898282\+)?github-actions\[bot\]@users\.noreply\.github\.com' | awk '{print $1}' | grep -c N || true)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
@@ -477,7 +477,7 @@ want G-SLO01 && row target G-SLO01 "$(runtime_measure slo)" ge 995 "7-Tage-Verf�
 want G-CI03 && row target G-CI03 "$(
   if [ "$FAST" = 1 ]; then echo "-"; else
     # gh-axi hat kein --json-Pendant fuer `run list` (nur --fields) — hier bewusst `gh` direkt,
-    # siehe .claude/skills/references/gh-axi.md ("Wann gh statt gh-axi").
+    # siehe .opencode/skills/references/gh-axi.md ("Wann gh statt gh-axi").
     gh_ok=0; out=$(gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt 2>/dev/null) || gh_ok=1
     if [ "$gh_ok" = 1 ] || [ -z "$out" ]; then echo "-"; else
       echo "$out" | python3 -c "

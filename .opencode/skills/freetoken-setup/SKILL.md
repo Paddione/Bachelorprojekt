@@ -48,7 +48,7 @@ Optimal per-model configs for the local FreeToken engine on PK-Desktop
 
 1. **Pick/switch model** → exact `ft serve` line from the matrix; start via
    `restart-freetoken.ps1 -Model <path> -NumTokens <n> [-ExtraArgs "..."]`.
-2. **Validate** → `bash scripts/smoke-test.sh` (health, served id, stats,
+2. **Validate** → `bash .opencode/skills/freetoken-setup/scripts/smoke-test.sh` (health, served id, stats,
    advertised-vs-configured context warning).
 3. **Wire opencode** → keep `.opencode/agent-models.jsonc`
    `provider.freetoken-local.models.<CheckpointName>.limit.context` equal to

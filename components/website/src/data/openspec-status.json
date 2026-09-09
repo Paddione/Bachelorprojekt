@@ -4505,6 +4505,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900014": [
+    {
+      "slug": "flux-secrets-ordering",
+      "status": "plan_staged"
+    }
+  ],
   "T900023": [
     {
       "slug": "2026-08-31-agent-lock-windows-drive-path",
@@ -4514,6 +4520,24 @@
   "T900027": [
     {
       "slug": "stray-secret-dump-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T900029": [
+    {
+      "slug": "fix-sessions-wildcard-render-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T900033": [
+    {
+      "slug": "fix-ipv64-acme-cleanup-T900033",
+      "status": "plan_staged"
+    }
+  ],
+  "T900037": [
+    {
+      "slug": "readiness-nextcloud-llmproxy-T900037",
       "status": "plan_staged"
     }
   ],
@@ -4535,9 +4559,21 @@
       "status": "plan_staged"
     }
   ],
+  "T900043": [
+    {
+      "slug": "devflow-main-checkout-guards-T900043",
+      "status": "plan_staged"
+    }
+  ],
   "T900046": [
     {
       "slug": "worktree-prune-cross-platform-fix",
+      "status": "plan_staged"
+    }
+  ],
+  "T900047": [
+    {
+      "slug": "fix-worktree-write-guard-abspath-T900047",
       "status": "plan_staged"
     }
   ],
@@ -4562,6 +4598,12 @@
   "T900057": [
     {
       "slug": "sf-test-fixture-cleanup",
+      "status": "plan_staged"
+    }
+  ],
+  "T900058": [
+    {
+      "slug": "sentinel-track-pr-cleanup",
       "status": "plan_staged"
     }
   ],

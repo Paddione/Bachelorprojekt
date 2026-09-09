@@ -225,7 +225,7 @@ ds-bundle/
 brain-worklist.txt
 
 # ── lobehub market-cli — locally installed skills (not vetted/shared) ──
-.claude/skills/haniakrim21-*/
+.opencode/skills/haniakrim21-*/
 
 # ── HuggingFace skill pack — auto-installed 2026-08-23 (not vetted/shared) [T015174] ──
 # scan.mjs liest mit --exclude-standard: ignorierte Pfade fallen aus dem

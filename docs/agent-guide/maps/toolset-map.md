@@ -14,7 +14,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Antwort wird maschinell geparst (--json/-q/--jq, jq-Pipelines), Polling-Loops oder Mutationen — gh-axi liefert TOON-Text und ignoriert --json still mit Exit 0 (T004612); dort gh direkt.
   - _Fallback:_ `gh (maschinelles Parsen, Polling, Mutationen, nicht abgedeckte Kommandos)`
   - _Rollen:_ `all`
-  - _Tiefe:_ `.claude/skills/references/gh-axi.md`
+  - _Tiefe:_ `.opencode/skills/references/gh-axi.md`
 - **`mcp:github-mcp`** — Status `suppressed`
   - _Grund:_ gh-axi ist der mandatierte GitHub-Pfad.
 - **`plugin:github@claude-plugins-official`** — Status `suppressed`
@@ -26,7 +26,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Commit, Push, PR, CI-Fix-Schleife, Auto-Merge, Worktree-Cleanup.
   - _Nicht:_ Reine Leseoperationen auf der Historie.
   - _Rollen:_ `all`
-  - _Tiefe:_ `.claude/skills/git-workflow/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/git-workflow/SKILL.md`
 - **`plugin:commit-commands@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ git-workflow ist der repo-spezifische Pfad und kennt Scope-Allowlist und Guards.
 
@@ -37,7 +37,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Jede Mutation: apply, rollout restart, scale, delete.
   - _Fallback:_ `kubectl --context fleet get/logs (bei Portforward-Ausfall)`
   - _Rollen:_ `bachelorprojekt-ops`, `bachelorprojekt-infra`, `orchestrator`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tiefe:_ `.opencode/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `kubernetes-mutation`
 
@@ -46,7 +46,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Reine Status-Abfragen — dafür mcp-kubernetes.
   - _Fallback:_ `task workspace:deploy ENV=<brand> (break-glass; primär ist Flux)`
   - _Rollen:_ `bachelorprojekt-infra`, `bachelorprojekt-ops`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tiefe:_ `.opencode/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `postgres-lesen`
 
@@ -55,7 +55,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ INSERT/UPDATE/DELETE/DDL — jede Query läuft READ ONLY und scheitert.
   - _Fallback:_ `kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)`
   - _Rollen:_ `bachelorprojekt-db`, `orchestrator`, `big-pickle`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tiefe:_ `.opencode/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `postgres-schreiben`
 
@@ -64,14 +64,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Prod-Namespaces ohne prod-write-guard.sh — für Subagenten verboten.
   - _Fallback:_ `scripts/prod-write-guard.sh check <namespace> <sql>`
   - _Rollen:_ `bachelorprojekt-db`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tiefe:_ `.opencode/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `datenbank-betrieb`
 
 - **`skill:database-specialist`** — Status `canonical` · Tier `assisted`
   - _Wann:_ Migrationen, Index-Optimierung, EXPLAIN ANALYZE, Backup und Restore.
   - _Rollen:_ `bachelorprojekt-db`
-  - _Tiefe:_ `.claude/skills/database-specialist/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/database-specialist/SKILL.md`
 
 ## Fähigkeit: `ticket-lebenszyklus`
 
@@ -80,7 +80,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ stage_plan im Worktree — schlägt dort immer fehl.
   - _Fallback:_ `scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)`
   - _Rollen:_ `bachelorprojekt-test`, `bachelorprojekt-db`, `orchestrator`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tiefe:_ `.opencode/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `ticket-inhalt`
 
@@ -88,7 +88,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Triage, Definition of Readiness, fehlende Angaben, Parallelarbeit planen.
   - _Nicht:_ Repo-Zustand — Branches, Worktrees und PRs gehören zu repo-hygiene.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/ticket-ops/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/ticket-ops/SKILL.md`
 
 ## Fähigkeit: `factory-steuerung`
 
@@ -96,7 +96,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Factory-Queue, Status, Enqueue, Trigger, ähnliche OpenSpec-Changes finden.
   - _Nicht:_ type=task-Tickets — der Dispatcher scheduled ausschliesslich type=feature.
   - _Rollen:_ `bachelorprojekt-test`, `orchestrator`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tiefe:_ `.opencode/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `repo-task-ausfuehrung`
 
@@ -116,7 +116,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Am Ende jedes dev-flow-Skills die gesammelten Frictionen als ein Ticket melden.
   - _Fallback:_ `bash scripts/hooks/mishap-tracker.sh --friction '<text>'`
   - _Rollen:_ `all`
-  - _Tiefe:_ `.claude/skills/mishap-tracker/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/mishap-tracker/SKILL.md`
 
 ## Fähigkeit: `entwicklungs-planung`
 
@@ -124,7 +124,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Startpunkt jeder Änderung: Pfadwahl, Brainstorming, Spec und Plan.
   - _Nicht:_ Wartung ohne Verhaltensänderung — das ist dev-flow-chore.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/dev-flow-plan/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/dev-flow-plan/SKILL.md`
 - **`plugin:feature-dev@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ dev-flow-plan ist der repo-eigene Pfad inklusive OpenSpec- und Ticket-Anbindung.
 
@@ -134,7 +134,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Einen gestageten Plan implementieren, verifizieren und den PR mergen.
   - _Nicht:_ Ohne gestageten Plan — dann zuerst dev-flow-plan.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/dev-flow-execute/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/dev-flow-execute/SKILL.md`
 
 ## Fähigkeit: `wartung`
 
@@ -142,7 +142,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Doku, Dependency-Bumps, Config, Umbenennungen, Cleanup — ohne Verhaltensänderung.
   - _Nicht:_ Sobald sich das Verhalten der Software ändert — dann dev-flow-plan.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/dev-flow-chore/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/dev-flow-chore/SKILL.md`
 
 ## Fähigkeit: `e2e-tests`
 
@@ -150,21 +150,21 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Playwright-Tests gegen die Live-Marken NACH Merge und Deploy.
   - _Nicht:_ Unit- und BATS-Tests während der Implementierung.
   - _Rollen:_ `bachelorprojekt-test`
-  - _Tiefe:_ `.claude/skills/dev-flow-e2e/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/dev-flow-e2e/SKILL.md`
 
 ## Fähigkeit: `unit-tests`
 
 - **`skill:vitest`** — Status `canonical` · Tier `safe`
   - _Wann:_ Vitest-Tests schreiben, Mocking, Coverage und Test-Filter im website-Paket.
   - _Rollen:_ `bachelorprojekt-test`, `bachelorprojekt-website`
-  - _Tiefe:_ `.claude/skills/vitest/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/vitest/SKILL.md`
 
 ## Fähigkeit: `abhaengigkeits-pflege`
 
 - **`skill:update-dependencies`** — Status `canonical` · Tier `caution`
   - _Wann:_ Dependency-Bumps im Repo koordinieren.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/update-dependencies/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/update-dependencies/SKILL.md`
 
 ## Fähigkeit: `openspec-vorschlag`
 
@@ -173,14 +173,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Innerhalb von dev-flow-plan — dessen Phase A ruft es bereits auf.
   - _Fallback:_ `bash scripts/openspec.sh propose <slug> --ticket T… --target-spec <parent>`
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-propose/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/openspec-propose/SKILL.md`
 
 ## Fähigkeit: `openspec-umsetzung`
 
 - **`skill:openspec-apply-change`** — Status `canonical` · Tier `safe`
   - _Wann:_ Tasks eines bestehenden Change abarbeiten ausserhalb von dev-flow-execute.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-apply-change/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/openspec-apply-change/SKILL.md`
 
 ## Fähigkeit: `openspec-archivierung`
 
@@ -189,7 +189,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Delta-Spec neben dem SSOT-Spec editieren — dann scheitert archive.
   - _Fallback:_ `bash scripts/openspec.sh archive <slug> [--create-new]`
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-archive-change/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/openspec-archive-change/SKILL.md`
 
 ## Fähigkeit: `denk-partner`
 
@@ -197,7 +197,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Idee durchdenken, Optionen vergleichen, festgefahrene Stelle lösen — ohne Artefakt.
   - _Nicht:_ Wenn eine Entscheidung festgehalten werden soll — dann dev-flow-plan.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/openspec-explore/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/openspec-explore/SKILL.md`
 
 ## Fähigkeit: `vorfall-behandlung`
 
@@ -205,7 +205,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Ein Kerndienst ist ausgefallen oder degradiert — zeitkritische Triage.
   - _Nicht:_ Nicht-dringende Repo-Pflege.
   - _Rollen:_ `bachelorprojekt-ops`
-  - _Tiefe:_ `.claude/skills/incident-response/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/incident-response/SKILL.md`
 
 ## Fähigkeit: `infrastruktur-runbook`
 
@@ -213,7 +213,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Nur auf ausdrückliche Anfrage: Cluster-Setup, Deploy, Netz, SSO, Secrets, Migration.
   - _Nicht:_ Automatisch auslösen — der Skill ist ausdrücklich invoke-only.
   - _Rollen:_ `bachelorprojekt-infra`
-  - _Tiefe:_ `.claude/skills/infra-ops/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/infra-ops/SKILL.md`
 
 ## Fähigkeit: `repo-hygiene`
 
@@ -221,7 +221,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Stale Branches und Worktrees, offene PRs, Issue-Intake, Factory-Queue.
   - _Nicht:_ Ticket-Inhalt — Triage und Vollständigkeit gehören zu ticket-ops.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/repo-hygiene/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/repo-hygiene/SKILL.md`
 
 ## Fähigkeit: `betriebs-routing`
 
@@ -229,14 +229,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Wenn unklar ist, ob incident-response, ticket-ops oder repo-hygiene zuständig ist.
   - _Nicht:_ Wenn die Zuständigkeit feststeht — dann direkt den passenden Skill.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/operations-management/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/operations-management/SKILL.md`
 
 ## Fähigkeit: `gitops-wissen`
 
 - **`skill:gitops-knowledge`** — Status `canonical` · Tier `safe`
   - _Wann:_ Flux-Konzepte erklären und schema-validiertes YAML für Flux-CRDs erzeugen.
   - _Rollen:_ `bachelorprojekt-infra`
-  - _Tiefe:_ `.claude/skills/gitops-knowledge/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/gitops-knowledge/SKILL.md`
 
 ## Fähigkeit: `gitops-cluster-debug`
 
@@ -244,7 +244,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Flux auf dem Live-Cluster diagnostizieren: stuck, not-ready, Artefakt-Pull.
   - _Nicht:_ Repo-Dateien prüfen — dafür gitops-repo-audit.
   - _Rollen:_ `bachelorprojekt-infra`, `bachelorprojekt-ops`
-  - _Tiefe:_ `.claude/skills/gitops-cluster-debug/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/gitops-cluster-debug/SKILL.md`
 
 ## Fähigkeit: `gitops-repo-audit`
 
@@ -252,7 +252,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ GitOps-Repo-Dateien prüfen: Schema, veraltete APIs, RBAC, Secrets.
   - _Nicht:_ Live-Cluster-Zustand — dafür gitops-cluster-debug.
   - _Rollen:_ `bachelorprojekt-infra`
-  - _Tiefe:_ `.claude/skills/gitops-repo-audit/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/gitops-repo-audit/SKILL.md`
 
 ## Fähigkeit: `system-audit`
 
@@ -260,7 +260,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki) — endet je Befund in Ticket + OpenSpec-Proposal.
   - _Nicht:_ Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/system-audit/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/system-audit/SKILL.md`
 
 ## Fähigkeit: `security-analyse`
 
@@ -268,7 +268,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ SealedSecrets, Pocket-ID-OIDC-Clients, DSGVO-Prüfung, Secret-Rotation.
   - _Nicht:_ Allgemeine Code-Sicherheit — dafür secure-coding-guidance.
   - _Rollen:_ `bachelorprojekt-security`
-  - _Tiefe:_ `.claude/skills/security-specialist/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/security-specialist/SKILL.md`
 
 ## Fähigkeit: `secure-coding-guidance`
 
@@ -300,7 +300,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Brain-Wiki kompilieren und ins externe Paddione/brain-Repo veröffentlichen.
   - _Nicht:_ Zum Lesen des Wikis — dieser Skill schreibt es.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/brain-ingest/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/brain-ingest/SKILL.md`
 
 ## Fähigkeit: `wiki-nachschlagen`
 
@@ -309,7 +309,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Wiki kompilieren/veröffentlichen — dafür wissens-wiki/brain-ingest.
   - _Fallback:_ `grep -r <begriff> ~/brain/wiki`
   - _Rollen:_ `all`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+  - _Tiefe:_ `.opencode/skills/references/mcp-tool-guide.md`
 
 ## Fähigkeit: `dokumentations-lookup`
 
@@ -334,14 +334,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:website-specialist`** — Status `canonical` · Tier `caution`
   - _Wann:_ Astro- und Svelte-Komponenten, Seiten-Routing, Content und UI im website-Paket.
   - _Rollen:_ `bachelorprojekt-website`
-  - _Tiefe:_ `.claude/skills/website-specialist/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/website-specialist/SKILL.md`
 
 ## Fähigkeit: `ui-design`
 
 - **`skill:ui-ux-pro-max`** — Status `canonical` · Tier `safe`
   - _Wann:_ UI- und UX-Entwurf im Kore-Designsystem der Marken.
   - _Rollen:_ `bachelorprojekt-website`
-  - _Tiefe:_ `.claude/skills/ui-ux-pro-max/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/ui-ux-pro-max/SKILL.md`
 - **`plugin:frontend-design@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ Generisch; das Kore-Designsystem ist in ui-ux-pro-max und WEBSITE-STANDARDS.md verbindlich.
 
@@ -351,7 +351,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Plan, Vergleich, Diagramm oder Report als annotierbares HTML zum Review geben.
   - _Nicht:_ Ohne vorherige Zustimmung — der Skill hat ein Consent-Gate.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/lavish/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/lavish/SKILL.md`
 
 ## Fähigkeit: `web-audit`
 
@@ -360,7 +360,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ PR-Entscheidungen — der Skill ist bewusst kein Merge-Gate.
   - _Fallback:_ `task web:audit ENV=<brand> [WEB_AUDIT_ROUTES=...]`
   - _Rollen:_ `bachelorprojekt-website`, `bachelorprojekt-test`
-  - _Tiefe:_ `.claude/skills/web-audit/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/web-audit/SKILL.md`
 
 ## Fähigkeit: `browser-automation`
 
@@ -437,7 +437,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ LLM-Finetuning mit Unsloth: SFT, DPO, GRPO, LoRA, GGUF-Export.
   - _Nicht:_ Ohne lokale GPU oder ohne ausdrücklichen Trainingsauftrag.
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/unsloth-buddy/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/unsloth-buddy/SKILL.md`
 
 ## Fähigkeit: `finetune-pipeline`
 
@@ -446,7 +446,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer modell-finetuning/skill:unsloth-buddy direkt.
   - _Fallback:_ `unsloth-buddy-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist.`
   - _Rollen:_ `orchestrator`, `bachelorprojekt-ops`
-  - _Tiefe:_ `.claude/skills/finetune-run/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/finetune-run/SKILL.md`
 - **`skill:finetune-run`** — Status `suppressed`
   - _Grund:_ cli:scripts/finetune ist die kanonische Instanz und verlinkt dieses SKILL.md bereits als deep_ref — das Skill wird nicht separat injiziert.
 
@@ -473,7 +473,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`skill:references`** — Status `canonical` · Tier `safe`
   - _Wann:_ Querschnitts-Referenz nachschlagen: MCP-Guide, Plan-Gates, Deploy-Routing, Locks.
   - _Rollen:_ `all`
-  - _Tiefe:_ `.claude/skills/references/`
+  - _Tiefe:_ `.opencode/skills/references/`
 
 ## Fähigkeit: `werkzeug-kuration`
 
@@ -481,7 +481,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Unkuratierte Werkzeug-Instanzen entscheiden und ihre Nutzungssemantik erfassen.
   - _Fallback:_ `node scripts/toolset/collect.mjs --unreviewed`
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/toolset-curate/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/toolset-curate/SKILL.md`
 
 ## Fähigkeit: `werkzeug-discovery`
 
@@ -490,7 +490,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Bereits vorhandene Instanzen kuratieren — dafür werkzeug-kuration/toolset-curate.
   - _Fallback:_ `node scripts/agentic-lookup.mjs find <query>`
   - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/agentic-resource-lookup/SKILL.md`
+  - _Tiefe:_ `.opencode/skills/agentic-resource-lookup/SKILL.md`
 
 ## Fähigkeit: `gedaechtnis`
 

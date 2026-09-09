@@ -22,7 +22,7 @@ bash scripts/vda.sh oracle '<goal in plain English>'
 | `agent-msg.sh` | Inter-session message broadcast |
 | `opencode-monitor.sh` | Observe opencode serve: sessions, status, SSE events, session details |
 | `opencode-serve.sh` | Lifecycle management for opencode serve: start/stop/restart/status/health |
-| `setup-autostart.sh` | Install/remove the opencode serve autostart block in ~/.bashrc (idempotent) |
+| `setup-autostart.sh` | Install/remove the opencode serve autostart block in ~/.bashrc (idempotent; password via $OPENCODE_SERVER_PASSWORD or local secret file, never in repo) |
 | `backup-restore.sh` | Orchestrate DB + PVC backup/restore |
 | `health-goals-check.sh` | Check repository health goals (G-* targets) |
 | `plan-context.sh` | Inject active plan context into agent prompts |

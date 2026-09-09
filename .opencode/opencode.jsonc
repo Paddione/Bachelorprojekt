@@ -9,6 +9,23 @@
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
   "model": "freetoken-local/active",
+  // ── Compaction: factory/autonom — small bounded sessions, one ticket per run ─
+  // Durable state in files (plans, tickets, commits) survives compaction;
+  // chat summary keeps less verbatim because the project artifacts are source of truth.
+  "compaction": {
+    "auto": true,
+    "preserve_recent_tokens": 12000,
+    "reserved": 24000
+  },
+  // ── Skill scoping: only load factory-relevant skills (17 total).
+  // SSOT is .opencode/skills/ (.claude/skills/* are shims via symlinks).
+  // Default opencode scan paths (.claude/, .agents/) carry ~112 skills including
+  // 40+ HuggingFace training / domain / meta skills that the factory never needs.
+  // This restricts to the canonical .opencode/skills/ set that covers
+  // dev-flow, git, tickets, openspec, repo hygiene, and tests.
+  "skills": {
+    "paths": [".opencode/skills"]
+  },
   // ── Third-party opencode plugins (installed via npm into .opencode/) ──────
   // Loaded from npm through the `plugin` array. Packages are declared in
   // .opencode/package.json. Composio + Firecrawl are MCP servers (see `mcp`
@@ -138,9 +155,9 @@
 
       "type": "local",
 
-      "command": ["codebase-memory-mcp"],
+      "command": ["npx","-y","codebase-memory-mcp@0.10.8"],
 
-      "enabled": false
+      "enabled": true
 
     },
 

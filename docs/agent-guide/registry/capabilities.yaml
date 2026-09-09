@@ -40,7 +40,7 @@ capabilities:
       fallback: "gh (maschinelles Parsen, Polling, Mutationen, nicht abgedeckte Kommandos)"
       roles: [all]
       tier: caution
-      deep_ref: ".claude/skills/references/gh-axi.md"
+      deep_ref: ".opencode/skills/references/gh-axi.md"
     plugin:github@claude-plugins-official:
       state: suppressed
       reason: "Doppelt gh-axi und zieht rund 40 Tool-Schemata in den Kontext."
@@ -52,7 +52,7 @@ capabilities:
       avoid_when: "Reine Leseoperationen auf der Historie."
       roles: [all]
       tier: caution
-      deep_ref: ".claude/skills/git-workflow/SKILL.md"
+      deep_ref: ".opencode/skills/git-workflow/SKILL.md"
     plugin:commit-commands@claude-plugins-official:
       state: suppressed
       reason: "git-workflow ist der repo-spezifische Pfad und kennt Scope-Allowlist und Guards."
@@ -66,7 +66,7 @@ capabilities:
       fallback: "kubectl --context fleet get/logs (bei Portforward-Ausfall)"
       roles: [bachelorprojekt-ops, bachelorprojekt-infra, orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
 
   kubernetes-mutation:
     cli:kubectl:
@@ -76,7 +76,7 @@ capabilities:
       fallback: "task workspace:deploy ENV=<brand> (break-glass; primär ist Flux)"
       roles: [bachelorprojekt-infra, bachelorprojekt-ops]
       tier: dangerous
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
 
   postgres-lesen:
     mcp:mcp-postgres:
@@ -86,7 +86,7 @@ capabilities:
       fallback: "kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)"
       roles: [bachelorprojekt-db, orchestrator, big-pickle]
       tier: safe
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
 
   postgres-schreiben:
     cli:psql-via-kubectl:
@@ -96,7 +96,7 @@ capabilities:
       fallback: "scripts/prod-write-guard.sh check <namespace> <sql>"
       roles: [bachelorprojekt-db]
       tier: dangerous
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
 
   datenbank-betrieb:
     skill:database-specialist:
@@ -104,7 +104,7 @@ capabilities:
       use_when: "Migrationen, Index-Optimierung, EXPLAIN ANALYZE, Backup und Restore."
       roles: [bachelorprojekt-db]
       tier: assisted
-      deep_ref: ".claude/skills/database-specialist/SKILL.md"
+      deep_ref: ".opencode/skills/database-specialist/SKILL.md"
 
   # ─── Tickets, Factory, Pläne ────────────────────────────────────────────────────────
   ticket-lebenszyklus:
@@ -115,7 +115,7 @@ capabilities:
       fallback: "scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)"
       roles: [bachelorprojekt-test, bachelorprojekt-db, orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
 
   ticket-inhalt:
     skill:ticket-ops:
@@ -124,7 +124,7 @@ capabilities:
       avoid_when: "Repo-Zustand — Branches, Worktrees und PRs gehören zu repo-hygiene."
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/ticket-ops/SKILL.md"
+      deep_ref: ".opencode/skills/ticket-ops/SKILL.md"
 
   factory-steuerung:
     mcp:factory-mcp:
@@ -133,7 +133,7 @@ capabilities:
       avoid_when: "type=task-Tickets — der Dispatcher scheduled ausschliesslich type=feature."
       roles: [bachelorprojekt-test, orchestrator]
       tier: assisted
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
 
   repo-task-ausfuehrung:
     mcp:mcp-task-runner:
@@ -155,7 +155,7 @@ capabilities:
       fallback: "bash scripts/hooks/mishap-tracker.sh --friction '<text>'"
       roles: [all]
       tier: safe
-      deep_ref: ".claude/skills/mishap-tracker/SKILL.md"
+      deep_ref: ".opencode/skills/mishap-tracker/SKILL.md"
 
   # ─── Entwicklungs-Workflow ──────────────────────────────────────────────────────────
   entwicklungs-planung:
@@ -165,7 +165,7 @@ capabilities:
       avoid_when: "Wartung ohne Verhaltensänderung — das ist dev-flow-chore."
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/dev-flow-plan/SKILL.md"
+      deep_ref: ".opencode/skills/dev-flow-plan/SKILL.md"
     plugin:feature-dev@claude-plugins-official:
       state: suppressed
       reason: "dev-flow-plan ist der repo-eigene Pfad inklusive OpenSpec- und Ticket-Anbindung."
@@ -177,7 +177,7 @@ capabilities:
       avoid_when: "Ohne gestageten Plan — dann zuerst dev-flow-plan."
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/dev-flow-execute/SKILL.md"
+      deep_ref: ".opencode/skills/dev-flow-execute/SKILL.md"
 
   wartung:
     skill:dev-flow-chore:
@@ -186,7 +186,7 @@ capabilities:
       avoid_when: "Sobald sich das Verhalten der Software ändert — dann dev-flow-plan."
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/dev-flow-chore/SKILL.md"
+      deep_ref: ".opencode/skills/dev-flow-chore/SKILL.md"
 
   e2e-tests:
     skill:dev-flow-e2e:
@@ -195,7 +195,7 @@ capabilities:
       avoid_when: "Unit- und BATS-Tests während der Implementierung."
       roles: [bachelorprojekt-test]
       tier: caution
-      deep_ref: ".claude/skills/dev-flow-e2e/SKILL.md"
+      deep_ref: ".opencode/skills/dev-flow-e2e/SKILL.md"
 
   unit-tests:
     skill:vitest:
@@ -203,7 +203,7 @@ capabilities:
       use_when: "Vitest-Tests schreiben, Mocking, Coverage und Test-Filter im website-Paket."
       roles: [bachelorprojekt-test, bachelorprojekt-website]
       tier: safe
-      deep_ref: ".claude/skills/vitest/SKILL.md"
+      deep_ref: ".opencode/skills/vitest/SKILL.md"
 
   abhaengigkeits-pflege:
     skill:update-dependencies:
@@ -211,7 +211,7 @@ capabilities:
       use_when: "Dependency-Bumps im Repo koordinieren."
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/update-dependencies/SKILL.md"
+      deep_ref: ".opencode/skills/update-dependencies/SKILL.md"
 
   # ─── OpenSpec ───────────────────────────────────────────────────────────────────────
   openspec-vorschlag:
@@ -222,7 +222,7 @@ capabilities:
       fallback: "bash scripts/openspec.sh propose <slug> --ticket T… --target-spec <parent>"
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/openspec-propose/SKILL.md"
+      deep_ref: ".opencode/skills/openspec-propose/SKILL.md"
 
   openspec-umsetzung:
     skill:openspec-apply-change:
@@ -230,7 +230,7 @@ capabilities:
       use_when: "Tasks eines bestehenden Change abarbeiten ausserhalb von dev-flow-execute."
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/openspec-apply-change/SKILL.md"
+      deep_ref: ".opencode/skills/openspec-apply-change/SKILL.md"
 
   openspec-archivierung:
     skill:openspec-archive-change:
@@ -240,7 +240,7 @@ capabilities:
       fallback: "bash scripts/openspec.sh archive <slug> [--create-new]"
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/openspec-archive-change/SKILL.md"
+      deep_ref: ".opencode/skills/openspec-archive-change/SKILL.md"
 
   denk-partner:
     skill:openspec-explore:
@@ -249,7 +249,7 @@ capabilities:
       avoid_when: "Wenn eine Entscheidung festgehalten werden soll — dann dev-flow-plan."
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/openspec-explore/SKILL.md"
+      deep_ref: ".opencode/skills/openspec-explore/SKILL.md"
 
   # ─── Betrieb & Infrastruktur ────────────────────────────────────────────────────────
   vorfall-behandlung:
@@ -259,7 +259,7 @@ capabilities:
       avoid_when: "Nicht-dringende Repo-Pflege."
       roles: [bachelorprojekt-ops]
       tier: assisted
-      deep_ref: ".claude/skills/incident-response/SKILL.md"
+      deep_ref: ".opencode/skills/incident-response/SKILL.md"
 
   infrastruktur-runbook:
     skill:infra-ops:
@@ -268,7 +268,7 @@ capabilities:
       avoid_when: "Automatisch auslösen — der Skill ist ausdrücklich invoke-only."
       roles: [bachelorprojekt-infra]
       tier: dangerous
-      deep_ref: ".claude/skills/infra-ops/SKILL.md"
+      deep_ref: ".opencode/skills/infra-ops/SKILL.md"
 
   repo-hygiene:
     skill:repo-hygiene:
@@ -277,7 +277,7 @@ capabilities:
       avoid_when: "Ticket-Inhalt — Triage und Vollständigkeit gehören zu ticket-ops."
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/repo-hygiene/SKILL.md"
+      deep_ref: ".opencode/skills/repo-hygiene/SKILL.md"
 
   betriebs-routing:
     skill:operations-management:
@@ -286,7 +286,7 @@ capabilities:
       avoid_when: "Wenn die Zuständigkeit feststeht — dann direkt den passenden Skill."
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/operations-management/SKILL.md"
+      deep_ref: ".opencode/skills/operations-management/SKILL.md"
 
   gitops-wissen:
     skill:gitops-knowledge:
@@ -294,7 +294,7 @@ capabilities:
       use_when: "Flux-Konzepte erklären und schema-validiertes YAML für Flux-CRDs erzeugen."
       roles: [bachelorprojekt-infra]
       tier: safe
-      deep_ref: ".claude/skills/gitops-knowledge/SKILL.md"
+      deep_ref: ".opencode/skills/gitops-knowledge/SKILL.md"
 
   gitops-cluster-debug:
     skill:gitops-cluster-debug:
@@ -303,7 +303,7 @@ capabilities:
       avoid_when: "Repo-Dateien prüfen — dafür gitops-repo-audit."
       roles: [bachelorprojekt-infra, bachelorprojekt-ops]
       tier: caution
-      deep_ref: ".claude/skills/gitops-cluster-debug/SKILL.md"
+      deep_ref: ".opencode/skills/gitops-cluster-debug/SKILL.md"
 
   gitops-repo-audit:
     skill:gitops-repo-audit:
@@ -312,7 +312,7 @@ capabilities:
       avoid_when: "Live-Cluster-Zustand — dafür gitops-cluster-debug."
       roles: [bachelorprojekt-infra]
       tier: safe
-      deep_ref: ".claude/skills/gitops-repo-audit/SKILL.md"
+      deep_ref: ".opencode/skills/gitops-repo-audit/SKILL.md"
 
   system-audit:
     skill:system-audit:
@@ -321,7 +321,7 @@ capabilities:
       avoid_when: "Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill."
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/system-audit/SKILL.md"
+      deep_ref: ".opencode/skills/system-audit/SKILL.md"
 
   # ─── Sicherheit ─────────────────────────────────────────────────────────────────────
   security-analyse:
@@ -331,7 +331,7 @@ capabilities:
       avoid_when: "Allgemeine Code-Sicherheit — dafür secure-coding-guidance."
       roles: [bachelorprojekt-security]
       tier: dangerous
-      deep_ref: ".claude/skills/security-specialist/SKILL.md"
+      deep_ref: ".opencode/skills/security-specialist/SKILL.md"
 
   secure-coding-guidance:
     plugin:security-guidance@claude-plugins-official:
@@ -369,7 +369,7 @@ capabilities:
       avoid_when: "Zum Lesen des Wikis — dieser Skill schreibt es."
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/brain-ingest/SKILL.md"
+      deep_ref: ".opencode/skills/brain-ingest/SKILL.md"
 
   wiki-nachschlagen:
     mcp:brain-mcp:
@@ -379,7 +379,7 @@ capabilities:
       fallback: "grep -r <begriff> ~/brain/wiki"
       roles: [all]
       tier: safe
-      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
 
   dokumentations-lookup:
     plugin:context7@claude-plugins-official:
@@ -404,7 +404,7 @@ capabilities:
       use_when: "Astro- und Svelte-Komponenten, Seiten-Routing, Content und UI im website-Paket."
       roles: [bachelorprojekt-website]
       tier: caution
-      deep_ref: ".claude/skills/website-specialist/SKILL.md"
+      deep_ref: ".opencode/skills/website-specialist/SKILL.md"
 
   ui-design:
     skill:ui-ux-pro-max:
@@ -412,7 +412,7 @@ capabilities:
       use_when: "UI- und UX-Entwurf im Kore-Designsystem der Marken."
       roles: [bachelorprojekt-website]
       tier: safe
-      deep_ref: ".claude/skills/ui-ux-pro-max/SKILL.md"
+      deep_ref: ".opencode/skills/ui-ux-pro-max/SKILL.md"
     plugin:frontend-design@claude-plugins-official:
       state: suppressed
       reason: "Generisch; das Kore-Designsystem ist in ui-ux-pro-max und WEBSITE-STANDARDS.md verbindlich."
@@ -424,7 +424,7 @@ capabilities:
       avoid_when: "Ohne vorherige Zustimmung — der Skill hat ein Consent-Gate."
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/lavish/SKILL.md"
+      deep_ref: ".opencode/skills/lavish/SKILL.md"
 
   web-audit:
     skill:web-audit:
@@ -434,7 +434,7 @@ capabilities:
       fallback: "task web:audit ENV=<brand> [WEB_AUDIT_ROUTES=...]"
       roles: [bachelorprojekt-website, bachelorprojekt-test]
       tier: assisted
-      deep_ref: ".claude/skills/web-audit/SKILL.md"
+      deep_ref: ".opencode/skills/web-audit/SKILL.md"
 
   # ─── Browser & Debugging ────────────────────────────────────────────────────────────
   browser-automation:
@@ -534,7 +534,7 @@ capabilities:
       avoid_when: "Ohne lokale GPU oder ohne ausdrücklichen Trainingsauftrag."
       roles: [orchestrator]
       tier: assisted
-      deep_ref: ".claude/skills/unsloth-buddy/SKILL.md"
+      deep_ref: ".opencode/skills/unsloth-buddy/SKILL.md"
 
   # Eigene Faehigkeit statt einer zweiten canonical-Instanz unter modell-finetuning: das
   # Registry-Schema erlaubt maximal eine canonical-Instanz je Faehigkeit (siehe
@@ -550,7 +550,7 @@ capabilities:
       fallback: "unsloth-buddy-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist."
       roles: [orchestrator, bachelorprojekt-ops]
       tier: assisted
-      deep_ref: ".claude/skills/finetune-run/SKILL.md"
+      deep_ref: ".opencode/skills/finetune-run/SKILL.md"
     skill:finetune-run:
       state: suppressed
       reason: "cli:scripts/finetune ist die kanonische Instanz und verlinkt dieses SKILL.md bereits als deep_ref — das Skill wird nicht separat injiziert."
@@ -589,7 +589,7 @@ capabilities:
       use_when: "Querschnitts-Referenz nachschlagen: MCP-Guide, Plan-Gates, Deploy-Routing, Locks."
       roles: [all]
       tier: safe
-      deep_ref: ".claude/skills/references/"
+      deep_ref: ".opencode/skills/references/"
 
   werkzeug-kuration:
     skill:toolset-curate:
@@ -598,7 +598,7 @@ capabilities:
       fallback: "node scripts/toolset/collect.mjs --unreviewed"
       roles: [orchestrator]
       tier: caution
-      deep_ref: ".claude/skills/toolset-curate/SKILL.md"
+      deep_ref: ".opencode/skills/toolset-curate/SKILL.md"
 
   werkzeug-discovery:
     skill:agentic-resource-lookup:
@@ -608,7 +608,7 @@ capabilities:
       fallback: "node scripts/agentic-lookup.mjs find <query>"
       roles: [orchestrator]
       tier: safe
-      deep_ref: ".claude/skills/agentic-resource-lookup/SKILL.md"
+      deep_ref: ".opencode/skills/agentic-resource-lookup/SKILL.md"
 
   gedaechtnis:
     plugin:remember@claude-plugins-official:
@@ -646,7 +646,7 @@ capabilities:
       reason: "Nicht aktiviert; Telemetrie läuft über tickets.factory_phase_events."
 
   # ─── Lokal installierte, nicht versionierte Skills ──────────────────────────────────
-  # Beide liegen nur im Arbeitsplatz-Checkout unter .claude/skills/ und sind NICHT im Repo
+  # Beide liegen nur im Arbeitsplatz-Checkout unter .opencode/skills/ und sind NICHT im Repo
   # versioniert (`whisper` fängt zusätzlich das .gitignore-Muster in Zeile 125 ein). Ein
   # `canonical` behauptete eine Verfügbarkeit, die in CI und in jedem frischen Klon nicht
   # besteht — ein Subagent bekäme das Werkzeug injiziert und fände es nicht vor. Sie bleiben

@@ -176,6 +176,11 @@ runtimes:
     model: alibaba-intl/qwen3.8-max
     write_capable: false
     note: "PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx), tab-selectable singleagent via compatible-mode endpoint; replaces deepseek-v4-flash as the default model [T004396]"
+  qwen38-primary:
+    mode: primary
+    model: llamacpp-local/qwen38-220k
+    write_capable: true
+    note: "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (84k ctx / 85760 tokens gemessen, loadout qwen38-220k on port 8094). Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
 
 # T900074-p2: factory role declarations (mirror — SSOT is .opencode/agent-models.jsonc)
 factory_roles:

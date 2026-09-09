@@ -16,6 +16,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `gemma` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
 | `gemma12` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
 | `qwen38` | `freetoken-local/active` (FreeToken :1919) | Local work, text-only; sequenziell |
+| `qwen38-primary` | `llamacpp-local/qwen38-220k` (85.760 ctx gemessen, primary, write) | Lokaler Primary (UD-IQ4_XS, llama.cpp); autonomer Ticket-Worker |
 | `qwen-cloud` | `alibaba-intl/qwen3.8-max` (131k ctx, subagent, write) | Cloud-Eskalation Stufe 1 |
 | `freetoken-primary` | `freetoken-local/active` (primary) | Tab-selectable lokaler Primary, text-only [T014105] |
 | `freetoken-thinking` | `freetoken-local/active-thinking` (all) | 200k-Reasoning, Thinking request-dynamisch |

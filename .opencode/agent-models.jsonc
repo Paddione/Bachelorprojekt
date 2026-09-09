@@ -44,9 +44,9 @@
           }
         },
         "qwen38-220k": {
-          "name": "Qwen 3.8 27B UD-IQ3_XXS (Text, Loadout qwen38-220k auf Port 8094, 114.688 ctx) - exclusiveGroup chat-gpu",
+          "name": "Qwen 3.8 27B UD-IQ4_XS (Text, Loadout qwen38-220k auf Port 8094, 85.760 ctx) - exclusiveGroup chat-gpu",
           "limit": {
-            "context": 114688,
+            "context": 85760,
             "output": 8192
           }
         }
@@ -815,6 +815,38 @@
       "temperature": 0.2,
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    // Dedicated Primary Agent for local Qwen 3.8 27B UD-IQ4_XS (84k ctx, llama.cpp).
+    // Autonomous ticket worker: prioritizes critical tickets, plans (/dev-flow-plan),
+    // explores (/opsx:explore), executes, and archives.
+    "qwen38-primary": {
+      "description": "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (84k / 85760 ctx, von llama.cpp fit gemessen). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
+      "mode": "primary",
+      "model": "llamacpp-local/qwen38-220k",
+      "prompt": "{file:./prompts/qwen38-primary.md}",
+      "color": "#10B981",
+      "temperature": 0.3,
+      "steps": 150,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "gptoss": "allow",
+          "devstral": "allow",
+          "gemma": "allow",
+          "gemma12": "allow",
+          "qwen38": "allow",
+          "qwen-cloud": "allow",
+          "deepseek-helper": "allow",
+          "deepseek-helper-go": "allow",
+          "deepseek-helper-alibaba": "allow",
+          "deepseek-pro": "allow",
+          "deepseek-flash": "allow"
+        }
+      }
     }
   }
 }

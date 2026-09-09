@@ -1,0 +1,193 @@
+# CI-Fix-Schleife (SSOT)
+
+Genutzt von `dev-flow-execute` (Schritt 5.5) und `git-workflow` (Schritt 5). Einzige
+CI-Fix-Referenz — die frühere Zweitkopie `dev-flow-execute/references/ci-fix-loop.md` ist
+hierher konsolidiert.
+
+## Einstieg: `devflow-ci-watch.sh`
+
+Watcht einen PR bis alle required checks grün sind, sammelt Failure-Logs und eskaliert nach
+`MAX_CI_ATTEMPTS` (Default 5):
+
+> **SYNCHRON aufrufen — niemals als Hintergrund-Task mit Monitor-Schleife [T002375-p2].**
+> Der Aufruf blockiert bewusst, bis die Checks entschieden sind. Ihn im Hintergrund zu starten
+> und dann auf seinen Output zu warten, ist die Wiederholung von T001969 — und sie ist bereits
+> einmal passiert, obwohl der `dev-flow-execute`-Prompt die Direktive wörtlich enthält
+> (T002351-M3). Die Diagnose damals: die Prompt-Direktive konkurrierte mit dieser Referenz, die
+> das Skript nur als *aufzurufendes Kommando* nannte, **ohne die Ausführungsart zu erzwingen**.
+> Deshalb steht sie jetzt hier, unmittelbar an der Kopiervorlage. `timeout` gehört dazu — ohne
+> ihn ist „synchron" gleichbedeutend mit „hängt womöglich unbegrenzt".
+
+```bash
+TICKET_ID="T000xxx"
+PR_URL=$(gh pr view --json url -q '.url')
+# synchron, mit explizitem Timeout — kein `&`, kein run_in_background, kein Monitor-Loop
+timeout 1800 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
+```
+
+- Bei Failure: `gh run view --log-failed` (Tail 200) → Diagnose an einen Fix-Subagenten
+  delegieren (Prompt-Vorlage unten), nach erfolgreichem Fix Loop wiederholen.
+- `MAX_CI_ATTEMPTS` erreicht → `exit 1` mit Liste der roten Checks (Eskalation an den Skill).
+- Telemetrie: das Skript ruft `./scripts/ticket.sh phase … deploy …` best-effort auf (`|| true`).
+
+## Required Checks (Branch-Protection)
+
+Auto-Merge wartet auf diese fünf required checks:
+
+| Check | Workflow |
+|-------|----------|
+| `Offline Tests (Manifests, Configs, Unit)` | `ci.yml` → `task test:all` |
+| `Security Scan` | `ci.yml` → image-pin + hardcoded-secret detection |
+| `Brett TypeScript` | `ci.yml` → tsc in `components/brett/` |
+| `Vitest (website + arena-server)` | `ci.yml` → `pnpm test` in `components/website/` |
+| `Conventional Commits` | `ci.yml` → commitlint PR-Titel |
+
+`E2E PR` ist **kein** required check (T000722) — erscheint informativ, blockiert Merge nicht.
+
+## Monitoring-Werkzeuge
+
+### Überblick: PR-Checks
+
+```bash
+# Gemeinsame Auswertung (Nichtleere zuerst — leere Liste ist `empty`, NICHT grün):
+gh pr checks --json name,state | ci_checks_verdict   # empty|red|pending|green
+
+# Oder explizit mit Nichtleere-Guard:
+gh pr checks --json name,state | jq -e 'length == 0' \
+  && echo "leere Check-Liste — kein Urteil (T003109)" \
+  || gh pr checks --json name,state,link | jq '.[] | select(.state != "SUCCESS")'
+```
+
+> **Leeres Output ist NICHT „alles grün" (T003109):** ein `all(...)`-Prädikat ist vakuos wahr
+> über der leeren Liste — die Warteschleife liest daraus „keine Checks mehr pending", obwohl der
+> PR nie geprüft wurde. Erst die Nichtleere-Prüfung, dann das Prädikat; die gemeinsame Funktion
+> `ci_checks_verdict` (scripts/lib/ci-checks.sh) kapselt genau diese Reihenfolge.
+
+### Run-Logs (Volltextsuche)
+
+```bash
+FAILED_RUN=$(gh run list --json databaseId,conclusion | jq -r '[.[] | select(.conclusion=="failure")] | last | .databaseId')
+gh run view "$FAILED_RUN" --log-failed | tail -300
+```
+
+### Job-Level Step-Diagnose (strukturiert, schneller)
+
+```bash
+# Alle fehlgeschlagenen Jobs + Steps für einen Run
+gh api "repos/Paddione/Bachelorprojekt/actions/runs/${FAILED_RUN}/jobs" \
+  --jq '.jobs[] | select(.conclusion == "failure") | {id, name, steps: [.steps[] | select(.conclusion == "failure")]}'
+
+# Einzelner Job mit Step-Zeiten
+gh api "repos/Paddione/Bachelorprojekt/actions/jobs/${JOB_ID}" \
+  --jq '{job: .name, steps: [.steps[] | {n: .number, name: .name, conclusion: .conclusion}]}'
+```
+
+Die Job-API liefert Step-Namen und Exit-Zeiten — damit klassifiziert ein Fix-Subagent den Fehler
+(z.B. "Step 4: astro check fehlgeschlagen nach 12s") ohne alle Logs zu scannen.
+
+## Häufige Fehlertypen & Fix-Routine
+
+Reihenfolge: Freshness → TypeScript → BATS → Kustomize → Commitlint
+
+### 1. Freshness-Fehler (`stale artifact`)
+
+```bash
+task freshness:regenerate
+git add docs/ components/website/src/data/ components/website/src/lib/
+git commit -m "chore: regenerate freshness artifacts"
+```
+
+### 2. TypeScript-Fehler (website Vitest / Brett tsc)
+
+```bash
+cd website && pnpm type-check   # oder: cd brett && npx tsc --noEmit
+# Fehler beheben, dann:
+git add components/website/src/ brett/src/
+git commit -m "fix(website): resolve type errors"
+```
+
+### 3. BATS-Unit-Fehler
+
+```bash
+./tests/runner.sh local <TEST-ID>
+# Fehlende Test-Inventory-Einträge:
+task test:inventory
+git add components/website/src/data/test-inventory.json
+```
+
+### 4. Kustomize-Fehler
+
+```bash
+task workspace:validate
+# Manifest-Fehler beheben
+```
+
+### 5. Commitlint
+
+PR-Titel muss `type(scope): subject` folgen. REST-Edit falls `gh pr edit --title` fehlschlägt:
+```bash
+gh api -X PATCH "repos/Paddione/Bachelorprojekt/pulls/<N>" -f title="fix(scope): subject [T000XXX]"
+```
+
+## Fix-Subagent Prompt-Bauanleitung
+
+Nach `devflow-ci-watch.sh` gibt es strukturierten Output (Job-Step-Diagnose + Logs).
+Fix-Subagent-Prompt-Vorlage:
+
+```
+Du bist ein CI-Fix-Subagent. Kontext:
+- Branch: <branch>
+- Fehlgeschlagene Jobs/Steps: <job-step-output>
+- Relevante Logs: <tail-200-logs>
+
+Aufgabe: Behebe den Fehler minimal. Commit + Push auf den Branch.
+Wichtig: git add <changed-paths> (kein git add -A — git-crypt-Schutz, T001210).
+```
+
+Modell: `sonnet`, Effort: `low` für Freshness-Fehler, `medium` für TS/BATS.
+
+## PR-Merge-Wait-Loop
+
+Der Orchestrator betrachtet den Flow erst bei bestätigtem `state=MERGED` als beendet. Später
+rot werdende Checks, Ersatzläufe nach einem Implementer-Push sowie `DIRTY` oder `CONFLICTING`
+nach Main-Fortschritt gehen an denselben Implementer zurück; Review, Phase-Chain und alle
+invalidierten CI-Gates werden danach erneut durchlaufen. Der Finalizer schließt bei keinem
+Timeout, offenen/geschlossenen PR oder Konflikt ein Ticket.
+
+Genutzt von `dev-flow-execute` (Schritt 6.4). `gh pr merge --auto` kehrt sofort zurück — der eigentliche Merge passiert asynchron im Hintergrund. Warten, bis der Merge tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Drift T001149-M1).
+
+```bash
+PR_NUM=$(gh pr view --json number -q '.number')
+PR_URL="https://github.com/Paddione/Bachelorprojekt/pull/$PR_NUM"
+MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
+WAIT_START=$(date +%s)
+
+echo "⏳ Warte auf Merge von PR #$PR_NUM (max ${MAX_MERGE_WAIT_MIN}min) ..."
+MERGE_STATE=""
+while true; do
+  MERGE_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
+  STATE="${MERGE_STATE%%|*}"
+  MS="${MERGE_STATE##*|}"
+
+  case "$STATE" in
+    MERGED)
+      echo "✅ PR #$PR_NUM ist gemergt — fahre mit Ticket-Abschluss fort."
+      break
+      ;;
+    CLOSED)
+      echo "❌ PR #$PR_NUM wurde geschlossen ohne Merge — breche ab." >&2
+      exit 2
+      ;;
+  esac
+
+  ELAPSED=$(( $(date +%s) - WAIT_START ))
+  if (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )); then
+    echo "❌ PR #$PR_NUM nach ${MAX_MERGE_WAIT_MIN}min noch nicht gemergt (state=$STATE mergeStateStatus=$MS)." >&2
+    echo "   CI rot? Branch-Protection blockiert? Manuell prüfen:" >&2
+    echo "   gh pr view $PR_NUM --json mergeStateStatus,statusCheckRollup,reviewDecision" >&2
+    exit 3
+  fi
+
+  sleep 15
+done
+```

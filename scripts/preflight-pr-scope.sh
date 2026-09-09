@@ -88,8 +88,8 @@ if [ -n "$EXPECTED_WORKTREE" ]; then
   fi
 fi
 
-# Enforce worktree usage for feature/* and fix/* branches
-if [[ "$CURRENT_BRANCH" =~ ^(feature|fix)/ ]]; then
+# Enforce worktree usage for feature/* and fix/* branches (skip in CI — T002425)
+if [[ "$CURRENT_BRANCH" =~ ^(feature|fix)/ ]] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
   if [[ "$CURRENT_WORKTREE" != *"/worktrees/"* ]] && [[ "$CURRENT_WORKTREE" != *"/.worktrees/"* ]]; then
     echo "preflight-pr-scope: FATAL: PRs for feature/fix branches must be created from an isolated worktree under '.worktrees/'" >&2
     echo "  Current worktree path: $CURRENT_WORKTREE" >&2

@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "slug": "opencode-factory-context-tuning",
+    "ticket_id": "T900074",
+    "generated_from": "main@c54e58250",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".opencode/agent-models.jsonc",
+      "language": "text",
+      "loc": 805,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/opencode.jsonc",
+      "language": "text",
+      "loc": 212,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/prompts/local-subagent.md",
+      "language": "markdown",
+      "loc": 26,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/prompts/orchestrator.md",
+      "language": "markdown",
+      "loc": 54,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "loc": 211,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/agents.yaml",
+      "language": "config",
+      "loc": 173,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory-task-packet.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/opencode-sync-agents.sh",
+      "language": "bash",
+      "loc": 62,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 738
+    },
+    {
+      "path": "tests/spec/llm-local-dev/opencode-compaction.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

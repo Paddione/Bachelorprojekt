@@ -11,7 +11,11 @@ Factory-Routing. Die llama.cpp-Loadouts `gemma26-throughput` (:8092) und
   `C:\Users\PatrickKorczewski\AppData\Local\FreeToken\venv\Scripts\ft.exe`
   (Wheels aus `FlashML-org/FreeToken-Web` Release `beta`; Desktop-App zusätzlich
   installiert). WSL-seitige Zweitinstallation existiert unter `~/.freetoken`.
-- **Modell:** `Qwen3.6-35B-A3B-NVFP4` (23,5 GB) als lokales Verzeichnis mit
+- **Modell:** `Qwen3.6-35B-A3B-NVFP4` (19,5 GB — korrigiert 2026-09-04,
+  T900087/P6; die zuvor genannten 23,5 GB waren die HF-Repo-Größe, nicht die
+  lokale Verzeichnisgröße nach NTFS-Hardlink. Gemessen mit
+  `(Get-ChildItem -Recurse -File 'C:\Users\PatrickKorczewski\models\Qwen3.6-35B-A3B-NVFP4' | Measure-Object -Property Length -Sum).Sum / 1GB`
+  → 19,47) als lokales Verzeichnis mit
   NTFS-Hardlinks auf den HF-Blob-Cache:
   `C:\Users\PatrickKorczewski\models\Qwen3.6-35B-A3B-NVFP4`.
 - **Server:** OpenAI- + Anthropic-API auf `0.0.0.0:1919`; aus WSL dank
@@ -19,6 +23,43 @@ Factory-Routing. Die llama.cpp-Loadouts `gemma26-throughput` (:8092) und
   erreichbar.
 - **Ressourcen:** `.wslconfig` seit 2026-08-23 auf `memory=24GB`,
   `processors=12` (Host: 64 GB, RTX 5070 Ti 16 GB).
+
+## Beobachtungslücke: FreeToken-Verkehr umgeht den Proxy
+
+`scripts/llm-proxy/` enthält keine Referenzen auf FreeToken
+(`grep -rn -i 'freetoken' scripts/llm-proxy/` → 0 Treffer). Der Provider
+zielt in `.opencode/agent-models.jsonc` direkt auf `http://127.0.0.1:1919/v1`
+— am mitschneidenden Proxy (`:18235`) vorbei. `tickets.llm_proxy_request_log`
+enthält deshalb keine einzige FreeToken-Zeile und wird für dieses Backend nie
+eine haben, solange dieses Routing gilt.
+
+Seit T900087/P2 existiert stattdessen Plugin-Telemetrie:
+`.opencode/plugin/freetoken-active.ts` schreibt jeden Request-Alias (mit
+Zeitstempel und Prompt-Zeichenzahl) als JSONL nach
+`%LOCALAPPDATA%\FreeToken\logs\alias-telemetry.jsonl`. Auslesen:
+
+```bash
+jq -s 'group_by(.alias) | map({alias: .[0].alias, count: length}) |
+  sort_by(-.count)' "$LOCALAPPDATA/FreeToken/logs/alias-telemetry.jsonl"
+```
+
+Das Schreiben ist fire-and-forget: schlägt es fehl (Verzeichnis fehlt, Datei
+gesperrt, Volume voll), bleibt der ausgehende Request unverändert und es wird
+kein Fehler zum Aufrufer durchgereicht. Guard:
+`tests/spec/llm-local-dev/alias-telemetry.bats`.
+
+Diese Datei ersetzt `llm_proxy_request_log` NICHT vollständig — sie kennt
+weder Latenz noch HTTP-Status, nur Alias und Prompt-Größe. Vollständige
+FreeToken-Beobachtbarkeit bräuchte einen eigenen Change, der den Proxy in den
+Pfad zwingt oder den Provider auf `:18235` umbiegt; das ist außerhalb des
+Scopes von T900087.
+
+Auswertung im Kontext der Backend-Entscheidung:
+`scripts/llm/measurements/2026-09-04-freetoken-vs-llamacpp.md`. Die dort
+verwendeten Messwerkzeuge sind `scripts/llm/measure-factory-context.mjs`
+(Kontextbedarf, offline), `scripts/llm/bench-engine-ab.sh` (Engine-Isolation
+gpt-oss-20b auf beiden Engines) und `scripts/llm/bench-ifstruct.sh`
+(Schema-Treue gegen `LiquidAI/ifstruct-v1.0`).
 
 ## Start / Stop (Windows-seitig, detached)
 

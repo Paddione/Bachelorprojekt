@@ -45,9 +45,9 @@ spec:
                 behind-proxy: true
                 EOF
                 printf 'dev\ndev\n' | ntfy user add --role=admin opencode || true
-                ntfy token add opencode "${NTFY_TOKEN_OPENCODE}" || true
+                ntfy token add opencode "$${NTFY_TOKEN_OPENCODE}" || true
                 printf 'dev\ndev\n' | ntfy user add --role=admin agy || true
-                ntfy token add agy "${NTFY_TOKEN_AGY}" || true
+                ntfy token add agy "$${NTFY_TOKEN_AGY}" || true
                 echo "ntfy-init: done"
           securityContext:
             allowPrivilegeEscalation: false

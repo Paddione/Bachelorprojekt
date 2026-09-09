@@ -36,3 +36,42 @@ Die Fehlerklasse umfasst vier Spielarten — jeweils mit Fehlermodus und der For
 
 Langfassungen der Fälle: `docs/superpowers/references/gotchas-footguns.md`.
 
+## Voraussetzung: GNU `parallel` [T900093]
+
+`task test:changed` und `task test:spec:changed` rufen `bats -j` auf, und `bats` delegiert
+das an **GNU `parallel`**. Fehlt es, brechen beide Tasks mit Exit 1 ab, **ohne einen
+einzigen Test auszuführen**:
+
+```
+parallel: command not found
+# bats warning: Executed 0 instead of expected 769 tests
+```
+
+**Das ist die teuerste Sorte Fehler, weil sie wie ein Testfehlschlag aussieht.** Wer den
+roten Exit für ein Ergebnis hält, sucht den Defekt im eigenen Branch — es lief aber nichts.
+Merkmal: die `Executed 0 instead of expected N`-Zeile, nicht ein einzelnes `not ok`.
+
+Auf Windows/Git-Bash über msys64-pacman installieren — kein Admin nötig, und
+`/c/msys64/usr/bin` liegt bereits im Git-Bash-PATH:
+
+```bash
+/c/msys64/usr/bin/bash -lc 'pacman -S --noconfirm parallel'
+```
+
+`choco` führt kein `parallel`-Paket. Nach der Installation verifizieren mit genau dem
+Aufruf, der vorher scheiterte:
+
+```bash
+tests/unit/lib/bats-core/bin/bats -j 4 --no-parallelize-within-files \
+  tests/spec/agent-skills/messung-mit-befehl.bats
+# -> 5/5 ok   (vorher: Executed 0 instead of expected 5)
+```
+
+Ohne `parallel` bleibt der Verify-Block trotzdem fahrbar, nur seriell: Dateiliste aus dem
+Task greifen und `bats` direkt aufrufen.
+
+```bash
+task test:spec:changed 2>&1 | grep -E '^tests/spec/.*\.bats$' > /tmp/f.txt
+tests/unit/lib/bats-core/bin/bats $(cat /tmp/f.txt | tr '\n' ' ')
+```
+

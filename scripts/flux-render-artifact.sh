@@ -116,6 +116,9 @@ render_component() {
     # Nichts zu substituieren — aber das $$-Unwrapping muss trotzdem laufen,
     # sonst blieben $${VAR}/$$VAR als Doppel-Dollar im Manifest stehen.
     sed -E 's/\$\$([a-zA-Z0-9_({!?])/$\1/g' <<<"$rendered" > "$out"
+    # T900029: Render-Guard — leere Wildcard-Reste ("*.") und unsubstituierte
+    # ${VAR} in dnsNames/Host-Zeilen sind ein Build-Fehler, kein Prod-Zertifikat.
+    "${SCRIPT_DIR}/render-guard.sh" "$out"
     return
   fi
   
@@ -186,6 +189,12 @@ render_component() {
     echo "       is meant to expand them at runtime — write them as \$\${VAR}." >&2
     exit 1
   fi
+
+  # T900029: Render-Guard — leere Wildcard-Reste ("*.") und unsubstituierte
+  # ${VAR} in dnsNames/Host-Zeilen sind ein Build-Fehler (fail-closed). Steht
+  # hinter dem generischen Leftover-Check, weil leer substituierte Werte dort
+  # durchfallen (die Substitution HAT stattgefunden).
+  "${SCRIPT_DIR}/render-guard.sh" "$out"
 }
 
 cd "$PROJECT_DIR"

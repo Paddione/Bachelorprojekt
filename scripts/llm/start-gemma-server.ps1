@@ -31,11 +31,27 @@
   besteht nur nach oben. Nebeneffekt: die Konfiguration ist reproduzierbar,
   waehrend Auto-Fit je nach Belegung durch :8095/:8096 andere Groessen ergab.
 
-  WARUM DER FORK-BUILD: --spec-type draft-mtp gibt es nur im
+  WARUM DER FORK-BUILD: --spec-type draft-mtp gab es nur im
   llama-bonsai-cuda13.3-Build, nicht im Upstream-Release b10090, das Embedding
   und Rerank verwenden. Gemma bringt einen Multi-Token-Prediction-Head mit; ihn
   als Draft-Modell zu nutzen ist billiger als ein separates kleines Draft-Modell,
   weil der Head ohnehin Teil der Gewichte ist.
+
+  DIESE BEGRUENDUNG IST SEIT b10881 UEBERHOLT (T900092): der Upstream kennt das
+  Flag inzwischen selbst. Gemessen mit:
+    & 'C:\Users\PatrickKorczewski\llama-b10881-13.3\llama-server.exe' --help |
+      Select-String 'spec-type'
+    # -> --spec-type none,draft-simple,draft-eagle3,draft-mtp,draft-dflash,...
+  Ein Flag zu KENNEN ist aber nicht dasselbe wie einen funktionierenden
+  MTP-Drafter fuer diesen Checkpoint zu liefern - das ist ungeprueft. Der
+  Default unten bleibt deshalb bewusst auf dem Fork stehen; ihn umzubiegen
+  waere eine Verhaltensaenderung und braucht einen eigenen Change mit Messlauf.
+
+  STAND 2026-09-09: das Default-Verzeichnis llama-bonsai-cuda13.3 liegt auf
+  diesem Host nicht (mehr) vor - vorhanden ist nur llama-b10881-13.3. Das Skript
+  bricht deshalb bereits an der Test-Path-Kette ab. Entweder wird der Fork-Build
+  neu bereitgestellt, oder der Upstream-Pfad wird nach dem Messlauf oben
+  freigegeben.
 
   WARUM Q4_0-DRAFTER UND N-MAX 4 (T002293): der Q4_0-Head ist NICHT die
   abgespeckte Variante, sondern der native QAT-Drafter - laut Modellkarte sind
@@ -92,8 +108,23 @@
   Ohne -SwaFull funktioniert das Save/Restore zwar (HTTP 200), aber der
   Folge-Call re-evaluiert den kompletten Prompt (cached_tokens=0) -- deshalb
   sind beide Schalter gekoppelt: -SlotSavePath ohne -SwaFull bricht ab.
+  ZWEI-GPU-HOST (2026-09-04): der Host traegt seit dem Einbau der zweiten Karte
+  eine RTX 3060 Ti (8192 MiB, PCIe 3.0 x4, treibt den Desktop) und eine
+  RTX 5070 Ti (16303 MiB, PCIe 4.0 x16). Alle Messwerte in loadouts.json und
+  docs/runbooks/freetoken-native.md beziehen sich auf die 5070 Ti; sie ist der
+  Default von -GpuUuid. Ausgewaehlt wird per UUID und NICHT per Index, weil CUDA
+  per Default nach "fastest first" sortiert und nvidia-smi nach PCI-Bus - die
+  Indizes duerfen auseinanderlaufen. Bis zu diesem Fix warf der VRAM-Check
+  "Cannot convert the System.Object[] value ... to type System.Int32", weil
+  nvidia-smi ohne --id zwei Zeilen liefert.
 .PARAMETER LlamaDir
   Verzeichnis mit dem Fork-Build. Default: C:\Users\PatrickKorczewski\llama-bonsai-cuda13.3
+.PARAMETER GpuUuid
+  UUID der Zielkarte. Default: GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
+  (RTX 5070 Ti). Setzt CUDA_VISIBLE_DEVICES fuer den Serverprozess UND
+  restringiert die nvidia-smi-Messung - beide Werte stammen aus derselben
+  Variablen, damit der VRAM-Check die Karte misst, auf der der Server laeuft.
+  Karten auflisten: nvidia-smi --query-gpu=index,name,uuid --format=csv
 .PARAMETER Port
   Listen-Port. Default 8091 (so in tickets.llm_proxy_backends registriert).
 .PARAMETER Ctx
@@ -149,6 +180,10 @@
 param(
   [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-bonsai-cuda13.3",
   [int]$Port = 8091,
+  # Zielkarte per UUID. Begruendung identisch zu start-gptoss-server.ps1 und
+  # ausfuehrlich in .DESCRIPTION: Index-basierte Auswahl ist auf diesem Host
+  # unzuverlaessig, weil CUDA und nvidia-smi verschieden sortieren.
+  [string]$GpuUuid = "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4",
   [int]$Ctx = 65536,
   [int]$Slots = 1,
   [int]$NMax = 4,
@@ -161,11 +196,34 @@ param(
   [switch]$NoWait
 )
 
+# Freier VRAM GENAU der Zielkarte. Ohne --id liefert nvidia-smi bei zwei Karten
+# zwei Zeilen; PowerShell bindet das als System.Object[], .Trim() existiert
+# darauf nicht und der [int]-Cast wirft "Cannot convert the System.Object[]
+# value of type System.Object[] to type System.Int32" (verifiziert 2026-09-04).
+# Eine unbekannte UUID liefert Exit 6 und "No devices were found" - das wird
+# fail-loud behandelt, nicht still zu 0 MiB degradiert.
+function Get-FreeVramMiB {
+  param([string]$Uuid)
+  $lines = @(& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits --id=$Uuid 2>&1)
+  if ($LASTEXITCODE -ne 0 -or $lines.Count -lt 1) {
+    Write-Error "nvidia-smi failed for GPU '$Uuid' (exit $LASTEXITCODE): $($lines -join ' ')"
+    Write-Output "  Vorhandene Karten auflisten:"
+    Write-Output "    nvidia-smi --query-gpu=index,name,uuid --format=csv"
+    exit 1
+  }
+  return [int]("$($lines[0])".Trim())
+}
+
 # Bei diesem Build liegt llama-server.exe in \bin, nicht flach im Root.
 $Exe = Join-Path $LlamaDir "bin\llama-server.exe"
 if (-not (Test-Path $Exe)) { $Exe = Join-Path $LlamaDir "llama-server.exe" }
 if (-not (Test-Path $Exe)) {
   Write-Error "llama-server.exe not found under: $LlamaDir"
+  Write-Output "  Dieses Skript erwartet den Fork-Build llama-bonsai-cuda13.3."
+  Write-Output "  Seit b10881 kennt zwar auch der Upstream --spec-type draft-mtp,"
+  Write-Output "  ob der MTP-Draft-Head dort fuer diesen Checkpoint traegt ist aber"
+  Write-Output "  ungeprueft (T900092). Ein -LlamaDir auf den Upstream-Build ist"
+  Write-Output "  daher moeglich, aber unbelegt - erst messen, dann umstellen."
   exit 1
 }
 
@@ -205,7 +263,11 @@ foreach ($c in $conns) {
   }
 }
 
-$freeMiB = [int](& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()
+# Der Serverprozess sieht ausschliesslich die Zielkarte; sie traegt dort Index 0,
+# weshalb -ngl 999 und die Default---main-gpu unveraendert korrekt bleiben.
+# Start-Process laeuft ohne -UseNewEnvironment und erbt diese Zuweisung.
+$env:CUDA_VISIBLE_DEVICES = $GpuUuid
+$freeMiB = Get-FreeVramMiB -Uuid $GpuUuid
 $slotWord = if ($Slots -gt 1) { "$Slots slots, -kvu (gemeinsamer Pool)" } else { "1 slot" }
 $mmWord = if ($NoMmproj) { "kein mmproj (nur Text)" } else { "mmproj F16 (Vision+Audio)" }
 $kvWord = if ($KvOffload) { "KV im RAM" } else { "KV im VRAM" }
@@ -213,6 +275,7 @@ Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port ($Ctx ctx, $KvTy
 Write-Output "  Model:     $Model"
 Write-Output "  MTP head:  $MtpHead"
 Write-Output "  Free VRAM: $freeMiB MiB"
+Write-Output "  GPU:       $GpuUuid"
 # Der Bedarf skaliert mit $Ctx UND mit $KvType: gemessen 2026-07-27 rund
 # 14,6 KiB VRAM je Kontext-Token bei q8_0, ~7,3 KiB bei q4_0, ~29 KiB bei f16
 # (Gemma teilt KV ueber Layer und nutzt ein 1024er-SWA-Fenster, deshalb
@@ -379,7 +442,7 @@ if (-not $NoWait) {
 
   if ($healthy) {
     Write-Output "Gemma 4 12B: PID $($p.Id) healthy on :$Port"
-    Write-Output "  VRAM danach: $((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()) MiB frei"
+    Write-Output "  VRAM danach: $(Get-FreeVramMiB -Uuid $GpuUuid) MiB frei"
     Write-Output ""
     Write-Output "Der llm-proxy (:18235) findet den Server ueber die Registry und den Alias"
     Write-Output "'gemma-4-12b'. Laeuft er nicht, aus WSL heraus starten:"

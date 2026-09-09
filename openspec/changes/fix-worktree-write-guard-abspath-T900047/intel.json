@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "slug": "fix-worktree-write-guard-abspath-T900047",
+    "ticket_id": "T900047",
+    "generated_from": "main@c54e58250",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/hooks/worktree-write-guard.sh",
+      "language": "bash",
+      "loc": 263,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 537
+    },
+    {
+      "path": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats",
+      "language": "bash",
+      "loc": 116,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:41:_allow() { exit 0; }",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "41:_allow() { exit 0; }(...)",
+      "type_text": "41:_allow() { exit 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:78:_canon() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "78:_canon() {(...)",
+      "type_text": "78:_canon() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:116:_field() {  # $1=datei $2=key",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "116:_field() {  # $1=datei $2=key(...)",
+      "type_text": "116:_field() {  # $1=datei $2=key(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:120:_my_sid() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "120:_my_sid() {(...)",
+      "type_text": "120:_my_sid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:155:_abs_wt() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "155:_abs_wt() {(...)",
+      "type_text": "155:_abs_wt() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats:16:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats",
+      "signature": "16:setup() {(...)",
+      "type_text": "16:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats:68:json_input() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats",
+      "signature": "68:json_input() {(...)",
+      "type_text": "68:json_input() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats:74:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats",
+      "signature": "74:teardown() {(...)",
+      "type_text": "74:teardown() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

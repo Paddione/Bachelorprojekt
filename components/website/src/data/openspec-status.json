@@ -4505,15 +4505,33 @@
       "status": "plan_staged"
     }
   ],
+  "T900014": [
+    {
+      "slug": "flux-secrets-ordering",
+      "status": "plan_staged"
+    }
+  ],
   "T900023": [
     {
       "slug": "2026-08-31-agent-lock-windows-drive-path",
       "status": "archived"
     }
   ],
+  "T900025": [
+    {
+      "slug": "fix-agent-lock-canonicalize-worktree-cwd",
+      "status": "plan_staged"
+    }
+  ],
   "T900027": [
     {
       "slug": "stray-secret-dump-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T900029": [
+    {
+      "slug": "fix-sessions-wildcard-render-guard",
       "status": "plan_staged"
     }
   ],
@@ -4547,6 +4565,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900047": [
+    {
+      "slug": "fix-worktree-write-guard-abspath-T900047",
+      "status": "plan_staged"
+    }
+  ],
   "T900051": [
     {
       "slug": "2026-09-03-freetoken-runtime-guard",
@@ -4575,6 +4599,36 @@
     {
       "slug": "sf-test-fixture-cleanup",
       "status": "plan_staged"
+    }
+  ],
+  "T900074": [
+    {
+      "slug": "opencode-factory-context-tuning",
+      "status": "plan_staged"
+    }
+  ],
+  "T900078": [
+    {
+      "slug": "2026-09-09-skill-path-guard-opencode-T900078",
+      "status": "archived"
+    }
+  ],
+  "T900080": [
+    {
+      "slug": "mcp-registry-drift-T900080",
+      "status": "plan_staged"
+    }
+  ],
+  "T900083": [
+    {
+      "slug": "wg-mesh-reconcile-drift",
+      "status": "plan_staged"
+    }
+  ],
+  "T900087": [
+    {
+      "slug": "2026-09-04-freetoken-backend-evaluation",
+      "status": "archived"
     }
   ],
   "TBD": [

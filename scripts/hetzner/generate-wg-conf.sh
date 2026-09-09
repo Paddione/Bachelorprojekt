@@ -14,6 +14,15 @@
 # Output: WireGuard config on stdout.
 # For cloud-init embedding, pipe through base64:
 #   WG_CONF_B64=$(bash scripts/hetzner/generate-wg-conf.sh ... | base64 -w0)
+#
+# --peers-only (T900083): emits only the SOLL-Peer-Menge of one node — one
+# `<public_key> <allowed_ips>` line per remaining participant, sorted by
+# public key, no [Interface] block, no PrivateKey. Used by
+# scripts/wg-mesh-sync.sh so reconcile/drift can never compute a different
+# target set than the config generator itself would. --private-key is not
+# required in this mode. Peers with an empty public_key (e.g. an unprovisioned
+# host) are skipped and named on stderr — an empty key line is neither
+# importable nor comparable.
 
 set -euo pipefail
 
@@ -24,6 +33,7 @@ MESH_FILE="${PROJECT_DIR}/wireguard/wg-mesh-nodes.yaml"
 ENV=""
 NODE_NAME=""
 PRIVATE_KEY=""
+PEERS_ONLY=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -31,20 +41,24 @@ while [[ $# -gt 0 ]]; do
     --node-name)   NODE_NAME="$2";   shift 2 ;;
     --private-key) PRIVATE_KEY="$2"; shift 2 ;;
     --mesh-file)   MESH_FILE="$2";   shift 2 ;;
+    --peers-only)  PEERS_ONLY=true;  shift ;;
     *) echo "Unknown flag: $1" >&2; exit 1 ;;
   esac
 done
 
 [[ -z "$ENV" ]]         && { echo "ERROR: --env required" >&2; exit 1; }
 [[ -z "$NODE_NAME" ]]   && { echo "ERROR: --node-name required" >&2; exit 1; }
-[[ -z "$PRIVATE_KEY" ]] && { echo "ERROR: --private-key required" >&2; exit 1; }
+if [[ "$PEERS_ONLY" != true ]]; then
+  [[ -z "$PRIVATE_KEY" ]] && { echo "ERROR: --private-key required" >&2; exit 1; }
+fi
 [[ ! -f "$MESH_FILE" ]] && { echo "ERROR: mesh file not found: $MESH_FILE" >&2; exit 1; }
 
-python3 - "$MESH_FILE" "$ENV" "$NODE_NAME" "$PRIVATE_KEY" <<'PYEOF'
+python3 - "$MESH_FILE" "$ENV" "$NODE_NAME" "$PRIVATE_KEY" "$PEERS_ONLY" <<'PYEOF'
 import sys
 import yaml
 
-mesh_file, env, node_name, private_key = sys.argv[1:]
+mesh_file, env, node_name, private_key, peers_only = sys.argv[1:]
+peers_only = peers_only == "true"
 
 with open(mesh_file) as f:
     mesh = yaml.safe_load(f)
@@ -76,7 +90,7 @@ if self_node is None:
     print(f"ERROR: node '{node_name}' not found in env '{env}'", file=sys.stderr)
     sys.exit(1)
 
-lines = [
+lines = [] if peers_only else [
     "[Interface]",
     f"PrivateKey = {private_key}",
     f"Address = {self_node['wg_ip']}/32",
@@ -96,25 +110,46 @@ lines = [
 # AllowedIPs ein, konkurrierten zwei Mechanismen um dieselben Praefixe.
 emit_pod_cidr = (self_category == 'gpu_hosts')
 
-# Emit one [Peer] block per node in the mesh, skipping self
-for cat in MESH_CATEGORIES:
-    for peer in env_data.get(cat, []):
-        if peer['name'] == node_name:
-            continue
-        allowed = f"{peer['wg_ip']}/32"
-        if emit_pod_cidr and peer.get('pod_cidr'):
-            allowed += f", {peer['pod_cidr']}"
-        lines += [
-            "",
-            "[Peer]",
-            f"# {peer['name']}",
-            f"PublicKey = {peer['public_key']}",
-            f"AllowedIPs = {allowed}",
-        ]
-        if peer.get('endpoint'):
-            lines.append(f"Endpoint = {peer['endpoint']}")
-        if peer.get('keepalive'):
-            lines.append(f"PersistentKeepalive = {peer['keepalive']}")
+if peers_only:
+    # Nur die SOLL-Peer-Menge: <public_key> <allowed_ips>, sortiert nach
+    # Public Key, kein [Interface]/[Peer]-Rahmen. Peers ohne public_key
+    # wuerden eine leere, weder importierbare noch vergleichbare Schluessel-
+    # zeile erzeugen — sie werden uebersprungen und auf stderr genannt.
+    peer_rows = []
+    for cat in MESH_CATEGORIES:
+        for peer in env_data.get(cat, []):
+            if peer['name'] == node_name:
+                continue
+            pubkey = peer.get('public_key') or ''
+            if not pubkey:
+                print(f"SKIP: {peer['name']} hat keinen public_key - ausgelassen", file=sys.stderr)
+                continue
+            allowed = f"{peer['wg_ip']}/32"
+            if emit_pod_cidr and peer.get('pod_cidr'):
+                allowed += f", {peer['pod_cidr']}"
+            peer_rows.append((pubkey, allowed))
+    for pubkey, allowed in sorted(peer_rows, key=lambda row: row[0]):
+        print(f"{pubkey} {allowed}")
+else:
+    # Emit one [Peer] block per node in the mesh, skipping self
+    for cat in MESH_CATEGORIES:
+        for peer in env_data.get(cat, []):
+            if peer['name'] == node_name:
+                continue
+            allowed = f"{peer['wg_ip']}/32"
+            if emit_pod_cidr and peer.get('pod_cidr'):
+                allowed += f", {peer['pod_cidr']}"
+            lines += [
+                "",
+                "[Peer]",
+                f"# {peer['name']}",
+                f"PublicKey = {peer['public_key']}",
+                f"AllowedIPs = {allowed}",
+            ]
+            if peer.get('endpoint'):
+                lines.append(f"Endpoint = {peer['endpoint']}")
+            if peer.get('keepalive'):
+                lines.append(f"PersistentKeepalive = {peer['keepalive']}")
 
-print("\n".join(lines))
+    print("\n".join(lines))
 PYEOF

@@ -1,5 +1,53 @@
 # Changelog
 
+## [1.328.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.328.0...website-v1.328.1) (2026-09-09)
+
+
+### Bug Fixes
+
+* pr auto title sed T900095 ([#5509](https://github.com/Paddione/Bachelorprojekt/issues/5509)) ([8b15c87](https://github.com/Paddione/Bachelorprojekt/commit/8b15c87e4b0720b393615962bcc7c97f3970e6ac))
+
+## [1.328.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.327.0...website-v1.328.0) (2026-09-04)
+
+
+### Features
+
+* **ops:** Messgrundlage FreeToken vs. llama.cpp — Telemetrie, Kontextmessung, Benchmarks [T900087] ([#5496](https://github.com/Paddione/Bachelorprojekt/issues/5496)) ([95a94ba](https://github.com/Paddione/Bachelorprojekt/commit/95a94ba9836c8e84bb4be03f22853973f6469ae5))
+
+## [1.327.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.326.0...website-v1.327.0) (2026-09-04)
+
+
+### Features
+
+* **factory:** factory context tuning — compaction V2, roles, prompts, AGENTS slim [T900074] ([#5473](https://github.com/Paddione/Bachelorprojekt/issues/5473)) ([e512602](https://github.com/Paddione/Bachelorprojekt/commit/e512602b446bf73721a67adda38c59405582f920))
+
+## [1.326.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.4...website-v1.326.0) (2026-09-04)
+
+
+### Features
+
+* **infra:** wg:reconcile and wg:drift for WireGuard mesh sync [T900083] ([#5489](https://github.com/Paddione/Bachelorprojekt/issues/5489)) ([eb95b48](https://github.com/Paddione/Bachelorprojekt/commit/eb95b482c59f22734e646480d7eb3ba8d608c553))
+
+
+### Bug Fixes
+
+* **scripts:** canonicalize worktree path in _worktree_has_active_process [T900025] ([#5476](https://github.com/Paddione/Bachelorprojekt/issues/5476)) ([a50e6f8](https://github.com/Paddione/Bachelorprojekt/commit/a50e6f8ed6e0e26d75bce840279ede6af142ed44))
+
+## [1.325.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.3...website-v1.325.4) (2026-09-04)
+
+
+### Bug Fixes
+
+* **scripts:** run openspec-embed main() on Windows too [T900084] ([#5481](https://github.com/Paddione/Bachelorprojekt/issues/5481)) ([d8d5010](https://github.com/Paddione/Bachelorprojekt/commit/d8d5010aa13cc6a8ce1156b3f81616a88fb1203b))
+
+## [1.325.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.2...website-v1.325.3) (2026-09-04)
+
+
+### Bug Fixes
+
+* **infra:** brand stacks wait for sealed-secrets via dependsOn [T900014] ([#5471](https://github.com/Paddione/Bachelorprojekt/issues/5471)) ([783b649](https://github.com/Paddione/Bachelorprojekt/commit/783b6496f7d0eba448087467514d745b351f2e91))
+* **scripts:** canonicalize absolute paths in worktree-write-guard [T900047] ([#5469](https://github.com/Paddione/Bachelorprojekt/issues/5469)) ([22a220b](https://github.com/Paddione/Bachelorprojekt/commit/22a220b8591c7d89abf1fbd376faecc4fa18d812))
+
 ## [1.325.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.325.1...website-v1.325.2) (2026-09-04)
 
 

@@ -72,6 +72,7 @@ cmd_activity() {
 # 0 = true, 1 = false. Checks if any active process holds a cwd inside the worktree
 _worktree_has_active_process() {
   local wt="$1" _pid _cwd
+  wt="$(cd "$wt" 2>/dev/null && pwd -P)" || return 1
   local -A _my_pids
   local _p="$$"
   while [[ -n "$_p" && "$_p" -gt 1 ]]; do

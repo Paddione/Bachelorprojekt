@@ -44,9 +44,9 @@
           }
         },
         "qwen38-220k": {
-          "name": "Qwen 3.8 27B UD-IQ3_XXS (Text, Loadout qwen38-220k auf Port 8094, 114.688 ctx) - exclusiveGroup chat-gpu",
+          "name": "Qwen 3.8 27B UD-IQ4_XS (Text, Loadout qwen38-220k auf Port 8094, 205.056 ctx) - exclusiveGroup chat-gpu",
           "limit": {
-            "context": 114688,
+            "context": 205056,
             "output": 8192
           }
         }
@@ -471,6 +471,18 @@
       "steps": 100,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
+    // T900074-p2: factory reviewer role — read-only review; the orchestrator
+    // applies review edits. Placed after qwen-cloud, before freetoken-primary.
+    "reviewer": {
+      "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
+      "mode": "subagent",
+      "model": "freetoken-local/active",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#FBBF24",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny", "task": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "todowrite": "allow", "question": "allow", "skill": "allow", "lsp": "allow" }
+    },
     // T014105: aus der Global-Config (T014028) nachgetragen — dedizierter
     // Tab-waehlbarer Primary auf dem FreeToken-Alias, damit der lokale Stack
     // auch ohne Familien-Namen direkt waehlbar bleibt.
@@ -701,7 +713,10 @@
           // Orchestrator-Prompt beschreibt, wann.
           "deepseek-pro-direct": "allow",
           "deepseek-flash-direct": "allow",
-          "deepseek-pro-alibaba": "allow"
+          "deepseek-pro-alibaba": "allow",
+          // T900074-p2: factory reviewer role (mode subagent on freetoken-local)
+          // must be dispatchable — T003204 requires exact names, no wildcards.
+          "reviewer": "allow"
         }
       }
     },
@@ -800,6 +815,38 @@
       "temperature": 0.2,
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    // Dedicated Primary Agent for local Qwen 3.8 27B UD-IQ4_XS (200k ctx, Dual-GPU-Split).
+    // Autonomous ticket worker: prioritizes critical tickets, plans (/dev-flow-plan),
+    // explores (/opsx:explore), executes, and archives.
+    "qwen38-primary": {
+      "description": "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (200k / 205056 ctx, Dual-GPU-Split, gemessen). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
+      "mode": "primary",
+      "model": "llamacpp-local/qwen38-220k",
+      "prompt": "{file:./prompts/qwen38-primary.md}",
+      "color": "#10B981",
+      "temperature": 0.3,
+      "steps": 150,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "task": {
+          "gptoss": "allow",
+          "devstral": "allow",
+          "gemma": "allow",
+          "gemma12": "allow",
+          "qwen38": "allow",
+          "qwen-cloud": "allow",
+          "deepseek-helper": "allow",
+          "deepseek-helper-go": "allow",
+          "deepseek-helper-alibaba": "allow",
+          "deepseek-pro": "allow",
+          "deepseek-flash": "allow"
+        }
+      }
     }
   }
 }

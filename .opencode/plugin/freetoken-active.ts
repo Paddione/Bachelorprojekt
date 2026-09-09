@@ -23,12 +23,43 @@
 // /engine/switch wechselt, startet opencode neu oder akzeptiert das Limit des
 // alten Modells bis dahin.
 
+import { appendFile } from "node:fs/promises"
+import { join } from "node:path"
+
 const DAEMON_STATUS = "http://127.0.0.1:1900/engine/status"
 const SERVER_MODELS = "http://127.0.0.1:1919/v1/models"
 const SERVER_STATS = "http://127.0.0.1:1919/v1/stats"
 const SERVER_CACHE = "http://127.0.0.1:1919/v1/cache/status"
 const THINKING_MODEL = "active-thinking"
 const FAST_MODEL = "active-fast"
+
+// Telemetrie-Ablage neben den bestehenden FreeToken-Logs
+// (scripts/llm/restart-freetoken.ps1 etabliert LOCALAPPDATA/FreeToken/logs
+// bereits als Log-Konvention). Der Pfad loest ueber LOCALAPPDATA immer in ein
+// Benutzerprofilverzeichnis auf, niemals in den Working Tree. Fehlt die
+// Variable (Nicht-Windows-CI), wird Telemetrie ohne Fehler uebersprungen.
+const TELEMETRY_PATH = process.env.LOCALAPPDATA
+  ? join(process.env.LOCALAPPDATA, "FreeToken", "logs", "alias-telemetry.jsonl")
+  : null
+
+// Fire-and-forget: die appendFile-Promise wird bewusst nicht awaited und
+// ihr Fehlerfall vollstaendig verschluckt. Ein Telemetrie-Ausfall darf den
+// ausgehenden Request weder verzoegern noch veraendern noch nach aussen
+// durchschlagen (Requirement: Alias Usage Telemetry for the FreeToken
+// Plugin, Szenario "A telemetry failure leaves the request untouched").
+const recordAliasUsage = (alias: unknown, promptChars: number) => {
+  if (!TELEMETRY_PATH) return
+  const record =
+    JSON.stringify({
+      ts: new Date().toISOString(),
+      alias,
+      promptChars,
+    }) + "\n"
+  appendFile(TELEMETRY_PATH, record).catch(() => {
+    // Zieldatei/-verzeichnis fehlt, ist gesperrt oder das Volume ist voll:
+    // Telemetrie ist best-effort, der Request laeuft unveraendert weiter.
+  })
+}
 
 const fetchJson = async (url: string) => {
   const res = await fetch(url, { signal: AbortSignal.timeout(1500) })
@@ -125,6 +156,10 @@ export default async () => {
           if (typeof init?.body !== "string") return upstreamFetch(input, init)
           try {
             const body = JSON.parse(init.body)
+            // Vor der enable_thinking-Mutation, damit alias exakt das vom
+            // Aufrufer gesendete body.model ist - ungefiltert, unabhaengig
+            // davon, ob die nachfolgende Verzweigung greift.
+            recordAliasUsage(body.model, JSON.stringify(body.messages ?? []).length)
             if (body.model === THINKING_MODEL || body.model === FAST_MODEL) {
               body.chat_template_kwargs = {
                 ...(body.chat_template_kwargs ?? {}),

@@ -5,6 +5,18 @@
     "detail": "814 lines > 800 limit (.py)",
     "reason": "upstream huggingface/skills file (T015173) — nicht teilen, Original bleibt review-bar"
   },
+  "S1:.opencode/skills/ui-ux-pro-max/scripts/design_system.py": {
+    "path": ".opencode/skills/ui-ux-pro-max/scripts/design_system.py",
+    "metric": 1329,
+    "detail": "1329 lines > 800 limit (.py)",
+    "reason": "vendored ui-ux-pro-max upstream file (T900077) — byte-identisch mit der bereits vorhandenen Kopie unter .claude/skills; der SSOT-Flip verschiebt sie nur, teilen wuerde vom Upstream abweichen"
+  },
+  "S1:.opencode/skills/unsloth-buddy/scripts/reflect.py": {
+    "path": ".opencode/skills/unsloth-buddy/scripts/reflect.py",
+    "metric": 1190,
+    "detail": "1190 lines > 800 limit (.py)",
+    "reason": "vendored unsloth-buddy upstream file (T900077) — byte-identisch mit der bereits vorhandenen Kopie unter .claude/skills; der SSOT-Flip verschiebt sie nur, teilen wuerde vom Upstream abweichen"
+  },
   "S1:scripts/devflow-post-merge-finalize.sh": {
     "path": "scripts/devflow-post-merge-finalize.sh",
     "metric": 812,

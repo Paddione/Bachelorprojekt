@@ -144,12 +144,32 @@ EOF"
   #
   # Geprueft wird deshalb die EIGENSCHAFT: plausibel und nicht n_ctx_train
   # (262144 fuer Qwen3.8-27B), das ueber dem real Verfuegbaren liegt.
+  #
+  # T900094: die fruehere Obergrenze "< 200000" war eine Heuristik aus der Zeit,
+  # als auf einer Karte hoechstens 114688 messbar waren. Mit dem Dual-GPU-Split
+  # sind 205056 real gemessen — die Heuristik haette einen ECHTEN Messwert
+  # abgelehnt. Statt die Schranke nachzuziehen (sie driftet beim naechsten
+  # Hardware-Wechsel wieder), wird jetzt die Kopplung geprueft: der Client-Wert
+  # muss dem entsprechen, was das Loadout als Untergrenze garantiert. Damit ist
+  # jede Zahl belegt, die der Server auch wirklich zusichert.
   ctx="$(awk '/"qwen38-220k": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
   [ -n "$ctx" ]
   [ "$ctx" != "262144" ]
   [ "$ctx" -gt 50000 ]
-  [ "$ctx" -lt 200000 ]
+
+  run python3 -c "
+import json, sys
+d = json.load(open('scripts/llm/loadouts.json', encoding='utf-8'))
+lo = next(l for l in d['loadouts'] if l.get('slug') == 'qwen38-220k')
+floor = (lo.get('fit') or {}).get('minCtx') or (lo.get('args') or {}).get('ctx')
+if floor is None:
+    print('qwen38-220k deklariert weder fit.minCtx noch args.ctx'); sys.exit(1)
+ctx = int('$ctx')
+if ctx != floor:
+    print(f'agent-models.jsonc nennt {ctx}, das Loadout garantiert {floor}'); sys.exit(1)
+"
+  [ "$status" -eq 0 ] || { echo "$output" >&2; return 1; }
 }
 
 @test "agent-models.jsonc defines three gemma subagents (T002545)" {
@@ -365,20 +385,41 @@ EOF"
 @test "T016419: retired clone primaries are gone" {
   # Die sieben Klon-Primaries (seit T014105 byte-identisch mit freetoken-primary)
   # sind entfernt; ihre Namen referenzierten retired Loadouts.
-  # Positiv-Anker zuerst [T002356-M1]: der verbleibende lokale Primary muss
-  # existieren und auf dem Alias liegen, sonst laeuft der Negativ-Assert vakuos.
+  #
+  # T900094: die Pruefung lief ueber eine NAMENSLISTE. Das ist Darstellung statt
+  # Semantik (tests/CLAUDE.md): der Name 'qwen38-primary' stand darin, weil der
+  # damalige Agent eine Klon-Leiche WAR — nicht, weil der Name verboten waere.
+  # Ein neuer Agent gleichen Namens mit eigenem Backend, eigenem Prompt und
+  # eigener Config ist kein Klon, wurde von der Liste aber abgelehnt.
+  #
+  # Geprueft wird jetzt die EIGENSCHAFT, die "Klon-Leiche" ausmacht: ein
+  # Primary, der auf dem lokalen Stack liegt, sich in nichts ausser dem Namen
+  # von freetoken-primary unterscheidet UND kein eigenes Backend mitbringt.
+  # Positiv-Anker zuerst [T002356-M1].
   run node -e "
     const j5 = require('json5');
     const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
     const agents = d.agent || {};
-    if (!agents['freetoken-primary'] || agents['freetoken-primary'].model !== 'freetoken-local/active') {
-      console.error('positive anchor failed: freetoken-primary on ' + ((agents['freetoken-primary'] || {}).model || 'nothing'));
+    const ref = agents['freetoken-primary'];
+    if (!ref || ref.model !== 'freetoken-local/active') {
+      console.error('positive anchor failed: freetoken-primary on ' + ((ref || {}).model || 'nothing'));
       process.exit(1);
     }
-    const clones = ['gemma26-primary','gemma26-vision','gptoss-primary','devstral-primary',
-      'gemma12-primary','gemma26-throughput-primary','qwen38-primary'];
-    const alive = clones.filter(n => agents[n] && agents[n].mode === 'primary');
-    if (alive.length) { console.error('retired clone primaries still present: ' + alive.join(',')); process.exit(1); }
+    // Vergleichsschluessel ohne den Namen: alles, was einen Agenten ausmacht.
+    const shape = (a) => JSON.stringify({
+      model: a.model, prompt: a.prompt, temperature: a.temperature,
+      steps: a.steps, permission: a.permission, description: a.description,
+    });
+    const refShape = shape(ref);
+    const clones = Object.entries(agents)
+      .filter(([n, a]) => n !== 'freetoken-primary' && a.mode === 'primary')
+      .filter(([, a]) => /^(freetoken-local|llamacpp-local)\//.test(a.model || ''))
+      .filter(([, a]) => shape(a) === refShape)
+      .map(([n]) => n);
+    if (clones.length) {
+      console.error('clone primaries (identisch zu freetoken-primary bis auf den Namen): ' + clones.join(','));
+      process.exit(1);
+    }
     process.exit(0);
   "
   [ "$status" -eq 0 ]

@@ -2,22 +2,23 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2301 · Scenarios: 5107
+Specs: 145 · Requirements: 2307 · Scenarios: 5120
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 66 · Scenarios: 137 · Lines: 1720
+Reqs: 69 · Scenarios: 144 · Lines: 1813
 Last touches:
+  - Repo-relative path references in first-party skills must resolve | T900078 | 2026-09-09 | MODIFIED
+  - Skill shims and their targets must cover each other | T900078 | 2026-09-09 | ADDED
   - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
   - Superpowers is declared in every harness that runs the dev-flow skills | T900056 | 2026-09-03 | ADDED
   - A plugin activation finding names an executable remedy | T900056 | 2026-09-03 | ADDED
-  - Plugin-provided discipline skills do not compete with the dev-flow orchestrators | T900056 | 2026-09-03 | ADDED
-  - opencode reaches the shared dev-flow reference material | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | active | MODIFIED
   - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | active | ADDED
+  - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
@@ -108,6 +109,9 @@ In-flight:
   - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
   - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
+  - WireGuard mesh reconcile applies the registry to every node | T900083 | active | ADDED
+  - WireGuard mesh drift is detected as a gate | T900083 | active | ADDED
+  - Reconcile and drift share one renderer | T900083 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED
@@ -123,6 +127,8 @@ Last touches:
   - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
   - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
   - discover-versions.sh ermittelt Tool-Versionen ohne Flux | T002083 | 2026-08-02 | MODIFIED
+In-flight:
+  - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | active | ADDED
 
 ## llm
 
@@ -254,6 +260,8 @@ Last touches:
 In-flight:
   - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | active | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | active | MODIFIED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -676,17 +684,21 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 24 · Scenarios: 52 · Lines: 587
+Reqs: 27 · Scenarios: 58 · Lines: 692
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T900051 | 2026-09-03 | MODIFIED
   - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
   - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
   - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
-  - Single Definition Site for the opencode `freetoken-local` Provider | T014105 | 2026-08-23 | ADDED
 In-flight:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
+  - V2 Compaction Targets 100K Active Context | T900074 | active | ADDED
+  - Factory Roles Carry Minimal Toolsets | T900074 | active | ADDED
+  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | active | ADDED
+  - Global Instructions Stay Lean | T900074 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -1023,6 +1035,8 @@ Last touches:
   - ticket write guard passes through stale holders | T005560 | 2026-08-15 | ADDED
   - plan-preflight pre-commit accepts the staged plan set | T004899 | 2026-08-14 | ADDED
   - Worktrees claimed by a live session survive foreign cleanups | T004899 | 2026-08-14 | ADDED
+In-flight:
+  - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | active | ADDED
 
 ### sdlc-isolation
 Reqs: 29 · Scenarios: 54 · Lines: 630
@@ -1074,6 +1088,7 @@ Last touches:
   - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
   - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
 In-flight:
+  - Sessions Wildcard Render Guard | T900029 | active | ADDED
   - Dead Process Reaping | T016251 | active | MODIFIED
   - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
   - Auth-Gating für session-* Subdomains | T016251 | active | ADDED

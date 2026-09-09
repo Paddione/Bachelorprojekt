@@ -595,10 +595,21 @@ system and SHALL fail when a reference does not resolve. References with a file 
 `openspec/`, `scripts/`, `tests/`, `docs/`, `website/`, `k3d/`, `environments/` and `flux/` SHALL
 be checked.
 
-Vendored third-party skills SHALL be excluded. This concerns `gitops-*` and `vitest`: their
-references, such as `docs/spec/v1/kustomizations.md`, point at upstream fluxcd.io documentation or
-at example paths in foreign projects, not at this repository. Without that exclusion the guard
-produces 23 false positives against 3 genuine findings and is worthless.
+The scan SHALL cover `.opencode/skills` alongside `.claude/skills`. After the move of the skill
+SSOT to `.opencode/skills` the guard scanned only `.claude/skills` and `.agents/skills`, so every
+reference under the new SSOT was invisible to it. `.agents/skills` SHALL NOT be relied upon as a
+scan source: it is a git symlink to `.claude/skills` that Windows checkouts materialise as a text
+file, so on those checkouts it resolves to nothing at all.
+
+Path references SHALL further be recognised under both skill prefixes — `.claude/skills/` and
+`.opencode/skills/`. A pattern matching only the former silently passes every dead reference
+written in the new layout.
+
+Vendored third-party skills SHALL be excluded. This concerns `gitops-*`, `vitest`,
+`unsloth-buddy` and `ui-ux-pro-max`: their references, such as `docs/spec/v1/kustomizations.md`,
+point at upstream documentation or at example paths in foreign projects, not at this repository.
+Without that exclusion the guard produces false positives that outnumber the genuine findings and
+is worthless.
 
 The exclusion list SHALL be stated and justified inside the test itself rather than in a separate
 file, because it is part of what the test asserts.
@@ -615,12 +626,19 @@ file, because it is part of what the test asserts.
 - **WHEN** the guard runs
 - **THEN** it passes and the number of references checked is greater than zero
 
-#### Scenario: A vendored third-party skill is not judged
+#### Scenario: A reference under the .opencode/skills prefix is checked
 
-- **GIVEN** `.claude/skills/gitops-repo-audit/references/flux-api-summary.md` references
-  `docs/spec/v1/kustomizations.md`, which does not exist in this repository
+- **GIVEN** a file under `.opencode/skills/references/` contains
+  `(.opencode/skills/references/dev-flow-gotchas.md)`
 - **WHEN** the guard runs
-- **THEN** it does not report that reference
+- **THEN** the path is extracted and checked for existence
+
+#### Scenario: A dead reference in the new SSOT layout is caught
+
+- **GIVEN** a file under `.opencode/skills/` references a path that does not exist
+- **WHEN** the guard runs
+- **THEN** it fails and names the file and the dead path, rather than passing because the file was
+  never scanned
 
 ### Requirement: The vision path of the headed run is documented with a probe
 
@@ -1718,3 +1736,78 @@ whether it was installed. Naming the plugin makes absence a checkable condition.
 - **THEN** it names the superpowers plugin, not a harness built-in
 
 <!-- merged from change delta agent-skills.md (80abd8e8101e) -->
+### Requirement: The dead-path-references guard MUST cover .opencode/skills/ paths
+
+The guard in `tests/spec/agent-skills/skill-path-references.bats` MUST extract repo-relative
+path references under `.opencode/skills/` alongside `.claude/skills/` and resolve them against
+the filesystem. `SKILL_PATH_PATTERN` MUST match both prefixes via an alternation, and
+`skill_files()` MUST include `.opencode/skills` as a scan source.
+
+`.agents/skills` is no longer a canonical location and MUST NOT be scanned: it is absent on
+Windows and a symlink to `.opencode/skills` elsewhere, so scanning it either fails or
+double-counts.
+
+Vendored third-party skills stay excluded from the path check — they reference upstream
+documentation that does not exist in this repository.
+
+#### Scenario: A reference under .opencode/skills/ is checked
+
+- **GIVEN** a skill file containing `(.opencode/skills/references/dev-flow-gotchas.md)`
+- **WHEN** the guard runs
+- **THEN** the path is extracted and its existence is asserted
+
+### Requirement: Shim coverage between .claude/skills and .opencode/skills is asserted in both directions
+
+Two guards MUST hold the SSOT layout together. A shim under `.claude/skills/` that names an
+`.opencode/skills/` target MUST resolve to an existing path. Conversely, every skill under
+`.opencode/skills/` MUST either have a `.claude/skills/` shim or appear in a declared
+`opencode_only` allowlist inside the test.
+
+The allowlist is the point of the second guard, not an exemption from it: it pins the explained
+state so that a *newly* unshimmed skill fails the build while the known opencode-only set does
+not. An entry added without a reason defeats the guard.
+
+Both tests MUST initialise their `fail` accumulator. bats runs a test body under `set -e`, so an
+uninitialised variable makes the closing `[ "$fail" -eq 0 ]` abort with "integer expected" — the
+test then fails to render a verdict instead of delivering one, which reads like a real finding.
+
+#### Scenario: A skill without a shim is added
+
+- **GIVEN** a new `.opencode/skills/<name>/SKILL.md` with no `.claude/skills/<name>` counterpart
+- **AND** `<name>` is absent from the `opencode_only` allowlist
+- **WHEN** the guard runs
+- **THEN** it fails and names the skill
+
+#### Scenario: A shim points at a removed target
+
+- **GIVEN** a `.claude/skills/<name>/SKILL.md` referencing `.opencode/skills/<gone>/SKILL.md`
+- **WHEN** the guard runs
+- **THEN** it fails and names both the shim and the missing target
+
+### Requirement: Skill shims and their targets must cover each other
+
+A test SHALL assert bidirectional coverage between the `.claude/skills` shims and their
+`.opencode/skills` targets: no shim SHALL point at a target that does not exist, and no target
+SHALL be left without a shim. A one-sided check lets the two trees drift apart unnoticed, which is
+what made the stale symlinks survive the SSOT move.
+
+#### Scenario: A shim resolves to an existing target
+
+- **GIVEN** a skill exists at `.opencode/skills/dev-flow-execute/SKILL.md`
+- **AND** a shim exists at `.claude/skills/dev-flow-execute/SKILL.md`
+- **WHEN** the shim-coverage test runs
+- **THEN** it confirms the target exists and passes
+
+#### Scenario: A shim without a target fails
+
+- **GIVEN** a shim under `.claude/skills/` naming a target that is absent from `.opencode/skills/`
+- **WHEN** the shim-coverage test runs
+- **THEN** it fails and names the shim and the missing target
+
+#### Scenario: A target without a shim fails
+
+- **GIVEN** a skill under `.opencode/skills/` for which no shim exists under `.claude/skills/`
+- **WHEN** the shim-coverage test runs
+- **THEN** it fails and names the unshimmed skill
+
+<!-- merged from change delta agent-skills.md (53d3ca3ea3d8) -->

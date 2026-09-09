@@ -53,7 +53,7 @@
   "Cannot convert the System.Object[] value ... to type System.Int32", weil
   nvidia-smi ohne --id zwei Zeilen liefert.
 .PARAMETER LlamaDir
-  Verzeichnis mit llama-server.exe. Default: C:\Users\PatrickKorczewski\llama-b10090-13.3
+  Verzeichnis mit llama-server.exe. Default: C:\Users\PatrickKorczewski\llama-b10881-13.3
 .PARAMETER GpuUuid
   UUID der Zielkarte. Default: GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
   (RTX 5070 Ti). Setzt CUDA_VISIBLE_DEVICES fuer den Serverprozess UND
@@ -69,7 +69,7 @@
 #>
 
 param(
-  [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10090-13.3",
+  [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10881-13.3",
   [int]$Ctx = 40960,
   # Zielkarte per UUID, nicht per Index: CUDA sortiert per Default nach
   # "fastest first", nvidia-smi nach PCI-Bus - die Indizes duerfen

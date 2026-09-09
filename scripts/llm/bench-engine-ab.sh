@@ -88,7 +88,7 @@ SUMMARY="$RAW_DIR/${TAG}-summary.log"
 
 LLAMACPP_PORT=8097
 FREETOKEN_PORT=1919
-LLAMA_DIR="C:\\Users\\PatrickKorczewski\\llama-b10090-13.3"
+LLAMA_DIR="C:\\Users\\PatrickKorczewski\\llama-b10881-13.3"
 
 echo "# commit: $COMMIT"
 echo "# erzeugt von: scripts/llm/bench-engine-ab.sh --tag $TAG (siehe Skriptkopf fuer den vollen Aufruf)"

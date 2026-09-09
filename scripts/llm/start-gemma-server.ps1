@@ -31,16 +31,27 @@
   besteht nur nach oben. Nebeneffekt: die Konfiguration ist reproduzierbar,
   waehrend Auto-Fit je nach Belegung durch :8095/:8096 andere Groessen ergab.
 
-  WARUM DER FORK-BUILD: --spec-type draft-mtp gibt es nur im
+  WARUM DER FORK-BUILD: --spec-type draft-mtp gab es nur im
   llama-bonsai-cuda13.3-Build, nicht im Upstream-Release b10090, das Embedding
   und Rerank verwenden. Gemma bringt einen Multi-Token-Prediction-Head mit; ihn
   als Draft-Modell zu nutzen ist billiger als ein separates kleines Draft-Modell,
   weil der Head ohnehin Teil der Gewichte ist.
 
-  STAND 2026-09-04: das Default-Verzeichnis llama-bonsai-cuda13.3 liegt auf
-  diesem Host nicht (mehr) vor - vorhanden ist nur llama-b10090-13.3. Das Skript
-  bricht deshalb bereits an der Test-Path-Kette ab. Der Fork-Build muss neu
-  bereitgestellt werden; ein Umbiegen von -LlamaDir auf b10090 ersetzt ihn nicht.
+  DIESE BEGRUENDUNG IST SEIT b10881 UEBERHOLT (T900092): der Upstream kennt das
+  Flag inzwischen selbst. Gemessen mit:
+    & 'C:\Users\PatrickKorczewski\llama-b10881-13.3\llama-server.exe' --help |
+      Select-String 'spec-type'
+    # -> --spec-type none,draft-simple,draft-eagle3,draft-mtp,draft-dflash,...
+  Ein Flag zu KENNEN ist aber nicht dasselbe wie einen funktionierenden
+  MTP-Drafter fuer diesen Checkpoint zu liefern - das ist ungeprueft. Der
+  Default unten bleibt deshalb bewusst auf dem Fork stehen; ihn umzubiegen
+  waere eine Verhaltensaenderung und braucht einen eigenen Change mit Messlauf.
+
+  STAND 2026-09-09: das Default-Verzeichnis llama-bonsai-cuda13.3 liegt auf
+  diesem Host nicht (mehr) vor - vorhanden ist nur llama-b10881-13.3. Das Skript
+  bricht deshalb bereits an der Test-Path-Kette ab. Entweder wird der Fork-Build
+  neu bereitgestellt, oder der Upstream-Pfad wird nach dem Messlauf oben
+  freigegeben.
 
   WARUM Q4_0-DRAFTER UND N-MAX 4 (T002293): der Q4_0-Head ist NICHT die
   abgespeckte Variante, sondern der native QAT-Drafter - laut Modellkarte sind
@@ -208,9 +219,11 @@ $Exe = Join-Path $LlamaDir "bin\llama-server.exe"
 if (-not (Test-Path $Exe)) { $Exe = Join-Path $LlamaDir "llama-server.exe" }
 if (-not (Test-Path $Exe)) {
   Write-Error "llama-server.exe not found under: $LlamaDir"
-  Write-Output "  Dieses Skript braucht den Fork-Build (--spec-type draft-mtp gibt es"
-  Write-Output "  NICHT im Upstream-Release b10090). Ein -LlamaDir auf b10090 ist daher"
-  Write-Output "  keine Loesung: der MTP-Draft-Head faellt damit weg."
+  Write-Output "  Dieses Skript erwartet den Fork-Build llama-bonsai-cuda13.3."
+  Write-Output "  Seit b10881 kennt zwar auch der Upstream --spec-type draft-mtp,"
+  Write-Output "  ob der MTP-Draft-Head dort fuer diesen Checkpoint traegt ist aber"
+  Write-Output "  ungeprueft (T900092). Ein -LlamaDir auf den Upstream-Build ist"
+  Write-Output "  daher moeglich, aber unbelegt - erst messen, dann umstellen."
   exit 1
 }
 

@@ -116,9 +116,9 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/dev-shell-ssh.bats test
 
 **Dateien:** `docker/dev-shell/Dockerfile`, `docker/dev-shell/sshd_config`, `docker/dev-shell/entrypoint.sh`
 
-- [ ] **2.1** `docker/dev-shell/sshd_config` exakt mit dem Block aus `design.md` §sshd-Konfiguration anlegen.
+- [x] **2.1** `docker/dev-shell/sshd_config` exakt mit dem Block aus `design.md` §sshd-Konfiguration anlegen.
 
-- [ ] **2.2** `docker/dev-shell/entrypoint.sh` (POSIX sh, `set -eu`):
+- [x] **2.2** `docker/dev-shell/entrypoint.sh` (POSIX sh, `set -eu`):
 
 ```sh
 #!/bin/sh
@@ -145,7 +145,7 @@ done
 exec /usr/sbin/sshd -D -e -f /etc/ssh/sshd_config
 ```
 
-- [ ] **2.3** `docker/dev-shell/Dockerfile`:
+- [x] **2.3** `docker/dev-shell/Dockerfile`:
 
 ```dockerfile
 # docker/dev-shell/Dockerfile — SSH-erreichbarer Dev-Container des dev-pod [T900108]

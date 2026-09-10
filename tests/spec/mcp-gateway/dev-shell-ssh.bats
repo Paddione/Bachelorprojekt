@@ -64,6 +64,33 @@ count_lines() {  # <datei> <ERE>
   [ "$output" = "1000/false" ]
 }
 
+@test "pod skips the recursive fsGroup chown when the volume root already matches" {
+  # Positiv-Anker: fsGroup ist gesetzt (sonst waere die Policy bedeutungslos).
+  run y "$DEPLOY" "String(d.spec.template.spec.securityContext.fsGroup)"
+  echo "fsGroup: $output"
+  [ "$output" = "1000" ]
+
+  run y "$DEPLOY" "String(d.spec.template.spec.securityContext.fsGroupChangePolicy)"
+  echo "fsGroupChangePolicy: $output"
+  [ "$output" = "OnRootMismatch" ]
+}
+
+@test "dev-shell cannot take the pod endpoints down" {
+  # Positiv-Anker: mcp-node gatet die Service-Endpunkte mit einer readinessProbe.
+  run y "$DEPLOY" "d.spec.template.spec.containers.filter(c=>c.name==='mcp-node'&&c.readinessProbe).length"
+  echo "mcp-node mit readinessProbe: $output"
+  [ "$output" = "1" ]
+
+  # dev-shell ist optional: keine readinessProbe, stattdessen eine livenessProbe auf :22.
+  run y "$DEPLOY" "d.spec.template.spec.containers.filter(c=>c.name==='dev-shell').map(c=>String(c.readinessProbe===undefined)).join(',')"
+  echo "dev-shell ohne readinessProbe: $output"
+  [ "$output" = "true" ]
+
+  run y "$DEPLOY" "d.spec.template.spec.containers.filter(c=>c.name==='dev-shell').map(c=>((c.livenessProbe||{}).exec||{command:[]}).command.join(' ')).join(',')"
+  echo "dev-shell livenessProbe: $output"
+  [[ "$output" == *"nc -z 127.0.0.1 22"* ]]
+}
+
 @test "pod declares ip_unprivileged_port_start=0" {
   run y "$DEPLOY" "(d.spec.template.spec.securityContext.sysctls||[]).filter(s=>s.name==='net.ipv4.ip_unprivileged_port_start').map(s=>s.value).join(',')"
   echo "sysctl: [$output]"
@@ -114,6 +141,62 @@ count_lines() {  # <datei> <ERE>
   run bash -c "tr -d '\r' < '$SSHD' | grep -E '^ListenAddress' | grep -vc '^ListenAddress 127.0.0.1\$' || true"
   echo "fremde ListenAddress: $output"
   [ "$output" = "0" ]
+}
+
+@test "sshd denies agent, socket, tunnel and gateway forwarding" {
+  [ -f "$SSHD" ] || { echo "erwartet: docker/dev-shell/sshd_config"; false; }
+  # Positiv-Anker: lokales TCP-Forwarding (ssh -L auf die MCP-Ports) bleibt erlaubt.
+  run count_lines "$SSHD" '^AllowTcpForwarding local$'
+  echo "AllowTcpForwarding local: $output"
+  [ "$output" = "1" ]
+
+  # Beide Login-Namen teilen uid 1000: ein weitergeleiteter Agent-Socket waere
+  # fuer den anderen Namen und jeden mit pods/exec nutzbar.
+  for opt in AllowAgentForwarding AllowStreamLocalForwarding PermitTunnel \
+             GatewayPorts PermitUserEnvironment; do
+    run count_lines "$SSHD" "^${opt} no\$"
+    echo "$opt no: $output"
+    [ "$output" = "1" ]
+    run count_lines "$SSHD" "^${opt} "
+    echo "$opt gesamt: $output"
+    [ "$output" = "1" ]
+  done
+}
+
+@test "ssh sessions reach the API server and do not self-update claude code" {
+  [ -f "$SSHD" ] || { echo "erwartet: docker/dev-shell/sshd_config"; false; }
+  # sshd reicht die Container-Umgebung nicht weiter; ohne KUBERNETES_SERVICE_*
+  # faellt kubectl auf localhost:8080 (= mcp-kubernetes im selben Pod).
+  run count_lines "$SSHD" '^SetEnv '
+  echo "SetEnv-Zeilen: $output"
+  [ "$output" = "1" ]
+
+  setenv="$(tr -d '\r' < "$SSHD" | grep -E '^SetEnv ' | cut -d' ' -f2- | tr ' ' '\n' | sort | tr '\n' ' ')"
+  echo "SetEnv: [$setenv]"
+  for kv in KUBERNETES_SERVICE_HOST=kubernetes.default.svc KUBERNETES_SERVICE_PORT=443 \
+            DISABLE_AUTOUPDATER=1; do
+    run bash -c "printf '%s' '$setenv' | tr ' ' '\n' | grep -cxF -e '$kv' || true"
+    echo "$kv: $output"
+    [ "$output" = "1" ]
+  done
+}
+
+@test "each login name is configured with only its own authorized_keys file" {
+  [ -f "$SSHD" ] || { echo "erwartet: docker/dev-shell/sshd_config"; false; }
+  # Positiv-Anker: genau eine AuthorizedKeysFile-Direktive.
+  run count_lines "$SSHD" '^AuthorizedKeysFile '
+  echo "AuthorizedKeysFile-Zeilen: $output"
+  [ "$output" = "1" ]
+
+  value="$(tr -d '\r' < "$SSHD" | grep -E '^AuthorizedKeysFile ' | cut -d' ' -f2-)"
+  echo "Wert: [$value]"
+  # Ein einziges Ziel (kein Leerzeichen = kein zweites Ziel wie .ssh/authorized_keys).
+  [ -n "$value" ]
+  [[ "$value" != *" "* ]]
+  # Absolut, pro Name (%u), nicht im gemeinsamen Home (%h).
+  [[ "$value" == /* ]]
+  [[ "$value" == */%u ]]
+  [[ "$value" != *%h* ]]
 }
 
 @test "authorized keys match the environment registry" {
@@ -180,17 +263,44 @@ count_lines() {  # <datei> <ERE>
   printf '%s' "$(tr -d '\r' < "$DF" | grep -vE '^[[:space:]]*#' | sed -e ':a' -e '/\\$/N; s/\\\n/ /; ta')" \
     > "$BATS_TEST_TMPDIR/df.flat"
 
-  for tool in openssh-server kubectl claude-code 'install -y --no-install-recommends gh' task; do
+  # Exakt gepinnte Versionen (Lieferkette, T900108-Review F7).
+  for arg in KUBECTL_VERSION CLAUDE_CODE_VERSION TASK_VERSION GH_VERSION PNPM_VERSION; do
+    run bash -c "grep -cE '^ARG ${arg}=v?[0-9]+\.[0-9]+\.[0-9]+\$' '$BATS_TEST_TMPDIR/df.flat' || true"
+    echo "ARG $arg gepinnt: $output"
+    [ "$output" = "1" ]
+  done
+
+  # Werkzeuge aus konkreten Artefakten, nicht aus Installer-Skripten.
+  for tool in openssh-server '/bin/linux/amd64/kubectl' '@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}' \
+              'task_linux_amd64.tar.gz' 'gh_${GH_VERSION}_linux_amd64.tar.gz' 'pnpm@${PNPM_VERSION}'; do
     run bash -c "grep -E '^RUN ' '$BATS_TEST_TMPDIR/df.flat' | grep -cF -e '$tool' || true"
     echo "RUN mit $tool: $output"
     [ "$output" -ge 1 ]
   done
 
+  # Heruntergeladene Binaerartefakte (task, kubectl, gh) werden gegen Pruefsummen geprueft.
+  run bash -c "grep -E '^RUN ' '$BATS_TEST_TMPDIR/df.flat' | grep -oF -e 'sha256sum -c' | wc -l"
+  echo "sha256sum -c: $output"
+  [ "$output" -ge 3 ]
+  run bash -c "grep -cF -e 'taskfile.dev/install.sh' '$BATS_TEST_TMPDIR/df.flat' || true"
+  echo "taskfile.dev/install.sh: $output"
+  [ "$output" = "0" ]
+
   run bash -c "grep -E '^(CMD|ENTRYPOINT)' '$BATS_TEST_TMPDIR/df.flat' | wc -l"
   echo "CMD/ENTRYPOINT: $output"
   [ "$output" -ge 1 ]
   run bash -c "grep -E '^(CMD|ENTRYPOINT)' '$BATS_TEST_TMPDIR/df.flat' | grep -cE 'apt-get|apk|npm install' || true"
-  echo "Paketmanager im Startpfad: $output"
+  echo "Paketmanager im CMD/ENTRYPOINT: $output"
+  [ "$output" = "0" ]
+
+  # Der echte Startpfad ist entrypoint.sh (Positiv-Anker: er startet sshd).
+  EP="$REPO/docker/dev-shell/entrypoint.sh"
+  tr -d '\r' < "$EP" | grep -vE '^[[:space:]]*#' > "$BATS_TEST_TMPDIR/ep.flat"
+  run bash -c "grep -cE '^exec /usr/sbin/sshd ' '$BATS_TEST_TMPDIR/ep.flat' || true"
+  echo "entrypoint startet sshd: $output"
+  [ "$output" = "1" ]
+  run bash -c "grep -cE 'apt-get|apk |npm (install|i )|pnpm (add|install)|pip install|curl |wget ' '$BATS_TEST_TMPDIR/ep.flat' || true"
+  echo "Paketmanager/Download im entrypoint: $output"
   [ "$output" = "0" ]
 }
 

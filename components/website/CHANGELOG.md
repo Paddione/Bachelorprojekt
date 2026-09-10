@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.330.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.329.0...website-v1.330.0) (2026-09-10)
+
+
+### Features
+
+* **infra:** Work-VM mit gemeinsamem Repo-Clone (patrick+gekko) [T900104] ([#5521](https://github.com/Paddione/Bachelorprojekt/issues/5521)) ([edc7f34](https://github.com/Paddione/Bachelorprojekt/commit/edc7f345d3d67ab8e01f51df42b3a98368f2c6cf))
+
 ## [1.329.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.328.2...website-v1.329.0) (2026-09-10)
 
 

@@ -1,6 +1,10 @@
 # ADR-007: WSL-Exit — Fleet-native Factory & Windows-native Dev
 
-**Status:** Accepted — Supersedes [ADR-006](ADR-006-sdlc-isolation-dev-host.md)
+**Status:** Accepted — Supersedes [ADR-006](ADR-006-sdlc-isolation-dev-host.md).
+**Teil C teilweise revidiert durch [ADR-008](ADR-008-local-k3s-dev-mesh.md)**
+(2026-09-10, T900115): „Windows-native Dev" ist gescheitert (Repo ohne WSL nicht
+steuerbar), das Kapazitätsargument entfällt, und ein lokaler k3s-Dev-Cluster auf
+vorhandener Bare-Metal kehrt zurück. Teil **A** (Fleet-native Factory) bleibt.
 **Datum:** 2026-08-24 · Ticket: T016422
 **Entscheidungssession:** Explore 2026-08-24 (Operator-Beschluss: Option **A+C**)
 

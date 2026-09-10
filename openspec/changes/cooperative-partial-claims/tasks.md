@@ -176,7 +176,7 @@ bash tests/spec/../runner.sh local SYMLINK-GUARD 2>/dev/null || \
       stehen. Der Befund gehoert als Tabelle (Harness x Schritt) ins Ticket, damit das
       Audit nicht bei jeder Wiederholung neu erhoben werden muss.
 
-- [ ] **8 — Final Verification.** Die drei verbindlichen CI-Gates:
+- [x] **8 — Final Verification.** Die drei verbindlichen CI-Gates:
 
 ```bash
 task test:changed

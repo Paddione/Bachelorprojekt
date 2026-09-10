@@ -1,0 +1,15 @@
+# prod-fleet/dev-pod/kustomization.yaml — Fleet-Overlay des dev-pod [T900107]
+#
+# Referenziert von flux/clusters/fleet/ks-dev-pod.yaml (path ./dev-pod). Das
+# Overlay bleibt bewusst duenn: die Basis traegt bereits Namespace,
+# Dev-Node-Bindung und Resource-Werte, und es gibt nur EINE Zielumgebung.
+#
+# Kein ${VAR}-Platzhalter in der Basis — deshalb braucht der Render-Pfad
+# (scripts/flux-render-artifact.sh) hier kein vorheriges env-resolve.sh,
+# genauso wie beim gitlab-runner-stack.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: workspace-dev
+
+resources:
+  - ../../k3d/dev-pod

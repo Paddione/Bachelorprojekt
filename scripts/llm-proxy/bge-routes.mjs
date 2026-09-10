@@ -18,23 +18,14 @@
 // bedienen". Die Auswahl geschieht deshalb NUR ueber den Ausgang der
 // weitergeleiteten Anfrage: Verbindungsfehler/Timeout/5xx -> naechstes Glied,
 // 4xx -> durchreichen, Kette erschoepft -> 503 mit Grund JE Glied.
-import { findLoadout, isLoadoutActive } from './loadouts.mjs';
-import { unitStatus, startUnit } from './runner.mjs';
-import { resolveModelPath } from './models.mjs';
-import { join } from 'node:path';
-
-// Versionsneutraler Symlink wie in server.mjs (T002536): 'opt/llama-current'
-// zeigt auf den aktuellen llama.cpp-Build.
-const HOME_DIR = process.env.HOME || process.env.USERPROFILE || '';
-const LLAMA_BIN = process.env.LLAMA_SERVER_BIN
-  || (HOME_DIR ? join(HOME_DIR, 'opt/llama-current/bin/llama-server') : 'llama-server');
+// [T900107] Kein Import aus runner.mjs/models.mjs mehr: die Ketten bestehen
+// ausschliesslich aus URLs. Ein 'loadout:'-Glied haette eine llama.cpp-Instanz
+// als systemd-User-Unit gestartet — den WSL-Host, der das trug, gibt es seit
+// ADR-007 nicht mehr, und im Cluster steht keine GPU zur Verfuegung.
 
 // Default-Timeout je Glied: 30000 ms, gleich BGE_MCP_UPSTREAM_TIMEOUT_MS im
 // Shim, damit die beiden Zeitschranken nicht gegeneinander laufen.
 export const ROLE_TIMEOUT_MS = Number(process.env.BGE_ROUTE_TIMEOUT_MS || 30_000);
-// Start-Budget fuer Loadout-Glieder: Start PLUS Cluster-Rueckfall muessen
-// zusammen unter der 30-s-Schranke des Shims bleiben.
-export const LOADOUT_START_BUDGET_MS = Number(process.env.BGE_LOADOUT_START_BUDGET_MS || 20_000);
 
 const ROLE_PATHS = new Map([
   ['/v1/embeddings', 'embed'],
@@ -48,13 +39,12 @@ export function roleForPath(path) {
 
 /**
  * Liest die Rollen-Ketten aus dem bereits geparsten loadouts.json-Dokument.
- * Ein Eintrag ist entweder {kind:'loadout', slug} (Praefix 'loadout:') oder
- * {kind:'url', baseUrl}. Unbekannte Praefixe und leere Ketten werfen mit
+ * Ein Eintrag ist {kind:'url', baseUrl}. Unbekannte Praefixe und leere Ketten werfen mit
  * nennendem Text, damit ein Konfigurationsfehler beim Start auffaellt und
  * nicht beim ersten Request.
  *
  * @param {object} doc geparstes loadouts.json-Dokument
- * @returns {Map<string, Array<{kind:'loadout'|'url', slug?:string, baseUrl?:string}>>}
+ * @returns {Map<string, Array<{kind:'url', baseUrl:string}>>}
  */
 export function loadRoles(doc) {
   const roles = doc?.roles;
@@ -73,13 +63,12 @@ export function loadRoles(doc) {
       if (typeof entry !== 'string' || entry === '') {
         throw new Error(`roles.${role}: Ketten-Eintrag muss ein nicht-leerer String sein`);
       }
-      if (entry.startsWith('loadout:')) {
-        return { kind: 'loadout', slug: entry.slice('loadout:'.length) };
-      }
       if (/^https?:\/\//.test(entry)) {
         return { kind: 'url', baseUrl: entry };
       }
-      throw new Error(`roles.${role}: unbekannter Ketten-Eintrag '${entry}' — erwartet 'loadout:<slug>' oder eine http(s)-URL`);
+      // [T900107] 'loadout:<slug>' faellt bewusst in diesen Zweig: der Eintrag
+      // wird nicht still ignoriert, sondern nennt beim Start den Grund.
+      throw new Error(`roles.${role}: unbekannter Ketten-Eintrag '${entry}' — erwartet eine http(s)-URL (lokale Loadouts entfallen, T900107)`);
     });
     out.set(role, chain);
   }
@@ -90,11 +79,11 @@ export function loadRoles(doc) {
  * Baut die Rollen-Ketten aus der Backend-Registry (tickets.llm_proxy_backends).
  * - Zeilen mit enabled === false werden verworfen
  * - Sortierung nach priority aufsteigend
- * - loadoutSlug (oder loadout_slug) gesetzt => { kind: 'loadout', slug }
- * - sonst => { kind: 'url', baseUrl }
+ * - jede Zeile wird zu { kind: 'url', baseUrl } — loadout_slug wird nicht mehr
+ *   ausgewertet (T900107)
  *
  * @param {Array<object>} backends
- * @returns {Map<string, Array<{kind:'loadout'|'url', slug?:string, baseUrl?:string}>>}
+ * @returns {Map<string, Array<{kind:'url', baseUrl:string}>>}
  */
 export function rolesFromRegistry(backends) {
   const out = new Map();
@@ -107,10 +96,7 @@ export function rolesFromRegistry(backends) {
 
   for (const b of valid) {
     const roles = Array.isArray(b.roles) ? b.roles : [];
-    const slug = b.loadoutSlug || b.loadout_slug;
-    const entry = slug
-      ? { kind: 'loadout', slug }
-      : { kind: 'url', baseUrl: b.baseUrl || b.base_url };
+    const entry = { kind: 'url', baseUrl: b.baseUrl || b.base_url };
 
     for (const r of roles) {
       if (typeof r !== 'string' || !r) continue;
@@ -131,7 +117,7 @@ let lastFallbackLogState = false;
  * @param {string} role 'embed' | 'rerank'
  * @param {Array<object>} backends Registry-Array (getBackends())
  * @param {object} doc geparstes loadouts.json-Dokument
- * @returns {Array<{kind:'loadout'|'url', slug?:string, baseUrl?:string}>}
+ * @returns {Array<{kind:'url', baseUrl:string}>}
  */
 export function resolveRoleChain(role, backends, doc) {
   try {
@@ -198,39 +184,6 @@ export async function callEntry(baseUrl, path, body, timeoutMs) {
 }
 
 /**
- * Startet ein Loadout-Glied bei Bedarf ueber die vorhandene Start-Maschinerie
- * (models.mjs + runner.mjs) und wartet hoechstens startBudgetMs auf
- * Bereitschaft. Scheitert Start oder Wartezeit, wird geworfen — der Aufrufer
- * behandelt den Eintrag dann als gescheitert, ein nicht startendes Loadout
- * darf den Request nicht verschlucken.
- */
-export async function defaultStartLoadout(slug, doc, startBudgetMs = LOADOUT_START_BUDGET_MS) {
-  const loadout = findLoadout(doc, slug);
-  if (!loadout) throw new Error(`loadout:${slug} nicht in loadouts.json`);
-  const modelPath = resolveModelPath(doc, loadout);
-  if (!modelPath) throw new Error(`Modell ${loadout.model} in keiner modelRoot gefunden`);
-  startUnit(loadout, modelPath, doc.defaults, LLAMA_BIN);
-  const deadline = Date.now() + startBudgetMs;
-  while (Date.now() < deadline) {
-    try {
-      const r = await fetch(`http://127.0.0.1:${loadout.port}/health`, { signal: AbortSignal.timeout(2000) });
-      if (r.ok) return;
-    } catch { /* noch nicht bereit */ }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-  throw new Error(`loadout:${slug} wurde nicht innerhalb von ${startBudgetMs} ms bereit`);
-}
-
-async function ensureLoadoutUrl(slug, doc, startLoadout, startBudgetMs, statusFn = unitStatus) {
-  const loadout = findLoadout(doc, slug);
-  if (!loadout) throw new Error(`loadout:${slug} nicht in loadouts.json`);
-  if (!isLoadoutActive(loadout, statusFn(slug))) {
-    await startLoadout(slug, doc, startBudgetMs);
-  }
-  return `http://127.0.0.1:${loadout.port}`;
-}
-
-/**
  * Arbeitet die Kette der Reihe nach ab.
  *   ok            -> sofort zurueck, mit dem Namen des Eintrags
  *   client_error  -> sofort zurueck, OHNE weiteren Eintrag (durchreichen)
@@ -244,28 +197,13 @@ async function ensureLoadoutUrl(slug, doc, startLoadout, startBudgetMs, statusFn
  * @returns {Promise<{status:number, body:string, upstream:string|null, contentType?:string}>}
  */
 export async function routeRequest({
-  role, path, body, chain, doc,
-  startLoadout = defaultStartLoadout,
+  role, path, body, chain,
   timeoutMs = ROLE_TIMEOUT_MS,
-  startBudgetMs = LOADOUT_START_BUDGET_MS,
-  unitStatus: statusFn = unitStatus,
 }) {
   const failures = [];
   for (const entry of chain) {
-    let baseUrl;
-    let name;
-    if (entry.kind === 'loadout') {
-      name = entry.slug;
-      try {
-        baseUrl = await ensureLoadoutUrl(entry.slug, doc, startLoadout, startBudgetMs, statusFn);
-      } catch (err) {
-        failures.push({ entry: name, reason: err.message });
-        continue;
-      }
-    } else {
-      name = entry.baseUrl;
-      baseUrl = entry.baseUrl;
-    }
+    const name = entry.baseUrl;
+    const baseUrl = entry.baseUrl;
 
     const r = await callEntry(baseUrl, path, body, timeoutMs);
     if (r.kind === 'ok' || r.kind === 'client_error') {

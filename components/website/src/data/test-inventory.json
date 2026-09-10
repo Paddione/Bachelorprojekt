@@ -3432,6 +3432,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-pod-mcp-bundle/dev-pod",
+    "file": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats",
+    "category": "dev-pod-mcp-bundle",
+    "kind": "shell"
+  },
+  {
     "id": "dev-stack-tmp-mounts",
     "file": "tests/spec/dev-stack-tmp-mounts.bats",
     "category": "dev-stack-tmp-mounts",
@@ -4310,12 +4316,6 @@
   {
     "id": "local-llm-proxy/support-model-slots",
     "file": "tests/spec/local-llm-proxy/support-model-slots.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/switch-origin-attribution",
-    "file": "tests/spec/local-llm-proxy/switch-origin-attribution.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },

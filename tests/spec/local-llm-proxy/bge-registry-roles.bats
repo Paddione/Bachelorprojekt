@@ -40,7 +40,7 @@ setup() {
     assert(rerank.length === 3, 'rerank chain must have 3 entries');
     assert(rerank[0].kind === 'url' && rerank[0].baseUrl === 'http://127.0.0.1:8081', 'rerank[0] priority 10');
     assert(rerank[1].kind === 'url' && rerank[1].baseUrl === 'http://127.0.0.1:1234', 'rerank[1] priority 20');
-    assert(rerank[2].kind === 'loadout' && rerank[2].slug === 'bge-rerank-cpu', 'rerank[2] priority 30 loadout');
+    assert(rerank[2].kind === 'url' && rerank[2].baseUrl === 'http://127.0.0.1:18235', 'rerank[2] priority 30');
 
     console.log('registry roles OK');
   "
@@ -55,7 +55,7 @@ setup() {
     const fallbackDoc = {
       roles: {
         embed: { chain: ['http://127.0.0.1:8085', 'http://127.0.0.1:8081'] },
-        rerank: { chain: ['loadout:bge-rerank-cpu'] }
+        rerank: { chain: ['http://127.0.0.1:8081'] }
       }
     };
     const assert = (cond, msg) => { if (!cond) { console.error('FAIL: ' + msg); process.exit(1); } };

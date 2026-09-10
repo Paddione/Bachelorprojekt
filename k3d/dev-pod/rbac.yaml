@@ -1,0 +1,47 @@
+# k3d/dev-pod/rbac.yaml — ServiceAccount des dev-pod [T900107]
+#
+# Nur der mcp-kubernetes-Container braucht API-Zugriff (--cluster-provider
+# in-cluster). Die Rechte sind dieselben lesenden Rechte, die der abgeloeste
+# Monolith unter dem ServiceAccount claude-code-agent trug — bewusst ohne den
+# dortigen Namespace-Role fuer `deployments/scale`: der dev-pod ist ein
+# Lese-Werkzeug, kein Deployer.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dev-pod
+  labels:
+    app: dev-pod
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dev-pod-mcp-read
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "endpoints", "configmaps", "persistentvolumeclaims", "namespaces", "nodes", "events", "replicationcontrollers", "serviceaccounts"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dev-pod-mcp-read
+subjects:
+  - kind: ServiceAccount
+    name: dev-pod
+    namespace: workspace-dev
+roleRef:
+  kind: ClusterRole
+  name: dev-pod-mcp-read
+  apiGroup: rbac.authorization.k8s.io

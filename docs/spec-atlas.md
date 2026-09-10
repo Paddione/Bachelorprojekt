@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2315 · Scenarios: 5130
+Specs: 146 · Requirements: 2322 · Scenarios: 5140
 
 ## factory-pipeline
 
@@ -143,7 +143,7 @@ Last touches:
   - LLM_EMBED_URL in knowledge-ingest CronJobs verdrahtet | T002570 | 2026-08-10 | ADDED
 
 ### local-llm-proxy
-Reqs: 76 · Scenarios: 175 · Lines: 2030
+Reqs: 78 · Scenarios: 178 · Lines: 2067
 Last touches:
   - Proxy as sole LLM gateway | T013302 | 2026-08-22 | MODIFIED
   - Backend registry and admin API | T013909 | 2026-08-22 | MODIFIED
@@ -156,6 +156,8 @@ In-flight:
   - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
+  - The proxy serves remote backends only | T900107 | active | MODIFIED
+  - The purpose section describes the running state | T900107 | active | MODIFIED
   - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product
@@ -706,7 +708,7 @@ Last touches:
   - Pre-Commit blockiert Commits auf main | T002631 | 2026-08-10 | ADDED
 
 ### mcp-gateway
-Reqs: 31 · Scenarios: 77 · Lines: 914
+Reqs: 36 · Scenarios: 84 · Lines: 1010
 Paths: deploy/mcp/, .claude/skills/references/mcp-tool-guide.md, scripts/mcp
 Last touches:
   - bge-mcp shim resolves its router import as a file:// URL | T900039 | 2026-09-02 | ADDED
@@ -715,6 +717,12 @@ Last touches:
   - mcp-kubernetes und mcp-postgres laufen mit read-only Identität | T006335 | 2026-08-15 | MODIFIED
   - Multi-Statement Queries Rejected Instead of Empty Array | T006293 | 2026-08-15 | ADDED
 In-flight:
+  - MCP servers are served from a single in-cluster deployment | T900107 | active | ADDED
+  - No MCP endpoint is exposed publicly | T900107 | active | ADDED
+  - The repository checkout is supplied read-only from a single writer | T900107 | active | ADDED
+  - Container images carry their dependencies | T900107 | active | ADDED
+  - The monolith guard keeps its subject after the manifest is gone | T900107 | active | ADDED
+  - MCP Monolith Deployment Reality In SSOT | T900107 | active | MODIFIED
   - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
   - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
   - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED

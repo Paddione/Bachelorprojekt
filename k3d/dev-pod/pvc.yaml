@@ -1,0 +1,20 @@
+# k3d/dev-pod/pvc.yaml — Repo-Checkout des dev-pod [T900107]
+#
+# Ein PVC statt eines emptyDir: der Checkout ueberlebt damit einen Pod-Neustart.
+# Die Server starten gegen den vorhandenen Stand, statt auf einen frischen Clone
+# zu warten — ein Neustart haengt so nicht an der Erreichbarkeit des git-Remote.
+#
+# accessModes RWO: es gibt genau einen Schreiber (der repo-sync-Sidecar) und die
+# lesenden Container liegen im selben Pod, also auf demselben Knoten.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dev-pod-repo
+  labels:
+    app: dev-pod
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi

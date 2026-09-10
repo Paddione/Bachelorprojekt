@@ -48,7 +48,10 @@ setup() {
   [ "$code" = "200" ]
 }
 
-@test "T006143 / T900006: rerank-Kette fuehrt Desktop vor Cluster vor Tablet vor CPU-Loadout" {
+# [T900107] rerank-Kette fuehrt Desktop vor Cluster vor Tablet. Das letzte
+# Glied "loadout:bge-rerank-cpu" ist entfallen: lokale Loadouts werden im
+# Cluster nicht mehr gestartet (keine GPU, keine systemd-User-Session).
+@test "T006143 / T900006: rerank-Kette fuehrt Desktop vor Cluster vor Tablet" {
   cd "$REPO_ROOT"
   run node --input-type=module -e "
     import { readFileSync } from 'node:fs';
@@ -56,11 +59,10 @@ setup() {
     const doc = JSON.parse(readFileSync('./scripts/llm/loadouts.json', 'utf8'));
     const rerank = loadRoles(doc).get('rerank');
     const assert = (cond, msg) => { if (!cond) { console.error('FAIL: ' + msg); process.exit(1); } };
-    assert(rerank.length === 4, 'rerank chain must have exactly 4 entries');
+    assert(rerank.length === 3, 'rerank chain must have exactly 3 entries');
     assert(rerank[0].kind === 'url' && rerank[0].baseUrl === 'http://127.0.0.1:8085', 'rerank[0] must be desktop :8085');
     assert(rerank[1].kind === 'url' && rerank[1].baseUrl === 'http://127.0.0.1:8093', 'rerank[1] must be cluster :8093');
     assert(rerank[2].kind === 'url' && rerank[2].baseUrl === 'http://192.168.100.12:8080', 'rerank[2] must be tablet 192.168.100.12:8080');
-    assert(rerank[3].kind === 'loadout' && rerank[3].slug === 'bge-rerank-cpu', 'rerank[3] must be loadout bge-rerank-cpu');
     console.log('rerank chain OK');
   "
   assert_success

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout, findExclusiveConflict, planAutoStart, isLoadoutEnabled } from './loadouts.mjs'
+import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout, isLoadoutEnabled } from './loadouts.mjs'
 
 const valid = {
   version: 1,
@@ -172,41 +172,8 @@ test('parseLoadouts: unbekannter managed-Wert wird verworfen (kein Fehler) — F
   assert.equal(out.loadouts[0].managed, 'internal')
 })
 
-test('findExclusiveConflict: externer Eintrag ist Gruppenmitglied', () => {
-  const doc = structuredClone(valid)
-  doc.loadouts[0].exclusiveGroup = 'chat-gpu'
-  doc.loadouts[0].managed = 'external'
-  doc.loadouts[0].slug = 'unsloth-studio'
-  doc.loadouts[0].port = 45013
-  const other = structuredClone(valid.loadouts[0])
-  other.slug = 'gptoss-context'
-  other.exclusiveGroup = 'chat-gpu'
-  doc.loadouts.push(other)
-  const parsed = parseLoadouts(JSON.stringify(doc))
-  const conflict = findExclusiveConflict(parsed, 'gptoss-context', ['unsloth-studio'])
-  assert.ok(conflict, 'externer Eintrag muss als Konflikt gemeldet werden')
-  assert.equal(conflict.conflictSlug, 'unsloth-studio')
-  assert.equal(conflict.group, 'chat-gpu')
-})
-
-test('findExclusiveConflict: aktiver externer Eintrag ohne Unit zaehlt via Port-Liveness', () => {
-  // Der externe Eintrag hat keine systemd-Unit. findExclusiveConflict bekommt
-  // die aktiven Slugs vom Aufrufer (server.mjs filtert ueber isLoadoutActive).
-  // Hier: der externe Slug steht in activeSlugs, muss also als Konflikt melden.
-  const doc = structuredClone(valid)
-  doc.loadouts[0].exclusiveGroup = 'chat-gpu'
-  doc.loadouts[0].managed = 'external'
-  doc.loadouts[0].slug = 'unsloth-studio'
-  doc.loadouts[0].port = 45013
-  const other = structuredClone(valid.loadouts[0])
-  other.slug = 'gptoss-context'
-  other.exclusiveGroup = 'chat-gpu'
-  doc.loadouts.push(other)
-  const parsed = parseLoadouts(JSON.stringify(doc))
-  const conflict = findExclusiveConflict(parsed, 'gptoss-context', ['unsloth-studio'])
-  assert.ok(conflict)
-})
-
+// [T900107] Die findExclusiveConflict-Tests sind mit der Funktion entfallen:
+// die exclusiveGroup-Arbitrierung hat im Cluster keinen Gegenstand mehr.
 
 // --- T003204: enabled-Feld (Abschalten ohne Loeschen) -----------------------
 // Hier NUR die Schema-Faelle. isLoadoutEnabled selbst wird in
@@ -247,27 +214,9 @@ test('T003204: enabled=false kollidiert nicht mit fit.enabled', () => {
   assert.equal(parsed.loadouts[0].fit.enabled, false)
 })
 
-test('T003204: planAutoStart startet ein abgeschaltetes Loadout NICHT', () => {
-  // Der wichtigere der beiden Startwege: der explizite Start ueber
-  // /admin/loadouts/<slug>/start ist die Ausnahme, der implizite ueber die
-  // Modellaufloesung der Regelfall. Ohne diesen Ausschluss bliebe die
-  // Abschaltung halb — gesperrt waere nur der seltenere Weg.
-  const doc = structuredClone(valid)
-
-  // Positiv-Anker: aktiv wird das Loadout sehr wohl vorgeschlagen. Ohne ihn
-  // waere 'action !== start' auch dann erfuellt, wenn planAutoStart aus einem
-  // ganz anderen Grund nichts mehr findet (Slug-Tippfehler im Test etwa).
-  assert.deepEqual(
-    planAutoStart({ doc, model: 'gptoss-context', activeSlugs: [] }),
-    { action: 'start', slug: 'gptoss-context' },
-  )
-
-  doc.loadouts[0].enabled = false
-  assert.deepEqual(
-    planAutoStart({ doc, model: 'gptoss-context', activeSlugs: [] }),
-    { action: 'none' },
-  )
-})
+// [T900107] Der planAutoStart-Test ist mit der Funktion entfallen. Die Aussage,
+// die er sicherte — ein abgeschaltetes Loadout wird nicht implizit gestartet —
+// hat keinen Gegenstand mehr: es wird ueberhaupt nichts mehr implizit gestartet.
 
 test('T003204: isLoadoutEnabled ist der EINE Ort der Default-Regel', () => {
   assert.equal(isLoadoutEnabled({ slug: 'x' }), true)

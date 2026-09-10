@@ -114,7 +114,7 @@ tasks:
         fi
         systemctl --user status factory-mcp.service --no-pager -n 20 || true
 
-  # ── mcp-gateway — kubectl port-forward to svc/claude-code-mcp-monolith ───
+  # ── mcp-gateway — kubectl port-forward to svc/dev-pod [T900107] ──────────
   # Backs the mcp-kubernetes (:18080) and mcp-postgres (:13001) MCP servers.
   # Same start/stop/status/install shape as factory-mcp above.
 
@@ -128,8 +128,8 @@ tasks:
           if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
             echo "mcp-gateway already running (PID $(cat "$PIDFILE"))"
           else
-            nohup kubectl --context fleet port-forward -n default svc/claude-code-mcp-monolith \
-              18080:8080 13000:3000 13001:3001 13002:3002 > /tmp/mcp-gateway.log 2>&1 &
+            nohup kubectl --context fleet port-forward -n workspace-dev svc/dev-pod \
+              18080:8080 13001:3001 13002:3002 18235:18235 > /tmp/mcp-gateway.log 2>&1 &
             echo $! > "$PIDFILE"
             echo "mcp-gateway started (PID $(cat "$PIDFILE"))"
           fi
@@ -186,8 +186,8 @@ tasks:
           kill "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
         fi
         # Also reap any bare kubectl port-forward started outside of task (e.g. a
-        # prior manual `kubectl port-forward ... svc/claude-code-mcp-monolith` run).
-        pkill -f 'port-forward -n default svc/claude-code-mcp-monolith' 2>/dev/null || true
+        # prior manual `kubectl port-forward ... svc/dev-pod` run).
+        pkill -f 'port-forward -n workspace-dev svc/dev-pod' 2>/dev/null || true
         sleep 1
         UNIT_DIR="${HOME}/.config/systemd/user"
         SRC="$(pwd)/scripts/mcp-gateway"

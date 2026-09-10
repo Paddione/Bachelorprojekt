@@ -1,0 +1,214 @@
+# k3d/dev-pod/deployment.yaml — MCP-Server-Bundle + llm-proxy [T900107]
+#
+# Loest den claude-code-mcp-monolith (Namespace default) ab, der von keiner
+# Flux-Kustomization erfasst war und nur ueber ein manuelles `kubectl apply -k`
+# live ging.
+#
+# Drei Container:
+#   mcp-node        — llm-proxy, ticket-mcp, brain-mcp, task-runner,
+#                     codebase-memory, github, postgres unter einem Supervisor
+#   mcp-kubernetes  — das Go-Binary von quay.io, unveraendert uebernommen
+#   repo-sync       — einziger Schreiber des Checkout-Volumes
+#
+# Requests am gemessenen Verbrauch, nicht an den Altwerten: der Monolith
+# deklarierte 960Mi fuer vier Container und verbrauchte real 341Mi
+#   kubectl --context fleet -n default top pod --containers -l app=claude-code-mcp-monolith
+#   # 2026-09-10: github 61Mi | kubernetes 45Mi | playwright 144Mi | postgres 91Mi
+# Ohne playwright (bleibt lokaler stdio-Server, 4-GiB-Limit) sind das 197Mi fuer
+# drei Server; mcp-node traegt vier weitere Node-Prozesse dazu.
+#
+# KEIN Ingress, keine IngressRoute, kein LoadBalancer — siehe service.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-pod
+  labels:
+    app: dev-pod
+spec:
+  replicas: 1
+  # Recreate statt RollingUpdate: das Checkout-PVC ist ReadWriteOnce, zwei
+  # gleichzeitige Pods koennten es nicht beide mounten und der Rollout bliebe
+  # haengen.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dev-pod
+  template:
+    metadata:
+      labels:
+        app: dev-pod
+    spec:
+      serviceAccountName: dev-pod
+      # Dev-Node-Bindung wie der uebrige workspace-dev-Stack
+      # (k3d/dev-stack/dev-node-binding.yaml). Hier inline, weil dieses Overlay
+      # nicht durch prod-fleet/dev laeuft und den dortigen Patch nicht erbt.
+      tolerations:
+        - key: role
+          operator: Equal
+          value: dev
+          effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: role
+                    operator: In
+                    values: [dev]
+      # Pod-level runAsNonRoot ist moeglich, weil KEIN Container mehr root
+      # braucht: der Monolith installierte Pakete zur Laufzeit und trug dafuer
+      # vier annotierte Ausnahmen, hier liegt alles im Image.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        # ── mcp-node ────────────────────────────────────────────────
+        - name: mcp-node
+          image: ghcr.io/paddione/mcp-node:latest
+          imagePullPolicy: Always
+          env:
+            # Cluster-Bind-Pfad des llm-proxy (scripts/llm-proxy/listeners.mjs):
+            # mit gesetztem Override laeuft keine Docker-Bridge-Discovery und der
+            # Listener bindet direkt. Ohne ihn lauschte der Proxy auf 127.0.0.1
+            # und waere aus dem Mesh unerreichbar.
+            - name: LLM_PROXY_HOST_BIND
+              value: "0.0.0.0"
+            - name: LLM_PROXY_PORT
+              value: "18235"
+            # Der Proxy bedient ausschliesslich Remote-Backends: im Cluster steht
+            # keine GPU zur Verfuegung (gemessen 2026-09-10: alle Nodes gpu=KEINE).
+            - name: LLM_PROXY_REMOTE_ONLY
+              value: "1"
+            # [T900106] Der Backend-Registry-Poll (scripts/llm-proxy/backends.mjs)
+            # ruft `factory_psql`. Ohne FACTORY_PG_URL nimmt der Helfer den
+            # kubectl-exec-Weg — im Pod fehlt kubectl, und die RBAC des dev-pod
+            # erlaubt ohnehin kein exec. Mit gesetzter URL spricht psql die
+            # ClusterIP direkt an; genau das ist der in T900106 als richtig
+            # befundene Pfad. psql liegt im Image (kein apk zur Laufzeit).
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_WEBSITE_DB_PASSWORD
+                  optional: true
+            - name: FACTORY_PG_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
+            # dev-pod-secrets wird vom Operator per kubeseal angelegt — dieselbe
+            # fail-closed-Konvention wie factory-runner-secrets: fehlt der Wert,
+            # startet der Supervisor den betroffenen Server nicht, statt mit
+            # einer leeren Verbindungszeichenkette zu laufen.
+            - name: SHARED_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dev-pod-secrets
+                  key: SHARED_DB_PASSWORD
+                  optional: true
+            - name: DATABASE_URL
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+            - name: PGOPTIONS
+              value: "-c statement_timeout=120000ms"
+            - name: GITHUB_PERSONAL_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: factory-runner-secrets
+                  key: GITHUB_PAT
+                  optional: true
+            - name: DEV_POD_REPO
+              value: /workspace/repo
+          ports:
+            - { containerPort: 18235, name: llm-proxy, protocol: TCP }
+            - { containerPort: 3001, name: postgres, protocol: TCP }
+            - { containerPort: 3002, name: github, protocol: TCP }
+            - { containerPort: 3003, name: ticket, protocol: TCP }
+            - { containerPort: 3004, name: brain, protocol: TCP }
+            - { containerPort: 3005, name: task-runner, protocol: TCP }
+            - { containerPort: 3006, name: codebase-mem, protocol: TCP }
+          readinessProbe:
+            # tcpSocket auf den llm-proxy statt httpGet /health eines der
+            # Gateways: postgres und github starten nur mit gesetztem Secret,
+            # eine Probe gegen sie wuerde den Pod bei fehlendem Secret dauerhaft
+            # NotReady halten.
+            tcpSocket:
+              port: 18235
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 200m
+              memory: 320Mi
+            # Limit bewusst deutlich unter 2Gi: das 2Gi-Limit des Monolithen
+            # versteckte den mcp-server-postgres-Child-Leak (T002321) rund zehn
+            # Stunden lang, bevor der OOMKill kam.
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: repo
+              mountPath: /workspace/repo
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+        # ── mcp-kubernetes ──────────────────────────────────────────
+        - name: mcp-kubernetes
+          image: quay.io/containers/kubernetes_mcp_server@sha256:ef1ede0fd73ce975de1850b7f19090d0850c4ce3e7d21d795f21de3ee8d1452c
+          imagePullPolicy: IfNotPresent
+          args: ["--port", "8080", "--stateless", "--cluster-provider", "in-cluster"]
+          ports:
+            - { containerPort: 8080, name: kubernetes, protocol: TCP }
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+        # ── repo-sync ───────────────────────────────────────────────
+        - name: repo-sync
+          image: ghcr.io/paddione/repo-sync:latest
+          imagePullPolicy: Always
+          env:
+            - name: REPO_DIR
+              value: /workspace/repo
+            - name: REPO_URL
+              value: "https://github.com/paddione/Bachelorprojekt.git"
+            - name: REPO_REF
+              value: main
+            - name: SYNC_INTERVAL_SECONDS
+              value: "300"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            # Der einzige schreibende Mount des Checkouts im ganzen Pod.
+            - name: repo
+              mountPath: /workspace/repo
+      volumes:
+        - name: repo
+          persistentVolumeClaim:
+            claimName: dev-pod-repo
+        - name: tmp
+          emptyDir: {}

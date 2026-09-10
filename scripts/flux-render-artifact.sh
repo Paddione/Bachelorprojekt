@@ -257,6 +257,18 @@ EOF
   fi
 )
 
+# 1d. dev-pod (T900107) — MCP-Server-Bundle + llm-proxy in workspace-dev.
+#
+# Eigener Render-Schritt statt eines Eintrags in prod-fleet/dev: der Dev-Stack
+# haengt an DEV_DOMAIN ("Empty disables the dev stack", environments/schema.yaml)
+# und wird bei leerem Wert als leere Kustomization gerendert. Der dev-pod ist
+# davon unabhaengig — er traegt keine Domain und keinen Ingress.
+#
+# Kein vorheriges env-resolve.sh: das Overlay enthaelt keinen ${VAR}-Platzhalter,
+# gleiche Lage wie beim gitlab-runner-stack oben.
+mkdir -p "${OUT_DIR}/dev-pod"
+render_component prod-fleet/dev-pod "${OUT_DIR}/dev-pod/dev-pod.yaml"
+
 # 2. Mentolder
 (
   set +u
@@ -370,7 +382,7 @@ find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clus
 # (T002207)
 echo "flux-render: running validation gate..."
 VALIDATION_FAILED=0
-for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/gitlab-runner"; do
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski" "${OUT_DIR}/staging" "${OUT_DIR}/website-staging" "${OUT_DIR}/gitlab-runner" "${OUT_DIR}/dev-pod"; do
   manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
   if [ ! -f "$manifest" ]; then
     # Empty component trees (e.g. dev with DEV_DOMAIN="") write a

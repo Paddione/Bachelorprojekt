@@ -64,7 +64,10 @@ import sys, yaml
 repo = sys.argv[1]
 targets = [
     ("k3d/coturn-stack/janus.yaml", "janus", True),
-    ("k3d/default/claude-code-mcp-monolith-deploy.yaml", "claude-code-mcp-monolith", False),
+    # [T900107] Der Monolith ist durch den dev-pod ersetzt. Der neue Pod hat KEINE
+    # Root-Container mehr (der Monolith brauchte sie fuer npm-install-g zur Laufzeit),
+    # deshalb steht hier True statt False.
+    ("k3d/dev-pod/deployment.yaml", "dev-pod", True),
     ("k3d/dev-stack/brett-dev.yaml", "brett", True),
     ("k3d/dev-stack/website-dev.yaml", "website", True),
     ("k3d/staging-stack/website-staging.yaml", "website", True),
@@ -99,7 +102,7 @@ import sys, yaml
 repo = sys.argv[1]
 targets = [
     ("k3d/coturn-stack/janus.yaml", "janus", "janus", False),
-    ("k3d/default/claude-code-mcp-monolith-deploy.yaml", "claude-code-mcp-monolith", "kubernetes", False),
+    ("k3d/dev-pod/deployment.yaml", "dev-pod", "mcp-node", False),
     ("k3d/dev-stack/brett-dev.yaml", "brett", "brett", True),
     ("k3d/dev-stack/website-dev.yaml", "website", "website", False),
     ("k3d/staging-stack/website-staging.yaml", "website", "website", False),
@@ -143,8 +146,9 @@ PYEOF
 import sys, re
 repo = sys.argv[1]
 exceptions = [
-    ("k3d/default/claude-code-mcp-monolith-deploy.yaml",
-     ["postgres", "playwright", "github", "github-binary"]),
+    # [T900107] Der Monolith-Eintrag ist entfallen: seine vier Ausnahme-Container
+    # existierten, weil das Manifest Pakete zur Laufzeit nachinstallierte und dafuer
+    # root brauchte. Der dev-pod bringt alles im Image mit und hat keine Ausnahme.
     ("k3d/dev-stack/sish.yaml", ["sish"]),
     ("k3d/mentolder-web.yaml", ["mentolder-web"]),
 ]

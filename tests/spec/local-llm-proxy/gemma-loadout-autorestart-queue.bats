@@ -4,7 +4,7 @@
 # Ticket: T002459 (Task P5.5)
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert. Geprueft
-# werden Laufzeitergebnisse — buildStartCommand/buildServerArgv/planAutoStart
+# werden Laufzeitergebnisse — buildStartCommand/buildServerArgv
 # werden aufgerufen und ihre Rueckgaben in node assertiert, plus ein HTTP-Request
 # gegen einen real gestarteten Proxy. Kein grep nach Flag-Namen in server.mjs
 # oder runner.mjs.
@@ -182,70 +182,11 @@ _start_proxy() {
 
 # --- 5/6) Requirement "Auto-start and queue" --------------------------------
 
-@test "planAutoStart startet ein gestopptes, konfliktfreies Loadout" {
-  # T014339: die Slugs sind das Vehikel der Regel, nicht ihr Gegenstand. Seit der
-  # FreeToken-Migration ist KEIN chat-gpu-Loadout mehr aktiv ausgeliefert — der
-  # Test wuerde ohne das explizite enabled=true das enabled-Flag der
-  # ausgelieferten Datei messen statt der Auto-Start-Regel. Die echte Datei
-  # bleibt die Quelle der Struktur (Slugs, exclusiveGroup), nur das Flag wird
-  # fuer die Messung gesetzt.
-  run node --input-type=module -e "
-    import assert from 'node:assert/strict';
-    const { readLoadouts, planAutoStart } = await import('file://${REPO_ROOT}/scripts/llm-proxy/loadouts.mjs');
-    const { doc } = readLoadouts('${REPO_ROOT}/scripts/llm/loadouts.json');
-    const enable = (slug) => {
-      const l = doc.loadouts.find((x) => x.slug === slug);
-      assert.ok(l, 'Loadout fehlt in loadouts.json: ' + slug);
-      l.enabled = true;
-      return l;
-    };
-    enable('gemma26-factory');
-    const r = planAutoStart({ doc, model: 'gemma26-factory', activeSlugs: [] });
-    assert.equal(r.action, 'start');
-    assert.equal(r.slug, 'gemma26-factory');
-    console.log('ok');
-  "
-  echo "$output"
-  [ "$status" -eq 0 ]
-}
-
-@test "planAutoStart meldet Konflikt statt zu stoppen und laesst den Zustand unveraendert" {
-  run node --input-type=module -e "
-    import assert from 'node:assert/strict';
-    const { readLoadouts, planAutoStart } = await import('file://${REPO_ROOT}/scripts/llm-proxy/loadouts.mjs');
-    const { doc } = readLoadouts('${REPO_ROOT}/scripts/llm/loadouts.json');
-
-    // T003204: fuehrt zwei AKTIVE Loadouts derselben exclusiveGroup. Vorher
-    // standen hier gptoss-context und devstral-quality — beide sind seither
-    // abgeschaltet, und planAutoStart liefert fuer sie 'none' statt
-    // 'start'/'conflict'. Der Test prueft die KONFLIKTREGEL; die Slugs sind nur
-    // ihr Vehikel und muessen deshalb aktiv sein, sonst misst er das
-    // enabled-Flag statt der Regel und wird rot, ohne dass die Regel bricht.
-    // POSITIV-ANKER zuerst: derselbe Aufruf ohne aktives Loadout muss starten.
-    // Ohne ihn koennte 'conflict' auch von einem kaputten Lookup kommen.
-    // T014339: siehe Vortest — beide Slugs werden fuer die Messung aktiviert,
-    // weil die ausgelieferte Datei seit der FreeToken-Migration kein aktives
-    // chat-gpu-Loadout mehr enthaelt.
-    for (const slug of ['gemma26-factory', 'gemma26-throughput']) {
-      const l = doc.loadouts.find((x) => x.slug === slug);
-      assert.ok(l, 'Loadout fehlt in loadouts.json: ' + slug);
-      l.enabled = true;
-    }
-    assert.equal(planAutoStart({ doc, model: 'gemma26-factory', activeSlugs: [] }).action, 'start');
-
-    const active = ['gemma26-throughput'];
-    const before = JSON.stringify({ active, doc });
-    const r = planAutoStart({ doc, model: 'gemma26-factory', activeSlugs: active });
-    assert.equal(r.action, 'conflict');
-    assert.equal(r.conflictSlug, 'gemma26-throughput');
-    assert.equal(r.group, 'chat-gpu');
-    // Planen heisst planen: die Funktion darf nichts stoppen und nichts mutieren.
-    assert.equal(JSON.stringify({ active, doc }), before, 'planAutoStart hat den Zustand mutiert');
-    console.log('ok');
-  "
-  echo "$output"
-  [ "$status" -eq 0 ]
-}
+# [T900107] Die beiden planAutoStart-Tests sind mit der Funktion entfallen:
+# die exclusiveGroup-Arbitrierung wurde aus dem Proxy entfernt, weil er als
+# Container des dev-pod laeuft und dort weder eine GPU noch eine
+# systemd-User-Session vorfindet. Der Proxy startet ueberhaupt kein Loadout
+# mehr — es gibt keinen Auto-Start, den eine Regel begrenzen koennte.
 
 # --- 7) HTTP-Regressionsanker: 503 no_backend bleibt erhalten ---------------
 

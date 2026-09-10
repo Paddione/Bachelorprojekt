@@ -48,14 +48,42 @@ FreeToken :1919 lokal.
 | Alternative | Grund |
 |---|---|
 | Proxmox dev-VM Revival (B) | User-Ausschluss: keine zweite Linux-Umgebung |
-| Dev-in-Pod / Thin-Client (D) | Worker-RAM 85–112 %, WAN-Latenz, native Toolchain geht verloren |
-| llm-proxy migrieren | FreeToken-native (T014105) hat ihn obsolet gemacht — retire statt portieren |
+| Dev-in-Pod / Thin-Client (D) | Worker-RAM 85–112 %, WAN-Latenz, native Toolchain geht verloren — **teilweise revidiert, siehe Nachtrag T900107** |
+| llm-proxy migrieren | FreeToken-native (T014105) hat ihn obsolet gemacht — retire statt portieren — **teilweise revidiert, siehe Nachtrag T900107** |
 | WSL registry-cache behalten | Duplikat des In-Cluster-Deployments seit ~21.8. |
 | Docker Desktop Hyper-V-Backend | Installiert und technisch möglich, aber von Docker seit Jahren als deprecated geführt; der Zweck (lokales k3d) ist mit dem WSL-Exit entfallen. |
 
 **Nachtrag 2026-09-03 (Operator-Entscheidung): Docker Desktop deinstallieren.**
 
 `wsl -l -v` zeigte `docker-desktop` als laufende WSL2-Distro (0.1 GB), `k3d-dev` gestoppt (414.5 GB vhdx). `kubectl config get-contexts` listet keine k3d-Kontexte mehr (nur `fleet` und `hetzner`) — der lokale Dev-Cluster ist faktisch tot. Docker Desktop wird **deinstalliert** (nicht auf Hyper-V umgestellt). `wsl --shutdown` ist damit kein letzter Schritt mehr, sondern kann parallel zum letzten Cleanup erfolgen.
+
+**Nachtrag 2026-09-10 (T900107): Dev-in-Pod und llm-proxy-Migration teilweise revidiert.**
+
+Zwei der oben verworfenen Alternativen sind mit dem `dev-pod`-Bundle angenommen worden. Die
+Revision steht hier mit ihrem Beleg, damit sie nachprüfbar bleibt und nicht als blosse
+Umkehrung gelesen wird.
+
+*Der Kapazitätsgrund hält der Messung nicht mehr stand.* "Worker-RAM 85–112 %" war der
+tragende Einwand gegen Dev-in-Pod. Nachgemessen:
+
+```bash
+kubectl --context fleet top nodes
+# 2026-09-10: gekko-2 22% | gekko-3 43% | gekko-4 39% | pk-4 36% | pk-6 39% | pk-8 44%
+```
+
+*Die unwiderlegten Einwände behalten ihren Geltungsbereich.* WAN-Latenz und "native Toolchain
+geht verloren" sind nicht entkräftet. Sie treffen den Pod als **Arbeitsplatz**; T900107
+beansprucht ihn ausschliesslich als **Server-Bundle** (MCP-Server plus llm-proxy). Die
+interaktive Entwicklung bleibt Windows-nativ, genau wie diese ADR sie beschreibt.
+
+*Beim llm-proxy ist "retire" und "portieren" auseinanderzuhalten.* **Retired** ist die lokale
+GPU-Loadout-Maschinerie: transiente systemd-User-Units und die `exclusiveGroup`-Arbitrierung
+sind aus `scripts/llm-proxy/` entfernt — sie setzten den WSL-Host voraus, und im Cluster steht
+keine GPU zur Verfügung. **Migriert** ist die Routing-Schicht: Modellauflösung, Kontextbudget,
+Tool-Schema-Sanitizing und die bge-Rollenketten laufen weiter, jetzt als Container des
+`dev-pod` gegen Remote-Backends. Der Eintrag oben ist also kein Widerspruch, sondern
+präzisiert: der Teil, den FreeToken-native obsolet gemacht hat, ist weg; der Teil, für den es
+keinen Ersatz gab, ist umgezogen.
 
 ## Konsequenzen
 

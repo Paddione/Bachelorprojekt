@@ -380,64 +380,12 @@ export function isLoadoutEnabled(loadout) {
   return loadout?.enabled !== false;
 }
 
-/**
- * T002616 — die EINE Definition von "Konflikt", geteilt von beiden Startwegen:
- * planAutoStart (Auto-Start ueber die Modellaufloesung) und startLoadout
- * (expliziter Start ueber /admin/loadouts/<slug>/start).
- *
- * Bis T002616 kannte nur planAutoStart die Regel. startLoadout prueft
- * already_running und port_busy — port_busy fing einen Gruppenkonflikt aber nur
- * dann ab, wenn beide Loadouts denselben Port belegen (die drei auf 8091).
- * Ueber Portgrenzen hinweg griff nichts: bei laufendem gemma9-factory (8092)
- * startete gemma26-factory (8091) durch, obwohl beide Gewichte zusammen die
- * 16-GB-Karte sprengen (14,25 + 5,76 GB). llama.cpp meldet dabei keinen
- * VRAM-Fehler, --fit lagert still Layer ins RAM aus.
- *
- * Bewusst EINE Funktion statt zweier Kopien: zwei Formulierungen derselben
- * Regel laufen auseinander, und dann verhaelt sich der eine Startweg anders als
- * der andere — genau der Zustand, den das behebt.
- *
- * Rein: kein I/O. `activeSlugs` kommt vom Aufrufer, damit die Regel ohne
- * systemd testbar bleibt.
- *
- * @param {object} doc geladenes loadouts.json
- * @param {string} slug der zu startende Slug
- * @param {string[]} activeSlugs aktuell aktive Slugs
- * @returns {{conflictSlug:string, group:string} | null}
- */
-export function findExclusiveConflict(doc, slug, activeSlugs) {
-  const loadout = findLoadout(doc, slug);
-  if (!loadout) return null;
-  const group = loadout.exclusiveGroup;
-  if (!group) return null;
-  // Der eigene Slug ist ausgenommen: ein laufendes Loadout ist kein Konflikt
-  // mit sich selbst. Sonst blockierte ein Neustart sich selbst, solange die
-  // alte Unit noch laeuft — dafuer gibt es already_running.
-  const conflict = doc.loadouts.find((l) => l.slug !== loadout.slug
-    && l.exclusiveGroup === group && activeSlugs.includes(l.slug));
-  return conflict ? { conflictSlug: conflict.slug, group } : null;
-}
-
-/**
- * Pure decision: may `model` be auto-started? No file/network I/O, no side effects.
- * `doc` and `activeSlugs` are already loaded by the caller (server.mjs).
- * @param {{doc: object, model: string, activeSlugs: string[]}} args
- * @returns {{action:'start', slug:string}
- *         | {action:'conflict', slug:string, conflictSlug:string, group:string}
- *         | {action:'none'}}
- */
-export function planAutoStart({ doc, model, activeSlugs }) {
-  if (typeof model !== 'string' || !model) return { action: 'none' };
-  const loadout = findLoadout(doc, model);
-  if (!loadout) return { action: 'none' };
-  // T003204: abgeschaltete Loadouts werden nicht implizit gestartet. Ohne diesen
-  // Ausschluss bliebe die Abschaltung halb — der explizite Start waere gesperrt,
-  // der implizite liefe weiter, und der ist der haeufigere Weg.
-  if (!isLoadoutEnabled(loadout)) return { action: 'none' };
-  if (activeSlugs.includes(loadout.slug)) return { action: 'none' };
-  const conflict = findExclusiveConflict(doc, loadout.slug, activeSlugs);
-  if (conflict) {
-    return { action: 'conflict', slug: loadout.slug, ...conflict };
-  }
-  return { action: 'start', slug: loadout.slug };
-}
+// [T900107] findExclusiveConflict und planAutoStart sind entfallen.
+//
+// Beide gehoerten zur exclusiveGroup-Arbitrierung: sie entschieden, welches
+// Loadout die GPU belegen darf und welches dafuer weichen muss. Der Proxy
+// laeuft seit dem dev-pod-Umzug im Cluster, wo keine GPU zur Verfuegung steht
+// und keine systemd-User-Session existiert — es gibt nichts mehr zu
+// arbitrieren. Der Rest dieses Moduls bleibt: er liest und schreibt die
+// Konfiguration, die das SDLC-Cockpit und der Modell-Lock der Factory
+// benutzen.

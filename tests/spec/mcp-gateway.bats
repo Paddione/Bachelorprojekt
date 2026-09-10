@@ -109,10 +109,14 @@ setup() {
 }
 
 @test "cluster container names match deployment manifest" {
-  run grep -c '"name": "keycloak"\|"name": "playwright"\|"name": "github"' \
-    "$REPO/k3d/default/claude-code-mcp-monolith-deploy.yaml"
+  # [T900107] Subjekt ist der dev-pod. Der frueher hier geprueften Container
+  # keycloak/playwright/github des Monolithen gibt es nicht mehr: keycloak war
+  # defekt (T002311), playwright bleibt lokaler stdio-Server, github laeuft im
+  # mcp-node-Container unter dem Supervisor.
+  run grep -cE '^ *- name: (mcp-node|mcp-kubernetes|repo-sync)$' \
+    "$REPO/k3d/dev-pod/deployment.yaml"
   [ "$status" -eq 0 ]
-  [ "$output" -ge 3 ]
+  [ "$output" -eq 3 ]
 }
 
 # ── Ops Agent Output-Trust Guardrails ─────────────────────────────────
@@ -181,48 +185,68 @@ setup() {
 # pro MCP-Request einen mcp-server-postgres-Kindprozess (~54Mi RSS) und reaped
 # ihn nie; die RSS-Summe erreicht nach ~10h das 2Gi-cgroup-Limit.
 
-MONOLITH_MANIFEST_REL="k3d/default/claude-code-mcp-monolith-deploy.yaml"
+# [T900107] Der Gegenstand dieser Guards ist mit dem Monolithen umgezogen. Der
+# Reaper stand frueher als args[0] im JSON-Manifest und war nur ueber einen
+# jq-Extraktor pruefbar; er liegt jetzt als Datei im mcp-node-Image. Die
+# Versionspins (supergateway, mcp-server-postgres) stehen im Dockerfile, das
+# Speicherlimit und PGOPTIONS im dev-pod-Deployment.
+DEV_POD_MANIFEST_REL="k3d/dev-pod/deployment.yaml"
+MCP_NODE_DIR_REL="docker/mcp-node"
 
-# Startkommando (args[0]) des postgres-Containers aus dem JSON-Manifest.
+# Der pruefbare "Startpfad" des postgres-Servers: Reaper-Skript + Supervisor +
+# Dockerfile. Zusammen ist das, was der Container beim Start ausfuehrt und womit
+# er gebaut wurde.
 pg_container_args() {
-  jq -r '.spec.template.spec.containers[] | select(.name=="postgres") | .args[0]' \
-    "$REPO/$MONOLITH_MANIFEST_REL"
+  cat "$REPO/$MCP_NODE_DIR_REL/reap-postgres-children.sh" \
+      "$REPO/$MCP_NODE_DIR_REL/supervisor.sh" \
+      "$REPO/$MCP_NODE_DIR_REL/Dockerfile"
 }
 
+# Speicherlimit des Containers, in dem der postgres-Server laeuft.
 pg_memory_limit() {
-  jq -r '.spec.template.spec.containers[] | select(.name=="postgres") | .resources.limits.memory' \
-    "$REPO/$MONOLITH_MANIFEST_REL"
+  node -e "
+    const fs=require('fs'), yaml=require('yaml');
+    const d=yaml.parse(fs.readFileSync(process.argv[1],'utf8'));
+    const c=d.spec.template.spec.containers.find(c=>c.name==='mcp-node');
+    console.log(c.resources.limits.memory);
+  " "$REPO/$DEV_POD_MANIFEST_REL"
 }
 
-@test "monolith deployment manifest exists" {
-  [ -f "$REPO/$MONOLITH_MANIFEST_REL" ]
+@test "dev-pod deployment manifest exists" {
+  [ -f "$REPO/$DEV_POD_MANIFEST_REL" ]
+  [ -f "$REPO/$MCP_NODE_DIR_REL/reap-postgres-children.sh" ]
 }
 
 @test "postgres container reaps accumulated mcp-server-postgres children" {
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'reap|REAP'"
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; pg_container_args | grep -Eq 'reap|REAP'"
   [ "$status" -eq 0 ]
 }
 
 @test "postgres container pins supergateway to an explicit version" {
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'supergateway@[0-9]+\.[0-9]+\.[0-9]+'"
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; pg_container_args | grep -Eq 'supergateway@[0-9]+\.[0-9]+\.[0-9]+'"
   [ "$status" -eq 0 ]
 }
 
 @test "postgres container pins @modelcontextprotocol/server-postgres to an explicit version" {
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '@modelcontextprotocol/server-postgres@[0-9]+\.[0-9]+\.[0-9]+'"
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; pg_container_args | grep -Eq '@modelcontextprotocol/server-postgres@[0-9]+\.[0-9]+\.[0-9]+'"
   [ "$status" -eq 0 ]
 }
 
 @test "postgres container logs child count so growth is visible before the kill" {
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'child|children'"
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; pg_container_args | grep -Eq 'child|children'"
   [ "$status" -eq 0 ]
 }
 
 @test "postgres memory limit is below 2Gi so a regression surfaces in hours" {
   limit="$(pg_memory_limit)"
-  # Erwartet: Mi-Wert unter 2048Mi. 2Gi versteckt den Leak ~10h lang.
-  [[ "$limit" =~ ^([0-9]+)Mi$ ]] || { echo "limit '$limit' ist nicht in Mi angegeben"; return 1; }
-  [ "${BASH_REMATCH[1]}" -lt 2048 ]
+  # Geprueft wird der WERT, nicht seine Schreibweise [T002716]: 1Gi und 1024Mi
+  # sind dasselbe Limit, und ein Guard, der nur Mi akzeptiert, meldet einen
+  # Defekt, den es nicht gibt. 2Gi versteckt den Leak ~10h lang.
+  [[ "$limit" =~ ^([0-9]+)(Mi|Gi)$ ]]     || { echo "limit '$limit' ist weder in Mi noch in Gi angegeben"; return 1; }
+  mib="${BASH_REMATCH[1]}"
+  [ "${BASH_REMATCH[2]}" = "Gi" ] && mib=$(( mib * 1024 ))
+  echo "limit=${limit} => ${mib}Mi"
+  [ "$mib" -lt 2048 ]
 }
 
 # ── Reaper Candidate Selection (T002350) ──────────────────────────────
@@ -272,7 +296,7 @@ reaper_selection_fn() {
 # Ausgabe-Kontrakt: je Kandidat eine Zeile "<starttime> <pid>", aeltester zuerst.
 run_selection() {  # <fixture> <self_pid>
   local fixture="$1" self="$2" fn
-  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn")"
+  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; reaper_selection_fn")"
   [ -n "$fn" ] || return 127
   bash -c "$fn
 PROC_ROOT='$fixture' SELF_PID='$self' list_reap_candidates"
@@ -296,7 +320,7 @@ assert_selection_alive() {  # <kandidatenliste>
 }
 
 @test "T002350: reaper exposes a pure selection function (no kill) that a test can load" {
-  run bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn"
+  run bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; reaper_selection_fn"
   [ "$status" -eq 0 ]
   [ -n "$output" ] \
     || { echo "list_reap_candidates() fehlt im Startkommando — die Auswahl ist nicht isoliert und damit nicht pruefbar"; return 1; }
@@ -353,7 +377,7 @@ assert_selection_alive() {  # <kandidatenliste>
 }
 
 @test "T002350: reaper reads a configurable proc root so production keeps /proc" {
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'PROC_ROOT:-/proc'"
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; pg_container_args | grep -Eq 'PROC_ROOT:-/proc'"
   [ "$status" -eq 0 ]
 }
 
@@ -363,20 +387,24 @@ assert_selection_alive() {  # <kandidatenliste>
   # [$] statt \$: der aeussere bats-String ist doppelt gequotet, '\$' kaeme beim
   # inneren grep als '$' an — und das ist in ERE der Zeilenende-Anker, das Muster
   # koennte nie matchen. Die Zeichenklasse umgeht beide Quoting-Ebenen.
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '[\$]_root/self/stat'"
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; pg_container_args | grep -Eq '[\$]_root/self/stat'"
   [ "$status" -eq 0 ]
 }
 
 @test "T002350: reaper caps live children so a request burst cannot outrun the age threshold" {
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'MCP_PG_CHILD_MAX_COUNT'"
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; pg_container_args | grep -Eq 'MCP_PG_CHILD_MAX_COUNT'"
   [ "$status" -eq 0 ]
 }
 
 @test "T002350: age threshold stays above the statement_timeout" {
   args="$(pg_container_args)"
   age="$(printf '%s' "$args" | grep -Eo 'MCP_PG_CHILD_MAX_AGE_SECONDS:-[0-9]+' | head -1 | grep -Eo '[0-9]+$')"
-  timeout_ms="$(jq -r '.spec.template.spec.containers[] | select(.name=="postgres") | .env[] | select(.name=="PGOPTIONS") | .value' \
-    "$REPO/$MONOLITH_MANIFEST_REL" | grep -Eo 'statement_timeout=[0-9]+' | grep -Eo '[0-9]+$')"
+  timeout_ms="$(node -e "
+    const fs=require('fs'), yaml=require('yaml');
+    const d=yaml.parse(fs.readFileSync(process.argv[1],'utf8'));
+    const c=d.spec.template.spec.containers.find(c=>c.name==='mcp-node');
+    console.log((c.env.find(e=>e.name==='PGOPTIONS')||{}).value||'');
+  " "$REPO/$DEV_POD_MANIFEST_REL" | grep -Eo 'statement_timeout=[0-9]+' | grep -Eo '[0-9]+$')"
   [ -n "$age" ] || { echo "keine Altersschwelle gefunden"; return 1; }
   [ -n "$timeout_ms" ] || { echo "kein statement_timeout gefunden"; return 1; }
   [ "$age" -gt "$(( timeout_ms / 1000 ))" ] \
@@ -390,7 +418,7 @@ assert_selection_alive() {  # <kandidatenliste>
   command -v docker >/dev/null 2>&1 || skip "docker nicht verfuegbar"
   docker image inspect node:20-alpine >/dev/null 2>&1 || skip "node:20-alpine nicht lokal vorhanden"
 
-  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn")"
+  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MCP_NODE_DIR_REL='$MCP_NODE_DIR_REL'; reaper_selection_fn")"
   [ -n "$fn" ] || { echo "keine Auswahlfunktion im Manifest"; return 1; }
 
   script="$(mktemp)"
@@ -418,8 +446,19 @@ assert_selection_alive() {  # <kandidatenliste>
 
 # ── MCP Monolith Deployment Reality In SSOT (T002321) ──────────────────
 
-@test "mcp-gateway spec does not claim the monolith is decommissioned while its manifest ships" {
-  if [ -f "$REPO/$MONOLITH_MANIFEST_REL" ]; then
+@test "mcp-gateway spec names the deployment that actually serves MCP" {
+  # [T900107] Der Guard haengt jetzt am dev-pod-Manifest. Zuvor stand hier
+  # `if [ -f k3d/default/claude-code-mcp-monolith-deploy.yaml ]` — mit dem
+  # Entfernen dieses Manifests waere der Rumpf still uebersprungen worden und
+  # der Test haette bestanden, ohne noch irgendetwas zu pruefen.
+  [ -f "$REPO/$DEV_POD_MANIFEST_REL" ] \
+    || { echo "dev-pod-Manifest fehlt — der Guard haette vakuos bestanden"; false; }
+
+  # Positiv-Anker: der Spec nennt das Deployment, das tatsaechlich bedient.
+  run grep -q 'dev-pod' "$REPO/openspec/specs/mcp-gateway.md"
+  [ "$status" -eq 0 ] || { echo "Spec nennt den dev-pod gar nicht"; false; }
+
+  if true; then
     # Nur normative Prosa pruefen. Scenario-Bloecke beschreiben die Pruefbedingung
     # und duerfen das Wort tragen: nach dem Archivieren des Changes steht der
     # GIVEN-Text ("trug die Notiz, ... sei dekommissioniert") im SSOT und wuerde
@@ -452,7 +491,13 @@ assert_selection_alive() {  # <kandidatenliste>
   fi
 }
 
-@test "mcp-gateway spec documents the manual apply path of k3d/default" {
-  run grep -q 'k3d/default' "$REPO/openspec/specs/mcp-gateway.md"
+@test "mcp-gateway spec documents the Flux delivery path of the dev-pod" {
+  # [T900107] Der Vorgaenger-Guard verlangte, dass der Spec den manuellen
+  # Apply-Weg von k3d/default dokumentiert. Genau dieser Weg war der Mangel;
+  # geprueft gehoert jetzt, dass der Spec die Flux-Zustellung benennt.
+  run grep -q 'ks-dev-pod.yaml' "$REPO/openspec/specs/mcp-gateway.md"
+  [ "$status" -eq 0 ] || { echo "Spec nennt die Flux-Kustomization des dev-pod nicht"; false; }
+
+  run grep -qi 'Flux-GitOps-Pipeline\|Flux pipeline' "$REPO/openspec/specs/mcp-gateway.md"
   [ "$status" -eq 0 ]
 }

@@ -21,6 +21,12 @@ bats_require_minimum_version 1.5.0
 # PRÜFMODUS: Kommando-Ergebnis-Verifikation (T002448-M4) — Assertions auf
 # command output und exit codes in Wegwerf-Git-Repos unter $BATS_TEST_TMPDIR.
 # Das echte Repo (inkl. seines refs/stash) wird nicht berührt.
+# [T900024] Die opencode-Fassung ist .opencode/skills/git-workflow/SKILL.md.
+# .opencode/skills/opencode-git-workflow/ war eine dritte, unabhaengig
+# gedriftete Kopie und ist seit T900024 nur noch ein Verweis auf die SSOT -
+# der Regeltext steht dort nicht mehr. Geprueft wird die Datei, der eine
+# opencode-Session tatsaechlich folgt; der Zweck (jede Harness kennt die
+# Regel) bleibt unveraendert.
 # EINZIGE AUSNAHME (dokumentiert): der T003105-Block prüft den Regel-TEXT der
 # beiden Skill-Dateien — dort IST der Text das Verhalten (Workflow-Regel), wie
 # in tests/spec/ci-cd/freshness-regen-rebase-guard.bats dokumentiert.
@@ -145,7 +151,7 @@ _init_fx() {  # $1 = Verzeichnis
   local skill
   for skill in \
     ".claude/skills/git-workflow/SKILL.md" \
-    ".opencode/skills/opencode-git-workflow/SKILL.md"; do
+    ".opencode/skills/git-workflow/SKILL.md"; do
     local f="$REPO_ROOT/$skill"
     # Positiv-Anker: die Datei existiert und ist nicht leer — ohne sie misst
     # der Test nichts (T002356-M1).

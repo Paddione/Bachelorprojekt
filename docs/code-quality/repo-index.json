@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1277,
+      "file_count": 1278,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1129,6 +1129,7 @@
         "tests/spec/website-core/portrait-derivate-crop.bats",
         "tests/spec/website-core/web-audit.bats",
         "tests/spec/website-interfaces.bats",
+        "tests/spec/work-vm-shared-dev/work-vm-guards.bats",
         "tests/spec/workspace-deploy-secrets-scope.bats",
         "tests/spec/workspace-deploy.bats",
         "tests/spec/workspace-deploy/flux-secrets-ordering.bats",
@@ -4135,7 +4136,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 864,
+      "file_count": 865,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4880,6 +4881,7 @@
         "scripts/setup-autostart.sh",
         "scripts/setup-comfyui.sh",
         "scripts/setup-dev-env.sh",
+        "scripts/setup-shared-dev-repo.sh",
         "scripts/setup.sh",
         "scripts/skill-orchestrator.sh",
         "scripts/spec-junit-weights.sh",

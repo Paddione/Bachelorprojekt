@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 2023 Abhängigkeitskanten · 291 API-Endpoints
+98 Services · 2034 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -26,7 +26,7 @@ flowchart LR
   systemtest_cleanup["systemtest-cleanup"]:::default
   systemtest_purge_all["systemtest-purge-all"]:::default
   systemtest_outbox["systemtest-outbox"]:::default
-  claude_code_mcp_monolith["claude-code-mcp-monolith"]:::default
+  dev_pod["dev-pod"]:::default
   factory_runner["factory-runner"]:::default
   factory_tick["factory-tick"]:::default
   oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]:::default
@@ -127,8 +127,8 @@ flowchart LR
   systemtest_cleanup -->|"command"| website
   systemtest_purge_all -->|"command"| website
   systemtest_outbox -->|"command"| website
-  claude_code_mcp_monolith -->|"DATABASE_URL"| shared_db
-  claude_code_mcp_monolith -->|"DATABASE_URL"| website
+  dev_pod -->|"FACTORY_PG_URL"| website
+  dev_pod -->|"DATABASE_URL"| shared_db
   factory_runner -->|"FACTORY_PG_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
   sdlc_console -->|"SESSIONS_DATABASE_…"| website
@@ -225,7 +225,7 @@ flowchart LR
   brain -->|"selector"| brain
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
-  claude_code_mcp_monolith -->|"selector"| claude_code_mcp_monolith
+  dev_pod -->|"selector"| dev_pod
   oauth2_proxy_brainstorm -->|"selector"| oauth2_proxy_brainstorm
   oauth2_proxy_dev -->|"selector"| oauth2_proxy_dev
   oauth2_proxy_session_hub -->|"selector"| oauth2_proxy_session_hub
@@ -2052,6 +2052,15 @@ flowchart LR
   sdlc_console -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| sdlc_console
+  dev_pod -->|"secret:shared-db-d…"| brett
+  brett -->|"secret:shared-db-d…"| dev_pod
+  dev_pod -->|"secret:shared-db-d…"| factory_runner
+  factory_runner -->|"secret:shared-db-d…"| dev_pod
+  dev_pod -->|"secret:shared-db-d…"| sdlc_console
+  sdlc_console -->|"secret:shared-db-d…"| dev_pod
+  dev_pod -->|"secret:shared-db-d…"| shared_db_dev
+  shared_db_dev -->|"secret:shared-db-d…"| dev_pod
+  website -->|"secret:shared-db-d…"| dev_pod
   brett -->|"secret:shared-db-d…"| factory_runner
   factory_runner -->|"secret:shared-db-d…"| brett
   brett -->|"secret:shared-db-d…"| shared_db_dev
@@ -2085,6 +2094,7 @@ flowchart TB
     billing_dunning_detection(["billing-dunning-detection"])
     monthly_billing(["monthly-billing"])
     scheduled_publish(["scheduled-publish"])
+    dev_pod["dev-pod"]
     factory_runner["factory-runner"]
     factory_tick(["factory-tick"])
     oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]
@@ -2158,9 +2168,6 @@ flowchart TB
     systemtest_cleanup(["systemtest-cleanup"])
     systemtest_purge_all(["systemtest-purge-all"])
     systemtest_outbox(["systemtest-outbox"])
-  end
-  subgraph default["default"]
-    claude_code_mcp_monolith["claude-code-mcp-monolith"]
   end
   subgraph workspace_dev["workspace-dev"]
     oauth2_proxy_dev["oauth2-proxy-dev"]

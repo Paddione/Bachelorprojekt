@@ -421,18 +421,18 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   [[ "$output" == *"geprueft: "* ]]
 }
 
-@test "T002394: server.mjs importiert loadouts/models/runner Module" {
+@test "T002394: server.mjs importiert loadouts-Modul" {
+  # [T900107] models.mjs und runner.mjs sind entfallen (Loadout-Verwaltung/Arbitrierung
+  # im Cluster unnoetig). Nur loadouts.mjs bleibt — der Lesepfad fuer das SDLC-Cockpit.
   grep -qE "from './loadouts.mjs'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "from './models.mjs'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "from './runner.mjs'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
 }
 
 @test "T002394: /admin/* Routen sind in server.mjs definiert" {
-  grep -qE "'/admin/models'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "'/admin/loadouts'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "'/admin/loadouts/status'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "loadouts.*start" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "loadouts.*stop" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  # [T900107] /admin/models und /admin/loadouts[start/stop] sind entfallen
+  # (exclusiveGroup-Arbitrierung im Cluster entfaellt). Uebrig bleiben
+  # /admin/state und /admin/reload.
+  grep -qE "'/admin/state'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "'/admin/reload'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
 }
 
 @test "T002394: /admin Route verweist aufs SDLC Cockpit (410)" {

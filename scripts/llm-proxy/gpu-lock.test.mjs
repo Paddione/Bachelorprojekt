@@ -3,7 +3,7 @@
 //   - evaluateLock: PID-Liveness, fail-closed bei unlesbarer Datei
 //   - resolveModel: gehaltener Lock nimmt llamacpp/lmstudio aus der Auswahl
 //   - startDiscovery-Tick: Draining erzeugt keine unhealthy-Zeile
-//   - findExclusiveConflict: externer Eintrag ist Gruppenmitglied
+//   - managed=external: gueltiges Feld in loadouts.mjs
 // Konvention: node:test, Funktionen aufrufen und Rueckgabe pruefen.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateLock } from './gpu-lock.mjs'
 import { resolveModel, _testSeed } from './discovery.mjs'
-import { findExclusiveConflict, parseLoadouts } from './loadouts.mjs'
+import { parseLoadouts } from './loadouts.mjs'
 
 function tmpLock() {
   const dir = mkdtempSync(join(tmpdir(), 'gpu-lock-'))
@@ -150,28 +150,7 @@ test('/health ist nicht ready, wenn alle Prio-1-Backends drainen UND der Fallbac
   })
 })
 
-// ── findExclusiveConflict: externer Eintrag ────────────────────────────────
-
-test('findExclusiveConflict meldet den externen Studio-Eintrag als Gruppenmitglied', () => {
-  const doc = parseLoadouts(`{
-    "version": 1,
-    "modelRoots": ["~/models/gguf"],
-    "defaults": {"host": "0.0.0.0"},
-    "loadouts": [
-      {"slug": "gptoss-context", "label": "gpt-oss", "model": "gptoss20/gpt-oss-20b-Q8_0.gguf",
-       "port": 8098, "fit": {"enabled": true, "targetMarginMib": 2400, "minCtx": 32768},
-       "args": {}, "speculative": {}, "mcp": {}, "extraArgs": [], "exclusiveGroup": "chat-gpu"},
-      {"slug": "unsloth-studio", "label": "Unsloth Studio", "model": "unsloth/inference",
-       "port": 45013, "fit": {"enabled": true, "targetMarginMib": 0, "minCtx": 4096},
-       "args": {}, "speculative": {}, "mcp": {}, "extraArgs": [], "exclusiveGroup": "chat-gpu",
-       "managed": "external"}
-    ]
-  }`)
-  const conflict = findExclusiveConflict(doc, 'gptoss-context', ['unsloth-studio'])
-  assert.ok(conflict, 'externer Eintrag muss als Gruppenkonflikt gemeldet werden')
-  assert.equal(conflict.conflictSlug, 'unsloth-studio')
-  assert.equal(conflict.group, 'chat-gpu')
-})
+// ── managed=external ────────────────────────────────────────────────────
 
 test('loadouts.mjs akzeptiert managed=external als gueltiges Feld', () => {
   const doc = parseLoadouts(`{

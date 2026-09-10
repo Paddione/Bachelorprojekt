@@ -288,18 +288,18 @@ task workspace:validate
 
 **Datei:** `.github/workflows/build-dev-pod.yml`
 
-- [ ] **4.1** Kopfkommentar um `docker/dev-shell -> ghcr.io/paddione/dev-shell` ergänzen,
+- [x] **4.1** Kopfkommentar um `docker/dev-shell -> ghcr.io/paddione/dev-shell` ergänzen,
   "die beiden Images" → "die drei Images".
-- [ ] **4.2** `on.push.paths` um `'docker/dev-shell/**'` ergänzen.
-- [ ] **4.3** Matrix um `- image: dev-shell` / `context: docker/dev-shell` ergänzen. Der
+- [x] **4.2** `on.push.paths` um `'docker/dev-shell/**'` ergänzen.
+- [x] **4.3** Matrix um `- image: dev-shell` / `context: docker/dev-shell` ergänzen. Der
   vorhandene Step "Shell syntax check" prüft `entrypoint.sh` mit `sh -n` automatisch.
-- [ ] **4.4** GREEN-Lauf:
+- [x] **4.4** GREEN-Lauf:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/dev-shell-ssh.bats tests/spec/dev-pod-mcp-bundle/dev-pod.bats
 ```
 
-- [ ] **4.5** Commit: `ci(infra): build-dev-pod baut dev-shell mit [T900108]`
+- [x] **4.5** Commit: `ci(infra): build-dev-pod baut dev-shell mit [T900108]`
 
 ### Task 5: Image vor dem Merge bereitstellen
 

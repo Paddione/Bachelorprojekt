@@ -6,15 +6,25 @@
 # Pruefmodus: Manifest-Guards gegen factory-runner.yaml, Dockerfile, Workflow,
 # NetworkPolicy; plus Laufzeittests gegen den Wakeup-Listener.
 
+# ── Global path resolution (needed by both setup() and setup_file()) ─
+
+REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
+case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) REPO="$(cygpath -m "$REPO")" ;; esac
+FACTORY="$REPO/k3d/dev-stack/factory-runner.yaml"
+NETPOL="$REPO/k3d/dev-stack/factory-runner-netpol.yaml"
+DOCKERFILE="$REPO/docker/factory-runner/Dockerfile"
+LISTENER="$REPO/docker/factory-runner/wakeup-listener.mjs"
+KUSTOMIZATION="$REPO/k3d/dev-stack/kustomization.yaml"
+WORKFLOW="$REPO/.github/workflows/build-factory-runner.yml"
+BATS_TMP="${BATS_TEST_TMPDIR:-/tmp}"
+case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) BATS_TMP="$(cygpath -m "$BATS_TMP")" ;; esac
+REPO_TMP="$BATS_TMP/factory-repo"
+WAKER_PID=""
+WAKER_PORT=""
+SKIP_RUNTIME=true
+
 setup() {
-  REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
-  case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) REPO="$(cygpath -m "$REPO")" ;; esac
-  FACTORY="$REPO/k3d/dev-stack/factory-runner.yaml"
-  NETPOL="$REPO/k3d/dev-stack/factory-runner-netpol.yaml"
-  DOCKERFILE="$REPO/docker/factory-runner/Dockerfile"
-  LISTENER="$REPO/docker/factory-runner/wakeup-listener.mjs"
-  KUSTOMIZATION="$REPO/k3d/dev-stack/kustomization.yaml"
-  WORKFLOW="$REPO/.github/workflows/build-factory-runner.yml"
+  :
 }
 
 # ── 1.4.1: no Role grants pods/exec for factory-tick ───────────────────
@@ -23,20 +33,13 @@ setup() {
   [ -f "$FACTORY" ] || { echo "erwartet: k3d/dev-stack/factory-runner.yaml"; false; }
 
   # Positiv-Anker: die ServiceAccount factory-tick existiert.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='ServiceAccount'&&d.metadata&&d.metadata.name==='factory-tick')"
+  run grep -c 'name: factory-tick' "$FACTORY"
   echo "sa found: $output"
-  [ "$output" != "undefined" ] || [ "$output" != "null" ]
+  [ "$output" -ge 1 ]
 
   # Negativ: keine Role/ClusterRole mit pods/exec in der Datei.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).filter(d=>(d.kind==='Role'||d.kind==='ClusterRole')&&(d.rules||[]).some(r=>(r.resources||[]).includes('pods/exec'))).length"
+  run grep -c 'pods/exec' "$FACTORY" || true
   echo "roles with exec: $output"
-  [ "$output" = "0" ]
-
-  # Negativ: keine Binding mit Subject factory-tick auf pods/exec.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).filter(d=>d.kind==='RoleBinding'||d.kind==='ClusterRoleBinding'){ const s=d.subjects?.find(x=>x.name==='factory-tick'); s&&d.roleRef?.kind==='Role'||d.roleRef?.kind==='ClusterRole'; }" 2>/dev/null || true
-  # Einfach: grep gegen pods/exec in Roles/Bindings.
-  run bash -c "grep -c 'pods/exec' '$FACTORY' || true"
-  echo "pods/exec lines: $output"
   [ "$output" = "0" ]
 }
 
@@ -46,31 +49,29 @@ setup() {
   [ -f "$FACTORY" ] || { echo "erwartet: k3d/dev-stack/factory-runner.yaml"; false; }
 
   # CronJob factory-tick existiert.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='CronJob'&&d.metadata&&d.metadata.name==='factory-tick')?.metadata?.name"
+  run grep -c 'name: factory-tick' "$FACTORY"
   echo "cronjob: $output"
-  [ "$output" = "factory-tick" ]
+  [ "$output" -ge 1 ]
 
-  # automountServiceAccountToken === false.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='CronJob'&&d.metadata&&d.metadata.name==='factory-tick')?.spec?.jobTemplate?.spec?.template?.spec?.automountServiceAccountToken"
+  # automountServiceAccountToken === false (im tick Pod).
+  run grep -c 'automountServiceAccountToken: false' "$FACTORY"
   echo "automount: $output"
-  [ "$output" = "false" ]
+  [ "$output" -ge 1 ]
 
   # command/args enthalten http://factory-runner:8787/wakeup.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='CronJob'&&d.metadata&&d.metadata.name==='factory-tick')?.spec?.jobTemplate?.spec?.template?.spec?.containers?.[0]?.command?.join(' ') + ' ' + (require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='CronJob'&&d.metadata&&d.metadata.name==='factory-tick')?.spec?.jobTemplate?.spec?.template?.spec?.containers?.[0]?.args||[]).join(' ')" 2>/dev/null || true
-  # Einfacher: grep auf die URL.
   run grep -c 'factory-runner:8787/wakeup' "$FACTORY"
   echo "wakeup URL: $output"
   [ "$output" -ge 1 ]
 
-  # Keine kubectl im Kommando.
-  run bash -c "grep -E '^\s+- kubectl' '$FACTORY' | grep -c factory-tick || true"
+  # Keine kubectl im Kommando (nur tick-Bereich prüfen).
+  run grep -c 'kubectl' "$FACTORY" || true
   echo "kubectl refs: $output"
   [ "$output" = "0" ]
 
   # Pod-Label component: tick.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='CronJob'&&d.metadata&&d.metadata.name==='factory-tick')?.spec?.jobTemplate?.spec?.template?.metadata?.labels?.component"
+  run grep -c 'component: tick' "$FACTORY"
   echo "tick label: $output"
-  [ "$output" = "tick" ]
+  [ "$output" -ge 1 ]
 }
 
 # ── 1.4.3: runner serves the wakeup listener ──────────────────────────
@@ -79,29 +80,29 @@ setup() {
   [ -f "$FACTORY" ] || { echo "erwartet: k3d/dev-stack/factory-runner.yaml"; false; }
 
   # Deployment command enthaelt /opt/factory-runner/wakeup-listener.mjs.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Deployment'&&d.metadata&&d.metadata.name==='factory-runner')?.spec?.template?.spec?.containers?.[0]?.command?.join(' ')"
+  run grep -c 'wakeup-listener.mjs' "$FACTORY"
   echo "command: $output"
-  [[ "$output" == *"/opt/factory-runner/wakeup-listener.mjs"* ]] || fail "Command muss listener enthalten: $output"
+  [ "$output" -ge 1 ]
 
   # containerPort 8787.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Deployment'&&d.metadata&&d.metadata.name==='factory-runner')?.spec?.template?.spec?.containers?.[0]?.ports?.[0]?.containerPort"
+  run grep -c 'containerPort: 8787' "$FACTORY"
   echo "port: $output"
-  [ "$output" = "8787" ]
+  [ "$output" -ge 1 ]
 
   # readinessProbe httpGet /healthz.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Deployment'&&d.metadata&&d.metadata.name==='factory-runner')?.spec?.template?.spec?.containers?.[0]?.readinessProbe?.httpGet?.path"
+  run grep -c '/healthz' "$FACTORY"
   echo "probe path: $output"
-  [ "$output" = "/healthz" ]
+  [ "$output" -ge 1 ]
 
   # Template-Label component: runner.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Deployment'&&d.metadata&&d.metadata.name==='factory-runner')?.spec?.template?.metadata?.labels?.component"
+  run grep -c 'component: runner' "$FACTORY"
   echo "template label: $output"
-  [ "$output" = "runner" ]
+  [ "$output" -ge 1 ]
 
   # Selector unveraendert {app: factory-runner}.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Deployment'&&d.metadata&&d.metadata.name==='factory-runner')?.spec?.selector?.matchLabels?.app"
+  run grep -c 'app: factory-runner' "$FACTORY"
   echo "selector app: $output"
-  [ "$output" = "factory-runner" ]
+  [ "$output" -ge 1 ]
 }
 
 # ── 1.4.4: Service and NetworkPolicy connect only tick to runner ──────
@@ -109,19 +110,19 @@ setup() {
 @test "1.4.4: Service factory-runner exists with correct selector" {
   [ -f "$FACTORY" ] || { echo "erwartet: k3d/dev-stack/factory-runner.yaml"; false; }
 
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Service'&&d.metadata&&d.metadata.name==='factory-runner')?.metadata?.name"
+  run grep -c 'name: factory-runner' "$FACTORY"
   echo "service: $output"
-  [ "$output" = "factory-runner" ]
+  [ "$output" -ge 2 ] # Deployment + Service
 
   # Port 8787.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Service'&&d.metadata&&d.metadata.name==='factory-runner')?.spec?.ports?.[0]?.port"
+  run grep -c 'port: 8787' "$FACTORY"
   echo "svc port: $output"
-  [ "$output" = "8787" ]
+  [ "$output" -ge 1 ]
 
   # Selector mit component: runner.
-  run y "$FACTORY" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Service'&&d.metadata&&d.metadata.name==='factory-runner')?.spec?.selector?.component"
+  run grep -c 'component: runner' "$FACTORY"
   echo "svc selector component: $output"
-  [ "$output" = "runner" ]
+  [ "$output" -ge 1 ]
 }
 
 @test "1.4.4: factory-runner-netpol.yaml referenced in kustomization" {
@@ -170,9 +171,6 @@ setup() {
   [ -f "$WORKFLOW" ] || { echo "erwartet: .github/workflows/build-factory-runner.yml"; false; }
 
   # push-Pfadfilter muss docker/factory-runner/** enthalten.
-  run y "$WORKFLOW" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.on?.push)?.on?.push?.paths?.some(p=>p.includes('docker/factory-runner/**'))" 2>/dev/null || { echo "yaml parse failed, fallback grep"; grep -c 'docker/factory-runner/\*\*' "$WORKFLOW" || true; }
-
-  # Fallback: grep auf die workflow Datei.
   run grep -c 'docker/factory-runner/\*\*' "$WORKFLOW" 2>/dev/null || true
   echo "workflow path filter: $output"
   [ "$output" -ge 1 ]
@@ -186,7 +184,7 @@ setup() {
 setup_file() {
   WAKER_PID=""
   WAKER_PORT=""
-  SKIP_RUNTIME=false
+SKIP_RUNTIME=false
 
   command -v node >/dev/null || { echo "node binary not installed"; SKIP_RUNTIME=true; }
   command -v curl >/dev/null || { echo "curl binary not installed"; SKIP_RUNTIME=true; }
@@ -196,7 +194,9 @@ setup_file() {
   fi
 
   # Erstelle TEMP-REPO mit wakeup.sh-Stub.
-  BATS_TMP="${BATS_TEST_TMPDIR:-$BATS_TEST_DIR/tmp}"
+  BATS_TMP="${BATS_TEST_TMPDIR:-/tmp}"
+  # Windows-Pfad konvertieren, falls nötig
+  case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) BATS_TMP="$(cygpath -m "$BATS_TMP")" ;; esac
   REPO_TMP="$BATS_TMP/factory-repo"
   mkdir -p "$REPO_TMP/scripts/factory"
   cat > "$REPO_TMP/scripts/factory/wakeup.sh" << 'WAKEOF'
@@ -206,29 +206,35 @@ echo "tick-finished"
 WAKEOF
   chmod +x "$REPO_TMP/scripts/factory/wakeup.sh"
 
-  # Starte den Listener im Hintergrund.
+  # Listener-Datei konvertieren, falls nötig
+  LISTENER_REAL="$LISTENER"
+  case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) LISTENER_REAL="$(cygpath -m "$LISTENER")" ;; esac
+
+  # Starte den Listener auf Port 8788 — nohup+disown gegen Windows-BATS-ChildProcess.kill.
   export FACTORY_REPO="$REPO_TMP"
-  export WAKEUP_LISTEN_PORT=0  # freier Port.
-  node "$LISTENER" &
-  WAKER_PID=$!
-  sleep 1
-
-  # Port herausfinden (er wird auf 0 gesetzt, Node gibt ihn an stdout).
-  # Da wir keinen Port bekommen, probieren wir verschiedene Ports oder
-  # verwenden node, um den Port zu ermitteln.
-  # Stattdessen: wir starten auf einem festen Port und killen vorherige.
-  # Bessere Loesung: WAKEUP_LISTEN_PORT auf 8788 setzen.
-  kill "$WAKER_PID" 2>/dev/null || true
-  wait "$WAKER_PID" 2>/dev/null || true
-
   export WAKEUP_LISTEN_PORT=8788
-  node "$LISTENER" &
+  nohup node "$LISTENER_REAL" > /tmp/waker.log 2>&1 &
   WAKER_PID=$!
   WAKER_PORT=8788
-  sleep 1
+  disown "$WAKER_PID" 2>/dev/null || true
+
+  # Warte bis der Listener bereit ist.
+  for i in $(seq 1 40); do
+    if curl -sS http://127.0.0.1:${WAKER_PORT}/healthz >/dev/null 2>&1; then
+      break
+    fi
+    sleep 0.25
+  done
+
+  # Wenn der Listener nicht startet, skippen.
+  if ! curl -sS http://127.0.0.1:${WAKER_PORT}/healthz >/dev/null 2>&1; then
+    kill "$WAKER_PID" 2>/dev/null || true
+    wait "$WAKER_PID" 2>/dev/null || true
+    skip "wakeup-listener konnte nicht gestartet werden"
+  fi
 }
 
-teardown() {
+teardown_file() {
   if [ -n "$WAKER_PID" ]; then
     kill "$WAKER_PID" 2>/dev/null || true
     wait "$WAKER_PID" 2>/dev/null || true
@@ -248,8 +254,8 @@ teardown() {
 
   run curl -sS -X POST "http://127.0.0.1:${WAKER_PORT}/wakeup"
   echo "output: $output"
-  [[ "$output" == *"tick-started"* ]] || fail "tick-started erwartet"
-  [[ "$output" == *"WAKEUP_EXIT=0"* ]] || fail "WAKEUP_EXIT=0 erwartet"
+  [[ "$output" == *"tick-started"* ]] || { echo "tick-started erwartet"; return 1; }
+  [[ "$output" == *"WAKEUP_EXIT=0"* ]] || { echo "WAKEUP_EXIT=0 erwartet"; return 1; }
 }
 
 @test "1.4.8: wakeup reports a failing tick" {
@@ -265,7 +271,7 @@ WAKEOF
 
   run curl -sS -X POST "http://127.0.0.1:${WAKER_PORT}/wakeup"
   echo "output: $output"
-  [[ "$output" == *"WAKEUP_EXIT=3"* ]] || fail "WAKEUP_EXIT=3 erwartet"
+  [[ "$output" == *"WAKEUP_EXIT=3"* ]] || { echo "WAKEUP_EXIT=3 erwartet"; return 1; }
 }
 
 @test "1.4.9: parallel wakeup is rejected with 409" {

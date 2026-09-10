@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.331.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.330.0...website-v1.331.0) (2026-09-10)
+
+
+### Features
+
+* **infra:** dev-pod buendelt MCP-Server und llm-proxy [T900107] ([#5526](https://github.com/Paddione/Bachelorprojekt/issues/5526)) ([2ec1c42](https://github.com/Paddione/Bachelorprojekt/commit/2ec1c4243446a4f136e1b14e45682ed9f9b8be78))
+
 ## [1.330.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.329.0...website-v1.330.0) (2026-09-10)
 
 

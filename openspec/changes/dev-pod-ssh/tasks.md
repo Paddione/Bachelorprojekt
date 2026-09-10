@@ -192,7 +192,12 @@ CMD ["/bin/sh", "/opt/dev-shell/entrypoint.sh"]
   unterstützt (`curl -fsSL https://taskfile.dev/install.sh | head -40`); sonst die gepinnte
   Release-Tarball-URL aus github.com/go-task/task verwenden.
 
-- [ ] **2.4** Lokaler Smoke-Test des Zwei-Namen-Modells (zentrales Risiko aus `design.md`).
+- [x] **2.4** Lokaler Smoke-Test des Zwei-Namen-Modells (zentrales Risiko aus `design.md`).
+  _Ausgefuehrt 2026-09-10 ohne lokales Docker: nach Task 5.1 im Cluster mit einem temporaeren
+  Pod `dev-shell-smoke-t900108` (Image vom Branch-Build, Wegwerf-Keys per ConfigMap, emptyDir-Home)
+  und dem ProxyCommand ueber `kubectl exec ... nc 127.0.0.1 22`. Ergebnis: `patrick` und `gekko`
+  liefern `id -u` = `1000`; Negativprobe auf die Pod-IP:22 = `CLOSED`. Befund: `whoami` gibt fuer
+  beide `patrick` aus (getpwuid(1000) liefert den ersten passwd-Eintrag), `$USER` ist korrekt `gekko`._
   Mit einem Wegwerf-Keypair; `sshd_config` wird für den Test nur per `-o` überschrieben:
 
 ```bash
@@ -306,7 +311,10 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/dev-shell-ssh.bats test
 `strategy: Recreate` → ein fehlendes Image würde beim Flux-Rollout alle In-Cluster-MCP-Server
 stoppen (`design.md` §Rollout-Risiko).
 
-- [ ] **5.1** Branch pushen, dann den Workflow auf dem Branch auslösen und abwarten:
+- [x] **5.1** Branch pushen, dann den Workflow auf dem Branch auslösen und abwarten:
+  _Run 34473112547 (workflow_dispatch, Ref `feature/dev-pod-ssh-T900108`) gruen, alle drei
+  Matrix-Jobs. `docker manifest inspect` ersetzt (kein lokales Docker): der Smoke-Pod zog
+  `ghcr.io/paddione/dev-shell:latest` mit `imagePullPolicy: Always` erfolgreich._
 
 ```bash
 gh workflow run build-dev-pod.yml --ref "$(git branch --show-current)"
@@ -314,7 +322,7 @@ gh run list --workflow build-dev-pod.yml --limit 1 --json databaseId -q '.[0].da
 docker manifest inspect ghcr.io/paddione/dev-shell:latest > /dev/null && echo "dev-shell image present"
 ```
 
-- [ ] **5.2** Erst wenn `dev-shell image present` ausgegeben wird, darf der PR mergen. Diese
+- [x] **5.2** Erst wenn `dev-shell image present` ausgegeben wird, darf der PR mergen. Diese
   Bedingung in den PR-Body schreiben.
 
 ### Task 6: Live-Verifikation nach Flux-Rollout
@@ -359,7 +367,7 @@ kubectl --context fleet -n workspace-dev exec deploy/dev-pod -c dev-shell -- ssh
 
 ### Task 7: Final Verification
 
-- [ ] **7.1** Test-Inventar regenerieren und committen:
+- [x] **7.1** Test-Inventar regenerieren und committen:
 
 ```bash
 task test:inventory

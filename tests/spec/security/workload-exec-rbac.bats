@@ -23,7 +23,9 @@ y() {  # <datei> <js-ausdruck ueber d>
   node -e "
     const fs=require('fs'), yaml=require('yaml');
     const expr=fs.readFileSync(0,'utf8').trim();
-    const docs=yaml.parseAllDocuments(fs.readFileSync(process.argv[1],'utf8'))
+    // argv[2] = datei (argv[1] ist '-e' bei node -e)
+    const file=process.argv[1];
+    const docs=yaml.parseAllDocuments(fs.readFileSync(file,'utf8'))
       .map(x=>x.toJS()).filter(Boolean);
     const d=docs[0];
     const out=eval('(' + expr + ')');

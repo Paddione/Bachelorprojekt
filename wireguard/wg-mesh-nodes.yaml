@@ -108,12 +108,10 @@ mentolder:
       public_key: "bfEvZgmkMwGANBYapNdA0zNoLMgWfWyp5DmcEI3Awww="
       keepalive: 25
 
-    # Old dev VM — Proxmox guest on the `dev` node (10.0.0.25). Was host of the
-    # k3d-era dev stack (dev.mentolder.de); DEAD as of T900104 — superseded by
-    # the work VM (work-vm, wg 192.168.100.24) which hosts the shared repo clone.
+    # DEAD (T900104) — k3d-era dev VM (Proxmox `dev`, LAN 10.0.0.26).
+    # Superseded by work-vm (shared repo clone, wg 192.168.100.24).
     - name: dev-vm
       endpoint: ""        # behind NAT (FritzBox), LAN IP 10.0.0.26 — initiates outbound
-      dead: true
       wg_ip: "192.168.100.23"
       schema_key: WG_MESH_DEVVM
       public_key: "TQu+0XGGDRuuQyMUQUQWZMp7tyIQ0c4RTe9+FcMaWg4="

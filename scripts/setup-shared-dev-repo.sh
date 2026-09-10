@@ -21,6 +21,9 @@
 #     git-crypt export-key bp-secrets.key
 #     scp bp-secrets.key root@<work-vm>:/root/bp-secrets.key
 #     GIT_CRYPT_KEY=/root/bp-secrets.key sudo bash scripts/setup-shared-dev-repo.sh
+#
+# Der Key liegt ausserhalb des Working Trees (/etc/git-crypt) — niemals
+# committed werden (KEY_FILE wuerde sonst alle Secrets entschluesseln).
 # =============================================================================
 set -euo pipefail
 
@@ -29,7 +32,7 @@ CLONE_DIR="${CLONE_DIR:-/srv/bachelorprojekt}"
 DEV_GROUP="${DEV_GROUP:-dev}"
 DEV_USERS="${DEV_USERS:-patrick gekko}"
 GIT_CRYPT_KEY="${GIT_CRYPT_KEY:-}"
-KEY_FILE="${CLONE_DIR}/.git-crypt-key"
+KEY_FILE="${KEY_FILE:-/etc/git-crypt/bachelorprojekt.key}"
 
 log() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -59,6 +62,9 @@ else
   log "Clone existiert bereits: $CLONE_DIR"
 fi
 git -C "$CLONE_DIR" config core.sharedRepository group   # idempotent
+# Root-eigentum des Clones + User-basierter Pull-Timer (User=patrick) brauchen
+# eine system-weite safe.directory-Ausnahme — sonst: "detected dubious ownership".
+git config --system --add safe.directory "$CLONE_DIR"
 
 # ---- 3. Gruppenrechte: chgrp, setgid + Default-ACL ---------------------------
 log "Gruppenrechte setzen (chgrp $DEV_GROUP, g+rwX, setgid, Default-ACL)"
@@ -91,6 +97,7 @@ done
 # Lock-Probe wie in scripts/factory/wakeup.sh: eine bekannte verschluesselte
 # Datei auf das \0GITCRYPT\0-Magic pruefen (`git crypt status` berichtet auch im
 # gesperrten Zustand erfolgreich und taugt nicht als Lock-Test).
+mkdir -p /etc/git-crypt
 CRYPT_PROBE="${CLONE_DIR}/environments/.secrets/mentolder.yaml"
 if [[ -f "$CRYPT_PROBE" ]] && ! head -c 16 "$CRYPT_PROBE" 2>/dev/null | grep -qa 'GITCRYPT'; then
   log "git-crypt bereits entsperrt"
@@ -155,7 +162,11 @@ log "ff-only-Timer aktiv (06/12/18/22 Uhr; divergiert der Baum, schlaegt der Pul
 # ---- 8. flock-Wrapper fuer npm/pnpm-Installs ---------------------------------
 # Lock-Datei vorab als root:dev 0660 anlegen: ohne sie erzeugt der erste Nutzer
 # die Datei 0644 in Eigenbesitz und der zweite scheitert am O_WRONLY-open.
+# Zusaetzlich systemd-tmpfiles-Eintrag, weil /var/lock auf Debian 12 tmpfs ist
+# und die vorab angelegte Datei jeden Reboot nicht ueberlebt.
 install -o root -g "$DEV_GROUP" -m 0660 /dev/null /var/lock/bachelorprojekt-install
+printf 'f /var/lock/bachelorprojekt-install 0660 root %s -\n' "$DEV_GROUP" \
+  > /etc/tmpfiles.d/bachelorprojekt-install.conf
 cat > /usr/local/sbin/repo-install <<'WRAPPER'
 #!/usr/bin/env bash
 # repo-install — flock-serialisierter Install im geteilten Clone (T900104).

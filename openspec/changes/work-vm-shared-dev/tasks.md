@@ -32,7 +32,7 @@ NEW:
 - [ ] **Failing-Test-Step (RED).** Add the BATS guard
       `tests/spec/work-vm-shared-dev/work-vm-guards.bats` asserting the NEW
       behavior: cloud-init ufw exposes NO 18080/18443/15432 ports, `install-dev-tools.sh`
-      contains `gh`/`git-crypt`/`openspec` installs and a `DEV_USERS`-Liste,
+      contains `gh`/`git-crypt` installs (openspec via Repo-Wrapper-Wording) and a `DEV_USERS`-Liste,
       `setup-shared-dev-repo.sh` exists with group/ACL/ff-only-Timer steps, and
       `provision-dev-vm.sh` defaults to VMID 9003 / 10.0.0.27. On the current
       branch these assertions FAIL (old ports still open, tools missing, script
@@ -50,8 +50,8 @@ tests/unit/lib/bats-core/bin/bats tests/spec/work-vm-shared-dev/
       2. `prod/cloud-init-dev-vm.yaml` — trim ufw to `22/tcp` + `51821/udp` (k3d
          Traefik 18080/18443 + Postgres 15432 rules removed), keep users
          `patrick`/`gekko` with the existing pubkeys and hardened sshd.
-      3. `scripts/install-dev-tools.sh` — add pinned `gh` + `git-crypt` installs,
-         `openspec` CLI install, replace single `DEV_USER` with `DEV_USERS` list
+      3. `scripts/install-dev-tools.sh` — add pinned `gh` + `git-crypt` installs, dokumentiere den `openspec`-Repo-Wrapper
+         (scripts/openspec.sh, kein separates Binary), replace single `DEV_USER` with `DEV_USERS` list
          loop (docker group + pnpm per user), keep k3d/go behind an opt-out flag
          (`SKIP_K3D_GO=1`) so the gekko-hetzner-2 path stays intact.
       4. `scripts/setup-shared-dev-repo.sh` (new, idempotent) — group `dev`,

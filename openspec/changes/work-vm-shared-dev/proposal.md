@@ -15,7 +15,7 @@ patrick und gekko fehlt ein gemeinsamer, persistenter Arbeitsplatz mit dem Repo.
 Eine dedizierte Work-VM (kein Cluster-Node) auf dem Proxmox-Host `dev` (10.0.0.25,
 Home-LAN hinter NAT): Debian 12 cloud-init mit Nutzern `patrick` und `gekko`
 (vorhandene Pubkeys, hardened sshd), Toolchain (task, node 22, npm, pnpm, gh,
-git-crypt, kubectl, openspec — ohne k3d/go), und **einem geteilten Repo-Clone**
+git-crypt, kubectl — openspec über den Repo-Wrapper, ohne k3d/go), und **einem geteilten Repo-Clone**
 `/srv/bachelorprojekt` (Gruppe `dev`, `core.sharedRepository=group`, setgid+ACL,
 umask 002, git-crypt-unlock, merge.ours-Driver, Hooks). main bleibt pull-only und
 wird per `--ff-only`-systemd-Timer aktuell gehalten; echte Arbeit läuft in

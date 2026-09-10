@@ -136,13 +136,15 @@ else:
         for peer in env_data.get(cat, []):
             if peer['name'] == node_name:
                 continue
-            pubkey = peer.get('public_key') or ''
-            if not pubkey:
-                # Unprovisionierte Nodes (z.B. work-vm vor Provisionierung)
-                # haben bewusst keinen public_key — wie im --peers-only-Modus
-                # ueberspringen statt eines leeren PublicKey-Blocks.
+            raw_pubkey = peer.get('public_key')
+            if raw_pubkey is None:
+                # Unprovisionierte Nodes OHNE public_key-Feld (z.B. work-vm vor
+                # Provisionierung) ueberspringen — wie im --peers-only-Modus.
+                # Ein LEERES public_key ("" wie bei terminal-sidekick) bleibt
+                # dagegen als Peer-Block erhalten (bestehendes Verhalten).
                 print(f"SKIP: {peer['name']} hat keinen public_key - ausgelassen", file=sys.stderr)
                 continue
+            pubkey = raw_pubkey
             allowed = f"{peer['wg_ip']}/32"
             if emit_pod_cidr and peer.get('pod_cidr'):
                 allowed += f", {peer['pod_cidr']}"

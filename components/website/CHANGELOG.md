@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.329.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.328.2...website-v1.329.0) (2026-09-10)
+
+
+### Features
+
+* partial claims T900024 ([#5517](https://github.com/Paddione/Bachelorprojekt/issues/5517)) ([e671a2c](https://github.com/Paddione/Bachelorprojekt/commit/e671a2cb738033e0110414a88bba76d911358725))
+
 ## [1.328.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.328.1...website-v1.328.2) (2026-09-09)
 
 

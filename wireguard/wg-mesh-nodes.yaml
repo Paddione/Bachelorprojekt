@@ -108,21 +108,26 @@ mentolder:
       public_key: "bfEvZgmkMwGANBYapNdA0zNoLMgWfWyp5DmcEI3Awww="
       keepalive: 25
 
-    # New dev VM — Proxmox guest on the `dev` node (10.0.0.25). Successor to the
-    # dead k3s-1; hosts the dev k3d cluster (dev.mentolder.de). Provisioned
-    # 2026-05-31 by scripts/provision-dev-vm.sh (VMID 9002, LAN 10.0.0.26).
-    # NOTE: wg-mesh is installed + up on the VM (iface 192.168.100.23, port
-    # 51821) but the mentolder mesh has NO live hub anymore — gekko-hetzner-2/3/4
-    # moved to wg-fleet (10.20.0.0/24) in the consolidation, so their wg-mesh
-    # interfaces are down. dev-vm therefore sends keepalives with no handshake.
-    # This is harmless: the dev stack is reached over LAN / dev.mentolder.de,
-    # not the mesh. Reviving cross-node mentolder-mesh connectivity for dev is a
-    # separate decision (would need a live hub on a node still running wg-mesh).
+    # Old dev VM — Proxmox guest on the `dev` node (10.0.0.25). Was host of the
+    # k3d-era dev stack (dev.mentolder.de); DEAD as of T900104 — superseded by
+    # the work VM (work-vm, wg 192.168.100.24) which hosts the shared repo clone.
     - name: dev-vm
       endpoint: ""        # behind NAT (FritzBox), LAN IP 10.0.0.26 — initiates outbound
+      dead: true
       wg_ip: "192.168.100.23"
       schema_key: WG_MESH_DEVVM
       public_key: "TQu+0XGGDRuuQyMUQUQWZMp7tyIQ0c4RTe9+FcMaWg4="
+      keepalive: 25
+
+    # Work VM (T900104) — Proxmox guest on the `dev` node (10.0.0.25), successor
+    # to the k3d-era dev-vm. Shared repo clone for patrick + gekko
+    # (/srv/bachelorprojekt); wg configured via provision-dev-vm.sh (work-vm.key).
+    # public_key fehlt absichtlich: provision-dev-vm.sh druckt den generierten
+    # Key und wird ihn hier nachtragen, sobald die VM provisioniert ist.
+    - name: work-vm
+      endpoint: ""        # behind NAT (FritzBox), LAN IP 10.0.0.27 — initiates outbound
+      wg_ip: "192.168.100.24"
+      schema_key: WG_MESH_WORKVM
       keepalive: 25
 
   # HA dev cluster servers — ON wg-mesh (provisioned 2026-05-30).

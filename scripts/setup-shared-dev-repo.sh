@@ -60,13 +60,18 @@ else
 fi
 git -C "$CLONE_DIR" config core.sharedRepository group   # idempotent
 
-# ---- 3. Gruppenrechte: setgid + Default-ACL ----------------------------------
-log "Gruppenrechte setzen (g+rwX, setgid, Default-ACL)"
+# ---- 3. Gruppenrechte: chgrp, setgid + Default-ACL ---------------------------
+log "Gruppenrechte setzen (chgrp $DEV_GROUP, g+rwX, setgid, Default-ACL)"
+# Der Clone wird von root angelegt — ohne chgrp gehoeren alle Dateien der Gruppe
+# root und patrick/gekko koennen nichts schreiben.
+chgrp -R "$DEV_GROUP" "$CLONE_DIR"
 chmod -R g+rwX "$CLONE_DIR"
 chmod g+s "$CLONE_DIR" "$CLONE_DIR/.git" "$CLONE_DIR/.git/objects"
 if command -v setfacl >/dev/null 2>&1; then
   setfacl -m g::rwX "$CLONE_DIR"
   setfacl -d -m g::rwX "$CLONE_DIR"
+  # Default-ACL rekursiv auf alle vorhandenen Verzeichnisse (nicht nur Top-Level)
+  find "$CLONE_DIR" -type d -exec setfacl -d -m g::rwX {} +
 else
   log "  setfacl nicht verfuegbar — umask-002-Fallback greift (Schritt 4)"
 fi
@@ -83,7 +88,11 @@ for u in $DEV_USERS; do
 done
 
 # ---- 5. git-crypt: Key bereitstellen + Clone entsperren ----------------------
-if git -C "$CLONE_DIR" crypt status >/dev/null 2>&1; then
+# Lock-Probe wie in scripts/factory/wakeup.sh: eine bekannte verschluesselte
+# Datei auf das \0GITCRYPT\0-Magic pruefen (`git crypt status` berichtet auch im
+# gesperrten Zustand erfolgreich und taugt nicht als Lock-Test).
+CRYPT_PROBE="${CLONE_DIR}/environments/.secrets/mentolder.yaml"
+if [[ -f "$CRYPT_PROBE" ]] && ! head -c 16 "$CRYPT_PROBE" 2>/dev/null | grep -qa 'GITCRYPT'; then
   log "git-crypt bereits entsperrt"
 elif [[ -n "$GIT_CRYPT_KEY" && -f "$GIT_CRYPT_KEY" ]]; then
   install -o root -g "$DEV_GROUP" -m 640 "$GIT_CRYPT_KEY" "$KEY_FILE"
@@ -92,7 +101,7 @@ elif [[ -n "$GIT_CRYPT_KEY" && -f "$GIT_CRYPT_KEY" ]]; then
 elif [[ -f "$KEY_FILE" ]]; then
   git -C "$CLONE_DIR" crypt unlock "$KEY_FILE"
   log "git-crypt entsperrt (bestehender Key $KEY_FILE)"
-elif git-crypt export-key "$KEY_FILE" 2>/dev/null; then
+elif git -C "$CLONE_DIR" crypt export-key "$KEY_FILE" 2>/dev/null; then
   # Nur moeglich, wenn das Skript auf einer Maschine mit entsperrtem Clone laeuft.
   chown root:"$DEV_GROUP" "$KEY_FILE"; chmod 640 "$KEY_FILE"
   git -C "$CLONE_DIR" crypt unlock "$KEY_FILE"
@@ -121,6 +130,11 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+# Pull als Mitglied der dev-Gruppe (nicht root): neue Dateien bleiben
+# group-writable, und root-Eigentum im geteilten Clone wird vermieden.
+User=patrick
+Group=dev
+UMask=0002
 ExecStart=/usr/bin/git -C /srv/bachelorprojekt pull --ff-only
 UNIT
 cat > /etc/systemd/system/bachelorprojekt-pull.timer <<'UNIT'
@@ -139,6 +153,9 @@ systemctl enable --now bachelorprojekt-pull.timer
 log "ff-only-Timer aktiv (06/12/18/22 Uhr; divergiert der Baum, schlaegt der Pull laut fehl)"
 
 # ---- 8. flock-Wrapper fuer npm/pnpm-Installs ---------------------------------
+# Lock-Datei vorab als root:dev 0660 anlegen: ohne sie erzeugt der erste Nutzer
+# die Datei 0644 in Eigenbesitz und der zweite scheitert am O_WRONLY-open.
+install -o root -g "$DEV_GROUP" -m 0660 /dev/null /var/lock/bachelorprojekt-install
 cat > /usr/local/sbin/repo-install <<'WRAPPER'
 #!/usr/bin/env bash
 # repo-install — flock-serialisierter Install im geteilten Clone (T900104).

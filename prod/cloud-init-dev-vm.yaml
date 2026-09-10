@@ -72,9 +72,9 @@ write_files:
 
       REPLACEME_WG_PEERS_BLOCK
 
-  # k3d needs generous inotify limits; the dev cluster otherwise fails to start
-  # watchers under load. Mirrors prod/cloud-init.yaml's 99-k3s.conf.
-  - path: /etc/sysctl.d/99-dev-k3d.conf
+  # Generoese inotify-Limits — node/pnpm auf der Work-VM bekommen sonst
+  # Watcher-Fehler unter Last. Mirrors prod/cloud-init.yaml's 99-k3s.conf.
+  - path: /etc/sysctl.d/99-dev-workvm.conf
     content: |
       net.ipv4.ip_forward=1
       net.bridge.bridge-nf-call-iptables=1
@@ -114,7 +114,7 @@ runcmd:
   - systemctl enable unattended-upgrades && systemctl start unattended-upgrades
   - systemctl enable --now iscsid
 
-  # ── WireGuard mesh up (before the dev toolchain so k3d sees the iface) ──────
+  # ── WireGuard mesh up (before the dev toolchain) ────────────────────────────
   - systemctl enable wg-quick@wg-mesh
   - systemctl start wg-quick@wg-mesh || true
 

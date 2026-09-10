@@ -41,7 +41,7 @@ DISK_SIZE="${DISK_SIZE:-60G}"
 BRIDGE="${BRIDGE:-vmbr0}"
 STORAGE="${STORAGE:-local-lvm}"             # where the VM disk lives
 SNIPPET_STORAGE="${SNIPPET_STORAGE:-local}" # storage with the 'snippets' content type
-SNIPPET_NAME="${SNIPPET_NAME:-dev-vm-user.yaml}"
+SNIPPET_NAME="${SNIPPET_NAME:-work-vm-user.yaml}"
 
 IMAGE_URL="${IMAGE_URL:-https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2}"
 IMAGE_FILE="${IMAGE_FILE:-debian-12-genericcloud-amd64.qcow2}"
@@ -73,17 +73,17 @@ ssh_pve 'command -v qm >/dev/null' || die "cannot reach $PVE_HOST or 'qm' missin
 
 # ---- 1. WireGuard keypair for the VM ----------------------------------------
 mkdir -p "$WG_SECRETS_DIR"; chmod 700 "$WG_SECRETS_DIR"
-WG_KEY="$WG_SECRETS_DIR/dev-vm.key"
-WG_PUB="$WG_SECRETS_DIR/dev-vm.pub"
+WG_KEY="$WG_SECRETS_DIR/work-vm.key"
+WG_PUB="$WG_SECRETS_DIR/work-vm.pub"
 if [[ ! -s "$WG_KEY" ]]; then
-  log "Generating WireGuard keypair for dev-vm → $WG_KEY"
+  log "Generating WireGuard keypair for work-vm → $WG_KEY"
   (umask 077; wg genkey > "$WG_KEY")
   wg pubkey < "$WG_KEY" > "$WG_PUB"
 fi
 chmod 600 "$WG_KEY"
 WG_PRIVKEY="$(cat "$WG_KEY")"
-log "dev-vm WireGuard pubkey: $(cat "$WG_PUB")"
-log "  → paste this into wireguard/wg-mesh-nodes.yaml (dev-vm wg_pubkey) and add"
+log "work-vm WireGuard pubkey: $(cat "$WG_PUB")"
+log "  → paste this into wireguard/wg-mesh-nodes.yaml (work-vm wg_pubkey) and add"
 log "    it as a peer on pk-hetzner-4 (AllowedIPs $WG_IP/32), then 'wg syncconf'."
 
 # ---- 2. render cloud-init (inject wg private key + peer block) ---------------

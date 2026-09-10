@@ -55,28 +55,31 @@ to protect the shared `node_modules`.
 
 ### Requirement: Toolchain deltas on install-dev-tools.sh
 
-`scripts/install-dev-tools.sh` SHALL additionally install `gh`, `git-crypt` and the
-`openspec` CLI, and SHALL accept a list of dev users so both `patrick` and `gekko`
-are added to the `docker` group and get `pnpm`. The script SHALL remain runnable
-for the gekko-hetzner-2 k3d path (k3d/go stay, gated by env flags).
+`scripts/install-dev-tools.sh` SHALL additionally install `gh` and `git-crypt`, and
+SHALL accept a list of dev users so both `patrick` and `gekko` are added to the
+`docker` group and get `pnpm`. OpenSpec tooling SHALL be provided via the repo's
+own wrapper `scripts/openspec.sh` (node-based, no separate binary — repository
+convention). The script SHALL remain runnable for the gekko-hetzner-2 k3d path
+(k3d/go stay, gated by env flags).
 
 #### Scenario: Install toolchain for both users
 
 - **GIVEN** `install-dev-tools.sh` runs with `FORCE=1 TARGET_HOST=mentolder-dev DEV_USERS="patrick gekko"`
 - **WHEN** the script finishes
-- **THEN** both users are in the `docker` group and `gh`, `git-crypt`, `openspec` are on PATH
+- **THEN** both users are in the `docker` group and `gh`, `git-crypt` are on PATH
 - **AND** `task`, `node` 22, `npm`, `pnpm`, `kubectl` are present
+- **AND** the script documents the openspec wrapper path (`scripts/openspec.sh`) instead of installing a separate binary
 
 ### Requirement: Script facts guarded by BATS
 
 Tests under `tests/spec/work-vm-shared-dev/` SHALL assert the script facts without
 provisioning a real VM (repo guard pattern, T002416): cloud-init enrolls both pubkey
-fingerprints, install-dev-tools.sh contains gh/git-crypt/openspec, ufw section does
+fingerprints, install-dev-tools.sh contains gh/git-crypt and the DEV_USERS switch, ufw section does
 not expose k3d/Postgres ports, and the shared-repo setup creates the group, ACLs and
 ff-only timer.
 
 #### Scenario: Guard detects regressed cloud-init
 
-- **GIVEN** a regression removes the 18080/18443 ufw rules from `prod/cloud-init-dev-vm.yaml`
+- **GIVEN** a regression re-introduces the 18080/18443 ufw rules into `prod/cloud-init-dev-vm.yaml`
 - **WHEN** the BATS guard runs in CI
-- **THEN** it fails with a message naming the missing firewall rule
+- **THEN** it fails with a message naming the offending firewall rule

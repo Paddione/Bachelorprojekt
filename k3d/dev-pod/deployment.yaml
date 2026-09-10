@@ -66,6 +66,10 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         fsGroup: 1000
+        # [T900108] Ohne OnRootMismatch chownt der Kubelet vor jedem Start das
+        # 20Gi-Home rekursiv — bei Recreate verlaengert das das Ausfallfenster
+        # aller MCP-Server im Pod. So nur, wenn das Volume-Root nicht passt.
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
         # [T900108] sshd laeuft non-root im dev-shell-Container und bindet :22.
@@ -221,11 +225,16 @@ spec:
         - name: dev-shell
           image: ghcr.io/paddione/dev-shell:latest
           imagePullPolicy: Always
-          readinessProbe:
+          # Bewusst KEINE readinessProbe: ein NotReady-Container macht den ganzen
+          # Pod NotReady und nimmt svc/dev-pod die Endpunkte (llm-proxy, MCP-Ports).
+          # dev-shell ist optional; haengt sshd, startet die livenessProbe nur
+          # diesen Container neu.
+          livenessProbe:
             exec:
               command: ["sh", "-c", "nc -z 127.0.0.1 22"]
-            initialDelaySeconds: 5
-            periodSeconds: 20
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            failureThreshold: 3
           resources:
             requests:
               cpu: 100m

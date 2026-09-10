@@ -49,13 +49,13 @@ müssen gemeinsam grün werden).
 
 **Dateien:** `tests/spec/mcp-gateway/dev-shell-ssh.bats` (neu), `tests/spec/dev-pod-mcp-bundle/dev-pod.bats`
 
-- [ ] **1.1** In `tests/spec/dev-pod-mcp-bundle/dev-pod.bats` den Test
+- [x] **1.1** In `tests/spec/dev-pod-mcp-bundle/dev-pod.bats` den Test
   `dev-pod carries exactly the three declared containers` umbenennen zu
   `dev-pod carries exactly the four declared containers` und die Erwartung auf
   `dev-shell,mcp-kubernetes,mcp-node,repo-sync` setzen. Der Test
   `playwright is absent from the bundle` behält seinen Anker `-ge 3`.
 
-- [ ] **1.2** `tests/spec/mcp-gateway/dev-shell-ssh.bats` anlegen. Header-Kommentar wie in
+- [x] **1.2** `tests/spec/mcp-gateway/dev-shell-ssh.bats` anlegen. Header-Kommentar wie in
   `dev-pod.bats`: Prüfmodus ist der Parser-Output über Manifeste (node + `yaml`), für
   `sshd_config` und `Dockerfile` ist die Datei selbst das Resultat. Dieselbe `setup()`- und
   `y()`-Helferstruktur wie `dev-pod.bats` (inkl. `cygpath -m` unter MSYS). Tests, jeweils mit
@@ -99,7 +99,7 @@ müssen gemeinsam grün werden).
       geparst: `jobs.build.strategy.matrix.include` enthält `{image:'dev-shell', context:'docker/dev-shell'}`
       und `on.push.paths` enthält `docker/dev-shell/**`.
 
-- [ ] **1.3** RED-Lauf. Die neuen Guards und der geänderte Container-Count-Test müssen scheitern:
+- [x] **1.3** RED-Lauf. Die neuen Guards und der geänderte Container-Count-Test müssen scheitern:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/dev-shell-ssh.bats tests/spec/dev-pod-mcp-bundle/dev-pod.bats
@@ -110,7 +110,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/dev-shell-ssh.bats test
   korrigieren, bevor Task 2 beginnt. Fehlt `yaml` für node: `(cd tests && npm ls yaml)` prüfen und
   denselben Auflösungsweg wie `dev-pod.bats` verwenden.
 
-- [ ] **1.4** Commit: `test(infra): Guards fuer dev-shell-SSH (RED) [T900108]`
+- [x] **1.4** Commit: `test(infra): Guards fuer dev-shell-SSH (RED) [T900108]`
 
 ### Task 2: Image `dev-shell`
 

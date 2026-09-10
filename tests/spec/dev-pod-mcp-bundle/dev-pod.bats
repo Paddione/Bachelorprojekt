@@ -32,17 +32,17 @@ y() {  # <datei> <js-ausdruck ueber d>
   " "$1"
 }
 
-# ── Deployment: drei Container, keiner mehr ───────────────────────────
+# ── Deployment: vier Container, keiner mehr [T900108] ─────────────────
 
 @test "dev-pod deployment manifest exists" {
   [ -f "$DEPLOY" ] || { echo "erwartet: k3d/dev-pod/deployment.yaml"; false; }
 }
 
-@test "dev-pod carries exactly the three declared containers" {
+@test "dev-pod carries exactly the four declared containers" {
   run y "$DEPLOY" "d.spec.template.spec.containers.map(c=>c.name).sort().join(',')"
   echo "output: $output"
   [ "$status" -eq 0 ]
-  [ "$output" = "mcp-kubernetes,mcp-node,repo-sync" ]
+  [ "$output" = "dev-shell,mcp-kubernetes,mcp-node,repo-sync" ]
 }
 
 @test "dev-pod declares no init container that installs software" {

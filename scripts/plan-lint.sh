@@ -130,7 +130,59 @@ T002453-C: every tasks.d/ partial stays <= ${PARTIAL_TOKEN_LIMIT} tokens (~$((PA
 _RULES_EOF
 }
 
+# === '## Partials'-Manifest: EIN Parser fuer alle Leser [T900024] ===
+# Die target_files-Spalte wird von zwei Stellen gebraucht: von Regel D1
+# (keine Datei in zwei Partials) und von `agent-lock.sh claim
+# --files-from-plan`, das daraus den Partial-Claim ableitet. Beide lesen
+# ausschliesslich ueber diese beiden Funktionen -- ein zweiter Parser fuer
+# dasselbe Format wuerde auseinanderdriften, und ein Claim, der eine Datei
+# nicht sieht, die D1 kennt, waere schlimmer als gar kein Claim.
+_manifest_rows() {  # <plan-file> -> alle Tabellenzeilen des Partials-Abschnitts
+  awk '/^##[[:space:]]+Partials/{f=1;next} f&&/^##[[:space:]]/{f=0} f&&/^\|/{print}' "$1"
+}
+
+# [T008015-3] Annotierte Zellen tolerieren: Nur Pfad-Tokens (kein Whitespace,
+# mit '/', '.' oder '{') gelten als Pfade -- Annotations-Praefixe
+# ("Loeschungen:") sind keine Dateien.
+_row_targets() {  # <manifest-zeile> -> ein Pfad je Ausgabezeile
+  local row_stripped c_targets _t; local -a _tgs
+  row_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$1")"
+  IFS='|' read -r _ _ _ c_targets _ <<<"$row_stripped"
+  IFS=',' read -ra _tgs <<<"$c_targets"
+  for _t in "${_tgs[@]}"; do
+    _t="$(printf '%s' "$_t" | sed -E 's/^ *//; s/ *$//; s/`//g')"
+    [[ -z "$_t" ]] && continue
+    if [[ "$_t" =~ [[:space:]] ]] || ! [[ "$_t" =~ [/.\{] ]]; then continue; fi
+    printf '%s\n' "$_t"
+  done
+}
+
+# partial_targets <plan-file> [partial-id] -> komma-getrennte Dateiliste.
+# Ohne <partial-id> die Vereinigung ueber alle Partials. Leere Ausgabe heisst
+# "kein Partials-Manifest" -- der Aufrufer entscheidet, ob das ein Fehler ist.
+partial_targets() {
+  local plan="${1:?Usage: plan-lint.sh partial_targets <plan-file> [partial-id]}"
+  local want="${2:-}" row rid
+  [[ -f "$plan" ]] || { echo "plan-lint: partial_targets: Plan nicht lesbar: $plan" >&2; return 1; }
+  while IFS= read -r row; do
+    [[ "$row" == *tasks.d/* ]] || continue
+    if [[ -n "$want" ]]; then
+      rid="$(sed -E 's/^\| *//' <<<"$row" | cut -d'|' -f1 | tr -d ' `')"
+      # Manifest-IDs sind mal 'P2', mal 'p2' -- die Schreibweise darf keinen
+      # Claim verfehlen lassen.
+      [[ "${rid,,}" == "${want,,}" ]] || continue
+    fi
+    _row_targets "$row"
+  done < <(_manifest_rows "$plan") | sort -u | paste -sd ',' -
+}
+
 # Direct subcommand or self-test hook:
+if [[ "${1:-}" == "partial_targets" ]]; then
+  shift
+  partial_targets "$@"
+  exit $?
+fi
+
 if [[ "${1:-}" == "residual_budget" ]]; then
   shift
   REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -247,7 +299,7 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   #   target_files-Zellen muessen pfadrein sein (T008015-3): Annotations-Praefixe
   #   ("Löschungen:") und Brace-Globs werden NICHT als Pfade aufgeloest; der
   #   Loesch-Status gehoert in die File-Structure-Spalte.
-  manifest_rows="$(awk '/^##[[:space:]]+Partials/{f=1;next} f&&/^##[[:space:]]/{f=0} f&&/^\|/{print}' "$PLAN")"
+  manifest_rows="$(_manifest_rows "$PLAN")"
   while IFS= read -r row; do
     [[ "$row" == *tasks.d/* ]] || continue
     row_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row")"
@@ -256,19 +308,11 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     c_role="$(printf '%s' "$c_role" | tr -d ' ')"
     PARTIAL_FILES+=("$c_file")
     PARTIAL_ROLES+=("$c_role")
-    IFS=',' read -ra _tgs <<<"$c_targets"
-    for _t in "${_tgs[@]}"; do
-      _t="$(printf '%s' "$_t" | sed -E 's/^ *//; s/ *$//; s/`//g')"
-      # [T008015-3] Annotierte Zellen tolerieren: Nur Pfad-Tokens (kein Whitespace,
-      # mit '/', '.' oder '{') kommen in ALL_PARTIAL_TARGETS — Annotations-Praefixe
-      # ("Löschungen:") sind keine Dateien. Muss mit plan-intel.sh _resolve_target_files()
-      # identisch filtern, sonst divergiert I1.
-      [[ -z "$_t" ]] && continue
-      if [[ "$_t" =~ [[:space:]] ]] || ! [[ "$_t" =~ [/.\{] ]]; then
-        continue
-      fi
-      ALL_PARTIAL_TARGETS+=("$_t")
-    done
+    # [T900024] Dieselbe Zellen-Filterung wie `partial_targets` -- ueber
+    # denselben Helfer, nicht ueber eine zweite Kopie der Regel.
+    while IFS= read -r _t; do
+      [[ -n "$_t" ]] && ALL_PARTIAL_TARGETS+=("$_t")
+    done < <(_row_targets "$row")
   done <<<"$manifest_rows"
 
   if [[ ${#PARTIAL_FILES[@]} -eq 0 ]]; then

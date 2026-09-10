@@ -25,9 +25,19 @@
 #
 # ENTSCHEIDUNGSREIHENFOLGE (stdin = Tool-Eingabe als JSON):
 #   1. Zielpfad außerhalb des Repo-Roots        -> erlauben (keine Dateisystem-Policy)
+#   2a. Fremder LEBENDER Partial-Claim (Lock MIT `target_files`) nennt genau
+#       diesen Pfad                             -> ablehnen, Besitzer nennen
 #   2. Eigener Branch-Claim mit `worktree`      -> nur darunter erlauben
-#   3. Fremder LEBENDER Claim deckt den Pfad    -> ablehnen, Besitzer nennen
+#   3. Fremder LEBENDER Claim OHNE Dateiliste deckt den Pfad -> ablehnen
 #   4. sonst                                    -> erlauben (ohne Claim ändert sich nichts)
+#
+# WARUM 2a VOR 2 [T900024]: kooperative Partial-Claims teilen EINEN Worktree
+# zwischen mehreren Sessions auf. Beide halten dann einen eigenen Claim auf
+# denselben Worktree, also greift Regel 2 fuer beide -- und wuerde jede Session
+# in die Dateien der anderen schreiben lassen. Nur die Dateiliste trennt sie.
+# Umgekehrt bleibt Regel 2 VOR Regel 3, weil ein worktree-weiter Fremdclaim auf
+# den Hauptcheckout sonst jede Arbeit in jedem Worktree darunter blockieren
+# wuerde (T002412). Die beiden Faelle sind darum bewusst getrennt.
 #
 # Der Hook prüft bewusst NICHT, ob überhaupt geclaimt wurde. Eine Session ohne Claim
 # wird nicht zum Claimen gezwungen — das wäre eine eigene Entscheidung mit deutlich
@@ -171,6 +181,35 @@ _abs_wt() {
 MY_WTS=()
 FOREIGN_WT=""
 FOREIGN_SID=""
+# [T900024] Treffer eines fremden Partial-Claims (Lock MIT `target_files`).
+FOREIGN_FILE=""
+FOREIGN_FILE_SID=""
+FOREIGN_FILE_PATH=""
+
+# 0 = eine der komma-getrennten `target_files` des Locks ist genau $TARGET.
+# Relative Eintraege beziehen sich auf den Worktree des Locks -- so stehen sie
+# im `## Partials`-Manifest, und so liefert sie `plan-lint.sh partial_targets`.
+# Setzt bei einem Treffer FOREIGN_FILE_PATH auf den Manifest-Eintrag, damit die
+# Ablehnung die Datei benennen kann, um die es geht.
+_lock_covers_target() {  # <dateiliste> <worktree-abs>
+  local list="$1" wt="$2" entry abs
+  local IFS=','
+  for entry in $list; do
+    entry="${entry#"${entry%%[![:space:]]*}"}"
+    entry="${entry%"${entry##*[![:space:]]}"}"
+    [ -n "$entry" ] || continue
+    case "$entry" in
+      /*|[A-Za-z]:*|\\*) abs="$(_canon "$entry")" ;;
+      *) abs="$(_canon "$wt/${entry#./}")" ;;
+    esac
+    if [ "$abs" = "$TARGET" ]; then
+      FOREIGN_FILE_PATH="$entry"
+      return 0
+    fi
+  done
+  return 1
+}
+
 for f in "$LOCK_DIR"/*.json; do
   [ -f "$f" ] || continue
   wt="$(_field "$f" worktree)"
@@ -202,11 +241,37 @@ for f in "$LOCK_DIR"/*.json; do
     done
     [ "$_dedup_found" -eq 0 ] && MY_WTS+=("$wt")
   else
+    # [T900024] Ein Lock MIT Dateiliste deckt AUSSCHLIESSLICH deren Eintraege --
+    # es traegt bewusst NICHT zu FOREIGN_WT bei. Sonst waere jeder Partial-Claim
+    # faktisch wieder worktree-weit und die Aufteilung waere wirkungslos.
+    files="$(_field "$f" target_files)"
+    if [ -n "$files" ]; then
+      if [ -z "$FOREIGN_FILE" ] && _lock_covers_target "$files" "$wt"; then
+        FOREIGN_FILE="$FOREIGN_FILE_PATH"; FOREIGN_FILE_SID="$owner"
+      fi
+      continue
+    fi
     case "$TARGET" in
       "$wt"/*|"$wt") FOREIGN_WT="$wt"; FOREIGN_SID="$owner";;
     esac
   fi
 done
+
+# 2a) Fremder Partial-Claim nennt genau diesen Pfad. Steht VOR Regel 2, weil
+#     beide Sessions denselben Worktree claimen (Begruendung im Kopf).
+if [ -n "$FOREIGN_FILE" ]; then
+  {
+    echo "WORKTREE-GUARD: Schreibzugriff abgelehnt (Partial-Claim)."
+    echo "  Pfad:            $TARGET"
+    echo "  Geclaimte Datei: $FOREIGN_FILE"
+    echo "  Geclaimt von:    Session $FOREIGN_FILE_SID"
+    echo "  Eine andere Session haelt genau diese Datei als Partial. Der restliche"
+    echo "  Worktree bleibt fuer dich offen -- arbeite an den Dateien deines eigenen"
+    echo "  Partials weiter, statt in ihres hineinzuschreiben."
+    echo "  Notausgang (bewusst): WORKTREE_GUARD_BYPASS=1"
+  } >&2
+  exit 2
+fi
 
 # 2) Eigener Claim gewinnt: nur unterhalb der eigenen Worktrees darf geschrieben werden.
 #     Die Zusicherung ist session-bezogen (SID-Match), nicht akteur-bezogen — ein
@@ -244,7 +309,8 @@ if [ "${#MY_WTS[@]}" -gt 0 ]; then
   exit 2
 fi
 
-# 3) Kein eigener Claim, aber ein fremder LEBENDER deckt den Pfad.
+# 3) Kein eigener Claim, aber ein fremder LEBENDER OHNE Dateiliste deckt den
+#    Pfad (Locks MIT Dateiliste sind oben in 2a abgehandelt).
 if [ -n "$FOREIGN_WT" ]; then
   {
     echo "WORKTREE-GUARD: Schreibzugriff abgelehnt."

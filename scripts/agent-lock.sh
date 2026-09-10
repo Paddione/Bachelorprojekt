@@ -209,6 +209,11 @@ _write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)
     printf '  "worktree": "%s",\n' "${WT:-}"
     printf '  "branch": "%s",\n' "${BRANCH:-}"
     printf '  "ticket": "%s",\n' "${TICKET:-}"
+    # [T900024] Kooperative Partial-Claims: komma-getrennte Dateiliste. LEER =
+    # exakt die bisherige Bedeutung (der ganze Worktree ist geclaimt) -- das ist
+    # die Rueckfallebene fuer jeden Claim, der nicht aus einem Partial-Plan
+    # stammt. Nur ein NICHT-leeres Feld verengt den Claim auf diese Pfade.
+    printf '  "target_files": "%s",\n' "${FILES:-}"
     printf '  "host": "%s",\n' "$(hostname 2>/dev/null || echo unknown)"
     printf '  "created_at": "%s",\n' "${CREATED:-$(_now)}"
     printf '  "heartbeat_at": "%s"\n' "$(_now)"
@@ -281,6 +286,11 @@ Flags:
   --worktree <p>   Set worktree path
   --branch <b>     Set branch name
   --ticket <id>    Set ticket reference
+  --files <a,b>    Restrict the claim to these files (comma-separated, relative
+                   to --worktree). Omitted = claim covers the whole worktree.
+  --files-from-plan <tasks.md> [--partial-id <id>]
+                   Derive --files from the '## Partials' manifest of that plan
+                   (same parser as plan-lint.sh partial_targets).
   --force         Force claim
 HELP
     exit 0
@@ -292,12 +302,32 @@ HELP
     _reject_arg claim "$SCOPE"
     return 2
   fi
-  LABEL=""; WT=""; BRANCH=""; TICKET=""; FORCE=""
+  LABEL=""; WT=""; BRANCH=""; TICKET=""; FORCE=""; FILES=""
+  local PLAN_FILE="" PARTIAL_ID=""
   while [ $# -gt 0 ]; do case "$1" in
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
     --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
+    --files) FILES="$2"; shift 2;;
+    --files-from-plan) PLAN_FILE="$2"; shift 2;;
+    --partial-id) PARTIAL_ID="$2"; shift 2;;
     --force|-F) FORCE=1; shift;;
     *) _reject_arg claim "$1"; return 2;; esac; done
+  # [T900024] Ableitung aus dem Partial-Manifest. Bewusst KEIN zweiter Parser:
+  # plan-lint.sh liest dieselbe Tabelle bereits und garantiert ueber Regel D1,
+  # dass keine Datei in zwei Partials liegt. Zwei Parser fuer dasselbe Format
+  # driften auseinander -- deshalb wird der vorhandene aufgerufen.
+  if [ -n "$PLAN_FILE" ]; then
+    FILES="$(bash "$_AGENT_LOCK_DIR_SELF/plan-lint.sh" partial_targets "$PLAN_FILE" "$PARTIAL_ID")" || {
+      echo "AGENT-LOCK: claim --files-from-plan: plan-lint.sh partial_targets fehlgeschlagen fuer '$PLAN_FILE'" >&2
+      return 2
+    }
+    # Ein leeres Ergebnis wuerde den Claim still auf den GANZEN Worktree
+    # ausweiten -- genau die Verwechslung, gegen die dieser Plan antritt.
+    if [ -z "$FILES" ]; then
+      echo "AGENT-LOCK: claim --files-from-plan: '$PLAN_FILE' liefert keine target_files${PARTIAL_ID:+ fuer Partial '$PARTIAL_ID'}" >&2
+      return 2
+    fi
+  fi
   # For a branch-scoped claim the branch name IS the id; callers therefore never
   # pass --branch. Leaving `branch` empty disabled the worktree+branch liveness
   # fallback in _reapable (T002204), which requires a non-empty branch field — so
@@ -376,6 +406,9 @@ cmd_refresh() {
   _lock_is_mine "$f" || return 1
   LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
   BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
+  # [T900024] Ohne dieses Feld wuerde ein Refresh die Dateiliste stillschweigend
+  # loeschen und den Partial-Claim auf den ganzen Worktree ausweiten.
+  FILES="$(_lock_field "$f" target_files)"
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
 }
 
@@ -544,7 +577,7 @@ cmd_reclaim_main_checkout() {
   fi
   local br; br="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
   [ "$br" = "HEAD" ] && br=""
-  SCOPE=main-checkout; ID=""; LABEL="$_SELF_CLAIM_LABEL"; WT=""; BRANCH="$br"; TICKET=""
+  SCOPE=main-checkout; ID=""; LABEL="$_SELF_CLAIM_LABEL"; WT=""; BRANCH="$br"; TICKET=""; FILES=""
   CREATED="$(_now)"; _write_lock "$f"
   echo "AGENT-LOCK: main-checkout reclaimed (vorher $owner_sid, jetzt $(_my_sid))." >&2
   return 0

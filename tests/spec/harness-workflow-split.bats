@@ -44,7 +44,9 @@ OC_SKILLS="$OC_FLOW_LINKS opencode-git-workflow"
 }
 
 @test "HWS-4: opencode-git-workflow uses the git-crypt-safe worktree wrapper" {
-  grep -qF 'scripts/worktree-create.sh' .opencode/skills/opencode-git-workflow/SKILL.md
+  # [T900024] opencode-git-workflow ist seit der Entdoppelung ein Verweis auf die SSOT.
+  # Geprueft wird die operative Fassung unter .opencode/skills/git-workflow/SKILL.md.
+  grep -qF 'scripts/worktree-create.sh' .opencode/skills/git-workflow/SKILL.md
 }
 
 @test "HWS-5: flow-skill sources hand over to git-workflow" {

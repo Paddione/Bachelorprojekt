@@ -61,6 +61,13 @@ export function withBearerAuth(handler, token) {
 /**
  * Startet Listener auf Loopback und optional auf der k3d-Bridge-IP.
  *
+ * [Cluster-Betrieb] Mit gesetztem `bindOverride` (LLM_PROXY_HOST_BIND) gewinnt
+ * der explizite Host über die Docker-Discovery (Spec-Scenario "An explicit
+ * override wins over discovery"): der Haupt-Listener bindet auf diesen Host
+ * und es laeuft KEINE Discovery. Das ist der Weg fuer Pods in k3s/k3d-Clustern,
+ * in denen keine Docker-Bridge existiert — dort muss der Listener auf der
+ * Pod-IP (bzw. 0.0.0.0) lauschen, sonst ist der Port von aussen unerreichbar.
+ *
  * @param {(req: http.IncomingMessage, res: http.ServerResponse) => void} handler
  * @param {number} port
  * @param {{ bindOverride?: string | null, token?: string | null, network?: string }} [opts={}]
@@ -68,6 +75,19 @@ export function withBearerAuth(handler, token) {
  */
 export function startListeners(handler, port, opts = {}) {
   const servers = [];
+  const token = opts.token || null;
+
+  // Override gewinnt ueber Discovery: genau EIN Listener auf dem vorgegebenen
+  // Host, mit Token-Sperre wenn einer gesetzt ist.
+  if (opts.bindOverride) {
+    const server = http.createServer(token ? withBearerAuth(handler, token) : handler);
+    server.listen(port, opts.bindOverride, () => {
+      const auth = token ? ' (bearer-auth protected)' : '';
+      console.log(`[llm-proxy] listening on ${opts.bindOverride}:${port}${auth}`);
+    });
+    servers.push(server);
+    return servers;
+  }
 
   // Loopback-Listener
   const loopbackServer = http.createServer(handler);
@@ -78,8 +98,7 @@ export function startListeners(handler, port, opts = {}) {
 
   // Bridge-Listener ermitteln
   const network = opts.network || 'k3d-mentolder-dev';
-  const bridgeIp = opts.bindOverride || discoverBridgeAddress(network);
-  const token = opts.token || null;
+  const bridgeIp = discoverBridgeAddress(network);
 
   if (bridgeIp && token) {
     const bridgeServer = http.createServer(withBearerAuth(handler, token));

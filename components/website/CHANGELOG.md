@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.332.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.331.0...website-v1.332.0) (2026-09-10)
+
+
+### Features
+
+* **infra:** dev-pod SSH-Zugang ueber dev-shell-Container [T900108] ([#5532](https://github.com/Paddione/Bachelorprojekt/issues/5532)) ([d3f5d7d](https://github.com/Paddione/Bachelorprojekt/commit/d3f5d7de4632a93a60cfdf3978ed009acad68cbf))
+
 ## [1.331.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.330.0...website-v1.331.0) (2026-09-10)
 
 

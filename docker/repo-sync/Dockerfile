@@ -11,9 +11,9 @@ RUN apk add --no-cache git ca-certificates openssh-client
 
 COPY sync.sh /opt/repo-sync/sync.sh
 RUN chmod +x /opt/repo-sync/sync.sh \
- && adduser -D -u 1000 sync
+ && adduser -D -H -s /sbin/nologin -u 1000 repo-sync
 
-USER sync
+USER repo-sync
 WORKDIR /workspace
 
 CMD ["/bin/sh", "/opt/repo-sync/sync.sh"]

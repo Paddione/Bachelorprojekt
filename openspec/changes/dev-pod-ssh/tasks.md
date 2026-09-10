@@ -116,6 +116,10 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/dev-shell-ssh.bats test
 
 **Dateien:** `docker/dev-shell/Dockerfile`, `docker/dev-shell/sshd_config`, `docker/dev-shell/entrypoint.sh`
 
+_Nach dem Review (PR #5532, F1-F7) weichen die Dateien von den Bloecken dieses Tasks ab
+(Forwarding-Sperren, SetEnv, gepinnte Lieferkette, Warnung statt Abbruch bei fehlendem Key).
+Massgeblich sind die Dateien im Repo und `design.md`._
+
 - [x] **2.1** `docker/dev-shell/sshd_config` exakt mit dem Block aus `design.md` §sshd-Konfiguration anlegen.
 
 - [x] **2.2** `docker/dev-shell/entrypoint.sh` (POSIX sh, `set -eu`):
@@ -327,23 +331,41 @@ docker manifest inspect ghcr.io/paddione/dev-shell:latest > /dev/null && echo "d
 
 ### Task 6: Live-Verifikation nach Flux-Rollout
 
-- [ ] **6.1** Rollout abwarten:
+- [ ] **6.1** Rollout abwarten. Nicht `.items[0]` während des Recreate lesen (dann kann noch der
+  terminierende Pod getroffen werden); nach `rollout status` den laufenden Pod explizit wählen:
 
 ```bash
 kubectl --context fleet -n workspace-dev rollout status deploy/dev-pod --timeout=10m
-kubectl --context fleet -n workspace-dev get pod -l app=dev-pod -o jsonpath='{.items[0].status.containerStatuses[*].ready}'
+kubectl --context fleet -n workspace-dev get pod -l app=dev-pod --field-selector=status.phase=Running \
+  -o jsonpath='{.items[0].status.containerStatuses[*].ready}'
+kubectl --context fleet -n workspace-dev get endpoints dev-pod -o jsonpath='{.subsets[*].addresses[*].ip}'
+kubectl --context fleet -n workspace-dev get pod -l app=dev-pod --field-selector=status.phase=Running \
+  -o jsonpath='{.items[0].status.containerStatuses[?(@.name=="mcp-node")].ready}'
 ```
 
-  Erwartung: vier `true`.
+  Erwartung: vier `true`; `endpoints dev-pod` liefert mindestens eine Adresse; `mcp-node` ist `true`.
 
-- [ ] **6.2** SSH über den unveränderten ProxyCommand:
+- [ ] **6.2** SSH über den unveränderten ProxyCommand. `whoami` ist ungeeignet (liefert für beide
+  Namen `patrick`, weil `getpwuid(1000)` den ersten passwd-Eintrag trifft) — `$USER` prüfen:
 
 ```bash
-ssh dev-pod 'id -u; whoami; git --version; task --version; kubectl version --client; gh --version | head -1; claude --version'
-ssh dev-pod/gekko 'id -u; whoami'
+ssh dev-pod 'id -u; echo $USER; git --version; task --version; kubectl version --client; gh --version | head -1; claude --version'
+ssh dev-pod 'kubectl get pods -n workspace-dev --no-headers | head -3'
+ssh dev-pod/gekko 'id -u; echo $USER'
 ```
 
-  Erwartung: `1000` / `patrick` bzw. `1000` / `gekko`, alle Werkzeuge antworten.
+  Erwartung: `1000` / `patrick` bzw. `1000` / `gekko`, alle Werkzeuge antworten; `kubectl get pods`
+  in der Session läuft gegen den API-Server (kein `localhost:8080`-Fehler).
+
+  Negativtest — der patrick-Key darf nicht als gekko einloggen:
+
+```bash
+ssh -o IdentitiesOnly=yes -i ~/.ssh/patrick_ed25519 \
+  -o ProxyCommand="kubectl --context fleet -n workspace-dev exec -i deploy/dev-pod -- nc 127.0.0.1 22" \
+  gekko@dev-pod true
+```
+
+  Erwartung: scheitert mit `Permission denied (publickey)`.
 
 - [ ] **6.3** Negativprobe: Pod-IP antwortet nicht auf :22 (aus einem anderen Container des Pods):
 
@@ -354,7 +376,9 @@ kubectl --context fleet -n workspace-dev exec deploy/dev-pod -c mcp-node -- sh -
 
   Erwartung: `CLOSED`.
 
-- [ ] **6.4** Host-Key-Persistenz: Fingerprint notieren, Pod löschen, nach Neustart vergleichen:
+- [ ] **6.4** Host-Key-Persistenz: Fingerprint notieren, Pod löschen, nach Neustart vergleichen.
+  Achtung: das Pod-Löschen verursacht wegen `strategy: Recreate` einen weiteren kurzen Ausfall aller
+  MCP-Server im Pod — nicht während laufender MCP-Nutzung ausführen.
 
 ```bash
 kubectl --context fleet -n workspace-dev exec deploy/dev-pod -c dev-shell -- ssh-keygen -lf /home/dev/.ssh-host/ssh_host_ed25519_key.pub

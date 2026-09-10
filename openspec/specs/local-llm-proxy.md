@@ -26,6 +26,7 @@ genau einer Stelle entschieden werden statt in jedem Konsumenten einzeln.
 ## Requirements
 
 ### Requirement: The proxy serves remote backends only
+<!-- bats: dev-pod-mcp-bundle/dev-pod.bats -->
 
 The LLM proxy SHALL run as a container of the `dev-pod` deployment and SHALL route to remote
 backends only. The loadout machinery — transient systemd user units and the `exclusiveGroup`
@@ -55,6 +56,7 @@ describe the running state and the note SHALL be removed.
 - **GIVEN** the Purpose section previously described systemd user units on the WSL dev host
 - **WHEN** the proxy runs as a `dev-pod` container against remote backends
 - **THEN** the Purpose describes that arrangement, and carries no note deferring its own accuracy
+
 
 ### Requirement: Proxy as sole LLM gateway
 
@@ -2063,5 +2065,3 @@ proxy version.
 - **THEN** the response contains a numeric port, a numeric uptime in seconds, and a version string
 
 <!-- merged from change delta local-llm-proxy.md (6f54c6174908) -->
-
-<!-- merged from change delta local-llm-proxy.md (8add151ff6b4) -->

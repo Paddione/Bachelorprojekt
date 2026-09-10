@@ -145,19 +145,17 @@ Last touches:
 ### local-llm-proxy
 Reqs: 78 · Scenarios: 178 · Lines: 2067
 Last touches:
+  - The proxy serves remote backends only | T900107 | 2026-09-10 | MODIFIED
+  - The purpose section describes the running state | T900107 | 2026-09-10 | MODIFIED
   - Proxy as sole LLM gateway | T013302 | 2026-08-22 | MODIFIED
   - Backend registry and admin API | T013909 | 2026-08-22 | MODIFIED
   - Qwen3-Coder is available as an additive chat loadout | T013302 | 2026-08-22 | MODIFIED
-  - A loadout pin blocks foreign start and stop | T013593 | 2026-08-22 | ADDED
-  - A pin dies with its owner and fails closed when unreadable | T013593 | 2026-08-22 | ADDED
 In-flight:
   - bge reaches the proxy through role-based routes | T900006 | active | MODIFIED
   - The bge chain is ordered desktop first, portable devices last | T900006 | active | MODIFIED
   - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
-  - The proxy serves remote backends only | T900107 | active | MODIFIED
-  - The purpose section describes the running state | T900107 | active | MODIFIED
   - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product
@@ -711,18 +709,12 @@ Last touches:
 Reqs: 36 · Scenarios: 84 · Lines: 1010
 Paths: deploy/mcp/, .claude/skills/references/mcp-tool-guide.md, scripts/mcp
 Last touches:
-  - bge-mcp shim resolves its router import as a file:// URL | T900039 | 2026-09-02 | ADDED
-  - mcp-task-runner is invoked through node on hosts without the wrapper binary | T900039 | 2026-09-02 | ADDED
-  - Windows hosts have a documented start mechanism for the local MCP servers | T900039 | 2026-09-02 | ADDED
-  - mcp-kubernetes und mcp-postgres laufen mit read-only Identität | T006335 | 2026-08-15 | MODIFIED
-  - Multi-Statement Queries Rejected Instead of Empty Array | T006293 | 2026-08-15 | ADDED
+  - MCP Monolith Deployment Reality In SSOT | T900107 | 2026-09-10 | MODIFIED
+  - MCP servers are served from a single in-cluster deployment | T900107 | 2026-09-10 | ADDED
+  - No MCP endpoint is exposed publicly | T900107 | 2026-09-10 | ADDED
+  - The repository checkout is supplied read-only from a single writer | T900107 | 2026-09-10 | ADDED
+  - Container images carry their dependencies | T900107 | 2026-09-10 | ADDED
 In-flight:
-  - MCP servers are served from a single in-cluster deployment | T900107 | active | ADDED
-  - No MCP endpoint is exposed publicly | T900107 | active | ADDED
-  - The repository checkout is supplied read-only from a single writer | T900107 | active | ADDED
-  - Container images carry their dependencies | T900107 | active | ADDED
-  - The monolith guard keeps its subject after the manifest is gone | T900107 | active | ADDED
-  - MCP Monolith Deployment Reality In SSOT | T900107 | active | MODIFIED
   - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
   - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
   - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED

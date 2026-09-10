@@ -22,6 +22,7 @@ status: planning
 | `scripts/llm-proxy/backends.mjs` | Loadout-/llama.cpp-Zweig entfernen |
 | `scripts/llm-proxy/listeners.mjs` | Bind-Pfad auf den Cluster-Betrieb reduzieren |
 | `docs/agent-guide/registry/mcp.yaml` | `cluster`-Sektion auf den dev-Pod umschreiben |
+| `scripts/openspec-embed-local.sh` | Embed-Endpunkt vom lokalen `:18235` auf den dev-Pod umstellen |
 | `k3d/default/claude-code-mcp-monolith-deploy.yaml` | entfaellt |
 | `tests/spec/mcp-gateway.bats` | Monolith-Guard auf den dev-Pod umhaengen |
 | `tests/spec/dev-pod-mcp-bundle/dev-pod.bats` | neue Guards |
@@ -57,6 +58,12 @@ status: planning
 - [ ] `scripts/llm-proxy/listeners.mjs`: Bind-Pfad auf den Cluster-Betrieb reduzieren.
 - [ ] Klaeren, ob der Bind-Pfad aus PR #5524 im neuen Image noch existiert; Ticket T900106
       entsprechend schliessen oder den PR uebernehmen.
+- [ ] Konsumenten von `127.0.0.1:18235` erheben und umstellen — `grep -rl '18235' scripts/`
+      liefert 46 Dateien. `scripts/openspec-embed-local.sh` ist dabei der kritische Fall: der
+      post-commit-Hook fuer OpenSpec-Embeddings ruft diesen Port und schlug beim Stagen dieses
+      Changes fehl, weil der Proxy nicht lief. Solange der Proxy lokal erwartet wird, bricht der
+      Hook auf jeder Maschine ohne laufenden Proxy — der Umzug in den Cluster behebt das nur,
+      wenn die Adresse mitwandert.
 
 ### 5. Monolith abloesen
 

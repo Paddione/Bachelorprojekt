@@ -11,4 +11,10 @@ UsePAM no
 StrictModes yes
 X11Forwarding no
 AllowTcpForwarding local
+AllowAgentForwarding no
+AllowStreamLocalForwarding no
+PermitTunnel no
+GatewayPorts no
+PermitUserEnvironment no
+SetEnv KUBERNETES_SERVICE_HOST=kubernetes.default.svc KUBERNETES_SERVICE_PORT=443 DISABLE_AUTOUPDATER=1
 Subsystem sftp internal-sftp

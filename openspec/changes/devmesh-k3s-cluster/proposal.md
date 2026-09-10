@@ -50,6 +50,8 @@ _Ticket: T900117_ · Programm: T900115 (ADR-008) · blocked_by: T900116 (SP-1) �
 - Dateien: `scripts/devmesh/k3s-install.sh`, `scripts/devmesh/preflight.sh`,
   `taskfiles/Taskfile.devmesh.yml` (neu, eingebunden in `Taskfile.yml`),
   `devmesh/inventory.yaml`, `tests/spec/local-dev-mesh/`
-- Operator-Schritte: SSH-Zugang zu den drei Hosts aus WSL. `ssh gpu@<host>` endet in der
-  PK-Desktop-Distro `k3d-dev` mit `Permission denied (publickey,password)` (gemessen 2026-09-11);
-  der Key für `gpu@` muss dort bereitgestellt werden.
+- Operator-Schritte: Auf allen devmesh-Hosts einen Benutzer `patrick` anlegen (wie auf den
+  fleet-Knoten), nur Key-Login mit `patrick_ed25519`, `sudo` ohne Passwort für die
+  nicht-interaktive Installation. Der bisherige Benutzer `gpu` hat keinen hinterlegten Key
+  (`Permission denied (publickey,password)`, gemessen 2026-09-11) und dient nur noch dem
+  einmaligen Bootstrap per Passwort.

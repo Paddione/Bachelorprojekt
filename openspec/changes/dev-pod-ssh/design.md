@@ -141,7 +141,9 @@ npm-Verzeichnis selbst aktualisieren will.
   Das Einschränken dieser Rechte ist Folge-Ticket T900110.
 - **Alles unter `/home/dev` ist für diese Identitäten lesbar**: OAuth-Tokens von Claude Code,
   `gh`-Token, Shell-History. Dort werden deshalb **keine mutierenden Credentials** abgelegt, auch
-  keine persönliche Kubeconfig.
+  keine persönliche Kubeconfig. Für `gh` heißt das: nur ein fine-grained Token mit Leserechten
+  oder gar keine Anmeldung — ein per `gh auth login` angelegter Token hat typischerweise
+  Schreibrechte auf Repositories und fällt damit unter das Verbot.
 - **Die Per-Name-Keys dienen der Zuordnung von Logins (attribution), nicht der Isolation** zwischen
   patrick und gekko: beide laufen als uid 1000 und können die Key-Dateien unter
   `/var/lib/dev-shell/authorized_keys/` gegenseitig überschreiben.
@@ -153,16 +155,38 @@ npm-Verzeichnis selbst aktualisieren will.
 ### Key-Rotation
 
 Die Pubkeys werden nur beim Container-Start aus der ConfigMap kopiert. Rotation heißt: Key in
-`environments/mentolder.yaml` und `k3d/dev-pod/authorized-keys.yaml` ändern, mergen, danach den
-Pod neu starten. Der Neustart verursacht wegen `strategy: Recreate` einen kurzen Ausfall aller
-MCP-Server im Pod.
+`environments/mentolder.yaml` und `k3d/dev-pod/authorized-keys.yaml` ändern, mergen, warten bis
+Flux die ConfigMap ausgerollt hat, danach **nur den `dev-shell`-Container** neu starten:
+
+```bash
+kubectl --context fleet -n workspace-dev exec deploy/dev-pod -c dev-shell -- kill 1
+```
+
+PID 1 ist der per `exec` gestartete sshd (uid 1000); nach seinem Ende startet der kubelet den
+Container neu, der Entrypoint kopiert die Keys erneut. Das kostet nur einen kurzen Endpoint-Blip
+(siehe §Verfügbarkeit). Ein Löschen des Pods würde dagegen wegen `strategy: Recreate` alle
+MCP-Server im Pod neu starten.
 
 ### Verfügbarkeit
 
-`dev-shell` ist optional und darf die MCP-Endpunkte nicht mitreißen: keine `readinessProbe`
-(ein NotReady-Container nähme `svc/dev-pod` die Endpunkte), stattdessen eine `livenessProbe` auf
-`127.0.0.1:22`. Fehlt ein Key, überspringt der Entrypoint den Namen mit Warnung statt abzubrechen.
-`fsGroupChangePolicy: OnRootMismatch` verhindert den rekursiven chown des 20Gi-Home vor jedem Start.
+`dev-shell` ist optional und soll die MCP-Endpunkte so selten wie möglich mitreißen: keine
+`readinessProbe` (ein laufender, aber per Probe NotReady gemeldeter Container nähme `svc/dev-pod`
+die Endpunkte), stattdessen eine `livenessProbe` auf `127.0.0.1:22`. Fehlt ein Key, überspringt
+der Entrypoint den Namen mit Warnung statt abzubrechen. `fsGroupChangePolicy: OnRootMismatch`
+verhindert den rekursiven chown des 20Gi-Home vor jedem Start.
+
+**Restrisiko — keine vollständige Entkopplung.** Ohne `readinessProbe` gilt ein Container als
+ready, *solange er läuft*; die Pod-Condition `Ready` ist aber das UND über alle Container. Läuft
+`dev-shell` nicht, wird der ganze Pod NotReady und `svc/dev-pod` verschiebt die Adresse nach
+`notReadyAddresses` — llm-proxy und MCP-Ports sind dann nicht erreichbar. Das passiert bei:
+
+- `CrashLoopBackOff` (z. B. `ssh-keygen`/`chmod` scheitert unter `set -eu`, sshd lehnt Konfiguration
+  oder Host-Key ab) — mit Backoff bis zu 5 Minuten je Stufe,
+- `ImagePullBackOff` des `dev-shell`-Images,
+- dem kurzen Fenster eines Neustarts durch die `livenessProbe`.
+
+Echte Entkopplung ginge nur über ein eigenes Deployment für `dev-shell` (dann `ssh -L` auf
+`svc/dev-pod` statt Loopback); bewertet in T900112.
 
 ## Rollout-Risiko und Gegenmaßnahme
 

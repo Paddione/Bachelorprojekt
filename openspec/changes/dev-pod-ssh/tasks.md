@@ -357,10 +357,12 @@ ssh dev-pod/gekko 'id -u; echo $USER'
   Erwartung: `1000` / `patrick` bzw. `1000` / `gekko`, alle Werkzeuge antworten; `kubectl get pods`
   in der Session läuft gegen den API-Server (kein `localhost:8080`-Fehler).
 
-  Negativtest — der patrick-Key darf nicht als gekko einloggen:
+  Negativtest — der patrick-Key darf nicht als gekko einloggen. `-F /dev/null` blendet die lokale
+  SSH-Config aus, damit kein dort hinterlegtes `IdentityFile` (etwa der gekko-Key) mitprobiert wird:
 
 ```bash
-ssh -o IdentitiesOnly=yes -i ~/.ssh/patrick_ed25519 \
+ssh -F /dev/null -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  -o IdentitiesOnly=yes -i ~/.ssh/patrick_ed25519 \
   -o ProxyCommand="kubectl --context fleet -n workspace-dev exec -i deploy/dev-pod -- nc 127.0.0.1 22" \
   gekko@dev-pod true
 ```
@@ -370,7 +372,7 @@ ssh -o IdentitiesOnly=yes -i ~/.ssh/patrick_ed25519 \
 - [ ] **6.3** Negativprobe: Pod-IP antwortet nicht auf :22 (aus einem anderen Container des Pods):
 
 ```bash
-POD_IP="$(kubectl --context fleet -n workspace-dev get pod -l app=dev-pod -o jsonpath='{.items[0].status.podIP}')"
+POD_IP="$(kubectl --context fleet -n workspace-dev get pod -l app=dev-pod --field-selector=status.phase=Running -o jsonpath='{.items[0].status.podIP}')"
 kubectl --context fleet -n workspace-dev exec deploy/dev-pod -c mcp-node -- sh -c "nc -z -w 3 $POD_IP 22 && echo OPEN || echo CLOSED"
 ```
 

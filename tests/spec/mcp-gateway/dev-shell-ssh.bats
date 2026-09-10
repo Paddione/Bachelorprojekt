@@ -75,7 +75,10 @@ count_lines() {  # <datei> <ERE>
   [ "$output" = "OnRootMismatch" ]
 }
 
-@test "dev-shell cannot take the pod endpoints down" {
+@test "dev-shell has no readinessProbe that could mark the pod NotReady" {
+  # Nur die readinessProbe ist ausgeschlossen. Ein nicht laufender dev-shell
+  # (CrashLoop, ImagePullBackOff) macht den Pod weiterhin NotReady — siehe
+  # openspec/changes/dev-pod-ssh/design.md, Abschnitt Verfuegbarkeit.
   # Positiv-Anker: mcp-node gatet die Service-Endpunkte mit einer readinessProbe.
   run y "$DEPLOY" "d.spec.template.spec.containers.filter(c=>c.name==='mcp-node'&&c.readinessProbe).length"
   echo "mcp-node mit readinessProbe: $output"

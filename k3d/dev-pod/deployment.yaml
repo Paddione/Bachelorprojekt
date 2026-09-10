@@ -225,10 +225,13 @@ spec:
         - name: dev-shell
           image: ghcr.io/paddione/dev-shell:latest
           imagePullPolicy: Always
-          # Bewusst KEINE readinessProbe: ein NotReady-Container macht den ganzen
-          # Pod NotReady und nimmt svc/dev-pod die Endpunkte (llm-proxy, MCP-Ports).
-          # dev-shell ist optional; haengt sshd, startet die livenessProbe nur
-          # diesen Container neu.
+          # Bewusst KEINE readinessProbe: ein per Probe NotReady gemeldeter Container
+          # macht den ganzen Pod NotReady und nimmt svc/dev-pod die Endpunkte
+          # (llm-proxy, MCP-Ports). dev-shell ist optional; haengt sshd, startet die
+          # livenessProbe nur diesen Container neu.
+          # Restrisiko: Pod-Ready ist das UND ueber alle Container. Steckt dev-shell
+          # in CrashLoopBackOff/ImagePullBackOff oder startet gerade neu, ist der Pod
+          # trotzdem NotReady (openspec/changes/dev-pod-ssh/design.md, Verfuegbarkeit).
           livenessProbe:
             exec:
               command: ["sh", "-c", "nc -z 127.0.0.1 22"]

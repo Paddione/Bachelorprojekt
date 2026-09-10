@@ -120,3 +120,61 @@ test('startListeners: ohne Token aber mit Adresse startet nur Loopback-Listener'
     for (const s of servers) s.close()
   }
 })
+
+test('startListeners: bindOverride gewinnt ueber Discovery und bindet den Host', async () => {
+  // [Cluster-Betrieb] Im k3s/k3d-Pod existiert keine Docker-Bridge: mit
+  // LLM_PROXY_HOST_BIND muss der Haupt-Listener auf dem vorgegebenen Host
+  // lauschen (z.B. 0.0.0.0 fuer Pod-IP-Erreichbarkeit) — ohne Discovery-Fallback.
+  const handler = (req, res) => {
+    res.writeHead(200)
+    res.end('ok')
+  }
+  const servers = startListeners(handler, 0, {
+    bindOverride: '0.0.0.0',
+    token: 'cluster-token',
+  })
+
+  try {
+    assert.equal(servers.length, 1)
+    await new Promise((resolve) => {
+      if (servers[0].listening) return resolve()
+      servers[0].once('listening', resolve)
+    })
+    const addr = servers[0].address()
+    assert.equal(addr.address, '0.0.0.0')
+  } finally {
+    for (const s of servers) s.close()
+  }
+})
+
+test('startListeners: bindOverride mit Token schuetzt den Listener per Bearer', async () => {
+  let called = 0
+  const handler = (req, res) => {
+    called++
+    res.writeHead(200)
+    res.end('ok')
+  }
+  const servers = startListeners(handler, 0, {
+    bindOverride: '127.0.0.1',
+    token: 'cluster-token',
+  })
+
+  try {
+    await new Promise((resolve) => {
+      if (servers[0].listening) return resolve()
+      servers[0].once('listening', resolve)
+    })
+    const port = servers[0].address().port
+
+    const unauth = await fetch(`http://127.0.0.1:${port}/livez`)
+    assert.equal(unauth.status, 401)
+
+    const ok = await fetch(`http://127.0.0.1:${port}/livez`, {
+      headers: { authorization: 'Bearer cluster-token' },
+    })
+    assert.equal(ok.status, 200)
+    assert.equal(called, 1)
+  } finally {
+    for (const s of servers) s.close()
+  }
+})

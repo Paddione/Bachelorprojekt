@@ -82,7 +82,7 @@ status: planning
 
 ### 6. Verifikation
 
-- [ ] `task test:changed`
-- [ ] `task freshness:regenerate`
-- [ ] `task freshness:check`
-- [ ] `task openspec:validate`
+- [x] `task test:changed` — alle dev-pod + mcp-gateway Guards gruen (55/55, 2 skipped). Der Vorabfall `test:manifests` #34 (python3 not found) ist ein Windows-Pre-Existing-Bug, nicht branch-bezogen.
+- [x] `task freshness:regenerate` — letzter Commit ist bereits `chore: regenerate freshness artifacts [T900107]`, Arbeitsbaum sauber.
+- [x] `task freshness:check` — sauber (keine uncommitted/unstaged freshness-Artefakte).
+- [x] `task openspec:validate` — 3 Testdateien, 23 Tests, alle gruen.

@@ -49,19 +49,28 @@ test('roleForPath: Pfad bestimmt die Rolle, nie das model-Feld', () => {
   assert.equal(roleForPath('/v1/models'), null)
 })
 
-test('loadRoles: Ketten werden in loadout- und url-Eintraege klassifiziert', () => {
+test('loadRoles: Ketten bestehen ausschliesslich aus url-Eintraegen', () => {
   const doc = {
     roles: {
-      embed: { chain: ['loadout:bge-embed-cpu', 'http://127.0.0.1:8081'] },
-      rerank: { chain: ['loadout:bge-rerank-cpu'] },
+      embed: { chain: ['http://127.0.0.1:8085', 'http://127.0.0.1:8081'] },
+      rerank: { chain: ['http://127.0.0.1:8081'] },
     },
   }
   const roles = loadRoles(doc)
   assert.deepEqual(roles.get('embed'), [
-    { kind: 'loadout', slug: 'bge-embed-cpu' },
+    { kind: 'url', baseUrl: 'http://127.0.0.1:8085' },
     { kind: 'url', baseUrl: 'http://127.0.0.1:8081' },
   ])
-  assert.deepEqual(roles.get('rerank'), [{ kind: 'loadout', slug: 'bge-rerank-cpu' }])
+  assert.deepEqual(roles.get('rerank'), [{ kind: 'url', baseUrl: 'http://127.0.0.1:8081' }])
+})
+
+// [T900107] Ein 'loadout:'-Glied wird nicht mehr aufgeloest, sondern beim
+// Laden abgelehnt. Es still zu ignorieren waere die schlechtere Wahl: die
+// Kette waere dann um ein Glied kuerzer, ohne dass es jemand bemerkt.
+test('loadRoles: ein loadout:-Glied wird abgelehnt statt still ignoriert', () => {
+  assert.throws(
+    () => loadRoles({ roles: { embed: { chain: ['loadout:bge-embed-cpu'] } } }),
+    /unbekannter Ketten-Eintrag/)
 })
 
 test('loadRoles: fehlender roles-Schluessel wirft mit nennendem Text', () => {
@@ -82,6 +91,8 @@ test('rolesFromRegistry: sortiert nach priority und filtert disabled', () => {
     { name: 'b-mid', enabled: true, priority: 20, roles: ['embed', 'rerank'], baseUrl: 'http://127.0.0.1:1234' },
     { name: 'b-first', enabled: true, priority: 1, roles: ['embed'], baseUrl: 'http://127.0.0.1:8085' },
     { name: 'b-disabled', enabled: false, priority: 5, roles: ['embed'], baseUrl: 'http://127.0.0.1:9999' },
+    // [T900107] loadout_slug wird nicht mehr ausgewertet — die Zeile steuert
+    // ihre baseUrl bei wie jede andere.
     { name: 'b-loadout', enabled: true, priority: 30, roles: ['rerank'], baseUrl: 'http://127.0.0.1:18235', loadoutSlug: 'bge-rerank-cpu' },
     { name: 'b-second', enabled: true, priority: 10, roles: ['embed', 'rerank'], baseUrl: 'http://127.0.0.1:8081' },
   ];
@@ -94,7 +105,7 @@ test('rolesFromRegistry: sortiert nach priority und filtert disabled', () => {
   assert.deepEqual(roles.get('rerank'), [
     { kind: 'url', baseUrl: 'http://127.0.0.1:8081' },
     { kind: 'url', baseUrl: 'http://127.0.0.1:1234' },
-    { kind: 'loadout', slug: 'bge-rerank-cpu' },
+    { kind: 'url', baseUrl: 'http://127.0.0.1:18235' },
   ]);
 });
 
@@ -102,7 +113,7 @@ test('resolveRoleChain: faellt auf loadouts.json zurueck bei leerer Registry', (
   const doc = {
     roles: {
       embed: { chain: ['http://127.0.0.1:8085', 'http://127.0.0.1:8081'] },
-      rerank: { chain: ['loadout:bge-rerank-cpu'] },
+      rerank: { chain: ['http://127.0.0.1:8081'] },
     },
   };
   const fallback = resolveRoleChain('embed', [], doc);
@@ -194,52 +205,6 @@ test('alle Glieder tot -> 503 mit einem Grund JE Glied', async (t) => {
   assert.notEqual(body.error.entries[0].reason, body.error.entries[1].reason)
 })
 
-test('Loadout-Glied startet und bedient dann den Request', async (t) => {
-  const ok = await listen(json200())
-  t.after(() => close(ok))
-  let started = false
-
-  const result = await routeRequest({
-    role: 'embed', path: '/v1/embeddings', body: { input: ['x'] },
-    chain: [{ kind: 'loadout', slug: 'bge-embed-cpu' }],
-    doc: { modelRoots: [], defaults: {}, loadouts: [{ slug: 'bge-embed-cpu', port: ok.address().port }] },
-    startLoadout: async () => { started = true },
-    unitStatus: () => ({ exists: true, active: 'inactive', sub: 'dead' }),
-  })
-  assert.equal(started, true)
-  assert.equal(result.status, 200)
-  assert.equal(result.upstream, 'bge-embed-cpu')
-})
-
-test('Loadout startet nicht -> Kette rueckt weiter statt zu verschlucken', async (t) => {
-  const ok = await listen(json200())
-  t.after(() => close(ok))
-  let started = false
-
-  const result = await routeRequest({
-    role: 'embed', path: '/v1/embeddings', body: { input: ['x'] },
-    chain: [
-      { kind: 'loadout', slug: 'bge-embed-cpu' },
-      { kind: 'url', baseUrl: baseOf(ok) },
-    ],
-    doc: { modelRoots: [], defaults: {}, loadouts: [{ slug: 'bge-embed-cpu', port: 8095 }] },
-    startLoadout: async () => { started = true; throw new Error('startet nicht') },
-    unitStatus: () => ({ exists: true, active: 'inactive', sub: 'dead' }),
-  })
-  assert.equal(started, true)
-  assert.equal(result.status, 200)
-  assert.equal(result.upstream, baseOf(ok))
-})
-
-test('unbekannter Loadout-Slug -> 503, Grund nennt den Slug', async () => {
-  const result = await routeRequest({
-    role: 'embed', path: '/v1/embeddings', body: { input: ['x'] },
-    chain: [{ kind: 'loadout', slug: 'gibt-es-nicht' }],
-    doc: { modelRoots: [], defaults: {}, loadouts: [] },
-    startLoadout: async () => { throw new Error('wird nicht aufgerufen') },
-  })
-  assert.equal(result.status, 503)
-  const body = JSON.parse(result.body)
-  assert.equal(body.error.entries.length, 1)
-  assert.equal(body.error.entries[0].entry, 'gibt-es-nicht')
-})
+// [T900107] Die drei Loadout-Glied-Tests sind entfallen: routeRequest kennt
+// nur noch url-Glieder. Was sie sicherten — ein nicht startendes Glied darf
+// den Request nicht verschlucken — deckt der Failover-Block darueber ab.

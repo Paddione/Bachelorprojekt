@@ -1,31 +1,6 @@
 // scripts/llm-proxy/listeners.mjs
 import http from 'node:http';
 import crypto from 'node:crypto';
-import { execFileSync } from 'node:child_process';
-
-/**
- * Ermittelt das Gateway des k3d-Docker-Netzes.
- * Gibt bei Fehlern null zurueck statt zu werfen.
- *
- * @param {string} networkName
- * @param {typeof execFileSync} [exec=execFileSync]
- * @returns {string | null}
- */
-export function discoverBridgeAddress(networkName, exec = execFileSync) {
-  try {
-    const out = exec('docker', [
-      'network',
-      'inspect',
-      networkName,
-      '-f',
-      '{{range .IPAM.Config}}{{.Gateway}}{{end}}',
-    ]);
-    const ip = String(out).trim();
-    return ip.length > 0 ? ip : null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Umschliesst einen HTTP-Handler mit Bearer-Token-Authentifizierung.
@@ -59,58 +34,35 @@ export function withBearerAuth(handler, token) {
 }
 
 /**
- * Startet Listener auf Loopback und optional auf der k3d-Bridge-IP.
+ * Startet den Listener des Proxys.
  *
- * [Cluster-Betrieb] Mit gesetztem `bindOverride` (LLM_PROXY_HOST_BIND) gewinnt
- * der explizite Host über die Docker-Discovery (Spec-Scenario "An explicit
- * override wins over discovery"): der Haupt-Listener bindet auf diesen Host
- * und es laeuft KEINE Discovery. Das ist der Weg fuer Pods in k3s/k3d-Clustern,
- * in denen keine Docker-Bridge existiert — dort muss der Listener auf der
- * Pod-IP (bzw. 0.0.0.0) lauschen, sonst ist der Port von aussen unerreichbar.
+ * [T900107] Der frueher hier gefuehrte zweite Listener auf der k3d-Docker-Bridge
+ * ist entfallen: der Proxy laeuft als Container des dev-pod, und k3d wird nicht
+ * mehr verwendet (CLAUDE.md, Cluster-Topologie). Es bleiben genau zwei Faelle.
+ *
+ * Mit `bindOverride` (LLM_PROXY_HOST_BIND) bindet der Listener auf diesen Host —
+ * das ist der Cluster-Pfad: im Pod muss er auf 0.0.0.0 lauschen, sonst ist der
+ * Port aus dem Mesh unerreichbar. Ist ein Token gesetzt, haengt die
+ * Bearer-Sperre davor.
+ *
+ * Ohne Override bindet er auf 127.0.0.1 — der Pfad fuer einen lokal gestarteten
+ * Proxy, der nur die eigene Maschine bedient.
  *
  * @param {(req: http.IncomingMessage, res: http.ServerResponse) => void} handler
  * @param {number} port
- * @param {{ bindOverride?: string | null, token?: string | null, network?: string }} [opts={}]
+ * @param {{ bindOverride?: string | null, token?: string | null }} [opts={}]
  * @returns {http.Server[]}
  */
 export function startListeners(handler, port, opts = {}) {
   const servers = [];
   const token = opts.token || null;
+  const host = opts.bindOverride || '127.0.0.1';
+  const guarded = opts.bindOverride && token;
 
-  // Override gewinnt ueber Discovery: genau EIN Listener auf dem vorgegebenen
-  // Host, mit Token-Sperre wenn einer gesetzt ist.
-  if (opts.bindOverride) {
-    const server = http.createServer(token ? withBearerAuth(handler, token) : handler);
-    server.listen(port, opts.bindOverride, () => {
-      const auth = token ? ' (bearer-auth protected)' : '';
-      console.log(`[llm-proxy] listening on ${opts.bindOverride}:${port}${auth}`);
-    });
-    servers.push(server);
-    return servers;
-  }
-
-  // Loopback-Listener
-  const loopbackServer = http.createServer(handler);
-  loopbackServer.listen(port, '127.0.0.1', () => {
-    console.log(`[llm-proxy] listening on 127.0.0.1:${port}`);
+  const server = http.createServer(guarded ? withBearerAuth(handler, token) : handler);
+  server.listen(port, host, () => {
+    console.log(`[llm-proxy] listening on ${host}:${port}${guarded ? ' (bearer-auth protected)' : ''}`);
   });
-  servers.push(loopbackServer);
-
-  // Bridge-Listener ermitteln
-  const network = opts.network || 'k3d-mentolder-dev';
-  const bridgeIp = discoverBridgeAddress(network);
-
-  if (bridgeIp && token) {
-    const bridgeServer = http.createServer(withBearerAuth(handler, token));
-    bridgeServer.listen(port, bridgeIp, () => {
-      console.log(`[llm-proxy] listening on ${bridgeIp}:${port} (bearer-auth protected)`);
-    });
-    servers.push(bridgeServer);
-  } else if (!bridgeIp) {
-    console.log(`[llm-proxy] bridge listener skipped: docker network '${network}' gateway not discovered`);
-  } else if (!token) {
-    console.log(`[llm-proxy] bridge listener on ${bridgeIp}:${port} skipped: LLM_PROXY_ADMIN_TOKEN not set`);
-  }
-
+  servers.push(server);
   return servers;
 }

@@ -78,6 +78,20 @@ spec:
             # keine GPU zur Verfuegung (gemessen 2026-09-10: alle Nodes gpu=KEINE).
             - name: LLM_PROXY_REMOTE_ONLY
               value: "1"
+            # [T900106] Der Backend-Registry-Poll (scripts/llm-proxy/backends.mjs)
+            # ruft `factory_psql`. Ohne FACTORY_PG_URL nimmt der Helfer den
+            # kubectl-exec-Weg — im Pod fehlt kubectl, und die RBAC des dev-pod
+            # erlaubt ohnehin kein exec. Mit gesetzter URL spricht psql die
+            # ClusterIP direkt an; genau das ist der in T900106 als richtig
+            # befundene Pfad. psql liegt im Image (kein apk zur Laufzeit).
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shared-db-dev-secrets
+                  key: DEV_WEBSITE_DB_PASSWORD
+                  optional: true
+            - name: FACTORY_PG_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
             # dev-pod-secrets wird vom Operator per kubeseal angelegt — dieselbe
             # fail-closed-Konvention wie factory-runner-secrets: fehlt der Wert,
             # startet der Supervisor den betroffenen Server nicht, statt mit

@@ -2,25 +2,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import http from 'node:http'
-import { discoverBridgeAddress, withBearerAuth, startListeners } from './listeners.mjs'
+import { withBearerAuth, startListeners } from './listeners.mjs'
 
-test('discoverBridgeAddress: liefert Gateway-Adresse wenn exec erfolgreich ist', () => {
-  const mockExec = (cmd, args) => {
-    assert.equal(cmd, 'docker')
-    assert.deepEqual(args, ['network', 'inspect', 'k3d-mentolder-dev', '-f', '{{range .IPAM.Config}}{{.Gateway}}{{end}}'])
-    return '172.23.0.1\n'
-  }
-  const res = discoverBridgeAddress('k3d-mentolder-dev', mockExec)
-  assert.equal(res, '172.23.0.1')
-})
-
-test('discoverBridgeAddress: gibt null zurueck wenn exec wirft', () => {
-  const mockExec = () => {
-    throw new Error('docker not found')
-  }
-  const res = discoverBridgeAddress('k3d-mentolder-dev', mockExec)
-  assert.equal(res, null)
-})
+// [T900107] Die beiden discoverBridgeAddress-Tests sind entfallen: der
+// k3d-Bridge-Listener existiert nicht mehr. Der Proxy laeuft als Container
+// des dev-pod und bindet ueber LLM_PROXY_HOST_BIND direkt.
 
 test('withBearerAuth: ohne authorization Header liefert 401 und ruft Handler nicht auf', async () => {
   let called = false
@@ -98,15 +84,13 @@ test('withBearerAuth: mit korrektem Token ruft inneren Handler auf', async () =>
   }
 })
 
-test('startListeners: ohne Token aber mit Adresse startet nur Loopback-Listener', async () => {
+test('startListeners: ohne Override bindet genau ein Listener auf Loopback', async () => {
   const handler = (req, res) => {
     res.writeHead(200)
     res.end('ok')
   }
-  const servers = startListeners(handler, 0, {
-    bindOverride: '127.0.0.1',
-    token: null,
-  })
+  // Ohne bindOverride: Loopback-Pfad, genau ein Listener, kein Token.
+  const servers = startListeners(handler, 0, { token: null })
 
   try {
     assert.equal(servers.length, 1)
@@ -121,10 +105,10 @@ test('startListeners: ohne Token aber mit Adresse startet nur Loopback-Listener'
   }
 })
 
-test('startListeners: bindOverride gewinnt ueber Discovery und bindet den Host', async () => {
-  // [Cluster-Betrieb] Im k3s/k3d-Pod existiert keine Docker-Bridge: mit
-  // LLM_PROXY_HOST_BIND muss der Haupt-Listener auf dem vorgegebenen Host
-  // lauschen (z.B. 0.0.0.0 fuer Pod-IP-Erreichbarkeit) — ohne Discovery-Fallback.
+test('startListeners: bindOverride bindet den vorgegebenen Host', async () => {
+  // [Cluster-Betrieb] Im Pod muss der Listener auf dem vorgegebenen Host
+  // lauschen (0.0.0.0 fuer Erreichbarkeit ueber die Pod-IP); auf 127.0.0.1
+  // waere der Port von aussen tot.
   const handler = (req, res) => {
     res.writeHead(200)
     res.end('ok')

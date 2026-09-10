@@ -3,33 +3,19 @@ import http from 'node:http';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
-import { existsSync } from 'node:fs';
 import { startListeners } from './listeners.mjs';
-import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive, isLoadoutEnabled, factoryModel, factoryLocked } from './loadouts.mjs';
-import os from 'node:os';
-import { scanModels, resolveModelPath } from './models.mjs';
-import { unitName, startUnit, stopUnit, unitStatus, recentLogs, toolsRuntimeMissing } from './runner.mjs';
-import { join } from 'node:path';
+// [T900107] Aus loadouts.mjs bleibt nur der Lesepfad: die Datei traegt neben den
+// (entfallenen) GPU-Loadouts auch den roles-Block, aus dem die bge-Routen ihre
+// Ketten beziehen. Gestartet wird von hier nichts mehr.
+import { readLoadouts, DEFAULT_PATH } from './loadouts.mjs';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
-import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
 import { enqueue, inflightOf, extractSlotId } from './slot-queue.mjs';
-import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, LOADOUT_START_BUDGET_MS, resolveRoleChain } from './bge-routes.mjs';
+import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, resolveRoleChain } from './bge-routes.mjs';
 import { respondBuffered, respondStreamed } from './respond.mjs';
 import { requestLog } from './request-log.mjs';
-import { evaluatePin, pinGuard, acquirePin, releasePin, pinFilePath } from './loadout-pin.mjs';
-import { switchOrigin, formatSwitchLine } from './switch-origin.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
-// Versionsneutraler Symlink statt eines gepinnten Builds (T002536): der
-// fruehere Default 'opt/llama-b10155-cuda13.3' zwang bei jedem llama.cpp-Update
-// zu einer Code-Aenderung und verhinderte, dass der abgeloeste Build entfernt
-// werden kann. 'opt/llama-current' zeigt auf den jeweils aktuellen Build; ein
-// Versionswechsel ist damit ein Symlink-Umhaengen ohne Repo-Aenderung.
-const HOME_DIR = process.env.HOME || process.env.USERPROFILE || '';
-const LLAMA_BIN = process.env.LLAMA_SERVER_BIN
-  || (HOME_DIR ? join(HOME_DIR, 'opt/llama-current/bin/llama-server') : 'llama-server');
-const HEALTH_TIMEOUT_MS = 240_000;
 
 startRegistryPoll(POLL_MS);
 const discovery = startDiscovery(getBackends, POLL_MS);
@@ -145,29 +131,6 @@ async function proxyV1(req, res, subpath) {
   const body = await readBody(req);
   const requestedModel = typeof body.model === 'string' ? body.model.replace(/^[^/]+\//, '') : body.model;
 
-  // T002753 — Auto-Switch mit Preemptions-Schutz.
-  //
-  // ensureLoadoutForModel startet das angeforderte Modell und stoppt ggf.
-  // Konflikt-Loadouts. Danach kann das Modell von einem anderen Request
-  // wieder gestoppt werden (Preemption), bevor wir es benutzen. Wir pruefen
-  // nach dem Routing, ob das angeforderte Modell noch lebt — wenn nicht,
-  // retryen wir den Switch einmal.
-  // T013894 — Wer den Wechsel ausloest, gehoert in die [switch]-Zeile: ein
-  // Loadout-Wechsel evictet fremde Arbeit, und der Request-Mitschnitt als
-  // einziger Attributionsweg fiel bei Incident T013527 genau dort aus.
-  const origin = switchOrigin(req.headers, requestedModel, req.socket?.remoteAddress ?? null);
-  let auto = await ensureLoadoutForModel(requestedModel, origin);
-  if (auto?.conflict) {
-    return sendJson(res, 409, { error: { code: 'exclusive_conflict', message:
-      `${requestedModel} teilt exclusiveGroup mit dem laufenden Loadout ${auto.conflict}. `
-      + `Zuerst 'curl -XPOST http://127.0.0.1:${PORT}/admin/loadouts/${auto.conflict}/stop' `
-      + `ausfuehren, dann die Anfrage wiederholen — der Proxy stoppt nichts von selbst.` } });
-  }
-  if (auto?.failed) {
-    const e = auto.failed;
-    return sendJson(res, e.status ?? 502, { error: { code: e.code ?? 'start_error', message: e.message } });
-  }
-
   // [T002657] Lokal-only-Anforderung: der Aufrufer verlangt, dass die Inhalte
   // die eigene Infrastruktur nicht verlassen. Ohne diesen Weg faellt eine
   // korrekt auf on-premises umgestellte Coaching-Konfiguration beim naechsten
@@ -175,23 +138,14 @@ async function proxyV1(req, res, subpath) {
   // zurueck — der Guard in der Website waere dann umgangen, ohne dass jemand
   // etwas falsch gemacht haette.
   const localOnly = String(req.headers['x-llm-local-only'] ?? '') === '1';
-  let routed = resolveModel(requestedModel, getBackends, { localOnly });
-  // T002753: Wenn das Modell nach dem Switch nicht mehr gefunden wird (von
-  // einem anderen Request gestoppt), genau einen Retry.
-  if (!routed && auto?.started) {
-    console.log(`[switch] ${formatSwitchLine(`${auto.started} wurde vor Routing gestoppt — retry (resolveModel ergab null)`, origin)}`);
-    auto = await ensureLoadoutForModel(requestedModel, origin);
-    if (auto?.failed) {
-      const e = auto.failed;
-      return sendJson(res, e.status ?? 502, { error: { code: e.code ?? 'start_error', message: e.message } });
-    }
-    // auto ist null oder { started } — bei null ist das Modell schon da, bei
-    // started hat der Retry es neu gestartet. Ein erneuter resolveModel-Versuch.
-    routed = resolveModel(requestedModel, getBackends, { localOnly });
-  }
+  // [T900107] Kein Auto-Switch mehr. Der Proxy startet nichts: es gibt kein
+  // lokales Loadout, das er starten koennte (im Cluster steht keine GPU zur
+  // Verfuegung), und die Retry-Schleife existierte ausschliesslich, um die
+  // Preemption zwischen konkurrierenden Loadout-Starts abzufangen.
+  const routed = resolveModel(requestedModel, getBackends, { localOnly });
 
   if (!routed) {
-    console.log(`[route] ${requestedModel}: resolveModel ergab null (localOnly=${localOnly}, auto=${auto ? JSON.stringify(Object.keys(auto)) : 'null'})`);
+    console.log(`[route] ${requestedModel}: resolveModel ergab null (localOnly=${localOnly})`);
     // Bewusst KEINE Substitution auf ein remote-Backend: bei lokal-only ist
     // Fehlschlagen das richtige Ergebnis, Ausweichen waere der Schaden.
     return localOnly
@@ -263,248 +217,6 @@ async function proxyV1(req, res, subpath) {
   return respondStreamed({ res, upstream, passHeaders, backendName: backend.name, capture, meta: captureMeta });
 }
 
-// Loesst den Loadout-Modellpfad gegen die konfigurierten modelRoots auf.
-// resolveModelPath liegt in models.mjs (T002536) — dort ist es ohne
-// Nebenwirkungen testbar. Ein Import von server.mjs startet den HTTP-Server
-// und bindet den Proxy-Port; die Funktion war hier also nicht pruefbar.
-
-async function waitHealthy(port, timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      const r = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(2000) });
-      if (r.ok) return true;
-    } catch { /* noch nicht da */ }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-  return false;
-}
-
-/** Wartet, bis eine systemd-Unit gestoppt ist (active !== 'active'). Timeout in ms. */
-async function waitUntilStopped(slug, timeoutMs = 30_000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    const s = unitStatus(slug);
-    if (s.active !== 'active') return true;
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  return false;
-}
-
-/**
- * T002753 — Auto-Switch-Semaphor: serialisiert Modellwechsel (stop alt + start neu)
- * damit nicht zwei Requests gleichzeitig verschiedene Loadouts starten.
- * Der Aufrufer (proxyV1) serialisiert bereits ueber den per-Backend-Semaphor;
- * dieser Lock schuetzt den Switch VOR dem Routing, also bevor der Backend bekannt ist.
- */
-let switchLock = Promise.resolve();
-function withSwitchLock(fn) {
-  const p = switchLock.then(() => fn()).finally(() => {});
-  // next waiter gets this promise, even if it rejects — we never want to deadlock
-  switchLock = p.catch(() => {});
-  return p;
-}
-
-// Ein Server kann auf /health antworten und trotzdem unfaehig sein, ein
-// tool_calls-Objekt zu erzeugen -- fuer tool-basiertes Coding wertlos.
-async function smokeTestToolCall(port) {
-  try {
-    const r = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: 'Read the file /etc/hostname using the available tool.' }],
-        tools: [{ type: 'function', function: { name: 'read_file', description: 'Read a file from disk',
-          parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } } }],
-        tool_choice: 'auto', max_tokens: 256,
-      }),
-      signal: AbortSignal.timeout(120_000),
-    });
-    const body = await r.json();
-    return Array.isArray(body?.choices?.[0]?.message?.tool_calls);
-  } catch { return false; }
-}
-
-async function chosenSettings(port) {
-  try {
-    const r = await fetch(`http://127.0.0.1:${port}/props`, { signal: AbortSignal.timeout(5000) });
-    const p = await r.json();
-    return { ctx: p?.default_generation_settings?.n_ctx ?? null };
-  } catch { return { ctx: null }; }
-}
-
-function portInUse(doc, port, exceptSlug) {
-  return doc.loadouts.some((l) => l.port === port && l.slug !== exceptSlug
-    && isLoadoutActive(l, unitStatus(l.slug)));
-}
-
-class LoadoutStartError extends Error {
-  constructor(status, code, message, extra = {}) {
-    super(message); this.status = status; this.code = code; Object.assign(this, extra);
-  }
-}
-
-async function startLoadout(slug) {
-  const { doc } = readLoadouts(DEFAULT_PATH);
-  const loadout = findLoadout(doc, slug);
-  if (!loadout) throw new LoadoutStartError(404, 'not_found', slug);
-  // T003204: VOR already_running. Die Reihenfolge ist Absicht — ein
-  // abgeschaltetes Loadout, das noch laeuft (weil es vor der Abschaltung
-  // gestartet wurde), soll als DEAKTIVIERT gemeldet werden und nicht als
-  // "laeuft bereits"; sonst liest sich die Antwort wie ein Erfolg.
-  // Eigener Code statt not_found: "gibt es nicht" und "ist abgeschaltet" fuehren
-  // zu verschiedenen Diagnosen — wer not_found sieht, sucht einen Tippfehler.
-  if (!isLoadoutEnabled(loadout)) {
-    throw new LoadoutStartError(409, 'disabled',
-      `${slug} ist in loadouts.json abgeschaltet (enabled: false) und wird nicht gestartet.`);
-  }
-  if (unitStatus(slug).active === 'active') {
-    throw new LoadoutStartError(409, 'already_running', `${slug} laeuft bereits`);
-  }
-  if (portInUse(doc, loadout.port, slug)) {
-    throw new LoadoutStartError(409, 'port_busy', `Port ${loadout.port} belegt`);
-  }
-  // T002616: exclusiveGroup gilt AUCH hier, nicht nur im Auto-Start-Pfad.
-  // port_busy oben faengt einen Gruppenkonflikt nur zufaellig ab — naemlich
-  // dann, wenn beide Loadouts denselben Port belegen (die drei auf 8091).
-  // gemma9-factory (8092) gegen gemma26-factory (8091) rutschte durch.
-  const active = doc.loadouts.filter((l) => isLoadoutActive(l, unitStatus(l.slug))).map((l) => l.slug);
-  const conflict = findExclusiveConflict(doc, slug, active);
-  if (conflict) {
-    throw new LoadoutStartError(409, 'exclusive_conflict',
-      `${slug} teilt exclusiveGroup '${conflict.group}' mit dem laufenden Loadout ${conflict.conflictSlug}. `
-      + `Zuerst 'curl -XPOST http://127.0.0.1:${PORT}/admin/loadouts/${conflict.conflictSlug}/stop' `
-      + `ausfuehren, dann erneut starten — der Proxy stoppt nichts von selbst.`);
-  }
-  const modelPath = resolveModelPath(doc, loadout);
-  if (!modelPath) {
-    throw new LoadoutStartError(422, 'model_missing', `${loadout.model} in keiner modelRoot gefunden`);
-  }
-  // Vor dem Start, nicht danach: ein fehlender Tool-Container macht den Server
-  // nicht ungesund, er entwertet nur die Tools — und zwar sichtbar allein fuer
-  // das Modell. Hier faellt es laut auf.
-  const runtimeProblem = toolsRuntimeMissing(loadout);
-  if (runtimeProblem) {
-    throw new LoadoutStartError(424, 'tools_runtime_missing', runtimeProblem);
-  }
-  // Resolve draftModelPath and mmprojPath against modelRoots for runner.mjs (P2 contract)
-  const resolved = {};
-  if (loadout.speculative?.draftModelPath) {
-    resolved.draftModelPath = doc.modelRoots.map(r => join(r.replace(/^~/, os.homedir()), loadout.speculative.draftModelPath)).find(existsSync) ?? null;
-  }
-  if (loadout.args?.mmprojPath) {
-    resolved.mmprojPath = doc.modelRoots.map(r => join(r.replace(/^~/, os.homedir()), loadout.args.mmprojPath)).find(existsSync) ?? null;
-  }
-  if (loadout.uiConfigFile) {
-    try {
-      generateUiConfigSeed({ outputPath: loadout.uiConfigFile.replace(/^~/, os.homedir()) });
-    } catch (err) {
-      console.error(`[loadout] Failed to generate uiConfigFile seed for ${slug}:`, err.message);
-    }
-  }
-  startUnit(loadout, modelPath, doc.defaults, LLAMA_BIN, resolved);
-  if (!await waitHealthy(loadout.port, HEALTH_TIMEOUT_MS)) {
-    const logs = recentLogs(slug);
-    try { stopUnit(slug); } catch { /* Unit was already gone */ }
-    throw new LoadoutStartError(502, 'start_failed', 'Server wurde nicht gesund', { logs });
-  }
-  const chosen = await chosenSettings(loadout.port);
-  const targetCtx = loadout.args?.ctx ?? loadout.fit?.minCtx ?? null;
-  if (targetCtx != null && chosen.ctx != null && chosen.ctx < targetCtx) {
-    console.log(`[loadout] ${slug}: -fit gewaehrte ctx ${chosen.ctx} < Ziel ${targetCtx}`);
-  }
-  const toolCallOk = await smokeTestToolCall(loadout.port);
-  await discovery.probeNow();
-  return { unit: unitName(slug), port: loadout.port, chosen, toolCallOk };
-}
-
-const startsInFlight = new Map();
-/** T002753 — Grace-Period: ein gerade gestarteter Loadout darf fuer diese Zeitspanne
- *  nicht von einem anderen Request gestoppt werden (Preemptions-Schutz). Der
- *  ausloesende Request hat so Zeit, zu routen und das Modell zu benutzen. */
-const SWITCH_GRACE_MS = 3_000;
-const loadoutStartedAt = new Map(); // slug -> timestamp (Date.now())
-
-async function ensureLoadoutForModel(model, origin = '') {
-  let doc;
-  try { ({ doc } = readLoadouts(DEFAULT_PATH)); } catch { return null; }
-
-  // T002753 — Auto-Switch mit Re-Evaluation unter dem Lock.
-  //
-  // Der erste Blick auf planAutoStart entscheidet, OB ueberhaupt ein Switch
-  // noetig ist (none: Modell laeuft schon; conflict/start: etwas muss passieren).
-  // Bei none kehren wir sofort ohne Lock zurueck. Bei conflict/start betreten
-  // wir den Lock und lesen activeSlugs ERNEUT: ein anderer Request koennte
-  // zwischenzeitlich den Konflikt schon geloest haben — dann starten wir nicht
-  // doppelt.
-  const activeSlugs = doc.loadouts
-    .filter((l) => isLoadoutActive(l, unitStatus(l.slug)))
-    .map((l) => l.slug);
-  const decision = planAutoStart({ doc, model, activeSlugs });
-  if (decision.action === 'none') return null;
-
-  return withSwitchLock(async () => {
-    // Re-read active slugs under the lock — another switch may have resolved
-    // the conflict while we were waiting.
-    const currentActive = doc.loadouts
-      .filter((l) => isLoadoutActive(l, unitStatus(l.slug)))
-      .map((l) => l.slug);
-    const reDecide = planAutoStart({ doc, model, activeSlugs: currentActive });
-    if (reDecide.action === 'none') return null;
-
-    // Nur wenn das angeforderte Modell WIRKLICH noch nicht laeuft, stoppen wir.
-    // `reDecide` kann `start` sein (kein Konflikt, Modell nicht aktiv)
-    // oder `conflict` (Konflikt mit einem laufenden Loadout).
-    if (reDecide.action === 'conflict') {
-      const group = reDecide.group;
-      const toStop = currentActive.filter((slug) => {
-        const l = findLoadout(doc, slug);
-        return l && l.exclusiveGroup === group && l.slug !== reDecide.slug && l.managed !== 'external';
-      });
-      // T002753 — Grace-Period: ein gerade gestarteter Loadout darf nicht sofort
-      // wieder gestoppt werden. Der ausloesende Request braucht Zeit zum Routen.
-      const inGrace = toStop.filter((slug) => {
-        const at = loadoutStartedAt.get(slug);
-        return at && (Date.now() - at) < SWITCH_GRACE_MS;
-      });
-      if (inGrace.length > 0) {
-        console.log(`[switch] ${formatSwitchLine(`${reDecide.slug}: Konflikt-Loadout(s) ${inGrace.join(',')} in Grace-Period — switch abgelehnt`, origin)}`);
-        return { failed: new LoadoutStartError(503, 'grace_period',
-          `${inGrace.join(', ')} wurde gerade erst gestartet (Grace-Period ${SWITCH_GRACE_MS}ms). `
-          + `Bitte in ${Math.ceil(SWITCH_GRACE_MS / 1000)}s erneut versuchen.`) };
-      }
-      for (const slug of toStop) {
-        console.log(`[switch] ${formatSwitchLine(`${reDecide.slug}: stoppe Konflikt-Loadout ${slug} (Gruppe '${group}')`, origin)}`);
-        try { stopUnit(slug); } catch (err) {
-          return { failed: new LoadoutStartError(502, 'stop_error',
-            `Konnte ${slug} nicht stoppen: ${err.message}`) };
-        }
-        const stopped = await waitUntilStopped(slug, 30_000);
-        if (!stopped) {
-          return { failed: new LoadoutStartError(502, 'stop_timeout',
-            `${slug} wurde nach 30s nicht inaktiv`) };
-        }
-        console.log(`[switch] ${formatSwitchLine(`${slug} gestoppt`, origin)}`);
-      }
-      await discovery.probeNow();
-    }
-
-    console.log(`[switch] ${formatSwitchLine(`starte ${reDecide.slug}`, origin)}`);
-    return startRequestedLoadout(doc, reDecide.slug);
-  });
-}
-
-async function startRequestedLoadout(doc, slug) {
-  const pending = startsInFlight.get(slug);
-  if (pending) return pending;
-  const p = startLoadout(slug)
-    .then((r) => { loadoutStartedAt.set(slug, Date.now()); return { started: slug, ...r }; })
-    .catch((err) => ({ failed: err }))
-    .finally(() => startsInFlight.delete(slug));
-  startsInFlight.set(slug, p);
-  return p;
-}
-
 const requestHandler = (req, res) => {
   const { method, url } = req;
   const path = url.split('?')[0];
@@ -554,149 +266,6 @@ const requestHandler = (req, res) => {
       res.writeHead(410, { 'content-type': 'text/plain; charset=utf-8' });
       return res.end('Die LLM-Proxy-Administration befindet sich im SDLC-Cockpit unter /sdlc.');
     }
-    if (path === '/admin/models' && method === 'GET') {
-      try {
-        const { doc } = readLoadouts(DEFAULT_PATH);
-        return sendJson(res, 200, { models: scanModels(doc.modelRoots) });
-      } catch (err) {
-        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
-      }
-    }
-    if (path === '/admin/loadouts' && method === 'GET') {
-      try {
-        const { doc, mtimeMs } = readLoadouts(DEFAULT_PATH);
-        return sendJson(res, 200, { doc, mtimeMs });
-      } catch (err) {
-        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
-      }
-    }
-    if (path === '/admin/loadouts' && method === 'PUT') {
-      try {
-        const body = await readBody(req);
-        writeLoadouts(body.doc, DEFAULT_PATH, body.mtimeMs ?? null);
-        const { mtimeMs } = readLoadouts(DEFAULT_PATH);
-        return sendJson(res, 200, { saved: true, mtimeMs });
-      } catch (err) {
-        const conflict = /conflict|geaendert/i.test(err.message);
-        return sendJson(res, conflict ? 409 : 400,
-          { error: { code: conflict ? 'stale_write' : 'invalid', message: err.message } });
-      }
-    }
-    if (path === '/admin/loadouts/status' && method === 'GET') {
-      try {
-        const { doc } = readLoadouts(DEFAULT_PATH);
-        const status = await Promise.all(doc.loadouts.map(async (l) => {
-          const u = unitStatus(l.slug);
-          // T002628: externe Loadouts (managed=external) haben keine Unit — ihre
-          // Liveness kommt ueber isLoadoutActive (Port/Prozess), sonst erschienen
-          // sie im Status immer als gestoppt. [P1-3]
-          const running = isLoadoutActive(l, u);
-          return {
-            slug: l.slug, unit: unitName(l.slug), port: l.port,
-            active: u.active, sub: u.sub, running,
-            // T003204: gestoppt und abgeschaltet sehen ohne dieses Feld gleich
-            // aus — obwohl nur eines von beiden durch einen Klick behebbar ist.
-            // Die Web-UI kann ein deaktiviertes Loadout damit als solches zeigen,
-            // statt es als "gestoppt" auszugeben und zum Startversuch einzuladen.
-            enabled: isLoadoutEnabled(l),
-            chosen: running ? await chosenSettings(l.port) : null,
-          };
-        }));
-        return sendJson(res, 200, { status });
-      } catch (err) {
-        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
-      }
-    }
-    if (path === '/admin/factory' && method === 'GET') {
-      try {
-        const { doc, mtimeMs } = readLoadouts(DEFAULT_PATH);
-        return sendJson(res, 200, {
-          model: factoryModel(doc), locked: factoryLocked(doc), mtimeMs,
-          selectable: doc.loadouts.filter(isLoadoutEnabled).map(({ slug, label, port }) => ({ slug, label, port })),
-        });
-      } catch (err) {
-        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
-      }
-    }
-    if (path === '/admin/factory' && method === 'PUT') {
-      try {
-        const body = await readBody(req);
-        const { doc } = readLoadouts(DEFAULT_PATH);
-        doc.factory = { model: body.model, locked: body.locked === true };
-        writeLoadouts(doc, DEFAULT_PATH, body.mtimeMs ?? null);
-        const { mtimeMs } = readLoadouts(DEFAULT_PATH);
-        return sendJson(res, 200, { saved: true, mtimeMs });
-      } catch (err) {
-        const conflict = /conflict|geaendert/i.test(err.message);
-        return sendJson(res, conflict ? 409 : 400,
-          { error: { code: conflict ? 'stale_write' : 'invalid', message: err.message } });
-      }
-    }
-    // T013593 — Loadout-Pin. Waehrend ein Pin gehalten wird, duerfen nur sein
-    // Besitzer Loadouts starten und stoppen; das Token reist im Header
-    // 'x-loadout-pin'. Die Auswertung liegt vollstaendig in loadout-pin.mjs,
-    // damit diese Datei ihr Zeilenbudget nicht fuer Fail-closed-Zweige ausgibt.
-    if (path === '/admin/loadouts/pin') {
-      const pinFile = pinFilePath();
-      if (method === 'GET') return sendJson(res, 200, evaluatePin(pinFile));
-      if (method === 'POST') {
-        try {
-          const body = await readBody(req);
-          if (!body?.slug || !body?.pid) {
-            return sendJson(res, 400, { error: { code: 'invalid', message: 'slug und pid sind Pflicht.' } });
-          }
-          return sendJson(res, 201, acquirePin(pinFile, body));
-        } catch (err) {
-          return sendJson(res, err.status || 400,
-            { error: { code: err.code || 'invalid', message: err.message } });
-        }
-      }
-      if (method === 'DELETE') {
-        try {
-          releasePin(pinFile, req.headers['x-loadout-pin'] || null);
-          return sendJson(res, 200, { released: true });
-        } catch (err) {
-          return sendJson(res, err.status || 400,
-            { error: { code: err.code || 'invalid', message: err.message } });
-        }
-      }
-    }
-    const pinnedChange = path.match(/^\/admin\/loadouts\/[a-z0-9-]+\/(start|stop)$/);
-    if (pinnedChange && method === 'POST') {
-      const g = pinGuard(evaluatePin(pinFilePath()), req.headers['x-loadout-pin'] || null);
-      if (!g.allowed) {
-        return sendJson(res, g.status,
-          { error: { code: g.code, message: g.message, slug: g.slug, pid: g.pid } });
-      }
-    }
-    const startMatch = path.match(/^\/admin\/loadouts\/([a-z0-9-]+)\/start$/);
-    if (startMatch && method === 'POST') {
-      try {
-        const r = await startLoadout(startMatch[1]);
-        return sendJson(res, 201, {
-          ...r,
-          warning: r.toolCallOk ? null : 'Kein tool_calls erzeugt — haeufigste Ursache: args.jinja ist false',
-        });
-      } catch (err) {
-        if (err instanceof LoadoutStartError) {
-          return sendJson(res, err.status, { error: {
-            code: err.code, message: err.message, ...(err.logs ? { logs: err.logs } : {}),
-          } });
-        }
-        return sendJson(res, 500, { error: { code: 'start_error', message: err.message } });
-      }
-    }
-    const stopMatch = path.match(/^\/admin\/loadouts\/([a-z0-9-]+)\/stop$/);
-    if (stopMatch && method === 'POST') {
-      const slug = stopMatch[1];
-      try {
-        stopUnit(slug);
-        await discovery.probeNow();
-        return sendJson(res, 200, { stopped: slug });
-      } catch (err) {
-        return sendJson(res, 500, { error: { code: 'stop_error', message: err.message } });
-      }
-    }
 
     // MCP Bridge — stdio-MCPs via HTTP/SSE
     const mcpMatch = path.match(/^\/mcp\/([a-z0-9-]+)$/);
@@ -715,8 +284,7 @@ const requestHandler = (req, res) => {
         const role = roleForPath(path);
         const chain = resolveRoleChain(role, getBackends(), doc);
         const result = await routeRequest({
-          role, path, body, chain, doc,
-          timeoutMs: ROLE_TIMEOUT_MS, startBudgetMs: LOADOUT_START_BUDGET_MS,
+          role, path, body, chain, timeoutMs: ROLE_TIMEOUT_MS,
         });
         const headers = { 'content-type': result.contentType ?? 'application/json' };
         if (result.upstream) headers['x-llm-proxy-bge-upstream'] = result.upstream;
@@ -740,7 +308,6 @@ requestLog.start();
 const listeners = startListeners(requestHandler, PORT, {
   bindOverride: process.env.LLM_PROXY_HOST_BIND || null,
   token: process.env.LLM_PROXY_ADMIN_TOKEN || null,
-  network: process.env.LLM_PROXY_K3D_NETWORK || 'k3d-mentolder-dev',
 });
 
 // Graceful shutdown: stop MCP bridge processes on exit

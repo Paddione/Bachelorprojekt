@@ -53,12 +53,12 @@ status: planning
 
 ### 4. llm-proxy entschlacken
 
-- [ ] `scripts/llm-proxy/backends.mjs`: Loadout-Verwaltung (systemd-User-Units) und
+- [x] `scripts/llm-proxy/backends.mjs`: Loadout-Verwaltung (systemd-User-Units) und
       `exclusiveGroup`-Arbitrierung entfernen, Backend-Aufloesung auf Remote-Backends reduzieren.
-- [ ] `scripts/llm-proxy/listeners.mjs`: Bind-Pfad auf den Cluster-Betrieb reduzieren.
-- [ ] Klaeren, ob der Bind-Pfad aus PR #5524 im neuen Image noch existiert; Ticket T900106
+- [x] `scripts/llm-proxy/listeners.mjs`: Bind-Pfad auf den Cluster-Betrieb reduzieren.
+- [x] Klaeren, ob der Bind-Pfad aus PR #5524 im neuen Image noch existiert; Ticket T900106
       entsprechend schliessen oder den PR uebernehmen.
-- [ ] Konsumenten von `127.0.0.1:18235` erheben und umstellen — `grep -rl '18235' scripts/`
+- [x] Konsumenten von `127.0.0.1:18235` erheben und umstellen — `grep -rl '18235' scripts/`
       liefert 46 Dateien. `scripts/openspec-embed-local.sh` ist dabei der kritische Fall: der
       post-commit-Hook fuer OpenSpec-Embeddings ruft diesen Port und schlug beim Stagen dieses
       Changes fehl, weil der Proxy nicht lief. Solange der Proxy lokal erwartet wird, bricht der

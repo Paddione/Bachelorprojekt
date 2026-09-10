@@ -1,14 +1,18 @@
 // scripts/llm-proxy/backends.mjs
 import { execFileSync } from 'node:child_process';
 
+// [T900107] loadout_slug faellt weg: der Proxy laeuft als Container des dev-pod
+// und bedient ausschliesslich Remote-Backends. Es gibt kein lokales Loadout mehr,
+// auf das eine Registry-Zeile zeigen koennte — die Spalte bleibt in der Tabelle
+// (historische Zeilen), wird hier aber nicht mehr gelesen.
 /** @typedef {{ name:string, kind:'llamacpp'|'lmstudio'|'openai-remote',
  *   baseUrl:string, apiKeyEnv:string|null, enabled:boolean, priority:number,
  *   fixups:string[], modelAliases:Record<string,string>, maxInflight:number,
- *   roles:string[], loadoutSlug:string|null }} Backend */
+ *   roles:string[] }} Backend */
 
 const SQL = `SELECT name||E'\\t'||kind||E'\\t'||base_url||E'\\t'||COALESCE(api_key_env,'')
   ||E'\\t'||enabled||E'\\t'||priority||E'\\t'||fixups::text||E'\\t'||model_aliases::text
-  ||E'\\t'||max_inflight||E'\\t'||roles::text||E'\\t'||COALESCE(loadout_slug,'')
+  ||E'\\t'||max_inflight||E'\\t'||roles::text
   FROM tickets.llm_proxy_backends WHERE enabled ORDER BY priority ASC;`;
 
 /** @returns {Backend[]} */
@@ -22,7 +26,7 @@ export function loadBackendsOnce() {
     env: { ...process.env, BRAND: process.env.BRAND || 'mentolder' },
   });
   return out.split('\n').filter(Boolean).map((line) => {
-    const [name, kind, baseUrl, apiKeyEnv, enabled, priority, fixups, aliases, maxInflight, roles, loadoutSlug] = line.split('\t');
+    const [name, kind, baseUrl, apiKeyEnv, enabled, priority, fixups, aliases, maxInflight, roles] = line.split('\t');
     return {
       name, kind, baseUrl,
       apiKeyEnv: apiKeyEnv || null,
@@ -32,7 +36,6 @@ export function loadBackendsOnce() {
       modelAliases: JSON.parse(aliases || '{}'),
       maxInflight: Number(maxInflight) || 1,
       roles: JSON.parse(roles || '[]'),
-      loadoutSlug: loadoutSlug || null,
     };
   });
 }

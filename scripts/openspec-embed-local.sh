@@ -12,11 +12,19 @@
 #      Website-Deployment gelesen (Literal-Env) und über einen temporären
 #      port-forward auf die Fleet-shared-db umgeschrieben. Die URL enthält
 #      Credentials und wird NIE ausgegeben.
-#   2. LLM_EMBED_URL: Default http://127.0.0.1:18235 — der llm-proxy
-#      (scripts/llm-proxy/server.mjs). Seit T003205 beantwortet der Proxy
-#      /v1/embeddings ueber die Rollenkette 'embed': lokal zuerst
-#      (bge-embed-cpu), Cluster-Forward als Rueckfall. Vorab-Probe; bei totem
-#      Backend klare Remediation statt Silent-Skip.
+#   2. Embedding-Endpunkt: LLM_EMBED_URL, sonst LLM_PROXY_URL, sonst
+#      http://127.0.0.1:18235 — der llm-proxy (scripts/llm-proxy/server.mjs).
+#      Seit T003205 beantwortet der Proxy /v1/embeddings ueber die Rollenkette
+#      'embed'. Vorab-Probe; bei totem Backend klare Remediation statt
+#      Silent-Skip.
+#
+#      [T900107] Der Proxy ist mit dem dev-pod in den Cluster gezogen. Der
+#      Default zeigt weiterhin auf den Loopback-Port, weil ein lokal gestarteter
+#      Proxy der haeufigere Fall bleibt; wer gegen den Pod arbeitet, setzt
+#      LLM_PROXY_URL EINMAL in der Umgebung und alle Verbraucher dieses
+#      Skripts folgen. Genau daran scheiterte der post-commit-Hook auf jeder
+#      Maschine ohne laufenden Proxy: die Adresse war nicht umstellbar, ohne
+#      jeden Aufruf einzeln zu umgeben.
 #   3. Ausgabe von openspec-embed.mjs wird geprüft: nur "indexed slug=" ist
 #      Erfolg (Exit 0). "skipping"/"failure" => Exit 1 mit Hinweis.
 #
@@ -78,7 +86,7 @@ probe_diagnosis() {
   esac
 }
 
-EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:18235}"
+EMBED_URL="${LLM_EMBED_URL:-${LLM_PROXY_URL:-http://127.0.0.1:18235}}"
 probe_embed "$EMBED_URL"
 if [[ "$PROBE_RC" -ne 0 || "$PROBE_HTTP" != "200" ]]; then
   {
@@ -89,12 +97,19 @@ if [[ "$PROBE_RC" -ne 0 || "$PROBE_HTTP" != "200" ]]; then
     echo "  Befund: $(probe_diagnosis)"
     [[ -n "$PROBE_ERR" ]] && echo "  curl:   ${PROBE_ERR}"
     cat <<'EOF'
-Remediation (seit T003205 läuft bge über den llm-proxy, lokal zuerst):
-  Der llm-proxy startet das lokale bge-embed-cpu-Loadout bei Bedarf und fällt
-  auf den Cluster-Forward (bge-forward-embed.service, :8081) zurück:
-    systemctl --user status llm-proxy.service
-    systemctl --user restart llm-proxy.service
-  Überschreibbar per LLM_EMBED_URL, falls gezielt ein anderes Backend
+Remediation — der llm-proxy beantwortet /v1/embeddings (Rollenkette 'embed').
+Seit T900107 laeuft er als Container des dev-pod im Cluster; lokal ist er
+optional. Zwei Wege:
+
+  a) Gegen den dev-pod arbeiten (kein lokaler Proxy noetig):
+       kubectl --context fleet -n workspace-dev port-forward svc/dev-pod 18235:18235
+     oder dauerhaft die Adresse setzen:
+       export LLM_PROXY_URL=http://<dev-pod-adresse>:18235
+
+  b) Lokalen Proxy benutzen:
+       node scripts/llm-proxy/server.mjs      # oder die systemd-user-Unit
+
+  LLM_EMBED_URL ueberschreibt beides, falls gezielt ein anderes Backend
   angesprochen werden soll.
 EOF
     echo "  Gegenprobe: curl -s ${EMBED_URL}/v1/embeddings -H 'Content-Type: application/json' -d '{\"model\":\"bge-m3\",\"input\":[\"test\"]}'"

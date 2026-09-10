@@ -39,10 +39,10 @@ status: planning
 
 ### 2. Images
 
-- [ ] `docker/mcp-node/Dockerfile`: Node-Runtime, die sieben Server, ein Supervisor. Kein
+- [x] `docker/mcp-node/Dockerfile`: Node-Runtime, die sieben Server, ein Supervisor. Kein
       Paketmanager zur Laufzeit — alle Binaries (`psql`, `curl`, `git`) im Image.
-- [ ] `docker/repo-sync/Dockerfile`: git + Loop-Script fuer `fetch && reset --hard origin/main`.
-- [ ] Build-Workflows analog zu den bestehenden `build-*.yml`.
+- [x] `docker/repo-sync/Dockerfile`: git + Loop-Script fuer `fetch && reset --hard origin/main`.
+- [x] Build-Workflows analog zu den bestehenden `build-*.yml`.
 
 ### 3. Manifeste
 

@@ -41,7 +41,10 @@ _Ticket: T900108 · Ziel-SSOT: `openspec/specs/mcp-gateway.md`_
   musl-Sonderwege). Alle Werkzeuge zur **Bauzeit** (Requirement "Container images carry their
   dependencies"): `openssh-server`, `git`, `git-crypt`, `bash`, `curl`, `jq`, `less`, `vim-tiny`,
   `tmux`, `postgresql-client`, `ca-certificates`, `kubectl` v1.36.1 (Cluster-Server-Version),
-  `task`, `gh`, `pnpm`, `@anthropic-ai/claude-code@2.1.267`.
+  `task` 3.53.1, `gh` 2.100.0, `pnpm` 12.3.4, `@anthropic-ai/claude-code@2.1.267`.
+- Lieferkette: alle Versionen per `ARG` exakt gepinnt; `kubectl`, `task` und `gh` kommen als
+  Release-Artefakte und werden gegen die Prüfsummen ihres Releases geprüft (`sha256sum -c`) —
+  kein `taskfile.dev/install.sh`, kein Fremd-apt-Repo. Der Basis-Image-Digest bleibt ungepinnt.
 - `securityContext`: `runAsNonRoot: true`, `runAsUser: 1000`, `allowPrivilegeEscalation: false`.
 - Ressourcen: requests `cpu 100m / memory 256Mi`, limits `cpu 2 / memory 3Gi`.
   Summe aller Memory-Requests 416Mi + 256Mi = 672Mi (Guard `< 960Mi` bleibt grün).
@@ -53,9 +56,10 @@ OpenSSH ohne root kann nur den Nutzer authentifizieren, unter dessen uid es läu
 
 - Das Basis-Konto `node` (uid 1000) wird zu `patrick` umbenannt, Home `/home/dev`, Shell `/bin/bash`.
 - `gekko` wird als zweiter passwd-Eintrag mit uid 1000 / gid 1000 / `/home/dev` angelegt.
-- Beide Shadow-Einträge tragen `*` (nicht gesperrt, kein Passwort). `!` würde sshd als
-  gesperrtes Konto ablehnen.
-- `AuthorizedKeysFile /var/lib/dev-shell/authorized_keys/%u` — jeder Name hat nur seinen Key.
+- Beide Shadow-Einträge tragen `*` (kein Passwort). sshd ohne root liest `/etc/shadow` nicht;
+  `*` statt `!` sorgt dafür, dass das Konto auch für root-basierte Werkzeuge nicht als gesperrt gilt.
+- `AuthorizedKeysFile /var/lib/dev-shell/authorized_keys/%u` — jeder Name ist mit seinem eigenen
+  Key konfiguriert (Zuordnung, keine Isolation — siehe §Bedrohungsmodell).
 
 ### sshd-Konfiguration (`docker/dev-shell/sshd_config`)
 
@@ -73,6 +77,12 @@ UsePAM no
 StrictModes yes
 X11Forwarding no
 AllowTcpForwarding local
+AllowAgentForwarding no
+AllowStreamLocalForwarding no
+PermitTunnel no
+GatewayPorts no
+PermitUserEnvironment no
+SetEnv KUBERNETES_SERVICE_HOST=kubernetes.default.svc KUBERNETES_SERVICE_PORT=443 DISABLE_AUTOUPDATER=1
 Subsystem sftp internal-sftp
 ```
 
@@ -86,11 +96,14 @@ Subsystem sftp internal-sftp
 
 ### Startpfad (`docker/dev-shell/entrypoint.sh`, POSIX sh)
 
-1. Host-Key `ed25519` unter `/home/dev/.ssh-host/` erzeugen, falls nicht vorhanden (PVC →
+1. Fehlt `/home/dev/.bashrc` (frisches PVC), `/etc/skel/.` nach `/home/dev` kopieren, ohne
+   Fehlerabbruch.
+2. Host-Key `ed25519` unter `/home/dev/.ssh-host/` erzeugen, falls nicht vorhanden (PVC →
    stabil über Neustarts), `chmod 600`.
-2. Pubkeys aus der ConfigMap (`/etc/dev-shell/keys/{patrick,gekko}`) nach
-   `/var/lib/dev-shell/authorized_keys/<name>` kopieren, Mode 0600.
-3. `exec /usr/sbin/sshd -D -e -f /etc/ssh/sshd_config`.
+3. Pubkeys aus der ConfigMap (`/etc/dev-shell/keys/{patrick,gekko}`) nach
+   `/var/lib/dev-shell/authorized_keys/<name>` kopieren, Mode 0600. Fehlender oder leerer Key:
+   Warnung auf stderr, Name wird übersprungen. Sind beide leer, startet sshd trotzdem (mit Warnung).
+4. `exec /usr/sbin/sshd -D -e -f /etc/ssh/sshd_config`.
 
 Kein Paketmanager, kein Clone, kein Netzzugriff im Startpfad.
 
@@ -114,8 +127,42 @@ Drift-Schutz: ein BATS-Guard vergleicht sie mit `PATRICK_SSH_PUBLIC_KEY` /
 ### Identität im Container
 
 `kubectl` in `dev-shell` nutzt ohne eigene Kubeconfig die ServiceAccount `dev-pod`
-(get/list/watch). Das ist gewollt (Requirement "read-only Identität") und wird nicht erweitert;
-wer mutieren will, legt eine persönliche Kubeconfig in `/home/dev/.kube/` ab.
+(get/list/watch). Das ist gewollt (Requirement "read-only Identität") und wird nicht erweitert.
+Weil sshd die Container-Umgebung nicht an Sessions weiterreicht, setzt `sshd_config` per `SetEnv`
+`KUBERNETES_SERVICE_HOST=kubernetes.default.svc` und `KUBERNETES_SERVICE_PORT=443` — ohne sie fiele
+`kubectl` auf `localhost:8080` zurück, und dort lauscht im selben Pod `mcp-kubernetes`.
+`DISABLE_AUTOUPDATER=1` verhindert, dass Claude Code sich gegen das root-eigene globale
+npm-Verzeichnis selbst aktualisieren will.
+
+### Bedrohungsmodell
+
+- **Zugang hat jede Identität mit `pods/exec` auf den dev-pod**, nicht nur patrick und gekko —
+  unter anderem die ServiceAccount `website` (clusterweit) und `factory-tick` (namespace-weit).
+  Das Einschränken dieser Rechte ist Folge-Ticket T900110.
+- **Alles unter `/home/dev` ist für diese Identitäten lesbar**: OAuth-Tokens von Claude Code,
+  `gh`-Token, Shell-History. Dort werden deshalb **keine mutierenden Credentials** abgelegt, auch
+  keine persönliche Kubeconfig.
+- **Die Per-Name-Keys dienen der Zuordnung von Logins (attribution), nicht der Isolation** zwischen
+  patrick und gekko: beide laufen als uid 1000 und können die Key-Dateien unter
+  `/var/lib/dev-shell/authorized_keys/` gegenseitig überschreiben.
+- Agent-, Stream-Local- und Tunnel-Forwarding sind aus (`AllowAgentForwarding no`,
+  `AllowStreamLocalForwarding no`, `PermitTunnel no`, `GatewayPorts no`,
+  `PermitUserEnvironment no`): ein weitergeleiteter Agent-Socket wäre für den anderen Namen und
+  jeden mit `pods/exec` nutzbar. `AllowTcpForwarding local` bleibt für `ssh -L` auf die MCP-Ports.
+
+### Key-Rotation
+
+Die Pubkeys werden nur beim Container-Start aus der ConfigMap kopiert. Rotation heißt: Key in
+`environments/mentolder.yaml` und `k3d/dev-pod/authorized-keys.yaml` ändern, mergen, danach den
+Pod neu starten. Der Neustart verursacht wegen `strategy: Recreate` einen kurzen Ausfall aller
+MCP-Server im Pod.
+
+### Verfügbarkeit
+
+`dev-shell` ist optional und darf die MCP-Endpunkte nicht mitreißen: keine `readinessProbe`
+(ein NotReady-Container nähme `svc/dev-pod` die Endpunkte), stattdessen eine `livenessProbe` auf
+`127.0.0.1:22`. Fehlt ein Key, überspringt der Entrypoint den Namen mit Warnung statt abzubrechen.
+`fsGroupChangePolicy: OnRootMismatch` verhindert den rekursiven chown des 20Gi-Home vor jedem Start.
 
 ## Rollout-Risiko und Gegenmaßnahme
 

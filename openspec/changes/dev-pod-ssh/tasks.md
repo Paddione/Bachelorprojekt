@@ -218,20 +218,20 @@ docker rm -f dev-shell-smoke
 
 **Dateien:** `k3d/dev-pod/deployment.yaml`, `k3d/dev-pod/home-pvc.yaml`, `k3d/dev-pod/authorized-keys.yaml`, `k3d/dev-pod/kustomization.yaml`
 
-- [ ] **3.1** `k3d/dev-pod/home-pvc.yaml`: `PersistentVolumeClaim` `dev-pod-home`, Label
+- [x] **3.1** `k3d/dev-pod/home-pvc.yaml`: `PersistentVolumeClaim` `dev-pod-home`, Label
   `app: dev-pod`, `accessModes: [ReadWriteOnce]`, `storageClassName: longhorn`, `storage: 20Gi`.
   Kommentar-Header nach dem Muster von `pvc.yaml`.
 
-- [ ] **3.2** `k3d/dev-pod/authorized-keys.yaml`: `ConfigMap` `dev-pod-authorized-keys` mit
+- [x] **3.2** `k3d/dev-pod/authorized-keys.yaml`: `ConfigMap` `dev-pod-authorized-keys` mit
   `data.patrick` und `data.gekko`. Werte exakt aus `environments/mentolder.yaml`
   (`PATRICK_SSH_PUBLIC_KEY`, `GEKKO_SSH_PUBLIC_KEY`) übernehmen, jeweils mit abschließendem
   Zeilenumbruch. Header-Kommentar: öffentliche Schlüssel, Drift-Guard in
   `tests/spec/mcp-gateway/dev-shell-ssh.bats`.
 
-- [ ] **3.3** `k3d/dev-pod/kustomization.yaml`: `home-pvc.yaml` und `authorized-keys.yaml`
+- [x] **3.3** `k3d/dev-pod/kustomization.yaml`: `home-pvc.yaml` und `authorized-keys.yaml`
   in `resources` aufnehmen.
 
-- [ ] **3.4** `k3d/dev-pod/deployment.yaml`:
+- [x] **3.4** `k3d/dev-pod/deployment.yaml`:
   - Kopfkommentar: "Drei Container" → "Vier Container", `dev-shell` mit einer Zeile beschreiben.
   - Pod-`securityContext`: `sysctls: [{name: net.ipv4.ip_unprivileged_port_start, value: "0"}]`
     mit Kommentar (non-root sshd bindet :22, safe sysctl, pro Pod-Netz-Namespace).
@@ -275,7 +275,7 @@ docker rm -f dev-shell-smoke
     `authorized-keys` → `configMap.name: dev-pod-authorized-keys`.
   - Die bestehende Readiness-Probe von `mcp-node` bleibt unverändert (sie gatet die MCP-Ports).
 
-- [ ] **3.5** Validieren:
+- [x] **3.5** Validieren:
 
 ```bash
 kubectl kustomize prod-fleet/dev-pod > /dev/null

@@ -1,0 +1,20 @@
+# k3d/dev-pod/home-pvc.yaml — Home des dev-shell-Containers [T900108]
+#
+# Ein PVC statt eines emptyDir: /home/dev traegt den SSH-Host-Key, den
+# Arbeits-Clone sowie Shell- und Claude-Code-Konfiguration. Mit strategy:
+# Recreate wuerde ein emptyDir all das bei jedem Rollout verlieren — und ein
+# neuer Host-Key loeste bei jedem Login eine Known-Hosts-Warnung aus.
+#
+# accessModes RWO: genau ein Pod (replicas: 1, Recreate) mountet das Volume.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dev-pod-home
+  labels:
+    app: dev-pod
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 20Gi

@@ -6,5 +6,7 @@ namespace: workspace-dev
 resources:
   - rbac.yaml
   - pvc.yaml
+  - home-pvc.yaml
+  - authorized-keys.yaml
   - deployment.yaml
   - service.yaml

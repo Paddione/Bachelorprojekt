@@ -4,11 +4,12 @@
 # Flux-Kustomization erfasst war und nur ueber ein manuelles `kubectl apply -k`
 # live ging.
 #
-# Drei Container:
+# Vier Container:
 #   mcp-node        — llm-proxy, ticket-mcp, brain-mcp, task-runner,
 #                     codebase-memory, github, postgres unter einem Supervisor
 #   mcp-kubernetes  — das Go-Binary von quay.io, unveraendert uebernommen
 #   repo-sync       — einziger Schreiber des Checkout-Volumes
+#   dev-shell       — sshd (uid 1000, nur 127.0.0.1:22) + Dev-Toolchain [T900108]
 #
 # Requests am gemessenen Verbrauch, nicht an den Altwerten: der Monolith
 # deklarierte 960Mi fuer vier Container und verbrauchte real 341Mi
@@ -67,6 +68,12 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+        # [T900108] sshd laeuft non-root im dev-shell-Container und bindet :22.
+        # Explizit statt auf den containerd-Default zu vertrauen; der sysctl ist
+        # "safe" und gilt nur fuer den Netz-Namespace dieses Pods.
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "0"
       containers:
         # ── mcp-node ────────────────────────────────────────────────
         - name: mcp-node
@@ -208,9 +215,48 @@ spec:
             # Der einzige schreibende Mount des Checkouts im ganzen Pod.
             - name: repo
               mountPath: /workspace/repo
+        # ── dev-shell ───────────────────────────────────────────────
+        # SSH-Zugang ausschliesslich ueber kubectl exec + nc 127.0.0.1 22 [T900108].
+        # Kein containerPort: sshd bindet nur Loopback.
+        - name: dev-shell
+          image: ghcr.io/paddione/dev-shell:latest
+          imagePullPolicy: Always
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "nc -z 127.0.0.1 22"]
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: home
+              mountPath: /home/dev
+            - name: authorized-keys
+              mountPath: /etc/dev-shell/keys
+              readOnly: true
+            # Read-only: repo-sync bleibt einziger Schreiber, gearbeitet wird im
+            # Clone unter /home/dev.
+            - name: repo
+              mountPath: /workspace/repo
+              readOnly: true
       volumes:
         - name: repo
           persistentVolumeClaim:
             claimName: dev-pod-repo
         - name: tmp
           emptyDir: {}
+        - name: home
+          persistentVolumeClaim:
+            claimName: dev-pod-home
+        - name: authorized-keys
+          configMap:
+            name: dev-pod-authorized-keys

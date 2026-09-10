@@ -56,7 +56,12 @@ spec:
                   - key: role
                     operator: In
                     values: [dev]
+      # Pod-level runAsNonRoot ist moeglich, weil KEIN Container mehr root
+      # braucht: der Monolith installierte Pakete zur Laufzeit und trug dafuer
+      # vier annotierte Ausnahmen, hier liegt alles im Image.
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault

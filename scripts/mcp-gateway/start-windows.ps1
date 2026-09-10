@@ -22,10 +22,13 @@
 param(
     [string]$KubeContext = "fleet",
     [string]$Namespace = "workspace",
-    [int]$MonolithPort1 = 18080,
-    [int]$MonolithPort2 = 13000,
-    [int]$MonolithPort3 = 13001,
-    [int]$MonolithPort4 = 13002,
+    # [T900107] Ports des dev-pod. 13000 (playwright) ist entfallen: playwright
+    # ist nicht Teil des Bundles und bleibt lokaler stdio-Server. 18235 kommt
+    # dazu - der llm-proxy laeuft jetzt im selben Pod.
+    [int]$DevPodKubernetesPort = 18080,
+    [int]$DevPodPostgresPort = 13001,
+    [int]$DevPodGithubPort = 13002,
+    [int]$DevPodProxyPort = 18235,
     [int]$EmbedPort = 8081,
     [int]$RerankPort = 8093,
     [int]$BgeMcpPort = 13005
@@ -103,8 +106,8 @@ function Wait-ForPort {
 }
 
 $forwardJobs = @()
-$forwardJobs += Start-PortForward -KContext $KubeContext -Ns "default" -Service "svc/claude-code-mcp-monolith" `
-    -Ports @("${MonolithPort1}:8080", "${MonolithPort2}:3000", "${MonolithPort3}:3001", "${MonolithPort4}:3002")
+$forwardJobs += Start-PortForward -KContext $KubeContext -Ns "workspace-dev" -Service "svc/dev-pod" `
+    -Ports @("${DevPodKubernetesPort}:8080", "${DevPodPostgresPort}:3001", "${DevPodGithubPort}:3002", "${DevPodProxyPort}:18235")
 $forwardJobs += Start-PortForward -KContext $KubeContext -Ns $Namespace -Service "svc/llm-gateway-embed" `
     -Ports @("${EmbedPort}:8081")
 $forwardJobs += Start-PortForward -KContext $KubeContext -Ns $Namespace -Service "svc/llm-gateway-rerank" `

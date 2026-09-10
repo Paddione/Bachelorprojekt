@@ -1,12 +1,21 @@
 # mcp-gateway
 
-<!-- baseline SSOT — aktualisiert 2026-07-27 (T002321): Monolith läuft nachweislich weiter, Dekommissionierungs-Notiz war unzutreffend -->
+<!-- baseline SSOT — aktualisiert 2026-09-10 (T900107): der Monolith ist durch das dev-pod-Deployment ersetzt; sein Manifest liegt nicht mehr im Repo -->
 
 ## Purpose
 
-Das MCP-Gateway stellt MCP-Server (PostgreSQL, GitHub, Browser, Kubernetes) über `localhost:{port}/mcp` bereit. Die Mehrzahl davon läuft als lokaler CLI-Prozess auf dem Windows-Host; **`mcp-kubernetes` (`:18080`) und `mcp-postgres` (`:13001`) jedoch nicht** — beide sind `kubectl port-forward`-Weiterleitungen auf `svc/claude-code-mcp-monolith` im Namespace `default` (T002307). Ihre wirksame Identität ist daher nicht die kubeconfig des Aufrufers, sondern die in-cluster ServiceAccount `claude-code-agent` (nur `get`/`list`/`watch`); `mcp-postgres` klammert zusätzlich jede Query in eine `READ ONLY`-Transaktion. Das erklärt, warum `pods_exec` und schreibende SQL dort strukturell scheitern. Die Server sind in `.mcp.json` konfiguriert. Die Absicherung im Dev-Cluster erfolgt über einen `--skip-auth-route`-Bypass auf dem `oauth2-proxy-dev`, der die vier MCP-Pfade am OIDC-Gate vorbeileitet.
+Das MCP-Gateway stellt MCP-Server (PostgreSQL, GitHub, Kubernetes, ticket-mcp, brain-mcp, task-runner, codebase-memory) über `localhost:{port}/mcp` bereit. Ein Teil davon läuft als lokaler CLI-Prozess auf dem Windows-Host; **`mcp-kubernetes` (`:18080`) und `mcp-postgres` (`:13001`) jedoch nicht** — beide werden vom **`dev-pod`-Deployment** im Namespace `workspace-dev` bedient (T900107). Ihre wirksame Identität ist daher nicht die kubeconfig des Aufrufers, sondern die in-cluster ServiceAccount `dev-pod` (nur `get`/`list`/`watch`); `mcp-postgres` klammert zusätzlich jede Query in eine `READ ONLY`-Transaktion. Das erklärt, warum `pods_exec` und schreibende SQL dort strukturell scheitern. Die Server sind in `.mcp.json` konfiguriert. Die Absicherung im Dev-Cluster erfolgt über einen `--skip-auth-route`-Bypass auf dem `oauth2-proxy-dev`, der die MCP-Pfade am OIDC-Gate vorbeileitet — und genau deshalb trägt der `dev-pod` **keinen** Ingress: ein öffentlicher Endpunkt exponierte `mcp-kubernetes` und `mcp-postgres` unauthentifiziert.
 
-> **Architektur-Notiz (korrigiert T002321):** Der `claude-code-mcp-monolith` Kubernetes-Pod (Supergateway-basiert, Manifest `k3d/default/claude-code-mcp-monolith-deploy.yaml`) läuft weiterhin aktiv im `fleet`-Cluster (Namespace `default`) — die frühere Notiz vom 2026-06-22, wonach dieser Pod ausser Betrieb genommen worden sei, war unzutreffend. Die Ablösung durch die lokalen CLI-Prozesse ist unter T002311/T002312 noch zur Entscheidung offen, nicht vollzogen. Beide Betriebsformen existieren aktuell parallel: lokale CLI-MCP-Server auf dem Windows-Host (primär genutzt) und der In-Cluster-Monolith (weiterhin ausgeliefert und aktiv).
+> **Architektur-Notiz (T900107):** Die In-Cluster-Server werden vom Deployment `dev-pod`
+> (`k3d/dev-pod/deployment.yaml`, Namespace `workspace-dev`) bedient. Es trägt drei Container:
+> `mcp-node` (llm-proxy, ticket-mcp, brain-mcp, task-runner, codebase-memory, github, postgres unter
+> einem Supervisor), `mcp-kubernetes` (das Go-Binary von quay.io) und `repo-sync` (Checkout-Sidecar,
+> einziger Schreiber des `dev-pod-repo`-PVC).
+>
+> Der Vorgänger `claude-code-mcp-monolith` (Namespace `default`) ist abgelöst; sein Manifest liegt
+> nicht mehr im Repo. `playwright` ist bewusst **nicht** Teil des Bundles: er trug als einziger
+> Container ein 4-GiB-Limit und hätte die übrigen Server bei einem Browser-Leak mitgerissen — er
+> bleibt lokaler stdio-Server.
 >
 > **bge-mcp gehört hierher (T002711):** Transport- und Erreichbarkeitsfragen zu `bge-mcp` —
 > Registry-Eintrag, `headers.Authorization`, Token-Auflösung, Streamable-HTTP-Verhalten des Shims,
@@ -15,7 +24,12 @@ Das MCP-Gateway stellt MCP-Server (PostgreSQL, GitHub, Browser, Kubernetes) übe
 > Host-SPOF, `scripts/bge-mcp/check-client-env.sh`) steht dagegen in
 > `openspec/specs/brain-k2-bge.md`. Beim `--target-spec` beide Seiten der Grenze prüfen.
 >
-> **Apply-Weg:** `k3d/default/` wird von keiner Overlay- (`prod-fleet/*`) oder Flux-Kustomization referenziert — die Ressourcen gehen **nicht** über die Flux-GitOps-Pipeline live. Änderungen an `k3d/default/claude-code-mcp-monolith-deploy.yaml` werden erst wirksam nach einem expliziten manuellen `kubectl apply -k k3d/default --context fleet`.
+> **Apply-Weg:** `k3d/dev-pod/` wird über das Overlay `prod-fleet/dev-pod/` und die
+> Flux-Kustomization `flux/clusters/fleet/ks-dev-pod.yaml` ausgeliefert — die Ressourcen gehen also
+> über die **Flux-GitOps-Pipeline** live, nicht über ein manuelles `kubectl apply`. Genau das war der
+> Mangel des Vorgängers: `k3d/default/` war von keiner Overlay- oder Flux-Kustomization erfasst, und
+> jede Änderung wurde erst nach einem expliziten `kubectl apply -k k3d/default --context fleet`
+> wirksam.
 
 ---
 
@@ -168,8 +182,8 @@ query for another brand's id silently returns the same-named row from the bound 
 ### Requirement: MCP Postgres Bridge Child-Process Containment
 <!-- bats: mcp-gateway.bats -->
 
-The system SHALL prevent the `postgres` container of the `claude-code-mcp-monolith`
-Deployment from accumulating unbounded `mcp-server-postgres` child processes, so that
+The system SHALL prevent the postgres MCP server — `supergateway --stateless` in the
+`mcp-node` container of the `dev-pod` Deployment — from accumulating unbounded `mcp-server-postgres` child processes, so that
 per-request process spawning by `supergateway --stateless` cannot drive the container
 cgroup into an OOMKill.
 
@@ -256,23 +270,105 @@ synthetic process tree, so that a selection defect cannot pass CI as a green bui
 ### Requirement: MCP Monolith Deployment Reality In SSOT
 <!-- bats: mcp-gateway.bats -->
 
-The SSOT spec SHALL describe the actual deployment state of the MCP servers, so that
-planning does not proceed against a decommissioning that never took effect.
+The SSOT spec SHALL describe the actual deployment state of the MCP servers, so that planning does
+not proceed against a state that never took effect. With the `dev-pod` deployment in place and
+`k3d/default/claude-code-mcp-monolith-deploy.yaml` removed from the repository, the spec SHALL
+describe the `dev-pod` as the serving deployment.
 
-#### Scenario: Spec behauptet keine unzutreffende Dekommissionierung *(BATS)*
+#### Scenario: Spec and repository agree on what serves MCP *(BATS)*
 
-- **GIVEN** `openspec/specs/mcp-gateway.md` trug die Notiz, der `claude-code-mcp-monolith`
-  sei dekommissioniert, während das Deployment-Manifest weiter im Repo liegt und der Pod läuft
-- **WHEN** der Spec gegen die Existenz von `k3d/default/claude-code-mcp-monolith-deploy.yaml` geprüft wird
-- **THEN** ist die Aussage über den Betriebszustand des Monolithen mit dem Vorhandensein des
-  Manifests konsistent
+- **GIVEN** the monolith manifest is no longer part of the repository
+- **WHEN** the spec is checked against the manifests that exist
+- **THEN** it names the `dev-pod` deployment as the serving component and makes no claim about a
+  manifest that is absent
 
 #### Scenario: Apply-Weg des Deployments ist dokumentiert *(BATS)*
 
-- **GIVEN** `k3d/default/` wird von keiner Overlay- oder Flux-Kustomization referenziert
-- **WHEN** der Spec auf den Deploy-Weg dieses Manifests geprüft wird
-- **THEN** benennt er explizit, dass die Ressourcen manuell appliziert werden und nicht über
-  die Flux-Pipeline live gehen
+- **GIVEN** the `dev-pod` overlay is referenced by a Flux Kustomization
+- **WHEN** the spec is checked for the delivery path of this manifest
+- **THEN** it states that the resources go live through the Flux pipeline, not through a manual apply
+
+### Requirement: MCP servers are served from a single in-cluster deployment
+<!-- bats: dev-pod-mcp-bundle/dev-pod.bats -->
+
+The MCP servers SHALL be served by one `dev-pod` Deployment in namespace `workspace-dev`, delivered
+through the Flux GitOps pipeline. The deployment SHALL carry three containers: `mcp-node` (the
+Node.js servers under a supervisor), `mcp-kubernetes` (the upstream Go binary) and `repo-sync` (the
+checkout sidecar).
+
+#### Scenario: Deployment is reachable through the Flux pipeline *(BATS)*
+
+- **GIVEN** the `dev-pod` manifest lives under an overlay referenced by a Flux Kustomization
+- **WHEN** the overlay is rendered
+- **THEN** the deployment appears in the rendered output, so that it does not depend on a manual
+  `kubectl apply`
+
+#### Scenario: Playwright is not part of the bundle *(BATS)*
+
+- **GIVEN** the `playwright` MCP server carries a 4 GiB memory limit while every other server stays
+  below 512 MiB
+- **WHEN** the `dev-pod` containers are declared
+- **THEN** `playwright` is absent from them and remains a local stdio server, so that a browser leak
+  cannot restart the other MCP servers
+
+### Requirement: No MCP endpoint is exposed publicly
+<!-- bats: dev-pod-mcp-bundle/dev-pod.bats -->
+
+The MCP endpoints SHALL be reachable over the WireGuard mesh only. No Ingress, IngressRoute or
+LoadBalancer Service SHALL expose them.
+
+#### Scenario: An Ingress would bypass authentication *(BATS)*
+
+- **GIVEN** `oauth2-proxy-dev` carries `--skip-auth-route` for the MCP path prefixes
+- **WHEN** an MCP endpoint is published through an Ingress
+- **THEN** the endpoint answers without authentication, which is why the deployment declares no
+  Ingress for these paths
+
+### Requirement: The repository checkout is supplied read-only from a single writer
+<!-- bats: dev-pod-mcp-bundle/dev-pod.bats -->
+
+Four MCP servers read the repository tree. A `repo-sync` sidecar SHALL be the only container that
+writes the checkout volume; every consuming container SHALL mount it read-only.
+
+#### Scenario: A consumer cannot corrupt the shared checkout *(BATS)*
+
+- **GIVEN** several containers mount the same checkout volume
+- **WHEN** the mounts are declared
+- **THEN** only `repo-sync` mounts it writable
+
+#### Scenario: The checkout survives a restart *(BATS)*
+
+- **GIVEN** the checkout lives on a PersistentVolumeClaim
+- **WHEN** the pod restarts
+- **THEN** the servers start against the existing checkout instead of waiting for a fresh clone, so
+  that a restart does not depend on network reachability of the git remote
+
+### Requirement: Container images carry their dependencies
+<!-- bats: dev-pod-mcp-bundle/dev-pod.bats -->
+
+Containers SHALL NOT install packages at runtime. Every binary a container needs SHALL be part of
+its image.
+
+#### Scenario: A package mirror outage cannot prevent startup *(BATS)*
+
+- **GIVEN** the previous `llm-proxy` container ran `apk add bash curl postgresql-client` on startup
+  and failed against the package mirror
+- **WHEN** the `dev-pod` containers start
+- **THEN** they execute no package manager, so that mirror reachability is irrelevant to startup
+
+### Requirement: The monolith guard keeps its subject after the manifest is gone
+<!-- bats: mcp-gateway.bats -->
+
+The guard in `tests/spec/mcp-gateway.bats` that checks the SSOT prose about the serving deployment
+was conditioned on the presence of a manifest. Once the monolith manifest is removed, the guard
+SHALL be retargeted rather than left to skip silently.
+
+#### Scenario: Guard does not degrade into a no-op *(BATS)*
+
+- **GIVEN** the guard body ran only when `k3d/default/claude-code-mcp-monolith-deploy.yaml` existed
+- **WHEN** that manifest is removed
+- **THEN** the guard asserts against the `dev-pod` manifest instead, so that it keeps testing a live
+  subject rather than passing by absence
 
 <!-- merged from change delta mcp-gateway.md (9835fa01f526) -->
 
@@ -436,7 +532,7 @@ harness registers. It MUST declare two top-level keys:
 
 Only `clients` is rendered. `cluster` is documentation: it records that `localhost:18080` and
 `localhost:13001` are not local processes but a `kubectl port-forward` onto
-`svc/claude-code-mcp-monolith`, so that `scripts/mcp-gateway/` is not mistaken for an unused
+`svc/dev-pod`, so that `scripts/mcp-gateway/` is not mistaken for an unused
 artifact and removed.
 
 `scripts/mcp-sync.sh render` MUST write `.mcp.json`, the `mcp` block of
@@ -588,8 +684,8 @@ any database execution.
 
 The `mcp-gateway` SSOT spec SHALL describe how the MCP servers are actually served. For
 `mcp-kubernetes` and `mcp-postgres` the servers are NOT host-side CLI processes: both are
-`kubectl port-forward` targets on the in-cluster Deployment `claude-code-mcp-monolith` in
-namespace `default`. The spec SHALL state this, because a description that omits the
+`kubectl port-forward` targets on the in-cluster Deployment `dev-pod` in
+namespace `workspace-dev`. The spec SHALL state this, because a description that omits the
 in-cluster Deployment is what made the read-only identity behind a denied `pods_exec` hard
 to locate.
 
@@ -598,7 +694,7 @@ to locate.
 - **GIVEN** ein Operator untersucht, unter welcher Identität `mcp-kubernetes` Anfragen stellt
 - **WHEN** er `openspec/specs/mcp-gateway.md` liest
 - **THEN** findet er, dass `:18080` und `:13001` Port-Forwards auf
-  `svc/claude-code-mcp-monolith` sind und die SA `claude-code-agent` die wirksame Identität
+  `svc/dev-pod` sind und die SA `dev-pod` die wirksame Identität
   ist — ohne die Deployment-Manifeste selbst lesen zu müssen
 
 <!-- merged from change delta mcp-gateway.md (4b103f8d6fc1) -->
@@ -622,7 +718,7 @@ non-zero on timeout or invalid response and SHALL name the failing port in its o
 
 - **GIVEN** `probe.sh` wird ohne `--port` aufgerufen
 - **WHEN** der Probe läuft
-- **THEN** werden alle vier Ports der Unit geprüft (18080, 13000, 13001, 13002)
+- **THEN** werden alle Ports der Unit geprüft
 - **AND** ein fehlgeschlagener Port ist in der Ausgabe erkennbar
 
 ### Requirement: Watchdog startet den Tunnel bei Fehlschlag neu und verhindert Restart-Stürme
@@ -640,7 +736,7 @@ per 5 minutes) to prevent a restart storm.
 
 #### Scenario: Toter Ziel-Pod löst keinen Tunnel-Neustart aus
 
-- **GIVEN** der Ziel-Pod `claude-code-mcp-monolith` ist nicht erreichbar
+- **GIVEN** der Ziel-Pod `dev-pod` ist nicht erreichbar
 - **WHEN** der Watchdog läuft
 - **THEN** wird der Fehler protokolliert
 - **AND** es wird kein Tunnel-Neustart ausgelöst

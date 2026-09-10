@@ -53,7 +53,7 @@ fi
 # Running" — dann wird nicht neu gestartet.
 restarted=0
 if [ "$gateway_failed" -eq 1 ]; then
-  phase=$(kubectl --context fleet -n default get pod -l app=claude-code-mcp-monolith \
+  phase=$(kubectl --context fleet -n workspace-dev get pod -l app=dev-pod \
     -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
   if [ "$phase" = "Running" ]; then
     echo "RESTART mcp-gateway.service (Probe 18080 fehlgeschlagen, Pod Running)"

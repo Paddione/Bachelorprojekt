@@ -4,7 +4,7 @@
 #
 # Two top-level sections:
 #   clients:  MCP client/harness configuration (per-server)
-#   cluster:  In-cluster monolith infrastructure (5 containers)
+#   cluster:  In-cluster infrastructure — das dev-pod-Deployment (3 Container)
 ---
 # LLAMA.CPP-HARNESS (T002398): der Block harness.llamacpp haengt einen Server als
 # stdio-Kindprozess an llama-server (--mcp-servers-config, Ziel scripts/llm/mcp-servers.json).
@@ -56,9 +56,11 @@ clients:
         enabled: true
     windows_note: >-
       Windows: Port-Forward manuell starten (kubectl fleet-Kontext):
-      kubectl --context fleet port-forward -n default svc/claude-code-mcp-monolith
-      18080:8080 13000:3000 13001:3001 13002:3002. Auf Windows uebernimmt das
-      scripts/mcp-gateway/start-windows.ps1.
+      kubectl --context fleet port-forward -n workspace-dev svc/dev-pod
+      18080:8080 13001:3001 13002:3002 18235:18235. Auf Windows uebernimmt das
+      scripts/mcp-gateway/start-windows.ps1. Der Port-Forward bleibt noetig:
+      das Service-Netz 10.43.0.0/16 wird NICHT ueber das wg-Mesh geroutet
+      (docs/agent-guide/maps/networks-map.md), nur das Pod-Netz 10.42.0.0/16.
 
   mcp-postgres:
     transport: http
@@ -73,8 +75,8 @@ clients:
     brand: mentolder
     database: shared-db.workspace.svc.cluster.local/website
     scope_warning: >-
-      Fest an die mentolder-DB gebunden (DATABASE_URL im postgres-Container des
-      MCP-Monolithen). external_id ist nur pro Brand eindeutig — eine Abfrage nach
+      Fest an die mentolder-DB gebunden (DATABASE_URL des mcp-node-Containers
+      im dev-pod). external_id ist nur pro Brand eindeutig — eine Abfrage nach
       einer korczewski-ID liefert still die gleichnamige mentolder-Zeile statt einer
       leeren Menge. Ticket-Reads gehören zu ticket-mcp mit explizitem brand-Argument.
     korczewski_path: >-
@@ -94,8 +96,8 @@ clients:
     windows_note: >-
       Windows: gleicher Port-Forward wie mcp-kubernetes (13001:3001). Alternativ
       scripts/mcp-gateway/mcp-postgres-local.mjs (T002767) — braucht aber lokales
-      k3d-Postgres auf :15432, das auf pk-desktop nicht laeuft; der fleet-Monolith
-      ist hier die richtige Quelle.
+      k3d-Postgres auf :15432, das auf pk-desktop nicht laeuft; der dev-pod im
+      fleet-Cluster ist hier die richtige Quelle.
 
   # T002426 — bge-MCP-Shim: Embedding und Reranking als MCP-Ressource.
   # llama-server kann sich NICHT selbst als MCP-Server exponieren; --mcp-servers-config
@@ -330,38 +332,47 @@ clients:
     note: "In Claude Code aktiv (T002678) — Browser-Automatisierung fuer dev-flow-e2e und web-audit. In opencode weiterhin disabled. Das offizielle Paket ist @playwright/mcp; das unscoped playwright-mcp ist ein anderes Projekt und darf hier nicht eingetragen werden."
 
 cluster:
-  # In-Cluster-Monolith: fleet/default/claude-code-mcp-monolith-{deploy,svc}.yaml
-  # Namespace: default, Context: fleet
-  # Port-forward-Bruecke (systemd user unit):
+  # In-Cluster-Bundle: k3d/dev-pod/{deployment,service,pvc,rbac}.yaml [T900107]
+  # Namespace: workspace-dev, Context: fleet
+  # Zustellung: prod-fleet/dev-pod -> flux/clusters/fleet/ks-dev-pod.yaml
+  #   (Flux-GitOps-Pipeline, KEIN manuelles kubectl apply)
+  # Port-forward-Bruecke (systemd user unit / start-windows.ps1):
   #   scripts/mcp-gateway/mcp-gateway.service
   #   Taskfile.agents.yml -> mcp-gateway:start
-  #   kubectl --context fleet port-forward svc/claude-code-mcp-monolith 18080:8080 13000:3000 13001:3001 13002:3002
-  # Bekannte Defekte:
-  #   T002312: Der SSOT-Spec behauptet, dieser Monolith sei dekommissioniert (falsch)
-  note: "5/5 Running, 55 Restarts. Service 56d alt, Pod 18d alt."
+  #   kubectl --context fleet port-forward -n workspace-dev svc/dev-pod \
+  #     18080:8080 13001:3001 13002:3002 18235:18235
+  #
+  # Der Vorgaenger claude-code-mcp-monolith (Namespace default) ist abgeloest;
+  # sein Manifest liegt nicht mehr im Repo. Damit erledigt sind auch T002311
+  # (defekter keycloak-Container — nicht mitportiert) und T002312.
+  #
+  # KEIN Ingress/IngressRoute/LoadBalancer: oauth2-proxy-dev traegt fuer diese
+  # Pfade ein --skip-auth-route, ein oeffentlicher Endpunkt exponierte
+  # mcp-kubernetes und mcp-postgres also unauthentifiziert.
+  #
+  # playwright ist bewusst NICHT im Bundle: 4-GiB-Limit gegen <512Mi bei allen
+  # anderen; er bleibt lokaler stdio-Server (siehe clients.playwright).
+  note: >-
+    Drei Container. mcp-node fuehrt sieben Node-Server unter einem Supervisor
+    (docker/mcp-node/supervisor.sh); Requests sind am gemessenen Verbrauch
+    orientiert (Monolith: 341Mi real gegen 960Mi deklariert).
   containers:
-    - name: kubernetes
+    - name: mcp-node
+      image: ghcr.io/paddione/mcp-node:latest
+      servers:
+        - { name: llm-proxy, port: 18235, forwarded_port: 18235 }
+        - { name: postgres, port: 3001, forwarded_port: 13001 }
+        - { name: github, port: 3002, forwarded_port: 13002 }
+        - { name: ticket-mcp, port: 3003 }
+        - { name: brain-mcp, port: 3004 }
+        - { name: task-runner, port: 3005 }
+        - { name: codebase-memory, port: 3006 }
+    - name: mcp-kubernetes
       image: quay.io/containers/kubernetes_mcp_server@sha256:ef1ede0fd73ce975de1850b7f19090d0850c4ce3e7d21d795f21de3ee8d1452c
       port: 8080
       forwarded_port: 18080
-      status: live
-    - name: postgres
-      image: node:20-alpine (supergateway)
-      port: 3001
-      forwarded_port: 13001
-      status: live
-    - name: keycloak
-      image: quay.io/sshaaf/keycloak-mcp-server@sha256:12dd5199862055eb38b5f8162cabcc27c1324471b53416389098be263ea14a46
-      port: 8081
-      status: defekt
-      ticket: T002311
-    - name: playwright
-      image: mcr.microsoft.com/playwright:v1.50.1-jammy
-      port: 3000
-      forwarded_port: 13000
-      status: live
-    - name: github
-      image: node:20-alpine (supergateway)
-      port: 3002
-      forwarded_port: 13002
-      status: live
+    - name: repo-sync
+      image: ghcr.io/paddione/repo-sync:latest
+      note: >-
+        Sidecar, einziger Schreiber des dev-pod-repo-PVC. Alle konsumierenden
+        Container mounten den Checkout read-only.

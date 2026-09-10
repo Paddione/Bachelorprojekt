@@ -67,12 +67,17 @@ status: planning
 
 ### 5. Monolith abloesen
 
-- [ ] Clients auf die Mesh-Adressen des dev-Pod umstellen (`docs/agent-guide/registry/mcp.yaml`,
+- [x] Clients auf die Mesh-Adressen des dev-Pod umstellen (`docs/agent-guide/registry/mcp.yaml`,
       danach `task mcp:sync`).
-- [ ] Port-Forward-Watchdog abbauen, sofern er ohne Tunnel gegenstandslos wird.
-- [ ] `k3d/default/claude-code-mcp-monolith-deploy.yaml` entfernen — im selben Commit wie die
+- [x] Port-Forward-Watchdog abbauen, sofern er ohne Tunnel gegenstandslos wird.
+      **Befund: er wird es nicht — er bleibt, nur auf `svc/dev-pod` umgehaengt.**
+      Das Service-Netz `10.43.0.0/16` wird nicht ueber das wg-Mesh geroutet, nur das
+      Pod-Netz `10.42.0.0/16` (`docs/agent-guide/maps/networks-map.md:30-31`). Eine
+      ClusterIP ist vom Arbeitsplatz also weiterhin nur ueber `kubectl port-forward`
+      erreichbar; der Tunnel und damit sein Watchdog bleiben noetig.
+- [x] `k3d/default/claude-code-mcp-monolith-deploy.yaml` entfernen — im selben Commit wie die
       Spec-Aenderung, sonst schlaegt der Guard in `tests/spec/mcp-gateway.bats` an.
-- [ ] Denselben Guard auf den dev-Pod umhaengen, damit er nach dem Wegfall des Manifests nicht
+- [x] Denselben Guard auf den dev-Pod umhaengen, damit er nach dem Wegfall des Manifests nicht
       still uebersprungen wird.
 
 ### 6. Verifikation

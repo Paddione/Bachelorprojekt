@@ -2,24 +2,61 @@
 
 ## Purpose
 
-Der lokale LLM-Proxy (`scripts/llm-proxy/`) ist das alleinige Gateway, über das jeder lokale
-Harness — Factory-Orchestrator, Factory-Phasenagenten, opencode und weitere Agenten — mit den
-llama.cpp-Backends spricht. Er hört auf Port 18235, löst Modellnamen auf Backends auf und
-verwaltet die Loadouts als transiente systemd-User-Units: er startet ein Loadout bei Bedarf
-selbst und setzt dabei durch, dass sich Loadouts derselben `exclusiveGroup` nicht gegenseitig
-von der GPU verdrängen.
+Der LLM-Proxy (`scripts/llm-proxy/`) ist das alleinige Gateway, über das jeder Harness —
+Factory-Orchestrator, Factory-Phasenagenten, opencode und weitere Agenten — mit den
+LLM-Backends spricht. Er hört auf Port 18235 und löst Modellnamen auf Backends auf.
 
-> **Status (T900054, 2026-09-03):** Der oben beschriebene Mechanismus setzt den WSL-Dev-Host
-> voraus — systemd-User-Units gibt es dort seit dem WSL-Exit (ADR-007) nicht mehr, und das
-> `llm-proxy`-Deployment in `workspace-dev` steht auf 0/1. ADR-007 sieht für den Proxy
-> "retire statt portieren" vor. Diese Purpose-Beschreibung bleibt vorerst unverändert stehen,
-> weil der Rückbau Laufzeitverhalten ist und einem eigenen infra-Change gehört; sie beschreibt
-> also den historischen, nicht den laufenden Zustand.
+Seit T900107 läuft er als Container des `dev-pod`-Deployments in `workspace-dev`
+(`k3d/dev-pod/deployment.yaml`) und bedient **ausschliesslich Remote-Backends**. Die
+Loadout-Maschinerie — transiente systemd-User-Units und die `exclusiveGroup`-Arbitrierung, die
+Loadouts daran hinderte, einander von der GPU zu verdrängen — ist entfernt: sie setzte den
+WSL-Dev-Host voraus, den es seit ADR-007 nicht mehr gibt, und im Cluster steht keine GPU zur
+Verfügung (gemessen 2026-09-10: alle Knoten `gpu=KEINE`). Der Proxy startet daher nichts mehr;
+`LLM_PROXY_HOST_BIND` bindet den Listener auf die Pod-Adresse, damit er über das Mesh
+erreichbar ist.
 
-Der Zweck dieser Bündelung ist, dass Routing, Kontextbudget, Tool-Schema-Sanitizing und
-GPU-Belegung an genau einer Stelle entschieden werden statt in jedem Konsumenten einzeln.
+Die lesenden und konfigurierenden Admin-Endpunkte (`/admin/models`, `/admin/loadouts`
+GET/PUT, `/admin/loadouts/status`, `/admin/factory`) bleiben: sie starten nichts und tragen
+den Modell-Lock der Factory, das SDLC-Cockpit, `scripts/brain-ingest-swap.sh` und die
+`finetune`-Tasks. Entfallen sind `/admin/loadouts/<slug>/start`, `/stop` und der Loadout-Pin.
+
+Der Zweck dieser Bündelung ist, dass Routing, Kontextbudget und Tool-Schema-Sanitizing an
+genau einer Stelle entschieden werden statt in jedem Konsumenten einzeln.
 
 ## Requirements
+
+### Requirement: The proxy serves remote backends only
+<!-- bats: dev-pod-mcp-bundle/dev-pod.bats -->
+
+The LLM proxy SHALL run as a container of the `dev-pod` deployment and SHALL route to remote
+backends only. The loadout machinery — transient systemd user units and the `exclusiveGroup`
+arbitration that kept loadouts from evicting each other from the GPU — SHALL be removed.
+
+#### Scenario: No GPU is available to route to
+
+- **GIVEN** every node of the `fleet` cluster reports no GPU capacity
+- **WHEN** the proxy resolves a model name to a backend
+- **THEN** it selects among remote backends, and no code path attempts to start a local loadout
+
+#### Scenario: The proxy outlives the workstation
+
+- **GIVEN** the proxy runs in the cluster rather than on the workstation
+- **WHEN** the workstation is powered off
+- **THEN** consumers of the proxy continue to resolve models, so that scheduled work does not
+  depend on an interactive machine being awake
+
+### Requirement: The purpose section describes the running state
+
+The spec's Purpose section carried a status note declaring that it described the historical
+rather than the running state. With the proxy moved into the cluster, the Purpose SHALL
+describe the running state and the note SHALL be removed.
+
+#### Scenario: Purpose and deployment agree
+
+- **GIVEN** the Purpose section previously described systemd user units on the WSL dev host
+- **WHEN** the proxy runs as a `dev-pod` container against remote backends
+- **THEN** the Purpose describes that arrangement, and carries no note deferring its own accuracy
+
 
 ### Requirement: Proxy as sole LLM gateway
 

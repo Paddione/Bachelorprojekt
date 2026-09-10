@@ -31,7 +31,7 @@ status: planning
 
 ### 1. Failing test zuerst
 
-- [ ] `tests/spec/dev-pod-mcp-bundle/dev-pod.bats` anlegen: prueft, dass das Deployment
+- [x] `tests/spec/dev-pod-mcp-bundle/dev-pod.bats` anlegen: prueft, dass das Deployment
       genau drei Container fuehrt, dass ausser `repo-sync` kein Container das Checkout-Volume
       beschreibbar mountet, und dass kein Ingress/IngressRoute auf die MCP-Pfade zeigt.
       Ausfuehren mit `tests/unit/lib/bats-core/bin/bats tests/spec/dev-pod-mcp-bundle/dev-pod.bats`

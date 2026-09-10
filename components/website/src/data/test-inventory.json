@@ -4404,6 +4404,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/dev-shell-ssh",
+    "file": "tests/spec/mcp-gateway/dev-shell-ssh.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/guarded-proxy-streaming",
     "file": "tests/spec/mcp-gateway/guarded-proxy-streaming.bats",
     "category": "mcp-gateway",

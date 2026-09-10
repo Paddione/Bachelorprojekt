@@ -1,8 +1,9 @@
 name: Build dev-pod images
 
-# Baut die beiden Images des dev-pod-Bundles [T900107]:
+# Baut die drei Images des dev-pod-Bundles [T900107, T900108]:
 #   docker/mcp-node   -> ghcr.io/paddione/mcp-node
 #   docker/repo-sync  -> ghcr.io/paddione/repo-sync
+#   docker/dev-shell  -> ghcr.io/paddione/dev-shell
 #
 # Bewusst EIN Workflow mit einer Matrix statt zwei Dateien: die Images gehoeren
 # zu einem Deployment, werden zusammen gepinnt und aendern sich zusammen.
@@ -13,6 +14,7 @@ on:
     paths:
       - 'docker/mcp-node/**'
       - 'docker/repo-sync/**'
+      - 'docker/dev-shell/**'
       - '.github/workflows/build-dev-pod.yml'
   workflow_dispatch:
 
@@ -34,6 +36,8 @@ jobs:
             context: docker/mcp-node
           - image: repo-sync
             context: docker/repo-sync
+          - image: dev-shell
+            context: docker/dev-shell
 
     steps:
       - uses: actions/checkout@v7

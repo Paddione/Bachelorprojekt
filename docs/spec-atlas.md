@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2307 · Scenarios: 5120
+Specs: 145 · Requirements: 2310 · Scenarios: 5125
 
 ## factory-pipeline
 
@@ -192,17 +192,13 @@ Last touches:
 ## Ungrouped
 
 ### active-sessions-hub
-Reqs: 22 · Scenarios: 61 · Lines: 715
+Reqs: 25 · Scenarios: 66 · Lines: 776
 Last touches:
+  - File-scoped claims for plan partials | T900024 | 2026-09-10 | ADDED
+  - Write guard active in every harness | T900024 | 2026-09-10 | ADDED
+  - Single source for the git workflow | T900024 | 2026-09-10 | ADDED
   - Platform-independent lock directory resolution | T900023 | 2026-08-31 | ADDED
   - agent-lock logic stays within its size limit through fragments | T900023 | 2026-08-31 | ADDED
-  - Actionable main-checkout guard in worktree-create | T900023 | 2026-08-31 | ADDED
-  - Session-Registry als Single Source of Truth | T016250 | 2026-08-24 | MODIFIED
-  - Branch-scoped release refuses while the cwd is inside the lock's worktree | T006290 | 2026-08-15 | ADDED
-In-flight:
-  - File-scoped claims for plan partials | T900024 | active | ADDED
-  - Write guard active in every harness | T900024 | active | ADDED
-  - Single source for the git workflow | T900024 | active | ADDED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2322 · Scenarios: 5140
+Specs: 146 · Requirements: 2324 · Scenarios: 5145
 
 ## factory-pipeline
 
@@ -706,18 +706,15 @@ Last touches:
   - Pre-Commit blockiert Commits auf main | T002631 | 2026-08-10 | ADDED
 
 ### mcp-gateway
-Reqs: 36 · Scenarios: 84 · Lines: 1010
+Reqs: 38 · Scenarios: 89 · Lines: 1067
 Paths: deploy/mcp/, .claude/skills/references/mcp-tool-guide.md, scripts/mcp
 Last touches:
   - MCP Monolith Deployment Reality In SSOT | T900107 | 2026-09-10 | MODIFIED
-  - MCP servers are served from a single in-cluster deployment | T900107 | 2026-09-10 | ADDED
+  - MCP servers are served from a single in-cluster deployment | T900108 | 2026-09-10 | MODIFIED
   - No MCP endpoint is exposed publicly | T900107 | 2026-09-10 | ADDED
   - The repository checkout is supplied read-only from a single writer | T900107 | 2026-09-10 | ADDED
   - Container images carry their dependencies | T900107 | 2026-09-10 | ADDED
 In-flight:
-  - MCP servers are served from a single in-cluster deployment | T900108 | active | MODIFIED
-  - The dev-pod offers SSH access only through the Kubernetes API | T900108 | active | ADDED
-  - The dev-shell home survives pod restarts | T900108 | active | ADDED
   - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
   - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
   - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED

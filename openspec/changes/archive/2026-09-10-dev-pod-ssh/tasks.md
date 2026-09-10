@@ -2,7 +2,7 @@
 title: "dev-pod-ssh — Implementation Plan"
 ticket_id: T900108
 domains: [infra, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

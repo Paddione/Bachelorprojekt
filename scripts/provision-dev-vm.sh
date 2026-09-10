@@ -2,15 +2,15 @@
 # =============================================================================
 # provision-dev-vm.sh — create the new dev VM on the `dev` Proxmox node.
 # =============================================================================
-# Successor to the dead k3s-1 VM. Creates a Debian 12 cloud-init VM on the
-# standalone Proxmox host `dev` (10.0.0.25), pre-installs the dev toolchain
-# (Docker CE, k3d, kubectl, go-task, Node 22, pnpm, gh — via install-dev-tools.sh),
-# installs WireGuard, and enrolls users patrick + gekko with their pubkeys.
+# Shared work VM for patrick + gekko (successor to the dead k3s-1 VM and the
+# k3d-era dev-vm). Creates a Debian 12 cloud-init VM on the standalone Proxmox
+# host `dev` (10.0.0.25), pre-installs the dev toolchain (Docker CE, kubectl,
+# go-task, Node 22, pnpm, gh, git-crypt — via install-dev-tools.sh, ohne
+# k3d/Go: SKIP_K3D_GO=1), installs WireGuard, and enrolls users patrick + gekko
+# with their pubkeys.
 #
-# After it finishes, bring up the dev k3d cluster with:
-#   task dev:cluster:create \
-#     SSH_TARGET=gekko@dev-vm \
-#     SSH_KEY=~/Bachelorprojekt/environments/.secrets/.ssh/gekko_ed25519
+# After it finishes, set up the shared repo clone on the VM:
+#   ssh -F "$SSH_CONFIG" work-vm 'sudo bash /usr/local/sbin/setup-shared-dev-repo.sh'
 #
 # Idempotent: re-running skips the image download and refuses to clobber an
 # existing VMID (pass FORCE=1 to destroy + recreate).
@@ -27,13 +27,13 @@ WG_SECRETS_DIR="${WG_SECRETS_DIR:-$REPO_ROOT/environments/.secrets/wireguard}"
 
 # ---- Proxmox / VM parameters ------------------------------------------------
 PVE_HOST="${PVE_HOST:-dev}"                 # ssh alias of the Proxmox node (root@10.0.0.25)
-VMID="${VMID:-9002}"                        # old k3s-1 was 9001
+VMID="${VMID:-9003}"                        # fresh work VM (k3d-era dev-vm was 9002, k3s-1 was 9001)
 VM_NAME="${VM_NAME:-mentolder-dev}"         # must match install-dev-tools.sh guard list
-VM_IP="${VM_IP:-10.0.0.26}"                 # static LAN IP (matches `dev-vm` SSH alias)
+VM_IP="${VM_IP:-10.0.0.27}"                 # static LAN IP (matches `work-vm` SSH alias)
 VM_CIDR="${VM_CIDR:-24}"
 VM_GW="${VM_GW:-10.0.0.1}"
 VM_DNS="${VM_DNS:-1.1.1.1 9.9.9.9}"
-WG_IP="${WG_IP:-192.168.100.23}"            # matches wireguard/wg-mesh-nodes.yaml (dev-vm)
+WG_IP="${WG_IP:-192.168.100.24}"            # matches wireguard/wg-mesh-nodes.yaml (work-vm)
 
 CORES="${CORES:-4}"
 MEM_MB="${MEM_MB:-8192}"
@@ -47,10 +47,11 @@ IMAGE_URL="${IMAGE_URL:-https://cloud.debian.org/images/cloud/bookworm/latest/de
 IMAGE_FILE="${IMAGE_FILE:-debian-12-genericcloud-amd64.qcow2}"
 IMAGE_CACHE="${IMAGE_CACHE:-/var/lib/vz/template/iso}"
 
-# wg hub: the dev VM is a home-LAN node on the mentolder mesh (192.168.100.0/24,
-# port 51821). Like k3s-1/devc-*, it initiates outbound to a Hetzner CP node and
-# routes the whole mesh through it. gekko-hetzner-2's pubkey is published in the
-# registry, so this connects out-of-the-box (override to pin a different node).
+# wg hub: the work VM is a home-LAN node on the mentolder mesh (192.168.100.0/24,
+# port 51821). Like the other home-LAN nodes, it initiates outbound to a Hetzner
+# CP node and routes the whole mesh through it. gekko-hetzner-2's pubkey is
+# published in the registry, so this connects out-of-the-box (override to pin a
+# different node).
 WG_HUB_ENDPOINT="${WG_HUB_ENDPOINT:-178.104.169.206:51821}"   # gekko-hetzner-2
 WG_HUB_PUBKEY="${WG_HUB_PUBKEY:-iXnGP9bIwrofD6a96D5Fz5rM7smbIAc3gXJcUx5m6j0=}"
 WG_ALLOWED_IPS="${WG_ALLOWED_IPS:-192.168.100.0/24}"
@@ -171,14 +172,13 @@ REMOTE
 # ---- 5. next steps ----------------------------------------------------------
 cat <<EOF
 
-$(log "Done. The dev VM is booting at $VM_IP (alias: dev-vm / dev-vm/gekko).")
+$(log "Done. The work VM is booting at $VM_IP (alias: work-vm / work-vm/gekko).")
 
 Next:
   1. Wait for cloud-init to finish (watch: ssh -F $SSH_CONFIG dev "qm terminal $VMID").
-  2. Verify access:    ssh -F $SSH_CONFIG dev-vm "docker version && k3d version"
-  3. Finish WireGuard: add dev-vm's pubkey ($(cat "$WG_PUB" 2>/dev/null)) as a peer
+  2. Verify access:    ssh -F $SSH_CONFIG work-vm "docker version && task --version"
+  3. Finish WireGuard: add work-vm's pubkey ($(cat "$WG_PUB" 2>/dev/null)) as a peer
      on pk-hetzner-4 and set WG_HUB_PUBKEY in wg-mesh.conf if it was a placeholder.
-  4. Bring up the dev cluster:
-       task dev:cluster:create SSH_TARGET=gekko@dev-vm \\
-         SSH_KEY=~/Bachelorprojekt/environments/.secrets/.ssh/gekko_ed25519
+  4. Set up the shared repo clone (group dev, git-crypt, ff-only timer):
+       ssh -F $SSH_CONFIG work-vm 'sudo bash /usr/local/sbin/setup-shared-dev-repo.sh'
 EOF

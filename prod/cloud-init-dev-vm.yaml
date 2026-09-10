@@ -1,18 +1,19 @@
 #cloud-config
 # =============================================================================
-# cloud-init-dev-vm.yaml — the NEW dev VM (dev.mentolder.de k3d stack host).
+# cloud-init-dev-vm.yaml — the shared work VM for patrick + gekko (10.0.0.27).
 # =============================================================================
-# Successor to the dead k3s-1 VM. This is NOT a k3s cluster node: it runs a
-# Docker daemon and a lightweight k3d cluster (see Taskfile.dev-stack.yml).
+# Successor to the dead k3s-1 VM and the k3d-era dev-vm. This is NOT a cluster
+# node and runs NO k3d: it provides a Docker daemon + the dev toolchain and
+# hosts the shared repo clone /srv/bachelorprojekt (setup-shared-dev-repo.sh).
 #
 # Consumed by scripts/provision-dev-vm.sh, which:
 #   * substitutes the WireGuard private-key + peer-block placeholders below,
 #   * uploads the rendered file to the `dev` Proxmox host as a cicustom snippet,
 #   * creates + boots the VM via `qm`.
 #
-# Toolchain (Docker CE, k3d, kubectl, go-task, Node 22, pnpm, gh) is installed
-# by scripts/install-dev-tools.sh, which is hostname-guarded and matches the
-# `mentolder-dev` hostname set below.
+# Toolchain (Docker CE, kubectl, go-task, Node 22, pnpm, gh, git-crypt — ohne
+# k3d/Go) is installed by scripts/install-dev-tools.sh, which is hostname-guarded
+# and matches the `mentolder-dev` hostname set below.
 # =============================================================================
 
 hostname: mentolder-dev
@@ -57,8 +58,8 @@ packages:
   - nfs-common
 
 write_files:
-  # WireGuard mesh — node `dev-vm`, mentolder mesh (192.168.100.0/24, port 51821).
-  # wg_ip 192.168.100.23 (see wireguard/wg-mesh-nodes.yaml). provision-dev-vm.sh
+  # WireGuard mesh — node `work-vm`, mentolder mesh (192.168.100.0/24, port 51821).
+  # wg_ip 192.168.100.24 (see wireguard/wg-mesh-nodes.yaml). provision-dev-vm.sh
   # injects the private key and the peer list before this file is uploaded.
   - path: /etc/wireguard/wg-mesh.conf
     permissions: '0600'
@@ -66,7 +67,7 @@ write_files:
     content: |
       [Interface]
       PrivateKey = REPLACEME_WG_PRIVATE_KEY
-      Address = 192.168.100.23/24
+      Address = 192.168.100.24/24
       ListenPort = 51821
 
       REPLACEME_WG_PEERS_BLOCK
@@ -100,15 +101,11 @@ write_files:
 runcmd:
   - sysctl --system
 
-  # ── Firewall (dev k3d stack port map: see Taskfile.dev-stack.yml) ──────────
+  # ── Firewall: nur SSH + WireGuard (kein k3d/Postgres auf der Work-VM) ──────
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow 22/tcp
   - ufw allow 51821/udp                 # WireGuard mesh (mentolder subnet)
-  - ufw allow 18080/tcp comment "k3d Traefik web"
-  - ufw allow 18443/tcp comment "k3d Traefik websecure"
-  - ufw allow from 10.0.0.0/24 to any port 15432 proto tcp comment "dev Postgres (LAN only)"
-  - ufw deny 2222/tcp comment "sish - default deny (open per-CIDR via dev:firewall:open)"
   - ufw --force enable
 
   # ── Services ──────────────────────────────────────────────────────────────
@@ -121,12 +118,18 @@ runcmd:
   - systemctl enable wg-quick@wg-mesh
   - systemctl start wg-quick@wg-mesh || true
 
-  # ── Dev toolchain: Docker CE, k3d, kubectl, go-task, Node 22, pnpm ──────────
+  # ── Dev toolchain: Docker CE, kubectl, go-task, Node 22, pnpm, gh, git-crypt ─
   # Same installer prod/cloud-init.yaml uses. It is hostname-guarded to
-  # gekko-hetzner-2, so we override the guard (FORCE=1) and tell it which user
-  # gets the docker group + pnpm (DEV_USER=gekko, the primary dev login).
+  # gekko-hetzner-2, so we override the guard (FORCE=1). k3d/Go werden auf der
+  # Work-VM uebersprungen (SKIP_K3D_GO=1); beide Nutzer bekommen die docker-
+  # Gruppe + pnpm (DEV_USERS). openspec-Tooling laeuft ueber den Repo-Wrapper
+  # scripts/openspec.sh (kein separates Binary).
   - curl -fsSL https://raw.githubusercontent.com/Paddione/Bachelorprojekt/main/scripts/install-dev-tools.sh -o /usr/local/sbin/install-dev-tools.sh
   - chmod +x /usr/local/sbin/install-dev-tools.sh
-  - FORCE=1 DEV_USER=gekko /usr/local/sbin/install-dev-tools.sh
+  - FORCE=1 SKIP_K3D_GO=1 DEV_USERS="patrick gekko" /usr/local/sbin/install-dev-tools.sh
 
-final_message: "dev VM (mentolder-dev) ready - $(hostname) - $(date). Next: task dev:cluster:create SSH_TARGET=gekko@dev-vm"
+  # ── Shared repo setup (Gruppe dev, git-crypt, ff-only-Timer) ────────────────
+  - curl -fsSL https://raw.githubusercontent.com/Paddione/Bachelorprojekt/main/scripts/setup-shared-dev-repo.sh -o /usr/local/sbin/setup-shared-dev-repo.sh
+  - chmod +x /usr/local/sbin/setup-shared-dev-repo.sh
+
+final_message: "work VM (mentolder-dev) ready - $(hostname) - $(date). Next: sudo bash /usr/local/sbin/setup-shared-dev-repo.sh"

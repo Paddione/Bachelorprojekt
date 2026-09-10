@@ -46,10 +46,10 @@ status: planning
 
 ### 3. Manifeste
 
-- [ ] PVC, Deployment, Service unter `k3d/dev-pod/`. Requests an den gemessenen Werten
+- [x] PVC, Deployment, Service unter `k3d/dev-pod/`. Requests an den gemessenen Werten
       orientieren (Monolith real 341Mi gegen 960Mi deklariert), nicht an den Altwerten.
-- [ ] Overlay `prod-fleet/dev-pod/` und `flux/clusters/fleet/ks-dev-pod.yaml`.
-- [ ] Kein Ingress, keine IngressRoute, kein LoadBalancer fuer die MCP-Ports.
+- [x] Overlay `prod-fleet/dev-pod/` und `flux/clusters/fleet/ks-dev-pod.yaml`.
+- [x] Kein Ingress, keine IngressRoute, kein LoadBalancer fuer die MCP-Ports.
 
 ### 4. llm-proxy entschlacken
 

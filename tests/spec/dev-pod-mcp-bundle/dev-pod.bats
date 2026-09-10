@@ -62,9 +62,11 @@ y() {  # <datei> <js-ausdruck ueber d>
   [ "$status" -eq 0 ]
   [ "$output" -ge 3 ]
 
-  run bash -c "grep -ci playwright '$DEPLOY' || true"
-  echo "playwright hits: $output"
-  [ "$output" = "0" ]
+  # Geprueft wird die Container-Deklaration, nicht der Prosa-Text der Datei:
+  # der Kommentar darf (und soll) begruenden, WARUM playwright draussen bleibt.
+  run y "$DEPLOY" "d.spec.template.spec.containers.concat(d.spec.template.spec.initContainers||[]).filter(c=>/playwright/i.test(c.name+' '+(c.image||''))).map(c=>c.name).join(',')"
+  echo "playwright container: [$output]"
+  [ -z "$output" ]
 }
 
 # ── Checkout: ein Schreiber, alle anderen read-only ───────────────────

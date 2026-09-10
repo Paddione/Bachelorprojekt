@@ -1,0 +1,32 @@
+# flux/clusters/fleet/ks-dev-pod.yaml — Zustellung des dev-pod [T900107]
+#
+# Der abgeloeste claude-code-mcp-monolith war von KEINER Flux-Kustomization
+# erfasst und ging nur ueber ein manuelles `kubectl apply -k k3d/default` live.
+# Genau das behebt dieser Eintrag: das Overlay wird gerendert, ins OCI-Artefakt
+# gelegt (scripts/flux-render-artifact.sh) und von Flux reconciled.
+#
+# dependsOn flux-dev: der Namespace workspace-dev entsteht dort
+# (k3d/dev-stack/namespace.yaml). Ohne die Abhaengigkeit liefe der Apply in
+# einen fehlenden Namespace.
+#
+# wait: false — das Bundle ist ein Werkzeug-Stack; ein nicht bereiter dev-pod
+# darf keine nachgelagerte Kustomization blockieren. force: true wie bei den
+# Jobs-Kustomizations (T002207), damit unveraenderbare Felder self-healing sind.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-dev-pod
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 2m
+  timeout: 5m
+  dependsOn:
+    - name: flux-dev
+  sourceRef:
+    kind: OCIRepository
+    name: fleet-manifests
+  path: ./dev-pod
+  prune: true
+  wait: false
+  force: true

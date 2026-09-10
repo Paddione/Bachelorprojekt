@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 145 · Requirements: 2310 · Scenarios: 5125
+Specs: 146 · Requirements: 2315 · Scenarios: 5130
 
 ## factory-pipeline
 
@@ -1187,6 +1187,15 @@ Reqs: 11 · Scenarios: 31 · Lines: 412
 Last touches:
   - Public-API Fail-soft für `/api/timeline` und Slot-Endpoints | T002184 | 2026-08-03 | MODIFIED
   - Public and admin API endpoints return the documented status code under E2E load | T002196 | 2026-08-02 | ADDED
+
+### work-vm-shared-dev
+Reqs: 5 · Scenarios: 5 · Lines: 93
+Last touches:
+  - Dedicated work VM on the Proxmox dev host | T900104 | 2026-09-10 | ADDED
+  - Shared project clone with group ownership | T900104 | 2026-09-10 | ADDED
+  - Up-to-date main without clobbering work | T900104 | 2026-09-10 | ADDED
+  - Toolchain deltas on install-dev-tools.sh | T900104 | 2026-09-10 | ADDED
+  - Script facts guarded by BATS | T900104 | 2026-09-10 | ADDED
 
 ### worktree-divergence-guard-T002387
 Reqs: 1 · Scenarios: 2 · Lines: 31

@@ -2,7 +2,7 @@
 title: "work-vm-shared-dev — Implementation Plan"
 ticket_id: T900104
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

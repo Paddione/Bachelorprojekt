@@ -40,6 +40,8 @@ spec:
         app: dev-pod
     spec:
       serviceAccountName: dev-pod
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       # Dev-Node-Bindung wie der uebrige workspace-dev-Stack
       # (k3d/dev-stack/dev-node-binding.yaml). Hier inline, weil dieses Overlay
       # nicht durch prod-fleet/dev laeuft und den dortigen Patch nicht erbt.

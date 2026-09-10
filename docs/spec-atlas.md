@@ -715,6 +715,9 @@ Last touches:
   - The repository checkout is supplied read-only from a single writer | T900107 | 2026-09-10 | ADDED
   - Container images carry their dependencies | T900107 | 2026-09-10 | ADDED
 In-flight:
+  - MCP servers are served from a single in-cluster deployment | T900108 | active | MODIFIED
+  - The dev-pod offers SSH access only through the Kubernetes API | T900108 | active | ADDED
+  - The dev-shell home survives pod restarts | T900108 | active | ADDED
   - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
   - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
   - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED

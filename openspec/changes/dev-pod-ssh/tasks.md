@@ -373,7 +373,15 @@ kubectl --context fleet -n workspace-dev exec deploy/dev-pod -c dev-shell -- ssh
 task test:inventory
 ```
 
-- [ ] **7.2** Die drei Pflicht-Gates:
+- [x] **7.2** Die drei Pflicht-Gates:
+  _2026-09-10 auf Windows/Git-Bash: `task test:changed` brach nach gruenem `test:manifests` (39/39,
+  mit `PYTHONUTF8=1`) an der Befehlszeilenlaenge ab ("Dateiname ... zu lang"), weil die
+  Workflow-Aenderung die volle Spec-Suite waehlt; GNU parallel crasht auf diesem Host
+  ("pidtable format"). Ersatz seriell: mcp-gateway, dev-pod-mcp-bundle und ci-cd (Teile 1-3 plus
+  Workflow-Guards aus Teil 4). Alle dev-pod/dev-shell-Guards gruen; die uebrigen Rotbefunde
+  (Datei-Modi auf NTFS, MSYS-Pfade, lokale mcp_config.json, fehlende node_modules) referenzieren
+  keine geaenderte Datei. `test:openspec` 23/23, `runtime-drift-check` ohne Drift;
+  `lint:workflows` lokal nicht lauffaehig (actionlint fehlt) — prueft CI._
 
 ```bash
 task test:changed

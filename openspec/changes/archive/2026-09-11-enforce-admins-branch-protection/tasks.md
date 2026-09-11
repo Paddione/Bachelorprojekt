@@ -42,7 +42,7 @@ bash tests/bats tests/spec/ci-cd/main-direct-push-guard.bats
       changing required checks, review count, restrictions, or auto-merge behavior. The focused
       BATS file must pass.
 
-- [ ] **Live-Step.** Apply the merged policy with an admin-scoped GitHub token using
+- [x] **Live-Step.** Apply the merged policy with an admin-scoped GitHub token using
       `task gh:branch-protection:apply` and verify `task test:branch-protection` exits zero.
 
 - [x] **Final Verification.** Run the three mandatory CI gates:

@@ -1690,8 +1690,12 @@ contain the forbidden strings.
 
 The repository SHALL enforce the pull-request workflow for `main` through GitHub branch
 protection, not through local git hooks alone. Protection SHALL apply to administrators
-(`enforce_admins`) and SHALL require a pull request before merging
-(`required_pull_request_reviews`).
+(`enforce_admins.enabled=true`) and SHALL require a pull request before merging
+(`required_pull_request_reviews` present). Approving reviews are not required, so auto-merge
+completes once the required status checks pass.
+
+The idempotent protection apply script SHALL always emit `enforce_admins.enabled=true` in its
+full protection payload, regardless of a weaker value returned by the live API.
 
 Local hooks MAY warn earlier, but SHALL NOT be relied upon as the enforcing mechanism, because
 `git commit --no-verify` bypasses them by design.
@@ -1708,8 +1712,7 @@ Local hooks MAY warn earlier, but SHALL NOT be relied upon as the enforcing mech
 
 - **GIVEN** the current protection settings of `main` as JSON
 - **WHEN** `scripts/check-branch-protection.sh` evaluates them
-- **THEN** it exits zero if `enforce_admins` is enabled and `required_pull_request_reviews` is
-  present
+- **THEN** it exits zero if `enforce_admins` is enabled and a pull request is required
 - **AND** it exits non-zero otherwise, naming every unmet requirement individually rather than
   stopping at the first
 
@@ -3509,3 +3512,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (8af7f6caa108) -->
 
 <!-- merged from change delta ci-cd.md (1d2e1cfb41dd) -->
+
+<!-- merged from change delta ci-cd.md (edf2ec70a078) -->

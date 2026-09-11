@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2329 · Scenarios: 5158
+Specs: 146 · Requirements: 2333 · Scenarios: 5162
 
 ## factory-pipeline
 
@@ -70,31 +70,30 @@ In-flight:
 ## delivery
 
 ### ci-cd
-Reqs: 113 · Scenarios: 332 · Lines: 3511
+Reqs: 113 · Scenarios: 332 · Lines: 3516
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
   - Squash-Auto-Merge | T900089 | 2026-09-11 | MODIFIED
+  - Direct pushes to main SHALL be prevented server-side | T900126 | 2026-09-11 | MODIFIED
   - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
-  - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
-  - Direct pushes to main SHALL be prevented server-side | T900126 | active | MODIFIED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED
   - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 46 · Scenarios: 90 · Lines: 933
+Reqs: 50 · Scenarios: 94 · Lines: 971
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
+  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | 2026-09-11 | ADDED
+  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | 2026-09-11 | ADDED
+  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | 2026-09-11 | ADDED
+  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | 2026-09-11 | ADDED
   - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
-  - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
-  - Rendered Staging CronJobs Target the Staging Website | T015004 | 2026-08-23 | ADDED
-  - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
-  - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
 In-flight:
   - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
   - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
@@ -102,10 +101,6 @@ In-flight:
   - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
   - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
-  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | active | ADDED
-  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | active | ADDED
-  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
-  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
   - WireGuard mesh reconcile applies the registry to every node | T900083 | active | ADDED
   - WireGuard mesh drift is detected as a gate | T900083 | active | ADDED

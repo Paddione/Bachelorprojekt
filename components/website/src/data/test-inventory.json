@@ -1758,6 +1758,60 @@
     "kind": "shell"
   },
   {
+    "id": "REQ-VIM-AI-001",
+    "file": "tests/spec/vim-ai-completion/install-config.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-002",
+    "file": "tests/spec/vim-ai-completion/request-stream.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-003",
+    "file": "tests/spec/vim-ai-completion/request-stream.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-004",
+    "file": "tests/spec/vim-ai-completion/request-stream.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-005",
+    "file": "tests/spec/vim-ai-completion/install-config.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-006",
+    "file": "tests/spec/vim-ai-completion/context-status.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-007",
+    "file": "tests/spec/vim-ai-completion/context-status.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-008",
+    "file": "tests/spec/vim-ai-completion/context-status.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-009",
+    "file": "tests/spec/vim-ai-completion/install-config.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
     "id": "SA-01",
     "file": "tests/local/SA-01.bats",
     "category": "SA",

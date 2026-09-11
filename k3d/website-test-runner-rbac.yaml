@@ -1,0 +1,32 @@
+# ── Website test-runner exec RBAC ─────────────────────────────────────────────
+# T900110: the website SA needs pods/exec create for the SDLC test-runner.
+# This is a namespaced Role (not ClusterRole) so the SA can only exec into
+# pods in the website's own Brand-Workspace — no cross-namespace exec.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: website-test-runner-exec
+  namespace: workspace
+  labels:
+    app: website
+rules:
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: website-test-runner-exec
+  namespace: workspace
+  labels:
+    app: website
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: website-test-runner-exec
+subjects:
+  - kind: ServiceAccount
+    name: website
+    namespace: ${WEBSITE_NAMESPACE}

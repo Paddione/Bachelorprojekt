@@ -119,9 +119,6 @@ rules:
   - apiGroups: [""]
     resources: ["pods"]
     verbs: ["delete"]
-  - apiGroups: [""]
-    resources: ["pods/exec"]
-    verbs: ["create"]
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "list", "patch"]
@@ -159,6 +156,39 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: ${WEBSITE_NAMESPACE}-monitoring-reader
+subjects:
+  - kind: ServiceAccount
+    name: website
+    namespace: ${WEBSITE_NAMESPACE}
+---
+
+# ── Website self-exec: namespaced pods/exec for the website SA ───────────────
+# T900110: exec is no longer cluster-wide (removed from ClusterRole above).
+# The website test-runner needs pods/exec create only in its own namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: website-self-exec
+  namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
+rules:
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: website-self-exec
+  namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: website-self-exec
 subjects:
   - kind: ServiceAccount
     name: website

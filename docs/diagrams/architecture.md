@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 2034 Abhängigkeitskanten · 291 API-Endpoints
+98 Services · 2035 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -226,6 +226,7 @@ flowchart LR
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
   dev_pod -->|"selector"| dev_pod
+  factory_runner -->|"selector"| factory_runner
   oauth2_proxy_brainstorm -->|"selector"| oauth2_proxy_brainstorm
   oauth2_proxy_dev -->|"selector"| oauth2_proxy_dev
   oauth2_proxy_session_hub -->|"selector"| oauth2_proxy_session_hub

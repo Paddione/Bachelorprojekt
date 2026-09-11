@@ -1,17 +1,12 @@
-# ════════════════════════════════════════════════════════════════════════════
-# factory-runner — fleet-nativer Software-Factory-Dispatcher [T016422]
-# ════════════════════════════════════════════════════════════════════════════
+# ── factory-runner — fleet-nativer Software-Factory-Dispatcher [T016422] ──────
 #
 # Ersetzt den WSL-Dispatcher (systemd User-Timer → scripts/factory/wakeup.sh).
 # Design D1–D3 aus openspec/changes/wsl-exit-fleet-factory/design.md.
 #
-# Architektur: EIN long-lived Pod (Deployment, replicas: 1) hält den Repo-Clone
-# auf einer RWX-Longhorn-PVC unter /workspace. Der Tick-CronJob unten exec't per
-# `kubectl exec` hinein und ruft wakeup.sh auf — das Skript bleibt NICHT geändert,
-# der Pod stellt nur seine Laufzeitumgebung (alpine/k8s-exec-Muster wie in
-# k3d/rustdesk-stack/on-demand.yaml). Single-Flight bleibt im wakeup-flock;
-# deshalb bewusst KEIN HPA und kein RollingUpdate-maxSurge-Spiel: File-Locks
-# (agent-lock.sh), Worktree-Claims und .worktrees/* sind single-writer by design.
+# Architektur: EIN long-lived Pod (Deployment, replicas: 1) haelt den Repo-Clone
+# auf einer RWX-Longhorn-PVC unter /workspace. Der Tick-CronJob (T900110) ruft
+# den Wakeup-Listener des Runners per HTTP auf — keine exec-Rechte mehr,
+# keine RBAC-Role mit exec mehr noetig fuer factory-tick.
 #
 # Image-Strategie (T2.3):
 #   Referenz:   ghcr.io/paddione/factory-runner (gebaut aus docker/factory-runner/
@@ -46,45 +41,7 @@ metadata:
   name: factory-tick
   labels:
     app: factory-runner
----
-# RBAC für den Tick-Anstoß (T2.5): der CronJob-Pod darf NUR in deploy/factory-
-# runner exec'en und dessen Logs lesen — kein ClusterRole, keine weiteren Rechte
-# (E17-Gegenmaßnahme: Credentials bündeln sich im Runner, der Anstoß bleibt
-# minimalprivilegiert).
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: factory-tick-exec
-  labels:
-    app: factory-runner
-rules:
-  # kubectl exec deploy/factory-runner löst Deployment → ReplicaSet → Pod auf:
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get"]
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list"]
-  - apiGroups: [""]
-    resources: ["pods/exec"]
-    verbs: ["create"]
-  - apiGroups: [""]
-    resources: ["pods/log"]
-    verbs: ["get"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: factory-tick-exec
-  labels:
-    app: factory-runner
-subjects:
-  - kind: ServiceAccount
-    name: factory-tick
-roleRef:
-  kind: Role
-  name: factory-tick-exec
-  apiGroup: rbac.authorization.k8s.io
+# Keine RBAC-Rechte; Deployment läuft ohne Token, CronJob ruft Wakeup per HTTP (T900110).
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -104,6 +61,7 @@ spec:
     metadata:
       labels:
         app: factory-runner
+        component: runner
     spec:
       serviceAccountName: factory-tick
       automountServiceAccountToken: false # der Runner braucht keine API
@@ -118,7 +76,16 @@ spec:
         - name: runner
           image: ghcr.io/paddione/factory-runner:latest
           imagePullPolicy: IfNotPresent
-          command: ["sleep", "infinity"] # Laufzeitumgebung für den CronJob-exec
+          command: ["node", "/opt/factory-runner/wakeup-listener.mjs"]
+          ports:
+            - containerPort: 8787
+              name: wakeup
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: wakeup
+            initialDelaySeconds: 2
+            periodSeconds: 5
           workingDir: /workspace
           securityContext:
             allowPrivilegeEscalation: false
@@ -142,11 +109,11 @@ spec:
             - name: LLM_FALLBACK_PROVIDER # Eskalationskette First-Class (Design D3)
               value: "deepseek"
             # [T900052] In-cluster DB-Zugriff: der Runner hat absichtlich kein
-            # kubectl/SAT (automountServiceAccountToken:false), erreicht die
+            # cluster-externen Client/SAT (automountServiceAccountToken:false), erreicht die
             # SDLC-DB aber direkt ueber die ClusterIP svc/shared-db-dev:5432
             # (k3d/shared-db-endpoint-policy.yaml). scripts/factory/lib.sh
             # factory_psql nimmt diesen URL-Pfad, wenn FACTORY_PG_URL gesetzt ist;
-            # der Desktop-MCP behaelt den kubectl-Fallback.
+            # der Desktop-MCP behaelt den cluster-internen Fallback.
             - name: WEBSITE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -172,6 +139,24 @@ spec:
             claimName: factory-runner-workdir
         - name: tmp
           emptyDir: {}
+---
+# Wakeup-Listener Service (T900110): exposed only to the tick CronJob
+# via factory-runner-netpol.yaml (cluster-internal ClusterIP).
+apiVersion: v1
+kind: Service
+metadata:
+  name: factory-runner
+  labels:
+    app: factory-runner
+spec:
+  selector:
+    app: factory-runner
+    component: runner
+  ports:
+    - port: 8787
+      targetPort: wakeup
+      name: wakeup
+---
 # ── SealedSecret-Platzhalter (T2.7) ─────────────────────────────────────────
 # Der Operator versiegelt VOR dem Erstdeploy per kubeseal (Prozess: ADR-007-
 # Anhang) ein Secret `factory-runner-secrets` in diesem Namespace und mountet
@@ -186,9 +171,9 @@ spec:
 # Unlock bzw. am fehlenden Env-File — absichtlich fail-closed.
 # ────────────────────────────────────────────────────────────────────────────
 ---
-# Tick-CronJob: bisheriger Timer-Takt (factory.timer OnUnitInactiveSec=5min).
-# Image digest-gepinnt identisch k3d/tests-retention-cronjob.yaml. Single-Flight
-# bleibt im wakeup-flock — concurrencyPolicy Forbid ist nur zweite Belt.
+# Tick-CronJob (T900110): HTTP-Wakeup statt remote-exec — factory-tick verliert
+# damit jegliche RBAC-Privilegien fuer exec. Single-Flight bleibt im wakeup-flock; concurrencyPolicy
+# Forbid ist nur zweite Belt.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -207,22 +192,21 @@ spec:
         metadata:
           labels:
             app: factory-runner
+            component: tick
         spec:
           restartPolicy: Never
-          serviceAccountName: factory-tick
+          automountServiceAccountToken: false
           containers:
             - name: tick
               image: alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
               imagePullPolicy: IfNotPresent
               command:
-                - kubectl
-                - --namespace
-                - workspace-dev
-                - exec
-                - deploy/factory-runner
-                - --
-                - bash
-                - scripts/factory/wakeup.sh
+                - /bin/sh
+                - -c
+                - |
+                  OUT=$(curl -sS -N --max-time 1500 -X POST http://factory-runner:8787/wakeup 2>&1)
+                  echo "$OUT"
+                  tail -n 1 <<< "$OUT" | grep -q 'WAKEUP_EXIT=0' && exit 0 || { echo "tick-failed"; exit 1; }
               resources:
                 requests:
                   cpu: 10m

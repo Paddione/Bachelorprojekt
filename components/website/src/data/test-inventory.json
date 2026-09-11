@@ -5556,6 +5556,12 @@
     "kind": "shell"
   },
   {
+    "id": "security/cluster-admin-audit",
+    "file": "tests/spec/security/cluster-admin-audit.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
     "id": "security/githooks-installed-guard",
     "file": "tests/spec/security/githooks-installed-guard.bats",
     "category": "security",
@@ -5564,6 +5570,12 @@
   {
     "id": "security/stray-secret-dump-guard",
     "file": "tests/spec/security/stray-secret-dump-guard.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
+    "id": "security/workload-exec-rbac",
+    "file": "tests/spec/security/workload-exec-rbac.bats",
     "category": "security",
     "kind": "shell"
   },
@@ -5894,6 +5906,12 @@
   {
     "id": "software-factory/stage-plan-touched-files",
     "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/tick-http-wakeup",
+    "file": "tests/spec/software-factory/tick-http-wakeup.bats",
     "category": "software-factory",
     "kind": "shell"
   },

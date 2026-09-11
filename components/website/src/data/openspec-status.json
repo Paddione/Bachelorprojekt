@@ -4661,6 +4661,12 @@
       "status": "archived"
     }
   ],
+  "T900110": [
+    {
+      "slug": "rbac-exec-least-privilege",
+      "status": "plan_staged"
+    }
+  ],
   "T900126": [
     {
       "slug": "2026-09-11-enforce-admins-branch-protection",

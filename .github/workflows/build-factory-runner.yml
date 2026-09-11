@@ -9,11 +9,11 @@ on:
   push:
     branches: [main]
     paths:
-      - "docker/factory-runner/Dockerfile"
+      - "docker/factory-runner/**"
       - ".github/workflows/build-factory-runner.yml"
   pull_request:
     paths:
-      - "docker/factory-runner/Dockerfile"
+      - "docker/factory-runner/**"
       - ".github/workflows/build-factory-runner.yml"
   workflow_dispatch:
 

@@ -4685,6 +4685,12 @@
       "status": "archived"
     }
   ],
+  "T900141": [
+    {
+      "slug": "modernize-llama-vim-integration",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

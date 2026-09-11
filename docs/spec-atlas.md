@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2324 · Scenarios: 5145
+Specs: 146 · Requirements: 2327 · Scenarios: 5152
 
 ## factory-pipeline
 
@@ -89,14 +89,14 @@ In-flight:
   - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 46 · Scenarios: 90 · Lines: 933
+Reqs: 49 · Scenarios: 97 · Lines: 1001
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
+  - WireGuard mesh reconcile applies the registry to every node | T900083 | 2026-09-11 | ADDED
+  - WireGuard mesh drift is detected as a gate | T900083 | 2026-09-11 | ADDED
+  - Reconcile and drift share one renderer | T900083 | 2026-09-11 | ADDED
   - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
   - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
-  - Rendered Staging CronJobs Target the Staging Website | T015004 | 2026-08-23 | ADDED
-  - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
-  - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
 In-flight:
   - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
   - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
@@ -109,9 +109,6 @@ In-flight:
   - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
   - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
-  - WireGuard mesh reconcile applies the registry to every node | T900083 | active | ADDED
-  - WireGuard mesh drift is detected as a gate | T900083 | active | ADDED
-  - Reconcile and drift share one renderer | T900083 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED

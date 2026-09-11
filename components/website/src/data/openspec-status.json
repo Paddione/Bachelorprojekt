@@ -4661,21 +4661,33 @@
       "status": "archived"
     }
   ],
-  "T900109": [
+  "T900116": [
     {
-      "slug": "dev-pod-llm-proxy-loadouts-path",
+      "slug": "devmesh-tailnet",
       "status": "plan_staged"
     }
   ],
-  "T900110": [
+  "T900117": [
     {
-      "slug": "rbac-exec-least-privilege",
+      "slug": "devmesh-k3s-cluster",
       "status": "plan_staged"
     }
   ],
-  "T900114": [
+  "T900118": [
     {
-      "slug": "website-clusterrole-least-privilege",
+      "slug": "devmesh-dev-stack",
+      "status": "plan_staged"
+    }
+  ],
+  "T900119": [
+    {
+      "slug": "dev-repo-per-machine",
+      "status": "plan_staged"
+    }
+  ],
+  "T900120": [
+    {
+      "slug": "devmesh-k3d-decommission",
       "status": "plan_staged"
     }
   ],
@@ -4683,12 +4695,6 @@
     {
       "slug": "2026-09-11-enforce-admins-branch-protection",
       "status": "archived"
-    }
-  ],
-  "T900141": [
-    {
-      "slug": "modernize-llama-vim-integration",
-      "status": "plan_staged"
     }
   ],
   "TBD": [

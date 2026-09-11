@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.332.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.5...website-v1.332.6) (2026-09-11)
+
+
+### Bug Fixes
+
+* **infra:** resolve loadouts.json path robustly across container environments [T900109] ([#5569](https://github.com/Paddione/Bachelorprojekt/issues/5569)) ([a28bb6e](https://github.com/Paddione/Bachelorprojekt/commit/a28bb6ef1d8944e3cb9c897e374b817f7b1eb330))
+
 ## [1.332.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.4...website-v1.332.5) (2026-09-11)
 
 

@@ -16,7 +16,7 @@ name: Auto-enable Auto-Merge
 # pull_request.user.login: der App-Slug hängt am frei gewählten App-Namen und
 # wäre beim Umbenennen eine stille Bruchstelle.
 # E2E PR is intentionally not a required check — see scripts/gh-branch-protection.sh
-# and task gh:branch-protection:status. Required checks: Offline Tests (Manifests, Configs, Unit),
+# and task gh:branch-protection:status. Required checks: BATS Unit + Quality Gates,
 # Security Scan, Brett TypeScript, Conventional Commits.
 # Emergency: task gh:branch-protection:emergency-add-e2e
 

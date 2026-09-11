@@ -156,9 +156,15 @@ tasks:
     cmds:
       - |
         bash -c '
+          [ -f "$HOME/.config/mcp-postgres/server.env" ] && source "$HOME/.config/mcp-postgres/server.env" 2>/dev/null || true
           probe() {
+            local auth=()
+            if [[ "$1" == *"13001"* && -n "${MCP_POSTGRES_TOKEN:-}" ]]; then
+              auth=(-H "Authorization: Bearer $MCP_POSTGRES_TOKEN")
+            fi
             curl -s --max-time 2 -o /dev/null -w "%{http_code}" \
               -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+              "${auth[@]}" \
               -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"hc\",\"version\":\"1\"}}}" \
               "$1"
           }

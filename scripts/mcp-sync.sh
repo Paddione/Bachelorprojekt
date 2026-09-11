@@ -139,20 +139,24 @@ render_agy_json() {
     // war in server.env gepflegt, nur nicht in der Umgebung des Harness.
     const envFileVars = {};
     try {
-      const envFile = path.join(os.homedir(), '.config', 'bge-mcp', 'server.env');
-      for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
-        // systemd-EnvironmentFile (KEY=VALUE), kein Shell-Skript: zeilenweise
-        // lesen statt sourcen — sourcen wuerde beliebigen Code ausfuehren und
-        // Anfuehrungszeichen anders behandeln als systemd.
-        const eq = line.indexOf('=');
-        if (eq < 1 || line.trimStart().startsWith('#')) continue;
-        const key = line.slice(0, eq).trim();
-        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
-        let val = line.slice(eq + 1).trim();
-        if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
-          val = val.slice(1, -1);
+      const configDir = path.join(os.homedir(), '.config');
+      const envFiles = [
+        path.join(configDir, 'bge-mcp', 'server.env'),
+        path.join(configDir, 'mcp-postgres', 'server.env'),
+      ];
+      for (const envFile of envFiles) {
+        if (!fs.existsSync(envFile)) continue;
+        for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
+          const eq = line.indexOf('=');
+          if (eq < 1 || line.trimStart().startsWith('#')) continue;
+          const key = line.slice(0, eq).trim();
+          if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+          let val = line.slice(eq + 1).trim();
+          if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
+            val = val.slice(1, -1);
+          }
+          envFileVars[key] = val;
         }
-        envFileVars[key] = val;
       }
     } catch { /* keine server.env — dann bleibt nur die Umgebung */ }
 
@@ -327,17 +331,24 @@ render_qwen_json() {
     // ~/.config/bge-mcp/server.env als Fallback.
     const envFileVars = {};
     try {
-      const envFile = path.join(os.homedir(), '.config', 'bge-mcp', 'server.env');
-      for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
-        const eq = line.indexOf('=');
-        if (eq < 1 || line.trimStart().startsWith('#')) continue;
-        const key = line.slice(0, eq).trim();
-        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
-        let val = line.slice(eq + 1).trim();
-        if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
-          val = val.slice(1, -1);
+      const configDir = path.join(os.homedir(), '.config');
+      const envFiles = [
+        path.join(configDir, 'bge-mcp', 'server.env'),
+        path.join(configDir, 'mcp-postgres', 'server.env'),
+      ];
+      for (const envFile of envFiles) {
+        if (!fs.existsSync(envFile)) continue;
+        for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
+          const eq = line.indexOf('=');
+          if (eq < 1 || line.trimStart().startsWith('#')) continue;
+          const key = line.slice(0, eq).trim();
+          if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+          let val = line.slice(eq + 1).trim();
+          if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
+            val = val.slice(1, -1);
+          }
+          envFileVars[key] = val;
         }
-        envFileVars[key] = val;
       }
     } catch { /* keine server.env — dann bleibt nur die Umgebung */ }
 

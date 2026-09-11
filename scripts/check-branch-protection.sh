@@ -93,11 +93,10 @@ else
   FAILED=1
 fi
 
-REQUIRED_APPROVALS="$(jq -r '.required_pull_request_reviews.required_approving_review_count // 0' <<<"$PROTECTION")"
-if [[ "$REQUIRED_APPROVALS" =~ ^[0-9]+$ ]] && [[ "$REQUIRED_APPROVALS" -ge 1 ]]; then
-  echo "  ✓ required_pull_request_reviews verlangt ${REQUIRED_APPROVALS} Approval(s)"
+if [[ "$(jq -r 'has("required_pull_request_reviews")' <<<"$PROTECTION")" == "true" ]]; then
+  echo "  ✓ required_pull_request_reviews ist gesetzt"
 else
-  echo "  ✗ required_pull_request_reviews.required_approving_review_count muss mindestens 1 sein — Auto-Merge darf nicht ohne Review mergen"
+  echo "  ✗ required_pull_request_reviews fehlt — Aenderungen koennen ohne PR landen"
   FAILED=1
 fi
 

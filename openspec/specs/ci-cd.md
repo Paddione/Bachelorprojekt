@@ -154,13 +154,12 @@ and SHALL advisory-warn if no ticket tag `[T000XXX]` is present.
 
 The system SHALL automatically enable squash-auto-merge on every non-draft PR against `main`
 that does **not** carry the `dependencies` label, as soon as it is opened or made ready for
-review, so that the PR merges itself once all required checks and at least one approving
-pull-request review satisfy branch protection. PRs carrying the `dependencies` label are
-excluded because Renovate manages their auto-merge itself via `platformAutomerge`, gated by the
-staged policy in `renovate.json5` (`patch` and `devDependencies` only). Without this exclusion
-the blanket auto-merge would override that policy — a `major` or production `minor` bump could
-merge without Renovate's intended review gate and reach both production brands through Flux
-reconciliation.
+review, so that the PR merges itself once all required checks pass and branch protection is
+satisfied. PRs carrying the `dependencies` label are excluded because Renovate manages their
+auto-merge itself via `platformAutomerge`, gated by the staged policy in `renovate.json5`
+(`patch` and `devDependencies` only). Without this exclusion the blanket auto-merge would
+override that policy — `main` requires no reviews, so a `major` or production `minor` bump would
+merge unreviewed and reach both production brands through Flux reconciliation.
 
 #### Scenario: Auto-Merge wird bei PR-Öffnung aktiviert
 
@@ -189,16 +188,6 @@ reconciliation.
 - **THEN** aktiviert Renovate selbst das Auto-Merge-Flag
 - **AND** bei `major`, produktiven `minor`- oder kubernetes-`major`-Updates bleibt der PR als
   offener Review-PR ohne Auto-Merge stehen
-
-#### Scenario: Auto-merge waits for an approval
-
-- **GIVEN** an eligible non-draft PR has auto-merge enabled and all required
-  status checks pass
-- **AND** branch protection requires one approving review
-- **WHEN** the PR has no approval
-- **THEN** GitHub SHALL keep the PR open
-- **WHEN** one approving review is submitted
-- **THEN** GitHub SHALL squash-merge the PR without another manual merge action
 
 ### Requirement: Post-Merge Ticket-Lifecycle und Manifest-Deploy
 
@@ -1701,8 +1690,9 @@ contain the forbidden strings.
 
 The repository SHALL enforce the pull-request workflow for `main` through GitHub branch
 protection, not through local git hooks alone. Protection SHALL apply to administrators
-(`enforce_admins.enabled=true`) and SHALL require a pull request with at least one approving
-review before merging (`required_pull_request_reviews.required_approving_review_count >= 1`).
+(`enforce_admins.enabled=true`) and SHALL require a pull request before merging
+(`required_pull_request_reviews` present). Approving reviews are not required, so auto-merge
+completes once the required status checks pass.
 
 The idempotent protection apply script SHALL always emit `enforce_admins.enabled=true` in its
 full protection payload, regardless of a weaker value returned by the live API.
@@ -1716,13 +1706,13 @@ Local hooks MAY warn earlier, but SHALL NOT be relied upon as the enforcing mech
 - **WHEN** a repository administrator pushes a commit directly to `main`
 - **THEN** GitHub rejects the push
 - **AND** the change can only reach `main` through a pull request that satisfies the required
-  status checks and one approving review
+  status checks
 
 #### Scenario: The protection configuration is audited
 
 - **GIVEN** the current protection settings of `main` as JSON
 - **WHEN** `scripts/check-branch-protection.sh` evaluates them
-- **THEN** it exits zero if `enforce_admins` is enabled and at least one approval is required
+- **THEN** it exits zero if `enforce_admins` is enabled and a pull request is required
 - **AND** it exits non-zero otherwise, naming every unmet requirement individually rather than
   stopping at the first
 

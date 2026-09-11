@@ -53,6 +53,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/recovery-pvc.yaml]="recovery"
   [k3d/website.yaml]="website"
   [k3d/website-rbac.yaml]="website"
+  [k3d/website-test-runner-rbac.yaml]="website"
   [k3d/website-schema.yaml]="website"
   [k3d/website-seller-config.yaml]="website"
   [k3d/website-dev-secrets.yaml]="website"

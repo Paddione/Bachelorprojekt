@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-10T05:50:00.743Z",
+  "generatedAt": "2026-09-11T06:09:59.960Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1410,6 +1410,12 @@
     {
       "from": "dev-pod",
       "to": "dev-pod",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "factory-runner",
+      "to": "factory-runner",
       "via": "selector",
       "kind": "selector"
     },

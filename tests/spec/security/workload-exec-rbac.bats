@@ -27,7 +27,7 @@ y() {  # <datei> <js-ausdruck ueber d>
     const file=process.argv[1];
     const docs=yaml.parseAllDocuments(fs.readFileSync(file,'utf8'))
       .map(x=>x.toJS()).filter(Boolean);
-    const d=docs[0];
+    const d=docs.find(x=>x.kind==='ClusterRole'&&x.metadata?.name?.endsWith('-monitoring-reader')) || docs[0];
     const out=eval('(' + expr + ')');
     console.log(typeof out==='string'?out:JSON.stringify(out));
   " "$1" < "$_tmpf"
@@ -62,18 +62,18 @@ y() {  # <datei> <js-ausdruck ueber d>
   [ -f "$REPO/k3d/website.yaml" ] || { echo "erwartet: k3d/website.yaml"; false; }
 
   # Positiv-Anker: die Role-Definition existiert in der Datei.
-  run y "$REPO/k3d/website.yaml" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).map(x=>x.toJS()).filter(d=>d.kind==='Role'&&d.metadata&&d.metadata.name==='website-self-exec').length"
+  run y "$REPO/k3d/website.yaml" "docs.filter(d=>d.kind==='Role'&&d.metadata&&d.metadata.name==='website-self-exec').length"
   echo "website-self-exec Role count: $output"
   [ "$output" -ge 1 ]
 
   # Positiv-Anker: Rule hat pods/exec + create.
-  run y "$REPO/k3d/website.yaml" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='Role'&&d.metadata&&d.metadata.name==='website-self-exec')?.rules?.filter(r=>(r.resources||[]).includes('pods/exec')&&(r.verbs||[]).includes('create')).length"
+  run y "$REPO/k3d/website.yaml" "docs.find(d=>d.kind==='Role'&&d.metadata&&d.metadata.name==='website-self-exec')?.rules?.filter(r=>(r.resources||[]).includes('pods/exec')&&(r.verbs||[]).includes('create')).length"
   echo "exec rules: $output"
   [ "$output" -ge 1 ]
 }
 
 @test "1.1.2: website-self-exec RoleBinding binds to website ServiceAccount" {
-  run y "$REPO/k3d/website.yaml" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='RoleBinding'&&d.metadata&&d.metadata.name==='website-self-exec')?.subjects?.[0]?.name"
+  run y "$REPO/k3d/website.yaml" "docs.find(d=>d.kind==='RoleBinding'&&d.metadata&&d.metadata.name==='website-self-exec')?.subjects?.[0]?.name"
   echo "subject name: $output"
   [ "$output" = "website" ]
 }
@@ -83,7 +83,7 @@ y() {  # <datei> <js-ausdruck ueber d>
 @test "1.1.3: website-test-runner-exec Role exists in k3d/website-test-runner-rbac.yaml" {
   [ -f "$REPO/k3d/website-test-runner-rbac.yaml" ] || { echo "erwartet: k3d/website-test-runner-rbac.yaml"; false; }
 
-  run y "$REPO/k3d/website-test-runner-rbac.yaml" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).filter(d=>d.kind==='Role'&&d.metadata&&d.metadata.name==='website-test-runner-exec').length"
+  run y "$REPO/k3d/website-test-runner-rbac.yaml" "docs.filter(d=>d.kind==='Role'&&d.metadata&&d.metadata.name==='website-test-runner-exec').length"
   echo "Role count: $output"
   [ "$output" -ge 1 ]
 }
@@ -91,7 +91,7 @@ y() {  # <datei> <js-ausdruck ueber d>
 @test "1.1.3: website-test-runner-exec RoleBinding exists" {
   [ -f "$REPO/k3d/website-test-runner-rbac.yaml" ] || { echo "erwartet: k3d/website-test-runner-rbac.yaml"; false; }
 
-  run y "$REPO/k3d/website-test-runner-rbac.yaml" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).filter(d=>d.kind==='RoleBinding'&&d.metadata&&d.metadata.name==='website-test-runner-exec').length"
+  run y "$REPO/k3d/website-test-runner-rbac.yaml" "docs.filter(d=>d.kind==='RoleBinding'&&d.metadata&&d.metadata.name==='website-test-runner-exec').length"
   echo "RoleBinding count: $output"
   [ "$output" -ge 1 ]
 }
@@ -99,7 +99,7 @@ y() {  # <datei> <js-ausdruck ueber d>
 @test "1.1.3: RoleBinding subject is website SA with namespace" {
   [ -f "$REPO/k3d/website-test-runner-rbac.yaml" ] || { echo "erwartet: k3d/website-test-runner-rbac.yaml"; false; }
 
-  run y "$REPO/k3d/website-test-runner-rbac.yaml" "require('yaml').parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).find(d=>d.kind==='RoleBinding'&&d.metadata&&d.metadata.name==='website-test-runner-exec')?.subjects?.[0]"
+  run y "$REPO/k3d/website-test-runner-rbac.yaml" "docs.find(d=>d.kind==='RoleBinding'&&d.metadata&&d.metadata.name==='website-test-runner-exec')?.subjects?.[0]"
   echo "subject: $output"
   [ "$output" != "" ]
   run node -e "const s=JSON.parse('$output'); console.log(s.kind==='ServiceAccount'&&s.name==='website')"
@@ -127,7 +127,7 @@ y() {  # <datei> <js-ausdruck ueber d>
     for f in '$REPO'/k3d/*.yaml; do
       node -e \"
         const fs=require('fs'), yaml=require('yaml');
-        const docs=yaml.parseAllDocuments(fs.readFileSync('$f','utf8')).map(x=>x.toJS()).filter(Boolean);
+        const docs=yaml.parseAllDocuments(fs.readFileSync(process.argv[1],'utf8')).map(x=>x.toJS()).filter(Boolean);
         const crs=docs.filter(d=>d.kind==='ClusterRole'&&(d.rules||[]).some(r=>(r.resources||[]).includes('pods/exec'))).map(d=>d.metadata.name);
         const crbs=docs.filter(d=>d.kind==='ClusterRoleBinding');
         for(const cb of crbs){
@@ -137,7 +137,7 @@ y() {  # <datei> <js-ausdruck ueber d>
             if(s){found=1; process.exit(0);}
           }
         }
-      \" || true
+      \" \"\$f\" || true
     done
     echo \$found
   "

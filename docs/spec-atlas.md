@@ -61,6 +61,7 @@ Last touches:
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
 In-flight:
+  - Factory Dispatcher Runs In-Cluster | T900110 | active | MODIFIED
   - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
   - Force-Tick Trigger | T900054 | active | MODIFIED
   - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | active | MODIFIED
@@ -1067,6 +1068,9 @@ In-flight:
 Reqs: 3 · Scenarios: 8 · Lines: 130
 Last touches:
   - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
+In-flight:
+  - Workload ServiceAccounts hold no clusterwide pods/exec | T900110 | active | ADDED
+  - cluster-admin bindings are limited to an allowlist | T900110 | active | ADDED
 
 ### sessions-server
 Reqs: 13 · Scenarios: 26 · Lines: 269

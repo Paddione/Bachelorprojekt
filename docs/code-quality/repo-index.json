@@ -4155,7 +4155,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 861,
+      "file_count": 862,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4770,6 +4770,7 @@
         "scripts/mcp-gateway/mcp-postgres-local.service",
         "scripts/mcp-gateway/probe.sh",
         "scripts/mcp-gateway/register-autostart.ps1",
+        "scripts/mcp-gateway/start-mcp-unified.sh",
         "scripts/mcp-gateway/start-windows.ps1",
         "scripts/mcp-gateway/watchdog-check.sh",
         "scripts/mcp-sync.sh",

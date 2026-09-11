@@ -11,10 +11,10 @@
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
 **MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).
-> `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: openspec/changes/<slug>/design.md\n<grilling-ref>" })`
-Bei vorhandenem Ticket stattdessen die UUID lesen: `mcp__ticket-mcp__get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
+> `ticket-mcp-node_create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: openspec/changes/<slug>/design.md\n<grilling-ref>" })`
+Bei vorhandenem Ticket stattdessen die UUID lesen: `ticket-mcp-node_get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
 Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute) — **MCP-first**:
-> `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
+> `ticket-mcp-node_stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
 `hold` ist **PFLICHT** (T003267): ohne das Feld defaultet der Go-Adapter auf `false` und
 ruft `--no-hold` auf — die Factory greift sofort zu, statt auf `dev-flow-execute` zu warten.
 
@@ -123,6 +123,6 @@ bash scripts/ticket.sh stage-plan \
 |---|---|
 | `--hold` / `--no-hold` | **Eines von beiden ist Pflicht** (T003267) — ohne Flag Exit 1. `--hold` setzt `readiness.execution_released=false` und hält das Ticket vom Factory-Dispatch zurück, bis `dev-flow-execute` per `ticket.sh release-hold` freigibt. Interaktive Calls immer `--hold`; `--no-hold` ist headless Factory-Pfaden vorbehalten. |
 | `--partials <N>` | Anzahl der Partials aus dem `## Partials`-Manifest, 1..9, Pflicht. Setzt `slot_count` — die Factory dispatcht nur bis zu dieser Grenze (Race-Condition-Schutz). |
-| `--allow-empty-touched` | Override. Seit T003267 bricht `stage-plan` bei leerer `touched_files`-Ableitung hart ab (Exit 1) statt still zu melden. Leere Ableitung heißt fast immer: zu früh aufgerufen — siehe T002673 in [dev-flow-gotchas](.opencode/skills/references/dev-flow-gotchas.md). |
+| `--allow-empty-touched` | Override. Seit T003267 bricht `stage-plan` bei leerer `touched_files`-Ableitung hart ab (Exit 1) statt still zu melden. Leere Ableitung heißt fast immer: zu früh aufgerufen — siehe T002673 in [dev-flow-gotchas](.agents/skills/references/dev-flow-gotchas.md). |
 
 **Reihenfolge:** `stage-plan` läuft **nach** `git commit` + `git push`, nicht in Schritt 4.5. Begründung: T002673 in den Gotchas.

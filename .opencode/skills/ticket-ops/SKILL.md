@@ -25,4 +25,4 @@ Do not dispatch work from this router. `ticket-dispatch` owns the single user-ap
 
 ## Framework delivery
 
-Claude Code and Codex use the canonical `.claude/skills` definition. This opencode entrypoint mirrors it, and agy treats this path as authoritative. Keep the two entrypoints behaviorally identical when this router changes.
+Codex and agy use this canonical `.agents/skills` definition; opencode and Claude Code carry mirrored entrypoints. Keep the entrypoints behaviorally identical when this router changes.

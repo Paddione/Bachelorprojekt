@@ -309,7 +309,7 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
 
 ### Schritt 1: T-###### Ticket
 Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp):
-> `mcp__ticket-mcp__create_ticket({ type: "bug", brand: "mentolder", title: "<titel>", description: "<beschreibung>", status: "triage", severity: "<critical|major|minor|trivial>", priority: "hoch" })`
+> `mcp__ticket-mcp-node__create_ticket({ type: "bug", brand: "mentolder", title: "<titel>", description: "<beschreibung>", status: "triage", severity: "<critical|major|minor|trivial>", priority: "hoch" })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 TICKET_RESULT=$(./scripts/ticket.sh create \
@@ -366,7 +366,7 @@ direkt aus (opencode — das Äquivalent ist in `dev-flow-plan` inlined; schreib
 Wende das Frontmatter an und trage die Ticket-ID ein. **Erst committen und pushen, DANN stagen [T002673]:** `stage-plan` liest den Plan per `git cat-file -p "${branch}:${plan}"` aus dem Branch-Commit; vor dem Commit steht dort das propose-Skeleton, `touched_files` bliebe leer — seit T003267 bricht `stage-plan` dann mit Exit 1 ab (Override: `--allow-empty-touched`).
 ### Schritt 4.5: Plan stagen (Fix 6)
 **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
+> `mcp__ticket-mcp-node__stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 ./scripts/ticket.sh stage-plan \

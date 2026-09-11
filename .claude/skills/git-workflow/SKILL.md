@@ -187,7 +187,7 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 ## Schritt 5 — CI Fix Loop & Mergeability Guard
 
 Nach dem Push CI- und Merge-Status überwachen und Konflikte/Fehler beheben **bevor** gemergt wird.
-Detaillierte Checkliste (SSOT): [ci-fix-loop](.claude/skills/references/ci-fix-loop.md)
+Detaillierte Checkliste (SSOT): [ci-fix-loop](.agents/skills/references/ci-fix-loop.md)
 
 1. `bash scripts/pr-health-check.sh <n>` ausführen — prüft CI-Rollup UND Git-Mergeability (`DIRTY` / `CONFLICTING` / `BEHIND`).
 2. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind.
@@ -294,4 +294,3 @@ startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher Cluster):
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-

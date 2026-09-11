@@ -29,7 +29,7 @@ capabilities:
       fallback: "scripts/ticket.sh (worktree-tauglich)"
       roles: [bachelorprojekt-test, bachelorprojekt-db, orchestrator]
       tier: caution             # safe | caution | assisted | dangerous
-      deep_ref: ".opencode/skills/references/mcp-tool-guide.md"
+      deep_ref: ".agents/skills/references/mcp-tool-guide.md"
 ```
 
 `state` und `reason` regeln die **Auswahl** (was ein Harness benutzen darf), die übrigen Felder
@@ -55,7 +55,7 @@ node scripts/toolset/collect.mjs --unreviewed
 ```
 
 Erfasst werden alle fünf Kinds: `mcp:` aus den Harness-Configs, `plugin:` aus `enabledPlugins`
-in `.claude/settings.json`, `skill:` aus dem `name:`-Frontmatter von `.opencode/skills/*/SKILL.md`,
+in `.claude/settings.json`, `skill:` aus dem `name:`-Frontmatter der Skill-Dateien (`SKILL.md`),
 `cli:` und `agent:` aus `docs/agent-guide/registry/tools.yaml`. Alles, was in
 `capabilities.yaml` fehlt, trägt `curation: "unreviewed"`.
 
@@ -141,7 +141,7 @@ enthält. `--json` liefert dasselbe maschinenlesbar.
 | `docs/agent-guide/registry/mcp.yaml` | SSOT für die *Erreichbarkeit* eines Servers |
 | `docs/agent-guide/maps/toolset-map.md` | generierte, menschenlesbare Karte |
 | `docs/agent-guide/registry/toolset.lock.yaml` | gemessene Tool-Zahlen (`probe.mjs`) |
-| `.opencode/skills/references/mcp-tool-guide.md` | handgepflegte Tiefenreferenz |
+| `.agents/skills/references/mcp-tool-guide.md` | handgepflegte Tiefenreferenz |
 | `scripts/toolset-context.sh` | Prompt-Block je Rolle |
 | `scripts/toolset/{collect,check,sync,emit-map,probe}.mjs` | Erhebung, Gate, Sync, Karte, Probe |
 

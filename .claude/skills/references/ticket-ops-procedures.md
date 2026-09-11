@@ -192,7 +192,7 @@ Für jede gefundene Gruppe (≥2 Tickets):
 1. **Parent-Ticket anlegen:**
    ```bash
    # Via ticket-mcp:
-   mcp__ticket-mcp__create_ticket({
+   mcp__ticket-mcp-node__create_ticket({
      type: "feat",
      brand: "mentolder",
      title: "Batch: <kurzer-gruppen-titel>",
@@ -206,12 +206,12 @@ Für jede gefundene Gruppe (≥2 Tickets):
 
 2. **`child_of`-Links setzen** (für jedes Kind-Ticket):
    ```
-   mcp__ticket-mcp__link_tickets({ from: "<child_ext_id>", to: "<BATCH_PARENT_ID>", kind: "child_of" })
+   mcp__ticket-mcp-node__link_tickets({ from: "<child_ext_id>", to: "<BATCH_PARENT_ID>", kind: "child_of" })
    ```
 
 3. **Kind-Tickets markieren:**
    ```
-   mcp__ticket-mcp__add_comment({
+   mcp__ticket-mcp-node__add_comment({
      id: "<child_ext_id>",
      body: "🔗 Batch-Gruppe: Parent <BATCH_PARENT_ID>. Wird gemeinsam mit N anderen Tickets geplant."
    })
@@ -283,9 +283,9 @@ If you are running without an interactive question tool (e.g. dispatched as a su
 
 **MCP-first** (`ticket-mcp` lifecycle, where a wrapper exists — these shell out to `ticket.sh`, the sanctioned write path, NOT via the read-only `mcp-postgres`): set DoR flags via `set_readiness_flag` (one per flag) or `prepare_feature`; set effort/areas/depends_on via `set_plan_meta`; append the clarification comment via `add_comment`.
 
-> `mcp__ticket-mcp__set_readiness_flag({ id: "T000XXX", flag: "spec_skizziert", value: true })`
-> `mcp__ticket-mcp__set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
-> `mcp__ticket-mcp__add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
+> `mcp__ticket-mcp-node__set_readiness_flag({ id: "T000XXX", flag: "spec_skizziert", value: true })`
+> `mcp__ticket-mcp-node__set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
+> `mcp__ticket-mcp-node__add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
 
 **CLI path** (ticket-mcp nicht erreichbar, oder im Worktree — `ticket.sh` ist dasselbe Backend, das auch der MCP-Wrapper ruft): Der korrekte Subcommand heisst `add-comment` (nicht `comment`):
 

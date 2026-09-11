@@ -11,14 +11,14 @@ description: 'Use for the state of the repository itself — stale branches and 
 Day-to-day repository hygiene, PR merging, issue intake, and Software Factory queue management.
 
 Der interne Postgres-Tracker `tickets.tickets` ist die SSOT für Issues. DB-Zugriff (MCP-first,
-`psql()`-Helper): [`MCP-Tool-Guide`](.opencode/skills/references/mcp-tool-guide.md) §mcp-postgres.
+`psql()`-Helper): [`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §mcp-postgres.
 
 ---
 
 ## Ablauf
 
 Die gesamte Housekeeping-Mechanik ist **SSOT** in
-[`repo-hygiene-ops`](.opencode/skills/references/repo-hygiene-ops.md) —
+[`repo-hygiene-ops`](.agents/skills/references/repo-hygiene-ops.md) —
 die acht Abschnitte der Reihe nach ausführen:
 
 0. **Arbeitsbaum & Stashes** — §0

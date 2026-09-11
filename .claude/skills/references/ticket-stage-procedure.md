@@ -11,10 +11,10 @@
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
 **MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).
-> `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: openspec/changes/<slug>/design.md\n<grilling-ref>" })`
-Bei vorhandenem Ticket stattdessen die UUID lesen: `mcp__ticket-mcp__get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
+> `mcp__ticket-mcp-node__create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: openspec/changes/<slug>/design.md\n<grilling-ref>" })`
+Bei vorhandenem Ticket stattdessen die UUID lesen: `mcp__ticket-mcp-node__get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
 Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute) — **MCP-first**:
-> `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
+> `mcp__ticket-mcp-node__stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
 `hold` ist **PFLICHT** (T003267): ohne das Feld defaultet der Go-Adapter auf `false` und
 ruft `--no-hold` auf — die Factory greift sofort zu, statt auf `dev-flow-execute` zu warten.
 

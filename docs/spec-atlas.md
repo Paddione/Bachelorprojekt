@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2333 · Scenarios: 5162
+Specs: 147 · Requirements: 2337 · Scenarios: 5172
 
 ## factory-pipeline
 
@@ -689,6 +689,14 @@ In-flight:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 
+### local-dev-mesh
+Reqs: 4 · Scenarios: 8 · Lines: 92
+Last touches:
+  - Dev peers join the tailnet with role tags | T900142 | 2026-09-11 | ADDED
+  - LAN path is preferred, the tailnet relay is the fallback | T900142 | 2026-09-11 | ADDED
+  - Tailnet access policy is versioned in the repository | T900142 | 2026-09-11 | ADDED
+  - The tailnet check separates findings from missing preconditions | T900142 | 2026-09-11 | ADDED
+
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
 Last touches:
@@ -1028,16 +1036,14 @@ In-flight:
   - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | active | ADDED
 
 ### sdlc-isolation
-Reqs: 29 · Scenarios: 54 · Lines: 630
+Reqs: 29 · Scenarios: 56 · Lines: 644
 Last touches:
+  - No remote cockpit and no tunnel into the home network | T900142 | 2026-09-11 | RENAMED
+  - Remote access to the SDLC surface only through the tailnet, without an inbound port | T900142 | 2026-09-11 | MODIFIED
   - Single Entry Point for the Local SDLC Stack | T002656 | 2026-08-13 | MODIFIED
   - Health Gate Reports Diagnosable Failure | T002656 | 2026-08-13 | MODIFIED
   - sdlc:up starts the local chat loadout before the health gate | T002656 | 2026-08-13 | ADDED
-  - sdlc:down stops the chat loadout before the proxy | T002656 | 2026-08-13 | ADDED
-  - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T002623 | 2026-08-10 | ADDED
 In-flight:
-  - No remote cockpit and no tunnel into the home network | T900142 | active | RENAMED
-  - Remote access to the SDLC surface only through the tailnet, without an inbound port | T900142 | active | MODIFIED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
   - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED

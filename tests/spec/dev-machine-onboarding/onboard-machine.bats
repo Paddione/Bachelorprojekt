@@ -62,3 +62,37 @@ exec $(command -v id) \"\$@\""
   printf '%s\n' "$output" | grep -qF -e 'key-owner'
   [ "$(stat -c '%a' "$KEY")" = "644" ]
 }
+
+@test "onboard: unlock ohne Wirkung endet mit Exit 1 und nennt nur die Pruefung decryption" {
+  run bash "$SCRIPT" --repo-url "$ORIGIN" --name t --email t@example.invalid
+  [ "$status" -eq 1 ]
+  [ -d "$CLONE/.git" ]
+  fails="$(printf '%s\n' "$output" | grep -F -e 'FAIL ' || true)"
+  [ "$(printf '%s\n' "$fails" | grep -c .)" -eq 1 ]
+  printf '%s\n' "$fails" | grep -qF -e 'decryption'
+}
+
+@test "onboard: --verify auf onboardeter Maschine endet mit 0 und aendert keine mtime" {
+  stub git-crypt 'printf "plain: true\n" > environments/.secrets/dev.yaml'
+  run bash "$SCRIPT" --repo-url "$ORIGIN" --name t --email t@example.invalid
+  [ "$status" -eq 0 ]
+  [ -d "$CLONE/.git" ]
+  before="$(snapshot)"
+  sleep 1
+  run bash "$SCRIPT" --verify --repo-url "$ORIGIN" --name t --email t@example.invalid
+  [ "$status" -eq 0 ]
+  [ "$(snapshot)" = "$before" ]
+}
+
+@test "onboard: wiederholter Lauf auf onboardeter Maschine aendert nichts" {
+  stub git-crypt 'printf "plain: true\n" > environments/.secrets/dev.yaml'
+  run bash "$SCRIPT" --repo-url "$ORIGIN" --name t --email t@example.invalid
+  [ "$status" -eq 0 ]
+  [ -d "$CLONE/.git" ]
+  before="$(snapshot)"
+  sleep 1
+  run bash "$SCRIPT" --repo-url "$ORIGIN" --name t --email t@example.invalid
+  [ "$status" -eq 0 ]
+  [ "$(snapshot)" = "$before" ]
+  [ ! -e "$HOME/sudo.log" ]
+}

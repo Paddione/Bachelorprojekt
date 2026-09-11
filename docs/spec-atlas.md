@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2325 · Scenarios: 5149
+Specs: 146 · Requirements: 2325 · Scenarios: 5150
 
 ## factory-pipeline
 
@@ -52,16 +52,15 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 207 · Scenarios: 633 · Lines: 5710
+Reqs: 207 · Scenarios: 634 · Lines: 5722
 Paths: scripts/factory
 Last touches:
+  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | 2026-09-11 | MODIFIED
   - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
   - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
-  - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
 In-flight:
-  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | active | MODIFIED
   - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
   - Force-Tick Trigger | T900054 | active | MODIFIED
   - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | active | MODIFIED

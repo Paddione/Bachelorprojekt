@@ -3319,7 +3319,10 @@ created external_id in a file-scoped registry, and the shared `_sf_teardown` SHA
 registered id at teardown time, which BATS runs regardless of the test outcome. Test bodies
 SHALL NOT purge their own seeds. `purge_real_feature` SHALL refuse to delete tickets whose
 title does not carry the `SF-REAL-` fixture prefix, so a wrong id can never hard-delete a real
-ticket.
+ticket. Factory tests that require a dispatch-visible ticket SHALL use a fixture helper
+that durably registers the created ticket for guarded teardown before any
+fallible command or assertion. Tests SHALL NOT temporarily reclassify an
+`SF-TEST` fixture as production data.
 
 #### Scenario: seed registers the fixture for teardown cleanup
 
@@ -3346,6 +3349,13 @@ ticket.
 - **GIVEN** a ticket whose title does not start with `SF-REAL-`
 - **WHEN** `purge_real_feature` runs against its external_id
 - **THEN** the DELETE matches zero rows and the ticket remains
+
+#### Scenario: Scheduling assertion aborts before test completion
+
+- **GIVEN** a factory scheduling test needs an `is_test_data=false` ticket
+- **WHEN** the scheduling command fails, times out, or an assertion aborts the test
+- **THEN** the ticket is already registered for guarded teardown
+- **AND** no `SF-TEST` row remains dispatchable in the factory queue
 
 ### Requirement: schedule.sh holds back tickets with open blockers
 
@@ -5708,3 +5718,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (9c3f4fcbfa45) -->
 
 <!-- merged from change delta software-factory.md (d91129be328e) -->
+
+<!-- merged from change delta software-factory.md (1468f389bd87) -->

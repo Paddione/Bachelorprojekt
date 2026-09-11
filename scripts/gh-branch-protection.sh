@@ -2,7 +2,7 @@
 # gh-branch-protection.sh — Idempotentes Branch-Protection-Setup für main
 #
 # Setzt die required status checks für Paddione/Bachelorprojekt:main
-# auf: Offline Tests (Manifests, Configs, Unit), Security Scan, Brett TypeScript,
+# auf: BATS Unit + Quality Gates, Security Scan, Brett TypeScript,
 #      Conventional Commits
 # (E2E PR ist NICHT enthalten — informativ, blockiert keinen Auto-Merge)
 #
@@ -13,7 +13,7 @@
 #   bash scripts/gh-branch-protection.sh --add-e2e  # Emergency: E2E wieder hinzufügen
 #
 # Voraussetzung: GH_PAT env-var mit repo + admin:repo Scope
-# (gleiche Credentials wie in auto-enable-automerge.yml)
+# (gleiche Credentials wie in auto-enable-automerge.yml, Fallback auf gh auth token)
 
 set -euo pipefail
 
@@ -24,7 +24,7 @@ MANUAL_URL="https://github.com/${REPO}/settings/branches"
 # Required checks ohne E2E (Normalzustand nach diesem Feature)
 # Namen sind die GitHub-status-check-Namen (name:-Feld der Job-Definition), nicht job-IDs.
 REQUIRED_CHECKS_BASE=(
-  "Offline Tests (Manifests, Configs, Unit)"
+  "BATS Unit + Quality Gates"
   "Security Scan"
   "Brett TypeScript"
 
@@ -33,7 +33,7 @@ REQUIRED_CHECKS_BASE=(
 
 # Required checks inkl. E2E (Emergency-Stop-Zustand)
 REQUIRED_CHECKS_WITH_E2E=(
-  "Offline Tests (Manifests, Configs, Unit)"
+  "BATS Unit + Quality Gates"
   "Security Scan"
   "Brett TypeScript"
 
@@ -41,8 +41,9 @@ REQUIRED_CHECKS_WITH_E2E=(
   "E2E PR"
 )
 
+GH_PAT="${GH_PAT:-$(gh auth token 2>/dev/null || true)}"
 if [[ -z "${GH_PAT:-}" ]]; then
-  echo "ERROR: GH_PAT env-var ist nicht gesetzt." >&2
+  echo "ERROR: GH_PAT env-var ist nicht gesetzt und gh auth token liefert keinen Token." >&2
   echo "       Setze: export GH_PAT=<token-mit-admin:repo-scope>" >&2
   echo "       Alternativ manuell: ${MANUAL_URL}" >&2
   exit 1

@@ -75,7 +75,7 @@ bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
 > Hintergrund-Monitor [T001969].
 
 Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet · agent_id=$IMPLEMENTER_AGENT_ID" })`
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet · agent_id=$IMPLEMENTER_AGENT_ID" })`
 Fallback:
 ```bash
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
@@ -149,9 +149,9 @@ aber nicht. Default `MAX_LOOP=3`, überschreibbar per `FACTORY_BUILD_LOOP_MAX`.
 
 Rufe das Skill **`verification-before-completion`** auf (Claude Code — built-in; opencode: siehe die
 inlined Steps in `dev-flow-execute/SKILL.md` und den `references/verification-block.md`), um die Verifikation strukturiert zu steuern.
-Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
+Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-first** (`ticket-mcp-node`):
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })`
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
 Verifikation ausführen — die vier Befehle + `./tests/runner.sh local <FA-XX oder SA-XX>` bei
 Manifest-Änderungen. **SSOT:** [verification-block](.claude/skills/references/verification-block.md).
 
@@ -164,7 +164,7 @@ Manifest-Änderungen. **SSOT:** [verification-block](.claude/skills/references/v
 > wird also aus Schritt 5 hierher vorgezogen; der eigentliche Implementierungs-Commit bleibt,
 > wo er ist.
 Nach grünen Tests — **MCP-first**:
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })`
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })`
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
 Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeilen bleiben Pflicht — das Gate in Schritt 6 erzwingt `verify:done`):
 ```bash

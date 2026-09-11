@@ -82,6 +82,7 @@ In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
+  - Squash-Auto-Merge | T900089 | active | MODIFIED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED
   - Build embeds the git revision | T014735 | active | ADDED
 

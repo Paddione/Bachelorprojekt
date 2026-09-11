@@ -29,7 +29,7 @@ openspec/specs/ci-cd.md                      # merged SSOT requirement (via arch
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Extend
+- [x] **Failing-Test-Step (RED).** Extend
       `tests/spec/ci-cd/main-direct-push-guard.bats` with a fixture whose
       `required_approving_review_count` is `0`; assert that
       `scripts/check-branch-protection.sh --from-json` rejects it. Run:
@@ -39,7 +39,7 @@ bash tests/bats tests/spec/ci-cd/main-direct-push-guard.bats
 # expected: FAIL (red — the checker currently accepts a zero-review policy)
 ```
 
-- [ ] **Fix-Step (GREEN).** Update `scripts/check-branch-protection.sh` to
+- [x] **Fix-Step (GREEN).** Update `scripts/check-branch-protection.sh` to
       require `required_pull_request_reviews.required_approving_review_count`
       to be at least `1`. Update `scripts/gh-branch-protection.sh` so its
       full PUT payload preserves existing review options but initializes or

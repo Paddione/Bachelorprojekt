@@ -80,7 +80,7 @@ setup() {
   good="$BATS_TEST_TMPDIR/good.json"
   cat >"$good" <<'JSON'
 {"enforce_admins":{"enabled":true},
- "required_pull_request_reviews":{"required_approving_review_count":0},
+ "required_pull_request_reviews":{"required_approving_review_count":1},
  "required_status_checks":{"contexts":["Security Scan"]}}
 JSON
   run "$SCRIPT" --from-json "$good"

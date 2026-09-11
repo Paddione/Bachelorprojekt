@@ -102,7 +102,14 @@ CURRENT_PROTECTION=$(GH_TOKEN="$GH_PAT" gh api \
   "repos/${REPO}/branches/${BRANCH}/protection" 2>/dev/null || echo "{}")
 
 ENFORCE_ADMINS=$(echo "$CURRENT_PROTECTION" | jq '.enforce_admins.enabled // false')
-REQUIRED_REVIEWS=$(echo "$CURRENT_PROTECTION" | jq '.required_pull_request_reviews // null')
+# Auto-merge bleibt erwünscht, darf aber erst nach einer echten Approval greifen.
+# Bestehende Review-Optionen (z.B. Code-Owner- oder Stale-Review-Policy) bleiben
+# erhalten; nur ein fehlender bzw. zu niedriger Mindestwert wird auf eins angehoben.
+REQUIRED_REVIEWS=$(echo "$CURRENT_PROTECTION" | jq '
+  (.required_pull_request_reviews // {})
+  | .required_approving_review_count =
+      ((.required_approving_review_count // 0) | if . < 1 then 1 else . end)
+')
 RESTRICTIONS=$(echo "$CURRENT_PROTECTION" | jq '.restrictions // null')
 REQUIRED_LINEAR=$(echo "$CURRENT_PROTECTION" | jq '.required_linear_history.enabled // false')
 ALLOW_FORCE=$(echo "$CURRENT_PROTECTION" | jq '.allow_force_pushes.enabled // false')

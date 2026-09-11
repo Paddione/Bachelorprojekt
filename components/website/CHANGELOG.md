@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.332.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.0...website-v1.332.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* **agents:** sync CLAUDE.md runtime list and resolve dead MCP references [T900080] ([#5547](https://github.com/Paddione/Bachelorprojekt/issues/5547)) ([500eaaa](https://github.com/Paddione/Bachelorprojekt/commit/500eaaa2598ce7c79dd196bb9b58ffc4fec2eeb3))
+
 ## [1.332.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.331.0...website-v1.332.0) (2026-09-10)
 
 

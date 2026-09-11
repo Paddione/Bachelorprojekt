@@ -115,3 +115,13 @@ JSON
   [ "$status" -eq 1 ]
   [[ "$output" == *"required_approving_review_count"* ]]
 }
+
+@test "gh-branch-protection: erzwingt Branch Protection auch fuer Administratoren" {
+  SCRIPT="$REPO_ROOT/scripts/gh-branch-protection.sh"
+  [ -x "$SCRIPT" ]
+
+  # Das Payload darf den unsicheren Live-Wert nicht erneut uebernehmen: Admins
+  # muessen Required Checks und Review-Pflicht ebenfalls einhalten.
+  run grep -Eq '^ENFORCE_ADMINS=true$' "$SCRIPT"
+  [ "$status" -eq 0 ]
+}

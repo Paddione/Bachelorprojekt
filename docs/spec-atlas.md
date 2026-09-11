@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2333 · Scenarios: 5162
+Specs: 147 · Requirements: 2342 · Scenarios: 5188
 
 ## factory-pipeline
 
@@ -1160,6 +1160,16 @@ Reqs: 11 · Scenarios: 23 · Lines: 245
 Paths: k3d/vaultwarden
 Last touches:
   - Spec-BATS smoke coverage | T002012 | 2026-07-21 | ADDED
+
+### vim-ai-completion
+Reqs: 9 · Scenarios: 26 · Lines: 201
+Paths: editor/llama-vim, scripts/vim
+Last touches:
+  - REQ-VIM-AI-001 Repository-owned and reversible installation | T900141 | 2026-09-11 | ADDED
+  - REQ-VIM-AI-002 Compatible and race-safe request lifecycle | T900141 | 2026-09-11 | ADDED
+  - REQ-VIM-AI-003 Progressive SSE and NDJSON completion | T900141 | 2026-09-11 | ADDED
+  - REQ-VIM-AI-004 Structured errors and bounded recovery | T900141 | 2026-09-11 | ADDED
+  - REQ-VIM-AI-005 Validated and hot-reloadable configuration | T900141 | 2026-09-11 | ADDED
 
 ### website-db-split
 Reqs: 3 · Scenarios: 3 · Lines: 46

@@ -2,7 +2,7 @@
 title: "modernize-llama-vim-integration — Implementation Plan"
 ticket_id: T900141
 domains: [vim, llm-local-dev]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

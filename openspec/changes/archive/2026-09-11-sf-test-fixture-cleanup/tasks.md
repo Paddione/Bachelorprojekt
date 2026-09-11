@@ -50,7 +50,7 @@ bash tests/unit/lib/bats-core/bin/bats --filter 'T900057:' tests/spec/software-f
 
 ## Task 4: Final Verification
 
-- [ ] Run the mandatory gates:
+- [x] Run the mandatory gates:
 
 ```bash
 task test:changed

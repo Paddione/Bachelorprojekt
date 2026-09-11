@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.332.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.2...website-v1.332.3) (2026-09-11)
+
+
+### Documentation
+
+* **plans:** archive admin branch protection policy [T900126] ([#5557](https://github.com/Paddione/Bachelorprojekt/issues/5557)) ([8154b4a](https://github.com/Paddione/Bachelorprojekt/commit/8154b4a19a22a6ac7c2475dba74760f8d70a691e))
+
+## [1.332.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.1...website-v1.332.2) (2026-09-11)
+
+
+### Bug Fixes
+
+* **ci:** enforce branch protection for administrators [T900126] ([#5552](https://github.com/Paddione/Bachelorprojekt/issues/5552)) ([8ed14ab](https://github.com/Paddione/Bachelorprojekt/commit/8ed14ab60a9df29d4ab4ff6099c361e81f515ce0))
+* **ci:** require approval before auto merge [T900089] ([#5549](https://github.com/Paddione/Bachelorprojekt/issues/5549)) ([d2d8c57](https://github.com/Paddione/Bachelorprojekt/commit/d2d8c57b550d03f1e4ca6de98d4990cdef717e72))
+
+
+### Documentation
+
+* **plans:** archive auto-merge review policy [T900089] ([#5551](https://github.com/Paddione/Bachelorprojekt/issues/5551)) ([ba2c6e3](https://github.com/Paddione/Bachelorprojekt/commit/ba2c6e34262498218380cb9b4ea30aaa9ddf02cf))
+
+## [1.332.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.0...website-v1.332.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* **agents:** sync CLAUDE.md runtime list and resolve dead MCP references [T900080] ([#5547](https://github.com/Paddione/Bachelorprojekt/issues/5547)) ([500eaaa](https://github.com/Paddione/Bachelorprojekt/commit/500eaaa2598ce7c79dd196bb9b58ffc4fec2eeb3))
+
 ## [1.332.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.331.0...website-v1.332.0) (2026-09-10)
 
 

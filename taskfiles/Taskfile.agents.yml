@@ -156,9 +156,15 @@ tasks:
     cmds:
       - |
         bash -c '
+          [ -f "$HOME/.config/mcp-postgres/server.env" ] && source "$HOME/.config/mcp-postgres/server.env" 2>/dev/null || true
           probe() {
+            local auth=()
+            if [[ "$1" == *"13001"* && -n "${MCP_POSTGRES_TOKEN:-}" ]]; then
+              auth=(-H "Authorization: Bearer $MCP_POSTGRES_TOKEN")
+            fi
             curl -s --max-time 2 -o /dev/null -w "%{http_code}" \
               -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+              "${auth[@]}" \
               -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"hc\",\"version\":\"1\"}}}" \
               "$1"
           }
@@ -259,6 +265,89 @@ tasks:
         rm -f "${UNIT_DIR}/mcp-gateway-watchdog.service" "${UNIT_DIR}/mcp-gateway-watchdog.timer"
         systemctl --user daemon-reload 2>/dev/null || true
         echo "mcp-gateway-watchdog uninstalled."
+
+  # ── mcp-unified — single-entry-point for non-systemd hosts (WSL / Windows) ──
+  # Replaces the individual start commands + start-windows.ps1. Starts all
+  # three daemon-backed MCP servers (mcp-gateway, factory-mcp-node, bge-mcp)
+  # with PID-file tracking and idempotent re-entry.
+  #
+  # Usage:
+  #   task agents:mcp:start      # start all three
+  #   task agents:mcp:stop       # stop all three
+  #   task agents:mcp:status     # health-check all three
+
+  mcp:start:
+    desc: "Start all daemon-backed MCP servers (gateway + factory-mcp + bge-mcp) — WSL/Windows compatible"
+    cmds:
+      - bash scripts/mcp-gateway/start-mcp-unified.sh start
+
+  mcp:stop:
+    desc: "Stop all daemon-backed MCP servers"
+    cmds:
+      - bash scripts/mcp-gateway/start-mcp-unified.sh stop
+
+  mcp:status:
+    desc: "Health-check all four MCP endpoints (mcp-kubernetes, mcp-postgres, factory-mcp-node, bge-mcp)"
+    cmds:
+      - bash scripts/mcp-gateway/start-mcp-unified.sh status
+
+  mcp:install:
+    desc: "Install all daemon-backed MCP servers as systemd USER services (Linux with systemd --user)"
+    cmds:
+      - task: factory-mcp:install
+      - task: mcp-gateway:install
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          exit 0
+        fi
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        for svc in bge-mcp bge-forward-embed bge-forward-rerank; do
+          SRC="$(pwd)/scripts/bge-mcp/${svc}.service"
+          if [[ -f "$SRC" ]]; then
+            ln -sf "$SRC" "${UNIT_DIR}/${svc}.service"
+          fi
+        done
+        systemctl --user daemon-reload
+        systemctl --user enable --now bge-mcp.service 2>/dev/null || true
+        systemctl --user enable --now bge-forward-embed.service 2>/dev/null || true
+        systemctl --user enable --now bge-forward-rerank.service 2>/dev/null || true
+        echo "bge-mcp units installed as systemd --user services."
+
+  mcp:uninstall:
+    desc: "Uninstall all daemon-backed MCP servers from systemd --user"
+    cmds:
+      - task: factory-mcp:uninstall
+      - task: mcp-gateway:uninstall
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          exit 0
+        fi
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        for svc in bge-mcp bge-forward-embed bge-forward-rerank; do
+          systemctl --user disable --now ${svc}.service 2>/dev/null || true
+          rm -f "${UNIT_DIR}/${svc}.service"
+        done
+        systemctl --user daemon-reload 2>/dev/null || true
+        echo "bge-mcp units uninstalled."
+
+  mcp:service-status:
+    desc: "Show systemd service state for all MCP daemons (Linux only)"
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager — use 'agents:mcp:status' instead."
+          exit 0
+        fi
+        echo "── systemd MCP services ──"
+        for svc in factory-mcp mcp-gateway bge-mcp bge-forward-embed bge-forward-rerank; do
+          echo -n "$svc: "
+          systemctl --user status ${svc}.service --no-pager 2>/dev/null | head -1 || echo "not installed"
+        done
 
   # ── mcp-cors-proxy — CORS-Proxy vor mcp-kubernetes (:18082 -> :18080) ──
   # Das OTS-Image kubernetes_mcp_server kann kein CORS und wirft 403 auf

@@ -2,22 +2,20 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2324 · Scenarios: 5145
+Specs: 146 · Requirements: 2333 · Scenarios: 5162
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 69 · Scenarios: 144 · Lines: 1813
+Reqs: 70 · Scenarios: 148 · Lines: 1862
 Last touches:
+  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | 2026-09-11 | MODIFIED
+  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | 2026-09-11 | ADDED
   - Repo-relative path references in first-party skills must resolve | T900078 | 2026-09-09 | MODIFIED
   - Skill shims and their targets must cover each other | T900078 | 2026-09-09 | ADDED
   - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
-  - Superpowers is declared in every harness that runs the dev-flow skills | T900056 | 2026-09-03 | ADDED
-  - A plugin activation finding names an executable remedy | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
-  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | active | MODIFIED
-  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
@@ -54,16 +52,15 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 207 · Scenarios: 633 · Lines: 5710
+Reqs: 207 · Scenarios: 634 · Lines: 5722
 Paths: scripts/factory
 Last touches:
+  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | 2026-09-11 | MODIFIED
   - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
   - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
-  - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
 In-flight:
-  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | active | MODIFIED
   - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
   - Force-Tick Trigger | T900054 | active | MODIFIED
   - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | active | MODIFIED
@@ -73,14 +70,14 @@ In-flight:
 ## delivery
 
 ### ci-cd
-Reqs: 113 · Scenarios: 332 · Lines: 3509
+Reqs: 113 · Scenarios: 332 · Lines: 3516
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Squash-Auto-Merge | T900089 | 2026-09-11 | MODIFIED
+  - Direct pushes to main SHALL be prevented server-side | T900126 | 2026-09-11 | MODIFIED
   - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
-  - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
-  - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
@@ -89,14 +86,14 @@ In-flight:
   - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 46 · Scenarios: 90 · Lines: 933
+Reqs: 50 · Scenarios: 94 · Lines: 971
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
+  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | 2026-09-11 | ADDED
+  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | 2026-09-11 | ADDED
+  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | 2026-09-11 | ADDED
+  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | 2026-09-11 | ADDED
   - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
-  - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
-  - Rendered Staging CronJobs Target the Staging Website | T015004 | 2026-08-23 | ADDED
-  - No failing CronJobs in the korczewski overlay | T012964 | 2026-08-22 | ADDED
-  - Wildcard-Certificate ohne Reflector-Annotationen (T002880) | T002880 | 2026-08-14 | ADDED
 In-flight:
   - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
   - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
@@ -104,10 +101,6 @@ In-flight:
   - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
   - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
-  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | active | ADDED
-  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | active | ADDED
-  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
-  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
   - WireGuard mesh reconcile applies the registry to every node | T900083 | active | ADDED
   - WireGuard mesh drift is detected as a gate | T900083 | active | ADDED
@@ -250,18 +243,16 @@ Last touches:
 Reqs: 8 · Scenarios: 13 · Lines: 169
 
 ### agentic-tooling-quality-goals
-Reqs: 17 · Scenarios: 23 · Lines: 303
+Reqs: 17 · Scenarios: 26 · Lines: 337
 Last touches:
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | 2026-09-11 | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | 2026-09-11 | MODIFIED
   - G-AGENTIC01 Subagent Tool-Scope Baseline Tracked | T002494 | 2026-08-02 | MODIFIED
   - G-AGENTIC09 God-Skill Line Budget Tracked | T002094 | 2026-08-02 | MODIFIED
   - G-AGENTIC08 No Dead Script/Task References In Skills Gate | T002303 | 2026-07-27 | MODIFIED
-  - G-AGENTIC02 Subagent Routing Table Drift Gate | T001398 | 2026-07-01 | ADDED
-  - G-AGENTIC03 Subagent Frontmatter Completeness Gate | T001398 | 2026-07-01 | ADDED
 In-flight:
   - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
-  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | active | MODIFIED
-  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | active | MODIFIED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -684,21 +675,17 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 27 · Scenarios: 58 · Lines: 692
+Reqs: 31 · Scenarios: 63 · Lines: 765
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - V2 Compaction Targets 100K Active Context | T900074 | 2026-09-11 | ADDED
+  - Factory Roles Carry Minimal Toolsets | T900074 | 2026-09-11 | ADDED
+  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | 2026-09-11 | ADDED
+  - Global Instructions Stay Lean | T900074 | 2026-09-11 | ADDED
   - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED
-  - Measured Context Limits for FreeToken Checkpoints | T900051 | 2026-09-03 | MODIFIED
-  - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
-  - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
-  - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
 In-flight:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
-  - V2 Compaction Targets 100K Active Context | T900074 | active | ADDED
-  - Factory Roles Carry Minimal Toolsets | T900074 | active | ADDED
-  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | active | ADDED
-  - Global Instructions Stay Lean | T900074 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -1139,7 +1126,7 @@ Last touches:
   - ttyd Host-Setup-Skript | T001565 | 2026-08-03 | ADDED
 
 ### ticket-ops
-Reqs: 3 · Scenarios: 5 · Lines: 67
+Reqs: 3 · Scenarios: 5 · Lines: 71
 Last touches:
   - Claim-Timing in Step 3.6 ist dokumentiert | T004602 | 2026-08-14 | ADDED
   - Prosa-Blocker-Erkennung in Phase 1 | T002771 | 2026-08-09 | ADDED

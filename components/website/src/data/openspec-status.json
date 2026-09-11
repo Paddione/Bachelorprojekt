@@ -4555,14 +4555,14 @@
   ],
   "T900042": [
     {
-      "slug": "batch-sa-security-t900042",
-      "status": "plan_staged"
+      "slug": "2026-09-11-batch-sa-security-t900042",
+      "status": "archived"
     }
   ],
   "T900043": [
     {
-      "slug": "devflow-main-checkout-guards-T900043",
-      "status": "plan_staged"
+      "slug": "2026-09-11-devflow-main-checkout-guards-T900043",
+      "status": "archived"
     }
   ],
   "T900046": [
@@ -4603,14 +4603,14 @@
   ],
   "T900057": [
     {
-      "slug": "sf-test-fixture-cleanup",
-      "status": "plan_staged"
+      "slug": "2026-09-11-sf-test-fixture-cleanup",
+      "status": "archived"
     }
   ],
   "T900074": [
     {
-      "slug": "opencode-factory-context-tuning",
-      "status": "plan_staged"
+      "slug": "2026-09-11-opencode-factory-context-tuning",
+      "status": "archived"
     }
   ],
   "T900078": [
@@ -4621,8 +4621,8 @@
   ],
   "T900080": [
     {
-      "slug": "mcp-registry-drift-T900080",
-      "status": "plan_staged"
+      "slug": "2026-09-11-mcp-registry-drift-T900080",
+      "status": "archived"
     }
   ],
   "T900083": [
@@ -4634,6 +4634,12 @@
   "T900087": [
     {
       "slug": "2026-09-04-freetoken-backend-evaluation",
+      "status": "archived"
+    }
+  ],
+  "T900089": [
+    {
+      "slug": "2026-09-11-require-review-before-automerge",
       "status": "archived"
     }
   ],
@@ -4652,6 +4658,12 @@
   "T900108": [
     {
       "slug": "2026-09-10-dev-pod-ssh",
+      "status": "archived"
+    }
+  ],
+  "T900126": [
+    {
+      "slug": "2026-09-11-enforce-admins-branch-protection",
       "status": "archived"
     }
   ],

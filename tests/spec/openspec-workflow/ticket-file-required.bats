@@ -74,6 +74,8 @@ _is_backlog_slug() {
       [ "$slug" = "archive" ] && continue
       [ "$slug" = "openspec-ticket-links-evaluation" ] && continue
       _is_backlog_slug "$slug" && continue
+      # Archivierte/geloeschte Changes existieren nicht mehr im Arbeitsbaum
+      [ -d "$REPO/openspec/changes/$slug" ] || continue
 
       checked=$(( checked + 1 ))
       if [ -f "$REPO/openspec/changes/$slug/.ticket" ] && [ -s "$REPO/openspec/changes/$slug/.ticket" ]; then

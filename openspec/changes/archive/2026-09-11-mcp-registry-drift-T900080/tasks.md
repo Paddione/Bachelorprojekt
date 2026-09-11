@@ -27,7 +27,7 @@ status: planning
 
 ## Tasks
 
-### 1. Sync CLAUDE.md MCP runtime list
+### 1. Sync CLAUDE.md MCP runtime list [x]
 
 **File:** `CLAUDE.md` (line 20)
 
@@ -50,7 +50,7 @@ The opencode runtime registers: bge-mcp, brain-mcp-node, codebase-memory-mcp, fa
 
 **Note:** The CLAUDE.md agent routing table (lines 14-17) references `ticket-mcp`, `mcp-postgres`, `mcp-kubernetes` by their short names — these are human-readable MCP server identifiers (not tool names like `mcp__...__`). `mcp-kubernetes` and `mcp-postgres` match opencode.jsonc keys exactly. `ticket-mcp` in the routing table context is a shorthand reference to the ticket management MCP capability; since the actual opencode key is `ticket-mcp-node`, this should be updated to `ticket-mcp-node` for consistency. However, the routing table is Claude Code-focused (not opencode runtime), and `ticket-mcp` there refers to the Go-Adapter concept. Per the ticket scope, the fix is CLAUDE.md line 20 runtime list only — the routing table references are agent-specific documentation for Claude Code's perspective and are outside scope unless they create G-AGENTIC11 violations.
 
-## 2. Resolve dead mcp__* refs in SKILL.md
+## 2. Resolve dead mcp__* refs in SKILL.md [x]
 
 **File:** `.opencode/skills/mishap-tracker/SKILL.md` (line 647)
 
@@ -66,7 +66,7 @@ mcp__factory-mcp-node__factory_status({})
 
 **Rationale:** `mcp__factory-mcp__` references a server that does not exist in mcp.yaml clients or opencode.jsonc keys. The correct server name is `factory-mcp-node`.
 
-## 3. Verify
+## 3. Verify [x]
 
 **Run:**
 ```bash

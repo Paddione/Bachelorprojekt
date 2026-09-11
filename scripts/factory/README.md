@@ -92,7 +92,7 @@ Tasks parallelisieren mit `pipeline()` oder `parallel()`.
 
 - `task test:all` muss grün sein
 - PR → Squash-and-Merge
-- Deploy-Task via `scripts/task-oracle.sh` ermitteln
+- Deploy-Task via `bash scripts/vda.sh oracle '<Ziel>'` ermitteln
 
 ## Phase 3 — Persistenter Auto-Pilot (Trigger / Service)
 

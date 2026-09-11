@@ -1036,6 +1036,8 @@ Last touches:
   - sdlc:down stops the chat loadout before the proxy | T002656 | 2026-08-13 | ADDED
   - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T002623 | 2026-08-10 | ADDED
 In-flight:
+  - No remote cockpit and no tunnel into the home network | T900142 | active | RENAMED
+  - Remote access to the SDLC surface only through the tailnet, without an inbound port | T900142 | active | MODIFIED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
   - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED

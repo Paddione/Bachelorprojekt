@@ -428,7 +428,7 @@ cmd_validate() {
       echo "FAIL: $base missing specs/ delta dir" >&2; rc=1; continue
     fi
     local had_cap=0
-    for capfile in "$dir/specs"/*.md; do
+    for capfile in "$dir/specs"/*.md "$dir/specs"/*/*.md; do
       [[ -e "$capfile" ]] || continue
       had_cap=1
       _validate_delta_file "$capfile" || rc=1

@@ -4152,6 +4152,24 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/devmesh-taskfile",
+    "file": "tests/spec/local-dev-mesh/devmesh-taskfile.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/tailnet-check",
+    "file": "tests/spec/local-dev-mesh/tailnet-check.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/tailnet-policy",
+    "file": "tests/spec/local-dev-mesh/tailnet-policy.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy",
     "file": "tests/spec/local-llm-proxy.bats",
     "category": "local-llm-proxy",

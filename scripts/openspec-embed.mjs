@@ -428,7 +428,14 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
     );
     const documentId = docRes.rows[0].id;
 
-    const vectors = await embed(chunks.map((c) => c.text));
+    const batchSize = Number(process.env.OPENSPEC_EMBED_BATCH_SIZE ?? 6);
+    const allTexts = chunks.map((c) => c.text);
+    const vectors = [];
+    for (let i = 0; i < allTexts.length; i += batchSize) {
+      const batch = allTexts.slice(i, i + batchSize);
+      const batchVectors = await embed(batch);
+      vectors.push(...batchVectors);
+    }
     let inserted = 0;
     for (let i = 0; i < chunks.length; i++) {
       const c = chunks[i];

@@ -1,0 +1,19 @@
+# taskfiles/Taskfile.devmesh.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# devmesh — lokaler k3s-Dev-Cluster auf Bare-Metal im Heimnetz (ADR-008).
+# SP-1 (T900116): Tailnet-Erreichbarkeit der devmesh-Server.
+# SP-2 (T900117) ergaenzt die Cluster-Tasks in diesem Namespace.
+#
+# Usage:
+#   task devmesh:tailnet:check              # Exit 0 alle Server erreichbar, 1 Befund, 2 Vorbedingung
+#   task devmesh:tailnet:check -- --list    # Inventar validieren und ausgeben, ohne Tailscale-CLI
+#
+# Runbook: docs/runbooks/devmesh-tailnet.md
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+tasks:
+  tailnet:check:
+    desc: "devmesh: jeden Inventar-Server per tailscale ping pruefen und direct/relay melden (Exit 1 = Server unerreichbar, 2 = Vorbedingung fehlt)"
+    cmds:
+      - bash scripts/devmesh/tailnet-check.sh {{.CLI_ARGS}}

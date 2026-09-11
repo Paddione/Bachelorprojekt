@@ -26,11 +26,17 @@ scripts/agent-skills/project.mjs                       # new, check/write projec
 .agents/skills/                                        # portable canonical skill corpus
 .claude/skills/                                        # Claude native skills and declared adapters
 .opencode/skills/                                      # OpenCode native skills and declared projections
-docs/agent-guide/registry/{agents,tools,capabilities}.yaml
-scripts/{agent-guide/validate,toolset/collect}.mjs
-tests/spec/agent-skills/{portable-inventory,skill-path-references}.bats
-tests/spec/{agent-skills,harness-workflow-split}.bats
-docs/agent-guide/maps/{tools-map,toolset-map}.md
+docs/agent-guide/registry/agents.yaml
+docs/agent-guide/registry/tools.yaml
+docs/agent-guide/registry/capabilities.yaml
+scripts/agent-guide/validate.mjs
+scripts/toolset/collect.mjs
+tests/spec/agent-skills/portable-inventory.bats
+tests/spec/agent-skills/skill-path-references.bats
+tests/spec/agent-skills.bats
+tests/spec/harness-workflow-split.bats
+docs/agent-guide/maps/tools-map.md
+docs/agent-guide/maps/toolset-map.md
 ```
 
 ## Partials

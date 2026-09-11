@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.335.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.334.0...website-v1.335.0) (2026-09-11)
+
+
+### Features
+
+* **infra:** devmesh SP-4: Onboarding pro Maschine [T900144] ([#5578](https://github.com/Paddione/Bachelorprojekt/issues/5578)) ([181b3e6](https://github.com/Paddione/Bachelorprojekt/commit/181b3e6bda8d5ec1edb2c536c2d8da1b0c14a128))
+
 ## [1.334.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.333.0...website-v1.334.0) (2026-09-11)
 
 

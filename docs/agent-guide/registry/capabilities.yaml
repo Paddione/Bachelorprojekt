@@ -108,7 +108,7 @@ capabilities:
 
   # ─── Tickets, Factory, Pläne ────────────────────────────────────────────────────────
   ticket-lebenszyklus:
-    mcp:ticket-mcp:
+    mcp:ticket-mcp-node:
       state: canonical
       use_when: "Tickets lesen, anlegen, Status setzen, Plan stagen, Phasen-Events schreiben."
       avoid_when: "stage_plan im Worktree — schlägt dort immer fehl."
@@ -125,6 +125,8 @@ capabilities:
       roles: [orchestrator]
       tier: safe
       deep_ref: ".claude/skills/ticket-ops/SKILL.md"
+
+  ticket-triage:
     skill:ticket-triage:
       state: canonical
       use_when: "Triage, Definition of Readiness, fehlende Angaben, Klärungsrunde und Batch-Kandidaten ohne Dispatch."
@@ -132,6 +134,8 @@ capabilities:
       roles: [orchestrator]
       tier: safe
       deep_ref: ".claude/skills/ticket-triage/SKILL.md"
+
+  ticket-dispatch:
     skill:ticket-dispatch:
       state: canonical
       use_when: "Abhängigkeitswellen, Parallelisierungsplan, Konfliktprüfung und freigegebener Wave-1-Dispatch."
@@ -141,7 +145,7 @@ capabilities:
       deep_ref: ".claude/skills/ticket-dispatch/SKILL.md"
 
   factory-steuerung:
-    mcp:factory-mcp:
+    mcp:factory-mcp-node:
       state: canonical
       use_when: "Factory-Queue, Status, Enqueue, Trigger, ähnliche OpenSpec-Changes finden."
       avoid_when: "type=task-Tickets — der Dispatcher scheduled ausschliesslich type=feature."
@@ -386,7 +390,7 @@ capabilities:
       deep_ref: ".claude/skills/brain-ingest/SKILL.md"
 
   wiki-nachschlagen:
-    mcp:brain-mcp:
+    mcp:brain-mcp-node:
       state: canonical
       use_when: "Im Brain-Wiki nachschlagen: BM25-Suche und Seiten lesen (brain_search, brain_read)."
       avoid_when: "Wiki kompilieren/veröffentlichen — dafür wissens-wiki/brain-ingest."

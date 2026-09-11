@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2329 · Scenarios: 5155
+Specs: 146 · Requirements: 2329 · Scenarios: 5158
 
 ## factory-pipeline
 
@@ -247,18 +247,16 @@ Last touches:
 Reqs: 8 · Scenarios: 13 · Lines: 169
 
 ### agentic-tooling-quality-goals
-Reqs: 17 · Scenarios: 23 · Lines: 303
+Reqs: 17 · Scenarios: 26 · Lines: 337
 Last touches:
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | 2026-09-11 | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | 2026-09-11 | MODIFIED
   - G-AGENTIC01 Subagent Tool-Scope Baseline Tracked | T002494 | 2026-08-02 | MODIFIED
   - G-AGENTIC09 God-Skill Line Budget Tracked | T002094 | 2026-08-02 | MODIFIED
   - G-AGENTIC08 No Dead Script/Task References In Skills Gate | T002303 | 2026-07-27 | MODIFIED
-  - G-AGENTIC02 Subagent Routing Table Drift Gate | T001398 | 2026-07-01 | ADDED
-  - G-AGENTIC03 Subagent Frontmatter Completeness Gate | T001398 | 2026-07-01 | ADDED
 In-flight:
   - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
-  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | active | MODIFIED
-  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | active | MODIFIED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112

@@ -38,7 +38,7 @@ bash tests/bats tests/spec/ci-cd/main-direct-push-guard.bats
 # expected: FAIL (red — the apply script still preserves enforce_admins=false)
 ```
 
-- [ ] **Fix-Step (GREEN).** Set `ENFORCE_ADMINS=true` in the protection payload builder without
+- [x] **Fix-Step (GREEN).** Set `ENFORCE_ADMINS=true` in the protection payload builder without
       changing required checks, review count, restrictions, or auto-merge behavior. The focused
       BATS file must pass.
 

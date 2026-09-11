@@ -80,6 +80,7 @@ Last touches:
   - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
+  - Direct pushes to main SHALL be prevented server-side | T900126 | active | MODIFIED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED

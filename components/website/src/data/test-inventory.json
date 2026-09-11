@@ -4164,6 +4164,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/dev-pod-loadouts-path",
+    "file": "tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/dispatch-capture",
     "file": "tests/spec/local-llm-proxy/dispatch-capture.bats",
     "category": "local-llm-proxy",

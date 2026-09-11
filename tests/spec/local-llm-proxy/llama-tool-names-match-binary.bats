@@ -49,10 +49,10 @@ _allowlist_tools() {
     // der Test nicht an einem Export haengt, den es nur fuer ihn gaebe.
     const probe = JSON.parse(await (await import('node:fs/promises')).readFile('${LOADOUTS}', 'utf8'))
     const one = structuredClone(probe.loadouts[0])
-    // Nur EIN Loadout, und ohne 'roles': die Rollenketten verweisen auf die
-    // uebrigen Slugs und wuerden den Probelauf aus einem Grund scheitern
+    // Nur EIN Loadout, und ohne 'roles'/'factory': Querverweise auf die
+    // uebrigen Slugs wuerden den Probelauf aus einem Grund scheitern
     // lassen, der mit Tool-Namen nichts zu tun hat.
-    const { roles, ...rest } = probe
+    const { roles, factory, ...rest } = probe
     const doc = { ...rest, loadouts: [one] }
     for (const name of process.argv.slice(1)) {
       one.tools = name

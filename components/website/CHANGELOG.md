@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.334.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.333.0...website-v1.334.0) (2026-09-11)
+
+
+### Features
+
+* **infra:** devmesh SP-1: Tailscale-Mesh für Dev-Maschinen [T900142] [T900115] ([#5563](https://github.com/Paddione/Bachelorprojekt/issues/5563)) ([538228a](https://github.com/Paddione/Bachelorprojekt/commit/538228ae95d178619b3cac82a61aace62429ca65))
+
 ## [1.333.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.6...website-v1.333.0) (2026-09-11)
 
 

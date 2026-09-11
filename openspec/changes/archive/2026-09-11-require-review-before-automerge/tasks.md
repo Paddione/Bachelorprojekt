@@ -46,11 +46,11 @@ bash tests/bats tests/spec/ci-cd/main-direct-push-guard.bats
       raises that count to `1`; do not alter auto-merge, dependency exceptions,
       or required-status-check policy. Run the same BATS file until green.
 
-- [ ] **Spec-Step.** Archive the validated OpenSpec delta into
+- [x] **Spec-Step.** Archive the validated OpenSpec delta into
       `openspec/specs/ci-cd.md` after the implementation PR merges; the
       requirement must state that auto-merge waits for at least one approval.
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

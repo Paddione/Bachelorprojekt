@@ -154,12 +154,13 @@ and SHALL advisory-warn if no ticket tag `[T000XXX]` is present.
 
 The system SHALL automatically enable squash-auto-merge on every non-draft PR against `main`
 that does **not** carry the `dependencies` label, as soon as it is opened or made ready for
-review, so that the PR merges itself once all required checks pass and branch protection is
-satisfied. PRs carrying the `dependencies` label are excluded because Renovate manages their
-auto-merge itself via `platformAutomerge`, gated by the staged policy in `renovate.json5`
-(`patch` and `devDependencies` only). Without this exclusion the blanket auto-merge would
-override that policy — `main` requires no reviews, so a `major` or production `minor` bump would
-merge unreviewed and reach both production brands through Flux reconciliation.
+review, so that the PR merges itself once all required checks and at least one approving
+pull-request review satisfy branch protection. PRs carrying the `dependencies` label are
+excluded because Renovate manages their auto-merge itself via `platformAutomerge`, gated by the
+staged policy in `renovate.json5` (`patch` and `devDependencies` only). Without this exclusion
+the blanket auto-merge would override that policy — a `major` or production `minor` bump could
+merge without Renovate's intended review gate and reach both production brands through Flux
+reconciliation.
 
 #### Scenario: Auto-Merge wird bei PR-Öffnung aktiviert
 
@@ -188,6 +189,16 @@ merge unreviewed and reach both production brands through Flux reconciliation.
 - **THEN** aktiviert Renovate selbst das Auto-Merge-Flag
 - **AND** bei `major`, produktiven `minor`- oder kubernetes-`major`-Updates bleibt der PR als
   offener Review-PR ohne Auto-Merge stehen
+
+#### Scenario: Auto-merge waits for an approval
+
+- **GIVEN** an eligible non-draft PR has auto-merge enabled and all required
+  status checks pass
+- **AND** branch protection requires one approving review
+- **WHEN** the PR has no approval
+- **THEN** GitHub SHALL keep the PR open
+- **WHEN** one approving review is submitted
+- **THEN** GitHub SHALL squash-merge the PR without another manual merge action
 
 ### Requirement: Post-Merge Ticket-Lifecycle und Manifest-Deploy
 
@@ -3507,3 +3518,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (6e81f2a62d49) -->
 
 <!-- merged from change delta ci-cd.md (8af7f6caa108) -->
+
+<!-- merged from change delta ci-cd.md (1d2e1cfb41dd) -->

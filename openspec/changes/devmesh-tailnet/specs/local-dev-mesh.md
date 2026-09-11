@@ -45,19 +45,29 @@ without any inbound port forwarded on the home router.
 The intended tailnet access policy SHALL live in `devmesh/tailnet-policy.hujson`. It SHALL
 allow `tag:devclient` to reach `tag:devmesh` on tcp ports 22, 443 and 6443, SHALL allow
 unrestricted traffic between `tag:devmesh` peers, and SHALL NOT contain any rule whose
-destination is `tag:devclient`.
+destination is `tag:devclient`. The only path from `tag:devmesh` into a developer client SHALL
+be a single rule to the GPU workstation host alias `gpu-host` on the port recorded as
+`gpu_endpoint` in `devmesh/inventory.yaml`.
 
-#### Scenario: Policy grants no path into developer clients
+#### Scenario: Policy grants no general path into developer clients
 
 - **GIVEN** `devmesh/tailnet-policy.hujson`
 - **WHEN** the policy guard parses its access rules
-- **THEN** no rule names `tag:devclient` as a destination
+- **THEN** no rule names `tag:devclient` or `*` as a destination
 - **AND** a rule from `tag:devclient` to `tag:devmesh` covering ports 22, 443 and 6443 exists
+
+#### Scenario: GPU endpoint is the only exception
+
+- **GIVEN** `devmesh/tailnet-policy.hujson` and `devmesh/inventory.yaml`
+- **WHEN** the policy guard collects rules whose source is `tag:devmesh` and whose destination is not `tag:devmesh`
+- **THEN** exactly one such rule exists, its destination is `gpu-host` and its port equals the port of `gpu_endpoint`
 
 ### Requirement: The tailnet check separates findings from missing preconditions
 
-`scripts/devmesh/tailnet-check.sh` SHALL exit `0` when every inventory peer answers, `1` when
-at least one peer does not answer, and `2` when a precondition is missing — the Tailscale CLI
+`scripts/devmesh/tailnet-check.sh` SHALL ping every inventory entry with `role: server` —
+developer clients are not checked, because laptops and tablets are regularly offline. It SHALL
+exit `0` when every server answers, `1` when at least one server does not answer, and `2` when a
+precondition is missing — the Tailscale CLI
 is unavailable or the local Tailscale service is not in state `Running`.
 
 #### Scenario: A peer does not answer

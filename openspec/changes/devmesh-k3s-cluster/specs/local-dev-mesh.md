@@ -22,8 +22,18 @@ the cluster, `gpu-cluster` and `gpu-cluster2` join as servers. The k3s version S
 ### Requirement: Node traffic uses LAN addresses with encrypted pod networking
 
 Every devmesh node SHALL register its LAN address from `devmesh/inventory.yaml` as node IP and
-SHALL use the flannel backend `wireguard-native`. The API server certificate SHALL list the LAN
-addresses and tailnet names of all servers.
+SHALL use the flannel backend `wireguard-native`. The cluster SHALL use the pod network
+`10.52.0.0/16` and the service network `10.53.0.0/16`, registered in
+`docs/agent-guide/registry/networks.yaml`, so that devmesh addresses never coincide with the
+fleet pod and service networks that the GPU workstation routes through `wg-gpu`. The API server
+certificate SHALL list the LAN addresses and tailnet names of all servers.
+
+#### Scenario: devmesh networks differ from fleet networks
+
+- **GIVEN** `docs/agent-guide/registry/networks.yaml`
+- **WHEN** the entries for the devmesh pod and service networks are read
+- **THEN** their CIDRs are `10.52.0.0/16` and `10.53.0.0/16`
+- **AND** neither overlaps `pod-cidr-fleet` or `service-cidr-fleet`
 
 #### Scenario: Install flags for a joining server
 

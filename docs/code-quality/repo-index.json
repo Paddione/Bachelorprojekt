@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1284,
+      "file_count": 1285,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -991,6 +991,7 @@
         "tests/spec/security/fixtures/crb-dev-deployer.json",
         "tests/spec/security/githooks-installed-guard.bats",
         "tests/spec/security/stray-secret-dump-guard.bats",
+        "tests/spec/security/website-clusterrole-least-privilege.bats",
         "tests/spec/security/workload-exec-rbac.bats",
         "tests/spec/sessions-server.bats",
         "tests/spec/sessions-server/annotation-links.bats",

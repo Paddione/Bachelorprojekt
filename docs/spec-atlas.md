@@ -1071,6 +1071,7 @@ Last touches:
 In-flight:
   - Workload ServiceAccounts hold no clusterwide pods/exec | T900110 | active | ADDED
   - cluster-admin bindings are limited to an allowlist | T900110 | active | ADDED
+  - Website ClusterRole holds only read permissions without clusterwide write access | T900114 | active | ADDED
 
 ### sessions-server
 Reqs: 13 · Scenarios: 26 · Lines: 269

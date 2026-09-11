@@ -5574,6 +5574,12 @@
     "kind": "shell"
   },
   {
+    "id": "security/website-clusterrole-least-privilege",
+    "file": "tests/spec/security/website-clusterrole-least-privilege.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
     "id": "security/workload-exec-rbac",
     "file": "tests/spec/security/workload-exec-rbac.bats",
     "category": "security",

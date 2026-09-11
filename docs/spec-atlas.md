@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2325 · Scenarios: 5150
+Specs: 146 · Requirements: 2329 · Scenarios: 5155
 
 ## factory-pipeline
 
@@ -681,21 +681,17 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 27 · Scenarios: 58 · Lines: 692
+Reqs: 31 · Scenarios: 63 · Lines: 765
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - V2 Compaction Targets 100K Active Context | T900074 | 2026-09-11 | ADDED
+  - Factory Roles Carry Minimal Toolsets | T900074 | 2026-09-11 | ADDED
+  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | 2026-09-11 | ADDED
+  - Global Instructions Stay Lean | T900074 | 2026-09-11 | ADDED
   - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED
-  - Measured Context Limits for FreeToken Checkpoints | T900051 | 2026-09-03 | MODIFIED
-  - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
-  - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
-  - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
 In-flight:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
-  - V2 Compaction Targets 100K Active Context | T900074 | active | ADDED
-  - Factory Roles Carry Minimal Toolsets | T900074 | active | ADDED
-  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | active | ADDED
-  - Global Instructions Stay Lean | T900074 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

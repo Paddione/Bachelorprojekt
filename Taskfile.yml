@@ -54,6 +54,12 @@ includes:
   devcluster:
     taskfile: ./taskfiles/Taskfile.devcluster.yml
     dir: .
+  # devmesh — lokaler k3s-Dev-Cluster auf Bare-Metal (ADR-008). SP-1 (T900116) bringt
+  # die Tailnet-Pruefung, SP-2 (T900117) die Cluster-Tasks.
+  # See Taskfile.devmesh.yml + docs/runbooks/devmesh-tailnet.md.
+  devmesh:
+    taskfile: ./taskfiles/Taskfile.devmesh.yml
+    dir: .
   # brainstorm.mentolder.de — reverse-SSH-tunnel broker (sish) for the
   # brainstorming visual companion. See Taskfile.brainstorm.yml.
   brainstorm:

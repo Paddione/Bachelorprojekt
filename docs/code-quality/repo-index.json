@@ -4177,7 +4177,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 864,
+      "file_count": 865,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4874,6 +4874,7 @@
         "scripts/plugin-doctor.sh",
         "scripts/pocket-id-bootstrap.mjs",
         "scripts/post-deploy-watch.sh",
+        "scripts/pr-health-check.sh",
         "scripts/pr-refresh.sh",
         "scripts/pr-scope-check.sh",
         "scripts/pre-deploy-check.sh",

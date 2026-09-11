@@ -56,6 +56,14 @@ setup() {
   [ -f "$REPO/.opencode/commands/opsx-explore.md" ]
 }
 
+@test "T001263: .opencode/commands/dev-flow-exe.md is installed" {
+  [ -f "$REPO/.opencode/commands/dev-flow-exe.md" ]
+}
+
+@test "T001263: .opencode/commands/dev-flow-execute.md is installed" {
+  [ -f "$REPO/.opencode/commands/dev-flow-execute.md" ]
+}
+
 @test "T001263: .claude/skills/openspec-propose/SKILL.md is installed" {
   [ -f "$REPO/.claude/skills/openspec-propose/SKILL.md" ]
 }

@@ -259,15 +259,23 @@ const dbConnectTimeoutMs = () =>
 
 export async function defaultEmbed(texts) {
   const model = resolveEmbeddingModel();
-  const r = await fetch(`${DEFAULT_EMBED_URL()}/v1/embeddings`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'index' },
-    body: JSON.stringify({ model, input: texts }),
-    signal: AbortSignal.timeout(embedFetchTimeoutMs()),
-  });
-  if (!r.ok) throw new Error(`embed ${r.status} ${await r.text().catch(() => '')}`);
-  const j = await r.json();
-  return j.data.map((d) => d.embedding);
+  const batchSize = Number(process.env.OPENSPEC_EMBED_BATCH_SIZE ?? 5);
+  const embeddings = [];
+  for (let i = 0; i < texts.length; i += batchSize) {
+    const batch = texts.slice(i, i + batchSize);
+    const r = await fetch(`${DEFAULT_EMBED_URL()}/v1/embeddings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'index' },
+      body: JSON.stringify({ model, input: batch }),
+      signal: AbortSignal.timeout(embedFetchTimeoutMs()),
+    });
+    if (!r.ok) throw new Error(`embed ${r.status} ${await r.text().catch(() => '')}`);
+    const j = await r.json();
+    for (const d of j.data) {
+      embeddings.push(d.embedding);
+    }
+  }
+  return embeddings;
 }
 
 export function estimateSlugTokenWorst(slug, repoRoot) {

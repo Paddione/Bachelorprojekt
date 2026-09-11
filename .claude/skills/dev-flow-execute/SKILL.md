@@ -5,7 +5,7 @@ description: 'Use when on a feature/* or fix/* branch that has a staged plan in 
 
 # dev-flow-execute — Plan-Ausführung & PR
 
-Der Rollen- und Übergabevertrag steht im gemeinsamen [dev-flow-lifecycle](.claude/skills/references/dev-flow-lifecycle.md); diese Skill behält nur Execute-Gates und delegiert Mechanik an die verlinkten Referenzen.
+Der Rollen- und Übergabevertrag steht im gemeinsamen [dev-flow-lifecycle](.claude/skills/references/dev-flow-lifecycle.md); diese Skill behält nur Execute-Gates und delegiert Mechanik an die verlinkten Referenzen. Interaktive Ausführung erfolgt über die OpenCode Slash-Commands `dev-flow-exe.md` und `dev-flow-execute.md`.
 
 > **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
 > `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.

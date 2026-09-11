@@ -96,7 +96,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   `external_id` ist nur pro Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert
   **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer
   und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
-  `mcp__ticket-mcp__*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
+  `mcp__ticket-mcp-node__*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
 - ⚠️ **Bedient die fleet-DB — seit ADR-007 die SSOT, keine Kopie mehr [T900013].** Port 13001
   wird per `kubectl --context fleet port-forward` auf die **fleet**-Postgres bedient. Bis
   2026-08-30 stand hier die Warnung, das sei eine *eingefrorene* Kopie (ADR-006 E3: SELECT ja,
@@ -106,12 +106,12 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   loeste redundante Closure-Writes aus — kann aus dieser Richtung nicht mehr auftreten.
 - ⚠️ **Trotzdem nicht fuer Ticket-Zustand.** Der Grund ist jetzt ein anderer: `external_id`
   ist nur pro Brand eindeutig (siehe Punkt oben). Fuer **Ticket-Zustand** (offen/geschlossen,
-  Status, `readiness`) IMMER `mcp__ticket-mcp__*` mit explizitem `brand` oder den
+  Status, `readiness`) IMMER `mcp__ticket-mcp-node__*` mit explizitem `brand` oder den
   `psql()`-Fallback unten nutzen (zielt auf `fleet`/`workspace`, BRAND-Routing [T006285]);
   `mcp-postgres` nur fuer Nicht-Ticket-Reads (`knowledge.*`, `v_timeline`).
 - **Wann bevorzugen:** Read-only SELECTs gegen `knowledge.*`, `v_timeline` oder andere
-  Nicht-Ticket-Tabellen. Für Ticket-Queries → `mcp__ticket-mcp__get_ticket` /
-  `mcp__ticket-mcp__list_tickets` mit gesetztem `brand`.
+  Nicht-Ticket-Tabellen. Für Ticket-Queries → `mcp__ticket-mcp-node__get_ticket` /
+  `mcp__ticket-mcp-node__list_tickets` mit gesetztem `brand`.
 - **Fallback (Reads) & Pflichtweg für Writes** — das MCP-Query-Tool ist read-only; schreibende
   Statements (INSERT/UPDATE/DELETE) laufen immer über diesen `psql()`-Helper (SSOT — Skills
   verlinken hierher statt ihn zu duplizieren):

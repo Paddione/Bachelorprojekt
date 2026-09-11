@@ -12,7 +12,7 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 
 ## Globale Invarianten (gelten für ALLE Server)
 
-> **`mcp__mcp-postgres__query` ist READ-ONLY und nimmt NUR `sql`.** Kein `connectionString`-Argument
+> **`mcp-postgres_query` ist READ-ONLY und nimmt NUR `sql`.** Kein `connectionString`-Argument
 > — die Verbindung ist serverseitig fest (`localhost:13001`, als `mcp_readonly`-User). INSERT/UPDATE/DELETE
 > gehen NICHT über dieses Tool.
 
@@ -78,10 +78,10 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 ## `mcp-postgres` — Read-only SQL
 
 - **Endpoint:** `http://localhost:13001/mcp`
-- **Tool:** `mcp__mcp-postgres__query` (Param: **nur** `sql`)
+- **Tool:** `mcp-postgres_query` (Param: **nur** `sql`)
 - **Verfügbarkeits-Check — vor jedem Zugriff prüfen:** Der Server läuft als Port-Forward auf
   `workspace/shared-db` und ist nicht automatisch in jeder Session registriert. Vor dem ersten
-  `mcp__mcp-postgres__query`-Aufruf die Erreichbarkeit bestätigen:
+  `mcp-postgres_query`-Aufruf die Erreichbarkeit bestätigen:
   ```bash
   curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
     -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
@@ -90,13 +90,13 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   # 200 → MCP erreichbar; alles andere → psql()-Fallback (siehe unten).
   ```
   Schlägt der Check fehl oder das Tool ist als deferred Tool nicht registriert
-  (`ToolSearch({query: "select:mcp__mcp-postgres__query"})` liefert nichts) → sofort auf den
+  (`ToolSearch({query: "select:mcp-postgres_query"})` liefert nichts) → sofort auf den
   `psql()`-Fallback umschwenken, nicht auf den MCP-Weg beharren.
 - **Brand-Bindung [T002278]:** dieser Server ist **brand-gebunden** an die **mentolder**-Datenbank.
   `external_id` ist nur pro Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert
   **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer
   und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
-  `mcp__ticket-mcp__*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
+  `ticket-mcp-node_*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
 - ⚠️ **Bedient die fleet-DB — seit ADR-007 die SSOT, keine Kopie mehr [T900013].** Port 13001
   wird per `kubectl --context fleet port-forward` auf die **fleet**-Postgres bedient. Bis
   2026-08-30 stand hier die Warnung, das sei eine *eingefrorene* Kopie (ADR-006 E3: SELECT ja,
@@ -106,12 +106,12 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   loeste redundante Closure-Writes aus — kann aus dieser Richtung nicht mehr auftreten.
 - ⚠️ **Trotzdem nicht fuer Ticket-Zustand.** Der Grund ist jetzt ein anderer: `external_id`
   ist nur pro Brand eindeutig (siehe Punkt oben). Fuer **Ticket-Zustand** (offen/geschlossen,
-  Status, `readiness`) IMMER `mcp__ticket-mcp__*` mit explizitem `brand` oder den
+  Status, `readiness`) IMMER `ticket-mcp-node_*` mit explizitem `brand` oder den
   `psql()`-Fallback unten nutzen (zielt auf `fleet`/`workspace`, BRAND-Routing [T006285]);
   `mcp-postgres` nur fuer Nicht-Ticket-Reads (`knowledge.*`, `v_timeline`).
 - **Wann bevorzugen:** Read-only SELECTs gegen `knowledge.*`, `v_timeline` oder andere
-  Nicht-Ticket-Tabellen. Für Ticket-Queries → `mcp__ticket-mcp__get_ticket` /
-  `mcp__ticket-mcp__list_tickets` mit gesetztem `brand`.
+  Nicht-Ticket-Tabellen. Für Ticket-Queries → `ticket-mcp-node_get_ticket` /
+  `ticket-mcp-node_list_tickets` mit gesetztem `brand`.
 - **Fallback (Reads) & Pflichtweg für Writes** — das MCP-Query-Tool ist read-only; schreibende
   Statements (INSERT/UPDATE/DELETE) laufen immer über diesen `psql()`-Helper (SSOT — Skills
   verlinken hierher statt ihn zu duplizieren):
@@ -151,7 +151,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 ## `mcp-kubernetes` — k8s-Status/Read
 
 - **Endpoint:** `http://localhost:18080/mcp`
-- **Tools (Auswahl):** `mcp__mcp-kubernetes__pods_list_in_namespace`, `pods_list`, `pods_log`,
+- **Tools (Auswahl):** `mcp-kubernetes_pods_list_in_namespace`, `pods_list`, `pods_log`,
   `pods_get`, `resources_get`, `resources_list`, `events_list`, `namespaces_list`.
 - **Wann bevorzugen:** strukturierte Status-/Read-Operationen (Pod-Liste, Logs, Describe, Events).
 - **Fallback:** `task workspace:status` / `task workspace:logs` bzw. `kubectl get/logs/describe`.
@@ -222,7 +222,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   `openspec_find_similar`.
 - **Wann bevorzugen:** Factory-Queue-Status, Backlog-Übersicht, manuelles Anstoßen eines Ticks,
   OpenSpec-Ähnlichkeitssuche. **Voraussetzung:** der Daemon `:13003` läuft (Health-Guard zuerst).
-- **Fallback (Daemon down):** Status/Queue → `mcp__mcp-postgres__query`/`psql` auf
+- **Fallback (Daemon down):** Status/Queue → `mcp-postgres_query`/`psql` auf
   `tickets.tickets WHERE status IN ('backlog','plan_staged')`; Tick → `bash scripts/factory/wakeup.sh`.
 
 ## `mcp-task-runner` — go-task-Ausführung + OTel
@@ -257,7 +257,7 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 > **Paketfalle:** Das offizielle Paket ist `@playwright/mcp` (Microsoft). Das unscoped
 > `playwright-mcp` in der npm-Registry ist ein anderes Projekt — ein Handeintrag mit diesem Namen
 > war die Ursache der G-AGENTIC12-Drift in T002678. Der Server heißt hier `playwright`, seine Tools
-> also `mcp__playwright__*`.
+> also `playwright_*`.
 
 ## `codebase-memory-mcp` — Code-Wissensgraph
 

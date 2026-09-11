@@ -261,8 +261,8 @@ bash scripts/check-pr-automerge.sh --branch "$BRANCH"
 > die den OpenSpec-Change in den Apply-Modus überführt. Fallback wenn die upstream-CLI nicht
 > installiert ist: `task openspec:apply -- <slug>`.
 Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "in_progress" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
+> `mcp__ticket-mcp-node__transition_status({ id: "$TICKET_ID", status: "in_progress" })`
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
 Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):
 ```bash
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
@@ -279,8 +279,8 @@ SLUG=$(basename "$PLAN_FILE" .md)
 
 Berührt die Umsetzung Dateien, die im Plan **nicht** standen, ergänze sie für die Conflict-Gate
 (parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
-> `mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "<alle Pfade, inkl. der bereits gesetzten>" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
+> `mcp__ticket-mcp-node__set_touched_files({ id: "$TICKET_ID", files: "<alle Pfade, inkl. der bereits gesetzten>" })`
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
 Fallback:
 ```bash
 # ACHTUNG: set-touched-files ERSETZT die Liste. Erst den Ist-Stand lesen, dann die neuen
@@ -293,7 +293,7 @@ Fallback:
 ## Schritt 1.7: Visual & Textual Assets laden (Visual Handoff)
 
 Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter — **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
+> `mcp__ticket-mcp-node__get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
@@ -340,11 +340,11 @@ RESOLUTION="shipped" # oder "fixed" bei Fixes
 : "${PR_NUM:=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")}"
 ```
 Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
-> `mcp__ticket-mcp__add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
-> `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
-> `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
+> `mcp__ticket-mcp-node__add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
+> `mcp__ticket-mcp-node__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
+> `mcp__ticket-mcp-node__record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
+> `mcp__ticket-mcp-node__add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos. Das `verify:done`-Event bleibt Pflicht (Merge-Gate).
 Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Rest ist idempotent):
 ```bash

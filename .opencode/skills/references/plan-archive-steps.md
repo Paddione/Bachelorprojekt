@@ -28,14 +28,14 @@ sed -E -i 's/^status: (active|plan_staged|in_progress|planning)$/status: complet
   --pr "$PR_NUM"
 ```
 
-> **Warum nicht MCP-first (T002256):** `mcp__ticket-mcp__archive_plan` schlägt aus einem
+> **Warum nicht MCP-first (T002256):** `ticket-mcp-node_archive_plan` schlägt aus einem
 > Worktree fehl — `plan file does not exist or is empty`, obwohl die Datei dort vorhanden
 > ist. Der MCP-Server löst Plan-Pfade relativ zum Haupt-Checkout auf, wo der Change-Ordner
 > nur auf dem Branch existiert. Dieselbe Einschränkung gilt für `stage_plan`
 > (`does not exist in git`). Da Schritt 7 praktisch immer aus einem Worktree läuft, ist der
 > Skript-Aufruf hier der Regelweg. Details: [mcp-tool-guide](mcp-tool-guide.md).
 > Aus dem Haupt-Checkout heraus funktioniert
-> `mcp__ticket-mcp__archive_plan({ id, slug, branch, plan_file, pr })` weiterhin.
+> `ticket-mcp-node_archive_plan({ id, slug, branch, plan_file, pr })` weiterhin.
 
 > **Delta-Disziplin — die SSOT wird im Change NICHT direkt editiert [T002375-p5].**
 > Änderungen an `openspec/specs/**` gehören ausschließlich ins Delta unter

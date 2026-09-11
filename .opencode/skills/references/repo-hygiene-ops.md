@@ -394,8 +394,8 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 * **Ticket schließen, sobald `mergedAt` gesetzt ist** (nur wenn `$TICKET_ID` gefunden;
   `resolution`: `fixed` für `fix/*`, `shipped` für `feature/*`) — **MCP-first** (`ticket-mcp`;
   die Wrapper schreiben via `ticket.sh`, nicht über das read-only `mcp-postgres`):
-  > `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<fixed|shipped>" })`
-  > `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #<number> merged." })`
+  > `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "done", resolution: "<fixed|shipped>" })`
+  > `ticket-mcp-node_add_comment({ id: "$TICKET_ID", body: "PR #<number> merged." })`
 
   Fallback (ticket-mcp nicht erreichbar — direkte Writes über `psql()`):
   ```bash
@@ -579,8 +579,8 @@ for t in T00…; do
 done
 ```
 
-Für Ticketstatus ist der kanonische Weg ohnehin `mcp__ticket-mcp__get_ticket` /
-`mcp__ticket-mcp__list_tickets`, nicht ein geratenes CLI-Subkommando (siehe
+Für Ticketstatus ist der kanonische Weg ohnehin `ticket-mcp-node_get_ticket` /
+`ticket-mcp-node_list_tickets`, nicht ein geratenes CLI-Subkommando (siehe
 [`mcp-tool-guide.md`](mcp-tool-guide.md)).
 
 ## 4. GitHub-Issue-Intake (selten)
@@ -606,8 +606,8 @@ Issues leben in Postgres, nicht auf GitHub. Falls `gh issue list --state open` e
    >
    > Vor dem Anlegen deshalb **beide** Quellen prüfen:
    > ```
-   > mcp__ticket-mcp__list_tickets({ … })      # offene Tickets, wie gehabt
-   > mcp__ticket-mcp__get_mishap_buffer({})    # ungeflushte Befunde
+   > ticket-mcp-node_list_tickets({ … })      # offene Tickets, wie gehabt
+   > ticket-mcp-node_get_mishap_buffer({})    # ungeflushte Befunde
    > ```
    > Fallback ohne MCP: `jq -r '.[].title' .git/mishap-buffer.json` (Datei fehlt = Buffer leer;
    > ein Lesefehler ist **kein** „leer" — dann gilt Fail-Closed, siehe §3-Grundregel).
@@ -644,7 +644,7 @@ gh pr list --state open --json number,title,statusCheckRollup,isDraft,createdAt 
   --jq 'group_by(if .isDraft then "draft" elif (.statusCheckRollup | length) == 0 then "no-ci" else "ci-ok" end) | map({key: .[0].statusCheckRollup, count: length})'
 
 # Factory-Queue
-mcp__factory-mcp-node__factory_status({})   # liefert queue_depth + is_running
+factory-mcp-node_factory_status({})   # liefert queue_depth + is_running
 ```
 
 ### 6.2 Aging-Report
@@ -675,7 +675,7 @@ Aus den Metriken werden die drei wirkungsvollsten Aktionen abgeleitet:
 |------|-----------|------------|
 | 1 | `>5 stale Worktrees` ODER `>10 [gone]-Branches` | **Massen-Cleanup**: `repo-hygiene` §1+§2 vollständig ausführen. Vorher `bash scripts/agent-lock.sh reap`. Geschätzte Zeit: 2–5 min. |
 | 2 | `≥1 PR mit CI=green, kein Draft, reviewDecision=APPROVED` | **PR mergen**: `gh pr merge --squash` (kein `--delete-branch` — Archiv läuft nach dem Merge, T004612). Ticket schließen nicht vergessen (§3). |
-| 3 | `Factory queue_depth > 3` | **Factory-Health check**: `mcp__factory-mcp-node__factory_ask({ question: "Sind alle Worker gesund? Gibt es blockierte Jobs?" })`. Ggf. `mcp__factory-mcp-node__factory_trigger({})`. |
+| 3 | `Factory queue_depth > 3` | **Factory-Health check**: `factory-mcp-node_factory_ask({ question: "Sind alle Worker gesund? Gibt es blockierte Jobs?" })`. Ggf. `factory-mcp-node_factory_trigger({})`. |
 | 4 | `≥1 Worktree >30d ohne Commit` | **Worktree entsorgen**: `git worktree remove --force` nach Allowlist-Check (§1). |
 | 5 | `≥3 PRs offen vom selben Author` | **PR-Stau**: Author pingen oder PRs bündeln (wenn thematisch verwandt). |
 | 6 | `≥5 Tickets mit attention_mode=needs_human` | **Klärungsrunde fällig**: `ticket-ops` Phase 2 ausführen. |

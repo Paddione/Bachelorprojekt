@@ -20,7 +20,7 @@ GitHub **PRs are the CI/CD merge mechanism** and link back to a ticket by conven
 - `tickets.ticket_links` — normalised edges (`to_id` is `NOT NULL`, `kind ∈ blocks|blocked_by|duplicate_of|relates_to|fixes|fixed_by`). Never use `ticket_links` for PR references — it is ticket→ticket only.
 
 
-**DB-Zugriff:** Reads MCP-first via `mcp__mcp-postgres__query`; der `psql()`-Fallback-Helper
+**DB-Zugriff:** Reads MCP-first via `mcp-postgres_query`; der `psql()`-Fallback-Helper
 (zugleich Pflichtweg für Writes) und die `tickets.ticket_plans`-`SELECT *`-Warnung sind SSOT im
 [`MCP-Tool-Guide`](mcp-tool-guide.md) §mcp-postgres — alle `psql -c`-Aufrufe unten setzen diesen
 Helper voraus.
@@ -70,7 +70,7 @@ unverändert (der Blocker wurde bereits formal erfasst).
 
 ### Step 1.1: Fetch open tickets (enriched)
 
-**MCP-first** (`mcp-postgres`, read-only): pass the query below to `mcp__mcp-postgres__query({ sql: "…" })`. Fallback: `psql -c "<query>"` via the `psql()` helper above.
+**MCP-first** (`mcp-postgres`, read-only): pass the query below to `mcp-postgres_query({ sql: "…" })`. Fallback: `psql -c "<query>"` via the `psql()` helper above.
 
 > **JSON-Ausgabe statt Pipe-Spalten [T002422].** Früher lieferte die Query
 > `psql -t`-Spalten mit `-A -F '|'`. Lange Titel verschoben die Spalten, sodass
@@ -192,7 +192,7 @@ Für jede gefundene Gruppe (≥2 Tickets):
 1. **Parent-Ticket anlegen:**
    ```bash
    # Via ticket-mcp:
-   mcp__ticket-mcp__create_ticket({
+   ticket-mcp-node_create_ticket({
      type: "feat",
      brand: "mentolder",
      title: "Batch: <kurzer-gruppen-titel>",
@@ -206,12 +206,12 @@ Für jede gefundene Gruppe (≥2 Tickets):
 
 2. **`child_of`-Links setzen** (für jedes Kind-Ticket):
    ```
-   mcp__ticket-mcp__link_tickets({ from: "<child_ext_id>", to: "<BATCH_PARENT_ID>", kind: "child_of" })
+   ticket-mcp-node_link_tickets({ from: "<child_ext_id>", to: "<BATCH_PARENT_ID>", kind: "child_of" })
    ```
 
 3. **Kind-Tickets markieren:**
    ```
-   mcp__ticket-mcp__add_comment({
+   ticket-mcp-node_add_comment({
      id: "<child_ext_id>",
      body: "🔗 Batch-Gruppe: Parent <BATCH_PARENT_ID>. Wird gemeinsam mit N anderen Tickets geplant."
    })
@@ -283,9 +283,9 @@ If you are running without an interactive question tool (e.g. dispatched as a su
 
 **MCP-first** (`ticket-mcp` lifecycle, where a wrapper exists — these shell out to `ticket.sh`, the sanctioned write path, NOT via the read-only `mcp-postgres`): set DoR flags via `set_readiness_flag` (one per flag) or `prepare_feature`; set effort/areas/depends_on via `set_plan_meta`; append the clarification comment via `add_comment`.
 
-> `mcp__ticket-mcp__set_readiness_flag({ id: "T000XXX", flag: "spec_skizziert", value: true })`
-> `mcp__ticket-mcp__set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
-> `mcp__ticket-mcp__add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
+> `ticket-mcp-node_set_readiness_flag({ id: "T000XXX", flag: "spec_skizziert", value: true })`
+> `ticket-mcp-node_set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
+> `ticket-mcp-node_add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
 
 **CLI path** (ticket-mcp nicht erreichbar, oder im Worktree — `ticket.sh` ist dasselbe Backend, das auch der MCP-Wrapper ruft): Der korrekte Subcommand heisst `add-comment` (nicht `comment`):
 

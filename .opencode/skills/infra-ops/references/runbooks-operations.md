@@ -20,8 +20,8 @@ nicht hier — diese Datei enthält die Befehlsfolgen.
 ### Phases
 
 > **Status-Reads MCP-first:** Pod-Status/Logs bevorzugt über
-> `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` /
-> `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<pocket-id-pod>" })` (read-only);
+> `mcp-kubernetes_pods_list_in_namespace({ namespace: "workspace" })` /
+> `mcp-kubernetes_pods_log({ namespace: "workspace", name: "<pocket-id-pod>" })` (read-only);
 > die `task workspace:status`/`logs`-Aufrufe unten sind der Fallback. Mutations
 > (`task secrets:sync`, deploys) bleiben unverändert.
 
@@ -183,8 +183,8 @@ task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski
 
 Status-Reads — **MCP-first** (`mcp-kubernetes`, read-only):
 
-> `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` — alle Pods 1/1 Running?
-> `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<pocket-id|nextcloud|website>-pod" })`
+> `mcp-kubernetes_pods_list_in_namespace({ namespace: "workspace" })` — alle Pods 1/1 Running?
+> `mcp-kubernetes_pods_log({ namespace: "workspace", name: "<pocket-id|nextcloud|website>-pod" })`
 
 Fallback (mcp-kubernetes nicht erreichbar):
 

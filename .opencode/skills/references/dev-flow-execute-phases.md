@@ -1,6 +1,6 @@
 # dev-flow-execute — Phasen im Detail
 
-Referenz zu [`dev-flow-execute`](../dev-flow-execute/SKILL.md) und dem gemeinsamen [Lifecycle-Vertrag](.opencode/skills/references/dev-flow-lifecycle.md). Der Skill-Body führt den Ablauf,
+Referenz zu [`dev-flow-execute`](../dev-flow-execute/SKILL.md) und dem gemeinsamen [Lifecycle-Vertrag](.agents/skills/references/dev-flow-lifecycle.md). Der Skill-Body führt den Ablauf,
 die Delegation an den Implementer und **alle Gates**; hier stehen die ausformulierten
 Befehlsfolgen der mechanischen Schritte.
 
@@ -10,8 +10,8 @@ Befehlsfolgen der mechanischen Schritte.
 
 Falls `TICKET_ID` nicht bereits im Kontext gesetzt ist (z.B. vom User oder aus dem Branch-Namen ableitbar):
 Plan-Metadaten aus der DB holen — **MCP-first** (`mcp-postgres`, READ-ONLY, nimmt nur `sql`):
-> `mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`
-Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-tool-guide.md`](.opencode/skills/references/mcp-tool-guide.md)):
+> `mcp-postgres_query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`
+Fallback (mcp-postgres nicht erreichbar — Verfügbarkeits-Guard siehe [`mcp-tool-guide.md`](.agents/skills/references/mcp-tool-guide.md)):
 ```bash
 kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
   "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;"
@@ -81,7 +81,7 @@ else
   git fetch origin main && git pull --rebase origin main
 fi
 ```
-Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](.opencode/skills/references/session-coordination.md).
+Lock-Lebenszyklus (claim/release, Registry-Overlap): [session-coordination](.agents/skills/references/session-coordination.md).
 
 ## Schritt 0: Worktree-Konsistenz prüfen
 
@@ -201,7 +201,7 @@ bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$
 ```
 
 Prüfe zusätzlich den Registry-Overlap für geteilte Hochfrequenz-Dateien (SSOT:
-[session-coordination](.opencode/skills/references/session-coordination.md)):
+[session-coordination](.agents/skills/references/session-coordination.md)):
 
 ## Schritt 1.4.5: Pipeline-Modus erkennen (T002110)
 
@@ -244,7 +244,7 @@ Prüfe, ob für den Branch bereits ein PR mit aktivem Auto-Merge existiert (para
 oder User-Aktion; Regression T006282):
 
 ```bash
-bash scripts/check-pr-automerge.sh
+bash scripts/check-pr-automerge.sh --branch "$BRANCH"
 ```
 
 - `rc=1`: Abbruch als Doppel-Execution-Situation (parallele Session oder der User hat bereits
@@ -261,8 +261,8 @@ bash scripts/check-pr-automerge.sh
 > die den OpenSpec-Change in den Apply-Modus überführt. Fallback wenn die upstream-CLI nicht
 > installiert ist: `task openspec:apply -- <slug>`.
 Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress — **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "in_progress" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
+> `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "in_progress" })`
+> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "entered", driver: "devflow", detail: "Plan: <slug> · $TICKET_ID" })`
 Fallback (ticket-mcp nicht erreichbar; Live-Floor-Telemetrie ist best-effort und darf den Flow nie stoppen):
 ```bash
 ./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status in_progress
@@ -279,8 +279,8 @@ SLUG=$(basename "$PLAN_FILE" .md)
 
 Berührt die Umsetzung Dateien, die im Plan **nicht** standen, ergänze sie für die Conflict-Gate
 (parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
-> `mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "<alle Pfade, inkl. der bereits gesetzten>" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
+> `ticket-mcp-node_set_touched_files({ id: "$TICKET_ID", files: "<alle Pfade, inkl. der bereits gesetzten>" })`
+> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
 Fallback:
 ```bash
 # ACHTUNG: set-touched-files ERSETZT die Liste. Erst den Ist-Stand lesen, dann die neuen
@@ -293,7 +293,7 @@ Fallback:
 ## Schritt 1.7: Visual & Textual Assets laden (Visual Handoff)
 
 Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter — **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
+> `ticket-mcp-node_get_attachments({ id: "$TICKET_ID", out_dir: "/tmp/ticket-attachments-$TICKET_ID" })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
@@ -323,7 +323,7 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 Vor dem Skript-Aufruf steht der Merge-Wait-Loop — erst warten, bis der PR
 tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Ticket=done bei
 PR=OPEN+CONFLICTING Drift, Mishap T001149-M1). Voller Poll-Loop mit Timeout/State-Handling
-(`MERGED`/`CLOSED`/Timeout-Exit-Codes): [ci-fix-loop](.opencode/skills/references/ci-fix-loop.md)
+(`MERGED`/`CLOSED`/Timeout-Exit-Codes): [ci-fix-loop](.agents/skills/references/ci-fix-loop.md)
 §"PR-Merge-Wait-Loop" — der Finalizer MUSS die Datei lesen und den Loop von dort ausführen
 (nicht aus dem Gedächtnis rekonstruieren). Bei Timeout KEIN Ticket schließen (T001149-M1) —
 strukturiert berichten; die offenen Schritte sind über das Skript nachholbar.
@@ -340,11 +340,11 @@ RESOLUTION="shipped" # oder "fixed" bei Fixes
 : "${PR_NUM:=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")}"
 ```
 Abschluss-Lifecycle — **MCP-first** (`ticket-mcp`). Merge = Abschluss (T001092): Schritt 6.4 hat bestätigt, dass der PR gemergt ist; der Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status NICHT.
-> `mcp__ticket-mcp__add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
-> `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
-> `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
+> `ticket-mcp-node_add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })`
+> `ticket-mcp-node_transition_status({ id: "$TICKET_ID", status: "done", resolution: "<shipped|fixed>" })`
+> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "gate=ci result=pass" })`
+> `ticket-mcp-node_record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })`
+> `ticket-mcp-node_add_comment({ id: "$TICKET_ID", body: "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans." })`
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos. Das `verify:done`-Event bleibt Pflicht (Merge-Gate).
 Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Rest ist idempotent):
 ```bash
@@ -362,7 +362,7 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Re
 Zwei Schritte: (1) `tasks.md` nach postgres (`ticket-mcp` `archive_plan` bzw. `ticket.sh archive-plan`),
 (2) der gesamte OpenSpec-Change-Ordner ins Archiv via `scripts/openspec.sh archive` — inkl.
 Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständige Mechanik:
-[plan-archive-steps](.opencode/skills/references/plan-archive-steps.md).
+[plan-archive-steps](.agents/skills/references/plan-archive-steps.md).
 
 
 ## Schritt 7.5: Worktree & Branch bereinigen
@@ -376,7 +376,7 @@ Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständig
 > sein `--delete-branch` (plan-archive-steps).
 
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
-Claims freigeben VOR dem Worktree-Remove ([session-coordination](.opencode/skills/references/session-coordination.md)), dann:
+Claims freigeben VOR dem Worktree-Remove ([session-coordination](.agents/skills/references/session-coordination.md)), dann:
 ```bash
 git worktree remove "$MAIN_REPO/.worktrees/<slug>" --force
 git branch -D "<branch>"

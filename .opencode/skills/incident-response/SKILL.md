@@ -19,9 +19,9 @@ Internal tickets live in `tickets.tickets` on the `mentolder` (`website` DB). En
 
 `priority ∈ {hoch,mittel,niedrig}` · `severity ∈ {critical,major,minor,trivial}` · `status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}` · `resolution ∈ {fixed,shipped,obsolete}`
 
-**DB-Zugriff:** Reads MCP-first via `mcp__mcp-postgres__query`; der `psql()`-Fallback-Helper
+**DB-Zugriff:** Reads MCP-first via `mcp-postgres_query`; der `psql()`-Fallback-Helper
 (zugleich Pflichtweg für Writes wie das `INSERT` in Schritt 2) ist SSOT im
-[`MCP-Tool-Guide`](.opencode/skills/references/mcp-tool-guide.md) §mcp-postgres —
+[`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §mcp-postgres —
 die `psql -c`-Aufrufe unten setzen diesen Helper voraus.
 
 ---
@@ -48,11 +48,11 @@ psql -At -c \
 
 Cluster-Status-Reads — **MCP-first** (`mcp-kubernetes`, read-only):
 
-> Pod-Status: `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` — CrashLoopBackOff, OOMKilled, Pending erkennen.
-> Logs: `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<pod>" })`
-> Einzelnes Pod-Detail: `mcp__mcp-kubernetes__pods_get({ namespace: "workspace", name: "<pod>" })`
+> Pod-Status: `mcp-kubernetes_pods_list_in_namespace({ namespace: "workspace" })` — CrashLoopBackOff, OOMKilled, Pending erkennen.
+> Logs: `mcp-kubernetes_pods_log({ namespace: "workspace", name: "<pod>" })`
+> Einzelnes Pod-Detail: `mcp-kubernetes_pods_get({ namespace: "workspace", name: "<pod>" })`
 
-Fallback (mcp-kubernetes nicht erreichbar — Verfügbarkeits-Guard siehe [`MCP-Tool-Guide`](.opencode/skills/references/mcp-tool-guide.md)):
+Fallback (mcp-kubernetes nicht erreichbar — Verfügbarkeits-Guard siehe [`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md)):
 
 * **Pod status:** `task workspace:status ENV=mentolder` (CrashLoopBackOff, OOMKilled, Pending).
 * **Logs:** `task workspace:logs ENV=<env> -- <service>`.

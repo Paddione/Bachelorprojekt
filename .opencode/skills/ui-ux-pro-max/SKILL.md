@@ -1,7 +1,7 @@
 ---
 name: ui-ux-pro-max
 description: "UI/UX design intelligence. 50 styles, 21 palettes, 50 font pairings, 20 charts, 8 stacks (React, Next.js, Vue, Svelte, SwiftUI, React Native, Flutter, Tailwind). Actions: plan, build, create, design, implement, review, fix, improve, optimize, enhance, refactor, check UI/UX code. Projects: website, landing page, dashboard, admin panel, e-commerce, SaaS, portfolio, blog, mobile app, .html, .tsx, .vue, .svelte. Elements: button, modal, navbar, sidebar, card, table, form, chart. Styles: glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid, dark mode, responsive, skeuomorphism, flat design. Topics: color palette, accessibility, animation, layout, typography, font pairing, spacing, hover, shadow, gradient."
-source: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/main/.opencode/skills/ui-ux-pro-max
+source: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/main/.agents/skills/ui-ux-pro-max
 ---
 
 # UI/UX Pro Max - Design Intelligence
@@ -52,7 +52,7 @@ Extract key information from user request:
 Use `search.py` multiple times to gather comprehensive information. Search until you have enough context.
 
 ```bash
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --domain <domain> [-n <max_results>]
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --domain <domain> [-n <max_results>]
 ```
 
 **Recommended search order:**
@@ -71,7 +71,7 @@ python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --domain <d
 If user doesn't specify a stack, **default to `html-tailwind`**.
 
 ```bash
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --stack html-tailwind
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --stack html-tailwind
 ```
 
 Available stacks: `html-tailwind`, `react`, `nextjs`, `vue`, `svelte`, `swiftui`, `react-native`, `flutter`
@@ -116,26 +116,26 @@ Available stacks: `html-tailwind`, `react`, `nextjs`, `vue`, `svelte`, `swiftui`
 
 ```bash
 # 1. Search product type
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness service" --domain product
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness service" --domain product
 
 # 2. Search style (based on industry: beauty, elegant)
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "elegant minimal soft" --domain style
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "elegant minimal soft" --domain style
 
 # 3. Search typography
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "elegant luxury" --domain typography
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "elegant luxury" --domain typography
 
 # 4. Search color palette
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness" --domain color
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness" --domain color
 
 # 5. Search landing page structure
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "hero-centric social-proof" --domain landing
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "hero-centric social-proof" --domain landing
 
 # 6. Search UX guidelines
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "animation" --domain ux
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "accessibility" --domain ux
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "animation" --domain ux
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "accessibility" --domain ux
 
 # 7. Search stack guidelines (default: html-tailwind)
-python3 .opencode/skills/ui-ux-pro-max/scripts/search.py "layout responsive" --stack html-tailwind
+python3 .agents/skills/ui-ux-pro-max/scripts/search.py "layout responsive" --stack html-tailwind
 ```
 
 **Then:** Synthesize all search results and implement the design.

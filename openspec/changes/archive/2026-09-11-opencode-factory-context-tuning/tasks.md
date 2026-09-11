@@ -61,7 +61,7 @@ Detail per partial (test steps live in p6 by design):
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** The p6 BATS file reproduces the missing
+- [x] **Failing-Test-Step (RED).** The p6 BATS file reproduces the missing
       behavior on the unimplemented base. It MUST fail before p1/p4/p5 land:
 
 ```bash
@@ -69,7 +69,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/opencode-compaction.b
 # expected: FAIL (red — no compaction block, AGENTS.md at 211 lines, script absent)
 ```
 
-- [ ] **Fix-Step (GREEN).** After p1–p5 are implemented, the same runner MUST
+- [x] **Fix-Step (GREEN).** After p1–p5 are implemented, the same runner MUST
       pass:
 
 ```bash
@@ -77,7 +77,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/opencode-compaction.b
 # expected: PASS (green — V2 block, line cap, smoke all hold)
 ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

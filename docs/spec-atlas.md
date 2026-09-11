@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2329 · Scenarios: 5158
+Specs: 146 · Requirements: 2329 · Scenarios: 5159
 
 ## factory-pipeline
 
@@ -70,19 +70,18 @@ In-flight:
 ## delivery
 
 ### ci-cd
-Reqs: 113 · Scenarios: 332 · Lines: 3509
+Reqs: 113 · Scenarios: 333 · Lines: 3522
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Squash-Auto-Merge | T900089 | 2026-09-11 | MODIFIED
   - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
   - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
-  - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
-  - Squash-Auto-Merge | T900089 | active | MODIFIED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED
   - Build embeds the git revision | T014735 | active | ADDED
 

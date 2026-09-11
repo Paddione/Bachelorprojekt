@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2329 · Scenarios: 5159
+Specs: 146 · Requirements: 2329 · Scenarios: 5158
 
 ## factory-pipeline
 
@@ -70,7 +70,7 @@ In-flight:
 ## delivery
 
 ### ci-cd
-Reqs: 113 · Scenarios: 333 · Lines: 3522
+Reqs: 113 · Scenarios: 332 · Lines: 3511
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
   - Squash-Auto-Merge | T900089 | 2026-09-11 | MODIFIED

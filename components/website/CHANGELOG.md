@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.332.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.3...website-v1.332.4) (2026-09-11)
+
+
+### Bug Fixes
+
+* **security:** remove cluster-wide pods/exec from website SA [T900110] ([#5537](https://github.com/Paddione/Bachelorprojekt/issues/5537)) ([25c0198](https://github.com/Paddione/Bachelorprojekt/commit/25c01982898617a25fc93fec6401b0ccbb8e1216))
+
 ## [1.332.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.2...website-v1.332.3) (2026-09-11)
 
 

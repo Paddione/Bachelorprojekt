@@ -1,0 +1,1139 @@
+# docs/agent-guide/registry/skills.yaml
+# SSOT: openspec/specs/agent-skills.md — Delta: openspec/changes/portable-agent-skills/
+# Ticket: T900151, Partial p1 (Inventar + Projektions-Engine)
+#
+# Authoritative four-harness skill inventory. This file records the target
+# portable-core architecture; p2 reconciles the current symlinked/copied corpus.
+# The projection engine is scripts/agent-skills/project.mjs.
+schema_version: 1
+
+harnesses:
+  codex:
+    discovery_root: .agents/skills
+  agy:
+    discovery_root: .agents/skills
+  opencode:
+    discovery_root: .opencode/skills
+  claude_code:
+    discovery_root: .claude/skills
+
+skills:
+  # ── Portable shared corpus: canonical body in .agents/skills ──
+  - id: agentic-resource-lookup
+    provenance: project
+    exposure: portable
+    source: .agents/skills/agentic-resource-lookup
+    harnesses:
+      codex:
+        path: .agents/skills/agentic-resource-lookup
+        sync: identical
+      agy:
+        path: .agents/skills/agentic-resource-lookup
+        sync: identical
+      opencode:
+        path: .opencode/skills/agentic-resource-lookup
+        sync: identical
+      claude_code:
+        path: .claude/skills/agentic-resource-lookup
+        sync: identical
+    exclusions: {}
+
+  - id: brain-ingest
+    provenance: project
+    exposure: portable
+    source: .agents/skills/brain-ingest
+    harnesses:
+      codex:
+        path: .agents/skills/brain-ingest
+        sync: identical
+      agy:
+        path: .agents/skills/brain-ingest
+        sync: identical
+      opencode:
+        path: .opencode/skills/brain-ingest
+        sync: identical
+      claude_code:
+        path: .claude/skills/brain-ingest
+        sync: identical
+    exclusions: {}
+
+  - id: database-specialist
+    provenance: project
+    exposure: portable
+    source: .agents/skills/database-specialist
+    harnesses:
+      codex:
+        path: .agents/skills/database-specialist
+        sync: identical
+      agy:
+        path: .agents/skills/database-specialist
+        sync: identical
+      opencode:
+        path: .opencode/skills/database-specialist
+        sync: identical
+      claude_code:
+        path: .claude/skills/database-specialist
+        sync: identical
+    exclusions: {}
+
+  - id: dev-flow-chore
+    provenance: project
+    exposure: portable
+    source: .agents/skills/dev-flow-chore
+    harnesses:
+      codex:
+        path: .agents/skills/dev-flow-chore
+        sync: identical
+      agy:
+        path: .agents/skills/dev-flow-chore
+        sync: identical
+      opencode:
+        path: .opencode/skills/dev-flow-chore
+        sync: identical
+      claude_code:
+        path: .claude/skills/dev-flow-chore
+        sync: identical
+    exclusions: {}
+
+  - id: dev-flow-e2e
+    provenance: project
+    exposure: portable
+    source: .agents/skills/dev-flow-e2e
+    harnesses:
+      codex:
+        path: .agents/skills/dev-flow-e2e
+        sync: identical
+      agy:
+        path: .agents/skills/dev-flow-e2e
+        sync: identical
+      opencode:
+        path: .opencode/skills/dev-flow-e2e
+        sync: identical
+      claude_code:
+        path: .claude/skills/dev-flow-e2e
+        sync: identical
+    exclusions: {}
+
+  - id: git-workflow
+    provenance: project
+    exposure: portable
+    source: .agents/skills/git-workflow
+    harnesses:
+      codex:
+        path: .agents/skills/git-workflow
+        sync: identical
+      agy:
+        path: .agents/skills/git-workflow
+        sync: identical
+      opencode:
+        path: .opencode/skills/git-workflow
+        sync: identical
+      claude_code:
+        path: .claude/skills/git-workflow
+        sync: identical
+    exclusions: {}
+
+  - id: gitops-cluster-debug
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/gitops-cluster-debug
+    harnesses:
+      codex:
+        path: .agents/skills/gitops-cluster-debug
+        sync: identical
+      agy:
+        path: .agents/skills/gitops-cluster-debug
+        sync: identical
+      opencode:
+        path: .opencode/skills/gitops-cluster-debug
+        sync: identical
+      claude_code:
+        path: .claude/skills/gitops-cluster-debug
+        sync: identical
+    exclusions: {}
+
+  - id: gitops-knowledge
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/gitops-knowledge
+    harnesses:
+      codex:
+        path: .agents/skills/gitops-knowledge
+        sync: identical
+      agy:
+        path: .agents/skills/gitops-knowledge
+        sync: identical
+      opencode:
+        path: .opencode/skills/gitops-knowledge
+        sync: identical
+      claude_code:
+        path: .claude/skills/gitops-knowledge
+        sync: identical
+    exclusions: {}
+
+  - id: gitops-repo-audit
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/gitops-repo-audit
+    harnesses:
+      codex:
+        path: .agents/skills/gitops-repo-audit
+        sync: identical
+      agy:
+        path: .agents/skills/gitops-repo-audit
+        sync: identical
+      opencode:
+        path: .opencode/skills/gitops-repo-audit
+        sync: identical
+      claude_code:
+        path: .claude/skills/gitops-repo-audit
+        sync: identical
+    exclusions: {}
+
+  - id: lavish
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/lavish
+    harnesses:
+      codex:
+        path: .agents/skills/lavish
+        sync: identical
+      agy:
+        path: .agents/skills/lavish
+        sync: identical
+      opencode:
+        path: .opencode/skills/lavish
+        sync: identical
+      claude_code:
+        path: .claude/skills/lavish
+        sync: identical
+    exclusions: {}
+
+  - id: operations-management
+    provenance: project
+    exposure: portable
+    source: .agents/skills/operations-management
+    harnesses:
+      codex:
+        path: .agents/skills/operations-management
+        sync: identical
+      agy:
+        path: .agents/skills/operations-management
+        sync: identical
+      opencode:
+        path: .opencode/skills/operations-management
+        sync: identical
+      claude_code:
+        path: .claude/skills/operations-management
+        sync: identical
+    exclusions: {}
+
+  - id: repo-hygiene
+    provenance: project
+    exposure: portable
+    source: .agents/skills/repo-hygiene
+    harnesses:
+      codex:
+        path: .agents/skills/repo-hygiene
+        sync: identical
+      agy:
+        path: .agents/skills/repo-hygiene
+        sync: identical
+      opencode:
+        path: .opencode/skills/repo-hygiene
+        sync: identical
+      claude_code:
+        path: .claude/skills/repo-hygiene
+        sync: identical
+    exclusions: {}
+
+  - id: security-specialist
+    provenance: project
+    exposure: portable
+    source: .agents/skills/security-specialist
+    harnesses:
+      codex:
+        path: .agents/skills/security-specialist
+        sync: identical
+      agy:
+        path: .agents/skills/security-specialist
+        sync: identical
+      opencode:
+        path: .opencode/skills/security-specialist
+        sync: identical
+      claude_code:
+        path: .claude/skills/security-specialist
+        sync: identical
+    exclusions: {}
+
+  - id: ticket-dispatch
+    provenance: project
+    exposure: portable
+    source: .agents/skills/ticket-dispatch
+    harnesses:
+      codex:
+        path: .agents/skills/ticket-dispatch
+        sync: identical
+      agy:
+        path: .agents/skills/ticket-dispatch
+        sync: identical
+      opencode:
+        path: .opencode/skills/ticket-dispatch
+        sync: identical
+      claude_code:
+        path: .claude/skills/ticket-dispatch
+        sync: identical
+    exclusions: {}
+
+  - id: ticket-ops
+    provenance: project
+    exposure: portable
+    source: .agents/skills/ticket-ops
+    harnesses:
+      codex:
+        path: .agents/skills/ticket-ops
+        sync: identical
+      agy:
+        path: .agents/skills/ticket-ops
+        sync: identical
+      opencode:
+        path: .opencode/skills/ticket-ops
+        sync: identical
+      claude_code:
+        path: .claude/skills/ticket-ops
+        sync: identical
+    exclusions: {}
+
+  - id: ticket-triage
+    provenance: project
+    exposure: portable
+    source: .agents/skills/ticket-triage
+    harnesses:
+      codex:
+        path: .agents/skills/ticket-triage
+        sync: identical
+      agy:
+        path: .agents/skills/ticket-triage
+        sync: identical
+      opencode:
+        path: .opencode/skills/ticket-triage
+        sync: identical
+      claude_code:
+        path: .claude/skills/ticket-triage
+        sync: identical
+    exclusions: {}
+
+  - id: toolset-curate
+    provenance: project
+    exposure: portable
+    source: .agents/skills/toolset-curate
+    harnesses:
+      codex:
+        path: .agents/skills/toolset-curate
+        sync: identical
+      agy:
+        path: .agents/skills/toolset-curate
+        sync: identical
+      opencode:
+        path: .opencode/skills/toolset-curate
+        sync: identical
+      claude_code:
+        path: .claude/skills/toolset-curate
+        sync: identical
+    exclusions: {}
+
+  - id: ui-ux-pro-max
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/ui-ux-pro-max
+    harnesses:
+      codex:
+        path: .agents/skills/ui-ux-pro-max
+        sync: identical
+      agy:
+        path: .agents/skills/ui-ux-pro-max
+        sync: identical
+      opencode:
+        path: .opencode/skills/ui-ux-pro-max
+        sync: identical
+      claude_code:
+        path: .claude/skills/ui-ux-pro-max
+        sync: identical
+    exclusions: {}
+
+  - id: unsloth-buddy
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/unsloth-buddy
+    harnesses:
+      codex:
+        path: .agents/skills/unsloth-buddy
+        sync: identical
+      agy:
+        path: .agents/skills/unsloth-buddy
+        sync: identical
+      opencode:
+        path: .opencode/skills/unsloth-buddy
+        sync: identical
+      claude_code:
+        path: .claude/skills/unsloth-buddy
+        sync: identical
+    exclusions: {}
+
+  - id: update-dependencies
+    provenance: project
+    exposure: portable
+    source: .agents/skills/update-dependencies
+    harnesses:
+      codex:
+        path: .agents/skills/update-dependencies
+        sync: identical
+      agy:
+        path: .agents/skills/update-dependencies
+        sync: identical
+      opencode:
+        path: .opencode/skills/update-dependencies
+        sync: identical
+      claude_code:
+        path: .claude/skills/update-dependencies
+        sync: identical
+    exclusions: {}
+
+  - id: vitest
+    provenance: vendor
+    exposure: portable
+    source: .agents/skills/vitest
+    harnesses:
+      codex:
+        path: .agents/skills/vitest
+        sync: identical
+      agy:
+        path: .agents/skills/vitest
+        sync: identical
+      opencode:
+        path: .opencode/skills/vitest
+        sync: identical
+      claude_code:
+        path: .claude/skills/vitest
+        sync: identical
+    exclusions: {}
+
+  - id: web-audit
+    provenance: project
+    exposure: portable
+    source: .agents/skills/web-audit
+    harnesses:
+      codex:
+        path: .agents/skills/web-audit
+        sync: identical
+      agy:
+        path: .agents/skills/web-audit
+        sync: identical
+      opencode:
+        path: .opencode/skills/web-audit
+        sync: identical
+      claude_code:
+        path: .claude/skills/web-audit
+        sync: identical
+    exclusions: {}
+
+  - id: website-specialist
+    provenance: project
+    exposure: portable
+    source: .agents/skills/website-specialist
+    harnesses:
+      codex:
+        path: .agents/skills/website-specialist
+        sync: identical
+      agy:
+        path: .agents/skills/website-specialist
+        sync: identical
+      opencode:
+        path: .opencode/skills/website-specialist
+        sync: identical
+      claude_code:
+        path: .claude/skills/website-specialist
+        sync: identical
+    exclusions: {}
+
+  # ── Shared adapters: portable core plus harness-runtime mappings ──
+  - id: dev-flow-execute
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/dev-flow-execute
+    harnesses:
+      codex:
+        path: .agents/skills/dev-flow-execute
+        sync: identical
+      agy:
+        path: .agents/skills/dev-flow-execute
+        sync: identical
+      opencode:
+        path: .opencode/skills/dev-flow-execute
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "ticket.record-phase-event"
+            runtime_tool: "ticket-mcp-node_record_phase_event"
+      claude_code:
+        path: .claude/skills/dev-flow-execute
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "ticket.record-phase-event"
+            runtime_tool: "mcp__ticket-mcp-node__record_phase_event"
+    exclusions: {}
+
+  - id: dev-flow-plan
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/dev-flow-plan
+    harnesses:
+      codex:
+        path: .agents/skills/dev-flow-plan
+        sync: identical
+      agy:
+        path: .agents/skills/dev-flow-plan
+        sync: identical
+      opencode:
+        path: .opencode/skills/dev-flow-plan
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp-postgres_query"
+      claude_code:
+        path: .claude/skills/dev-flow-plan
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp__mcp-postgres__query"
+    exclusions: {}
+
+  - id: finetune-run
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/finetune-run
+    harnesses:
+      codex:
+        path: .agents/skills/finetune-run
+        sync: identical
+      agy:
+        path: .agents/skills/finetune-run
+        sync: identical
+      opencode:
+        path: .opencode/skills/finetune-run
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp-postgres_query"
+      claude_code:
+        path: .claude/skills/finetune-run
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp__mcp-postgres__query"
+    exclusions: {}
+
+  - id: incident-response
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/incident-response
+    harnesses:
+      codex:
+        path: .agents/skills/incident-response
+        sync: identical
+      agy:
+        path: .agents/skills/incident-response
+        sync: identical
+      opencode:
+        path: .opencode/skills/incident-response
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "kubernetes.pod-get"
+            runtime_tool: "mcp-kubernetes_pods_get"
+          - capability: "kubernetes.pod-list-in-namespace"
+            runtime_tool: "mcp-kubernetes_pods_list_in_namespace"
+          - capability: "kubernetes.pod-log"
+            runtime_tool: "mcp-kubernetes_pods_log"
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp-postgres_query"
+      claude_code:
+        path: .claude/skills/incident-response
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "kubernetes.pod-get"
+            runtime_tool: "mcp__mcp-kubernetes__pods_get"
+          - capability: "kubernetes.pod-list-in-namespace"
+            runtime_tool: "mcp__mcp-kubernetes__pods_list_in_namespace"
+          - capability: "kubernetes.pod-log"
+            runtime_tool: "mcp__mcp-kubernetes__pods_log"
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp__mcp-postgres__query"
+    exclusions: {}
+
+  - id: infra-ops
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/infra-ops
+    harnesses:
+      codex:
+        path: .agents/skills/infra-ops
+        sync: identical
+      agy:
+        path: .agents/skills/infra-ops
+        sync: identical
+      opencode:
+        path: .opencode/skills/infra-ops
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "kubernetes.pod-list-in-namespace"
+            runtime_tool: "mcp-kubernetes_pods_list_in_namespace"
+          - capability: "kubernetes.pod-log"
+            runtime_tool: "mcp-kubernetes_pods_log"
+      claude_code:
+        path: .claude/skills/infra-ops
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "kubernetes.pod-list-in-namespace"
+            runtime_tool: "mcp__mcp-kubernetes__pods_list_in_namespace"
+          - capability: "kubernetes.pod-log"
+            runtime_tool: "mcp__mcp-kubernetes__pods_log"
+    exclusions: {}
+
+  - id: mishap-tracker
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/mishap-tracker
+    harnesses:
+      codex:
+        path: .agents/skills/mishap-tracker
+        sync: identical
+      agy:
+        path: .agents/skills/mishap-tracker
+        sync: identical
+      opencode:
+        path: .opencode/skills/mishap-tracker
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "mishap.report"
+            runtime_tool: "ticket-mcp-node_report_mishap"
+          - capability: "mishap.get-buffer"
+            runtime_tool: "ticket-mcp-node_get_mishap_buffer"
+          - capability: "mishap.flush-buffer"
+            runtime_tool: "ticket-mcp-node_flush_mishap_buffer"
+      claude_code:
+        path: .claude/skills/mishap-tracker
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "mishap.report"
+            runtime_tool: "mcp__ticket-mcp-node__report_mishap"
+          - capability: "mishap.get-buffer"
+            runtime_tool: "mcp__ticket-mcp-node__get_mishap_buffer"
+          - capability: "mishap.flush-buffer"
+            runtime_tool: "mcp__ticket-mcp-node__flush_mishap_buffer"
+    exclusions: {}
+
+  - id: references
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/references
+    harnesses:
+      codex:
+        path: .agents/skills/references
+        sync: identical
+      agy:
+        path: .agents/skills/references
+        sync: identical
+      opencode:
+        path: .opencode/skills/references
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp-postgres_query"
+          - capability: "kubernetes.pod-list-in-namespace"
+            runtime_tool: "mcp-kubernetes_pods_list_in_namespace"
+          - capability: "factory.status"
+            runtime_tool: "factory-mcp-node_factory_status"
+          - capability: "factory.ask"
+            runtime_tool: "factory-mcp-node_factory_ask"
+          - capability: "factory.trigger"
+            runtime_tool: "factory-mcp-node_factory_trigger"
+          - capability: "ticket.get"
+            runtime_tool: "ticket-mcp-node_get_ticket"
+          - capability: "ticket.list"
+            runtime_tool: "ticket-mcp-node_list_tickets"
+          - capability: "ticket.create"
+            runtime_tool: "ticket-mcp-node_create_ticket"
+          - capability: "ticket.transition-status"
+            runtime_tool: "ticket-mcp-node_transition_status"
+          - capability: "ticket.add-comment"
+            runtime_tool: "ticket-mcp-node_add_comment"
+          - capability: "ticket.add-pr-link"
+            runtime_tool: "ticket-mcp-node_add_pr_link"
+          - capability: "ticket.link"
+            runtime_tool: "ticket-mcp-node_link_tickets"
+          - capability: "ticket.get-attachments"
+            runtime_tool: "ticket-mcp-node_get_attachments"
+          - capability: "ticket.record-phase-event"
+            runtime_tool: "ticket-mcp-node_record_phase_event"
+          - capability: "ticket.set-plan-meta"
+            runtime_tool: "ticket-mcp-node_set_plan_meta"
+          - capability: "ticket.set-readiness-flag"
+            runtime_tool: "ticket-mcp-node_set_readiness_flag"
+          - capability: "ticket.set-touched-files"
+            runtime_tool: "ticket-mcp-node_set_touched_files"
+          - capability: "ticket.stage-plan"
+            runtime_tool: "ticket-mcp-node_stage_plan"
+          - capability: "ticket.archive-plan"
+            runtime_tool: "ticket-mcp-node_archive_plan"
+          - capability: "mishap.get-buffer"
+            runtime_tool: "ticket-mcp-node_get_mishap_buffer"
+          - capability: "browser.automation"
+            runtime_tool: "playwright_*"
+      claude_code:
+        path: .claude/skills/references
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "postgres.read-only-query"
+            runtime_tool: "mcp__mcp-postgres__query"
+          - capability: "kubernetes.pod-list-in-namespace"
+            runtime_tool: "mcp__mcp-kubernetes__pods_list_in_namespace"
+          - capability: "factory.status"
+            runtime_tool: "mcp__factory-mcp-node__factory_status"
+          - capability: "factory.ask"
+            runtime_tool: "mcp__factory-mcp-node__factory_ask"
+          - capability: "factory.trigger"
+            runtime_tool: "mcp__factory-mcp-node__factory_trigger"
+          - capability: "ticket.get"
+            runtime_tool: "mcp__ticket-mcp-node__get_ticket"
+          - capability: "ticket.list"
+            runtime_tool: "mcp__ticket-mcp-node__list_tickets"
+          - capability: "ticket.create"
+            runtime_tool: "mcp__ticket-mcp-node__create_ticket"
+          - capability: "ticket.transition-status"
+            runtime_tool: "mcp__ticket-mcp-node__transition_status"
+          - capability: "ticket.add-comment"
+            runtime_tool: "mcp__ticket-mcp-node__add_comment"
+          - capability: "ticket.add-pr-link"
+            runtime_tool: "mcp__ticket-mcp-node__add_pr_link"
+          - capability: "ticket.link"
+            runtime_tool: "mcp__ticket-mcp-node__link_tickets"
+          - capability: "ticket.get-attachments"
+            runtime_tool: "mcp__ticket-mcp-node__get_attachments"
+          - capability: "ticket.record-phase-event"
+            runtime_tool: "mcp__ticket-mcp-node__record_phase_event"
+          - capability: "ticket.set-plan-meta"
+            runtime_tool: "mcp__ticket-mcp-node__set_plan_meta"
+          - capability: "ticket.set-readiness-flag"
+            runtime_tool: "mcp__ticket-mcp-node__set_readiness_flag"
+          - capability: "ticket.set-touched-files"
+            runtime_tool: "mcp__ticket-mcp-node__set_touched_files"
+          - capability: "ticket.stage-plan"
+            runtime_tool: "mcp__ticket-mcp-node__stage_plan"
+          - capability: "ticket.archive-plan"
+            runtime_tool: "mcp__ticket-mcp-node__archive_plan"
+          - capability: "mishap.get-buffer"
+            runtime_tool: "mcp__ticket-mcp-node__get_mishap_buffer"
+          - capability: "browser.automation"
+            runtime_tool: "mcp__playwright__*"
+    exclusions: {}
+
+  - id: system-audit
+    provenance: project
+    exposure: adapter
+    source: .agents/skills/system-audit
+    harnesses:
+      codex:
+        path: .agents/skills/system-audit
+        sync: identical
+      agy:
+        path: .agents/skills/system-audit
+        sync: identical
+      opencode:
+        path: .opencode/skills/system-audit
+        sync: manual
+        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
+        maps:
+          - capability: "ticket.create"
+            runtime_tool: "ticket-mcp-node_create_ticket"
+          - capability: "ticket.set-plan-meta"
+            runtime_tool: "ticket-mcp-node_set_plan_meta"
+          - capability: "ticket.set-readiness-flag"
+            runtime_tool: "ticket-mcp-node_set_readiness_flag"
+      claude_code:
+        path: .claude/skills/system-audit
+        sync: manual
+        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
+        maps:
+          - capability: "ticket.create"
+            runtime_tool: "mcp__ticket-mcp-node__create_ticket"
+          - capability: "ticket.set-plan-meta"
+            runtime_tool: "mcp__ticket-mcp-node__set_plan_meta"
+          - capability: "ticket.set-readiness-flag"
+            runtime_tool: "mcp__ticket-mcp-node__set_readiness_flag"
+    exclusions: {}
+
+  # ── Claude Code native forks ──
+  - id: openspec-apply-change
+    provenance: project
+    exposure: native
+    source: .claude/skills/openspec-apply-change
+    harnesses:
+      claude_code:
+        path: .claude/skills/openspec-apply-change
+        sync: identical
+    exclusions:
+      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
+      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
+      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
+
+  - id: openspec-archive-change
+    provenance: project
+    exposure: native
+    source: .claude/skills/openspec-archive-change
+    harnesses:
+      claude_code:
+        path: .claude/skills/openspec-archive-change
+        sync: identical
+    exclusions:
+      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
+      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
+      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
+
+  - id: openspec-explore
+    provenance: project
+    exposure: native
+    source: .claude/skills/openspec-explore
+    harnesses:
+      claude_code:
+        path: .claude/skills/openspec-explore
+        sync: identical
+    exclusions:
+      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
+      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
+      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
+
+  - id: openspec-propose
+    provenance: project
+    exposure: native
+    source: .claude/skills/openspec-propose
+    harnesses:
+      claude_code:
+        path: .claude/skills/openspec-propose
+        sync: identical
+    exclusions:
+      codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
+      agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
+      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
+
+  # ── OpenCode native corpus ──
+  - id: find-skills
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/find-skills
+    harnesses:
+      opencode:
+        path: .opencode/skills/find-skills
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only vendor skill from the skills CLI ecosystem."
+      agy: "OpenCode-only vendor skill from the skills CLI ecosystem."
+      claude_code: "OpenCode-only vendor skill from the skills CLI ecosystem."
+
+  - id: freetoken-setup
+    provenance: project
+    exposure: native
+    source: .opencode/skills/freetoken-setup
+    harnesses:
+      opencode:
+        path: .opencode/skills/freetoken-setup
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only backend configuration for the local FreeToken host."
+      agy: "OpenCode-only backend configuration for the local FreeToken host."
+      claude_code: "OpenCode-only backend configuration for the local FreeToken host."
+
+  - id: hf-mem
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/hf-mem
+    harnesses:
+      opencode:
+        path: .opencode/skills/hf-mem
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-best
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-best
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-best
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-community-evals
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-community-evals
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-community-evals
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-datasets
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-datasets
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-datasets
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-llm-trainer
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-llm-trainer
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-llm-trainer
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-local-models
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-local-models
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-local-models
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-lora-space-builder
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-lora-space-builder
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-lora-space-builder
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-paper-publisher
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-paper-publisher
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-paper-publisher
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-papers
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-papers
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-papers
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-tool-builder
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-tool-builder
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-tool-builder
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-trackio
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-trackio
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-trackio
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-vision-trainer
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-vision-trainer
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-vision-trainer
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: huggingface-zerogpu
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/huggingface-zerogpu
+    harnesses:
+      opencode:
+        path: .opencode/skills/huggingface-zerogpu
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: llama-cpp
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/llama-cpp
+    harnesses:
+      opencode:
+        path: .opencode/skills/llama-cpp
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only vendor skill for llama.cpp inference."
+      agy: "OpenCode-only vendor skill for llama.cpp inference."
+      claude_code: "OpenCode-only vendor skill for llama.cpp inference."
+
+  - id: opencode-git-workflow
+    provenance: project
+    exposure: native
+    source: .opencode/skills/opencode-git-workflow
+    harnesses:
+      opencode:
+        path: .opencode/skills/opencode-git-workflow
+        sync: identical
+    exclusions:
+      codex: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
+      agy: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
+      claude_code: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
+
+  - id: sdlc-autopilot
+    provenance: project
+    exposure: native
+    source: .opencode/skills/sdlc-autopilot
+    harnesses:
+      opencode:
+        path: .opencode/skills/sdlc-autopilot
+        sync: identical
+    exclusions:
+      codex: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
+      agy: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
+      claude_code: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
+
+  - id: skill-craft
+    provenance: project
+    exposure: native
+    source: .opencode/skills/skill-craft
+    harnesses:
+      opencode:
+        path: .opencode/skills/skill-craft
+        sync: identical
+    exclusions:
+      codex: "OpenCode-native router for the locally installed skill-lifecycle helpers."
+      agy: "OpenCode-native router for the locally installed skill-lifecycle helpers."
+      claude_code: "OpenCode-native router for the locally installed skill-lifecycle helpers."
+
+  - id: skill-creator
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/skill-creator
+    harnesses:
+      opencode:
+        path: .opencode/skills/skill-creator
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only upstream skill-authoring helper."
+      agy: "OpenCode-only upstream skill-authoring helper."
+      claude_code: "OpenCode-only upstream skill-authoring helper."
+
+  - id: train-sentence-transformers
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/train-sentence-transformers
+    harnesses:
+      opencode:
+        path: .opencode/skills/train-sentence-transformers
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: transformers-js
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/transformers-js
+    harnesses:
+      opencode:
+        path: .opencode/skills/transformers-js
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."
+
+  - id: trl-training
+    provenance: vendor
+    exposure: native
+    source: .opencode/skills/trl-training
+    harnesses:
+      opencode:
+        path: .opencode/skills/trl-training
+        sync: identical
+    exclusions:
+      codex: "OpenCode-only HuggingFace vendor skill pack."
+      agy: "OpenCode-only HuggingFace vendor skill pack."
+      claude_code: "OpenCode-only HuggingFace vendor skill pack."

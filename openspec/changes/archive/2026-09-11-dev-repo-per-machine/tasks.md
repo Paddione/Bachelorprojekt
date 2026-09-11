@@ -2,7 +2,7 @@
 title: "dev-repo-per-machine — Implementation Plan"
 ticket_id: T900119
 domains: [infra, testing, security]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

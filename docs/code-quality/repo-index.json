@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1285,
+      "file_count": 1286,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -738,6 +738,7 @@
         "tests/spec/local-llm-proxy/bge-token-ssot.bats",
         "tests/spec/local-llm-proxy/brain-ingest-port.bats",
         "tests/spec/local-llm-proxy/brain-ingest-swap.bats",
+        "tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats",
         "tests/spec/local-llm-proxy/dispatch-capture.bats",
         "tests/spec/local-llm-proxy/embed-bge-fallback.bats",
         "tests/spec/local-llm-proxy/embed-probe-timeout.bats",

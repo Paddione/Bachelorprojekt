@@ -117,13 +117,18 @@ networks:
     cidr: 100.64.0.0/10
     owner: Tailnet (p.korczewski)
     purpose: >-
-      NAT-durchdringendes Overlay; trägt derzeit pk-desktop (100.102.71.114) und
-      pk-hetzner-8 (100.118.49.94)
+      NAT-durchdringendes Overlay für den Zugriff auf devmesh (ADR-008): Server mit
+      tag:devmesh, Dev-Clients mit tag:devclient
     status: active
-    source: Tailscale-Dienst auf den Geräten
+    source: >-
+      Tailscale-Dienst auf den Geräten; Soll-Zustand devmesh/inventory.yaml und
+      devmesh/tailnet-policy.hujson, Prüfung task devmesh:tailnet:check
     notes: >-
       Der einzige Bereich, der ohne eigenes Zutun kollisionsfrei bleibt — Tailscale
       benutzt den für Carrier-Grade-NAT reservierten Block, den sonst niemand vergibt.
+      Einzelne Geräte-Adressen stehen bewusst nicht hier, weil sie sich bei einer
+      Neuregistrierung ändern. k3s-Knotenverkehr läuft nicht über das Tailnet, sondern
+      direkt über home-lan.
 
   - id: docker-bridge-default
     cidr: 172.17.0.0/16

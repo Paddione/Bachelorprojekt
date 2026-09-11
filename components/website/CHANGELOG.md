@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.335.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.334.0...website-v1.335.0) (2026-09-11)
+
+
+### Features
+
+* **infra:** devmesh SP-4: Onboarding pro Maschine [T900144] ([#5578](https://github.com/Paddione/Bachelorprojekt/issues/5578)) ([181b3e6](https://github.com/Paddione/Bachelorprojekt/commit/181b3e6bda8d5ec1edb2c536c2d8da1b0c14a128))
+
+## [1.334.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.333.0...website-v1.334.0) (2026-09-11)
+
+
+### Features
+
+* **infra:** devmesh SP-1: Tailscale-Mesh für Dev-Maschinen [T900142] [T900115] ([#5563](https://github.com/Paddione/Bachelorprojekt/issues/5563)) ([538228a](https://github.com/Paddione/Bachelorprojekt/commit/538228ae95d178619b3cac82a61aace62429ca65))
+
+## [1.333.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.6...website-v1.333.0) (2026-09-11)
+
+
+### Features
+
+* modernize llama vim integration T900141 ([#5573](https://github.com/Paddione/Bachelorprojekt/issues/5573)) ([61c0958](https://github.com/Paddione/Bachelorprojekt/commit/61c0958f49d44c71f8cf51e49370081a36f3fd6f))
+
 ## [1.332.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.5...website-v1.332.6) (2026-09-11)
 
 

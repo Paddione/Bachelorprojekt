@@ -4679,6 +4679,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900117": [
+    {
+      "slug": "devmesh-k3s-cluster",
+      "status": "plan_staged"
+    }
+  ],
   "T900126": [
     {
       "slug": "2026-09-11-enforce-admins-branch-protection",
@@ -4689,6 +4695,30 @@
     {
       "slug": "2026-09-11-modernize-llama-vim-integration",
       "status": "archived"
+    }
+  ],
+  "T900142": [
+    {
+      "slug": "2026-09-11-devmesh-tailnet",
+      "status": "archived"
+    }
+  ],
+  "T900143": [
+    {
+      "slug": "devmesh-dev-stack",
+      "status": "plan_staged"
+    }
+  ],
+  "T900144": [
+    {
+      "slug": "2026-09-11-dev-repo-per-machine",
+      "status": "archived"
+    }
+  ],
+  "T900145": [
+    {
+      "slug": "devmesh-k3d-decommission",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

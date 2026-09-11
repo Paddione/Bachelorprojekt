@@ -3486,6 +3486,24 @@
     "kind": "shell"
   },
   {
+    "id": "dev-machine-onboarding/install-dev-tools-user",
+    "file": "tests/spec/dev-machine-onboarding/install-dev-tools-user.bats",
+    "category": "dev-machine-onboarding",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-machine-onboarding/key-register",
+    "file": "tests/spec/dev-machine-onboarding/key-register.bats",
+    "category": "dev-machine-onboarding",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-machine-onboarding/onboard-machine",
+    "file": "tests/spec/dev-machine-onboarding/onboard-machine.bats",
+    "category": "dev-machine-onboarding",
+    "kind": "shell"
+  },
+  {
     "id": "dev-pod-mcp-bundle/dev-pod",
     "file": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats",
     "category": "dev-pod-mcp-bundle",
@@ -4149,6 +4167,24 @@
     "id": "llm-pipeline/kv-offload",
     "file": "tests/spec/llm-pipeline/kv-offload.bats",
     "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/devmesh-taskfile",
+    "file": "tests/spec/local-dev-mesh/devmesh-taskfile.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/tailnet-check",
+    "file": "tests/spec/local-dev-mesh/tailnet-check.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/tailnet-policy",
+    "file": "tests/spec/local-dev-mesh/tailnet-policy.bats",
+    "category": "local-dev-mesh",
     "kind": "shell"
   },
   {
@@ -6381,12 +6417,6 @@
     "id": "website-core/web-audit",
     "file": "tests/spec/website-core/web-audit.bats",
     "category": "website-core",
-    "kind": "shell"
-  },
-  {
-    "id": "work-vm-shared-dev/work-vm-guards",
-    "file": "tests/spec/work-vm-shared-dev/work-vm-guards.bats",
-    "category": "work-vm-shared-dev",
     "kind": "shell"
   },
   {

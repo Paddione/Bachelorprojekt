@@ -1,0 +1,707 @@
+{
+  "meta": {
+    "slug": "devmesh-dev-stack",
+    "ticket_id": "T900118",
+    "generated_from": "main@1c924b5b9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6386,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/cluster/tls.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/collabora/ingress.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/collabora/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/nextcloud/ingress.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/nextcloud/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/talk/ingress.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/talk/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/vaultwarden/ingress.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/vaultwarden/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/core/gpu-endpoint.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/core/ingress.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/core/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/core/shared-db-backup.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/full/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/inventory.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/.secrets/dev.yaml",
+      "language": "config",
+      "loc": 64,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/certs/dev.pem",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/dev.yaml",
+      "language": "config",
+      "loc": 50,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1680,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/sealed-secrets/dev.yaml",
+      "language": "config",
+      "loc": 237,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devmesh/db-backup.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devmesh/migrate-from-k3d.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devmesh/render-stack.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/lib.sh",
+      "language": "bash",
+      "loc": 157,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 643
+    },
+    {
+      "path": "scripts/ticket.sh",
+      "language": "bash",
+      "loc": 1124,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/vda/ticket/_devmesh-guard.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/vda/ticket/_ticket-core.sh",
+      "language": "bash",
+      "loc": 341,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 459
+    },
+    {
+      "path": "taskfiles/Taskfile.devmesh.yml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/db-backup-retention.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/dev-local-render.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/migrate-from-k3d.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/ticket-devmesh-guard.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/lib.sh:37:factory_resolve_data_ns() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "37:factory_resolve_data_ns() {(...)",
+      "type_text": "37:factory_resolve_data_ns() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:63:factory_resolve() { factory_resolve_data_ns; }",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "63:factory_resolve() { factory_resolve_data_ns; }(...)",
+      "type_text": "63:factory_resolve() { factory_resolve_data_ns; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:82:factory_pgpod() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "82:factory_pgpod() {(...)",
+      "type_text": "82:factory_pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:115:factory_psql() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "115:factory_psql() {(...)",
+      "type_text": "115:factory_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:137:factory_backlog_count() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "137:factory_backlog_count() {(...)",
+      "type_text": "137:factory_backlog_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:149:factory_model_pin() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "149:factory_model_pin() {(...)",
+      "type_text": "149:factory_model_pin() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:155:cmd_create() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "155:cmd_create() {(...)",
+      "type_text": "155:cmd_create() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:160:cmd_update_status() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "160:cmd_update_status() {(...)",
+      "type_text": "160:cmd_update_status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:166:cmd_update_fields() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "166:cmd_update_fields() {(...)",
+      "type_text": "166:cmd_update_fields() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:172:cmd_set_parent() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "172:cmd_set_parent() {(...)",
+      "type_text": "172:cmd_set_parent() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:178:cmd_add_comment() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "178:cmd_add_comment() {(...)",
+      "type_text": "178:cmd_add_comment() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:212:cmd_archive_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "212:cmd_archive_plan() {(...)",
+      "type_text": "212:cmd_archive_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:303:cmd_get_attachments() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "303:cmd_get_attachments() {(...)",
+      "type_text": "303:cmd_get_attachments() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:372:cmd_get() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "372:cmd_get() {(...)",
+      "type_text": "372:cmd_get() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:377:cmd_enqueue() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "377:cmd_enqueue() {(...)",
+      "type_text": "377:cmd_enqueue() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:382:cmd_stage_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "382:cmd_stage_plan() {(...)",
+      "type_text": "382:cmd_stage_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:387:cmd_assert_phase_chain() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "387:cmd_assert_phase_chain() {(...)",
+      "type_text": "387:cmd_assert_phase_chain() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:392:cmd_release_hold() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "392:cmd_release_hold() {(...)",
+      "type_text": "392:cmd_release_hold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:420:cmd_seq_repair() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "420:cmd_seq_repair() {(...)",
+      "type_text": "420:cmd_seq_repair() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:430:cmd_set_touched_files() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "430:cmd_set_touched_files() {(...)",
+      "type_text": "430:cmd_set_touched_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:448:cmd_set_scout_drift() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "448:cmd_set_scout_drift() {(...)",
+      "type_text": "448:cmd_set_scout_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:468:cmd_set_pipeline_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "468:cmd_set_pipeline_slot() {(...)",
+      "type_text": "468:cmd_set_pipeline_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:484:cmd_release_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "484:cmd_release_slot() {(...)",
+      "type_text": "484:cmd_release_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:499:cmd_touch() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "499:cmd_touch() {(...)",
+      "type_text": "499:cmd_touch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:514:cmd_retry_count() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "514:cmd_retry_count() {(...)",
+      "type_text": "514:cmd_retry_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:556:cmd_unfactory() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "556:cmd_unfactory() {(...)",
+      "type_text": "556:cmd_unfactory() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:610:cmd_factory_control() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "610:cmd_factory_control() {(...)",
+      "type_text": "610:cmd_factory_control() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:643:cmd_dryrun_mark() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "643:cmd_dryrun_mark() {(...)",
+      "type_text": "643:cmd_dryrun_mark() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:659:cmd_dryrun_check() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "659:cmd_dryrun_check() {(...)",
+      "type_text": "659:cmd_dryrun_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:675:cmd_feature_flag() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "675:cmd_feature_flag() {(...)",
+      "type_text": "675:cmd_feature_flag() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:716:cmd_phase() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "716:cmd_phase() {(...)",
+      "type_text": "716:cmd_phase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:743:cmd_inject() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "743:cmd_inject() {(...)",
+      "type_text": "743:cmd_inject() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:785:cmd_get_injections() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "785:cmd_get_injections() {(...)",
+      "type_text": "785:cmd_get_injections() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:813:cmd_plan_meta() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "813:cmd_plan_meta() {(...)",
+      "type_text": "813:cmd_plan_meta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:871:_csv_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "871:_csv_to_quoted() {(...)",
+      "type_text": "871:_csv_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:883:_pipe_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "883:_pipe_to_quoted() {(...)",
+      "type_text": "883:_pipe_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:896:cmd_lastenheft() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "896:cmd_lastenheft() {(...)",
+      "type_text": "896:cmd_lastenheft() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:940:_readiness_to_json() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "940:_readiness_to_json() {(...)",
+      "type_text": "940:_readiness_to_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:950:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "950:cmd_list() {(...)",
+      "type_text": "950:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:955:cmd_backfill_id() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "955:cmd_backfill_id() {(...)",
+      "type_text": "955:cmd_backfill_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:960:cmd_get_timeline() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "960:cmd_get_timeline() {(...)",
+      "type_text": "960:cmd_get_timeline() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:1038:cmd_triage() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "1038:cmd_triage() {(...)",
+      "type_text": "1038:cmd_triage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:62:_assert_db_identity() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "62:_assert_db_identity() {(...)",
+      "type_text": "62:_assert_db_identity() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:87:_pgpod() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "87:_pgpod() {(...)",
+      "type_text": "87:_pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:119:_exec_sql() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "119:_exec_sql() {(...)",
+      "type_text": "119:_exec_sql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:153:_ticket_offline_skip() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "153:_ticket_offline_skip() {(...)",
+      "type_text": "153:_ticket_offline_skip() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:163:_ticket_offline_refuse_read() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "163:_ticket_offline_refuse_read() {(...)",
+      "type_text": "163:_ticket_offline_refuse_read() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:188:_ticket_lock_guard() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "188:_ticket_lock_guard() {(...)",
+      "type_text": "188:_ticket_lock_guard() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:272:_resolve_product_id() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "272:_resolve_product_id() {(...)",
+      "type_text": "272:_resolve_product_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:313:_ticket_validate_enum() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "313:_ticket_validate_enum() {(...)",
+      "type_text": "313:_ticket_validate_enum() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:328:_ticket_validate_enum_list() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "328:_ticket_validate_enum_list() {(...)",
+      "type_text": "328:_ticket_validate_enum_list() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

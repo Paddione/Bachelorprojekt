@@ -1,0 +1,3139 @@
+{
+  "meta": {
+    "slug": "devmesh-k3d-decommission",
+    "ticket_id": "T900120",
+    "generated_from": "main@1c924b5b9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/agents/bachelorprojekt-ops.md",
+      "language": "markdown",
+      "loc": 92,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/arbitration.yml",
+      "language": "config",
+      "loc": 130,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 186,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5597,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6386,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/final-grilling.ts",
+      "language": "javascript",
+      "loc": 107,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 793
+    },
+    {
+      "path": "compose.dev.yaml",
+      "language": "config",
+      "loc": 74,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/maps/networks-map.md",
+      "language": "markdown",
+      "loc": 47,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/networks.yaml",
+      "language": "config",
+      "loc": 188,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/bereitstellungsdetails.md",
+      "language": "markdown",
+      "loc": 289,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/fleet-2026-05-31-what-changed.md",
+      "language": "markdown",
+      "loc": 16,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/README.md",
+      "language": "markdown",
+      "loc": 193,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/e3-cutover.md",
+      "language": "markdown",
+      "loc": 226,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/prod-auth.md",
+      "language": "markdown",
+      "loc": 139,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/superpowers/references/gotchas-footguns.md",
+      "language": "markdown",
+      "loc": 372,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/superpowers/specs/2026-05-30-dev-mcp-public-route-design.md",
+      "language": "markdown",
+      "loc": 157,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/superpowers/specs/2026-06-11-staging-on-demand-design.md",
+      "language": "markdown",
+      "loc": 314,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-01-t001341-traefik-hostport-clientip-design.md",
+      "language": "markdown",
+      "loc": 233,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/.secrets/.ssh/config",
+      "language": "text",
+      "loc": 224,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/dev.yaml",
+      "language": "config",
+      "loc": 50,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sdlc-stack/k3d-config.yaml",
+      "language": "config",
+      "loc": 30,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/devmesh-k3d-decommission/specs/batch-factory-pipeline-robustness.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/devmesh-k3d-decommission/specs/local-dev-mesh.md",
+      "language": "markdown",
+      "loc": 51,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/devmesh-k3d-decommission/specs/sdlc-cockpit.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/devmesh-k3d-decommission/specs/ticket-system.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/dev-host-units/README.md",
+      "language": "markdown",
+      "loc": 43,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devmesh/acceptance.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devmesh/k3d-teardown.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/conflict-check.sh",
+      "language": "bash",
+      "loc": 161,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 639
+    },
+    {
+      "path": "scripts/factory/lib.sh",
+      "language": "bash",
+      "loc": 157,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 643
+    },
+    {
+      "path": "scripts/factory/sandbox-run.sh",
+      "language": "bash",
+      "loc": 234,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 566
+    },
+    {
+      "path": "scripts/factory/wakeup.sh",
+      "language": "bash",
+      "loc": 382,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 418
+    },
+    {
+      "path": "scripts/finetune/eval-runner.sh",
+      "language": "bash",
+      "loc": 233,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 567
+    },
+    {
+      "path": "scripts/finetune/model-registry.sh",
+      "language": "bash",
+      "loc": 245,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 555
+    },
+    {
+      "path": "scripts/finetune/stat-collector.sh",
+      "language": "bash",
+      "loc": 185,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 615
+    },
+    {
+      "path": "scripts/knowledge/kalibrierung-retrieval.mjs",
+      "language": "javascript",
+      "loc": 69,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 731
+    },
+    {
+      "path": "scripts/lib/kubelet-cert-hint.sh",
+      "language": "bash",
+      "loc": 35,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 765
+    },
+    {
+      "path": "scripts/lib/llm-stack-measure.sh",
+      "language": "bash",
+      "loc": 284,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 516
+    },
+    {
+      "path": "scripts/lib/promote-phases.sh",
+      "language": "bash",
+      "loc": 208,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 592
+    },
+    {
+      "path": "scripts/mcp-gateway/k3d-postgres-forward.service",
+      "language": "text",
+      "loc": 24,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/watchdog-check.sh",
+      "language": "bash",
+      "loc": 82,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 718
+    },
+    {
+      "path": "scripts/runtime-drift-check.sh",
+      "language": "bash",
+      "loc": 228,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 572
+    },
+    {
+      "path": "scripts/sdlc-auth-mode.sh",
+      "language": "bash",
+      "loc": 207,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 593
+    },
+    {
+      "path": "scripts/sdlc-sync-oidc-secret.sh",
+      "language": "bash",
+      "loc": 74,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 726
+    },
+    {
+      "path": "scripts/sdlc/backup-tickets.sh",
+      "language": "bash",
+      "loc": 303,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 497
+    },
+    {
+      "path": "scripts/sdlc/health-gate.sh",
+      "language": "bash",
+      "loc": 180,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 620
+    },
+    {
+      "path": "scripts/sdlc/kubelet-cert-check.sh",
+      "language": "bash",
+      "loc": 126,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 674
+    },
+    {
+      "path": "scripts/sdlc/migrate-tickets.sh",
+      "language": "bash",
+      "loc": 561,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 239
+    },
+    {
+      "path": "scripts/session-hub.sh",
+      "language": "bash",
+      "loc": 295,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 505
+    },
+    {
+      "path": "scripts/ticket.sh",
+      "language": "bash",
+      "loc": 1124,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/vda/ticket/_ctx-guard.sh",
+      "language": "bash",
+      "loc": 73,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 727
+    },
+    {
+      "path": "scripts/vda/ticket/_ticket-core.sh",
+      "language": "bash",
+      "loc": 341,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 459
+    },
+    {
+      "path": "taskfiles/Taskfile.brainstorm.yml",
+      "language": "config",
+      "loc": 109,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.dev-stack.yml",
+      "language": "config",
+      "loc": 387,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.devcluster.yml",
+      "language": "config",
+      "loc": 27,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.devmesh.yml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.llm.yml",
+      "language": "config",
+      "loc": 307,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.sdlc.yml",
+      "language": "config",
+      "loc": 373,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.staging.yml",
+      "language": "config",
+      "loc": 347,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/lib/factory-test-fixtures.sh",
+      "language": "bash",
+      "loc": 250,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 550
+    },
+    {
+      "path": "tests/spec/db-guard/db-identity-guard.bats",
+      "language": "bash",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/db-guard/kubeconfig-drift-guard.bats",
+      "language": "bash",
+      "loc": 69,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
+      "language": "bash",
+      "loc": 93,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+      "language": "bash",
+      "loc": 130,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/factory-ctx-default.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/k3d-acceptance-gate.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/no-k3d-context.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy.bats",
+      "language": "bash",
+      "loc": 474,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/host-listener-auth.bats",
+      "language": "bash",
+      "loc": 51,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-embedding/dynamic-port-T003077.bats",
+      "language": "bash",
+      "loc": 54,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
+      "language": "bash",
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-pgvector/context-retrieve-fallback.bats",
+      "language": "bash",
+      "loc": 87,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-pgvector/context-retrieve-recall.bats",
+      "language": "bash",
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e2-local-stack.bats",
+      "language": "bash",
+      "loc": 117,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-backup.bats",
+      "language": "bash",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "language": "bash",
+      "loc": 135,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats",
+      "language": "bash",
+      "loc": 169,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/kubelet-cert-guard.bats",
+      "language": "bash",
+      "loc": 129,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/llm-up-health.bats",
+      "language": "bash",
+      "loc": 132,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/sdlc-up-command.bats",
+      "language": "bash",
+      "loc": 157,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/_sf_common.bash",
+      "language": "bash",
+      "loc": 136,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 364
+    },
+    {
+      "path": "tests/spec/software-factory/conflict-db-triage.bats",
+      "language": "bash",
+      "loc": 521,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/factory-status-lane-status-field.bats",
+      "language": "bash",
+      "loc": 49,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/merged-dispatch-gate.bats",
+      "language": "bash",
+      "loc": 134,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "language": "bash",
+      "loc": 314,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/queue-test-data-filter.bats",
+      "language": "bash",
+      "loc": 125,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/retry-limit.bats",
+      "language": "bash",
+      "loc": 164,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/wsl-exit-nachzug.bats",
+      "language": "bash",
+      "loc": 84,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-mcp/phase-events-at-column.bats",
+      "language": "bash",
+      "loc": 88,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-mcp/triage-projection.bats",
+      "language": "bash",
+      "loc": 71,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "language": "bash",
+      "loc": 90,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "language": "bash",
+      "loc": 164,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-system/list-status-comma-list.bats",
+      "language": "bash",
+      "loc": 123,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-system/list-test-data-filter.bats",
+      "language": "bash",
+      "loc": 89,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3994:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3994:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3994:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3995:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3995:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3995:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3996:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3996:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3996:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3997:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3997:        _run()  {(...)",
+      "type_text": "3997:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5175:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5175:        kexec_psql() {(...)",
+      "type_text": "5175:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/lib/tickets/final-grilling.ts:49:function buildSuggestions(",
+      "kind": "function",
+      "file": "components/website/src/lib/tickets/final-grilling.ts",
+      "signature": "49:function buildSuggestions((...)",
+      "type_text": "49:function buildSuggestions((...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/conflict-check.sh:50:_pgpod() {",
+      "kind": "function",
+      "file": "scripts/factory/conflict-check.sh",
+      "signature": "50:_pgpod() {(...)",
+      "type_text": "50:_pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/conflict-check.sh:63:main() {",
+      "kind": "function",
+      "file": "scripts/factory/conflict-check.sh",
+      "signature": "63:main() {(...)",
+      "type_text": "63:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:37:factory_resolve_data_ns() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "37:factory_resolve_data_ns() {(...)",
+      "type_text": "37:factory_resolve_data_ns() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:63:factory_resolve() { factory_resolve_data_ns; }",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "63:factory_resolve() { factory_resolve_data_ns; }(...)",
+      "type_text": "63:factory_resolve() { factory_resolve_data_ns; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:82:factory_pgpod() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "82:factory_pgpod() {(...)",
+      "type_text": "82:factory_pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:115:factory_psql() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "115:factory_psql() {(...)",
+      "type_text": "115:factory_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:137:factory_backlog_count() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "137:factory_backlog_count() {(...)",
+      "type_text": "137:factory_backlog_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh:149:factory_model_pin() {",
+      "kind": "function",
+      "file": "scripts/factory/lib.sh",
+      "signature": "149:factory_model_pin() {(...)",
+      "type_text": "149:factory_model_pin() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:41:resolve_mode() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "41:resolve_mode() {(...)",
+      "type_text": "41:resolve_mode() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:50:egress_allowlist() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "50:egress_allowlist() {(...)",
+      "type_text": "50:egress_allowlist() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:67:ensure_network() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "67:ensure_network() {(...)",
+      "type_text": "67:ensure_network() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:85:build_image() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "85:build_image() {(...)",
+      "type_text": "85:build_image() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:93:wait_proxy_ready() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "93:wait_proxy_ready() {(...)",
+      "type_text": "93:wait_proxy_ready() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:107:ensure_egress_proxy() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "107:ensure_egress_proxy() {(...)",
+      "type_text": "107:ensure_egress_proxy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:158:run_docker() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "158:run_docker() {(...)",
+      "type_text": "158:run_docker() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:199:run_k8s() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "199:run_k8s() {(...)",
+      "type_text": "199:run_k8s() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:221:run_off() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "221:run_off() {(...)",
+      "type_text": "221:run_off() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/wakeup.sh:37:_usage() {",
+      "kind": "function",
+      "file": "scripts/factory/wakeup.sh",
+      "signature": "37:_usage() {(...)",
+      "type_text": "37:_usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/wakeup.sh:110:_control_psql() {",
+      "kind": "function",
+      "file": "scripts/factory/wakeup.sh",
+      "signature": "110:_control_psql() {(...)",
+      "type_text": "110:_control_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/eval-runner.sh:21:usage() {",
+      "kind": "function",
+      "file": "scripts/finetune/eval-runner.sh",
+      "signature": "21:usage() {(...)",
+      "type_text": "21:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/eval-runner.sh:40:validate_role() {",
+      "kind": "function",
+      "file": "scripts/finetune/eval-runner.sh",
+      "signature": "40:validate_role() {(...)",
+      "type_text": "40:validate_role() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/eval-runner.sh:44:registry_psql() {",
+      "kind": "function",
+      "file": "scripts/finetune/eval-runner.sh",
+      "signature": "44:registry_psql() {(...)",
+      "type_text": "44:registry_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/eval-runner.sh:195:    run()",
+      "kind": "function",
+      "file": "scripts/finetune/eval-runner.sh",
+      "signature": "195:    run()(...)",
+      "type_text": "195:    run()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/model-registry.sh:17:registry_psql() {",
+      "kind": "function",
+      "file": "scripts/finetune/model-registry.sh",
+      "signature": "17:registry_psql() {(...)",
+      "type_text": "17:registry_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/model-registry.sh:25:usage() {",
+      "kind": "function",
+      "file": "scripts/finetune/model-registry.sh",
+      "signature": "25:usage() {(...)",
+      "type_text": "25:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/model-registry.sh:49:cmd_register() {",
+      "kind": "function",
+      "file": "scripts/finetune/model-registry.sh",
+      "signature": "49:cmd_register() {(...)",
+      "type_text": "49:cmd_register() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/model-registry.sh:105:cmd_eval() {",
+      "kind": "function",
+      "file": "scripts/finetune/model-registry.sh",
+      "signature": "105:cmd_eval() {(...)",
+      "type_text": "105:cmd_eval() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/model-registry.sh:132:cmd_stats() {",
+      "kind": "function",
+      "file": "scripts/finetune/model-registry.sh",
+      "signature": "132:cmd_stats() {(...)",
+      "type_text": "132:cmd_stats() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/model-registry.sh:154:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/finetune/model-registry.sh",
+      "signature": "154:cmd_list() {(...)",
+      "type_text": "154:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/model-registry.sh:178:cmd_export_loadout() {",
+      "kind": "function",
+      "file": "scripts/finetune/model-registry.sh",
+      "signature": "178:cmd_export_loadout() {(...)",
+      "type_text": "178:cmd_export_loadout() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/stat-collector.sh:17:usage() {",
+      "kind": "function",
+      "file": "scripts/finetune/stat-collector.sh",
+      "signature": "17:usage() {(...)",
+      "type_text": "17:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/stat-collector.sh:32:registry_psql() {",
+      "kind": "function",
+      "file": "scripts/finetune/stat-collector.sh",
+      "signature": "32:registry_psql() {(...)",
+      "type_text": "32:registry_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/finetune/stat-collector.sh:165:    to_sql_val() {",
+      "kind": "function",
+      "file": "scripts/finetune/stat-collector.sh",
+      "signature": "165:    to_sql_val() {(...)",
+      "type_text": "165:    to_sql_val() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/kubelet-cert-hint.sh:19:_kubelet_cert_hint() {",
+      "kind": "function",
+      "file": "scripts/lib/kubelet-cert-hint.sh",
+      "signature": "19:_kubelet_cert_hint() {(...)",
+      "type_text": "19:_kubelet_cert_hint() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:50:na() { printf 'n/a\\n'; exit 0; }",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "50:na() { printf 'n/a\\n'; exit 0; }(...)",
+      "type_text": "50:na() { printf 'n/a\\n'; exit 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:55:_host_live() {",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "55:_host_live() {(...)",
+      "type_text": "55:_host_live() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:60:cmd_server_availability() {",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "60:cmd_server_availability() {(...)",
+      "type_text": "60:cmd_server_availability() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:106:cmd_proxy_readiness() {",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "106:cmd_proxy_readiness() {(...)",
+      "type_text": "106:cmd_proxy_readiness() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:135:cmd_model_drift() {",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "135:cmd_model_drift() {(...)",
+      "type_text": "135:cmd_model_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:189:cmd_autostart_coverage() {",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "189:cmd_autostart_coverage() {(...)",
+      "type_text": "189:cmd_autostart_coverage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:216:cmd_dead_endpoints() {",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "216:cmd_dead_endpoints() {(...)",
+      "type_text": "216:cmd_dead_endpoints() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/llm-stack-measure.sh:258:factory_psql_backends() {",
+      "kind": "function",
+      "file": "scripts/lib/llm-stack-measure.sh",
+      "signature": "258:factory_psql_backends() {(...)",
+      "type_text": "258:factory_psql_backends() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:7:run() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "7:run() {(...)",
+      "type_text": "7:run() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:15:svc_image_repo() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "15:svc_image_repo() {(...)",
+      "type_text": "15:svc_image_repo() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:28:svc_deployment() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "28:svc_deployment() {(...)",
+      "type_text": "28:svc_deployment() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:37:dev_ctx() { case \"$1\" in mentolder) echo \"k3d-mentolder-dev\" ;; korczewski) echo \"k3d-mentolder-dev\" ;; esac; }",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "37:dev_ctx() { case \"$1\" in mentolder) echo \"k3d-mentolder-dev\" ;; korczewski) echo \"k3d-mentolder-dev\" ;; esac; }(...)",
+      "type_text": "37:dev_ctx() { case \"$1\" in mentolder) echo \"k3d-mentolder-dev\" ;; korczewski) echo \"k3d-mentolder-dev\" ;; esac; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:38:dev_ns()  { case \"$1\" in mentolder) echo \"workspace-dev\"    ;; korczewski) echo \"workspace-korczewski-dev\" ;; esac; }",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "38:dev_ns()  { case \"$1\" in mentolder) echo \"workspace-dev\"    ;; korczewski) echo \"workspace-korczewski-dev\" ;; esac; }(...)",
+      "type_text": "38:dev_ns()  { case \"$1\" in mentolder) echo \"workspace-dev\"    ;; korczewski) echo \"workspace-korczewski-dev\" ;; esac; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:41:prod_ctx() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "41:prod_ctx() {(...)",
+      "type_text": "41:prod_ctx() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:43:prod_ns() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "43:prod_ns() {(...)",
+      "type_text": "43:prod_ns() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:52:default_smoke_grep() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "52:default_smoke_grep() {(...)",
+      "type_text": "52:default_smoke_grep() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:60:resolve_smoke_grep() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "60:resolve_smoke_grep() {(...)",
+      "type_text": "60:resolve_smoke_grep() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:70:roll() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "70:roll() {(...)",
+      "type_text": "70:roll() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:97:observe_prod() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "97:observe_prod() {(...)",
+      "type_text": "97:observe_prod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:144:smoke_one() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "144:smoke_one() {(...)",
+      "type_text": "144:smoke_one() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:164:promote_phase_build() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "164:promote_phase_build() {(...)",
+      "type_text": "164:promote_phase_build() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:182:promote_phase_push() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "182:promote_phase_push() {(...)",
+      "type_text": "182:promote_phase_push() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:188:promote_phase_dev_deploy() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "188:promote_phase_dev_deploy() {(...)",
+      "type_text": "188:promote_phase_dev_deploy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:193:promote_phase_smoke() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "193:promote_phase_smoke() {(...)",
+      "type_text": "193:promote_phase_smoke() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:200:promote_phase_prod_deploy() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "200:promote_phase_prod_deploy() {(...)",
+      "type_text": "200:promote_phase_prod_deploy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:205:promote_phase_observe() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "205:promote_phase_observe() {(...)",
+      "type_text": "205:promote_phase_observe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:58:report() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "58:report() {(...)",
+      "type_text": "58:report() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:67:_check_binary() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "67:_check_binary() {(...)",
+      "type_text": "67:_check_binary() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:116:check_processes() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "116:check_processes() {(...)",
+      "type_text": "116:check_processes() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:150:_db_pod() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "150:_db_pod() {(...)",
+      "type_text": "150:_db_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:157:_db_has_marker() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "157:_db_has_marker() {(...)",
+      "type_text": "157:_db_has_marker() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:166:check_db() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "166:check_db() {(...)",
+      "type_text": "166:check_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:187:notify_ticket() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "187:notify_ticket() {(...)",
+      "type_text": "187:notify_ticket() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:68:kube() { kubectl --context \"$CONTEXT\" -n \"$NS\" \"$@\"; }",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "68:kube() { kubectl --context \"$CONTEXT\" -n \"$NS\" \"$@\"; }(...)",
+      "type_text": "68:kube() { kubectl --context \"$CONTEXT\" -n \"$NS\" \"$@\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:70:require_cluster() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "70:require_cluster() {(...)",
+      "type_text": "70:require_cluster() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:78:show_status() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "78:show_status() {(...)",
+      "type_text": "78:show_status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:89:read_secret_value() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "89:read_secret_value() {(...)",
+      "type_text": "89:read_secret_value() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:105:api() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "105:api() {(...)",
+      "type_text": "105:api() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:111:ensure_prod_client() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "111:ensure_prod_client() {(...)",
+      "type_text": "111:ensure_prod_client() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:129:rotate_prod_client_secret() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "129:rotate_prod_client_secret() {(...)",
+      "type_text": "129:rotate_prod_client_secret() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:145:apply_local_configmap() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "145:apply_local_configmap() {(...)",
+      "type_text": "145:apply_local_configmap() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc-auth-mode.sh:152:restart_console() {",
+      "kind": "function",
+      "file": "scripts/sdlc-auth-mode.sh",
+      "signature": "152:restart_console() {(...)",
+      "type_text": "152:restart_console() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:45:usage() { sed -n '2,25p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "45:usage() { sed -n '2,25p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }(...)",
+      "type_text": "45:usage() { sed -n '2,25p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:47:_pod() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "47:_pod() {(...)",
+      "type_text": "47:_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:59:_passphrase() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "59:_passphrase() {(...)",
+      "type_text": "59:_passphrase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:73:_helper_overrides() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "73:_helper_overrides() {(...)",
+      "type_text": "73:_helper_overrides() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:105:cmd_run() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "105:cmd_run() {(...)",
+      "type_text": "105:cmd_run() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:178:cmd_prune() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "178:cmd_prune() {(...)",
+      "type_text": "178:cmd_prune() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:187:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "187:cmd_list() {(...)",
+      "type_text": "187:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:198:cmd_restore_check() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "198:cmd_restore_check() {(...)",
+      "type_text": "198:cmd_restore_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/health-gate.sh:30:ts() { date -u '+%H:%M:%S'; }",
+      "kind": "function",
+      "file": "scripts/sdlc/health-gate.sh",
+      "signature": "30:ts() { date -u '+%H:%M:%S'; }(...)",
+      "type_text": "30:ts() { date -u '+%H:%M:%S'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/health-gate.sh:32:fail() {",
+      "kind": "function",
+      "file": "scripts/sdlc/health-gate.sh",
+      "signature": "32:fail() {(...)",
+      "type_text": "32:fail() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/health-gate.sh:39:pass() {",
+      "kind": "function",
+      "file": "scripts/sdlc/health-gate.sh",
+      "signature": "39:pass() {(...)",
+      "type_text": "39:pass() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/kubelet-cert-check.sh:18:usage() {",
+      "kind": "function",
+      "file": "scripts/sdlc/kubelet-cert-check.sh",
+      "signature": "18:usage() {(...)",
+      "type_text": "18:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:54:usage() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "54:usage() {(...)",
+      "type_text": "54:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:63:_pod() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "63:_pod() {(...)",
+      "type_text": "63:_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:75:_psql() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "75:_psql() {(...)",
+      "type_text": "75:_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:82:_table_list() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "82:_table_list() {(...)",
+      "type_text": "82:_table_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:91:_counts_for() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "91:_counts_for() {(...)",
+      "type_text": "91:_counts_for() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:118:_pf_stop() { [[ -n \"$_PF_PID\" ]] && kill \"$_PF_PID\" 2>/dev/null; _PF_PID=\"\"; }",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "118:_pf_stop() { [[ -n \"$_PF_PID\" ]] && kill \"$_PF_PID\" 2>/dev/null; _PF_PID=\"\"; }(...)",
+      "type_text": "118:_pf_stop() { [[ -n \"$_PF_PID\" ]] && kill \"$_PF_PID\" 2>/dev/null; _PF_PID=\"\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:121:_pf_start() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "121:_pf_start() {(...)",
+      "type_text": "121:_pf_start() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:136:_db_password() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "136:_db_password() {(...)",
+      "type_text": "136:_db_password() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:142:_say_or_run() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "142:_say_or_run() {(...)",
+      "type_text": "142:_say_or_run() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:151:cmd_preflight() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "151:cmd_preflight() {(...)",
+      "type_text": "151:cmd_preflight() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:198:cmd_dump() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "198:cmd_dump() {(...)",
+      "type_text": "198:cmd_dump() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:273:cmd_restore() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "273:cmd_restore() {(...)",
+      "type_text": "273:cmd_restore() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:339:_verify_counts() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "339:_verify_counts() {(...)",
+      "type_text": "339:_verify_counts() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:370:cmd_seed_provider_config() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "370:cmd_seed_provider_config() {(...)",
+      "type_text": "370:cmd_seed_provider_config() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:427:cmd_freeze() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "427:cmd_freeze() {(...)",
+      "type_text": "427:cmd_freeze() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:466:cmd_status() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "466:cmd_status() {(...)",
+      "type_text": "466:cmd_status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/migrate-tickets.sh:511:cmd_split_sequence() {",
+      "kind": "function",
+      "file": "scripts/sdlc/migrate-tickets.sh",
+      "signature": "511:cmd_split_sequence() {(...)",
+      "type_text": "511:cmd_split_sequence() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:28:_now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "28:_now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }(...)",
+      "type_text": "28:_now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:29:_slug() { printf '%s' \"$1\" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "29:_slug() { printf '%s' \"$1\" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }(...)",
+      "type_text": "29:_slug() { printf '%s' \"$1\" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:31:_ensure_registry() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "31:_ensure_registry() {(...)",
+      "type_text": "31:_ensure_registry() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:36:_write() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "36:_write() {(...)",
+      "type_text": "36:_write() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:45:_sync_to_pod() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "45:_sync_to_pod() {(...)",
+      "type_text": "45:_sync_to_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:63:_pid_alive() { [ -n \"${1:-}\" ] && [ \"$1\" != \"null\" ] && [ \"$1\" -gt 0 ] 2>/dev/null && kill -0 \"$1\" 2>/dev/null; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "63:_pid_alive() { [ -n \"${1:-}\" ] && [ \"$1\" != \"null\" ] && [ \"$1\" -gt 0 ] 2>/dev/null && kill -0 \"$1\" 2>/dev/null; }(...)",
+      "type_text": "63:_pid_alive() { [ -n \"${1:-}\" ] && [ \"$1\" != \"null\" ] && [ \"$1\" -gt 0 ] 2>/dev/null && kill -0 \"$1\" 2>/dev/null; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:69:_upload_to_sessions_server() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "69:_upload_to_sessions_server() {(...)",
+      "type_text": "69:_upload_to_sessions_server() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:84:_remove_from_sessions_server() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "84:_remove_from_sessions_server() {(...)",
+      "type_text": "84:_remove_from_sessions_server() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:96:_upsert() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "96:_upsert() {(...)",
+      "type_text": "96:_upsert() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:113:cmd_register() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "113:cmd_register() {(...)",
+      "type_text": "113:cmd_register() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:128:_inject_placeholders() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "128:_inject_placeholders() {(...)",
+      "type_text": "128:_inject_placeholders() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:137:cmd_start_form() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "137:cmd_start_form() {(...)",
+      "type_text": "137:cmd_start_form() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:189:cmd_regen() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "189:cmd_regen() {(...)",
+      "type_text": "189:cmd_regen() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:229:cmd_list() { _ensure_registry; cat \"$REGISTRY\"; }",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "229:cmd_list() { _ensure_registry; cat \"$REGISTRY\"; }(...)",
+      "type_text": "229:cmd_list() { _ensure_registry; cat \"$REGISTRY\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:231:cmd_deregister() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "231:cmd_deregister() {(...)",
+      "type_text": "231:cmd_deregister() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:248:cmd_reap() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "248:cmd_reap() {(...)",
+      "type_text": "248:cmd_reap() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:268:usage() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "268:usage() {(...)",
+      "type_text": "268:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/session-hub.sh:281:main() {",
+      "kind": "function",
+      "file": "scripts/session-hub.sh",
+      "signature": "281:main() {(...)",
+      "type_text": "281:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:155:cmd_create() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "155:cmd_create() {(...)",
+      "type_text": "155:cmd_create() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:160:cmd_update_status() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "160:cmd_update_status() {(...)",
+      "type_text": "160:cmd_update_status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:166:cmd_update_fields() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "166:cmd_update_fields() {(...)",
+      "type_text": "166:cmd_update_fields() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:172:cmd_set_parent() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "172:cmd_set_parent() {(...)",
+      "type_text": "172:cmd_set_parent() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:178:cmd_add_comment() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "178:cmd_add_comment() {(...)",
+      "type_text": "178:cmd_add_comment() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:212:cmd_archive_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "212:cmd_archive_plan() {(...)",
+      "type_text": "212:cmd_archive_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:303:cmd_get_attachments() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "303:cmd_get_attachments() {(...)",
+      "type_text": "303:cmd_get_attachments() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:372:cmd_get() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "372:cmd_get() {(...)",
+      "type_text": "372:cmd_get() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:377:cmd_enqueue() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "377:cmd_enqueue() {(...)",
+      "type_text": "377:cmd_enqueue() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:382:cmd_stage_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "382:cmd_stage_plan() {(...)",
+      "type_text": "382:cmd_stage_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:387:cmd_assert_phase_chain() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "387:cmd_assert_phase_chain() {(...)",
+      "type_text": "387:cmd_assert_phase_chain() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:392:cmd_release_hold() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "392:cmd_release_hold() {(...)",
+      "type_text": "392:cmd_release_hold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:420:cmd_seq_repair() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "420:cmd_seq_repair() {(...)",
+      "type_text": "420:cmd_seq_repair() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:430:cmd_set_touched_files() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "430:cmd_set_touched_files() {(...)",
+      "type_text": "430:cmd_set_touched_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:448:cmd_set_scout_drift() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "448:cmd_set_scout_drift() {(...)",
+      "type_text": "448:cmd_set_scout_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:468:cmd_set_pipeline_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "468:cmd_set_pipeline_slot() {(...)",
+      "type_text": "468:cmd_set_pipeline_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:484:cmd_release_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "484:cmd_release_slot() {(...)",
+      "type_text": "484:cmd_release_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:499:cmd_touch() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "499:cmd_touch() {(...)",
+      "type_text": "499:cmd_touch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:514:cmd_retry_count() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "514:cmd_retry_count() {(...)",
+      "type_text": "514:cmd_retry_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:556:cmd_unfactory() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "556:cmd_unfactory() {(...)",
+      "type_text": "556:cmd_unfactory() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:610:cmd_factory_control() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "610:cmd_factory_control() {(...)",
+      "type_text": "610:cmd_factory_control() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:643:cmd_dryrun_mark() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "643:cmd_dryrun_mark() {(...)",
+      "type_text": "643:cmd_dryrun_mark() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:659:cmd_dryrun_check() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "659:cmd_dryrun_check() {(...)",
+      "type_text": "659:cmd_dryrun_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:675:cmd_feature_flag() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "675:cmd_feature_flag() {(...)",
+      "type_text": "675:cmd_feature_flag() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:716:cmd_phase() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "716:cmd_phase() {(...)",
+      "type_text": "716:cmd_phase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:743:cmd_inject() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "743:cmd_inject() {(...)",
+      "type_text": "743:cmd_inject() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:785:cmd_get_injections() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "785:cmd_get_injections() {(...)",
+      "type_text": "785:cmd_get_injections() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:813:cmd_plan_meta() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "813:cmd_plan_meta() {(...)",
+      "type_text": "813:cmd_plan_meta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:871:_csv_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "871:_csv_to_quoted() {(...)",
+      "type_text": "871:_csv_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:883:_pipe_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "883:_pipe_to_quoted() {(...)",
+      "type_text": "883:_pipe_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:896:cmd_lastenheft() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "896:cmd_lastenheft() {(...)",
+      "type_text": "896:cmd_lastenheft() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:940:_readiness_to_json() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "940:_readiness_to_json() {(...)",
+      "type_text": "940:_readiness_to_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:950:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "950:cmd_list() {(...)",
+      "type_text": "950:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:955:cmd_backfill_id() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "955:cmd_backfill_id() {(...)",
+      "type_text": "955:cmd_backfill_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:960:cmd_get_timeline() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "960:cmd_get_timeline() {(...)",
+      "type_text": "960:cmd_get_timeline() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:1038:cmd_triage() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "1038:cmd_triage() {(...)",
+      "type_text": "1038:cmd_triage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ctx-guard.sh:21:_ctx_guard() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ctx-guard.sh",
+      "signature": "21:_ctx_guard() {(...)",
+      "type_text": "21:_ctx_guard() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:62:_assert_db_identity() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "62:_assert_db_identity() {(...)",
+      "type_text": "62:_assert_db_identity() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:87:_pgpod() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "87:_pgpod() {(...)",
+      "type_text": "87:_pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:119:_exec_sql() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "119:_exec_sql() {(...)",
+      "type_text": "119:_exec_sql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:153:_ticket_offline_skip() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "153:_ticket_offline_skip() {(...)",
+      "type_text": "153:_ticket_offline_skip() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:163:_ticket_offline_refuse_read() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "163:_ticket_offline_refuse_read() {(...)",
+      "type_text": "163:_ticket_offline_refuse_read() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:188:_ticket_lock_guard() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "188:_ticket_lock_guard() {(...)",
+      "type_text": "188:_ticket_lock_guard() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:272:_resolve_product_id() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "272:_resolve_product_id() {(...)",
+      "type_text": "272:_resolve_product_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:313:_ticket_validate_enum() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "313:_ticket_validate_enum() {(...)",
+      "type_text": "313:_ticket_validate_enum() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh:328:_ticket_validate_enum_list() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/_ticket-core.sh",
+      "signature": "328:_ticket_validate_enum_list() {(...)",
+      "type_text": "328:_ticket_validate_enum_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.dev-stack.yml:47:        K3D_CREATE() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.dev-stack.yml",
+      "signature": "47:        K3D_CREATE() {(...)",
+      "type_text": "47:        K3D_CREATE() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.dev-stack.yml:330:        cleanup() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.dev-stack.yml",
+      "signature": "330:        cleanup() {(...)",
+      "type_text": "330:        cleanup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.staging.yml:147:          cleanup_helper() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.staging.yml",
+      "signature": "147:          cleanup_helper() {(...)",
+      "type_text": "147:          cleanup_helper() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/factory-test-fixtures.sh:39:_fixture_marker_comment() {",
+      "kind": "function",
+      "file": "tests/lib/factory-test-fixtures.sh",
+      "signature": "39:_fixture_marker_comment() {(...)",
+      "type_text": "39:_fixture_marker_comment() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/factory-test-fixtures.sh:47:seed_test_feature() {",
+      "kind": "function",
+      "file": "tests/lib/factory-test-fixtures.sh",
+      "signature": "47:seed_test_feature() {(...)",
+      "type_text": "47:seed_test_feature() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/factory-test-fixtures.sh:87:seed_real_feature() {",
+      "kind": "function",
+      "file": "tests/lib/factory-test-fixtures.sh",
+      "signature": "87:seed_real_feature() {(...)",
+      "type_text": "87:seed_real_feature() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/factory-test-fixtures.sh:127:ensure_purge_fn_current() {",
+      "kind": "function",
+      "file": "tests/lib/factory-test-fixtures.sh",
+      "signature": "127:ensure_purge_fn_current() {(...)",
+      "type_text": "127:ensure_purge_fn_current() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/factory-test-fixtures.sh:149:purge_factory_test_data() {",
+      "kind": "function",
+      "file": "tests/lib/factory-test-fixtures.sh",
+      "signature": "149:purge_factory_test_data() {(...)",
+      "type_text": "149:purge_factory_test_data() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/factory-test-fixtures.sh:194:purge_real_feature() {",
+      "kind": "function",
+      "file": "tests/lib/factory-test-fixtures.sh",
+      "signature": "194:purge_real_feature() {(...)",
+      "type_text": "194:purge_real_feature() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/db-guard/db-identity-guard.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/db-guard/db-identity-guard.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/db-guard/db-identity-guard.bats:34:teardown() { rm -rf \"$STUBDIR\"; }",
+      "kind": "function",
+      "file": "tests/spec/db-guard/db-identity-guard.bats",
+      "signature": "34:teardown() { rm -rf \"$STUBDIR\"; }(...)",
+      "type_text": "34:teardown() { rm -rf \"$STUBDIR\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/db-guard/db-identity-guard.bats:36:_run_pgpod() {",
+      "kind": "function",
+      "file": "tests/spec/db-guard/db-identity-guard.bats",
+      "signature": "36:_run_pgpod() {(...)",
+      "type_text": "36:_run_pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/db-guard/kubeconfig-drift-guard.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/db-guard/kubeconfig-drift-guard.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/db-guard/kubeconfig-drift-guard.bats:40:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/db-guard/kubeconfig-drift-guard.bats",
+      "signature": "40:teardown() {(...)",
+      "type_text": "40:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats:30:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
+      "signature": "30:_skip_if_no_db() {(...)",
+      "type_text": "30:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats:42:_ticket_row_count() {",
+      "kind": "function",
+      "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
+      "signature": "42:_ticket_row_count() {(...)",
+      "type_text": "42:_ticket_row_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats:57:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
+      "signature": "57:setup_file() {(...)",
+      "type_text": "57:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats:65:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
+      "signature": "65:teardown_file() {(...)",
+      "type_text": "65:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/factory-watchdog/merged-ticket-close.bats:43:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+      "signature": "43:setup_file() {(...)",
+      "type_text": "43:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/factory-watchdog/merged-ticket-close.bats:47:setup() {",
+      "kind": "function",
+      "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+      "signature": "47:setup() {(...)",
+      "type_text": "47:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/factory-watchdog/merged-ticket-close.bats:54:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+      "signature": "54:teardown() {(...)",
+      "type_text": "54:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/factory-watchdog/merged-ticket-close.bats:71:_fixture_psql() {",
+      "kind": "function",
+      "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+      "signature": "71:_fixture_psql() {(...)",
+      "type_text": "71:_fixture_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/factory-watchdog/merged-ticket-close.bats:82:_seed_stale_fixture() {",
+      "kind": "function",
+      "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
+      "signature": "82:_seed_stale_fixture() {(...)",
+      "type_text": "82:_seed_stale_fixture() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:10:_start_stub() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "10:_start_stub() {(...)",
+      "type_text": "10:_start_stub() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:36:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "36:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }(...)",
+      "type_text": "36:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:38:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "38:setup() {(...)",
+      "type_text": "38:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:53:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "53:teardown() {(...)",
+      "type_text": "53:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:58:_start_proxy() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "58:_start_proxy() {(...)",
+      "type_text": "58:_start_proxy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:78:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "78:_skip_if_no_db() {(...)",
+      "type_text": "78:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:167:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "167:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "type_text": "167:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/host-listener-auth.bats:5:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/host-listener-auth.bats",
+      "signature": "5:setup() {(...)",
+      "type_text": "5:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/dynamic-port-T003077.bats:26:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/dynamic-port-T003077.bats",
+      "signature": "26:setup() {(...)",
+      "type_text": "26:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-cli.bats:14:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
+      "signature": "14:setup() {(...)",
+      "type_text": "14:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-cli.bats:26:_embed_ready() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
+      "signature": "26:_embed_ready() {(...)",
+      "type_text": "26:_embed_ready() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-cli.bats:32:_rerank_ready() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
+      "signature": "32:_rerank_ready() {(...)",
+      "type_text": "32:_rerank_ready() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-cli.bats:40:_export_pgurl() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
+      "signature": "40:_export_pgurl() {(...)",
+      "type_text": "40:_export_pgurl() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-fallback.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-fallback.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-recall.bats:30:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-recall.bats",
+      "signature": "30:setup() {(...)",
+      "type_text": "30:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-recall.bats:37:_embed_ready() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-recall.bats",
+      "signature": "37:_embed_ready() {(...)",
+      "type_text": "37:_embed_ready() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-pgvector/context-retrieve-recall.bats:43:_export_pgurl() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-pgvector/context-retrieve-recall.bats",
+      "signature": "43:_export_pgurl() {(...)",
+      "type_text": "43:_export_pgurl() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e2-local-stack.bats:11:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e2-local-stack.bats",
+      "signature": "11:setup() {(...)",
+      "type_text": "11:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e2-local-stack.bats:18:cluster_running() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e2-local-stack.bats",
+      "signature": "18:cluster_running() {(...)",
+      "type_text": "18:cluster_running() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e3-backup.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e3-backup.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e3-poller.bats:11:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "signature": "11:setup() {(...)",
+      "type_text": "11:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e3-poller.bats:42:run_poller() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "signature": "42:run_poller() {(...)",
+      "type_text": "42:run_poller() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats:16:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats",
+      "signature": "16:setup() {(...)",
+      "type_text": "16:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/kubelet-cert-guard.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/kubelet-cert-guard.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/kubelet-cert-guard.bats:22:_stub_cluster() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/kubelet-cert-guard.bats",
+      "signature": "22:_stub_cluster() {(...)",
+      "type_text": "22:_stub_cluster() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/llm-up-health.bats:16:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/llm-up-health.bats",
+      "signature": "16:setup() {(...)",
+      "type_text": "16:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/llm-up-health.bats:26:free_port() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/llm-up-health.bats",
+      "signature": "26:free_port() {(...)",
+      "type_text": "26:free_port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/sdlc-up-command.bats:11:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/sdlc-up-command.bats",
+      "signature": "11:setup() {(...)",
+      "type_text": "11:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:42:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "42:_skip_if_no_db() {(...)",
+      "type_text": "42:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:57:_sf_setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "57:_sf_setup() {(...)",
+      "type_text": "57:_sf_setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:68:  validate_triage() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "68:  validate_triage() {(...)",
+      "type_text": "68:  validate_triage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/_sf_common.bash:111:_sf_teardown() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/_sf_common.bash",
+      "signature": "111:_sf_teardown() {(...)",
+      "type_text": "111:_sf_teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/conflict-db-triage.bats:26:setup_file() { export TICKET_TEST_DB_OK=1; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/conflict-db-triage.bats",
+      "signature": "26:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "type_text": "26:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/conflict-db-triage.bats:28:setup()    { _sf_setup; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/conflict-db-triage.bats",
+      "signature": "28:setup()    { _sf_setup; }(...)",
+      "type_text": "28:setup()    { _sf_setup; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/conflict-db-triage.bats:29:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/conflict-db-triage.bats",
+      "signature": "29:teardown() { _sf_teardown; }(...)",
+      "type_text": "29:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/conflict-db-triage.bats:127:psql_tickets() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/conflict-db-triage.bats",
+      "signature": "127:psql_tickets() {(...)",
+      "type_text": "127:psql_tickets() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/conflict-db-triage.bats:319:_t002386_mockdir() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/conflict-db-triage.bats",
+      "signature": "319:_t002386_mockdir() {(...)",
+      "type_text": "319:_t002386_mockdir() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-status-lane-status-field.bats:19:setup() { _sf_setup; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-status-lane-status-field.bats",
+      "signature": "19:setup() { _sf_setup; }(...)",
+      "type_text": "19:setup() { _sf_setup; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-status-lane-status-field.bats:21:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-status-lane-status-field.bats",
+      "signature": "21:_skip_if_no_db() {(...)",
+      "type_text": "21:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/merged-dispatch-gate.bats:27:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
+      "signature": "27:setup_file() {(...)",
+      "type_text": "27:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/merged-dispatch-gate.bats:31:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
+      "signature": "31:setup() {(...)",
+      "type_text": "31:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/merged-dispatch-gate.bats:40:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
+      "signature": "40:teardown() {(...)",
+      "type_text": "40:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/merged-dispatch-gate.bats:59:_skip_if_pool_busy() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
+      "signature": "59:_skip_if_pool_busy() {(...)",
+      "type_text": "59:_skip_if_pool_busy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/merged-dispatch-gate.bats:80:_fixture_psql() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
+      "signature": "80:_fixture_psql() {(...)",
+      "type_text": "80:_fixture_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:25:setup_file() { export TICKET_TEST_DB_OK=1; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "25:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "type_text": "25:setup_file() { export TICKET_TEST_DB_OK=1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:29:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "29:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }(...)",
+      "type_text": "29:setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:30:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "30:teardown() { _sf_teardown; }(...)",
+      "type_text": "30:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:35:_osr_ns() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "35:_osr_ns() {(...)",
+      "type_text": "35:_osr_ns() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:58:_osr_psql() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "58:_osr_psql() {(...)",
+      "type_text": "58:_osr_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:78:_osr_make_orphan() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "78:_osr_make_orphan() {(...)",
+      "type_text": "78:_osr_make_orphan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:83:_osr_slot_of() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "83:_osr_slot_of() {(...)",
+      "type_text": "83:_osr_slot_of() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:87:_osr_status_of() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "87:_osr_status_of() {(...)",
+      "type_text": "87:_osr_status_of() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/orphan-slot-reap.bats:94:_osr_toplevel_local() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/orphan-slot-reap.bats",
+      "signature": "94:_osr_toplevel_local() {(...)",
+      "type_text": "94:_osr_toplevel_local() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/queue-test-data-filter.bats:26:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+      "signature": "26:_skip_if_no_db() {(...)",
+      "type_text": "26:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/queue-test-data-filter.bats:34:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+      "signature": "34:setup_file() {(...)",
+      "type_text": "34:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/queue-test-data-filter.bats:45:_db_delete() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+      "signature": "45:_db_delete() {(...)",
+      "type_text": "45:_db_delete() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/queue-test-data-filter.bats:59:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+      "signature": "59:teardown_file() {(...)",
+      "type_text": "59:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/queue-test-data-filter.bats:67:_anchor_once() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+      "signature": "67:_anchor_once() {(...)",
+      "type_text": "67:_anchor_once() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/queue-test-data-filter.bats:84:_seed_once() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+      "signature": "84:_seed_once() {(...)",
+      "type_text": "84:_seed_once() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:25:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "25:setup_file() {(...)",
+      "type_text": "25:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:30:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "30:setup() {(...)",
+      "type_text": "30:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:53:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "53:teardown_file() {(...)",
+      "type_text": "53:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:58:_seed() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "58:_seed() {(...)",
+      "type_text": "58:_seed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:63:_stub_noop() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "63:_stub_noop() {(...)",
+      "type_text": "63:_stub_noop() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:73:_stub_commits() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "73:_stub_commits() {(...)",
+      "type_text": "73:_stub_commits() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/retry-limit.bats:86:_stub_crash() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/retry-limit.bats",
+      "signature": "86:_stub_crash() {(...)",
+      "type_text": "86:_stub_crash() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/wsl-exit-nachzug.bats:8:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/wsl-exit-nachzug.bats",
+      "signature": "8:setup() {(...)",
+      "type_text": "8:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/phase-events-at-column.bats:20:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/phase-events-at-column.bats",
+      "signature": "20:_skip_if_no_db() {(...)",
+      "type_text": "20:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/phase-events-at-column.bats:28:_pod() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/phase-events-at-column.bats",
+      "signature": "28:_pod() {(...)",
+      "type_text": "28:_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/phase-events-at-column.bats:34:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/phase-events-at-column.bats",
+      "signature": "34:setup_file() {(...)",
+      "type_text": "34:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/phase-events-at-column.bats:40:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/phase-events-at-column.bats",
+      "signature": "40:teardown_file() {(...)",
+      "type_text": "40:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/phase-events-at-column.bats:44:_seed_once() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/phase-events-at-column.bats",
+      "signature": "44:_seed_once() {(...)",
+      "type_text": "44:_seed_once() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/triage-projection.bats:23:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/triage-projection.bats",
+      "signature": "23:_skip_if_no_db() {(...)",
+      "type_text": "23:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/triage-projection.bats:31:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/triage-projection.bats",
+      "signature": "31:setup_file() {(...)",
+      "type_text": "31:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/triage-projection.bats:37:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/triage-projection.bats",
+      "signature": "37:teardown_file() {(...)",
+      "type_text": "37:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-mcp/triage-projection.bats:41:_seed_once() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-mcp/triage-projection.bats",
+      "signature": "41:_seed_once() {(...)",
+      "type_text": "41:_seed_once() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/areas-csv-trim.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/areas-csv-trim.bats:22:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "signature": "22:teardown() {(...)",
+      "type_text": "22:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/areas-csv-trim.bats:34:cluster_running() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "signature": "34:cluster_running() {(...)",
+      "type_text": "34:cluster_running() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/areas-csv-trim.bats:38:pgpod() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "signature": "38:pgpod() {(...)",
+      "type_text": "38:pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/areas-csv-trim.bats:43:psql_q() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/areas-csv-trim.bats",
+      "signature": "43:psql_q() {(...)",
+      "type_text": "43:psql_q() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/backfill-id-sequence.bats:14:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "signature": "14:setup() {(...)",
+      "type_text": "14:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/backfill-id-sequence.bats:29:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "signature": "29:teardown() {(...)",
+      "type_text": "29:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/backfill-id-sequence.bats:43:cluster_running() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "signature": "43:cluster_running() {(...)",
+      "type_text": "43:cluster_running() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/backfill-id-sequence.bats:47:pgpod() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "signature": "47:pgpod() {(...)",
+      "type_text": "47:pgpod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/backfill-id-sequence.bats:52:psql_q() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/backfill-id-sequence.bats",
+      "signature": "52:psql_q() {(...)",
+      "type_text": "52:psql_q() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-status-comma-list.bats:29:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-status-comma-list.bats",
+      "signature": "29:_skip_if_no_db() {(...)",
+      "type_text": "29:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-status-comma-list.bats:37:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-status-comma-list.bats",
+      "signature": "37:setup_file() {(...)",
+      "type_text": "37:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-status-comma-list.bats:47:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-status-comma-list.bats",
+      "signature": "47:teardown_file() {(...)",
+      "type_text": "47:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-status-comma-list.bats:51:_repo_root() { cd \"$(dirname \"$BATS_TEST_FILENAME\")/../../..\" && pwd; }",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-status-comma-list.bats",
+      "signature": "51:_repo_root() { cd \"$(dirname \"$BATS_TEST_FILENAME\")/../../..\" && pwd; }(...)",
+      "type_text": "51:_repo_root() { cd \"$(dirname \"$BATS_TEST_FILENAME\")/../../..\" && pwd; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-status-comma-list.bats:55:_seed_pair() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-status-comma-list.bats",
+      "signature": "55:_seed_pair() {(...)",
+      "type_text": "55:_seed_pair() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-status-comma-list.bats:67:_list() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-status-comma-list.bats",
+      "signature": "67:_list() {(...)",
+      "type_text": "67:_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-test-data-filter.bats:27:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-test-data-filter.bats",
+      "signature": "27:_skip_if_no_db() {(...)",
+      "type_text": "27:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-test-data-filter.bats:35:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-test-data-filter.bats",
+      "signature": "35:setup_file() {(...)",
+      "type_text": "35:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-test-data-filter.bats:46:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-test-data-filter.bats",
+      "signature": "46:teardown_file() {(...)",
+      "type_text": "46:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system/list-test-data-filter.bats:52:_seed_once() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system/list-test-data-filter.bats",
+      "signature": "52:_seed_once() {(...)",
+      "type_text": "52:_seed_once() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

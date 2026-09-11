@@ -16,6 +16,14 @@
   },
   "impact_files": [
     {
+      "path": "docs/dev/llama-vim.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "editor/llama-vim/README.md",
       "language": "markdown",
       "loc": 0,
@@ -32,7 +40,7 @@
       "s1_budget": null
     },
     {
-      "path": "editor/llama-vim/plugin/llama.vim",
+      "path": "editor/llama-vim/autoload/llama.vim",
       "language": "text",
       "loc": 0,
       "s1_limit": 0,
@@ -104,6 +112,22 @@
       "s1_budget": null
     },
     {
+      "path": "editor/llama-vim/plugin/llama.vim",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/component-map.yaml",
+      "language": "config",
+      "loc": 218,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "scripts/vim/install-llama.sh",
       "language": "bash",
       "loc": 0,
@@ -120,6 +144,14 @@
       "s1_budget": null
     },
     {
+      "path": "tests/spec/vim-ai-completion/context-status.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "tests/spec/vim-ai-completion/install-config.bats",
       "language": "bash",
       "loc": 0,
@@ -131,30 +163,6 @@
       "path": "tests/spec/vim-ai-completion/request-stream.bats",
       "language": "bash",
       "loc": 0,
-      "s1_limit": 0,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
-      "path": "tests/spec/vim-ai-completion/context-status.bats",
-      "language": "bash",
-      "loc": 0,
-      "s1_limit": 0,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
-      "path": "docs/dev/llama-vim.md",
-      "language": "markdown",
-      "loc": 0,
-      "s1_limit": 0,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
-      "path": "openspec/component-map.yaml",
-      "language": "config",
-      "loc": 218,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null

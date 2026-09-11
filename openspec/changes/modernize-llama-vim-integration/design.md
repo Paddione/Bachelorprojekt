@@ -39,8 +39,10 @@ editor/llama-vim/
 ├── README.md
 ├── UPSTREAM.md
 ├── plugin/llama.vim
+├── autoload/llama.vim
 ├── autoload/llama/config.vim
 ├── autoload/llama/context.vim
+├── autoload/llama/render.vim
 ├── autoload/llama/request.vim
 ├── autoload/llama/status.vim
 ├── autoload/llama/stream.vim

@@ -184,17 +184,22 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 
 ---
 
-## Schritt 5 — CI Fix Loop
+## Schritt 5 — CI Fix Loop & Mergeability Guard
 
-Nach dem Push CI überwachen und Fehler beheben **bevor** gemergt wird.
+Nach dem Push CI- und Merge-Status überwachen und Konflikte/Fehler beheben **bevor** gemergt wird.
 Detaillierte Checkliste (SSOT): [ci-fix-loop](.claude/skills/references/ci-fix-loop.md)
 
-1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind
-2. Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen
-3. Bei `CONFLICTING` PR-Status: `git fetch origin main && git rebase origin/main` → push
+1. `bash scripts/pr-health-check.sh <n>` ausführen — prüft CI-Rollup UND Git-Mergeability (`DIRTY` / `CONFLICTING` / `BEHIND`).
+2. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind.
+3. Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen.
+4. **Merge-Konflikte (`CONFLICTING` oder `DIRTY`):** Agenten dürfen NICHT auf bessere Zeiten warten! Sofort Rebase ausführen:
+   ```bash
+   git fetch origin main && git rebase origin/main
+   # Konflikte auflösen, committen, task freshness:check/regenerate, push --force-with-lease
+   ```
 
-> **Hinweis:** `CONFLICTING`-Status unterdrückt CI-Runs komplett — CI startet nie.
-> Diagnose: `gh pr view <n> --json mergeStateStatus`.
+> **Wichtig (`CONFLICTING` / `DIRTY` Guard):** Ein `CONFLICTING`-Status blockiert CI-Runs und Auto-Merges vollständig.
+> Die Diagnose `bash scripts/pr-health-check.sh <n>` liefert den exakten Status.
 
 > **Freshness-Auto-Regen-Race [T001395]:** Ein offener PR kann auf `CONFLICTING` kippen, weil der
 > Scheduler generierte Artefakte auf `main` committet hat. Der Rebase braucht dann zusätzlich

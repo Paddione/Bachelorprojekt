@@ -865,8 +865,6 @@ Reqs: 25 · Scenarios: 46 · Lines: 462
 Paths: k3d/nextcloud
 Last touches:
   - Spec-BATS smoke coverage | T002012 | 2026-07-21 | ADDED
-In-flight:
-  - Explicit ENV= for All Env-Sensitive Deploys | T900118 | active | MODIFIED
 
 ### opencode-local-model-runner
 Reqs: 3 · Scenarios: 4 · Lines: 47
@@ -1038,23 +1036,6 @@ Last touches:
   - sdlc:down stops the chat loadout before the proxy | T002656 | 2026-08-13 | ADDED
   - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T002623 | 2026-08-10 | ADDED
 In-flight:
-  - SDLC data is local-primary, CI events arrive via pull | T900118 | active | RENAMED
-  - Ticket data is primary on fleet, CI events arrive via pull | T900118 | active | MODIFIED
-  - Local PostgreSQL bootstraps the tickets schema | T900118 | active | MODIFIED
-  - Local authentication with fail-closed fallback over the mesh | T900118 | active | MODIFIED
-  - Local k3d cluster runs the SDLC stack from the production manifests | T900120 | active | RENAMED
-  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900120 | active | RENAMED
-  - SDLC stack runs in the fleet dev namespace from the production manifests | T900120 | active | MODIFIED
-  - Mixed runtime — cluster pods for stateful services, native processes for GPU | T900120 | active | MODIFIED
-  - Single Entry Point for the Local SDLC Stack | T900120 | active | MODIFIED
-  - The `dev:` Task Namespace Stays Reserved for the Staging Stack | T900120 | active | MODIFIED
-  - sdlc:down stops the chat loadout before the proxy | T900120 | active | MODIFIED
-  - Kubelet serving certificate drift detection on the local k3d dev cluster | T900120 | active | REMOVED
-  - Repairing a stale kubelet serving certificate | T900120 | active | REMOVED
-  - Translating the misleading x509 error in the ticket tooling | T900120 | active | REMOVED
-  - Health gate covers kubelet reachability, not only API-server reachability | T900120 | active | REMOVED
-  - No remote cockpit and no tunnel into the home network | T900116 | active | RENAMED
-  - Remote access to the SDLC surface only through the tailnet, without an inbound port | T900116 | active | MODIFIED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
   - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED
@@ -1208,12 +1189,6 @@ Last touches:
   - Up-to-date main without clobbering work | T900104 | 2026-09-10 | ADDED
   - Toolchain deltas on install-dev-tools.sh | T900104 | 2026-09-10 | ADDED
   - Script facts guarded by BATS | T900104 | 2026-09-10 | ADDED
-In-flight:
-  - Dedicated work VM on the Proxmox dev host | T900119 | active | REMOVED
-  - Shared project clone with group ownership | T900119 | active | REMOVED
-  - Up-to-date main without clobbering work | T900119 | active | REMOVED
-  - Toolchain deltas on install-dev-tools.sh | T900119 | active | REMOVED
-  - Script facts guarded by BATS | T900119 | active | REMOVED
 
 ### worktree-divergence-guard-T002387
 Reqs: 1 · Scenarios: 2 · Lines: 31

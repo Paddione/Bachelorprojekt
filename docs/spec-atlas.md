@@ -1,5 +1,8 @@
-atlas: wrote /home/patrick/Bachelorprojekt/.worktrees/batch-sa-security-T900042/docs/spec-atlas.md (1191 lines)
-Requirements: 2333 · Scenarios: 5163
+# Spec Atlas
+
+<!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
+
+Specs: 146 · Requirements: 2333 · Scenarios: 5163
 
 ## factory-pipeline
 

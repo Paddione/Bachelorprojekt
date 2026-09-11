@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.332.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.4...website-v1.332.5) (2026-09-11)
+
+
+### Bug Fixes
+
+* **security:** restrict website ClusterRole to read-only and scope write access [T900114] ([#5565](https://github.com/Paddione/Bachelorprojekt/issues/5565)) ([69436d9](https://github.com/Paddione/Bachelorprojekt/commit/69436d9dc366525d11fba3332900130ac1102cb8))
+
 ## [1.332.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.3...website-v1.332.4) (2026-09-11)
 
 

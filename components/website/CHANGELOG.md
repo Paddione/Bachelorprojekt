@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.332.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.2...website-v1.332.3) (2026-09-11)
+
+
+### Documentation
+
+* **plans:** archive admin branch protection policy [T900126] ([#5557](https://github.com/Paddione/Bachelorprojekt/issues/5557)) ([8154b4a](https://github.com/Paddione/Bachelorprojekt/commit/8154b4a19a22a6ac7c2475dba74760f8d70a691e))
+
 ## [1.332.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.1...website-v1.332.2) (2026-09-11)
 
 

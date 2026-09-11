@@ -116,15 +116,12 @@ rules:
   - apiGroups: [""]
     resources: ["pods", "events", "nodes", "namespaces", "configmaps", "persistentvolumeclaims", "services"]
     verbs: ["get", "list"]
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["delete"]
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    verbs: ["get", "list", "patch"]
+    verbs: ["get", "list"]
   - apiGroups: ["batch"]
     resources: ["cronjobs", "jobs"]
-    verbs: ["get", "list", "create"]
+    verbs: ["get", "list"]
   - apiGroups: ["networking.k8s.io"]
     resources: ["ingresses"]
     verbs: ["get", "list"]
@@ -134,9 +131,6 @@ rules:
   - apiGroups: ["metrics.k8s.io"]
     resources: ["pods", "nodes"]
     verbs: ["get", "list"]
-  - apiGroups: ["argoproj.io"]
-    resources: ["applications"]
-    verbs: ["get", "list", "patch"]
   - apiGroups: [""]
     resources: ["secrets"]
     resourceNames: ["korczewski-tls", "workspace-wildcard-tls"]
@@ -162,9 +156,9 @@ subjects:
     namespace: ${WEBSITE_NAMESPACE}
 ---
 
-# ── Website self-exec: namespaced pods/exec for the website SA ───────────────
+# ── Website self-exec & ops: namespaced pods/exec and patch for website SA ───
 # T900110: exec is no longer cluster-wide (removed from ClusterRole above).
-# The website test-runner needs pods/exec create only in its own namespace.
+# T900114: deployments/patch scoped to website namespace (ClusterRole is read-only).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -176,6 +170,9 @@ rules:
   - apiGroups: [""]
     resources: ["pods/exec"]
     verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["patch"]
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1

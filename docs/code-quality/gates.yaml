@@ -142,8 +142,8 @@ s3:
   # sitemap.xml.ts derives domain from BRAND env var (legitimate conditional) — not a hardcoded host.
   # Brand-specific overlays (prod-<brand>/kustomization.yaml + prod-<brand>/ddns-updater.yaml)
   # pin the brand's own domain by design — the file is the brand-scoped overlay, not a
-  # cross-brand hardcode. prod/coredns-signaling-override.yaml + prod/cloud-init-dev-vm.yaml
-  # are special-purpose configs (CoreDNS rewrite / Proxmox cloud-init) where the host is
+  # cross-brand hardcode. prod/coredns-signaling-override.yaml is a special-purpose
+  # config (CoreDNS rewrite) where the host is
   # the resource's own identity. components/website/src/lib/*.generated.json are emitted from the
   # agent-guide/components registry — the host strings live in doc text, not config.
   # goals-data.generated.json (T001884) is generated from .claude/lib/goals.md — some
@@ -165,7 +165,6 @@ s3:
     - prod-korczewski/kustomization.yaml
     - prod-korczewski/ddns-updater.yaml
     - prod/coredns-signaling-override.yaml
-    - prod/cloud-init-dev-vm.yaml
     - components/website/src/lib/agent-guide.generated.json
     - components/website/src/lib/platform-descriptions.generated.json
     # T002639: mit dem SDLC-Split nach lib/sdlc/ umgezogen. Diese Allowlist ist
@@ -230,7 +229,6 @@ s4:
     - "scripts/repo-hygiene-cron.sh"
     # Standalone cron script — registered via crontab, not referenced by project files.
     # One-shot / manual scripts — used ad-hoc, not referenced by Taskfile or docs (T001874).
-    - "scripts/provision-dev-vm.sh"
     - "scripts/seed-lmstudio-ki-config.mjs"
     - "scripts/setup-comfyui.sh"
     - "scripts/api-auth-check.test.mjs"

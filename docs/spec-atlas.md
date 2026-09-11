@@ -2,22 +2,20 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 146 · Requirements: 2324 · Scenarios: 5145
+Specs: 146 · Requirements: 2325 · Scenarios: 5149
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 69 · Scenarios: 144 · Lines: 1813
+Reqs: 70 · Scenarios: 148 · Lines: 1862
 Last touches:
+  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | 2026-09-11 | MODIFIED
+  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | 2026-09-11 | ADDED
   - Repo-relative path references in first-party skills must resolve | T900078 | 2026-09-09 | MODIFIED
   - Skill shims and their targets must cover each other | T900078 | 2026-09-09 | ADDED
   - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
-  - Superpowers is declared in every harness that runs the dev-flow skills | T900056 | 2026-09-03 | ADDED
-  - A plugin activation finding names an executable remedy | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
-  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | active | MODIFIED
-  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED

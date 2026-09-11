@@ -409,11 +409,8 @@ capabilities:
 
   websuche:
     plugin:brightdata-plugin@claude-plugins-official:
-      state: canonical
-      use_when: "SERP-Suche und Scraping, wenn eine Antwort ausserhalb des Repos liegt."
-      avoid_when: "Repo-interne Fragen — dafür codebase-memory und Grep."
-      roles: [orchestrator]
-      tier: caution
+      state: suppressed
+      reason: "21 Skills im Prompt jeder Runde, laut /skill-doctor (2026-09-11) nie aufgerufen; Websuche läuft über die eingebauten WebSearch/WebFetch-Tools."
 
   # ─── Frontend ───────────────────────────────────────────────────────────────────────
   website-entwicklung:

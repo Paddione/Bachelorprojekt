@@ -42,7 +42,7 @@ The main loop runs on the **user's default model** — `.claude/settings.json` d
 - **Domain agents** carry it in their frontmatter: `bachelorprojekt-ops/-db/-test/-website` → `sonnet` (mechanical recon, queries, tests, UI), `bachelorprojekt-infra`/`-security` → `opus` (cross-system, risky, irreversible).
 - **Ad-hoc subagents** get an explicit `model` per dispatch — inheriting the main loop now means inheriting Opus. See [`subagent-provisioning.md`](.claude/skills/references/subagent-provisioning.md).
 
-**The 1M context window is a budget, not a licence.** Bulk reads (CI logs, research sweeps, multi-file recon) still belong in a subagent that reports back *condensed*; the orchestrator context stays reserved for decisions.
+**The 1M context window is a budget, not a licence.** Bulk reads (CI logs, research sweeps, multi-file recon) still belong in a subagent that reports back *condensed*; the orchestrator context stays reserved for decisions. When context is compacted, preserve the objective, active plan or ticket, changed files, commands and test results, decisions, blockers, exact error signatures, and the next concrete action; discard stale reconnaissance and raw successful tool output.
 
 ## Default Workflow
 

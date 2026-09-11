@@ -93,9 +93,13 @@ _check_binary() {
       fi
       continue
     fi
-    # Kein (deleted): nur Prozesse dieser Binary pruefen (exakter Pfad oder
-    # Basenamen-Match, damit Wrapper/npx auf Interpretern nicht treffen).
-    if [ "$exe" != "$bin" ] && [[ "$exe" != */"$base" ]]; then
+    # Kein (deleted): nur Prozesse dieser Binary pruefen (kanonischer Pfadvergleich,
+    # damit fremde Prozesse mit gleichem Basenamen wie z.B. IDE-Node-Instanzen
+    # nicht faelschlich verglichen werden).
+    local r_exe r_bin
+    r_exe="$(realpath "$exe" 2>/dev/null)" || continue
+    r_bin="$(realpath "$bin" 2>/dev/null)" || continue
+    if [ "$r_exe" != "$r_bin" ]; then
       continue
     fi
     [ -f "$bin" ] || continue

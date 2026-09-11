@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.333.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.6...website-v1.333.0) (2026-09-11)
+
+
+### Features
+
+* modernize llama vim integration T900141 ([#5573](https://github.com/Paddione/Bachelorprojekt/issues/5573)) ([61c0958](https://github.com/Paddione/Bachelorprojekt/commit/61c0958f49d44c71f8cf51e49370081a36f3fd6f))
+
 ## [1.332.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.332.5...website-v1.332.6) (2026-09-11)
 
 

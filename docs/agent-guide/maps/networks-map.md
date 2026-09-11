@@ -14,7 +14,7 @@ beteiligten Bereiche einander nennen, mit Grund und Absicherung.
 | `10.20.0.0/24` | fleet-Cluster | WireGuard-Overlay wg-fleet; zugleich die InternalIP der Kubernetes-Knoten (10.20.0.1 bis 10.20.0.6) und die Adresse des terminal-sidekick (10.20.0.10) | active | wireguard/wg-mesh-nodes.yaml (Sektion fleet) |
 | `10.42.0.0/16` | fleet-Cluster | Pod-Netz; k3s vergibt daraus je Knoten ein /24 | active | .spec.podCIDR der Knoten (k3s-Default) |
 | `10.43.0.0/16` | fleet-Cluster | Service-Netz (ClusterIP), kubernetes.default auf 10.43.0.1 | active | k3s-Default |
-| `100.64.0.0/10` | Tailnet (p.korczewski) | NAT-durchdringendes Overlay; trägt derzeit pk-desktop (100.102.71.114) und pk-hetzner-8 (100.118.49.94) | active | Tailscale-Dienst auf den Geräten |
+| `100.64.0.0/10` | Tailnet (p.korczewski) | NAT-durchdringendes Overlay für den Zugriff auf devmesh (ADR-008): Server mit tag:devmesh, Dev-Clients mit tag:devclient | active | Tailscale-Dienst auf den Geräten; Soll-Zustand devmesh/inventory.yaml und devmesh/tailnet-policy.hujson, Prüfung task devmesh:tailnet:check |
 | `172.17.0.0/16` | Docker (Entwicklungsrechner) | Default-Bridge | active | Docker-Daemon |
 | `172.18.0.0/16` | Docker (Entwicklungsrechner) | Netz factory-sandbox-egress der Software-Factory | active | Docker-Daemon |
 | `172.23.0.0/16` | Docker (Entwicklungsrechner) | Netz des k3d-Clusters k3d-mentolder-dev (abgebaut) | retired | Docker-Daemon (k3d) |
@@ -41,7 +41,7 @@ beteiligten Bereiche einander nennen, mit Grund und Absicherung.
 - **`home-lan`** — Das /8 ist ungewöhnlich weit und der Grund für die meisten Einträge unter overlaps. Beobachtete Hosts liegen in 10.0.0.x, 10.1.0.x und 10.10.0.x — ein engeres Präfix würde eine Neuvergabe im gesamten Haushalt bedeuten und ist bewusst zurückgestellt (Operator-Entscheidung 2026-08-19).
 - **`korczewski-mesh`** — Der Cluster wurde mit PR #1189 abgebaut; die Marke läuft seither auf fleet im Namespace workspace-korczewski. Der Eintrag bleibt stehen, damit eine Neuvergabe dieses Bereichs als Kollision auffällt.
 - **`fleet-overlay`** — Die Präfixlänge ist /24, belegt am lebenden Cluster. openspec/specs/ rustdesk-server.md nannte bis T012645 fälschlich /16 — in einer ufw-Freigabe hätte das 255-mal mehr Adressen geöffnet als beabsichtigt.
-- **`tailscale`** — Der einzige Bereich, der ohne eigenes Zutun kollisionsfrei bleibt — Tailscale benutzt den für Carrier-Grade-NAT reservierten Block, den sonst niemand vergibt.
+- **`tailscale`** — Der einzige Bereich, der ohne eigenes Zutun kollisionsfrei bleibt — Tailscale benutzt den für Carrier-Grade-NAT reservierten Block, den sonst niemand vergibt. Einzelne Geräte-Adressen stehen bewusst nicht hier, weil sie sich bei einer Neuregistrierung ändern. k3s-Knotenverkehr läuft nicht über das Tailnet, sondern direkt über home-lan.
 - **`docker-k3d-mentolder-dev`** — Der Cluster wurde mit PR #5316 endgültig entfernt; der Bereich bleibt als retired stehen, damit eine Neuvergabe als Kollision auffällt.
 - **`mentolder-mesh`** — Auf dem Windows-Entwicklungsrechner ist .10 der nativ zugewiesene wg-gpu-Adresse (WireGuard-Mesh-Punkt).
 - **`hetzner-private`** — Bis T012645 war dieser Bereich im Repo überhaupt nicht bekannt. Genau das ist der Grund für diese Registry: ein Netz, das niemand deklariert hat, kann mit keinem Prüflauf kollidieren.

@@ -110,7 +110,7 @@ mentolder:
 
     # New dev VM — Proxmox guest on the `dev` node (10.0.0.25). Successor to the
     # dead k3s-1; hosts the dev k3d cluster (dev.mentolder.de). Provisioned
-    # 2026-05-31 by scripts/provision-dev-vm.sh (VMID 9002, LAN 10.0.0.26).
+    # 2026-05-31 (VMID 9002, LAN 10.0.0.26); das Provisioning-Skript wurde mit T900119 entfernt.
     # NOTE: wg-mesh is installed + up on the VM (iface 192.168.100.23, port
     # 51821) but the mentolder mesh has NO live hub anymore — gekko-hetzner-2/3/4
     # moved to wg-fleet (10.20.0.0/24) in the consolidation, so their wg-mesh

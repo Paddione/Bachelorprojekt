@@ -125,7 +125,7 @@ Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-pla
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
 - Claude Code: Skill mit `agent:` → `background-agents.ts` (`delegate` read-only, `task` write-capable); ohne `agent:` inline. Map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`/`web-audit`→website.
-- opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): ticket-ops → dev-flow-plan → Factory.
+- opencode: `dev-flow-*` = Shared Sources wie Claude Code (T014086, ex-T013724-Dualnamen); Domain-Skills via Agent-Routing (`deny` in `opencode.jsonc`); `sdlc-autopilot` (opencode-only): ticket-triage → dev-flow-plan → Factory. `ticket-ops` bleibt der kompatible Router; agy folgt dem opencode-Pfad.
 </details>
 
 <details>

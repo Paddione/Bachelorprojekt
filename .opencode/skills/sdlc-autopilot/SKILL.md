@@ -8,7 +8,7 @@ description: 'Autonomer SDLC-Loop: sammelt Specs fuer Tickets ohne Spec, prioris
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
 > `mishap-tracker` auf — Eintragsformat und Ablauf: siehe `mishap-tracker` §Input.
 
-Fährt die Pipeline ticket-ops → dev-flow-plan → Factory selbstständig ab, bis das
+Fährt die Pipeline ticket-triage → dev-flow-plan → Factory selbstständig ab, bis das
 Queue-Material erschöpft ist oder menschliche Freigabe fehlt.
 
 ## Voraussetzungen

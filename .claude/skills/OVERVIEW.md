@@ -32,7 +32,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 > **Shared Source (T014086):** `dev-flow-plan`/`-execute`/`-chore` unter `.opencode/skills/` sind Directory-Symlinks auf genau diese drei Skills (Muster wie `openspec-*`) — ein Inhalt, zwei Einstiegspunkte. Nur `opencode-git-workflow` bleibt eine echte opencode-eigene Datei.
 
 > **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
-> ticket-ops -> dev-flow-plan -> Factory selbststaendig ab, bis das Queue-Material erschoepft
+> ticket-triage -> dev-flow-plan -> Factory selbststaendig ab, bis das Queue-Material erschoepft
 > ist. Es liegt unter `.opencode/skills/` und zaehlt deshalb **nicht** in die 34 oben
 > (die misst `git ls-files -- .claude/skills`), unterliegt aber denselben Konventionen.
 
@@ -150,7 +150,9 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 |---|---|
 | [`operations-management`](operations-management/SKILL.md) | **Routing hub** — dispatches to [`incident-response`](incident-response/SKILL.md) (time-critical incidents) or [`ticket-ops`](ticket-ops/SKILL.md) (daily ops). Entry point for all operational work. |
 | [`incident-response`](incident-response/SKILL.md) | Production incident triage & recovery — scope, diagnose, fix/rollback, post-mortem. Use when a core service is down or degraded. |
-| [`ticket-ops`](ticket-ops/SKILL.md) | **Ticket-Inhalte** — Triage auf Vollständigkeit, fehlende Angaben beim Menschen erfragen, Parallelarbeit über Tickets planen. Nicht für Branch-/Worktree-/PR-Housekeeping — das ist [`repo-hygiene`](repo-hygiene/SKILL.md). |
+| [`ticket-ops`](ticket-ops/SKILL.md) | **Kompatibilitätsrouter** für Ticket-Inhalte — leitet zu Triage oder Wave-Dispatch weiter. |
+| [`ticket-triage`](ticket-triage/SKILL.md) | **Ticket-Vorbereitung** — Vollständigkeit, DoR, Rückfragen und Batch-Kandidaten; dispatcht nie Arbeit. |
+| [`ticket-dispatch`](ticket-dispatch/SKILL.md) | **Wellen & Freigabe** — Abhängigkeiten, Konflikte und nach expliziter Freigabe Wave 1 an dev-flow weitergeben. |
 | [`repo-hygiene`](repo-hygiene/SKILL.md) | **Repo-Zustand** — veraltete Branches und Worktrees, offene PRs mergen und schließen, GitHub-Issue-Intake, Factory-Queue-Status. Nicht für Ticket-Inhalte — das ist [`ticket-ops`](ticket-ops/SKILL.md). |
 | [`system-audit`](system-audit/SKILL.md) | **Audit-Hub** — ein Einstiegspunkt für Audits aller Systeme (GitOps-Repo, Live-Cluster, Brand-Seiten, Repo-Zustand, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki). Delegiert an die Spezial-Skills, schließt deren Audit-Lücken per Checkliste; jeder Critical/Warning-Befund endet als Ticket mit angehängtem OpenSpec-Proposal in der Factory-Backlog. Kein Merge-Gate. |
 | [`mishap-tracker`](mishap-tracker/SKILL.md) | **End-of-skill routine** — batches accumulated `MISHAP_LOG` entries from runbook skills into a single aggregate `tickets.tickets` row. Reuses an open "Mishap collection" ticket if one exists. |

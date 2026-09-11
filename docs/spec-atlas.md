@@ -1132,7 +1132,7 @@ Last touches:
   - ttyd Host-Setup-Skript | T001565 | 2026-08-03 | ADDED
 
 ### ticket-ops
-Reqs: 3 · Scenarios: 5 · Lines: 67
+Reqs: 3 · Scenarios: 5 · Lines: 71
 Last touches:
   - Claim-Timing in Step 3.6 ist dokumentiert | T004602 | 2026-08-14 | ADDED
   - Prosa-Blocker-Erkennung in Phase 1 | T002771 | 2026-08-09 | ADDED

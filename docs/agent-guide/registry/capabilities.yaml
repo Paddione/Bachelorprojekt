@@ -120,11 +120,25 @@ capabilities:
   ticket-inhalt:
     skill:ticket-ops:
       state: canonical
-      use_when: "Triage, Definition of Readiness, fehlende Angaben, Parallelarbeit planen."
+      use_when: "Kompatibilitäts-Einstieg für unklare Ticket-Inhaltsanfragen; routet zu Triage oder Dispatch."
       avoid_when: "Repo-Zustand — Branches, Worktrees und PRs gehören zu repo-hygiene."
       roles: [orchestrator]
       tier: safe
       deep_ref: ".claude/skills/ticket-ops/SKILL.md"
+    skill:ticket-triage:
+      state: canonical
+      use_when: "Triage, Definition of Readiness, fehlende Angaben, Klärungsrunde und Batch-Kandidaten ohne Dispatch."
+      avoid_when: "Wellen planen oder Arbeit dispatchen — dafür ticket-dispatch."
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/ticket-triage/SKILL.md"
+    skill:ticket-dispatch:
+      state: canonical
+      use_when: "Abhängigkeitswellen, Parallelisierungsplan, Konfliktprüfung und freigegebener Wave-1-Dispatch."
+      avoid_when: "Ticket-Fakten erheben oder menschliche Rückfragen klären — dafür ticket-triage."
+      roles: [orchestrator]
+      tier: assisted
+      deep_ref: ".claude/skills/ticket-dispatch/SKILL.md"
 
   factory-steuerung:
     mcp:factory-mcp:

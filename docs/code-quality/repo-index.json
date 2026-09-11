@@ -3194,7 +3194,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 951,
+      "file_count": 953,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3530,7 +3530,9 @@
         ".opencode/skills/skill-creator/scripts/utils.py",
         ".opencode/skills/system-audit/SKILL.md",
         ".opencode/skills/system-audit/references/checklists.md",
+        ".opencode/skills/ticket-dispatch/SKILL.md",
         ".opencode/skills/ticket-ops/SKILL.md",
+        ".opencode/skills/ticket-triage/SKILL.md",
         ".opencode/skills/toolset-curate/SKILL.md",
         ".opencode/skills/train-sentence-transformers/SKILL.md",
         ".opencode/skills/train-sentence-transformers/references/base_model_selection.md",

@@ -93,7 +93,8 @@ if [[ "$MODE" == "dry-run" ]]; then
 fi
 
 # Branch Protection PATCH — setzt NUR required_status_checks
-# Alle anderen Protection-Einstellungen werden beibehalten (enforce_admins, restrictions, etc.)
+# Administratoren muessen dieselben Required Checks und Review-Regeln einhalten.
+# Alle anderen Protection-Einstellungen werden beibehalten (restrictions, etc.).
 # durch Übergabe der aktuellen Werte via separate API-Calls nicht nötig — PATCH merged.
 #
 # WICHTIG: Die GitHub API /branches/main/protection erfordert alle Felder auf einmal;
@@ -101,7 +102,7 @@ fi
 CURRENT_PROTECTION=$(GH_TOKEN="$GH_PAT" gh api \
   "repos/${REPO}/branches/${BRANCH}/protection" 2>/dev/null || echo "{}")
 
-ENFORCE_ADMINS=$(echo "$CURRENT_PROTECTION" | jq '.enforce_admins.enabled // false')
+ENFORCE_ADMINS=true
 REQUIRED_REVIEWS=$(echo "$CURRENT_PROTECTION" | jq '.required_pull_request_reviews // null')
 RESTRICTIONS=$(echo "$CURRENT_PROTECTION" | jq '.restrictions // null')
 REQUIRED_LINEAR=$(echo "$CURRENT_PROTECTION" | jq '.required_linear_history.enabled // false')

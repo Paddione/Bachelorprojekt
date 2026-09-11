@@ -150,6 +150,7 @@ In-flight:
   - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
+  - Deterministic loadouts path resolution across execution environments | T900109 | active | ADDED
   - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product

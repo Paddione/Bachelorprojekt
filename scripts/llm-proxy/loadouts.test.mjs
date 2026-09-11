@@ -2,10 +2,10 @@
 // Reine Validierungs- und Round-Trip-Tests. Kein Dateisystem ausser tmpdir.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs'
+import { mkdtempSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout, isLoadoutEnabled } from './loadouts.mjs'
+import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout, isLoadoutEnabled, resolveDefaultLoadoutsPath } from './loadouts.mjs'
 
 const valid = {
   version: 1,
@@ -307,4 +307,60 @@ test('parseLoadouts: unbekannte Engine wird abgelehnt', () => {
   bad.loadouts[0].tools = 'read_file'
   bad.loadouts[0].toolsRuntime = 'chroot:/srv/jail'
   assert.throws(() => parseLoadouts(JSON.stringify(bad)), /toolsRuntime/)
+})
+
+// ── T900109: Pfadaufloesung fuer loadouts.json ─────────────────────────────
+
+test('resolveDefaultLoadoutsPath: bevorzugt LOADOUTS_PATH wenn gesetzt', () => {
+  const orig = process.env.LOADOUTS_PATH
+  try {
+    process.env.LOADOUTS_PATH = '/custom/path/loadouts.json'
+    assert.equal(resolveDefaultLoadoutsPath(), '/custom/path/loadouts.json')
+  } finally {
+    if (orig !== undefined) process.env.LOADOUTS_PATH = orig
+    else delete process.env.LOADOUTS_PATH
+  }
+})
+
+test('resolveDefaultLoadoutsPath: nutzt DEV_POD_REPO wenn vorhanden und cwd kein loadouts enthaelt', () => {
+  const origLoadouts = process.env.LOADOUTS_PATH
+  const origRepo = process.env.DEV_POD_REPO
+  const origCwd = process.cwd()
+  const dir = mkdtempSync(join(tmpdir(), 'loadouts-devpod-'))
+  const repoDir = mkdtempSync(join(tmpdir(), 'mock-repo-'))
+  mkdirSync(join(repoDir, 'scripts/llm'), { recursive: true })
+  writeFileSync(join(repoDir, 'scripts/llm/loadouts.json'), '{}')
+  try {
+    delete process.env.LOADOUTS_PATH
+    process.env.DEV_POD_REPO = repoDir
+    process.chdir(dir)
+    const res = resolveDefaultLoadoutsPath()
+    assert.equal(res, `${repoDir}/scripts/llm/loadouts.json`)
+  } finally {
+    process.chdir(origCwd)
+    if (origLoadouts !== undefined) process.env.LOADOUTS_PATH = origLoadouts
+    else delete process.env.LOADOUTS_PATH
+    if (origRepo !== undefined) process.env.DEV_POD_REPO = origRepo
+    else delete process.env.DEV_POD_REPO
+  }
+})
+
+test('resolveDefaultLoadoutsPath: faellt auf Modulpfad zurueck wenn cwd und env vars leer', () => {
+  const origLoadouts = process.env.LOADOUTS_PATH
+  const origRepo = process.env.DEV_POD_REPO
+  const origCwd = process.cwd()
+  const dir = mkdtempSync(join(tmpdir(), 'loadouts-fallback-'))
+  try {
+    delete process.env.LOADOUTS_PATH
+    delete process.env.DEV_POD_REPO
+    process.chdir(dir)
+    const res = resolveDefaultLoadoutsPath()
+    assert.match(res, /scripts\/llm\/loadouts\.json$/)
+  } finally {
+    process.chdir(origCwd)
+    if (origLoadouts !== undefined) process.env.LOADOUTS_PATH = origLoadouts
+    else delete process.env.LOADOUTS_PATH
+    if (origRepo !== undefined) process.env.DEV_POD_REPO = origRepo
+    else delete process.env.DEV_POD_REPO
+  }
 })

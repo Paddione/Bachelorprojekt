@@ -69,6 +69,7 @@ trap shutdown TERM INT
 supervise llm-proxy env \
   LLM_PROXY_HOST_BIND="${LLM_PROXY_HOST_BIND:-0.0.0.0}" \
   LLM_PROXY_PORT="${LLM_PROXY_PORT:-18235}" \
+  LOADOUTS_PATH="${LOADOUTS_PATH:-$REPO/scripts/llm/loadouts.json}" \
   node "$REPO/scripts/llm-proxy/server.mjs"
 
 # ── postgres (3001) ──────────────────────────────────────────────────

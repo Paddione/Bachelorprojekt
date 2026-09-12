@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1306,
+      "file_count": 1307,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -847,6 +847,7 @@
         "tests/spec/newsletter-system.bats",
         "tests/spec/nextcloud-integration.bats",
         "tests/spec/observability.bats",
+        "tests/spec/opencode-config-ssot.bats",
         "tests/spec/opencode-local-model-runner.bats",
         "tests/spec/openspec-embedding.bats",
         "tests/spec/openspec-embedding/dynamic-port-T003077.bats",
@@ -4197,7 +4198,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 873,
+      "file_count": 874,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4864,6 +4865,7 @@
         "scripts/one-shot/purge-fn-v6.sql",
         "scripts/one-shot/purge-fn-v7.sql",
         "scripts/one-shot/purge-fn-v8.sql",
+        "scripts/opencode-config-viz.sh",
         "scripts/opencode-monitor.sh",
         "scripts/opencode-serve.sh",
         "scripts/opencode-sync-agents.sh",

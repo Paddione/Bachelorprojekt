@@ -4733,6 +4733,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900162": [
+    {
+      "slug": "opencode-agent-model-config-sync",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

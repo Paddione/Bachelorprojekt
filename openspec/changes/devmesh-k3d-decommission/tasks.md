@@ -1,6 +1,6 @@
 ---
 title: "devmesh-k3d-decommission — Implementation Plan"
-ticket_id: T900120
+ticket_id: T900145
 domains: [infra, testing]
 status: active
 file_locks: []
@@ -12,7 +12,7 @@ depends_on_plans: [devmesh-dev-stack]
 
 # devmesh-k3d-decommission — Implementation Plan
 
-_Ticket: T900120_ · Programm T900115 (ADR-008 SP-5) · blocked_by: T900118 (SP-3)
+_Ticket: T900145_ · Programm T900115 (ADR-008 SP-5) · prerequisites: SP-1 through SP-4
 
 Quellen: `proposal.md`, `design.md`, `specs/local-dev-mesh.md`, `specs/sdlc-isolation.md`,
 ADR-008 Nachtrag 2026-09-11, `.claude/skills/references/plan-quality-gates.md`.
@@ -162,4 +162,3 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
-

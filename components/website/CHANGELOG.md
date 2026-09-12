@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.336.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.335.0...website-v1.336.0) (2026-09-12)
+
+
+### Features
+
+* **infra:** devmesh SP-2 k3s installation & cluster tooling [T900117] ([#5596](https://github.com/Paddione/Bachelorprojekt/issues/5596)) ([a2342b0](https://github.com/Paddione/Bachelorprojekt/commit/a2342b004cca2b361e3eb659bebe9d934e51c642))
+
 ## [1.335.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.334.0...website-v1.335.0) (2026-09-11)
 
 

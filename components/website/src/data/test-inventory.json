@@ -2406,6 +2406,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-visual-decision",
+    "file": "tests/spec/agent-visual-decision.bats",
+    "category": "agent-visual-decision",
+    "kind": "shell"
+  },
+  {
     "id": "agentic-review",
     "file": "tests/spec/agentic-review.bats",
     "category": "agentic-review",

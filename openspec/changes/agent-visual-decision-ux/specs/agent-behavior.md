@@ -3,7 +3,7 @@
 ## Purpose
 Standardisierung der visuellen Barrierefreiheit und Interaktionsformen bei Agenten-Ergebnissen und Entscheidungen mit menschlicher Eingabe.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Structured Interactive Decision Modals for Human Input
 The system SHALL mandate the use of harness-native decision modals (`ask_question` / `AskUserQuestion`) when asking the user to make discrete choices or choose between implementation options.
@@ -32,3 +32,13 @@ The system SHALL use Mermaid flowcharts or Markdown Carousels when presenting mu
 - **WHEN** formatting the proposal artifact
 - **THEN** the agent SHALL render a Mermaid diagram or Markdown Carousel block
 - **AND** avoid presenting long unstructured bullet lists for complex flow logic.
+
+### Requirement: Lavish HTML Review Surfaces for Visual Review Artifacts
+The system SHALL support launching Lavish interactive HTML review surfaces (`lavish-axi`) when presenting complex visual designs, UI component previews, or multi-file visual diffs.
+
+#### Scenario: Agent presenting interactive visual artifact for human review
+- **GIVEN** a complex visual design, UI preview, or rich interactive report
+- **WHEN** presenting the artifact for user review and consent
+- **THEN** the agent SHALL generate a structured HTML artifact and invoke `lavish-axi`
+- **AND** collect human feedback interactive responses when requested.
+

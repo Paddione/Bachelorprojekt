@@ -1,6 +1,6 @@
 # p5 — Abnahme-Gate, Abbau, Beitritt ws-ubuntu-1 (impl + Live)
 
-_Ticket: T900120_ · Rolle `impl` · depends_on `p1, p2, p3, p4`
+_Ticket: T900145_ · Rolle `impl` · depends_on `p1, p2, p3, p4`
 
 Teil A läuft im PR (Repo-Code). Teil B sind **Live-Tasks nach dem Merge**. Jeder hat ein Gate,
 das vor dem ersten verändernden Befehl geprüft wird. Scheitert ein Gate, bricht der Task ab, und

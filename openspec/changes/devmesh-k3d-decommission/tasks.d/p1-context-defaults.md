@@ -1,6 +1,6 @@
 # p1 — Context-Defaults in Skripten und Konfiguration (impl)
 
-_Ticket: T900120_ · Rolle `impl` · keine Abhängigkeit
+_Ticket: T900145_ · Rolle `impl` · keine Abhängigkeit
 
 Regel (Index, Abschnitt „Context-Zuordnung"): Ticket-, Factory- und SDLC-Daten → `fleet`
 (ADR-007 A, design.md D2). Dev-Stack `workspace-dev` → `fleet`. Lokale Entwicklungsinstanz und

@@ -9,7 +9,7 @@ in `scripts/factory/lib.sh`, der Factory-Skripte ohne gesetzte Variable gegen di
 lokale DB laufen lässt, während `scripts/ticket.sh` schon auf `fleet` zeigt. CLAUDE.md und der
 ops-Agent beschreiben „fleet ist der einzige Context", was seit SP-2 nicht mehr stimmt.
 
-_Ticket: T900120_ · Programm: T900115 (ADR-008) · blocked_by: T900118 (SP-3)
+_Ticket: T900145_ · Programm: T900115 (ADR-008) · prerequisites: SP-1 through SP-4
 
 ## What Changes
 

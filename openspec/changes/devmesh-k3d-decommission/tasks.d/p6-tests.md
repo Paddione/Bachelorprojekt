@@ -1,6 +1,6 @@
 # p6 — Tests: Guards, Umstellungen, Löschungen (tests)
 
-_Ticket: T900120_ · Rolle `tests` · keine Abhängigkeit (RED zuerst)
+_Ticket: T900145_ · Rolle `tests` · keine Abhängigkeit (RED zuerst)
 
 Konventionen: `tests/CLAUDE.md` (eigene Datei je Vorgang unter `tests/spec/<spec>/`,
 Positiv-Anker im selben Test, keine nackte `!`-Pipeline, Runner

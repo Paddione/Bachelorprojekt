@@ -1,6 +1,6 @@
 # p4 — Delta-Specs nachziehen (impl)
 
-_Ticket: T900120_ · Rolle `impl` · keine Abhängigkeit
+_Ticket: T900145_ · Rolle `impl` · keine Abhängigkeit
 
 Drei SSOT-Specs nennen den k3d-Context oder die entfallenden `sdlc:cluster:*`-Tasks, ohne dass
 dieser Change bisher ein Delta für sie trägt. Nach der Archivierung dieses Changes prüft der

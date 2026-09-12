@@ -41,8 +41,8 @@ status: ready
 
 ## 4. Sync & globale Konsolidierung
 
-- [ ] 4.1 Sync anwenden: `bash scripts/opencode-sync-agents.sh` ausführen, aktualisierte `~/.config/opencode/opencode.jsonc` prüfen; Verifikation: doppelter dry-run liefert leeren diff (Idempotenz), neue Limits/Entfernungen enthalten
-- [ ] 4.2 Globale Duplikate: `~/.config/opencode/opencode.json` (reine MCP-Datei, codebase-memory-mcp) in `opencode.jsonc` übernehmen/validieren und die Datei entfernen (Backups existieren); Verifikation: nur noch eine aktive globale Config-Datei; MCP-Tool `codebase-memory-mcp` bleibt erreichbar (list_projects ok)
+- [x] 4.1 Sync anwenden: `bash scripts/opencode-sync-agents.sh` ausführen, aktualisierte `~/.config/opencode/opencode.jsonc` prüfen; Verifikation: doppelter dry-run liefert leeren diff (Idempotenz), neue Limits/Entfernungen enthalten
+- [x] 4.2 Globale Duplikate: `~/.config/opencode/opencode.json` (reine MCP-Datei, codebase-memory-mcp) in `opencode.jsonc` übernehmen/validieren und die Datei entfernen (Backups existieren); Verifikation: nur noch eine aktive globale Config-Datei; MCP-Tool `codebase-memory-mcp` bleibt erreichbar (list_projects ok)
 - [ ] 4.3 Windows-Config-Hinweis dokumentieren (separater Client-Pfad `C:\Users\PatrickKorczewski\.config\opencode\opencode.jsonc`, toter `:18235`-Provider): einmalige manuelle Korrektur als Task-Antwort festhalten, kein automatischer Cross-OS-Schreibzugriff; Verifikation: Hinweis in `docs/agent-guide/registry/config-overview.md`-README-Abschnitt
 
 ## 5. Config-Visualisierung

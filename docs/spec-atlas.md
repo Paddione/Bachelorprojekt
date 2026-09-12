@@ -637,7 +637,7 @@ In-flight:
   - AGENTS.md declares the shared-source routing | T014086 | active | MODIFIED
 
 ### llm-local-dev
-Reqs: 37 · Scenarios: 70 · Lines: 846
+Reqs: 37 · Scenarios: 70 · Lines: 845
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Engine Auto-Swap on FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
@@ -646,6 +646,7 @@ Last touches:
   - Fetch-Wrapper Engine Consistency Guard | T900155 | 2026-09-12 | ADDED
   - Repo Plugin SSOT Sync | T900155 | 2026-09-12 | ADDED
 In-flight:
+  - Project Default Model Targets the FreeToken Alias | T900164 | active | MODIFIED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 

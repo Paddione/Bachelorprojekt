@@ -4170,6 +4170,18 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/db-backup-retention",
+    "file": "tests/spec/local-dev-mesh/db-backup-retention.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/dev-local-render",
+    "file": "tests/spec/local-dev-mesh/dev-local-render.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/devmesh-networks",
     "file": "tests/spec/local-dev-mesh/devmesh-networks.bats",
     "category": "local-dev-mesh",
@@ -4194,6 +4206,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/migrate-from-k3d",
+    "file": "tests/spec/local-dev-mesh/migrate-from-k3d.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/preflight",
     "file": "tests/spec/local-dev-mesh/preflight.bats",
     "category": "local-dev-mesh",
@@ -4214,6 +4232,12 @@
   {
     "id": "local-dev-mesh/tailnet-policy",
     "file": "tests/spec/local-dev-mesh/tailnet-policy.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/ticket-devmesh-guard",
+    "file": "tests/spec/local-dev-mesh/ticket-devmesh-guard.bats",
     "category": "local-dev-mesh",
     "kind": "shell"
   },

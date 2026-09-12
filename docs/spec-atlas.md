@@ -2,20 +2,19 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2309 · Scenarios: 5136
+Specs: 126 · Requirements: 2310 · Scenarios: 5138
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 70 · Scenarios: 148 · Lines: 1862
+Reqs: 71 · Scenarios: 150 · Lines: 1895
 Last touches:
+  - Registry Runtimes Stay in Sync with the opencode Runtime Config | T900167 | 2026-09-13 | ADDED
   - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | 2026-09-11 | MODIFIED
   - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | 2026-09-11 | ADDED
   - Repo-relative path references in first-party skills must resolve | T900078 | 2026-09-09 | MODIFIED
   - Skill shims and their targets must cover each other | T900078 | 2026-09-09 | ADDED
-  - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
 In-flight:
-  - Registry Runtimes Stay in Sync with the opencode Runtime Config | T900167 | active | ADDED
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED

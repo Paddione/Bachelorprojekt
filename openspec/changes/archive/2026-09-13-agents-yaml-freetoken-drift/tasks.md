@@ -2,7 +2,7 @@
 title: "agents-yaml-freetoken-drift — Implementation Plan"
 ticket_id: T900167
 domains: [ops, docs]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

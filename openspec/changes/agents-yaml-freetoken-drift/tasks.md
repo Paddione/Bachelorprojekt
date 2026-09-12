@@ -69,7 +69,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills.bats
 # expected: FAIL (rot — P4.3, P4.3b, T002305 schlagen fehl)
 ```
 
-- [ ] **Fix-Step (GREEN).** Nach Task 2+3 muessen beide Tests gruen laufen:
+- [x] **Fix-Step (GREEN).** Nach Task 2+3 laufen beide Tests gruen:
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-roster.bats
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills.bats

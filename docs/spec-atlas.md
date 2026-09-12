@@ -173,6 +173,10 @@ Last touches:
   - Identity corrections are append-only and cycle-safe | T900159 | 2026-09-12 | ADDED
   - Typed human GitHub references have one central parser | T900159 | 2026-09-12 | ADDED
   - Lesepfade unterscheiden kein-Treffer von falscher-Frage | T014386 | 2026-08-23 | ADDED
+In-flight:
+  - GitHub Snapshot Schema and Cursor Tracking | T900161 | active | ADDED
+  - GitHub Identity and Closing Relationship Auto-Registration | T900161 | active | ADDED
+  - PR Events and Status Compatibility Projection | T900161 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192

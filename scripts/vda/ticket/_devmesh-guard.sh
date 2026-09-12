@@ -30,6 +30,7 @@ _devmesh_server_of() {
 devmesh_ctx_is_target() {
   local ctx="${1:-}" server ref host inv h
   [[ "$ctx" == "devmesh" ]] && return 0
+  [[ "$ctx" == "fleet" || "$ctx" == "bats-no-cluster-t002224" || "$ctx" == k3d-* ]] && return 1
   server="$(_devmesh_server_of "$ctx")"
   [[ -n "$server" ]] || return 1
   ref="$(_devmesh_server_of devmesh)"

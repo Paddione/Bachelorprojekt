@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 147 · Requirements: 2343 · Scenarios: 5185
+Specs: 147 · Requirements: 2349 · Scenarios: 5192
 
 ## factory-pipeline
 
@@ -681,21 +681,15 @@ Last touches:
   - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
-Reqs: 31 · Scenarios: 63 · Lines: 765
+Reqs: 37 · Scenarios: 70 · Lines: 846
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
-  - V2 Compaction Targets 100K Active Context | T900074 | 2026-09-11 | ADDED
-  - Factory Roles Carry Minimal Toolsets | T900074 | 2026-09-11 | ADDED
-  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | 2026-09-11 | ADDED
-  - Global Instructions Stay Lean | T900074 | 2026-09-11 | ADDED
-  - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED
+  - Engine Auto-Swap on FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
+  - Engine Stop on Non-FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
+  - Degraded Failure Path on Engine Switch | T900155 | 2026-09-12 | ADDED
+  - Fetch-Wrapper Engine Consistency Guard | T900155 | 2026-09-12 | ADDED
+  - Repo Plugin SSOT Sync | T900155 | 2026-09-12 | ADDED
 In-flight:
-  - Engine Auto-Swap on FreeToken Model Selection | T900155 | active | ADDED
-  - Engine Stop on Non-FreeToken Model Selection | T900155 | active | ADDED
-  - Degraded Failure Path on Engine Switch | T900155 | active | ADDED
-  - Fetch-Wrapper Engine Consistency Guard | T900155 | active | ADDED
-  - Repo Plugin SSOT Sync | T900155 | active | ADDED
-  - BATS Coverage for Auto-Swap Logic | T900155 | active | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 

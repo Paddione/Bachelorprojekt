@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.341.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.341.0...website-v1.341.1) (2026-09-12)
+
+
+### Bug Fixes
+
+* **ops:** route local defaults to llamacpp qwen38-220k via llm-proxy [T900164] ([#5618](https://github.com/Paddione/Bachelorprojekt/issues/5618)) ([8ef5bea](https://github.com/Paddione/Bachelorprojekt/commit/8ef5bea9faafb16575329d574f06e66631fad73b))
+
 ## [1.341.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.340.0...website-v1.341.0) (2026-09-12)
 
 

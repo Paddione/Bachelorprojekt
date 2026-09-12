@@ -4170,8 +4170,38 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/devmesh-networks",
+    "file": "tests/spec/local-dev-mesh/devmesh-networks.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/devmesh-taskfile",
     "file": "tests/spec/local-dev-mesh/devmesh-taskfile.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/k3s-install",
+    "file": "tests/spec/local-dev-mesh/k3s-install.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/kubeconfig",
+    "file": "tests/spec/local-dev-mesh/kubeconfig.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/preflight",
+    "file": "tests/spec/local-dev-mesh/preflight.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/status",
+    "file": "tests/spec/local-dev-mesh/status.bats",
     "category": "local-dev-mesh",
     "kind": "shell"
   },

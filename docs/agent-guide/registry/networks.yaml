@@ -61,6 +61,16 @@ networks:
         mitigation: >-
           Service-Adressen werden nie vom Host aus adressiert, nur clusterintern
           über kube-proxy.
+      - with: devmesh-pod-cidr
+        reason: Das /8 umfasst 10.52.0.0/16 vollständig.
+        mitigation: >-
+          Kein LAN-Host liegt in 10.52.0.0/16. Pod-Verkehr läuft über flannel-wg
+          zwischen den devmesh-Knoten und wird nie vom LAN aus adressiert.
+      - with: devmesh-service-cidr
+        reason: Das /8 umfasst 10.53.0.0/16 vollständig.
+        mitigation: >-
+          Service-Adressen werden nie vom Host aus adressiert, nur clusterintern
+          über kube-proxy.
   - id: korczewski-mesh
     cidr: 10.13.14.0/24
     owner: korczewski (abgebaut)
@@ -109,6 +119,29 @@ networks:
     purpose: Service-Netz (ClusterIP), kubernetes.default auf 10.43.0.1
     status: active
     source: k3s-Default
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: Clusterintern über kube-proxy, nie vom Host adressiert.
+  - id: devmesh-pod-cidr
+    cidr: 10.52.0.0/16
+    owner: devmesh-Cluster (ADR-008)
+    purpose: Pod-Netz; k3s vergibt daraus je Knoten ein /24 (--cluster-cidr)
+    status: active
+    source: scripts/devmesh/k3s-install.sh (CLUSTER_CIDR)
+    notes: >-
+      Bewusst nicht 10.42.0.0/16. PK-Desktop routet das Pod-Netz von fleet über
+      wg-gpu, gleiche Adressen aus devmesh liefen dort in den falschen Tunnel.
+    overlaps:
+      - with: home-lan
+        reason: Liegt vollständig im /8 des Heimnetzes.
+        mitigation: Kein LAN-Host liegt im Bereich; Pod-Verkehr läuft über flannel-wg zwischen den Knoten.
+  - id: devmesh-service-cidr
+    cidr: 10.53.0.0/16
+    owner: devmesh-Cluster (ADR-008)
+    purpose: Service-Netz (ClusterIP), kubernetes.default auf 10.53.0.1, CoreDNS auf 10.53.0.10
+    status: active
+    source: scripts/devmesh/k3s-install.sh (SERVICE_CIDR, CLUSTER_DNS)
     overlaps:
       - with: home-lan
         reason: Liegt vollständig im /8 des Heimnetzes.

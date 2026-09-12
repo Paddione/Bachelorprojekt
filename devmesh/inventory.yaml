@@ -1,18 +1,22 @@
-# devmesh/inventory.yaml — SSOT der devmesh-Peers im Tailnet (T900116, ADR-008)
+# devmesh/inventory.yaml — SSOT der devmesh-Peers im Tailnet (T900116, T900117, ADR-008)
 #
+# k3s_version   k3s-Version fuer alle Server im devmesh-Cluster (gepinnt, T900117)
+# k3s_role      server-init | server-join | agent (T900117, gelesen von scripts/devmesh/*.sh)
+# labels        Node-Labels für k3s (z. B. storage=true)
 # gpu_endpoint  GPU-Inferenz auf dem Windows-Arbeitsplatz; einziger erlaubter Pfad von
 #               tag:devmesh in einen Client (devmesh/tailnet-policy.hujson, Alias gpu-host).
 #               Port 1234 ist der bestehende LLM-Endpunkt.
-# role: server  -> tag: "tag:devmesh"   (k3s-Hosts, SP-2 ergaenzt die k3s-Felder)
+# role: server  -> tag: "tag:devmesh"   (k3s-Hosts)
 # role: client  -> tag: "tag:devclient" (Arbeitsplaetze; Tailscale laeuft im Windows-Host,
 #                                         WSL sieht das Tailnet ueber networkingMode = mirrored)
 # lan_ip        feste Heimnetz-Adresse; null fuer Clients mit DHCP
 # tailnet_name  Geraetename im Tailnet (bei Servern per `tailscale up --hostname` gesetzt)
 #
-# Gelesen von scripts/devmesh/tailnet-check.sh (pingt jeden Eintrag mit role: server)
+# Gelesen von scripts/devmesh/*.sh, taskfiles/Taskfile.devmesh.yml
 # und vom Policy-Guard tests/spec/local-dev-mesh/tailnet-policy.bats (gpu_endpoint.port).
 # ws-ubuntu-1 (10.0.33.1) tritt erst in SP-5 (T900120) bei.
 # Auth-Keys gehoeren NIE in diese Datei.
+k3s_version: v1.36.1+k3s1
 gpu_endpoint:
   host: pk-desktop
   port: 1234
@@ -22,16 +26,23 @@ peers:
     tag: "tag:devmesh"
     lan_ip: 10.1.0.101
     tailnet_name: gpu-metal
+    k3s_role: server-init
+    labels: []
   - name: gpu-cluster
     role: server
     tag: "tag:devmesh"
     lan_ip: 10.10.10.2
     tailnet_name: gpu-cluster
+    k3s_role: server-join
+    labels: []
   - name: gpu-cluster2
     role: server
     tag: "tag:devmesh"
     lan_ip: 10.10.10.3
     tailnet_name: gpu-cluster2
+    k3s_role: server-join
+    labels:
+      - storage=true
   - name: pk-desktop
     role: client
     tag: "tag:devclient"

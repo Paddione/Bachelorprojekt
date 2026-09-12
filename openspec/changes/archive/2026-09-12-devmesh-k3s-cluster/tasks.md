@@ -2,7 +2,7 @@
 title: "devmesh-k3s-cluster — Implementation Plan"
 ticket_id: T900117
 domains: [infra, testing]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

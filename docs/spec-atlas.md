@@ -15,6 +15,7 @@ Last touches:
   - Skill shims and their targets must cover each other | T900078 | 2026-09-09 | ADDED
   - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
 In-flight:
+  - Registry Runtimes Stay in Sync with the opencode Runtime Config | T900167 | active | ADDED
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED

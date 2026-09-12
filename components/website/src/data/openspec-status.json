@@ -4763,6 +4763,12 @@
       "status": "archived"
     }
   ],
+  "T900167": [
+    {
+      "slug": "agents-yaml-freetoken-drift",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

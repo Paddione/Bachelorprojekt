@@ -61,7 +61,7 @@ export async function applyGitHubIdentitySchema(pool: Pool | PoolClient): Promis
       IF TG_OP = 'DELETE' THEN RAISE EXCEPTION 'github coordinate history is append-only'; END IF;
       SELECT kind INTO object_kind FROM tickets.github_objects WHERE id=NEW.github_object_id;
       IF object_kind = 'advisory' THEN RAISE EXCEPTION 'advisories cannot have coordinates'; END IF;
-      IF TG_OP = 'UPDATE' AND (NEW.valid_until IS NULL OR OLD.valid_until IS NOT NULL OR NEW.valid_until <= OLD.valid_from) THEN RAISE EXCEPTION 'only an open coordinate can be closed'; END IF;
+      IF TG_OP = 'UPDATE' AND (NEW.github_object_id IS DISTINCT FROM OLD.github_object_id OR NEW.repository_node_id IS DISTINCT FROM OLD.repository_node_id OR NEW.repository_owner IS DISTINCT FROM OLD.repository_owner OR NEW.repository_name IS DISTINCT FROM OLD.repository_name OR NEW.object_number IS DISTINCT FROM OLD.object_number OR NEW.url IS DISTINCT FROM OLD.url OR NEW.valid_from IS DISTINCT FROM OLD.valid_from OR NEW.valid_until IS NULL OR OLD.valid_until IS NOT NULL OR NEW.valid_until <= OLD.valid_from) THEN RAISE EXCEPTION 'only an open coordinate can be closed'; END IF;
       RETURN NEW;
     END $$;
     DROP TRIGGER IF EXISTS github_coordinates_guard ON tickets.github_object_coordinates;
@@ -72,6 +72,7 @@ export async function applyGitHubIdentitySchema(pool: Pool | PoolClient): Promis
       SELECT kind INTO object_kind FROM tickets.github_objects WHERE id=NEW.github_object_id;
       IF object_kind = 'pull_request' THEN RAISE EXCEPTION 'pull requests cannot be work item references'; END IF;
       IF TG_OP = 'INSERT' AND NEW.role='alias' AND (NEW.reason IS NULL OR btrim(NEW.reason)='') THEN RAISE EXCEPTION 'aliases require a reason'; END IF;
+      IF TG_OP = 'UPDATE' AND (OLD.role <> 'canonical' OR OLD.valid_until IS NOT NULL OR NEW.ticket_id IS DISTINCT FROM OLD.ticket_id OR NEW.github_object_id IS DISTINCT FROM OLD.github_object_id OR NEW.role IS DISTINCT FROM OLD.role OR NEW.reason IS DISTINCT FROM OLD.reason OR NEW.valid_from IS DISTINCT FROM OLD.valid_from OR NEW.created_at IS DISTINCT FROM OLD.created_at OR NEW.valid_until IS NULL OR NEW.valid_until <= OLD.valid_from) THEN RAISE EXCEPTION 'only an open canonical reference can be closed'; END IF;
       RETURN NEW;
     END $$;
     DROP TRIGGER IF EXISTS work_item_refs_guard ON tickets.work_item_refs;
@@ -80,5 +81,18 @@ export async function applyGitHubIdentitySchema(pool: Pool | PoolClient): Promis
     BEGIN RAISE EXCEPTION 'github relation history is append-only'; END $$;
     DROP TRIGGER IF EXISTS github_relations_history_guard ON tickets.github_object_relations;
     CREATE TRIGGER github_relations_history_guard BEFORE UPDATE OR DELETE ON tickets.github_object_relations FOR EACH ROW EXECUTE FUNCTION tickets.fn_guard_github_relation_history();
+    CREATE OR REPLACE FUNCTION tickets.fn_validate_github_relation() RETURNS trigger LANGUAGE plpgsql SET search_path = pg_catalog, tickets AS $$
+    DECLARE from_kind text; to_kind text; has_cycle boolean; BEGIN
+      SELECT kind INTO from_kind FROM tickets.github_objects WHERE id=NEW.from_object_id;
+      SELECT kind INTO to_kind FROM tickets.github_objects WHERE id=NEW.to_object_id;
+      IF NEW.kind IN ('implements','closes') AND (from_kind <> 'pull_request' OR to_kind NOT IN ('issue','advisory')) THEN RAISE EXCEPTION 'delivery relations require pull request to issue or advisory'; END IF;
+      IF NEW.kind IN ('duplicate_of','replaces','transferred_to') AND from_kind <> to_kind THEN RAISE EXCEPTION 'redirect relations require equal object kinds'; END IF;
+      IF NEW.kind IN ('duplicate_of','replaces','transferred_to') THEN
+        WITH RECURSIVE walk(id) AS (SELECT NEW.to_object_id UNION SELECT r.to_object_id FROM tickets.github_object_relations r JOIN walk w ON r.from_object_id=w.id WHERE r.kind IN ('duplicate_of','replaces','transferred_to')) SELECT EXISTS(SELECT 1 FROM walk WHERE id=NEW.from_object_id) INTO has_cycle;
+        IF has_cycle THEN RAISE EXCEPTION 'redirect relation would create a cycle'; END IF;
+      END IF; RETURN NEW;
+    END $$;
+    DROP TRIGGER IF EXISTS github_relations_validate ON tickets.github_object_relations;
+    CREATE TRIGGER github_relations_validate BEFORE INSERT ON tickets.github_object_relations FOR EACH ROW EXECUTE FUNCTION tickets.fn_validate_github_relation();
   `);
 }

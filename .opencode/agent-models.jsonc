@@ -28,6 +28,8 @@
       "models": {
         "hauhau-qwen36": {
           "name": "Qwen3.6-35B-A3B Uncensored (HauhauCS Aggressive, Q4_K_M), Loadout hauhau-qwen36 auf Port 8097 - Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start",
+          // stale:2026-09-12:Loadout hauhau-qwen36 enabled=false (scripts/llm/loadouts.json),
+          // Port 8097 zu (live-check) — kein Agent zeigt hierauf, Eintrag bleibt als Beleg.
           // ctx 131072 = Loadout-Flag, noch nicht gemessen (T015175) — nach Erststart
           // gegen n_ctx_slot kalibrieren. Abliteration: 0/465 Refusals, kann
           // Instruktionsfolge vs. Baseline-Qwen3.6 leicht verschlechtern.
@@ -38,6 +40,8 @@
         },
         "gemma12-vision": {
           "name": "Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP-Drafter, Loadout gemma12-vision auf Port 8089 - exclusiveGroup chat-gpu. Vision-capable.",
+          // stale:2026-09-12:Loadout gemma12-vision enabled=false (scripts/llm/loadouts.json),
+          // Port 8089 zu (live-check) — kein Agent zeigt hierauf, Eintrag bleibt als Beleg.
           "limit": {
             "context": 262144,
             "output": 8192

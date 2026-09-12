@@ -10,7 +10,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | `alibaba-intl/qwen3.8-max` (131k ctx, primary, write) | Primary — dispatches local + cloud escalation [T013360] |
+| `orchestrator` | `opencode-zen/laguna-s-2.1-free` (256k ctx, primary, write) | Primary — dispatches local + cloud escalation [T013360] |
 | `gptoss` | `freetoken-local/active` (FreeToken :1919) | Local bulk work; `write=deny`, `edit=allow` |
 | `devstral` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
 | `gemma` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
@@ -23,7 +23,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `freetoken-fast-1` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
 | `freetoken-fast-2` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
 | `freetoken-fast-3` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
-| `big-pickle` | `opencode-zen/big-pickle` (primary, write) | Zen-Singleagent bis Free-Quota verbraucht |
+| `big-pickle` | `opencode-zen/big-pickle` (~260k ctx, primary, write) | Zen-Singleagent bis Free-Quota verbraucht |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free` (primary, write) | Free-Tier-Primary; dispatcht nur `ox-alpha` |
 | `ox-alpha` | `opencode-zen/laguna-s-2.1-free` (subagent, write) | Subagent-Zwilling von `ox-alpha-free` |
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (write) | Eskalation wenn lokal stuck/ctx-leer |

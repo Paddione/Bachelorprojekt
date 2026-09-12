@@ -33,11 +33,11 @@ status: ready
 
 ## 3. SSOT-Bereinigung: Stale-Modelle & Drifts
 
-- [ ] 3.1 Stale-Sweep: jeden Modelleintrag gegen `scripts/llm/loadouts.json` + Live-Port-Check verifizieren; tote Einträge entfernen oder mit `// stale:<datum>:<beleg>` kommentieren; Verifikation: Liste entfernter/geänderter Einträge mit Port-Check-Beleg als Task-Antwort
-- [ ] 3.2 `docs/agent-guide/registry/agents.yaml` gegen SSOT abgleichen; Verifikation: diff zeigt keine Abweichungen mehr (Ausnahme: dokumentierte, bewusst abweichende Zeilen)
-- [ ] 3.3 `.claude/agents/*.md`-Frontmatter (model/model_id) gegen SSOT prüfen; Verifikation: grep über alle Frontmatter-Felder zeigt keine unbekannten Model-IDs
-- [ ] 3.4 `AGENTS.md`-Routing-Tabelle: orchestrator-Zeile (alibaba-intl/qwen3.8-max → opencode-zen/laguna-s-2.1-free) und big-pickle-Zeile (1M → 260k) korrigieren; Verifikation: diff zeigt genau diese 2 Zeilen, `bash scripts/health-goals-check.sh` unverändert grün
-- [ ] 3.5 RED-Test jetzt grün: `bats tests/spec/opencode-config-ssot.bats` läuft ohne `not ok`; Verifikation: Ausgabe `N tests, 0 failures`
+- [x] 3.1 Stale-Sweep: jeden Modelleintrag gegen `scripts/llm/loadouts.json` + Live-Port-Check verifizieren; tote Einträge entfernen oder mit `// stale:<datum>:<beleg>` kommentieren; Verifikation: Liste entfernter/geänderter Einträge mit Port-Check-Beleg als Task-Antwort
+- [x] 3.2 `docs/agent-guide/registry/agents.yaml` gegen SSOT abgleichen; Verifikation: diff zeigt keine Abweichungen mehr (Ausnahme: dokumentierte, bewusst abweichende Zeilen)
+- [x] 3.3 `.claude/agents/*.md`-Frontmatter (model/model_id) gegen SSOT prüfen; Verifikation: grep über alle Frontmatter-Felder zeigt keine unbekannten Model-IDs
+- [x] 3.4 `AGENTS.md`-Routing-Tabelle: orchestrator-Zeile (alibaba-intl/qwen3.8-max → opencode-zen/laguna-s-2.1-free) und big-pickle-Zeile (1M → 260k) korrigieren; Verifikation: diff zeigt genau diese 2 Zeilen, `bash scripts/health-goals-check.sh` unverändert grün
+- [x] 3.5 RED-Test jetzt grün: `bats tests/spec/opencode-config-ssot.bats` läuft ohne `not ok`; Verifikation: Ausgabe `N tests, 0 failures`
 
 ## 4. Sync & globale Konsolidierung
 

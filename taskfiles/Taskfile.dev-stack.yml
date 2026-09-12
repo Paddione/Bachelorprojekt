@@ -25,16 +25,6 @@ tasks:
         msg: |
           DEV_NODE / DEV_DOMAIN unset. Add them to environments/{{.ENV}}.yaml first.
 
-  cluster:create:
-    desc: "[dev] DEPRECATED — superseded by cluster:create_legacy (k3d). The devc HA k3s cluster was shelved 2026-05-30."
-    cmds:
-      - |
-        echo "❌ dev:cluster:create is deprecated." >&2
-        echo "   The dev.mentolder.de stack runs on local k3d (context: k3d-mentolder-dev)." >&2
-        echo "   Use: task dev:cluster:create_legacy" >&2
-        exit 1
-    silent: false
-
   cluster:create_legacy:
     desc: "[dev] (legacy) Create the dev k3d cluster on $DEV_NODE with the right port bindings"
     deps: [_node-guard]

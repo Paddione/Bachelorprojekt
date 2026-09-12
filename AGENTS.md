@@ -11,18 +11,13 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | Agent | Model | Use case |
 |-------|-------|----------|
 | `orchestrator` | `opencode-zen/laguna-s-2.1-free` (256k ctx, primary, write) | Primary — dispatches local + cloud escalation [T013360] |
-| `gptoss` | `freetoken-local/active` (FreeToken :1919) | Local bulk work; `write=deny`, `edit=allow` |
-| `devstral` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
-| `gemma` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
-| `gemma12` | `freetoken-local/active` (FreeToken :1919) | Local work (modellagnostisch) |
-| `qwen38` | `freetoken-local/active` (FreeToken :1919) | Local work, text-only; sequenziell |
+| `gptoss` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local bulk work; `write=deny`, `edit=allow` |
+| `devstral` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work (modellagnostisch) |
+| `gemma` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work (modellagnostisch) |
+| `gemma12` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work (modellagnostisch) |
+| `qwen38` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work, text-only; sequenziell |
 | `qwen38-primary` | `llamacpp-local/qwen38-220k` (205.056 ctx gemessen, Dual-GPU-Split, primary, write) | Lokaler Primary (UD-IQ4_XS, llama.cpp); autonomer Ticket-Worker |
 | `qwen-cloud` | `alibaba-intl/qwen3.8-max` (131k ctx, subagent, write) | Cloud-Eskalation Stufe 1 |
-| `freetoken-primary` | `freetoken-local/active` (primary) | Tab-selectable lokaler Primary, text-only [T014105] |
-| `freetoken-thinking` | `freetoken-local/active-thinking` (all) | 200k-Reasoning, Thinking request-dynamisch |
-| `freetoken-fast-1` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
-| `freetoken-fast-2` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
-| `freetoken-fast-3` | `freetoken-local/active-fast` (all) | Non-thinking 85k-Worker, sequenziell |
 | `big-pickle` | `opencode-zen/big-pickle` (~260k ctx, primary, write) | Zen-Singleagent bis Free-Quota verbraucht |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free` (primary, write) | Free-Tier-Primary; dispatcht nur `ox-alpha` |
 | `ox-alpha` | `opencode-zen/laguna-s-2.1-free` (subagent, write) | Subagent-Zwilling von `ox-alpha-free` |

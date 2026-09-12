@@ -56,85 +56,6 @@
         }
       }
     },
-    // ── FreeToken-native (Windows pk-desktop, Port 1919) ───────────────
-    // T014105/T014028: FreeToken serviert EIN residentes MoE-Modell auf dem
-    // gemeinsamen Port; der Daemon (:1900) wechselt per /engine/switch. Der
-    // Server ignoriert das model-Feld von Anfragen (live gegengeprueft
-    // 2026-08-23) — deshalb zeigen alle lokalen Agenten auf den Alias
-    // "active" statt auf konkrete Checkpoints.
-    //
-    // Kontext-Limits sind GEMESSEN (2026-08-23, pk-desktop, RTX 5070 Ti,
-    // FreeToken 0.1.1+g30aa89115), NICHT advertised: der Server meldet
-    // max_model_len=262144, nutzbar sind aber nur die KV-Pages der jeweiligen
-    // Serve-Konfiguration. opencode kompaktiert bei 95% der deklarierten
-    // Grenze — die advertised Zahl reproduziert exakt die
-    // "Input sequence length exceeds"-Drops, gegen die die Kalibrierung
-    // gebaut wurde. Das Plugin .opencode/plugin/freetoken-active.ts setzt
-    // Limit+Name des Alias beim opencode-Start auf das residente Modell.
-    "freetoken-local": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "FreeToken-native (drei MoE-FTW-Checkpoints auf pk-desktop/Windows, je EINER resident auf :1919, Wechsel ueber Daemon :1900 /engine/switch)",
-      "options": {
-        "baseURL": "http://127.0.0.1:1919/v1"
-      },
-      "models": {
-        "Qwen3.6-35B-A3B-NVFP4": {
-          "name": "Qwen3.6-35B-A3B NVFP4 (FreeToken-native, GDN-Hybrid, gemessen 2026-08-23: ~104 tok/s Decode kurz / 62-70 tok/s bei 63k Kontext, KV-Ladder: Start bei 131072 KV, wachsend budgetkonform bis zur 200000er Decke — limit.context = LADDER_CEILING, text-only)",
-          // messung: 2026-09-12 — Server :1919 nicht erreichbar (GET /v1/models + /health
-          // timeout, 0 Bytes), kein Frischwert; Basis bleibt die dokumentierte Messung
-          // 2026-08-23 (KV-Ladder bis 200000er Decke). Wert unveraendert.
-          "limit": {
-            "context": 200000,
-            "output": 8192
-          }
-        },
-        "gpt-oss-20b": {
-          "name": "gpt-oss-20b FTW (FreeToken-native, gemessen 2026-08-23: ~112 tok/s Decode bei 64k KV / ~128 tok/s bei 32k KV, 75.7% Experten resident, Reasoning-Stufen low/medium/high statt on/off, text-only by architecture)",
-          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
-          // Basis bleibt die dokumentierte Messung 2026-08-23 (64k KV). Wert unveraendert.
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
-        },
-        "Gemma-4-26B-A4B-NVFP4": {
-          "name": "Gemma-4-26B-A4B NVFP4 (FreeToken-native, gemessen 2026-08-23: ~73 tok/s Decode bei 32k KV nach Window-Pool-Trimmung --swa 8777 --moe 1540, 40% Experten resident, text-only bis Vision-Rekonvertierung — FTW-Checkpoint enthaelt null Vision-Tensoren)",
-          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
-          // Basis bleibt die dokumentierte Messung 2026-08-23 (32k KV). Wert unveraendert.
-          "limit": {
-            "context": 32768,
-            "output": 8192
-          }
-        },
-        "active": {
-          "name": "FreeToken-active (modellagnostischer Alias — serviert immer das gerade auf :1919 residente Modell; Limit wird vom Plugin freetoken-active beim Start auf das residente Modell gesetzt, Fallback hier: Qwen)",
-          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
-          // Fallback-Limit 131072 (Qwen-KV-Start der Ladder); Plugin ueberschreibt beim Start.
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        },
-        "active-thinking": {
-          "name": "FreeToken active · thinking enabled (dynamic resident model, 200k context)",
-          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
-          // 200000 = SDLC_CONTEXT_CEILING (Plugin freetoken-active, Default 200k).
-          "limit": {
-            "context": 200000,
-            "output": 16384
-          }
-        },
-        "active-fast": {
-          "name": "FreeToken active · thinking disabled (dynamic resident model, 85k context)",
-          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
-          // 85000 = Non-Thinking-Worker-Cap (Plugin freetoken-active).
-          "limit": {
-            "context": 85000,
-            "output": 8192
-          }
-        }
-      }
-    },
     // ── Alibaba Cloud International (Token Plan) ───────────────────────
     // OpenAI-compatible Endpoint für Qwen/Claude Modelle via Alibaba MaaS.
     // Kein "apiKey" hier [2026-08-14, T004808]: Der Key stand plaintext im
@@ -412,25 +333,19 @@
     // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
     // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
+      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/active",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
       "steps": 50,
-      // write=deny: subagent überschreibt sonst ganze Dateien statt surgical edit
-      // (beobachtet 2026-07-23, T002137: subagents löschten existierende Files).
-      // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // T016419: modellagnostisch auf dem FreeToken-Alias, siehe
-    // freetoken-local-Provider (vorher devstral-quality, zuletzt
-    // gemma26-factory — beide GGUF-Bestaende sind entfernt).
     "devstral": {
-      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
+      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/active",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -438,49 +353,35 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
+      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/active",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // T003204: gemma12-vision als Familien-Subagent aufgenommen. Es ist mit
-    // 262.144 ctx das kontextstaerkste lokale Loadout und das EINZIGE mit Vision
-    // (mmproj-F16). Bisher war es nur als Primary (gemma12-primary) erreichbar,
-    // also nicht per `task` dispatchbar — der Orchestrator konnte es nicht rufen.
-    // Der Eintrag in der Permission-Liste weiter unten gehoert dazu: ohne ihn
-    // existiert der Agent, ist aber nicht dispatchbar.
     "gemma12": {
-      "description": "Local subagent, modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim opencode-Start). Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
+      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "freetoken-local/active",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F0ABFC",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // 2026-08-22: qwen38 als fuenfter Familien-Subagent, seit T014028/T014105
-    // modellagnostisch auf dem FreeToken-Alias wie die anderen Familien
-    // (siehe freetoken-local-Provider). Per `task` dispatchbar; Text-only.
     "qwen38": {
-      "description": "Local subagent for the qwen38 family — name retained as dispatch handle; faehrt seit T014028 FreeToken-native (:1919), modellagnostisch via Alias 'active' (serviert immer das residente Modell). Text-only. Write-capable delegation.",
+      "description": "Local subagent via llama.cpp. Text-only. Write-capable delegation.",
       "mode": "subagent",
-      "model": "freetoken-local/active",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // 2026-08-22: qwen-cloud als erste Cloud-Eskalationsstufe nach lokal.
-    // Qwen 3.8 Max via Alibaba Cloud Intl Token Plan — selbe Modell-Familie
-    // wie der Orchestrator, staerker als jedes lokale Modell, 131k ctx.
-    // Eskalationskette: lokal (qwen38-220k 27B) →
-    // qwen-cloud (Qwen3.8-Max) → deepseek-helper → deepseek-pro.
     "qwen-cloud": {
       "description": "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). First cloud escalation tier after local models fail. Same model family as the orchestrator. Write-capable.",
       "mode": "subagent",
@@ -491,77 +392,15 @@
       "steps": 100,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // T900074-p2: factory reviewer role — read-only review; the orchestrator
-    // applies review edits. Placed after qwen-cloud, before freetoken-primary.
     "reviewer": {
       "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "freetoken-local/active",
+      "model": "llamacpp-local/qwen38-220k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny", "task": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "todowrite": "allow", "question": "allow", "skill": "allow", "lsp": "allow" }
-    },
-    // T014105: aus der Global-Config (T014028) nachgetragen — dedizierter
-    // Tab-waehlbarer Primary auf dem FreeToken-Alias, damit der lokale Stack
-    // auch ohne Familien-Namen direkt waehlbar bleibt.
-    "freetoken-primary": {
-      "description": "PRIMARY: modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert immer das gerade residente Modell (Qwen ~104 tok/s kurz / gpt-oss ~112 / Gemma ~73; Plugin freetoken-active setzt das Kontext-Limit beim Start). Tab-selectable singleagent, text-only. Can dispatch subagents.",
-      "mode": "primary",
-      "model": "freetoken-local/active",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#22D3EE",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
-    "freetoken-thinking": {
-      "description": "FreeToken reasoning agent: dynamically enables Qwen thinking for every request, advertises 200k context, and is selectable as a primary or dispatchable as a subagent. Shares the single resident FreeToken engine and runs sequentially with other local agents.",
-      "mode": "all",
-      "model": "freetoken-local/active-thinking",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#A78BFA",
-      "temperature": 0.3,
-      "steps": 100,
-      "permission": {
-        "edit": "allow", "write": "deny", "bash": "allow",
-        "task": {
-          "freetoken-fast-1": "allow",
-          "freetoken-fast-2": "allow",
-          "freetoken-fast-3": "allow"
-        }
-      }
-    },
-    "freetoken-fast-1": {
-      "description": "FreeToken non-thinking worker 1 of 3. Separate OpenCode conversation context, 85k context cap; shared resident engine and KV pool, sequential dispatch.",
-      "mode": "all",
-      "model": "freetoken-local/active-fast",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#2DD4BF",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "freetoken-fast-2": {
-      "description": "FreeToken non-thinking worker 2 of 3. Separate OpenCode conversation context, 85k context cap; shared resident engine and KV pool, sequential dispatch.",
-      "mode": "all",
-      "model": "freetoken-local/active-fast",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#14B8A6",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "freetoken-fast-3": {
-      "description": "FreeToken non-thinking worker 3 of 3. Separate OpenCode conversation context, 85k context cap; shared resident engine and KV pool, sequential dispatch.",
-      "mode": "all",
-      "model": "freetoken-local/active-fast",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#0D9488",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
     // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
@@ -712,10 +551,6 @@
           // 2026-08-22: fuenfte lokale Familie — Qwen 3.8 27B auf dem
           // qwen38-220k-Loadout (Port 8094, np=1). Nur sequenziell dispatchen.
           "qwen38": "allow",
-          "freetoken-thinking": "allow",
-          "freetoken-fast-1": "allow",
-          "freetoken-fast-2": "allow",
-          "freetoken-fast-3": "allow",
           // 2026-08-22: Qwen 3.8 Max via Alibaba Cloud — erste Eskalationsstufe
           // nach lokal, selbe Modell-Familie wie der Orchestrator selbst.
           "qwen-cloud": "allow",
@@ -780,10 +615,6 @@
           "gemma": "allow",
           "gemma12": "allow",
           "qwen38": "allow",
-          "freetoken-thinking": "allow",
-          "freetoken-fast-1": "allow",
-          "freetoken-fast-2": "allow",
-          "freetoken-fast-3": "allow",
           "qwen-cloud": "allow",
           "deepseek-helper": "allow",
           "deepseek-helper-go": "allow",

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 147 · Requirements: 2349 · Scenarios: 5192
+Specs: 126 · Requirements: 2305 · Scenarios: 5132
 
 ## factory-pipeline
 
@@ -19,6 +19,7 @@ In-flight:
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
+  - TODO | T900163 | active | ADDED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
 
 ### dev-flow-plan
@@ -279,12 +280,6 @@ Last touches:
   - REQ-AUTHSSO-DBINIT-002 — Database bootstrap fails loudly | T002187 | 2026-08-02 | ADDED
   - REQ-AUTHSSO-DBINIT-003 — API-key bootstrap resolves the real admin user | T002187 | 2026-08-02 | ADDED
 
-### auto-triage-grounding-T002399
-Reqs: 2 · Scenarios: 4 · Lines: 50
-Last touches:
-  - Auto-Triage holt ähnliche Tickets als Grounding-Kontext | T002399 | 2026-08-03 | ADDED
-  - Auto-Triage hängt optionale Tool-Definitionen an und bleibt fail-soft | T002399 | 2026-08-03 | ADDED
-
 ### backup-pipeline
 Reqs: 32 · Scenarios: 85 · Lines: 765
 Paths: scripts/backup, k3d/backup
@@ -436,13 +431,6 @@ Last touches:
   - Free 360-degree figure rotation | T002050 | 2026-07-21 | ADDED
   - Double-click on free floor always spawns a new figure | T002006 | 2026-07-20 | ADDED
 
-### bug-consolidation-T002330
-Reqs: 3 · Scenarios: 4 · Lines: 55
-Last touches:
-  - Bug-Verwaltung läuft ausschließlich über den tickets-Pfad | T002330 | 2026-08-03 | ADDED
-  - Bug/Kategorie-Differenzierung über eine scope-Spalte | T002330 | 2026-08-03 | ADDED
-  - FA-26 Bug-Report-E2E-Test ist auf den tickets-Pfad migriert | T002330 | 2026-08-03 | ADDED
-
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396
 Last touches:
@@ -522,11 +510,6 @@ Last touches:
   - dsh is a selectable factory executor | T012962 | 2026-08-20 | ADDED
   - dsh sessions are visible in the existing phase-event timeline | T012962 | 2026-08-20 | ADDED
 
-### e2e-bug-report-testdata-T002385
-Reqs: 1 · Scenarios: 2 · Lines: 30
-Last touches:
-  - E2E-Bug-Report-Testdaten sind als solche erkennbar | T002385 | 2026-08-03 | ADDED
-
 ### e2e-test-infrastructure
 Reqs: 31 · Scenarios: 57 · Lines: 788
 Last touches:
@@ -556,11 +539,6 @@ Last touches:
 Reqs: 1 · Scenarios: 2 · Lines: 29
 Last touches:
   - Deployment-Listen und -Anweisungen schließen :latest-Images aus | T001781 | 2026-08-03 | ADDED
-
-### factory-attempt-counter-T002389
-Reqs: 1 · Scenarios: 2 · Lines: 31
-Last touches:
-  - Attempt-Zähler unterscheidet Modell-Versagen von Infrastruktur-Abbruch | T002389 | 2026-08-03 | ADDED
 
 ### factory-escalation-ladder
 Reqs: 2 · Scenarios: 2 · Lines: 31
@@ -624,23 +602,6 @@ Last touches:
   - Cleanup-Reihenfolge Lock-Freigabe vor Worktree-Entfernung | T003677 | 2026-08-14 | ADDED
   - Create-Skript verifiziert den realen Worktree-Pfad | T004604 | 2026-08-14 | ADDED
 
-### fix-ticket-tracking-T002279
-Reqs: 2 · Scenarios: 3 · Lines: 42
-Last touches:
-  - Beiläufig gefixte Tickets werden beim Merge geschlossen | T002279 | 2026-08-03 | ADDED
-  - Post-Merge-Hook räumt offene Tickets auf | T002279 | 2026-08-03 | ADDED
-
-### fix-update-status-planstaged-guard-T002876
-Reqs: 1 · Scenarios: 2 · Lines: 29
-Last touches:
-  - update-status verweigert plan_staged ohne Plan-Referenz | T002876 | 2026-08-10 | ADDED
-
-### fix-wakeup-help-T002662
-Reqs: 2 · Scenarios: 2 · Lines: 35
-Last touches:
-  - wakeup.sh beantwortet --help mit Usage ohne Seiteneffekte | T002662 | 2026-08-10 | ADDED
-  - wakeup.sh weist unbekannte Argumente ab | T002662 | 2026-08-10 | ADDED
-
 ### flux-render-security
 Reqs: 6 · Scenarios: 11 · Lines: 159
 Last touches:
@@ -674,11 +635,6 @@ Last touches:
 In-flight:
   - opencode has native dev-flow and git-workflow skills | T014086 | active | MODIFIED
   - AGENTS.md declares the shared-source routing | T014086 | active | MODIFIED
-
-### k3d-kustomization-T002349
-Reqs: 1 · Scenarios: 2 · Lines: 30
-Last touches:
-  - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
 
 ### llm-local-dev
 Reqs: 37 · Scenarios: 70 · Lines: 846
@@ -762,75 +718,8 @@ Reqs: 1 · Scenarios: 2 · Lines: 31
 Last touches:
   - Consolidation of Micro-Specs into Parent SSOT Specs | T002014 | 2026-08-03 | ADDED
 
-### mishap-bundle-dev-flow-scripts
-Reqs: 3 · Scenarios: 3 · Lines: 32
-Last touches:
-  - W3-PARTIAL-NO-FALSE-POSITIVE | T002342 | 2026-08-02 | ADDED
-  - CLAUDE-DEPRECATED-HOOK | T002342 | 2026-08-02 | ADDED
-  - COMMIT-SCOPE-ALLOWLIST | T002342 | 2026-08-02 | ADDED
-
-### mishap-bundle-infra-testspec-ci
-Reqs: 7 · Scenarios: 7 · Lines: 74
-Last touches:
-  - worktree-create.sh validation | T002448 | 2026-08-02 | ADDED
-  - commit-msg hook rejection output | T002448 | 2026-08-02 | ADDED
-  - agent-lock worktree path normalization | T002448 | 2026-08-02 | ADDED
-  - Test results vs Implementation check | T002448 | 2026-08-02 | ADDED
-  - agent-lock reap PID liveness | T002448 | 2026-08-02 | ADDED
-
-### mishap-ci-scripts
-Reqs: 3 · Scenarios: 4 · Lines: 61
-
-### mishap-docker-wsl-T002250
-Reqs: 2 · Scenarios: 3 · Lines: 33
-Last touches:
-  - WSL Docker Credential Helper Auto-Heal in setup.sh | T002250 | 2026-08-02 | ADDED
-  - Stable Container DNS in WSL | T002250 | 2026-08-02 | ADDED
-
-### mishap-t001978
-Reqs: 1 · Scenarios: 1 · Lines: 24
-Last touches:
-  - background-agents auto-retries on empty output | T001978 | 2026-08-02 | ADDED
-
-### mishap-t002240
-Reqs: 4 · Scenarios: 6 · Lines: 73
-Last touches:
-  - Empty-branch push guard | T002240 | 2026-07-26 | ADDED
-  - Nearest-scope suggestion on unknown commit scopes | T002240 | 2026-07-26 | ADDED
-  - Mishap-tracker slug and branch name are distinct | T002240 | 2026-07-26 | ADDED
-  - Eval replay dry-run is repository-state independent | T002240 | 2026-07-26 | ADDED
-
-### mishap-t002242
-Reqs: 3 · Scenarios: 4 · Lines: 60
-Last touches:
-  - M1 — Fail-closed Phase-Chain-Gate in devflow-ci-watch.sh | T006370 | 2026-08-15 | MODIFIED
-  - M2 — Git-Status-Guard vor Force-Remove in watchdog.sh | T002242 | 2026-07-26 | ADDED
-  - M3 — Exit-Code-Sammlung in devflow-post-merge-deploy.sh | T002242 | 2026-07-26 | ADDED
-
-### mishap-t002243
-Reqs: 1 · Scenarios: 1 · Lines: 20
-Last touches:
-  - --create-new für Mishap-Bundles dokumentieren | T002243 | 2026-07-26 | ADDED
-
-### mishap-t002284
-Reqs: 3 · Scenarios: 3 · Lines: 50
-Last touches:
-  - ticket get JSON projects resolution, severity, and description | T002284 | 2026-08-02 | ADDED
-  - dev-flow-execute implementer prompt forbids nested delegation | T002284 | 2026-08-02 | ADDED
-  - pre-commit warns on a neutralized staged freshness file | T002284 | 2026-08-02 | ADDED
-
-### mishap-t002457
-Reqs: 1 · Scenarios: 1 · Lines: 17
-Last touches:
-  - Mishap bundle placeholder delta | T002457 | 2026-08-02 | ADDED
-
-### mishap-t002718
-Reqs: 1 · Scenarios: 1 · Lines: 17
-Last touches:
-  - Coverage guard recommendations | T002718 | 2026-08-10 | ADDED
-
 ### mishap-tracking
-Reqs: 6 · Scenarios: 13 · Lines: 171
+Reqs: 7 · Scenarios: 14 · Lines: 179
 Last touches:
   - Factory-Fix-Tickets verwenden nicht plan_staged ohne Plan | T014104 | 2026-08-23 | MODIFIED
   - Nicht-kritische Mishaps werden am Verursacher-Ticket vermerkt | T014104 | 2026-08-23 | ADDED
@@ -928,12 +817,6 @@ Last touches:
 Reqs: 1 · Scenarios: 1 · Lines: 22
 Last touches:
   - Partial-done state accepted | T002130 | 2026-08-02 | ADDED
-
-### pipeline-divergence-T002393
-Reqs: 2 · Scenarios: 4 · Lines: 50
-Last touches:
-  - pipeline.mjs enthält alle Blöcke aus pipeline.js | T002393 | 2026-08-03 | ADDED
-  - Kontrakttests laufen gegen den dispatched-Pfad | T002393 | 2026-08-03 | ADDED
 
 ### plan-ref-lifecycle-fixes
 Reqs: 3 · Scenarios: 3 · Lines: 31
@@ -1201,8 +1084,3 @@ Last touches:
   - Up-to-date main without clobbering work | T900104 | 2026-09-10 | ADDED
   - Toolchain deltas on install-dev-tools.sh | T900104 | 2026-09-10 | ADDED
   - Script facts guarded by BATS | T900104 | 2026-09-10 | ADDED
-
-### worktree-divergence-guard-T002387
-Reqs: 1 · Scenarios: 2 · Lines: 31
-Last touches:
-  - Divergence-Guard aktualisiert main ohne Fetch-in-checked-out-Branch | T002387 | 2026-08-03 | ADDED

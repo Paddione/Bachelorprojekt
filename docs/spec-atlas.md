@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 147 · Requirements: 2337 · Scenarios: 5172
+Specs: 147 · Requirements: 2343 · Scenarios: 5185
 
 ## factory-pipeline
 
@@ -165,19 +165,14 @@ Last touches:
   - The cockpit is the only administration surface for the llm-proxy | T013909 | 2026-08-22 | ADDED
 
 ### ticket-system
-Reqs: 79 · Scenarios: 227 · Lines: 2102
+Reqs: 83 · Scenarios: 236 · Lines: 2197
 Paths: scripts/ticket
 Last touches:
+  - Repository-scoped GitHub object identity | T900159 | 2026-09-12 | ADDED
+  - Canonical work-item bindings preserve invisible UUID identity | T900159 | 2026-09-12 | ADDED
+  - Identity corrections are append-only and cycle-safe | T900159 | 2026-09-12 | ADDED
+  - Typed human GitHub references have one central parser | T900159 | 2026-09-12 | ADDED
   - Lesepfade unterscheiden kein-Treffer von falscher-Frage | T014386 | 2026-08-23 | ADDED
-  - Filter-Validierung läuft vor dem Datenbankzugriff | T014386 | 2026-08-23 | ADDED
-  - Ticket-Status-Werte sind in einem zentralen SSOT-Modul definiert | T007955 | 2026-08-15 | ADDED
-  - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T002871 | 2026-08-10 | ADDED
-  - Ticket listings hide test data by default | T002781 | 2026-08-10 | ADDED
-In-flight:
-  - Repository-scoped GitHub object identity | T900159 | active | ADDED
-  - Canonical work-item bindings preserve invisible UUID identity | T900159 | active | ADDED
-  - Identity corrections are append-only and cycle-safe | T900159 | active | ADDED
-  - Typed human GitHub references have one central parser | T900159 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192
@@ -476,17 +471,14 @@ Last touches:
   - Single-Column FK Index Coverage & Brand Constraints | T013031 | 2026-08-21 | ADDED
 
 ### database
-Reqs: 52 · Scenarios: 99 · Lines: 984
+Reqs: 54 · Scenarios: 103 · Lines: 1028
 Paths: scripts/db, scripts/migrate, website/src/lib/db, website/src/db
 Last touches:
+  - GitHub identity foundation schema is additive and idempotent | T900159 | 2026-09-12 | ADDED
+  - GitHub identity uniqueness fails closed | T900159 | 2026-09-12 | ADDED
   - Automated Migration Runner | T002647 | 2026-08-10 | ADDED
   - Arena DB Health Check Endpoint Returns OK | T001800 | 2026-08-02 | REMOVED
   - Factory-DB-Migrationen laufen getrackt und automatisiert vor dem Deploy | T001677 | 2026-07-15 | ADDED
-  - Factory-Migrations-Runner erkennt bereits real angewendete, aber ungetrackte Migrationen | T001677 | 2026-07-15 | ADDED
-  - Legacy coaching.ki_config Tables Dropped After Provider-Config Phase 2 | T001676 | 2026-07-09 | ADDED
-In-flight:
-  - GitHub identity foundation schema is additive and idempotent | T900159 | active | ADDED
-  - GitHub identity uniqueness fails closed | T900159 | active | ADDED
 
 ### datev-export
 Reqs: 12 · Scenarios: 22 · Lines: 220

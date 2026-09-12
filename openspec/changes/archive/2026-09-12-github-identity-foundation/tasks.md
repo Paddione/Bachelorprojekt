@@ -2,7 +2,7 @@
 title: "github-identity-foundation — Implementation Plan"
 ticket_id: T900159
 domains: [database, ticket-system]
-status: active
+status: completed
 file_locks:
   - components/website/src/lib/tickets/tables/github-identities.ts
   - components/website/src/lib/tickets-schema.ts

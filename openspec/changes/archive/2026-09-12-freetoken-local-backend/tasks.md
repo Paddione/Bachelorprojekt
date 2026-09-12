@@ -2,7 +2,7 @@
 title: "freetoken-local-backend — Implementation Plan"
 ticket_id: T014028
 domains: [plan-authoring]
-status: active
+status: abandoned
 file_locks: []
 shared_changes: false
 batch_id: null

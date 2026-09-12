@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.337.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.336.0...website-v1.337.0) (2026-09-12)
+
+
+### Features
+
+* **infra:** devmesh SP-3 dev-stack overlay, backup, migration & write guard [T900118] ([#5599](https://github.com/Paddione/Bachelorprojekt/issues/5599)) ([4223a6c](https://github.com/Paddione/Bachelorprojekt/commit/4223a6c248d5e8106f7978e7043627c5561eabb3))
+
 ## [1.336.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.335.0...website-v1.336.0) (2026-09-12)
 
 

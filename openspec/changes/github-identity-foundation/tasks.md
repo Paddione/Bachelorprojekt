@@ -47,7 +47,7 @@ This change is additive and contains no production data deletion or GitHub impor
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the p3 tests first and run the focused
+- [x] **Failing-Test-Step (RED).** Add the p3 tests first and run the focused
       Vitest bundle before implementing p1/p2. The run is `expected: FAIL`
       because the schema and identity modules do not exist yet.
 
@@ -56,7 +56,7 @@ pnpm --dir components/website exec vitest run src/lib/tickets/github-reference.t
 # expected: FAIL (identity foundation modules and schema are absent)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement p1 and p2, then rerun the same focused
+- [x] **Fix-Step (GREEN).** Implement p1 and p2, then rerun the same focused
       Vitest command until all identity, correction, and idempotency cases pass.
 
 ## Final Verification

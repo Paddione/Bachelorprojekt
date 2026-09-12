@@ -173,6 +173,11 @@ Last touches:
   - Ticket-Status-Werte sind in einem zentralen SSOT-Modul definiert | T007955 | 2026-08-15 | ADDED
   - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T002871 | 2026-08-10 | ADDED
   - Ticket listings hide test data by default | T002781 | 2026-08-10 | ADDED
+In-flight:
+  - Repository-scoped GitHub object identity | T900159 | active | ADDED
+  - Canonical work-item bindings preserve invisible UUID identity | T900159 | active | ADDED
+  - Identity corrections are append-only and cycle-safe | T900159 | active | ADDED
+  - Typed human GitHub references have one central parser | T900159 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192
@@ -479,6 +484,9 @@ Last touches:
   - Factory-DB-Migrationen laufen getrackt und automatisiert vor dem Deploy | T001677 | 2026-07-15 | ADDED
   - Factory-Migrations-Runner erkennt bereits real angewendete, aber ungetrackte Migrationen | T001677 | 2026-07-15 | ADDED
   - Legacy coaching.ki_config Tables Dropped After Provider-Config Phase 2 | T001676 | 2026-07-09 | ADDED
+In-flight:
+  - GitHub identity foundation schema is additive and idempotent | T900159 | active | ADDED
+  - GitHub identity uniqueness fails closed | T900159 | active | ADDED
 
 ### datev-export
 Reqs: 12 · Scenarios: 22 · Lines: 220

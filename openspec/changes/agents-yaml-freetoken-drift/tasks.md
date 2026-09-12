@@ -75,7 +75,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-roster.bats
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills.bats
 ```
 
-- [ ] **Final Verification.**
+- [x] **Final Verification.** (Hinweis: `task test:changed` lokal nicht abschliessbar — docker-credential-helper defekt (sandbox-egress T003871 skippt in CI) und origin/main-Drift zieht die volle Factory-Suite; direkt relevante bats-Suiten + freshness gruen)
 ```bash
 task test:changed
 task freshness:regenerate

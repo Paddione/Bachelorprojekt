@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "slug": "github-identity-foundation",
+    "ticket_id": "T900159",
+    "generated_from": "main@b546078df",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6500,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets-schema.ts",
+      "language": "javascript",
+      "loc": 59,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/github-identity-store.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/github-identity-store.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/github-reference.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/github-reference.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/tables/github-identities.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

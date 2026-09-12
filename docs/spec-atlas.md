@@ -19,7 +19,7 @@ In-flight:
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
-  - TODO | T900163 | active | ADDED
+  - Active Agent Roster without FreeToken | T900163 | active | MODIFIED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
 
 ### dev-flow-plan
@@ -245,6 +245,11 @@ Last touches:
   - Prod-namespace write block | T001954 | 2026-07-19 | ADDED
   - Guard emits structured output | T001954 | 2026-07-19 | ADDED
   - Override requires explicit flag | T001954 | 2026-07-19 | ADDED
+In-flight:
+  - Structured Interactive Decision Modals for Human Input | T900165 | active | ADDED
+  - Progressive Information Disclosure for Verbose Output | T900165 | active | ADDED
+  - Visual Diagrams for Complex Decision Trees | T900165 | active | ADDED
+  - Lavish HTML Review Surfaces for Visual Review Artifacts | T900165 | active | ADDED
 
 ### agentic-review
 Reqs: 8 · Scenarios: 13 · Lines: 169

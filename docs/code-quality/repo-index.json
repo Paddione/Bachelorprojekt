@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1308,
+      "file_count": 1309,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -431,6 +431,7 @@
         "tests/spec/agent-skills/worktree-write-guard-abspath-T900047.bats",
         "tests/spec/agent-skills/worktree-write-guard-phase-a-allowlist.bats",
         "tests/spec/agent-skills/worktree-write-guard-session-propagation.bats",
+        "tests/spec/agent-visual-decision.bats",
         "tests/spec/agentic-review.bats",
         "tests/spec/agentic-tooling-quality-goals.bats",
         "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",

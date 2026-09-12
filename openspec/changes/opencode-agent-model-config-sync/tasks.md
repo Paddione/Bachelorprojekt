@@ -43,13 +43,13 @@ status: ready
 
 - [x] 4.1 Sync anwenden: `bash scripts/opencode-sync-agents.sh` ausführen, aktualisierte `~/.config/opencode/opencode.jsonc` prüfen; Verifikation: doppelter dry-run liefert leeren diff (Idempotenz), neue Limits/Entfernungen enthalten
 - [x] 4.2 Globale Duplikate: `~/.config/opencode/opencode.json` (reine MCP-Datei, codebase-memory-mcp) in `opencode.jsonc` übernehmen/validieren und die Datei entfernen (Backups existieren); Verifikation: nur noch eine aktive globale Config-Datei; MCP-Tool `codebase-memory-mcp` bleibt erreichbar (list_projects ok)
-- [ ] 4.3 Windows-Config-Hinweis dokumentieren (separater Client-Pfad `C:\Users\PatrickKorczewski\.config\opencode\opencode.jsonc`, toter `:18235`-Provider): einmalige manuelle Korrektur als Task-Antwort festhalten, kein automatischer Cross-OS-Schreibzugriff; Verifikation: Hinweis in `docs/agent-guide/registry/config-overview.md`-README-Abschnitt
+- [x] 4.3 Windows-Config-Hinweis dokumentieren (separater Client-Pfad `C:\Users\PatrickKorczewski\.config\opencode\opencode.jsonc`, toter `:18235`-Provider): einmalige manuelle Korrektur als Task-Antwort festhalten, kein automatischer Cross-OS-Schreibzugriff; Verifikation: Hinweis in `docs/agent-guide/registry/config-overview.md`-README-Abschnitt
 
 ## 5. Config-Visualisierung
 
-- [ ] 5.1 `scripts/opencode-config-viz.sh` implementieren (bash): liest SSOT + optional `--config <pfad>`, rendert Markdown-Baum Provider→Modelle→Agenten mit Limit/Messdatum/Status (`ok|stale|fehlt|unbelegt`), Option `--check` für Snapshot-Vergleich; Verifikation: zweimaliger Lauf byte-identisch (`--check` exit 0)
-- [ ] 5.2 `docs/agent-guide/registry/config-overview.md` generieren und committen; Verifikation: Regeneration ist snapshot-identisch (diff leer), Windows-`:18235`-`llamacpp-local` als `stale` markiert
-- [ ] 5.3 nvim-Hinweis im Skript-Header + Referenz: JSONC-Treesitter-Highlighting + `foldmethod=syntax`, Editier-Ziel ist die SSOT (nicht die generierte Übersicht); Verifikation: Hinweis in Skript-Header und Datei referenziert
+- [x] 5.1 `scripts/opencode-config-viz.sh` implementieren (bash): liest SSOT + optional `--config <pfad>`, rendert Markdown-Baum Provider→Modelle→Agenten mit Limit/Messdatum/Status (`ok|stale|fehlt|unbelegt`), Option `--check` für Snapshot-Vergleich; Verifikation: zweimaliger Lauf byte-identisch (`--check` exit 0)
+- [x] 5.2 `docs/agent-guide/registry/config-overview.md` generieren und committen; Verifikation: Regeneration ist snapshot-identisch (diff leer), Windows-`:18235`-`llamacpp-local` als `stale` markiert
+- [x] 5.3 nvim-Hinweis im Skript-Header + Referenz: JSONC-Treesitter-Highlighting + `foldmethod=syntax`, Editier-Ziel ist die SSOT (nicht die generierte Übersicht); Verifikation: Hinweis in Skript-Header und Datei referenziert
 
 ## 6. Verifikation & Restart
 

@@ -4,7 +4,7 @@
 #
 #   BRAND               mentolder|korczewski → ROW FILTER (WHERE brand = …), NOT a namespace
 #   FACTORY_NS          explicit namespace (default workspace)
-#   FACTORY_CTX         kubectl context (default: k3d-mentolder-dev)
+#   FACTORY_CTX         kubectl context (default: fleet)
 #   FACTORY_DRY_RESOLVE if set, callers print resolved ctx+ns and exit 0
 
 # [T003544] FACTORY_CTX-Default auf Top-Level statt erst in
@@ -13,10 +13,13 @@
 # lief, und ein `factory_pgpod` mit leeren Variablen verleitete zum Raten des
 # Kontexts. Spiegelt scripts/ticket.sh und scripts/vda/ticket/_ticket-core.sh
 # (CTX-Default dort) — die drei Stellen zusammen aendern.
-FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
+FACTORY_CTX="${FACTORY_CTX:-fleet}"
 
-# [T900118] devmesh-Write-Guard (gemeinsames Modul mit ticket-core). Der Default oben
-# bleibt bis SP-5 (T900120) unveraendert.
+# [T900118] devmesh-Write-Guard (gemeinsames Modul mit ticket-core): fleet und k3d-*
+# sind explizit KEINE devmesh-Ziele (SDLC-Writes dorthin erlaubt). Default seit
+# T900168 auf fleet — k3d-mentolder-dev ist de facto abgebaut, FACTORY_CTX=fleet
+# inkl. NS=workspace empirisch verifiziert (queue/slots/schedule). SP-5 (T900120)
+# kann die devmesh-Richtung uebernehmen, dann Guard-Beschraenkung beachten.
 # shellcheck source=scripts/vda/ticket/_devmesh-guard.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../vda/ticket/_devmesh-guard.sh"
 

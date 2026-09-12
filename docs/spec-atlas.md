@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2305 · Scenarios: 5132
+Specs: 126 · Requirements: 2309 · Scenarios: 5136
 
 ## factory-pipeline
 
@@ -239,17 +239,13 @@ Last touches:
   - Migrated dialogs preserve stable test selectors | T001788 | 2026-07-11 | ADDED
 
 ### agent-behavior
-Reqs: 7 · Scenarios: 12 · Lines: 143
+Reqs: 11 · Scenarios: 16 · Lines: 182
 Last touches:
+  - Structured Interactive Decision Modals for Human Input | T900165 | 2026-09-12 | ADDED
+  - Progressive Information Disclosure for Verbose Output | T900165 | 2026-09-12 | ADDED
+  - Visual Diagrams for Complex Decision Trees | T900165 | 2026-09-12 | ADDED
+  - Lavish HTML Review Surfaces for Visual Review Artifacts | T900165 | 2026-09-12 | ADDED
   - Domain agents declare no tools allowlist | T002651 | 2026-08-04 | ADDED
-  - Prod-namespace write block | T001954 | 2026-07-19 | ADDED
-  - Guard emits structured output | T001954 | 2026-07-19 | ADDED
-  - Override requires explicit flag | T001954 | 2026-07-19 | ADDED
-In-flight:
-  - Structured Interactive Decision Modals for Human Input | T900165 | active | ADDED
-  - Progressive Information Disclosure for Verbose Output | T900165 | active | ADDED
-  - Visual Diagrams for Complex Decision Trees | T900165 | active | ADDED
-  - Lavish HTML Review Surfaces for Visual Review Artifacts | T900165 | active | ADDED
 
 ### agentic-review
 Reqs: 8 · Scenarios: 13 · Lines: 169

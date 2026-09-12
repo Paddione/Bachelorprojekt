@@ -217,6 +217,17 @@ ueber `freetoken-local/active` text-only.
 - DB-Seite (Deployment): `tickets.provider_config` muss eine FreeToken-Zeile
   bekommen; llama-Zeilen demoten.
 
+## Engine Auto-Swap (T900155)
+
+Das Plugin `.opencode/plugin/freetoken-active.ts` steuert beim Modellwechsel im Model-Picker den automatischen Wechsel der residenten FreeToken-Engine:
+
+- **freetoken-local-Modell, anderes Engine-Modell:** Event-Hook `session.next.model.switched` löst `POST http://127.0.0.1:1900/engine/switch {model, port, args, force: true}` aus (bzw. `POST /engine/start` falls gestoppt). Nach dem Swap wird das deklarierte Kontextlimit aktualisiert.
+- **Gleiches Engine-Modell (z. B. `active` → `active-thinking`):** Kein Engine-Aufruf; nur Kontextlimit und Aliasname werden angepasst.
+- **Nicht-FreeToken-Modell (z. B. `llamacpp-local/devstral`):** Das Plugin ruft `POST http://127.0.0.1:1900/engine/stop` auf, um die Engine zu beenden und VRAM freizugeben.
+- **Degraded Failure Path:** Schlägt ein Engine-Switch oder Stop fehl, wird der Fehler geloggt/gemeldet; die alte Engine läuft weiter (kein Blocking des bereits umgeschalteten Clients).
+- **Fetch-Wrapper Safety Net:** Vor jedem proxied Request prüft der Fetch-Wrapper die residente Engine gegen das erwartete Alias-Modell. Bei Model-Drift erfolgt ein synchroner Switch vor dem Forwarding.
+
+
 ## OpenDesign als BYOK-Client (T900008)
 
 [OpenDesign](https://github.com/nexu-io/open-design) (Electron, v0.21.0, Installation

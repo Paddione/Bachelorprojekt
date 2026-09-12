@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1306,
+      "file_count": 1307,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -723,6 +723,7 @@
         "tests/spec/lavish.bats",
         "tests/spec/llm-local-dev.bats",
         "tests/spec/llm-local-dev/alias-telemetry.bats",
+        "tests/spec/llm-local-dev/freetoken-engine-autoswap.bats",
         "tests/spec/llm-local-dev/opencode-compaction.bats",
         "tests/spec/llm-pipeline.bats",
         "tests/spec/llm-pipeline/bge-thread-quota.bats",

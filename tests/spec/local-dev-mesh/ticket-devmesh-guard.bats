@@ -124,11 +124,16 @@ EOF
 @test "ticket-mcp-node: runTicket create gegen devmesh wird mit fleet-Hinweis abgewiesen" {
   command -v node >/dev/null
   cd "$REPO_ROOT"
-  run env TICKET_CTX=devmesh node --input-type=module -e "
+  run env TICKET_MCP_REPO_ROOT="$REPO_ROOT" REPO_ROOT="$REPO_ROOT" TICKET_CTX=devmesh KUBECONFIG="$KUBECONFIG" PATH="$PATH" node --input-type=module -e "
     import { runTicket } from '$REPO_ROOT/scripts/ticket-mcp-node/runner.mjs';
-    runTicket(['create', '--type', 'chore', '--title', 'x', '--description', 'y'])
-      .then(() => { console.log('RESOLVED'); process.exit(0); },
-            (e) => { console.log(e.message); process.exit(4); });"
+    try {
+      await runTicket(['create', '--type', 'chore', '--title', 'x', '--description', 'y']);
+      console.log('RESOLVED');
+      process.exit(0);
+    } catch (e) {
+      console.error(e.message);
+      process.exit(4);
+    }"
   [ "$status" -eq 4 ]
   guard_names_fleet
 }

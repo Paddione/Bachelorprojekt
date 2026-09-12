@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# devmesh-Profil full = core + schwere Dienste (T900118, design.md D1). Braucht mehr als
+# 48 GB RAM; Default bleibt core bis SP-5. `namespace` steht auch hier, weil die
+# Component-Ressourcen erst auf dieser Ebene hinzukommen (collabora.yaml nennt
+# workspace-office).
+namespace: workspace
+
+resources:
+  - ../core
+
+components:
+  - ../components/nextcloud
+  - ../components/collabora
+  - ../components/talk
+  - ../components/vaultwarden
+
+patches:
+  - target: {kind: Deployment, name: nextcloud}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: nextcloud}
+      spec:
+        template:
+          spec:
+            nodeSelector: {storage: "true"}
+            containers:
+              - name: nextcloud
+                resources:
+                  requests: {cpu: 250m, memory: 512Mi}
+  - target: {kind: Deployment, name: collabora}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: collabora}
+      spec: {template: {spec: {containers: [{name: collabora, resources: {requests: {cpu: 250m, memory: 512Mi}}}]}}}
+  - target: {kind: Deployment, name: vaultwarden}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: vaultwarden}
+      spec:
+        template:
+          spec:
+            nodeSelector: {storage: "true"}
+            containers:
+              - name: vaultwarden
+                resources:
+                  requests: {cpu: 25m, memory: 64Mi}

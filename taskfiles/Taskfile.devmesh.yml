@@ -3,6 +3,7 @@
 # devmesh — lokaler k3s-Dev-Cluster auf Bare-Metal im Heimnetz (ADR-008).
 # SP-1 (T900116): Tailnet-Erreichbarkeit der devmesh-Server.
 # SP-2 (T900117): K3s-Installation, Preflight, Kubeconfig-Merge und Status.
+# SP-3 (T900118): Dev-Stack auf devmesh, Deploy, Migration, Backup.
 #
 # Usage:
 #   task devmesh:tailnet:check              # Exit 0 alle Server erreichbar, 1 Befund, 2 Vorbedingung
@@ -11,6 +12,9 @@
 #   task devmesh:install HOST=<name> [DRY_RUN=1]  # k3s in der Inventar-Rolle installieren
 #   task devmesh:kubeconfig [SERVER=<name>]       # Context devmesh mergen
 #   task devmesh:status                           # Knoten, etcd, juengster Snapshot
+#   task devmesh:deploy                           # Stack rendern & deployen
+#   task devmesh:migrate                          # Migration aus k3d
+#   task devmesh:backup:run                       # Shared-DB Backup ausloesen
 #
 # Runbook: docs/runbooks/devmesh-tailnet.md
 # ─────────────────────────────────────────────────────────────────────────────
@@ -47,3 +51,57 @@ tasks:
     desc: "devmesh: Knoten, etcd-Mitglieder und juengsten etcd-Snapshot melden (Exit != 0 ab 12h Snapshot-Alter)"
     cmds:
       - bash scripts/devmesh/status.sh
+      - kubectl --context devmesh -n workspace get deploy
+      - kubectl --context devmesh -n kube-system get certificate devmesh-wildcard-tls -o jsonpath='{.metadata.name}{" Ready="}{.status.conditions[?(@.type=="Ready")].status}{" notAfter="}{.status.notAfter}{"\n"}'
+
+  deploy:
+    desc: "devmesh-Stack aus der Arbeitskopie deployen (PROFILE=core|full, Default DEVMESH_PROFILE) [T900118]"
+    preconditions:
+      - sh: kubectl config get-contexts -o name | grep -qx devmesh
+        msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
+      - sh: test -f environments/sealed-secrets/dev.yaml
+        msg: "environments/sealed-secrets/dev.yaml fehlt — task env:seal ENV=dev"
+    cmds:
+      - |
+        set -euo pipefail
+        CTX=devmesh
+        source scripts/env-resolve.sh dev
+        PROFILE="{{.PROFILE}}"; PROFILE="${PROFILE:-$DEVMESH_PROFILE}"
+        # 1. Stack rendern, bevor irgendetwas appliziert wird (Render-Fehler = kein Teil-Deploy)
+        rendered="$(bash scripts/devmesh/render-stack.sh "$PROFILE")"
+        # 2. cert-manager + ipv64-lego-webhook (Muster Taskfile.dev-stack.yml, T000363)
+        helm repo add jetstack https://charts.jetstack.io --force-update >/dev/null
+        helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update >/dev/null
+        helm repo update >/dev/null
+        helm upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace \
+          --kube-context "$CTX" --set crds.enabled=true --set podDnsPolicy=Default --wait --timeout=180s
+        helm upgrade --install cert-manager-lego-webhook cert-manager-lego-webhook/cert-manager-lego-webhook \
+          --namespace cert-manager --kube-context "$CTX" --set certManager.namespace=cert-manager \
+          --set certManager.serviceAccountName=cert-manager --wait --timeout=120s
+        # 3. Sealed-Secrets-Controller, dann SealedSecrets VOR den Manifesten
+        kubectl --context "$CTX" apply -f k3d/sealed-secrets-controller.yaml
+        kubectl --context "$CTX" -n sealed-secrets rollout status deploy/sealed-secrets-controller --timeout=180s
+        kubectl --context "$CTX" create namespace workspace --dry-run=client -o yaml | kubectl --context "$CTX" apply -f -
+        kubectl --context "$CTX" apply -f environments/sealed-secrets/dev.yaml
+        for s in workspace/workspace-secrets workspace/website-secrets cert-manager/ipv64-api-key; do
+          kubectl --context "$CTX" -n "${s%%/*}" wait --for=create "secret/${s##*/}" --timeout=120s
+        done
+        kubectl --context "$CTX" -n cert-manager set env deployment/cert-manager-lego-webhook --from=secret/ipv64-api-key
+        envsubst '$DEVMESH_DOMAIN' < dev-local/cluster/tls.yaml | kubectl --context "$CTX" apply -f -
+        # 4. Stack applizieren und auf jede Deployment-Rollout warten
+        kubectl --context "$CTX" wait --for=create crd/ingressroutes.traefik.io --timeout=180s
+        printf '%s\n' "$rendered" | kubectl --context "$CTX" apply -f -
+        for d in $(printf '%s\n' "$rendered" | yq ea -r '[select(.kind == "Deployment") | .metadata.name] | .[]'); do
+          kubectl --context "$CTX" -n workspace rollout status "deployment/$d" --timeout=600s
+        done
+        echo "devmesh:deploy ok (Profil $PROFILE)"
+
+  migrate:
+    desc: "pocket_id + website aus k3d-mentolder-dev nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]"
+    cmds:
+      - bash scripts/devmesh/migrate-from-k3d.sh {{.CLI_ARGS | default "all"}}
+
+  backup:run:
+    desc: "shared-db-Backup auf devmesh sofort ausloesen (CronJob shared-db-backup) [T900118]"
+    cmds:
+      - kubectl --context devmesh -n workspace create job "shared-db-backup-manual-$(date +%s)" --from=cronjob/shared-db-backup

@@ -4751,6 +4751,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900164": [
+    {
+      "slug": "freetoken-config-consolidation",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

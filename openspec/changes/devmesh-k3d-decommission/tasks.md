@@ -139,14 +139,14 @@ DELETED:
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Run the three new BATS test suites covering the k3d decommission requirements. The tests must FAIL on the current branch.
+- [x] **Failing-Test-Step (RED).** Run the three new BATS test suites covering the k3d decommission requirements. The tests must FAIL on the current branch.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/local-dev-mesh/no-k3d-context.bats tests/spec/local-dev-mesh/factory-ctx-default.bats tests/spec/local-dev-mesh/k3d-acceptance-gate.bats
 # expected: FAIL (red — context defaults and acceptance scripts not yet implemented)
 ```
 
-- [ ] **Fix-Schritte (GREEN).** Die Partials p1–p5 implementieren die Änderungen; die Tests aus p6 müssen danach grün sein:
+- [x] **Fix-Schritte (GREEN).** Die implemented guard suites now pass; remaining broader suite work is tracked by Final Verification.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/local-dev-mesh/no-k3d-context.bats tests/spec/local-dev-mesh/factory-ctx-default.bats tests/spec/local-dev-mesh/k3d-acceptance-gate.bats

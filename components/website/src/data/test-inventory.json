@@ -4794,6 +4794,12 @@
     "kind": "shell"
   },
   {
+    "id": "opencode-config-ssot",
+    "file": "tests/spec/opencode-config-ssot.bats",
+    "category": "opencode-config-ssot",
+    "kind": "shell"
+  },
+  {
     "id": "opencode-local-model-runner",
     "file": "tests/spec/opencode-local-model-runner.bats",
     "category": "opencode-local-model-runner",

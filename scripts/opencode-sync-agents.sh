@@ -3,6 +3,18 @@ set -euo pipefail
 
 # scripts/opencode-sync-agents.sh
 # Idempotently merges .opencode/agent-models.jsonc into ~/.config/opencode/opencode.jsonc
+#
+# --dry-run: berechnet den Merge und zeigt den diff gegen die Ziel-Config,
+# ohne zu schreiben (Idempotenz-Check, T900162).
+
+DRY_RUN=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1; shift ;;
+    -h|--help) sed -n '4,8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "unbekanntes Argument: $1" >&2; exit 2 ;;
+  esac
+done
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE_FILE="$REPO_DIR/.opencode/agent-models.jsonc"
@@ -39,6 +51,24 @@ jq -s '
   .[1]
 ' "$TEMP_SRC" "$TEMP_TGT" > "$TEMP_OUT"
 
+if [[ $DRY_RUN -eq 1 ]]; then
+  if diff -q "$TEMP_OUT" "$TARGET_FILE" >/dev/null 2>&1; then
+    echo "dry-run: no changes (idempotent)"
+  else
+    echo "dry-run: diff vs $TARGET_FILE:"
+    diff -u "$TARGET_FILE" "$TEMP_OUT" || true
+  fi
+  exit 0
+fi
+
+# Permissions der Ziel-Config erhalten (T900162): mv ersetzt die Datei und
+# wuerde sonst eine 600er-Config auf 644 zuruecksetzen.
+if [[ -f "$TARGET_FILE" ]] && command -v stat >/dev/null 2>&1; then
+  ORIG_MODE="$(stat -c %a "$TARGET_FILE" 2>/dev/null || true)"
+  if [[ -n "$ORIG_MODE" ]]; then
+    chmod "$ORIG_MODE" "$TEMP_OUT" 2>/dev/null || true
+  fi
+fi
 mv "$TEMP_OUT" "$TARGET_FILE"
 echo "Successfully synced agent models to $TARGET_FILE"
 

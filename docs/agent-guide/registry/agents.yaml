@@ -55,27 +55,27 @@ runtimes:
     mode: subagent
     model: freetoken-local/active
     write_capable: false
-    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k (Qwen 3.8 27B, Port 8094, 114688 ctx, text-only, np=1). Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig. Name bleibt als Dispatch-Schnittstelle."
+    note: "NAME luegt ueber das Modell. Modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim Start). Name bleibt als Dispatch-Schnittstelle [T900162]."
   devstral:
     mode: subagent
     model: freetoken-local/active
     write_capable: false
-    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout — kein GPU-Swap noetig."
+    note: "Modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell (Plugin freetoken-active setzt das Limit beim Start) [T900162]."
   gemma:
     mode: subagent
     model: freetoken-local/active
     write_capable: false
-    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout."
+    note: "Modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell (Plugin freetoken-active setzt das Limit beim Start) [T900162]."
   gemma12:
     mode: subagent
     model: freetoken-local/active
     write_capable: false
-    note: "NAME luegt ueber das Modell. Seit T013360 auf qwen38-220k. Alle lokalen Agenten teilen dieses eine Loadout."
+    note: "Modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell (Plugin freetoken-active setzt das Limit beim Start) [T900162]."
   qwen38:
     mode: subagent
     model: freetoken-local/active
     write_capable: false
-    note: "qwen38 family: Qwen 3.8 27B UD-IQ3_XXS, Loadout qwen38-220k auf Port 8094, 114688 ctx, text-only (kein mmproj). EIN Slot (parallel=1) — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [2026-08-22]"
+    note: "qwen38 family: modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell. EIN Slot — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [T900162]"
   qwen-cloud:
     mode: subagent
     model: alibaba-intl/qwen3.8-max

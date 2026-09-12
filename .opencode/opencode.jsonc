@@ -13,6 +13,12 @@
   // Factory model: Qwen3.6-35B-A3B, context=200000, output=8192.
   // V2 threshold = 200000 − max(8192, 96000) = 104000
   // → compaction at ~100k active context, keep.tokens: 16000 holds the tail.
+  //
+  // Kalibrierung 2026-09-12 (T900162): Trigger 104000 feuert unter der Ceiling des
+  // Alias 'active' (Fallback 131072 = Qwen-KV-Start der Ladder; Plugin setzt beim
+  // Start das residente Limit, SDLC_CONTEXT_CEILING 200000). Server :1919 war am
+  // 2026-09-12 nicht erreichbar (GET /v1/models timeout) — kein Frischwert, Werte
+  // bleiben unveraendert (design.md D2: Trigger unter gemessener Ceiling).
   "compaction": {
     "auto": true,
     "keep": { "tokens": 16000 },

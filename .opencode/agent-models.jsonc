@@ -28,6 +28,8 @@
       "models": {
         "hauhau-qwen36": {
           "name": "Qwen3.6-35B-A3B Uncensored (HauhauCS Aggressive, Q4_K_M), Loadout hauhau-qwen36 auf Port 8097 - Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start",
+          // stale:2026-09-12:Loadout hauhau-qwen36 enabled=false (scripts/llm/loadouts.json),
+          // Port 8097 zu (live-check) — kein Agent zeigt hierauf, Eintrag bleibt als Beleg.
           // ctx 131072 = Loadout-Flag, noch nicht gemessen (T015175) — nach Erststart
           // gegen n_ctx_slot kalibrieren. Abliteration: 0/465 Refusals, kann
           // Instruktionsfolge vs. Baseline-Qwen3.6 leicht verschlechtern.
@@ -38,6 +40,8 @@
         },
         "gemma12-vision": {
           "name": "Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP-Drafter, Loadout gemma12-vision auf Port 8089 - exclusiveGroup chat-gpu. Vision-capable.",
+          // stale:2026-09-12:Loadout gemma12-vision enabled=false (scripts/llm/loadouts.json),
+          // Port 8089 zu (live-check) — kein Agent zeigt hierauf, Eintrag bleibt als Beleg.
           "limit": {
             "context": 262144,
             "output": 8192
@@ -76,6 +80,9 @@
       "models": {
         "Qwen3.6-35B-A3B-NVFP4": {
           "name": "Qwen3.6-35B-A3B NVFP4 (FreeToken-native, GDN-Hybrid, gemessen 2026-08-23: ~104 tok/s Decode kurz / 62-70 tok/s bei 63k Kontext, KV-Ladder: Start bei 131072 KV, wachsend budgetkonform bis zur 200000er Decke — limit.context = LADDER_CEILING, text-only)",
+          // messung: 2026-09-12 — Server :1919 nicht erreichbar (GET /v1/models + /health
+          // timeout, 0 Bytes), kein Frischwert; Basis bleibt die dokumentierte Messung
+          // 2026-08-23 (KV-Ladder bis 200000er Decke). Wert unveraendert.
           "limit": {
             "context": 200000,
             "output": 8192
@@ -83,6 +90,8 @@
         },
         "gpt-oss-20b": {
           "name": "gpt-oss-20b FTW (FreeToken-native, gemessen 2026-08-23: ~112 tok/s Decode bei 64k KV / ~128 tok/s bei 32k KV, 75.7% Experten resident, Reasoning-Stufen low/medium/high statt on/off, text-only by architecture)",
+          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
+          // Basis bleibt die dokumentierte Messung 2026-08-23 (64k KV). Wert unveraendert.
           "limit": {
             "context": 65536,
             "output": 8192
@@ -90,6 +99,8 @@
         },
         "Gemma-4-26B-A4B-NVFP4": {
           "name": "Gemma-4-26B-A4B NVFP4 (FreeToken-native, gemessen 2026-08-23: ~73 tok/s Decode bei 32k KV nach Window-Pool-Trimmung --swa 8777 --moe 1540, 40% Experten resident, text-only bis Vision-Rekonvertierung — FTW-Checkpoint enthaelt null Vision-Tensoren)",
+          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
+          // Basis bleibt die dokumentierte Messung 2026-08-23 (32k KV). Wert unveraendert.
           "limit": {
             "context": 32768,
             "output": 8192
@@ -97,6 +108,8 @@
         },
         "active": {
           "name": "FreeToken-active (modellagnostischer Alias — serviert immer das gerade auf :1919 residente Modell; Limit wird vom Plugin freetoken-active beim Start auf das residente Modell gesetzt, Fallback hier: Qwen)",
+          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
+          // Fallback-Limit 131072 (Qwen-KV-Start der Ladder); Plugin ueberschreibt beim Start.
           "limit": {
             "context": 131072,
             "output": 8192
@@ -104,6 +117,8 @@
         },
         "active-thinking": {
           "name": "FreeToken active · thinking enabled (dynamic resident model, 200k context)",
+          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
+          // 200000 = SDLC_CONTEXT_CEILING (Plugin freetoken-active, Default 200k).
           "limit": {
             "context": 200000,
             "output": 16384
@@ -111,6 +126,8 @@
         },
         "active-fast": {
           "name": "FreeToken active · thinking disabled (dynamic resident model, 85k context)",
+          // messung: 2026-09-12 — Server :1919 nicht erreichbar, kein Frischwert;
+          // 85000 = Non-Thinking-Worker-Cap (Plugin freetoken-active).
           "limit": {
             "context": 85000,
             "output": 8192
@@ -228,8 +245,11 @@
       "models": {
         "big-pickle": {
           "name": "Big Pickle (OpenCode Zen, free tier — bis das Free-Kontingent verbraucht ist)",
+          // messung: 2026-09-12 — Free-Quota-Korrektur: models.dev-Basis 256k, deklariert
+          // 260000. 1.000.000 war Free-Quota-Wunschdenken; opencode nutzt die Zahl fuer
+          // Auto-Compact (95%-Trigger) — ein zu hoher Wert reproduziert Overflow-Drops.
           "limit": {
-            "context": 1000000,
+            "context": 260000,
             "output": 16384
           }
         },

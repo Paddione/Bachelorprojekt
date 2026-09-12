@@ -8,7 +8,7 @@
 // (Vorhaben-Pack, ticket spec, touched_files, target-code-Exzerpte) — deren Auflösung passiert
 // zur Laufzeit im Workflow-Orchestrator, nicht in einem festen Skript. Dieses Skript misst daher
 // NUR den "ticket spec"-Baustein aus den acht Fixtures unter tests/factory-eval/fixtures/ — eine
-// UNTERGRENZE, kein Vollbild. Korrektiv: Live-Telemetrie aus P2 (.opencode/plugin/freetoken-active.ts).
+// UNTERGRENZE, kein Vollbild.
 //
 // TOKENISIERUNG: kein Tokenizer-Paket im Repo verdrahtet. Deklarierte Naeherung chars/4
 // (Fehlerbalken +-30%, siehe meta.tokenizer_method in der Ausgabe). Optionaler exakter Abgleich
@@ -111,7 +111,7 @@ async function main() {
         ? `exact via POST ${endpoint}/tokenize (llama.cpp API); chars/4-Fallback wo unerreichbar`
         : 'approx chars/4 (deklarierte Naeherung, +-30% Fehlerbalken; kein Tokenizer im Repo verdrahtet)',
       scope_caveat:
-        'misst NUR den ticket-spec-Hint aus provision.js:buildContextHints() — Vorhaben-Pack/Footguns/target-code-Exzerpte/similar-tickets sind offline nicht rekonstruierbar; Untergrenze, kein Vollbild. Korrektiv: P2-Live-Telemetrie.',
+        'misst NUR den ticket-spec-Hint aus provision.js:buildContextHints() — Vorhaben-Pack/Footguns/target-code-Exzerpte/similar-tickets sind offline nicht rekonstruierbar; Untergrenze, kein Vollbild.',
       fixture_count: results.length,
     },
     fixtures: results,

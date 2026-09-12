@@ -1,14 +1,14 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Default = FreeToken-Alias `active`: serviert immer das residente Modell auf
-  // pk-desktop (:1919); Kontext-Limit setzt beim Start das Plugin
-  // `plugin/freetoken-active.ts` auf die gemessenen KV-Werte. Der alte
-  // llama.cpp-Stack (:18235) ist stillgelegt — Default darauf waere ein toter
-  // Backend-Aufruf (T016419).
+  // Default = llamacpp-local/qwen38-220k: der lokale Qwen-3.8-Backbone wird
+  // ueber den llm-proxy auf :18235 angesprochen (Loadout qwen38-220k in
+  // scripts/llm/loadouts.json, llama.cpp :8094). Der FreeToken-Stack
+  // (pk-desktop :1919, Plugin plugin/freetoken-active.ts) ist decommissioned
+  // (T900164) — Default darauf waere ein toter Backend-Aufruf.
   //
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
-  "model": "freetoken-local/active",
+  "model": "llamacpp-local/qwen38-220k",
   // ── V2 Compaction (Requirement: V2 Compaction Targets 100K Active Context) ──
   // Factory model: Qwen3.6-35B-A3B, context=200000, output=8192.
   // V2 threshold = 200000 − max(8192, 96000) = 104000

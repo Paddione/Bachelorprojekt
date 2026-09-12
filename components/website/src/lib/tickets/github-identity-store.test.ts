@@ -40,10 +40,27 @@ integration('GitHub identity store (real PostgreSQL)', () => {
     const advisory = await store.registerGitHubObject({ githubNodeId: 'GHSA_node', kind: 'advisory', providerNativeRef: 'ghsa-2345-2345-2345' }); expect(advisory.object.providerNativeRef).toBe('GHSA-2345-2345-2345');
     const source = await store.registerGitHubObject(issue('I_node_transfer', 13)); const moved = await store.transferGitHubObject({ objectId: source.object.id, from: { repositoryNodeId: 'R_a', number: 13 }, to: { ...issue('x', 34, 'R_b').coordinate } });
     expect(moved.previousCoordinate.validUntil).not.toBeNull(); expect(moved.currentCoordinate.repositoryNodeId).toBe('R_b'); expect((await store.resolveGitHubObject({ repositoryNodeId: 'R_a', number: 13, kind: 'issue' }))?.object.id).toBe(source.object.id);
+    expect((await store.transferGitHubObject({ objectId: source.object.id, from: { repositoryNodeId: 'R_a', number: 13 }, to: { ...issue('x', 34, 'R_b').coordinate } })).changed).toBe(false);
+    await expect(store.transferGitHubObject({ objectId: source.object.id, from: { repositoryNodeId: 'R_wrong', number: 99 }, to: { ...issue('x', 34, 'R_b').coordinate } })).rejects.toMatchObject({ code: 'current_coordinate_conflict' });
   });
   it('corrects a canonical issue atomically and rejects redirect cycles', async () => {
     const old = await store.registerGitHubObject(issue('I_node_old', 14)); const replacement = await store.registerGitHubObject(issue('I_node_new', 15)); const id = await ticket('T900162'); await store.bindWorkItemRef({ ticketId: id, objectId: old.object.id, role: 'canonical' });
     const corrected = await store.correctCanonicalWorkItem({ ticketId: id, currentObjectId: old.object.id, replacementObjectId: replacement.object.id, relationKind: 'duplicate_of', source: 'test', reason: 'duplicate' }); expect(corrected.alias.objectId).toBe(old.object.id); expect(corrected.canonical.objectId).toBe(replacement.object.id);
+    expect((await store.correctCanonicalWorkItem({ ticketId: id, currentObjectId: old.object.id, replacementObjectId: replacement.object.id, relationKind: 'duplicate_of', source: 'test', reason: 'duplicate' })).changed).toBe(false);
     await expect(store.recordGitHubRelation({ fromObjectId: replacement.object.id, toObjectId: old.object.id, kind: 'duplicate_of', source: 'test', reason: 'cycle' })).rejects.toMatchObject({ code: 'redirect_cycle' }); expect((await testPool.query('SELECT count(*)::int n FROM tickets.github_object_relations')).rows[0].n).toBe(1);
+  });
+  it('rejects direct history mutation and validates delivery orientation', async () => {
+    const target = await store.registerGitHubObject(issue('I_node_guard', 16)); const id = await ticket('T900163'); const ref = await store.bindWorkItemRef({ ticketId: id, objectId: target.object.id, role: 'canonical' });
+    const coordinate = (await testPool.query('SELECT id FROM tickets.github_object_coordinates WHERE github_object_id=$1', [target.object.id])).rows[0].id;
+    await expect(testPool.query('UPDATE tickets.github_object_coordinates SET url=$1 WHERE id=$2', ['https://invalid.example', coordinate])).rejects.toThrow(/only an open coordinate/i);
+    await expect(testPool.query("UPDATE tickets.work_item_refs SET role='alias' WHERE id=$1", [ref.id])).rejects.toThrow(/only an open canonical/i);
+    const pr = await store.registerGitHubObject({ githubNodeId: 'PR_node_guard', kind: 'pull_request', coordinate: { ...issue('x', 17).coordinate, url: 'https://github.com/Paddione/Bachelorprojekt/pull/17' } });
+    const delivery = await store.recordGitHubRelation({ fromObjectId: pr.object.id, toObjectId: target.object.id, kind: 'implements', source: 'test' }); expect(delivery.fromObjectId).toBe(pr.object.id); expect(delivery.toObjectId).toBe(target.object.id);
+    await expect(store.recordGitHubRelation({ fromObjectId: target.object.id, toObjectId: pr.object.id, kind: 'implements', source: 'test' })).rejects.toMatchObject({ code: 'relation_kind_forbidden' });
+  });
+  it('rejects a three-node mixed redirect cycle', async () => {
+    const a = await store.registerGitHubObject(issue('I_cycle_a', 18)); const b = await store.registerGitHubObject(issue('I_cycle_b', 19)); const c = await store.registerGitHubObject(issue('I_cycle_c', 20));
+    await store.recordGitHubRelation({ fromObjectId: a.object.id, toObjectId: b.object.id, kind: 'duplicate_of', source: 'test', reason: 'a-b' }); await store.recordGitHubRelation({ fromObjectId: b.object.id, toObjectId: c.object.id, kind: 'replaces', source: 'test', reason: 'b-c' });
+    await expect(store.recordGitHubRelation({ fromObjectId: c.object.id, toObjectId: a.object.id, kind: 'transferred_to', source: 'test', reason: 'c-a' })).rejects.toMatchObject({ code: 'redirect_cycle' });
   });
 });

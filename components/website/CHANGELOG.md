@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.341.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.340.0...website-v1.341.0) (2026-09-12)
+
+
+### Features
+
+* **agents:** remove FreeToken, prune stale assets and consolidate SSOT specs [T900163] ([#5615](https://github.com/Paddione/Bachelorprojekt/issues/5615)) ([9781812](https://github.com/Paddione/Bachelorprojekt/commit/978181233b4fd923e28ccc3b0722322c88d93709))
+
 ## [1.340.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.339.0...website-v1.340.0) (2026-09-12)
 
 

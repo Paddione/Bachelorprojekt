@@ -53,6 +53,6 @@ status: ready
 
 ## 6. Verifikation & Restart
 
-- [ ] 6.1 Gates: `bash scripts/openspec.sh validate` grün, JSONC-Lint aller Configs ok, Sync-dry-run leer; Verifikation: alle drei Befehle exit 0
-- [ ] 6.2 Smoke-Tests je verbliebenem Modell gegen live Provider (`freetoken-local` :1919 bzw. `llamacpp` :8094): chat/completions antwortet `OK` mit finish=stop; Verifikation: Smoke-Protokoll je Modell in Task-Antwort
-- [ ] 6.3 Finale Gates: `task test:changed`, `task freshness:regenerate`, `task freshness:check` laufen grün; Test-Inventar aktualisiert sofern Tests neu (`task test:inventory` vor Commit neuer BATS-Datei); Verifikation: alle drei Tasks exit 0; danach Meldung an Nutzer: opencode-Neustart erforderlich (Plugin `plugin/freetoken-active.ts` setzt Limit erst beim Start)
+- [x] 6.1 Gates: `bash scripts/openspec.sh validate` grün, JSONC-Lint aller Configs ok, Sync-dry-run leer; Verifikation: alle drei Befehle exit 0
+- [x] 6.2 Smoke-Tests je verbliebenem Modell gegen live Provider (`freetoken-local` :1919 bzw. `llamacpp` :8094): chat/completions antwortet `OK` mit finish=stop; Verifikation: Smoke-Protokoll je Modell in Task-Antwort
+- [x] 6.3 Finale Gates: `task test:changed`, `task freshness:regenerate`, `task freshness:check` laufen grün; Test-Inventar aktualisiert sofern Tests neu (`task test:inventory` vor Commit neuer BATS-Datei); Verifikation: alle drei Tasks exit 0; danach Meldung an Nutzer: opencode-Neustart erforderlich (Plugin `plugin/freetoken-active.ts` setzt Limit erst beim Start)

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.342.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.0...website-v1.342.1) (2026-09-12)
+
+
+### Bug Fixes
+
+* **agents:** remove stale freetoken roles from agents.yaml [T900167] ([#5624](https://github.com/Paddione/Bachelorprojekt/issues/5624)) ([8f28cfb](https://github.com/Paddione/Bachelorprojekt/commit/8f28cfbca990853e0516048196ef09340e18ee7a))
+
 ## [1.342.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.341.1...website-v1.342.0) (2026-09-12)
 
 

@@ -1,12 +1,13 @@
 # environments/dev.yaml
-# Diese Datei beschreibt NUR die lokale k3d-Umgebung (context: k3d-mentolder-dev,
-# domain: localhost) — KEINEN Cluster-Dev-Stack. Der fleet-gerenderte Dev-Stack
-# (workspace-dev, dev.mentolder.de) laeuft ueber environments/dev-cluster.yaml
-# (T002630): eine lokale Umgebung ohne oeffentliche Domain kann den Cluster-Stack
-# nicht mehr abschalten.
+# Lokale Entwicklungsumgebung auf dem HA-Cluster devmesh (ADR-008, T900118).
+# Bis T900118 beschrieb diese Datei den Einzelhost-Cluster k3d-mentolder-dev; sie wurde
+# umgezogen statt dupliziert (openspec/changes/devmesh-dev-stack/design.md D2), damit
+# ENV=dev nicht auf einen abgebauten Context zeigt. Der fleet-gerenderte Dev-Stack
+# (workspace-dev, dev.mentolder.de) laeuft weiter ueber environments/dev-cluster.yaml
+# (T002630) — diese Datei steuert ihn nicht.
 environment: dev
-context: k3d-mentolder-dev
-domain: localhost
+context: devmesh
+domain: devmesh.mentolder.de
 
 env_vars:
   EINVOICE_SIDECAR_ENABLED: "true"
@@ -17,14 +18,20 @@ env_vars:
   WEBSITE_IMAGE: website
   DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: workspace
+  # devmesh: Profil und Basis-Domain; A-Records zeigen nur auf Tailnet-Adressen (D3).
+  DEVMESH_DOMAIN: devmesh.mentolder.de
+  DEVMESH_PROFILE: core
+  PROD_DOMAIN: devmesh.mentolder.de
+  # web.* ist die SDLC-Console (OIDC-Callback), die Website liegt auf site.*.
+  WEBSITE_HOST: site.devmesh.mentolder.de
+  WEBSITE_SITE_URL: "https://site.devmesh.mentolder.de"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "true"
   LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace.svc.cluster.local:8081"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
   LLM_EMBED_MODEL: "bge-m3"
   # wg-gpu-Adresse des Windows-Hosts — derselbe GPU-Peer, den die Prod-Envs adressieren.
-  # Docker-Bridge-Adressen funktionieren hier nicht: Docker Desktop fährt den Daemon in
-  # einer eigenen Distro, k3d vergibt pro Cluster ein zufälliges Subnetz. [T002109]
+  # devmesh erreicht die GPU ueber gpu_endpoint in devmesh/inventory.yaml (D7).
   LLM_HOST_IP: "192.168.100.10"
   TURN_OVERLAY_IP: "172.17.0.1"
   TERMINAL_OVERLAY_IP: "172.17.0.1"
@@ -32,16 +39,24 @@ env_vars:
 
   MEDIAVIEWER_HOST: mediaviewer.localhost
   VIDEOVAULT_DOMAIN: videovault.localhost
-  POCKET_ID_FRONTEND_URL: "http://auth.localhost"
+  # Pocket ID auf devmesh (D4); der Seed-Job leitet Callbacks aus der Frontend-URL ab.
+  POCKET_ID_FRONTEND_URL: "https://auth.devmesh.mentolder.de"
   # FQDN statt Kurzname: components/brett/src/server/auth.ts akzeptiert http nur für
-  # localhost/*.svc.cluster.local (T001933) — Kurzname 'pocket-id' wirft beim
-  # OIDC-Client-Init.
+  # localhost/*.svc.cluster.local (T001933).
   POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
+  # fail-closed Fallback auf die fleet-Pocket-ID ueber deren oeffentlichen Host (D4).
+  POCKET_ID_FALLBACK_FRONTEND_URL: "https://auth.mentolder.de"
+  POCKET_ID_FALLBACK_URL: "https://auth.mentolder.de"
+  SDLC_CONSOLE_SITE_URL: "https://web.devmesh.mentolder.de"
+  SDLC_CONSOLE_POCKET_ID_FRONTEND_URL: "https://auth.devmesh.mentolder.de"
+  SDLC_CONSOLE_POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
+  SDLC_CONSOLE_POCKET_ID_CLIENT_ID: website
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   # CORS allowlist origin for the React SPA (dev)
   REACT_APP_ORIGIN: "http://react.localhost"
 
-# Dev secrets: generated from schema defaults at deploy time.
+# Dev secrets: generated from schema defaults at deploy time. devmesh selbst bekommt
+# seine Secrets aus environments/sealed-secrets/dev.yaml (task devmesh:deploy).
 secrets_mode: plaintext
 
 setup_vars:

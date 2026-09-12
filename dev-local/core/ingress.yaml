@@ -1,0 +1,40 @@
+# Ingress des devmesh-Profils core (T900118). Hosts: <dienst>.${DEVMESH_DOMAIN}. TLS liefert
+# der Traefik-Default-TLSStore mit dem Wildcard aus dev-local/cluster/tls.yaml; der tls-Block
+# markiert die Hosts fuer websecure (Muster k3d/dev-stack/dev-ingress.yaml).
+# web.* ist die Console: der pocket-id-client-seed registriert den Callback als
+# web.<suffix>/api/auth/callback. Die Website (BUILD_TARGET unset) liegt auf site.*.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devmesh-core
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  tls:
+    - hosts:
+        - "web.${DEVMESH_DOMAIN}"
+        - "auth.${DEVMESH_DOMAIN}"
+        - "site.${DEVMESH_DOMAIN}"
+        - "brett.${DEVMESH_DOMAIN}"
+        - "mail.${DEVMESH_DOMAIN}"
+  rules:
+    - host: "web.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: sdlc-console, port: {number: 8080}}}}
+    - host: "auth.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: pocket-id, port: {number: 1411}}}}
+    - host: "site.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: website, port: {number: 80}}}}
+    - host: "brett.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: brett, port: {number: 3000}}}}
+    - host: "mail.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: mailpit, port: {number: 8025}}}}

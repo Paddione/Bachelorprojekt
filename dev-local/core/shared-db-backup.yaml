@@ -1,0 +1,65 @@
+# Taeglicher pg_dumpall der devmesh-shared-db, 14 Tage Aufbewahrung (T900118).
+# local-path-PVC auf dem storage=true-Knoten (gpu-cluster2, SP-2 D4). Das Skript kommt
+# aus scripts/devmesh/db-backup.sh (configMapGenerator in kustomization.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-db-backup
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: shared-db-backup
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: shared-db-backup
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            storage: "true"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            fsGroup: 999
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: backup
+              image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
+              command: ["bash", "/scripts/db-backup.sh"]
+              env:
+                - {name: PGHOST, value: shared-db}
+                - {name: PGUSER, value: postgres}
+                - {name: BACKUP_DIR, value: /backup}
+                - {name: RETAIN, value: "14"}
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: SHARED_DB_PASSWORD
+              resources:
+                requests: {cpu: 50m, memory: 128Mi}
+              volumeMounts:
+                - {name: backup, mountPath: /backup}
+                - {name: script, mountPath: /scripts, readOnly: true}
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: shared-db-backup
+            - name: script
+              configMap:
+                name: shared-db-backup-script

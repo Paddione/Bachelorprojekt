@@ -129,6 +129,20 @@ if "$_RESOLVE_NS_ONLY"; then
   exit 0
 fi
 
+# [T900118] devmesh-Write-Guard. Anders als der T015008-Guard darunter laeuft er auch
+# unter BATS und TICKET_OFFLINE: devmesh ist nie die fuehrende Ticket-DB, kein Testfall
+# muss dort schreiben. Lesebefehle stehen in einer Positivliste, alles andere gilt als
+# Write (fail-closed). scripts/ticket-mcp-node/runner.mjs ruft dieses Skript und erbt
+# den Guard.
+case "${1:-} ${2:-}" in
+  "get "*|"list "*|"get-attachments "*|"get-ticket-links "*|"get-timeline "*|\
+  "get-injections "*|"find-similar "*|"retry-count "*|"dryrun-check "*|"plan-meta get"|\
+  "help "*|"-h "*|"--help "*|" ")
+    : ;;
+  *)
+    bash "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_devmesh-guard.sh" "$CTX" || exit 3 ;;
+esac
+
 # [T015008] Kubeconfig-Context-Drift-Guard: bevor ein Write den CTX benutzt,
 # hart abbrechen, wenn der Context auf einen Loopback-Server aufloest
 # (Dual-Write-Split-Brain-Gefahr). Nur Write-Kommandos, nur online; Reads und

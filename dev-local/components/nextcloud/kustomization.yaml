@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+# Nextcloud fuer das devmesh-Profil full (T900118). Ressourcen und PHP-Konfiguration
+# wie k3d/kustomization.yaml.
+resources:
+  - ../../../k3d/nextcloud.yaml
+  - ../../../k3d/nextcloud-redis.yaml
+  - ../../../k3d/nextcloud-notification-config-job.yaml
+  - ingress.yaml
+configMapGenerator:
+  - name: nextcloud-oidc-config
+    files:
+      - oidc.config.php=../../../k3d/nextcloud-oidc-dev.php
+  - name: nextcloud-extra-config
+    files:
+      - zz-extra.config.php=../../../k3d/nextcloud-extra-config.php
+generatorOptions:
+  disableNameSuffixHash: true

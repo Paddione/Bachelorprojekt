@@ -546,6 +546,21 @@ env_vars:
     default_dev: ""
     description: "Internal wg-mesh hostname of the bge-rerank endpoint (T016422). Consumed by k3d/dev-stack/internal-mcp-ingress.yaml; operator DNS resolves it to the fleet edge."
 
+  # ─────────────────────────────────────────────────────────────────
+  # devmesh (ADR-008, T900118) — lokaler HA-Cluster, ENV=dev
+  # ─────────────────────────────────────────────────────────────────
+  - name: DEVMESH_DOMAIN
+    required: false
+    default_dev: ""
+    validate: "^[a-z0-9.-]*$"
+    description: "Base domain of the devmesh development instance, set in environments/dev.yaml. Hosts are <service>.${DEVMESH_DOMAIN}; the public A records point to tailnet addresses only."
+
+  - name: DEVMESH_PROFILE
+    required: false
+    default_dev: "core"
+    validate: "^(core|full)$"
+    description: "Overlay rendered by task devmesh:deploy: core (default until SP-5) or full (core + nextcloud, collabora, talk, vaultwarden)."
+
   - name: SDLC_CONSOLE_SITE_URL
     required: false
     default_dev: ""

@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devmesh-vaultwarden
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  tls:
+    - hosts: ["vault.${DEVMESH_DOMAIN}"]
+  rules:
+    - host: "vault.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: vaultwarden, port: {number: 80}}}}

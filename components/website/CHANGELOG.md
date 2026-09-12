@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.338.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.337.0...website-v1.338.0) (2026-09-12)
+
+
+### Features
+
+* **db:** add GitHub identity foundation [T900159] ([#5603](https://github.com/Paddione/Bachelorprojekt/issues/5603)) ([38b16d7](https://github.com/Paddione/Bachelorprojekt/commit/38b16d7fd4993da64b15be8eaa4bf51a469bd85c))
+
 ## [1.337.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.336.0...website-v1.337.0) (2026-09-12)
 
 

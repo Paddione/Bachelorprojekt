@@ -88,6 +88,7 @@ export async function applyGitHubIdentitySchema(pool: Pool | PoolClient): Promis
       IF NEW.kind IN ('implements','closes') AND (from_kind <> 'pull_request' OR to_kind NOT IN ('issue','advisory')) THEN RAISE EXCEPTION 'delivery relations require pull request to issue or advisory'; END IF;
       IF NEW.kind IN ('duplicate_of','replaces','transferred_to') AND from_kind <> to_kind THEN RAISE EXCEPTION 'redirect relations require equal object kinds'; END IF;
       IF NEW.kind IN ('duplicate_of','replaces','transferred_to') THEN
+        PERFORM pg_advisory_xact_lock(hashtext('tickets:github-identity-redirects'));
         WITH RECURSIVE walk(id) AS (SELECT NEW.to_object_id UNION SELECT r.to_object_id FROM tickets.github_object_relations r JOIN walk w ON r.from_object_id=w.id WHERE r.kind IN ('duplicate_of','replaces','transferred_to')) SELECT EXISTS(SELECT 1 FROM walk WHERE id=NEW.from_object_id) INTO has_cycle;
         IF has_cycle THEN RAISE EXCEPTION 'redirect relation would create a cycle'; END IF;
       END IF; RETURN NEW;

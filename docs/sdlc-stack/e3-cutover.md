@@ -12,7 +12,7 @@ seinen Nachweis selbst; keiner wird blind an den nächsten gereicht.
 | Bedingung | Prüfung |
 |---|---|
 | Docker läuft | `docker info` |
-| Lokaler Cluster steht | `task sdlc:sdlc:cluster:status` |
+| Lokaler Cluster steht | `task devmesh:status` (k3d-Cluster seit T900145 abgebaut) |
 | SDLC-Stack deployt | `task sdlc:sdlc:status` — `shared-db` und `sdlc-console` sind `Running` |
 | fleet erreichbar | `kubectl --context fleet get pods -n workspace -l app=shared-db` |
 | Lokales `tickets`-Schema leer | `task sdlc:sdlc:migrate:preflight` |
@@ -77,7 +77,7 @@ kubectl exec -i "$(kubectl --context fleet get pod -n workspace -l app=shared-db
 
 ### 5. Zugriffspfade prüfen — auf dem Branch, vor dem Merge
 
-Der Default-Kontext ist im Branch bereits auf `k3d-mentolder-dev` gestellt. **Der Cutover wird
+Der Default-Kontext war im Branch bereits auf den lokalen k3d-Context gestellt. **Der Cutover wird
 deshalb auf dem Branch durchgeführt und erst danach gemergt.**
 
 Der Grund: ab dem Merge trägt `main` einen Default, der einen laufenden lokalen Cluster

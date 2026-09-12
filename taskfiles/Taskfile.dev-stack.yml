@@ -7,7 +7,7 @@
 version: "3"
 
 vars:
-  CTX_DEV: '{{.CTX_DEV | default "k3d-mentolder-dev"}}'
+  CTX_DEV: '{{.CTX_DEV | default "fleet"}}'
   CTX_PROD: '{{.CTX_PROD | default "fleet"}}'
   NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
   NS_PROD: '{{.NS_PROD | default "workspace"}}'

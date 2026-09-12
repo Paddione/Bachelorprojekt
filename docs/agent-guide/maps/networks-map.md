@@ -19,7 +19,7 @@ beteiligten Bereiche einander nennen, mit Grund und Absicherung.
 | `100.64.0.0/10` | Tailnet (p.korczewski) | NAT-durchdringendes Overlay für den Zugriff auf devmesh (ADR-008): Server mit tag:devmesh, Dev-Clients mit tag:devclient | active | Tailscale-Dienst auf den Geräten; Soll-Zustand devmesh/inventory.yaml und devmesh/tailnet-policy.hujson, Prüfung task devmesh:tailnet:check |
 | `172.17.0.0/16` | Docker (Entwicklungsrechner) | Default-Bridge | active | Docker-Daemon |
 | `172.18.0.0/16` | Docker (Entwicklungsrechner) | Netz factory-sandbox-egress der Software-Factory | active | Docker-Daemon |
-| `172.23.0.0/16` | Docker (Entwicklungsrechner) | Netz des k3d-Clusters k3d-mentolder-dev (abgebaut) | retired | Docker-Daemon (k3d) |
+| `172.23.0.0/16` | Docker (Entwicklungsrechner) | Netz des lokalen k3d-SDLC-Clusters mentolder-dev (abgebaut) | retired | Docker-Daemon (k3d) |
 | `192.168.100.0/24` | mentolder | WireGuard-Mesh; GPU-Host auf .10, Laptops auf .11 und .12, Hetzner-Knoten auf .33 bis .35 | active | wireguard/wg-mesh-nodes.yaml (Sektion mentolder) |
 | `192.168.100.0/24` | Hetzner Cloud | Privates Netz der Server pk-hetzner-4 (.5), pk-hetzner-6 (.6), pk-hetzner-8 (.8) | active | Hetzner-Cloud-Konsole (nicht im Repo konfiguriert) |
 
@@ -49,6 +49,6 @@ beteiligten Bereiche einander nennen, mit Grund und Absicherung.
 - **`fleet-overlay`** — Die Präfixlänge ist /24, belegt am lebenden Cluster. openspec/specs/ rustdesk-server.md nannte bis T012645 fälschlich /16 — in einer ufw-Freigabe hätte das 255-mal mehr Adressen geöffnet als beabsichtigt.
 - **`devmesh-pod-cidr`** — Bewusst nicht 10.42.0.0/16. PK-Desktop routet das Pod-Netz von fleet über wg-gpu, gleiche Adressen aus devmesh liefen dort in den falschen Tunnel.
 - **`tailscale`** — Der einzige Bereich, der ohne eigenes Zutun kollisionsfrei bleibt — Tailscale benutzt den für Carrier-Grade-NAT reservierten Block, den sonst niemand vergibt. Einzelne Geräte-Adressen stehen bewusst nicht hier, weil sie sich bei einer Neuregistrierung ändern. k3s-Knotenverkehr läuft nicht über das Tailnet, sondern direkt über home-lan.
-- **`docker-k3d-mentolder-dev`** — Der Cluster wurde mit PR #5316 endgültig entfernt; der Bereich bleibt als retired stehen, damit eine Neuvergabe als Kollision auffällt.
+- **`docker-k3d-sdlc-dev`** — Der Cluster wurde mit T900145 abgebaut (Nachfolger devmesh, ADR-008); der Bereich bleibt als retired stehen, damit eine Neuvergabe als Kollision auffällt.
 - **`mentolder-mesh`** — Auf dem Windows-Entwicklungsrechner ist .10 der nativ zugewiesene wg-gpu-Adresse (WireGuard-Mesh-Punkt).
 - **`hetzner-private`** — Bis T012645 war dieser Bereich im Repo überhaupt nicht bekannt. Genau das ist der Grund für diese Registry: ein Netz, das niemand deklariert hat, kann mit keinem Prüflauf kollidieren.

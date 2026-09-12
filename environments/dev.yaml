@@ -1,6 +1,6 @@
 # environments/dev.yaml
 # Lokale Entwicklungsumgebung auf dem HA-Cluster devmesh (ADR-008, T900118).
-# Bis T900118 beschrieb diese Datei den Einzelhost-Cluster k3d-mentolder-dev; sie wurde
+# Bis T900118 beschrieb diese Datei den früheren Einzelhost-k3d-Cluster; sie wurde
 # umgezogen statt dupliziert (openspec/changes/devmesh-dev-stack/design.md D2), damit
 # ENV=dev nicht auf einen abgebauten Context zeigt. Der fleet-gerenderte Dev-Stack
 # (workspace-dev, dev.mentolder.de) laeuft weiter ueber environments/dev-cluster.yaml

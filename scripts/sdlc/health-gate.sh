@@ -13,7 +13,7 @@
 set -euo pipefail
 
 # Defaults
-CTX="${CTX:-k3d-mentolder-dev}"
+CTX="${CTX:-devmesh}"
 TIMEOUT="${TIMEOUT:-60}"
 LLM_PROXY_PORT="${LLM_PROXY_PORT:-18235}"
 LLM_PROXY_LIVEZ="${LLM_PROXY_LIVEZ:-http://127.0.0.1:${LLM_PROXY_PORT}/livez}"

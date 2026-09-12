@@ -1,6 +1,6 @@
 # Taskfile.staging.yml
 # ─────────────────────────────────────────────────────────────────────────────
-# On-demand per-branch staging in the k3d-mentolder-dev cluster.
+# On-demand per-branch staging — needed the local k3d cluster, removed with T900145.
 # Usage:
 #   task staging:up BRANCH=feature/xyz [SEED=empty|snapshot] [WITH_BRETT=false]
 #   task staging:down BRANCH=feature/xyz
@@ -11,7 +11,7 @@
 version: "3"
 
 vars:
-  CTX: k3d-mentolder-dev
+  CTX: devmesh
   CLUSTER_NAME: mentolder-dev
   STATE_DIR:
     sh: echo "${HOME}/.local/share/workspace-staging"

@@ -28,7 +28,7 @@ includes:
   finetune-eval:
     taskfile: ./taskfiles/Taskfile.finetune-eval.yml
     dir: .
-  # dev.mentolder.de — persistent staging stack via k3d on WSL host (context: k3d-mentolder-dev).
+  # dev.mentolder.de — persistent staging stack on fleet (namespace workspace-dev).
   # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
   dev:
     taskfile: ./taskfiles/Taskfile.dev-stack.yml
@@ -45,7 +45,7 @@ includes:
       NS_PROD: workspace-korczewski
       CLUSTER_NAME: korczewski-dev
   # Staging on-demand — per-branch isolated k3d namespaces.
-  # See Taskfile.staging.yml + docs/superpowers/specs/2026-06-11-staging-on-demand-design.md.
+  # See Taskfile.staging.yml + docs/superpowers/specs/archive/2026-06-11-staging-on-demand-design.md.
   staging:
     taskfile: ./taskfiles/Taskfile.staging.yml
     dir: .

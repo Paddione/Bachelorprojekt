@@ -22,7 +22,7 @@ setup() {
   run bash "$BACKUP" run --dry-run
   [ "$status" -eq 0 ]
   # Quelle ist der lokale Stack …
-  [[ "$output" == *"k3d-mentolder-dev"* ]]
+  [[ "$output" == *"devmesh"* ]]
   # … Ziel ist fleet. Die umgekehrte Richtung waere eine Sicherung der
   # Produktionsdaten auf der Workstation — das Gegenteil des Zwecks.
   [[ "$output" == *"-> fleet:"* ]]

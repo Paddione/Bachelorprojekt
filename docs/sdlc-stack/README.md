@@ -1,6 +1,6 @@
 # SDLC-Stack — Lokale Entwicklungsumgebung
 
-k3d-Cluster `mentolder-dev` (Kontext `k3d-mentolder-dev`) mit SDLC-Console,
+k3d-Cluster `mentolder-dev` (Kontext `devmesh`) mit SDLC-Console,
 lokaler PostgreSQL, bge-Embedding/Reranking und Pocket ID Auth.
 
 ## Voraussetzungen
@@ -25,14 +25,14 @@ free -g   # total >= 36 GB = OK
 ## Cluster anlegen
 
 ```bash
-task sdlc:cluster:create
+task devmesh:create
 ```
 
 Der Task:
 - erstellt den Cluster aus `k3d/sdlc-stack/k3d-config.yaml` (name: mentolder-dev)
 - wartet auf Ready-Nodes (120 s Timeout)
 - entfernt den toten `k3d-korczewski`-Kontext
-- setzt `k3d-mentolder-dev` als aktiven Kontext
+- setzt `devmesh` als aktiven Kontext
 
 ## Deployen
 
@@ -91,16 +91,16 @@ curl -sS -L -o /dev/null -w '%{http_code}' http://sdlc.localhost
 # → 200 (302-Redirect auf /sdlc/cockpit wird gefolgt, T003036)
 
 # Health-Check zeigt BUILD_TARGET=sdlc
-kubectl --context k3d-mentolder-dev exec -n workspace deploy/sdlc-console -- sh -c 'echo BUILD_TARGET=$BUILD_TARGET'
+kubectl --context devmesh exec -n workspace deploy/sdlc-console -- sh -c 'echo BUILD_TARGET=$BUILD_TARGET'
 # → BUILD_TARGET=sdlc
 
 # bge antwortet
-kubectl --context k3d-mentolder-dev port-forward -n workspace svc/llm-gateway-embed 8081:8081 &
+kubectl --context devmesh port-forward -n workspace svc/llm-gateway-embed 8081:8081 &
 curl http://127.0.0.1:8081/health
 # → 200 (analog llm-gateway-rerank)
 
 # lokales tickets-Schema nach erster Anfrage
-kubectl --context k3d-mentolder-dev exec -n workspace deploy/shared-db -- \
+kubectl --context devmesh exec -n workspace deploy/shared-db -- \
   psql -U website -d website -c "SELECT count(*) FROM tickets.tickets;"
 # → 0 (Schema existiert, leer — Migration erst in E3)
 
@@ -119,13 +119,13 @@ nutzt sie als Fallback, wenn die lokale Instanz nicht antwortet.
 
 ```bash
 task sdlc:status
-task sdlc:cluster:status
+task devmesh:status
 ```
 
 ## Löschen
 
 ```bash
-task sdlc:cluster:delete
+task devmesh:delete
 ```
 
 ## Architektur
@@ -144,9 +144,9 @@ task sdlc:cluster:delete
 deshalb `fleet` (Namespace `workspace`).
 
 > **Was hier bis 2026-08-30 stand:** E3 (T002626) hatte das `tickets`-Schema lokal verortet
-> (`k3d-mentolder-dev`) und die fleet-Kopie als eingefroren beschrieben — `SELECT` ja,
+> (`devmesh`) und die fleet-Kopie als eingefroren beschrieben — `SELECT` ja,
 > Schreibzugriffe nein. Das gilt seit ADR-007 nicht mehr. Die Defaults in den sechs
-> Ticket-Skripten zeigten allerdings noch auf `k3d-mentolder-dev`; nachgezogen mit T900013.
+> Ticket-Skripten zeigten allerdings noch auf `devmesh`; nachgezogen mit T900013.
 > Ablauf und Rueckweg der damaligen Umstellung: [e3-cutover.md](e3-cutover.md).
 
 ### Verfuegbarkeitserwartung
@@ -173,7 +173,7 @@ referenziert sie mit 13 Zeilen, und Coaching bleibt laut ADR-006 auf fleet.
 
 | Instanz | Zuständig für |
 |---|---|
-| lokal (`k3d-mentolder-dev`) | LLM-Provider-Wahl der Factory |
+| lokal (`devmesh`) | LLM-Provider-Wahl der Factory |
 | fleet | ausschließlich Coaching |
 
 Sie sind bewusst unabhängig. **Wer eine ändert, ändert nicht die andere** — das ist der

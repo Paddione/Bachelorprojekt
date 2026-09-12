@@ -49,24 +49,6 @@ setup() {
 
 # ── Orchestration order: sdlc:up ─────────────────────────────────────────────
 
-@test "sdlc:up dry-run calls cluster:create before deploy" {
-  run $TASK --dry sdlc:sdlc:up
-  CREATE_LINE=$(echo "$output" | grep -n 'sdlc:cluster:create' | head -1 | cut -d: -f1)
-  DEPLOY_LINE=$(echo "$output" | grep -n 'sdlc:deploy' | head -1 | cut -d: -f1)
-  [ -n "$CREATE_LINE" ]
-  [ -n "$DEPLOY_LINE" ]
-  [ "$CREATE_LINE" -lt "$DEPLOY_LINE" ]
-}
-
-@test "sdlc:up dry-run calls deploy before proxy:start" {
-  run $TASK --dry sdlc:sdlc:up
-  DEPLOY_LINE=$(echo "$output" | grep -n 'sdlc:deploy' | head -1 | cut -d: -f1)
-  PROXY_LINE=$(echo "$output" | grep -n 'llm:proxy:start' | head -1 | cut -d: -f1)
-  [ -n "$DEPLOY_LINE" ]
-  [ -n "$PROXY_LINE" ]
-  [ "$DEPLOY_LINE" -lt "$PROXY_LINE" ]
-}
-
 @test "sdlc:up dry-run calls proxy:start before health-gate" {
   run $TASK --dry sdlc:sdlc:up
   PROXY_LINE=$(echo "$output" | grep -n 'llm:proxy:start' | head -1 | cut -d: -f1)
@@ -82,15 +64,6 @@ setup() {
 }
 
 # ── Orchestration order: sdlc:down ───────────────────────────────────────────
-
-@test "sdlc:down dry-run calls proxy:stop before cluster:delete" {
-  run $TASK --dry sdlc:sdlc:down
-  STOP_LINE=$(echo "$output" | grep -n 'llm:proxy:stop' | head -1 | cut -d: -f1)
-  DELETE_LINE=$(echo "$output" | grep -n 'sdlc:cluster:delete' | head -1 | cut -d: -f1)
-  [ -n "$STOP_LINE" ]
-  [ -n "$DELETE_LINE" ]
-  [ "$STOP_LINE" -lt "$DELETE_LINE" ]
-}
 
 # ── Health-gate: names the failing component ─────────────────────────────────
 
@@ -118,11 +91,11 @@ setup() {
 }
 
 @test "health-gate with a reachable cluster but missing deployments exits non-zero" {
-  if ! kubectl config get-contexts k3d-mentolder-dev >/dev/null 2>&1; then
-    skip "cluster k3d-mentolder-dev context not configured"
+  if ! kubectl config get-contexts devmesh >/dev/null 2>&1; then
+    skip "cluster devmesh context not configured"
   fi
   # Run against the real cluster; it may be up but missing deployments
-  run bash "$HEALTH_GATE" --context k3d-mentolder-dev --timeout 5
+  run bash "$HEALTH_GATE" --context devmesh --timeout 5
   # If it passes (all present), skip; if not, must be non-zero
   if [ "$status" -eq 0 ]; then
     skip "all deployments are ready — cannot test failure path"
@@ -132,12 +105,12 @@ setup() {
 
 @test "health-gate never exits 0 when a component is not ready" {
   # Count ready deployments, check health-gate matches
-  if ! kubectl config get-contexts k3d-mentolder-dev >/dev/null 2>&1; then
-    skip "cluster k3d-mentolder-dev context not configured"
+  if ! kubectl config get-contexts devmesh >/dev/null 2>&1; then
+    skip "cluster devmesh context not configured"
   fi
-  READY_COUNT=$(kubectl --context k3d-mentolder-dev get deploy -n workspace \
+  READY_COUNT=$(kubectl --context devmesh get deploy -n workspace \
     -o jsonpath='{range .items[?(@.status.readyReplicas)]}{.metadata.name}{"\n"}{end}' 2>/dev/null | wc -l)
-  run bash "$HEALTH_GATE" --context k3d-mentolder-dev --timeout 5
+  run bash "$HEALTH_GATE" --context devmesh --timeout 5
   # If health-gate reports failure, exit code must be non-zero
   if echo "$output" | grep -qi 'not ready\|unavailable\|failed\|missing'; then
     [ "$status" -ne 0 ]
@@ -154,4 +127,18 @@ setup() {
 @test "sdlc:dev exists separately and carries BUILD_TARGET=sdlc" {
   run $TASK --dry sdlc:sdlc:dev
   echo "$output" | grep -q 'BUILD_TARGET=sdlc'
+}
+
+@test "sdlc:up dry-run checks the rollout before proxy:start and creates no cluster" {
+  run $TASK --dry sdlc:sdlc:up
+  ROLLOUT_LINE=$(echo "$output" | grep -n 'rollout status' | head -1 | cut -d: -f1)
+  PROXY_LINE=$(echo "$output" | grep -n 'llm:proxy:start' | head -1 | cut -d: -f1)
+  [ -n "$ROLLOUT_LINE" ]; [ -n "$PROXY_LINE" ]; [ "$ROLLOUT_LINE" -lt "$PROXY_LINE" ]
+  [ -z "$(echo "$output" | grep -nE 'k3d cluster|cluster:create' || true)" ]
+}
+
+@test "sdlc:down dry-run stops the proxy and deletes no cluster" {
+  run $TASK --dry sdlc:sdlc:down
+  echo "$output" | grep -q 'llm:proxy:stop'
+  [ -z "$(echo "$output" | grep -nE 'k3d cluster|cluster:delete' || true)" ]
 }

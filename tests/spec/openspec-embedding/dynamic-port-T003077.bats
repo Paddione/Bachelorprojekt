@@ -6,7 +6,7 @@
 # T003077: scripts/openspec-embed-local.sh hardcodes local port 15432 for its
 # kubectl port-forward onto svc/shared-db. A permanently running dev
 # port-forward on the same port (common on this host, e.g. a manual
-# `kubectl --context k3d-mentolder-dev port-forward -n workspace svc/shared-db
+# `kubectl --context fleet port-forward -n workspace svc/shared-db
 # 15432:5432`) collides with it on EVERY commit that touches
 # openspec/changes/<slug>/. The wrapper already fails loud instead of
 # silently writing to the wrong DB (T002870) — the gap is that a shared fixed

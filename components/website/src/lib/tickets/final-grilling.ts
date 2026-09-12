@@ -37,7 +37,7 @@ const STATIC_SUGGESTIONS: Record<string, string[]> = {
   q14: ['Keine bestehenden Tests betroffen', 'Tests in components/website/src/__tests__/', 'BATS-Tests in tests/unit/'],
   q15: ['Keine neuen Fixtures nötig', 'Neue Testdaten für DB-State', 'Mock-API-Response'],
   q16: ['task test:changed grün', 'Manuelle Prüfung im dev-Cluster', 'E2E in beiden Brands'],
-  q17: ['dev (k3d-mentolder-dev)', 'mentolder (prod)', 'korczewski (prod)', 'Alle Umgebungen'],
+  q17: ['dev (devmesh)', 'mentolder (prod)', 'korczewski (prod)', 'Alle Umgebungen'],
   q18: ['Kein Rollback nötig (rein additiv)', 'git revert + deploy', 'DB-Migration rückgängig via Skript'],
   q19: ['Keine DB/Secret-Änderungen', 'DB-Migration erforderlich', 'Neues Secret via env:seal'],
   q20: ['Paddione reviewed + auto-merge', 'Manueller Deploy nach CI', 'task workspace:deploy ENV=mentolder+korczewski'],

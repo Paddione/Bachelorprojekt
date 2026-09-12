@@ -32,7 +32,7 @@ Der Cluster besteht aus drei Control-Plane-Knoten (Steuerungsknoten) und drei Wo
 
 ### 1.2 Entwicklungs- und Testumgebung (Local Dev / k3d auf WSL-Host)
 
-> **Hinweis:** Das geplante `devc`-3-Knoten-k3s-HA-Cluster wurde nie gebaut (shelved 2026-05-30). Die lokale Entwicklung findet auf einem k3d-Cluster (lokales Test-Kubernetes in Docker) auf dem WSL-Host / Proxmox-VM `dev-vm` statt. Kontext: `k3d-mentolder-dev`.
+> **Hinweis:** Das geplante `devc`-3-Knoten-k3s-HA-Cluster wurde nie gebaut (shelved 2026-05-30). Die lokale Entwicklung läuft seit ADR-008 auf dem k3s-Cluster `devmesh` (vier Hosts im Heimnetz); der frühere k3d-Cluster ist mit T900145 abgebaut. Kontext: `devmesh`.
 
 | Servername | Rolle | LAN-IP-Adresse | WireGuard IP (`wg-mesh`) | WireGuard Public Key |
 |---|---|---|---|---|

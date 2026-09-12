@@ -28,6 +28,7 @@
 # Resolve the repo root from this file's location so the fixture works
 # regardless of the BATS working directory.
 _FIXTURE_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+export FACTORY_CTX="${FACTORY_CTX:-devmesh}"   # [T900145] Tests never write to fleet
 
 # _fixture_marker_comment <brand> <ctx> <ext_id> — setzt den Isolations-Marker
 # (ticket_comments.author_label='factory-test'), an dem watchdog.sh::_stale_query
@@ -47,7 +48,8 @@ _fixture_marker_comment() {
 seed_test_feature() {
   local brand="$1"; shift
   # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
-  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}"
+  local ctx="${FACTORY_CTX:-devmesh}"
+  [[ "$ctx" != "devmesh" ]] || skip "devmesh refuses ticket writes — set FACTORY_CTX to a writable test DB"
   if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
     echo "refusing to seed test data into prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
     return 3
@@ -86,7 +88,8 @@ seed_test_feature() {
 # Positiv-Anker schlaegt fehl.
 seed_real_feature() {
   local brand="$1"; shift
-  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}"
+  local ctx="${FACTORY_CTX:-devmesh}"
+  [[ "$ctx" != "devmesh" ]] || skip "devmesh refuses ticket writes — set FACTORY_CTX to a writable test DB"
   if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
     echo "refusing to seed test data into prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
     return 3
@@ -148,7 +151,7 @@ ensure_purge_fn_current() {
 # purge_factory_test_data <brand> — reap all is_test_data=true rows on that brand
 purge_factory_test_data() {
   local brand="$1"
-  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
+  local ctx="${FACTORY_CTX:-devmesh}" ns
   # [T002689] Die Brand waehlt ZEILEN, nicht den Ort. seed_test_feature schreibt
   # ueber scripts/ticket.sh, das seit T002689 fuer beide Brands nach `workspace`
   # aufloest — eine Purge in `workspace-korczewski` fand die eigenen Fixtures
@@ -198,7 +201,7 @@ purge_real_feature() {
     shift
   fi
   local brand="$1" ext_id="$2"
-  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
+  local ctx="${FACTORY_CTX:-devmesh}" ns
   if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
     echo "refusing to purge on prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
     return 3

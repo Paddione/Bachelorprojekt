@@ -5,7 +5,7 @@
 # reachable from outside (e.g. gekko on mobile). Files are uploaded via kubectl cp
 # to the sessions-server nginx pod on fleet, served at
 # https://session-<slug>.sessions.mentolder.de (Wildcard-Cert via DNS-01/ipv64).
-# The Mediaviewer on k3d-mentolder-dev reads the registry via /api/admin/sessions.
+# The Mediaviewer on fleet (namespace workspace-dev) reads the registry via /api/admin/sessions.
 #
 # Registry: ~/.local/share/bachelorprojekt/active-sessions.json (array). Override
 # with SESSION_HUB_REGISTRY (used by tests). Set SESSION_HUB_NO_TUNNEL=1 to skip
@@ -23,7 +23,7 @@ REGISTRY="${SESSION_HUB_REGISTRY:-$HOME/.local/share/bachelorprojekt/active-sess
 SESSION_HUB_DOMAIN="${SESSION_HUB_DOMAIN:-${SESSIONS_DOMAIN:-sessions.mentolder.de}}"
 # Registry-Mirror-Ziele ("context/namespace" leerzeichengetrennt), Default:
 # Dev-Website-Pod + Prod-Website-Pod auf fleet [T016251].
-SESSION_HUB_SYNC_TARGETS="${SESSION_HUB_SYNC_TARGETS:-k3d-mentolder-dev/workspace-dev fleet/workspace}"
+SESSION_HUB_SYNC_TARGETS="${SESSION_HUB_SYNC_TARGETS:-fleet/workspace-dev fleet/workspace}"
 
 _now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 _slug() { printf '%s' "$1" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-'; }

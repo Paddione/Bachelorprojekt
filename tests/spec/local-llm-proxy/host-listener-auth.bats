@@ -30,7 +30,7 @@ setup() {
 }
 
 @test "bridge listener requires bearer token when open" {
-  BRIDGE_IP=$(docker network inspect "${LLM_PROXY_K3D_NETWORK:-k3d-mentolder-dev}" -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' 2>/dev/null || true)
+  BRIDGE_IP=$(docker network inspect "${LLM_PROXY_K3D_NETWORK:-}" -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' 2>/dev/null || true)
   [ -n "$BRIDGE_IP" ] || skip "k3d docker network gateway not available"
 
   # Pruefen, ob der Bridge-Listener ueberhaupt antwortet

@@ -177,14 +177,14 @@ networks:
     status: active
     source: Docker-Daemon
 
-  - id: docker-k3d-mentolder-dev
+  - id: docker-k3d-sdlc-dev
     cidr: 172.23.0.0/16
     owner: Docker (Entwicklungsrechner)
-    purpose: Netz des k3d-Clusters k3d-mentolder-dev (abgebaut)
+    purpose: Netz des lokalen k3d-SDLC-Clusters mentolder-dev (abgebaut)
     status: retired
     source: Docker-Daemon (k3d)
     notes: >-
-      Der Cluster wurde mit PR #5316 endgültig entfernt; der Bereich bleibt
+      Der Cluster wurde mit T900145 abgebaut (Nachfolger devmesh, ADR-008); der Bereich bleibt
       als retired stehen, damit eine Neuvergabe als Kollision auffällt.
 
   - id: mentolder-mesh

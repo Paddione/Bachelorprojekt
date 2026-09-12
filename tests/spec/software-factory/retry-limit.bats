@@ -45,7 +45,7 @@ setup() {
   STUB_BIN="$BATS_TEST_TMPDIR/bin"
   mkdir -p "$STUB_BIN"
   export PATH="$STUB_BIN:$PATH"
-  export TICKET_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
+  export TICKET_CTX="${FACTORY_CTX:-devmesh}"
 
   EXEC="$REPO_ROOT/scripts/factory/opencode-exec.sh"
 }

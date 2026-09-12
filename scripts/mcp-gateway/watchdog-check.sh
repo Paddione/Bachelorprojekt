@@ -64,7 +64,7 @@ if [ "$gateway_failed" -eq 1 ]; then
   fi
 fi
 if [ "$postgres_failed" -eq 1 ]; then
-  phase=$(kubectl --context k3d-mentolder-dev -n workspace get pod -l app=shared-db \
+  phase=$(kubectl --context devmesh -n workspace get pod -l app=shared-db \
     -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
   if [ "$phase" = "Running" ]; then
     echo "RESTART k3d-postgres-forward.service + mcp-postgres-local.service (Probe 13001 fehlgeschlagen, Pod Running)"

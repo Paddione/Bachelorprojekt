@@ -58,12 +58,12 @@ teardown() {
 # einen harten Fehler.
 _skip_if_pool_busy() {
   local need=2 used b global_used free
-  used=$(env BRAND=mentolder FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}" bash scripts/factory/slots.sh count 2>/dev/null) || used=0
+  used=$(env BRAND=mentolder FACTORY_CTX="${FACTORY_CTX:-devmesh}" bash scripts/factory/slots.sh count 2>/dev/null) || used=0
   [[ "$used" =~ ^[0-9]+$ ]] || used=0
   global_used="$used"
   free=$(( ${FACTORY_SLOTS_PER_BRAND:-3} - used ))
   for b in korczewski; do
-    used=$(env BRAND="$b" FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}" bash scripts/factory/slots.sh count 2>/dev/null) || used=0
+    used=$(env BRAND="$b" FACTORY_CTX="${FACTORY_CTX:-devmesh}" bash scripts/factory/slots.sh count 2>/dev/null) || used=0
     [[ "$used" =~ ^[0-9]+$ ]] || used=0
     global_used=$((global_used + used))
   done
@@ -79,10 +79,10 @@ _skip_if_pool_busy() {
 # purge_real_feature: -U postgres -d website, < /dev/null gegen Stdin-Drain).
 _fixture_psql() {
   local pod
-  pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1) || true
   [[ -n "$pod" ]] || return 1
-  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" -c postgres -- \
+  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" -c postgres -- \
     psql -U postgres -d website -qtAc "$1" < /dev/null
 }
 

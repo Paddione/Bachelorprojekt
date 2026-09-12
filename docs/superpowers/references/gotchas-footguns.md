@@ -24,9 +24,8 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 18. [git worktree add mit git-crypt-geschützten Pfaden: Smudge-Fehler erwartet](#git-worktree-add-mit-git-crypt-geschutzten-pfaden-smudge-fehler-erwartet-t002495-m5) — bei direktem `git worktree add` auf Locked-Repo
 19. [skip-worktree: git status schweigt, pull scheitert](#skip-worktree-git-status-schweigt-pull-scheitert-t002712) — stille Blockade im Hauptcheckout
 20. [Assertions dürfen nur an der geprüften Sache scheitern](#assertions-durfen-nur-an-der-gepruften-sache-scheitern-t002834t002850t002878) — Helper-Funktionen ohne `return 0`, mutierende Freshness-Checks, feste `sleep`-Wartezeiten
-21. [Kubelet-Serving-Zertifikat nach Docker-IP-Tausch (T002999)](#kubelet-serving-zertifikat-nach-docker-ip-tausch-t002999) — "tls: failed to verify certificate" betrifft nicht die DB, sondern das Kubelet
-22. [Taskfile deps & Includes (T005899)](#taskfile-deps--includes-t005899) — deps laufen parallel, nicht seriell; Cross-Include-Aufrufe brauchen führenden Doppelpunkt
-23. [gitleaks: lokal installieren, aber die CI-Version (T002506/T002554)](#gitleaks-lokal-installieren-aber-die-ci-version-t002506t002554) — Hook vs CI-Version und allowlist.paths
+21. [Taskfile deps & Includes (T005899)](#taskfile-deps--includes-t005899) — deps laufen parallel, nicht seriell; Cross-Include-Aufrufe brauchen führenden Doppelpunkt
+22. [gitleaks: lokal installieren, aber die CI-Version (T002506/T002554)](#gitleaks-lokal-installieren-aber-die-ci-version-t002506t002554) — Hook vs CI-Version und allowlist.paths
 
 ---
 
@@ -286,25 +285,6 @@ entscheiden, die sie behauptet zu prüfen. Bei jedem neuen Guard-/Freshness-/War
 lässt der Testlauf einen beobachtbaren Nebeneffekt zurück (Datei-Mutation, feste Wartezeit,
 globaler Zustand), der die Assertion aus einem anderen Grund kippen lassen könnte als dem
   geprüften? Wenn ja, den Nebeneffekt isolieren (Tempdir, Polling, Mock) statt ihn hinzunehmen.
-
-### Kubelet-Serving-Zertifikat nach Docker-IP-Tausch (T002999)
-
-**Symptom:** Alle Ticket-Operationen brechen plötzlich mit `tls: failed to verify certificate: x509: certificate is valid for 127.0.0.1, 172.23.0.3, not 172.23.0.4` ab. Die Meldung nennt `psql` und die Ticket-Tabelle — sie zeigt damit auf das falsche Subsystem. Der Fehler liegt im Kubelet-Serving-Zertifikat, nicht in der Datenbank.
-
-**Ursache:** Bei einem Container-Neustart (oder Restart des Docker-Daemons) können die Docker-IPs zwischen k3d-Nodes tauschen. Das Node-Objekt und `docker inspect` stimmen dann auf die neuen IPs — nur das Kubelet-Serving-Zertifikat auf dem Server-Node ist noch auf die alte IP ausgestellt. k3s schreibt die Datei zwar neu (erkennbar an der aktuellen mtime), stellt sie aber nicht neu aus.
-
-**Warum das so gefährlich ist:** Der Ausfall trifft alle drei Ticket-Werkzeuge gleichzeitig (`ticket.sh`, `ticket-mcp`, `factory-mcp`), weil alle drei denselben `kubectl exec`-Pfad teilen — also genau die Werkzeuge, mit denen man einen Ausfall dokumentieren würde. `kubectl rollout status` und `kubectl get pods` bleiben grün (die laufen über den API-Server), während jedes `kubectl exec` scheitert.
-
-**Reparatur:** Ein bloßer Container-Neustart reicht **nicht** — die mtime ändert sich, der SAN nicht. Vor dem Neustart müssen die Zertifikatsdateien gelöscht werden, damit k3s sie beim nächsten Start neu ausstellt:
-
-```bash
-docker exec k3d-mentolder-dev-server-0 sh -c \
-  'rm -f /var/lib/rancher/k3s/agent/serving-kubelet.crt \
-         /var/lib/rancher/k3s/agent/serving-kubelet.key'
-docker restart k3d-mentolder-dev-server-0
-```
-
-Beide Schritte automatisiert: `task sdlc:cert:check -- --repair` oder direkt `bash scripts/sdlc/kubelet-cert-check.sh --repair`. Der Health-Gate prüft den Zustand automatisch mit.
 
 ### Test-Guard misst Darstellung statt Semantik — vier Spielarten (T003104, T003108, T003548, T003230)
 

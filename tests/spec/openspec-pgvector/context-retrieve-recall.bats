@@ -42,7 +42,7 @@ _embed_ready() {
 
 _export_pgurl() {
   local pw
-  pw="$(kubectl --context k3d-mentolder-dev -n workspace get secret workspace-secrets \
+  pw="$(kubectl --context "${OPENSPEC_DB_CTX:-fleet}" -n workspace get secret workspace-secrets \
     -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || true)"
   if [[ -z "$pw" ]]; then
     skip "workspace-secrets not readable (offline/CI)"

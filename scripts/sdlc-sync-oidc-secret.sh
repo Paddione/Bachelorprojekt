@@ -17,10 +17,10 @@
 # Das Skript generiert ein frisches Secret ueber die Admin-API und schreibt es in
 # beide Secrets, dann startet es die Console neu.
 #
-#   ./scripts/sdlc-sync-oidc-secret.sh [--context k3d-mentolder-dev] [--client website]
+#   ./scripts/sdlc-sync-oidc-secret.sh [--context devmesh] [--client website]
 set -euo pipefail
 
-CONTEXT="k3d-mentolder-dev"
+CONTEXT="devmesh"
 NS="workspace"
 CLIENT="website"
 SECRET_KEY="POCKET_ID_WEBSITE_SECRET"

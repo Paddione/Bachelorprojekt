@@ -9,7 +9,7 @@
 # Environment variables:
 #   BRAND           mentolder | korczewski — row filter only, NOT a namespace [T002689]
 #   FACTORY_NS      namespace of the SDLC database (default: workspace)
-#   FACTORY_CTX     kubectl context (default: k3d-mentolder-dev)
+#   FACTORY_CTX     kubectl context (default: fleet)
 #   FACTORY_DRY_RESOLVE  if non-empty, prints resolved ctx+ns and exits 0 (used by tests)
 #
 # Output: JSON array of conflicting ticket external_ids, or empty array [].

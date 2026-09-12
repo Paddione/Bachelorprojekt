@@ -25,7 +25,7 @@ load "../../lib/factory-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestuetzter Test uebersprungen"
@@ -34,7 +34,7 @@ _skip_if_no_db() {
 setup_file() {
   export TICKET_TEST_BRAND="mentolder"
   export TICKET_TEST_DB_OK=1
-  export TICKET_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
+  export TICKET_CTX="${FACTORY_CTX:-devmesh}"
   export ANCHOR_ID_FILE="$BATS_FILE_TMPDIR/anchor_id"
   export SEEDED_ID_FILE="$BATS_FILE_TMPDIR/seeded_id"
 }
@@ -45,7 +45,7 @@ setup_file() {
 _db_delete() {
   local id="$1"
   [[ -n "$id" ]] || return 0
-  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns="workspace" pod=""
+  local ctx="${FACTORY_CTX:-devmesh}" ns="workspace" pod=""
   for candidate_ns in workspace workspace-dev; do
     pod=$(kubectl get pod -n "$candidate_ns" --context "$ctx" \
       -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \

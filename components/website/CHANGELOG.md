@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.342.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.341.1...website-v1.342.0) (2026-09-12)
+
+
+### Features
+
+* **agent-behavior:** standardize agent visual accessibility and decision modals [T900165] ([#5620](https://github.com/Paddione/Bachelorprojekt/issues/5620)) ([1e2facf](https://github.com/Paddione/Bachelorprojekt/commit/1e2facf218833240e9afd3287efd264f36659676))
+
 ## [1.341.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.341.0...website-v1.341.1) (2026-09-12)
 
 

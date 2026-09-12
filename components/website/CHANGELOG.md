@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.339.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.338.0...website-v1.339.0) (2026-09-12)
+
+
+### Features
+
+* **db:** GitHub SDLC: complete issue and PR snapshot reconciler [T900161] ([#5606](https://github.com/Paddione/Bachelorprojekt/issues/5606)) ([d65b381](https://github.com/Paddione/Bachelorprojekt/commit/d65b38119fc10ba0d11983e19fd8f0210eae8150))
+
 ## [1.338.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.337.0...website-v1.338.0) (2026-09-12)
 
 

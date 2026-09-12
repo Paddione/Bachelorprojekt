@@ -44,19 +44,19 @@ _Ticket: T900167_
   expected: FAIL — `not ok 18 T002305: AGENTS.md runtime table covers every registry runtime`.
 
 ### Task 2 — Stale Rollen aus der Registry entfernen
-- [ ] `docs/agent-guide/registry/agents.yaml`: die fuenf Bloecke `freetoken-primary:`,
+- [x] `docs/agent-guide/registry/agents.yaml`: die fuenf Bloecke `freetoken-primary:`,
   `freetoken-thinking:`, `freetoken-fast-1:`, `freetoken-fast-2:`, `freetoken-fast-3:`
   (jeweils mit `mode`, `model`, `write_capable`, `note`) vollstaendig entfernen.
   `qwen38:` (bereits vorhanden, Zeile 74 im Ist-Zustand) bleibt unveraendert stehen —
   es ist die von T900163 gewaehlte Ersatzrolle fuer dasselbe Modell
   `llamacpp-local/qwen38-220k`.
-- [ ] `yq eval '.roles | keys' docs/agent-guide/registry/agents.yaml` gegenpruefen: keine
+- [x] `yq eval '.roles | keys' docs/agent-guide/registry/agents.yaml` gegenpruefen: keine
   der fuenf Rollen mehr gelistet, `qwen38` weiterhin vorhanden.
 
 ### Task 3 — Abgeleitete Artefakte regenerieren
-- [ ] `task agent-guide:maps` ausfuehren — regeneriert `docs/agent-guide/maps/agents-map.md`
+- [x] `task agent-guide:maps` ausfuehren — regeneriert `docs/agent-guide/maps/agents-map.md`
   aus der bereinigten Registry.
-- [ ] `git diff docs/agent-guide/maps/agents-map.md` pruefen: die vier freetoken-Zeilen
+- [x] `git diff docs/agent-guide/maps/agents-map.md` pruefen: die vier freetoken-Zeilen
   (fast-1/2/3, primary, thinking) sind verschwunden, keine anderen Rollen betroffen.
 
 ## Verify (RED → GREEN)

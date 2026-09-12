@@ -86,31 +86,6 @@ runtimes:
     model: llamacpp-local/qwen38-220k
     write_capable: false
     note: "Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
-  freetoken-primary:
-    mode: primary
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Dedizierter Tab-selectable Primary auf llamacpp-local/qwen38-220k (llm-proxy :18235, Loadout Port 8094). Name historisch aus der FreeToken-Aera (T014105), Modell dahinter ist der qwen38-220k-Backbone [T900164]."
-  freetoken-thinking:
-    mode: all
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Reasoning-Agent auf llamacpp-local/qwen38-220k (llm-proxy :18235) — selectable als Primary und dispatchable als Subagent. Name historisch (FreeToken-Aera); Thinking wird dynamisch pro Request injiziert. [T900164]"
-  freetoken-fast-1:
-    mode: all
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Non-thinking worker 1/3 auf llamacpp-local/qwen38-220k (llm-proxy :18235) mit separatem OpenCode-Kontext (85k Cap); gemeinsamer Backend-Pool, sequenzieller Dispatch. Name historisch (FreeToken-Aera) [T900164]."
-  freetoken-fast-2:
-    mode: all
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Non-thinking worker 2/3 auf llamacpp-local/qwen38-220k (llm-proxy :18235) mit separatem OpenCode-Kontext (85k Cap); gemeinsamer Backend-Pool, sequenzieller Dispatch. Name historisch (FreeToken-Aera) [T900164]."
-  freetoken-fast-3:
-    mode: all
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Non-thinking worker 3/3 auf llamacpp-local/qwen38-220k (llm-proxy :18235) mit separatem OpenCode-Kontext (85k Cap); gemeinsamer Backend-Pool, sequenzieller Dispatch. Name historisch (FreeToken-Aera) [T900164]."
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle

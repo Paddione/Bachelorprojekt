@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.340.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.339.0...website-v1.340.0) (2026-09-12)
+
+
+### Features
+
+* **agents:** auto-swap engine on model picker switch [T900155] ([#5610](https://github.com/Paddione/Bachelorprojekt/issues/5610)) ([be898ff](https://github.com/Paddione/Bachelorprojekt/commit/be898ffa7a4c66a0aba0f8643ea1b683ecc9adce))
+
 ## [1.339.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.338.0...website-v1.339.0) (2026-09-12)
 
 

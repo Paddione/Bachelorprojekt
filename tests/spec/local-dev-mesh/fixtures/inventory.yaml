@@ -1,0 +1,30 @@
+# Test-Fixture fuer tests/spec/local-dev-mesh/*.bats [T900117] — NICHT das echte Inventar.
+# Tailnet-Namen sind erfunden; die echten Werte stehen in devmesh/inventory.yaml.
+k3s_version: v1.36.1+k3s1
+peers:
+  - name: gpu-metal
+    role: server
+    tag: tag:devmesh
+    lan_ip: 10.1.0.101
+    tailnet_name: gpu-metal.example-tailnet.ts.net
+    k3s_role: server-init
+    labels: []
+  - name: gpu-cluster
+    role: server
+    tag: tag:devmesh
+    lan_ip: 10.10.10.2
+    tailnet_name: gpu-cluster.example-tailnet.ts.net
+    k3s_role: server-join
+    labels: []
+  - name: gpu-cluster2
+    role: server
+    tag: tag:devmesh
+    lan_ip: 10.10.10.3
+    tailnet_name: gpu-cluster2.example-tailnet.ts.net
+    k3s_role: server-join
+    labels: [storage=true]
+  - name: pk-desktop
+    role: client
+    tag: tag:devclient
+    lan_ip: 10.10.0.3
+    tailnet_name: pk-desktop.example-tailnet.ts.net

@@ -2,11 +2,15 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # devmesh — lokaler k3s-Dev-Cluster auf Bare-Metal im Heimnetz (ADR-008).
 # SP-1 (T900116): Tailnet-Erreichbarkeit der devmesh-Server.
-# SP-2 (T900117) ergaenzt die Cluster-Tasks in diesem Namespace.
+# SP-2 (T900117): K3s-Installation, Preflight, Kubeconfig-Merge und Status.
 #
 # Usage:
 #   task devmesh:tailnet:check              # Exit 0 alle Server erreichbar, 1 Befund, 2 Vorbedingung
 #   task devmesh:tailnet:check -- --list    # Inventar validieren und ausgeben, ohne Tailscale-CLI
+#   task devmesh:preflight HOST=<name>            # Host pruefen (Exit 0/1/2)
+#   task devmesh:install HOST=<name> [DRY_RUN=1]  # k3s in der Inventar-Rolle installieren
+#   task devmesh:kubeconfig [SERVER=<name>]       # Context devmesh mergen
+#   task devmesh:status                           # Knoten, etcd, juengster Snapshot
 #
 # Runbook: docs/runbooks/devmesh-tailnet.md
 # ─────────────────────────────────────────────────────────────────────────────
@@ -17,3 +21,29 @@ tasks:
     desc: "devmesh: jeden Inventar-Server per tailscale ping pruefen und direct/relay melden (Exit 1 = Server unerreichbar, 2 = Vorbedingung fehlt)"
     cmds:
       - bash scripts/devmesh/tailnet-check.sh {{.CLI_ARGS}}
+
+  preflight:
+    desc: "devmesh: Host vor der k3s-Installation pruefen (HOST=<name aus devmesh/inventory.yaml>; Exit 1 = Befund, 2 = Vorbedingung)"
+    requires:
+      vars: [HOST]
+    cmds:
+      - bash scripts/devmesh/preflight.sh {{.HOST}}
+
+  install:
+    desc: "devmesh: k3s auf HOST in seiner Inventar-Rolle installieren (DRY_RUN=1 zeigt nur den Befehl)"
+    requires:
+      vars: [HOST]
+    env:
+      DRY_RUN: '{{.DRY_RUN | default "0"}}'
+    cmds:
+      - bash scripts/devmesh/k3s-install.sh {{.HOST}}
+
+  kubeconfig:
+    desc: "devmesh: Admin-Kubeconfig als Context devmesh mergen (SERVER=<name>, Default: server-init)"
+    cmds:
+      - bash scripts/devmesh/kubeconfig.sh {{.SERVER}}
+
+  status:
+    desc: "devmesh: Knoten, etcd-Mitglieder und juengsten etcd-Snapshot melden (Exit != 0 ab 12h Snapshot-Alter)"
+    cmds:
+      - bash scripts/devmesh/status.sh

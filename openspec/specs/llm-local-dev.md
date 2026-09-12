@@ -308,21 +308,20 @@ reaches the loading location and the alias keeps its static fallback limit
 ### Requirement: Project Default Model Targets the FreeToken Alias
 
 The project opencode config `.opencode/opencode.jsonc` SHALL declare
-`freetoken-local/active` as its top-level default `model`. It SHALL NOT declare
-a default that resolves to the retired llama.cpp proxy stack
-(`llamacpp-local/*`).
+`llamacpp-local/qwen38-220k` as its top-level default `model`. It SHALL NOT declare a default
+that resolves to the retired FreeToken-native engine (`freetoken-local/*`).
 
-Rationale: the GPU-chat loadouts of the llm-proxy are decommissioned
-(`enabled: false` across `scripts/llm/loadouts.json`, proxy :18235 down); a
-project session starting on `llamacpp-local/qwen38-220k` boots against a dead
-backend (T016419). The global config already carries no default, making the
-project value the effective one for repo sessions.
+Rationale: FreeToken (Windows-native, port 1919) is decommissioned by operator decision
+(T900164). `llamacpp-local/qwen38-220k` is `enabled: true` in `scripts/llm/loadouts.json` and
+served through the llm-proxy on `:18235`, which already carries every re-routed agent from
+`.opencode/agent-models.jsonc` (T900163). A project default naming the retired engine boots
+against a dead backend.
 
-#### Scenario: Default model resolves to the resident FreeToken checkpoint
+#### Scenario: Default model resolves to the qwen38-220k loadout
 
 - **GIVEN** `.opencode/opencode.jsonc` declares its top-level `model`
 - **WHEN** the value is read
-- **THEN** it equals `freetoken-local/active`
+- **THEN** it equals `llamacpp-local/qwen38-220k`
 
 ### Requirement: Dead Checkpoints Are Not Declared
 

@@ -53,29 +53,29 @@ runtimes:
   # das Backend llamacpp-qwen bleibt per Migration deaktiviert.
   gptoss:
     mode: subagent
-    model: freetoken-local/active
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "NAME luegt ueber das Modell. Modellagnostisch auf FreeToken-native (:1919) — der Alias 'active' serviert immer das gerade residente Modell (Plugin freetoken-active setzt das Kontext-Limit beim Start). Name bleibt als Dispatch-Schnittstelle [T900162]."
+    note: "Lokaler Qwen-3.8 via llama.cpp (llamacpp-local/qwen38-220k, llm-proxy :18235, Loadout Port 8094). NAME luegt ueber das Modell — bleibt als Dispatch-Schnittstelle [T900162]; FreeToken-native (:1919) ist decommissioned [T900164]."
   devstral:
     mode: subagent
-    model: freetoken-local/active
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell (Plugin freetoken-active setzt das Limit beim Start) [T900162]."
+    note: "Modellagnostisch auf llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235, Loadout Port 8094) [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
   gemma:
     mode: subagent
-    model: freetoken-local/active
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell (Plugin freetoken-active setzt das Limit beim Start) [T900162]."
+    note: "Modellagnostisch auf llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235, Loadout Port 8094) [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
   gemma12:
     mode: subagent
-    model: freetoken-local/active
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell (Plugin freetoken-active setzt das Limit beim Start) [T900162]."
+    note: "Modellagnostisch auf llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235, Loadout Port 8094) [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
   qwen38:
     mode: subagent
-    model: freetoken-local/active
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "qwen38 family: modellagnostisch auf FreeToken-native (:1919) — Alias 'active' serviert das residente Modell. EIN Slot — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [T900162]"
+    note: "qwen38 family: llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235). EIN Slot — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
   qwen-cloud:
     mode: subagent
     model: alibaba-intl/qwen3.8-max
@@ -83,34 +83,34 @@ runtimes:
     note: "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). Erste Cloud-Eskalationsstufe nach lokalen Modellen. Selbe Modell-Familie wie der Orchestrator [T013360]"
   reviewer:
     mode: subagent
-    model: freetoken-local/active
+    model: llamacpp-local/qwen38-220k
     write_capable: false
     note: "Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
   freetoken-primary:
     mode: primary
-    model: freetoken-local/active
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Dedizierter Tab-selectable Primary auf dem modellagnostischen FreeToken-Alias 'active' (:1919) [T014105]"
+    note: "Dedizierter Tab-selectable Primary auf llamacpp-local/qwen38-220k (llm-proxy :18235, Loadout Port 8094). Name historisch aus der FreeToken-Aera (T014105), Modell dahinter ist der qwen38-220k-Backbone [T900164]."
   freetoken-thinking:
     mode: all
-    model: freetoken-local/active-thinking
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "200k FreeToken reasoning agent; selectable as primary and dispatchable as subagent. Thinking is injected dynamically per request."
+    note: "Reasoning-Agent auf llamacpp-local/qwen38-220k (llm-proxy :18235) — selectable als Primary und dispatchable als Subagent. Name historisch (FreeToken-Aera); Thinking wird dynamisch pro Request injiziert. [T900164]"
   freetoken-fast-1:
     mode: all
-    model: freetoken-local/active-fast
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Non-thinking FreeToken worker 1/3 with a separate 85k OpenCode conversation context; shared engine/KV pool."
+    note: "Non-thinking worker 1/3 auf llamacpp-local/qwen38-220k (llm-proxy :18235) mit separatem OpenCode-Kontext (85k Cap); gemeinsamer Backend-Pool, sequenzieller Dispatch. Name historisch (FreeToken-Aera) [T900164]."
   freetoken-fast-2:
     mode: all
-    model: freetoken-local/active-fast
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Non-thinking FreeToken worker 2/3 with a separate 85k OpenCode conversation context; shared engine/KV pool."
+    note: "Non-thinking worker 2/3 auf llamacpp-local/qwen38-220k (llm-proxy :18235) mit separatem OpenCode-Kontext (85k Cap); gemeinsamer Backend-Pool, sequenzieller Dispatch. Name historisch (FreeToken-Aera) [T900164]."
   freetoken-fast-3:
     mode: all
-    model: freetoken-local/active-fast
+    model: llamacpp-local/qwen38-220k
     write_capable: false
-    note: "Non-thinking FreeToken worker 3/3 with a separate 85k OpenCode conversation context; shared engine/KV pool."
+    note: "Non-thinking worker 3/3 auf llamacpp-local/qwen38-220k (llm-proxy :18235) mit separatem OpenCode-Kontext (85k Cap); gemeinsamer Backend-Pool, sequenzieller Dispatch. Name historisch (FreeToken-Aera) [T900164]."
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle

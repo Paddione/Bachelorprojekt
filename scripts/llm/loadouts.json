@@ -427,33 +427,6 @@
       "exclusiveGroup": "chat-gpu"
     },
     {
-      "slug": "freetoken-local",
-      "label": "FreeToken native · Qwen3.6-35B-A3B NVFP4",
-      "model": "freetoken/Qwen3.6-35B-A3B-NVFP4.gguf",
-      "port": 1919,
-      "fit": {
-        "enabled": true,
-        "targetMarginMib": 0,
-        "minCtx": 4096
-      },
-      "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 1,
-        "cacheTypeK": null,
-        "cacheTypeV": null,
-        "loadMode": "mmap",
-        "flashAttention": false,
-        "jinja": false,
-        "metrics": false
-      },
-      "speculative": {},
-      "mcp": {},
-      "extraArgs": [],
-      "managed": "external",
-      "notes": "Extern verwalteter FreeToken-Server (T014028): Windows-nativ detached, OpenAI-kompatible API auf :1919/v1, kein systemd-Unit, kein llama-server. Liveness ueber Port-Probe; Start/Stop siehe docs/runbooks/freetoken-native.md. Gemessen: 262.144 Kontext (~103 tok/s warm). factory.model verweist auf diesen Slug, weil die Factory-Registry nur Loadout-Slugs kennt."
-    },
-    {
       "slug": "hauhau-qwen36",
       "label": "Qwen3.6-35B-A3B Uncensored (HauhauCS Aggressive) Q4_K_M - 131K, MoE-CPU-Offload",
       "model": "hauhau/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf",
@@ -519,7 +492,7 @@
     }
   },
   "factory": {
-    "model": "freetoken-local",
+    "model": "qwen38-220k",
     "locked": false
   }
 }

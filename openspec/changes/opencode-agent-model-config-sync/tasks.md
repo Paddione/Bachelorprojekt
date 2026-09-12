@@ -29,7 +29,7 @@ status: ready
 
 ## 2. RED-Phase: Failing-Test schreiben
 
-- [ ] 2.1 `tests/spec/opencode-config-ssot.bats` anlegen: Test 1 prüft big-pickle limit.context == 260000; Test 2 prüft je `freetoken-local`-Modelleintrag Messdatum-Kommentar (Regex `limit` + `messung`/`2026`); Test 3 prüft Sync-Idempotenz per dry-run (`scripts/opencode-sync-agents.sh --dry-run` diff leer); Test 4 prüft Stale-Marker (`// stale:` existiert für tot verifizierte Provider); Verifikation: `run bats tests/spec/opencode-config-ssot.bats` → `expected: FAIL` (Tests schlagen vor den Fixes fehl, mindestens 1× `not ok`)
+- [x] 2.1 `tests/spec/opencode-config-ssot.bats` anlegen: Test 1 prüft big-pickle limit.context == 260000; Test 2 prüft je `freetoken-local`-Modelleintrag Messdatum-Kommentar (Regex `limit` + `messung`/`2026`); Test 3 prüft Sync-Idempotenz per dry-run (`scripts/opencode-sync-agents.sh --dry-run` diff leer); Test 4 prüft Stale-Marker (`// stale:` existiert für tot verifizierte Provider); Verifikation: `run bats tests/spec/opencode-config-ssot.bats` → `expected: FAIL` (Tests schlagen vor den Fixes fehl, mindestens 1× `not ok`)
 
 ## 3. SSOT-Bereinigung: Stale-Modelle & Drifts
 

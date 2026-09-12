@@ -22,10 +22,10 @@ status: ready
 
 ## 1. Messung & Limit-Kalibrierung (35B-Familie)
 
-- [ ] 1.1 Messung gegen FreeToken-Server: `GET /models` je Variante (`active`/`active-thinking`/`active-fast`) + chat/completions-Langlauf bis 95% der deklarierten Grenze; protokolliere max_model_len und erreichte Ceiling mit Messdatum; Verifikation: Messprotokoll in Task-Antwort, kein `input sequence length exceeds` im Langlauf
-- [ ] 1.2 `.opencode/agent-models.jsonc`: `freetoken-local`-Limits auf gemessenen Wert minus 10% Reserve setzen, Messdatum als JSONC-Kommentar; Verifikation: `npx jsonc-parser`-Parse ok, diff zeigt Limit+Kommentar je Eintrag
-- [ ] 1.3 `.opencode/agent-models.jsonc`: `opencode-zen/big-pickle` limit.context 1000000 → 260000 korrigieren (Free-Quota, models.dev 256k-Basis) mit Messdatum-Kommentar; Verifikation: `grep -n "big-pickle" .opencode/agent-models.jsonc` zeigt neuen Wert + Kommentar
-- [ ] 1.4 `.opencode/opencode.jsonc`: Compaction buffer/keep.tokens so setzen, dass der Trigger unterhalb der gemessenen Ceiling von `freetoken-local/active` feuert; Wert mit Begründung kommentieren; Verifikation: Kommentar + Kalibrierwert in design.md D2 konsistent, JSONC-Parse ok
+- [x] 1.1 Messung gegen FreeToken-Server: `GET /models` je Variante (`active`/`active-thinking`/`active-fast`) + chat/completions-Langlauf bis 95% der deklarierten Grenze; protokolliere max_model_len und erreichte Ceiling mit Messdatum; Verifikation: Messprotokoll in Task-Antwort, kein `input sequence length exceeds` im Langlauf
+- [x] 1.2 `.opencode/agent-models.jsonc`: `freetoken-local`-Limits auf gemessenen Wert minus 10% Reserve setzen, Messdatum als JSONC-Kommentar; Verifikation: `npx jsonc-parser`-Parse ok, diff zeigt Limit+Kommentar je Eintrag
+- [x] 1.3 `.opencode/agent-models.jsonc`: `opencode-zen/big-pickle` limit.context 1000000 → 260000 korrigieren (Free-Quota, models.dev 256k-Basis) mit Messdatum-Kommentar; Verifikation: `grep -n "big-pickle" .opencode/agent-models.jsonc` zeigt neuen Wert + Kommentar
+- [x] 1.4 `.opencode/opencode.jsonc`: Compaction buffer/keep.tokens so setzen, dass der Trigger unterhalb der gemessenen Ceiling von `freetoken-local/active` feuert; Wert mit Begründung kommentieren; Verifikation: Kommentar + Kalibrierwert in design.md D2 konsistent, JSONC-Parse ok
 
 ## 2. RED-Phase: Failing-Test schreiben
 

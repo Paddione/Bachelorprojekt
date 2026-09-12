@@ -4745,6 +4745,12 @@
       "status": "archived"
     }
   ],
+  "T900163": [
+    {
+      "slug": "ssot-consolidation-stale-cleanup",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

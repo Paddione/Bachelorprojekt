@@ -15,6 +15,13 @@ setup() {
   cd "$REPO_ROOT" || return 1
 }
 
+teardown() {
+  # T900162-Review-Finding 7: Temp-Config-Verzeichnis nicht leaken.
+  if [[ -n "${SYNC_TMP_DIR:-}" ]]; then
+    rm -rf "$SYNC_TMP_DIR"
+  fi
+}
+
 @test "SSOT: opencode-zen/big-pickle limit.context == 260000" {
   node -e '
     const { parse } = require("jsonc-parser");
@@ -45,8 +52,12 @@ setup() {
       if (idx < 0) { bad.push(name + ": Key nicht gefunden"); continue; }
       const limitIdx = src.indexOf(`"limit": {`, idx);
       if (limitIdx < 0) { bad.push(name + ": kein limit-Block"); continue; }
-      if (!/messung|2026/.test(src.slice(idx, limitIdx))) {
-        bad.push(name + ": kein Messdatum-Kommentar (messung/2026)");
+      // Name-Zeile aus dem Slice nehmen: sie enthaelt "gemessen 2026-08-23"
+      // und wuerde einen unspezifischen /2026/-Match faelschlich gruen faerben
+      // (T900162-Review-Finding 2). Gefordert ist der // messung:-Kommentar.
+      const slice = src.slice(idx, limitIdx).replace(/"name"\s*:\s*"[^"]*",?/, "");
+      if (!/\/\/\s*messung\s*:/.test(slice)) {
+        bad.push(name + ": kein Messdatum-Kommentar (// messung:)");
       }
     }
     if (bad.length) { console.error(bad.join("\n")); process.exit(1); }
@@ -54,8 +65,8 @@ setup() {
 }
 
 @test "Sync: dry-run ist idempotent (leerer diff nach apply)" {
-  tmp="$(mktemp -d)"
-  export OPENCODE_CONFIG="$tmp/opencode.jsonc"
+  SYNC_TMP_DIR="$(mktemp -d)"
+  export OPENCODE_CONFIG="$SYNC_TMP_DIR/opencode.jsonc"
   # Erster Lauf wendet den Sync auf die Temp-Config an.
   bash scripts/opencode-sync-agents.sh >/dev/null 2>&1
   # Zweiter Lauf als dry-run: muss "no changes" melden (leerer diff).

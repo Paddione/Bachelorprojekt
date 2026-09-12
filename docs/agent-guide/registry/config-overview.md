@@ -3,12 +3,15 @@
 > Generiert von `scripts/opencode-config-viz.sh` — **nie von Hand editieren**.
 > Editier-Ziel ist die SSOT `.opencode/agent-models.jsonc`.
 
+<!-- opencode-config-viz: extra-config=/mnt/c/Users/PatrickKorczewski/.config/opencode/opencode.jsonc -->
+
 ## README
 
 - **SSOT:** `.opencode/agent-models.jsonc` — Provider, Modelle, Agenten.
 - **Status-Taxonomie:** `ok` (SSOT-Eintrag ohne Stale-Marker) · `stale` (tot verifiziert / Limit-Drift) · `fehlt` (SSOT-Modell ohne Agenten-Referenz) · `unbelegt` (Referenz ohne SSOT-Eintrag).
 - **nvim:** `nvim .opencode/agent-models.jsonc` — JSONC-Treesitter-Highlighting + `foldmethod=syntax` (`:set ft=jsonc foldmethod=syntax`).
 - **Windows-Desktop-Config** (`C:\Users\PatrickKorczewski\.config\opencode\opencode.jsonc`): zeigt `llamacpp-local` auf den dekommissionierten `:18235`-Stack; `qwen38-220k` deklariert 114688 statt 205056 (SSOT), `qwen36-35b-a3b-262k` und `llamacpp-native/qwen3.8-27b` existieren nicht in der SSOT, `big-pickle` deklariert 1000000 statt 260000. Einmalige manuelle Korrektur erforderlich — kein Cross-OS-Schreibzugriff (T900162).
+- **Reproduktion:** `bash scripts/opencode-config-viz.sh` regeneriert exakt dieses Dokument; die zusaetzlich validierte Config (`--config <pfad>`) wird als Markerzeile persistiert und beim Lauf ohne `--config` automatisch wiederverwendet.
 
 ## Provider
 
@@ -24,12 +27,12 @@
 
 | Modell | Limit (ctx/output) | Messung | Status |
 |---|---|---|---|
-| Qwen3.6-35B-A3B-NVFP4 | 200000/8192 | 2026-09-12 | `fehlt` |
-| gpt-oss-20b | 65536/8192 | 2026-09-12 | `fehlt` |
-| Gemma-4-26B-A4B-NVFP4 | 32768/8192 | 2026-09-12 | `fehlt` |
-| active | 131072/8192 | 2026-09-12 | `ok` |
-| active-thinking | 200000/16384 | 2026-09-12 | `ok` |
-| active-fast | 85000/8192 | 2026-09-12 | `ok` |
+| Qwen3.6-35B-A3B-NVFP4 | 200000/8192 | 2026-08-23 (Basis) | `fehlt` |
+| gpt-oss-20b | 65536/8192 | 2026-08-23 (Basis) | `fehlt` |
+| Gemma-4-26B-A4B-NVFP4 | 32768/8192 | 2026-08-23 (Basis) | `fehlt` |
+| active | 131072/8192 | 2026-08-23 (Basis) | `ok` |
+| active-thinking | 200000/16384 | 2026-08-23 (Basis) | `ok` |
+| active-fast | 85000/8192 | 2026-08-23 (Basis) | `ok` |
 
 ### alibaba-intl
 

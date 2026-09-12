@@ -690,6 +690,12 @@ Last touches:
   - Global Instructions Stay Lean | T900074 | 2026-09-11 | ADDED
   - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED
 In-flight:
+  - Engine Auto-Swap on FreeToken Model Selection | T900155 | active | ADDED
+  - Engine Stop on Non-FreeToken Model Selection | T900155 | active | ADDED
+  - Degraded Failure Path on Engine Switch | T900155 | active | ADDED
+  - Fetch-Wrapper Engine Consistency Guard | T900155 | active | ADDED
+  - Repo Plugin SSOT Sync | T900155 | active | ADDED
+  - BATS Coverage for Auto-Swap Logic | T900155 | active | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 

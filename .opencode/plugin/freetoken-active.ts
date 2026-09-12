@@ -1,52 +1,79 @@
-// freetoken-active — macht den Alias freetoken-local/active modellagnostisch.
+// freetoken-active — macht den Alias freetoken-local/active modellagnostisch
+// und fuehrt Auto-Swap beim Modellwechsel im Picker aus.
 //
 // FreeToken (Windows, :1919) ignoriert das model-Feld von Anfragen und serviert
-// immer das gerade residente Modell (live gegengeprueft 2026-08-23: bogus-ID
-// und nicht-residente ID liefern beide erfolgreich zurueck). Ein opencode-Agent
-// kann damit auf EINEN Alias zeigen und trifft trotzdem immer das aktive
-// Modell.
+// immer das gerade residente Modell. Ein opencode-Agent zeigt auf den Alias
+// "active". Limit + Name folgen dem tatsaechlich servierten Modell.
 //
-// Was FreeToken NICHT kann: das richtige Kontext-Limit melden. Der Server
-// advertiert max_model_len=262144, nutzbar sind aber nur die KV-Pages der
-// jeweiligen Serve-Konfiguration (Qwen 131072, gpt-oss 65536, Gemma 32768).
-// opencode nutzt limit.context fuer Auto-Compact bei 95% — ein falscher Wert
-// produziert genau die "Input sequence length exceeds"-Drops, gegen die die
-// Kalibrierung gebaut wurde.
-//
-// Dieser Plugin-Hook fragt deshalb beim opencode-Start zuerst den Daemon (:1900)
-// ab. Wenn die Desktop-App den Server ohne Daemon-Adoption gestartet hat, faellt
-// er auf :1919/v1/models + /v1/stats zurueck. Limit + Name des Alias-Entries
-// folgen damit dem tatsaechlich servierten Modell und seiner KV-Kapazitaet.
-// Fail-silent: ist kein Discovery-Pfad erreichbar, bleibt der statische Fallback.
-//
-// Grenze: config laeuft EINMAL beim opencode-Start. Wer mid-Session per
-// /engine/switch wechselt, startet opencode neu oder akzeptiert das Limit des
-// alten Modells bis dahin.
+// Auto-Swap (T900155): Bei session.next.model.switched wechselt das Plugin
+// die residente Engine ueber den Daemon (:1900). Bei Wechsel auf ein Nicht-FreeToken-
+// Modell wird die Engine gestoppt (/engine/stop) um VRAM freizugeben.
+// Synchroner Consistency-Guard im Fetch-Wrapper sichert Drift ab.
 
 import { appendFile } from "node:fs/promises"
 import { join } from "node:path"
 
 const DAEMON_STATUS = "http://127.0.0.1:1900/engine/status"
+const DAEMON_SWITCH = "http://127.0.0.1:1900/engine/switch"
+const DAEMON_START = "http://127.0.0.1:1900/engine/start"
+const DAEMON_STOP = "http://127.0.0.1:1900/engine/stop"
+
 const SERVER_MODELS = "http://127.0.0.1:1919/v1/models"
 const SERVER_STATS = "http://127.0.0.1:1919/v1/stats"
 const SERVER_CACHE = "http://127.0.0.1:1919/v1/cache/status"
 const THINKING_MODEL = "active-thinking"
 const FAST_MODEL = "active-fast"
 
-// Telemetrie-Ablage neben den bestehenden FreeToken-Logs
-// (scripts/llm/restart-freetoken.ps1 etabliert LOCALAPPDATA/FreeToken/logs
-// bereits als Log-Konvention). Der Pfad loest ueber LOCALAPPDATA immer in ein
-// Benutzerprofilverzeichnis auf, niemals in den Working Tree. Fehlt die
-// Variable (Nicht-Windows-CI), wird Telemetrie ohne Fehler uebersprungen.
+export interface EngineConfig {
+  model: string
+  port: number
+  args: string[]
+  contextLimit: number
+}
+
+export const ALIAS_ENGINE_MAP: Record<string, EngineConfig> = {
+  "active": {
+    model: "Qwen3.6-35B-A3B-NVFP4",
+    port: 1919,
+    args: ["--kv-reserve-tokens", "131072", "--max-running-requests", "1"],
+    contextLimit: 200000,
+  },
+  "active-thinking": {
+    model: "Qwen3.6-35B-A3B-NVFP4",
+    port: 1919,
+    args: ["--kv-reserve-tokens", "131072", "--max-running-requests", "1"],
+    contextLimit: 200000,
+  },
+  "active-fast": {
+    model: "Qwen3.6-35B-A3B-NVFP4",
+    port: 1919,
+    args: ["--kv-reserve-tokens", "131072", "--max-running-requests", "1"],
+    contextLimit: 85000,
+  },
+  "Qwen3.6-35B-A3B-NVFP4": {
+    model: "Qwen3.6-35B-A3B-NVFP4",
+    port: 1919,
+    args: ["--kv-reserve-tokens", "131072", "--max-running-requests", "1"],
+    contextLimit: 200000,
+  },
+  "gpt-oss-20b": {
+    model: "gpt-oss-20b",
+    port: 1919,
+    args: ["--kv-reserve-tokens", "65536", "--max-running-requests", "1"],
+    contextLimit: 65536,
+  },
+  "Gemma-4-26B-A4B-NVFP4": {
+    model: "Gemma-4-26B-A4B-NVFP4",
+    port: 1919,
+    args: ["--kv-reserve-tokens", "32768", "--max-running-requests", "1"],
+    contextLimit: 32768,
+  },
+}
+
 const TELEMETRY_PATH = process.env.LOCALAPPDATA
   ? join(process.env.LOCALAPPDATA, "FreeToken", "logs", "alias-telemetry.jsonl")
   : null
 
-// Fire-and-forget: die appendFile-Promise wird bewusst nicht awaited und
-// ihr Fehlerfall vollstaendig verschluckt. Ein Telemetrie-Ausfall darf den
-// ausgehenden Request weder verzoegern noch veraendern noch nach aussen
-// durchschlagen (Requirement: Alias Usage Telemetry for the FreeToken
-// Plugin, Szenario "A telemetry failure leaves the request untouched").
 const recordAliasUsage = (alias: unknown, promptChars: number) => {
   if (!TELEMETRY_PATH) return
   const record =
@@ -55,10 +82,7 @@ const recordAliasUsage = (alias: unknown, promptChars: number) => {
       alias,
       promptChars,
     }) + "\n"
-  appendFile(TELEMETRY_PATH, record).catch(() => {
-    // Zieldatei/-verzeichnis fehlt, ist gesperrt oder das Volume ist voll:
-    // Telemetrie ist best-effort, der Request laeuft unveraendert weiter.
-  })
+  appendFile(TELEMETRY_PATH, record).catch(() => {})
 }
 
 const fetchJson = async (url: string) => {
@@ -73,10 +97,6 @@ const basename = (value: unknown) =>
     .filter(Boolean)
     .pop()
 
-// The Desktop app can own a healthy :1919 server without the standalone daemon
-// adopting it. In that state /engine/status truthfully reports no managed process,
-// but it is not authoritative for the serving endpoint. Prefer a daemon model when
-// present, then fall back to the server's own model and KV telemetry.
 const discoverRuntime = async () => {
   let daemon: any = null
   try {
@@ -137,17 +157,17 @@ const discoverRuntime = async () => {
 }
 
 export default async () => {
+  let activeModelsConfig: any = null
+
   return {
     config: async (cfg: any) => {
       try {
         const models = cfg?.provider?.["freetoken-local"]?.models
+        if (models) {
+          activeModelsConfig = models
+        }
         if (!models?.active) return
 
-        // @ai-sdk/openai-compatible does not preserve arbitrary nested request
-        // fields from agent options. Inject the Qwen chat-template switch at the
-        // final fetch boundary instead. The model aliases are local routing keys;
-        // FreeToken deliberately ignores the request model and serves the resident
-        // checkpoint, so no engine restart is needed when agents change mode.
         const upstreamFetch = cfg.provider["freetoken-local"].options?.fetch ?? fetch
         cfg.provider["freetoken-local"].options.fetch = async (
           input: RequestInfo | URL,
@@ -156,17 +176,66 @@ export default async () => {
           if (typeof init?.body !== "string") return upstreamFetch(input, init)
           try {
             const body = JSON.parse(init.body)
-            // Vor der enable_thinking-Mutation, damit alias exakt das vom
-            // Aufrufer gesendete body.model ist - ungefiltert, unabhaengig
-            // davon, ob die nachfolgende Verzweigung greift.
+
+            // System-merge fix: merge all system messages into position 0
+            if (Array.isArray(body.messages) && body.messages.length > 0) {
+              const systemMsgs = body.messages.filter((m: any) => m.role === "system")
+              if (systemMsgs.length > 0) {
+                const mergedContent = systemMsgs
+                  .map((m: any) => (typeof m.content === "string" ? m.content : JSON.stringify(m.content)))
+                  .join("\n\n")
+                const nonSystemMsgs = body.messages.filter((m: any) => m.role !== "system")
+                body.messages = [{ role: "system", content: mergedContent }, ...nonSystemMsgs]
+              }
+            }
+
+            // Fetch wrapper engine consistency check (safety net)
+            const targetAlias = body.model || "active"
+            const mappedConfig = ALIAS_ENGINE_MAP[targetAlias] || {
+              model: basename(targetAlias) || targetAlias,
+              port: 1919,
+              args: [],
+              contextLimit: 100000,
+            }
+            const expectedEngineModel = mappedConfig.model
+
+            let currentRuntime: any = null
+            try {
+              currentRuntime = await discoverRuntime()
+            } catch {
+              // Discovery failed
+            }
+
+            if (currentRuntime && currentRuntime.running && currentRuntime.id !== expectedEngineModel) {
+              // Engine model drifted from expected model - perform synchronous switch before proxying
+              try {
+                const switchRes = await fetch(DAEMON_SWITCH, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    model: expectedEngineModel,
+                    port: mappedConfig.port ?? 1919,
+                    args: mappedConfig.args ?? [],
+                    force: true,
+                  }),
+                  signal: AbortSignal.timeout(5000),
+                })
+                if (!switchRes.ok) {
+                  console.warn(`[freetoken-active] Fetch engine consistency switch returned ${switchRes.status}`)
+                }
+              } catch (err: any) {
+                console.warn(`[freetoken-active] Fetch engine consistency switch error: ${err?.message}`)
+              }
+            }
+
             recordAliasUsage(body.model, JSON.stringify(body.messages ?? []).length)
             if (body.model === THINKING_MODEL || body.model === FAST_MODEL) {
               body.chat_template_kwargs = {
                 ...(body.chat_template_kwargs ?? {}),
                 enable_thinking: body.model === THINKING_MODEL,
               }
-              init = { ...init, body: JSON.stringify(body) }
             }
+            init = { ...init, body: JSON.stringify(body) }
           } catch {
             // Non-JSON request bodies pass through unchanged.
           }
@@ -177,20 +246,8 @@ export default async () => {
         const { id } = runtime
 
         const ref = models[id]
-        if (!ref?.limit?.context) return // unbekanntes Modell: Fallback-Limit behalten
+        if (!ref?.limit?.context) return
 
-        // SDLC-Ceiling (T-los, 2026-08-24): Fuer autonome Laeufe advertise ich
-        // bis zu SDLC_CONTEXT_CEILING (Default 200000) statt des kalibrierten
-        // Werts. Der Native-Auto-Compact greift bei 95% des advertisierten
-        // Kontexts — bei 200k also ~190k. DAS GEHT NUR, wenn der Server die
-        // KV-Seiten dorthin mitwachsen laesst ("ft ctl cache --kv <n>" zieht
-        // Kontext auf Kosten der unbedeutenden MoE-Slot-Caches hoch); das
-        // bedient der Operator serverseitig, nicht dieses Plugin.
-        //
-        // Guard: nur bei laufender Engine und nur fuer Modelle mit
-        // dokumentiertem Headroom (kalibriert >= 100000 — nach Matrix ist das
-        // Qwen3.6-35B-offload; gpt-oss/Gemma behalten ihr sicheres Limit).
-        // Daemon nicht erreichbar oder Engine gestoppt => Kalibrierung bleibt.
         const ceiling = Number(process.env.SDLC_CONTEXT_CEILING ?? 200_000)
         const calibrated = runtime.kvTokens
           ? Math.min(ref.limit.context, runtime.kvTokens)
@@ -203,9 +260,6 @@ export default async () => {
           `${grow ? `, Ceiling ${ceiling} aktiv — KV muss via ft ctl cache mitwachsen` : " nutzbar"}` +
           `${runtime.running ? "" : " — Engine gestoppt, Limit gilt beim naechsten Start"})`
 
-        // Purpose-specific aliases keep their requested budgets. They still get
-        // the resident model name for visibility, while request mode is selected
-        // dynamically by the fetch wrapper above.
         if (models[THINKING_MODEL]) {
           const thinkingContext = grow ? ceiling : Math.min(ceiling, calibrated)
           models[THINKING_MODEL].limit = {
@@ -221,6 +275,95 @@ export default async () => {
         }
       } catch {
         // Daemon nicht erreichbar: Alias behaelt statische Defaults.
+      }
+    },
+
+    event: async ({ event }: { event: any }) => {
+      if (event?.type !== "session.next.model.switched") return
+
+      const modelRef = event.properties?.model ?? event.model ?? event.properties
+      if (!modelRef || typeof modelRef !== "object") return
+
+      const providerID = modelRef.providerID || modelRef.provider
+      const id = modelRef.id || modelRef.model
+
+      if (!providerID) return
+
+      if (providerID !== "freetoken-local") {
+        // Non-FreeToken model selected: Stop FreeToken engine to free VRAM
+        try {
+          const res = await fetch(DAEMON_STOP, {
+            method: "POST",
+            signal: AbortSignal.timeout(5000),
+          })
+          if (!res.ok) {
+            console.error(`[freetoken-active] POST /engine/stop returned status ${res.status}`)
+          }
+        } catch (err: any) {
+          // Degraded failure path: non-blocking error handling
+          console.error(`[freetoken-active] Degraded failure stopping FreeToken engine: ${err?.message}`)
+        }
+        return
+      }
+
+      // FreeToken model selected
+      const mappedConfig = ALIAS_ENGINE_MAP[id] ?? {
+        model: id,
+        port: 1919,
+        args: ["--kv-reserve-tokens", "131072", "--max-running-requests", "1"],
+        contextLimit: 100000,
+      }
+      const targetEngineModel = mappedConfig.model
+
+      let daemonStatus: any = null
+      try {
+        daemonStatus = await fetchJson(DAEMON_STATUS)
+      } catch {
+        // Daemon unreachable
+      }
+
+      const runningModel = daemonStatus?.running ? basename(daemonStatus.model) : null
+
+      if (daemonStatus?.running && runningModel === targetEngineModel) {
+        // Same engine model selected: update context limit / name only, no engine call
+        if (activeModelsConfig && activeModelsConfig.active) {
+          activeModelsConfig.active.limit = {
+            ...activeModelsConfig.active.limit,
+            context: mappedConfig.contextLimit,
+          }
+          activeModelsConfig.active.name = `FreeToken-active → ${targetEngineModel} (${mappedConfig.contextLimit} ctx nutzbar)`
+        }
+        return
+      }
+
+      // Different engine model selected (or engine is currently stopped)
+      try {
+        const endpoint = daemonStatus?.running ? DAEMON_SWITCH : DAEMON_START
+        const payload = daemonStatus?.running
+          ? { model: targetEngineModel, port: mappedConfig.port, args: mappedConfig.args, force: true }
+          : { model: targetEngineModel, port: mappedConfig.port, args: mappedConfig.args }
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(10000),
+        })
+
+        if (!res.ok) {
+          throw new Error(`${endpoint} returned status ${res.status}`)
+        }
+
+        if (activeModelsConfig && activeModelsConfig.active) {
+          activeModelsConfig.active.limit = {
+            ...activeModelsConfig.active.limit,
+            context: mappedConfig.contextLimit,
+          }
+          activeModelsConfig.active.name = `FreeToken-active → ${targetEngineModel} (${mappedConfig.contextLimit} ctx nutzbar)`
+        }
+      } catch (err: any) {
+        // Degraded failure path: surface error notification, keep old engine running
+        console.error(`[freetoken-active] Auto-swap error switching engine to ${targetEngineModel}: ${err?.message}`)
       }
     },
   }

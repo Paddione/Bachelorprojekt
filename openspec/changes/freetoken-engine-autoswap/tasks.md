@@ -24,7 +24,7 @@ docs/runbooks/freetoken-native.md                       MODIFY  — document aut
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
+- [x] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
       missing auto-swap behavior. The test must FAIL on the current branch.
       Use the phrase `expected: FAIL` in the step body so plan-lint STRUCT2
       picks it up.
@@ -34,7 +34,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/freetoken-engine-auto
 # expected: FAIL (red — the auto-swap logic is not yet implemented)
 ```
 
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
+- [x] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
       previous step must now pass.
 
   1. **Repo SSOT sync (`freetoken-active.ts`).** Sync the stale repo copy
@@ -57,7 +57,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/freetoken-engine-auto
      the expected model for the active alias; on mismatch, synchronously
      switch before proxying.
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

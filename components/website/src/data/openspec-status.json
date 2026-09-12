@@ -4721,6 +4721,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900155": [
+    {
+      "slug": "freetoken-engine-autoswap",
+      "status": "plan_staged"
+    }
+  ],
   "T900159": [
     {
       "slug": "2026-09-12-github-identity-foundation",

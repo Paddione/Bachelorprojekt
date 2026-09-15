@@ -290,3 +290,4 @@ startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher Cluster):
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
 
+<!-- Projection-parity sentinel. -->

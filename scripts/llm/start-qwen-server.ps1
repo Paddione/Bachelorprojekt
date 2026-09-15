@@ -47,14 +47,29 @@
   dass die obigen Kontextgroessen ueberhaupt in den VRAM passen; mit f16-KV
   waere derselbe Pool rund viermal so gross.
 
-  FALLSTRICK -ngl NEBEN -fit on (T900171): llama.cpp bricht das Fitting ab,
-  sobald -ngl gesetzt ist, und ignoriert damit jede -fitt-Reserve. Im Log:
+  FALLSTRICK -ngl NEBEN -fit on (T900171): llama.cpp bricht die Layer-
+  Platzierung von -fit ab, sobald -ngl gesetzt ist. Die Kontextanpassung an
+  -fitt laeuft weiter, die Layer landen aber im Verhaeltnis des freien VRAM
+  statt gegen die Reserven. Im Log:
     W common_fit_params: failed to fit params to free device memory:
       n_gpu_layers already set by user to 999, abort
   Bis 2026-09-15 setzte dieses Skript -ngl 999 immer; die obige Tabelle ist
-  unter diesem Abbruch entstanden. Ohne -ngl (gemessen 2026-09-15, 256,1500,
-  zwei Laeufe a 300 Token): n_ctx_slot 205.056, frei 1752 MiB (3060 Ti) und
-  2782 MiB (5070 Ti), Decode ~31 t/s. -ngl 999 steht nur noch bei festem -Ctx.
+  unter diesem Abbruch entstanden. -ngl 999 steht nur noch bei festem -Ctx.
+
+  TENSOR-SPLIT 85,15 (T900172): -ts bricht die Layer-Platzierung genauso ab
+  ("tensor_split already set by user, abort") - hier gewollt, weil die
+  Verteilung damit fest und gemessen ist. Gemessen 2026-09-15, -fitt 256,1500,
+  je drei Laeufe a 300 Token:
+
+    | -ts        | n_ctx_slot | frei 3060 Ti | frei 5070 Ti | Decode  |
+    |------------|------------|--------------|--------------|---------|
+    | (fit)      |    205.056 |     1699 MiB |     2782 MiB | ~31 t/s |
+    | 75,25      |    205.056 |      791 MiB |     2218 MiB | ~36 t/s |
+    | 80,20      |    205.056 |     1599 MiB |     1400 MiB | ~38 t/s |
+    | 85,15      |    205.056 |     2628 MiB |      374 MiB | ~38 t/s |
+
+  85,15 hielt einen Prompt von 102.936 Token (Prefill 1015 t/s) ohne Fehler.
+  Mehr Layer auf die 5070 Ti gehen nicht: dort bleiben nur noch ~370 MiB.
 
   KONTEXT WIRD NICHT FEST GESETZT, sondern von llama.cpp -fit gewaehlt (-c
   bleibt ungesetzt). Eine feste Zahl haelt nur, solange der VRAM frei ist -
@@ -78,9 +93,9 @@
   weniger Kontext (~74k statt ~242k).
 
 .PARAMETER TensorSplit
-  Optionales Aufteilungsverhaeltnis fuer -ts, z.B. "70,30" (CUDA0,CUDA1 - also
-  5070 Ti zuerst). Leer lassen heisst: -fit verteilt selbst. Nur setzen, wenn
-  die automatische Verteilung nachweislich schlecht liegt.
+  Aufteilungsverhaeltnis fuer -ts (CUDA0,CUDA1 - also 5070 Ti zuerst).
+  Default "85,15", gemessen in T900172 (siehe .DESCRIPTION). Leer ("") heisst:
+  -fit verteilt selbst, dann bleibt die 5070 Ti zum Teil ungenutzt.
 
 .PARAMETER Ctx
   Festes Kontextfenster statt -fit. 0 (Default) heisst: fit entscheidet.
@@ -97,7 +112,7 @@ param(
   # zweiten aber nur 168-197 MiB (gemessen), was fuer eine Karte mit Anzeige
   # zu knapp ist. Siehe Messtabelle in .DESCRIPTION.
   [string]$FitMarginMib = "256,1500",
-  [string]$TensorSplit = "",
+  [string]$TensorSplit = "85,15",
   [string]$ExtraArgs = "",
   # UUIDs statt Indizes: CUDA und nvidia-smi sortieren verschieden (siehe .DESCRIPTION).
   [string]$GpuUuidPrimary = "GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4",   # RTX 5070 Ti, 16 GB

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.342.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.2...website-v1.342.3) (2026-09-15)
+
+
+### Bug Fixes
+
+* **ops:** Qwen-Dual-GPU-Split 85,15 legt mehr Layer auf die 5070 Ti [T900172] ([#5640](https://github.com/Paddione/Bachelorprojekt/issues/5640)) ([fac3c9b](https://github.com/Paddione/Bachelorprojekt/commit/fac3c9bca895356b8e43f187f1e39050f97319d6))
+
 ## [1.342.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.1...website-v1.342.2) (2026-09-15)
 
 

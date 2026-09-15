@@ -2,9 +2,14 @@
 # scripts/devmesh/prepare-bootable-ssd.sh — Prepare bootable Ubuntu 24.04 SSD for gpu-cluster3
 #
 # Usage:
-#   bash scripts/devmesh/prepare-bootable-ssd.sh [target-device|target-dir]
+#   K3S_TOKEN=<server-join-token> bash scripts/devmesh/prepare-bootable-ssd.sh [target-device|target-dir]
+#
+# K3S_TOKEN kommt nie ins Repo [T900177]. Auf einem Server-Node:
+#   sudo cat /var/lib/rancher/k3s/server/token
 
 set -euo pipefail
+
+: "${K3S_TOKEN:?K3S_TOKEN muss gesetzt sein (Server-Join-Token, siehe Kopfkommentar)}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SCRATCH="$REPO_ROOT/scratch"
@@ -81,8 +86,9 @@ runcmd:
   - ufw allow from 10.0.0.0/8 to any port 10250 proto tcp
   - ufw allow from 10.0.0.0/8 to any port 51820 proto udp
   - ufw --force enable
-  - curl -sfL https://get.k3s.io | K3S_TOKEN='K1038e17e3dd1bcaac234b19277b717c8c8476401352ce446c61507d9811b885f8e::server:48d498a0d200a9390908d067b02a8706' sh -s - server --server https://10.1.0.101:6443 --node-ip 10.10.10.4 --flannel-backend=wireguard-native --tls-san 10.1.0.101 --tls-san 10.10.10.2 --tls-san 10.10.10.3 --tls-san 10.10.10.4 --tls-san gpu-cluster3 --etcd-snapshot-schedule-cron='0 */6 * * *' --etcd-snapshot-retention=20 --cluster-cidr=10.52.0.0/16 --service-cidr=10.53.0.0/16 --cluster-dns=10.53.0.10 --node-label storage=true
+  - curl -sfL https://get.k3s.io | K3S_TOKEN='__K3S_TOKEN__' sh -s - server --server https://10.1.0.101:6443 --node-ip 10.10.10.4 --flannel-backend=wireguard-native --tls-san 10.1.0.101 --tls-san 10.10.10.2 --tls-san 10.10.10.3 --tls-san 10.10.10.4 --tls-san gpu-cluster3 --etcd-snapshot-schedule-cron='0 */6 * * *' --etcd-snapshot-retention=20 --cluster-cidr=10.52.0.0/16 --service-cidr=10.53.0.0/16 --cluster-dns=10.53.0.10 --node-label storage=true
 USER_EOF
+sed -i "s|__K3S_TOKEN__|${K3S_TOKEN}|" "$CIDATA_DIR/user-data"
 
 echo "Building CIDATA ISO..."
 xorriso -as mkisofs -V CIDATA -J -r -o "$CIDATA_ISO" "$CIDATA_DIR"

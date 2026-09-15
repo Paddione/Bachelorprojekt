@@ -4200,6 +4200,18 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/factory-ctx-default",
+    "file": "tests/spec/local-dev-mesh/factory-ctx-default.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/k3d-acceptance-gate",
+    "file": "tests/spec/local-dev-mesh/k3d-acceptance-gate.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/k3s-install",
     "file": "tests/spec/local-dev-mesh/k3s-install.bats",
     "category": "local-dev-mesh",
@@ -4214,6 +4226,12 @@
   {
     "id": "local-dev-mesh/migrate-from-k3d",
     "file": "tests/spec/local-dev-mesh/migrate-from-k3d.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/no-k3d-context",
+    "file": "tests/spec/local-dev-mesh/no-k3d-context.bats",
     "category": "local-dev-mesh",
     "kind": "shell"
   },
@@ -5648,12 +5666,6 @@
   {
     "id": "sdlc-isolation/fleet-sequence-split",
     "file": "tests/spec/sdlc-isolation/fleet-sequence-split.bats",
-    "category": "sdlc-isolation",
-    "kind": "shell"
-  },
-  {
-    "id": "sdlc-isolation/kubelet-cert-guard",
-    "file": "tests/spec/sdlc-isolation/kubelet-cert-guard.bats",
     "category": "sdlc-isolation",
     "kind": "shell"
   },

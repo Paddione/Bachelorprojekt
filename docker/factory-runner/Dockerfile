@@ -43,5 +43,9 @@ RUN apt-get update \
 # Das node-Basisimage bringt UID 1000 bereits als User 'node' mit (ein zweiter
 # useradd auf dieselbe UID wuerde mit Exit 4 scheitern) — wir benennen ihn nur.
 RUN usermod -l runner -d /home/runner -m node && groupmod -n runner node
+
+# Wakeup-Listener (T900110): replace kubectl exec with HTTP wakeup.
+COPY docker/factory-runner/wakeup-listener.mjs /opt/factory-runner/wakeup-listener.mjs
+
 USER runner
 WORKDIR /workspace

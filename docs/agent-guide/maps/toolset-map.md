@@ -15,8 +15,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Fallback:_ `gh (maschinelles Parsen, Polling, Mutationen, nicht abgedeckte Kommandos)`
   - _Rollen:_ `all`
   - _Tiefe:_ `.claude/skills/references/gh-axi.md`
-- **`mcp:github-mcp`** — Status `suppressed`
-  - _Grund:_ gh-axi ist der mandatierte GitHub-Pfad.
 - **`plugin:github@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ Doppelt gh-axi und zieht rund 40 Tool-Schemata in den Kontext.
 
@@ -75,7 +73,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `ticket-lebenszyklus`
 
-- **`mcp:ticket-mcp`** — Status `canonical` · Tier `caution`
+- **`mcp:ticket-mcp-node`** — Status `canonical` · Tier `caution`
   - _Wann:_ Tickets lesen, anlegen, Status setzen, Plan stagen, Phasen-Events schreiben.
   - _Nicht:_ stage_plan im Worktree — schlägt dort immer fehl.
   - _Fallback:_ `scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)`
@@ -85,14 +83,30 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `ticket-inhalt`
 
 - **`skill:ticket-ops`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Triage, Definition of Readiness, fehlende Angaben, Parallelarbeit planen.
+  - _Wann:_ Kompatibilitäts-Einstieg für unklare Ticket-Inhaltsanfragen; routet zu Triage oder Dispatch.
   - _Nicht:_ Repo-Zustand — Branches, Worktrees und PRs gehören zu repo-hygiene.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/ticket-ops/SKILL.md`
 
+## Fähigkeit: `ticket-triage`
+
+- **`skill:ticket-triage`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Triage, Definition of Readiness, fehlende Angaben, Klärungsrunde und Batch-Kandidaten ohne Dispatch.
+  - _Nicht:_ Wellen planen oder Arbeit dispatchen — dafür ticket-dispatch.
+  - _Rollen:_ `orchestrator`
+  - _Tiefe:_ `.claude/skills/ticket-triage/SKILL.md`
+
+## Fähigkeit: `ticket-dispatch`
+
+- **`skill:ticket-dispatch`** — Status `canonical` · Tier `assisted`
+  - _Wann:_ Abhängigkeitswellen, Parallelisierungsplan, Konfliktprüfung und freigegebener Wave-1-Dispatch.
+  - _Nicht:_ Ticket-Fakten erheben oder menschliche Rückfragen klären — dafür ticket-triage.
+  - _Rollen:_ `orchestrator`
+  - _Tiefe:_ `.claude/skills/ticket-dispatch/SKILL.md`
+
 ## Fähigkeit: `factory-steuerung`
 
-- **`mcp:factory-mcp`** — Status `canonical` · Tier `assisted`
+- **`mcp:factory-mcp-node`** — Status `canonical` · Tier `assisted`
   - _Wann:_ Factory-Queue, Status, Enqueue, Trigger, ähnliche OpenSpec-Changes finden.
   - _Nicht:_ type=task-Tickets — der Dispatcher scheduled ausschliesslich type=feature.
   - _Rollen:_ `bachelorprojekt-test`, `orchestrator`
@@ -304,7 +318,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `wiki-nachschlagen`
 
-- **`mcp:brain-mcp`** — Status `canonical` · Tier `safe`
+- **`mcp:brain-mcp-node`** — Status `canonical` · Tier `safe`
   - _Wann:_ Im Brain-Wiki nachschlagen: BM25-Suche und Seiten lesen (brain_search, brain_read).
   - _Nicht:_ Wiki kompilieren/veröffentlichen — dafür wissens-wiki/brain-ingest.
   - _Fallback:_ `grep -r <begriff> ~/brain/wiki`
@@ -317,17 +331,11 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Wann:_ Aktuelle Doku zu Bibliotheken, Frameworks, SDKs und CLIs statt aus dem Gedächtnis.
   - _Nicht:_ Refactoring, Business-Logik, allgemeine Programmierkonzepte.
   - _Rollen:_ `all`
-- **`mcp:docfork`** — Status `suppressed`
-  - _Grund:_ Vermeidet Kontext-Bloat; context7 deckt den Doku-Lookup ab.
 
 ## Fähigkeit: `websuche`
 
-- **`plugin:brightdata-plugin@claude-plugins-official`** — Status `canonical` · Tier `caution`
-  - _Wann:_ SERP-Suche und Scraping, wenn eine Antwort ausserhalb des Repos liegt.
-  - _Nicht:_ Repo-interne Fragen — dafür codebase-memory und Grep.
-  - _Rollen:_ `orchestrator`
-- **`mcp:webresearch`** — Status `suppressed`
-  - _Grund:_ Vermeidet Kontext-Bloat.
+- **`plugin:brightdata-plugin@claude-plugins-official`** — Status `suppressed`
+  - _Grund:_ 21 Skills im Prompt jeder Runde, laut /skill-doctor (2026-09-11) nie aufgerufen; Websuche läuft über die eingebauten WebSearch/WebFetch-Tools.
 
 ## Fähigkeit: `website-entwicklung`
 
@@ -505,7 +513,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `desktop-steuerung`
 
 - **`plugin:desktop-commander@claude-plugins-official`** — Status `suppressed`
-  - _Grund:_ Nicht aktiviert; der Windows-Host wird über powershell.exe aus WSL bedient.
+  - _Grund:_ Nicht aktiviert; der Windows-Host wird nativ über powershell.exe gesteuert.
 
 ## Fähigkeit: `api-client`
 
@@ -526,11 +534,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`plugin:trace-claude-code@braintrust-claude-plugin`** — Status `suppressed`
   - _Grund:_ Nicht aktiviert; Telemetrie läuft über tickets.factory_phase_events.
-
-## Fähigkeit: `sequentielles-denken`
-
-- **`mcp:sequential-thinking`** — Status `suppressed`
-  - _Grund:_ Nur in opencode (disabled).
 
 ## Fähigkeit: `ui-komponenten-katalog`
 

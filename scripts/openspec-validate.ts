@@ -150,7 +150,19 @@ export function validateChange(changeDir: string, specsRoot?: string): ChangeVal
     return { slug, result: { ok: false, errors: [`${slug}: missing specs/ delta dir`], warnings } }
   }
 
-  const capFiles = readdirSync(specsDir).filter(f => f.endsWith('.md'))
+  const capFiles: string[] = []
+  for (const entry of readdirSync(specsDir)) {
+    const full = join(specsDir, entry)
+    if (statSync(full).isDirectory()) {
+      for (const sub of readdirSync(full)) {
+        if (sub.endsWith('.md')) {
+          capFiles.push(join(entry, sub))
+        }
+      }
+    } else if (entry.endsWith('.md')) {
+      capFiles.push(entry)
+    }
+  }
   if (capFiles.length === 0) {
     return { slug, result: { ok: false, errors: [`${slug}: specs/ has no capability .md`], warnings } }
   }

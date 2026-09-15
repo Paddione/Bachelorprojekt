@@ -1,0 +1,49 @@
+# NetworkPolicies fuer factory-tick CronJob ↔ factory-runner Wakeup-Listener (T900110)
+# E1: allow-llm-gateway-egress (podSelector {}) in workspace-dev erlaubt Egress ins
+# Pod-Netz nur auf 5432 — der tick-Job muss aber Port 8787 des runner-Pods erreichen.
+---
+# Egress von tick → runner auf Port 8787
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: factory-tick-to-runner-egress
+  labels:
+    app: factory-runner
+spec:
+  podSelector:
+    matchLabels:
+      component: tick
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: factory-runner
+              component: runner
+      ports:
+        - port: 8787
+          protocol: TCP
+---
+# Ingress auf runner: nur von tick auf Port 8787
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: factory-runner-wakeup-ingress
+  labels:
+    app: factory-runner
+spec:
+  podSelector:
+    matchLabels:
+      app: factory-runner
+      component: runner
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              component: tick
+      ports:
+        - port: 8787
+          protocol: TCP

@@ -12,6 +12,12 @@
 : "${DB:=website}"
 USER="website"
 
+# [T900118] Aufgeloesten Context sichern, BEVOR der BATS-Sentinel (T002224, unten) CTX
+# umbiegt: der devmesh-Guard in _exec_sql muss den echten Context sehen.
+_TICKET_CTX_RESOLVED="$CTX"
+# shellcheck source=scripts/vda/ticket/_devmesh-guard.sh
+source "$(dirname "${BASH_SOURCE[0]}")/_devmesh-guard.sh"
+
 # [T015168] Erwartete DB-Identitaet der SSOT. Geschrieben durch die Migration
 # migrations/20260824-db-identity-marker.sql; _assert_db_identity probt sie nach
 # der Pod-Aufloesung (fail-closed bei Fehlen/Abweichung). Die Paritaet dieses
@@ -118,13 +124,19 @@ _pgpod() {
 
 _exec_sql() {
   local pod="$1"; shift
-  local stderr_tmp
+  local stderr_tmp sql
+  # [T900118] SQL puffern, damit ein Write gegen devmesh verweigert wird, bevor er den
+  # Pod erreicht. kubectl exec -i las stdin bisher direkt; nur der Zeitpunkt aendert sich.
+  sql="$(cat)"
+  if devmesh_sql_is_write "$sql $*"; then
+    devmesh_refuse_write "$_TICKET_CTX_RESOLVED" || exit 3
+  fi
   stderr_tmp="$(mktemp)"
   # [T002999] Capture stderr from kubectl exec, pass through unchanged, then
   # apply the kubelet-cert-hint on it. The hint enriches the output without
   # replacing it — the original error and exit code are preserved.
   kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-    psql -U "${USER:-website}" -d "${DB:-website}" -qtA -v ON_ERROR_STOP=1 "$@" 2>"$stderr_tmp"
+    psql -U "${USER:-website}" -d "${DB:-website}" -qtA -v ON_ERROR_STOP=1 "$@" 2>"$stderr_tmp" <<<"$sql"
   local rc=$?
   if [[ -s "$stderr_tmp" ]]; then
     local stderr_text

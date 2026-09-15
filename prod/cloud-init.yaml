@@ -167,7 +167,7 @@ runcmd:
   # so it is safe to leave this in the shared cloud-init template.
   - curl -fsSL https://raw.githubusercontent.com/Paddione/Bachelorprojekt/main/scripts/install-dev-tools.sh -o /usr/local/sbin/install-dev-tools.sh
   - chmod +x /usr/local/sbin/install-dev-tools.sh
-  - /usr/local/sbin/install-dev-tools.sh || true
+  - DEV_USER=gekko /usr/local/sbin/install-dev-tools.sh || true
 
   # Install Traefik via Helm
   - su - patrick -c "helm repo add traefik https://traefik.github.io/charts"

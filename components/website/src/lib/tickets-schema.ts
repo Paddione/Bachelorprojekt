@@ -7,6 +7,8 @@ import { MixedEmbeddingModelError } from './knowledge-db';
 import { initCustomerProjectsSchema } from './schema/customer-projects-schema';
 import { initProviderConfigSchema } from './schema/provider-config-schema';
 import { applyTicketsCoreSchema } from './tickets/tables/tickets.ts';
+import { applyGitHubIdentitySchema } from './tickets/tables/github-identities.ts';
+import { applyGitHubSnapshotSchema } from './tickets/tables/github-snapshots.ts';
 import { applyFactoryControlSchema } from './tickets/tables/factory-control.ts';
 import { applySystemtestLinkback } from './tickets/tables/systemtest-linkback.ts';
 import { applyLegacyMigrations } from './tickets/migrations.ts';
@@ -28,6 +30,8 @@ export async function initTicketsSchema(): Promise<void> {
       try {
         await pool.query(`CREATE SCHEMA IF NOT EXISTS tickets AUTHORIZATION website`);
         await applyTicketsCoreSchema(pool);
+        await applyGitHubIdentitySchema(pool);
+        await applyGitHubSnapshotSchema(pool);
         await applyFactoryControlSchema(pool);
         await applySystemtestLinkback(pool);
         await applyLegacyMigrations(pool);

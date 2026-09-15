@@ -6,15 +6,16 @@ set -euo pipefail
 # ── Interactive mode ──────────────────────────────────────────────────────────
 interactive_mode() {
   local REPO
-  REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
   set +o pipefail
   local ALL_TASKS
-  # NO_COLOR=1 ist Pflicht, nicht Kosmetik: faerbt `task` die Liste, beginnt jede Zeile mit
+  # NO_COLOR=1 ist PFLICHT: faerbt task(1) die Ausgabe, beginnt jede Zeile mit
   # einem ANSI-Escape statt mit "* ", das grep findet nichts und die Task-Liste ist STILL leer.
   # In GitHub Actions faerbt task per Default — der Fast-Path meldete dort fuer jede gueltige
   # Task "Unknown task", waehrend er lokal (unfarbige Ausgabe) fehlerfrei lief [T002587].
-  ALL_TASKS=$(cd "$REPO" && NO_COLOR=1 task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //')
+  # Zur Absicherung werden ANSI-Sequenzen via sed gestrippt, falls task trotz NO_COLOR faerbt.
+  ALL_TASKS=$(cd "$REPO" && NO_COLOR=1 task --list-all 2>/dev/null | sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g' | grep '^\* ' | sed 's/^\* //')
   set -o pipefail
 
   if [[ -z "$ALL_TASKS" ]]; then
@@ -201,6 +202,7 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
   for _fp_attempt in 1 2 3; do
     # NO_COLOR=1: siehe Begruendung an der ALL_TASKS-Stelle oben [T002587].
     VALID_FP=$(cd "$REPO_FP" && NO_COLOR=1 task --list-all 2>"$FP_TASK_ERR" \
+      | sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g' \
       | grep '^\* ' | sed 's/^\* //' \
       | awk '{n=split($0,p,/:  +/); if(n>=2) print p[1]}')
     echo "$VALID_FP" | grep -qxF "$FP_TASK" && break
@@ -284,7 +286,7 @@ if local_llm_available; then
   # Full task list — no truncation
   set +o pipefail
   # NO_COLOR=1: siehe Begruendung an der ersten ALL_TASKS-Stelle [T002587].
-  ALL_TASKS=$(cd "$REPO" && NO_COLOR=1 task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //')
+  ALL_TASKS=$(cd "$REPO" && NO_COLOR=1 task --list-all 2>/dev/null | sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g' | grep '^\* ' | sed 's/^\* //')
   set -o pipefail
 
   # ── Phase 1: namespace selection ──────────────────────────────────────

@@ -170,13 +170,14 @@ clients:
         env:
           BRAIN_WIKI_DIR: ~/brain/wiki
       opencode:
-        # Windows (pk-desktop): opencode laeuft nativ auf Windows. Der
-        # Server ist stdio und laeuft dort, wo der Harness laeuft — also
-        # Windows-Pfad hier.
+        # opencode laeuft seit 2026-09-11 in WSL (nicht mehr nativ auf
+        # Windows/pk-desktop). Der Server ist stdio und laeuft dort, wo der
+        # Harness laeuft — Pfad bleibt relativ/portabel.
         type: local
-        # Windows-Host: kein Brain-Wiki-Checkout unter ~/brain/wiki (siehe
-        # brain-ingest) — der Server ist hier nicht startbar, bis das Brain-Repo
-        # ausgecheckt ist. Disabled statt toter Pfad; Pfad ist trotzdem portabel.
+        # Kein Brain-Wiki-Checkout unter ~/brain/wiki — weder auf dem
+        # Windows-Host noch in WSL (2026-09-11 verifiziert, siehe brain-ingest):
+        # der Server ist nicht startbar, bis das Brain-Repo ausgecheckt ist.
+        # Disabled statt toter Pfad; Pfad ist trotzdem portabel.
         command: [node, scripts/brain-mcp-node/server.mjs]
         environment:
           BRAIN_WIKI_DIR: ~/brain/wiki

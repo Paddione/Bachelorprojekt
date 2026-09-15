@@ -36,7 +36,8 @@ set -euo pipefail
 SLUG="${1:?usage: openspec-embed-local.sh <slug> [repo-root]}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HERE/.." && pwd)"
-EMBED_REPO="${2:-$REPO_ROOT}"
+CURRENT_GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$REPO_ROOT")"
+EMBED_REPO="${2:-$CURRENT_GIT_ROOT}"
 # BLEIBT fleet [T002626]: dieses Skript schreibt nach knowledge.chunks
 # (pgvector), nicht ins tickets-Schema. `knowledge` ist in ADR-006 ausdruecklich
 # als "bewusst nicht verlagert" gefuehrt — es haengt an der Website-Suche und am

@@ -49,10 +49,11 @@ includes:
   staging:
     taskfile: ./taskfiles/Taskfile.staging.yml
     dir: .
-  # dev.mentolder.de — DECOMMISSIONED devc HA k3s taskfile kept for reference (dead context).
-  # The 3-node devc k3s cluster was shelved 2026-05-30. Dev runs via local k3d.
-  devcluster:
-    taskfile: ./taskfiles/Taskfile.devcluster.yml
+  # devmesh — lokaler k3s-Dev-Cluster auf Bare-Metal (ADR-008). SP-1 (T900116) bringt
+  # die Tailnet-Pruefung, SP-2 (T900117) die Cluster-Tasks.
+  # See Taskfile.devmesh.yml + docs/runbooks/devmesh-tailnet.md.
+  devmesh:
+    taskfile: ./taskfiles/Taskfile.devmesh.yml
     dir: .
   # brainstorm.mentolder.de — reverse-SSH-tunnel broker (sish) for the
   # brainstorming visual companion. See Taskfile.brainstorm.yml.

@@ -32,56 +32,35 @@ else
 fi
 ```
 
-> **Stash-Pop positive Verifikation (T003069/T003070).** Nach dem Pop den eigenen
-> Eintrag (per Nachricht identifiziert) in `git stash list` suchen — er MUSS
-> verschwunden sein:
->
-> ```bash
-> bash scripts/git-stash-net.sh pop --by-message "wip ${TICKET_EXT_ID}"
-> # Exit 1 = Teil-Pop: git stash list | grep -F "wip ${TICKET_EXT_ID}" findet den Eintrag noch
-> ```
->
-> Ein verbliebener Eintrag ist ein **Befund, kein Erfolg**: der post-rewrite-Hook
-> hat ein gestashtes Freshness-Artefakt während des Rebase bereits neu erzeugt,
-> der Pop wendet nur teilweise an und meldet trotzdem Erfolg. Wiederherstellung:
-> `git stash show --stat "stash@{0}"` gegen den Arbeitsbaum halten, fehlende
-> Datei mit `git checkout "stash@{0}" -- <pfad>` zurückholen. Der Eintrag bleibt
-> dabei als Sicherungsnetz liegen.
+> **Stash-Pop positive Verifikation (T003069/T003070).** Nach dem Pop MUSS der eigene Eintrag
+> aus `git stash list` verschwunden sein
+> (`git stash list | grep -F "wip ${TICKET_EXT_ID}"` findet ihn bei Exit 1 noch). Ein
+> verbliebener Eintrag ist ein **Befund, kein Erfolg**: der post-rewrite-Hook hat ein gestashtes
+> Freshness-Artefakt schon neu erzeugt, der Pop wendet nur teilweise an. Wiederherstellung:
+> `git stash show --stat "stash@{0}"` gegen den Arbeitsbaum halten, fehlende Datei mit
+> `git checkout "stash@{0}" -- <pfad>` zurückholen, den Eintrag als Sicherungsnetz liegen lassen.
 
-> **Stash-Disziplin (T003070).** `refs/stash` liegt im gemeinsamen Git-Verzeichnis —
-> der Stash-Stack ist über ALLE Worktrees geteilt, und die Indizes `stash@{0}`
-> verschieben sich durch fremde pushes. Bei Parallelarbeit daher statt eines
-> Stash einen **Wegwerf-Commit auf dem eigenen Branch** verwenden
-> (`git commit -m wip`, später `git reset --soft HEAD~1`). Wo ein Stash nötig
-> bleibt: IMMER mit `-m` und Ticket-ID anlegen
-> (`git stash push -m "wip ${TICKET_EXT_ID}"`) und über die Nachricht auflösen
-> (`bash scripts/git-stash-net.sh pop --by-message ...`), NIE über den Index
-> `stash@{0}`.
+> **Stash-Disziplin (T003070).** Der Stash-Stack ist über ALLE Worktrees geteilt, `stash@{0}`
+> verschiebt sich durch fremde pushes. Bei Parallelarbeit einen **Wegwerf-Commit auf dem eigenen
+> Branch** verwenden (`git commit -m wip`, später `git reset --soft HEAD~1`). Wo ein Stash nötig
+> bleibt: IMMER mit `-m` und Ticket-ID anlegen und über die Nachricht auflösen
+> (`bash scripts/git-stash-net.sh pop --by-message ...`), NIE über den Index `stash@{0}`.
 
-> **Branch-Switch + Stash Race (T001974 Mishap 2).** Niemals
-> `git checkout -b <branch> && git stash pop` in einer einzigen Pipeline
-> verketten. Der `stash pop` kann ausgeführt werden, bevor der
-> Branch-Switch abgeschlossen ist, sodass der Commit auf dem falschen Branch
-> (z. B. `main`) landet. Stattdessen explizit sequenziell mit Error-Check:
+> **Branch-Switch + Stash Race (T001974 Mishap 2).** `git checkout -b <branch> && git stash pop`
+> nie in einer Pipeline verketten, sonst landet der Commit auf dem falschen Branch. Jeden Schritt
+> einzeln absichern:
 >
 > ```bash
 > git checkout -b fix/my-branch || exit 1   # Branch-Switch abwarten
 > git stash pop || { echo "stash pop failed"; exit 1; }
 > ```
->
-> Das gleiche Muster gilt für `git reset --soft` → `git stash` →
-> `git checkout -b` → `git stash pop`: jeder Schritt muss den Abschluss des
-> vorherigen abwarten.
 
-> **Probe-Commit + `--hard` verwirft auch unstaged Dateien (T001454, wiederholt bei
-> T002252/T002253).** Das Muster "Probe committen → prüfen → `git reset -q --hard HEAD~1`
-> zurückrollen" wirkt lokal begrenzt, weil scheinbar nur der eigene Probe-Commit adressiert
-> wird — `--hard` unterscheidet aber nicht zwischen Commit-Rollback und Working-Tree-Verwurf
-> und reißt unstaged Arbeitsdateien mit. Sicher:
+> **Probe-Commit + `--hard` verwirft auch unstaged Dateien (T001454, T002252/T002253).**
+> `git reset -q --hard HEAD~1` nach einem Probe-Commit reißt unstaged Arbeitsdateien mit. Sicher:
 > ```bash
 > git stash -u && git reset --hard HEAD~1 && git stash pop
 > ```
-> Oder den Probe erst gar nicht committen, sondern in einem separaten Wegwerf-Worktree testen.
+> Oder den Probe in einem separaten Wegwerf-Worktree testen.
 
 ---
 
@@ -89,13 +68,9 @@ fi
 
 ### Rebase-Preflight (T002669)
 
-Schritt 0 (Pull-First) lief ggf. vor Minuten oder Stunden. In langen Sessions kann
-`origin/main` seitdem weitergerückt sein (z. B. durch parallele Releases oder andere gemergte
-PRs, die ebenfalls generierte Artefakte berühren). Die Artefakt-Regeneration weiter unten
-erzeugt Artefakte aus dem aktuellen Arbeitsbaum — ist der veraltet, produziert sie Artefakte,
-die beim Push erneut hinter `origin/main` zurückliegen (beobachtet bei PR #3788 / T002634:
-zwei Regen-Commit-Push-Zyklen à ~1–2 min). Deshalb unmittelbar davor ein zweites Mal auf
-Divergenz prüfen und bei Bedarf rebasen:
+Unmittelbar vor der Artefakt-Regeneration erneut auf Divergenz zu `origin/main` prüfen. Seit
+Schritt 0 kann `main` weitergerückt sein, dann entstehen Artefakte gegen eine veraltete Basis und
+ein weiterer Regen-Commit-Push-Zyklus folgt (T002634):
 
 ```bash
 git fetch origin main
@@ -107,27 +82,21 @@ if [ "${BEHIND:-0}" -gt 0 ]; then
 fi
 ```
 
-Erst danach `task freshness:regenerate` ausführen — sonst regeneriert man gegen eine bereits
-veraltete Basis und der Zyklus beginnt von vorn.
+Erst danach `task freshness:regenerate` ausführen.
 
 ### Rebase-Freshness-Regel (T003105)
 
 Ein **konfliktfreier** Rebase kann mitcommittete Freshness-Artefakte still verlieren:
-`.gitattributes` markiert sie mit `merge=ours`, und `ours` löst im Rebase zugunsten
-des Rebase-Basis-Zweigs (hier `origin/main`) auf — **ohne** Konfliktmarker, ohne Meldung,
-mit grünem Ergebnis. Ein grüner Rebase belegt die Artefakt-Vollständigkeit deshalb nicht.
+`.gitattributes` markiert sie mit `merge=ours`, und `ours` löst im Rebase ohne Konfliktmarker
+zugunsten von `origin/main` auf. Ein grüner Rebase belegt die Artefakt-Vollständigkeit nicht.
 
 Regel: **Nach JEDEM Rebase VOR dem Push `task freshness:check` erneut laufen lassen.**
-Rot? `task freshness:regenerate` und den Regen-Commit anhängen. Das gilt für den
-Rebase in Schritt 0, für den Rebase-Preflight hier und für jeden `git rebase`/
-`git pull --rebase` im CI-Fix-Loop (Schritt 5).
+Rot? `task freshness:regenerate` und den Regen-Commit anhängen. Gilt für Schritt 0, den
+Rebase-Preflight und jeden `git rebase`/`git pull --rebase` im CI-Fix-Loop (Schritt 5).
 
 Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste zum Stagen):
 **SSOT** in [verification-block](.opencode/skills/references/verification-block.md).
-
-Kurzform: `task freshness:regenerate` (Artefakte aktuell halten, dann stagen) +
-`task freshness:check` (CI-Äquivalent, S1-Ratchet). Falls S1 rot: Datei wirklich verkleinern,
-nicht kosmetisch Zeilen zusammenziehen.
+Falls S1 rot: Datei wirklich verkleinern, nicht kosmetisch Zeilen zusammenziehen.
 
 ---
 
@@ -139,22 +108,20 @@ nicht kosmetisch Zeilen zusammenziehen.
 <type>(<scope>): <subject> [<TICKET_EXT_ID>]
 ```
 
-Header ≤ 100 Zeichen, Ticket-ID immer anhängen. Die vollständige `type`/`scope`-Liste, Beispiele,
-die PR-Body-Vorlage und das Vorgehen für einen **noch nicht registrierten Scope**
-(`scripts/register-scope.sh` + `commitlint.config.cjs` mitcommitten, T001364) stehen in
+Header ≤ 100 Zeichen, Ticket-ID immer anhängen. `type`/`scope`-Liste, Beispiele, PR-Body-Vorlage
+und das Vorgehen für einen **noch nicht registrierten Scope** (`scripts/register-scope.sh` +
+`commitlint.config.cjs` mitcommitten, T001364):
 [git-workflow-procedures](.opencode/skills/references/git-workflow-procedures.md).
 
 > **Scope vorab gegen SSOT-Allowlist prüfen [T001395]:** `preflight-pr-scope.sh` (Schritt 4) läuft
-> erst kurz vor `gh pr create` — also NACH dem Commit. Ein falsch geratener Scope führt dann zu
-> einem Soft-Reset + Recommit mitten im Flow. Vor dem ersten Commit die erlaubte Liste ziehen und
-> daraus wählen: `bash scripts/validate-commit-msg.sh scopes`.
+> erst nach dem Commit. Vor dem ersten Commit die erlaubte Liste ziehen:
+> `bash scripts/validate-commit-msg.sh scopes`.
 
 ### Commit ausführen
 
 > **git-crypt-Staging-Guard [T001210]:** Niemals `git add -A` in diesem Repo.
-> `environments/.secrets/**` ist git-crypt-geschützt; in Worktrees erscheinen ~21
-> Smudge-Artefakte als "modified" und würden durch ein blankes `git add -A` in den Commit
-> promoviert. Immer explizite Pathspecs stagen und den Index-Guard unten laufen lassen.
+> `environments/.secrets/**` ist git-crypt-geschützt; in Worktrees erscheinen Smudge-Artefakte als
+> "modified" und würden mitcommittet. Immer explizite Pathspecs stagen und den Index-Guard laufen lassen.
 
 ```bash
 BASE_SHA="$(git rev-parse HEAD)"
@@ -188,11 +155,9 @@ git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
 # git push --force-with-lease   — NUR für eigene Feature-Branches, NIEMALS für main
 ```
 
-> **Push auf `main`:** Verwende `bash scripts/git-safe-push.sh` statt rohem
-> `git push`. Der Wrapper fetcht nach dem Push `origin/main` und heilt eine
-> *inhalts-äquivalente* Divergenz (z. B. Squash-Merge oder freshness-regen-Bot-
-> Commit) automatisch per `git reset --hard origin/main` — aber nur bei sauberem
-> Working Tree; eine echte Divergenz wird nur gewarnt, nie automatisch verworfen.
+> **Push auf `main`:** `bash scripts/git-safe-push.sh` statt rohem `git push`. Der Wrapper heilt
+> eine *inhalts-äquivalente* Divergenz (Squash-Merge, freshness-regen-Bot-Commit) per
+> `git reset --hard origin/main`, nur bei sauberem Working Tree; echte Divergenz wird nur gewarnt.
 > Opt-out: `SKIP_PUSH_SYNC=1`.
 
 ---
@@ -214,31 +179,26 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 
 ### PR anlegen
 
-`gh pr create --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" --body ...` — die
-Body-Vorlage (Summary + Test Plan) und der REST-Fallback für nachträgliche Titel-Edits stehen in
-[git-workflow-procedures](.opencode/skills/references/git-workflow-procedures.md).
+`gh pr create --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" --body ...` — Body-Vorlage
+(Summary + Test Plan): [git-workflow-procedures](.opencode/skills/references/git-workflow-procedures.md).
 
 ---
 
 ## Schritt 5 — CI Fix Loop
 
-Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird.
-
+Nach dem Push CI überwachen und Fehler beheben **bevor** gemergt wird.
 Detaillierte Checkliste (SSOT): [ci-fix-loop](.opencode/skills/references/ci-fix-loop.md)
 
-Kurzfassung:
 1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind
 2. Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen
 3. Bei `CONFLICTING` PR-Status: `git fetch origin main && git rebase origin/main` → push
 
-> **Hinweis:** `CONFLICTING`-Status unterdrückt CI-Runs komplett — kein "CI läuft noch",
-> sondern "CI startet nie". Diagnose: `gh pr view <n> --json mergeStateStatus`.
+> **Hinweis:** `CONFLICTING`-Status unterdrückt CI-Runs komplett — CI startet nie.
+> Diagnose: `gh pr view <n> --json mergeStateStatus`.
 
-> **Freshness-Auto-Regen-Race [T001395]:** Bleibt ein PR über einen geplanten
-> Freshness-Auto-Regen-Zyklus offen, kippt er auf `CONFLICTING`, ohne dass ein Mensch etwas
-> geändert hat — der Scheduler hat generierte Artefakte auf `main` committet. Kein echter
-> Merge-Konflikt; der Rebase muss dann um `task freshness:regenerate` ergänzt werden, **bevor**
-> gepusht wird. Befehlsfolge:
+> **Freshness-Auto-Regen-Race [T001395]:** Ein offener PR kann auf `CONFLICTING` kippen, weil der
+> Scheduler generierte Artefakte auf `main` committet hat. Der Rebase braucht dann zusätzlich
+> `task freshness:regenerate` vor dem Push. Befehlsfolge:
 > [git-workflow-procedures](.opencode/skills/references/git-workflow-procedures.md).
 
 ---
@@ -252,10 +212,10 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 - **Immer `--squash`** — hält `main`-History sauber (Entwicklungsregel)
 - **KEIN `--delete-branch` (T004612)** — das Post-Merge-Archiv (OpenSpec, Schritt 7) braucht den
-  Branch noch; gelöscht wird er erst im Cleanup NACH der Archivierung.
-  `delete_branch_on_merge` ist repo-seitig deaktiviert; branch-reaper.sh räumt Verwaiste ab.
-- **`--auto`** — mergt automatisch wenn alle Required Checks grün sind
-- **Race-Hinweis:** `--auto` kehrt sofort zurück; der eigentliche Merge passiert asynchron. CI-Läufe, die durch `edited`-Events (PR-Titel-Edit) getriggert wurden, können noch laufen. `cancel-in-progress` in `ci.yml` wurde so angepasst, dass `edited`-Runs keine laufenden CI-Jobs abbrechen (T002248).
+  Branch noch; gelöscht wird er im Cleanup NACH der Archivierung. `delete_branch_on_merge` ist
+  repo-seitig deaktiviert; branch-reaper.sh räumt Verwaiste ab.
+- **`--auto`** — mergt automatisch wenn alle Required Checks grün sind; kehrt sofort zurück, der
+  Merge läuft asynchron. `edited`-Runs brechen laufende CI-Jobs nicht ab (T002248).
 
 ---
 
@@ -269,22 +229,17 @@ BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 cd "$MAIN_REPO"
-# Agent-Lock freigeben (T006290): NACH dem Wechsel ins Haupt-Repo — aus dem
-# Worktree heraus verweigert agent-lock.sh den Branch-Release, weil der
-# nachfolgende Worktree-Remove die Shell-cwd zerstören würde. Ohne
-# stderr-Unterdrückung, damit eine Verweigerung sichtbar bleibt. Lebenszyklus-
-# SSOT: .opencode/skills/references/session-coordination.md
+# Agent-Lock freigeben (T006290): erst im Haupt-Repo — aus dem Worktree heraus verweigert
+# agent-lock.sh den Branch-Release. Ohne stderr-Unterdrückung, damit eine Verweigerung
+# sichtbar bleibt. Lebenszyklus-SSOT: .opencode/skills/references/session-coordination.md
 bash scripts/agent-lock.sh release ticket "<T00XXXX>"
 bash scripts/agent-lock.sh release branch "$BRANCH_NAME"
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
 
-# T004612: der Merge löscht den Remote-Branch NICHT mehr (kein --delete-branch,
-# delete_branch_on_merge=false) — die Archivierung (dev-flow-execute post-merge,
-# Schritte 6.4–7.5) brauchte ihn. Erst hier, NACH dem Archiv, remote + lokal löschen:
+# T004612: der Merge löscht den Remote-Branch nicht — erst hier, NACH dem Archiv, löschen.
 git push origin --delete "$BRANCH_NAME"
-# Der Squash-Commit auf main ist ein neuer Commit — Git erkennt den Branch nicht
-# als "merged", `git branch -d` würde fehlschlagen; `-D` ist nötig.
+# Squash-Commit ist ein neuer Commit, `git branch -d` würde fehlschlagen; `-D` ist nötig.
 if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" 2>/dev/null; then
   git branch -D "$BRANCH_NAME"
 fi
@@ -302,20 +257,17 @@ fi
    bash scripts/worktree-create.sh <branch> .worktrees/<slug>
    ```
 
-2. **opencode-Plugin `worktree_create` (`worktree.ts`):** ruft `git worktree add`
-   mit Checkout auf, **ohne** die git-crypt-Filter zu neutralisieren. Auf diesem
-   Repo scheitert die Checkout-Phase dann auf verschluesselten Pfaden (exit 128)
-   oder hinterlaesst `environments/.secrets/**` mit einem veralteten
-   smudge-Filter unbrauchbar. **Bekannte Einschraenkung:** nur fuer Branches
-   sicher, die keine git-crypt-Pfade beruehren.
+2. **opencode-Plugin `worktree_create` (`worktree.ts`):** `git worktree add` **ohne** die
+   git-crypt-Filter zu neutralisieren. Scheitert auf verschluesselten Pfaden (exit 128) oder
+   hinterlaesst `environments/.secrets/**` unbrauchbar. **Bekannte Einschraenkung:** nur fuer
+   Branches sicher, die keine git-crypt-Pfade beruehren.
 
 ---
 
 ## Nachschlagewerk
 
-Schritt-Übersicht (0–7 auf einen Blick) und die Fehlertabelle „Symptom → Diagnose → Fix"
-(Commit landet nicht, CI startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher
-Cluster) stehen in
+Schritt-Übersicht (0–7) und Fehlertabelle „Symptom → Diagnose → Fix" (Commit landet nicht, CI
+startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher Cluster):
 [git-workflow-procedures](.opencode/skills/references/git-workflow-procedures.md).
 
 ---

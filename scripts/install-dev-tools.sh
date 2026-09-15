@@ -1,40 +1,51 @@
 #!/usr/bin/env bash
-# install-dev-tools.sh — Provision a dev toolchain on a mentolder dev box.
+# install-dev-tools.sh — Provision a dev toolchain for the invoking user.
 #
 # Two target profiles:
-#   * gekko-hetzner-2 (default): k3d-friendly toolchain (k3d + Go included) so
-#     Gekko can iterate on a local k3d cluster directly on the box.
-#   * work VM (SKIP_K3D_GO=1): Docker + kubectl + task + node/pnpm + gh +
-#     git-crypt, ohne k3d/Go — fuer den geteilten Arbeitsplatz (T900104).
+#   * gekko-hetzner-2 (default TARGET_HOST): k3d-friendly toolchain (k3d + Go
+#     included); prod/cloud-init.yaml ruft es als root mit DEV_USER=gekko.
+#   * WSL-Dev-Maschine (FORCE=1 SKIP_K3D_GO=1, aufgerufen von
+#     scripts/devmesh/onboard-machine.sh): Docker + kubectl + task + node/pnpm +
+#     gh + git-crypt, ohne k3d/Go (T900119).
 #
 # Idempotent: safe to re-run; only installs what is missing.
-# Hostname-guarded: no-op on every node except gekko-hetzner-2 unless
-# FORCE=1 is exported.
+# Hostname-guarded: no-op on every node except TARGET_HOST unless FORCE=1.
 #
-# Run as root:
+# Run as root via sudo — docker group and pnpm go to SUDO_USER:
 #     sudo bash scripts/install-dev-tools.sh
+#     bash scripts/install-dev-tools.sh --print-dev-user   # nur Ziel-Benutzer ausgeben
 #
 # Tools installed: build-essential, Docker CE, k3d (nur SKIP_K3D_GO=0),
 # kubectl, task, Go (nur SKIP_K3D_GO=0), gh (gepinntes Release-Binary),
-# git-crypt (apt), pnpm (via corepack, pro Nutzer aus DEV_USERS). Node.js,
-# npm, git, helm are expected to be present already (cloud-init / k3s ships
-# them on the gekko nodes). openspec-Tooling laeuft ueber den Repo-Wrapper
-# scripts/openspec.sh (node-basiert, npm run test:openspec) — es wird KEIN
-# separates openspec-Binary installiert.
+# git-crypt (apt), pnpm (via corepack fuer DEV_USER), Node.js 22 (NodeSource,
+# falls aelter oder fehlend). openspec-Tooling laeuft ueber den Repo-Wrapper
+# scripts/openspec.sh — es wird KEIN separates openspec-Binary installiert.
 set -euo pipefail
 
 HOST=$(hostname)
 FORCE=${FORCE:-0}
 TARGET_HOST="${TARGET_HOST:-gekko-hetzner-2}"
-DEV_USER="${DEV_USER:-gekko}"            # legacy single-user override
-DEV_USERS="${DEV_USERS:-$DEV_USER}"      # space-separated list (default: legacy DEV_USER)
-SKIP_K3D_GO="${SKIP_K3D_GO:-0}"          # 1 = k3d/Go ueberspringen (work VM)
+# Ziel fuer docker-Gruppe und pnpm: der aufrufende Benutzer (unter sudo SUDO_USER,
+# sonst der ausfuehrende Benutzer). DEV_USER ueberschreibt; prod/cloud-init.yaml
+# laeuft als root ohne SUDO_USER und setzt DEV_USER=gekko.
+DEV_USER="${DEV_USER:-${SUDO_USER:-$(id -un)}}"
+SKIP_K3D_GO="${SKIP_K3D_GO:-0}"          # 1 = k3d/Go ueberspringen (WSL-Dev-Maschine)
 GO_VERSION="${GO_VERSION:-1.23.4}"
 K3D_VERSION="${K3D_VERSION:-v5.7.4}"
 GH_VERSION="${GH_VERSION:-2.63.2}"       # pinned gh release (apt hat gh nicht in bookworm main)
 NODE_MAJOR="${NODE_MAJOR:-22}"
 
 log() { printf '[install-dev-tools] %s\n' "$*"; }
+
+if [[ -n "${DEV_USERS:-}" ]]; then
+  log "DEV_USERS wird nicht mehr unterstuetzt (T900119): ein Clone pro Maschine, Ziel ist der aufrufende Benutzer"
+  exit 2
+fi
+
+if [[ "${1:-}" == "--print-dev-user" ]]; then
+  printf '%s\n' "$DEV_USER"
+  exit 0
+fi
 
 if [[ "$HOST" != "$TARGET_HOST" && "$FORCE" != "1" ]]; then
   log "host is $HOST (expected $TARGET_HOST) — skipping. Pass FORCE=1 to override."
@@ -46,14 +57,12 @@ if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
   exit 1
 fi
 
-for u in $DEV_USERS; do
-  if ! id "$u" >/dev/null 2>&1; then
-    log "user '$u' does not exist — aborting"
-    exit 1
-  fi
-done
+if ! id "$DEV_USER" >/dev/null 2>&1; then
+  log "user '$DEV_USER' does not exist — aborting"
+  exit 1
+fi
 
-log "host=$HOST dev_users=$DEV_USERS go=$GO_VERSION k3d=$K3D_VERSION skip_k3d_go=$SKIP_K3D_GO"
+log "host=$HOST dev_user=$DEV_USER go=$GO_VERSION k3d=$K3D_VERSION skip_k3d_go=$SKIP_K3D_GO"
 
 log "step 1/8 — apt baseline (build-essential, ca-certs, gnupg, git-crypt)"
 export DEBIAN_FRONTEND=noninteractive
@@ -64,7 +73,7 @@ log "step 2/8 — docker"
 if ! command -v docker >/dev/null; then
   install -m 0755 -d /etc/apt/keyrings
   # Use the matching Docker repo for the actual distro (debian vs ubuntu).
-  # The gekko nodes are Ubuntu; the dev VM is Debian — both must resolve.
+  # The gekko nodes and most WSL distros are Ubuntu; Debian distros must resolve too.
   DISTRO_ID=$(. /etc/os-release && echo "$ID")
   case "$DISTRO_ID" in
     debian) DOCKER_REPO="debian" ;;
@@ -84,16 +93,14 @@ if ! command -v docker >/dev/null; then
 else
   log "  docker present: $(docker --version)"
 fi
-for u in $DEV_USERS; do
-  if ! id -nG "$u" | grep -qw docker; then
-    usermod -aG docker "$u"
-    log "  added $u to docker group (re-login required to take effect)"
-  fi
-done
+if ! id -nG "$DEV_USER" | grep -qw docker; then
+  usermod -aG docker "$DEV_USER"
+  log "  added $DEV_USER to docker group (re-login required to take effect)"
+fi
 
 log "step 3/8 — k3d ${K3D_VERSION}"
 if [[ "$SKIP_K3D_GO" == "1" ]]; then
-  log "  SKIP_K3D_GO=1 — k3d uebersprungen (work VM)"
+  log "  SKIP_K3D_GO=1 — k3d uebersprungen (WSL-Dev-Maschine)"
 elif ! command -v k3d >/dev/null; then
   # k3d's installer drops the binary into /usr/local/bin by default and
   # rejects unknown flags such as -b — pass version via TAG only.
@@ -150,7 +157,7 @@ fi
 
 log "step 8/8 — Go ${GO_VERSION} + pnpm (corepack)"
 if [[ "$SKIP_K3D_GO" == "1" ]]; then
-  log "  SKIP_K3D_GO=1 — Go uebersprungen (work VM)"
+  log "  SKIP_K3D_GO=1 — Go uebersprungen (WSL-Dev-Maschine)"
 else
   INSTALLED_GO=""
   if [[ -x /usr/local/go/bin/go ]]; then
@@ -173,9 +180,7 @@ fi
 # Ubuntu's apt nodejs package strips corepack, so fall back to npm i -g.
 if command -v corepack >/dev/null; then
   corepack enable
-  for u in $DEV_USERS; do
-    su - "$u" -c 'corepack prepare pnpm@latest --activate' || true
-  done
+  su - "$DEV_USER" -c 'corepack prepare pnpm@latest --activate' || true
 elif command -v npm >/dev/null && ! command -v pnpm >/dev/null; then
   npm install -g pnpm@latest
 fi
@@ -193,4 +198,4 @@ if [[ "$SKIP_K3D_GO" != "1" ]]; then
 fi
 printf '  %-10s ' "pnpm"; command -v pnpm >/dev/null && pnpm --version || echo "MISSING (or pending re-login)"
 
-log "done — users ($DEV_USERS) must log out and back in for the docker group to apply"
+log "done — user $DEV_USER must log out and back in for the docker group to apply"

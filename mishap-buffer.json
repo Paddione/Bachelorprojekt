@@ -1,0 +1,16 @@
+[
+  {
+    "title": "repo-hygiene Dedupe-Guard: mcp-postgres statt ticket-mcp → falsches \"kein Duplikat\", 2 Fehlanlagen",
+    "description": "§4-Dedupe-Guard lief über mcp-postgres (ILIKE-Suche) statt über den vorgeschriebenen ticket-mcp (list_tickets). Die Abfrage lieferte leer, obwohl T900101 (\"Daily-Sentinel-Routine meldet weiterhin geloeschten track-pr.yml als inaktiv\") und T900135 (\"Ungepinnte :latest-Images in dev-pod deployment.yaml\", Issue #5531) offen in triage stehen. Die leere Antwort wurde als \"kein Duplikat\" gewertet und T900146 (teil-Dup von T900101) und T900147 (nahezu exaktes Dup von T900135) fälschlich angelegt. T900147 wurde nachträglich als duplicate_of T900135 geschlossen (obsolete), T900146 relates_to T900101 verlinkt. Exakt die Signal-/Grundregelklasse aus §3: leere Antwort != negatives Urteil.",
+    "component": "scripts/repo-hygiene",
+    "type": "process",
+    "reported_at": "2026-09-11T10:30:13.575Z"
+  },
+  {
+    "title": "mcp-postgres liest divergenten tickets.tickets-Stand (T900101/T9001xx unsichtbar)",
+    "description": "mcp-postgres_query über tickets.tickets zeigt einen anderen DB-Stand als ticket-mcp/ticket.sh. Beleg: mcp-postgres liefert für external_id='T900101' leer und für ILIKE '%sentinel%'/'%maintenance%' nur T014467 (done), während ticket-mcp dieselbe Tabelle mit T900101 (triage, 2026-09-09) und vielen T9001xx-Tickets sieht. mcp-postgres scheint auf eine stale/divergente DB-Instanz (bzw. Stand vor dem Post-Merge-Closure/Fork) zu zeigen. Folge: jede Hygiene-/Triage-Abfrage über mcp-postgres kann aktuelles Ticket-Vokabular unsichtbar machen (monitoring/drift).",
+    "component": "mcp-postgres/tickets",
+    "type": "drift",
+    "reported_at": "2026-09-11T10:30:16.507Z"
+  }
+]

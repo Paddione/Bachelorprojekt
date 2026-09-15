@@ -2,7 +2,10 @@
 
 ## Purpose
 
-_Purpose fehlt — beim nächsten inhaltlichen Delta zu ticket-ops ergänzen._
+Ticket-Inhalte werden kontextsparend in Vorbereitung und freigegebenen Dispatch getrennt:
+`ticket-triage` pflegt Vollständigkeit, DoR, Rückfragen und Batch-Kandidaten; `ticket-dispatch`
+erstellt Abhängigkeitswellen und dispatcht Wave 1 erst nach expliziter Freigabe. Der kleine
+`ticket-ops`-Router erhält bestehende Einstiege und verweist auf den passenden Teilprozess.
 
 ## Requirements
 

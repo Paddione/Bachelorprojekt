@@ -1758,6 +1758,60 @@
     "kind": "shell"
   },
   {
+    "id": "REQ-VIM-AI-001",
+    "file": "tests/spec/vim-ai-completion/install-config.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-002",
+    "file": "tests/spec/vim-ai-completion/request-stream.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-003",
+    "file": "tests/spec/vim-ai-completion/request-stream.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-004",
+    "file": "tests/spec/vim-ai-completion/request-stream.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-005",
+    "file": "tests/spec/vim-ai-completion/install-config.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-006",
+    "file": "tests/spec/vim-ai-completion/context-status.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-007",
+    "file": "tests/spec/vim-ai-completion/context-status.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-008",
+    "file": "tests/spec/vim-ai-completion/context-status.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-VIM-AI-009",
+    "file": "tests/spec/vim-ai-completion/install-config.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
     "id": "SA-01",
     "file": "tests/local/SA-01.bats",
     "category": "SA",
@@ -2349,6 +2403,12 @@
     "id": "agent-skills/worktree-write-guard-session-propagation",
     "file": "tests/spec/agent-skills/worktree-write-guard-session-propagation.bats",
     "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-visual-decision",
+    "file": "tests/spec/agent-visual-decision.bats",
+    "category": "agent-visual-decision",
     "kind": "shell"
   },
   {
@@ -3432,6 +3492,24 @@
     "kind": "shell"
   },
   {
+    "id": "dev-machine-onboarding/install-dev-tools-user",
+    "file": "tests/spec/dev-machine-onboarding/install-dev-tools-user.bats",
+    "category": "dev-machine-onboarding",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-machine-onboarding/key-register",
+    "file": "tests/spec/dev-machine-onboarding/key-register.bats",
+    "category": "dev-machine-onboarding",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-machine-onboarding/onboard-machine",
+    "file": "tests/spec/dev-machine-onboarding/onboard-machine.bats",
+    "category": "dev-machine-onboarding",
+    "kind": "shell"
+  },
+  {
     "id": "dev-pod-mcp-bundle/dev-pod",
     "file": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats",
     "category": "dev-pod-mcp-bundle",
@@ -3846,12 +3924,6 @@
     "kind": "shell"
   },
   {
-    "id": "freetoken-local-backend/routing",
-    "file": "tests/spec/freetoken-local-backend/routing.bats",
-    "category": "freetoken-local-backend",
-    "kind": "shell"
-  },
-  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",
@@ -4050,6 +4122,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/freetoken-engine-autoswap",
+    "file": "tests/spec/llm-local-dev/freetoken-engine-autoswap.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/opencode-compaction",
     "file": "tests/spec/llm-local-dev/opencode-compaction.bats",
     "category": "llm-local-dev",
@@ -4095,6 +4173,78 @@
     "id": "llm-pipeline/kv-offload",
     "file": "tests/spec/llm-pipeline/kv-offload.bats",
     "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/db-backup-retention",
+    "file": "tests/spec/local-dev-mesh/db-backup-retention.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/dev-local-render",
+    "file": "tests/spec/local-dev-mesh/dev-local-render.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/devmesh-networks",
+    "file": "tests/spec/local-dev-mesh/devmesh-networks.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/devmesh-taskfile",
+    "file": "tests/spec/local-dev-mesh/devmesh-taskfile.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/k3s-install",
+    "file": "tests/spec/local-dev-mesh/k3s-install.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/kubeconfig",
+    "file": "tests/spec/local-dev-mesh/kubeconfig.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/migrate-from-k3d",
+    "file": "tests/spec/local-dev-mesh/migrate-from-k3d.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/preflight",
+    "file": "tests/spec/local-dev-mesh/preflight.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/status",
+    "file": "tests/spec/local-dev-mesh/status.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/tailnet-check",
+    "file": "tests/spec/local-dev-mesh/tailnet-check.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/tailnet-policy",
+    "file": "tests/spec/local-dev-mesh/tailnet-policy.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/ticket-devmesh-guard",
+    "file": "tests/spec/local-dev-mesh/ticket-devmesh-guard.bats",
+    "category": "local-dev-mesh",
     "kind": "shell"
   },
   {
@@ -4164,6 +4314,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/dev-pod-loadouts-path",
+    "file": "tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/dispatch-capture",
     "file": "tests/spec/local-llm-proxy/dispatch-capture.bats",
     "category": "local-llm-proxy",
@@ -4184,6 +4340,12 @@
   {
     "id": "local-llm-proxy/embed-skip-visibility",
     "file": "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/factory-default-not-freetoken",
+    "file": "tests/spec/local-llm-proxy/factory-default-not-freetoken.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4635,6 +4797,12 @@
     "id": "observability",
     "file": "tests/spec/observability.bats",
     "category": "observability",
+    "kind": "shell"
+  },
+  {
+    "id": "opencode-config-ssot",
+    "file": "tests/spec/opencode-config-ssot.bats",
+    "category": "opencode-config-ssot",
     "kind": "shell"
   },
   {
@@ -5556,6 +5724,12 @@
     "kind": "shell"
   },
   {
+    "id": "security/cluster-admin-audit",
+    "file": "tests/spec/security/cluster-admin-audit.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
     "id": "security/githooks-installed-guard",
     "file": "tests/spec/security/githooks-installed-guard.bats",
     "category": "security",
@@ -5564,6 +5738,18 @@
   {
     "id": "security/stray-secret-dump-guard",
     "file": "tests/spec/security/stray-secret-dump-guard.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
+    "id": "security/website-clusterrole-least-privilege",
+    "file": "tests/spec/security/website-clusterrole-least-privilege.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
+    "id": "security/workload-exec-rbac",
+    "file": "tests/spec/security/workload-exec-rbac.bats",
     "category": "security",
     "kind": "shell"
   },
@@ -5894,6 +6080,12 @@
   {
     "id": "software-factory/stage-plan-touched-files",
     "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/tick-http-wakeup",
+    "file": "tests/spec/software-factory/tick-http-wakeup.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -6297,12 +6489,6 @@
     "id": "website-core/web-audit",
     "file": "tests/spec/website-core/web-audit.bats",
     "category": "website-core",
-    "kind": "shell"
-  },
-  {
-    "id": "work-vm-shared-dev/work-vm-guards",
-    "file": "tests/spec/work-vm-shared-dev/work-vm-guards.bats",
-    "category": "work-vm-shared-dev",
     "kind": "shell"
   },
   {

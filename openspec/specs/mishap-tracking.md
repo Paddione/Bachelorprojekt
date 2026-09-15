@@ -70,6 +70,14 @@ Buffer vorbei und legen weiterhin je ein Ticket über `createIncidentTicket` an.
 - **THEN** genau ein Ticket wird angelegt
 - **AND** der Buffer bleibt unverändert
 
+### Requirement: Legacy Mishaps and Infrastructure Resolutions
+
+Resolved mishaps (such as T001978, T002240, T002242, T002243, T002284, T002457, T002718, Docker WSL T002250, CI scripts) MUST be documented within this SSOT spec.
+
+#### Scenario: Historical mishap tracking
+- **GIVEN** execution frictions across dev-flow, docker-wsl, or test infrastructure
+- **THEN** mishaps are attached to causing tickets and flushed via standard quality gates without separate micro-spec files.
+
 ### Requirement: Dublettenerkennung vergleicht Komponente und Dateipfade, nicht nur Titel
 
 Das System MUST einen Ähnlichkeitsvergleich als `ticket.sh find-similar` bereitstellen, der

@@ -4173,8 +4173,8 @@
   ],
   "T014028": [
     {
-      "slug": "freetoken-local-backend",
-      "status": "plan_staged"
+      "slug": "2026-09-12-freetoken-local-backend",
+      "status": "archived"
     }
   ],
   "T014086": [
@@ -4555,14 +4555,14 @@
   ],
   "T900042": [
     {
-      "slug": "batch-sa-security-t900042",
-      "status": "plan_staged"
+      "slug": "2026-09-11-batch-sa-security-t900042",
+      "status": "archived"
     }
   ],
   "T900043": [
     {
-      "slug": "devflow-main-checkout-guards-T900043",
-      "status": "plan_staged"
+      "slug": "2026-09-11-devflow-main-checkout-guards-T900043",
+      "status": "archived"
     }
   ],
   "T900046": [
@@ -4603,14 +4603,14 @@
   ],
   "T900057": [
     {
-      "slug": "sf-test-fixture-cleanup",
-      "status": "plan_staged"
+      "slug": "2026-09-11-sf-test-fixture-cleanup",
+      "status": "archived"
     }
   ],
   "T900074": [
     {
-      "slug": "opencode-factory-context-tuning",
-      "status": "plan_staged"
+      "slug": "2026-09-11-opencode-factory-context-tuning",
+      "status": "archived"
     }
   ],
   "T900078": [
@@ -4621,8 +4621,8 @@
   ],
   "T900080": [
     {
-      "slug": "mcp-registry-drift-T900080",
-      "status": "plan_staged"
+      "slug": "2026-09-11-mcp-registry-drift-T900080",
+      "status": "archived"
     }
   ],
   "T900083": [
@@ -4634,6 +4634,12 @@
   "T900087": [
     {
       "slug": "2026-09-04-freetoken-backend-evaluation",
+      "status": "archived"
+    }
+  ],
+  "T900089": [
+    {
+      "slug": "2026-09-11-require-review-before-automerge",
       "status": "archived"
     }
   ],
@@ -4652,6 +4658,114 @@
   "T900108": [
     {
       "slug": "2026-09-10-dev-pod-ssh",
+      "status": "archived"
+    }
+  ],
+  "T900109": [
+    {
+      "slug": "dev-pod-llm-proxy-loadouts-path",
+      "status": "plan_staged"
+    }
+  ],
+  "T900110": [
+    {
+      "slug": "rbac-exec-least-privilege",
+      "status": "plan_staged"
+    }
+  ],
+  "T900114": [
+    {
+      "slug": "website-clusterrole-least-privilege",
+      "status": "plan_staged"
+    }
+  ],
+  "T900117": [
+    {
+      "slug": "2026-09-12-devmesh-k3s-cluster",
+      "status": "archived"
+    }
+  ],
+  "T900126": [
+    {
+      "slug": "2026-09-11-enforce-admins-branch-protection",
+      "status": "archived"
+    }
+  ],
+  "T900141": [
+    {
+      "slug": "2026-09-11-modernize-llama-vim-integration",
+      "status": "archived"
+    }
+  ],
+  "T900142": [
+    {
+      "slug": "2026-09-11-devmesh-tailnet",
+      "status": "archived"
+    }
+  ],
+  "T900143": [
+    {
+      "slug": "2026-09-12-devmesh-dev-stack",
+      "status": "archived"
+    }
+  ],
+  "T900144": [
+    {
+      "slug": "2026-09-11-dev-repo-per-machine",
+      "status": "archived"
+    }
+  ],
+  "T900145": [
+    {
+      "slug": "devmesh-k3d-decommission",
+      "status": "plan_staged"
+    }
+  ],
+  "T900155": [
+    {
+      "slug": "2026-09-12-freetoken-engine-autoswap",
+      "status": "archived"
+    }
+  ],
+  "T900159": [
+    {
+      "slug": "2026-09-12-github-identity-foundation",
+      "status": "archived"
+    }
+  ],
+  "T900161": [
+    {
+      "slug": "github-snapshot-reconciler-i5589",
+      "status": "plan_staged"
+    }
+  ],
+  "T900162": [
+    {
+      "slug": "2026-09-12-opencode-agent-model-config-sync",
+      "status": "archived"
+    }
+  ],
+  "T900163": [
+    {
+      "slug": "ssot-consolidation-stale-cleanup",
+      "status": "plan_staged"
+    }
+  ],
+  "T900164": [
+    {
+      "slug": "freetoken-config-consolidation",
+      "status": "plan_staged"
+    }
+  ],
+  "T900165": [
+    {
+      "slug": "2026-09-12-agent-visual-decision-ux",
+      "status": "archived"
+    }
+  ],
+  "T900167": [
+    {
+      "slug": "2026-09-13-agents-yaml-freetoken-drift",
       "status": "archived"
     }
   ],

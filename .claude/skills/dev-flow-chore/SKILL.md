@@ -5,10 +5,9 @@ description: 'Use for maintenance with NO behavior change — documentation, dep
 
 # dev-flow-chore — Wartung direkt ausführen & mergen
 
-> **cwd-Regel (PFLICHT, T006367):** Bash-Aufrufe in dev-flow-Phasen IMMER mit
-> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
-> `cd` wirkt nur auf den aktuellen Bash-Call; ein bare `git commit` kann sonst im
-> Haupt-Checkout landen (T002357-Falle).
+> **cwd-Regel (PFLICHT, T006367/T002357):** Git-Aufrufe immer als `git -C <worktree>` bzw. mit
+> explizitem cd+guard — **nie auf implizites cwd vertrauen**. Nach dem Worktree-Wechsel tragen
+> alle Read/Write/Edit-Pfade den Worktree-Präfix. Gilt für das ganze Dokument.
 
 Der gemeinsame [Lifecycle-Vertrag](.claude/skills/references/dev-flow-lifecycle.md) besitzt hier den No-Behavior-Change-Einstieg und delegiert Git-, Verifikations- und Cleanup-Mechanik an `git-workflow` bzw. `verification-block`. Reine Playwright-Änderungen laufen als spezialisierter test-only Chore über `dev-flow-e2e`.
 
@@ -91,12 +90,8 @@ cd .worktrees/<slug>
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore
 ```
 
-> **`cd` wirkt nur auf Bash (T002357):** Ab hier MÜSSEN alle Datei-Tool-Pfade (Read/Write/Edit)
-> explizit den Worktree-Präfix (`.worktrees/<slug>/...`) tragen. `cd` ändert nur das Bash-cwd,
-> nicht den Bezugspunkt der Datei-Tools — ein zu Session-Beginn im Hauptcheckout korrekter Pfad
-> bleibt syntaktisch gültig und trifft danach still die falsche Arbeitskopie (Mishap T002350).
-> Dasselbe gilt für Git-Aufrufe in Bash: ohne `git -C <worktree>` oder cd+Guard kann ein bare
-> `git commit` im Haupt-Checkout landen (cwd-Regel oben, T006367).
+> **Ab hier gilt die cwd-Regel oben:** Datei-Tool-Pfade tragen `.worktrees/<slug>/...`, sonst
+> trifft ein alter Hauptcheckout-Pfad still die falsche Arbeitskopie (T002350).
 
 > Enthält `<slug>` eine wiederverwendete `TICKET_EXT_ID` (z.B. `T001869`), sollte deren Ticketnummer
 > im Slug vorkommen (z.B. `doc-cleanup-T001869`) — `preflight-pr-scope.sh` prüft das PR-Titel↔Branch-

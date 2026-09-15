@@ -24,11 +24,12 @@ source "$HERE/../factory/lib.sh"; factory_resolve
 
 FAILED=0
 AVAILABLE=""
-# T014028: :1919 ist das FreeToken-native Backend — das lokale Default seit der
-# Migration weg von den llama-Loadouts. Ohne diesen Eintrag wuerde jede dort
-# servierte Modell-ID als FEHLT gemeldet, sobald irgendein anderes Backend
-# antwortet (fail-closed mit erreichbarem Backend).
-for url in http://127.0.0.1:1919 http://127.0.0.1:18235 http://127.0.0.1:1234; do
+# T900164: FreeToken-native (:1919) ist decommissioned — geprobt werden nur
+# noch der llama-Proxy (:18235, Loadouts aus loadouts.json) und LM Studio
+# (:1234, Embedding/Rerank). Ohne die Liste wuerden dort servierte Modell-IDs
+# als FEHLT gemeldet, sobald irgendein anderes Backend antwortet (fail-closed
+# mit erreichbarem Backend).
+for url in http://127.0.0.1:18235 http://127.0.0.1:1234; do
   models=$(curl -s -m 5 "${url}/v1/models" 2>/dev/null | jq -r '.data[].id' 2>/dev/null) || continue
   AVAILABLE="${AVAILABLE}"$'\n'"${models}"
 done

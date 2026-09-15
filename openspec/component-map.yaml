@@ -216,3 +216,9 @@ mappings:
     spec: mcp-gateway
   - prefix: scripts/mcp
     spec: mcp-gateway
+
+  # Vim AI Completion
+  - prefix: editor/llama-vim
+    spec: vim-ai-completion
+  - prefix: scripts/vim
+    spec: vim-ai-completion

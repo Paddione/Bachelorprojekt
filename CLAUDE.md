@@ -17,7 +17,7 @@ Before responding to any request, check these signals and delegate to the named 
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001, nur mentolder-DB) — Ticket-Reads → `ticket-mcp` mit `brand` |
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
-> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `brain-mcp`, `codebase-memory-mcp`, `docfork`, `factory-mcp`, `github-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `sequential-thinking`, `ticket-mcp`, `webresearch`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
+> **MCP-Registry ist SSOT (T002300/T002592):** `docs/agent-guide/registry/mcp.yaml` ist SSOT für Erreichbarkeit; `task mcp:sync` regeneriert `.mcp.json`, `opencode.jsonc`, `mcp_config.json`. The opencode runtime registers: `bge-mcp`, `brain-mcp-node`, `codebase-memory-mcp`, `factory-mcp-node`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `ticket-mcp-node`. `docs/agent-guide/registry/capabilities.yaml` ist SSOT für Auswahl/Nutzung. Siehe [`.claude/skills/references/mcp-tool-guide.md`](.claude/skills/references/mcp-tool-guide.md).
 > **gh-axi (T004612):** Bevorzugt für Anzeige. Für maschinelles Parsen (`--json`, `-q`, `--jq`), Polling (`pr checks`) und Mutationen (`pr merge`, `gh api`) immer `gh` direkt verwenden. Siehe [`.claude/skills/references/gh-axi.md`](.claude/skills/references/gh-axi.md).
 
 **Before dispatching any agent, inject active plan context & curated toolset:**
@@ -42,7 +42,7 @@ The main loop runs on the **user's default model** — `.claude/settings.json` d
 - **Domain agents** carry it in their frontmatter: `bachelorprojekt-ops/-db/-test/-website` → `sonnet` (mechanical recon, queries, tests, UI), `bachelorprojekt-infra`/`-security` → `opus` (cross-system, risky, irreversible).
 - **Ad-hoc subagents** get an explicit `model` per dispatch — inheriting the main loop now means inheriting Opus. See [`subagent-provisioning.md`](.claude/skills/references/subagent-provisioning.md).
 
-**The 1M context window is a budget, not a licence.** Bulk reads (CI logs, research sweeps, multi-file recon) still belong in a subagent that reports back *condensed*; the orchestrator context stays reserved for decisions.
+**The 1M context window is a budget, not a licence.** Bulk reads (CI logs, research sweeps, multi-file recon) still belong in a subagent that reports back *condensed*; the orchestrator context stays reserved for decisions. When context is compacted, preserve the objective, active plan or ticket, changed files, commands and test results, decisions, blockers, exact error signatures, and the next concrete action; discard stale reconnaissance and raw successful tool output.
 
 ## Default Workflow
 

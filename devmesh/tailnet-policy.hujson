@@ -1,0 +1,23 @@
+// devmesh/tailnet-policy.hujson — Soll-Fassung der Tailnet-ACL fuer devmesh (T900116, ADR-008)
+// Eingespielt vom Operator in der Admin-Konsole (Access controls), siehe
+// docs/runbooks/devmesh-tailnet.md. Guard: tests/spec/local-dev-mesh/tailnet-policy.bats.
+// Format-Regel fuer den Guard: Kommentare nur als ganze Zeilen, keine grants.
+{
+	"tagOwners": {
+		"tag:devmesh":   ["autogroup:admin"],
+		"tag:devclient": ["autogroup:admin"],
+	},
+	"hosts": {
+		// Tailnet-Adresse von pk-desktop (gpu_endpoint.host in devmesh/inventory.yaml).
+		"gpu-host": "100.102.71.114",
+	},
+	"acls": [
+		// Dev-Clients erreichen die devmesh-Server auf SSH, HTTPS (Ingress) und k3s-API.
+		{"action": "accept", "src": ["tag:devclient"], "dst": ["tag:devmesh:22,443,6443"]},
+		// devmesh-Server untereinander vollstaendig.
+		{"action": "accept", "src": ["tag:devmesh"], "dst": ["tag:devmesh:*"]},
+		// Einzige Ausnahme in einen Client: GPU-Inferenz auf gpu_endpoint.port (ADR-008 Nachtrag, Punkt 1).
+		{"action": "accept", "src": ["tag:devmesh"], "dst": ["gpu-host:1234"]},
+		// Bewusst keine Regel mit Ziel tag:devclient oder *: kein allgemeiner Pfad in die Arbeitsplaetze.
+	],
+}

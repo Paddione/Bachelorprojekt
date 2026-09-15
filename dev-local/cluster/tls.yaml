@@ -1,0 +1,49 @@
+# devmesh-TLS (T900118, design.md D3). Ausserhalb des Kustomize-Bundles appliziert von
+# task devmesh:deploy mit `envsubst '$DEVMESH_DOMAIN'`: cert-manager-CRDs muessen zuerst
+# existieren, und der Namespace-Transformer wuerde kube-system umschreiben.
+# Muster: k3d/dev-stack/cert-manager.yaml + k3d/dev-stack/traefik-tls.yaml.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-devmesh
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: noreply-bachelorprojekt@mailbox.org
+    privateKeySecretRef:
+      name: letsencrypt-devmesh-key
+    solvers:
+      - dns01:
+          webhook:
+            groupName: lego.dns-solver
+            solverName: lego-solver
+            config:
+              provider: ipv64
+              env:
+                IPV64_API_KEY:
+                  secretKeyRef:
+                    name: ipv64-api-key
+                    key: IPV64_API_KEY
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: devmesh-wildcard-tls
+  namespace: kube-system
+spec:
+  secretName: devmesh-wildcard-tls
+  issuerRef:
+    name: letsencrypt-devmesh
+    kind: ClusterIssuer
+  dnsNames:
+    - "${DEVMESH_DOMAIN}"
+    - "*.${DEVMESH_DOMAIN}"
+---
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+spec:
+  defaultCertificate:
+    secretName: devmesh-wildcard-tls

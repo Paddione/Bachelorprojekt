@@ -3,14 +3,14 @@
 Kontextdatei für die Gemini-CLI (`agy`). Sie ist bewusst ein **Zeiger**, keine eigene
 Zusammenfassung des Projekts.
 
-## Lies stattdessen diese beiden
+## Lade Kontext gezielt
 
-- **[CLAUDE.md](CLAUDE.md)** — die maßgebliche Referenz: Agent-Routing, Architektur,
-  Cluster-Topologie, Konfigurationsmuster, CI/CD, Entwicklungsregeln, Footguns.
-- **[AGENTS.md](AGENTS.md)** — cross-harness Quick-Start: Kernkommandos, Workflow-Regeln,
-  OpenSpec-Konventionen.
+- Lies zuerst **[AGENTS.md](AGENTS.md)** — den cross-harness Quick-Start für Kommandos,
+  Workflow-Regeln und OpenSpec-Konventionen.
+- Lies **[CLAUDE.md](CLAUDE.md)** nicht pauschal. Öffne nur die zum Auftrag passende Sektion,
+  wenn Routing, Architektur, CI/CD, Konfigurationsmuster oder Footguns nötig sind.
 
-Beide sind für dich gedacht — öffne sie, statt dich auf diese Datei zu verlassen.
+So bleibt die maßgebliche Referenz erreichbar, ohne sie bei jeder Aufgabe vollständig in den aktiven Kontext zu laden.
 
 ## Kommandos nicht raten
 Kommandos werden nicht nachgeschlagen und nicht hartkodiert, sondern erfragt:

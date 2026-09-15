@@ -1,0 +1,29 @@
+# llm-gateway-host — GPU-Inferenz auf PK-Desktop ueber dessen Tailnet-Adresse
+# (T900118, design.md D7, ADR-008 Nachtrag 1). Selector-los: Adresse und Port stehen als
+# gpu_endpoint in devmesh/inventory.yaml, scripts/devmesh/render-stack.sh setzt sie ein.
+# Ist PK-Desktop aus, meldet /sdlc/api/llm-proxy/status proxy=unreachable mit dieser
+# Adresse; die Console-Probes pruefen /api/health ohne LLM-Abhaengigkeit, der Pod bleibt Running.
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-host
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: llm-gateway-host
+  labels:
+    kubernetes.io/service-name: llm-gateway-host
+addressType: IPv4
+ports:
+  - name: http
+    port: ${GPU_ENDPOINT_PORT}
+    protocol: TCP
+endpoints:
+  - addresses:
+      - "${GPU_ENDPOINT_ADDRESS}"

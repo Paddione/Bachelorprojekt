@@ -99,3 +99,52 @@ JSON
   [[ "$output" == *"enforce_admins"* ]]
   [[ "$output" == *"required_pull_request_reviews"* ]]
 }
+
+@test "gh-branch-protection: erzwingt Branch Protection auch fuer Administratoren" {
+  SCRIPT="$REPO_ROOT/scripts/gh-branch-protection.sh"
+  [ -x "$SCRIPT" ]
+
+  # Das Payload darf den unsicheren Live-Wert nicht erneut uebernehmen: Admins
+  # muessen Required Checks und PR-Pflicht ebenfalls einhalten.
+  run grep -Eq '^ENFORCE_ADMINS=true$' "$SCRIPT"
+  [ "$status" -eq 0 ]
+}
+
+@test "gh-branch-protection: referenziert BATS Unit + Quality Gates statt des veralteten Monolithen" {
+  SCRIPT="$REPO_ROOT/scripts/gh-branch-protection.sh"
+  [ -x "$SCRIPT" ]
+
+  # Der historische Check 'Offline Tests (Manifests, Configs, Unit)' wurde in ci.yml
+  # durch 'BATS Unit + Quality Gates' abgeloest; kein Skript darf den alten Namen fordern.
+  run grep -F "Offline Tests (Manifests, Configs, Unit)" "$SCRIPT"
+  [ "$status" -ne 0 ]
+
+  run grep -F '"BATS Unit + Quality Gates"' "$SCRIPT"
+  [ "$status" -eq 0 ]
+}
+
+@test "gh-branch-protection: enthaelt alle vier Basis-Required-Checks" {
+  SCRIPT="$REPO_ROOT/scripts/gh-branch-protection.sh"
+  [ -x "$SCRIPT" ]
+
+  for check in "BATS Unit + Quality Gates" "Security Scan" "Brett TypeScript" "Conventional Commits"; do
+    run grep -F "\"$check\"" "$SCRIPT"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "check-branch-protection: lehnt den veralteten Offline-Tests-Check ab" {
+  SCRIPT="$REPO_ROOT/scripts/check-branch-protection.sh"
+  [ -x "$SCRIPT" ]
+
+  obsolete_check="$BATS_TEST_TMPDIR/obsolete-check.json"
+  cat >"$obsolete_check" <<'JSON'
+{"enforce_admins":{"enabled":true},
+ "required_pull_request_reviews":{"required_approving_review_count":1},
+ "required_status_checks":{"contexts":["Offline Tests (Manifests, Configs, Unit)", "Security Scan"]}}
+JSON
+
+  run "$SCRIPT" --from-json "$obsolete_check"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Offline Tests (Manifests, Configs, Unit)"* ]]
+}

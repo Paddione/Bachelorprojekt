@@ -6,10 +6,23 @@
 // kanonische Form (serializeLoadouts) fail-closed in CI [T002553].
 // Bewusst fail-closed bei der Validierung: eine kaputte Datei darf nicht als
 // halbgueltiges Dokument durchrutschen und spaeter beim argv-Bau explodieren.
-import { readFileSync, writeFileSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-export const DEFAULT_PATH = 'scripts/llm/loadouts.json';
+export function resolveDefaultLoadoutsPath() {
+  if (process.env.LOADOUTS_PATH) return process.env.LOADOUTS_PATH;
+  const cwdRel = 'scripts/llm/loadouts.json';
+  if (existsSync(cwdRel)) return cwdRel;
+  if (process.env.DEV_POD_REPO && existsSync(`${process.env.DEV_POD_REPO}/${cwdRel}`)) {
+    return `${process.env.DEV_POD_REPO}/${cwdRel}`;
+  }
+  const moduleRel = fileURLToPath(new URL('../../scripts/llm/loadouts.json', import.meta.url));
+  if (existsSync(moduleRel)) return moduleRel;
+  return cwdRel;
+}
+
+export const DEFAULT_PATH = resolveDefaultLoadoutsPath();
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const LOADOUT_KEYS = new Set([
@@ -291,7 +304,7 @@ export function parseLoadouts(text) {
 export function factoryModel(doc) { return doc?.factory?.model ?? null; }
 export function factoryLocked(doc) { return doc?.factory?.locked === true; }
 
-export function readLoadouts(path = DEFAULT_PATH) {
+export function readLoadouts(path = resolveDefaultLoadoutsPath()) {
   const text = readFileSync(path, 'utf8');
   return { doc: parseLoadouts(text), mtimeMs: statSync(path).mtimeMs };
 }
@@ -320,7 +333,7 @@ export function serializeLoadouts(doc) {
 
 /** Schreibt nur, wenn die Datei seit dem Lesen unveraendert ist (verhindert,
  *  dass das UI eine Handbearbeitung ueberschreibt). */
-export function writeLoadouts(doc, path = DEFAULT_PATH, expectedMtimeMs = null) {
+export function writeLoadouts(doc, path = resolveDefaultLoadoutsPath(), expectedMtimeMs = null) {
   parseLoadouts(JSON.stringify(doc)); // fail-closed vor dem Schreiben
   if (expectedMtimeMs !== null) {
     const current = statSync(path).mtimeMs;

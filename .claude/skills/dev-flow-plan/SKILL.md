@@ -4,12 +4,9 @@ description: 'Use to choose the development path for a work request in this repo
 ---
 # dev-flow-plan — Pfad-Wahl, Brainstorming & Plan
 
-> **cwd-Regel (PFLICHT, T006367/T002357):** Bash-Aufrufe in dev-flow-Phasen immer mit
-> `git -C <worktree>` bzw. explizitem cd+guard — **nie auf implizites cwd vertrauen**.
-> `cd` wirkt nur auf den aktuellen Bash-Call, nicht auf
-> die Datei-Tools. Git-Aufrufe deshalb immer als `git -C "$WT"` (sonst landet ein bare
-> `git commit` im Haupt-Checkout), und ab Phase B tragen **alle** Read/Write/Edit-Pfade den
-> Worktree-Präfix. Gilt für dieses ganze Dokument und wird unten nicht wiederholt.
+> **cwd-Regel (PFLICHT, T006367/T002357):** Git-Aufrufe immer als `git -C "$WT"` bzw. mit
+> explizitem cd+guard — **nie auf implizites cwd vertrauen**. Ab Phase B tragen **alle**
+> Read/Write/Edit-Pfade den Worktree-Präfix. Gilt für das ganze Dokument.
 
 Der Plan ist der behavior-change-Einstieg des gemeinsamen [Lifecycle-Vertrags](.claude/skills/references/dev-flow-lifecycle.md): Ausgang ist ein Request, Ausgang ein gestagter, gepushter Plan ohne PR; danach übernimmt `dev-flow-execute`. Proposal, Plan-Lint, staged-plan und No-Early-PR-Gates bleiben hier normativ.
 
@@ -235,21 +232,16 @@ Der Plan lässt sich annotierbar rendern und im Browser reviewen
 
 ## Fix-Pfad
 
-Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird — Rot-Grün ist
-hier harte Voraussetzung, nicht Stilfrage. Der Test gehört nach `tests/spec/<spec-slug>.bats`
-(die Spec aus `openspec/specs/`), nicht in eine neue ticket-nummerierte Datei. Setzt er ein
-externes Binary oder einen externen Dienst voraus, gehört der Verfügbarkeits-Guard
-(`command -v <binary> >/dev/null 2>&1 || skip "<binary> binary not installed"`) schon in die
-**Rotphase**. Vorher prüfen, ob CI die Abhängigkeit überhaupt einrichtet —
-`grep -rn '<binary>' .github/workflows/`; **0 Treffer heißt: in CI nicht vorhanden**, und ohne
-Guard misst der Test dann die Ausstattung des Runners statt den Zustand des Codes.
-Vollständige Begründung: T002820 in
+Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird. Der Test gehört
+nach `tests/spec/<spec-slug>.bats` (die Spec aus `openspec/specs/`), nicht in eine neue
+ticket-nummerierte Datei. Setzt er ein externes Binary oder einen externen Dienst voraus, gehört
+der Verfügbarkeits-Guard (`command -v <binary> >/dev/null 2>&1 || skip "<binary> binary not installed"`)
+schon in die **Rotphase**. Vorher prüfen: `grep -rn '<binary>' .github/workflows/`; **0 Treffer
+heißt: in CI nicht vorhanden**. Begründung: T002820 in
 [dev-flow-gotchas](.claude/skills/references/dev-flow-gotchas.md).
 
-**Bug-Triage: Ursachen-Verifikation vor Brainstorming [T002448-M5]:** Eine Bug-Beschreibung
-enthält oft Symptom und Ursachen-Hypothese in einem Satz. Vor dem Brainstorming MUSS unterschieden
-werden: was ist beobachtetes Symptom (Fakt, reproduzierbar) und was ist Annahme über die Ursache
-(Hypothese, zu verifizieren). Die Ursache MUSS vor dem Schritt „Lösung entwerfen" mit einem
+**Bug-Triage: Ursachen-Verifikation vor Brainstorming [T002448-M5]:** Beobachtetes Symptom (Fakt)
+und angenommene Ursache (Hypothese) trennen. Die Ursache MUSS vor „Lösung entwerfen" mit einem
 minimalen Reproducer oder Log-Evidenz belegt sein; die Trennung gehört ins Proposal.
 English: verify the bug cause during triage — distinguish observed symptom from assumed root cause,
 and validate the cause with evidence before designing the solution.

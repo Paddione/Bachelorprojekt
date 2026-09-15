@@ -27,8 +27,7 @@ git-crypt-verschluesselten Repo-Config:
 environments/.secrets/.ssh/config
 ```
 
-`scripts/provision-dev-vm.sh` nutzt sie ueber `ssh -F "$SSH_CONFIG"` (Default
-`$REPO_ROOT/environments/.secrets/.ssh/config`) — dort sind bereits `dev` und
+Aufrufe nutzen sie ueber `ssh -F environments/.secrets/.ssh/config <alias>` — dort sind bereits `dev` und
 `dev-vm` definiert. Neue Aliase gehoeren in dieselbe Datei, damit Skripte und
 Mensch denselben Namen benutzen.
 

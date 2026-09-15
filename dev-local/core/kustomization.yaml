@@ -1,0 +1,130 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# devmesh-Profil core (T900118, ADR-008). Gerendert von scripts/devmesh/render-stack.sh mit
+# --load-restrictor=LoadRestrictionsNone (Ressourcen liegen in k3d/).
+# Bewusst nicht enthalten:
+#   k3d/namespace.yaml — k3d/website.yaml bringt einen Namespace mit, den der
+#     Namespace-Transformer ebenfalls zu `workspace` macht; beide kollidieren.
+#   k3d/secrets.yaml, k3d/website-dev-secrets.yaml — Secrets kommen auf devmesh nur aus
+#     environments/sealed-secrets/dev.yaml; ein Klartext-Secret gleichen Namens wuerde
+#     das entsiegelte ueberschreiben.
+namespace: workspace
+
+resources:
+  - ../../k3d/configmap-domains.yaml
+  - ../../k3d/shared-db.yaml
+  - ../../k3d/website-schema.yaml
+  - ../../k3d/website.yaml
+  - ../../k3d/pocket-id.yaml
+  - ../../k3d/pocket-id-db-init-sql.yaml
+  - ../../k3d/pocket-id-client-seed.yaml
+  - ../../k3d/pocket-id-client-seed-rbac.yaml
+  - ../../k3d/pocket-id-client-seed-website-rbac.yaml
+  - ../../k3d/llm-gpu.yaml
+  - ../../k3d/brett.yaml
+  - ../../k3d/mailpit.yaml
+  - ../../k3d/sdlc-stack/sdlc-console.yaml
+  - ../../k3d/sdlc-stack/sdlc-console-rbac.yaml
+  - gpu-endpoint.yaml
+  - ingress.yaml
+  - shared-db-backup.yaml
+
+configMapGenerator:
+  - name: shared-db-backup-script
+    files:
+      - db-backup.sh=../../scripts/devmesh/db-backup.sh
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  - target: {kind: ConfigMap, name: domain-config}
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: {name: domain-config}
+      data:
+        PROD_DOMAIN: "${DEVMESH_DOMAIN}"
+        POCKET_ID_DOMAIN: "auth.${DEVMESH_DOMAIN}"
+        WEB_DOMAIN: "web.${DEVMESH_DOMAIN}"
+        BRETT_DOMAIN: "brett.${DEVMESH_DOMAIN}"
+        MAIL_DOMAIN: "mail.${DEVMESH_DOMAIN}"
+        NC_DOMAIN: "files.${DEVMESH_DOMAIN}"
+        COLLABORA_DOMAIN: "office.${DEVMESH_DOMAIN}"
+        VAULT_DOMAIN: "vault.${DEVMESH_DOMAIN}"
+        SIGNALING_DOMAIN: "signaling.${DEVMESH_DOMAIN}"
+        TLS_SECRET_NAME: "devmesh-wildcard-tls"
+  - target: {kind: ConfigMap, name: sdlc-console-config}
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: {name: sdlc-console-config}
+      data:
+        CLUSTER_ENV: "devmesh"
+  # GPU ueber llm-gateway-host (gpu-endpoint.yaml) statt leerem LLM_PROXY_URL.
+  - target: {kind: Deployment, name: sdlc-console}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: sdlc-console}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: sdlc-console
+                env:
+                  - {name: LLM_PROXY_URL, value: "http://llm-gateway-host"}
+                resources:
+                  requests: {cpu: 100m, memory: 192Mi}
+  # Zustandsbehaftete Workloads auf den storage=true-Knoten (SP-2 D4).
+  - target: {kind: Deployment, name: shared-db}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: shared-db}
+      spec:
+        template:
+          spec:
+            nodeSelector: {storage: "true"}
+            containers:
+              - name: postgres
+                resources:
+                  requests: {cpu: 100m, memory: 256Mi}
+  - target: {kind: Deployment, name: pocket-id}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: pocket-id}
+      spec:
+        template:
+          spec:
+            nodeSelector: {storage: "true"}
+            containers:
+              - name: pocket-id
+                resources:
+                  requests: {cpu: 25m, memory: 64Mi}
+  # Start-Requests fuer 3 x 16 GB (R1); Messung in Task L1.
+  - target: {kind: Deployment, name: website}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: website}
+      spec: {template: {spec: {containers: [{name: website, resources: {requests: {cpu: 50m, memory: 192Mi}}}]}}}
+  - target: {kind: Deployment, name: brett}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: brett}
+      spec: {template: {spec: {containers: [{name: brett, resources: {requests: {cpu: 25m, memory: 64Mi}}}]}}}
+  - target: {kind: Deployment, name: mailpit}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: mailpit}
+      spec: {template: {spec: {containers: [{name: mailpit, resources: {requests: {cpu: 10m, memory: 32Mi}}}]}}}
+  - target: {kind: Deployment, name: "bge-(embed|rerank)"}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: bge}
+      spec: {template: {spec: {containers: [{name: llama-cpp, resources: {requests: {cpu: 250m, memory: 768Mi}}}]}}}

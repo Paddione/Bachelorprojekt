@@ -103,6 +103,11 @@ fi
 CONTEXTS="$(jq -r '.required_status_checks.contexts // [] | length' <<<"$PROTECTION")"
 echo "  · required_status_checks: ${CONTEXTS} contexts"
 
+if jq -e '.required_status_checks.contexts // [] | index("Offline Tests (Manifests, Configs, Unit)")' <<<"$PROTECTION" >/dev/null; then
+  echo "  ✗ required_status_checks enthaelt den veralteten Check 'Offline Tests (Manifests, Configs, Unit)'"
+  FAILED=1
+fi
+
 if [[ "$FAILED" -ne 0 ]]; then
   echo "✗ ${BRANCH}: Branch Protection unvollstaendig" >&2
   exit 1

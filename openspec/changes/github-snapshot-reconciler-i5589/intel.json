@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "slug": "github-snapshot-reconciler-i5589",
+    "ticket_id": "T900161",
+    "generated_from": "main@head",
+    "domains": [
+      "tracking",
+      "db",
+      "ci"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/lib/tickets-schema.ts",
+      "language": "javascript",
+      "loc": 59,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/github-snapshot-reconciler.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/github-pr-events-compat.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/tickets/github-snapshot-reconciler.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/tickets-pr-snapshots.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [
+    "tickets.github_issue_snapshots",
+    "tickets.github_pr_snapshots",
+    "tickets.github_sync_cursors"
+  ],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": []
+}

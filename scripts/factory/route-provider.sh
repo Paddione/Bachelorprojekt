@@ -17,10 +17,10 @@ SOURCE="${1:?source required}"; TIER="${2:?tier required}"
 
 PIN="$(factory_model_pin)"
 PIN_MODEL=""; PIN_LOCKED="0"
-# T014028: lokaler Default ist FreeToken-native (OpenAI-compatible, :1919),
-# nicht mehr der llama-Proxy auf :18235.
-FT_LOCAL_PROVIDER="freetoken"
-FT_LOCAL_BASEURL="http://127.0.0.1:1919/v1"
+# T900164: FreeToken-native (:1919) ist decommissioned — lokaler Default ist
+# wieder der llamacpp-Stack via llm-proxy auf :18235 (Loadout qwen38-220k).
+FT_LOCAL_PROVIDER="llamacpp-local"
+FT_LOCAL_BASEURL="http://127.0.0.1:18235/v1"
 if [[ -n "$PIN" ]]; then
   IFS=$'\t' read -r PIN_MODEL PIN_LOCKED <<< "$PIN"
   if [[ "$PIN_LOCKED" == "1" ]]; then
@@ -67,7 +67,7 @@ FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}}"
 # aussieht. Der Default zeigt jetzt auf 'gemma26-throughput' (Port 8092, geladen).
 # Dass es zweimal passierte, lag nicht am Wert, sondern daran, dass niemand
 # routing-check.sh aufrief — wakeup.sh tut das seither pro Tick (fail-soft).
-OPUS_FALLBACK=$'freetoken\t'"$FACTORY_DEFAULT_MODEL"$'\thttp://127.0.0.1:1919/v1'
+OPUS_FALLBACK="$FT_LOCAL_PROVIDER"$'\t'"$FACTORY_DEFAULT_MODEL"$'\t'"$FT_LOCAL_BASEURL"
 if [[ "$TIER" == "opus" ]]; then
   OPUS_ROW=$(factory_psql -v src="$SOURCE" 2>/dev/null <<'SQL' || true
 SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')

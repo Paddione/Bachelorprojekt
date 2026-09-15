@@ -3,24 +3,24 @@
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
 Specs: 146 · Requirements: 2327 · Scenarios: 5152
+Specs: 126 · Requirements: 2310 · Scenarios: 5138
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 69 · Scenarios: 144 · Lines: 1813
+Reqs: 71 · Scenarios: 150 · Lines: 1895
 Last touches:
+  - Registry Runtimes Stay in Sync with the opencode Runtime Config | T900167 | 2026-09-13 | ADDED
+  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | 2026-09-11 | MODIFIED
+  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | 2026-09-11 | ADDED
   - Repo-relative path references in first-party skills must resolve | T900078 | 2026-09-09 | MODIFIED
   - Skill shims and their targets must cover each other | T900078 | 2026-09-09 | ADDED
-  - Plugin activation is checked against installation | T900056 | 2026-09-03 | MODIFIED
-  - Superpowers is declared in every harness that runs the dev-flow skills | T900056 | 2026-09-03 | ADDED
-  - A plugin activation finding names an executable remedy | T900056 | 2026-09-03 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
-  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | active | MODIFIED
-  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
+  - Active Agent Roster without FreeToken | T900163 | active | MODIFIED
   - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
 
 ### dev-flow-plan
@@ -54,16 +54,16 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 207 · Scenarios: 633 · Lines: 5710
+Reqs: 207 · Scenarios: 634 · Lines: 5722
 Paths: scripts/factory
 Last touches:
+  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | 2026-09-11 | MODIFIED
   - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
   - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
-  - SDLC Console Runs Fleet-Natively Without Host Endpoints | T016422 | 2026-08-24 | ADDED
 In-flight:
-  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | active | MODIFIED
+  - Factory Dispatcher Runs In-Cluster | T900110 | active | MODIFIED
   - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
   - Force-Tick Trigger | T900054 | active | MODIFIED
   - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | active | MODIFIED
@@ -73,14 +73,14 @@ In-flight:
 ## delivery
 
 ### ci-cd
-Reqs: 113 · Scenarios: 332 · Lines: 3509
+Reqs: 113 · Scenarios: 332 · Lines: 3516
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Squash-Auto-Merge | T900089 | 2026-09-11 | MODIFIED
+  - Direct pushes to main SHALL be prevented server-side | T900126 | 2026-09-11 | MODIFIED
   - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
   - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | 2026-08-24 | ADDED
   - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
-  - Factory Shard Setup Minimization | T013528 | 2026-08-22 | ADDED
-  - Spec Runtime Manifest Completeness | T013528 | 2026-08-22 | ADDED
 In-flight:
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
@@ -97,6 +97,14 @@ Last touches:
   - Reconcile and drift share one renderer | T900083 | 2026-09-11 | ADDED
   - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
   - Staging Stack Is Wired Into Flux | T015004 | 2026-08-23 | ADDED
+Reqs: 50 · Scenarios: 94 · Lines: 971
+Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
+Last touches:
+  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | 2026-09-11 | ADDED
+  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | 2026-09-11 | ADDED
+  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | 2026-09-11 | ADDED
+  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | 2026-09-11 | ADDED
+  - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
 In-flight:
   - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
   - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
@@ -104,10 +112,6 @@ In-flight:
   - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
   - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
-  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | active | ADDED
-  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | active | ADDED
-  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | active | ADDED
-  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
@@ -153,6 +157,7 @@ In-flight:
   - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
+  - Deterministic loadouts path resolution across execution environments | T900109 | active | ADDED
   - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product
@@ -167,14 +172,18 @@ Last touches:
   - The cockpit is the only administration surface for the llm-proxy | T013909 | 2026-08-22 | ADDED
 
 ### ticket-system
-Reqs: 79 · Scenarios: 227 · Lines: 2102
+Reqs: 83 · Scenarios: 236 · Lines: 2197
 Paths: scripts/ticket
 Last touches:
+  - Repository-scoped GitHub object identity | T900159 | 2026-09-12 | ADDED
+  - Canonical work-item bindings preserve invisible UUID identity | T900159 | 2026-09-12 | ADDED
+  - Identity corrections are append-only and cycle-safe | T900159 | 2026-09-12 | ADDED
+  - Typed human GitHub references have one central parser | T900159 | 2026-09-12 | ADDED
   - Lesepfade unterscheiden kein-Treffer von falscher-Frage | T014386 | 2026-08-23 | ADDED
-  - Filter-Validierung läuft vor dem Datenbankzugriff | T014386 | 2026-08-23 | ADDED
-  - Ticket-Status-Werte sind in einem zentralen SSOT-Modul definiert | T007955 | 2026-08-15 | ADDED
-  - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T002871 | 2026-08-10 | ADDED
-  - Ticket listings hide test data by default | T002781 | 2026-08-10 | ADDED
+In-flight:
+  - GitHub Snapshot Schema and Cursor Tracking | T900161 | active | ADDED
+  - GitHub Identity and Closing Relationship Auto-Registration | T900161 | active | ADDED
+  - PR Events and Status Compatibility Projection | T900161 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192
@@ -236,29 +245,28 @@ Last touches:
   - Migrated dialogs preserve stable test selectors | T001788 | 2026-07-11 | ADDED
 
 ### agent-behavior
-Reqs: 7 · Scenarios: 12 · Lines: 143
+Reqs: 11 · Scenarios: 16 · Lines: 182
 Last touches:
+  - Structured Interactive Decision Modals for Human Input | T900165 | 2026-09-12 | ADDED
+  - Progressive Information Disclosure for Verbose Output | T900165 | 2026-09-12 | ADDED
+  - Visual Diagrams for Complex Decision Trees | T900165 | 2026-09-12 | ADDED
+  - Lavish HTML Review Surfaces for Visual Review Artifacts | T900165 | 2026-09-12 | ADDED
   - Domain agents declare no tools allowlist | T002651 | 2026-08-04 | ADDED
-  - Prod-namespace write block | T001954 | 2026-07-19 | ADDED
-  - Guard emits structured output | T001954 | 2026-07-19 | ADDED
-  - Override requires explicit flag | T001954 | 2026-07-19 | ADDED
 
 ### agentic-review
 Reqs: 8 · Scenarios: 13 · Lines: 169
 
 ### agentic-tooling-quality-goals
-Reqs: 17 · Scenarios: 23 · Lines: 303
+Reqs: 17 · Scenarios: 26 · Lines: 337
 Last touches:
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | 2026-09-11 | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | 2026-09-11 | MODIFIED
   - G-AGENTIC01 Subagent Tool-Scope Baseline Tracked | T002494 | 2026-08-02 | MODIFIED
   - G-AGENTIC09 God-Skill Line Budget Tracked | T002094 | 2026-08-02 | MODIFIED
   - G-AGENTIC08 No Dead Script/Task References In Skills Gate | T002303 | 2026-07-27 | MODIFIED
-  - G-AGENTIC02 Subagent Routing Table Drift Gate | T001398 | 2026-07-01 | ADDED
-  - G-AGENTIC03 Subagent Frontmatter Completeness Gate | T001398 | 2026-07-01 | ADDED
 In-flight:
   - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
-  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | active | MODIFIED
-  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | active | MODIFIED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -278,12 +286,6 @@ Last touches:
   - REQ-AUTHSSO-DBINIT-001 — Deterministic Pocket-ID database role provisioning | T002187 | 2026-08-02 | ADDED
   - REQ-AUTHSSO-DBINIT-002 — Database bootstrap fails loudly | T002187 | 2026-08-02 | ADDED
   - REQ-AUTHSSO-DBINIT-003 — API-key bootstrap resolves the real admin user | T002187 | 2026-08-02 | ADDED
-
-### auto-triage-grounding-T002399
-Reqs: 2 · Scenarios: 4 · Lines: 50
-Last touches:
-  - Auto-Triage holt ähnliche Tickets als Grounding-Kontext | T002399 | 2026-08-03 | ADDED
-  - Auto-Triage hängt optionale Tool-Definitionen an und bleibt fail-soft | T002399 | 2026-08-03 | ADDED
 
 ### backup-pipeline
 Reqs: 32 · Scenarios: 85 · Lines: 765
@@ -436,13 +438,6 @@ Last touches:
   - Free 360-degree figure rotation | T002050 | 2026-07-21 | ADDED
   - Double-click on free floor always spawns a new figure | T002006 | 2026-07-20 | ADDED
 
-### bug-consolidation-T002330
-Reqs: 3 · Scenarios: 4 · Lines: 55
-Last touches:
-  - Bug-Verwaltung läuft ausschließlich über den tickets-Pfad | T002330 | 2026-08-03 | ADDED
-  - Bug/Kategorie-Differenzierung über eine scope-Spalte | T002330 | 2026-08-03 | ADDED
-  - FA-26 Bug-Report-E2E-Test ist auf den tickets-Pfad migriert | T002330 | 2026-08-03 | ADDED
-
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396
 Last touches:
@@ -475,14 +470,14 @@ Last touches:
   - Single-Column FK Index Coverage & Brand Constraints | T013031 | 2026-08-21 | ADDED
 
 ### database
-Reqs: 52 · Scenarios: 99 · Lines: 984
+Reqs: 54 · Scenarios: 103 · Lines: 1028
 Paths: scripts/db, scripts/migrate, website/src/lib/db, website/src/db
 Last touches:
+  - GitHub identity foundation schema is additive and idempotent | T900159 | 2026-09-12 | ADDED
+  - GitHub identity uniqueness fails closed | T900159 | 2026-09-12 | ADDED
   - Automated Migration Runner | T002647 | 2026-08-10 | ADDED
   - Arena DB Health Check Endpoint Returns OK | T001800 | 2026-08-02 | REMOVED
   - Factory-DB-Migrationen laufen getrackt und automatisiert vor dem Deploy | T001677 | 2026-07-15 | ADDED
-  - Factory-Migrations-Runner erkennt bereits real angewendete, aber ungetrackte Migrationen | T001677 | 2026-07-15 | ADDED
-  - Legacy coaching.ki_config Tables Dropped After Provider-Config Phase 2 | T001676 | 2026-07-09 | ADDED
 
 ### datev-export
 Reqs: 12 · Scenarios: 22 · Lines: 220
@@ -522,11 +517,6 @@ Last touches:
   - dsh is a selectable factory executor | T012962 | 2026-08-20 | ADDED
   - dsh sessions are visible in the existing phase-event timeline | T012962 | 2026-08-20 | ADDED
 
-### e2e-bug-report-testdata-T002385
-Reqs: 1 · Scenarios: 2 · Lines: 30
-Last touches:
-  - E2E-Bug-Report-Testdaten sind als solche erkennbar | T002385 | 2026-08-03 | ADDED
-
 ### e2e-test-infrastructure
 Reqs: 31 · Scenarios: 57 · Lines: 788
 Last touches:
@@ -556,11 +546,6 @@ Last touches:
 Reqs: 1 · Scenarios: 2 · Lines: 29
 Last touches:
   - Deployment-Listen und -Anweisungen schließen :latest-Images aus | T001781 | 2026-08-03 | ADDED
-
-### factory-attempt-counter-T002389
-Reqs: 1 · Scenarios: 2 · Lines: 31
-Last touches:
-  - Attempt-Zähler unterscheidet Modell-Versagen von Infrastruktur-Abbruch | T002389 | 2026-08-03 | ADDED
 
 ### factory-escalation-ladder
 Reqs: 2 · Scenarios: 2 · Lines: 31
@@ -624,23 +609,6 @@ Last touches:
   - Cleanup-Reihenfolge Lock-Freigabe vor Worktree-Entfernung | T003677 | 2026-08-14 | ADDED
   - Create-Skript verifiziert den realen Worktree-Pfad | T004604 | 2026-08-14 | ADDED
 
-### fix-ticket-tracking-T002279
-Reqs: 2 · Scenarios: 3 · Lines: 42
-Last touches:
-  - Beiläufig gefixte Tickets werden beim Merge geschlossen | T002279 | 2026-08-03 | ADDED
-  - Post-Merge-Hook räumt offene Tickets auf | T002279 | 2026-08-03 | ADDED
-
-### fix-update-status-planstaged-guard-T002876
-Reqs: 1 · Scenarios: 2 · Lines: 29
-Last touches:
-  - update-status verweigert plan_staged ohne Plan-Referenz | T002876 | 2026-08-10 | ADDED
-
-### fix-wakeup-help-T002662
-Reqs: 2 · Scenarios: 2 · Lines: 35
-Last touches:
-  - wakeup.sh beantwortet --help mit Usage ohne Seiteneffekte | T002662 | 2026-08-10 | ADDED
-  - wakeup.sh weist unbekannte Argumente ab | T002662 | 2026-08-10 | ADDED
-
 ### flux-render-security
 Reqs: 6 · Scenarios: 11 · Lines: 159
 Last touches:
@@ -675,27 +643,27 @@ In-flight:
   - opencode has native dev-flow and git-workflow skills | T014086 | active | MODIFIED
   - AGENTS.md declares the shared-source routing | T014086 | active | MODIFIED
 
-### k3d-kustomization-T002349
-Reqs: 1 · Scenarios: 2 · Lines: 30
-Last touches:
-  - Kustomize-Basis schreibt keine managed-by-Selektoren in Deployment-Selectors | T002349 | 2026-08-03 | ADDED
-
 ### llm-local-dev
-Reqs: 27 · Scenarios: 58 · Lines: 692
+Reqs: 37 · Scenarios: 70 · Lines: 845
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
-  - Alias Usage Telemetry for the FreeToken Plugin | T900087 | 2026-09-04 | ADDED
-  - Measured Context Limits for FreeToken Checkpoints | T900051 | 2026-09-03 | MODIFIED
-  - Model-Agnostic Active Alias for FreeToken-Native Agents | T016419 | 2026-08-24 | MODIFIED
-  - Project Default Model Targets the FreeToken Alias | T016419 | 2026-08-24 | ADDED
-  - Dead Checkpoints Are Not Declared | T016419 | 2026-08-24 | ADDED
+  - Engine Auto-Swap on FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
+  - Engine Stop on Non-FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
+  - Degraded Failure Path on Engine Switch | T900155 | 2026-09-12 | ADDED
+  - Fetch-Wrapper Engine Consistency Guard | T900155 | 2026-09-12 | ADDED
+  - Repo Plugin SSOT Sync | T900155 | 2026-09-12 | ADDED
 In-flight:
+  - Project Default Model Targets the FreeToken Alias | T900164 | active | MODIFIED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
-  - V2 Compaction Targets 100K Active Context | T900074 | active | ADDED
-  - Factory Roles Carry Minimal Toolsets | T900074 | active | ADDED
-  - Fresh Sessions at Ticket and Partial Boundaries | T900074 | active | ADDED
-  - Global Instructions Stay Lean | T900074 | active | ADDED
+
+### local-dev-mesh
+Reqs: 4 · Scenarios: 8 · Lines: 92
+Last touches:
+  - Dev peers join the tailnet with role tags | T900142 | 2026-09-11 | ADDED
+  - LAN path is preferred, the tailnet relay is the fallback | T900142 | 2026-09-11 | ADDED
+  - Tailnet access policy is versioned in the repository | T900142 | 2026-09-11 | ADDED
+  - The tailnet check separates findings from missing preconditions | T900142 | 2026-09-11 | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -758,75 +726,8 @@ Reqs: 1 · Scenarios: 2 · Lines: 31
 Last touches:
   - Consolidation of Micro-Specs into Parent SSOT Specs | T002014 | 2026-08-03 | ADDED
 
-### mishap-bundle-dev-flow-scripts
-Reqs: 3 · Scenarios: 3 · Lines: 32
-Last touches:
-  - W3-PARTIAL-NO-FALSE-POSITIVE | T002342 | 2026-08-02 | ADDED
-  - CLAUDE-DEPRECATED-HOOK | T002342 | 2026-08-02 | ADDED
-  - COMMIT-SCOPE-ALLOWLIST | T002342 | 2026-08-02 | ADDED
-
-### mishap-bundle-infra-testspec-ci
-Reqs: 7 · Scenarios: 7 · Lines: 74
-Last touches:
-  - worktree-create.sh validation | T002448 | 2026-08-02 | ADDED
-  - commit-msg hook rejection output | T002448 | 2026-08-02 | ADDED
-  - agent-lock worktree path normalization | T002448 | 2026-08-02 | ADDED
-  - Test results vs Implementation check | T002448 | 2026-08-02 | ADDED
-  - agent-lock reap PID liveness | T002448 | 2026-08-02 | ADDED
-
-### mishap-ci-scripts
-Reqs: 3 · Scenarios: 4 · Lines: 61
-
-### mishap-docker-wsl-T002250
-Reqs: 2 · Scenarios: 3 · Lines: 33
-Last touches:
-  - WSL Docker Credential Helper Auto-Heal in setup.sh | T002250 | 2026-08-02 | ADDED
-  - Stable Container DNS in WSL | T002250 | 2026-08-02 | ADDED
-
-### mishap-t001978
-Reqs: 1 · Scenarios: 1 · Lines: 24
-Last touches:
-  - background-agents auto-retries on empty output | T001978 | 2026-08-02 | ADDED
-
-### mishap-t002240
-Reqs: 4 · Scenarios: 6 · Lines: 73
-Last touches:
-  - Empty-branch push guard | T002240 | 2026-07-26 | ADDED
-  - Nearest-scope suggestion on unknown commit scopes | T002240 | 2026-07-26 | ADDED
-  - Mishap-tracker slug and branch name are distinct | T002240 | 2026-07-26 | ADDED
-  - Eval replay dry-run is repository-state independent | T002240 | 2026-07-26 | ADDED
-
-### mishap-t002242
-Reqs: 3 · Scenarios: 4 · Lines: 60
-Last touches:
-  - M1 — Fail-closed Phase-Chain-Gate in devflow-ci-watch.sh | T006370 | 2026-08-15 | MODIFIED
-  - M2 — Git-Status-Guard vor Force-Remove in watchdog.sh | T002242 | 2026-07-26 | ADDED
-  - M3 — Exit-Code-Sammlung in devflow-post-merge-deploy.sh | T002242 | 2026-07-26 | ADDED
-
-### mishap-t002243
-Reqs: 1 · Scenarios: 1 · Lines: 20
-Last touches:
-  - --create-new für Mishap-Bundles dokumentieren | T002243 | 2026-07-26 | ADDED
-
-### mishap-t002284
-Reqs: 3 · Scenarios: 3 · Lines: 50
-Last touches:
-  - ticket get JSON projects resolution, severity, and description | T002284 | 2026-08-02 | ADDED
-  - dev-flow-execute implementer prompt forbids nested delegation | T002284 | 2026-08-02 | ADDED
-  - pre-commit warns on a neutralized staged freshness file | T002284 | 2026-08-02 | ADDED
-
-### mishap-t002457
-Reqs: 1 · Scenarios: 1 · Lines: 17
-Last touches:
-  - Mishap bundle placeholder delta | T002457 | 2026-08-02 | ADDED
-
-### mishap-t002718
-Reqs: 1 · Scenarios: 1 · Lines: 17
-Last touches:
-  - Coverage guard recommendations | T002718 | 2026-08-10 | ADDED
-
 ### mishap-tracking
-Reqs: 6 · Scenarios: 13 · Lines: 171
+Reqs: 7 · Scenarios: 14 · Lines: 179
 Last touches:
   - Factory-Fix-Tickets verwenden nicht plan_staged ohne Plan | T014104 | 2026-08-23 | MODIFIED
   - Nicht-kritische Mishaps werden am Verursacher-Ticket vermerkt | T014104 | 2026-08-23 | ADDED
@@ -924,12 +825,6 @@ Last touches:
 Reqs: 1 · Scenarios: 1 · Lines: 22
 Last touches:
   - Partial-done state accepted | T002130 | 2026-08-02 | ADDED
-
-### pipeline-divergence-T002393
-Reqs: 2 · Scenarios: 4 · Lines: 50
-Last touches:
-  - pipeline.mjs enthält alle Blöcke aus pipeline.js | T002393 | 2026-08-03 | ADDED
-  - Kontrakttests laufen gegen den dispatched-Pfad | T002393 | 2026-08-03 | ADDED
 
 ### plan-ref-lifecycle-fixes
 Reqs: 3 · Scenarios: 3 · Lines: 31
@@ -1036,13 +931,13 @@ In-flight:
   - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | active | ADDED
 
 ### sdlc-isolation
-Reqs: 29 · Scenarios: 54 · Lines: 630
+Reqs: 29 · Scenarios: 56 · Lines: 644
 Last touches:
+  - No remote cockpit and no tunnel into the home network | T900142 | 2026-09-11 | RENAMED
+  - Remote access to the SDLC surface only through the tailnet, without an inbound port | T900142 | 2026-09-11 | MODIFIED
   - Single Entry Point for the Local SDLC Stack | T002656 | 2026-08-13 | MODIFIED
   - Health Gate Reports Diagnosable Failure | T002656 | 2026-08-13 | MODIFIED
   - sdlc:up starts the local chat loadout before the health gate | T002656 | 2026-08-13 | ADDED
-  - sdlc:down stops the chat loadout before the proxy | T002656 | 2026-08-13 | ADDED
-  - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T002623 | 2026-08-10 | ADDED
 In-flight:
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
@@ -1077,6 +972,10 @@ In-flight:
 Reqs: 3 · Scenarios: 8 · Lines: 130
 Last touches:
   - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
+In-flight:
+  - Workload ServiceAccounts hold no clusterwide pods/exec | T900110 | active | ADDED
+  - cluster-admin bindings are limited to an allowlist | T900110 | active | ADDED
+  - Website ClusterRole holds only read permissions without clusterwide write access | T900114 | active | ADDED
 
 ### sessions-server
 Reqs: 13 · Scenarios: 26 · Lines: 269
@@ -1136,7 +1035,7 @@ Last touches:
   - ttyd Host-Setup-Skript | T001565 | 2026-08-03 | ADDED
 
 ### ticket-ops
-Reqs: 3 · Scenarios: 5 · Lines: 67
+Reqs: 3 · Scenarios: 5 · Lines: 71
 Last touches:
   - Claim-Timing in Step 3.6 ist dokumentiert | T004602 | 2026-08-14 | ADDED
   - Prosa-Blocker-Erkennung in Phase 1 | T002771 | 2026-08-09 | ADDED
@@ -1193,8 +1092,3 @@ Last touches:
   - Up-to-date main without clobbering work | T900104 | 2026-09-10 | ADDED
   - Toolchain deltas on install-dev-tools.sh | T900104 | 2026-09-10 | ADDED
   - Script facts guarded by BATS | T900104 | 2026-09-10 | ADDED
-
-### worktree-divergence-guard-T002387
-Reqs: 1 · Scenarios: 2 · Lines: 31
-Last touches:
-  - Divergence-Guard aktualisiert main ohne Fetch-in-checked-out-Branch | T002387 | 2026-08-03 | ADDED

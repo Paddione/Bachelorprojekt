@@ -644,7 +644,7 @@ gh pr list --state open --json number,title,statusCheckRollup,isDraft,createdAt 
   --jq 'group_by(if .isDraft then "draft" elif (.statusCheckRollup | length) == 0 then "no-ci" else "ci-ok" end) | map({key: .[0].statusCheckRollup, count: length})'
 
 # Factory-Queue
-mcp__factory-mcp__factory_status({})   # liefert queue_depth + is_running
+mcp__factory-mcp-node__factory_status({})   # liefert queue_depth + is_running
 ```
 
 ### 6.2 Aging-Report
@@ -675,7 +675,7 @@ Aus den Metriken werden die drei wirkungsvollsten Aktionen abgeleitet:
 |------|-----------|------------|
 | 1 | `>5 stale Worktrees` ODER `>10 [gone]-Branches` | **Massen-Cleanup**: `repo-hygiene` §1+§2 vollständig ausführen. Vorher `bash scripts/agent-lock.sh reap`. Geschätzte Zeit: 2–5 min. |
 | 2 | `≥1 PR mit CI=green, kein Draft, reviewDecision=APPROVED` | **PR mergen**: `gh pr merge --squash` (kein `--delete-branch` — Archiv läuft nach dem Merge, T004612). Ticket schließen nicht vergessen (§3). |
-| 3 | `Factory queue_depth > 3` | **Factory-Health check**: `mcp__factory-mcp__factory_ask({ question: "Sind alle Worker gesund? Gibt es blockierte Jobs?" })`. Ggf. `mcp__factory-mcp__factory_trigger({})`. |
+| 3 | `Factory queue_depth > 3` | **Factory-Health check**: `mcp__factory-mcp-node__factory_ask({ question: "Sind alle Worker gesund? Gibt es blockierte Jobs?" })`. Ggf. `mcp__factory-mcp-node__factory_trigger({})`. |
 | 4 | `≥1 Worktree >30d ohne Commit` | **Worktree entsorgen**: `git worktree remove --force` nach Allowlist-Check (§1). |
 | 5 | `≥3 PRs offen vom selben Author` | **PR-Stau**: Author pingen oder PRs bündeln (wenn thematisch verwandt). |
 | 6 | `≥5 Tickets mit attention_mode=needs_human` | **Klärungsrunde fällig**: `ticket-ops` Phase 2 ausführen. |

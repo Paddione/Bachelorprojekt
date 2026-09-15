@@ -25,7 +25,7 @@
 
 // Default-Timeout je Glied: 30000 ms, gleich BGE_MCP_UPSTREAM_TIMEOUT_MS im
 // Shim, damit die beiden Zeitschranken nicht gegeneinander laufen.
-export const ROLE_TIMEOUT_MS = Number(process.env.BGE_ROUTE_TIMEOUT_MS || 30_000);
+export const ROLE_TIMEOUT_MS = Number(process.env.BGE_ROUTE_TIMEOUT_MS || 60_000);
 
 const ROLE_PATHS = new Map([
   ['/v1/embeddings', 'embed'],

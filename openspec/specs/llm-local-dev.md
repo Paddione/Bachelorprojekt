@@ -308,21 +308,20 @@ reaches the loading location and the alias keeps its static fallback limit
 ### Requirement: Project Default Model Targets the FreeToken Alias
 
 The project opencode config `.opencode/opencode.jsonc` SHALL declare
-`freetoken-local/active` as its top-level default `model`. It SHALL NOT declare
-a default that resolves to the retired llama.cpp proxy stack
-(`llamacpp-local/*`).
+`llamacpp-local/qwen38-220k` as its top-level default `model`. It SHALL NOT declare a default
+that resolves to the retired FreeToken-native engine (`freetoken-local/*`).
 
-Rationale: the GPU-chat loadouts of the llm-proxy are decommissioned
-(`enabled: false` across `scripts/llm/loadouts.json`, proxy :18235 down); a
-project session starting on `llamacpp-local/qwen38-220k` boots against a dead
-backend (T016419). The global config already carries no default, making the
-project value the effective one for repo sessions.
+Rationale: FreeToken (Windows-native, port 1919) is decommissioned by operator decision
+(T900164). `llamacpp-local/qwen38-220k` is `enabled: true` in `scripts/llm/loadouts.json` and
+served through the llm-proxy on `:18235`, which already carries every re-routed agent from
+`.opencode/agent-models.jsonc` (T900163). A project default naming the retired engine boots
+against a dead backend.
 
-#### Scenario: Default model resolves to the resident FreeToken checkpoint
+#### Scenario: Default model resolves to the qwen38-220k loadout
 
 - **GIVEN** `.opencode/opencode.jsonc` declares its top-level `model`
 - **WHEN** the value is read
-- **THEN** it equals `freetoken-local/active`
+- **THEN** it equals `llamacpp-local/qwen38-220k`
 
 ### Requirement: Dead Checkpoints Are Not Declared
 
@@ -397,6 +396,157 @@ backend decision rests on assumption rather than measurement (T900087, T002717).
 - **THEN** the outgoing request body is unchanged from the case where telemetry
   succeeds
 - **AND** no error is raised to the caller
+
+### Requirement: V2 Compaction Targets 100K Active Context
+
+The project opencode config SHALL declare a V2 `compaction` block with
+`auto: true`, `keep.tokens: 16000` and `buffer: 96000`, with a comment showing
+the threshold math for the 200k factory model.
+
+Rationale: V2 computes the preflight threshold as
+`context − max(output, buffer)` (verified against
+`packages/core/src/session/compaction.ts` and
+`https://opencode.ai/v2/docs/compaction/`). With `context: 200000` and
+`output: 8192`, `buffer: 96000` yields compaction at ≈104k active context;
+`keep.tokens: 16000` keeps the 12–20k recent tail. The V1 keys `reserved` and
+`preserve_recent_tokens` are ignored by V2 and SHALL NOT appear.
+
+#### Scenario: Compaction block present with V2 keys
+
+- **GIVEN** `.opencode/opencode.jsonc` on the feature branch
+- **WHEN** the `compaction` block is inspected
+- **THEN** it contains `auto: true`, `keep.tokens: 16000`, `buffer: 96000`
+  and no `reserved` or `preserve_recent_tokens` key
+
+#### Scenario: Threshold math holds for the factory model
+
+- **GIVEN** the factory model limit `context: 200000`, `output: 8192`
+- **WHEN** `200000 − max(8192, 96000)` is computed
+- **THEN** the result is `104000` (≈100k operating target)
+
+### Requirement: Factory Roles Carry Minimal Toolsets
+
+Each factory role (planner, implementer, reviewer, dispatcher) SHALL be
+documented with only the tools it needs; the implementation SHALL restrict
+per-agent permissions where opencode supports it and otherwise reduce the
+global surface (disabled MCP servers, skill denies) plus a prompt convention.
+
+- Planner: code search, read, ticket operations.
+- Implementer: read, edit, shell, tests.
+- Reviewer: read, diff, tests; no write access.
+- Dispatcher: ticket/session operations, no code tools.
+
+#### Scenario: Reviewer has no write access
+
+- **GIVEN** the reviewer role definition
+- **WHEN** its permission set is inspected
+- **THEN** write/edit operations are denied
+
+### Requirement: Fresh Sessions at Ticket and Partial Boundaries
+
+The orchestrator and factory prompts SHALL require a fresh implementation
+session per ticket/partial with a self-contained task packet (goal, files,
+acceptance, `Done when`, `Stop when`, `Rejected approaches`); continuity
+travels via Git, tickets, specs and handoff artifacts, not via long-running
+conversations. Research and implementation SHALL be separate sessions.
+
+#### Scenario: Task packet carries stopping conditions
+
+- **GIVEN** a factory dispatch prompt
+- **WHEN** its sections are inspected
+- **THEN** it states `Done when` (behavior, tests, no unrelated files,
+  commit, ticket evidence) and `Stop when` (3rd identical failure, missing
+  credential, spec conflict, file-boundary breach)
+
+### Requirement: Global Instructions Stay Lean
+
+`AGENTS.md` SHALL NOT exceed 160 lines; guidance applying to fewer than ~20%
+of factory tasks lives next to its component, not in the global prompt.
+
+#### Scenario: AGENTS.md line cap
+
+- **GIVEN** `AGENTS.md` on the feature branch
+- **WHEN** `wc -l` is run
+- **THEN** the count is at most 160
+
+### Requirement: Engine Auto-Swap on FreeToken Model Selection
+
+When the user selects a `freetoken-local` model in the model picker, the plugin SHALL
+switch the resident FreeToken engine to the engine model mapped to the selected alias.
+The mapping SHALL be resolved from the plugin-internal alias→engine table (engine model,
+port, args, contextLimit). After a successful switch the plugin SHALL update the
+declared context limit for the active alias.
+
+#### Scenario: Different engine model selected
+
+- **GIVEN** the user selects a `freetoken-local` alias whose mapped engine model differs from the running engine model
+- **WHEN** the plugin event hook observes `session.next.model.switched`
+- **THEN** the plugin SHALL call `POST /engine/switch` with `{model, port, args, force: true}` (or `POST /engine/start` if the engine is stopped)
+- **AND** the plugin SHALL update the declared context limit for the active alias
+
+#### Scenario: Same engine model, different alias
+
+- **GIVEN** the user selects a `freetoken-local` alias whose mapped engine model equals the running engine model (e.g. `active` → `active-thinking`)
+- **WHEN** the plugin event hook observes `session.next.model.switched`
+- **THEN** the plugin SHALL NOT call the engine control API
+- **AND** the plugin SHALL only update the declared context limit and alias name
+
+### Requirement: Engine Stop on Non-FreeToken Model Selection
+
+When the user selects a model that is not a `freetoken-local` model, the plugin SHALL
+stop the resident FreeToken engine to free VRAM.
+
+#### Scenario: Non-FreeToken model selected
+
+- **GIVEN** the user selects a model outside the `freetoken-local` provider (e.g. `llamacpp-local`)
+- **WHEN** the plugin event hook observes `session.next.model.switched`
+- **THEN** the plugin SHALL call `POST /engine/stop`
+
+### Requirement: Degraded Failure Path on Engine Switch
+
+When an engine switch or stop fails, the plugin SHALL notify the user and keep the
+previous engine state running. The failure SHALL NOT block the already-switched client.
+
+#### Scenario: Engine switch fails
+
+- **GIVEN** the engine control API returns an error for `POST /engine/switch`
+- **WHEN** the plugin event hook handles the model switch
+- **THEN** the plugin SHALL surface a notification with the error
+- **AND** the plugin SHALL leave the previously running engine untouched
+
+### Requirement: Fetch-Wrapper Engine Consistency Guard
+
+The plugin fetch wrapper SHALL verify that the running engine model matches the model
+expected for the active alias. On mismatch the wrapper SHALL perform a synchronous
+engine switch before proxying the request.
+
+#### Scenario: Engine model drifted from expected model
+
+- **GIVEN** the running engine model differs from the model expected for the active alias
+- **WHEN** a request is proxied through the plugin fetch wrapper
+- **THEN** the wrapper SHALL switch the engine to the expected model before forwarding the request
+
+### Requirement: Repo Plugin SSOT Sync
+
+The repository copy of the freetoken-active plugin SHALL match the live global plugin
+copy, including the system-merge fix (all system messages merged into position 0).
+
+#### Scenario: Repo plugin is stale
+
+- **GIVEN** the repo copy of `.opencode/plugin/freetoken-active.ts` lacks the system-merge fix present in the global copy
+- **WHEN** the change is implemented
+- **THEN** the repo copy SHALL contain the same system-merge logic as the global copy
+
+### Requirement: BATS Coverage for Auto-Swap Logic
+
+The auto-swap behavior SHALL be covered by BATS tests under `tests/spec/llm-local-dev/`
+following the existing `tests/spec/llm-local-dev.bats` pattern.
+
+#### Scenario: Auto-swap tests run
+
+- **GIVEN** BATS tests for the auto-swap logic exist under `tests/spec/llm-local-dev/`
+- **WHEN** the test suite runs
+- **THEN** the tests SHALL pass and cover alias mapping, switch/stop/start dispatch, same-model context-limit-only updates, and the failure path
 
 ## Testszenarien
 
@@ -689,3 +839,7 @@ nobody keeps.
 - **AND** `env.CUDA_VISIBLE_DEVICES` names a single GPU
 - **WHEN** the guard runs
 - **THEN** it fails, because the loadout no longer earns its reactivation
+
+<!-- merged from change delta llm-local-dev.md (bc970f7c2894) -->
+
+<!-- merged from change delta llm-local-dev.md (65811522cbfe) -->

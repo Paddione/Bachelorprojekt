@@ -15,11 +15,9 @@ Without ticket context an entry is logged to stderr and `.mishaps.log` and then 
 does **not** produce a ticket. All three buffer drain paths behave identically: threshold,
 watchdog (`FlushStaleBuffer`) and the manual `flush_mishap_buffer` [T003553].
 
-> **Der Rollup-Automat ist entfernt [T014104].** Er legte seinen Sammel-Container bei jedem
-> Factory-Tick neu an — sein Entfernen war die Ausloesebedingung fuer den naechsten — und hat
-> ueber vier Zyklen keinen einzigen Eintrag disponiert. Wer in aelteren Plaenen oder
-> Ticket-Kommentaren auf "Mishap Rollup — fortlaufende Sammlung", `mishap-rollup.sh` oder
-> `ticket.sh rollup-container` stoesst: das sind Altlasten, kein aktueller Weg.
+> **Der Rollup-Automat ist entfernt [T014104].** "Mishap Rollup — fortlaufende Sammlung",
+> `mishap-rollup.sh` und `ticket.sh rollup-container` in aelteren Plaenen oder Kommentaren sind
+> Altlasten, kein aktueller Weg.
 
 Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 
@@ -105,7 +103,7 @@ mcp__ticket-mcp__report_mishap({
 **Rückmeldung auswerten:**
 - `"Incident-Ticket angelegt: T000xxx"` → sofortiges Incident-Ticket für `incident`/`broken`/`security`, kein Buffer-Eintrag
 - `"Mishap gespeichert (3/10). Noch 7 bis zum Buffer-Flush."` → weiter melden, Buffer sammelt
-- `"10 Mishaps protokolliert und verworfen. Buffer geleert."` → Schwelle (10) erreicht. Kein Ticket, kein Container [T014104]. Was erhalten bleiben soll, gehoert als Kommentar an das bearbeitete Ticket (`mishap-tracker.sh --ticket`)
+- `"10 Mishaps protokolliert und verworfen. Buffer geleert."` → Schwelle (10) erreicht, kein Ticket, kein Container. Was erhalten bleiben soll, gehoert als Kommentar an das bearbeitete Ticket (`mishap-tracker.sh --ticket`)
 
 ---
 
@@ -117,21 +115,13 @@ Nach dem letzten `report_mishap`-Aufruf den Buffer-Stand ansehen — **aber nich
 mcp__ticket-mcp__get_mishap_buffer()
 ```
 
-**Restliche Eintraege bleiben liegen. Das ist der Normalfall, kein Fehlerzustand.**
-
-Der Buffer ist dateibasiert (`mishap-buffer.json` im gemeinsamen Git-Verzeichnis, aufgeloest ueber
-`git rev-parse --git-common-dir`) und damit **persistent**: er ueberlebt Sessionwechsel,
-Worktrees und Neustarts. Ein liegen gebliebener Eintrag wird vom naechsten `report_mishap`
-mitgezaehlt.
-
-Laeuft der Buffer ueber (Schwelle 10) oder loest der Alters-Schnitt aus (aeltester Eintrag
-≥ 7 Tage), werden die Eintraege **protokolliert und verworfen** — es entsteht kein Ticket und
-kein Container [T014104]. Der Buffer ist damit ein Puffer fuer den Sessionverlauf, kein
-Zulieferer eines Automaten.
+**Restliche Eintraege bleiben liegen. Das ist der Normalfall, kein Fehlerzustand.** Der Buffer ist
+dateibasiert (`mishap-buffer.json` im gemeinsamen Git-Verzeichnis, `git rev-parse --git-common-dir`)
+und ueberlebt Sessionwechsel, Worktrees und Neustarts.
 
 | Weg | Ausloeser | Ergebnis |
 |---|---|---|
-| Schwelle | `report_mishap` ab **10** Eintraegen | Eintraege protokolliert, Buffer geleert |
+| Schwelle | `report_mishap` ab **10** Eintraegen | Eintraege protokolliert und verworfen, Buffer geleert |
 | Alters-Schnitt | Factory-Tick ruft `ticket-mcp-go --flush-stale-mishaps` | dito, sobald der aelteste Eintrag ≥ 7 Tage alt ist |
 
 **Der Weg, auf dem ein Mishap erhalten bleibt, ist der Ticket-Kommentar** — nicht der Buffer:
@@ -140,14 +130,11 @@ Zulieferer eines Automaten.
 bash scripts/hooks/mishap-tracker.sh --friction "<text>" --ticket "$TICKET_ID" --severity minor
 ```
 
-Ohne `--ticket` landet der Eintrag in `.mishaps.log` und auf stderr, und dort endet er. Das ist
-gewollt: eine Reibung ohne Bezug zu einer Arbeit hat keinen Adressaten.
+Ohne `--ticket` landet der Eintrag in `.mishaps.log` und auf stderr, und dort endet er.
 
 **Nichts entsteht direkt als `plan_staged` [T003027].** Mishap-Tickets
-(`scripts/ticket-mcp/go/internal/tools/mishap.go`) werden mit `status=triage` angelegt. Der Grund
-ist der Guard aus T002876: `update-status.sh` lehnt `plan_staged` ohne `FACTORY-PLAN-REF`
-fail-closed ab — ein Ticket, das den gestagten Zustand behauptet, ohne einen Plan zu haben, ist
-widerspruechlich.
+(`scripts/ticket-mcp/go/internal/tools/mishap.go`) werden mit `status=triage` angelegt, weil
+`update-status.sh` `plan_staged` ohne `FACTORY-PLAN-REF` fail-closed ablehnt (T002876).
 
 `flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfuegbar:
 
@@ -159,22 +146,17 @@ mcp__ticket-mcp__flush_mishap_buffer({ brand: "<brand>" })
 
 ## Step 3.5: Mishap-Bundle automatisch planen
 
-Ein Mishap-**Bundle**-Ticket (`severity=minor`/`trivial`) braucht kein menschliches Urteil und
-wird automatisch von `triage` nach `plan_staged` gehoben. Das erledigt
-`scripts/factory/auto-chore-plan.sh` [T002390] — der Factory-Tick ruft es pro Marke auf. Diese
-Skill beschreibt den Schritt **nicht** noch einmal in Prosa: das Skript ist die Quelle, der Text
-war es frueher und wurde deshalb uebersprungen (am 2026-07-28 lagen 8 auto-planbare Bundles in
-`triage`).
+Ein Mishap-**Bundle**-Ticket (`severity=minor`/`trivial`) wird automatisch von `triage` nach
+`plan_staged` gehoben. Das erledigt `scripts/factory/auto-chore-plan.sh` [T002390] — der
+Factory-Tick ruft es pro Marke auf. Das Skript ist die Quelle, nicht diese Prosa.
 
 ```bash
 BRAND=<brand> bash scripts/factory/auto-chore-plan.sh --all [--dry-run]
 ```
 
 Das Gate laesst nur `minor`/`trivial` durch. `major`/`critical` tragen `broken`- oder
-`security`-Eintraege, gehoeren vor menschliche Augen und bleiben `triage`.
-
-> Nicht zu verwechseln mit dem abgebauten Rollup-Automaten [T014104]: `auto-chore-plan.sh`
-> plant ein **vorhandenes** Ticket, es erzeugt keines und legt keinen Container an.
+`security`-Eintraege, gehoeren vor menschliche Augen und bleiben `triage`. Das Skript plant ein
+**vorhandenes** Ticket, es erzeugt keines und legt keinen Container an.
 
 ---
 
@@ -186,8 +168,6 @@ Falls der MCP-Server nicht antwortet, einen formatierten Block ausgeben für man
 Lege ein Incident-Ticket manuell an:
 
 ```bash
-bash scripts/ticket.sh create --type incident --title "..." --description "..." --brand <brand>
-# oder via ticket-mcp (nur CLI):
 bash scripts/ticket.sh create --type incident --title "<titel>" \
   --description "<beschreibung>" --brand <brand>
 ```

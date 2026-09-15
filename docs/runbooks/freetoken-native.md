@@ -10,7 +10,9 @@ Factory-Routing. Die llama.cpp-Loadouts `gemma26-throughput` (:8092) und
 - **Engine:** Windows-seitig unter
   `C:\Users\PatrickKorczewski\AppData\Local\FreeToken\venv\Scripts\ft.exe`
   (Wheels aus `FlashML-org/FreeToken-Web` Release `beta`; Desktop-App zusätzlich
-  installiert). WSL-seitige Zweitinstallation existiert unter `~/.freetoken`.
+  installiert). WSL-seitige Zweitinstallation existiert unter
+  `/home/patrick/.local/share/freetoken/venv` (seit 2026-09-11, Crash #6 behoben —
+  Details siehe WSL-Variante unten).
 - **Modell:** `Qwen3.6-35B-A3B-NVFP4` (19,5 GB — korrigiert 2026-09-04,
   T900087/P6; die zuvor genannten 23,5 GB waren die HF-Repo-Größe, nicht die
   lokale Verzeichnisgröße nach NTFS-Hardlink. Gemessen mit
@@ -23,6 +25,33 @@ Factory-Routing. Die llama.cpp-Loadouts `gemma26-throughput` (:8092) und
   erreichbar.
 - **Ressourcen:** `.wslconfig` seit 2026-08-23 auf `memory=24GB`,
   `processors=12` (Host: 64 GB, RTX 5070 Ti 16 GB).
+
+> **Hinweis:** Der aktuell geroutete Backend ist weiterhin Windows-FreeToken auf
+> `:1919` (AGENTS.md, `.opencode/agent-models.jsonc`). Die WSL-Variante auf `:1929`
+> ist der Migrationsweg (Experimentier-/Parallelbetrieb).
+
+### WSL-Variante (Stand 2026-09-11, Port 1929)
+
+WSL-Launch von `ft serve` (Qwen3.6-35B-A3B-NVFP4 auf RTX 5070 Ti, Port 1929) — drei
+Pflichtpunkte, sonst wiederholt sich Crash #6 ("no kernel image", sm_86-Kernel trotz
+sm_120-GPU):
+
+- `CUDA_VISIBLE_DEVICES=0` setzen: `nvidia-smi`-Reihenfolge != torch-Reihenfolge;
+  ohne Filter sieht torch die 3060 Ti zuerst.
+- `TVM_FFI_CUDA_ARCH_LIST="12.0"` setzen: tvm-ffi-Arch-Auto-Detect liefert in WSL
+  immer sm_86; erzwungenes sm_120 erzeugt exakt den bekannten guten Cache-Hash
+  `freetoken__index_4096_4_128_1_false_2e1b84096bd1ccc2`.
+- Mit `setsid -f env ... ft serve ... > log 2>&1 < /dev/null` starten: plain
+  `nohup ... &` wird vom bash-Tool-Timeout mitgekillt (Prozessgruppe wird geraeumt).
+
+Referenzlauf:
+
+```bash
+setsid -f env CUDA_VISIBLE_DEVICES=0 FREETOKEN_PIN_BUDGET_GB=20 TVM_FFI_CUDA_ARCH_LIST="12.0" /home/patrick/.local/share/freetoken/venv/bin/ft serve --model /home/patrick/models/Qwen3.6-35B-A3B-NVFP4 --kv-reserve-tokens 131072 --max-running-requests 1 --graph 1 --moe-strategy offload --moe-cpu-layers 0 --moe-cache-auto --max-prefill-length 8192 --cache-type radix --memory-ratio 0.90 --sampling-defaults model --enable-cache-report --moe-prefill-hit-d2d --host 127.0.0.1 --port 1929 > /tmp/hotfix-log/serve12.log 2>&1 < /dev/null
+```
+
+Stop: `kill $(pgrep -f 'ft serve.*1929')`; WSL-seitiges Start-Skript:
+`scripts/llm/start-llama-server.ps1` (Windows-Brücke via `wsl.exe -e bash -lc`).
 
 ## Beobachtungslücke: FreeToken-Verkehr umgeht den Proxy
 
@@ -187,6 +216,17 @@ ueber `freetoken-local/active` text-only.
   `baseUrl=http://127.0.0.1:1919/v1` (`scripts/factory/route-provider.sh`).
 - DB-Seite (Deployment): `tickets.provider_config` muss eine FreeToken-Zeile
   bekommen; llama-Zeilen demoten.
+
+## Engine Auto-Swap (T900155)
+
+Das Plugin `.opencode/plugin/freetoken-active.ts` steuert beim Modellwechsel im Model-Picker den automatischen Wechsel der residenten FreeToken-Engine:
+
+- **freetoken-local-Modell, anderes Engine-Modell:** Event-Hook `session.next.model.switched` löst `POST http://127.0.0.1:1900/engine/switch {model, port, args, force: true}` aus (bzw. `POST /engine/start` falls gestoppt). Nach dem Swap wird das deklarierte Kontextlimit aktualisiert.
+- **Gleiches Engine-Modell (z. B. `active` → `active-thinking`):** Kein Engine-Aufruf; nur Kontextlimit und Aliasname werden angepasst.
+- **Nicht-FreeToken-Modell (z. B. `llamacpp-local/devstral`):** Das Plugin ruft `POST http://127.0.0.1:1900/engine/stop` auf, um die Engine zu beenden und VRAM freizugeben.
+- **Degraded Failure Path:** Schlägt ein Engine-Switch oder Stop fehl, wird der Fehler geloggt/gemeldet; die alte Engine läuft weiter (kein Blocking des bereits umgeschalteten Clients).
+- **Fetch-Wrapper Safety Net:** Vor jedem proxied Request prüft der Fetch-Wrapper die residente Engine gegen das erwartete Alias-Modell. Bei Model-Drift erfolgt ein synchroner Switch vor dem Forwarding.
+
 
 ## OpenDesign als BYOK-Client (T900008)
 

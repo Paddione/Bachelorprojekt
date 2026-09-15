@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "slug": "dev-pod-llm-proxy-loadouts-path",
+    "ticket_id": "T900109",
+    "generated_from": "main@69436d9dc",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "docker/mcp-node/supervisor.sh",
+      "language": "bash",
+      "loc": 99,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 701
+    },
+    {
+      "path": "scripts/llm-proxy/loadouts.mjs",
+      "language": "javascript",
+      "loc": 391,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 409
+    },
+    {
+      "path": "scripts/llm-proxy/loadouts.test.mjs",
+      "language": "javascript",
+      "loc": 310,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 490
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:22:log() { echo \"[supervisor] $*\"; }",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "22:log() { echo \"[supervisor] $*\"; }(...)",
+      "type_text": "22:log() { echo \"[supervisor] $*\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:27:supervise() {",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "27:supervise() {(...)",
+      "type_text": "27:supervise() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:43:gateway() {  # <name> <port> <stdio-kommando>",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "43:gateway() {  # <name> <port> <stdio-kommando>(...)",
+      "type_text": "43:gateway() {  # <name> <port> <stdio-kommando>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:54:shutdown() {",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "54:shutdown() {(...)",
+      "type_text": "54:shutdown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:119:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "119:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "type_text": "119:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:121:function validateLoadout(l, index, seen) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "121:function validateLoadout(l, index, seen) {(...)",
+      "type_text": "121:function validateLoadout(l, index, seen) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:355:function _portAliveSync(port) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "355:function _portAliveSync(port) {(...)",
+      "type_text": "355:function _portAliveSync(port) {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

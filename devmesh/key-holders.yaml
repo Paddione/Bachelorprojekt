@@ -1,0 +1,11 @@
+# devmesh/key-holders.yaml — Halter des symmetrischen git-crypt-Keys [T900119]
+#
+# Jede Maschine, auf der der Key liegt (Keydatei oder entsperrter Clone), steht hier.
+# Ein Widerruf betrifft alle Eintraege: neuer Key, Re-Encryption, Rotation aller
+# Secrets unter environments/.secrets/ (docs/runbooks/git-crypt-key-distribution.md).
+holders:
+  - machine: PK-Desktop
+    person: patrick
+    # erster Commit unter environments/.secrets/:
+    # git log --reverse --format=%as -- environments/.secrets | head -1
+    since: "2026-04-10"

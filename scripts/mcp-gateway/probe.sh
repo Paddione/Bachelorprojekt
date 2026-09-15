@@ -61,11 +61,22 @@ for PORT in "${PORTS[@]}"; do
   # MCP-initialize: JSON-RPC 2.0 POST mit initialize-Methode an den /mcp-Endpoint.
   # Der MCP-Server muss mit einem gültigen initialize result antworten,
   # das protocolVersion enthält — kein TCP-Connect, kein /health.
-  # T006996: Pfad /mcp + Accept-Header (Streamable-HTTP-Transport).
+  AUTH_HEADER=()
+  if [ "$PORT" -eq 13001 ]; then
+    if [ -z "${MCP_POSTGRES_TOKEN:-}" ] && [ -f "$HOME/.config/mcp-postgres/server.env" ]; then
+      # shellcheck disable=SC1090
+      source "$HOME/.config/mcp-postgres/server.env" 2>/dev/null || true
+    fi
+    if [ -n "${MCP_POSTGRES_TOKEN:-}" ]; then
+      AUTH_HEADER=(-H "Authorization: Bearer ${MCP_POSTGRES_TOKEN}")
+    fi
+  fi
+
   RESPONSE=$(curl -sS --max-time "${TIMEOUT}" \
     -X POST "http://127.0.0.1:${PORT}/mcp" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json, text/event-stream" \
+    "${AUTH_HEADER[@]}" \
     -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe.sh","version":"1.0"}}}' 2>&1) || true
 
   if [ -z "${RESPONSE}" ]; then

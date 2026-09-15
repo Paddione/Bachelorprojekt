@@ -126,6 +126,8 @@ resources:
   - ingress.yaml
   # Website RBAC (Role/RoleBinding in workspace ns for monitoring + backup-status API)
   - website-rbac.yaml
+  # Website test-runner exec RBAC (T900110)
+  - website-test-runner-rbac.yaml
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:

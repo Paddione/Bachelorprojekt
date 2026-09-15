@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devmesh-talk
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  tls:
+    - hosts: ["signaling.${DEVMESH_DOMAIN}"]
+  rules:
+    - host: "signaling.${DEVMESH_DOMAIN}"
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: spreed-signaling, port: {number: 8080}}}}

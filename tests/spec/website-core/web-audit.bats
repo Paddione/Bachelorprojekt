@@ -122,7 +122,8 @@ setup() {
   echo "$output" | grep -q 'Stage 3'
 
   local date_str
-  date_str=$(date '+%Y-%m-%d')
+  # web-audit.mjs uses new Date().toISOString(), whose date component is UTC.
+  date_str=$(date -u '+%Y-%m-%d')
   local report_file="${REPO_ROOT}/tmp/claude-scratch/web-audit-mentolder-${date_str}.md"
   [ -f "$report_file" ]
   grep -q 'Simulated axe failure' "$report_file"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.342.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.3...website-v1.342.4) (2026-09-15)
+
+
+### Bug Fixes
+
+* **ops:** verwaiste FreeToken-Guards nach T900163 entfernen [T900173] ([#5642](https://github.com/Paddione/Bachelorprojekt/issues/5642)) ([3d71ef1](https://github.com/Paddione/Bachelorprojekt/commit/3d71ef150189db64e9f21f97c117991268ca3042))
+
 ## [1.342.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.2...website-v1.342.3) (2026-09-15)
 
 

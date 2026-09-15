@@ -47,6 +47,15 @@
   dass die obigen Kontextgroessen ueberhaupt in den VRAM passen; mit f16-KV
   waere derselbe Pool rund viermal so gross.
 
+  FALLSTRICK -ngl NEBEN -fit on (T900171): llama.cpp bricht das Fitting ab,
+  sobald -ngl gesetzt ist, und ignoriert damit jede -fitt-Reserve. Im Log:
+    W common_fit_params: failed to fit params to free device memory:
+      n_gpu_layers already set by user to 999, abort
+  Bis 2026-09-15 setzte dieses Skript -ngl 999 immer; die obige Tabelle ist
+  unter diesem Abbruch entstanden. Ohne -ngl (gemessen 2026-09-15, 256,1500,
+  zwei Laeufe a 300 Token): n_ctx_slot 205.056, frei 1752 MiB (3060 Ti) und
+  2782 MiB (5070 Ti), Decode ~31 t/s. -ngl 999 steht nur noch bei festem -Ctx.
+
   KONTEXT WIRD NICHT FEST GESETZT, sondern von llama.cpp -fit gewaehlt (-c
   bleibt ungesetzt). Eine feste Zahl haelt nur, solange der VRAM frei ist -
   laeuft etwas anderes auf der Karte, startet der Server gar nicht oder stirbt
@@ -165,7 +174,6 @@ if ($freeTotal -lt $needMiB) {
 
 $Params = @(
   "-m", $Model,
-  "-ngl", "999",
   "-np", "1",
   "-ctk", "q4_0",
   "-ctv", "q4_0",
@@ -187,7 +195,8 @@ $Params = @(
 )
 
 if ($Ctx -gt 0) {
-  $Params += @("-c", "$Ctx", "-fit", "off")
+  # -ngl nur hier: neben -fit on bricht llama.cpp das Fitting ab (T900171).
+  $Params += @("-c", "$Ctx", "-fit", "off", "-ngl", "999")
 } else {
   $Params += @("-fit", "on", "-fitt", "$FitMarginMib", "-fitc", "$MinCtx")
 }

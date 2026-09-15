@@ -4199,7 +4199,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 868,
+      "file_count": 869,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4412,6 +4412,7 @@
         "scripts/devmesh/migrate-from-k3d.sh",
         "scripts/devmesh/onboard-machine.sh",
         "scripts/devmesh/preflight.sh",
+        "scripts/devmesh/prepare-bootable-ssd.sh",
         "scripts/devmesh/render-stack.sh",
         "scripts/devmesh/status.sh",
         "scripts/devmesh/tailnet-check.sh",

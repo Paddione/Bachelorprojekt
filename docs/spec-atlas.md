@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2314 · Scenarios: 5148
+Specs: 126 · Requirements: 2314 · Scenarios: 5149
 
 ## factory-pipeline
 
@@ -635,10 +635,10 @@ In-flight:
   - AGENTS.md declares the shared-source routing | T014086 | active | MODIFIED
 
 ### llm-local-dev
-Reqs: 38 · Scenarios: 73 · Lines: 878
+Reqs: 38 · Scenarios: 74 · Lines: 895
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
-  - Start scripts leave -ngl to -fit | T900171 | 2026-09-15 | ADDED
+  - Start scripts leave -ngl to -fit | T900172 | 2026-09-15 | MODIFIED
   - Engine Auto-Swap on FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
   - Engine Stop on Non-FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
   - Degraded Failure Path on Engine Switch | T900155 | 2026-09-12 | ADDED
@@ -647,7 +647,6 @@ In-flight:
   - Project Default Model Targets the FreeToken Alias | T900164 | active | MODIFIED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
-  - Start scripts leave -ngl to -fit | T900172 | active | MODIFIED
 
 ### local-dev-mesh
 Reqs: 4 · Scenarios: 8 · Lines: 92

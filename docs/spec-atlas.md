@@ -17,6 +17,9 @@ Last touches:
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
+  - Portable skill inventory is authoritative across four harnesses | T900151 | active | ADDED
+  - Portable skill bodies are harness-neutral | T900151 | active | ADDED
+  - Harness catalogs and agent-guide metadata include Codex | T900151 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
   - Active Agent Roster without FreeToken | T900163 | active | MODIFIED

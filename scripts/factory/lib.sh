@@ -15,11 +15,9 @@
 # (CTX-Default dort) — die drei Stellen zusammen aendern.
 FACTORY_CTX="${FACTORY_CTX:-fleet}"
 
-# [T900118] devmesh-Write-Guard (gemeinsames Modul mit ticket-core): fleet und k3d-*
-# sind explizit KEINE devmesh-Ziele (SDLC-Writes dorthin erlaubt). Default seit
-# T900168 auf fleet — k3d-mentolder-dev ist de facto abgebaut, FACTORY_CTX=fleet
-# inkl. NS=workspace empirisch verifiziert (queue/slots/schedule). SP-5 (T900120)
-# kann die devmesh-Richtung uebernehmen, dann Guard-Beschraenkung beachten.
+# [T900118] devmesh-Write-Guard (gemeinsames Modul mit ticket-core): fleet ist
+# explizit kein devmesh-Ziel (SDLC-Writes dorthin erlaubt). Der Default bleibt
+# fleet mit NS=workspace; der Guard schützt nur den devmesh-Richtungspfad.
 # shellcheck source=scripts/vda/ticket/_devmesh-guard.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../vda/ticket/_devmesh-guard.sh"
 
@@ -56,7 +54,7 @@ factory_resolve_data_ns() {
   # der SDLC-Cluster betreibt seine Datenbank in `workspace`, nicht in
   # `workspace-dev`. Der Kontextname taugt nicht als Anker dafuer.
   case "$FACTORY_CTX" in
-    k3d-mentolder-dev|k3d-korczewski-dev) : ;;
+    devmesh) : ;;
     *-dev)
       case "$FACTORY_NS" in
         workspace) FACTORY_NS="workspace-dev" ;;
@@ -115,7 +113,7 @@ factory_pgpod() {
 # [T900052] DB-Zugriff auf zwei Wegen:
 #   * FACTORY_PG_URL gesetzt (fleet-nativer factory-runner-Pod): spricht die
 #     ClusterIP svc/shared-db[-dev]:5432 direkt an (Design aus
-#     k3d/shared-db-endpoint-policy.yaml — der Runner hat absichtlich kein
+#     shared-db-endpoint-policy.yaml — der Runner hat absichtlich kein
 #     kubectl/SAT, automountServiceAccountToken:false). Beispiel:
 #     postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev:5432/website
 #   * sonst (lokaler Windows-MCP mit kubectl + FACTORY_CTX=fleet): kubectl exec.

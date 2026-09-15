@@ -43,6 +43,14 @@ peers:
     k3s_role: server-join
     labels:
       - storage=true
+  - name: gpu-cluster3
+    role: server
+    tag: "tag:devmesh"
+    lan_ip: 10.10.10.4
+    tailnet_name: gpu-cluster3
+    k3s_role: server-join
+    labels:
+      - storage=true
   - name: pk-desktop
     role: client
     tag: "tag:devclient"

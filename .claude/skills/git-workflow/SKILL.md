@@ -10,7 +10,7 @@ description: 'Use whenever committing, pushing, creating a PR, or finishing work
 Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** — die `dev-flow-*`-Skills
 verweisen auf die Schritte hier statt sie zu duplizieren. Für read/view-GitHub-Flows (Anzeige) den
 Wrapper `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist: `gh` direkt (T004612)
-([gh-axi](.claude/skills/references/gh-axi.md)).
+([gh-axi](.agents/skills/references/gh-axi.md)).
 
 ---
 
@@ -95,7 +95,7 @@ Rot? `task freshness:regenerate` und den Regen-Commit anhängen. Gilt für Schri
 Rebase-Preflight und jeden `git rebase`/`git pull --rebase` im CI-Fix-Loop (Schritt 5).
 
 Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste zum Stagen):
-**SSOT** in [verification-block](.claude/skills/references/verification-block.md).
+**SSOT** in [verification-block](.agents/skills/references/verification-block.md).
 Falls S1 rot: Datei wirklich verkleinern, nicht kosmetisch Zeilen zusammenziehen.
 
 ---
@@ -111,7 +111,7 @@ Falls S1 rot: Datei wirklich verkleinern, nicht kosmetisch Zeilen zusammenziehen
 Header ≤ 100 Zeichen, Ticket-ID immer anhängen. `type`/`scope`-Liste, Beispiele, PR-Body-Vorlage
 und das Vorgehen für einen **noch nicht registrierten Scope** (`scripts/register-scope.sh` +
 `commitlint.config.cjs` mitcommitten, T001364):
-[git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
+[git-workflow-procedures](.agents/skills/references/git-workflow-procedures.md).
 
 > **Scope vorab gegen SSOT-Allowlist prüfen [T001395]:** `preflight-pr-scope.sh` (Schritt 4) läuft
 > erst nach dem Commit. Vor dem ersten Commit die erlaubte Liste ziehen:
@@ -180,31 +180,26 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 ### PR anlegen
 
 `gh pr create --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" --body ...` — Body-Vorlage
-(Summary + Test Plan): [git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
+(Summary + Test Plan): [git-workflow-procedures](.agents/skills/references/git-workflow-procedures.md).
 
 ---
 
-## Schritt 5 — CI Fix Loop & Mergeability Guard
+## Schritt 5 — CI Fix Loop
 
-Nach dem Push CI- und Merge-Status überwachen und Konflikte/Fehler beheben **bevor** gemergt wird.
+Nach dem Push CI überwachen und Fehler beheben **bevor** gemergt wird.
 Detaillierte Checkliste (SSOT): [ci-fix-loop](.agents/skills/references/ci-fix-loop.md)
 
-1. `bash scripts/pr-health-check.sh <n>` ausführen — prüft CI-Rollup UND Git-Mergeability (`DIRTY` / `CONFLICTING` / `BEHIND`).
-2. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind.
-3. Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen.
-4. **Merge-Konflikte (`CONFLICTING` oder `DIRTY`):** Agenten dürfen NICHT auf bessere Zeiten warten! Sofort Rebase ausführen:
-   ```bash
-   git fetch origin main && git rebase origin/main
-   # Konflikte auflösen, committen, task freshness:check/regenerate, push --force-with-lease
-   ```
+1. `gh pr checks <n> --watch` — warten bis alle Required Checks grün sind
+2. Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen
+3. Bei `CONFLICTING` PR-Status: `git fetch origin main && git rebase origin/main` → push
 
-> **Wichtig (`CONFLICTING` / `DIRTY` Guard):** Ein `CONFLICTING`-Status blockiert CI-Runs und Auto-Merges vollständig.
-> Die Diagnose `bash scripts/pr-health-check.sh <n>` liefert den exakten Status.
+> **Hinweis:** `CONFLICTING`-Status unterdrückt CI-Runs komplett — CI startet nie.
+> Diagnose: `gh pr view <n> --json mergeStateStatus`.
 
 > **Freshness-Auto-Regen-Race [T001395]:** Ein offener PR kann auf `CONFLICTING` kippen, weil der
 > Scheduler generierte Artefakte auf `main` committet hat. Der Rebase braucht dann zusätzlich
 > `task freshness:regenerate` vor dem Push. Befehlsfolge:
-> [git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
+> [git-workflow-procedures](.agents/skills/references/git-workflow-procedures.md).
 
 ---
 
@@ -236,7 +231,7 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 cd "$MAIN_REPO"
 # Agent-Lock freigeben (T006290): erst im Haupt-Repo — aus dem Worktree heraus verweigert
 # agent-lock.sh den Branch-Release. Ohne stderr-Unterdrückung, damit eine Verweigerung
-# sichtbar bleibt. Lebenszyklus-SSOT: .claude/skills/references/session-coordination.md
+# sichtbar bleibt. Lebenszyklus-SSOT: .agents/skills/references/session-coordination.md
 bash scripts/agent-lock.sh release ticket "<T00XXXX>"
 bash scripts/agent-lock.sh release branch "$BRANCH_NAME"
 git worktree remove "$WORKTREE_PATH"
@@ -273,7 +268,7 @@ fi
 
 Schritt-Übersicht (0–7) und Fehlertabelle „Symptom → Diagnose → Fix" (Commit landet nicht, CI
 startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher Cluster):
-[git-workflow-procedures](.claude/skills/references/git-workflow-procedures.md).
+[git-workflow-procedures](.agents/skills/references/git-workflow-procedures.md).
 
 ---
 
@@ -294,3 +289,5 @@ startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher Cluster):
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+
+<!-- Projection-parity sentinel. -->

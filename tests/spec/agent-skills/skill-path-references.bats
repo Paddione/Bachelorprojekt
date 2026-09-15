@@ -113,42 +113,12 @@ extract_paths() {
   [ "$fail" -eq 0 ]
 }
 
-@test "shim-coverage: .opencode/skills Ziele haben .claude/skills Shim" {
-  # Bewusst opencode-only — kein Claude-Code-Shim erwartet. Die Liste ist der Zweck
-  # des Tests: neue Luecken fallen auf, der erklaerte Bestand nicht. Stand 2026-09-09
-  # sind das 22 von 48 Skills, gemessen mit:
-  #   find .opencode/skills -name SKILL.md | while read -r s; do n="${s#*.opencode/skills/}";
-  #     n="${n%/SKILL.md}"; [ -e ".claude/skills/$n" ] || echo "$n"; done | sort
-  local opencode_only=(
-    # Vendored Hugging-Face-Skills und ihr Umfeld — Upstream-Bezug, kein Claude-Pendant
-    hf-mem huggingface-best huggingface-community-evals huggingface-datasets
-    huggingface-llm-trainer huggingface-local-models huggingface-lora-space-builder
-    huggingface-paper-publisher huggingface-papers huggingface-tool-builder
-    huggingface-trackio huggingface-vision-trainer huggingface-zerogpu
-    train-sentence-transformers transformers-js trl-training
-    # Skill-Werkzeuge und opencode-spezifische Runbooks
-    find-skills skill-craft skill-creator
-    freetoken-setup opencode-git-workflow sdlc-autopilot
-  )
-  local skill name shim_dir allowed fail=0
-  [ -d "$REPO/.opencode/skills" ]   # Positiv-Anker: ohne SSOT-Verzeichnis waere die Aussage vakuos
-  while read -r skill; do
-    [ -z "$skill" ] && continue
-    # `$` in der sed-Ersetzung braucht einen LEEREN Ersatz (`$||`), nicht `$//` —
-    # letzteres laesst den s-Ausdruck unbeendet ("unterminated `s' command").
-    name="$(echo "$skill" | sed "s|$REPO/.opencode/skills/||; s|/SKILL.md$||")"
-    shim_dir="$REPO/.claude/skills/$name"
-    # Shims koennen als Verzeichnis-Symlink, Datei-Symlink oder Pointer-Datei existieren
-    if [ -e "$shim_dir" ]; then
-      continue
-    fi
-    allowed=0
-    for a in "${opencode_only[@]}"; do
-      [ "$a" = "$name" ] && { allowed=1; break; }
-    done
-    [ "$allowed" -eq 1 ] && continue
-    echo "opencode-Skill '$name' hat kein .claude/skills-Shim und steht nicht in opencode_only" >&2
-    fail=1
-  done < <(find "$REPO/.opencode/skills" -name 'SKILL.md' -not -path "*/OVERVIEW.md" 2>/dev/null)
-  [ "$fail" -eq 0 ]
+@test "inventory coverage: every OpenCode skill is declared with rationalized harness exposure" {
+  # T900151 replaces the hand-maintained pairwise .claude shim allowlist with the
+  # four-harness registry. Native OpenCode skills (for example llama-cpp) must be
+  # declared with explicit exclusions rather than gaining a meaningless Claude shim.
+  run node "$REPO/scripts/agent-skills/project.mjs" --root "$REPO" --check
+  [ "$status" -eq 0 ]
+  grep -q '^  - id: llama-cpp$' "$REPO/docs/agent-guide/registry/skills.yaml"
+  grep -A12 '^  - id: llama-cpp$' "$REPO/docs/agent-guide/registry/skills.yaml" | grep -q 'claude_code: "OpenCode-only vendor skill'
 }

@@ -62,7 +62,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/portable-inventory.bat
 
 - [ ] **p2 — migrate corpus without changing public skill IDs.** Inventory every tracked skill, move shared bodies to `.agents/skills`, create only declared projections/adapters in the other two directories, and leave native/vendor content in place with provenance and rationale. Rewrite shared prose to capability-oriented terms; put tool-name mappings only in adapters. Regenerate the projection catalog and prove the expected four harness views.
 
-- [ ] **p3 — replace legacy pairwise guards and publish truthful catalogs.** Extend agent-guide schema with Codex and explicit harness sets, collect skills from the registry/projections, migrate BATS guards away from the `.opencode_only` list, preserve dead-path coverage, and regenerate maps. Add positive and negative cases for missing Codex exposure, undeclared override, and accidental native-skill exposure.
+- [x] **p3 — replace legacy pairwise guards and publish truthful catalogs.** Extend agent-guide schema with Codex and explicit harness sets, collect skills from the registry/projections, migrate BATS guards away from the `.opencode_only` list, preserve dead-path coverage, and regenerate maps. Add positive and negative cases for missing Codex exposure, undeclared override, and accidental native-skill exposure.
 
 - [ ] **Final Verification.** Run targeted guards, then the mandatory CI gates:
 

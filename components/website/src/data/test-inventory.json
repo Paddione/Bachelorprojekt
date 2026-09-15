@@ -4116,20 +4116,8 @@
     "kind": "shell"
   },
   {
-    "id": "llm-local-dev/alias-telemetry",
-    "file": "tests/spec/llm-local-dev/alias-telemetry.bats",
-    "category": "llm-local-dev",
-    "kind": "shell"
-  },
-  {
     "id": "llm-local-dev/fit-ngl-conflict",
     "file": "tests/spec/llm-local-dev/fit-ngl-conflict.bats",
-    "category": "llm-local-dev",
-    "kind": "shell"
-  },
-  {
-    "id": "llm-local-dev/freetoken-engine-autoswap",
-    "file": "tests/spec/llm-local-dev/freetoken-engine-autoswap.bats",
     "category": "llm-local-dev",
     "kind": "shell"
   },

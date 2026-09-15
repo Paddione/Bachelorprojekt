@@ -647,6 +647,7 @@ In-flight:
   - Project Default Model Targets the FreeToken Alias | T900164 | active | MODIFIED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
+  - Start scripts leave -ngl to -fit | T900172 | active | MODIFIED
 
 ### local-dev-mesh
 Reqs: 4 · Scenarios: 8 · Lines: 92

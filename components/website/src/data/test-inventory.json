@@ -4140,6 +4140,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/qwen-tensor-split",
+    "file": "tests/spec/llm-local-dev/qwen-tensor-split.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline",
     "file": "tests/spec/llm-pipeline.bats",
     "category": "llm-pipeline",

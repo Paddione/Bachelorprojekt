@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.342.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.1...website-v1.342.2) (2026-09-15)
+
+
+### Bug Fixes
+
+* **ops:** -ngl 999 nur bei festem Kontext, damit -fit die 3060-Ti-Reserve einhaelt [T900171] ([#5637](https://github.com/Paddione/Bachelorprojekt/issues/5637)) ([9fbc2d4](https://github.com/Paddione/Bachelorprojekt/commit/9fbc2d4266c22fd85516dc790925b02b8f41465e))
+
 ## [1.342.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.0...website-v1.342.1) (2026-09-12)
 
 

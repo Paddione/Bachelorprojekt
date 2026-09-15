@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2310 · Scenarios: 5138
+Specs: 126 · Requirements: 2313 · Scenarios: 5145
 
 ## factory-pipeline
 
@@ -88,14 +88,14 @@ In-flight:
   - Build embeds the git revision | T014735 | active | ADDED
 
 ### fleet-operations
-Reqs: 50 · Scenarios: 94 · Lines: 971
+Reqs: 53 · Scenarios: 101 · Lines: 1038
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
   - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | 2026-09-11 | ADDED
   - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | 2026-09-11 | ADDED
   - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | 2026-09-11 | ADDED
   - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | 2026-09-11 | ADDED
-  - Dev-Stack-Pods ohne Root laufen mit schreibbarem tmp | T016424 | 2026-08-24 | ADDED
+  - WireGuard mesh reconcile applies the registry to every node | T900083 | 2026-09-11 | ADDED
 In-flight:
   - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
   - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
@@ -104,9 +104,6 @@ In-flight:
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
   - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
   - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
-  - WireGuard mesh reconcile applies the registry to every node | T900083 | active | ADDED
-  - WireGuard mesh drift is detected as a gate | T900083 | active | ADDED
-  - Reconcile and drift share one renderer | T900083 | active | ADDED
   - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
   - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
   - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED

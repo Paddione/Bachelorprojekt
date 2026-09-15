@@ -2,7 +2,7 @@
 title: "qwen-fit-ngl — Implementation Plan"
 ticket_id: T900171
 domains: [llm]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.344.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.343.0...website-v1.344.0) (2026-09-16)
+
+
+### Features
+
+* **skills:** portable agent skill harnesses [T900151] ([#5649](https://github.com/Paddione/Bachelorprojekt/issues/5649)) ([d0cba1b](https://github.com/Paddione/Bachelorprojekt/commit/d0cba1b9e98f2dc327d2955a7bc9b4ccdf12b30d))
+
 ## [1.343.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.4...website-v1.343.0) (2026-09-16)
 
 

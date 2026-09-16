@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.343.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.4...website-v1.343.0) (2026-09-16)
+
+
+### Features
+
+* **infra:** remove k3d SDLC lifecycle and decommission k3d [T900145] ([#5648](https://github.com/Paddione/Bachelorprojekt/issues/5648)) ([20cc469](https://github.com/Paddione/Bachelorprojekt/commit/20cc4695d177f43c6d402b9164715e3f16765d49))
+
 ## [1.342.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.342.3...website-v1.342.4) (2026-09-15)
 
 

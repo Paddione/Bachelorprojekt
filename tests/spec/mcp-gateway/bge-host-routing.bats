@@ -3,11 +3,11 @@
 # SSOT: openspec/specs/mcp-gateway.md
 # Ticket: T002551
 #
-# Pruefmodus (Test-Resultats-Konvention T002448-M4): QUELLTEXT — hier greift die
-# dokumentierte Ausnahme. Die systemd-Unit ist eine Konfigurationsdatei; ihr
-# Ergebnis manifestiert sich ausschliesslich in ihrem Inhalt. Das Laufzeit-
-# verhalten (`systemctl --user show bge-mcp -p Environment`) haengt am
-# installierten Host-Zustand und ist in der CI nicht reproduzierbar.
+# Pruefmodus (Test-Resultats-Konvention T002448-M4): QUELLTEXT/RENDER — hier
+# greift die dokumentierte Ausnahme. Das gerenderte Deployment ist eine
+# Konfigurationsdatei; sein Ergebnis manifestiert sich ausschliesslich in
+# seinem Inhalt. Das Laufzeitverhalten (Env im Pod) setzt einen erreichbaren
+# Cluster voraus und ist in der CI nicht deterministisch.
 #
 # Hintergrund: Der Shim importiert components/website/src/lib/bge-router.ts. Dessen
 # resolveEndpoint('embed'|'rerank') liest LLM_EMBED_URL bzw. LLM_RERANKER_URL
@@ -20,30 +20,27 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
-  UNIT="$REPO/scripts/bge-mcp/bge-mcp.service"
   ROUTER="$REPO/components/website/src/lib/bge-router.ts"
 }
-
-@test "bge-mcp unit exists" {
-  [ -f "$UNIT" ]
-}
-
-@test "unit pins both bge endpoint URLs to the llm-proxy" {
-  # Positiv-Anker: beide Variablen, die bge-router.ts liest, zeigen auf
-  # 127.0.0.1 — seit T003205 auf den llm-proxy :18235, dessen Rollen-Routen
-  # das lokale Loadout starten und auf die Cluster-Forwards zurueckfallen.
-  # 8093 statt 8082 (T002565): Port 8082 ist auf dem GPU-Host von einem
-  # Windows-svchost belegt (networkingMode=mirrored, in WSL selbst mit
-  # ss/lsof unsichtbar, nur ueber netstat.exe von der Windows-Seite sichtbar).
-  run grep -c "^Environment=LLM_EMBED_URL=http://127\.0\.0\.1:18235$" "$UNIT"
-  echo "LLM_EMBED_URL -> $output"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
-
-  run grep -c "^Environment=LLM_RERANKER_URL=http://127\.0\.0\.1:18235$" "$UNIT"
-  echo "LLM_RERANKER_URL -> $output"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
+@test "llm-services-Deployment pinnt beide bge-Endpoint-URLs auf den Pod-lokalen llm-proxy (T900191, Nachfolger von T003205)" {
+  # Ersetzt "unit pins both bge endpoint URLs to the llm-proxy": beide Werte
+  # bleiben http://127.0.0.1:18235 (P1b rendert sie exakt so — bge-mcp und
+  # llm-proxy laufen im selben Pod).
+  # Abweichung vom Partial-Entwurf: dessen einzeiliges
+  # `LLM_EMBED_URL[^#]*127.0.0.1:18235` matcht das reale Render NICHT (0/0 —
+  # das Manifest schreibt `- name:`/`value:` auf getrennte Zeilen). Geprueft
+  # wird deshalb das Wertepaar; ConfigMaps mit Cluster-DNS-URLs scheiden aus,
+  # weil sie nie die `- name:`-Form tragen.
+  local deploy_out urls
+  deploy_out="$(bash "${REPO}/scripts/devmesh/render-stack.sh" core 2>/dev/null)" || skip "render-stack.sh Vorbedingung fehlt"
+  for var in LLM_EMBED_URL LLM_RERANKER_URL; do
+    urls="$(printf '%s\n' "$deploy_out" | grep -A1 -- "- name: ${var}" | grep 'value:' || true)"
+    # Positiv-Anker: die Variable existiert ueberhaupt im Deployment-Stil.
+    [ -n "$urls" ]
+    # JEDE Deployment-Deklaration pinnt 127.0.0.1:18235 — damit ist zugleich
+    # "kein Cluster-DNS" abgedeckt (der gestrichene Negativtest ist subsumiert).
+    [ -z "$(printf '%s\n' "$urls" | grep -v '127\.0\.0\.1:18235' || true)" ]
+  done
 }
 
 @test "unit variable names match the env keys the router actually reads" {
@@ -56,31 +53,4 @@ setup() {
     [ "$status" -eq 0 ]
     [ "$output" -ge 1 ]
   done
-}
-
-@test "unit pins no cluster DNS name — those are unresolvable from the host" {
-  # Positiv-Anker zuerst: die Unit deklariert ueberhaupt Environment-Zeilen.
-  run grep -c '^Environment=' "$UNIT"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 2 ]
-
-  # Negativ-Aussage: keine AKTIVE Zeile zeigt in den Cluster. Bewusst auf
-  # '^Environment=' verankert — der Kommentarblock darueber nennt den
-  # Cluster-DNS-Namen absichtlich, um zu erklaeren, wogegen hier gepinnt wird.
-  # Ein unverankertes grep wuerde genau diese Erklaerung als Verstoss werten.
-  run grep -c '^Environment=.*svc\.cluster\.local' "$UNIT"
-  [ "$output" -eq 0 ]
-}
-
-@test "EnvironmentFile comes after Environment so local overrides win" {
-  # Reihenfolge ist semantisch: systemd laesst die spaetere Deklaration gewinnen.
-  # Stuende EnvironmentFile oben, wuerden die Unit-Defaults den Token und jeden
-  # lokalen Override aus server.env ueberschreiben.
-  local env_line file_line
-  env_line="$(grep -n '^Environment=LLM_EMBED_URL' "$UNIT" | head -1 | cut -d: -f1)"
-  file_line="$(grep -n '^EnvironmentFile=' "$UNIT" | head -1 | cut -d: -f1)"
-  echo "Environment=@$env_line EnvironmentFile=@$file_line"
-  [ -n "$env_line" ]
-  [ -n "$file_line" ]
-  [ "$file_line" -gt "$env_line" ]
 }

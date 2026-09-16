@@ -1,3 +1,4 @@
+# Status: Aktiv — Gateway-Unit unter Watchdog-Aufsicht (T002543).
 # scripts/mcp-gateway/mcp-gateway.service
 # mcp-gateway - systemd USER service. Long-running `kubectl port-forward` auf
 # svc/dev-pod (fleet, Namespace workspace-dev) [T900107]:

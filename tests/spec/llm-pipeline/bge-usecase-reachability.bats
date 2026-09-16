@@ -4,12 +4,12 @@
 # Ticket: T002604
 #
 # PRUEFMODUS (Test-Resultats-Konvention T002448-M4): ERGEBNIS-basiert fuer die
-# Manifest-Teile — geprueft wird der Output von `kubectl kustomize k3d/`, nicht
-# der Quelltext der Einzeldateien. Damit faellt der Test auch dann rot aus, wenn
-# eine Ressource zwar in einer Datei steht, aber nicht in die Kustomization
-# aufgenommen wurde. Fuer die systemd-Unit ist Source-Pruefung die Ausnahme nach
-# T002448-M4: die Unit-Datei IST das Deliverable, ihr Laufzeitverhalten setzt
-# einen erreichbaren Cluster voraus und waere in CI nicht deterministisch.
+# Manifest-Teile — geprueft wird der Output von `kubectl kustomize k3d/` bzw.
+# `kubectl kustomize dev-local/core`, nicht der Quelltext der Einzeldateien.
+# Damit faellt der Test auch dann rot aus, wenn eine Ressource zwar in einer
+# Datei steht, aber nicht in die Kustomization aufgenommen wurde.
+# T900191/D7: die fruehere Source-Ausnahme fuer die bge-mcp-systemd-Unit ist
+# entfallen — die Unit existiert nicht mehr, F3 prueft das gerenderte Deployment.
 #
 # HINTERGRUND — am 2026-08-03 live gemessen, Cluster fleet:
 #
@@ -111,42 +111,22 @@ setup_file() {
   done
 }
 
-# --- F3: bge-mcp Port-Forwards unter systemd-Aufsicht -------------------------
+# --- F3: bge-mcp Port-Forwards unter devmesh-Aufsicht (T900191) -----------------
+# Nachfolger der geloeschten systemd-Aufsicht: bge-mcp laeuft als
+# Supervisor-Kind im llm-services-Pod (MCP_NODE_SERVICES); Port-Forwards als
+# unbeaufsichtigte Hintergrundjobs (`port-forward ... &`) haben im Deployment
+# nichts verloren. Geprueft wird das gerenderte dev-local/core (ERGEBNIS,
+# keine Unit-Quelle mehr).
 
-@test "bge-mcp: die Unit startet keine Port-Forwards als unbeaufsichtigte Hintergrundjobs" {
-  unit="${REPO_ROOT}/scripts/bge-mcp/bge-mcp.service"
-  [ -f "$unit" ]
-
-  # Positiv-Anker: die Unit startet ueberhaupt den Shim.
-  grep -q 'bge-mcp/server.mjs' "$unit"
-
-  # Der Defekt: `kubectl port-forward ... &` im ExecStart. systemd ueberwacht nur
-  # den Vordergrundprozess; sterben die Forwards, meldet die Unit weiter active
-  # und jeder Tool-Call scheitert mit "fetch failed".
-  run grep -c 'port-forward.*&' "$unit"
-  [ "$output" = "0" ]
+@test "bge-mcp: laeuft als Supervisor-Kind im llm-services-Deployment, kein Hintergrundjob (T900191, Nachfolger F3)" {
+  local deploy_out
+  deploy_out="$(kubectl kustomize --load-restrictor=LoadRestrictionsNone "${REPO_ROOT}/dev-local/core" 2>/dev/null)" || skip "kubectl kustomize Vorbedingung fehlt"
+  echo "$deploy_out" | grep -qF 'MCP_NODE_SERVICES'
+  echo "$deploy_out" | grep -qF 'bge-mcp'
+  amp="$(echo "$deploy_out" | grep -cE 'port-forward.*&' || true)"
+  [ "$amp" -eq 0 ]
 }
 
-@test "bge-mcp: fuer jede Rolle existiert eine eigene, neustartende Port-Forward-Unit" {
-  dir="${REPO_ROOT}/scripts/bge-mcp"
-  [ -d "$dir" ]
-
-  for role in embed rerank; do
-    unit="${dir}/bge-forward-${role}.service"
-    [ -f "$unit" ]
-
-    # Positiv-Anker: die Unit forwarded wirklich den passenden Service.
-    grep -q "svc/llm-gateway-${role}" "$unit"
-
-    # Der eigentliche Punkt: sie muss sich selbst heilen. Ohne Restart= bliebe
-    # genau der Zustand vom 2026-08-03 bestehen (Forwards tot, Unit active).
-    grep -qE '^Restart=always' "$unit"
-  done
-
-  # Der Shim darf erst starten, wenn die Forwards da sind, und mit ihnen fallen.
-  grep -qE '^(Requires|BindsTo)=.*bge-forward-embed\.service' "${dir}/bge-mcp.service"
-  grep -qE '^(Requires|BindsTo)=.*bge-forward-rerank\.service' "${dir}/bge-mcp.service"
-}
 
 # --- F5: Diagnosefaehigkeit des Shims ----------------------------------------
 

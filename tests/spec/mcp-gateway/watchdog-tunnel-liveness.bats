@@ -78,23 +78,19 @@ setup() {
   local timer="${REPO_ROOT}/scripts/mcp-gateway/mcp-gateway-watchdog.timer"
   local svc="${REPO_ROOT}/scripts/mcp-gateway/mcp-gateway-watchdog.service"
   local check="${REPO_ROOT}/scripts/mcp-gateway/watchdog-check.sh"
-  local fwd="${REPO_ROOT}/scripts/mcp-gateway/k3d-postgres-forward.service"
-  local pglocal="${REPO_ROOT}/scripts/mcp-gateway/mcp-postgres-local.service"
   [ -f "${timer}" ]
   [ -f "${svc}" ]
   [ -x "${check}" ]
-  # T006996: die Units der lokalen Postgres-Kette sind im Repo versioniert —
-  # vorher lagen sie nur auf dem Host.
-  [ -f "${fwd}" ]
-  [ -f "${pglocal}" ]
+  # T900191: nur noch die Watchdog-Units sind im Repo versioniert — die Units
+  # der lokalen Postgres-Kette sind mit D7 geloescht (der Client forwardet
+  # jetzt direkt svc/llm-services:13001).
   grep -q "watchdog-check.sh" "${svc}"
   # Der Watchdog muss den echten Probe ausfuehren und die Gateway-Unit neu
   # starten koennen — sonst meldet er nur, was ohnehin niemand liest.
   grep -q "probe.sh" "${check}"
   grep -qE "mcp-gateway\.service" "${check}"
-  # T006996: die lokale Postgres-Kette gehoert ebenfalls zum Restart-Scope.
-  grep -qE "k3d-postgres-forward\.service" "${check}"
-  grep -qE "mcp-postgres-local\.service" "${check}"
+  # T900191: watchdog-check.sh kennt die geloeschten Units nicht mehr — der
+  # Restart-Scope ist mcp-gateway.service plus der echte MCP-initialize-Probe.
 }
 
 @test "T002543: der Timer feuert wiederholt, nicht nur einmal beim Boot" {

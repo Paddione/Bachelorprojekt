@@ -1,3 +1,4 @@
+# Status: Aktiv — feuert den Gateway-Watchdog wiederkehrend (T002543).
 # Bewacht mcp-gateway.service (fleet) und devmesh-forward.service (devmesh) auf
 # WSL-Hosts. Auf Windows-Hosts nicht installieren: dort startet start-windows.ps1
 # beendete Forwards selbst neu (T900191).

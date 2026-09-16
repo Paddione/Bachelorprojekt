@@ -23,10 +23,16 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
+  # T900191: einmalig pro Test das echte dev-local/core rendern (P1b liegt vor).
+  RENDERED_LLM_SERVICES="$BATS_TEST_TMPDIR/llm-services-rendered.yaml"
+  bash "$REPO/scripts/devmesh/render-stack.sh" core > "$RENDERED_LLM_SERVICES" 2>/dev/null || true
   # Ueberwachte Flaeche laut SSOT-Szenario. provider-register-local.sh ist der
   # umbenannte provider-register-bonsai.sh (T002582).
   # T003205: die bge-Konsumenten bge-mcp.service und openspec-embed-local.sh
   # kommen dazu — sie duerfen kein direktes Backend-Port-Literal mehr tragen.
+  # T900191/D7: bge-mcp.service ist geloescht — an seine Stelle tritt das unten
+  # gerenderte llm-services-Deployment (RENDERED_LLM_SERVICES), damit die
+  # ueberwachte Flaeche nicht ersatzlos schrumpft.
   # scripts/llm/loadouts.json ist BEWUSST NICHT dabei: dort stehen die
   # Backend-Adressen bestimmungsgemaess (die Rollen-Ketten referenzieren die
   # Ports), genau wie bei den Registry-Seeds.
@@ -35,7 +41,6 @@ setup() {
     "scripts/factory/provider-register-local.sh"
     "scripts/factory/route-provider.sh"
     "scripts/factory/pipeline.mjs"
-    "scripts/bge-mcp/bge-mcp.service"
     "scripts/openspec-embed-local.sh"
   )
   # Nur die Routing-Flaechen: hier entscheidet ein Modellname, wohin ein
@@ -65,6 +70,9 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   for f in "${SURFACES[@]}"; do
     [ -e "$REPO/$f" ] || missing+=("$f")
   done
+  # Das gerenderte Deployment ist kein Repo-Pfad — deshalb eigener Anker:
+  # nichtleer heisst, das Rendering hat funktioniert (T002356-M1).
+  [ -s "$RENDERED_LLM_SERVICES" ] || missing+=("(render) llm-services-rendered.yaml")
   if [ ${#missing[@]} -gt 0 ]; then
     echo "Fehlende Flaechen-Dateien: ${missing[*]}" >&2
     echo "Entweder wurde eine Datei umbenannt/geloescht, ohne SURFACES hier und" >&2
@@ -83,6 +91,15 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
     h="$(_active_lines '127\.0\.0\.1:(8093|1234|8081|8095|8096)|localhost:(8093|1234|8081|8095|8096)' "$REPO/$f")"
     [ -n "$h" ] && hits="${hits}${f}:\n${h}\n"
   done
+  # T900191: dieselbe Pruefung auf dem gerenderten llm-services-Deployment —
+  # ein zurueckgezogenes Backend-Port-Literal im Deployment-Env faellt sonst
+  # durch kein Raster mehr.
+  if [ -s "$RENDERED_LLM_SERVICES" ]; then
+    h="$(_active_lines '127\.0\.0\.1:(8093|1234|8081|8095|8096)|localhost:(8093|1234|8081|8095|8096)' "$RENDERED_LLM_SERVICES")"
+    [ -n "$h" ] && hits="(render) llm-services-rendered.yaml:\n${h}\n"
+  else
+    skip "render-stack.sh Vorbedingung fehlt"
+  fi
   if [ -n "$hits" ]; then
     printf 'Direkte Backend-Ports gefunden (erlaubt nur in Registry-Seeds/Migrationen und in scripts/llm/loadouts.json):\n' >&2
     printf "$hits" >&2

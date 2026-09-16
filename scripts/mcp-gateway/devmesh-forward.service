@@ -1,3 +1,4 @@
+# Status: Aktiv (T900191) — haelt den lokalen Forward-Port auf svc/llm-services.
 # scripts/mcp-gateway/devmesh-forward.service
 # T900191 - systemd USER service. Long-running `kubectl port-forward` auf
 # svc/llm-services im devmesh-Cluster (Namespace workspace):

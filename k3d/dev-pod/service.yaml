@@ -5,8 +5,8 @@
 # Begruendung (Spec "No MCP endpoint is exposed publicly"): oauth2-proxy-dev
 # traegt fuer genau diese Pfade ein --skip-auth-route (k3d/dev-stack/
 # oauth2-proxy-dev.yaml). Ein oeffentlicher Endpunkt exponierte damit
-# mcp-kubernetes und mcp-postgres unauthentifiziert — der erste liest den
-# gesamten Cluster, der zweite die Website-Datenbank.
+# mcp-kubernetes unauthentifiziert — er liest den gesamten Cluster.
+# mcp-postgres liegt seit T900191 in devmesh.
 #
 # Erreichbarkeit laeuft ueber das wg-Mesh. Das Service-Netz 10.43.0.0/16 wird
 # NICHT ueber den Tunnel geroutet (docs/agent-guide/maps/networks-map.md), das
@@ -25,8 +25,6 @@ spec:
     app: dev-pod
   ports:
     - { name: kubernetes, port: 8080, targetPort: 8080, protocol: TCP }
-    - { name: llm-proxy, port: 18235, targetPort: 18235, protocol: TCP }
-    - { name: postgres, port: 3001, targetPort: 3001, protocol: TCP }
     - { name: github, port: 3002, targetPort: 3002, protocol: TCP }
     - { name: ticket, port: 3003, targetPort: 3003, protocol: TCP }
     - { name: brain, port: 3004, targetPort: 3004, protocol: TCP }

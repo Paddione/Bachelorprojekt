@@ -95,9 +95,10 @@ cmd_start() {
     --port "$OPCODE_SERVE_PORT" \
     --hostname "$OPCODE_SERVE_HOSTNAME" \
     --log-level INFO \
-    > "$LOG_FILE" 2>&1 &
+    < /dev/null > "$LOG_FILE" 2>&1 &
 
   local pid=$!
+  disown "$pid" 2>/dev/null || true
   echo "$pid" > "$PID_FILE"
   echo "Started opencode-serve (PID $pid)"
   echo "Log: $LOG_FILE"

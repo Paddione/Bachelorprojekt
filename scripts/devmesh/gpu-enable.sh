@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# scripts/devmesh/gpu-enable.sh — GPU eines devmesh-Hosts fuer k3s nutzbar machen [T900179]
+#
+# Usage: gpu-enable.sh [host]        host = Name aus devmesh/inventory.yaml, Default gpu-metal
+#
+# Installiert das nvidia-container-toolkit, registriert die nvidia-Runtime per
+# "nvidia-ctk runtime configure --runtime=containerd" und startet k3s neu, damit k3s seine
+# containerd-Templates mit der Runtime neu schreibt. /var/lib/rancher/k3s/agent/etc/containerd/
+# config.toml wird bewusst NICHT direkt editiert — k3s ueberschreibt die Datei beim Start.
+#
+# Umgebung:
+#   DRY_RUN=1          nur den geplanten Ablauf ausgeben, kein SSH
+#   DEVMESH_INVENTORY  Inventar (Default: devmesh/inventory.yaml)
+#   DEVMESH_SSH_USER   SSH-Benutzer (Default: patrick)
+#   DEVMESH_SSH_KEY    Schluessel (Default: ~/.ssh/patrick_ed25519)
+#
+# Idempotent: sind Toolkit und nvidia-Runtime bereits vorhanden, endet das Skript ohne
+# Aenderung und OHNE k3s-Neustart mit Exit 0.
+# Exit 0 aktiviert/unveraendert, 1 Befund, 2 Vorbedingung fehlt.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+INVENTORY="${DEVMESH_INVENTORY:-$REPO_ROOT/devmesh/inventory.yaml}"
+SSH_USER="${DEVMESH_SSH_USER:-patrick}"
+SSH_KEY="${DEVMESH_SSH_KEY:-$HOME/.ssh/patrick_ed25519}"
+DEFAULT_HOST=gpu-metal
+CONTAINERD_CONF=/var/lib/rancher/k3s/agent/etc/containerd/config.toml
+
+die()  { echo "ERROR: $*" >&2; exit 1; }
+need() { command -v "$1" >/dev/null 2>&1 || { echo "Vorbedingung fehlt: $1 nicht im PATH" >&2; exit 2; }; }

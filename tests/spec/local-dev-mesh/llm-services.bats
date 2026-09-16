@@ -85,12 +85,19 @@ STUB
     chmod +x "$BIN/$t"
   done
 
+  # Token-Attrappen: postgres/bge-mcp pruefen nur Nicht-Leere (P2) — ohne sie
+  # starten sie nicht und 'start ...' erschiene nie; der Test wuerde das
+  # fehlende Token statt der Supervisor-Auswahl messen. Supervisor-stdout
+  # landet ebenfalls in $LOG: 'start <dienst>' schreibt supervise() nach
+  # stdout, die Stubs schreiben 'invoked:...' direkt ins Log.
   run env -i PATH="$BIN:/usr/bin:/bin" \
     MCP_NODE_SERVICES="llm-proxy,postgres,bge-mcp" \
     MCP_SUPERVISOR_RESTART_DELAY=100 \
+    MCP_POSTGRES_TOKEN="guard" \
+    BGE_MCP_TOKEN="guard" \
     DATABASE_URL="postgresql://x/y" \
     DEV_POD_REPO="$REPO_ROOT" \
-    timeout 2 sh "$SUPERVISOR"
+    bash -c 'timeout 2 sh "$0" >> "$1" 2>&1' "$SUPERVISOR" "$LOG"
   # timeout beendet den Supervisor per SIGTERM (Exit 124) — das Log entsteht trotzdem.
   [ -s "$LOG" ]
 

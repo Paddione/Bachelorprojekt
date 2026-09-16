@@ -1308,25 +1308,14 @@ based on the adapter's actual state. A fixed label SHALL NOT be used.
 - **WHEN** Z1 Statusband renders
 - **THEN** it does not claim fixture mode
 
-### Requirement: Dev-Deployment — SDLC-Console auf mentolder-dev-Cluster
+### Requirement: Dev-Deployment — SDLC-Console auf dem devmesh-Cluster
 
-Das Repository SHALL einen ausführbaren Deployment-Pfad bereitstellen, der das
-SDLC-Cockpit auf einem dedizierten k3d-Cluster `mentolder-dev` erreichbar macht
-(`Taskfile.sdlc.yml` `sdlc:cluster:create` + `sdlc:deploy`). Das Ergebnis SHALL
-per BATS-Test nachgewiesen sein, nicht per Behauptung.
+The repository SHALL provide `task devmesh:deploy` followed by `task sdlc:sdlc:up` for the development cockpit. No SDLC task SHALL create a cluster.
 
-#### Scenario: SDLC-Stack ist deployed und erreichbar
+#### Scenario: Cluster target is documented
 
-- **GIVEN** der `mentolder-dev`-Cluster läuft und der SDLC-Stack wurde per `sdlc:deploy` ausgerollt
-- **WHEN** `GET http://sdlc.localhost/sdlc/cockpit` aufgerufen wird
-- **THEN** antwortet die SDLC-Console mit HTTP 200 oder einem gültigen Auth-Redirect
-- **AND** der BATS-Test `tests/spec/cockpit-availability/*.bats` läuft grün
-
-#### Scenario: Cluster-Ziel ist dokumentiert
-
-- **GIVEN** die Deployment-Doku des SDLC-Stacks
-- **WHEN** der Zielcluster nachgeschlagen wird
-- **THEN** heißt er `mentolder-dev` und der Ausführungspfad ist `task sdlc:cluster:create` gefolgt von `task sdlc:deploy`
+- **WHEN** the deployment documentation is consulted
+- **THEN** it names `devmesh` and the deployment path
 
 ### Requirement: Dev-Login — OAuth-Client für die lokale Website
 
@@ -2404,3 +2393,5 @@ Siehe `openspec/changes/sdlc-cockpit-design/design.md`, Abschnitt „Getroffene 
 <!-- merged from change delta sdlc-cockpit.md (4ed1614e8d0d) -->
 
 <!-- merged from change delta sdlc-cockpit.md (04129f063ca2) -->
+
+<!-- merged from change delta sdlc-cockpit.md (76e7743820bf) -->

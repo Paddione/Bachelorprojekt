@@ -91,7 +91,7 @@ unit_check() { for f in "$@"; do systemd-analyze --user verify "$f" 2>&1 | grep 
 **Files:** Create `scripts/mcp-gateway/devmesh-forward.service`. Modify
 `scripts/mcp-gateway/mcp-gateway.service`.
 
-- [ ] **Schritt 1: `devmesh-forward.service` anlegen**
+- [x] **Schritt 1: `devmesh-forward.service` anlegen**
 
 ```ini
 # scripts/mcp-gateway/devmesh-forward.service
@@ -131,7 +131,7 @@ RestartSec=5
 WantedBy=default.target
 ```
 
-- [ ] **Schritt 2: `mcp-gateway.service` anpassen.** Die Kopfzeilen 1–12 ("Toter Zustand") werden ersetzt.
+- [x] **Schritt 2: `mcp-gateway.service` anpassen.** Die Kopfzeilen 1–12 ("Toter Zustand") werden ersetzt.
 
 ```ini
 # scripts/mcp-gateway/mcp-gateway.service
@@ -153,7 +153,7 @@ Description=MCP gateway port-forward fleet dev-pod (mcp-kubernetes :18080, githu
 ExecStart=/usr/local/bin/kubectl --context fleet port-forward -n workspace-dev svc/dev-pod 18080:8080 13002:3002
 ```
 
-- [ ] **Schritt 3: Prüfen**
+- [x] **Schritt 3: Prüfen**
 
 ```bash
 unit_check scripts/mcp-gateway/devmesh-forward.service scripts/mcp-gateway/mcp-gateway.service
@@ -166,7 +166,7 @@ grep -n -E '13001|18235' scripts/mcp-gateway/mcp-gateway.service | grep -v '^[0-
 **Files:** Modify `scripts/mcp-gateway/watchdog-check.sh`, `scripts/mcp-gateway/probe.sh`,
 `scripts/mcp-gateway/mcp-gateway-watchdog.service`, `scripts/mcp-gateway/mcp-gateway-watchdog.timer`.
 
-- [ ] **Schritt 1: `watchdog-check.sh`.** Kopfkommentar, Zeilen 8–11:
+- [x] **Schritt 1: `watchdog-check.sh`.** Kopfkommentar, Zeilen 8–11:
 
 ```bash
 # Zwei Ketten werden getrennt geprueft:
@@ -192,7 +192,7 @@ if [ "$devmesh_failed" -eq 1 ]; then
 fi
 ```
 
-- [ ] **Schritt 2: `probe.sh`.** Zeilen 20–22:
+- [x] **Schritt 2: `probe.sh`.** Zeilen 20–22:
 
 ```bash
 # T002767/T006996/T900191: nur die verdrahteten Endpoints pruefen. 18080 = fleet-forward
@@ -200,7 +200,7 @@ fi
 # llm-services (devmesh-forward.service).
 ```
 
-- [ ] **Schritt 3: Watchdog-Unit und Timer.** In beiden Dateien werden die Kopfzeilen 1–5
+- [x] **Schritt 3: Watchdog-Unit und Timer.** In beiden Dateien werden die Kopfzeilen 1–5
   ("Toter Zustand … Pendant-Lücke") durch diese Zeilen ersetzt:
 
 ```ini
@@ -215,7 +215,7 @@ In der `.service` wird außerdem Zeile 23 angepasst:
 After=mcp-gateway.service devmesh-forward.service
 ```
 
-- [ ] **Schritt 4: Prüfen**
+- [x] **Schritt 4: Prüfen**
 
 ```bash
 bash -n scripts/mcp-gateway/watchdog-check.sh scripts/mcp-gateway/probe.sh && echo syntax-ok
@@ -228,7 +228,7 @@ bash scripts/mcp-gateway/probe.sh --help | head -1                              
 
 **Files:** Modify `scripts/mcp-gateway/start-mcp-unified.sh`.
 
-- [ ] **Schritt 1: Kopfkommentar** (Zeilen 5–20):
+- [x] **Schritt 1: Kopfkommentar** (Zeilen 5–20):
 
 ```bash
 # Starts the three MCP infrastructure components the local clients depend on:
@@ -245,10 +245,10 @@ bash scripts/mcp-gateway/probe.sh --help | head -1                              
 #   /tmp/factory-mcp.pid      — factory-mcp-node server
 ```
 
-- [ ] **Schritt 2: `stop_process`.** Im `case` wird `bge-mcp) hex_port=… 13005` durch
+- [x] **Schritt 2: `stop_process`.** Im `case` wird `bge-mcp) hex_port=… 13005` durch
   `devmesh-forward) hex_port=$(printf '%04X' 18235) ;;` ersetzt.
 
-- [ ] **Schritt 3: `start_gateway`.** Es gibt künftig zwei Forwards. `start_bge` wird gelöscht:
+- [x] **Schritt 3: `start_gateway`.** Es gibt künftig zwei Forwards. `start_bge` wird gelöscht:
 
 ```bash
 start_gateway() {
@@ -292,11 +292,11 @@ start_devmesh() {
 
 In `start_factory` wird `[2/3]` zu `[3/3]`.
 
-- [ ] **Schritt 4: `main`.** In `start` wird `start_bge` durch `start_devmesh` vor `start_factory`
+- [x] **Schritt 4: `main`.** In `start` wird `start_bge` durch `start_devmesh` vor `start_factory`
   ersetzt. `stop` bekommt die Liste `mcp-gateway devmesh-forward factory-mcp`. Das `status`-Label
   von 13005 wird zu `bge-mcp (devmesh) (:13005)`.
 
-- [ ] **Schritt 5: Prüfen**
+- [x] **Schritt 5: Prüfen**
 
 ```bash
 bash -n scripts/mcp-gateway/start-mcp-unified.sh && echo syntax-ok
@@ -306,13 +306,13 @@ bash scripts/mcp-gateway/start-mcp-unified.sh bogus; echo "rc=$?"               
 
 ### Task P3b.4: Hinweistext in `scripts/bge-mcp/check-client-env.sh`
 
-- [ ] **Schritt 1:** Zeile 78:
+- [x] **Schritt 1:** Zeile 78:
 
 ```bash
   echo "Fix: bge-mcp laeuft im devmesh-Pod llm-services. Forward starten: systemctl --user start devmesh-forward.service (WSL) bzw. task mcp:start-windows (Windows)."
 ```
 
-- [ ] **Schritt 2: Prüfen**
+- [x] **Schritt 2: Prüfen**
 
 ```bash
 bash -n scripts/bge-mcp/check-client-env.sh && echo syntax-ok
@@ -325,7 +325,7 @@ BGE_MCP_CLIENT_ENV_FILE=/nonexistent bash scripts/bge-mcp/check-client-env.sh; e
 `scripts/dev-host-units/install.sh`, `scripts/dev-host-units/uninstall.sh` und
 `scripts/dev-host-units/README.md`.
 
-- [ ] **Schritt 1: Löschen**
+- [x] **Schritt 1: Löschen**
 
 ```bash
 git rm scripts/bge-mcp/{bge-mcp,bge-forward-embed,bge-forward-rerank}.service \
@@ -335,14 +335,14 @@ git rm scripts/bge-mcp/{bge-mcp,bge-forward-embed,bge-forward-rerank}.service \
 
 `scripts/mcp-gateway/mcp-postgres-local.mjs` bleibt bestehen (Befund 3).
 
-- [ ] **Schritt 2: `install.sh`.** Die Kopfzeile 4 und der Block "User-Unit: LAN-Bruecke zum
+- [x] **Schritt 2: `install.sh`.** Die Kopfzeile 4 und der Block "User-Unit: LAN-Bruecke zum
   LLM-Proxy" (Zeilen 31–47) werden gelöscht. Neue Kopfzeile 4:
 
 ```bash
 # llm-proxy-lan.service ist mit T900191 entfallen: der Proxy laeuft im devmesh-Pod llm-services.
 ```
 
-- [ ] **Schritt 3: `uninstall.sh`.** Die Zeilen 11–13 werden ersetzt. Die alte Unit wird weiter
+- [x] **Schritt 3: `uninstall.sh`.** Die Zeilen 11–13 werden ersetzt. Die alte Unit wird weiter
   abgeräumt, damit Hosts mit Altinstallation sauber werden:
 
 ```bash
@@ -352,7 +352,7 @@ rm -f "$UNIT_DIR/llm-proxy-lan.service"
 systemctl --user daemon-reload 2>/dev/null || true
 ```
 
-- [ ] **Schritt 4: `README.md`.** Die Tabellenzeile `../llm-proxy/llm-proxy-lan.service` und der
+- [x] **Schritt 4: `README.md`.** Die Tabellenzeile `../llm-proxy/llm-proxy-lan.service` und der
   Absatz "Schon vorher repotrackt (Mustergeber) …" werden gelöscht. Darunter kommt:
 
 ```markdown
@@ -361,7 +361,7 @@ Seit T900191 entfallen: `llm-proxy-lan.service`, `k3d-postgres-forward.service` 
 lokal erreichbar über `scripts/mcp-gateway/devmesh-forward.service`.
 ```
 
-- [ ] **Schritt 5: Prüfen**
+- [x] **Schritt 5: Prüfen**
 
 ```bash
 bash -n scripts/dev-host-units/install.sh scripts/dev-host-units/uninstall.sh && echo syntax-ok
@@ -374,7 +374,7 @@ echo "rc=$?"   # rc=1 nach P3b.6; Anker vorher: > 0 Treffer (Befund 4)
 
 **Files:** Modify `Taskfile.yml`, `taskfiles/Taskfile.agents.yml`, `taskfiles/Taskfile.llm.yml`.
 
-- [ ] **Schritt 1: `Taskfile.yml`**, netto zeilenneutral:
+- [x] **Schritt 1: `Taskfile.yml`**, netto zeilenneutral:
 
 ```yaml
   mcp:start-windows:
@@ -392,7 +392,7 @@ Zeile 2130:
       # Enable the systemd port-forward unit (pattern T002604, wie devmesh-forward.service).
 ```
 
-- [ ] **Schritt 2: `taskfiles/Taskfile.agents.yml`.** Kommentar über `mcp:start` (Zeilen 270–272):
+- [x] **Schritt 2: `taskfiles/Taskfile.agents.yml`.** Kommentar über `mcp:start` (Zeilen 270–272):
 
 ```yaml
   # Alternative zu start-windows.ps1 fuer WSL ohne systemd. Startet den fleet-Forward,
@@ -412,7 +412,7 @@ In `mcp:install` und `mcp:uninstall` entfällt der Shell-Block mit den bge-Units
 In `mcp:service-status` wird die Schleife zu
 `for svc in factory-mcp mcp-gateway devmesh-forward; do`.
 
-- [ ] **Schritt 2b: `agents:mcp-gateway:*` auf zwei Forwards umstellen.** PID-Datei des
+- [x] **Schritt 2b: `agents:mcp-gateway:*` auf zwei Forwards umstellen.** PID-Datei des
   devmesh-Forwards ist `/tmp/devmesh-forward.pid` wie in P3b.3, damit kein Startweg doppelt startet.
 
   Kommentar über dem Block (Zeilen 117–119):
@@ -511,7 +511,7 @@ In `mcp:service-status` wird die Schleife zu
   `mcp-gateway:*`-Tasks auf. Wie im bestehenden Muster der Datei wird `ln -sf` verwendet, nicht
   `systemctl --user link`.
 
-- [ ] **Schritt 3: `taskfiles/Taskfile.llm.yml`.** Gelöscht werden der Kommentarblock
+- [x] **Schritt 3: `taskfiles/Taskfile.llm.yml`.** Gelöscht werden der Kommentarblock
   "llm-proxy als systemd USER service (T002277)" und die Tasks `proxy:install-service`,
   `proxy:uninstall-service` und `proxy:service-status` (heute Zeilen 164–263, bis vor
   `routing:check`). Der Kommentar in `proxy:start` (Zeilen 110–112) wird angepasst:
@@ -528,7 +528,7 @@ Zeile 120:
             echo "llm-proxy already answering on :$PORT (devmesh-forward? -> systemctl --user status devmesh-forward)"
 ```
 
-- [ ] **Schritt 4: Prüfen**
+- [x] **Schritt 4: Prüfen**
 
 ```bash
 task --list-all 2>/dev/null | grep -E 'llm:proxy:(install-service|uninstall-service|service-status)'; echo "rc=$?"   # rc=1
@@ -559,7 +559,7 @@ Block **oder** der Windows-Block aus P3a.4.
 
 ### Task P3b.8: Partial-Verifikation
 
-- [ ] **Schritt 1: Alle Prüfungen des Partials**
+- [x] **Schritt 1: Alle Prüfungen des Partials**
 
 ```bash
 for f in scripts/mcp-gateway/{watchdog-check,probe,start-mcp-unified}.sh scripts/bge-mcp/check-client-env.sh \

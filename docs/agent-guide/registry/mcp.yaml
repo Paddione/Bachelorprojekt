@@ -73,12 +73,17 @@ clients:
       Token-Quelle: ~/.config/mcp-postgres/server.env (per EnvironmentFile
       in der systemd-Unit oder start-windows.ps1 geladen).
     brand: mentolder
-    database: shared-db.workspace.svc.cluster.local/website
+    database: shared-db.workspace.svc.cluster.local/website (devmesh-Cluster, NICHT fleet)
     scope_warning: >-
       Fest an die mentolder-DB gebunden (DATABASE_URL des mcp-node-Containers
-      im dev-pod). external_id ist nur pro Brand eindeutig — eine Abfrage nach
-      einer korczewski-ID liefert still die gleichnamige mentolder-Zeile statt einer
-      leeren Menge. Ticket-Reads gehören zu ticket-mcp mit explizitem brand-Argument.
+      in devmesh, dev-local/components/llm-services). external_id ist nur pro
+      Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert still die
+      gleichnamige mentolder-Zeile statt einer leeren Menge. Ticket-Reads gehören
+      zu ticket-mcp mit explizitem brand-Argument.
+      Seit T900191 ist die Quelle die **devmesh**-DB (Entwicklungsdaten, s.
+      ADR-008-Nachtrag 2026-09-11: "die devmesh-DB trägt Entwicklungsdaten,
+      Ticket-Tooling verweigert dort Schreibzugriffe") statt der fleet-DB — diese
+      Server ist KEINE Ticket-DB-of-record.
     korczewski_path: >-
       Nicht-Ticket-SQL gegen die korczewski-DB läuft über kubectl exec gegen den
       shared-db-Pod in Namespace workspace-korczewski (Context fleet), nicht über
@@ -94,10 +99,13 @@ clients:
         url: http://localhost:13001/mcp
         enabled: true
     windows_note: >-
-      Windows: gleicher Port-Forward wie mcp-kubernetes (13001:3001). Alternativ
-      scripts/mcp-gateway/mcp-postgres-local.mjs (T002767) — braucht aber lokales
-      k3d-Postgres auf :15432, das auf pk-desktop nicht laeuft; der dev-pod im
-      fleet-Cluster ist hier die richtige Quelle.
+      Windows: Port 13001 kommt seit T900191 aus dem devmesh-Cluster:
+      kubectl --context devmesh port-forward -n workspace svc/llm-services
+      13001:13001 (zusammen mit 18235 und 13005, uebernommen von
+      scripts/mcp-gateway/start-windows.ps1 bzw. der WSL-Unit
+      scripts/mcp-gateway/devmesh-forward.service). Der frühere Fallback
+      k3d-postgres-forward.service + mcp-postgres-local.mjs (T002767) ist mit
+      T900191 entfallen.
 
   # T002426 — bge-MCP-Shim: Embedding und Reranking als MCP-Ressource.
   # llama-server kann sich NICHT selbst als MCP-Server exponieren; --mcp-servers-config
@@ -127,9 +135,17 @@ clients:
       UI-Dialog der llama-Web-UI ("Authorization / Bearer") bleibt davon
       unberuehrt: llama.cpp bezieht den Server nicht aus dieser Registry.
     failover_note: >-
-      Der Shim haelt keine eigene Failover-Logik. Welches bge-Paar antwortet,
+      Der Server haelt keine eigene Failover-Logik. Welches bge-Paar antwortet,
       entscheidet components/website/src/lib/bge-router.ts — dieselbe Stelle, die auch die
-      HTTP-Endpunkte und die Bestandsclients benutzen.
+      HTTP-Endpunkte und die Bestandsclients benutzen. bge-mcp selbst laeuft seit
+      T900191 im devmesh-Pod llm-services, nicht mehr als lokaler Shim.
+    windows_note: >-
+      Windows: Port 13005 kommt seit T900191 aus dem devmesh-Cluster
+      (svc/llm-services) — zwei Gateway-Units statt einer: mcp-gateway.service
+      (fleet, unveraendert) UND devmesh-forward.service (neu, P3b). Beide
+      uebernimmt Windows-seitig scripts/mcp-gateway/start-windows.ps1; der
+      Taskfile-Einstieg bleibt task agents:mcp-gateway:start/agents:mcp-gateway:install.
+      Der lokale Shim (scripts/bge-mcp/server.mjs) wird nicht mehr gestartet.
     harness:
       claude_code:
         type: http
@@ -248,6 +264,16 @@ clients:
       - --taskfile
       - /home/patrick/Bachelorprojekt/Taskfile.yml
     # Absoluter taskfile-Pfad: nicht portabel, wird durch MCPB-Bundle ersetzt (T002301)
+    # T900191: die Bridge laeuft als Teil des llm-proxy-Prozesses, der jetzt im
+    # devmesh-Pod `llm-services` steckt (mcp-node-Image). Die command/args oben
+    # sind absolute Host-Pfade (/home/patrick/Bachelorprojekt/...) und referenzieren
+    # damit ausserhalb des Containers liegende Dateien — Best-effort-Verhalten,
+    # kein Absturz: initBridge() faengt den spawn-Fehler ab, dieser eine
+    # Server bleibt "unavailable", der Proxy selbst bleibt gesund. Vorbestehend
+    # seit T900107 (Proxy zog vom host-nativen WSL in den Container); der
+    # devmesh-Umzug aendert daran nichts. Fuer diesen Server ausschliesslich
+    # den harness-Eintrag (lokaler stdio-Prozess je Maschine) nutzen, nicht die
+    # Bridge/browser_endpoint.
     bridge:
       url: http://127.0.0.1:18235/mcp/mcp-task-runner
       bind: 127.0.0.1:18235
@@ -285,6 +311,16 @@ clients:
     args:
       - -y
       - codebase-memory-mcp@0.10.8
+    # T900191: die Bridge laeuft als Teil des llm-proxy-Prozesses, der jetzt im
+    # devmesh-Pod `llm-services` steckt (mcp-node-Image). Die command/args oben
+    # sind absolute Host-Pfade (/home/patrick/Bachelorprojekt/...) und referenzieren
+    # damit ausserhalb des Containers liegende Dateien — Best-effort-Verhalten,
+    # kein Absturz: initBridge() faengt den spawn-Fehler ab, dieser eine
+    # Server bleibt "unavailable", der Proxy selbst bleibt gesund. Vorbestehend
+    # seit T900107 (Proxy zog vom host-nativen WSL in den Container); der
+    # devmesh-Umzug aendert daran nichts. Fuer diesen Server ausschliesslich
+    # den harness-Eintrag (lokaler stdio-Prozess je Maschine) nutzen, nicht die
+    # Bridge/browser_endpoint.
     bridge:
       url: http://127.0.0.1:18235/mcp/codebase-memory-mcp
       bind: 127.0.0.1:18235
@@ -318,6 +354,16 @@ clients:
     args:
       - -y
       - "@playwright/mcp@latest"
+    # T900191: die Bridge laeuft als Teil des llm-proxy-Prozesses, der jetzt im
+    # devmesh-Pod `llm-services` steckt (mcp-node-Image). Die command/args oben
+    # sind absolute Host-Pfade (/home/patrick/Bachelorprojekt/...) und referenzieren
+    # damit ausserhalb des Containers liegende Dateien — Best-effort-Verhalten,
+    # kein Absturz: initBridge() faengt den spawn-Fehler ab, dieser eine
+    # Server bleibt "unavailable", der Proxy selbst bleibt gesund. Vorbestehend
+    # seit T900107 (Proxy zog vom host-nativen WSL in den Container); der
+    # devmesh-Umzug aendert daran nichts. Fuer diesen Server ausschliesslich
+    # den harness-Eintrag (lokaler stdio-Prozess je Maschine) nutzen, nicht die
+    # Bridge/browser_endpoint.
     bridge:
       url: http://127.0.0.1:18235/mcp/playwright
       bind: 127.0.0.1:18235
@@ -338,10 +384,10 @@ cluster:
   # Zustellung: prod-fleet/dev-pod -> flux/clusters/fleet/ks-dev-pod.yaml
   #   (Flux-GitOps-Pipeline, KEIN manuelles kubectl apply)
   # Port-forward-Bruecke (systemd user unit / start-windows.ps1):
-  #   scripts/mcp-gateway/mcp-gateway.service
+  #   scripts/mcp-gateway/mcp-gateway.service (fleet)
+  #   scripts/mcp-gateway/devmesh-forward.service (devmesh: 18235, 13001, 13005)
   #   Taskfile.agents.yml -> mcp-gateway:start
-  #   kubectl --context fleet port-forward -n workspace-dev svc/dev-pod \
-  #     18080:8080 13001:3001 13002:3002 18235:18235
+  #   kubectl --context fleet port-forward -n workspace-dev svc/dev-pod 18080:8080 13002:3002
   #
   # Der Vorgaenger claude-code-mcp-monolith (Namespace default) ist abgeloest;
   # sein Manifest liegt nicht mehr im Repo. Damit erledigt sind auch T002311
@@ -361,8 +407,6 @@ cluster:
     - name: mcp-node
       image: ghcr.io/paddione/mcp-node:latest
       servers:
-        - { name: llm-proxy, port: 18235, forwarded_port: 18235 }
-        - { name: postgres, port: 3001, forwarded_port: 13001 }
         - { name: github, port: 3002, forwarded_port: 13002 }
         - { name: ticket-mcp, port: 3003 }
         - { name: brain-mcp, port: 3004 }
@@ -377,3 +421,21 @@ cluster:
       note: >-
         Sidecar, einziger Schreiber des dev-pod-repo-PVC. Alle konsumierenden
         Container mounten den Checkout read-only.
+
+  # devmesh-llm-services: dev-local/components/llm-services [T900191]
+  # Namespace: workspace, Context: devmesh
+  # Zustellung: task devmesh:deploy (kein Flux fuer devmesh, s. proposal.md Non-Goals)
+  # Port-forward-Bruecke: kubectl --context devmesh port-forward -n workspace \
+  #   svc/llm-services 18235:18235 13001:3001 13005:3007
+  llm-services:
+    note: >-
+      Ein Deployment, mcp-node-Image mit MCP_NODE_SERVICES-Schalter: nur llm-proxy,
+      mcp-postgres und bge-mcp starten (design.md D4). GPU-Backends bleiben auf der
+      Windows-Seite, erreicht ueber llm-gateway-host (Tailnet).
+    containers:
+      - name: mcp-node
+        image: ghcr.io/paddione/mcp-node:latest
+        servers:
+          - { name: llm-proxy, port: 18235, forwarded_port: 18235 }
+          - { name: postgres, port: 3001, forwarded_port: 13001 }
+          - { name: bge-mcp, port: 3007, forwarded_port: 13005 }

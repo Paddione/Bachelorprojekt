@@ -97,13 +97,13 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer
   und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
   `mcp__ticket-mcp-node__*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
-- ⚠️ **Bedient die fleet-DB — seit ADR-007 die SSOT, keine Kopie mehr [T900013].** Port 13001
-  wird per `kubectl --context fleet port-forward` auf die **fleet**-Postgres bedient. Bis
-  2026-08-30 stand hier die Warnung, das sei eine *eingefrorene* Kopie (ADR-006 E3: SELECT ja,
-  Writes nein) und die eigentliche SSOT liege lokal. Das ist seit ADR-007 (Accepted
-  2026-08-24, T016422) falsch herum: die Fleet-shared-db IST die "tickets-DB of record".
-  Der damalige Fehlermodus — ein Triage-Lauf las drei bereits-done Tickets als offen und
-  loeste redundante Closure-Writes aus — kann aus dieser Richtung nicht mehr auftreten.
+- ⚠️ **Bedient seit T900191 die devmesh-DB — Entwicklungsdaten, keine Ticket-SSOT.** Port 13001
+  wird per `kubectl --context devmesh port-forward` auf `svc/llm-services` (devmesh-Cluster)
+  bzw. auf Windows per `start-windows.ps1` auf die **devmesh**-Postgres bedient; bis dahin war
+  es die fleet-DB (seit ADR-007, Accepted 2026-08-24, T016422: die Fleet-shared-db IST die
+  "tickets-DB of record"). Der Health-Check (curl http://localhost:13001/mcp) bleibt
+  unveraendert. Der damalige Fehlermodus — ein Triage-Lauf las drei bereits-done Tickets als
+  offen und loeste redundante Closure-Writes aus — kann aus dieser Richtung nicht mehr auftreten.
 - ⚠️ **Trotzdem nicht fuer Ticket-Zustand.** Der Grund ist jetzt ein anderer: `external_id`
   ist nur pro Brand eindeutig (siehe Punkt oben). Fuer **Ticket-Zustand** (offen/geschlossen,
   Status, `readiness`) IMMER `mcp__ticket-mcp-node__*` mit explizitem `brand` oder den

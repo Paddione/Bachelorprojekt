@@ -18,8 +18,17 @@ Entscheidungen: ADR-008 (Nachtrag 2026-09-11), `openspec/changes/devmesh-tailnet
 | Server | `tag:devmesh` | gpu-metal (10.1.0.101), gpu-cluster (10.10.10.2), gpu-cluster2 (10.10.10.3) | untereinander vollständig |
 | Client | `tag:devclient` | pk-desktop, pk-l-1, pk-tablet | auf Server tcp 22, 443, 6443 |
 
-Kein allgemeiner Pfad von `tag:devmesh` nach `tag:devclient`. Einzige Ausnahme ist die GPU-Inferenz:
-`tag:devmesh` → `gpu-host` (pk-desktop) auf `gpu_endpoint.port` aus dem Inventar (heute 1234).
+Kein allgemeiner Pfad von `tag:devmesh` nach `tag:devclient`. Einzige Ausnahme ist die
+GPU-Inferenz: `tag:devmesh` → `gpu-host` (pk-desktop, Tailnet-Adresse aus
+`gpu_endpoint.address`) — **eine ACL-Regel pro Eintrag in `gpu_endpoint.ports`** aus dem
+Inventar. T900191 erweitert das Feld von einem einzelnen `port` auf eine benannte Portliste,
+weil der llm-proxy jetzt fünf Windows-GPU-Backends über denselben Tailnet-Host erreicht, nicht
+nur den bisherigen `:1234`-Server: `1234` (bisheriger LLM-Endpunkt), `1919` (FreeToken-native,
+T014105), `8089`, `8090`, `8094` (weitere lokale Inferenz-/Werkzeugdienste — exakte Zuordnung
+in `devmesh/inventory.yaml`-Kommentaren, P1a-Zuständigkeit). Jeder Eintrag in `gpu_endpoint.ports`
+braucht eine eigene `acls`-Zeile in `devmesh/tailnet-policy.hujson`
+(`{"action": "accept", "src": ["tag:devmesh"], "dst": ["gpu-host:<port>"]}`, fünf Zeilen statt
+bisher einer) — Schritt 5 unten prüft das vor dem Einspielen.
 `ws-ubuntu-1` tritt erst in SP-5 (T900120) bei.
 k3s-Knotenverkehr läuft über das LAN, nicht über das Tailnet (SP-2).
 
@@ -134,3 +143,61 @@ port" in `openspec/specs/sdlc-isolation.md`).
 Tailscale Inc. sieht Metadaten (Gerätenamen, öffentliche Schlüssel, Verbindungszeitpunkte), keine
 Inhalte. Eintrag als Auftragsverarbeiter: `docs/legacy-html/verarbeitungsverzeichnis.html`.
 Selbst gehostete Koordination (Headscale) bleibt Ausbaupfad.
+
+## Schritt 7: Umzug llm-proxy/bge-mcp/mcp-postgres nach devmesh (T900191)
+
+Voraussetzung: Schritte 1–6 sind einmal durchlaufen (Tailnet steht, ACL eingespielt) und P1a/P1b/P2
+dieses Change (`dev-local/components/llm-services`, Migration) sind bereits gemergt.
+
+1. **Secrets siegeln.** `BGE_MCP_TOKEN`, `MCP_POSTGRES_TOKEN`, `LLM_PROXY_ADMIN_TOKEN` und
+   `MCP_READONLY_DB_PASSWORD` (neuer Key, P1b: Passwort des `mcp_readonly`-DB-Users in devmesh,
+   analog zum fleet-Pendant) in `environments/.secrets/dev.yaml` eintragen (Schema-Einträge aus
+   P1b), dann:
+   ```bash
+   task env:seal ENV=dev
+   ```
+   Committed wird `environments/sealed-secrets/dev.yaml`.
+2. **Stack deployen.**
+   ```bash
+   task devmesh:deploy
+   ```
+   Erwartet: Rollout-Status für `deployment/llm-services` (und alle anderen Profil-Deployments)
+   meldet `successfully rolled out`.
+3. **Registry-Migration ausführen** (legt `tickets.llm_proxy_backends` mit devmesh-URLs an —
+   **nicht** zu verwechseln mit `task devmesh:migrate`, das kopiert pocket_id/website-Inhalte
+   aus dem alten k3d-Cluster und hat mit der Backend-Registry nichts zu tun):
+   ```bash
+   task devmesh:registry:migrate
+   ```
+4. **WSL-Units stoppen und deaktivieren** — erst NACHDEM Schritt 2/3 grün sind, sonst verliert
+   man beide Quellen gleichzeitig:
+   ```bash
+   systemctl --user disable --now llm-proxy.service llm-proxy-lan.service bge-mcp.service \
+     bge-forward-embed.service bge-forward-rerank.service mcp-postgres-local.service \
+     k3d-postgres-forward.service
+   ```
+5. **Gateway-Units umstellen** — `mcp-gateway.service` bleibt bestehen und bedient ab jetzt nur
+   noch fleet (`:18080`, `:13002`); ein neues, zweites Unit
+   `scripts/mcp-gateway/devmesh-forward.service` bedient die drei devmesh-Ports
+   (`:18235`, `:13001`, `:13005` aus `svc/llm-services`, Context `devmesh`). Wortlaut/Unit-Datei
+   sind P3b-Zuständigkeit; der gemeinsame Taskfile-Einstieg bleibt unverändert
+   `agents:mcp-gateway:start`/`agents:mcp-gateway:install` (startet/installiert jetzt beide
+   Units):
+   ```bash
+   task agents:mcp-gateway:install
+   task agents:mcp-gateway:start
+   ```
+6. **Windows-Autostart neu registrieren** (PK-Desktop, PowerShell): das gefixte
+   `start-windows.ps1` (T900190) startet die devmesh-Port-Forwards statt des lokalen
+   bge-mcp-Shims:
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/register-autostart.ps1
+   ```
+7. **Abnahme:** die drei Health-Checks aus `.claude/skills/references/mcp-tool-guide.md`
+   (`mcp-postgres`, `bge-mcp`, llm-proxy) gegen `127.0.0.1:13001`, `:13005`, `:18235` — alle
+   `200`/erreichbar, **ohne** dass eine WSL-Unit läuft:
+   ```bash
+   systemctl --user list-units 'llm-proxy*' 'bge-mcp*' 'bge-forward-*' 'mcp-postgres-local*' \
+     'k3d-postgres-forward*' --no-legend | wc -l   # erwartet: 0
+   systemctl --user is-active devmesh-forward.service   # erwartet: active
+   ```

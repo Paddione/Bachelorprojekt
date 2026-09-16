@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.345.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.344.0...website-v1.345.0) (2026-09-16)
+
+
+### Features
+
+* **infra:** GPU auf gpu-metal im devmesh-Cluster nutzbar machen [T900179] ([#5655](https://github.com/Paddione/Bachelorprojekt/issues/5655)) ([2f17465](https://github.com/Paddione/Bachelorprojekt/commit/2f174659c890fd6f78272666c0ff0a004dce4752))
+
 ## [1.344.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.343.0...website-v1.344.0) (2026-09-16)
 
 

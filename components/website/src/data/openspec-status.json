@@ -4759,8 +4759,8 @@
   ],
   "T900164": [
     {
-      "slug": "freetoken-config-consolidation",
-      "status": "plan_staged"
+      "slug": "2026-09-16-freetoken-config-consolidation",
+      "status": "archived"
     }
   ],
   "T900165": [
@@ -4791,6 +4791,12 @@
     {
       "slug": "2026-09-16-devmesh-gpu-enable",
       "status": "archived"
+    }
+  ],
+  "T900189": [
+    {
+      "slug": "freetoken-windows-native",
+      "status": "plan_staged"
     }
   ],
   "T900191": [

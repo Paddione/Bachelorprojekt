@@ -14,6 +14,7 @@ _active_hits() {
     ':!k3d/docs-content-built'
     ':!scripts/migrations'
     ':!tests/fixtures/mishap-dedupe-korpus.json'
+    ':!tests/spec/local-dev-mesh/migrate-from-k3d.bats'
   )
   if [ -d "$REPO_ROOT/openspec/changes/devmesh-k3d-decommission" ]; then
     ex+=(':!openspec/specs')

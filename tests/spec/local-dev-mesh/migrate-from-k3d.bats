@@ -18,7 +18,7 @@ echo "$*" >> "$STUB_LOG"
 ctx="$(sed -nE 's/.*--context[= ]([^ ]+).*/\1/p' <<<"$*")"
 db="$(sed -nE 's/.* -d ([^ ]+).*/\1/p' <<<"$*")"
 case " $* " in
-  *" config get-contexts "*) printf 'devmesh\ndevmesh\n' ;;
+  *" config get-contexts "*) printf 'k3d-mentolder-dev\ndevmesh\n' ;;
   *" get pod "*)             echo "pod/shared-db-0" ;;
   *" get secret "*)          cat "$STUB_DIR/enckey-$ctx" ;;
   *" exec "*)                cat "$STUB_DIR/counts-$ctx-$db" ;;
@@ -46,12 +46,12 @@ teardown() { rm -rf "$FIX"; }
   grep -F 'ok' <<<"$output" | grep -qF 'pocket_id.public.users'
   [ "$status" -eq 1 ]
   grep -F 'ABWEICHUNG' <<<"$output" | grep -qF 'website.tickets.tickets'
-  src_calls="$(grep -F -- '--context devmesh' "$STUB_LOG" || true)"
+  src_calls="$(grep -F -- '--context k3d-mentolder-dev' "$STUB_LOG" || true)"
   [ -z "$src_calls" ]
 }
 
 @test "preflight: gleicher Pocket-ID-Key besteht, abweichender endet mit Exit 1" {
-  echo "a2V5LWE=" > "$FIX/enckey-devmesh"
+  echo "a2V5LWE=" > "$FIX/enckey-k3d-mentolder-dev"
   echo "a2V5LWE=" > "$FIX/enckey-devmesh"
   run bash "$SCRIPT" preflight
   [ "$status" -eq 0 ]

@@ -32,7 +32,7 @@ export function loadBackendsOnce() {
     return {
       name, kind, baseUrl,
       apiKeyEnv: apiKeyEnv || null,
-      enabled: enabled === 't',
+      enabled: enabled === 't' || enabled === 'true',
       priority: Number(priority),
       fixups: JSON.parse(fixups || '[]'),
       modelAliases: JSON.parse(aliases || '{}'),

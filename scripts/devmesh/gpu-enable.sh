@@ -28,3 +28,25 @@ CONTAINERD_CONF=/var/lib/rancher/k3s/agent/etc/containerd/config.toml
 
 die()  { echo "ERROR: $*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Vorbedingung fehlt: $1 nicht im PATH" >&2; exit 2; }; }
+
+case "${1:-}" in
+  -h|--help) echo "Usage: gpu-enable.sh [host]   (Default: $DEFAULT_HOST)" >&2; exit 1 ;;
+esac
+[[ $# -le 1 ]] || die "hoechstens ein Argument erwartet: [host] (siehe Kopfkommentar)"
+HOST="${1:-$DEFAULT_HOST}"
+
+# Reihenfolge ist Vertrag: erst lokale Werkzeuge, dann Inventar, dann erst SSH. Ein fehlendes
+# Werkzeug darf kein Kommando gegen den Host absetzen (Spec-Szenario "missing tool").
+need yq
+need ssh
+[[ -f "$INVENTORY" ]] || { echo "Vorbedingung fehlt: Inventar $INVENTORY" >&2; exit 2; }
+
+LAN_IP="$(HOST="$HOST" yq -r '.peers[] | select(.name == strenv(HOST)) | .lan_ip // ""' "$INVENTORY")"
+[[ -n "$LAN_IP" ]] || die "Host '$HOST' nicht im Inventar oder ohne lan_ip"
+
+if [[ "${DRY_RUN:-0}" == 1 ]]; then
+  echo "host:    $HOST ($LAN_IP)"
+  echo "plan:    nvidia-container-toolkit installieren, nvidia-ctk runtime configure --runtime=containerd, k3s neu starten"
+  echo "hinweis: $CONTAINERD_CONF wird von k3s selbst neu geschrieben"
+  exit 0
+fi

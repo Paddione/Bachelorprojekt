@@ -76,8 +76,10 @@ function fieldHasNoDigitsAndNotNA(field) {
 
 // "6 → 7 🔴" -> {baseline:6, current:7}; "17 (unverändert)" -> {baseline:17, current:17};
 // "n/a → 0" -> {baseline:null, current:0}; "n/a" -> {baseline:null, current:null}.
+// Multi-Hop-Ketten (automatisch fortgeschrieben, T900184): "3 → 2 → 59" liefert
+// baseline=3 und current=59 — der letzte Pfeil ist die jüngste Messung.
 function parseBaselineCurrent(field) {
-  const arrowIdx = field.indexOf('→');
+  const arrowIdx = field.lastIndexOf('→');
   if (arrowIdx === -1) {
     const baseline = firstNumber(field);
     return { baseline, current: baseline };

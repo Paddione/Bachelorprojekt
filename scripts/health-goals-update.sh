@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # health-goals-update.sh — schreibt frisch gemessene Werte in die "Aktuell"-Spalte der
-# Prio-C-Tabelle (Green Gates) in .claude/lib/goals.md.
+# Prio-C-Tabelle (Green Gates) und in die Baseline-Ketten der Prio-A/B-Meta-Blöcke
+# ("> **A/B · Baseline:** …") in .claude/lib/goals.md.
 #
-# Bewusst eingeschränkter Scope: nur die maschinenlesbare Markdown-Tabelle wird angefasst.
-# Die freitextigen Prio-A/B-Abschnitte (Policy-Begründungen, "war X"-Historie, Ticket-Status)
-# bleiben menschlicher Redaktion vorbehalten — dort steckt Kontext, den kein Regex sicher
-# fortschreiben kann. Zellen, die kein einfaches Integer-Format haben (Brüche wie "0/30",
-# "Exit 0", Freitext wie "Elite"), werden übersprungen und zur manuellen Prüfung aufgelistet.
+# Für Prio-C wird nur die maschinenlesbare Markdown-Tabelle angefasst. Die Prio-A/B-Meta-
+# Zeilen werden um die frisch gemessene Zahl erweitert ("> **A/B · Baseline:** 8 → 3 · **Target:** …"),
+# gekappt auf maximal fünf Pfeile Historie. Die freitextigen A/B-Abschnitte (Policy-Begründungen,
+# Ticket-Status) bleiben menschlicher Redaktion vorbehalten. Zellen, die kein einfaches
+# Integer-Format haben (Brüche wie "0/30", "Exit 0", Freitext wie "Elite"), werden übersprungen
+# und zur manuellen Prüfung aufgelistet.
 #
 # Usage: bash scripts/health-goals-update.sh [--dry-run] [--full] [--suggest-tickets] [--drift]
 #   --dry-run          zeigt die Diffs, schreibt aber nicht in goals.md
@@ -194,13 +196,43 @@ FMT_MATCHERS = [
 # G-FE03/G-FE04-Kollision aufgelöst) — Set bleibt als Sicherheitsnetz für künftige Drifts.
 EXCLUDE_IDS = set()
 
+# Prio-A/B-Meta-Zeile: "> **A · Baseline:** <Kette> · **Target:** …". Die Baseline-Kette
+# wird pro Messlauf um die frische Zahl erweitert (gen-goals-data.mjs liest die letzte
+# Zahl nach dem letzten Pfeil als "current", s. parseBaselineCurrent). Nur Zeilen, bei
+# denen **Target:** in derselben Zeile steht, werden angefasst.
+ab_meta_re = re.compile(r'^(\s*>\s*\*\*[AB]\s*·\s*Baseline:\*\*)(\s*.*?)(\s*·\s*\*\*Target:\*\*)')
+ab_num_re = re.compile(r'[+-]?\d+(?:\.\d+)?')
+# Historie kappen: maximal 5 Pfeile (= 6 Segmente), älteste Segmente vorne verwerfen.
+MAX_AB_SEGMENTS = 6
+
 changed = []
 skipped_format = []
 excluded = []
 open_goals = []
+ab_updated = []
+current_gid = None
 for i, line in enumerate(lines):
+    # Prio-A/B-Meta-Zeilen gehören zum Goal der zuletzt gesehenen H2-Überschrift.
+    hm = re.match(r'^##\s+(G-[A-Z0-9]+)\b', line)
+    if hm:
+        current_gid = hm.group(1)
     m = row_re.match(line.rstrip("\n"))
     if not m:
+        # Prio-A/B-Baseline-Kette fortschreiben (nur Zahlen-Werte, nie "-" aus SKIP).
+        am = ab_meta_re.match(line)
+        if am and current_gid is not None and current_gid in values and current_gid not in EXCLUDE_IDS:
+            actual, _, _ = values[current_gid]
+            if re.fullmatch(r'[+-]?\d+', actual):
+                segments = [s.strip() for s in am.group(2).strip().split('→')]
+                mnum = ab_num_re.search(segments[-1]) if len(segments) > 1 else ab_num_re.search(am.group(2))
+                cur = mnum.group(0) if mnum else None
+                if cur is None or float(cur) != float(actual):
+                    segments.append(actual)
+                    while len(segments) > MAX_AB_SEGMENTS:
+                        segments.pop(0)
+                    new_field = ' → '.join(segments)
+                    lines[i] = am.group(1) + ' ' + new_field + am.group(3) + line[am.end():]
+                    ab_updated.append((current_gid, cur, actual))
         continue
     gid = m.group(1)
     if gid not in values:
@@ -266,6 +298,11 @@ if changed:
         print(f"  {gid}: {old} -> {new}{note}")
 else:
     print("Keine Änderungen — alle Werte bereits aktuell.")
+
+if ab_updated:
+    print("Prio-A/B-Baseline aktualisiert:")
+    for gid, old, new in ab_updated:
+        print(f"  {gid}: Baseline {old} -> {new}")
 
 if skipped_format:
     print("\nÜbersprungen (kein einfaches Integer-Format in der Aktuell-Spalte, manuell prüfen):")
@@ -352,11 +389,11 @@ if measured_any:
             file=sys.stderr,
         )
 
-write_needed = changed or stamp_changed
+write_needed = changed or ab_updated or stamp_changed
 if write_needed and not dry_run:
     with open(goals_file, "w") as f:
         f.writelines(lines)
-    print(f"\n{goals_file} geschrieben — Narrative (Sprint-Highlights, Baseline-Update) bleibt manuell.")
+    print(f"\n{goals_file} geschrieben — Sprint-Highlights und Chronik (Baseline-Update-Marker) bleiben manuell.")
 elif write_needed and dry_run:
     print("\n--dry-run: Datei nicht geschrieben.")
 PY

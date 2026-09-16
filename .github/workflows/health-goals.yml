@@ -114,22 +114,28 @@ jobs:
           jq -n --slurpfile mentolder "${RUNNER_TEMP}/health-goals/lh-mentolder.json" --slurpfile korczewski "${RUNNER_TEMP}/health-goals/lh-korczewski.json" \
             '{reports:{mentolder:$mentolder[0],korczewski:$korczewski[0]}}' > "${RUNNER_TEMP}/health-goals/lighthouse.json"
 
+      # Install Trivy (G-SEC06) — same pinned action as ci.yml [T002754]. Without it
+      # health-goals-check.sh guards `command -v trivy` and skips the goal, so the
+      # CVE value would stay permanently stale. Pre-warm the vulnerability DB in
+      # background so the 60s scan timeout in check.sh is not eaten by the download.
+      - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567  # v0.3.1
+
+      - name: Warm Trivy vulnerability DB (G-SEC06)
+        run: |
+          timeout 300 trivy image --download-db-only --quiet || echo "::warning::trivy DB prewarm failed, G-SEC06 may skip"
       # --full, never --fast: db_scalar() opens with
       #   [ "$FAST" = 1 ] && { echo "-"; return; }
       # so --fast would silently skip every database goal and leave its documented
       # value untouched. Measurements that genuinely cannot run still return the "-"
       # sentinel, and row() drops those before they reach HG_VALUES_FILE — a failed
       # measurement can never write a false "green".
-      #
-      # Not installed here on purpose: trivy (G-SEC06). health-goals-check.sh guards
-      # it with `command -v trivy` and skips cleanly, so that goal keeps its documented
-      # value instead of being wrongly reset.
       - name: Measure health goals
         id: measure
         env:
           # Via env: rather than inline ${{ }} — keeps the dispatch input out of the
           # shell command string (workflow-injection hardening).
           DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
           HG_AXE_INPUT: ${{ runner.temp }}/health-goals/axe.json
           HG_LIGHTHOUSE_INPUT: ${{ runner.temp }}/health-goals/lighthouse.json
         run: |

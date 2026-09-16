@@ -3923,7 +3923,7 @@ tasks:
       - bash scripts/health-goals-check.sh --fast --only=G-LLM01,G-LLM02,G-LLM03,G-LLM04,G-LLM05 {{.CLI_ARGS}}
 
   health:goals:update:
-    desc: "Schreibt frisch gemessene Werte in die Aktuell-Spalte der Prio-C-Tabelle (Green Gates) in .claude/lib/goals.md. Freitextige Prio-A/B-Abschnitte bleiben unangetastet. Flags nach --, z.B. task health:goals:update -- --dry-run"
+    desc: "Schreibt frisch gemessene Werte in die Aktuell-Spalte der Prio-C-Tabelle (Green Gates) und in die Baseline-Ketten der Prio-A/B-Meta-Zeilen von .claude/lib/goals.md (Prio-C-Tabelle + Baseline-Kette, gekappt auf 5 Pfeile). Freitextige Policy-Abschnitte bleiben unangetastet. Flags nach --, z.B. task health:goals:update -- --dry-run"
     cmds:
       - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
 

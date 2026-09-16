@@ -2352,6 +2352,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/post-merge-finalize-create-new",
+    "file": "tests/spec/agent-skills/post-merge-finalize-create-new.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/post-merge-finalize-guards",
     "file": "tests/spec/agent-skills/post-merge-finalize-guards.bats",
     "category": "agent-skills",

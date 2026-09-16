@@ -32,6 +32,24 @@ while read -r name st etcd; do
 done <<<"$nodes"
 echo "Knoten: $ready/$total Ready"
 echo "etcd-Mitglieder: $etcd_ready/$etcd_total Ready"
+# GPU-Sicht (T900179): jeder Knoten mit Zahl. "keine GPU" (kein Label, keine Ressource)
+# und "Karte markiert, aber nicht angeboten" (Label gpu=true, keine Ressource) sind zwei
+# verschiedene Befunde — der zweite bedeutet fehlendes Device-Plugin oder fehlende
+# nvidia-Runtime und ist deshalb ein Fehlschlag, kein Hinweis.
+gpu_tmpl='{{range .items}}{{.metadata.name}} {{if index .metadata.labels "gpu"}}{{index .metadata.labels "gpu"}}{{else}}-{{end}} {{if index .status.allocatable "nvidia.com/gpu"}}{{index .status.allocatable "nvidia.com/gpu"}}{{else}}-{{end}}{{"\n"}}{{end}}'
+gpus="$("${K[@]}" get nodes -o go-template="$gpu_tmpl")" \
+  || { echo "Vorbedingung fehlt: Knoten-Kapazitaet im Context $CTX nicht lesbar" >&2; exit 2; }
+while read -r gname glabel galloc; do
+  if [[ -z "$gname" ]]; then continue; fi
+  if [[ "$galloc" =~ ^[0-9]+$ ]] && (( galloc > 0 )); then
+    echo "OK   GPU $gname: $galloc"
+  elif [[ "$glabel" == true ]]; then
+    echo "FAIL GPU $gname: 0 (Label gpu=true, aber keine nvidia.com/gpu-Ressource)"
+    FAIL=1
+  else
+    echo "OK   GPU $gname: 0 (keine GPU)"
+  fi
+done <<<"$gpus"
 
 snaps="$("${K[@]}" get etcdsnapshotfiles.k3s.cattle.io -o jsonpath='{range .items[*]}{.status.creationTime}{"\n"}{end}')" \
   || { echo "Vorbedingung fehlt: ETCDSnapshotFile-API im Context $CTX nicht lesbar" >&2; exit 2; }

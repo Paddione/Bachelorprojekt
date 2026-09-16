@@ -16,10 +16,13 @@ setup() {
   export STUB_SNAPS="${BATS_TEST_TMPDIR}/snaps"
   printf 'gpu-metal True true\ngpu-cluster True true\ngpu-cluster2 True true\n' > "$STUB_NODES"
   _snaps 1
+  export STUB_GPUS="${BATS_TEST_TMPDIR}/gpus"
+  printf 'gpu-metal true 1\ngpu-cluster - -\ngpu-cluster2 - -\n' > "$STUB_GPUS"
   cat > "$BIN/kubectl" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$KUBECTL_ARGV_LOG"
 case "$*" in
+  *go-template*) cat "$STUB_GPUS" ;;
   *"get nodes"*) if [ -n "${STUB_NODES_RC:-}" ]; then exit "$STUB_NODES_RC"; fi; cat "$STUB_NODES" ;;
   *etcdsnapshotfiles*) cat "$STUB_SNAPS" ;;
   *) echo "kubectl-Stub: unerwartet: $*" >&2; exit 99 ;;
@@ -83,4 +86,27 @@ _run() { run env PATH="$BIN" "$BASH" "$SCRIPT"; }
   export STUB_NODES_RC=1
   _run
   [ "$status" -eq 2 ]
+}
+
+@test "GPU: jeder Knoten erscheint mit einer Zahl, gpu-metal mit 1" {
+  _run
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qF 'GPU gpu-metal: 1'
+  printf '%s\n' "$output" | grep -qF 'GPU gpu-cluster: 0'
+  printf '%s\n' "$output" | grep -qF 'GPU gpu-cluster2: 0'
+}
+
+@test "GPU: Knoten ohne Karte wird als 'keine GPU' gemeldet, nicht als Befund" {
+  _run
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -F 'GPU gpu-cluster:' | grep -qF 'keine GPU'
+}
+
+@test "GPU: Label gpu=true ohne nvidia.com/gpu ist ein Befund und heisst anders" {
+  printf 'gpu-metal true -\ngpu-cluster - -\ngpu-cluster2 - -\n' > "$STUB_GPUS"
+  _run
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep '^FAIL' | grep -qF 'GPU gpu-metal'
+  printf '%s\n' "$output" | grep '^FAIL' | grep -qF 'nvidia.com/gpu'
+  printf '%s\n' "$output" | grep -F 'GPU gpu-metal' | grep -vqF 'keine GPU'
 }

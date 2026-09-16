@@ -1,8 +1,8 @@
 # Skills Overview
 
-48 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+54 tracked skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
-> **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/`-Entries sind Shims (Directory-Symlinks) für Claude Code Kompatibilität. Alle neuen Skills gehören unter `.opencode/skills/`.
+> **SSOT: .opencode/skills/** — ab T900070 ist `.opencode/skills/` die Single Source of Truth. `.claude/skills/` und `.agents/skills/` sind echte Verzeichnis-Spiegel (keine Symlinks — T900077/T900151, vgl. `[ ! -L ]`-Guard in `tests/spec/agent-skills/harness-workflow-split.bats`); Inhalte sind pro Harness projiziert (Tool-Namen, Referenz-Pfade). Alle neuen Skills gehören unter `.opencode/skills/`.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Archivierte SKILL.md-Dateien (`archived: true`) tragen eine explizite "invoke explicitly only"-Description statt eines Auto-Triggers.
 
@@ -31,11 +31,11 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
 
-> **SSOT (T900070):** `.opencode/skills/` ist die Single Source of Truth — alle Skills unten liegen hier kanonisch. `.claude/skills/*` sind Shims (Frontmatter + Pointer) für Claude Code; `.agents/skills` zeigt auf `.opencode/skills`. Nur `opencode-git-workflow` und `sdlc-autopilot` waren schon immer opencode-eigen.
+> **SSOT (T900070):** `.opencode/skills/` ist die Single Source of Truth — alle Skills unten liegen hier kanonisch. `.claude/skills/*` und `.agents/skills/*` sind echte Spiegel mit pro-Harness-Projektion (Registry: `docs/agent-guide/registry/skills.yaml`, Engine: `scripts/agent-skills/project.mjs --check`). Nur `opencode-git-workflow` und `sdlc-autopilot` waren schon immer opencode-eigen.
 
 > **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
 > ticket-triage -> dev-flow-plan -> Factory selbststaendig ab, bis das Queue-Material erschoepft
-> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 48 oben
+> ist. Es liegt unter `.opencode/skills/` (SSOT) und zaehlt in die 54 oben
 > (die misst `git ls-files -- .opencode/skills`), unterliegt aber denselben Konventionen.
 
 ---

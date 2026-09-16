@@ -308,20 +308,22 @@ reaches the loading location and the alias keeps its static fallback limit
 ### Requirement: Project Default Model Targets the FreeToken Alias
 
 The project opencode config `.opencode/opencode.jsonc` SHALL declare
-`llamacpp-local/qwen38-220k` as its top-level default `model`. It SHALL NOT declare a default
-that resolves to the retired FreeToken-native engine (`freetoken-local/*`).
+`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` as its top-level default `model`. It SHALL NOT declare a
+default that resolves to the retired llama.cpp loadout `llamacpp-local/qwen38-220k`
+(port 8094, no longer served).
 
-Rationale: FreeToken (Windows-native, port 1919) is decommissioned by operator decision
-(T900164). `llamacpp-local/qwen38-220k` is `enabled: true` in `scripts/llm/loadouts.json` and
-served through the llm-proxy on `:18235`, which already carries every re-routed agent from
-`.opencode/agent-models.jsonc` (T900163). A project default naming the retired engine boots
-against a dead backend.
+Rationale: FreeToken (Windows-native, port 1919) was re-established as the local inference
+backend by operator decision (T900189), served through the llm-proxy on `:18235`.
+`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` (200000 served KV, moe 4150) is the active model alias
+that resolves to that backend and is declared in `.opencode/agent-models.jsonc` for every
+re-routed agent. A project default naming the retired llama.cpp loadout boots against a dead
+backend.
 
-#### Scenario: Default model resolves to the qwen38-220k loadout
+#### Scenario: Default model resolves to the Qwen3.6-35B-A3B-NVFP4 alias
 
 - **GIVEN** `.opencode/opencode.jsonc` declares its top-level `model`
 - **WHEN** the value is read
-- **THEN** it equals `llamacpp-local/qwen38-220k`
+- **THEN** it equals `llamacpp-local/Qwen3.6-35B-A3B-NVFP4`
 
 ### Requirement: Dead Checkpoints Are Not Declared
 
@@ -893,3 +895,5 @@ nobody keeps.
 <!-- merged from change delta llm-local-dev.md (530f2980bf03) -->
 
 <!-- merged from change delta llm-local-dev.md (7801d2a6719b) -->
+
+<!-- merged from change delta llm-local-dev.md (58db9aa7e597) -->

@@ -130,7 +130,7 @@ psql_tickets() {
   # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
   # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
   # am lokalen Cluster.
-  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}"
+  local ctx="${FACTORY_CTX:-devmesh}"
   local ns="${FACTORY_NS:-workspace}"
   local pod
   pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)

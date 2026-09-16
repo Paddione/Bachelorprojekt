@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/devmesh/migrate-from-k3d.sh — T900118, ADR-008 SP-3, design.md D6.
 #
-# Kopiert pocket_id und website aus k3d-mentolder-dev nach devmesh und vergleicht die
+# Kopiert pocket_id und website aus dem früheren lokalen k3d-Cluster nach devmesh und vergleicht die
 # Zeilenzahl jeder Tabelle. Die Quelle wird nur gelesen: kein Scale, kein Restore,
 # kein DDL gegen SRC_CTX. Abbau der Quelle erst in SP-5 nach bestandenem verify.
 #
@@ -14,7 +14,8 @@
 # Exit: 0 ok, 1 Befund (Abweichung, verweigertes Ziel), 2 Vorbedingung fehlt
 set -euo pipefail
 
-SRC_CTX="${DEVMESH_SRC_CTX:-k3d-mentolder-dev}"
+CLUSTER="${DEVMESH_SRC_CLUSTER:-mentolder-dev}"
+SRC_CTX="${DEVMESH_SRC_CTX:-k3d-${CLUSTER}}"
 DST_CTX="${DEVMESH_DST_CTX:-devmesh}"
 NS="${DEVMESH_NS:-workspace}"
 DBS="${DEVMESH_MIGRATE_DBS:-pocket_id website}"

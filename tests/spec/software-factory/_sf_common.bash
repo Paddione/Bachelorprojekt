@@ -40,7 +40,7 @@ REG="scripts/factory/service-registry.sh"
 # endet mit rc=1 statt in einem sauberen Skip. Genau so entstand der "DB-Nachweis rc=1"
 # im Verify von T002418.
 _skip_if_no_db() {
-  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}"
+  local ctx="${FACTORY_CTX:-devmesh}"
   # [T900168] Der lib.sh-Default zeigt seit dem Chore auf fleet (ADR-007:
   # SDLC-Daten of record). Live-DB-Tests duerfen NUR gegen Dev-Cluster laufen —
   # ein erreichbarer fleet-Pod ist kein Testziel (Prod-Seed-Guard verweigert).
@@ -53,7 +53,7 @@ _skip_if_no_db() {
   # [T002626] Default folgt scripts/factory/lib.sh: seit ADR-006 E3 liegen die
   # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
   # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
-  # am lokalen Cluster.
+  # am Entwicklungs-Cluster.
   _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "$ctx" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1) || true

@@ -41,7 +41,7 @@ STUB
 
 run_poller() {
   run env PATH="$STUBDIR:$PATH" SQL_LOG="$SQL_LOG" BRAND=mentolder \
-      FACTORY_CTX=k3d-mentolder-dev bash "$POLLER" "$@"
+      FACTORY_CTX=fleet bash "$POLLER" "$@"
 }
 
 # ── Idempotenz ──────────────────────────────────────────────────────────────

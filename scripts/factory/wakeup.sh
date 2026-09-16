@@ -222,7 +222,7 @@ while true; do
   if [[ "${FACTORY_SANDBOX:-auto}" == "auto" ]]; then
     if timeout 10 docker info >/dev/null 2>&1; then
       export FACTORY_SANDBOX=docker
-    elif kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" version >/dev/null 2>&1; then
+    elif kubectl --context "${FACTORY_SANDBOX_CTX:-devmesh}" version >/dev/null 2>&1; then
       export FACTORY_SANDBOX=k8s
     else
       export FACTORY_SANDBOX=off

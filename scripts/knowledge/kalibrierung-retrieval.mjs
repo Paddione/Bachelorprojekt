@@ -30,7 +30,7 @@ const execFileP = promisify(execFile);
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const GOLDEN = JSON.parse(readFileSync(resolve(REPO, 'tests/fixtures/context-retrieve/golden-queries.json'), 'utf8'));
-const pw = (await execFileP('kubectl', ['--context', 'k3d-mentolder-dev', '-n', 'workspace', 'get', 'secret', 'workspace-secrets', '-o', 'jsonpath={.data.SHARED_DB_PASSWORD}'])).stdout;
+const pw = (await execFileP('kubectl', ['--context', process.env.KNOWLEDGE_DB_CTX ?? 'fleet', '-n', 'workspace', 'get', 'secret', 'workspace-secrets', '-o', 'jsonpath={.data.SHARED_DB_PASSWORD}'])).stdout;
 const PGURL = `postgres://website:${Buffer.from(pw, 'base64').toString('utf8')}@localhost:5432/website`;
 const env = {
   ...process.env,

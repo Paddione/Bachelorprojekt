@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/vda/ticket/_ctx-guard.sh — Kubeconfig-Loopback-Drift-Guard [T015008].
 #
-# Hintergrund: Der Context `k3d-mentolder-dev` loeste nach einem Docker-Restart
+# Hintergrund: Der damalige lokale k3d-Context loeste nach einem Docker-Restart
 # auf 127.0.0.1:6446 (lokaler k3d) statt 10.0.33.1:6446 (LAN) auf -> Ticket-
 # Writes landeten 35 min in der falschen DB (Dual-Write-Split-Brain, Folge
 # T015005). Dieser Guard bricht hart ab, bevor ein Write ueber einen solchen

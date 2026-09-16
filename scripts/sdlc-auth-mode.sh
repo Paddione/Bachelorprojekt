@@ -34,7 +34,7 @@
 #   scripts/sdlc-auth-mode.sh local
 #   scripts/sdlc-auth-mode.sh status
 #
-# Nach jedem `task sdlc:sdlc:deploy` erneut aufrufen: der Deploy appliziert
+# Nach jedem `task devmesh:deploy` erneut aufrufen: der Deploy appliziert
 # k3d/secrets.yaml und setzt POCKET_ID_WEBSITE_SECRET auf den Dev-Wert zurueck
 # (dieselbe Mechanik, gegen die sdlc:oidc:sync im local-Modus laeuft).
 set -euo pipefail
@@ -42,7 +42,7 @@ set -euo pipefail
 MODE="${1:-status}"
 shift || true
 
-CONTEXT="k3d-mentolder-dev"
+CONTEXT="devmesh"
 NS="workspace"
 DOMAIN="mentolder.de"
 CLIENT="website-local"
@@ -70,7 +70,7 @@ kube() { kubectl --context "$CONTEXT" -n "$NS" "$@"; }
 require_cluster() {
   if ! kube get deploy/sdlc-console >/dev/null 2>&1; then
     echo "FEHLER: deployment/sdlc-console in ${CONTEXT}/${NS} nicht gefunden." >&2
-    echo "  Zuerst: task sdlc:sdlc:deploy" >&2
+    echo "  Zuerst: task devmesh:deploy" >&2
     exit 1
   fi
 }

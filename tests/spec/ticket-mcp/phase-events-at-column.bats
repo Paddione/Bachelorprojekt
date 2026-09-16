@@ -19,14 +19,14 @@ load "../../lib/factory-test-fixtures.sh"
 
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestuetzter Test uebersprungen"
 }
 
 _pod() {
-  kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1
 }
@@ -53,7 +53,7 @@ _seed_once() {
   local pod
   pod=$(_pod)
 
-  run kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  run kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 -c \
     "SELECT column_name FROM information_schema.columns WHERE table_schema='tickets' AND table_name='factory_phase_events' AND column_name IN ('at','created_at','occurred_at') ORDER BY column_name;"
   [ "$status" -eq 0 ]

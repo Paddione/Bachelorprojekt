@@ -22,7 +22,7 @@
 # Overrides:
 #   RUNTIME_DRIFT_REGISTRY   mcp.yaml-Registry (default docs/agent-guide/registry/mcp.yaml)
 #   RUNTIME_DRIFT_MIGRATIONS  Verzeichnis mit *.sql-Migrationen (default scripts/one-shot)
-#   RUNTIME_DRIFT_CTX         kubectl-Kontext der DB (default k3d-mentolder-dev)
+#   RUNTIME_DRIFT_CTX         kubectl-Kontext der DB (default fleet)
 #   RUNTIME_DRIFT_NS          Namespace der shared-db (default workspace)
 set -uo pipefail
 
@@ -49,7 +49,7 @@ done
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REGISTRY="${RUNTIME_DRIFT_REGISTRY:-$REPO_ROOT/docs/agent-guide/registry/mcp.yaml}"
 MIGRATIONS_DIR="${RUNTIME_DRIFT_MIGRATIONS:-$REPO_ROOT/scripts/one-shot}"
-DB_CTX="${RUNTIME_DRIFT_CTX:-k3d-mentolder-dev}"
+DB_CTX="${RUNTIME_DRIFT_CTX:-fleet}"
 DB_NS="${RUNTIME_DRIFT_NS:-workspace}"
 
 DRIFT_COUNT=0

@@ -22,7 +22,7 @@ setup() {
 # ── Namespace-Aufloesung (D7) ───────────────────────────────────────────────
 
 @test "E3: SDLC-Kontext loest auf workspace auf, nicht workspace-dev" {
-  run env TICKET_CTX=k3d-mentolder-dev BRAND=mentolder \
+  run env TICKET_CTX=devmesh BRAND=mentolder \
       bash "$TICKET_SH" --resolve-ns-only get --id T000001
   [ "$status" -eq 0 ]
   [ "$output" = "NS=workspace" ]
@@ -45,7 +45,7 @@ setup() {
   # und `workspace-korczewski` existiert im k3d-Kontext gar nicht. Die
   # Erwartung fixierte damit den Fehler, den E3 selbst erzeugt hatte: jeder
   # korczewski-Aufruf brach am Pod-Lookup ab. `brand` ist ein Zeilenfilter.
-  run env TICKET_CTX=k3d-mentolder-dev BRAND=korczewski \
+  run env TICKET_CTX=devmesh BRAND=korczewski \
       bash "$TICKET_SH" --resolve-ns-only get --id T000001
   [ "$status" -eq 0 ]
   [ "$output" = "NS=workspace" ]
@@ -54,7 +54,7 @@ setup() {
 # ── Default-Kontext ─────────────────────────────────────────────────────────
 
 @test "T900013: ohne TICKET_CTX adressiert der Ticket-Pfad den fleet-Cluster" {
-  # ABGELOEST: bis 2026-08-30 erwartete dieser Test hier k3d-mentolder-dev und
+  # ABGELOEST: bis 2026-08-30 erwartete dieser Test hier devmesh und
   # belegte, dass fleet NICHT angesprochen wird — der ADR-006-E3-Vertrag.
   # ADR-007 (Accepted 2026-08-24, T016422) erklaert die Fleet-shared-db zur
   # "tickets-DB of record"; die Erwartung ist damit genau umgedreht [T900013].
@@ -93,7 +93,7 @@ STUB
   [ -s "$KUBECTL_LOG" ]
   grep -q 'CONTEXT=fleet' "$KUBECTL_LOG"
   # Erst jetzt: der abgeloeste lokale Default wurde nicht angesprochen.
-  run grep -c 'CONTEXT=k3d-mentolder-dev' "$KUBECTL_LOG"
+  run grep -c 'CONTEXT=devmesh' "$KUBECTL_LOG"
   [ "$output" = "0" ]
 }
 

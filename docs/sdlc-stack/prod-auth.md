@@ -37,7 +37,7 @@ task sdlc:sdlc:auth:status   # zeigt den aktuellen Modus
 task sdlc:sdlc:auth:local    # zurück auf die mitgelieferte Pocket ID
 ```
 
-Alternativ beim Deploy direkt: `SDLC_AUTH=prod task sdlc:sdlc:deploy`, danach einmal
+Alternativ beim Deploy direkt: `SDLC_AUTH=prod task devmesh:deploy`, danach einmal
 `task sdlc:sdlc:auth:prod` für Client und Secret.
 
 **Login-Host ist `web.localhost`, nicht `sdlc.localhost`.** Nur `web.localhost`
@@ -70,9 +70,9 @@ Der Client hat Zugriff auf dieselben Scopes wie jeder andere Pocket-ID-Client:
 er authentifiziert nur, er autorisiert nichts zusätzlich. Wer ihn nicht mehr
 braucht, löscht ihn in der Pocket-ID-Admin-UI.
 
-## Nach jedem `task sdlc:sdlc:deploy` erneut aufrufen
+## Nach jedem `task devmesh:deploy` erneut aufrufen
 
-`sdlc:deploy` appliziert `k3d/secrets.yaml` und setzt
+`devmesh:deploy` appliziert `k3d/secrets.yaml` und setzt
 `POCKET_ID_WEBSITE_SECRET` auf den festen Dev-Wert zurück. Danach kennt die
 Prod-Pocket-ID ein anderes Secret als die Console, und der Token-Exchange
 scheitert mit `invalid_client`. Ein erneutes `task sdlc:sdlc:auth:prod` rotiert das
@@ -99,15 +99,13 @@ Vorher überbrückt ein lokal gebautes Image:
 ```bash
 docker build -f components/website/Dockerfile --build-arg BUILD_TARGET=sdlc \
   -t ghcr.io/paddione/website-sdlc:prodauth-local .
-k3d image import ghcr.io/paddione/website-sdlc:prodauth-local -c mentolder-dev
-kubectl --context k3d-mentolder-dev -n workspace set image \
+docker push ghcr.io/paddione/website-sdlc:prodauth-local
+kubectl --context devmesh -n workspace set image \
   deploy/sdlc-console sdlc-console=ghcr.io/paddione/website-sdlc:prodauth-local
-kubectl --context k3d-mentolder-dev -n workspace patch deploy/sdlc-console \
-  -p '{"spec":{"template":{"spec":{"containers":[{"name":"sdlc-console","imagePullPolicy":"IfNotPresent"}]}}}}'
 ```
 
 `imagePullPolicy` muss dabei mit, sonst versucht der Kubelet den lokalen Tag
-aus der Registry zu ziehen. `task sdlc:sdlc:deploy` stellt beides zurück.
+aus der Registry zu ziehen. `task devmesh:deploy` stellt beides zurück.
 
 ## Voraussetzung: entsperrtes git-crypt
 
@@ -119,7 +117,7 @@ Hinweis ab, statt in ein unerklärliches `401` zu laufen.
 
 | Symptom | Ursache |
 |---|---|
-| `auth_error=exchange_failed` nach der Passkey-Eingabe | Client-Secret-Drift, meist nach einem `sdlc:deploy`. `task sdlc:sdlc:auth:prod` erneut ausführen. |
+| `auth_error=exchange_failed` nach der Passkey-Eingabe | Client-Secret-Drift, meist nach einem `devmesh:deploy`. `task sdlc:sdlc:auth:prod` erneut ausführen. |
 | Pocket ID zeigt „invalid redirect_uri" | Login lief über `sdlc.localhost`. Über `http://web.localhost` einsteigen. |
 | Login-Seite fragt nach Passwort statt Passkey | Der Authorize-Schritt lief gegen `auth.localhost` — Modus prüfen mit `task sdlc:sdlc:auth:status`. |
 | Console startet nicht, Log nennt `POCKET_ID_WEBSITE_SECRET` | Secret leer; `task sdlc:sdlc:auth:prod` bzw. `task sdlc:sdlc:auth:local` setzt es. |

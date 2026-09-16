@@ -1,6 +1,6 @@
 ---
 title: "devmesh-k3d-decommission — Implementation Plan"
-ticket_id: T900120
+ticket_id: T900145
 domains: [infra, testing]
 status: active
 file_locks: []
@@ -12,7 +12,7 @@ depends_on_plans: [devmesh-dev-stack]
 
 # devmesh-k3d-decommission — Implementation Plan
 
-_Ticket: T900120_ · Programm T900115 (ADR-008 SP-5) · blocked_by: T900118 (SP-3)
+_Ticket: T900145_ · Programm T900115 (ADR-008 SP-5) · prerequisites: SP-1 through SP-4
 
 Quellen: `proposal.md`, `design.md`, `specs/local-dev-mesh.md`, `specs/sdlc-isolation.md`,
 ADR-008 Nachtrag 2026-09-11, `.claude/skills/references/plan-quality-gates.md`.
@@ -139,14 +139,14 @@ DELETED:
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Run the three new BATS test suites covering the k3d decommission requirements. The tests must FAIL on the current branch.
+- [x] **Failing-Test-Step (RED).** Run the three new BATS test suites covering the k3d decommission requirements. The tests must FAIL on the current branch.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/local-dev-mesh/no-k3d-context.bats tests/spec/local-dev-mesh/factory-ctx-default.bats tests/spec/local-dev-mesh/k3d-acceptance-gate.bats
 # expected: FAIL (red — context defaults and acceptance scripts not yet implemented)
 ```
 
-- [ ] **Fix-Schritte (GREEN).** Die Partials p1–p5 implementieren die Änderungen; die Tests aus p6 müssen danach grün sein:
+- [x] **Fix-Schritte (GREEN).** Die implemented guard suites now pass; remaining broader suite work is tracked by Final Verification.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/local-dev-mesh/no-k3d-context.bats tests/spec/local-dev-mesh/factory-ctx-default.bats tests/spec/local-dev-mesh/k3d-acceptance-gate.bats
@@ -162,4 +162,3 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
-

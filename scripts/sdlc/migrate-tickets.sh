@@ -33,7 +33,7 @@ set -euo pipefail
 
 SRC_CTX="${SDLC_SRC_CTX:-fleet}"
 SRC_NS="${SDLC_SRC_NS:-workspace}"
-DST_CTX="${SDLC_DST_CTX:-k3d-mentolder-dev}"
+DST_CTX="${SDLC_DST_CTX:-devmesh}"
 DST_NS="${SDLC_DST_NS:-workspace}"
 DB="${SDLC_DB:-website}"
 DB_USER="${SDLC_DB_USER:-website}"
@@ -163,12 +163,12 @@ cmd_preflight() {
   echo "== Ziel: Kontext $DST_CTX, Namespace $DST_NS =="
   if ! kubectl config get-contexts -o name 2>/dev/null | grep -qx "$DST_CTX"; then
     echo "  FEHLT: Kubeconfig-Kontext '$DST_CTX' existiert nicht" >&2
-    echo "         Der lokale Stack wird mit 'task sdlc:cluster:create' angelegt." >&2
+    echo "         Der Entwicklungs-Stack wird mit 'task devmesh:deploy' ausgerollt." >&2
     return 1
   fi
   if ! _pod "$DST_CTX" "$DST_NS" >/dev/null 2>&1; then
     echo "  FEHLT: kein laufender shared-db-Pod im lokalen Cluster" >&2
-    echo "         Laeuft Docker? Ist der Stack deployt ('task sdlc:deploy')?" >&2
+    echo "         Ist devmesh erreichbar und der Stack ausgerollt ('task devmesh:deploy')?" >&2
     return 1
   fi
   echo "  shared-db erreichbar"

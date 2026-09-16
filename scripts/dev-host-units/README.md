@@ -24,16 +24,16 @@ bash scripts/dev-host-units/uninstall.sh
 
 ```bash
 k3d cluster start mentolder-dev             # lokaler Cluster (gestoppt, Volumes intakt)
-kubectl config set-context k3d-mentolder-dev \
-  --cluster=k3d-mentolder-dev --user=admin@k3d-mentolder-dev   # Context zurückbiegen
+kubectl config set-context devmesh \
+  --cluster=devmesh --user=admin@devmesh   # Context zurückbiegen
 bash scripts/dev-host-units/uninstall.sh    # Brücken entfernen
 ```
 
-Der alte Kontext `k3d-mentolder-dev-local` zeigt ebenfalls auf den lokalen Cluster.
+Der alte Kontext `devmesh-local` zeigt ebenfalls auf den lokalen Cluster.
 
 ## Bekannte Fallstricke
 
-- **Context-Drift:** Der Context `k3d-mentolder-dev` wurde beim Docker-Restart am
+- **Context-Drift:** Der Context `devmesh` wurde beim Docker-Restart am
   2026-08-23 still zurückgebogen (Split-Brain-Dual-Write in die Ticket-DB, siehe
   T015005/T015008). Vor DB-Schreibarbeit Server-URL prüfen:
   `kubectl config view --minify=false | grep 10.0.33.1`.

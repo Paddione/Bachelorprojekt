@@ -56,10 +56,10 @@ teardown() {
   # Reset-Pfad des RED-Laufs hinterlaesst Zaehler-Zeilen, die der Ticket-Purge
   # nicht mitnimmt. Explizit aufraeumen; nie den Exit-Code verfaelschen.
   local pod
-  pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1) || true
   if [[ -n "$pod" ]]; then
-    kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" -c postgres -- \
+    kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" -c postgres -- \
       psql -U postgres -d website -qtAc "DELETE FROM tickets.factory_control WHERE key IN ('factory_attempt:T001105','factory_infra_attempt:T001105','factory_attempt:T099999','factory_infra_attempt:T099999');" \
       >/dev/null 2>&1 < /dev/null || true
   fi
@@ -70,10 +70,10 @@ teardown() {
 # purge_real_feature: -U postgres -d website, < /dev/null gegen Stdin-Drain).
 _fixture_psql() {
   local pod
-  pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1) || true
   [[ -n "$pod" ]] || return 1
-  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" -c postgres -- \
+  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" -c postgres -- \
     psql -U postgres -d website -qtAc "$1" < /dev/null
 }
 

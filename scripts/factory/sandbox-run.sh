@@ -43,7 +43,7 @@ resolve_mode() {
     docker|k8s|off) echo "${FACTORY_SANDBOX}"; return 0 ;;
   esac
   if timeout 10 docker info >/dev/null 2>&1; then echo docker; return 0; fi
-  if kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" version >/dev/null 2>&1; then echo k8s; return 0; fi
+  if kubectl --context "${FACTORY_SANDBOX_CTX:-devmesh}" version >/dev/null 2>&1; then echo k8s; return 0; fi
   echo off
 }
 
@@ -209,12 +209,12 @@ run_k8s() {
       -e "s|TEMPLATE_WORKTREE_PATH|${WORKTREE}|g" \
       "${REPO}/scripts/factory/sandbox-job.yaml" > "${job_file}"
 
-  kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" apply -f "${job_file}" >/dev/null
+  kubectl --context "${FACTORY_SANDBOX_CTX:-devmesh}" apply -f "${job_file}" >/dev/null
 
-  kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" wait --for=condition=complete --timeout=300s "job/factory-sandbox-job-${job_id}" -n "${ns}" >/dev/null 2>&1 || true
-  kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" logs -n "${ns}" "job/factory-sandbox-job-${job_id}" || true
+  kubectl --context "${FACTORY_SANDBOX_CTX:-devmesh}" wait --for=condition=complete --timeout=300s "job/factory-sandbox-job-${job_id}" -n "${ns}" >/dev/null 2>&1 || true
+  kubectl --context "${FACTORY_SANDBOX_CTX:-devmesh}" logs -n "${ns}" "job/factory-sandbox-job-${job_id}" || true
 
-  kubectl --context "${FACTORY_SANDBOX_CTX:-k3d-mentolder-dev}" delete -f "${job_file}" >/dev/null 2>&1 || true
+  kubectl --context "${FACTORY_SANDBOX_CTX:-devmesh}" delete -f "${job_file}" >/dev/null 2>&1 || true
   rm -f "${job_file}"
 }
 

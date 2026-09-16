@@ -1,6 +1,6 @@
 # p2 — SDLC-Tasks und k3d-Cluster-Lebenszyklus (impl)
 
-_Ticket: T900120_ · Rolle `impl` · keine Abhängigkeit
+_Ticket: T900145_ · Rolle `impl` · keine Abhängigkeit
 
 Ziel laut Delta `sdlc-isolation` („Single Entry Point", „sdlc:down"): `sdlc:up`/`sdlc:down`
 arbeiten gegen devmesh und legen keinen Cluster an oder löschen ihn. `sdlc:deploy` entfällt:

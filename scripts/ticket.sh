@@ -30,9 +30,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-help.sh"
 # ADR-007 (Accepted 2026-08-24, T016422) erklaert die Fleet-shared-db zur
 # "tickets-DB of record". Der frueher hier beschriebene Zustand — tickets-Schema
 # lokal, fleet-Kopie eingefroren (SELECT ja, Writes nein) — gilt seitdem NICHT
-# mehr; der Default zeigte trotzdem weiter auf k3d-mentolder-dev.
+# mehr; der Default zeigte trotzdem weiter auf den lokalen k3d-Context.
 #
-# Nebeneffekt des Wechsels: k3d-mentolder-dev ist genau der Context, der die
+# Nebeneffekt des Wechsels: der lokale k3d-Context (abgebaut mit T900145) war genau der, der die
 # Dual-Write-Split-Brain-Vorfaelle ausgeloest hat (T015005/T015008 — Aufloesung
 # auf 127.0.0.1 nach Docker-Restart). Der Loopback-Guard in
 # scripts/vda/ticket/_ctx-guard.sh bleibt bestehen, aber der Default-Pfad
@@ -114,7 +114,7 @@ case "$CTX" in
   # Prod-Cluster (ADR-007, Default) und SDLC-Cluster (E2/E3): Stack liegt in
   # `workspace`, kein Suffix. fleet wird explizit genannt statt sich darauf zu
   # verlassen, dass der Name zufaellig nicht auf *-dev endet.
-  fleet|k3d-mentolder-dev|k3d-korczewski-dev) : ;;
+  fleet|devmesh|k3d-korczewski-dev) : ;;
   # Historischer dev-Stack auf fleet: dort existieren die -dev-Namespaces.
   *-dev)
     case "$NS" in

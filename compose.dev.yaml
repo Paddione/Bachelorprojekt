@@ -64,7 +64,6 @@ services:
       # 4321 muss es sein, nicht irgendein freier Port: components/website/.env setzt
       # SITE_URL=http://localhost:4321, und daraus baut auth.ts die
       # OIDC-redirect_uri. Ein abweichender Port bricht den Login-Rückkanal.
-      # 80/443 sind ohnehin von k3d-mentolder-dev-serverlb belegt.
       - "4321:4321"
 
     # Ohne init bleibt Node PID 1 und ignoriert SIGTERM — `docker compose down`

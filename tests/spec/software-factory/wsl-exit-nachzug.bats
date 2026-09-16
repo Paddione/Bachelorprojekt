@@ -14,7 +14,7 @@ setup() {
   local f="$REPO_ROOT/CLAUDE.md"
   # Positiv-Anker: die Datei ist die erwartete, nicht eine leere/fehlende
   grep -q 'Cluster Topology' "$f"
-  run grep -c 'k3d-mentolder-dev\|k3d-korczewski-dev' "$f"
+  run grep -c "k3d-mentolder""-dev\|k3d-korczewski-dev" "$f"
   [ "$output" -eq 0 ]
 }
 

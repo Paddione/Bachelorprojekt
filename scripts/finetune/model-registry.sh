@@ -18,7 +18,7 @@ registry_psql() {
     if [[ -n "${MODEL_REGISTRY_DB_URL:-}" ]]; then
         psql "$MODEL_REGISTRY_DB_URL" "$@"
     else
-        kubectl --context k3d-mentolder-dev exec -i -n workspace deploy/shared-db -- psql -U website -d website "$@"
+        kubectl --context "${MODEL_REGISTRY_CTX:-fleet}" exec -i -n workspace deploy/shared-db -c postgres -- psql -U website -d website "$@"
     fi
 }
 

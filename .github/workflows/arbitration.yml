@@ -108,7 +108,7 @@ jobs:
           install -m 600 /dev/null "${RUNNER_TEMP}/arbitration.kubeconfig"
           printf '%s' "$ARBITRATION_KUBECONFIG" > "${RUNNER_TEMP}/arbitration.kubeconfig"
           echo "KUBECONFIG=${RUNNER_TEMP}/arbitration.kubeconfig" >> "$GITHUB_ENV"
-          echo "TICKET_CTX=k3d-mentolder-dev" >> "$GITHUB_ENV"
+          echo "TICKET_CTX=$(KUBECONFIG="${RUNNER_TEMP}/arbitration.kubeconfig" kubectl config current-context)" >> "$GITHUB_ENV"
 
       - name: Apply arbitration (per Cluster)
         if: steps.detect.outputs.count != '0'

@@ -21,6 +21,16 @@
 version: "3"
 
 tasks:
+  acceptance:
+    desc: "Abnahme-Gate vor dem k3d-Abbau: Health, migration comparison, fresh dump [T900145]"
+    cmds:
+      - bash scripts/devmesh/acceptance.sh
+
+  k3d:teardown:
+    desc: "Operator-only: decommission the former k3d development cluster [T900145]"
+    cmds:
+      - bash scripts/devmesh/k3d-teardown.sh
+
   tailnet:check:
     desc: "devmesh: jeden Inventar-Server per tailscale ping pruefen und direct/relay melden (Exit 1 = Server unerreichbar, 2 = Vorbedingung fehlt)"
     cmds:
@@ -97,7 +107,7 @@ tasks:
         echo "devmesh:deploy ok (Profil $PROFILE)"
 
   migrate:
-    desc: "pocket_id + website aus k3d-mentolder-dev nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]"
+    desc: "pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]"
     cmds:
       - bash scripts/devmesh/migrate-from-k3d.sh {{.CLI_ARGS | default "all"}}
 

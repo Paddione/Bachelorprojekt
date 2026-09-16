@@ -29,7 +29,7 @@ set -euo pipefail
 # im Code — wer sie aendert, aendert sie an genau einer Stelle.
 RETENTION_DAYS="${SDLC_BACKUP_RETENTION_DAYS:-30}"
 
-SRC_CTX="${SDLC_DST_CTX:-k3d-mentolder-dev}"   # Quelle des Backups = lokaler Stack
+SRC_CTX="${SDLC_DST_CTX:-devmesh}"   # Quelle des Backups = Entwicklungsinstanz auf devmesh
 SRC_NS="${SDLC_DST_NS:-workspace}"
 DST_CTX="${SDLC_SRC_CTX:-fleet}"               # Ziel der Ablage = fleet
 DST_NS="${SDLC_SRC_NS:-workspace}"

@@ -1,155 +1,24 @@
 version: "3"
 
+vars:
+  # [T900145] The SDLC development instance runs on persistent devmesh.
+  SDLC_CTX: '{{.SDLC_CTX | default "devmesh"}}'
+
 tasks:
-  sdlc:cluster:create:
-    desc: "k3d-Cluster mentolder-dev anlegen (Kontext k3d-mentolder-dev)"
-    preconditions:
-      - sh: docker info >/dev/null 2>&1
-        msg: "Docker muss laufen"
-      # go-task nutzt mvdan/sh, nicht bash: dort bindet `! cmd | grep` als
-      # `(! cmd) | grep`, der Exit-Status ist also der von grep statt der
-      # negierten Pipeline. Die Bedingung war damit invertiert und meldete
-      # "existiert bereits" genau dann, wenn der Cluster fehlte. Die
-      # if-Form ist in beiden Shells eindeutig.
-      - sh: "if k3d cluster list 2>/dev/null | grep -q mentolder-dev; then exit 1; fi"
-        msg: "Cluster mentolder-dev existiert bereits"
-    cmds:
-      - k3d cluster create --config k3d/sdlc-stack/k3d-config.yaml
-      - kubectl wait --for=condition=Ready nodes --all --timeout=120s --context k3d-mentolder-dev
-      - kubectl config delete-context k3d-korczewski 2>/dev/null || true
-      - 'echo "mentolder-dev bereit - Kontext: $(kubectl config current-context)"'
-
-  sdlc:cluster:delete:
-    desc: "k3d-Cluster mentolder-dev löschen"
-    cmds:
-      - k3d cluster delete mentolder-dev
-
-  sdlc:cluster:status:
-    desc: "Cluster-Status: Nodes, Pods"
-    cmds:
-      - k3d cluster list
-      - kubectl --context k3d-mentolder-dev get nodes
-      - kubectl --context k3d-mentolder-dev get pods -n workspace 2>/dev/null || echo "(namespace workspace nicht vorhanden)"
-
-  sdlc:deploy:
-    desc: "SDLC-Stack deployen (kustomize + envsubst + kubectl apply)"
-    cmds:
-      # Auf einem frisch angelegten Cluster installiert k3s Traefik asynchron
-      # per HelmChart. Der Stack enthält eine IngressRoute (traefik.io/v1alpha1),
-      # deren CRD dann noch fehlt — der apply bricht mit "no matches for kind
-      # IngressRoute" ab. Erst warten, dann applyen.
-      - kubectl --context k3d-mentolder-dev wait --for=create crd/ingressroutes.traefik.io --timeout=180s
-      - |
-        set -e
-        WEBSITE_DB_PASSWORD="${WEBSITE_DB_PASSWORD:-devwebsitedb}"
-        SHARED_DB_PASSWORD="${SHARED_DB_PASSWORD:-devshareddb}"
-        POCKET_ID_DB_PASSWORD="${POCKET_ID_DB_PASSWORD:-devpocketiddb}"
-        NEXTCLOUD_DB_PASSWORD="${NEXTCLOUD_DB_PASSWORD:-devnextclouddb}"
-        VAULTWARDEN_DB_PASSWORD="${VAULTWARDEN_DB_PASSWORD:-devvaultwardendb}"
-        VIDEOVAULT_DB_PASSWORD="${VIDEOVAULT_DB_PASSWORD:-devvideovaultdb}"
-        export WEBSITE_DB_PASSWORD SHARED_DB_PASSWORD POCKET_ID_DB_PASSWORD
-        export NEXTCLOUD_DB_PASSWORD VAULTWARDEN_DB_PASSWORD VIDEOVAULT_DB_PASSWORD
-        export POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://auth.localhost}"
-        export POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id:1411}"
-        export POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-auth.localhost}"
-        export POCKET_ID_FALLBACK_FRONTEND_URL="${POCKET_ID_FALLBACK_FRONTEND_URL:-https://auth.mentolder.de}"
-        export POCKET_ID_FALLBACK_URL="${POCKET_ID_FALLBACK_URL:-https://auth.mentolder.de}"
-        # ── Auth-Modus der Console (SDLC_AUTH=local|prod) ────────────────────
-        # local (Default): Login gegen die mitgelieferte Pocket ID auf
-        #   auth.localhost. Passkeys, die dort registriert wurden, funktionieren
-        #   — Prod-Passkeys nicht, weil WebAuthn-Credentials an die RP-ID der
-        #   Domain gebunden sind und auth.localhost eine andere RP-ID ist.
-        # prod: Der Authorize-Schritt laeuft auf https://auth.<PROD_DOMAIN>,
-        #   also genau dort, wo die Passkeys registriert sind; danach leitet
-        #   Pocket ID nach http://web.localhost/api/auth/callback zurueck. Der
-        #   Token-Exchange spricht ebenfalls die Prod-Instanz an.
-        #   Voraussetzungen (beide stellt `task sdlc:sdlc:auth:prod` her): ein
-        #   eigener OIDC-Client in der Prod-Pocket-ID mit dieser Callback-URL,
-        #   und dessen Secret in den lokalen K8s-Secrets.
-        #   Der Prod-`website`-Client bleibt bewusst unangetastet.
-        SDLC_AUTH="${SDLC_AUTH:-local}"
-        if [ "$SDLC_AUTH" = "prod" ]; then
-          SDLC_AUTH_DOMAIN="${SDLC_AUTH_DOMAIN:-mentolder.de}"
-          export SDLC_CONSOLE_POCKET_ID_FRONTEND_URL="https://auth.${SDLC_AUTH_DOMAIN}"
-          export SDLC_CONSOLE_POCKET_ID_URL="https://auth.${SDLC_AUTH_DOMAIN}"
-          export SDLC_CONSOLE_POCKET_ID_CLIENT_ID="${SDLC_AUTH_CLIENT_ID:-website-local}"
-        else
-          export SDLC_CONSOLE_POCKET_ID_FRONTEND_URL="http://auth.localhost"
-          export SDLC_CONSOLE_POCKET_ID_URL="http://pocket-id:1411"
-          export SDLC_CONSOLE_POCKET_ID_CLIENT_ID="website"
-        fi
-        # SITE_URL bleibt in beiden Modi web.localhost: es ist der Host, unter
-        # dem der Browser die Console erreicht, und bildet die redirect_uri.
-        export SDLC_CONSOLE_SITE_URL="${SDLC_CONSOLE_SITE_URL:-http://web.localhost}"
-        export PROD_DOMAIN="${PROD_DOMAIN:-localhost}"
-        export WEBSITE_SITE_URL="${WEBSITE_SITE_URL:-http://sdlc.localhost}"
-        export SMTP_HOST="${SMTP_HOST:-}"
-        export SMTP_PORT="${SMTP_PORT:-}"
-        export SMTP_USER="${SMTP_USER:-}"
-        export SMTP_FROM="${SMTP_FROM:-}"
-        export POCKET_ID_SMTP_TLS="${POCKET_ID_SMTP_TLS:-}"
-        # Der SDLC-Stack hat keinen eigenen website-Namespace: das website-secrets
-        # liegt hier mit in `workspace`, dorthin synct der Seed-Job auch das
-        # Website-Client-Secret. WORKSPACE_NAMESPACE steht im subjects-Feld eines
-        # RoleBindings, das der Namespace-Transformer von kustomize nicht anfasst.
-        export WEBSITE_NAMESPACE="${WEBSITE_NAMESPACE:-workspace}"
-        export WORKSPACE_NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
-        # envsubst MUSS eine explizite Variablenliste bekommen — so wie jeder
-        # andere envsubst-Aufruf im Repo. Ohne sie ersetzt es JEDES ${…} im
-        # Dokument, also auch die Shell-Variablen des Skripts, das in
-        # pocket-id-client-seed.yaml inline im Job steckt: ${API}, ${AUTH},
-        # ${auth_check_code} und ${POCKET_ID_API_KEY} wurden zur Deploy-Zeit zu
-        # Leerstrings, statt zur Laufzeit im Container ausgewertet zu werden.
-        # Sichtbar wurde das als "ERROR: POCKET_ID_API_KEY kann nicht verifiziert
-        # werden (HTTP )" — mit leerem Code, wo das Runbook 401 erwartet.
-        # Die DB-Passwoerter stehen bewusst NICHT in der Liste: sie kommen im
-        # Manifest ausschliesslich als $${VAR} vor und sollen erst IM CONTAINER
-        # aus der Env (workspace-secrets) expandiert werden — genau so, wie der
-        # Flux-Renderer es fuer Prod erzeugt. Substituiert man sie hier, wird aus
-        # '$${WEBSITE_DB_PASSWORD}' der String '$devwebsitedb', den die Shell des
-        # postStart-Hooks als (leere) Variable liest: "ALTER USER website WITH
-        # PASSWORD ''" -> "User website has no password assigned".
-        #
-        # Das abschliessende sed stellt die Escape-Konvention des Renderers her:
-        # $$ -> $. envsubst kennt dieses Escape nicht (verifiziert 2026-08-04) —
-        # ohne Liste macht es aus '$$db' ein '$', mit Liste bleibt '$$db' stehen
-        # und die Shell setzt dafuer ihre PID ein. Beides liess den Self-Heal-Loop
-        # in shared-db.yaml ins Leere laufen, weshalb die Datenbank `website` auf
-        # einem frischen Cluster nie angelegt wurde.
-        #
-        # Reduziert wird NUR vor einer Variablenreferenz ($$name / $${name}) —
-        # exakt so steht es im Prod-Container. Ein pauschales s/$$/$/g wuerde
-        # auch das PL/pgSQL-Dollar-Quoting treffen: aus "DO \$\$ BEGIN" wuerde
-        # "DO \$ BEGIN" und der Rollen-Block scheitert an einem Syntaxfehler.
-        # Vor Leerzeichen oder ';' bleibt $$ deshalb unangetastet.
-        kubectl kustomize --load-restrictor=LoadRestrictionsNone k3d/sdlc-stack \
-          | envsubst '$POCKET_ID_FRONTEND_URL $POCKET_ID_URL $POCKET_ID_DOMAIN $POCKET_ID_FALLBACK_FRONTEND_URL $POCKET_ID_FALLBACK_URL $POCKET_ID_SMTP_TLS $PROD_DOMAIN $WEBSITE_SITE_URL $SMTP_HOST $SMTP_PORT $SMTP_USER $SMTP_FROM $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE $SDLC_CONSOLE_SITE_URL $SDLC_CONSOLE_POCKET_ID_FRONTEND_URL $SDLC_CONSOLE_POCKET_ID_URL $SDLC_CONSOLE_POCKET_ID_CLIENT_ID' \
-          | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g' \
-          | kubectl --context k3d-mentolder-dev apply -f -
-        echo "---"
-        kubectl --context k3d-mentolder-dev rollout status deployment/shared-db -n workspace --timeout=300s
-        kubectl --context k3d-mentolder-dev rollout status deployment/pocket-id -n workspace --timeout=300s
-        kubectl --context k3d-mentolder-dev rollout status deployment/sdlc-console -n workspace --timeout=300s
-        # llm-gateway-embed/-rerank sind die Service-Namen aus k3d/llm-gpu.yaml;
-        # die zugehörigen Deployments heißen bge-embed / bge-rerank. Auf die
-        # Service-Namen zu warten endete in "deployments.apps not found".
-        kubectl --context k3d-mentolder-dev rollout status deployment/bge-embed -n workspace --timeout=300s
-        kubectl --context k3d-mentolder-dev rollout status deployment/bge-rerank -n workspace --timeout=300s
-
   sdlc:status:
     desc: "SDLC-Stack Health-Übersicht"
     cmds:
       - |
-        kubectl --context k3d-mentolder-dev get pods -n workspace
+        kubectl --context {{.SDLC_CTX}} get pods -n workspace
         echo "---"
-        kubectl --context k3d-mentolder-dev get svc -n workspace
+        kubectl --context {{.SDLC_CTX}} get svc -n workspace
         echo "---"
         echo "Console:  $(curl -sS -o /dev/null -w %{http_code} http://sdlc.localhost 2>/dev/null || echo unreachable)"
         echo "Auth:     $(curl -sS -o /dev/null -w %{http_code} http://auth.localhost 2>/dev/null || echo unreachable)"
 
   sdlc:oidc:sync:
     desc: "OIDC-Client-Secret zwischen Pocket ID und den SDLC-Secrets angleichen"
-    # Nach jedem sdlc:deploy noetig: pocket-id-client-seed schreibt ein
+    # Nach jedem devmesh:deploy noetig: pocket-id-client-seed schreibt ein
     # generiertes Secret nur beim ERSTMALIGEN Anlegen zurueck, der Deploy setzt
     # k3d/secrets.yaml aber jedes Mal auf den festen Dev-Wert. Ohne den Abgleich
     # kennt Pocket ID ein anderes Secret als die Console und der Token-Exchange
@@ -164,7 +33,7 @@ tasks:
     # unbrauchbar. Diese Task laesst den Authorize-Schritt auf der Prod-Domain
     # stattfinden und danach nach http://web.localhost zurueckleiten.
     # Legt dafuer in Prod EINEN eigenen Client `website-local` an; der
-    # Prod-`website`-Client bleibt unangetastet. Nach jedem sdlc:sdlc:deploy erneut
+    # Prod-`website`-Client bleibt unangetastet. Nach jedem devmesh:deploy erneut
     # aufrufen (der Deploy setzt das Client-Secret auf den Dev-Wert zurueck).
     cmds:
       - bash scripts/sdlc-auth-mode.sh prod
@@ -252,28 +121,20 @@ tasks:
     cmds:
       - node scripts/sdlc-cockpit-smoke.mjs {{.CLI_ARGS}}
 
-  sdlc:cert:check:
-    desc: "Kubelet-Serving-Zertifikat aller k3d-Nodes pruefen (T002999)"
-    cmds:
-      - bash scripts/sdlc/kubelet-cert-check.sh {{.CLI_ARGS}}
-
   # ── T002655: sdlc:up / sdlc:down / sdlc:dev ─────────────────────────────
 
   sdlc:up:
-    desc: "SDLC-Stack komplett starten: Cluster → Stack → llm-proxy → Loadout → Health-Gate"
+    desc: "SDLC-Entwicklungsinstanz starten: Cluster-Check → Rollout-Check → llm-proxy → Loadout → Health-Gate"
     cmds:
-      # Idempotent: Cluster nur anlegen, wenn er fehlt.
-      # Die if-Form wird in mvdan/sh und bash gleich ausgewertet
-      # (anders als ! cmd | grep, das in mvdan/sh als (! cmd) | grep bindet).
       - |
-        if k3d cluster list 2>/dev/null | grep -q mentolder-dev; then
-          echo "[sdlc:up] Cluster mentolder-dev existiert bereits — ueberspringe cluster:create"
-        else
-          task sdlc:sdlc:cluster:create
+        if ! kubectl --context {{.SDLC_CTX}} get nodes --request-timeout=5s >/dev/null 2>&1; then
+          echo "[sdlc:up] Cluster {{.SDLC_CTX}} nicht erreichbar — Zustand: task devmesh:status" >&2
+          exit 1
         fi
-      - task sdlc:sdlc:deploy
-      # Proxy nur starten, wenn er noch nicht antwortet — /livez, nicht /health
-      # (ein 503-wegen-fehlendem-Backend sieht fuer /health aus wie "not running").
+      - |
+        for d in shared-db pocket-id sdlc-console; do
+          kubectl --context {{.SDLC_CTX}} -n workspace rollout status "deployment/$d" --timeout=120s
+        done
       - |
         PORT="${LLM_PROXY_PORT:-18235}"
         if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
@@ -281,24 +142,14 @@ tasks:
         else
           task llm:proxy:start
         fi
-      # Chat-Loadout idempotent starten, bevor der Health-Gate es prueft
-      # (T002656) — der Proxy startet Loadouts sonst erst on-demand.
       - scripts/sdlc/llm-up.sh
-      - scripts/sdlc/health-gate.sh --timeout 120
+      - scripts/sdlc/health-gate.sh --context {{.SDLC_CTX}} --timeout 120
 
   sdlc:down:
-    desc: "SDLC-Stack herunterfahren: Loadout → llm-proxy → Cluster"
+    desc: "SDLC-Stack herunterfahren: Loadout → llm-proxy (devmesh bleibt laufen)"
     cmds:
-      # Loadout stoppen, SOLANGE der Proxy noch lebt (T002656) — die
-      # systemd-run-Loadout-Units ueberleben den Proxy-Prozess sonst.
-      # Best-effort: `|| true`, damit ein nicht erreichbarer Proxy den
-      # Shutdown nicht blockiert.
       - scripts/sdlc/llm-up.sh down || true
       - task llm:proxy:stop
-      # sdlc:cluster:delete is idempotent — k3d cluster delete does not fail
-      # when the cluster does not exist. We still catch the edge case where k3d
-      # itself is missing or the cluster name was never registered.
-      - task sdlc:sdlc:cluster:delete || echo "[sdlc:down] Cluster mentolder-dev nicht gefunden — nichts zu loeschen"
 
   sdlc:dev:
     desc: "Astro-Devserver mit BUILD_TARGET=sdlc starten (blockierend)"
@@ -349,7 +200,7 @@ tasks:
     cmds:
       - |
         set -e
-        CTX="${K3D_CTX:-k3d-mentolder-dev}"
+        CTX="{{.SDLC_CTX}}"
         NS="${WORKSPACE_NAMESPACE:-workspace}"
         IMAGE="ghcr.io/paddione/website-sdlc:latest"
         REG_DIGEST="$(docker manifest inspect "${IMAGE}" | grep -m1 digest | awk -F'"' '{print $4}')"

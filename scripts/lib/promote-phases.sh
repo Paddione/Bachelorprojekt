@@ -34,7 +34,7 @@ svc_deployment() {
 }
 
 # Dev context/namespace per cluster.
-dev_ctx() { case "$1" in mentolder) echo "k3d-mentolder-dev" ;; korczewski) echo "k3d-mentolder-dev" ;; esac; }
+dev_ctx() { case "$1" in mentolder) echo "fleet" ;; korczewski) echo "fleet" ;; esac; }
 dev_ns()  { case "$1" in mentolder) echo "workspace-dev"    ;; korczewski) echo "workspace-korczewski-dev" ;; esac; }
 
 # Prod context resolved via env-resolve.sh → always "fleet".

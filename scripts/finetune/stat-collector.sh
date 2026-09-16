@@ -33,9 +33,9 @@ registry_psql() {
     if [[ -n "${MODEL_REGISTRY_DB_URL:-}" ]]; then
         psql "$MODEL_REGISTRY_DB_URL" "$@"
     else
-        # [T002626] SDLC-Daten liegen lokal im k3d-Cluster; die fleet-Kopie ist
-        # eingefroren. Ohne --context landen Schreibzugriffe in der falschen DB.
-        kubectl --context k3d-mentolder-dev exec -i -n workspace deploy/shared-db -- psql -U website -d website "$@"
+        # [T900145] SDLC-Daten liegen seit ADR-007 auf fleet (Override: MODEL_REGISTRY_CTX);
+        # ohne --context landen Schreibzugriffe in der DB des current-context.
+        kubectl --context "${MODEL_REGISTRY_CTX:-fleet}" exec -i -n workspace deploy/shared-db -c postgres -- psql -U website -d website "$@"
     fi
 }
 

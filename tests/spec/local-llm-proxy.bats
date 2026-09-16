@@ -81,7 +81,7 @@ _skip_if_no_db() {
   # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
   # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
   # am lokalen Cluster.
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
+  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then

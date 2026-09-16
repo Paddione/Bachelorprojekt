@@ -39,7 +39,7 @@ _rerank_ready() {
 # pgvector-Port-Forward auf die k3d shared-db.
 _export_pgurl() {
   local pw
-  pw="$(kubectl --context k3d-mentolder-dev -n workspace get secret workspace-secrets \
+  pw="$(kubectl --context "${OPENSPEC_DB_CTX:-fleet}" -n workspace get secret workspace-secrets \
     -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null || true)"
   if [[ -z "$pw" ]]; then
     skip "workspace-secrets not readable (offline/CI)"
@@ -80,14 +80,14 @@ _export_pgurl() {
 
 @test "pg_indexes liefert chunks_embedding_hnsw fuer knowledge.chunks" {
   local pod
-  pod="$(kubectl --context k3d-mentolder-dev -n workspace get pod \
+  pod="$(kubectl --context "${OPENSPEC_DB_CTX:-fleet}" -n workspace get pod \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)" || true
   if [[ -z "$pod" ]]; then
     skip "no Running shared-db pod reachable (offline/CI)"
   fi
 
-  run kubectl --context k3d-mentolder-dev -n workspace exec "$pod" -c postgres -- \
+  run kubectl --context "${OPENSPEC_DB_CTX:-fleet}" -n workspace exec "$pod" -c postgres -- \
     psql -U website -d website -t -A -c \
     "SELECT indexname FROM pg_indexes WHERE schemaname='knowledge' AND tablename='chunks' AND indexname='chunks_embedding_hnsw'"
   [ "$status" -eq 0 ]

@@ -12,7 +12,7 @@
 
 setup() {
   REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)}"
-  CTX="k3d-mentolder-dev"
+  CTX="${FACTORY_CTX:-devmesh}"
   NS="workspace"
   TESTROW_TITLE="T004894 areas-csv-trim testrow"
   # [T002871] Opt-in: biegt den T002224-Guard in _ticket-core.sh auf den Dev-Kontext.

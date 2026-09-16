@@ -40,14 +40,14 @@ _osr_ns() {
   # [T002689] Die Brand geht NICHT in den Namespace ein — sie ist ein
   # Zeilenfilter. Die Aufloesung folgt scripts/factory/lib.sh: Namespace am
   # Kontext, k3d-Ausnahme aus T002626 (k3d-* bekommt KEIN -dev-Suffix).
-  local brand="$1" ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
+  local brand="$1" ctx="${FACTORY_CTX:-devmesh}" ns
   if [[ -n "${FACTORY_NS:-}" ]]; then echo "$FACTORY_NS"; return 0; fi
   case "$brand" in
     mentolder|korczewski) ns=workspace ;;
     *) return 2 ;;
   esac
   case "$ctx" in
-    k3d-mentolder-dev|k3d-korczewski-dev) : ;;
+    devmesh|k3d-korczewski-dev) : ;;
     *-dev) ns="${ns}-dev" ;;
   esac
   echo "$ns"
@@ -56,7 +56,7 @@ _osr_ns() {
 # psql gegen den shared-db-Pod der Brand. Heredoc-Eingaben brauchen `exec -i`,
 # sonst laeuft psql mit leerem stdin und meldet trotzdem Exit 0.
 _osr_psql() {
-  local brand="$1" sql="$2" ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns pod
+  local brand="$1" sql="$2" ctx="${FACTORY_CTX:-devmesh}" ns pod
   ns="$(_osr_ns "$brand")" || return 2
   pod=$(kubectl get pod -n "$ns" --context "$ctx" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \

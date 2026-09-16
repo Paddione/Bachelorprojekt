@@ -64,18 +64,6 @@ free_port() {
 
 # ── Orchestrierungs-Reihenfolge: sdlc:down ──────────────────────────────────
 
-@test "sdlc:down dry-run calls llm-up.sh down before proxy:stop before cluster:delete" {
-  run $TASK --dry sdlc:sdlc:down
-  LOADOUT_LINE=$(echo "$output" | grep -n 'llm-up.sh down' | head -1 | cut -d: -f1)
-  STOP_LINE=$(echo "$output" | grep -n 'llm:proxy:stop' | head -1 | cut -d: -f1)
-  DELETE_LINE=$(echo "$output" | grep -n 'sdlc:cluster:delete' | head -1 | cut -d: -f1)
-  [ -n "$LOADOUT_LINE" ]
-  [ -n "$STOP_LINE" ]
-  [ -n "$DELETE_LINE" ]
-  [ "$LOADOUT_LINE" -lt "$STOP_LINE" ]
-  [ "$STOP_LINE" -lt "$DELETE_LINE" ]
-}
-
 # ── llm-up.sh: Fehlerpfade (deterministisch, kein Live-Cluster noetig) ───────
 
 @test "llm-up.sh against dead port fails and names the proxy" {
@@ -116,17 +104,24 @@ free_port() {
 # ── health-gate: Readiness-Probe benennt den Proxy ───────────────────────────
 
 @test "health-gate fails when the proxy is not ready and names llm-proxy" {
-  if ! kubectl config get-contexts k3d-mentolder-dev >/dev/null 2>&1; then
-    skip "cluster k3d-mentolder-dev context not configured"
+  if ! kubectl config get-contexts devmesh >/dev/null 2>&1; then
+    skip "cluster devmesh context not configured"
   fi
-  if ! kubectl --context k3d-mentolder-dev get nodes --request-timeout=3s >/dev/null 2>&1; then
-    skip "cluster k3d-mentolder-dev not reachable"
+  if ! kubectl --context devmesh get nodes --request-timeout=3s >/dev/null 2>&1; then
+    skip "cluster devmesh not reachable"
   fi
   PORT="$(free_port)"
   if curl -fsS --max-time 1 "http://127.0.0.1:${PORT}/" >/dev/null 2>&1; then
     skip "port ${PORT} unexpectedly in use"
   fi
-  run env LLM_PROXY_PORT="$PORT" bash "$HEALTH_GATE" --context k3d-mentolder-dev --timeout 5
+  run env LLM_PROXY_PORT="$PORT" bash "$HEALTH_GATE" --context devmesh --timeout 5
   [ "$status" -ne 0 ]
   echo "$output" | grep -qi 'llm-proxy'
+}
+
+@test "sdlc:down dry-run calls llm-up.sh down before proxy:stop" {
+  run $TASK --dry sdlc:sdlc:down
+  LOADOUT_LINE=$(echo "$output" | grep -n 'llm-up.sh down' | head -1 | cut -d: -f1)
+  STOP_LINE=$(echo "$output" | grep -n 'llm:proxy:stop' | head -1 | cut -d: -f1)
+  [ -n "$LOADOUT_LINE" ]; [ -n "$STOP_LINE" ]; [ "$LOADOUT_LINE" -lt "$STOP_LINE" ]
 }

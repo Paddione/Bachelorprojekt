@@ -35,7 +35,7 @@ teardown() { rm -rf "$STUBDIR"; }
 
 _run_pgpod() {
   run env PATH="$STUBDIR:$PATH" POD_LINES="$1" IDENTITY_ANSWER="$2" TICKET_TEST_DB_OK="$3" \
-    bash -c "source '$CORE'; NS='workspace'; CTX='k3d-mentolder-dev'; _pgpod"
+    bash -c "source '$CORE'; NS='workspace'; CTX='fleet'; _pgpod"
 }
 
 @test "T015168: _pgpod bricht bei zwei Running-Pods laut ab und nennt beide Kandidaten" {
@@ -61,7 +61,7 @@ _run_pgpod() {
 @test "T015168: Escape-Hatch TICKET_ALLOW_UNVERIFIED_DB warnt statt abzubrechen" {
   run env PATH="$STUBDIR:$PATH" POD_LINES="pod/shared-db-0" IDENTITY_ANSWER="" \
     TICKET_TEST_DB_OK="1" TICKET_ALLOW_UNVERIFIED_DB="1" \
-    bash -c "source '$CORE'; NS='workspace'; CTX='k3d-mentolder-dev'; _pgpod"
+    bash -c "source '$CORE'; NS='workspace'; CTX='fleet'; _pgpod"
   [ "$status" -eq 0 ] || { echo "Hatch hat trotzdem abgebrochen: $output" >&2; return 1; }
   [[ "$output" == *"WARN"* ]] || { echo "Hatch ohne Warnung" >&2; return 1; }
 }

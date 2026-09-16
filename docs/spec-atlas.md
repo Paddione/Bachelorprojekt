@@ -161,6 +161,9 @@ Last touches:
   - Der Factory-Default ist im KI-Deck sichtbar und setzbar | T013302 | 2026-08-22 | ADDED
   - Die Modellauswahl kennt die Modelle des Proxy | T013302 | 2026-08-22 | ADDED
   - The cockpit is the only administration surface for the llm-proxy | T013909 | 2026-08-22 | ADDED
+In-flight:
+  - Dev-Deployment — SDLC-Console auf mentolder-dev-Cluster | T900145 | active | RENAMED
+  - Dev-Deployment — SDLC-Console auf dem devmesh-Cluster | T900145 | active | MODIFIED
 
 ### ticket-system
 Reqs: 83 · Scenarios: 236 · Lines: 2197
@@ -172,6 +175,7 @@ Last touches:
   - Typed human GitHub references have one central parser | T900159 | 2026-09-12 | ADDED
   - Lesepfade unterscheiden kein-Treffer von falscher-Frage | T014386 | 2026-08-23 | ADDED
 In-flight:
+  - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T900145 | active | MODIFIED
   - GitHub Snapshot Schema and Cursor Tracking | T900161 | active | ADDED
   - GitHub Identity and Closing Relationship Auto-Registration | T900161 | active | ADDED
   - PR Events and Status Compatibility Projection | T900161 | active | ADDED
@@ -303,6 +307,8 @@ Last touches:
   - Merged-PR-Gate schließt gemergte Tickets vor dem Dispatch | T014384 | 2026-08-23 | ADDED
   - The factory stops dispatching a plan after three consecutive no-commit runs | T003810 | 2026-08-14 | ADDED
   - The FACTORY_CTX default is visible immediately on sourcing lib.sh | T003810 | 2026-08-14 | ADDED
+In-flight:
+  - The FACTORY_CTX default is visible immediately on sourcing lib.sh | T900145 | active | MODIFIED
 
 ### batch-local-test-runner-fixes
 Reqs: 3 · Scenarios: 3 · Lines: 39
@@ -655,6 +661,10 @@ Last touches:
   - LAN path is preferred, the tailnet relay is the fallback | T900142 | 2026-09-11 | ADDED
   - Tailnet access policy is versioned in the repository | T900142 | 2026-09-11 | ADDED
   - The tailnet check separates findings from missing preconditions | T900142 | 2026-09-11 | ADDED
+In-flight:
+  - The k3d dev cluster is removed only after the acceptance gate | T900145 | active | ADDED
+  - No active reference to the k3d dev context remains | T900145 | active | ADDED
+  - The fourth host joins devmesh as an agent | T900145 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -930,6 +940,17 @@ Last touches:
   - Health Gate Reports Diagnosable Failure | T002656 | 2026-08-13 | MODIFIED
   - sdlc:up starts the local chat loadout before the health gate | T002656 | 2026-08-13 | ADDED
 In-flight:
+  - Local k3d cluster runs the SDLC stack from the production manifests | T900145 | active | RENAMED
+  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900145 | active | RENAMED
+  - SDLC stack runs in the fleet dev namespace from the production manifests | T900145 | active | MODIFIED
+  - Mixed runtime — cluster pods for stateful services, native processes for GPU | T900145 | active | MODIFIED
+  - Single Entry Point for the Local SDLC Stack | T900145 | active | MODIFIED
+  - The `dev:` Task Namespace Stays Reserved for the Staging Stack | T900145 | active | MODIFIED
+  - sdlc:down stops the chat loadout before the proxy | T900145 | active | MODIFIED
+  - Kubelet serving certificate drift detection on the local k3d dev cluster | T900145 | active | REMOVED
+  - Repairing a stale kubelet serving certificate | T900145 | active | REMOVED
+  - Translating the misleading x509 error in the ticket tooling | T900145 | active | REMOVED
+  - Health gate covers kubelet reachability, not only API-server reachability | T900145 | active | REMOVED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
   - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED

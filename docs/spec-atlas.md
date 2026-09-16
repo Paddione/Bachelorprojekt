@@ -149,6 +149,7 @@ In-flight:
   - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
   - Deterministic loadouts path resolution across execution environments | T900109 | active | ADDED
+  - The proxy serves remote backends only | T900191 | active | MODIFIED
   - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product
@@ -656,6 +657,10 @@ Last touches:
   - The status view reports GPU capacity | T900179 | 2026-09-16 | ADDED
   - The k3d dev cluster is removed only after the acceptance gate | T900145 | 2026-09-16 | ADDED
   - No active reference to the k3d dev context remains | T900145 | 2026-09-16 | ADDED
+In-flight:
+  - devmesh hosts the CPU-bound LLM and database services | T900191 | active | ADDED
+  - The GPU endpoint exposes one port per workstation GPU service | T900191 | active | ADDED
+  - The devmesh backend registry contains no loopback URLs | T900191 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -672,6 +677,7 @@ Last touches:
   - The repository checkout is supplied read-only from a single writer | T900107 | 2026-09-10 | ADDED
   - Container images carry their dependencies | T900107 | 2026-09-10 | ADDED
 In-flight:
+  - Windows hosts have a documented start mechanism for the local MCP servers | T900191 | active | MODIFIED
   - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
   - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
   - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED

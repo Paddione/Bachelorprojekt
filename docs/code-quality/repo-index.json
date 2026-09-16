@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1314,
+      "file_count": 1315,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -422,6 +422,7 @@
         "tests/spec/agent-skills/messung-mit-befehl.bats",
         "tests/spec/agent-skills/plugin-activation.bats",
         "tests/spec/agent-skills/portable-inventory.bats",
+        "tests/spec/agent-skills/post-merge-finalize-create-new.bats",
         "tests/spec/agent-skills/post-merge-finalize-guards.bats",
         "tests/spec/agent-skills/repo-hygiene-tick-snapshot-guard.bats",
         "tests/spec/agent-skills/review-gate-before-auto-merge.bats",
@@ -4215,7 +4216,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 877,
+      "file_count": 878,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4728,6 +4729,7 @@
         "scripts/lib/mcp-http-security.test.mjs",
         "scripts/lib/nextcloud-api.sh",
         "scripts/lib/notify.sh",
+        "scripts/lib/openspec-archive-args.sh",
         "scripts/lib/pnpm-audit-count.py",
         "scripts/lib/pnpm-outdated-majors.py",
         "scripts/lib/post-deploy-watch.sh",

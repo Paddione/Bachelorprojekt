@@ -665,6 +665,9 @@ Last touches:
   - Tailnet access policy is versioned in the repository | T900142 | 2026-09-11 | ADDED
   - The tailnet check separates findings from missing preconditions | T900142 | 2026-09-11 | ADDED
 In-flight:
+  - A devmesh host with a GPU offers it as a schedulable resource | T900179 | active | ADDED
+  - GPU enablement on a host is scripted and repeatable | T900179 | active | ADDED
+  - The status view reports GPU capacity | T900179 | active | ADDED
   - The k3d dev cluster is removed only after the acceptance gate | T900145 | active | ADDED
   - No active reference to the k3d dev context remains | T900145 | active | ADDED
   - The fourth host joins devmesh as an agent | T900145 | active | ADDED

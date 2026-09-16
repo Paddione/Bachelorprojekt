@@ -15,7 +15,7 @@ Alle Änderungen gehen durch Pull Requests. Direkte Pushes auf `main` sind nicht
 
 ### Standard-Workflow (`dev-flow`)
 
-Für jede Aufgabe in diesem Repo: `dev-flow-plan` aufrufen (siehe [CLAUDE.md](CLAUDE.md#default-workflow)). Es übernimmt Path-Wahl (feature/fix/chore), Worktree, Brainstorming, Plan und Push. `dev-flow-execute` setzt den gepushten Plan dann um.
+Features und Fixes laufen über [dev-flow-plan](.agents/skills/dev-flow-plan/SKILL.md) → [dev-flow-execute](.agents/skills/dev-flow-execute/SKILL.md). Wartung ohne Verhaltensänderung verwendet [dev-flow-chore](.agents/skills/dev-flow-chore/SKILL.md). Den Git-Ablauf beschreibt [git-workflow](.agents/skills/git-workflow/SKILL.md).
 
 ```mermaid
 flowchart LR
@@ -30,12 +30,15 @@ flowchart LR
 Manuelle Variante (ohne dev-flow):
 
 ```bash
-git checkout main && git pull
-git checkout -b feature/mein-feature
+git fetch origin main
+# Vorher Ticket-ID ermitteln; Beispiel-ID durch das eigene Ticket ersetzen.
+bash scripts/worktree-create.sh feature/mein-feature-T000XXX .worktrees/mein-feature-T000XXX
+cd .worktrees/mein-feature-T000XXX
 # ... Code-Änderungen
 task workspace:validate    # Dry-Run der Manifeste falls relevant
-task test:all              # Offline-Suite
-git push -u origin feature/mein-feature
+task test:changed          # Gezielte Tests
+task freshness:check       # Generierte Artefakte und Qualitäts-Gates
+git push -u origin feature/mein-feature-T000XXX
 gh pr create --fill
 ```
 
@@ -46,33 +49,17 @@ SKIP_CI_CHECK=1 git push   # überspringt task quality:check
 
 ### Lokale Entwicklung
 
-Voraussetzungen: Docker, k3d, kubectl, `task` (go-task).
+Die [Website-Kurzreferenz](components/website/CLAUDE.md#dev-quick-start) beschreibt den lokalen Start mit Docker Compose oder direkt auf dem Host. Für den lokalen Kubernetes-Stack siehe [Devmesh-Runbook](docs/runbooks/devmesh-tailnet.md) und [Devmesh-Tasks](taskfiles/Taskfile.devmesh.yml).
 
-#### Lokales Setup bewahren (Verlust durch git reset verhindern)
+| Bereich | Package Manager | Lockfile |
+|---|---|---|
+| Root | npm | `package-lock.json` |
+| Website | pnpm | `components/website/pnpm-lock.yaml` |
+| Brett | npm | `components/brett/package-lock.json` |
 
-Lokale Konfigurationsdateien wie `.claude/settings.json` und `.opencode/opencode.jsonc` werden nicht im Git-Repository getrackt (bzw. sind gitignored). Bei einem unbedachten `git reset --hard` werden uncommitted oder ungestashte Änderungen (auch an diesen Configs) unwiderruflich gelöscht.
-* **Best Practice:** Nutze vor einem `git reset --hard` immer `git stash push -u` (oder `git stash --include-untracked`), um deine lokalen Einstellungen und uncommitted Code zu sichern.
-* **Selektives Zurücksetzen:** Nutze `git checkout origin/main -- <paths>` oder `git restore --source=origin/main <paths>` anstelle von `git reset --hard`, wenn du nur bestimmte Dateien auf den Stand von `origin/main` bringen möchtest, ohne das restliche Arbeitsverzeichnis zu beeinträchtigen.
+Lokale Einstellungen und laufende Arbeit vor Cleanup prüfen: `git status --short`, `git stash list` und `git worktree list`. Ignorierte Dateien werden von `git stash -u` nicht erfasst; benötigte lokale Konfiguration separat sichern. Fremde Worktrees und Stashes nur nach belegter Sicherung bereinigen.
 
-```bash
-task cluster:create
-task workspace:deploy
-task workspace:office:deploy   # Collabora
-task workspace:post-setup      # Nextcloud-Apps + OIDC
-```
-
-Tägliche Befehle (ENV=dev ist Default):
-
-```bash
-task workspace:status            # Pods, Services, Ingress, PVCs
-task workspace:logs -- keycloak  # Service-Logs
-task workspace:restart -- <svc>  # Service neu starten
-task workspace:psql -- website   # psql-Shell
-task workspace:port-forward      # shared-db nach localhost:5432
-task workspace:teardown          # Cleanup (interaktiv)
-```
-
-Vollständige Task-Referenz siehe [CLAUDE.md](CLAUDE.md#common-commands).
+Befehle über den [Task-Oracle](CLAUDE.md#running-tasks) ermitteln. Weitere Einstiegspunkte: [Dokumentationswegweiser](docs/README.md).
 
 ### CI-Pipeline
 
@@ -101,8 +88,8 @@ Test-IDs: `FA-01`…`FA-29` (funktional), `SA-01`…`SA-10` (Sicherheit), `NFA-0
 
 ### Monorepo-Regeln
 
-1. **k3d/k3s ist der einzige Deployment-Pfad.** Kein docker-compose.
-2. **Alle K8s-Manifeste liegen in `k3d/`.** Kustomize ist das Build-Tool. Produktion via `prod-fleet/mentolder/` bzw. `prod-fleet/korczewski/` Overlay (wrappen die Brand-Overlays `prod-mentolder/`/`prod-korczewski/`; nicht `prod/` direkt anwenden). Push-basiert — kein Flux/Argo-Reconciler.
+1. **Produktion verwendet Kubernetes/Kustomize.** Docker Compose ist für lokale Website-Entwicklung vorgesehen.
+2. **Die Kubernetes-Basis liegt in `k3d/`.** Kustomize ist das Build-Tool. Produktion via `prod-fleet/mentolder/` bzw. `prod-fleet/korczewski/` Overlay (wrappen die Brand-Overlays `prod-mentolder/`/`prod-korczewski/`; nicht `prod/` direkt anwenden). Pull-basiert via [Flux](flux/clusters/fleet/) und [OCI-Render-Workflow](.github/workflows/render-fleet-artifact.yml); `workspace:deploy` bleibt Break-Glass.
 3. **Domains zentral** in `k3d/configmap-domains.yaml`. Keine hartkodierten Hostnamen.
 4. **Dev-Secrets** in `k3d/secrets.yaml` (nur Dev-Werte — niemals echte Credentials).
 5. **Prod-Secrets** als SealedSecrets in `environments/sealed-secrets/<env>.yaml`, generiert via `task env:seal ENV=<env>`.
@@ -111,7 +98,7 @@ Test-IDs: `FA-01`…`FA-29` (funktional), `SA-01`…`SA-10` (Sicherheit), `NFA-0
 
 ### Für KI-Assistenten (Claude Code / Codex / Gemini)
 
-Lies zuerst [CLAUDE.md](CLAUDE.md). Sie enthält Agent-Routing, Standard-Workflow, Footguns und die vollständige Task-Referenz. Diese Datei ist die kompakte Sicht für menschliche Beitragende.
+Lies zuerst [AGENTS.md](AGENTS.md), dann aufgabenbezogen [CLAUDE.md](CLAUDE.md). Sie enthält Agent-Routing, Standard-Workflow, Footguns und die vollständige Task-Referenz. Diese Datei ist die kompakte Sicht für menschliche Beitragende.
 
 ### MCP-Erweiterung & Tool-Registrierung (Best Practices)
 

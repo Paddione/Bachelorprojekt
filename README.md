@@ -1,113 +1,55 @@
 # Workspace MVP
 
-Kubernetes-basierte Kollaborationsplattform für kleine Teams (Bachelorprojekt). Nextcloud (Dateien + Talk), Keycloak (SSO), Collabora (Office), Vaultwarden (Passwörter), DocuSeal (Verträge), Whiteboard, Brett (Systembrett), eine Astro+Svelte Website mit eingebautem Chat — alles auf k3d/k3s mit Traefik Ingress. DSGVO-konform, alle Daten on-premises.
+Kubernetes-basierte Kollaborationsplattform für kleine Teams (Bachelorprojekt): Nextcloud mit Talk, Pocket ID für SSO, Collabora, Vaultwarden, DocuSeal, Whiteboard, Brett und eine Astro/Svelte-Website mit Chat.
 
-## Schnellstart (Dev / k3d)
+## Einstieg
 
-Voraussetzungen: Docker, [k3d](https://k3d.io), kubectl, [task](https://taskfile.dev)
+- [Entwicklung und Beitragen](CONTRIBUTING.md) — Worktrees, Package Manager und Prüfungen.
+- [Dokumentationswegweiser](docs/README.md) — Architektur, Betrieb, Spezifikationen und Referenzen.
+- [Agent-Einstieg](AGENTS.md) — kompakte Arbeitsregeln; [CLAUDE.md](CLAUDE.md) enthält die ausführliche Referenz.
+- [Website lokal starten](components/website/CLAUDE.md#dev-quick-start) — Docker- und Host-Variante einschließlich Umgebungsvariablen.
+
+## Entwicklung
+
+Für die lokale Website gibt es [compose.dev.yaml](compose.dev.yaml). Einrichtung und benötigte `.env`-Werte stehen im [Website-Guide](components/website/CLAUDE.md#dev-quick-start).
+
+Der lokale Kubernetes-Stack verwendet die Overlays in [dev-local/](dev-local/) und die Tasks in [taskfiles/Taskfile.devmesh.yml](taskfiles/Taskfile.devmesh.yml). Zielbild und Netz-Zugang: [ADR-008](docs/adr/ADR-008-local-k3s-dev-mesh.md) und [Devmesh-Runbook](docs/runbooks/devmesh-tailnet.md). Historische k3d-Anleitungen sind kein Bootstrap für diesen Stack.
+
+Task-Befehle lassen sich vor der Ausführung über den Oracle auflösen:
 
 ```bash
-git clone https://github.com/Paddione/Bachelorprojekt.git && cd Bachelorprojekt
-task workspace:up        # Cluster + Workspace + Office + MCP + Post-Setup
-```
-
-Oder schrittweise:
-
-```bash
-task cluster:create
-task workspace:deploy
-task workspace:office:deploy   # Collabora (separater Overlay)
-task workspace:post-setup      # Nextcloud-Apps + OIDC
+bash scripts/vda.sh oracle 'run all offline tests' --dry-run
 ```
 
 ## Produktion
 
-Zwei Brands (`ENV=mentolder` / `ENV=korczewski`). **Fleet-Stage-3 abgeschlossen (Stand 2026-05-31):** Beide Marken laufen auf dem vereinheitlichten `fleet`-Cluster (`pk-hetzner-4/6/8`, + 3 Worker gekko-hetzner-2/3/4). Mentolder läuft im Namespace `workspace` (mentolder.de), Korczewski in `workspace-korczewski` (korczewski.de). Der alte `mentolder`-Standalone-Cluster wurde **decommissioned**. Details in CLAUDE.md. Jede ENV-aware Task akzeptiert `ENV=mentolder` oder `ENV=korczewski`:
+Die Produktions-Manifeste werden aus [k3d/](k3d/) und den [Fleet-Overlays](prod-fleet/) gerendert. Der [Render-Workflow](.github/workflows/render-fleet-artifact.yml) veröffentlicht das OCI-Artefakt; [Flux](flux/clusters/fleet/) reconciliert es auf dem `fleet`-Cluster. `workspace:deploy` ist der manuelle Break-Glass-Pfad.
+
+Die Brand-Zuordnung liegt in [environments/mentolder.yaml](environments/mentolder.yaml) und [environments/korczewski.yaml](environments/korczewski.yaml). Suspensionen und Wiederaufnahme beschreibt das [Flux-Runbook](docs/runbooks/flux-suspensions.md). Laufzustand und Replica-Zahlen müssen am Cluster geprüft werden.
+
+Domains werden in [k3d/configmap-domains.yaml](k3d/configmap-domains.yaml) und den Umgebungsprofilen gepflegt.
+
+## Repository-Layout
+
+| Bereich | Inhalt / maßgebliche Referenz |
+|---|---|
+| [components/](components/) | Anwendungen; [Website-Guide](components/website/CLAUDE.md) |
+| [packages/](packages/) | Gemeinsame Pakete |
+| [k3d/](k3d/) | Kubernetes-Basis-Manifeste, trotz historischem Verzeichnisnamen weiterhin verwendet |
+| [prod-fleet/](prod-fleet/), [flux/](flux/) | Produktions-Overlays und GitOps-Reconciliation |
+| [prod/](prod/), [prod-mentolder/](prod-mentolder/), [prod-korczewski/](prod-korczewski/) | Von Fleet-Overlays referenzierte Basen; nicht direkt anwenden |
+| [dev-local/](dev-local/), [devmesh/](devmesh/) | Lokale Cluster-Overlays, Inventar und Netz-Policy |
+| [environments/](environments/) | Umgebungsprofile, Schema und verschlüsselte Secrets |
+| [scripts/](scripts/), [taskfiles/](taskfiles/), [Taskfile.yml](Taskfile.yml) | Automatisierung und Task-Einstieg |
+| [tests/](tests/), [openspec/](openspec/) | Tests, aktuelle Spezifikationen und Change-Archiv |
+| [docs/](docs/README.md), [.agents/skills/](.agents/skills/) | Dokumentation und wiederverwendbare Arbeitsabläufe |
+
+## Prüfungen und Regeln
 
 ```bash
-task workspace:deploy ENV=mentolder
-task feature:deploy            # fan-out auf beide Prod-Cluster
-task health                    # Cross-Cluster-Status
+task test:changed
+task freshness:check
+task workspace:validate
 ```
 
-Cluster-Topologie, Footguns und Operations-Befehle siehe **[CLAUDE.md](CLAUDE.md)** — das ist die maßgebliche Referenz für Entwicklung und Betrieb.
-
-## Service-Endpunkte (Dev)
-
-| Service | URL | Beschreibung |
-|---------|-----|--------------|
-| Website (Astro + Chat) | http://web.localhost | mentolder.de / korczewski.de (per `BRAND`) |
-| Keycloak (SSO) | http://auth.localhost | Identity Provider |
-| Nextcloud (Dateien + Talk) | http://files.localhost | Dateien, Kalender, Kontakte, Video |
-| Collabora (Office) | http://office.localhost | WOPI-Backend für Nextcloud |
-| Talk HPB (Signaling) | http://signaling.localhost | WebRTC (Janus + NATS + coturn) |
-| Vaultwarden | http://vault.localhost | Passwort-Manager |
-| Whiteboard | http://board.localhost | Kollaboratives Whiteboard |
-| Brett (Systembrett) | http://brett.localhost | 3D-Aufstellungsboard |
-| DocuSeal | http://sign.localhost | E-Signaturen |
-| Docs | http://docs.localhost | Docsify-Dokumentation |
-| Mailpit | http://mail.localhost | Dev-Mailserver |
-# LiveKit removed per T002184
-In Produktion ersetzt `*.mentolder.de` / `*.korczewski.de` die `*.localhost`-Adressen.
-
-## Architektur
-
-```mermaid
-graph TB
-    Traefik["Traefik Ingress (80/443)"]
-
-    subgraph workspace ["Namespace: workspace"]
-        KC[Keycloak]
-        NC[Nextcloud + Talk]
-        CO[Collabora]
-        HPB[Talk HPB]
-        VW[Vaultwarden]
-        WB[Whiteboard]
-        BRETT[Brett 3D]
-        MP[Mailpit]
-        DOCS[Docs]
-        DS[DocuSeal]
-        DB[(PostgreSQL 16 shared-db)]
-    end
-
-    subgraph website-ns ["Namespace: website"]
-        WEB[Website Astro + Chat]
-    end
-
-    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & WEB
-    KC -. OIDC .-> NC & VW & WEB & DS & BRETT
-    NC --> CO
-    NC --> HPB
-    WEB --> LK
-    LKI --> LK
-    LK --> LKE
-    KC & NC & DS & BRETT & WEB --> DB
-```
-
-## Repository-Layout (Kurzfassung)
-
-- `k3d/` — Kubernetes-Basis-Manifeste (Kustomize, einziger Deployment-Pfad)
-- `prod-fleet/mentolder/`, `prod-fleet/korczewski/` — Produktions-Overlays (push-deployed; wrappen die Brand-Overlays `prod-mentolder/`/`prod-korczewski/` + `prod/`)
-- `environments/` — Per-Env Config + SealedSecrets
-- `components/website/` — Astro + Svelte (Brand-aware: mentolder + korczewski)
-- `components/brett/` — Node.js Systembrett-Service
-- `scripts/`, `tests/`, `claude-code/`, `k3d/docs-content/`
-
-## Tests
-
-```bash
-./tests/runner.sh local              # Alle Tests gegen k3d
-./tests/runner.sh local <TEST-ID>    # Einzeltest (z.B. SA-08)
-task test:all                        # Offline-Suite (Unit + Manifests + Dry-Run)
-```
-
-Test-IDs: `FA-01`…`FA-29` (funktional), `SA-01`…`SA-10` (Sicherheit), `NFA-01`…`NFA-09` (nicht-funktional), `AK-03`, `AK-04` (Abnahme). Lücken in den Nummern stammen aus entfernten Services (Mattermost, InvoiceNinja).
-
-## Regeln
-
-1. Einziger Deployment-Pfad: k3d/k3s mit Kustomize. Kein docker-compose.
-2. Alle Änderungen über Pull Requests; Squash-and-Merge.
-3. CI muss grün sein vor dem Merge (`task test:all`).
-4. Domains zentral in `k3d/configmap-domains.yaml`; keine hartkodierten Hostnamen.
-5. Prod-Secrets als SealedSecrets in `environments/sealed-secrets/`; niemals Klartext committen.
-6. Detaillierte Konventionen, Gotchas und Tasks: siehe [CLAUDE.md](CLAUDE.md) und [CONTRIBUTING.md](CONTRIBUTING.md).
+Änderungen gehen über isolierte Worktrees und Pull Requests mit Squash-Merge. Root und Brett verwenden npm, die Website pnpm. Produktions-Deployments verwenden Kubernetes/Kustomize; Compose dient der lokalen Website-Entwicklung. Secrets nie im Klartext committen. Details: [CONTRIBUTING.md](CONTRIBUTING.md).

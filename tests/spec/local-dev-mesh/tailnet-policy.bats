@@ -17,19 +17,19 @@ setup() {
 
 # Normalisiert HuJSON (ganzzeilige //-Kommentare, Trailing Commas) zu JSON und gibt eine
 # Kennzahlenzeile aus:
-#   acls=<n> grants=<n> bad=<n> ports=<p,...> mesh=<0|1> exc=<n> excdst=<d,...> gpuport=<p> alias=<0|1>
+#   acls=<n> grants=<n> bad=<n> ports=<p,...> mesh=<0|1> exc=<n> excdst=<d,...> gpuports=<p,...> alias=<0|1>
 #   bad     = Ziele tag:devclient oder Wildcard (*)
 #   ports   = Ports, die tag:devclient auf tag:devmesh erreicht
 #   mesh    = 1, wenn tag:devmesh -> tag:devmesh:* existiert
 #   exc     = Regeln mit Quelle tag:devmesh und mindestens einem Ziel ausserhalb tag:devmesh
 #   excdst  = alle Ziele dieser Regeln ausserhalb tag:devmesh
-#   gpuport = gpu_endpoint.port aus devmesh/inventory.yaml
+#   gpuports = gpu_endpoint.ports[].port, komma-getrennt, Inventar-Reihenfolge
 #   alias   = 1, wenn hosts.gpu-host definiert ist
 policy_facts() {
   python3 - "$POLICY" "$INVENTORY" <<'PY'
 import json, re, sys, yaml
 inv = yaml.safe_load(open(sys.argv[2])) or {}
-gpu_port = str((inv.get("gpu_endpoint") or {}).get("port") or "-")
+gpu_ports = [str(p.get("port")) for p in ((inv.get("gpu_endpoint") or {}).get("ports") or [])]
 raw = open(sys.argv[1]).read()
 lines = [l for l in raw.splitlines() if not l.lstrip().startswith("//")]
 policy = json.loads(re.sub(r",(\s*[}\]])", r"\1", "\n".join(lines)))
@@ -50,7 +50,7 @@ exc_rules = [a for a in acls if "tag:devmesh" in a.get("src", [])
 exc_dst = [d for a in exc_rules for d in a.get("dst", []) if not d.startswith("tag:devmesh")]
 alias = int("gpu-host" in (policy.get("hosts") or {}))
 print(f"acls={len(acls)} grants={len(grants)} bad={bad} ports={','.join(sorted(ports))} mesh={int(mesh)}"
-      f" exc={len(exc_rules)} excdst={','.join(exc_dst) or '-'} gpuport={gpu_port} alias={alias}")
+      f" exc={len(exc_rules)} excdst={','.join(exc_dst) or '-'} gpuports={','.join(gpu_ports) or '-'} alias={alias}")
 PY
 }
 
@@ -59,7 +59,7 @@ PY
   run policy_facts
   [ "$status" -eq 0 ] || { echo "Policy nicht parsebar: $output"; return 1; }
   local ports
-  ports="$(printf '%s\n' "$output" | sed -nE 's/.*ports=([^ ]*).*/\1/p')"
+  ports="$(printf '%s\n' "$output" | sed -nE 's/.* ports=([^ ]*).*/\1/p')"
   for p in 22 443 6443; do
     [[ ",${ports}," == *",${p},"* ]] || { echo "Port $p fehlt fuer tag:devclient -> tag:devmesh: $output"; return 1; }
   done
@@ -70,15 +70,17 @@ PY
 @test "T900116: GPU-Endpunkt ist die einzige Ausnahme von tag:devmesh in einen Client" {
   run policy_facts
   [ "$status" -eq 0 ] || { echo "Policy oder Inventar nicht parsebar: $output"; return 1; }
-  # Positiv-Anker: Inventar nennt einen GPU-Port, Policy definiert den Alias gpu-host.
-  printf '%s\n' "$output" | grep -qE 'gpuport=[0-9]+' || { echo "gpu_endpoint.port fehlt im Inventar: $output"; return 1; }
+  # Positiv-Anker: Inventar nennt mindestens einen GPU-Port, Policy definiert den Alias gpu-host.
+  printf '%s\n' "$output" | grep -qE 'gpuports=[0-9]+(,[0-9]+)*' \
+    || { echo "gpu_endpoint.ports fehlt im Inventar: $output"; return 1; }
   printf '%s\n' "$output" | grep -qF 'alias=1' || { echo "hosts.gpu-host fehlt in der Policy: $output"; return 1; }
-  local gpuport
-  gpuport="$(printf '%s\n' "$output" | sed -nE 's/.*gpuport=([0-9]+).*/\1/p')"
-  # Genau eine Regel, genau ein Ziel: gpu-host auf dem Inventar-Port.
+  local gpuports expected
+  gpuports="$(printf '%s\n' "$output" | sed -nE 's/.*gpuports=([0-9,]+).*/\1/p')"
+  expected="gpu-host:$(printf '%s' "$gpuports" | sed 's/,/,gpu-host:/g')"
+  # Genau eine Regel, ein Ziel je Inventar-Port, in Inventar-Reihenfolge (Vertrag aus P1a B2).
   printf '%s\n' "$output" | grep -qF 'exc=1 ' || { echo "erwartet genau eine Ausnahme-Regel: $output"; return 1; }
-  printf '%s\n' "$output" | grep -qF "excdst=gpu-host:${gpuport} " \
-    || { echo "Ausnahme-Ziel ist nicht gpu-host:${gpuport}: $output"; return 1; }
+  printf '%s\n' "$output" | grep -qF "excdst=${expected} " \
+    || { echo "Ausnahme-Ziele stimmen nicht mit gpu_endpoint.ports ueberein: $output (erwartet excdst=${expected})"; return 1; }
 }
 
 @test "T900116: Policy enthaelt keine Regel mit Ziel tag:devclient" {

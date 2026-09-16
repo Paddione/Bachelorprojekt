@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2317 · Scenarios: 5156
+Specs: 126 · Requirements: 2316 · Scenarios: 5153
 
 ## factory-pipeline
 
@@ -157,28 +157,24 @@ In-flight:
 ## product
 
 ### sdlc-cockpit
-Reqs: 101 · Scenarios: 200 · Lines: 2406
+Reqs: 101 · Scenarios: 199 · Lines: 2397
 Last touches:
+  - Dev-Deployment — SDLC-Console auf mentolder-dev-Cluster | T900145 | 2026-09-16 | RENAMED
+  - Dev-Deployment — SDLC-Console auf dem devmesh-Cluster | T900145 | 2026-09-16 | MODIFIED
   - Satellite Absorption Redirects | T013302 | 2026-08-22 | MODIFIED
   - Das KI-Deck führt genau eine Phase→Modell-Tabelle | T013302 | 2026-08-22 | ADDED
   - Der Factory-Default ist im KI-Deck sichtbar und setzbar | T013302 | 2026-08-22 | ADDED
-  - Die Modellauswahl kennt die Modelle des Proxy | T013302 | 2026-08-22 | ADDED
-  - The cockpit is the only administration surface for the llm-proxy | T013909 | 2026-08-22 | ADDED
-In-flight:
-  - Dev-Deployment — SDLC-Console auf mentolder-dev-Cluster | T900145 | active | RENAMED
-  - Dev-Deployment — SDLC-Console auf dem devmesh-Cluster | T900145 | active | MODIFIED
 
 ### ticket-system
-Reqs: 83 · Scenarios: 236 · Lines: 2197
+Reqs: 83 · Scenarios: 236 · Lines: 2187
 Paths: scripts/ticket
 Last touches:
+  - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T900145 | 2026-09-16 | MODIFIED
   - Repository-scoped GitHub object identity | T900159 | 2026-09-12 | ADDED
   - Canonical work-item bindings preserve invisible UUID identity | T900159 | 2026-09-12 | ADDED
   - Identity corrections are append-only and cycle-safe | T900159 | 2026-09-12 | ADDED
   - Typed human GitHub references have one central parser | T900159 | 2026-09-12 | ADDED
-  - Lesepfade unterscheiden kein-Treffer von falscher-Frage | T014386 | 2026-08-23 | ADDED
 In-flight:
-  - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T900145 | active | MODIFIED
   - GitHub Snapshot Schema and Cursor Tracking | T900161 | active | ADDED
   - GitHub Identity and Closing Relationship Auto-Registration | T900161 | active | ADDED
   - PR Events and Status Compatibility Projection | T900161 | active | ADDED
@@ -305,13 +301,11 @@ Last touches:
   - Coaching content is only sent to on-premises providers | T003814 | 2026-08-14 | ADDED
 
 ### batch-factory-pipeline-robustness
-Reqs: 3 · Scenarios: 6 · Lines: 73
+Reqs: 3 · Scenarios: 6 · Lines: 71
 Last touches:
+  - The FACTORY_CTX default is visible immediately on sourcing lib.sh | T900145 | 2026-09-16 | MODIFIED
   - Merged-PR-Gate schließt gemergte Tickets vor dem Dispatch | T014384 | 2026-08-23 | ADDED
   - The factory stops dispatching a plan after three consecutive no-commit runs | T003810 | 2026-08-14 | ADDED
-  - The FACTORY_CTX default is visible immediately on sourcing lib.sh | T003810 | 2026-08-14 | ADDED
-In-flight:
-  - The FACTORY_CTX default is visible immediately on sourcing lib.sh | T900145 | active | MODIFIED
 
 ### batch-local-test-runner-fixes
 Reqs: 3 · Scenarios: 3 · Lines: 39
@@ -658,17 +652,13 @@ In-flight:
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 
 ### local-dev-mesh
-Reqs: 7 · Scenarios: 15 · Lines: 162
+Reqs: 10 · Scenarios: 20 · Lines: 215
 Last touches:
   - A devmesh host with a GPU offers it as a schedulable resource | T900179 | 2026-09-16 | ADDED
   - GPU enablement on a host is scripted and repeatable | T900179 | 2026-09-16 | ADDED
   - The status view reports GPU capacity | T900179 | 2026-09-16 | ADDED
-  - Dev peers join the tailnet with role tags | T900142 | 2026-09-11 | ADDED
-  - LAN path is preferred, the tailnet relay is the fallback | T900142 | 2026-09-11 | ADDED
-In-flight:
-  - The k3d dev cluster is removed only after the acceptance gate | T900145 | active | ADDED
-  - No active reference to the k3d dev context remains | T900145 | active | ADDED
-  - The fourth host joins devmesh as an agent | T900145 | active | ADDED
+  - The k3d dev cluster is removed only after the acceptance gate | T900145 | 2026-09-16 | ADDED
+  - No active reference to the k3d dev context remains | T900145 | 2026-09-16 | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -936,25 +926,14 @@ In-flight:
   - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | active | ADDED
 
 ### sdlc-isolation
-Reqs: 29 · Scenarios: 56 · Lines: 644
+Reqs: 25 · Scenarios: 49 · Lines: 562
 Last touches:
-  - No remote cockpit and no tunnel into the home network | T900142 | 2026-09-11 | RENAMED
-  - Remote access to the SDLC surface only through the tailnet, without an inbound port | T900142 | 2026-09-11 | MODIFIED
-  - Single Entry Point for the Local SDLC Stack | T002656 | 2026-08-13 | MODIFIED
-  - Health Gate Reports Diagnosable Failure | T002656 | 2026-08-13 | MODIFIED
-  - sdlc:up starts the local chat loadout before the health gate | T002656 | 2026-08-13 | ADDED
+  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900145 | 2026-09-16 | RENAMED
+  - Local k3d cluster runs the SDLC stack from the production manifests | T900145 | 2026-09-16 | RENAMED
+  - Kubelet serving certificate drift detection on the local k3d dev cluster | T900145 | 2026-09-16 | REMOVED
+  - Repairing a stale kubelet serving certificate | T900145 | 2026-09-16 | REMOVED
+  - Translating the misleading x509 error in the ticket tooling | T900145 | 2026-09-16 | REMOVED
 In-flight:
-  - Local k3d cluster runs the SDLC stack from the production manifests | T900145 | active | RENAMED
-  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900145 | active | RENAMED
-  - SDLC stack runs in the fleet dev namespace from the production manifests | T900145 | active | MODIFIED
-  - Mixed runtime — cluster pods for stateful services, native processes for GPU | T900145 | active | MODIFIED
-  - Single Entry Point for the Local SDLC Stack | T900145 | active | MODIFIED
-  - The `dev:` Task Namespace Stays Reserved for the Staging Stack | T900145 | active | MODIFIED
-  - sdlc:down stops the chat loadout before the proxy | T900145 | active | MODIFIED
-  - Kubelet serving certificate drift detection on the local k3d dev cluster | T900145 | active | REMOVED
-  - Repairing a stale kubelet serving certificate | T900145 | active | REMOVED
-  - Translating the misleading x509 error in the ticket tooling | T900145 | active | REMOVED
-  - Health gate covers kubelet reachability, not only API-server reachability | T900145 | active | REMOVED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
   - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
   - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED

@@ -6,28 +6,26 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu sdlc-isolation ergänzen
 
 ## Requirements
 
-### Requirement: Local k3d cluster runs the SDLC stack from the production manifests
+### Requirement: SDLC stack runs in the fleet dev namespace from the production manifests
 
-The Dev-Host SHALL run a local k3d cluster named `mentolder-dev` (kubeconfig context
-`k3d-mentolder-dev`) that serves the SDLC console, a local PostgreSQL, and a second
-CPU-only bge-embed/bge-rerank pair. The stack SHALL be rendered from the same Kustomize
-manifests as production via a self-contained overlay `k3d/sdlc-stack/` (no manifest copies),
-built with `--load-restrictor=LoadRestrictionsNone`.
+The SDLC stack of record — SDLC console, the dev PostgreSQL holding `tickets.*`, and the factory
+runner — SHALL run in the namespace `workspace-dev` of the `fleet` cluster, rendered from the same
+Kustomize base as production via the dev overlay (`k3d/dev-stack/`). A development instance MAY
+run on the `devmesh` cluster; it SHALL NOT replace the stack of record. No `k3d-*` kubeconfig
+context SHALL be required by any SDLC task.
 
-#### Scenario: SDLC console is served by the local k3d cluster
+#### Scenario: SDLC console is served from the fleet dev namespace
 
-- **GIVEN** the local k3d cluster is running and the stack is deployed
-- **WHEN** a request addresses `http://sdlc.localhost`
-- **THEN** the response is served by a pod in the local k3d cluster, backed by the local
-  PostgreSQL, and the endpoint answers with HTTP 200
+- **GIVEN** the dev stack is deployed to `workspace-dev` on the `fleet` cluster
+- **WHEN** a request addresses the SDLC console of record
+- **THEN** the response is served by a pod in `workspace-dev`, backed by the dev PostgreSQL in
+  the same namespace
 
-#### Scenario: Second bge pair responds locally
+#### Scenario: No k3d context is required
 
-- **GIVEN** the stack is deployed
-- **WHEN** a health probe targets the `llm-gateway-embed` and `llm-gateway-rerank` services
-- **THEN** both answer with HTTP 200, without any dependency on the fleet cluster
-
----
+- **GIVEN** a developer client whose kubeconfig lists `fleet` and `devmesh` and no `k3d-*` context
+- **WHEN** the SDLC tasks run
+- **THEN** none of them fails for lack of a `k3d-*` context
 
 ### Requirement: SDLC console runs the sdlc build target
 
@@ -247,22 +245,29 @@ collision. Naming the state is what makes the regression visible.
 
 ### Requirement: Single Entry Point for the Local SDLC Stack
 
+`task sdlc:up` SHALL be the single entry point for the local SDLC stack. It SHALL check that the
+`devmesh` cluster is reachable, that the SDLC deployments of the development instance are rolled
+out, start the llm-proxy and the default chat loadout, and then run the health gate. It SHALL NOT
+create or delete a cluster. It SHALL exit 0 only after the health gate reports every component
+ready, including the chat loadout.
+
 #### Scenario: Cold start brings the stack up
 
-| | Before | After |
-|---|---|---|
-| Steps | cluster → stack → llm-proxy → health gate | cluster → stack → llm-proxy → **default chat loadout** → health gate |
-| Exit semantics | Exit 0 only after the health gate reports every component ready | unchanged — now including the chat loadout |
+- **GIVEN** a reachable devmesh cluster with the development instance deployed and a stopped llm-proxy
+- **WHEN** the operator runs `task sdlc:up`
+- **THEN** the llm-proxy and the default chat loadout are started and the health gate runs
+- **AND** the command exits 0 only after every component is ready
+- **AND** no cluster is created
 
 ### Requirement: The `dev:` Task Namespace Stays Reserved for the Staging Stack
 
 The task namespace `dev:` SHALL continue to address the persistent staging stack defined in
 `taskfiles/Taskfile.dev-stack.yml`. Tasks that operate on the local SDLC stack SHALL NOT be
-added under the `dev:` prefix.
+added under the `dev:` prefix; tasks that operate on the devmesh cluster SHALL use the `devmesh:`
+prefix.
 
-Rationale: beide Stacks laufen im selben Cluster-Kontext `k3d-mentolder-dev`. Ein `dev:up`,
-das den SDLC-Stack startet, stünde direkt neben `dev:deploy`, das den Staging-Stack aufspielt —
-gleiches Präfix, zwei verschiedene Systeme, gleicher Kontext.
+Rationale: ein `dev:up`, das den lokalen SDLC-Stack startet, stünde direkt neben `dev:deploy`,
+das den Staging-Stack aufspielt — gleiches Präfix, zwei verschiedene Systeme.
 
 #### Scenario: No SDLC entry point under the staging prefix
 
@@ -270,6 +275,7 @@ gleiches Präfix, zwei verschiedene Systeme, gleicher Kontext.
 - **WHEN** the task list is inspected
 - **THEN** no task named `dev:up` or `dev:down` exists
 - **AND** the SDLC entry points are reachable as `sdlc:up` and `sdlc:down`
+- **AND** devmesh cluster tasks are reachable under `devmesh:`
 
 ### Requirement: Health Gate Reports Diagnosable Failure
 
@@ -306,104 +312,6 @@ terminierte dieser nie und verlöre damit seinen Exit-Status als Erfolgssignal.
 - **THEN** it runs the Astro dev server with `BUILD_TARGET=sdlc`
 
 <!-- merged from change delta sdlc-isolation.md (4e383e18c012) -->
-
-### Requirement: Kubelet serving certificate drift detection on the local k3d dev cluster
-
-The system SHALL provide a read-only check that compares, for every node of the
-local k3d dev cluster, the node's Kubernetes `InternalIP` against the IP entries
-in the Subject Alternative Name of that node's kubelet serving certificate, and
-SHALL report a mismatch as an actionable finding naming the node, both IPs and
-the repair command.
-
-The check SHALL distinguish a finding from a missing precondition by exit code:
-`0` when every node matches, `1` when at least one node's certificate is stale,
-and `2` when a required tool (`kubectl`, `docker`, `openssl`) is unavailable or
-the cluster context cannot be reached.
-
-The certificate SHALL be parsed on the host, because the k3s node container does
-not ship an `openssl` binary.
-
-#### Scenario: Node IP matches the certificate SAN
-
-- **GIVEN** the node's `InternalIP` is contained in the certificate's SAN IP list
-- **WHEN** the check runs
-- **THEN** it exits `0` and reports the node as OK
-
-#### Scenario: Docker IPs swapped and the certificate SAN is stale
-
-- **GIVEN** the node's `InternalIP` is NOT contained in the certificate's SAN IP list
-- **WHEN** the check runs
-- **THEN** it exits `1`
-- **AND** the output names the node, the current node IP, the SAN IP and the repair command
-
-#### Scenario: Required tooling is unavailable
-
-- **GIVEN** `openssl` is not present in `PATH`
-- **WHEN** the check runs
-- **THEN** it exits `2` rather than `1`, so a missing precondition is not reported as a finding
-
-### Requirement: Repairing a stale kubelet serving certificate
-
-The system SHALL offer a `--repair` mode that deletes the kubelet serving
-certificate and key inside the affected node container, restarts that container,
-and re-runs the check afterwards.
-
-Repair SHALL NOT be triggered implicitly by any other command. Restarting a node
-container as a side effect of an unrelated operation would disrupt every
-concurrent session.
-
-#### Scenario: Restart alone does not reissue the certificate
-
-- **GIVEN** a node whose kubelet serving certificate carries a stale SAN
-- **WHEN** the node container is restarted WITHOUT deleting the certificate files
-- **THEN** the SAN remains stale and the check still exits `1`
-
-#### Scenario: Deleting the certificate before the restart reissues it
-
-- **GIVEN** a node whose kubelet serving certificate carries a stale SAN
-- **WHEN** the repair mode deletes certificate and key and then restarts the container
-- **THEN** the reissued certificate contains the node's current IP and the check exits `0`
-
-### Requirement: Translating the misleading x509 error in the ticket tooling
-
-The shared exec path used by the ticket tooling SHALL detect an x509 SAN
-verification failure in the error output of `kubectl exec` and SHALL emit an
-additional hint that names the kubelet as the affected component and states the
-check command. The hint SHALL remain silent for unrelated errors.
-
-The raw error names `psql` and the `shared-db` pod and therefore points at the
-database rather than at the kubelet; without the hint the reader searches in the
-wrong subsystem.
-
-#### Scenario: x509 SAN failure is translated
-
-- **GIVEN** `kubectl exec` fails with `tls: failed to verify certificate: x509: certificate is valid for …, not <node-ip>`
-- **WHEN** the shared exec path handles the failure
-- **THEN** an additional hint naming the kubelet and the check command is written to stderr
-
-#### Scenario: Unrelated errors stay untouched
-
-- **GIVEN** a plain SQL error such as a missing relation
-- **WHEN** the shared exec path handles the failure
-- **THEN** no kubelet hint is emitted
-
-### Requirement: Health gate covers kubelet reachability, not only API-server reachability
-
-The local stack health gate SHALL run the certificate check after its cluster
-reachability check.
-
-`kubectl get nodes` is served by the API server and stays green while every
-`kubectl exec` fails, so API-server reachability alone does not establish that
-the stack is usable.
-
-#### Scenario: API server reachable but kubelet certificate stale
-
-- **GIVEN** the cluster answers `kubectl get nodes`
-- **AND** a node's kubelet serving certificate carries a stale SAN
-- **WHEN** the health gate runs
-- **THEN** it fails and names the certificate check as the failing component
-
-<!-- merged from change delta sdlc-isolation.md (88141bdfbf61) -->
 
 ### Requirement: Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet
 
@@ -476,26 +384,37 @@ NOT be triggered by commits touching only SDLC directories.
 
 ---
 
-### Requirement: Mixed runtime — local k3d for stateful services, native processes for GPU
+### Requirement: Mixed runtime — cluster pods for stateful services, native processes for GPU
 
-Stateful SDLC components (SDLC console, local PostgreSQL holding `tickets.*`, the second
-bge-embed/bge-rerank pair) SHALL run in a local k3d cluster using the same Kustomize manifests
-as production. GPU-bound processes (llama.cpp, Ollama, ComfyUI, Unsloth training) SHALL run
-natively on the Dev-Host without container indirection.
+Stateful SDLC components (SDLC console, the dev PostgreSQL holding `tickets.*`, the factory
+runner) SHALL run as pods — the stack of record in `workspace-dev` on `fleet`, the development
+instance on `devmesh` — using the same Kustomize base as production. They SHALL NOT be placed in
+a k3d cluster.
 
-#### Scenario: Local k3d provides the SDLC console
+GPU-bound processes (llama.cpp, Ollama, ComfyUI, Unsloth training) SHALL run natively on the
+Dev-Host without container indirection. Their availability SHALL be optional from the clusters'
+point of view: a consumer that cannot reach a GPU-bound process SHALL degrade to its configured
+escalation chain or fail explicitly, rather than block.
 
-- **GIVEN** the local k3d cluster is running
+#### Scenario: The SDLC console is provided by a cluster pod
+
+- **GIVEN** the dev stack is deployed to `workspace-dev`
 - **WHEN** the SDLC console is requested
-- **THEN** it is served by a pod in the local k3d cluster, backed by the local PostgreSQL
+- **THEN** it is served by a pod in `workspace-dev`, backed by the dev PostgreSQL in that
+  namespace
 
 #### Scenario: GPU processes run natively
 
 - **GIVEN** the Dev-Host
 - **WHEN** llama.cpp or an Unsloth training run is started
-- **THEN** it runs as a native process (WSL/Windows) and not inside a container
+- **THEN** it runs as a native process and not inside a container
 
----
+#### Scenario: A powered-down Dev-Host does not stall the clusters
+
+- **GIVEN** the Dev-Host is switched off, so no GPU-bound process answers
+- **WHEN** a cluster-side consumer requests a completion
+- **THEN** it falls back to its configured escalation chain or returns an explicit error, and
+  does not hang
 
 ### Requirement: SDLC data is local-primary, CI events arrive via pull
 
@@ -619,19 +538,20 @@ default is started, not every loadout.
 
 ### Requirement: sdlc:down stops the chat loadout before the proxy
 
-`sdlc:down` SHALL stop the configured chat loadout before stopping the
-llm-proxy. Stopping SHALL be best-effort: if the proxy is already unreachable
-or the loadout is not running, the shutdown SHALL still complete successfully.
+`sdlc:down` SHALL stop the configured chat loadout before stopping the llm-proxy. Stopping SHALL
+be best-effort: if the proxy is already unreachable or the loadout is not running, the shutdown
+SHALL still complete successfully. `sdlc:down` SHALL NOT delete or stop the devmesh cluster.
 
-Rationale: loadout units are managed via `systemd-run` and outlive the proxy
-process; stopping the proxy first would strand the llama-server on its port.
+Rationale: loadout units are managed via `systemd-run` and outlive the proxy process; stopping
+the proxy first would strand the llama-server on its port. The devmesh cluster is shared and
+persistent.
 
 #### Scenario: Shutdown stops the loadout before the proxy
 
 - **GIVEN** the SDLC stack is running with the chat loadout healthy
 - **WHEN** the operator runs `task sdlc:down`
 - **THEN** the loadout is stopped before the llm-proxy is stopped
-- **AND** the cluster is deleted afterwards
+- **AND** the devmesh cluster keeps running
 
 #### Scenario: Shutdown tolerates an already-stopped loadout
 
@@ -639,6 +559,4 @@ process; stopping the proxy first would strand the llama-server on its port.
 - **WHEN** the operator runs `task sdlc:down`
 - **THEN** the shutdown completes without error
 
-<!-- merged from change delta sdlc-isolation.md (e1ee564c40bd) -->
-
-<!-- merged from change delta sdlc-isolation.md (5e87e6509fdf) -->
+<!-- merged from change delta sdlc-isolation.md (5cf0fbb99a31) -->

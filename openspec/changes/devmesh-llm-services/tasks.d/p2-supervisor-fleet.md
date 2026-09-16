@@ -174,7 +174,7 @@ ASCII ohne Umlaute wie im Bestand, Ticket-Marke `[T900191]`.
 **Files:**
 - Modify: `docker/mcp-node/supervisor.sh`
 
-- [ ] **Schritt 1: Kopfkommentar ergänzen.** Direkt unter dem bestehenden Kopfblock, vor
+- [x] **Schritt 1: Kopfkommentar ergänzen.** Direkt unter dem bestehenden Kopfblock, vor
   `set -u`, einfügen:
 
 ```sh
@@ -186,7 +186,7 @@ ASCII ohne Umlaute wie im Bestand, Ticket-Marke `[T900191]`.
 # ein ausgewaehlter Dienst ohne Pflichtwert startet trotzdem nicht.
 ```
 
-- [ ] **Schritt 2: Auswahl-Helfer nach `trap shutdown TERM INT` einfügen**
+- [x] **Schritt 2: Auswahl-Helfer nach `trap shutdown TERM INT` einfügen**
 
 ```sh
 SERVICES="$(printf '%s' "${MCP_NODE_SERVICES:-}" | tr -d ' ')"
@@ -209,7 +209,7 @@ enabled() {
 }
 ```
 
-- [ ] **Schritt 3: llm-proxy-Block einklammern.** Der bestehende `supervise llm-proxy env …`
+- [x] **Schritt 3: llm-proxy-Block einklammern.** Der bestehende `supervise llm-proxy env …`
   Aufruf bleibt Zeile für Zeile gleich, einschließlich der `LOADOUTS_PATH=…loadouts.json`-Zeile,
   die `tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats` Test 1.3 prüft. Er steht jetzt
   innerhalb von:
@@ -224,7 +224,7 @@ if enabled llm-proxy; then
 fi
 ```
 
-- [ ] **Schritt 4: postgres-Block ersetzen** (den ganzen Abschnitt `# ── postgres (3001)` bis
+- [x] **Schritt 4: postgres-Block ersetzen** (den ganzen Abschnitt `# ── postgres (3001)` bis
   zum `fi`):
 
 ```sh
@@ -246,7 +246,7 @@ if enabled postgres; then
 fi
 ```
 
-- [ ] **Schritt 5: github und die Repo-eigenen Server einklammern**
+- [x] **Schritt 5: github und die Repo-eigenen Server einklammern**
 
 ```sh
 if enabled github; then
@@ -264,7 +264,7 @@ enabled task-runner     && gateway task-runner   3005 "node $REPO/scripts/mcp-ta
 enabled codebase-memory && gateway codebase-memory 3006 "codebase-memory-mcp"
 ```
 
-- [ ] **Schritt 6: bge-mcp-Eintrag vor `log "alle Server gestartet — warte"` anhängen**
+- [x] **Schritt 6: bge-mcp-Eintrag vor `log "alle Server gestartet — warte"` anhängen**
 
 ```sh
 # ── bge-mcp (3007) ───────────────────────────────────────────────────
@@ -289,7 +289,7 @@ fi
 
 Den Kopfkommentar "Supervisor fuer die sieben Node-MCP-Server" auf "acht" ändern.
 
-- [ ] **Schritt 7: Syntax, Lint und Auswahl-Verhalten prüfen**
+- [x] **Schritt 7: Syntax, Lint und Auswahl-Verhalten prüfen**
 
 ```bash
 sh -n docker/mcp-node/supervisor.sh
@@ -309,7 +309,7 @@ run_sel "tiket-mcp"; echo "exit=$?"                                      # exit=
 Erwartet: `shellcheck` meldet nichts. Die Zählungen stimmen mit den Kommentaren überein. Jede
 Zählung ist ein Positiv-Anker größer 0. Ist sie 0, lief der Supervisor nicht.
 
-- [ ] **Schritt 8: Bestehende Guards bleiben grün**
+- [x] **Schritt 8: Bestehende Guards bleiben grün**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway.bats tests/spec/local-llm-proxy/dev-pod-loadouts-path.bats
@@ -318,7 +318,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway.bats tests/spec/local-l
 Erwartet: PASS. Die Reaper- und Pin-Guards lesen Reaper-Datei, Supervisor und Dockerfile
 zusammen. Test 1.3 findet die `LOADOUTS_PATH`-Zeile.
 
-- [ ] **Schritt 9: Commit**
+- [x] **Schritt 9: Commit**
 
 ```bash
 git add docker/mcp-node/supervisor.sh
@@ -332,7 +332,7 @@ git commit -m "feat(mcp): Dienstauswahl per MCP_NODE_SERVICES, bge-mcp und token
 **Files:**
 - Modify: `docker/mcp-node/Dockerfile`
 
-- [ ] **Schritt 1: Pin und Installation ergänzen.** Nach den bestehenden `ARG`-Zeilen:
+- [x] **Schritt 1: Pin und Installation ergänzen.** Nach den bestehenden `ARG`-Zeilen:
 
 ```dockerfile
 ARG PG_VERSION=8.23.0
@@ -351,7 +351,7 @@ RUN mkdir -p /workspace \
 
 Die Kopfzeile "Enthaelt llm-proxy, ticket-mcp, …" um `bge-mcp` ergänzen.
 
-- [ ] **Schritt 2: Bauen und Auflösung prüfen**
+- [x] **Schritt 2: Bauen und Auflösung prüfen**
 
 ```bash
 docker build -t mcp-node:t900191 docker/mcp-node
@@ -364,7 +364,7 @@ Erwartet: Die Ausgabe enthält `MCP-HTTPSEC: Pflicht-Token fehlt — setze MCP_P
 Das Modul `pg` wurde also gefunden, und der Token-Guard greift. `Cannot find package 'pg'`
 wäre ein Fehlschlag. Ohne lokales Docker läuft der Schritt im CI-Workflow, der das Image baut.
 
-- [ ] **Schritt 3: Commit**
+- [x] **Schritt 3: Commit**
 
 ```bash
 git add docker/mcp-node/Dockerfile
@@ -379,7 +379,7 @@ git commit -m "feat(mcp): pg fuer mcp-postgres-local ins Image [T900191]"
 - Modify: `k3d/dev-pod/deployment.yaml`
 - Modify: `k3d/dev-pod/service.yaml`
 
-- [ ] **Schritt 1: Env-Block des Containers `mcp-node` umstellen.** Entfernen:
+- [x] **Schritt 1: Env-Block des Containers `mcp-node` umstellen.** Entfernen:
   `LLM_PROXY_HOST_BIND`, `LLM_PROXY_PORT`, `LLM_PROXY_REMOTE_ONLY` samt Kommentaren,
   `SHARED_DB_PASSWORD`, `DATABASE_URL`, außerdem den Kommentarblock "dev-pod-secrets wird vom
   Operator per kubeseal angelegt …", der nur `SHARED_DB_PASSWORD` erklärt. Als erstes
@@ -404,7 +404,7 @@ git commit -m "feat(mcp): pg fuer mcp-postgres-local ins Image [T900191]"
 
   `PGOPTIONS`, `GITHUB_PERSONAL_ACCESS_TOKEN` und `DEV_POD_REPO` bleiben unverändert.
 
-- [ ] **Schritt 2: Ports und Readiness.** Aus `ports:` die Zeilen `llm-proxy` (18235) und
+- [x] **Schritt 2: Ports und Readiness.** Aus `ports:` die Zeilen `llm-proxy` (18235) und
   `postgres` (3001) entfernen. Die `readinessProbe` von `mcp-node` auf ticket-mcp umstellen:
 
 ```yaml
@@ -420,7 +420,7 @@ git commit -m "feat(mcp): pg fuer mcp-postgres-local ins Image [T900191]"
   `mcp-node — ticket-mcp, brain-mcp, task-runner, codebase-memory, github (MCP_NODE_SERVICES)`
   ändern, und den Titel `MCP-Server-Bundle + llm-proxy` auf `MCP-Server-Bundle`.
 
-- [ ] **Schritt 3: Service.** In `k3d/dev-pod/service.yaml` diese zwei Zeilen entfernen:
+- [x] **Schritt 3: Service.** In `k3d/dev-pod/service.yaml` diese zwei Zeilen entfernen:
 
 ```yaml
     - { name: llm-proxy, port: 18235, targetPort: 18235, protocol: TCP }
@@ -431,7 +431,7 @@ git commit -m "feat(mcp): pg fuer mcp-postgres-local ins Image [T900191]"
   unauthentifiziert — er liest den gesamten Cluster. mcp-postgres liegt seit T900191 in
   devmesh."
 
-- [ ] **Schritt 4: Render prüfen**
+- [x] **Schritt 4: Render prüfen**
 
 ```bash
 kubectl kustomize prod-fleet/dev-pod > /tmp/devpod.yaml; echo "render=$? zeilen=$(wc -l < /tmp/devpod.yaml)"
@@ -447,7 +447,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/dev-pod-mcp-bundle/dev-pod.bats tes
 Erwartet: `render=0` mit mehr als 0 Zeilen, danach die kommentierten Zählwerte. Beide
 BATS-Dateien sind grün.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 git add k3d/dev-pod/deployment.yaml k3d/dev-pod/service.yaml
@@ -461,7 +461,7 @@ git commit -m "feat(infra): llm-proxy und postgres aus dem fleet-dev-pod entfern
 **Files:**
 - Modify: `scripts/openspec-embed-local.sh`
 
-- [ ] **Schritt 1: Heredoc umstellen.** Die Zeilen unter "Seit T900107 laeuft er als Container
+- [x] **Schritt 1: Heredoc umstellen.** Die Zeilen unter "Seit T900107 laeuft er als Container
   des dev-pod …" bis zur `export LLM_PROXY_URL`-Zeile ersetzen. Die Zeilenzahl bleibt gleich:
 
 ```text
@@ -477,7 +477,7 @@ optional. Zwei Wege:
   Den Kopfkommentar `[T900107] Der Proxy ist mit dem dev-pod in den Cluster gezogen.`
   (Zeile 21) auf `[T900191] Der Proxy laeuft in devmesh (svc/llm-services).` ändern.
 
-- [ ] **Schritt 2: Prüfen**
+- [x] **Schritt 2: Prüfen**
 
 ```bash
 bash -n scripts/openspec-embed-local.sh
@@ -487,7 +487,7 @@ git grep -c "svc/llm-services" -- scripts/openspec-embed-local.sh               
 wc -l scripts/openspec-embed-local.sh   # 206
 ```
 
-- [ ] **Schritt 3: Commit**
+- [x] **Schritt 3: Commit**
 
 ```bash
 git add scripts/openspec-embed-local.sh
@@ -504,7 +504,7 @@ zeigt auf `dev-pod:18235` oder `dev-pod:3001`.
 **Files:**
 - Verify: `k3d/dev-stack/sdlc-console.yaml`, `k3d/sdlc-stack/sdlc-console.yaml`
 
-- [ ] **Schritt 1: Referenzsuche**
+- [x] **Schritt 1: Referenzsuche**
 
 ```bash
 git grep -nE "dev-pod[^ ]*:(18235|3001)|dev-pod\.workspace-dev" -- k3d prod-fleet flux scripts .github taskfiles \
@@ -554,7 +554,7 @@ Erwartet: Jede `delete`-Zeile meldet `deleted`. Die Kontrollabfrage findet nicht
 **Files:**
 - Verify: alle `target_files`
 
-- [ ] **Schritt 1: Lint, Render, S1**
+- [x] **Schritt 1: Lint, Render, S1**
 
 ```bash
 sh -n docker/mcp-node/supervisor.sh && shellcheck docker/mcp-node/supervisor.sh scripts/openspec-embed-local.sh
@@ -566,7 +566,7 @@ jq -r '."S1:docker/mcp-node/supervisor.sh".metric // "nicht-baselined"' docs/cod
 Erwartet: `supervisor.sh` hat weniger als 200 Zeilen, und die Baseline-Abfrage meldet
 `nicht-baselined`.
 
-- [ ] **Schritt 2: Die drei Pflicht-Kommandos**
+- [x] **Schritt 2: Die drei Pflicht-Kommandos**
 
 ```bash
 task test:changed
@@ -576,7 +576,7 @@ task freshness:check
 
 Erwartet: Alle drei enden mit Exit 0. `task freshness:check` meldet `0 blocking`.
 
-- [ ] **Schritt 3: Commit der regenerierten Artefakte**
+- [x] **Schritt 3: Commit der regenerierten Artefakte**
 
 ```bash
 git add -A

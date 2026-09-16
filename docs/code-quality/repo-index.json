@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1312,
+      "file_count": 1313,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -739,6 +739,7 @@
         "tests/spec/local-dev-mesh/devmesh-taskfile.bats",
         "tests/spec/local-dev-mesh/factory-ctx-default.bats",
         "tests/spec/local-dev-mesh/fixtures/inventory.yaml",
+        "tests/spec/local-dev-mesh/gpu-enable.bats",
         "tests/spec/local-dev-mesh/k3d-acceptance-gate.bats",
         "tests/spec/local-dev-mesh/k3s-install.bats",
         "tests/spec/local-dev-mesh/kubeconfig.bats",
@@ -4203,7 +4204,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 874,
+      "file_count": 875,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4417,6 +4418,7 @@
         "scripts/devflow-verify.sh",
         "scripts/devmesh/acceptance.sh",
         "scripts/devmesh/db-backup.sh",
+        "scripts/devmesh/gpu-enable.sh",
         "scripts/devmesh/k3d-teardown.sh",
         "scripts/devmesh/k3s-install.sh",
         "scripts/devmesh/kubeconfig.sh",

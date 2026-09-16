@@ -4212,6 +4212,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/gpu-enable",
+    "file": "tests/spec/local-dev-mesh/gpu-enable.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/k3d-acceptance-gate",
     "file": "tests/spec/local-dev-mesh/k3d-acceptance-gate.bats",
     "category": "local-dev-mesh",

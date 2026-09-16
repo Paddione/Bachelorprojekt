@@ -1,7 +1,7 @@
 # docker/mcp-node/Dockerfile — Node-MCP-Server-Bundle des dev-pod [T900107]
 #
 # Enthaelt llm-proxy, ticket-mcp, brain-mcp, task-runner, codebase-memory,
-# github und postgres unter einem Supervisor.
+# github, postgres und bge-mcp unter einem Supervisor.
 #
 # KEINE Paketinstallation zur Laufzeit. Der abgeloeste llm-proxy-Container lief
 # `apk add bash curl postgresql-client` beim Start und stand deshalb auf 0/1,
@@ -18,6 +18,7 @@ ARG SUPERGATEWAY_VERSION=3.4.3
 ARG MCP_SERVER_POSTGRES_VERSION=0.6.2
 ARG CODEBASE_MEMORY_VERSION=0.10.8
 ARG GITHUB_MCP_VERSION=1.0.3
+ARG PG_VERSION=8.23.0
 
 RUN apk add --no-cache \
       bash \
@@ -35,6 +36,12 @@ RUN apk add --no-cache \
  && tar -xzf /tmp/github-mcp-server.tar.gz -C /usr/local/bin github-mcp-server \
  && chmod +x /usr/local/bin/github-mcp-server \
  && rm -f /tmp/github-mcp-server.tar.gz
+
+# [T900191] mcp-postgres-local.mjs (postgres-Eintrag des Supervisors) importiert
+# `pg`. Der Checkout unter /workspace/repo hat kein node_modules; die
+# ESM-Aufloesung sucht aufwaerts und findet /workspace/node_modules.
+RUN mkdir -p /workspace \
+ && npm install --prefix /workspace --no-audit --no-fund --omit=dev "pg@${PG_VERSION}"
 
 COPY supervisor.sh reap-postgres-children.sh /opt/mcp-node/
 RUN chmod +x /opt/mcp-node/supervisor.sh /opt/mcp-node/reap-postgres-children.sh

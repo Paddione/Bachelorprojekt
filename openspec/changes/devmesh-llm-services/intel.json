@@ -1,0 +1,947 @@
+{
+  "meta": {
+    "slug": "devmesh-llm-services",
+    "ticket_id": "T900191",
+    "generated_from": "main@db16df855",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/references/mcp-tool-guide.md",
+      "language": "markdown",
+      "loc": 312,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".mcp.json",
+      "language": "config",
+      "loc": 51,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/opencode.jsonc",
+      "language": "text",
+      "loc": 234,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 186,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5598,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6596,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/llm-services/deployment.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/llm-services/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/components/llm-services/service.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/core/gpu-endpoint.yaml",
+      "language": "config",
+      "loc": 29,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/core/kustomization.yaml",
+      "language": "config",
+      "loc": 130,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/inventory.yaml",
+      "language": "config",
+      "loc": 68,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "devmesh/tailnet-policy.hujson",
+      "language": "text",
+      "loc": 23,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docker/mcp-node/Dockerfile",
+      "language": "text",
+      "loc": 48,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docker/mcp-node/supervisor.sh",
+      "language": "bash",
+      "loc": 100,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 700
+    },
+    {
+      "path": "docs/adr/ADR-007-wsl-exit-fleet-native.md",
+      "language": "markdown",
+      "loc": 198,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/adr/ADR-008-local-k3s-dev-mesh.md",
+      "language": "markdown",
+      "loc": 142,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/mcp.yaml",
+      "language": "config",
+      "loc": 379,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/runbooks/devmesh-tailnet.md",
+      "language": "markdown",
+      "loc": 136,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1695,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-pod/deployment.yaml",
+      "language": "config",
+      "loc": 274,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-pod/service.yaml",
+      "language": "config",
+      "loc": 34,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/bge-mcp/bge-forward-embed.service",
+      "language": "text",
+      "loc": 38,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/bge-mcp/bge-forward-rerank.service",
+      "language": "text",
+      "loc": 30,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/bge-mcp/bge-mcp.service",
+      "language": "text",
+      "loc": 72,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/bge-mcp/check-client-env.sh",
+      "language": "bash",
+      "loc": 114,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 686
+    },
+    {
+      "path": "scripts/dev-host-units/README.md",
+      "language": "markdown",
+      "loc": 43,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/dev-host-units/install.sh",
+      "language": "bash",
+      "loc": 47,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 753
+    },
+    {
+      "path": "scripts/dev-host-units/uninstall.sh",
+      "language": "bash",
+      "loc": 15,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 785
+    },
+    {
+      "path": "scripts/devmesh/render-stack.sh",
+      "language": "bash",
+      "loc": 48,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 752
+    },
+    {
+      "path": "scripts/llm-proxy/llm-proxy-lan.service",
+      "language": "text",
+      "loc": 38,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/llm-proxy.service",
+      "language": "text",
+      "loc": 82,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/mcp-servers.json",
+      "language": "config",
+      "loc": 17,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/start-gemma-server.ps1",
+      "language": "text",
+      "loc": 463,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/devmesh-forward.service",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/k3d-postgres-forward.service",
+      "language": "text",
+      "loc": 24,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/mcp-gateway-watchdog.service",
+      "language": "text",
+      "loc": 28,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/mcp-gateway-watchdog.timer",
+      "language": "text",
+      "loc": 22,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/mcp-gateway.service",
+      "language": "text",
+      "loc": 26,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/mcp-postgres-local.service",
+      "language": "text",
+      "loc": 28,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/probe.sh",
+      "language": "bash",
+      "loc": 99,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 701
+    },
+    {
+      "path": "scripts/mcp-gateway/register-autostart.ps1",
+      "language": "text",
+      "loc": 94,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "language": "bash",
+      "loc": 295,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 505
+    },
+    {
+      "path": "scripts/mcp-gateway/start-windows.ps1",
+      "language": "text",
+      "loc": 137,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/watchdog-check.sh",
+      "language": "bash",
+      "loc": 82,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 718
+    },
+    {
+      "path": "scripts/migrations/2026-09-16-devmesh-llm-proxy-backends.sql",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/openspec-embed-local.sh",
+      "language": "bash",
+      "loc": 206,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 594
+    },
+    {
+      "path": "taskfiles/Taskfile.agents.yml",
+      "language": "config",
+      "loc": 564,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.devmesh.yml",
+      "language": "config",
+      "loc": 117,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.llm.yml",
+      "language": "config",
+      "loc": 307,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats",
+      "language": "bash",
+      "loc": 187,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
+      "language": "bash",
+      "loc": 169,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/llm-services.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/tailnet-policy.bats",
+      "language": "bash",
+      "loc": 103,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy.bats",
+      "language": "bash",
+      "loc": 474,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/bge-role-routes.bats",
+      "language": "bash",
+      "loc": 145,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
+      "language": "bash",
+      "loc": 121,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
+      "language": "bash",
+      "loc": 85,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-gateway/bge-host-routing.bats",
+      "language": "bash",
+      "loc": 86,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-gateway/start-windows-unc.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
+      "language": "bash",
+      "loc": 184,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/wsl-exit-nachzug.bats",
+      "language": "bash",
+      "loc": 84,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": ".claude/skills/references/mcp-tool-guide.md:128:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }",
+      "kind": "function",
+      "file": ".claude/skills/references/mcp-tool-guide.md",
+      "signature": "128:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }(...)",
+      "type_text": "128:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3995:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3995:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3995:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3996:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3996:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3996:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3997:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3997:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3997:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3998:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3998:        _run()  {(...)",
+      "type_text": "3998:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5176:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5176:        kexec_psql() {(...)",
+      "type_text": "5176:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:22:log() { echo \"[supervisor] $*\"; }",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "22:log() { echo \"[supervisor] $*\"; }(...)",
+      "type_text": "22:log() { echo \"[supervisor] $*\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:27:supervise() {",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "27:supervise() {(...)",
+      "type_text": "27:supervise() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:43:gateway() {  # <name> <port> <stdio-kommando>",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "43:gateway() {  # <name> <port> <stdio-kommando>(...)",
+      "type_text": "43:gateway() {  # <name> <port> <stdio-kommando>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "docker/mcp-node/supervisor.sh:54:shutdown() {",
+      "kind": "function",
+      "file": "docker/mcp-node/supervisor.sh",
+      "signature": "54:shutdown() {(...)",
+      "type_text": "54:shutdown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/bge-mcp/check-client-env.sh:27:fix_hint() {",
+      "kind": "function",
+      "file": "scripts/bge-mcp/check-client-env.sh",
+      "signature": "27:fix_hint() {(...)",
+      "type_text": "27:fix_hint() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/probe.sh:27:usage() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/probe.sh",
+      "signature": "27:usage() {(...)",
+      "type_text": "27:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:52:pid_file() { echo \"${PID_DIR}/$1.pid\"; }",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "52:pid_file() { echo \"${PID_DIR}/$1.pid\"; }(...)",
+      "type_text": "52:pid_file() { echo \"${PID_DIR}/$1.pid\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:54:is_running() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "54:is_running() {(...)",
+      "type_text": "54:is_running() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:67:port_in_use() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "67:port_in_use() {(...)",
+      "type_text": "67:port_in_use() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:72:wait_for_port() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "72:wait_for_port() {(...)",
+      "type_text": "72:wait_for_port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:83:stop_process() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "83:stop_process() {(...)",
+      "type_text": "83:stop_process() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:115:load_token() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "115:load_token() {(...)",
+      "type_text": "115:load_token() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:139:start_gateway() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "139:start_gateway() {(...)",
+      "type_text": "139:start_gateway() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:160:start_factory() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "160:start_factory() {(...)",
+      "type_text": "160:start_factory() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:186:start_bge() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "186:start_bge() {(...)",
+      "type_text": "186:start_bge() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-gateway/start-mcp-unified.sh:216:status() {",
+      "kind": "function",
+      "file": "scripts/mcp-gateway/start-mcp-unified.sh",
+      "signature": "216:status() {(...)",
+      "type_text": "216:status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:51:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "51:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "type_text": "51:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:64:probe_embed() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "64:probe_embed() {(...)",
+      "type_text": "64:probe_embed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:79:probe_diagnosis() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "79:probe_diagnosis() {(...)",
+      "type_text": "79:probe_diagnosis() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.agents.yml:160:          probe() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.agents.yml",
+      "signature": "160:          probe() {(...)",
+      "type_text": "160:          probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.agents.yml:494:        check() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.agents.yml",
+      "signature": "494:        check() {(...)",
+      "type_text": "494:        check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats:24:y() {  # <datei> <js-ausdruck ueber d>",
+      "kind": "function",
+      "file": "tests/spec/dev-pod-mcp-bundle/dev-pod.bats",
+      "signature": "24:y() {  # <datei> <js-ausdruck ueber d>(...)",
+      "type_text": "24:y() {  # <datei> <js-ausdruck ueber d>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline/bge-usecase-reachability.bats:42:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
+      "signature": "42:setup_file() {(...)",
+      "type_text": "42:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-dev-mesh/tailnet-policy.bats:10:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-dev-mesh/tailnet-policy.bats",
+      "signature": "10:setup() {(...)",
+      "type_text": "10:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-dev-mesh/tailnet-policy.bats:28:policy_facts() {",
+      "kind": "function",
+      "file": "tests/spec/local-dev-mesh/tailnet-policy.bats",
+      "signature": "28:policy_facts() {(...)",
+      "type_text": "28:policy_facts() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:10:_start_stub() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "10:_start_stub() {(...)",
+      "type_text": "10:_start_stub() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:36:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "36:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }(...)",
+      "type_text": "36:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(String(s.address().port));s.close();})'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:38:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "38:setup() {(...)",
+      "type_text": "38:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:53:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "53:teardown() {(...)",
+      "type_text": "53:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:58:_start_proxy() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "58:_start_proxy() {(...)",
+      "type_text": "58:_start_proxy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:78:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "78:_skip_if_no_db() {(...)",
+      "type_text": "78:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:167:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "167:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "type_text": "167:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/bge-role-routes.bats:37:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
+      "signature": "37:setup_file() {(...)",
+      "type_text": "37:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/bge-role-routes.bats:43:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
+      "signature": "43:setup() {(...)",
+      "type_text": "43:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/bge-role-routes.bats:49:_require_proxy() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
+      "signature": "49:_require_proxy() {(...)",
+      "type_text": "49:_require_proxy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/bge-role-routes.bats:70:_require_route_known() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
+      "signature": "70:_require_route_known() {(...)",
+      "type_text": "70:_require_route_known() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/bge-role-routes.bats:81:_assert_proxy_answers() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
+      "signature": "81:_assert_proxy_answers() {(...)",
+      "type_text": "81:_assert_proxy_answers() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats:24:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
+      "signature": "24:setup() {(...)",
+      "type_text": "24:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats:58:_active_lines() { grep -nE \"$1\" \"$2\" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || true; }",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
+      "signature": "58:_active_lines() { grep -nE \"$1\" \"$2\" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || true; }(...)",
+      "type_text": "58:_active_lines() { grep -nE \"$1\" \"$2\" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || true; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats:26:teardown() { rm -rf \"${TMP}\"; }",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
+      "signature": "26:teardown() { rm -rf \"${TMP}\"; }(...)",
+      "type_text": "26:teardown() { rm -rf \"${TMP}\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats:30:_guard() {  # $1 = Pfad der proxy.env",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
+      "signature": "30:_guard() {  # $1 = Pfad der proxy.env(...)",
+      "type_text": "30:_guard() {  # $1 = Pfad der proxy.env(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/bge-host-routing.bats:21:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/bge-host-routing.bats",
+      "signature": "21:setup() {(...)",
+      "type_text": "21:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats:20:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
+      "signature": "20:setup() {(...)",
+      "type_text": "20:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/wsl-exit-nachzug.bats:8:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/wsl-exit-nachzug.bats",
+      "signature": "8:setup() {(...)",
+      "type_text": "8:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

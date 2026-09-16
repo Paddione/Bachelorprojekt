@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.346.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.1...website-v1.346.2) (2026-09-16)
+
+
+### Bug Fixes
+
+* **scripts:** devflow-post-merge-finalize reicht --create-new für neue SSOT-Komponenten durch [T900105] ([#5678](https://github.com/Paddione/Bachelorprojekt/issues/5678)) ([29c75cb](https://github.com/Paddione/Bachelorprojekt/commit/29c75cb050518b7e04c49de2e5f77a4f1873615f))
+
 ## [1.346.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.0...website-v1.346.1) (2026-09-16)
 
 

@@ -63,7 +63,7 @@ remote "sudo -n true" \
 # Erfolg bedeutet: Toolkit installiert und damit die nvidia-Runtime in containerd registriert —
 # der Idempotenz-Zweig endet hier ohne k3s-Neustart (Spec-Szenario "second run is a no-op").
 rc=0
-STATE="$(remote "nvidia-ctk --version")" || rc=$?
+remote "nvidia-ctk --version" >/dev/null 2>&1 || rc=$?
 
 if (( rc == 0 )); then
   echo "unveraendert: $HOST hat nvidia-container-toolkit und die nvidia-Runtime in containerd"

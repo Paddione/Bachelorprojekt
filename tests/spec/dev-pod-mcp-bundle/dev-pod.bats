@@ -45,6 +45,30 @@ y() {  # <datei> <js-ausdruck ueber d>
   [ "$output" = "dev-shell,mcp-kubernetes,mcp-node,repo-sync" ]
 }
 
+@test "mcp-node container in dev-pod does not expose llm-proxy or postgres ports anymore" {
+  run y "$DEPLOY" "d.spec.template.spec.containers.find(c=>c.name==='mcp-node').ports.map(p=>p.containerPort)"
+  [ "$status" -eq 0 ]
+  ports="$(echo "$output" | tr -d '[]' | tr ',' '\n')"
+  # Positiv-Anker: der Container behaelt seine fuenf verbliebenen Ports.
+  echo "$ports" | grep -qx '3002'
+  refused="$(echo "$ports" | grep -cxE '18235|3001' || true)"
+  [ "$refused" -eq 0 ]
+}
+
+@test "mcp-node container sets MCP_NODE_SERVICES without llm-proxy or postgres" {
+  run y "$DEPLOY" "(d.spec.template.spec.containers.find(c=>c.name==='mcp-node').env.find(e=>e.name==='MCP_NODE_SERVICES')||{}).value"
+  [ "$status" -eq 0 ]
+  [ "$output" != "null" ]
+  IFS=',' read -ra names <<< "$output"
+  refused=0
+  for n in "${names[@]}"; do
+    case "$n" in llm-proxy|postgres) refused=1 ;; esac
+  done
+  [ "$refused" -eq 0 ]
+  # Positiv-Anker: die fuenf verbliebenen Server sind weiterhin gelistet.
+  [[ ",$output," == *,github,* ]]
+}
+
 @test "dev-pod declares no init container that installs software" {
   # Der Monolith zog sein github-Binary in einem Init-Container aus dem Netz.
   run y "$DEPLOY" "(d.spec.template.spec.initContainers||[]).length"

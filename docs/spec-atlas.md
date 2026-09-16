@@ -645,6 +645,8 @@ Last touches:
   - Fetch-Wrapper Engine Consistency Guard | T900155 | 2026-09-12 | ADDED
 In-flight:
   - Project Default Model Targets the FreeToken Alias | T900164 | active | MODIFIED
+  - Windows-Native FreeToken Auto-Start and Install Scripts | T900189 | active | ADDED
+  - Local LLM Proxy FreeToken Thinking Fixup and Local Recognition | T900189 | active | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 

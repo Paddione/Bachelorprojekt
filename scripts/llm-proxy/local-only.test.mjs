@@ -87,3 +87,15 @@ test('gewoehnliche Anfrage behaelt ihren Fallback unveraendert', () => {
   assert.equal(routed.backend.name, 'remote-deepseek')
   assert.equal(routed.substituted, true)
 })
+
+// [T900189] FreeToken laeuft windows-nativ auf demselben Host wie der Proxy und
+// ist damit eigene Infrastruktur. Ohne diesen Eintrag faellt es aus der
+// Positivliste in discovery.mjs heraus: `x-llm-local-only: 1` wuerde mit
+// no_local_backend scheitern, obwohl das Backend lokal laeuft.
+test('freetoken zaehlt als lokales Backend', () => {
+  assert.equal(isLocalBackend({ kind: 'freetoken' }), true)
+})
+
+test('ein unbekanntes kind zaehlt weiter NICHT als lokal', () => {
+  assert.equal(isLocalBackend({ kind: 'some-future-cloud' }), false)
+})

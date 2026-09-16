@@ -122,7 +122,7 @@ export function startDiscovery(getBackends, intervalMs) {
  * Gefiltert wird ueber `kind`, nicht ueber Backend-Namen — eine Namensliste
  * veraltet still, sobald ein Backend hinzukommt.
  */
-const LOCAL_BACKEND_KINDS = new Set(['llamacpp', 'lmstudio']);
+const LOCAL_BACKEND_KINDS = new Set(['llamacpp', 'lmstudio', 'freetoken']);
 
 /** @param {{kind?:string}} b */
 export function isLocalBackend(b) {

@@ -55,3 +55,34 @@ test('Fixup ist unter seinem Namen registriert und ueber applyFixups erreichbar'
   const out = applyFixups(['fill-missing-array-items'], toolWithBareArray({ xs: { type: 'array' } }))
   assert.deepEqual(propsOf(out).xs.items, {}, 'ueber applyFixups angewandt')
 })
+
+// [T900189] FreeToken-Thinking-Umschaltung. Frueher machte das der OpenCode-Plugin
+// `.opencode/plugin/freetoken-active.ts`, der mit T900163 geloescht wurde und
+// ohnehin nur fuer EINEN Client galt. Als Proxy-Fixup gilt die Regel fuer jeden
+// Client, der ueber :18235 geht.
+test('freetoken-thinking: -thinking-Alias setzt enable_thinking true', () => {
+  const out = FIXUPS['freetoken-thinking']({ model: 'freetoken-local/active-thinking', messages: [] })
+  assert.equal(out.chat_template_kwargs.enable_thinking, true)
+})
+
+test('freetoken-thinking: -fast-Alias setzt enable_thinking false', () => {
+  const out = FIXUPS['freetoken-thinking']({ model: 'freetoken-local/active-fast', messages: [] })
+  assert.equal(out.chat_template_kwargs.enable_thinking, false)
+})
+
+test('freetoken-thinking: unbekannter Alias laesst den Body unveraendert', () => {
+  // Kein stilles false: ohne Aussage im Alias entscheidet der Engine-Default
+  // (ft serve laeuft mit --sampling-defaults model).
+  const body = { model: 'freetoken-local/active', messages: [] }
+  const out = FIXUPS['freetoken-thinking'](body)
+  assert.deepEqual(out, body)
+  assert.equal(out.chat_template_kwargs, undefined)
+})
+
+test('freetoken-thinking: vorhandene chat_template_kwargs bleiben erhalten', () => {
+  const out = FIXUPS['freetoken-thinking']({
+    model: 'x/active-thinking', messages: [], chat_template_kwargs: { foo: 1 },
+  })
+  assert.equal(out.chat_template_kwargs.foo, 1)
+  assert.equal(out.chat_template_kwargs.enable_thinking, true)
+})

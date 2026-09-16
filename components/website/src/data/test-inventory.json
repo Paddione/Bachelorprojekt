@@ -4236,6 +4236,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/llm-services",
+    "file": "tests/spec/local-dev-mesh/llm-services.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/migrate-from-k3d",
     "file": "tests/spec/local-dev-mesh/migrate-from-k3d.bats",
     "category": "local-dev-mesh",
@@ -4652,6 +4658,12 @@
   {
     "id": "mcp-gateway/qwen-token-expansion",
     "file": "tests/spec/mcp-gateway/qwen-token-expansion.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/start-windows-unc",
+    "file": "tests/spec/mcp-gateway/start-windows-unc.bats",
     "category": "mcp-gateway",
     "kind": "shell"
   },

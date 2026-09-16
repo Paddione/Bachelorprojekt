@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-09-16T15:04:59.879Z
-> Nodes: 98 | Edges: 2033 | Isolated: 8
+> Generated: 2026-09-16T23:31:43.801Z
+> Nodes: 99 | Edges: 2034 | Isolated: 8
 
 ## Ranking (transitive Abhängige)
 
@@ -81,15 +81,15 @@
 | 73 | keycloak | 1 | 56 | 1 |
 | 74 | tracking | 1 | 56 | 1 |
 | 75 | docuseal | 1 | 56 | 1 |
-| 76 | brain | 1 | 1 | 1 |
-| 77 | docs | 1 | 1 | 1 |
-| 78 | downloads | 1 | 1 | 1 |
-| 79 | einvoice-sidecar | 1 | 1 | 1 |
-| 80 | registry-cache | 1 | 1 | 1 |
-| 81 | mediaviewer-widget | 1 | 1 | 1 |
-| 82 | blackbox-exporter | 1 | 1 | 1 |
-| 83 | nextcloud-redis | 1 | 1 | 1 |
-| 84 | sealed-secrets-controller | 1 | 1 | 1 |
+| 76 | sealed-secrets-controller | 2 | 2 | 2 |
+| 77 | brain | 1 | 1 | 1 |
+| 78 | docs | 1 | 1 | 1 |
+| 79 | downloads | 1 | 1 | 1 |
+| 80 | einvoice-sidecar | 1 | 1 | 1 |
+| 81 | registry-cache | 1 | 1 | 1 |
+| 82 | mediaviewer-widget | 1 | 1 | 1 |
+| 83 | blackbox-exporter | 1 | 1 | 1 |
+| 84 | nextcloud-redis | 1 | 1 | 1 |
 | 85 | whisper | 1 | 1 | 1 |
 
 ## Details
@@ -469,6 +469,11 @@
 **Transitive Abhängige:** 56 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, db-backup, db-restore-verify, ddns-updater, dev-db-refresh, dev-pod, error-log-retention, factory-runner, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
 **Upstream (In-Degree):** 1
 
+### sealed-secrets-controller
+**Direkte Abhängige:** 2 — sealed-secrets, sealed-secrets-controller
+**Transitive Abhängige:** 2 — sealed-secrets, sealed-secrets-controller
+**Upstream (In-Degree):** 2
+
 ### brain
 **Direkte Abhängige:** 1 — brain
 **Transitive Abhängige:** 1 — brain
@@ -507,11 +512,6 @@
 ### nextcloud-redis
 **Direkte Abhängige:** 1 — nextcloud-redis
 **Transitive Abhängige:** 1 — nextcloud-redis
-**Upstream (In-Degree):** 1
-
-### sealed-secrets-controller
-**Direkte Abhängige:** 1 — sealed-secrets-controller
-**Transitive Abhängige:** 1 — sealed-secrets-controller
 **Upstream (In-Degree):** 1
 
 ### whisper

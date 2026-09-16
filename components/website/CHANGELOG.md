@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.346.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.0...website-v1.346.1) (2026-09-16)
+
+
+### Tests
+
+* **ci:** cover single-static-model scenarios with guards [T900203] ([#5676](https://github.com/Paddione/Bachelorprojekt/issues/5676)) ([db7c3ca](https://github.com/Paddione/Bachelorprojekt/commit/db7c3caec2927c119bb8bfe110e730926e0786ed))
+
 ## [1.346.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.345.0...website-v1.346.0) (2026-09-16)
 
 

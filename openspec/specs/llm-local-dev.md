@@ -234,6 +234,15 @@ with the plugin (T900203). FreeToken serves one resident checkpoint on a static
 200k KV pool; per-request thinking toggles are not wired through opencode
 anymore, and the engine is not swapped from the model picker.
 
+#### Scenario: Catalog holds the single static model
+
+- **GIVEN** the parsed `llamacpp-local.models` object of
+  `.opencode/agent-models.jsonc` and the agent roster
+- **WHEN** the model keys and the agent `model` fields are inspected
+- **THEN** exactly `Qwen3.6-35B-A3B-NVFP4` is declared and no
+  `active`/`active-thinking`/`active-fast` alias and no
+  `freetoken-thinking`/`freetoken-fast-*` agent exists
+
 ### Requirement: Measured Context Limits for the Local FreeToken Checkpoint
 
 The `limit.context` value of the `Qwen3.6-35B-A3B-NVFP4` entry in the
@@ -329,6 +338,12 @@ Rationale: the plugin was removed together with the alias layer (T900203).
 FreeToken serves one resident checkpoint on a static 200k KV pool; there is no
 per-request thinking toggle, no engine switching from the model picker, and no
 telemetry file. The provider is wired statically through the llm-proxy.
+
+#### Scenario: Plugin file is absent
+
+- **GIVEN** the repository directory `.opencode/plugin/`
+- **WHEN** its entries are listed
+- **THEN** `freetoken-active.ts` is not among them
 
 ### Requirement: V2 Compaction Targets 100K Active Context
 

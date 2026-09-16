@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1313,
+      "file_count": 1314,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -726,6 +726,7 @@
         "tests/spec/llm-local-dev/fit-ngl-conflict.bats",
         "tests/spec/llm-local-dev/opencode-compaction.bats",
         "tests/spec/llm-local-dev/qwen-tensor-split.bats",
+        "tests/spec/llm-local-dev/single-static-model.bats",
         "tests/spec/llm-pipeline.bats",
         "tests/spec/llm-pipeline/bge-thread-quota.bats",
         "tests/spec/llm-pipeline/bge-usecase-reachability.bats",

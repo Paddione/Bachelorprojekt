@@ -1,0 +1,98 @@
+# llm-services — mcp-node-Image mit Dienstauswahl (MCP_NODE_SERVICES) [T900191, D4, D5].
+# Repo-Checkout: repo-sync als nativer Sidecar mit startupProbe auf .git, damit die
+# Node-Server erst nach dem Clone starten; emptyDir statt PVC, damit der Pod an keinen
+# local-path-Knoten gebunden ist (Plan-Befund B5). Tokens fail-closed aus workspace-secrets.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-services
+  labels: {app: llm-services}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: llm-services}
+  template:
+    metadata:
+      labels: {app: llm-services}
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      initContainers:
+        - name: repo-sync
+          image: ghcr.io/paddione/repo-sync:latest
+          imagePullPolicy: Always
+          restartPolicy: Always
+          env:
+            - {name: REPO_DIR, value: /workspace/repo}
+            - {name: REPO_URL, value: "https://github.com/paddione/Bachelorprojekt.git"}
+            - {name: REPO_REF, value: main}
+            - {name: SYNC_INTERVAL_SECONDS, value: "300"}
+          startupProbe:
+            exec:
+              command: ["test", "-d", "/workspace/repo/.git"]
+            periodSeconds: 5
+            failureThreshold: 120
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {memory: 128Mi}
+          securityContext: {allowPrivilegeEscalation: false}
+          volumeMounts:
+            - {name: repo, mountPath: /workspace/repo}
+      containers:
+        - name: mcp-node
+          image: ghcr.io/paddione/mcp-node:latest
+          imagePullPolicy: Always
+          env:
+            - {name: MCP_NODE_SERVICES, value: "llm-proxy,postgres,bge-mcp"}
+            - {name: LLM_PROXY_HOST_BIND, value: "0.0.0.0"}
+            - {name: LLM_PROXY_PORT, value: "18235"}
+            - {name: LLM_PROXY_REMOTE_ONLY, value: "1"}
+            - {name: BGE_MCP_HOST, value: "0.0.0.0"}
+            - {name: BGE_MCP_PORT, value: "3007"}
+            # bge-mcp spricht den Proxy im selben Pod an (kein Registry-Eintrag).
+            - {name: LLM_EMBED_URL, value: "http://127.0.0.1:18235"}
+            - {name: LLM_RERANKER_URL, value: "http://127.0.0.1:18235"}
+            - {name: DEV_POD_REPO, value: /workspace/repo}
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: WEBSITE_DB_PASSWORD, optional: true}}
+            - name: FACTORY_PG_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+            - name: MCP_READONLY_DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: MCP_READONLY_DB_PASSWORD, optional: true}}
+            - name: DATABASE_URL
+              value: "postgresql://mcp_readonly:$(MCP_READONLY_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+            - {name: PGOPTIONS, value: "-c statement_timeout=120000ms"}
+            - name: BGE_MCP_TOKEN
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: BGE_MCP_TOKEN, optional: true}}
+            - name: MCP_POSTGRES_TOKEN
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: MCP_POSTGRES_TOKEN, optional: true}}
+            - name: LLM_PROXY_ADMIN_TOKEN
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: LLM_PROXY_ADMIN_TOKEN, optional: true}}
+            - name: DEEPSEEK_API_KEY
+              valueFrom: {secretKeyRef: {name: workspace-secrets, key: DEEPSEEK_API_KEY, optional: true}}
+          ports:
+            - {containerPort: 18235, name: llm-proxy, protocol: TCP}
+            - {containerPort: 3001, name: postgres, protocol: TCP}
+            - {containerPort: 3007, name: bge-mcp, protocol: TCP}
+          readinessProbe:
+            # Nur der Proxy: postgres und bge-mcp starten ohne Token nicht (D5) und
+            # duerfen den Pod dann nicht dauerhaft NotReady halten.
+            tcpSocket: {port: 18235}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          securityContext: {allowPrivilegeEscalation: false}
+          volumeMounts:
+            - {name: repo, mountPath: /workspace/repo, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: repo, emptyDir: {}}
+        - {name: tmp, emptyDir: {}}

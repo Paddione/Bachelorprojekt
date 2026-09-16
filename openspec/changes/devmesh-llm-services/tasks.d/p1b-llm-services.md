@@ -79,7 +79,7 @@ erreichbar (Task P1b.2). S3 greift nicht: keine der Dateien liegt unter `fleet/`
 - Create: `dev-local/components/llm-services/service.yaml`
 - Modify: `dev-local/core/kustomization.yaml`
 
-- [ ] **Schritt 1: `kustomization.yaml`**
+- [x] **Schritt 1: `kustomization.yaml`**
 
 ```yaml
 # dev-local/components/llm-services — llm-proxy, mcp-postgres, bge-mcp auf devmesh [T900191]
@@ -91,7 +91,7 @@ resources:
   - service.yaml
 ```
 
-- [ ] **Schritt 2: `deployment.yaml`**
+- [x] **Schritt 2: `deployment.yaml`**
 
 ```yaml
 # llm-services — mcp-node-Image mit Dienstauswahl (MCP_NODE_SERVICES) [T900191, D4, D5].
@@ -194,7 +194,7 @@ spec:
         - {name: tmp, emptyDir: {}}
 ```
 
-- [ ] **Schritt 3: `service.yaml`**
+- [x] **Schritt 3: `service.yaml`**
 
 ```yaml
 # llm-services — ClusterIP, erreichbar nur per kubectl port-forward (D6). Kein Ingress:
@@ -213,7 +213,7 @@ spec:
     - {name: bge-mcp, port: 13005, targetPort: 3007, protocol: TCP}
 ```
 
-- [ ] **Schritt 4: In `dev-local/core/kustomization.yaml` einhaengen** (nach `resources:`)
+- [x] **Schritt 4: In `dev-local/core/kustomization.yaml` einhaengen** (nach `resources:`)
 
 ```yaml
 # CPU-gebundene LLM- und DB-Dienste (T900191, design.md D4).
@@ -221,7 +221,7 @@ components:
   - ../components/llm-services
 ```
 
-- [ ] **Schritt 5: Pruefen**
+- [x] **Schritt 5: Pruefen**
 
 ```bash
 kubectl kustomize --load-restrictor=LoadRestrictionsNone dev-local/core > /tmp/p1b-kustomize.yaml; echo "rc=$?"
@@ -244,7 +244,7 @@ Erwartet: `rc=0`; `18235>18235,13001>3001,13005>3007`; `workspace llm-proxy,post
 - Create: `scripts/migrations/2026-09-16-devmesh-llm-proxy-backends.sql`
 - Modify: `taskfiles/Taskfile.devmesh.yml`
 
-- [ ] **Schritt 1: Schema** (im Abschnitt `secrets:`, direkt nach `LLM_PROXY_ADMIN_TOKEN`)
+- [x] **Schritt 1: Schema** (im Abschnitt `secrets:`, direkt nach `LLM_PROXY_ADMIN_TOKEN`)
 
 `LLM_PROXY_ADMIN_TOKEN` existiert bereits (`required: false`, `default_dev`) und steht in
 `k3d/secrets.yaml`; der Eintrag bleibt unveraendert. Neu:
@@ -279,7 +279,7 @@ Erwartet: `rc=0`; `18235>18235,13001>3001,13005>3007`; `workspace llm-proxy,post
 `generate: true` mit `length` erzeugt Hex-taugliche Werte ohne URL-Sonderzeichen; die Werte stehen
 unmaskiert in `DATABASE_URL`.
 
-- [ ] **Schritt 2: Migration anlegen**
+- [x] **Schritt 2: Migration anlegen**
 
 ```sql
 -- 2026-09-16-devmesh-llm-proxy-backends.sql
@@ -353,7 +353,7 @@ COMMIT;
 Die Datei enthaelt weder `127.0.0.1` noch `localhost`, auch nicht in Kommentaren, damit ein
 zeilenweiser P5a-Guard (`grep`) ohne Ausnahmen auskommt.
 
-- [ ] **Schritt 3: Seed-Werte ohne Cluster pruefen**
+- [x] **Schritt 3: Seed-Werte ohne Cluster pruefen**
 
 ```bash
 f=scripts/migrations/2026-09-16-devmesh-llm-proxy-backends.sql
@@ -366,7 +366,7 @@ yq -r '.gpu_endpoint.ports[].port' devmesh/inventory.yaml | sort -u | tr '\n' ' 
 
 Erwartet: `Anker: urls=8`, `0` gefolgt von `kein Loopback`, beide Portzeilen `1234 1919 8089 8090 8094`.
 
-- [ ] **Schritt 4: Taskfile — neuer Task und Aufruf aus `deploy`**
+- [x] **Schritt 4: Taskfile — neuer Task und Aufruf aus `deploy`**
 
 Kopfkommentar um `task devmesh:registry:migrate` ergaenzen. Neuer Task:
 
@@ -404,7 +404,7 @@ Im Task `deploy` nach dem bestehenden mehrzeiligen Kommando als zweiter Eintrag 
 Die Rollout-Schleife in `deploy` wartet damit auch auf `llm-services`; die Readiness haengt nur am
 Proxy-Port, der Proxy lauscht auch bei leerer Registry (Poll-Fallback, design.md Fehlerverhalten).
 
-- [ ] **Schritt 5: Pruefen**
+- [x] **Schritt 5: Pruefen**
 
 ```bash
 task --list-all 2>/dev/null | grep -F 'devmesh:registry:migrate'

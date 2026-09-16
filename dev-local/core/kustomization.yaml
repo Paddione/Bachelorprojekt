@@ -29,6 +29,10 @@ resources:
   - ingress.yaml
   - shared-db-backup.yaml
 
+# CPU-gebundene LLM- und DB-Dienste (T900191, design.md D4).
+components:
+  - ../components/llm-services
+
 configMapGenerator:
   - name: shared-db-backup-script
     files:

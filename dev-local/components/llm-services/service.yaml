@@ -1,0 +1,14 @@
+# llm-services — ClusterIP, erreichbar nur per kubectl port-forward (D6). Kein Ingress:
+# mcp-postgres liest die Website-Datenbank.
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-services
+  labels: {app: llm-services}
+spec:
+  type: ClusterIP
+  selector: {app: llm-services}
+  ports:
+    - {name: llm-proxy, port: 18235, targetPort: 18235, protocol: TCP}
+    - {name: postgres, port: 13001, targetPort: 3001, protocol: TCP}
+    - {name: bge-mcp, port: 13005, targetPort: 3007, protocol: TCP}

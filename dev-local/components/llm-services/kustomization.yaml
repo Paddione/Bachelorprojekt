@@ -1,0 +1,7 @@
+# dev-local/components/llm-services — llm-proxy, mcp-postgres, bge-mcp auf devmesh [T900191]
+# (openspec/changes/devmesh-llm-services/design.md D4). Eingehaengt in dev-local/core.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - deployment.yaml
+  - service.yaml

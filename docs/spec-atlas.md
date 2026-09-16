@@ -2,24 +2,21 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2316 · Scenarios: 5153
+Specs: 126 · Requirements: 2319 · Scenarios: 5159
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 71 · Scenarios: 150 · Lines: 1895
+Reqs: 74 · Scenarios: 156 · Lines: 1953
 Last touches:
+  - Portable skill inventory is authoritative across four harnesses | T900151 | 2026-09-16 | ADDED
+  - Portable skill bodies are harness-neutral | T900151 | 2026-09-16 | ADDED
+  - Harness catalogs and agent-guide metadata include Codex | T900151 | 2026-09-16 | ADDED
   - Registry Runtimes Stay in Sync with the opencode Runtime Config | T900167 | 2026-09-13 | ADDED
   - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | 2026-09-11 | MODIFIED
-  - worktree-create kündigt den main-Sync an und kennt Opt-out | T900043 | 2026-09-11 | ADDED
-  - Repo-relative path references in first-party skills must resolve | T900078 | 2026-09-09 | MODIFIED
-  - Skill shims and their targets must cover each other | T900078 | 2026-09-09 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
-  - Portable skill inventory is authoritative across four harnesses | T900151 | active | ADDED
-  - Portable skill bodies are harness-neutral | T900151 | active | ADDED
-  - Harness catalogs and agent-guide metadata include Codex | T900151 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
   - Active Agent Roster without FreeToken | T900163 | active | MODIFIED

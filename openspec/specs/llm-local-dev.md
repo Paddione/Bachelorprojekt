@@ -301,7 +301,7 @@ reaches the loading location and the alias keeps its static fallback limit
 
 #### Scenario: Sync copies plugin files
 
-- **GIVEN** `.opencode/plugin/freetoken-active.ts` exists in the repository
+- **GIVEN** `.opencode/plugin/bge-mcp-env.ts` exists in the repository
 - **WHEN** `scripts/opencode-sync-agents.sh` runs
 - **THEN** the file exists under the global opencode plugin directory afterwards
 

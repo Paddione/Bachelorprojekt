@@ -2352,6 +2352,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/post-merge-finalize-create-new",
+    "file": "tests/spec/agent-skills/post-merge-finalize-create-new.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/post-merge-finalize-guards",
     "file": "tests/spec/agent-skills/post-merge-finalize-guards.bats",
     "category": "agent-skills",
@@ -4136,6 +4142,12 @@
   {
     "id": "llm-local-dev/qwen-tensor-split",
     "file": "tests/spec/llm-local-dev/qwen-tensor-split.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-local-dev/single-static-model",
+    "file": "tests/spec/llm-local-dev/single-static-model.bats",
     "category": "llm-local-dev",
     "kind": "shell"
   },

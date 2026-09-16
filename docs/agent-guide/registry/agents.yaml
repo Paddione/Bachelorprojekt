@@ -43,54 +43,28 @@ roles:
 #
 # write_capable: true if the agent permission block has write: "allow".
 runtimes:
-  # 2026-08-04: lokale Subagenten heissen nach Modell-FAMILIE (gptoss, devstral,
-  # gemma, gemma12) statt nach der historischen Gemma-Nomenklatur (gemma26-1/2,
-  # gemma9-1/2). Letztere zeigten alle auf gptoss-context — der Name log ueber
-  # das Modell. Jeder Familien-Subagent serviert sein eigenes Loadout ueber den
-  # llm-proxy (:18235); alle Chat-Loadouts teilen exclusiveGroup "chat-gpu"
-  # (es laeuft immer nur eines). T003204: die Familie qwen ist abgeschaltet —
-  # ihr Loadout qwen3-coder-30b wurde aus loadouts.json entfernt (T012414);
-  # das Backend llamacpp-qwen bleibt per Migration deaktiviert.
-  gptoss:
+  # 2026-09-16: die fuenf Familien-Handles (gptoss, devstral, gemma, gemma12,
+  # qwen38) zeigten alle auf dasselbe FreeToken-Modell — kollabiert zum einen
+  # `local`-Handle (ein Resident-Checkpoint, ein Radix-Cache, single-flight;
+  # Proxy queuet ≤3 sequenzielle Dispatches auf ≤200k served KV).
+  # Entfernt: alibaba-intl-Drittschiene (qwen-cloud, helper-alibaba,
+  # pro-alibaba, alibaba-primary) — 2-Rail-Entscheidung (Go + direkt).
+  # Details siehe docs/agent-guide/registry/retired.md.
+  local:
     mode: subagent
-    model: llamacpp-local/qwen38-220k
+    model: llamacpp-local/Qwen3.6-35B-A3B-NVFP4
     write_capable: false
-    note: "Lokaler Qwen-3.8 via llama.cpp (llamacpp-local/qwen38-220k, llm-proxy :18235, Loadout Port 8094). NAME luegt ueber das Modell — bleibt als Dispatch-Schnittstelle [T900162]; FreeToken-native (:1919) ist decommissioned [T900164]."
-  devstral:
-    mode: subagent
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Modellagnostisch auf llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235, Loadout Port 8094) [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
-  gemma:
-    mode: subagent
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Modellagnostisch auf llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235, Loadout Port 8094) [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
-  gemma12:
-    mode: subagent
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "Modellagnostisch auf llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235, Loadout Port 8094) [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
-  qwen38:
-    mode: subagent
-    model: llamacpp-local/qwen38-220k
-    write_capable: false
-    note: "qwen38 family: llama.cpp (llamacpp-local/qwen38-220k via llm-proxy :18235). EIN Slot — nur sequenziell dispatchen, nie neben sich selbst oder einem anderen lokalen Agenten [T900162]; FreeToken-native (:1919) decommissioned [T900164]."
-  qwen-cloud:
-    mode: subagent
-    model: alibaba-intl/qwen3.8-max
-    write_capable: true
-    note: "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). Erste Cloud-Eskalationsstufe nach lokalen Modellen. Selbe Modell-Familie wie der Orchestrator [T013360]"
+    note: "Sole local implementation subagent: Qwen3.6-35B-A3B MoE via FreeToken :1919 through llm-proxy :18235 (static 200k KV pool, moe 4150, ~100 tok/s decode, gemessen 2026-09-16). Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~150k)."
   reviewer:
     mode: subagent
-    model: llamacpp-local/qwen38-220k
+    model: llamacpp-local/Qwen3.6-35B-A3B-NVFP4
     write_capable: false
     note: "Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
     write_capable: true
-    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-08-22 task-dispatch allowed for the same subagent set as the orchestrator (local families + qwen-cloud + deepseek-*)."
+    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + 2-rail deepseek-*)."
   ox-alpha-free:
     mode: primary
     model: opencode-zen/laguna-s-2.1-free
@@ -110,12 +84,7 @@ runtimes:
     mode: subagent
     model: opencode-go/deepseek-v4-flash
     write_capable: true
-    note: "ESCALATION twin of deepseek-helper over OpenCode Go instead of the direct API — helper tier multi-backend (direct + Go + Alibaba) since 2026-08-22."
-  deepseek-helper-alibaba:
-    mode: subagent
-    model: alibaba-intl/deepseek-v4-flash-0731
-    write_capable: true
-    note: "ESCALATION twin of deepseek-helper over the Alibaba Intl Token Plan. Model ID deepseek-v4-flash-0731 (differs from direct/Go). Measured 2026-08-22 after alibaba-intl key rotation (smoke test answered); context limit declared conservatively, unmeasured."
+    note: "ESCALATION: DeepSeek V4 Flash via OpenCode Go — FIRST escalation rail after local (helper tier 2-rail: Go + direct since 2026-09-16)."
   deepseek-pro:
     mode: all
     model: opencode-go/deepseek-v4-pro
@@ -126,11 +95,6 @@ runtimes:
     model: deepseek/deepseek-v4-pro
     write_capable: true
     note: "Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
-  deepseek-pro-alibaba:
-    mode: all
-    model: alibaba-intl/deepseek-v4-pro
-    write_capable: true
-    note: "Same model as deepseek-pro, over the Alibaba Intl Token Plan — third route (Go + direct + Alibaba) since 2026-08-22 after key rotation; smoke-tested. Context limit declared conservatively, unmeasured."
   deepseek-flash:
     mode: all
     model: opencode-go/deepseek-v4-flash
@@ -145,26 +109,21 @@ runtimes:
     mode: primary
     model: opencode-zen/laguna-s-2.1-free
     write_capable: true
-    note: "Primary orchestrator on Laguna S 2.1 Free (OpenCode Zen, Poolside agentic coding model, free tier, 256k ctx per models.dev; live-smoke-tested 2026-08-22). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches local family subagents + cloud escalation (qwen-cloud/deepseek-*). Eskalationskette: lokal → qwen-cloud → deepseek-helper → deepseek-pro [T013360]"
-  alibaba-primary:
-    mode: primary
-    model: alibaba-intl/qwen3.8-max
-    write_capable: false
-    note: "PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx), tab-selectable singleagent via compatible-mode endpoint; replaces deepseek-v4-flash as the default model [T004396]"
+    note: "Primary orchestrator on Laguna S 2.1 Free (OpenCode Zen, Poolside agentic coding model, free tier, 256k ctx per models.dev; live-smoke-tested 2026-08-22). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches the single local subagent (budget_tokens per packet) + 2-rail cloud escalation. Eskalationskette: local → deepseek-helper-go → deepseek-helper → deepseek-pro"
   qwen38-primary:
     mode: primary
-    model: llamacpp-local/qwen38-220k
+    model: llamacpp-local/Qwen3.6-35B-A3B-NVFP4
     write_capable: true
-    note: "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (200k ctx / 205056 tokens gemessen, Dual-GPU-Split, loadout qwen38-220k on port 8094). Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
+    note: "PRIMARY: Local Qwen3.6-35B-A3B MoE via FreeToken auf Windows (:1919, served KV 200k, moe 4150) durch llm-proxy :18235 (llamacpp-local/Qwen3.6-35B-A3B-NVFP4). Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
 
 # T900074-p2: factory role declarations (mirror — SSOT is .opencode/agent-models.jsonc)
 factory_roles:
   planner:
-    description: "Code search, read, ticket operations; dispatched via orchestrator (qwen38 is explorer-only, task:deny)"
+    description: "Code search, read, ticket operations; dispatched via orchestrator (local is implementer-only, task:deny)"
     agents: [orchestrator]
   implementer:
     description: "Full dev access: read/edit/bash/task; new files via orchestrator (write:deny by design, AGENTS.md:41)"
-    agents: [gptoss, devstral, gemma, gemma12, qwen-cloud, deepseek-pro, deepseek-pro-direct, deepseek-pro-alibaba, deepseek-flash, deepseek-flash-direct]
+    agents: [local, deepseek-helper-go, deepseek-helper, deepseek-pro, deepseek-pro-direct, deepseek-flash, deepseek-flash-direct]
   reviewer:
     description: "Read/grep/glob/tests only; no edit/write/bash/task (edit:deny, write:deny, bash:deny, task:deny)"
     agents: [reviewer]

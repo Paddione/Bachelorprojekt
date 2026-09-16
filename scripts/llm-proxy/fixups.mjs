@@ -152,12 +152,36 @@ export function fillMissingArrayItems(body) {
   return { ...body, tools: walk(body.tools) };
 }
 
+/**
+ * [T900189] FreeToken serviert EIN residentes Modell und ignoriert das
+ * `model`-Feld der Anfrage. Die Thinking-Umschaltung laeuft deshalb nicht ueber
+ * das Modell, sondern ueber `chat_template_kwargs.enable_thinking`.
+ *
+ * Die Entscheidung kommt aus dem angefragten Alias, nicht aus einer zweiten
+ * Backend-Zeile: die Engine kann genau einen Request gleichzeitig, und zwei
+ * Registry-Zeilen auf dieselbe URL wuerden zwei Semaphore auf eine einzige
+ * Engine legen (max_inflight gilt pro Zeile).
+ *
+ * Ohne Aussage im Alias bleibt der Body unveraendert — `ft serve` laeuft mit
+ * `--sampling-defaults model`, und ein stilles `false` waere eine Entscheidung,
+ * die niemand getroffen hat.
+ */
+function freetokenThinking(body) {
+  const model = typeof body?.model === 'string' ? body.model : '';
+  let enable;
+  if (/-thinking$/.test(model)) enable = true;
+  else if (/-fast$/.test(model)) enable = false;
+  else return body;
+  return { ...body, chat_template_kwargs: { ...(body.chat_template_kwargs || {}), enable_thinking: enable } };
+}
+
 export const FIXUPS = {
   'bonsai-system-role-fixup': bonsaiSystemRoleFixup,
   'flatten-content-blocks': flattenContentBlocks,
   'normalize-billing-header': normalizeBillingHeader,
   'sanitize-tool-schema-patterns': sanitizeToolSchemaPatterns,
   'fill-missing-array-items': fillMissingArrayItems,
+  'freetoken-thinking': freetokenThinking,
 };
 
 /** @param {string[]} names @param {any} body */

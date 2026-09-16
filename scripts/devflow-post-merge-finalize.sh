@@ -616,10 +616,13 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
         _fm_archived="$(ls -d openspec/changes/archive/*-"$SLUG"/tasks.md 2>/dev/null | head -1 || true)"
         [[ -n "$_fm_archived" ]] && _apply_plan_frontmatter_completed_path "$ARCHIVE_DIR/$_fm_archived"
       else
-        archive_args=()
-        if [[ "$SLUG" == mishap-incident-rollup-* ]]; then
-          archive_args+=(--no-merge)
-        fi
+        # [T900105] Archiv-Flags aus scripts/lib/openspec-archive-args.sh
+        # (S1-Auslagerung wie finalize-frontmatter.sh): --create-new bei Deltas
+        # ohne SSOT-Target (neue Komponente, T900104), --no-merge fuer
+        # mishap-*. Root "." = ARCHIVE_DIR (cd oben, Change aus origin/main).
+        source "$REPO_DIR/scripts/lib/openspec-archive-args.sh"
+        openspec_archive_args "$SLUG" "."
+        archive_args=("${ARCHIVE_ARGS[@]}")
         bash scripts/openspec.sh archive "$SLUG" "${archive_args[@]}"
       fi
       # Freshness: openspec.sh regeneriert openspec-status.json nach dem Move —

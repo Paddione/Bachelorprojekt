@@ -11,6 +11,9 @@
 #   ausschliesslich im Quelltext manifestiert (der Archiv-Push zielt auf
 #   origin, lokal nicht simulierbar). Positions-Check per awk-Bereichsmuster
 #   (T003104), Positiv-Anker im selben Test (T002356-M1).
+#   Test T013330: gemischt — Verdrahtungs-Anker per awk-Bereich (der Finalizer
+#   delegiert die Archiv-Flags an openspec_archive_args, [T900105]), Semantik
+#   per direktem Helper-Aufruf (mishap-Slug -> --no-merge, Output-Verifikation).
 #
 # Sandbox-Mechanik identisch zu archive-terminal-ticket-status.bats:
 # scripts/openspec.sh verdrahtet TICKET_SH fest auf "$REPO/scripts/ticket.sh"
@@ -136,7 +139,17 @@ STUB
   run awk '/git checkout -B "\$ARCHIVE_BRANCH"/,/task freshness:regenerate/' "$FINALIZE"
   [ "$status" -eq 0 ]
   [ -n "$output" ]
-  printf '%s\n' "$output" | grep -qF 'mishap-incident-rollup-'
-  printf '%s\n' "$output" | grep -qF -- '--no-merge'
-  printf '%s\n' "$output" | grep -qF 'bash scripts/openspec.sh archive "$SLUG"'
+  # [T900105] Die Flag-Entscheidung lebt seit der S1-Auslagerung in
+  # scripts/lib/openspec-archive-args.sh: der Finalizer delegiert per
+  # openspec_archive_args und reicht "${archive_args[@]}" an den
+  # archive-Aufruf durch (Verdrahtungs-Anker, T002356-M1).
+  printf '%s\n' "$output" | grep -qF 'openspec_archive_args "$SLUG"'
+  printf '%s\n' "$output" | grep -qF 'bash scripts/openspec.sh archive "$SLUG" "${archive_args[@]}"'
+  # Die --no-merge-Semantik selbst ist output-verifiziert (Helper direkt
+  # aufgerufen statt Source-Grep, T002448-M4): Mishap-Rollup-Slug ergibt
+  # genau ein Flag, --no-merge — auch ohne existierenden Change-Ordner.
+  source "${REPO_ROOT}/scripts/lib/openspec-archive-args.sh"
+  openspec_archive_args "mishap-incident-rollup-2099-01-01" "$BATS_TEST_TMPDIR"
+  [ "${#ARCHIVE_ARGS[@]}" -eq 1 ]
+  [ "${ARCHIVE_ARGS[0]}" = "--no-merge" ]
 }

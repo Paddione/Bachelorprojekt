@@ -1,124 +1,52 @@
 {
   "provider": {
-    // Lokaler llama.cpp-Provider ueber den llm-proxy.
+    // Lokaler Provider ueber den llm-proxy (:18235).
     //
-    // Seit T014028/T014105 laeuft der lokale Stack auf FreeToken-native (:1919);
-    // dieser Provider ist nur noch Rueckfallebene mit deaktivierten Loadouts.
-    // Die Eintraege gptoss-context, gemma26-factory, gemma4 und
-    // gemma26-throughput wurden T016419 entfernt — deren GGUFs sind von der
-    // Platte.
+    // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
+    // und opencode-Default referenzieren ihn) — dahinter steht seit
+    // T014028/T014105 FreeToken-native (:1919, Qwen3.6-35B-A3B-NVFP4, statischer
+    // 200k-KV-Pool). Kein llama.cpp-Loadout mehr aktiv.
     //
-    // Ersetzt die frueheren Bloecke llamacpp-gemma26 und llamacpp-gemma9 [2026-08-03].
-    // Deren Modelle (gemma26-factory, gemma9-factory) sind Loadouts, deren GGUF-Dateien
-    // auf diesem Host nicht mehr existieren — von den acht Loadouts in
-    // scripts/llm/loadouts.json haben nur noch vier ihre Gewichte. Jeder Dispatch auf
-    // die Gemma-Agenten lief damit ins Leere.
-    //
-    // Weiterhin ueber den llm-proxy (:18235) statt direkt auf den Server-Port: damit gilt
-    // max_inflight=3 auch fuer die opencode-Agenten (bis zu 3 parallele Streams pro Backend)
-    // und die Fallback-Kette lokal -> deepseek -> zen greift auch hier [T002558].
+    // Ueber den llm-proxy statt direkt auf :1919: Proxy-max_inflight=3 queuet
+    // bis zu 3 sequenzielle Dispatches, die sich den ≤200k served-KV-Pool und
+    // den Radix-Cache teilen; die Fallback-Kette lokal -> deepseek -> zen
+    // greift auch hier [T002558].
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp via llm-proxy (~/opt/llama-current, aktuell Build 61 / 0adcc3bb5)",
+      "name": "FreeToken via llm-proxy (Qwen3.6-35B-A3B-NVFP4, static 200k KV pool)",
       "options": {
         "baseURL": "http://127.0.0.1:18235/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        "hauhau-qwen36": {
-          "name": "Qwen3.6-35B-A3B Uncensored (HauhauCS Aggressive, Q4_K_M), Loadout hauhau-qwen36 auf Port 8097 - Start: curl -XPOST 127.0.0.1:18235/admin/loadouts/hauhau-qwen36/start",
-          // stale:2026-09-12:Loadout hauhau-qwen36 enabled=false (scripts/llm/loadouts.json),
-          // Port 8097 zu (live-check) — kein Agent zeigt hierauf, Eintrag bleibt als Beleg.
-          // ctx 131072 = Loadout-Flag, noch nicht gemessen (T015175) — nach Erststart
-          // gegen n_ctx_slot kalibrieren. Abliteration: 0/465 Refusals, kann
-          // Instruktionsfolge vs. Baseline-Qwen3.6 leicht verschlechtern.
+        // GEMESSEN 2026-09-16 (ft 0.1.2, Profil qwen-200k, static pool):
+        // /v1/cache/status num_pages 200000 (= served KV!), moe_cache 4150
+        // (40.5% resident). bench-freetoken-prefill.sh --tag static-200k:
+        // decode ~100 tok/s, cold prefill ~2600-3700 tok/s wall, cached
+        // (radix hit) ~12k-43k tok/s. Prefill-Pathologie (~7ms/tok, ft 0.1.1)
+        // auf 0.1.2+--moe-prefill-hit-d2d geheilt. advertised max_model_len
+        // 262144 ist NICHT die served KV. Reasoning default on -> kleines
+        // max_tokens liefert leeren content (length) — Budget grosszuegig.
+        // KV-Ladder-Alternative VERWORFEN: grosse MoE-Wachstums-Rebuilds OOMen
+        // unter Fragmentierung (2.49GB-Alloc bei 1.93GB frei) — statisch gewinnt.
+        "Qwen3.6-35B-A3B-NVFP4": {
+          "name": "Qwen3.6-35B-A3B MoE (FreeToken :1919 via llm-proxy, static 200k KV / moe 4150, ~100 tok/s decode, reasoning on)",
           "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        },
-        "gemma12-vision": {
-          "name": "Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP-Drafter, Loadout gemma12-vision auf Port 8089 - exclusiveGroup chat-gpu. Vision-capable.",
-          // stale:2026-09-12:Loadout gemma12-vision enabled=false (scripts/llm/loadouts.json),
-          // Port 8089 zu (live-check) — kein Agent zeigt hierauf, Eintrag bleibt als Beleg.
-          "limit": {
-            "context": 262144,
-            "output": 8192
-          }
-        },
-        "qwen38-220k": {
-          "name": "Qwen 3.8 27B UD-IQ4_XS (Text, Loadout qwen38-220k auf Port 8094, 205.056 ctx) - exclusiveGroup chat-gpu",
-          "limit": {
-            "context": 205056,
+            "context": 200000,
             "output": 8192
           }
         }
       }
     },
-    // ── Alibaba Cloud International (Token Plan) ───────────────────────
-    // OpenAI-compatible Endpoint für Qwen/Claude Modelle via Alibaba MaaS.
-    // Kein "apiKey" hier [2026-08-14, T004808]: Der Key stand plaintext im
-    // Repo und ist als kompromittiert zu behandeln (Rotation offen). Er
-    // liegt jetzt in ~/.local/share/opencode/auth.json — so hält es der
-    // opencode-go-Provider unten ebenfalls; ohne apiKey-Feld greift opencode
-    // genau dort zu.
-    // baseURL: https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1
-    "alibaba-intl": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Alibaba Cloud International (Token Plan, MaaS)",
-      "options": {
-        "baseURL": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
-      },
-      "models": {
-        // Model-ID vom Token Plan — abgefragt via /compatible-mode/v1/models.
-        // Erreichbar über compatible-mode (OpenAI-Format), nicht DashScope-native.
-        "qwen3.8-max": {
-          "name": "Qwen3.8 Max (Alibaba Intl Token Plan, via compatible-mode)",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        },
-        // 2026-08-22 GEMESSEN nach Key-Rotation: GET /compatible-mode/v1/models
-        // listet beide DeepSeek-Modelle; chat/completions-Smoke antwortet
-        // (pro: "OK"/finish=stop; flash-0731: "OK"/finish=length — das ist der
-        // bekannte Reasoning-Budget-Effekt, kein Fehler). ACHTUNG: die ID
-        // heisst hier "deepseek-v4-flash-0731", NICHT "deepseek-v4-flash" wie
-        // auf der direkten API / Go-Gateway.
-        // Kontext-/Output-Limits sind NICHT gemessen — konservative Deklaration
-        // (upstream ist DeepSeek V4 mit 1M ctx, aber das Token-Plan-Gateway-
-        // Limit ist unbelegt; opencode nutzt die Zahl nur fuer Auto-Compact).
-        "deepseek-v4-flash-0731": {
-          "name": "DeepSeek V4 Flash 0731 (Alibaba Intl Token Plan, compatible-mode)",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        },
-        "deepseek-v4-pro": {
-          "name": "DeepSeek V4 Pro (Alibaba Intl Token Plan, compatible-mode)",
-          "limit": {
-            "context": 131072,
-            "output": 16384
-          }
-        }
-      }
-    },
-
     // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
     // ($10/mo), deepseek-v4-flash ist Teil des Go-Katalogs (verifiziert per curl
     // gegen https://opencode.ai/zen/go/v1/chat/completions, cost:"0" = im Abo
     // enthalten).
     //
-    // Kein "apiKey" hier [2026-08-03]: Der Eintrag lautete frueher
-    // "{env:OPENCODE_API_KEY}" und verwies auf ~/.config/opencode/secrets.env.
-    // Diese Datei existiert nicht und die Variable ist in keiner Shell gesetzt —
-    // die Referenz loeste sich also ins Leere auf. Der Schluessel liegt
-    // tatsaechlich in ~/.local/share/opencode/auth.json, wo `opencode auth login`
-    // ihn ablegt (`opencode auth list` zeigt DeepSeek und OpenCode Go). Ohne
-    // apiKey-Feld greift opencode genau dort zu — so haelt es der
-    // deepseek-Provider oben ebenfalls.
+    // Kein "apiKey" hier [2026-08-03]: Der Schluessel liegt in
+    // ~/.local/share/opencode/auth.json, wo `opencode auth login` ihn ablegt.
+    // Ohne apiKey-Feld greift opencode genau dort zu.
     "opencode-go": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "OpenCode Go (Subscription)",
@@ -133,15 +61,9 @@
             "output": 8192
           }
         },
-        // 2026-08-03: v4-pro ist im Go-Katalog enthalten und antwortet
-        // (verifiziert per GET /models UND per chat/completions). Er fehlte
-        // hier, weshalb der Tiefen-Subagent unnoetig ueber die direkte API
-        // lief, statt das bezahlte Abo zu nutzen.
-        //
-        // Der Go-Katalog fuehrt weit mehr als diese zwei: minimax-m3,
-        // kimi-k3, glm-5.2, qwen3.8-max und andere. Sie sind hier bewusst
-        // NICHT eingetragen — jeder Eintrag will gemessen sein, bevor ein
-        // Agent darauf zeigt.
+        // Der Go-Katalog fuehrt weit mehr (minimax-m3, kimi-k3, glm-5.2,
+        // qwen3.8-max u.a.). Sie sind hier bewusst NICHT eingetragen — jeder
+        // Eintrag will gemessen sein, bevor ein Agent darauf zeigt.
         "deepseek-v4-pro": {
           "name": "DeepSeek V4 Pro (OpenCode Go, 1M ctx, maximale Reasoning-Tiefe)",
           "limit": {
@@ -153,8 +75,7 @@
     },
     // OpenCode Zen (https://opencode.ai/zen/v1) — der Katalog MIT `big-pickle`,
     // das auf dem Go-Katalog (/zen/go/v1) fehlt. Gleicher Auth-Schluessel wie
-    // opencode-go: der Key wird via `opencode auth` unter dem Provider-Namen
-    // "opencode-zen" in ~/.local/share/opencode/auth.json gehalten. big-pickle
+    // opencode-go (via `opencode auth` unter "opencode-zen" gehalten). big-pickle
     // laeuft im Free-Kontingent — bis das verbraucht ist, dann auf die
     // deepseek-Primaries wechseln.
     "opencode-zen": {
@@ -178,11 +99,7 @@
         // chat/completions gegengeprueft (Antwort "OK", finish_reason=stop).
         // limit laut models.dev-Registry (opencode-Provider): 256k ctx,
         // 32k output, cost 0/0 — agentic coding model von Poolside,
-        // tool_call=true. models.dev markiert es als deprecated; im Liveversuch
-        // antwortete es trotzdem. deepseek-v4-flash-free wurde im selben Lauf
-        // ebenfalls getestet und ist UPSTREAM NICHT VERFUEGBAR ("Model is
-        // unavailable") — deshalb steht hier laguna, nicht das naheliegendere
-        // DeepSeek-Free.
+        // tool_call=true.
         "laguna-s-2.1-free": {
           "name": "Laguna S 2.1 Free (OpenCode Zen, free tier, Poolside agentic coding model, models.dev: 256k ctx)",
           "limit": {
@@ -195,15 +112,6 @@
     // Direkte DeepSeek-API als Ausweichweg, wenn OpenCode Go nicht traegt
     // (Abo-Limit, Zen-Ausfall). Key liegt in ~/.local/share/opencode/auth.json
     // unter dem Provider-Schluessel "deepseek" (via `opencode auth`).
-    //
-    // Warum die IDs hier explizit stehen [2026-08-03, gemessen]:
-    // GET https://api.deepseek.com/models fuehrt nur noch deepseek-v4-flash
-    // und deepseek-v4-pro. Die frueher konfigurierten deepseek-chat und
-    // deepseek-reasoner sind aus der Liste verschwunden — sie ANTWORTEN aber
-    // weiterhin (beide per chat/completions gegengeprueft, finish_reason=stop).
-    // Es sind also undokumentierte Aliase, kein Totalausfall. Der Wechsel auf
-    // V4 erfolgt deshalb nicht als Fehlerbehebung, sondern wegen des
-    // Kontextfensters: 1M statt 128K/200K.
     //
     // Beide V4-Modelle sind Reasoning-Modelle und fuellen reasoning_content
     // zusaetzlich zu content. Wer sie mit knappem max_tokens testet, sieht
@@ -231,204 +139,41 @@
           }
         }
       }
-    },
-    // LM Studio — Modelle auf den zwei im LAN angeschlossenen Laptops
-    // (Embedding-Modelle und kleine lokale Modelle). Kein Agent dispatcht
-    // direkt hierauf; dient als Provider-Registry fuer die LAN-Geraete.
-    "lmstudio": {
-      "models": {
-        "qwen3.5-9b@q4_k_xl": {
-          "name": "Qwen3.5-9B (1 session, 140k ctx, UD-Q4_K_XL weights, Q8_0 KV)",
-          "limit": {
-            "context": 140000,
-            "output": 8192
-          }
-        },
-        "qwen3.5-9b@q4_k_m": {
-          "name": "Qwen3.5-9B (3x48k parallel, Q4_K_M weights, Q8_0 KV)",
-          "limit": {
-            "context": 48000,
-            "output": 8192
-          }
-        },
-        "qwen3.5-9b@iq4_xs": {
-          "name": "Qwen3.5-9B (4x65k parallel, IQ4_XS weights, 260k total ctx)",
-          "limit": {
-            "context": 260000,
-            "output": 8192
-          }
-        },
-        "qwen3-14b@q4_k_m": {
-          "name": "Qwen3-14B (1 session, Q4_K_M, lmstudio-community/Qwen3-14B-GGUF)",
-          "limit": {
-            "context": 32768,
-            "output": 8192
-          }
-        },
-        "google/gemma-4-12b-qat": {
-          "name": "Gemma 4 12B (QAT)",
-          "limit": {
-            "context": 180000,
-            "output": 8192
-          }
-        },
-        "gemma-4-12b-agentic-fable5-composer2.5-v2-3.5x-tau2@q4_k_m": {
-          "name": "Gemma4 v2 12B + 423M MTP-Assistant draft (speculative decoding, yuxinlu1, Q4_K_M weights, Q8_0 KV)",
-          "limit": {
-            "context": 150000,
-            "output": 8192
-          }
-        },
-        // GEMESSEN (K3, k3-messung.sh qwen3.5-4b@q6_k 5, 2026-08-15): ~7,8-9,5
-        // tok/s Decode, Thinking nicht abschaltbar — 8192 Output waere bei
-        // ~9,5 tok/s 14-17 Min/Request, deshalb 4096. Repo-Stand der Messung:
-        // 47c5abca6. E2B-Slot (T007055): HF-Beleg Dateigroesse 3.184.496.736
-        // Bytes (~2,97 GiB) — die E4B-UD-Q4_K_XL ist real 4,77 GiB gross und
-        // sprengt das 8-GB-RAM-Budget des Iris-Plus-Tablets, deshalb context
-        // 16384. Die Tablet-K3-Messung folgt im Geraete-Folgetask
-        // (T007055-Geraeteteil).
-        "gemma-4-e2b@ud-q4_k_xl": {
-          "name": "Gemma 4 E2B UD-Q4_K_XL (~2,97 GiB, PK-Tablet)",
-          "limit": {
-            "context": 16384,
-            "output": 4096
-          }
-        },
-        "qwen3.5-4b@q6_k": {
-          "name": "Qwen3.5-4B Q6_K (~3,3 GB, PK-L-1)",
-          "limit": {
-            "context": 32768,
-            "output": 4096
-          }
-        }
-      }
     }
   },
   "agent": {
-    // LOKALE SUBAGENTEN NACH MODELL-FAMILIE [2026-08-04].
-    //
-    // Frueher hiessen sie gemma26-1/2 und gemma9-1/2 und zeigten ALLE auf
-    // gptoss-context — der Name log ueber das Modell. Seit 2026-08-04 traegt
-    // jeder lokale Subagent den Namen der Familie, die er tatsaechlich serviert
-    // (gptoss, devstral, gemma, gemma12), und der Orchestrator ruft ihn damit auf:
-    // `task gemma` gibt die Gemma-Familie. T003204: die Familie qwen ist
-    // abgeschaltet — ihr Loadout qwen3-coder-30b wurde entfernt (T012414).
-    //
-    // Was unveraendert gilt: der llm-proxy hat max_inflight=3, die Agenten
-    // rechnen nacheinander. Mehr Namen bringen erhaltenen Kontext, nicht
-    // Durchsatz — bei einer einzelnen GPU waere echte Nebenlaeufigkeit ohnehin
-    // kaum ein Gewinn. Alle vier Chat-Loadouts teilen exclusiveGroup
-    // "chat-gpu": es laeuft immer nur eines.
-    //
-    // Der urspruengliche Hinweis aus T002298 bleibt gueltig: "-np" heisst in
-    // llama.cpp "number of server slots", nicht "Parallelitaet". Wer die Namen
-    // zusammenstreicht, nimmt jedem Agenten seinen Praefix-Cache.
-    // T016419: modellagnostisch auf dem FreeToken-Alias, siehe
-    // freetoken-local-Provider — die frueheren Loadout-Zuweisungen
-    // (zuletzt gptoss-context, dann gemma26-throughput) sind mit deren
-    // GGUFs von der Platte. Der NAME bleibt "gptoss": er ist die
-    // Aufruf-Schnittstelle des Orchestrators ("gptoss": "allow" in dessen
-    // Permission-Liste) und steht zusaetzlich in
-    // docs/agent-guide/registry/agents.yaml sowie in der Skill-Dokumentation.
-    // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
-    // description, welches Modell tatsaechlich dahintersteht.
-    "gptoss": {
-      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
+    // DER lokale Subagent (singular). 2026-09-16: die fuenf Familien-Handles
+    // (gptoss/devstral/gemma/gemma12/qwen38) zeigten alle auf dasselbe
+    // FreeToken-Modell — fuenf Namen, ein Slot, kein Prefix-Cache-Gewinn mehr
+    // (ein Resident-Checkpoint, ein Radix-Cache). Kollabiert zu einem `local`.
+    // Engine: --max-running-requests 1 (single-flight); Proxy queuet ≤3
+    // sequenzielle Dispatches, die ≤200k served KV teilen. Der Orchestrator
+    // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~150k).
+    "local": {
+      "description": "Sole local implementation subagent (Qwen3.6-35B-A3B MoE via FreeToken :1919 through llm-proxy, 200k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "devstral": {
-      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
-      "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#60A5FA",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "gemma": {
-      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
-      "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#F59E0B",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "gemma12": {
-      "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
-      "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#F0ABFC",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "qwen38": {
-      "description": "Local subagent via llama.cpp. Text-only. Write-capable delegation.",
-      "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#22D3EE",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "qwen-cloud": {
-      "description": "Cloud subagent: Qwen 3.8 Max via Alibaba Cloud Intl Token Plan (131k ctx). First cloud escalation tier after local models fail. Same model family as the orchestrator. Write-capable.",
-      "mode": "subagent",
-      "model": "alibaba-intl/qwen3.8-max",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#FF6900",
-      "temperature": 0.3,
-      "steps": 100,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
     "reviewer": {
       "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "deny", "write": "deny", "bash": "deny", "task": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "todowrite": "allow", "question": "allow", "skill": "allow", "lsp": "allow" }
     },
-    // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
-    // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
-    // beides nicht reicht, wird hier dispatcht. Verwendet die direkte
-    // DeepSeek-API (deepseek-chat / V3) fuer schnelle Hilfestellung.
-    "deepseek-helper": {
-      "description": "ESCALATION: DeepSeek V4 Flash via the direct DeepSeek API (1M ctx) — dispatch when a local subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed. Uses the direct API rather than OpenCode Go on purpose: this is the fallback path, so it stays usable when the Go subscription is exhausted or Zen is down.",
-      "mode": "subagent",
-      // War deepseek/deepseek-chat (V3, 128K). Gewechselt wegen des
-      // Kontextfensters, nicht wegen eines Fehlers — die alte ID antwortet
-      // weiterhin, ist aber nicht mehr in /models gelistet [2026-08-03].
-      "model": "deepseek/deepseek-v4-flash",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#F97316",
-      "temperature": 0.3,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // 2026-08-22: Ausweich-Zwilling von deepseek-helper ueber OpenCode Go.
-    // deepseek-helper laeuft bewusst auf der direkten API (Fallback-Pfad);
-    // damit ist die Helper-Stufe jetzt MEHRGLEISIG: direkt (deepseek-helper)
-    // UND Go (deepseek-helper-go) — dieselbe Logik wie beim pro/flash-Paar.
-    // Dritte Schiene (Alibaba Token Plan): am 2026-08-22 erst VERWORFEN
-    // (gespeicherter Key lieferte "InvalidApiKey"), nach Key-Rotation am selben
-    // Tag erfolgreich nachgemessen — siehe deepseek-helper-alibaba /
-    // deepseek-pro-alibaba unten.
+    // Eskalationsstufe NACH lokaler Kompaktierung/Retry und opencodes eigener
+    // Kompaktierung. ZWEIGLEISIG (Go zuerst, direkte API als Fallback) —
+    // die Alibaba-Drittschiene ist 2026-09-16 entfallen (2-Rail-Entscheidung).
     "deepseek-helper-go": {
-      "description": "ESCALATION twin of deepseek-helper via OpenCode Go (DeepSeek V4 Flash, 1M ctx). Same role and prompt as deepseek-helper (which uses the direct API on purpose) — dispatch this route when the direct API is down or rate-limited. Mode subagent: escalation-only, not tab-selectable.",
+      "description": "ESCALATION: DeepSeek V4 Flash via OpenCode Go (1M ctx) — FIRST escalation rail after local fails. Same role and prompt as deepseek-helper. Mode subagent: escalation-only, not tab-selectable.",
       "mode": "subagent",
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/deepseek-helper.md}",
@@ -437,31 +182,22 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // 2026-08-22: dritte Helper-Schiene ueber den Alibaba Token Plan, nach
-    // Key-Rotation gemessen (Model-ID: deepseek-v4-flash-0731 — abweichend von
-    // der direkten API; Smoke-Test antwortete). Damit ist die Helper-Stufe
-    // dreigleisig: direkt (deepseek-helper), Go (deepseek-helper-go),
-    // Alibaba (deepseek-helper-alibaba).
-    "deepseek-helper-alibaba": {
-      "description": "ESCALATION twin of deepseek-helper via the Alibaba Cloud Intl Token Plan (DeepSeek V4 Flash 0731). Same role and prompt — third route when both the direct DeepSeek API and OpenCode Go fail. Mode subagent: escalation-only, not tab-selectable.",
+    "deepseek-helper": {
+      "description": "ESCALATION: DeepSeek V4 Flash via the direct DeepSeek API (1M ctx) — SECOND rail, dispatch when OpenCode Go is exhausted or rate-limited. Uses the direct API so it stays usable when the Go subscription is exhausted or Zen is down.",
       "mode": "subagent",
-      "model": "alibaba-intl/deepseek-v4-flash-0731",
+      "model": "deepseek/deepseek-v4-flash",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F97316",
       "temperature": 0.3,
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // Tiefer Analyse-Agent: DeepSeek-R1 mit maximaler Reasoning-Tiefe fuer
-    // komplexe Architektur-Debugging, mehrschrittiges Reasoning und harte
-    // Multi-File-Refactorings, die ueber das hinausgehen, was deepseek-helper
-    // schnell loesen kann.
+    // Tiefe: DeepSeek V4 Pro mit maximaler Reasoning-Tiefe fuer komplexe
+    // Architektur-Debugging, mehrschrittiges Reasoning und harte
+    // Multi-File-Refactorings. EINER gleichzeitig — teure, langsame Stufe.
     "deepseek-pro": {
       "description": "DEPTH: DeepSeek V4 Pro via OpenCode Go (1M ctx, maximum reasoning effort). Use for deep analysis, complex multi-file debugging, architectural reasoning, or hard refactors that exceed what deepseek-flash can handle. Dispatch ONE at a time — this is the expensive, slow tier. If Go is unavailable, use deepseek-pro-direct. Mode all: tab-selectable AND task-dispatchable.",
       "mode": "all",
-      // War deepseek/deepseek-reasoner (R1, 128K). Gewechselt auf V4 Pro
-      // wegen 1M Kontext; Primaerweg ist jetzt Go (im Abo enthalten) statt
-      // der direkten API [2026-08-03].
       "model": "opencode-go/deepseek-v4-pro",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#EF4444",
@@ -482,28 +218,12 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // 2026-08-22: dritte Pro-Schiene ueber den Alibaba Token Plan, nach
-    // Key-Rotation gemessen (Smoke-Test: "OK", finish=stop). Damit ist die
-    // Pro-Stufe dreigleisig: Go (deepseek-pro), direkt (deepseek-pro-direct),
-    // Alibaba (deepseek-pro-alibaba).
-    "deepseek-pro-alibaba": {
-      "description": "FALLBACK twin of deepseek-pro via the Alibaba Cloud Intl Token Plan (DeepSeek V4 Pro). Same role and prompt — third route when both OpenCode Go and the direct API fail. Mode all: tab-selectable AND task-dispatchable.",
-      "mode": "all",
-      "model": "alibaba-intl/deepseek-v4-pro",
-      "prompt": "{file:./prompts/deepseek-helper.md}",
-      "color": "#EF4444",
-      "temperature": 0.1,
-      "steps": 150,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
-    },
-    // Schneller Parallel-Dispatcher: DeepSeek-V3 mit maximalem Reasoning-
-    // Effort, bis zu 3 Instanzen gleichzeitig (je 200K ctx). Gedacht fuer
-    // unabhaengige Teilaufgaben, die parallel abgearbeitet werden koennen.
+    // Durchsatz: DeepSeek V4 Flash, bis zu 3 Instanzen gleichzeitig (je 1M ctx).
+    // Remote-Modelle konkurrieren nicht um die lokale GPU — der Default, wenn
+    // lokal belegt ist. Breite, nicht Tiefe.
     "deepseek-flash": {
       "description": "THROUGHPUT: DeepSeek V4 Flash via OpenCode Go (1M ctx). Dispatch up to 3 at a time for independent parallel subtasks — each gets its own context window, and remote models do not contend for the single local GPU. Faster and cheaper than deepseek-pro; use for breadth, not depth. Default choice when no local model is loaded. Mode all: tab-selectable AND task-dispatchable.",
       "mode": "all",
-      // War deepseek/deepseek-chat (V3, 200K). Auf V4 Flash wegen 1M
-      // Kontext; Primaerweg ist jetzt Go [2026-08-03].
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F59E0B",
@@ -522,79 +242,32 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      // 2026-08-22 (zweiter Wechsel am selben Tag): von alibaba-intl/qwen3.8-max
-      // auf opencode-zen/laguna-s-2.1-free (Poolside agentic coding model,
-      // Free-Tier, models.dev: 256k ctx, live gegen chat/completions gemessen —
-      // siehe Provider-Kommentar oben). Motivation: der Factory-Executor
-      // (opencode-exec.sh) faehrt denselben Agenten — damit laufen Orchestrierung
-      // UND Factory-Ticks im Free-Kontingent statt auf dem Alibaba Token Plan.
-      // Vorheriger Stand: alibaba-intl/qwen3.8-max (Cloud, 131k ctx), davor
-      // llamacpp-local/gemma12-vision (12B lokal).
-      "description": "Primary orchestrator: Laguna S 2.1 Free via OpenCode Zen (Poolside agentic coding model, free tier, 256k ctx per models.dev). Dispatches local family subagents (gptoss/devstral/gemma/gemma12/qwen38) and cloud escalation (qwen-cloud/deepseek-*). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: Laguna S 2.1 Free via OpenCode Zen (Poolside agentic coding model, free tier, 256k ctx per models.dev). Dispatches the single local subagent plus 2-rail cloud escalation (helper-go/helper, pro/pro-direct, flash/flash-direct). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "opencode-zen/laguna-s-2.1-free",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,
       "steps": 150,
-      // Exakte Namen statt "gemma26-*" (Prinzip aus T002298): ein Wildcard
+      // Exakte Namen statt Wildcards (Prinzip aus T002298): eine Wildcard
       // wuerde jeden neu hinzugefuegten Subagenten automatisch mitfreigeben.
       "permission": {
         "task": {
-          "gptoss": "allow",
-          "devstral": "allow",
-          "gemma": "allow",
-          // T003204: ohne diesen Eintrag existierte der Subagent, waere aber
-          // nicht dispatchbar — die Liste nennt bewusst exakte Namen statt einer
-          // Wildcard (Prinzip aus T002298).
-          "gemma12": "allow",
-          // 2026-08-22: fuenfte lokale Familie — Qwen 3.8 27B auf dem
-          // qwen38-220k-Loadout (Port 8094, np=1). Nur sequenziell dispatchen.
-          "qwen38": "allow",
-          // 2026-08-22: Qwen 3.8 Max via Alibaba Cloud — erste Eskalationsstufe
-          // nach lokal, selbe Modell-Familie wie der Orchestrator selbst.
-          "qwen-cloud": "allow",
-          "deepseek-helper": "allow",
-          // 2026-08-22: Go-route twin of deepseek-helper (direct API stays the
-          // default escalation path; this is the alternate rail).
+          "local": "allow",
           "deepseek-helper-go": "allow",
-          // 2026-08-22: Alibaba-Token-Plan-Routen (nach Key-Rotation gemessen):
-          // dritte Schiene fuer Helper und Pro.
-          "deepseek-helper-alibaba": "allow",
+          "deepseek-helper": "allow",
           "deepseek-pro": "allow",
-          "deepseek-flash": "allow",
-          // Ausweich-Zwillinge auf der direkten API. Bewusst freigegeben, aber
-          // als Ausweichweg gedacht: erst Go, bei Ausfall diese. Der
-          // Orchestrator-Prompt beschreibt, wann.
           "deepseek-pro-direct": "allow",
+          "deepseek-flash": "allow",
           "deepseek-flash-direct": "allow",
-          "deepseek-pro-alibaba": "allow",
-          // T900074-p2: factory reviewer role (mode subagent on freetoken-local)
-          // must be dispatchable — T003204 requires exact names, no wildcards.
+          // T900074-p2: factory reviewer role must be dispatchable.
           "reviewer": "allow"
         }
       }
     },
-    // ── Alibaba Cloud International (Token Plan) ───────────────────────
-    // PRIMARY: Qwen3.8-Max via Alibaba Intl Token Plan — replaces deepseek-v4-flash
-    // as the top-level orchestrator model until/unless replaced by something else.
-    "alibaba-primary": {
-      "description": "PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx). Tab-selectable singleagent — replaces opencode-go/deepseek-v4-flash as the default. Runs through token-plan endpoint (compatible-mode OpenAI format). Can dispatch any subagent.",
-      "mode": "primary",
-      "model": "alibaba-intl/qwen3.8-max",
-      "prompt": "{file:./prompts/primary-agent.md}",
-      "color": "#FF6900",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
     // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
     // Free-Kontingent verbraucht ist, danach auf die deepseek-Primaries wechseln.
-    //
-    // 2026-08-22: task von "deny" auf dieselbe benannte Allow-Liste wie der
-    // Orchestrator umgestellt (Prinzip T002298: exakte Namen statt Wildcard) —
-    // Big Pickle kann damit dieselben Subagenten dispatchen wie der Orchestrator
-    // bzw. qwen-cloud-Eskalation (lokale Familien + Cloud-Eskalation).
+    // Dieselbe benannte Allow-Liste wie der Orchestrator (Prinzip T002298).
     "big-pickle": {
       "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to the deepseek-pro/flash primaries. Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog. Can dispatch the same subagent set as the orchestrator.",
       "mode": "primary",
@@ -610,31 +283,19 @@
         "webfetch": "deny",
         "websearch": "deny",
         "task": {
-          "gptoss": "allow",
-          "devstral": "allow",
-          "gemma": "allow",
-          "gemma12": "allow",
-          "qwen38": "allow",
-          "qwen-cloud": "allow",
-          "deepseek-helper": "allow",
+          "local": "allow",
           "deepseek-helper-go": "allow",
-          "deepseek-helper-alibaba": "allow",
+          "deepseek-helper": "allow",
           "deepseek-pro": "allow",
-          "deepseek-flash": "allow",
           "deepseek-pro-direct": "allow",
+          "deepseek-flash": "allow",
           "deepseek-flash-direct": "allow",
-          "deepseek-pro-alibaba": "allow"
+          "reviewer": "allow"
         }
       }
     },
     // Ox Alpha Free — zweiter Free-Tier-Primary neben Big Pickle [2026-08-22].
-    // Zeigt auf opencode-zen/laguna-s-2.1-free (live gegen chat/completions
-    // gemessen, siehe Kommentar beim Provider oben).
-    //
-    // 2026-08-23: Task-Allow-Liste eingedampft auf den ox-alpha-Familien-
-    // Subagenten (Prinzip T002298: exakte Namen statt Wildcard) — dieser
-    // Primary dispatcht ausschliesslich ox-alpha, keine lokalen Familien,
-    // kein qwen-cloud, keine deepseek-*.
+    // Dispatcht ausschliesslich ox-alpha (exakte Namen statt Wildcard).
     "ox-alpha-free": {
       "description": "PRIMARY: Ox Alpha Free on OpenCode Zen (laguna-s-2.1-free, Poolside agentic coding model, free tier, 256k ctx per models.dev). Tab-selectable singleagent next to big-pickle. Live-smoke-tested 2026-08-22. Dispatches ONLY ox-alpha subagents.",
       "mode": "primary",
@@ -654,9 +315,6 @@
         }
       }
     },
-    // Ox Alpha Familien-Subagent [2026-08-23] — einziger Dispatch-Tuer von
-    // ox-alpha-free. Dasselbe Modell wie der Primary (laguna-s-2.1-free via
-    // OpenCode Zen), derselbe Helper-Prompt wie die anderen Cloud-Subagenten.
     "ox-alpha": {
       "description": "Subagent twin of ox-alpha-free on OpenCode Zen (same laguna-s-2.1-free model, Poolside agentic coding model, free tier). Sole dispatch target of ox-alpha-free — keeps parallel/specialized work inside the same free-tier model family. Write-capable.",
       "mode": "subagent",
@@ -667,13 +325,13 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // Dedicated Primary Agent for local Qwen 3.8 27B UD-IQ4_XS (200k ctx, Dual-GPU-Split).
-    // Autonomous ticket worker: prioritizes critical tickets, plans (/dev-flow-plan),
-    // explores (/opsx:explore), executes, and archives.
+    // Plan-Primary: Qwen3.6-35B-A3B MoE via FreeToken/lm-proxy (200k served KV).
+    // Autonomous ticket-hammering agent: prioritizes critical issues,
+    // plans (/dev-flow-plan), explores (/opsx:explore), executes, archives.
     "qwen38-primary": {
-      "description": "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (200k / 205056 ctx, Dual-GPU-Split, gemessen). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
+      "description": "PRIMARY: Local Qwen3.6-35B-A3B MoE via FreeToken/lm-proxy (200k served KV static pool, moe 4150, gemessen 2026-09-16). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/qwen38-primary.md}",
       "color": "#10B981",
       "temperature": 0.3,
@@ -685,17 +343,13 @@
         "webfetch": "deny",
         "websearch": "deny",
         "task": {
-          "gptoss": "allow",
-          "devstral": "allow",
-          "gemma": "allow",
-          "gemma12": "allow",
-          "qwen38": "allow",
-          "qwen-cloud": "allow",
-          "deepseek-helper": "allow",
+          "local": "allow",
           "deepseek-helper-go": "allow",
-          "deepseek-helper-alibaba": "allow",
+          "deepseek-helper": "allow",
           "deepseek-pro": "allow",
-          "deepseek-flash": "allow"
+          "deepseek-pro-direct": "allow",
+          "deepseek-flash": "allow",
+          "deepseek-flash-direct": "allow"
         }
       }
     }

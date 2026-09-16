@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.346.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.1...website-v1.346.2) (2026-09-16)
+
+
+### Bug Fixes
+
+* **scripts:** devflow-post-merge-finalize reicht --create-new für neue SSOT-Komponenten durch [T900105] ([#5678](https://github.com/Paddione/Bachelorprojekt/issues/5678)) ([29c75cb](https://github.com/Paddione/Bachelorprojekt/commit/29c75cb050518b7e04c49de2e5f77a4f1873615f))
+
+## [1.346.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.0...website-v1.346.1) (2026-09-16)
+
+
+### Tests
+
+* **ci:** cover single-static-model scenarios with guards [T900203] ([#5676](https://github.com/Paddione/Bachelorprojekt/issues/5676)) ([db7c3ca](https://github.com/Paddione/Bachelorprojekt/commit/db7c3caec2927c119bb8bfe110e730926e0786ed))
+
+## [1.346.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.345.0...website-v1.346.0) (2026-09-16)
+
+
+### Features
+
+* freetoken windows native T900189 ([#5665](https://github.com/Paddione/Bachelorprojekt/issues/5665)) ([d5ea026](https://github.com/Paddione/Bachelorprojekt/commit/d5ea026867e6365c04cc24ae0ee8394f7c5e060b))
+
 ## [1.345.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.344.0...website-v1.345.0) (2026-09-16)
 
 

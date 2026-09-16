@@ -17,29 +17,32 @@ Die gesamte Produktion der Plattform wurde am 31.05.2026 konsolidiert. Alle Dien
 
 Der Cluster besteht aus drei Control-Plane-Knoten (Steuerungsknoten) und drei Worker-Knoten (Arbeitsknoten).
 
-| Hostname | Rolle | Öffentliche IP-Adresse | WireGuard IP (`wg-fleet`) | WireGuard Public Key |
-|---|---|---|---|---|
-| **pk-hetzner-4** | Control-Plane | `204.168.244.104` | `10.20.0.1` | `e10sA4GsXWQbbcPAx6J98sbKQbiO8VEm+5ywHgKT2Vg=` |
-| **pk-hetzner-6** | Control-Plane | `37.27.251.38` | `10.20.0.2` | `Fmx/zbyADzKElBEnEL/drun0VM6mt7NNBn4m2FeUklo=` |
-| **pk-hetzner-8** | Control-Plane | `62.238.23.79` | `10.20.0.3` | `buA4HrVLhaOQTRUf5azhubgWPqJeGLnMJXbf/nqlmB8=` |
-| **gekko-hetzner-2** | Worker | `178.104.169.206` | `10.20.0.4` | `VBzLQBlMZZvygs9/90hNfOEmscCjbbKN+/Zv7Q0gsD8=` |
-| **gekko-hetzner-3** | Worker | `46.225.125.59` | `10.20.0.5` | `shjarf/+wXfxl4JlhTRtVvyDt8mzGodr8kj392WHa1I=` |
-| **gekko-hetzner-4** | Worker | `178.104.159.79` | `10.20.0.6` | `H8R7yyZ6W8lS2rlKUNF0bP0oYNtxnn1bjoy3SwmRvCY=` |
+| Hostname | Rolle | Öffentliche IP-Adresse | WireGuard IP (`wg-fleet`) | Tailscale IP (`p.korczewski`) | WireGuard Public Key |
+|---|---|---|---|---|---|
+| **pk-hetzner-4** | Control-Plane | `204.168.244.104` | `10.20.0.1` | `100.114.20.106` | `e10sA4GsXWQbbcPAx6J98sbKQbiO8VEm+5ywHgKT2Vg=` |
+| **pk-hetzner-6** | Control-Plane | `37.27.251.38` | `10.20.0.2` | `100.81.181.32` | `Fmx/zbyADzKElBEnEL/drun0VM6mt7NNBn4m2FeUklo=` |
+| **pk-hetzner-8** | Control-Plane | `62.238.23.79` | `10.20.0.3` | `100.118.49.94` | `buA4HrVLhaOQTRUf5azhubgWPqJeGLnMJXbf/nqlmB8=` |
+| **gekko-hetzner-2** | Worker | `178.104.169.206` | `10.20.0.4` | `100.104.153.88` | `VBzLQBlMZZvygs9/90hNfOEmscCjbbKN+/Zv7Q0gsD8=` |
+| **gekko-hetzner-3** | Worker | `46.225.125.59` | `10.20.0.5` | `100.124.142.2` | `shjarf/+wXfxl4JlhTRtVvyDt8mzGodr8kj392WHa1I=` |
+| **gekko-hetzner-4** | Worker | `178.104.159.79` | `10.20.0.6` | `100.100.238.102` | `H8R7yyZ6W8lS2rlKUNF0bP0oYNtxnn1bjoy3SwmRvCY=` |
 
 *Hinweis:* Der API-Server des Clusters ist direkt über die IP des Knotens `pk-hetzner-4` unter Port `6443` erreichbar (`204.168.244.104:6443`). Die alten, separaten Standalone-Cluster-Kontexte sind stillgelegt.
 
 ---
 
-### 1.2 Entwicklungs- und Testumgebung (Local Dev / k3d auf WSL-Host)
+### 1.2 Entwicklungs- und Testumgebung (devmesh k3s Cluster & Dev Clients)
 
-> **Hinweis:** Das geplante `devc`-3-Knoten-k3s-HA-Cluster wurde nie gebaut (shelved 2026-05-30). Die lokale Entwicklung läuft seit ADR-008 auf dem k3s-Cluster `devmesh` (vier Hosts im Heimnetz); der frühere k3d-Cluster ist mit T900145 abgebaut. Kontext: `devmesh`.
+Lokales 4-Knoten k3s Cluster `devmesh` (ADR-008) und angebundene Dev-Clients im Tailnet `p.korczewski`.
 
-| Servername | Rolle | LAN-IP-Adresse | WireGuard IP (`wg-mesh`) | WireGuard Public Key |
+| Servername | Rolle | LAN-IP-Adresse | Tailscale IP (`p.korczewski`) | Status |
 |---|---|---|---|---|
-| **dev-vm** | Dev Cluster Host (k3d/WSL) | `10.0.0.26` | `192.168.100.23` | `TQu+0XGGDRuuQyMUQUQWZMp7tyIQ0c4RTe9+FcMaWg4=` |
-| **devc-2** | devc-Knoten 2 *(nie gebaut — shelved)* | `10.0.0.22` | `192.168.100.21` | `0jmnyI0rYR05HDzqfrvtNBCSZdQpv1XkTPhciJ9ZCxU=` |
-| **devc-3** | devc-Knoten 3 *(nie gebaut — shelved)* | `10.0.0.23` | `192.168.100.22` | `TZhEWsDku+wccV0wAIHa9V8bK5Ru+tAUkc0uPk4C+00=` |
-| **pk-l-1-worker** | Entwickler-Laptop | *Dynamisch* | `10.13.14.11` | `cLpIaLBkygvcX1D4Jm7syjoxqrRx3qhgTl7+aah1Nxw=` |
+| **gpu-metal** | devmesh k3s server-init | `10.1.0.101` | `100.120.125.39` | Active |
+| **gpu-cluster** | devmesh k3s server-join | `10.10.10.2` | `100.115.236.87` | Active |
+| **gpu-cluster2** | devmesh k3s server-join | `10.10.10.3` | `100.126.111.105` | Active |
+| **gpu-cluster-3** | devmesh k3s agent | `10.10.10.4` | — | Offline |
+| **pk-desktop** | Dev Workstation Host | `10.10.0.3` | `100.102.71.114` | Active |
+| **pk-tablet** | Dev Client Tablet | DHCP | `100.66.207.75` | Active |
+
 
 *Hinweis:* `dev-vm` ist der Nachfolger des alten `k3s-1` Heimservers. Sie läuft als Proxmox-Gast-VM (VMID `9002`) auf dem Server-Knoten `10.0.0.25`.
 

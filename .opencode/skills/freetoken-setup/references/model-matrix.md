@@ -9,25 +9,34 @@ measurements from 2026-08-23 unless marked otherwise.
 ## Qwen3.6-35B-A3B-NVFP4
 
 The daily driver. MoE with GDN hybrid attention - most layers carry a
-constant-size recurrent state instead of growing KV, which is why 131k tokens
+constant-size recurrent state instead of growing KV, which is why 200k tokens
 fit alongside a streamed expert set.
 
+Serve profile `qwen-200k` (frozen 2026-09-16):
+
 ```powershell
-# via restart script (from Git Bash), = baseline of 2026-08-23
-powershell.exe -NoProfile -File scripts/llm/restart-freetoken.ps1 `
-  -Model "$env:USERPROFILE\models\Qwen3.6-35B-A3B-NVFP4" -NumTokens 131072
+# via restart script (from Git Bash); static pool, NO ladder
+powershell.exe -NoProfile -File scripts/llm/restart-freetoken.ps1 -Profile qwen-200k
+# => ft serve --model ...\Qwen3.6-35B-A3B-NVFP4 --host 0.0.0.0 --num-tokens 200000
+#    --max-running-requests 1 --graph 1 --moe-backend offload --moe-cpu-layers 0
+#    --moe-cache-auto --kv-reserve-tokens 200000 --max-prefill-length 8192
+#    --cache-type radix --memory-ratio 0.90 --moe-prefill-hit-d2d
 ```
 
 - Weights 23.4 GB -> offload family is mandatory; `auto` resolves there.
-- 131072 KV reserve leaves ~34% of experts resident in the GPU slot cache.
-- Measured: ~104 tok/s decode at short context, 62-70 tok/s at 63k context.
-- Prefill pathology (A/B via the restart script): default flags gave ~149 tok/s
-  prefill but only 45 tok/s decode (3.3x ratio instead of the usual 50-200).
-  Candidates: `--moe-prefill-hit-d2d` (needs CUDA >= 13),
-  `--max-running-requests 1 --graph 1`, `--max-prefill-length`.
+- 200000 KV reserve with moe_cache 4150 (~40% resident, live 2026-09-16).
+- Measured 2026-09-16 (ft 0.1.2, `bench-freetoken-prefill.sh --tag static-200k`):
+  decode ~100 tok/s, cold prefill ~2600–3700 tok/s wall, radix-cache hit
+  ~12k–43k tok/s. The 2026-08-23 prefill pathology (~7 ms/tok on ft 0.1.1
+  defaults) is healed on 0.1.2 + `--moe-prefill-hit-d2d`.
+- KV-ladder alternative REJECTED 2026-09-16: growing the MoE cache live via
+  POST /v1/cache/rebuild OOMs under fragmentation (2.49 GiB alloc attempt at
+  1.93 GiB free for kv 90000/moe 5100); small deltas (±350 slots) work both
+  ways, but the ladder's start-small-then-grow path needs a Windows-side
+  restart + poller for unproven gain — static wins on evidence.
 - Optional env A/B: `FREETOKEN_MAMBA_SSM_DTYPE=bfloat16` (`-EnvVars` on the
   restart script) - trades SSM state precision for speed.
-- opencode entry: `limit.context: 131072`.
+- opencode entry: `limit.context: 200000` (= served KV, NOT advertised 262144).
 
 ### Expert-cache sizing (`--moe` slots) — measured 2026-09-03
 

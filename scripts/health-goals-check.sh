@@ -89,12 +89,12 @@ count() { grep -rEn "$1" $2 --include="*.ts" --include="*.svelte" --include="*.a
 # Upstream-gepflegte Skills sind ausgenommen: eine Änderung dort kollidiert beim nächsten Sync.
 # Fehlt der Marker-Block, ist die Vendor-Liste leer und ALLE Skills gelten als projekteigen —
 # das Gate wird dann strenger, nie schwächer.
-project_owned_skills() { # gibt Verzeichnisnamen relativ zu .claude/skills aus
+project_owned_skills() { # gibt Verzeichnisnamen relativ zu .opencode/skills aus (SSOT, T900070)
   local vendor; vendor=$(sed -n '/<!-- vendor-skills:begin -->/,/<!-- vendor-skills:end -->/p' \
-    .claude/skills/OVERVIEW.md 2>/dev/null | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` ')
+    .opencode/skills/OVERVIEW.md 2>/dev/null | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` ')
   local f d
-  for f in $(git ls-files -- .claude/skills | grep '/SKILL\.md$'); do
-    d="${f#.claude/skills/}"; d="${d%/SKILL.md}"
+  for f in $(git ls-files -- .opencode/skills | grep '/SKILL\.md$'); do
+    d="${f#.opencode/skills/}"; d="${d%/SKILL.md}"
     printf '%s\n' "$vendor" | grep -qx "$d" || echo "$d"
   done
 }
@@ -300,19 +300,19 @@ row gate G-AGENTIC07 "$(
 )" eq 0 "Verwaiste aktive Skills (keine Referenzquelle, nur getrackte)"
 row gate G-AGENTIC08 "$(
   # Lookbehind verhindert False Positives, wenn "scripts/…" Teil eines längeren,
-  # existierenden Pfads ist (z.B. .claude/skills/<name>/scripts/foo.py)
+  # existierenden Pfads ist (z.B. .opencode/skills/<name>/scripts/foo.py)
   # Scope: alle .md der projekteigenen Skills (T002303) — vorher nur SKILL.md, wodurch
   # ausgelagerte references/ ungeprüft blieben. Vendor-Skills bleiben aussen vor, weil ihre
   # relativen scripts/-Pfade skill-lokal korrekt sind und hier falsch gelesen wuerden.
   c=0
-  dirs=""; for d in $(project_owned_skills); do dirs="$dirs .claude/skills/$d"; done
-  dirs="$dirs .claude/skills/references"
+  dirs=""; for d in $(project_owned_skills); do dirs="$dirs .opencode/skills/$d"; done
+  dirs="$dirs .opencode/skills/references"
   for p in $(grep -rhoP '(?<![A-Za-z0-9_./-])scripts/[A-Za-z0-9_./-]+\.(sh|mjs|py)' $dirs --include='*.md' | sort -u); do
     [ -f "$p" ] || c=$((c+1)); done; echo $c
 )" eq 0 "Tote Script-Pfade in projekteigenen Skill-.md"
 row gate G-AGENTIC09 "$(
   c=0; for d in $(project_owned_skills); do
-    [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c
+    [ "$(wc -l < ".opencode/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c
 )" eq 0 "Projekteigene SKILL.md >400 Zeilen"
 row gate G-AGENTIC11 "$(
   claimed=$(grep 'opencode runtime registers' CLAUDE.md | grep -oE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u)

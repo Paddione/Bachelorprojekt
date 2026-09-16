@@ -168,125 +168,102 @@ to a single value rather than a repeated literal.
 - **WHEN** the BATS suite `tests/spec/llm-pipeline.bats` runs
 - **THEN** the directory-wide guard fails and names the offending file
 
-### Requirement: Single Definition Site for the opencode `freetoken-local` Provider
+### Requirement: Single Definition Site for the opencode `llamacpp-local` Provider
 
-The opencode provider key `freetoken-local` SHALL be defined in exactly one place
+The opencode provider key `llamacpp-local` SHALL be defined in exactly one place
 in the repository, namely `.opencode/agent-models.jsonc`. `.opencode/opencode.jsonc`
 SHALL NOT define a provider under that key. The provider SHALL target the
-FreeToken-native engine at `http://127.0.0.1:1919/v1`.
+llm-proxy at `http://127.0.0.1:18235/v1`, which fronts the FreeToken-native
+engine on `:1919`.
 
-Rationale: mirrors the existing `llamacpp-mtp` single-definition requirement —
+Rationale: mirrors the original `llamacpp-mtp` single-definition requirement —
 `.opencode/agent-models.jsonc` is the sync source that
 `scripts/opencode-sync-agents.sh` merges into the global config; a second
 definition in the project config would silently override it (T002159, T014105).
+The key keeps its historical name although no llama.cpp loadout is active behind
+it anymore (T014028/T014105, consolidated 2026-09-16, T900203).
 
-#### Scenario: Provider is declared once with the FreeToken endpoint
+#### Scenario: Provider is declared once with the llm-proxy endpoint
 
-- **GIVEN** `.opencode/agent-models.jsonc` defines the provider `freetoken-local`
+- **GIVEN** `.opencode/agent-models.jsonc` defines the provider `llamacpp-local`
 - **WHEN** the file is parsed and the provider's `options.baseURL` inspected
-- **THEN** the value is `http://127.0.0.1:1919/v1`
+- **THEN** the value is `http://127.0.0.1:18235/v1`
 
-### Requirement: Model-Agnostic Active Alias for FreeToken-Native Agents
+### Requirement: Local Agent Roster on the Qwen3.6 Checkpoint
 
-The `freetoken-local` provider SHALL declare an alias model entry `active`
-alongside the concrete checkpoint entries. Every legacy local-family subagent
-(`gptoss`, `devstral`, `gemma`, `gemma12`, `qwen38`) and the single local
-primary agent (`freetoken-primary`) SHALL reference `freetoken-local/active`
-as its model. Purpose-specific aliases MAY target the same resident engine when
-they carry an explicit request policy and context budget.
+The local agent roster in `.opencode/agent-models.jsonc` SHALL consist of
+`local` and `reviewer` as `mode: "subagent"` and `qwen38-primary` as
+`mode: "primary"`. Every one of them SHALL reference
+`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` as its model.
 
-Rationale: FreeToken serves one resident model at a time on a shared port and
-ignores the `model` field of incoming requests (verified live 2026-08-23), so a
-stable alias always reaches whichever checkpoint is resident — per-model agent
-wiring would break on every `/engine/switch` (T014105). After the migration the
-former per-loadout primaries (`gemma26-primary`, `gemma26-vision`,
-`gptoss-primary`, `devstral-primary`, `gemma12-primary`,
-`gemma26-throughput-primary`, `qwen38-primary`) became byte-identical clones of
-`freetoken-primary` whose names reference retired loadouts; they are removed
-instead of kept as lying aliases (T016419). The family names stay alive where
-they still carry meaning: as subagent dispatch handles.
+Rationale: the five legacy family handles (`gptoss`, `devstral`, `gemma`,
+`gemma12`, `qwen38`) all pointed at the same FreeToken model — five names, one
+slot, no prefix-cache gain. They collapsed into a single `local` subagent on
+2026-09-16 (T900164). The `freetoken-local` provider and its `active` alias are
+gone; the provider key is `llamacpp-local` (historical name) serving FreeToken
+through the llm-proxy (T900203). The former per-loadout primaries
+(`gemma26-primary`, `gemma26-vision`, `gptoss-primary`, `devstral-primary`,
+`gemma12-primary`, `gemma26-throughput-primary`, `qwen38-primary`) were
+byte-identical clones whose names referenced retired loadouts; they are removed
+instead of kept as lying aliases (T016419). `qwen38-primary` keeps its
+historical name although it now runs the Qwen3.6 checkpoint.
 
-#### Scenario: Agents reference the alias
+#### Scenario: Agents reference the Qwen3.6 model
 
 - **GIVEN** the agent blocks in `.opencode/agent-models.jsonc`
-- **WHEN** the `model` field of each local subagent and of `freetoken-primary`
-  is read
-- **THEN** every value equals `freetoken-local/active`
+- **WHEN** the `model` field of `local`, `reviewer` and `qwen38-primary` is read
+- **THEN** every value equals `llamacpp-local/Qwen3.6-35B-A3B-NVFP4`
 
 #### Scenario: Retired clone primaries are gone
 
 - **GIVEN** the parsed `agent` object of `.opencode/agent-models.jsonc`
 - **WHEN** the keys are inspected for `gemma26-primary`, `gemma26-vision`,
   `gptoss-primary`, `devstral-primary`, `gemma12-primary`,
-  `gemma26-throughput-primary`, or `qwen38-primary` with `mode: "primary"`
+  `gemma26-throughput-primary`, or `freetoken-primary` with `mode: "primary"`
 - **THEN** none of them exists
 
-### Requirement: Dynamic Thinking Pool for FreeToken
+### Requirement: Single Static Model, No Alias Layer
 
-The `freetoken-local` provider SHALL expose `active-thinking` with a `200000`
-context limit and `active-fast` with an `85000` context limit. The
-`freetoken-active.ts` plugin SHALL inject
-`chat_template_kwargs.enable_thinking` into the final OpenAI-compatible request
-body according to the selected alias: `true` for `active-thinking` and `false`
-for `active-fast`.
+The `llamacpp-local` provider SHALL declare exactly one model entry,
+`Qwen3.6-35B-A3B-NVFP4`. The `freetoken-active.ts` plugin, its
+`active`/`active-thinking`/`active-fast` aliases and the
+`freetoken-thinking`/`freetoken-fast-*` agents SHALL NOT exist.
 
-At startup the plugin SHALL cap both purpose-specific aliases to the resident
-checkpoint's safe context when that checkpoint cannot support their Qwen-sized
-fallback budgets. Thus Qwen keeps 200k/85k, while a switch to a smaller
-checkpoint cannot advertise more KV capacity than that checkpoint provides.
+Rationale: the alias layer and the dynamic thinking pool were removed together
+with the plugin (T900203). FreeToken serves one resident checkpoint on a static
+200k KV pool; per-request thinking toggles are not wired through opencode
+anymore, and the engine is not swapped from the model picker.
 
-The agent roster SHALL provide `freetoken-thinking` with `mode: all`, making it
-both primary-selectable and dispatchable, plus exactly three non-thinking
-agents (`freetoken-fast-1`, `freetoken-fast-2`, `freetoken-fast-3`) also using
-`mode: all`. The
-thinking agent and the regular orchestrator pool SHALL be able to dispatch the
-three fast workers. Separate agent names provide independent OpenCode
-conversation contexts; they do not claim separate FreeToken engines, KV pools,
-or parallel GPU execution.
+#### Scenario: Catalog holds the single static model
 
-#### Scenario: Thinking is selected per request without an engine restart
+- **GIVEN** the parsed `llamacpp-local.models` object of
+  `.opencode/agent-models.jsonc` and the agent roster
+- **WHEN** the model keys and the agent `model` fields are inspected
+- **THEN** exactly `Qwen3.6-35B-A3B-NVFP4` is declared and no
+  `active`/`active-thinking`/`active-fast` alias and no
+  `freetoken-thinking`/`freetoken-fast-*` agent exists
 
-- **GIVEN** the FreeToken engine serves one resident checkpoint
-- **WHEN** OpenCode sends a request through `active-thinking` and then through
-  `active-fast`
-- **THEN** the final request bodies carry `enable_thinking: true` and
-  `enable_thinking: false`, respectively
-- **AND** both requests target the same FreeToken endpoint
+### Requirement: Measured Context Limits for the Local FreeToken Checkpoint
 
-#### Scenario: Reasoning agent joins the dispatch pool
+The `limit.context` value of the `Qwen3.6-35B-A3B-NVFP4` entry in the
+`llamacpp-local` provider SHALL equal the measured usable KV capacity, not the
+advertised `max_model_len`: `200000` (= served KV, `/v1/cache/status
+num_pages`; advertised `max_model_len` is `262144`). Every
+`llamacpp-local` `limit.context` SHALL be a positive integer, SHALL NOT equal
+`262144`, and SHALL NOT exceed `200000`.
 
-- **GIVEN** the parsed OpenCode agent roster
-- **WHEN** `freetoken-thinking` and the three `freetoken-fast-*` agents are
-  inspected
-- **THEN** the thinking agent has mode `all` and a 200k model alias
-- **AND** each fast agent is primary-selectable and dispatchable using the 85k
-  non-thinking alias
+Rationale: every catalog entry promises measured context limits; a number above
+the served KV dispatches into a context overflow at runtime (T002633-class,
+recurring). `gpt-oss-20b` and `Gemma-4-26B-A4B-NVFP4` are no longer declared —
+the static pool serves only the Qwen3.6 checkpoint (T900203).
 
-### Requirement: Measured Context Limits for FreeToken Checkpoints
+#### Scenario: Declared context equals the served KV
 
-The `limit.context` values in the `freetoken-local` provider SHALL equal the
-measured usable KV capacity, not the advertised `max_model_len`: `200000` for
-`Qwen3.6-35B-A3B-NVFP4`, `65536` for `gpt-oss-20b`, and `32768` for
-`Gemma-4-26B-A4B-NVFP4`. The `freetoken-active.ts` plugin SHALL prefer a running
-model reported by the daemon. When the daemon does not report a running model
-but the serving endpoint is healthy, it SHALL fall back to `/v1/models` and
-cap the alias limit to usable KV geometry from `/v1/stats` or
-`/v1/cache/status`. It SHALL leave the static fallback unchanged only when
-neither discovery path identifies a configured checkpoint.
-
-#### Scenario: Plugin resolves a Desktop-owned server without daemon adoption
-
-- **GIVEN** the daemon reports no running resident model
-- **AND** the FreeToken server answers `/v1/models` and exposes usable KV geometry
-- **WHEN** OpenCode starts and the plugin's config hook runs
-- **THEN** the alias identifies the checkpoint served on port 1919
-- **AND** its context limit does not exceed the server's usable KV-token capacity
-
-#### Scenario: Discovery remains fail-silent while the engine is unavailable
-
-- **GIVEN** neither the daemon nor the serving endpoint identifies a configured checkpoint
-- **WHEN** OpenCode starts and the plugin's config hook runs
-- **THEN** the static alias fallback remains unchanged
+- **GIVEN** the parsed `llamacpp-local.models` object of
+  `.opencode/agent-models.jsonc`
+- **WHEN** the `limit.context` of `Qwen3.6-35B-A3B-NVFP4` is read
+- **THEN** it is `200000` and does not exceed the server's usable KV-token
+  capacity
 
 ### Requirement: Sync Distributes opencode Plugins
 
@@ -301,101 +278,72 @@ reaches the loading location and the alias keeps its static fallback limit
 
 #### Scenario: Sync copies plugin files
 
-- **GIVEN** `.opencode/plugin/freetoken-active.ts` exists in the repository
+- **GIVEN** `.opencode/plugin/bge-mcp-env.ts` exists in the repository
 - **WHEN** `scripts/opencode-sync-agents.sh` runs
 - **THEN** the file exists under the global opencode plugin directory afterwards
 
 ### Requirement: Project Default Model Targets the FreeToken Alias
 
 The project opencode config `.opencode/opencode.jsonc` SHALL declare
-`llamacpp-local/qwen38-220k` as its top-level default `model`. It SHALL NOT declare a default
-that resolves to the retired FreeToken-native engine (`freetoken-local/*`).
+`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` as its top-level default `model`. It SHALL NOT declare a
+default that resolves to the retired llama.cpp loadout `llamacpp-local/qwen38-220k`
+(port 8094, no longer served).
 
-Rationale: FreeToken (Windows-native, port 1919) is decommissioned by operator decision
-(T900164). `llamacpp-local/qwen38-220k` is `enabled: true` in `scripts/llm/loadouts.json` and
-served through the llm-proxy on `:18235`, which already carries every re-routed agent from
-`.opencode/agent-models.jsonc` (T900163). A project default naming the retired engine boots
-against a dead backend.
+Rationale: FreeToken (Windows-native, port 1919) was re-established as the local inference
+backend by operator decision (T900189), served through the llm-proxy on `:18235`.
+`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` (200000 served KV, moe 4150) is the active model alias
+that resolves to that backend and is declared in `.opencode/agent-models.jsonc` for every
+re-routed agent. A project default naming the retired llama.cpp loadout boots against a dead
+backend.
 
-#### Scenario: Default model resolves to the qwen38-220k loadout
+#### Scenario: Default model resolves to the Qwen3.6-35B-A3B-NVFP4 alias
 
 - **GIVEN** `.opencode/opencode.jsonc` declares its top-level `model`
 - **WHEN** the value is read
-- **THEN** it equals `llamacpp-local/qwen38-220k`
+- **THEN** it equals `llamacpp-local/Qwen3.6-35B-A3B-NVFP4`
 
 ### Requirement: Dead Checkpoints Are Not Declared
 
 The provider catalogs in `.opencode/agent-models.jsonc` SHALL NOT declare
-model entries whose weights no longer exist on disk (`gptoss-context`,
-`gemma26-factory`, `gemma4`, `gemma26-throughput`). Entries whose GGUF files
-remain present (`hauhau-qwen36`, `gemma12-vision`, `qwen38-220k`) MAY stay as
-the documented fallback layer even while their loadouts are disabled.
+model entries whose weights no longer exist on disk. The `llamacpp-local`
+catalog SHALL declare exactly `Qwen3.6-35B-A3B-NVFP4`; the retired keys
+`qwen38-220k`, `gptoss-context`, `gemma26-factory`, `gemma4`,
+`gemma26-throughput`, `gemma12-vision` and `hauhau-qwen36` SHALL NOT be
+declared.
 
 Rationale: every catalog entry promises measured context limits; an entry
 without weights cannot honor them and dispatches into the void (T002633-class,
-recurring). The dense NVFP4 checkpoint Qwen3.6-27B-NVFP4 was deleted by operator
-decision — dense models do not fit the VRAM budget, so only the three MoE FTW
-checkpoints remain viable under FreeToken (T016419).
+recurring). The former fallback entries (`hauhau-qwen36`, `gemma12-vision`,
+`qwen38-220k`) are gone as well — the FreeToken consolidation leaves a single
+resident checkpoint (T900203, T016419).
 
 #### Scenario: Dead catalog keys are absent
 
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc`
 - **WHEN** its keys are inspected
-- **THEN** none of `gptoss-context`, `gemma26-factory`, `gemma4`,
-  `gemma26-throughput` is declared, and at least one fallback entry remains
+- **THEN** `Qwen3.6-35B-A3B-NVFP4` is declared and none of `qwen38-220k`,
+  `gptoss-context`, `gemma26-factory`, `gemma4`, `gemma26-throughput`,
+  `gemma12-vision`, `hauhau-qwen36` is declared
 
-### Requirement: Alias Usage Telemetry for the FreeToken Plugin
+### Requirement: FreeToken Plugin Layer Removed
 
-The `freetoken-active.ts` plugin SHALL append one JSON Lines record per
-outgoing chat-completion request to a local telemetry file. Each record SHALL
-carry the request timestamp, the requested model alias exactly as the caller
-sent it (`active`, `active-thinking`, or `active-fast`), and the size of the
-assembled prompt.
+The `freetoken-active.ts` plugin SHALL NOT exist — neither in the repository
+(`.opencode/plugin/`) nor in the global opencode plugin directory. Its alias
+telemetry, engine auto-swap, engine stop, degraded failure path, fetch-wrapper
+consistency guard and the BATS coverage for auto-swap SHALL NOT be re-added
+without a new requirement.
 
-The telemetry file SHALL live outside the repository working tree, alongside
-the existing FreeToken logs, so that measurement data never enters a commit.
+Rationale: the plugin was removed together with the alias layer (T900203).
+FreeToken serves one resident checkpoint on a static 200k KV pool; there is no
+per-request thinking toggle, no engine switching from the model picker, and no
+telemetry file. The provider is wired statically through the llm-proxy.
 
-Writing telemetry SHALL be fire-and-forget: a failure to open, write, or flush
-the telemetry file SHALL NOT alter the outgoing request, delay it, or surface
-an error to the caller.
+#### Scenario: Plugin file is absent
 
-Rationale: since T014028 the `freetoken-local` provider targets
-`http://127.0.0.1:1919/v1` directly, bypassing the local proxy on `:18235` that
-writes `tickets.llm_proxy_request_log`. No FreeToken request has been recorded
-since. The plugin is the only component that observes the real request body, and
-it already branches on the alias to inject `enable_thinking` — so it is the
-single place where both the alias distribution and the true prompt sizes can be
-captured. Without those two numbers, neither the value of the Dynamic Thinking
-Pool nor the actually required context window can be established, and any
-backend decision rests on assumption rather than measurement (T900087, T002717).
-
-#### Scenario: A thinking request is recorded under its own alias
-
-- **GIVEN** the plugin processes a request whose model is `active-thinking`
-- **WHEN** the telemetry record for that request is read back
-- **THEN** its alias field is `active-thinking`
-- **AND** it carries a prompt size and a timestamp
-
-#### Scenario: A non-thinking request is recorded under its own alias
-
-- **GIVEN** the plugin processes a request whose model is `active-fast`
-- **WHEN** the telemetry record for that request is read back
-- **THEN** its alias field is `active-fast`
-
-#### Scenario: Telemetry never lives inside the working tree
-
-- **GIVEN** the configured telemetry file path
-- **WHEN** the path is compared against the repository root
-- **THEN** it does not resolve to a location inside the working tree
-
-#### Scenario: A telemetry failure leaves the request untouched
-
-- **GIVEN** the telemetry file cannot be written
-- **WHEN** the plugin processes a chat-completion request
-- **THEN** the outgoing request body is unchanged from the case where telemetry
-  succeeds
-- **AND** no error is raised to the caller
+- **GIVEN** the repository directory `.opencode/plugin/`
+- **WHEN** its entries are listed
+- **THEN** `freetoken-active.ts` is not among them
 
 ### Requirement: V2 Compaction Targets 100K Active Context
 
@@ -468,85 +416,6 @@ of factory tasks lives next to its component, not in the global prompt.
 - **GIVEN** `AGENTS.md` on the feature branch
 - **WHEN** `wc -l` is run
 - **THEN** the count is at most 160
-
-### Requirement: Engine Auto-Swap on FreeToken Model Selection
-
-When the user selects a `freetoken-local` model in the model picker, the plugin SHALL
-switch the resident FreeToken engine to the engine model mapped to the selected alias.
-The mapping SHALL be resolved from the plugin-internal alias→engine table (engine model,
-port, args, contextLimit). After a successful switch the plugin SHALL update the
-declared context limit for the active alias.
-
-#### Scenario: Different engine model selected
-
-- **GIVEN** the user selects a `freetoken-local` alias whose mapped engine model differs from the running engine model
-- **WHEN** the plugin event hook observes `session.next.model.switched`
-- **THEN** the plugin SHALL call `POST /engine/switch` with `{model, port, args, force: true}` (or `POST /engine/start` if the engine is stopped)
-- **AND** the plugin SHALL update the declared context limit for the active alias
-
-#### Scenario: Same engine model, different alias
-
-- **GIVEN** the user selects a `freetoken-local` alias whose mapped engine model equals the running engine model (e.g. `active` → `active-thinking`)
-- **WHEN** the plugin event hook observes `session.next.model.switched`
-- **THEN** the plugin SHALL NOT call the engine control API
-- **AND** the plugin SHALL only update the declared context limit and alias name
-
-### Requirement: Engine Stop on Non-FreeToken Model Selection
-
-When the user selects a model that is not a `freetoken-local` model, the plugin SHALL
-stop the resident FreeToken engine to free VRAM.
-
-#### Scenario: Non-FreeToken model selected
-
-- **GIVEN** the user selects a model outside the `freetoken-local` provider (e.g. `llamacpp-local`)
-- **WHEN** the plugin event hook observes `session.next.model.switched`
-- **THEN** the plugin SHALL call `POST /engine/stop`
-
-### Requirement: Degraded Failure Path on Engine Switch
-
-When an engine switch or stop fails, the plugin SHALL notify the user and keep the
-previous engine state running. The failure SHALL NOT block the already-switched client.
-
-#### Scenario: Engine switch fails
-
-- **GIVEN** the engine control API returns an error for `POST /engine/switch`
-- **WHEN** the plugin event hook handles the model switch
-- **THEN** the plugin SHALL surface a notification with the error
-- **AND** the plugin SHALL leave the previously running engine untouched
-
-### Requirement: Fetch-Wrapper Engine Consistency Guard
-
-The plugin fetch wrapper SHALL verify that the running engine model matches the model
-expected for the active alias. On mismatch the wrapper SHALL perform a synchronous
-engine switch before proxying the request.
-
-#### Scenario: Engine model drifted from expected model
-
-- **GIVEN** the running engine model differs from the model expected for the active alias
-- **WHEN** a request is proxied through the plugin fetch wrapper
-- **THEN** the wrapper SHALL switch the engine to the expected model before forwarding the request
-
-### Requirement: Repo Plugin SSOT Sync
-
-The repository copy of the freetoken-active plugin SHALL match the live global plugin
-copy, including the system-merge fix (all system messages merged into position 0).
-
-#### Scenario: Repo plugin is stale
-
-- **GIVEN** the repo copy of `.opencode/plugin/freetoken-active.ts` lacks the system-merge fix present in the global copy
-- **WHEN** the change is implemented
-- **THEN** the repo copy SHALL contain the same system-merge logic as the global copy
-
-### Requirement: BATS Coverage for Auto-Swap Logic
-
-The auto-swap behavior SHALL be covered by BATS tests under `tests/spec/llm-local-dev/`
-following the existing `tests/spec/llm-local-dev.bats` pattern.
-
-#### Scenario: Auto-swap tests run
-
-- **GIVEN** BATS tests for the auto-swap logic exist under `tests/spec/llm-local-dev/`
-- **WHEN** the test suite runs
-- **THEN** the tests SHALL pass and cover alias mapping, switch/stop/start dispatch, same-model context-limit-only updates, and the failure path
 
 ### Requirement: Start scripts leave -ngl to -fit
 
@@ -841,12 +710,13 @@ Since T014028 the llama loadouts were switched off wholesale and every guard for
 `llamacpp-local/*` reference. That ban was too coarse: it addressed a real failure — an agent
 pointing at a loadout that is not running — but also forbade the working case.
 
-A local agent MUST resolve to one of exactly two backends: the `freetoken-local` provider, or a
-llama.cpp loadout that is **enabled** in `scripts/llm/loadouts.json`. A reference to a loadout
-that is absent or `enabled: false` MUST fail the build. The backend name itself carries no
-verdict — liveness does.
+A local agent MUST resolve to one of exactly two backends: the `llamacpp-local` provider
+(FreeToken via the llm-proxy, historical key name), or a llama.cpp loadout that is
+**enabled** in `scripts/llm/loadouts.json`. A reference to a loadout that is absent or
+`enabled: false` MUST fail the build. The backend name itself carries no verdict —
+liveness does.
 
-At least one local primary MUST run on `freetoken-local`. It is the backend without a GPU
+At least one local primary MUST run on `llamacpp-local`. It is the backend without a GPU
 precondition and therefore the fallback when a llama loadout cannot load.
 
 The two backends are **alternatives, not concurrent**: FreeToken occupies roughly 15.7 of 16 GB
@@ -875,9 +745,9 @@ fixed context breaks as soon as another process holds VRAM; and below 200k the s
 worth its throughput cost — measured, the split trades roughly half the decode rate for triple
 the context.
 
-The context advertised to clients in `agent-models.jsonc` MUST equal the floor the loadout
-guarantees (`fit.minCtx`). A client number that exceeds what the server assures is a promise
-nobody keeps.
+The catalog no longer advertises loadout contexts: `agent-models.jsonc` declares only the
+FreeToken served KV (`200000`), and the loadout floor is not coupled to a client number
+(T900203).
 
 #### Scenario: The split is removed while the loadout stays enabled
 
@@ -893,3 +763,5 @@ nobody keeps.
 <!-- merged from change delta llm-local-dev.md (530f2980bf03) -->
 
 <!-- merged from change delta llm-local-dev.md (7801d2a6719b) -->
+
+<!-- merged from change delta llm-local-dev.md (58db9aa7e597) -->

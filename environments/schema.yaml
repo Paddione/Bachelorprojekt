@@ -294,20 +294,26 @@ env_vars:
     required: false
     default_dev: "http://mail.localhost"
 
+  - name: EMAIL_NOTIFICATIONS_ENABLED
+    required: false
+    default_dev: "false"
+    validate: "^(true|false)$"
+    description: "Global toggle for outgoing email notifications (T900063)."
+
   - name: BGE_EMBED_HOST
-    required: true
+    required: false
     default_dev: "embed.localhost"
     validate: "^[a-z0-9.-]+$"
     description: "Internal host of bge-embed (llm-gateway-embed) for wg-mesh consumers [T016430]. Dev: embed.localhost; prod: bge-embed.${PROD_DOMAIN}."
 
   - name: BGE_RERANK_HOST
-    required: true
+    required: false
     default_dev: "rerank.localhost"
     validate: "^[a-z0-9.-]+$"
     description: "Internal host of bge-rerank (llm-gateway-rerank) for wg-mesh consumers [T016430]. Dev: rerank.localhost; prod: bge-rerank.${PROD_DOMAIN}."
 
   - name: WG_INTERNAL_CIDR
-    required: true
+    required: false
     default_dev: "192.168.100.0/24"
     validate: "^[0-9./]+$"
     description: "wg-mesh source CIDR allowed on internal endpoints (fail-closed ipWhiteList, T016430)."

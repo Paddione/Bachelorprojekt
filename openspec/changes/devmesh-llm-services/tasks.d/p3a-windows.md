@@ -97,7 +97,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File '\\wsl.localhost\k3d-dev
 # node: Cannot find module '\\wsl.localhost\...\Microsoft.PowerShell.Core\FileSystem::\wsl.localhost\...\server.mjs'
 ```
 
-- [ ] **Schritt 1:** `register-autostart.ps1` Zeile 63:
+- [x] **Schritt 1:** `register-autostart.ps1` Zeile 63:
 
 ```powershell
 # [T900190] .ProviderPath statt .Path: unter \\wsl.localhost\... liefert .Path den
@@ -105,7 +105,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File '\\wsl.localhost\k3d-dev
 if (-not $RepoRoot) { $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).ProviderPath }
 ```
 
-- [ ] **Schritt 2:** In `register-autostart.ps1` entfällt die Token-Vorbedingung, weil
+- [x] **Schritt 2:** In `register-autostart.ps1` entfällt die Token-Vorbedingung, weil
   `start-windows.ps1` keinen lokalen Shim mehr startet. Die Kopfzeilen 3–5 und 17–19 werden
   ersetzt:
 
@@ -122,7 +122,7 @@ if (-not $RepoRoot) { $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\.."
 
 Der Block `$envFile = ...` bis zur zweiten `WARNUNG`-Zeile (Zeilen 71–75) wird gelöscht.
 
-- [ ] **Schritt 3: Prüfen**
+- [x] **Schritt 3: Prüfen**
 
 ```bash
 grep -c 'ProviderPath' scripts/mcp-gateway/register-autostart.ps1 scripts/mcp-gateway/start-windows.ps1   # je >= 1
@@ -137,7 +137,7 @@ ps1_check scripts/mcp-gateway/register-autostart.ps1
 
 **Files:** Modify `scripts/mcp-gateway/start-windows.ps1` (ganze Datei ersetzen).
 
-- [ ] **Schritt 1: Datei ersetzen**
+- [x] **Schritt 1: Datei ersetzen**
 
 ```powershell
 # scripts/mcp-gateway/start-windows.ps1
@@ -255,7 +255,7 @@ finally {
 Hinweis: Die Konsolenmeldung nennt die Default-Ports. Wer Parameter überschreibt, sieht dort
 weiter die Defaults. Die Probe-Liste nutzt die übergebenen Werte.
 
-- [ ] **Schritt 2: Prüfen** (kein Live-Start. Das Skript würde dauerhafte Forwards öffnen und mit
+- [x] **Schritt 2: Prüfen** (kein Live-Start. Das Skript würde dauerhafte Forwards öffnen und mit
   den WSL-Units kollidieren. Der Live-Nachweis steht in der Operator-Checkliste P3a.4.)
 
 ```bash
@@ -269,14 +269,14 @@ wc -l scripts/mcp-gateway/start-windows.ps1                                     
 
 **Files:** Modify `scripts/llm/start-gemma-server.ps1`.
 
-- [ ] **Schritt 1:** `start-gemma-server.ps1` Zeilen 448–449, netto zeilenneutral:
+- [x] **Schritt 1:** `start-gemma-server.ps1` Zeilen 448–449, netto zeilenneutral:
 
 ```powershell
     Write-Output "'gemma-4-12b'. Der Proxy laeuft im devmesh-Pod llm-services; lokal erreichbar"
     Write-Output "  ueber devmesh-forward.service (WSL) bzw. task mcp:start-windows (Windows)."
 ```
 
-- [ ] **Schritt 2: Prüfen**
+- [x] **Schritt 2: Prüfen**
 
 ```bash
 ps1_check scripts/llm/start-gemma-server.ps1

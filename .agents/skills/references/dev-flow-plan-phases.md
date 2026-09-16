@@ -264,6 +264,14 @@ liegen (D1 — `scripts/plan-lint.sh` erzwingt das im Partial-Modus). Partials
 können über die optionale 5. Manifest-Spalte `depends_on` Abhängigkeiten
 deklarieren (D2 — `scripts/plan-lint.sh` validiert Referenzen und Azyklizität).
 
+**(a2) Executor-Budgets (PFLICHT, FreeToken-MoE):** Jedes Partial trägt `budget_tokens`
+(S ~32k / M ~80k / L ~150k, geschätzt aus `wc -l` + `docs/code-quality/baseline.json`-Schwellen
+der `target_files`). Concurrently gequeueete Partials müssen summiert ≤200k bleiben
+(served KV-Decke, Headroom einplanen) — die Factory dispatcht **sequenziell an den
+einzigen `local`-Subagenten**. Task-Pakete enthalten Inline-Signaturen aus `intel.json`
+(symbols/signature/type_text), niemals Full-File-Dumps: kalter Prefill kostet ~3k tok/s,
+Radix-Cache-Hit ~12k–43k tok/s — stabile Prefixe sind bares Geld.
+
 **(b) Fan-out** — N parallele Plan-Subagenten (Claude Code: `Task`-Tool; opencode:
 `delegate(...)`). Kontext pro Subagent NUR: `openspec/changes/<slug>/proposal.md`,
 sein Manifest-Eintrag, die Ausgabe von

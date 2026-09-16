@@ -36,14 +36,14 @@ if [[ -z "${OPENCODE_BIN}" || ! -x "${OPENCODE_BIN}" ]]; then
   exit 2
 fi
 
-# --- Subagent-Restriktion: nur das aktuell geladene GPU-Modell -----------------------
-# Der Orchestrator-Prompt hat frueher vier lokale Familien (gptoss/devstral/gemma/
-# qwen) angeboten; wegen exclusiveGroup "chat-gpu" ist aber immer nur EIN Loadout
-# geladen. Beobachtet an T013044 (2026-08-22): der Lauf dispatchte "gptoss", obwohl
-# qwen38-220k der aktive Loadout ist. Der Prompt bietet jetzt genau den einen
-# erlaubten Subagenten an — Default qwen38 (np=1, ein Slot => strikt sequenziell),
-# Override per Env, wenn ein anderer Loadout aktiv geschaltet wird.
-DISPATCH_SUBAGENT="${FACTORY_DISPATCH_SUBAGENT:-qwen38}"
+# --- Subagent-Restriktion: nur der eine lokale Subagent ---------------------------
+# Frueher bot der Orchestrator-Prompt vier lokale Familien (gptoss/devstral/gemma/
+# qwen); wegen exclusiveGroup "chat-gpu" war immer nur EIN Loadout geladen
+# (T013044). Seit 2026-09-16 existiert nur noch EIN lokaler Handle (`local`,
+# Qwen3.6-35B-A3B MoE via FreeToken :1919, single-flight, Proxy queuet ≤3
+# sequenziell auf ≤200k served KV). Der Prompt nennt genau ihn — Default local,
+# Override per Env nur fuer Rollback-Szenarien.
+DISPATCH_SUBAGENT="${FACTORY_DISPATCH_SUBAGENT:-local}"
 
 # --- load plan body + extract the ## Partials manifest (best-effort) -----------------
 plan_body=""
@@ -172,10 +172,12 @@ PROMPT="$(printf '%s\n' \
   "Plan file: ${PLAN_PATH:-<none>}" \
   "" \
   "Dispatch ONLY the ${DISPATCH_SUBAGENT} subagent onto the DISJOINT partials" \
-  "below — ONE AT A TIME, strictly sequentially (the local GPU serves exactly one" \
-  "loadout, np=1). Do NOT dispatch gptoss/devstral/gemma/gemma12 or any other" \
-  "local family agent. Each partial is owned end-to-end (edit, test) inside this" \
-  "worktree." \
+  "below — ONE AT A TIME, strictly sequentially (FreeToken MoE serves exactly" \
+  "one request; the proxy queues up to 3 sequential dispatches sharing ≤200k" \
+  "served KV). No other local agent exists — do not invent family names" \
+  "(gptoss/devstral/gemma/qwen38 were retired 2026-09-16). Each partial is" \
+  "owned end-to-end (edit, test) inside this worktree; each packet states its" \
+  "budget_tokens (S ~32k / M ~80k / L ~150k) — stay inside it." \
   "" \
   "## Partials" \
   "${partials_manifest}" \

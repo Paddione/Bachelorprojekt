@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2313 · Scenarios: 5145
+Specs: 126 · Requirements: 2313 · Scenarios: 5147
 
 ## factory-pipeline
 
@@ -635,7 +635,7 @@ In-flight:
   - AGENTS.md declares the shared-source routing | T014086 | active | MODIFIED
 
 ### llm-local-dev
-Reqs: 32 · Scenarios: 60 · Lines: 752
+Reqs: 32 · Scenarios: 62 · Lines: 767
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Project Default Model Targets the FreeToken Alias | T900164 | 2026-09-16 | MODIFIED

@@ -102,43 +102,14 @@ und committed Proposals, nicht nur das eigene Branch-Delta. Erst danach entsteht
 Vollständige Schrittfolge samt Befehlen, Decompose-/Fan-out-Mechanik und Kontext-Injektion für
 Plan-Subagenten: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md).
 
-**Intel-Quellen des Bundles** (Phase A.1.5) — jede Sektion ist an ihre Quelle gebunden, damit der
-Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`/`type_text` und
-`call_graph` aus **codebase-memory** plus **LSP**-Hover; `db_tables` aus **mcp-postgres**
-(read-only); `external_types` aus **context7**; `impact_files`/`s1_*` aus `wc -l` +
-`docs/code-quality/baseline.json`. Ist eine Quelle samt Fallback nicht erreichbar, wird ein
-`risks[]`-Eintrag gesetzt statt die Sektion still leer zu lassen. Format:
-[plan-intel-bundle](.agents/skills/references/plan-intel-bundle.md).
+**Intel-Quellen des Bundles** (Phase A.1.5) — jede Sektion ist an ihre Quelle gebunden: `symbols`/`signature`/`type_text`/`call_graph` aus **codebase-memory** + **LSP**-Hover; `db_tables` aus **mcp-postgres** (read-only); `external_types` aus **context7**; `impact_files`/`s1_*` aus `wc -l` + `docs/code-quality/baseline.json`. Unerreichbare Quelle → `risks[]`-Eintrag statt leerer Sektion. Format: [plan-intel-bundle](.agents/skills/references/plan-intel-bundle.md).
 
 ### Guards des Feature-Pfads
-- **Preflight: Check merged ticket** (T002279) — beide Pfade, vor der Worktree-Anlage:
-  `bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"` (`rc=1` = auf `main` schon gefixt →
-  Ticket `done`, abbrechen). Exit-Codes: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md) §Preflight.
-- **Kollisions-Check vor der Worktree-Anlage** (T002444): `bash scripts/agent-collision.sh check --branch "$BRANCH"` —
-  meldet von anderen Sessions belegte Branches/Worktrees, bevor `scripts/worktree-create.sh` läuft.
-- **Brainstorming ist nicht optional** — in keinem der beiden Pfade. Es entscheidet, was überhaupt
-  gebaut wird; ein Plan ohne vorherige Klärung plant die falsche Sache sorgfältig.
-- **Ticket vor Branch** (T001917, T002050): Steht die `TICKET_EXT_ID` fest, trägt der Branch sie als
-  Suffix (`feature/<slug>-T002050`). Existiert noch kein Ticket, wird es **vor** der Worktree-Anlage
-  erstellt — sonst schlägt `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name).
-- **Disjunkte Partials (D1):** Keine Datei darf in zwei Partials liegen — `scripts/plan-lint.sh`
-  erzwingt das. Das letzte Partial ist **immer** die Tests-Rolle und trägt den
-  STRUCT2-Failing-Test-Step. Obergrenze 9.
-- **Plan-Mutation:** Sobald ein Partial enqueued ist, darf der Planner es nicht mehr ändern.
-- **Slot-Gating:** `stage-plan --partials N` setzt `slot_count`; die Factory dispatcht nur bis zu
-  dieser Grenze. Ist die Factory schneller als der Planner, pausiert der Dispatcher, bis das nächste
-  Partial enqueued ist.
-- **Qualitäts-Gate vor Design-Assets:** Jedes synchronisierte SVG vor dem Ablegen prüfen —
-  `currentColor` statt `<img>`-Einbettung, keine Stray-Hex-Werte, kein Root-`width/height`,
-  Export-Vollständigkeit. Unpassende Assets werden **verworfen**, nicht mitkopiert (T000756).
+- **Preflight: Check merged ticket** (T002279) — beide Pfade, vor der Worktree-Anlage: `bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"` (`rc=1` = auf `main` schon gefixt → Ticket `done`, abbrechen).
+- Alle weiteren Guards (Kollisions-Check T002444, Brainstorming-Pflicht, Ticket-vor-Branch, disjunkte Partials, Plan-Mutation, Slot-Gating, Design-Asset-Qualität): [feature-path-guards](references/feature-path-guards.md).
 
 ### Schritt 3.7: Plan-Erstellung — Decompose, dann paralleler Fan-out (T002074)
-Zweistufig: Der Orchestrator **decomposed** aus `intel.json` (deterministisch erzeugt von
-`scripts/plan-intel.sh`, nicht von Hand) in Partials mit disjunkten
-`target_files` (Tests immer separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten**
-je ihre `tasks.d/pX-<name>.md`. Der Orchestrator schreibt den `tasks.md`-Index mit
-Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und
-Provisionierung: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md).
+Zweistufig aus `intel.json` (deterministisch via `scripts/plan-intel.sh`) in Partials mit disjunkten `target_files` decomposen (Tests separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten** je ihre `tasks.d/pX-<name>.md`; der Orchestrator schreibt den `tasks.md`-Index mit Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und Provisionierung: [dev-flow-plan-phases](.agents/skills/references/dev-flow-plan-phases.md).
 
 **SID-Propagation (PFLICHT, T006365):** Ermittle deine Session-SID mit
 `bash scripts/agent-lock.sh mine` und weise die Plan-Subagenten an, in jedem Bash-Call zuerst

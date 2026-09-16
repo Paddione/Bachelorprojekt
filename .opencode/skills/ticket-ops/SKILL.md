@@ -1,6 +1,6 @@
 ---
 name: ticket-ops
-description: 'Compatibility router for internal ticket content. Routes completeness triage and clarification to ticket-triage; routes dependency waves and approved dispatch to ticket-dispatch. Use for existing "ticket-ops" invocations or ambiguous ticket-content requests. Not for repository hygiene or production incidents.'
+description: 'Compatibility router for internal ticket content. Routes completeness triage and clarification to ticket-triage; routes dependency waves and approved dispatch to ticket-dispatch. Use for existing "ticket-ops" invocations or ambiguous ticket-content requests. Request map: completeness/DoR/missing facts → ticket-triage; waves/collisions/dispatch → ticket-dispatch; branches/worktrees/PRs/queue → repo-hygiene; live outage → incident-response.'
 ---
 
 # ticket-ops — compatibility router

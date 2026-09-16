@@ -87,7 +87,7 @@ setup() {
   count=$(cd "$REPO" && bash -c '
     source <(sed -n "/^project_owned_skills()/,/^}/p" scripts/health-goals-check.sh)
     c=0; for d in $(project_owned_skills); do
-      [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c')
+      [ "$(wc -l < ".opencode/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c')
   [ "$count" -eq 0 ]
 }
 

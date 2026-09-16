@@ -25,16 +25,12 @@ The factory pipeline SHALL count consecutive implementation runs that end with e
 
 ### Requirement: The FACTORY_CTX default is visible immediately on sourcing lib.sh
 
-`scripts/factory/lib.sh` SHALL resolve the `FACTORY_CTX` default (`k3d-mentolder-dev`) at top level, so that merely sourcing the file exposes a valid context. The default SHALL NOT wait until `factory_resolve_data_ns` runs, and the explicit override via `FACTORY_CTX` SHALL remain honored.
+`scripts/factory/lib.sh` SHALL resolve `FACTORY_CTX` to `fleet` at top level while preserving an explicit override.
 
-#### Scenario: Sourcing lib.sh alone exposes a valid context
+#### Scenario: Sourcing exposes a context
 
-- **GIVEN** an environment without `FACTORY_CTX` set
-- **WHEN** a script sources `scripts/factory/lib.sh`
-- **THEN** `FACTORY_CTX` is already `k3d-mentolder-dev` without calling `factory_resolve`
-- **AND** a later explicit `FACTORY_CTX=...` override still wins
-
-<!-- merged from change delta batch-factory-pipeline-robustness.md (07323eba4915) -->
+- **WHEN** a script sources `scripts/factory/lib.sh` without `FACTORY_CTX`
+- **THEN** `FACTORY_CTX` is `fleet`
 
 ### Requirement: Merged-PR-Gate schließt gemergte Tickets vor dem Dispatch
 
@@ -71,3 +67,5 @@ Der Cap-Break gilt nur für den Dispatch-Pfad (Claim/Slot-Belegung).
   die Flakiness-Ursache ist durch die beiden Szenarien oben beseitigt
 
 <!-- merged from change delta batch-factory-pipeline-robustness.md (556cbe63287b) -->
+
+<!-- merged from change delta batch-factory-pipeline-robustness.md (3ed7a8a44a0d) -->

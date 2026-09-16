@@ -1199,25 +1199,13 @@ so CI catches the next such drift without a live database.
 
 ### Requirement: backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich
 
-`tests/spec/ticket-system/backfill-id-sequence.bats` SHALL bei erreichbarem
-`k3d-mentolder-dev`-Cluster den unter Test stehenden Befehl (`scripts/ticket.sh backfill-id`)
-tatsächlich gegen die reale Datenbank ausführen, statt sich über den fail-closed
-BATS-Guard aus `scripts/vda/ticket/_ticket-core.sh` (T002224, Sentinel-Kontext
-`bats-no-cluster-t002224`) selbst zu blockieren.
+Ticket behavior tests SHALL select their target through `FACTORY_CTX`. Without an explicit target they use `devmesh` and skip writes because ticket tooling refuses writes there.
 
-#### Scenario: Verhaltenstests opten sich explizit in echten Cluster-Zugriff ein
+#### Scenario: Default does not write development data
 
-- **GIVEN** ein Checkout mit erreichbarem `k3d-mentolder-dev`-Cluster (`cluster_running()`
-  liefert `true`)
-- **WHEN** `tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/backfill-id-sequence.bats`
-  läuft
-- **THEN** setzt `setup()` `export TICKET_TEST_DB_OK=1`, sodass `scripts/ticket.sh backfill-id`
-  mit dem im Test übergebenen `--brand`-Kontext gegen den echten `shared-db`-Pod läuft, statt
-  gegen den nicht auflösbaren Sentinel-Kontext `bats-no-cluster-t002224`
-- **AND** alle drei Tests (`assigns an external_id`, `reports the number of rows`,
-  `an empty backfill-id run says so`) enden mit Exit-Code 0 und den dokumentierten
-  Positiv-Ankern (`^T[0-9]{6}$`, `^backfill-id: [0-9]+ Zeile`, `^backfill-id: 0 Zeilen ohne
-  external_id`)
+- **GIVEN** `FACTORY_CTX` is unset
+- **WHEN** the write-capable test runs
+- **THEN** it skips with `devmesh` as the reason
 
 ### Requirement: Ticket listings hide test data by default
 
@@ -2195,3 +2183,5 @@ than the baselined 1096 (frozen at commit `8b581ebe` per
 <!-- merged from change delta ticket-system.md (fc2791c46c07) -->
 
 <!-- merged from change delta ticket-system.md (c3c61f06ed63) -->
+
+<!-- merged from change delta ticket-system.md (a2f42776281b) -->

@@ -5,6 +5,24 @@ import { evaluateLock, lockFilePath } from './gpu-lock.mjs';
 const PROBE_TIMEOUT_MS = 2500;
 const BACKOFF_MS = 15_000;
 
+/**
+ * Prueft, ob die baseUrl auf den Proxy selbst zeigt (Self-Route, z.B. bge-rerank-cpu).
+ * @param {string} baseUrl
+ * @returns {boolean}
+ */
+export function isSelfOrigin(baseUrl) {
+  if (!baseUrl) return false;
+  const selfPort = Number(process.env.LLM_PROXY_PORT || 18235);
+  try {
+    const u = new URL(baseUrl);
+    const host = u.hostname;
+    const port = Number(u.port || (u.protocol === 'https:' ? 443 : 80));
+    return (host === '127.0.0.1' || host === 'localhost' || host === '0.0.0.0' || host === '::1') && port === selfPort;
+  } catch {
+    return false;
+  }
+}
+
 /** @type {Map<string,{healthy:boolean,draining:boolean,models:string[],loaded:Set<string>,backoffUntil:number,lastProbe:number}>} */
 const health = new Map();
 /** @type {Map<string,string[]>} catalog: modelId → backend names by priority */
@@ -15,6 +33,9 @@ let lastLock = { held: false, drainingKinds: [] };
 
 /** @returns {Promise<{healthy:boolean,models:string[],loaded:Set<string>,reason:string|null}>} */
 export async function probeBackend(backend) {
+  if (isSelfOrigin(backend.baseUrl)) {
+    return { healthy: true, models: [], loaded: new Set(), reason: null };
+  }
   try {
     // [T002638] Der Probe MUSS dasselbe Credential fuehren wie der Weiterleitungspfad
     // (server.mjs nutzt dafuer dieselbe resolveApiKey). Ohne den Header antwortet jede
@@ -73,7 +94,10 @@ export function startDiscovery(getBackends, intervalMs) {
         health.set(b.name, { healthy: prev?.healthy ?? true, draining: true,
           models: prev?.models || [], loaded: prev?.loaded || new Set(),
           backoffUntil: 0, lastProbe: prev?.lastProbe || Date.now() });
-        for (const id of (prev?.models || [])) { if (!next.has(id)) next.set(id, []); next.get(id).push(b.name); }
+        const isRoleOnly = Array.isArray(b.roles) && (b.roles.includes('embed') || b.roles.includes('rerank'));
+        if (!isRoleOnly) {
+          for (const id of (prev?.models || [])) { if (!next.has(id)) next.set(id, []); next.get(id).push(b.name); }
+        }
         continue;
       }
 
@@ -97,7 +121,10 @@ export function startDiscovery(getBackends, intervalMs) {
         console.warn(`[discovery] ${b.name} unhealthy: ${r.reason ?? 'unknown'} (${b.baseUrl})`);
       }
       health.set(b.name, { ...r, draining: false, backoffUntil: r.healthy ? 0 : Date.now() + BACKOFF_MS, lastProbe: Date.now() });
-      for (const id of r.models) { if (!next.has(id)) next.set(id, []); next.get(id).push(b.name); }
+      const isRoleOnly = Array.isArray(b.roles) && (b.roles.includes('embed') || b.roles.includes('rerank'));
+      if (!isRoleOnly) {
+        for (const id of r.models) { if (!next.has(id)) next.set(id, []); next.get(id).push(b.name); }
+      }
     }
     catalog = next;
     lastProbeAt = Date.now();
@@ -201,6 +228,7 @@ export function evaluateReadiness(getBackends) {
   // gesund ist oder ein Remote-Backend den Fallback stellt.
   const degraded = backends
     .filter((b) => {
+      if (isSelfOrigin(b.baseUrl)) return false;
       const h = health.get(b.name);
       return !h?.healthy && !h?.draining;
     })

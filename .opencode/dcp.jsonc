@@ -13,9 +13,9 @@
     "minContextLimit": 85000,
     // DCP maximal zulässiger Kontext = 103k (Trigger 104000 − 1k Sicherheit).
     "maxContextLimit": 103000,
-    // "hard": Nudge erzwingt echtes Pruning statt nur Hinweis (soft + später
-    // Start liess Sessions in die Compaction driften).
-    "nudgeForce": "hard",
+    // "soft": Nudge verwendet sanften Hinweis statt Erzwang, um JSON-Parse-Schleifen
+    // bei fehlerhaften LLM-Antworten während der Kompaktierung zu verhindern.
+    "nudgeForce": "soft",
     // Frequenz: alle 5 Vorgänge ein Nudge — bei Bedarf empirisch auf 3 senken.
     "nudgeFrequency": 5
   }

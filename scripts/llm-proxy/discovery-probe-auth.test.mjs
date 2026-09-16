@@ -11,7 +11,7 @@
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { probeBackend, startDiscovery } from './discovery.mjs'
+import { probeBackend, startDiscovery, isSelfOrigin, evaluateReadiness } from './discovery.mjs'
 
 const TOKEN = 'test-token-T002638'
 let server
@@ -123,3 +123,24 @@ test('ein bereits unhealthy Backend wiederholt seine Zeile nicht', async () => {
   })
   assert.deepEqual(second.filter((l) => l.includes('repeat-probe')), [])
 })
+
+test('[T900178] isSelfOrigin erkennt Self-Routes auf Port 18235', () => {
+  assert.equal(isSelfOrigin('http://127.0.0.1:18235'), true)
+  assert.equal(isSelfOrigin('http://localhost:18235'), true)
+  assert.equal(isSelfOrigin('http://192.168.100.12:18235'), false)
+  assert.equal(isSelfOrigin('http://127.0.0.1:8096'), false)
+})
+
+test('[T900178] Self-Origin Backends gelten als healthy und tauchen nicht in degraded auf', async () => {
+  const selfBackend = {
+    name: 'bge-rerank-cpu', kind: 'llamacpp', baseUrl: 'http://127.0.0.1:18235',
+    apiKeyEnv: null, enabled: true, priority: 30, fixups: [], modelAliases: {}, maxInflight: 1, roles: ['rerank'],
+  }
+  const r = await probeBackend(selfBackend)
+  assert.equal(r.healthy, true)
+  assert.deepEqual(r.models, [])
+
+  const readiness = evaluateReadiness(() => [selfBackend])
+  assert.equal(readiness.degraded.length, 0)
+})
+

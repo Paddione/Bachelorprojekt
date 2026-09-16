@@ -1,0 +1,125 @@
+# Subagent-Provisioning
+
+Wenn ein dev-flow-Skill Arbeit an einen frischen Subagenten delegiert, wähle **nicht** pauschal ein
+Modell — provisioniere den **passenden** Subagenten entlang dreier Achsen. (Gleiche Logik wie die
+Software-Factory-`provision()` aus `docs/superpowers/specs/2026-06-05-software-factory-phase3-design.md`.)
+
+Leitsatz: **Korrektheit vor Kosten.** Im Zweifel eine Stufe höher (Modell) bzw. mehr Effort.
+
+### 1. Modell (ideal)
+
+Klassifiziere die Aufgabe nach **Komplexität × Risiko × Rolle**:
+
+| Aufgaben-Charakter | Modell |
+|---|---|
+| Reine Textgenerierung ohne Urteilsvermögen: Boilerplate-Text, Klassifizierung, Umbenennungs-Vorschläge, Kurz-Zusammenfassung — kein Datei-/Shell-Zugriff nötig | `hermes-delegate` (lokal, kostenlos) |
+| Mechanisch: Config, Doku, Rename, Single-File-Edit, Lockfile-/Dependency-Bump | `haiku` |
+| Standard: normale Feature-/Fix-Implementierung, mehrere Dateien, klarer Plan | `sonnet` |
+| Komplex/riskant: systemübergreifend, Architektur, Security, DB-/Schema-Migration, Nebenläufigkeit, Auto-Deploy | `opus` |
+| Reasoning-lastige Meta-Arbeit: Plan-Schreiben, Design/Architektur, adversariale Review | `opus` (immer) |
+| Orchestrierung mit hohem Durchsatz: viele Subagenten koordinieren, Fan-out steuern, Zwischenergebnisse einsammeln | `fable` |
+
+Im Zweifel **eine Stufe höher**.
+
+> **⚠ Modellgeneration Claude 5 (ab 2026-07-25, T002153):** Die frühere Empfehlung „unsicher →
+> `model` weglassen, der Subagent erbt das Main-Loop-Modell" gilt **nicht mehr pauschal**. Der
+> Main Loop läuft auf dem User-Default (aktuell Opus 5 mit 1M-Kontext) — `model` weglassen heißt
+> also, dass auch ein Grep-Sweep auf Opus läuft. **Setze `model` bewusst.** Weglassen ist nur
+> noch dann richtig, wenn die Aufgabe tatsächlich Main-Loop-Niveau verlangt.
+>
+> Die sechs Domain-Agenten (`.claude/agents/bachelorprojekt-*.md`) tragen das Tiering seit
+> T002153 im **Frontmatter** (`model: sonnet` für ops/db/test/website, `model: opus` für
+> infra/security) — bei einem Dispatch an diese Agenten ist die Modellwahl damit bereits
+> getroffen und muss nicht pro Call wiederholt werden.
+>
+> **1M-Kontext ist ein Budget, kein Freibrief.** Ein größeres Fenster senkt die Delegationsschwelle
+> nicht: Recherche-Dumps, CI-Logs und Volltext-Reads gehören weiterhin in einen Subagenten, der
+> **verdichtet** zurückmeldet. Der Orchestrator-Kontext ist das teuerste Gut der Session — er
+> bleibt für Entscheidungen reserviert, nicht für Rohdaten.
+
+> **Tier 0 — `hermes-delegate` (lokal, vor `haiku`):** Für Prompts, die reine Textgenerierung ohne
+> Dateizugriff, Werkzeugnutzung oder mehrschrittiges Reasoning sind, ruf statt eines `haiku`-Subagenten
+> `bash scripts/hermes-delegate.sh "<prompt>"` auf. Läuft lokal über den bereits konfigurierten
+> Hermes-Agent (`~/.hermes/config.yaml`, Modell `google/gemma-4-12b-qat` via LM Studio) — kostet keine
+> API-Tokens. **Keine Werkzeuge standardmäßig aktiv** (`-t ""`); nur bei explizitem Bedarf ein
+> Toolset als zweites Argument übergeben (`scripts/hermes-delegate.sh "<prompt>" file`), dann aber
+> wie jeden Tool-Zugriff mit Vorsicht behandeln — das Modell ist kleiner und weniger zuverlässig in
+> mehrschrittigem Tool-Calling als `haiku`. **Nicht** verwenden für: Aufgaben mit Urteilsvermögen,
+> Sicherheitsrelevanz, mehreren Dateien, oder wenn das Ergebnis ungeprüft weiterverwendet wird — dort
+> bleibt `haiku`/`sonnet` die Untergrenze.
+
+> **⚠ Haiku-Fußangel bei Spec-Reviews [T000551]:** Haiku liest ohne expliziten `limit`-Parameter nur
+> die ersten ~80 Zeilen einer Datei und liefert daher false negatives bei Spec-Compliance-Prüfungen
+> über mehrere Dateien. **Spec-Reviewer-Subagenten müssen `sonnet` oder besser verwenden.**
+> Zusätzlich: Im Prompt explizit `grep`-basierte Verifikation verlangen statt blindem `Read()` — das
+> umgeht sowohl das Zeilenlimit als auch potenzielle Read-Caching-Artefakte.
+
+### 2. Effort (per Prompt-Direktive)
+
+Das `task`-Tool kennt **`subagent_type` und `description`**, keinen separaten Effort-Regler — Effort wird über die Prompt-Einleitung vermittelt. Für reine Read-only-Arbeiten (Recherche, Analyse) verwende `delegate(prompt, agent)` mit agent `"researcher"` oder `"explore"` — Effort wird über die Prompt-Einleitung vermittelt:
+
+| Stufe | Prompt-Einleitung | Wann |
+|---|---|---|
+| low | „Arbeite zügig und fokussiert." | mechanisch, geringes Risiko |
+| medium | (neutral, kein Zusatz) | Standard |
+| high | „Ultrathink. Denke sehr gründlich nach." | komplex/riskant/Meta |
+| **ultra** | high **+ `Workflow`-Fan-out statt Einzel-Agent** | sehr groß/parallelisierbar (multi-subsystem Plan/Review): nutze das **Claude Code** `Workflow`-Tool (mehrere Agenten + adversariale Verifikation gegen einen **geteilten Interface-Contract**), nicht einen einzelnen Agenten. In **opencode/agy** kein `Workflow`-Pendant — führe die Plan-Schritte seriell oder delegiere an einen einzelnen Subagenten mit high-Effort-Prompt. |
+
+> **Framework-Routing für Subagenten:** Claude Code → `Agent`/`Task` tool mit `subagent_type`. opencode → `delegate(prompt, agent)` für read-only, native write-capable Delegation für Edit-Zugriff. agy → treat opencode path as authoritative; bash/MCP tool calls are framework-agnostic.
+
+### 3. Kontext (passend & KOMPAKT)
+
+Der Subagent hat per Konstruktion **keinen** Kontext — gib alles explizit, aber **verdichtet**:
+
+- **Absoluter Worktree-Pfad:** PFLICHT — beginne JEDEN Subagenten-Prompt mit `cd <WORKTREE_PATH>` (z.B. `cd /tmp/wt-<slug>`). Der Subagent hat sonst keinen impliziten Kontext und schreibt Dateien in sein Fallback-CWD (oft der Haupt-Checkout statt des Worktrees).
+- Branch-Name, damit der Subagent weiß, auf welchem Branch er arbeitet.
+- Die relevanten **Artefakt-Pfade** (Spec/Plan/Ticket), nicht deren Volltext, wenn er sie selbst lesen kann.
+- Bei mehreren Vorstufen-Ergebnissen: **zusammenfassen, nie Roh-JSON dumpen**. (Ein 162k-Zeichen-Prompt ließ
+  einen Synthese-Agenten ohne brauchbare Antwort scheitern — die Provisioning-Lehre schlechthin.)
+
+### 4. Kontext-Budget & Handoff (PFLICHT-Direktive in jedem Subagenten-Prompt) [T001571]
+
+Subagenten degradieren still, wenn ihr Kontext gegen das Fenster (~200k Tokens) läuft: Scope-Drift,
+fachfremde Edits, vergessene Auftragsdetails („Dumbzone"). Es gibt keinen Harness-Mechanismus, der
+das hart begrenzt — deshalb ist die Selbstmeldung Teil des Auftrags.
+
+**In JEDEN Subagenten-Prompt gehört diese Standing-Direktive (sinngemäß):**
+
+> Überwache dein eigenes Kontext-Budget. Bei Anzeichen von Kontext-Überlauf — Heuristik:
+> >100 Tool-Calls, viele große File-Reads/CI-Logs, oder du bemerkst, dass frühere Details
+> fehlen/kompaktiert wurden — NICHT weiterarbeiten. Stattdessen sofort stoppen und als finale
+> Nachricht einen strukturierten **Handoff-Report** liefern: (1) erledigte Schritte,
+> (2) exakter Git-/Datei-Zustand (Branch, letzte Commits, dirty files), (3) offene Schritte in
+> Reihenfolge, (4) bekannte Fallen. Ein sauberer Handoff ist Erfolg, kein Versagen.
+
+**Orchestrator-Pflichten beim Ersatz eines Agenten:**
+1. Alten Agenten stoppen (`TaskStop`), NICHT parallel weiterlaufen lassen.
+2. Im Worktree `git status` prüfen: committete Arbeit bleibt; **fachfremde uncommittete
+   Änderungen verwerfen** (`git checkout -- <files>`) — Dumbzone-Edits an Dateien außerhalb
+   des Auftrags-Scopes sind das Leitsymptom.
+3. Frischen Agenten mit kompaktem Lagebild spawnen (Commits seit origin/main, offene Schritte),
+   nicht mit dem Volltranskript des Vorgängers.
+
+### 5. Lokale LM-Studio-Subagenten-Wahl (opencode/agy)
+
+Für **opencode/agy** stehen über `delegate(prompt, agent="<name>")` vier lokale Subagenten-Profile
+zur Verfügung (GPU-Host, `~/.config/opencode/opencode.jsonc`, Provider `lmstudio`), zusätzlich zu
+`hermes-delegate` (Tier 0, oben). **Alle nutzen Qwen3.6-14B-A3B FableVibes und sind serialisiert (1
+gleichzeitig) — teilen sich das Hauptkontext-Fenster von 262k** auf einer 16-GB-Karte:
+
+| Agent | Modell | Modus | Kontext | Wann |
+|---|---|---|---|---|
+| `qwen35` | Qwen3.6-14B-A3B FableVibes (Q4_K_M) | 1 Session (seriell) | 262k | Alternative für Subagent-Delegation — gleiche Specs wie `qwen35-iq4` |
+| `qwen35-hq` | Qwen3.6-14B-A3B FableVibes (Q4_K_M) | 1 Session (seriell) | 262k | Alternative für einen einzelnen Task mit sehr großem Kontext (z.B. ein langes Log, viele Dateien in einem Prompt) |
+
+> und FTPO-fixed Looping-Eigenschaften.
+
+> **⚠ VRAM-Exklusivität:** Qwen3.6-14B-A3B FableVibes auf einer 16-GB-Karte — es kann
+> **immer nur eines gleichzeitig geladen sein**. Alle Subagenten-Dispatches laufen serialisiert
+> (1 gleichzeitig). Vor dem ersten `delegate()`-Aufruf: `lms ps` prüfen, ob die passende Datei
+> bereits läuft; falls nicht, mit dem entsprechenden `lms load <file> --identifier <id> -y` nachladen
+> (siehe `fleet`/lokale LLM-Referenz-Memory) — das entlädt automatisch das vorher geladene Profil.
+>
+> **Serialisierung einhalten:** Nie mehr gleichzeitige `delegate()`-Aufrufe an einen der `qwen35*`
+> Agents schicken — LM Studio queued überzählige Requests, was Latenz kostet statt Fehler zu werfen
+> (kein Fail-Fast-Signal).

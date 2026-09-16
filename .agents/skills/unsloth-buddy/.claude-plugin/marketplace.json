@@ -1,0 +1,60 @@
+{
+  "name": "unsloth-buddy",
+  "owner": { "name": "Gaslamp", "url": "https://gaslamp.dev" },
+  "metadata": {
+    "description": "Agentic LLM fine-tuning skill for Claude Code — Unsloth on NVIDIA, mlx-tune on Apple Silicon.",
+    "version": "1.0.5",
+    "repository": "https://github.com/TYH-labs/unsloth-buddy",
+    "documentation": "https://gaslamp.dev/unsloth"
+  },
+  "plugins": [
+    {
+      "name": "unsloth-buddy",
+      "source": "./",
+      "skills": "./SKILL.md",
+      "sub-skills": [
+        "./sub-skills/interview.md",
+        "./sub-skills/data.md",
+        "./sub-skills/demo_builder.md"
+      ],
+      "scripts": [
+        "./scripts/init_project.py",
+        "./scripts/detect_system.py",
+        "./scripts/detect_env.py",
+        "./scripts/mlx_eval_template.py",
+        "./scripts/mlx_eval_vision_template.py",
+        "./scripts/gaslamp_callback.py",
+        "./scripts/unsloth_sft_example.py",
+        "./scripts/unsloth_dpo_example.py",
+        "./scripts/unsloth_grpo_example.py",
+        "./scripts/mps_grpo_example.py",
+        "./scripts/unsloth_vision_example.py",
+        "./scripts/unsloth_mlx_sft_example.py",
+        "./scripts/unsloth_mlx_vision_example.py",
+        "./scripts/mlx_gaslamp_dashboard.py",
+        "./scripts/terminal_dashboard.py",
+        "./scripts/demo_server.py",
+        "./scripts/search_design.py",
+        "./scripts/colab_training.py",
+        "./scripts/setup_colab.py",
+        "./scripts/llamacpp.py",
+        "./scripts/reflect.py",
+        "./scripts/add_reflect_hint.py"
+      ],
+      "templates": [
+        "./templates/gaslamp_template.md",
+        "./templates/dashboard.html",
+        "./templates/gaslamp.png",
+        "./templates/demo_llm_crisp.html",
+        "./templates/demo_llm_dark.html",
+        "./templates/demo_vlm_crisp.html",
+        "./templates/demo_vlm_dark.html",
+        "./templates/chat_ui.html"
+      ],
+      "agents": [
+        "./AGENTS.md"
+      ],
+      "description": "Fine-tune LLMs end-to-end: env setup, LoRA training (SFT/DPO/GRPO/vision), evaluation, and export. Works on NVIDIA GPUs and Apple Silicon."
+    }
+  ]
+}

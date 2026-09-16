@@ -38,7 +38,7 @@ Is a core service DOWN or DEGRADED right now?
 ## Software-Factory operations (MCP-first)
 
 Factory-Queue-Status und manuelles Anstoßen: MCP-first via `factory-mcp` — Health-Guard, Tools und
-Fallbacks sind SSOT im [`MCP-Tool-Guide`](.opencode/skills/references/mcp-tool-guide.md) §factory-mcp.
+Fallbacks sind SSOT im [`MCP-Tool-Guide`](.agents/skills/references/mcp-tool-guide.md) §factory-mcp.
 
 ---
 

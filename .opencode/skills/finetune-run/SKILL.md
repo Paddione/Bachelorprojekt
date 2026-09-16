@@ -49,8 +49,8 @@ die eigentliche Unsloth/TRL-Fachkompetenz kommt vom Plugin.
    task finetune:traces ROWS_JSON=<mcp-postgres-export.json> OUT=<jsonl>
    ```
    Nur erfolgreiche Ticket-Laeufe (verify/done) werden uebernommen; Secret-Muster werden
-   redigiert. `ROWS_JSON` kommt aus einem vorgeschalteten `mcp__mcp-postgres__query`-Aufruf
-   (siehe `.opencode/skills/references/mcp-tool-guide.md`) — dieses Skript baut selbst keine
+   redigiert. `ROWS_JSON` kommt aus einem vorgeschalteten `mcp-postgres_query`-Aufruf
+   (siehe `.agents/skills/references/mcp-tool-guide.md`) — dieses Skript baut selbst keine
    DB-Verbindung auf.
 6. **Export + Slot-Registrierung.**
    ```bash

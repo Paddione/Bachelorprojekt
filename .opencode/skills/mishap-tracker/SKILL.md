@@ -91,7 +91,7 @@ Before reporting any mishap, verify the claim with a concrete check:
 Für jeden verifizierten Mishap im MISHAP_LOG:
 
 ```
-mcp__ticket-mcp__report_mishap({
+ticket-mcp-node_report_mishap({
   title: "<titel>",
   description: "<beschreibung>",
   component: "<komponente>",
@@ -112,7 +112,7 @@ mcp__ticket-mcp__report_mishap({
 Nach dem letzten `report_mishap`-Aufruf den Buffer-Stand ansehen — **aber nicht flushen**:
 
 ```
-mcp__ticket-mcp__get_mishap_buffer()
+ticket-mcp-node_get_mishap_buffer()
 ```
 
 **Restliche Eintraege bleiben liegen. Das ist der Normalfall, kein Fehlerzustand.** Der Buffer ist
@@ -139,7 +139,7 @@ Ohne `--ticket` landet der Eintrag in `.mishaps.log` und auf stderr, und dort en
 `flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfuegbar:
 
 ```
-mcp__ticket-mcp__flush_mishap_buffer({ brand: "<brand>" })
+ticket-mcp-node_flush_mishap_buffer({ brand: "<brand>" })
 ```
 
 ---

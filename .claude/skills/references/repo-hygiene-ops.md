@@ -394,8 +394,8 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 * **Ticket schließen, sobald `mergedAt` gesetzt ist** (nur wenn `$TICKET_ID` gefunden;
   `resolution`: `fixed` für `fix/*`, `shipped` für `feature/*`) — **MCP-first** (`ticket-mcp`;
   die Wrapper schreiben via `ticket.sh`, nicht über das read-only `mcp-postgres`):
-  > `mcp__ticket-mcp__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<fixed|shipped>" })`
-  > `mcp__ticket-mcp__add_comment({ id: "$TICKET_ID", body: "PR #<number> merged." })`
+  > `mcp__ticket-mcp-node__transition_status({ id: "$TICKET_ID", status: "done", resolution: "<fixed|shipped>" })`
+  > `mcp__ticket-mcp-node__add_comment({ id: "$TICKET_ID", body: "PR #<number> merged." })`
 
   Fallback (ticket-mcp nicht erreichbar — direkte Writes über `psql()`):
   ```bash
@@ -579,8 +579,8 @@ for t in T00…; do
 done
 ```
 
-Für Ticketstatus ist der kanonische Weg ohnehin `mcp__ticket-mcp__get_ticket` /
-`mcp__ticket-mcp__list_tickets`, nicht ein geratenes CLI-Subkommando (siehe
+Für Ticketstatus ist der kanonische Weg ohnehin `mcp__ticket-mcp-node__get_ticket` /
+`mcp__ticket-mcp-node__list_tickets`, nicht ein geratenes CLI-Subkommando (siehe
 [`mcp-tool-guide.md`](mcp-tool-guide.md)).
 
 ## 4. GitHub-Issue-Intake (selten)
@@ -606,8 +606,8 @@ Issues leben in Postgres, nicht auf GitHub. Falls `gh issue list --state open` e
    >
    > Vor dem Anlegen deshalb **beide** Quellen prüfen:
    > ```
-   > mcp__ticket-mcp__list_tickets({ … })      # offene Tickets, wie gehabt
-   > mcp__ticket-mcp__get_mishap_buffer({})    # ungeflushte Befunde
+   > mcp__ticket-mcp-node__list_tickets({ … })      # offene Tickets, wie gehabt
+   > mcp__ticket-mcp-node__get_mishap_buffer({})    # ungeflushte Befunde
    > ```
    > Fallback ohne MCP: `jq -r '.[].title' .git/mishap-buffer.json` (Datei fehlt = Buffer leer;
    > ein Lesefehler ist **kein** „leer" — dann gilt Fail-Closed, siehe §3-Grundregel).

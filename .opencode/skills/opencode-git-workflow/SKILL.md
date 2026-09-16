@@ -1,6 +1,6 @@
 ---
 name: opencode-git-workflow
-description: 'Use whenever committing, pushing, creating a PR, or finishing work on any branch in opencode. Covers the complete repo-specific git lifecycle: pull-first, commit conventions, freshness guard, commit verification, PR creation with scope preflight, CI fix loop, auto-merge, and worktree cleanup.'
+description: 'Pointer to the git-workflow SSOT for opencode sessions. Use when committing, pushing, creating a PR, or finishing work on any branch in opencode; the full lifecycle (pull-first, commit conventions, freshness guard, CI fix loop, worktree cleanup) lives in git-workflow — read that skill next.'
 ---
 
 # opencode-git-workflow — Verweis auf die SSOT

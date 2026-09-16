@@ -1,6 +1,6 @@
 # Skills Overview
 
-34 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+35 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Archivierte SKILL.md-Dateien (`archived: true`) tragen eine explizite "invoke explicitly only"-Description statt eines Auto-Triggers.
 
@@ -29,7 +29,7 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 | [`dev-flow-execute`](dev-flow-execute/SKILL.md) | After [`dev-flow-plan`](dev-flow-plan/SKILL.md) has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | [`dev-flow-e2e`](dev-flow-e2e/SKILL.md) | After [`dev-flow-execute`](dev-flow-execute/SKILL.md) has merged and deployed — specialized test-only Chore writing + running Playwright E2E tests against live environment. |
 
-> **Shared Source (T014086):** `dev-flow-plan`/`-execute`/`-chore` unter `.opencode/skills/` sind Directory-Symlinks auf genau diese drei Skills (Muster wie `openspec-*`) — ein Inhalt, zwei Einstiegspunkte. Nur `opencode-git-workflow` bleibt eine echte opencode-eigene Datei.
+> **Shared Source (T014086):** Alle Skills hier sind echte Verzeichnisse (keine Symlinks — T900077/T900151, Guard `[ ! -L ]` in `tests/spec/agent-skills/harness-workflow-split.bats`); Inhalte sind pro-Harness-Projektionen der SSOT unter `.opencode/skills/` (Registry: `docs/agent-guide/registry/skills.yaml`).
 
 > **Nur opencode (T900064):** `.opencode/skills/sdlc-autopilot/` faehrt die Pipeline
 > ticket-triage -> dev-flow-plan -> Factory selbststaendig ab, bis das Queue-Material erschoepft

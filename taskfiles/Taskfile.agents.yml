@@ -394,12 +394,20 @@ tasks:
       - |
         bash -c '
           set -euo pipefail
+          [ -f "$HOME/.config/mcp-cors-proxy/server.env" ] && source "$HOME/.config/mcp-cors-proxy/server.env" 2>/dev/null || true
+          # Preflight (OPTIONS) is tokenless by design — the proxy answers it without auth.
           preflight=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://127.0.0.1:18082/mcp \
             -H "Origin: http://localhost:8098" -H "Access-Control-Request-Method: POST" \
             -H "Access-Control-Request-Headers: content-type" || echo "000")
+          # initialize (POST) crosses the full security boundary and needs the Bearer token.
+          auth=()
+          if [[ -n "${MCP_KUBERNETES_TOKEN:-}" ]]; then
+            auth=(-H "Authorization: Bearer $MCP_KUBERNETES_TOKEN")
+          fi
           init=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:18082/mcp \
             -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
             -H "Origin: http://localhost:8098" \
+            "${auth[@]}" \
             -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"hc\",\"version\":\"1\"}}}" || echo "000")
           echo "mcp-cors-proxy (:18082) preflight: HTTP $preflight, init: HTTP $init"
           [[ "$preflight" == "204" && "$init" == "200" ]]

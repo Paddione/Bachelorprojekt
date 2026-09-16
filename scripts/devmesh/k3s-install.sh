@@ -147,7 +147,7 @@ WAIT
   fi
   # Argumente erst nach erfolgreicher Installation festhalten: ein abgebrochener Lauf
   # gilt beim naechsten Aufruf nicht als "unveraendert".
-  printf 'printf %%s %q > %s\n' "$ARGS_STR" "$ARGS_FILE"
+  printf 'mkdir -p %q && printf %%s %q > %s\n' "$(dirname "$ARGS_FILE")" "$ARGS_STR" "$ARGS_FILE"
 }
 
 rc=0

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
+  // ── DCP-Compress-Kalibrierung für den lokalen Qwen (T900182) ──────────────
+  // Ziel: den aktiven Kontext des lokalen Backbones (llamacpp-local/qwen38-220k,
+  // 205.056 gemessen; V2-Compaction-Trigger 104000 laut opencode.jsonc T900162)
+  // möglichst lange unter der Kante der V2-Compaction halten — DCP schneidet
+  // chirurgisch, Compaction bleibt das letzte Sicherheitsnetz. Die Obergrenze
+  // liegt bewusst 1k UNTER dem Compaction-Trigger: darüber wäre sie tote
+  // Konfiguration (die Compaction feuert zuerst).
+  "compress": {
+    // Frühes Nudging ab 85k aktiven Tokens (Default 50k war zu konservativ für
+    // 205k Kontext — DCP würde unterfordern).
+    "minContextLimit": 85000,
+    // DCP maximal zulässiger Kontext = 103k (Trigger 104000 − 1k Sicherheit).
+    "maxContextLimit": 103000,
+    // "hard": Nudge erzwingt echtes Pruning statt nur Hinweis (soft + später
+    // Start liess Sessions in die Compaction driften).
+    "nudgeForce": "hard",
+    // Frequenz: alle 5 Vorgänge ein Nudge — bei Bedarf empirisch auf 3 senken.
+    "nudgeFrequency": 5
+  }
+}

@@ -106,6 +106,13 @@
     }
   },
   "lsp": true,
+  // ── Tool-Output-Caps (T900182) ─────────────────────────────────────────────
+  // Einheitliche Kappung fuer ALLE Tool-Outputs (200 Zeilen / 8 KB) — der
+  // groesste staendige Kontextposten neben den MCP-Schemas. Bewusst global
+  // und nicht pro-Session: Automations-Workloads (Factory, sdlc-autopilot)
+  // profitieren genauso. In Verbindung mit .opencode/dcp.jsonc haelt der
+  // aktive Kontext länger unter den 104k der V2-Compaction (T900162).
+  "tool_output": { "max_lines": 200, "max_bytes": 8192 },
   // Der Provider "llamacpp-mtp" wird bewusst NICHT hier definiert, sondern
   // ausschliesslich in .opencode/agent-models.jsonc — von dort synct
   // scripts/opencode-sync-agents.sh (Taskfile.yml) ihn nach

@@ -50,3 +50,22 @@ if [[ "${DRY_RUN:-0}" == 1 ]]; then
   echo "hinweis: $CONTAINERD_CONF wird von k3s selbst neu geschrieben"
   exit 0
 fi
+
+remote() {
+  ssh -i "$SSH_KEY" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new \
+    "${SSH_USER}@${LAN_IP}" "$@"
+}
+
+remote "sudo -n true" \
+  || { echo "Vorbedingung fehlt: SSH/sudo ohne Passwort auf ${SSH_USER}@${LAN_IP} (Host $HOST)" >&2; exit 2; }
+
+# Eine Leseabfrage, nichts aendern: Version des nvidia-container-toolkit abfragen.
+# Erfolg bedeutet: Toolkit installiert und damit die nvidia-Runtime in containerd registriert —
+# der Idempotenz-Zweig endet hier ohne k3s-Neustart (Spec-Szenario "second run is a no-op").
+rc=0
+STATE="$(remote "nvidia-ctk --version")" || rc=$?
+
+if (( rc == 0 )); then
+  echo "unveraendert: $HOST hat nvidia-container-toolkit und die nvidia-Runtime in containerd"
+  exit 0
+fi

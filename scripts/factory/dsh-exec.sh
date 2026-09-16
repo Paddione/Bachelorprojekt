@@ -126,9 +126,10 @@ PROMPT="$(printf '%s\n' \
   "Worktree (your cwd): ${LAUNCH_DIR}" \
   "Plan file: ${PLAN_PATH:-<none>}" \
   "" \
-  "Dispatch up to 3 local family subagents (gemma12) onto the" \
-  "DISJOINT partials below; each owns its partial end-to-end (edit, test) inside" \
-  "this worktree." \
+  "Dispatch the single local subagent onto the" \
+  "DISJOINT partials below — ONE AT A TIME, strictly sequentially (one engine" \
+  "slot, ≤200k served KV shared; each packet states budget_tokens). Each owns" \
+  "its partial end-to-end (edit, test) inside this worktree." \
   "" \
   "## Partials" \
   "${partials_manifest}" \
@@ -193,7 +194,7 @@ if [[ ${#partial_ids[@]} -eq 0 ]]; then
 else
   i=0
   for pid in "${partial_ids[@]}"; do
-    phase_event "$state" "gemma12-$(( i % 3 + 1 ))" "$pid" "$dur" "$ex"
+    phase_event "$state" "local" "$pid" "$dur" "$ex"
     i=$(( i + 1 ))
   done
 fi

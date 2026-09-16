@@ -87,7 +87,7 @@ Adressbereichs-Zeile nötig.
 - Modify: `docs/adr/ADR-008-local-k3s-dev-mesh.md`
 - Modify: `docs/adr/ADR-007-wsl-exit-fleet-native.md`
 
-- [ ] **Schritt 1: Nachtrag an ADR-008 anhängen**
+- [x] **Schritt 1: Nachtrag an ADR-008 anhängen**
 
 Ans Ende von `docs/adr/ADR-008-local-k3s-dev-mesh.md` (nach dem Abschnitt "Inventar-Belege")
 anhängen:
@@ -114,7 +114,7 @@ Proxy läuft nicht mehr im fleet-`dev-pod`, sondern in devmesh. Siehe Ergänzung
 Details: `openspec/changes/devmesh-llm-services/design.md` (Decisions D1–D7).
 ```
 
-- [ ] **Schritt 2: Ergänzung an ADR-007 anhängen**
+- [x] **Schritt 2: Ergänzung an ADR-007 anhängen**
 
 Direkt nach dem bestehenden Absatz "*Beim llm-proxy ist "retire" und "portieren"
 auseinanderzuhalten.* ..." (Ende des Nachtrags 2026-09-10/T900107) in
@@ -130,7 +130,7 @@ diesmal nach devmesh (`dev-local/components/llm-services`) — der fleet-`dev-po
 nicht mehr.
 ```
 
-- [ ] **Schritt 3: Betroffene fleet-Referenzen auf den Proxy prüfen (design.md D1)**
+- [x] **Schritt 3: Betroffene fleet-Referenzen auf den Proxy prüfen (design.md D1)**
 
 ```bash
 git grep -n "dev-pod.*18235\|18235.*dev-pod" -- '*.yaml' '*.md' ':!openspec/changes/archive' | grep -v openspec/changes/devmesh-llm-services
@@ -141,7 +141,7 @@ oder — wenn es sich um eine Doku-Stelle handelt, die diesen Umzug nicht kennt 
 hierher. Am Stand `db16df855` liefert der Befehl `docs/agent-guide/registry/mcp.yaml` (Task P4.3
 behandelt das) und `scripts/mcp-gateway/*` (P3a/P3b-Zuständigkeit).
 
-- [ ] **Schritt 4: Verify**
+- [x] **Schritt 4: Verify**
 
 ```bash
 grep -c "T900191" docs/adr/ADR-008-local-k3s-dev-mesh.md docs/adr/ADR-007-wsl-exit-fleet-native.md
@@ -156,7 +156,7 @@ Erwartet: beide Dateien ≥ 1.
 **Files:**
 - Modify: `docs/runbooks/devmesh-tailnet.md`
 
-- [ ] **Schritt 1: Rollen-Abschnitt auf mehrere Ports umstellen**
+- [x] **Schritt 1: Rollen-Abschnitt auf mehrere Ports umstellen**
 
 In `docs/runbooks/devmesh-tailnet.md` den Satz
 
@@ -181,7 +181,7 @@ braucht eine eigene `acls`-Zeile in `devmesh/tailnet-policy.hujson`
 bisher einer) — Schritt 5 unten prüft das vor dem Einspielen.
 ```
 
-- [ ] **Schritt 2: Neuen Abschnitt "Schritt 7: Umzug llm-proxy/bge-mcp/mcp-postgres nach
+- [x] **Schritt 2: Neuen Abschnitt "Schritt 7: Umzug llm-proxy/bge-mcp/mcp-postgres nach
   devmesh (T900191)" ans Ende des Runbooks anhängen**
 
 ```markdown
@@ -245,7 +245,7 @@ dieses Change (`dev-local/components/llm-services`, Migration) sind bereits geme
    ```
 ```
 
-- [ ] **Schritt 3: Verify**
+- [x] **Schritt 3: Verify**
 
 ```bash
 grep -c "gpu_endpoint.ports" docs/runbooks/devmesh-tailnet.md   # erwartet: >= 1
@@ -259,7 +259,7 @@ grep -c "T900191" docs/runbooks/devmesh-tailnet.md              # erwartet: >= 1
 **Files:**
 - Modify: `docs/agent-guide/registry/mcp.yaml`
 
-- [ ] **Schritt 1: `mcp-postgres`-Eintrag auf devmesh umbiegen**
+- [x] **Schritt 1: `mcp-postgres`-Eintrag auf devmesh umbiegen**
 
 In `docs/agent-guide/registry/mcp.yaml` beim `mcp-postgres`-Block:
 - `database:` von `shared-db.workspace.svc.cluster.local/website` auf
@@ -274,7 +274,7 @@ In `docs/agent-guide/registry/mcp.yaml` beim `mcp-postgres`-Block:
   `k3d-postgres-forward`-Fallback (Zeilen 96–100 alt) entfernen (die WSL-Unit entfällt laut
   design.md D7).
 
-- [ ] **Schritt 2: `bge-mcp`-Eintrag auf devmesh umbiegen**
+- [x] **Schritt 2: `bge-mcp`-Eintrag auf devmesh umbiegen**
 
 Analog: `windows_note`/`failover_note` auf `svc/llm-services` in devmesh verweisen statt auf den
 fleet-`dev-pod`-Port-Forward und den WSL-Shim. Beide `windows_note`-Texte nennen ab jetzt zwei
@@ -282,7 +282,7 @@ Gateway-Units statt einer: `scripts/mcp-gateway/mcp-gateway.service` (fleet, unv
 `scripts/mcp-gateway/devmesh-forward.service` (neu, P3b) für die drei devmesh-Ports — Taskfile-
 Einstieg bleibt in beiden Fällen `task agents:mcp-gateway:start`/`agents:mcp-gateway:install`.
 
-- [ ] **Schritt 2a (F1 — kein Code-/Config-Task, nur Registry-Kommentar): `browser_endpoint`/
+- [x] **Schritt 2a (F1 — kein Code-/Config-Task, nur Registry-Kommentar): `browser_endpoint`/
   `bridge`-Einträge von `mcp-task-runner`, `codebase-memory-mcp`, `playwright` prüfen und
   dokumentieren, statt entfernen**
 
@@ -333,7 +333,7 @@ generierte MCP-Configs) laufen. Stattdessen bekommen die drei Blöcke einen Komm
     # Bridge/browser_endpoint.
 ```
 
-- [ ] **Schritt 3: `cluster.dev-pod`-Block bereinigen**
+- [x] **Schritt 3: `cluster.dev-pod`-Block bereinigen**
 
 Im `cluster:`-Abschnitt, Container `mcp-node`, die Zeilen
 ```yaml
@@ -344,7 +344,7 @@ entfernen. Den Kopf-Kommentar-Block ("Port-forward-Bruecke ... 18080:8080 13001:
 18235:18235") auf die verbleibenden zwei Forwards (`18080:8080 13002:3002`) kürzen — 13001 und
 18235 kommen jetzt aus dem devmesh-`llm-services`-Service, nicht mehr aus `svc/dev-pod`.
 
-- [ ] **Schritt 4: Neuen `cluster.devmesh`-Block anlegen**
+- [x] **Schritt 4: Neuen `cluster.devmesh`-Block anlegen**
 
 `mcp-sync.sh` liest ausschließlich den `clients:`-Zweig (belegt: `grep -n "cluster" scripts/mcp-sync.sh`
 liefert keinen Treffer) — der `cluster:`-Zweig ist reine Dokumentation ohne Schema-Validator.
@@ -371,7 +371,7 @@ Analog zum bestehenden `dev-pod`-Block anhängen:
           - { name: bge-mcp, port: 3007, forwarded_port: 13005 }
 ```
 
-- [ ] **Schritt 5: `task mcp:sync` und `task mcp:check` ausführen**
+- [x] **Schritt 5: `task mcp:sync` und `task mcp:check` ausführen**
 
 ```bash
 task mcp:sync
@@ -401,7 +401,7 @@ Drift zwischen Registry und generierten Configs).
 - Modify: `CLAUDE.md`
 - Modify: `.claude/skills/references/mcp-tool-guide.md`
 
-- [ ] **Schritt 1: Zeile in CLAUDE.md korrigieren**
+- [x] **Schritt 1: Zeile in CLAUDE.md korrigieren**
 
 Ist-Zeile (Zeile 17, Stand `db16df855`):
 ```
@@ -414,7 +414,7 @@ ersetzen durch:
 Dieselbe Korrektur in Zeile 16 (`bachelorprojekt-test`-Zeile): `mcp-postgres` (:13001, nur
 mentolder)` → `mcp-postgres` (:13001, devmesh seit T900191, nur mentolder)`.
 
-- [ ] **Schritt 2: mcp-tool-guide.md korrigieren**
+- [x] **Schritt 2: mcp-tool-guide.md korrigieren**
 
 Den Satz (Zeile 100–104, Stand `db16df855`)
 ```
@@ -428,7 +428,7 @@ Ticket-Zustand ohnehin nie der richtige Weg (Grund: `external_id`-Brand-Kollisio
 gültig). Den `curl`-Health-Check-Endpunkt (`http://localhost:13001/mcp`) NICHT ändern — der Port
 bleibt lokal identisch, nur das dahinterliegende Cluster wechselt.
 
-- [ ] **Schritt 3: Verify**
+- [x] **Schritt 3: Verify**
 
 ```bash
 grep -n "devmesh" CLAUDE.md .claude/skills/references/mcp-tool-guide.md | grep -c "13001\|mcp-postgres"
@@ -443,7 +443,7 @@ Erwartet: ≥ 2 (mindestens je ein Treffer pro Datei).
 **Files:**
 - Verify: alle Dateien aus der File-Structure-Tabelle
 
-- [ ] **Schritt 1: Registry-Konsistenz**
+- [x] **Schritt 1: Registry-Konsistenz**
 
 ```bash
 task mcp:sync
@@ -453,7 +453,7 @@ task mcp:check
 Erwartet: beide Exit 0. `mcp:check` vergleicht `docs/agent-guide/registry/mcp.yaml` gegen die
 vier generierten Configs und meldet Drift ≠ 0 als Fehler.
 
-- [ ] **Schritt 2: Netzwerk-Registry unverändert (Beleg für den F2-Befund oben)**
+- [x] **Schritt 2: Netzwerk-Registry unverändert (Beleg für den F2-Befund oben)**
 
 ```bash
 task networks:check
@@ -463,7 +463,7 @@ git diff --stat docs/agent-guide/registry/networks.yaml docs/agent-guide/maps/ne
 Erwartet: `networks:check` Exit 0, `git diff --stat` liefert **keine** Zeile (dieses Partial
 fasst diese beiden Dateien nicht an).
 
-- [ ] **Schritt 3: Die drei Pflicht-Kommandos**
+- [x] **Schritt 3: Die drei Pflicht-Kommandos**
 
 ```bash
 task test:changed
@@ -473,7 +473,7 @@ task freshness:check
 
 Erwartet: alle drei Exit 0.
 
-- [ ] **Schritt 4: Commit**
+- [x] **Schritt 4: Commit**
 
 ```bash
 git add docs/adr/ADR-008-local-k3s-dev-mesh.md docs/adr/ADR-007-wsl-exit-fleet-native.md \

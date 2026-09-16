@@ -8,7 +8,7 @@
   //
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (direkte API, nicht ueber den Proxy).
-  "model": "llamacpp-local/qwen38-220k",
+  "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
   // ── V2 Compaction (Requirement: V2 Compaction Targets 100K Active Context) ──
   // Factory model: Qwen3.6-35B-A3B, context=200000, output=8192.
   // V2 threshold = 200000 − max(8192, 96000) = 104000

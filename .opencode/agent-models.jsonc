@@ -53,6 +53,19 @@
             "context": 205056,
             "output": 8192
           }
+        },
+        // Aktiv: FreeToken-Windows (:1919, Mirrored-Networking -> aus WSL an 127.0.0.1)
+        // served ueber den llm-proxy (:18235) => Proxy-max_inflight=3 + Fallback-Kette
+        // (T002558) bleiben aktiv. Messung 2026-09-16: num_pages 200000 (= served KV!),
+        // moe_cache 4150, advertising max_model_len 262144 ist NICHT die served KV.
+        // Reasoning default on -> max_tokens klein liefert leeren content (length).
+        // qwen38-220k-Loadout (llama.cpp :8094) war am 2026-09-16 down.
+        "Qwen3.6-35B-A3B-NVFP4": {
+          "name": "Qwen3.6-35B-A3B MoE (FreeToken :1919 via llm-proxy, served KV 200k, moe 4150, reasoning on)",
+          "limit": {
+            "context": 200000,
+            "output": 8192
+          }
         }
       }
     },
@@ -335,7 +348,7 @@
     "gptoss": {
       "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -345,7 +358,7 @@
     "devstral": {
       "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -355,7 +368,7 @@
     "gemma": {
       "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -365,7 +378,7 @@
     "gemma12": {
       "description": "Local subagent via llama.cpp. Name retained as orchestrator dispatch handle. Text-only. Sequential dispatch.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F0ABFC",
       "temperature": 0.4,
@@ -375,7 +388,7 @@
     "qwen38": {
       "description": "Local subagent via llama.cpp. Text-only. Write-capable delegation.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22D3EE",
       "temperature": 0.4,
@@ -395,7 +408,7 @@
     "reviewer": {
       "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
@@ -671,9 +684,9 @@
     // Autonomous ticket worker: prioritizes critical tickets, plans (/dev-flow-plan),
     // explores (/opsx:explore), executes, and archives.
     "qwen38-primary": {
-      "description": "PRIMARY: Local Qwen 3.8 27B UD-IQ4_XS via llama.cpp (200k / 205056 ctx, Dual-GPU-Split, gemessen). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
+      "description": "PRIMARY: Local Qwen3.6-35B-A3B MoE via FreeToken/lm-proxy (200k served KV, gemessen 2026-09-16; zuvor qwen38-220k llama.cpp Loadout, 205056 ctx Dual-GPU-Split). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
       "mode": "primary",
-      "model": "llamacpp-local/qwen38-220k",
+      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/qwen38-primary.md}",
       "color": "#10B981",
       "temperature": 0.3,

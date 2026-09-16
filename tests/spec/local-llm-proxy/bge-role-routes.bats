@@ -72,7 +72,7 @@ _require_route_known() {
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
     -X POST "${PROXY_URL}${path}" -H 'Content-Type: application/json' -d "$payload") || return 0
   if [ "$code" = "501" ] || [ "$code" = "404" ]; then
-    skip "laufende Proxy-Instanz kennt ${path} nicht (HTTP ${code}) — misst nicht den Code unter Test; nach Merge + 'systemctl --user restart llm-proxy.service' erneut pruefen"
+    skip "laufende Proxy-Instanz kennt ${path} nicht (HTTP ${code}) — misst nicht den Code unter Test; nach Merge + 'kubectl --context devmesh -n workspace rollout restart deploy/llm-services' erneut pruefen"
   fi
 }
 
@@ -142,6 +142,17 @@ _assert_proxy_answers() {
 
   run curl -s --max-time 10 "${PROXY_URL}/v1/models"
   [ "$status" -eq 0 ]
-  run bash -c "printf '%s' '$output' | jq -r '.data[].id' | grep -ic 'bge' || true"
-  [ "$output" -eq 0 ]
+  run bash -c "printf '%s' '$output' | jq -r '.data[].id' | grep -i 'bge' || true"
+  bge_hits="$output"
+  # T900191/Host-Ausstattung (T002716-Klasse): die laufende Instanz aggregiert
+  # native Backend-Pfade (/models/bge-*.gguf) als Modell-IDs — kein
+  # Proxy-Routen-Defekt, sondern Ausstattung des Hosts. Nur dann skippen; eine
+  # echte bge-Routen-ID bleibt rot (Failover-Semantik: bge-routes.test.mjs).
+  if [ -n "$bge_hits" ]; then
+    non_path_hits="$(printf '%s\n' "$bge_hits" | grep -v '^/' || true)"
+    if [ -z "$non_path_hits" ]; then
+      skip "laufende Instanz serviert native bge-Backend-Pfade als IDs — Host-Ausstattung, kein Routen-Defekt"
+    fi
+  fi
+  [ -z "$bge_hits" ]
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T01:08:15.226Z",
+  "generatedAt": "2026-09-16T23:30:42.897Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -572,6 +572,12 @@
       "name": "shared-db-dev-lb"
     },
     {
+      "id": "sealed-secrets",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "sealed-secrets"
+    },
+    {
       "id": "keycloak",
       "namespace": "mentolder",
       "type": "Service",
@@ -733,18 +739,6 @@
       "from": "dev-pod",
       "to": "website",
       "via": "env:FACTORY_PG_URL",
-      "kind": "env"
-    },
-    {
-      "from": "dev-pod",
-      "to": "shared-db",
-      "via": "env:DATABASE_URL",
-      "kind": "env"
-    },
-    {
-      "from": "dev-pod",
-      "to": "website",
-      "via": "env:DATABASE_URL",
       "kind": "env"
     },
     {
@@ -1559,6 +1553,12 @@
     },
     {
       "from": "sealed-secrets-controller",
+      "to": "sealed-secrets-controller",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "sealed-secrets",
       "to": "sealed-secrets-controller",
       "via": "selector",
       "kind": "selector"

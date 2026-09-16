@@ -16,8 +16,15 @@
 		{"action": "accept", "src": ["tag:devclient"], "dst": ["tag:devmesh:22,443,6443"]},
 		// devmesh-Server untereinander vollstaendig.
 		{"action": "accept", "src": ["tag:devmesh"], "dst": ["tag:devmesh:*"]},
-		// Einzige Ausnahme in einen Client: GPU-Inferenz auf gpu_endpoint.port (ADR-008 Nachtrag, Punkt 1).
-		{"action": "accept", "src": ["tag:devmesh"], "dst": ["gpu-host:1234"]},
+		// Einzige Ausnahme in einen Client: GPU-Inferenz auf den Ports aus gpu_endpoint.ports
+		// (ADR-008 Nachtrag, Punkt 1; T900191). Eine Regel, ein Ziel je Port.
+		{"action": "accept", "src": ["tag:devmesh"], "dst": [
+			"gpu-host:1234",
+			"gpu-host:1919",
+			"gpu-host:8089",
+			"gpu-host:8090",
+			"gpu-host:8094",
+		]},
 		// Bewusst keine Regel mit Ziel tag:devclient oder *: kein allgemeiner Pfad in die Arbeitsplaetze.
 	],
 }

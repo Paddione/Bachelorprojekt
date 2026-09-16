@@ -3,6 +3,9 @@
 # gpu_endpoint in devmesh/inventory.yaml, scripts/devmesh/render-stack.sh setzt sie ein.
 # Ist PK-Desktop aus, meldet /sdlc/api/llm-proxy/status proxy=unreachable mit dieser
 # Adresse; die Console-Probes pruefen /api/health ohne LLM-Abhaengigkeit, der Pod bleibt Running.
+# Port http (80 -> gpu_endpoint.port) bleibt fuer sdlc-console. Je Eintrag in
+# gpu_endpoint.ports haengt render-stack.sh einen benannten Port gleicher Nummer an
+# Service und EndpointSlice an; die Registry adressiert llm-gateway-host:<port> [T900191].
 apiVersion: v1
 kind: Service
 metadata:

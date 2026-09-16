@@ -5,7 +5,11 @@
 # labels        Node-Labels für k3s (z. B. storage=true)
 # gpu_endpoint  GPU-Inferenz auf dem Windows-Arbeitsplatz; einziger erlaubter Pfad von
 #               tag:devmesh in einen Client (devmesh/tailnet-policy.hujson, Alias gpu-host).
-#               Port 1234 ist der bestehende LLM-Endpunkt.
+#   address     Tailnet-Adresse von host (identisch zu hosts.gpu-host in der Policy)
+#   port        Ziel des Service-Ports http (sdlc-console, LLM_PROXY_URL); bleibt 1234
+#   ports       ein Eintrag je Windows-GPU-Dienst [T900191]; name = IANA-Service-Name
+#               (klein, a-z0-9 und -, hoechstens 15 Zeichen). render-stack.sh macht daraus
+#               je einen benannten Port in llm-gateway-host, die Policy je ein Ziel.
 # role: server  -> tag: "tag:devmesh"   (k3s-Hosts)
 # role: client  -> tag: "tag:devclient" (Arbeitsplaetze; Tailscale laeuft im Windows-Host,
 #                                         WSL sieht das Tailnet ueber networkingMode = mirrored)
@@ -13,13 +17,18 @@
 # tailnet_name  Geraetename im Tailnet (bei Servern per `tailscale up --hostname` gesetzt)
 #
 # Gelesen von scripts/devmesh/*.sh, taskfiles/Taskfile.devmesh.yml
-# und vom Policy-Guard tests/spec/local-dev-mesh/tailnet-policy.bats (gpu_endpoint.port).
-# ws-ubuntu-1 (10.0.33.1) tritt erst in SP-5 (T900120) bei.
-# Auth-Keys gehoeren NIE in diese Datei.
+# und vom Policy-Guard tests/spec/local-dev-mesh/tailnet-policy.bats (gpu_endpoint).
 k3s_version: v1.36.1+k3s1
 gpu_endpoint:
   host: pk-desktop
+  address: 100.102.71.114
   port: 1234
+  ports:
+    - {name: lmstudio, port: 1234}
+    - {name: freetoken, port: 1919}
+    - {name: gemma12, port: 8089}
+    - {name: gemma4, port: 8090}
+    - {name: qwen38, port: 8094}
 peers:
   - name: gpu-metal
     role: server

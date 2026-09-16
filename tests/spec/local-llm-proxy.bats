@@ -244,30 +244,28 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 # Der Proxy lief bis 2026-07-27 ausschliesslich als manuell gestarteter
 # Node-Prozess; nach jedem Reboot war die Factory ohne Zutun tot.
 
-@test "llm-proxy.service existiert und startet server.mjs (T002277)" {
-  local unit="${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/llm-proxy.service"
-  [ -f "$unit" ]
-  grep -qE '^ExecStart=.*/node .*/scripts/llm-proxy/server\.mjs$' "$unit"
-  grep -qE '^WantedBy=default\.target$' "$unit"
+@test "llm-services-Deployment setzt FACTORY_PG_URL statt kubectl-exec-Pfad (T900191, D3)" {
+  # Ersetzt "llm-proxy.service existiert ..." und "llm-proxy.service hat kubectl
+  # im PATH": der kubectl-exec-Pfad gegen die Registry entfaellt mit devmesh,
+  # FACTORY_PG_URL zeigt jetzt direkt auf shared-db (kein kubectl-Umweg mehr).
+  local deploy_out
+  deploy_out="$(bash "${BATS_TEST_DIRNAME}/../../scripts/devmesh/render-stack.sh" core 2>/dev/null)" || skip "render-stack.sh Vorbedingung fehlt (siehe llm-services.bats)"
+  echo "$deploy_out" | grep -qF 'FACTORY_PG_URL'
+  echo "$deploy_out" | grep -A1 'name: FACTORY_PG_URL' | grep -qF 'shared-db'
 }
 
-@test "llm-proxy.service hat kubectl im PATH (T002277)" {
-  # Die Backend-Registry wird per `kubectl exec ... psql` gelesen
-  # (scripts/factory/lib.sh). kubectl liegt unter /usr/local/bin, das die
-  # systemd-Default-PATH NICHT enthaelt - ohne diese Zeile laeuft der Proxy
-  # dauerhaft mit leerer Backend-Liste und meldet trotzdem /health ok.
-  grep -qE '^Environment=PATH=.*(/usr/local/bin)' \
-    "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/llm-proxy.service"
-}
-
-@test "proxy:start erkennt eine bereits laufende systemd-Instanz (T002277)" {
+@test "proxy:start erkennt eine bereits laufende Instanz (T002277)" {
+  # T900191: "systemd-Instanz" aus dem Namen gestrichen — die Units sind mit D7
+  # entfallen, der Port-Check in proxy:start (jetzt auch gegen den
+  # devmesh-Forward) lebt weiter und bleibt bewacht.
   # Das PID-File kennt nur die nohup-Instanz. Ohne Port-Pruefung wuerde ein
   # zweiter Start mit EADDRINUSE sterben und ein PID-File hinterlassen, das auf
   # einen toten Prozess zeigt.
   # T002336, zwei Korrekturen an diesem Guard:
   #   1. Der grep lief ueber die GANZE Datei und war damit falsch-gruen: er fand
   #      das Muster in proxy:status, waehrend proxy:start laengst /livez nutzte.
-  #      Jetzt wird wie beim install-service-Guard erst der Block geschnitten.
+  #      Jetzt wird erst der Block geschnitten (Technik wie im
+  #      devmesh:deploy-Guard unten).
   #   2. Das Muster akzeptiert livez UND health - geprueft wird die Absicht aus
   #      dem Testnamen (ein HTTP-Port-Check existiert), nicht der Endpunktname.
   run bash -c "sed -n '/^  proxy:start:/,/^  [a-z]/p' \
@@ -309,25 +307,14 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 # fiel in eine EADDRINUSE-Restart-Schleife. Nur im Journal sichtbar -
 # 'systemctl is-active' meldete 'activating', was wie ein langsamer Start aussieht.
 
-@test "proxy:install-service prueft den Port, nicht nur das PID-File (T002281)" {
-  # Derselbe Check, den proxy:start seit T002277 hat. Das PID-File kennt nur die
-  # nohup-Instanz und luegt, sobald der Port anderweitig belegt ist.
-  # T002336: das Muster akzeptiert livez UND health. Geprueft wird die ABSICHT
-  # aus dem Testnamen - "es gibt einen HTTP-Port-Check" -, nicht der Endpunktname.
-  # Der Aufruf steht inzwischen auf /livez, weil /health seit T002336 Readiness
-  # meldet: ein 503 bei totem Backend haette die Kill-Schleife als "Port frei"
-  # gelesen und die Altinstanz ueberleben lassen - genau der T002281-Fall.
-  run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
-    '${BATS_TEST_DIRNAME}/../../taskfiles/Taskfile.llm.yml' | grep -cE 'curl .*(livez|health)'"
-  [ "$output" != "0" ]
-}
-
-@test "proxy:install-service verifiziert den Unit-Zustand nach enable (T002281)" {
-  # 'Erfolgsmeldung ohne Pruefung' - dieselbe Klasse, die T002276 bei schtasks
-  # gefunden hat. enable --now kann erfolgreich zurueckkehren, waehrend die Unit
-  # in auto-restart haengt.
-  run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
-    '${BATS_TEST_DIRNAME}/../../taskfiles/Taskfile.llm.yml' | grep -cE 'is-active|ActiveState'"
+@test "devmesh:deploy wartet den Rollout-Status ab statt Erfolg zu melden (T900191, Nachfolger T002281)" {
+  # T002281 (systemd): install-service meldete Erfolg, waehrend die Unit in
+  # auto-restart hing ('activating' sah aus wie langsamer Start). Nachfolger im
+  # devmesh-Pfad: devmesh:deploy wartet pro gerendertem Deployment auf
+  # `rollout status`, statt nach dem Apply ungesehen weiterzugehen.
+  run bash -c "sed -n '/^  deploy:/,/^  [a-z]/p' \
+    '${BATS_TEST_DIRNAME}/../../taskfiles/Taskfile.devmesh.yml' \
+    | grep -c 'rollout status'"
   [ "$output" != "0" ]
 }
 

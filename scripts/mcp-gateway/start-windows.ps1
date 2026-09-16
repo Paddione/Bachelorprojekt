@@ -1,100 +1,64 @@
 # scripts/mcp-gateway/start-windows.ps1
-# T900039 - Windows-Pendant zu den systemd-user-Units unter scripts/bge-mcp/
-# und scripts/mcp-gateway/. Auf Linux/WSL uebernehmen bge-mcp.service,
-# bge-forward-embed.service und bge-forward-rerank.service diese Aufgabe
-# (siehe dort). Auf Windows gibt es kein systemd --user, deshalb dieses
-# Skript: es startet dieselben kubectl-Port-Forwards gegen den fleet-Cluster
-# und danach den bge-mcp-Shim (scripts/bge-mcp/server.mjs) im Vordergrund.
+# T900039, T900191 - Windows-Pendant zu mcp-gateway.service und devmesh-forward.service.
+# Startet zwei kubectl-Port-Forwards und haelt sie am Leben, bis Strg+C:
+#   fleet   workspace-dev  svc/dev-pod       18080 (mcp-kubernetes), 13002 (github)
+#   devmesh workspace      svc/llm-services  18235 (llm-proxy), 13001 (mcp-postgres), 13005 (bge-mcp)
+# Kein lokaler Node-Prozess mehr: llm-proxy, mcp-postgres und bge-mcp laufen im
+# devmesh-Pod llm-services. Die frueheren Forwards 8081/8093 (bge-embed/-rerank)
+# entfallen, der Proxy erreicht bge dort ueber Cluster-DNS.
 #
 # Aufruf:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/start-windows.ps1
+# Erreichbar ueber: task mcp:start-windows. Autostart: task mcp:autostart:register.
 #
-# Erreichbar ueber: task mcp:start-windows (Taskfile.yml).
+# AUSSCHLUSS: Windows- und WSL-Mechanismus schliessen sich aus. Mit
+# networkingMode=mirrored teilen Windows und WSL den Loopback. Laufen hier und in
+# WSL (mcp-gateway.service, devmesh-forward.service) dieselben Forwards, scheitert
+# der zweite mit "address already in use". Pro Host genau einen Mechanismus aktivieren.
 #
-# Vorbedingungen:
-#   - kubectl mit funktionierendem fleet-Kontext (kubectl config get-contexts)
-#   - BGE_MCP_TOKEN in der Umgebung gesetzt; der Shim verweigert sonst den
-#     Start (siehe scripts/bge-mcp/server.mjs).
+# Vorbedingung: kubectl mit den Kontexten fleet und devmesh (kubectl config get-contexts).
+# Tokens braucht dieses Skript nicht; die Clients senden sie selbst an die Server.
 #
-# Das Skript beendet die Port-Forwards, sobald der Shim-Prozess endet
-# (Strg+C oder Fehler), damit keine verwaisten kubectl-Prozesse zurueckbleiben.
+# Ein beendeter Forward (Pod-Neustart, Netzabriss) wird nach 3 s neu gestartet.
+# Strg+C beendet alle Forwards, damit keine verwaisten kubectl-Prozesse bleiben.
 
 param(
-    [string]$KubeContext = "fleet",
-    [string]$Namespace = "workspace",
-    # [T900107] Ports des dev-pod. 13000 (playwright) ist entfallen: playwright
-    # ist nicht Teil des Bundles und bleibt lokaler stdio-Server. 18235 kommt
-    # dazu - der llm-proxy laeuft jetzt im selben Pod.
-    [int]$DevPodKubernetesPort = 18080,
-    [int]$DevPodPostgresPort = 13001,
-    [int]$DevPodGithubPort = 13002,
-    [int]$DevPodProxyPort = 18235,
-    [int]$EmbedPort = 8081,
-    [int]$RerankPort = 8093,
-    [int]$BgeMcpPort = 13005
+    [string]$FleetContext = "fleet",
+    [string]$DevmeshContext = "devmesh",
+    [int]$KubernetesPort = 18080,
+    [int]$GithubPort = 13002,
+    [int]$ProxyPort = 18235,
+    [int]$PostgresPort = 13001,
+    [int]$BgeMcpPort = 13005,
+    [int]$ReadyTimeoutSec = 60
 )
 
 $ErrorActionPreference = "Stop"
 
-$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+# [T900190] .ProviderPath statt .Path: unter \\wsl.localhost\... liefert .Path den
+# Provider-Praefix Microsoft.PowerShell.Core\FileSystem::.
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).ProviderPath
 Set-Location $RepoRoot
 
-# [T900040] Windows-Pendant zu EnvironmentFile= der systemd-Unit: fehlt der Token
-# in der Umgebung, wird er aus ~/.config/<service>/server.env nachgeladen. Das ist
-# dieselbe Datei, aus der mcp-sync.sh den Authorization-Header aufloest - ohne
-# diesen Fallback muesste der Wert bei jedem Start von Hand gesetzt werden.
-# [T900052] Erweitert um FACTORY_MCP_TOKEN, MCP_POSTGRES_TOKEN und
-# MCP_KUBERNETES_TOKEN — alle drei werden vom Shared Guard (mcp-http-security.mjs)
-# als Pflicht-Token gefordert.
-function Load-TokenFromEnv {
-    param(
-        [string]$EnvKey,
-        [string]$ServiceName
-    )
-    $currentValue = [Environment]::GetEnvironmentVariable($EnvKey)
-    if ($currentValue -and $currentValue.Trim() -ne "") { return $true }
-    $envFile = Join-Path $HOME ".config/$ServiceName/server.env"
-    if (Test-Path $envFile) {
-        foreach ($line in Get-Content $envFile) {
-            if ($line -match "^\s*$([regex]::Escape($EnvKey))\s*=\s*(.+?)\s*$") {
-                [Environment]::SetEnvironmentVariable($EnvKey, $Matches[1].Trim('"').Trim("'"), "Process")
-                Write-Host "$EnvKey aus $envFile geladen."
-                return $true
-            }
-        }
-    }
-    return $false
-}
-
-# Token laden (BGE_MCP_TOKEN ist Pflicht fuer den Shim; die anderen sind
-# Pflicht fuer die jeweiligen Server, werden aber erst beim Start geprueft).
-if (-not (Load-TokenFromEnv "BGE_MCP_TOKEN" "bge-mcp")) {
-    Write-Host "FEHLER: BGE_MCP_TOKEN ist weder gesetzt noch in ~/.config/bge-mcp/server.env zu finden."
-    Write-Host 'Setzen mit: $env:BGE_MCP_TOKEN = "<token>"'
-    exit 1
-}
-
-# Fuer die guarded Server (werden beim Start via requireToken geprueft)
-Load-TokenFromEnv "FACTORY_MCP_TOKEN" "factory-mcp-node" | Out-Null
-Load-TokenFromEnv "MCP_POSTGRES_TOKEN" "mcp-postgres" | Out-Null
-Load-TokenFromEnv "MCP_KUBERNETES_TOKEN" "mcp-cors-proxy" | Out-Null
+$forwards = @(
+    @{ Name = "fleet"; Context = $FleetContext; Ns = "workspace-dev"; Service = "svc/dev-pod";
+       Ports = @("${KubernetesPort}:8080", "${GithubPort}:3002"); Probe = @($KubernetesPort, $GithubPort) },
+    @{ Name = "devmesh"; Context = $DevmeshContext; Ns = "workspace"; Service = "svc/llm-services";
+       Ports = @("${ProxyPort}:18235", "${PostgresPort}:13001", "${BgeMcpPort}:13005");
+       Probe = @($ProxyPort, $PostgresPort, $BgeMcpPort) }
+)
 
 function Start-PortForward {
-    param(
-        [string]$KContext,
-        [string]$Ns,
-        [string]$Service,
-        [string[]]$Ports
-    )
-    Write-Host "Starte Port-Forward: $Service ($($Ports -join ' ')) in Namespace $Ns ..."
+    param([hashtable]$Spec)
+    Write-Host "Starte Port-Forward $($Spec.Name): $($Spec.Service) ($($Spec.Ports -join ' ')) in $($Spec.Ns) ..."
     return Start-Job -ScriptBlock {
         param($ctx, $ns, $svc, $ports)
         & kubectl --context $ctx port-forward -n $ns $svc @ports
-    } -ArgumentList $KContext, $Ns, $Service, $Ports
+    } -ArgumentList $Spec.Context, $Spec.Ns, $Spec.Service, $Spec.Ports
 }
 
 function Wait-ForPort {
-    param([int]$Port, [int]$TimeoutSec = 60)
+    param([int]$Port, [int]$TimeoutSec)
     $elapsed = 0
     while ($elapsed -lt $TimeoutSec) {
         $ok = Test-NetConnection -ComputerName "127.0.0.1" -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet
@@ -105,33 +69,42 @@ function Wait-ForPort {
     return $false
 }
 
-$forwardJobs = @()
-$forwardJobs += Start-PortForward -KContext $KubeContext -Ns "workspace-dev" -Service "svc/dev-pod" `
-    -Ports @("${DevPodKubernetesPort}:8080", "${DevPodPostgresPort}:3001", "${DevPodGithubPort}:3002", "${DevPodProxyPort}:18235")
-$forwardJobs += Start-PortForward -KContext $KubeContext -Ns $Namespace -Service "svc/llm-gateway-embed" `
-    -Ports @("${EmbedPort}:8081")
-$forwardJobs += Start-PortForward -KContext $KubeContext -Ns $Namespace -Service "svc/llm-gateway-rerank" `
-    -Ports @("${RerankPort}:8081")
-
-Write-Host "Warte auf Port-Forwards (embed/rerank) ..."
-$ready = (Wait-ForPort -Port $EmbedPort) -and (Wait-ForPort -Port $RerankPort)
-if (-not $ready) {
-    Write-Host "FEHLER: Port-Forwards fuer llm-gateway-embed/-rerank sind nicht rechtzeitig bereit."
-    $forwardJobs | Stop-Job -ErrorAction SilentlyContinue
-    $forwardJobs | Remove-Job -ErrorAction SilentlyContinue
-    exit 1
+function Stop-AllForwards {
+    param([hashtable]$Jobs)
+    Write-Host "Beende Port-Forwards ..."
+    $Jobs.Values | Stop-Job -ErrorAction SilentlyContinue
+    $Jobs.Values | Remove-Job -Force -ErrorAction SilentlyContinue
 }
 
-$env:LLM_EMBED_URL = "http://127.0.0.1:$EmbedPort"
-$env:LLM_RERANKER_URL = "http://127.0.0.1:$RerankPort"
-$env:BGE_MCP_PORT = "$BgeMcpPort"
+$jobs = @{}
+foreach ($f in $forwards) { $jobs[$f.Name] = Start-PortForward -Spec $f }
 
-Write-Host "Starte bge-mcp-Shim auf Port $BgeMcpPort ..."
 try {
-    node "$RepoRoot\scripts\bge-mcp\server.mjs"
+    foreach ($f in $forwards) {
+        foreach ($p in $f.Probe) {
+            if (-not (Wait-ForPort -Port $p -TimeoutSec $ReadyTimeoutSec)) {
+                Write-Host "FEHLER: Port $p ($($f.Name), $($f.Service)) ist nach $ReadyTimeoutSec s nicht bereit."
+                Receive-Job $jobs[$f.Name] -ErrorAction SilentlyContinue | Write-Host
+                exit 1
+            }
+        }
+    }
+    Write-Host "Forwards bereit: 18080/13002 (fleet), 18235/13001/13005 (devmesh). Strg+C beendet sie."
+
+    while ($true) {
+        foreach ($f in $forwards) {
+            $j = $jobs[$f.Name]
+            if ($j.State -ne "Running") {
+                Receive-Job $j -ErrorAction SilentlyContinue | Write-Host
+                Remove-Job $j -Force -ErrorAction SilentlyContinue
+                Write-Host "Forward $($f.Name) beendet ($($j.State)), Neustart in 3 s ..."
+                Start-Sleep -Seconds 3
+                $jobs[$f.Name] = Start-PortForward -Spec $f
+            }
+        }
+        Start-Sleep -Seconds 5
+    }
 }
 finally {
-    Write-Host "Beende Port-Forwards ..."
-    $forwardJobs | Stop-Job -ErrorAction SilentlyContinue
-    $forwardJobs | Remove-Job -ErrorAction SilentlyContinue
+    Stop-AllForwards -Jobs $jobs
 }

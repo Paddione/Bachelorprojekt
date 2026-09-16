@@ -2,22 +2,18 @@
 # scripts/mcp-gateway/start-mcp-unified.sh
 # Unified MCP server launcher for Windows/WSL — no systemd required.
 #
-# Starts the three MCP infrastructure components that serve the red MCP servers
-# in opencode:
-#   1. mcp-gateway    (kubectl port-forward → mcp-kubernetes :18080, mcp-postgres :13001)
-#   2. factory-mcp    (Node.js stdlib → factory-mcp-node :13003)
-#   3. bge-mcp shim   (Node.js → bge-mcp :13005)
-#
-# Usage:
-#   scripts/mcp-gateway/start-mcp-unified.sh   # start all
-#   scripts/mcp-gateway/start-mcp-unified.sh stop   # stop all, clean up PID files
-#   scripts/mcp-gateway/start-mcp-unified.sh status   # health check
+# Starts the three MCP infrastructure components the local clients depend on:
+#   1. mcp-gateway      (kubectl port-forward fleet dev-pod → :18080 mcp-kubernetes, :13002 github)
+#   2. devmesh-forward  (kubectl port-forward devmesh llm-services → :18235 llm-proxy,
+#                        :13001 mcp-postgres, :13005 bge-mcp) [T900191]
+#   3. factory-mcp      (Node.js stdlib → factory-mcp-node :13003)
+# Not together with scripts/mcp-gateway/start-windows.ps1 (shared loopback under
+# networkingMode=mirrored → "address already in use").
 #
 # PID files (all under /tmp):
-#   /tmp/mcp-gateway.pid     — kubectl port-forward process group
-#   /tmp/factory-mcp.pid     — factory-mcp-node server
-#   /tmp/bge-mcp.pid         — bge-mcp shim
-#
+#   /tmp/mcp-gateway.pid      — fleet port-forward
+#   /tmp/devmesh-forward.pid  — devmesh port-forward
+#   /tmp/factory-mcp.pid      — factory-mcp-node server
 # Idempotent: if a process is already running on its port, it is skipped.
 # Safe to call repeatedly.
 
@@ -94,9 +90,9 @@ stop_process() {
   # Also kill orphaned processes via /proc scan (no lsof/fuser available).
   local hex_port=""
   case "$name" in
-    mcp-gateway) hex_port=$(printf '%04X' 18080) ;;
-    factory-mcp) hex_port=$(printf '%04X' 13003) ;;
-    bge-mcp)     hex_port=$(printf '%04X' 13005) ;;
+    mcp-gateway)     hex_port=$(printf '%04X' 18080) ;;
+    devmesh-forward) hex_port=$(printf '%04X' 18235) ;;
+    factory-mcp)     hex_port=$(printf '%04X' 13003) ;;
   esac
   if [ -n "$hex_port" ]; then
     for pid_dir in /proc/[0-9]*; do
@@ -137,28 +133,45 @@ load_token() {
 # --- MCP components ---------------------------------------------------------
 
 start_gateway() {
-  echo "  [1/3] mcp-gateway (kubectl port-forward) ..."
+  echo "  [1/3] mcp-gateway (fleet port-forward) ..."
   if is_running "mcp-gateway"; then
     echo "    already running (PID $(cat "$(pid_file mcp-gateway)"))"
     return 0
   fi
-
   nohup kubectl --context fleet port-forward -n workspace-dev svc/dev-pod \
-    18080:8080 13001:3001 13002:3002 18235:18235 \
+    18080:8080 13002:3002 \
     > /tmp/mcp-gateway.log 2>&1 &
   echo $! > "$(pid_file mcp-gateway)"
-
   wait_for_port 18080 30
   if port_in_use 18080; then
-    echo "    started (PID $(cat "$(pid_file mcp-gateway)")) — :18080 :13001 :13002 :18235"
+    echo "    started (PID $(cat "$(pid_file mcp-gateway)")) — :18080 :13002"
   else
     echo "    FAILED — port-forward may not have opened :18080 (check kubectl/fleet context)"
     return 1
   fi
 }
 
+start_devmesh() {
+  echo "  [2/3] devmesh-forward (devmesh llm-services) ..."
+  if is_running "devmesh-forward"; then
+    echo "    already running (PID $(cat "$(pid_file devmesh-forward)"))"
+    return 0
+  fi
+  nohup kubectl --context devmesh port-forward -n workspace svc/llm-services \
+    18235:18235 13001:13001 13005:13005 \
+    > /tmp/devmesh-forward.log 2>&1 &
+  echo $! > "$(pid_file devmesh-forward)"
+  wait_for_port 18235 30
+  if port_in_use 18235; then
+    echo "    started (PID $(cat "$(pid_file devmesh-forward)")) — :18235 :13001 :13005"
+  else
+    echo "    FAILED — check /tmp/devmesh-forward.log (kubectl/devmesh context, svc/llm-services)"
+    return 1
+  fi
+}
+
 start_factory() {
-  echo "  [2/3] factory-mcp-node ..."
+  echo "  [3/3] factory-mcp-node ..."
   if is_running "factory-mcp"; then
     echo "    already running (PID $(cat "$(pid_file factory-mcp)"))"
     return 0
@@ -179,34 +192,6 @@ start_factory() {
     echo "    started (PID $(cat "$(pid_file factory-mcp)")) — :13003"
   else
     echo "    FAILED — check /tmp/factory-mcp.log"
-    return 1
-  fi
-}
-
-start_bge() {
-  echo "  [3/3] bge-mcp shim ..."
-  if is_running "bge-mcp"; then
-    echo "    already running (PID $(cat "$(pid_file bge-mcp)"))"
-    return 0
-  fi
-
-  if ! load_token "BGE_MCP_TOKEN" "$HOME/.config/bge-mcp/server.env"; then
-    echo "    skipped (missing BGE_MCP_TOKEN)"
-    return 1
-  fi
-
-  # Wait for llm-proxy (:18235) to be reachable — it comes from the gateway
-  wait_for_port 18235 30
-
-  nohup node "$REPO_ROOT/scripts/bge-mcp/server.mjs" \
-    > /tmp/bge-mcp.log 2>&1 &
-  echo $! > "$(pid_file bge-mcp)"
-
-  wait_for_port 13005 10
-  if port_in_use 13005; then
-    echo "    started (PID $(cat "$(pid_file bge-mcp)")) — :13005"
-  else
-    echo "    FAILED — check /tmp/bge-mcp.log"
     return 1
   fi
 }
@@ -255,7 +240,7 @@ status() {
   echo "  mcp-kubernetes     (:18080) → $k8s_ok"
   echo "  mcp-postgres       (:13001) → $pg_ok"
   echo "  factory-mcp-node   (:13003) → $fac_ok"
-  echo "  bge-mcp            (:13005) → $bge_ok"
+  echo "  bge-mcp (devmesh)  (:13005) → $bge_ok"
 
   if [ "$k8s_ok" = "OK" ] && [ "$pg_ok" = "OK" ] && [ "$fac_ok" = "OK" ] && [ "$bge_ok" = "OK" ]; then
     return 0
@@ -270,8 +255,8 @@ case "${1:-start}" in
     echo "=== Starting MCP infrastructure ==="
     errors=0
     start_gateway || errors=$((errors + 1))
+    start_devmesh || errors=$((errors + 1))
     start_factory || errors=$((errors + 1))
-    start_bge || errors=$((errors + 1))
     if [ "$errors" -gt 0 ]; then
       echo "=== $errors server(s) failed to start ==="
       exit 1
@@ -280,7 +265,7 @@ case "${1:-start}" in
     ;;
   stop)
     echo "=== Stopping MCP infrastructure ==="
-    for name in mcp-gateway factory-mcp bge-mcp; do
+    for name in mcp-gateway devmesh-forward factory-mcp; do
       stop_process "$name" 2>/dev/null || echo "$name was not running"
     done
     echo "=== MCP infrastructure stopped ==="

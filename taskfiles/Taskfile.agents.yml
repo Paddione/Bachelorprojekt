@@ -114,53 +114,68 @@ tasks:
         fi
         systemctl --user status factory-mcp.service --no-pager -n 20 || true
 
-  # ── mcp-gateway — kubectl port-forward to svc/dev-pod [T900107] ──────────
-  # Backs the mcp-kubernetes (:18080) and mcp-postgres (:13001) MCP servers.
-  # Same start/stop/status/install shape as factory-mcp above.
+  # ── mcp-gateway — kubectl port-forwards [T900107, T900191] ──────────────
+  # fleet svc/dev-pod: mcp-kubernetes (:18080), github (:13002).
+  # devmesh svc/llm-services: llm-proxy (:18235), mcp-postgres (:13001), bge-mcp (:13005).
+  # Nicht zusammen mit start-windows.ps1 betreiben (gemeinsamer Loopback).
 
   mcp-gateway:start:
-    desc: "Start the mcp-gateway kubectl port-forward in the background (PID file)"
+    desc: "Start the mcp-gateway (fleet) + devmesh-forward kubectl port-forwards in the background (PID files)"
     cmds:
       - |
         bash -c '
           set -euo pipefail
           PIDFILE=/tmp/mcp-gateway.pid
+          DM_PIDFILE=/tmp/devmesh-forward.pid
           if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-            echo "mcp-gateway already running (PID $(cat "$PIDFILE"))"
+            echo "mcp-gateway (fleet) already running (PID $(cat "$PIDFILE"))"
           else
             nohup kubectl --context fleet port-forward -n workspace-dev svc/dev-pod \
-              18080:8080 13001:3001 13002:3002 18235:18235 > /tmp/mcp-gateway.log 2>&1 &
+              18080:8080 13002:3002 > /tmp/mcp-gateway.log 2>&1 &
             echo $! > "$PIDFILE"
-            echo "mcp-gateway started (PID $(cat "$PIDFILE"))"
+            echo "mcp-gateway (fleet) started (PID $(cat "$PIDFILE"))"
+          fi
+          if [[ -f "$DM_PIDFILE" ]] && kill -0 "$(cat "$DM_PIDFILE")" 2>/dev/null; then
+            echo "devmesh-forward already running (PID $(cat "$DM_PIDFILE"))"
+          else
+            nohup kubectl --context devmesh port-forward -n workspace svc/llm-services \
+              18235:18235 13001:13001 13005:13005 > /tmp/devmesh-forward.log 2>&1 &
+            echo $! > "$DM_PIDFILE"
+            echo "devmesh-forward started (PID $(cat "$DM_PIDFILE"))"
           fi
         '
 
   mcp-gateway:stop:
-    desc: "Stop the mcp-gateway kubectl port-forward"
+    desc: "Stop both mcp-gateway kubectl port-forwards (fleet + devmesh)"
     cmds:
       - |
         bash -c '
-          PIDFILE=/tmp/mcp-gateway.pid
-          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-            kill "$(cat "$PIDFILE")"
+          for PIDFILE in /tmp/mcp-gateway.pid /tmp/devmesh-forward.pid; do
+            name=$(basename "$PIDFILE" .pid)
+            if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+              kill "$(cat "$PIDFILE")"
+              echo "$name stopped"
+            else
+              echo "$name not running"
+            fi
             rm -f "$PIDFILE"
-            echo "mcp-gateway stopped"
-          else
-            echo "mcp-gateway not running"
-            rm -f "$PIDFILE"
-          fi
+          done
         '
 
   mcp-gateway:status:
-    desc: "Health-check mcp-kubernetes (:18080) and mcp-postgres (:13001) through the gateway"
+    desc: "Health-check mcp-kubernetes (:18080, fleet), mcp-postgres (:13001) and bge-mcp (:13005, devmesh)"
     cmds:
       - |
         bash -c '
           [ -f "$HOME/.config/mcp-postgres/server.env" ] && source "$HOME/.config/mcp-postgres/server.env" 2>/dev/null || true
+          [ -f "$HOME/.config/bge-mcp/server.env" ] && source "$HOME/.config/bge-mcp/server.env" 2>/dev/null || true
           probe() {
             local auth=()
             if [[ "$1" == *"13001"* && -n "${MCP_POSTGRES_TOKEN:-}" ]]; then
               auth=(-H "Authorization: Bearer $MCP_POSTGRES_TOKEN")
+            fi
+            if [[ "$1" == *"13005"* && -n "${BGE_MCP_TOKEN:-}" ]]; then
+              auth=(-H "Authorization: Bearer $BGE_MCP_TOKEN")
             fi
             curl -s --max-time 2 -o /dev/null -w "%{http_code}" \
               -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
@@ -170,13 +185,15 @@ tasks:
           }
           k8s_code=$(probe http://localhost:18080/mcp || echo "000")
           pg_code=$(probe http://localhost:13001/mcp || echo "000")
+          bge_code=$(probe http://localhost:13005/mcp || echo "000")
           echo "mcp-kubernetes (:18080): HTTP $k8s_code"
           echo "mcp-postgres   (:13001): HTTP $pg_code"
-          [[ "$k8s_code" == "200" && "$pg_code" == "200" ]]
+          echo "bge-mcp        (:13005): HTTP $bge_code"
+          [[ "$k8s_code" == "200" && "$pg_code" == "200" && "$bge_code" == "200" ]]
         '
 
   mcp-gateway:install:
-    desc: "Install mcp-gateway as a persistent systemd USER service (autostart + Restart=always), replacing the manual kubectl port-forward."
+    desc: "Install mcp-gateway + devmesh-forward as persistent systemd USER services (autostart + Restart=always)"
     silent: true
     cmds:
       - |
@@ -186,37 +203,42 @@ tasks:
           echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: use task agents:mcp-gateway:start."
           exit 1
         fi
-        # Stop any manually-started port-forward so the port is free for systemd.
+        # Stop any manually-started port-forwards so the ports are free for systemd.
         PIDFILE=/tmp/mcp-gateway.pid
         if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
           kill "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
         fi
-        # Also reap any bare kubectl port-forward started outside of task (e.g. a
-        # prior manual `kubectl port-forward ... svc/dev-pod` run).
+        DM_PIDFILE=/tmp/devmesh-forward.pid
+        if [[ -f "$DM_PIDFILE" ]] && kill -0 "$(cat "$DM_PIDFILE")" 2>/dev/null; then
+          kill "$(cat "$DM_PIDFILE")" && rm -f "$DM_PIDFILE"
+        fi
+        # Also reap any bare kubectl port-forwards started outside of task.
         pkill -f 'port-forward -n workspace-dev svc/dev-pod' 2>/dev/null || true
+        pkill -f 'port-forward -n workspace svc/llm-services' 2>/dev/null || true
         sleep 1
         UNIT_DIR="${HOME}/.config/systemd/user"
         SRC="$(pwd)/scripts/mcp-gateway"
         mkdir -p "${UNIT_DIR}"
         ln -sf "${SRC}/mcp-gateway.service" "${UNIT_DIR}/mcp-gateway.service"
+        ln -sf "${SRC}/devmesh-forward.service" "${UNIT_DIR}/devmesh-forward.service"
         systemctl --user daemon-reload
-        systemctl --user enable --now mcp-gateway.service
-        echo "mcp-gateway installed as systemd --user service (autostart + Restart=always)."
+        systemctl --user enable --now mcp-gateway.service devmesh-forward.service
+        echo "mcp-gateway + devmesh-forward installed as systemd --user services (autostart + Restart=always)."
 
   mcp-gateway:uninstall:
-    desc: "Stop + disable the mcp-gateway systemd service and remove the symlinked unit."
+    desc: "Stop + disable mcp-gateway and devmesh-forward systemd services and remove symlinked units."
     silent: true
     cmds:
       - |
         set -euo pipefail
         UNIT_DIR="${HOME}/.config/systemd/user"
-        systemctl --user disable --now mcp-gateway.service 2>/dev/null || true
-        rm -f "${UNIT_DIR}/mcp-gateway.service"
+        systemctl --user disable --now mcp-gateway.service devmesh-forward.service 2>/dev/null || true
+        rm -f "${UNIT_DIR}/mcp-gateway.service" "${UNIT_DIR}/devmesh-forward.service"
         systemctl --user daemon-reload 2>/dev/null || true
-        echo "mcp-gateway systemd service uninstalled."
+        echo "mcp-gateway + devmesh-forward uninstalled."
 
   mcp-gateway:service-status:
-    desc: "Show the mcp-gateway systemd service state + recent journal tail."
+    desc: "Show mcp-gateway + devmesh-forward systemd service state + recent journal tail."
     silent: true
     cmds:
       - |
@@ -225,7 +247,7 @@ tasks:
           echo "No systemd --user manager on this host."
           exit 0
         fi
-        systemctl --user status mcp-gateway.service --no-pager -n 20 || true
+        systemctl --user status mcp-gateway.service devmesh-forward.service --no-pager -n 20 || true
 
   # ── mcp-gateway-watchdog — Tunnel-Liveness Watchdog (T002543) ──
   # Der kubectl port-forward hat einen Versagensmodus, in dem der PROZESS lebt,
@@ -267,9 +289,9 @@ tasks:
         echo "mcp-gateway-watchdog uninstalled."
 
   # ── mcp-unified — single-entry-point for non-systemd hosts (WSL / Windows) ──
-  # Replaces the individual start commands + start-windows.ps1. Starts all
-  # three daemon-backed MCP servers (mcp-gateway, factory-mcp-node, bge-mcp)
-  # with PID-file tracking and idempotent re-entry.
+  # Alternative zu start-windows.ps1 fuer WSL ohne systemd. Startet den fleet-Forward,
+  # den devmesh-Forward (llm-services) und factory-mcp-node mit PID-Files.
+  # Nicht zusammen mit start-windows.ps1 betreiben (gemeinsamer Loopback).
   #
   # Usage:
   #   task agents:mcp:start      # start all three
@@ -277,7 +299,7 @@ tasks:
   #   task agents:mcp:status     # health-check all three
 
   mcp:start:
-    desc: "Start all daemon-backed MCP servers (gateway + factory-mcp + bge-mcp) — WSL/Windows compatible"
+    desc: "Start fleet + devmesh port-forwards and factory-mcp (no systemd) — not together with start-windows.ps1"
     cmds:
       - bash scripts/mcp-gateway/start-mcp-unified.sh start
 
@@ -296,42 +318,12 @@ tasks:
     cmds:
       - task: factory-mcp:install
       - task: mcp-gateway:install
-      - |
-        set -euo pipefail
-        if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host."
-          exit 0
-        fi
-        UNIT_DIR="${HOME}/.config/systemd/user"
-        for svc in bge-mcp bge-forward-embed bge-forward-rerank; do
-          SRC="$(pwd)/scripts/bge-mcp/${svc}.service"
-          if [[ -f "$SRC" ]]; then
-            ln -sf "$SRC" "${UNIT_DIR}/${svc}.service"
-          fi
-        done
-        systemctl --user daemon-reload
-        systemctl --user enable --now bge-mcp.service 2>/dev/null || true
-        systemctl --user enable --now bge-forward-embed.service 2>/dev/null || true
-        systemctl --user enable --now bge-forward-rerank.service 2>/dev/null || true
-        echo "bge-mcp units installed as systemd --user services."
 
   mcp:uninstall:
     desc: "Uninstall all daemon-backed MCP servers from systemd --user"
     cmds:
       - task: factory-mcp:uninstall
       - task: mcp-gateway:uninstall
-      - |
-        set -euo pipefail
-        if ! systemctl --user show-environment >/dev/null 2>&1; then
-          exit 0
-        fi
-        UNIT_DIR="${HOME}/.config/systemd/user"
-        for svc in bge-mcp bge-forward-embed bge-forward-rerank; do
-          systemctl --user disable --now ${svc}.service 2>/dev/null || true
-          rm -f "${UNIT_DIR}/${svc}.service"
-        done
-        systemctl --user daemon-reload 2>/dev/null || true
-        echo "bge-mcp units uninstalled."
 
   mcp:service-status:
     desc: "Show systemd service state for all MCP daemons (Linux only)"
@@ -344,7 +336,7 @@ tasks:
           exit 0
         fi
         echo "── systemd MCP services ──"
-        for svc in factory-mcp mcp-gateway bge-mcp bge-forward-embed bge-forward-rerank; do
+        for svc in factory-mcp mcp-gateway devmesh-forward; do
           echo -n "$svc: "
           systemctl --user status ${svc}.service --no-pager 2>/dev/null | head -1 || echo "not installed"
         done

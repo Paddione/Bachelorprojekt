@@ -53,16 +53,22 @@ setup() {
   [ -d "$REPO_ROOT/scripts/mcp-gateway" ]
   [ ! -f "$REPO_ROOT/scripts/dev-host-units/k3d-dev-ingress-bridge@.service" ]
 }
-
-# 6b. Die drei nicht loeschbaren Units tragen die Begruendung, warum sie bleiben.
-# Der Plan sah ihre Loeschung vor; bestehende Guards (T002277, T002556, T002543)
-# und der SSOT-Spec local-llm-proxy.md setzen sie aber weiter voraus. Statt drei
-# Guards zu entkernen bleiben die Dateien stehen und sagen selbst, warum.
-@test "Die drei behaltenen Units nennen den Grund fuer ihr Bleiben" {
-  for f in     "scripts/llm-proxy/llm-proxy.service"     "scripts/llm-proxy/llm-proxy-lan.service"     "scripts/mcp-gateway/k3d-postgres-forward.service"; do
-    [ -f "$REPO_ROOT/$f" ]
-    grep -q 'NICHT geloescht (T900054)' "$REPO_ROOT/$f"
+# 6b. D7-Loeschung (T900191): Umkehrung des frueheren Bleibe-Tests — genau
+# diese Units fallen mit D7 weg, weil die Guards aus den Folgeschritten umgestellt sind.
+@test "Die WSL-Units von llm-proxy, bge-mcp und der Postgres-Kette sind geloescht (T900191/D7)" {
+  for f in \
+    "scripts/llm-proxy/llm-proxy.service" \
+    "scripts/llm-proxy/llm-proxy-lan.service" \
+    "scripts/bge-mcp/bge-mcp.service" \
+    "scripts/bge-mcp/bge-forward-embed.service" \
+    "scripts/bge-mcp/bge-forward-rerank.service" \
+    "scripts/mcp-gateway/mcp-postgres-local.service" \
+    "scripts/mcp-gateway/k3d-postgres-forward.service"; do
+    [ ! -f "$REPO_ROOT/$f" ]
   done
+  # Positiv-Anker: die Nachbardateien, die NICHT zur WSL-Kette gehoeren, bleiben.
+  [ -f "$REPO_ROOT/scripts/mcp-gateway/mcp-postgres-local.mjs" ]
+  [ -f "$REPO_ROOT/scripts/mcp-gateway/mcp-gateway-watchdog.service" ]
 }
 
 # 7. Jede verbliebene .service/.timer unter scripts/ hat # Status: in ersten 15 Zeilen

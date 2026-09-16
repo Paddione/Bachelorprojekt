@@ -89,6 +89,13 @@ Tool-Schema-Sanitizing und die bge-Rollenketten laufen weiter, jetzt als Contain
 präzisiert: der Teil, den FreeToken-native obsolet gemacht hat, ist weg; der Teil, für den es
 keinen Ersatz gab, ist umgezogen.
 
+**Ergänzung 2026-09-16 (T900191, siehe ADR-008-Nachtrag):** Der obige Satz "migriert ... jetzt
+als Container des `dev-pod`" gilt nur bis T900191. Der fleet-`dev-pod` erreicht die
+Windows-GPU-Dienste nicht (keine Route zum Dev-Rechner), devmesh dagegen schon
+(`llm-gateway-host`, ADR-008-Nachtrag 2026-09-11). Der Proxy zieht deshalb ein zweites Mal um,
+diesmal nach devmesh (`dev-local/components/llm-services`) — der fleet-`dev-pod` startet ihn
+nicht mehr.
+
 ## Konsequenzen
 
 1. **P0-Spikes als Gate vor dem Cutover** (T016432):

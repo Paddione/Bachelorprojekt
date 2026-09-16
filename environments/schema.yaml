@@ -1431,6 +1431,31 @@ secrets:
     default_dev: "dev-llm-proxy-admin-token-12345"
     description: "Bearer token for cluster workloads (SDLC Cockpit) to authenticate against the LLM-Proxy host bridge listener"
 
+  # ── devmesh llm-services (T900191, design.md D5) ─────────────────────────────
+  # Gelesen von dev-local/components/llm-services aus workspace-secrets (Context devmesh).
+  # Nicht in k3d/secrets.yaml: devmesh rendert diese Datei nicht (dev-local/core).
+  - name: BGE_MCP_TOKEN
+    required: false
+    generate: true
+    length: 48
+    dev_absent: true
+    dev_absent_reason: "Nur devmesh (sealed-secrets/dev.yaml); k3d/secrets.yaml wird auf devmesh nicht gerendert."
+    description: "Bearer-Token des bge-mcp-Servers im devmesh-Pod llm-services (Port 13005)."
+  - name: MCP_POSTGRES_TOKEN
+    required: false
+    generate: true
+    length: 48
+    dev_absent: true
+    dev_absent_reason: "Nur devmesh (sealed-secrets/dev.yaml); k3d/secrets.yaml wird auf devmesh nicht gerendert."
+    description: "Bearer-Token des mcp-postgres-Servers im devmesh-Pod llm-services (Port 13001)."
+  - name: MCP_READONLY_DB_PASSWORD
+    required: false
+    generate: true
+    length: 32
+    dev_absent: true
+    dev_absent_reason: "Nur devmesh; task devmesh:registry:migrate setzt es per ALTER ROLE mcp_readonly."
+    description: "Passwort der Rolle mcp_readonly in der devmesh-shared-db (DATABASE_URL von mcp-postgres)."
+
   # ── GitLab-CI Etappe 2: K8s-Runner auf fleet (T012177) ───────────────────────
   # N2 (Nachreview T012177): gehoert unter secrets:, NICHT setup_vars: — der
   # Sealer liest ausschliesslich schema["secrets"]

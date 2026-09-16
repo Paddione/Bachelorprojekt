@@ -1,0 +1,36 @@
+# Status: Aktiv (T900191) — haelt den lokalen Forward-Port auf svc/llm-services.
+# scripts/mcp-gateway/devmesh-forward.service
+# T900191 - systemd USER service. Long-running `kubectl port-forward` auf
+# svc/llm-services im devmesh-Cluster (Namespace workspace):
+#   llm-proxy     127.0.0.1:18235
+#   mcp-postgres  127.0.0.1:13001
+#   bge-mcp       127.0.0.1:13005
+# Die drei Dienste laufen seit T900191 ausschliesslich im devmesh-Pod llm-services.
+#
+# WARUM EINE EIGENE UNIT: kubectl port-forward bindet an einen Pod und endet bei
+# dessen Neustart. Als eigene Unit greift Restart=always genau auf diesen Prozess
+# (Muster T002604). mcp-gateway.service haelt parallel den fleet-Forward (18080, 13002).
+#
+# AUSSCHLUSS: nicht parallel zu scripts/mcp-gateway/start-windows.ps1 betreiben.
+# Mit networkingMode=mirrored teilen Windows und WSL den Loopback; der zweite
+# Forward scheitert mit "address already in use".
+#
+# Installation: task agents:mcp:install, oder manuell:
+#   systemctl --user link "$PWD/scripts/mcp-gateway/devmesh-forward.service"
+#   systemctl --user enable --now devmesh-forward.service
+# Liveness: mcp-gateway-watchdog.timer (Probe 13001, Neustart dieser Unit).
+[Unit]
+Description=Port-forward devmesh llm-services (llm-proxy :18235, mcp-postgres :13001, bge-mcp :13005)
+Documentation=file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md
+After=network-online.target
+# Kein Ratenlimit-Abbruch: bei einem Rollout endet der Forward mehrfach in kurzer Folge.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/kubectl --context devmesh port-forward -n workspace svc/llm-services 18235:18235 13001:13001 13005:13005
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

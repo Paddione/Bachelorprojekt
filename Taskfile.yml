@@ -296,12 +296,12 @@ tasks:
       - bash scripts/mcp-sync.sh check
 
   mcp:start-windows:
-    desc: "T900039: Windows-Pendant zu den bge-mcp/mcp-gateway systemd-Units — Port-Forwards + bge-mcp-Shim starten (powershell -File scripts/mcp-gateway/start-windows.ps1)"
+    desc: "T900039/T900191: Windows-Pendant zu mcp-gateway.service + devmesh-forward.service — Port-Forwards fleet (18080, 13002) und devmesh (18235, 13001, 13005); schliesst den WSL-Mechanismus aus"
     cmds:
       - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/start-windows.ps1
 
   mcp:autostart:register:
-    desc: "T900040: start-windows.ps1 als Autostart-Task registrieren (onlogon) — Windows-Pendant zu 'systemctl --user enable' der bge-mcp/mcp-gateway-Units"
+    desc: "T900040: start-windows.ps1 als Autostart-Task registrieren (onlogon) — Windows-Pendant zu 'systemctl --user enable' von mcp-gateway/devmesh-forward"
     cmds:
       - powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mcp-gateway/register-autostart.ps1
 
@@ -2127,7 +2127,7 @@ tasks:
       - git config merge.ours.driver true
       - echo "hooksPath set to .githooks; merge.ours driver registered"
       # T002760: post-commit-index hook needs pgvector reachable at localhost:5432.
-      # Enable the systemd port-forward unit (pattern from bge-forward-embed, T002604).
+      # Enable the systemd port-forward unit (pattern T002604, wie devmesh-forward.service).
       - |
         svc="scripts/semantic-code-search/pgvector-forward.service"
         if [ -f "$svc" ]; then

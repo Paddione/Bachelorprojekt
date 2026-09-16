@@ -140,3 +140,22 @@ wsl -d k3d-dev -- bash -lc 'ip -br a; ip route; wg show'
 wsl -d k3d-dev -- nmap -sn --system-dns 10.1.0.0/24 10.10.10.0/24
 # Host-Specs (SSH gpu@<ip>, read-only: hostnamectl / nproc / free -h / nvidia-smi -L / lsblk)
 ```
+
+### Nachtrag 2026-09-16 (T900191): llm-proxy, bge-mcp und mcp-postgres ziehen nach devmesh
+
+Die drei CPU/RAM-Dienste liefen bislang doppelt: als WSL-systemd-User-Units auf dem
+Dev-Rechner und als Container im fleet-`dev-pod` (`workspace-dev`, siehe ADR-007-Nachtrag
+T900107). Beides entfällt zugunsten eines einzigen Orts: der devmesh-Komponente
+`dev-local/components/llm-services` (SP-3-Nachtrag, `openspec/changes/devmesh-llm-services`).
+
+**Begründung:** Nur devmesh hat mit `llm-gateway-host` (Nachtrag 2026-09-11, Punkt 1) bereits
+den Tailnet-Pfad zu den Windows-GPU-Diensten. Der fleet-`dev-pod` erreicht PK-Desktop nicht —
+seine Backend-Registry führte deshalb ausschließlich `127.0.0.1`-URLs, die im Pod-Netzwerk-Namensraum
+des Pods nicht auf die Windows-GPU zeigen konnten. Der Dev-Rechner selbst trägt danach nur noch
+VRAM-Dienste (llama.cpp, LM Studio, FreeToken) und `kubectl port-forward`-Clients.
+
+**Konsequenz für den ADR-007-Nachtrag T900107:** dessen Satz "Migriert ist die Routing-Schicht
+... jetzt als Container des `dev-pod` gegen Remote-Backends" gilt ab T900191 nicht mehr — der
+Proxy läuft nicht mehr im fleet-`dev-pod`, sondern in devmesh. Siehe Ergänzung in ADR-007 unten.
+
+Details: `openspec/changes/devmesh-llm-services/design.md` (Decisions D1–D7).

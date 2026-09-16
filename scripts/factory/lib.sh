@@ -123,16 +123,23 @@ factory_psql() {
     psql "$FACTORY_PG_URL" -qtA -v ON_ERROR_STOP=1 "$@"
     return
   fi
-  local pod sql
-  sql="$(cat)"
+  local pod sql=""
+  if [ ! -t 0 ] && read -t 0 -r 2>/dev/null; then
+    sql="$(cat)"
+  fi
   # [T900118] Writes gegen devmesh verweigern — nur im kubectl-Pfad; der FACTORY_PG_URL-
   # Pfad oben gehoert dem fleet-nativen factory-runner.
   if devmesh_sql_is_write "$sql $*"; then
     devmesh_refuse_write "$FACTORY_CTX" || return 3
   fi
   pod=$(factory_pgpod)
-  kubectl exec -i "$pod" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
-    psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@" <<<"$sql"
+  if [[ -n "$sql" ]]; then
+    kubectl exec -i "$pod" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
+      psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@" <<<"$sql"
+  else
+    kubectl exec "$pod" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
+      psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@"
+  fi
 }
 
 # factory_backlog_count <brand> — Groesse des schedulebaren Backlogs einer Brand.

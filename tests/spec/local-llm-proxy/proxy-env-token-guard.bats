@@ -6,8 +6,8 @@
 #   - Die Warnlogik wird AUSGEFUEHRT (extrahiertes Fragment gegen eine
 #     praeparierte Datei), nicht gegrept — sonst belegte der Test nur, dass
 #     Text existiert [T002448-M4].
-#   - Der Verweis in der Unit-Datei ist Dokumentation; dort ist grep das
-#     angemessene Mittel (dokumentierte Ausnahme).
+#   - Der Verweis im Deployment (secretKeyRef) ist Dokumentation; dort ist
+#     grep das angemessene Mittel (dokumentierte Ausnahme).
 #
 # Hintergrund: ensureUiConfigRendered() braucht die Variable, um die Datei zu
 # erzeugen, auf die --ui-config-file zeigt. Fehlt sie, scheitert das Rendern
@@ -18,8 +18,6 @@
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
-  UNIT="${REPO_ROOT}/scripts/llm-proxy/llm-proxy.service"
-  TASKFILE="${REPO_ROOT}/taskfiles/Taskfile.llm.yml"
   TMP="$(mktemp -d)"
 }
 
@@ -64,22 +62,23 @@ _guard() {  # $1 = Pfad der proxy.env
   run _guard "${TMP}/proxy.env"
   [ "${status}" -ne 0 ]
 }
-
-@test "T002556: install-service fuehrt die Pruefung tatsaechlich aus" {
-  # Querschnitt: dass der Guard im Taskfile verdrahtet ist, manifestiert sich
-  # nur im Quelltext — hier ist grep richtig. Der Test oben misst das Verhalten.
-  run grep -c 'BGE_MCP_TOKEN=' "${TASKFILE}"
-  [ "${status}" -eq 0 ]
-  [ "${output}" -gt 0 ]
-}
-
-@test "T002556: die Unit-Datei nennt Herkunft und Folge des fehlenden Tokens" {
-  # Wer die Unit liest, muss erfahren, warum die Variable nicht optional ist —
-  # der EnvironmentFile-Eintrag traegt ein fuehrendes Minus und sieht deshalb
-  # nach 'kann fehlen' aus.
-  run grep -c 'BGE_MCP_TOKEN' "${UNIT}"
-  [ "${status}" -eq 0 ]
-  [ "${output}" -gt 0 ]
-  run grep -c 'bge-mcp/server.env' "${UNIT}"
-  [ "${output}" -gt 0 ]
+@test "T002556: llm-services-Deployment bezieht BGE_MCP_TOKEN aus dem SealedSecret (T900191, D5)" {
+  # Nachfolger von "die Unit-Datei nennt Herkunft und Folge ...": das Token
+  # kommt nicht mehr per EnvironmentFile aus bge-mcp/server.env in die Unit,
+  # sondern per secretKeyRef aus workspace-secrets in den Pod.
+  # Pfad-Hinweis: diese Datei liegt eine Ebene tiefer als der Partial-Entwurf
+  # annahm — deshalb REPO_ROOT statt ../../scripts.
+  local deploy_out block
+  deploy_out="$(bash "${REPO_ROOT}/scripts/devmesh/render-stack.sh" core 2>/dev/null)" || skip "render-stack.sh Vorbedingung fehlt"
+  block="$(printf '%s\n' "$deploy_out" | grep -A4 'name: BGE_MCP_TOKEN' || true)"
+  [ -n "$block" ]
+  echo "$block" | grep -qF 'secretKeyRef'
+  echo "$block" | grep -qF 'name: workspace-secrets'
+  # Positiv-Anker: das referenzierte Secret existiert als SealedSecret.
+  grep -q 'kind: SealedSecret' "${REPO_ROOT}/environments/sealed-secrets/dev.yaml"
+  grep -q 'name: workspace-secrets' "${REPO_ROOT}/environments/sealed-secrets/dev.yaml"
+  # LUECKE (T900191/P5b.4): dev.yaml enthaelt die Schluessel BGE_MCP_TOKEN und
+  # MCP_POSTGRES_TOKEN noch nicht (nur Klartext in .secrets/dev-tools.yaml) —
+  # vor der Abnahme per `task env:seal ENV=dev` versiegeln. Bewusst kein
+  # Key-Assert hier: Sealing braucht Cluster-Krypto und ist kein CI-Stoff.
 }

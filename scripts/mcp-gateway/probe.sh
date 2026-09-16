@@ -17,9 +17,9 @@
 
 set -euo pipefail
 
-# T002767/T006996: nur die verdrahteten Endpoints pruefen. 18080 = fleet-forward
-# (mcp-kubernetes, mcp-gateway.service), 13001 = mcp-postgres-local (lokal).
-# 13000/13002 sind seit dem T002767-Drop-In nicht mehr geforwardet.
+# T002767/T006996/T900191: nur die verdrahteten Endpoints pruefen. 18080 = fleet-forward
+# (mcp-kubernetes, mcp-gateway.service), 13001 = mcp-postgres im devmesh-Pod
+# llm-services (devmesh-forward.service).
 PORTS=(18080 13001)
 TIMEOUT=5
 SHOW_HELP=false

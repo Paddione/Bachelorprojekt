@@ -18,9 +18,9 @@
 #      'embed'. Vorab-Probe; bei totem Backend klare Remediation statt
 #      Silent-Skip.
 #
-#      [T900107] Der Proxy ist mit dem dev-pod in den Cluster gezogen. Der
+#      [T900191] Der Proxy laeuft in devmesh (svc/llm-services). Der
 #      Default zeigt weiterhin auf den Loopback-Port, weil ein lokal gestarteter
-#      Proxy der haeufigere Fall bleibt; wer gegen den Pod arbeitet, setzt
+#      Proxy der haeufigere Fall bleibt; wer gegen devmesh arbeitet, setzt
 #      LLM_PROXY_URL EINMAL in der Umgebung und alle Verbraucher dieses
 #      Skripts folgen. Genau daran scheiterte der post-commit-Hook auf jeder
 #      Maschine ohne laufenden Proxy: die Adresse war nicht umstellbar, ohne
@@ -99,13 +99,13 @@ if [[ "$PROBE_RC" -ne 0 || "$PROBE_HTTP" != "200" ]]; then
     [[ -n "$PROBE_ERR" ]] && echo "  curl:   ${PROBE_ERR}"
     cat <<'EOF'
 Remediation — der llm-proxy beantwortet /v1/embeddings (Rollenkette 'embed').
-Seit T900107 laeuft er als Container des dev-pod im Cluster; lokal ist er
+Seit T900191 laeuft er im devmesh-Pod llm-services; lokal ist er
 optional. Zwei Wege:
 
-  a) Gegen den dev-pod arbeiten (kein lokaler Proxy noetig):
-       kubectl --context fleet -n workspace-dev port-forward svc/dev-pod 18235:18235
+  a) Gegen devmesh arbeiten (kein lokaler Proxy noetig):
+       kubectl --context devmesh -n workspace port-forward svc/llm-services 18235:18235
      oder dauerhaft die Adresse setzen:
-       export LLM_PROXY_URL=http://<dev-pod-adresse>:18235
+       export LLM_PROXY_URL=http://127.0.0.1:18235
 
   b) Lokalen Proxy benutzen:
        node scripts/llm-proxy/server.mjs      # oder die systemd-user-Unit

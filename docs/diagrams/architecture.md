@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 2035 Abhängigkeitskanten · 291 API-Endpoints
+99 Services · 2034 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -106,6 +106,7 @@ flowchart LR
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
+  sealed_secrets["sealed-secrets"]:::default
   keycloak["keycloak"]:::auth
   tracking["tracking"]:::default
   docuseal["docuseal"]:::default
@@ -128,7 +129,6 @@ flowchart LR
   systemtest_purge_all -->|"command"| website
   systemtest_outbox -->|"command"| website
   dev_pod -->|"FACTORY_PG_URL"| website
-  dev_pod -->|"DATABASE_URL"| shared_db
   factory_runner -->|"FACTORY_PG_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
   sdlc_console -->|"SESSIONS_DATABASE_…"| website
@@ -251,6 +251,7 @@ flowchart LR
   recovery_browser -->|"selector"| recovery_browser
   oauth2_proxy_recovery -->|"selector"| oauth2_proxy_recovery
   sealed_secrets_controller -->|"selector"| sealed_secrets_controller
+  sealed_secrets -->|"selector"| sealed_secrets_controller
   sessions_server -->|"selector"| sessions_server
   shared_db_staging -->|"selector"| shared_db_staging
   nats -->|"selector"| nats
@@ -2157,6 +2158,7 @@ flowchart TB
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
     shared_db_dev_lb["shared-db-dev-lb"]
+    sealed_secrets["sealed-secrets"]
     keycloak["keycloak"]
     tracking["tracking"]
     docuseal["docuseal"]

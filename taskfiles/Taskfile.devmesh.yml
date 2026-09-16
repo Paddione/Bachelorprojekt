@@ -14,6 +14,7 @@
 #   task devmesh:status                           # Knoten, etcd, juengster Snapshot
 #   task devmesh:deploy                           # Stack rendern & deployen
 #   task devmesh:migrate                          # Migration aus k3d
+#   task devmesh:registry:migrate                 # llm-proxy-Registry seeden (aus deploy gerufen) [T900191]
 #   task devmesh:backup:run                       # Shared-DB Backup ausloesen
 #
 # Runbook: docs/runbooks/devmesh-tailnet.md
@@ -93,7 +94,7 @@ tasks:
         kubectl --context "$CTX" -n sealed-secrets rollout status deploy/sealed-secrets-controller --timeout=180s
         kubectl --context "$CTX" create namespace workspace --dry-run=client -o yaml | kubectl --context "$CTX" apply -f -
         kubectl --context "$CTX" apply -f environments/sealed-secrets/dev.yaml
-        for s in workspace/workspace-secrets workspace/website-secrets cert-manager/ipv64-api-key; do
+        for s in workspace/workspace-secrets website/website-secrets cert-manager/ipv64-api-key; do
           kubectl --context "$CTX" -n "${s%%/*}" wait --for=create "secret/${s##*/}" --timeout=120s
         done
         kubectl --context "$CTX" -n cert-manager set env deployment/cert-manager-lego-webhook --from=secret/ipv64-api-key
@@ -105,11 +106,35 @@ tasks:
           kubectl --context "$CTX" -n workspace rollout status "deployment/$d" --timeout=600s
         done
         echo "devmesh:deploy ok (Profil $PROFILE)"
+      - task: registry:migrate
 
   migrate:
     desc: "pocket_id + website aus devmesh nach devmesh kopieren, Zeilenzahlen vergleichen [T900118]"
     cmds:
       - bash scripts/devmesh/migrate-from-k3d.sh {{.CLI_ARGS | default "all"}}
+
+  registry:migrate:
+    desc: "devmesh: llm-proxy-Registry seeden und mcp_readonly-Passwort setzen [T900191]"
+    preconditions:
+      - sh: kubectl config get-contexts -o name | grep -qx devmesh
+        msg: "Context devmesh fehlt — erst task devmesh:kubeconfig"
+    cmds:
+      - |
+        set -euo pipefail
+        CTX=devmesh; NS=workspace
+        MIG=scripts/migrations/2026-09-16-devmesh-llm-proxy-backends.sql
+        kubectl --context "$CTX" -n "$NS" rollout status deployment/shared-db --timeout=300s
+        pw="$(kubectl --context "$CTX" -n "$NS" get secret workspace-secrets \
+          -o jsonpath='{.data.MCP_READONLY_DB_PASSWORD}' | base64 -d)"
+        [ -n "$pw" ] || { echo "MCP_READONLY_DB_PASSWORD fehlt in workspace-secrets (task env:seal ENV=dev)" >&2; exit 2; }
+        kubectl --context "$CTX" -n "$NS" exec -i deploy/shared-db -c postgres -- \
+          psql -U postgres -d website -v ON_ERROR_STOP=1 -q < "$MIG"
+        # Passwort nur ueber stdin, nie als Argument (Prozessliste).
+        printf "\\set pw '%s'\nALTER ROLE mcp_readonly PASSWORD :'pw';\n" "$pw" \
+          | kubectl --context "$CTX" -n "$NS" exec -i deploy/shared-db -c postgres -- \
+              psql -U postgres -d website -v ON_ERROR_STOP=1 -q
+        kubectl --context "$CTX" -n "$NS" exec deploy/shared-db -c postgres -- \
+          psql -U postgres -d website -Atc "select 'aktiv=' || count(*) filter (where enabled) || ' loopback=' || count(*) filter (where enabled and base_url ~ '127\.0\.0\.1|localhost') from tickets.llm_proxy_backends"
 
   backup:run:
     desc: "shared-db-Backup auf devmesh sofort ausloesen (CronJob shared-db-backup) [T900118]"

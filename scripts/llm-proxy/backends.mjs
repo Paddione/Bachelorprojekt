@@ -21,8 +21,10 @@ export function loadBackendsOnce() {
     return JSON.parse(process.env.LLM_PROXY_BACKENDS_JSON);
   }
   const script = 'source scripts/factory/lib.sh; factory_resolve; factory_psql';
+  const repoDir = process.env.DEV_POD_REPO || process.env.REPO_ROOT || process.cwd();
   const out = execFileSync('bash', ['-c', script], {
     input: SQL, encoding: 'utf8',
+    cwd: repoDir,
     env: { ...process.env, BRAND: process.env.BRAND || 'mentolder' },
   });
   return out.split('\n').filter(Boolean).map((line) => {
@@ -30,7 +32,7 @@ export function loadBackendsOnce() {
     return {
       name, kind, baseUrl,
       apiKeyEnv: apiKeyEnv || null,
-      enabled: enabled === 't',
+      enabled: enabled === 't' || enabled === 'true',
       priority: Number(priority),
       fixups: JSON.parse(fixups || '[]'),
       modelAliases: JSON.parse(aliases || '{}'),

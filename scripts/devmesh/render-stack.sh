@@ -4,6 +4,8 @@
 #
 # Aufruf: render-stack.sh [core|full]   Default: DEVMESH_PROFILE aus environments/dev.yaml
 # Env:    DEVMESH_INVENTORY (Default devmesh/inventory.yaml) liefert gpu_endpoint
+#         (address, port, ports). Je Eintrag in gpu_endpoint.ports haengt das Skript
+#         einen benannten Port an Service und EndpointSlice llm-gateway-host an.
 # Exit:   0 Manifest auf stdout, 2 Vorbedingung fehlt (Werkzeug, Profil, Inventar)
 set -euo pipefail
 
@@ -29,6 +31,17 @@ if ! [[ "$GPU_ENDPOINT_ADDRESS" =~ ^100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\
 fi
 [[ "$GPU_ENDPOINT_PORT" =~ ^[0-9]+$ ]] || { echo "render-stack: gpu_endpoint.port '$GPU_ENDPOINT_PORT' ist keine Zahl" >&2; exit 2; }
 
+# Benannte GPU-Ports [T900191]. Fehlt die Liste, bleibt es beim Port http.
+GPU_PORTS_JSON="$(yq -o=json -I=0 '.gpu_endpoint.ports // []' "$INVENTORY")"
+while IFS=$'\t' read -r pname pport; do
+  [[ -z "$pname$pport" ]] && continue
+  [[ "$pname" =~ ^[a-z0-9]([-a-z0-9]{0,13}[a-z0-9])?$ && "$pname" != http ]] \
+    || { echo "render-stack: gpu_endpoint.ports Name '$pname' ungueltig ($INVENTORY)" >&2; exit 2; }
+  [[ "$pport" =~ ^[0-9]+$ ]] && (( pport > 0 && pport < 65536 )) \
+    || { echo "render-stack: gpu_endpoint.ports Port '$pport' ($pname) ist keine gueltige Portnummer" >&2; exit 2; }
+done < <(yq -r '.gpu_endpoint.ports // [] | .[] | [.name, .port] | @tsv' "$INVENTORY")
+export GPU_PORTS_JSON
+
 export GPU_ENDPOINT_ADDRESS GPU_ENDPOINT_PORT
 export POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-auth.${DEVMESH_DOMAIN}}"
 export WORKSPACE_NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
@@ -45,4 +58,10 @@ vars=""
 for v in $(grep -oE '(^|[^$])\$\{[A-Za-z_][A-Za-z0-9_]*\}' <<<"$rendered" | sed -E 's/.*\$\{//; s/\}$//' | sort -u || true); do
   [[ -n "${!v+x}" ]] && vars+="\$$v "
 done
-envsubst "$vars" <<<"$rendered" | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g'
+# Benannte Ports an Service und EndpointSlice llm-gateway-host anhaengen. Kustomize kann
+# ueber eine Liste nicht iterieren, deshalb geschieht das nach dem Rendern.
+envsubst "$vars" <<<"$rendered" | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g' | yq e '
+  (select(.kind == "Service" and .metadata.name == "llm-gateway-host") | .spec.ports) +=
+    (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"})) |
+  (select(.kind == "EndpointSlice" and .metadata.name == "llm-gateway-host") | .ports) +=
+    (env(GPU_PORTS_JSON) | map({"name": .name, "port": .port, "protocol": "TCP"}))' -

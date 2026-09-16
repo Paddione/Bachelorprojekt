@@ -819,7 +819,7 @@ YAML
     exclusions: {}
 YAML
 
-  run node "$ENGINE" --root "$ROOT" --write
+  run env -u CI node "$ENGINE" --root "$ROOT" --write
   echo "$output"
   [ "$status" -eq 0 ]
   [ -f "$ROOT/.opencode/skills/demo-write/SKILL.md" ]
@@ -860,7 +860,7 @@ YAML
     exclusions: {}
 YAML
 
-  run node "$ENGINE" --root "$ROOT" --write
+  run env -u CI node "$ENGINE" --root "$ROOT" --write
   [ "$status" -eq 1 ]
   assert_has 'missing-projection'
   assert_has 'harness=claude_code'
@@ -884,7 +884,7 @@ YAML
       claude_code: "Fixture: nativer OpenCode-Skill."
 YAML
 
-  run node "$ENGINE" --root "$ROOT" --write
+  run env -u CI node "$ENGINE" --root "$ROOT" --write
   [ "$status" -eq 1 ]
   assert_has 'unexpected-projection'
   [ -f "$ROOT/.claude/skills/demo-write-native/SKILL.md" ]

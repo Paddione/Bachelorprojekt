@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T01:08:15.226Z",
+  "generatedAt": "2026-09-16T15:04:59.775Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -733,18 +733,6 @@
       "from": "dev-pod",
       "to": "website",
       "via": "env:FACTORY_PG_URL",
-      "kind": "env"
-    },
-    {
-      "from": "dev-pod",
-      "to": "shared-db",
-      "via": "env:DATABASE_URL",
-      "kind": "env"
-    },
-    {
-      "from": "dev-pod",
-      "to": "website",
-      "via": "env:DATABASE_URL",
       "kind": "env"
     },
     {

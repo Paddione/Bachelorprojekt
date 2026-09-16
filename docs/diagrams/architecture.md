@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 2035 Abhängigkeitskanten · 291 API-Endpoints
+98 Services · 2033 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -128,7 +128,6 @@ flowchart LR
   systemtest_purge_all -->|"command"| website
   systemtest_outbox -->|"command"| website
   dev_pod -->|"FACTORY_PG_URL"| website
-  dev_pod -->|"DATABASE_URL"| shared_db
   factory_runner -->|"FACTORY_PG_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
   sdlc_console -->|"SESSIONS_DATABASE_…"| website

@@ -74,9 +74,10 @@ export function generateUiConfigSeed(options = {}) {
   // browser_endpoint (bevorzugt) oder endpoint. stdio-Eintraege ohne beides
   // bedient die Bruecke nicht und gehoeren deshalb nicht in den Seed.
   //
-  // Anzeigenamen entsprechen dem Registry-Schluessel — einzige Ausnahme ist
-  // mcp-kubernetes, das in der UI seit jeher als "k8s" gefuehrt wird.
-  const DISPLAY_NAME_OVERRIDES = { 'mcp-kubernetes': 'k8s' };
+  // Anzeigenamen entsprechen dem Registry-Schluessel — Ausnahmen:
+  // mcp-kubernetes heisst in der UI seit jeher "k8s", factory-mcp-node wird
+  // als "factory-mcp" gefuehrt (Template, Runbook, Systemprompt-PURPOSE).
+  const DISPLAY_NAME_OVERRIDES = { 'mcp-kubernetes': 'k8s', 'factory-mcp-node': 'factory-mcp' };
 
   let templateContent = {};
   let templateRaw = '';
@@ -85,14 +86,45 @@ export function generateUiConfigSeed(options = {}) {
     templateContent = JSON.parse(templateRaw);
   }
 
-  const needsToken = templateRaw.includes('${BGE_MCP_TOKEN}') ||
-    Object.values(clients).some(c => c.headers && Object.values(c.headers).some(h => typeof h === 'string' && h.includes('${BGE_MCP_TOKEN}')));
+  // T900202 — Browser-Tokens: die llama-Web-UI braucht fuer mcp-postgres,
+  // factory-mcp und k8s denselben Bearer-Header wie bge-mcp. Die Registry
+  // traegt die Header fuer mcp-postgres und bge-mcp bereits auf Top-Level;
+  // mcp-kubernetes und factory-mcp-node bewusst nicht (T002779-Guard: ein
+  // ${VAR}-Header wuerde factory-mcp-node aus .mcp.json entfernen). SSOT fuer
+  // diese Browser-Header ist das Template (docs/runbooks/mcp-http-local-security.md,
+  // Schritt 2) — der Seed uebernimmt sie als Fallback in die Serverliste.
+  const TOKEN_PLACEHOLDERS = ['BGE_MCP_TOKEN', 'MCP_POSTGRES_TOKEN', 'FACTORY_MCP_TOKEN', 'MCP_KUBERNETES_TOKEN'];
 
-  if (needsToken && !process.env.BGE_MCP_TOKEN) {
-    throw new Error('Required environment variable BGE_MCP_TOKEN is not set');
+  const referencedTokens = TOKEN_PLACEHOLDERS.filter((name) =>
+    templateRaw.includes(`\${${name}}`) ||
+    Object.values(clients).some((c) =>
+      c.headers &&
+      Object.values(c.headers).some((h) => typeof h === 'string' && h.includes(`\${${name}}`))
+    )
+  );
+
+  for (const name of referencedTokens) {
+    if (!process.env[name]) {
+      throw new Error(`Required environment variable ${name} is not set`);
+    }
   }
 
-  const token = process.env.BGE_MCP_TOKEN || '';
+  // ${VAR}-Platzhalter aus process.env aufloesen. Unbekannte Platzhalter
+  // bleiben unveraendert stehen (fail-safe, kein stilles Leeren).
+  const expandTokens = (value) =>
+    value.replace(/\$\{([A-Z][A-Z0-9_]*)\}/g, (match, name) => process.env[name] ?? match);
+
+  // Template-Eintraege als Header-Quelle fuer Browser-Clients, deren
+  // Registry-Eintrag bewusst keinen Top-Level-Header traegt (k8s, factory-mcp).
+  let templateServers = [];
+  if (typeof templateContent.mcpServers === 'string') {
+    try {
+      const parsed = JSON.parse(templateContent.mcpServers);
+      if (Array.isArray(parsed)) templateServers = parsed;
+    } catch {
+      // Kaputtes Template — die Serverliste kommt ohnehin aus der Registry.
+    }
+  }
 
   const servers = [];
 
@@ -111,15 +143,20 @@ export function generateUiConfigSeed(options = {}) {
       enabled: true
     };
 
+    const headers = {};
     if (entry.headers) {
-      const headers = {};
       for (const [hKey, hVal] of Object.entries(entry.headers)) {
-        if (typeof hVal === 'string' && hVal.includes('${BGE_MCP_TOKEN}')) {
-          headers[hKey] = hVal.replace('${BGE_MCP_TOKEN}', token);
-        } else {
-          headers[hKey] = hVal;
+        headers[hKey] = typeof hVal === 'string' ? expandTokens(hVal) : hVal;
+      }
+    } else {
+      const templateEntry = templateServers.find((s) => s.name === name);
+      if (templateEntry?.headers) {
+        for (const [hKey, hVal] of Object.entries(templateEntry.headers)) {
+          headers[hKey] = typeof hVal === 'string' ? expandTokens(hVal) : hVal;
         }
       }
+    }
+    if (Object.keys(headers).length > 0) {
       serverObj.headers = headers;
     }
 

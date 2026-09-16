@@ -139,8 +139,12 @@ test('ensureUiConfigRendered schreibt die Seed-Datei fuer ein Loadout mit uiConf
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'uicfg-'))
   const out = path.join(tmp, 'nested', 'ui-config.json')
-  const prev = process.env.BGE_MCP_TOKEN
-  process.env.BGE_MCP_TOKEN = 'test-token'
+  // T900202: der Seed verlangt alle referenzierten Browser-Tokens. Nur BGE zu
+  // setzen liesse generateUiConfigSeed mit "Required environment variable ...
+  // is not set" abbrechen und die Seed-Datei bliebe ungeschrieben.
+  const TOKENS = ['BGE_MCP_TOKEN', 'MCP_POSTGRES_TOKEN', 'FACTORY_MCP_TOKEN', 'MCP_KUBERNETES_TOKEN']
+  const prev = Object.fromEntries(TOKENS.map((t) => [t, process.env[t]]))
+  for (const t of TOKENS) process.env[t] = 'test-token'
 
   try {
     ensureUiConfigRendered({ slug: 'gemma26-factory', uiConfigFile: out })
@@ -152,8 +156,10 @@ test('ensureUiConfigRendered schreibt die Seed-Datei fuer ein Loadout mit uiConf
     const arr = JSON.parse(doc.mcpServers)
     assert.ok(Array.isArray(arr) && arr.length > 0)
   } finally {
-    if (prev === undefined) delete process.env.BGE_MCP_TOKEN
-    else process.env.BGE_MCP_TOKEN = prev
+    for (const t of TOKENS) {
+      if (prev[t] === undefined) delete process.env[t]
+      else process.env[t] = prev[t]
+    }
     fs.rmSync(tmp, { recursive: true, force: true })
   }
 })

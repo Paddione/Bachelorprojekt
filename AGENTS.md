@@ -10,30 +10,22 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | `opencode-zen/laguna-s-2.1-free` (256k ctx, primary, write) | Primary — dispatches local + cloud escalation [T013360] |
-| `gptoss` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local bulk work; `write=deny`, `edit=allow` |
-| `devstral` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work (modellagnostisch) |
-| `gemma` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work (modellagnostisch) |
-| `gemma12` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work (modellagnostisch) |
-| `qwen38` | `llamacpp-local/qwen38-220k` (llama.cpp :8094) | Local work, text-only; sequenziell |
-| `qwen38-primary` | `llamacpp-local/qwen38-220k` (205.056 ctx gemessen, Dual-GPU-Split, primary, write) | Lokaler Primary (UD-IQ4_XS, llama.cpp); autonomer Ticket-Worker |
-| `qwen-cloud` | `alibaba-intl/qwen3.8-max` (131k ctx, subagent, write) | Cloud-Eskalation Stufe 1 |
+| `orchestrator` | `opencode-zen/laguna-s-2.1-free` (256k ctx, primary, write) | Primary — dispatches `local` (budgeted) + 2-rail cloud escalation |
+| `local` | `llamacpp-local/Qwen3.6-35B-A3B-NVFP4` (200k served KV, MoE offload) | Sole local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
+| `qwen38-primary` | `llamacpp-local/Qwen3.6-35B-A3B-NVFP4` (200k, primary, write) | Plan-primary (FreeToken MoE); autonomer Ticket-Worker |
 | `big-pickle` | `opencode-zen/big-pickle` (~260k ctx, primary, write) | Zen-Singleagent bis Free-Quota verbraucht |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free` (primary, write) | Free-Tier-Primary; dispatcht nur `ox-alpha` |
 | `ox-alpha` | `opencode-zen/laguna-s-2.1-free` (subagent, write) | Subagent-Zwilling von `ox-alpha-free` |
-| `deepseek-helper` | `deepseek/deepseek-v4-flash` (write) | Eskalation wenn lokal stuck/ctx-leer |
-| `deepseek-helper-go` | `opencode-go/deepseek-v4-flash` (write) | Alternative Rail (Go gateway) |
-| `deepseek-helper-alibaba` | `alibaba-intl/deepseek-v4-flash-0731` (write) | Dritte Rail (Alibaba Token Plan) |
+| `deepseek-helper-go` | `opencode-go/deepseek-v4-flash` (write) | Eskalation Rail 1 (Go-Abo) wenn lokal stuck/ctx-leer |
+| `deepseek-helper` | `deepseek/deepseek-v4-flash` (write) | Eskalation Rail 2 (direkte API) bei Go-Ausfall |
 | `deepseek-pro` | `opencode-go/deepseek-v4-pro` (all, write) | Tiefe Analyse/harte Refactors |
 | `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API, all, write) | Direkte API (bypass Go gateway) |
-| `deepseek-pro-alibaba` | `alibaba-intl/deepseek-v4-pro` (all, write) | Dritte Rail (Alibaba Token Plan) |
-| `deepseek-flash` | `opencode-go/deepseek-v4-flash` (all, write) | Parallel-Throughupt bis 3 |
+| `deepseek-flash` | `opencode-go/deepseek-v4-flash` (all, write) | Parallel-Throughput bis 3 |
 | `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API, all, write) | Direkte API (bypass Go gateway) |
-| `reviewer` | `freetoken-local/active` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
-| `alibaba-primary` | `alibaba-intl/qwen3.8-max` (primary) | PRIMARY via Alibaba-Plan [T004396] |
+| `reviewer` | `llamacpp-local/Qwen3.6-35B-A3B-NVFP4` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
-Dispatch: `task` für local family + deepseek. Lokale: `write=deny` → Orchestrator erzeugt. SSOT `.opencode/agent-models.jsonc`.
+Dispatch: `task local` für lokale Implementation + deepseek-Rails (Go zuerst). Lokale: `write=deny` → Orchestrator erzeugt. SSOT `.opencode/agent-models.jsonc`; Historie `docs/agent-guide/registry/retired.md`.
 ## Core Commands
 
 ```bash

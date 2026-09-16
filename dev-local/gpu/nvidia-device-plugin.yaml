@@ -1,0 +1,89 @@
+# NVIDIA-Device-Plugin fuer devmesh — macht die Karte auf einem als gpu=true markierten
+# Host als nvidia.com/gpu verfuegbar (T900179, design.md D1/D2/D3).
+#
+# Eigenstaendiges Target: dieses Manifest haengt weder an dev-local/core noch an
+# devmesh/inventory.yaml. Es enthaelt keine ${VAR}-Platzhalter und ist direkt
+# per `kubectl apply -k dev-local/gpu` anwendbar.
+#
+# runtimeClassName nvidia: k3s legt die RuntimeClass generisch an (neben crun, wasmtime
+# und weiteren). Ihre Existenz belegt KEINE funktionierende Runtime — der Beleg ist die
+# Node-Kapazitaet, die dieses DaemonSet erzeugt (design.md D3).
+#
+# nodeSelector gpu=true statt Node-Feature-Discovery: ein Host, eine Karte, ein
+# nachvollziehbares Label (design.md D2). Ohne das Label hat das DaemonSet kein Ziel
+# und erzeugt null Pods — das ist der Normalfall auf GPU-losen Knoten, kein Fehler.
+#
+# Image gepinnt auf Digest wie in k3d/llm-gpu.yaml. v0.20.0 ist der zum Planungsstand
+# aktuelle Release (NVIDIA/k8s-device-plugin). Digest aufgeloest mit:
+#   TOKEN=$(curl -s 'https://nvcr.io/proxy_auth?scope=repository:nvidia/k8s-device-plugin:pull' \
+#     | sed -E 's/.*"token":"([^"]+)".*/\1/')
+#   curl -sI -H "Authorization: Bearer $TOKEN" \
+#     -H 'Accept: application/vnd.oci.image.index.v1+json' \
+#     https://nvcr.io/v2/nvidia/k8s-device-plugin/manifests/v0.20.0 | grep -i docker-content-digest
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-device-plugin-daemonset
+  labels:
+    app: nvidia-device-plugin
+spec:
+  selector:
+    matchLabels:
+      app: nvidia-device-plugin
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nvidia-device-plugin
+    spec:
+      priorityClassName: system-node-critical
+      nodeSelector:
+        gpu: "true"
+      # gpu-metal ist control-plane und etcd-Mitglied. Ist der Knoten getaintet,
+      # braeuchte das DaemonSet diese Duldungen; sind keine Taints gesetzt, sind sie
+      # wirkungslos. Der nvidia.com/gpu-Taint ist die uebliche Konvention fuer
+      # GPU-Knoten und wird hier vorsorglich geduldet.
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+      runtimeClassName: nvidia
+      containers:
+        - name: nvidia-device-plugin-ctr
+          image: nvcr.io/nvidia/k8s-device-plugin:v0.20.0@sha256:a61ba9fd8efb82f3a79f877f7580e02c1e8e7593f62473644bc9c79e315c3312
+          env:
+            # true, nicht false: scheitert die Initialisierung (Runtime nicht
+            # registriert, Treiber unlesbar), soll der Pod sichtbar crashen. Mit false
+            # laeuft er weiter und bietet still nichts an — ein gruener Pod ohne
+            # Kapazitaet waere genau die Fehldiagnose, die Task P2-3 unterscheidbar macht.
+            - name: FAIL_ON_INIT_ERROR
+              value: "true"
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: all
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: all
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins

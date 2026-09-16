@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# devmesh-Profil gpu (T900179, design.md D1). Bewusst getrennt von dev-local/core:
+# core braucht envsubst aus devmesh/inventory.yaml und zieht den halben Dev-Stack mit,
+# der eigene ungeloeste Vorbedingungen hat. Dieses Target baut ohne Renderer:
+#   kubectl kustomize dev-local/gpu
+namespace: kube-system
+
+resources:
+  - nvidia-device-plugin.yaml

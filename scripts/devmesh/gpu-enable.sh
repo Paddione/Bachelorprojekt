@@ -69,3 +69,38 @@ if (( rc == 0 )); then
   echo "unveraendert: $HOST hat nvidia-container-toolkit und die nvidia-Runtime in containerd"
   exit 0
 fi
+
+# Der ganze Aenderungsblock geht als EIN Skript ueber stdin. "set -euo pipefail" darin sorgt
+# dafuer, dass ein Fehlschlag vor dem k3s-Neustart abbricht, statt den Host mit installiertem
+# Toolkit und unkonfigurierter Runtime zurueckzulassen.
+remote_body() {
+  cat << 'REMOTE'
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+# Treiber-Vorbedingung zuerst: ohne nvidia-smi ist die Installation sinnlos. Exit 2 wird lokal
+# zur Meldung "kein NVIDIA-Treiber" aufgeloest (Vorbedingung, kein Installationsfehler).
+command -v nvidia-smi >/dev/null 2>&1 || exit 2
+if ! command -v nvidia-ctk >/dev/null 2>&1; then
+  curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+    | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+  curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+    | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#' \
+    > /etc/apt/sources.list.d/nvidia-container-toolkit.list
+  apt-get update
+  apt-get install -y nvidia-container-toolkit
+fi
+command -v nvidia-ctk >/dev/null 2>&1 || { echo "nvidia-ctk fehlt nach der Installation" >&2; exit 1; }
+nvidia-ctk runtime configure --runtime=containerd
+# k3s schreibt config.toml aus seinem Template neu und erkennt die Runtime dabei selbst.
+systemctl restart k3s
+for _ in $(seq 1 36); do k3s kubectl get node "$(hostname)" >/dev/null 2>&1 && break; sleep 5; done
+k3s kubectl wait --for=condition=Ready "node/$(hostname)" --timeout=180s
+grep -q nvidia /var/lib/rancher/k3s/agent/etc/containerd/config.toml
+REMOTE
+}
+
+rc=0
+remote_body | remote "sudo -n bash -s" || rc=$?
+(( rc == 2 )) && { echo "Vorbedingung fehlt: kein NVIDIA-Treiber auf $HOST (nvidia-smi nicht im PATH)" >&2; exit 2; }
+(( rc == 0 )) || die "GPU-Aktivierung auf $HOST fehlgeschlagen (Exit $rc)"
+echo "aktiviert: $HOST nvidia-container-toolkit installiert, k3s neu gestartet"

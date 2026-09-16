@@ -16,51 +16,8 @@ Wrapper `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist:
 
 ## Schritt 0 — Pull-First
 
-Vor jedem Commit / jeder Branch-Aktion sicherstellen, dass `origin/main` aktuell ist:
-
-```bash
-git fetch origin main
-if git diff --quiet HEAD; then
-  git pull --rebase origin main
-else
-  git stash push -m "wip ${TICKET_EXT_ID}"
-  git pull --rebase origin main
-  bash scripts/git-stash-net.sh pop --by-message "wip ${TICKET_EXT_ID}"
-  # Teil-Pop-Befund (Exit 1)? Eintrag liegt noch im Stash — NICHT als Erfolg
-  # behandeln, Wiederherstellung unten. Kein Treffer (Exit 2) ist ebenfalls
-  # kein Erfolg: git stash list prüfen und den Eintrag zurückspielen.
-fi
-```
-
-> **Stash-Pop positive Verifikation (T003069/T003070).** Nach dem Pop MUSS der eigene Eintrag
-> aus `git stash list` verschwunden sein
-> (`git stash list | grep -F "wip ${TICKET_EXT_ID}"` findet ihn bei Exit 1 noch). Ein
-> verbliebener Eintrag ist ein **Befund, kein Erfolg**: der post-rewrite-Hook hat ein gestashtes
-> Freshness-Artefakt schon neu erzeugt, der Pop wendet nur teilweise an. Wiederherstellung:
-> `git stash show --stat "stash@{0}"` gegen den Arbeitsbaum halten, fehlende Datei mit
-> `git checkout "stash@{0}" -- <pfad>` zurückholen, den Eintrag als Sicherungsnetz liegen lassen.
-
-> **Stash-Disziplin (T003070).** Der Stash-Stack ist über ALLE Worktrees geteilt, `stash@{0}`
-> verschiebt sich durch fremde pushes. Bei Parallelarbeit einen **Wegwerf-Commit auf dem eigenen
-> Branch** verwenden (`git commit -m wip`, später `git reset --soft HEAD~1`). Wo ein Stash nötig
-> bleibt: IMMER mit `-m` und Ticket-ID anlegen und über die Nachricht auflösen
-> (`bash scripts/git-stash-net.sh pop --by-message ...`), NIE über den Index `stash@{0}`.
-
-> **Branch-Switch + Stash Race (T001974 Mishap 2).** `git checkout -b <branch> && git stash pop`
-> nie in einer Pipeline verketten, sonst landet der Commit auf dem falschen Branch. Jeden Schritt
-> einzeln absichern:
->
-> ```bash
-> git checkout -b fix/my-branch || exit 1   # Branch-Switch abwarten
-> git stash pop || { echo "stash pop failed"; exit 1; }
-> ```
-
-> **Probe-Commit + `--hard` verwirft auch unstaged Dateien (T001454, T002252/T002253).**
-> `git reset -q --hard HEAD~1` nach einem Probe-Commit reißt unstaged Arbeitsdateien mit. Sicher:
-> ```bash
-> git stash -u && git reset --hard HEAD~1 && git stash pop
-> ```
-> Oder den Probe in einem separaten Wegwerf-Worktree testen.
+Vor jedem Commit / jeder Branch-Aktion `origin/main` aktualisieren (fetch + rebase; bei dirty tree stashen und zurückspielen). Stash-Fallen (Pop-Verifikation T003069, Disziplin T003070, Branch-Switch-Race T001974, Probe-Commit T001454):
+[stash-discipline](references/stash-discipline.md).
 
 ---
 
@@ -226,46 +183,15 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 ## Schritt 7 — Post-Merge Cleanup (Worktrees)
 
-Nur wenn in einem `.worktrees/*`-Worktree gearbeitet wurde:
-
-```bash
-WORKTREE_PATH="$(git rev-parse --show-toplevel)"
-BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
-MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-
-cd "$MAIN_REPO"
-# Agent-Lock freigeben (T006290): erst im Haupt-Repo — aus dem Worktree heraus verweigert
-# agent-lock.sh den Branch-Release. Ohne stderr-Unterdrückung, damit eine Verweigerung
-# sichtbar bleibt. Lebenszyklus-SSOT: .agents/skills/references/session-coordination.md
-bash scripts/agent-lock.sh release ticket "<T00XXXX>"
-bash scripts/agent-lock.sh release branch "$BRANCH_NAME"
-git worktree remove "$WORKTREE_PATH"
-git worktree prune
-
-# T004612: der Merge löscht den Remote-Branch nicht — erst hier, NACH dem Archiv, löschen.
-git push origin --delete "$BRANCH_NAME"
-# Squash-Commit ist ein neuer Commit, `git branch -d` würde fehlschlagen; `-D` ist nötig.
-if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" 2>/dev/null; then
-  git branch -D "$BRANCH_NAME"
-fi
-```
+Nur wenn in einem `.worktrees/*`-Worktree gearbeitet wurde: Lock releasen, Worktree entfernen, Remote-Branch löschen. Befehlsfolge + Worktree-Erstellung (git-crypt-sicher):
+[worktree-cleanup](references/worktree-cleanup.md).
 
 ---
 
 ## Worktree-Erstellung — zwei Wege, nur einer ist git-crypt-sicher
 
-1. **`scripts/worktree-create.sh` (empfohlen):** legt den Worktree mit Kopie des
-   git-crypt-Keys an und neutralisiert die smudge/clean/required-Filter. Immer
-   verwenden, wenn der Branch `environments/.secrets/**` beruehrt.
-
-   ```bash
-   bash scripts/worktree-create.sh <branch> .worktrees/<slug>
-   ```
-
-2. **opencode-Plugin `worktree_create` (`worktree.ts`):** `git worktree add` **ohne** die
-   git-crypt-Filter zu neutralisieren. Scheitert auf verschluesselten Pfaden (exit 128) oder
-   hinterlaesst `environments/.secrets/**` unbrauchbar. **Bekannte Einschraenkung:** nur fuer
-   Branches sicher, die keine git-crypt-Pfade beruehren.
+Zwei Wege (nur `scripts/worktree-create.sh` ist git-crypt-sicher), Details:
+[worktree-cleanup](references/worktree-cleanup.md).
 
 ---
 

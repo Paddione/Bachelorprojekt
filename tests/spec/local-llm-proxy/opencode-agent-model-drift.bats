@@ -8,13 +8,10 @@
 # Ausnahme in [T002448-M4]. Ein Laufzeittest gegen :8091 waere in CI nicht
 # ausfuehrbar, dort laeuft kein llama-server.
 #
-# Befund 2026-08-02, der zu diesen Tests fuehrte:
-#   .opencode/agent-models.jsonc  → "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"
-#   /props auf :8091              → gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf, n_ctx=99840
-#   Beschreibung verspricht         262144 Token — Faktor 2,6 ueber dem realen Wert.
-#
-# Betreibervorgabe: alle lokalen LLM-Jobs laufen auf gemma26-factory, und dieses
-# Loadout soll unified context (-kvu) fuer DREI Agenten fahren.
+# T900203: seit der FreeToken-Konsolidierung (T900164) faehrt der lokale Stack
+# Qwen3.6-35B-A3B-NVFP4 via FreeToken :1919 durch den llm-proxy :18235
+# (statischer 200k-KV-Pool). Der Provider-Key heisst historisch "llamacpp-local";
+# die Loadout-Kopplung an loadouts.json ist entfallen.
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -69,48 +66,53 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf qwen38-220k" {
-  # T013360: alle lokalen Agenten auf qwen38-220k umgestellt — kein GPU-Swap mehr.
-  run grep -c 'qwen38-220k' "${AGENTS}"
+@test "T002545: die Agentendefinitionen verweisen auf Qwen3.6-35B-A3B-NVFP4" {
+  # T900203: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.6-35B-A3B-NVFP4
+  # (FreeToken :1919 via llm-proxy :18235, statischer 200k-KV-Pool).
+  run grep -c 'llamacpp-local/Qwen3.6-35B-A3B-NVFP4' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }
 
-@test "T002545: keine handgepflegte Kontextzahl widerspricht dem Loadout" {
-  # Die Zusicherung ist "keine handgepflegte Zahl WIDERSPRICHT dem Loadout" —
-  # geprueft wird sie als Abgleich gegen loadouts.json, nicht als Schwarze
-  # Liste eines Integers.
+@test "T002545: keine llamacpp-local-Kontextzahl widerspricht der served KV" {
+  # T900203: die Loadout-Kopplung ist entfallen — agent-models.jsonc nennt keine
+  # "Loadout <slug>"-Namen mehr, und loadouts.json ist keine SSOT fuer die
+  # FreeToken-Zahl. Gebunden wird jetzt per PROVIDER: jeder
+  # llamacpp-local-limit.context muss eine positive ganze Zahl sein, ungleich
+  # dem advertised max_model_len 262144 und nicht groesser als die served
+  # 200k KV (gemessen, model-matrix.md).
   #
   # [T003065] Vorher stand hier `grep -c '262144'` mit der Erwartung 0: 262144
   # war der Wert des abgeloesten 12B-Servers und stand fuer die Drift-Klasse,
-  # die T002300 fuer die MCP-Configs geloest hat. Inzwischen MISST das Loadout
-  # gemma12-vision genau diesen Wert ("Gemessen: 262.144 Kontext" in
-  # loadouts.json), und der Guard meldete einen Defekt, den es nicht gibt —
-  # Darstellung statt Semantik [T002716]. Eine Zahl ist nicht falsch, weil sie
-  # frueher falsch war; falsch ist sie, wenn die SSOT sie nicht deckt.
+  # die T002300 fuer die MCP-Configs geloest hat. Eine Zahl ist nicht falsch,
+  # weil sie frueher falsch war; falsch ist sie, wenn sie die served KV
+  # uebersteigt — Darstellung statt Semantik [T002716].
   [ -f "${AGENTS}" ]
-  [ -f "${LOADOUTS}" ]
 
-  # Nur limit.context-Werte, deren Eintrag ein "Loadout <slug>" nennt, sind an
-  # loadouts.json gebunden. API-Modelle (deepseek u.a.) tragen legitim Kontexte,
-  # die dort nicht vorkommen, und bleiben ausgeklammert.
-  run bash -c "grep -A3 '\"name\": \".*Loadout ' '${AGENTS}' | grep -oE '\"context\": [0-9]+' | grep -oE '[0-9]+' | sort -u"
+  # Positiv-Anker [T002356-M1]: der Katalog enthaelt ueberhaupt Modelle — ohne
+  # Kandidaten waere die Negativ-Aussage unten vakuos.
+  run node -e "
+    const j5 = require('json5');
+    const fs = require('fs');
+    const d = j5.parse(fs.readFileSync('${AGENTS}', 'utf8'));
+    const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
+    const keys = Object.keys(m);
+    if (!keys.length) { console.error('llamacpp-local-Katalog ist leer'); process.exit(1); }
+    for (const k of keys) {
+      const ctx = (m[k].limit || {}).context;
+      if (!Number.isInteger(ctx) || ctx <= 0) {
+        console.error(k + ' ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
+      }
+      if (ctx === 262144) {
+        console.error(k + ' ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
+      }
+      if (ctx > 200000) {
+        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 200k KV'); process.exit(1);
+      }
+    }
+    process.exit(0);
+  "
   [ "${status}" -eq 0 ]
-  # Positiv-Anker zuerst [T002356-M1]: ohne mindestens einen Kandidaten wuerde
-  # die Negativ-Aussage unten vakuos gelten.
-  [ -n "${output}" ]
-
-  local unbacked=0 n dotted
-  for n in ${output}; do
-    # loadouts.json notiert die Messwerte mit deutschem Tausenderpunkt
-    # ("Gemessen: 262.144 Kontext"), deshalb beide Schreibweisen akzeptieren.
-    dotted="$(printf '%s' "${n}" | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')"
-    if ! grep -qF "${n}" "${LOADOUTS}" && ! grep -qF "${dotted}" "${LOADOUTS}"; then
-      echo "FAIL: limit.context ${n} (auch nicht als ${dotted}) ist in loadouts.json nicht belegt"
-      unbacked=$((unbacked + 1))
-    fi
-  done
-  [ "${unbacked}" -eq 0 ]
 }
 
 @test "T002545: der Providername behauptet kein Draft-Modell, das nicht laedt" {

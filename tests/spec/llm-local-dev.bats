@@ -132,140 +132,102 @@ EOF"
   [ "$output" = "0" ]
 }
 
-@test "agent-models.jsonc declares a MEASURED context for the local loadout, not n_ctx_train (T002545/T002558/T002633)" {
-  # Keine harte Konstante mehr. --fit entscheidet den Wert zur Laufzeit, und er
-  # aendert sich mit der Slot-Zahl: fuer das fruehere gemma26-factory wurden bei
-  # einem Slot 99840 gemessen, bei drei (T002545) nur noch 88832, weil der
-  # geteilte -kvu-Puffer fuer drei Sequenzen reichen muss. Eine gepflegte Zahl
-  # driftet damit bei jeder Loadout-Aenderung — genau die Klasse, die dieses
-  # Ticket schliesst. Traeger ist seit T016419 qwen38-220k (Qwen3.8-27B,
-  # gemessen 114688); gptoss-context wurde mit seinen toten GGUFs entfernt,
-  # die Eigenschaft bleibt dieselbe.
+@test "agent-models.jsonc declares a MEASURED context for the local model, not n_ctx_train (T002545/T002558/T002633)" {
+  # T900203: der llamacpp-local-Katalog fuehrt seit der FreeToken-Konsolidierung
+  # (T900164) genau ein Modell: Qwen3.6-35B-A3B-NVFP4. limit.context 200000 ist
+  # die GEMESSENE served KV (/v1/cache/status num_pages, model-matrix.md) —
+  # nicht das advertised max_model_len 262144, das ueber dem real Verfuegbaren
+  # liegt. Die fruehere Loadout-Kopplung (loadouts.json) ist entfallen:
+  # FreeToken faehrt einen statischen 200k-KV-Pool, die Zahl steht im
+  # Provider-Eintrag.
   #
-  # Geprueft wird deshalb die EIGENSCHAFT: plausibel und nicht n_ctx_train
-  # (262144 fuer Qwen3.8-27B), das ueber dem real Verfuegbaren liegt.
-  #
-  # T900094: die fruehere Obergrenze "< 200000" war eine Heuristik aus der Zeit,
-  # als auf einer Karte hoechstens 114688 messbar waren. Mit dem Dual-GPU-Split
-  # sind 205056 real gemessen — die Heuristik haette einen ECHTEN Messwert
-  # abgelehnt. Statt die Schranke nachzuziehen (sie driftet beim naechsten
-  # Hardware-Wechsel wieder), wird jetzt die Kopplung geprueft: der Client-Wert
-  # muss dem entsprechen, was das Loadout als Untergrenze garantiert. Damit ist
-  # jede Zahl belegt, die der Server auch wirklich zusichert.
-  ctx="$(awk '/"qwen38-220k": *\{/,/"context"/' \
-    "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
-  [ -n "$ctx" ]
-  [ "$ctx" != "262144" ]
-  [ "$ctx" -gt 50000 ]
-
-  run python3 -c "
-import json, sys
-d = json.load(open('scripts/llm/loadouts.json', encoding='utf-8'))
-lo = next(l for l in d['loadouts'] if l.get('slug') == 'qwen38-220k')
-floor = (lo.get('fit') or {}).get('minCtx') or (lo.get('args') or {}).get('ctx')
-if floor is None:
-    print('qwen38-220k deklariert weder fit.minCtx noch args.ctx'); sys.exit(1)
-ctx = int('$ctx')
-if ctx != floor:
-    print(f'agent-models.jsonc nennt {ctx}, das Loadout garantiert {floor}'); sys.exit(1)
-"
-  [ "$status" -eq 0 ] || { echo "$output" >&2; return 1; }
-}
-
-@test "agent-models.jsonc defines three gemma subagents (T002545)" {
-  # T002545: drei Slots (parallel=3) mit unified context (-kvu). Einer pro
-  # potential concurrent session — die llm-proxy serialisiert (max_inflight=1).
-  run node -e "
-    const s = require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
-    const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
-    const a = JSON.parse(j).agent || {};
-    const sub = Object.entries(a)
-      .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'subagent')
-      .map(([n]) => n);
-    if (sub.length < 1) { console.error('no gemma subagents found'); process.exit(1); }
-    process.exit(0);
-  "
-  [ "$status" -eq 0 ]
-}
-
-@test "agent-models.jsonc provides a local primary with measured context (T002545/T016419)" {
-  # T002545: mode:primary, und der genannte Kontext ist ein GEMESSENER Wert,
-  # kein n_ctx_train. T016419: der einzige lokale Primary ist freetoken-primary —
-  # die frueheren gemma-Primaries waren Klon-Leichen und sind entfernt; geprueft
-  # wird jetzt jeder Primary auf dem LOKALEN Stack (freetoken-local/llamacpp-local).
-  #
-  # [T003065] Vorher lautete die Bedingung
-  #   ctx === 262144 || ctx <= 50000 || ctx >= 200000  ->  implausible
-  # 262144 war der n_ctx_train-Wert des abgeloesten 12B-Servers, die Obergrenze
-  # 200000 eine daraus abgeleitete Faustzahl. Beides bricht, sobald ein Loadout
-  # legitim mehr misst: gemma12-vision belegt genau 262144 in
-  # scripts/llm/loadouts.json ("Gemessen: 262.144 Kontext"). Geprueft wird jetzt
-  # die Zahl gegen das im Loadout DOKUMENTIERTE Maximum: ctx <= gemessen.
-  # Semantik statt Darstellung [T002716].
-  #
-  # Warum <= und nicht ==: gemma26-factory nennt 161024 (gemessen bei fitt 128),
-  # loadouts.json fuer dasselbe Loadout 166.912 (andere Messgelegenheit). Beide
-  # Zahlen sind echt. Ein niedrigerer Wert ist konservativ und harmlos — etwa
-  # weil np=3 mit -kvu einen GETEILTEN Pool fahren. Schaden entsteht nur in der
-  # anderen Richtung: wenn die Config MEHR verspricht als gemessen wurde, und
-  # genau das war der Ursprungsfall (262144 behauptet, 99840 gemessen).
+  # Geprueft wird deshalb die EIGENSCHAFT: positive ganze Zahl, ungleich 262144
+  # (advertised max_model_len) und nicht groesser als 200000 (served KV).
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
-    const ld = JSON.parse(fs.readFileSync('$REPO/scripts/llm/loadouts.json','utf8'));
-    // Messwerte stehen im notes-Feld des Loadouts, mit deutschem Tausenderpunkt
-    // und in wechselnder Formulierung ('Gemessen: 262.144 Kontext',
-    // 'gemessen 118.016 ctx'). Das groesste genannte Maximum gilt.
-    const measuredFor = (slug) => {
-      const l = (ld.loadouts || []).find((x) => x.slug === slug);
-      const notes = (l && l.notes) || '';
-      const ms = [...notes.matchAll(/([0-9][0-9.]*)\s*(?:Kontext|ctx)/gi)]
-        .map((m) => parseInt(m[1].replace(/\./g, ''), 10))
-        .filter((n) => Number.isInteger(n) && n > 0);
-      return ms.length ? Math.max(...ms) : null;
-    };
-    const prim = Object.entries(o.agent || {})
-      .filter(([n,v]) => v.mode === 'primary' && /^(freetoken-local|llamacpp-local)\//.test(v.model || ''));
-    if (prim.length < 1) { console.error('no local-stack primary agent found'); process.exit(1); }
-    // T014105: FreeToken-Agenten sind NICHT an loadouts.json gebunden — ihre
-    // gemessenen Limits (KV-Pages, nicht advertised max_model_len) stehen als
-    // konkrete Eintraege im Provider und werden von den T014105-Guards exakt
-    // zugersichert. Die Loadout-Bindung unten gilt nur fuer llama.cpp-Modelle.
-    const ftModels = ((o.provider['freetoken-local'] || {}).models || {});
-    const ftLimits = new Set(Object.values(ftModels).map((m) => m.limit.context));
-    for (const [name, agent] of prim) {
-      const model = agent.model;
-      const [prov, mid] = model.split('/');
-      const entry = ((o.provider[prov] || {}).models || {})[mid];
-      if (!entry) {
-        console.error(name + ': model ' + model + ' fehlt im Provider ' + prov);
-        process.exit(1);
+    const m = ((o.provider || {})['llamacpp-local'] || {}).models || {};
+    const entry = m['Qwen3.6-35B-A3B-NVFP4'];
+    if (!entry) { console.error('Qwen3.6-35B-A3B-NVFP4 fehlt im llamacpp-local-Katalog'); process.exit(1); }
+    const ctx = (entry.limit || {}).context;
+    if (!Number.isInteger(ctx) || ctx <= 0) {
+      console.error('ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
+    }
+    if (ctx === 262144) {
+      console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
+    }
+    if (ctx > 200000) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 200k KV'); process.exit(1);
+    }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "agent-models.jsonc defines the local family on Qwen3.6 (T002545/T900203)" {
+  # T900203: die fuenf Familien-Handles (gptoss/devstral/gemma/gemma12/qwen38)
+  # sind 2026-09-16 zu einem `local` kollabiert (T900164) — kein gemma-Subagent
+  # mehr. Die lokale Familie ist: local + reviewer als Subagenten und
+  # qwen38-primary als Primary, alle drei auf
+  # llamacpp-local/Qwen3.6-35B-A3B-NVFP4.
+  run node -e "
+    const fs = require('fs');
+    const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
+    const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
+    const a = JSON.parse(j).agent || {};
+    const expect = { local: 'subagent', reviewer: 'subagent', 'qwen38-primary': 'primary' };
+    for (const [name, mode] of Object.entries(expect)) {
+      const v = a[name];
+      if (!v) { console.error(name + ' fehlt in agent-models.jsonc'); process.exit(1); }
+      if (v.mode !== mode) { console.error(name + ' mode ' + v.mode + ' != ' + mode); process.exit(1); }
+      if (v.model !== 'llamacpp-local/Qwen3.6-35B-A3B-NVFP4') {
+        console.error(name + ' model ' + v.model + ' != llamacpp-local/Qwen3.6-35B-A3B-NVFP4'); process.exit(1);
       }
-      const ctx = entry.limit.context;
-      if (!Number.isInteger(ctx) || ctx <= 0) {
-        console.error(name + ' ctx ' + ctx + ' is not a positive integer');
-        process.exit(1);
-      }
-      if (prov === 'freetoken-local') {
-        if (!ftLimits.has(ctx)) {
-          console.error(name + ' ctx ' + ctx + ' ist kein gemessener FreeToken-Limit-Wert');
-          process.exit(1);
-        }
-        continue;
-      }
-      const max = measuredFor(mid);
-      if (max === null) {
-        console.error(name + ': loadout ' + mid + ' dokumentiert keinen gemessenen Kontext in loadouts.json');
-        process.exit(1);
-      }
-      // Kleiner als gemessen ist zulaessig (konservativ, z.B. geteilter -kvu-Pool).
-      // Schaden entsteht nur, wenn die Config MEHR verspricht als gemessen wurde.
-      if (ctx > max) {
-        console.error(name + ' ctx ' + ctx + ' > gemessenes Maximum ' + max + ' des Loadouts ' + mid);
-        process.exit(1);
-      }
+    }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "agent-models.jsonc provides a local primary with measured context (T002545/T016419/T900203)" {
+  # T900203: der einzige lokale Primary ist qwen38-primary (Name historisch,
+  # Modell aktuell Qwen3.6-35B-A3B-NVFP4). Sein Kontext ist der gemessene
+  # served-KV-Wert 200000 — nicht das advertised max_model_len 262144.
+  #
+  # Die fruehere Loadout-Bindung (loadouts.json) ist entfallen: FreeToken
+  # faehrt einen statischen 200k-KV-Pool, die Zahl steht als konkreter Eintrag
+  # im Provider und wird hier exakt zugesichert (T014105-Prinzip).
+  #
+  # Warum <= und nicht ==: ein niedrigerer Wert ist konservativ und harmlos.
+  # Schaden entsteht nur in der anderen Richtung: wenn die Config MEHR verspricht
+  # als gemessen wurde — und genau das war der Ursprungsfall (262144 behauptet,
+  # real verfuegbar weniger).
+  run node -e "
+    const fs = require('fs');
+    const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
+    const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
+    const o = JSON.parse(j);
+    const prim = (o.agent || {})['qwen38-primary'];
+    if (!prim) { console.error('qwen38-primary fehlt'); process.exit(1); }
+    if (prim.mode !== 'primary') { console.error('qwen38-primary mode ' + prim.mode + ' != primary'); process.exit(1); }
+    const model = prim.model;
+    if (model !== 'llamacpp-local/Qwen3.6-35B-A3B-NVFP4') {
+      console.error('qwen38-primary model ' + model + ' != llamacpp-local/Qwen3.6-35B-A3B-NVFP4'); process.exit(1);
+    }
+    const [prov, mid] = model.split('/');
+    const entry = ((o.provider[prov] || {}).models || {})[mid];
+    if (!entry) { console.error('model ' + model + ' fehlt im Provider ' + prov); process.exit(1); }
+    const ctx = (entry.limit || {}).context;
+    if (!Number.isInteger(ctx) || ctx <= 0) {
+      console.error('ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
+    }
+    if (ctx === 262144) {
+      console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
+    }
+    if (ctx > 200000) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 200k KV'); process.exit(1);
     }
     process.exit(0);
   "
@@ -288,17 +250,19 @@ if ctx != floor:
 }
 
 @test "T016419: dead checkpoint catalog entries are removed" {
-  # GGUF-Verzeichnisse zu gptoss-context/gemma26-factory/gemma4/gemma26-throughput
-  # existieren nicht mehr auf Disk; der llamacpp-local-Katalog darf sie nicht
-  # mehr deklarieren. Statisch geprueft — bewusst KEIN Filesystem-Check gegen
-  # GGUF-Pfade (CI hat weder /mnt/c noch ~/models).
+  # T900203: der llamacpp-local-Katalog fuehrt seit der FreeToken-Konsolidierung
+  # genau ein Modell (Qwen3.6-35B-A3B-NVFP4). Alle frueheren Checkpoint-Eintraege
+  # — die toten GGUFs UND die ehemaligen Fallback-Eintraege (hauhau-qwen36,
+  # gemma12-vision, qwen38-220k) — sind entfernt. Statisch geprueft — bewusst
+  # KEIN Filesystem-Check gegen GGUF-Pfade (CI hat weder /mnt/c noch ~/models).
   run node -e "
     const j5 = require('json5');
     const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
     const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
-    const keep = ['hauhau-qwen36','gemma12-vision','qwen38-220k'].filter(k => k in m);
-    if (!keep.length) { console.error('positive anchor failed: no surviving llamacpp-local entry'); process.exit(1); }
-    const dead = ['gptoss-context','gemma26-factory','gemma4','gemma26-throughput']
+    if (!('Qwen3.6-35B-A3B-NVFP4' in m)) {
+      console.error('positive anchor failed: Qwen3.6-35B-A3B-NVFP4 fehlt im llamacpp-local-Katalog'); process.exit(1);
+    }
+    const dead = ['qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
       .filter(k => k in m);
     if (dead.length) { console.error('dead catalog entries still declared: ' + dead.join(',')); process.exit(1); }
     process.exit(0);

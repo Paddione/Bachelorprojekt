@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2313 · Scenarios: 5146
+Specs: 126 · Requirements: 2316 · Scenarios: 5153
 
 ## factory-pipeline
 
@@ -652,17 +652,13 @@ In-flight:
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
 
 ### local-dev-mesh
-Reqs: 7 · Scenarios: 13 · Lines: 144
+Reqs: 10 · Scenarios: 20 · Lines: 215
 Last touches:
+  - A devmesh host with a GPU offers it as a schedulable resource | T900179 | 2026-09-16 | ADDED
+  - GPU enablement on a host is scripted and repeatable | T900179 | 2026-09-16 | ADDED
+  - The status view reports GPU capacity | T900179 | 2026-09-16 | ADDED
   - The k3d dev cluster is removed only after the acceptance gate | T900145 | 2026-09-16 | ADDED
   - No active reference to the k3d dev context remains | T900145 | 2026-09-16 | ADDED
-  - The fourth host joins devmesh as an agent | T900145 | 2026-09-16 | ADDED
-  - Dev peers join the tailnet with role tags | T900142 | 2026-09-11 | ADDED
-  - LAN path is preferred, the tailnet relay is the fallback | T900142 | 2026-09-11 | ADDED
-In-flight:
-  - A devmesh host with a GPU offers it as a schedulable resource | T900179 | active | ADDED
-  - GPU enablement on a host is scripted and repeatable | T900179 | active | ADDED
-  - The status view reports GPU capacity | T900179 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

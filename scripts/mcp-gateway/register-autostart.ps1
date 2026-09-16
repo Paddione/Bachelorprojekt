@@ -1,8 +1,8 @@
 # scripts/mcp-gateway/register-autostart.ps1
 # T900040 - registriert start-windows.ps1 als Task-Scheduler-Task (onlogon).
-# Windows-Pendant zu `systemctl --user enable` fuer die Units unter
-# scripts/bge-mcp/ und scripts/mcp-gateway/: dort startet systemd die
-# Port-Forwards und den bge-mcp-Shim beim Login, hier der Aufgabenplaner.
+# Windows-Pendant zu `systemctl --user enable` fuer mcp-gateway.service und
+# devmesh-forward.service: dort startet systemd die Port-Forwards beim Login,
+# hier der Aufgabenplaner.
 #
 # Muster uebernommen von scripts/llm/pk-devices/register-autostart.ps1: als
 # PS1-Datei gibt es kein schtasks-Quoting-Problem mit Leerzeichen im Pfad.
@@ -14,9 +14,8 @@
 # Der Repo-Pfad wird aus dem Skriptort abgeleitet und NICHT hartkodiert - der
 # Task zeigt damit auf genau den Checkout, aus dem er registriert wurde.
 #
-# Vorbedingung: BGE_MCP_TOKEN muss beim Login aufloesbar sein. start-windows.ps1
-# laedt ihn aus ~/.config/bge-mcp/server.env, sofern die Variable nicht in der
-# Umgebung steht - deshalb reicht die Datei, eine Systemvariable ist nicht noetig.
+# Vorbedingung: kubectl mit den Kontexten fleet und devmesh. Tokens braucht der
+# Autostart nicht; start-windows.ps1 startet nur Port-Forwards.
 param(
     [string]$TaskName = "PK-MCP-Gateway",
     # Standard: der Checkout, in dem dieses Skript liegt. Explizit setzbar, damit
@@ -60,18 +59,14 @@ if ($Remove) {
     exit 0
 }
 
-if (-not $RepoRoot) { $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path }
+# [T900190] .ProviderPath statt .Path: unter \\wsl.localhost\... liefert .Path den
+# Provider-Praefix Microsoft.PowerShell.Core\FileSystem::, den schtasks und node nicht aufloesen.
+if (-not $RepoRoot) { $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).ProviderPath }
 $target = Join-Path $RepoRoot "scripts\mcp-gateway\start-windows.ps1"
 
 if (-not (Test-Path $target)) {
     Write-Host "FEHLER: $target existiert nicht."
     exit 1
-}
-
-$envFile = Join-Path $HOME ".config/bge-mcp/server.env"
-if (-not (Test-Path $envFile) -and (-not $env:BGE_MCP_TOKEN)) {
-    Write-Host "WARNUNG: Weder BGE_MCP_TOKEN noch $envFile vorhanden."
-    Write-Host "         Der Task wird registriert, der Shim verweigert beim Login aber den Start."
 }
 
 $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$target`""

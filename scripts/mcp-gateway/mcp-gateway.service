@@ -1,24 +1,22 @@
-# Status: Toter Zustand. WSL-Exit 2026-09-03: Docker Desktop deinstalliert, kein lokaler Dev-Cluster mehr.
-# Nachfolger: Windows-Skript `scripts/mcp-gateway/start-windows.ps1`
-# (startet `task mcp:autostart:register` → Scheduled Task `PK-MCP-Gateway`).
 # scripts/mcp-gateway/mcp-gateway.service
-# mcp-gateway — systemd USER service. Long-running `kubectl port-forward` to
-# svc/dev-pod (fleet cluster, workspace-dev ns) [T900107], exposing
-# mcp-kubernetes (127.0.0.1:18080) and mcp-postgres (127.0.0.1:13001) —
-# port 13000 (playwright) is gone with the monolith: playwright stayed a local
-# stdio server. 13002 (github) and 18235 (llm-proxy) come from the same service.
-# exposed ports but have no MCP client wired to them yet.
-# Installed/managed via `task agents:mcp-gateway:install` (symlinked into
-# ~/.config/systemd/user/).
+# mcp-gateway - systemd USER service. Long-running `kubectl port-forward` auf
+# svc/dev-pod (fleet, Namespace workspace-dev) [T900107]:
+#   mcp-kubernetes 127.0.0.1:18080, github 127.0.0.1:13002.
+# [T900191] 13001 (mcp-postgres) und 18235 (llm-proxy) kommen nicht mehr aus
+# fleet, sondern aus devmesh ueber devmesh-forward.service.
+#
+# AUSSCHLUSS: nicht parallel zu scripts/mcp-gateway/start-windows.ps1 betreiben
+# (networkingMode=mirrored, gemeinsamer Loopback, "address already in use").
+# Installiert via `task agents:mcp-gateway:install` (Symlink nach ~/.config/systemd/user/).
 [Unit]
-Description=MCP gateway port-forward (mcp-kubernetes :18080, mcp-postgres :13001)
+Description=MCP gateway port-forward fleet dev-pod (mcp-kubernetes :18080, github :13002)
 Documentation=file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md
 After=network-online.target
 
 [Service]
 Type=simple
 WorkingDirectory=/home/patrick/Bachelorprojekt
-ExecStart=/usr/local/bin/kubectl --context fleet port-forward -n workspace-dev svc/dev-pod 18080:8080 13001:3001 13002:3002 18235:18235
+ExecStart=/usr/local/bin/kubectl --context fleet port-forward -n workspace-dev svc/dev-pod 18080:8080 13002:3002
 Restart=always
 RestartSec=3
 

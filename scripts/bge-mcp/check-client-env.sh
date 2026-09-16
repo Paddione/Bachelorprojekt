@@ -75,7 +75,7 @@ curl_exit=$?
 
 if [ "$curl_exit" -ne 0 ] || [ -z "$no_auth_status" ]; then
   echo "FAIL: Server unter $ENDPOINT nicht erreichbar (curl exit=$curl_exit)."
-  echo "Fix: bge-mcp Server/Shim starten (siehe scripts/bge-mcp/server.mjs, bge-mcp.service)."
+  echo "Fix: bge-mcp laeuft im devmesh-Pod llm-services. Forward starten: systemctl --user start devmesh-forward.service (WSL) bzw. task mcp:start-windows (Windows)."
   exit 2
 fi
 

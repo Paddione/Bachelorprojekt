@@ -107,8 +107,8 @@ tasks:
           if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
             echo "llm-proxy already running (pid $(cat "$PIDF"))"; exit 0
           fi
-          # T002277: das PID-File kennt nur die nohup-Instanz. Laeuft der Proxy als
-          # systemd-Unit (task llm:proxy:install-service), ist der Port belegt, aber
+          # T002277: das PID-File kennt nur die nohup-Instanz. Haelt der devmesh-Forward
+          # (devmesh-forward.service, T900191) den Port, ist er belegt, aber
           # kein PID-File da - der Start unten wuerde mit EADDRINUSE sterben und ein
           # PID-File hinterlassen, das auf einen toten Prozess zeigt. Der Port ist
           # die verlaessliche Auskunft, nicht das PID-File.
@@ -117,7 +117,7 @@ tasks:
           # fehlt - mit `curl -fsS` sieht das aus wie "niemand da", und der Start
           # unten liefe in genau das EADDRINUSE, das dieser Block verhindern soll.
           if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
-            echo "llm-proxy already answering on :$PORT (systemd unit? -> systemctl --user status llm-proxy)"
+            echo "llm-proxy already answering on :$PORT (devmesh-forward? -> systemctl --user status devmesh-forward)"
             exit 0
           fi
           nohup node scripts/llm-proxy/server.mjs >> "$LOGF" 2>&1 &
@@ -160,106 +160,6 @@ tasks:
     desc: "Tail the local LLM proxy log"
     cmds:
       - tail -n 100 -f "$HOME/.local/state/llm-proxy/proxy.log"
-
-  # ── llm-proxy als systemd USER service (T002277) ────────────────────────
-  # Gleiche Form wie agents:factory-mcp:install. Der Windows-Startup-Ordner
-  # (bis T002551 install-startup-autostart.ps1) startete die llama.cpp-Server
-  # auf der Windows-Seite; der Proxy laeuft als Windows-Prozess und gehoert hierher.
-  proxy:install-service:
-    desc: "Install the LLM proxy as a persistent systemd USER service (autostart + Restart=always)"
-    silent: true
-    cmds:
-      - |
-        set -euo pipefail
-        if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host (native Windows without lingering?)."
-          echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: task llm:proxy:start."
-          exit 1
-        fi
-        PORT="${LLM_PROXY_PORT:-18235}"
-        # Manuell gestartete nohup-Instanz beenden, damit der Port fuer systemd frei ist.
-        PIDF="$HOME/.local/state/llm-proxy/proxy.pid"
-        if [[ -f "$PIDF" ]] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
-          kill "$(cat "$PIDF")" && rm -f "$PIDF"
-          echo "stopped manually started instance (pid file)"
-        fi
-        # T002281: das PID-File allein reicht NICHT. Am 2026-07-27 lief die Altinstanz
-        # mit PID 280029 weiter, obwohl PID-File und 'kill -0' gueltig waren - der Block
-        # oben griff nicht, und die frisch installierte Unit fiel in eine
-        # EADDRINUSE-Restart-Schleife. Der Port ist die verlaessliche Auskunft.
-        for _ in 1 2 3; do
-          # /livez, NICHT /health (T002336): die Schleife fragt "ist der Port noch
-          # belegt". Mit /health wuerde ein 503 (totes Prio-1-Backend) als "frei"
-          # gelesen, die Schleife braeche sofort ab - und die Altinstanz ueberlebte.
-          # Das ist exakt der T002281-Fall, den dieser Block behebt.
-          curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1 || break
-          OWNER="$(ss -lptnH "sport = :$PORT" 2>/dev/null | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2)"
-          [[ -z "$OWNER" ]] && { echo "Port $PORT belegt, Besitzer nicht ermittelbar — abbrechen." >&2; exit 1; }
-          echo "Port $PORT noch belegt von PID $OWNER — beende ihn."
-          kill "$OWNER" 2>/dev/null || true
-          sleep 2
-        done
-        UNIT_DIR="${HOME}/.config/systemd/user"
-        mkdir -p "${UNIT_DIR}"
-        ln -sf "$(pwd)/scripts/llm-proxy/llm-proxy.service" "${UNIT_DIR}/llm-proxy.service"
-        systemctl --user daemon-reload
-        systemctl --user enable --now llm-proxy.service
-        # T002281: 'enable --now' kehrt erfolgreich zurueck, waehrend die Unit in
-        # auto-restart haengt - 'is-active' meldet dann 'activating', was wie ein langsamer
-        # Start aussieht. Erfolgsmeldung ohne Pruefung ist dieselbe Klasse, die T002276 bei
-        # schtasks gefunden hat. Also den Endzustand abwarten und belegen.
-        for _ in $(seq 1 15); do
-          STATE="$(systemctl --user show llm-proxy.service -p SubState --value 2>/dev/null || echo unknown)"
-          [[ "$STATE" == "running" ]] && break
-          sleep 2
-        done
-        if [[ "$(systemctl --user is-active llm-proxy.service 2>/dev/null)" != "active" ]]; then
-          echo "llm-proxy: Unit erreicht 'active' nicht (SubState=$STATE). Journal:" >&2
-          journalctl --user -u llm-proxy.service -n 15 --no-pager >&2 || true
-          exit 1
-        fi
-        echo "llm-proxy installed as systemd --user service (active/running, autostart + Restart=always)."
-        # [T002556] BGE_MCP_TOKEN ist fuer diese Unit nicht optional: ohne die
-        # Variable scheitert ensureUiConfigRendered() still, --ui-config-file
-        # zeigt danach auf eine fehlende Datei, und llama-server bricht beim
-        # naechsten Loadout-Start HART ab (Exit 1). Der Fehler faellt dann nicht
-        # hier auf, sondern erst Minuten spaeter beim Modellstart — deshalb hier
-        # pruefen, wo der Zusammenhang noch sichtbar ist.
-        PROXY_ENV="${HOME}/.config/llm-proxy/proxy.env"
-        if ! grep -q "^BGE_MCP_TOKEN=" "$PROXY_ENV" 2>/dev/null; then
-          echo "" >&2
-          echo "WARNUNG: BGE_MCP_TOKEN fehlt in $PROXY_ENV [T002556]" >&2
-          echo "  Folge: der naechste Loadout-Start mit uiConfigFile scheitert mit" >&2
-          echo "  'failed to open file ... ui-config.json' und crashloopt." >&2
-          echo "  Beheben (Wert aus der vorhandenen Quelle uebernehmen, nicht abtippen):" >&2
-          echo "    mkdir -p ~/.config/llm-proxy && touch $PROXY_ENV" >&2
-          echo "    chmod 0600 $PROXY_ENV" >&2
-          echo "    grep '^BGE_MCP_TOKEN=' ~/.config/bge-mcp/server.env >> $PROXY_ENV" >&2
-          echo "    systemctl --user restart llm-proxy.service" >&2
-        fi
-
-  proxy:uninstall-service:
-    desc: "Stop + disable the llm-proxy systemd service and remove the symlinked unit."
-    silent: true
-    cmds:
-      - |
-        set -euo pipefail
-        systemctl --user disable --now llm-proxy.service 2>/dev/null || true
-        rm -f "${HOME}/.config/systemd/user/llm-proxy.service"
-        systemctl --user daemon-reload 2>/dev/null || true
-        echo "llm-proxy systemd service uninstalled."
-
-  proxy:service-status:
-    desc: "Show the llm-proxy systemd service state + recent journal tail."
-    silent: true
-    cmds:
-      - |
-        set -euo pipefail
-        if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host."
-          exit 0
-        fi
-        systemctl --user status llm-proxy.service --no-pager -n 20 || true
 
   routing:check:
     desc: "Prueft, ob jede konfigurierte Modell-ID von einem erreichbaren Backend serviert wird [T002359]"

@@ -8,8 +8,9 @@ sudo -n systemctl disable --now "k3d-dev-ingress-bridge@${BRIDGE_PORT}" 2>/dev/n
 sudo -n rm -f /etc/systemd/system/k3d-dev-ingress-bridge@.service
 sudo -n systemctl daemon-reload
 
-systemctl --user disable --now llm-proxy-lan.service 2>/dev/null || true
-rm -f "$UNIT_DIR/llm-proxy-lan.service"
+# Altlast bis T900191: llm-proxy-lan.service (Unit-Datei im Repo geloescht).
+systemctl --user disable --now llm-proxy-lan.service 2>/dev/null || true  # T900191
+rm -f "$UNIT_DIR/llm-proxy-lan.service"  # T900191
 systemctl --user daemon-reload 2>/dev/null || true
 
 echo "Dev-Host-Units deinstalliert."

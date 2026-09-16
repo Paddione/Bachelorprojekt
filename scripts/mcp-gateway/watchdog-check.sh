@@ -6,9 +6,9 @@
 # Tunnel-Neustart) oder der letzte Restart liegt weniger als 5 Minuten zurueck.
 #
 # Zwei Ketten werden getrennt geprueft:
-#   - Gateway-Kette:  18080 → mcp-gateway.service (fleet port-forward)
-#   - Postgres-Kette: 13001 → k3d-postgres-forward.service
-#                             + mcp-postgres-local.service (lokal, T002767)
+#   - Gateway-Kette:  18080 → mcp-gateway.service (fleet dev-pod)
+#   - devmesh-Kette:  13001 → devmesh-forward.service (devmesh llm-services, T900191)
+#     Derselbe kubectl-Prozess traegt auch 18235 und 13005; 13001 steht stellvertretend.
 #
 # Exit 0 = alle verdrahteten Endpoints antworten.
 # Exit 1 = mindestens ein Endpoint tot (Unit faellt → Timer feuert weiter).
@@ -25,16 +25,16 @@ RATE_LIMIT_SEC=300
 PROBE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/probe.sh"
 
 gateway_failed=0
-postgres_failed=0
+devmesh_failed=0
 
 if ! "$PROBE" --port 18080 --timeout 5 >/dev/null 2>&1; then
   gateway_failed=1
 fi
 if ! "$PROBE" --port 13001 --timeout 5 >/dev/null 2>&1; then
-  postgres_failed=1
+  devmesh_failed=1
 fi
 
-if [ "$gateway_failed" -eq 0 ] && [ "$postgres_failed" -eq 0 ]; then
+if [ "$gateway_failed" -eq 0 ] && [ "$devmesh_failed" -eq 0 ]; then
   echo "OK: alle verdrahteten MCP-Endpoints antworten (18080, 13001)"
   exit 0
 fi
@@ -63,15 +63,15 @@ if [ "$gateway_failed" -eq 1 ]; then
     echo "SKIP Gateway-Restart: Monolith-Pod nicht Running (phase='${phase}')"
   fi
 fi
-if [ "$postgres_failed" -eq 1 ]; then
-  phase=$(kubectl --context devmesh -n workspace get pod -l app=shared-db \
+if [ "$devmesh_failed" -eq 1 ]; then
+  phase=$(kubectl --context devmesh -n workspace get pod -l app=llm-services \
     -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
   if [ "$phase" = "Running" ]; then
-    echo "RESTART k3d-postgres-forward.service + mcp-postgres-local.service (Probe 13001 fehlgeschlagen, Pod Running)"
-    systemctl --user restart k3d-postgres-forward.service mcp-postgres-local.service
+    echo "RESTART devmesh-forward.service (Probe 13001 fehlgeschlagen, Pod Running)"
+    systemctl --user restart devmesh-forward.service
     restarted=1
   else
-    echo "SKIP Postgres-Restart: shared-db-Pod nicht Running (phase='${phase}')"
+    echo "SKIP devmesh-Restart: llm-services-Pod nicht Running (phase='${phase}')"
   fi
 fi
 

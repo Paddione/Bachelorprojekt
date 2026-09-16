@@ -8,10 +8,10 @@ sind die repotrackte Wahrheit; die live installierten Kopien liegen unter
 | Unit | Ebene | Zweck |
 |------|-------|-------|
 | `k3d-dev-ingress-bridge@.service` | System | socat `127.0.0.1:<port> → 10.0.33.1:<port>`; hält `*.localhost`-URLs gültig (RFC 6761 erzwingt 127.0.0.1, /etc/hosts greift nicht). Instanz: `@80`. |
-| `../llm-proxy/llm-proxy-lan.service` | User | socat `:18236 → 127.0.0.1:18235` (range=WS-Subnetz), damit der Cluster den loopback-only llm-proxy erreicht (`svc/llm-proxy-host`, siehe `k3d/sdlc-stack/llm-proxy-host.yaml`). |
 
-Schon vorher repotrackt (Mustergeber): `scripts/mcp-gateway/k3d-postgres-forward.service`
-(15432 → shared-db, Context-getrieben) und `scripts/mcp-gateway/mcp-postgres-local.service`.
+Seit T900191 entfallen: `llm-proxy-lan.service`, `k3d-postgres-forward.service` und
+`mcp-postgres-local.service` (alle T900191-alt). llm-proxy und mcp-postgres laufen im devmesh-Pod `llm-services`,
+lokal erreichbar über `scripts/mcp-gateway/devmesh-forward.service`.
 
 ## Installieren / Entfernen
 

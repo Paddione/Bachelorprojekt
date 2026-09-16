@@ -14,7 +14,10 @@ setup() {
   local port=8199
 
   # Generate seed using helper script
-  BGE_MCP_TOKEN="test-token" node "${REPO_ROOT}/scripts/llm/ui-config-seed.mjs" --output "${seed_path}"
+  # T900202: der Seed verlangt alle referenzierten Browser-Tokens — nur BGE
+  # zu setzen liesse ihn mit "Required environment variable ... is not set"
+  # abbrechen. Dummy-Werte, keine echten Secrets.
+  BGE_MCP_TOKEN="test-token" MCP_POSTGRES_TOKEN="test-token" FACTORY_MCP_TOKEN="test-token" MCP_KUBERNETES_TOKEN="test-token" node "${REPO_ROOT}/scripts/llm/ui-config-seed.mjs" --output "${seed_path}"
 
   [ -f "${seed_path}" ]
 

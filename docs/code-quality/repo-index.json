@@ -3238,7 +3238,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 967,
+      "file_count": 968,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3255,6 +3255,7 @@
         ".opencode/package-lock.json",
         ".opencode/package.json",
         ".opencode/plugin/bge-mcp-env.ts",
+        ".opencode/plugin/mcp-client-tokens-env.ts",
         ".opencode/plugin/worktree-write-guard.ts",
         ".opencode/plugins/background-agents.ts",
         ".opencode/plugins/kdco-primitives/cmux.ts",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.353.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.353.0...website-v1.353.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* T900068 bats umlaut ([#5725](https://github.com/Paddione/Bachelorprojekt/issues/5725)) ([b92da2e](https://github.com/Paddione/Bachelorprojekt/commit/b92da2ea491c970ddf437b03132fd52d37dd0a88))
+
 ## [1.353.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.352.0...website-v1.353.0) (2026-09-17)
 
 

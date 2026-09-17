@@ -119,6 +119,12 @@ New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
 Stop-FreeToken
 
+# Die Benutzervariable CUDA_VISIBLE_DEVICES blendet die RTX 5070 Ti fuer alle
+# anderen CUDA-Programme aus (runbook freetoken-native.md, GPU-Zuordnung).
+# ft serve erbt diesen Wert und muss ihn deshalb auf die 5070 Ti zuruecksetzen.
+# -EnvVars CUDA_VISIBLE_DEVICES=... ueberschreibt das weiter unten.
+[Environment]::SetEnvironmentVariable('CUDA_VISIBLE_DEVICES', 'GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4', 'Process')
+
 foreach ($kv in ($profileEnv + ($EnvVars -split '\s+' | Where-Object { $_ }))) {
     $name, $value = $kv -split '=', 2
     Write-Host "env $name=$value"

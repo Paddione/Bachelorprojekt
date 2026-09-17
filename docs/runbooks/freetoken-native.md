@@ -36,8 +36,9 @@ WSL-Launch von `ft serve` (Qwen3.6-35B-A3B-NVFP4 auf RTX 5070 Ti, Port 1929) —
 Pflichtpunkte, sonst wiederholt sich Crash #6 ("no kernel image", sm_86-Kernel trotz
 sm_120-GPU):
 
-- `CUDA_VISIBLE_DEVICES=0` setzen: `nvidia-smi`-Reihenfolge != torch-Reihenfolge;
-  ohne Filter sieht torch die 3060 Ti zuerst.
+- `CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4` setzen (UUID der 5070 Ti, nicht Index `0`):
+  WSL maskiert seit 2026-09-17 global auf die 3060 Ti und setzt
+  `CUDA_DEVICE_ORDER=PCI_BUS_ID`, dann ist Index `0` die 3060 Ti. Siehe „GPU-Zuordnung".
 - `TVM_FFI_CUDA_ARCH_LIST="12.0"` setzen: tvm-ffi-Arch-Auto-Detect liefert in WSL
   immer sm_86; erzwungenes sm_120 erzeugt exakt den bekannten guten Cache-Hash
   `freetoken__index_4096_4_128_1_false_2e1b84096bd1ccc2`.
@@ -47,7 +48,7 @@ sm_120-GPU):
 Referenzlauf:
 
 ```bash
-setsid -f env CUDA_VISIBLE_DEVICES=0 FREETOKEN_PIN_BUDGET_GB=20 TVM_FFI_CUDA_ARCH_LIST="12.0" /home/patrick/.local/share/freetoken/venv/bin/ft serve --model /home/patrick/models/Qwen3.6-35B-A3B-NVFP4 --kv-reserve-tokens 131072 --max-running-requests 1 --graph 1 --moe-strategy offload --moe-cpu-layers 0 --moe-cache-auto --max-prefill-length 8192 --cache-type radix --memory-ratio 0.90 --sampling-defaults model --enable-cache-report --moe-prefill-hit-d2d --host 127.0.0.1 --port 1929 > /tmp/hotfix-log/serve12.log 2>&1 < /dev/null
+setsid -f env CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4 FREETOKEN_PIN_BUDGET_GB=20 TVM_FFI_CUDA_ARCH_LIST="12.0" /home/patrick/.local/share/freetoken/venv/bin/ft serve --model /home/patrick/models/Qwen3.6-35B-A3B-NVFP4 --kv-reserve-tokens 131072 --max-running-requests 1 --graph 1 --moe-strategy offload --moe-cpu-layers 0 --moe-cache-auto --max-prefill-length 8192 --cache-type radix --memory-ratio 0.90 --sampling-defaults model --enable-cache-report --moe-prefill-hit-d2d --host 127.0.0.1 --port 1929 > /tmp/hotfix-log/serve12.log 2>&1 < /dev/null
 ```
 
 Stop: `kill $(pgrep -f 'ft serve.*1929')`; WSL-seitiges Start-Skript:
@@ -89,6 +90,53 @@ verwendeten Messwerkzeuge sind `scripts/llm/measure-factory-context.mjs`
 (Kontextbedarf, offline), `scripts/llm/bench-engine-ab.sh` (Engine-Isolation
 gpt-oss-20b auf beiden Engines) und `scripts/llm/bench-ifstruct.sh`
 (Schema-Treue gegen `LiquidAI/ifstruct-v1.0`).
+
+## GPU-Zuordnung (Stand 2026-09-17)
+
+Die RTX 5070 Ti (16 GB, `GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4`) gehört exklusiv dem FreeToken-Modell.
+Display, Desktop-Apps und jede andere CUDA-Arbeit laufen auf der RTX 3060 Ti
+(`GPU-6b9ac882-e9e9-a364-4423-92d838536b86`). Durchgesetzt wird das an drei Stellen:
+
+| Ebene | Mechanismus | Ort |
+|-------|-------------|-----|
+| Windows-Grafik (DirectX) | Monitor an der 3060 Ti, `HighPerfAdapter` = 3060 Ti | Einstellungen → System → Anzeige → Grafik (`HKCU\Software\Microsoft\DirectX\UserGpuPreferences`) |
+| Windows-CUDA | Benutzervariable `CUDA_VISIBLE_DEVICES` = 3060-Ti-UUID | `[Environment]::SetEnvironmentVariable(..., 'User')` |
+| WSL-CUDA | dieselbe Maske plus `CUDA_DEVICE_ORDER=PCI_BUS_ID` | `/etc/environment`, `/etc/profile.d/cuda-visible-devices.sh`, `/etc/systemd/{system,user}.conf.d/cuda-visible-devices.conf`, `~/.config/environment.d/60-cuda-gpu.conf`, `~/.bashrc` |
+
+CUDA ignoriert die Windows-Grafikeinstellung, deshalb braucht es die
+Variable. Jeder FreeToken-Start muss die Maske für seinen eigenen Prozess auf
+die 5070-Ti-UUID zurücksetzen. `ft serve --gpu <uuid>` allein reicht nicht:
+FreeToken behandelt eine gesetzte Maske als Obergrenze und bricht ab, wenn die
+angeforderte GPU darin fehlt.
+
+### Richtig starten
+
+1. **Standardweg:** Scheduled Task `FreeToken-Serve` (Trigger: Anmeldung) oder
+   manuell:
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\FreeToken\Start-Qwen.ps1"
+   powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\FreeToken\Start-Qwen.ps1" -Restart
+   ```
+   Das Skript liegt außerhalb des Repos. Es setzt
+   `$env:CUDA_VISIBLE_DEVICES` auf die 5070 Ti, bevor es den Daemon auf `:1900`
+   startet. Daemon und Engine übernehmen den Wert.
+2. **A/B-Messungen:** `scripts/llm/restart-freetoken.ps1` (siehe unten) setzt
+   die Maske ebenfalls selbst.
+3. **Nicht** den Daemon über die FreeToken-Desktop-App starten lassen. Er
+   übernimmt dann die Benutzermaske, sieht nur die 3060 Ti und die Engine
+   startet nicht. Läuft ein solcher Daemon schon, `ft.exe`-Daemon beenden und
+   Weg 1 nehmen. `-Restart` startet nur die Engine neu, nicht den Daemon.
+
+Prüfen:
+
+```powershell
+nvidia-smi --query-compute-apps=gpu_bus_id,pid,process_name --format=csv
+```
+
+Auf Bus `08:00.0` (5070 Ti) darf nur der FreeToken-Python-Prozess stehen. In
+WSL muss `~/opt/llama-current/bin/llama-server --list-devices` genau
+`CUDA0: NVIDIA GeForce RTX 3060 Ti` melden. Neue Maskenwerte greifen erst in
+neu gestarteten Prozessen (Windows: nach Neuanmeldung, WSL: `wsl --shutdown`).
 
 ## Start / Stop (Windows-seitig, detached)
 

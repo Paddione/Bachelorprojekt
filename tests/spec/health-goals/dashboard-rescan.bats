@@ -93,7 +93,7 @@ PY
   [ -z "$output" ]
 }
 
-@test "SSOT bleibt byte-gleich: goals.md und generiertes Artefakt unverändert" {
+@test "SSOT bleibt byte-gleich: goals.md und generiertes Artefakt unveraendert" {
   BEFORE_MD="$(sha256sum .claude/lib/goals.md | cut -d' ' -f1)"
   BEFORE_JSON="$(sha256sum components/website/src/lib/sdlc/goals-data.generated.json | cut -d' ' -f1)"
   run --separate-stderr bash "$WRAPPER" G-CQ06 --fast G-TEST05

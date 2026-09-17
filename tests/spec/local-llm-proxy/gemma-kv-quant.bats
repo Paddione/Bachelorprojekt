@@ -160,7 +160,7 @@ qwen38-220k"
 #
 # Voraussetzung: gemma26-factory läuft auf dem Port aus loadouts.json.
 # Bei nicht erreichbarem Server wird übersprungen (skip).
-@test "T002535 Langkontext-Probe: q4_0-KV gibt exakte Zeichenketten nach ~39k Tokens zurück" {
+@test "T002535 Langkontext-Probe: q4_0-KV gibt exakte Zeichenketten nach ~39k Tokens zurueck" {
   # Port aus der Registry statt hartkodiert — so kann eine Portänderung in
   # loadouts.json die Probe nicht erneut stillschweigend abschalten.
   local port

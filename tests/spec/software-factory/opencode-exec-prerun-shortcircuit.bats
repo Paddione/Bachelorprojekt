@@ -88,7 +88,7 @@ EOF
   chmod +x "$STUB_BIN/opencode"
 }
 
-@test "T011581: gepushte Implementierung + sauberer Worktree => kein Orchestrator-Lauf, PR-Schritt läuft" {
+@test "T011581: gepushte Implementierung + sauberer Worktree => kein Orchestrator-Lauf, PR-Schritt laeuft" {
   # Implementierung liegt schon gepusht auf dem Branch (wie nach einem Lauf,
   # dessen Nachlauf durch systemd-Kill verloren ging).
   echo implemented >> "$LAUNCH/file.txt"
@@ -112,7 +112,7 @@ EOF
   [[ "$output" == *"opencode"* ]]
 }
 
-@test "T011581: schmutziger Worktree verhindert den Kurzschluss — Orchestrator läuft" {
+@test "T011581: schmutziger Worktree verhindert den Kurzschluss — Orchestrator laeuft" {
   # Implementierung gepusht, aber der Worktree trägt uncommittete Reste eines
   # abgebrochenen Laufs: der Kurzschluss darf NICHT greifen (der Orchestrator
   # muss die Reste bewerten/zu Ende bringen).

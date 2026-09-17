@@ -100,7 +100,7 @@ STUB
 # T003183 — §2 [gone]-Prune-Reihenfolge + Archiv-Tag (p2, Runbook-Textvertrag)
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T003183: Runbook §2 dokumentiert Reaper VOR [gone]-Prune und Archiv-Tag-Signal" {
+@test "T003183: Runbook S2 dokumentiert Reaper VOR [gone]-Prune und Archiv-Tag-Signal" {
   RUNBOOK="$PROJECT_DIR/.claude/skills/references/repo-hygiene-ops.md"
   [ -f "$RUNBOOK" ] || { echo "Runbook fehlt"; false; }
   grep -q "refs/tags/reaped/<branch>" "$RUNBOOK" || { echo "Archiv-Tag-Signal fehlt in §2"; false; }
@@ -112,7 +112,7 @@ STUB
 # T003181 — §3 merge-tree Konfliktprobe (p2, Runbook-Textvertrag + Verhalten)
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T003181: Runbook §3 nutzt merge-tree --write-tree als primäre Konfliktprobe" {
+@test "T003181: Runbook S3 nutzt merge-tree --write-tree als primaere Konfliktprobe" {
   RUNBOOK="$PROJECT_DIR/.claude/skills/references/repo-hygiene-ops.md"
   grep -q "git merge-tree --write-tree --name-only" "$RUNBOOK" || { echo "merge-tree-Probe fehlt in §3"; false; }
   # Der invasive Arbeitsbaum-Merge darf nicht mehr als Primärweg dastehen: der
@@ -183,7 +183,7 @@ GH_EOF
   chmod +x "$WORK/bin/gh"
 }
 
-@test "T003225 Positiv-Anker: nur Checks des aktuellen head-SHA zählen (fremde head-SHAs = grün)" {
+@test "T003225 Positiv-Anker: nur Checks des aktuellen head-SHA zaehlen (fremde head-SHAs = gruen)" {
   _setup_ciwatch "aaaa1111"
   # T012239: die check-runs-API des PR-HEAD liefert per URL-Bindung nur Checks
   # DIESES Commits — fremde head-SHAs kommen dort gar nicht vor. Leere Antwort = grün.
@@ -225,13 +225,13 @@ JSON
 # T003227 — Factory-Tick-Vorcheck (p2-Runbook + p4 repo-hygiene-cron.sh)
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T003227: Runbook §1 dokumentiert den Factory-Tick-Vorcheck (tick_running)" {
+@test "T003227: Runbook S1 dokumentiert den Factory-Tick-Vorcheck (tick_running)" {
   RUNBOOK="$PROJECT_DIR/.claude/skills/references/repo-hygiene-ops.md"
   grep -q "tick_running" "$RUNBOOK" || { echo "tick_running-Vorcheck fehlt in §1"; false; }
   grep -q "/tmp/factory-tick.lock" "$RUNBOOK" || { echo "Lock-Pfad fehlt"; false; }
 }
 
-@test "T003227: repo-hygiene-cron.sh überspringt die Worktree-Messung bei tick_running=true" {
+@test "T003227: repo-hygiene-cron.sh ueberspringt die Worktree-Messung bei tick_running=true" {
   # Fixture-Basis AUSSERHALB von /tmp — der Cron überspringt Worktree-Pfade unter
   # /tmp/*, der Test will aber zählen, dass die Sektion übersprungen wird.
   CRON_BASE="$(mktemp -d /var/tmp/bats-cron-XXXXXX)"

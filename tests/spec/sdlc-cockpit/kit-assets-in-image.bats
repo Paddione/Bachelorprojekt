@@ -41,7 +41,7 @@ _simulate_website_copy() {
   cp -r components/website/public/. "$dest/public/" 2>/dev/null || true
 }
 
-@test "T002466: Kit-Assets sind im Image-Layout auflösbar, nicht nur im Checkout" {
+@test "T002466: Kit-Assets sind im Image-Layout aufloesbar, nicht nur im Checkout" {
   # Positiv-Anker (T002356-M1): im Repo-Checkout MÜSSEN die Symlinks auflösen.
   # Ohne diese Vorbedingung wäre die Hauptaussage unten vakuos — sie würde auch
   # bestehen, wenn jemand die Symlinks schlicht gelöscht hätte.

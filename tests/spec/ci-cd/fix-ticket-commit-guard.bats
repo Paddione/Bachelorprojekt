@@ -40,7 +40,7 @@ setup() {
   rm -f "$msg_file"
 }
 
-@test "feat-Commit ohne Ticket bleibt unberührt" {
+@test "feat-Commit ohne Ticket bleibt unberuehrt" {
   cd "$REPO_ROOT"
   local msg_file
   msg_file="$(mktemp)"

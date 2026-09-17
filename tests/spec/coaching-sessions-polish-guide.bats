@@ -8,7 +8,7 @@ setup() {
   WEB="$REPO_ROOT/components/website/src"
 }
 
-@test "sidebar has a Sessions nav item in Geschäft section" {
+@test "sidebar has a Sessions nav item in Geschaeft section" {
   # T001792 / PR #2767: the dead studio route was removed; the Sessions label
   # points to /admin/coaching/sessions again (T001807).
   # Use -E to handle variable whitespace between object properties.
@@ -53,7 +53,7 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
-@test "brett auto-post message uses 'für diese Session'" {
+@test "brett auto-post message uses 'fuer diese Session'" {
   run grep -qF "für diese Session:" "$WEB/pages/api/admin/inbox/[id]/action.ts"
   [ "$status" -eq 0 ]
 }

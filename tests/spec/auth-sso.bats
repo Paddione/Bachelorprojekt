@@ -172,7 +172,7 @@ _render_korczewski() {
 # gemountete CM-Volumes) — ohne Checksum-Annotation im Pod-Template löst eine
 # ConfigMap-Korrektur KEINEN Rollout aus. Live war auf beiden Brands: CM = FQDN
 # (korrekt), Pod-Env = Kurzname (kaputt), Pod lief so 37h.
-@test "T002154: Website-Pod-Template trägt eine checksum/config-Annotation" {
+@test "T002154: Website-Pod-Template traegt eine checksum/config-Annotation" {
   local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   run grep -q 'checksum/config' "${repo_root}/k3d/website.yaml"
   [ "$status" -eq 0 ] || {
@@ -391,7 +391,7 @@ _repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
   }
 }
 
-@test "T002187: db-init nutzt ON_ERROR_STOP=1 für den DB/Rollen-Block" {
+@test "T002187: db-init nutzt ON_ERROR_STOP=1 fuer den DB/Rollen-Block" {
   local root; root="$(_repo_root)"
   local f="${root}/k3d/pocket-id.yaml"
   [ -f "$f" ] || skip "pocket-id.yaml nicht gefunden"
@@ -405,7 +405,7 @@ _repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
   fi
 }
 
-@test "T002187: pocket-id-client-seed Job trägt Flux-force-Annotation" {
+@test "T002187: pocket-id-client-seed Job traegt Flux-force-Annotation" {
   local root; root="$(_repo_root)"
   local f="${root}/k3d/pocket-id-client-seed.yaml"
   [ -f "$f" ] || skip "pocket-id-client-seed.yaml nicht gefunden"
@@ -417,7 +417,7 @@ _repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
   fi
 }
 
-@test "T002187: Admin-Bootstrap enthält keine hardcodierte UUID a0000000-..." {
+@test "T002187: Admin-Bootstrap enthaelt keine hardcodierte UUID a0000000-..." {
   local root; root="$(_repo_root)"
   local files=(
     "${root}/k3d/pocket-id.yaml"

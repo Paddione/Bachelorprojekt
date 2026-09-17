@@ -48,7 +48,7 @@ SCRIPT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)/scripts/git-stash-net.sh"
   grep -q 'T006298' <<<"$output"
 }
 
-@test "zwei aufeinanderfolgende Drops per Message löschen je den richtigen Eintrag (T006298)" {
+@test "zwei aufeinanderfolgende Drops per Message loeschen je den richtigen Eintrag (T006298)" {
   seed_stashes
 
   cd "$TMP_DIR"
@@ -78,7 +78,7 @@ SCRIPT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)/scripts/git-stash-net.sh"
   [ "$(git stash list)" = "$before" ]
 }
 
-@test "Muster ohne Treffer schlägt fail-closed fehl und entfernt nichts" {
+@test "Muster ohne Treffer schlaegt fail-closed fehl und entfernt nichts" {
   seed_stashes
 
   cd "$TMP_DIR"

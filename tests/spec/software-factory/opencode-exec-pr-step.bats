@@ -95,7 +95,7 @@ EOF
   chmod +x "$STUB_BIN/opencode"
 }
 
-@test "T011543: nach erfolgreichem Lauf wird der Commit gepusht und ein PR geöffnet" {
+@test "T011543: nach erfolgreichem Lauf wird der Commit gepusht und ein PR geoeffnet" {
   _stub_opencode_commits
   run bash "$EXEC" T011543 "$LAUNCH" "$BRANCH" openspec/changes/stub/tasks.md
   [ "$status" -eq 0 ]
@@ -108,7 +108,7 @@ EOF
   [[ "$output" == *"$BRANCH"* ]]
 }
 
-@test "T011543: bereits gepushte Implementierung auf dem Branch zählt als Erfolg (Orphan-Rettung)" {
+@test "T011543: bereits gepushte Implementierung auf dem Branch zaehlt als Erfolg (Orphan-Rettung)" {
   # Implementierung liegt schon auf dem Branch — wie nach einem Lauf, dessen
   # Nachlauf (PR) durch systemd-Kill verloren ging.
   echo implemented >> "$LAUNCH/file.txt"

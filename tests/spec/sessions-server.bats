@@ -25,7 +25,7 @@ setup() {
   grep -qE 'targetPort:[[:space:]]*8080' "$MANIFEST"
 }
 
-@test "sessions-server: Container läuft non-root" {
+@test "sessions-server: Container laeuft non-root" {
   dep_block="$(awk '/^kind: Deployment$/{f=1} f{print} f&&/^---$/{exit}' "$MANIFEST")"
   echo "$dep_block" | grep -qE 'runAsNonRoot:[[:space:]]*true'
   echo "$dep_block" | grep -qE 'readOnlyRootFilesystem:[[:space:]]*true'

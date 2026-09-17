@@ -31,7 +31,7 @@ _section() {
   ' "$OPS"
 }
 
-@test "T002821: §3 führt die Signallücken als Regel, nicht als Einzelfälle" {
+@test "T002821: S3 fuehrt die Signalluecken als Regel, nicht als Einzelfaelle" {
   [ -f "$OPS" ]
 
   # Positiv-Anker: §3 existiert überhaupt und hat Inhalt. Ohne ihn wären alle
@@ -53,7 +53,7 @@ _section() {
   done
 }
 
-@test "T002821: leeres statusCheckRollup verlangt die Gegenprobe über gh run list" {
+@test "T002821: leeres statusCheckRollup verlangt die Gegenprobe ueber gh run list" {
   local sec
   sec="$(_section '^## 3[.]')"
   [ -n "$sec" ]
@@ -93,7 +93,7 @@ _section() {
   [ "$warn_ln" -lt "$update_ln" ]
 }
 
-@test "T002847: Probe-Schleifen dürfen stderr nicht unterdrücken" {
+@test "T002847: Probe-Schleifen duerfen stderr nicht unterdruecken" {
   local sec
   sec="$(_section '^## 3[.]')"
   [ -n "$sec" ]
@@ -107,7 +107,7 @@ _section() {
   printf '%s' "$sec" | grep -qiE 'exit-code|PIPESTATUS|pipefail'
 }
 
-@test "T002844: der Dedupe-Guard in §4 nennt den Mishap-Buffer als zweite Quelle" {
+@test "T002844: der Dedupe-Guard in S4 nennt den Mishap-Buffer als zweite Quelle" {
   local sec
   sec="$(_section '^## 4[.]')"
   [ -n "$sec" ]

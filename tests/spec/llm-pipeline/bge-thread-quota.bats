@@ -57,7 +57,7 @@ _thread_flag() {
   printf '%s\n' "$1" | grep -A1 '^-t$' | tail -n1
 }
 
-@test "bge-embed: -t ist gesetzt und überschreitet die CPU-Quota nicht" {
+@test "bge-embed: -t ist gesetzt und ueberschreitet die CPU-Quota nicht" {
   local args limit cores threads
   args="$(_llama_args bge-embed)"
 
@@ -78,7 +78,7 @@ _thread_flag() {
   [ "$threads" -le "$cores" ]
 }
 
-@test "bge-rerank: -t ist gesetzt und überschreitet die CPU-Quota nicht" {
+@test "bge-rerank: -t ist gesetzt und ueberschreitet die CPU-Quota nicht" {
   local args limit cores threads
   args="$(_llama_args bge-rerank)"
 
@@ -96,7 +96,7 @@ _thread_flag() {
   [ "$threads" -le "$cores" ]
 }
 
-@test "bge-thread-quota: der laufende bge-embed-Pod trägt -t in seinen args" {
+@test "bge-thread-quota: der laufende bge-embed-Pod traegt -t in seinen args" {
   if ! kubectl --context "${BGE_CTX:-fleet}" get deploy bge-embed \
       -n "${BGE_NS:-workspace}" -o name >/dev/null 2>&1; then
     skip "kein fleet-Cluster erreichbar (offline/CI)"

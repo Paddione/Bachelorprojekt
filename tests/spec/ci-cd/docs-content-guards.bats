@@ -76,7 +76,7 @@ BUILT="$REPO/k3d/docs-content-built"
   done
 }
 
-@test "jede Service-Seite trägt mindestens ein Mermaid-Diagramm" {
+@test "jede Service-Seite traegt mindestens ein Mermaid-Diagramm" {
   # keycloak steht bewusst nicht mehr auf der Liste: Pocket ID hat Keycloak
   # abgelöst, eine keycloak-Seite wird nicht mehr gebaut.
   local pages=(nextcloud collabora talk-hpb livestream einvoice claude-code \

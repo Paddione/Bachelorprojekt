@@ -121,7 +121,7 @@ JSON
 
 # ── M6: plan-lint W3 erkennt ### Task (H3)-Headings ──────────────────────#
 
-@test "M6: plan-lint W3 meldet keine false negative für ### Task-Headings" {
+@test "M6: plan-lint W3 meldet keine false negative fuer ### Task-Headings" {
   cat > "$TEST_TMP_DIR/plan-h3.md" <<'EOF'
 ---
 title: Test

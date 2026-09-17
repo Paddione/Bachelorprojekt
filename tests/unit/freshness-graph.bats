@@ -22,7 +22,7 @@ setup() {
   [ "$committed_count" -eq "$fresh_count" ]
 }
 
-@test "graph.json enthält mind. 20 Nodes und 60 Kanten" {
+@test "graph.json enthaelt mind. 20 Nodes und 60 Kanten" {
   node scripts/build-graph.mjs
   node_count=$(jq '.nodes | length' docs/generated/graph.json)
   edge_count=$(jq '.edges | length' docs/generated/graph.json)
@@ -30,13 +30,13 @@ setup() {
   [ "$edge_count" -ge 60 ]
 }
 
-@test "api-map.json enthält mind. 15 Endpoints" {
+@test "api-map.json enthaelt mind. 15 Endpoints" {
   node scripts/build-api-map.mjs
   count=$(jq '.endpoints | length' docs/generated/api-map.json)
   [ "$count" -ge 15 ]
 }
 
-@test "graph.json und api-map.json haben gültige generatedAt Felder" {
+@test "graph.json und api-map.json haben gueltige generatedAt Felder" {
   node scripts/build-graph.mjs
   node scripts/build-api-map.mjs
   g_ts=$(jq -r '.generatedAt' docs/generated/graph.json)

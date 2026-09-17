@@ -12,7 +12,7 @@ setup() {
   cd "$REPO" || return 1
 }
 
-@test "T002462 layout.js ist syntaktisch gültig und buildfrei (D1)" {
+@test "T002462 layout.js ist syntaktisch gueltig und buildfrei (D1)" {
   # Positiv-Anker (T002356-M1): node --check auf panel.js muss zuerst durchlaufen.
   node --check ".lavish/kit/panel.js" 2>/dev/null \
     || { echo "Vorbedingung verletzt: node --check auf panel.js schlug fehl"; return 1; }

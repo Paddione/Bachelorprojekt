@@ -134,7 +134,7 @@ EOF
   [ "$output" != "0" ]
 }
 
-@test "G-LLM01: exclusiveGroup zählt nur Gruppen ohne lebendes Mitglied" {
+@test "G-LLM01: exclusiveGroup zaehlt nur Gruppen ohne lebendes Mitglied" {
   # Drei Einträge einer Gruppe, genau einer lebendig => Gruppe verfügbar, zählt nicht.
   local live dead1 dead2
   live="$(serve_dir "$FIX")"
@@ -170,7 +170,7 @@ EOF
   [ "$output" = "1" ]
 }
 
-@test "G-LLM01: gruppenloser Loadout-Port ohne Listener zählt einzeln" {
+@test "G-LLM01: gruppenloser Loadout-Port ohne Listener zaehlt einzeln" {
   local live dead
   live="$(serve_dir "$FIX")"
   echo ok > "$FIX/livez"
@@ -226,7 +226,7 @@ EOF
   [ "$output" != "0" ]
 }
 
-@test "G-LLM02: Feldname degraded statt providers — zählt die Länge von degraded" {
+@test "G-LLM02: Feldname degraded statt providers — zaehlt die Laenge von degraded" {
   # Der Bestandsbefehl las data.get('providers', []) — existiert nicht => falsch grün 0.
   local port
   port="$(serve_dir "$FIX")"
@@ -252,7 +252,7 @@ EOF
   [ "$output" != "0" ]
 }
 
-@test "G-LLM02: ready:false zählt checked als Zahl, kein Statuswort" {
+@test "G-LLM02: ready:false zaehlt checked als Zahl, kein Statuswort" {
   local port
   port="$(serve_dir "$FIX")"
   cat > "$FIX/health" <<EOF
@@ -287,7 +287,7 @@ EOF
   [ "$output" != "0" ]
 }
 
-@test "G-LLM03: /v1/models-ID nicht im Loadout geführt zählt, geführte nicht" {
+@test "G-LLM03: /v1/models-ID nicht im Loadout gefuehrt zaehlt, gefuehrte nicht" {
   local port
   port="$(serve_dir "$FIX")"
   echo ok > "$FIX/livez"
@@ -344,7 +344,7 @@ EOF
   [ "$output" != "0" ]
 }
 
-@test "G-LLM04: deklarierte Unit ohne enabled-Zustand zählt, enabled nicht" {
+@test "G-LLM04: deklarierte Unit ohne enabled-Zustand zaehlt, enabled nicht" {
   mkdir -p "$FIX/units"
   cat > "$FIX/units/foo.service" <<EOF
 [Unit]
@@ -397,7 +397,7 @@ EOF
   [ "$output" != "0" ]
 }
 
-@test "G-LLM05: Familiengrenze — MCP-Registry-Endpunkt wird nicht doppelt gezählt" {
+@test "G-LLM05: Familiengrenze — MCP-Registry-Endpunkt wird nicht doppelt gezaehlt" {
   local port dead
   port="$(serve_dir "$FIX")"
   echo ok > "$FIX/livez"

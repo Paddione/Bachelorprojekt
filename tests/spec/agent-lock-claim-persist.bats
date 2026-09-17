@@ -29,7 +29,7 @@ teardown() {
 
 # ── Defekt 1 — sid-alive schützt vor worktree-missing im Reaper ──────────#
 
-@test "T001384-D1: reap lässt claim mit lebendem SID unangetastet, auch wenn Worktree-Pfad fehlt" {
+@test "T001384-D1: reap laesst claim mit lebendem SID unangetastet, auch wenn Worktree-Pfad fehlt" {
   run bash "$LOCK" claim branch fix/t001384-agent-lock-claim-persist \
     --worktree /tmp/wt-that-definitely-does-not-exist-12345 \
     --label dev-flow-plan
@@ -56,7 +56,7 @@ teardown() {
 
 # ── Defekt 2 — cmd_reap hält den Registry-Lock ──────────────────────────#
 
-@test "T001384-D2: cmd_reap hält flock 9 auf .registry.lock während des Sweeps" {
+@test "T001384-D2: cmd_reap haelt flock 9 auf .registry.lock waehrend des Sweeps" {
   # Subshell A öffnet _with_lock manuell und hält den Lock für 1,2 s.
   # Subshell B ruft NUR den Lock-File-Sweep (Schritt 3) von cmd_reap auf,
   # nicht die langsamen Schritte 1+2 — also via eines kleinen Wrappers,
@@ -87,7 +87,7 @@ teardown() {
   }
 }
 
-@test "T001384-D2: claim mit worktree-Pfad überlebt parallelen reap nicht (RED → GREEN nach Fix)" {
+@test "T001384-D2: claim mit worktree-Pfad ueberlebt parallelen reap nicht (RED → GREEN nach Fix)" {
   # Wenn wir claim mit --worktree /tmp/wt-…-missing aufrufen, ist der
   # Claim frisch (live SID), aber der worktree-Pfad fehlt. Ein paralleler
   # reap DARF diese Datei NICHT löschen, weil der SID lebt (Fix zu

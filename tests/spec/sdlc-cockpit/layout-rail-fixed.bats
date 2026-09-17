@@ -17,7 +17,7 @@ setup() {
   ASTRO="$REPO/components/website/src/pages/sdlc/cockpit.astro"
 }
 
-@test "T002462 Die vier D7-Gruppen sind in der Shell-Hülle vorhanden" {
+@test "T002462 Die vier D7-Gruppen sind in der Shell-Huelle vorhanden" {
   # Positiv-Anker (T002356-M1): die vier Gruppen müssen zuerst gefunden werden.
   for group in "Laufende Epics" "Was Aufmerksamkeit braucht" "Aktive Agenten" "Modell-Server"; do
     grep -qF "$group" "$PROOF_DIR/cockpit-shell.html" \
@@ -39,7 +39,7 @@ setup() {
 # tests/spec/sdlc-cockpit/leitstand-url-scheme.bats belegt die mode=/phase=-Normalisierung
 # auf station=/deck= (Kontrakt B), die die alte mode/phase-Weiterreichung ersetzt.
 
-@test "T002462 Es gibt keinen Konfigurationsschlüssel, der die Rail-Gruppen umstellt" {
+@test "T002462 Es gibt keinen Konfigurationsschluessel, der die Rail-Gruppen umstellt" {
   # Negativ-Aussage: kein data-Attribut und keine Variablen-Definition, die eine
   # Rail-Gruppenliste konfigurierbar machte. In layout.js ist RAIL_GROUPS ein
   # eingefrorenes Literal (durch den Unit-Test belegt); hier prüfen wir, dass

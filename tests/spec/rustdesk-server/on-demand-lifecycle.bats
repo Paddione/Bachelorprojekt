@@ -16,7 +16,7 @@ setup() {
   ON_DEMAND="${STACK}/on-demand.yaml"
 }
 
-@test "rustdesk-on-demand: taskfile ist registriert und trägt die Lifecycle-Targets" {
+@test "rustdesk-on-demand: taskfile ist registriert und traegt die Lifecycle-Targets" {
   [ -f "$TASKFILE" ]
   # Include-Eintrag im Root-Taskfile (Registrierung)
   grep -qE '^  rustdesk:' "${REPO_ROOT}/Taskfile.yml"
@@ -50,7 +50,7 @@ setup() {
   [ "$bad_verbs" -eq 0 ]
 }
 
-@test "rustdesk-on-demand: on-demand.yaml bleibt außerhalb des Kustomize-Builds" {
+@test "rustdesk-on-demand: on-demand.yaml bleibt ausserhalb des Kustomize-Builds" {
   # Positiv-Anker: die bewachte Datei existiert überhaupt (sonst wäre die
   # Isolations-Aussage vakuos — T002356-M1)
   [ -f "$ON_DEMAND" ]

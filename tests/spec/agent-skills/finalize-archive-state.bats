@@ -44,7 +44,7 @@ setup() {
 # Positiv-Anker (T002356-M1): Das Subkommando existiert und antwortet überhaupt.
 # Ohne diesen Anker wäre jede Aussage der folgenden Tests auch dann erfüllbar,
 # wenn --archive-state gar nicht implementiert wäre und nur leer/rot endete.
-@test "T015783: --archive-state meldet pending für einen unarchivierten Change" {
+@test "T015783: --archive-state meldet pending fuer einen unarchivierten Change" {
   cd "$FIX"
   run bash "$FINALIZE" --archive-state demo-change --repo "$FIX"
   [ "$status" -eq 0 ]
@@ -95,7 +95,7 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "T015783: Resume-Pfad überspringt das erneute Archivieren" {
+@test "T015783: Resume-Pfad ueberspringt das erneute Archivieren" {
   run grep -qF 'ARCHIVE_RESUME:-0}" == 1' "$FINALIZE"
   [ "$status" -eq 0 ]
 }
@@ -133,7 +133,7 @@ setup() {
 
 # Das Skript vermeidet jq bewusst (json_field: "grep/sed statt jq"). Der
 # PR-Beleg darf diese Entscheidung nicht unterlaufen.
-@test "T015783: der PR-Beleg fügt keine jq-Abhängigkeit hinzu" {
+@test "T015783: der PR-Beleg fuegt keine jq-Abhaengigkeit hinzu" {
   run grep -qE "printf '%s' \"\\\$_pr_raw\" \| jq" "$FINALIZE"
   [ "$status" -ne 0 ]
 }

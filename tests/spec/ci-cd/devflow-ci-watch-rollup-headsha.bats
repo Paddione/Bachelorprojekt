@@ -112,7 +112,7 @@ teardown() {
 
 # ── Positiv-Anker (T002356-M1): gruener HEAD bleibt gruen ───────────────────#
 
-@test "T012239: gruener PR-HEAD (keine failure-Runs) meldet weiterhin 'alle grün' mit exit 0" {
+@test "T012239: gruener PR-HEAD (keine failure-Runs) meldet weiterhin 'alle gruen' mit exit 0" {
   echo "OPEN" > "$MARKER_DIR/pr-state"
   echo -n "" > "$MARKER_DIR/mock-check-runs-failures"
 
@@ -129,7 +129,7 @@ teardown() {
 # expected: FAIL (RED — das Skript fragt die check-runs-API fuer conclusions nie
 # ab und meldet trotz failure-Run am PR-HEAD "alle grün" mit exit 0)
 
-@test "T012239: failure-Run auf dem PR-HEAD (check-runs) führt zu exit != 0, nicht falsch grün" {
+@test "T012239: failure-Run auf dem PR-HEAD (check-runs) fuehrt zu exit != 0, nicht falsch gruen" {
   echo "OPEN" > "$MARKER_DIR/pr-state"
   echo "0" > "$MARKER_DIR/mock-rollup-pending"
   echo "2" > "$MARKER_DIR/mock-total-checks"

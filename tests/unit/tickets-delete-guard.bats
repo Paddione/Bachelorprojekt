@@ -26,7 +26,7 @@ MIGRATION="$PROJECT_DIR/scripts/migrations/2026-08-23-tickets-delete-guard-audit
   [ -f "$MIGRATION" ]
 }
 
-@test "T015009: Delete-Audit-Tabelle ohne FK angelegt (muss CASCADE überleben)" {
+@test "T015009: Delete-Audit-Tabelle ohne FK angelegt (muss CASCADE ueberleben)" {
   [ -f "$MIGRATION" ]
   grep -q "CREATE TABLE IF NOT EXISTS tickets.ticket_delete_audit" "$MIGRATION"
   # Kein FOREIGN KEY / REFERENCES in der Tabellendefinition — sonst würde
@@ -34,7 +34,7 @@ MIGRATION="$PROJECT_DIR/scripts/migrations/2026-08-23-tickets-delete-guard-audit
   ! grep -A8 "CREATE TABLE IF NOT EXISTS tickets.ticket_delete_audit" "$MIGRATION" | grep -qi "references"
 }
 
-@test "T015009: BEFORE DELETE Audit-Trigger schreibt Snapshot vor der Löschung" {
+@test "T015009: BEFORE DELETE Audit-Trigger schreibt Snapshot vor der Loeschung" {
   [ -f "$MIGRATION" ]
   grep -q "BEFORE DELETE ON tickets.tickets" "$MIGRATION"
   grep -q "fn_ticket_delete_audit" "$MIGRATION"
@@ -48,14 +48,14 @@ MIGRATION="$PROJECT_DIR/scripts/migrations/2026-08-23-tickets-delete-guard-audit
   grep -q "RAISE EXCEPTION" "$MIGRATION"
 }
 
-@test "T015009: Guard lässt is_test_data=true immer durch (Purge-Pfade intakt)" {
+@test "T015009: Guard laesst is_test_data=true immer durch (Purge-Pfade intakt)" {
   [ -f "$MIGRATION" ]
   local guard_fn
   guard_fn=$(awk '/fn_tickets_guard_delete\(\)/,/^\\$\\$/' "$MIGRATION")
   echo "$guard_fn" | grep -q "IF OLD.is_test_data THEN"
 }
 
-@test "T015009: fn_audit_log trackt external_id und is_test_data (Lückenschluss)" {
+@test "T015009: fn_audit_log trackt external_id und is_test_data (Lueckenschluss)" {
   [ -f "$MIGRATION" ]
   grep -q "'external_id','is_test_data'" "$MIGRATION"
 }

@@ -11,12 +11,12 @@ setup() {
   grep -q "is_test_data = false" "$REPO_ROOT/components/website/src/lib/messaging-db.ts"
 }
 
-@test "T001456: countPendingByType zählt keine Test-Zeilen" {
+@test "T001456: countPendingByType zaehlt keine Test-Zeilen" {
   grep -q "status = 'pending' AND is_test_data = false" \
     "$REPO_ROOT/components/website/src/lib/messaging-db.ts"
 }
 
-@test "T001456: fa-20 finalize-Spec nutzt [TEST]-meetingType (Sweep-fähig)" {
+@test "T001456: fa-20 finalize-Spec nutzt [TEST]-meetingType (Sweep-faehig)" {
   grep -q "meetingType: '\[TEST\] Erstgesprach'" \
     "$REPO_ROOT/tests/e2e/specs/fa-20-finalize.spec.ts"
 }

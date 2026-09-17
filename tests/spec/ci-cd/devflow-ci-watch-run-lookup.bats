@@ -115,7 +115,7 @@ teardown() {
 # Ohne sie waeren die Negativ-Aussagen vakuos: ein Skript, das an allem
 # scheitert, wuerde sie zufaellig erfuellen.
 
-@test "Anker: gruener PR-HEAD meldet 'alle grün' mit exit 0" {
+@test "Anker: gruener PR-HEAD meldet 'alle gruen' mit exit 0" {
   echo "OPEN" > "$MARKER_DIR/pr-state"
   echo -n "" > "$MARKER_DIR/mock-check-runs-failures"
 
@@ -141,7 +141,7 @@ teardown() {
 
 # ── Die eigentliche Zusicherung ─────────────────────────────────────────────
 
-@test "T014466: unbestimmbarer Run-Lookup meldet NICHT 'alle grün'" {
+@test "T014466: unbestimmbarer Run-Lookup meldet NICHT 'alle gruen'" {
   # Der Fall aus dem Haupt-Checkout: check-runs meldet failure, aber gh run list
   # liefert nichts. "Nicht gefunden" ist keine Entwarnung.
   echo "OPEN" > "$MARKER_DIR/pr-state"

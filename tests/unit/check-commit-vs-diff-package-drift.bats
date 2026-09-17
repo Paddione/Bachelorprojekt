@@ -64,7 +64,7 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
-@test "allows: normaler Code-Commit ohne .opencode/ bleibt unberührt" {
+@test "allows: normaler Code-Commit ohne .opencode/ bleibt unberuehrt" {
   mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware sequence\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'real code' > src/middleware.ts

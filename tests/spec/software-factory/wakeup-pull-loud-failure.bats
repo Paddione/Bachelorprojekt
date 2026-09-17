@@ -66,7 +66,7 @@ _run_wakeup() {
     bash "$WAKEUP"
 }
 
-@test "T011581: scheiternder ff-Pull wird laut gemeldet (Fehlgrund + Rückstand), Tick bleibt fail-open" {
+@test "T011581: scheiternder ff-Pull wird laut gemeldet (Fehlgrund + Rueckstand), Tick bleibt fail-open" {
   # Divergenz: lokaler Commit im Checkout, anderer Commit upstream → ff-only scheitert.
   echo local > "$CHECKOUT/local.txt"
   git -C "$CHECKOUT" add -A
@@ -81,7 +81,7 @@ _run_wakeup() {
   [[ "$output" == *"hinter origin/main"* ]]
 }
 
-@test "T011581: erfolgreicher Pull bleibt still und rückt HEAD tatsächlich vor" {
+@test "T011581: erfolgreicher Pull bleibt still und rueckt HEAD tatsaechlich vor" {
   _run_wakeup
   [ "$status" -eq 0 ]
   [[ "$output" == *"skipping"* ]]

@@ -20,7 +20,7 @@ setup() {
   fi
 }
 
-@test "G-CQ07: keine zirkulären Imports mehr in components/website/src" {
+@test "G-CQ07: keine zirkulaeren Imports mehr in components/website/src" {
   # T001575: Die Folge-PRs zu den übrigen Zyklen sind inzwischen gelandet —
   # madge meldet 0 Zyklen auf main. Der frühere Sanity-Check ("übrige Zyklen
   # bleiben unangetastet") ist damit obsolet; ab jetzt gilt der strengere

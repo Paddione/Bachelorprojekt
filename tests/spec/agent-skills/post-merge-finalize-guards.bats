@@ -48,7 +48,7 @@ setup() {
 # der Merge-Status-Guard vor den Closure-Schritten (4–6) prüft den PR-State
 # per `gh pr view "$PR_NUM" --json state -q .state` und schließt nur bei
 # MERGED (T001149-M1).
-@test "T006348: --pr-Pfad prüft den PR-State vor der Closure (gh pr view --json state)" {
+@test "T006348: --pr-Pfad prueft den PR-State vor der Closure (gh pr view --json state)" {
   run grep -qF 'gh pr view' "$FINALIZE"
   [ "$status" -eq 0 ]
   run grep -qF -- '--json state' "$FINALIZE"
@@ -91,7 +91,7 @@ setup() {
 # Rot heute: das Skript wechselt sein cwd nie (nur die Schritt-8-Subshell
 # wechselt in ARCHIVE_DIR) — die relative Plan-Pfad-Prüfung galt nur bei
 # cwd=REPO_DIR; grün nach dem Fix: cd "$REPO_DIR" zu Skriptbeginn.
-@test "T006348: Skript ist cwd-unabhängig (cd \$REPO_DIR zu Skriptbeginn)" {
+@test "T006348: Skript ist cwd-unabhaengig (cd \$REPO_DIR zu Skriptbeginn)" {
   run grep -qF 'cd "$REPO_DIR"' "$FINALIZE"
   [ "$status" -eq 0 ]
 }
@@ -107,7 +107,7 @@ setup() {
 # grün nach dem Fix: die T006348-Implementierung löst die cwd-Abhängigkeit
 # per absolutem Skript-Pfad (bash "$REPO_DIR/scripts/branch-reaper.sh") statt
 # eines --repo-Flags.
-@test "T006348: branch-reaper-Aufruf ist cwd-unabhängig (absoluter Skript-Pfad)" {
+@test "T006348: branch-reaper-Aufruf ist cwd-unabhaengig (absoluter Skript-Pfad)" {
   run grep -qF 'bash "$REPO_DIR/scripts/branch-reaper.sh"' "$FINALIZE"
   [ "$status" -eq 0 ]
 }
@@ -115,7 +115,7 @@ setup() {
 # Positiv-Anker (T002356-M1) für Test 10: Das Skript löst den Worktree per
 # git worktree list auf — die Branch-Zuordnungs-Aussage wäre ohne den Anker
 # vakuos, wenn die gesamte Auflösung entfernt würde.
-@test "T008014: Worktree-Auflösung nutzt git worktree list (Anker)" {
+@test "T008014: Worktree-Aufloesung nutzt git worktree list (Anker)" {
   run grep -qF 'worktree list --porcelain' "$FINALIZE"
   [ "$status" -eq 0 ]
 }
@@ -124,7 +124,7 @@ setup() {
 # -T<id>-Suffix; grün nach dem Fix: die Auflösung ordnet den Worktree per
 # Branch-Zeile exakt zu (refs/heads/$BRANCH) — deckt <slug>-T<id> und
 # <branch-ohne-Typ-Praefix>-T<id> ab (T008014), Fallback bleibt die Konkatenation.
-@test "T008014: Worktree-Auflösung ordnet per Branch-Zeile zu (branch-exact)" {
+@test "T008014: Worktree-Aufloesung ordnet per Branch-Zeile zu (branch-exact)" {
   run grep -qF 'refs/heads/$BRANCH' "$FINALIZE"
   [ "$status" -eq 0 ]
   run grep -qF '"branch " b' "$FINALIZE"

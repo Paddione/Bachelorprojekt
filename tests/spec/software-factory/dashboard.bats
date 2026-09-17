@@ -66,7 +66,7 @@ FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../components/website/src/compone
 # `pages/admin/cockpit.astro`, geprüft wurde aber schon immer $COCKPIT_PAGE =
 # pages/sdlc/cockpit.astro — der Name stammt aus der Zeit vor dem Seitenumzug
 # und wird hier mitkorrigiert.
-@test "T003417 pipeline: pages/sdlc/cockpit.astro lädt die Kit-Runtime ohne Svelte-Hülle" {
+@test "T003417 pipeline: pages/sdlc/cockpit.astro laedt die Kit-Runtime ohne Svelte-Huelle" {
   [ -f "$COCKPIT_PAGE" ]
 
   # Positiv-Anker: die Kit-Skripte sind eingebunden — die Funktion, die

@@ -16,7 +16,7 @@
   [ "$count" -eq 0 ]
 }
 
-@test "G-FE03: browser-logger.ts existiert und enthält browserLogger-Export" {
+@test "G-FE03: browser-logger.ts existiert und enthaelt browserLogger-Export" {
   grep -q 'export const browserLogger' components/website/src/lib/browser-logger.ts
 }
 

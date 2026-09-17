@@ -14,7 +14,7 @@ setup() {
   cd "$REPO" || return 1
 }
 
-@test "T002462 layout.js/layout.css sind im Image-Layout auflösbar, nicht nur im Checkout" {
+@test "T002462 layout.js/layout.css sind im Image-Layout aufloesbar, nicht nur im Checkout" {
   # Positiv-Anker (T002356-M1): eine BEREITS vorhandene Kit-Datei (panel.js)
   # muss beide Prüfungen bestehen — sonst bestünde ein Test, der schlicht
   # nichts findet.

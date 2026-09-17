@@ -65,7 +65,7 @@ EOF
   [ -f "$MARKER" ]
 }
 
-@test "T011543: läuft bereits ein Orchestrator für das Ticket, wird NICHT erneut gestartet" {
+@test "T011543: laeuft bereits ein Orchestrator fuer das Ticket, wird NICHT erneut gestartet" {
   # Fremdprozess, dessen cmdline die Orchestrator-Signatur dieses Tickets trägt.
   # `sleep 30; :` statt `sleep 30`: ein Einzelkommando würde bash per exec
   # ersetzen und der Marker ($0) verschwände aus der cmdline.

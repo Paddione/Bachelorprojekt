@@ -92,7 +92,7 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 # build-target.mjs entfernt /sdlc/-Routen aus dem prod-Manifest. Der Test prüft jetzt, dass
 # keine dieser Routen mehr im Menü steht. Die inhaltliche Zusicherung über die Pfadauflösung
 # liegt in tests/spec/website-core/admin-nav-no-sdlc-routes.bats.
-@test "T001433 sidebar: Nav-Definition führt keine im prod-Build entfernten SDLC-Routen" {
+@test "T001433 sidebar: Nav-Definition fuehrt keine im prod-Build entfernten SDLC-Routen" {
   # Positiv-Anker: die Definition ist überhaupt befüllt (T002356-M1).
   run grep -c "href:[[:space:]]*'/admin/" "$SIDEBAR_ITEMS"
   [ "$output" -ge 1 ]
@@ -424,7 +424,7 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 # T003826: Repo Health lag unter /sdlc/repohealth und ist im prod-Build nicht vorhanden;
 # der Eintrag entfiel. GoalsDashboard bleibt aus der Kore-Homepage entfernt (T002059) —
 # das war der eigentliche Gegenstand jenes Tickets und ist vom Menü-Umbau unberührt.
-@test "T002059 move: Nav-Definition führt keinen /admin/repohealth-Eintrag mehr" {
+@test "T002059 move: Nav-Definition fuehrt keinen /admin/repohealth-Eintrag mehr" {
   # Positiv-Anker: die Definition ist befüllt.
   run grep -c "href:[[:space:]]*'/admin/" "$SIDEBAR_ITEMS"
   [ "$output" -ge 1 ]
@@ -433,7 +433,7 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   [ "$status" -ne 0 ]
 }
 
-@test "T002531 sidebar: Nav-Definition führt weder /admin/cockpit noch /admin/pipeline" {
+@test "T002531 sidebar: Nav-Definition fuehrt weder /admin/cockpit noch /admin/pipeline" {
   run grep -Eq "href:[[:space:]]*'/admin/cockpit'" "$SIDEBAR_ITEMS"
   [ "$status" -ne 0 ]
   run grep -Eq "href:[[:space:]]*'/admin/pipeline'" "$SIDEBAR_ITEMS"

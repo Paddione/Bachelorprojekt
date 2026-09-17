@@ -79,7 +79,7 @@ GHSTUB
 # expected: FAIL (RED — die Vorgänger-SUCCESS-Liste maskiert den leeren HEAD;
 # das Skript pollt endlos im grünen Zweig statt ein ci-never-ran-Signal zu geben)
 
-@test "T012265: HEAD ohne Check-Runs trotz Vorgänger-SUCCESS muss ein ci-never-ran-Signal geben" {
+@test "T012265: HEAD ohne Check-Runs trotz Vorgaenger-SUCCESS muss ein ci-never-ran-Signal geben" {
   _stub_gh "0" "OPEN"
 
   run env REPO="$REPO" PATH="$BIN_DIR:$PATH" POLL_INTERVAL=1 MAX_CI_ATTEMPTS=1 \

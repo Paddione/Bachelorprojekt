@@ -127,7 +127,12 @@ EOF
     # Idempotent: fehlende Netz-Connects nachziehen (z.B. nach Netz-Neuanlage);
     # geaenderte Config -> Restart (cmp gegen Snapshot, kein Blind-Restart).
     docker network connect "$net" "$PROXY_NAME" >/dev/null 2>&1 || true
-    if [[ ! -f "${PROXY_CONF}.running" ]] || ! cmp -s "$PROXY_CONF" "${PROXY_CONF}.running"; then
+    local is_running
+    is_running=$(docker inspect -f '{{.State.Running}}' "$PROXY_NAME" 2>/dev/null || echo false)
+    if [[ "$is_running" != "true" ]]; then
+      docker start "$PROXY_NAME" >/dev/null 2>&1 || true
+      wait_proxy_ready "$PROXY_NAME"
+    elif [[ ! -f "${PROXY_CONF}.running" ]] || ! cmp -s "$PROXY_CONF" "${PROXY_CONF}.running"; then
       docker restart "$PROXY_NAME" >/dev/null 2>&1 || true
       cp "$PROXY_CONF" "${PROXY_CONF}.running"
       wait_proxy_ready "$PROXY_NAME"

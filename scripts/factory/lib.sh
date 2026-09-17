@@ -124,7 +124,14 @@ factory_psql() {
     return
   fi
   local pod sql=""
-  if [ ! -t 0 ] && read -t 0 -r 2>/dev/null; then
+  local has_cmd_arg=0
+  for arg in "$@"; do
+    case "$arg" in
+      -c|--command=*|-f|--file=*) has_cmd_arg=1; break ;;
+      -[!-]*c*) has_cmd_arg=1; break ;;
+    esac
+  done
+  if [[ "$has_cmd_arg" -eq 0 && ! -t 0 ]]; then
     sql="$(cat)"
   fi
   # [T900118] Writes gegen devmesh verweigern — nur im kubectl-Pfad; der FACTORY_PG_URL-

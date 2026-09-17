@@ -20,7 +20,7 @@ setup() { _sf_setup; }
 
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-devmesh}" \
+  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1)
   [[ -n "$_pod" ]] || skip "kein erreichbarer shared-db-Pod — DB-gestützter Test übersprungen"
@@ -28,7 +28,7 @@ _skip_if_no_db() {
 
 @test "T015960: queue.sh-Rows tragen ein nicht-leeres status-Feld (DB-Live)" {
   _skip_if_no_db
-  run env BRAND=mentolder FACTORY_CTX="${FACTORY_CTX:-devmesh}" \
+  run env BRAND=mentolder FACTORY_CTX="${FACTORY_CTX:-fleet}" \
     bash "$BATS_TEST_DIRNAME/../../../scripts/factory/queue.sh"
   [ "$status" -eq 0 ]
   printf '%s' "$output" | jq -e 'type == "array"' >/dev/null

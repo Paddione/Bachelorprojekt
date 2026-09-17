@@ -11,7 +11,10 @@
      ! grep -q "Docs" CLAUDE.md || ! grep -q "Videovault" CLAUDE.md || \
      ! grep -q "Mediaviewer-Widget" CLAUDE.md || \
      ! grep -q "Mentolder-Web" CLAUDE.md || \
-     ! grep -q "Downloads" CLAUDE.md; then
+     ! grep -q "Downloads" CLAUDE.md || \
+     ! grep -q "mcp-node" CLAUDE.md || \
+     ! grep -q "repo-sync" CLAUDE.md || \
+     ! grep -q "dev-shell" CLAUDE.md; then
     echo "Exclusion list is missing components in CLAUDE.md"
     exit 1
   fi

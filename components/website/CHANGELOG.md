@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.347.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.347.0...website-v1.347.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **scripts:** embed-Probe endet bei fehlendem Backend sofort, Hook ohne Retry [T900209] ([#5686](https://github.com/Paddione/Bachelorprojekt/issues/5686)) ([a284406](https://github.com/Paddione/Bachelorprojekt/commit/a28440667c5d66772ee418f75148218e8b15a524))
+
 ## [1.347.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.2...website-v1.347.0) (2026-09-16)
 
 

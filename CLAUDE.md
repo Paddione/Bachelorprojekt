@@ -141,7 +141,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 
 ## Image Exclusions
 
-The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`), Factory-Runner (`factory-runner`).
+The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`), Factory-Runner (`factory-runner`), MCP-Node (`mcp-node`), Repo-Sync (`repo-sync`), Dev-Shell (`dev-shell`).
 
 ## Development Rules
 

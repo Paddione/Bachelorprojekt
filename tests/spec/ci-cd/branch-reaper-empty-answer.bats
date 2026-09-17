@@ -59,6 +59,16 @@ setup() {
   _branch chore/plan-T009010    # Ticket existiert NICHT: Stub antwortet rc=0 + leer
   _branch chore/plan-T009011    # Ticket done  -> zweiter Sweep-Kandidat (liegt NACH T009010)
 
+  # [T900224] Post-Merge-Realitaet: beide REAP-Kandidaten sind gemergt (T900096-Guard
+  # passiert). T009010 bleibt bewusst ungemergt — sein KEEP kommt vom T006329-Riegel
+  # (leere Antwort), nicht vom Guard.
+  # -X theirs: beide Kandidaten schreiben dieselbe Fixture-Datei — der zweite Merge
+  # konflikte sonst. Der Inhalt ist irrelevant (Guard prueft nur Ancestry).
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" merge --quiet -X theirs chore/plan-T009001 -m "merge chore/plan-T009001"
+  git -C "$FIXTURE" merge --quiet -X theirs chore/plan-T009011 -m "merge chore/plan-T009011"
+  git -C "$FIXTURE" push --quiet origin main
+
   git -C "$FIXTURE" checkout --quiet main
   git -C "$FIXTURE" fetch --quiet origin
 

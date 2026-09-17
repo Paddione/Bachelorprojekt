@@ -93,6 +93,14 @@ setup() {
   _code fix/unknown-succ-T009035 v9
   _code fix/successor-T009036 v9
 
+  # [T900224] Post-Merge-Realitaet: der Anker-Branch (klassischer Reap-Fall ueber beide
+  # Ticket+Allowlist-Signale) ist gemergt — sonst faengt ihn der T900096-Guard ab. Alle
+  # anderen Branches bleiben bewusst ungemergt: ihre Pfade (Positiv-Signale, Riegel,
+  # hartes KEEP) feuern vor dem Guard und sind vom Merge unabhaengig.
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" merge --quiet fix/known-done-T009030 -m "merge fix/known-done-T009030"
+  git -C "$FIXTURE" push --quiet origin main
+
   git -C "$FIXTURE" checkout --quiet main
   git -C "$FIXTURE" fetch --quiet origin
 

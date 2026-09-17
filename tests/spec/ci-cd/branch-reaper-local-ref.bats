@@ -64,6 +64,16 @@ setup() {
   _branch chore/plan-T009001
   _branch chore/plan-T009002
 
+  # [T900224] Post-Merge-Realitaet: beide Branches sind gemergt (T900096-Guard passiert,
+  # Remote-Delete laeuft). Test 12 legt danach bewusst einen nie gepushten Commit auf den
+  # lokalen T009002-Ref — der ueberlebt ueber den SHA-Mismatch (KEEP local).
+  # -X theirs: beide Kandidaten schreiben dieselbe Fixture-Datei — der zweite Merge
+  # konflikte sonst. Der Inhalt ist irrelevant (Guard prueft nur Ancestry).
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" merge --quiet -X theirs chore/plan-T009001 -m "merge chore/plan-T009001"
+  git -C "$FIXTURE" merge --quiet -X theirs chore/plan-T009002 -m "merge chore/plan-T009002"
+  git -C "$FIXTURE" push --quiet origin main
+
   git -C "$FIXTURE" checkout --quiet main
   git -C "$FIXTURE" fetch --quiet origin
 

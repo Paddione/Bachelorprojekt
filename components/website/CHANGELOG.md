@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.349.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.3...website-v1.349.0) (2026-09-17)
+
+
+### Features
+
+* MCP-token auto-sync via watchdog drift-heal [T900223] ([#5715](https://github.com/Paddione/Bachelorprojekt/issues/5715)) ([9b74633](https://github.com/Paddione/Bachelorprojekt/commit/9b74633b05aff7d34f9b352633a3ad9392d59a33))
+
 ## [1.348.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.2...website-v1.348.3) (2026-09-17)
 
 

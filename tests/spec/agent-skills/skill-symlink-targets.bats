@@ -47,6 +47,7 @@ _symlinks() {
   broken=""
   while IFS= read -r link; do
     [ -n "$link" ] || continue
+    [ -d "$link" ] || continue
     if [ ! -e "$link" ]; then
       broken="${broken}${link} -> $(readlink "$link")"$'\n'
     fi
@@ -64,6 +65,7 @@ _symlinks() {
   missing=""
   while IFS= read -r link; do
     [ -n "$link" ] || continue
+    [ -d "$link" ] || continue
     if [ ! -r "$link/SKILL.md" ]; then
       missing="${missing}${link}/SKILL.md"$'\n'
     fi

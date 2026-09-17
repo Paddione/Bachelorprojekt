@@ -8,6 +8,10 @@ on:
       - '.github/workflows/build-mentolder-web.yml'
   workflow_dispatch:
 
+concurrency:
+  group: build-mentolder-web-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   OPENSPEC_TELEMETRY: '0'
 
@@ -37,7 +41,7 @@ jobs:
 
       - name: Typecheck
         run: |
-          cd mentolder-web
+          cd components/mentolder-web
           pnpm install --frozen-lockfile
           pnpm run typecheck
 
@@ -72,7 +76,7 @@ jobs:
             ghcr.io/paddione/mentolder-web:latest
             ghcr.io/paddione/mentolder-web:${{ steps.version.outputs.sha }}
           cache-from: type=gha
-          cache-to: type=gha,mode=min
+          cache-to: type=gha,mode=max
 
       - name: Mirror image to GitLab registry
         continue-on-error: true

@@ -17,6 +17,10 @@ on:
       - '.github/workflows/build-website.yml'
   workflow_dispatch:
 
+concurrency:
+  group: build-website-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   OPENSPEC_TELEMETRY: '0'
 

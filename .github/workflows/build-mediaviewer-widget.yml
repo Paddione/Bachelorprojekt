@@ -9,6 +9,10 @@ on:
       - '.github/workflows/build-mediaviewer-widget.yml'
   workflow_dispatch:
 
+concurrency:
+  group: build-mediaviewer-widget-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   OPENSPEC_TELEMETRY: '0'
 
@@ -64,7 +68,7 @@ jobs:
             ghcr.io/paddione/mediaviewer-widget:sha-${{ steps.version.outputs.sha }}
             ghcr.io/paddione/mediaviewer-widget:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=min
+          cache-to: type=gha,mode=max
 
       - name: Mirror image to GitLab registry
         continue-on-error: true

@@ -15,6 +15,10 @@ on:
       - '.github/workflows/build-sdlc-console.yml'
   workflow_dispatch:
 
+concurrency:
+  group: build-sdlc-console-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   OPENSPEC_TELEMETRY: '0'
 

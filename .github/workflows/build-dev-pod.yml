@@ -18,6 +18,10 @@ on:
       - '.github/workflows/build-dev-pod.yml'
   workflow_dispatch:
 
+concurrency:
+  group: build-dev-pod-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   OPENSPEC_TELEMETRY: '0'
 
@@ -79,7 +83,7 @@ jobs:
             ghcr.io/paddione/${{ matrix.image }}:sha-${{ steps.version.outputs.sha }}
             ghcr.io/paddione/${{ matrix.image }}:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=min
+          cache-to: type=gha,mode=max
 
       - name: Mirror image to GitLab registry
         continue-on-error: true

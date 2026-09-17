@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths: ['components/brett/**', '.github/workflows/build-brett.yml']
 
+concurrency:
+  group: build-brett-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   OPENSPEC_TELEMETRY: '0'
 
@@ -63,7 +67,7 @@ jobs:
             ghcr.io/paddione/workspace-brett:latest
             ghcr.io/paddione/workspace-brett:dev
           cache-from: type=gha
-          cache-to: type=gha,mode=min
+          cache-to: type=gha,mode=max
 
       - name: Mirror image to GitLab registry
         continue-on-error: true

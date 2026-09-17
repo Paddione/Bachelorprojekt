@@ -4823,6 +4823,12 @@
       "status": "archived"
     }
   ],
+  "T900212": [
+    {
+      "slug": "llm-proxy-readiness-prio0",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

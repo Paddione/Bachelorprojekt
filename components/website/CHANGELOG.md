@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.353.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.352.0...website-v1.353.0) (2026-09-17)
+
+
+### Features
+
+* application pipeline typst dossiers T900230 ([#5747](https://github.com/Paddione/Bachelorprojekt/issues/5747)) ([d194912](https://github.com/Paddione/Bachelorprojekt/commit/d1949127580c054f738eba64180bfdfe9cb1b12e))
+
 ## [1.352.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.351.1...website-v1.352.0) (2026-09-17)
 
 

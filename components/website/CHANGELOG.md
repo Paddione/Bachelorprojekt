@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.349.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.349.0...website-v1.349.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* fail-closed Guards fuer devflow-post-merge-finalize Schritt 8/10 [T900096] ([#5719](https://github.com/Paddione/Bachelorprojekt/issues/5719)) ([959146c](https://github.com/Paddione/Bachelorprojekt/commit/959146c9d5598ae3420a42d9bcb530405a7703e2))
+
 ## [1.349.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.3...website-v1.349.0) (2026-09-17)
 
 

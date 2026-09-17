@@ -3,7 +3,9 @@ set -euo pipefail
 # Weekly dependency + schema audit (runs every Monday 07:00)
 # Creates branch, audits, commits changes, pushes, and creates PR.
 
-cd "$(git rev-parse --show-toplevel 2>/dev/null || echo "/home/patrick/Bachelorprojekt")"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "/home/patrick/Bachelorprojekt")"
+cd "$REPO_ROOT"
+source "$REPO_ROOT/scripts/lib/worktree-gitdir-guard.sh"
 
 SLUG="weekly-dep-schema-audit"
 BRANCH="chore/${SLUG}"
@@ -63,6 +65,7 @@ fi
 
 # Commit and push
 BASE_SHA="$(git rev-parse "@{upstream}" 2>/dev/null || git rev-parse origin/main)"
+worktree_validate_gitdir --worktree "$REPO_ROOT/$WORKTREE" --command-name "commit weekly audit"
 git add -A
 git commit -m "chore(infra): $TICKET_TITLE [$TICKET_EXT_ID]"
 HEAD_SHA="$(git rev-parse HEAD)"

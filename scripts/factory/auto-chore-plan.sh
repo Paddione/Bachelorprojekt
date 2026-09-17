@@ -18,6 +18,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
+source "$REPO/scripts/lib/worktree-gitdir-guard.sh"
 
 DRY_RUN=false
 ALL=false
@@ -203,6 +204,7 @@ fi
 # Commit und Push MUESSEN verkettet sein: ein vom pre-commit-Hook abgelehnter
 # Commit verhindert einen Push auf eigener Zeile NICHT — der Branch waere dann
 # ohne Plan gepusht und das Ticket zeigte auf Leeres.
+worktree_validate_gitdir --worktree "$WT" --command-name "stage factory plan" || exit $?
 git add "openspec/changes/${slug}" \
   && git commit -q -m "chore(plans): stage ${slug} for factory [${EXT_ID}]" \
   && git push -q -u origin "$branch"

@@ -74,6 +74,59 @@ setup() {
   [ "$output" -ge 1 ]
 }
 
+# ── 1.4.2b: tick script is POSIX sh (busybox in alpine/k8s) [T900207] ─
+
+# Inline -c-Skript des factory-tick-Containers.
+_tick_script() {
+  yq -r 'select(.kind == "CronJob" and .metadata.name == "factory-tick") | .spec.jobTemplate.spec.template.spec.containers[0].command[2]' "$FACTORY"
+}
+
+@test "1.4.2b: tick script contains no bashisms and parses under POSIX sh" {
+  command -v yq >/dev/null 2>&1 || skip "yq binary not installed"
+  command -v dash >/dev/null 2>&1 || skip "dash binary not installed"
+
+  # alpine/k8s startet /bin/sh = busybox ash, kein bash.
+  run yq -r 'select(.kind == "CronJob" and .metadata.name == "factory-tick") | .spec.jobTemplate.spec.template.spec.containers[0].command[0]' "$FACTORY"
+  [ "$output" = "/bin/sh" ]
+
+  script="$(_tick_script)"
+  [ -n "$script" ]
+
+  # Keine bash-only Konstrukte: here-string, [[ ]], process substitution, pipefail.
+  run grep -nE '<<<|\[\[|<\(|pipefail' <<<"$script"
+  echo "bashisms: $output"
+  [ "$status" -ne 0 ]
+
+  # dash ist strikt POSIX — ein Syntaxfehler hier waere auch einer in busybox sh.
+  run dash -n -c "$script"
+  echo "dash -n: $output"
+  [ "$status" -eq 0 ]
+}
+
+@test "1.4.2b: tick exits 0 only when the last line reports WAKEUP_EXIT=0" {
+  command -v yq >/dev/null 2>&1 || skip "yq binary not installed"
+  command -v dash >/dev/null 2>&1 || skip "dash binary not installed"
+
+  script="$(_tick_script)"
+  stub="$BATS_TMP/tick-stub"
+  mkdir -p "$stub"
+  cat >"$stub/curl" <<'STUB'
+#!/bin/sh
+echo "tick running"
+echo "$TICK_LAST"
+STUB
+  chmod +x "$stub/curl"
+
+  TICK_LAST="WAKEUP_EXIT=0" PATH="$stub:$PATH" run dash -c "$script"
+  echo "ok-case: $status $output"
+  [ "$status" -eq 0 ]
+
+  TICK_LAST="WAKEUP_EXIT=1" PATH="$stub:$PATH" run dash -c "$script"
+  echo "fail-case: $status $output"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"tick-failed"* ]]
+}
+
 # ── 1.4.3: runner serves the wakeup listener ──────────────────────────
 
 @test "1.4.3: runner serves the wakeup listener" {

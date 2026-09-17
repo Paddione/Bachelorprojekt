@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.348.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.1...website-v1.348.2) (2026-09-17)
+
+
+### Bug Fixes
+
+* **scripts:** align routing-check and retire proxy service [T900213] ([#5701](https://github.com/Paddione/Bachelorprojekt/issues/5701)) ([8b38614](https://github.com/Paddione/Bachelorprojekt/commit/8b38614a316841e5163c99fc8d327e93fde093c6))
+
 ## [1.348.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.0...website-v1.348.1) (2026-09-17)
 
 

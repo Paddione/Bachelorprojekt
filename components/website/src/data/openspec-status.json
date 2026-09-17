@@ -4873,6 +4873,12 @@
       "status": "archived"
     }
   ],
+  "T900230": [
+    {
+      "slug": "application-pipeline-typst-dossiers",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

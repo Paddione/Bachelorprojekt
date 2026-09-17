@@ -94,8 +94,8 @@ tasks:
         kubectl --context "$CTX" -n sealed-secrets rollout status deploy/sealed-secrets-controller --timeout=180s
         kubectl --context "$CTX" create namespace workspace --dry-run=client -o yaml | kubectl --context "$CTX" apply -f -
         kubectl --context "$CTX" apply -f environments/sealed-secrets/dev.yaml
-        for s in workspace/workspace-secrets website/website-secrets cert-manager/ipv64-api-key; do
-          kubectl --context "$CTX" -n "${s%%/*}" wait --for=create "secret/${s##*/}" --timeout=120s
+        for s in "workspace:workspace-secrets" "website:website-secrets" "cert-manager:ipv64-api-key"; do
+          kubectl --context "$CTX" -n "${s%%:*}" wait --for=create "secret/${s##*:}" --timeout=120s
         done
         kubectl --context "$CTX" -n cert-manager set env deployment/cert-manager-lego-webhook --from=secret/ipv64-api-key
         envsubst '$DEVMESH_DOMAIN' < dev-local/cluster/tls.yaml | kubectl --context "$CTX" apply -f -

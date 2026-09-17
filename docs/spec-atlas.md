@@ -2,23 +2,20 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2316 · Scenarios: 5157
+Specs: 126 · Requirements: 2319 · Scenarios: 5162
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 74 · Scenarios: 156 · Lines: 1953
+Reqs: 77 · Scenarios: 161 · Lines: 2014
 Last touches:
+  - Local branch delete keeps branches with unmerged commits | T900096 | 2026-09-17 | ADDED
+  - Archive section aborts on dirty worktree instead of discarding or absorbing foreign work | T900096 | 2026-09-17 | ADDED
+  - Reaper keeps branches with commits outside main | T900096 | 2026-09-17 | ADDED
   - Portable skill inventory is authoritative across four harnesses | T900151 | 2026-09-16 | ADDED
   - Portable skill bodies are harness-neutral | T900151 | 2026-09-16 | ADDED
-  - Harness catalogs and agent-guide metadata include Codex | T900151 | 2026-09-16 | ADDED
-  - Registry Runtimes Stay in Sync with the opencode Runtime Config | T900167 | 2026-09-13 | ADDED
-  - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | 2026-09-11 | MODIFIED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
-  - Local branch delete keeps branches with unmerged commits | T900096 | active | ADDED
-  - Archive section aborts on dirty worktree instead of discarding or absorbing foreign work | T900096 | active | ADDED
-  - Reaper keeps branches with commits outside main | T900096 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED

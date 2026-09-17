@@ -22,3 +22,15 @@ Fallback bei `dsh`-Fehlern) SHALL unverändert bleiben.
 - **GIVEN** `FACTORY_EXECUTOR=nonsense`
 - **WHEN** the same branch is evaluated
 - **THEN** it warns and selects the opencode path, unchanged by the addition of dsh
+
+#### Scenario: an unbuilt harness checkout is distinguishable from a missing one
+
+- **GIVEN** a harness checkout present but never built
+- **WHEN** `dsh-exec.sh` runs
+- **THEN** it exits `2` with a message naming the missing build, not `127`
+
+#### Scenario: a run without a branch is rejected before it starts
+
+- **GIVEN** an invocation with an empty branch argument
+- **WHEN** `dsh-exec.sh` runs
+- **THEN** it exits `7` and starts no harness process

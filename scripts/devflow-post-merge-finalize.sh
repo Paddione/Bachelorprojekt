@@ -60,6 +60,8 @@ Zustandsabfrage (ohne DB-/Cluster-Zugriff, T015783):
   --frontmatter-state <slug> [--repo <dir>]  [T015916]
                   Schreibt completed | stale nach stdout (Exit 0); fehlt
                   openspec/changes/<slug>/tasks.md → ungleich 0 ohne Ausgabe.
+  --apply-completed-frontmatter <plan-file>  [T900226]
+                  Setzt status in <plan-file> auf status: completed (DB-frei, Exit 0).
 
 Exit: 0 = erledigt/uebersprungen, 1 = Fehler, 2 = Usage-/Env-Fehler.
 EOF
@@ -70,6 +72,7 @@ PR_NUM=""
 BRANCH=""
 ARCHIVE_STATE_SLUG=""
 FRONTMATTER_STATE_SLUG=""
+APPLY_COMPLETED_FRONTMATTER_FILE=""
 
 while [[ $# -gt 0 ]]; do case "$1" in
   --help|-h) usage; exit 0 ;;
@@ -77,13 +80,14 @@ while [[ $# -gt 0 ]]; do case "$1" in
   --branch)  BRANCH="$2"; shift 2 ;;
   --archive-state) ARCHIVE_STATE_SLUG="$2"; shift 2 ;;
   --frontmatter-state) FRONTMATTER_STATE_SLUG="$2"; shift 2 ;;
+  --apply-completed-frontmatter) APPLY_COMPLETED_FRONTMATTER_FILE="$2"; shift 2 ;;
   --repo)    REPO_DIR="$(cd "$2" && pwd)"; TICKET_SH="$REPO_DIR/scripts/ticket.sh"; cd "$REPO_DIR"; shift 2 ;;
   -*)        echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   *)         if [[ -z "$TICKET_ID" ]]; then TICKET_ID="$1"; shift
              else echo "Unexpected argument: $1" >&2; usage >&2; exit 2; fi ;;
 esac; done
 
-if [[ -z "$TICKET_ID" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" ]]; then
+if [[ -z "$TICKET_ID" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" && -z "$APPLY_COMPLETED_FRONTMATTER_FILE" ]]; then
   echo "ERROR: Ticket-ID fehlt." >&2
   usage >&2
   exit 2
@@ -92,8 +96,8 @@ fi
 # [T015783] --archive-state ist vom Offline-Guard ausgenommen: es liest nur
 # Arbeitsbaum und Remote-Refs, nie die Ticket-DB. Der Guard schuetzt die
 # Closure-Schritte, nicht die Zustandsabfrage. [T015916] --frontmatter-state
-# ebenso: liest nur den Arbeitsbaum.
-if [[ -n "${TICKET_OFFLINE:-}" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" ]]; then
+# und [T900226] --apply-completed-frontmatter ebenso: lesen/schreiben nur den Arbeitsbaum.
+if [[ -n "${TICKET_OFFLINE:-}" && -z "$ARCHIVE_STATE_SLUG" && -z "$FRONTMATTER_STATE_SLUG" && -z "$APPLY_COMPLETED_FRONTMATTER_FILE" ]]; then
   echo "ERROR: Finalize-Skript benoetigt Cluster-/DB-Zugriff (ticket.sh); TICKET_OFFLINE ist gesetzt." >&2
   exit 2
 fi
@@ -246,6 +250,9 @@ fi
 # [T015916] Frueher Ausstieg --frontmatter-state, gleiches Muster wie oben.
 [[ -n "$FRONTMATTER_STATE_SLUG" ]] && { _plan_frontmatter_state "$FRONTMATTER_STATE_SLUG" "$REPO_DIR"; exit $?; }
 
+# [T900226] Frueher Ausstieg --apply-completed-frontmatter (DB-frei).
+[[ -n "$APPLY_COMPLETED_FRONTMATTER_FILE" ]] && { _apply_completed_frontmatter_cli "$APPLY_COMPLETED_FRONTMATTER_FILE"; }
+
 echo "--- devflow-post-merge-finalize: Ticket $TICKET_ID ---"
 
 # Schritt 1 — Ticket laden: unbekannte ID ist ein Fehler (Exit 1); Status
@@ -388,46 +395,14 @@ if [[ -n "$PR_NUM" ]]; then
   fi
 fi
 
-# Schritt 7 — Plan nach tickets.ticket_plans archivieren. Ohne plan_ref oder
-# nicht mehr aufloesbaren Plan-Pfad: [skip] (Archiv aus DB-Daten persistiert).
+# Schritt 7 — Plan nach tickets.ticket_plans archivieren.
+# [T015916/T900226] Umzug in die Archiv-Sektion (Schritt 8): Frontmatter-Wechsel und
+# ticket.sh archive-plan laufen nach checkout -B im Archiv-Baum, damit DB-Kopie
+# und Archiv-Snapshot aus demselben Dateizustand entstehen.
 if [[ -z "$PLAN_FILE" || -z "$SLUG" ]]; then
   mark_skip "Schritt 7: kein FACTORY-PLAN-REF mit Plan-Pfad — Plan-Archiv uebersprungen"
-else
-  # [T013315/F2] Vor der Archivierung den Plan-Pfad im Arbeitsbaum pruefen.
-  # Fehlt er, obwohl der Branch-Commit ihn traegt, hing der lokale Haupt-Checkout
-  # typischerweise hinter origin/main und der gemergte Plan dort noch fehlt
-  # (beobachtet im T013108-Lauf: generisches "ERROR: Schritt 7 — archive-plan
-  # fehlgeschlagen", das auf die falsche Stelle zeigte). Idempotent heilbar per
-  # git pull --ff-only — die Meldung nennt jetzt die Stelle zum Pullen.
-  if [[ ! -s "$PLAN_FILE" ]] && git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}" 2>/dev/null; then
-    git fetch origin main >/dev/null 2>&1 || true
-    _local_main="$(git -C "$REPO_DIR" rev-parse refs/heads/main 2>/dev/null || true)"
-    _origin_main="$(git -C "$REPO_DIR" rev-parse origin/main 2>/dev/null || true)"
-    if [[ -n "$_local_main" && -n "$_origin_main" && "$_local_main" != "$_origin_main" ]] \
-       && ! git -C "$REPO_DIR" merge-base --is-ancestor "$_origin_main" "$_local_main" 2>/dev/null; then
-      mark_warn "Schritt 7: Plan $PLAN_FILE fehlt im Arbeitsbaum und lokaler main ist hinter origin/main — erst 'git pull --ff-only' im Haupt-Checkout ausfuehren, dann Finalize erneut aufrufen (idempotent)"
-      PLAN_FILE=""
-    else
-      mark_warn "Schritt 7: Plan $PLAN_FILE fehlt im Arbeitsbaum (liegt aber im Branch-Commit) — Ursache im Haupt-Checkout pruefen"
-    fi
-  fi
 fi
 
-if [[ -n "$PLAN_FILE" && -n "$SLUG" ]]; then
-  # [T015916] Der alte Frontmatter-Sed gegen "$PLAN_FILE" ist entfernt: er traf
-  # den Haupt-Checkout, Schritt 8 archivierte den frischen checkout--B-Baum
-  # weiter mit `status: active`. Der Wechsel passiert jetzt im Archiv-Baum.
-  ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$PLAN_FILE")
-  [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
-  if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
-    mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert"
-  elif [[ ! -s "$PLAN_FILE" ]] && ! git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}" 2>/dev/null; then
-    mark_skip "Schritt 7: Plan-Pfad nicht (mehr) aufloesbar — Archiv vermutlich bereits persistiert"
-  else
-    echo "ERROR: Schritt 7 — archive-plan fehlgeschlagen (Ticket $TICKET_ID, $PLAN_FILE)." >&2
-    exit 1
-  fi
-fi
 
 # [T012256/B1] _archive_lock serialisiert die Archiv-Sektion.
 # Schritt 8 wechselt per `git checkout -B "$ARCHIVE_BRANCH" origin/main` den
@@ -535,6 +510,12 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
   ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}-${TICKET_ID}"
   if [[ "${ARCHIVE_RESUME:-0}" != 1 ]] && _archive_already_done; then
     mark_skip "Schritt 8: OpenSpec-Archiv fuer $SLUG bereits erledigt (Archiv-Branch remote, Archiv auf origin/main oder Archiv-PR gemergt) — uebersprungen (idempotent)"
+    # [T015916/D2, T900226] DB-Persistierung nachholen, falls die Archiv-Sektion uebersprungen wird:
+    if [[ -n "$PLAN_FILE" && -n "$SLUG" ]]; then
+      ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$PLAN_FILE")
+      [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
+      bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1 || true
+    fi
   elif ! _archive_lock; then
     : # _archive_lock hat bereits gewarnt; Archivierung dieses Laufs entfaellt
   else
@@ -609,6 +590,22 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       git checkout -B "$ARCHIVE_BRANCH" origin/main
       # [T015916] Frontmatter-Wechsel im Archiv-Baum: nach checkout -B, vor archive.
       _apply_plan_frontmatter_completed "$ARCHIVE_DIR"
+      # [T015916/D2, T900226] Plan nach tickets.ticket_plans archivieren:
+      # laeuft im Archiv-Baum nach checkout -B aus demselben Dateizustand wie der Archiv-Snapshot.
+      _archived_plan_target="$ARCHIVE_DIR/${PLAN_REL:-}"
+      [[ -s "$_archived_plan_target" ]] || _archived_plan_target="$PLAN_FILE"
+      if [[ -n "$_archived_plan_target" && -n "$SLUG" ]]; then
+        ARCHIVE_PLAN_ARGS=(--id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" --plan-file "$_archived_plan_target")
+        [[ -n "$PR_NUM" ]] && ARCHIVE_PLAN_ARGS+=(--pr "$PR_NUM")
+        if bash "$TICKET_SH" archive-plan "${ARCHIVE_PLAN_ARGS[@]}" >/dev/null 2>&1; then
+          mark_ok "Schritt 7: Plan nach tickets.ticket_plans archiviert"
+        elif [[ ! -s "$_archived_plan_target" ]] && ! git cat-file -e "$BRANCH:${PLAN_FILE#"$REPO_DIR"/}" 2>/dev/null; then
+          mark_skip "Schritt 7: Plan-Pfad nicht (mehr) aufloesbar — Archiv vermutlich bereits persistiert"
+        else
+          echo "ERROR: Schritt 7 — archive-plan fehlgeschlagen (Ticket $TICKET_ID, $_archived_plan_target)." >&2
+          exit 1
+        fi
+      fi
       if [[ "${ARCHIVE_RESUME:-0}" == 1 ]]; then
         # [T015783] Resume-Pfad: die Verschiebung ist bereits vollzogen, nur nie
         # committet. Ein zweiter `openspec.sh archive`-Aufruf haette hier keine

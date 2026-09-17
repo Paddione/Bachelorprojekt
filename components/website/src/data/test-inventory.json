@@ -2454,6 +2454,24 @@
     "kind": "shell"
   },
   {
+    "id": "application-pipeline/import-bootstrap",
+    "file": "tests/spec/application-pipeline/import-bootstrap.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "application-pipeline/ingest-cli",
+    "file": "tests/spec/application-pipeline/ingest-cli.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "application-pipeline/schema",
+    "file": "tests/spec/application-pipeline/schema.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "archive",
     "file": "tests/spec/archive.bats",
     "category": "archive",

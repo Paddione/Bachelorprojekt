@@ -59,6 +59,16 @@ setup() {
   _branch chore/open-T009004    # Ticket offen -> muss verschont werden
   _branch chore/ohne-ticket     # keine Ticket-ID im Namen -> nicht zuordenbar
 
+  # [T900224] Post-Merge-Realitaet: beide Sweep-Kandidaten sind gemergt (T900096-Guard
+  # passiert, REAP ueber leeren Rest-Diff). open-T009004 und ohne-ticket bleiben bewusst
+  # ungemergt — ihre KEEPs feuern vor dem Guard (Ticket-Status / fehlende ID).
+  # -X theirs: beide Kandidaten schreiben dieselbe Fixture-Datei — der zweite Merge
+  # konflikte sonst. Der Inhalt ist irrelevant (Guard prueft nur Ancestry).
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" merge --quiet -X theirs chore/plan-T009001 -m "merge chore/plan-T009001"
+  git -C "$FIXTURE" merge --quiet -X theirs chore/plan-T009002 -m "merge chore/plan-T009002"
+  git -C "$FIXTURE" push --quiet origin main
+
   git -C "$FIXTURE" checkout --quiet main
   git -C "$FIXTURE" fetch --quiet origin
 

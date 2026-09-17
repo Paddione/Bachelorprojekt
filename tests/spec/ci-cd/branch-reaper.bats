@@ -66,6 +66,13 @@ setup() {
   git -C "$FIXTURE" commit --quiet -am "plan only"
   git -C "$FIXTURE" push --quiet origin chore/openticket-T009004
 
+  # [T900224] Post-Merge-Realitaet: Branch 1 ist gemergt (T900096-Guard passiert, REAP
+  # ueber leeren Rest-Diff). Branch 2 bleibt bewusst ungemergt — sein KEEP kommt jetzt
+  # vom T900096-Guard, nicht mehr vom Allowlist-Check (siehe Test 2).
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" merge --quiet chore/plan-T009001 -m "merge chore/plan-T009001"
+  git -C "$FIXTURE" push --quiet origin main
+
   git -C "$FIXTURE" checkout --quiet main
   git -C "$FIXTURE" fetch --quiet origin
 
@@ -103,13 +110,17 @@ STUB
 }
 
 @test "T002520: Branch mit abweichender Quelldatei wird verschont und begruendet" {
+  # [T900224] Ungemergt-Semantik, KEEP-Erwartung explizit: Der Branch traegt Commits
+  # ausserhalb von main, also feuert der T900096-Guard VOR dem Allowlist-Check — die
+  # Begruendung nennt T900096 statt scripts/echt.sh. Eine Abweichung ausserhalb der
+  # Allowlist ist per Definition nie gemergt und erreicht den Allowlist-Check nicht mehr.
   run bash "$REAPER" --dry-run --ticket T009002 --repo "$FIXTURE"
   [ "$status" -eq 0 ]
   reaped="$(printf '%s\n' "$output" | grep '^REAP ' || true)"
   [ "$(printf '%s\n' "$reaped" | grep -c 'chore/src-T009002')" -eq 0 ]
   kept="$(printf '%s\n' "$output" | grep '^KEEP ' | grep 'chore/src-T009002' || true)"
   [ -n "$kept" ]
-  [ "$(printf '%s\n' "$kept" | grep -c 'scripts/echt.sh')" -eq 1 ]
+  [ "$(printf '%s\n' "$kept" | grep -c 'T900096')" -eq 1 ]
 }
 
 @test "T002520: Branch mit offenem PR wird verschont und begruendet" {

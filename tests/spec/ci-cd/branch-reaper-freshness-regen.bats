@@ -70,6 +70,14 @@ setup() {
   _branch chore/freshness-regen-31842116870 # kein PR    -> KEEP
   _branch chore/ohne-ticket                # kein PR, kein freshness-Muster -> KEEP
 
+  # [T900224] Post-Merge-Realitaet: der MERGED-PR-Branch ist gemergt (Guard passiert,
+  # REAP ueber leeren Rest-Diff). Alle anderen bleiben bewusst ungemergt — ihre KEEPs
+  # feuern vor dem Guard (offener PR / kein PR / keine Ticket-ID) oder SIND der Guard
+  # (Test 2, CLOSED-unmerged: T900096 schlaegt T005958).
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" merge --quiet chore/freshness-regen-31781030910 -m "merge freshness-regen-31781030910"
+  git -C "$FIXTURE" push --quiet origin main
+
   git -C "$FIXTURE" checkout --quiet main
   git -C "$FIXTURE" fetch --quiet origin
 
@@ -118,13 +126,19 @@ STUB
   [ "$(printf '%s\n' "$reaped" | grep -c 'chore/freshness-regen-31781030910')" -eq 1 ]
 }
 
-@test "T005958: geschlossener (unmergter) freshness-regen-Branch wird REAP-Kandidat" {
-  # Ein CLOSED-PR ist ein abgebrochener Lauf: der Branch ist tot. Analog zum Positiv-Anker
-  # muss auch dieser Zweig reapen — nur die Abweichung muss in der ALLOWLIST bleiben.
+@test "T005958: geschlossener (unmergter) freshness-regen-Branch wird verschont (T900096-Guard)" {
+  # Regelkonflikt, dokumentiert statt versteckt [T900224]: T005958 meinte CLOSED = toter
+  # Branch = REAP. Der T900096-Guard ist aber fail-closed — ungemergte Commits bedeuten
+  # KEEP, egal was der PR-Status sagt. Der Fixture-Branch bleibt bewusst ungemergt, damit
+  # genau diese Semantik gilt; ein Merge wuerde CLOSED-Semantik faelschlich zu
+  # MERGED-Semantik umdeuten.
   run bash "$REAPER" --dry-run --repo "$FIXTURE"
   [ "$status" -eq 0 ]
-  reaped="$(printf '%s\n' "$output" | grep '^REAP ' || true)"
-  [ "$(printf '%s\n' "$reaped" | grep -c 'chore/freshness-regen-31839712179')" -eq 1 ]
+  # Positiv-Anker im selben Lauf (T002356-M1): ohne ihn waere die KEEP-Aussage vakuos.
+  [ "$(printf '%s\n' "$output" | grep '^REAP ' | grep -c 'chore/freshness-regen-31781030910')" -eq 1 ]
+  kept="$(printf '%s\n' "$output" | grep '^KEEP ' | grep 'chore/freshness-regen-31839712179' || true)"
+  [ -n "$kept" ]
+  [ "$(printf '%s\n' "$kept" | grep -c 'T900096')" -eq 1 ]
 }
 
 @test "T005958: freshness-regen-Branch mit Abweichung ausserhalb der ALLOWLIST wird verschont" {

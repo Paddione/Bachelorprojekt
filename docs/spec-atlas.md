@@ -62,6 +62,9 @@ Last touches:
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
 In-flight:
+  - Bonsai Provider Registration for Implement and Review | T900208 | active | MODIFIED
+  - Env-driven phase model routing | T900208 | active | MODIFIED
+  - A locked factory model overrides every other model choice | T900208 | active | REMOVED
   - Factory Dispatcher Runs In-Cluster | T900110 | active | MODIFIED
   - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
   - Force-Tick Trigger | T900054 | active | MODIFIED
@@ -649,6 +652,11 @@ In-flight:
   - Local LLM Proxy FreeToken Thinking Fixup and Local Recognition | T900189 | active | ADDED
   - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
+  - Single Definition Site for the opencode `llamacpp-local` Provider | T900208 | active | MODIFIED
+  - Local Agent Roster on the Qwen3.6 Checkpoint | T900208 | active | MODIFIED
+  - Project Default Model Targets the FreeToken Alias | T900208 | active | MODIFIED
+  - FreeToken Plugin Layer Removed | T900208 | active | MODIFIED
+  - A local agent MAY use llama.cpp or FreeToken, but never a dead loadout | T900208 | active | MODIFIED
 
 ### local-dev-mesh
 Reqs: 10 · Scenarios: 20 · Lines: 215

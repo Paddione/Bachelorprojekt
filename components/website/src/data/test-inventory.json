@@ -5982,12 +5982,6 @@
     "kind": "shell"
   },
   {
-    "id": "software-factory/factory-model-lock",
-    "file": "tests/spec/software-factory/factory-model-lock.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
     "id": "software-factory/factory-prep-stdout-json",
     "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
     "category": "software-factory",
@@ -6002,6 +5996,12 @@
   {
     "id": "software-factory/factory-status-lane-status-field",
     "file": "tests/spec/software-factory/factory-status-lane-status-field.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/local-llm-freetoken-direct",
+    "file": "tests/spec/software-factory/local-llm-freetoken-direct.bats",
     "category": "software-factory",
     "kind": "shell"
   },

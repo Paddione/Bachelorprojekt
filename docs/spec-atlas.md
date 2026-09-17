@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2315 · Scenarios: 5153
+Specs: 126 · Requirements: 2315 · Scenarios: 5154
 
 ## factory-pipeline
 
@@ -138,13 +138,13 @@ Last touches:
   - LLM_EMBED_URL in knowledge-ingest CronJobs verdrahtet | T002570 | 2026-08-10 | ADDED
 
 ### local-llm-proxy
-Reqs: 78 · Scenarios: 178 · Lines: 2067
+Reqs: 78 · Scenarios: 179 · Lines: 2076
 Last touches:
+  - Health endpoint reports readiness, not liveness | T900212 | 2026-09-17 | MODIFIED
   - The proxy serves remote backends only | T900107 | 2026-09-10 | MODIFIED
   - The purpose section describes the running state | T900107 | 2026-09-10 | MODIFIED
   - Proxy as sole LLM gateway | T013302 | 2026-08-22 | MODIFIED
   - Backend registry and admin API | T013909 | 2026-08-22 | MODIFIED
-  - Qwen3-Coder is available as an additive chat loadout | T013302 | 2026-08-22 | MODIFIED
 In-flight:
   - bge reaches the proxy through role-based routes | T900006 | active | MODIFIED
   - The bge chain is ordered desktop first, portable devices last | T900006 | active | MODIFIED
@@ -153,7 +153,6 @@ In-flight:
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
   - Deterministic loadouts path resolution across execution environments | T900109 | active | ADDED
   - The proxy serves remote backends only | T900191 | active | MODIFIED
-  - Health endpoint reports readiness, not liveness | T900212 | active | MODIFIED
   - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product

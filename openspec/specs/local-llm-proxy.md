@@ -57,7 +57,6 @@ describe the running state and the note SHALL be removed.
 - **WHEN** the proxy runs as a `dev-pod` container against remote backends
 - **THEN** the Purpose describes that arrangement, and carries no note deferring its own accuracy
 
-
 ### Requirement: Proxy as sole LLM gateway
 
 The Node proxy (`scripts/llm-proxy/server.mjs`) SHALL be the sole listener on port 18235 and the sole LLM endpoint all local harnesses (factory orchestrator, factory phase agents, opencode, other agents) use. The legacy ad-hoc proxy (`bonsai-msg-fixup-proxy.service`) SHALL be stopped and disabled by the cutover procedure; no enabled `tickets.provider_config` row and no tracked agent-config surface may reference a backend port (`:8093`, `:1234`) directly.
@@ -351,7 +350,8 @@ profile (`-np 5`, `-kvu`, larger context pool). Both SHALL use `-fit on` with co
 
 The proxy SHALL answer `GET /health` with the question "can I serve requests",
 not "is my process alive". Readiness is determined by the **enabled backends
-with `priority = 1`** — the local primary path. Backends sharing an
+of the primary tier, i.e. with `priority <= 1`** — the local primary path
+(`priority 0` and `priority 1` are equivalent for readiness). Backends sharing an
 `exclusiveGroup` (where only one member runs at a time, e.g. GPU loadouts on
 shared hardware) are evaluated as a **group**: the group is healthy when at
 least one member is healthy. A lower-priority backend (cloud fallback) is
@@ -363,8 +363,8 @@ The response body SHALL name the degraded backends in both the ready and the
 not-ready case, so a caller sees *which* backend is missing rather than only
 *that* something is missing.
 
-If no `priority = 1` backend is present at all, the proxy SHALL be considered
-not ready.
+If no backend with `priority <= 1` is present at all, the proxy SHALL be
+considered not ready.
 
 #### Scenario: Local primary backend is down while a cloud fallback is healthy
 
@@ -382,11 +382,18 @@ not ready.
 - **THEN** the proxy responds `200` with `ready: true` and still lists the
   unhealthy fallback in `degraded`
 
-#### Scenario: No priority-1 backend is registered
+#### Scenario: No primary-tier backend is registered
 
-- **GIVEN** no enabled backend has `priority = 1`
+- **GIVEN** no enabled backend has `priority <= 1`
 - **WHEN** a caller requests `GET /health`
 - **THEN** the proxy responds `503` with `ready: false`
+
+#### Scenario: Healthy priority-0 backend makes the proxy ready
+
+- **GIVEN** an enabled backend with `priority = 0` that is healthy
+- **AND** no enabled backend has `priority = 1`
+- **WHEN** a caller requests `GET /health`
+- **THEN** the proxy responds `200` with `ready: true`
 
 #### Scenario: exclusiveGroup with one healthy member
 
@@ -2065,3 +2072,5 @@ proxy version.
 - **THEN** the response contains a numeric port, a numeric uptime in seconds, and a version string
 
 <!-- merged from change delta local-llm-proxy.md (6f54c6174908) -->
+
+<!-- merged from change delta local-llm-proxy.md (5c2ea4c28e54) -->

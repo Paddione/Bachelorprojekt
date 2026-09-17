@@ -4867,6 +4867,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900233": [
+    {
+      "slug": "application-pipeline-brett-cockpit",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

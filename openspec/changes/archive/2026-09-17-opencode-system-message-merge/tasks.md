@@ -2,7 +2,7 @@
 title: "opencode-system-message-merge — Implementation Plan"
 ticket_id: T900220
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

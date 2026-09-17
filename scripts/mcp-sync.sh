@@ -38,6 +38,10 @@ OPENCODE_TARGET="$OUT_DIR/.opencode/opencode.jsonc"
 # nicht ueber MCP_OUT_DIR.
 AGY_TARGET="${HOME}/.gemini/config/mcp_config.json"
 QWEN_TARGET="${HOME}/.qwen/settings.json"
+# T0141xx: Claude Code User-Scope (nicht getrackt). .mcp.json (Projekt) bleibt
+# bewusst header-frei (T004272: Qwen liest .mcp.json mit Vorrang und expandiert
+# ${VAR} nicht) — Auth fuer Claude landet hier, mit aufgeloestem Token.
+CLAUDE_USER_TARGET="${HOME}/.claude/settings.json"
 LLAMACPP_TARGET="$OUT_DIR/scripts/llm/mcp-servers.json"
 
 # render_opencode_jsonc erhaelt alles ausserhalb des "mcp"-Blocks, indem es die
@@ -143,6 +147,7 @@ render_agy_json() {
       const envFiles = [
         path.join(configDir, 'bge-mcp', 'server.env'),
         path.join(configDir, 'mcp-postgres', 'server.env'),
+        path.join(configDir, 'factory-mcp-node', 'server.env'),
       ];
       for (const envFile of envFiles) {
         if (!fs.existsSync(envFile)) continue;
@@ -183,7 +188,11 @@ render_agy_json() {
       const h = c.harness.agy;
       if (c.transport === 'http') {
         out.mcpServers[name] = { serverUrl: c.endpoint };
-        if (c.headers) out.mcpServers[name].headers = resolveHeaders(c.headers);
+        // [T0141xx] Per-Harness-Header (harness.agy.headers) haben Vorrang vor
+        // Top-Level headers — erlaubt Auth pro Harness, ohne .mcp.json zu
+        // beruehren (factory-mcp-node, T002779-Guard).
+        const hdrs = h.headers || c.headers;
+        if (hdrs) out.mcpServers[name].headers = resolveHeaders(hdrs);
       } else {
         const server = {};
         if (h.command) server.command = h.command;
@@ -328,13 +337,14 @@ render_qwen_json() {
     const out = { mcpServers: {} };
 
     // Token-Aufloesung identisch zu render_agy_json: Umgebung first, dann
-    // ~/.config/bge-mcp/server.env als Fallback.
+    // ~/.config/*/server.env als Fallback.
     const envFileVars = {};
     try {
       const configDir = path.join(os.homedir(), '.config');
       const envFiles = [
         path.join(configDir, 'bge-mcp', 'server.env'),
         path.join(configDir, 'mcp-postgres', 'server.env'),
+        path.join(configDir, 'factory-mcp-node', 'server.env'),
       ];
       for (const envFile of envFiles) {
         if (!fs.existsSync(envFile)) continue;
@@ -373,7 +383,10 @@ render_qwen_json() {
       const h = c.harness.qwen_code;
       if (c.transport === 'http') {
         const server = { httpUrl: h.httpUrl || c.endpoint };
-        if (c.headers) server.headers = resolveHeaders(c.headers);
+        // [T0141xx] Per-Harness-Header (harness.qwen_code.headers) haben Vorrang
+        // vor Top-Level headers (Prinzip wie agy/opencode).
+        const hdrs = h.headers || c.headers;
+        if (hdrs) server.headers = resolveHeaders(hdrs);
         out.mcpServers[name] = server;
       } else {
         const server = {};
@@ -399,6 +412,117 @@ render_qwen_json() {
   "
 }
 
+# render_claude_user_json — Claude Code User-Scope (T0141xx)
+# Gibt NUR das gemanagte mcpServers-Fragment als JSON auf stdout aus:
+# alle transport:http-Server, die Auth-Header tragen (harness.claude_code.headers
+# vor Top-Level headers), mit aufgeloestem Token. Server ohne Header (z.B.
+# mcp-kubernetes) bleiben im Projekt-.mcp.json und werden hier NICHT
+# angefasst. Der Aufrufer mergt das Fragment in ~/.claude/settings.json
+# (fremde Keys/stdio-Server bleiben erhalten); die Datei traegt Klartext-Token
+# und erhaelt chmod 600.
+render_claude_user_json() {
+  node -e "
+    const fs = require('fs'), yaml = require('yaml'), os = require('os'), path = require('path');
+    const reg = yaml.parse(fs.readFileSync('$REGISTRY', 'utf8'));
+    const clients = reg.clients;
+    const out = {};
+
+    const envFileVars = {};
+    try {
+      const configDir = path.join(os.homedir(), '.config');
+      const envFiles = [
+        path.join(configDir, 'bge-mcp', 'server.env'),
+        path.join(configDir, 'mcp-postgres', 'server.env'),
+        path.join(configDir, 'factory-mcp-node', 'server.env'),
+      ];
+      for (const envFile of envFiles) {
+        if (!fs.existsSync(envFile)) continue;
+        for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
+          const eq = line.indexOf('=');
+          if (eq < 1 || line.trimStart().startsWith('#')) continue;
+          const key = line.slice(0, eq).trim();
+          if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+          let val = line.slice(eq + 1).trim();
+          if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
+            val = val.slice(1, -1);
+          }
+          envFileVars[key] = val;
+        }
+      }
+    } catch { /* keine server.env — dann bleibt nur die Umgebung */ }
+
+    const PLACEHOLDER = new RegExp('[' + String.fromCharCode(36) + ']\\{([A-Za-z_][A-Za-z0-9_]*)\\}', 'g');
+    const STILL = new RegExp('[' + String.fromCharCode(36) + ']\\{[A-Za-z_][A-Za-z0-9_]*\\}');
+    const unresolved = new Set();
+    const resolveValue = (raw) => String(raw).replace(PLACEHOLDER, (whole, varName) => {
+      const value = process.env[varName] !== undefined && process.env[varName] !== ''
+        ? process.env[varName]
+        : envFileVars[varName];
+      if (value === undefined || value === '') { unresolved.add(varName); return whole; }
+      return value;
+    });
+
+    for (const name of Object.keys(clients).sort()) {
+      const c = clients[name];
+      if (!c.harness || !c.harness.claude_code) continue;
+      if (c.transport !== 'http') continue;
+      const h = c.harness.claude_code;
+      const hdrs = h.headers || c.headers;
+      if (!hdrs) continue;
+      const resolved = {};
+      for (const [k, v] of Object.entries(hdrs)) resolved[k] = resolveValue(v);
+      if (Object.values(resolved).some(v => STILL.test(String(v)))) {
+        process.stderr.write(
+          'mcp-sync: WARN: claude-user-Header fuer ' + name + ' nicht aufloesbar (' +
+          [...unresolved].sort().join(', ') + ') — Server uebersprungen.\n'
+        );
+        continue;
+      }
+      out[name] = { type: 'http', url: h.url || c.endpoint, headers: resolved };
+    }
+    process.stdout.write(JSON.stringify(out, null, 2) + '\n');
+  "
+}
+
+# merge_claude_user_json <fragment-file> — mergt das Fragment in
+# $CLAUDE_USER_TARGET (nur gemanagte Keys, Rest bleibt erhalten).
+merge_claude_user_json() {
+  local fragment="$1"
+  node -e "
+    const fs = require('fs');
+    const target = '$CLAUDE_USER_TARGET';
+    let settings = {};
+    try { settings = JSON.parse(fs.readFileSync(target, 'utf8')); } catch {}
+    const fragment = JSON.parse(fs.readFileSync('$fragment', 'utf8'));
+    settings.mcpServers = settings.mcpServers || {};
+    for (const [k, v] of Object.entries(fragment)) settings.mcpServers[k] = v;
+    fs.writeFileSync(target, JSON.stringify(settings, null, 2) + '\n');
+  "
+}
+
+# check_claude_user_json <fragment-file> — meldet Drift der gemanagten Keys.
+check_claude_user_json() {
+  local fragment="$1"
+  node -e "
+    const fs = require('fs');
+    const target = '$CLAUDE_USER_TARGET';
+    let settings = {};
+    try { settings = JSON.parse(fs.readFileSync(target, 'utf8')); } catch {}
+    const fragment = JSON.parse(fs.readFileSync('$fragment', 'utf8'));
+    const actual = settings.mcpServers || {};
+    let drift = 0;
+    for (const [k, v] of Object.entries(fragment)) {
+      if (JSON.stringify(actual[k]) !== JSON.stringify(v)) {
+        console.error('mcp-sync: check: DRIFT in ~/.claude/settings.json mcpServers.' + k);
+        drift = 1;
+      }
+    }
+    process.exit(drift);
+  " || return 1
+  echo "mcp-sync: check: OK ~/.claude/settings.json (managed mcpServers)"
+  return 0
+}
+
 diff_or_drift() {
   local label="$1" expected="$2" actual="$3"
   if ! diff -q "$expected" "$actual" >/dev/null 2>&1; then
@@ -418,6 +542,8 @@ diff_or_drift() {
 cmd_render() {
   # Unter einem alternativen OUT_DIR existieren die Unterverzeichnisse noch nicht.
   mkdir -p "$(dirname "$OPENCODE_TARGET")" "$(dirname "$LLAMACPP_TARGET")"
+  tmp_claude_user="$(mktemp)"
+  trap 'rm -f "${tmp_claude_user:-}"' EXIT
 
   echo "mcp-sync: render: writing $CLAUDE_TARGET"
   render_claude_json > "$CLAUDE_TARGET"
@@ -452,6 +578,18 @@ cmd_render() {
     echo "mcp-sync: render: $QWEN_TARGET dir missing — skipped" >&2
   fi
 
+  if [ -d "$(dirname "$CLAUDE_USER_TARGET")" ]; then
+    echo "mcp-sync: render: merging $CLAUDE_USER_TARGET"
+    # [T0141xx] User-Scope-Merge: nur gemanagte Keys mit aufgeloestem Token;
+    # alle anderen Keys (env, permissions, hooks, eigene mcpServers) bleiben.
+    # Klartext-Token -> umask 077 + harden wie agy/qwen.
+    ( umask 077; render_claude_user_json > "$tmp_claude_user" )
+    merge_claude_user_json "$tmp_claude_user"
+    harden_secret_file "$CLAUDE_USER_TARGET"
+  else
+    echo "mcp-sync: render: $CLAUDE_USER_TARGET dir missing — skipped" >&2
+  fi
+
   echo "mcp-sync: render: writing $LLAMACPP_TARGET"
   render_llamacpp_json > "${LLAMACPP_TARGET}.tmp"
   mv "${LLAMACPP_TARGET}.tmp" "$LLAMACPP_TARGET"
@@ -482,6 +620,13 @@ cmd_check() {
     diff_or_drift "settings.json (qwen)" "$tmpd/qwen.json" "$QWEN_TARGET" || exit_code=1
   else
     echo "SKIP: $QWEN_TARGET not present — skipped (exit 0 based on repo files)"
+  fi
+
+  if [ -f "$CLAUDE_USER_TARGET" ]; then
+    render_claude_user_json > "$tmpd/claude-user.json"
+    check_claude_user_json "$tmpd/claude-user.json" || exit_code=1
+  else
+    echo "SKIP: $CLAUDE_USER_TARGET not present — skipped (exit 0 based on repo files)"
   fi
 
   render_llamacpp_json > "$tmpd/llamacpp.json"

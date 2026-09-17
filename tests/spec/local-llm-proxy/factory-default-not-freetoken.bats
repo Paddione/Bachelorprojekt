@@ -56,8 +56,12 @@ setup() {
   [ "${status}" -ne 0 ]
 }
 
-@test "T900164: routing-check.sh probt Port 1919 nicht mehr" {
+# [T900213] routing-check.sh probt :1919 (FreeToken ist seit T900208 einziges
+# lokales Generierungs-Backend), nicht :18235.
+@test "T900213: routing-check.sh probt Port 1919, nicht Port 18235" {
   [ -f "${ROUTING_CHECK}" ]
   run grep -F '127.0.0.1:1919' "${ROUTING_CHECK}"
+  [ "${status}" -eq 0 ]
+  run bash -c "grep -vE '^[[:space:]]*#' '${ROUTING_CHECK}' | grep -F '18235'"
   [ "${status}" -ne 0 ]
 }

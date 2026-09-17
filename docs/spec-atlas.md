@@ -62,6 +62,7 @@ Last touches:
   - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | 2026-09-11 | MODIFIED
   - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
 In-flight:
+  - factory.model in loadouts.json is vestigial and stays a valid slug | T900213 | active | ADDED
   - Bonsai Provider Registration for Implement and Review | T900208 | active | MODIFIED
   - Env-driven phase model routing | T900208 | active | MODIFIED
   - A locked factory model overrides every other model choice | T900208 | active | REMOVED
@@ -918,6 +919,9 @@ Last touches:
 Reqs: 1 · Scenarios: 1 · Lines: 21
 Last touches:
   - Routing checks use only enabled provider configurations | T014552 | 2026-08-23 | ADDED
+In-flight:
+  - Routing check probes the FreeToken backend, not the retired proxy | T900213 | active | MODIFIED
+  - Routing check asserts the promised project default model is served | T900213 | active | ADDED
 
 ### rustdesk-server
 Reqs: 9 · Scenarios: 16 · Lines: 194

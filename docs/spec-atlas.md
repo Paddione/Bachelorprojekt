@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2389 · Scenarios: 5306
+Specs: 128 · Requirements: 2389 · Scenarios: 5308
 
 ## factory-pipeline
 
@@ -609,7 +609,7 @@ Last touches:
   - Pre-Commit blockiert Commits auf main | T002631 | 2026-08-10 | ADDED
 
 ### mcp-gateway
-Reqs: 45 · Scenarios: 108 · Lines: 1233
+Reqs: 45 · Scenarios: 110 · Lines: 1246
 Paths: deploy/mcp/, .claude/skills/references/mcp-tool-guide.md, scripts/mcp
 Last touches:
   - Windows hosts have a documented start mechanism for the local MCP servers | T900054 | 2026-09-17 | MODIFIED

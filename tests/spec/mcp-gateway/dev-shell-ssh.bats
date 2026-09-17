@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/dev-shell-ssh.bats
 # SSOT: openspec/specs/mcp-gateway.md  (Change: openspec/changes/dev-pod-ssh)
-# Ticket: T900108
+# Tickets: T900108, T900112
 #
 # Pruefmodus: Gegenstand dieser Guards sind Kubernetes-Manifeste, der Build-
 # Workflow, die sshd-Konfiguration und das Dockerfile des dev-shell-Images.
@@ -91,7 +91,7 @@ count_lines() {  # <datei> <ERE>
 
   run y "$DEPLOY" "d.spec.template.spec.containers.filter(c=>c.name==='dev-shell').map(c=>((c.livenessProbe||{}).exec||{command:[]}).command.join(' ')).join(',')"
   echo "dev-shell livenessProbe: $output"
-  [[ "$output" == *"nc -z 127.0.0.1 22"* ]]
+  [[ "$output" == *"nc -z -w 2 127.0.0.1 22"* ]]
 }
 
 @test "pod declares ip_unprivileged_port_start=0" {
@@ -164,6 +164,9 @@ count_lines() {  # <datei> <ERE>
     echo "$opt gesamt: $output"
     [ "$output" = "1" ]
   done
+
+  run bash -c "tr -d '\r' < '$SSHD' | grep -cE '^Match[[:space:]]' || true"
+  [ "$output" = "0" ]
 }
 
 @test "ssh sessions reach the API server and do not self-update claude code" {
@@ -237,6 +240,12 @@ count_lines() {  # <datei> <ERE>
   [ "$output" = "/home/dev" ]
 }
 
+@test "missing authorized-keys ConfigMap does not block the optional dev-shell" {
+  run y "$DEPLOY" "String((d.spec.template.spec.volumes||[]).filter(v=>v.name==='authorized-keys').map(v=>v.configMap&&v.configMap.optional)[0])"
+  echo "authorized-keys optional: $output"
+  [ "$output" = "true" ]
+}
+
 @test "dev-shell mounts the checkout read-only" {
   volname="$(y "$DEPLOY" "(d.spec.template.spec.volumes||[]).filter(v=>v.persistentVolumeClaim&&v.persistentVolumeClaim.claimName==='dev-pod-repo').map(v=>v.name)[0]||''")"
   [ -n "$volname" ] || { echo "kein PVC-Volume dev-pod-repo im Deployment"; false; }
@@ -289,6 +298,14 @@ count_lines() {  # <datei> <ERE>
   echo "taskfile.dev/install.sh: $output"
   [ "$output" = "0" ]
 
+  for artifact in 'kubectl.sha256)  kubectl' 'task_linux_amd64.tar.gz$' 'gh_${GH_VERSION}_linux_amd64.tar.gz'; do
+    run bash -c "grep -cF -e '$artifact' '$BATS_TEST_TMPDIR/df.flat' || true"
+    [ "$output" -ge 1 ]
+  done
+
+  run bash -c "grep -cE '(^|[[:space:]])(curl|wget)[[:space:]][^;&|]*[[:space:]]*\\|[[:space:]]*(sh|bash)|sh -c[[:space:]]+.*curl' '$BATS_TEST_TMPDIR/df.flat' || true"
+  [ "$output" = "0" ]
+
   run bash -c "grep -E '^(CMD|ENTRYPOINT)' '$BATS_TEST_TMPDIR/df.flat' | wc -l"
   echo "CMD/ENTRYPOINT: $output"
   [ "$output" -ge 1 ]
@@ -305,6 +322,12 @@ count_lines() {  # <datei> <ERE>
   run bash -c "grep -cE 'apt-get|apk |npm (install|i )|pnpm (add|install)|pip install|curl |wget ' '$BATS_TEST_TMPDIR/ep.flat' || true"
   echo "Paketmanager/Download im entrypoint: $output"
   [ "$output" = "0" ]
+
+  run bash -c "grep -cE '^[[:space:]]*exit 1[[:space:]]*$' '$EP' || true"
+  [ "$output" = "0" ]
+
+  run bash -c "grep -cF -e 'cp -Rn /etc/skel/. /home/dev/' '$EP' || true"
+  [ "$output" = "1" ]
 }
 
 @test "build workflow builds the dev-shell image" {

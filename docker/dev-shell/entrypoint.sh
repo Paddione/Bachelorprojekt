@@ -10,7 +10,7 @@ KEY_DST=/var/lib/dev-shell/authorized_keys
 
 # Frisches Home-PVC: Shell-Grundkonfiguration aus /etc/skel, ohne Fehlerabbruch.
 if [ ! -f /home/dev/.bashrc ]; then
-  cp -R /etc/skel/. /home/dev/ 2>/dev/null || echo "dev-shell: /etc/skel nicht kopiert" >&2
+  cp -Rn /etc/skel/. /home/dev/ 2>/dev/null || echo "dev-shell: /etc/skel nicht kopiert" >&2
 fi
 
 mkdir -p "$HOSTKEY_DIR"

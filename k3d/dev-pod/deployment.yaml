@@ -209,7 +209,7 @@ spec:
           # trotzdem NotReady (openspec/changes/dev-pod-ssh/design.md, Verfuegbarkeit).
           livenessProbe:
             exec:
-              command: ["sh", "-c", "nc -z 127.0.0.1 22"]
+              command: ["sh", "-c", "nc -z -w 2 127.0.0.1 22"]
             initialDelaySeconds: 30
             periodSeconds: 60
             failureThreshold: 3
@@ -247,3 +247,4 @@ spec:
         - name: authorized-keys
           configMap:
             name: dev-pod-authorized-keys
+            optional: true

@@ -30,6 +30,7 @@ EXT_ID="${1:-}"; LAUNCH_DIR="${2:-}"; BRANCH="${3:-}"; PLAN_PATH="${4:-}"
 # ein nicht auffindbares Binary legte jede Pipeline mit Exit 127 still. Deshalb
 # wird das Binary explizit gesucht (Override > PATH > npm-global) und bei Fehlen
 # mit einem von 127 unterscheidbaren Code und einer Ursachenmeldung abgebrochen.
+# OPENCODE_BIN ist der einzige Binary-Override (kein zweiter Schalter, D4).
 OPENCODE_BIN="${OPENCODE_BIN:-$(command -v opencode 2>/dev/null || echo "$HOME/.npm-global/bin/opencode")}"
 if [[ -z "${OPENCODE_BIN}" || ! -x "${OPENCODE_BIN}" ]]; then
   echo "opencode-exec: opencode-Binary nicht gefunden (gesucht: \$OPENCODE_BIN, command -v opencode, \$HOME/.npm-global/bin/opencode) — Abbruch mit Exit 2 statt 127" >&2
@@ -178,6 +179,7 @@ PROMPT="$(printf '%s\n' \
   "(gptoss/devstral/gemma/qwen38 were retired 2026-09-16). Each partial is" \
   "owned end-to-end (edit, test) inside this worktree; each packet states its" \
   "budget_tokens (S ~32k / M ~80k / L ~150k) — stay inside it." \
+  "Factory mode is ${FACTORY_MODE:-mixed} (local|api|mixed): local means strictly sequential dispatches to the local Qwen MoE only with no cloud escalation; api allows escalation to planner-muse already on the first stall; mixed (default) retries locally twice before escalating." \
   "" \
   "## Partials" \
   "${partials_manifest}" \

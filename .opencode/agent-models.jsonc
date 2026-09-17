@@ -72,6 +72,16 @@
             "context": 1000000,
             "output": 16384
           }
+        },
+        // T900210: Muse Spark 1.3 Contributor im Go-Katalog (Katalogwerte:
+        // 1M ctx / 131k output). Go-Fallback hinter Zen-free (free zuerst,
+        // Go danach); Auth wie ueblich via ~/.local/share/opencode/auth.json.
+        "muse-spark-1.3-contributor": {
+          "name": "Muse Spark 1.3 Contributor (OpenCode Go, 1M ctx, 131k output)",
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          }
         }
       }
     },
@@ -107,6 +117,16 @@
           "limit": {
             "context": 256000,
             "output": 32000
+          }
+        },
+        // T900210: Muse Spark 1.3 Contributor Free im Zen-Katalog (1M ctx /
+        // 131k output, $0/$0, Training-Data-Sharing). Free-first Default fuer
+        // Orchestrator-Planung; Go-Variante ist der Fallback (planner-muse).
+        "muse-spark-1.3-contributor-free": {
+          "name": "Muse Spark 1.3 Contributor Free (OpenCode Zen, free tier, 1M ctx, 131k output)",
+          "limit": {
+            "context": 1000000,
+            "output": 131072
           }
         }
       }
@@ -244,9 +264,9 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: Laguna S 2.1 Free via OpenCode Zen (Poolside agentic coding model, free tier, 256k ctx per models.dev). Dispatches the single local subagent plus 2-rail cloud escalation (helper-go/helper, pro/pro-direct, flash/flash-direct). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: Muse Spark 1.3 Contributor Free via OpenCode Zen (free tier, 1M ctx, 131k output). Dispatches the single local subagent plus cloud escalation (planner-muse Go fallback first, then helper-go/helper, pro/pro-direct, flash/flash-direct). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "opencode-zen/laguna-s-2.1-free",
+      "model": "opencode-zen/muse-spark-1.3-contributor-free",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,
@@ -256,6 +276,7 @@
       "permission": {
         "task": {
           "local": "allow",
+          "planner-muse": "allow",
           "deepseek-helper-go": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
@@ -266,6 +287,22 @@
           "reviewer": "allow"
         }
       }
+    },
+    // T900210: planner-muse — Muse-Spark-Planungs-Fallback auf dem Go-Katalog
+    // (Subscription, kein Training-Sharing wie Zen-free). Free-zuerst:
+    // Orchestrator plant auf Zen-free; erst bei Stall (2x lokal, bzw. 1x im
+    // FACTORY_MODE=api) uebernimmt planner-muse (M2 der Eskalationskette),
+    // danach DeepSeek-Rails. Modus primary (tab-selektirbar), Prompt geteilt
+    // mit dem Orchestrator (Planungs-Prompt).
+    "planner-muse": {
+      "description": "PLANNER fallback: Muse Spark 1.3 Contributor via OpenCode Go (1M ctx, 131k output, subscription rail). First cloud escalation after local stalls (M2) — takes the compacted handoff and plans/implements the partial end-to-end. Free-first chain: orchestrator (Zen-free) -> planner-muse (Go) -> deepseek rails.",
+      "mode": "primary",
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "prompt": "{file:./prompts/orchestrator.md}",
+      "color": "#A78BFA",
+      "temperature": 0.2,
+      "steps": 150,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
     // Free-Kontingent verbraucht ist, danach auf die deepseek-Primaries wechseln.
@@ -286,6 +323,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
+          "planner-muse": "allow",
           "deepseek-helper-go": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
@@ -346,6 +384,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
+          "planner-muse": "allow",
           "deepseek-helper-go": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",

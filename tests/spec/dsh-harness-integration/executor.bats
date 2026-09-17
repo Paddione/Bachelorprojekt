@@ -16,8 +16,15 @@ REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   [[ "$output" == *"claude|opencode|dsh"* ]]
 }
 
-@test "executor: FACTORY_EXECUTOR=nonsense still warns and falls back to claude" {
+@test "executor: FACTORY_EXECUTOR default is opencode (T900210 flip)" {
+  run grep -q 'FACTORY_EXECUTOR:-opencode' "$REPO/scripts/factory/dispatcher-bridge.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "executor: FACTORY_EXECUTOR=nonsense still warns and falls back to opencode" {
   run grep -q 'unknown FACTORY_EXECUTOR' "$REPO/scripts/factory/dispatcher-bridge.sh"
+  [ "$status" -eq 0 ]
+  run grep -q "falling back to opencode" "$REPO/scripts/factory/dispatcher-bridge.sh"
   [ "$status" -eq 0 ]
 }
 

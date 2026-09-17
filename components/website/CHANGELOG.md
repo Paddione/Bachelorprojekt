@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.354.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.353.1...website-v1.354.0) (2026-09-17)
+
+
+### Features
+
+* **agents:** replace NEXT-gating status protocol with interaction contract [T900235] ([#5754](https://github.com/Paddione/Bachelorprojekt/issues/5754)) ([d662cca](https://github.com/Paddione/Bachelorprojekt/commit/d662cca1224ec4a2278f85e06d39356b0010ef6f))
+
 ## [1.353.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.353.0...website-v1.353.1) (2026-09-17)
 
 

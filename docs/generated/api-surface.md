@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-08-28T11:46:06.457Z
+> Generated at 2026-09-17T12:30:43.974Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -250,6 +250,8 @@
 | `/api/dsgvo-request` | POST | ❓ unclassified | `components/website/src/pages/api/dsgvo-request.ts` |
 | `/api/health` | GET | ❓ unclassified | `components/website/src/pages/api/health.ts` |
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified | `components/website/src/pages/api/homepage.ts` |
+| `/api/internal/applications/list` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/list.ts` |
+| `/api/internal/applications/timeline` | POST | 🔒 internal | `components/website/src/pages/api/internal/applications/timeline.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `components/website/src/pages/api/internal/tickets/notify-close.ts` |
 | `/api/leistungen` | GET | ❓ unclassified | `components/website/src/pages/api/leistungen.ts` |
 | `/api/meeting/finalize` | POST | ❓ unclassified | `components/website/src/pages/api/meeting/finalize.ts` |

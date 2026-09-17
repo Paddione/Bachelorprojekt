@@ -68,6 +68,28 @@ Vorbedingung fehlt. Commit-Signatur richtet `bash scripts/setup-dev-env.sh` ein.
 Danach die Maschine in `devmesh/key-holders.yaml` eintragen (`machine`, `person`, `since` =
 Datum der Key-Ablage) und per PR mergen.
 
+## GPG-User (T900113, ersetzt das Keyfile für patrick/gekko)
+
+Das dev-shell-Image enthält `gnupg` + `pinentry-tty` (`docker/dev-shell/Dockerfile`).
+Die einmalige Zeremonie läuft auf einer entsperrten Maschine mit sauberem Arbeitsbaum
+(P2.3, manuell — braucht die GPG-Private-Keys von patrick und gekko):
+
+```bash
+git-crypt add-gpg-user --trusted <patrick-key-id>
+git-crypt add-gpg-user --trusted <gekko-key-id>
+git add .git-crypt/keys/default/0/*.gpg
+git commit -m "feat(security): git-crypt per GPG-User patrick/gekko [T900113]"
+```
+
+Danach entsperrt `git-crypt unlock` ohne Keyfile. Voraussetzungen auf der Maschine:
+
+- `export GPG_TTY=$(tty)` in der Shell (pinentry findet das Terminal),
+- gpg-agent mit begrenzter Lebensdauer: `default-cache-ttl 3600`, `max-cache-ttl 7200`
+  in `~/.gnupg/gpg-agent.conf`,
+- die GPG-Private-Keys liegen unter `/home/dev` (Threat-Modell T900110: seit #5537 hat
+  die Website-Identität keinen lesenden Zugriff mehr auf fremde Home-Verzeichnisse —
+  der entsperrte Clone unter `/home/dev` ist für sie nicht lesbar).
+
 ## Widerruf
 
 Ein symmetrischer Key lässt sich nicht für eine Person sperren. Wer den Key hatte, kann jeden

@@ -4879,6 +4879,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900234": [
+    {
+      "slug": "application-pipeline-matching",
+      "status": "plan_staged"
+    }
+  ],
   "T900235": [
     {
       "slug": "2026-09-17-agent-interaction-contract",

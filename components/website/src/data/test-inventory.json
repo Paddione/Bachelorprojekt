@@ -2484,6 +2484,12 @@
     "kind": "shell"
   },
   {
+    "id": "application-pipeline/match-scoring",
+    "file": "tests/spec/application-pipeline/match-scoring.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "application-pipeline/render-cli",
     "file": "tests/spec/application-pipeline/render-cli.bats",
     "category": "application-pipeline",

@@ -48,6 +48,13 @@ spec:
           image: ghcr.io/paddione/factory-runner:latest # hat git, git-crypt, task
           imagePullPolicy: IfNotPresent
           workingDir: /workspace
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
           env:
             - name: REPO_URL
               value: https://github.com/Paddione/Bachelorprojekt.git

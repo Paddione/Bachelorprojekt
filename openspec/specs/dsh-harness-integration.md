@@ -91,14 +91,12 @@ bridge path and the native path can be compared against one another.
 
 `scripts/factory/dispatcher-bridge.sh` SHALL accept `FACTORY_EXECUTOR=dsh` and dispatch to
 `scripts/factory/dsh-exec.sh`, keeping the existing `[pipeline:<ext_id>]` output prefix and the
-backgrounding that the outer `wait` joins. An unknown executor value SHALL still fall back to
-`claude` with a warning.
+backgrounding that the outer `wait` joins. An unknown executor value SHALL fall back to
+`opencode` with a warning (fail-closed auf den neuen Default statt still zurück auf den
+Legacy-Executor; ersetzt das bisherige `claude`-Fallback aus REQ-SF-EXECUTOR-001 alt).
 
-`scripts/factory/dsh-exec.sh` SHALL record `implement` phase events through `scripts/ticket.sh
-phase` with `executor: "dsh"` in the structured detail, and SHALL use a distinct exit code per
-failure cause: `2` for a missing or unbuilt harness checkout, `6` for a run that left neither
-commit nor change, `7` for a run rejected for a missing branch or plan, `8` for a ticket that
-already has a running dsh process. It SHALL NOT fall back to another executor on failure.
+Der `dsh`-Zweig selbst (Auswahl von `dsh-exec.sh`, kein Warning, Exit-Codes 2/6/7/8, kein
+Fallback bei `dsh`-Fehlern) SHALL unverändert bleiben.
 
 #### Scenario: the dispatcher accepts dsh
 
@@ -106,11 +104,11 @@ already has a running dsh process. It SHALL NOT fall back to another executor on
 - **WHEN** the executor branch of `dispatcher-bridge.sh` is evaluated
 - **THEN** it selects `dsh-exec.sh` and emits no unknown-executor warning
 
-#### Scenario: an unknown executor still falls back to claude
+#### Scenario: an unknown executor falls back to opencode (fail-closed)
 
 - **GIVEN** `FACTORY_EXECUTOR=nonsense`
 - **WHEN** the same branch is evaluated
-- **THEN** it warns and selects the claude path, unchanged by the addition of dsh
+- **THEN** it warns and selects the opencode path, unchanged by the addition of dsh
 
 #### Scenario: an unbuilt harness checkout is distinguishable from a missing one
 
@@ -164,3 +162,5 @@ undocumented process on a port.
 - **THEN** it fails with a message naming the missing build rather than a port-binding error
 
 <!-- merged from change delta dsh-harness-integration.md (5bb576ceb529) -->
+
+<!-- merged from change delta dsh-harness-integration.md (ac3a3ae74155) -->

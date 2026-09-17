@@ -2,7 +2,7 @@
 title: "application-pipeline-brett-cockpit — Implementation Plan (Phase 4: Cockpit Kanban)"
 ticket_id: T900233
 domains: [website, brett]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -2,7 +2,7 @@
 title: "llm-proxy-readiness-prio0 — Implementation Plan"
 ticket_id: T900212
 domains: [llm, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

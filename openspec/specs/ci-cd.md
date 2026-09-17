@@ -2933,6 +2933,114 @@ ausgecheckt ist.
 - **WHEN** `devflow-ci-watch.sh` die Checks bewertet
 - **THEN** gilt der Check als entlastet und der Lauf endet mit Exit 0
 
+### Requirement: A unit test never removes itself from CI because a dependency was not installed
+
+No test under `tests/unit/` SHALL call `skip` on the grounds that a package manager
+dependency is missing. Every dependency a unit test needs SHALL be installed by the CI job
+that runs it, before the suite starts, rather than from within the test itself.
+
+The `test-bats` job in `.github/workflows/ci.yml` SHALL therefore install the
+`components/website` dependencies in addition to the repository root ones.
+
+Rationale: a bats `skip` counts as `ok`. A test that skips itself when its dependency is
+absent turns a missing installation into a green job, and the gap stays invisible for as
+long as nobody reads the log — four runtime tests in `tests/unit/tickets-transition.bats`
+skipped on every CI run because `components/website/node_modules` was never installed, and
+`tests/unit/test_art_library_manifest.bats` ran `npm install` inside its own `setup_file`
+with `|| skip` as a fallback, which turns a registry hiccup into silent coverage loss. The
+same failure mode was diagnosed for the cockpit daemon in T002508.
+
+Installing in the job rather than in the test also keeps network access out of the test
+phase, where a failure is indistinguishable from an absent feature.
+
+#### Scenario: The BATS job installs the website dependencies
+
+- **GIVEN** `.github/workflows/ci.yml`
+- **WHEN** the `test-bats` job definition is read
+- **THEN** it sets up pnpm and installs the `components/website` dependencies before the
+  BATS suite runs
+
+#### Scenario: No unit test skips itself over a missing dependency
+
+- **GIVEN** every `.bats` file under `tests/unit/`
+- **WHEN** their `skip` invocations are examined
+- **THEN** none of them gives a missing package manager dependency as the reason
+
+### Requirement: GitLab CI image refs carry a full registry host
+
+The GitLab CI pipeline SHALL define `CI_REGISTRY_IMAGE` in-file under `variables:` so
+that every `${CI_REGISTRY_IMAGE:-…}/<image>:<tag>` expansion resolves to a fully
+qualified registry reference, even when a project-level variable is set to the empty
+string. No job image reference in `.gitlab-ci.yml` MAY expand to a reference with an
+empty registry prefix (leading slash).
+
+#### Scenario: Empty project variable cannot produce an invalid image ref
+
+- **GIVEN** `.gitlab-ci.yml` defines `CI_REGISTRY_IMAGE` in its in-file `variables:` block
+- **WHEN** any job's `image:` line is expanded with `CI_REGISTRY_IMAGE=""`
+- **THEN** the effective reference still contains a non-empty registry host
+- **AND** no `image:` line in `.gitlab-ci.yml` matches a leading-slash pattern (`image: */…`)
+
+#### Scenario: BATS guard fails on regression
+
+- **GIVEN** `tests/spec/ci-cd/gitlab-ci-image-refs.bats` exists
+- **WHEN** someone removes the in-file `variables:` definition or adds an image line
+  with an empty registry prefix
+- **THEN** the guard test fails with a message naming the offending line
+
+### Requirement: Staging cronjobs run against a schema-complete database
+
+The workspace-staging CronJobs (`admin-actions-cleanup`, `scheduled-publish`,
+`notify-unread`, `tests-results-retention`) SHALL complete successfully against the
+staging `shared-db`. Missing relations (e.g. `public.admin_actions`) MUST be closed by
+schema parity (migration/init applied to staging) before any manifest-level workaround.
+
+#### Scenario: admin-actions-cleanup completes on staging
+
+- **GIVEN** the staging `shared-db` has schema parity with prod for the tables the
+  staging cronjobs address
+- **WHEN** `admin-actions-cleanup` runs its next schedule
+- **THEN** the job pod terminates with exit code 0 and no
+  `relation "public.admin_actions" does not exist` error occurs
+
+### Requirement: Installed ticket-mcp-go binary staleness is detectable
+
+The repository SHALL provide a guard (`task ticket-mcp:freshness`) that compares the
+git revision embedded in the installed `/usr/local/bin/ticket-mcp-go` binary against
+the latest commit touching `scripts/ticket-mcp/go`, making the best-effort install
+fallback (stale pre-installed binary) visible instead of silent.
+
+#### Scenario: Fresh build reports green
+
+- **GIVEN** the binary was built from the current HEAD of `scripts/ticket-mcp/go`
+- **WHEN** `task ticket-mcp:freshness` runs
+- **THEN** it exits 0 and reports the matching short sha
+
+#### Scenario: Stale binary fails with actionable message
+
+- **GIVEN** the installed binary embeds a sha older than the last commit touching
+  `scripts/ticket-mcp/go`
+- **WHEN** `task ticket-mcp:freshness` runs
+- **THEN** it exits 1 and prints both shas plus a hint to run `task ticket-mcp:build`
+
+#### Scenario: Missing binary skips safely
+
+- **GIVEN** no binary exists at the install location (e.g. CI runner)
+- **WHEN** `task ticket-mcp:freshness` runs
+- **THEN** it exits 0 with a visible skip note
+
+### Requirement: Build embeds the git revision
+
+The `ticket-mcp-go` Makefile build SHALL embed the current short git sha via
+`-ldflags -X`, and the binary SHALL expose it via a `--version` flag, so consumers can
+verify their own runtime stand.
+
+#### Scenario: Version flag prints embedded sha
+
+- **GIVEN** a freshly built binary from commit `abc1234`
+- **WHEN** `ticket-mcp-go --version` runs
+- **THEN** it prints a line containing `abc1234` and exits 0
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -3514,3 +3622,9 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (1d2e1cfb41dd) -->
 
 <!-- merged from change delta ci-cd.md (edf2ec70a078) -->
+
+<!-- merged from change delta ci-cd.md (b5bb064cfeda) -->
+
+<!-- merged from change delta ci-cd.md (6110d604ccf1) -->
+
+<!-- merged from change delta ci-cd.md (e3f7db1622e8) -->

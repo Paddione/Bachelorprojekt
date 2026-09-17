@@ -173,8 +173,8 @@ to a single value rather than a repeated literal.
 The opencode provider key `llamacpp-local` SHALL be defined in exactly one place
 in the repository, namely `.opencode/agent-models.jsonc`. `.opencode/opencode.jsonc`
 SHALL NOT define a provider under that key. The provider SHALL target the
-FreeToken-native engine directly at `http://127.0.0.1:1919/v1`. The llm-proxy
-(`:18235`) no longer sits in front of it (T900208/T900213, corrected T900222).
+FreeToken-native engine directly at `http://127.0.0.1:1919/v1`. It SHALL NOT
+target the retired llm-proxy on `:18235` (stopped 2026-09-03, ADR-007; T900208).
 
 Rationale: mirrors the original `llamacpp-mtp` single-definition requirement —
 `.opencode/agent-models.jsonc` is the sync source that
@@ -187,7 +187,7 @@ it anymore (T014028/T014105, consolidated 2026-09-16, T900203).
 
 - **GIVEN** `.opencode/agent-models.jsonc` defines the provider `llamacpp-local`
 - **WHEN** the file is parsed and the provider's `options.baseURL` inspected
-- **THEN** the value is `http://127.0.0.1:1919/v1`
+- **THEN** the value is `http://127.0.0.1:1919/v1` and not the retired `:18235` proxy port
 
 ### Requirement: Local Agent Roster on the Qwen3.6 Checkpoint
 
@@ -201,7 +201,7 @@ Rationale: the five legacy family handles (`gptoss`, `devstral`, `gemma`,
 slot, no prefix-cache gain. They collapsed into a single `local` subagent on
 2026-09-16 (T900164). The `freetoken-local` provider and its `active` alias are
 gone; the provider key is `llamacpp-local` (historical name) serving FreeToken
-directly on `:1919` (T900203, T900208). The former per-loadout primaries
+directly on `:1919` (T900203; the llm-proxy hop was dropped in T900208). The former per-loadout primaries
 (`gemma26-primary`, `gemma26-vision`, `gptoss-primary`, `devstral-primary`,
 `gemma12-primary`, `gemma26-throughput-primary`, `qwen38-primary`) were
 byte-identical clones whose names referenced retired loadouts; they are removed
@@ -290,7 +290,7 @@ default that resolves to the retired llama.cpp loadout `llamacpp-local/qwen38-22
 (port 8094, no longer served).
 
 Rationale: FreeToken (Windows-native, port 1919) was re-established as the local inference
-backend by operator decision (T900189), served through the llm-proxy on `:18235`.
+backend by operator decision (T900189), served directly on `:1919` since the llm-proxy (`:18235`) was retired (T900208).
 `llamacpp-local/Qwen3.6-35B-A3B-NVFP4` (200000 served KV, moe 4150) is the active model alias
 that resolves to that backend and is declared in `.opencode/agent-models.jsonc` for every
 re-routed agent. A project default naming the retired llama.cpp loadout boots against a dead
@@ -337,7 +337,7 @@ without a new requirement.
 Rationale: the plugin was removed together with the alias layer (T900203).
 FreeToken serves one resident checkpoint on a static 200k KV pool; there is no
 per-request thinking toggle, no engine switching from the model picker, and no
-telemetry file. The provider is wired statically through the llm-proxy.
+telemetry file. The provider is wired statically to FreeToken on `:1919` (T900208).
 
 #### Scenario: Plugin file is absent
 
@@ -497,6 +497,34 @@ the title agent. The llm-proxy fixup (retired T900208/T900213) and the
 - **GIVEN** the plugin's `config` hook ran on a config without `llamacpp-local`
 - **WHEN** a request with two system messages is sent through another provider
 - **THEN** the upstream fetch receives the messages unchanged
+
+### Requirement: Windows-Native FreeToken Auto-Start and Install Scripts
+
+The system SHALL provide PowerShell management scripts under `scripts/llm/` for Windows-native FreeToken installation (`install-freetoken.ps1`) and logon auto-start (`freetoken-autostart.ps1`). The install script SHALL enforce Python 3.12, verify wheel existence in `%USERPROFILE%\Downloads\ft-wheels`, install PyTorch cu130 (`>=2.11,<2.12`), and verify CUDA GPU availability. The autostart script SHALL register a ScheduledTask (`FreeToken-Serve`) executing local binaries under `%LOCALAPPDATA%\FreeToken\bin` on Windows logon without depending on WSL paths.
+
+#### Scenario: Install script checks Python version and CUDA GPU
+- **GIVEN** `scripts/llm/install-freetoken.ps1` is invoked on Windows
+- **WHEN** the script verifies the environment
+- **THEN** it enforces Python 3.12 and asserts PyTorch sees CUDA GPU availability before finishing
+
+#### Scenario: Autostart script registers logon scheduled task
+- **GIVEN** `scripts/llm/freetoken-autostart.ps1` is invoked with `-Register`
+- **WHEN** the task is created
+- **THEN** it registers ScheduledTask `FreeToken-Serve` targeting `%LOCALAPPDATA%\FreeToken\bin\restart-freetoken.ps1` at logon
+
+### Requirement: Local LLM Proxy FreeToken Thinking Fixup and Local Recognition
+
+The local LLM proxy SHALL treat `kind='freetoken'` as a local backend in `scripts/llm-proxy/discovery.mjs`. The proxy SHALL apply the `freetoken-thinking` fixup in `scripts/llm-proxy/fixups.mjs` to set `chat_template_kwargs.enable_thinking = true` for model aliases ending with `-thinking` and `false` for model aliases ending with `-fast`.
+
+#### Scenario: Proxy recognizes FreeToken as local backend
+- **GIVEN** a request carrying `x-llm-local-only: 1`
+- **WHEN** the backend selection evaluates a backend with `kind: 'freetoken'`
+- **THEN** `isLocalBackend` returns `true` and the backend is eligible for selection
+
+#### Scenario: Proxy sets enable_thinking for thinking and fast model aliases
+- **GIVEN** a request with model alias `freetoken-local/active-thinking`
+- **WHEN** `freetoken-thinking` fixup is applied
+- **THEN** `chat_template_kwargs.enable_thinking` is set to `true`
 
 ## Testszenarien
 
@@ -746,7 +774,7 @@ Since T014028 the llama loadouts were switched off wholesale and every guard for
 pointing at a loadout that is not running — but also forbade the working case.
 
 A local agent MUST resolve to one of exactly two backends: the `llamacpp-local` provider
-(FreeToken via the llm-proxy, historical key name), or a llama.cpp loadout that is
+(FreeToken directly on `:1919`, historical key name), or a llama.cpp loadout that is
 **enabled** in `scripts/llm/loadouts.json`. A reference to a loadout that is absent or
 `enabled: false` MUST fail the build. The backend name itself carries no verdict —
 liveness does.
@@ -802,3 +830,7 @@ FreeToken served KV (`200000`), and the loadout floor is not coupled to a client
 <!-- merged from change delta llm-local-dev.md (58db9aa7e597) -->
 
 <!-- merged from change delta llm-local-dev.md (13774ec922a4) -->
+
+<!-- merged from change delta llm-local-dev.md (d4e9533f16ef) -->
+
+<!-- merged from change delta llm-local-dev.md (db1c18946d7f) -->

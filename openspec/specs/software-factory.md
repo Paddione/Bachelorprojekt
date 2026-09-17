@@ -1494,55 +1494,56 @@ unchanged (Merge = Abschluss).
 ### Requirement: Bonsai Provider Registration for Implement and Review
 
 `scripts/factory/provider-register-local.sh` SHALL register the local chat model for implement and review in
-`tickets.provider_config`, using the unified gateway `http://127.0.0.1:18235/v1` as `base_url` — never a backend
-port directly. The model id SHALL NOT be a source-code literal. It SHALL be resolved in this order, first hit wins:
+`tickets.provider_config`, using the FreeToken-native root `http://127.0.0.1:1919` (no trailing `/v1`) as
+`base_url`. It SHALL NOT write the retired llm-proxy gateway `:18235`, which was stopped on 2026-09-03 (ADR-007) and
+since then answers nothing, nor any LM Studio or llama.cpp backend port. `FACTORY_LOCAL_URL` MAY override the
+address; `scripts/factory/route-provider.sh` SHALL honour the same variable and the same default.
 
-1. `factory.model` from `scripts/llm/loadouts.json`, read over `GET /admin/factory`
-2. the environment variable `FACTORY_MODEL_ID`
-3. the script's built-in default
+The model id SHALL NOT be a source-code literal outside the default. It SHALL be resolved in this order, first hit
+wins:
 
-The file outranks the environment because the file is the only one of the three that is validated against the
-loadouts that actually exist. The environment variable stays the path for callers with no reachable proxy — CI, a
-one-off run against a different model — and therefore keeps its meaning unchanged for every existing caller.
+1. the environment variable `FACTORY_MODEL_ID`
+2. the script's built-in default `Qwen3.6-35B-A3B-NVFP4`, the only checkpoint FreeToken serves
 
-The resolution SHALL live in exactly one place, `factory_model_pin` in `scripts/factory/lib.sh`, and SHALL be
-fail-soft with a bounded timeout: an unreachable proxy means "no pin", never an abort. A gateway that stops the
-factory because a web UI is not running would be a new failure source in service of a convenience feature.
+The former first source — `factory.model` read from the llm-proxy over `GET /admin/factory` through
+`factory_model_pin` — is removed together with the proxy (T900208). A pin reader against a dead port only ever
+returned "no pin", so it was dead code that still looked like a routing input.
+
+FreeToken serves one request at a time (`--max-running-requests 1`); the registered rows therefore carry
+`max_concurrent = 1`.
 
 Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Slot-Tabelle;
 `tickets.provider_config` ist der einzige Speicher, den es befuellt und den Runtime-Code liest.
 
-**Renamed-to:** Local Provider Registration for Implement and Review
-
-#### Scenario: Registration writes gateway URL and configurable model id
+#### Scenario: Registration writes the FreeToken URL and configurable model id
 
 - **GIVEN** the registration script runs against a brand database
 - **WHEN** its idempotent upserts complete
-- **THEN** every row it touched has `base_url = http://127.0.0.1:18235/v1` and `model_id` equal to the resolved pin, and re-running it never reintroduces `:8093`
+- **THEN** every row it touched has `base_url = http://127.0.0.1:1919`, `max_concurrent = 1` and `model_id` equal to `FACTORY_MODEL_ID` or the built-in default, and re-running it never reintroduces `:8093` or `:18235`
 
-#### Scenario: The file outranks the environment variable
+#### Scenario: The environment variable overrides the default
 
-- **GIVEN** `loadouts.json` carries `factory.model = "gemma26-throughput"` and `FACTORY_MODEL_ID` is set to `gemma12-vision`
+- **GIVEN** `FACTORY_MODEL_ID` is set to `some-other-checkpoint`
 - **WHEN** any routing surface resolves the model id
-- **THEN** it resolves `gemma26-throughput`
+- **THEN** it resolves `some-other-checkpoint`, and without the variable it resolves `Qwen3.6-35B-A3B-NVFP4`
 
-#### Scenario: An unreachable proxy falls back, it does not fail
+#### Scenario: No routing surface consults the retired proxy
 
-- **GIVEN** nothing is listening on `127.0.0.1:18235`
-- **WHEN** `factory_model_pin` runs
-- **THEN** it returns empty within its timeout and the caller proceeds with `FACTORY_MODEL_ID` or its built-in default, exactly as before this change
+- **GIVEN** the routing surfaces `scripts/factory/lib.sh`, `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh`, `scripts/factory/dispatcher-bridge.sh` and `scripts/factory/pipeline.mjs`
+- **WHEN** the spec BATS suite runs in CI
+- **THEN** no non-comment line names `:18235`, `/admin/factory` or `factory_model_pin`
 
 #### Scenario: Retired model ids never reach a routing surface
 
 - **GIVEN** the routing surfaces `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh` and `scripts/factory/pipeline.mjs`
 - **WHEN** the spec BATS suite runs in CI
-- **THEN** any non-comment line naming a retired model id (`ternary-bonsai-27b`, `gemma-4-12b`) fails the test, because no backend serves those ids and the proxy would silently reroute the request instead of erroring
+- **THEN** any non-comment line naming a retired model id (`ternary-bonsai-27b`, `gemma-4-12b`, `qwen38-220k`) fails the test, because no backend serves those ids
 
-#### Scenario: Emergency fallback routes through the gateway
+#### Scenario: Emergency fallback routes to FreeToken
 
 - **GIVEN** every candidate provider for a source/tier is claimed or on cooldown
 - **WHEN** `route-provider.sh` emits its emergency fallback
-- **THEN** the emitted `baseUrl` is the gateway `http://127.0.0.1:18235` and the `modelId` is the resolved pin — not an LM Studio backend port, which since T002551 serves embedding and reranking models only and therefore hosts no chat model at all
+- **THEN** the emitted `baseUrl` is `http://127.0.0.1:1919` and the `modelId` is `FACTORY_MODEL_ID` or `Qwen3.6-35B-A3B-NVFP4` — not the retired gateway and not an LM Studio backend port, which since T002551 serves embedding and reranking models only
 
 ### Requirement: PR Creation Gate after Local Verify and Completed Review
 
@@ -2448,13 +2449,17 @@ of thumb (one partial per disjoint subsystem, tests separate) instead of a hard 
 
 ### Requirement: Env-driven phase model routing
 
-`scripts/factory/pipeline.mjs` SHALL derive its phase-agent model target from environment (`FACTORY_LLM_BASE_URL` default `http://127.0.0.1:18235`, `FACTORY_LLM_MODEL` default `ternary-bonsai`, `FACTORY_LLM_PROVIDER` default `llamacpp`) instead of a hardcoded LM-Studio constant, so orchestrator and phase agents share one gateway egress.
+`scripts/factory/pipeline.mjs` SHALL derive the model of its local `flash` tier from `FACTORY_MODEL_ID` (default
+`Qwen3.6-35B-A3B-NVFP4`, provider label `llamacpp` for the OpenAI-compatible wire format) and SHALL target
+FreeToken-native at `http://127.0.0.1:1919` instead of a hardcoded LM Studio constant or the retired llm-proxy
+gateway `:18235` (T900208). The tier SHALL come only from `args.model_tier`, falling back to `flash`; the former
+`FACTORY_MODEL_LOCKED` override is removed with the proxy that supplied it.
 
-#### Scenario: Phases route through the gateway
+#### Scenario: Phases route to FreeToken
 
-- **GIVEN** autopilot.env sets no overrides
+- **GIVEN** autopilot.env sets no overrides and the launch row carries no `model_tier`
 - **WHEN** a pipeline phase spawns an agent
-- **THEN** the agent's LLM call targets `http://127.0.0.1:18235` with model `ternary-bonsai`
+- **THEN** the agent's LLM call targets `http://127.0.0.1:1919` with model `Qwen3.6-35B-A3B-NVFP4`
 
 ### Requirement: Stale test files SHALL be removed when superseded
 
@@ -3528,60 +3533,6 @@ seed.
 - **THEN** exactly the first-ranked own seed is planned
 - **AND** the test asserts `length == 1` with the own seed's `external_id` as positive anchor
 
-### Requirement: A locked factory model overrides every other model choice
-
-When `factory.locked` is true in `scripts/llm/loadouts.json`, the Software Factory SHALL use
-`factory.model` for every request it makes, and SHALL NOT consult any other source for the model
-id. Specifically:
-
-- `scripts/factory/route-provider.sh` SHALL emit the locked model over the gateway
-  `http://127.0.0.1:18235` for **every** tier, including `opus`, before the `provider_config`
-  candidate chain is read, and SHALL NOT claim a provider slot for it. No claim means no release obligation — the
-  same reasoning that already governs the `opus` branch, which returns `slotId:null` precisely because its callers have no
-  release path.
-- `scripts/factory/dispatcher-bridge.sh` SHALL export `FACTORY_MODEL_ID` and
-  `FACTORY_MODEL_LOCKED=1` into the pipeline process and SHALL pin `model_tier` to `flash`.
-
-#### Scenario: Every tier resolves to the locked model
-
-- **GIVEN** `factory.locked` is true with `factory.model = "gemma26-throughput"`
-- **WHEN** `route-provider.sh factory-implement sonnet` and `route-provider.sh factory-scout opus` run
-- **THEN** both emit `{"provider":"llamacpp","modelId":"gemma26-throughput","baseUrl":"http://127.0.0.1:18235",...}`
-
-#### Scenario: The lock claims no provider slot
-
-- **GIVEN** `factory.locked` is true
-- **WHEN** `route-provider.sh` runs ten times in a row
-- **THEN** `tickets.provider_health.active_agents` is unchanged, because the locked branch returns
-  before the claim loop and therefore incurs no release obligation
-
-#### Scenario: A locked run does not escalate on retry
-
-- **GIVEN** `factory.locked` is true and a ticket enters its third attempt with `model_tier=sonnet`
-- **WHEN** `dispatcher-bridge.sh` launches the pipeline
-- **THEN** the pipeline runs on the locked local model, `FACTORY_MODEL_LOCKED=1` is set in its
-  environment, and no request reaches an external provider
-
-#### Scenario: The locked branch is not silent
-
-- **GIVEN** `factory.locked` is true
-- **WHEN** `route-provider.sh` takes the locked branch
-- **THEN** it writes one line to stderr naming the locked model, so a run that never touches the
-  candidate chain is distinguishable from one that walked it
-
-#### Scenario: Unlocked leaves the database chain untouched
-
-- **GIVEN** `factory.locked` is false
-- **WHEN** `route-provider.sh factory-implement flash` runs
-- **THEN** the ordinary `provider_config` candidate chain is evaluated unchanged — priority order,
-  cooldown check and claim loop behave exactly as in the locked-absent case
-
-#### Scenario: No proxy means no lock
-
-- **GIVEN** nothing is listening on `127.0.0.1:18235`
-- **WHEN** `route-provider.sh factory-implement flash` runs
-- **THEN** it walks the ordinary candidate chain, because an unreadable pin is treated as absent
-
 ### Requirement: Provider_config ist die einzige Kandidatenquelle des Routers
 
 Der fruehere Phasen-Pin aus der entfernten Tabelle `tickets.factory_model_slots` war eine zweite
@@ -3677,22 +3628,42 @@ write.
 - **AND** for every non-terminal candidate the guard decision precedes the update-status write
 
 ### Requirement: Factory Dispatcher Runs In-Cluster
+<!-- bats: software-factory/tick-http-wakeup.bats -->
 
 The factory dispatcher SHALL run as a single-replica Deployment named
 `factory-runner` in namespace `workspace-dev` with a ReadWriteOnce-compatible
 (RWX) Longhorn workdir containing a full repository clone including `.worktrees/`.
+The CronJob `factory-tick` SHALL trigger a tick through an HTTP wakeup endpoint served by the
+runner (`POST /wakeup` on the ClusterIP Service `factory-runner`) instead of `kubectl exec`; the
+CronJob pod SHALL NOT mount a ServiceAccount token and its ServiceAccount SHALL NOT hold `pods/exec`.
 
 Rationale: Mit der WSL-Stilllegung verliert der Factory-Dispatcher (systemd
 User-Timer) seinen Laufzeitort. Ein single-replica Pod erhält die Dateisystem-
 Semantik (agent-lock.sh, Worktrees, Session-Koordination), die mehrere
-Design-Dokumente als "Single-Host"-Realität dokumentieren.
+Design-Dokumente als "Single-Host"-Realität dokumentieren. Der Anstoß per `kubectl exec`
+verlangte `pods/exec` für den ganzen Namespace `workspace-dev` (Pod-Namen sind nicht per
+`resourceNames` adressierbar) und damit Exec-Zugriff auf jeden Pod dort, einschließlich des dev-pod.
 
-#### Scenario: Tick wird aus dem Cluster angestoßen
+#### Scenario: Tick wird aus dem Cluster angestoßen *(BATS)*
 
 - **GIVEN** das Deployment `factory-runner` ist Ready und ein CronJob `factory-tick` existiert
 - **WHEN** der CronJob-Schedule feuert
-- **THEN** führt genau eine Runner-Instanz einen Tick aus (`scripts/factory/wakeup.sh`)
-  gegen den Repo-Clone im RWX-Volume aus, ohne dass ein WSL-Host erreichbar sein muss
+- **THEN** ruft der CronJob-Pod `POST /wakeup` am Service `factory-runner` auf, genau eine Runner-Instanz
+  führt einen Tick aus (`scripts/factory/wakeup.sh`) gegen den Repo-Clone im RWX-Volume, ohne dass ein
+  WSL-Host erreichbar sein muss, und der Job endet nur dann erfolgreich, wenn der Tick mit Exit 0 endet
+
+#### Scenario: Der Tick-Anstoß hält keine Exec-Rechte *(BATS)*
+
+- **GIVEN** die Manifeste in `k3d/dev-stack/factory-runner.yaml`
+- **WHEN** Rollen, Bindings und der CronJob-Pod deklariert werden
+- **THEN** existiert keine Rolle mit `pods/exec` für die ServiceAccount `factory-tick`, der CronJob-Pod setzt
+  `automountServiceAccountToken: false` und ruft kein `kubectl` auf
+
+#### Scenario: Ein paralleler Wakeup startet keinen zweiten Tick *(BATS)*
+
+- **GIVEN** ein Wakeup läuft bereits
+- **WHEN** ein zweiter `POST /wakeup` eintrifft
+- **THEN** antwortet der Listener mit HTTP 409 und startet `wakeup.sh` nicht erneut
 
 #### Scenario: Credentials kommen ausschließlich aus SealedSecrets
 
@@ -5783,3 +5754,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (1468f389bd87) -->
 
 <!-- merged from change delta software-factory.md (b36906c2c044) -->
+
+<!-- merged from change delta software-factory.md (5094497d6819) -->
+
+<!-- merged from change delta software-factory.md (8d2049857398) -->

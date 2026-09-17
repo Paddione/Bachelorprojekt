@@ -989,25 +989,29 @@ The entry MUST NOT be disabled on the grounds that the wrapper binary is absent.
 - **AND** the listed tools include `plan_tasks` and `run_task`
 
 ### Requirement: Windows hosts have a documented start mechanism for the local MCP servers
+<!-- bats: mcp-gateway/start-windows-unc.bats -->
 
-Because the systemd units under `scripts/bge-mcp/` and `scripts/mcp-gateway/` are Linux-only
-and pin the bge upstreams to a WSL-local proxy address, Windows hosts MUST have an equivalent,
-committed start mechanism. It MUST establish the port-forwards the local servers depend on and
-MUST start the bge-mcp shim with `LLM_EMBED_URL` and `LLM_RERANKER_URL` pointing at those
-forwards.
+Windows hosts MUST have a committed start mechanism that establishes the port-forwards the
+local MCP clients depend on: port 18080 from the fleet `dev-pod`, and ports 18235, 13001 and
+13005 from the devmesh `llm-services` Service. The mechanism MUST NOT start the bge-mcp shim
+locally. It MUST resolve the repository root to a plain filesystem path, so that it also works
+when started from a `\\wsl.localhost\...` UNC path.
 
 The mechanism MUST be reachable from the Taskfile or the documentation so it does not become an
 orphan script.
 
-#### Scenario: operator starts the local MCP stack on Windows
+#### Scenario: operator starts the forwards on Windows
 
-- **GIVEN** a Windows host with a working `kubectl` context for the fleet cluster
-- **AND** `BGE_MCP_TOKEN` available to the start mechanism
+- **GIVEN** a Windows host with working `kubectl` contexts for the fleet and devmesh clusters
 - **WHEN** the operator runs the documented Windows start mechanism
-- **THEN** the bge-mcp shim listens on its configured port
-- **AND** an MCP `initialize` request against that port is answered
+- **THEN** ports 18080, 18235, 13001 and 13005 accept connections on 127.0.0.1
+- **AND** an MCP `initialize` request against port 13005 is answered
 
-<!-- merged from change delta mcp-gateway.md (39350fda196d) -->
+#### Scenario: the mechanism starts from a UNC path
+
+- **GIVEN** the repository is reached through `\\wsl.localhost\<distro>\...`
+- **WHEN** the start or the autostart registration script resolves the repository root
+- **THEN** the resolved path carries no PowerShell provider prefix
 
 ### Requirement: The dev-pod offers SSH access only through the Kubernetes API
 <!-- bats: mcp-gateway/dev-shell-ssh.bats -->
@@ -1065,3 +1069,165 @@ It SHALL mount the shared `dev-pod-repo` checkout read-only.
 - **THEN** the mount is read-only, so that development work happens in the clone under `/home/dev`
 
 <!-- merged from change delta mcp-gateway.md (b0864547ec38) -->
+
+<!-- merged from change delta mcp-gateway.md (2df8d127add2) -->
+
+### Requirement: REQ-MCP-HTTP-001 Local HTTP MCP request boundary
+
+Every repository-managed HTTP MCP endpoint SHALL validate the HTTP `Host` header and every present `Origin` header before dispatching an MCP method or forwarding a request. Accepted hosts SHALL be limited to the explicitly configured local hostnames and loopback addresses. Requests without an `Origin` header SHALL remain valid for non-browser MCP clients when their host and authentication are valid.
+
+#### Scenario: Local CLI client has no Origin header
+
+- **GIVEN** an authenticated MCP client connects through an allowed loopback host without an `Origin` header
+- **WHEN** it sends a valid MCP request
+- **THEN** the server processes the request normally
+
+#### Scenario: Foreign browser origin is rejected
+
+- **GIVEN** a request carries an `Origin` that is not present in the configured browser-origin allowlist
+- **WHEN** it reaches any repository-managed HTTP MCP endpoint
+- **THEN** the endpoint responds with HTTP 403 before dispatching or forwarding the MCP payload
+- **AND** the response does not grant that origin CORS access
+
+#### Scenario: Rebinding host is rejected
+
+- **GIVEN** a request reaches a loopback listener with an unapproved or malformed `Host` header
+- **WHEN** the HTTP request boundary evaluates it
+- **THEN** the endpoint responds with HTTP 403 before reading or executing an MCP tool request
+
+### Requirement: REQ-MCP-HTTP-002 Explicit browser-origin CORS policy
+
+An HTTP MCP endpoint that supports browser clients SHALL return CORS headers only for an exact origin in its configured allowlist. It MUST NOT emit `Access-Control-Allow-Origin: *`, reflect arbitrary requested headers, or authorize a preflight request from an unapproved origin. An allowed response SHALL carry `Vary: Origin`.
+
+#### Scenario: Llama Web UI origin is allowed
+
+- **GIVEN** the configured allowlist contains the exact llama Web UI origin
+- **WHEN** that origin sends an authenticated MCP request or preflight request
+- **THEN** the response names that exact origin in `Access-Control-Allow-Origin`
+- **AND** the response carries `Vary: Origin`
+
+#### Scenario: Arbitrary preflight headers are not reflected
+
+- **GIVEN** a browser from an unapproved origin requests arbitrary headers in an OPTIONS preflight
+- **WHEN** the endpoint evaluates the preflight
+- **THEN** it responds with HTTP 403
+- **AND** it does not copy the requested header list into `Access-Control-Allow-Headers`
+
+### Requirement: REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints
+
+Every local HTTP endpoint exposing MCP tools, database results, cluster information, or request forwarding SHALL require a server-specific bearer token. Token comparison SHALL not disclose comparison timing, and a server that requires a token SHALL fail startup when its token is absent or empty. A minimal process-liveness route MAY remain unauthenticated when it exposes no tool, configuration, build, database, or cluster details, but it remains subject to Host and Origin validation.
+
+#### Scenario: Missing token cannot invoke a tool
+
+- **GIVEN** a protected local MCP endpoint is running
+- **WHEN** a request reaches its MCP route without an Authorization header
+- **THEN** it responds with HTTP 401 and a `WWW-Authenticate: Bearer` header
+- **AND** no tool handler or upstream request runs
+
+#### Scenario: Wrong token cannot invoke a tool
+
+- **GIVEN** a protected local MCP endpoint is running
+- **WHEN** a request carries a bearer token different from that endpoint's configured token
+- **THEN** it responds with HTTP 401 before MCP dispatch or forwarding
+
+#### Scenario: Missing server token fails closed
+
+- **GIVEN** a protected repository-managed HTTP MCP server or security proxy starts without its required token
+- **WHEN** initialization evaluates the environment
+- **THEN** the process exits non-zero with an actionable error
+- **AND** it never opens the protected listener
+
+### Requirement: REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary
+
+A local browser proxy in front of an MCP upstream SHALL authenticate and validate Host and Origin locally before removing or rewriting browser security headers. A rejected request MUST NOT create an upstream connection. The proxy SHALL forward only an explicit header allowlist and MUST NOT transparently pass hop-by-hop or arbitrary browser-controlled headers.
+
+#### Scenario: Unauthorized request never reaches Kubernetes MCP
+
+- **GIVEN** the Kubernetes MCP browser proxy receives a request with a missing token or foreign origin
+- **WHEN** it evaluates the request
+- **THEN** it rejects the request locally
+- **AND** the Kubernetes MCP upstream receives no connection or payload
+
+#### Scenario: Authorized browser request is normalized before forwarding
+
+- **GIVEN** a request has an allowed host, allowed browser origin, and valid proxy token
+- **WHEN** the proxy forwards it to an upstream that rejects browser-origin headers
+- **THEN** the proxy removes those headers only after local validation
+- **AND** it forwards only the documented MCP and transport headers
+
+### Requirement: REQ-MCP-HTTP-005 MCP authentication secrets stay outside tracked artifacts
+
+The MCP registry SHALL declare Authorization headers for every protected HTTP MCP client using environment references. Registry generation SHALL preserve unresolved secret references in tracked files and SHALL resolve plaintext only into explicitly untracked, owner-readable runtime configuration where a harness cannot expand environment references itself.
+
+#### Scenario: Generated tracked configurations contain no token value
+
+- **GIVEN** protected MCP servers are declared in the registry
+- **WHEN** tracked harness configurations are generated
+- **THEN** each Authorization header contains an environment reference rather than a literal token
+- **AND** the generation check fails if a known plaintext token is found in a tracked output
+
+#### Scenario: Harness receives the correct server-specific token
+
+- **GIVEN** the required token environment variables are available to the generator or harness
+- **WHEN** the harness connects to each protected HTTP MCP server
+- **THEN** it sends the token assigned to that server
+- **AND** a token assigned to one server does not authorize a different server
+
+<!-- merged from change delta mcp-gateway.md (44b60dfb305a) -->
+
+### Requirement: Watchdog detects MCP token drift without leaking secrets
+
+The `mcp-gateway-watchdog` SHALL compare the live token fingerprints
+(sha256) of the supervised MCP credentials against the local
+`~/.config/*/server.env` files on every tick, and SHALL report `match` or
+`drift` per key name only — never a token value, neither on stdout, nor in
+the journal, nor in agent messages.
+
+#### Scenario: Fingerprints match — no action *(BATS)*
+
+- **GIVEN** the live secret value and the `server.env` value share the same sha256
+- **WHEN** `scripts/mcp-gateway/token-drift-heal.sh check` runs
+- **THEN** it exits 0, writes nothing, restarts nothing, and its output contains no token value
+
+#### Scenario: Fingerprints differ — drift is reported without values *(BATS)*
+
+- **GIVEN** a fixture live secret and a fixture `server.env` with different values
+- **WHEN** the check runs
+- **THEN** it reports `drift` for the key name, exits non-zero, and the output contains neither value
+
+#### Scenario: Cluster unreachable — fail-closed skip *(BATS)*
+
+- **GIVEN** the live secret cannot be read (cluster down)
+- **WHEN** the check runs
+- **THEN** it reports `skip`, exits 0, and heals nothing
+
+### Requirement: Watchdog heals token drift and notifies
+
+On detected drift the system SHALL atomically rewrite the affected
+`server.env` file (mode 600), re-run `scripts/mcp-sync.sh render` so all
+harness configs (including the Codex bearer entries) pick up the new token,
+restart only the affected systemd user units, and notify via
+`scripts/agent-msg.sh post` plus a journal line that the harness must be
+restarted once (running sessions read tokens only at startup). The heal
+SHALL honour the watchdog rate-limit and SHALL NOT loop when the post-heal
+`doctor.sh` bearer probe still fails — it notifies once instead.
+
+#### Scenario: Drift triggers full heal *(BATS)*
+
+- **GIVEN** a drifted fixture key with a mocked unit-restart hook
+- **WHEN** the heal runs
+- **THEN** the fixture `server.env` carries the new value with mode 600, the render hook ran, the affected unit hook ran, unaffected unit hooks did not run, and no output contains either token value
+
+#### Scenario: No drift — heal is a no-op *(BATS)*
+
+- **GIVEN** matching fixture fingerprints
+- **WHEN** the heal runs
+- **THEN** no file is rewritten, no render hook runs, and no unit hook runs
+
+#### Scenario: Heal notifies about the required harness restart *(BATS)*
+
+- **GIVEN** a drifted fixture key
+- **WHEN** the heal completes
+- **THEN** the agent-msg hook received a message naming the key and stating that the harness must be restarted once
+
+<!-- merged from change delta mcp-gateway.md (eedb6b45a857) -->

@@ -3387,12 +3387,6 @@
       "status": "archived"
     }
   ],
-  "T004339": [
-    {
-      "slug": "decommission-orphaned-loadouts-T014339",
-      "status": "plan_staged"
-    }
-  ],
   "T004592": [
     {
       "slug": "2026-08-14-stub-delta-pr-gate",
@@ -3527,8 +3521,8 @@
   ],
   "T005321": [
     {
-      "slug": "service-health-goals",
-      "status": "plan_staged"
+      "slug": "2026-09-17-service-health-goals",
+      "status": "archived"
     }
   ],
   "T005559": [
@@ -4113,14 +4107,14 @@
   ],
   "T013673": [
     {
-      "slug": "half-archive-check-forks",
-      "status": "plan_staged"
+      "slug": "2026-09-17-half-archive-check-forks",
+      "status": "archived"
     }
   ],
   "T013674": [
     {
-      "slug": "ci-node-deps-bats-outliers",
-      "status": "plan_staged"
+      "slug": "2026-09-17-ci-node-deps-bats-outliers",
+      "status": "archived"
     }
   ],
   "T013678": [
@@ -4179,8 +4173,8 @@
   ],
   "T014086": [
     {
-      "slug": "unify-dev-flow-skill-names",
-      "status": "plan_staged"
+      "slug": "2026-09-17-unify-dev-flow-skill-names",
+      "status": "archived"
     }
   ],
   "T014104": [
@@ -4192,6 +4186,12 @@
   "T014105": [
     {
       "slug": "2026-08-23-freetoken-repo-ssot",
+      "status": "archived"
+    }
+  ],
+  "T014339": [
+    {
+      "slug": "2026-09-17-decommission-orphaned-loadouts-T014339",
       "status": "archived"
     }
   ],
@@ -4239,8 +4239,8 @@
   ],
   "T014544": [
     {
-      "slug": "db-restore-verification",
-      "status": "plan_staged"
+      "slug": "2026-09-17-db-restore-verification",
+      "status": "archived"
     }
   ],
   "T014545": [
@@ -4257,8 +4257,8 @@
   ],
   "T014550": [
     {
-      "slug": "flux-oci-sha-pinning-t014550",
-      "status": "plan_staged"
+      "slug": "2026-09-17-flux-oci-sha-pinning-t014550",
+      "status": "archived"
     }
   ],
   "T014552": [
@@ -4275,20 +4275,20 @@
   ],
   "T014566": [
     {
-      "slug": "infra-kleinfixes-t014566",
-      "status": "plan_staged"
+      "slug": "2026-09-17-infra-kleinfixes-t014566",
+      "status": "archived"
     }
   ],
   "T014735": [
     {
-      "slug": "ticket-mcp-freshness-guard-t014735",
-      "status": "plan_staged"
+      "slug": "2026-09-17-ticket-mcp-freshness-guard-t014735",
+      "status": "archived"
     }
   ],
   "T014938": [
     {
-      "slug": "pocket-id-seed-label-isolation",
-      "status": "plan_staged"
+      "slug": "2026-09-17-pocket-id-seed-label-isolation",
+      "status": "archived"
     }
   ],
   "T015004": [
@@ -4299,8 +4299,8 @@
   ],
   "T015008": [
     {
-      "slug": "kubeconfig-drift-guard",
-      "status": "plan_staged"
+      "slug": "2026-09-17-kubeconfig-drift-guard",
+      "status": "archived"
     }
   ],
   "T015012": [
@@ -4383,18 +4383,14 @@
   ],
   "T015916": [
     {
-      "slug": "archive-frontmatter-completed-on-archive-branch",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-08-24-archive-frontmatter-completed",
       "status": "archived"
     }
   ],
   "T016124": [
     {
-      "slug": "backup-alert-corrections",
-      "status": "plan_staged"
+      "slug": "2026-09-17-backup-alert-corrections",
+      "status": "archived"
     }
   ],
   "T016250": [
@@ -4405,26 +4401,20 @@
   ],
   "T016251": [
     {
-      "slug": "session-hub-reap-purge-fixes",
-      "status": "plan_staged"
+      "slug": "2026-09-17-session-hub-reap-purge-fixes",
+      "status": "archived"
     }
   ],
   "T016415": [
     {
-      "slug": "backup-mail-routing",
-      "status": "plan_staged"
+      "slug": "2026-09-17-backup-mail-routing",
+      "status": "archived"
     }
   ],
   "T016416": [
     {
-      "slug": "kv-ladder-autostart",
-      "status": "plan_staged"
-    }
-  ],
-  "T016418": [
-    {
-      "slug": "watchdog-worktree-activity",
-      "status": "plan_staged"
+      "slug": "2026-09-17-kv-ladder-autostart",
+      "status": "archived"
     }
   ],
   "T016419": [
@@ -4435,8 +4425,8 @@
   ],
   "T016420": [
     {
-      "slug": "sdlc-autopilot-skill-adoption",
-      "status": "plan_staged"
+      "slug": "2026-09-17-sdlc-autopilot-skill-adoption",
+      "status": "archived"
     }
   ],
   "T016422": [
@@ -4453,44 +4443,44 @@
   ],
   "T016425": [
     {
-      "slug": "wsl-exit-hetzner2-decommission",
-      "status": "plan_staged"
+      "slug": "2026-09-17-wsl-exit-hetzner2-decommission",
+      "status": "archived"
     }
   ],
   "T016429": [
     {
-      "slug": "wsl-exit-sdlc-console-fleet",
-      "status": "plan_staged"
+      "slug": "2026-09-17-wsl-exit-sdlc-console-fleet",
+      "status": "archived"
     }
   ],
   "T016430": [
     {
-      "slug": "wsl-exit-internal-endpoints",
-      "status": "plan_staged"
+      "slug": "2026-09-17-wsl-exit-internal-endpoints",
+      "status": "archived"
     }
   ],
   "T016436": [
     {
-      "slug": "wsl-exit-adr007",
-      "status": "plan_staged"
+      "slug": "2026-09-17-wsl-exit-adr007",
+      "status": "archived"
     }
   ],
   "T016438": [
     {
-      "slug": "wsl-exit-hf-jobs",
-      "status": "plan_staged"
+      "slug": "2026-09-17-wsl-exit-hf-jobs",
+      "status": "archived"
     }
   ],
   "T016442": [
     {
-      "slug": "rejoin-gekko-hetzner2-fleet",
-      "status": "plan_staged"
+      "slug": "2026-09-17-rejoin-gekko-hetzner2-fleet",
+      "status": "archived"
     }
   ],
   "T016447": [
     {
-      "slug": "cbm-index-single-flight",
-      "status": "plan_staged"
+      "slug": "2026-09-17-cbm-index-single-flight",
+      "status": "archived"
     }
   ],
   "T016592": [
@@ -4501,14 +4491,14 @@
   ],
   "T900006": [
     {
-      "slug": "bge-role-registry-routing",
-      "status": "plan_staged"
+      "slug": "2026-09-17-bge-role-registry-routing",
+      "status": "archived"
     }
   ],
   "T900014": [
     {
-      "slug": "flux-secrets-ordering",
-      "status": "plan_staged"
+      "slug": "2026-09-17-flux-secrets-ordering",
+      "status": "archived"
     }
   ],
   "T900023": [
@@ -4525,20 +4515,20 @@
   ],
   "T900025": [
     {
-      "slug": "fix-agent-lock-canonicalize-worktree-cwd",
-      "status": "plan_staged"
+      "slug": "2026-09-17-fix-agent-lock-canonicalize-worktree-cwd",
+      "status": "archived"
     }
   ],
   "T900027": [
     {
-      "slug": "stray-secret-dump-guard",
-      "status": "plan_staged"
+      "slug": "2026-09-17-stray-secret-dump-guard",
+      "status": "archived"
     }
   ],
   "T900029": [
     {
-      "slug": "fix-sessions-wildcard-render-guard",
-      "status": "plan_staged"
+      "slug": "2026-09-17-fix-sessions-wildcard-render-guard",
+      "status": "archived"
     }
   ],
   "T900039": [
@@ -4549,8 +4539,8 @@
   ],
   "T900041": [
     {
-      "slug": "batch-sa-infra-T900041",
-      "status": "plan_staged"
+      "slug": "2026-09-17-batch-sa-infra-T900041",
+      "status": "archived"
     }
   ],
   "T900042": [
@@ -4567,14 +4557,14 @@
   ],
   "T900046": [
     {
-      "slug": "worktree-prune-cross-platform-fix",
-      "status": "plan_staged"
+      "slug": "2026-09-17-worktree-prune-cross-platform-fix",
+      "status": "archived"
     }
   ],
   "T900047": [
     {
-      "slug": "fix-worktree-write-guard-abspath-T900047",
-      "status": "plan_staged"
+      "slug": "2026-09-17-fix-worktree-write-guard-abspath-T900047",
+      "status": "archived"
     }
   ],
   "T900051": [
@@ -4585,14 +4575,14 @@
   ],
   "T900052": [
     {
-      "slug": "mcp-http-origin-auth-hardening",
-      "status": "plan_staged"
+      "slug": "2026-09-17-mcp-http-origin-auth-hardening",
+      "status": "archived"
     }
   ],
   "T900054": [
     {
-      "slug": "wsl-exit-nachzug",
-      "status": "plan_staged"
+      "slug": "2026-09-17-wsl-exit-nachzug",
+      "status": "archived"
     }
   ],
   "T900056": [
@@ -4669,26 +4659,26 @@
   ],
   "T900109": [
     {
-      "slug": "dev-pod-llm-proxy-loadouts-path",
-      "status": "plan_staged"
+      "slug": "2026-09-17-dev-pod-llm-proxy-loadouts-path",
+      "status": "archived"
     }
   ],
   "T900110": [
     {
-      "slug": "rbac-exec-least-privilege",
-      "status": "plan_staged"
+      "slug": "2026-09-17-rbac-exec-least-privilege",
+      "status": "archived"
     }
   ],
   "T900114": [
     {
-      "slug": "website-clusterrole-least-privilege",
-      "status": "plan_staged"
+      "slug": "2026-09-17-website-clusterrole-least-privilege",
+      "status": "archived"
     }
   ],
   "T900115": [
     {
-      "slug": "devmesh-grand-consolidation",
-      "status": "plan_staged"
+      "slug": "2026-09-17-devmesh-grand-consolidation",
+      "status": "archived"
     }
   ],
   "T900117": [
@@ -4753,8 +4743,8 @@
   ],
   "T900161": [
     {
-      "slug": "github-snapshot-reconciler-i5589",
-      "status": "plan_staged"
+      "slug": "2026-09-17-github-snapshot-reconciler-i5589",
+      "status": "archived"
     }
   ],
   "T900162": [
@@ -4765,8 +4755,8 @@
   ],
   "T900163": [
     {
-      "slug": "ssot-consolidation-stale-cleanup",
-      "status": "plan_staged"
+      "slug": "2026-09-17-ssot-consolidation-stale-cleanup",
+      "status": "archived"
     }
   ],
   "T900164": [
@@ -4807,26 +4797,26 @@
   ],
   "T900189": [
     {
-      "slug": "freetoken-windows-native",
-      "status": "plan_staged"
+      "slug": "2026-09-17-freetoken-windows-native",
+      "status": "archived"
     }
   ],
   "T900191": [
     {
-      "slug": "devmesh-llm-services",
-      "status": "plan_staged"
+      "slug": "2026-09-17-devmesh-llm-services",
+      "status": "archived"
     }
   ],
   "T900208": [
     {
-      "slug": "local-llm-freetoken-direct",
-      "status": "plan_staged"
+      "slug": "2026-09-17-local-llm-freetoken-direct",
+      "status": "archived"
     }
   ],
   "T900209": [
     {
-      "slug": "embed-hook-live-backend",
-      "status": "plan_staged"
+      "slug": "2026-09-17-embed-hook-live-backend",
+      "status": "archived"
     }
   ],
   "T900210": [
@@ -4843,8 +4833,8 @@
   ],
   "T900213": [
     {
-      "slug": "llm-routing-freetoken-finish",
-      "status": "plan_staged"
+      "slug": "2026-09-17-llm-routing-freetoken-finish",
+      "status": "archived"
     }
   ],
   "T900220": [
@@ -4855,7 +4845,19 @@
   ],
   "T900223": [
     {
-      "slug": "mcp-token-auto-sync",
+      "slug": "2026-09-17-mcp-token-auto-sync",
+      "status": "archived"
+    }
+  ],
+  "T900226": [
+    {
+      "slug": "archive-frontmatter-completed-on-archive-branch",
+      "status": "plan_staged"
+    }
+  ],
+  "T900227": [
+    {
+      "slug": "watchdog-worktree-activity",
       "status": "plan_staged"
     }
   ],

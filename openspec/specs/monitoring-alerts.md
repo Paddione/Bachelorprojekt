@@ -93,49 +93,56 @@ repository's configuration rather than the Operator's default.
 ### Requirement: Backup-Job-Failures lösen kritischen Alert aus
 
 Every failed Kubernetes Job created by a backup CronJob (`pvc-backup`, `db-backup`,
-`backup-restore-verify`) in namespace `workspace` or `workspace-korczewski` SHALL raise a
-Prometheus alert `BackupJobFailed` with label `severity: critical` within the rule evaluation
-window.
+`db-restore-verify`) in namespace `workspace` or `workspace-korczewski` SHALL raise a Prometheus
+alert `BackupJobFailed` with label `severity: critical`.
 
-Since T016592 the alert SHALL NOT produce an outbound notification: it is observable in the
-Prometheus and Alertmanager UI only. Detecting a failed nightly run therefore depends on a manual
-audit, which is the consequence the operator accepted when all email notification was switched
-off.
+The expression SHALL use `max_over_time` and SHALL NOT use `increase`. `kube_job_status_failed`
+carries a `reason` label; a Job that fails within seconds produces a series that is already
+constant at its first sample, so `increase()` over it evaluates to `0` and the alert stays
+silent. The expression SHALL further restrict to Jobs created within the lookback window via
+`kube_job_created` — without that gate, long-lived failed Job objects keep firing (measured on
+the fleet cluster: 80 series without the gate, 4 with it).
 
-#### Scenario: Forced failed backup run produces a signal
+#### Scenario: Job fails within seconds
 
-- **GIVEN** the PrometheusRule `workspace-alerts` contains the group `backup.rules`
-- **WHEN** a backup Job in one of the covered namespaces transitions to failed
-  (`increase(kube_job_status_failed[12h]) > 0`)
-- **THEN** the alert `BackupJobFailed` fires with `severity: critical` and is visible in the
-  Alertmanager UI
-- **AND** it resolves to the `null` receiver, so no mail is sent
+- **GIVEN** a backup Job that exhausts its `backoffLimit` in seconds
+- **AND** its `kube_job_status_failed` series is constant from the first scrape
+- **WHEN** the alert expression is evaluated
+- **THEN** `BackupJobFailed` fires, because `max_over_time` does not depend on an observed
+  increase
+
+#### Scenario: Old failed Job objects do not keep firing
+
+- **GIVEN** a failed backup Job object older than the lookback window
+- **WHEN** the alert expression is evaluated
+- **THEN** no alert fires for it, because the `kube_job_created` gate excludes it
+  (Positiv-Anker: a Job that failed within the window does fire)
 
 ### Requirement: Ausgebliebene Backup-Erfolge lösen Stale-Alert aus
 
-Each monitored backup CronJob (`pvc-backup`, `db-backup`, `backup-restore-verify`) in namespace
-`workspace` or `workspace-korczewski` SHALL raise a Prometheus alert `BackupCronJobStale` with
-label `severity: critical` when its last SUCCESSFUL run is older than 26 hours (daily schedule plus
-tolerance), or when no successful run has ever been recorded. The expression SHALL use
-`kube_cronjob_status_last_successful_time` and SHALL NOT use
-`kube_cronjob_status_last_schedule_time`: a CronJob that starts on schedule every night and then
-fails keeps the schedule metric fresh and would never alert — which is the exact failure this
-capability exists to catch.
+Each DAILY backup CronJob (`pvc-backup`, `db-backup`) in namespace `workspace` or
+`workspace-korczewski` SHALL raise `BackupCronJobStale` with `severity: critical` when its last
+successful run is older than 26 hours, or when no successful run has ever been recorded. The
+expression SHALL use `kube_cronjob_status_last_successful_time` and SHALL NOT use
+`kube_cronjob_status_last_schedule_time`.
+
+The never-succeeded branch SHALL be gated on CronJob age via `kube_cronjob_created`, so that a
+newly created CronJob is not critical before it has had a chance to run once.
 
 #### Scenario: Nightly run starts but keeps failing
 
-- **GIVEN** a backup CronJob whose last successful run is older than 26 hours
-- **AND** the CronJob is triggered on schedule every night, so its last schedule time is recent
+- **GIVEN** a daily backup CronJob whose last successful run is older than 26 hours
+- **AND** it is triggered on schedule every night, so its last schedule time is recent
 - **WHEN** the alert expression is evaluated
-- **THEN** the alert `BackupCronJobStale` fires with `severity: critical`
+- **THEN** `BackupCronJobStale` fires with `severity: critical`
 
-#### Scenario: CronJob has never succeeded
+#### Scenario: Freshly created CronJob stays silent
 
-- **GIVEN** a monitored backup CronJob for which no `kube_cronjob_status_last_successful_time`
-  series exists
+- **GIVEN** a backup CronJob created less than its own interval ago
+- **AND** no `kube_cronjob_status_last_successful_time` series exists for it yet
 - **WHEN** the alert expression is evaluated
-- **THEN** the alert `BackupCronJobStale` fires, because the expression covers the missing series
-  via an `unless` branch instead of silently producing no result
+- **THEN** no alert fires
+  (Positiv-Anker: an older CronJob without any successful run does fire)
 
 ### Requirement: Suspendierte CronJobs erzeugen keinen Alarm
 
@@ -161,7 +168,6 @@ The backup alert expressions SHALL match namespaces `workspace` and `workspace-k
 - **GIVEN** the `backup.rules` group in `k3d/monitoring/prometheus-rules.yaml`
 - **WHEN** the alert expressions are inspected
 - **THEN** each expression filters `namespace=~"workspace|workspace-korczewski"`
-
 
 ### Requirement: Blackhole Receiver
 
@@ -189,6 +195,190 @@ expressed, rather than by deleting the receivers outright.
 - **THEN** enthält sie keinen `emailConfigs:`-Eintrag
   (Positiv-Anker: der `receivers:`-Block existiert weiterhin und trägt den `null`-Receiver)
 
+### Requirement: Die wöchentliche Restore-Verifikation hat eine eigene Schwelle
+
+The weekly restore verification CronJob `db-restore-verify` (schedule `30 3 * * 0`) SHALL be
+covered by its own alert `RestoreVerifyStale` with a threshold of 8 days, not by the 26-hour
+threshold of the daily backups. Under the daily threshold the alert would be firing on six of
+every seven days.
+
+The alert SHALL reference the CronJob by its real name `db-restore-verify`. The manifest FILE is
+named `k3d/backup-restore-verify-cronjob.yaml`, but the CronJob inside it is `db-restore-verify`;
+Prometheus label matchers are fully anchored, so a filename-derived name matches nothing and the
+capability would silently cover no job at all.
+
+#### Scenario: Weekly job is not flagged between runs
+
+- **GIVEN** `db-restore-verify` succeeded four days ago
+- **WHEN** the alert expression is evaluated
+- **THEN** no `RestoreVerifyStale` alert fires
+
+#### Scenario: Weekly job misses more than a week
+
+- **GIVEN** the last successful `db-restore-verify` run is older than 8 days
+- **AND** the CronJob is not suspended
+- **WHEN** the alert expression is evaluated
+- **THEN** `RestoreVerifyStale` fires with `severity: warning`
+
+### Requirement: Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten
+
+The Alertmanager CR SHALL set `spec.alertmanagerConfigMatcherStrategy.type` to
+`OnNamespaceExceptForAlertmanagerNamespace`, not to `None`. The `workspace-alerts`
+AlertmanagerConfig lives in the Alertmanager's own namespace and is therefore exempted, while
+every AlertmanagerConfig in any other namespace keeps its namespace scoping.
+
+`None` would be broader than the problem: the `workspace-alerts` root route declares neither
+`matchers` nor `continue`, so without an appended namespace matcher it becomes a cluster-wide
+catch-all that swallows every alert and shadows any route appended after it.
+
+#### Scenario: Workspace alerts still reach the email receiver
+
+- **GIVEN** the Alertmanager CR carries
+  `alertmanagerConfigMatcherStrategy.type: OnNamespaceExceptForAlertmanagerNamespace`
+- **WHEN** `amtool config routes test` is run with `namespace=workspace`
+- **THEN** the resolved receiver is the email receiver of `workspace-alerts`, not `null`
+
+#### Scenario: A config in another namespace keeps its scoping
+
+- **GIVEN** an AlertmanagerConfig in a namespace other than the Alertmanager's own
+- **WHEN** the operator assembles the routing tree
+- **THEN** that config still receives its `namespace` matcher
+
+### Requirement: Blackbox-Probe-Coverage aller öffentlichen Services
+
+Das System SHALL sicherstellen, dass jeder öffentlich zugängliche Service (definiert über
+Ingress-Manifeste in `k3d/`, `prod-fleet/mentolder/`, `prod-fleet/korczewski/`) eine
+blackbox HTTP health probe in `k3d/monitoring/blackbox-exporter.yaml` hat.
+Services ohne Probe zählen als verletzbar, weil ein Ausfall nicht durch Prometheus
+`probe_success` erkannt wird.
+
+Die Messung erfolgt über `python3 scripts/lib/runtime-health-measure.py svc-probe`,
+die die Anzahl der ungedeckten Services als Integer zurückgibt (0 = alle abgedeckt).
+
+#### Scenario: Public Ingress services matched against blackbox probe targets
+
+- **GIVEN** Ingress-Manifeste existieren mit backend services und hostnames
+- **AND** `k3d/monitoring/blackbox-exporter.yaml` enthält Probe-KIND resources
+- **WHEN** `svc-probe` aufgerufen wird
+- **THEN** ist das Ergebnis die Anzahl der Ingress-Backend-Services, die KEINEM
+  blackbox-Probe-Target entsprechen
+- **AND** bei vollständiger Abdeckung ist das Ergebnis 0
+
+#### Scenario: Ergebnis ist ein Integer ≥ 0
+
+- **GIVEN** das Repository ist ausgecheckt
+- **WHEN** `svc-probe` aufgerufen wird
+- **THEN** endet der Befehl mit exit 0 und gibt einen nicht-negativen Integer aus
+- **AND** bei Fehlern gibt das Skript "-" aus (fail-closed)
+
+---
+
+### Requirement: Internal infrastructure services reachable
+
+Jeder interne Infrastruktur-Service (Coturn/STUN:3478, Janus:8188, NATS:4222, Redis:6379)
+SHALL auf TCP-Erreichbarkeit geprüft werden. Die Messung erfolgt über
+`python3 scripts/lib/runtime-health-measure.py infra-tcp`.
+
+Zusätzlich SHALL Janus `/stats` auf HTTP-Ebene gültiges JSON mit `"janus"` key
+zurückgeben, geprüft via `infra-http`.
+
+#### Scenario: All internal infra services reachable
+
+- **GIVEN** Coturn, Janus, NATS und Redis sind im Cluster deployed
+- **WHEN** `infra-tcp` aufgerufen wird
+- **THEN** ist das Ergebnis 0
+- **AND** `infra-http` (Janus /stats) ist 0
+
+#### Scenario: One internal service unreachable
+
+- **GIVEN** NATS ist nicht erreichbar (TCP connect fails)
+- **WHEN** `infra-tcp` aufgerufen wird
+- **THEN** ist das Ergebnis ≥ 1
+
+---
+
+### Requirement: CronJob success detection
+
+Jede CronJob, die in namespace `workspace` oder `workspace-korczewski` läuft,
+SHALL auf erfolgreichen letzten Lauf geprüft werden. Eine CronJob gilt als
+"failed", wenn:
+
+1. `lastScheduleTime > lastSuccessfulTime` (geplant, aber nicht erfolgreich ausgeführt)
+2. `lastScheduleTime` ist älter als 2x der geplanten schedule interval
+3. `lastScheduleTime` existiert nicht (CronJob hat noch nie gelaufen)
+
+Die Messung erfolgt über `bash scripts/lib/cronjob-check.sh`,
+die die Anzahl der CronJobs mit fehlgeschlagenem Lauf als Integer zurückgibt.
+
+#### Scenario: CronJob never ran
+
+- **GIVEN** eine CronJob existiert ohne `lastScheduleTime`
+- **WHEN** `cronjob-check.sh` aufgerufen wird
+- **THEN** ist das Ergebnis ≥ 1
+
+#### Scenario: CronJob scheduled but never successful
+
+- **GIVEN** eine CronJob hat `lastScheduleTime` aber keine `lastSuccessfulTime`
+- **WHEN** `cronjob-check.sh` aufgerufen wird
+- **THEN** ist das Ergebnis ≥ 1
+
+#### Scenario: Last scheduled after last successful
+
+- **GIVEN** eine CronJob hat `lastScheduleTime > lastSuccessfulTime`
+- **WHEN** `cronjob-check.sh` aufgerufen wird
+- **THEN** ist das Ergebnis ≥ 1
+
+---
+
+### Requirement: Alertmanager receiver configuration
+
+Die Alertmanager-Konfiguration in `k3d/monitoring/alertmanager-config.yaml`
+SHALL einen aktiven receiver (email, pushover, webhook) haben — nicht "null".
+
+Die Messung erfolgt über `python3 scripts/lib/runtime-health-measure.py alert-status`,
+die 0 zurückgibt, wenn ein gültiger receiver konfiguriert ist, und 1 sonst.
+
+#### Scenario: Alertmanager has valid receiver
+
+- **GIVEN** `alertmanager-config.yaml` enthält einen aktiven receiver
+- **WHEN** `alert-status` aufgerufen wird
+- **THEN** ist das Ergebnis 0
+
+#### Scenario: Alertmanager receiver is "null"
+
+- **GIVEN** `alertmanager-config.yaml` hat `receivers` mit nur dem "null"-blackhole
+- **WHEN** `alert-status` aufgerufen wird
+- **THEN** ist das Ergebnis 1
+
+---
+
+### Requirement: Deployment config drift detection
+
+Die Deployment-Konfiguration im Cluster SHALL zwischen manifest-definierten Werten
+(replicas, probes, sealed-secrets) und dem live-cluster Zustand übereinstimmen.
+
+Die Messung erfolgt über `bash scripts/lib/manifest-drift-check.sh` mit den Modi:
+- `replicas` — vergleiche `spec.replicas` mit `status.replicas`
+- `probes` — prüfe readinessProbe/livenessProbe presence in manifest vs live
+- `sealed` — prüfe SealedSecret status conditions (Unsealed=False)
+
+#### Scenario: No deployment drift
+
+- **GIVEN** alle Deployments haben `spec.replicas == status.replicas`
+- **WHEN** `manifest-drift-check.sh replicas` aufgerufen wird
+- **THEN** ist das Ergebnis 0
+
+#### Scenario: SealedSecret has unsealed error
+
+- **GIVEN** eine SealedSecret resource hat `status.conditions[].type == "Unsealed"`
+  mit `status == "False"`
+- **WHEN** `manifest-drift-check.sh sealed` aufgerufen wird
+- **THEN** ist das Ergebnis ≥ 1
+
+---
+
+<!-- merged from change delta service-health-goals -->
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -207,17 +397,16 @@ The system SHALL provide a Prometheus rules manifest at `k3d/monitoring/promethe
 
 ### Requirement: Mandatory Alert Set
 
-The system SHALL declare exactly the 10 mandatory alert rules: `PodCrashLoopBackOff`,
+The system SHALL declare exactly the 11 mandatory alert rules: `PodCrashLoopBackOff`,
 `HighCPUUsage`, `HighMemoryUsage`, `HighDiskUsage`, `High5xxErrorRate`, `PodRestartSpike`,
-`NodeHighCPUUsage`, `NodeFilesystemAlmostFull`, `BackupJobFailed`, and `BackupCronJobStale`.
+`NodeHighCPUUsage`, `NodeFilesystemAlmostFull`, `BackupJobFailed`, `BackupCronJobStale`, and
+`RestoreVerifyStale`.
 
 #### Scenario: Alle Pflicht-Alerts deklariert *(BATS)*
 
 - **GIVEN** die Datei `k3d/monitoring/prometheus-rules.yaml` existiert
-- **WHEN** der Inhalt auf alle 10 `alert:` Einträge geprüft wird
-- **THEN** sind alle zehn Pflicht-Alerts — `PodCrashLoopBackOff`, `HighCPUUsage`,
-  `HighMemoryUsage`, `HighDiskUsage`, `High5xxErrorRate`, `PodRestartSpike`, `NodeHighCPUUsage`,
-  `NodeFilesystemAlmostFull`, `BackupJobFailed`, `BackupCronJobStale` — vorhanden
+- **WHEN** der Inhalt auf alle 11 `alert:` Einträge geprüft wird
+- **THEN** sind alle elf Pflicht-Alerts vorhanden
 
 ### Requirement: Prometheus Rules Validity
 <!-- bats: T000617-alert-rules.bats -->
@@ -392,3 +581,7 @@ through the CLI gate `vda.sh cfr` and direct `tickets.pr_events` queries.
 <!-- merged from change delta monitoring-alerts.md (66b98634b5ad) -->
 
 <!-- merged from change delta monitoring-alerts.md (b3ce0ca2dc77) -->
+
+<!-- merged from change delta monitoring-alerts.md (53fc7e9a1027) -->
+
+<!-- merged from change delta monitoring-alerts.md (cb37665f5a10) -->

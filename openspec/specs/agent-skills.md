@@ -2012,3 +2012,102 @@ blob deviations are allowlisted. It SHALL report KEEP with the T900096 reason.
 - **THEN** the branch is kept with a message naming the unmerged-commits reason
 
 <!-- merged from change delta agent-skills.md (40bda7e11798) -->
+
+### Requirement: The worktree write guard treats Windows-absolute paths as absolute
+
+`scripts/hooks/worktree-write-guard.sh` SHALL recognize Windows-absolute target paths
+(drive-letter form `^[A-Za-z]:[\\/]`, UNC form `\\\\`) as absolute and SHALL NOT prepend
+the hook working directory to them. Backslashes in the target SHALL be normalized to
+slashes before any comparison. The drive letter SHALL be canonicalized case-insensitively
+(`c:` and `C:` are equal). POSIX drive form (`/c/...`) SHALL be canonicalized to the same
+form as the drive-letter form (`C:/...`) so both spellings of the same location compare
+equal. `_abs_wt()` SHALL apply the same normalization so claim paths and targets stay
+comparable, and `MAIN_ROOT` SHALL be compared in the same canonical form.
+
+#### Scenario: Windows-absolute path inside the own claimed worktree is allowed
+
+- **GIVEN** an active worktree claim held under the caller's SID
+- **WHEN** a tool write targets a file inside that worktree given as a Windows-absolute
+  path (`C:\...` with backslashes)
+- **THEN** the write guard exits 0 (permitted) and does not mangle the path with a
+  prepended working directory
+
+#### Scenario: Lowercase drive letter matches the uppercase claim path
+
+- **GIVEN** an active worktree claim held under the caller's SID
+- **WHEN** a tool write targets a file inside that worktree with a lowercase drive
+  letter (`c:/...`) while the resolved roots use uppercase (`C:/...`), or vice versa
+- **THEN** the write guard exits 0 (permitted)
+
+#### Scenario: POSIX drive path inside the own claimed worktree is allowed
+
+- **GIVEN** an active worktree claim held under the caller's SID on a Git-Bash style
+  host where `git rev-parse` reports Windows spelling
+- **WHEN** a tool write targets a file inside that worktree given as a POSIX-absolute
+  drive path (`/c/...`)
+- **THEN** the write guard exits 0 (permitted)
+
+#### Scenario: Relative paths still resolve against the hook working directory
+
+- **GIVEN** an active worktree claim held under the caller's SID
+- **WHEN** a tool write targets a relative path
+- **THEN** the guard still resolves it against the hook working directory as before
+
+<!-- merged from change delta agent-skills.md (f43a54e26145) -->
+
+### Requirement: sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters
+
+Das Repository SHALL den Skill `sdlc-autopilot` als versionierte Datei unter
+`.opencode/skills/sdlc-autopilot/SKILL.md` führen, sodass der autonome
+SDLC-Loop über Checkouts, Worktrees und Clones hinweg reproduzierbar ist.
+
+#### Scenario: Skill nach frischem Clone vorhanden
+
+- **GIVEN** ein frischer Clone des Repositories auf `main`
+- **WHEN** opencode die verfügbaren Skills aus `.opencode/skills/` lädt
+- **THEN** ist `sdlc-autopilot` mit gültigem Frontmatter (`name`,
+  `description` inkl. Trigger-Wörtern) gelistet und aufrufbar.
+
+#### Scenario: Skill bleibt opencode-only
+
+- **GIVEN** die T014086-Konvention (Symlinks nur für in beiden Harnesses
+  genutzte dev-flow-\*/openspec-\*-Shared-Sources)
+- **WHEN** das Skill-Inventar geprüft wird
+- **THEN** existiert für `sdlc-autopilot` bewusst kein Claude-seitiger
+  Pfad oder Symlink unter `.claude/skills/`.
+
+### Requirement: Kontext-Voraussetzung ist dokumentiert
+
+Der Skill SHALL dokumentieren, dass er den Vertrag aus T016416 voraussetzt
+(`freetoken-active` advertised bis `SDLC_CONTEXT_CEILING`, Default 200000;
+KV-Pool wächst serverseitig mit) und dass Merge-Reihenfolge T016416 zuerst
+oder gemeinsam gilt.
+
+#### Scenario: Abhängigkeit ohne freigeschaltetes Ceiling
+
+- **GIVEN** der Skill läuft, während `SDLC_CONTEXT_CEILING` nicht aktiv ist
+- **WHEN** der Loop arbeitet
+- **THEN** funktioniert er mit dem schmaleren Default-Limit weiter und
+  weicht keine Verhaltensregel des Skills davon ab.
+
+<!-- merged from change delta agent-skills.md (365b92e15406) -->
+
+### Requirement: Cross-Platform Worktree Prune Protection
+
+The system SHALL provide `scripts/lib/worktree-prune-safe.sh` implementing `worktree_prune_safe()`.
+The function SHALL detect whether git is running under WSL or native Windows and verify cross-platform worktree candidate paths before invoking `git worktree prune`.
+When a worktree target exists on the host filesystem under a converted path, the function SHALL protect the worktree from deletion.
+
+`scripts/worktree-create.sh` SHALL lock newly created worktrees using `git worktree lock` to protect them from pruning by any external git commands.
+
+#### Scenario: Worktree created by worktree-create is locked
+- **GIVEN** a call to `scripts/worktree-create.sh`
+- **WHEN** the worktree is successfully initialized
+- **THEN** the worktree metadata contains a lock reason and survives `git worktree prune`
+
+#### Scenario: worktree_prune_safe returns 0
+- **GIVEN** an invocation of `worktree_prune_safe`
+- **WHEN** execution completes on any supported platform
+- **THEN** exit status is 0
+
+<!-- merged from change delta agent-skills.md (eb67c748bd10) -->

@@ -2,25 +2,20 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2319 · Scenarios: 5162
+Specs: 128 · Requirements: 2389 · Scenarios: 5306
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 77 · Scenarios: 161 · Lines: 2014
+Reqs: 81 · Scenarios: 170 · Lines: 2113
 Last touches:
   - Local branch delete keeps branches with unmerged commits | T900096 | 2026-09-17 | ADDED
   - Archive section aborts on dirty worktree instead of discarding or absorbing foreign work | T900096 | 2026-09-17 | ADDED
   - Reaper keeps branches with commits outside main | T900096 | 2026-09-17 | ADDED
-  - Portable skill inventory is authoritative across four harnesses | T900151 | 2026-09-16 | ADDED
-  - Portable skill bodies are harness-neutral | T900151 | 2026-09-16 | ADDED
+  - The worktree write guard treats Windows-absolute paths as absolute | T900047 | 2026-09-17 | ADDED
+  - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | 2026-09-17 | ADDED
 In-flight:
-  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
-  - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
-  - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
-  - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED
-  - Active Agent Roster without FreeToken | T900163 | active | MODIFIED
-  - Cross-Platform Worktree Prune Protection | T900046 | active | ADDED
+  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -41,90 +36,56 @@ Last touches:
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
 
 ### openspec-workflow
-Reqs: 67 · Scenarios: 150 · Lines: 1654
+Reqs: 68 · Scenarios: 153 · Lines: 1698
 Paths: scripts/openspec, openspec/
 Last touches:
+  - Half-archive detection does not spawn a process per archive entry | T013673 | 2026-09-17 | ADDED
   - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | 2026-08-23 | ADDED
   - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
   - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
   - Freshness-Check sichert Konsistenz der generierten Artefakte | T015012 | 2026-08-23 | MODIFIED
-  - Der Archiv-Flow verifiziert die Status-Map vor dem Push | T006369 | 2026-08-15 | ADDED
-In-flight:
-  - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 209 · Scenarios: 640 · Lines: 5785
+Reqs: 208 · Scenarios: 636 · Lines: 5760
 Paths: scripts/factory
 Last touches:
+  - Force-Tick Trigger | T900054 | 2026-09-17 | MODIFIED
+  - Bonsai Provider Registration for Implement and Review | T900208 | 2026-09-17 | MODIFIED
+  - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | 2026-09-17 | MODIFIED
   - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | 2026-09-17 | MODIFIED
-  - REQ-SF-EXECUTOR-003 — FACTORY_MODE local|api|mixed | T900210 | 2026-09-17 | ADDED
-  - REQ-SF-EXECUTOR-004 — Muse Spark 1.3 planning with Go fallback | T900210 | 2026-09-17 | ADDED
-  - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | 2026-09-11 | MODIFIED
-  - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
-In-flight:
-  - factory.model in loadouts.json is vestigial and stays a valid slug | T900213 | active | ADDED
-  - Bonsai Provider Registration for Implement and Review | T900208 | active | MODIFIED
-  - Env-driven phase model routing | T900208 | active | MODIFIED
-  - A locked factory model overrides every other model choice | T900208 | active | REMOVED
-  - Factory Dispatcher Runs In-Cluster | T900110 | active | MODIFIED
-  - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
-  - Force-Tick Trigger | T900054 | active | MODIFIED
-  - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | active | MODIFIED
-  - Stage-Plan Wake Trigger | T900054 | active | MODIFIED
-  - REQ-SF-EXECUTOR-002 — opencode-Binary wird im Dienstkontext selbst aufgelöst | T900054 | active | MODIFIED
+  - Stage-Plan Wake Trigger | T900054 | 2026-09-17 | MODIFIED
 
 ## delivery
 
 ### ci-cd
-Reqs: 113 · Scenarios: 332 · Lines: 3516
+Reqs: 118 · Scenarios: 341 · Lines: 3630
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
-  - Squash-Auto-Merge | T900089 | 2026-09-11 | MODIFIED
-  - Direct pushes to main SHALL be prevented server-side | T900126 | 2026-09-11 | MODIFIED
-  - Baseline Guard PR Body Fallback and Hard Fail | T015384 | 2026-08-24 | ADDED
-  - Die CI-Gegenprobe entlastet nur mit Belegen | T014466 | 2026-08-24 | ADDED
-  - PR-Gate — Vitest (website) mit `--changed` Smart-Selection | T013468 | 2026-08-22 | MODIFIED
-In-flight:
-  - A unit test never removes itself from CI because a dependency was not installed | T013674 | active | ADDED
-  - GitLab CI image refs carry a full registry host | T014566 | active | ADDED
-  - Staging cronjobs run against a schema-complete database | T014566 | active | ADDED
-  - Installed ticket-mcp-go binary staleness is detectable | T014735 | active | ADDED
-  - Build embeds the git revision | T014735 | active | ADDED
+  - A unit test never removes itself from CI because a dependency was not installed | T013674 | 2026-09-17 | ADDED
+  - GitLab CI image refs carry a full registry host | T014566 | 2026-09-17 | ADDED
+  - Staging cronjobs run against a schema-complete database | T014566 | 2026-09-17 | ADDED
+  - Installed ticket-mcp-go binary staleness is detectable | T014735 | 2026-09-17 | ADDED
+  - Build embeds the git revision | T014735 | 2026-09-17 | ADDED
 
 ### fleet-operations
-Reqs: 53 · Scenarios: 101 · Lines: 1038
+Reqs: 65 · Scenarios: 121 · Lines: 1279
 Paths: wireguard/, scripts/fleet, scripts/wg-mesh, prod-fleet/
 Last touches:
-  - sessions-wildcard Certificate hat valide SESSIONS_DOMAIN | T900042 | 2026-09-11 | ADDED
-  - flux-webhook Manifeste ohne unersetzte Platzhalter | T900042 | 2026-09-11 | ADDED
-  - ipv64 ACME-Challenge Cleanup fuer Wildcard-Zertifikate | T900042 | 2026-09-11 | ADDED
-  - Rechtssichere Bereitstellung von Impressum und Datenschutz fuer korczewski.de | T900042 | 2026-09-11 | ADDED
-  - WireGuard mesh reconcile applies the registry to every node | T900083 | 2026-09-11 | ADDED
-In-flight:
-  - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | active | ADDED
-  - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | active | ADDED
-  - Monitoring (blackbox-exporter, Grafana) ist wieder verfügbar | T900041 | active | ADDED
-  - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | active | ADDED
-  - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | active | ADDED
-  - Readiness-Probes von nextcloud und llm-proxy sind wieder grün | T900041 | active | ADDED
-  - Dedicated Node Rejoin Recovers Readiness | T016442 | active | ADDED
-  - Node-Dekommissionierung folgt einem verbindlichen Runbook | T016425 | active | ADDED
-  - Dekommissionierung ist operator-gegate | T016425 | active | ADDED
-  - Interne SDLC-Dienste sind ohne port-forward konsumierbar | T016430 | active | ADDED
-  - Der Datenbank-Endpoint ist fail-closed | T016430 | active | ADDED
-  - Hostnamen bleiben zentral registriert | T016430 | active | ADDED
+  - Vaultwarden PROD startet mit vollständiger SMTP-Konfiguration | T900041 | 2026-09-17 | ADDED
+  - Penpot-Secret-Keys sind in beiden Frozen/Fresh workspace-secrets Vollständig | T900041 | 2026-09-17 | ADDED
+  - Monitoring (blackbox-exporter, Grafana) ist wieder verfügbar | T900041 | 2026-09-17 | ADDED
+  - Fehlschlagende CronJobs stapeln keine Pods und laufen zielgerichtet | T900041 | 2026-09-17 | ADDED
+  - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | 2026-09-17 | ADDED
 
 ### workspace-deploy
-Reqs: 90 · Scenarios: 167 · Lines: 1926
+Reqs: 91 · Scenarios: 169 · Lines: 1956
 Paths: k3d/, prod/, prod-fleet/, prod-mentolder/, prod-korczewski/, Taskfile, environments/
 Last touches:
+  - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | 2026-09-17 | ADDED
   - Post-Deploy-Schritte nach dem Kustomize-Apply | T002184 | 2026-08-03 | ADDED
   - LiveKit-Rückstände sind weder im Repo noch im Cluster erlaubt | T002184 | 2026-08-03 | ADDED
   - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
   - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
-  - discover-versions.sh ermittelt Tool-Versionen ohne Flux | T002083 | 2026-08-02 | MODIFIED
-In-flight:
-  - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | active | ADDED
 
 ## llm
 
@@ -139,22 +100,13 @@ Last touches:
   - LLM_EMBED_URL in knowledge-ingest CronJobs verdrahtet | T002570 | 2026-08-10 | ADDED
 
 ### local-llm-proxy
-Reqs: 78 · Scenarios: 179 · Lines: 2076
+Reqs: 81 · Scenarios: 185 · Lines: 2183
 Last touches:
   - Health endpoint reports readiness, not liveness | T900212 | 2026-09-17 | MODIFIED
-  - The proxy serves remote backends only | T900107 | 2026-09-10 | MODIFIED
-  - The purpose section describes the running state | T900107 | 2026-09-10 | MODIFIED
-  - Proxy as sole LLM gateway | T013302 | 2026-08-22 | MODIFIED
-  - Backend registry and admin API | T013909 | 2026-08-22 | MODIFIED
-In-flight:
-  - bge reaches the proxy through role-based routes | T900006 | active | MODIFIED
-  - The bge chain is ordered desktop first, portable devices last | T900006 | active | MODIFIED
-  - An embed backend is admitted only after passing the equivalence gate | T900006 | active | ADDED
-  - Decommissioned loadouts are excluded from GGUF-resolution verification | T004339 | active | ADDED
-  - only surviving active loadouts are asserted as present | T004339 | active | ADDED
-  - Deterministic loadouts path resolution across execution environments | T900109 | active | ADDED
-  - The proxy serves remote backends only | T900191 | active | MODIFIED
-  - Supervised service lifecycle | T900054 | active | MODIFIED
+  - Supervised service lifecycle | T900054 | 2026-09-17 | MODIFIED
+  - bge reaches the proxy through role-based routes | T900006 | 2026-09-17 | MODIFIED
+  - The proxy serves remote backends only | T900191 | 2026-09-17 | MODIFIED
+  - The bge chain is ordered desktop first, portable devices last | T900006 | 2026-09-17 | MODIFIED
 
 ## product
 
@@ -168,18 +120,14 @@ Last touches:
   - Der Factory-Default ist im KI-Deck sichtbar und setzbar | T013302 | 2026-08-22 | ADDED
 
 ### ticket-system
-Reqs: 83 · Scenarios: 236 · Lines: 2187
+Reqs: 86 · Scenarios: 240 · Lines: 2229
 Paths: scripts/ticket
 Last touches:
+  - GitHub Snapshot Schema and Cursor Tracking | T900161 | 2026-09-17 | ADDED
+  - GitHub Identity and Closing Relationship Auto-Registration | T900161 | 2026-09-17 | ADDED
+  - PR Events and Status Compatibility Projection | T900161 | 2026-09-17 | ADDED
   - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T900145 | 2026-09-16 | MODIFIED
   - Repository-scoped GitHub object identity | T900159 | 2026-09-12 | ADDED
-  - Canonical work-item bindings preserve invisible UUID identity | T900159 | 2026-09-12 | ADDED
-  - Identity corrections are append-only and cycle-safe | T900159 | 2026-09-12 | ADDED
-  - Typed human GitHub references have one central parser | T900159 | 2026-09-12 | ADDED
-In-flight:
-  - GitHub Snapshot Schema and Cursor Tracking | T900161 | active | ADDED
-  - GitHub Identity and Closing Relationship Auto-Registration | T900161 | active | ADDED
-  - PR Events and Status Compatibility Projection | T900161 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192
@@ -253,16 +201,13 @@ Last touches:
 Reqs: 8 · Scenarios: 13 · Lines: 169
 
 ### agentic-tooling-quality-goals
-Reqs: 17 · Scenarios: 26 · Lines: 337
+Reqs: 19 · Scenarios: 29 · Lines: 379
 Last touches:
+  - Indexierung läuft single-flight über alle Instanzen | T016447 | 2026-09-17 | ADDED
+  - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | 2026-09-17 | ADDED
   - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | 2026-09-11 | MODIFIED
   - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | 2026-09-11 | MODIFIED
   - G-AGENTIC01 Subagent Tool-Scope Baseline Tracked | T002494 | 2026-08-02 | MODIFIED
-  - G-AGENTIC09 God-Skill Line Budget Tracked | T002094 | 2026-08-02 | MODIFIED
-  - G-AGENTIC08 No Dead Script/Task References In Skills Gate | T002303 | 2026-07-27 | MODIFIED
-In-flight:
-  - Indexierung läuft single-flight über alle Instanzen | T016447 | active | ADDED
-  - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | active | ADDED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -486,6 +431,12 @@ Last touches:
   - Database identity marker probe | T015168 | 2026-08-24 | ADDED
   - Identity constant parity between migration and guard | T015168 | 2026-08-24 | ADDED
 
+### db-restore-verification
+Reqs: 2 · Scenarios: 3 · Lines: 56
+Last touches:
+  - Weekly automated restore verification with JSONL evidence | T014544 | 2026-09-17 | ADDED
+  - Restore verification guard in the spec test suite | T014544 | 2026-09-17 | ADDED
+
 ### devflow-selection-archive-hardening
 Reqs: 5 · Scenarios: 12 · Lines: 134
 Last touches:
@@ -593,9 +544,9 @@ Last touches:
   - STALE_MIN-Floor in Produktion | T015556 | 2026-08-24 | ADDED
   - Ticket-Status-Reaper für verwaiste in_progress | T002770 | 2026-08-09 | ADDED
 In-flight:
-  - Worktree-Aktivitätsschutz vor Zombie-Löschung | T016418 | active | ADDED
-  - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T016418 | active | ADDED
-  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T016418 | active | ADDED
+  - Worktree-Aktivitätsschutz vor Zombie-Löschung | T900227 | active | ADDED
+  - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T900227 | active | ADDED
+  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T900227 | active | ADDED
 
 ### fix-factory-lock-worktree-safety
 Reqs: 4 · Scenarios: 8 · Lines: 80
@@ -606,16 +557,13 @@ Last touches:
   - Create-Skript verifiziert den realen Worktree-Pfad | T004604 | 2026-08-14 | ADDED
 
 ### flux-render-security
-Reqs: 6 · Scenarios: 11 · Lines: 159
+Reqs: 8 · Scenarios: 15 · Lines: 203
 Last touches:
+  - OCIRepositories pin a deterministic sha revision | T014550 | 2026-09-17 | ADDED
+  - Render workflow advances the pin automatically | T014550 | 2026-09-17 | ADDED
   - Immutable Image References in Rendered Prod Overlays | T004041 | 2026-08-14 | MODIFIED
   - Placeholder-Digests erreichen nie ein Artefakt (fail-closed) | T004041 | 2026-08-14 | ADDED
   - Digest Resolution Is Fail-Closed Online | T002706 | 2026-08-10 | ADDED
-  - Every Artifact Push Carries an Immutable Revision Tag | T002706 | 2026-08-10 | ADDED
-  - Bootstrap Placeholders Must Be Covered by envsubst | T002869 | 2026-08-10 | ADDED
-In-flight:
-  - OCIRepositories pin a deterministic sha revision | T014550 | active | ADDED
-  - Render workflow advances the pin automatically | T014550 | active | ADDED
 
 ### g-db01-fk-indexes
 Reqs: 2 · Scenarios: 2 · Lines: 57
@@ -628,53 +576,32 @@ Reqs: 21 · Scenarios: 35 · Lines: 423
 Paths: website/src/components/Grilling
 
 ### harness-workflow-split
-Reqs: 6 · Scenarios: 11 · Lines: 145
+Reqs: 6 · Scenarios: 11 · Lines: 148
 Last touches:
-  - opencode has native dev-flow and git-workflow skills | T013724 | 2026-08-22 | MODIFIED
+  - opencode has native dev-flow and git-workflow skills | T014086 | 2026-09-17 | MODIFIED
+  - AGENTS.md declares the shared-source routing | T014086 | 2026-09-17 | MODIFIED
   - shared openspec-* skills are harness-neutral | T013724 | 2026-08-22 | MODIFIED
   - AGENTS.md declares an opencode-native dispatch protocol | T013724 | 2026-08-22 | REMOVED
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
-  - AGENTS.md declares the shared-source routing | T013724 | 2026-08-22 | ADDED
-In-flight:
-  - opencode has native dev-flow and git-workflow skills | T014086 | active | MODIFIED
-  - AGENTS.md declares the shared-source routing | T014086 | active | MODIFIED
 
 ### llm-local-dev
-Reqs: 33 · Scenarios: 65 · Lines: 804
+Reqs: 35 · Scenarios: 69 · Lines: 836
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
-  - Single System Message for the FreeToken Provider | T900220 | 2026-09-17 | ADDED
-  - Project Default Model Targets the FreeToken Alias | T900164 | 2026-09-16 | MODIFIED
-  - Start scripts leave -ngl to -fit | T900172 | 2026-09-15 | MODIFIED
-  - Engine Auto-Swap on FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
-  - Engine Stop on Non-FreeToken Model Selection | T900155 | 2026-09-12 | ADDED
-In-flight:
-  - Windows-Native FreeToken Auto-Start and Install Scripts | T900189 | active | ADDED
-  - Local LLM Proxy FreeToken Thinking Fixup and Local Recognition | T900189 | active | ADDED
-  - Measured Context Limits for FreeToken Checkpoints | T016416 | active | MODIFIED
-  - Restart autostarts the KV ladder and reaps stale pollers | T016416 | active | ADDED
-  - Single Definition Site for the opencode `llamacpp-local` Provider | T900208 | active | MODIFIED
-  - Local Agent Roster on the Qwen3.6 Checkpoint | T900208 | active | MODIFIED
-  - Project Default Model Targets the FreeToken Alias | T900208 | active | MODIFIED
-  - FreeToken Plugin Layer Removed | T900208 | active | MODIFIED
-  - A local agent MAY use llama.cpp or FreeToken, but never a dead loadout | T900208 | active | MODIFIED
+  - Measured Context Limits for FreeToken Checkpoints | T016416 | 2026-09-17 | MODIFIED
+  - Project Default Model Targets the FreeToken Alias | T900208 | 2026-09-17 | MODIFIED
+  - Windows-Native FreeToken Auto-Start and Install Scripts | T900189 | 2026-09-17 | ADDED
+  - Local LLM Proxy FreeToken Thinking Fixup and Local Recognition | T900189 | 2026-09-17 | ADDED
+  - Restart autostarts the KV ladder and reaps stale pollers | T016416 | 2026-09-17 | ADDED
 
 ### local-dev-mesh
-Reqs: 10 · Scenarios: 20 · Lines: 215
+Reqs: 17 · Scenarios: 32 · Lines: 346
 Last touches:
-  - A devmesh host with a GPU offers it as a schedulable resource | T900179 | 2026-09-16 | ADDED
-  - GPU enablement on a host is scripted and repeatable | T900179 | 2026-09-16 | ADDED
-  - The status view reports GPU capacity | T900179 | 2026-09-16 | ADDED
-  - The k3d dev cluster is removed only after the acceptance gate | T900145 | 2026-09-16 | ADDED
-  - No active reference to the k3d dev context remains | T900145 | 2026-09-16 | ADDED
-In-flight:
-  - Cluster nodes meet the Longhorn preconditions | T900115 | active | ADDED
-  - Longhorn is the default StorageClass on devmesh | T900115 | active | ADDED
-  - git-crypt unlocks via GPG users in dev-shell | T900115 | active | ADDED
-  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900115 | active | ADDED
-  - devmesh hosts the CPU-bound LLM and database services | T900191 | active | ADDED
-  - The GPU endpoint exposes one port per workstation GPU service | T900191 | active | ADDED
-  - The devmesh backend registry contains no loopback URLs | T900191 | active | ADDED
+  - Cluster nodes meet the Longhorn preconditions | T900115 | 2026-09-17 | ADDED
+  - Longhorn is the default StorageClass on devmesh | T900115 | 2026-09-17 | ADDED
+  - git-crypt unlocks via GPG users in dev-shell | T900115 | 2026-09-17 | ADDED
+  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900115 | 2026-09-17 | ADDED
+  - devmesh hosts the CPU-bound LLM and database services | T900191 | 2026-09-17 | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -682,25 +609,14 @@ Last touches:
   - Pre-Commit blockiert Commits auf main | T002631 | 2026-08-10 | ADDED
 
 ### mcp-gateway
-Reqs: 38 · Scenarios: 89 · Lines: 1067
+Reqs: 45 · Scenarios: 108 · Lines: 1233
 Paths: deploy/mcp/, .claude/skills/references/mcp-tool-guide.md, scripts/mcp
 Last touches:
-  - MCP Monolith Deployment Reality In SSOT | T900107 | 2026-09-10 | MODIFIED
-  - MCP servers are served from a single in-cluster deployment | T900108 | 2026-09-10 | MODIFIED
-  - No MCP endpoint is exposed publicly | T900107 | 2026-09-10 | ADDED
-  - The repository checkout is supplied read-only from a single writer | T900107 | 2026-09-10 | ADDED
-  - Container images carry their dependencies | T900107 | 2026-09-10 | ADDED
-In-flight:
-  - Windows hosts have a documented start mechanism for the local MCP servers | T900191 | active | MODIFIED
-  - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | active | ADDED
-  - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | active | ADDED
-  - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED
-  - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | active | ADDED
-  - REQ-MCP-HTTP-005 MCP authentication secrets stay outside tracked artifacts | T900052 | active | ADDED
-  - Watchdog detects MCP token drift without leaking secrets | T900223 | active | ADDED
-  - Watchdog heals token drift and notifies | T900223 | active | ADDED
-  - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
-  - Windows hosts have a documented start mechanism for the local MCP servers | T900054 | active | MODIFIED
+  - Windows hosts have a documented start mechanism for the local MCP servers | T900054 | 2026-09-17 | MODIFIED
+  - REQ-MCP-HTTP-001 Local HTTP MCP request boundary | T900052 | 2026-09-17 | ADDED
+  - REQ-MCP-HTTP-002 Explicit browser-origin CORS policy | T900052 | 2026-09-17 | ADDED
+  - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | 2026-09-17 | ADDED
+  - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | 2026-09-17 | ADDED
 
 ### mcp-skill-integration
 Reqs: 7 · Scenarios: 17 · Lines: 183
@@ -750,34 +666,20 @@ Last touches:
   - Dublettenerkennung vergleicht Komponente und Dateipfade, nicht nur Titel | T003120 | 2026-08-10 | ADDED
 
 ### modell-registry-training-grounds
-Reqs: 1 · Scenarios: 4 · Lines: 37
+Reqs: 2 · Scenarios: 6 · Lines: 59
 Last touches:
+  - Der Trainingspfad ist von der lokalen Laufzeit entkoppelt | T016438 | 2026-09-17 | ADDED
   - Model Registry tracks adapters across suitability, stats, provenance, and deployment | T002629 | 2026-08-14 | ADDED
-In-flight:
-  - Der Trainingspfad ist von der lokalen Laufzeit entkoppelt | T016438 | active | ADDED
 
 ### monitoring-alerts
-Reqs: 20 · Scenarios: 32 · Lines: 394
+Reqs: 27 · Scenarios: 48 · Lines: 587
 Paths: k3d/prometheus, k3d/alertmanager, k3d/grafana
 Last touches:
-  - Alerts aus den Workspace-Namespaces erreichen einen Empfänger | T016592 | 2026-08-28 | MODIFIED
-  - Backup-Job-Failures lösen kritischen Alert aus | T016592 | 2026-08-28 | MODIFIED
-  - Blackhole Receiver | T016592 | 2026-08-28 | ADDED
-  - Email Notification Receiver | T016592 | 2026-08-28 | REMOVED
-  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T015712 | 2026-08-24 | ADDED
-In-flight:
-  - Mandatory Alert Set | T016124 | active | MODIFIED
-  - Backup-Job-Failures lösen kritischen Alert aus | T016124 | active | MODIFIED
-  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | active | MODIFIED
-  - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | active | ADDED
-  - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | active | ADDED
-  - Backup-Job-Failures lösen kritischen Alert aus | T016415 | active | MODIFIED
-  - Backup alerts reach the operator mailbox at a daily cadence | T016415 | active | ADDED
-  - Blackbox-Probe-Coverage aller öffentlichen Services | T005321 | active | ADDED
-  - Internal infrastructure services reachable | T005321 | active | ADDED
-  - CronJob success detection | T005321 | active | ADDED
-  - Alertmanager receiver configuration | T005321 | active | ADDED
-  - Deployment config drift detection | T005321 | active | ADDED
+  - Backup-Job-Failures lösen kritischen Alert aus | T016415 | 2026-09-17 | MODIFIED
+  - Ausgebliebene Backup-Erfolge lösen Stale-Alert aus | T016124 | 2026-09-17 | MODIFIED
+  - Mandatory Alert Set | T016124 | 2026-09-17 | MODIFIED
+  - Die wöchentliche Restore-Verifikation hat eine eigene Schwelle | T016124 | 2026-09-17 | ADDED
+  - Namespace-Scoping bleibt für andere AlertmanagerConfigs erhalten | T016124 | 2026-09-17 | ADDED
 
 ### newsletter-system
 Reqs: 22 · Scenarios: 29 · Lines: 331
@@ -804,15 +706,13 @@ Last touches:
   - post-commit-hook-embedding | T002334 | 2026-08-02 | ADDED
 
 ### openspec-embedding
-Reqs: 11 · Scenarios: 24 · Lines: 290
+Reqs: 12 · Scenarios: 30 · Lines: 341
 Last touches:
+  - Dauerhafte Probe-Fehlschläge enden sofort und ohne Hook-Retry | T900209 | 2026-09-17 | ADDED
   - Wrapper success check fails on a completeness-gate warning | T004829 | 2026-08-14 | MODIFIED
   - Embed-Local-Wrapper retried transiente Backend-Fehler | T004608 | 2026-08-14 | ADDED
   - Completeness-Gate zählt lokale Pläne per Slug und wertet Toleranz | T002877 | 2026-08-11 | ADDED
   - Stale Collection-Einträge verfälschen die Coverage-Zählung nicht | T002877 | 2026-08-11 | ADDED
-  - Port-Forward identity is verified before use | T002870 | 2026-08-10 | ADDED
-In-flight:
-  - Dauerhafte Probe-Fehlschläge enden sofort und ohne Hook-Retry | T900209 | active | ADDED
 
 ### openspec-pgvector
 Reqs: 11 · Scenarios: 15 · Lines: 189
@@ -862,6 +762,11 @@ Last touches:
 Reqs: 1 · Scenarios: 2 · Lines: 32
 Last touches:
   - pocket-id-client-seed SHALL abort early on invalid API key | T001995 | 2026-08-02 | ADDED
+
+### pocket-id-seed-label-isolation
+Reqs: 1 · Scenarios: 2 · Lines: 31
+Last touches:
+  - Client-seed job pod label is isolated from the pocket-id service selector | T014938 | 2026-09-17 | ADDED
 
 ### pocket-id-seed-pagination
 Reqs: 1 · Scenarios: 2 · Lines: 31
@@ -924,10 +829,9 @@ Last touches:
 ### routing-check-freetoken-t014552
 Reqs: 1 · Scenarios: 1 · Lines: 21
 Last touches:
+  - Routing check probes the FreeToken backend, not the retired proxy | T900213 | 2026-09-17 | MODIFIED
+  - Routing check asserts the promised project default model is served | T900213 | 2026-09-17 | ADDED
   - Routing checks use only enabled provider configurations | T014552 | 2026-08-23 | ADDED
-In-flight:
-  - Routing check probes the FreeToken backend, not the retired proxy | T900213 | active | MODIFIED
-  - Routing check asserts the promised project default model is served | T900213 | active | ADDED
 
 ### rustdesk-server
 Reqs: 9 · Scenarios: 16 · Lines: 194
@@ -939,33 +843,22 @@ Last touches:
   - REQ-RUSTDESK-RELAY-004 — Minimale Portfläche ohne Web-Client | T001381 | 2026-08-02 | RENAMED
 
 ### scripts
-Reqs: 6 · Scenarios: 9 · Lines: 107
+Reqs: 7 · Scenarios: 11 · Lines: 136
 Last touches:
+  - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | 2026-09-17 | ADDED
   - archive stages the openspec status map unconditionally | T006371 | 2026-08-15 | ADDED
   - agent-lock check unterscheidet tote Halter | T005560 | 2026-08-15 | ADDED
   - ticket write guard passes through stale holders | T005560 | 2026-08-15 | ADDED
   - plan-preflight pre-commit accepts the staged plan set | T004899 | 2026-08-14 | ADDED
-  - Worktrees claimed by a live session survive foreign cleanups | T004899 | 2026-08-14 | ADDED
-In-flight:
-  - Worktree-Prozess-Erkennung vergleicht kanonische Pfade | T900025 | active | ADDED
 
 ### sdlc-isolation
 Reqs: 25 · Scenarios: 49 · Lines: 562
 Last touches:
-  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900145 | 2026-09-16 | RENAMED
-  - Local k3d cluster runs the SDLC stack from the production manifests | T900145 | 2026-09-16 | RENAMED
-  - Kubelet serving certificate drift detection on the local k3d dev cluster | T900145 | 2026-09-16 | REMOVED
-  - Repairing a stale kubelet serving certificate | T900145 | 2026-09-16 | REMOVED
-  - Translating the misleading x509 error in the ticket tooling | T900145 | 2026-09-16 | REMOVED
-In-flight:
-  - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | active | MODIFIED
-  - Windows-nativer Checkout bleibt LF-normalisiert | T016436 | active | ADDED
-  - Windows-Dev-Einstieg ist als Runbook dokumentiert | T016436 | active | ADDED
-  - Local k3d cluster runs the SDLC stack from the production manifests | T900054 | active | MODIFIED
-  - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T900054 | active | MODIFIED
-  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900054 | active | MODIFIED
-  - Dev-Host WSL memory verified for the local stack | T900054 | active | REMOVED
-  - Die SDLC-Oberfläche hat eine Laufzeit-Heimat | T016429 | active | MODIFIED
+  - Dev-only services run on the Dev-Host, customer-synchronous services stay on fleet | T900054 | 2026-09-17 | MODIFIED
+  - Mixed runtime — local k3d for stateful services, native processes for GPU | T900054 | 2026-09-17 | MODIFIED
+  - Local k3d cluster runs the SDLC stack from the production manifests | T900054 | 2026-09-17 | MODIFIED
+  - Dev-Host WSL memory verified for the local stack | T900054 | 2026-09-17 | REMOVED
+  - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | 2026-09-17 | MODIFIED
 
 ### secret-rotation
 Reqs: 45 · Scenarios: 106 · Lines: 883
@@ -976,38 +869,31 @@ Last touches:
   - Flux bootstrap secrets are schema-managed | T002254 | 2026-07-27 | ADDED
 
 ### secrets-deploy-automation
-Reqs: 15 · Scenarios: 25 · Lines: 267
+Reqs: 17 · Scenarios: 29 · Lines: 322
 Last touches:
+  - Stray-Secret-Dump-Guard | T900027 | 2026-09-17 | ADDED
+  - Exposed-Secret Cleanup Runbook | T900027 | 2026-09-17 | ADDED
   - gitleaks-Gegenscan | T011580 | 2026-08-18 | MODIFIED
   - Schema is authoritative over the dev secrets file | T003141 | 2026-08-11 | ADDED
   - Deliberate dev absence is annotated, not allowlisted | T003141 | 2026-08-11 | ADDED
-  - Stale dev_absent annotations are detected | T003141 | 2026-08-11 | ADDED
-  - Keycloak-era OIDC key names stay retired | T003141 | 2026-08-11 | ADDED
-In-flight:
-  - Stray-Secret-Dump-Guard | T900027 | active | ADDED
-  - Exposed-Secret Cleanup Runbook | T900027 | active | ADDED
 
 ### security
-Reqs: 3 · Scenarios: 8 · Lines: 130
+Reqs: 6 · Scenarios: 16 · Lines: 214
 Last touches:
+  - Workload ServiceAccounts hold no clusterwide pods/exec | T900110 | 2026-09-17 | ADDED
+  - cluster-admin bindings are limited to an allowlist | T900110 | 2026-09-17 | ADDED
+  - Website ClusterRole holds only read permissions without clusterwide write access | T900114 | 2026-09-17 | ADDED
   - Run-as-non-root baseline | T015293 | 2026-08-24 | ADDED
-In-flight:
-  - Workload ServiceAccounts hold no clusterwide pods/exec | T900110 | active | ADDED
-  - cluster-admin bindings are limited to an allowlist | T900110 | active | ADDED
-  - Website ClusterRole holds only read permissions without clusterwide write access | T900114 | active | ADDED
 
 ### sessions-server
-Reqs: 13 · Scenarios: 26 · Lines: 269
+Reqs: 17 · Scenarios: 36 · Lines: 368
 Paths: k3d/sessions-server, scripts/session-hub, Taskfile.session
 Last touches:
-  - BATS Placeholder Test Coverage | T016250 | 2026-08-24 | MODIFIED
-  - Sessions-Server-Nginx läuft als Non-Root | T014553 | 2026-08-23 | ADDED
-In-flight:
-  - Sessions Wildcard Render Guard | T900029 | active | ADDED
-  - Dead Process Reaping | T016251 | active | MODIFIED
-  - Registry-Sync auf alle Website-Umgebungen | T016251 | active | ADDED
-  - Auth-Gating für session-* Subdomains | T016251 | active | ADDED
-  - Zentrale Session-Domain-Konfiguration | T016251 | active | ADDED
+  - Sessions Wildcard Render Guard | T900029 | 2026-09-17 | ADDED
+  - Dead Process Reaping | T016251 | 2026-09-17 | MODIFIED
+  - Registry-Sync auf alle Website-Umgebungen | T016251 | 2026-09-17 | ADDED
+  - Auth-Gating für session-* Subdomains | T016251 | 2026-09-17 | ADDED
+  - Zentrale Session-Domain-Konfiguration | T016251 | 2026-09-17 | ADDED
 
 ### sidekick-assistant
 Reqs: 36 · Scenarios: 68 · Lines: 712

@@ -16,6 +16,9 @@ Last touches:
   - dev-flow-execute erkennt extern aktivierten Auto-Merge | T900043 | 2026-09-11 | MODIFIED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T015916 | active | ADDED
+  - Local branch delete keeps branches with unmerged commits | T900096 | active | ADDED
+  - Archive section aborts on dirty worktree instead of discarding or absorbing foreign work | T900096 | active | ADDED
+  - Reaper keeps branches with commits outside main | T900096 | active | ADDED
   - The worktree write guard treats Windows-absolute paths as absolute | T900047 | active | ADDED
   - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | active | ADDED
   - Kontext-Voraussetzung ist dokumentiert | T016420 | active | ADDED

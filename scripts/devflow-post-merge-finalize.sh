@@ -107,6 +107,9 @@ source "$_FINALIZE_HERE/lib/finalize-frontmatter.sh"
 # [T016597] Staged-Set-Pflicht fuer den Archiv-Commit — fail-closed, damit
 # kein breites `git add` fremde oder unfertige Arbeit mit nach main traegt.
 source "$_FINALIZE_HERE/lib/archive-staged-scope.sh"
+# [T900096] Fail-closed Step-Guards: Dirty-Tree-Abbruch (Schritt 8) + Ungemergt-Behalt (Schritt 10).
+# shellcheck source=scripts/lib/finalize-step-guards.sh
+source "$_FINALIZE_HERE/lib/finalize-step-guards.sh"
 
 DONE_COUNT=0
 SKIP_COUNT=0
@@ -601,9 +604,9 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # Branch, kein cherry-pick (der auf einem dirty Baum oder einem bereits
       # gemergten Commit verweigern kann).
       git fetch origin main
+      # [T900096] Fail-closed: fremde uncommittete Aenderungen abbrechen statt verwerfen.
+      finalize_assert_clean_tree "$ARCHIVE_DIR"
       git checkout -B "$ARCHIVE_BRANCH" origin/main
-      # [T900096] Fremde uncommittete Aenderungen verwerfen — wandern sonst in Archiv-PR.
-      git checkout -- . 2>/dev/null || true; git clean -fd 2>/dev/null || true
       # [T015916] Frontmatter-Wechsel im Archiv-Baum: nach checkout -B, vor archive.
       _apply_plan_frontmatter_completed "$ARCHIVE_DIR"
       if [[ "${ARCHIVE_RESUME:-0}" == 1 ]]; then
@@ -749,18 +752,8 @@ if [[ -d "$WORKTREE" ]]; then
     exit 1
   fi
 else
-  # [T012256/B2] "Pfad existiert nicht" heisst nicht "aufgeraeumt". Haelt noch
-  # ein Worktree $BRANCH, waehrend der aufgeloeste Pfad fehlt, widerspricht sich
-  # der Zustand: die Aufloesung hat den falschen Pfad geliefert, und der echte
-  # Worktree bleibt liegen. Genau so trat T012243 auf — Schritt 10 meldete
-  # "bereits entfernt", waehrend Worktree UND Branch standen, und der Lauf endete
-  # mit Exit 0. Der Widerspruch wird jetzt benannt statt verschwiegen.
-  _wt_holding_branch="$(git -C "$REPO_DIR" worktree list --porcelain 2>/dev/null | awk -v b="refs/heads/$BRANCH" '
-    /^worktree / { wt=$2 }
-    /^branch / && $0 == "branch " b { print wt; found=1; exit }
-    END { if (!found) exit 1 }
-  ' || true)"
-  if [[ -n "$_wt_holding_branch" ]]; then
+  # [T012256/B2] Widerspruch benennen statt verschweigen — Aufloesung in lib (T900096-P1.4).
+  if _wt_holding_branch="$(finalize_holding_worktree "$REPO_DIR" "$BRANCH")"; then
     mark_warn "Schritt 10: aufgeloester Pfad $WORKTREE existiert nicht, aber $_wt_holding_branch haelt $BRANCH — nicht aufgeraeumt (Aufloesung lieferte den falschen Pfad)"
   else
     mark_skip "Schritt 10: Worktree bereits entfernt"
@@ -775,11 +768,11 @@ if git -C "$REPO_DIR" show-ref --verify --quiet "refs/heads/$BRANCH"; then
     # Arbeitsbaum-Zustand erhalten; der Remote-Branch wird vom branch-reaper
     # unten entfernt (Code-Review PR #4586, Finding 2).
     mark_skip "Schritt 10: lokaler Branch $BRANCH ist im Haupt-Checkout ausgecheckt (Restore) — bleibt erhalten, Remote-Delete via branch-reaper"
-  elif git -C "$REPO_DIR" branch -D "$BRANCH"; then
-    mark_ok "Schritt 10: lokaler Branch $BRANCH entfernt"
+  elif finalize_branch_fully_merged "$REPO_DIR" "$BRANCH"; then  # merge-base --is-ancestor vs origin/main (T900096)
+    git -C "$REPO_DIR" branch -D "$BRANCH" && mark_ok "Schritt 10: lokaler Branch $BRANCH entfernt" || { echo "ERROR: Schritt 10 — lokaler Branch $BRANCH nicht loeschbar." >&2; exit 1; }
   else
-    echo "ERROR: Schritt 10 — lokaler Branch $BRANCH nicht loeschbar." >&2
-    exit 1
+    mark_warn "Schritt 10: lokaler Branch $BRANCH traegt Commits ausserhalb origin/main — bleibt erhalten (Datenverlust-Risiko, T900096)"
+    mark_skip "Schritt 10: lokaler Branch $BRANCH behalten (ungemergte Commits)"
   fi
 else
   mark_skip "Schritt 10: lokaler Branch bereits entfernt"

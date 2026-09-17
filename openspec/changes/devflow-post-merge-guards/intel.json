@@ -19,18 +19,18 @@
     {
       "path": "scripts/devflow-post-merge-finalize.sh",
       "language": "bash",
-      "loc": 811,
+      "loc": 813,
       "s1_limit": 800,
-      "s1_baseline": 812,
-      "s1_budget": 1
+      "s1_baseline": 813,
+      "s1_budget": 0
     },
     {
       "path": "scripts/branch-reaper.sh",
       "language": "bash",
-      "loc": 492,
+      "loc": 500,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 308
+      "s1_budget": 300
     },
     {
       "path": "scripts/lib/archive-staged-scope.sh",
@@ -41,7 +41,23 @@
       "s1_budget": 724
     },
     {
+      "path": "scripts/lib/finalize-step-guards.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "tests/spec/agent-skills/post-merge-finalize-t900096.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/branch-reaper-unmerged-keep.bats",
       "language": "bash",
       "loc": 0,
       "s1_limit": 0,
@@ -179,11 +195,11 @@
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/branch-reaper.sh:418:_reap_local_ref() {",
+      "qualified_name": "scripts/branch-reaper.sh:426:_reap_local_ref() {",
       "kind": "function",
       "file": "scripts/branch-reaper.sh",
-      "signature": "418:_reap_local_ref() {(...)",
-      "type_text": "418:_reap_local_ref() {(...)",
+      "signature": "426:_reap_local_ref() {(...)",
+      "type_text": "426:_reap_local_ref() {(...)",
       "source": "grep"
     },
     {

@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Interaction Contract
+
+Wie Agenten mit dir kommunizieren — Autonomiegrenze, die vier Stop-Trigger, die Form von
+Entscheidungsfragen und der Status-Footer — steht vollständig in
+[`AGENTS.md` → „Interaction Contract"](AGENTS.md). Das ist der harness-übergreifende SSOT;
+hier wird er nicht gespiegelt.
+
 ## Agent Routing
 
 Before responding to any request, check these signals and delegate to the named agent. The signal lists below mirror the routing table in [`AGENTS.md`](AGENTS.md) — which is the single source of truth (it matches each agent's `description:` frontmatter in `.agents/agents/<name>.md`).

@@ -212,3 +212,135 @@ so that a missing device plugin is distinguishable from a host that has no card.
 - **AND** a node carrying a card but advertising no `nvidia.com/gpu` is marked as such
 
 <!-- merged from change delta local-dev-mesh.md (c1fe4357461c) -->
+
+### Requirement: Cluster nodes meet the Longhorn preconditions
+
+Every devmesh server SHALL satisfy the Longhorn 1.11.2 preconditions before
+installation: `open-iscsi` installed with `iscsid` running and `iscsi_tcp`
+loaded, NFSv4 client (`nfs-common`), `cryptsetup` with `dm_crypt`,
+`device-mapper`, ext4/XFS support and active mount propagation. A script
+`scripts/devmesh/longhorn-prereqs.sh` SHALL establish them idempotently.
+
+#### Scenario: Preconditions converge on a second run
+
+- **GIVEN** a devmesh server where preconditions were established once
+- **WHEN** `bash scripts/devmesh/longhorn-prereqs.sh <host>` runs again
+- **THEN** it exits 0 without changing the system (idempotent)
+
+#### Scenario: Missing iscsid is reported as failed precondition
+
+- **GIVEN** a server without running `iscsid`
+- **WHEN** the preconditions check runs
+- **THEN** it exits non-zero and names the missing component
+
+### Requirement: Longhorn is the default StorageClass on devmesh
+
+Longhorn 1.11.2 (per `environments/versions.yaml` SSOT) SHALL be installed on
+context `devmesh`, `local-path` SHALL lose its default flag, and every node's
+disks SHALL be registered in the Longhorn node configuration. The legacy
+installer `k3d/dev-cluster/longhorn-install.sh` (v1.7.2, context `devc`) SHALL
+be replaced.
+
+#### Scenario: Only Longhorn carries the default flag
+
+- **GIVEN** context `devmesh` after installation
+- **WHEN** StorageClasses are listed
+- **THEN** exactly one has the `is-default-class` annotation set to true and it
+  is the Longhorn class
+
+#### Scenario: No reference to the dead context remains
+
+- **GIVEN** the repository tree
+- **WHEN** it is searched for `devc` in Longhorn install paths
+- **THEN** no match remains outside archived history
+
+### Requirement: git-crypt unlocks via GPG users in dev-shell
+
+The dev-shell image SHALL contain `gnupg` and `pinentry-tty`, the GPG keys of
+patrick and gekko SHALL be enrolled via `git-crypt add-gpg-user` (key files
+committed under `.git-crypt/keys/`), and `git-crypt unlock` SHALL work without
+a symmetric keyfile. The GPG private key material SHALL live under `/home/dev`
+with the threat model from the key-distribution runbook.
+
+#### Scenario: Unlock works without keyfile
+
+- **GIVEN** a fresh clone on an onboarded machine with GPG key available
+- **WHEN** `git-crypt unlock` runs without any keyfile present
+- **THEN** it exits 0 and encrypted paths decrypt
+
+#### Scenario: Image contains gnupg
+
+- **GIVEN** `docker/dev-shell/Dockerfile`
+- **WHEN** it is searched for `gnupg`
+- **THEN** at least one match exists
+
+### Requirement: k3d-mentolder-dev is decommissioned after devmesh acceptance
+
+`k3d-mentolder-dev` SHALL be torn down only after `scripts/devmesh/acceptance.sh`
+passes on devmesh and data migration (`migrate-from-k3d.sh`) is verified.
+FACTORY_CTX, Taskfile.sdlc, guards and CLAUDE.md rules SHALL point at devmesh,
+and no live reference to the k3d context SHALL remain.
+
+#### Scenario: Teardown is gated on acceptance
+
+- **GIVEN** a failed or skipped devmesh acceptance run
+- **WHEN** the decommission sequence is invoked
+- **THEN** `k3d-teardown.sh` is not executed and the sequence exits non-zero
+
+#### Scenario: No live k3d reference remains
+
+- **GIVEN** the repository tree after decommission
+- **WHEN** factory config, Taskfile and guards are searched for
+  `k3d-mentolder-dev` / `mentolder-dev`
+- **THEN** no match remains outside `openspec/changes/archive/` history
+
+<!-- merged from change delta local-dev-mesh.md (be60fceb5bff) -->
+
+### Requirement: devmesh hosts the CPU-bound LLM and database services
+<!-- bats: local-dev-mesh/llm-services.bats -->
+
+The devmesh stack SHALL provide a `llm-services` component that runs the LLM proxy, the bge-mcp
+shim and the mcp-postgres server in one Deployment built from the `mcp-node` image. The
+component SHALL expose them through one Service on ports 18235, 13001 and 13005. The GPU-bound
+backends SHALL stay on the Windows side of the dev workstation.
+
+#### Scenario: The rendered stack contains the component
+
+- **GIVEN** the devmesh stack is rendered with `scripts/devmesh/render-stack.sh`
+- **WHEN** the output is inspected
+- **THEN** it contains the `llm-services` Deployment and a Service exposing ports 18235, 13001
+  and 13005
+
+#### Scenario: Only the three services start in the component
+
+- **GIVEN** the `llm-services` Deployment sets the supervisor service selection
+- **WHEN** the `mcp-node` supervisor starts
+- **THEN** it starts the LLM proxy, mcp-postgres and bge-mcp, and no other server
+
+### Requirement: The GPU endpoint exposes one port per workstation GPU service
+<!-- bats: local-dev-mesh/llm-services.bats -->
+
+The `llm-gateway-host` Service SHALL declare one named port for every GPU service listed in
+`gpu_endpoint.ports` of the devmesh inventory, and its EndpointSlice SHALL point all of them at
+the tailnet address of the GPU workstation.
+
+#### Scenario: Every inventory port is rendered
+
+- **GIVEN** `gpu_endpoint.ports` lists the workstation GPU services
+- **WHEN** the stack is rendered
+- **THEN** the Service and the EndpointSlice carry one port per listed service
+
+### Requirement: The devmesh backend registry contains no loopback URLs
+<!-- bats: local-dev-mesh/llm-services.bats -->
+
+The devmesh database SHALL hold its own `tickets.llm_proxy_backends` table, seeded by a
+migration. No seeded `base_url` SHALL use a loopback address, because loopback inside the pod
+does not reach the workstation or the cluster services.
+
+#### Scenario: The seed migration is checked for loopback URLs
+
+- **GIVEN** the devmesh registry seed migration
+- **WHEN** its `base_url` values are inspected
+- **THEN** none of them contains `127.0.0.1` or `localhost`
+
+<!-- merged from change delta local-dev-mesh.md (ac6fd9ad8785) -->

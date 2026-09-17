@@ -128,3 +128,87 @@ oder mit einem expliziten, maschinenprüfbaren Ausnahme-Kommentar
 - **THEN** schlägt der Guard-Test in tests/spec/security.bats fehl
 
 <!-- merged from change delta security.md (b97e8ed93d4a) -->
+
+### Requirement: Workload ServiceAccounts hold no clusterwide pods/exec
+<!-- bats: security/workload-exec-rbac.bats -->
+
+No ServiceAccount of an application workload SHALL be granted `pods/exec` through a ClusterRoleBinding.
+Where a workload needs exec, it SHALL be granted through namespaced `Role`/`RoleBinding` objects limited to the
+namespaces it actually targets. The website ServiceAccount SHALL hold `pods/exec` only in its own website
+namespace (`website-self-exec`) and in the workspace namespace of its own brand (`website-test-runner-exec`,
+rendered from the k3d base), so that it cannot exec into `workspace-dev`, `kube-system` or another brand.
+
+#### Scenario: The website ClusterRole grants no exec *(BATS)*
+
+- **GIVEN** the ClusterRole `${WEBSITE_NAMESPACE}-monitoring-reader` in `k3d/website.yaml`
+- **WHEN** its rules are parsed
+- **THEN** it still grants `get`/`list` on pods (positive anchor) and no rule grants `pods/exec`
+
+#### Scenario: Exec is bound only in the brand's own namespaces *(BATS)*
+
+- **GIVEN** `k3d/website.yaml` and `k3d/website-test-runner-rbac.yaml`
+- **WHEN** the RBAC objects that grant `pods/exec` are listed
+- **THEN** they are namespaced `Role`/`RoleBinding` objects whose subject is the ServiceAccount `website` in
+  `${WEBSITE_NAMESPACE}`, and `k3d/kustomization.yaml` references `website-test-runner-rbac.yaml`
+
+#### Scenario: The kustomize namespace transformer keeps the subject namespace *(BATS)*
+
+- **GIVEN** the k3d base renders with `namespace: workspace` and a brand overlay may override it
+- **WHEN** the base is rendered with `kubectl kustomize`
+- **THEN** the RoleBinding `website-test-runner-exec` lands in the workspace namespace while its subject namespace
+  stays `${WEBSITE_NAMESPACE}` for envsubst
+
+### Requirement: cluster-admin bindings are limited to an allowlist
+<!-- bats: security/cluster-admin-audit.bats -->
+
+Every ClusterRoleBinding to `cluster-admin` SHALL bind only subjects on an explicit allowlist of platform
+controllers (`system:masters`, Flux controllers, the k3s Traefik Helm installers, the Longhorn support bundle).
+`scripts/security/cluster-admin-audit.sh` SHALL report every other subject and exit non-zero, so that manually
+created cluster-admin identities with long-lived tokens are detected.
+
+#### Scenario: Allowlisted bindings pass *(BATS)*
+
+- **GIVEN** a ClusterRoleBinding list containing only allowlisted cluster-admin subjects
+- **WHEN** the audit runs against it
+- **THEN** it exits 0 and reports the number of checked bindings
+
+#### Scenario: An unmanaged cluster-admin ServiceAccount is reported *(BATS)*
+
+- **GIVEN** a ClusterRoleBinding `dev-deployer` binding `ServiceAccount kube-system/dev-deployer` to `cluster-admin`
+- **WHEN** the audit runs against it
+- **THEN** it exits 1 and names the binding and the subject
+
+<!-- merged from change delta security.md (77841c0c6a86) -->
+
+### Requirement: Website ClusterRole holds only read permissions without clusterwide write access
+<!-- bats: security/website-clusterrole-least-privilege.bats -->
+
+The website ClusterRole `${WEBSITE_NAMESPACE}-monitoring-reader` SHALL grant only read verbs (`get`, `list`)
+and SHALL NOT grant any write verbs (`delete`, `patch`, `create`, `update`) across the cluster.
+Where write access is required by SDLC ops workflows (patching deployments or creating jobs), it SHALL be
+granted through namespaced `Role` and `RoleBinding` objects restricted to the brand's own website namespace
+(`${WEBSITE_NAMESPACE}`) and workspace namespace (`workspace`). Obsolete API groups (`argoproj.io`) and unused
+write verbs (`pods: delete`) SHALL be completely removed.
+
+#### Scenario: The website ClusterRole contains only read-only verbs *(BATS)*
+
+- **GIVEN** the ClusterRole `${WEBSITE_NAMESPACE}-monitoring-reader` in `k3d/website.yaml`
+- **WHEN** all its rules and verbs are inspected
+- **THEN** every verb in every rule is either `get` or `list`
+- **AND** no rule grants `delete`, `patch`, `create`, or `update`
+
+#### Scenario: Obsolete ArgoCD and pod deletion rules are absent from the ClusterRole *(BATS)*
+
+- **GIVEN** the ClusterRole `${WEBSITE_NAMESPACE}-monitoring-reader` in `k3d/website.yaml`
+- **WHEN** its API groups and resources are inspected
+- **THEN** no rule references the apiGroup `argoproj.io`
+- **AND** no rule grants `delete` on `pods`
+
+#### Scenario: Namespaced Roles grant deployment and job write access in required namespaces *(BATS)*
+
+- **GIVEN** `k3d/website.yaml` and `k3d/website-test-runner-rbac.yaml`
+- **WHEN** the namespaced roles for the website ServiceAccount are inspected
+- **THEN** `website-self-exec` in `${WEBSITE_NAMESPACE}` grants `apps/deployments: patch`
+- **AND** `website-test-runner-exec` in `workspace` grants `apps/deployments: patch` and `batch/jobs: create`
+
+<!-- merged from change delta security.md (bfc7c1eb31a8) -->

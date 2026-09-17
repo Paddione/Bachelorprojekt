@@ -26,24 +26,28 @@ genau einer Stelle entschieden werden statt in jedem Konsumenten einzeln.
 ## Requirements
 
 ### Requirement: The proxy serves remote backends only
-<!-- bats: dev-pod-mcp-bundle/dev-pod.bats -->
+<!-- bats: local-dev-mesh/llm-services.bats -->
 
-The LLM proxy SHALL run as a container of the `dev-pod` deployment and SHALL route to remote
-backends only. The loadout machinery — transient systemd user units and the `exclusiveGroup`
-arbitration that kept loadouts from evicting each other from the GPU — SHALL be removed.
+The LLM proxy SHALL run as a process of the `llm-services` Deployment in the `devmesh` cluster
+and SHALL route only to backends it reaches over the network: cluster services, the GPU
+workstation through `llm-gateway-host`, and external APIs. The loadout machinery — transient
+systemd user units and the `exclusiveGroup` arbitration that kept loadouts from evicting each
+other from the GPU — SHALL remain removed. The proxy SHALL NOT run as a systemd user unit on the
+workstation or inside the fleet `dev-pod`.
 
-#### Scenario: No GPU is available to route to
+#### Scenario: The proxy resolves a workstation GPU model
 
-- **GIVEN** every node of the `fleet` cluster reports no GPU capacity
-- **WHEN** the proxy resolves a model name to a backend
-- **THEN** it selects among remote backends, and no code path attempts to start a local loadout
+- **GIVEN** the devmesh registry lists a workstation model under `llm-gateway-host:<port>`
+- **WHEN** the proxy resolves that model name
+- **THEN** it forwards the request to the workstation over the tailnet, and no code path
+  attempts to start a local loadout
 
 #### Scenario: The proxy outlives the workstation
 
-- **GIVEN** the proxy runs in the cluster rather than on the workstation
+- **GIVEN** the proxy runs in the devmesh cluster rather than on the workstation
 - **WHEN** the workstation is powered off
-- **THEN** consumers of the proxy continue to resolve models, so that scheduled work does not
-  depend on an interactive machine being awake
+- **THEN** the proxy keeps serving cluster and remote backends and reports the workstation
+  backends as unavailable
 
 ### Requirement: The purpose section describes the running state
 
@@ -2074,3 +2078,106 @@ proxy version.
 <!-- merged from change delta local-llm-proxy.md (6f54c6174908) -->
 
 <!-- merged from change delta local-llm-proxy.md (5c2ea4c28e54) -->
+
+### Requirement: Deterministic loadouts path resolution across execution environments
+<!-- bats: local-llm-proxy/dev-pod-loadouts-path.bats -->
+
+The system SHALL locate `scripts/llm/loadouts.json` reliably regardless of the current working directory.
+When reading or writing loadout configuration:
+1. If the environment variable `LOADOUTS_PATH` is set, that path SHALL be used.
+2. If `scripts/llm/loadouts.json` exists relative to the current working directory, that path SHALL be used.
+3. If `DEV_POD_REPO` is set and contains `scripts/llm/loadouts.json`, that path SHALL be used.
+4. If neither matches, the path SHALL be resolved relative to the module location (`scripts/llm-proxy/loadouts.mjs`).
+
+The `mcp-node` supervisor SHALL pass `LOADOUTS_PATH="${LOADOUTS_PATH:-$REPO/scripts/llm/loadouts.json}"`
+to the `llm-proxy` process.
+
+#### Scenario: Explicit LOADOUTS_PATH takes precedence *(BATS)*
+
+- **GIVEN** `LOADOUTS_PATH` is set in the process environment pointing to a valid loadouts file
+- **WHEN** `readLoadouts()` is invoked without arguments
+- **THEN** it reads configuration from `LOADOUTS_PATH`
+
+#### Scenario: Running from outside the repo root resolves loadouts relative to the repository *(BATS)*
+
+- **GIVEN** the current working directory is outside the repository (e.g. `/tmp` or `/workspace`)
+- **AND** `LOADOUTS_PATH` is not explicitly set
+- **WHEN** `readLoadouts()` is invoked without arguments
+- **THEN** it resolves the repository's `scripts/llm/loadouts.json` without throwing `ENOENT`
+
+#### Scenario: Supervisor passes LOADOUTS_PATH to llm-proxy *(BATS)*
+
+- **GIVEN** `docker/mcp-node/supervisor.sh`
+- **WHEN** the `supervise llm-proxy` command definition is inspected
+- **THEN** it sets `LOADOUTS_PATH` pointing to `$REPO/scripts/llm/loadouts.json`
+
+<!-- merged from change delta local-llm-proxy.md (a00f2d24acd1) -->
+
+<!-- merged from change delta local-llm-proxy.md (31cf174a50a4) -->
+
+### Requirement: Decommissioned loadouts are excluded from GGUF-resolution verification
+
+Ein Loadout, dessen top-level `enabled` den Wert `false` trägt (T002753), ist
+vom Proxy zur Laufzeit bereits über `isLoadoutEnabled()` in
+`scripts/llm-proxy/loadouts.mjs:353-364` (`return loadout?.enabled !== false`)
+vom Start ausgeschlossen. Die GGUF-Auflösungs-Verification
+(`tests/spec/local-llm-proxy/loadout-model-files-exist.bats`, T002753) SHALL
+diesen Zustand ebenfalls kennen: ein deaktiviertes Loadout, das keine
+Modelldatei mehr referenziert, ist environment-bedingt tot und darf als MISSING
+gemeldet werden — es wird übersprungen und erscheint nicht in der Ausgabe.
+
+Dies ist bewusst top-level `enabled:false` und NICHT `fit.enabled:false`:
+beides heiß dasselbe und steuert diametral andere Dinge. `fit.enabled` schaltet
+den llama.cpp Kontext-Fit (`--fit`) ein/aus und verlangt `args.ctx` +
+`args.ngl` (loadouts.mjs:168); `enabled` deaktiviert das Loadout vollständig.
+
+#### Scenario: a disabled loadout is excluded from the guard
+
+- **GIVEN** a loadout `enabled:false` (e.g. `gemma26-factory`) whose GGUF does
+  not exist on disk
+- **WHEN** the T002753 guard resolves every non-external loadout
+- **THEN** the loadout is skipped and is NOT reported as MISSING (it does not
+  appear in the resolution output at all)
+
+### Requirement: only surviving active loadouts are asserted as present
+
+Der Positiv-Anker des Guards beweist, dass überhaupt aufgelöst wird. Er SHALL
+sich auf ein aktives Loadout mit vorhandener GGUF beziehen, nicht auf ein
+deaktiviertes.
+
+#### Scenario: the positive anchor is an active loadout with GGUF
+
+- **GIVEN** the T002753 guard runs
+- **WHEN** it resolves the enabled loadouts
+- **THEN** it asserts `qwen38-220k OK` (the only surviving active chat loadout
+  with a present GGUF), and that assertion passes
+
+## CHANGED Requirements
+
+### Decommissioned agent loadouts marked enabled:false
+
+Die Loadouts `gemma26-factory`, `gemma4`, `gemma26-throughput` und
+`gemma12-vision` in `scripts/llm/loadouts.json` tragen `enabled:false` mit der
+Bemerkung, dass sie seit der FreeToken-Migration (T014105) durch die
+FreeToken-native Engine (`freetoken-local/active`, :1919) ersetzt wurden.
+`gptoss-context` ist bereits `enabled:false`. Die GGUFs wurden von der Platte
+entfernt; die Messwerte in den jeweiligen `notes` bleiben unverändert als
+Referenz erhalten.
+
+### brain-ingest loadout marked enabled:false after migration
+
+Das `brain-ingest`-Loadout (Port 8100) wird `enabled:false` markiert, JUICHT
+nur nachdem `scripts/brain-ingest.sh` auf die FreeToken-native Engine
+(`:1919`) migriert wurde (LM_STUDIO_URL + LM_MODEL). Die Migration ist ein
+Discovery-gateder Schritt (siehe tasks.md P3); das Loadout-Deaktivierungs-
+Flag wird erst im erfolgreichen Verzweigungsfall gesetzt, damit die Pipeline
+nicht in einen toten Zustand gerät, bevor ein Ersatz-Backend steht.
+
+#### Scenario: brain-ingest is excluded from the guard only after cutover
+
+- **GIVEN** `brain-ingest.sh` points at FreeToken `:1919` and a transform run
+  produces valid frontmatter
+- **WHEN** the `brain-ingest` loadout is marked `enabled:false`
+- **THEN** the T002753 guard no longer resolves it and it is not reported MISSING
+
+<!-- merged from change delta local-llm-proxy.md (9306fdd35b29) -->

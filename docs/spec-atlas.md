@@ -62,12 +62,12 @@ Last touches:
   - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
   - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
 In-flight:
-  - Bonsai Provider Registration for Implement and Review | T900208 | active | MODIFIED
-  - Env-driven phase model routing | T900208 | active | MODIFIED
-  - A locked factory model overrides every other model choice | T900208 | active | REMOVED
   - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | active | MODIFIED
   - REQ-SF-EXECUTOR-003 — FACTORY_MODE local|api|mixed | T900210 | active | ADDED
   - REQ-SF-EXECUTOR-004 — Muse Spark 1.3 planning with Go fallback | T900210 | active | ADDED
+  - Bonsai Provider Registration for Implement and Review | T900208 | active | MODIFIED
+  - Env-driven phase model routing | T900208 | active | MODIFIED
+  - A locked factory model overrides every other model choice | T900208 | active | REMOVED
   - Factory Dispatcher Runs In-Cluster | T900110 | active | MODIFIED
   - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
   - Force-Tick Trigger | T900054 | active | MODIFIED
@@ -514,6 +514,8 @@ Last touches:
   - a native guard plugin enforces the worktree write rule | T012962 | 2026-08-20 | ADDED
   - dsh is a selectable factory executor | T012962 | 2026-08-20 | ADDED
   - dsh sessions are visible in the existing phase-event timeline | T012962 | 2026-08-20 | ADDED
+In-flight:
+  - dsh is a selectable factory executor | T900210 | active | MODIFIED
 
 ### e2e-test-infrastructure
 Reqs: 31 · Scenarios: 57 · Lines: 788

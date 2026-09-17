@@ -658,6 +658,7 @@ In-flight:
   - Project Default Model Targets the FreeToken Alias | T900208 | active | MODIFIED
   - FreeToken Plugin Layer Removed | T900208 | active | MODIFIED
   - A local agent MAY use llama.cpp or FreeToken, but never a dead loadout | T900208 | active | MODIFIED
+  - Single System Message for the FreeToken Provider | T900220 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 10 · Scenarios: 20 · Lines: 215

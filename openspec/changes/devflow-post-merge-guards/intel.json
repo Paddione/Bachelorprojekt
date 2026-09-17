@@ -1,0 +1,243 @@
+{
+  "meta": {
+    "slug": "devflow-post-merge-guards",
+    "ticket_id": "T900096",
+    "generated_from": "main@6b87e164c",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/devflow-post-merge-finalize.sh",
+      "language": "bash",
+      "loc": 813,
+      "s1_limit": 800,
+      "s1_baseline": 813,
+      "s1_budget": 0
+    },
+    {
+      "path": "scripts/branch-reaper.sh",
+      "language": "bash",
+      "loc": 500,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 300
+    },
+    {
+      "path": "scripts/lib/archive-staged-scope.sh",
+      "language": "bash",
+      "loc": 76,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 724
+    },
+    {
+      "path": "scripts/lib/finalize-step-guards.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/post-merge-finalize-t900096.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/branch-reaper-unmerged-keep.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:43:usage() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "43:usage() {(...)",
+      "type_text": "43:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:115:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "115:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "type_text": "115:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:118:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "118:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }(...)",
+      "type_text": "118:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:126:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "126:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }(...)",
+      "type_text": "126:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:131:mark_err()  { echo \"[err]  $1\" >&2; }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "131:mark_err()  { echo \"[err]  $1\" >&2; }(...)",
+      "type_text": "131:mark_err()  { echo \"[err]  $1\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:151:_archive_already_done() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "151:_archive_already_done() {(...)",
+      "type_text": "151:_archive_already_done() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:196:_archive_state() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "196:_archive_state() {(...)",
+      "type_text": "196:_archive_state() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:260:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "260:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "type_text": "260:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:277:json_field_raw() { # $1 = Feldname, $2 = JSON-Text",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "277:json_field_raw() { # $1 = Feldname, $2 = JSON-Text(...)",
+      "type_text": "277:json_field_raw() { # $1 = Feldname, $2 = JSON-Text(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:450:_archive_lock() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "450:_archive_lock() {(...)",
+      "type_text": "450:_archive_lock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:562:      _restore_prev_branch() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "562:      _restore_prev_branch() {(...)",
+      "type_text": "562:      _restore_prev_branch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:83:usage() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "83:usage() {(...)",
+      "type_text": "83:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:134:_allowed() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "134:_allowed() {(...)",
+      "type_text": "134:_allowed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:147:_merged_pr_head_oid() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "147:_merged_pr_head_oid() {(...)",
+      "type_text": "147:_merged_pr_head_oid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:163:_merged_successor() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "163:_merged_successor() {(...)",
+      "type_text": "163:_merged_successor() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:186:_diverging_files() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "186:_diverging_files() {(...)",
+      "type_text": "186:_diverging_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:426:_reap_local_ref() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "426:_reap_local_ref() {(...)",
+      "type_text": "426:_reap_local_ref() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/archive-staged-scope.sh:29:archive_staged_scope_allowed() {",
+      "kind": "function",
+      "file": "scripts/lib/archive-staged-scope.sh",
+      "signature": "29:archive_staged_scope_allowed() {(...)",
+      "type_text": "29:archive_staged_scope_allowed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/archive-staged-scope.sh:43:archive_assert_staged_scope() {",
+      "kind": "function",
+      "file": "scripts/lib/archive-staged-scope.sh",
+      "signature": "43:archive_assert_staged_scope() {(...)",
+      "type_text": "43:archive_assert_staged_scope() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/archive-staged-scope.sh:69:archive_stage_commit() {",
+      "kind": "function",
+      "file": "scripts/lib/archive-staged-scope.sh",
+      "signature": "69:archive_stage_commit() {(...)",
+      "type_text": "69:archive_stage_commit() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

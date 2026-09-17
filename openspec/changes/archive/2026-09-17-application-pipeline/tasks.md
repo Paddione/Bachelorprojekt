@@ -2,7 +2,7 @@
 title: "application-pipeline — Implementation Plan (Phase 1: Schema & Ingest)"
 ticket_id: T900228
 domains: [database, scripts]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

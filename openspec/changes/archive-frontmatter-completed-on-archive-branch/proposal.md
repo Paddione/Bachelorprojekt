@@ -17,4 +17,4 @@ Archiv-Snapshot entstehen damit aus demselben Dateizustand; Skip-/Resume-Idempot
 DB-freies Unterkommando `--apply-completed-frontmatter` als Testseam (Präzedenz
 `--archive-state`). Die 9 Altlasten werden separat über Chore-Ticket T015920 korrigiert.
 
-_Ticket: T015916_
+_Ticket: T900226_

@@ -53,13 +53,13 @@ setup() {
 # ── OpenSpec CLI archive integration ──────────────────────────────────
 
 @test "openspec-propose skill exists" {
-  [ -f "$REPO/.claude/skills/openspec-propose/SKILL.md" ]
+  [ -f "$REPO/.opencode/skills/openspec-propose/SKILL.md" ]
 }
 
 @test "openspec-apply-change skill exists" {
-  [ -f "$REPO/.claude/skills/openspec-apply-change/SKILL.md" ]
+  [ -f "$REPO/.opencode/skills/openspec-apply-change/SKILL.md" ]
 }
 
 @test "openspec-archive-change skill exists" {
-  [ -f "$REPO/.claude/skills/openspec-archive-change/SKILL.md" ]
+  [ -f "$REPO/.opencode/skills/openspec-archive-change/SKILL.md" ]
 }

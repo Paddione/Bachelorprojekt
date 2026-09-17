@@ -3516,6 +3516,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-machine-onboarding/git-crypt-gpg",
+    "file": "tests/spec/dev-machine-onboarding/git-crypt-gpg.bats",
+    "category": "dev-machine-onboarding",
+    "kind": "shell"
+  },
+  {
     "id": "dev-machine-onboarding/install-dev-tools-user",
     "file": "tests/spec/dev-machine-onboarding/install-dev-tools-user.bats",
     "category": "dev-machine-onboarding",
@@ -4268,6 +4274,12 @@
   {
     "id": "local-dev-mesh/llm-services",
     "file": "tests/spec/local-dev-mesh/llm-services.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
+    "id": "local-dev-mesh/longhorn-storage",
+    "file": "tests/spec/local-dev-mesh/longhorn-storage.bats",
     "category": "local-dev-mesh",
     "kind": "shell"
   },

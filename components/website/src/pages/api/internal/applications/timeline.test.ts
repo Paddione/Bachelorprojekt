@@ -59,4 +59,17 @@ describe('POST /api/internal/applications/timeline', () => {
       [1, 'interview_feedback', 'went well'],
     );
   });
+
+  it.each([
+    { job_id: 0, event_type: 'interview_feedback' },
+    { job_id: 1.5, event_type: 'interview_feedback' },
+    { job_id: 1, event_type: '' },
+    { job_id: 1, event_type: 'interview_feedback', notes: 42 },
+  ])('rejects malformed authorized payloads without inserting', async (body) => {
+    const res = await POST({
+      request: req(body, { 'x-internal-token': 'test-token' }),
+    } as unknown as RouteContext);
+    expect(res.status).toBe(400);
+    expect(pool.query).not.toHaveBeenCalled();
+  });
 });

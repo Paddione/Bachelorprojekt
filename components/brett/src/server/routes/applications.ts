@@ -6,6 +6,7 @@
 // /api/internal/applications/* endpoints created in Phase 4 Tasks 1+2.
 
 import { Router } from 'express';
+import * as auth from '../auth';
 
 function websiteBaseUrl(): string {
   return process.env.WEBSITE_INTERNAL_URL || 'http://website.website.svc.cluster.local:4321';
@@ -47,16 +48,20 @@ function asyncHandler(fn: any) {
 
 export const applicationsRouter = Router();
 
-applicationsRouter.get('/api/applications', asyncHandler(async (_req: any, res: any) => {
+// Application data and interview notes are operator data, not board-session data.
+// Keep both endpoints admin-only; otherwise any authenticated Brett user could read
+// the entire pipeline or append arbitrary notes.
+applicationsRouter.get('/api/applications', auth.requireAdmin, asyncHandler(async (_req: any, res: any) => {
   const data = await fetchApplicationsList();
   res.json(data);
 }));
 
-applicationsRouter.post('/api/applications/:id/timeline', asyncHandler(async (req: any, res: any) => {
+applicationsRouter.post('/api/applications/:id/timeline', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
   const jobId = Number(req.params.id);
   const { event_type, notes } = req.body || {};
-  if (!Number.isFinite(jobId) || typeof event_type !== 'string' || !event_type) {
-    return res.status(400).json({ error: 'job id and event_type required' });
+  if (!Number.isSafeInteger(jobId) || jobId < 1 || typeof event_type !== 'string' || !event_type.trim() || event_type.length > 100
+    || (notes !== undefined && (typeof notes !== 'string' || notes.length > 10_000))) {
+    return res.status(400).json({ error: 'invalid job id, event_type or notes' });
   }
   const result = await postTimelineEvent(jobId, event_type, notes);
   res.json(result);

@@ -24,12 +24,12 @@ source "$HERE/../factory/lib.sh"; factory_resolve
 
 FAILED=0
 AVAILABLE=""
-# T900164: FreeToken-native (:1919) ist decommissioned — geprobt werden nur
-# noch der llama-Proxy (:18235, Loadouts aus loadouts.json) und LM Studio
+# [T900213] FreeToken-native (:1919) ist seit T900208 das einzige lokale
+# Generierungs-Backend. Geprobt werden FreeToken (:1919) und LM Studio
 # (:1234, Embedding/Rerank). Ohne die Liste wuerden dort servierte Modell-IDs
 # als FEHLT gemeldet, sobald irgendein anderes Backend antwortet (fail-closed
 # mit erreichbarem Backend).
-for url in http://127.0.0.1:18235 http://127.0.0.1:1234; do
+for url in http://127.0.0.1:1919 http://127.0.0.1:1234; do
   models=$(curl -s -m 5 "${url}/v1/models" 2>/dev/null | jq -r '.data[].id' 2>/dev/null) || continue
   AVAILABLE="${AVAILABLE}"$'\n'"${models}"
 done
@@ -66,6 +66,31 @@ if [[ -f "$FACTORY_ENV_FILE" ]]; then
       FAILED=1
     fi
   done < <(grep -E '^ANTHROPIC_(DEFAULT_[A-Z]+_)?MODEL=' "$FACTORY_ENV_FILE" 2>/dev/null || true)
+fi
+
+# Dritte Quelle [T900213]: Top-Level-Standardmodell aus .opencode/opencode.jsonc.
+# Kommentar-robust auslesen (JSONC). Provider-Präfix strippen, Cloud-Werte
+# überspringen.
+OPENCODE_CONFIG="${REPO_ROOT:-$HERE/../..}/.opencode/opencode.jsonc"
+if [[ -f "$OPENCODE_CONFIG" ]]; then
+  cfg_model=$(python3 -c "
+import re
+with open('${OPENCODE_CONFIG}') as f:
+    text = f.read()
+m = re.search(r'^\s*\"model\"\s*:\s*\"([^\"]+)\"', text, re.MULTILINE)
+if m:
+    val = m.group(1)
+    if not any(val.startswith(p) for p in ('zen', 'deepseek', 'https://', 'http://')):
+        if '/' in val:
+            val = val.split('/', 1)[1]
+        print(val)
+" 2>/dev/null || true)
+  if [[ -n "$cfg_model" ]]; then
+    if ! grep -qiF -- "$cfg_model" <<< "$AVAILABLE"; then
+      echo "routing-check: FEHLT — model='${cfg_model}' aus .opencode/opencode.jsonc hat kein Backend." >&2
+      FAILED=1
+    fi
+  fi
 fi
 
 [[ $FAILED -eq 0 ]] && echo "routing-check: alle lokalen Modell-IDs haben ein Backend."

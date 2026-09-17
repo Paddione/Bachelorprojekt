@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.348.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.0...website-v1.348.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **scripts:** llm-proxy readiness counts priority 0 as primary tier [T900212] ([#5696](https://github.com/Paddione/Bachelorprojekt/issues/5696)) ([6a80a42](https://github.com/Paddione/Bachelorprojekt/commit/6a80a424d82bc54ac6a88d49f55d7f56a40d630c))
+
 ## [1.348.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.347.2...website-v1.348.0) (2026-09-17)
 
 

@@ -265,7 +265,11 @@ export async function defaultEmbed(texts) {
     const batch = texts.slice(i, i + batchSize);
     const r = await fetch(`${DEFAULT_EMBED_URL()}/v1/embeddings`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'index' },
+      headers: {
+        'Content-Type': 'application/json', 'X-LLM-Purpose': 'index',
+        // [T900209] devmesh-llm-services sperrt Anfragen ohne Bearer.
+        ...(process.env.LLM_PROXY_ADMIN_TOKEN ? { Authorization: `Bearer ${process.env.LLM_PROXY_ADMIN_TOKEN}` } : {}),
+      },
       body: JSON.stringify({ model, input: batch }),
       signal: AbortSignal.timeout(embedFetchTimeoutMs()),
     });

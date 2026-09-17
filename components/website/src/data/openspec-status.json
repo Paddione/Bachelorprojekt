@@ -4805,6 +4805,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900209": [
+    {
+      "slug": "embed-hook-live-backend",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

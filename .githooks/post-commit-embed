@@ -67,8 +67,15 @@ for slug in $SLUGS; do
   # es folgt der naechste Retry bzw. die WARN unten.
   EMBED_TIMEOUT="${OPENSPEC_EMBED_HOOK_TIMEOUT:-30}"
   for attempt in $(seq 1 "$EMBED_MAX_RETRIES"); do
-    if timeout "$EMBED_TIMEOUT" bash "$repo_root/scripts/openspec-embed-local.sh" "$slug" "$repo_root" 2>&1; then
+    rc=0
+    timeout "$EMBED_TIMEOUT" bash "$repo_root/scripts/openspec-embed-local.sh" "$slug" "$repo_root" 2>&1 || rc=$?
+    if [ "$rc" -eq 0 ]; then
       EMBEDDED=1
+      break
+    fi
+    # [T900209] Exit 3 = kein Backend / Abweisung — ein Retry aendert daran nichts.
+    if [ "$rc" -eq 3 ]; then
+      echo "[openspec-embed] kein erreichbares Embedding-Backend — kein Retry (Remediation oben)" >&2
       break
     fi
     if [ "$attempt" -lt "$EMBED_MAX_RETRIES" ]; then
@@ -77,6 +84,6 @@ for slug in $SLUGS; do
     fi
   done
   if [ "$EMBEDDED" -eq 0 ]; then
-    echo "[openspec-embed] WARN: embed failed for '$slug' after $EMBED_MAX_RETRIES attempts (non-fatal — see above)" >&2
+    echo "[openspec-embed] WARN: embed failed for '$slug' after $attempt attempt(s) (non-fatal — see above)" >&2
   fi
 done

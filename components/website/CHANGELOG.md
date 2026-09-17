@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.351.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.351.0...website-v1.351.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **scripts:** fail closed after worktree deletion [T900066] ([#5733](https://github.com/Paddione/Bachelorprojekt/issues/5733)) ([7f1faa6](https://github.com/Paddione/Bachelorprojekt/commit/7f1faa6e906ba6327969e6536dcbec804d704dba))
+
 ## [1.351.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.350.0...website-v1.351.0) (2026-09-17)
 
 

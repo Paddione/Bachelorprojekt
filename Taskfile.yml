@@ -289,11 +289,17 @@ tasks:
     desc: "Regenerate .mcp.json, .opencode/opencode.jsonc, and ~/.gemini/config/mcp_config.json from the SSOT registry (docs/agent-guide/registry/mcp.yaml)"
     cmds:
       - bash scripts/mcp-sync.sh render
+      - bash scripts/opencode-sync-agents.sh
 
   mcp:check:
     desc: "Verify that the three target configs match the SSOT registry (exit != 0 on drift; never writes)"
     cmds:
       - bash scripts/mcp-sync.sh check
+
+  mcp:doctor:
+    desc: "MCP-Auth-Gesundheitscheck fuer alle Harnesses: Units, Bearer-Probes (:13001/:13003/:13005), opencode-Plugins, aufgeloeste Harness-Configs, ticket-stdio (nie Token-Werte)"
+    cmds:
+      - bash scripts/mcp-gateway/doctor.sh
 
   mcp:start-windows:
     desc: "T900039/T900191: Windows-Pendant zu mcp-gateway.service + devmesh-forward.service — Port-Forwards fleet (18080, 13002) und devmesh (18235, 13001, 13005); schliesst den WSL-Mechanismus aus"

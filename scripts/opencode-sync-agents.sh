@@ -90,3 +90,17 @@ if [[ -d "$PLUGINS_SRC" ]]; then
   cp -f "$PLUGINS_SRC"/*.ts "$PLUGINS_TGT"/ 2>/dev/null || true
   echo "Successfully synced plugin files to $PLUGINS_TGT"
 fi
+
+# T0141xx: opencode laedt NUR die Plural-Verzeichnisse automatisch
+# (`.opencode/plugins/` Projekt, `~/.config/opencode/plugins/` global —
+# siehe https://opencode.ai/docs/plugins/). Das singulaere `plugin/` oben ist
+# die Repo-Konvention und wird von opencode ignoriert; ohne diese Kopie liefen
+# die Token-Plugins (bge-mcp-env, mcp-client-tokens-env) und der
+# Worktree-Guard nie — jeder Neustart verlor die MCP-Auth. Die Kopie traegt
+# keine Secrets (nur Laderlogik, Tokens bleiben in ~/.config/*/server.env).
+PLUGINS_AUTO="$(dirname "$TARGET_FILE")/plugins"
+if [[ -d "$PLUGINS_SRC" ]]; then
+  mkdir -p "$PLUGINS_AUTO"
+  cp -f "$PLUGINS_SRC"/*.ts "$PLUGINS_AUTO"/ 2>/dev/null || true
+  echo "Successfully synced plugin files to $PLUGINS_AUTO (opencode auto-load)"
+fi

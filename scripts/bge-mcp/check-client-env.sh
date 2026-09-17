@@ -28,6 +28,9 @@ fix_hint() {
   cat <<EOF
 Fix: BGE_MCP_TOKEN vor dem Harness-Start exportieren, z.B. in ~/.bashrc:
   set -a; . ~/.config/bge-mcp/server.env; set +a
+Fuer opencode ist das nicht mehr noetig (Token-Plugin laedt server.env beim
+Start) — Gesamtstatus: task mcp:doctor. Harness-Configs neu erzeugen:
+task mcp:sync.
 Siehe .claude/skills/references/mcp-tool-guide.md (Diagnose-Block bge-mcp).
 EOF
 }

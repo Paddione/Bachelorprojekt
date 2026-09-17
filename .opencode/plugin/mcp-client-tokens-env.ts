@@ -5,16 +5,28 @@
 // einen Bearer-Token. Die opencode-Config referenziert ihn als Platzhalter
 //   "headers": {"Authorization":"Bearer {env:FACTORY_MCP_TOKEN}"}
 //   "headers": {"Authorization":"Bearer {env:MCP_POSTGRES_TOKEN}"}
-// in .opencode/opencode.jsonc. opencode expandiert {env:...} aus process.env
-// beim Start — ist die jeweilige Variable dort nicht gesetzt, wird der Header
-// zu "Bearer " (leer) und der Server antwortet 401, was opencode als "failed"
+// in .opencode/opencode.jsonc. opencode expandiert {env:...} aus process.env —
+// ist die jeweilige Variable beim Start nicht gesetzt, wird der Header zu
+// "Bearer " (leer) und der Server antwortet 401, was opencode als "failed"
 // anzeigt (T900202).
 //
 // Die Tokens liegen in ~/.config/factory-mcp-node/server.env bzw.
-// ~/.config/mcp-postgres/server.env (SSOT, nicht getrackt). Dieses Plugin
-// liest diese Dateien in process.env, BEVOR opencode die MCP-Config aufloest.
-// Damit funktioniert die Auth unabhaengig davon, aus welcher Shell opencode
-// gestartet wird — kein manuelles "set -a; . server.env" vor dem Start noetig.
+// ~/.config/mcp-postgres/server.env (SSOT, nicht getrackt). Dieses Plugin liest
+// diese Dateien in process.env ein. Das passiert auf Modul-Top-Level, also beim
+// Laden des Plugins beim opencode-Start — der fruehestmoegliche Zeitpunkt im
+// Prozess, jedenfalls vor dem Verbinden der MCP-Clients. (Ein `config`-Hook
+// dafuer existiert in opencode nicht; die Event-Liste kennt nur
+// shell.env/tool/session/... — siehe https://opencode.ai/docs/plugins/.)
+// Damit funktioniert die Auth unabhaengig davon, aus welcher Shell (oder aus
+// dem Desktop-Launcher, der weder ~/.bashrc noch ~/.profile sourct) opencode
+// gestartet wird.
+//
+// WICHTIG: Diese Datei muss in einem Verzeichnis liegen, das opencode
+// automatisch laedt — `.opencode/plugins/` (Projekt) oder
+// `~/.config/opencode/plugins/` (global). Das singulaere `plugin/`
+// (Repo-Konvention, Ziel von scripts/opencode-sync-agents.sh) wird von
+// opencode NICHT geladen; der Sync verteilt die Dateien deshalb zusaetzlich
+// nach `~/.config/opencode/plugins/` (T0141xx).
 //
 // Fail-silent: fehlt eine Datei oder ist der jeweilige Token leer, bleibt die
 // Variable ungesetzt und opencode zeigt den Client wie bisher als "failed".
@@ -50,17 +62,17 @@ function loadServerEnv(file: string, key: string): void {
     }
   } catch {
     // Datei fehlt/unlesbar: Variable bleibt ungesetzt, opencode zeigt den
-    // Client als "failed".
+    // Client als "failed" — Diagnose via `task mcp:doctor`.
   }
 }
 
-export default async () => {
-  return {
-    config: async (cfg: any) => {
-      for (const { file, key } of SOURCES) {
-        loadServerEnv(file, key)
-      }
-      return cfg
-    },
-  }
+// Import-Zeitpunkt: SOFORT laden, nicht erst in einem Hook. Plugin-Hooks
+// laufen nach dem Modul-Import; MCP-Clients verbinden sich noch spaeter,
+// sodass {env:...} beim Expandieren gesetzt ist.
+for (const { file, key } of SOURCES) {
+  loadServerEnv(file, key)
+}
+
+export const McpClientTokensEnv = async () => {
+  return {}
 }

@@ -149,9 +149,15 @@ YAML
 # mcp-servers.json) muessen unexpandierte ${VAR}-Platzhalter enthalten,
 # niemals Klartext-Token.
 @test "T900052: rendered tracked outputs contain no plaintext secrets" {
-  local tmpd fixture
+  local tmpd fixture fakehome
   tmpd="$(mktemp -d)"
   fixture="$tmpd/registry.yaml"
+  # HOME faken: AGY/QWEN/Claude-User-Targets haengen an $HOME, nicht an
+  # MCP_OUT_DIR — ohne Fake wuerde dieser render die echten
+  # ~/.gemini/config/mcp_config.json, ~/.qwen/settings.json und
+  # ~/.claude/settings.json ueberschreiben (beobachtet 2026-09-17).
+  fakehome="$tmpd/fakehome"
+  mkdir -p "$fakehome/.gemini/config" "$fakehome/.qwen" "$fakehome/.claude"
 
   cat > "$fixture" <<'YAML'
 clients:
@@ -171,7 +177,7 @@ clients:
 cluster: {}
 YAML
 
-  run env MCP_REGISTRY="$fixture" MCP_OUT_DIR="$tmpd/out" \
+  run env HOME="$fakehome" MCP_REGISTRY="$fixture" MCP_OUT_DIR="$tmpd/out" \
     MY_SECRET_TOKEN="plaintext-super-secret-value" bash "$SYNC" render
   [ "$status" -eq 0 ]
 

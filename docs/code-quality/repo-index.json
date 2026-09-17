@@ -4222,7 +4222,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 872,
+      "file_count": 873,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4841,6 +4841,7 @@
         "scripts/mcp-cors-proxy/mcp-cors-proxy.service",
         "scripts/mcp-cors-proxy/proxy.mjs",
         "scripts/mcp-gateway/devmesh-forward.service",
+        "scripts/mcp-gateway/doctor.sh",
         "scripts/mcp-gateway/mcp-gateway-watchdog.service",
         "scripts/mcp-gateway/mcp-gateway-watchdog.timer",
         "scripts/mcp-gateway/mcp-gateway.service",

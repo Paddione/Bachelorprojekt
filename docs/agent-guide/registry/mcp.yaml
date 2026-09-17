@@ -94,6 +94,8 @@ clients:
         url: http://localhost:13001/mcp
       agy:
         serverUrl: http://localhost:13001/mcp
+      qwen_code:
+        httpUrl: http://localhost:13001/mcp
       opencode:
         type: remote
         url: http://localhost:13001/mcp
@@ -205,8 +207,10 @@ clients:
     # Kein Top-Level-placeholder-Header: factory-mcp-node MUSS laut dem
     # T002779-Guard (tests/spec/mcp-tooling.bats) in .mcp.json registriert
     # bleiben — ein ${VAR}-Header wuerde ihn dort per T004272 entfernen.
-    # Der Auth-Header wird stattdessen pro-Harness an opencode gegeben
-    # (harness.opencode.headers), das {env:VAR} aufloesen kann.
+    # Der Auth-Header wird stattdessen pro-Harness gegeben (harness.*.headers):
+    # opencode loest {env:VAR} selbst auf, agy/qwen/Claude-User bekommen den
+    # Token zur Sync-Zeit aufgeloest (mcp-sync.sh, T002704/T004272-Prinzip).
+    # .mcp.json bleibt dadurch header-frei, die Harness-Configs tragen Auth.
     auth_note: >-
       Bind auf 127.0.0.1 plus Bearer-Token (FACTORY_MCP_TOKEN). Ohne gesetzten
       Token startet der Server nicht (Shared Guard: mcp-http-security.mjs).
@@ -221,8 +225,19 @@ clients:
       claude_code:
         type: http
         url: http://localhost:13003/mcp
+        # Nur fuer das User-Scope-Target (~/.claude/settings.json, aufgeloest):
+        # render_claude_json (.mcp.json) liest AUSSCHLIESSLICH Top-Level-headers,
+        # damit factory dort header-frei registriert bleibt (T002779-Guard).
+        headers:
+          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
       agy:
         serverUrl: http://localhost:13003/mcp
+        headers:
+          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
+      qwen_code:
+        httpUrl: http://localhost:13003/mcp
+        headers:
+          Authorization: "Bearer ${FACTORY_MCP_TOKEN}"
       opencode:
         type: remote
         url: http://localhost:13003/mcp

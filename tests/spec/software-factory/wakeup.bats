@@ -212,7 +212,10 @@ STUB
   [ "$status" -eq 0 ]
   run grep -F 'factory.service' "$TASKFILE"
   [ "$status" -eq 0 ]
-  run grep -E 'systemctl --user enable --now factory\.timer' "$TASKFILE"
+  # [T900211] enable per Vollpfad (${SRC}/...), nicht per Bare-Name: der
+  # Bare-Name-Enable scheitert still bei gelinkten Units, sobald das
+  # Ziel-File fehlt (Autostart-Ausfall llm-proxy).
+  run grep -F 'systemctl --user enable --now "${SRC}/factory.timer"' "$TASKFILE"
   [ "$status" -eq 0 ]
 }
 

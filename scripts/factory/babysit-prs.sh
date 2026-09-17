@@ -25,6 +25,10 @@ source "$HERE/lib.sh"
 source "$HERE/build-loop.sh"
 source "$HERE/classify-failure.sh"
 source "$HERE/guards.sh"
+# T900066: define REPO before sourcing the worktree guard (T000473).
+REPO="$(cd "$HERE/../.." && pwd)"
+# shellcheck source=scripts/lib/worktree-gitdir-guard.sh
+source "$REPO/scripts/lib/worktree-gitdir-guard.sh"
 
 DRY_RUN=false
 while [[ $# -gt 0 ]]; do case "$1" in
@@ -246,6 +250,7 @@ fi
 
 FIX_OK=false
 if [[ "$CLASS" == "freshness" ]]; then
+  worktree_validate_gitdir --worktree "$WT" --command-name "freshness fix" || exit $?
   if (cd "$WT" && task freshness:regenerate >/dev/null 2>&1 \
       && git commit -am "chore: refresh (ci-babysitter)" >/dev/null 2>&1 \
       && git push >/dev/null 2>&1); then
@@ -263,6 +268,7 @@ else
   if (cd "$WT" && "${CLAUDE_BIN}" -p "$FIX_PROMPT" \
         --allowedTools "Bash(task test:changed),Bash(task freshness:check),Bash(task freshness:regenerate),Bash(git add *),Bash(git commit *),Bash(git diff *),Bash(git status),Edit,Read" \
         --permission-mode acceptEdits >/dev/null 2>&1); then
+    worktree_validate_gitdir --worktree "$WT" --command-name "agent fix push" || exit $?
     if (cd "$WT" && git push >/dev/null 2>&1); then
       FIX_OK=true
     fi

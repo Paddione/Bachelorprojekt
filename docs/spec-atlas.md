@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 126 · Requirements: 2313 · Scenarios: 5147
+Specs: 126 · Requirements: 2315 · Scenarios: 5153
 
 ## factory-pipeline
 
@@ -53,18 +53,15 @@ In-flight:
   - Half-archive detection does not spawn a process per archive entry | T013673 | active | ADDED
 
 ### software-factory
-Reqs: 207 · Scenarios: 634 · Lines: 5722
+Reqs: 209 · Scenarios: 640 · Lines: 5785
 Paths: scripts/factory
 Last touches:
+  - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | 2026-09-17 | MODIFIED
+  - REQ-SF-EXECUTOR-003 — FACTORY_MODE local|api|mixed | T900210 | 2026-09-17 | ADDED
+  - REQ-SF-EXECUTOR-004 — Muse Spark 1.3 planning with Go fallback | T900210 | 2026-09-17 | ADDED
   - SF-TEST fixtures are cleaned up in teardown regardless of test outcome | T900057 | 2026-09-11 | MODIFIED
   - Post-merge closure verifies ticket identity via pre-merge anchors (Identity-Guard) | T015670 | 2026-08-24 | ADDED
-  - Identity-Guard decision is fail-closed and precedes the closure write | T015670 | 2026-08-24 | ADDED
-  - Factory Dispatcher Runs In-Cluster | T016422 | 2026-08-24 | ADDED
-  - Dev-Stack Pods Have a Writable Temp Directory | T016422 | 2026-08-24 | ADDED
 In-flight:
-  - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | active | MODIFIED
-  - REQ-SF-EXECUTOR-003 — FACTORY_MODE local|api|mixed | T900210 | active | ADDED
-  - REQ-SF-EXECUTOR-004 — Muse Spark 1.3 planning with Go fallback | T900210 | active | ADDED
   - Bonsai Provider Registration for Implement and Review | T900208 | active | MODIFIED
   - Env-driven phase model routing | T900208 | active | MODIFIED
   - A locked factory model overrides every other model choice | T900208 | active | REMOVED
@@ -509,13 +506,11 @@ Last touches:
 ### dsh-harness-integration
 Reqs: 6 · Scenarios: 15 · Lines: 166
 Last touches:
+  - dsh is a selectable factory executor | T900210 | 2026-09-17 | MODIFIED
   - the repo ships a dsh bundle that mounts its own plugins | T012962 | 2026-08-20 | ADDED
   - the existing Claude hook config runs under dsh | T012962 | 2026-08-20 | ADDED
   - a native guard plugin enforces the worktree write rule | T012962 | 2026-08-20 | ADDED
-  - dsh is a selectable factory executor | T012962 | 2026-08-20 | ADDED
   - dsh sessions are visible in the existing phase-event timeline | T012962 | 2026-08-20 | ADDED
-In-flight:
-  - dsh is a selectable factory executor | T900210 | active | MODIFIED
 
 ### e2e-test-infrastructure
 Reqs: 31 · Scenarios: 57 · Lines: 788

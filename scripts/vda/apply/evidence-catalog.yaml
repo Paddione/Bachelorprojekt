@@ -1,0 +1,112 @@
+# Kuratierter Katalog von Plattform-Bausteinen für die Dossier-Personalisierung.
+# Jede Entry verknüpft einen Baustein mit Stichworten, die in Stellenausschreibungen
+# typischerweise vorkommen. Der Renderer wählt daraus die relevantesten Einträge.
+#
+# Felder:
+#   id       — eindeutiger Schlüssel (snake_case)
+#   label    — menschenlesbarer Name
+#   keywords — Stichworte für das Matching (case-insensitive)
+#   summary  — kurze Beschreibung des Bausteins
+#   default  — wenn true: wird bei keinem Keyword-Treffer als Fallback verwendet
+catalog:
+  - id: fleet-k3s
+    label: "Fleet (k3s)"
+    default: true
+    keywords:
+      - kubernetes
+      - k3s
+      - container
+      - orchestration
+      - cluster
+      - node
+      - helm
+    summary: "k3s-basierte Fleet-Architektur mit Kustomize-Overlays, FluxCD-OCI-Delivery und Multi-Brand-Namespace-Tenancy"
+
+  - id: dev-mesh
+    label: "Dev-Mesh"
+    keywords:
+      - development
+      - devops
+      - mesh
+      - service
+      - microservice
+      - repository
+      - workspace
+    summary: "Entwickler-Mesh mit isolierten Worktrees, GitOps-Driven CI/CD und automatischer Ticket-Zuordnung"
+
+  - id: freetoken-moe
+    label: "FreeToken MoE"
+    keywords:
+      - ai
+      - llm
+      - model
+      - serving
+      - gpu
+      - inference
+      - moe
+      - model-as-a-service
+    summary: "LLM-Serving-Stack mit FreeToken-basierter Zuteilung, KV-Cache-Optimierung und MoE-Modellen (40% resident)"
+
+  - id: software-factory
+    label: "Software Factory"
+    keywords:
+      - ci
+      - cd
+      - pipeline
+      - automation
+      - factory
+      - ticket
+      - sdlc
+      - workflow
+      - conventional-commit
+    summary: "Ticket-getriebene SDLC-Pipeline mit OpenSpec-Changes, BATS-Gates und Factory-Orchestrierung"
+
+  - id: bats-quality-gates
+    label: "BATS Quality Gates"
+    keywords:
+      - testing
+      - test
+      - quality
+      - gate
+      - verification
+      - bats
+      - pre-commit
+      - integration-test
+      - unit-test
+    summary: "Multi-Level-Quality-Gates: BATS-Spec-Tests, freshness:check, workspace:validate, commitlint-Scope-Gate"
+
+  - id: typst-renderer
+    label: "Typst Renderer"
+    keywords:
+      - typst
+      - pdf
+      - render
+      - typesetting
+      - template
+      - document
+    summary: "Headless-Typst-Kompilierungspipeline für personalisierte Lebensläufe und Anschreiben mit Theme-System"
+
+  - id: fluxcd-gitops
+    label: "FluxCD GitOps"
+    keywords:
+      - fluxcd
+      - flux
+      - gitops
+      - oci
+      - artifact
+      - reconciliation
+      - kustomization
+      - helmrelease
+    summary: "FluxCD-Operator mit OCI-Artefakt-Lieferung, Image-Automation und multi-Cluster-Management"
+
+  - id: postgres-appdb
+    label: "PostgreSQL Application DB"
+    keywords:
+      - database
+      - postgres
+      - psql
+      - schema
+      - migration
+      - jsonb
+      - relational
+    summary: "PostgreSQL-Datenbank mit application-pipeline-Schema (jobs, dossiers, timeline) und psql-Helper-Funktionen"

@@ -102,5 +102,5 @@ NODE
   kill "$auth_mcp_pid" "$auth_pid" 2>/dev/null || true
   rm -f "$port_file"
   [ "$status" -eq 0 ]
-  [[ "$output" == *'dimensions\\":2'* ]] || { echo "Embedding kam nicht mit internem Bearer durch: $output"; false; }
+  [[ "$output" == *'dimensions\":2'* ]] || { echo "Embedding kam nicht mit internem Bearer durch: $output"; false; }
 }

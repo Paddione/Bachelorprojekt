@@ -79,7 +79,7 @@ tasks:
         ln -sf "${SRC}/factory.service" "${UNIT_DIR}/factory.service"
         ln -sf "${SRC}/factory.timer"   "${UNIT_DIR}/factory.timer"
         systemctl --user daemon-reload
-        systemctl --user enable --now factory.timer
+        systemctl --user enable --now "${SRC}/factory.timer"
         echo "Software Factory autopilot installed. Next tick:"
         systemctl --user list-timers factory.timer --no-pager
 

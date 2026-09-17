@@ -108,7 +108,7 @@ tasks:
         ln -sf "$PWD/scripts/sdlc/sdlc-backup.service" "$UNIT_DIR/sdlc-backup.service"
         ln -sf "$PWD/scripts/sdlc/sdlc-backup.timer"   "$UNIT_DIR/sdlc-backup.timer"
         systemctl --user daemon-reload
-        systemctl --user enable --now sdlc-backup.timer
+        systemctl --user enable --now "$PWD/scripts/sdlc/sdlc-backup.timer"
         systemctl --user list-timers sdlc-backup.timer --no-pager
 
   sdlc:smoke:

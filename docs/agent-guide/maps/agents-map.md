@@ -20,7 +20,7 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 
 | Agent | Modus | Modell | Schreibfähig | Hinweis |
 | --- | --- | --- | --- | --- |
-| big-pickle | primary | opencode-zen/big-pickle | ja | PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + 2-rail deepseek-*). |
+| big-pickle | primary | opencode-zen/big-pickle | ja | PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + planner-muse + 2-rail deepseek-*). |
 | deepseek-flash | all | opencode-go/deepseek-v4-flash | ja | DeepSeek-V4 Flash (1M ctx, max reasoning effort). Up to 3 parallel for independent subtasks; tab-selectable + task-dispatchable [T002632] |
 | deepseek-flash-direct | all | deepseek/deepseek-v4-flash | ja | Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633] |
 | deepseek-helper | subagent | deepseek/deepseek-v4-flash | ja | Escalation: DeepSeek-V4 Flash (1M ctx) via direct DeepSeek API [T002632] |

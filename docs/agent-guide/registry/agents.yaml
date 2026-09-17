@@ -64,7 +64,7 @@ runtimes:
     mode: primary
     model: opencode-zen/big-pickle
     write_capable: true
-    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + 2-rail deepseek-*)."
+    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + planner-muse + 2-rail deepseek-*)."
   ox-alpha-free:
     mode: primary
     model: opencode-zen/laguna-s-2.1-free

@@ -3,11 +3,13 @@
 ### Requirement: REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor
 
 `dispatcher-bridge.sh` SHALL pro Ticket-Launch anhand der Env-Variable
-`FACTORY_EXECUTOR` (`opencode` = Default, `claude`) den Executor wählen. Der
+`FACTORY_EXECUTOR` (`opencode` = Default, `claude`, `dsh` = Passthrough an
+dsh-harness-integration) den Executor wählen. Der
 `opencode`-Zweig SHALL `scripts/factory/opencode-exec.sh` im vorbereiteten
 Launch-Worktree aufrufen; der `claude`-Zweig SHALL byte-identisch zum
-pre-T002128-Verhalten bleiben. Ein unbekannter Wert SHALL auf `claude`
-zurückfallen (Warnung). Der `dsh`-Zweig (dsh-harness-integration) SHALL
+pre-T002128-Verhalten bleiben. Ein unbekannter Wert SHALL auf `opencode`
+zurückfallen (Warnung, fail-closed auf den neuen Default statt still zurück
+auf den Legacy-Executor). Der `dsh`-Zweig (dsh-harness-integration) SHALL
 unverändert bleiben.
 
 #### Scenario: Opencode executor is used by default
@@ -22,11 +24,11 @@ unverändert bleiben.
 - **WHEN** `dispatcher-bridge.sh` launches a ticket
 - **THEN** the existing `claude -p` spawn (flags unchanged) is used
 
-#### Scenario: Unknown executor still falls back to claude
+#### Scenario: Unknown executor falls back to opencode (fail-closed)
 
 - **GIVEN** `FACTORY_EXECUTOR=nonsense` in the factory environment
 - **WHEN** the executor branch of `dispatcher-bridge.sh` is evaluated
-- **THEN** a warning names the unknown value and the `claude` branch is used
+- **THEN** a warning names the unknown value and the `opencode` branch is used
 
 ## ADDED Requirements
 

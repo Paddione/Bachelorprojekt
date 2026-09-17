@@ -13,7 +13,7 @@ pro Tick wählbar über `FACTORY_MODE=local|api|mixed`.
 ## What
 
 - `FACTORY_EXECUTOR`-Default `claude` → `opencode` (unbekannter Wert fällt
-  weiter auf `claude` zurück; `dsh`-Zweig bleibt).
+  fail-closed auf `opencode` zurück, Warnung; `dsh`-Zweig bleibt).
 - Neues `FACTORY_MODE=local|api|mixed` (Default `mixed`) für
   Eskalations-Verhalten (lokal-only vs. früh auf Muse Spark vs. gemischt).
 - Orchestrator-Primary auf `opencode-zen/muse-spark-1.3-contributor-free`;

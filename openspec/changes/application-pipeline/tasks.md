@@ -23,15 +23,20 @@ und Brett-Cockpit-Integration (Requirements 3-5) sind spätere Phasen mit eigene
 
 ```
 components/website/src/db/migrations/20260917_application_pipeline_schema.sql   (neu)
+scripts/lib/application-pipeline-db.sh                                          (neu)
 scripts/vda/apply/ingest.sh                                                     (neu)
+scripts/vda/apply/import-bootstrap.sh                                           (neu)
 tests/spec/application-pipeline/schema.bats                                     (neu)
 tests/spec/application-pipeline/ingest-cli.bats                                 (neu)
+tests/spec/application-pipeline/import-bootstrap.bats                          (neu)
+tests/fixtures/application-pipeline/bootstrap/Anschreiben_TestCo_Test-Rolle.pdf  (neu, leere Fixture)
 ```
 
-Budget: alle vier Dateien sind neu und nicht gebaselined. `.sh`-Limit laut
-`docs/code-quality/gates.yaml` `s1.limits` ist 800 Zeilen — `ingest.sh` bleibt mit dem unten
-skizzierten Umfang deutlich darunter (~120 Zeilen geschätzt). `.sql` ist in `s1.limits` nicht
-gelistet (kein Gate). `.bats`-Dateien sind ebenfalls nicht limitiert.
+Budget: alle Dateien sind neu und nicht gebaselined. `.sh`-Limit laut
+`docs/code-quality/gates.yaml` `s1.limits` ist 800 Zeilen — `ingest.sh`, `import-bootstrap.sh`
+und die gemeinsame Lib bleiben mit dem unten skizzierten Umfang deutlich darunter (je ~80-120
+Zeilen geschätzt). `.sql` ist in `s1.limits` nicht gelistet (kein Gate). `.bats`-Dateien sind
+ebenfalls nicht limitiert.
 
 ## Task 1: Schema-Migration `applications.*` (RED → GREEN)
 
@@ -107,16 +112,76 @@ Die Test-Datei deckt zwei Szenarien aus der Spec ab:
 
 **GREEN — Fix-Step:**
 
+Lege zuerst `scripts/lib/application-pipeline-db.sh` an mit einer Funktion
+`app_pipeline_upsert_job <company> <role> <source_url> <raw_text> <requirements> <status>`, die
+`INSERT ... ON CONFLICT (company, role_title) DO NOTHING RETURNING id` ausführt und bei leerem
+Ergebnis `"DUPLICATE"` auf stdout zurückgibt statt eines rohen SQL-Fehlers — Task 2 (Ingest) UND
+Task 3 (Bootstrap-Import) rufen dieselbe Funktion auf, damit die Dedup-Logik nicht doppelt
+gepflegt wird.
+
 Erstelle `scripts/vda/apply/ingest.sh` (Vorbild für psql-Helper-Aufruf:
 [mcp-tool-guide](.claude/skills/references/mcp-tool-guide.md) §psql-Helper). Parst `--file <path>`,
 extrahiert Company/Role/Requirements aus dem Text (einfache Heuristik: erste Zeile = Role @ Company,
-Rest = raw_text/requirements), führt `INSERT ... ON CONFLICT (company, role_title) DO NOTHING
-RETURNING id` aus und meldet bei fehlendem `RETURNING`-Ergebnis explizit "Duplicate: <company>/<role>
-already ingested" auf stderr statt eines rohen SQL-Fehlers.
+Rest = raw_text/requirements), ruft `app_pipeline_upsert_job` auf und meldet bei `"DUPLICATE"`
+explizit "Duplicate: <company>/<role> already ingested" auf stderr.
 
 Run des BATS-Tests aus dem RED-Step muss jetzt GREEN sein.
 
-## Task 3: Finale Verifikation
+## Task 3: Bootstrap-Import bestehender Bewerbungen (RED → GREEN)
+
+Der Betreiber hat vor diesem Change bereits 5 reale Bewerbungen außerhalb der Plattform
+vorbereitet und teils schon versendet (lokaler Ordner auf dem Arbeitsplatzrechner, nicht Teil
+dieses Repos — Dateien: `Anschreiben_<Firma>_<Rolle>.pdf` + zugehörige Stellenausschreibungs-PDFs
++ `Bewerbungs-Mailtexte.md` mit Status/Datum je Bewerbung). Damit das System ab dem ersten Release
+funktional nutzbar ist (nicht mit einer leeren Tabelle startet), braucht es einen einmaligen
+Import-Pfad für genau diesen Altbestand.
+
+**RED — Failing-Test-Step (erwartet FAIL):**
+
+```bash
+tests/unit/lib/bats-core/bin/bats tests/spec/application-pipeline/import-bootstrap.bats
+# expected: FAIL (scripts/vda/apply/import-bootstrap.sh existiert noch nicht)
+```
+
+Test-Fixture `tests/fixtures/application-pipeline/bootstrap/Anschreiben_TestCo_Test-Rolle.pdf`
+(leere Platzhalter-Datei — der Import liest nur den Dateinamen, nicht den PDF-Inhalt; **keine
+echten/personenbezogenen Bewerbungsunterlagen im Repo**). Szenarien:
+- `import-bootstrap.sh --dir <fixture-dir> --status applied --applied-at 2026-09-15` legt für
+  `Anschreiben_TestCo_Test-Rolle.pdf` einen Job (`company=TestCo`, `role_title=Test-Rolle`,
+  `status=applied`), einen Dossier-Eintrag (`kind=cover_letter`, `artifact_path=<absoluter
+  Fixture-Pfad>`) und einen Timeline-Eintrag (`event_type=applied`, `created_at=2026-09-15`) an.
+- Erneuter Lauf über dasselbe Verzeichnis legt **keinen** zweiten Job an (nutzt
+  `app_pipeline_upsert_job` aus Task 2 — "DUPLICATE" wird als Info geloggt, kein Fehler).
+
+**GREEN — Fix-Step:**
+
+Erstelle `scripts/vda/apply/import-bootstrap.sh`. Parameter: `--dir <path>` (Pflicht, generisch —
+**kein hartkodierter Pfad im Skript**), `--status <status>` (Default `found`), `--applied-at
+<datum>` (optional, erzeugt zusätzlich einen Timeline-Event). Ablauf:
+1. `find "$DIR" -maxdepth 1 -iname 'Anschreiben_*.pdf'` — Dateiname-Pattern
+   `Anschreiben_<Firma>_<Rolle>.pdf` (Unterstriche trennen Firma/Rolle, Bindestriche innerhalb
+   eines Feldes bleiben erhalten).
+2. Je Treffer: `company`/`role` aus dem Dateinamen extrahieren, `app_pipeline_upsert_job` mit
+   `raw_text="(Bootstrap-Import, Details siehe lokale Bewerbungsunterlagen)"` aufrufen.
+3. Bei neuem Job (kein `"DUPLICATE"`): Dossier-Zeile mit `artifact_path=$(realpath "$file")`
+   und `kind='cover_letter'` einfügen; ist `--applied-at` gesetzt, zusätzlich einen
+   `applications.timeline`-Eintrag `event_type='applied'` mit diesem Datum.
+
+Run des BATS-Tests aus dem RED-Step muss jetzt GREEN sein.
+
+**Manueller Einmal-Lauf durch den Betreiber (kein CI-Schritt, kein Repo-Artefakt):** Nach GREEN
+und Merge führt der Betreiber den Import einmalig gegen den echten lokalen Ordner aus — der Pfad
+gehört **nicht** ins Repo, sondern in eine lokale Env-Variable:
+```bash
+export APPLICATION_BOOTSTRAP_DIR="<lokaler Pfad zum Bewerbungsordner>"
+scripts/vda/apply/import-bootstrap.sh --dir "$APPLICATION_BOOTSTRAP_DIR" --status applied --applied-at 2026-09-15
+```
+Die 5 laut `Bewerbungs-Mailtexte.md` bereits verschickten Bewerbungen (Wolkenhof, ANG, evasys ×2,
+ITK Harburg) landen damit als `status=applied` in `applications.jobs` statt als `found` — der
+Cockpit-Funnel (Requirement 5, spätere Phase) zeigt danach den echten Stand statt einer leeren
+Tabelle.
+
+## Task 4: Finale Verifikation
 
 ```bash
 task test:changed

@@ -2454,6 +2454,12 @@
     "kind": "shell"
   },
   {
+    "id": "application-pipeline/evidence-catalog",
+    "file": "tests/spec/application-pipeline/evidence-catalog.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "application-pipeline/import-bootstrap",
     "file": "tests/spec/application-pipeline/import-bootstrap.bats",
     "category": "application-pipeline",
@@ -2466,8 +2472,20 @@
     "kind": "shell"
   },
   {
+    "id": "application-pipeline/render-cli",
+    "file": "tests/spec/application-pipeline/render-cli.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "application-pipeline/schema",
     "file": "tests/spec/application-pipeline/schema.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "application-pipeline/theme-validation",
+    "file": "tests/spec/application-pipeline/theme-validation.bats",
     "category": "application-pipeline",
     "kind": "shell"
   },

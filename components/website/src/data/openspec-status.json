@@ -4841,6 +4841,12 @@
       "status": "archived"
     }
   ],
+  "T900223": [
+    {
+      "slug": "mcp-token-auto-sync",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

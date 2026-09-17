@@ -693,6 +693,8 @@ In-flight:
   - REQ-MCP-HTTP-003 Bearer authentication for protected local MCP endpoints | T900052 | active | ADDED
   - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | active | ADDED
   - REQ-MCP-HTTP-005 MCP authentication secrets stay outside tracked artifacts | T900052 | active | ADDED
+  - Watchdog detects MCP token drift without leaking secrets | T900223 | active | ADDED
+  - Watchdog heals token drift and notifies | T900223 | active | ADDED
   - Custom MCP-Server-Implementierungen sind Node.js | ? | active | MODIFIED
   - Windows hosts have a documented start mechanism for the local MCP servers | T900054 | active | MODIFIED
 

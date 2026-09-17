@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "slug": "mcp-token-auto-sync",
+    "ticket_id": "T900223",
+    "generated_from": "main@ee87a6397",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/mcp-gateway/token-drift-heal.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-gateway/watchdog-check.sh",
+      "language": "bash",
+      "loc": 82,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 718
+    },
+    {
+      "path": "tests/spec/mcp-gateway/token-drift-auto-sync.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-sync.sh",
+      "language": "bash",
+      "loc": 644,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 156
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/mcp-sync.sh:58:harden_secret_file() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "58:harden_secret_file() {(...)",
+      "type_text": "58:harden_secret_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:82:opencode_source() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "82:opencode_source() {(...)",
+      "type_text": "82:opencode_source() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:90:render_claude_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "90:render_claude_json() {(...)",
+      "type_text": "90:render_claude_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:126:render_agy_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "126:render_agy_json() {(...)",
+      "type_text": "126:render_agy_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:220:render_llamacpp_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "220:render_llamacpp_json() {(...)",
+      "type_text": "220:render_llamacpp_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:254:render_opencode_jsonc() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "254:render_opencode_jsonc() {(...)",
+      "type_text": "254:render_opencode_jsonc() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:332:render_qwen_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "332:render_qwen_json() {(...)",
+      "type_text": "332:render_qwen_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:423:render_claude_user_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "423:render_claude_user_json() {(...)",
+      "type_text": "423:render_claude_user_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:489:merge_claude_user_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "489:merge_claude_user_json() {(...)",
+      "type_text": "489:merge_claude_user_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:504:check_claude_user_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "504:check_claude_user_json() {(...)",
+      "type_text": "504:check_claude_user_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:526:diff_or_drift() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "526:diff_or_drift() {(...)",
+      "type_text": "526:diff_or_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:542:cmd_render() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "542:cmd_render() {(...)",
+      "type_text": "542:cmd_render() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:598:cmd_check() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "598:cmd_check() {(...)",
+      "type_text": "598:cmd_check() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.354.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.354.0...website-v1.354.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **skills:** repair .claude/skills symlink targets [T900236] ([#5758](https://github.com/Paddione/Bachelorprojekt/issues/5758)) ([ab9646d](https://github.com/Paddione/Bachelorprojekt/commit/ab9646dca30ff8a1a5fa7433ba1ff003b653ee6e))
+
 ## [1.354.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.353.1...website-v1.354.0) (2026-09-17)
 
 

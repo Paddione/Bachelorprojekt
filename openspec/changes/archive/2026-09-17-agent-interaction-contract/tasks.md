@@ -2,7 +2,7 @@
 title: "agent-interaction-contract — Implementation Plan"
 ticket_id: T900235
 domains: [agent-skills, plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

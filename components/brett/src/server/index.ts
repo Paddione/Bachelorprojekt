@@ -26,6 +26,7 @@ import { authRouter } from './routes/auth';
 import { adminRouter } from './routes/admin';
 import { presetsRouter } from './routes/presets';
 import { boardTemplatesRouter } from './routes/board-templates';
+import { applicationsRouter } from './routes/applications';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
@@ -86,6 +87,7 @@ app.use(adminRouter);
 app.use(snapshotsRouter);
 app.use(presetsRouter);
 app.use(boardTemplatesRouter);
+app.use(applicationsRouter);
 
 // T000608: View-only-Share-Link-Routen (/share/:token + Token-CRUD).
 attachShareRoutes(app, staticDir);

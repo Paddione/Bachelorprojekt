@@ -20,6 +20,9 @@
 #     FACTORY_DRY_RUN               true|false           (default: true — fail-safe)
 #     FACTORY_GITCRYPT_KEY          path to bp-secrets.key for `task secrets:unlock`
 #     FACTORY_CLAUDE_BIN            claude binary        (default: claude on PATH)
+#     FACTORY_EXECUTOR              opencode|claude|dsh  (default: opencode)
+#     FACTORY_MODE                  local|api|mixed      (default: mixed)
+#     OPENCODE_BIN                  opencode binary      (default: PATH, then $HOME/.npm-global/bin/opencode)
 #     FACTORY_DISPATCHER_BRIDGE     dispatcher-bridge.sh path (default: <repo>/scripts/factory/dispatcher-bridge.sh)
 #     FACTORY_TICK_LOCK             single-flight lock   (default: /tmp/factory-tick.lock)
 #     FACTORY_ENV_FILE              prod config to source(default: ~/.config/factory/autopilot.env)
@@ -35,7 +38,7 @@ set -euo pipefail
 #   anything else → error on stderr, exit 2
 # Pre-fix, a --help call was silently ignored and ran a real dry-run tick. [T002662]
 _usage() {
-  sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,29p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 case "${1:-}" in
   '' ) : ;;

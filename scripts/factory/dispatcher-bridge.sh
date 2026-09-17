@@ -40,6 +40,41 @@ if [[ "$launch_count" -eq 0 ]]; then
   exit 0
 fi
 
+# resolve_executor (T900210, STRUCT1/STRUCT3): pure routing function, no ENV reads.
+#   resolve_executor <mode> <executor>  ->  echoes one of claude|opencode|dsh.
+#   local            -> opencode (no cloud escalation; dsh harness preserved).
+#   api              -> the passed executor (claude path kept for API operation).
+#   mixed (default)  -> opencode, unless explicitly claude.
+#   unknown/empty mode -> warning on stderr + mixed behavior (F2).
+#   unknown/empty executor -> opencode (fail-closed, F1; the caller warns).
+resolve_executor() {
+  local mode="${1:-mixed}" executor="${2:-opencode}"
+  case "$mode" in
+    local|api|mixed) ;;
+    *) echo "dispatcher-bridge: unknown FACTORY_MODE='$mode' — falling back to mixed" >&2
+       mode=mixed ;;
+  esac
+  if [[ "$executor" == "dsh" ]]; then
+    echo "dsh"
+    return 0
+  fi
+  case "$mode" in
+    local) echo "opencode" ;;
+    api)
+      case "$executor" in
+        claude|opencode) echo "$executor" ;;
+        *) echo "opencode" ;;
+      esac
+      ;;
+    mixed|*)
+      case "$executor" in
+        claude) echo "claude" ;;
+        *) echo "opencode" ;;
+      esac
+      ;;
+  esac
+}
+
 # Budget check + pipeline launch for each feature.
 # Iterate compact-JSON rows safely: the previous `for row in $(...)` form split
 # on IFS whitespace, so any title with spaces (e.g. T001945's
@@ -162,21 +197,32 @@ the identical call — stop and report the error verbatim instead of looping."
     LAUNCH_DIR="$REPO"
   fi
 
-  # Executor branch (T002128, D3): opt-in opencode orchestrator vs. default claude -p.
-  # Unknown value warns and falls back to claude (safe default). Both branches keep the
-  # same [pipeline:${ext_id}] sed prefix and the trailing & so the outer `wait` (below)
-  # still joins them. The claude branch is byte-identical to the pre-T002128 spawn.
-  executor="${FACTORY_EXECUTOR:-claude}"
+  # Executor branch (T002128, D3; T900210 default-flip): default opencode
+  # orchestrator vs. explicit claude -p. The claude branch is byte-identical to
+  # the pre-T002128 spawn and stays for explicit API operation; dsh stays for
+  # the dsh-harness. Unknown executor warns and falls back to opencode
+  # (fail-closed, F1). FACTORY_MODE (local|api|mixed, default mixed) routes via
+  # resolve_executor() above; the resolved value drives the single spawn site
+  # per executor below (STRUCT2). Both branches keep the [pipeline:${ext_id}]
+  # sed prefix and the trailing & so the outer `wait` (below) still joins them.
+  executor="${FACTORY_EXECUTOR:-opencode}"
   case "$executor" in
     claude|opencode|dsh) ;;
-    *) echo "dispatcher-bridge: unknown FACTORY_EXECUTOR='$executor' — falling back to claude" >&2
-       executor=claude ;;
+    *) echo "dispatcher-bridge: unknown FACTORY_EXECUTOR='$executor' — falling back to opencode" >&2
+       executor=opencode ;;
   esac
+  FACTORY_MODE="${FACTORY_MODE:-mixed}"
+  case "$FACTORY_MODE" in
+    local|api|mixed) ;;
+    *) echo "dispatcher-bridge: unknown FACTORY_MODE='$FACTORY_MODE' — falling back to mixed" >&2
+       FACTORY_MODE=mixed ;;
+  esac
+  resolved_executor="$(resolve_executor "$FACTORY_MODE" "$executor")"
 
-  if [[ "$executor" == "opencode" ]]; then
+  if [[ "$resolved_executor" == "opencode" ]]; then
     ( bash "$HERE/opencode-exec.sh" "$ext_id" "$LAUNCH_DIR" "$branch" "$plan_path" 2>&1 ) \
       | sed "s/^/[pipeline:${ext_id}] /" >&2 &
-  elif [[ "$executor" == "dsh" ]]; then
+  elif [[ "$resolved_executor" == "dsh" ]]; then
     ( bash "$HERE/dsh-exec.sh" "$ext_id" "$LAUNCH_DIR" "$branch" "$plan_path" 2>&1 ) \
       | sed "s/^/[pipeline:${ext_id}] /" >&2 &
   else

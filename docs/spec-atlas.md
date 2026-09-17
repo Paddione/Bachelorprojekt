@@ -65,6 +65,9 @@ In-flight:
   - Bonsai Provider Registration for Implement and Review | T900208 | active | MODIFIED
   - Env-driven phase model routing | T900208 | active | MODIFIED
   - A locked factory model overrides every other model choice | T900208 | active | REMOVED
+  - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | active | MODIFIED
+  - REQ-SF-EXECUTOR-003 — FACTORY_MODE local|api|mixed | T900210 | active | ADDED
+  - REQ-SF-EXECUTOR-004 — Muse Spark 1.3 planning with Go fallback | T900210 | active | ADDED
   - Factory Dispatcher Runs In-Cluster | T900110 | active | MODIFIED
   - Dispatcher-Tick-Execution | T900054 | active | MODIFIED
   - Force-Tick Trigger | T900054 | active | MODIFIED

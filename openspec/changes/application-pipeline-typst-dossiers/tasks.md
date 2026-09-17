@@ -2,7 +2,7 @@
 title: "application-pipeline-typst-dossiers — Implementation Plan (Phase 3: Personalisierung & Design)"
 ticket_id: T900230
 domains: [scripts, config]
-status: active
+status: done
 file_locks: []
 shared_changes: false
 batch_id: null
@@ -50,7 +50,7 @@ Budget: alle Dateien neu, nicht gebaselined. `.sh`-Limit 800 Zeilen (`s1.limits`
 neuen Lib-/CLI-Dateien bleibt mit dem unten skizzierten Umfang deutlich darunter (~60-100 Zeilen
 geschätzt). `.typ` (Typst) und `.yaml` sind in `s1.limits` nicht gelistet (kein Gate).
 
-## Task 1: Evidenz-Katalog & Auswahl-Logik (RED → GREEN)
+## Task 1: Evidenz-Katalog & Auswahl-Logik (RED → GREEN) ✅ DONE
 
 **RED — Failing-Test-Step (erwartet FAIL):**
 
@@ -79,7 +79,7 @@ Keywords sortiert).
 
 Run des BATS-Tests aus dem RED-Step muss jetzt GREEN sein.
 
-## Task 2: Theme-Registry & Validierung (RED → GREEN)
+## Task 2: Theme-Registry & Validierung (RED → GREEN) ✅ DONE
 
 **RED — Failing-Test-Step (erwartet FAIL):**
 
@@ -108,7 +108,7 @@ Fehlerhinweis aus.
 
 Run des BATS-Tests aus dem RED-Step muss jetzt GREEN sein.
 
-## Task 3: Render-Pipeline `scripts/vda/apply/render.sh` (RED → GREEN)
+## Task 3: Render-Pipeline `scripts/vda/apply/render.sh` (RED → GREEN) ✅ DONE
 
 **RED — Failing-Test-Step (erwartet FAIL):**
 
@@ -138,7 +138,7 @@ registriert die Ergebnis-PDFs via `app_pipeline_upsert_dossier` (neue Hilfsfunkt
 
 Run des BATS-Tests aus dem RED-Step muss jetzt GREEN sein (inkl. Skip bei fehlendem `typst`).
 
-## Task 4: Finale Verifikation
+## Task 4: Finale Verifikation ✅ DONE
 
 ```bash
 task test:changed

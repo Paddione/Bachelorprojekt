@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.354.1...website-v1.355.0) (2026-09-17)
+
+
+### Features
+
+* **scripts:** automated profile matching & scoring [T900234] ([#5755](https://github.com/Paddione/Bachelorprojekt/issues/5755)) ([119b85a](https://github.com/Paddione/Bachelorprojekt/commit/119b85ae7a317b456f31fafc3a8ee157139e6e9a))
+
 ## [1.354.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.354.0...website-v1.354.1) (2026-09-17)
 
 

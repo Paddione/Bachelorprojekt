@@ -200,13 +200,15 @@ spec:
             - name: tick
               image: alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
               imagePullPolicy: IfNotPresent
+              # /bin/sh ist busybox ash: nur POSIX-sh, keine bash-Konstrukte wie
+              # here-strings (Guard: tick-http-wakeup.bats 1.4.2b) [T900207].
               command:
                 - /bin/sh
                 - -c
                 - |
                   OUT=$(curl -sS -N --max-time 1500 -X POST http://factory-runner:8787/wakeup 2>&1)
-                  echo "$OUT"
-                  tail -n 1 <<< "$OUT" | grep -q 'WAKEUP_EXIT=0' && exit 0 || { echo "tick-failed"; exit 1; }
+                  printf '%s\n' "$OUT"
+                  printf '%s\n' "$OUT" | tail -n 1 | grep -q 'WAKEUP_EXIT=0' && exit 0 || { echo "tick-failed"; exit 1; }
               resources:
                 requests:
                   cpu: 10m

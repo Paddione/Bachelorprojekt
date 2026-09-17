@@ -129,12 +129,16 @@ Run des BATS-Tests aus dem RED-Step muss jetzt GREEN sein.
 
 ## Task 3: Bootstrap-Import bestehender Bewerbungen (RED → GREEN)
 
-Der Betreiber hat vor diesem Change bereits 5 reale Bewerbungen außerhalb der Plattform
-vorbereitet und teils schon versendet (lokaler Ordner auf dem Arbeitsplatzrechner, nicht Teil
+Der Betreiber hat vor diesem Change bereits 5 reale Bewerbungsentwürfe außerhalb der Plattform
+vorbereitet — **noch nicht versendet** (lokaler Ordner auf dem Arbeitsplatzrechner, nicht Teil
 dieses Repos — Dateien: `Anschreiben_<Firma>_<Rolle>.pdf` + zugehörige Stellenausschreibungs-PDFs
-+ `Bewerbungs-Mailtexte.md` mit Status/Datum je Bewerbung). Damit das System ab dem ersten Release
-funktional nutzbar ist (nicht mit einer leeren Tabelle startet), braucht es einen einmaligen
-Import-Pfad für genau diesen Altbestand.
++ `Bewerbungs-Mailtexte.md` mit vorläufigem Status je Bewerbung). Ziel des Bootstrap-Imports ist
+**nicht** die Migration bereits abgeschlossener Bewerbungen, sondern der Start des laufenden
+Feinschliffs auf der Plattform: die 5 Entwürfe werden als `status=drafting` importiert und sind
+danach Kandidaten für die individuelle Personalisierung/Design-Anpassung aus Requirement
+"Typst-Based Tailored Dossier Compilation" (Phase 3, eigener Plan) — bevor sie tatsächlich
+versendet werden. Damit das System ab dem ersten Release funktional nutzbar ist (nicht mit einer
+leeren Tabelle startet), braucht es trotzdem einen einmaligen Import-Pfad für diesen Altbestand.
 
 **RED — Failing-Test-Step (erwartet FAIL):**
 
@@ -146,26 +150,28 @@ tests/unit/lib/bats-core/bin/bats tests/spec/application-pipeline/import-bootstr
 Test-Fixture `tests/fixtures/application-pipeline/bootstrap/Anschreiben_TestCo_Test-Rolle.pdf`
 (leere Platzhalter-Datei — der Import liest nur den Dateinamen, nicht den PDF-Inhalt; **keine
 echten/personenbezogenen Bewerbungsunterlagen im Repo**). Szenarien:
-- `import-bootstrap.sh --dir <fixture-dir> --status applied --applied-at 2026-09-15` legt für
+- `import-bootstrap.sh --dir <fixture-dir> --status drafting` legt für
   `Anschreiben_TestCo_Test-Rolle.pdf` einen Job (`company=TestCo`, `role_title=Test-Rolle`,
-  `status=applied`), einen Dossier-Eintrag (`kind=cover_letter`, `artifact_path=<absoluter
-  Fixture-Pfad>`) und einen Timeline-Eintrag (`event_type=applied`, `created_at=2026-09-15`) an.
+  `status=drafting`), einen Dossier-Eintrag (`kind=cover_letter`, `artifact_path=<absoluter
+  Fixture-Pfad>`) und einen Timeline-Eintrag (`event_type=drafting`, `created_at=now()`) an.
 - Erneuter Lauf über dasselbe Verzeichnis legt **keinen** zweiten Job an (nutzt
   `app_pipeline_upsert_job` aus Task 2 — "DUPLICATE" wird als Info geloggt, kein Fehler).
 
 **GREEN — Fix-Step:**
 
 Erstelle `scripts/vda/apply/import-bootstrap.sh`. Parameter: `--dir <path>` (Pflicht, generisch —
-**kein hartkodierter Pfad im Skript**), `--status <status>` (Default `found`), `--applied-at
-<datum>` (optional, erzeugt zusätzlich einen Timeline-Event). Ablauf:
+**kein hartkodierter Pfad im Skript**), `--status <status>` (Default `found`; für den realen
+Altbestand `drafting`, da noch nicht versendet), `--event-at <datum>` (optional, Default `now()`;
+generisch für jeden Statuswechsel, nicht auf "applied" festgelegt). Ablauf:
 1. `find "$DIR" -maxdepth 1 -iname 'Anschreiben_*.pdf'` — Dateiname-Pattern
    `Anschreiben_<Firma>_<Rolle>.pdf` (Unterstriche trennen Firma/Rolle, Bindestriche innerhalb
    eines Feldes bleiben erhalten).
 2. Je Treffer: `company`/`role` aus dem Dateinamen extrahieren, `app_pipeline_upsert_job` mit
-   `raw_text="(Bootstrap-Import, Details siehe lokale Bewerbungsunterlagen)"` aufrufen.
+   `raw_text="(Bootstrap-Import, Details siehe lokale Bewerbungsunterlagen)"` und dem übergebenen
+   `--status` aufrufen.
 3. Bei neuem Job (kein `"DUPLICATE"`): Dossier-Zeile mit `artifact_path=$(realpath "$file")`
-   und `kind='cover_letter'` einfügen; ist `--applied-at` gesetzt, zusätzlich einen
-   `applications.timeline`-Eintrag `event_type='applied'` mit diesem Datum.
+   und `kind='cover_letter'` einfügen, zusätzlich einen `applications.timeline`-Eintrag mit
+   `event_type=<--status-Wert>` und `created_at=<--event-at oder now()>`.
 
 Run des BATS-Tests aus dem RED-Step muss jetzt GREEN sein.
 
@@ -174,12 +180,13 @@ und Merge führt der Betreiber den Import einmalig gegen den echten lokalen Ordn
 gehört **nicht** ins Repo, sondern in eine lokale Env-Variable:
 ```bash
 export APPLICATION_BOOTSTRAP_DIR="<lokaler Pfad zum Bewerbungsordner>"
-scripts/vda/apply/import-bootstrap.sh --dir "$APPLICATION_BOOTSTRAP_DIR" --status applied --applied-at 2026-09-15
+scripts/vda/apply/import-bootstrap.sh --dir "$APPLICATION_BOOTSTRAP_DIR" --status drafting
 ```
-Die 5 laut `Bewerbungs-Mailtexte.md` bereits verschickten Bewerbungen (Wolkenhof, ANG, evasys ×2,
-ITK Harburg) landen damit als `status=applied` in `applications.jobs` statt als `found` — der
-Cockpit-Funnel (Requirement 5, spätere Phase) zeigt danach den echten Stand statt einer leeren
-Tabelle.
+Die 5 vorbereiteten, **noch nicht versendeten** Entwürfe (Wolkenhof, ANG, evasys ×2, ITK Harburg)
+landen damit als `status=drafting` in `applications.jobs` statt als `found` — der Cockpit-Funnel
+(Requirement 5, spätere Phase) zeigt danach den echten Bearbeitungsstand, und die Dossiers stehen
+für die Personalisierungs-/Design-Phase (Requirement "Typst-Based Tailored Dossier Compilation",
+Phase 3) bereit, statt fälschlich als bereits abgeschickt zu gelten.
 
 ## Task 4: Finale Verifikation
 

@@ -8,7 +8,7 @@ griff: die Session arbeitete in diesem Fenster im Haupt-Checkout, kein Prozess
 hatte seine cwd im Worktree — der Worktree galt als prozesslos und wurde als
 Zombie eingestuft. Follow-up (b) aus T016253, Klärungsentscheid 2026-08-24.
 
-_Ticket: T016418_
+_Ticket: T900227_
 
 ## What
 

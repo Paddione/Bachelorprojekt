@@ -30,4 +30,4 @@ schlägt auch der Positiv-Anker `gptoss-context OK` fehl.
    `enabled:false`. Falls FreeToken kein geeignetes Text-Checkpoint ausliefert,
    ist der Rueckweg die Wiederherstellung der 12B-GGUF (Folgeticket).
 
-_Ticket: T004339_
+_Ticket: T014339_

@@ -12,7 +12,7 @@ ARG PNPM_VERSION=12.3.4
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      openssh-server git git-crypt bash curl ca-certificates jq less vim-tiny tmux \
+       openssh-server git git-crypt gnupg pinentry-tty bash curl ca-certificates jq less vim-tiny tmux \
       netcat-openbsd postgresql-client \
  && rm -rf /var/lib/apt/lists/*
 

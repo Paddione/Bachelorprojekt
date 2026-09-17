@@ -668,6 +668,10 @@ Last touches:
   - The k3d dev cluster is removed only after the acceptance gate | T900145 | 2026-09-16 | ADDED
   - No active reference to the k3d dev context remains | T900145 | 2026-09-16 | ADDED
 In-flight:
+  - Cluster nodes meet the Longhorn preconditions | T900115 | active | ADDED
+  - Longhorn is the default StorageClass on devmesh | T900115 | active | ADDED
+  - git-crypt unlocks via GPG users in dev-shell | T900115 | active | ADDED
+  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900115 | active | ADDED
   - devmesh hosts the CPU-bound LLM and database services | T900191 | active | ADDED
   - The GPU endpoint exposes one port per workstation GPU service | T900191 | active | ADDED
   - The devmesh backend registry contains no loopback URLs | T900191 | active | ADDED

@@ -102,6 +102,7 @@ Display, Desktop-Apps und jede andere CUDA-Arbeit laufen auf der RTX 3060 Ti
 | Windows-Grafik (DirectX) | Monitor an der 3060 Ti, `HighPerfAdapter` = 3060 Ti | Einstellungen → System → Anzeige → Grafik (`HKCU\Software\Microsoft\DirectX\UserGpuPreferences`) |
 | Windows-CUDA | Benutzervariable `CUDA_VISIBLE_DEVICES` = 3060-Ti-UUID | `[Environment]::SetEnvironmentVariable(..., 'User')` |
 | WSL-CUDA | dieselbe Maske plus `CUDA_DEVICE_ORDER=PCI_BUS_ID` | `/etc/environment`, `/etc/profile.d/cuda-visible-devices.sh`, `/etc/systemd/{system,user}.conf.d/cuda-visible-devices.conf`, `~/.config/environment.d/60-cuda-gpu.conf`, `~/.bashrc` |
+| WSL-CUDA, Prozesse direkt aus `wsl.exe` | Windows-Benutzervariable `WSLENV=CUDA_VISIBLE_DEVICES` reicht die Windows-Maske durch | `[Environment]::SetEnvironmentVariable('WSLENV', 'CUDA_VISIBLE_DEVICES', 'User')` |
 
 CUDA ignoriert die Windows-Grafikeinstellung, deshalb braucht es die
 Variable. Jeder FreeToken-Start muss die Maske für seinen eigenen Prozess auf
@@ -137,6 +138,14 @@ Auf Bus `08:00.0` (5070 Ti) darf nur der FreeToken-Python-Prozess stehen. In
 WSL muss `~/opt/llama-current/bin/llama-server --list-devices` genau
 `CUDA0: NVIDIA GeForce RTX 3060 Ti` melden. Neue Maskenwerte greifen erst in
 neu gestarteten Prozessen (Windows: nach Neuanmeldung, WSL: `wsl --shutdown`).
+
+Warum `WSLENV` nötig ist: Prozesse, die `wsl.exe` direkt startet (Claude Code
+Desktop, `wsl -e …`), laufen ohne Login. Sie lesen weder `/etc/environment`
+noch `~/.bashrc` und sehen ohne `WSLENV` beide Karten. `WSLENV` wirkt nur,
+wenn das aufrufende Windows-Programm nach dem Setzen gestartet wurde, also nach
+einer Neuanmeldung. Symptom: In einer Agent-Shell ist `$CUDA_VISIBLE_DEVICES`
+leer und `llama-server --list-devices` zeigt die 5070 Ti.
+`nvidia-smi` eignet sich nicht zur Prüfung, weil es die Maske ignoriert.
 
 ## Start / Stop (Windows-seitig, detached)
 

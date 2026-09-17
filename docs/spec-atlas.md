@@ -153,6 +153,7 @@ In-flight:
   - only surviving active loadouts are asserted as present | T004339 | active | ADDED
   - Deterministic loadouts path resolution across execution environments | T900109 | active | ADDED
   - The proxy serves remote backends only | T900191 | active | MODIFIED
+  - Health endpoint reports readiness, not liveness | T900212 | active | MODIFIED
   - Supervised service lifecycle | T900054 | active | MODIFIED
 
 ## product

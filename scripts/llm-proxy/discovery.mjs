@@ -205,8 +205,8 @@ export function aggregateModels() {
 /**
  * Bewertet, ob der Proxy BEDIENEN kann - nicht, ob er laeuft (T002336).
  *
- * Massgeblich sind die Backends mit `priority === 1`, also der lokale
- * Primaerpfad. Die naheliegende Regel "mindestens eines gesund" reicht
+ * Massgeblich sind die Backends der Primaerstufe (`priority <= 1`; seit
+ * T900189 traegt freetoken-local priority 0), also der lokale Primaerpfad. Die naheliegende Regel "mindestens eines gesund" reicht
  * nachweislich nicht: am 2026-07-27 war llamacpp-gemma (:8091) drei Stunden
  * tot, waehrend deepseek (Cloud, priority 2) durchgehend antwortete. Nach
  * jener Regel waere alles gruen gewesen, obwohl die Factory ins Leere lief.
@@ -234,8 +234,8 @@ export function evaluateReadiness(getBackends) {
     })
     .map((b) => ({ name: b.name, priority: b.priority, kind: b.kind, baseUrl: b.baseUrl }));
 
-  const primary = backends.filter((b) => b.priority === 1);
-  // Ein Prio-1-Backend, das drained, ist NICHT unhealthy — es ist intentional
+  const primary = backends.filter((b) => b.priority <= 1);
+  // Ein Primaer-Backend (priority <= 1), das drained, ist NICHT unhealthy — es ist intentional
   // zurueckgenommen. Der Proxy kann ueber Prio-2+ bedienen.
   //
   // [P1-2] primary.some statt primary.every: die Prio-1-Backends teilen sich

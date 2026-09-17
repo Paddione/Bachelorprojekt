@@ -24,7 +24,7 @@ openspec/changes/llm-proxy-readiness-prio0/specs/local-llm-proxy.md  # MODIFIED 
 
 ## Task 1: Failing test (RED) — already committed
 
-- [ ] Confirm the reproducer is red on the branch before touching code.
+- [x] Confirm the reproducer is red on the branch before touching code. (verified 2026-09-17: test 1 red, tests 2+3 green)
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/readiness-primary-tier.bats
@@ -35,15 +35,15 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/readiness-primary-t
 
 File: `scripts/llm-proxy/discovery.mjs`
 
-- [ ] In `evaluateReadiness`, change the primary filter:
+- [x] In `evaluateReadiness`, change the primary filter:
 
 ```js
   const primary = backends.filter((b) => b.priority <= 1);
 ```
 
-- [ ] Update the JSDoc above `evaluateReadiness`: replace "Massgeblich sind die Backends mit `priority === 1`" with "Massgeblich sind die Backends der Primaerstufe (`priority <= 1`; seit T900189 traegt freetoken-local priority 0)". Keep line count unchanged.
-- [ ] Update the inline comment "Ein Prio-1-Backend, das drained" to "Ein Primaer-Backend (priority <= 1), das drained".
-- [ ] Run the reproducer and the existing node suite:
+- [x] Update the JSDoc above `evaluateReadiness`: replace "Massgeblich sind die Backends mit `priority === 1`" with "Massgeblich sind die Backends der Primaerstufe (`priority <= 1`; seit T900189 traegt freetoken-local priority 0)". Keep line count unchanged.
+- [x] Update the inline comment "Ein Prio-1-Backend, das drained" to "Ein Primaer-Backend (priority <= 1), das drained".
+- [x] Run the reproducer and the existing node suite: (verified 2026-09-17: 3/3 BATS, 28/28 node green)
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/readiness-primary-tier.bats

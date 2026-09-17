@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1322,
+      "file_count": 1323,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -821,6 +821,7 @@
         "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
         "tests/spec/mcp-gateway/qwen-token-expansion.bats",
         "tests/spec/mcp-gateway/start-windows-unc.bats",
+        "tests/spec/mcp-gateway/token-drift-auto-sync.bats",
         "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
         "tests/spec/mcp-skill-integration.bats",
         "tests/spec/mcp-skill-integration/psql-fallback-ticket-ssot.bats",
@@ -4225,7 +4226,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 874,
+      "file_count": 875,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4854,6 +4855,7 @@
         "scripts/mcp-gateway/register-autostart.ps1",
         "scripts/mcp-gateway/start-mcp-unified.sh",
         "scripts/mcp-gateway/start-windows.ps1",
+        "scripts/mcp-gateway/token-drift-heal.sh",
         "scripts/mcp-gateway/watchdog-check.sh",
         "scripts/mcp-sync.sh",
         "scripts/mcp-task-runner/install.sh",

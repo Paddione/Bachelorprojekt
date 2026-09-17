@@ -4698,6 +4698,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/token-drift-auto-sync",
+    "file": "tests/spec/mcp-gateway/token-drift-auto-sync.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/watchdog-tunnel-liveness",
     "file": "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
     "category": "mcp-gateway",

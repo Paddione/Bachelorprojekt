@@ -34,6 +34,15 @@ if ! "$PROBE" --port 13001 --timeout 5 >/dev/null 2>&1; then
   devmesh_failed=1
 fi
 
+# T900223: Token-Drift-Heal im selben Tick (Probes pruefen nur Erreichbarkeit,
+# keine Tokens). Guard in if-Form, damit ein Heal-Fehlschlag den Probe-Pfad nie bricht.
+HEAL_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/token-drift-heal.sh"
+if [ -x "$HEAL_SCRIPT" ]; then
+  if ! "$HEAL_SCRIPT" heal 2>&1 | sed 's/^/[token-heal] /'; then
+    echo "WARN: token-drift-heal fehlgeschlagen (Probe-Pfad laeuft weiter)"
+  fi
+fi
+
 if [ "$gateway_failed" -eq 0 ] && [ "$devmesh_failed" -eq 0 ]; then
   echo "OK: alle verdrahteten MCP-Endpoints antworten (18080, 13001)"
   exit 0

@@ -37,7 +37,7 @@ openspec/changes/mcp-token-auto-sync/
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** p2 Task T1 runs the new BATS guard against the
+- [x] **Failing-Test-Step (RED).** p2 Task T1 runs the new BATS guard against the
       unchanged tree — it FAILS because `token-drift-heal.sh` does not exist yet:
 
 ```bash
@@ -45,7 +45,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/token-drift-auto-sync.b
 # expected: FAIL (red — the fix is not yet implemented)
 ```
 
-- [ ] **Fix-Step (GREEN).** p1 implements the heal script + hook; p2 Task T3 turns the suite green.
+- [x] **Fix-Step (GREEN).** p1 implements the heal script + hook; p2 Task T3 turns the suite green.
 
 - [ ] **Final Verification (STRUCT3).** Run the three mandatory CI gates:
 

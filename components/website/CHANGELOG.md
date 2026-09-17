@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.348.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.347.2...website-v1.348.0) (2026-09-17)
+
+
+### Features
+
+* **factory:** default executor opencode with FACTORY_MODE routing + Muse Spark planning [T900210] ([#5691](https://github.com/Paddione/Bachelorprojekt/issues/5691)) ([c70b5cd](https://github.com/Paddione/Bachelorprojekt/commit/c70b5cde1af532c7eccd0cb18a114f894bd6fcdf))
+
 ## [1.347.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.347.1...website-v1.347.2) (2026-09-17)
 
 

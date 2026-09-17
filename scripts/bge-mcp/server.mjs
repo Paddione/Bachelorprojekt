@@ -135,7 +135,15 @@ async function callUpstream(role, url, path, payload) {
   try {
     r = await fetch(`${url}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // In devmesh bge-mcp reaches the co-located, externally bound
+        // llm-proxy. That listener correctly requires its admin bearer token;
+        // direct llama.cpp endpoints ignore this optional header.
+        ...(process.env.LLM_PROXY_ADMIN_TOKEN
+          ? { Authorization: `Bearer ${process.env.LLM_PROXY_ADMIN_TOKEN}` }
+          : {}),
+      },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });

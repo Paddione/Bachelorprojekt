@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.350.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.349.1...website-v1.350.0) (2026-09-17)
+
+
+### Features
+
+* **infra:** devmesh-grand-consolidation P1+P2 (Longhorn, git-crypt-GPG) [T900115] ([#5723](https://github.com/Paddione/Bachelorprojekt/issues/5723)) ([cd6d113](https://github.com/Paddione/Bachelorprojekt/commit/cd6d1133bc86c546d64d02aef28e3dd4ab0dda67))
+
 ## [1.349.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.349.0...website-v1.349.1) (2026-09-17)
 
 

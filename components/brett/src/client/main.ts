@@ -10,6 +10,7 @@ import { injectTheme } from './ui/theme';
 import { injectPrimitivesStyles } from './ui/primitives';
 import { injectMenuStyles, mountMenu, type MenuUser } from './ui/menu';
 import { injectLobbyStyles, mountLobby, buildLobbyViewModel } from './ui/lobby';
+import { injectApplicationsBoardStyles, mountApplicationsBoard, type ApplicationsData } from './ui/applications-board';
 import { buildCoachingStepsPayload } from './lobby-coaching';
 import { createAppShell, type ViewState } from './app-shell';
 import { currentUser } from './state';
@@ -20,6 +21,10 @@ function getMenuRoot(): HTMLElement | null {
 
 function getLobbyRoot(): HTMLElement | null {
   return document.getElementById('brett-lobby');
+}
+
+function getApplicationsRoot(): HTMLElement | null {
+  return document.getElementById('brett-applications');
 }
 
 async function fetchUser(): Promise<MenuUser> {
@@ -82,6 +87,7 @@ async function main(): Promise<void> {
   injectPrimitivesStyles();
   injectMenuStyles();
   injectLobbyStyles();
+  injectApplicationsBoardStyles();
 
   const user = await fetchUser();
 
@@ -93,6 +99,11 @@ async function main(): Promise<void> {
   if (user.userId && user.userId !== 'anon') {
     currentUser.userId = user.userId;
     currentUser.name = user.name;
+  }
+
+  if (new URLSearchParams(location.search).has('applications')) {
+    await showApplicationsCockpit();
+    return;
   }
 
   const appShell = createAppShell({
@@ -133,12 +144,37 @@ async function main(): Promise<void> {
       // drive the view machine into the lobby screen via the phase-change handler.
       onNewSession: () => startNewSession(wsMod),
       onJoin: (code) => { window.location.href = `/api/join?code=${encodeURIComponent(code)}`; },
+      onApplications: () => { window.location.href = '/?applications=1'; },
       onSavedList: () => appShell.goTo('board'),
       onSettings: () => { /* disabled menu item — see FE-4; settings screen lands later */ },
     });
   }
   // Stay in 'menu' (default view) — render the menu chrome.
   renderView('menu');
+}
+
+async function showApplicationsCockpit(): Promise<void> {
+  const root = getApplicationsRoot();
+  if (!root) return;
+  document.body.classList.add('brett-menu-active');
+  root.hidden = false;
+  try {
+    const response = await fetch('/api/applications');
+    if (!response.ok) throw new Error('applications request failed');
+    const data = await response.json() as ApplicationsData;
+    mountApplicationsBoard(root, data, {
+      onSubmitTimeline: async (jobId, eventType, notes) => {
+        const response = await fetch(`/api/applications/${jobId}/timeline`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event_type: eventType, notes }),
+        });
+        if (!response.ok) throw new Error('timeline request failed');
+      },
+    });
+  } catch {
+    root.textContent = 'Bewerbungs-Cockpit konnte nicht geladen werden.';
+  }
 }
 
 // FE-1/REG-4: open the WS (REG-2: idempotent) and register a ONE-SHOT WS-open

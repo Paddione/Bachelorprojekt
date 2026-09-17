@@ -1186,7 +1186,6 @@ The MCP registry SHALL declare Authorization headers for every protected HTTP MC
 - **AND** a token assigned to one server does not authorize a different server
 
 <!-- merged from change delta mcp-gateway.md (44b60dfb305a) -->
-
 ### Requirement: Watchdog detects MCP token drift without leaking secrets
 
 The `mcp-gateway-watchdog` SHALL compare the live token fingerprints

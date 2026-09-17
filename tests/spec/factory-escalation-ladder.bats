@@ -35,9 +35,12 @@ RP="scripts/factory/route-provider.sh"
 # mehr serviert — die unterste Sprosse der Eskalationsleiter war unbesetzt, und der
 # Test hielt genau das fest. Geprueft wird jetzt, was die Leiter tatsaechlich braucht:
 # eine lokale unterste Stufe, die ueber das Gateway laeuft.
-@test "T002369-D1: pipeline.mjs hat flash Tier lokal ueber das Gateway" {
+# [T900208] Das Gateway (:18235) ist stillgelegt; die lokale Sprosse geht direkt
+# an FreeToken-native (:1919).
+@test "T002369-D1: pipeline.mjs hat flash Tier lokal auf FreeToken" {
   grep -qE "flash:.*provider: 'llamacpp'" "$PM"
-  grep -qE "flash:.*127\.0\.0\.1:18235" "$PM"
+  grep -qE "flash:.*127\.0\.0\.1:1919" "$PM"
+  ! grep -qE "flash:.*127\.0\.0\.1:18235" "$PM"
   # Negativ-Aussage mit den beiden Ankern oben: der tote LM-Studio-Port darf nicht zurueck.
   ! grep -qE "flash:.*127\.0\.0\.1:1234" "$PM"
 }

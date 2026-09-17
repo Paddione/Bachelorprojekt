@@ -39,10 +39,15 @@ EOF"
   [ "${output}" = "0" ]
 }
 
-@test "T002558: mindestens ein Provider zeigt auf den Proxy-Port" {
-  run bash -c "grep -c ':${PROXY_PORT}/v1' '${AGENTS}'"
+# [T900208] Umgekehrt: der Proxy ist seit 2026-09-03 stillgelegt (ADR-007).
+# Der lokale Provider zeigt direkt auf FreeToken-native; ein Eintrag auf den
+# Proxy-Port waere ein Provider ohne Backend.
+@test "T900208: der lokale Provider zeigt auf FreeToken, keiner auf den stillgelegten Proxy-Port" {
+  run bash -c "grep -c ':1919/v1' '${AGENTS}'"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
+  run bash -c "grep -c ':${PROXY_PORT}/v1' '${AGENTS}'"
+  [ "${output}" = "0" ]
 }
 
 @test "T002558: die deklarierte Kontextzahl stimmt mit dem laufenden Server ueberein" {

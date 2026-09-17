@@ -41,13 +41,18 @@ setup() {
   [ "${status}" -ne 0 ]
 }
 
-@test "T900164: route-provider.sh verdrahtet keinen :1919-Fallback mehr" {
+# [T900208] Umgekehrt: T900164 hatte :1919 verboten und den Fallback auf den
+# llm-proxy :18235 gelegt. Der Proxy ist seit 2026-09-03 stillgelegt; FreeToken
+# :1919 ist das einzige lokale Backend. Der Fallback MUSS dorthin zeigen.
+@test "T900208: route-provider.sh verdrahtet den Fallback auf FreeToken :1919, nicht auf :18235" {
   [ -f "${ROUTE_PROVIDER}" ]
   run grep -c 'baseUrl\|BASEURL' "${ROUTE_PROVIDER}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 
   run grep -F '127.0.0.1:1919' "${ROUTE_PROVIDER}"
+  [ "${status}" -eq 0 ]
+  run bash -c "grep -vE '^[[:space:]]*#' '${ROUTE_PROVIDER}' | grep -F '18235'"
   [ "${status}" -ne 0 ]
 }
 

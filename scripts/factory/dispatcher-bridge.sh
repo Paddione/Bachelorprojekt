@@ -66,18 +66,8 @@ for row in "${launch_rows[@]}"; do
   [[ "$DRY_RUN" == "true" ]] && dry_run_val=true
   attempt="$(echo "$row" | jq -r '.attempt // 1')"
   model_tier="$(echo "$row" | jq -r '.model_tier // "flash"')"
-  PIN="$(factory_model_pin)"
-  if [[ -n "$PIN" ]]; then
-    IFS=$'\t' read -r PIN_MODEL PIN_LOCKED <<< "$PIN"
-    export FACTORY_MODEL_ID="$PIN_MODEL"
-    if [[ "$PIN_LOCKED" == "1" ]]; then
-      export FACTORY_MODEL_LOCKED=1
-      model_tier="flash"
-      echo "dispatcher-bridge: Factory-Modell gesperrt auf '$PIN_MODEL' — tier auf flash gepinnt." >&2
-    else
-      unset FACTORY_MODEL_LOCKED
-    fi
-  fi
+  # [T900208] Der Modell-Pin/Lock aus llm-proxy /admin/factory ist mit dem Proxy
+  # entfallen; model_tier kommt allein aus der Launch-Zeile.
 
   # Readiness-Gate [T003773] — VOR dem Budget-Guard, damit eine planlose Zeile
   # weder Budget noch Gang-Slot verbraucht. Der Guard existierte samt Requirement

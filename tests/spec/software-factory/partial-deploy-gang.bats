@@ -229,7 +229,8 @@ REG="scripts/factory/service-registry.sh"
 # fordert das Gateway und "never a backend port directly", und :8093 serviert seit
 # T002551 den bge-Reranker. Der Test war der Grund, warum die Fehlkonfiguration
 # jeden CI-Lauf ueberlebte — er haette sie gemeldet, wenn jemand sie korrigiert haette.
-@test "FA-SF-GANG: provider-register-local.sh idempotent (ON CONFLICT) ueber das Gateway" {
+# [T900208] Das Gateway (:18235) ist stillgelegt; Anker ist jetzt FreeToken :1919.
+@test "FA-SF-GANG: provider-register-local.sh idempotent (ON CONFLICT) auf FreeToken" {
   run bash -n scripts/factory/provider-register-local.sh
   [ "$status" -eq 0 ]
   run grep -Fq 'ON CONFLICT' scripts/factory/provider-register-local.sh
@@ -242,7 +243,7 @@ REG="scripts/factory/service-registry.sh"
   # '.../v1/v1/chat/completions' wird (HTTP 404). Ein Anker auf die Darstellung
   # statt auf die Semantik haette diese Korrektur blockiert — genau der Fall aus
   # der Konvention "Semantik statt Darstellung" (T002716).
-  run grep -Fq 'http://127.0.0.1:18235' scripts/factory/provider-register-local.sh
+  run grep -Fq 'http://127.0.0.1:1919' scripts/factory/provider-register-local.sh
   [ "$status" -eq 0 ]
   # Negativ-Aussage mit dem Positiv-Anker oben: der alte Backend-Port darf als
   # aktiver Wert nicht zurueck. Kommentarzeilen sind ausgenommen — der Header des

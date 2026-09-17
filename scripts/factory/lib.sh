@@ -166,12 +166,5 @@ factory_backlog_count() {
   printf '%s\n' "$count"
 }
 
-factory_model_pin() {
-  local body model locked
-  body="$(curl -s -m 2 "http://127.0.0.1:${LLM_PROXY_PORT:-18235}/admin/factory" 2>/dev/null)" || return 0
-  [[ -z "$body" ]] && return 0
-  model="$(printf '%s' "$body" | jq -r '.model // empty' 2>/dev/null)" || return 0
-  [[ -z "$model" ]] && return 0
-  locked="$(printf '%s' "$body" | jq -r 'if .locked then "1" else "0" end' 2>/dev/null)"
-  printf '%s\t%s\n' "$model" "${locked:-0}"
-}
+# [T900208] factory_model_pin (las Modell + Lock aus llm-proxy /admin/factory)
+# ist mit dem Proxy entfallen. Modellwahl: ausschliesslich FACTORY_MODEL_ID.

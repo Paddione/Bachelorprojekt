@@ -4805,6 +4805,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900208": [
+    {
+      "slug": "local-llm-freetoken-direct",
+      "status": "plan_staged"
+    }
+  ],
   "T900209": [
     {
       "slug": "embed-hook-live-backend",

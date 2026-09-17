@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.347.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.347.1...website-v1.347.2) (2026-09-17)
+
+
+### Bug Fixes
+
+* **factory:** lokale LLM-Konsumenten direkt auf FreeToken :1919 statt stillgelegtem llm-proxy [T900208] ([#5689](https://github.com/Paddione/Bachelorprojekt/issues/5689)) ([522a284](https://github.com/Paddione/Bachelorprojekt/commit/522a284c0d835a0b794f8eeb2c3a352efb5af838))
+
 ## [1.347.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.347.0...website-v1.347.1) (2026-09-17)
 
 

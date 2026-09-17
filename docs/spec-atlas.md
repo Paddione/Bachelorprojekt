@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2393 · Scenarios: 5315
+Specs: 128 · Requirements: 2392 · Scenarios: 5313
 
 ## factory-pipeline
 
@@ -211,17 +211,6 @@ Last touches:
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
-
-### application-pipeline
-Reqs: 1 · Scenarios: 2 · Lines: 29
-Last touches:
-  - Internal Cross-Service API for Application Pipeline Data | T900233 | 2026-09-17 | ADDED
-In-flight:
-  - Relational Data Model for Job Applications | T900228 | active | ADDED
-  - CLI and Programmatic Job Ingestion | T900228 | active | ADDED
-  - Automated Profile Matching against Platform Knowledge Graph | T900228 | active | ADDED
-  - Typst-Based Tailored Dossier Compilation | T900228 | active | ADDED
-  - Application Funnel and Audit Trail in Brett Cockpit | T900228 | active | ADDED
 
 ### asset-generation
 Reqs: 4 · Scenarios: 7 · Lines: 69

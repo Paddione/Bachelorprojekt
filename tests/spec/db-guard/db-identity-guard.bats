@@ -66,13 +66,13 @@ _run_pgpod() {
   [[ "$output" == *"WARN"* ]] || { echo "Hatch ohne Warnung" >&2; return 1; }
 }
 
-@test "T015168: BATS-Sentinel-Regime überspringt die Marker-Probe" {
+@test "T015168: BATS-Sentinel-Regime ueberspringt die Marker-Probe" {
   # Kein TICKET_TEST_DB_OK → Sentinel-Regime (T002224) → Probe skip, Aufruf gelingt.
   _run_pgpod "pod/shared-db-0" "" ""
   [ "$status" -eq 0 ] || { echo "Probe lief im Sentinel-Regime: $output" >&2; return 1; }
 }
 
-@test "T015168: UUID-Konstante ist in Migration und Guard identisch (Parität)" {
+@test "T015168: UUID-Konstante ist in Migration und Guard identisch (Paritaet)" {
   [ -f "$MIGRATION" ] || { echo "Migrationsdatei fehlt: $MIGRATION" >&2; return 1; }
   mig_uuid="$(grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' "$MIGRATION" | head -1)"
   core_uuid="$(grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' "$CORE" | head -1)"

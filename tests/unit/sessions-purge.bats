@@ -43,7 +43,7 @@ EOF
     [[ "${output}${BATS_OUTPUT:-}" == *"required"* ]]
 }
 
-@test "curl schlägt fehl (HTTP 500): Exit 1" {
+@test "curl schlaegt fehl (HTTP 500): Exit 1" {
   export SESSIONS_CRON_TOKEN="test-token-xyz"
   # curl-Stub: simuliert Fehler (exit 22 = HTTP error mit -f)
   cat > "$STUB_DIR/curl" <<'EOF'

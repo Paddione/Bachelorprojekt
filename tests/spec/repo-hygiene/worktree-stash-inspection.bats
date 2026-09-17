@@ -89,7 +89,7 @@ _make_stash_repo() {
   [ "$output" -eq 0 ]
 }
 
-@test "T002709: Stash-Relevanz löst sich gegen main auf, nicht am Stash-Diff" {
+@test "T002709: Stash-Relevanz loest sich gegen main auf, nicht am Stash-Diff" {
   # Positiv-Anker: die SSOT dokumentiert überhaupt eine Marker-Prüfung gegen main.
   run bash -c "grep -F 'git grep' '$OPS' | grep -c 'main'"
   [ "$status" -eq 0 ]

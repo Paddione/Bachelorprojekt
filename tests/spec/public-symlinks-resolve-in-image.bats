@@ -48,7 +48,7 @@ _escapes_root() {
   [ "$up" -gt "$dirs" ]   # mehr .. als verbleibende Verzeichnisse → raus
 }
 
-@test "T002498-M4: public/-Symlinks bleiben im Docker-Image-Layout auflösbar" {
+@test "T002498-M4: public/-Symlinks bleiben im Docker-Image-Layout aufloesbar" {
   local apps=()
   local app dockerfile
   # Apps liegen seit T006999 unter components/ — beide Ebenen scannen, damit

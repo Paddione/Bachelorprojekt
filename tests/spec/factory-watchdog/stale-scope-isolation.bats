@@ -25,7 +25,7 @@ setup() {
   WD="$REPO_ROOT/scripts/factory/watchdog.sh"
 }
 
-@test "T015983: Betrieb-Sweep schließt factory-test-Marker aus (unset env)" {
+@test "T015983: Betrieb-Sweep schliesst factory-test-Marker aus (unset env)" {
   run bash "$WD" --print-stale-query
 
   [ "$status" -eq 0 ]

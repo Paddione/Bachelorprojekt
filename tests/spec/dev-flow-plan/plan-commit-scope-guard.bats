@@ -44,7 +44,7 @@ make_plan() {
   printf '%s' "$p"
 }
 
-@test "T004896 (Kern, RED→GREEN): ungültiger Commit-Scope in Plan-Vorschreibung failt plan-lint" {
+@test "T004896 (Kern, RED→GREEN): ungueltiger Commit-Scope in Plan-Vorschreibung failt plan-lint" {
   # Mishap-Reproduktion: die exakte Form aus T004829s tasks.md:95.
   local p
   p="$(make_plan 'git commit -m "fix(openspec-embed): slug literal in embed_output_is_success match [T004829]"')"
@@ -64,7 +64,7 @@ make_plan() {
   }
 }
 
-@test "T004896 (Positiv-Anker): gültiger Named-Scope 'scripts' passiert plan-lint" {
+@test "T004896 (Positiv-Anker): gueltiger Named-Scope 'scripts' passiert plan-lint" {
   local p
   p="$(make_plan 'git commit -m "fix(scripts): tighten scope validation [T004896]"')"
 
@@ -91,7 +91,7 @@ make_plan() {
   }
 }
 
-@test "T004896 (Fixture-Ausnahme): Test-Eingabe-Zeile mit Redirection löst P2 nicht aus" {
+@test "T004896 (Fixture-Ausnahme): Test-Eingabe-Zeile mit Redirection loest P2 nicht aus" {
   # Belegt am aktiven Fall commit-scope-openspec/tasks.md:78 — eine Zeile, die
   # eine absichtlich ungültige Message als HOOK-Test-Eingabe erzeugt, ist keine
   # Commit-Vorschreibung und darf plan-lint nicht rot machen.

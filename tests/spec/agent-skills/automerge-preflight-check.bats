@@ -55,7 +55,7 @@ GHSTUB
   [ "$status" -eq 0 ]
 }
 
-@test "T006366: kein PR für den Branch → rc=0 (Normalfall im Pre-Flight)" {
+@test "T006366: kein PR fuer den Branch → rc=0 (Normalfall im Pre-Flight)" {
   _stub_gh NO_PR
   run bash "$REPO_ROOT/scripts/check-pr-automerge.sh" --branch fix/x
   [ "$status" -eq 0 ]
@@ -75,14 +75,14 @@ GHSTUB
 
 # ── Integration (Source-Grep, dokumentierte Ausnahme) ─────────────────────
 
-@test "T006366: Review-Gate (Schritt 3.8) führt den Auto-Merge-Check vor dem Review aus" {
+@test "T006366: Review-Gate (Schritt 3.8) fuehrt den Auto-Merge-Check vor dem Review aus" {
   SKILL="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
   GATE_SECTION="$(awk '/^## .*Code-Review-Gate/{flag=1; next} /^## /&&flag{exit} flag' "$SKILL")"
   run grep -qF "check-pr-automerge.sh" <<<"$GATE_SECTION"
   [ "$status" -eq 0 ]
 }
 
-@test "T006366: Pre-Flight (phases.md) führt den Auto-Merge-Check nach dem Doppelarbeit-Guard aus" {
+@test "T006366: Pre-Flight (phases.md) fuehrt den Auto-Merge-Check nach dem Doppelarbeit-Guard aus" {
   PHASES="$REPO_ROOT/.claude/skills/references/dev-flow-execute-phases.md"
   run grep -qF "check-pr-automerge.sh" "$PHASES"
   [ "$status" -eq 0 ]

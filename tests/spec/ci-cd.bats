@@ -329,7 +329,7 @@ PY
   grep -q 'test.skip(!cronSecret' "$REPO_ROOT/tests/e2e/specs/fa-10-website.spec.ts"
 }
 
-@test "T001453: purge-fn v5 re-markiert unmarkierte E2E-Identitäten" {
+@test "T001453: purge-fn v5 re-markiert unmarkierte E2E-Identitaeten" {
   grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/migrations.ts"
   grep -q 'inbox_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/migrations.ts"
   grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/scripts/one-shot/purge-fn-v5.sql"
@@ -337,7 +337,7 @@ PY
 
 # ── T001562: main CI post-merge deploy broken by malformed k3d/secrets.yaml ──
 
-@test "T001562: alle k3d/*.yaml parsen als gültiges Multi-Document-YAML" {
+@test "T001562: alle k3d/*.yaml parsen als gueltiges Multi-Document-YAML" {
   run python3 - "$REPO_ROOT/k3d" <<'PY'
 import sys, os, yaml
 root = sys.argv[1]
@@ -1709,7 +1709,7 @@ PY
   printf '%s\n' "$output" | grep -qx 'agents'
 }
 
-@test "T002328: kein Synthetik-Scope (cq0X/sec0X/dora0X/…) ist mehr registriert" {
+@test "T002328: kein Synthetik-Scope (cq0X/sec0X/dora0X/-) ist mehr registriert" {
   run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" scopes
   [ "$status" -eq 0 ]
   run bash -c "printf '%s\n' \"$output\" | grep -cE '^[a-z]+[0-9]{2}$'"

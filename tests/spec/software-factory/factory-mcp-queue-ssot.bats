@@ -19,11 +19,11 @@
   [ "$status" -ne 0 ]
 }
 
-@test "T014936: Positiv-Anker — queue.sh trägt weiterhin beide Gates" {
+@test "T014936: Positiv-Anker — queue.sh traegt weiterhin beide Gates" {
   run grep -c "factory_excluded" scripts/factory/queue.sh
   [ "$output" -ge 2 ]
 }
 
-@test "T014936: Legacy-Node-Server ist gelöscht (keine zweite Schnittstelle auf :13003)" {
+@test "T014936: Legacy-Node-Server ist geloescht (keine zweite Schnittstelle auf :13003)" {
   [ ! -f scripts/factory/mcp-server.mjs ]
 }

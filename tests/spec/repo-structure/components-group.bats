@@ -9,7 +9,7 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd)"
 }
 
-@test "repo-structure: fünf Komponenten unter components/, keine Top-Level-Ordner" {
+@test "repo-structure: fuenf Komponenten unter components/, keine Top-Level-Ordner" {
   # Positiv-Anker: der gültige Fall
   [[ -d "$REPO_ROOT/components" ]]
   for c in brett studio-server mentolder-web mediaviewer-widget VideoVault; do

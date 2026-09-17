@@ -72,7 +72,7 @@ BUDGETAPI="components/website/src/pages/sdlc/api/factory-budget.ts"
 # deterministisch, kein lokaler Fallback, wirft nie) ist bereits abgedeckt durch
 # tests/spec/sdlc-cockpit/leitstand-url-scheme.bats.
 
-@test "D6: no --pb-* palette remains in Planungsbüro components" {
+@test "D6: no --pb-* palette remains in Planungsbuero components" {
   run grep -rq -- "--pb-" components/website/src/components/PlanningOffice.svelte \
       components/website/src/components/PlanningOfficeItem.svelte \
       components/website/src/components/PlanningOfficeDetail.svelte \

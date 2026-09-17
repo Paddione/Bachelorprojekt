@@ -39,7 +39,7 @@ VALID_EFFORTS="['klein','mittel','gross']"
   echo "$result" | jq -e '.planning == 4 and .ready == 1 and .blocked == 1'
 }
 
-@test "FA-PB-03: PATCH-Validierung lehnt ungültigen effort-Wert ab" {
+@test "FA-PB-03: PATCH-Validierung lehnt ungueltigen effort-Wert ab" {
   result=$(node -e "
     const valid = $VALID_EFFORTS;
     const effort = 'riesig';
@@ -67,7 +67,7 @@ VALID_EFFORTS="['klein','mittel','gross']"
   [ "$rank" = "0" ]
 }
 
-@test "FA-PB-05: GET-Response enthält stats-Objekt mit korrekten Keys" {
+@test "FA-PB-05: GET-Response enthaelt stats-Objekt mit korrekten Keys" {
   result=$(node -e "
     $STATS_FN
     const stats = computeStats([{ dorScore: 4, dependsOn: [] }]);

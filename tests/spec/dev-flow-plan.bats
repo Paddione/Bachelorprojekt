@@ -119,7 +119,7 @@ _exec_step2_block() {
 }
 
 # ── T002137: Alt-Worktrees nach T002135 — cleanup documented ──
-@test "mishap-t002137: gotchas-footguns.md enthält Alt-Worktrees-Abschnitt" {
+@test "mishap-t002137: gotchas-footguns.md enthaelt Alt-Worktrees-Abschnitt" {
   FOOTGUNS="$REPO/docs/superpowers/references/gotchas-footguns.md"
   grep -q "Alt-Worktrees nach T002135" "$FOOTGUNS" \
     || { echo "MISSING section title: Alt-Worktrees nach T002135"; return 1; }

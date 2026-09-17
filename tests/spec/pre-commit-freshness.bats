@@ -146,7 +146,7 @@ setup_t001973() {
     || { echo "guard does not appear to wrap the freshness block in $PRE_COMMIT"; return 1; }
 }
 
-@test "T001973: post-merge guard exits 0 cleanly (does not abort mid-rebase) [T000581 §freshness:regenerate skip-safe]" {
+@test "T001973: post-merge guard exits 0 cleanly (does not abort mid-rebase) [T000581 Sfreshness:regenerate skip-safe]" {
   setup_t001973
   [ -f "$POST_MERGE" ] || { echo "MISSING hook: $POST_MERGE"; return 1; }
   # When the guard fires, the post-merge hook's regen/loc-budget-restore/

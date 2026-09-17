@@ -17,12 +17,12 @@ setup() {
   [ "$count" -ge 5 ]
 }
 
-@test "graph.json enthält shared-db Node" {
+@test "graph.json enthaelt shared-db Node" {
   node scripts/build-graph.mjs
   grep -q "shared-db" docs/generated/graph.json
 }
 
-@test "graph.json enthält keycloak Node" {
+@test "graph.json enthaelt keycloak Node" {
   node scripts/build-graph.mjs
   grep -q "keycloak" docs/generated/graph.json
 }
@@ -34,7 +34,7 @@ setup() {
   [ "$generated" != "null" ]
 }
 
-@test "graph.json enthält edges Array" {
+@test "graph.json enthaelt edges Array" {
   node scripts/build-graph.mjs
   edge_count=$(jq '.edges | length' docs/generated/graph.json)
   [ "$edge_count" -ge 0 ]

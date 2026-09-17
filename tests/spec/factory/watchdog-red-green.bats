@@ -15,7 +15,7 @@ WD="scripts/factory/watchdog.sh"
 # Szenario 1: prog CTE filtert entered-Events aus
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T003487-1: prog CTE enthält state-Filter für done/partial-done/blocked" {
+@test "T003487-1: prog CTE enthaelt state-Filter fuer done/partial-done/blocked" {
   # Der WHERE state IN Filter MUSS nach der prog-CTE JOIN-Zeile stehen
   grep -q "WHERE pe.state IN ('done', 'partial-done', 'blocked')" "$WD"
 }

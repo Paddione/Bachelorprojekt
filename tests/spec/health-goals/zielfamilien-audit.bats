@@ -103,7 +103,7 @@ setup() {
   printf '%s\n' "$output" | grep -q "FAIL G-CQ02 E1"
 }
 
-@test "evaluate: Textwert ist E4, unabhängig vom Basis-Status" {
+@test "evaluate: Textwert ist E4, unabhaengig vom Basis-Status" {
   run bash "$RUNNER" evaluate G-IF02 degraded --absent
   [ "$status" -eq 1 ]
   printf '%s\n' "$output" | grep -q "FAIL G-IF02 E4"

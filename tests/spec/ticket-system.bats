@@ -661,7 +661,7 @@ TYPE_VOCAB_TS="components/website/src/lib/tickets/migrate-type-vocabulary.ts"
 # Abschluss unterscheidbar — der Guard muss diesen Fall ausnehmen statt ihn zu
 # zementieren. Beide Write-Pfade (shell + TS) müssen die Ausnahme spiegeln.
 
-@test "T003072: update-status.sh exempiert ungültiges done (resolution IS NULL, kein Lebenszyklus)" {
+@test "T003072: update-status.sh exempiert ungueltiges done (resolution IS NULL, kein Lebenszyklus)" {
   run grep -Fq "resolution IS NULL" scripts/vda/ticket/update-status.sh
   [ "$status" -eq 0 ] || { echo "MISSING: resolution IS NULL-Bedingung in update-status.sh"; false; }
   run grep -Fq "created_at = updated_at" scripts/vda/ticket/update-status.sh

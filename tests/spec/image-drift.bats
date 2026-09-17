@@ -21,7 +21,7 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }
 
-@test "G-IMG02: keine busybox Drift-Tags (außer 1.38.0) in hand-editierten Manifesten" {
+@test "G-IMG02: keine busybox Drift-Tags (ausser 1.38.0) in hand-editierten Manifesten" {
   drift=$(grep -rhE 'image:[[:space:]]+["'"'"']?busybox:' \
     "$REPO_ROOT/k3d/" "$REPO_ROOT/prod/" "$REPO_ROOT/prod-korczewski/" 2>/dev/null \
     | grep -vE 'busybox:1\.38\.0(@sha256|\s|$|")' \
@@ -30,7 +30,7 @@ setup() {
   [ "$drift" -eq 0 ]
 }
 
-@test "G-IMG02: keine curlimages/curl Drift-Tags (außer 8.21.0 + sha256-Pin) in hand-editierten Manifesten" {
+@test "G-IMG02: keine curlimages/curl Drift-Tags (ausser 8.21.0 + sha256-Pin) in hand-editierten Manifesten" {
   drift=$(grep -rhE 'image:[[:space:]]+["'"'"']?curlimages/curl:' \
     "$REPO_ROOT/k3d/" "$REPO_ROOT/prod/" "$REPO_ROOT/prod-korczewski/" 2>/dev/null \
     | grep -vE 'curlimages/curl:8\.21\.0(@sha256|\s|$|")' \

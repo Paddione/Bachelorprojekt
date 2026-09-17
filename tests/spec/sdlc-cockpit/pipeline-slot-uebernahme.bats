@@ -12,7 +12,7 @@ setup() {
 # im prod-Build entfernte Route") liegt in tests/spec/website-core/admin-nav-no-sdlc-routes.bats
 # und misst dort das Ergebnis der Pfadauflösung statt Quelltext-Vorkommen.
 
-@test "T002531 menu: AdminSidebarNav führt keinen /admin/cockpit- und keinen /admin/pipeline-Link" {
+@test "T002531 menu: AdminSidebarNav fuehrt keinen /admin/cockpit- und keinen /admin/pipeline-Link" {
   local nav_file="$REPO_ROOT/components/website/src/components/admin/AdminSidebarNav.astro"
   [ -f "$nav_file" ]
 

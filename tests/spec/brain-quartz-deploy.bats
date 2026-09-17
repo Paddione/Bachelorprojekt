@@ -42,7 +42,7 @@ load 'test_helper'
   grep -qE '\$patch: delete' <<< "$output" || { echo "FAIL: \$patch: delete fehlt"; return 1; }
 }
 
-@test "k3d/secrets.yaml enthält POCKET_ID_BRAIN_SECRET" {
+@test "k3d/secrets.yaml enthaelt POCKET_ID_BRAIN_SECRET" {
   run cat k3d/secrets.yaml
   [ "${status}" -eq 0 ] || { echo "FAIL: secrets.yaml nicht lesbar"; return 1; }
   grep -q 'POCKET_ID_BRAIN_SECRET' <<< "$output" || { echo "FAIL: Secret fehlt"; return 1; }

@@ -51,7 +51,7 @@ teardown() {
   [[ "$output" == *"leaks found"* ]]
 }
 
-@test "agent-models.jsonc enthält keinen plaintext sk-API-Key" {
+@test "agent-models.jsonc enthaelt keinen plaintext sk-API-Key" {
   AGENT_MODELS="$REPO_ROOT/.opencode/agent-models.jsonc"
 
   # Positiv-Anker: mindestens ein Provider ist definiert (T004808; alibaba-intl in T900164 retired).

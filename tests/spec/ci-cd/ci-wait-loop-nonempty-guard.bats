@@ -75,7 +75,7 @@ GH_EOF
 
 # ── Helper: die leere Liste darf NICHT als Erfolg gelten ────────────────────
 
-@test "T003109: ci_checks_verdict wertet die LEERE Checkliste nicht als grün" {
+@test "T003109: ci_checks_verdict wertet die LEERE Checkliste nicht als gruen" {
   run _verdict '[]'
   [ "$status" -ne 0 ]
   [[ "$output" != *"green"* ]]
@@ -84,13 +84,13 @@ GH_EOF
 
 # ── Helper: Positiv-Anker — ohne ihn wäre der Test oben selbst vakuos ───────
 
-@test "T003109: ci_checks_verdict wertet eine NICHTLEERE grüne Liste als grün (Positiv-Anker)" {
+@test "T003109: ci_checks_verdict wertet eine NICHTLEERE gruene Liste als gruen (Positiv-Anker)" {
   run _verdict '[{"name":"CI","state":"SUCCESS"},{"name":"Vitest","state":"SUCCESS"}]'
   [ "$status" -eq 0 ]
   [[ "$output" == *"green"* ]]
 }
 
-@test "T003109: ci_checks_verdict trennt pending und red von grün" {
+@test "T003109: ci_checks_verdict trennt pending und red von gruen" {
   run _verdict '[{"name":"CI","state":"SUCCESS"},{"name":"Vitest","state":"PENDING"}]'
   [ "$status" -ne 0 ]
   [[ "$output" != *"green"* ]]
@@ -128,7 +128,7 @@ GH_EOF
 
 # ── Doku: die Regel steht in der Referenz, die die Warteschleifen beschreibt ─
 
-@test "T003109: repo-hygiene-ops.md benennt das vakuose all() über der leeren Menge" {
+@test "T003109: repo-hygiene-ops.md benennt das vakuose all() ueber der leeren Menge" {
   doc="$REPO/.claude/skills/references/repo-hygiene-ops.md"
   [ -f "$doc" ]                                  # Positiv-Anker: Datei existiert
   grep -qF 'T002822' "$doc"                      # Positiv-Anker: §3 ist vorhanden

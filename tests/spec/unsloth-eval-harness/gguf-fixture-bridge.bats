@@ -44,7 +44,7 @@ teardown() {
   rm -rf "$TMPD"
 }
 
-@test "gen_fixtures schreibt für jeden Testset-Fall genau einen Fixture-Eintrag" {
+@test "gen_fixtures schreibt fuer jeden Testset-Fall genau einen Fixture-Eintrag" {
   run python3 "$GEN" --testset "$TESTSET" --model stub --output "$TMPD/fx.json" --endpoint "$ENDPOINT"
   [ "$status" -eq 0 ]
   cases=$(grep -c '' "$TESTSET")
@@ -138,7 +138,7 @@ PY
   [ ! -f "$TMPD/none.json" ]
 }
 
-@test "die erzeugte Fixture ist für eval_harness lesbar" {
+@test "die erzeugte Fixture ist fuer eval_harness lesbar" {
   run python3 "$GEN" --testset "$TESTSET" --model stub --output "$TMPD/fx.json" --endpoint "$ENDPOINT"
   [ "$status" -eq 0 ]
   # Beide Seiten mit derselben Fixture: der Gate muss durchlaufen (Tuned ist

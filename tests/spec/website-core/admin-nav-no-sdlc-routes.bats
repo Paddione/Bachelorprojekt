@@ -19,7 +19,7 @@ setup() {
   GUARD="$REPO_ROOT/scripts/check-admin-nav-routes.mjs"
 }
 
-@test "admin-nav: Guard-Skript existiert und ist ausführbar" {
+@test "admin-nav: Guard-Skript existiert und ist ausfuehrbar" {
   [ -f "$GUARD" ]
 }
 
@@ -37,7 +37,7 @@ setup() {
   echo "$output" | grep -qF -e 'admin-nav-routes: OK'
 }
 
-@test "admin-nav: Guard schlägt an, wenn ein SDLC-Eintrag eingeschleust wird" {
+@test "admin-nav: Guard schlaegt an, wenn ein SDLC-Eintrag eingeschleust wird" {
   # Positiv-Anker (T002356-M1): ohne diesen Nachweis wäre der grüne Lauf oben
   # auch dann grün, wenn der Guard gar nichts prüft.
   command -v node >/dev/null 2>&1 || skip "node not installed"

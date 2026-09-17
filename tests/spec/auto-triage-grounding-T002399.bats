@@ -10,7 +10,7 @@ setup() {
   grep -q 'find_similar_tickets()' "$SCRIPT"
 }
 
-@test "auto-triage: similar tickets block uses Ähnliche Vorgänge label" {
+@test "auto-triage: similar tickets block uses Aehnliche Vorgaenge label" {
   grep -q 'Ähnliche Vorgänge' "$SCRIPT"
 }
 

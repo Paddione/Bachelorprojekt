@@ -43,7 +43,7 @@ teardown() {
   [[ "$probe_line" == *"feature/probe"* ]]
 }
 
-@test "worktree-list.sh --json gibt beide Worktrees als Einträge aus" {
+@test "worktree-list.sh --json gibt beide Worktrees als Eintraege aus" {
   git -C "$MAIN" worktree add -q -b feature/probe "$MAIN/.worktrees/probe" main
 
   run bash -c "cd '$MAIN' && bash '$SCRIPT' --json"

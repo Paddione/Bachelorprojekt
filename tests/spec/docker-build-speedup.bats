@@ -56,7 +56,7 @@
       .github/workflows environments
 }
 
-@test "P2: svc_image_repo liefert für beide Brands das geteilte Website-Image" {
+@test "P2: svc_image_repo liefert fuer beide Brands das geteilte Website-Image" {
   # Die Promote-Lib (task feature:promote + Factory-Canary) muss dieselbe
   # Konsolidierung wie WEBSITE_IMAGE=website spiegeln — sonst set-image/Canary
   # gegen das tote ghcr.io/paddione/{mentolder,korczewski}-website.

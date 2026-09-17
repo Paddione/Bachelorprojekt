@@ -141,7 +141,7 @@ teardown() {
 # ── Grüner Pfad (alle Checks grün) erreicht assert-phase-chain cwd-unabhängig #
 # expected: FAIL (RED — der grüne Pfad ruft ./scripts/ticket.sh ebenfalls relativ)
 
-@test "T006370: grüner Pfad (alle Checks grün) erreicht assert-phase-chain aus cwd ohne scripts/" {
+@test "T006370: gruener Pfad (alle Checks gruen) erreicht assert-phase-chain aus cwd ohne scripts/" {
   echo "OPEN" > "$MARKER_DIR/pr-state"
   echo "0" > "$MARKER_DIR/mock-rollup-pending"
   echo "3" > "$MARKER_DIR/mock-total-checks"
@@ -160,7 +160,7 @@ teardown() {
 # Ausnahme (im Header dokumentiert): die toleranten phase-Aufrufe (|| true)
 # sind nur im Quelltext beobachtbar; hier ist die Datei-Prüfung das Mittel.
 
-@test "T006370: Skript enthält keinen relativen ./scripts/ticket.sh-Aufruf mehr" {
+@test "T006370: Skript enthaelt keinen relativen ./scripts/ticket.sh-Aufruf mehr" {
   ! grep -qF './scripts/ticket.sh' "$SCRIPT" \
     || { echo "relativer ./scripts/ticket.sh-Aufruf noch vorhanden — cwd-Abhängigkeit besteht fort"; false; }
 }

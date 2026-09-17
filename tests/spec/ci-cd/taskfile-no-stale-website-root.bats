@@ -26,7 +26,7 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
-@test "test:changed: Website-Zweig enthält das ESLint-Gate (T008454)" {
+@test "test:changed: Website-Zweig enthaelt das ESLint-Gate (T008454)" {
   # Positiv-Anker: der RUN_WEBSITE-Zweig existiert.
   grep -q 'RUN_WEBSITE' Taskfile.yml
   # Das lokale Gegenstück zum fail-closed CI-Gate (eslint . --max-warnings 0)

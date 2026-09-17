@@ -5412,6 +5412,12 @@
     "kind": "shell"
   },
   {
+    "id": "runner/wrapper-guards",
+    "file": "tests/spec/runner/wrapper-guards.bats",
+    "category": "runner",
+    "kind": "shell"
+  },
+  {
     "id": "rustdesk-server",
     "file": "tests/spec/rustdesk-server.bats",
     "category": "rustdesk-server",

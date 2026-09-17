@@ -59,7 +59,7 @@ setup() {
 # Regressionsschutz: Der mishap-incident-rollup-Spezialfall (--no-merge, kein
 # Merge, keine Guards) behält Vorrang — der neue Zweig darf ihn nicht
 # schlucken, auch wenn dort Deltas ohne SSOT-Target liegen.
-@test "T900105: mishap-incident-rollup behält --no-merge" {
+@test "T900105: mishap-incident-rollup behaelt --no-merge" {
   root="$BATS_TEST_TMPDIR/mishap"
   mkdir -p "$root/openspec/changes/mishap-incident-rollup-x/specs" "$root/openspec/specs"
   touch "$root/openspec/changes/mishap-incident-rollup-x/specs/notizen.md"

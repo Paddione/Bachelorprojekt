@@ -95,7 +95,7 @@ measured_ids() {
   fi
 }
 
-@test "goals.md führt höchstens 5 Baseline-Update-Einträge (Kappungsregel)" {
+@test "goals.md fuehrt hoechstens 5 Baseline-Update-Eintraege (Kappungsregel)" {
   # Ohne Kappung wächst das Register monoton: jeder Fix hängt einen Absatz an,
   # keiner räumt einen ab. Bei der Auslagerung in T002598 waren es 195 Zeilen
   # Chronik in einer 987-Zeilen-Datei.

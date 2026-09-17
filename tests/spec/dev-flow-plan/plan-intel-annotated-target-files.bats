@@ -24,7 +24,7 @@ teardown() {
   rm -rf "$CHANGE_DIR"
 }
 
-@test "T008015-3: annotierte Zelle toleriert — Praefix 'Löschungen:' wird kein Pfad" {
+@test "T008015-3: annotierte Zelle toleriert — Praefix 'Loeschungen:' wird kein Pfad" {
   cat <<'MARKDOWN' > "$CHANGE_DIR/tasks.md"
 # sandbox-slug — Implementation Plan
 

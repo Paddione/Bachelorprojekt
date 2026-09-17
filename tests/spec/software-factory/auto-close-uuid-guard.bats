@@ -71,7 +71,7 @@ setup() {
   [ "$status" -eq 1 ]  # keine Anker → weiter, auch bei anchor_match='t'
 }
 
-@test "T015010: Terminal-Status-Skip (done/archived) läuft VOR dem Identity-Guard" {
+@test "T015010: Terminal-Status-Skip (done/archived) laeuft VOR dem Identity-Guard" {
   # Struktureller Fakt wie in "Guard sitzt VOR dem Closure-Schreibzugriff":
   # er manifestiert sich ausschließlich in der Quellreihenfolge. Positionen
   # verifiziert gegen main (T015670): done|archived=223, Guard=232.

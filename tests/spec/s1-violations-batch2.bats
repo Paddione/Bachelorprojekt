@@ -8,7 +8,7 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }
 
-@test "G-RH01 batch2: baseline.json S1-Einträge ≤ 30" {
+@test "G-RH01 batch2: baseline.json S1-Eintraege ≤ 30" {
   count=$(jq -r '[keys[] | select(startswith("S1:"))] | length' "$REPO_ROOT/docs/code-quality/baseline.json")
   [ "$count" -le 30 ]
 }

@@ -22,7 +22,7 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 }
 
-@test "T002273: verification-block.md enthält Hinweis zu untracked Dateien in freshness:regenerate" {
+@test "T002273: verification-block.md enthaelt Hinweis zu untracked Dateien in freshness:regenerate" {
   ref="$REPO_ROOT/.claude/skills/references/verification-block.md"
   [ -f "$ref" ] || { echo "MISSING ref: $ref"; return 1; }
   grep -q 'git ls-files' "$ref" \

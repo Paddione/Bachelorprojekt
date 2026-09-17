@@ -8,7 +8,7 @@ setup() {
   OPS_MD="$REPO_ROOT/.claude/skills/references/repo-hygiene-ops.md"
 }
 
-@test "repo-hygiene-ops.md §0 verweist auf den Factory-Tick-Vorcheck" {
+@test "repo-hygiene-ops.md S0 verweist auf den Factory-Tick-Vorcheck" {
   # Positiv-Anker: der §0-Abschnitt nennt den Tick-Vorcheck namentlich.
   run sed -n '/^## 0\. Arbeitsbaum/,/^## 1\./p' "$OPS_MD"
   [ "$status" -eq 0 ]

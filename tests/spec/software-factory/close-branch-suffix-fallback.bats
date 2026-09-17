@@ -45,7 +45,7 @@ _branch_extract() {
   [ -z "$got" ]
 }
 
-@test "T015960: Titel-Extraktion bleibt unberührt (Regressionsanker)" {
+@test "T015960: Titel-Extraktion bleibt unberuehrt (Regressionsanker)" {
   run bash -c 'source "'"$REPO_ROOT"'/scripts/factory/auto-close-merged.sh"; extract_ticket_ids_from_title "$1"' _ "fix(ci): repariere den Watcher [T001234]"
   [ "$status" -eq 0 ]
   [ "$(printf '%s' "$output" | paste -sd' ' -)" = "T001234" ]

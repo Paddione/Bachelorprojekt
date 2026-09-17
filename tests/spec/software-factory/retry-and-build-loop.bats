@@ -170,7 +170,7 @@ BLS="$BATS_TEST_DIRNAME/../../../scripts/factory/build-loop.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: build_loop_sig_hash: Rauschen ändert Hash nicht" {
+@test "FA-SF-37-retry: build_loop_sig_hash: Rauschen aendert Hash nicht" {
   source "$BLS"
   local log1; log1=$(mktemp); local log2; log2=$(mktemp)
   printf 'Error: test failed\n/home/user/src/foo.ts\n[500ms]\n' > "$log1"
@@ -289,7 +289,7 @@ JSON
   [ -n "$output" ]
 }
 
-@test "FA-SF-37-retry: precompact-prune jüngstes Output unangetastet" {
+@test "FA-SF-37-retry: precompact-prune juengstes Output unangetastet" {
   local t; t=$(mktemp -d); trap "rm -rf '$t'" EXIT
   local f="$t/transcript.jsonl"
   cat > "$f" <<'JSON'

@@ -89,7 +89,7 @@ _make_repo() {
   [ "$status" -ne 0 ]
 }
 
-@test "T002932: die Generat-Allowlist aus §1 bleibt wirksam" {
+@test "T002932: die Generat-Allowlist aus S1 bleibt wirksam" {
   [ -x "$CHECK" ]
 
   local wt="${BATS_TEST_TMPDIR}/generat"
@@ -113,7 +113,7 @@ _make_repo() {
   printf '%s\n' "$output" | grep -qF 'scripts/beispiel.sh'
 }
 
-@test "T002932: Runbook §1 ruft den Vorcheck als Skript auf" {
+@test "T002932: Runbook S1 ruft den Vorcheck als Skript auf" {
   # Ein Guard wirkt nur, wenn er ausgefuehrt wird — die Aufrufstelle ist Teil des Fixes.
   [ -f "$OPS" ]
 

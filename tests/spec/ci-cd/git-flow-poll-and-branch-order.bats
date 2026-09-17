@@ -19,7 +19,7 @@ setup() {
   REPO="$(git rev-parse --show-toplevel)"
 }
 
-@test "pr-babysit-ticket.sh pollt maschinell über gh statt gh-axi (T004612)" {
+@test "pr-babysit-ticket.sh pollt maschinell ueber gh statt gh-axi (T004612)" {
   # Positiv-Anker zuerst: der Resolver ist fest auf gh gesetzt
   run grep -n '^GH="gh"$' "$REPO/scripts/factory/pr-babysit-ticket.sh"
   [ "$status" -eq 0 ]

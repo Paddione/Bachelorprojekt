@@ -153,7 +153,7 @@ setup_file() {
   rm -rf "$tmp_out"
 }
 
-@test "P4.6: keine .tmp-Reste aus abgebrochenen Emitter-Läufen (T002308)" {
+@test "P4.6: keine .tmp-Reste aus abgebrochenen Emitter-Laeufen (T002308)" {
   cd "$REPO_ROOT"
   local leftovers
   leftovers=$(ls docs/agent-guide/maps/*.tmp 2>/dev/null || true)

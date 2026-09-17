@@ -43,19 +43,19 @@ setup() {
 
 
 # Assertion 1: build-website.yml enthält die drei negativen Pfad-Muster.
-@test "T002624: build-website.yml enthaelt negativen Pfad-Filter für pages/sdlc (RED vor Task 5)" {
+@test "T002624: build-website.yml enthaelt negativen Pfad-Filter fuer pages/sdlc (RED vor Task 5)" {
   [ -f "$BUILD_WEBSITE_YML" ] || { echo "MISSING workflow: $BUILD_WEBSITE_YML"; return 1; }
   grep -qE "!components/website/src/pages/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
     || { echo "MISSING negativer Pfad-Filter '!components/website/src/pages/sdlc/**' in build-website.yml"; return 1; }
 }
 
-@test "T002624: build-website.yml enthaelt negativen Pfad-Filter für lib/sdlc" {
+@test "T002624: build-website.yml enthaelt negativen Pfad-Filter fuer lib/sdlc" {
   [ -f "$BUILD_WEBSITE_YML" ] || { echo "MISSING workflow: $BUILD_WEBSITE_YML"; return 1; }
   grep -qE "!components/website/src/lib/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
     || { echo "MISSING negativer Pfad-Filter '!components/website/src/lib/sdlc/**' in build-website.yml"; return 1; }
 }
 
-@test "T002624: build-website.yml enthaelt negativen Pfad-Filter für components/sdlc" {
+@test "T002624: build-website.yml enthaelt negativen Pfad-Filter fuer components/sdlc" {
   [ -f "$BUILD_WEBSITE_YML" ] || { echo "MISSING workflow: $BUILD_WEBSITE_YML"; return 1; }
   grep -qE "!components/website/src/components/sdlc/\*\*" "$BUILD_WEBSITE_YML" \
     || { echo "MISSING negativer Pfad-Filter '!components/website/src/components/sdlc/**' in build-website.yml"; return 1; }

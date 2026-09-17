@@ -19,15 +19,15 @@ PR="scripts/factory/pipeline-runner.js"
   grep -q 'FACTORY_INFRA_MAX_ATTEMPTS' "$WD"
 }
 
-@test "T002389-D1: watchdog.sh setzt INFRA-Key für Tickets ohne Phase-Events" {
+@test "T002389-D1: watchdog.sh setzt INFRA-Key fuer Tickets ohne Phase-Events" {
   grep -q 'counter_key="factory_infra_attempt:' "$WD"
 }
 
-@test "T002389-D1: watchdog.sh setzt MODEL-Key für Tickets mit Phase-Events" {
+@test "T002389-D1: watchdog.sh setzt MODEL-Key fuer Tickets mit Phase-Events" {
   grep -q 'counter_key="factory_attempt:' "$WD"
 }
 
-@test "T002389-D1: watchdog.sh prüft Phase-Event-Existenz via SQL" {
+@test "T002389-D1: watchdog.sh prueft Phase-Event-Existenz via SQL" {
   grep -q "SELECT EXISTS" "$WD"
   grep -q "factory_phase_events" "$WD"
 }
@@ -36,7 +36,7 @@ PR="scripts/factory/pipeline-runner.js"
 # D2 — watchdog.sh: Zähler-Logik
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T002389-D2: watchdog.sh übergibt failure_class an unfactory" {
+@test "T002389-D2: watchdog.sh uebergibt failure_class an unfactory" {
   grep -q 'failure_class}.*attempt' "$WD"
 }
 
@@ -77,11 +77,11 @@ PR="scripts/factory/pipeline-runner.js"
   grep -q "factory_attempt:" "$WD"
 }
 
-@test "T002389-D4: watchdog.sh released noch slots (Regressionswächter)" {
+@test "T002389-D4: watchdog.sh released noch slots (Regressionswaechter)" {
   grep -q "release-slot" "$WD"
 }
 
-@test "T002389-D4: watchdog.sh cleanup zombie worktrees (Regressionswächter)" {
+@test "T002389-D4: watchdog.sh cleanup zombie worktrees (Regressionswaechter)" {
   grep -q "_wd_cleanup_worktree" "$WD"
 }
 

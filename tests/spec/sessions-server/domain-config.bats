@@ -17,7 +17,7 @@ setup() {
   grep -qF '${SESSIONS_DOMAIN}' "$REPO_ROOT/k3d/sessions-server.yaml"
 }
 
-@test "Negativ-Guard: k3d-Basis-Manifeste härten keine neuen Session-Domain-Literale ein" {
+@test "Negativ-Guard: k3d-Basis-Manifeste haerten keine neuen Session-Domain-Literale ein" {
   # Positiv-Anker: der bekannte Legacy-Fallback existiert im Hub-Script — der
   # Test misst also gegen eine nicht-leere Referenzmenge.
   grep -rqF 'sessions.mentolder.de' "$REPO_ROOT/scripts/session-hub.sh"

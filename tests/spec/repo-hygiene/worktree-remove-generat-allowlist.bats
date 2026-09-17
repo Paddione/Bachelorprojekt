@@ -53,7 +53,7 @@ _make_dirty_worktree() {
   printf 'echo ungesicherte Arbeit\n' >> "$wt/scripts/beispiel.sh"
 }
 
-@test "T003121: §1 verwirft 'git log main..<branch>' als Merge-Nachweis" {
+@test "T003121: S1 verwirft 'git log main..<branch>' als Merge-Nachweis" {
   [ -f "$OPS" ]
 
   # Positiv-Anker: §1 existiert und hat Inhalt. Ohne ihn waeren die Aussagen unten

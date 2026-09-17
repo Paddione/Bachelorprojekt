@@ -283,7 +283,7 @@ REG="scripts/factory/service-registry.sh"
 
 # === T002082: dependency-based partial scheduling ===
 
-@test "FA-SF-DEP: plan-lint akzeptiert 5-Spalten-Manifest mit gültigem depends_on" {
+@test "FA-SF-DEP: plan-lint akzeptiert 5-Spalten-Manifest mit gueltigem depends_on" {
   chg="$BATS_TEST_TMPDIR/dep-ok"; mkdir -p "$chg/tasks.d"
   cat > "$chg/tasks.md" <<'EOF'
 ---

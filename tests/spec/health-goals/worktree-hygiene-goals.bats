@@ -82,7 +82,7 @@ dead_pid() {
 
 # ── G-WT01 — Hauptcheckout auf main und sauber ────────────────────────────────
 
-@test "G-WT01: ohne auflösbaren Hauptcheckout meldet main-checkout n/a, nicht 0" {
+@test "G-WT01: ohne aufloesbaren Hauptcheckout meldet main-checkout n/a, nicht 0" {
   # Positiv-Anker zuerst: mit echtem Repo MUSS eine Zahl kommen.
   mk_repo
   run bash "$MEASURE" main-checkout
@@ -98,7 +98,7 @@ dead_pid() {
   [ "$output" != "0" ]
 }
 
-@test "G-WT01: main-checkout zählt fremden Branch und dirty Tree als Verletzung" {
+@test "G-WT01: main-checkout zaehlt fremden Branch und dirty Tree als Verletzung" {
   mk_repo
   # Positiv-Anker: sauberer main ist 0.
   run bash "$MEASURE" main-checkout
@@ -134,7 +134,7 @@ dead_pid() {
   [ "$output" != "0" ]
 }
 
-@test "G-WT02: stale-worktrees zählt gemergten Worktree, nicht den aktiven Nachbarn" {
+@test "G-WT02: stale-worktrees zaehlt gemergten Worktree, nicht den aktiven Nachbarn" {
   mk_repo
   # Gemergt: HEAD ist Vorfahr von origin/main.
   git -C "$R" worktree add -q -b wt-merged "$FIX/wt-merged" >/dev/null 2>&1
@@ -168,7 +168,7 @@ dead_pid() {
   [ "$output" != "0" ]
 }
 
-@test "G-WT03: orphan-locks zählt toten Lock, nicht den lebenden Nachbarn" {
+@test "G-WT03: orphan-locks zaehlt toten Lock, nicht den lebenden Nachbarn" {
   mk_repo
   local dp; dp="$(dead_pid)"
   mk_lock "ticket__T000dead" "ticket" "$dp" 60
@@ -180,7 +180,7 @@ dead_pid() {
   [ "$output" = "1" ]
 }
 
-@test "G-WT03 (Vorfall T002570): toter PID mit nie fortgeschriebenem Heartbeat bei existierendem Worktree wird gezählt" {
+@test "G-WT03 (Vorfall T002570): toter PID mit nie fortgeschriebenem Heartbeat bei existierendem Worktree wird gezaehlt" {
   mk_repo
   local dp; dp="$(dead_pid)"
   # Positiv-Anker: derselbe Aufbau mit LEBENDER PID darf nicht zählen.
@@ -197,7 +197,7 @@ dead_pid() {
   [ "$output" = "1" ]
 }
 
-@test "G-WT03 (stärkster Anker): der Lock der laufenden Session gilt als lebendig, obwohl seine owner_pid tot ist" {
+@test "G-WT03 (staerkster Anker): der Lock der laufenden Session gilt als lebendig, obwohl seine owner_pid tot ist" {
   # `agent-lock.sh::_write_lock` schreibt "owner_pid": "$$" — die PID des kurzlebigen
   # agent-lock.sh-Prozesses. Sekunden nach dem Claim ist sie IMMER tot, auch beim Lock
   # der gerade laufenden Session. Eine Regel "tote PID ⇒ verwaist" stufte am 2026-08-02
@@ -219,7 +219,7 @@ dead_pid() {
   [ "$output" = "1" ]
 }
 
-@test "G-WT03 (Gegenprobe): Lock mit lebender owner_pid und frischem Heartbeat wird nicht gezählt" {
+@test "G-WT03 (Gegenprobe): Lock mit lebender owner_pid und frischem Heartbeat wird nicht gezaehlt" {
   mk_repo
   # Positiv-Anker: die Messung ist scharf — ein toter Lock in derselben Fixture wird erkannt.
   local dp; dp="$(dead_pid)"
@@ -234,7 +234,7 @@ dead_pid() {
   [ "$output" = "1" ]
 }
 
-@test "G-WT03: abgelaufener Heartbeat wird auch ohne tote PID gezählt" {
+@test "G-WT03: abgelaufener Heartbeat wird auch ohne tote PID gezaehlt" {
   mk_repo
   # Positiv-Anker: frischer Heartbeat derselben PID zählt nicht.
   mk_lock "ticket__T000fresh" "ticket" "$$" 10
@@ -265,7 +265,7 @@ dead_pid() {
   [ "$output" != "0" ]
 }
 
-@test "G-WT04: unsafe-worktrees zählt nur die Schnittmenge aus löschbereit UND dirty" {
+@test "G-WT04: unsafe-worktrees zaehlt nur die Schnittmenge aus loeschbereit UND dirty" {
   mk_repo
   # Löschbereit (gemergt) UND dirty => zählt.
   git -C "$R" worktree add -q -b wt-gefahr "$FIX/wt-gefahr" >/dev/null 2>&1
@@ -302,7 +302,7 @@ dead_pid() {
   [ "$output" != "0" ]
 }
 
-@test "G-WT05: main-divergence zählt Commits in main..origin/main" {
+@test "G-WT05: main-divergence zaehlt Commits in main..origin/main" {
   mk_repo
   # Positiv-Anker: synchron ist 0.
   run bash "$MEASURE" main-divergence
@@ -337,7 +337,7 @@ dead_pid() {
   [ "$output" != "0" ]
 }
 
-@test "G-WT06: phantom-scope-locks zählt Flag-als-Scope neben gültigem ticket-Scope" {
+@test "G-WT06: phantom-scope-locks zaehlt Flag-als-Scope neben gueltigem ticket-Scope" {
   mk_repo
   # Der belegte Fall vom 2026-08-02: `--label` wurde als Positionsargument
   # (Scope) gelesen. Daneben ein wohlgeformter Lock als Positiv-Anker.
@@ -350,7 +350,7 @@ dead_pid() {
   [ "$output" = "1" ]
 }
 
-@test "G-WT06: leerer Scope zählt, wohlgeformter Scope nicht" {
+@test "G-WT06: leerer Scope zaehlt, wohlgeformter Scope nicht" {
   mk_repo
   mk_lock "branch__ok" "branch" "$$" 10
   run bash "$MEASURE" phantom-scope-locks

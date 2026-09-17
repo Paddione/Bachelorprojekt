@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.348.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.2...website-v1.348.3) (2026-09-17)
+
+
+### Bug Fixes
+
+* **agents:** merge system messages for llamacpp-local [T900220] ([#5710](https://github.com/Paddione/Bachelorprojekt/issues/5710)) ([bcdb67b](https://github.com/Paddione/Bachelorprojekt/commit/bcdb67b3c4b5c845665a813402cd83acca84f982))
+
 ## [1.348.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.348.1...website-v1.348.2) (2026-09-17)
 
 

@@ -18,13 +18,12 @@
 #      'embed'. Vorab-Probe; bei totem Backend klare Remediation statt
 #      Silent-Skip.
 #
-#      [T900191] Der Proxy laeuft in devmesh (svc/llm-services). Der
-#      Default zeigt weiterhin auf den Loopback-Port, weil ein lokal gestarteter
-#      Proxy der haeufigere Fall bleibt; wer gegen devmesh arbeitet, setzt
-#      LLM_PROXY_URL EINMAL in der Umgebung und alle Verbraucher dieses
-#      Skripts folgen. Genau daran scheiterte der post-commit-Hook auf jeder
-#      Maschine ohne laufenden Proxy: die Adresse war nicht umstellbar, ohne
-#      jeden Aufruf einzeln zu umgeben.
+#      [T900191] Der Proxy laeuft in devmesh (svc/llm-services); lokal haelt
+#      scripts/mcp-gateway/devmesh-forward.service den Loopback-Port 18235.
+#      Der Default bleibt deshalb der Loopback-Port. LLM_PROXY_URL bzw.
+#      LLM_EMBED_URL stellen die Adresse fuer alle Verbraucher um.
+#      [T900209] Probe mit kurzem Connect-Timeout und Bearer
+#      (LLM_PROXY_ADMIN_TOKEN); dauerhafte Fehlschlaege enden mit Exit 3.
 #   3. Ausgabe von openspec-embed.mjs wird geprüft: nur "indexed slug=" ist
 #      Erfolg (Exit 0). "skipping"/"failure" => Exit 1 mit Hinweis.
 #
@@ -68,8 +67,16 @@ probe_embed() {
   # `|| PROBE_RC=$?` statt `; PROBE_RC=$?`: unter `set -e` bricht eine
   # Zuweisung aus fehlgeschlagener Kommandosubstitution das Skript ab, bevor
   # der Exit-Code ueberhaupt ausgewertet werden kann.
-  PROBE_HTTP="$(curl -s --max-time "${OPENSPEC_EMBED_PROBE_TIMEOUT:-20}" -o /dev/null -w '%{http_code}' \
-    -X POST "$1/v1/embeddings" -H 'Content-Type: application/json' \
+  # [T900209] --connect-timeout getrennt vom Gesamtbudget: das Budget (20s) deckt
+  # die gemessene Backend-Latenz (T002659), ein Host ohne Antwort auf den
+  # Verbindungsaufbau soll es aber nicht ausschoepfen.
+  # Der devmesh-Proxy (svc/llm-services) sperrt jede Anfrage ohne Bearer
+  # (scripts/llm-proxy/listeners.mjs) — deshalb LLM_PROXY_ADMIN_TOKEN mitsenden.
+  local auth=()
+  [[ -n "${LLM_PROXY_ADMIN_TOKEN:-}" ]] && auth=(-H "Authorization: Bearer ${LLM_PROXY_ADMIN_TOKEN}")
+  PROBE_HTTP="$(curl -s --connect-timeout "${OPENSPEC_EMBED_CONNECT_TIMEOUT:-3}" \
+    --max-time "${OPENSPEC_EMBED_PROBE_TIMEOUT:-20}" -o /dev/null -w '%{http_code}' \
+    -X POST "$1/v1/embeddings" -H 'Content-Type: application/json' ${auth[@]+"${auth[@]}"} \
     -d '{"input":["ping"],"model":"bge-m3"}' 2>"$err_file")" || PROBE_RC=$?
   PROBE_ERR="$(tr -d '\r' < "$err_file" | head -3)"
   rm -f "$err_file"
@@ -78,7 +85,10 @@ probe_embed() {
 # Benennt den curl-Exit-Code, statt ihn zu "nicht erreichbar" zu verallgemeinern.
 probe_diagnosis() {
   case "$PROBE_RC" in
-    0)  echo "Backend ANTWORTET (HTTP ${PROBE_HTTP}), aber nicht mit 200 — das ist KEIN Erreichbarkeitsproblem." ;;
+    0)  case "$PROBE_HTTP" in
+          401|403) echo "Backend ANTWORTET (HTTP ${PROBE_HTTP}) und weist die Anfrage ab — LLM_PROXY_ADMIN_TOKEN fehlt oder ist falsch." ;;
+          *) echo "Backend ANTWORTET (HTTP ${PROBE_HTTP}), aber nicht mit 200 — das ist KEIN Erreichbarkeitsproblem." ;;
+        esac ;;
     6)  echo "DNS-Auflösung fehlgeschlagen (curl 6)." ;;
     7)  echo "Verbindung abgelehnt / kein Lauscher am Port (curl 7)." ;;
     28) echo "Zeitüberschreitung nach ${OPENSPEC_EMBED_PROBE_TIMEOUT:-20}s (curl 28) — Port belegt, aber keine Antwort." ;;
@@ -99,22 +109,27 @@ if [[ "$PROBE_RC" -ne 0 || "$PROBE_HTTP" != "200" ]]; then
     [[ -n "$PROBE_ERR" ]] && echo "  curl:   ${PROBE_ERR}"
     cat <<'EOF'
 Remediation — der llm-proxy beantwortet /v1/embeddings (Rollenkette 'embed').
-Seit T900191 laeuft er im devmesh-Pod llm-services; lokal ist er
-optional. Zwei Wege:
+Seit T900191 laeuft er im devmesh-Pod llm-services; die lokale Unit
+llm-proxy.service ist stillgelegt (ADR-007).
 
-  a) Gegen devmesh arbeiten (kein lokaler Proxy noetig):
-       kubectl --context devmesh -n workspace port-forward svc/llm-services 18235:18235
-     oder dauerhaft die Adresse setzen:
-       export LLM_PROXY_URL=http://127.0.0.1:18235
+  a) Forward auf devmesh einrichten (einmalig, haelt 127.0.0.1:18235):
+       systemctl --user link "$PWD/scripts/mcp-gateway/devmesh-forward.service"
+       systemctl --user enable --now devmesh-forward.service
+  b) Der devmesh-Proxy verlangt einen Bearer:
+       export LLM_PROXY_ADMIN_TOKEN=...   # Secret workspace-secrets (devmesh, ns workspace)
+  c) Anderes Backend gezielt ansprechen:
+       export LLM_EMBED_URL=http://127.0.0.1:<port>
 
-  b) Lokalen Proxy benutzen:
-       node scripts/llm-proxy/server.mjs      # oder die systemd-user-Unit
-
-  LLM_EMBED_URL ueberschreibt beides, falls gezielt ein anderes Backend
-  angesprochen werden soll.
+  post-commit-Hook abschalten: OPENSPEC_EMBED_HOOK_DISABLED=1
 EOF
     echo "  Gegenprobe: curl -s ${EMBED_URL}/v1/embeddings -H 'Content-Type: application/json' -d '{\"model\":\"bge-m3\",\"input\":[\"test\"]}'"
   } >&2
+  # [T900209] Exit 3 = dauerhaft (kein Lauscher, DNS, Abweisung): ein Versuch
+  # Sekunden spaeter trifft dieselbe Lage, der post-commit-Hook wiederholt dann
+  # nicht. Timeout und 5xx bleiben Exit 1 (wiederholbar, T002916).
+  case "${PROBE_RC}:${PROBE_HTTP}" in
+    6:*|7:*|0:401|0:403|0:404) exit 3 ;;
+  esac
   exit 1
 fi
 

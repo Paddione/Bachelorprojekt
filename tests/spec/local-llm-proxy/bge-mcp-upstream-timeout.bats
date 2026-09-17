@@ -66,3 +66,41 @@ teardown() {
   [ "$status" -eq 0 ] || { echo "curl lief in den Timeout (status=$status) — der Shim haengt weiterhin"; false; }
   [[ "$output" == *"did not answer within"* ]] || { echo "keine Timeout-Diagnose in der Antwort: $output"; false; }
 }
+
+@test "bge_embed reicht den optionalen LLM-Proxy-Bearer an den Upstream weiter" {
+  # Der Stub akzeptiert ausschliesslich den internen Proxy-Token. Damit ist
+  # nachgewiesen, dass der Header vom MCP-Tool-Aufruf bis zum Upstream gelangt.
+  local port_file auth_port auth_pid auth_mcp_port auth_mcp_pid
+  port_file="$(mktemp)"
+  node - "$port_file" <<'NODE' &
+const fs = require('fs');
+const http = require('http');
+const out = process.argv[2];
+const server = http.createServer((req, res) => {
+  if (req.headers.authorization !== 'Bearer proxy-secret') {
+    res.writeHead(401); return res.end('unauthorized');
+  }
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ data: [{ embedding: [0.1, 0.2] }] }));
+});
+server.listen(0, '127.0.0.1', () => fs.writeFileSync(out, String(server.address().port)));
+NODE
+  auth_pid=$!
+  for _ in $(seq 1 30); do [ -s "$port_file" ] && break; sleep 0.1; done
+  auth_port="$(cat "$port_file")"
+  auth_mcp_port=$((22000 + RANDOM % 1000))
+  BGE_MCP_TOKEN=testtoken BGE_MCP_PORT="$auth_mcp_port" LLM_PROXY_ADMIN_TOKEN=proxy-secret \
+    LLM_EMBED_URL="http://127.0.0.1:$auth_port" LLM_RERANKER_URL="http://127.0.0.1:$auth_port" \
+    node "$REPO/scripts/bge-mcp/server.mjs" >/dev/null 2>&1 &
+  auth_mcp_pid=$!
+  for _ in $(seq 1 30); do curl -s --max-time 1 -o /dev/null "http://127.0.0.1:$auth_mcp_port/mcp" && break; sleep 0.1; done
+
+  run curl -s --max-time 10 -X POST "http://127.0.0.1:$auth_mcp_port/mcp" \
+    -H 'Authorization: Bearer testtoken' -H 'Accept: application/json, text/event-stream' \
+    -H 'Content-Type: application/json' \
+    -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"bge_embed","arguments":{"texts":["ping"]}}}'
+  kill "$auth_mcp_pid" "$auth_pid" 2>/dev/null || true
+  rm -f "$port_file"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"dimensions":2'* ]] || { echo "Embedding kam nicht mit internem Bearer durch: $output"; false; }
+}

@@ -122,11 +122,52 @@ mapfile -t stale < <(_stale_query | factory_psql)
 # Zombie-Worktree-Cleanup: a hung pipeline leaves .worktrees/sf-* behind. Remove the
 # worktree whose branch matches this ticket (idempotent; never fails the loop).
 # Extracted into a function with T002361 so the escalation path gets the same
+# T900227: Serialisierung gegen Heartbeat-TTL-Reap über denselben Registry-flock
+_wd_with_registry_lock() {
+  local lf_dir lf
+  if [[ -n "${AGENT_LOCK_DIR:-}" ]]; then
+    lf_dir="$AGENT_LOCK_DIR"
+  else
+    local toplevel common
+    toplevel="$(git rev-parse --show-toplevel 2>/dev/null || echo "")"
+    if [[ -n "$toplevel" ]]; then
+      common="$(cd "$toplevel" && git rev-parse --git-common-dir 2>/dev/null || echo ".git")"
+      case "$common" in
+        /*) lf_dir="$common/agent-locks" ;;
+        *) lf_dir="$toplevel/$common/agent-locks" ;;
+      esac
+    else
+      lf_dir="/tmp/agent-locks"
+    fi
+  fi
+  mkdir -p "$lf_dir" 2>/dev/null || true
+  lf="$lf_dir/.registry.lock"
+  touch "$lf" 2>/dev/null || return 0
+  exec 9>"$lf" || return 0
+  flock 9 2>/dev/null || true
+}
+
+_wd_release_registry_lock() {
+  flock -u 9 2>/dev/null || true
+  exec 9>&- 2>/dev/null || true
+}
+
+# Zombie-Worktree-Cleanup: a hung pipeline leaves .worktrees/sf-* behind. Remove the
+# worktree whose branch matches this ticket (idempotent; never fails the loop).
+# Extracted into a function with T002361 so the escalation path gets the same
 # housekeeping as the reset path — an unfactored ticket must not leave a worktree
 # behind just because it took the other branch.
 _wd_cleanup_worktree() {
   local ext_id="$1" ext_lc stale_wt
   ext_lc="$(printf '%s' "$ext_id" | tr '[:upper:]' '[:lower:]')"
+
+  # T006364 / T900227: factory_excluded-Tickets nicht selbst reapen/purgen
+  local excluded
+  excluded="$(BRAND="${BRAND:-}" TICKET_CTX="${FACTORY_CTX:-}" bash "$HERE/../ticket.sh" get --id "$ext_id" 2>/dev/null | jq -r '.readiness.factory_excluded // false')"
+  if [[ "$excluded" == "true" ]]; then
+    return 0
+  fi
+
   # [T012502] Alle vier Konventions-Praefixe und beide Schreibweisen der
   # Ticket-ID erfassen. Vorher stand hier exakt feature/sf-<klein> bzw.
   # chore/sf-<klein> — die Gegenstelle in pipeline.mjs bildet seit T012502 den
@@ -140,13 +181,39 @@ _wd_cleanup_worktree() {
         /^worktree /{w=$2}
         /^branch /{ b=tolower($0); if (b ~ (pat id "$")) print w }')"
   [[ -z "$stale_wt" ]] && return 0
+
+  # Source activity helpers if not already defined
+  if ! declare -f _worktree_recently_active >/dev/null 2>&1; then
+    if [[ -f "$HERE/../agent-lock-activity.sh" ]]; then
+      # shellcheck source=../agent-lock-activity.sh
+      source "$HERE/../agent-lock-activity.sh"
+    fi
+  fi
+
+  # T900227: Aktivitätsprüfung vor Cleanup (cwd, open fd, mtime)
+  if declare -f _worktree_recently_active >/dev/null 2>&1 && _worktree_recently_active "$stale_wt"; then
+    bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
+      --body "Watchdog: zombie worktree $stale_wt is recently active (process/fd/mtime) — skipped force-remove" >/dev/null 2>&1 || true
+    return 0
+  fi
+
   if git -C "$stale_wt" status --short 2>/dev/null | grep -q .; then
     bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
       --body "Watchdog: zombie worktree $stale_wt has uncommitted changes — skipped force-remove, needs manual review" >/dev/null 2>&1 || true
   else
-    git worktree unlock "$stale_wt" 2>/dev/null || true
-    git worktree remove --force "$stale_wt" 2>/dev/null || rm -rf "$stale_wt" 2>/dev/null || true
-    worktree_prune_safe 2>/dev/null || true
+    # T900227: Serialisierung über gemeinsamen Registry-flock
+    _wd_with_registry_lock
+    if [[ -d "$stale_wt" ]]; then
+      # Liveness unmittelbar vor der Löschung unter Lock nochmals prüfen
+      if declare -f _worktree_recently_active >/dev/null 2>&1 && _worktree_recently_active "$stale_wt"; then
+        _wd_release_registry_lock
+        return 0
+      fi
+      git worktree unlock "$stale_wt" 2>/dev/null || true
+      git worktree remove --force "$stale_wt" 2>/dev/null || rm -rf "$stale_wt" 2>/dev/null || true
+      worktree_prune_safe 2>/dev/null || true
+    fi
+    _wd_release_registry_lock
   fi
 }
 

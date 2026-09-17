@@ -90,6 +90,52 @@ _worktree_has_active_process() {
   return 1
 }
 
+# 0 = recently active (process cwd, open fd, or recent mtime), 1 = inactive. [T900227]
+# Checks:
+#   (a) Any process has cwd in the worktree (_worktree_has_active_process)
+#   (b) Any process holds an open file descriptor under the worktree (/proc/*/fd/*)
+#   (c) Any file in the worktree has mtime within FACTORY_WORKTREE_ACTIVE_MIN (default 10)
+_worktree_recently_active() {
+  local wt="$1"
+  [ -d "$wt" ] || return 1
+  wt="$(cd "$wt" 2>/dev/null && pwd -P)" || return 1
+
+  # 1. Process cwd inside worktree
+  if _worktree_has_active_process "$wt"; then
+    return 0
+  fi
+
+  # 2. Open file descriptor pointing into worktree
+  local -A _my_pids
+  local _p="$$"
+  while [[ -n "$_p" && "$_p" -gt 1 ]]; do
+    _my_pids[$_p]=1
+    _p=$(ps -o ppid= -p "$_p" 2>/dev/null | tr -d '[:space:]')
+    [[ -z "$_p" ]] && break
+  done
+
+  local _pid _fd _target
+  for _pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
+    [[ -n "${_my_pids[$_pid]:-}" ]] && continue
+    for _fd in /proc/"$_pid"/fd/*; do
+      _target="$(readlink "$_fd" 2>/dev/null)" || continue
+      if [[ "$_target" = "$wt" || "$_target" = "$wt"/* ]]; then
+        return 0
+      fi
+    done
+  done
+
+  # 3. Recent file modifications within FACTORY_WORKTREE_ACTIVE_MIN
+  local active_min="${FACTORY_WORKTREE_ACTIVE_MIN:-10}"
+  local recent_file
+  recent_file="$(find "$wt" -maxdepth 4 -not -path '*/.git*' -mmin "-${active_min}" 2>/dev/null | head -n 1)"
+  if [ -n "$recent_file" ]; then
+    return 0
+  fi
+
+  return 1
+}
+
 # [T015822] heartbeat_at auf einem bestehenden Lock erneuern, ohne Identitäts-
 # felder anzutasten. Atomar unter dem Registry-flock (_with_lock-Stil), per
 # tmp+mv; best-effort — ein Guard darf nie am Schreiben hindern.
@@ -184,6 +230,18 @@ cmd_check_branch_live() {
     return 0
   else
     echo "free"
+    return 1
+  fi
+}
+
+# T900227: Check if a worktree is recently active (process cwd, open fd, or recent mtime)
+cmd_check_worktree_active() {
+  if [ -z "${1:-}" ]; then echo "Missing worktree path" >&2; return 1; fi
+  if _worktree_recently_active "$1"; then
+    echo "active"
+    return 0
+  else
+    echo "inactive"
     return 1
   fi
 }

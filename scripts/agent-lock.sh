@@ -612,6 +612,7 @@ main() {
     check-and-claim) cmd_check_and_claim "$@";;
     check-branch-live) cmd_check_branch_live "$@";;
     check-worktree-live) cmd_check_worktree_live "$@";;
+    check-worktree-active) cmd_check_worktree_active "$@";;
     check-merged)    cmd_check_merged "$@";;
     list)    cmd_list "$@";;
     reap)    cmd_reap "$@";;
@@ -620,7 +621,7 @@ main() {
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
     reclaim-main-checkout) cmd_reclaim_main_checkout "$@";;
-    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-branch-live|check-worktree-live|check-merged|list|reap|mine|guard-precommit|guard-postcheckout|reclaim-main-checkout}" >&2; return 2;;
+    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-branch-live|check-worktree-live|check-worktree-active|check-merged|list|reap|mine|guard-precommit|guard-postcheckout|reclaim-main-checkout}" >&2; return 2;;
   esac
 }
 main "$@"

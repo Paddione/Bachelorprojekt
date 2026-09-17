@@ -3786,6 +3786,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory-watchdog/worktree-activity-shield",
+    "file": "tests/spec/factory-watchdog/worktree-activity-shield.bats",
+    "category": "factory-watchdog",
+    "kind": "shell"
+  },
+  {
     "id": "factory/vda-frontmatter",
     "file": "tests/spec/factory/vda-frontmatter.bats",
     "category": "factory",

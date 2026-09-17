@@ -19,7 +19,7 @@ export interface MenuUser {
 }
 
 export interface MenuItem {
-  id: 'new-session' | 'join' | 'saved' | 'settings';
+  id: 'new-session' | 'join' | 'applications' | 'saved' | 'settings';
   label: string;
   hint?: string;
   /** FE-4: rendered as a greyed, non-clickable button (feature lands later). */
@@ -44,6 +44,7 @@ export function menuModel(user: MenuUser): MenuModel {
   if (user.userId && user.userId !== 'anon') {
     items.push({ id: 'new-session', label: 'Neue Session starten', hint: 'Eine Aufstellung leiten' });
   }
+  if (user.isAdmin) items.push({ id: 'applications', label: 'Bewerbungs-Cockpit', hint: 'Kanban und Timeline' });
   items.push({ id: 'join', label: 'Session beitreten', hint: 'Mit Code teilnehmen' });
   // FE-4: these screens do not exist yet — render them visibly disabled ("bald
   // verfügbar") instead of as active buttons that silently no-op / dump the user
@@ -57,6 +58,7 @@ export interface MenuHandlers {
   user: MenuUser;
   onNewSession: () => void;
   onJoin: (code: string) => void;
+  onApplications: () => void;
   onSavedList: () => void;
   onSettings: () => void;
 }
@@ -101,6 +103,7 @@ export function mountMenu(container: HTMLElement, opts: MenuHandlers): void {
     }
     const onClick =
       item.id === 'new-session' ? opts.onNewSession
+      : item.id === 'applications' ? opts.onApplications
       : item.id === 'saved' ? opts.onSavedList
       : opts.onSettings;
     const btn = Button({ label: item.label, variant: item.id === 'new-session' ? 'primary' : 'ghost', onClick });

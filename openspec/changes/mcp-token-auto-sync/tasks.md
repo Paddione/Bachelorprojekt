@@ -47,7 +47,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/token-drift-auto-sync.b
 
 - [x] **Fix-Step (GREEN).** p1 implements the heal script + hook; p2 Task T3 turns the suite green.
 
-- [ ] **Final Verification (STRUCT3).** Run the three mandatory CI gates:
+- [x] **Final Verification (STRUCT3).** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

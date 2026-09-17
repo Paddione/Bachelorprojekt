@@ -4861,6 +4861,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900228": [
+    {
+      "slug": "application-pipeline",
+      "status": "planning"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

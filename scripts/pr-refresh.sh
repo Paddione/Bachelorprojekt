@@ -23,6 +23,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO_ROOT/scripts/lib/worktree-gitdir-guard.sh"
 
 # Indirektionspunkte fuer den Test — dieselbe Technik wie AGENT_LOCK_FAKE_ALIVE in
 # agent-lock.sh: kein Netz, kein echter Push, aber der reale Kontrollfluss.
@@ -223,6 +224,7 @@ _refresh_branch() {
   # nur dann committen, wenn sich wirklich etwas geaendert hat.
   (cd "$wt" && task freshness:regenerate >/dev/null 2>&1) || true
   if [ -n "$(git -C "$wt" status --porcelain)" ]; then
+    worktree_validate_gitdir --worktree "$wt" --command-name "commit refreshed PR artifacts" || return 1
     git -C "$wt" add -A
     git -C "$wt" commit -q -m "chore: regen freshness artifacts after rebase [T002413]"
   fi

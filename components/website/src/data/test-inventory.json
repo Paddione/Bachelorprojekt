@@ -6694,5 +6694,11 @@
     "file": "tests/spec/worktree-divergence-guard/stash-restore-visible.bats",
     "category": "worktree-divergence-guard",
     "kind": "shell"
+  },
+  {
+    "id": "worktree-gitdir-guard",
+    "file": "tests/spec/worktree-gitdir-guard.bats",
+    "category": "worktree-gitdir-guard",
+    "kind": "shell"
   }
 ]

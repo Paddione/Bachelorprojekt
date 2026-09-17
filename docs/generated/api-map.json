@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-15T11:35:09.586Z",
+  "generatedAt": "2026-09-17T12:30:43.974Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2017,6 +2017,22 @@
       ],
       "auth": "unclassified",
       "file": "components/website/src/pages/api/homepage.ts"
+    },
+    {
+      "path": "/api/internal/applications/list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/list.ts"
+    },
+    {
+      "path": "/api/internal/applications/timeline",
+      "methods": [
+        "POST"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/timeline.ts"
     },
     {
       "path": "/api/internal/tickets/notify-close",

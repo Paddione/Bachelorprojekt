@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-99 Services · 2034 Abhängigkeitskanten · 291 API-Endpoints
+99 Services · 2034 Abhängigkeitskanten · 293 API-Endpoints
 
 ## Service-Map
 
@@ -2460,6 +2460,8 @@ flowchart TB
 | `/api/dsgvo-request` | POST | ❓ unclassified |
 | `/api/health` | GET | ❓ unclassified |
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified |
+| `/api/internal/applications/list` | GET | ❓ internal |
+| `/api/internal/applications/timeline` | POST | ❓ internal |
 | `/api/internal/tickets/notify-close` | POST | ❓ internal |
 | `/api/leistungen` | GET | ❓ unclassified |
 | `/api/meeting/finalize` | POST | ❓ unclassified |

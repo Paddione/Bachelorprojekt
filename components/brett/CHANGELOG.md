@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.43.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.42.0...brett-v0.43.0) (2026-09-17)
+
+
+### Features
+
+* **website:** mount applications cockpit Kanban [T900233] ([#5742](https://github.com/Paddione/Bachelorprojekt/issues/5742)) ([4da4110](https://github.com/Paddione/Bachelorprojekt/commit/4da4110f8ad590553faae31923b74e26981c2c15))
+
 ## [0.42.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.4...brett-v0.42.0) (2026-09-17)
 
 

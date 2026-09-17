@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.42.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.4...brett-v0.42.0) (2026-09-17)
+
+
+### Features
+
+* **brett:** implement application-pipeline cockpit kanban [T900233] ([#5736](https://github.com/Paddione/Bachelorprojekt/issues/5736)) ([96f7d6e](https://github.com/Paddione/Bachelorprojekt/commit/96f7d6e3ca73fae75121007338556486228dc26c))
+
 ## [0.41.4](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.3...brett-v0.41.4) (2026-09-01)
 
 

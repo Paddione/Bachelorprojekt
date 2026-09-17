@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.352.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.351.1...website-v1.352.0) (2026-09-17)
+
+
+### Features
+
+* **brett:** implement application-pipeline cockpit kanban [T900233] ([#5736](https://github.com/Paddione/Bachelorprojekt/issues/5736)) ([96f7d6e](https://github.com/Paddione/Bachelorprojekt/commit/96f7d6e3ca73fae75121007338556486228dc26c))
+* **scripts:** worktree activity shield before watchdog cleanup [T900227] ([#5737](https://github.com/Paddione/Bachelorprojekt/issues/5737)) ([b17ee19](https://github.com/Paddione/Bachelorprojekt/commit/b17ee1937f1bbe33df79142c2a7ab51be5246f4e))
+
 ## [1.351.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.351.0...website-v1.351.1) (2026-09-17)
 
 

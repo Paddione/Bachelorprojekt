@@ -54,8 +54,8 @@ teardown() {
 @test "agent-models.jsonc enthält keinen plaintext sk-API-Key" {
   AGENT_MODELS="$REPO_ROOT/.opencode/agent-models.jsonc"
 
-  # Positiv-Anker: der alibaba-intl-Provider ist definiert.
-  grep -q '"alibaba-intl"' "$AGENT_MODELS"
+  # Positiv-Anker: mindestens ein Provider ist definiert (T004808; alibaba-intl in T900164 retired).
+  grep -q '"llamacpp-local"' "$AGENT_MODELS"
 
   # Negativ: kein sk-…-Token und kein apiKey-Feld mit sk-…-Wert mehr im Repo.
   ! grep -Eq 'sk-[A-Za-z0-9._-]{20,}' "$AGENT_MODELS"

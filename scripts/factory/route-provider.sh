@@ -15,21 +15,15 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/lib.sh"; factory_resolve
 SOURCE="${1:?source required}"; TIER="${2:?tier required}"
 
-PIN="$(factory_model_pin)"
-PIN_MODEL=""; PIN_LOCKED="0"
-# T900164: FreeToken-native (:1919) ist decommissioned — lokaler Default ist
-# wieder der llamacpp-Stack via llm-proxy auf :18235 (Loadout qwen38-220k).
-FT_LOCAL_PROVIDER="llamacpp-local"
-FT_LOCAL_BASEURL="http://127.0.0.1:18235/v1"
-if [[ -n "$PIN" ]]; then
-  IFS=$'\t' read -r PIN_MODEL PIN_LOCKED <<< "$PIN"
-  if [[ "$PIN_LOCKED" == "1" ]]; then
-    echo "route-provider: Factory-Modell gesperrt auf '$PIN_MODEL' (source=$SOURCE tier=$TIER) — DB-Routing uebersprungen." >&2
-    printf '{"provider":"%s","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":false}\n' "$FT_LOCAL_PROVIDER" "$PIN_MODEL" "$FT_LOCAL_BASEURL"
-    exit 0
-  fi
-fi
-FACTORY_DEFAULT_MODEL="${PIN_MODEL:-${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}}"
+# T900208: einziges lokales Backend ist FreeToken-native auf Windows (:1919,
+# per WSL-Mirrored-Networking erreichbar, single-flight). Der llm-proxy (:18235)
+# ist seit 2026-09-03 stillgelegt (ADR-007); mit ihm entfiel der Modell-Pin aus
+# /admin/factory — FACTORY_MODEL_ID ist der einzige Regler fuer den Modellnamen.
+# base_url OHNE '/v1': die Konsumenten (auto-triage.sh, scout-llm-fallback.sh)
+# haengen '/v1/chat/completions' selbst an [T003492].
+FT_LOCAL_PROVIDER="freetoken-local"
+FT_LOCAL_BASEURL="${FACTORY_LOCAL_URL:-http://127.0.0.1:1919}"
+FACTORY_DEFAULT_MODEL="${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}"
 
 # Tier "opus": Modell aus der Registry, aber OHNE Slot-Claim.
 #
@@ -79,8 +73,7 @@ SQL
 )
   if [[ -z "$OPUS_ROW" ]]; then
     echo "route-provider: provider_config fuer tier=opus nicht lesbar oder leer (source=$SOURCE)." >&2
-    echo "  Fallback auf den eingebauten Default. Bei erreichbarem Cluster:" >&2
-    echo "  scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql anwenden." >&2
+    echo "  Fallback auf den eingebauten Default ($FT_LOCAL_BASEURL, $FACTORY_DEFAULT_MODEL)." >&2
     OPUS_ROW="$OPUS_FALLBACK"
   fi
   IFS=$'\t' read -r opus_prov opus_model opus_burl <<< "$OPUS_ROW"
@@ -93,8 +86,8 @@ SQL
 fi
 
 # T013302: Der fruehere Phase-Pin aus der damaligen Slot-Tabelle ist entfernt —
-# provider_config ist die einzige DB-Quelle des Routings. Der Factory-Default
-# lebt am llm-proxy (factory_model_pin oben) und greift dort, wo er gesperrt ist.
+# provider_config ist die einzige DB-Quelle des Routings. Der fruehere Pin am
+# llm-proxy (/admin/factory) ist mit dem Proxy entfallen [T900208].
 
 # Ordered candidates: source-specific before '*', then priority asc.
 CANDS=$(factory_psql -v src="$SOURCE" -v tier="$TIER" <<'SQL'
@@ -131,15 +124,15 @@ SQL
   fi
 done <<< "$CANDS"
 
-# Emergency fallback: kein Slot geclaimt, Weg ueber das Gateway.
+# Emergency fallback: kein Slot geclaimt, Weg direkt zu FreeToken (:1919) [T900208].
 # RC5 [T002359]: hier stand ein Modell, das LM Studio seit dem Gemma-Cutover nicht
 # mehr serviert. Der Router gab es lautlos zurueck — der llm-proxy bog es still auf
 # das erste gesunde Backend um, sodass nirgends ein Fehler auftauchte.
 # [T002582] Die damalige Korrektur trug nur einen anderen toten Namen ein
 # ('gemma-4-12b') und zeigte weiterhin auf LM Studio :1234 — das dort seit T002551
 # ausschliesslich Embedding- und Reranker-Modelle serviert, also GAR KEIN
-# Chat-Modell mehr. Der Fallback zeigt jetzt auf dasselbe Gateway wie der
-# regulaere Weg; damit gibt es nur noch eine Stelle, die ein Modell benennen kann.
+# Chat-Modell mehr. Der Fallback nutzt dieselben FT_LOCAL_*-Werte wie der
+# opus-Zweig; damit gibt es nur noch eine Stelle, die ein Modell benennen kann.
 echo "route-provider: ALLE Kandidaten fuer source=$SOURCE tier=$TIER belegt oder auf Cooldown." >&2
 echo "  Emergency-Fallback aktiv — pruefe 'bash scripts/factory/reap-provider-slots.sh --dry-run'." >&2
 printf '{"provider":"%s","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n' "$FT_LOCAL_PROVIDER" "$FACTORY_DEFAULT_MODEL" "$FT_LOCAL_BASEURL"

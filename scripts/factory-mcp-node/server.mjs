@@ -78,6 +78,11 @@ function serverStale() {
 // LLM-Route loesen (gleicher Fallback wie Go)
 // ---------------------------------------------------------------------------
 
+// [T900208] Fallback = FreeToken-native :1919 (der llm-proxy :18235 ist
+// stillgelegt) — deckungsgleich mit scripts/factory/mcp-go/main.go.
+const DEFAULT_LOCAL_LLM_URL = 'http://127.0.0.1:1919/v1';
+const DEFAULT_LOCAL_LLM_MODEL = 'Qwen3.6-35B-A3B-NVFP4';
+
 function resolveLLM() {
   try {
     // Versuche route-provider.sh (wie Go)
@@ -93,7 +98,7 @@ function resolveLLM() {
         if (!u.endsWith('/v1')) u += '/v1';
         return {
           baseURL: u,
-          model: route.modelId || envOr('FACTORY_LLM_MODEL', 'qwen38-220k'),
+          model: route.modelId || envOr('FACTORY_LLM_MODEL', DEFAULT_LOCAL_LLM_MODEL),
           slotID: route.slotId || '',
           apiKeyEnv: route.apiKeyEnv || '',
           ctx: route.ctx || 0,
@@ -102,8 +107,8 @@ function resolveLLM() {
     }
   } catch { /* Fallback: env overrides */ }
   return {
-    baseURL: envOr('FACTORY_LLM_URL', 'http://127.0.0.1:18235/v1'),
-    model: envOr('FACTORY_LLM_MODEL', 'qwen38-220k'),
+    baseURL: envOr('FACTORY_LLM_URL', DEFAULT_LOCAL_LLM_URL),
+    model: envOr('FACTORY_LLM_MODEL', DEFAULT_LOCAL_LLM_MODEL),
     slotID: '',
     apiKeyEnv: '',
     ctx: 0,

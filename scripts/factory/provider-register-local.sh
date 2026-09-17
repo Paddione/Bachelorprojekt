@@ -16,34 +16,37 @@
 # Der Modellname ist bewusst kein Literal mehr: FACTORY_MODEL_ID ueberschreibt
 # ihn, damit ein Modellwechsel keine Quelltextaenderung erzwingt.
 #
-# 2026-07-23 Redesign (unveraendert gueltig): der Server laeuft mit einem Slot —
-# gleichzeitige Factory-/Orchestrator-Dispatches serialisieren in der FIFO-Queue
-# von scripts/llm-proxy, daher max_concurrent=1. Scout/Plan behalten ihr
-# Routing; seit T013302 laeuft das Routing ausschliesslich ueber
-# provider_config, der fruehere Phasen-Pin ist entfallen.
+# max_concurrent=1: FreeToken-native serviert genau einen Request gleichzeitig
+# (--max-running-requests 1, statischer 200k-KV-Pool). Seit T013302 laeuft das
+# Routing ausschliesslich ueber provider_config, der fruehere Phasen-Pin ist
+# entfallen.
+#
+# [T900208] Bis 2026-09-17 zeigte die base_url auf das Gateway (llm-proxy
+# :18235, Backend-Registry tickets.llm_proxy_backends) und der Modellname kam
+# optional aus dessen /admin/factory-Pin. Der Proxy ist seit 2026-09-03
+# stillgelegt (ADR-007); beides ist entfallen. Die Registrierung zeigt jetzt
+# direkt auf FreeToken :1919 — das einzige lokale Generierungs-Backend.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$HERE/lib.sh"
 
-PIN="$(factory_model_pin)"; IFS=$'\t' read -r PIN_MODEL _ <<< "${PIN:-}"
 # T014028: lokaler Default ist FreeToken-native (Modell-ID, kein Loadout-Slug —
 # dieselbe Konvention wie route-provider.sh, damit der Default-Konsistenzguard
 # in tests/spec/software-factory/factory-model-id-default.bats gruen bleibt).
-MODEL_ID="${PIN_MODEL:-${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}}"
-# Immer das vereinheitlichte Gateway, nie ein Backend-Port. Welches Backend
-# dahinter haengt, entscheidet die Registry tickets.llm_proxy_backends.
+MODEL_ID="${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}"
+# Dieselbe Adresse und derselbe Override wie route-provider.sh (FACTORY_LOCAL_URL).
 # [T003492] OHNE '/v1' — die Konsumenten haengen '/v1/chat/completions' selbst an
 # (openspec/specs/software-factory.md: base_url adressiert die Wurzel, "that the
 # callers append /v1/chat/completions to"). Mit '/v1' entstand '.../v1/v1/chat/
 # completions' → HTTP 404, und weil curl ohne --fail laeuft, meldete auto-triage
 # das als "no content in <provider> response" statt als Transportfehler.
-GATEWAY_URL="${FACTORY_GATEWAY_URL:-http://127.0.0.1:18235}"
+LOCAL_URL="${FACTORY_LOCAL_URL:-http://127.0.0.1:1919}"
 
 for b in mentolder korczewski; do
-  BRAND="$b" MODEL_ID="$MODEL_ID" GATEWAY_URL="$GATEWAY_URL" \
+  BRAND="$b" MODEL_ID="$MODEL_ID" LOCAL_URL="$LOCAL_URL" \
   bash -c 'source "'"$HERE"'/lib.sh"; factory_resolve; factory_psql \
-    -v model_id="$MODEL_ID" -v base_url="$GATEWAY_URL"' <<'SQL'
+    -v model_id="$MODEL_ID" -v base_url="$LOCAL_URL"' <<'SQL'
 INSERT INTO tickets.provider_config
   (source, tier, priority, provider, model_id, base_url, max_concurrent, enabled)
 VALUES
@@ -54,5 +57,5 @@ ON CONFLICT (source, tier, priority) DO UPDATE
       base_url = EXCLUDED.base_url, max_concurrent = EXCLUDED.max_concurrent,
       enabled = true, updated_at = now();
 SQL
-  echo "local provider registered for $b — model=$MODEL_ID url=$GATEWAY_URL"
+  echo "local provider registered for $b — model=$MODEL_ID url=$LOCAL_URL"
 done

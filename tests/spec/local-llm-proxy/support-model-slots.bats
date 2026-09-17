@@ -95,6 +95,9 @@ _require_proxy() {
 @test "T006840: lmstudio-Slots gemma-4-e2b@ud-q4_k_xl und qwen3.5-4b@q6_k sind deklariert (Limits 16384/4096 bzw. 32768/4096)" {
   local block active
   block="$(lmstudio_block)"
+  if [ -z "$block" ]; then
+    skip "lmstudio-Provider ist retired (T900164, docs/agent-guide/registry/retired.md)"
+  fi
   active="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*(#|//)' || true)"
 
   # Trefferzahl == 1 je Slot im aktiven Text des lmstudio-Blocks (formatfrei,
@@ -131,6 +134,9 @@ _require_proxy() {
   # fehlen und die Kandidatenmenge leer bleibt.
   local block active
   block="$(lmstudio_block)"
+  if [ -z "$block" ]; then
+    skip "lmstudio-Provider ist retired (T900164, docs/agent-guide/registry/retired.md)"
+  fi
   active="$(printf '%s\n' "$block" | grep -vE '^[[:space:]]*(#|//)' || true)"
   run grep -c -- '"gemma-4-e2b@ud-q4_k_xl"' <<<"$active"
   [ "$output" -eq 1 ]

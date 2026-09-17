@@ -1,21 +1,23 @@
 {
   "provider": {
-    // Lokaler Provider ueber den llm-proxy (:18235).
+    // Lokaler Provider direkt auf FreeToken-native (:1919) [T900208].
     //
     // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
     // und opencode-Default referenzieren ihn) — dahinter steht seit
     // T014028/T014105 FreeToken-native (:1919, Qwen3.6-35B-A3B-NVFP4, statischer
     // 200k-KV-Pool). Kein llama.cpp-Loadout mehr aktiv.
     //
-    // Ueber den llm-proxy statt direkt auf :1919: Proxy-max_inflight=3 queuet
-    // bis zu 3 sequenzielle Dispatches, die sich den ≤200k served-KV-Pool und
-    // den Radix-Cache teilen; die Fallback-Kette lokal -> deepseek -> zen
-    // greift auch hier [T002558].
+    // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
+    // stillgelegt (ADR-007). FreeToken serviert single-flight
+    // (--max-running-requests 1) aus einem statischen 200k-KV-Pool; weitere
+    // Requests warten in FreeTokens eigener Queue. Die fruehere Proxy-Fallback-
+    // Kette lokal -> deepseek -> zen [T002558] existiert damit nicht mehr —
+    // Ausweichen auf deepseek ist eine explizite Agenten-Wahl.
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "FreeToken via llm-proxy (Qwen3.6-35B-A3B-NVFP4, static 200k KV pool)",
+      "name": "FreeToken direkt :1919 (Qwen3.6-35B-A3B-NVFP4, static 200k KV pool)",
       "options": {
-        "baseURL": "http://127.0.0.1:18235/v1",
+        "baseURL": "http://127.0.0.1:1919/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
@@ -31,7 +33,7 @@
         // KV-Ladder-Alternative VERWORFEN: grosse MoE-Wachstums-Rebuilds OOMen
         // unter Fragmentierung (2.49GB-Alloc bei 1.93GB frei) — statisch gewinnt.
         "Qwen3.6-35B-A3B-NVFP4": {
-          "name": "Qwen3.6-35B-A3B MoE (FreeToken :1919 via llm-proxy, static 200k KV / moe 4150, ~100 tok/s decode, reasoning on)",
+          "name": "Qwen3.6-35B-A3B MoE (FreeToken :1919 direkt, static 200k KV / moe 4150, ~100 tok/s decode, reasoning on)",
           "limit": {
             "context": 200000,
             "output": 8192
@@ -146,11 +148,11 @@
     // (gptoss/devstral/gemma/gemma12/qwen38) zeigten alle auf dasselbe
     // FreeToken-Modell — fuenf Namen, ein Slot, kein Prefix-Cache-Gewinn mehr
     // (ein Resident-Checkpoint, ein Radix-Cache). Kollabiert zu einem `local`.
-    // Engine: --max-running-requests 1 (single-flight); Proxy queuet ≤3
+    // Engine: --max-running-requests 1 (single-flight); FreeToken queuet weitere Requests
     // sequenzielle Dispatches, die ≤200k served KV teilen. Der Orchestrator
     // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~150k).
     "local": {
-      "description": "Sole local implementation subagent (Qwen3.6-35B-A3B MoE via FreeToken :1919 through llm-proxy, 200k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
+      "description": "Sole local implementation subagent (Qwen3.6-35B-A3B MoE via FreeToken :1919 (direct), 200k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
       "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
       "prompt": "{file:./prompts/local-subagent.md}",

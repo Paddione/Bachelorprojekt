@@ -54,19 +54,20 @@ active login session (e.g. after a host reboot).
 |-----|---------|---------|
 | `FACTORY_REPO` | `/home/patrick/Bachelorprojekt` | repo root for shell tools |
 | `FACTORY_MCP_PORT` | `13003` | listen port |
-| `FACTORY_LLM_URL` | `http://192.168.100.10:1234/v1` | OpenAI-compatible base URL |
-| `FACTORY_LLM_MODEL` | `hermes-3-llama-3.1-8b` | chat-completions model |
-| `FACTORY_LLM_API_KEY` | `lmstudio` | bearer token (LMStudio ignores) |
+| `FACTORY_LLM_URL` | `http://127.0.0.1:1919/v1` | OpenAI-compatible base URL (fallback when `route-provider.sh` fails) |
+| `FACTORY_LLM_MODEL` | `Qwen3.6-35B-A3B-NVFP4` | chat-completions model (same fallback) |
+| `FACTORY_LLM_API_KEY` | `lmstudio` | bearer token (FreeToken ignores it) |
 | `OPENSPEC_SEARCH_URL` | `http://website.website.svc.cluster.local:4321` | OpenSpec API base |
 
 ## Model choice
 
-Default is `hermes-3-llama-3.1-8b` (~3s per call, real content).
-`qwen/qwen3.5-9b` is available on the same LMStudio instance but is a
-reasoning model that often returns empty `content` and takes 60s+ per
-call on this host. Override via `FACTORY_LLM_MODEL` if you specifically
-want it (tool timeout is 90s, with a graceful fall-back to the
-`reasoning_content` trace).
+The route normally comes from `scripts/factory/route-provider.sh`
+(`tickets.provider_config`). The built-in fallback is the only local
+generation backend: FreeToken-native on Windows (`:1919`, reached from WSL
+via mirrored networking, one request at a time). The former llm-proxy
+(`:18235`) is retired (T900208). The model is a reasoning model, so give
+`max_tokens` generous headroom — a small budget returns empty `content`
+(the tool falls back to the `reasoning_content` trace).
 
 ## Why Go
 

@@ -45,7 +45,7 @@ teardown() {
   [[ "$output" == *"no changes"* ]]
 }
 
-@test "SSOT: tot verifizierte llamacpp-local-Modelle tragen // stale:-Marker" {
+@test "SSOT: tot verifizierte llamacpp-local-Modelle sind entfernt oder tragen // stale:-Marker" {
   node -e '
     const fs = require("fs");
     const src = fs.readFileSync(".opencode/agent-models.jsonc", "utf8");
@@ -53,11 +53,10 @@ teardown() {
     const bad = [];
     for (const name of dead) {
       const idx = src.indexOf(`"${name}": {`);
-      if (idx < 0) { bad.push(name + ": Eintrag fehlt"); continue; }
+      if (idx < 0) continue; // In T900164 vollstaendig entfernt (siehe docs/agent-guide/registry/retired.md)
       const limitIdx = src.indexOf(`"limit": {`, idx);
-      if (limitIdx < 0) { bad.push(name + ": kein limit-Block"); continue; }
-      if (!/stale:/.test(src.slice(idx, limitIdx))) {
-        bad.push(name + ": kein // stale:-Marker");
+      if (limitIdx < 0 || !/stale:/.test(src.slice(idx, limitIdx))) {
+        bad.push(name + ": weder entfernt noch mit // stale: markiert");
       }
     }
     if (bad.length) { console.error(bad.join("\n")); process.exit(1); }

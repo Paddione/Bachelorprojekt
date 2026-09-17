@@ -124,7 +124,14 @@ factory_psql() {
     return
   fi
   local pod sql=""
-  if [ ! -t 0 ] && read -t 0 -r 2>/dev/null; then
+  local has_cmd_arg=0
+  for arg in "$@"; do
+    case "$arg" in
+      -c|--command=*|-f|--file=*) has_cmd_arg=1; break ;;
+      -[!-]*c*) has_cmd_arg=1; break ;;
+    esac
+  done
+  if [[ "$has_cmd_arg" -eq 0 && ! -t 0 ]]; then
     sql="$(cat)"
   fi
   # [T900118] Writes gegen devmesh verweigern — nur im kubectl-Pfad; der FACTORY_PG_URL-
@@ -166,12 +173,5 @@ factory_backlog_count() {
   printf '%s\n' "$count"
 }
 
-factory_model_pin() {
-  local body model locked
-  body="$(curl -s -m 2 "http://127.0.0.1:${LLM_PROXY_PORT:-18235}/admin/factory" 2>/dev/null)" || return 0
-  [[ -z "$body" ]] && return 0
-  model="$(printf '%s' "$body" | jq -r '.model // empty' 2>/dev/null)" || return 0
-  [[ -z "$model" ]] && return 0
-  locked="$(printf '%s' "$body" | jq -r 'if .locked then "1" else "0" end' 2>/dev/null)"
-  printf '%s\t%s\n' "$model" "${locked:-0}"
-}
+# [T900208] factory_model_pin (las Modell + Lock aus llm-proxy /admin/factory)
+# ist mit dem Proxy entfallen. Modellwahl: ausschliesslich FACTORY_MODEL_ID.

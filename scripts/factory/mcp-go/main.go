@@ -96,8 +96,15 @@ func resolveAuthKey(apiKeyEnv string) string {
 // 192.168.100.10:1234 mit Modell "hermes-3-llama-3.1-8b" — beides existiert nicht
 // mehr. Wenn route-provider.sh ausfiel, antwortete factory_ask deshalb nicht mit
 // einem Transportfehler, sondern mit "no healthy backend" gegen ein Modell, das
-// der Proxy gar nicht fuehrt. Der Fallback zeigt jetzt auf dasselbe Gateway und
-// dasselbe Loadout wie der Normalpfad.
+// der Proxy gar nicht fuehrt.
+// [T900208] Der Nachfolger zeigte auf den llm-proxy (:18235, Loadout
+// qwen38-220k), der seit 2026-09-03 stillgelegt ist. Der Fallback zeigt jetzt
+// auf dasselbe lokale Backend wie route-provider.sh: FreeToken-native :1919.
+const (
+	defaultLocalLLMURL   = "http://127.0.0.1:1919/v1"
+	defaultLocalLLMModel = "Qwen3.6-35B-A3B-NVFP4"
+)
+
 func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 	script := repo() + "/scripts/factory/route-provider.sh"
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -105,8 +112,8 @@ func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 	out, err := exec.CommandContext(timeoutCtx, "bash", script, "factory-ask", "haiku").Output()
 	if err != nil {
 		// Fallback: env overrides (backwards compat for local dev)
-		return envOr("FACTORY_LLM_URL", "http://127.0.0.1:18235/v1"),
-			envOr("FACTORY_LLM_MODEL", "qwen38-220k"),
+		return envOr("FACTORY_LLM_URL", defaultLocalLLMURL),
+			envOr("FACTORY_LLM_MODEL", defaultLocalLLMModel),
 			"", "", 0
 	}
 	var route struct {
@@ -118,8 +125,8 @@ func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 		Ctx       int     `json:"ctx"`
 	}
 	if err := json.Unmarshal(bytes.TrimSpace(out), &route); err != nil || route.BaseURL == nil || *route.BaseURL == "" {
-		return envOr("FACTORY_LLM_URL", "http://127.0.0.1:18235/v1"),
-			envOr("FACTORY_LLM_MODEL", "qwen38-220k"),
+		return envOr("FACTORY_LLM_URL", defaultLocalLLMURL),
+			envOr("FACTORY_LLM_MODEL", defaultLocalLLMModel),
 			"", "", 0
 	}
 	// Resolve nullable slotId/apiKeyEnv from pointers to empty strings.

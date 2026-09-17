@@ -32,21 +32,23 @@ _completions_url() {
 
 @test "provider_config: eine konventionsgerechte base_url ergibt genau ein /v1" {
   # Positiv-Anker: belegt zuerst, dass die Append-Logik ueberhaupt das Erwartete tut.
-  run _completions_url "http://127.0.0.1:18235"
+  run _completions_url "http://127.0.0.1:1919"
   [ "$status" -eq 0 ]
-  [ "$output" = "http://127.0.0.1:18235/v1/chat/completions" ]
+  [ "$output" = "http://127.0.0.1:1919/v1/chat/completions" ]
 }
 
 @test "provider_config: eine base_url mit /v1 wuerde den Pfad verdoppeln" {
   # Der Defekt in seiner reinen Form — dokumentiert, warum die Konvention noetig ist.
-  run _completions_url "http://127.0.0.1:18235/v1"
+  run _completions_url "http://127.0.0.1:1919/v1"
   [ "$status" -eq 0 ]
-  [ "$output" = "http://127.0.0.1:18235/v1/v1/chat/completions" ]
+  [ "$output" = "http://127.0.0.1:1919/v1/v1/chat/completions" ]
 }
 
-@test "provider-register-local.sh: GATEWAY_URL-Default endet nicht auf /v1" {
+# [T900208] Die Variable heisst LOCAL_URL, seit das Skript nicht mehr ueber das
+# stillgelegte Gateway, sondern direkt an FreeToken :1919 registriert.
+@test "provider-register-local.sh: LOCAL_URL-Default endet nicht auf /v1" {
   [ -f "$LOCAL_REG" ]
-  run grep -E '^GATEWAY_URL=' "$LOCAL_REG"
+  run grep -E '^LOCAL_URL=' "$LOCAL_REG"
   [ "$status" -eq 0 ]                      # Positiv-Anker: die Zuweisung existiert
   [[ "$output" != *'/v1"'* ]]
   [[ "$output" != *"/v1'"* ]]

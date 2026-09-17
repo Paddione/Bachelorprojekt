@@ -43,3 +43,19 @@ _plan_frontmatter_state() {  # <slug> <repo_dir>
   fi
   return 0
 }
+
+# [T900226] DB-freies Unterkommando --apply-completed-frontmatter
+_apply_completed_frontmatter_cli() {  # <tasks-md-pfad>
+  local f="$1"
+  if [[ -z "$f" ]]; then
+    echo "ERROR: --apply-completed-frontmatter erfordert einen Pfad." >&2
+    exit 2
+  fi
+  if [[ ! -f "$f" ]]; then
+    echo "ERROR: Plan-Datei '$f' existiert nicht." >&2
+    exit 1
+  fi
+  _apply_plan_frontmatter_completed_path "$f"
+  exit 0
+}
+

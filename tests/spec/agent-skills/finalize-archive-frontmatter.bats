@@ -88,3 +88,31 @@ setup() {
   stray="$(grep -E 'sed .*planning.*"\$PLAN_FILE"' "$FINALIZE" || true)"
   [ -z "$stray" ]
 }
+
+@test "T900226: --apply-completed-frontmatter setzt status: active auf completed" {
+  cd "$FIX"
+  run bash "$FINALIZE" --apply-completed-frontmatter "$FIX/openspec/changes/demo-change/tasks.md"
+  [ "$status" -eq 0 ]
+  run grep -qE '^status: completed$' "$FIX/openspec/changes/demo-change/tasks.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "T900226: --apply-completed-frontmatter ist idempotent und tastet fremde Stati nicht an" {
+  cd "$FIX"
+  printf '# plan\ntitle: draft-demo\nstatus: draft\n' > "$FIX/openspec/changes/demo-change/tasks.md"
+  local before after
+  before="$(cat "$FIX/openspec/changes/demo-change/tasks.md")"
+  run bash "$FINALIZE" --apply-completed-frontmatter "$FIX/openspec/changes/demo-change/tasks.md"
+  [ "$status" -eq 0 ]
+  after="$(cat "$FIX/openspec/changes/demo-change/tasks.md")"
+  [ "$before" = "$after" ]
+}
+
+@test "T900226: archive-plan Aufruf liegt in der Archiv-Sektion nach checkout -B" {
+  local ln_checkout ln_archive_plan
+  ln_checkout="$(grep -nF 'git checkout -B "$ARCHIVE_BRANCH" origin/main' "$FINALIZE" | head -1 | cut -d: -f1)"
+  ln_archive_plan="$(grep -nE 'bash "\$TICKET_SH" archive-plan' "$FINALIZE" | head -1 | cut -d: -f1)"
+  [ -n "$ln_checkout" ] && [ -n "$ln_archive_plan" ]
+  [ "$ln_checkout" -lt "$ln_archive_plan" ]
+}
+

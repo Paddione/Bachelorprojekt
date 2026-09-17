@@ -173,8 +173,8 @@ to a single value rather than a repeated literal.
 The opencode provider key `llamacpp-local` SHALL be defined in exactly one place
 in the repository, namely `.opencode/agent-models.jsonc`. `.opencode/opencode.jsonc`
 SHALL NOT define a provider under that key. The provider SHALL target the
-llm-proxy at `http://127.0.0.1:18235/v1`, which fronts the FreeToken-native
-engine on `:1919`.
+FreeToken-native engine directly at `http://127.0.0.1:1919/v1`. The llm-proxy
+(`:18235`) no longer sits in front of it (T900208/T900213, corrected T900222).
 
 Rationale: mirrors the original `llamacpp-mtp` single-definition requirement —
 `.opencode/agent-models.jsonc` is the sync source that
@@ -183,11 +183,11 @@ definition in the project config would silently override it (T002159, T014105).
 The key keeps its historical name although no llama.cpp loadout is active behind
 it anymore (T014028/T014105, consolidated 2026-09-16, T900203).
 
-#### Scenario: Provider is declared once with the llm-proxy endpoint
+#### Scenario: Provider is declared once with the FreeToken endpoint
 
 - **GIVEN** `.opencode/agent-models.jsonc` defines the provider `llamacpp-local`
 - **WHEN** the file is parsed and the provider's `options.baseURL` inspected
-- **THEN** the value is `http://127.0.0.1:18235/v1`
+- **THEN** the value is `http://127.0.0.1:1919/v1`
 
 ### Requirement: Local Agent Roster on the Qwen3.6 Checkpoint
 
@@ -201,7 +201,7 @@ Rationale: the five legacy family handles (`gptoss`, `devstral`, `gemma`,
 slot, no prefix-cache gain. They collapsed into a single `local` subagent on
 2026-09-16 (T900164). The `freetoken-local` provider and its `active` alias are
 gone; the provider key is `llamacpp-local` (historical name) serving FreeToken
-through the llm-proxy (T900203). The former per-loadout primaries
+directly on `:1919` (T900203, T900208). The former per-loadout primaries
 (`gemma26-primary`, `gemma26-vision`, `gptoss-primary`, `devstral-primary`,
 `gemma12-primary`, `gemma26-throughput-primary`, `qwen38-primary`) were
 byte-identical clones whose names referenced retired loadouts; they are removed

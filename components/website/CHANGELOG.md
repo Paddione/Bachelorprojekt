@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.351.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.350.0...website-v1.351.0) (2026-09-17)
+
+
+### Features
+
+* **scripts:** implement application pipeline schema, ingest and bootstrap [T900228] ([#5730](https://github.com/Paddione/Bachelorprojekt/issues/5730)) ([2910a67](https://github.com/Paddione/Bachelorprojekt/commit/2910a67b4fea9a157bff2e0ea6a1031d4b8d3b25))
+
 ## [1.350.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.349.1...website-v1.350.0) (2026-09-17)
 
 

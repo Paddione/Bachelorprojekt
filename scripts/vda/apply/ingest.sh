@@ -9,11 +9,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
-# Source DB resolution helpers
-if [[ -f "${REPO_ROOT}/scripts/factory/lib.sh" ]]; then
-  source "${REPO_ROOT}/scripts/factory/lib.sh"
-  factory_resolve >/dev/null 2>&1 || true
-fi
+# Source shared DB helper
+source "${REPO_ROOT}/scripts/lib/application-pipeline-db.sh"
 
 FILE=""
 COMPANY=""
@@ -21,6 +18,7 @@ ROLE=""
 SOURCE_URL=""
 REQUIREMENTS=""
 RAW_TEXT=""
+STATUS="found"
 
 show_help() {
   cat <<'HELP'
@@ -33,6 +31,7 @@ Options:
   --url, --source-url <url> Source job URL
   --requirements <req>      Extracted requirements text
   --raw-text <text>         Raw job description text (when not using --file)
+  --status <status>         Initial status (default: found)
   -h, --help                Show this help
 HELP
 }
@@ -61,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --raw-text)
       RAW_TEXT="${2:-}"
+      shift 2
+      ;;
+    --status)
+      STATUS="${2:-found}"
       shift 2
       ;;
     -h|--help)
@@ -121,40 +124,12 @@ if [[ -z "$RAW_TEXT" ]]; then
   RAW_TEXT="${ROLE} @ ${COMPANY}"
 fi
 
-# Execute INSERT with parameter substitution
-SQL_INSERT="INSERT INTO applications.jobs (company, role_title, source_url, raw_text, requirements, status)
-VALUES (:'company', :'role_title', NULLIF(:'source_url', ''), :'raw_text', NULLIF(:'requirements', ''), 'found')
-ON CONFLICT (company, role_title) DO NOTHING
-RETURNING id;"
+RESULT="$(app_pipeline_upsert_job "$COMPANY" "$ROLE" "$SOURCE_URL" "$RAW_TEXT" "$REQUIREMENTS" "$STATUS")"
 
-RETURNING_ID=""
-if [[ -n "${FACTORY_PG_URL:-}" ]]; then
-  RETURNING_ID="$(echo "$SQL_INSERT" | psql "$FACTORY_PG_URL" -qtA -v ON_ERROR_STOP=1 \
-    -v company="$COMPANY" \
-    -v role_title="$ROLE" \
-    -v source_url="$SOURCE_URL" \
-    -v raw_text="$RAW_TEXT" \
-    -v requirements="$REQUIREMENTS" | tr -d '[:space:]')"
-else
-  pod="$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
-    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)"
-  if [[ -z "$pod" ]]; then
-    echo "Error: no running shared-db pod found" >&2
-    exit 1
-  fi
-  RETURNING_ID="$(echo "$SQL_INSERT" | kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
-    -c postgres -- psql -U website -d website -qtA -v ON_ERROR_STOP=1 \
-    -v company="$COMPANY" \
-    -v role_title="$ROLE" \
-    -v source_url="$SOURCE_URL" \
-    -v raw_text="$RAW_TEXT" \
-    -v requirements="$REQUIREMENTS" 2>/dev/null | tr -d '[:space:]')"
-fi
-
-if [[ -z "$RETURNING_ID" ]]; then
+if [[ "$RESULT" == "DUPLICATE" ]]; then
   echo "Duplicate: ${COMPANY}/${ROLE} already ingested" >&2
   exit 0
 fi
 
-echo "Ingested job: id=${RETURNING_ID} (${ROLE} @ ${COMPANY})"
+echo "Ingested job: id=${RESULT} (${ROLE} @ ${COMPANY})"
 exit 0

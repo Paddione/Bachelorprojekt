@@ -1046,7 +1046,13 @@ attribution; both names share uid 1000 and are not isolated from each other. The
 - **GIVEN** the pod runs with `runAsNonRoot: true` and `runAsUser: 1000`
 - **WHEN** the pod-level `securityContext` is declared
 - **THEN** it sets `net.ipv4.ip_unprivileged_port_start` to `"0"`, so that binding port 22 does not
-  depend on the container runtime's default
+depend on the container runtime's default
+
+#### Scenario: SSH restrictions cannot be overridden *(BATS)*
+
+- **GIVEN** the `dev-shell` SSH configuration denies agent, stream-local, tunnel and gateway forwarding
+- **WHEN** the complete configuration is inspected
+- **THEN** it contains no `Match` block that could override those restrictions and exposes only the required Kubernetes API environment values
 
 ### Requirement: The dev-shell home survives pod restarts
 <!-- bats: mcp-gateway/dev-shell-ssh.bats -->
@@ -1054,6 +1060,12 @@ attribution; both names share uid 1000 and are not isolated from each other. The
 The `dev-shell` container SHALL mount a dedicated PersistentVolumeClaim `dev-pod-home` at
 `/home/dev`, holding the users' working clone, shell and tool configuration and the SSH host key.
 It SHALL mount the shared `dev-pod-repo` checkout read-only.
+
+#### Scenario: Missing SSH keys do not prevent MCP availability *(BATS)*
+
+- **GIVEN** the `dev-pod-authorized-keys` ConfigMap has not yet been created
+- **WHEN** Kubernetes creates the `dev-pod`
+- **THEN** its `authorized-keys` ConfigMap volume is optional, so the optional dev-shell does not prevent the pod from starting
 
 #### Scenario: Host key and working clone persist *(BATS)*
 

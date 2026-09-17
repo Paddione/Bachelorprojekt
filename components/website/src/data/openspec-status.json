@@ -4873,6 +4873,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900235": [
+    {
+      "slug": "agent-interaction-contract",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

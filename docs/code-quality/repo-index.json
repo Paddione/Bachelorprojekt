@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1337,
+      "file_count": 1338,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -420,6 +420,7 @@
         "tests/spec/agent-skills/finalize-worktree-branch-validation.bats",
         "tests/spec/agent-skills/guard-semantics-konvention.bats",
         "tests/spec/agent-skills/harness-guard-registration-T900024.bats",
+        "tests/spec/agent-skills/interaction-contract.bats",
         "tests/spec/agent-skills/messung-mit-befehl.bats",
         "tests/spec/agent-skills/plugin-activation.bats",
         "tests/spec/agent-skills/portable-inventory.bats",

@@ -86,9 +86,48 @@ Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace
 
 OpenSpec CLI completion: `openspec completion install`.
 
-## Status Protocol (every reply, non-negotiable)
+## Interaction Contract (every reply, non-negotiable)
 
-Reply footer (fenced): `STATUS` (what happened) | `RUNNING` (background work or "none") | `BLOCKED` (blockers or "none") | `NEXT` (top value-vs-effort objective from `factory_status`/`queue`/tickets — one word overrides) | `CONF` (high|medium|low). Risk-based autonomy: reversible/low-risk = act; destructive/costly/ambiguous = ask first.
+**Run the assignment to its end.** Carry the assigned task through to its own
+logical completion — including verification, commit and pull request where the
+assignment covers them — and only then return control. Never stop to have the
+user confirm a step you would have recommended anyway. Never start a new task
+or pull a new ticket without being asked.
+
+**Stop only on these four triggers:**
+
+1. **Destructive or irreversible** — delete, force-push, prod deploy, secret
+   rotation, database drop.
+2. **Genuine fork with no default** — two viable designs whose choice materially
+   changes the outcome, and the prior-art search (T002829) found no precedent in
+   `openspec/specs/` or `tests/spec/`.
+3. **Blocked** — missing credentials, unreachable service, contradictory
+   requirement. Follow `.claude/lib/behaviors/escalation-protocol.md`; do not
+   restate it here.
+4. **Cost above threshold** — long-running GPU jobs, large subagent fan-outs,
+   expensive cloud runs.
+
+Everything else is reversible and low-risk: act. Deliver the divisible part
+regardless — finish everything the open question does not depend on and return
+only the blocked remainder.
+
+**Ask so the answer is one keystroke.** A question with a finite set of answers
+goes through `AskUserQuestion` (Claude Code) or `question` (opencode, agy). A
+harness offering neither falls back to numbered Markdown options with the
+recommendation first. Never put a choice into free prose.
+
+**Status footer — once, at the end of a finished thread**, never after every
+action:
+
+```
+STATUS: <what happened>
+RUNNING: <background work or "none">
+BLOCKED: <blockers or "none">
+```
+
+The footer deliberately carries no next-objective and no confidence line. A
+proposed next objective invites the user to approve a step the agent should
+simply take; that was the T016441 footer, replaced here by T900235.
 
 ## Reference Sections (read on-demand, do not frontload)
 

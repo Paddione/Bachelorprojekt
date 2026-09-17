@@ -9,6 +9,10 @@ on:
       - '.github/workflows/build-videovault.yml'
   workflow_dispatch:
 
+concurrency:
+  group: build-videovault-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   OPENSPEC_TELEMETRY: '0'
 
@@ -38,12 +42,12 @@ jobs:
 
       - name: Install videovault-player deps
         working-directory: packages/videovault-player
-        run: npm install
+        run: npm ci
 
       - name: Test gate (types + client unit)
         working-directory: components/VideoVault
         run: |
-          npm install --legacy-peer-deps
+          npm ci --legacy-peer-deps
           npm run check
           npm run test:client
 

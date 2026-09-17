@@ -16,8 +16,8 @@
 # Forward scheitert mit "address already in use".
 #
 # Installation: task agents:mcp:install, oder manuell:
-#   systemctl --user link "$PWD/scripts/mcp-gateway/devmesh-forward.service"
-#   systemctl --user enable --now devmesh-forward.service
+#   systemctl --user enable --now "$PWD/scripts/mcp-gateway/devmesh-forward.service"
+# (Vollpfad-Enable, T900211 — der Bare-Name-Enable scheitert bei gelinkten Units.)
 # Liveness: mcp-gateway-watchdog.timer (Probe 13001, Neustart dieser Unit).
 [Unit]
 Description=Port-forward devmesh llm-services (llm-proxy :18235, mcp-postgres :13001, bge-mcp :13005)

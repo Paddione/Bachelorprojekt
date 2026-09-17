@@ -2134,7 +2134,7 @@ tasks:
           mkdir -p ~/.config/systemd/user
           ln -sf "$PWD/$svc" ~/.config/systemd/user/pgvector-forward.service
           systemctl --user daemon-reload 2>/dev/null || true
-          systemctl --user enable --now pgvector-forward.service 2>/dev/null || true
+          systemctl --user enable --now "$PWD/$svc" 2>/dev/null || true
           state=$(systemctl --user is-active pgvector-forward.service 2>/dev/null || echo 'inactive')
           echo "  pgvector-forward: ${state}"
         fi

@@ -87,7 +87,7 @@ tasks:
         mkdir -p "${UNIT_DIR}"
         ln -sf "${SRC}/factory-mcp.service" "${UNIT_DIR}/factory-mcp.service"
         systemctl --user daemon-reload
-        systemctl --user enable --now factory-mcp.service
+        systemctl --user enable --now "${SRC}/factory-mcp.service"
         echo "factory-mcp installed as systemd --user service (autostart + Restart=always)."
 
   factory-mcp:uninstall:
@@ -222,7 +222,7 @@ tasks:
         ln -sf "${SRC}/mcp-gateway.service" "${UNIT_DIR}/mcp-gateway.service"
         ln -sf "${SRC}/devmesh-forward.service" "${UNIT_DIR}/devmesh-forward.service"
         systemctl --user daemon-reload
-        systemctl --user enable --now mcp-gateway.service devmesh-forward.service
+        systemctl --user enable --now "${SRC}/mcp-gateway.service" "${SRC}/devmesh-forward.service"
         echo "mcp-gateway + devmesh-forward installed as systemd --user services (autostart + Restart=always)."
 
   mcp-gateway:uninstall:
@@ -272,7 +272,7 @@ tasks:
         ln -sf "${SRC}/mcp-gateway-watchdog.service" "${UNIT_DIR}/mcp-gateway-watchdog.service"
         ln -sf "${SRC}/mcp-gateway-watchdog.timer"  "${UNIT_DIR}/mcp-gateway-watchdog.timer"
         systemctl --user daemon-reload
-        systemctl --user enable --now mcp-gateway-watchdog.timer
+        systemctl --user enable --now "${SRC}/mcp-gateway-watchdog.timer"
         echo "mcp-gateway-watchdog installed — Timer feuert alle 60s, probe.sh prueft MCP-initialize."
 
   mcp-gateway-watchdog:uninstall:
@@ -365,7 +365,7 @@ tasks:
         mkdir -p "${UNIT_DIR}"
         ln -sf "${SRC}/mcp-cors-proxy.service" "${UNIT_DIR}/mcp-cors-proxy.service"
         systemctl --user daemon-reload
-        systemctl --user enable --now mcp-cors-proxy.service
+        systemctl --user enable --now "${SRC}/mcp-cors-proxy.service"
         echo "mcp-cors-proxy installed as systemd --user service (autostart + Restart=always)."
 
   mcp-cors-proxy:uninstall:

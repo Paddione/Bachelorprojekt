@@ -113,8 +113,7 @@ Seit T900191 laeuft er im devmesh-Pod llm-services; die lokale Unit
 llm-proxy.service ist stillgelegt (ADR-007).
 
   a) Forward auf devmesh einrichten (einmalig, haelt 127.0.0.1:18235):
-       systemctl --user link "$PWD/scripts/mcp-gateway/devmesh-forward.service"
-       systemctl --user enable --now devmesh-forward.service
+       systemctl --user enable --now "$PWD/scripts/mcp-gateway/devmesh-forward.service"
   b) Der devmesh-Proxy verlangt einen Bearer:
        export LLM_PROXY_ADMIN_TOKEN=...   # Secret workspace-secrets (devmesh, ns workspace)
   c) Anderes Backend gezielt ansprechen:

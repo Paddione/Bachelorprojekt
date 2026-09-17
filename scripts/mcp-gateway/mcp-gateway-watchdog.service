@@ -15,7 +15,9 @@
 # invalide ("/usr/bin/test: extra argument '&&'") — der Rate-Limit-Vorcheck
 # lief nie, und die dokumentierte Restart-Logik war nicht implementiert.
 #
-# Installiert via: systemctl --user enable --now mcp-gateway-watchdog.timer
+# Installiert via: task agents:mcp-gateway-watchdog:install, oder manuell
+#   (Vollpfad-Enable, T900211):
+#   systemctl --user enable --now "$PWD/scripts/mcp-gateway/mcp-gateway-watchdog.timer"
 [Unit]
 Description=MCP Gateway Watchdog — Tunnel-Liveness Probe
 Documentation=file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md

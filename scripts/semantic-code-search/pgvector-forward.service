@@ -11,9 +11,8 @@
 # T002604: gleiches Muster wie bge-forward-embed.service — eigene Unit statt
 # Hintergrundjob in einer Parent-Unit. Restart=always ueberlebt Pod-Rollouts.
 #
-# Aktivieren:
-#   ln -sf $PWD/scripts/semantic-code-search/pgvector-forward.service ~/.config/systemd/user/
-#   systemctl --user daemon-reload && systemctl --user enable --now pgvector-forward
+# Aktivieren (Vollpfad-Enable, T900211):
+#   systemctl --user enable --now "$PWD/scripts/semantic-code-search/pgvector-forward.service"
 #
 # T002757: pgvector war nicht erreichbar, weil der Port-Forward fehlte.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.347.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.2...website-v1.347.0) (2026-09-16)
+
+
+### Features
+
+* **infra:** llm-proxy, bge-mcp und mcp-postgres nach devmesh verlagern [T900191] ([#5681](https://github.com/Paddione/Bachelorprojekt/issues/5681)) ([f48887c](https://github.com/Paddione/Bachelorprojekt/commit/f48887c2ae1b0d49ce2531404a9abafacaa6dd47))
+
 ## [1.346.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.346.1...website-v1.346.2) (2026-09-16)
 
 

@@ -42,33 +42,33 @@ tests/spec/dev-machine-onboarding/git-crypt-gpg.bats (P2, neu)
 
 ## P0 — Verifikation (dateilos)
 
-- [ ] **P0.1** Re-Run: `bash tests/bats tests/spec/local-dev-mesh/tailnet-policy.bats tests/spec/local-dev-mesh/tailnet-check.bats` → 12/12 ok (T900116).
-- [ ] **P0.2** Re-Run: `bash tests/bats tests/spec/dev-machine-onboarding/` → alle ok (T900119).
-- [ ] **P0.3** Re-Run: `bash tests/bats tests/spec/security/workload-exec-rbac.bats tests/spec/security/cluster-admin-audit.bats tests/spec/software-factory/tick-http-wakeup.bats` → alle ok (T900110, entblockt P2).
+- [x] **P0.1** Re-Run: `bash tests/bats tests/spec/local-dev-mesh/tailnet-policy.bats tests/spec/local-dev-mesh/tailnet-check.bats` → 12/12 ok (T900116).
+- [x] **P0.2** Re-Run: `bash tests/bats tests/spec/dev-machine-onboarding/` → alle ok (T900119).
+- [x] **P0.3** Re-Run: `bash tests/bats tests/spec/security/workload-exec-rbac.bats tests/spec/security/cluster-admin-audit.bats tests/spec/software-factory/tick-http-wakeup.bats` → alle ok (T900110, entblockt P2).
 
 ## P1 — Longhorn 1.11.2 [T900181]
 
-- [ ] **P1.1 Commit (RED):** `tests/spec/local-dev-mesh/longhorn-storage.bats` — prüft Preconditions-Skript (Exit-Codes, Idempotenz-Meldung), Default-StorageClass-Flag (gegen Fixture/manifest), `devc`-Freiheit der Install-Pfade.
+- [x] **P1.1 Commit (RED):** `tests/spec/local-dev-mesh/longhorn-storage.bats` — prüft Preconditions-Skript (Exit-Codes, Idempotenz-Meldung), Default-StorageClass-Flag (gegen Fixture/manifest), `devc`-Freiheit der Install-Pfade.
   ```bash
   bash tests/bats tests/spec/local-dev-mesh/longhorn-storage.bats
   # expected: FAIL (red — Skripte noch nicht vorhanden)
   ```
-- [ ] **P1.2** `scripts/devmesh/longhorn-prereqs.sh <host>`: open-iscsi + iscsid + `iscsi_tcp`, nfs-common, cryptsetup + `dm_crypt`, device-mapper, Mount-Propagation; idempotent; Exit 2 bei fehlender Vorbedingung (Stil `scripts/devmesh/*.sh`, `set -euo pipefail`).
-- [ ] **P1.3** `hddthin`-Auflösung + `sda`/`sdb`-Vorbereitung gpu-metal als dokumentierter Abschnitt in P1.2 oder eigenem Schritt (Thin-Pool war inaktiv, Data% 0.00 — Ticketlage).
-- [ ] **P1.4** `scripts/devmesh/longhorn-install.sh`: Longhorn 1.11.2 auf ctx `devmesh`, `local-path`-Default-Flag entfernen, Disk-Registrierung je Knoten; `k3d/dev-cluster/longhorn-install.sh` (v1.7.2/`devc`) entfernen.
-- [ ] **P1.5 Commit (GREEN):** P1.1-Bats ist GREEN; Kapazität nach Rollout messen und in Ticket T900181 notieren (nicht schätzen).
+- [x] **P1.2** `scripts/devmesh/longhorn-prereqs.sh <host>`: open-iscsi + iscsid + `iscsi_tcp`, nfs-common, cryptsetup + `dm_crypt`, device-mapper, Mount-Propagation; idempotent; Exit 2 bei fehlender Vorbedingung (Stil `scripts/devmesh/*.sh`, `set -euo pipefail`).
+- [x] **P1.3** `hddthin`-Auflösung + `sda`/`sdb`-Vorbereitung gpu-metal als dokumentierter Abschnitt in P1.2 oder eigenem Schritt (Thin-Pool war inaktiv, Data% 0.00 — Ticketlage).
+- [x] **P1.4** `scripts/devmesh/longhorn-install.sh`: Longhorn 1.11.2 auf ctx `devmesh`, `local-path`-Default-Flag entfernen, Disk-Registrierung je Knoten; `k3d/dev-cluster/longhorn-install.sh` (v1.7.2/`devc`) entfernen.
+- [x] **P1.5 Commit (GREEN):** P1.1-Bats ist GREEN; Kapazität nach Rollout messen und in Ticket T900181 notieren (nicht schätzen).
 - [ ] **Stale-Pflege:** T900180 (gpu-cluster-3-Join) als Follow-up im Ticket vermerken, kein Gate.
 
 ## P2 — git-crypt per GPG [T900113]
 
-- [ ] **P2.1 Commit (RED):** `tests/spec/dev-machine-onboarding/git-crypt-gpg.bats` — Dockerfile enthält `gnupg`, Runbook nennt GPG_TTY/agent-Lebensdauer, `.git-crypt/keys/default/0/*.gpg` vorhanden.
+- [x] **P2.1 Commit (RED):** `tests/spec/dev-machine-onboarding/git-crypt-gpg.bats` — Dockerfile enthält `gnupg`, Runbook nennt GPG_TTY/agent-Lebensdauer, `.git-crypt/keys/default/0/*.gpg` vorhanden.
   ```bash
   bash tests/bats tests/spec/dev-machine-onboarding/git-crypt-gpg.bats
   # expected: FAIL (red — gnupg fehlt, keine GPG-User)
   ```
-- [ ] **P2.2** `docker/dev-shell/Dockerfile`: `gnupg + pinentry-tty` zurück (in T900111 entfernt); Image baut (`docker build` des dev-shell-Kontexts).
+- [x] **P2.2** `docker/dev-shell/Dockerfile`: `gnupg + pinentry-tty` zurück (in T900111 entfernt); Image baut (`docker build` des dev-shell-Kontexts).
 - [ ] **P2.3** Zeremonie (manuell, einmalig, braucht entsperrten Checkout via Keyfile): `git-crypt add-gpg-user` für patrick/gekko, Commit der `.gpg`-Keyfiles; danach `git-crypt unlock` ohne Keyfile verifizieren; GPG_TTY/agent-Lebensdauer + Private-Key-Ablage `/home/dev` im Runbook dokumentieren.
-- [ ] **P2.4 Commit (GREEN):** P2.1-Bats ist GREEN.
+- [x] **P2.4 Commit (GREEN):** P2.1-Bats ist GREEN.
 
 ## P3 — SP-5 k3d-Rückbau [T900120]
 
@@ -78,8 +78,8 @@ tests/spec/dev-machine-onboarding/git-crypt-gpg.bats (P2, neu)
 
 ## Verify (RED → GREEN)
 
-- [ ] P1.1 RED gesehen (`expected: FAIL`), P1.5 GREEN.
-- [ ] P2.1 RED gesehen (`expected: FAIL`), P2.4 GREEN.
+- [x] P1.1 RED gesehen (`expected: FAIL`), P1.5 GREEN.
+- [x] P2.1 RED gesehen (`expected: FAIL`), P2.4 GREEN.
 - [ ] P0 + P3-Guards GREEN nach Abschluss.
 
 ```bash

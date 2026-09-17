@@ -377,6 +377,14 @@ for branch in "${CANDIDATES[@]}"; do
     continue
   fi
 
+  # [T900096] Branch darf keine ungemergten Commits tragen.
+  # Fall 2026-09-09: PR auf branch-A, plan_ref nannte branch-B — Reaper loeschte branch-B,
+  # obwohl seine Commits nie gemergt wurden (auf branch-A gelandet).
+  if ! git merge-base --is-ancestor "$REMOTE/$branch" "$REMOTE/main" 2>/dev/null; then
+    echo "KEEP $branch — Branch traegt Commits ausserhalb von $REMOTE/main (Datenverlust-Risiko, T900096)"
+    continue
+  fi
+
   # (4) Blob-Abweichungen gegen die Allowlist
   blocked=""
   while IFS= read -r f; do

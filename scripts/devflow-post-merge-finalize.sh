@@ -602,6 +602,8 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # gemergten Commit verweigern kann).
       git fetch origin main
       git checkout -B "$ARCHIVE_BRANCH" origin/main
+      # [T900096] Fremde uncommittete Aenderungen verwerfen — wandern sonst in Archiv-PR.
+      git checkout -- . 2>/dev/null || true; git clean -fd 2>/dev/null || true
       # [T015916] Frontmatter-Wechsel im Archiv-Baum: nach checkout -B, vor archive.
       _apply_plan_frontmatter_completed "$ARCHIVE_DIR"
       if [[ "${ARCHIVE_RESUME:-0}" == 1 ]]; then

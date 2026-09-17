@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2389 · Scenarios: 5308
+Specs: 128 · Requirements: 2392 · Scenarios: 5313
 
 ## factory-pipeline
 
@@ -536,17 +536,13 @@ Last touches:
   - Secret-Redaktion erstreckt sich auf angereicherte Felder | T006252 | 2026-08-15 | ADDED
 
 ### factory-watchdog
-Reqs: 5 · Scenarios: 5 · Lines: 77
+Reqs: 8 · Scenarios: 10 · Lines: 131
 Last touches:
+  - Worktree-Aktivitätsschutz vor Zombie-Löschung | T900227 | 2026-09-17 | ADDED
+  - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T900227 | 2026-09-17 | ADDED
+  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T900227 | 2026-09-17 | ADDED
   - Claim-Readiness-Gate vor Gang-Slot-Claim | T015556 | 2026-08-24 | ADDED
   - Unlesbarer INFRA-Counter blockiert Eskalation nicht dauerhaft | T015556 | 2026-08-24 | ADDED
-  - DB-Identitätscheck vor Reset-Writes | T015556 | 2026-08-24 | ADDED
-  - STALE_MIN-Floor in Produktion | T015556 | 2026-08-24 | ADDED
-  - Ticket-Status-Reaper für verwaiste in_progress | T002770 | 2026-08-09 | ADDED
-In-flight:
-  - Worktree-Aktivitätsschutz vor Zombie-Löschung | T900227 | active | ADDED
-  - Serialisierung von Heartbeat-TTL-Reap und Zombie-Purge | T900227 | active | ADDED
-  - factory_excluded-Tickets bleiben vom eigenen Watchdog verschont | T900227 | active | ADDED
 
 ### fix-factory-lock-worktree-safety
 Reqs: 4 · Scenarios: 8 · Lines: 80

@@ -2,7 +2,7 @@
 title: "watchdog-worktree-activity — Implementation Plan"
 ticket_id: T900227
 domains: [factory-watchdog, scripts]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

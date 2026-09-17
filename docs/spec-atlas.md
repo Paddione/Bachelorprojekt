@@ -2,23 +2,19 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2392 · Scenarios: 5313
+Specs: 128 · Requirements: 2396 · Scenarios: 5321
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 81 · Scenarios: 170 · Lines: 2113
+Reqs: 85 · Scenarios: 178 · Lines: 2206
 Last touches:
+  - The reply footer carries no next-step proposal | T900235 | 2026-09-17 | ADDED
+  - Agents run an assignment to its own end before returning control | T900235 | 2026-09-17 | ADDED
+  - Interrupting the user requires one of four declared triggers | T900235 | 2026-09-17 | ADDED
+  - Decision questions are asked in a keyboard-selectable form | T900235 | 2026-09-17 | ADDED
   - Local branch delete keeps branches with unmerged commits | T900096 | 2026-09-17 | ADDED
-  - Archive section aborts on dirty worktree instead of discarding or absorbing foreign work | T900096 | 2026-09-17 | ADDED
-  - Reaper keeps branches with commits outside main | T900096 | 2026-09-17 | ADDED
-  - The worktree write guard treats Windows-absolute paths as absolute | T900047 | 2026-09-17 | ADDED
-  - sdlc-autopilot Skill ist getrackter Bestandteil des opencode-Rosters | T016420 | 2026-09-17 | ADDED
 In-flight:
-  - The reply footer carries no next-step proposal | T900235 | active | ADDED
-  - Agents run an assignment to its own end before returning control | T900235 | active | ADDED
-  - Interrupting the user requires one of four declared triggers | T900235 | active | ADDED
-  - Decision questions are asked in a keyboard-selectable form | T900235 | active | ADDED
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | active | ADDED
 
 ### dev-flow-plan

@@ -56,7 +56,7 @@ ueber 50 Zeilen).
 
 ### P1 — Plugin implementieren [T900220]
 
-- [ ] **Failing-Test-Step (RED).** Der Test liegt bereits committed vor und
+- [x] **Failing-Test-Step (RED).** Der Test liegt bereits committed vor und
       scheitert, weil die Plugin-Datei fehlt.
 
 ```bash
@@ -64,7 +64,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/system-message-merge.
 # expected: FAIL (6 von 6 rot — .opencode/plugin/system-message-merge.ts fehlt)
 ```
 
-- [ ] **Fix-Step (GREEN).** `.opencode/plugin/system-message-merge.ts` nach
+- [x] **Fix-Step (GREEN).** `.opencode/plugin/system-message-merge.ts` nach
       dem Kontext oben anlegen, dann denselben Aufruf wiederholen: 6 von 6 gruen.
 
 ```bash
@@ -74,7 +74,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/single-static-model.b
 
 ### P2 — Live-Nachweis [T900220]
 
-- [ ] Plugin verteilen und im Repo gegen FreeToken pruefen. Vorbedingung:
+- [x] Plugin verteilen und im Repo gegen FreeToken pruefen. Vorbedingung:
       `curl -s -m5 http://127.0.0.1:1919/health` meldet `"status":"ok"`,
       sonst P2 als nicht ausfuehrbar vermerken.
 
@@ -91,7 +91,7 @@ grep -c 'System message must be at the beginning' /tmp/t900220-run.log   # erwar
 
 ### P3 — Final Verification [T900220]
 
-- [ ] Die drei CI-Gates laufen lassen.
+- [x] Die drei CI-Gates laufen lassen.
 
 ```bash
 task test:changed

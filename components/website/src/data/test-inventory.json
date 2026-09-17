@@ -4152,6 +4152,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/system-message-merge",
+    "file": "tests/spec/llm-local-dev/system-message-merge.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline",
     "file": "tests/spec/llm-pipeline.bats",
     "category": "llm-pipeline",

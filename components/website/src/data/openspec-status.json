@@ -4835,6 +4835,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900220": [
+    {
+      "slug": "opencode-system-message-merge",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1321,
+      "file_count": 1322,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -728,6 +728,7 @@
         "tests/spec/llm-local-dev/opencode-compaction.bats",
         "tests/spec/llm-local-dev/qwen-tensor-split.bats",
         "tests/spec/llm-local-dev/single-static-model.bats",
+        "tests/spec/llm-local-dev/system-message-merge.bats",
         "tests/spec/llm-pipeline.bats",
         "tests/spec/llm-pipeline/bge-thread-quota.bats",
         "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
@@ -3247,7 +3248,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 968,
+      "file_count": 969,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3265,6 +3266,7 @@
         ".opencode/package.json",
         ".opencode/plugin/bge-mcp-env.ts",
         ".opencode/plugin/mcp-client-tokens-env.ts",
+        ".opencode/plugin/system-message-merge.ts",
         ".opencode/plugin/worktree-write-guard.ts",
         ".opencode/plugins/background-agents.ts",
         ".opencode/plugins/kdco-primitives/cmux.ts",

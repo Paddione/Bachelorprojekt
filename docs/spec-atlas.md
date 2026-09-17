@@ -796,6 +796,8 @@ Last touches:
   - Completeness-Gate zählt lokale Pläne per Slug und wertet Toleranz | T002877 | 2026-08-11 | ADDED
   - Stale Collection-Einträge verfälschen die Coverage-Zählung nicht | T002877 | 2026-08-11 | ADDED
   - Port-Forward identity is verified before use | T002870 | 2026-08-10 | ADDED
+In-flight:
+  - Dauerhafte Probe-Fehlschläge enden sofort und ohne Hook-Retry | T900209 | active | ADDED
 
 ### openspec-pgvector
 Reqs: 11 · Scenarios: 15 · Lines: 189

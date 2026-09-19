@@ -86,7 +86,7 @@ Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace
 
 OpenSpec CLI completion: `openspec completion install`.
 
-## Interaction Contract (every reply, non-negotiable)
+## Interaction Contract
 
 **Run the assignment to its end.** Carry the assigned task through to its own
 logical completion — including verification, commit and pull request where the

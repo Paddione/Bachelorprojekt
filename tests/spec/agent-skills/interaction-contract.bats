@@ -64,8 +64,11 @@ _anchor() {
   # erklaerender Fliesstext darf die Namen nennen (er begruendet ihren Wegfall),
   # die Feld-Schreibweise mit Doppelpunkt darf nicht vorkommen.
   # Keine nackte '!'-Pipeline (tests/CLAUDE.md) — Treffer einsammeln, dann leer pruefen.
-  hits="$(printf '%s\n' "$section" | grep -nE '(^|[^A-Za-z`])(NEXT|CONF):' || true)"
-  [ -z "$hits" ]
+  hits="$(grep -nE '(^|[^A-Za-z`])(NEXT|CONF):' "$AGENTS_MD" || true)"
+  [ -z "$hits" ] || {
+    echo "Fehlerhafte NEXT:/CONF:-Felder:"; echo "$hits"
+    false
+  }
 }
 
 @test "T900235: der Vertrag behaelt die drei Footer-Felder STATUS, RUNNING, BLOCKED" {
@@ -104,7 +107,10 @@ _anchor() {
   printf '%s\n' "$section" | grep -qF '.claude/lib/behaviors/escalation-protocol.md'
   # Die Eskalations-Mechanik bleibt in der referenzierten Datei.
   hits="$(printf '%s\n' "$section" | grep -nF 'agent-escalate.sh' || true)"
-  [ -z "$hits" ]
+  [ -z "$hits" ] || {
+    echo "Fehlerhafter Verweis auf Skript:"; echo "$hits"
+    false
+  }
 }
 
 @test "T900235: der Vertrag verlangt eine tastaturwaehlbare Frageform" {
@@ -112,7 +118,7 @@ _anchor() {
   run _section
   [ "$status" -eq 0 ]
   echo "$output" | grep -qF 'AskUserQuestion'
-  echo "$output" | grep -qF 'question'
+  echo "$output" | grep -qF 'keystroke'
   echo "$output" | grep -qiF 'numbered'
 }
 

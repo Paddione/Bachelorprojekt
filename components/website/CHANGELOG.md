@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.0...website-v1.355.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* **skills:** harden agent-skills symlink guard tests [T900238] ([#5767](https://github.com/Paddione/Bachelorprojekt/issues/5767)) ([649a443](https://github.com/Paddione/Bachelorprojekt/commit/649a443689cf829c88005bf361752a4e6caf7804))
+
 ## [1.355.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.354.1...website-v1.355.0) (2026-09-17)
 
 

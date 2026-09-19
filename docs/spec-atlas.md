@@ -16,6 +16,9 @@ Last touches:
   - Local branch delete keeps branches with unmerged commits | T900096 | 2026-09-17 | ADDED
 In-flight:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | active | ADDED
+  - Symlink-Set entspricht den getrackten Skills | T900238 | active | ADDED
+  - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | active | ADDED
+  - Skip bei deaktivierten Symlinks | T900238 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

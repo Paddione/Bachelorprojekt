@@ -21,10 +21,28 @@
 # POSITIV-ANKER [T002356-M1]: Erst wird geprueft, dass .claude/skills/ existiert
 # und ueberhaupt Symlinks enthaelt. Ohne den Anker wuerde ein geloeschtes oder
 # leeres Verzeichnis die Aussage "kein Symlink ist kaputt" trivial bestehen.
+#
+# HARTUNG (T900238): Drei Schwachstellen des Guards wurden geschlossen.
+# (1) Test 3 uebersprang Nicht-Verzeichnis-Ziele pauschal ('[ -d "$link" ] ||
+# continue') — ein geloeschter oder auf eine Datei zeigender Skill wurde
+# toleriert. Einzig OVERVIEW.md darf ein Nicht-Verzeichnis-Ziel sein.
+# (2) Test 1 pruefte nur Existenz + Anzahl — das Loeschen ALLER Symlinks waere
+# gruen geblieben. Jetzt Soll-Ist-Abgleich gegen die getrackten
+# .opencode/skills/*/SKILL.md-Verzeichnisse (git ls-files) plus OVERVIEW.md.
+# (3) Bei core.symlinks=false (Windows) materialisiert git checkout keine
+# Symlinks; die Assertions werden dann in setup() uebersprungen statt rot zu
+# faerben.
 
 setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   SKILL_DIR="$REPO_ROOT/.claude/skills"
+  # T900238 (F4): Bei core.symlinks=false materialisiert git checkout keine
+  # Symlinks — die Assertions waeren strukturell unerfuellbar. Unset gilt als
+  # symlink-faehig (git-Default true). skip in setup() ist unter Bats 1.13.0
+  # verifiziert (alle Tests der Datei werden uebersprungen, Exit 0).
+  if [ "$(git -C "$REPO_ROOT" config --bool core.symlinks 2>/dev/null)" = "false" ]; then
+    skip "core.symlinks=false — Symlink-Assertions uebersprungen"
+  fi
 }
 
 # Alle Symlinks direkt unter .claude/skills — ein Pfad pro Zeile.
@@ -32,11 +50,30 @@ _symlinks() {
   find "$SKILL_DIR" -maxdepth 1 -type l | sort
 }
 
-@test "T900236: .claude/skills existiert und enthaelt Symlinks" {
-  # Positiv-Anker fuer alle folgenden Negativ-Aussagen.
+# Soll-Menge (T900238/F2): getrackte .opencode/skills/*/SKILL.md-Verzeichnisse
+# plus OVERVIEW.md — abgeleitet aus git ls-files, nicht aus dem Dateisystem.
+_expected_symlink_names() {
+  {
+    git -C "$REPO_ROOT" ls-files -- .opencode/skills \
+      | grep '/SKILL\.md$' \
+      | sed 's#^\.opencode/skills/##; s#/SKILL\.md$##'
+    printf '%s\n' 'OVERVIEW.md'
+  } | sort
+}
+
+# Ist-Menge: Basenamen der Symlinks direkt unter .claude/skills.
+_symlink_names() {
+  _symlinks | sed 's#^.*/##' | sort
+}
+
+@test "T900236: .claude/skills-Symlinks entsprechen den getrackten Skills" {
+  # Positiv-Anker [T002356-M1]: Verzeichnis existiert und enthaelt Symlinks.
   [ -d "$SKILL_DIR" ]
   count="$(_symlinks | wc -l)"
   [ "$count" -gt 0 ]
+  # Soll-Ist-Abgleich: fehlende UND ueberzaehlige Symlinks faerben rot.
+  diff <(printf '%s\n' "$(_expected_symlink_names)") \
+       <(printf '%s\n' "$(_symlink_names)")
 }
 
 @test "T900236: jeder .claude/skills-Symlink loest auf ein existierendes Ziel auf" {
@@ -62,13 +99,25 @@ _symlinks() {
   links="$(_symlinks)"
   [ -n "$links" ]
   missing=""
+  non_dir=""
   while IFS= read -r link; do
     [ -n "$link" ] || continue
-    [ -d "$link" ] || continue
+    if [ ! -d "$link" ]; then
+      # T900238 (F1): Einzig OVERVIEW.md darf ein Nicht-Verzeichnis-Ziel sein.
+      if [ "$(basename "$link")" = "OVERVIEW.md" ]; then
+        continue
+      fi
+      non_dir="${non_dir}${link} -> $(readlink "$link")"$'\n'
+      continue
+    fi
     if [ ! -r "$link/SKILL.md" ]; then
       missing="${missing}${link}/SKILL.md"$'\n'
     fi
   done <<<"$links"
+  [ -z "$non_dir" ] || {
+    echo "Symlinks auf Nicht-Verzeichnis-Ziele:"; echo "$non_dir"
+    false
+  }
   [ -z "$missing" ] || {
     echo "Fehlende SKILL.md:"; echo "$missing"
     false

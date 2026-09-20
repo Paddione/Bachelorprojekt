@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-17T12:30:43.974Z",
+  "generatedAt": "2026-09-20T18:04:06.365Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2019,6 +2019,22 @@
       "file": "components/website/src/pages/api/homepage.ts"
     },
     {
+      "path": "/api/internal/applications/detail",
+      "methods": [
+        "GET"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/detail.ts"
+    },
+    {
+      "path": "/api/internal/applications/dossiers",
+      "methods": [
+        "GET"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/dossiers.ts"
+    },
+    {
       "path": "/api/internal/applications/list",
       "methods": [
         "GET"
@@ -2027,12 +2043,28 @@
       "file": "components/website/src/pages/api/internal/applications/list.ts"
     },
     {
+      "path": "/api/internal/applications/status",
+      "methods": [
+        "PUT"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/status.ts"
+    },
+    {
       "path": "/api/internal/applications/timeline",
       "methods": [
         "POST"
       ],
       "auth": "internal",
       "file": "components/website/src/pages/api/internal/applications/timeline.ts"
+    },
+    {
+      "path": "/api/internal/applications/timeline_list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/timeline_list.ts"
     },
     {
       "path": "/api/internal/tickets/notify-close",

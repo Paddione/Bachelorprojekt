@@ -6474,6 +6474,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-system/get-timeline-plan-brand-column-T900243",
+    "file": "tests/spec/ticket-system/get-timeline-plan-brand-column-T900243.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-system/list-status-comma-list",
     "file": "tests/spec/ticket-system/list-status-comma-list.bats",
     "category": "ticket-system",

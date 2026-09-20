@@ -15,7 +15,12 @@ setup() {
   REPO_ROOT="${REPO_ROOT:-$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)}"
   TICKET_SCRIPTS="${REPO_ROOT}/scripts/vda/ticket"
   MIGRATIONS="${REPO_ROOT}/components/website/src/lib/tickets/migrations.ts"
-  CTX="${FACTORY_CTX:-devmesh}"
+  # [T900250] CTX spiegelt die Kontext-Aufloesung von scripts/ticket.sh selbst
+  # (_ticket-core.sh:11: CTX="${TICKET_CTX:-fleet}"), nicht FACTORY_CTX:-devmesh
+  # (andere Variable, anderer Default) — siehe areas-csv-trim.bats fuer die volle
+  # Begruendung. `ticket.sh backfill-id` unten wird ohne TICKET_CTX-Override
+  # aufgerufen, laeuft also gegen genau diesen Default.
+  CTX="${TICKET_CTX:-fleet}"
   NS="workspace"
   TESTROW_TITLE="T002732 backfill-id testrow"
   # [T002871] Ohne dieses Opt-in biegt scripts/vda/ticket/_ticket-core.sh:30 (T002224-Guard)

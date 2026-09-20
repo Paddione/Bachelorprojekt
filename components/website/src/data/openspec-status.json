@@ -4927,6 +4927,12 @@
       "status": "archived"
     }
   ],
+  "T900250": [
+    {
+      "slug": "areas-csv-trim-testdata-leak",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

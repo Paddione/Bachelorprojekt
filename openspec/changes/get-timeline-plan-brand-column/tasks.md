@@ -47,9 +47,9 @@ redundant. Die drei Schwester-CTEs (`comments`, `phase_events`, `pr_links`)
 filtern ebenfalls nur über den Ticket-Subselect, ohne eigenen Brand-Filter —
 `plan_events` zieht damit nach, statt eine Sonderregel zu behalten.
 
-- [ ] **Failing-Test-Step (RED).** Der Test ist bereits auf diesem Branch
+- [x] **Failing-Test-Step (RED).** Der Test ist bereits auf diesem Branch
       committed (`tests/spec/ticket-system/get-timeline-plan-brand-column-T900243.bats`).
-      Er führt `ticket.sh get-timeline --id T900110` (mentolder, hat einen
+      Er führt `ticket.sh get-timeline --id T900239` (mentolder, hat einen
       archivierten Plan) gegen die echte Fleet-DB aus und prüft Exit 0 UND
       einen `plan_archived`-Eintrag in der Ausgabe — nicht nur die
       Abwesenheit eines Fehlers.
@@ -59,7 +59,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/get-timeline-plan-bra
 # expected: FAIL (red — "column tp.brand does not exist", rc=3)
 ```
 
-- [ ] **Fix-Step (GREEN).** In `scripts/ticket.sh`, `cmd_get_timeline`,
+- [x] **Fix-Step (GREEN).** In `scripts/ticket.sh`, `cmd_get_timeline`,
       `plan_events`-CTE: die Zeile `AND tp.brand = :'brand'` entfernen. Die
       CTE bleibt sonst unverändert (weiterhin `WHERE tp.ticket_id = (...)
       AND tp.archived_at IS NOT NULL`).
@@ -71,7 +71,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/get-timeline-plan-bra
 
 ## Task 2: Finale Verifikation
 
-- [ ] Run the three mandatory CI gates:
+- [x] Run the three mandatory CI gates:
 
 ```bash
 task test:changed

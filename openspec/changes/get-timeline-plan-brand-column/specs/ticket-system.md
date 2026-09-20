@@ -11,6 +11,6 @@ Ticket-`external_id`-Subselect, der pro Brand eindeutig ist.
 
 #### Scenario: `get-timeline` for a ticket with an archived plan returns the plan_archived event
 
-- **GIVEN** a ticket (e.g. T900110, brand mentolder) has an archived plan (`ticket_plans.archived_at IS NOT NULL`)
-- **WHEN** `bash scripts/ticket.sh get-timeline --id T900110` is run
+- **GIVEN** a ticket (e.g. T900239, brand mentolder) has an archived plan (`ticket_plans.archived_at IS NOT NULL`)
+- **WHEN** `bash scripts/ticket.sh get-timeline --id T900239` is run
 - **THEN** the command exits 0 and the JSON output contains an event with `source = "plan_archived"`

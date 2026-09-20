@@ -12,7 +12,7 @@
 # cmd_get_timeline (scripts/ticket.sh) filtert `tickets.ticket_plans` auf
 # eine Spalte `brand`, die dort nicht existiert (`tp.branch` waere die naeheste
 # reale Spalte, aber eine andere Bedeutung). Reproduktion vor dem Fix:
-#   bash scripts/ticket.sh get-timeline --id T900110
+#   bash scripts/ticket.sh get-timeline --id T900239
 #   -> rc=3, "ERROR:  column tp.brand does not exist"
 #
 # ENTSCHEIDUNG: Die Bedingung wird ersatzlos gestrichen statt `brand` durch
@@ -25,10 +25,15 @@
 # den Ticket-Subselect, ohne eigenen Brand-Filter — plan_events zieht damit
 # nur nach.
 #
-# POSITIV-ANKER: T900110 (Brand mentolder) hat einen archivierten Plan
-# (plan_ref gesetzt, Status done). Der Test verlangt Exit 0 UND einen
-# 'plan_archived'-Eintrag in der Ausgabe — ein Test, der nur "kein Fehler"
-# prueft, wuerde auch eine leere Antwort durchwinken (siehe Ticketbeschreibung).
+# POSITIV-ANKER: T900110 (aus der Ticketbeschreibung als Beispiel genannt) hat
+# laut Datenbankpruefung (SELECT auf tickets.ticket_plans) KEINEN archivierten
+# Plan-Datensatz — der plan_ref-Kommentar im Verlauf ist kein Ersatz fuer eine
+# archivierte tickets.ticket_plans-Zeile. Verwendet wird stattdessen T900239
+# (Brand mentolder, archived_at gesetzt, verifiziert per
+# SELECT tp.archived_at FROM tickets.ticket_plans tp JOIN tickets.tickets t
+# ON t.id=tp.ticket_id WHERE t.external_id='T900239' -> non-null). Der Test
+# verlangt Exit 0 UND einen 'plan_archived'-Eintrag in der Ausgabe — ein Test,
+# der nur "kein Fehler" prueft, wuerde auch eine leere Antwort durchwinken.
 
 _skip_if_no_db() {
   local _pod
@@ -40,11 +45,15 @@ _skip_if_no_db() {
 
 _repo_root() { cd "$(dirname "$BATS_TEST_FILENAME")/../../.." && pwd; }
 
-@test "T900243 Positiv-Anker: get-timeline liefert fuer T900110 Exit 0 UND einen plan_archived-Eintrag" {
+@test "T900243 Positiv-Anker: get-timeline liefert fuer T900239 Exit 0 UND einen plan_archived-Eintrag" {
   _skip_if_no_db
   local root; root="$(_repo_root)"
 
-  run env BRAND=mentolder bash "$root/scripts/ticket.sh" get-timeline --id T900110
+  # TICKET_TEST_DB_OK=1: _ticket-core.sh biegt unter BATS sonst auf den
+  # Sentinel-Kontext "bats-no-cluster-t002224" um (T002224), um versehentliche
+  # Schreibzugriffe zu verhindern. Dieser Test liest nur (get-timeline), daher
+  # ausdrueckliches Opt-in wie in list-status-comma-list.bats.
+  run env BRAND=mentolder TICKET_TEST_DB_OK=1 bash "$root/scripts/ticket.sh" get-timeline --id T900239
   [ "$status" -eq 0 ]
   printf '%s' "$output" | grep -qF 'plan_archived'
 }

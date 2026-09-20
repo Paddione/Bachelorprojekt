@@ -1016,7 +1016,6 @@ plan_events AS (
   FROM tickets.ticket_plans tp
   WHERE tp.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
     AND tp.archived_at IS NOT NULL
-    AND tp.brand = :'brand'
 ),
 all_events AS (
   SELECT * FROM comments

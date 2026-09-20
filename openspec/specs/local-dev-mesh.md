@@ -91,30 +91,15 @@ is unavailable or the local Tailscale service is not in state `Running`.
 
 <!-- merged from change delta local-dev-mesh.md (9a94071bca37) -->
 
-### Requirement: The k3d dev cluster is removed only after the acceptance gate
-
-`task devmesh:acceptance` SHALL exit `0` only when the devmesh health gate passes, the SP-3
-migration comparison has passed, and a fresh dump of the `k3d-mentolder-dev` databases exists
-outside the cluster. The k3d teardown task SHALL refuse to run unless the acceptance gate has
-passed.
-
-#### Scenario: Teardown without a fresh dump is refused
-
-- **GIVEN** the devmesh health gate passes and no dump of the k3d databases exists
-- **WHEN** the teardown task runs
-- **THEN** it exits non-zero and the k3d cluster keeps running
-
-#### Scenario: Gate passes and teardown proceeds
-
-- **GIVEN** the health gate passes, the migration comparison passed and a fresh dump exists
-- **WHEN** the teardown task runs
-- **THEN** the cluster `mentolder-dev` no longer exists on `ws-ubuntu-1`
-
 ### Requirement: No active reference to the k3d dev context remains
 
-The repository SHALL contain no reference to `k3d-mentolder-dev` outside
-`openspec/changes/archive/`, `docs/superpowers/plans/`, `docs/superpowers/specs/archive/` and
-`docs/adr/`. Context defaults in the factory and ticket tooling SHALL resolve to `fleet`.
+The repository SHALL contain no reference to the former local k3d dev context outside
+`openspec/changes/`, `docs/superpowers/plans/`, `docs/superpowers/specs/archive/`, `docs/adr/`,
+`k3d/docs-content-built/`, `scripts/migrations/`, `docs/spec-atlas.md` and
+`scripts/devmesh/migrate-from-k3d.sh` (which names the archived dump file, not a context). The guard
+`tests/spec/local-dev-mesh/no-k3d-context.bats` SHALL hold the search pattern itself, so that
+this requirement does not need to spell it. Context defaults in the factory and ticket tooling
+SHALL resolve to `fleet`.
 
 #### Scenario: Guard finds no active reference
 
@@ -129,6 +114,15 @@ The repository SHALL contain no reference to `k3d-mentolder-dev` outside
 - **GIVEN** `FACTORY_CTX` is unset
 - **WHEN** `scripts/factory/lib.sh` is sourced
 - **THEN** `FACTORY_CTX` equals `fleet`
+
+#### Scenario: Generated and historical paths stay excluded
+
+- **GIVEN** `docs/spec-atlas.md` is generated from the specs and carries requirement titles
+  verbatim, including the titles of removed requirements
+- **WHEN** the guard builds its exclusion list
+- **THEN** that file is excluded unconditionally, not while some change directory exists
+- **AND** `scripts/devmesh/migrate-from-k3d.sh` is excluded, because the archived dump file is
+  named after the cluster it came from
 
 ### Requirement: The fourth host joins devmesh as an agent
 
@@ -274,28 +268,6 @@ with the threat model from the key-distribution runbook.
 - **WHEN** it is searched for `gnupg`
 - **THEN** at least one match exists
 
-### Requirement: k3d-mentolder-dev is decommissioned after devmesh acceptance
-
-`k3d-mentolder-dev` SHALL be torn down only after `scripts/devmesh/acceptance.sh`
-passes on devmesh and data migration (`migrate-from-k3d.sh`) is verified.
-FACTORY_CTX, Taskfile.sdlc, guards and CLAUDE.md rules SHALL point at devmesh,
-and no live reference to the k3d context SHALL remain.
-
-#### Scenario: Teardown is gated on acceptance
-
-- **GIVEN** a failed or skipped devmesh acceptance run
-- **WHEN** the decommission sequence is invoked
-- **THEN** `k3d-teardown.sh` is not executed and the sequence exits non-zero
-
-#### Scenario: No live k3d reference remains
-
-- **GIVEN** the repository tree after decommission
-- **WHEN** factory config, Taskfile and guards are searched for
-  `k3d-mentolder-dev` / `mentolder-dev`
-- **THEN** no match remains outside `openspec/changes/archive/` history
-
-<!-- merged from change delta local-dev-mesh.md (be60fceb5bff) -->
-
 ### Requirement: devmesh hosts the CPU-bound LLM and database services
 <!-- bats: local-dev-mesh/llm-services.bats -->
 
@@ -369,3 +341,46 @@ synchronisiert haben.
   ausgefuehrt
 
 <!-- merged from change delta local-dev-mesh.md (2d949ee0676f) -->
+
+### Requirement: The k3d migration verifies row counts against the archived dump
+<!-- bats: local-dev-mesh/migrate-from-k3d.bats -->
+
+`scripts/devmesh/migrate-from-k3d.sh` SHALL take its source row counts from the archived
+`pg_dumpall` dump of the former local k3d cluster, not from a kubeconfig context. The dump path
+SHALL be overridable through `DEVMESH_SRC_DUMP`. The script SHALL count the rows of every `COPY`
+block per database in that dump and compare them table by table against the devmesh
+`shared-db`. The script SHALL NOT write to the dump and SHALL NOT offer a restore subcommand,
+because a cluster dump can only be replayed with `DROP DATABASE` on the target.
+
+#### Scenario: Counts are taken from the dump
+
+- **GIVEN** a `pg_dumpall` dump containing `COPY` blocks for two databases
+- **WHEN** the `counts` subcommand runs
+- **THEN** one count file per database is written
+- **AND** each line names a table and its row count from the dump
+
+#### Scenario: Matching row counts pass
+
+- **GIVEN** the devmesh database reports the same row count for every table in the dump
+- **WHEN** the `verify` subcommand runs
+- **THEN** it exits `0` and names each matching table
+
+#### Scenario: A differing table is named and fails
+
+- **GIVEN** one table in devmesh reports a different row count than the dump
+- **WHEN** the `verify` subcommand runs
+- **THEN** it exits non-zero and names that table with both counts
+
+#### Scenario: A missing dump is a precondition, not a finding
+
+- **GIVEN** `DEVMESH_SRC_DUMP` points at a path that does not exist
+- **WHEN** the `preflight` subcommand runs
+- **THEN** it exits `2` and names the missing path
+
+#### Scenario: Production is refused as target
+
+- **GIVEN** `DEVMESH_DST_CTX` is set to `fleet`
+- **WHEN** any subcommand runs
+- **THEN** it exits non-zero before the first `kubectl` call
+
+<!-- merged from change delta local-dev-mesh.md (cf42bee2eb5f) -->

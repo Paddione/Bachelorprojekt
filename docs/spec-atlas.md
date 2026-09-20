@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2398 · Scenarios: 5325
+Specs: 128 · Requirements: 2397 · Scenarios: 5327
 
 ## factory-pipeline
 
@@ -594,18 +594,13 @@ Last touches:
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | 2026-09-17 | ADDED
 
 ### local-dev-mesh
-Reqs: 18 · Scenarios: 34 · Lines: 371
+Reqs: 17 · Scenarios: 36 · Lines: 386
 Last touches:
+  - The k3d dev cluster is removed only after the acceptance gate | T900120 | 2026-09-20 | REMOVED
+  - No active reference to the k3d dev context remains | T900120 | 2026-09-20 | MODIFIED
+  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900120 | 2026-09-20 | REMOVED
+  - The k3d migration verifies row counts against the archived dump | T900120 | 2026-09-20 | ADDED
   - shared-db-backup toleriert den Pod-Startup-Netzwerk-Race | T900240 | 2026-09-20 | ADDED
-  - Cluster nodes meet the Longhorn preconditions | T900115 | 2026-09-17 | ADDED
-  - Longhorn is the default StorageClass on devmesh | T900115 | 2026-09-17 | ADDED
-  - git-crypt unlocks via GPG users in dev-shell | T900115 | 2026-09-17 | ADDED
-  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900115 | 2026-09-17 | ADDED
-In-flight:
-  - The k3d migration verifies row counts against the archived dump | T900120 | active | ADDED
-  - No active reference to the k3d dev context remains | T900120 | active | MODIFIED
-  - The k3d dev cluster is removed only after the acceptance gate | T900120 | active | REMOVED
-  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900120 | active | REMOVED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

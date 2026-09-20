@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.3...website-v1.355.4) (2026-09-20)
+
+
+### Bug Fixes
+
+* **scripts:** migrate-from-k3d liest den archivierten Dump statt des abgebauten Clusters [T900120] ([#5776](https://github.com/Paddione/Bachelorprojekt/issues/5776)) ([7b52113](https://github.com/Paddione/Bachelorprojekt/commit/7b52113f25393991af03fdd4e527fb33cd1690c6))
+
 ## [1.355.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.2...website-v1.355.3) (2026-09-20)
 
 

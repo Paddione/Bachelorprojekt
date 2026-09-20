@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.6...website-v1.355.7) (2026-09-20)
+
+
+### Bug Fixes
+
+* **test:** resolve teardown context mismatch leaking test data [T900250] ([#5786](https://github.com/Paddione/Bachelorprojekt/issues/5786)) ([4540444](https://github.com/Paddione/Bachelorprojekt/commit/4540444c002d48ac6d50adcf2673cd342b81abde))
+
 ## [1.355.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.5...website-v1.355.6) (2026-09-20)
 
 

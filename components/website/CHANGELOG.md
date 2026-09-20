@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.7...website-v1.355.8) (2026-09-20)
+
+
+### Bug Fixes
+
+* **scripts:** remove vestigial --brand flag from get-timeline [T900246] ([#5787](https://github.com/Paddione/Bachelorprojekt/issues/5787)) ([d9371d5](https://github.com/Paddione/Bachelorprojekt/commit/d9371d582b60cb7b44b766db8564f0da7267592f))
+
 ## [1.355.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.6...website-v1.355.7) (2026-09-20)
 
 

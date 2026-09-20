@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2398 · Scenarios: 5328
+Specs: 128 · Requirements: 2399 · Scenarios: 5329
 
 ## factory-pipeline
 
@@ -288,15 +288,13 @@ Last touches:
   - The propose tasks.md skeleton seeds the test path in directory form | T003812 | 2026-08-14 | ADDED
 
 ### batch-repo-hygiene-ops-fixes
-Reqs: 11 · Scenarios: 25 · Lines: 301
+Reqs: 12 · Scenarios: 26 · Lines: 320
 Last touches:
+  - Merge-Ticket-Abgleich als verbindlicher repo-hygiene-Schritt | T900103 | 2026-09-20 | ADDED
   - Sweep überlebt leere ticket.sh-Antwort | T012412 | 2026-08-18 | MODIFIED
   - Runtime drift detection for replaced MCP server binaries | T004897 | 2026-08-15 | MODIFIED
   - Drift check never modifies system state | T004897 | 2026-08-15 | MODIFIED
   - branch-reaper unterstützt ticketlosen Sweep-Modus | T003490 | 2026-08-11 | ADDED
-  - [gone]-Prune-Reihenfolge korrigieren | T003490 | 2026-08-11 | ADDED
-In-flight:
-  - Merge-Ticket-Abgleich als verbindlicher repo-hygiene-Schritt | T900103 | active | ADDED
 
 ### billing-pipeline
 Reqs: 24 · Scenarios: 51 · Lines: 456

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2397 · Scenarios: 5323
+Specs: 128 · Requirements: 2398 · Scenarios: 5325
 
 ## factory-pipeline
 
@@ -123,16 +123,14 @@ Last touches:
   - Der Factory-Default ist im KI-Deck sichtbar und setzbar | T013302 | 2026-08-22 | ADDED
 
 ### ticket-system
-Reqs: 86 · Scenarios: 240 · Lines: 2229
+Reqs: 87 · Scenarios: 242 · Lines: 2256
 Paths: scripts/ticket
 Last touches:
+  - `_exec_sql` reports the real cause of a failed SQL call instead of aborting silently | T900239 | 2026-09-20 | ADDED
   - GitHub Snapshot Schema and Cursor Tracking | T900161 | 2026-09-17 | ADDED
   - GitHub Identity and Closing Relationship Auto-Registration | T900161 | 2026-09-17 | ADDED
   - PR Events and Status Compatibility Projection | T900161 | 2026-09-17 | ADDED
   - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T900145 | 2026-09-16 | MODIFIED
-  - Repository-scoped GitHub object identity | T900159 | 2026-09-12 | ADDED
-In-flight:
-  - `_exec_sql` reports the real cause of a failed SQL call instead of aborting silently | T900239 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192

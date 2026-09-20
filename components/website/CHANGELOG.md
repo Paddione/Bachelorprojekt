@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.4...website-v1.355.5) (2026-09-20)
+
+
+### Bug Fixes
+
+* **scripts:** get-timeline drops non-existent tp.brand filter [T900243] ([#5778](https://github.com/Paddione/Bachelorprojekt/issues/5778)) ([e8b1113](https://github.com/Paddione/Bachelorprojekt/commit/e8b11134a7278e73f9732bb7bcf5c617346391bf))
+
 ## [1.355.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.3...website-v1.355.4) (2026-09-20)
 
 

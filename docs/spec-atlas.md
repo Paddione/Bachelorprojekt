@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2396 · Scenarios: 5321
+Specs: 128 · Requirements: 2397 · Scenarios: 5323
 
 ## factory-pipeline
 
@@ -594,15 +594,13 @@ Last touches:
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | 2026-09-17 | ADDED
 
 ### local-dev-mesh
-Reqs: 17 · Scenarios: 32 · Lines: 346
+Reqs: 18 · Scenarios: 34 · Lines: 371
 Last touches:
+  - shared-db-backup toleriert den Pod-Startup-Netzwerk-Race | T900240 | 2026-09-20 | ADDED
   - Cluster nodes meet the Longhorn preconditions | T900115 | 2026-09-17 | ADDED
   - Longhorn is the default StorageClass on devmesh | T900115 | 2026-09-17 | ADDED
   - git-crypt unlocks via GPG users in dev-shell | T900115 | 2026-09-17 | ADDED
   - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900115 | 2026-09-17 | ADDED
-  - devmesh hosts the CPU-bound LLM and database services | T900191 | 2026-09-17 | ADDED
-In-flight:
-  - shared-db-backup toleriert den Pod-Startup-Netzwerk-Race | T900240 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

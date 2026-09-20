@@ -2,7 +2,7 @@
 title: "devmesh-shared-db-backup-retry — Implementation Plan"
 ticket_id: T900240
 domains: [ops, devmesh]
-status: active
+status: completed
 file_locks: ["scripts/devmesh/db-backup.sh", "tests/spec/local-dev-mesh/db-backup-retention.bats"]
 shared_changes: false
 batch_id: null

@@ -131,7 +131,6 @@ Last touches:
   - `get-timeline` liefert die Plan-Historie ohne Query-Fehler | T900243 | 2026-09-20 | ADDED
   - GitHub Snapshot Schema and Cursor Tracking | T900161 | 2026-09-17 | ADDED
   - GitHub Identity and Closing Relationship Auto-Registration | T900161 | 2026-09-17 | ADDED
-  - PR Events and Status Compatibility Projection | T900161 | 2026-09-17 | ADDED
 In-flight:
   - `get-timeline` akzeptiert kein `--brand`/`BRAND` mehr | T900246 | active | ADDED
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.1...website-v1.355.2) (2026-09-20)
+
+
+### Bug Fixes
+
+* **ops:** wait for shared-db readiness before pg_dumpall on devmesh [T900240] ([#5770](https://github.com/Paddione/Bachelorprojekt/issues/5770)) ([211009c](https://github.com/Paddione/Bachelorprojekt/commit/211009c17a456bdd5de7c9d608fd33f71e3b9be1))
+
 ## [1.355.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.0...website-v1.355.1) (2026-09-19)
 
 

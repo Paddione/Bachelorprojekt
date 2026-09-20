@@ -1,6 +1,6 @@
 {
   "generatedFrom": "components/website/src/pages",
-  "count": 107,
+  "count": 108,
   "routes": [
     {
       "route": "/",
@@ -40,6 +40,14 @@
       "authTier": "admin",
       "brand": "both",
       "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/applications",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
       "excludeFromSweep": false,
       "media": false
     },

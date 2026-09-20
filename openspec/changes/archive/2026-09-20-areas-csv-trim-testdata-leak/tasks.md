@@ -2,7 +2,7 @@
 title: "areas-csv-trim-testdata-leak — Implementation Plan"
 ticket_id: T900250
 domains: [tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

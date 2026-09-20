@@ -1,0 +1,50 @@
+---
+// Admin-only application pipeline cockpit (T900233, Phase 4 — full version)
+// Standalone alternative to the Brett embedded board (?applications=1).
+// Provides Kanban view, job detail panel, status switching, dossier links.
+---
+
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl('/admin/applications'));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const brettDomain = process.env.BRETT_DOMAIN ?? 'brett.localhost';
+const brettUrl = `${brettDomain.includes('localhost') ? 'http' : 'https'}://${brettDomain}`;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bewerbungs-Cockpit | mentolder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/admin/applications.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="cockpit-header">
+        <a href="/" class="cockpit-back">← Zurück zum Brett</a>
+        <h1>Bewerbungs-Cockpit</h1>
+        <nav class="cockpit-nav">
+          <a href={`${brettUrl}/?applications=1`}>Brett-Kanban</a>
+          <a href="/admin/brett">Brett Admin</a>
+        </nav>
+      </header>
+
+      <main class="cockpit-main">
+        <div id="kanban" class="kanban-board">
+          <!-- Kanban columns rendered by client script -->
+        </div>
+
+        <div id="detail-panel" class="detail-panel" hidden>
+          <button id="close-detail" class="btn-close" title="Schließen">✕</button>
+          <div id="detail-content"></div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/admin/applications.ts"></script>
+  </body>
+</html>

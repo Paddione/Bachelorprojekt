@@ -42,6 +42,56 @@ export async function postTimelineEvent(
   return res.json();
 }
 
+/** Fetches a single job detail from the website's internal API. */
+export async function fetchJobDetail(
+  jobId: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<unknown> {
+  const res = await fetchImpl(`${websiteBaseUrl()}/api/internal/applications/${jobId}/detail`, {
+    headers: { 'x-internal-token': internalToken() },
+  });
+  return res.json();
+}
+
+/** Updates the status of a job. */
+export async function updateJobStatus(
+  jobId: number,
+  status: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<unknown> {
+  const res = await fetchImpl(`${websiteBaseUrl()}/api/internal/applications/${jobId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-internal-token': internalToken(),
+    },
+    body: JSON.stringify({ status }),
+  });
+  return res.json();
+}
+
+/** Fetches timeline events for a job. */
+export async function fetchTimeline(
+  jobId: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<unknown> {
+  const res = await fetchImpl(`${websiteBaseUrl()}/api/internal/applications/${jobId}/timeline`, {
+    headers: { 'x-internal-token': internalToken() },
+  });
+  return res.json();
+}
+
+/** Fetches dossiers for a job. */
+export async function fetchDossiers(
+  jobId: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<unknown> {
+  const res = await fetchImpl(`${websiteBaseUrl()}/api/internal/applications/${jobId}/dossiers`, {
+    headers: { 'x-internal-token': internalToken() },
+  });
+  return res.json();
+}
+
 function asyncHandler(fn: any) {
   return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
 }
@@ -64,5 +114,46 @@ applicationsRouter.post('/api/applications/:id/timeline', auth.requireAdmin, asy
     return res.status(400).json({ error: 'invalid job id, event_type or notes' });
   }
   const result = await postTimelineEvent(jobId, event_type, notes);
+  res.json(result);
+}));
+
+// --- Cockpit endpoints (T900233 Phase 4 extended) ---
+
+applicationsRouter.get('/api/applications/:id/detail', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+  const jobId = Number(req.params.id);
+  if (!Number.isSafeInteger(jobId) || jobId < 1) {
+    return res.status(400).json({ error: 'invalid job id' });
+  }
+  const result = await fetchJobDetail(jobId);
+  res.json(result);
+}));
+
+applicationsRouter.put('/api/applications/:id/status', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+  const jobId = Number(req.params.id);
+  const { status } = req.body || {};
+  if (!Number.isSafeInteger(jobId) || jobId < 1
+    || typeof status !== 'string'
+    || !['found', 'drafting', 'applied', 'interviewing', 'offered', 'rejected', 'withdrawn'].includes(status)) {
+    return res.status(400).json({ error: 'invalid job id or status' });
+  }
+  const result = await updateJobStatus(jobId, status);
+  res.json(result);
+}));
+
+applicationsRouter.get('/api/applications/:id/timeline', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+  const jobId = Number(req.params.id);
+  if (!Number.isSafeInteger(jobId) || jobId < 1) {
+    return res.status(400).json({ error: 'invalid job id' });
+  }
+  const result = await fetchTimeline(jobId);
+  res.json(result);
+}));
+
+applicationsRouter.get('/api/applications/:id/dossiers', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+  const jobId = Number(req.params.id);
+  if (!Number.isSafeInteger(jobId) || jobId < 1) {
+    return res.status(400).json({ error: 'invalid job id' });
+  }
+  const result = await fetchDossiers(jobId);
   res.json(result);
 }));

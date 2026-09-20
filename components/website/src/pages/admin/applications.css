@@ -1,0 +1,345 @@
+/* Bewerbungs-Cockpit Styles */
+
+:root {
+  --cockpit-bg: #0b111c;
+  --cockpit-fg: #e2e8f0;
+  --cockpit-card: #1a2332;
+  --cockpit-border: #2d3748;
+  --cockpit-accent: #d4a853;
+  --cockpit-accent-hover: #e6bc6a;
+  --cockpit-status-found: #4299e1;
+  --cockpit-status-drafting: #ed8936;
+  --cockpit-status-applied: #48bb78;
+  --cockpit-status-interviewing: #9f7aea;
+  --cockpit-status-offered: #ed64a6;
+  --cockpit-status-rejected: #fc8181;
+  --cockpit-status-withdrawn: #a0aec0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--cockpit-bg);
+  color: var(--cockpit-fg);
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.cockpit-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--cockpit-border);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.cockpit-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--cockpit-accent);
+}
+
+.cockpit-back {
+  color: var(--cockpit-fg);
+  text-decoration: none;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.cockpit-back:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.cockpit-nav {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.cockpit-nav a {
+  color: var(--cockpit-fg);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 12px;
+  border: 1px solid var(--cockpit-border);
+  border-radius: 4px;
+  opacity: 0.8;
+}
+
+.cockpit-nav a:hover {
+  opacity: 1;
+  background: var(--cockpit-card);
+}
+
+.cockpit-main {
+  position: relative;
+}
+
+/* Kanban Board */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(280px, 1fr));
+  gap: 12px;
+  transition: margin-right 0.3s ease;
+}
+
+.kanban-board.with-detail {
+  margin-right: 360px;
+}
+
+.kanban-column {
+  background: var(--cockpit-card);
+  border: 1px solid var(--cockpit-border);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 200px;
+}
+
+.kanban-column h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kanban-column h2 .count {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.kanban-column[data-status="found"] h2 { border-color: var(--cockpit-status-found); }
+.kanban-column[data-status="drafting"] h2 { border-color: var(--cockpit-status-drafting); }
+.kanban-column[data-status="applied"] h2 { border-color: var(--cockpit-status-applied); }
+.kanban-column[data-status="interviewing"] h2 { border-color: var(--cockpit-status-interviewing); }
+.kanban-column[data-status="offered"] h2 { border-color: var(--cockpit-status-offered); }
+
+.kanban-card {
+  background: var(--cockpit-bg);
+  border: 1px solid var(--cockpit-border);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.kanban-card:hover {
+  border-color: var(--cockpit-accent);
+}
+
+.kanban-card.selected {
+  border-color: var(--cockpit-accent);
+  box-shadow: 0 0 0 1px var(--cockpit-accent);
+}
+
+.kanban-card h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--cockpit-fg);
+}
+
+.kanban-card .role {
+  font-size: 12px;
+  color: var(--cockpit-fg);
+  opacity: 0.7;
+  margin-bottom: 6px;
+}
+
+.kanban-card .meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  opacity: 0.6;
+  flex-wrap: wrap;
+}
+
+.match-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.match-score.high { background: rgba(72, 187, 120, 0.2); color: #48bb78; }
+.match-score.medium { background: rgba(237, 137, 54, 0.2); color: #ed8936; }
+.match-score.low { background: rgba(252, 129, 129, 0.2); color: #fc8181; }
+.match-score.none { background: rgba(160, 174, 192, 0.2); color: #a0aec0; }
+
+/* Detail Panel */
+.detail-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 360px;
+  background: var(--cockpit-card);
+  border-left: 1px solid var(--cockpit-border);
+  overflow-y: auto;
+  padding: 20px;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.detail-panel[hidden] {
+  display: none;
+}
+
+.btn-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--cockpit-fg);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.btn-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.detail-section {
+  margin-bottom: 20px;
+}
+
+.detail-section h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cockpit-accent);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-section p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.detail-section a {
+  color: var(--cockpit-accent);
+  text-decoration: none;
+}
+
+.detail-section a:hover {
+  text-decoration: underline;
+}
+
+.status-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.status-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid var(--cockpit-border);
+  border-radius: 4px;
+  background: var(--cockpit-bg);
+  color: var(--cockpit-fg);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-btn:hover {
+  border-color: var(--cockpit-accent);
+}
+
+.status-btn.active {
+  background: var(--cockpit-accent);
+  color: var(--cockpit-bg);
+  border-color: var(--cockpit-accent);
+}
+
+.timeline-entry {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--cockpit-border);
+  font-size: 12px;
+}
+
+.timeline-entry .event-type {
+  font-weight: 600;
+  color: var(--cockpit-accent);
+  margin-bottom: 2px;
+}
+
+.timeline-entry .notes {
+  color: var(--cockpit-fg);
+  opacity: 0.8;
+}
+
+.timeline-entry .date {
+  color: var(--cockpit-fg);
+  opacity: 0.5;
+  font-size: 11px;
+}
+
+.evidence-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  background: rgba(212, 168, 83, 0.2);
+  color: var(--cockpit-accent);
+  border-radius: 3px;
+  font-size: 11px;
+  margin: 2px;
+}
+
+/* Loading and error states */
+.loading, .error {
+  text-align: center;
+  padding: 40px;
+  color: var(--cockpit-fg);
+  opacity: 0.7;
+}
+
+.error {
+  color: #fc8181;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .kanban-board {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .kanban-board.with-detail {
+    margin-right: 0;
+  }
+  .detail-panel {
+    width: 100%;
+    right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+}

@@ -10,7 +10,7 @@ interface TimelinePayload {
 export function parseTimelinePayload(body: unknown): TimelinePayload | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const { job_id, event_type, notes } = body as Record<string, unknown>;
-  if (!Number.isSafeInteger(job_id) || job_id < 1
+  if (typeof job_id !== 'number' || !Number.isSafeInteger(job_id) || job_id < 1
     || typeof event_type !== 'string' || !event_type.trim() || event_type.length > 100
     || (notes !== undefined && (typeof notes !== 'string' || notes.length > 10_000))) return null;
   return { job_id, event_type, ...(notes === undefined ? {} : { notes }) };

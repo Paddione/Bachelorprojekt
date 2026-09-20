@@ -408,6 +408,25 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
   ```
   Kein `T000XXX` rekonstruierbar → PR ist unverknüpft: notieren, kein Ticket anfassen.
 
+### Sicherheitsnetz: gemergte PRs gegen offene Tickets abgleichen (T900103)
+
+Dieser Abgleich ist **verbindlicher** Bestandteil jedes repo-hygiene-Laufs — kein optionaler
+Zusatzschritt. `scripts/factory/auto-close-merged.sh` läuft bereits über
+`scripts/factory/wakeup.sh:248` für beide Brands, aber nur solange die Factory tickt; wenn die
+Factory nicht läuft (Ausfall, manuell gestoppt), bleibt das PR-Ticket-Delta unentdeckt — genau das
+Muster der sieben Fälle vom 2026-09-04 (T900103, Messung 2026-09-20: weder `gh`-Metadaten noch die
+Phasen-Kette unterscheiden dabei Auto-Merge von Hand-Merge — Punkt 1/2 der ursprünglichen
+ZU-KLAEREN-Liste bleiben deshalb offen und sind nicht Gegenstand dieses Schritts). Deshalb läuft
+dieser Aufruf hier zusätzlich, unabhängig vom Factory-Takt — das Skript selbst und seine
+`wakeup.sh`-Einhängung bleiben dabei unverändert:
+
+```bash
+BRAND=mentolder bash scripts/factory/auto-close-merged.sh --dry-run
+BRAND=korczewski bash scripts/factory/auto-close-merged.sh --dry-run
+```
+
+Findet der Dry-Run Nachzügler, denselben Aufruf ohne `--dry-run` wiederholen, um sie zu schließen.
+
 * **CI-Failures:** `gh pr checks <number>` diagnostizieren. Rote PRs nie mergen. Bekannter Flake →
   re-run; sonst PR offen lassen und (falls Ticket vorhanden) auf `in_progress` belassen.
 

@@ -295,6 +295,8 @@ Last touches:
   - Drift check never modifies system state | T004897 | 2026-08-15 | MODIFIED
   - branch-reaper unterstützt ticketlosen Sweep-Modus | T003490 | 2026-08-11 | ADDED
   - [gone]-Prune-Reihenfolge korrigieren | T003490 | 2026-08-11 | ADDED
+In-flight:
+  - Merge-Ticket-Abgleich als verbindlicher repo-hygiene-Schritt | T900103 | active | ADDED
 
 ### billing-pipeline
 Reqs: 24 · Scenarios: 51 · Lines: 456

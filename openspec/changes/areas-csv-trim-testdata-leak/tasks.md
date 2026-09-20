@@ -46,7 +46,7 @@ kubectl exec -i "$pod" -n workspace --context fleet -c postgres -- psql -U websi
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Neuer Test `T900250: teardown actually
+- [x] **Failing-Test-Step (RED).** Neuer Test `T900250: teardown actually
       deletes the testrow from the DB ticket.sh wrote to` in
       `areas-csv-trim.bats` — er loest den Schreibkontext unabhaengig vom
       (moeglicherweise falschen) `$CTX` ueber `${TICKET_CTX:-fleet}` auf,
@@ -61,7 +61,7 @@ tests/unit/lib/bats-core/bin/bats --filter "T900250" tests/spec/ticket-system/ar
 # expected: FAIL (red — CTX zeigt noch auf devmesh, ticket.sh schrieb aber nach fleet)
 ```
 
-- [ ] **Fix-Step (GREEN).** In beiden Dateien `CTX="${FACTORY_CTX:-devmesh}"`
+- [x] **Fix-Step (GREEN).** In beiden Dateien `CTX="${FACTORY_CTX:-devmesh}"`
       durch `CTX="${TICKET_CTX:-fleet}"` ersetzen (identische Aufloesung wie
       `scripts/vda/ticket/_ticket-core.sh:11`), damit Teardown/`psql_q`
       denselben Kontext treffen, in den `ticket.sh` tatsaechlich schreibt.
@@ -73,7 +73,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/areas-csv-trim.bats t
 # expected: alle 7 Tests ok
 ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

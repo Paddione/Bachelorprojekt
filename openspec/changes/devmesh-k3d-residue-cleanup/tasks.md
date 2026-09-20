@@ -50,7 +50,7 @@ ls -l ~/backups/k3d-mentolder-dev-shared-db-final-2026-08-23.sql.gz   # 75045023
 
 ## P1 — Guards (RED)
 
-- [ ] **P1.1 Failing-Test-Step (RED).** `tests/spec/local-dev-mesh/migrate-from-k3d.bats` auf die
+- [x] **P1.1 Failing-Test-Step (RED).** `tests/spec/local-dev-mesh/migrate-from-k3d.bats` auf die
   Dump-Quelle umschreiben: Fixture ist ein kleiner `pg_dumpall`-Text mit `\connect`- und
   `COPY … FROM stdin;`-Blöcken, `kubectl` bleibt gestubbt und liefert nur die Ziel-Zeilenzahlen.
   Vier Fälle: `counts` schreibt je Datenbank eine Zähldatei; `verify` mit gleichen Zahlen endet 0
@@ -63,32 +63,32 @@ ls -l ~/backups/k3d-mentolder-dev-shared-db-final-2026-08-23.sql.gz   # 75045023
   # expected: FAIL (red — das Skript liest noch aus dem Kubeconfig-Context)
   ```
 
-- [ ] **P1.2** `tests/spec/local-dev-mesh/no-k3d-context.bats`: `docs/spec-atlas.md` dauerhaft
+- [x] **P1.2** `tests/spec/local-dev-mesh/no-k3d-context.bats`: `docs/spec-atlas.md` dauerhaft
   ausnehmen (generiert, führt Requirement-Titel wörtlich), die `openspec/specs`-Ausnahme von
   `devmesh-k3d-decommission` auf `devmesh-k3d-residue-cleanup` umhängen. Der Positiv-Anker gegen
   `docs/adr` bleibt unverändert — ohne ihn bewiese ein leeres Suchergebnis nichts.
 
 ## P2 — migrate-from-k3d.sh auf Dump-Quelle
 
-- [ ] **P2.1** Kopf und Variablen: `DEVMESH_SRC_DUMP` mit Default
+- [x] **P2.1** Kopf und Variablen: `DEVMESH_SRC_DUMP` mit Default
   `$HOME/backups/k3d-mentolder-dev-shared-db-final-2026-08-23.sql.gz`; `DEVMESH_SRC_CLUSTER`,
   `DEVMESH_SRC_CTX` und `SRC_CTX` entfallen. Der Kommentarkopf nennt Quelle, Datum und warum der
   Cluster nicht mehr die Quelle ist.
-- [ ] **P2.2** `preflight`: Ziel-Guard (`fleet`/`*prod*` verweigert) vor jedem `kubectl`-Aufruf,
+- [x] **P2.2** `preflight`: Ziel-Guard (`fleet`/`*prod*` verweigert) vor jedem `kubectl`-Aufruf,
   Ziel-Context in `kubectl config get-contexts` vorhanden, Dump-Datei vorhanden und als gzip
   lesbar. Fehlende Vorbedingung endet 2, verweigertes Ziel endet 1. Der Vergleich des
   `POCKET_ID_ENCRYPTION_KEY` zwischen Quelle und Ziel entfällt: der Quell-Key lag im
   Kubernetes-Secret des abgebauten Clusters, nicht im Dump. Der Kopf hält fest, dass ein
   abweichender Key die `pocket_id`-Daten unlesbar macht.
-- [ ] **P2.3** `counts` (ersetzt `dump`): den Dump einmal streamen und je `\connect <db>` die
+- [x] **P2.3** `counts` (ersetzt `dump`): den Dump einmal streamen und je `\connect <db>` die
   Zeilen jedes `COPY <schema>.<table> … FROM stdin;`-Blocks bis zum abschließenden `\.` zählen;
   Ergebnis je Datenbank nach `$DUMP_DIR/<db>.counts` im bestehenden Format `schema.table|n`.
   Nur die Datenbanken aus `DEVMESH_MIGRATE_DBS` werden geschrieben.
-- [ ] **P2.4** `verify` behält Format und Exit-Codes, liest die erwarteten Zahlen aus den
+- [x] **P2.4** `verify` behält Format und Exit-Codes, liest die erwarteten Zahlen aus den
   `counts`-Dateien und die tatsächlichen aus der devmesh-`shared-db`. `restore`, `DST_WRITERS`,
   der Port-Forward-Block und `all`s Restore-Zweig entfallen; `all` ist `preflight`, `counts`,
   `verify`.
-- [ ] **P2.5 GREEN:** P1.1 ist grün.
+- [x] **P2.5 GREEN:** P1.1 ist grün.
 
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/local-dev-mesh/migrate-from-k3d.bats tests/spec/local-dev-mesh/no-k3d-context.bats
@@ -98,18 +98,18 @@ ls -l ~/backups/k3d-mentolder-dev-shared-db-final-2026-08-23.sql.gz   # 75045023
 
 Jede Zeile wird gegen `kubectl config get-contexts -o name` geprüft, nicht gegen den Dateitext.
 
-- [ ] **P3.1** Prerequisites-Zeile: `k3d` entfällt, weil kein Pfad es mehr aufruft.
-- [ ] **P3.2** Das Oracle-Beispiel „create a fresh k3d cluster" durch ein Beispiel ersetzen, das
+- [x] **P3.1** Prerequisites-Zeile: `k3d` entfällt, weil kein Pfad es mehr aufruft.
+- [x] **P3.2** Das Oracle-Beispiel „create a fresh k3d cluster" durch ein Beispiel ersetzen, das
   einem existierenden Task entspricht.
-- [ ] **P3.3** Die Zusicherung „`fleet` is the only kubeconfig context in active use" und die
+- [x] **P3.3** Die Zusicherung „`fleet` is the only kubeconfig context in active use" und die
   Zeile „Any context … besides `fleet` and `hetzner` … points at decommissioned hardware"
   korrigieren: aktiv sind `fleet` (Prod) und `devmesh` (Entwicklung); einen Context `hetzner`
   gibt es nicht. Der Satz zum abgebauten WSL-k3d-Cluster bleibt, er stimmt.
 
 ## P4 — Verify (GREEN)
 
-- [ ] **P4.1** Test-Inventar und Freshness-Artefakte neu erzeugen und einchecken.
-- [ ] **P4.2 Final Verification.** Die drei Pflicht-Gates:
+- [x] **P4.1** Test-Inventar und Freshness-Artefakte neu erzeugen und einchecken.
+- [x] **P4.2 Final Verification.** Die drei Pflicht-Gates:
 
   ```bash
   task test:changed
@@ -125,3 +125,14 @@ Jede Zeile wird gegen `kubectl config get-contexts -o name` geprüft, nicht gege
   kubectl config delete-context k3d-mentolder-dev
   kubectl config get-contexts -o name    # erwartet: devmesh, fleet
   ```
+
+## Nachtrag zur Umsetzung (T900120)
+
+- `tests/spec/local-dev-mesh/no-k3d-context.bats` nimmt zusätzlich
+  `scripts/devmesh/migrate-from-k3d.sh` aus: das Skript nennt den Dateinamen des archivierten
+  Dumps (`k3d-mentolder-dev-shared-db-final-2026-08-23.sql.gz`), nicht einen Kubeconfig-Context.
+  Im Delta-Spec als Exclusion und eigenes Szenario festgehalten.
+- `task test:changed` bricht lokal an `runtime-drift-check` ab
+  (`tickets.fn_purge_test_data` ohne `to_regclass`-Marker). Derselbe Befund steht auf
+  `origin/main` und hängt an der Live-DB, nicht am Branch; CI hat keinen Cluster und überspringt
+  ihn. Belegend gelaufen: `task test:spec:changed` (rc=0, 0 rote Fälle).

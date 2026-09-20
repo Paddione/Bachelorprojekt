@@ -47,7 +47,8 @@ because a cluster dump can only be replayed with `DROP DATABASE` on the target.
 
 The repository SHALL contain no reference to the former local k3d dev context outside
 `openspec/changes/`, `docs/superpowers/plans/`, `docs/superpowers/specs/archive/`, `docs/adr/`,
-`k3d/docs-content-built/`, `scripts/migrations/` and `docs/spec-atlas.md`. The guard
+`k3d/docs-content-built/`, `scripts/migrations/`, `docs/spec-atlas.md` and
+`scripts/devmesh/migrate-from-k3d.sh` (which names the archived dump file, not a context). The guard
 `tests/spec/local-dev-mesh/no-k3d-context.bats` SHALL hold the search pattern itself, so that
 this requirement does not need to spell it. Context defaults in the factory and ticket tooling
 SHALL resolve to `fleet`.
@@ -72,6 +73,8 @@ SHALL resolve to `fleet`.
   verbatim, including the titles of removed requirements
 - **WHEN** the guard builds its exclusion list
 - **THEN** that file is excluded unconditionally, not while some change directory exists
+- **AND** `scripts/devmesh/migrate-from-k3d.sh` is excluded, because the archived dump file is
+  named after the cluster it came from
 
 ## REMOVED Requirements
 

@@ -2,7 +2,7 @@
 title: "repo-hygiene-merge-reconcile — Implementation Plan"
 ticket_id: T900103
 domains: [repo-hygiene]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

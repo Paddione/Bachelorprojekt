@@ -601,6 +601,11 @@ Last touches:
   - Longhorn is the default StorageClass on devmesh | T900115 | 2026-09-17 | ADDED
   - git-crypt unlocks via GPG users in dev-shell | T900115 | 2026-09-17 | ADDED
   - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900115 | 2026-09-17 | ADDED
+In-flight:
+  - The k3d migration verifies row counts against the archived dump | T900120 | active | ADDED
+  - No active reference to the k3d dev context remains | T900120 | active | MODIFIED
+  - The k3d dev cluster is removed only after the acceptance gate | T900120 | active | REMOVED
+  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900120 | active | REMOVED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

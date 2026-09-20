@@ -15,8 +15,13 @@ _active_hits() {
     ':!scripts/migrations'
     ':!tests/fixtures/mishap-dedupe-korpus.json'
     ':!tests/spec/local-dev-mesh/migrate-from-k3d.bats'
+    # Generiert aus den Specs, fuehrt Requirement-Titel woertlich — auch die entfernter
+    # Requirements. Dauerhaft ausgenommen, nicht an eine Change-Verzeichnis-Existenz gebunden.
+    ':!docs/spec-atlas.md'
+    # Nennt den Dateinamen des archivierten Dumps, nicht einen Kubeconfig-Context (T900120).
+    ':!scripts/devmesh/migrate-from-k3d.sh'
   )
-  if [ -d "$REPO_ROOT/openspec/changes/devmesh-k3d-decommission" ]; then
+  if [ -d "$REPO_ROOT/openspec/changes/devmesh-k3d-residue-cleanup" ]; then
     ex+=(':!openspec/specs')
   fi
   git -C "$REPO_ROOT" grep -l -F -e "$PAT" -- . "${ex[@]}" || true

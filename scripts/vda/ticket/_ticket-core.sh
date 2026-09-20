@@ -135,9 +135,17 @@ _exec_sql() {
   # [T002999] Capture stderr from kubectl exec, pass through unchanged, then
   # apply the kubelet-cert-hint on it. The hint enriches the output without
   # replacing it — the original error and exit code are preserved.
+  # [T900239] `|| rc=$?` instead of a bare command + `local rc=$?`: ticket.sh
+  # runs under `set -euo pipefail`, and a bare failing command aborts the
+  # *function* immediately under errexit — before `local rc=$?`, the
+  # stderr-printing block and the `rm -f "$stderr_tmp"` cleanup below ever
+  # run. That produced a silent exit 3 with empty stdout AND stderr,
+  # indistinguishable from "no history" (get-timeline). The `||` form keeps
+  # a failing kubectl exec/psql from tripping errexit, so the error-reporting
+  # path below actually executes and the real cause reaches stderr.
+  local rc=0
   kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-    psql -U "${USER:-website}" -d "${DB:-website}" -qtA -v ON_ERROR_STOP=1 "$@" 2>"$stderr_tmp" <<<"$sql"
-  local rc=$?
+    psql -U "${USER:-website}" -d "${DB:-website}" -qtA -v ON_ERROR_STOP=1 "$@" 2>"$stderr_tmp" <<<"$sql" || rc=$?
   if [[ -s "$stderr_tmp" ]]; then
     local stderr_text
     stderr_text="$(cat "$stderr_tmp")"

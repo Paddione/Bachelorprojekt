@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.2...website-v1.355.3) (2026-09-20)
+
+
+### Bug Fixes
+
+* **scripts:** _exec_sql keeps errexit from swallowing SQL error output [T900239] ([#5771](https://github.com/Paddione/Bachelorprojekt/issues/5771)) ([c3641e4](https://github.com/Paddione/Bachelorprojekt/commit/c3641e47bb449ba25cce3a9c497ca08c84f41b46))
+
 ## [1.355.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.1...website-v1.355.2) (2026-09-20)
 
 

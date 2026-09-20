@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2400 · Scenarios: 5330
+Specs: 128 · Requirements: 2401 · Scenarios: 5332
 
 ## factory-pipeline
 
@@ -123,16 +123,14 @@ Last touches:
   - Der Factory-Default ist im KI-Deck sichtbar und setzbar | T013302 | 2026-08-22 | ADDED
 
 ### ticket-system
-Reqs: 89 · Scenarios: 244 · Lines: 2293
+Reqs: 90 · Scenarios: 246 · Lines: 2319
 Paths: scripts/ticket
 Last touches:
   - DB-gestuetzte BATS-Tests raeumen im selben Kontext auf, in den sie schreiben | T900250 | 2026-09-20 | ADDED
   - `_exec_sql` reports the real cause of a failed SQL call instead of aborting silently | T900239 | 2026-09-20 | ADDED
   - `get-timeline` liefert die Plan-Historie ohne Query-Fehler | T900243 | 2026-09-20 | ADDED
+  - `get-timeline` akzeptiert kein `--brand`/`BRAND` mehr | T900246 | 2026-09-20 | ADDED
   - GitHub Snapshot Schema and Cursor Tracking | T900161 | 2026-09-17 | ADDED
-  - GitHub Identity and Closing Relationship Auto-Registration | T900161 | 2026-09-17 | ADDED
-In-flight:
-  - `get-timeline` akzeptiert kein `--brand`/`BRAND` mehr | T900246 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192

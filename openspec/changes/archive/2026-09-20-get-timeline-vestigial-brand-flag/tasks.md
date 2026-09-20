@@ -2,7 +2,7 @@
 title: "get-timeline-vestigial-brand-flag — Implementation Plan"
 ticket_id: T900246
 domains: [ticket-system]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

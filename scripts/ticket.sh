@@ -972,10 +972,9 @@ cmd_backfill_id() {
 }
 
 cmd_get_timeline() {
-  local id="" brand="${BRAND:-mentolder}"
+  local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
     --id)    id="$2"; shift 2 ;;
-    --brand) brand="$2"; shift 2 ;;
     *)       echo "Unknown get-timeline option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh get-timeline" >&2; exit 2 ;;
   esac; done
 
@@ -989,7 +988,7 @@ cmd_get_timeline() {
   fi
 
   local pod; pod=$(_pgpod)
-  _exec_sql "$pod" -v ext_id="$id" -v brand="$brand" <<'EOF'
+  _exec_sql "$pod" -v ext_id="$id" <<'EOF'
 WITH
 comments AS (
   SELECT 'comment' AS source, tc.created_at AS ts,

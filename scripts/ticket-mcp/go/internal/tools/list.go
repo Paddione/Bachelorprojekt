@@ -195,7 +195,7 @@ func RegisterListTools(s *server.MCPServer) {
 				return mcp.NewToolResultError("id is required"), nil
 			}
 			raw, err := runner.RunTicket(
-				[]string{"get-timeline", "--id", id, "--brand", brand},
+				[]string{"get-timeline", "--id", id},
 				map[string]string{"BRAND": brand},
 			)
 			if err != nil {

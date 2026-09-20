@@ -6480,6 +6480,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-system/get-timeline-brand-flag-removed-T900246",
+    "file": "tests/spec/ticket-system/get-timeline-brand-flag-removed-T900246.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-system/get-timeline-plan-brand-column-T900243",
     "file": "tests/spec/ticket-system/get-timeline-plan-brand-column-T900243.bats",
     "category": "ticket-system",

@@ -931,7 +931,7 @@ function handleToolCall(name, args) {
       }
       case 'get_ticket': { return textResult(runTicket(['get','--id',args && args.id], env)); }
       case 'export_tickets': { return textResult(runTicket(['list','--brand',brand,'--limit',String(args && args.limit||200)].concat(args && args.status?['--status',args.status]:[]).concat(args && args.type?['--type',args.type]:[]).concat(args && args.format?['--format',args.format]:[]), env)); }
-      case 'export_ticket_timeline': { return textResult(runTicket(['get-timeline','--id',args && args.id,'--brand',brand], env)); }
+      case 'export_ticket_timeline': { return textResult(runTicket(['get-timeline','--id',args && args.id], env)); }
       case 'triage_ticket': {
         if (args && args.status === 'plan_staged') return { isError: true, content: [{ type: 'text', text: "Cannot triage to status 'plan_staged' — stage the plan first (stage_plan). Use 'triage' or 'planning' instead." }] };
         return textResult(runTicket(['triage','--id',args && args.id,'--apply','--no-comment'].concat(args && args.status?['--status',args.status]:[]).concat(args && args.priority?['--priority',args.priority]:[]).concat(args && args.severity?['--severity',args.severity]:[]).concat(args && args.type?['--type',args.type]:[]).concat(args && args.attention_mode?['--attention-mode',args.attention_mode]:[]).concat(args && args.component?['--component',args.component]:[]), { BRAND: brand, VDA_NONINTERACTIVE: '1' }));

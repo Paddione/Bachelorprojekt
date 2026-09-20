@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.356.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.8...website-v1.356.0) (2026-09-20)
+
+
+### Features
+
+* **website:** full Bewerbungs-Cockpit with Kanban, detail panel, status switching [T900233] ([#5792](https://github.com/Paddione/Bachelorprojekt/issues/5792)) ([859ab5a](https://github.com/Paddione/Bachelorprojekt/commit/859ab5aa2a96a4304452bedd4f566cc9640e2b5a))
+
 ## [1.355.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.7...website-v1.355.8) (2026-09-20)
 
 

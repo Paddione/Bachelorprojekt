@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.44.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.43.0...brett-v0.44.0) (2026-09-20)
+
+
+### Features
+
+* **website:** full Bewerbungs-Cockpit with Kanban, detail panel, status switching [T900233] ([#5792](https://github.com/Paddione/Bachelorprojekt/issues/5792)) ([859ab5a](https://github.com/Paddione/Bachelorprojekt/commit/859ab5aa2a96a4304452bedd4f566cc9640e2b5a))
+
 ## [0.43.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.42.0...brett-v0.43.0) (2026-09-17)
 
 

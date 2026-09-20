@@ -26,6 +26,7 @@ count() { find "$D" -maxdepth 1 -name 'shared-db-*.sql.gz' | wc -l; }
 
 @test "voller Lauf schreibt einen neuen Dump und haelt 14" {
   seed 14
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$FIX/bin/pg_isready"; chmod +x "$FIX/bin/pg_isready"
   printf '#!/usr/bin/env bash\necho "-- dump"\n' > "$FIX/bin/pg_dumpall"; chmod +x "$FIX/bin/pg_dumpall"
   run env PATH="$FIX/bin:$PATH" BACKUP_DIR="$D" RETAIN=14 bash "$SCRIPT"
   [ "$status" -eq 0 ]
@@ -36,6 +37,7 @@ count() { find "$D" -maxdepth 1 -name 'shared-db-*.sql.gz' | wc -l; }
 
 @test "scheitert pg_dumpall, bleibt kein Teil-Dump liegen und nichts wird geloescht" {
   seed 15
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$FIX/bin/pg_isready"; chmod +x "$FIX/bin/pg_isready"
   printf '#!/usr/bin/env bash\nexit 1\n' > "$FIX/bin/pg_dumpall"; chmod +x "$FIX/bin/pg_dumpall"
   run env PATH="$FIX/bin:$PATH" BACKUP_DIR="$D" RETAIN=14 bash "$SCRIPT"
   [ "$status" -ne 0 ]

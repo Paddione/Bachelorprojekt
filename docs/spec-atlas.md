@@ -601,6 +601,8 @@ Last touches:
   - git-crypt unlocks via GPG users in dev-shell | T900115 | 2026-09-17 | ADDED
   - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900115 | 2026-09-17 | ADDED
   - devmesh hosts the CPU-bound LLM and database services | T900191 | 2026-09-17 | ADDED
+In-flight:
+  - shared-db-backup toleriert den Pod-Startup-Netzwerk-Race | T900240 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

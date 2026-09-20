@@ -4897,6 +4897,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900240": [
+    {
+      "slug": "devmesh-shared-db-backup-retry",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

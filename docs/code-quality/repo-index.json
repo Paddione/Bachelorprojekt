@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1343,
+      "file_count": 1344,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1153,6 +1153,7 @@
         "tests/spec/ticket-system/areas-csv-trim.bats",
         "tests/spec/ticket-system/backfill-id-sequence.bats",
         "tests/spec/ticket-system/exec-sql-error-visibility-T900239.bats",
+        "tests/spec/ticket-system/get-timeline-brand-flag-removed-T900246.bats",
         "tests/spec/ticket-system/get-timeline-plan-brand-column-T900243.bats",
         "tests/spec/ticket-system/list-status-comma-list.bats",
         "tests/spec/ticket-system/list-test-data-filter.bats",

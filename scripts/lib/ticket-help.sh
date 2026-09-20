@@ -341,9 +341,8 @@ HELP
       ;;
     get-timeline)
       cat <<'HELP'
-Usage: ticket.sh get-timeline --id <external_id> [--brand <brand>]
+Usage: ticket.sh get-timeline --id <external_id>
   --id <external_id>      Ticket-ID (required)
-  --brand <brand>         mentolder|korczewski
   Ausgabe: chronologisches JSON aus Kommentaren, Phasen-Events, PR-Links und Plaenen.
 HELP
       ;;

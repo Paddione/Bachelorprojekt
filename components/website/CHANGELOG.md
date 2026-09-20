@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.355.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.5...website-v1.355.6) (2026-09-20)
+
+
+### Bug Fixes
+
+* **skills:** make merged-PR/open-ticket reconcile mandatory in repo-hygiene §3 [T900103] ([#5782](https://github.com/Paddione/Bachelorprojekt/issues/5782)) ([4b2784c](https://github.com/Paddione/Bachelorprojekt/commit/4b2784c649941b177e27a3d1f601d9204d0e162e))
+
 ## [1.355.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.4...website-v1.355.5) (2026-09-20)
 
 

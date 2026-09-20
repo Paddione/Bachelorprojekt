@@ -131,6 +131,8 @@ Last touches:
   - PR Events and Status Compatibility Projection | T900161 | 2026-09-17 | ADDED
   - backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich | T900145 | 2026-09-16 | MODIFIED
   - Repository-scoped GitHub object identity | T900159 | 2026-09-12 | ADDED
+In-flight:
+  - `_exec_sql` reports the real cause of a failed SQL call instead of aborting silently | T900239 | active | ADDED
 
 ### website-core
 Reqs: 58 · Scenarios: 122 · Lines: 1192

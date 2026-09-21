@@ -457,3 +457,19 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   [ "$status" -eq 0 ]
 }
 
+# ── T900297: Standalone Applications Cockpit (/admin/applications) ─────────
+@test "T900297: src/pages/admin/ contains no client scripts or stylesheets that collide with Astro routes" {
+  # applications.ts and applications.css in src/pages/admin/ collide with applications.astro
+  # and cause Astro SSR crashes (ReferenceError: document is not defined) and 404s.
+  [ ! -f "$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/applications.ts" ]
+  [ ! -f "$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/applications.css" ]
+}
+
+@test "T900297: applications.astro is decoupled from Brett and links back to /admin" {
+  local app_astro="$BATS_TEST_DIRNAME/../../components/website/src/pages/admin/applications.astro"
+  [ -f "$app_astro" ]
+  # Must not reference Brett in user-facing links
+  run grep -Ei "Zurück zum Brett|Brett-Kanban" "$app_astro"
+  [ "$status" -ne 0 ]
+}
+

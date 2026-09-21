@@ -141,6 +141,8 @@ Last touches:
   - notify-unread CronJob ist suspendiert | T016592 | 2026-08-28 | ADDED
   - Admin-Sidebar-Navigation | T003826 | 2026-08-11 | MODIFIED
   - routes:manifest suppresses raw Node stderr from the failed primary attempt | T002666 | 2026-08-10 | ADDED
+In-flight:
+  - Application Pipeline Dynamic API Routes | T900302 | active | ADDED
 
 ## Ungrouped
 

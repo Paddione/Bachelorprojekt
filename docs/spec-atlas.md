@@ -141,6 +141,8 @@ Last touches:
   - Admin-Sidebar-Navigation | T003826 | 2026-08-11 | MODIFIED
   - routes:manifest suppresses raw Node stderr from the failed primary attempt | T002666 | 2026-08-10 | ADDED
   - The model id is resolved at runtime | T002612 | 2026-08-10 | ADDED
+In-flight:
+  - Standalone Applications Cockpit Route Integrity | T900297 | active | ADDED
 
 ## Ungrouped
 

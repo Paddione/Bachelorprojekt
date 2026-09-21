@@ -2472,6 +2472,12 @@
     "kind": "shell"
   },
   {
+    "id": "application-pipeline/auto-sync",
+    "file": "tests/spec/application-pipeline/auto-sync.bats",
+    "category": "application-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "application-pipeline/evidence-catalog",
     "file": "tests/spec/application-pipeline/evidence-catalog.bats",
     "category": "application-pipeline",

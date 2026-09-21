@@ -88,36 +88,15 @@ OpenSpec CLI completion: `openspec completion install`.
 
 ## Interaction Contract
 
-**Run the assignment to its end.** Carry the assigned task through to its own
-logical completion — including verification, commit and pull request where the
-assignment covers them — and only then return control. Never stop to have the
-user confirm a step you would have recommended anyway. Never start a new task
-or pull a new ticket without being asked.
+**Run to completion** — verify, commit, PR; never stop mid-task. Stop only on:
+1. **Destructive** — force-push, prod deploy, secret rotation, DB drop.
+2. **Genuine fork** — two viable designs change outcome, no prior art (T002829).
+3. **Blocked** — missing creds, unreachable service. Follow escalation-protocol.md.
+4. **Cost above threshold** — long GPU jobs, large subagent fan-outs.
 
-**Stop only on these four triggers:**
+Everything else is reversible: act. Ask so the answer is one keystroke.
 
-1. **Destructive or irreversible** — delete, force-push, prod deploy, secret
-   rotation, database drop.
-2. **Genuine fork with no default** — two viable designs whose choice materially
-   changes the outcome, and the prior-art search (T002829) found no precedent in
-   `openspec/specs/` or `tests/spec/`.
-3. **Blocked** — missing credentials, unreachable service, contradictory
-   requirement. Follow `.claude/lib/behaviors/escalation-protocol.md`; do not
-   restate it here.
-4. **Cost above threshold** — long-running GPU jobs, large subagent fan-outs,
-   expensive cloud runs.
-
-Everything else is reversible and low-risk: act. Deliver the divisible part
-regardless — finish everything the open question does not depend on and return
-only the blocked remainder.
-
-**Ask so the answer is one keystroke.** A question with a finite set of answers
-goes through `AskUserQuestion` (Claude Code) or `question` (opencode, agy). A
-harness offering neither falls back to numbered Markdown options with the
-recommendation first. Never put a choice into free prose.
-
-**Status footer — once, at the end of a finished thread**, never after every
-action:
+**Status footer** — once, at end of finished thread:
 
 ```
 STATUS: <what happened>
@@ -125,16 +104,12 @@ RUNNING: <background work or "none">
 BLOCKED: <blockers or "none">
 ```
 
-The footer deliberately carries no next-objective and no confidence line. A
-proposed next objective invites the user to approve a step the agent should
-simply take; that was the T016441 footer, replaced here by T900235.
-
 ## Reference Sections (read on-demand, do not frontload)
 
 The following sections contain detailed reference material. **Do not load them into context at session start.** Read them only when the current task requires it.
 
 <details>
-<summary>Claude Code Domain Agents (read when dispatching domain-specific subagents)</summary>
+<summary>Domain Agents (read when dispatching)</summary>
 
 | Signals | Agent |
 |---------|-------|
@@ -163,25 +138,9 @@ Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → `<active-pla
 </details>
 
 <details>
-<summary>Health Baseline Updates (read when updating .claude/lib/goals.md)</summary>
+<summary>Other References (read when needed — all in CLAUDE.md)</summary>
 
-- `bash scripts/health-goals-check.sh` (~40 G-*-Goals, nie G-RH01–G-RH07 umnummerieren; SSOT `.claude/lib/goals.md`, redaktionell). Tickets nur mit `--suggest-tickets`.
-</details>
-
-<details>
-<summary>Package Managers</summary>
-
-| Area | Manager | Lockfile |
-|------|---------|----------|
-| Root | `npm` | `package-lock.json` |
-| `components/website/` | `pnpm` | `components/website/pnpm-lock.yaml` |
-| `components/brett/` | `npm` | `components/brett/package-lock.json` |
-</details>
-
-<details>
-<summary>Important References (read when you need deeper context)</summary>
-
-- `CLAUDE.md` — authoritative comprehensive reference (task lists, topology, all footguns)
+- `CLAUDE.md` — authoritative comprehensive reference (task lists, topology, all footguns, package managers, health baseline updates, etc.)
 - `components/website/CLAUDE.md` — Astro/Svelte quick-start
-- `docs/agent-guide/README.md` — agent operating guide; `.agents/skills/OVERVIEW.md` — skill layering contract
+- `docs/agent-guide/README.md` — agent operating guide
 </details>

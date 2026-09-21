@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.357.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.0...website-v1.357.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **website:** bundle applications cockpit cleanly and decouple from brett [T900297] ([#5800](https://github.com/Paddione/Bachelorprojekt/issues/5800)) ([aec8b91](https://github.com/Paddione/Bachelorprojekt/commit/aec8b91e08c994957e3ad35bae686cc3814dfcf7))
+
 ## [1.357.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.356.0...website-v1.357.0) (2026-09-21)
 
 

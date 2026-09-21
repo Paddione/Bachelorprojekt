@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2402 · Scenarios: 5335
+Specs: 128 · Requirements: 2403 · Scenarios: 5336
 
 ## factory-pipeline
 
@@ -133,16 +133,14 @@ Last touches:
   - GitHub Snapshot Schema and Cursor Tracking | T900161 | 2026-09-17 | ADDED
 
 ### website-core
-Reqs: 59 · Scenarios: 125 · Lines: 1215
+Reqs: 60 · Scenarios: 126 · Lines: 1226
 Paths: website/src
 Last touches:
   - Standalone Applications Cockpit Route Integrity | T900297 | 2026-09-21 | ADDED
+  - Application Pipeline Dynamic API Routes | T900302 | 2026-09-21 | ADDED
   - Globaler Kill-Switch für Admin-Benachrichtigungs-Mails | T016592 | 2026-08-28 | ADDED
   - notify-unread CronJob ist suspendiert | T016592 | 2026-08-28 | ADDED
   - Admin-Sidebar-Navigation | T003826 | 2026-08-11 | MODIFIED
-  - routes:manifest suppresses raw Node stderr from the failed primary attempt | T002666 | 2026-08-10 | ADDED
-In-flight:
-  - Application Pipeline Dynamic API Routes | T900302 | active | ADDED
 
 ## Ungrouped
 

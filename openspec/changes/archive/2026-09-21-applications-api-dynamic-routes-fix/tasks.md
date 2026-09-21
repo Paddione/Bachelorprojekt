@@ -2,7 +2,7 @@
 title: "applications-api-dynamic-routes-fix — Implementation Plan"
 ticket_id: T900302
 domains: [website]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

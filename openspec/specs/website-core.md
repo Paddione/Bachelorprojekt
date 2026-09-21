@@ -827,6 +827,15 @@ The website SHALL provide an admin-only standalone Bewerbungs-Cockpit at `/admin
 - **WHEN** requesting `/api/internal/applications/list` or job detail/timeline/status endpoints
 - **THEN** the request succeeds with status 200 rather than being rejected with 403.
 
+### Requirement: Application Pipeline Dynamic API Routes
+
+The system SHALL provide internal API routes for individual applications parameterized by ID under `/api/internal/applications/[id]/`.
+
+#### Scenario: Requesting job details by ID
+- **GIVEN** a job exists with ID `68` in `applications.jobs`
+- **WHEN** an authorized GET request is made to `/api/internal/applications/68/detail`
+- **THEN** the server returns status 200 with the job details JSON payload
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1213,3 +1222,5 @@ The `website/pnpm-workspace.yaml` MAY include an `overrides` block to pin transi
 <!-- merged from change delta website-core.md (5d73d7240163) -->
 
 <!-- merged from change delta website-core.md (1445e443b4f0) -->
+
+<!-- merged from change delta website-core.md (7f1c6d7d198b) -->

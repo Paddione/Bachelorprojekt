@@ -1,11 +1,10 @@
 import type { APIRoute } from 'astro';
 import { pool } from '../../../../lib/website-db';
 
-const STATUSES = ['found', 'drafting', 'applied', 'interviewing', 'offered', 'rejected', 'withdrawn'] as const;
+import { isAuthorized } from './auth';
 
 export const GET: APIRoute = async ({ request, params }) => {
-  const token = process.env.INTERNAL_API_TOKEN ?? '';
-  if (!token || request.headers.get('x-internal-token') !== token) {
+  if (!await isAuthorized(request)) {
     return new Response('forbidden', { status: 403 });
   }
 

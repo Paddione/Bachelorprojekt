@@ -1,5 +1,6 @@
 // Bewerbungs-Cockpit Client Script (T900233, Phase 4)
 // Standalone cockpit — reads from website internal API, renders Kanban + Detail Panel.
+import { browserLogger } from '../../lib/browser-logger';
 
 type ApplicationCard = {
   id: number;
@@ -239,7 +240,7 @@ async function showDetailPanel(jobId: number): Promise<void> {
           // Re-show detail
           showDetailPanel(jobId);
         } catch (err) {
-          console.error('Status update failed:', err);
+          browserLogger.error({ err }, 'Status update failed');
           alert('Status-Wechsel fehlgeschlagen');
         }
       });
@@ -308,7 +309,7 @@ async function showDetailPanel(jobId: number): Promise<void> {
         // Refresh timeline
         showDetailPanel(jobId);
       } catch (err) {
-        console.error('Timeline add failed:', err);
+        browserLogger.error({ err }, 'Timeline add failed');
         alert('Timeline-Eintrag fehlgeschlagen');
       }
     });
@@ -361,7 +362,7 @@ async function showDetailPanel(jobId: number): Promise<void> {
 
   } catch (err) {
     content.innerHTML = `<div class="error">Detail-Ansicht konnte nicht geladen werden.</div>`;
-    console.error('Detail load failed:', err);
+    browserLogger.error({ err }, 'Detail load failed');
   }
 }
 
@@ -379,7 +380,7 @@ async function refreshData(): Promise<void> {
       showDetailPanel(selectedJobId);
     }
   } catch (err) {
-    console.error('Data refresh failed:', err);
+    browserLogger.error({ err }, 'Data refresh failed');
   }
 }
 

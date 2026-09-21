@@ -40,7 +40,7 @@ tests/spec/
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Run the BATS test in `tests/spec/website-core.bats` reproducing the issue.
+- [x] **Failing-Test-Step (RED).** Run the BATS test in `tests/spec/website-core.bats` reproducing the issue.
       The test must FAIL before the files are moved and decoupled.
 
 ```bash
@@ -48,20 +48,20 @@ bats tests/spec/website-core.bats -f "T900297"
 # expected: FAIL (red — applications.ts still in src/pages/admin and Brett links present)
 ```
 
-- [ ] **Task 1: Move client script and stylesheet out of pages directory.**
+- [x] **Task 1: Move client script and stylesheet out of pages directory.**
       Move `components/website/src/pages/admin/applications.ts` to `components/website/src/scripts/admin/applications.ts`.
       Move `components/website/src/pages/admin/applications.css` to `components/website/src/styles/admin/applications.css`.
 
-- [ ] **Task 2: Update applications.astro with bundled assets and decoupled navigation.**
+- [x] **Task 2: Update applications.astro with bundled assets and decoupled navigation.**
       Import styles via `import '../../styles/admin/applications.css'` in the frontmatter.
       Replace the raw external script tag with `<script src="../../scripts/admin/applications.ts"></script>`.
       Replace Brett backlinks with a link to `/admin` ("← Zurück zur Übersicht") and remove the "Brett-Kanban" link.
 
-- [ ] **Task 3: Add session authorization to internal applications API endpoints.**
+- [x] **Task 3: Add session authorization to internal applications API endpoints.**
       Add helper `components/website/src/pages/api/internal/applications/auth.ts` checking either `x-internal-token` or an authenticated admin session via `getSession` and `isAdmin`.
       Update `list.ts`, `detail.ts`, `status.ts`, `timeline.ts`, `timeline_list.ts`, and `dossiers.ts` to use this helper.
 
-- [ ] **Task 4: Run unit and BATS tests (GREEN).**
+- [x] **Task 4: Run unit and BATS tests (GREEN).**
       Verify that BATS tests in `tests/spec/website-core.bats` and vitest unit tests in `components/website` now pass.
 
 ```bash

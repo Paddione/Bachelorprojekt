@@ -16,9 +16,10 @@ export function parseStatusPayload(body: unknown): StatusPayload | null {
   return { status };
 }
 
+import { isAuthorized } from './auth';
+
 export const PUT: APIRoute = async ({ request, params }) => {
-  const token = process.env.INTERNAL_API_TOKEN ?? '';
-  if (!token || request.headers.get('x-internal-token') !== token) {
+  if (!await isAuthorized(request)) {
     return new Response('forbidden', { status: 403 });
   }
 
@@ -53,7 +54,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
   }
 
   // Auto-render dossiers when entering drafting/applied status
-  if (AUTO_RENDER_STATUSES.includes(body.status)) {
+  if (body.status && AUTO_RENDER_STATUSES.includes(body.status)) {
     const jobDir = process.cwd().split('components')[0] || '.';
     // Fire-and-forget: background render without blocking the response
     spawn('bash', ['-c', `${jobDir}/scripts/vda/apply/render.sh --job-id ${jobNum} --theme default 2>/dev/null &`], {

@@ -16,9 +16,10 @@ export function parseTimelinePayload(body: unknown): TimelinePayload | null {
   return { job_id, event_type, ...(notes === undefined ? {} : { notes }) };
 }
 
+import { isAuthorized } from './auth';
+
 export const POST: APIRoute = async ({ request }) => {
-  const token = process.env.INTERNAL_API_TOKEN ?? '';
-  if (!token || request.headers.get('x-internal-token') !== token) {
+  if (!await isAuthorized(request)) {
     return new Response('forbidden', { status: 403 });
   }
   let body: TimelinePayload | null;

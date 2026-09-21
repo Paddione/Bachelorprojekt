@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.357.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.356.0...website-v1.357.0) (2026-09-21)
+
+
+### Features
+
+* **scripts:** auto-sync job ingestion with auto-match and auto-render [T900231] ([#5795](https://github.com/Paddione/Bachelorprojekt/issues/5795)) ([24f1a24](https://github.com/Paddione/Bachelorprojekt/commit/24f1a24c558761ddbf275c654d3b96a95db49ae6))
+
 ## [1.356.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.355.8...website-v1.356.0) (2026-09-20)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.357.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.1...website-v1.357.2) (2026-09-21)
+
+
+### Bug Fixes
+
+* **website:** restructure applications API under [id] dynamic route [T900302] ([#5803](https://github.com/Paddione/Bachelorprojekt/issues/5803)) ([f3e5fcb](https://github.com/Paddione/Bachelorprojekt/commit/f3e5fcb78661d57cbf6704ec81234e8c65aa82a3))
+
 ## [1.357.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.0...website-v1.357.1) (2026-09-21)
 
 

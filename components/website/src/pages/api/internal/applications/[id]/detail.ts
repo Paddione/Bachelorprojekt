@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { pool } from '../../../../lib/website-db';
+import { pool } from '../../../../../lib/website-db';
 
-import { isAuthorized } from './auth';
+import { isAuthorized } from '../auth';
 
 export const GET: APIRoute = async ({ request, params }) => {
   if (!await isAuthorized(request)) {

@@ -2460,12 +2460,12 @@ flowchart TB
 | `/api/dsgvo-request` | POST | ❓ unclassified |
 | `/api/health` | GET | ❓ unclassified |
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified |
-| `/api/internal/applications/detail` | GET | ❓ internal |
-| `/api/internal/applications/dossiers` | GET | ❓ internal |
+| `/api/internal/applications/{id}` | PUT | ❓ internal |
+| `/api/internal/applications/{id}/detail` | GET | ❓ internal |
+| `/api/internal/applications/{id}/dossiers` | GET | ❓ internal |
+| `/api/internal/applications/{id}/timeline` | GET | ❓ internal |
 | `/api/internal/applications/list` | GET | ❓ internal |
-| `/api/internal/applications/status` | PUT | ❓ internal |
 | `/api/internal/applications/timeline` | POST | ❓ internal |
-| `/api/internal/applications/timeline_list` | GET | ❓ internal |
 | `/api/internal/tickets/notify-close` | POST | ❓ internal |
 | `/api/leistungen` | GET | ❓ unclassified |
 | `/api/meeting/finalize` | POST | ❓ unclassified |

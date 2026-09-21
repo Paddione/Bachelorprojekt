@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { pool } from '../../../../lib/website-db';
+import { pool } from '../../../../../lib/website-db';
 import { spawn } from 'child_process';
 
 const VALID_STATUSES = ['found', 'drafting', 'applied', 'interviewing', 'offered', 'rejected', 'withdrawn'];
@@ -16,7 +16,7 @@ export function parseStatusPayload(body: unknown): StatusPayload | null {
   return { status };
 }
 
-import { isAuthorized } from './auth';
+import { isAuthorized } from '../auth';
 
 export const PUT: APIRoute = async ({ request, params }) => {
   if (!await isAuthorized(request)) {

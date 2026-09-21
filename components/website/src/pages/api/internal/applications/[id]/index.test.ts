@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../../../../lib/website-db', () => ({ pool: { query: vi.fn() } }));
+vi.mock('../../../../../lib/website-db', () => ({ pool: { query: vi.fn() } }));
 
-import { pool } from '../../../../lib/website-db';
-import { PUT } from './status';
+import { pool } from '../../../../../lib/website-db';
+import { PUT } from './index';
 
 type RouteContext = Parameters<typeof PUT>[0];
 

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-09-20T18:27:49.827Z
+> Generated at 2026-09-21T13:05:35.930Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -250,12 +250,12 @@
 | `/api/dsgvo-request` | POST | ❓ unclassified | `components/website/src/pages/api/dsgvo-request.ts` |
 | `/api/health` | GET | ❓ unclassified | `components/website/src/pages/api/health.ts` |
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified | `components/website/src/pages/api/homepage.ts` |
-| `/api/internal/applications/detail` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/detail.ts` |
-| `/api/internal/applications/dossiers` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/dossiers.ts` |
+| `/api/internal/applications/{id}` | PUT | 🔒 internal | `components/website/src/pages/api/internal/applications/[id]/index.ts` |
+| `/api/internal/applications/{id}/detail` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/[id]/detail.ts` |
+| `/api/internal/applications/{id}/dossiers` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/[id]/dossiers.ts` |
+| `/api/internal/applications/{id}/timeline` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/[id]/timeline.ts` |
 | `/api/internal/applications/list` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/list.ts` |
-| `/api/internal/applications/status` | PUT | 🔒 internal | `components/website/src/pages/api/internal/applications/status.ts` |
 | `/api/internal/applications/timeline` | POST | 🔒 internal | `components/website/src/pages/api/internal/applications/timeline.ts` |
-| `/api/internal/applications/timeline_list` | GET | 🔒 internal | `components/website/src/pages/api/internal/applications/timeline_list.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `components/website/src/pages/api/internal/tickets/notify-close.ts` |
 | `/api/leistungen` | GET | ❓ unclassified | `components/website/src/pages/api/leistungen.ts` |
 | `/api/meeting/finalize` | POST | ❓ unclassified | `components/website/src/pages/api/meeting/finalize.ts` |

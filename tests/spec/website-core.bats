@@ -473,3 +473,13 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   [ "$status" -ne 0 ]
 }
 
+# ── T900302: Dynamic Application API Routes under [id]/ ────────────────────
+@test "T900302: application-specific API endpoints exist under [id]/ directory" {
+  local base="$BATS_TEST_DIRNAME/../../components/website/src/pages/api/internal/applications"
+  [ -f "$base/[id]/index.ts" ]
+  [ -f "$base/[id]/detail.ts" ]
+  [ -f "$base/[id]/timeline.ts" ]
+  [ -f "$base/[id]/dossiers.ts" ]
+}
+
+

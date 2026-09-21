@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { pool } from '../../../../lib/website-db';
+import { pool } from '../../../../../lib/website-db';
 
-import { isAuthorized } from './auth';
+import { isAuthorized } from '../auth';
 
 export const GET: APIRoute = async ({ request, params }) => {
   if (!await isAuthorized(request)) {
@@ -19,8 +19,8 @@ export const GET: APIRoute = async ({ request, params }) => {
   }
 
   const r = await pool.query(
-    `SELECT id, job_id, event_type, notes, created_at
-       FROM applications.timeline
+    `SELECT id, job_id, artifact_path, kind, created_at
+       FROM applications.dossiers
       WHERE job_id = $1
       ORDER BY created_at DESC`,
     [jobNum],

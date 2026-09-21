@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../../../../lib/website-db', () => ({ pool: { query: vi.fn() } }));
+vi.mock('../../../../../lib/website-db', () => ({ pool: { query: vi.fn() } }));
 
-import { pool } from '../../../../lib/website-db';
+import { pool } from '../../../../../lib/website-db';
 import { GET } from './detail';
 
 type RouteContext = Parameters<typeof GET>[0];

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T18:04:06.365Z",
+  "generatedAt": "2026-09-21T13:05:35.930Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2019,20 +2019,36 @@
       "file": "components/website/src/pages/api/homepage.ts"
     },
     {
-      "path": "/api/internal/applications/detail",
+      "path": "/api/internal/applications/{id}",
       "methods": [
-        "GET"
+        "PUT"
       ],
       "auth": "internal",
-      "file": "components/website/src/pages/api/internal/applications/detail.ts"
+      "file": "components/website/src/pages/api/internal/applications/[id]/index.ts"
     },
     {
-      "path": "/api/internal/applications/dossiers",
+      "path": "/api/internal/applications/{id}/detail",
       "methods": [
         "GET"
       ],
       "auth": "internal",
-      "file": "components/website/src/pages/api/internal/applications/dossiers.ts"
+      "file": "components/website/src/pages/api/internal/applications/[id]/detail.ts"
+    },
+    {
+      "path": "/api/internal/applications/{id}/dossiers",
+      "methods": [
+        "GET"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/[id]/dossiers.ts"
+    },
+    {
+      "path": "/api/internal/applications/{id}/timeline",
+      "methods": [
+        "GET"
+      ],
+      "auth": "internal",
+      "file": "components/website/src/pages/api/internal/applications/[id]/timeline.ts"
     },
     {
       "path": "/api/internal/applications/list",
@@ -2043,28 +2059,12 @@
       "file": "components/website/src/pages/api/internal/applications/list.ts"
     },
     {
-      "path": "/api/internal/applications/status",
-      "methods": [
-        "PUT"
-      ],
-      "auth": "internal",
-      "file": "components/website/src/pages/api/internal/applications/status.ts"
-    },
-    {
       "path": "/api/internal/applications/timeline",
       "methods": [
         "POST"
       ],
       "auth": "internal",
       "file": "components/website/src/pages/api/internal/applications/timeline.ts"
-    },
-    {
-      "path": "/api/internal/applications/timeline_list",
-      "methods": [
-        "GET"
-      ],
-      "auth": "internal",
-      "file": "components/website/src/pages/api/internal/applications/timeline_list.ts"
     },
     {
       "path": "/api/internal/tickets/notify-close",

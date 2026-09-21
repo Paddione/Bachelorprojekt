@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../../../../lib/website-db', () => ({ pool: { query: vi.fn() } }));
+vi.mock('../../../../../lib/website-db', () => ({ pool: { query: vi.fn() } }));
 
-import { pool } from '../../../../lib/website-db';
-import { GET } from './timeline_list';
+import { pool } from '../../../../../lib/website-db';
+import { GET } from './dossiers';
 
 type RouteContext = Parameters<typeof GET>[0];
 
+const req = (id: string, headers: Record<string, string> = {}) =>
+  new Request(`https://web.example.test/api/internal/applications/${id}/dossiers`, { headers });
+
 function makeContext(id: string, headers: Record<string, string> = {}): RouteContext {
-  return {
-    request: new Request(`https://web.example.test/api/internal/applications/${id}/timeline`, { headers }),
-    params: { id },
-  } as unknown as RouteContext;
+  return { request: req(id, headers), params: { id } } as unknown as RouteContext;
 }
 
 let saved: string | undefined;
@@ -25,14 +25,14 @@ afterEach(() => {
   else process.env.INTERNAL_API_TOKEN = saved;
 });
 
-describe('GET /api/internal/applications/:id/timeline', () => {
+describe('GET /api/internal/applications/:id/dossiers', () => {
   it('rejects request without x-internal-token with 403', async () => {
     const res = await GET(makeContext('1'));
     expect(res.status).toBe(403);
     expect(pool.query).not.toHaveBeenCalled();
   });
 
-  it('returns empty array for job with no timeline', async () => {
+  it('returns empty array for job with no dossiers', async () => {
     vi.mocked(pool.query).mockResolvedValue({ rows: [] } as never);
     const res = await GET(makeContext('1', { 'x-internal-token': 'test-token' }));
     expect(res.status).toBe(200);
@@ -40,18 +40,18 @@ describe('GET /api/internal/applications/:id/timeline', () => {
     expect(body).toEqual([]);
   });
 
-  it('returns timeline events sorted by created_at DESC', async () => {
+  it('returns dossiers sorted by created_at DESC', async () => {
     vi.mocked(pool.query).mockResolvedValue({
       rows: [
-        { id: 2, job_id: 1, event_type: 'interview_feedback', notes: 'positive', created_at: '2026-09-19T14:00:00Z' },
-        { id: 1, job_id: 1, event_type: 'application_submitted', notes: 'via portal', created_at: '2026-09-18T10:00:00Z' },
+        { id: 1, job_id: 1, artifact_path: '/docs/resume.pdf', kind: 'resume', created_at: '2026-09-18T10:00:00Z' },
+        { id: 2, job_id: 1, artifact_path: '/docs/cover.pdf', kind: 'cover_letter', created_at: '2026-09-17T10:00:00Z' },
       ],
     } as never);
     const res = await GET(makeContext('1', { 'x-internal-token': 'test-token' }));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveLength(2);
-    expect(body[0].event_type).toBe('interview_feedback');
-    expect(body[1].event_type).toBe('application_submitted');
+    expect(body[0].kind).toBe('resume');
+    expect(body[1].kind).toBe('cover_letter');
   });
 });

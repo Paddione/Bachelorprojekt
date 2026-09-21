@@ -755,7 +755,6 @@ byte-identical manifest.
 - **AND** a one-line notice states that the fallback was used
 - **AND** the step exits with code 0 and the generated manifest is unchanged
 
-
 ### Requirement: Globaler Kill-Switch für Admin-Benachrichtigungs-Mails
 
 The system SHALL short-circuit `sendAdminNotification()` in
@@ -805,6 +804,28 @@ so that re-enabling requires only flipping the field.
 - **THEN** enthält sie `suspend: true` auf `spec`-Ebene
 - **AND** `k3d/kustomization.yaml` listet `notify-unread-cronjob.yaml` weiterhin unter
   `resources:` (Positiv-Anker: der Eintrag verschwindet nicht mit der Abschaltung)
+
+### Requirement: Standalone Applications Cockpit Route Integrity
+
+The website SHALL provide an admin-only standalone Bewerbungs-Cockpit at `/admin/applications` bundled cleanly without SSR route collisions or DOM runtime errors.
+
+#### Scenario: Clean SSR bundling of applications page without route collision
+
+- **GIVEN** an authenticated admin user requesting `/admin/applications`
+- **WHEN** the Astro server handles the request
+- **THEN** it renders the standalone applications cockpit HTML page without throwing `ReferenceError: document is not defined` and without redirecting to `/404`.
+
+#### Scenario: Independent admin navigation decoupled from Brett
+
+- **GIVEN** the rendered applications cockpit page at `/admin/applications`
+- **WHEN** examining the page navigation and header
+- **THEN** the primary back link directs to `/admin` and no navigation elements link to Brett.
+
+#### Scenario: Application pipeline API authorization for admin sessions
+
+- **GIVEN** an authenticated admin session or valid internal token
+- **WHEN** requesting `/api/internal/applications/list` or job detail/timeline/status endpoints
+- **THEN** the request succeeds with status 200 rather than being rejected with 403.
 
 ## Testszenarien
 
@@ -1190,3 +1211,5 @@ The `website/pnpm-workspace.yaml` MAY include an `overrides` block to pin transi
 <!-- merged from change delta website-core.md (58fba7569db4) -->
 
 <!-- merged from change delta website-core.md (5d73d7240163) -->
+
+<!-- merged from change delta website-core.md (1445e443b4f0) -->

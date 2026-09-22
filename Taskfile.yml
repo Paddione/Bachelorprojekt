@@ -4520,14 +4520,14 @@ tasks:
         kubectl $CTX rollout status deployment/website -n "$NS" --timeout=60s
 
   website:redeploy:
-    desc: "Rebuild image, import (or push), and restart the website (ENV=dev|mentolder|korczewski)"
+    desc: "Rebuild image, push, and restart the website (ENV=mentolder|korczewski); ENV=dev aborts — see error message"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
         if [ "{{.ENV}}" = "dev" ]; then
           echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a rebuild here cannot reach it." >&2
-          echo "Dev images on devmesh: see docs/runbooks/devmesh-tailnet.md." >&2
+          echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task website:deploy ENV=dev." >&2
           exit 1
         else
           task website:push ENV={{.ENV}}
@@ -4585,13 +4585,15 @@ tasks:
       - echo "✓ Pushed ghcr.io/paddione/workspace-brett:latest"
 
   brett:deploy:
-    desc: "Build, import/push, and roll out brett (ENV=dev|mentolder|korczewski)"
+    desc: "Push and roll out brett (ENV=mentolder|korczewski); ENV=dev aborts — see error message"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
         if [ "{{.ENV}}" = "dev" ]; then
-          task brett:build ENV={{.ENV}}
+          echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a local build here cannot reach it." >&2
+          echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task workspace:deploy ENV=dev." >&2
+          exit 1
         else
           task brett:push ENV={{.ENV}}
         fi
@@ -4667,7 +4669,7 @@ tasks:
       - echo "✓ Pushed ${STUDIO_IMAGE:-studio-server}:latest"
 
   studio:deploy:
-    desc: "Build, push, and roll out studio-server (mentolder-only for MVP; T001002)"
+    desc: "Push and roll out studio-server (mentolder-only for MVP; T001002); ENV=dev aborts — see error message"
     cmds:
       - |
           if [ "{{.ENV}}" = "korczewski" ]; then
@@ -4675,7 +4677,9 @@ tasks:
             exit 0
           fi
           if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
-            task studio:build
+            echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a local build here cannot reach it." >&2
+            echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task workspace:deploy ENV=dev." >&2
+            exit 1
           else
             task studio:push
           fi

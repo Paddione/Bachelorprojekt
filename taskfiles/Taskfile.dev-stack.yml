@@ -16,15 +16,6 @@ vars:
 
 tasks:
 
-  _node-guard:
-    internal: true
-    preconditions:
-      - sh: |
-          source scripts/env-resolve.sh "{{.ENV}}"
-          test -n "$DEV_NODE" && test -n "$DEV_DOMAIN"
-        msg: |
-          DEV_NODE / DEV_DOMAIN unset. Add them to environments/{{.ENV}}.yaml first.
-
   logs:
     desc: "[dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)"
     cmds:

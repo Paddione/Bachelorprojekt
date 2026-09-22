@@ -33,9 +33,11 @@ entfernt wird `taskfiles/Taskfile.staging.yml`.
 **D3 — Build-Tasks bauen im Dev-Zweig nur noch lokal.** `brett:build`, `studio:build`, `docs:build:import` und
 `workspace:transcriber-build` verlieren den Import-Schritt und melden „Image gebaut". Die Tasks
 `website:build:import` und `einvoice-sidecar:import` entfallen ganz. `website:deploy ENV=dev`
-ruft den Import nicht mehr auf und deployt das Image aus der Registry. `website:redeploy ENV=dev`
-bricht mit einer Meldung ab, die auf devmesh verweist, weil ein lokaler Rebuild ohne Import dort
-nichts bewirkt.
+ruft den Import nicht mehr auf und deployt das Image aus der Registry. `website:redeploy ENV=dev`,
+`brett:deploy ENV=dev` und `studio:deploy ENV=dev` brechen mit einer Meldung ab, die auf
+Registry-Images (CI-Build nach ghcr.io) und den passenden Folge-Task verweist, weil ein lokaler
+Rebuild ohne Import dort nichts bewirkt — vorher rollten diese beiden Deploy-Tasks im Dev-Zweig
+lokal gebaute Images aus, die devmesh nie erreichten, und meldeten trotzdem Erfolg.
 
 **D4 — Hinweistexte werden umgeschrieben.** Meldungen, die `task cluster:create` empfehlen
 (`website:deploy`, `workspace:admin-users-setup`, `scripts/pre-deploy-checks-lib.sh`,

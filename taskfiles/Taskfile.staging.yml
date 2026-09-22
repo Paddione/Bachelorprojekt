@@ -35,8 +35,9 @@ tasks:
       - sh: k3d cluster list 2>/dev/null | grep -q "^{{.CLUSTER_NAME}}"
         msg: |
           k3d cluster '{{.CLUSTER_NAME}}' not found.
-          Start it first: task dev:cluster:create_legacy
-          Or check: k3d cluster list
+          This local k3d-in-k3s staging flow is superseded (T900310) — the local dev
+          stack now runs on the devmesh k3s cluster (ADR-008).
+          Check: k3d cluster list
 
   up:
     desc: "Spin up a staging namespace for a given branch. BRANCH=<name> [SEED=empty|snapshot]"

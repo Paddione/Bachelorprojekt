@@ -92,6 +92,8 @@ Last touches:
   - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
   - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
 In-flight:
+  - k3d base is single-node-neutral | T900310 | active | MODIFIED
+  - ENV=dev targets the current kubectl context | T900310 | active | MODIFIED
   - Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu | T900310 | active | REMOVED
 
 ## llm

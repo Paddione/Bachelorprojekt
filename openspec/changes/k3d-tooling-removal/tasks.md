@@ -75,11 +75,14 @@ task --dry website:deploy ENV=dev
 git grep -nE 'k3d-config\.yaml|cluster:(create|delete|start|stop|status)\b|dev-reset\.sh|dev-cluster-autostart|website:build:import|einvoice-sidecar:import|k3d image import' -- . ':!openspec/changes/archive' ':!openspec/changes/k3d-tooling-removal' ':!docs' ':!k3d/docs-content-built' ':!CHANGELOG.md' ':!scripts/devmesh' ':!tests/spec/local-dev-mesh' ':!tests/spec/sdlc-isolation/sdlc-up-command.bats' ':!taskfiles/Taskfile.staging.yml' ':!taskfiles/Taskfile.dev-stack.yml'
 ```
 
-  Verbleibende Treffer sind ausschließlich `openspec/specs/*.md` (bestehender SSOT-Inhalt,
-  wird beim Archivieren via Delta-Spec aktualisiert) und ein bereits vor diesem Change
-  fehlerhafter Kommentar in `environments/.secrets/.ssh/config` (referenziert einen nie
-  existierenden Task `dev:cluster:create`) — beide außerhalb des File-Structure-Scopes dieses
-  Plans, siehe Report.
+  Verbleibende Treffer sind ausschließlich `openspec/specs/*.md` (bestehender SSOT-Inhalt;
+  jede betroffene Requirement/Scenario-Stelle trägt eine passende MODIFIED- oder
+  REMOVED-Requirement in `openspec/changes/k3d-tooling-removal/specs/{software-factory,
+  website-core,workspace-deploy}.md`, die beim Archivieren via `task openspec:archive` in
+  die SSOT gemergt wird — verifiziert per Review-Runde am 2026-09-22) und ein bereits vor
+  diesem Change fehlerhafter Kommentar in `environments/.secrets/.ssh/config` (referenziert
+  einen nie existierenden Task `dev:cluster:create`) — beide außerhalb des
+  File-Structure-Scopes dieses Plans, siehe Report.
 
 - [x] Mandatory CI-Gates:
 

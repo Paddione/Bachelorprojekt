@@ -260,11 +260,6 @@ _affinity_violations() {
   [ "$status" -eq 0 ]
 }
 
-@test "T001853: studio:build imports into the Taskfile cluster, not shell-fallback k3d-dev" {
-  run grep -F ':-k3d-dev}' "$TASKFILE"
-  [ "$status" -ne 0 ]
-}
-
 @test "T001853: studio-server base manifest uses imagePullPolicy IfNotPresent" {
   run grep -E 'imagePullPolicy:[[:space:]]*Always' "$PROJECT_DIR/k3d/studio.yaml"
   [ "$status" -ne 0 ]

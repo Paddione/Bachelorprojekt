@@ -855,6 +855,42 @@ The system SHALL expose a `GET /api/codesearch` endpoint (admin-only, query para
 - **WHEN** der Nutzer das Ticket in der Factory-Floor-UI öffnet
 - **THEN** zeigt das `DetailPanel` einen „Semantisch verwandte Dateien"-Abschnitt mit den drei Einträgen und ihren Score-Werten an
 
+### Requirement: Drag & Drop zwischen Kanban-Buckets im Applications Board
+<!-- bats: app-board-dnd.bats | e2e: fa-app-dnd.spec.ts -->
+
+Das Applications Board im Brett SHALL native HTML5 Drag & Drop für Application Cards
+unterstützen, sodass Operator:innen Bewerbungen per Drag & Drop zwischen den Kanban-Buckets
+(found, drafting, applied, interviewing, offered) verschieben können.
+
+#### Scenario: Card wird draggable *(BATS)*
+- **GIVEN** das Applications Board ist im Brett-HTML-Container gerendert
+- **WHEN** eine Application Card erzeugt wird
+- **THEN** erhält das Card-Element das Attribut `draggable="true"`
+- **AND** beim Drag-Start wird die Card visuell hervorgehoben (z. B. `opacity: 0.6`)
+
+#### Scenario: Column akzeptiert Drop-Ziel *(BATS)*
+- **GIVEN** eine Card wird gezogen
+- **WHEN** der Drag über eine Column bewegt wird
+- **THEN** wird die Column mit visuellem Highlight markiert (z. B. border-color change,
+  Hintergrund-Hinterlegung)
+- **AND** der Drag-Indikator ("move application to <column-label>") ist sichtbar
+
+#### Scenario: Status-Update beim Drop *(E2E)*
+- **GIVEN** eine Card wird über eine andere Column losgelassen
+- **WHEN** der Drop aufzieht
+- **THEN** wird `PUT /api/applications/:id/status` mit `{ status: "<new-column-status>" }`
+  aufgerufen
+- **AND** bei einer erfolgreichen Antwort (200) wird das Board neu geladen, um den aktualisierten
+  Datenstand zu zeigen
+- **AND** bei einem Fehler (4xx/5xx) wird ein Fehlerbanner angezeigt und die Card bleibt
+  in ihrer ursprünglichen Column
+
+#### Scenario: Drag über nicht-droppbare Zonen *(BATS)*
+- **GIVEN** eine Card wird gezogen
+- **WHEN** der Drag über Bereiche außerhalb einer Column bewegt wird
+- **THEN** wird kein Drop-Ziel-Highlight angezeigt
+- **AND** beim Loslassen außerhalb einer Column wird kein API-Call ausgeführt
+
 <!-- merged from change delta brett.md (00e7cdba54af) -->
 
 <!-- merged from change delta brett.md (2fea33bd3438) -->

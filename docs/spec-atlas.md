@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2403 · Scenarios: 5336
+Specs: 128 · Requirements: 2404 · Scenarios: 5340
 
 ## factory-pipeline
 
@@ -376,7 +376,7 @@ Last touches:
   - Fehlende Kanten (REQ-k8-03) | T002438 | 2026-08-02 | ADDED
 
 ### brett
-Reqs: 34 · Scenarios: 108 · Lines: 866
+Reqs: 35 · Scenarios: 112 · Lines: 902
 Paths: k3d/brett, brett/
 Last touches:
   - Semantic Code Search — Indexer (SCS-1) | T002292 | 2026-07-27 | MODIFIED
@@ -384,8 +384,6 @@ Last touches:
   - Whole-figure drag across the floor plane | T002050 | 2026-07-21 | ADDED
   - Free 360-degree figure rotation | T002050 | 2026-07-21 | ADDED
   - Double-click on free floor always spawns a new figure | T002006 | 2026-07-20 | ADDED
-In-flight:
-  - Drag & Drop zwischen Kanban-Buckets im Applications Board | T900304 | active | MODIFIED
 
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396

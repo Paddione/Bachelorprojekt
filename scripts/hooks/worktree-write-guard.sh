@@ -138,13 +138,13 @@ _my_sid() {
   # per-call Unix-SID is the fallback and the source of the drift bug. [T001268]
   if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local _v
-  for _v in CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID; do
+  for _v in CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID ANTIGRAVITY_CONVERSATION_ID; do
     if [ -n "${!_v:-}" ]; then printf '%s\n' "${!_v}"; return; fi
   done
   # [T002381-M1] Weder Harness-Env noch AGENT_LOCK_SID gesetzt — der Unix-SID-Fallback
   # driftet pro Bash-Call. Warnung ausgeben, damit der Operator die Ursache erkennt
   # und AGENT_LOCK_SID setzen oder die Harness-Variable bereitstellen kann.
-  echo "WARNUNG: worktree-write-guard _my_sid — weder CLAUDE_CODE_SESSION_ID/CLAUDE_SESSION_ID/OPENCODE_SESSION_ID noch AGENT_LOCK_SID gesetzt. SID driftet pro Bash-Call (siehe T001268/T002381/T003131)." >&2
+  echo "WARNUNG: worktree-write-guard _my_sid — weder CLAUDE_CODE_SESSION_ID/CLAUDE_SESSION_ID/OPENCODE_SESSION_ID/ANTIGRAVITY_CONVERSATION_ID noch AGENT_LOCK_SID gesetzt. SID driftet pro Bash-Call (siehe T001268/T002381/T003131)." >&2
   local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
   if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
   # fallback: 4th field after the ')' in /proc/self/stat is the session id

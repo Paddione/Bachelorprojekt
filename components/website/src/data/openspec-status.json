@@ -4963,6 +4963,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900306": [
+    {
+      "slug": "agent-lock-agy-reap-T900306",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

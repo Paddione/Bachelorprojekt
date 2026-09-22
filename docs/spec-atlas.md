@@ -152,6 +152,9 @@ Last touches:
   - Single source for the git workflow | T900024 | 2026-09-10 | ADDED
   - Platform-independent lock directory resolution | T900023 | 2026-08-31 | ADDED
   - agent-lock logic stays within its size limit through fragments | T900023 | 2026-08-31 | ADDED
+In-flight:
+  - Harness-stable session identity for Antigravity (agy) | T900306 | active | ADDED
+  - Dead locks in worktrees with idle language servers are reapable | T900306 | active | ADDED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114

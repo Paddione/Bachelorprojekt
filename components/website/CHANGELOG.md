@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.358.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.1...website-v1.358.2) (2026-09-22)
+
+
+### Code Refactoring
+
+* **T900310:** remove leftover local k3d tooling [T900310] ([#5819](https://github.com/Paddione/Bachelorprojekt/issues/5819)) ([52d73ea](https://github.com/Paddione/Bachelorprojekt/commit/52d73ea5cb7782fe71e1cebe419f988de45316a7))
+
 ## [1.358.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.0...website-v1.358.1) (2026-09-22)
 
 

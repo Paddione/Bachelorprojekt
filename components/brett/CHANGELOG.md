@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.45.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.44.0...brett-v0.45.0) (2026-09-22)
+
+
+### Features
+
+* **website:** add drag-and-drop to applications board kanban [T900304] ([#5811](https://github.com/Paddione/Bachelorprojekt/issues/5811)) ([d1aab48](https://github.com/Paddione/Bachelorprojekt/commit/d1aab48c1d0de1f6f57f6a936bc2c95a6b862943))
+
 ## [0.44.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.43.0...brett-v0.44.0) (2026-09-20)
 
 

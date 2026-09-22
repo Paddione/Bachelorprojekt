@@ -57,6 +57,8 @@ Last touches:
   - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | 2026-09-17 | MODIFIED
   - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | 2026-09-17 | MODIFIED
   - Stage-Plan Wake Trigger | T900054 | 2026-09-17 | MODIFIED
+In-flight:
+  - AK-04: Prototyp-Betrieb | T900310 | active | MODIFIED
 
 ## delivery
 
@@ -89,6 +91,8 @@ Last touches:
   - LiveKit-Rückstände sind weder im Repo noch im Cluster erlaubt | T002184 | 2026-08-03 | ADDED
   - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
   - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
+In-flight:
+  - Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu | T900310 | active | REMOVED
 
 ## llm
 
@@ -141,6 +145,8 @@ Last touches:
   - Globaler Kill-Switch für Admin-Benachrichtigungs-Mails | T016592 | 2026-08-28 | ADDED
   - notify-unread CronJob ist suspendiert | T016592 | 2026-08-28 | ADDED
   - Admin-Sidebar-Navigation | T003826 | 2026-08-11 | MODIFIED
+In-flight:
+  - Dev-Cluster startet automatisch nach Host-Reboot (T000290) | T900310 | active | REMOVED
 
 ## Ungrouped
 
@@ -604,6 +610,8 @@ Last touches:
   - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900120 | 2026-09-20 | REMOVED
   - The k3d migration verifies row counts against the archived dump | T900120 | 2026-09-20 | ADDED
   - shared-db-backup toleriert den Pod-Startup-Netzwerk-Race | T900240 | 2026-09-20 | ADDED
+In-flight:
+  - The repository ships no local k3d cluster tooling | T900310 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

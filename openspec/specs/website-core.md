@@ -883,29 +883,6 @@ The system SHALL declare the `domain-config` ConfigMap in a shared website overl
 
 ---
 
-### Requirement: Dev-Cluster startet automatisch nach Host-Reboot (T000290)
-<!-- bats: dev-cluster-autostart.bats -->
-
-The system SHALL install a systemd oneshot unit that starts the existing k3d cluster on boot (never recreates it), orders itself after and requires `docker.service`, stays active after exit, enables itself idempotently via `systemctl enable --now`, and is reachable via `task cluster:autostart`.
-
-#### Scenario: Autostart-Unit startet Cluster, erstellt ihn nie neu *(BATS)*
-- **GIVEN** das Installer-Skript `scripts/dev-cluster-autostart.sh` existiert und valide Bash-Syntax hat
-- **WHEN** der generierte ExecStart-Befehl geprüft wird
-- **THEN** enthält er `k3d cluster start` und **nicht** `k3d cluster create`
-- **AND** die Unit ordnet sich nach `docker.service` ein (`After=` + `Requires=`)
-
-#### Scenario: Autostart-Unit hat korrekte systemd-Konfiguration *(BATS)*
-- **GIVEN** das Installer-Skript wird geprüft
-- **WHEN** die Unit-Definitionen ausgelesen werden
-- **THEN** ist `Type=oneshot` gesetzt, `RemainAfterExit=true` gesetzt, `WantedBy=multi-user.target` gesetzt, und `systemctl enable --now` wird zur idempotenten Aktivierung verwendet
-
-#### Scenario: Taskfile exponiert cluster:autostart *(BATS)*
-- **GIVEN** `Taskfile.dev-stack.yml` ist vorhanden
-- **WHEN** nach dem Task `cluster:autostart:` gesucht wird
-- **THEN** ist der Task definiert und aufrufbar
-
----
-
 ### Requirement: Landing Page und Unterseiten sind erreichbar
 <!-- e2e: fa-10-website.spec.ts, fa-public-pages.spec.ts -->
 
@@ -1224,3 +1201,5 @@ The `website/pnpm-workspace.yaml` MAY include an `overrides` block to pin transi
 <!-- merged from change delta website-core.md (1445e443b4f0) -->
 
 <!-- merged from change delta website-core.md (7f1c6d7d198b) -->
+
+<!-- merged from change delta website-core.md (d2529a046b2b) -->

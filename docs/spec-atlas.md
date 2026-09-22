@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2404 · Scenarios: 5340
+Specs: 128 · Requirements: 2403 · Scenarios: 5337
 
 ## factory-pipeline
 
@@ -49,16 +49,14 @@ Last touches:
   - Freshness-Check sichert Konsistenz der generierten Artefakte | T015012 | 2026-08-23 | MODIFIED
 
 ### software-factory
-Reqs: 208 · Scenarios: 636 · Lines: 5760
+Reqs: 208 · Scenarios: 635 · Lines: 5755
 Paths: scripts/factory
 Last touches:
+  - AK-04: Prototyp-Betrieb | T900310 | 2026-09-22 | MODIFIED
   - Force-Tick Trigger | T900054 | 2026-09-17 | MODIFIED
   - Bonsai Provider Registration for Implement and Review | T900208 | 2026-09-17 | MODIFIED
   - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | 2026-09-17 | MODIFIED
   - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | 2026-09-17 | MODIFIED
-  - Stage-Plan Wake Trigger | T900054 | 2026-09-17 | MODIFIED
-In-flight:
-  - AK-04: Prototyp-Betrieb | T900310 | active | MODIFIED
 
 ## delivery
 
@@ -83,18 +81,14 @@ Last touches:
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | 2026-09-17 | ADDED
 
 ### workspace-deploy
-Reqs: 91 · Scenarios: 169 · Lines: 1956
+Reqs: 90 · Scenarios: 167 · Lines: 1934
 Paths: k3d/, prod/, prod-fleet/, prod-mentolder/, prod-korczewski/, Taskfile, environments/
 Last touches:
+  - k3d base is single-node-neutral | T900310 | 2026-09-22 | MODIFIED
+  - ENV=dev targets the current kubectl context | T900310 | 2026-09-22 | MODIFIED
+  - Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu | T900310 | 2026-09-22 | REMOVED
   - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | 2026-09-17 | ADDED
   - Post-Deploy-Schritte nach dem Kustomize-Apply | T002184 | 2026-08-03 | ADDED
-  - LiveKit-Rückstände sind weder im Repo noch im Cluster erlaubt | T002184 | 2026-08-03 | ADDED
-  - The built image tag reaches the rendered manifest | T002209 | 2026-08-02 | ADDED
-  - The image tag placeholder never renders empty | T002209 | 2026-08-02 | ADDED
-In-flight:
-  - k3d base is single-node-neutral | T900310 | active | MODIFIED
-  - ENV=dev targets the current kubectl context | T900310 | active | MODIFIED
-  - Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu | T900310 | active | REMOVED
 
 ## llm
 
@@ -139,16 +133,14 @@ Last touches:
   - GitHub Snapshot Schema and Cursor Tracking | T900161 | 2026-09-17 | ADDED
 
 ### website-core
-Reqs: 60 · Scenarios: 126 · Lines: 1226
+Reqs: 59 · Scenarios: 123 · Lines: 1205
 Paths: website/src
 Last touches:
+  - Dev-Cluster startet automatisch nach Host-Reboot (T000290) | T900310 | 2026-09-22 | REMOVED
   - Standalone Applications Cockpit Route Integrity | T900297 | 2026-09-21 | ADDED
   - Application Pipeline Dynamic API Routes | T900302 | 2026-09-21 | ADDED
   - Globaler Kill-Switch für Admin-Benachrichtigungs-Mails | T016592 | 2026-08-28 | ADDED
   - notify-unread CronJob ist suspendiert | T016592 | 2026-08-28 | ADDED
-  - Admin-Sidebar-Navigation | T003826 | 2026-08-11 | MODIFIED
-In-flight:
-  - Dev-Cluster startet automatisch nach Host-Reboot (T000290) | T900310 | active | REMOVED
 
 ## Ungrouped
 
@@ -605,15 +597,13 @@ Last touches:
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | 2026-09-17 | ADDED
 
 ### local-dev-mesh
-Reqs: 17 · Scenarios: 36 · Lines: 386
+Reqs: 18 · Scenarios: 39 · Lines: 423
 Last touches:
+  - The repository ships no local k3d cluster tooling | T900310 | 2026-09-22 | ADDED
   - The k3d dev cluster is removed only after the acceptance gate | T900120 | 2026-09-20 | REMOVED
   - No active reference to the k3d dev context remains | T900120 | 2026-09-20 | MODIFIED
   - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900120 | 2026-09-20 | REMOVED
   - The k3d migration verifies row counts against the archived dump | T900120 | 2026-09-20 | ADDED
-  - shared-db-backup toleriert den Pod-Startup-Netzwerk-Race | T900240 | 2026-09-20 | ADDED
-In-flight:
-  - The repository ships no local k3d cluster tooling | T900310 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

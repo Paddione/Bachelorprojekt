@@ -720,29 +720,6 @@ crashes and SIGSEGV during the memory-hungry Astro + pixi.js build on constraine
 
 ---
 
-### Requirement: Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu
-
-The system SHALL provide a `scripts/dev-cluster-autostart.sh` installer that creates a
-systemd oneshot unit with `ExecStart` using `k3d cluster start` (never `k3d cluster
-create`), ordered after and requiring `docker.service`, marked `RemainAfterExit=true`,
-wired into `multi-user.target`, and installable idempotently via `systemctl enable --now`.
-
-#### Scenario: Unit startet Cluster und verliert keine Port-Mappings
-
-- **GIVEN** `scripts/dev-cluster-autostart.sh` existiert und besteht den Bash-Syntax-Check
-- **WHEN** das Skript nach `ExecStart` und `cluster create` durchsucht wird
-- **THEN** enthält es `ExecStart=.*cluster start` (nicht `create`)
-- **AND** enthält es `Type=oneshot`, `RemainAfterExit=true` und `WantedBy=multi-user.target`
-
-#### Scenario: Idempotente Installation und Docker-Abhängigkeit
-
-- **GIVEN** das Autostart-Skript
-- **WHEN** es nach `systemctl enable --now` und `After|Requires=docker.service` durchsucht wird
-- **THEN** sind beide Muster vorhanden, sodass Neuinstallationen idempotent sind und Docker
-  vor dem Cluster-Start bereit ist
-
----
-
 ### Requirement: Task-Oracle führt strukturierte Eingaben direkt ohne LLM aus
 
 The system SHALL recognize structured task inputs of the form `<namespace>:<action>` (with
@@ -1230,13 +1207,13 @@ substituted literal in a rendered manifest.
 The `k3d/` base manifests SHALL contain no host-specific scheduling constraints
 (nodeAffinity on `kubernetes.io/hostname` values) and no cross-namespace service
 literals, so that `task workspace:deploy ENV=dev` converges on any single-node
-cluster (local k3d, remote dev) without imperative follow-up work. Environment-
+cluster (local devmesh, remote dev) without imperative follow-up work. Environment-
 specific pinning SHALL live exclusively in overlays or deploy-time patches
 (`WEBSITE_NODE_AFFINITY`).
 
-#### Scenario: Fresh local k3d cluster deploys without manual patches
+#### Scenario: Fresh single-node cluster deploys without manual patches
 
-- **GIVEN** a freshly created k3d cluster (`task cluster:create`) as the current kubectl context
+- **GIVEN** the current kubectl context is a freshly reachable single-node cluster (devmesh, ADR-008)
 - **WHEN** `task workspace:deploy ENV=dev` runs
 - **THEN** no workload remains unschedulable due to nodeAffinity on production or remote-dev hostnames
 - **AND** CronJobs reach the website service via `website.${WEBSITE_NAMESPACE}.svc`, not a hardcoded `website.website.svc`
@@ -1291,14 +1268,13 @@ untouched.
 
 All deploy tasks' dev branches (`workspace:deploy`, `website:deploy`) SHALL
 operate on the current kubectl context and SHALL NOT pass
-`--context=${ENV_CONTEXT}`; the k3d cluster config SHALL pin `kubeAPI.hostPort`
-so the kubeconfig survives cluster restarts.
+`--context=${ENV_CONTEXT}`.
 
-#### Scenario: website:deploy dev applies manifests and image to the same cluster
+#### Scenario: website:deploy dev applies manifests to the current context
 
-- **GIVEN** the current kubectl context is the local k3d cluster
+- **GIVEN** the current kubectl context is devmesh (ADR-008, ENV=dev)
 - **WHEN** `task website:deploy ENV=dev` runs
-- **THEN** the image import and the manifest apply both target the local cluster
+- **THEN** the manifest apply targets that context, using the image already published to the registry (no local image import step, T900310)
 
 ### Requirement: One-shot bootstrap Jobs never gate a brand's application stack
 
@@ -1954,3 +1930,5 @@ The system SHALL have BATS tests in `tests/spec/ci-cd.bats` that verify the korc
 <!-- merged from change delta workspace-deploy.md (05211dcc9eaa) -->
 
 <!-- merged from change delta workspace-deploy.md (e8728dc9e945) -->
+
+<!-- merged from change delta workspace-deploy.md (1ca810891061) -->

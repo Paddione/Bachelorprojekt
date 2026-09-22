@@ -17,13 +17,17 @@ setup() {
 
 @test "removed tasks are absent from task --list-all while workspace:deploy remains" {
   command -v task >/dev/null 2>&1 || skip "task binary not installed"
-  run task --list-all
+  command -v jq >/dev/null 2>&1 || skip "jq binary not installed"
+  # --json statt Textliste: die Textausgabe traegt ANSI-Farbcodes, sobald die
+  # Umgebung Farbe erzwingt (CI), und ein zeilenverankertes Muster greift dann
+  # nicht mehr [T900334].
+  run bash -c 'task --list-all --json | jq -r ".tasks[].name"'
   [ "$status" -eq 0 ]
 
   # Positiv-Anker zuerst: der gueltige Fall muss durchlaufen.
-  echo "$output" | grep -qE '^\* workspace:deploy:'
+  echo "$output" | grep -qx 'workspace:deploy'
 
-  # Negativ-Aussagen: exakter Task-Name am Zeilenanfang, damit z.B.
+  # Negativ-Aussagen: exakter Task-Name als ganze Zeile, damit z.B.
   # `dev:cluster:create_legacy` nicht auf `cluster:create` matcht.
   local removed=(
     'cluster:create' 'cluster:delete' 'cluster:start' 'cluster:stop' 'cluster:status'
@@ -32,7 +36,7 @@ setup() {
   )
   local name
   for name in "${removed[@]}"; do
-    if echo "$output" | grep -qE "^\\* ${name}:"; then
+    if echo "$output" | grep -qxF "${name}"; then
       echo "unerwartet vorhanden: ${name}"
       return 1
     fi

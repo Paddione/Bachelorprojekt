@@ -5166,7 +5166,7 @@
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 368,
+      "file_count": 369,
       "files": [
         "components/brett/.dockerignore",
         "components/brett/.gitignore",
@@ -5428,6 +5428,7 @@
         "components/brett/test/admin-spotlight.test.ts",
         "components/brett/test/admin-token.test.ts",
         "components/brett/test/anchor-zone.test.ts",
+        "components/brett/test/app-board-dnd.test.ts",
         "components/brett/test/app-shell.test.ts",
         "components/brett/test/appearance-badge.test.ts",
         "components/brett/test/appearance.test.ts",

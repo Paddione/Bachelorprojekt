@@ -30,7 +30,7 @@ entfernt wird `taskfiles/Taskfile.staging.yml`.
 `workspace:up` existieren nur, um `cluster:create`/`cluster:delete` zu umschließen.
 `workspace:setup` deckt den Deploy auf einem bestehenden Cluster bereits ab.
 
-**D3 — Build-Tasks bauen im Dev-Zweig nur noch lokal.** `brett:build`, `studio:build` und
+**D3 — Build-Tasks bauen im Dev-Zweig nur noch lokal.** `brett:build`, `studio:build`, `docs:build:import` und
 `workspace:transcriber-build` verlieren den Import-Schritt und melden „Image gebaut". Die Tasks
 `website:build:import` und `einvoice-sidecar:import` entfallen ganz. `website:deploy ENV=dev`
 ruft den Import nicht mehr auf und deployt das Image aus der Registry. `website:redeploy ENV=dev`

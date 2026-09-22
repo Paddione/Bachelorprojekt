@@ -16,7 +16,7 @@ Leser in die Irre, auch externe Leser des Repos.
   `cluster:*`-Tasks in `Taskfile.yml` und den Legacy-Block in `taskfiles/Taskfile.dev-stack.yml`.
 - Aufrufer löschen: `up`, `down`, `workspace:up`, `dev:reset`, `website:build:import`,
   `einvoice-sidecar:import`.
-- `k3d image import` aus `brett:build`, `studio:build`, `workspace:transcriber-build` und
+- `k3d image import` aus `brett:build`, `studio:build`, `docs:build:import`, `workspace:transcriber-build` und
   `website:deploy` entfernen, `website:redeploy ENV=dev` bricht mit Hinweis ab.
 - Hinweistexte auf `task cluster:create` umschreiben, veraltete Tests und Permission-Einträge
   entfernen.

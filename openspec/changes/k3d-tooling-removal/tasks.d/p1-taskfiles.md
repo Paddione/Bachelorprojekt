@@ -2,7 +2,7 @@
 
 Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
 
-- [ ] **Taskfile.yml — delete the "Cluster Lifecycle" section.** Remove the section header
+- [x] **Taskfile.yml — delete the "Cluster Lifecycle" section.** Remove the section header
   comment and all five tasks it introduces, lines 159–207:
 
   ```yaml
@@ -25,7 +25,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
   188, `cluster:status` at 194 — confirmed against the current file.) `dev:bootstrap` (209) stays
   untouched immediately after.
 
-- [ ] **Taskfile.yml — delete `dev:reset` (214–220).** `dev:setup-signing` (222) and
+- [x] **Taskfile.yml — delete `dev:reset` (214–220).** `dev:setup-signing` (222) and
   `workspace:dsgvo-check` (227) stay untouched on both sides:
 
   ```yaml
@@ -38,7 +38,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
       - REBUILD={{.REBUILD}} CONFIRM={{.CONFIRM}} CLUSTER_NAME={{.CLUSTER_NAME}} bash scripts/dev-reset.sh
   ```
 
-- [ ] **Taskfile.yml — rewrite `clean` (373–380).** It currently defends against a k3d cluster
+- [x] **Taskfile.yml — rewrite `clean` (373–380).** It currently defends against a k3d cluster
   that no longer exists on any host (`k3d cluster delete ... || true`) and its `desc`/`prompt`
   promise a cluster delete that no longer happens. Minimal fix — drop the k3d line, keep the
   Docker prune, and stop advertising a cluster delete:
@@ -65,7 +65,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
       - echo "✓ Cleaned up"
   ```
 
-- [ ] **Taskfile.yml — delete `up` and `workspace:up` (1869–1893), delete `down` (1916–1921
+- [x] **Taskfile.yml — delete `up` and `workspace:up` (1869–1893), delete `down` (1916–1921
   including its trailing blank line).** `workspace:setup` (1894–1914) stays, sitting directly
   under the "Quick Start" header (1866–1868) which stays too — it now describes `workspace:setup`
   only, which is accurate (it is the quick-start entry point on an existing cluster):
@@ -108,7 +108,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
   (the blank line at 1915, directly before `down:`, is kept as the single separator before the
   next section header at what is currently 1922)
 
-- [ ] **Taskfile.yml — `workspace:transcriber-build` (1925–1930): drop the import line.**
+- [x] **Taskfile.yml — `workspace:transcriber-build` (1925–1930): drop the import line.**
 
   Before:
   ```yaml
@@ -128,7 +128,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
       - 'echo "✓ talk-transcriber image built (run ''task workspace:transcriber-push'' to publish to ghcr.io)"'
   ```
 
-- [ ] **Taskfile.yml — `docs:build:import` (3854–3865): drop the dev-only import block.** This
+- [x] **Taskfile.yml — `docs:build:import` (3854–3865): drop the dev-only import block.** This
   task is not named in `design.md`'s file list, but it is the same build-then-`k3d image
   import`-in-dev pattern as `website:build:import`/`brett:build`/`studio:build`, it lives in
   `Taskfile.yml` (already an in-scope file), and the final verification grep for `k3d image
@@ -163,7 +163,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
       - echo "✓ docs image built locally"
   ```
 
-- [ ] **Taskfile.yml — `workspace:admin-users-setup` precondition (2828–2834): reword the
+- [x] **Taskfile.yml — `workspace:admin-users-setup` precondition (2828–2834): reword the
   message.** Same rewording as `website:deploy` below — point at a reachable kube context /
   devmesh instead of the removed `task cluster:create`:
 
@@ -180,7 +180,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
         msg: "No cluster running. Point kubectl at a reachable context first (ENV=dev → devmesh, see environments/dev.yaml: context: devmesh)."
   ```
 
-- [ ] **Taskfile.yml — delete `website:build:import` (4255–4267) in full.**
+- [x] **Taskfile.yml — delete `website:build:import` (4255–4267) in full.**
 
   ```yaml
   website:build:import:
@@ -197,7 +197,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
         echo "✓ Image imported into k3d cluster"
   ```
 
-- [ ] **Taskfile.yml — `website:deploy` (4312–4369): reword the precondition, drop the stale
+- [x] **Taskfile.yml — `website:deploy` (4312–4369): reword the precondition, drop the stale
   T001853 comment, drop the `website:build:import` call.** `website:push` (4268) and
   `website:pull-secret` (4282) sit between the deleted task and this one and stay untouched.
 
@@ -260,7 +260,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
   ```
   (the `else` branch at 4344 onward — prod build + push + digest read — is unchanged)
 
-- [ ] **Taskfile.yml — `website:redeploy` (4637–4654): abort the `ENV=dev` branch instead of
+- [x] **Taskfile.yml — `website:redeploy` (4637–4654): abort the `ENV=dev` branch instead of
   importing.**
 
   Before (4642–4647):
@@ -285,7 +285,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
   ```
   `website:redeploy:all-prods` (4656) never passes `ENV=dev`, so it is unaffected.
 
-- [ ] **Taskfile.yml — `brett:build` (4680–4694): the dev branch no longer imports, it just
+- [x] **Taskfile.yml — `brett:build` (4680–4694): the dev branch no longer imports, it just
   reports the image was built locally.**
 
   Before:
@@ -321,7 +321,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
   `brett:push` (4696), `brett:deploy` (4706, still branches on `ENV={{.ENV}}` to call
   `brett:build` vs `brett:push` — unaffected by this edit) stay untouched.
 
-- [ ] **Taskfile.yml — `studio:build` (4775–4783): drop the dev import `if` block.**
+- [x] **Taskfile.yml — `studio:build` (4775–4783): drop the dev import `if` block.**
 
   Before:
   ```yaml
@@ -344,7 +344,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
       - echo "✓ studio image built"
   ```
 
-- [ ] **Taskfile.yml — delete `einvoice-sidecar:import` (5012–5016) in full.**
+- [x] **Taskfile.yml — delete `einvoice-sidecar:import` (5012–5016) in full.**
   `einvoice-sidecar:build` (5007) and `einvoice-sidecar:push` (5018) stay untouched; neither
   depends on `einvoice-sidecar:import`.
 
@@ -356,7 +356,7 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
       - k3d image import einvoice-sidecar:dev -c "{{.K3D_CLUSTER | default "workspace"}}"
   ```
 
-- [ ] **Taskfile.yml — drop the test wiring of `tests/unit/scripts/dev-reset.test.sh` (p3 deletes
+- [x] **Taskfile.yml — drop the test wiring of `tests/unit/scripts/dev-reset.test.sh` (p3 deletes
   the file).** Delete the internal task `test:unit:dev-reset` (line 510–513) in full. In the unit-test
   task around line 398 change
 
@@ -372,13 +372,13 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
 
   Check: `grep -n 'dev-reset' Taskfile.yml` prints nothing.
 
-- [ ] **Taskfile.yml — leave `CLUSTER_NAME` (line 99) and every other Taskfile-level var
+- [x] **Taskfile.yml — leave `CLUSTER_NAME` (line 99) and every other Taskfile-level var
   untouched (design R2).** After the edits above, nothing in `Taskfile.yml` itself still reads
   `{{.CLUSTER_NAME}}`, but the variable stays defined because `taskfiles/Taskfile.dev-stack.yml`
   (via the `dev-korczewski` include, line 46) and other included taskfiles may still rely on it
   being inheritable. Do not remove or rename it in this partial.
 
-- [ ] **taskfiles/Taskfile.dev-stack.yml — delete the legacy block, lines 28–102 (through the
+- [x] **taskfiles/Taskfile.dev-stack.yml — delete the legacy block, lines 28–102 (through the
   blank line before `logs:` at 104).** This removes `cluster:create_legacy`, `cluster:delete`,
   `cluster:status` and `cluster:autostart` together, since `cluster:autostart` is the only caller
   of `scripts/dev-cluster-autostart.sh` (deleted by p2). `_node-guard` (19–26) stays — it is used
@@ -438,14 +438,14 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`
   ```
   After: nothing — the file continues directly from `_node-guard` (19–26) to `logs:` (104).
 
-- [ ] **Verify grep for dangling references in `taskfiles/Taskfile.dev-stack.yml`.** Confirm no
+- [x] **Verify grep for dangling references in `taskfiles/Taskfile.dev-stack.yml`.** Confirm no
   surviving task in the file still names the four deleted tasks:
   ```bash
   grep -nE 'cluster:create_legacy|cluster:delete|cluster:status|cluster:autostart' taskfiles/Taskfile.dev-stack.yml
   # expected: no output
   ```
 
-- [ ] **Verify this partial:**
+- [x] **Verify this partial:**
   ```bash
   task --list-all >/dev/null
   task --dry workspace:setup ENV=dev

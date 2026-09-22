@@ -171,9 +171,26 @@ async function showApplicationsCockpit(): Promise<void> {
         });
         if (!response.ok) throw new Error('timeline request failed');
       },
+      onStatusChange: async (jobId, newStatus) => {
+        const response = await fetch(`/api/applications/${jobId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        });
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => null);
+          throw new Error(errorBody?.error ?? `status update failed (${response.status})`);
+        }
+        // Reload to get fresh board data
+        window.location.reload();
+      },
     });
-  } catch {
+  } catch (err) {
     root.textContent = 'Bewerbungs-Cockpit konnte nicht geladen werden.';
+    if (err instanceof Error) {
+      // eslint-disable-next-line no-console
+      console.error('[applications-board] mount error:', err);
+    }
   }
 }
 

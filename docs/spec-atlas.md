@@ -381,6 +381,8 @@ Last touches:
   - Whole-figure drag across the floor plane | T002050 | 2026-07-21 | ADDED
   - Free 360-degree figure rotation | T002050 | 2026-07-21 | ADDED
   - Double-click on free floor always spawns a new figure | T002006 | 2026-07-20 | ADDED
+In-flight:
+  - Drag & Drop zwischen Kanban-Buckets im Applications Board | T900304 | active | MODIFIED
 
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396

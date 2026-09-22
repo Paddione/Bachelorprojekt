@@ -2,7 +2,7 @@
 
 Target files: `tests/spec/local-dev-mesh/k3d-tooling-removed.bats` (neu), `tests/spec/workspace-deploy.bats`, `tests/unit/dev-cluster-autostart.bats`, `tests/unit/scripts/dev-reset.test.sh`, `tests/lib/k3d.sh`, `tests/runner.sh`, `tests/README.md`, `components/website/src/data/test-inventory.json`.
 
-- [ ] **RED — Guard-Datei anlegen.** Neue Datei `tests/spec/local-dev-mesh/k3d-tooling-removed.bats` mit exakt diesem Inhalt anlegen:
+- [x] **RED — Guard-Datei anlegen.** Neue Datei `tests/spec/local-dev-mesh/k3d-tooling-removed.bats` mit exakt diesem Inhalt anlegen:
 
 ```bash
 #!/usr/bin/env bats
@@ -64,7 +64,7 @@ setup() {
 }
 ```
 
-- [ ] **RED-Lauf, rot sehen.** Ausführen (erwartet: FAIL, weil `cluster:create` &
+- [x] **RED-Lauf, rot sehen.** Ausführen (erwartet: FAIL, weil `cluster:create` &
   Co. in `Taskfile.yml` noch existieren und `k3d-config.yaml` & Co. noch da sind — p1/p2
   sind noch nicht angewendet):
 

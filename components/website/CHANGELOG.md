@@ -3,6 +3,11 @@
 ## [1.358.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.1...website-v1.358.2) (2026-09-22)
 
 
+### Bug Fixes
+
+* archive app board dnd date T900333 ([#5820](https://github.com/Paddione/Bachelorprojekt/issues/5820)) ([814b34f](https://github.com/Paddione/Bachelorprojekt/commit/814b34f7c03121a2a3d29ee90a194baf1e3320aa))
+
+
 ### Code Refactoring
 
 * **T900310:** remove leftover local k3d tooling [T900310] ([#5819](https://github.com/Paddione/Bachelorprojekt/issues/5819)) ([52d73ea](https://github.com/Paddione/Bachelorprojekt/commit/52d73ea5cb7782fe71e1cebe419f988de45316a7))

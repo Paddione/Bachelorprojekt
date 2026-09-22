@@ -55,13 +55,13 @@ dann p1 und p2, dann der Rest von p3 (GREEN).
 
 ## Final Verification
 
-- [ ] Guard und betroffene Testdateien grün:
+- [x] Guard und betroffene Testdateien grün:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/local-dev-mesh/k3d-tooling-removed.bats tests/spec/workspace-deploy.bats
 ```
 
-- [ ] Task-Graph löst sich weiter auf (Design R1):
+- [x] Task-Graph löst sich weiter auf (Design R1):
 
 ```bash
 task --list-all >/dev/null
@@ -69,16 +69,30 @@ task --dry workspace:setup ENV=dev
 task --dry website:deploy ENV=dev
 ```
 
-- [ ] Keine Restreferenz auf entfernte Tasks oder Dateien außerhalb von Archiv, Doku und devmesh-Abbauwerkzeugen:
+- [x] Keine Restreferenz auf entfernte Tasks oder Dateien außerhalb von Archiv, Doku und devmesh-Abbauwerkzeugen:
 
 ```bash
 git grep -nE 'k3d-config\.yaml|cluster:(create|delete|start|stop|status)\b|dev-reset\.sh|dev-cluster-autostart|website:build:import|einvoice-sidecar:import|k3d image import' -- . ':!openspec/changes/archive' ':!openspec/changes/k3d-tooling-removal' ':!docs' ':!k3d/docs-content-built' ':!CHANGELOG.md' ':!scripts/devmesh' ':!tests/spec/local-dev-mesh' ':!tests/spec/sdlc-isolation/sdlc-up-command.bats' ':!taskfiles/Taskfile.staging.yml' ':!taskfiles/Taskfile.dev-stack.yml'
 ```
 
-- [ ] Mandatory CI-Gates:
+  Verbleibende Treffer sind ausschließlich `openspec/specs/*.md` (bestehender SSOT-Inhalt,
+  wird beim Archivieren via Delta-Spec aktualisiert) und ein bereits vor diesem Change
+  fehlerhafter Kommentar in `environments/.secrets/.ssh/config` (referenziert einen nie
+  existierenden Task `dev:cluster:create`) — beide außerhalb des File-Structure-Scopes dieses
+  Plans, siehe Report.
+
+- [x] Mandatory CI-Gates:
 
 ```bash
 task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+  `task test:changed` zeigt einen einzelnen, vorbestehenden und unabhängigen Fehlschlag
+  (`T003825: unveraenderte Binary erzeugt keinen Drift-Befund`,
+  `tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats`) — verifiziert per
+  `git diff origin/main..HEAD -- scripts/runtime-drift-check.sh
+  tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats` (leer, keine Änderung
+  in diesem Branch) und 3/3 identischer Fehlschlag bei isoliertem Lauf. `freshness:regenerate`
+  + `freshness:check` beide grün nach Commit der Artefakte.

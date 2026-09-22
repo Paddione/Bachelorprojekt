@@ -17,24 +17,29 @@ _Ticket: T900310_ · Design: `openspec/changes/k3d-tooling-removal/design.md`
 ## File Structure
 
 ```
-DELETE  k3d-config.yaml
-DELETE  k3d/create-cluster.sh
-DELETE  k3d/teardown.sh
-DELETE  scripts/dev-reset.sh
-DELETE  scripts/dev-cluster-autostart.sh
-DELETE  tests/unit/dev-cluster-autostart.bats
-DELETE  tests/unit/scripts/dev-reset.test.sh
-MODIFY  Taskfile.yml
-MODIFY  taskfiles/Taskfile.dev-stack.yml
-MODIFY  scripts/pre-deploy-checks-lib.sh
-MODIFY  .claude/settings.json
-MODIFY  dotfiles/agy/settings.json
-MODIFY  tests/lib/k3d.sh
-MODIFY  tests/runner.sh
-MODIFY  tests/README.md
-MODIFY  tests/spec/workspace-deploy.bats
-MODIFY  components/website/src/data/test-inventory.json
-CREATE  tests/spec/local-dev-mesh/k3d-tooling-removed.bats
+DELETED:
+k3d-config.yaml
+k3d/create-cluster.sh
+k3d/teardown.sh
+scripts/dev-reset.sh
+scripts/dev-cluster-autostart.sh
+tests/unit/dev-cluster-autostart.bats
+tests/unit/scripts/dev-reset.test.sh
+
+CHANGED:
+Taskfile.yml
+taskfiles/Taskfile.dev-stack.yml
+scripts/pre-deploy-checks-lib.sh
+.claude/settings.json
+dotfiles/agy/settings.json
+tests/lib/k3d.sh
+tests/runner.sh
+tests/README.md
+tests/spec/workspace-deploy.bats
+components/website/src/data/test-inventory.json
+
+NEW:
+tests/spec/local-dev-mesh/k3d-tooling-removed.bats
 ```
 
 ## Partials

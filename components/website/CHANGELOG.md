@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.357.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.3...website-v1.357.4) (2026-09-22)
+
+
+### Bug Fixes
+
+* **plans:** format application-pipeline delta spec and add ticket link [T900303] ([#5808](https://github.com/Paddione/Bachelorprojekt/issues/5808)) ([cf9b42f](https://github.com/Paddione/Bachelorprojekt/commit/cf9b42f28efc234014089c5d2014e802b413cc1a))
+
 ## [1.357.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.2...website-v1.357.3) (2026-09-22)
 
 

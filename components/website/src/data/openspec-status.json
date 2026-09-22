@@ -4969,6 +4969,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900310": [
+    {
+      "slug": "k3d-tooling-removal",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

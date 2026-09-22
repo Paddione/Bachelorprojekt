@@ -98,9 +98,9 @@ _stop_nc_portforward() {
 k3d_wait() {
   echo "▶ Warte auf k3d Services..."
 
-  echo "  Prüfe ob k3d-Cluster erreichbar ist..."
+  echo "  Prüfe ob der kube-Context erreichbar ist..."
   if ! kubectl cluster-info &>/dev/null; then
-    echo "  FEHLER: Kein k3d-Cluster erreichbar. Starte mit: task cluster:create && task workspace:deploy"
+    echo "  FEHLER: Kein kube-Context erreichbar (lokal: devmesh, ADR-008). Starte mit: kubectl config use-context devmesh && task workspace:deploy"
     return 1
   fi
 

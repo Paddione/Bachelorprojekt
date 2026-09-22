@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# runner.sh — Workspace MVP Test Runner (k3d)
+# runner.sh — Workspace MVP Test Runner
 # ═══════════════════════════════════════════════════════════════════
 # Usage:
-#   ./tests/runner.sh local              # full local tier (k3d)
+#   ./tests/runner.sh local              # full local tier (devmesh)
 #   ./tests/runner.sh local FA-01 SA-03  # specific tests
 #   ./tests/runner.sh prod               # full prod tier (k3s)
 #   ./tests/runner.sh prod SA-01 NFA-02  # specific prod tests
 #   ./tests/runner.sh report             # regenerate Markdown
 #
 # Prerequisites:
-#   - k3d cluster running (task cluster:create)
+#   - devmesh kube context reachable (ADR-008, kubectl config use-context devmesh)
 #   - Workspace stack deployed (task workspace:deploy)
 #   - kubectl, jq, curl installed
 # ═══════════════════════════════════════════════════════════════════

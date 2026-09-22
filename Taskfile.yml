@@ -156,68 +156,10 @@ tasks:
       - 'echo ""'
       - 'echo "  Run `task workspace:check-updates ENV=mentolder` to inspect available image updates"'
 
-  # ─────────────────────────────────────────────
-  # Cluster Lifecycle
-  # ─────────────────────────────────────────────
-  cluster:create:
-    desc: Create the k3d dev cluster with local registry
-    preconditions:
-      - sh: docker info > /dev/null 2>&1
-        msg: "Docker is not running. Start Docker first."
-      - sh: "k3d cluster list | grep -q {{.CLUSTER_NAME}} && exit 1 || exit 0"
-        msg: "Cluster '{{.CLUSTER_NAME}}' already exists. Run 'task cluster:delete' first."
-    cmds:
-      - mkdir -p data
-      - k3d cluster create --config k3d-config.yaml
-      - kubectl wait --for=condition=Ready nodes --all --timeout=120s
-      - echo "✓ Cluster '{{.CLUSTER_NAME}}' is ready"
-      - kubectl get nodes -o wide
-
-  cluster:delete:
-    desc: Delete the k3d dev cluster and clean up
-    prompt: "This will destroy the '{{.CLUSTER_NAME}}' cluster. Continue?"
-    cmds:
-      - k3d cluster delete {{.CLUSTER_NAME}}
-      - echo "✓ Cluster '{{.CLUSTER_NAME}}' deleted"
-
-  cluster:stop:
-    desc: Stop the cluster (preserves state, frees resources)
-    cmds:
-      - k3d cluster stop {{.CLUSTER_NAME}}
-
-  cluster:start:
-    desc: Start a previously stopped cluster
-    cmds:
-      - k3d cluster start {{.CLUSTER_NAME}}
-      - kubectl wait --for=condition=Ready nodes --all --timeout=120s
-
-  cluster:status:
-    desc: Show cluster status, nodes, and resource usage
-    cmds:
-      - echo "=== Cluster ==="
-      - k3d cluster list
-      - echo ""
-      - echo "=== Nodes ==="
-      - kubectl get nodes -o wide
-      - echo ""
-      - echo "=== Pods (all namespaces) ==="
-      - kubectl get pods -A
-      - echo ""
-      - echo "=== Resource Usage ==="
-      - docker stats --no-stream --format "table {{`{{.Name}}`}}\t{{`{{.CPUPerc}}`}}\t{{`{{.MemUsage}}`}}" $(docker ps -q --filter "label=app=k3d") 2>/dev/null || true
-
   dev:bootstrap:
     desc: "Install harness configs + inject secrets from SSOT (environments/.secrets/dev-tools.yaml)"
     cmds:
       - bash dotfiles/install.sh
-
-  dev:reset:
-    desc: "One-Click-Reset des dev-k3d-Clusters (REBUILD=1 baut Images neu, CONFIRM=yes überspringt Prompt)"
-    vars:
-      REBUILD: '{{.REBUILD | default ""}}'
-      CONFIRM: '{{.CONFIRM | default ""}}'
-    cmds:
-      - REBUILD={{.REBUILD}} CONFIRM={{.CONFIRM}} CLUSTER_NAME={{.CLUSTER_NAME}} bash scripts/dev-reset.sh
 
   dev:setup-signing:
     desc: "Configure local commit/tag signing (SSH key, G-SEC05 gate) — one-time per developer checkout"
@@ -371,10 +313,9 @@ tasks:
       - kubectl run debug --rm -it --image=busybox --restart=Never -- sh
 
   clean:
-    desc: Full cleanup — delete cluster, prune Docker images
-    prompt: "This will delete everything. Continue?"
+    desc: Prune local Docker images and volumes
+    prompt: "This will prune all unused Docker images and volumes. Continue?"
     cmds:
-      - k3d cluster delete {{.CLUSTER_NAME}} 2>/dev/null || true
       - docker image prune -f
       - docker volume prune -f
       - echo "✓ Cleaned up"
@@ -395,7 +336,7 @@ tasks:
             TEST_FILES="$TEST_FILES $f"
           fi
         done
-        TEST_FILES="$TEST_FILES tests/unit/scripts/dev-reset.test.sh tests/spec/mcp-tooling.bats"
+        TEST_FILES="$TEST_FILES tests/spec/mcp-tooling.bats"
         bash tests/bats -j $JOBS --no-parallelize-within-files $TEST_FILES
       - bash tests/figure-pack-assets.test.sh
       - task: test:unit:coverage-guard
@@ -506,11 +447,6 @@ tasks:
     internal: true
     cmds:
       - bash tests/bats tests/unit/secret-task-guards.bats
-
-  test:unit:dev-reset:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/scripts/dev-reset.test.sh
 
   test:unit:agents:
     internal: true
@@ -1866,31 +1802,6 @@ tasks:
   # ─────────────────────────────────────────────
   # Quick Start
   # ─────────────────────────────────────────────
-  up:
-    desc: "Full setup: create cluster → build → deploy"
-    cmds:
-      - task: cluster:create
-      - task: deploy
-      - echo ""
-      - 'echo "Dev environment is ready!"'
-      - 'echo "   App:     http://localhost:8080"'
-      - 'echo "   Registry: http://registry.localhost:5000/v2/_catalog"'
-      - 'echo "   kubectl:  already configured for cluster ''{{.CLUSTER_NAME}}''"'
-
-  workspace:up:
-    desc: "Full automated setup: Cluster -> MVP -> Office -> Post-config"
-    cmds:
-      - task: cluster:create
-      - task: workspace:deploy
-      - task: workspace:office:deploy
-      - task: workspace:post-setup
-      - task: workspace:talk-setup
-      - task: workspace:recording-setup
-      - task: workspace:transcriber-setup
-      - echo ""
-      - 'echo "✓ Workspace MVP stack is fully deployed and configured!"'
-      - 'echo "  Optional → task workspace:admin-users-setup   (provision SSO admin users in Keycloak)"'
-
   workspace:setup:
     desc: "Full deploy on existing cluster: preflight -> deploy -> office -> post-config (ENV=dev|mentolder|korczewski)"
     vars:
@@ -1913,20 +1824,14 @@ tasks:
       - 'echo "✓ Workspace fully deployed and configured ({{.ENV}})"'
       - 'echo "  Optional → task workspace:admin-users-setup ENV={{.ENV}}   (provision SSO admin users in Keycloak)"'
 
-  down:
-    desc: "Tear down everything"
-    cmds:
-      - task: cluster:delete
-
   # ─────────────────────────────────────────────
   # Workspace MVP (Bachelorprojekt)
   # ─────────────────────────────────────────────
 
   workspace:transcriber-build:
-    desc: Build talk-transcriber image (imports into k3d dev registry)
+    desc: Build talk-transcriber image
     cmds:
       - docker build -t ghcr.io/paddione/talk-transcriber:latest k3d/talk-transcriber/
-      - k3d image import ghcr.io/paddione/talk-transcriber:latest -c {{.CLUSTER_NAME}} 2>/dev/null || true
       - 'echo "✓ talk-transcriber image built (run ''task workspace:transcriber-push'' to publish to ghcr.io)"'
 
   workspace:transcriber-push:
@@ -2831,7 +2736,7 @@ tasks:
       ENV: '{{.ENV | default "dev"}}'
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
+        msg: "No cluster running. Point kubectl at a reachable context first (ENV=dev → devmesh, see environments/dev.yaml: context: devmesh)."
     cmds:
       - |
         export ENV="{{.ENV}}"
@@ -3852,17 +3757,13 @@ tasks:
       - node scripts/build-docs.mjs
 
   docs:build:import:
-    desc: Build and import docs image into k3d cluster
+    desc: Build the docs image locally
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - node scripts/build-docs.mjs
       - docker build -t ghcr.io/paddione/workspace-docs:latest -f scripts/docs.Dockerfile .
-      - |
-        if [ "{{.ENV}}" = "dev" ]; then
-          k3d image import ghcr.io/paddione/workspace-docs:latest -c {{.CLUSTER_NAME}}
-          echo "✓ docs image imported into k3d cluster"
-        fi
+      - echo "✓ docs image built locally"
 
   agent-guide:docs:
     desc: "Regenerate docs/agent-guide/{10-ziele,20-werkzeuge,30-bausteine}.md from the registry"
@@ -4252,19 +4153,6 @@ tasks:
         kubectl $CTX exec -n "$NS" "$POD" -- pkill -f "node ./dist/server/entry.mjs" || true
         echo "✓ Website synced and rebuilt. Changes should be live in a few seconds."
 
-  website:build:import:
-    desc: Build and import website image into k3d cluster
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - task: website:build
-        vars: { ENV: "{{.ENV}}" }
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
-        k3d image import "${IMAGE}:latest" -c {{.CLUSTER_NAME}}
-        echo "✓ Image imported into k3d cluster"
-
   website:push:
     desc: Build and push website image to ghcr.io (for production)
     vars:
@@ -4315,17 +4203,15 @@ tasks:
       ENV: '{{.ENV | default "dev"}}'
     preconditions:
       - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
+        msg: "No cluster running. Point kubectl at a reachable context first (ENV=dev → devmesh, see environments/dev.yaml: context: devmesh)."
     cmds:
       - |
         set -euo pipefail
         source scripts/env-resolve.sh "{{.ENV}}"
         IMAGE="ghcr.io/paddione/${WEBSITE_IMAGE:-workspace-website}"
-        # T001853: ENV=dev is current-context (same semantics as workspace:deploy
-        # and the brett:logs/workspace:dsgvo-check guard pattern) so a local k3d
-        # dev cluster deploys the manifest + imports the image locally, instead
-        # of dev deploying manifests remotely while the image import target
-        # stayed local ({{.CLUSTER_NAME}}) — a mismatch.
+        # T900310: ENV=dev deploys the image already published to the registry —
+        # there is no local k3d import step anymore. It still uses the current
+        # kubectl context rather than an explicit --context flag.
         CTX_ARG=""
         [ "{{.ENV}}" != "dev" ] && CTX_ARG="--context=${ENV_CONTEXT}"
 
@@ -4339,7 +4225,6 @@ tasks:
           WEBSITE_SITE_URL="http://web.localhost"
           KEYCLOAK_FRONTEND_URL="http://auth.localhost"
           REACT_APP_ORIGIN="${REACT_APP_ORIGIN:-http://react.localhost}"
-          task website:build:import ENV={{.ENV}}
           DIGEST=""
         else
           WEBSITE_HOST="web.${PROD_DOMAIN}"
@@ -4635,13 +4520,15 @@ tasks:
         kubectl $CTX rollout status deployment/website -n "$NS" --timeout=60s
 
   website:redeploy:
-    desc: "Rebuild image, import (or push), and restart the website (ENV=dev|mentolder|korczewski)"
+    desc: "Rebuild image, push, and restart the website (ENV=mentolder|korczewski); ENV=dev aborts — see error message"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
         if [ "{{.ENV}}" = "dev" ]; then
-          task website:build:import ENV={{.ENV}}
+          echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a rebuild here cannot reach it." >&2
+          echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task website:deploy ENV=dev." >&2
+          exit 1
         else
           task website:push ENV={{.ENV}}
         fi
@@ -4678,20 +4565,14 @@ tasks:
   # Brett (Systemisches Whiteboard)
   # ─────────────────────────────────────────────
   brett:build:
-    desc: "Build brett image (and import into k3d in dev)"
+    desc: "Build brett image locally"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     deps:
       - assets:sync
     cmds:
       - docker build -t ghcr.io/paddione/workspace-brett:latest components/brett/
-      - |
-        if [ "{{.ENV}}" = "dev" ]; then
-          k3d image import ghcr.io/paddione/workspace-brett:latest -c {{.CLUSTER_NAME}}
-          echo "✓ brett image imported into k3d cluster"
-        else
-          echo "✓ brett image built (run 'task brett:push ENV={{.ENV}}' to publish)"
-        fi
+      - echo "✓ brett image built locally (run 'task brett:push ENV={{.ENV}}' to publish)"
 
   brett:push:
     desc: "Build and push brett image to ghcr.io (for production)"
@@ -4704,13 +4585,15 @@ tasks:
       - echo "✓ Pushed ghcr.io/paddione/workspace-brett:latest"
 
   brett:deploy:
-    desc: "Build, import/push, and roll out brett (ENV=dev|mentolder|korczewski)"
+    desc: "Push and roll out brett (ENV=mentolder|korczewski); ENV=dev aborts — see error message"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - |
         if [ "{{.ENV}}" = "dev" ]; then
-          task brett:build ENV={{.ENV}}
+          echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a local build here cannot reach it." >&2
+          echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task workspace:deploy ENV=dev." >&2
+          exit 1
         else
           task brett:push ENV={{.ENV}}
         fi
@@ -4773,13 +4656,9 @@ tasks:
         kubectl $CTX_FLAG logs -n "$NS" -l app=brett --tail=200 -f
 
   studio:build:
-    desc: "Build studio-server image and (in dev) import into k3d (T001002)"
+    desc: "Build studio-server image locally (T001002)"
     cmds:
       - docker build -t ${STUDIO_IMAGE:-studio-server}:latest components/studio-server/
-      - |
-          if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
-            k3d image import ${STUDIO_IMAGE:-studio-server}:latest -c {{.CLUSTER_NAME}}
-          fi
       - echo "✓ studio image built"
 
   studio:push:
@@ -4790,7 +4669,7 @@ tasks:
       - echo "✓ Pushed ${STUDIO_IMAGE:-studio-server}:latest"
 
   studio:deploy:
-    desc: "Build, push, and roll out studio-server (mentolder-only for MVP; T001002)"
+    desc: "Push and roll out studio-server (mentolder-only for MVP; T001002); ENV=dev aborts — see error message"
     cmds:
       - |
           if [ "{{.ENV}}" = "korczewski" ]; then
@@ -4798,7 +4677,9 @@ tasks:
             exit 0
           fi
           if [ "{{.ENV}}" = "dev" ] || [ "{{.ENV}}" = "" ]; then
-            task studio:build
+            echo "ERROR: local image import removed since T900310 — ENV=dev runs on devmesh, a local build here cannot reach it." >&2
+            echo "ENV=dev nutzt Registry-Images (CI-Build nach ghcr.io); danach task workspace:deploy ENV=dev." >&2
+            exit 1
           else
             task studio:push
           fi
@@ -5008,12 +4889,6 @@ tasks:
     desc: "Build the einvoice-sidecar Docker image"
     cmds:
       - docker build -t einvoice-sidecar:dev docker/einvoice-sidecar
-
-  einvoice-sidecar:import:
-    desc: "Import einvoice-sidecar image into k3d cluster"
-    deps: [einvoice-sidecar:build]
-    cmds:
-      - k3d image import einvoice-sidecar:dev -c "{{.K3D_CLUSTER | default "workspace"}}"
 
   einvoice-sidecar:push:
     desc: "Build and push einvoice-sidecar image to ghcr.io"

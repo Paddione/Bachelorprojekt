@@ -260,20 +260,10 @@ _affinity_violations() {
   [ "$status" -eq 0 ]
 }
 
-@test "T001853: studio:build imports into the Taskfile cluster, not shell-fallback k3d-dev" {
-  run grep -F ':-k3d-dev}' "$TASKFILE"
-  [ "$status" -ne 0 ]
-}
-
 @test "T001853: studio-server base manifest uses imagePullPolicy IfNotPresent" {
   run grep -E 'imagePullPolicy:[[:space:]]*Always' "$PROJECT_DIR/k3d/studio.yaml"
   [ "$status" -ne 0 ]
   run grep -E 'imagePullPolicy:[[:space:]]*IfNotPresent' "$PROJECT_DIR/k3d/studio.yaml"
-  [ "$status" -eq 0 ]
-}
-
-@test "T001853: k3d-config.yaml pins kubeAPI.hostPort against restart port drift" {
-  run bash -c "sed -n '/^kubeAPI:/,/^[a-z]/p' \"$PROJECT_DIR/k3d-config.yaml\" | grep -E '^[[:space:]]+hostPort:'"
   [ "$status" -eq 0 ]
 }
 

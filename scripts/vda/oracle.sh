@@ -324,7 +324,7 @@ if local_llm_available; then
 
   NS_PROMPT="Output ONLY the 1-2 namespace names (one per line) most relevant to the goal. No explanation. /no_think
 
-Note: 'mentolder' and 'korczewski' are environment names, NOT task namespaces — ignore them when selecting namespaces. EXCEPTION: 'dev-korczewski' IS a valid task namespace (korczewski dev stack tasks like dev-korczewski:cluster:status, dev-korczewski:redeploy:website etc.).
+Note: 'mentolder' and 'korczewski' are environment names, NOT task namespaces — ignore them when selecting namespaces. EXCEPTION: 'dev-korczewski' IS a valid task namespace (korczewski dev stack tasks like dev-korczewski:deploy, dev-korczewski:redeploy:website etc.).
 Note: 'sealed-secrets' namespace is for installing/managing the Sealed Secrets controller itself. For sealing or encrypting environment variables/credentials, use the 'env' namespace (env:seal, env:fetch-cert, etc.).
 
 ${NS_SUMMARY}

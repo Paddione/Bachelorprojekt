@@ -4344,6 +4344,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/k3d-tooling-removed",
+    "file": "tests/spec/local-dev-mesh/k3d-tooling-removed.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/k3s-install",
     "file": "tests/spec/local-dev-mesh/k3s-install.bats",
     "category": "local-dev-mesh",

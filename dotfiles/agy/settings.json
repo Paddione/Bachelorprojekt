@@ -28,7 +28,6 @@
       "Bash(timeout 25 kubectl --context fleet get ns *)",
       "Bash(timeout 25 kubectl --context fleet get kustomizations.kustomize.toolkit.fluxcd.io -A)",
       "Bash(timeout 20 kubectl --context fleet get ns argocd)",
-      "Bash(k3d cluster *)",
       "Bash(task --list)",
       "Bash(task --version)",
       "Bash(task --help)",

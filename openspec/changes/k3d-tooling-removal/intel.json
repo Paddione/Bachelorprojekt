@@ -1,0 +1,475 @@
+{
+  "meta": {
+    "slug": "k3d-tooling-removal",
+    "ticket_id": "T900310",
+    "generated_from": "main@d70f46adf",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/settings.json",
+      "language": "config",
+      "loc": 182,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5604,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6782,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dotfiles/agy/settings.json",
+      "language": "config",
+      "loc": 106,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d-config.yaml",
+      "language": "config",
+      "loc": 68,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/create-cluster.sh",
+      "language": "bash",
+      "loc": 68,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 732
+    },
+    {
+      "path": "k3d/teardown.sh",
+      "language": "bash",
+      "loc": 22,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 778
+    },
+    {
+      "path": "scripts/dev-cluster-autostart.sh",
+      "language": "bash",
+      "loc": 46,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 754
+    },
+    {
+      "path": "scripts/dev-reset.sh",
+      "language": "bash",
+      "loc": 118,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 682
+    },
+    {
+      "path": "scripts/pre-deploy-checks-lib.sh",
+      "language": "bash",
+      "loc": 437,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 363
+    },
+    {
+      "path": "taskfiles/Taskfile.dev-stack.yml",
+      "language": "config",
+      "loc": 377,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/README.md",
+      "language": "markdown",
+      "loc": 44,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/lib/k3d.sh",
+      "language": "bash",
+      "loc": 178,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 622
+    },
+    {
+      "path": "tests/runner.sh",
+      "language": "bash",
+      "loc": 294,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 506
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/k3d-tooling-removed.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/workspace-deploy.bats",
+      "language": "bash",
+      "loc": 840,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/dev-cluster-autostart.bats",
+      "language": "bash",
+      "loc": 64,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/scripts/dev-reset.test.sh",
+      "language": "bash",
+      "loc": 205,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 595
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:4001:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4001:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "4001:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4002:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4002:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "4002:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4003:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4003:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "4003:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4004:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4004:        _run()  {(...)",
+      "type_text": "4004:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5182:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5182:        kexec_psql() {(...)",
+      "type_text": "5182:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:6:yaml_get() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "6:yaml_get() {(...)",
+      "type_text": "6:yaml_get() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:13:sealed_keys() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "13:sealed_keys() {(...)",
+      "type_text": "13:sealed_keys() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:23:schema_keys() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "23:schema_keys() {(...)",
+      "type_text": "23:schema_keys() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:33:schema_field() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "33:schema_field() {(...)",
+      "type_text": "33:schema_field() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:48:check_tools() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "48:check_tools() {(...)",
+      "type_text": "48:check_tools() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:73:check_env_schema() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "73:check_env_schema() {(...)",
+      "type_text": "73:check_env_schema() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:115:check_sealed_secrets() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "115:check_sealed_secrets() {(...)",
+      "type_text": "115:check_sealed_secrets() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:191:check_kustomize() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "191:check_kustomize() {(...)",
+      "type_text": "191:check_kustomize() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:261:check_connectivity() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "261:check_connectivity() {(...)",
+      "type_text": "261:check_connectivity() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:312:check_sealed_controller() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "312:check_sealed_controller() {(...)",
+      "type_text": "312:check_sealed_controller() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:352:check_network_policies() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "352:check_network_policies() {(...)",
+      "type_text": "352:check_network_policies() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:380:check_envsubst_vars() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "380:check_envsubst_vars() {(...)",
+      "type_text": "380:check_envsubst_vars() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pre-deploy-checks-lib.sh:405:check_cluster_health() {",
+      "kind": "function",
+      "file": "scripts/pre-deploy-checks-lib.sh",
+      "signature": "405:check_cluster_health() {(...)",
+      "type_text": "405:check_cluster_health() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.dev-stack.yml:37:        K3D_CREATE() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.dev-stack.yml",
+      "signature": "37:        K3D_CREATE() {(...)",
+      "type_text": "37:        K3D_CREATE() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.dev-stack.yml:320:        cleanup() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.dev-stack.yml",
+      "signature": "320:        cleanup() {(...)",
+      "type_text": "320:        cleanup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:34:_kube_run() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "34:_kube_run() {(...)",
+      "type_text": "34:_kube_run() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:40:_wait_for_url() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "40:_wait_for_url() {(...)",
+      "type_text": "40:_wait_for_url() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:60:_start_nc_portforward() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "60:_start_nc_portforward() {(...)",
+      "type_text": "60:_start_nc_portforward() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:89:_stop_nc_portforward() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "89:_stop_nc_portforward() {(...)",
+      "type_text": "89:_stop_nc_portforward() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:98:k3d_wait() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "98:k3d_wait() {(...)",
+      "type_text": "98:k3d_wait() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:126:_kc_admin_login() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "126:_kc_admin_login() {(...)",
+      "type_text": "126:_kc_admin_login() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:146:_bootstrap_keycloak_user() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "146:_bootstrap_keycloak_user() {(...)",
+      "type_text": "146:_bootstrap_keycloak_user() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/lib/k3d.sh:174:bootstrap_test_data() {",
+      "kind": "function",
+      "file": "tests/lib/k3d.sh",
+      "signature": "174:bootstrap_test_data() {(...)",
+      "type_text": "174:bootstrap_test_data() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/runner.sh:60:check_prereqs() {",
+      "kind": "function",
+      "file": "tests/runner.sh",
+      "signature": "60:check_prereqs() {(...)",
+      "type_text": "60:check_prereqs() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/runner.sh:72:run_test_files() {",
+      "kind": "function",
+      "file": "tests/runner.sh",
+      "signature": "72:run_test_files() {(...)",
+      "type_text": "72:run_test_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/workspace-deploy.bats:19:_workspace_deploy_block() {",
+      "kind": "function",
+      "file": "tests/spec/workspace-deploy.bats",
+      "signature": "19:_workspace_deploy_block() {(...)",
+      "type_text": "19:_workspace_deploy_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/workspace-deploy.bats:23:_workspace_partial_deploy_block() {",
+      "kind": "function",
+      "file": "tests/spec/workspace-deploy.bats",
+      "signature": "23:_workspace_partial_deploy_block() {(...)",
+      "type_text": "23:_workspace_partial_deploy_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/workspace-deploy.bats:191:_website_deploy_block() {",
+      "kind": "function",
+      "file": "tests/spec/workspace-deploy.bats",
+      "signature": "191:_website_deploy_block() {(...)",
+      "type_text": "191:_website_deploy_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/workspace-deploy.bats:198:_affinity_violations() {",
+      "kind": "function",
+      "file": "tests/spec/workspace-deploy.bats",
+      "signature": "198:_affinity_violations() {(...)",
+      "type_text": "198:_affinity_violations() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/workspace-deploy.bats:687:_flux_bootstrap_sealedsecrets() {",
+      "kind": "function",
+      "file": "tests/spec/workspace-deploy.bats",
+      "signature": "687:_flux_bootstrap_sealedsecrets() {(...)",
+      "type_text": "687:_flux_bootstrap_sealedsecrets() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/scripts/dev-reset.test.sh:5:setup() {",
+      "kind": "function",
+      "file": "tests/unit/scripts/dev-reset.test.sh",
+      "signature": "5:setup() {(...)",
+      "type_text": "5:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/scripts/dev-reset.test.sh:64:teardown() {",
+      "kind": "function",
+      "file": "tests/unit/scripts/dev-reset.test.sh",
+      "signature": "64:teardown() {(...)",
+      "type_text": "64:teardown() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -131,6 +131,7 @@ body {
 .kanban-column[data-status="applied"] h2 { border-color: var(--cockpit-status-applied); }
 .kanban-column[data-status="interviewing"] h2 { border-color: var(--cockpit-status-interviewing); }
 .kanban-column[data-status="offered"] h2 { border-color: var(--cockpit-status-offered); }
+.kanban-column[data-status="rejected"] h2 { border-color: var(--cockpit-status-rejected); }
 
 .kanban-card {
   background: var(--cockpit-bg);

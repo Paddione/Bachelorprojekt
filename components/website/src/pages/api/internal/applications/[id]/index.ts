@@ -55,13 +55,15 @@ export const PUT: APIRoute = async ({ request, params }) => {
 
   // Auto-render dossiers when entering drafting/applied status
   if (body.status && AUTO_RENDER_STATUSES.includes(body.status)) {
-    const jobDir = process.cwd().split('components')[0] || '.';
+    // Resolve render script: env var > cwd fallback
+    const scriptDir = process.env.APP_PIPELINE_SCRIPT_DIR || process.cwd();
+    const scriptPath = `${scriptDir}/scripts/vda/apply/render.sh`;
     // Fire-and-forget: background render without blocking the response
-    spawn('bash', ['-c', `${jobDir}/scripts/vda/apply/render.sh --job-id ${jobNum} --theme default 2>/dev/null &`], {
+    spawn('bash', ['-c', `${scriptPath} --job-id ${jobNum} --theme default 2>/dev/null &`], {
       detached: false,
       stdio: ['ignore', 'ignore', 'ignore'],
     });
-    console.log(`Auto-render triggered for job ${jobNum}: status=${body.status}`);
+    console.log(`Auto-render triggered for job ${jobNum}: status=${body.status} script=${scriptPath}`);
   }
 
   return new Response(JSON.stringify(r.rows[0]), { headers: { 'Content-Type': 'application/json' } });

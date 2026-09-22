@@ -32,7 +32,6 @@
       "Bash(task env:validate ENV=korczewski)",
       "Bash(task -a)",
       "Bash(ss -ltn 'sport = :__TRACKED_VAR__')",
-      "Bash(k3d cluster *)",
       "Bash(task -l)",
       "Bash(dpkg -S /usr/bin/task)",
       "Bash(task --version)",

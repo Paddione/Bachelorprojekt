@@ -265,7 +265,7 @@ check_connectivity() {
     if kubectl cluster-info >/dev/null 2>&1; then
       pass "kubectl cluster-info OK (dev context)"
     else
-      fail "kubectl cluster-info failed — is k3d running? Run: task cluster:create"
+      fail "kubectl cluster-info failed — is the 'devmesh' kube context reachable? Run: kubectl config use-context devmesh"
     fi
   else
     local ENV_CTX

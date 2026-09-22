@@ -24,7 +24,10 @@ setup() {
   LOADOUTS="${REPO_ROOT}/scripts/llm/loadouts.json"
   INGEST_SH="${REPO_ROOT}/scripts/brain-ingest.sh"
   MIGRATION="${REPO_ROOT}/scripts/migrations/2026-08-10-brain-ingest-port.sql"
-  SERVICE_DIR="${REPO_ROOT}/scripts/bge-mcp"
+  SERVICE_DIRS=(
+    "${REPO_ROOT}/scripts/mcp-gateway"
+    "${REPO_ROOT}/scripts/semantic-code-search"
+  )
   SLUG="brain-ingest"
   BACKEND="llamacpp-bonsai"
 }
@@ -33,12 +36,11 @@ setup() {
 # Der Anker ^ExecStart schliesst Kommentarzeilen aus, die denselben Port nennen.
 #
 # Kein `tr -d '[:space:]'` zum Trimmen: das loescht auch die Zeilenumbrueche und
-# verschmilzt "8081\n8093" zu "80818093" — die Extraktion liefert dann genau eine
-# unbrauchbare Zeile statt zwei Ports. Aufgefallen ist das nur, weil der Anker-Test
-# unten den bekannten Port 8081 verlangt; die Disjunktheitspruefung selbst war dabei
-# gruen, obwohl 8093 doppelt belegt war (leere Menge schneidet sich mit allem zu nichts).
+# verschmilzt Ports zu unbrauchbaren Strings.
 forward_ports() {
-  grep -h '^ExecStart.*port-forward' "${SERVICE_DIR}"/*.service 2>/dev/null \
+  for d in "${SERVICE_DIRS[@]}"; do
+    grep -h '^ExecStart.*port-forward' "$d"/*.service 2>/dev/null
+  done \
     | grep -oE '[0-9]{4,5}:[0-9]{4,5}' \
     | cut -d: -f1 | sort -u
 }
@@ -56,9 +58,9 @@ forward_ports() {
   fp="$(forward_ports)"
   [ -n "$fp" ]
 
-  # Der Embed-Forward ist stabil auf 8081 und dient als bekannte Probe: findet die
-  # Extraktion ihn nicht, ist das Muster kaputt und nicht die Konfiguration.
-  echo "$fp" | grep -qx '8081'
+  # T900191: devmesh-forward lauscht stabil auf 18235 (llm-proxy) und dient als bekannte Probe:
+  # findet die Extraktion ihn nicht, ist das Muster kaputt und nicht die Konfiguration.
+  echo "$fp" | grep -qx '18235'
 }
 
 @test "T003203: kein Loadout-Port ist zugleich lokale Seite eines Port-Forwards" {

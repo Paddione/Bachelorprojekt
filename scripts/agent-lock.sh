@@ -60,7 +60,7 @@ AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 # [T002671] OPENCODE_SESSION_ID ergaenzt; Sync mit agent-lock-identity.sh halten
 # (diese Kopf-Definition dient als Diagnose-Quelle fuer die Warnmeldung, die
 # agent-lock-identity.sh-Ueberschreibung laeuft erst beim source in Zeile ~559).
-_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID"
+_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID ANTIGRAVITY_CONVERSATION_ID"
 # Harness-Marker ohne Session-ID, fuer _detect_tool als benannte Liste. [T002451]
 _AGENT_LOCK_TOOL_MARKER_ENVS="CLAUDECODE CLAUDE_CODE"
 
@@ -79,7 +79,7 @@ _my_sid() {
   # [T002381-M1] Weder Harness-Env noch AGENT_LOCK_SID gesetzt — der Unix-SID-Fallback
   # driftet pro Bash-Call. Warnung ausgeben, damit der Operator die Ursache erkennt
   # und AGENT_LOCK_SID setzen oder die Harness-Variable bereitstellen kann.
-  echo "WARNUNG: _my_sid — weder CLAUDE_CODE_SESSION_ID/CLAUDE_SESSION_ID noch AGENT_LOCK_SID gesetzt. SID driftet pro Bash-Call (siehe T001268/T002381)." >&2
+  echo "WARNUNG: _my_sid — weder CLAUDE_CODE_SESSION_ID/CLAUDE_SESSION_ID/OPENCODE_SESSION_ID/ANTIGRAVITY_CONVERSATION_ID noch AGENT_LOCK_SID gesetzt. SID driftet pro Bash-Call (siehe T001268/T002381)." >&2
   local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
   if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
   # fallback: 4th field after the ')' in /proc/self/stat is the session id
@@ -106,6 +106,9 @@ _pid_alive() {  # <pid>
 }
 
 _detect_tool() {
+  if [ -n "${AGENT_LOCK_TOOL:-}" ]; then printf '%s\n' "$AGENT_LOCK_TOOL"; return; fi
+  if [ -n "${OPENCODE_SESSION_ID:-}" ]; then echo opencode; return; fi
+  if [ -n "${ANTIGRAVITY_CONVERSATION_ID:-}${ANTIGRAVITY_AGENT:-}" ]; then echo agy; return; fi
   # Uses same env list as _my_sid so both agree on harness detection. [T001268][T002375-p1]
   local _v _sid_env="" _is_claude=0
   for _v in $_AGENT_LOCK_SID_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done

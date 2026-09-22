@@ -10,7 +10,7 @@
 # CLAUDE_CODE_SESSION_ID zuerst, weil Claude Code sie real exportiert;
 # CLAUDE_SESSION_ID bleibt gültig — opencode und agy können sie setzen, und die
 # bestehenden Tests hängen daran.
-_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID"
+_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID ANTIGRAVITY_CONVERSATION_ID"
 
 _now() { date +%s; }
 
@@ -80,6 +80,7 @@ _detect_tool() {
   # _sid_env-Zweig stehen, sonst klassifiziert der generische Zweig eine opencode-
   # Session weiterhin als claude.
   if [ -n "${OPENCODE_SESSION_ID:-}" ]; then echo opencode; return; fi
+  if [ -n "${ANTIGRAVITY_CONVERSATION_ID:-}${ANTIGRAVITY_AGENT:-}" ]; then echo agy; return; fi
   local _v _sid_env=""
   for _v in $_AGENT_LOCK_SID_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
   if [ -n "${_sid_env}${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude

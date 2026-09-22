@@ -69,6 +69,21 @@ cmd_activity() {
   return 0
 }
 
+# 0 = process is a passive background language server or editor daemon, 1 = regular worker. [T900306]
+_is_daemon_or_lsp_process() {
+  local _p="$1"
+  local _comm _cmdline
+  _comm="$(cat "/proc/$_p/comm" 2>/dev/null)" || return 1
+  case "$_comm" in
+    *language-server*|gopls|rust-analyzer|pyright*|tsserver*|typingsInstaller*) return 0 ;;
+  esac
+  _cmdline="$(tr '\0' ' ' < "/proc/$_p/cmdline" 2>/dev/null)" || return 1
+  case "$_cmdline" in
+    *language-server*|*tsserver*|*typingsInstaller*|*gopls*|*rust-analyzer*|*pyright*|*pyls*|*pylsp*|*clangd*|*solargraph*|*vscode-*) return 0 ;;
+  esac
+  return 1
+}
+
 # 0 = true, 1 = false. Checks if any active process holds a cwd inside the worktree
 _worktree_has_active_process() {
   local wt="$1" _pid _cwd
@@ -84,6 +99,7 @@ _worktree_has_active_process() {
     [[ -n "${_my_pids[$_pid]:-}" ]] && continue
     _cwd="$(readlink "/proc/$_pid/cwd" 2>/dev/null)" || continue
     if [[ "$_cwd" = "$wt" || "$_cwd" = "$wt"/* ]]; then
+      _is_daemon_or_lsp_process "$_pid" && continue
       return 0
     fi
   done
@@ -117,6 +133,7 @@ _worktree_recently_active() {
   local _pid _fd _target
   for _pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
     [[ -n "${_my_pids[$_pid]:-}" ]] && continue
+    _is_daemon_or_lsp_process "$_pid" && continue
     for _fd in /proc/"$_pid"/fd/*; do
       _target="$(readlink "$_fd" 2>/dev/null)" || continue
       if [[ "$_target" = "$wt" || "$_target" = "$wt"/* ]]; then

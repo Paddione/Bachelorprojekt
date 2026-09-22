@@ -55,7 +55,7 @@ mc_foreign_activity_detected() {
       _cmdline=$(ps -o args= -p "$_pid" 2>/dev/null) || continue
       # Word-boundary match: "claude" or "claude ..." or "opencode" or "opencode ..."
       case "$_cmdline" in
-        claude|"claude "*|opencode|"opencode "*)
+        claude|"claude "*|opencode|"opencode "*|agy|"agy "*|*antigravity*)
           return 0  # foreign activity detected
           ;;
       esac

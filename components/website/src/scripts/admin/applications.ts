@@ -219,6 +219,34 @@ async function showDetailPanel(jobId: number): Promise<void> {
     `;
     content.appendChild(header);
 
+    // Raw text and requirements
+    if (job.raw_text || job.requirements) {
+      const textSection = document.createElement('div');
+      textSection.className = 'detail-section';
+
+      if (job.raw_text) {
+        const rawTitle = document.createElement('h3');
+        rawTitle.textContent = 'Quelltext';
+        textSection.appendChild(rawTitle);
+        const rawPre = document.createElement('pre');
+        rawPre.style.cssText = 'white-space:pre-wrap;font-size:12px;max-height:200px;overflow-y:auto;margin:0 0 8px 0;';
+        rawPre.textContent = job.raw_text;
+        textSection.appendChild(rawPre);
+      }
+
+      if (job.requirements) {
+        const reqTitle = document.createElement('h3');
+        reqTitle.textContent = 'Anforderungen';
+        textSection.appendChild(reqTitle);
+        const reqPre = document.createElement('pre');
+        reqPre.style.cssText = 'white-space:pre-wrap;font-size:12px;max-height:200px;overflow-y:auto;margin:0;';
+        reqPre.textContent = job.requirements;
+        textSection.appendChild(reqPre);
+      }
+
+      content.appendChild(textSection);
+    }
+
     // Status Switcher
     const statusSection = document.createElement('div');
     statusSection.className = 'detail-section';

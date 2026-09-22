@@ -57,9 +57,10 @@ describe('GET /api/internal/applications/list', () => {
   it('returns applications grouped by status for an authorized request', async () => {
     vi.mocked(pool.query).mockResolvedValue({
       rows: [
-        { id: 1, company: 'Acme', role_title: 'Dev', status: 'found', dossier_count: '0' },
-        { id: 2, company: 'Globex', role_title: 'QA', status: 'applied', dossier_count: '2' },
-        { id: 3, company: 'Initech', role_title: 'PM', status: 'applied', dossier_count: '1' },
+        { id: 1, company: 'Acme', role_title: 'Dev', status: 'found', dossier_count: '0', match_score: null, match_evidence_ids: null, source_url: null },
+        { id: 2, company: 'Globex', role_title: 'QA', status: 'applied', dossier_count: '2', match_score: 75, match_evidence_ids: ['FLEET-001'], source_url: 'http://example.com' },
+        { id: 3, company: 'Initech', role_title: 'PM', status: 'applied', dossier_count: '1', match_score: 30, match_evidence_ids: null, source_url: null },
+        { id: 4, company: 'Wayne', role_title: 'Ops', status: 'rejected', dossier_count: '0', match_score: 10, match_evidence_ids: null, source_url: null },
       ],
     } as never);
     const res = await GET({ request: req({ 'x-internal-token': 'test-token' }) } as unknown as RouteContext);
@@ -67,7 +68,8 @@ describe('GET /api/internal/applications/list', () => {
     const body = await res.json();
     expect(body.found).toHaveLength(1);
     expect(body.applied).toHaveLength(2);
-    expect(body.found[0]).toEqual({ id: 1, company: 'Acme', role_title: 'Dev', dossier_count: 0 });
+    expect(body.rejected).toHaveLength(1);
+    expect(body.found[0]).toEqual({ id: 1, company: 'Acme', role_title: 'Dev', dossier_count: 0, match_score: null, match_evidence_ids: null, source_url: null });
     expect(body.drafting).toEqual([]);
     expect(body.interviewing).toEqual([]);
     expect(body.offered).toEqual([]);

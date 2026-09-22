@@ -3,7 +3,7 @@ import { pool } from '../../../../lib/website-db';
 
 import { isAuthorized } from './auth';
 
-const STATUSES = ['found', 'drafting', 'applied', 'interviewing', 'offered'] as const;
+const STATUSES = ['found', 'drafting', 'applied', 'interviewing', 'offered', 'rejected'] as const;
 
 export const GET: APIRoute = async ({ request }) => {
   if (!await isAuthorized(request)) {

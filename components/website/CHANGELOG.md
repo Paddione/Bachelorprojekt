@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.358.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.0...website-v1.358.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **ops:** agy harness session-id and reapable locks with background LSPs [T900306] ([#5816](https://github.com/Paddione/Bachelorprojekt/issues/5816)) ([9a0b5df](https://github.com/Paddione/Bachelorprojekt/commit/9a0b5df8696e39a0fea16bf4eb826a27dd8f5384))
+
 ## [1.358.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.4...website-v1.358.0) (2026-09-22)
 
 

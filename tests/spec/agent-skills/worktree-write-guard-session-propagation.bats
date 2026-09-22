@@ -50,10 +50,11 @@ teardown() {
 
 @test "T2: dev-flow-execute SKILL.md propagiert die Parent-SID an den Implementer" {
   local skill="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
+  local handoff="$REPO_ROOT/.claude/skills/dev-flow-execute/references/implementer-handoff.md"
   [ -f "$skill" ]
-  run grep -qi 'agent-lock.sh mine' "$skill"
+  run grep -qi 'agent-lock.sh mine' "$skill" "$handoff"
   [ "$status" -eq 0 ]
-  run grep -qi 'AGENT_LOCK_SID' "$skill"
+  run grep -qi 'AGENT_LOCK_SID' "$skill" "$handoff"
   [ "$status" -eq 0 ]
 }
 

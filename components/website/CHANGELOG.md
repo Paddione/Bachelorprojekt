@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.357.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.2...website-v1.357.3) (2026-09-22)
+
+
+### Bug Fixes
+
+* **website:** cockpit rejected column, raw_text/requirements display, auto-render path ([#5806](https://github.com/Paddione/Bachelorprojekt/issues/5806)) ([855dec9](https://github.com/Paddione/Bachelorprojekt/commit/855dec942f930302e56665875ca3f0854bc330ef))
+
 ## [1.357.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.357.1...website-v1.357.2) (2026-09-21)
 
 

@@ -387,11 +387,11 @@ Last touches:
 Reqs: 35 · Scenarios: 112 · Lines: 902
 Paths: k3d/brett, brett/
 Last touches:
+  - Drag & Drop zwischen Kanban-Buckets im Applications Board | T900304 | 2026-09-22 | MODIFIED
   - Semantic Code Search — Indexer (SCS-1) | T002292 | 2026-07-27 | MODIFIED
   - Fig-panel edge-drawer with contextual edit tab | T002050 | 2026-07-21 | ADDED
   - Whole-figure drag across the floor plane | T002050 | 2026-07-21 | ADDED
   - Free 360-degree figure rotation | T002050 | 2026-07-21 | ADDED
-  - Double-click on free floor always spawns a new figure | T002006 | 2026-07-20 | ADDED
 
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396

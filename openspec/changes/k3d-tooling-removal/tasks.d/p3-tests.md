@@ -73,22 +73,22 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-dev-mesh/k3d-tooling-removed.
 # expected: FAIL (red — p1/p2 not yet applied)
 ```
 
-- [ ] **`tests/unit/dev-cluster-autostart.bats` löschen.**
+- [x] **`tests/unit/dev-cluster-autostart.bats` löschen.**
 
 ```bash
 git rm tests/unit/dev-cluster-autostart.bats
 ```
 
-- [ ] **`tests/unit/scripts/dev-reset.test.sh` löschen.**
+- [x] **`tests/unit/scripts/dev-reset.test.sh` löschen.**
 
 ```bash
 git rm tests/unit/scripts/dev-reset.test.sh
 ```
 
-- [ ] **Taskfile-Verdrahtung von `dev-reset.test.sh` prüfen.** p1 entfernt `test:unit:dev-reset`
+- [x] **Taskfile-Verdrahtung von `dev-reset.test.sh` prüfen.** p1 entfernt `test:unit:dev-reset`
   und den `TEST_FILES`-Eintrag. Check nach p1: `grep -n 'dev-reset' Taskfile.yml` gibt nichts aus.
 
-- [ ] **`tests/spec/workspace-deploy.bats`: T001853-hostPort-Test entfernen.** Den Block
+- [x] **`tests/spec/workspace-deploy.bats`: T001853-hostPort-Test entfernen.** Den Block
 
 ```bash
 @test "T001853: k3d-config.yaml pins kubeAPI.hostPort against restart port drift" {
@@ -100,7 +100,7 @@ git rm tests/unit/scripts/dev-reset.test.sh
   vollständig löschen (Ist-Lage vor p1/p2: Zeilen 275–278 in `tests/spec/workspace-deploy.bats`).
   Kein anderer `@test`-Block in dieser Datei wird angefasst.
 
-- [ ] **`tests/lib/k3d.sh`: Hinweistext in `k3d_wait` umschreiben, Verhalten unverändert.**
+- [x] **`tests/lib/k3d.sh`: Hinweistext in `k3d_wait` umschreiben, Verhalten unverändert.**
   Datei und Funktionsname bleiben (Design D5). Im Block (Ist-Lage: `k3d_wait` beginnt bei
   Zeile 92, der Fehlertext bei Zeile ~101):
 
@@ -125,7 +125,7 @@ git rm tests/unit/scripts/dev-reset.test.sh
   Nur diese zwei `echo`-Zeilen ändern sich, die Logik (Rückgabewert, Kontrollfluss) bleibt
   identisch.
 
-- [ ] **`tests/runner.sh`: Header-Kommentare umschreiben.** In den Zeilen 3, 6 und 13
+- [x] **`tests/runner.sh`: Header-Kommentare umschreiben.** In den Zeilen 3, 6 und 13
   (Ist-Lage vor diesem Schritt):
   - Zeile 3: `# runner.sh — Workspace MVP Test Runner (k3d)` → `# runner.sh — Workspace MVP Test Runner`
   - Zeile 6: `#   ./tests/runner.sh local              # full local tier (k3d)` →
@@ -135,17 +135,17 @@ git rm tests/unit/scripts/dev-reset.test.sh
   `source lib/k3d.sh` (weiter unten im Skript) bleibt unverändert stehen — die Datei
   `tests/lib/k3d.sh` wird laut D5 nicht umbenannt.
 
-- [ ] **`tests/README.md`: Zeile 22 umschreiben.** Ist-Lage: `# Full local tier (requires k3d
+- [x] **`tests/README.md`: Zeile 22 umschreiben.** Ist-Lage: `# Full local tier (requires k3d
   cluster running)`. Neu: `# Full local tier (requires devmesh kube context reachable)`.
 
-- [ ] **Test-Inventar regenerieren.**
+- [x] **Test-Inventar regenerieren.**
 
 ```bash
 task test:inventory
 git add components/website/src/data/test-inventory.json
 ```
 
-- [ ] **GREEN — Guard und betroffene Dateien grün, nach Anwendung von p1 und p2.**
+- [x] **GREEN — Guard und betroffene Dateien grün, nach Anwendung von p1 und p2.**
   (erwartet: PASS, sobald p1 `Taskfile.yml`/`taskfiles/Taskfile.dev-stack.yml` und p2 die
   Dateien aus `k3d-config.yaml` & Co. entfernt haben):
 

@@ -272,11 +272,6 @@ _affinity_violations() {
   [ "$status" -eq 0 ]
 }
 
-@test "T001853: k3d-config.yaml pins kubeAPI.hostPort against restart port drift" {
-  run bash -c "sed -n '/^kubeAPI:/,/^[a-z]/p' \"$PROJECT_DIR/k3d-config.yaml\" | grep -E '^[[:space:]]+hostPort:'"
-  [ "$status" -eq 0 ]
-}
-
 @test "T001853: pocket-id-db-init bootstraps seed-deploy api key idempotently" {
   run bash -c "grep -F 'INSERT INTO api_keys' \"$POCKET_ID_MANIFEST\""
   [ "$status" -eq 0 ]

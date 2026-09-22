@@ -19,7 +19,7 @@ integration checks, Playwright end-to-end tests, and factory eval scripts.
 ## Running tests
 
 ```bash
-# Full local tier (requires k3d cluster running)
+# Full local tier (requires devmesh kube context reachable)
 ./tests/runner.sh local
 
 # Specific test IDs

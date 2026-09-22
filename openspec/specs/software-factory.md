@@ -4283,20 +4283,15 @@ The system SHALL demonstrate technical feasibility by being reachable via HTTP/S
 
 The system SHALL ship all required configuration and operational scripts in the repository and SHALL NOT load any external tracking or font resources during page load, in compliance with DSGVO/GDPR.
 
-#### Scenario: T1: k3d-Konfiguration im Repo vorhanden
-- **GIVEN** das Repository ist ausgecheckt
-- **WHEN** das Dateisystem geprüft wird
-- **THEN** existiert die Datei `k3d-config.yaml` im Repo-Wurzelverzeichnis
-
 #### Scenario: T1: Taskfile.yml im Repo vorhanden
 - **GIVEN** das Repository ist ausgecheckt
 - **WHEN** das Dateisystem geprüft wird
 - **THEN** existiert die Datei `Taskfile.yml` im Repo-Wurzelverzeichnis
 
-#### Scenario: T1: workspace:up in Taskfile definiert
+#### Scenario: T1: workspace:deploy in Taskfile definiert
 - **GIVEN** `Taskfile.yml` existiert im Repository
 - **WHEN** der Inhalt der Taskfile gelesen wird
-- **THEN** enthält die Datei den Task-Namen `workspace:up` oder `workspace:deploy`
+- **THEN** enthält die Datei den Task-Namen `workspace:deploy`
 
 #### Scenario: T2: scripts/setup.sh existiert und ist ausführbar (falls vorhanden)
 - **GIVEN** das Repository ist ausgecheckt
@@ -4317,8 +4312,6 @@ The system SHALL ship all required configuration and operational scripts in the 
 - **GIVEN** die Website ist erreichbar
 - **WHEN** die Startseite vollständig geladen wird
 - **THEN** werden keine Anfragen an Google Analytics, Google Tag Manager, Facebook, Hotjar oder Mixpanel gestellt
-
----
 
 ### Requirement: FA-SF-57: App Catalog E2E Tests
 <!-- source: app-catalog.spec.ts -->
@@ -5758,3 +5751,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (5094497d6819) -->
 
 <!-- merged from change delta software-factory.md (8d2049857398) -->
+
+<!-- merged from change delta software-factory.md (9779ad1e2f91) -->

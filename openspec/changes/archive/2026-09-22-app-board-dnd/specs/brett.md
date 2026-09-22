@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Drag & Drop zwischen Kanban-Buckets im Applications Board
 

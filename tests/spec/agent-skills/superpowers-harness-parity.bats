@@ -136,7 +136,7 @@ import sys, os, re
 
 repo = sys.argv[1]
 hits = []
-for root, _dirs, files in os.walk(os.path.join(repo, ".claude", "skills")):
+for root, _dirs, files in os.walk(os.path.join(repo, ".claude", "skills"), followlinks=True):
     for f in files:
         if not f.endswith(".md"):
             continue
@@ -172,7 +172,7 @@ PLUGIN_SKILLS = {
 }
 
 collisions, seen = [], 0
-for root, _dirs, files in os.walk(os.path.join(repo, ".claude", "skills")):
+for root, _dirs, files in os.walk(os.path.join(repo, ".claude", "skills"), followlinks=True):
     if "SKILL.md" not in files:
         continue
     p = os.path.join(root, "SKILL.md")

@@ -1,29 +1,31 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Default = llamacpp-local/Qwen3.6-35B-A3B-NVFP4: Qwen3.6-35B-A3B MoE
-  // via FreeToken :1919 direkt (llm-proxy :18235 stillgelegt; static 200k-KV-Pool,
-  // serve profile qwen-200k in scripts/llm/restart-freetoken.ps1).
-  // Der Provider-Key heisst historisch "llamacpp-local" — dahinter steht
-  // kein llama.cpp-Loadout mehr (T014028/T014105, 2026-09-16 konsolidiert).
+  // Default = llamacpp-local/Qwen3.8-27B-dualgpu: Qwen3.8-27B dense via
+  // llama.cpp :1919 direkt, Layer-Split RTX 5070 Ti + 3060 Ti, 153600 served
+  // KV (systemd-User-Unit scripts/llm/qwen38-dualgpu.service, T900348).
+  // Der Provider-Key heisst historisch "llamacpp-local".
   //
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (Go-Abo zuerst, dann direkte API).
-  "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
-  // ── V2 Compaction (Requirement: V2 Compaction Targets 100K Active Context) ──
-  // Factory model: Qwen3.6-35B-A3B, context=200000, output=8192.
-  // V2 threshold = 200000 − max(8192, 96000) = 104000
-  // → compaction at ~100k active context, keep.tokens: 16000 holds the tail.
+  "model": "llamacpp-local/Qwen3.8-27B-dualgpu",
+  // ── V2 Compaction (Requirement: V2 Compaction Scales With the Model Window) ──
+  // V2 rechnet pro Modell: threshold = limit.context − max(limit.output, buffer).
+  // Ein globaler buffer ergibt deshalb fuer jedes Modell einen eigenen Trigger:
+  //   Qwen3.8-27B-dualgpu: 153600 − max(8192, 33600) = 120000
+  //   big-pickle:          260000 − max(16384, 33600) = 226400
+  //   deepseek (1M):      1000000 − max(8192, 33600) = 966400
+  //   muse-spark (1M):    1000000 − max(131072, 33600) = 868928
+  // Die Cloud-Modelle haelt DCP (.opencode/dcp.jsonc) davor schlank.
   //
-  // Kalibrierung 2026-09-16: statischer 200k-Pool Bestaetigt
-  // (bench-freetoken-prefill.sh --tag static-200k: decode ~100 tok/s,
-  // cold prefill ~2600-3700 tok/s wall, radix-hit ~12k-43k tok/s;
-  // /v1/cache/status num_pages 200000 = served KV). KV-Ladder verworfen:
-  // grosse MoE-Wachstums-Rebuilds OOMen unter Fragmentierung. Trigger 104000
-  // feuert unter der gemessenen 200k-Ceiling (design.md D2).
+  // Kalibrierung 2026-09-23 (T900350): 147.651-Token-Prompt gemessen mit
+  // Prefill 831 tok/s, Decode 20,4 tok/s (kurzer Kontext ~35 tok/s). Der
+  // Trigger bei 120k laesst 33,6k fuer Output und Reasoning; keep.tokens
+  // 16000 haelt den Tail. Vorher buffer 96000 (Qwen3.6, 200k): auf 153600
+  // haette das schon bei 57600 kompaktiert.
   "compaction": {
     "auto": true,
     "keep": { "tokens": 16000 },
-    "buffer": 96000
+    "buffer": 33600
   },
   // ── Third-party opencode plugins (installed via npm into .opencode/) ──────
   // Loaded from npm through the `plugin` array. Packages are declared in
@@ -112,7 +114,7 @@
   // groesste staendige Kontextposten neben den MCP-Schemas. Bewusst global
   // und nicht pro-Session: Automations-Workloads (Factory, sdlc-autopilot)
   // profitieren genauso. In Verbindung mit .opencode/dcp.jsonc haelt der
-  // aktive Kontext länger unter den 104k der V2-Compaction (T900162).
+  // aktive Kontext länger unter den 120k der V2-Compaction (T900350).
   "tool_output": { "max_lines": 200, "max_bytes": 8192 },
   // Der Provider "llamacpp-mtp" wird bewusst NICHT hier definiert, sondern
   // ausschliesslich in .opencode/agent-models.jsonc — von dort synct

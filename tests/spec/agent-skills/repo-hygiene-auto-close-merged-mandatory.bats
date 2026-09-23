@@ -16,7 +16,7 @@ setup() {
   [ -L "$REPO_ROOT/.claude/skills/references" ]
 }
 
-@test "§3 ruft auto-close-merged.sh als verbindlichen Schritt auf, fuer beide Brands" {
+@test "Abschnitt 3 ruft auto-close-merged.sh als verbindlichen Schritt auf, fuer beide Brands" {
   run sed -n '/^## 3\. PR-Triage/,/^## 4\./p' "$OPS_MD"
   [ "$status" -eq 0 ]
   # Positiv-Anker: der Aufruf selbst steht im §3-Textkoerper.
@@ -27,7 +27,7 @@ setup() {
   grep -qiE "verbindlich" <<<"$output"
 }
 
-@test "§3-Aufruf ist als Netz unabhaengig von der laufenden Factory begruendet" {
+@test "Abschnitt-3-Aufruf ist als Netz unabhaengig von der laufenden Factory begruendet" {
   run sed -n '/^## 3\. PR-Triage/,/^## 4\./p' "$OPS_MD"
   [ "$status" -eq 0 ]
   grep -qiE "Factory.*(nicht laeuft|nicht läuft)" <<<"$output"

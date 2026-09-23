@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.358.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.6...website-v1.358.7) (2026-09-23)
+
+
+### Bug Fixes
+
+* **scripts:** gesperrte Managed-Worktrees vor remove --force entsperren [T900340] ([#5840](https://github.com/Paddione/Bachelorprojekt/issues/5840)) ([3631636](https://github.com/Paddione/Bachelorprojekt/commit/3631636fc3bf6b5f717cad25fdb43a96b1ffa540))
+
 ## [1.358.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.5...website-v1.358.6) (2026-09-23)
 
 

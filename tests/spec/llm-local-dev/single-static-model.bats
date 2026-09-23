@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # T900203 — FreeToken-Konsolidierung (T900164): der llamacpp-local-Katalog
-# fuehrt genau ein Modell (Qwen3.6-35B-A3B-NVFP4, statischer 200k-KV-Pool),
+# fuehrt genau ein Modell (seit T900348 Qwen3.8-27B-dualgpu, 153600 served KV),
 # keine active/*-Aliase und keine freetoken-thinking/fast-Agenten mehr, und
 # das alte Opencode-Plugin freetoken-active.ts ist entfernt.
 #
@@ -21,8 +21,8 @@ setup() {
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$MODELS_CFG','utf8'));
     const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
-    if (!('Qwen3.6-35B-A3B-NVFP4' in m)) {
-      console.error('positive anchor failed: Qwen3.6-35B-A3B-NVFP4 fehlt im llamacpp-local-Katalog'); process.exit(1);
+    if (!('Qwen3.8-27B-dualgpu' in m)) {
+      console.error('positive anchor failed: Qwen3.8-27B-dualgpu fehlt im llamacpp-local-Katalog'); process.exit(1);
     }
     const keys = Object.keys(m);
     if (keys.length !== 1) {

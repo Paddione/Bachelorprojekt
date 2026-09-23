@@ -52,8 +52,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq open-iscsi nfs-common
 sudo systemctl enable --now iscsid
 sudo modprobe iscsi_tcp
 sudo modprobe dm_crypt
-lsmod | grep -q iscsi_tcp || { echo "iscsi_tcp not loaded" >&2; exit 1; }
-lsmod | grep -q dm_crypt || { echo "dm_crypt not loaded" >&2; exit 1; }
+grep -q iscsi_tcp /proc/modules || { echo "iscsi_tcp not loaded" >&2; exit 1; }
+grep -q dm_crypt /proc/modules || { echo "dm_crypt not loaded" >&2; exit 1; }
 systemctl show -p MountFlags / 2>/dev/null | grep -q shared || findmnt -o PROPAGATION / | grep -q shared || { echo "mount propagation not shared on /" >&2; exit 1; }
 echo "longhorn preconditions ok"
 '

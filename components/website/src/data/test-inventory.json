@@ -5130,6 +5130,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-regen-spec-atlas",
+    "file": "tests/spec/openspec-workflow/archive-regen-spec-atlas.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-status-offline-staging",
     "file": "tests/spec/openspec-workflow/archive-status-offline-staging.bats",
     "category": "openspec-workflow",

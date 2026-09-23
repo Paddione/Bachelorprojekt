@@ -1,41 +1,35 @@
 {
   "provider": {
-    // Lokaler Provider direkt auf FreeToken-native (:1919) [T900208].
+    // Lokaler Provider auf :1919 [T900208, T900348].
     //
     // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
-    // und opencode-Default referenzieren ihn) — dahinter steht seit
-    // T014028/T014105 FreeToken-native (:1919, Qwen3.6-35B-A3B-NVFP4, statischer
-    // 200k-KV-Pool). Kein llama.cpp-Loadout mehr aktiv.
+    // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
+    // llama.cpp: Qwen3.8-27B UD-Q4_K_M, per Layer-Split auf RTX 5070 Ti + 3060 Ti
+    // verteilt (systemd-User-Unit scripts/llm/qwen38-dualgpu.service). Es loest
+    // FreeToken-native (Qwen3.6-35B-A3B-NVFP4) auf demselben Port ab.
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
-    // stillgelegt (ADR-007). FreeToken serviert single-flight
-    // (--max-running-requests 1) aus einem statischen 200k-KV-Pool; weitere
-    // Requests warten in FreeTokens eigener Queue. Die fruehere Proxy-Fallback-
-    // Kette lokal -> deepseek -> zen [T002558] existiert damit nicht mehr —
-    // Ausweichen auf deepseek ist eine explizite Agenten-Wahl.
+    // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
+    // Requests warten in seiner Queue. Ausweichen auf deepseek ist eine
+    // explizite Agenten-Wahl.
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "FreeToken direkt :1919 (Qwen3.6-35B-A3B-NVFP4, static 200k KV pool)",
+      "name": "llama.cpp :1919 (Qwen3.8-27B UD-Q4_K_M, dual-GPU 5070 Ti + 3060 Ti, 150k ctx)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        // GEMESSEN 2026-09-16 (ft 0.1.2, Profil qwen-200k, static pool):
-        // /v1/cache/status num_pages 200000 (= served KV!), moe_cache 4150
-        // (40.5% resident). bench-freetoken-prefill.sh --tag static-200k:
-        // decode ~100 tok/s, cold prefill ~2600-3700 tok/s wall, cached
-        // (radix hit) ~12k-43k tok/s. Prefill-Pathologie (~7ms/tok, ft 0.1.1)
-        // auf 0.1.2+--moe-prefill-hit-d2d geheilt. advertised max_model_len
-        // 262144 ist NICHT die served KV. Reasoning default on -> kleines
-        // max_tokens liefert leeren content (length) — Budget grosszuegig.
-        // KV-Ladder-Alternative VERWORFEN: grosse MoE-Wachstums-Rebuilds OOMen
-        // unter Fragmentierung (2.49GB-Alloc bei 1.93GB frei) — statisch gewinnt.
-        "Qwen3.6-35B-A3B-NVFP4": {
-          "name": "Qwen3.6-35B-A3B MoE (FreeToken :1919 direkt, static 200k KV / moe 4150, ~100 tok/s decode, reasoning on)",
+        // GEMESSEN 2026-09-23 (llama.cpp b61-0adcc3bb5, -c 153600 -ts 56,9,
+        // q4_0-KV): n_ctx 153600 served; Decode ~35 tok/s bei kurzem Kontext;
+        // 147.651-Token-Prompt: Prefill 831 tok/s, Decode 20,4 tok/s, Needle
+        // gefunden. Dense 27B, Reasoning default on -> kleines max_tokens
+        // liefert leeren content (length) — Budget grosszuegig.
+        "Qwen3.8-27B-dualgpu": {
+          "name": "Qwen3.8-27B dense (llama.cpp :1919, dual-GPU, 150k ctx, ~35 tok/s decode, reasoning on)",
           "limit": {
-            "context": 200000,
+            "context": 153600,
             "output": 8192
           }
         }
@@ -168,13 +162,13 @@
     // (gptoss/devstral/gemma/gemma12/qwen38) zeigten alle auf dasselbe
     // FreeToken-Modell — fuenf Namen, ein Slot, kein Prefix-Cache-Gewinn mehr
     // (ein Resident-Checkpoint, ein Radix-Cache). Kollabiert zu einem `local`.
-    // Engine: --max-running-requests 1 (single-flight); FreeToken queuet weitere Requests
-    // sequenzielle Dispatches, die ≤200k served KV teilen. Der Orchestrator
-    // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~150k).
+    // Engine: -np 1 (ein Slot); llama.cpp queuet weitere Requests als
+    // sequenzielle Dispatches, die ≤153600 served KV teilen. Der Orchestrator
+    // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~120k).
     "local": {
-      "description": "Sole local implementation subagent (Qwen3.6-35B-A3B MoE via FreeToken :1919 (direct), 200k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
+      "description": "Sole local implementation subagent (Qwen3.8-27B dense via llama.cpp :1919, dual-GPU, 150k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
-      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "llamacpp-local/Qwen3.8-27B-dualgpu",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -184,7 +178,7 @@
     "reviewer": {
       "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "llamacpp-local/Qwen3.8-27B-dualgpu",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
@@ -365,13 +359,13 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // Plan-Primary: Qwen3.6-35B-A3B MoE via FreeToken/lm-proxy (200k served KV).
+    // Plan-Primary: Qwen3.8-27B dense via llama.cpp :1919 (153600 served KV).
     // Autonomous ticket-hammering agent: prioritizes critical issues,
     // plans (/dev-flow-plan), explores (/opsx:explore), executes, archives.
     "qwen38-primary": {
-      "description": "PRIMARY: Local Qwen3.6-35B-A3B MoE via FreeToken/lm-proxy (200k served KV static pool, moe 4150, gemessen 2026-09-16). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
+      "description": "PRIMARY: Local Qwen3.8-27B dense via llama.cpp :1919 (dual-GPU 5070 Ti + 3060 Ti, 150k served KV, gemessen 2026-09-23). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
       "mode": "primary",
-      "model": "llamacpp-local/Qwen3.6-35B-A3B-NVFP4",
+      "model": "llamacpp-local/Qwen3.8-27B-dualgpu",
       "prompt": "{file:./prompts/qwen38-primary.md}",
       "color": "#10B981",
       "temperature": 0.3,

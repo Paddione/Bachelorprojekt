@@ -137,24 +137,21 @@ EOF"
 }
 
 @test "agent-models.jsonc declares a MEASURED context for the local model, not n_ctx_train (T002545/T002558/T002633)" {
-  # T900203: der llamacpp-local-Katalog fuehrt seit der FreeToken-Konsolidierung
-  # (T900164) genau ein Modell: Qwen3.6-35B-A3B-NVFP4. limit.context 200000 ist
-  # die GEMESSENE served KV (/v1/cache/status num_pages, model-matrix.md) —
-  # nicht das advertised max_model_len 262144, das ueber dem real Verfuegbaren
-  # liegt. Die fruehere Loadout-Kopplung (loadouts.json) ist entfallen:
-  # FreeToken faehrt einen statischen 200k-KV-Pool, die Zahl steht im
-  # Provider-Eintrag.
+  # T900348: der llamacpp-local-Katalog fuehrt genau ein Modell:
+  # Qwen3.8-27B-dualgpu (llama.cpp :1919, scripts/llm/qwen38-dualgpu.service).
+  # limit.context 153600 ist die GEMESSENE served KV (n_ctx in /props) —
+  # nicht n_ctx_train 262144, das ueber dem real Verfuegbaren liegt.
   #
   # Geprueft wird deshalb die EIGENSCHAFT: positive ganze Zahl, ungleich 262144
-  # (advertised max_model_len) und nicht groesser als 200000 (served KV).
+  # (n_ctx_train) und nicht groesser als 153600 (served KV).
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
     const m = ((o.provider || {})['llamacpp-local'] || {}).models || {};
-    const entry = m['Qwen3.6-35B-A3B-NVFP4'];
-    if (!entry) { console.error('Qwen3.6-35B-A3B-NVFP4 fehlt im llamacpp-local-Katalog'); process.exit(1); }
+    const entry = m['Qwen3.8-27B-dualgpu'];
+    if (!entry) { console.error('Qwen3.8-27B-dualgpu fehlt im llamacpp-local-Katalog'); process.exit(1); }
     const ctx = (entry.limit || {}).context;
     if (!Number.isInteger(ctx) || ctx <= 0) {
       console.error('ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
@@ -162,20 +159,20 @@ EOF"
     if (ctx === 262144) {
       console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
     }
-    if (ctx > 200000) {
-      console.error('ctx ' + ctx + ' uebersteigt die served 200k KV'); process.exit(1);
+    if (ctx > 153600) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
     }
     process.exit(0);
   "
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc defines the local family on Qwen3.6 (T002545/T900203)" {
+@test "agent-models.jsonc defines the local family on Qwen3.8 (T002545/T900203/T900348)" {
   # T900203: die fuenf Familien-Handles (gptoss/devstral/gemma/gemma12/qwen38)
   # sind 2026-09-16 zu einem `local` kollabiert (T900164) — kein gemma-Subagent
   # mehr. Die lokale Familie ist: local + reviewer als Subagenten und
-  # qwen38-primary als Primary, alle drei auf
-  # llamacpp-local/Qwen3.6-35B-A3B-NVFP4.
+  # qwen38-primary als Primary, alle drei seit T900348 auf
+  # llamacpp-local/Qwen3.8-27B-dualgpu.
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
@@ -186,8 +183,8 @@ EOF"
       const v = a[name];
       if (!v) { console.error(name + ' fehlt in agent-models.jsonc'); process.exit(1); }
       if (v.mode !== mode) { console.error(name + ' mode ' + v.mode + ' != ' + mode); process.exit(1); }
-      if (v.model !== 'llamacpp-local/Qwen3.6-35B-A3B-NVFP4') {
-        console.error(name + ' model ' + v.model + ' != llamacpp-local/Qwen3.6-35B-A3B-NVFP4'); process.exit(1);
+      if (v.model !== 'llamacpp-local/Qwen3.8-27B-dualgpu') {
+        console.error(name + ' model ' + v.model + ' != llamacpp-local/Qwen3.8-27B-dualgpu'); process.exit(1);
       }
     }
     process.exit(0);
@@ -196,13 +193,10 @@ EOF"
 }
 
 @test "agent-models.jsonc provides a local primary with measured context (T002545/T016419/T900203)" {
-  # T900203: der einzige lokale Primary ist qwen38-primary (Name historisch,
-  # Modell aktuell Qwen3.6-35B-A3B-NVFP4). Sein Kontext ist der gemessene
-  # served-KV-Wert 200000 — nicht das advertised max_model_len 262144.
-  #
-  # Die fruehere Loadout-Bindung (loadouts.json) ist entfallen: FreeToken
-  # faehrt einen statischen 200k-KV-Pool, die Zahl steht als konkreter Eintrag
-  # im Provider und wird hier exakt zugesichert (T014105-Prinzip).
+  # T900203/T900348: der einzige lokale Primary ist qwen38-primary, Modell
+  # Qwen3.8-27B-dualgpu. Sein Kontext ist der gemessene served-KV-Wert 153600 —
+  # nicht n_ctx_train 262144. Die Zahl steht als konkreter Eintrag im Provider
+  # (T014105-Prinzip); ihre Kopplung an -c der Unit prueft der Test unten.
   #
   # Warum <= und nicht ==: ein niedrigerer Wert ist konservativ und harmlos.
   # Schaden entsteht nur in der anderen Richtung: wenn die Config MEHR verspricht
@@ -217,8 +211,8 @@ EOF"
     if (!prim) { console.error('qwen38-primary fehlt'); process.exit(1); }
     if (prim.mode !== 'primary') { console.error('qwen38-primary mode ' + prim.mode + ' != primary'); process.exit(1); }
     const model = prim.model;
-    if (model !== 'llamacpp-local/Qwen3.6-35B-A3B-NVFP4') {
-      console.error('qwen38-primary model ' + model + ' != llamacpp-local/Qwen3.6-35B-A3B-NVFP4'); process.exit(1);
+    if (model !== 'llamacpp-local/Qwen3.8-27B-dualgpu') {
+      console.error('qwen38-primary model ' + model + ' != llamacpp-local/Qwen3.8-27B-dualgpu'); process.exit(1);
     }
     const [prov, mid] = model.split('/');
     const entry = ((o.provider[prov] || {}).models || {})[mid];
@@ -230,8 +224,8 @@ EOF"
     if (ctx === 262144) {
       console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
     }
-    if (ctx > 200000) {
-      console.error('ctx ' + ctx + ' uebersteigt die served 200k KV'); process.exit(1);
+    if (ctx > 153600) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
     }
     process.exit(0);
   "
@@ -254,8 +248,8 @@ EOF"
 }
 
 @test "T016419: dead checkpoint catalog entries are removed" {
-  # T900203: der llamacpp-local-Katalog fuehrt seit der FreeToken-Konsolidierung
-  # genau ein Modell (Qwen3.6-35B-A3B-NVFP4). Alle frueheren Checkpoint-Eintraege
+  # T900203/T900348: der llamacpp-local-Katalog fuehrt genau ein Modell
+  # (Qwen3.8-27B-dualgpu). Alle frueheren Checkpoint-Eintraege
   # — die toten GGUFs UND die ehemaligen Fallback-Eintraege (hauhau-qwen36,
   # gemma12-vision, qwen38-220k) — sind entfernt. Statisch geprueft — bewusst
   # KEIN Filesystem-Check gegen GGUF-Pfade (CI hat weder /mnt/c noch ~/models).
@@ -263,8 +257,8 @@ EOF"
     const j5 = require('json5');
     const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
     const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
-    if (!('Qwen3.6-35B-A3B-NVFP4' in m)) {
-      console.error('positive anchor failed: Qwen3.6-35B-A3B-NVFP4 fehlt im llamacpp-local-Katalog'); process.exit(1);
+    if (!('Qwen3.8-27B-dualgpu' in m)) {
+      console.error('positive anchor failed: Qwen3.8-27B-dualgpu fehlt im llamacpp-local-Katalog'); process.exit(1);
     }
     const dead = ['qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
       .filter(k => k in m);
@@ -272,6 +266,24 @@ EOF"
     process.exit(0);
   "
   [ "$status" -eq 0 ]
+}
+
+@test "T900348: catalog context matches -c and port of the dual-GPU unit" {
+  # Die served KV entsteht aus -c in scripts/llm/qwen38-dualgpu.service. Weicht
+  # limit.context davon ab, verspricht opencode mehr (oder weniger) Kontext als
+  # der Server hat. Der Port muss der baseURL des Providers entsprechen.
+  local unit="$REPO/scripts/llm/qwen38-dualgpu.service"
+  run bash -c "grep -oE -- '-c [0-9]+' '$unit' | awk '{print \$2}'"
+  [ "$status" -eq 0 ]
+  [ "$output" = "153600" ]
+  run bash -c "grep -oE -- '--port [0-9]+' '$unit' | awk '{print \$2}'"
+  [ "$output" = "1919" ]
+  run node -e "
+    const d = require('json5').parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
+    const e = (((d.provider || {})['llamacpp-local'] || {}).models || {})['Qwen3.8-27B-dualgpu'];
+    console.log(e ? e.limit.context : 'missing');
+  "
+  [ "$output" = "153600" ]
 }
 
 @test "T900051: FreeToken smoke test verifies version model KV and concurrency" {

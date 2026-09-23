@@ -1,0 +1,36 @@
+# systemd-User-Unit: Qwen3.8-27B UD-Q4_K_M auf RTX 5070 Ti + RTX 3060 Ti [T900348].
+# Löst FreeToken-native als lokales Backend auf :1919 ab — alle Konsumenten
+# (opencode llamacpp-local, Factory, brain-ingest) sprechen weiter :1919 an.
+#
+# Installation:
+#   ln -sf "$PWD/scripts/llm/qwen38-dualgpu.service" ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now qwen38-dualgpu
+# FreeToken darf nicht parallel laufen (gleicher Port, gleiche GPU): Windows-Task
+# "FreeToken-Serve" deaktivieren.
+#
+# Gemessen 2026-09-23: 35 tok/s Decode kurz; 147.651-Token-Prompt mit 831 tok/s
+# Prefill, 20,4 tok/s Decode. -ts 56,9 füllt die 5070 Ti (~280 MiB frei) und lässt
+# der 3060 Ti ~2,4 GB fürs Display. Kein -fit: es legt still Layer auf die CPU und
+# halbiert den Decode. Die CUDA-Maske überschreibt die systemweite 3060-Ti-Maske.
+[Unit]
+Description=llama-server Qwen3.8-27B dual-GPU (5070 Ti + 3060 Ti, 150k ctx) auf :1919
+After=network.target
+
+[Service]
+Type=simple
+Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
+Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4,GPU-6b9ac882-e9e9-a364-4423-92d838536b86
+ExecStart=%h/opt/llama-current/bin/llama-server \
+  -m %h/models/Qwen3.8-27B/Qwen3.8-27B-UD-Q4_K_M.gguf \
+  --alias Qwen3.8-27B-dualgpu \
+  -c 153600 -b 1024 -ub 256 \
+  -fit off -ngl 999 -sm layer -ts 56,9 \
+  -fa on -ctk q4_0 -ctv q4_0 \
+  -np 1 --jinja \
+  --host 127.0.0.1 --port 1919
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

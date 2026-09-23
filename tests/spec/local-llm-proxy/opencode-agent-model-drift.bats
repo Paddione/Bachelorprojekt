@@ -8,9 +8,8 @@
 # Ausnahme in [T002448-M4]. Ein Laufzeittest gegen :8091 waere in CI nicht
 # ausfuehrbar, dort laeuft kein llama-server.
 #
-# T900203: seit der FreeToken-Konsolidierung (T900164) faehrt der lokale Stack
-# Qwen3.6-35B-A3B-NVFP4 via FreeToken :1919 durch den llm-proxy :18235
-# (statischer 200k-KV-Pool). Der Provider-Key heisst historisch "llamacpp-local";
+# T900348: der lokale Stack faehrt Qwen3.8-27B-dualgpu via llama.cpp :1919
+# (vorher FreeToken, T900164/T900203). Der Provider-Key heisst historisch "llamacpp-local";
 # die Loadout-Kopplung an loadouts.json ist entfallen.
 
 setup() {
@@ -66,10 +65,10 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf Qwen3.6-35B-A3B-NVFP4" {
-  # T900203: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.6-35B-A3B-NVFP4
-  # (FreeToken :1919 via llm-proxy :18235, statischer 200k-KV-Pool).
-  run grep -c 'llamacpp-local/Qwen3.6-35B-A3B-NVFP4' "${AGENTS}"
+@test "T002545: die Agentendefinitionen verweisen auf Qwen3.8-27B-dualgpu" {
+  # T900348: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.8-27B-dualgpu
+  # (llama.cpp :1919, dual-GPU, 153600 served KV).
+  run grep -c 'llamacpp-local/Qwen3.8-27B-dualgpu' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }
@@ -80,7 +79,7 @@ setup() {
   # FreeToken-Zahl. Gebunden wird jetzt per PROVIDER: jeder
   # llamacpp-local-limit.context muss eine positive ganze Zahl sein, ungleich
   # dem advertised max_model_len 262144 und nicht groesser als die served
-  # 200k KV (gemessen, model-matrix.md).
+  # KV 153600 (gemessen T900348).
   #
   # [T003065] Vorher stand hier `grep -c '262144'` mit der Erwartung 0: 262144
   # war der Wert des abgeloesten 12B-Servers und stand fuer die Drift-Klasse,
@@ -106,8 +105,8 @@ setup() {
       if (ctx === 262144) {
         console.error(k + ' ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
       }
-      if (ctx > 200000) {
-        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 200k KV'); process.exit(1);
+      if (ctx > 153600) {
+        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
       }
     }
     process.exit(0);

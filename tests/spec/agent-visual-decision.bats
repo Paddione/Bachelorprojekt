@@ -7,22 +7,25 @@ setup_file() {
 
 @test "OpenSpec delta file for agent visual decision UX exists" {
   cd "$REPO_ROOT"
-  [ -f "openspec/changes/agent-visual-decision-ux/proposal.md" ]
-  [ -f "openspec/changes/agent-visual-decision-ux/specs/agent-behavior.md" ]
+  # Change was archived per OpenSpec lifecycle (archive/2026-09-12-agent-visual-decision-ux);
+  # accept the active path or the archived path.
+  { [ -f "openspec/changes/agent-visual-decision-ux/proposal.md" ] || [ -f "openspec/changes/archive/2026-09-12-agent-visual-decision-ux/proposal.md" ]; }
+  { [ -f "openspec/changes/agent-visual-decision-ux/specs/agent-behavior.md" ] || [ -f "openspec/changes/archive/2026-09-12-agent-visual-decision-ux/specs/agent-behavior.md" ]; }
 }
 
 @test "OpenSpec delta spec defines required requirements" {
   cd "$REPO_ROOT"
-  run grep -F "Requirement: Structured Interactive Decision Modals for Human Input" openspec/changes/agent-visual-decision-ux/specs/agent-behavior.md
+  # Requirements were merged into the SSOT on archive; assert them there.
+  run grep -F "Requirement: Structured Interactive Decision Modals for Human Input" openspec/specs/agent-behavior.md
   [ "$status" -eq 0 ]
 
-  run grep -F "Requirement: Progressive Information Disclosure for Verbose Output" openspec/changes/agent-visual-decision-ux/specs/agent-behavior.md
+  run grep -F "Requirement: Progressive Information Disclosure for Verbose Output" openspec/specs/agent-behavior.md
   [ "$status" -eq 0 ]
 
-  run grep -F "Requirement: Visual Diagrams for Complex Decision Trees" openspec/changes/agent-visual-decision-ux/specs/agent-behavior.md
+  run grep -F "Requirement: Visual Diagrams for Complex Decision Trees" openspec/specs/agent-behavior.md
   [ "$status" -eq 0 ]
 
-  run grep -F "Requirement: Lavish HTML Review Surfaces for Visual Review Artifacts" openspec/changes/agent-visual-decision-ux/specs/agent-behavior.md
+  run grep -F "Requirement: Lavish HTML Review Surfaces for Visual Review Artifacts" openspec/specs/agent-behavior.md
   [ "$status" -eq 0 ]
 }
 

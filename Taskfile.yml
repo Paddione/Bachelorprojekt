@@ -44,11 +44,7 @@ includes:
       NS_DEV: workspace-korczewski-dev
       NS_PROD: workspace-korczewski
       CLUSTER_NAME: korczewski-dev
-  # Staging on-demand — per-branch isolated k3d namespaces.
-  # See Taskfile.staging.yml + docs/superpowers/specs/archive/2026-06-11-staging-on-demand-design.md.
-  staging:
-    taskfile: ./taskfiles/Taskfile.staging.yml
-    dir: .
+
   # devmesh — lokaler k3s-Dev-Cluster auf Bare-Metal (ADR-008). SP-1 (T900116) bringt
   # die Tailnet-Pruefung, SP-2 (T900117) die Cluster-Tasks.
   # See Taskfile.devmesh.yml + docs/runbooks/devmesh-tailnet.md.
@@ -397,10 +393,6 @@ tasks:
     cmds:
       - bash tests/bats tests/unit/readiness-webhook.bats
 
-  test:unit:staging:
-    internal: true
-    cmds:
-      - bash tests/bats tests/unit/staging.bats
 
   test:unit:api-auth-gate:
     internal: true

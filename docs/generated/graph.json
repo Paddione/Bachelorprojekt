@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-16T23:30:42.897Z",
+  "generatedAt": "2026-09-23T11:25:13.699Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -432,12 +432,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "shared-db"
-    },
-    {
-      "id": "shared-db-staging",
-      "namespace": "$STAGING_NS",
-      "type": "StatefulSet",
-      "name": "shared-db-staging"
     },
     {
       "id": "studio-server",
@@ -1566,12 +1560,6 @@
     {
       "from": "sessions-server",
       "to": "sessions-server",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "shared-db-staging",
-      "to": "shared-db-staging",
       "via": "selector",
       "kind": "selector"
     },
@@ -12787,18 +12775,6 @@
       "from": "knowledge-reindex-all",
       "to": "knowledge-ingest-bugs",
       "via": "secret:knowledge-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db-staging",
-      "to": "website",
-      "via": "secret:staging-db-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "website",
-      "to": "shared-db-staging",
-      "via": "secret:staging-db-secrets",
       "kind": "secret"
     }
   ]

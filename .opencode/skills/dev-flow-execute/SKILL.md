@@ -164,7 +164,7 @@ die CI-Fix-Schleife (5.5) zuständig, solange sie läuft.
 
 ## Schritt 4: Dev-Iteration (optional)
 
-Iteratives Testen im Dev-Namespace `workspace-dev` auf Fleet ([deploy-routing.md](.agents/skills/references/deploy-routing.md)): `task dev:redeploy:website` bzw. `task dev:redeploy:brett`.
+Iteratives Testen im Dev-Namespace `workspace-dev` auf Fleet ([deploy-routing.md](.agents/skills/references/deploy-routing.md)): `task dev:redeploy:website` bzw. `task dev:redeploy:brett` (setzt voraus, dass nach einem Push das `:dev`-Image per CI gebaut wurde).
 > **⚠ Freshness-Guard (vor dem Commit):** `git diff --name-only` darf keine generierten Indexdateien zeigen. Sonst `task freshness:regenerate && git add` nachholen (Pre-commit-Hook nach `task secrets:install-hooks` automatisiert das).
 
 ## Schritt 5: PR erstellen

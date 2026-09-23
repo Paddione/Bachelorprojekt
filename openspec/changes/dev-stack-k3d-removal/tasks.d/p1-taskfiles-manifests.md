@@ -16,10 +16,10 @@ Target files: `Taskfile.yml`, `taskfiles/Taskfile.dev-stack.yml`, `taskfiles/Tas
   - `k3d/staging-stack/website-staging.yaml`
 
 - [ ] **taskfiles/Taskfile.dev-stack.yml — k3d-Tasks und SSH-Imports abbauen.**
-  - `build:website`, `build:brett`, `apply`, `deploy`, `_materialise-secrets` und `firewall:open` entfernen.
+  - `build:website`, `build:brett`, `apply`, `deploy` und `_materialise-secrets` entfernen.
   - `redeploy:website` und `redeploy:brett` umstellen auf `kubectl rollout restart` und `kubectl rollout status` auf `CTX_DEV` im Namespace `NS_DEV`.
   - Neuer Task `dev:secrets` (ersetzt `_materialise-secrets`), der nur noch `ghcr-pull-secret`, `shared-db-dev-secrets`, `workspace-secrets` und `mcp-tokens` in `NS_DEV` anlegt (`ipv64-api-key` und `sish-authorized-keys` entfallen).
-  - Bestehende Tasks `logs`, `psql`, `tunnel`, `db:refresh` unverändert beibehalten.
+  - Bestehende Tasks `logs`, `psql`, `tunnel`, `firewall:open`, `db:refresh` unverändert beibehalten.
 
 - [ ] **k3d/dev-stack/ Manifeste anpassen.**
   - `k3d/dev-stack/cert-manager.yaml` und `k3d/dev-stack/traefik-tls.yaml` löschen.

@@ -4314,6 +4314,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-dev-mesh/dev-stack-tasks",
+    "file": "tests/spec/local-dev-mesh/dev-stack-tasks.bats",
+    "category": "local-dev-mesh",
+    "kind": "shell"
+  },
+  {
     "id": "local-dev-mesh/devmesh-networks",
     "file": "tests/spec/local-dev-mesh/devmesh-networks.bats",
     "category": "local-dev-mesh",

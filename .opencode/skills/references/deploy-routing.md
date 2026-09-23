@@ -62,7 +62,7 @@ kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
 |---------|--------------|--------------|
 | `website` | `task dev:redeploy:website ENV=$ENV` | `app=website` |
 | `brett` | `task dev:redeploy:brett ENV=$ENV` | `app=brett` |
-| `full` | `task dev:deploy ENV=$ENV` | `app=website`, `app=brett` |
+| `full` | Merge nach `main` (Flux reconciliert) | alle Pods in `workspace-dev` |
 
 ### Footguns
 

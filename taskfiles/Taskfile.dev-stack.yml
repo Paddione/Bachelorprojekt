@@ -1,6 +1,6 @@
 # Taskfile.dev-stack.yml
 # ─────────────────────────────────────────────────────────────────────────────
-# Persistent k3d-in-k3s dev stack. Parameterisable per ENV.
+# Dev stack tasks for workspace-dev on fleet (or dev-korczewski).
 # Default: mentolder (dev.mentolder.de). Override via Taskfile.yml includes:
 #   dev-korczewski: vars: ENV/CTX_DEV/CTX_PROD/NS_DEV/NS_PROD/CLUSTER_NAME
 # ─────────────────────────────────────────────────────────────────────────────
@@ -28,9 +28,8 @@ tasks:
         kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} exec -it statefulset/shared-db-dev -- \
           psql -U postgres
 
-  _materialise-secrets:
-    internal: true
-    desc: "[dev] Materialise plaintext secrets from .secrets/mentolder.yaml into workspace-dev"
+  secrets:
+    desc: "[dev] Materialise plaintext secrets from environments/.secrets/{{.ENV}}.yaml into {{.NS_DEV}}"
     cmds:
       - |
         set -euo pipefail
@@ -40,10 +39,8 @@ tasks:
           echo "Missing $SECRETS_FILE — run task env:generate ENV={{.ENV}} first." >&2
           exit 1
         fi
-        # env-generate writes flat YAML (top-level keys), so yq path is .KEY
         SHARED=$(yq -r '.DEV_SHARED_DB_PASSWORD // ""' "$SECRETS_FILE")
         SITE=$(yq -r '.DEV_WEBSITE_DB_PASSWORD // ""' "$SECRETS_FILE")
-        AUTHKEYS=$(yq -r '.DEV_SISH_AUTHORIZED_KEYS // ""' "$SECRETS_FILE")
         MCP_TOKEN=$(yq -r '.DEV_MCP_TOKEN // ""' "$SECRETS_FILE")
         if [[ -z "$SHARED" || -z "$SITE" ]]; then
           echo "DEV_SHARED_DB_PASSWORD or DEV_WEBSITE_DB_PASSWORD missing from $SECRETS_FILE." >&2
@@ -55,11 +52,6 @@ tasks:
           --from-literal=DEV_SHARED_DB_PASSWORD="$SHARED" \
           --from-literal=DEV_WEBSITE_DB_PASSWORD="$SITE" \
           --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
-        kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create configmap sish-authorized-keys \
-          --from-literal=authorized_keys="$AUTHKEYS" \
-          --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
-        # mcp-tokens — single CLUSTER_TOKEN tier for the dev MCP public route
-        # (mcp-auth-proxy-dev ForwardAuth). Skipped if DEV_MCP_TOKEN is unset.
         if [[ -n "$MCP_TOKEN" ]]; then
           kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret generic mcp-tokens \
             --from-literal=CLUSTER_TOKEN="$MCP_TOKEN" \
@@ -67,11 +59,8 @@ tasks:
         else
           echo "DEV_MCP_TOKEN missing from $SECRETS_FILE — skipping mcp-tokens (mcp.dev route will fail closed)." >&2
         fi
-        # oauth2-proxy-dev needs the OIDC client secret + cookie secret; the dev
-        # edge's cert-manager needs the ipv64 DNS-01 key. [T000363]
         OIDC=$(yq -r '.DEV_WORKSPACE_OIDC_SECRET // ""' "$SECRETS_FILE")
         COOKIE=$(yq -r '.DEV_OAUTH2_PROXY_COOKIE_SECRET // ""' "$SECRETS_FILE")
-        IPV64=$(yq -r '.IPV64_API_KEY // ""' "$SECRETS_FILE")
         if [[ -n "$OIDC" && -n "$COOKIE" ]]; then
           kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret generic workspace-secrets \
             --from-literal=DEV_WORKSPACE_OIDC_SECRET="$OIDC" \
@@ -80,15 +69,6 @@ tasks:
         else
           echo "DEV_WORKSPACE_OIDC_SECRET / DEV_OAUTH2_PROXY_COOKIE_SECRET missing from $SECRETS_FILE — oauth2-proxy-dev will crashloop." >&2
         fi
-        if [[ -n "$IPV64" ]]; then
-          kubectl --context {{.CTX_DEV}} create namespace cert-manager --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
-          kubectl --context {{.CTX_DEV}} -n cert-manager create secret generic ipv64-api-key \
-            --from-literal=IPV64_API_KEY="$IPV64" \
-            --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
-        else
-          echo "IPV64_API_KEY missing from $SECRETS_FILE — cert-manager DNS-01 cannot issue the dev wildcard." >&2
-        fi
-        # ghcr-pull-secret — required on real k3s clusters (not k3d local-import)
         GHCR_PAT=$(yq -r '.GHCR_PAT // ""' "$SECRETS_FILE")
         if [[ -n "$GHCR_PAT" ]]; then
           kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret docker-registry ghcr-pull-secret \
@@ -98,120 +78,15 @@ tasks:
             --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
         fi
 
-  build:website:
-    desc: "[dev] Build the website image and import it into the dev k3d cluster"
-    cmds:
-      - |
-        # Kill any stale docker build from a previous timed-out SSH session (T000315).
-        # Without this, two concurrent Astro+pixi.js builds exhaust dev-node memory.
-        pkill -f "docker.*components/website/Dockerfile" 2>/dev/null || true
-        sleep 1
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        # --provenance=false: buildkit attestation manifests produce an OCI
-        # image index that `docker save` → `k3d image import` (ctr) cannot
-        # extract ("content digest ... not found"), corrupting the node's
-        # containerd content store. [T000363]
-        docker build --provenance=false -t ghcr.io/paddione/workspace-website:dev \
-          -f components/website/Dockerfile \
-          --build-arg PROD_DOMAIN=$DEV_DOMAIN \
-          --build-arg BRAND=${BRAND_ID:-mentolder} \
-          .
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        TMP_TAR=$(mktemp /tmp/website-dev-XXXXXX.tar)
-        trap "rm -f $TMP_TAR" EXIT
-        docker save ghcr.io/paddione/workspace-website:dev > "$TMP_TAR"
-        if [[ "$(hostname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "${DEV_NODE%%.*}" ]]; then
-          k3d image import "$TMP_TAR" -c {{.CLUSTER_NAME}}
-        else
-          ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
-          scp "$TMP_TAR" ${DEV_SSH_USER:-root}@$DEV_NODE:/tmp/website-dev-import.tar
-          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d image import /tmp/website-dev-import.tar -c {{.CLUSTER_NAME}} && rm -f /tmp/website-dev-import.tar"
-        fi
-
-  build:brett:
-    desc: "[dev] Build the brett image and import it into the dev k3d cluster"
-    cmds:
-      # --provenance=false: avoid attestation manifests that break k3d image
-      # import / corrupt the node containerd content store. [T000363]
-      - docker build --provenance=false -t ghcr.io/paddione/workspace-brett:dev -f components/brett/Dockerfile components/brett/
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        TMP_TAR=$(mktemp /tmp/brett-dev-XXXXXX.tar)
-        trap "rm -f $TMP_TAR" EXIT
-        docker save ghcr.io/paddione/workspace-brett:dev > "$TMP_TAR"
-        if [[ "$(hostname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "${DEV_NODE%%.*}" ]]; then
-          k3d image import "$TMP_TAR" -c {{.CLUSTER_NAME}}
-        else
-          ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
-          scp "$TMP_TAR" ${DEV_SSH_USER:-root}@$DEV_NODE:/tmp/brett-dev-import.tar
-          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d image import /tmp/brett-dev-import.tar -c {{.CLUSTER_NAME}} && rm -f /tmp/brett-dev-import.tar"
-        fi
-
-  apply:
-    desc: "[dev] Apply the dev-stack overlay to the dev k3d cluster (no image build)"
-    deps: [_materialise-secrets]
-    cmds:
-      - |
-        # cert-manager + ipv64 lego webhook INSIDE the k3d cluster, so the dev
-        # edge can mint its own *.dev wildcard. No fleet node-affinity patch
-        # (single k3d node) — unlike task cert:install. [T000363]
-        source scripts/env-resolve.sh "{{.ENV}}"
-        helm repo add jetstack https://charts.jetstack.io --force-update >/dev/null
-        helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update >/dev/null
-        helm repo update >/dev/null
-        helm upgrade --install cert-manager jetstack/cert-manager \
-          --namespace cert-manager --create-namespace \
-          --kube-context {{.CTX_DEV}} \
-          --set crds.enabled=true --set podDnsPolicy=Default \
-          --wait --timeout=180s
-        helm upgrade --install cert-manager-lego-webhook cert-manager-lego-webhook/cert-manager-lego-webhook \
-          --namespace cert-manager --kube-context {{.CTX_DEV}} \
-          --set certManager.namespace=cert-manager \
-          --set certManager.serviceAccountName=cert-manager \
-          --wait --timeout=120s
-        # Wire the ipv64 key into the webhook (materialised into cert-manager ns).
-        if kubectl --context {{.CTX_DEV}} -n cert-manager get secret ipv64-api-key >/dev/null 2>&1; then
-          kubectl --context {{.CTX_DEV}} set env deployment/cert-manager-lego-webhook -n cert-manager --from=secret/ipv64-api-key
-        else
-          echo "ℹ ipv64-api-key secret absent — DNS-01 will fail until dev:_materialise-secrets runs with IPV64_API_KEY." >&2
-        fi
-        # ClusterIssuer + wildcard Certificate (kube-system, co-located w/ TLSStore).
-        envsubst '$DEV_DOMAIN' < k3d/dev-stack/cert-manager.yaml \
-          | kubectl --context {{.CTX_DEV}} apply -f -
-        # Default TLSStore (kube-system) — applied outside the kustomize bundle,
-        # whose `namespace: workspace-dev` directive would otherwise rewrite it.
-        kubectl --context {{.CTX_DEV}} apply -f k3d/dev-stack/traefik-tls.yaml
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        kubectl kustomize k3d/dev-stack/ \
-          | sed "s|workspace-dev|{{.NS_DEV}}|g" \
-          | envsubst '$DEV_DOMAIN $DEV_WEBSITE_HOST $DEV_BRETT_HOST $PROD_DOMAIN $CONTACT_EMAIL' \
-          | kubectl --context {{.CTX_DEV}} apply -f -
-      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status statefulset/shared-db-dev --timeout=180s
-      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/website --timeout=180s
-      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/brett --timeout=120s
-      - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/sish --timeout=60s
-
-  deploy:
-    desc: "[dev] Build images, import to k3d, apply manifests"
-    cmds:
-      - task: build:website
-      - task: build:brett
-      - task: apply
-
   redeploy:website:
-    desc: "[dev] Rebuild + roll website only"
+    desc: "[dev] Roll website deployment (requires CI-built :dev image)"
     cmds:
-      - task: build:website
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/website
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/website --timeout=180s
 
   redeploy:brett:
-    desc: "[dev] Rebuild + roll brett only"
+    desc: "[dev] Roll brett deployment (requires CI-built :dev image)"
     cmds:
-      - task: build:brett
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout restart deploy/brett
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status deploy/brett --timeout=120s
 
@@ -228,8 +103,6 @@ tasks:
         if [[ -z "$BACKUP_PASSPHRASE" || -z "$DEV_SHARED_DB_PASSWORD" ]]; then
           echo "Missing BACKUP_PASSPHRASE or DEV_SHARED_DB_PASSWORD in $SECRETS_FILE." >&2; exit 1
         fi
-        # Copy the latest backup snapshot from prod backup-pvc to a local tempdir,
-        # then run dev-db-refresh.sh against the dev k3d Postgres at 127.0.0.1:15432.
         TMP=$(mktemp -d)
         HELPER="db-refresh-helper-$$"
         cleanup() {
@@ -237,8 +110,6 @@ tasks:
           rm -rf "$TMP"
         }
         trap cleanup EXIT
-        # Spawn an ephemeral pod mounting backup-pvc so we can kubectl cp from it.
-        # The CronJob's pods are Completed, so they can't be cp'd from.
         kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} apply -f - <<EOF
         apiVersion: v1
         kind: Pod

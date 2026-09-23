@@ -14,8 +14,8 @@ abgelöst. `docs/dev-stack/README.md` beschreibt noch den Stack auf dem abgebaut
 
 - `dev:redeploy:website` und `dev:redeploy:brett` starten nur noch das Deployment in
   `workspace-dev` neu. `k3d/dev-stack/{website,brett}-dev.yaml` setzen `imagePullPolicy: Always`.
-- Aus `Taskfile.dev-stack.yml` entfallen `build:website`, `build:brett`, `apply`, `deploy`,
-  `_materialise-secrets` und `firewall:open`. Es bleiben `logs`, `psql`, `tunnel`, `db:refresh`
+- Aus `Taskfile.dev-stack.yml` entfallen `build:website`, `build:brett`, `apply`, `deploy`
+  und `_materialise-secrets`. Es bleiben `logs`, `psql`, `tunnel`, `firewall:open`, `db:refresh`
   und die beiden `redeploy:*`-Tasks.
 - `taskfiles/Taskfile.staging.yml`, sein Include, `k3d/staging-stack/`, `scripts/staging-id.sh`
   und `tests/unit/staging.bats` entfallen, die Staging-Fälle in `tests/spec/security.bats`

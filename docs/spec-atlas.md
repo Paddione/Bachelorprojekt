@@ -69,6 +69,8 @@ Last touches:
   - Staging cronjobs run against a schema-complete database | T014566 | 2026-09-17 | ADDED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | 2026-09-17 | ADDED
   - Build embeds the git revision | T014735 | 2026-09-17 | ADDED
+In-flight:
+  - Dev-Build-Safety — OOM-Schutz für Astro-Build | T900332 | active | MODIFIED
 
 ### fleet-operations
 Reqs: 65 · Scenarios: 121 · Lines: 1279
@@ -89,6 +91,9 @@ Last touches:
   - Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu | T900310 | 2026-09-22 | REMOVED
   - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | 2026-09-17 | ADDED
   - Post-Deploy-Schritte nach dem Kustomize-Apply | T002184 | 2026-08-03 | ADDED
+In-flight:
+  - Staging-ID-Skript normalisiert Branch-Namen deterministisch | T900332 | active | REMOVED
+  - Staging-Stack-Kustomize-Build akzeptiert Platzhalter-Variablen | T900332 | active | REMOVED
 
 ## llm
 
@@ -604,6 +609,10 @@ Last touches:
   - No active reference to the k3d dev context remains | T900120 | 2026-09-20 | MODIFIED
   - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900120 | 2026-09-20 | REMOVED
   - The k3d migration verifies row counts against the archived dump | T900120 | 2026-09-20 | ADDED
+In-flight:
+  - The repository ships no local k3d cluster tooling | T900332 | active | MODIFIED
+  - Dev redeploy pulls the CI-built dev image | T900332 | active | ADDED
+  - Dev secrets are materialised by an explicit task | T900332 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

@@ -1,9 +1,7 @@
 # ════════════════════════════════════════════════════════════════════
 # sish — reverse-SSH tunnel broker for ad-hoc <name>.dev.${PROD_DOMAIN}
 # tunnels. Listens on :2222 (SSH) and :80 (HTTP routing).
-# authorized_keys is materialised at deploy time from
-# environments/.secrets/mentolder.yaml → DEV_SISH_AUTHORIZED_KEYS
-# (see task dev:_materialise-secrets in Taskfile.dev-stack.yml).
+# authorized_keys is managed via Flux in workspace-dev.
 # ════════════════════════════════════════════════════════════════════
 apiVersion: v1
 kind: ConfigMap
@@ -11,8 +9,7 @@ metadata:
   name: sish-authorized-keys
 data:
   authorized_keys: |
-    # placeholder — overwritten by `task dev:deploy` from the unsealed
-    # value of DEV_SISH_AUTHORIZED_KEYS at apply time.
+    # placeholder — managed via Flux.
 ---
 apiVersion: apps/v1
 kind: Deployment

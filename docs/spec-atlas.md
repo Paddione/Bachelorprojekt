@@ -14,6 +14,8 @@ Last touches:
   - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | 2026-09-23 | ADDED
   - Skip bei deaktivierten Symlinks | T900238 | 2026-09-23 | ADDED
   - The reply footer carries no next-step proposal | T900235 | 2026-09-17 | ADDED
+In-flight:
+  - The archive commit carries every SSOT spec its deltas target | T900339 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

@@ -66,11 +66,47 @@ archive_assert_staged_scope() {
 # Stage only the archived change and already-tracked generated artifacts. Keeping
 # this operation here prevents both finalize paths from drifting back to a broad
 # `git add openspec/changes/`, which can capture another session's work.
+#
+# [T900339] `git add -u` only stages *tracked* files. A SSOT spec created by
+# `openspec.sh archive --create-new` is *untracked* and silently skipped. This
+# function now explicitly stages each SSOT target that the archived deltas point
+# to, so new specs reach the archive commit. A broad `git add -A openspec/specs`
+# is avoided to preserve the staged-set discipline from T016597.
 archive_stage_commit() {
-  local slug="$1"
+  local slug="$1"; shift
+  local no_merge=false
+  local arg
+  for arg in "$@"; do
+    [[ "$arg" == "--no-merge" ]] && no_merge=true
+  done
 
+  # Existing staging: archived change dirs (-A) and tracked generated artifacts (-u).
   git add -A -- openspec/changes/archive/*-"$slug" "openspec/changes/$slug" 2>/dev/null || true
   git add -u -- openspec/specs components/website/src/data components/website/src/lib \
     components/website/public/learning-assets docs
+
+  # [T900339 D1] Targeted staging of SSOT specs from delta filenames (only with merge).
+  if ! $no_merge; then
+    local delta_spec target missing=()
+    for delta_spec in openspec/changes/archive/*-"$slug"/specs/*.md; do
+      [[ -e "$delta_spec" ]] || continue
+      target="openspec/specs/$(basename "$delta_spec")"
+      [[ -e "$target" ]] && git add -- "$target"
+    done
+
+    # [T900339 D2] Verify every target spec is in the index (fail-closed).
+    for delta_spec in openspec/changes/archive/*-"$slug"/specs/*.md; do
+      [[ -e "$delta_spec" ]] || continue
+      target="openspec/specs/$(basename "$delta_spec")"
+      if ! git ls-files --error-unmatch -- "$target" >/dev/null 2>&1; then
+        missing+=("$target")
+      fi
+    done
+    if (( ${#missing[@]} > 0 )); then
+      printf 'archive-stage: FATAL — Ziel-Spec fehlt im Index: %s\n' "${missing[@]}" >&2
+      return 1
+    fi
+  fi
+
   archive_assert_staged_scope "$slug"
 }

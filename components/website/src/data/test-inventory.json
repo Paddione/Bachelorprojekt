@@ -2262,6 +2262,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/archive-stage-new-ssot",
+    "file": "tests/spec/agent-skills/archive-stage-new-ssot.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/automerge-preflight-check",
     "file": "tests/spec/agent-skills/automerge-preflight-check.bats",
     "category": "agent-skills",

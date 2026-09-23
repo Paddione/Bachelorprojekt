@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "slug": "archive-stage-new-ssot",
+    "ticket_id": "T900339",
+    "generated_from": "main@7fbc7b774",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6806,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow-post-merge-finalize.sh",
+      "language": "bash",
+      "loc": 803,
+      "s1_limit": 800,
+      "s1_baseline": 812,
+      "s1_budget": 9
+    },
+    {
+      "path": "scripts/lib/archive-staged-scope.sh",
+      "language": "bash",
+      "loc": 76,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 724
+    },
+    {
+      "path": "tests/spec/agent-skills/archive-stage-new-ssot.bats",
+      "language": "bash",
+      "loc": 97,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:43:usage() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "43:usage() {(...)",
+      "type_text": "43:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:122:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "122:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "type_text": "122:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:125:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "125:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }(...)",
+      "type_text": "125:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:133:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "133:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }(...)",
+      "type_text": "133:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:138:mark_err()  { echo \"[err]  $1\" >&2; }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "138:mark_err()  { echo \"[err]  $1\" >&2; }(...)",
+      "type_text": "138:mark_err()  { echo \"[err]  $1\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:158:_archive_already_done() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "158:_archive_already_done() {(...)",
+      "type_text": "158:_archive_already_done() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:203:_archive_state() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "203:_archive_state() {(...)",
+      "type_text": "203:_archive_state() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:270:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "270:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "type_text": "270:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:287:json_field_raw() { # $1 = Feldname, $2 = JSON-Text",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "287:json_field_raw() { # $1 = Feldname, $2 = JSON-Text(...)",
+      "type_text": "287:json_field_raw() { # $1 = Feldname, $2 = JSON-Text(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:428:_archive_lock() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "428:_archive_lock() {(...)",
+      "type_text": "428:_archive_lock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:546:      _restore_prev_branch() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "546:      _restore_prev_branch() {(...)",
+      "type_text": "546:      _restore_prev_branch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/archive-staged-scope.sh:29:archive_staged_scope_allowed() {",
+      "kind": "function",
+      "file": "scripts/lib/archive-staged-scope.sh",
+      "signature": "29:archive_staged_scope_allowed() {(...)",
+      "type_text": "29:archive_staged_scope_allowed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/archive-staged-scope.sh:43:archive_assert_staged_scope() {",
+      "kind": "function",
+      "file": "scripts/lib/archive-staged-scope.sh",
+      "signature": "43:archive_assert_staged_scope() {(...)",
+      "type_text": "43:archive_assert_staged_scope() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/archive-staged-scope.sh:69:archive_stage_commit() {",
+      "kind": "function",
+      "file": "scripts/lib/archive-staged-scope.sh",
+      "signature": "69:archive_stage_commit() {(...)",
+      "type_text": "69:archive_stage_commit() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/archive-stage-new-ssot.bats:18:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/archive-stage-new-ssot.bats",
+      "signature": "18:setup() {(...)",
+      "type_text": "18:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/archive-stage-new-ssot.bats:49:_staged() { git diff --cached --name-only; }",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/archive-stage-new-ssot.bats",
+      "signature": "49:_staged() { git diff --cached --name-only; }(...)",
+      "type_text": "49:_staged() { git diff --cached --name-only; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -2,18 +2,20 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2423 · Scenarios: 5382
+Specs: 129 · Requirements: 2421 · Scenarios: 5374
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 90 · Scenarios: 194 · Lines: 2350
+Reqs: 89 · Scenarios: 189 · Lines: 2312
 Last touches:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | 2026-09-23 | ADDED
-  - The archive commit carries every SSOT spec its deltas target | T900339 | 2026-09-23 | ADDED
   - Symlink-Set entspricht den getrackten Skills | T900238 | 2026-09-23 | ADDED
   - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | 2026-09-23 | ADDED
   - Skip bei deaktivierten Symlinks | T900238 | 2026-09-23 | ADDED
+  - The reply footer carries no next-step proposal | T900235 | 2026-09-17 | ADDED
+In-flight:
+  - Removal of managed worktrees unlocks before removing | T900340 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -34,14 +36,14 @@ Last touches:
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
 
 ### openspec-workflow
-Reqs: 69 · Scenarios: 156 · Lines: 1724
+Reqs: 68 · Scenarios: 153 · Lines: 1698
 Paths: scripts/openspec, openspec/
 Last touches:
-  - Archive regenerates and stages every openspec-derived freshness artifact | T900341 | 2026-09-23 | ADDED
   - Half-archive detection does not spawn a process per archive entry | T013673 | 2026-09-17 | ADDED
   - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | 2026-08-23 | ADDED
   - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
   - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
+  - Freshness-Check sichert Konsistenz der generierten Artefakte | T015012 | 2026-08-23 | MODIFIED
 
 ### software-factory
 Reqs: 208 · Scenarios: 635 · Lines: 5755

@@ -9,6 +9,7 @@
 #   --worktree  worktree path to remove (e.g. .worktrees/sf-t000469)
 set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/../lib/worktree-prune-safe.sh" 2>/dev/null || true
+. "$(dirname "${BASH_SOURCE[0]}")/../lib/worktree-remove.sh" 2>/dev/null || true
 
 BRANCH=""
 WT_PATH=""
@@ -32,7 +33,7 @@ _trap_cleanup() {
     return 0
   fi
   [[ -n "${WT_PATH:-}" && -d "${WT_PATH:-/nonexistent}" ]] && \
-    git worktree remove --force "$WT_PATH" 2>/dev/null || true
+    worktree_remove_managed "$(git rev-parse --show-toplevel)" "$WT_PATH" 2>/dev/null || true
 }
 trap _trap_cleanup EXIT
 
@@ -44,8 +45,7 @@ trap _trap_cleanup EXIT
 if [[ -n "$BRANCH" ]] && bash "$(dirname "$0")/../agent-lock.sh" check-branch-live "$BRANCH" >/dev/null 2>&1; then
   echo "cleanup.sh: branch $BRANCH traegt einen live Agent-Lock — Worktree-Removal uebersprungen (T002896)" >&2
 elif [[ -n "$WT_PATH" ]] && [[ -d "$WT_PATH" ]]; then
-  git worktree unlock "$WT_PATH" 2>/dev/null || true
-  if git worktree remove --force "$WT_PATH" 2>/dev/null; then
+  if worktree_remove_managed "$(git rev-parse --show-toplevel)" "$WT_PATH" 2>/dev/null; then
     cleaned+=("worktree $WT_PATH")
   else
     # If git refuses (catastrophic corruption), fall back to rm -rf.

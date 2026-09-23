@@ -13,6 +13,7 @@ cd "$MAIN_REPO"
 # sichtbar bleibt. Lebenszyklus-SSOT: .agents/skills/references/session-coordination.md
 bash scripts/agent-lock.sh release ticket "<T00XXXX>"
 bash scripts/agent-lock.sh release branch "$BRANCH_NAME"
+git worktree unlock "$WORKTREE_PATH" 2>/dev/null || true   # worktree-create.sh sperrt jeden Worktree (T900046) — sonst Exit 128 beim Remove (T900340)
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
 

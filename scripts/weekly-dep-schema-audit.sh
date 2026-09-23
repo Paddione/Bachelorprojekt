@@ -6,6 +6,8 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "/home/patrick/Bachelorprojekt")"
 cd "$REPO_ROOT"
 source "$REPO_ROOT/scripts/lib/worktree-gitdir-guard.sh"
+# shellcheck source=scripts/lib/worktree-remove.sh
+source "$REPO_ROOT/scripts/lib/worktree-remove.sh"
 
 SLUG="weekly-dep-schema-audit"
 BRANCH="chore/${SLUG}"
@@ -58,7 +60,7 @@ task freshness:regenerate 2>/dev/null
 if [ "$CHANGED" = false ]; then
   echo "No actionable changes found — skipping PR."
   cd /home/patrick/Bachelorprojekt
-  git worktree remove "$WORKTREE" --force 2>/dev/null || true
+  worktree_remove_managed "$(pwd)" "$WORKTREE" 2>/dev/null || true
   git branch -D "$BRANCH" 2>/dev/null || true
   exit 0
 fi
@@ -91,5 +93,5 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 # Cleanup
 cd "$MAIN_REPO"
-git worktree remove "$WORKTREE" --force 2>/dev/null || true
+worktree_remove_managed "$(pwd)" "$WORKTREE" 2>/dev/null || true
 git branch -D "$BRANCH" 2>/dev/null || true

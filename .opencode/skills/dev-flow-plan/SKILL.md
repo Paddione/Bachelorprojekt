@@ -58,7 +58,7 @@ Stale Worktrees nur nach bestandenem Vorcheck löschen [T005115]:
 `bash scripts/worktree-clean-check.sh <path>` lehnt dirty-Worktrees UND solche mit aktivem
 fremden branch-Claim ab (`agent-lock.sh check branch <branch>` — laufende Lauf-/Batch-Session!).
 Bei rc 1 den Worktree stehen lassen, sonst
-`git worktree remove <path> --force && git branch -D <branch>`.
+`git worktree unlock <path> 2>/dev/null || true && git worktree remove <path> --force && git branch -D <branch>`.
 
 ## Schritt 0: Pfad bestimmen
 Wähle einen Pfad und kläre ihn mit dem User ab:

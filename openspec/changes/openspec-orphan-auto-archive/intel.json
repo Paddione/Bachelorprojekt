@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "slug": "openspec-orphan-auto-archive",
+    "ticket_id": "T900338",
+    "generated_from": "main@7fbc7b774",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".github/workflows/openspec-orphan-archive.yml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6806,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/github-poller.sh",
+      "language": "bash",
+      "loc": 216,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 584
+    },
+    {
+      "path": "scripts/factory/openspec-orphan-dispatch.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/openspec-orphan-archive.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-workflow/orphan-archive.bats",
+      "language": "bash",
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats",
+      "language": "bash",
+      "loc": 136,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:39:usage() { sed -n '2,22p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "39:usage() { sed -n '2,22p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }(...)",
+      "type_text": "39:usage() { sed -n '2,22p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:57:ensure_schema() {",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "57:ensure_schema() {(...)",
+      "type_text": "57:ensure_schema() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:78:cursor_get() {",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "78:cursor_get() {(...)",
+      "type_text": "78:cursor_get() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:83:cursor_set() {",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "83:cursor_set() {(...)",
+      "type_text": "83:cursor_set() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:93:_ticket_from() {",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "93:_ticket_from() {(...)",
+      "type_text": "93:_ticket_from() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:104:task_merges() {",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "104:task_merges() {(...)",
+      "type_text": "104:task_merges() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:118:task_prs() {",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "118:task_prs() {(...)",
+      "type_text": "118:task_prs() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/github-poller.sh:176:        now())",
+      "kind": "function",
+      "file": "scripts/factory/github-poller.sh",
+      "signature": "176:        now())(...)",
+      "type_text": "176:        now())(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/orphan-archive.bats:12:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/orphan-archive.bats",
+      "signature": "12:setup() {(...)",
+      "type_text": "12:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/orphan-archive.bats:22:_mk_change() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/orphan-archive.bats",
+      "signature": "22:_mk_change() {(...)",
+      "type_text": "22:_mk_change() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/orphan-archive.bats:40:_run_exec() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/orphan-archive.bats",
+      "signature": "40:_run_exec() {(...)",
+      "type_text": "40:_run_exec() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats:12:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats",
+      "signature": "12:setup() {(...)",
+      "type_text": "12:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats:68:_dispatch() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats",
+      "signature": "68:_dispatch() {(...)",
+      "type_text": "68:_dispatch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats:75:_not_dispatched() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats",
+      "signature": "75:_not_dispatched() {(...)",
+      "type_text": "75:_not_dispatched() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

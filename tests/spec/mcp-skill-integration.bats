@@ -101,6 +101,23 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+@test "T900309: ticket-mcp-node server resolves mishap buffer path in gitDir without stepping up to repo root" {
+  local src="$REPO/scripts/ticket-mcp-node/server.mjs"
+  run grep -qE "join\(gitDir, 'mishap-buffer\.json'\)" "$src"
+  [ "$status" -eq 0 ]
+  run grep -qE "join\(gitDir, '\.\.', 'mishap-buffer\.json'\)" "$src"
+  [ "$status" -ne 0 ]
+}
+
+@test "T900309: ticket-mcp-node runner resolves mishap buffer path via git common dir without referencing .git/info" {
+  local src="$REPO/scripts/ticket-mcp-node/runner.mjs"
+  run grep -q "gitCommonDir" "$src"
+  [ "$status" -eq 0 ]
+  run grep -qE "join\(.*\.git.*info.*mishap-buffer\.json" "$src"
+  [ "$status" -ne 0 ]
+}
+
+
 # ── Skill-critical verb coverage ──────────────────────────────────────
 
 @test "ticket-mcp guide lists skill-critical verbs" {

@@ -25,7 +25,7 @@ setup() {
   git config user.email t@example.com
   git config user.name Test
 
-  mkdir -p openspec/specs openspec/changes/my-slug/specs \
+  mkdir -p openspec/specs openspec/changes/my-slug/specs openspec/changes/archive \
     components/website/src/data components/website/src/lib \
     components/website/public/learning-assets docs
   echo alt > openspec/specs/bestand.md
@@ -39,8 +39,7 @@ setup() {
 
   # Zustand nach `openspec.sh archive my-slug --create-new`: Change verschoben,
   # bestehender SSOT geaendert, neuer SSOT untracked angelegt.
-  git mv openspec/changes/my-slug openspec/changes/archive/2026-01-01-my-slug 2>/dev/null \
-    || { mkdir -p openspec/changes/archive && git mv openspec/changes/my-slug openspec/changes/archive/2026-01-01-my-slug; }
+  git mv openspec/changes/my-slug openspec/changes/archive/2026-01-01-my-slug
   git reset -q
   echo "alt + merge" > openspec/specs/bestand.md
   echo "neu angelegt" > openspec/specs/neu.md

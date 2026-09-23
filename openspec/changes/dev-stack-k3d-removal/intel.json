@@ -1,0 +1,307 @@
+{
+  "meta": {
+    "slug": "dev-stack-k3d-removal",
+    "ticket_id": "T900332",
+    "generated_from": "main@c9fe81ea7",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".opencode/skills/dev-flow-execute/SKILL.md",
+      "language": "markdown",
+      "loc": 271,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/references/deploy-routing.md",
+      "language": "markdown",
+      "loc": 77,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5479,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6800,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "dev-local/cluster/tls.yaml",
+      "language": "config",
+      "loc": 49,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/dev-stack/README.md",
+      "language": "markdown",
+      "loc": 104,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-stack/brett-dev.yaml",
+      "language": "config",
+      "loc": 101,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-stack/cert-manager.yaml",
+      "language": "config",
+      "loc": 46,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 55,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-stack/sish.yaml",
+      "language": "config",
+      "loc": 89,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-stack/traefik-tls.yaml",
+      "language": "config",
+      "loc": 18,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-stack/website-dev.yaml",
+      "language": "config",
+      "loc": 117,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/staging-stack/ingress-staging.yaml",
+      "language": "config",
+      "loc": 24,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/staging-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 10,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/staging-stack/namespace.yaml",
+      "language": "config",
+      "loc": 9,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/staging-stack/shared-db-staging.yaml",
+      "language": "config",
+      "loc": 141,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/staging-stack/website-staging.yaml",
+      "language": "config",
+      "loc": 95,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/staging-id.sh",
+      "language": "bash",
+      "loc": 40,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 760
+    },
+    {
+      "path": "taskfiles/Taskfile.dev-stack.yml",
+      "language": "config",
+      "loc": 292,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.staging.yml",
+      "language": "config",
+      "loc": 348,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/dev-stack-tasks.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/k3d-tooling-removed.bats",
+      "language": "bash",
+      "loc": 61,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/security.bats",
+      "language": "bash",
+      "loc": 190,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/dev-build-safety.bats",
+      "language": "bash",
+      "loc": 74,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/staging.bats",
+      "language": "bash",
+      "loc": 117,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3902:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3902:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3902:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3903:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3903:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3903:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3904:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3904:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3904:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3905:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3905:        _run()  {(...)",
+      "type_text": "3905:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5057:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5057:        kexec_psql() {(...)",
+      "type_text": "5057:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.dev-stack.yml:235:        cleanup() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.dev-stack.yml",
+      "signature": "235:        cleanup() {(...)",
+      "type_text": "235:        cleanup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.staging.yml:148:          cleanup_helper() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.staging.yml",
+      "signature": "148:          cleanup_helper() {(...)",
+      "type_text": "148:          cleanup_helper() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-dev-mesh/k3d-tooling-removed.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-dev-mesh/k3d-tooling-removed.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/security.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/security.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

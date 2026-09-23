@@ -42,6 +42,8 @@ Last touches:
   - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
   - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
   - Freshness-Check sichert Konsistenz der generierten Artefakte | T015012 | 2026-08-23 | MODIFIED
+In-flight:
+  - Archive regenerates and stages every openspec-derived freshness artifact | T900341 | active | ADDED
 
 ### software-factory
 Reqs: 208 · Scenarios: 635 · Lines: 5755

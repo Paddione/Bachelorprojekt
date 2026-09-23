@@ -340,11 +340,18 @@ cmd_archive() {
   # [T002581] Bei explizitem OPENSPEC_ROOT (BATS-Tests) ist die Status-Map
   # best-effort: das Temp-Verzeichnis hat keine .ticket-Dateien, der Guard
   # in openspec-status-map.sh wuerde faelschlich ausloesen.
+  # [T900341] Der Spec-Atlas (docs/spec-atlas.md) leitet sich ebenfalls aus
+  # openspec/specs und changes/archive ab; ein veralteter Atlas brachte das
+  # Freshness-Gate zum Rotlauf (PR #5835). Atlas und Status-Map werden
+  # parallel erzeugt und gestaget, damit ein einzelner Commit alle
+  # openspec-abgeleiteten Artefakte mitbringt.
   if [[ "${OPENSPEC_ROOT:-}" == "${REPO}/openspec" || -z "${OPENSPEC_ROOT:-}" ]]; then
     bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1
     git -C "$REPO" add -- "$REPO/components/website/src/data/openspec-status.json"
+    bash "$HERE/openspec-atlas.sh" >/dev/null 2>&1 && [ -f "$REPO/docs/spec-atlas.md" ] && git -C "$REPO" add -- "$REPO/docs/spec-atlas.md"
   else
     bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
+    bash "$HERE/openspec-atlas.sh" >/dev/null 2>&1 || true
   fi
 
   # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).

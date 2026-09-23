@@ -148,6 +148,7 @@ bash scripts/git-worktree-health.sh orphans   # 0 sauber, 1 Orphan(s), 2 nicht p
 
 # Für jeden Worktree (außer main, außer aktuell gehaltener):
 bash scripts/worktree-clean-check.sh <path>   # 0 sauber, 1 Befund, 2 nicht prüfbar
+git worktree unlock <path> 2>/dev/null || true   # worktree-create.sh sperrt jeden Worktree (T900046) — sonst Exit 128 (T900340)
 git worktree remove <path>
 ```
 
@@ -695,7 +696,7 @@ Aus den Metriken werden die drei wirkungsvollsten Aktionen abgeleitet:
 | 1 | `>5 stale Worktrees` ODER `>10 [gone]-Branches` | **Massen-Cleanup**: `repo-hygiene` §1+§2 vollständig ausführen. Vorher `bash scripts/agent-lock.sh reap`. Geschätzte Zeit: 2–5 min. |
 | 2 | `≥1 PR mit CI=green, kein Draft, reviewDecision=APPROVED` | **PR mergen**: `gh pr merge --squash` (kein `--delete-branch` — Archiv läuft nach dem Merge, T004612). Ticket schließen nicht vergessen (§3). |
 | 3 | `Factory queue_depth > 3` | **Factory-Health check**: `factory-mcp-node_factory_ask({ question: "Sind alle Worker gesund? Gibt es blockierte Jobs?" })`. Ggf. `factory-mcp-node_factory_trigger({})`. |
-| 4 | `≥1 Worktree >30d ohne Commit` | **Worktree entsorgen**: `git worktree remove --force` nach Allowlist-Check (§1). |
+| 4 | `≥1 Worktree >30d ohne Commit` | **Worktree entsorgen**: `git worktree unlock <path> 2>/dev/null \|\| true && git worktree remove --force <path>` nach Allowlist-Check (§1). |
 | 5 | `≥3 PRs offen vom selben Author` | **PR-Stau**: Author pingen oder PRs bündeln (wenn thematisch verwandt). |
 | 6 | `≥5 Tickets mit attention_mode=needs_human` | **Klärungsrunde fällig**: `ticket-ops` Phase 2 ausführen. |
 

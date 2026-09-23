@@ -1,0 +1,363 @@
+{
+  "meta": {
+    "slug": "worktree-remove-managed",
+    "ticket_id": "T900340",
+    "generated_from": "main@7fbc7b774",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/references/dev-flow-execute-phases.md",
+      "language": "markdown",
+      "loc": 402,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/repo-hygiene-ops.md",
+      "language": "markdown",
+      "loc": 785,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/dev-flow-chore/SKILL.md",
+      "language": "markdown",
+      "loc": 205,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/git-workflow/references/worktree-cleanup.md",
+      "language": "markdown",
+      "loc": 40,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6806,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow-post-merge-finalize.sh",
+      "language": "bash",
+      "loc": 803,
+      "s1_limit": 800,
+      "s1_baseline": 812,
+      "s1_budget": 9
+    },
+    {
+      "path": "scripts/factory/cleanup.sh",
+      "language": "bash",
+      "loc": 86,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 714
+    },
+    {
+      "path": "scripts/lib/worktree-remove.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/pr-refresh.sh",
+      "language": "bash",
+      "loc": 270,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 530
+    },
+    {
+      "path": "scripts/weekly-dep-schema-audit.sh",
+      "language": "bash",
+      "loc": 95,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 705
+    },
+    {
+      "path": "tests/spec/agent-skills/worktree-remove-managed.bats",
+      "language": "bash",
+      "loc": 99,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:43:usage() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "43:usage() {(...)",
+      "type_text": "43:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:122:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "122:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "type_text": "122:mark_ok()   { echo \"[ok]   $1\"; DONE_COUNT=$((DONE_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:125:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "125:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }(...)",
+      "type_text": "125:mark_skip() { echo \"[skip] $1\"; SKIP_COUNT=$((SKIP_COUNT + 1)); SKIP_STEPS+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:133:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "133:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }(...)",
+      "type_text": "133:mark_warn() { echo \"[warn] $1\" >&2; WARN_COUNT=$((WARN_COUNT + 1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:138:mark_err()  { echo \"[err]  $1\" >&2; }",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "138:mark_err()  { echo \"[err]  $1\" >&2; }(...)",
+      "type_text": "138:mark_err()  { echo \"[err]  $1\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:158:_archive_already_done() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "158:_archive_already_done() {(...)",
+      "type_text": "158:_archive_already_done() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:203:_archive_state() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "203:_archive_state() {(...)",
+      "type_text": "203:_archive_state() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:270:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "270:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "type_text": "270:json_field() { # $1 = Feldname, $2 = JSON-Text — grep/sed statt jq (Stil: devflow-post-merge-ticket-closure.sh)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:287:json_field_raw() { # $1 = Feldname, $2 = JSON-Text",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "287:json_field_raw() { # $1 = Feldname, $2 = JSON-Text(...)",
+      "type_text": "287:json_field_raw() { # $1 = Feldname, $2 = JSON-Text(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:428:_archive_lock() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "428:_archive_lock() {(...)",
+      "type_text": "428:_archive_lock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-finalize.sh:546:      _restore_prev_branch() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-finalize.sh",
+      "signature": "546:      _restore_prev_branch() {(...)",
+      "type_text": "546:      _restore_prev_branch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/cleanup.sh:29:_trap_cleanup() {",
+      "kind": "function",
+      "file": "scripts/factory/cleanup.sh",
+      "signature": "29:_trap_cleanup() {(...)",
+      "type_text": "29:_trap_cleanup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:42:_die()  { printf 'pr-refresh: %s\\n' \"$*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "42:_die()  { printf 'pr-refresh: %s\\n' \"$*\" >&2; exit 1; }(...)",
+      "type_text": "42:_die()  { printf 'pr-refresh: %s\\n' \"$*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:43:_info() { printf 'pr-refresh: %s\\n' \"$*\"; }",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "43:_info() { printf 'pr-refresh: %s\\n' \"$*\"; }(...)",
+      "type_text": "43:_info() { printf 'pr-refresh: %s\\n' \"$*\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:44:_dry()  { printf '[dry-run] %s\\n' \"$*\"; }",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "44:_dry()  { printf '[dry-run] %s\\n' \"$*\"; }(...)",
+      "type_text": "44:_dry()  { printf '[dry-run] %s\\n' \"$*\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:52:_reject() { printf 'pr-refresh: %s\\n' \"$*\" >&2; return 1; }",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "52:_reject() { printf 'pr-refresh: %s\\n' \"$*\" >&2; return 1; }(...)",
+      "type_text": "52:_reject() { printf 'pr-refresh: %s\\n' \"$*\" >&2; return 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:54:_gh() { \"$GH_CMD\" \"$@\"; }",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "54:_gh() { \"$GH_CMD\" \"$@\"; }(...)",
+      "type_text": "54:_gh() { \"$GH_CMD\" \"$@\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:56:_usage() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "56:_usage() {(...)",
+      "type_text": "56:_usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:83:_me() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "83:_me() {(...)",
+      "type_text": "83:_me() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:92:_non_generated() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "92:_non_generated() {(...)",
+      "type_text": "92:_non_generated() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:97:_lock_owner() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "97:_lock_owner() {(...)",
+      "type_text": "97:_lock_owner() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:110:_checkout_path() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "110:_checkout_path() {(...)",
+      "type_text": "110:_checkout_path() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:118:_push() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "118:_push() {(...)",
+      "type_text": "118:_push() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:134:process_pr() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "134:process_pr() {(...)",
+      "type_text": "134:process_pr() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:183:_refresh_branch() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "183:_refresh_branch() {(...)",
+      "type_text": "183:_refresh_branch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/pr-refresh.sh:237:main() {",
+      "kind": "function",
+      "file": "scripts/pr-refresh.sh",
+      "signature": "237:main() {(...)",
+      "type_text": "237:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-remove-managed.bats:17:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-remove-managed.bats",
+      "signature": "17:setup() {(...)",
+      "type_text": "17:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-remove-managed.bats:29:_locked_wt() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-remove-managed.bats",
+      "signature": "29:_locked_wt() {(...)",
+      "type_text": "29:_locked_wt() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-remove-managed.bats:34:_registered() { git -C \"$SANDBOX\" worktree list --porcelain | grep -qxF \"worktree $1\"; }",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-remove-managed.bats",
+      "signature": "34:_registered() { git -C \"$SANDBOX\" worktree list --porcelain | grep -qxF \"worktree $1\"; }(...)",
+      "type_text": "34:_registered() { git -C \"$SANDBOX\" worktree list --porcelain | grep -qxF \"worktree $1\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-remove-managed.bats:79:    mark_ok() { echo \\\"OK: \\$*\\\"; }",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-remove-managed.bats",
+      "signature": "79:    mark_ok() { echo \\\"OK: \\$*\\\"; }(...)",
+      "type_text": "79:    mark_ok() { echo \\\"OK: \\$*\\\"; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

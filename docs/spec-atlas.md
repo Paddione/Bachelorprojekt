@@ -14,6 +14,8 @@ Last touches:
   - Symlink-Set entspricht den getrackten Skills | T900238 | 2026-09-23 | ADDED
   - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | 2026-09-23 | ADDED
   - Skip bei deaktivierten Symlinks | T900238 | 2026-09-23 | ADDED
+In-flight:
+  - Removal of managed worktrees unlocks before removing | T900340 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

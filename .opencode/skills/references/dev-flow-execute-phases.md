@@ -378,6 +378,7 @@ Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständig
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 Claims freigeben VOR dem Worktree-Remove ([session-coordination](.agents/skills/references/session-coordination.md)), dann:
 ```bash
+git worktree unlock "$MAIN_REPO/.worktrees/<slug>" 2>/dev/null || true   # worktree-create.sh sperrt jeden Worktree (T900046) — sonst Exit 128 (T900340)
 git worktree remove "$MAIN_REPO/.worktrees/<slug>" --force
 git branch -D "<branch>"
 git push origin --delete "<branch>"   # remote: der Merge löscht nicht mehr (T004612)

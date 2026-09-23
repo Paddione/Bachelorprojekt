@@ -24,6 +24,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$REPO_ROOT/scripts/lib/worktree-gitdir-guard.sh"
+# shellcheck source=scripts/lib/worktree-remove.sh
+source "$REPO_ROOT/scripts/lib/worktree-remove.sh"
 
 # Indirektionspunkte fuer den Test — dieselbe Technik wie AGENT_LOCK_FAKE_ALIVE in
 # agent-lock.sh: kein Netz, kein echter Push, aber der reale Kontrollfluss.
@@ -186,7 +188,7 @@ _refresh_branch() {
 
   # Nie im Hauptcheckout arbeiten (CLAUDE.local.md): mutierende Operationen gehoeren in
   # einen eigenen Worktree.
-  [ -d "$wt" ] && git -C "$REPO_ROOT" worktree remove "$wt" --force >/dev/null 2>&1
+  [ -d "$wt" ] && worktree_remove_managed "$REPO_ROOT" "$wt" >/dev/null 2>&1
   bash "${REPO_ROOT}/scripts/worktree-create.sh" "$branch" "$wt" >/dev/null \
     || { _reject "PR $num: Worktree fuer $branch nicht anlegbar"; return 1; }
 
@@ -200,7 +202,7 @@ _refresh_branch() {
     handwork="$(_non_generated "$unresolved")"
     if [ -n "$handwork" ]; then
       git -C "$wt" rebase --abort >/dev/null 2>&1 || true
-      git -C "$REPO_ROOT" worktree remove "$wt" --force >/dev/null 2>&1 || true
+      worktree_remove_managed "$REPO_ROOT" "$wt" >/dev/null 2>&1 || true
       _reject "PR $num: Konflikt in nicht generierter Datei — $(printf '%s' "$handwork" | head -1). Handarbeit noetig."
       return 1
     fi
@@ -214,7 +216,7 @@ _refresh_branch() {
       # haelt er den Branch ausgecheckt — und Guard 4 wuerde denselben PR beim naechsten
       # Versuch ablehnen, obwohl nur dieser Lauf gescheitert ist.
       git -C "$wt" rebase --abort >/dev/null 2>&1 || true
-      git -C "$REPO_ROOT" worktree remove "$wt" --force >/dev/null 2>&1 || true
+      worktree_remove_managed "$REPO_ROOT" "$wt" >/dev/null 2>&1 || true
       _reject "PR $num: rebase --continue fehlgeschlagen"
       return 1
     fi
@@ -230,7 +232,7 @@ _refresh_branch() {
   fi
 
   _push "$wt" "$branch"
-  git -C "$REPO_ROOT" worktree remove "$wt" --force >/dev/null 2>&1 || true
+  worktree_remove_managed "$REPO_ROOT" "$wt" >/dev/null 2>&1 || true
   _info "PR $num ($branch) aufgefrischt."
 }
 

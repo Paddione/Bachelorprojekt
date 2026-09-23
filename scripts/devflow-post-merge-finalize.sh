@@ -114,6 +114,8 @@ source "$_FINALIZE_HERE/lib/archive-staged-scope.sh"
 # [T900096] Fail-closed Step-Guards: Dirty-Tree-Abbruch (Schritt 8) + Ungemergt-Behalt (Schritt 10).
 # shellcheck source=scripts/lib/finalize-step-guards.sh
 source "$_FINALIZE_HERE/lib/finalize-step-guards.sh"
+# shellcheck source=scripts/lib/worktree-remove.sh
+source "$_FINALIZE_HERE/lib/worktree-remove.sh"
 
 DONE_COUNT=0
 SKIP_COUNT=0
@@ -742,7 +744,7 @@ if [[ -d "$WORKTREE" ]]; then
   else
     mark_warn "Schritt 10: Haupt-Repo-Pfad nicht bestimmbar — Selbstloeschungs-Guard uebersprungen (T013315)"
   fi
-  if git -C "$REPO_DIR" worktree remove "$WORKTREE" --force; then
+  if worktree_remove_managed "$REPO_DIR" "$WORKTREE"; then
     mark_ok "Schritt 10: Worktree $WORKTREE entfernt"
   else
     echo "ERROR: Schritt 10 — git worktree remove fehlgeschlagen: $WORKTREE" >&2

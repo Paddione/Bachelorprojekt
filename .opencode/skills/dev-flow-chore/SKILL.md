@@ -157,7 +157,7 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 **`git-workflow` Schritt 7** (SSOT): Im Haupt-Repo zuerst den Agent-Lock freigeben
 ([session-coordination](.agents/skills/references/session-coordination.md) —
 `release ticket` + `release branch`, ohne stderr-Unterdrückung, T006290), dann
-`git -C "$MAIN_REPO" worktree remove .worktrees/<slug> --force && git -C "$MAIN_REPO" branch -D chore/<slug> && git -C "$MAIN_REPO" push origin --delete chore/<slug>` im Haupt-Repo.
+`git -C "$MAIN_REPO" worktree unlock .worktrees/<slug> 2>/dev/null || true && git -C "$MAIN_REPO" worktree remove .worktrees/<slug> --force && git -C "$MAIN_REPO" branch -D chore/<slug> && git -C "$MAIN_REPO" push origin --delete chore/<slug>` im Haupt-Repo.
 
 Beim Test-only-Kurzpfad (Schritt 1) gibt es keinen Worktree zu entfernen — nur
 `bash scripts/agent-lock.sh release main-checkout`, `git -C "$MAIN_REPO" checkout main`, dann `git -C "$MAIN_REPO" branch -D chore/<slug>` und `git -C "$MAIN_REPO" push origin --delete chore/<slug>`.

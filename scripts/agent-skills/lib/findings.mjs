@@ -22,6 +22,14 @@ export const FATAL_CODES = new Set([
   'internal-error',
 ]);
 
+// Informational findings that are expected per repo conventions and should not affect exit status.
+// symlinked-projection: .claude/skills/<x> is a symlink to .opencode/skills/<x> or .agents/skills/<x>
+// symlinked-harness-root: the harness discovery root itself is a symlink (e.g. .agents/skills)
+export const INFORMATIONAL_CODES = new Set([
+  'symlinked-projection',
+  'symlinked-harness-root',
+]);
+
 export function makeFinding(code, details = {}) {
   const finding = { code };
   if (details.skill !== undefined && details.skill !== null) finding.skill = details.skill;
@@ -73,7 +81,8 @@ export function countByCode(findings) {
 export function emit(result) {
   const findings = sortFindings(dedupeFindings(result.findings || []));
   const fatalCount = findings.filter((finding) => FATAL_CODES.has(finding.code)).length;
-  const status = fatalCount > 0 ? EXIT_FATAL : findings.length > 0 ? EXIT_FINDINGS : EXIT_OK;
+  const actionable = findings.filter((finding) => !INFORMATIONAL_CODES.has(finding.code));
+  const status = fatalCount > 0 ? EXIT_FATAL : actionable.length > 0 ? EXIT_FINDINGS : EXIT_OK;
   process.exitCode = status;
 
   const payload = {

@@ -5407,7 +5407,7 @@ tasks:
   brain:ingest:dry:
     desc: "Dry-Run der Brain-Ingest-Pipeline (FreeToken-native :1919, T014339-Default; SA-BW-01/T014543). Usage: task brain:ingest:dry"
     cmds:
-      - LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" LM_MODEL="${LM_MODEL:-Qwen3.6-35B-A3B-NVFP4}" LM_STUDIO_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}" LM_TIMEOUT="${LM_TIMEOUT:-600}" bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run {{.CLI_ARGS}}
+      - LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}" LM_MODEL="${LM_MODEL:-Qwen3.8-27B-dualgpu}" LM_STUDIO_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}" LM_TIMEOUT="${LM_TIMEOUT:-600}" bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run {{.CLI_ARGS}}
 
   brain:bootstrap:
     desc: "Seede (und optional erstelle/pushe) das brain-Wiki-Fundament. Usage: task brain:bootstrap -- <target-dir>|--create-remote --collaborator <handle>"

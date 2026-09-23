@@ -16,7 +16,7 @@ if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.
 // Model escalation ladder (T002369): the factory-prep step reads the
 // attempt counter from factory_control and injects A.model_tier into the
 // pipeline payload. Each tier maps to a provider/model combination.
-// The ladder: 1→flash (lokales FreeToken :1919), 2→haiku, 3→sonnet (external API).
+// The ladder: 1→flash (lokales llama.cpp :1919), 2→haiku, 3→sonnet (external API).
 // Fallback to flash if no tier is provided (direct pipeline invocation).
 // [T002582] 'flash' zeigte auf LM Studio :1234 mit modelId 'qwythos-9b-v2'. Dort
 // laufen seit T002551 nur noch Embedding- und Reranker-Modelle, also kein
@@ -24,10 +24,10 @@ if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.
 // ueber dasselbe Gateway wie alles andere; FACTORY_MODEL_ID bleibt der einzige
 // Regler fuer den Modellnamen.
 // [T900208] Das Gateway (llm-proxy :18235, Loadout qwen38-220k) ist seit
-// 2026-09-03 stillgelegt. flash geht direkt an FreeToken-native (:1919,
+// 2026-09-03 stillgelegt. flash geht direkt an llama.cpp (:1919,
 // OpenAI-kompatibel, Wurzel ohne /v1). Mit dem Proxy entfiel auch der
 // FACTORY_MODEL_LOCKED-Pin aus /admin/factory.
-const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'Qwen3.6-35B-A3B-NVFP4'
+const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'Qwen3.8-27B-dualgpu'
 const MODEL_TIERS = {
   flash:  { provider: 'llamacpp', modelId: LOCAL_MODEL_ID, baseUrl: 'http://127.0.0.1:1919' },
   haiku:  { provider: 'deepseek', modelId: 'deepseek-chat',  baseUrl: null },

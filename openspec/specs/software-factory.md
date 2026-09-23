@@ -1503,7 +1503,7 @@ The model id SHALL NOT be a source-code literal outside the default. It SHALL be
 wins:
 
 1. the environment variable `FACTORY_MODEL_ID`
-2. the script's built-in default `Qwen3.6-35B-A3B-NVFP4`, the only checkpoint FreeToken serves
+2. the script's built-in default `Qwen3.8-27B-dualgpu`, the only checkpoint the local llama.cpp server on `:1919` serves (T900348)
 
 The former first source — `factory.model` read from the llm-proxy over `GET /admin/factory` through
 `factory_model_pin` — is removed together with the proxy (T900208). A pin reader against a dead port only ever
@@ -1525,7 +1525,7 @@ Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Sl
 
 - **GIVEN** `FACTORY_MODEL_ID` is set to `some-other-checkpoint`
 - **WHEN** any routing surface resolves the model id
-- **THEN** it resolves `some-other-checkpoint`, and without the variable it resolves `Qwen3.6-35B-A3B-NVFP4`
+- **THEN** it resolves `some-other-checkpoint`, and without the variable it resolves `Qwen3.8-27B-dualgpu`
 
 #### Scenario: No routing surface consults the retired proxy
 
@@ -1543,7 +1543,7 @@ Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Sl
 
 - **GIVEN** every candidate provider for a source/tier is claimed or on cooldown
 - **WHEN** `route-provider.sh` emits its emergency fallback
-- **THEN** the emitted `baseUrl` is `http://127.0.0.1:1919` and the `modelId` is `FACTORY_MODEL_ID` or `Qwen3.6-35B-A3B-NVFP4` — not the retired gateway and not an LM Studio backend port, which since T002551 serves embedding and reranking models only
+- **THEN** the emitted `baseUrl` is `http://127.0.0.1:1919` and the `modelId` is `FACTORY_MODEL_ID` or `Qwen3.8-27B-dualgpu` — not the retired gateway and not an LM Studio backend port, which since T002551 serves embedding and reranking models only
 
 ### Requirement: PR Creation Gate after Local Verify and Completed Review
 
@@ -2450,16 +2450,16 @@ of thumb (one partial per disjoint subsystem, tests separate) instead of a hard 
 ### Requirement: Env-driven phase model routing
 
 `scripts/factory/pipeline.mjs` SHALL derive the model of its local `flash` tier from `FACTORY_MODEL_ID` (default
-`Qwen3.6-35B-A3B-NVFP4`, provider label `llamacpp` for the OpenAI-compatible wire format) and SHALL target
-FreeToken-native at `http://127.0.0.1:1919` instead of a hardcoded LM Studio constant or the retired llm-proxy
+`Qwen3.8-27B-dualgpu`, provider label `llamacpp` for the OpenAI-compatible wire format) and SHALL target
+the local llama.cpp server at `http://127.0.0.1:1919` instead of a hardcoded LM Studio constant or the retired llm-proxy
 gateway `:18235` (T900208). The tier SHALL come only from `args.model_tier`, falling back to `flash`; the former
 `FACTORY_MODEL_LOCKED` override is removed with the proxy that supplied it.
 
-#### Scenario: Phases route to FreeToken
+#### Scenario: Phases route to the local :1919 server
 
 - **GIVEN** autopilot.env sets no overrides and the launch row carries no `model_tier`
 - **WHEN** a pipeline phase spawns an agent
-- **THEN** the agent's LLM call targets `http://127.0.0.1:1919` with model `Qwen3.6-35B-A3B-NVFP4`
+- **THEN** the agent's LLM call targets `http://127.0.0.1:1919` with model `Qwen3.8-27B-dualgpu`
 
 ### Requirement: Stale test files SHALL be removed when superseded
 

@@ -99,10 +99,10 @@ func resolveAuthKey(apiKeyEnv string) string {
 // der Proxy gar nicht fuehrt.
 // [T900208] Der Nachfolger zeigte auf den llm-proxy (:18235, Loadout
 // qwen38-220k), der seit 2026-09-03 stillgelegt ist. Der Fallback zeigt jetzt
-// auf dasselbe lokale Backend wie route-provider.sh: FreeToken-native :1919.
+// auf dasselbe lokale Backend wie route-provider.sh: llama.cpp :1919.
 const (
 	defaultLocalLLMURL   = "http://127.0.0.1:1919/v1"
-	defaultLocalLLMModel = "Qwen3.6-35B-A3B-NVFP4"
+	defaultLocalLLMModel = "Qwen3.8-27B-dualgpu"
 )
 
 func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {

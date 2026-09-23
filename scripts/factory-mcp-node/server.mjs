@@ -78,10 +78,10 @@ function serverStale() {
 // LLM-Route loesen (gleicher Fallback wie Go)
 // ---------------------------------------------------------------------------
 
-// [T900208] Fallback = FreeToken-native :1919 (der llm-proxy :18235 ist
+// [T900208] Fallback = llama.cpp :1919 (der llm-proxy :18235 ist
 // stillgelegt) — deckungsgleich mit scripts/factory/mcp-go/main.go.
 const DEFAULT_LOCAL_LLM_URL = 'http://127.0.0.1:1919/v1';
-const DEFAULT_LOCAL_LLM_MODEL = 'Qwen3.6-35B-A3B-NVFP4';
+const DEFAULT_LOCAL_LLM_MODEL = 'Qwen3.8-27B-dualgpu';
 
 function resolveLLM() {
   try {

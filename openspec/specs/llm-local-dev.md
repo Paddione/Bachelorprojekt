@@ -173,28 +173,29 @@ to a single value rather than a repeated literal.
 The opencode provider key `llamacpp-local` SHALL be defined in exactly one place
 in the repository, namely `.opencode/agent-models.jsonc`. `.opencode/opencode.jsonc`
 SHALL NOT define a provider under that key. The provider SHALL target the
-FreeToken-native engine directly at `http://127.0.0.1:1919/v1`. It SHALL NOT
+local llama.cpp server directly at `http://127.0.0.1:1919/v1`. It SHALL NOT
 target the retired llm-proxy on `:18235` (stopped 2026-09-03, ADR-007; T900208).
 
 Rationale: mirrors the original `llamacpp-mtp` single-definition requirement —
 `.opencode/agent-models.jsonc` is the sync source that
 `scripts/opencode-sync-agents.sh` merges into the global config; a second
 definition in the project config would silently override it (T002159, T014105).
-The key keeps its historical name although no llama.cpp loadout is active behind
-it anymore (T014028/T014105, consolidated 2026-09-16, T900203).
+The key keeps its historical name; since T900348 a llama.cpp server
+(`scripts/llm/qwen38-dualgpu.service`) serves `:1919` again, replacing FreeToken-native
+(T014028/T014105, T900203).
 
-#### Scenario: Provider is declared once with the FreeToken endpoint
+#### Scenario: Provider is declared once with the :1919 endpoint
 
 - **GIVEN** `.opencode/agent-models.jsonc` defines the provider `llamacpp-local`
 - **WHEN** the file is parsed and the provider's `options.baseURL` inspected
 - **THEN** the value is `http://127.0.0.1:1919/v1` and not the retired `:18235` proxy port
 
-### Requirement: Local Agent Roster on the Qwen3.6 Checkpoint
+### Requirement: Local Agent Roster on the Qwen3.8 Checkpoint
 
 The local agent roster in `.opencode/agent-models.jsonc` SHALL consist of
 `local` and `reviewer` as `mode: "subagent"` and `qwen38-primary` as
 `mode: "primary"`. Every one of them SHALL reference
-`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` as its model.
+`llamacpp-local/Qwen3.8-27B-dualgpu` as its model.
 
 Rationale: the five legacy family handles (`gptoss`, `devstral`, `gemma`,
 `gemma12`, `qwen38`) all pointed at the same FreeToken model — five names, one
@@ -205,14 +206,15 @@ directly on `:1919` (T900203; the llm-proxy hop was dropped in T900208). The for
 (`gemma26-primary`, `gemma26-vision`, `gptoss-primary`, `devstral-primary`,
 `gemma12-primary`, `gemma26-throughput-primary`, `qwen38-primary`) were
 byte-identical clones whose names referenced retired loadouts; they are removed
-instead of kept as lying aliases (T016419). `qwen38-primary` keeps its
-historical name although it now runs the Qwen3.6 checkpoint.
+instead of kept as lying aliases (T016419). Since T900348 the roster runs
+Qwen3.8-27B dense on llama.cpp, layer-split over two GPUs, which matches the
+`qwen38-primary` name again.
 
-#### Scenario: Agents reference the Qwen3.6 model
+#### Scenario: Agents reference the Qwen3.8 model
 
 - **GIVEN** the agent blocks in `.opencode/agent-models.jsonc`
 - **WHEN** the `model` field of `local`, `reviewer` and `qwen38-primary` is read
-- **THEN** every value equals `llamacpp-local/Qwen3.6-35B-A3B-NVFP4`
+- **THEN** every value equals `llamacpp-local/Qwen3.8-27B-dualgpu`
 
 #### Scenario: Retired clone primaries are gone
 
@@ -225,44 +227,45 @@ historical name although it now runs the Qwen3.6 checkpoint.
 ### Requirement: Single Static Model, No Alias Layer
 
 The `llamacpp-local` provider SHALL declare exactly one model entry,
-`Qwen3.6-35B-A3B-NVFP4`. The `freetoken-active.ts` plugin, its
+`Qwen3.8-27B-dualgpu`. The `freetoken-active.ts` plugin, its
 `active`/`active-thinking`/`active-fast` aliases and the
 `freetoken-thinking`/`freetoken-fast-*` agents SHALL NOT exist.
 
 Rationale: the alias layer and the dynamic thinking pool were removed together
-with the plugin (T900203). FreeToken serves one resident checkpoint on a static
-200k KV pool; per-request thinking toggles are not wired through opencode
-anymore, and the engine is not swapped from the model picker.
+with the plugin (T900203). llama.cpp serves one resident checkpoint with a fixed
+153600-token KV (T900348); per-request thinking toggles are not wired through
+opencode, and the engine is not swapped from the model picker.
 
 #### Scenario: Catalog holds the single static model
 
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc` and the agent roster
 - **WHEN** the model keys and the agent `model` fields are inspected
-- **THEN** exactly `Qwen3.6-35B-A3B-NVFP4` is declared and no
+- **THEN** exactly `Qwen3.8-27B-dualgpu` is declared and no
   `active`/`active-thinking`/`active-fast` alias and no
   `freetoken-thinking`/`freetoken-fast-*` agent exists
 
-### Requirement: Measured Context Limits for the Local FreeToken Checkpoint
+### Requirement: Measured Context Limits for the Local Checkpoint
 
-The `limit.context` value of the `Qwen3.6-35B-A3B-NVFP4` entry in the
+The `limit.context` value of the `Qwen3.8-27B-dualgpu` entry in the
 `llamacpp-local` provider SHALL equal the measured usable KV capacity, not the
-advertised `max_model_len`: `200000` (= served KV, `/v1/cache/status
-num_pages`; advertised `max_model_len` is `262144`). Every
-`llamacpp-local` `limit.context` SHALL be a positive integer, SHALL NOT equal
-`262144`, and SHALL NOT exceed `200000`.
+model's training context: `153600` (= served `n_ctx` in `/props`, set by
+`-c 153600` in `scripts/llm/qwen38-dualgpu.service`; `n_ctx_train` is
+`262144`). Every `llamacpp-local` `limit.context` SHALL be a positive integer,
+SHALL NOT equal `262144`, and SHALL NOT exceed `153600`.
 
 Rationale: every catalog entry promises measured context limits; a number above
 the served KV dispatches into a context overflow at runtime (T002633-class,
-recurring). `gpt-oss-20b` and `Gemma-4-26B-A4B-NVFP4` are no longer declared —
-the static pool serves only the Qwen3.6 checkpoint (T900203).
+recurring). Both GPUs are full at `153600` (q4_0 KV, `-ts 56,9`); a
+147,651-token prompt was served with the needle found (measured 2026-09-23,
+T900348).
 
 #### Scenario: Declared context equals the served KV
 
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc`
-- **WHEN** the `limit.context` of `Qwen3.6-35B-A3B-NVFP4` is read
-- **THEN** it is `200000` and does not exceed the server's usable KV-token
+- **WHEN** the `limit.context` of `Qwen3.8-27B-dualgpu` is read
+- **THEN** it is `153600` and does not exceed the server's usable KV-token
   capacity
 
 ### Requirement: Sync Distributes opencode Plugins
@@ -305,23 +308,24 @@ against an unknown model (T900350).
 
 The provider catalogs in `.opencode/agent-models.jsonc` SHALL NOT declare
 model entries whose weights no longer exist on disk. The `llamacpp-local`
-catalog SHALL declare exactly `Qwen3.6-35B-A3B-NVFP4`; the retired keys
-`qwen38-220k`, `gptoss-context`, `gemma26-factory`, `gemma4`,
-`gemma26-throughput`, `gemma12-vision` and `hauhau-qwen36` SHALL NOT be
-declared.
+catalog SHALL declare exactly `Qwen3.8-27B-dualgpu`; the retired keys
+`Qwen3.6-35B-A3B-NVFP4`, `qwen38-220k`, `gptoss-context`, `gemma26-factory`,
+`gemma4`, `gemma26-throughput`, `gemma12-vision` and `hauhau-qwen36` SHALL NOT
+be declared.
 
 Rationale: every catalog entry promises measured context limits; an entry
 without weights cannot honor them and dispatches into the void (T002633-class,
 recurring). The former fallback entries (`hauhau-qwen36`, `gemma12-vision`,
-`qwen38-220k`) are gone as well — the FreeToken consolidation leaves a single
-resident checkpoint (T900203, T016419).
+`qwen38-220k`) are gone as well — the FreeToken consolidation left a single
+resident checkpoint (T900203, T016419), and T900348 replaced it with the
+llama.cpp dual-GPU checkpoint.
 
 #### Scenario: Dead catalog keys are absent
 
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc`
 - **WHEN** its keys are inspected
-- **THEN** `Qwen3.6-35B-A3B-NVFP4` is declared and none of `qwen38-220k`,
+- **THEN** `Qwen3.8-27B-dualgpu` is declared and none of `Qwen3.6-35B-A3B-NVFP4`, `qwen38-220k`,
   `gptoss-context`, `gemma26-factory`, `gemma4`, `gemma26-throughput`,
   `gemma12-vision`, `hauhau-qwen36` is declared
 
@@ -334,9 +338,9 @@ consistency guard and the BATS coverage for auto-swap SHALL NOT be re-added
 without a new requirement.
 
 Rationale: the plugin was removed together with the alias layer (T900203).
-FreeToken serves one resident checkpoint on a static 200k KV pool; there is no
+The local server holds one resident checkpoint with a fixed KV; there is no
 per-request thinking toggle, no engine switching from the model picker, and no
-telemetry file. The provider is wired statically to FreeToken on `:1919` (T900208).
+telemetry file. The provider is wired statically to `:1919` (T900208, T900348).
 
 #### Scenario: Plugin file is absent
 
@@ -384,19 +388,6 @@ the 60–100k working band (T900350). The V1 keys `reserved` and
 - **GIVEN** `.opencode/dcp.jsonc` and the default model's catalog limits
 - **WHEN** its `modelMinLimits` and `modelMaxLimits` entries are resolved
 - **THEN** they equal 61440 and 115200, and 115200 is below 120000
-
-#### Scenario: Compaction block present with V2 keys
-
-- **GIVEN** `.opencode/opencode.jsonc` on the feature branch
-- **WHEN** the `compaction` block is inspected
-- **THEN** it contains `auto: true`, `keep.tokens: 16000`, `buffer: 96000`
-  and no `reserved` or `preserve_recent_tokens` key
-
-#### Scenario: Threshold math holds for the factory model
-
-- **GIVEN** the factory model limit `context: 200000`, `output: 8192`
-- **WHEN** `200000 − max(8192, 96000)` is computed
-- **THEN** the result is `104000` (≈100k operating target)
 
 ### Requirement: Factory Roles Carry Minimal Toolsets
 

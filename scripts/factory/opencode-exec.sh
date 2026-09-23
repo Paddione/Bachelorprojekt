@@ -41,8 +41,8 @@ fi
 # Frueher bot der Orchestrator-Prompt vier lokale Familien (gptoss/devstral/gemma/
 # qwen); wegen exclusiveGroup "chat-gpu" war immer nur EIN Loadout geladen
 # (T013044). Seit 2026-09-16 existiert nur noch EIN lokaler Handle (`local`,
-# Qwen3.6-35B-A3B MoE via FreeToken :1919, single-flight — FreeToken queuet weitere Requests
-# sequenziell auf ≤200k served KV). Der Prompt nennt genau ihn — Default local,
+# seit T900348 Qwen3.8-27B dense via llama.cpp :1919, single-flight -np 1 —
+# llama.cpp queuet weitere Requests sequenziell auf ≤153600 served KV). Der Prompt nennt genau ihn — Default local,
 # Override per Env nur fuer Rollback-Szenarien.
 DISPATCH_SUBAGENT="${FACTORY_DISPATCH_SUBAGENT:-local}"
 

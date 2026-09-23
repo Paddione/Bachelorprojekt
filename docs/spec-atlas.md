@@ -628,6 +628,8 @@ Last touches:
   - Go-consolidated MCP runtime with no capability loss | T001211 | 2026-06-27 | ADDED
   - MCP-first skill routing | T001211 | 2026-06-27 | ADDED
   - MCP tool-guide as mapping SSOT | T001211 | 2026-06-27 | ADDED
+In-flight:
+  - Unified mishap buffer path across implementations | T900309 | active | MODIFIED
 
 ### mcp-task-runner
 Reqs: 9 · Scenarios: 20 · Lines: 230

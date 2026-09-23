@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { join, dirname, resolve } from 'node:path';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -120,8 +120,20 @@ function parseArgs(argv) {
   return args;
 }
 
+function gitCommonDir(root) {
+  try {
+    const out = execSync('git rev-parse --git-common-dir', { cwd: root, encoding: 'utf8', timeout: 3000 }).trim();
+    if (!out || out === '.git') return join(root, '.git');
+    const abs = out.startsWith('/') ? out : join(root, out);
+    return abs;
+  } catch {
+    return join(root, '.git');
+  }
+}
+
 function mishapBufferPath(repoRoot) {
-  return join(repoRoot, '.git', 'info', 'mishap-buffer.json');
+  const gitDir = gitCommonDir(repoRoot);
+  return join(gitDir, 'mishap-buffer.json');
 }
 
 async function flushStaleMishaps(brand, maxAgeDays) {

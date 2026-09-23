@@ -2,8 +2,8 @@
 # tests/spec/software-factory/local-llm-freetoken-direct.bats — T900208
 #
 # Der llm-proxy (127.0.0.1:18235) ist seit 2026-09-03 stillgelegt (ADR-007).
-# Einziges lokales Generierungs-Backend ist FreeToken-native auf :1919 mit dem
-# Checkpoint Qwen3.6-35B-A3B-NVFP4. Diese Datei ersetzt
+# Einziges lokales Generierungs-Backend ist llama.cpp auf :1919 (T900348) mit dem
+# Checkpoint Qwen3.8-27B-dualgpu. Diese Datei ersetzt
 # software-factory/factory-model-lock.bats: der Modell-Pin/Lock kam aus dem
 # /admin/factory-Endpunkt des Proxys und ist mit ihm entfallen.
 #
@@ -43,13 +43,13 @@ EOF
 
 _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || true; }
 
-@test "T900208: route-provider-Fallback zeigt auf FreeToken :1919 mit Qwen3.6" {
+@test "T900208: route-provider-Fallback zeigt auf FreeToken :1919 mit Qwen3.8" {
   cd "$REPO_ROOT"
   run bash scripts/factory/route-provider.sh factory-scout opus
   [ "$status" -eq 0 ]
   local json; json="$(printf '%s\n' "$output" | tail -1)"
   [ "$(jq -r .baseUrl <<<"$json")" = "http://127.0.0.1:1919" ]
-  [ "$(jq -r .modelId <<<"$json")" = "Qwen3.6-35B-A3B-NVFP4" ]
+  [ "$(jq -r .modelId <<<"$json")" = "Qwen3.8-27B-dualgpu" ]
   [ "$(jq -r .slotId <<<"$json")" = "null" ]
   # Der fruehere Proxy-Pin wird nicht mehr gelesen.
   [[ "$output" != *pinned-model* ]]
@@ -102,11 +102,11 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   [[ "$output" == *'http://127.0.0.1:1919}"'* ]]
 }
 
-@test "T900208: pipeline flash-Tier zielt auf FreeToken mit Qwen3.6-Default" {
+@test "T900208: pipeline flash-Tier zielt auf FreeToken mit Qwen3.8-Default" {
   local pm="$REPO_ROOT/scripts/factory/pipeline.mjs"
   run grep -E "flash:.*baseUrl: 'http://127\.0\.0\.1:1919'" "$pm"
   [ "$status" -eq 0 ]
-  run grep -F "process.env.FACTORY_MODEL_ID || 'Qwen3.6-35B-A3B-NVFP4'" "$pm"
+  run grep -F "process.env.FACTORY_MODEL_ID || 'Qwen3.8-27B-dualgpu'" "$pm"
   [ "$status" -eq 0 ]
 }
 

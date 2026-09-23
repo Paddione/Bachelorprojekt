@@ -15,15 +15,15 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/lib.sh"; factory_resolve
 SOURCE="${1:?source required}"; TIER="${2:?tier required}"
 
-# T900208: einziges lokales Backend ist FreeToken-native auf Windows (:1919,
-# per WSL-Mirrored-Networking erreichbar, single-flight). Der llm-proxy (:18235)
+# T900208/T900348: einziges lokales Backend ist llama.cpp (:1919, systemd-
+# User-Unit scripts/llm/qwen38-dualgpu.service, single-flight -np 1). Der llm-proxy (:18235)
 # ist seit 2026-09-03 stillgelegt (ADR-007); mit ihm entfiel der Modell-Pin aus
 # /admin/factory — FACTORY_MODEL_ID ist der einzige Regler fuer den Modellnamen.
 # base_url OHNE '/v1': die Konsumenten (auto-triage.sh, scout-llm-fallback.sh)
 # haengen '/v1/chat/completions' selbst an [T003492].
 FT_LOCAL_PROVIDER="freetoken-local"
 FT_LOCAL_BASEURL="${FACTORY_LOCAL_URL:-http://127.0.0.1:1919}"
-FACTORY_DEFAULT_MODEL="${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}"
+FACTORY_DEFAULT_MODEL="${FACTORY_MODEL_ID:-Qwen3.8-27B-dualgpu}"
 
 # Tier "opus": Modell aus der Registry, aber OHNE Slot-Claim.
 #
@@ -124,7 +124,7 @@ SQL
   fi
 done <<< "$CANDS"
 
-# Emergency fallback: kein Slot geclaimt, Weg direkt zu FreeToken (:1919) [T900208].
+# Emergency fallback: kein Slot geclaimt, Weg direkt zu llama.cpp (:1919) [T900208].
 # RC5 [T002359]: hier stand ein Modell, das LM Studio seit dem Gemma-Cutover nicht
 # mehr serviert. Der Router gab es lautlos zurueck — der llm-proxy bog es still auf
 # das erste gesunde Backend um, sodass nirgends ein Fehler auftauchte.

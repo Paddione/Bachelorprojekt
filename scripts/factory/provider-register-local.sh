@@ -16,7 +16,7 @@
 # Der Modellname ist bewusst kein Literal mehr: FACTORY_MODEL_ID ueberschreibt
 # ihn, damit ein Modellwechsel keine Quelltextaenderung erzwingt.
 #
-# max_concurrent=1: FreeToken-native serviert genau einen Request gleichzeitig
+# max_concurrent=1: llama.cpp serviert genau einen Request gleichzeitig
 # (--max-running-requests 1, statischer 200k-KV-Pool). Seit T013302 laeuft das
 # Routing ausschliesslich ueber provider_config, der fruehere Phasen-Pin ist
 # entfallen.
@@ -25,16 +25,16 @@
 # :18235, Backend-Registry tickets.llm_proxy_backends) und der Modellname kam
 # optional aus dessen /admin/factory-Pin. Der Proxy ist seit 2026-09-03
 # stillgelegt (ADR-007); beides ist entfallen. Die Registrierung zeigt jetzt
-# direkt auf FreeToken :1919 — das einzige lokale Generierungs-Backend.
+# direkt auf llama.cpp :1919 — das einzige lokale Generierungs-Backend.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$HERE/lib.sh"
 
-# T014028: lokaler Default ist FreeToken-native (Modell-ID, kein Loadout-Slug —
+# T014028: lokaler Default ist llama.cpp (Modell-ID, kein Loadout-Slug —
 # dieselbe Konvention wie route-provider.sh, damit der Default-Konsistenzguard
 # in tests/spec/software-factory/factory-model-id-default.bats gruen bleibt).
-MODEL_ID="${FACTORY_MODEL_ID:-Qwen3.6-35B-A3B-NVFP4}"
+MODEL_ID="${FACTORY_MODEL_ID:-Qwen3.8-27B-dualgpu}"
 # Dieselbe Adresse und derselbe Override wie route-provider.sh (FACTORY_LOCAL_URL).
 # [T003492] OHNE '/v1' — die Konsumenten haengen '/v1/chat/completions' selbst an
 # (openspec/specs/software-factory.md: base_url adressiert die Wurzel, "that the

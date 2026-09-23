@@ -5196,6 +5196,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/orphan-archive",
+    "file": "tests/spec/openspec-workflow/orphan-archive.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/plan-archive-freshness-check",
     "file": "tests/spec/openspec-workflow/plan-archive-freshness-check.bats",
     "category": "openspec-workflow",
@@ -5882,6 +5888,12 @@
   {
     "id": "sdlc-isolation/llm-up-health",
     "file": "tests/spec/sdlc-isolation/llm-up-health.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-isolation/orphan-archive-dispatch",
+    "file": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats",
     "category": "sdlc-isolation",
     "kind": "shell"
   },

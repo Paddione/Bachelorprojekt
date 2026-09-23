@@ -2,7 +2,7 @@
 title: "archive-regen-spec-atlas — Implementation Plan"
 ticket_id: T900341
 domains: [scripts, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

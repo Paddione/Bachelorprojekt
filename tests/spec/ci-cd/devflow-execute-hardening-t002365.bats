@@ -46,7 +46,10 @@ setup() {
   IMPL_SECTION=$(awk '/^## Schritt 2:/{flag=1; next} /^## Schritt 5:/{flag=0} flag' "$SKILL")
   # Positiv-Anker: the Auftrag section exists and is non-empty.
   [ -n "$IMPL_SECTION" ]
-  echo "$IMPL_SECTION" | grep -qi 'wird NICHT von dir entfernt'
+  # Der Ausschluss zog in references/implementer-handoff.md um (Schritt 2 verlinkt
+  # den Auftrag "wörtlich" dorthin, T900346) — beide Auftrag-Teile prüfen.
+  HANDOFF="${REPO_ROOT}/.claude/skills/dev-flow-execute/references/implementer-handoff.md"
+  { echo "$IMPL_SECTION"; cat "$HANDOFF"; } | grep -qi 'wird NICHT von dir entfernt'
 }
 
 @test "T002365-M2: SKILL.md never contains the literal 'git worktree remove' string" {

@@ -57,6 +57,11 @@ _reaper_fixture() {
   _branch chore/plan-T009002   # Ticket done, ANDERE ID -> zweiter Kandidat
 
   git -C "$FIXTURE" checkout --quiet main
+  # [T900096] Der Reaper verschont Branches mit ungemergten Commits — die
+  # Fixture bildet deshalb gemergte Plan-Branches ab (Tip ist Vorfahr von
+  # origin/main; -s ours vermeidet Fixture-Konflikte, Inhalt bleibt base).
+  git -C "$FIXTURE" merge --quiet -s ours chore/plan-T009001 chore/plan-T009002 -m "merge fixture branches"
+  git -C "$FIXTURE" push --quiet origin main
   git -C "$FIXTURE" fetch --quiet origin
 
   cat > "$STUBS/gh" <<'STUB'

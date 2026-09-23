@@ -44,7 +44,8 @@ setup() {
 @test "task list is not empty (positive anchor for negative assertions)" {
   run $TASK --list-all
   [ -n "$output" ]
-  echo "$output" | grep -q 'dev:deploy'
+  # dev:deploy was removed (see k3d-tooling-removed.bats); workspace:deploy is the current anchor.
+  echo "$output" | grep -q 'workspace:deploy'
 }
 
 # ── Orchestration order: sdlc:up ─────────────────────────────────────────────

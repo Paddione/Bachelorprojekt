@@ -89,13 +89,24 @@ OpenSpec CLI completion: `openspec completion install`.
 
 ## Interaction Contract
 
-**Run to completion** — verify, commit, PR; never stop mid-task. Stop only on:
-1. **Destructive** — force-push, prod deploy, secret rotation, DB drop.
+**Run the assignment to its end.** Carry the assigned task through to its own
+logical completion — including verification, commit and pull request where the
+assignment covers them — and only then return control. Never make continuation
+conditional on user confirmation for a step you recommended yourself. Never
+start a new task or pull a new ticket without being asked.
+
+**Stop only on these four triggers:**
+1. **Destructive or irreversible** — force-push, prod deploy, secret rotation, DB drop.
 2. **Genuine fork** — two viable designs change outcome, no prior art (T002829).
-3. **Blocked** — missing creds, unreachable service. Follow escalation-protocol.md.
+3. **Blocked** — missing creds, unreachable service. Follow `.claude/lib/behaviors/escalation-protocol.md`.
 4. **Cost above threshold** — long GPU jobs, large subagent fan-outs.
 
-Everything else is reversible: act. Ask so the answer is one keystroke.
+Everything else is reversible: act — deliver the divisible part regardless,
+return only the blocked remainder.
+
+**Ask so the answer is one keystroke.** Finite-answer questions go through
+`AskUserQuestion` (Claude Code) or `question` (opencode, agy); otherwise
+numbered Markdown options with the recommendation first, never free prose.
 
 **Status footer** — once, at end of finished thread:
 

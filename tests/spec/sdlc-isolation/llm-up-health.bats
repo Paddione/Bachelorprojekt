@@ -44,7 +44,8 @@ free_port() {
   # Positiv-Anker zuerst (T002356-M1): Liste ist nicht leer und enthaelt eine
   # bestehende dev:-Konvention — erst dann ist die Negativ-Aussage belastbar.
   [ -n "$output" ]
-  echo "$output" | grep -q 'dev:deploy'
+  # dev:deploy was removed (see k3d-tooling-removed.bats); workspace:deploy is the current anchor.
+  echo "$output" | grep -q 'workspace:deploy'
   ! echo "$output" | grep -qw 'dev:up'
 }
 

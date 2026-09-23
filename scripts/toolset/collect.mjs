@@ -82,7 +82,14 @@ export function collectInstances({ baseDir, homeDir }) {
     for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
       // Nur Verzeichnisse: OVERVIEW.md ist kein Skill, `references/` hält Referenzmaterial
       // ohne SKILL.md und ist deshalb kein Fehlerfall.
-      if (!entry.isDirectory()) continue;
+      // Die Spiegel-Eintraege sind Symlinks (Konvention T013724/T014086) — fuer sie meldet
+      // isDirectory() false, deshalb das Ziel statten [T900346].
+      let isDir = entry.isDirectory();
+      if (!isDir && entry.isSymbolicLink()) {
+        try { isDir = fs.statSync(path.join(skillsDir, entry.name)).isDirectory(); }
+        catch { isDir = false; }
+      }
+      if (!isDir) continue;
       const skillFile = path.join(skillsDir, entry.name, 'SKILL.md');
       if (!fs.existsSync(skillFile)) continue;
 

@@ -52,6 +52,7 @@ task workspace:validate                          # Kustomize dry-run
 - `scripts/env-resolve.sh` sourcen (nie executen); `scripts/task-oracle.sh` DEPRECATED → `bash scripts/vda.sh oracle`; nie `SELECT *` aus `tickets.ticket_plans`.
 - OpenSpec-Archiv nur im Worktree; Images `:latest` ok (keine Digests "fixen"); Pre-commit blockt Main-Checkout bei fremdem Lock → Worktrees.
 - `components/website/` pnpm-only (nie `npm install` dort); Root + `components/brett/` npm.
+- git-crypt ohne Keyfile: `git-crypt unlock` nutzt `gpg.program`; unter WSL auf Windows-`gpg.exe` zeigen. Wege je Umgebung: `docs/runbooks/git-crypt-key-distribution.md` → „Unlock ohne Keyfile".
 
 ## Agent Coordination
 

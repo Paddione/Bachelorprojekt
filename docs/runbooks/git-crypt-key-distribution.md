@@ -70,18 +70,35 @@ Datum der Key-Ablage) und per PR mergen.
 
 ## GPG-User (T900113, ersetzt das Keyfile für patrick/gekko)
 
-Das dev-shell-Image enthält `gnupg` + `pinentry-tty` (`docker/dev-shell/Dockerfile`).
-Die einmalige Zeremonie läuft auf einer entsperrten Maschine mit sauberem Arbeitsbaum
-(P2.3, manuell — braucht die GPG-Private-Keys von patrick und gekko):
+**Stand 2026-09-23:** eingetragen ist patrick (`00EA78AE322FFAFDFF72244A0228D492CDA7ACA5`,
+Verschlüsselungs-Unterschlüssel `6E9C70093D6F8E9E`, gültig bis 2028-04-01; #5838). gekko fehlt,
+weil es noch keinen GPG-Schlüssel gibt — ein SSH-Key (`ssh-ed25519`) taugt dafür nicht (T900343).
+Welche Schlüssel eingetragen sind: `git ls-tree -r --name-only origin/main .git-crypt/keys/default/0/`.
 
-```bash
-git-crypt add-gpg-user --trusted <patrick-key-id>
-git-crypt add-gpg-user --trusted <gekko-key-id>
-git add .git-crypt/keys/default/0/*.gpg
-git commit -m "feat(security): git-crypt per GPG-User patrick/gekko [T900113]"
-```
+### Unlock ohne Keyfile
 
-Danach entsperrt `git-crypt unlock` ohne Keyfile. Voraussetzungen auf der Maschine:
+`git-crypt unlock` **ohne Argument** sucht in `.git-crypt/keys/default/0/` nach einem Eintrag, zu
+dem der lokale GPG-Keyring den privaten Schlüssel hat. Welches `gpg` es aufruft, bestimmt
+`git config gpg.program` (Default: `gpg` im PATH). Prüfen danach: eine Datei unter
+`environments/.secrets/` beginnt mit Klartext statt mit `\0GITCRYPT\0`, `git status` ist sauber.
+
+| Umgebung | Privater Schlüssel liegt in | Befehl |
+|---|---|---|
+| WSL auf PK-Desktop (getestet 2026-09-23) | Windows-GnuPG (`gpg.exe`) | `git config gpg.program "/mnt/c/Program Files/GnuPG/bin/gpg.exe" && git-crypt unlock` |
+| Windows Git Bash | Windows-GnuPG (Gpg4win) | `git config gpg.program "C:/Program Files/GnuPG/bin/gpg.exe" && git-crypt unlock` |
+| Linux / dev-shell | lokaler `~/.gnupg` | `export GPG_TTY=$(tty) && git-crypt unlock` |
+
+Der WSL-Weg braucht keinen Schlüssel-Import nach WSL: der private Schlüssel bleibt im
+Windows-Keyring. Ein WSL-`gpg` ohne privaten Schlüssel scheitert mit „no GPG secret key
+available to unlock this repository". Fehlt jeder GPG-Weg, bleibt das Keyfile aus
+„Onboarding einer Maschine" der Rückfall: `git-crypt unlock <keyfile>`.
+
+Für Agenten (Claude Code, opencode, agy): der Haupt-Checkout auf PK-Desktop ist bereits per
+Keyfile entsperrt; neue Worktrees übernehmen das über `scripts/worktree-create.sh`. Einen frischen
+Klon entsperrt ein Agent nach der Tabelle oben — nie Klartext-Kopien von Secrets oder des
+entschlüsselten Repo-Schlüssels liegen lassen.
+
+Voraussetzungen im dev-shell (Linux-Zeile):
 
 - `export GPG_TTY=$(tty)` in der Shell (pinentry findet das Terminal),
 - gpg-agent mit begrenzter Lebensdauer: `default-cache-ttl 3600`, `max-cache-ttl 7200`
@@ -89,6 +106,21 @@ Danach entsperrt `git-crypt unlock` ohne Keyfile. Voraussetzungen auf der Maschi
 - die GPG-Private-Keys liegen unter `/home/dev` (Threat-Modell T900110: seit #5537 hat
   die Website-Identität keinen lesenden Zugriff mehr auf fremde Home-Verzeichnisse —
   der entsperrte Clone unter `/home/dev` ist für sie nicht lesbar).
+
+### Einen GPG-User hinzufügen
+
+Auf einer entsperrten Maschine mit sauberem Arbeitsbaum. Gebraucht wird nur der
+**öffentliche** Schlüssel der Person, mit einem Unterschlüssel für Verschlüsselung (`e`):
+
+```bash
+gpg --import <person>.pub.asc
+git-crypt add-gpg-user --no-commit --trusted <fingerprint>
+gpg --list-packets .git-crypt/keys/default/0/<fingerprint>.gpg | grep keyid   # Ziel-Unterschlüssel prüfen
+git add .git-crypt/
+git commit -m "chore(T<ticket>): add git-crypt GPG user <person> [T<ticket>]"
+```
+
+`--no-commit` hält den Commit in der eigenen Hand (Commit-Konventionen, PR-Pfad).
 
 ## Widerruf
 

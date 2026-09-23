@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.358.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.2...website-v1.358.3) (2026-09-23)
+
+
+### Bug Fixes
+
+* **mcp:** unify mishap buffer path across node implementations [T900309] ([#5827](https://github.com/Paddione/Bachelorprojekt/issues/5827)) ([1e828b3](https://github.com/Paddione/Bachelorprojekt/commit/1e828b38c72a75ed72f6a93ff5dbd884c7bb8762))
+
 ## [1.358.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.1...website-v1.358.2) (2026-09-22)
 
 

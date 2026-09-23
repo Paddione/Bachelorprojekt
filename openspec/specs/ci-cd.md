@@ -3110,7 +3110,7 @@ The system SHALL detect manifest-relevant file changes in `k3d/`, `prod/`, `prod
 ### Requirement: Dev-Build-Safety — OOM-Schutz für Astro-Build
 <!-- bats: dev-build-safety.bats -->
 
-The system SHALL configure the website Dockerfile to set an explicit Node.js heap cap (`NODE_OPTIONS` with `--max-old-space-size`) of at least 2048 MB in the build stage only, and the dev-stack build task SHALL kill stale docker build processes before starting a new build.
+The system SHALL configure the website Dockerfile to set an explicit Node.js heap cap (`NODE_OPTIONS` with `--max-old-space-size`) of at least 2048 MB in the build stage only.
 
 #### Scenario: Dockerfile setzt NODE_OPTIONS mit max-old-space-size *(BATS)*
 - **GIVEN** `website/Dockerfile` ist vorhanden
@@ -3126,13 +3126,6 @@ The system SHALL configure the website Dockerfile to set an explicit Node.js hea
 - **GIVEN** `website/Dockerfile` hat einen Build-Stage-Marker und einen Runtime-Stage-Marker
 - **WHEN** die Zeilennummern der Marker und der NODE_OPTIONS-Zeile verglichen werden
 - **THEN** liegt `NODE_OPTIONS` vor dem Runtime-Stage — das Flag beeinflusst nur den Build, nicht den laufenden Container
-
-#### Scenario: Taskfile.dev-stack.yml killt stale Docker-Builds vor dem Start *(BATS)*
-- **GIVEN** `Taskfile.dev-stack.yml` enthält den Task `build:website`
-- **WHEN** der Task-Block auf `pkill`/`killall`/`buildx prune`/`docker kill`-Muster geprüft wird
-- **THEN** enthält der Block ein solches Muster — verhindert gleichzeitige OOM-erzeugende Builds bei SSH-Timeout
-
----
 
 ### Requirement: Freshness-Gate für generierte Graph-Artefakte (freshness-graph)
 <!-- bats: freshness-graph.bats -->
@@ -3628,3 +3621,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (6110d604ccf1) -->
 
 <!-- merged from change delta ci-cd.md (e3f7db1622e8) -->
+
+<!-- merged from change delta ci-cd.md (a68dd8c8ee66) -->

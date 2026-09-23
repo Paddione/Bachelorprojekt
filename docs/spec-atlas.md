@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2422 · Scenarios: 5379
+Specs: 129 · Requirements: 2423 · Scenarios: 5382
 
 ## factory-pipeline
 
@@ -34,16 +34,14 @@ Last touches:
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
 
 ### openspec-workflow
-Reqs: 68 · Scenarios: 153 · Lines: 1698
+Reqs: 69 · Scenarios: 156 · Lines: 1724
 Paths: scripts/openspec, openspec/
 Last touches:
+  - Archive regenerates and stages every openspec-derived freshness artifact | T900341 | 2026-09-23 | ADDED
   - Half-archive detection does not spawn a process per archive entry | T013673 | 2026-09-17 | ADDED
   - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | 2026-08-23 | ADDED
   - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
   - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
-  - Freshness-Check sichert Konsistenz der generierten Artefakte | T015012 | 2026-08-23 | MODIFIED
-In-flight:
-  - Archive regenerates and stages every openspec-derived freshness artifact | T900341 | active | ADDED
 
 ### software-factory
 Reqs: 208 · Scenarios: 635 · Lines: 5755

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.358.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.5...website-v1.358.6) (2026-09-23)
+
+
+### Bug Fixes
+
+* **scripts:** regen+stage spec-atlas in cmd_archive [T900341] ([#5841](https://github.com/Paddione/Bachelorprojekt/issues/5841)) ([4232ffd](https://github.com/Paddione/Bachelorprojekt/commit/4232ffd05127bd929c1267f230583ce31fa8976f))
+
 ## [1.358.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.4...website-v1.358.5) (2026-09-23)
 
 

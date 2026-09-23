@@ -4987,6 +4987,12 @@
       "status": "archived"
     }
   ],
+  "T900338": [
+    {
+      "slug": "openspec-orphan-auto-archive",
+      "status": "plan_staged"
+    }
+  ],
   "T900339": [
     {
       "slug": "2026-09-23-archive-stage-new-ssot",

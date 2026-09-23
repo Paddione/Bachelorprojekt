@@ -5,10 +5,11 @@
 # GitHub kann den Dev-Host nicht erreichen (kein eingehender Weg ins Heimnetz),
 # also gibt es keine Webhooks — der Rueckkanal ist ein Pull-Modell.
 #
-# Drei Aufgaben, jede mit eigenem Cursor:
+# Vier Aufgaben, jede mit eigenem Cursor:
 #   merges   gemergte PRs -> Ticket-Closure (delegiert an auto-close-merged.sh)
 #   prs      Zustand offener PRs -> tickets.pr_status
 #   checks   Ergebnisse der Check-Laeufe -> tickets.pr_status
+#   archive  verwaiste OpenSpec-Changes -> workflow_dispatch (delegiert an openspec-orphan-dispatch.sh)
 #
 # CURSOR-DISZIPLIN (design.md D3): Der Cursor rueckt erst NACH dem erfolgreichen
 # lokalen Schreiben vor. Daraus folgt at-least-once-Zustellung, und daraus die
@@ -195,6 +196,15 @@ SQL
   cursor_set prs "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 
+
+# --- Aufgabe 4: Archive verwaister OpenSpec-Changes --------------------------
+task_archive() {
+  echo "== archive =="
+  BRAND="$BRAND" bash "$HERE/openspec-orphan-dispatch.sh" ${DRY_RUN:+--dry-run} || {
+    echo "  openspec-orphan-dispatch meldete einen Fehler" >&2
+    return 1
+  }
+}
 # --- main --------------------------------------------------------------------
 if ! $DRY_RUN; then
   ensure_schema
@@ -208,8 +218,9 @@ rc=0
 case "$ONLY_TASK" in
   merges) task_merges || rc=$? ;;
   prs)    task_prs    || rc=$? ;;
-  "")     task_merges || rc=$?; task_prs || rc=$? ;;
-  *)      echo "Unbekannte Aufgabe: $ONLY_TASK (merges|prs)" >&2; exit 2 ;;
+  archive) task_archive || rc=$? ;;
+  "")     task_merges || rc=$?; task_prs || rc=$?; task_archive || rc=$? ;;
+  *)      echo "Unbekannte Aufgabe: $ONLY_TASK (merges|prs|archive)" >&2; exit 2 ;;
 esac
 
 echo "github-poller: fertig (rc=$rc)"

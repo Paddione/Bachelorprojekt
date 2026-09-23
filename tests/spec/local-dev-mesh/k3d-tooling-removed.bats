@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# tests/spec/local-dev-mesh/k3d-tooling-removed.bats — T900310
+# tests/spec/local-dev-mesh/k3d-tooling-removed.bats — T900310, T900332
 # SSOT: openspec/changes/k3d-tooling-removal/specs/local-dev-mesh.md,
 # Requirement "The repository ships no local k3d cluster tooling"
 #
@@ -33,6 +33,8 @@ setup() {
     'cluster:create' 'cluster:delete' 'cluster:start' 'cluster:stop' 'cluster:status'
     'workspace:up' 'dev:reset' 'website:build:import' 'einvoice-sidecar:import'
     'up' 'down'
+    'dev:build:website' 'dev:build:brett' 'dev:apply' 'dev:deploy'
+    'dev:_materialise-secrets'
   )
   local name
   for name in "${removed[@]}"; do
@@ -41,6 +43,12 @@ setup() {
       return 1
     fi
   done
+
+  # Keine Staging-Tasks mehr
+  if echo "$output" | grep -qE '^staging:'; then
+    echo "unerwartet Staging-Tasks vorhanden"
+    return 1
+  fi
 }
 
 @test "removed files are absent while the production kustomize base remains" {
@@ -51,11 +59,19 @@ setup() {
   [ ! -e k3d/teardown.sh ]
   [ ! -e scripts/dev-reset.sh ]
   [ ! -e scripts/dev-cluster-autostart.sh ]
+
+  # T900332
+  [ ! -e taskfiles/Taskfile.staging.yml ]
+  [ ! -e scripts/staging-id.sh ]
+  [ ! -e k3d/staging-stack ]
+  [ ! -e k3d/dev-stack/cert-manager.yaml ]
+  [ ! -e k3d/dev-stack/traefik-tls.yaml ]
+  [ ! -e tests/unit/staging.bats ]
 }
 
 @test "no task imports images into k3d" {
   grep -qE '^  brett:build:' Taskfile.yml
 
-  run grep -n 'k3d image import' Taskfile.yml
+  run grep -rn 'k3d image import' Taskfile.yml taskfiles/
   [ "$status" -eq 1 ]
 }

@@ -43,8 +43,8 @@ lokalen Import. Mit einem veränderlichen Registry-Tag hält es das alte Image i
 fest. Die Änderung betrifft nur `k3d/dev-stack/website-dev.yaml` und `brett-dev.yaml` und
 kommt über Flux in `workspace-dev`.
 
-**D3 — Imperatives Apply entfällt (User).** `build:website`, `build:brett`, `apply`, `deploy`
-und `firewall:open` werden gelöscht. Flux ist die einzige Quelle für die Manifeste in
+**D3 — Imperatives Apply entfällt (User).** `build:website`, `build:brett`, `apply`
+und `deploy` werden gelöscht. Flux ist die einzige Quelle für die Manifeste in
 `workspace-dev`.
 
 **D4 — `dev:secrets` statt `_materialise-secrets` (User).** Der interne Task wird als
@@ -61,7 +61,7 @@ als Muster nennt, und die Kommentare in `k3d/dev-stack/kustomization.yaml`, `sis
 `Taskfile.yml`, `k3d/staging-stack/`, `scripts/staging-id.sh`, `tests/unit/staging.bats` und die
 Staging-Fälle in `tests/spec/security.bats` entfallen. `prod-fleet/staging` bleibt.
 
-**D7 — Bleibt:** `logs`, `psql`, `tunnel`, `db:refresh`, die Includes `dev:`/`dev-korczewski:`
+**D7 — Bleibt:** `logs`, `psql`, `tunnel`, `firewall:open`, `db:refresh`, die Includes `dev:`/`dev-korczewski:`
 (Requirement „The `dev:` Task Namespace Stays Reserved" in `sdlc-isolation`), die Variablen
 `DEV_NODE`, `DEV_SSH_USER`, `DEV_SSH_ALLOWLIST` (weitere Leser: `workspace:deploy`,
 `prod-korczewski/`, `Taskfile.brainstorm.yml`).

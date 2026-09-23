@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-99 Services · 2034 Abhängigkeitskanten · 297 API-Endpoints
+98 Services · 2031 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -83,7 +83,6 @@ flowchart LR
   sealed_secrets_controller["sealed-secrets-controller"]:::default
   sessions_server["sessions-server"]:::default
   shared_db["shared-db"]:::db
-  shared_db_staging["shared-db-staging"]:::default
   studio_server["studio-server"]:::default
   nats["nats"]:::default
   spreed_signaling["spreed-signaling"]:::default
@@ -253,7 +252,6 @@ flowchart LR
   sealed_secrets_controller -->|"selector"| sealed_secrets_controller
   sealed_secrets -->|"selector"| sealed_secrets_controller
   sessions_server -->|"selector"| sessions_server
-  shared_db_staging -->|"selector"| shared_db_staging
   nats -->|"selector"| nats
   spreed_signaling -->|"selector"| spreed_signaling
   talk_recording -->|"selector"| talk_recording
@@ -2076,8 +2074,6 @@ flowchart LR
   shared_db_dev -->|"secret:shared-db-d…"| sdlc_console
   shared_db_dev -->|"secret:shared-db-d…"| website
   website -->|"secret:shared-db-d…"| shared_db_dev
-  shared_db_staging -->|"secret:staging-db-…"| website
-  website -->|"secret:staging-db-…"| shared_db_staging
 ```
 
 ## K8s-Topology
@@ -2196,9 +2192,6 @@ flowchart TB
   end
   subgraph sealed_secrets["sealed-secrets"]
     sealed_secrets_controller["sealed-secrets-controller"]
-  end
-  subgraph STAGING_NS["$STAGING_NS"]
-    shared_db_staging["shared-db-staging"]
   end
   subgraph WORKSPACE_NAMESPACE["${WORKSPACE_NAMESPACE}"]
     tests_results_retention(["tests-results-retention"])

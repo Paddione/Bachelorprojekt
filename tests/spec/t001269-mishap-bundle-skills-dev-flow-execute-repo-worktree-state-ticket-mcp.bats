@@ -62,6 +62,14 @@ setup() {
 # ── Mishap T002284: nested-delegation guard must live in the implementer prompt ──
 
 @test "T002284: dev-flow-execute Auftrag-Block forbids the implementer from spawning sub-agents" {
-  run grep -Fq "Spawne selbst KEINE Subagenten" "$DEV_FLOW_EXECUTE_SKILL"
+  [ -f "$DEV_FLOW_EXECUTE_SKILL" ]
+  local handoff_ref="$REPO/.claude/skills/dev-flow-execute/references/implementer-handoff.md"
+  [ -f "$handoff_ref" ] || handoff_ref="$REPO/.agents/skills/dev-flow-execute/references/implementer-handoff.md"
+
+  run grep -qF 'implementer-handoff' "$DEV_FLOW_EXECUTE_SKILL"
+  [ "$status" -eq 0 ]
+  [ -f "$handoff_ref" ]
+
+  run grep -Fq "Spawne selbst KEINE Subagenten" "$handoff_ref"
   [ "$status" -eq 0 ]
 }

@@ -1,104 +1,38 @@
 # dev.mentolder.de — Operator Runbook
 
-> **⚠️ Veraltet (Stand 2026-05-31).** Der hier beschriebene standalone k3d-in-k3s-Stack
-> auf `k3s-1` ist Legacy: `k3s-1` wurde dauerhaft **DECOMMISSIONED** (Speicherfehler 2026-05-31).
-> Das geplante `devc`-3-Knoten-k3s-HA-Cluster wurde nie gebaut (shelved 2026-05-30).
-> Die aktuelle Dev-Umgebung ist der Flux-Kustomization `flux-dev` (`flux/clusters/fleet/ks-dev.yaml`,
-> `path: ./dev`) unterworfen: sie reconciled `prod-fleet/dev` → `k3d/dev-stack` in den Namespace
-> `workspace-dev` auf dem **`fleet`**-Cluster (Produktionsknoten) — nicht lokal auf dem WSL-Host.
-> Details und offene Frage zum Zielbild: ADR-006, Abschnitt "Umsetzungsstand" (Abweichung 1).
-> Die k3d-Schritte unten bleiben als historische Referenz erhalten.
+Die Dev-Umgebung (`workspace-dev`) läuft als Flux-Kustomization `flux-dev` (`flux/clusters/fleet/ks-dev.yaml`) auf dem **`fleet`**-Cluster.
+Sie spiegelt die Website und Brett gegen die Testdaten; CI baut und veröffentlicht die `:dev`-Images nach ghcr.io (`ghcr.io/paddione/website:dev`, `ghcr.io/paddione/workspace-brett:dev`).
+Ad-hoc Reverse-SSH-Tunnel über sish ermöglichen das Veröffentlichen lokaler Ports unter `<name>.dev.mentolder.de`.
 
-Persistent staging stack hosted as a k3d-in-k3s sibling on
-`k3s-1` (10.0.3.1, wg-mesh 192.168.100.20). Mirrors the website + Brett
-against last night's prod data; ad-hoc reverse-SSH tunnels publish
-localhost ports as `<name>.dev.mentolder.de`. All traffic passes through
-the same Keycloak realm as prod via a dedicated `workspace-dev` OIDC
-client — membership in `/dev-access` is required.
+## Architektur
 
-## Architecture (one paragraph)
-
-A k3d cluster (`mentolder-dev`) runs as a Docker workload on
-`k3s-1` (10.0.3.1). Its HTTP loadbalancer binds `127.0.0.1:18080`. Prod
-Traefik fronts it as an SSO-gated reverse proxy: `oauth2-proxy-dev`
-(in the prod `workspace` namespace, `hostNetwork: true`, pinned to
-`k3s-1`) dials `127.0.0.1:18080` after auth via
-`workspace-dev` Keycloak client. A nightly CronJob `pg_restore`s the
-latest prod snapshot into `shared-db-dev`. `sish` exposes
-`0.0.0.0:2222` for `ssh -R` tunnels, gated by pubkey-auth plus a ufw
-allowlist (`DEV_SSH_ALLOWLIST` → `task dev:firewall:open`).
+`prod-fleet/dev` bindet `k3d/dev-stack/` ein und wird von Flux automatisch auf `fleet` im Namespace `workspace-dev` reconciliert.
+Deployments verwenden `imagePullPolicy: Always`. Ein Redeploy nach einem Commit/CI-Build erfordert lediglich einen Rollout-Restart (`task dev:redeploy:website` bzw. `task dev:redeploy:brett`).
 
 ```
 client
-  └─ HTTPS ─► prod Traefik (k3s-1)
-              └─ workspace-ingress-dev (host *.dev.mentolder.de)
-                  └─ ForwardAuth middleware ─► oauth2-proxy-dev:4181/oauth2/auth
-                  └─ backend ─► oauth2-proxy-dev:4181
-                                  └─ upstream ─► 127.0.0.1:18080 (k3d Traefik)
-                                                  ├─ web.dev.mentolder.de  → website
-                                                  ├─ brett.dev.mentolder.de → brett
-                                                  └─ *.dev.mentolder.de    → sish (catch-all)
-                                                                              ▲
-                                                                              └─ ssh -R from operator
+  └─ HTTPS ─► Traefik (fleet)
+              └─ dev-ingress (host *.dev.mentolder.de)
+                  ├─ web.dev.mentolder.de  → website
+                  ├─ brett.dev.mentolder.de → brett
+                  └─ *.dev.mentolder.de    → sish (catch-all)
+                                                ▲
+                                                └─ ssh -R from operator
 ```
 
 ## Day-to-day operations
 
 | What | Command | Notes |
 |---|---|---|
-| First-time cluster bring-up | `task dev:cluster:create` | SSHes to `$DEV_NODE`, runs `k3d cluster create` with the load-bearing port mappings (`127.0.0.1:18080`, `0.0.0.0:2222`, `127.0.0.1:15432`). |
-| Status | `task dev:cluster:status` | Pods, services, ingresses in `workspace-dev`. |
-| Voller Reset | `task dev:reset` | Images werden re-importiert; `REBUILD=1` baut neu. |
-| Full deploy | `task dev:deploy` | Builds website + brett, imports into k3d, applies manifests. |
-| Website only | `task dev:redeploy:website` | Rebuild + roll. |
-| Brett only | `task dev:redeploy:brett` | Same. |
-| DB refresh | `task dev:db:refresh` | One-shot restore of the latest prod snapshot. The nightly CronJob does this automatically at 03:30 UTC. |
-| Tunnel | `task dev:tunnel -- <name> <port>` | Publishes `localhost:<port>` as `https://<name>.dev.mentolder.de`. |
-| Logs | `task dev:logs -- <svc>` | `<svc>` ∈ `website | brett | shared-db-dev | sish`. |
-| psql | `task dev:psql` | Drops you into `shared-db-dev` as `postgres`. |
-| Firewall allowlist | `task dev:firewall:open` | Applies `DEV_SSH_ALLOWLIST` CIDRs as ufw rules on `$DEV_NODE`. |
+| Website redeploy | `task dev:redeploy:website` | Startet Deployment neu (setzt voraus, dass CI das `:dev`-Image gebaut hat). |
+| Brett redeploy | `task dev:redeploy:brett` | Startet Deployment neu (setzt voraus, dass CI das `:dev`-Image gebaut hat). |
+| Secrets materialisieren | `task dev:secrets` | Legt Secrets (`shared-db-dev-secrets`, `workspace-secrets`, `mcp-tokens`, `ghcr-pull-secret`) in `workspace-dev` an. |
+| DB refresh | `task dev:db:refresh` | Stellt den aktuellen Prod-Snapshot in `shared-db-dev` wieder her. |
+| Tunnel | `task dev:tunnel -- <name> <port>` | Veröffentlicht `localhost:<port>` als `https://<name>.dev.mentolder.de`. |
+| Logs | `task dev:logs -- <svc>` | `<svc>` ∈ `website \| brett \| shared-db-dev \| sish`. |
+| psql | `task dev:psql` | Öffnet eine psql-Shell zu `shared-db-dev` als `postgres`. |
 
-## Adding yourself
+## Gotchas
 
-1. **Keycloak group.** Add your KC user to `/dev-access` via
-   `https://auth.mentolder.de/admin/master/console/#/workspace/groups`.
-   Without group membership oauth2-proxy returns 403 and you'll loop.
-2. **Sish authorized key** (only needed if you want to publish tunnels).
-   Append your public key to `environments/.secrets/mentolder.yaml`
-   under `DEV_SISH_AUTHORIZED_KEYS`, run `task env:seal ENV=mentolder`,
-   commit the resealed sealed-secret, deploy, then `task dev:apply` on
-   the dev cluster to refresh the ConfigMap.
-3. **Public IP allowlist.** If you're tunneling from a new network, add
-   the CIDR to `DEV_SSH_ALLOWLIST` in `environments/mentolder.yaml` and
-   run `task dev:firewall:open`.
-
-## What breaks when
-
-| Symptom | Probable cause | Fix |
-|---|---|---|
-| `web.dev.mentolder.de` returns 502 | k3d cluster not running or oauth2-proxy-dev down | `task dev:cluster:status`; check `kubectl --context fleet -n workspace get pods -l app=oauth2-proxy-dev`. |
-| Looping at the SSO callback | KC user not in `/dev-access`, or `workspace-dev` client redirect URIs out of sync with `${DEV_DOMAIN}` | Re-check group membership; `task keycloak:sync ENV=mentolder`. |
-| `dev-tls.bats` cert check fails | LetsEncrypt rate-limit, or DNS record for `*.dev.mentolder.de` drifted | `kubectl --context fleet -n workspace get certificate workspace-dev-wildcard-tls`; re-pin DNS via the ipv64 API. |
-| `dev:db:refresh` errors with "No backups found" | backup-pvc empty on the prod side | Inspect the prod `backup` CronJob — `task workspace:backup:list ENV=mentolder`. |
-| `ssh -R` from new laptop hangs | `DEV_SSH_ALLOWLIST` missing the CIDR | Add and `task dev:firewall:open`. |
-
-## Gotchas (reproduce in CLAUDE.md§Gotchas before merge)
-
-- **`dev:cluster:create` MUST run while logged in to the laptop that
-  can SSH `root@k3s-1`.** It doesn't bootstrap the node
-  itself — Docker + k3d binary must already be there (Task 10 of the
-  plan covers this).
-- **The dev cluster sees prod data.** Don't write production rituals
-  against the dev DB — they will be erased at 03:30 UTC.
-- **SSH port 2222 is public** but ufw-deny-default'd. Only the
-  `DEV_SSH_ALLOWLIST` CIDRs (`task dev:firewall:open`) and a curated
-  key list (`DEV_SISH_AUTHORIZED_KEYS`) can publish tunnels.
-- **Dev secrets are sealed against the mentolder cert** (the refresh
-  CronJob runs in prod) but materialised inside dev k3d as a plain
-  Secret by `task dev:_materialise-secrets`. Don't apply
-  `environments/sealed-secrets/mentolder.yaml` to the dev context — no
-  sealed-secrets controller there.
-- **`workspace-dev` Keycloak client enforces `/dev-access` group at
-  the oauth2-proxy layer** (`--allowed-groups=/dev-access`). Adding a
-  user without the group means a 403 loop, not a "you can sign in but
-  see no data" — useful when triaging first-visit complaints.
+- **Redeploy erfordert CI-Build:** `task dev:redeploy:*` baut keine lokalen Images mehr, sondern triggert `kubectl rollout restart`. Es muss zuvor ein CI-Build für das `:dev`-Image gelaufen sein.
+- **Manifest-Änderungen über GitOps:** Manifest-Änderungen an `k3d/dev-stack/` werden per PR nach `main` gemergt und von Flux auf dem Cluster reconciliert. Es gibt kein imperatives `dev:apply` mehr.

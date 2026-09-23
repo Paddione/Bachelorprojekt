@@ -82,7 +82,7 @@ task workspace:validate
 - [ ] Keine Restreferenz auf entfernte Tasks oder Dateien:
 
 ```bash
-git grep -nE 'dev:(apply|deploy|build:website|build:brett|firewall:open)\b|Taskfile\.staging|staging-id\.sh|k3d/staging-stack|dev-stack/(cert-manager|traefik-tls)\.yaml|k3d image import' -- . ':!openspec/changes/archive' ':!openspec/changes/dev-stack-k3d-removal' ':!docs/superpowers' ':!k3d/docs-content-built' ':!CHANGELOG.md' ':!scripts/devmesh' ':!tests/spec/local-dev-mesh' ':!tests/spec/sdlc-isolation'
+git grep -nE 'dev:(apply|deploy|build:website|build:brett)\b|Taskfile\.staging|staging-id\.sh|k3d/staging-stack|dev-stack/(cert-manager|traefik-tls)\.yaml|k3d image import' -- . ':!openspec/changes/archive' ':!openspec/changes/dev-stack-k3d-removal' ':!docs/superpowers' ':!k3d/docs-content-built' ':!CHANGELOG.md' ':!scripts/devmesh' ':!tests/spec/local-dev-mesh' ':!tests/spec/sdlc-isolation'
 ```
 
 - [ ] Mandatory CI-Gates:

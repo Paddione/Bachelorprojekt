@@ -11,7 +11,7 @@ into a local k3d cluster, because the local development stack runs on the k3s cl
 SHALL NOT exist; `Taskfile.yml` SHALL NOT define the tasks
 `cluster:create`, `cluster:delete`, `cluster:start`, `cluster:stop`, `cluster:status`, `up`,
 `down`, `workspace:up`, `dev:reset`, `website:build:import`, `einvoice-sidecar:import`,
-`dev:build:website`, `dev:build:brett`, `dev:apply`, `dev:deploy` or `dev:firewall:open`, and
+`dev:build:website`, `dev:build:brett`, `dev:apply` or `dev:deploy`, and
 neither `Taskfile.yml` nor any file under `taskfiles/` SHALL invoke `k3d image import`. The
 directory `k3d/` stays, because it holds the production Kustomize base, and `k3d/dev-stack/`
 stays, because Flux renders it into `workspace-dev` on `fleet`. Tools that document or verify
@@ -24,7 +24,7 @@ the completed decommission (`scripts/devmesh/`) are out of scope of this require
 - **THEN** it lists `workspace:deploy` and `dev:redeploy:website` and lists none of
   `cluster:create`, `cluster:delete`, `cluster:start`, `cluster:stop`, `cluster:status`,
   `workspace:up`, `dev:reset`, `website:build:import`, `einvoice-sidecar:import`,
-  `dev:build:website`, `dev:build:brett`, `dev:apply`, `dev:deploy`, `dev:firewall:open` or any
+  `dev:build:website`, `dev:build:brett`, `dev:apply`, `dev:deploy` or any
   task starting with `staging:`
 
 #### Scenario: Removed files are absent while the production base remains

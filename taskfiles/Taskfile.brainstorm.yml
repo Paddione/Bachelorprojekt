@@ -23,7 +23,7 @@ vars:
 tasks:
 
   setup:
-    desc: "[brainstorm] One-time setup: apply DEV_SSH_ALLOWLIST ufw rules on the dev node (keys come from DEV_SISH_AUTHORIZED_KEYS via dev:deploy)"
+    desc: "[brainstorm] One-time setup: apply DEV_SSH_ALLOWLIST ufw rules on the dev node"
     cmds:
       - task: firewall:open
 

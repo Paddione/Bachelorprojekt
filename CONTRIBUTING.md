@@ -57,7 +57,11 @@ Die [Website-Kurzreferenz](components/website/CLAUDE.md#dev-quick-start) beschre
 | Website | pnpm | `components/website/pnpm-lock.yaml` |
 | Brett | npm | `components/brett/package-lock.json` |
 
-Lokale Einstellungen und laufende Arbeit vor Cleanup prüfen: `git status --short`, `git stash list` und `git worktree list`. Ignorierte Dateien werden von `git stash -u` nicht erfasst; benötigte lokale Konfiguration separat sichern. Fremde Worktrees und Stashes nur nach belegter Sicherung bereinigen.
+#### Lokales Setup bewahren (Verlust durch git reset verhindern)
+
+Lokale Einstellungen und laufende Arbeit vor Cleanup prüfen: `git status --short`, `git stash list` und `git worktree list`. Bei einem unbedachten `git reset --hard` werden uncommitted oder ungestashte Änderungen unwiderruflich gelöscht.
+* **Best Practice:** Nutze vor einem `git reset --hard` immer `git stash push -u` (oder `git stash --include-untracked`), um deine lokalen Einstellungen und uncommitted Code zu sichern. Ignorierte Dateien werden von `git stash -u` nicht erfasst; benötigte lokale Konfiguration separat sichern. Fremde Worktrees und Stashes nur nach belegter Sicherung bereinigen.
+* **Selektives Zurücksetzen:** Nutze `git checkout origin/main -- <paths>` oder `git restore --source=origin/main <paths>` anstelle von `git reset --hard`, wenn du nur bestimmte Dateien auf den Stand von `origin/main` bringen möchtest, ohne das restliche Arbeitsverzeichnis zu beeinträchtigen.
 
 Befehle über den [Task-Oracle](CLAUDE.md#running-tasks) ermitteln. Weitere Einstiegspunkte: [Dokumentationswegweiser](docs/README.md).
 

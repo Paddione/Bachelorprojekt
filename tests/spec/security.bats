@@ -70,7 +70,6 @@ targets = [
     ("k3d/dev-pod/deployment.yaml", "dev-pod", True),
     ("k3d/dev-stack/brett-dev.yaml", "brett", True),
     ("k3d/dev-stack/website-dev.yaml", "website", True),
-    ("k3d/staging-stack/website-staging.yaml", "website", True),
 ]
 fails = []
 for rel, dep, expect_pod_nonroot in targets:
@@ -105,7 +104,6 @@ targets = [
     ("k3d/dev-pod/deployment.yaml", "dev-pod", "mcp-node", False),
     ("k3d/dev-stack/brett-dev.yaml", "brett", "brett", True),
     ("k3d/dev-stack/website-dev.yaml", "website", "website", False),
-    ("k3d/staging-stack/website-staging.yaml", "website", "website", False),
 ]
 fails = []
 for rel, dep, cname, is_brett in targets:

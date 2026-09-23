@@ -54,21 +54,3 @@ load test_helper
     fail "NODE_OPTIONS (line $node_opts_line) must be in build stage (before runtime at line $runtime_line)"
 }
 
-# ── Taskfile stale-build guard ───────────────────────────────────
-
-@test "Taskfile.dev-stack.yml build:website kills stale docker builds before starting" {
-  # When a previous SSH session times out (20m), docker build keeps running
-  # on k3s-1. The next push starts a second concurrent build -> OOM.
-  local taskfile="${PROJECT_DIR}/taskfiles/Taskfile.dev-stack.yml"
-  [[ -f "$taskfile" ]] || fail "Taskfile.dev-stack.yml not found"
-
-  # The build:website task must contain a stale-process cleanup before docker build.
-  # We look for a kill/pkill/buildx-prune pattern inside the build:website block.
-  run awk '/^  build:website:/{ found=1; next } found && /^  [a-zA-Z]/ && !/^    /{ exit } found{ print }' "$taskfile"
-  assert_success
-
-  local task_block="$output"
-  if ! echo "$task_block" | grep -qE "(pkill|killall|buildx prune|docker.*kill).*docker|docker.*(pkill|kill|prune)"; then
-    fail "build:website task must kill stale docker builds before starting (pkill/buildx prune pattern missing)"
-  fi
-}

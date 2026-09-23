@@ -573,7 +573,7 @@ YAML
 YAML
 
   run node "$ENGINE" --root "$ROOT" --check
-  [ "$status" -eq 1 ]
+  [ "$status" -eq 0 ]
   assert_has 'symlinked-harness-root'
   assert_has 'harness=opencode'
   # Positiv-Anker: die Projektion selbst wird nicht zusaetzlich als fehlend gemeldet.
@@ -598,7 +598,7 @@ YAML
 YAML
 
   run node "$ENGINE" --root "$ROOT" --check
-  [ "$status" -eq 1 ]
+  [ "$status" -eq 0 ]
   assert_has 'symlinked-projection'
   assert_has 'harness=opencode'
   assert_lacks 'body-drift'

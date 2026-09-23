@@ -794,11 +794,12 @@ skills:
       claude_code:
         path: .claude/skills/openspec-apply-change
         sync: identical
+      opencode:
+        path: .opencode/skills/openspec-apply-change
+        sync: identical
     exclusions:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
-
   - id: openspec-archive-change
     provenance: project
     exposure: native
@@ -807,11 +808,12 @@ skills:
       claude_code:
         path: .claude/skills/openspec-archive-change
         sync: identical
+      opencode:
+        path: .opencode/skills/openspec-archive-change
+        sync: identical
     exclusions:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
-
   - id: openspec-explore
     provenance: project
     exposure: native
@@ -820,11 +822,12 @@ skills:
       claude_code:
         path: .claude/skills/openspec-explore
         sync: identical
+      opencode:
+        path: .opencode/skills/openspec-explore
+        sync: identical
     exclusions:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
-
   - id: openspec-propose
     provenance: project
     exposure: native
@@ -833,11 +836,12 @@ skills:
       claude_code:
         path: .claude/skills/openspec-propose
         sync: identical
+      opencode:
+        path: .opencode/skills/openspec-propose
+        sync: identical
     exclusions:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
-      opencode: "OpenCode reaches OpenSpec through repo commands and dev-flow-plan, not this Claude-only fork."
-
   # ── OpenCode native corpus ──
   - id: find-skills
     provenance: vendor
@@ -847,11 +851,12 @@ skills:
       opencode:
         path: .opencode/skills/find-skills
         sync: identical
+      claude_code:
+        path: .claude/skills/find-skills
+        sync: identical
     exclusions:
       codex: "OpenCode-only vendor skill from the skills CLI ecosystem."
       agy: "OpenCode-only vendor skill from the skills CLI ecosystem."
-      claude_code: "OpenCode-only vendor skill from the skills CLI ecosystem."
-
   - id: freetoken-setup
     provenance: project
     exposure: native
@@ -860,10 +865,12 @@ skills:
       opencode:
         path: .opencode/skills/freetoken-setup
         sync: identical
+      claude_code:
+        path: .claude/skills/freetoken-setup
+        sync: identical
     exclusions:
       codex: "OpenCode-only backend configuration for the local FreeToken host."
       agy: "OpenCode-only backend configuration for the local FreeToken host."
-      claude_code: "OpenCode-only backend configuration for the local FreeToken host."
 
   - id: hf-mem
     provenance: vendor
@@ -873,10 +880,12 @@ skills:
       opencode:
         path: .opencode/skills/hf-mem
         sync: identical
+      claude_code:
+        path: .claude/skills/hf-mem
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-best
     provenance: vendor
@@ -886,10 +895,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-best
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-best
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-community-evals
     provenance: vendor
@@ -899,10 +910,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-community-evals
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-community-evals
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-datasets
     provenance: vendor
@@ -912,10 +925,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-datasets
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-datasets
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-llm-trainer
     provenance: vendor
@@ -925,10 +940,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-llm-trainer
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-llm-trainer
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-local-models
     provenance: vendor
@@ -938,10 +955,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-local-models
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-local-models
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-lora-space-builder
     provenance: vendor
@@ -951,10 +970,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-lora-space-builder
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-lora-space-builder
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-paper-publisher
     provenance: vendor
@@ -964,10 +985,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-paper-publisher
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-paper-publisher
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-papers
     provenance: vendor
@@ -977,10 +1000,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-papers
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-papers
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-tool-builder
     provenance: vendor
@@ -990,10 +1015,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-tool-builder
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-tool-builder
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-trackio
     provenance: vendor
@@ -1003,10 +1030,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-trackio
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-trackio
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-vision-trainer
     provenance: vendor
@@ -1016,10 +1045,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-vision-trainer
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-vision-trainer
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: huggingface-zerogpu
     provenance: vendor
@@ -1029,10 +1060,12 @@ skills:
       opencode:
         path: .opencode/skills/huggingface-zerogpu
         sync: identical
+      claude_code:
+        path: .claude/skills/huggingface-zerogpu
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: llama-cpp
     provenance: vendor
@@ -1042,10 +1075,12 @@ skills:
       opencode:
         path: .opencode/skills/llama-cpp
         sync: identical
+      claude_code:
+        path: .claude/skills/llama-cpp
+        sync: identical
     exclusions:
       codex: "OpenCode-only vendor skill for llama.cpp inference."
       agy: "OpenCode-only vendor skill for llama.cpp inference."
-      claude_code: "OpenCode-only vendor skill for llama.cpp inference."
 
   - id: opencode-git-workflow
     provenance: project
@@ -1055,10 +1090,12 @@ skills:
       opencode:
         path: .opencode/skills/opencode-git-workflow
         sync: identical
+      claude_code:
+        path: .claude/skills/opencode-git-workflow
+        sync: identical
     exclusions:
       codex: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
       agy: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
-      claude_code: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
 
   - id: sdlc-autopilot
     provenance: project
@@ -1068,10 +1105,12 @@ skills:
       opencode:
         path: .opencode/skills/sdlc-autopilot
         sync: identical
+      claude_code:
+        path: .claude/skills/sdlc-autopilot
+        sync: identical
     exclusions:
       codex: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
       agy: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
-      claude_code: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
 
   - id: skill-craft
     provenance: project
@@ -1081,10 +1120,12 @@ skills:
       opencode:
         path: .opencode/skills/skill-craft
         sync: identical
+      claude_code:
+        path: .claude/skills/skill-craft
+        sync: identical
     exclusions:
       codex: "OpenCode-native router for the locally installed skill-lifecycle helpers."
       agy: "OpenCode-native router for the locally installed skill-lifecycle helpers."
-      claude_code: "OpenCode-native router for the locally installed skill-lifecycle helpers."
 
   - id: skill-creator
     provenance: vendor
@@ -1094,10 +1135,12 @@ skills:
       opencode:
         path: .opencode/skills/skill-creator
         sync: identical
+      claude_code:
+        path: .claude/skills/skill-creator
+        sync: identical
     exclusions:
       codex: "OpenCode-only upstream skill-authoring helper."
       agy: "OpenCode-only upstream skill-authoring helper."
-      claude_code: "OpenCode-only upstream skill-authoring helper."
 
   - id: train-sentence-transformers
     provenance: vendor
@@ -1107,10 +1150,12 @@ skills:
       opencode:
         path: .opencode/skills/train-sentence-transformers
         sync: identical
+      claude_code:
+        path: .claude/skills/train-sentence-transformers
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: transformers-js
     provenance: vendor
@@ -1120,10 +1165,12 @@ skills:
       opencode:
         path: .opencode/skills/transformers-js
         sync: identical
+      claude_code:
+        path: .claude/skills/transformers-js
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."
 
   - id: trl-training
     provenance: vendor
@@ -1133,7 +1180,9 @@ skills:
       opencode:
         path: .opencode/skills/trl-training
         sync: identical
+      claude_code:
+        path: .claude/skills/trl-training
+        sync: identical
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-      claude_code: "OpenCode-only HuggingFace vendor skill pack."

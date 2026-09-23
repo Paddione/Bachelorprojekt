@@ -57,7 +57,7 @@ Die [Website-Kurzreferenz](components/website/CLAUDE.md#dev-quick-start) beschre
 | Website | pnpm | `components/website/pnpm-lock.yaml` |
 | Brett | npm | `components/brett/package-lock.json` |
 
-Lokale Einstellungen und laufende Arbeit vor Cleanup prüfen: `git status --short`, `git stash list` und `git worktree list`. Ignorierte Dateien werden von `git stash -u` nicht erfasst; benötigte lokale Konfiguration separat sichern. Fremde Worktrees und Stashes nur nach belegter Sicherung bereinigen.
+Lokale Einstellungen und laufende Arbeit vor Cleanup prüfen: `git status --short`, `git stash list` und `git worktree list`. Kein unbedachtes `git reset --hard`; uncommitted Änderungen mit `git stash push -u` sichern. Ignorierte Dateien werden von `git stash -u` nicht erfasst; benötigte lokale Konfiguration separat sichern. Fremde Worktrees und Stashes nur nach belegter Sicherung bereinigen.
 
 Befehle über den [Task-Oracle](CLAUDE.md#running-tasks) ermitteln. Weitere Einstiegspunkte: [Dokumentationswegweiser](docs/README.md).
 

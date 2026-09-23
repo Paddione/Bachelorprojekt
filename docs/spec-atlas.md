@@ -2,20 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2421 · Scenarios: 5374
+Specs: 129 · Requirements: 2422 · Scenarios: 5379
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 89 · Scenarios: 189 · Lines: 2312
+Reqs: 90 · Scenarios: 194 · Lines: 2350
 Last touches:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | 2026-09-23 | ADDED
+  - The archive commit carries every SSOT spec its deltas target | T900339 | 2026-09-23 | ADDED
   - Symlink-Set entspricht den getrackten Skills | T900238 | 2026-09-23 | ADDED
   - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | 2026-09-23 | ADDED
   - Skip bei deaktivierten Symlinks | T900238 | 2026-09-23 | ADDED
-  - The reply footer carries no next-step proposal | T900235 | 2026-09-17 | ADDED
-In-flight:
-  - The archive commit carries every SSOT spec its deltas target | T900339 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

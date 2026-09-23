@@ -37,7 +37,7 @@ function gitCommonDir(root) {
 
 function mishapBufferPath(root) {
   const gitDir = gitCommonDir(root);
-  return join(gitDir, '..', 'mishap-buffer.json');
+  return join(gitDir, 'mishap-buffer.json');
 }
 
 function readBuffer(root) {

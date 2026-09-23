@@ -1,0 +1,267 @@
+{
+  "meta": {
+    "slug": "mishap-buffer-path-unification",
+    "ticket_id": "T900309",
+    "generated_from": "main@3e8cf5ccf",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/ticket-mcp-node/server.mjs",
+      "language": "javascript",
+      "loc": 1098,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/ticket-mcp-node/runner.mjs",
+      "language": "javascript",
+      "loc": 214,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 586
+    },
+    {
+      "path": "tests/spec/mcp-skill-integration.bats",
+      "language": "bash",
+      "loc": 198,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:13:function ok(id, result) { return { jsonrpc: '2.0', id, result }; }",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "13:function ok(id, result) { return { jsonrpc: '2.0', id, result }; }(...)",
+      "type_text": "13:function ok(id, result) { return { jsonrpc: '2.0', id, result }; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:14:function fail(id, code, message) { return { jsonrpc: '2.0', id, error: { code, message } }; }",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "14:function fail(id, code, message) { return { jsonrpc: '2.0', id, error: { code, message } }; }(...)",
+      "type_text": "14:function fail(id, code, message) { return { jsonrpc: '2.0', id, error: { code, message } }; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:15:function writeMsg(msg) { process.stdout.write(JSON.stringify(msg) + '\\n'); }",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "15:function writeMsg(msg) { process.stdout.write(JSON.stringify(msg) + '\\n'); }(...)",
+      "type_text": "15:function writeMsg(msg) { process.stdout.write(JSON.stringify(msg) + '\\n'); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:17:function brandOf(a) { return (a?.brand || 'mentolder'); }",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "17:function brandOf(a) { return (a?.brand || 'mentolder'); }(...)",
+      "type_text": "17:function brandOf(a) { return (a?.brand || 'mentolder'); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:27:function gitCommonDir(root) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "27:function gitCommonDir(root) {(...)",
+      "type_text": "27:function gitCommonDir(root) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:38:function mishapBufferPath(root) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "38:function mishapBufferPath(root) {(...)",
+      "type_text": "38:function mishapBufferPath(root) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:43:function readBuffer(root) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "43:function readBuffer(root) {(...)",
+      "type_text": "43:function readBuffer(root) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:53:function writeBuffer(root, entries) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "53:function writeBuffer(root, entries) {(...)",
+      "type_text": "53:function writeBuffer(root, entries) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:62:function isIncidentType(mtype) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "62:function isIncidentType(mtype) {(...)",
+      "type_text": "62:function isIncidentType(mtype) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:66:function normalizeTitle(s) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "66:function normalizeTitle(s) {(...)",
+      "type_text": "66:function normalizeTitle(s) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:89:function buildIncidentTicketArgs(entry, brand) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "89:function buildIncidentTicketArgs(entry, brand) {(...)",
+      "type_text": "89:function buildIncidentTicketArgs(entry, brand) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:118:function mishapSeverity(mtype) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "118:function mishapSeverity(mtype) {(...)",
+      "type_text": "118:function mishapSeverity(mtype) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:128:function buildFactoryFixTicketArgs(entry, brand) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "128:function buildFactoryFixTicketArgs(entry, brand) {(...)",
+      "type_text": "128:function buildFactoryFixTicketArgs(entry, brand) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:158:function discardBuffer(entries, brand) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "158:function discardBuffer(entries, brand) {(...)",
+      "type_text": "158:function discardBuffer(entries, brand) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:924:function handleToolCall(name, args) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "924:function handleToolCall(name, args) {(...)",
+      "type_text": "924:function handleToolCall(name, args) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:995:  function err(e) { lines.push('FEHLER: ' + e.message); }",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "995:  function err(e) { lines.push('FEHLER: ' + e.message); }(...)",
+      "type_text": "995:  function err(e) { lines.push('FEHLER: ' + e.message); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:1055:function handleGetMishapBuffer() {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "1055:function handleGetMishapBuffer() {(...)",
+      "type_text": "1055:function handleGetMishapBuffer() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/server.mjs:1066:function handleFlushMishapBuffer(brand) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/server.mjs",
+      "signature": "1066:function handleFlushMishapBuffer(brand) {(...)",
+      "type_text": "1066:function handleFlushMishapBuffer(brand) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/runner.mjs:11:function findRepoRoot() {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/runner.mjs",
+      "signature": "11:function findRepoRoot() {(...)",
+      "type_text": "11:function findRepoRoot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/runner.mjs:29:function currentRepoRoot() {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/runner.mjs",
+      "signature": "29:function currentRepoRoot() {(...)",
+      "type_text": "29:function currentRepoRoot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/runner.mjs:33:function ticketShPath() {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/runner.mjs",
+      "signature": "33:function ticketShPath() {(...)",
+      "type_text": "33:function ticketShPath() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/runner.mjs:48:function resolveBash() {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/runner.mjs",
+      "signature": "48:function resolveBash() {(...)",
+      "type_text": "48:function resolveBash() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/runner.mjs:67:function toBashPath(p) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/runner.mjs",
+      "signature": "67:function toBashPath(p) {(...)",
+      "type_text": "67:function toBashPath(p) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/runner.mjs:106:function parseArgs(argv) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/runner.mjs",
+      "signature": "106:function parseArgs(argv) {(...)",
+      "type_text": "106:function parseArgs(argv) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp-node/runner.mjs:123:function mishapBufferPath(repoRoot) {",
+      "kind": "function",
+      "file": "scripts/ticket-mcp-node/runner.mjs",
+      "signature": "123:function mishapBufferPath(repoRoot) {(...)",
+      "type_text": "123:function mishapBufferPath(repoRoot) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-skill-integration.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-skill-integration.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -4969,6 +4969,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900309": [
+    {
+      "slug": "mishap-buffer-path-unification",
+      "status": "plan_staged"
+    }
+  ],
   "T900310": [
     {
       "slug": "2026-09-22-k3d-tooling-removal",

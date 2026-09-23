@@ -1,7 +1,6 @@
 # devmesh-TLS (T900118, design.md D3). Ausserhalb des Kustomize-Bundles appliziert von
 # task devmesh:deploy mit `envsubst '$DEVMESH_DOMAIN'`: cert-manager-CRDs muessen zuerst
 # existieren, und der Namespace-Transformer wuerde kube-system umschreiben.
-# Muster: k3d/dev-stack/cert-manager.yaml + k3d/dev-stack/traefik-tls.yaml.
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:

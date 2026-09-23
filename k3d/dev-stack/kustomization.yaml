@@ -47,9 +47,7 @@ patches:
       version: v1
       kind: Deployment
       name: factory-runner
-# images: populated by `task dev:deploy` with concrete tags at apply time.
 # factory-runner ist die Ausnahme: statisch auf ghcr.io/paddione/factory-runner
 # gepinnt (Tag :latest bis zum ersten CI-Build, Digest hart vor dem Cutover —
 # Strategie-Kommentar in factory-runner.yaml, T016422 T2.3).
-# Note: cert-manager.yaml + traefik-tls.yaml are applied OUTSIDE this bundle by
-# the dev:apply bootstrap (CRDs-first / kube-system namespace). [T000363]
+

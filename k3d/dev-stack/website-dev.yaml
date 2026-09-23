@@ -53,7 +53,7 @@ spec:
       containers:
         - name: website
           image: ghcr.io/paddione/website:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000

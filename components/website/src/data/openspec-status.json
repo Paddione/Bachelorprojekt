@@ -4981,6 +4981,12 @@
       "status": "archived"
     }
   ],
+  "T900332": [
+    {
+      "slug": "dev-stack-k3d-removal",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

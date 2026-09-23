@@ -27,7 +27,7 @@ setup() {
   # Zusaetzlich formatfrei: je ein Namespace aus einem ausgelagerten Taskfile
   # taucht ueberhaupt auf. Ohne Zeilenanker, damit die Zusicherung ueber
   # task-Versionen hinweg gilt.
-  for ns in 'llm:' 'factory:' 'staging:' 'brain:'; do
+  for ns in 'llm:' 'factory:' 'dev:' 'brain:'; do
     echo "$output" | grep -qF "$ns" || {
       echo "Namespace '${ns}' fehlt in task --list — include nicht eingebunden?" >&2
       return 1

@@ -24,10 +24,11 @@ setup() {
 # Positiv-Anker (T002356-M1): Die Negativ-Aussage in Test 2 wäre ohne diesen
 # Test vakuos (leeres Mandat → "nicht enthalten" gälte trivial). Der Anker
 # stellt sicher, dass der Schritt-2-Abschnitt existiert und die PR-Erstellung
-# nennt — er wird rot, sobald der Abschnitt verschwindet.
+# nennt — er wird rot, sobald der Abschnitt verschwindet. Anker-Wortlaut folgt
+# dem Skill-Text ("Implementer bis PR-Erstellung → ENDE", T900346).
 @test "T005565: Implementer-Mandat nennt weiterhin die PR-Erstellung" {
   MANDATE="$(awk '/^## Schritt 2:/{flag=1; next} /^## /&&flag{exit} flag' "$SKILL")"
-  run grep -qF "Erstelle einen PR" <<<"$MANDATE"
+  run grep -qF "PR-Erstellung" <<<"$MANDATE"
   [ "$status" -eq 0 ]
 }
 

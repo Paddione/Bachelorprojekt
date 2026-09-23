@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2403 · Scenarios: 5337
+Specs: 128 · Requirements: 2403 · Scenarios: 5336
 
 ## factory-pipeline
 
@@ -61,16 +61,14 @@ Last touches:
 ## delivery
 
 ### ci-cd
-Reqs: 118 · Scenarios: 341 · Lines: 3630
+Reqs: 118 · Scenarios: 340 · Lines: 3625
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
+  - Dev-Build-Safety — OOM-Schutz für Astro-Build | T900332 | 2026-09-23 | MODIFIED
   - A unit test never removes itself from CI because a dependency was not installed | T013674 | 2026-09-17 | ADDED
   - GitLab CI image refs carry a full registry host | T014566 | 2026-09-17 | ADDED
   - Staging cronjobs run against a schema-complete database | T014566 | 2026-09-17 | ADDED
   - Installed ticket-mcp-go binary staleness is detectable | T014735 | 2026-09-17 | ADDED
-  - Build embeds the git revision | T014735 | 2026-09-17 | ADDED
-In-flight:
-  - Dev-Build-Safety — OOM-Schutz für Astro-Build | T900332 | active | MODIFIED
 
 ### fleet-operations
 Reqs: 65 · Scenarios: 121 · Lines: 1279
@@ -83,17 +81,14 @@ Last touches:
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | 2026-09-17 | ADDED
 
 ### workspace-deploy
-Reqs: 90 · Scenarios: 167 · Lines: 1934
+Reqs: 88 · Scenarios: 164 · Lines: 1892
 Paths: k3d/, prod/, prod-fleet/, prod-mentolder/, prod-korczewski/, Taskfile, environments/
 Last touches:
+  - Staging-ID-Skript normalisiert Branch-Namen deterministisch | T900332 | 2026-09-23 | REMOVED
+  - Staging-Stack-Kustomize-Build akzeptiert Platzhalter-Variablen | T900332 | 2026-09-23 | REMOVED
   - k3d base is single-node-neutral | T900310 | 2026-09-22 | MODIFIED
   - ENV=dev targets the current kubectl context | T900310 | 2026-09-22 | MODIFIED
   - Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu | T900310 | 2026-09-22 | REMOVED
-  - Brand and staging Kustomizations reconcile after their Sealed Secrets | T900014 | 2026-09-17 | ADDED
-  - Post-Deploy-Schritte nach dem Kustomize-Apply | T002184 | 2026-08-03 | ADDED
-In-flight:
-  - Staging-ID-Skript normalisiert Branch-Namen deterministisch | T900332 | active | REMOVED
-  - Staging-Stack-Kustomize-Build akzeptiert Platzhalter-Variablen | T900332 | active | REMOVED
 
 ## llm
 
@@ -602,17 +597,13 @@ Last touches:
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | 2026-09-17 | ADDED
 
 ### local-dev-mesh
-Reqs: 18 · Scenarios: 39 · Lines: 423
+Reqs: 20 · Scenarios: 42 · Lines: 469
 Last touches:
-  - The repository ships no local k3d cluster tooling | T900310 | 2026-09-22 | ADDED
+  - The repository ships no local k3d cluster tooling | T900332 | 2026-09-23 | MODIFIED
+  - Dev redeploy pulls the CI-built dev image | T900332 | 2026-09-23 | ADDED
+  - Dev secrets are materialised by an explicit task | T900332 | 2026-09-23 | ADDED
   - The k3d dev cluster is removed only after the acceptance gate | T900120 | 2026-09-20 | REMOVED
   - No active reference to the k3d dev context remains | T900120 | 2026-09-20 | MODIFIED
-  - k3d-mentolder-dev is decommissioned after devmesh acceptance | T900120 | 2026-09-20 | REMOVED
-  - The k3d migration verifies row counts against the archived dump | T900120 | 2026-09-20 | ADDED
-In-flight:
-  - The repository ships no local k3d cluster tooling | T900332 | active | MODIFIED
-  - Dev redeploy pulls the CI-built dev image | T900332 | active | ADDED
-  - Dev secrets are materialised by an explicit task | T900332 | active | ADDED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37

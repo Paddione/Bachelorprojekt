@@ -569,50 +569,6 @@ health probe for Collabora to succeed.
 
 ---
 
-### Requirement: Staging-ID-Skript normalisiert Branch-Namen deterministisch
-
-The system SHALL normalize arbitrary git branch names into a DNS-safe staging identifier:
-lowercase alphanumeric characters and hyphens only, at most 20 characters, starting with
-a letter (digits prefixed with `s-`), with `refs/heads/` stripped, slashes and underscores
-replaced by hyphens, and consecutive separators collapsed to a single hyphen.
-
-#### Scenario: Feature-Branch-Normalisierung
-
-- **GIVEN** ein Branch-Name `feature/T000616-staging-on-demand`
-- **WHEN** `bash scripts/staging-id.sh "feature/T000616-staging-on-demand"` ausgeführt wird
-- **THEN** ist das Ergebnis ein String aus `[a-z0-9-]` mit maximal 20 Zeichen
-- **AND** derselbe Input liefert immer dasselbe Ergebnis (deterministisch)
-
-#### Scenario: Sonderfälle werden korrekt behandelt
-
-- **GIVEN** Branch-Name `refs/heads/feature/abc` (mit `refs/heads/`-Prefix)
-- **WHEN** `bash scripts/staging-id.sh` aufgerufen wird
-- **THEN** ist das Ergebnis `feature-abc` (Prefix entfernt, Slash zu Bindestrich)
-- **AND** ein Branch-Name, der mit einer Ziffer beginnt (`123-feature`), erhält ein
-  Buchstaben-Prefix (z.B. `s-`), sodass der ID mit einem Buchstaben beginnt
-
----
-
-### Requirement: Staging-Stack-Kustomize-Build akzeptiert Platzhalter-Variablen
-
-The system SHALL produce a valid Kustomize build of `k3d/staging-stack/` when
-`STAGING_NS`, `STAGING_ID`, and `STAGING_IMAGE` are provided via `envsubst`, and the
-rendered output SHALL contain a Namespace, StatefulSet, Deployment, Ingress, and Job
-resource.
-
-#### Scenario: Staging-Build mit Platzhaltern
-
-- **GIVEN** `STAGING_NS=workspace-staging-test`, `STAGING_ID=test`,
-  `STAGING_IMAGE=ghcr.io/paddione/workspace-website:staging-test`
-- **WHEN** `kubectl kustomize k3d/staging-stack/ | envsubst ...` ausgeführt wird
-- **THEN** enthält der Output `workspace-staging-test` als Namespace-Name
-- **AND** der Output enthält die Image-Referenz
-  `ghcr.io/paddione/workspace-website:staging-test`
-- **AND** der Output enthält `kind: Namespace`, `kind: StatefulSet`, `kind: Deployment`,
-  `kind: Ingress` und `kind: Job`
-
----
-
 ### Requirement: changed-manifests.sh erkennt Manifest-Änderungen korrekt
 
 The system SHALL detect changes in `k3d/`, `prod-fleet/`, `prod-mentolder/`,
@@ -1932,3 +1888,5 @@ The system SHALL have BATS tests in `tests/spec/ci-cd.bats` that verify the korc
 <!-- merged from change delta workspace-deploy.md (e8728dc9e945) -->
 
 <!-- merged from change delta workspace-deploy.md (1ca810891061) -->
+
+<!-- merged from change delta workspace-deploy.md (835474bc986e) -->

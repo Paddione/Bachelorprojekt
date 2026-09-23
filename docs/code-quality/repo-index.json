@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1346,
+      "file_count": 1347,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -408,6 +408,7 @@
         "tests/spec/agent-roster.bats",
         "tests/spec/agent-skills.bats",
         "tests/spec/agent-skills/agent-lock-claim-help-flag.bats",
+        "tests/spec/agent-skills/archive-stage-new-ssot.bats",
         "tests/spec/agent-skills/automerge-preflight-check.bats",
         "tests/spec/agent-skills/bats-negation-keine-bang-pipeline.bats",
         "tests/spec/agent-skills/check-pr-automerge-fail-closed.bats",

@@ -634,7 +634,7 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # zu pushen (PR #4529/#4533).
       # Pfade seit T006999 (p4): website/ -> components/website/.
       task freshness:regenerate
-      archive_stage_commit "$SLUG"
+      archive_stage_commit "$SLUG" ${ARCHIVE_ARGS[@]+"${ARCHIVE_ARGS[@]}"}
       git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
       # Pre-Push-Freshness-Verifikation (T006371): freshness:check diffet die
       # regenerierten Artefakte gegen HEAD. Meldet er Drift, werden die
@@ -643,7 +643,7 @@ if [[ -n "${ARCHIVE_DIR:-}" ]]; then
       # "regenerated but not staged", PR #4529/#4533).
       if ! task freshness:check; then
         echo "freshness:check meldet Drift — regenerierte Artefakte stagen und Archiv-Commit amenden" >&2
-        archive_stage_commit "$SLUG"
+        archive_stage_commit "$SLUG" ${ARCHIVE_ARGS[@]+"${ARCHIVE_ARGS[@]}"}
         git commit --amend --no-edit
         task freshness:check
       fi

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.358.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.3...website-v1.358.4) (2026-09-23)
+
+
+### Code Refactoring
+
+* **infra:** remove k3d dev-stack SSH imports and staging stack [T900332] ([#5829](https://github.com/Paddione/Bachelorprojekt/issues/5829)) ([565ef84](https://github.com/Paddione/Bachelorprojekt/commit/565ef842590521f6428abb9b9b08927a3c4a6160))
+
 ## [1.358.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.2...website-v1.358.3) (2026-09-23)
 
 

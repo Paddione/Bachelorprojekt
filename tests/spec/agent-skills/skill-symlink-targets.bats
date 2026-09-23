@@ -50,15 +50,33 @@ _symlinks() {
   find "$SKILL_DIR" -maxdepth 1 -type l | sort
 }
 
+# Skills mit claude_code-Exklusion im Registry (T900151: native OpenCode
+# Vendor-Skills erhalten explizite Exklusionen, keine Claude-Shims) — ein
+# Skill-Name pro Zeile.
+_excluded_from_claude() {
+  awk '
+    /^  - id: / {
+      if (id != "" && excl) print id
+      id = $3; excl = 0; in_excl = 0; next
+    }
+    /^    exclusions:$/ { in_excl = 1; next }
+    /^    [a-z]/ { in_excl = 0 }
+    in_excl && /^      claude_code:/ { excl = 1 }
+    END { if (id != "" && excl) print id }
+  ' "$REPO_ROOT/docs/agent-guide/registry/skills.yaml"
+}
+
 # Soll-Menge (T900238/F2): getrackte .opencode/skills/*/SKILL.md-Verzeichnisse
-# plus OVERVIEW.md — abgeleitet aus git ls-files, nicht aus dem Dateisystem.
+# plus OVERVIEW.md — abgeleitet aus git ls-files, nicht aus dem Dateisystem —
+# MINUS Registry-Exklusionen (T900151/T900347): Ein exkludierter Skill darf
+# keinen .claude/skills-Symlink tragen, sonst waere die Exklusion wirkungslos.
 _expected_symlink_names() {
   {
     git -C "$REPO_ROOT" ls-files -- .opencode/skills \
       | grep '/SKILL\.md$' \
       | sed 's#^\.opencode/skills/##; s#/SKILL\.md$##'
     printf '%s\n' 'OVERVIEW.md'
-  } | sort
+  } | sort | comm -23 - <(_excluded_from_claude | sort -u)
 }
 
 # Ist-Menge: Basenamen der Symlinks direkt unter .claude/skills.

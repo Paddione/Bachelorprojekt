@@ -16,8 +16,8 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "compaction block: buffer 96000" {
-  run grep -qF '"buffer": 96000' "$REPO/.opencode/opencode.jsonc"
+@test "compaction block: buffer 33600" {
+  run grep -qF '"buffer": 33600' "$REPO/.opencode/opencode.jsonc"
   [ "$status" -eq 0 ]
 }
 
@@ -34,8 +34,44 @@ setup() {
 }
 
 @test "compaction block: threshold math comment" {
-  run grep -qF '200000 − max(8192, 96000) = 104000' "$REPO/.opencode/opencode.jsonc"
+  run grep -qF '153600 − max(8192, 33600) = 120000' "$REPO/.opencode/opencode.jsonc"
   [ "$status" -eq 0 ]
+}
+
+@test "compaction trigger for the default model is 120000 (T900350)" {
+  if ! node -e "try{require('json5')}catch(e){process.exit(77)}" 2>/dev/null; then
+    skip "json5 not resolvable"
+  fi
+  run node -e "
+    const j5 = require('json5'), fs = require('fs');
+    const oc = j5.parse(fs.readFileSync(process.env.REPO + '/.opencode/opencode.jsonc', 'utf8'));
+    const am = j5.parse(fs.readFileSync(process.env.REPO + '/.opencode/agent-models.jsonc', 'utf8'));
+    const [prov, id] = oc.model.split('/');
+    const lim = am.provider[prov].models[id].limit;
+    console.log(lim.context - Math.max(lim.output, oc.compaction.buffer));
+  "
+  [ "$status" -eq 0 ]
+  [ "$output" = "120000" ]
+}
+
+@test "DCP local limits resolve below the default model's compaction trigger (T900350)" {
+  if ! node -e "try{require('json5')}catch(e){process.exit(77)}" 2>/dev/null; then
+    skip "json5 not resolvable"
+  fi
+  run node -e "
+    const j5 = require('json5'), fs = require('fs');
+    const oc = j5.parse(fs.readFileSync(process.env.REPO + '/.opencode/opencode.jsonc', 'utf8'));
+    const am = j5.parse(fs.readFileSync(process.env.REPO + '/.opencode/agent-models.jsonc', 'utf8'));
+    const dcp = j5.parse(fs.readFileSync(process.env.REPO + '/.opencode/dcp.jsonc', 'utf8')).compress;
+    const [prov, id] = oc.model.split('/');
+    const lim = am.provider[prov].models[id].limit;
+    const res = (v) => typeof v === 'string' ? Math.round(parseFloat(v) / 100 * lim.context) : v;
+    const min = res(dcp.modelMinLimits[oc.model]), max = res(dcp.modelMaxLimits[oc.model]);
+    const trig = lim.context - Math.max(lim.output, oc.compaction.buffer);
+    console.log(min + ' ' + max + ' ' + (min < max && max < trig));
+  "
+  [ "$status" -eq 0 ]
+  [ "$output" = "61440 115200 true" ]
 }
 
 @test "reviewer role: edit and bash denied in factory_roles mirror" {

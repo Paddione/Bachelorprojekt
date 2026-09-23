@@ -282,25 +282,24 @@ reaches the loading location and the alias keeps its static fallback limit
 - **WHEN** `scripts/opencode-sync-agents.sh` runs
 - **THEN** the file exists under the global opencode plugin directory afterwards
 
-### Requirement: Project Default Model Targets the FreeToken Alias
+### Requirement: Project Default Model Targets the Local Qwen3.8 Checkpoint
 
 The project opencode config `.opencode/opencode.jsonc` SHALL declare
-`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` as its top-level default `model`. It SHALL NOT declare a
-default that resolves to the retired llama.cpp loadout `llamacpp-local/qwen38-220k`
-(port 8094, no longer served).
+`llamacpp-local/Qwen3.8-27B-dualgpu` as its top-level default `model`. It SHALL NOT declare a
+default that resolves to a model key absent from the `llamacpp-local` catalog in
+`.opencode/agent-models.jsonc`, such as the retired `llamacpp-local/qwen38-220k` or
+`llamacpp-local/Qwen3.6-35B-A3B-NVFP4`.
 
-Rationale: FreeToken (Windows-native, port 1919) was re-established as the local inference
-backend by operator decision (T900189), served directly on `:1919` since the llm-proxy (`:18235`) was retired (T900208).
-`llamacpp-local/Qwen3.6-35B-A3B-NVFP4` (200000 served KV, moe 4150) is the active model alias
-that resolves to that backend and is declared in `.opencode/agent-models.jsonc` for every
-re-routed agent. A project default naming the retired llama.cpp loadout boots against a dead
-backend.
+Rationale: T900348 replaced FreeToken-native (Qwen3.6-35B-A3B-NVFP4) with llama.cpp serving
+Qwen3.8-27B UD-Q4_K_M layer-split over two GPUs on `:1919` (153600 served KV) and removed the
+Qwen3.6 catalog entry. A project default naming a key the catalog no longer declares boots
+against an unknown model (T900350).
 
-#### Scenario: Default model resolves to the Qwen3.6-35B-A3B-NVFP4 alias
+#### Scenario: Default model resolves to the Qwen3.8 dual-GPU entry
 
 - **GIVEN** `.opencode/opencode.jsonc` declares its top-level `model`
 - **WHEN** the value is read
-- **THEN** it equals `llamacpp-local/Qwen3.6-35B-A3B-NVFP4`
+- **THEN** it equals `llamacpp-local/Qwen3.8-27B-dualgpu`
 
 ### Requirement: Dead Checkpoints Are Not Declared
 
@@ -345,19 +344,46 @@ telemetry file. The provider is wired statically to FreeToken on `:1919` (T90020
 - **WHEN** its entries are listed
 - **THEN** `freetoken-active.ts` is not among them
 
-### Requirement: V2 Compaction Targets 100K Active Context
+### Requirement: V2 Compaction Scales With the Model Window
 
 The project opencode config SHALL declare a V2 `compaction` block with
-`auto: true`, `keep.tokens: 16000` and `buffer: 96000`, with a comment showing
-the threshold math for the 200k factory model.
+`auto: true`, `keep.tokens: 16000` and `buffer: 33600`, with a comment showing
+the threshold math for the default model. `.opencode/dcp.jsonc` SHALL declare
+per-model `modelMinLimits` and `modelMaxLimits` for the default model as
+percentages of its `limit.context`, and both SHALL resolve below that model's
+compaction threshold.
 
-Rationale: V2 computes the preflight threshold as
+Rationale: V2 computes the preflight threshold per model as
 `context − max(output, buffer)` (verified against
 `packages/core/src/session/compaction.ts` and
-`https://opencode.ai/v2/docs/compaction/`). With `context: 200000` and
-`output: 8192`, `buffer: 96000` yields compaction at ≈104k active context;
-`keep.tokens: 16000` keeps the 12–20k recent tail. The V1 keys `reserved` and
+`https://opencode.ai/v2/docs/compaction/`), so one global `buffer` yields a
+trigger per model window. With the default model's `context: 153600` and
+`output: 8192`, `buffer: 33600` yields compaction at 120000; the former
+`buffer: 96000` (sized for a 200k model) would fire at 57600. DCP resolves
+`"X%"` against the active model's `limit.context` and prefers a
+`providerID/modelID` entry over the global value: `40%`/`75%` give 61440/115200
+on the local model, while the global 85000/103000 keep the 1M cloud models in
+the 60–100k working band (T900350). The V1 keys `reserved` and
 `preserve_recent_tokens` are ignored by V2 and SHALL NOT appear.
+
+#### Scenario: Compaction block present with V2 keys
+
+- **GIVEN** `.opencode/opencode.jsonc` on the feature branch
+- **WHEN** the `compaction` block is inspected
+- **THEN** it contains `auto: true`, `keep.tokens: 16000`, `buffer: 33600`
+  and no `reserved` or `preserve_recent_tokens` key
+
+#### Scenario: Threshold math holds for the default model
+
+- **GIVEN** the default model limit `context: 153600`, `output: 8192`
+- **WHEN** `153600 − max(8192, 33600)` is computed
+- **THEN** the result is `120000`
+
+#### Scenario: DCP limits sit below the local compaction trigger
+
+- **GIVEN** `.opencode/dcp.jsonc` and the default model's catalog limits
+- **WHEN** its `modelMinLimits` and `modelMaxLimits` entries are resolved
+- **THEN** they equal 61440 and 115200, and 115200 is below 120000
 
 #### Scenario: Compaction block present with V2 keys
 

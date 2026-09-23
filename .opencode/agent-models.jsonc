@@ -164,7 +164,7 @@
     // (ein Resident-Checkpoint, ein Radix-Cache). Kollabiert zu einem `local`.
     // Engine: -np 1 (ein Slot); llama.cpp queuet weitere Requests als
     // sequenzielle Dispatches, die ≤153600 served KV teilen. Der Orchestrator
-    // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~120k).
+    // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~100k).
     "local": {
       "description": "Sole local implementation subagent (Qwen3.8-27B dense via llama.cpp :1919, dual-GPU, 150k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",

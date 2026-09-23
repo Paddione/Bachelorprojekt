@@ -1,18 +1,27 @@
 {
   "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
-  // ── DCP-Compress-Kalibrierung für den lokalen Qwen (T900182) ──────────────
-  // Ziel: den aktiven Kontext des lokalen Backbones (llamacpp-local/Qwen3.6-35B-A3B-NVFP4,
-  // 205.056 gemessen; V2-Compaction-Trigger 104000 laut opencode.jsonc T900162)
-  // möglichst lange unter der Kante der V2-Compaction halten — DCP schneidet
-  // chirurgisch, Compaction bleibt das letzte Sicherheitsnetz. Die Obergrenze
-  // liegt bewusst 1k UNTER dem Compaction-Trigger: darüber wäre sie tote
-  // Konfiguration (die Compaction feuert zuerst).
+  // ── DCP-Compress-Kalibrierung pro Modellfenster (T900182, T900350) ────────
+  // DCP schneidet chirurgisch, die V2-Compaction (opencode.jsonc) bleibt das
+  // letzte Sicherheitsnetz. Jede Obergrenze liegt deshalb UNTER dem
+  // Compaction-Trigger des jeweiligen Modells — darueber waere sie tote
+  // Konfiguration, weil die Compaction zuerst feuert.
   "compress": {
-    // Frühes Nudging ab 85k aktiven Tokens (Default 50k war zu konservativ für
-    // 205k Kontext — DCP würde unterfordern).
+    // Globale Werte = Cloud-Modelle (1M-Fenster, Compaction erst bei
+    // ~870k–966k). Sie halten Orchestrator und Cloud-Primaries im
+    // Arbeitsband 60–100k: Nudge ab 85k, Zwang ab 103k.
     "minContextLimit": 85000,
-    // DCP maximal zulässiger Kontext = 103k (Trigger 104000 − 1k Sicherheit).
     "maxContextLimit": 103000,
+    // Lokaler Qwen3.8-27B dual-GPU (153600 served KV, Compaction bei 120000).
+    // Prozentwerte beziehen sich auf limit.context und wandern mit, wenn das
+    // served KV neu gemessen und im Katalog angepasst wird:
+    //   40 % = 61440  → Nudge, solange Decode noch nahe 35 tok/s liegt
+    //   75 % = 115200 → Zwang, 4800 unter dem Compaction-Trigger
+    "modelMinLimits": {
+      "llamacpp-local/Qwen3.8-27B-dualgpu": "40%"
+    },
+    "modelMaxLimits": {
+      "llamacpp-local/Qwen3.8-27B-dualgpu": "75%"
+    },
     // "soft": Nudge verwendet sanften Hinweis statt Erzwang, um JSON-Parse-Schleifen
     // bei fehlerhaften LLM-Antworten während der Kompaktierung zu verhindern.
     "nudgeForce": "soft",

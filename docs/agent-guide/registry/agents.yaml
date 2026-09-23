@@ -52,12 +52,12 @@ runtimes:
   # Details siehe docs/agent-guide/registry/retired.md.
   local:
     mode: subagent
-    model: llamacpp-local/Qwen3.6-35B-A3B-NVFP4
+    model: llamacpp-local/Qwen3.8-27B-dualgpu
     write_capable: false
-    note: "Sole local implementation subagent: Qwen3.6-35B-A3B MoE via FreeToken :1919 through llm-proxy :18235 (static 200k KV pool, moe 4150, ~100 tok/s decode, gemessen 2026-09-16). Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~150k)."
+    note: "Sole local implementation subagent: Qwen3.8-27B dense via llama.cpp :1919 (dual-GPU 5070 Ti + 3060 Ti, 153600 served KV, ~35 tok/s decode, gemessen 2026-09-23) [T900348]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~120k)."
   reviewer:
     mode: subagent
-    model: llamacpp-local/Qwen3.6-35B-A3B-NVFP4
+    model: llamacpp-local/Qwen3.8-27B-dualgpu
     write_capable: false
     note: "Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
   big-pickle:
@@ -117,9 +117,9 @@ runtimes:
     note: "PLANNER fallback on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, qwen38-primary. Free-first chain: orchestrator (Zen-free) → planner-muse (Go) → deepseek rails."
   qwen38-primary:
     mode: primary
-    model: llamacpp-local/Qwen3.6-35B-A3B-NVFP4
+    model: llamacpp-local/Qwen3.8-27B-dualgpu
     write_capable: true
-    note: "PRIMARY: Local Qwen3.6-35B-A3B MoE via FreeToken auf Windows (:1919, served KV 200k, moe 4150) durch llm-proxy :18235 (llamacpp-local/Qwen3.6-35B-A3B-NVFP4). Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
+    note: "PRIMARY: Local Qwen3.8-27B dense via llama.cpp (:1919, dual-GPU, served KV 153600) (llamacpp-local/Qwen3.8-27B-dualgpu) [T900348]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
 
 # T900074-p2: factory role declarations (mirror — SSOT is .opencode/agent-models.jsonc)
 factory_roles:

@@ -16,7 +16,13 @@ Wrapper `gh-axi` bevorzugen; sobald `--json`/`-q`/Polling/Mutation im Spiel ist:
 
 ## Schritt 0 — Pull-First
 
-Vor jedem Commit / jeder Branch-Aktion `origin/main` aktualisieren (fetch + rebase; bei dirty tree stashen und zurückspielen). Stash-Fallen (Pop-Verifikation T003069, Disziplin T003070, Branch-Switch-Race T001974, Probe-Commit T001454):
+Vor jedem Commit / jeder Branch-Aktion `origin/main` aktualisieren (bei dirty tree stashen und zurückspielen):
+
+```bash
+git pull --rebase origin main
+```
+
+Stash-Fallen (Pop-Verifikation T003069, Disziplin T003070, Branch-Switch-Race T001974, Probe-Commit T001454):
 [stash-discipline](references/stash-discipline.md).
 
 ---

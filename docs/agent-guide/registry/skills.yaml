@@ -1075,12 +1075,10 @@ skills:
       opencode:
         path: .opencode/skills/llama-cpp
         sync: identical
-      claude_code:
-        path: .claude/skills/llama-cpp
-        sync: identical
     exclusions:
       codex: "OpenCode-only vendor skill for llama.cpp inference."
       agy: "OpenCode-only vendor skill for llama.cpp inference."
+      claude_code: "OpenCode-only vendor skill for llama.cpp inference."
 
   - id: opencode-git-workflow
     provenance: project

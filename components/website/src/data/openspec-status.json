@@ -4993,6 +4993,12 @@
       "status": "plan_staged"
     }
   ],
+  "T900341": [
+    {
+      "slug": "archive-regen-spec-atlas",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

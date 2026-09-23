@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "slug": "archive-regen-spec-atlas",
+    "ticket_id": "T900341",
+    "generated_from": "main@7fbc7b774",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 6806,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/openspec.sh",
+      "language": "bash",
+      "loc": 506,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 294
+    },
+    {
+      "path": "tests/spec/openspec-workflow/archive-regen-spec-atlas.bats",
+      "language": "bash",
+      "loc": 88,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec.sh:27:die() { echo \"ERROR: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "27:die() { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "type_text": "27:die() { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:30:_embed_slug() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "30:_embed_slug() {(...)",
+      "type_text": "30:_embed_slug() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:48:_is_placeholder_file() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "48:_is_placeholder_file() {(...)",
+      "type_text": "48:_is_placeholder_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:65:_propose_state_report() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "65:_propose_state_report() {(...)",
+      "type_text": "65:_propose_state_report() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:82:_seed_if_placeholder() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "82:_seed_if_placeholder() {(...)",
+      "type_text": "82:_seed_if_placeholder() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:93:cmd_propose() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "93:cmd_propose() {(...)",
+      "type_text": "93:cmd_propose() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:210:cmd_apply() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "210:cmd_apply() {(...)",
+      "type_text": "210:cmd_apply() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:226:cmd_archive() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "226:cmd_archive() {(...)",
+      "type_text": "226:cmd_archive() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:366:_check_deliverable_presence() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "366:_check_deliverable_presence() {(...)",
+      "type_text": "366:_check_deliverable_presence() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:403:_merge_delta() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "403:_merge_delta() {(...)",
+      "type_text": "403:_merge_delta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:412:_check_delta() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "412:_check_delta() {(...)",
+      "type_text": "412:_check_delta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:419:cmd_validate() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "419:cmd_validate() {(...)",
+      "type_text": "419:cmd_validate() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:462:_ticket_exempt_slug() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "462:_ticket_exempt_slug() {(...)",
+      "type_text": "462:_ticket_exempt_slug() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:470:_validate_delta_file() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "470:_validate_delta_file() {(...)",
+      "type_text": "470:_validate_delta_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:482:main() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "482:main() {(...)",
+      "type_text": "482:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/archive-regen-spec-atlas.bats:17:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/archive-regen-spec-atlas.bats",
+      "signature": "17:setup() {(...)",
+      "type_text": "17:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/archive-regen-spec-atlas.bats:61:_archive() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/archive-regen-spec-atlas.bats",
+      "signature": "61:_archive() {(...)",
+      "type_text": "61:_archive() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

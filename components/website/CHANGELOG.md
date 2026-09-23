@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.358.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.4...website-v1.358.5) (2026-09-23)
+
+
+### Bug Fixes
+
+* **scripts:** stage SSOT target specs from deltas in archive commit [T900339] ([#5837](https://github.com/Paddione/Bachelorprojekt/issues/5837)) ([f098e2f](https://github.com/Paddione/Bachelorprojekt/commit/f098e2f973d54c8e6435fb5b0ab358c4e76aae0b))
+
 ## [1.358.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.3...website-v1.358.4) (2026-09-23)
 
 

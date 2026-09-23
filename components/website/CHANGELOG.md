@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.359.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.7...website-v1.359.0) (2026-09-23)
+
+
+### Features
+
+* **factory:** orphaned OpenSpec changes auto-archive via poller task and CI executor [T900338] ([#5849](https://github.com/Paddione/Bachelorprojekt/issues/5849)) ([2243e8c](https://github.com/Paddione/Bachelorprojekt/commit/2243e8cf930e63f41c5d3017d91d221e2390b867))
+
 ## [1.358.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.6...website-v1.358.7) (2026-09-23)
 
 

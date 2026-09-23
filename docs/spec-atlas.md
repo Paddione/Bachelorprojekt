@@ -2,23 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 128 · Requirements: 2403 · Scenarios: 5336
+Specs: 129 · Requirements: 2421 · Scenarios: 5374
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 85 · Scenarios: 178 · Lines: 2206
+Reqs: 89 · Scenarios: 189 · Lines: 2312
 Last touches:
+  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | 2026-09-23 | ADDED
+  - Symlink-Set entspricht den getrackten Skills | T900238 | 2026-09-23 | ADDED
+  - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | 2026-09-23 | ADDED
+  - Skip bei deaktivierten Symlinks | T900238 | 2026-09-23 | ADDED
   - The reply footer carries no next-step proposal | T900235 | 2026-09-17 | ADDED
-  - Agents run an assignment to its own end before returning control | T900235 | 2026-09-17 | ADDED
-  - Interrupting the user requires one of four declared triggers | T900235 | 2026-09-17 | ADDED
-  - Decision questions are asked in a keyboard-selectable form | T900235 | 2026-09-17 | ADDED
-  - Local branch delete keeps branches with unmerged commits | T900096 | 2026-09-17 | ADDED
-In-flight:
-  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | active | ADDED
-  - Symlink-Set entspricht den getrackten Skills | T900238 | active | ADDED
-  - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | active | ADDED
-  - Skip bei deaktivierten Symlinks | T900238 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -145,16 +140,13 @@ Last touches:
 ## Ungrouped
 
 ### active-sessions-hub
-Reqs: 25 · Scenarios: 66 · Lines: 776
+Reqs: 27 · Scenarios: 70 · Lines: 808
 Last touches:
+  - Harness-stable session identity for Antigravity (agy) | T900306 | 2026-09-23 | ADDED
+  - Dead locks in worktrees with idle language servers are reapable | T900306 | 2026-09-23 | ADDED
   - File-scoped claims for plan partials | T900024 | 2026-09-10 | ADDED
   - Write guard active in every harness | T900024 | 2026-09-10 | ADDED
   - Single source for the git workflow | T900024 | 2026-09-10 | ADDED
-  - Platform-independent lock directory resolution | T900023 | 2026-08-31 | ADDED
-  - agent-lock logic stays within its size limit through fragments | T900023 | 2026-08-31 | ADDED
-In-flight:
-  - Harness-stable session identity for Antigravity (agy) | T900306 | active | ADDED
-  - Dead locks in worktrees with idle language servers are reapable | T900306 | active | ADDED
 
 ### admin-cockpit
 Reqs: 45 · Scenarios: 132 · Lines: 1114
@@ -217,6 +209,15 @@ Last touches:
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
+
+### application-pipeline
+Reqs: 11 · Scenarios: 20 · Lines: 208
+Last touches:
+  - Deterministic Keyword-Based Match Scoring | T900234 | 2026-09-23 | ADDED
+  - Curated Project-Evidence Catalog for Dossier Personalization | T900230 | 2026-09-23 | ADDED
+  - Visual Design Accent Themes for Typst Dossiers | T900230 | 2026-09-23 | ADDED
+  - Cockpit Shows All Allowed Job Statuses | T900303 | 2026-09-23 | ADDED
+  - Job Detail Shows Raw Text and Requirements | T900303 | 2026-09-23 | ADDED
 
 ### asset-generation
 Reqs: 4 · Scenarios: 7 · Lines: 69
@@ -621,15 +622,13 @@ Last touches:
   - REQ-MCP-HTTP-004 Browser proxy preserves the upstream security boundary | T900052 | 2026-09-17 | ADDED
 
 ### mcp-skill-integration
-Reqs: 7 · Scenarios: 17 · Lines: 183
+Reqs: 8 · Scenarios: 20 · Lines: 211
 Last touches:
+  - Unified mishap buffer path across implementations | T900309 | 2026-09-23 | ADDED
   - Mishap bundling emits fewer tickets than it consumes | T002383 | 2026-07-28 | ADDED
   - ticket-mcp adapter completeness | T001211 | 2026-06-27 | ADDED
   - Go-consolidated MCP runtime with no capability loss | T001211 | 2026-06-27 | ADDED
   - MCP-first skill routing | T001211 | 2026-06-27 | ADDED
-  - MCP tool-guide as mapping SSOT | T001211 | 2026-06-27 | ADDED
-In-flight:
-  - Unified mishap buffer path across implementations | T900309 | active | MODIFIED
 
 ### mcp-task-runner
 Reqs: 9 · Scenarios: 20 · Lines: 230

@@ -4869,8 +4869,8 @@
   ],
   "T900226": [
     {
-      "slug": "archive-frontmatter-completed-on-archive-branch",
-      "status": "plan_staged"
+      "slug": "2026-09-23-archive-frontmatter-completed-on-archive-branch",
+      "status": "archived"
     }
   ],
   "T900227": [
@@ -4887,14 +4887,14 @@
   ],
   "T900230": [
     {
-      "slug": "application-pipeline-typst-dossiers",
-      "status": "plan_staged"
+      "slug": "2026-09-23-application-pipeline-typst-dossiers",
+      "status": "archived"
     }
   ],
   "T900234": [
     {
-      "slug": "application-pipeline-matching",
-      "status": "plan_staged"
+      "slug": "2026-09-23-application-pipeline-matching",
+      "status": "archived"
     }
   ],
   "T900235": [
@@ -4905,8 +4905,8 @@
   ],
   "T900238": [
     {
-      "slug": "fix-agent-skills-symlink-tests",
-      "status": "plan_staged"
+      "slug": "2026-09-23-fix-agent-skills-symlink-tests",
+      "status": "archived"
     }
   ],
   "T900239": [
@@ -4953,8 +4953,8 @@
   ],
   "T900303": [
     {
-      "slug": "cockpit-fixes",
-      "status": "plan_staged"
+      "slug": "2026-09-23-cockpit-fixes",
+      "status": "archived"
     }
   ],
   "T900304": [
@@ -4965,14 +4965,14 @@
   ],
   "T900306": [
     {
-      "slug": "agent-lock-agy-reap-T900306",
-      "status": "plan_staged"
+      "slug": "2026-09-23-agent-lock-agy-reap-T900306",
+      "status": "archived"
     }
   ],
   "T900309": [
     {
-      "slug": "mishap-buffer-path-unification",
-      "status": "plan_staged"
+      "slug": "2026-09-23-mishap-buffer-path-unification",
+      "status": "archived"
     }
   ],
   "T900310": [

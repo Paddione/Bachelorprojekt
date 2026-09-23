@@ -2204,3 +2204,109 @@ loads `CLAUDE.md` and reaches `AGENTS.md` only through an explicit reference.
 - **THEN** the test passes
 
 <!-- merged from change delta agent-skills.md (58525fb07bb9) -->
+
+### Requirement: Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt
+
+The post-merge finalizer SHALL apply the `status: completed` frontmatter transition to the
+plan file copy that the archive commit is built from: inside the archive section, after the
+`git checkout -B "$ARCHIVE_BRANCH" origin/main` branch switch and before
+`openspec.sh archive`. The pre-archive working tree SHALL NOT retain an uncommitted
+frontmatter change produced by the plan-archive step. The Postgres persistence via
+`ticket.sh archive-plan` SHALL observe the same post-transition file state as the archive
+commit, so both consumers read `status: completed`. Existing skip, resume and idempotency
+semantics of the archive section (T015783) SHALL be preserved.
+
+#### Scenario: Archiv-Commit trägt completed
+
+- **GIVEN** ein gemergter Fix-PR mit Plan-Frontmatter `status: active`
+- **WHEN** `scripts/devflow-post-merge-finalize.sh <ticket-id>` die Archiv-Sektion ausführt
+- **THEN** wird der Frontmatter-Wechsel auf dem Archiv-Branch angewendet (nach dem `git checkout -B`, vor `openspec.sh archive`)
+- **AND** der archivierte `tasks.md`-Snapshot unter `openspec/changes/archive/` trägt `status: completed`
+
+#### Scenario: Kein Streu-Diff im Haupt-Checkout
+
+- **GIVEN** der Finalizer hat die Archiv-Sektion abgeschlossen
+- **WHEN** der Haupt-Checkout anschließend einen `git pull --ff-only` ausführt
+- **THEN** blockiert keine uncommittete Frontmatter-Änderung an `openspec/changes/<slug>/tasks.md` den Pull
+
+#### Scenario: DB-Kopie und Archiv-Snapshot sind konsistent
+
+- **GIVEN** die verschobene Reihenfolge (Frontmatter-Wechsel vor Persistierung)
+- **WHEN** `ticket.sh archive-plan` den Plan nach `tickets.ticket_plans` persistiert
+- **THEN** liest es die Datei im Zustand `status: completed`
+- **AND** die bestehenden Guards des Schritts (PLAN_FILE-Leerprüfung, Branch-Commit-Fallback, Fehlpfade) bleiben unverändert wirksam
+
+#### Scenario: Idempotente Wiederholung bleibt erhalten
+
+- **GIVEN** ein Wiederholungslauf, bei dem Schritt 8 als „bereits archiviert“ überspringen würde oder ein Resume (`half`, T015783) erkannt wird
+- **WHEN** der Finalizer erneut läuft
+- **THEN** ändern die Skip-/Resume-Pfade ihr Verhalten nicht
+- **AND** eine nicht mehr existierende `$PLAN_FILE` führt zu keinem Fehler durch den Frontmatter-Wechsel
+
+#### Scenario: DB-freier Testeinstieg
+
+- **GIVEN** das Skript stellt die Frontmatter-Transition als DB-freies Unterkommando bereit (Präzedenz: `--archive-state`, T015783)
+- **WHEN** ein BATS-Test das Unterkommando gegen eine Fixture-Datei mit `status: active` aufruft
+- **THEN** endet es mit Exit 0 und der Datei im Zustand `status: completed`
+- **AND** bereits `completed` Dateien bleiben unverändert und Werte außerhalb der Transition-Regex werden nicht angetastet
+
+<!-- merged from change delta agent-skills.md (b46203dbe3f1) -->
+
+### Requirement: Symlink-Set entspricht den getrackten Skills
+
+The system SHALL keep the set of symlinks directly under `.claude/skills/`
+identical to the set of tracked skill directories under `.opencode/skills/`
+(each directory containing a `SKILL.md`) plus `OVERVIEW.md`. Missing or
+surplus symlinks SHALL fail the guard.
+
+#### Scenario: Ein Skill-Symlink fehlt
+
+- **GIVEN** a tracked skill directory `.opencode/skills/<name>/SKILL.md`
+- **WHEN** the symlink `.claude/skills/<name>` does not exist
+- **THEN** the guard reports the missing symlink and fails
+
+#### Scenario: Ein ueberzaehliger Symlink existiert
+
+- **GIVEN** a symlink `.claude/skills/<name>` whose target is not a tracked
+  skill directory
+- **WHEN** the guard compares the actual symlink set against the expected set
+- **THEN** the guard reports the surplus symlink and fails
+
+### Requirement: Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md
+
+The system SHALL fail the guard when a symlink under `.claude/skills/` does
+not resolve to a directory, unless the symlink name is `OVERVIEW.md`.
+
+#### Scenario: Ein Skill-Symlink zeigt auf eine Datei
+
+- **GIVEN** a symlink `.claude/skills/<name>` that resolves to a
+  non-directory target
+- **WHEN** the guard inspects the symlink target
+- **THEN** the guard fails and lists the offending symlink with its target
+
+#### Scenario: OVERVIEW.md zeigt auf eine Datei
+
+- **GIVEN** the symlink `.claude/skills/OVERVIEW.md` resolving to a file
+- **WHEN** the guard inspects the symlink target
+- **THEN** the guard accepts the symlink (readability of the target is
+  covered by the existing guard in `tests/spec/agent-skills.bats`)
+
+### Requirement: Skip bei deaktivierten Symlinks
+
+The system SHALL skip the symlink assertions when the repository is checked
+out with `core.symlinks=false`; an unset `core.symlinks` SHALL be treated as
+symlink-capable.
+
+#### Scenario: Checkout ohne Symlink-Unterstuetzung
+
+- **GIVEN** a repository with `git config core.symlinks` set to `false`
+- **WHEN** the guard runs
+- **THEN** the guard skips the symlink assertions instead of failing
+
+#### Scenario: core.symlinks ist nicht gesetzt
+
+- **GIVEN** a repository without a `core.symlinks` configuration
+- **WHEN** the guard runs
+- **THEN** the guard executes the symlink assertions normally
+
+<!-- merged from change delta agent-skills.md (613e0c55dae7) -->

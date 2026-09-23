@@ -44,6 +44,9 @@ Last touches:
   - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | 2026-08-23 | ADDED
   - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
   - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
+In-flight:
+  - Orphaned changes are archived by a CI executor without discretionary flags | T900338 | active | ADDED
+  - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | active | ADDED
 
 ### software-factory
 Reqs: 208 · Scenarios: 635 · Lines: 5755
@@ -864,6 +867,8 @@ Last touches:
   - Local k3d cluster runs the SDLC stack from the production manifests | T900054 | 2026-09-17 | MODIFIED
   - Dev-Host WSL memory verified for the local stack | T900054 | 2026-09-17 | REMOVED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | 2026-09-17 | MODIFIED
+In-flight:
+  - The local poller dispatches archiving of orphaned OpenSpec changes | T900338 | active | ADDED
 
 ### secret-rotation
 Reqs: 45 · Scenarios: 106 · Lines: 883

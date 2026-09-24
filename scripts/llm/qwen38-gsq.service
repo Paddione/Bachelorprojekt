@@ -1,0 +1,47 @@
+# systemd-User-Unit: Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp auf der RTX 5070 Ti allein [T900359].
+# Löst den Dual-GPU-Split (UD-Q4_K_M, T900348) als Backend auf :1919 ab — alle
+# Konsumenten (opencode llamacpp-local, Factory, brain-ingest) sprechen weiter :1919 an.
+#
+# Modell: huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF, Datei
+# Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf (10,4 GB, enthält den MTP-Kopf blk.64.nextn).
+#
+# Installation:
+#   hf download ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf \
+#     --local-dir ~/models/Qwen3.8-27B-GSQ-RCO
+#   ln -sf "$PWD/scripts/llm/qwen38-gsq.service" ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now qwen38-gsq
+# FreeToken darf nicht parallel laufen (gleicher Port, gleiche GPU): Windows-Task
+# "FreeToken-Serve" deaktivieren.
+#
+# Gemessen 2026-09-24 (5070 Ti allein, q4_0-KV):
+#   Decode kurz: 96 tok/s mit --spec-type draft-mtp --spec-draft-n-max 4 (54 ohne MTP;
+#   n-max 2/3/5: 87/93/98 tok/s mit IQ3_S). 123.536-Token-Prompt: 823 tok/s Prefill,
+#   55,7 tok/s Decode, Needle gefunden. 163.840 Kontext belegen 15,3 GB.
+# Obergrenze: Übersteigt der Bedarf die 16 GB, lagert CUDA unter WSL still in den
+# Systemspeicher aus. llama-server meldet trotzdem Erfolg, nvidia-smi steht bei
+# ~15.950 MiB, der Prefill fällt von ~1.500 auf ~100–150 tok/s (bei ~180K Kontext).
+# -c nur erhöhen, wenn danach ein langer Prompt noch >1.000 tok/s Prefill schafft.
+# Die CUDA-Maske überschreibt die systemweite 3060-Ti-Maske (nur 5070 Ti).
+[Unit]
+Description=llama-server Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (RTX 5070 Ti, 150k ctx, MTP) auf :1919
+After=network.target
+
+[Service]
+Type=simple
+Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
+Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
+ExecStart=%h/opt/llama-current/bin/llama-server \
+  -m %h/models/Qwen3.8-27B-GSQ-RCO/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf \
+  --alias Qwen3.8-27B-gsq \
+  -c 153600 \
+  -fit off -ngl 999 \
+  -fa on -ctk q4_0 -ctv q4_0 \
+  --spec-type draft-mtp --spec-draft-n-max 4 \
+  -np 1 --jinja \
+  --host 127.0.0.1 --port 1919
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

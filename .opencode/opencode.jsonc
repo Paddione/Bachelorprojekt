@@ -1,17 +1,17 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Default = llamacpp-local/Qwen3.8-27B-dualgpu: Qwen3.8-27B dense via
-  // llama.cpp :1919 direkt, Layer-Split RTX 5070 Ti + 3060 Ti, 153600 served
-  // KV (systemd-User-Unit scripts/llm/qwen38-dualgpu.service, T900348).
+  // Default = llamacpp-local/Qwen3.8-27B-gsq: Qwen3.8-27B dense via
+  // llama.cpp :1919 direkt, GSQ-RCO IQ3_XXS-mtp auf der RTX 5070 Ti, 153600
+  // served KV (systemd-User-Unit scripts/llm/qwen38-gsq.service, T900359).
   // Der Provider-Key heisst historisch "llamacpp-local".
   //
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (Go-Abo zuerst, dann direkte API).
-  "model": "llamacpp-local/Qwen3.8-27B-dualgpu",
+  "model": "llamacpp-local/Qwen3.8-27B-gsq",
   // ── V2 Compaction (Requirement: V2 Compaction Scales With the Model Window) ──
   // V2 rechnet pro Modell: threshold = limit.context − max(limit.output, buffer).
   // Ein globaler buffer ergibt deshalb fuer jedes Modell einen eigenen Trigger:
-  //   Qwen3.8-27B-dualgpu: 153600 − max(8192, 33600) = 120000
+  //   Qwen3.8-27B-gsq: 153600 − max(8192, 33600) = 120000
   //   big-pickle:          260000 − max(16384, 33600) = 226400
   //   deepseek (1M):      1000000 − max(8192, 33600) = 966400
   //   muse-spark (1M):    1000000 − max(131072, 33600) = 868928

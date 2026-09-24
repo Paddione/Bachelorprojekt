@@ -53,7 +53,7 @@ tasks:
   # T014339 P3-Nachzug: der Swap-Wrapper ist obsolet — beide Tasks rufen
   # brain-ingest.sh direkt auf. Backend-URL und Modell bewusst HIER NICHT
   # gesetzt: das Skript ist die alleinige Quelle (llama.cpp :1919,
-  # Qwen3.8-27B-dualgpu), damit es keinen zweiten Port-Default gibt, den
+  # Qwen3.8-27B-gsq), damit es keinen zweiten Port-Default gibt, den
   # der Guard in tests/spec/local-llm-proxy/brain-ingest-port.bats nicht
   # sehen kann. Vorgesetzte LM_*/MAX_*-Werte gewinnen weiterhin (env-
   # Vererbung), LM_MAX_TOKENS/MAX_SOURCE_CHARS/MAX_PARALLEL verwaltet das

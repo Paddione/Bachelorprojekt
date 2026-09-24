@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
-# T900350 — Der Projekt-Default zeigt auf llamacpp-local/Qwen3.8-27B-dualgpu
-# (llama.cpp :1919, dual-GPU, T900348). Vorher: FreeToken-Alias Qwen3.6
+# T900350 — Der Projekt-Default zeigt auf llamacpp-local/Qwen3.8-27B-gsq
+# (llama.cpp :1919, T900348; single-GPU GSQ-RCO seit T900359). Vorher: FreeToken-Alias Qwen3.6
 # (T900164/T900189), dessen Katalogeintrag T900348 entfernt hat.
 # T900203: Der fruehere Default llamacpp-local/qwen38-220k (Loadout Port 8094,
 # decommissioned) ist abgeloest; freetoken-local/active existiert nicht mehr.
@@ -13,11 +13,11 @@ setup() {
   MIGRATION="${REPO_ROOT}/scripts/migrations/2026-08-22-llm-proxy-qwen38-backend.sql"
 }
 
-@test "T900350: project default selects the dual-GPU Qwen3.8 model" {
+@test "T900350: project default selects the local Qwen3.8 model" {
   # Positiv-Anker: der Default ist gesetzt und zeigt auf den im Katalog
   # deklarierten lokalen Checkpoint (SSOT: Project Default Model Targets
   # the Local Qwen3.8 Checkpoint).
-  run grep -F '"model": "llamacpp-local/Qwen3.8-27B-dualgpu"' "${CONFIG}"
+  run grep -F '"model": "llamacpp-local/Qwen3.8-27B-gsq"' "${CONFIG}"
   [ "${status}" -eq 0 ]
 
   # Negativ-Aussagen: weder das decommissioned qwen38-Loadout noch der

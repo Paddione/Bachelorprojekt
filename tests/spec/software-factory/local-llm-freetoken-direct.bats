@@ -3,7 +3,7 @@
 #
 # Der llm-proxy (127.0.0.1:18235) ist seit 2026-09-03 stillgelegt (ADR-007).
 # Einziges lokales Generierungs-Backend ist llama.cpp auf :1919 (T900348) mit dem
-# Checkpoint Qwen3.8-27B-dualgpu. Diese Datei ersetzt
+# Checkpoint Qwen3.8-27B-gsq. Diese Datei ersetzt
 # software-factory/factory-model-lock.bats: der Modell-Pin/Lock kam aus dem
 # /admin/factory-Endpunkt des Proxys und ist mit ihm entfallen.
 #
@@ -49,7 +49,7 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   [ "$status" -eq 0 ]
   local json; json="$(printf '%s\n' "$output" | tail -1)"
   [ "$(jq -r .baseUrl <<<"$json")" = "http://127.0.0.1:1919" ]
-  [ "$(jq -r .modelId <<<"$json")" = "Qwen3.8-27B-dualgpu" ]
+  [ "$(jq -r .modelId <<<"$json")" = "Qwen3.8-27B-gsq" ]
   [ "$(jq -r .slotId <<<"$json")" = "null" ]
   # Der fruehere Proxy-Pin wird nicht mehr gelesen.
   [[ "$output" != *pinned-model* ]]
@@ -106,7 +106,7 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   local pm="$REPO_ROOT/scripts/factory/pipeline.mjs"
   run grep -E "flash:.*baseUrl: 'http://127\.0\.0\.1:1919'" "$pm"
   [ "$status" -eq 0 ]
-  run grep -F "process.env.FACTORY_MODEL_ID || 'Qwen3.8-27B-dualgpu'" "$pm"
+  run grep -F "process.env.FACTORY_MODEL_ID || 'Qwen3.8-27B-gsq'" "$pm"
   [ "$status" -eq 0 ]
 }
 

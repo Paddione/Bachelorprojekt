@@ -10,7 +10,7 @@
 #
 # Bewusst NICHT mehr im Taskfile: LM_STUDIO_URL, LM_MODEL, LM_MAX_TOKENS,
 # MAX_SOURCE_CHARS, MAX_PARALLEL. brain-ingest.sh ist die alleinige Quelle
-# dafuer (FreeToken-native :1919 / Qwen3.8-27B-dualgpu, 3072 Output-Tokens,
+# dafuer (FreeToken-native :1919 / Qwen3.8-27B-gsq, 3072 Output-Tokens,
 # 16k-Chunks, np=4) — ein zweiter Port-Default im Taskfile waere genau die
 # Drift, wegen der der Guard in tests/spec/local-llm-proxy/brain-ingest-port.bats
 # existiert, und das Root-Taskfile hat mit brain:ingest:dry/:8093 (T014543)

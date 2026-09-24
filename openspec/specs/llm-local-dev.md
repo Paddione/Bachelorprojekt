@@ -181,7 +181,7 @@ Rationale: mirrors the original `llamacpp-mtp` single-definition requirement —
 `scripts/opencode-sync-agents.sh` merges into the global config; a second
 definition in the project config would silently override it (T002159, T014105).
 The key keeps its historical name; since T900348 a llama.cpp server
-(`scripts/llm/qwen38-dualgpu.service`) serves `:1919` again, replacing FreeToken-native
+(`scripts/llm/qwen38-gsq.service`) serves `:1919` again, replacing FreeToken-native
 (T014028/T014105, T900203).
 
 #### Scenario: Provider is declared once with the :1919 endpoint
@@ -195,7 +195,7 @@ The key keeps its historical name; since T900348 a llama.cpp server
 The local agent roster in `.opencode/agent-models.jsonc` SHALL consist of
 `local` and `reviewer` as `mode: "subagent"` and `qwen38-primary` as
 `mode: "primary"`. Every one of them SHALL reference
-`llamacpp-local/Qwen3.8-27B-dualgpu` as its model.
+`llamacpp-local/Qwen3.8-27B-gsq` as its model.
 
 Rationale: the five legacy family handles (`gptoss`, `devstral`, `gemma`,
 `gemma12`, `qwen38`) all pointed at the same FreeToken model — five names, one
@@ -207,14 +207,14 @@ directly on `:1919` (T900203; the llm-proxy hop was dropped in T900208). The for
 `gemma12-primary`, `gemma26-throughput-primary`, `qwen38-primary`) were
 byte-identical clones whose names referenced retired loadouts; they are removed
 instead of kept as lying aliases (T016419). Since T900348 the roster runs
-Qwen3.8-27B dense on llama.cpp, layer-split over two GPUs, which matches the
-`qwen38-primary` name again.
+Qwen3.8-27B dense on llama.cpp, which matches the `qwen38-primary` name again;
+since T900359 it is the GSQ-RCO IQ3_XXS-mtp quantization on the RTX 5070 Ti alone.
 
 #### Scenario: Agents reference the Qwen3.8 model
 
 - **GIVEN** the agent blocks in `.opencode/agent-models.jsonc`
 - **WHEN** the `model` field of `local`, `reviewer` and `qwen38-primary` is read
-- **THEN** every value equals `llamacpp-local/Qwen3.8-27B-dualgpu`
+- **THEN** every value equals `llamacpp-local/Qwen3.8-27B-gsq`
 
 #### Scenario: Retired clone primaries are gone
 
@@ -227,7 +227,7 @@ Qwen3.8-27B dense on llama.cpp, layer-split over two GPUs, which matches the
 ### Requirement: Single Static Model, No Alias Layer
 
 The `llamacpp-local` provider SHALL declare exactly one model entry,
-`Qwen3.8-27B-dualgpu`. The `freetoken-active.ts` plugin, its
+`Qwen3.8-27B-gsq`. The `freetoken-active.ts` plugin, its
 `active`/`active-thinking`/`active-fast` aliases and the
 `freetoken-thinking`/`freetoken-fast-*` agents SHALL NOT exist.
 
@@ -241,30 +241,31 @@ opencode, and the engine is not swapped from the model picker.
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc` and the agent roster
 - **WHEN** the model keys and the agent `model` fields are inspected
-- **THEN** exactly `Qwen3.8-27B-dualgpu` is declared and no
+- **THEN** exactly `Qwen3.8-27B-gsq` is declared and no
   `active`/`active-thinking`/`active-fast` alias and no
   `freetoken-thinking`/`freetoken-fast-*` agent exists
 
 ### Requirement: Measured Context Limits for the Local Checkpoint
 
-The `limit.context` value of the `Qwen3.8-27B-dualgpu` entry in the
+The `limit.context` value of the `Qwen3.8-27B-gsq` entry in the
 `llamacpp-local` provider SHALL equal the measured usable KV capacity, not the
 model's training context: `153600` (= served `n_ctx` in `/props`, set by
-`-c 153600` in `scripts/llm/qwen38-dualgpu.service`; `n_ctx_train` is
+`-c 153600` in `scripts/llm/qwen38-gsq.service`; `n_ctx_train` is
 `262144`). Every `llamacpp-local` `limit.context` SHALL be a positive integer,
 SHALL NOT equal `262144`, and SHALL NOT exceed `153600`.
 
 Rationale: every catalog entry promises measured context limits; a number above
 the served KV dispatches into a context overflow at runtime (T002633-class,
-recurring). Both GPUs are full at `153600` (q4_0 KV, `-ts 56,9`); a
-147,651-token prompt was served with the needle found (measured 2026-09-23,
-T900348).
+recurring). The RTX 5070 Ti holds `153600` with q4_0 KV and the MTP draft
+context; 163,840 still fit (15.3 GB), while ~180K spills into WSL shared system
+memory and cuts prefill roughly tenfold. A 123,536-token prompt was served with
+the needle found (measured 2026-09-24, T900359).
 
 #### Scenario: Declared context equals the served KV
 
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc`
-- **WHEN** the `limit.context` of `Qwen3.8-27B-dualgpu` is read
+- **WHEN** the `limit.context` of `Qwen3.8-27B-gsq` is read
 - **THEN** it is `153600` and does not exceed the server's usable KV-token
   capacity
 
@@ -288,27 +289,28 @@ reaches the loading location and the alias keeps its static fallback limit
 ### Requirement: Project Default Model Targets the Local Qwen3.8 Checkpoint
 
 The project opencode config `.opencode/opencode.jsonc` SHALL declare
-`llamacpp-local/Qwen3.8-27B-dualgpu` as its top-level default `model`. It SHALL NOT declare a
+`llamacpp-local/Qwen3.8-27B-gsq` as its top-level default `model`. It SHALL NOT declare a
 default that resolves to a model key absent from the `llamacpp-local` catalog in
 `.opencode/agent-models.jsonc`, such as the retired `llamacpp-local/qwen38-220k` or
 `llamacpp-local/Qwen3.6-35B-A3B-NVFP4`.
 
 Rationale: T900348 replaced FreeToken-native (Qwen3.6-35B-A3B-NVFP4) with llama.cpp serving
-Qwen3.8-27B UD-Q4_K_M layer-split over two GPUs on `:1919` (153600 served KV) and removed the
-Qwen3.6 catalog entry. A project default naming a key the catalog no longer declares boots
+Qwen3.8-27B on `:1919` (153600 served KV) and removed the Qwen3.6 catalog entry; T900359
+swapped the dual-GPU UD-Q4_K_M split for GSQ-RCO IQ3_XXS-mtp on the RTX 5070 Ti alone and
+renamed the key from `Qwen3.8-27B-dualgpu` to `Qwen3.8-27B-gsq`. A project default naming a key the catalog no longer declares boots
 against an unknown model (T900350).
 
-#### Scenario: Default model resolves to the Qwen3.8 dual-GPU entry
+#### Scenario: Default model resolves to the Qwen3.8 GSQ-RCO entry
 
 - **GIVEN** `.opencode/opencode.jsonc` declares its top-level `model`
 - **WHEN** the value is read
-- **THEN** it equals `llamacpp-local/Qwen3.8-27B-dualgpu`
+- **THEN** it equals `llamacpp-local/Qwen3.8-27B-gsq`
 
 ### Requirement: Dead Checkpoints Are Not Declared
 
 The provider catalogs in `.opencode/agent-models.jsonc` SHALL NOT declare
 model entries whose weights no longer exist on disk. The `llamacpp-local`
-catalog SHALL declare exactly `Qwen3.8-27B-dualgpu`; the retired keys
+catalog SHALL declare exactly `Qwen3.8-27B-gsq`; the retired keys
 `Qwen3.6-35B-A3B-NVFP4`, `qwen38-220k`, `gptoss-context`, `gemma26-factory`,
 `gemma4`, `gemma26-throughput`, `gemma12-vision` and `hauhau-qwen36` SHALL NOT
 be declared.
@@ -317,15 +319,15 @@ Rationale: every catalog entry promises measured context limits; an entry
 without weights cannot honor them and dispatches into the void (T002633-class,
 recurring). The former fallback entries (`hauhau-qwen36`, `gemma12-vision`,
 `qwen38-220k`) are gone as well — the FreeToken consolidation left a single
-resident checkpoint (T900203, T016419), and T900348 replaced it with the
-llama.cpp dual-GPU checkpoint.
+resident checkpoint (T900203, T016419), T900348 replaced it with the
+llama.cpp dual-GPU checkpoint, and T900359 with the single-GPU GSQ-RCO checkpoint.
 
 #### Scenario: Dead catalog keys are absent
 
 - **GIVEN** the parsed `llamacpp-local.models` object of
   `.opencode/agent-models.jsonc`
 - **WHEN** its keys are inspected
-- **THEN** `Qwen3.8-27B-dualgpu` is declared and none of `Qwen3.6-35B-A3B-NVFP4`, `qwen38-220k`,
+- **THEN** `Qwen3.8-27B-gsq` is declared and none of `Qwen3.6-35B-A3B-NVFP4`, `qwen38-220k`,
   `gptoss-context`, `gemma26-factory`, `gemma4`, `gemma26-throughput`,
   `gemma12-vision`, `hauhau-qwen36` is declared
 

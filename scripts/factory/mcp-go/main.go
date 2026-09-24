@@ -102,7 +102,7 @@ func resolveAuthKey(apiKeyEnv string) string {
 // auf dasselbe lokale Backend wie route-provider.sh: llama.cpp :1919.
 const (
 	defaultLocalLLMURL   = "http://127.0.0.1:1919/v1"
-	defaultLocalLLMModel = "Qwen3.8-27B-dualgpu"
+	defaultLocalLLMModel = "Qwen3.8-27B-gsq"
 )
 
 func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {

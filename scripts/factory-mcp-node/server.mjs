@@ -81,7 +81,7 @@ function serverStale() {
 // [T900208] Fallback = llama.cpp :1919 (der llm-proxy :18235 ist
 // stillgelegt) — deckungsgleich mit scripts/factory/mcp-go/main.go.
 const DEFAULT_LOCAL_LLM_URL = 'http://127.0.0.1:1919/v1';
-const DEFAULT_LOCAL_LLM_MODEL = 'Qwen3.8-27B-dualgpu';
+const DEFAULT_LOCAL_LLM_MODEL = 'Qwen3.8-27B-gsq';
 
 function resolveLLM() {
   try {

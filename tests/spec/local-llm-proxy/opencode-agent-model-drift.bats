@@ -8,7 +8,7 @@
 # Ausnahme in [T002448-M4]. Ein Laufzeittest gegen :8091 waere in CI nicht
 # ausfuehrbar, dort laeuft kein llama-server.
 #
-# T900348: der lokale Stack faehrt Qwen3.8-27B-dualgpu via llama.cpp :1919
+# T900348: der lokale Stack faehrt Qwen3.8-27B-gsq via llama.cpp :1919
 # (vorher FreeToken, T900164/T900203). Der Provider-Key heisst historisch "llamacpp-local";
 # die Loadout-Kopplung an loadouts.json ist entfallen.
 
@@ -65,10 +65,10 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf Qwen3.8-27B-dualgpu" {
-  # T900348: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.8-27B-dualgpu
-  # (llama.cpp :1919, dual-GPU, 153600 served KV).
-  run grep -c 'llamacpp-local/Qwen3.8-27B-dualgpu' "${AGENTS}"
+@test "T002545: die Agentendefinitionen verweisen auf Qwen3.8-27B-gsq" {
+  # T900348: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.8-27B-gsq
+  # (llama.cpp :1919, RTX 5070 Ti, 153600 served KV, T900359).
+  run grep -c 'llamacpp-local/Qwen3.8-27B-gsq' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }

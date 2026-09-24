@@ -4878,7 +4878,7 @@
         "scripts/llm/pk-devices/run-bootstrap-admin.cmd",
         "scripts/llm/pk-devices/run-host-portproxy.cmd",
         "scripts/llm/pk-devices/run-startup.cmd",
-        "scripts/llm/qwen38-dualgpu.service",
+        "scripts/llm/qwen38-gsq.service",
         "scripts/llm/restart-freetoken.ps1",
         "scripts/llm/routing-check.sh",
         "scripts/llm/start-gemma-server.ps1",

@@ -55,7 +55,7 @@ active login session (e.g. after a host reboot).
 | `FACTORY_REPO` | `/home/patrick/Bachelorprojekt` | repo root for shell tools |
 | `FACTORY_MCP_PORT` | `13003` | listen port |
 | `FACTORY_LLM_URL` | `http://127.0.0.1:1919/v1` | OpenAI-compatible base URL (fallback when `route-provider.sh` fails) |
-| `FACTORY_LLM_MODEL` | `Qwen3.8-27B-dualgpu` | chat-completions model (same fallback) |
+| `FACTORY_LLM_MODEL` | `Qwen3.8-27B-gsq` | chat-completions model (same fallback) |
 | `FACTORY_LLM_API_KEY` | `lmstudio` | bearer token (FreeToken ignores it) |
 | `OPENSPEC_SEARCH_URL` | `http://website.website.svc.cluster.local:4321` | OpenSpec API base |
 

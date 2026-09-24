@@ -27,7 +27,7 @@ if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.
 // 2026-09-03 stillgelegt. flash geht direkt an llama.cpp (:1919,
 // OpenAI-kompatibel, Wurzel ohne /v1). Mit dem Proxy entfiel auch der
 // FACTORY_MODEL_LOCKED-Pin aus /admin/factory.
-const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'Qwen3.8-27B-dualgpu'
+const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'Qwen3.8-27B-gsq'
 const MODEL_TIERS = {
   flash:  { provider: 'llamacpp', modelId: LOCAL_MODEL_ID, baseUrl: 'http://127.0.0.1:1919' },
   haiku:  { provider: 'deepseek', modelId: 'deepseek-chat',  baseUrl: null },

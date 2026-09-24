@@ -591,7 +591,7 @@ Last touches:
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
 
 ### llm-local-dev
-Reqs: 35 · Scenarios: 70 · Lines: 853
+Reqs: 35 · Scenarios: 70 · Lines: 855
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | 2026-09-17 | MODIFIED

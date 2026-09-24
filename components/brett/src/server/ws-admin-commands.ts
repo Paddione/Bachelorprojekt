@@ -295,6 +295,23 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       deps.schedulePersist(adminRoom);
       break;
     }
+    case 'admin_reset_board_to_default': {
+      // P4 (D5, T900360): Reset on the brand default scenario. The default is
+      // resolved server-side through the P1 `is_default` marker column via P3's
+      // marker lookup — no template id ever crosses the wire. The single
+      // applyTemplateToRoom pass IS the reset (clear + re-seed); no separate
+      // clear mutation. If no default resolves: error to the sender, no change.
+      const { getBrandDefaultTemplate } = await import('./db');
+      const { resolveBrand } = await import('./auth');
+      const brandDefault = await getBrandDefaultTemplate(resolveBrand(process.env));
+      if (brandDefault && deps.applyTemplateToRoom) {
+        deps.applyTemplateToRoom(adminRoom, brandDefault, (m: any) => deps.broadcast(adminRoom, m));
+        deps.schedulePersist(adminRoom);
+      } else {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'no-default-template' })); } catch {}
+      }
+      break;
+    }
     case 'admin_spotlight_set': {
       // figureId: string|null — null deaktiviert den Spotlight
       const figureId = (typeof msg.figureId === 'string') ? msg.figureId : null;

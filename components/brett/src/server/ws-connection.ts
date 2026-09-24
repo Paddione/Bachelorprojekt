@@ -18,6 +18,8 @@ import { handleAdminMessage } from './ws-admin-commands';
 import { handleFigurePossess, handleFigureRelease, handleFigureNoteSet } from './ws-figure-commands';
 import { filterSnapshotFigures, broadcastFigureAware } from './hidden-filter';
 import * as undoStack from './undo-stack';
+import { roomRowExists, getBrandDefaultTemplate } from './db';
+import { resolveBrand } from './auth';
 
 export function handleDisconnect(ws: any, deps: WsDeps): void {
   const room = deps.leaveRoom(ws);
@@ -92,7 +94,24 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           // Seed state into in-memory figureMaps via the pure, unit-tested seeder.
           // (§4.6: reads state.sessionPhase / sessionCreatedAt / sessionLastActivity —
           // the field names buildStateFromMutations emits — not the dead state.phase.)
-          if (map.size === 0) deps.seedFigureMapFromState(map, state);
+          // P3 (D1/D2): auto-seed is gated on row existence — a MISSING row resolves
+          // the brand default via its `is_default` marker (never a name literal) and
+          // seeds the full staged state (figures + zones + anchors + optik) through
+          // the existing seeder; a PERSISTED row, even with an empty figure set, is
+          // an intentional clear and only its persisted state is seeded.
+          if (map.size === 0) {
+            let seedState = state;
+            if (!(await roomRowExists(room))) {
+              const brandDefault = await getBrandDefaultTemplate(resolveBrand(process.env));
+              if (brandDefault) {
+                seedState = brandDefault;
+                // Persist the auto-seeded state through the established persist
+                // path so a second join finds an existing row and never re-seeds.
+                deps.schedulePersist(room);
+              }
+            }
+            deps.seedFigureMapFromState(map, seedState);
+          }
 
           // Handle player presence if session is active
           // Presence is emitted whenever a session exists (sessionCode is already

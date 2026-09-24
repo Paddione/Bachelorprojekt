@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "slug": "systembrett-presets",
+    "ticket_id": "T900360",
+    "generated_from": "main@29a4246c1",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "components/brett/src/server/figures.ts",
+      "language": "javascript",
+      "loc": 480,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 420
+    },
+    {
+      "path": "components/brett/src/server/ws-connection.ts",
+      "language": "javascript",
+      "loc": 409,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 491
+    },
+    {
+      "path": "components/brett/src/server/ws-admin-commands.ts",
+      "language": "javascript",
+      "loc": 513,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 387
+    },
+    {
+      "path": "components/brett/src/server/db.ts",
+      "language": "javascript",
+      "loc": 112,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 788
+    },
+    {
+      "path": "tests/spec/brett.bats",
+      "language": "bash",
+      "loc": 237,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "components/brett/src/server/figures.ts:8:function generateId(): string {",
+      "kind": "function",
+      "file": "components/brett/src/server/figures.ts",
+      "signature": "8:function generateId(): string {(...)",
+      "type_text": "8:function generateId(): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/brett/src/server/figures.ts:30:function ensureLines(figs: Map<string, any>): Record<string, BrettLine> {",
+      "kind": "function",
+      "file": "components/brett/src/server/figures.ts",
+      "signature": "30:function ensureLines(figs: Map<string, any>): Record<string, BrettLine> {(...)",
+      "type_text": "30:function ensureLines(figs: Map<string, any>): Record<string, BrettLine> {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/brett/src/server/ws-admin-commands.ts:5:function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {",
+      "kind": "function",
+      "file": "components/brett/src/server/ws-admin-commands.ts",
+      "signature": "5:function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {(...)",
+      "type_text": "5:function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/brett/src/server/db.ts:13:  end(): Promise<void>;",
+      "kind": "function",
+      "file": "components/brett/src/server/db.ts",
+      "signature": "13:  end(): Promise<void>;(...)",
+      "type_text": "13:  end(): Promise<void>;(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/brett/src/server/db.ts:14:  connect(): Promise<{ query: any; release: () => void }>;",
+      "kind": "function",
+      "file": "components/brett/src/server/db.ts",
+      "signature": "14:  connect(): Promise<{ query: any; release: () => void }>;(...)",
+      "type_text": "14:  connect(): Promise<{ query: any; release: () => void }>;(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/brett/src/server/db.ts:22:  on() { return this; }",
+      "kind": "function",
+      "file": "components/brett/src/server/db.ts",
+      "signature": "22:  on() { return this; }(...)",
+      "type_text": "22:  on() { return this; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/brett.bats:9:setup() {",
+      "kind": "function",
+      "file": "tests/spec/brett.bats",
+      "signature": "9:setup() {(...)",
+      "type_text": "9:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

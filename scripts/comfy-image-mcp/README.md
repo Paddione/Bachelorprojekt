@@ -66,7 +66,8 @@ bash scripts/comfy-image-mcp/install.sh --register-only
 - Ein Job zur Zeit: die 3060 Ti hat 8 GB, ComfyUI läuft mit `--lowvram`.
 - Kein stilles Überschreiben: ohne `overwrite: true` wird der Aufruf abgelehnt, wenn `out_path` (bzw. bei
   Nachbearbeitung auch `<name>.raw.png`) existiert, ein anderer Job schon dorthin schreibt oder das Ziel ein
-  Symlink ist; entsteht die Datei während der Wartezeit, scheitert der Job statt sie zu ersetzen.
+  Symlink ist; entsteht die Datei während der Wartezeit, scheitert der Job statt sie zu ersetzen. Scheitert
+  die Nachbearbeitung, bleibt `<name>.raw.png` liegen — ein erneuter Aufruf braucht dann `overwrite: true`.
 - `comfyui.service` enthält die GPU-UUID der 3060 Ti dieser Maschine (`nvidia-smi -L`); auf anderer Hardware
   anpassen.
 - `workflow.json` wird über Knoten-Klassennamen befüllt (`TextEncodeQwenImage21`, `KSampler`,

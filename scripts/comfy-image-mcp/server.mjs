@@ -295,8 +295,10 @@ const server = createServer(async (req, res) => {
     try {
       reqObj = JSON.parse(await readBody(req));
     } catch (err) {
+      // Details nur ins Server-Log, der Client bekommt eine feste Meldung (CodeQL: stack-trace exposure).
+      console.error(`[${SERVER_NAME}] parse error: ${err?.message || err}`);
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: CODE_PARSE, message: String(err.message || err) } }));
+      res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: CODE_PARSE, message: 'Parse error' } }));
       return;
     }
     if (reqObj?.id === undefined || reqObj.id === null) {
@@ -328,7 +330,8 @@ const server = createServer(async (req, res) => {
           result = text(`method not found: ${method}`, true);
       }
     } catch (err) {
-      result = text('internal error: ' + (err?.message || err), true);
+      console.error(`[${SERVER_NAME}] internal error in ${method}: ${err?.stack || err}`);
+      result = text('internal error (details in journalctl --user -u comfy-image-mcp)', true);
     }
 
     const payload = JSON.stringify({ jsonrpc: '2.0', id, result });

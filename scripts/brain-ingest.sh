@@ -198,7 +198,10 @@ echo "Slug inventory: $(jq length "$SLUGS_JSON") slugs (including MOCs)"
 # Delivery-Branches traegt keinen Wert, nur das Risiko eines stale PR-Basis.
 echo "Preparing brain repo branch: $BRANCH"
 cd "$BRAIN_REPO"
-git fetch origin 2>/dev/null || true
+# --prune: nach einem Server-seitig gelöschten Delivery-Branch (gh pr merge
+# --delete-branch) bliebe sonst ein stale origin/$BRANCH-Ref zurück und das
+# T013914-Gate in Phase 4 bräche jede weitere Delivery ab (T900400).
+git fetch origin --prune 2>/dev/null || true
 if git rev-parse --verify origin/main >/dev/null 2>&1; then
   git checkout -B "$BRANCH" origin/main
 else
@@ -613,7 +616,9 @@ if git remote get-url origin &>/dev/null; then
   # Der generierte Commit beruehrt nur wiki/ + index.md; ein Rebase schlaegt nur fehl,
   # wenn main dieselben Pfade geaendert hat — dann ist Abbruch (nicht der Merge eines
   # halben Baums) die richtige Reaktion.
-  git fetch origin 2>/dev/null || true
+  # --prune aus demselben Grund wie in Phase 1 (T900400): das
+  # origin/$BRANCH-Gate unten darf keinen gelöschten Remote-Branch sehen.
+  git fetch origin --prune 2>/dev/null || true
   BASE_AT_START=$(git rev-parse "$BRANCH"~1 2>/dev/null || git rev-parse HEAD~1)
   MAIN_NOW=$(git rev-parse origin/main 2>/dev/null || echo "")
   if [ -n "$MAIN_NOW" ] && [ "$BASE_AT_START" != "$MAIN_NOW" ]; then

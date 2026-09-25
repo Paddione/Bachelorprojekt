@@ -151,6 +151,9 @@ for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs
     source_path="${page_path%%#*}"
     brain_group_for "$source_path" "$GROUPS_SECTION" || continue
     [ "$_BRAIN_GROUP_OUT" = "$group" ] || continue
+    # Ghost-Guard (T900400): State-Einträge ohne ausgelieferte Seite (z. B.
+    # nach Delivery-Abbruch) dürfen keine toten MOC-Links erzeugen.
+    [ -f "$BRAIN_REPO/wiki/${page_slug}.md" ] || continue
     pages+="${page_slug}"$'\t'"${page_path}"$'\n'
   done < <(jq -r '
     to_entries | sort_by(.key)[] |
@@ -212,19 +215,7 @@ Zentraler Hub des brain-Wikis. Max. 2 MOC-Hops zu jeder Seite (G-BRAIN08).
 
 ## Meta & Qualität
 
-- [[quality-goals]] — Qualitätsziele G-BRAIN01–11
 - [[SCHEMA]] — Verfassung und Konventionen
-
-## Arbeiten mit dem Wiki
-
-- [[usage]] — Seiten anlegen, raw→wiki, log-Pflege
-- [[cheatsheet]] — Frontmatter-Templates, Wikilink-Syntax
-- [[first-aid]] — Erste Hilfe bei roter CI
-- [[llm-workflows]] — LLM-Anreicherung: Prompt-Vorlagen
-
-## Software & Plattform
-
-- [[capabilities]] — Software-Capabilities und Plattform-Fähigkeiten
 
 ## SSOT Spezifikationen
 
@@ -240,11 +231,11 @@ Zentraler Hub des brain-Wikis. Max. 2 MOC-Hops zu jeder Seite (G-BRAIN08).
 
 ## Gotchas & Footguns
 
-- [[gotchas-moc]] — Bekannte Fallstricke
+- [[gotchas-footguns-moc]] — Bekannte Fallstricke
 
 ## Agent Guide
 
-- [[agent-guide-maps]] — Agent-Oberflächen und Guides
+- [[agent-guide-maps-moc]] — Agent-Oberflächen und Guides
 
 ## Core Documentation
 
@@ -253,6 +244,8 @@ Zentraler Hub des brain-Wikis. Max. 2 MOC-Hops zu jeder Seite (G-BRAIN08).
 "
 
 for page_slug in $existing_pages; do
+  # Ghost-Guard (T900400): wie bei den Gruppen-MOCs oben.
+  [ -f "$BRAIN_REPO/wiki/${page_slug}.md" ] || continue
   if ! echo "$index_content" | grep -q "\[\[$page_slug\]\]"; then
     index_content+="- [[${page_slug}]]
 "

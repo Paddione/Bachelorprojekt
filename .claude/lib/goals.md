@@ -184,6 +184,65 @@ pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
 
 > **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
 
+## G-DB11 — Tage seit letztem Restore-Verify: 30 → 65
+
+**Was:** Alter des Stempels `recovery-verify-status.data.last_success` in Tagen. Ein
+Restore-Verify beweist, dass ein Backup **tatsächlich wiederherstellbar** ist — ohne ihn ist
+das Backup nur eine Datei auf Platte. Das Ziel stand in Prio C, obwohl der Stempel 65 Tage
+alt ist: `scripts/health-goals-update.sh` schreibt die `Aktuell`-Spalte nur, wenn ein Wert
+gemessen wurde, und überschreibt den Marker `✓` nur bei einer Verbesserung — ein gewachsener
+Wert blieb dadurch als `30 ✓` stehen und das Ziel steuerte nichts mehr.
+
+> **B · Baseline:** 30 → 65 · **Target:** ≤ 30 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
+
+```bash
+kubectl get configmap recovery-verify-status -n "$DB_NS" --context "$DB_CTX" \
+  -o jsonpath='{.data.last_success}'
+```
+
+Der Stempel wird nur von einem erfolgreichen Restore-Durchlauf erneuert (CronJob
+`backup-verify`); läuft der nicht, alterniert das Alter und das Ziel wird rot.
+
+## G-DEP02 — Veraltete Major-Dependencies: 3 → 7
+
+**Was:** Zählt Publish-Major-Sprünge in `pnpm outdated --format json` (Helper
+`scripts/lib/pnpm-outdated-majors.py`). Ein Major-Sprung ist eine Breaking-Chain-Änderung und
+ist der häufigste Grund für Folge-Bugs. Stand 7 gegen Target ≤ 3 bei dokumentiertem `3 ✓` —
+dieselbe Ursache wie bei G-DB11: gewachsene Werte wurden in Prio C nie rot.
+
+> **B · Baseline:** 3 → 7 · **Target:** ≤ 3 · **Aufwand:** mittel · **Messzyklus:** monatlich · **Reproduzierbar:** ja (lokal, `node_modules` nötig) · **Ticket:** T900380
+
+```bash
+cd components/website && pnpm outdated --format json \
+  | python3 scripts/lib/pnpm-outdated-majors.py
+```
+
+`pnpm outdated` endet bei Funden mit Exit 1 — die Ausgabe erfassen, **nicht** den
+Pipeline-Status werten. Fehlen `components/website/node_modules`, ist das Ergebnis `n/a`.
+
+## G-CI03 — CI Pipeline p95 Duration (min): 3 → 22
+
+**Was:** 95-Perzentil der Wall-Clock-Dauer der letzten 20 `ci.yml`-Läufe auf `main`
+(`createdAt` → `updatedAt`, inkl. Queue-Zeit). Steht für die teuerste Verzögerung, die ein
+PR-Erlebnis spürt — der Median würde die Tail-Latenz verdecken. Lief bei dieser
+Re-Bewertung mit 9 knapp unter Target, beim zweiten Messlauf derselben Sitzung bereits bei
+22 (die 20er-Fenster sind noch nicht voll, ein neu hinzugekommener langsamer Lauf verschiebt
+das p95 stark) — mit dokumentiertem `3 ✓`. Dieselbe Ursache wie bei G-DB11: gewachsene Werte
+wurden in Prio C nie rot, die `Aktuell`-Spalte blieb auf dem Aufnahmewert stehen.
+
+> **B · Baseline:** 3 → 9 → 22 · **Target:** ≤ 12 · **Aufwand:** mittel · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T900380
+
+```bash
+gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
+  | python3 -c "import json,sys; from datetime import datetime; \
+runs=json.load(sys.stdin); p=lambda ts: datetime.fromisoformat(ts.replace('Z','+00:00')); \
+d=sorted((p(r['updatedAt'])-p(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r); \
+print(f'{d[int(len(d)*0.95)]:.0f}')"
+```
+
+Bewusst `gh` statt `gh-axi`: `gh-axi run list` kennt kein `--json`-Pendant für
+`run list` (T001910). Ohne Netz/`gh`-Auth ist das Ergebnis `n/a`, nicht 0.
+
 ## G-SEC06 — Container Images mit High/Critical CVEs: 6 🟡 (Ziel 0)
 
 **Was:** Zählt unique Container-Images im aktiven Deployment mit bekannten CVEs der
@@ -275,7 +334,7 @@ der Positiv-Anker ist mindestens eine deklarierte Unit-Datei.
 bash scripts/lib/llm-stack-measure.sh autostart-coverage
 ```
 
-> **B · Baseline:** 1 → 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 1 → 0 → 1 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM05 — Tote lokale Endpunkt-Verweise (Backend-Registry): n/a → 0
 
@@ -445,7 +504,7 @@ Pfad ist keine Verletzung, sondern eine nicht durchgeführte Messung.
 bash scripts/lib/wt-hygiene-measure.sh main-checkout
 ```
 
-> **B · Baseline:** 1 → 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keinen Hauptcheckout) · **Ticket:** T002443
+> **B · Baseline:** 1 → 0 → 1 → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keinen Hauptcheckout) · **Ticket:** T002443
 
 ## G-WT02 — Veraltete Worktrees (Branch gemergt oder >14d inaktiv): 0 → 0
 
@@ -542,7 +601,7 @@ einer beruhigenden `0`.
 bash scripts/lib/wt-hygiene-measure.sh main-divergence
 ```
 
-> **B · Baseline:** 0 → 14 (2026-08-19, main divergiert) → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI klont frisch) · **Ticket:** T002443
+> **B · Baseline:** 0 → 14 (2026-08-19, main divergiert) → 0 → 2 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI klont frisch) · **Ticket:** T002443
 
 ## G-WT06 — Phantom-Scope-Locks (Scope leer oder mit `-` beginnend): 0 → 0
 
@@ -581,7 +640,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST01** | BATS Debt-Skips | 0 ✓ | 0 | `grep -rniE "skip [\"']" tests --include=*.bats \| grep -ciE "pending\|todo\|WP-\|disabled"` |
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | Positiv-Anker: `components/website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\.only\b' components/website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 1 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" components/website/src --include="*.ts" \| wc -l` |
-| **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain components/website/src/data/test-inventory.json \| wc -l` |
+| **G-TEST04** | Test-Inventory-Drift | 1 ⚠ | 0 | `git status --porcelain components/website/src/data/test-inventory.json \| wc -l` |
 | **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 10 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 4 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
 | **G-CQ05** | Echte TODO-Marker | 1 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... components/website/src scripts tests k3d brett/src \| wc -l` |
@@ -596,7 +655,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | Positiv-Anker: `components/website/Dockerfile` fehlt ⇒ n/a; `grep -q "npm ci" components/website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json components/website/package.json ...; do python3 -c "..engines.."; done` |
 | **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
-| **G-DEP02** | Veraltete Major-Deps | 3 ✓ | ≤ 3 | `cd website && pnpm outdated --format json` → `scripts/lib/pnpm-outdated-majors.py` (stdin; pnpm endet mit Funden als Exit 1 — Ausgabe erfassen, nicht den Pipeline-Status werten) |
 | **G-IMG01** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml) |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 1/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
@@ -612,7 +670,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | ≤ 5 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
 | **G-E2E02** | E2E-Testdaten-Leak (is_test_data-Rows) | 0 ✓ | 0 | `SELECT COALESCE(sum(...), 0) FROM information_schema.columns WHERE column_name='is_test_data'` |
-| **G-DB11** | Tage seit letztem Restore-Verify | 30 ✓ | ≤ 30 | `kubectl get configmap recovery-verify-status -o jsonpath=...` |
 | **G-SIZE02** | Großdateien >1000 Zeilen (Gate-Scope) | 3 ✓ | ≤ 3 | `git ls-files ... \| xargs wc -l \| awk '$1>1000' \| wc -l` |
 | **G-FLUX01** | Flux Reconciliation Health | n/a | 0 | `python3 scripts/lib/runtime-health-measure.py flux` — clusterweit, leer/fehlerhaft ⇒ n/a |
 | **G-OBS01** | Prometheus Scrape Health | n/a | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` — aktive `up`-Serien, leer ⇒ n/a |
@@ -624,18 +681,17 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
-| **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 1 ⚠ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
+| **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 0 ✓ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 193 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
-| **G-CI03** | CI Pipeline p95 Duration (min) | 3 ✓ | ≤ 12 | `gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \| python3 -c "..p95.."` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt) |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
-| **G-DORA01** | Deployment Frequency | 539 ✓ | ≥ 20/4 Wo (= 5/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
+| **G-DORA01** | Deployment Frequency (main-Merges/4 Wo) | 546 ✓ | ≥ 300/4 Wo (= 75/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` — T900380 neu gescopt: `≥ 20/4 Wo` war um Faktor 27 zu locker (Ist 546) und konnte nicht rot werden, das 4. Muster-Symptom aus T013916. Der Ratchet sitzt jetzt bei 55 % des Ist und bleibt unter jedem seit 12 Wochen gemessenen 4-Wochen-Fenster (min 546, Median ~1000). Bei 75 Merges/Woche fällt der 4-Wochen-Schnitt unter 300 und das Ziel rotet. |
 | **G-DORA02** | Lead Time (PR→merge) | 0 h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
-| **G-DORA03** | Change Failure Rate (Proxy) | 27 ⚠ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
-| **G-DORA04** | MTTR | 0 ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
+| **G-DORA03** | Change Failure Rate (revert/hotfix-Rate) | 0 ‰ ✓ | ≤ 5 ‰ (= 0.5 %) | `git log --since="8 weeks ago" --first-parent --format='%s' main \| grep -ciE 'revert\|hotfix'` ÷ Gesamtzahl desselben Fensters — T900380: der Proxy zählte `^fix`-**Commits** (627 von 2320 = 27 %), nicht fehlgeschlagene Deployments; er meldete 27 % Verlustquote, während G-DORA04 für denselben Zeitraum **0** Reverts/Hotfixes zählte. Derselbe Sachverhalt, zwei widersprüchliche Ampelstände. Jetzt derselbe Ereignistyp wie G-DORA04, nur skalenfrei als Rate: bei ~290 Merges/Woche greift G-DORA04 (≤ 5 absolut) zuerst, fällt das Volumen, greift die Rate zuerst — zusammen decken sie das Feld ab. Promille statt Prozent, weil ganzzahliges Prozent 0.4 % und 0.5 % beide auf 0 abrundet. |
+| **G-DORA04** | MTTR (Proxy: revert/hotfix-Commits/8 Wo) | 0 ✓ | ≤ 5 | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
 | **G-FE03** | rohe `console.error/warn` (exkl. Selbstschutz-Fallbacks) | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(error\|warn)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v 'logger.ts' \| grep -v 'error-log-store.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(log\|debug\|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits (ohne Merge) | 0 ✓ | 0 | Positiv-Anker: `origin/main`-Ref fehlt ⇒ n/a; `git log --format=%s --no-merges -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |

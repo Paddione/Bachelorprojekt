@@ -51,8 +51,10 @@ test.describe('Brett Mannequin Focus', () => {
 
   test('T1: One figure is seeded on load', async ({ page }) => {
     // Check if STATE.figures has figures seeded on load (brand default template)
-    const count = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
-    expect(count).toBeGreaterThan(0);
+    await expect.poll(
+      () => page.evaluate(() => (window as any).STATE?.figures?.length ?? 0),
+      { timeout: 10_000 }
+    ).toBeGreaterThan(0);
   });
 
   test('T2: Adding a figure via button', async ({ page }) => {
@@ -67,31 +69,40 @@ test.describe('Brett Mannequin Focus', () => {
 
   test('T3: Applying a preset', async ({ page }) => {
     // Select the first figure
-    await page.evaluate(() => {
-      const figs = (window as any).STATE?.figures;
-      if (figs && figs.length > 0) {
-        (window as any).selectFigure(figs[0].id);
-      }
-    });
+    await expect.poll(async () => {
+      return page.evaluate(() => {
+        const figs = (window as any).STATE?.figures;
+        if (figs && figs.length > 0) {
+          (window as any).selectFigure(figs[0].id);
+          return (window as any).STATE.selectedId;
+        }
+        return null;
+      });
+    }, { timeout: 10_000 }).not.toBeNull();
     
     // Click 'Kneel' preset
     await page.click('button[data-preset="kneel"]');
     
     // Verify target rotations for a bone (e.g., lHip)
-    const lHipTargetX = await page.evaluate(() => {
-      const state = (window as any).STATE;
-      const fig = state?.figures?.find((f: any) => f.id === state?.selectedId);
-      return fig?.bone?.lHip?.targetRot?.x ?? null;
-    });
-    expect(lHipTargetX).not.toBeNull();
-    expect(lHipTargetX).toBeCloseTo(-1.3, 1);
+    await expect.poll(async () => {
+      return page.evaluate(() => {
+        const state = (window as any).STATE;
+        const fig = state?.figures?.find((f: any) => f.id === state?.selectedId);
+        return fig?.bone?.lHip?.targetRot?.x ?? null;
+      });
+    }, { timeout: 10_000 }).toBeCloseTo(-1.3, 1);
   });
 
   test('T4: Stiffness slider updates state', async ({ page }) => {
     const slider = page.locator('#stiffness');
-    await slider.fill('0.1');
-    const stiffness = await page.evaluate(() => (window as any).STATE.stiffness);
-    expect(stiffness).toBe(0.1);
+    await slider.evaluate((el: HTMLInputElement) => {
+      el.value = '0.1';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await expect.poll(
+      () => page.evaluate(() => (window as any).STATE.stiffness),
+      { timeout: 5_000 }
+    ).toBe(0.1);
   });
 
   test('T5: Double-click on floor adds figure', async ({ page }) => {
@@ -106,11 +117,16 @@ test.describe('Brett Mannequin Focus', () => {
   });
   
   test('T6: Tab cycles selection', async ({ page }) => {
-    const count = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
-    if (count < 2) {
-      await page.locator('canvas').dblclick({ position: { x: 100, y: 100 } });
-      await page.waitForTimeout(500);
-    }
+    await expect.poll(async () => {
+      const current = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+      if (current < 2) {
+        await page.click('#fig-panel-btn');
+        await page.click('#fig-panel-add');
+        await page.locator('canvas').click({ position: { x: 200, y: 200 } });
+      }
+      return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    }, { timeout: 10_000 }).toBeGreaterThanOrEqual(2);
+
     const [firstId, secondId] = await page.evaluate(() => [
       (window as any).STATE?.figures?.[0]?.id,
       (window as any).STATE?.figures?.[1]?.id,

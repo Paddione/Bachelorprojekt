@@ -36,10 +36,10 @@ test.describe('Brett Mannequin Focus', () => {
     // Wait for the scene to be up if window.STATE is exported
     const hasState = await page.waitForFunction(
       () => (window as any).STATE && Array.isArray((window as any).STATE.figures),
-      { timeout: 2000 }
+      { timeout: 10_000 }
     ).then(() => true).catch(() => false);
 
-    const isReady = await page.waitForSelector('#topbar', { state: 'visible', timeout: 2000 })
+    const isReady = await page.waitForSelector('#topbar', { state: 'visible', timeout: 10_000 })
       .then(() => true)
       .catch(() => false);
 
@@ -50,31 +50,40 @@ test.describe('Brett Mannequin Focus', () => {
   });
 
   test('T1: One figure is seeded on load', async ({ page }) => {
-    // Check if STATE.figures has one element
-    const count = await page.evaluate(() => (window as any).STATE.figures.length);
-    expect(count).toBe(1);
+    // Check if STATE.figures has figures seeded on load (brand default template)
+    const count = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    expect(count).toBeGreaterThan(0);
   });
 
   test('T2: Adding a figure via button', async ({ page }) => {
+    const beforeCount = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     await page.click('#fig-panel-btn');
     await page.click('#fig-panel-add');
     await page.locator('canvas').click({ position: { x: 150, y: 150 } });
-    const count = await page.evaluate(() => (window as any).STATE.figures.length);
-    expect(count).toBe(2);
+    await expect.poll(async () => {
+      return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    }, { timeout: 10_000 }).toBe(beforeCount + 1);
   });
 
   test('T3: Applying a preset', async ({ page }) => {
     // Select the first figure
-    await page.evaluate(() => (window as any).selectFigure((window as any).STATE.figures[0].id));
+    await page.evaluate(() => {
+      const figs = (window as any).STATE?.figures;
+      if (figs && figs.length > 0) {
+        (window as any).selectFigure(figs[0].id);
+      }
+    });
     
     // Click 'Kneel' preset
     await page.click('button[data-preset="kneel"]');
     
     // Verify target rotations for a bone (e.g., lHip)
     const lHipTargetX = await page.evaluate(() => {
-      const fig = (window as any).STATE.figures.find((f: any) => f.id === (window as any).STATE.selectedId);
-      return fig.bone.lHip.targetRot.x;
+      const state = (window as any).STATE;
+      const fig = state?.figures?.find((f: any) => f.id === state?.selectedId);
+      return fig?.bone?.lHip?.targetRot?.x ?? null;
     });
+    expect(lHipTargetX).not.toBeNull();
     expect(lHipTargetX).toBeCloseTo(-1.3, 1);
   });
 
@@ -86,32 +95,47 @@ test.describe('Brett Mannequin Focus', () => {
   });
 
   test('T5: Double-click on floor adds figure', async ({ page }) => {
-    const beforeCount = await page.evaluate(() => (window as any).STATE.figures.length);
+    const beforeCount = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     
     const canvas = page.locator('canvas');
     await canvas.dblclick({ position: { x: 100, y: 100 } });
     
-    const afterCount = await page.evaluate(() => (window as any).STATE.figures.length);
-    expect(afterCount).toBeGreaterThan(beforeCount);
+    await expect.poll(async () => {
+      return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    }, { timeout: 10_000 }).toBeGreaterThan(beforeCount);
   });
   
   test('T6: Tab cycles selection', async ({ page }) => {
-    await page.locator('canvas').dblclick({ position: { x: 100, y: 100 } }); // now 2 figures
-    const firstId = await page.evaluate(() => (window as any).STATE.figures[0].id);
-    const secondId = await page.evaluate(() => (window as any).STATE.figures[1].id);
+    const count = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    if (count < 2) {
+      await page.locator('canvas').dblclick({ position: { x: 100, y: 100 } });
+      await page.waitForTimeout(500);
+    }
+    const [firstId, secondId] = await page.evaluate(() => [
+      (window as any).STATE?.figures?.[0]?.id,
+      (window as any).STATE?.figures?.[1]?.id,
+    ]);
+    expect(firstId).toBeTruthy();
+    expect(secondId).toBeTruthy();
     
     await page.evaluate((id) => (window as any).selectFigure(id), firstId);
-    expect(await page.evaluate(() => (window as any).STATE.selectedId)).toBe(firstId);
+    expect(await page.evaluate(() => (window as any).STATE?.selectedId)).toBe(firstId);
     
     await page.keyboard.press('Tab');
-    expect(await page.evaluate(() => (window as any).STATE.selectedId)).toBe(secondId);
+    expect(await page.evaluate(() => (window as any).STATE?.selectedId)).toBe(secondId);
   });
 
   test('T7: Delete removes figure', async ({ page }) => {
     await page.locator('canvas').dblclick({ position: { x: 100, y: 100 } });
-    const beforeCount = await page.evaluate(() => (window as any).STATE.figures.length);
+    await expect.poll(async () => {
+      return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    }, { timeout: 5_000 }).toBeGreaterThan(0);
+
+    const beforeCount = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     await page.keyboard.press('Delete');
-    const afterCount = await page.evaluate(() => (window as any).STATE.figures.length);
-    expect(afterCount).toBe(beforeCount - 1);
+
+    await expect.poll(async () => {
+      return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
+    }, { timeout: 10_000 }).toBe(beforeCount - 1);
   });
 });

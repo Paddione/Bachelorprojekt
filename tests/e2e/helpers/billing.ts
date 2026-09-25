@@ -25,21 +25,26 @@ export async function createTestInvoice(page: Page, opts: { gross: number }) {
       dueDays: 14,
     }
   });
-  expect([200, 201]).toContain(res.status());
-  const body = await res.json() as { success?: boolean; data?: { id: string; number: string }; id?: string; number?: string };
-  // API returns { success: true, data: { id, number, ... } }
+  const status = res.status();
+  const text = await res.text().catch(() => '');
+  expect([200, 201], `create-invoice failed (${status}): ${text}`).toContain(status);
+  let body: any;
+  try { body = JSON.parse(text); } catch { throw new Error(`create-invoice returned non-JSON: ${text}`); }
   const invoice = body.data ?? body;
-  expect(invoice.id).toBeTruthy();
+  expect(invoice?.id, `invoice missing id in response: ${text}`).toBeTruthy();
   return invoice as { id: string; number: string };
 }
 
 export async function finalizeInvoiceViaAPI(page: Page, id: string) {
+  if (!id) throw new Error('finalizeInvoiceViaAPI: id is required');
   const res = await page.request.post(`${BASE}/api/admin/billing/${id}/send`, {});
+  const status = res.status();
   // 200 = finalized + email sent
   // 500 / 502 = email delivery failed (e.g. SMTP/Mailpit unreachable in test run) — invoice is finalized
-  if (res.status() === 500 || res.status() === 502) {
+  if (status === 500 || status === 502) {
     // Email failed but invoice was finalized — acceptable for testing.
     return;
   }
-  expect([200, 201, 500, 502]).toContain(res.status());
+  const text = await res.text().catch(() => '');
+  expect([200, 201, 500, 502], `finalize invoice failed (${status}): ${text}`).toContain(status);
 }

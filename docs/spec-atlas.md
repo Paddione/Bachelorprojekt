@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2441 · Scenarios: 5418
+Specs: 129 · Requirements: 2440 · Scenarios: 5417
 
 ## factory-pipeline
 
@@ -421,7 +421,7 @@ Last touches:
   - Single-Column FK Index Coverage & Brand Constraints | T013031 | 2026-08-21 | ADDED
 
 ### database
-Reqs: 54 · Scenarios: 103 · Lines: 1028
+Reqs: 53 · Scenarios: 102 · Lines: 1014
 Paths: scripts/db, scripts/migrate, website/src/lib/db, website/src/db
 Last touches:
   - GitHub identity foundation schema is additive and idempotent | T900159 | 2026-09-12 | ADDED

@@ -60,6 +60,7 @@ test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', { tag: ['@
     await page.reload();
     // Find the invoice row using the #-prefixed number (unique in the table).
     const invoiceRow = page.locator('tr').filter({ hasText: `#${inv.number}` }).first();
+    await expect(invoiceRow).toBeVisible({ timeout: 15_000 });
     await expect(invoiceRow).toContainText(/Teilbezahlt/i);
 
     // Final payment 60
@@ -70,6 +71,7 @@ test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', { tag: ['@
 
     await page.reload();
     const invoiceRow2 = page.locator('tr').filter({ hasText: `#${inv.number}` }).first();
+    await expect(invoiceRow2).toBeVisible({ timeout: 15_000 });
     await expect(invoiceRow2).toContainText(/Bezahlt/i);
   });
 

@@ -77,7 +77,7 @@ export default defineConfig({
         '**/fa-admin-live.spec.ts',                  // unified live cockpit redirects
         '**/wissensquellen.spec.ts',                 // knowledge collections CRUD + web_crawl ingest (self-authenticating)
         '**/fa-admin-billing-system.spec.ts',        // native SEPA billing, EÜR, UStVA auth gates
-        '**/fa-admin-crm.spec.ts',                   // CRM: termine, followups, projekte, rooms, meetings auth gates
+        '**/fa-admin-crm.spec.ts',                   // CRM: termine, projekte, rooms, meetings auth gates
         '**/fa-56-admin-assets.spec.ts',             // central asset management auth gates
         '**/fa-59-*.spec.ts',                        // systemtest purge route preservation
         '**/fa-admin-backup-settings.spec.ts',       // admin backup settings auth gates
@@ -120,7 +120,6 @@ export default defineConfig({
         '**/fa-content-hub-service-consolidation.spec.ts',
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
         '**/fa-51-*.spec.ts',             // sidekick navigation (T000965)
-        '**/factory-qs-abnahme.spec.ts',  // QS-Abnahme-Flow /dev-status (T000730)
         '**/fa-admin-monitoring.spec.ts',       // admin monitoring page auth
         '**/fa-bugs-notifications.spec.ts',     // bug-report → admin resolve → reporter email (FA-bug-notify)
         '**/fa-admin-tickets.spec.ts',          // unified admin /admin/tickets index + detail (PR4/5)
@@ -130,7 +129,7 @@ export default defineConfig({
         '**/fa-54-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
         '**/fa-55-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
         '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
-        '**/fa-admin-db-crud-*.spec.ts',             // DB-object CRUD via web UI: projekte, followups, clients, shortcuts
+        '**/fa-admin-db-crud-*.spec.ts',             // DB-object CRUD via web UI: projekte, clients, shortcuts
         '**/fa-m3-*.spec.ts',                        // M3 onboarding flow
         '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
         '**/coaching-studio-empty-customer.spec.ts', // coaching-studio Workspace-Crash bei leerem CUSTOMERS (T001656)

@@ -26,10 +26,14 @@
         // 123.536-Token-Prompt: Prefill 823 tok/s, Decode 55,7 tok/s, Needle
         // gefunden. Dense 27B, Reasoning default on -> kleines max_tokens
         // liefert leeren content (length) — Budget grosszuegig.
+        // limit.input ist Pflicht fuer den V1-Compaction-Trigger: ohne ihn
+        // ignoriert opencode compaction.reserved und kompaktiert erst bei
+        // context − output = 145408 (T900362, siehe opencode.jsonc).
         "Qwen3.8-27B-gsq": {
           "name": "Qwen3.8-27B dense (llama.cpp :1919, RTX 5070 Ti, 150k ctx, ~96 tok/s decode, reasoning on)",
           "limit": {
             "context": 153600,
+            "input": 153600,
             "output": 8192
           }
         }

@@ -350,46 +350,58 @@ telemetry file. The provider is wired statically to `:1919` (T900208, T900348).
 - **WHEN** its entries are listed
 - **THEN** `freetoken-active.ts` is not among them
 
-### Requirement: V2 Compaction Scales With the Model Window
+### Requirement: Compaction Scales With the Model Window
 
-The project opencode config SHALL declare a V2 `compaction` block with
+The project opencode config SHALL declare a `compaction` block with
 `auto: true`, `keep.tokens: 16000` and `buffer: 33600`, with a comment showing
-the threshold math for the default model. `.opencode/dcp.jsonc` SHALL declare
-per-model `modelMinLimits` and `modelMaxLimits` for the default model as
-percentages of its `limit.context`, and both SHALL resolve below that model's
-compaction threshold.
+the threshold math for the default model. The default model's catalog entry
+SHALL declare `limit.input` equal to its `limit.context`. `.opencode/dcp.jsonc` SHALL declare per-model
+`modelMinLimits` and `modelMaxLimits` for the default model as percentages of
+its `limit.context`, both SHALL resolve below that model's compaction
+threshold, and it SHALL set `experimental.allowSubAgents: true`.
 
-Rationale: V2 computes the preflight threshold per model as
-`context − max(output, buffer)` (verified against
-`packages/core/src/session/compaction.ts` and
-`https://opencode.ai/v2/docs/compaction/`), so one global `buffer` yields a
-trigger per model window. With the default model's `context: 153600` and
-`output: 8192`, `buffer: 33600` yields compaction at 120000; the former
-`buffer: 96000` (sized for a 200k model) would fire at 57600. DCP resolves
-`"X%"` against the active model's `limit.context` and prefers a
-`providerID/modelID` entry over the global value: `40%`/`75%` give 61440/115200
-on the local model, while the global 85000/103000 keep the 1M cloud models in
-the 60–100k working band (T900350). The V1 keys `reserved` and
-`preserve_recent_tokens` are ignored by V2 and SHALL NOT appear.
+Rationale: opencode 1.18 maps the V2 keys onto its V1 settings
+(`opencode debug config` shows `buffer` as `reserved` and `keep.tokens` as
+`preserve_recent_tokens`). The prompt loop that serves TUI primaries and every
+`task` subagent dispatch (`packages/opencode/src/session/overflow.ts`) computes
+`input − reserved` when `limit.input` is set and `context − output` otherwise,
+ignoring `reserved`. The `session.next` runtime
+(`packages/core/src/session/compaction.ts`) computes
+`context − max(output, buffer)`. With `context = input = 153600` and
+`output: 8192`, both yield 120000; before T900362 the catalog lacked
+`limit.input`, so the prompt loop fired at 145408 and local subagents ran to
+~150k. DCP resolves `"X%"` against the active model's
+`limit.context` and prefers a `providerID/modelID` entry over the global
+value: `40%`/`75%` give 61440/115200 on the local model, while the global
+85000/103000 keep the 1M cloud models in the 60–100k working band (T900350).
+DCP skips sessions with a `parentID` unless `experimental.allowSubAgents` is
+true, so without it subagents received neither nudge nor forced pruning.
 
-#### Scenario: Compaction block present with V2 keys
+#### Scenario: Compaction block present
 
-- **GIVEN** `.opencode/opencode.jsonc` on the feature branch
+- **GIVEN** `.opencode/opencode.jsonc`
 - **WHEN** the `compaction` block is inspected
-- **THEN** it contains `auto: true`, `keep.tokens: 16000`, `buffer: 33600`
-  and no `reserved` or `preserve_recent_tokens` key
+- **THEN** it contains `auto: true`, `keep.tokens: 16000` and `buffer: 33600`
 
-#### Scenario: Threshold math holds for the default model
+#### Scenario: Threshold math holds for the default model on both paths
 
-- **GIVEN** the default model limit `context: 153600`, `output: 8192`
-- **WHEN** `153600 − max(8192, 33600)` is computed
-- **THEN** the result is `120000`
+- **GIVEN** the default model limit `context: 153600`, `input: 153600`,
+  `output: 8192`
+- **WHEN** `input − buffer` (prompt loop) and `context − max(output, buffer)`
+  (`session.next`) are computed
+- **THEN** both results are `120000`
 
 #### Scenario: DCP limits sit below the local compaction trigger
 
 - **GIVEN** `.opencode/dcp.jsonc` and the default model's catalog limits
 - **WHEN** its `modelMinLimits` and `modelMaxLimits` entries are resolved
 - **THEN** they equal 61440 and 115200, and 115200 is below 120000
+
+#### Scenario: DCP runs in subagent sessions
+
+- **GIVEN** `.opencode/dcp.jsonc`
+- **WHEN** its `experimental` block is inspected
+- **THEN** `allowSubAgents` is `true`
 
 ### Requirement: Factory Roles Carry Minimal Toolsets
 

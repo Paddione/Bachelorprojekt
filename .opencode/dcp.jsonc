@@ -27,5 +27,12 @@
     "nudgeForce": "soft",
     // Frequenz: alle 5 Vorgänge ein Nudge — bei Bedarf empirisch auf 3 senken.
     "nudgeFrequency": 5
+  },
+  // DCP ueberspringt Sessions mit parentID (Subagents) per Default
+  // (experimental.allowSubAgents=false). Der lokale `local`-Subagent laeuft
+  // aber genau dort in die Laenge — ohne diesen Schalter bekam er weder den
+  // 40-%-Nudge noch den 75-%-Zwang und lief bis zur Compaction (T900362).
+  "experimental": {
+    "allowSubAgents": true
   }
 }

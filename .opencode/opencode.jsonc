@@ -8,20 +8,25 @@
   // Fallback-Kette bleibt: bei Ausfall des lokalen Servers greifen die
   // deepseek-*-Agenten (Go-Abo zuerst, dann direkte API).
   "model": "llamacpp-local/Qwen3.8-27B-gsq",
-  // ── V2 Compaction (Requirement: V2 Compaction Scales With the Model Window) ──
-  // V2 rechnet pro Modell: threshold = limit.context − max(limit.output, buffer).
-  // Ein globaler buffer ergibt deshalb fuer jedes Modell einen eigenen Trigger:
-  //   Qwen3.8-27B-gsq: 153600 − max(8192, 33600) = 120000
-  //   big-pickle:          260000 − max(16384, 33600) = 226400
-  //   deepseek (1M):      1000000 − max(8192, 33600) = 966400
-  //   muse-spark (1M):    1000000 − max(131072, 33600) = 868928
-  // Die Cloud-Modelle haelt DCP (.opencode/dcp.jsonc) davor schlank.
+  // ── Compaction (Requirement: Compaction Scales With the Model Window) ──────
+  // opencode 1.18 liest die V2-Keys und bildet sie fuer die V1-Promptschleife
+  // ab (`opencode debug config`: buffer → reserved, keep.tokens →
+  // preserve_recent_tokens). Die Promptschleife (session/overflow.ts), ueber die
+  // TUI-Primaries UND jeder Subagent-Dispatch (task-Tool) laufen, rechnet:
+  //   limit.input gesetzt:  threshold = limit.input − reserved
+  //   limit.input fehlt:    threshold = limit.context − limit.output  (reserved ignoriert!)
+  //   Qwen3.8-27B-gsq (input 153600): 153600 − 33600 = 120000
+  //   Cloud-Modelle ohne input:       1M − output (≈991k/868k), DCP haelt sie schlank
+  // Bis T900362 fehlte limit.input im Katalog: der Qwen-Trigger lag deshalb bei
+  // 153600 − 8192 = 145408, und Subagents liefen bis ~150k.
+  //
+  // Die session.next-Runtime (packages/core/src/session/compaction.ts) rechnet
+  // limit.context − max(limit.output, buffer) = 153600 − max(8192, 33600) = 120000.
   //
   // Kalibrierung 2026-09-23 (T900350): 147.651-Token-Prompt gemessen mit
   // Prefill 831 tok/s, Decode 20,4 tok/s (kurzer Kontext ~35 tok/s). Der
   // Trigger bei 120k laesst 33,6k fuer Output und Reasoning; keep.tokens
-  // 16000 haelt den Tail. Vorher buffer 96000 (Qwen3.6, 200k): auf 153600
-  // haette das schon bei 57600 kompaktiert.
+  // 16000 haelt den Tail.
   "compaction": {
     "auto": true,
     "keep": { "tokens": 16000 },

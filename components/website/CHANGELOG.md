@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.363.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.363.0...website-v1.363.1) (2026-09-25)
+
+
+### Bug Fixes
+
+* **website:** install purge function v8 from one module on schema init [T900381] ([#5893](https://github.com/Paddione/Bachelorprojekt/issues/5893)) ([5730bcb](https://github.com/Paddione/Bachelorprojekt/commit/5730bcb381cb6b2a5ca9595d589f1e1bb8427286))
+
 ## [1.363.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.362.0...website-v1.363.0) (2026-09-25)
 
 

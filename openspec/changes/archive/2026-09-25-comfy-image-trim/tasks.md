@@ -2,7 +2,7 @@
 title: "comfy-image-trim — Implementation Plan"
 ticket_id: T900386
 domains: [llm, mcp, scripts, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

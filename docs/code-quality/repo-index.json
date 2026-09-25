@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1357,
+      "file_count": 1358,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -661,6 +661,7 @@
         "tests/spec/e2e-test-infrastructure/bats-nonascii-testnames.bats",
         "tests/spec/e2e-test-infrastructure/no-group-modifiers.bats",
         "tests/spec/e2e-test-infrastructure/no-wrong-reporoot-resolution.bats",
+        "tests/spec/e2e-test-infrastructure/purge-fn-website-sync.bats",
         "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
         "tests/spec/e2e-test-infrastructure/vision-sweep.bats",
         "tests/spec/e2e-testing.bats",
@@ -1449,7 +1450,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1844,
+      "file_count": 1845,
       "files": [
         "components/website/.build-trigger",
         "components/website/.design-sync/NOTES.md",
@@ -2641,6 +2642,7 @@
         "components/website/src/lib/tickets/migrations.ts",
         "components/website/src/lib/tickets/pipeline-order.test.ts",
         "components/website/src/lib/tickets/pipeline-order.ts",
+        "components/website/src/lib/tickets/purge-fn.ts",
         "components/website/src/lib/tickets/reporter-link.test.ts",
         "components/website/src/lib/tickets/reporter-link.ts",
         "components/website/src/lib/tickets/status.ts",

@@ -24,6 +24,7 @@ _Ticket: T900381 · Design: `openspec/changes/purge-fn-website-sync/design.md` (
 | `components/website/src/lib/tickets/purge-fn.ts` | neu — `PURGE_FN_BODY` (v8-Rumpf) und `applyPurgeFunction(pool)` |
 | `components/website/src/lib/tickets/migrations.ts` | geändert — v6-Block entfernt (split/extract), Aufruf von `applyPurgeFunction` |
 | `tests/spec/e2e-test-infrastructure/purge-fn-website-sync.bats` | neu — Guard-Test |
+| `tests/spec/ci-cd.bats` | T001453-Test prüft die Re-Markierung jetzt in `purge-fn.ts` statt `migrations.ts` |
 | `components/website/src/data/test-inventory.json` | regeneriert |
 
 S1-Budgets:
@@ -51,9 +52,10 @@ tests/unit/lib/bats-core/bin/bats tests/spec/e2e-test-infrastructure/purge-fn-we
 
 ## Task 2 — Modul extrahieren (GREEN)
 
-- [ ] **2.1** `purge-fn.ts` erzeugen: `export const PURGE_FN_BODY = String.raw\`…\`` mit dem Rumpf zwischen `AS $$`
-  und `$$;` aus `scripts/one-shot/purge-fn-v8.sql` (per Skript übernommen, nicht abgetippt; `String.raw` hält
-  `\.` in den Regex-Literalen unverändert; `` ` `` und `${` kommen im Rumpf nicht vor — vorher prüfen).
+- [ ] **2.1** `purge-fn.ts` erzeugen: `export const PURGE_FN_BODY = \`…\`` mit dem Rumpf zwischen `AS $$`
+  und `$$;` aus `scripts/one-shot/purge-fn-v8.sql`, per Skript übernommen, nicht abgetippt. Der Rumpf enthält
+  5 Backticks (SQL-Kommentare), deshalb kein `String.raw`: `\`, `` ` `` und `${` werden beim Erzeugen maskiert,
+  der Laufzeitwert ist damit zeichengleich mit der SQL-Datei (vom Guard-Test geprüft).
   `export async function applyPurgeFunction(pool)` führt `CREATE OR REPLACE FUNCTION … AS $$${PURGE_FN_BODY}$$`,
   `COMMENT ON FUNCTION` (Text aus v8) und `GRANT EXECUTE … TO website` aus.
 - [ ] **2.2** In `migrations.ts` den v6-Block (`CREATE OR REPLACE FUNCTION`, `COMMENT`, `GRANT`) durch

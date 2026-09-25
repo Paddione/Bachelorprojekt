@@ -330,8 +330,8 @@ PY
 }
 
 @test "T001453: purge-fn v5 re-markiert unmarkierte E2E-Identitaeten" {
-  grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/migrations.ts"
-  grep -q 'inbox_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/migrations.ts"
+  grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/purge-fn.ts"
+  grep -q 'inbox_remarked_unmarked' "$REPO_ROOT/components/website/src/lib/tickets/purge-fn.ts"
   grep -q 'tickets_remarked_unmarked' "$REPO_ROOT/scripts/one-shot/purge-fn-v5.sql"
 }
 

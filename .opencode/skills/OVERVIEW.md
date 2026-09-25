@@ -188,8 +188,6 @@ alle Skills als projekteigen — das Gate wird dann strenger, nicht schwächer.
 | `gitops-repo-audit` | Flux CD / controlplane.io | GitOps-**Repo-Dateien** prüfen — Schema-Validierung, deprecated APIs, RBAC/Multi-Tenancy. Dispatched as subagent. |
 | `lavish` | Kun Chen (kunchenguid) | Komplexe oder visuelle Antworten als annotierbares HTML-Artefakt rendern (`lavish-axi`). Nur nach Zustimmung des Nutzers. |
 | `superpowers:using-git-worktrees` | Superpowers-Plugin | Hintergrund zur Worktree-Isolation (Detached-HEAD, git-crypt). Im dev-flow-Pfad ersetzt durch `scripts/worktree-create.sh`. |
-| `ui-ux-pro-max` | Drittanbieter | UI/UX-Design-Intelligenz (Styles, Paletten, Font-Pairings) — für opencode via `permission: deny` deaktiviert. |
-| `unsloth-buddy` | TYH-labs (unsloth-buddy) | Fine-Tuning und RL mit Unsloth — LoRA-Patching, VRAM-Tuning, GGUF/vLLM/Ollama-Export. |
 | `vitest` | Anthony Fu (antfu/skills) | Vitest-Referenz — Mocking, Coverage-Konfiguration, Test-Filtering, Fixtures. |
 | `hf-mem` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Hugging-Face-Modell-Speicherabschaetzung (CLI). |
 | `huggingface-best` | HuggingFace skill pack (auto-installed 2026-08-23, T015174) | Modell-Empfehlungen und -Vergleiche. |

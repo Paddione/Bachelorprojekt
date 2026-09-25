@@ -21,11 +21,12 @@ setup() {
 # gegen 3 echte Funde, und ein Guard in diesem Verhältnis würde abgeschaltet statt
 # gepflegt.
 #
-# T002613-Scope-Erweiterung (2026-08-03): unsloth-buddy und ui-ux-pro-max sind dieselbe
-# Kategorie — vendored Fremdskills mit Upstream-Beispielpfaden (scripts/*.py aus dem
-# fremden Repo). Beide stehen in der Vendor-Liste von OVERVIEW.md. Ohne sie wären 69
-# Falschpositive gegen die echten Funde — der Guard würde abgeschaltet statt gepflegt.
-EXCLUDED_SKILLS=(gitops-repo-audit gitops-knowledge gitops-cluster-debug vitest unsloth-buddy ui-ux-pro-max freetoken-setup huggingface-community-evals huggingface-llm-trainer huggingface-paper-publisher huggingface-trackio huggingface-vision-trainer train-sentence-transformers transformers-js)
+# T002613-Scope-Erweiterung (2026-08-03) und T900377: vendored Fremdskills mit
+# Upstream-Beispielpfaden (scripts/*.py aus dem fremden Repo) bilden eine eigene
+# Kategorie. Sie stehen in der Vendor-Liste von OVERVIEW.md; ihre Namen wandern mit
+# jedem Vendoring/Unvendoring mit in diese Ausnahmeliste. Ohne sie waeren ~69
+# Falschpositive gegen die echten Funde — der Guard wuerde abgeschaltet statt gepflegt.
+EXCLUDED_SKILLS=(gitops-repo-audit gitops-knowledge gitops-cluster-debug vitest freetoken-setup huggingface-community-evals huggingface-llm-trainer huggingface-paper-publisher huggingface-trackio huggingface-vision-trainer train-sentence-transformers transformers-js)
 
 # Extraktionsmuster: repo-relative Pfade mit Dateiendung unter den bekannten
 # Wurzelpräfixen. Anhänge wie `:45`, `REQ-…` oder `)` werden beim Strippen entfernt.

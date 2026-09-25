@@ -422,15 +422,9 @@ capabilities:
       deep_ref: ".claude/skills/website-specialist/SKILL.md"
 
   ui-design:
-    skill:ui-ux-pro-max:
-      state: canonical
-      use_when: "UI- und UX-Entwurf im Kore-Designsystem der Marken."
-      roles: [bachelorprojekt-website]
-      tier: safe
-      deep_ref: ".claude/skills/ui-ux-pro-max/SKILL.md"
     plugin:frontend-design@claude-plugins-official:
       state: suppressed
-      reason: "Generisch; das Kore-Designsystem ist in ui-ux-pro-max und WEBSITE-STANDARDS.md verbindlich."
+      reason: "Generisch; das Kore-Designsystem ist in WEBSITE-STANDARDS.md verbindlich."
 
   interaktives-artefakt:
     skill:lavish:
@@ -542,27 +536,24 @@ capabilities:
       reason: "learning-output-style ist aktiv und enthält den erklärenden Teil bereits."
 
   # ─── ML & Training ──────────────────────────────────────────────────────────────────
-  modell-finetuning:
-    skill:unsloth-buddy:
-      state: canonical
-      use_when: "LLM-Finetuning mit Unsloth: SFT, DPO, GRPO, LoRA, GGUF-Export."
-      avoid_when: "Ohne lokale GPU oder ohne ausdrücklichen Trainingsauftrag."
-      roles: [orchestrator]
-      tier: assisted
-      deep_ref: ".claude/skills/unsloth-buddy/SKILL.md"
+  # T900377: der vendorte Skill unsloth-buddy wurde aus dem Repo entfernt, damit
+  # modell-finetuning hat aktuell keine Instanz. Der generische Unsloth/TRL-Zugriff
+  # laeuft bis auf Weiteres ueber die Upstream-Referenz; eine erneute Besetzung dieser
+  # Faehigkeit ist eine Routing-Entscheidung und wird nicht mitgesettet.
+  modell-finetuning: {}
 
   # Eigene Faehigkeit statt einer zweiten canonical-Instanz unter modell-finetuning: das
   # Registry-Schema erlaubt maximal eine canonical-Instanz je Faehigkeit (siehe
-  # scripts/toolset/lib/registry.mjs). modell-finetuning bleibt die generische
-  # Unsloth/TRL-API-Faehigkeit (skill:unsloth-buddy); diese hier ist die Repo-eigene
+  # scripts/toolset/lib/registry.mjs). modell-finetuning deckt die generische
+  # Unsloth/TRL-API-Faehigkeit ab; diese hier ist die Repo-eigene
   # Orchestrierung darueber (Vorbedingungs-Gates, Taskfile.finetune.yml) — dasselbe Muster
   # wie die Trennung von huggingface-hub-operationen von modell-finetuning (T002596).
   finetune-pipeline:
     cli:scripts/finetune:
       state: canonical
       use_when: "Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml."
-      avoid_when: "Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer modell-finetuning/skill:unsloth-buddy direkt."
-      fallback: "unsloth-buddy-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist."
+      avoid_when: "Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer die Unsloth/TRL-Upstream-Referenz direkt."
+      fallback: "Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist."
       roles: [orchestrator, bachelorprojekt-ops]
       tier: assisted
       deep_ref: ".claude/skills/finetune-run/SKILL.md"
@@ -571,15 +562,16 @@ capabilities:
       reason: "cli:scripts/finetune ist die kanonische Instanz und verlinkt dieses SKILL.md bereits als deep_ref — das Skill wird nicht separat injiziert."
 
   # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
-  # weil unsloth-buddy die kanonische Trainings-Instanz ist. Der Schnitt war falsch: das
-  # Paket liefert Hub-Operationen (hf-cli, Spaces, Datasets, Papers, SageMaker-Deployment),
-  # von denen Finetuning nur ein Teil ist. Als eigene Fähigkeit konkurriert es nicht mehr
-  # mit unsloth-buddy — beide dürfen nebeneinander kanonisch sein.
+  # weil der damalige Vendor-Trainings-Skill die kanonische Instanz war. Der Schnitt war
+  # falsch: das Paket liefert Hub-Operationen (hf-cli, Spaces, Datasets, Papers,
+  # SageMaker-Deployment), von denen Finetuning nur ein Teil ist. Als eigene Fähigkeit
+  # konkurriert es nicht mehr mit der Trainings-Instanz — beide dürfen nebeneinander
+  # kanonisch sein.
   huggingface-hub-operationen:
     plugin:huggingface-skills@claude-plugins-official:
       state: canonical
       use_when: "Hugging-Face-Hub bedienen: hf-CLI, Modelle/Datasets suchen, Spaces, GGUF-Auswahl."
-      avoid_when: "Reines lokales Finetuning — dafür unsloth-buddy."
+      avoid_when: "Reines lokales Finetuning — dafür finetune-pipeline/cli:scripts/finetune."
       fallback: "hf CLI direkt (huggingface_hub), sofern installiert."
       roles: [orchestrator]
       tier: safe

@@ -103,8 +103,6 @@
       "operations-management": "deny",
       "security-specialist": "deny",
       "website-specialist": "deny",
-      // ── UI/design (not primary workflow) ─────────────────────────────
-      "ui-ux-pro-max": "deny",
       // T900056: references was denied here, cutting opencode off from
       // dev-flow-plan-phases.md / plan-quality-gates.md / plan-intel-bundle.md
       // -- the normative core the shared dev-flow-* skills depend on. Left

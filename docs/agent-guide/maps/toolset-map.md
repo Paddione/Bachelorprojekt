@@ -346,12 +346,8 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `ui-design`
 
-- **`skill:ui-ux-pro-max`** — Status `canonical` · Tier `safe`
-  - _Wann:_ UI- und UX-Entwurf im Kore-Designsystem der Marken.
-  - _Rollen:_ `bachelorprojekt-website`
-  - _Tiefe:_ `.claude/skills/ui-ux-pro-max/SKILL.md`
 - **`plugin:frontend-design@claude-plugins-official`** — Status `suppressed`
-  - _Grund:_ Generisch; das Kore-Designsystem ist in ui-ux-pro-max und WEBSITE-STANDARDS.md verbindlich.
+  - _Grund:_ Generisch; das Kore-Designsystem ist in WEBSITE-STANDARDS.md verbindlich.
 
 ## Fähigkeit: `interaktives-artefakt`
 
@@ -441,18 +437,13 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `modell-finetuning`
 
-- **`skill:unsloth-buddy`** — Status `canonical` · Tier `assisted`
-  - _Wann:_ LLM-Finetuning mit Unsloth: SFT, DPO, GRPO, LoRA, GGUF-Export.
-  - _Nicht:_ Ohne lokale GPU oder ohne ausdrücklichen Trainingsauftrag.
-  - _Rollen:_ `orchestrator`
-  - _Tiefe:_ `.claude/skills/unsloth-buddy/SKILL.md`
 
 ## Fähigkeit: `finetune-pipeline`
 
 - **`cli:scripts/finetune`** — Status `canonical` · Tier `assisted`
   - _Wann:_ Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml.
-  - _Nicht:_ Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer modell-finetuning/skill:unsloth-buddy direkt.
-  - _Fallback:_ `unsloth-buddy-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist.`
+  - _Nicht:_ Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer die Unsloth/TRL-Upstream-Referenz direkt.
+  - _Fallback:_ `Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist.`
   - _Rollen:_ `orchestrator`, `bachelorprojekt-ops`
   - _Tiefe:_ `.claude/skills/finetune-run/SKILL.md`
 - **`skill:finetune-run`** — Status `suppressed`
@@ -462,7 +453,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`plugin:huggingface-skills@claude-plugins-official`** — Status `canonical` · Tier `safe`
   - _Wann:_ Hugging-Face-Hub bedienen: hf-CLI, Modelle/Datasets suchen, Spaces, GGUF-Auswahl.
-  - _Nicht:_ Reines lokales Finetuning — dafür unsloth-buddy.
+  - _Nicht:_ Reines lokales Finetuning — dafür finetune-pipeline/cli:scripts/finetune.
   - _Fallback:_ `hf CLI direkt (huggingface_hub), sofern installiert.`
   - _Rollen:_ `orchestrator`
 

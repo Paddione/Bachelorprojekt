@@ -36,9 +36,24 @@ setup() {
 @test "compaction block: threshold math comment" {
   run grep -qF '153600 − max(8192, 33600) = 120000' "$REPO/.opencode/opencode.jsonc"
   [ "$status" -eq 0 ]
+  run grep -qF '153600 − 33600 = 120000' "$REPO/.opencode/opencode.jsonc"
+  [ "$status" -eq 0 ]
 }
 
-@test "compaction trigger for the default model is 120000 (T900350)" {
+@test "DCP: allowSubAgents true so subagents get nudges (T900362)" {
+  if ! node -e "try{require('json5')}catch(e){process.exit(77)}" 2>/dev/null; then
+    skip "json5 not resolvable"
+  fi
+  run node -e "
+    const j5 = require('json5'), fs = require('fs');
+    const dcp = j5.parse(fs.readFileSync(process.env.REPO + '/.opencode/dcp.jsonc', 'utf8'));
+    console.log(String(dcp.experimental && dcp.experimental.allowSubAgents));
+  "
+  [ "$status" -eq 0 ]
+  [ "$output" = "true" ]
+}
+
+@test "compaction trigger for the default model is 120000 on V1 and V2 (T900350, T900362)" {
   if ! node -e "try{require('json5')}catch(e){process.exit(77)}" 2>/dev/null; then
     skip "json5 not resolvable"
   fi
@@ -48,10 +63,14 @@ setup() {
     const am = j5.parse(fs.readFileSync(process.env.REPO + '/.opencode/agent-models.jsonc', 'utf8'));
     const [prov, id] = oc.model.split('/');
     const lim = am.provider[prov].models[id].limit;
-    console.log(lim.context - Math.max(lim.output, oc.compaction.buffer));
+    // Prompt loop (session/overflow.ts): buffer is mapped to reserved, but only
+    // honoured when limit.input is set — otherwise context − output.
+    const v1 = lim.input ? lim.input - oc.compaction.buffer : lim.context - lim.output;
+    const v2 = lim.context - Math.max(lim.output, oc.compaction.buffer);
+    console.log(v1 + ' ' + v2);
   "
   [ "$status" -eq 0 ]
-  [ "$output" = "120000" ]
+  [ "$output" = "120000 120000" ]
 }
 
 @test "DCP local limits resolve below the default model's compaction trigger (T900350)" {
@@ -67,7 +86,8 @@ setup() {
     const lim = am.provider[prov].models[id].limit;
     const res = (v) => typeof v === 'string' ? Math.round(parseFloat(v) / 100 * lim.context) : v;
     const min = res(dcp.modelMinLimits[oc.model]), max = res(dcp.modelMaxLimits[oc.model]);
-    const trig = lim.context - Math.max(lim.output, oc.compaction.buffer);
+    const trig = Math.min(lim.input ? lim.input - oc.compaction.buffer : lim.context - lim.output,
+                          lim.context - Math.max(lim.output, oc.compaction.buffer));
     console.log(min + ' ' + max + ' ' + (min < max && max < trig));
   "
   [ "$status" -eq 0 ]

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2429 · Scenarios: 5394
+Specs: 129 · Requirements: 2429 · Scenarios: 5395
 
 ## factory-pipeline
 
@@ -591,7 +591,7 @@ Last touches:
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
 
 ### llm-local-dev
-Reqs: 35 · Scenarios: 70 · Lines: 855
+Reqs: 35 · Scenarios: 71 · Lines: 867
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Measured Context Limits for FreeToken Checkpoints | T016416 | 2026-09-17 | MODIFIED

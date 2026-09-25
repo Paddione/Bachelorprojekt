@@ -601,6 +601,8 @@ Last touches:
   - Image Generation MCP for Muse Code | T900379 | 2026-09-25 | ADDED
   - Image Output Is Confined to Git Working Trees | T900379 | 2026-09-25 | ADDED
   - ComfyUI Runs Only While Images Are Requested | T900379 | 2026-09-25 | ADDED
+In-flight:
+  - Transparent Images Are Trimmed to the Subject | T900386 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

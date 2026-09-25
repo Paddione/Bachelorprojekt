@@ -167,32 +167,34 @@ export async function openAgentGuide(page: Page) {
   const fab = page.locator('button.fab');
   await expect(fab).toBeVisible({ timeout: 30_000 });
 
-  // Click and poll for the drawer to open (guards against rare pre-hydration click)
-  await fab.click();
+  // Open drawer if not already open (guards against pre-hydration click drops and double-toggles)
+  await expect.poll(async () => {
+    const isExpanded = await fab.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await fab.click();
+    }
+    return fab.getAttribute('aria-expanded');
+  }, { timeout: 15_000, intervals: [500, 1000] }).toBe('true');
+
   const skHome = page.locator('.sk-home');
-  if (!(await skHome.isVisible())) {
-    await fab.click();
-  }
   await expect(skHome).toBeVisible({ timeout: 30_000 });
 
   // The nav row is button.sk-row — role="listitem" on a <button> isn't matched by getByRole in all browsers
   const agentGuideRow = page.locator('button.sk-row').filter({ hasText: 'Agent-Anleitung' });
   await expect(agentGuideRow).toBeVisible({ timeout: 30_000 });
 
-  // T013329 F1: The row lives inside the fixed-position sidekick drawer
-  // (.drawer { position: fixed; overflow: hidden }), whose scroll context is
-  // .drawer-body { overflow-y: auto }. scrollIntoViewIfNeeded() + click()
-  // failed here with "element is outside of the viewport" because Playwright's
-  // scroll heuristics don't walk into the drawer's inner scroll container
-  // reliably. An explicit scrollIntoView through evaluate() scrolls exactly
-  // that container and centers the row in the viewport.
-  await agentGuideRow.evaluate((el) => {
-    el.scrollIntoView({ block: 'center', behavior: 'instant' });
-    (el as HTMLElement).click();
-  });
-
+  // T013329 F1: Poll clicking until the dynamic-imported AgentGuideView renders .ag-body
   const body = page.locator('.ag-body');
-  await expect(body).toBeVisible({ timeout: 30_000 });
+  await expect.poll(async () => {
+    if (!(await body.isVisible())) {
+      await agentGuideRow.evaluate((el) => {
+        el.scrollIntoView({ block: 'center', behavior: 'instant' });
+        (el as HTMLElement).click();
+      }).catch(() => {});
+    }
+    return body.isVisible();
+  }, { timeout: 30_000, intervals: [500, 1000] }).toBe(true);
+
   return body;
 }
 

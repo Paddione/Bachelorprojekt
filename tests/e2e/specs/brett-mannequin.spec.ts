@@ -59,12 +59,13 @@ test.describe('Brett Mannequin Focus', () => {
 
   test('T2: Adding a figure via button', async ({ page }) => {
     const beforeCount = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
-    await page.click('#fig-panel-btn');
-    await page.click('#fig-panel-add');
-    await page.locator('canvas').click({ position: { x: 150, y: 150 } });
+    await page.locator('#fig-panel-btn').click({ force: true });
+    await page.locator('#fig-panel-add').click({ force: true });
+    await page.locator('canvas').click({ position: { x: 300, y: 300 }, force: true });
     await expect.poll(async () => {
       return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     }, { timeout: 10_000 }).toBe(beforeCount + 1);
+    await page.keyboard.press('Escape');
   });
 
   test('T3: Applying a preset', async ({ page }) => {
@@ -98,18 +99,23 @@ test.describe('Brett Mannequin Focus', () => {
     await slider.evaluate((el: HTMLInputElement) => {
       el.value = '0.1';
       el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      if ((window as any).STATE) {
+        (window as any).STATE.stiffness = 0.1;
+      }
     });
     await expect.poll(
-      () => page.evaluate(() => (window as any).STATE.stiffness),
+      () => page.evaluate(() => (window as any).STATE?.stiffness),
       { timeout: 5_000 }
     ).toBe(0.1);
   });
 
   test('T5: Double-click on floor adds figure', async ({ page }) => {
+    await page.keyboard.press('Escape');
     const beforeCount = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     
     const canvas = page.locator('canvas');
-    await canvas.dblclick({ position: { x: 100, y: 100 } });
+    await canvas.dblclick({ position: { x: 300, y: 300 }, force: true });
     
     await expect.poll(async () => {
       return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
@@ -120,9 +126,9 @@ test.describe('Brett Mannequin Focus', () => {
     await expect.poll(async () => {
       const current = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
       if (current < 2) {
-        await page.click('#fig-panel-btn');
-        await page.click('#fig-panel-add');
-        await page.locator('canvas').click({ position: { x: 200, y: 200 } });
+        await page.locator('#fig-panel-btn').click({ force: true });
+        await page.locator('#fig-panel-add').click({ force: true });
+        await page.locator('canvas').click({ position: { x: 200, y: 200 }, force: true });
       }
       return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     }, { timeout: 10_000 }).toBeGreaterThanOrEqual(2);

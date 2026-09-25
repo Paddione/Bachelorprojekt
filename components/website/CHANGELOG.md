@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.363.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.362.0...website-v1.363.0) (2026-09-25)
+
+
+### Features
+
+* **ops:** comfy-image-mcp — local image generation for Muse Code [T900379] ([#5890](https://github.com/Paddione/Bachelorprojekt/issues/5890)) ([eaefe3c](https://github.com/Paddione/Bachelorprojekt/commit/eaefe3cb49bd5e6d10e2f8eb717953b9b6cd8f2d))
+
 ## [1.362.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.361.0...website-v1.362.0) (2026-09-25)
 
 

@@ -1,0 +1,92 @@
+{
+  "451": {
+    "class_type": "UnetLoaderGGUF",
+    "inputs": {
+      "unet_name": "qwen-image-2.1-UC-Q4_K_M.gguf"
+    }
+  },
+  "452": {
+    "class_type": "TextEncodeQwenImage21",
+    "inputs": {
+      "clip": [
+        "453",
+        0
+      ],
+      "prompt": "A small red fox sitting in a sunlit forest clearing, detailed natural photography, soft morning light.",
+      "negative_prompt": "",
+      "resolution": 1024
+    }
+  },
+  "453": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_8b_int8_convrot.safetensors",
+      "type": "qwen_image",
+      "device": "cpu"
+    }
+  },
+  "454": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_2.1_vae_bf16.safetensors"
+    }
+  },
+  "456": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 768,
+      "height": 768,
+      "batch_size": 1
+    }
+  },
+  "457": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "458",
+        0
+      ],
+      "vae": [
+        "454",
+        0
+      ]
+    }
+  },
+  "458": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "451",
+        0
+      ],
+      "positive": [
+        "452",
+        0
+      ],
+      "negative": [
+        "452",
+        1
+      ],
+      "latent_image": [
+        "456",
+        0
+      ],
+      "seed": 42,
+      "steps": 25,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1
+    }
+  },
+  "460": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "457",
+        0
+      ],
+      "filename_prefix": "Qwen21_Q4KM"
+    }
+  }
+}

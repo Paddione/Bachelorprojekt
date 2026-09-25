@@ -210,3 +210,8 @@ tasks:
     desc: "Glimmer-Worker-MCP (127.0.0.1:13007) installieren und in Muse Code (WSL + Windows) eintragen [T900373]"
     cmds:
       - bash scripts/glimmer-worker-mcp/install.sh
+
+  comfy-image:install:
+    desc: "Bild-MCP (127.0.0.1:13008, ComfyUI bei Bedarf) installieren und in Muse Code (WSL + Windows) eintragen [T900379]"
+    cmds:
+      - bash scripts/comfy-image-mcp/install.sh

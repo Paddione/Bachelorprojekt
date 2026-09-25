@@ -4242,6 +4242,18 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/comfy-image-mcp",
+    "file": "tests/spec/llm-local-dev/comfy-image-mcp.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-local-dev/comfy-image-postprocess",
+    "file": "tests/spec/llm-local-dev/comfy-image-postprocess.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/fit-ngl-conflict",
     "file": "tests/spec/llm-local-dev/fit-ngl-conflict.bats",
     "category": "llm-local-dev",

@@ -1,0 +1,21 @@
+# systemd-User-Unit: MCP-Bruecke Muse Code -> lokale Bildgenerierung (ComfyUI) [T900379].
+# Status: Aktiv (T900379) — Streamable HTTP auf 127.0.0.1:13008, startet comfyui.service bei Bedarf.
+#
+# Installation und Registrierung in beiden Muse-settings.json (WSL + Windows):
+#   task llm:comfy-image:install
+# Der Installer kopiert diese Datei gerendert nach ~/.config/systemd/user/ (kein Symlink, T900376).
+# Das Bearer-Token liegt in ~/.config/comfy-image-mcp/server.env (Modus 600), erzeugt vom Installer.
+[Unit]
+Description=Comfy image MCP for Muse Code (Streamable HTTP, 127.0.0.1:13008)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h
+EnvironmentFile=%h/.config/comfy-image-mcp/server.env
+ExecStart=/usr/bin/env node %h/Bachelorprojekt/scripts/comfy-image-mcp/server.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

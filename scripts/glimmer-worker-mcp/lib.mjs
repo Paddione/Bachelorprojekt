@@ -6,33 +6,14 @@
 
 import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { toWslPath, isGitWorkTree } from '../lib/wsl-paths.mjs';
+
+// Pfad-Mapping (D6) liegt seit T900379 im gemeinsamen Modul; re-exportiert fuer server.mjs und Tests.
+export { toWslPath, isGitWorkTree };
 
 const DONE_RETENTION_MS = 3600 * 1000;
 const SUMMARY_CHARS = 6000;
 const TERMINAL = new Set(['done', 'failed', 'timeout']);
-
-// Windows- und UNC-Formen auf WSL-Pfade abbilden; alles andere bleibt.
-//   C:\a\b                        -> /mnt/c/a/b
-//   \\wsl.localhost\<distro>\a\b  -> /a/b
-//   \\wsl$\<distro>\a\b           -> /a/b
-export function toWslPath(p) {
-  let s = String(p || '').trim();
-  const drive = /^([A-Za-z]):[\\/](.*)$/.exec(s);
-  if (drive) {
-    s = `/mnt/${drive[1].toLowerCase()}/${drive[2].replace(/\\/g, '/')}`;
-  } else {
-    const unc = /^[\\/]{2}wsl(?:\.localhost|\$)[\\/][^\\/]+[\\/]?(.*)$/i.exec(s);
-    if (unc) s = '/' + unc[1].replace(/\\/g, '/');
-  }
-  s = s.replace(/\/{2,}/g, '/');
-  return s.length > 1 ? s.replace(/\/+$/, '') : s;
-}
-
-// Prueft, ob dir in einem Git-Arbeitsbaum liegt.
-export function isGitWorkTree(dir) {
-  const r = spawnSync('git', ['-C', dir, 'rev-parse', '--is-inside-work-tree'], { timeout: 10000 });
-  return r.status === 0 && String(r.stdout).trim() === 'true';
-}
 
 function stripAnsi(s) {
   // eslint-disable-next-line no-control-regex

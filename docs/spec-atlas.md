@@ -388,6 +388,8 @@ Last touches:
   - Leiter can reset to the startup default | T900360 | 2026-09-25 | ADDED
   - Board template seeding is idempotent | T900360 | 2026-09-25 | ADDED
   - Drag & Drop zwischen Kanban-Buckets im Applications Board | T900304 | 2026-09-22 | MODIFIED
+In-flight:
+  - Lobby preset selection applies the board template | T900361 | active | ADDED
 
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396

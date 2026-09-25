@@ -78,6 +78,9 @@ function renderLobby(user: MenuUser): void {
       onSetOptik: isLeader
         ? (s) => ws.sendClient({ type: 'admin_set_optik', settings: s })
         : undefined,
+      onSetBoardTemplate: isLeader
+        ? (id) => ws.sendClient({ type: 'admin_set_board_template', boardTemplateId: id })
+        : undefined,
     });
   });
 }

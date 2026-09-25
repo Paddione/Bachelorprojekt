@@ -285,14 +285,21 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       break;
     }
     case 'admin_set_board_template': {
-      if (typeof msg.boardTemplateId !== 'string') return;
+      // T900361: feedback to the sender instead of a silent no-op when the id
+      // is not a string or no template resolves for it.
+      if (typeof msg.boardTemplateId !== 'string') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'unknown-board-template' })); } catch {}
+        return;
+      }
       const { getBoardTemplate } = await import('./board-templates');
       const { getPool } = await import('./db');
       const tpl = await getBoardTemplate(getPool(), msg.boardTemplateId);
       if (tpl?.state && deps.applyTemplateToRoom) {
         deps.applyTemplateToRoom(adminRoom, tpl.state, (m: any) => deps.broadcast(adminRoom, m));
+        deps.schedulePersist(adminRoom);
+      } else {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'unknown-board-template' })); } catch {}
       }
-      deps.schedulePersist(adminRoom);
       break;
     }
     case 'admin_reset_board_to_default': {

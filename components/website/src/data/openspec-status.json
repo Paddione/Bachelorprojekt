@@ -5017,6 +5017,12 @@
       "status": "archived"
     }
   ],
+  "T900361": [
+    {
+      "slug": "lobby-template-apply",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

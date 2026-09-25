@@ -388,3 +388,32 @@ setup() {
   run grep -q 'msg.lines' "${SRC}/client/ws-client.ts"
   [ "$status" -eq 0 ]
 }
+
+# ── T900361: lobby preset selection applies the board template ───────────────
+# (a) Server gate routes admin_set_board_template to the admin handler.
+@test "T900361 (a): ADMIN_TYPES contains admin_set_board_template" {
+  run grep -q "admin_set_board_template" "${SRC}/server/ws-handler.ts"
+  [ "$status" -eq 0 ]
+}
+
+# (b) Client wires the lobby dropdown callback to the admin message.
+@test "T900361 (b): main.ts wires onSetBoardTemplate" {
+  run grep -q 'onSetBoardTemplate' "${SRC}/client/main.ts"
+  [ "$status" -eq 0 ]
+  run grep -q "admin_set_board_template" "${SRC}/client/main.ts"
+  [ "$status" -eq 0 ]
+}
+
+# (c) Unknown template id sends a sender error (no silent no-op).
+@test "T900361 (c): unknown template id sends unknown-board-template error" {
+  run grep -q 'unknown-board-template' "${SRC}/server/ws-admin-commands.ts"
+  [ "$status" -eq 0 ]
+}
+
+# (d) Client maps the reason to a toast.
+@test "T900361 (d): client maps unknown-board-template to toast" {
+  run grep -q 'unknown-board-template' "${SRC}/client/ws-client.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'Vorlage nicht gefunden' "${SRC}/client/ws-client.ts"
+  [ "$status" -eq 0 ]
+}

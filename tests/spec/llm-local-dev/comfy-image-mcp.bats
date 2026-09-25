@@ -142,6 +142,29 @@ run_job() {
   grep -q 'plain white background' "$T_DIR/last_prompt.json"
 }
 
+@test "a second job for the same out_path is refused while the first runs" {
+  local p="$T_DIR/repo/assets/dup.png"
+  run call image_generate "$(jq -cn --arg p "$p" '{prompt:"SLOW_PROMPT castle",out_path:$p}')"
+  local job; job="$(jq -r '.content[0].text | fromjson | .job_id' <<<"$output")"
+  [ -n "$job" ] && [ "$job" != "null" ]
+  run call image_generate "$(jq -cn --arg p "$p" '{prompt:"another castle",out_path:$p,overwrite:true}')"
+  [ "$(jq -r '.isError' <<<"$output")" = "true" ]
+  grep -q 'already writes' <<<"$(jq -r '.content[0].text' <<<"$output")"
+  run call image_result "$(jq -cn --arg j "$job" '{job_id:$j,wait_s:30}')"
+  [ "$(jq -r '.content[0].text | fromjson | .status' <<<"$output")" = "done" ]
+}
+
+@test "an existing raw file and symlinked targets are refused" {
+  echo keep > "$T_DIR/repo/assets/tile.raw.png"
+  run call image_generate "$(jq -cn --arg p "$T_DIR/repo/assets/tile.png" '{prompt:"a tile",out_path:$p,pixelate:{size:16}}')"
+  [ "$(jq -r '.isError' <<<"$output")" = "true" ]
+  [ "$(cat "$T_DIR/repo/assets/tile.raw.png")" = "keep" ]
+  ln -sf "$T_DIR/nogit/target.png" "$T_DIR/repo/assets/link.png"
+  run call image_generate "$(jq -cn --arg p "$T_DIR/repo/assets/link.png" '{prompt:"x",out_path:$p,overwrite:true}')"
+  [ "$(jq -r '.isError' <<<"$output")" = "true" ]
+  [ ! -e "$T_DIR/nogit/target.png" ]
+}
+
 @test "an idle server stops comfyui" {
   sleep 5
   grep -qx -- '--user stop comfyui' "$T_DIR/systemctl.log"

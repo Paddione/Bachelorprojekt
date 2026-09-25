@@ -100,8 +100,17 @@ export function createClient({ url, systemctl = 'systemctl', startTimeoutS = 180
     return Buffer.from(await r.arrayBuffer());
   }
 
-  async function interrupt() {
-    await fetch(`${base}/interrupt`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => {});
+  // Bricht den laufenden Prompt ab und entfernt promptId aus ComfyUIs Warteschlange,
+  // falls er dort noch wartet (sonst belegte er spaeter die GPU).
+  async function interrupt(promptId) {
+    const post = (path, body) => fetch(base + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
+    }).catch(() => {});
+    if (promptId) await post('/queue', { delete: [promptId] });
+    await post('/interrupt', {});
   }
 
   return { stats, isUp, ensureUp, stop, submit, waitHistory, fetchImage, interrupt };

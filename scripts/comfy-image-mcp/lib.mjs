@@ -4,7 +4,7 @@
 // Klassennamen (D5) und eine Job-Queue mit genau einem laufenden Job und Leerlauf-Hook (D4).
 
 import { randomUUID, randomInt } from 'node:crypto';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, statSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { toWslPath, isGitWorkTree } from '../lib/wsl-paths.mjs';
 
@@ -57,16 +57,29 @@ export function validateArgs(args, { timeoutFloorS = 60 } = {}) {
   }
 }
 
-// Prueft out_path (D3). Liefert { path, dir, rawPath } oder { error }.
-export function checkOutPath(p, overwrite) {
+const isSymlink = (p) => {
+  try {
+    return lstatSync(p).isSymbolicLink();
+  } catch {
+    return false;
+  }
+};
+
+// Prueft out_path (D3). needsRaw: es entsteht zusaetzlich <name>.raw.png, das denselben
+// Regeln unterliegt. Liefert { path, dir, rawPath } oder { error }.
+export function checkOutPath(p, overwrite, needsRaw = false) {
   const path = toWslPath(p);
   if (!path || !path.startsWith('/')) return { error: `out_path must be absolute: ${p}` };
   if (!/\.png$/i.test(path)) return { error: `out_path must end in .png: ${path}` };
   const dir = dirname(path);
   if (!existsSync(dir) || !statSync(dir).isDirectory()) return { error: `directory does not exist in WSL: ${dir}` };
   if (!isGitWorkTree(dir)) return { error: `out_path is not inside a Git working tree: ${dir}` };
-  if (existsSync(path) && !overwrite) return { error: `file exists (pass overwrite: true to replace): ${path}` };
   const rawPath = join(dir, basename(path).replace(/\.png$/i, '.raw.png'));
+  for (const f of needsRaw ? [path, rawPath] : [path]) {
+    // Ein Symlink koennte aus dem Arbeitsbaum hinauszeigen — nie hindurchschreiben.
+    if (isSymlink(f)) return { error: `refusing to write through a symlink: ${f}` };
+    if (existsSync(f) && !overwrite) return { error: `file exists (pass overwrite: true to replace): ${f}` };
+  }
   return { path, dir, rawPath };
 }
 
@@ -132,6 +145,14 @@ export class ImageQueue {
 
   snapshot() {
     return { running: this.running, queued: this.queue.length };
+  }
+
+  // true, wenn ein wartender oder laufender Job bereits nach path schreibt.
+  claims(path) {
+    return [this.running, ...this.queue].some((id) => {
+      const p = id && this.jobs.get(id)?.params;
+      return p && (p.outPath === path || p.rawPath === path);
+    });
   }
 
   idleRemainingS() {

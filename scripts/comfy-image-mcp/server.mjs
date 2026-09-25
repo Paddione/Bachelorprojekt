@@ -8,7 +8,7 @@
 
 import { createServer } from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -50,8 +50,9 @@ const client = createClient({
 // Runner: ein Job = ein Bild (D4, D6)
 // ---------------------------------------------------------------------------
 
-function postprocess(p, deadline) {
-  const args = [join(HERE, 'postprocess.py'), '--in', p.rawPath, '--out', p.outPath];
+// Schreibt in eine Temp-Datei; runJob benennt sie erst nach Erfolg um (kein halbes PNG an out_path).
+function postprocess(p, tmpOut, deadline) {
+  const args = [join(HERE, 'postprocess.py'), '--in', p.rawPath, '--out', tmpOut];
   if (p.transparent) args.push('--transparent');
   if (p.pixelate) {
     args.push('--pixelate', String(p.pixelate.size), '--colors', String(p.pixelate.colors), '--scale', String(p.pixelate.scale));
@@ -60,29 +61,39 @@ function postprocess(p, deadline) {
     const child = spawn(PYTHON, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let err = '';
     child.stderr.on('data', (c) => { err = (err + c).slice(-4000); });
-    const timer = setTimeout(() => child.kill('SIGKILL'), Math.max(1000, deadline - Date.now()));
+    let killed = false;
+    const timer = setTimeout(() => { killed = true; child.kill('SIGKILL'); }, Math.max(1000, deadline - Date.now()));
     child.on('error', (e) => { clearTimeout(timer); reject(new Error(`spawn ${PYTHON}: ${e.message}`)); });
     child.on('close', (code) => {
       clearTimeout(timer);
-      if (code === 0) resolve();
-      else reject(new Error(`postprocess.py exit ${code}: ${err.trim()}`));
+      if (code === 0) return resolve();
+      const e = new Error(killed ? 'postprocess.py hit the job deadline' : `postprocess.py exit ${code}: ${err.trim()}`);
+      e.timeout = killed;
+      reject(e);
     });
   });
 }
 
+// Schreibt data nach dest; ohne overwrite schlaegt das fehl, falls dest inzwischen existiert
+// (die Pruefung beim Einreihen liegt Minuten zurueck).
+function writeNew(dest, data, overwrite) {
+  writeFileSync(dest, data, { flag: overwrite ? 'w' : 'wx' });
+}
+
 async function runJob(job) {
   const p = job.params;
-  const deadline = job.startedAt + p.timeoutS * 1000;
   const t = (job.timings = {});
   let mark = Date.now();
   const lap = (k) => { const n = Date.now(); t[k] = Math.round((n - mark) / 100) / 10; mark = n; };
 
   await client.ensureUp();
   lap('start_s');
+  // Frist erst ab hier: ein Kaltstart von ComfyUI soll das Generierungsbudget nicht aufbrauchen.
+  const deadline = Date.now() + p.timeoutS * 1000;
   const promptId = await client.submit(buildPrompt(TEMPLATE, p));
   const ref = await client.waitHistory(promptId, deadline);
   if (!ref) {
-    await client.interrupt();
+    await client.interrupt(promptId);
     job.error = `timeout after ${p.timeoutS}s`;
     return { status: 'timeout' };
   }
@@ -90,10 +101,24 @@ async function runJob(job) {
   lap('generate_s');
 
   const needsPost = p.transparent || p.pixelate;
-  writeFileSync(needsPost ? p.rawPath : p.outPath, png);
-  if (needsPost) {
+  if (!needsPost) {
+    writeNew(p.outPath, png, p.overwrite);
+  } else {
+    writeNew(p.rawPath, png, p.overwrite);
     job.rawWritten = true;
-    await postprocess(p, deadline);
+    const tmpOut = `${p.outPath}.${job.id}.tmp`;
+    try {
+      await postprocess(p, tmpOut, deadline);
+      if (!p.overwrite && existsSync(p.outPath)) throw new Error(`file appeared meanwhile, not replaced: ${p.outPath}`);
+      renameSync(tmpOut, p.outPath);
+    } catch (err) {
+      rmSync(tmpOut, { force: true });
+      if (err.timeout) {
+        job.error = err.message;
+        return { status: 'timeout' };
+      }
+      throw err;
+    }
     lap('postprocess_s');
   }
   const gs = spawnSync('git', ['-C', dirname(p.outPath), 'status', '--porcelain', '--', p.outPath], { encoding: 'utf8' });
@@ -186,8 +211,12 @@ async function callTool(name, args) {
     case 'image_generate': {
       const v = validateArgs(args, { timeoutFloorS: TIMEOUT_FLOOR_S });
       if (v.error) return text(v.error, true);
-      const out = checkOutPath(args.out_path, v.params.overwrite);
+      const needsRaw = Boolean(v.params.transparent || v.params.pixelate);
+      const out = checkOutPath(args.out_path, v.params.overwrite, needsRaw);
       if (out.error) return text(out.error, true);
+      if (queue.claims(out.path) || (needsRaw && queue.claims(out.rawPath))) {
+        return text(`another queued or running job already writes ${out.path}`, true);
+      }
       const params = { ...v.params, outPath: out.path, rawPath: out.rawPath };
       const { id, position } = queue.enqueue(params);
       return text({ job_id: id, position, out_path: out.path, seed: params.seed });

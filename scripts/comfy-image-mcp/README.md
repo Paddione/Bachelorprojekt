@@ -64,6 +64,11 @@ bash scripts/comfy-image-mcp/install.sh --register-only
 ## Grenzen
 
 - Ein Job zur Zeit: die 3060 Ti hat 8 GB, ComfyUI läuft mit `--lowvram`.
+- Kein stilles Überschreiben: ohne `overwrite: true` wird der Aufruf abgelehnt, wenn `out_path` (bzw. bei
+  Nachbearbeitung auch `<name>.raw.png`) existiert, ein anderer Job schon dorthin schreibt oder das Ziel ein
+  Symlink ist; entsteht die Datei während der Wartezeit, scheitert der Job statt sie zu ersetzen.
+- `comfyui.service` enthält die GPU-UUID der 3060 Ti dieser Maschine (`nvidia-smi -L`); auf anderer Hardware
+  anpassen.
 - `workflow.json` wird über Knoten-Klassennamen befüllt (`TextEncodeQwenImage21`, `KSampler`,
   `EmptyLatentImage`, `SaveImage`); fehlt einer, startet der Server nicht.
 - Bewusst **nicht** in `docs/agent-guide/registry/mcp.yaml`: die Anbindung an opencode ist eine eigene

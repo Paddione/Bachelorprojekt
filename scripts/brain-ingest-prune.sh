@@ -59,7 +59,7 @@ for page in "$BRAIN_REPO"/wiki/*.md; do
       "Bachelorprojekt "*) src_path="${src_val#Bachelorprojekt }" ;;
       "$ROOT"/*)           src_path="${src_val#$ROOT/}" ;;
       /*)                  src_path="" ;; # other absolute path outside ROOT
-      "self"|"test")       src_path="" ;; # meta page
+      "self"|"test"|*" (self)") src_path="" ;; # meta page (bare or "<topic> (self)")
       *)                   src_path="$src_val" ;;
     esac
     if [ -n "$src_path" ]; then

@@ -33,3 +33,11 @@ teardown() {
   [ "$status" -eq 0 ]
   [[ "$output" != *"wiki/legacy.md"* ]]
 }
+
+@test "meta page with '<topic> (self)' source is never a candidate" {
+  printf -- '---\ntype: moc\n---\n\n# Index\n\nsource:: brain-foundation (self)\n' > "$TESTDIR/brain/wiki/index-moc.md"
+  run bash "$SCRIPT" --brain-repo "$TESTDIR/brain" --root "$TESTDIR/root" \
+    --worklist "$TESTDIR/worklist.tsv" --state "$TESTDIR/state.json"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"wiki/index-moc.md"* ]]
+}

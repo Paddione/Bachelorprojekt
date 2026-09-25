@@ -67,18 +67,19 @@ Historische Erwähnungen (Ticket-Kommentare wie „seit T900359 …“, archivie
 | `components/website/src/data/test-inventory.json` | regeneriert |
 
 S1-Zeilenbudgets der geänderten Code-Dateien (Ist · Restbudget laut `bash scripts/plan-lint.sh residual_budget <datei>`).
-Alle Änderungen sind Ersetzungen; netto wächst nur `server.mjs` um höchstens 2 Zeilen:
+Alle Änderungen sind Ersetzungen; netto wuchsen nur `server.mjs` (+2) und `brain-ingest-transform.sh` (+1).
+Die Tabelle nennt die Werte **nach** der Umsetzung (B1a prüft live; vor der Umsetzung: 757/43 und 215/585):
 
 | Datei | Ist | Budget |
 |---|---|---|
 | `scripts/brain-ingest.sh` | 686 | 114 |
-| `scripts/factory-mcp-node/server.mjs` | 757 | 43 |
+| `scripts/factory-mcp-node/server.mjs` | 759 | 41 |
 | `scripts/factory/provider-register-local.sh` | 61 | 739 |
 | `scripts/factory/route-provider.sh` | 138 | 662 |
 | `scripts/lib/llm-stack-measure.sh` | 290 | 510 |
 | `scripts/plan-qa-check.sh` | 311 | 489 |
 | `.opencode/plugin/system-message-merge.ts` | 128 | 772 |
-| `scripts/brain-ingest-transform.sh` | 215 | 585 |
+| `scripts/brain-ingest-transform.sh` | 216 | 584 |
 | `scripts/factory/triage-body.sh` | 52 | 748 |
 | `scripts/arbitration/synthesize.mjs` | 131 | 669 |
 | `scripts/web-audit.mjs` | 451 | 349 |

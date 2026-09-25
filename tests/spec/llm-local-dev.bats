@@ -260,7 +260,7 @@ EOF"
     if (!('Muse-Glimmer-30B' in m)) {
       console.error('positive anchor failed: Muse-Glimmer-30B fehlt im llamacpp-local-Katalog'); process.exit(1);
     }
-    const dead = ['Muse-Glimmer-30B','qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
+    const dead = ['Qwen3.8-27B-gsq','Qwen3.6-35B-A3B-NVFP4','qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
       .filter(k => k in m);
     if (dead.length) { console.error('dead catalog entries still declared: ' + dead.join(',')); process.exit(1); }
     process.exit(0);

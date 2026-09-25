@@ -11,16 +11,18 @@
     // Arbeitsband 60–100k: Nudge ab 85k, Zwang ab 103k.
     "minContextLimit": 85000,
     "maxContextLimit": 103000,
-    // Lokaler Qwen3.8-27B GSQ-RCO (153600 served KV, Compaction bei 120000).
+    // Lokaler Muse Glimmer 30B (131072 served KV, Compaction bei 97472; T900365).
     // Prozentwerte beziehen sich auf limit.context und wandern mit, wenn das
     // served KV neu gemessen und im Katalog angepasst wird:
-    //   40 % = 61440  → Nudge, bevor der Decode deutlich unter ~96 tok/s faellt
-    //   75 % = 115200 → Zwang, 4800 unter dem Compaction-Trigger
+    //   40 % = 52429 → Nudge, der Prefill eines Wechsels bleibt unter ~50 s
+    //   70 % = 91750 → Zwang, 5722 unter dem Compaction-Trigger
+    // 75 % (bis T900365 unter Qwen/153600) ergaebe 98304 — ueber dem Trigger
+    // 97472, also tote Konfiguration, weil die Compaction zuerst feuert.
     "modelMinLimits": {
-      "llamacpp-local/Qwen3.8-27B-gsq": "40%"
+      "llamacpp-local/Muse-Glimmer-30B": "40%"
     },
     "modelMaxLimits": {
-      "llamacpp-local/Qwen3.8-27B-gsq": "75%"
+      "llamacpp-local/Muse-Glimmer-30B": "70%"
     },
     // "soft": Nudge verwendet sanften Hinweis statt Erzwang, um JSON-Parse-Schleifen
     // bei fehlerhaften LLM-Antworten während der Kompaktierung zu verhindern.

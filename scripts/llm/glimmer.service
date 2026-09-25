@@ -20,7 +20,7 @@
 #   ln -sf "$PWD/scripts/llm/glimmer.service" ~/.config/systemd/user/
 #   systemctl --user daemon-reload && systemctl --user enable --now glimmer
 #
-# Gemessen 2026-09-25 (5070 Ti allein, -c 131072, q8_0-KV, 117.097-Token-Prompt mit Needle):
+# Gemessen 2026-09-25 (5070 Ti allein, 131072 Kontext, q8_0-KV, 117.097-Token-Prompt mit Needle):
 #   ohne Drafter:       Decode kurz 52,7 tok/s · Decode@117k 36,0 · Prefill@117k 1663 · 13,0 GB
 #   DFlash2 n-max 15:   ~76 · 53,1 · 1103 · 15,1 GB   (Empfehlung der Modellkarte, lange Entwuerfe verworfen)
 #   DFlash2 n-max 4:    ~79 · 84–89 · ~1095 · 15,1 GB  <- hier gesetzt

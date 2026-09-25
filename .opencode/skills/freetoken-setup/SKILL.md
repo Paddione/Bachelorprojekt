@@ -6,7 +6,7 @@ description: Set up, switch, and tune the FreeToken MoE serving backend (:1919, 
 # FreeToken Setup
 
 > [!CAUTION]
-> **RETIRED [T900363]:** FreeToken has been retired on this host. The serving port `:1919` is now dedicated exclusively to the live `llama-server` instance running `Qwen3.8-27B-gsq` (`Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf`, 150k context, draft-mtp 4, ~153.6k ctx) via the systemd user service `qwen38-gsq.service`. This skill is preserved for historical reference only.
+> **RETIRED [T900363]:** FreeToken has been retired on this host. The serving port `:1919` is now dedicated exclusively to the live `llama-server` instance running `Muse-Glimmer-30B` (`Muse-Glimmer-30B-UD-IQ3_XXS.gguf` + DFlash2 drafter, 131072 ctx) via the systemd user service `glimmer.service` [T900365; before that `Qwen3.8-27B-gsq` via `qwen38-gsq.service`]. This skill is preserved for historical reference only.
 
 Optimal per-model configs for the local FreeToken engine on PK-Desktop
 (RTX 5070 Ti, 16 GB VRAM), serving OpenAI/Anthropic-compatible APIs on :1919.

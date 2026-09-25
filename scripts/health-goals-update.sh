@@ -186,7 +186,10 @@ FMT_MATCHERS = [
     ("bare",    re.compile(r'^\s*([+-]?\d+)\s*(?:[✓⚠])?\s*$'),                   "bare"),
     ("percent", re.compile(r'^\s*([+-]?\d+)\s*%\s*(?:[✓⚠])?\s*$'),               "percent"),
     ("exit",    re.compile(r'^\s*Exit\s+([+-]?\d+)\s*(?:[✓⚠])?\s*$'),            "exit"),
-    ("unit",    re.compile(r'^\s*~?\s*([+-]?\d+)\s+([A-Za-zÄÖÜäöü]+)\s*(?:[✓⚠])?\s*$'), "unit"),
+    # [T900380] `‰` in der Einheiten-Klasse: G-DORA03 rechnet in Promille (revert/hotfix-
+    # Anteil), 0.5 % ist als Ganzzahl nicht darstellbar. Ohne das Zeichen faellt die Zeile in
+    # "Uebersprungen" und der Wert friert ein - genau der Bug, den diese Revision fixt.
+    ("unit",    re.compile(r'^\s*~?\s*([+-]?\d+)\s+([A-Za-zÄÖÜäöü‰]+)\s*(?:[✓⚠])?\s*$'), "unit"),
     ("frac",    re.compile(r'^\s*([+-]?\d+)\s*/\s*([+-]?\d+)\s*(?:[✓⚠])?\s*$'),  "frac"),
     ("na",      re.compile(r'^\s*n/a\s*(?:[✓⚠])?\s*$'),                          "na"),
 ]

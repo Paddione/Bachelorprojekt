@@ -25,8 +25,8 @@
   },
   "S1:scripts/health-goals-check.sh": {
     "path": "scripts/health-goals-check.sh",
-    "metric": 813,
-    "detail": "813 lines > 800 limit (.sh)",
-    "reason": "T005321: 13 neue Service/Infra-Health-Goals = je eine row()-Zeile; pro Ziel zwingend, nicht kuerzbar. Der Ratchet haelt die Datei ab hier bei 813."
+    "metric": 592,
+    "detail": "592 lines (.sh, unter 800 limit)",
+    "reason": "T900380: Mess-Helfer (DB/Cluster/gh/DORA/k8s-audit/pnpm/LLM/WT) nach scripts/lib/health-goals-measure.sh ausgelagert, -245 Zeilen; +21 fuer den Nicht-numerisch-Guard in row() und die DORA01/03-Neudefinition. Der Checker behaelt nur Report + row()-Aufrufe; die S1-Budget-Historie bleibt lesbar (T005321 hatte zuvor 13 Service/Infra-Ziele = je eine row()-Zeile nach oben gesetzt)."
   }
 }

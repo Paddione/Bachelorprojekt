@@ -6396,6 +6396,12 @@
     "kind": "shell"
   },
   {
+    "id": "systemd-units/unit-install-copy-guard",
+    "file": "tests/spec/systemd-units/unit-install-copy-guard.bats",
+    "category": "systemd-units",
+    "kind": "shell"
+  },
+  {
     "id": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",
     "file": "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
     "category": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",

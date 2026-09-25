@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1353,
+      "file_count": 1354,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1138,6 +1138,7 @@
         "tests/spec/software-factory/wsl-exit-fleet-factory.bats",
         "tests/spec/software-factory/wsl-exit-nachzug.bats",
         "tests/spec/studio-sessions-reorganize.bats",
+        "tests/spec/systemd-units/unit-install-copy-guard.bats",
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
         "tests/spec/t001353-mishap-bundle-ci-tickets.bats",
         "tests/spec/t001356-git02-conventional-commit.bats",

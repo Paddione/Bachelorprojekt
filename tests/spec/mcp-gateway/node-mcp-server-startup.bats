@@ -47,6 +47,17 @@ LIST='{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
   [[ "$output" == *'"tools":[{'* ]]
 }
 
+@test "ticket-mcp-node tools/list enthaelt kein property-level required (JSON-Schema-konform)" {
+  # `required: true` an einer Property ist kein gueltiges JSON Schema — die
+  # Anthropic-API verwirft solche Tools ("schema/properties/id/required must be
+  # array"). Pflichtfelder gehoeren ausschliesslich ins Objekt-Array `required`.
+  run mcp_stdio "$REPO/scripts/ticket-mcp-node/server.mjs" "$INIT" "$LIST"
+  echo "output: $output"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"name":"create_ticket"'* ]]
+  [[ "$output" != *'"required":true'* ]]
+}
+
 @test "ticket-mcp-node startet auch ueber runner.mjs ohne Argumente" {
   run mcp_stdio "$REPO/scripts/ticket-mcp-node/runner.mjs" "$INIT"
   echo "output: $output"

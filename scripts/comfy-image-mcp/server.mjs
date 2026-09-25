@@ -8,7 +8,7 @@
 
 import { createServer } from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +19,16 @@ import {
   corsHeadersFor,
   writeSecurityError,
 } from '../lib/mcp-http-security.mjs';
-import { validateArgs, checkOutPath, assertTemplate, buildPrompt, ImageQueue, jobView } from './lib.mjs';
+import {
+  validateArgs,
+  checkOutPath,
+  assertTemplate,
+  buildPrompt,
+  ImageQueue,
+  jobView,
+  postprocessArgs,
+  needsPostprocess,
+} from './lib.mjs';
 import { createClient } from './comfy-client.mjs';
 
 const SERVER_NAME = 'comfy-image-mcp';
@@ -50,50 +59,71 @@ const client = createClient({
 // Runner: ein Job = ein Bild (D4, D6)
 // ---------------------------------------------------------------------------
 
-function postprocess(p, deadline) {
-  const args = [join(HERE, 'postprocess.py'), '--in', p.rawPath, '--out', p.outPath];
-  if (p.transparent) args.push('--transparent');
-  if (p.pixelate) {
-    args.push('--pixelate', String(p.pixelate.size), '--colors', String(p.pixelate.colors), '--scale', String(p.pixelate.scale));
-  }
+// Schreibt in eine Temp-Datei; runJob benennt sie erst nach Erfolg um (kein halbes PNG an out_path).
+function postprocess(p, tmpOut, deadline) {
+  const args = [join(HERE, 'postprocess.py'), ...postprocessArgs(p, p.rawPath, tmpOut)];
   return new Promise((resolve, reject) => {
     const child = spawn(PYTHON, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let err = '';
     child.stderr.on('data', (c) => { err = (err + c).slice(-4000); });
-    const timer = setTimeout(() => child.kill('SIGKILL'), Math.max(1000, deadline - Date.now()));
+    let killed = false;
+    const timer = setTimeout(() => { killed = true; child.kill('SIGKILL'); }, Math.max(1000, deadline - Date.now()));
     child.on('error', (e) => { clearTimeout(timer); reject(new Error(`spawn ${PYTHON}: ${e.message}`)); });
     child.on('close', (code) => {
       clearTimeout(timer);
-      if (code === 0) resolve();
-      else reject(new Error(`postprocess.py exit ${code}: ${err.trim()}`));
+      if (code === 0) return resolve();
+      const e = new Error(killed ? 'postprocess.py hit the job deadline' : `postprocess.py exit ${code}: ${err.trim()}`);
+      e.timeout = killed;
+      reject(e);
     });
   });
 }
 
+// Schreibt data nach dest; ohne overwrite schlaegt das fehl, falls dest inzwischen existiert
+// (die Pruefung beim Einreihen liegt Minuten zurueck).
+function writeNew(dest, data, overwrite) {
+  writeFileSync(dest, data, { flag: overwrite ? 'w' : 'wx' });
+}
+
 async function runJob(job) {
   const p = job.params;
-  const deadline = job.startedAt + p.timeoutS * 1000;
   const t = (job.timings = {});
   let mark = Date.now();
   const lap = (k) => { const n = Date.now(); t[k] = Math.round((n - mark) / 100) / 10; mark = n; };
 
   await client.ensureUp();
   lap('start_s');
+  // Frist erst ab hier: ein Kaltstart von ComfyUI soll das Generierungsbudget nicht aufbrauchen.
+  const deadline = Date.now() + p.timeoutS * 1000;
   const promptId = await client.submit(buildPrompt(TEMPLATE, p));
   const ref = await client.waitHistory(promptId, deadline);
   if (!ref) {
-    await client.interrupt();
+    await client.interrupt(promptId);
     job.error = `timeout after ${p.timeoutS}s`;
     return { status: 'timeout' };
   }
   const png = await client.fetchImage(ref);
   lap('generate_s');
 
-  const needsPost = p.transparent || p.pixelate;
-  writeFileSync(needsPost ? p.rawPath : p.outPath, png);
-  if (needsPost) {
+  const needsPost = needsPostprocess(p);
+  if (!needsPost) {
+    writeNew(p.outPath, png, p.overwrite);
+  } else {
+    writeNew(p.rawPath, png, p.overwrite);
     job.rawWritten = true;
-    await postprocess(p, deadline);
+    const tmpOut = `${p.outPath}.${job.id}.tmp`;
+    try {
+      await postprocess(p, tmpOut, deadline);
+      if (!p.overwrite && existsSync(p.outPath)) throw new Error(`file appeared meanwhile, not replaced: ${p.outPath}`);
+      renameSync(tmpOut, p.outPath);
+    } catch (err) {
+      rmSync(tmpOut, { force: true });
+      if (err.timeout) {
+        job.error = err.message;
+        return { status: 'timeout' };
+      }
+      throw err;
+    }
     lap('postprocess_s');
   }
   const gs = spawnSync('git', ['-C', dirname(p.outPath), 'status', '--porcelain', '--', p.outPath], { encoding: 'utf8' });
@@ -122,6 +152,7 @@ const TOOLS = [
       'backgrounds/parallax layers, card illustrations, portraits, single item icons and images with legible ' +
       'text (logos, signs, title screens). Consistent sprite sheets, animation frames or the same character ' +
       'across several images do NOT work reliably. transparent:true removes the background (for sprites); ' +
+      'transparent images are trimmed to the subject by default (trim:false keeps the canvas); ' +
       'pixelate {size, colors, scale} turns the result into pixel art with a hard alpha. One 768x768 image ' +
       'takes about 2 minutes (plus ~1 minute if ComfyUI has to start). Returns a job_id immediately; poll ' +
       'image_result. Reuse the reported seed to reproduce an image.',
@@ -136,6 +167,10 @@ const TOOLS = [
         steps: { type: 'integer', minimum: 1, maximum: 60, description: 'Sampling steps (default 25).' },
         negative_prompt: { type: 'string' },
         transparent: { type: 'boolean', description: 'Cut out the subject (RGBA). Keeps <name>.raw.png.' },
+        trim: {
+          type: 'boolean',
+          description: 'Crop to the subject plus a small transparent margin before pixelate (default: same as transparent).',
+        },
         pixelate: {
           type: 'object',
           description: 'Pixel-art post-processing. Keeps <name>.raw.png.',
@@ -186,8 +221,12 @@ async function callTool(name, args) {
     case 'image_generate': {
       const v = validateArgs(args, { timeoutFloorS: TIMEOUT_FLOOR_S });
       if (v.error) return text(v.error, true);
-      const out = checkOutPath(args.out_path, v.params.overwrite);
+      const needsRaw = needsPostprocess(v.params);
+      const out = checkOutPath(args.out_path, v.params.overwrite, needsRaw);
       if (out.error) return text(out.error, true);
+      if (queue.claims(out.path) || (needsRaw && queue.claims(out.rawPath))) {
+        return text(`another queued or running job already writes ${out.path}`, true);
+      }
       const params = { ...v.params, outPath: out.path, rawPath: out.rawPath };
       const { id, position } = queue.enqueue(params);
       return text({ job_id: id, position, out_path: out.path, seed: params.seed });
@@ -266,8 +305,10 @@ const server = createServer(async (req, res) => {
     try {
       reqObj = JSON.parse(await readBody(req));
     } catch (err) {
+      // Details nur ins Server-Log, der Client bekommt eine feste Meldung (CodeQL: stack-trace exposure).
+      console.error(`[${SERVER_NAME}] parse error: ${err?.message || err}`);
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: CODE_PARSE, message: String(err.message || err) } }));
+      res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: CODE_PARSE, message: 'Parse error' } }));
       return;
     }
     if (reqObj?.id === undefined || reqObj.id === null) {
@@ -299,7 +340,8 @@ const server = createServer(async (req, res) => {
           result = text(`method not found: ${method}`, true);
       }
     } catch (err) {
-      result = text('internal error: ' + (err?.message || err), true);
+      console.error(`[${SERVER_NAME}] internal error in ${method}: ${err?.stack || err}`);
+      result = text('internal error (details in journalctl --user -u comfy-image-mcp)', true);
     }
 
     const payload = JSON.stringify({ jsonrpc: '2.0', id, result });

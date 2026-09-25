@@ -4,15 +4,16 @@
 Freistellung (rembg, Modell isnet-general-use) und Pixelate (Pillow) fuer Webgame-Assets.
 Laeuft im ComfyUI-venv (COMFY_IMAGE_PYTHON); rembg wird nur fuer --transparent importiert.
 
-  postprocess.py --in raw.png --out asset.png [--transparent] [--pixelate SIZE --colors N --scale K]
+  postprocess.py --in raw.png --out asset.png [--transparent] [--trim] [--pixelate SIZE --colors N --scale K]
 
-Reihenfolge: erst Freistellung, dann Pixelate. Exit 0 = Datei geschrieben, sonst Meldung auf stderr.
+Reihenfolge: Freistellung, Zuschnitt (T900386), Pixelate. Exit 0 = Datei geschrieben, sonst Meldung auf stderr.
 """
 import argparse
 import sys
 
 REMBG_MODEL = "isnet-general-use"
 ALPHA_THRESHOLD = 128
+TRIM_MARGIN = 0.02  # Anteil der laengeren Seite, mindestens 1 px
 
 
 def bounded(lo, hi):
@@ -31,6 +32,18 @@ def cut_out(img):
         print("postprocess: rembg fehlt — task llm:comfy-image:install ausfuehren", file=sys.stderr)
         sys.exit(3)
     return remove(img, session=new_session(REMBG_MODEL)).convert("RGBA")
+
+
+def trim(img):
+    """Zuschnitt auf die deckenden Pixel plus Rand; ohne Alpha oder ohne deckende Pixel unveraendert."""
+    if "A" not in img.getbands():
+        return img
+    box = img.getchannel("A").point(lambda a: 255 if a >= ALPHA_THRESHOLD else 0).getbbox()
+    if not box:
+        return img
+    pad = max(1, round(TRIM_MARGIN * max(img.width, img.height)))
+    left, top, right, bottom = box
+    return img.crop((max(0, left - pad), max(0, top - pad), min(img.width, right + pad), min(img.height, bottom + pad)))
 
 
 def pixelate(img, size, colors, scale):
@@ -67,6 +80,7 @@ def main(argv=None):
     ap.add_argument("--in", dest="src", required=True)
     ap.add_argument("--out", dest="dst", required=True)
     ap.add_argument("--transparent", action="store_true")
+    ap.add_argument("--trim", action="store_true")
     ap.add_argument("--pixelate", type=bounded(8, 512), metavar="SIZE")
     ap.add_argument("--colors", type=bounded(2, 256), default=16)
     ap.add_argument("--scale", type=bounded(1, 16), default=1)
@@ -85,6 +99,8 @@ def main(argv=None):
         return 2
     if args.transparent:
         img = cut_out(img)
+    if args.trim:
+        img = trim(img)
     if args.pixelate:
         img = pixelate(img, args.pixelate, args.colors, args.scale)
     img.save(args.dst, format="PNG")

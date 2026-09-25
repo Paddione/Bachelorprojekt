@@ -9,10 +9,13 @@ import json
 import os
 import struct
 import sys
+import time
 import zlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 OUT_DIR = os.environ.get("FAKE_COMFY_DIR", ".")
+# SLOW_PROMPT haelt /history 3 s lang unfertig — so bleibt ein Job lange genug "running".
+SLOW_UNTIL = [0.0]
 
 
 def png(width=64, height=64):
@@ -41,6 +44,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/system_stats":
             return self.reply(200, {"devices": [{"name": "cuda:0 fake", "vram_total": 8589934592, "vram_free": 6442450944}]})
+        if self.path == "/history/p1" and time.time() < SLOW_UNTIL[0]:
+            return self.reply(200, {})
         if self.path == "/history/p1":
             return self.reply(200, {"p1": {
                 "status": {"status_str": "success", "completed": True, "messages": []},
@@ -58,6 +63,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/prompt":
             with open(os.path.join(OUT_DIR, "last_prompt.json"), "wb") as fh:
                 fh.write(body)
+            if b"SLOW_PROMPT" in body:
+                SLOW_UNTIL[0] = time.time() + 3
             if b"FAIL_PROMPT" in body:
                 return self.reply(400, {"error": {"message": "bad"},
                                         "node_errors": {"1": {"errors": [{"message": "bad node"}]}}})

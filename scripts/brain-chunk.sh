@@ -5,6 +5,8 @@
 # sections greedily into chunks up to a target character limit. Emits a
 # TAB-separated manifest on stdout and writes chunk files to --out-dir.
 # Optionally writes a deterministic parent MOC page (no LLM, no network).
+# A fenced code block or markdown table larger than the target becomes
+# sequential (Teil i/N) part-chunks; any other oversized paragraph emits whole.
 #
 # Usage:
 #   brain-chunk.sh --source <file> --slug <slug> --out-dir <dir> [--moc <file>] [--target-chars <n>]
@@ -129,9 +131,91 @@ function write_chunk(text, heading,   cslug, path) {
   printf "%s\t%s\t%d\t%s\n", path, cslug, idx, moc_head[idx]
 }
 
+# A unit is a splittable fence when it is exactly one complete fenced code
+# block: opening ``` line first, closing ``` line last. Fences containing
+# blank lines arrive here as fragments (hard_split breaks units at blank
+# lines) and keep the legacy whole-emit behavior.
+function is_fence(unit,   n, ln) {
+  n = split(unit, ln, "\n")
+  while (n > 0 && ln[n] == "") n--
+  if (n < 3) return 0
+  if (ln[1] !~ /^```/) return 0
+  if (ln[n] !~ /^```[ \t]*$/) return 0
+  return 1
+}
+
+# Split one oversized fenced block into sequential line-greedy parts, each at
+# most target chars (a single longer line still emits whole: completeness
+# beats the size goal). Parts are raw slices labeled (Teil i/N) — their
+# concatenation reproduces the fence byte-exact, so the wiki holds the full
+# block across ordered pages instead of dropping it at the transform guard.
+function split_fence(unit, heading,   n, ln, tail, i, curlen, nb, b, start, p, j, part, base) {
+  n = split(unit, ln, "\n")
+  tail = ""
+  while (n > 0 && ln[n] == "") { tail = tail "\n"; n-- }
+  nb = 0; curlen = 0
+  for (i = 1; i <= n; i++) {
+    if (curlen > 0 && curlen + length(ln[i]) + 1 > target) { nb++; b[nb] = i; curlen = 0 }
+    curlen += length(ln[i]) + 1
+  }
+  nb++; b[nb] = n + 1
+  base = heading
+  if (base == "") base = slug
+  start = 1
+  for (p = 1; p <= nb; p++) {
+    part = ""
+    for (j = start; j < b[p]; j++) part = part ln[j] "\n"
+    if (p == nb) part = part tail
+    write_chunk(part, base " (Teil " p "/" nb ")")
+    start = b[p]
+  }
+}
+
+# A unit is a splittable table when it opens with a header row and a
+# separator row (pipes, dashes, colons, spaces). Data rows are not validated:
+# anything under a valid header pair rides along as opaque lines.
+function is_table(unit,   n, ln) {
+  n = split(unit, ln, "\n")
+  while (n > 0 && ln[n] == "") n--
+  if (n < 3) return 0
+  if (ln[1] !~ /^\|/) return 0
+  if (ln[2] !~ /^\|[ \t:|-]+\|[ \t]*$/) return 0
+  return 1
+}
+
+# Split one oversized markdown table at row boundaries: every part repeats
+# the header pair, so each renders as a complete table. Unlike fence parts
+# the concatenation is not byte-exact (headers repeat) — but every data row
+# appears exactly once, in order.
+function split_table(unit, heading,   n, ln, tail, hlen, i, curlen, rows, nb, b, start, p, j, part, base) {
+  n = split(unit, ln, "\n")
+  tail = ""
+  while (n > 0 && ln[n] == "") { tail = tail "\n"; n-- }
+  hlen = length(ln[1]) + 1 + length(ln[2]) + 1
+  if (hlen > target) { write_chunk(unit, heading); return }
+  nb = 0; curlen = hlen; rows = 0
+  for (i = 3; i <= n; i++) {
+    if (rows > 0 && curlen + length(ln[i]) + 1 > target) { nb++; b[nb] = i; curlen = hlen; rows = 0 }
+    curlen += length(ln[i]) + 1; rows++
+  }
+  nb++; b[nb] = n + 1
+  base = heading
+  if (base == "") base = slug
+  start = 3
+  for (p = 1; p <= nb; p++) {
+    part = ln[1] "\n" ln[2] "\n"
+    for (j = start; j < b[p]; j++) part = part ln[j] "\n"
+    if (p == nb) part = part tail
+    write_chunk(part, base " (Teil " p "/" nb ")")
+    start = b[p]
+  }
+}
+
 # Split one oversized section at paragraph boundaries, greedy up to target.
-# A single paragraph larger than target is emitted whole: completeness beats
-# the size goal, and dropping text would silently shrink the wiki.
+# A single paragraph larger than target is emitted whole — except a complete
+# fenced code block or markdown table, which split into sequential parts
+# (generated sources cannot be fixed by hand). Completeness beats the size
+# goal either way: dropping text would silently shrink the wiki.
 function hard_split(text, heading,   n, ln, i, unit, cur) {
   n = split(text, ln, "\n")
   cur = ""; unit = ""
@@ -139,13 +223,24 @@ function hard_split(text, heading,   n, ln, i, unit, cur) {
     if (i == n && ln[i] == "") break   # artefact of the trailing newline
     unit = unit ln[i] "\n"
     if (ln[i] == "") {
-      if (cur != "" && length(cur) + length(unit) > target) { write_chunk(cur, heading); cur = "" }
-      cur = cur unit; unit = ""
+      if (length(unit) > target && (is_fence(unit) || is_table(unit))) {
+        if (cur != "") { write_chunk(cur, heading); cur = "" }
+        if (is_fence(unit)) split_fence(unit, heading); else split_table(unit, heading)
+      } else {
+        if (cur != "" && length(cur) + length(unit) > target) { write_chunk(cur, heading); cur = "" }
+        cur = cur unit
+      }
+      unit = ""
     }
   }
   if (unit != "") {
-    if (cur != "" && length(cur) + length(unit) > target) { write_chunk(cur, heading); cur = "" }
-    cur = cur unit
+    if (length(unit) > target && (is_fence(unit) || is_table(unit))) {
+      if (cur != "") { write_chunk(cur, heading); cur = "" }
+      if (is_fence(unit)) split_fence(unit, heading); else split_table(unit, heading)
+    } else {
+      if (cur != "" && length(cur) + length(unit) > target) { write_chunk(cur, heading); cur = "" }
+      cur = cur unit
+    }
   }
   if (cur != "") write_chunk(cur, heading)
 }

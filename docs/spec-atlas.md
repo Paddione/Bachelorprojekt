@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2440 · Scenarios: 5416
+Specs: 129 · Requirements: 2441 · Scenarios: 5418
 
 ## factory-pipeline
 

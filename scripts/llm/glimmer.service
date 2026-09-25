@@ -18,7 +18,9 @@
 #   hf download unsloth/Muse-Glimmer-30B-GGUF Muse-Glimmer-30B-UD-IQ3_XXS.gguf --local-dir ~/models/Muse-Glimmer-30B
 #   hf download incoai/Muse-Glimmer-30B-DFlash2-GGUF Muse-Glimmer-30B-DFlash2-Q4_K_M.gguf --local-dir ~/models/Muse-Glimmer-30B
 #   ln -sfn ~/opt/llama.cpp-e85e15c/build ~/opt/llama-current
-#   ln -sf "$PWD/scripts/llm/glimmer.service" ~/.config/systemd/user/
+#   cp scripts/llm/glimmer.service ~/.config/systemd/user/  # Kopie, KEIN Symlink (T900376):
+#   ein Symlink bindet die Unit an genau diesen Checkout und zeigt nach einem
+#   Branchwechsel ohne diese Datei ins Leere. Nach Unit-Aenderungen erneut kopieren.
 #   systemctl --user daemon-reload && systemctl --user enable --now glimmer
 #
 # Gemessen 2026-09-25 (5070 Ti allein, 131072 Kontext, q8_0-KV, 117.097-Token-Prompt mit Needle):

@@ -16,6 +16,13 @@
         "codebase-memory-mcp@0.10.8"
       ]
     },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@4.1.1"
+      ]
+    },
     "factory-mcp-node": {
       "type": "http",
       "url": "http://localhost:13003/mcp"

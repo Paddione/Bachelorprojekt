@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2431 · Scenarios: 5400
+Specs: 129 · Requirements: 2434 · Scenarios: 5406
 
 ## factory-pipeline
 
@@ -591,7 +591,7 @@ Last touches:
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
 
 ### llm-local-dev
-Reqs: 37 · Scenarios: 76 · Lines: 932
+Reqs: 40 · Scenarios: 82 · Lines: 1009
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Dead Checkpoints Are Not Declared | T900365 | 2026-09-25 | MODIFIED
@@ -599,10 +599,6 @@ Last touches:
   - Local Agent Roster on the Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
   - Project Default Model Targets the Local Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
   - Local Agent Roster on the Glimmer Checkpoint | T900365 | 2026-09-25 | MODIFIED
-In-flight:
-  - Glimmer Worker MCP for Muse Code | T900373 | active | ADDED
-  - Windows Paths Are Accepted by the Glimmer Worker | T900373 | active | ADDED
-  - The Glimmer Worker Is Registered Only in Muse Code | T900373 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

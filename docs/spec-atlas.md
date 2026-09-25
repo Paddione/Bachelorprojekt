@@ -55,6 +55,10 @@ Last touches:
   - Bonsai Provider Registration for Implement and Review | T900208 | 2026-09-17 | MODIFIED
   - Ticket CLI auto-tick wake never blocks on the factory tick | T900054 | 2026-09-17 | MODIFIED
   - REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor | T900210 | 2026-09-17 | MODIFIED
+In-flight:
+  - Bonsai Provider Registration for Implement and Review | T900365 | active | MODIFIED
+  - Env-driven phase model routing | T900365 | active | MODIFIED
+  - REQ-SF-EXECUTOR-004 — Muse Spark 1.3 planning with Go fallback | T900365 | active | MODIFIED
 
 ## delivery
 
@@ -599,6 +603,18 @@ Last touches:
   - Windows-Native FreeToken Auto-Start and Install Scripts | T900189 | 2026-09-17 | ADDED
   - Local LLM Proxy FreeToken Thinking Fixup and Local Recognition | T900189 | 2026-09-17 | ADDED
   - Restart autostarts the KV ladder and reaps stale pollers | T016416 | 2026-09-17 | ADDED
+In-flight:
+  - Local Agent Roster on the Qwen3.8 Checkpoint | T900365 | active | RENAMED
+  - Project Default Model Targets the Local Qwen3.8 Checkpoint | T900365 | active | RENAMED
+  - Single Definition Site for the opencode `llamacpp-local` Provider | T900365 | active | MODIFIED
+  - Local Agent Roster on the Glimmer Checkpoint | T900365 | active | MODIFIED
+  - Single Static Model, No Alias Layer | T900365 | active | MODIFIED
+  - Measured Context Limits for the Local Checkpoint | T900365 | active | MODIFIED
+  - Project Default Model Targets the Local Glimmer Checkpoint | T900365 | active | MODIFIED
+  - Dead Checkpoints Are Not Declared | T900365 | active | MODIFIED
+  - Compaction Scales With the Model Window | T900365 | active | MODIFIED
+  - Glimmer Serving Profile on :1919 | T900365 | active | ADDED
+  - Reasoning-Off Requests Also Lower Glimmer's Reasoning Strength | T900365 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

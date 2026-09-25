@@ -235,3 +235,156 @@ setup() {
   run grep -E 'initFigureDrag' "${SRC}/client/board-boot.ts"
   [ "$status" -eq 0 ]
 }
+
+# ── T900360: systembrett-presets — p5 RED-to-GREEN coverage ─────────────────
+
+# (a) Migration idempotency — database-backed, guarded: without a reachable
+# postgres (DATABASE_URL unset or pg_isready failing) the test skips instead of
+# failing, so CI without a server stays green on this block.
+@test "T900360 (a): 005 double-apply is idempotent — system row count stable, no (brand, name) dupes" {
+  [ -n "${DATABASE_URL:-}" ] || skip "DATABASE_URL unset — no postgres for the 005 double-apply run"
+  # Reachability probe against DATABASE_URL itself (not a bare socket probe):
+  # local/CI servers may be TCP-only, so pg_isready without args misses them.
+  run env PGCONNECT_TIMEOUT=2 psql "$DATABASE_URL" -tAc 'SELECT 1'
+  [ "$status" -eq 0 ] || skip "no postgres server reachable via DATABASE_URL (probe: psql SELECT 1)"
+  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  # Single psql session: apply 005, count, apply 005 again, count, dupes —
+  # statement order inside one connection. The dev DB's :5432 endpoint drops
+  # connections intermittently, so the run gets 3 attempts; connection
+  # instability skips (environment), a real SQL error fails the test.
+  local attempt=0
+  while [ "$attempt" -lt 3 ]; do
+    # PGOPTIONS client_min_messages=WARNING keeps psql NOTICE lines (e.g.
+    # from CREATE INDEX IF NOT EXISTS on the re-apply) out of -tAc output.
+    run env PGCONNECT_TIMEOUT=2 PGOPTIONS="-c client_min_messages=WARNING" psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q \
+      -f "$mig" \
+      -tAc 'SELECT count(*) FROM brett.board_templates WHERE is_system IS TRUE' \
+      -f "$mig" \
+      -tAc 'SELECT count(*) FROM brett.board_templates WHERE is_system IS TRUE' \
+      -tAc 'SELECT count(*) FROM (SELECT brand, name FROM brett.board_templates WHERE is_system IS TRUE GROUP BY brand, name HAVING count(*) > 1) d'
+    [ "$status" -eq 0 ] && break
+    [[ "$output" == *ERROR:* ]] && break
+    attempt=$((attempt + 1))
+  done
+  if [ "$status" -ne 0 ]; then
+    if [[ "$output" == *ERROR:* ]]; then
+      return 1
+    fi
+    skip "no postgres server reachable via DATABASE_URL (connection error after ${attempt} attempts)"
+  fi
+  local first second dupes
+  { read -r first; read -r second; read -r dupes; } <<< "$output"
+  # Positiv-Anker: an empty table cannot fake a pass — at least the three
+  # system templates must be present after the first apply.
+  [ "$first" -ge 3 ]
+  [ "$first" -eq "$second" ]
+  [ "$dupes" -eq 0 ]
+}
+
+# (b) Full staging — offline gates over the 005 migration file (grep-only,
+# following the guard file's offline convention).
+@test "T900360 (b1): 005 stages all three system template names" {
+  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  [ -s "$mig" ]
+  for name in "Familiensystem 4 Personen" "Team-Konflikt" "Innere Anteile"; do
+    run grep -qF -- "$name" "$mig"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "T900360 (b2): every staged state carries at least two distinct figure colors plus facingY and pose carriers" {
+  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  [ -s "$mig" ]
+  local fam team inn
+  fam=$(awk '/Familiensystem 4 Personen/,/Team-Konflikt/' "$mig")
+  team=$(awk '/Team-Konflikt/,/Innere Anteile/' "$mig")
+  inn=$(awk '/Innere Anteile/,0' "$mig")
+  for block in "$fam" "$team" "$inn"; do
+    [ "$(printf '%s' "$block" | grep -oE '"color":"#[0-9a-fA-F]{6}"' | sort -u | wc -l)" -ge 2 ]
+    printf '%s' "$block" | grep -q 'facingY'
+    printf '%s' "$block" | grep -q '"preset":'
+  done
+}
+
+@test "T900360 (b3): every staged state carries zones, anchors and optik (floor, sky, lightMood)" {
+  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  [ -s "$mig" ]
+  local fam team inn
+  fam=$(awk '/Familiensystem 4 Personen/,/Team-Konflikt/' "$mig")
+  team=$(awk '/Team-Konflikt/,/Innere Anteile/' "$mig")
+  inn=$(awk '/Innere Anteile/,0' "$mig")
+  for block in "$fam" "$team" "$inn"; do
+    printf '%s' "$block" | grep -q '"zones":'
+    printf '%s' "$block" | grep -q '"anchors":'
+    printf '%s' "$block" | grep -q '"floor":'
+    printf '%s' "$block" | grep -q '"sky":'
+    printf '%s' "$block" | grep -q '"lightMood":'
+  done
+}
+
+# (c) Seed path — the seeder handles zones, anchors and optik alongside
+# figures, and the join flow seeds through it and broadcasts.
+@test "T900360 (c): seedFigureMapFromState handles zones, anchors and optik; join flow seeds and broadcasts" {
+  run grep -q 'seedFigureMapFromState' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'state.zones' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'state.anchors' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'state.optik' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'seedFigureMapFromState' "${SRC}/server/ws-connection.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'deps.broadcast' "${SRC}/server/ws-connection.ts"
+  [ "$status" -eq 0 ]
+}
+
+# (d) Auto-seed discriminator — row-existence check on brett_rooms before
+# seeding: a missing row seeds the brand default, a persisted-but-empty room
+# is left untouched.
+@test "T900360 (d): join flow gates auto-seed on brett_rooms row existence and resolves the is_default marker" {
+  run grep -q 'roomRowExists' "${SRC}/server/ws-connection.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'getBrandDefaultTemplate' "${SRC}/server/ws-connection.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'brett_rooms' "${SRC}/server/db.ts"
+  [ "$status" -eq 0 ]
+}
+
+# (e) Reset-to-default — admin command layer exposes the reset path back to
+# the brand default constellation; 005 carries the is_default marker it
+# resolves through.
+@test "T900360 (e): admin_reset_board_to_default is exposed in the admin layer and 005 carries the is_default marker" {
+  run grep -q "case 'admin_reset_board_to_default'" "${SRC}/server/ws-admin-commands.ts"
+  [ "$status" -eq 0 ]
+  run grep -qF -- 'admin_reset_board_to_default' "${SRC}/server/ws-handler.ts"
+  [ "$status" -eq 0 ]
+  local mig="${BRETT}/src/server/migrations/005_board_templates_full_staging.sql"
+  run grep -qF -- 'is_default' "$mig"
+  [ "$status" -eq 0 ]
+}
+
+# (f) Template lines seeding — staged lines are reseeded with staged ids via
+# line_create (fallback generateId), the stale __lines__ sentinel is cleared
+# first, and an absent/empty list leaves it empty (offline grep gates).
+@test "T900360 (f): seedFiguresFromTemplate reseeds staged lines via line_create and clears stale lines" {
+  run grep -q 'templateState?.lines' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -qF -- "figs.set('__lines__'" "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q "type: 'line_create'" "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'seedFiguresFromTemplate' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+}
+
+# (g) Template lines snapshot — applyTemplateToRoom broadcasts the seeded lines
+# under the `lines` field (types/messages.ts + ws-client.ts contract).
+@test "T900360 (g): applyTemplateToRoom snapshot carries lines" {
+  run grep -q 'lines: built.lines' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'lines?: BrettLine' "${SRC}/types/messages.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'msg.lines' "${SRC}/client/ws-client.ts"
+  [ "$status" -eq 0 ]
+}

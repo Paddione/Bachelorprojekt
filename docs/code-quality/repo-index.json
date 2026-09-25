@@ -5164,7 +5164,7 @@
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 369,
+      "file_count": 370,
       "files": [
         "components/brett/.dockerignore",
         "components/brett/.gitignore",
@@ -5398,6 +5398,7 @@
         "components/brett/src/server/migrations/003_share_tokens.sql",
         "components/brett/src/server/migrations/004_board_templates.sql",
         "components/brett/src/server/migrations/004_zuschauer_tokens.sql",
+        "components/brett/src/server/migrations/005_board_templates_full_staging.sql",
         "components/brett/src/server/permissions.ts",
         "components/brett/src/server/phases.ts",
         "components/brett/src/server/presets.ts",

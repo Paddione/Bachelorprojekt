@@ -109,6 +109,7 @@ export const ADMIN_TYPES = new Set<string>([
   'session_undo', 'session_redo',   // ← T000470
   // ── Line mutations (T000467) — leiter-exklusiv ────────────────────────────
   'line_create', 'line_delete', 'line_type_set',
+  'admin_reset_board_to_default',  // P4 (T900360) — leiter-gated Reset auf Brand-Default
 ]);
 
 /**

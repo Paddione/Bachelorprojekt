@@ -61,6 +61,34 @@ export async function loadSnapshotState(id: string): Promise<any> {
   return rows[0]?.state ?? null;
 }
 
+/**
+ * P3 (D1) — Explicit room-row existence probe for the join-flow seed gate.
+ * Sole discriminator between a missing row and a persisted (possibly empty)
+ * row. `readState` keeps returning `{ figures: [] }` as fallback for its
+ * existing callers.
+ */
+export async function roomRowExists(room: string): Promise<boolean> {
+  const { rows } = await pool.query(
+    'SELECT 1 FROM brett_rooms WHERE room_token = $1',
+    [room]
+  );
+  return rows.length > 0;
+}
+
+/**
+ * P3 (D2) — Marker-based brand-default lookup: loads the full staged state of
+ * the single row per brand carrying the `is_default` marker (partial unique
+ * index per brand from 005). No name literal in the WHERE clause; returns
+ * null when no default is marked so the join flow can skip seeding cleanly.
+ */
+export async function getBrandDefaultTemplate(brand: string): Promise<any> {
+  const { rows } = await pool.query(
+    'SELECT state FROM brett.board_templates WHERE brand = $1 AND is_default IS TRUE',
+    [brand]
+  );
+  return rows[0]?.state ?? null;
+}
+
 export async function persistState(room: string): Promise<void> {
   const state = buildStateFromMutations(room);
   if (!state) return;

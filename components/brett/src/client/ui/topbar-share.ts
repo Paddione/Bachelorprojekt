@@ -1,3 +1,5 @@
+import { sendClient } from '../ws-client';
+
 export function shareButtonVisible(role: string | undefined | null, isAdmin: boolean): boolean {
   return isAdmin === true || role === 'leiter';
 }
@@ -50,6 +52,21 @@ export function mountShareButton(slot: HTMLElement | null, opts: ShareMountOptio
     }
   });
   slot.appendChild(btn);
+
+  // P4 (T900360): leiter-gated reset to the brand default (mount only passed
+  // when shareButtonVisible holds). Direct sendClient per the fig-panel.ts
+  // precedent — the server resolves the default via the P1 marker and the
+  // resulting snapshot broadcast updates every client, no local patching.
+  const resetBtn = document.createElement('button');
+  resetBtn.id = 'reset-default-btn';
+  resetBtn.className = 'brett-share-btn';
+  resetBtn.title = 'Auf Startkonstellation zurücksetzen';
+  resetBtn.setAttribute('aria-label', 'Brett auf Marken-Standard zurücksetzen');
+  resetBtn.textContent = 'Zurücksetzen';
+  resetBtn.addEventListener('click', () => {
+    sendClient({ type: 'admin_reset_board_to_default' });
+  });
+  slot.appendChild(resetBtn);
 
   const zuschauerBtn = document.createElement('button');
   zuschauerBtn.id = 'zuschauer-btn';

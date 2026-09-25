@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.360.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.360.0...website-v1.360.1) (2026-09-25)
+
+
+### Bug Fixes
+
+* **website:** wire lobby board-template path end-to-end with sender error feedback [T900361] ([#5868](https://github.com/Paddione/Bachelorprojekt/issues/5868)) ([1ca14e2](https://github.com/Paddione/Bachelorprojekt/commit/1ca14e22e271612d913696409a4e8c870fc9c973))
+
 ## [1.360.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.359.0...website-v1.360.0) (2026-09-25)
 
 

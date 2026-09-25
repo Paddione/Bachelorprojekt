@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.46.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.46.0...brett-v0.46.1) (2026-09-25)
+
+
+### Bug Fixes
+
+* **website:** wire lobby board-template path end-to-end with sender error feedback [T900361] ([#5868](https://github.com/Paddione/Bachelorprojekt/issues/5868)) ([1ca14e2](https://github.com/Paddione/Bachelorprojekt/commit/1ca14e22e271612d913696409a4e8c870fc9c973))
+
 ## [0.46.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.45.0...brett-v0.46.0) (2026-09-25)
 
 

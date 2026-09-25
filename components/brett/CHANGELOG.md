@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.46.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.45.0...brett-v0.46.0) (2026-09-25)
+
+
+### Features
+
+* **website:** distinct systembrett presets with auto-seed on startup [T900360] ([#5863](https://github.com/Paddione/Bachelorprojekt/issues/5863)) ([b2bc5e2](https://github.com/Paddione/Bachelorprojekt/commit/b2bc5e29ba3a8c5b93af1221848431456b692d9f))
+
 ## [0.45.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.44.0...brett-v0.45.0) (2026-09-22)
 
 

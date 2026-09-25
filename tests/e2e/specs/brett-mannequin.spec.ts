@@ -58,6 +58,10 @@ test.describe('Brett Mannequin Focus', () => {
   });
 
   test('T2: Adding a figure via button', async ({ page }) => {
+    // Deselect any active figure so the panel switches to 'NEUE FIGUR' mode
+    await page.evaluate(() => (window as any).selectFigure?.(null));
+    await page.keyboard.press('Escape');
+
     const beforeCount = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     await page.locator('#fig-panel-btn').click({ force: true });
     await page.locator('#fig-panel-add').click({ force: true });
@@ -123,12 +127,12 @@ test.describe('Brett Mannequin Focus', () => {
   });
   
   test('T6: Tab cycles selection', async ({ page }) => {
+    await page.keyboard.press('Escape');
     await expect.poll(async () => {
       const current = await page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
       if (current < 2) {
-        await page.locator('#fig-panel-btn').click({ force: true });
-        await page.locator('#fig-panel-add').click({ force: true });
-        await page.locator('canvas').click({ position: { x: 200, y: 200 }, force: true });
+        await page.evaluate(() => (window as any).selectFigure?.(null));
+        await page.locator('canvas').dblclick({ position: { x: 200, y: 200 }, force: true });
       }
       return page.evaluate(() => (window as any).STATE?.figures?.length ?? 0);
     }, { timeout: 10_000 }).toBeGreaterThanOrEqual(2);

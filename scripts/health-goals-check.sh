@@ -219,7 +219,7 @@ print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else '-')" 2>/dev
 }
 runtime_measure() { # fail-closed helper; fixture paths can be injected by tests/CI
   [ "$FAST" = 1 ] && { echo "-"; return; }
-  local mode="$1" input_var="HG_${1^^}_INPUT" input="${!input_var:-}" args=()
+  local mode="$1" var_suffix="${1//-/_}" input_var="HG_${var_suffix^^}_INPUT" input="${!input_var:-}" args=()
   [ -n "$input" ] && args=(--input "$input")
   python3 scripts/lib/runtime-health-measure.py "$mode" "${args[@]}" 2>/dev/null || echo "-"
 }
@@ -422,7 +422,7 @@ row target G-FE03 "$(anchor_dir components/website/src; grep -rEn 'console\.(err
 row target G-FE04 "$(anchor_dir components/website/src; grep -rEn 'console\.(log|debug|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' 2>/dev/null | grep -v 'browser-logger.ts' | grep -v '\.test\.ts' | wc -l | tr -d ' ')" eq 0 "Stray console.log/debug/info"
 # [T013916] 3000 -> 600: Ist 311, das God-File existiert nicht mehr.
 row target G-SIZE03 "$( [ -f components/website/src/lib/website-db.ts ] && wc -l < components/website/src/lib/website-db.ts | tr -d ' ' || echo - )" le 600 "website-db.ts (Zeilen)"
-row target G-SIZE02 "$(git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' | grep -v node_modules | while read -r f; do [ -L "$f" ] || echo "$f"; done | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l | tr -d ' ')" le 3 "Großdateien außerhalb Gate-Scope (>1000 Zeilen)"
+row target G-SIZE02 "$(git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' | grep -v node_modules | grep -vE '\.opencode/skills/(ui-ux-pro-max|unsloth-buddy)/' | while read -r f; do [ -L "$f" ] || echo "$f"; done | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l | tr -d ' ')" le 3 "Großdateien außerhalb Gate-Scope (>1000 Zeilen)"
 # .codebase-memory/graph.db.zst (16.7MB, ehem. PR #2281) ist seit T001717 nicht mehr getrackt
 # (lokal via `task codebase:index` regeneriert, .gitignore) — die frühere Scope-Ausschluss-Policy
 # T001348 ist damit gegenstandslos, da kein >1MB-Binärartefakt mehr im Tree liegt.

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # === Config ===
 MAX_ITERATIONS=2
-MODEL="${PLAN_QA_MODEL:-Qwen3.8-27B-gsq}"
+MODEL="${PLAN_QA_MODEL:-Muse-Glimmer-30B}"
 GATEWAY_BASE_URL="${GATEWAY_BASE_URL:-http://127.0.0.1:18235}"
 
 # === Helpers ===
@@ -120,7 +120,7 @@ build_payload() {
     --arg sys "$SYSTEM_PROMPT" \
     --arg usr "$usr_content" \
     --argjson et false \
-    '{model: $model, max_tokens: 2048, enable_thinking: $et, chat_template_kwargs: {enable_thinking: $et}, messages: [{role: "system", content: $sys}, {role: "user", content: $usr}]}'
+    '{model: $model, max_tokens: 2048, enable_thinking: $et, chat_template_kwargs: {enable_thinking: $et, reasoning_strength: "low"}, messages: [{role: "system", content: $sys}, {role: "user", content: $usr}]}'
 }
 
 # Payload ungültig (z.B. jq nicht installiert) → deutliche stderr-Warnung,

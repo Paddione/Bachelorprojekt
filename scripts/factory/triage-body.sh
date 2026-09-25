@@ -48,5 +48,5 @@ _build_triage_body() {
       max_tokens: 512,
       response_format: {type: "json_schema", json_schema: $schema}
     }
-    + (if $thinking_off then {chat_template_kwargs: {enable_thinking: false}} else {} end)'
+    + (if $thinking_off then {chat_template_kwargs: {enable_thinking: false, reasoning_strength: "low"}} else {} end)'
 }

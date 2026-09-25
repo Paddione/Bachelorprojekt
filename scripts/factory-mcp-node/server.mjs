@@ -81,7 +81,7 @@ function serverStale() {
 // [T900208] Fallback = llama.cpp :1919 (der llm-proxy :18235 ist
 // stillgelegt) — deckungsgleich mit scripts/factory/mcp-go/main.go.
 const DEFAULT_LOCAL_LLM_URL = 'http://127.0.0.1:1919/v1';
-const DEFAULT_LOCAL_LLM_MODEL = 'Qwen3.8-27B-gsq';
+const DEFAULT_LOCAL_LLM_MODEL = 'Muse-Glimmer-30B';
 
 function resolveLLM() {
   try {
@@ -506,8 +506,10 @@ function toolFactoryAsk(args) {
       temperature: 0.2,
       max_tokens: 1500,
     };
-    if (model.toLowerCase().includes('qwen')) {
-      body['chat_template_kwargs'] = { enable_thinking: false };
+    // [T900365] Muse Glimmer kennt enable_thinking nicht; reasoning_strength senkt
+    // den Level, den das Template sonst auf 'high' setzt.
+    if (/qwen|glimmer/i.test(model)) {
+      body['chat_template_kwargs'] = { enable_thinking: false, reasoning_strength: 'low' };
     }
 
     // LLM-Request via curl (stdlib fetch ist async — MCP expects sync tool response)
@@ -546,7 +548,7 @@ function toolFactoryAsk(args) {
     let src = 'content';
 
     if (!ans && msg.reasoning_content) {
-      // Qwen3 reasoning trace — letze "answer:" / "Final answer:" marker extrahieren
+      // Reasoning-Trace (Qwen3/Glimmer) — letze "answer:" / "Final answer:" marker extrahieren
       const reasoning = msg.reasoning_content.toString();
       const lower = reasoning.toLowerCase();
       let best = -1;

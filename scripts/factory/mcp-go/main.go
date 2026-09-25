@@ -102,7 +102,7 @@ func resolveAuthKey(apiKeyEnv string) string {
 // auf dasselbe lokale Backend wie route-provider.sh: llama.cpp :1919.
 const (
 	defaultLocalLLMURL   = "http://127.0.0.1:1919/v1"
-	defaultLocalLLMModel = "Qwen3.8-27B-gsq"
+	defaultLocalLLMModel = "Muse-Glimmer-30B"
 )
 
 func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
@@ -813,8 +813,10 @@ func toolFactoryAsk(question string) (string, bool, error) {
 		"temperature": 0.2,
 		"max_tokens":  1500,
 	}
-	if strings.Contains(strings.ToLower(model), "qwen") {
-		body["chat_template_kwargs"] = map[string]any{"enable_thinking": false}
+	// [T900365] Muse Glimmer ignores enable_thinking; reasoning_strength lowers the
+	// level its chat template otherwise sets to "high".
+	if m := strings.ToLower(model); strings.Contains(m, "qwen") || strings.Contains(m, "glimmer") {
+		body["chat_template_kwargs"] = map[string]any{"enable_thinking": false, "reasoning_strength": "low"}
 	}
 	bb, _ := json.Marshal(body)
 	ctx, cancel := context.WithTimeout(context.Background(), factoryAskTimeout)
@@ -851,7 +853,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	ans := strings.TrimSpace(msg.Content)
 	src := "content"
 	if ans == "" {
-		// Qwen3 reasoning models often spend the budget on reasoning_content and
+		// Reasoning models (Qwen3/Glimmer) often spend the budget on reasoning_content and
 		// leave content empty. Fall back to the visible part of the reasoning
 		// trace, trimmed to a usable answer.
 		ans = extractAnswerFromReasoning(msg.ReasoningContent)
@@ -873,7 +875,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	return string(b), false, nil
 }
 
-// extractAnswerFromReasoning trims a Qwen3 reasoning trace down to the part
+// extractAnswerFromReasoning trims a reasoning trace (Qwen3/Glimmer) down to the part
 // after the last "answer:" / "Final answer:" marker, falling back to the
 // last non-empty paragraph. Reasoning traces often end with the actual reply.
 func extractAnswerFromReasoning(reasoning string) string {

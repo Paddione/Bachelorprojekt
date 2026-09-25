@@ -251,7 +251,7 @@ function llmCompletion(proxyUrl, modelId, prompt, timeout) {
   const body = JSON.stringify({
     model: modelId,
     messages: [{ role: 'user', content: prompt }],
-    chat_template_kwargs: { enable_thinking: false },
+    chat_template_kwargs: { enable_thinking: false, reasoning_strength: 'low' },
     max_tokens: 4096
   });
   try {

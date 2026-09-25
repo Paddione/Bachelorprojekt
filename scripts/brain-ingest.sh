@@ -11,7 +11,7 @@
 #                      :1919, seit T014339 Migration von lokalem GGUF-Server
 #                      Port 8100; var name kept for backward compat with
 #                      existing callers/CI config)
-#   LM_MODEL         — Model to use (default: Qwen3.8-27B-gsq from
+#   LM_MODEL         — Model to use (default: Muse-Glimmer-30B from
 #                      llama.cpp :1919; override for hosted providers)
 #   MAX_PARALLEL     — Concurrent process_page() jobs (default: 4, matching
 #                      the ingest-pool server's -np slot count — raising this
@@ -44,7 +44,7 @@ FROM_SCRATCH=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}"
-LM_MODEL="${LM_MODEL:-Qwen3.8-27B-gsq}"
+LM_MODEL="${LM_MODEL:-Muse-Glimmer-30B}"
 MAX_PARALLEL="${MAX_PARALLEL:-4}"
 CHUNK_TARGET_CHARS="${BRAIN_CHUNK_TARGET_CHARS:-8000}"
 # transform.sh's MAX_SOURCE_CHARS is a fail-closed guard since T002679 — it no

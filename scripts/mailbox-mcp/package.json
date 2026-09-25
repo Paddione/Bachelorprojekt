@@ -1,0 +1,67 @@
+{
+  "name": "mailbox-mcp-server",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) server for mailbox.org email, calendar, and contacts integration",
+  "main": "dist/main.js",
+  "bin": {
+    "mailbox-mcp-server": "dist/main.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "bun run tsx watch src/main.ts",
+    "build": "bun run tsc",
+    "start": "node dist/main.js",
+    "test": "bun run vitest --run",
+    "test:watch": "bun run vitest --watch",
+    "test:coverage": "bun run vitest --coverage",
+    "format": "bun run biome format --write src/ tests/",
+    "lint": "bun run biome lint src/ tests/",
+    "check": "bun run biome check --write src/ tests/"
+  },
+  "keywords": [
+    "mcp",
+    "mailbox.org",
+    "email",
+    "calendar",
+    "contacts",
+    "claude",
+    "anthropic"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "Sönke",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.12",
+    "@types/mailparser": "^3.4.6",
+    "@types/node": "^24.10.9",
+    "@types/node-fetch": "^2.6.13",
+    "@vitest/coverage-v8": "4.0.17",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "4.0.17"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@types/nodemailer": "^7.0.5",
+    "dayjs": "^1.11.19",
+    "ical.js": "^2.2.1",
+    "imapflow": "^1.2.6",
+    "mailparser": "^3.9.1",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^7.0.12",
+    "tsdav": "^2.1.6",
+    "valibot": "^1.2.0"
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  }
+}

@@ -169,7 +169,9 @@ const TOOLS = [
         transparent: { type: 'boolean', description: 'Cut out the subject (RGBA). Keeps <name>.raw.png.' },
         trim: {
           type: 'boolean',
-          description: 'Crop to the subject plus a small transparent margin before pixelate (default: same as transparent).',
+          description:
+            'Crop to the subject plus a small transparent margin before pixelate. Only with transparent:true ' +
+            '(default there: true); ignored otherwise.',
         },
         pixelate: {
           type: 'object',

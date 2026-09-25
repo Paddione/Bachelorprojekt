@@ -34,12 +34,14 @@ export function validateArgs(args, { timeoutFloorS = 60 } = {}) {
       steps: args.steps === undefined ? 25 : args.steps,
       seed: args.seed === undefined ? randomInt(0, 2 ** 31) : args.seed,
       transparent: args.transparent === true,
-      // trim (T900386): Default folgt transparent — ohne Alpha gibt es nichts zuzuschneiden.
-      trim: typeof args.trim === 'boolean' ? args.trim : args.transparent === true,
+      // trim (T900386): Default folgt transparent. Ohne Freistellung liefert ComfyUI kein Alpha,
+      // der Zuschnitt waere wirkungslos — trim gilt deshalb nur zusammen mit transparent.
+      trim: args.transparent === true && args.trim !== false,
       pixelate: null,
       overwrite: args.overwrite === true,
     };
     if (!inRange(params.steps, 1, 60)) throw new Error('steps must be 1..60');
+    if (args.trim !== undefined && typeof args.trim !== 'boolean') throw new Error('trim must be a boolean');
     if (!isInt(params.seed) || params.seed < 0) throw new Error('seed must be a non-negative integer');
     if (args.pixelate !== undefined && args.pixelate !== null) {
       const p = args.pixelate;

@@ -25,6 +25,8 @@ export async function createTestInvoice(page: Page, opts: { gross: number }) {
       dueDays: 14,
     }
   });
+  const status = res.status();
+  const text = await res.text();
   if (status === 500 && text.includes('cannot change name of view column')) {
     return null;
   }

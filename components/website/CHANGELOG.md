@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.364.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.0...website-v1.364.1) (2026-09-25)
+
+
+### Bug Fixes
+
+* **ops:** land review follow-ups for purge-fn sync and comfy trim [T900393] ([#5897](https://github.com/Paddione/Bachelorprojekt/issues/5897)) ([42e94b8](https://github.com/Paddione/Bachelorprojekt/commit/42e94b8d348b86379891c7b1ca3d34e4312ba90c))
+
 ## [1.364.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.363.1...website-v1.364.0) (2026-09-25)
 
 

@@ -1,0 +1,67 @@
+# systemd-User-Unit: Muse Glimmer 30B UD-IQ3_XXS + DFlash2-Drafter auf der RTX 5070 Ti allein [T900365].
+# Loest Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (qwen38-gsq.service, T900359) als Backend auf :1919 ab —
+# alle Konsumenten (opencode llamacpp-local, Factory, brain-ingest) sprechen weiter :1919 an.
+# Glimmer ist aus Muse Spark destilliert, der Modellfamilie des opencode-Orchestrators.
+#
+# Modelle (beide nach ~/models/Muse-Glimmer-30B):
+#   huggingface.co/unsloth/Muse-Glimmer-30B-GGUF        Muse-Glimmer-30B-UD-IQ3_XXS.gguf        (13,13 GB)
+#   huggingface.co/incoai/Muse-Glimmer-30B-DFlash2-GGUF Muse-Glimmer-30B-DFlash2-Q4_K_M.gguf    (1,65 GB)
+# Kein Vision-Projektor (mmproj): Operator-Entscheidung, bei 15,1 GB waere auch kein Platz.
+#
+# Voraussetzung: llama.cpp ab e85e15cf6 hinter %h/opt/llama-current — DFlash2 kam mit
+# upstream #27816 ("spec : add DFlash2 support"). Aeltere Builds kennen den Drafter nicht.
+# Build: git worktree des Quellbaums, CUDA 13.3, CMAKE_CUDA_ARCHITECTURES="86;120",
+# GGML_CUDA_FA_ALL_QUANTS=ON (Details: openspec/changes/archive/*glimmer-local-backend/design.md).
+#
+# Installation:
+#   hf download unsloth/Muse-Glimmer-30B-GGUF Muse-Glimmer-30B-UD-IQ3_XXS.gguf --local-dir ~/models/Muse-Glimmer-30B
+#   hf download incoai/Muse-Glimmer-30B-DFlash2-GGUF Muse-Glimmer-30B-DFlash2-Q4_K_M.gguf --local-dir ~/models/Muse-Glimmer-30B
+#   ln -sfn ~/opt/llama.cpp-e85e15c/build ~/opt/llama-current
+#   ln -sf "$PWD/scripts/llm/glimmer.service" ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now glimmer
+#
+# Gemessen 2026-09-25 (5070 Ti allein, -c 131072, q8_0-KV, 117.097-Token-Prompt mit Needle):
+#   ohne Drafter:       Decode kurz 52,7 tok/s · Decode@117k 36,0 · Prefill@117k 1663 · 13,0 GB
+#   DFlash2 n-max 15:   ~76 · 53,1 · 1103 · 15,1 GB   (Empfehlung der Modellkarte, lange Entwuerfe verworfen)
+#   DFlash2 n-max 4:    ~79 · 84–89 · ~1095 · 15,1 GB  <- hier gesetzt
+#   Tool-Calls als tool_calls geparst, Needle in allen Laeufen gefunden.
+# Warum 131072 und q8_0: 39 der 52 Schichten sind Sliding-Window (2048), nur 13 halten den vollen
+# Kontext — q8_0-KV fuer 131072 Token kostet ~0,93 GB. 131072 ist max_position_embeddings.
+#
+# Der Drafter MUSS auf derselben Karte liegen wie das Target: DFlash2 teilt output.weight.
+# Mit -devd CUDA1 (3060 Ti) bricht llama.cpp beim Reservieren des Graphen ab:
+#   pre-allocated tensor (output.weight) in a buffer (CUDA0) that cannot run the operation (NONE)
+#
+# Reasoning: das Chat-Template setzt "Reasoning strength: high" selbst; pro Request steuerbar ueber
+# chat_template_kwargs.reasoning_strength (low/medium/high/xhigh). enable_thinking kennt es nicht.
+#
+# Obergrenze: Uebersteigt der Bedarf die 16 GB, lagert CUDA unter WSL still in den
+# Systemspeicher aus. llama-server meldet trotzdem Erfolg, der Prefill faellt um eine
+# Groessenordnung. Bei 15,1 GB bleibt ~1,2 GB Reserve — kein zweites CUDA-Programm auf der 5070 Ti.
+# Die CUDA-Maske ueberschreibt die systemweite 3060-Ti-Maske (nur 5070 Ti sichtbar), daher
+# landen Target und Drafter ohne -dev/-devd auf CUDA0.
+[Unit]
+Description=llama-server Muse Glimmer 30B UD-IQ3_XXS + DFlash2 (RTX 5070 Ti, 131k ctx) auf :1919
+After=network.target
+
+[Service]
+Type=simple
+Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
+Environment=CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4
+ExecStart=%h/opt/llama-current/bin/llama-server \
+  -m %h/models/Muse-Glimmer-30B/Muse-Glimmer-30B-UD-IQ3_XXS.gguf \
+  -md %h/models/Muse-Glimmer-30B/Muse-Glimmer-30B-DFlash2-Q4_K_M.gguf \
+  --spec-type draft-dflash --spec-draft-n-max 4 \
+  --alias Muse-Glimmer-30B \
+  -c 131072 \
+  -fit off -ngl 999 -ngld all \
+  -fa on -ctk q8_0 -ctv q8_0 \
+  --temp 1.0 --top-p 0.95 --top-k 64 \
+  -np 1 --jinja \
+  --host 0.0.0.0 --port 1919
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

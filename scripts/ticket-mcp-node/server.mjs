@@ -263,9 +263,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        type: { type: 'string', description: 'fix|feat|chore|project|docs|refactor|perf|test|ci|build (bug/feature/task deprecated)', enum: ['fix', 'feat', 'chore', 'project', 'docs', 'refactor', 'perf', 'test', 'ci', 'build', 'bug', 'feature', 'task'], required: true },
-        title: { type: 'string', description: 'Ticket-Titel', required: true },
-        description: { type: 'string', description: 'Beschreibung (Pflicht in create.sh)', required: true },
+        type: { type: 'string', description: 'fix|feat|chore|project|docs|refactor|perf|test|ci|build (bug/feature/task deprecated)', enum: ['fix', 'feat', 'chore', 'project', 'docs', 'refactor', 'perf', 'test', 'ci', 'build', 'bug', 'feature', 'task'] },
+        title: { type: 'string', description: 'Ticket-Titel' },
+        description: { type: 'string', description: 'Beschreibung (Pflicht in create.sh)' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
         priority: { type: 'string', description: 'hoch|mittel|niedrig (default mittel)', enum: ['hoch', 'mittel', 'niedrig'] },
         severity: { type: 'string', description: 'critical|major|minor|trivial', enum: ['critical', 'major', 'minor', 'trivial'] },
@@ -284,7 +284,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
         title: { type: 'string', description: 'Neuer Titel' },
         description: { type: 'string', description: 'Neue Beschreibung' },
@@ -300,9 +300,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-        status: { type: 'string', description: 'triage, planning, plan_staged, backlog, in_progress, in_review, qa_review, blocked, awaiting_deploy, done, archived', enum: ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'blocked', 'awaiting_deploy', 'done', 'archived'], required: true },
+        status: { type: 'string', description: 'triage, planning, plan_staged, backlog, in_progress, in_review, qa_review, blocked, awaiting_deploy, done, archived', enum: ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'qa_review', 'blocked', 'awaiting_deploy', 'done', 'archived'] },
         resolution: { type: 'string', description: 'fixed, shipped, obsolete', enum: ['fixed', 'shipped', 'obsolete'] },
         notes: { type: 'string', description: 'Optionaler Notiztext' },
       },
@@ -316,9 +316,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
-        branch: { type: 'string', description: 'Feature/Fix-Branch', required: true },
-        plan: { type: 'string', description: 'Plan-Datei-Pfad', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
+        branch: { type: 'string', description: 'Feature/Fix-Branch' },
+        plan: { type: 'string', description: 'Plan-Datei-Pfad' },
         hold: { type: 'boolean', description: 'true => --hold (execution_released=false, Operator gibt später frei); false/weggelassen => --no-hold (Factory greift sofort zu). stage-plan verlangt genau eines der Flags.' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
       },
@@ -332,10 +332,10 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
-        slug: { type: 'string', description: 'OpenSpec-Change-Slug', required: true },
-        branch: { type: 'string', description: 'Feature/Fix-Branch', required: true },
-        plan_file: { type: 'string', description: 'Pfad zur Plan-Datei', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
+        slug: { type: 'string', description: 'OpenSpec-Change-Slug' },
+        branch: { type: 'string', description: 'Feature/Fix-Branch' },
+        plan_file: { type: 'string', description: 'Pfad zur Plan-Datei' },
         pr: { type: 'string', description: 'Optionale PR-Nummer (integer)' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
       },
@@ -349,7 +349,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         branch: { type: 'string', description: 'Optionaler Branch' },
         plan: { type: 'string', description: 'Optionaler Plan-Pfad' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
@@ -364,7 +364,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
         priority: { type: 'string', description: 'wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)', enum: ['hoch', 'mittel', 'niedrig'] },
         severity: { type: 'string', description: 'wird nicht an ticket.sh plan-meta durchgereicht (das Verb akzeptiert priority/severity nicht)', enum: ['critical', 'major', 'minor', 'trivial'] },
@@ -389,9 +389,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-        body: { type: 'string', description: 'Kommentartext (Markdown)', required: true },
+        body: { type: 'string', description: 'Kommentartext (Markdown)' },
         author: { type: 'string', description: 'default: claude-code' },
         visibility: { type: 'string', description: 'internal oder public', enum: ['internal', 'public'] },
       },
@@ -405,8 +405,8 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
-        files: { type: 'string', description: 'Komma- oder Whitespace-getrennte Pfade (wie ticket.sh erwartet)', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
+        files: { type: 'string', description: 'Komma- oder Whitespace-getrennte Pfade (wie ticket.sh erwartet)' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
       },
       required: ['id', 'files'],
@@ -419,10 +419,10 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
-        flag: { type: 'string', description: 'spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'factory_excluded', 'execution_released'], required: true },
-        value: { type: 'boolean', description: 'true oder false', required: true },
+        flag: { type: 'string', description: 'spec_skizziert, abhaengigkeiten_klar, offene_fragen_geklaert, aufwand_geschaetzt, lastenheft_locked, factory_excluded, execution_released', enum: ['spec_skizziert', 'abhaengigkeiten_klar', 'offene_fragen_geklaert', 'aufwand_geschaetzt', 'lastenheft_locked', 'factory_excluded', 'execution_released'] },
+        value: { type: 'boolean', description: 'true oder false' },
       },
       required: ['id', 'flag', 'value'],
     },
@@ -434,8 +434,8 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
-        pr: { type: 'string', description: 'PR-Nummer (integer)', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
+        pr: { type: 'string', description: 'PR-Nummer (integer)' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
       },
       required: ['id', 'pr'],
@@ -448,7 +448,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
       },
       required: ['id'],
@@ -461,9 +461,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        from: { type: 'string', description: 'external_id des Quell-Tickets, z.B. T000100', required: true },
-        to: { type: 'string', description: 'external_id des Ziel-Tickets, z.B. T000200', required: true },
-        kind: { type: 'string', description: 'Art der Verknüpfung: pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of', enum: ['pr', 'relates_to', 'blocks', 'blocked_by', 'duplicate_of', 'fixes', 'fixed_by', 'child_of'], required: true },
+        from: { type: 'string', description: 'external_id des Quell-Tickets, z.B. T000100' },
+        to: { type: 'string', description: 'external_id des Ziel-Tickets, z.B. T000200' },
+        kind: { type: 'string', description: 'Art der Verknüpfung: pr, relates_to, blocks, blocked_by, duplicate_of, fixes, fixed_by, child_of', enum: ['pr', 'relates_to', 'blocks', 'blocked_by', 'duplicate_of', 'fixes', 'fixed_by', 'child_of'] },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
       },
       required: ['from', 'to', 'kind'],
@@ -476,9 +476,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
-        phase: { type: 'string', description: 'scout|design|plan|implement|verify|deploy', enum: ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'], required: true },
-        state: { type: 'string', description: 'entered|done|blocked', enum: ['entered', 'done', 'blocked'], required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
+        phase: { type: 'string', description: 'scout|design|plan|implement|verify|deploy', enum: ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] },
+        state: { type: 'string', description: 'entered|done|blocked', enum: ['entered', 'done', 'blocked'] },
         detail: { type: 'string', description: 'Optionaler Detailtext' },
         driver: { type: 'string', description: 'factory|devflow (default: factory)', enum: ['factory', 'devflow'] },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
@@ -493,10 +493,10 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        title: { type: 'string', description: 'Kurztitel', required: true },
-        description: { type: 'string', description: 'Beschreibung', required: true },
-        component: { type: 'string', description: 'Komponente', required: true },
-        type: { type: 'string', description: 'incident (sofort Ticket) | broken, degraded, suspicious, security, drift, process', enum: ['incident', 'broken', 'degraded', 'suspicious', 'security', 'drift', 'process'], required: true },
+        title: { type: 'string', description: 'Kurztitel' },
+        description: { type: 'string', description: 'Beschreibung' },
+        component: { type: 'string', description: 'Komponente' },
+        type: { type: 'string', description: 'incident (sofort Ticket) | broken, degraded, suspicious, security, drift, process', enum: ['incident', 'broken', 'degraded', 'suspicious', 'security', 'drift', 'process'] },
         brand: { type: 'string', description: 'mentolder oder korczewski', enum: ['mentolder', 'korczewski'] },
       },
       required: ['title', 'description', 'component', 'type'],
@@ -531,8 +531,8 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
-        answers: { type: 'string', description: 'Antworten, eine pro Zeile: qid=text', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
+        answers: { type: 'string', description: 'Antworten, eine pro Zeile: qid=text' },
         questionnaire: { type: 'string', description: 'default: coaching-sessions-v1' },
         no_comment: { type: 'boolean', description: 'Kein Timeline-Kommentar (default false)' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
@@ -547,8 +547,8 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
-        out_dir: { type: 'string', description: 'Zielverzeichnis (wird angelegt)', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
+        out_dir: { type: 'string', description: 'Zielverzeichnis (wird angelegt)' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
       },
       required: ['id', 'out_dir'],
@@ -561,7 +561,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'external_id z.B. T000123', required: true },
+        id: { type: 'string', description: 'external_id z.B. T000123' },
         brand: { type: 'string', description: 'mentolder oder korczewski (default: mentolder)', enum: ['mentolder', 'korczewski'] },
         value_prop: { type: 'string', description: 'Kern-Nutzen des Features' },
         effort: { type: 'string', description: 'klein, mittel, gross', enum: ['klein', 'mittel', 'gross'] },

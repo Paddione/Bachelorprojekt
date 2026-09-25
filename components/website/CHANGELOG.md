@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.364.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.1...website-v1.364.2) (2026-09-25)
+
+
+### Bug Fixes
+
+* health goals measurement revision T900380 ([#5900](https://github.com/Paddione/Bachelorprojekt/issues/5900)) ([483c0e8](https://github.com/Paddione/Bachelorprojekt/commit/483c0e831e56765fac78f977513b934bdb1ed844))
+
 ## [1.364.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.0...website-v1.364.1) (2026-09-25)
 
 

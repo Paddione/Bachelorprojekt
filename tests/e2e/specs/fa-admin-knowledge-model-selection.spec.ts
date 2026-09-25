@@ -24,10 +24,19 @@ test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@ad
     test.setTimeout(30_000);
     await loginAsAdmin(page);
 
-    await page.waitForLoadState('domcontentloaded');
-    await page.getByRole('button', { name: 'Einlesen' }).click();
-    await page.getByRole('button', { name: '+ Web-Quelle' }).click();
-    await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-web-crawl-modal')));
+    await expect.poll(async () => {
+      const dialog = page.locator('dialog[open]');
+      if (await dialog.isVisible()) return true;
+      const webBtn = page.getByRole('button', { name: '+ Web-Quelle' });
+      if (await webBtn.isVisible()) {
+        await webBtn.click();
+      } else {
+        const einlesenBtn = page.getByRole('button', { name: 'Einlesen' });
+        if (await einlesenBtn.isVisible()) await einlesenBtn.click();
+      }
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent('open-web-crawl-modal')));
+      return dialog.isVisible();
+    }, { timeout: 15_000 }).toBe(true);
 
     // Verify modal is open and label is present
     const label = page.getByText('Einbettungsmodell');

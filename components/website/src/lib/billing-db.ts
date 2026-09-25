@@ -523,7 +523,8 @@ export async function initBillingTables(): Promise<void> {
 
   // Create view
   await pool.query(`
-    CREATE OR REPLACE VIEW v_billing_invoices_with_state AS
+    DROP VIEW IF EXISTS v_billing_invoices_with_state CASCADE;
+    CREATE VIEW v_billing_invoices_with_state AS
     SELECT
       i.*,
       COALESCE(p.paid_amount, 0) AS paid_amount,

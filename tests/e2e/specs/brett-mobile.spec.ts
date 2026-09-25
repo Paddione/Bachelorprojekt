@@ -226,18 +226,26 @@ test.describe('Brett Mobile (Android) @mobile', () => {
 
       const before = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);
 
-      await page.evaluate(() => {
-        const canvas = document.querySelector('canvas');
-        if (!canvas) return;
-        const startX = Math.round(window.innerWidth * 0.2);
-        const y = Math.round(window.innerHeight * 0.3);
-        canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: startX, clientY: y, bubbles: true }));
-        canvas.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, pointerType: 'touch', clientX: startX + 120, clientY: y, bubbles: true }));
-        canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, pointerType: 'touch', clientX: startX + 120, clientY: y, bubbles: true }));
-      });
+      const cdp = await ctx.newCDPSession(page);
+      const startX = await page.evaluate(() => Math.round(window.innerWidth * 0.2));
+      const y = await page.evaluate(() => Math.round(window.innerHeight * 0.3));
+      await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: startX, y, button: 'left', pointerType: 'touch' });
+      await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: startX + 120, y, pointerType: 'touch' });
+      await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: startX + 120, y, button: 'left', pointerType: 'touch' });
       await page.waitForTimeout(200);
 
-      const after = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);
+      let after = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);
+      if (Math.abs(after - before) <= 0.01) {
+        await page.evaluate(({ sx, sy }) => {
+          const canvas = (window as any).__brettScene?.renderer?.domElement || document.querySelector('canvas');
+          if (!canvas) return;
+          canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 2, pointerType: 'touch', clientX: sx, clientY: sy, bubbles: true }));
+          canvas.dispatchEvent(new PointerEvent('pointermove', { pointerId: 2, pointerType: 'touch', clientX: sx + 120, clientY: sy, bubbles: true }));
+          canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2, pointerType: 'touch', clientX: sx + 120, clientY: sy, bubbles: true }));
+        }, { sx: startX, sy: y });
+        await page.waitForTimeout(200);
+        after = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);
+      }
       expect(Math.abs(after - before)).toBeGreaterThan(0.01);
     } finally {
       await ctx.close();

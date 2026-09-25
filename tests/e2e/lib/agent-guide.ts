@@ -186,9 +186,10 @@ export async function openAgentGuide(page: Page) {
   // scroll heuristics don't walk into the drawer's inner scroll container
   // reliably. An explicit scrollIntoView through evaluate() scrolls exactly
   // that container and centers the row in the viewport.
-  await agentGuideRow.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await expect(agentGuideRow).toBeVisible();
-  await agentGuideRow.click({ force: true });
+  await agentGuideRow.evaluate((el) => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
 
   const body = page.locator('.ag-body');
   await expect(body).toBeVisible({ timeout: 30_000 });

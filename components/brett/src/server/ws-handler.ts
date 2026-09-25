@@ -101,7 +101,7 @@ export const RELAY_TYPES = new Set<string>([
 export const ADMIN_TYPES = new Set<string>([
   'admin_kick', 'admin_broadcast', 'admin_session_create', 'admin_handoff_token', 'admin_round_stop', 'admin_round_pause', 'admin_coaching_steps_set',
   'admin_round_start', 'admin_assign_role', 'admin_assign_figure',
-  'admin_set_template', 'admin_set_optik',
+  'admin_set_template', 'admin_set_optik', 'admin_set_board_template',  // T900361 — Lobby-Dropdown → Board-Template
   'figure_type_set',
   'admin_spotlight_set', 'admin_dim_set', 'admin_freeze_set',  // ← T000471
   'anchor_create', 'anchor_delete', 'zone_create', 'zone_update', 'zone_delete',  // NEU T000468 + zone_update (E1)

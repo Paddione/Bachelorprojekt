@@ -465,6 +465,9 @@ export function onWsMessage(evt: MessageEvent): void {
       console.warn('[brett] server error:', msg.reason);
       if (msg.reason === 'session-active') {
         showExportToast('Es läuft bereits eine Sitzung. Bitte beende diese zuerst.', 'error');
+      } else if (msg.reason === 'unknown-board-template') {
+        // T900361: Lobby-Dropdown mit unbekannter Template-ID.
+        showExportToast('Vorlage nicht gefunden.', 'error');
       } else {
         showExportToast(`Server-Fehler: ${msg.reason ?? 'unbekannt'}`, 'error');
       }

@@ -482,6 +482,8 @@ Last touches:
   - REQ-E2E-INFRA-032 — A guard that always fires belongs outside the nightly run | T013329 | 2026-08-22 | ADDED
   - REQ-E2E-INFRA-033 — Every authentication domain of the nightly run has its credential supplied | T013329 | 2026-08-22 | ADDED
   - Optional vision-assisted verification (REQ-k8-04) | T012781 | 2026-08-19 | MODIFIED
+In-flight:
+  - Website Schema Init Installs the Latest Purge Function | T900381 | active | ADDED
 
 ### e2e-testing
 Reqs: 7 · Scenarios: 11 · Lines: 138

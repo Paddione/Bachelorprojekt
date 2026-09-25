@@ -3768,6 +3768,12 @@
     "kind": "shell"
   },
   {
+    "id": "e2e-test-infrastructure/purge-fn-website-sync",
+    "file": "tests/spec/e2e-test-infrastructure/purge-fn-website-sync.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-test-infrastructure/purge-test-data-missing-table",
     "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
     "category": "e2e-test-infrastructure",

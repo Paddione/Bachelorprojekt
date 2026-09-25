@@ -675,6 +675,9 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-OBS01** | Prometheus Scrape Health | n/a | 0 | `python3 scripts/lib/runtime-health-measure.py scrape` — aktive `up`-Serien, leer ⇒ n/a |
 | **G-CAP01** | PVC Storage Headroom <20 % | n/a | 0 | `python3 scripts/lib/runtime-health-measure.py capacity` — `workspace` + `workspace-korczewski` |
 | **G-A11Y01** | Critical/serious axe-Verstöße | n/a | 0 | `node scripts/lib/runtime-browser-audit.mjs` + `runtime-health-measure.py axe`, beide Brands vollständig |
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
 | **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | n/a | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
 | **G-BRAIN14** | Brain-Ingest-Backlog (offene Chunks) | 17 ⚠ | 0 | `bash scripts/brain-ingest-worklist.sh --pending` (Chunk-Hash gegen State-File, dieselbe Semantik wie `brain-ingest.sh process_page`) |

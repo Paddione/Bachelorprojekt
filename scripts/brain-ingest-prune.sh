@@ -55,6 +55,7 @@ for page in "$BRAIN_REPO"/wiki/*.md; do
   if [ -n "$src_line" ]; then
     src_val="${src_line#source:: }"
     case "$src_val" in
+      "Rückverweis: Bachelorprojekt "*) src_path="${src_val#Rückverweis: Bachelorprojekt }" ;;
       "Bachelorprojekt "*) src_path="${src_val#Bachelorprojekt }" ;;
       "$ROOT"/*)           src_path="${src_val#$ROOT/}" ;;
       /*)                  src_path="" ;; # other absolute path outside ROOT

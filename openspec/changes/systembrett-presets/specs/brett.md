@@ -44,8 +44,6 @@ default scenario (clear + re-seed with the brand default).
 - **WHEN** the leiter triggers reset-to-default
 - **THEN** the board shows the brand default constellation again
 
-## MODIFIED Requirements
-
 ### Requirement: Board template seeding is idempotent
 
 The system SHALL seed board templates idempotently: stable identifiers, a

@@ -56,6 +56,20 @@ const CATEGORY_MAP = {
   FE: 'Frontend',
   E2E: 'Test-Health',
   OPS: 'Infrastruktur',
+  LLM: 'Infrastruktur',
+  SVC: 'Infrastruktur',
+  INF: 'Infrastruktur',
+  CJ: 'Infrastruktur',
+  ALR: 'Infrastruktur',
+  DRIFT: 'Infrastruktur',
+  WT: 'Repo-Hygiene',
+  FLUX: 'Infrastruktur',
+  OBS: 'Infrastruktur',
+  CAP: 'Infrastruktur',
+  A11Y: 'Frontend',
+  SLO: 'Infrastruktur',
+  BRAIN: 'Dokumentation',
+  IF: 'Agent-Tooling',
 };
 
 function categoryFor(id) {

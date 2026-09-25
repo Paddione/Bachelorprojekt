@@ -107,7 +107,7 @@
   {
     "id": "G-LLM01",
     "title": "Modellserver-Verfügbarkeit (Loadout-Endpunkte)",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 1,
@@ -122,7 +122,7 @@
   {
     "id": "G-LLM02",
     "title": "llm-proxy-Bereitschaft (ready + tote Provider)",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": null,
@@ -137,7 +137,7 @@
   {
     "id": "G-LLM04",
     "title": "Autostart-Abdeckung (LLM-Unit-Dateien)",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 1,
@@ -152,7 +152,7 @@
   {
     "id": "G-LLM05",
     "title": "Tote lokale Endpunkt-Verweise (Backend-Registry)",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 2,
@@ -167,7 +167,7 @@
   {
     "id": "G-SVC01",
     "title": "Öffentliche Services ohne Blackbox-Health-Check",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 23,
@@ -182,7 +182,7 @@
   {
     "id": "G-SVC02",
     "title": "Pocket-ID OIDC Discovery erreichbar",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -197,7 +197,7 @@
   {
     "id": "G-SVC03",
     "title": "Nextcloud Health-Endpoint antwortet",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -212,7 +212,7 @@
   {
     "id": "G-SVC04",
     "title": "Whiteboard/WebSocket erreichbar",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -227,7 +227,7 @@
   {
     "id": "G-INF01",
     "title": "TURN-Server antwortet auf STUN",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -242,7 +242,7 @@
   {
     "id": "G-INF02",
     "title": "NATS-Listener erreichbar",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -257,7 +257,7 @@
   {
     "id": "G-INF03",
     "title": "Janus-Gateway antwortet auf /stats",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -272,7 +272,7 @@
   {
     "id": "G-INF04",
     "title": "Redis-Verbindung möglich",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -287,7 +287,7 @@
   {
     "id": "G-CJ01",
     "title": "CronJob-Lauf erfolgreich, nicht nur frisch",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 2,
@@ -302,7 +302,7 @@
   {
     "id": "G-ALR01",
     "title": "Alertmanager-Receiver konfiguriert (nicht null)",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 1,
@@ -317,7 +317,7 @@
   {
     "id": "G-DRIFT01",
     "title": "Deployment-Replikation expected == live",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -332,7 +332,7 @@
   {
     "id": "G-DRIFT02",
     "title": "Probe-Konfiguration manifest == live",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 1,
@@ -347,7 +347,7 @@
   {
     "id": "G-DRIFT03",
     "title": "SealedSecret-Decryption konsistent",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -362,7 +362,7 @@
   {
     "id": "G-WT01",
     "title": "Hauptcheckout auf main und sauber",
-    "category": "Sonstige",
+    "category": "Repo-Hygiene",
     "priority": "B",
     "direction": "lower",
     "baseline": 1,
@@ -377,7 +377,7 @@
   {
     "id": "G-WT02",
     "title": "Veraltete Worktrees (Branch gemergt oder >14d inaktiv)",
-    "category": "Sonstige",
+    "category": "Repo-Hygiene",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -392,7 +392,7 @@
   {
     "id": "G-WT03",
     "title": "Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter nicht auffindbar)",
-    "category": "Sonstige",
+    "category": "Repo-Hygiene",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -407,7 +407,7 @@
   {
     "id": "G-WT04",
     "title": "Löschbereite Worktrees mit ungesicherter Arbeit",
-    "category": "Sonstige",
+    "category": "Repo-Hygiene",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -422,7 +422,7 @@
   {
     "id": "G-WT05",
     "title": "Lokaler main hinter origin/main (Commits)",
-    "category": "Sonstige",
+    "category": "Repo-Hygiene",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -437,7 +437,7 @@
   {
     "id": "G-WT06",
     "title": "Phantom-Scope-Locks (Scope leer oder mit `-` beginnend)",
-    "category": "Sonstige",
+    "category": "Repo-Hygiene",
     "priority": "B",
     "direction": "lower",
     "baseline": 0,
@@ -967,7 +967,7 @@
     "direction": "lower",
     "baseline": null,
     "current": 0,
-    "target": 5,
+    "target": 2,
     "unit": "",
     "status": "unknown",
     "measurement": "git log -50 --pretty='%G? %ae' main | grep -v freshness-bot | grep -ciE 'github-actions\\[bot\\]",
@@ -1067,7 +1067,7 @@
   {
     "id": "G-FLUX01",
     "title": "Flux Reconciliation Health",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1082,7 +1082,7 @@
   {
     "id": "G-OBS01",
     "title": "Prometheus Scrape Health",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1097,7 +1097,7 @@
   {
     "id": "G-CAP01",
     "title": "PVC Storage Headroom <20 %",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1112,7 +1112,7 @@
   {
     "id": "G-A11Y01",
     "title": "Critical/serious axe-Verstöße",
-    "category": "Sonstige",
+    "category": "Frontend",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1142,7 +1142,7 @@
   {
     "id": "G-SLO01",
     "title": "Öffentliche HTTP-Verfügbarkeit, 7 Tage",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "C",
     "direction": "higher",
     "baseline": null,
@@ -1157,7 +1157,7 @@
   {
     "id": "G-BRAIN14",
     "title": "Brain-Ingest-Backlog (offene Chunks)",
-    "category": "Sonstige",
+    "category": "Dokumentation",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1172,7 +1172,7 @@
   {
     "id": "G-IF01",
     "title": "MCP-Endpunkte ohne Listener",
-    "category": "Sonstige",
+    "category": "Agent-Tooling",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1187,7 +1187,7 @@
   {
     "id": "G-IF02",
     "title": "Stille Degradation (catch ohne logger)",
-    "category": "Sonstige",
+    "category": "Agent-Tooling",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1202,7 +1202,7 @@
   {
     "id": "G-IF03",
     "title": "Konfig-Drift MCP-Registry vs Cluster",
-    "category": "Sonstige",
+    "category": "Agent-Tooling",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1217,7 +1217,7 @@
   {
     "id": "G-LLM03",
     "title": "Modell-ID-Drift (Loadout-Port)",
-    "category": "Sonstige",
+    "category": "Infrastruktur",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1341,9 +1341,9 @@
     "priority": "C",
     "direction": "higher",
     "baseline": null,
-    "current": null,
+    "current": 541,
     "target": 20,
-    "unit": "Elite",
+    "unit": "",
     "status": "unknown",
     "measurement": "git log --since=\"4 weeks ago\" --first-parent --oneline main | wc -l",
     "source": ".claude/lib/goals.md · G-DORA01",
@@ -1356,7 +1356,7 @@
     "priority": "C",
     "direction": "lower",
     "baseline": null,
-    "current": 0.03,
+    "current": 0,
     "target": 1,
     "unit": "",
     "status": "unknown",
@@ -1742,7 +1742,7 @@
   {
     "id": "G-BRAIN12",
     "title": "Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift)",
-    "category": "Sonstige",
+    "category": "Dokumentation",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1757,7 +1757,7 @@
   {
     "id": "G-BRAIN13",
     "title": "Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler)",
-    "category": "Sonstige",
+    "category": "Dokumentation",
     "priority": "C",
     "direction": "lower",
     "baseline": null,
@@ -1772,7 +1772,7 @@
   {
     "id": "G-BRAIN15",
     "title": "Brain-Seed-Template-Lint grün",
-    "category": "Sonstige",
+    "category": "Dokumentation",
     "priority": "C",
     "direction": "lower",
     "baseline": null,

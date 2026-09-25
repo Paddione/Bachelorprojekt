@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.364.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.3...website-v1.364.4) (2026-09-25)
+
+
+### Bug Fixes
+
+* **test:** harden live E2E suites and billing view DDL [T900392] ([#5915](https://github.com/Paddione/Bachelorprojekt/issues/5915)) ([2ebbf24](https://github.com/Paddione/Bachelorprojekt/commit/2ebbf24f5c762055f72d5551556d2c451240220e))
+
 ## [1.364.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.2...website-v1.364.3) (2026-09-25)
 
 

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2428 · Scenarios: 5392
+Specs: 129 · Requirements: 2429 · Scenarios: 5394
 
 ## factory-pipeline
 
@@ -380,16 +380,14 @@ Last touches:
   - Fehlende Kanten (REQ-k8-03) | T002438 | 2026-08-02 | ADDED
 
 ### brett
-Reqs: 39 · Scenarios: 117 · Lines: 960
+Reqs: 40 · Scenarios: 119 · Lines: 979
 Paths: k3d/brett, brett/
 Last touches:
+  - Lobby preset selection applies the board template | T900361 | 2026-09-25 | ADDED
   - Fresh rooms auto-seed the brand default scenario | T900360 | 2026-09-25 | ADDED
   - System scenarios are fully staged | T900360 | 2026-09-25 | ADDED
   - Leiter can reset to the startup default | T900360 | 2026-09-25 | ADDED
   - Board template seeding is idempotent | T900360 | 2026-09-25 | ADDED
-  - Drag & Drop zwischen Kanban-Buckets im Applications Board | T900304 | 2026-09-22 | MODIFIED
-In-flight:
-  - Lobby preset selection applies the board template | T900361 | active | ADDED
 
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396

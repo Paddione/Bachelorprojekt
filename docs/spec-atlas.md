@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2440 · Scenarios: 5416
+Specs: 129 · Requirements: 2441 · Scenarios: 5418
 
 ## factory-pipeline
 
@@ -475,15 +475,13 @@ Last touches:
   - dsh sessions are visible in the existing phase-event timeline | T012962 | 2026-08-20 | ADDED
 
 ### e2e-test-infrastructure
-Reqs: 31 · Scenarios: 57 · Lines: 788
+Reqs: 32 · Scenarios: 59 · Lines: 812
 Last touches:
+  - Website Schema Init Installs the Latest Purge Function | T900381 | 2026-09-25 | ADDED
   - REQ-E2E-INFRA-030 — A skip modifier applies to the test it names, never to its enclosing group | T013329 | 2026-08-22 | ADDED
   - REQ-E2E-INFRA-031 — E2E specs assert against the running application, not the repository | T013329 | 2026-08-22 | ADDED
   - REQ-E2E-INFRA-032 — A guard that always fires belongs outside the nightly run | T013329 | 2026-08-22 | ADDED
   - REQ-E2E-INFRA-033 — Every authentication domain of the nightly run has its credential supplied | T013329 | 2026-08-22 | ADDED
-  - Optional vision-assisted verification (REQ-k8-04) | T012781 | 2026-08-19 | MODIFIED
-In-flight:
-  - Website Schema Init Installs the Latest Purge Function | T900381 | active | ADDED
 
 ### e2e-testing
 Reqs: 7 · Scenarios: 11 · Lines: 138

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.360.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.359.0...website-v1.360.0) (2026-09-25)
+
+
+### Features
+
+* **website:** distinct systembrett presets with auto-seed on startup [T900360] ([#5863](https://github.com/Paddione/Bachelorprojekt/issues/5863)) ([b2bc5e2](https://github.com/Paddione/Bachelorprojekt/commit/b2bc5e29ba3a8c5b93af1221848431456b692d9f))
+
 ## [1.359.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.358.7...website-v1.359.0) (2026-09-23)
 
 

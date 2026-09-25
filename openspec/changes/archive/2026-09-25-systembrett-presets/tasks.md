@@ -2,7 +2,7 @@
 title: "systembrett-presets — Implementation Plan"
 ticket_id: T900360
 domains: [brett, templates]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

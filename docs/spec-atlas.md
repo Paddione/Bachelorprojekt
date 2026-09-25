@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2424 · Scenarios: 5387
+Specs: 129 · Requirements: 2428 · Scenarios: 5392
 
 ## factory-pipeline
 
@@ -380,19 +380,14 @@ Last touches:
   - Fehlende Kanten (REQ-k8-03) | T002438 | 2026-08-02 | ADDED
 
 ### brett
-Reqs: 35 · Scenarios: 112 · Lines: 902
+Reqs: 39 · Scenarios: 117 · Lines: 960
 Paths: k3d/brett, brett/
 Last touches:
+  - Fresh rooms auto-seed the brand default scenario | T900360 | 2026-09-25 | ADDED
+  - System scenarios are fully staged | T900360 | 2026-09-25 | ADDED
+  - Leiter can reset to the startup default | T900360 | 2026-09-25 | ADDED
+  - Board template seeding is idempotent | T900360 | 2026-09-25 | ADDED
   - Drag & Drop zwischen Kanban-Buckets im Applications Board | T900304 | 2026-09-22 | MODIFIED
-  - Semantic Code Search — Indexer (SCS-1) | T002292 | 2026-07-27 | MODIFIED
-  - Fig-panel edge-drawer with contextual edit tab | T002050 | 2026-07-21 | ADDED
-  - Whole-figure drag across the floor plane | T002050 | 2026-07-21 | ADDED
-  - Free 360-degree figure rotation | T002050 | 2026-07-21 | ADDED
-In-flight:
-  - Fresh rooms auto-seed the brand default scenario | T900360 | active | ADDED
-  - System scenarios are fully staged | T900360 | active | ADDED
-  - Leiter can reset to the startup default | T900360 | active | ADDED
-  - Board template seeding is idempotent | T900360 | active | ADDED
 
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.361.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.360.1...website-v1.361.0) (2026-09-25)
+
+
+### Features
+
+* **scripts:** Muse Glimmer 30B + DFlash2 replaces Qwen3.8 on :1919 [T900365] ([#5874](https://github.com/Paddione/Bachelorprojekt/issues/5874)) ([bb8b7a8](https://github.com/Paddione/Bachelorprojekt/commit/bb8b7a824521c18666ad340f99a4f37258dcbcf8))
+
 ## [1.360.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.360.0...website-v1.360.1) (2026-09-25)
 
 

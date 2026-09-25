@@ -88,7 +88,7 @@ for entry in gen_data:
     gid = entry.get("id")
     if gid:
         doc_current[gid] = {
-            "current": str(entry.get("current") or ""),
+            "current": str(entry.get("current")) if entry.get("current") is not None else "",
             "priority": entry.get("priority", "?"),
             "title": entry.get("title", ""),
         }

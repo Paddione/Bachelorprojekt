@@ -60,6 +60,7 @@ export BRAIN_CHUNK_TARGET_CHARS="$CHUNK_TARGET_CHARS"
 # default, silently disagreeing with whatever brain-ingest.sh computed).
 export LM_STUDIO_URL="$LM_URL"
 export LM_MODEL
+export LM_DISABLE_THINKING="${LM_DISABLE_THINKING:-1}"
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do

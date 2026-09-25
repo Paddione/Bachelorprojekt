@@ -77,5 +77,8 @@
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "adm-zip": ">=0.6.1"
   }
 }

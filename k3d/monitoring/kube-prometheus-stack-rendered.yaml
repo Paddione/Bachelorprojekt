@@ -76994,7 +76994,7 @@ spec:
       serviceAccountName: monitoring-prometheus-node-exporter
       containers:
         - name: node-exporter
-          image: quay.io/prometheus/node-exporter:v1.12.1-distroless
+          image: quay.io/prometheus/node-exporter:v1.12.1-distroless@sha256:8c9bac11973b94b59be88d6e11fee4429aa743c8846cdc75d65b18db33f6a106
           imagePullPolicy: IfNotPresent
           args:
             - --path.procfs=/host/proc
@@ -77134,7 +77134,7 @@ spec:
         runAsUser: 472
       initContainers:
         - name: init-chown-data
-          image: "docker.io/library/busybox:1.38.0"
+          image: "docker.io/library/busybox:1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e"
           imagePullPolicy: IfNotPresent
           securityContext:
             capabilities:
@@ -77159,7 +77159,7 @@ spec:
       enableServiceLinks: true
       containers:
         - name: grafana-sc-dashboard
-          image: "quay.io/kiwigrid/k8s-sidecar:2.10.1"
+          image: "quay.io/kiwigrid/k8s-sidecar:2.10.1@sha256:7eac5c4fed714a18d038fc9fea57d8744d113367935dac0ea4eb6a87cef704a3"
           imagePullPolicy: IfNotPresent
           env:
             - name: METHOD
@@ -77199,7 +77199,7 @@ spec:
             - name: sc-dashboard-volume
               mountPath: "/tmp/dashboards"
         - name: grafana-sc-datasources
-          image: "quay.io/kiwigrid/k8s-sidecar:2.10.1"
+          image: "quay.io/kiwigrid/k8s-sidecar:2.10.1@sha256:7eac5c4fed714a18d038fc9fea57d8744d113367935dac0ea4eb6a87cef704a3"
           imagePullPolicy: IfNotPresent
           env:
             - name: METHOD
@@ -77237,7 +77237,7 @@ spec:
             - name: sc-datasources-volume
               mountPath: "/etc/grafana/provisioning/datasources"
         - name: grafana
-          image: "docker.io/grafana/grafana:13.2.0"
+          image: "docker.io/grafana/grafana:13.2.0@sha256:3fd54ae1214669f8355f065ec9f6445d5279a3d77095ab048ca045685272429b"
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -77391,7 +77391,7 @@ spec:
         - --port=8080
         - --resources=certificatesigningrequests,configmaps,cronjobs,daemonsets,deployments,endpointslices,horizontalpodautoscalers,ingresses,jobs,leases,limitranges,mutatingwebhookconfigurations,namespaces,networkpolicies,nodes,persistentvolumeclaims,persistentvolumes,poddisruptionbudgets,pods,replicasets,replicationcontrollers,resourcequotas,secrets,services,statefulsets,storageclasses,validatingwebhookconfigurations,volumeattachments
         imagePullPolicy: IfNotPresent
-        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0
+        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0@sha256:42cfe3723a5f058171c627537fb57a3ea0f26e4380fa18555a95cb1a1b4cfc5b
         ports:
         - containerPort: 8080
           name: http
@@ -77474,7 +77474,7 @@ spec:
     spec:
       containers:
         - name: kube-prometheus-stack
-          image: "quay.io/prometheus-operator/prometheus-operator:v0.93.1"
+          image: "quay.io/prometheus-operator/prometheus-operator:v0.93.1@sha256:e52bb28fd41c98dd407c7a8cba8bdcfe7eabd7447e250afaf1fe7bb816dedbff"
           imagePullPolicy: "IfNotPresent"
           args:
             - --kubelet-service=kube-system/monitoring-kubelet
@@ -77674,7 +77674,7 @@ metadata:
     release: "monitoring"
     heritage: "Helm"
 spec:
-  image: "quay.io/prometheus/alertmanager:v0.34.0"
+  image: "quay.io/prometheus/alertmanager:v0.34.0@sha256:690c7b525f4367aa91f73e2f91c632206d32e97c6384bdbf2fb7a861b420340d"
   imagePullPolicy: "IfNotPresent"
   version: "v0.34.0"
   replicas: 1
@@ -77752,7 +77752,7 @@ spec:
         port: http-web
         pathPrefix: "/"
         apiVersion: v2
-  image: "quay.io/prometheus/prometheus:v3.14.0-distroless"
+  image: "quay.io/prometheus/prometheus:v3.14.0-distroless@sha256:50c707e96da5ade383cb1707790576480485e93de06aa60ad8802cb5f744bd0a"
   imagePullPolicy: "IfNotPresent"
   version: "v3.14.0-distroless"
   externalUrl: http://monitoring-prometheus.monitoring:9090
@@ -78521,7 +78521,7 @@ spec:
     spec:
       containers:
         - name: create
-          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.8
+          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.8@sha256:cd85a621724cd9043a5b46a784578fa159437712f920166389fce830554e1c44
           imagePullPolicy: IfNotPresent
           args:
             - create
@@ -78588,7 +78588,7 @@ spec:
     spec:
       containers:
         - name: patch
-          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.8
+          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.8@sha256:cd85a621724cd9043a5b46a784578fa159437712f920166389fce830554e1c44
           imagePullPolicy: IfNotPresent
           args:
             - patch

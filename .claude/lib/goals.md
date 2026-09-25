@@ -3,7 +3,7 @@
 Quantifizierbare Ziele für die strukturelle Gesundheit des Repos.
 Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 
-**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-08-22` · **Dashboard:** Homepage-Section `#health`
+**Baseline-Stichtag:** `2026-07-01` · **Zuletzt gemessen:** `2026-09-25` · **Dashboard:** Homepage-Section `#health`
 
 > **`Zuletzt gemessen` ist das Messdatum des Dashboards** und wird von
 > `scripts/health-goals-update.sh` bei jedem Lauf gestempelt. Vor T002598 leitete
@@ -244,7 +244,7 @@ entscheidet `n/a` gegen `0` — eine nicht durchgeführte Messung zählt nie als
 bash scripts/lib/llm-stack-measure.sh server-availability
 ```
 
-> **B · Baseline:** 1 → 2 → 3 (2026-08-19, Regressions-Zuwachs) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 1 → 2 → 3 (2026-08-19, Regressions-Zuwachs) → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM02 — llm-proxy-Bereitschaft (ready + tote Provider): n/a → 0
 
@@ -275,7 +275,7 @@ der Positiv-Anker ist mindestens eine deklarierte Unit-Datei.
 bash scripts/lib/llm-stack-measure.sh autostart-coverage
 ```
 
-> **B · Baseline:** 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 1 → 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM05 — Tote lokale Endpunkt-Verweise (Backend-Registry): n/a → 0
 
@@ -384,7 +384,7 @@ python3 scripts/lib/runtime-health-measure.py infra-tcp
 bash scripts/lib/cronjob-check.sh
 ```
 
-> **B · Baseline:** 2 (2026-08-29, 2 CronJobs never ran oder ls > lss) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
+> **B · Baseline:** 2 (2026-08-29, 2 CronJobs never ran oder ls > lss) → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T005321
 
 ## G-ALR01 — Alertmanager-Receiver konfiguriert (nicht null): 1 → 0
 
@@ -445,7 +445,7 @@ Pfad ist keine Verletzung, sondern eine nicht durchgeführte Messung.
 bash scripts/lib/wt-hygiene-measure.sh main-checkout
 ```
 
-> **B · Baseline:** 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keinen Hauptcheckout) · **Ticket:** T002443
+> **B · Baseline:** 1 → 0 → 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keinen Hauptcheckout) · **Ticket:** T002443
 
 ## G-WT02 — Veraltete Worktrees (Branch gemergt oder >14d inaktiv): 0 → 0
 
@@ -542,7 +542,7 @@ einer beruhigenden `0`.
 bash scripts/lib/wt-hygiene-measure.sh main-divergence
 ```
 
-> **B · Baseline:** 0 → 14 (2026-08-19, main divergiert) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI klont frisch) · **Ticket:** T002443
+> **B · Baseline:** 0 → 14 (2026-08-19, main divergiert) → 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI klont frisch) · **Ticket:** T002443
 
 ## G-WT06 — Phantom-Scope-Locks (Scope leer oder mit `-` beginnend): 0 → 0
 
@@ -573,7 +573,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 
 | ID | Ziel | Aktuell | Target | Basis-Messung |
 |----|------|---------|--------|---------------|
-| **G-RH01** | Gate-Violations (baseline.json) | 0 ✓ | ≤ 5 | `python3 -c "import json,sys; print(len(json.load(sys.stdin)))" < docs/code-quality/baseline.json` |
+| **G-RH01** | Gate-Violations (baseline.json) | 5 ✓ | ≤ 5 | `python3 -c "import json,sys; print(len(json.load(sys.stdin)))" < docs/code-quality/baseline.json` |
 | **G-RH02** | TypeScript-Suppressionen | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -r '@ts-ignore\|@ts-expect-error' components/website/src --include='*.ts' \| grep -v goals-data.ts \| wc -l` |
 | **G-RH04** | Stale Remote Branches | 0 ✓ | 0 | `git for-each-ref ... refs/remotes/origin \| while IFS='|' read b ts; do [[ $ts -lt $CUTOFF ]] && echo $b; done \| wc -l` |
 | **G-RH06** | Sentinel-Issues >48h | 0 ✓ | 0 | `gh-axi issue list --label sentinel --state open --json createdAt` |
@@ -583,15 +583,15 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 1 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" components/website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain components/website/src/data/test-inventory.json \| wc -l` |
 | **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 10 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rn ': any\|<any>\|as any' components/website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
-| **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
-| **G-CQ05** | Echte TODO-Marker | 0 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... components/website/src scripts tests k3d brett/src \| wc -l` |
+| **G-CQ04** | FIXME/HACK/XXX (echt) | 4 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
+| **G-CQ05** | Echte TODO-Marker | 1 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... components/website/src scripts tests k3d brett/src \| wc -l` |
 | **G-CQ06** | `@deprecated`-Symbole | 0 ✓ | ≤ 1 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' components/website/src \| grep -v goals-data.generated.json \| wc -l` |
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 2 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE03** | `components/website/src/lib/website-db.ts` (Zeilen) | 311 ✓ | ≤ 600 | `wc -l < components/website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
-| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 7 ⚠ | ≤ 7 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348). Target 7 (hochgesetzt 2026-08-17): 2 Nutzer-Assets + 2 legacy-docs + 2 k3d-docs-built + 1 kube-prometheus-stack-rendered.yaml — alle legitime Bestandsdateien. Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
+| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 6 ✓ | ≤ 7 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348). Target 7 (hochgesetzt 2026-08-17): 2 Nutzer-Assets + 2 legacy-docs + 2 k3d-docs-built + 1 kube-prometheus-stack-rendered.yaml — alle legitime Bestandsdateien. Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0) |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | Positiv-Anker: `components/website/Dockerfile` fehlt ⇒ n/a; `grep -q "npm ci" components/website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json components/website/package.json ...; do python3 -c "..engines.."; done` |
@@ -605,8 +605,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CFG01** | env:validate:all grün | 0 ✓ | Exit 0 | `task env:validate:all` |
 | **G-SEC01** | Hardcoded Secrets (k3d) | 0 ✓ | 0 | `grep -rn 'password.*=.*[^$]' k3d/*.yaml \| grep -iv secretKeyRef \| wc -l` |
 | **G-SEC02** | git-crypt Guard | Exit 0 ✓ | Exit 0 | `bash scripts/git-crypt-guard.sh check-tracked` |
-| **G-SEC03** | SealedSecret-Rotation | 0 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
-| **G-SEC04** | Sealing-Cert Restlaufzeit | 3596 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
+| **G-SEC03** | SealedSecret-Rotation | 8 Tage ✓ | ≤ 90 Tage | `git log -1 --format='%at' -- environments/sealed-secrets/*.yaml \| ...` |
+| **G-SEC04** | Sealing-Cert Restlaufzeit | 3621 Tage ✓ | ≥ 30 Tage | `openssl x509 -enddate -noout -in environments/certs/*.pem` |
 | **G-SEC05** | Unsignierte Commits (adj.) | 0/50 ✓ | ≤ 2 | `git log -50 --pretty='%G? %ae' main \| grep -v freshness-bot \| grep -ciE 'github-actions\[bot\]|41898282\+github-actions\[bot\]'` — **fix:** beide Bot-Mail-Varianten (`github-actions[bot]@...` und `41898282+github-actions[bot]@...`) werden nun korrekt gefiltert; alle 25 vorherigen "unsignierten" Commits waren GitHub-Bots, kein echtes Signing-Problem. |
 | **G-SPEC01** | openspec:validate grün | Exit 0 ✓ | Exit 0 | `bash scripts/openspec.sh validate` |
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
@@ -621,21 +621,21 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | n/a | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
 | **G-BRAIN14** | Brain-Ingest-Backlog (offene Chunks) | 17 ⚠ | 0 | `bash scripts/brain-ingest-worklist.sh --pending` (Chunk-Hash gegen State-File, dieselbe Semantik wie `brain-ingest.sh process_page`) |
-| **G-IF01** | MCP-Endpunkte ohne Listener | 4 ⚠ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
+| **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
-| **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 0 ✓ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
+| **G-LLM03** | Modell-ID-Drift (Loadout-Port) | 1 ⚠ | 0 | `bash scripts/lib/llm-stack-measure.sh model-drift` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
-| **G-DOC02** | Root-CLAUDE.md Zeilen | 186 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
+| **G-DOC02** | Root-CLAUDE.md Zeilen | 193 ✓ | ≤ 200 | Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
 | **G-CI03** | CI Pipeline p95 Duration (min) | 3 ✓ | ≤ 12 | `gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \| python3 -c "..p95.."` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt) |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
-| **G-DORA01** | Deployment Frequency | 541 ✓ | ≥ 20/4 Wo (= 5/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
+| **G-DORA01** | Deployment Frequency | 539 ✓ | ≥ 20/4 Wo (= 5/Wo) | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
 | **G-DORA02** | Lead Time (PR→merge) | 0 h ✓ | ≤ 1h | `gh-axi api repos/{owner}/{repo}/pulls?...` |
-| **G-DORA03** | Change Failure Rate (Proxy) | 20 ⚠ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
-| **G-DORA04** | MTTR | 3 ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
+| **G-DORA03** | Change Failure Rate (Proxy) | 27 ⚠ | ≤ 15 % | `git log --since="8 weeks ago" --first-parent --oneline main \| ...fix()/revert-Rate` |
+| **G-DORA04** | MTTR | 0 ✓ | < 24h | `git log --since="8 weeks ago" --first-parent --format='%ct %s' main \| grep -iE 'revert\|hotfix'` |
 | **G-FE03** | rohe `console.error/warn` (exkl. Selbstschutz-Fallbacks) | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(error\|warn)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v 'logger.ts' \| grep -v 'error-log-store.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-FE04** | Stray `console.log/debug/info` | 0 ✓ | 0 | Positiv-Anker: `components/website/src` fehlt ⇒ n/a; `grep -rEn 'console\.(log\|debug\|info)' components/website/src --include='*.ts' --include='*.svelte' --include='*.astro' \| grep -v 'browser-logger.ts' \| grep -v '\.test\.ts' \| wc -l` |
 | **G-GIT02** | Non-conventional Commits (ohne Merge) | 0 ✓ | 0 | Positiv-Anker: `origin/main`-Ref fehlt ⇒ n/a; `git log --format=%s --no-merges -30 origin/main \| grep -vcE '^(feat\|fix\|chore\|...)'` |

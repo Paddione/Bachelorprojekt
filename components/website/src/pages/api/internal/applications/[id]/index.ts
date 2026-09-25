@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { pool } from '../../../../../lib/website-db';
+import { logger } from '../../../../../lib/logger';
 import { spawn } from 'child_process';
 
 const VALID_STATUSES = ['found', 'drafting', 'applied', 'interviewing', 'offered', 'rejected', 'withdrawn'];
@@ -63,7 +64,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
       detached: false,
       stdio: ['ignore', 'ignore', 'ignore'],
     });
-    console.log(`Auto-render triggered for job ${jobNum}: status=${body.status} script=${scriptPath}`);
+    logger.info(`Auto-render triggered for job ${jobNum}: status=${body.status} script=${scriptPath}`);
   }
 
   return new Response(JSON.stringify(r.rows[0]), { headers: { 'Content-Type': 'application/json' } });

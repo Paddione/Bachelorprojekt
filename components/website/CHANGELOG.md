@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.362.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.361.0...website-v1.362.0) (2026-09-25)
+
+
+### Features
+
+* **mcp:** Glimmer worker MCP for Muse Code on WSL and Windows [T900373] ([#5878](https://github.com/Paddione/Bachelorprojekt/issues/5878)) ([9ed0d2a](https://github.com/Paddione/Bachelorprojekt/commit/9ed0d2a5fe6a195860311e53841b55065400693c))
+
 ## [1.361.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.360.1...website-v1.361.0) (2026-09-25)
 
 

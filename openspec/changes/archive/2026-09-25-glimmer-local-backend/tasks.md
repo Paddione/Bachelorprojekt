@@ -2,7 +2,7 @@
 title: "glimmer-local-backend — Implementation Plan"
 ticket_id: T900365
 domains: [llm, opencode, factory, scripts, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

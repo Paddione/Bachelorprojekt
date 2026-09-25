@@ -1494,7 +1494,7 @@ unchanged (Merge = Abschluss).
 ### Requirement: Bonsai Provider Registration for Implement and Review
 
 `scripts/factory/provider-register-local.sh` SHALL register the local chat model for implement and review in
-`tickets.provider_config`, using the FreeToken-native root `http://127.0.0.1:1919` (no trailing `/v1`) as
+`tickets.provider_config`, using the local llama.cpp root `http://127.0.0.1:1919` (no trailing `/v1`) as
 `base_url`. It SHALL NOT write the retired llm-proxy gateway `:18235`, which was stopped on 2026-09-03 (ADR-007) and
 since then answers nothing, nor any LM Studio or llama.cpp backend port. `FACTORY_LOCAL_URL` MAY override the
 address; `scripts/factory/route-provider.sh` SHALL honour the same variable and the same default.
@@ -1503,19 +1503,19 @@ The model id SHALL NOT be a source-code literal outside the default. It SHALL be
 wins:
 
 1. the environment variable `FACTORY_MODEL_ID`
-2. the script's built-in default `Qwen3.8-27B-gsq`, the only checkpoint the local llama.cpp server on `:1919` serves (T900348)
+2. the script's built-in default `Muse-Glimmer-30B`, the only checkpoint the local llama.cpp server on `:1919` serves (T900365; before that `Qwen3.8-27B-gsq`, T900348/T900359)
 
 The former first source — `factory.model` read from the llm-proxy over `GET /admin/factory` through
 `factory_model_pin` — is removed together with the proxy (T900208). A pin reader against a dead port only ever
 returned "no pin", so it was dead code that still looked like a routing input.
 
-FreeToken serves one request at a time (`--max-running-requests 1`); the registered rows therefore carry
+The local server serves one request at a time (`-np 1`); the registered rows therefore carry
 `max_concurrent = 1`.
 
 Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Slot-Tabelle;
 `tickets.provider_config` ist der einzige Speicher, den es befuellt und den Runtime-Code liest.
 
-#### Scenario: Registration writes the FreeToken URL and configurable model id
+#### Scenario: Registration writes the local URL and configurable model id
 
 - **GIVEN** the registration script runs against a brand database
 - **WHEN** its idempotent upserts complete
@@ -1525,7 +1525,7 @@ Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Sl
 
 - **GIVEN** `FACTORY_MODEL_ID` is set to `some-other-checkpoint`
 - **WHEN** any routing surface resolves the model id
-- **THEN** it resolves `some-other-checkpoint`, and without the variable it resolves `Qwen3.8-27B-gsq`
+- **THEN** it resolves `some-other-checkpoint`, and without the variable it resolves `Muse-Glimmer-30B`
 
 #### Scenario: No routing surface consults the retired proxy
 
@@ -1537,13 +1537,13 @@ Seit T013302 schreibt das Skript keine Phasen-Zuweisungen mehr in eine eigene Sl
 
 - **GIVEN** the routing surfaces `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh` and `scripts/factory/pipeline.mjs`
 - **WHEN** the spec BATS suite runs in CI
-- **THEN** any non-comment line naming a retired model id (`ternary-bonsai-27b`, `gemma-4-12b`, `qwen38-220k`) fails the test, because no backend serves those ids
+- **THEN** any non-comment line naming a retired model id (`ternary-bonsai-27b`, `gemma-4-12b`, `qwen38-220k`, `Qwen3.8-27B-gsq`) fails the test, because no backend serves those ids
 
-#### Scenario: Emergency fallback routes to FreeToken
+#### Scenario: Emergency fallback routes to the local server
 
 - **GIVEN** every candidate provider for a source/tier is claimed or on cooldown
 - **WHEN** `route-provider.sh` emits its emergency fallback
-- **THEN** the emitted `baseUrl` is `http://127.0.0.1:1919` and the `modelId` is `FACTORY_MODEL_ID` or `Qwen3.8-27B-gsq` — not the retired gateway and not an LM Studio backend port, which since T002551 serves embedding and reranking models only
+- **THEN** the emitted `baseUrl` is `http://127.0.0.1:1919` and the `modelId` is `FACTORY_MODEL_ID` or `Muse-Glimmer-30B` — not the retired gateway and not an LM Studio backend port, which since T002551 serves embedding and reranking models only
 
 ### Requirement: PR Creation Gate after Local Verify and Completed Review
 
@@ -2450,7 +2450,7 @@ of thumb (one partial per disjoint subsystem, tests separate) instead of a hard 
 ### Requirement: Env-driven phase model routing
 
 `scripts/factory/pipeline.mjs` SHALL derive the model of its local `flash` tier from `FACTORY_MODEL_ID` (default
-`Qwen3.8-27B-gsq`, provider label `llamacpp` for the OpenAI-compatible wire format) and SHALL target
+`Muse-Glimmer-30B`, provider label `llamacpp` for the OpenAI-compatible wire format) and SHALL target
 the local llama.cpp server at `http://127.0.0.1:1919` instead of a hardcoded LM Studio constant or the retired llm-proxy
 gateway `:18235` (T900208). The tier SHALL come only from `args.model_tier`, falling back to `flash`; the former
 `FACTORY_MODEL_LOCKED` override is removed with the proxy that supplied it.
@@ -2459,7 +2459,7 @@ gateway `:18235` (T900208). The tier SHALL come only from `args.model_tier`, fal
 
 - **GIVEN** autopilot.env sets no overrides and the launch row carries no `model_tier`
 - **WHEN** a pipeline phase spawns an agent
-- **THEN** the agent's LLM call targets `http://127.0.0.1:1919` with model `Qwen3.8-27B-gsq`
+- **THEN** the agent's LLM call targets `http://127.0.0.1:1919` with model `Muse-Glimmer-30B`
 
 ### Requirement: Stale test files SHALL be removed when superseded
 
@@ -3758,7 +3758,7 @@ unbekannter Wert SHALL auf `mixed` zurückfallen (Warnung).
 (OpenCode Zen, 1M ctx) und `muse-spark-1.3-contributor` (OpenCode Go, 1M ctx)
 führen. Der `orchestrator`-Agent SHALL das Zen-Free-Modell als Primary nutzen.
 Der Subagent `planner-muse` SHALL das Go-Modell nutzen und in der
-Allow-Liste von `orchestrator`, `big-pickle` und `qwen38-primary` stehen
+Allow-Liste von `orchestrator`, `big-pickle` und `glimmer-primary` stehen
 (exakte Namen, keine Wildcards). Die Eskalationskette SHALL lauten: `local`
 (2 Versuche) → `planner-muse` → `deepseek-helper-go` → `deepseek-helper` →
 `pro/pro-direct`. Die Empty-Return-Regel SHALL `planner-muse` als M2 nennen.
@@ -5753,3 +5753,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (8d2049857398) -->
 
 <!-- merged from change delta software-factory.md (9779ad1e2f91) -->
+
+<!-- merged from change delta software-factory.md (2ff446e65a35) -->

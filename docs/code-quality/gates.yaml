@@ -39,6 +39,10 @@ scan:
     # in in-tree since T002135 (formerly git submodules). Upstream code is not
     # subject to our size/orphan gates and must not perturb repo-index.json.
     - "tests/unit/lib/**"
+    # Vendored upstream mailbox-mcp-server (MIT, not on npm), in-tree since
+    # T900396. Same rationale as tests/unit/lib: upstream code is not subject to
+    # our size/orphan gates and must not perturb repo-index.json.
+    - "scripts/mailbox-mcp/**"
 
 s1:
   # Grosszuegige Anhebung auf ausdrueckliche Anweisung [T002452]. Ausloeser: zwei

@@ -165,6 +165,23 @@ run_job() {
   [ ! -e "$T_DIR/nogit/target.png" ]
 }
 
+@test "trim defaults to transparent when building post-process arguments" {
+  run node --input-type=module -e "
+    import { validateArgs, postprocessArgs } from '$CI_DIR/lib.mjs';
+    const args = (a) => postprocessArgs(validateArgs({ prompt: 'x', ...a }).params, 'in.png', 'out.png').join(' ');
+    console.log(args({ transparent: true }));
+    console.log(args({ transparent: true, trim: false }));
+    console.log(args({ pixelate: { size: 16 } }));
+  "
+  [ "$status" -eq 0 ]
+  grep -q -e '--transparent' <<<"${lines[0]}"
+  grep -q -e '--trim' <<<"${lines[0]}"
+  grep -q -e '--transparent' <<<"${lines[1]}"
+  [ -z "$(grep -e '--trim' <<<"${lines[1]}" || true)" ]
+  grep -q -e '--pixelate 16' <<<"${lines[2]}"
+  [ -z "$(grep -e '--trim' <<<"${lines[2]}" || true)" ]
+}
+
 @test "an idle server stops comfyui" {
   sleep 5
   grep -qx -- '--user stop comfyui' "$T_DIR/systemctl.log"

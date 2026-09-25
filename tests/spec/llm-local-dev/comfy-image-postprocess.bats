@@ -72,6 +72,51 @@ PY
   [ "$("$PY" -c "from PIL import Image;print(Image.open('$BATS_TEST_TMPDIR/cut.png').mode)")" = "RGBA" ]
 }
 
+# Kleines deckendes Rechteck (40x80) auf 256x256 transparenter Leinwand. [T900386]
+small_subject() {
+  "$PY" - "$1" <<'PY'
+import sys
+from PIL import Image, ImageDraw
+img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+ImageDraw.Draw(img).rectangle((100, 60, 139, 139), fill=(200, 40, 40, 255))
+img.save(sys.argv[1])
+PY
+}
+
+@test "trim crops to the subject plus a small margin" {
+  small_subject "$BATS_TEST_TMPDIR/small.png"
+  run "$PY" "$PP" --in "$BATS_TEST_TMPDIR/small.png" --out "$BATS_TEST_TMPDIR/trim.png" --trim
+  [ "$status" -eq 0 ]
+  read -r w h n a <<<"$(inspect "$BATS_TEST_TMPDIR/trim.png")"
+  # Motiv 40x80, Rand max(1, round(0.02*256)) = 5 px je Seite -> 50x90
+  [ "$w" -eq 50 ] && [ "$h" -eq 90 ]
+}
+
+@test "trim before pixelate lets the subject fill the longer side" {
+  small_subject "$BATS_TEST_TMPDIR/small.png"
+  run "$PY" "$PP" --in "$BATS_TEST_TMPDIR/small.png" --out "$BATS_TEST_TMPDIR/tp.png" --trim --pixelate 32 --colors 4
+  [ "$status" -eq 0 ]
+  run "$PY" - "$BATS_TEST_TMPDIR/tp.png" <<'PY'
+import sys
+from PIL import Image
+img = Image.open(sys.argv[1]).convert("RGBA")
+bbox = img.getchannel("A").getbbox()
+print(img.height, bbox[1], img.height - bbox[3])
+PY
+  [ "$status" -eq 0 ]
+  read -r h top bottom <<<"$output"
+  [ "$h" -eq 32 ]
+  [ "$top" -le 2 ] && [ "$bottom" -le 2 ]
+}
+
+@test "trim leaves an image without alpha unchanged" {
+  "$PY" -c "from PIL import Image; Image.new('RGB', (120, 80), (10, 20, 30)).save('$BATS_TEST_TMPDIR/rgb.png')"
+  run "$PY" "$PP" --in "$BATS_TEST_TMPDIR/rgb.png" --out "$BATS_TEST_TMPDIR/rgbt.png" --trim
+  [ "$status" -eq 0 ]
+  read -r w h n a <<<"$(inspect "$BATS_TEST_TMPDIR/rgbt.png")"
+  [ "$w" -eq 120 ] && [ "$h" -eq 80 ]
+}
+
 @test "an unreadable input fails with a message" {
   echo "not a png" > "$BATS_TEST_TMPDIR/bad.png"
   run "$PY" "$PP" --in "$BATS_TEST_TMPDIR/bad.png" --out "$BATS_TEST_TMPDIR/o.png" --pixelate 16

@@ -30,6 +30,8 @@ const PORT = Number(env('GLIMMER_WORKER_MCP_PORT', '13007'));
 const OPENCODE = env('GLIMMER_WORKER_OPENCODE', `${homedir()}/.opencode/bin/opencode`);
 const AGENT = env('GLIMMER_WORKER_AGENT', 'glimmer-primary');
 const LLAMA = env('GLIMMER_WORKER_LLAMA_URL', 'http://127.0.0.1:1919').replace(/\/+$/, '');
+// Untergrenze fuer timeout_s. Default 60; nur Tests setzen sie niedriger.
+const TIMEOUT_FLOOR_S = Math.max(1, Number(env('GLIMMER_WORKER_TIMEOUT_FLOOR_S', '60')));
 const TOKEN = requireToken('GLIMMER_WORKER_MCP_TOKEN');
 const ORIGINS = allowedBrowserOrigins();
 
@@ -42,18 +44,25 @@ function runOpencode(job) {
     let stdout = '';
     let stderr = '';
     let timedOut = false;
+    // Eigene Prozessgruppe (detached): beim Timeout wird die GANZE Gruppe beendet,
+    // also auch Shell-Tools, die opencode gestartet hat — sonst liefen sie nach
+    // dem 'timeout' weiter und veraenderten das Repo neben dem naechsten Job.
     const child = spawn(OPENCODE, ['run', '--agent', AGENT, '--dir', job.cwd, job.task], {
       cwd: job.cwd,
       env: { ...process.env, NO_COLOR: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],
+      detached: true,
     });
+    const killGroup = (sig) => {
+      try { process.kill(-child.pid, sig); } catch { try { child.kill(sig); } catch { /* bereits beendet */ } }
+    };
     const cap = (s, chunk) => (s + chunk).slice(-200_000);
     child.stdout.on('data', (c) => { stdout = cap(stdout, c); });
     child.stderr.on('data', (c) => { stderr = cap(stderr, c); });
     const timer = setTimeout(() => {
       timedOut = true;
-      child.kill('SIGTERM');
-      setTimeout(() => child.kill('SIGKILL'), 10_000).unref();
+      killGroup('SIGTERM');
+      setTimeout(() => killGroup('SIGKILL'), 10_000).unref();
     }, job.timeoutS * 1000);
     child.on('error', (err) => {
       clearTimeout(timer);
@@ -140,7 +149,7 @@ async function callTool(name, args) {
       }
       if (!isGitWorkTree(cwd)) return text(`cwd is not inside a Git working tree: ${cwd}`, true);
       const t = Number.isInteger(args.timeout_s) ? args.timeout_s : 900;
-      const timeoutS = Math.min(3600, Math.max(60, t));
+      const timeoutS = Math.min(3600, Math.max(TIMEOUT_FLOOR_S, t));
       const { id, position } = queue.enqueue({ task, cwd, timeoutS });
       return text({ job_id: id, position, cwd, timeout_s: timeoutS });
     }

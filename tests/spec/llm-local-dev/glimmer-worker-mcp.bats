@@ -21,6 +21,12 @@ setup_file() {
 printf '%s\n' "\$@" > "$T_DIR/argv"
 dir=""; prev=""
 for a in "\$@"; do [ "\$prev" = "--dir" ] && dir="\$a"; prev="\$a"; done
+last="\${@: -1}"
+if [ "\$last" = "slow" ]; then
+  # Tool-Kindprozess, der nach dem Timeout noch schreiben wuerde (Prozessgruppen-Kill).
+  ( sleep 4; echo late > "\$dir/late.txt" ) &
+  sleep 60
+fi
 echo edited >> "\$dir/worked.txt"
 echo "worker done"
 EOF
@@ -32,6 +38,7 @@ EOF
   if [ -f "$GW_DIR/server.mjs" ]; then
     GLIMMER_WORKER_OPENCODE="$T_DIR/bin/opencode" GLIMMER_WORKER_MCP_PORT="$PORT" \
     GLIMMER_WORKER_MCP_TOKEN="$TOKEN" GLIMMER_WORKER_LLAMA_URL="http://127.0.0.1:9" \
+    GLIMMER_WORKER_TIMEOUT_FLOOR_S=1 \
       node "$GW_DIR/server.mjs" > "$T_DIR/server.log" 2>&1 &
     echo $! > "$T_DIR/server.pid"
     for _ in $(seq 1 50); do
@@ -87,6 +94,19 @@ call() {
   grep -qx -e '--agent' "$T_DIR/argv"
   grep -qx 'glimmer-primary' "$T_DIR/argv"
   grep -qx "$T_DIR/repo" "$T_DIR/argv"
+}
+
+@test "a timeout ends the whole process group, including tool children" {
+  mkdir -p "$T_DIR/slowrepo"
+  git -C "$T_DIR/slowrepo" init -q
+  run call glimmer_worker_start "$(jq -cn --arg c "$T_DIR/slowrepo" '{task:"slow",cwd:$c,timeout_s:2}')"
+  local job; job="$(jq -r '.content[0].text | fromjson | .job_id' <<<"$output")"
+  [ -n "$job" ] && [ "$job" != "null" ]
+  run call glimmer_worker_result "$(jq -cn --arg j "$job" '{job_id:$j,wait_s:20}')"
+  [ "$(jq -r '.content[0].text | fromjson | .status' <<<"$output")" = "timeout" ]
+  # Das Kind haette nach 4 s geschrieben; der Gruppen-Kill nach 2 s verhindert das.
+  sleep 4
+  [ ! -e "$T_DIR/slowrepo/late.txt" ]
 }
 
 @test "a cwd outside a git working tree is refused" {

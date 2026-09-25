@@ -39,9 +39,21 @@ read_token() {
 install_unit() {
   local dst="$HOME/.config/systemd/user/glimmer-worker-mcp.service"
   mkdir -p "$(dirname "$dst")"
-  ln -sf "$UNIT_SRC" "$dst"
+  # Unit RENDERN statt verlinken: ExecStart zeigt auf genau das Repo, aus dem der
+  # Installer laeuft. Ein Symlink auf die Repo-Datei liefe sonst auseinander
+  # (Symlink ins Repo A, hart codierter ExecStart-Pfad ins Repo B) und dangelte,
+  # sobald ein Worktree entfernt wird. Nach einem Repo-Umzug: Installer erneut ausfuehren.
+  rm -f "$dst"
+  sed "s|%h/Bachelorprojekt/scripts/glimmer-worker-mcp/server.mjs|$REPO/scripts/glimmer-worker-mcp/server.mjs|" \
+    "$UNIT_SRC" > "$dst"
+  grep -qF "$REPO/scripts/glimmer-worker-mcp/server.mjs" "$dst" \
+    || { echo "install.sh: ExecStart in $dst nicht auf $REPO gesetzt" >&2; return 1; }
   systemctl --user daemon-reload
-  systemctl --user enable --now glimmer-worker-mcp >/dev/null 2>&1
+  if ! out="$(systemctl --user enable --now glimmer-worker-mcp 2>&1)"; then
+    echo "install.sh: systemctl --user enable --now glimmer-worker-mcp fehlgeschlagen:" >&2
+    echo "$out" >&2
+    return 1
+  fi
   systemctl --user restart glimmer-worker-mcp
   for _ in $(seq 1 30); do
     curl -sf "http://127.0.0.1:${PORT}/health" >/dev/null && { echo "Server laeuft auf 127.0.0.1:${PORT}"; return 0; }

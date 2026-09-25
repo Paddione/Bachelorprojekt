@@ -1,0 +1,23 @@
+# systemd-User-Unit: ComfyUI mit Qwen-Image 2.1 auf der RTX 3060 Ti [T900379].
+# Status: Aktiv (T900379) — wird NUR bei Bedarf von comfy-image-mcp gestartet und im Leerlauf gestoppt.
+#
+# Bewusst ohne [Install]/WantedBy: die Unit startet nie beim Login. Start und Stopp macht
+# scripts/comfy-image-mcp/server.mjs (systemctl --user start|stop comfyui).
+# Installation (kopiert, kein Symlink — T900376): task llm:comfy-image:install
+#   bzw. von Hand: cp scripts/comfy-image-mcp/comfyui.service ~/.config/systemd/user/ && systemctl --user daemon-reload
+# Werte aus ~/ComfyUI/start-qwen.sh: GPU-Maske auf die 3060 Ti (Glimmer belegt die 5070 Ti),
+# Textencoder auf der CPU (siehe workflow.json), --lowvram fuer 8 GB VRAM.
+[Unit]
+Description=ComfyUI (Qwen-Image 2.1, RTX 3060 Ti, 127.0.0.1:8189) — on demand
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/ComfyUI
+Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
+Environment=CUDA_VISIBLE_DEVICES=GPU-6b9ac882-e9e9-a364-4423-92d838536b86
+Environment=HF_HUB_DISABLE_TELEMETRY=1
+Environment=OMP_NUM_THREADS=8
+ExecStart=%h/ComfyUI/.venv/bin/python main.py --listen 127.0.0.1 --port 8189 --lowvram --reserve-vram 1.5 --disable-pinned-memory
+Restart=no
+TimeoutStopSec=30

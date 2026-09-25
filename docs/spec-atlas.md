@@ -599,6 +599,12 @@ Last touches:
   - Local Agent Roster on the Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
   - Project Default Model Targets the Local Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
   - Local Agent Roster on the Glimmer Checkpoint | T900365 | 2026-09-25 | MODIFIED
+In-flight:
+  - Image Generation MCP for Muse Code | T900379 | active | ADDED
+  - Image Output Is Confined to Git Working Trees | T900379 | active | ADDED
+  - ComfyUI Runs Only While Images Are Requested | T900379 | active | ADDED
+  - Generated Images Can Be Cut Out and Pixelated | T900379 | active | ADDED
+  - The Image MCP Is Registered Only in Muse Code | T900379 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

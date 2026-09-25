@@ -2,7 +2,7 @@
 title: "comfy-image-mcp — Implementation Plan"
 ticket_id: T900379
 domains: [llm, mcp, scripts, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

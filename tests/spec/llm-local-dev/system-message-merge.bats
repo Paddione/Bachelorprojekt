@@ -3,7 +3,7 @@
 # SSOT: openspec/specs/llm-local-dev.md
 # Ticket: T900220 — FreeToken (:1919, Qwen3.6) lehnt jede zweite
 # role=system-Nachricht ab ("could not encode request: System message must be
-# at the beginning."). opencode 1.18.31 schickt fuer qwen38-primary und den
+# at the beginning."). opencode 1.18.31 schickt fuer glimmer-primary und den
 # Titel-Agenten system,system,user. Das Plugin
 # .opencode/plugin/system-message-merge.ts fuehrt fuer den Provider
 # llamacpp-local alle system-Nachrichten zu einer an Position 0 zusammen.
@@ -30,7 +30,7 @@ drive() {
       fetch: async (_input, init) => { sent = init.body; return new Response("{}") },
     } } } }
     for (const p of plugins) { const hooks = await p({}); if (hooks.config) await hooks.config(cfg) }
-    const body = JSON.stringify({ model: "Qwen3.8-27B-gsq", messages: JSON.parse(process.env.MESSAGES) })
+    const body = JSON.stringify({ model: "Muse-Glimmer-30B", messages: JSON.parse(process.env.MESSAGES) })
     await cfg.provider[process.env.PROVIDER].options.fetch("http://127.0.0.1:1919/v1/chat/completions", { method: "POST", body })
     const msgs = JSON.parse(sent).messages
     console.log(msgs.map((m) => m.role).join(","))

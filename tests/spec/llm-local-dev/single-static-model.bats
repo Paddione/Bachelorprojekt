@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # T900203 — FreeToken-Konsolidierung (T900164): der llamacpp-local-Katalog
-# fuehrt genau ein Modell (seit T900348 Qwen3.8-27B-gsq, 153600 served KV),
+# fuehrt genau ein Modell (seit T900348 Muse-Glimmer-30B, 131072 served KV),
 # keine active/*-Aliase und keine freetoken-thinking/fast-Agenten mehr, und
 # das alte Opencode-Plugin freetoken-active.ts ist entfernt.
 #
@@ -21,8 +21,8 @@ setup() {
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$MODELS_CFG','utf8'));
     const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
-    if (!('Qwen3.8-27B-gsq' in m)) {
-      console.error('positive anchor failed: Qwen3.8-27B-gsq fehlt im llamacpp-local-Katalog'); process.exit(1);
+    if (!('Muse-Glimmer-30B' in m)) {
+      console.error('positive anchor failed: Muse-Glimmer-30B fehlt im llamacpp-local-Katalog'); process.exit(1);
     }
     const keys = Object.keys(m);
     if (keys.length !== 1) {
@@ -39,7 +39,7 @@ setup() {
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$MODELS_CFG','utf8'));
     const a = d.agent || {};
-    for (const name of ['local', 'reviewer', 'qwen38-primary']) {
+    for (const name of ['local', 'reviewer', 'glimmer-primary']) {
       if (!(name in a)) {
         console.error('positive anchor failed: agent ' + name + ' fehlt'); process.exit(1);
       }

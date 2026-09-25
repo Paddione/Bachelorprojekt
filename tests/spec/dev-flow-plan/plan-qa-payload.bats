@@ -123,6 +123,9 @@ PLANEOF
   echo "$output" | jq -e '.model | type == "string" and length > 0' >/dev/null
   echo "$output" | jq -e '.enable_thinking == false' >/dev/null
   echo "$output" | jq -e '.chat_template_kwargs.enable_thinking == false' >/dev/null
+  # [T900365] Muse Glimmer kennt enable_thinking nicht; der Reasoning-Level
+  # kommt ueber reasoning_strength (Default des Templates: high).
+  echo "$output" | jq -e '.chat_template_kwargs.reasoning_strength == "low"' >/dev/null
 
   # Gegenprobe: der Wert stammt tatsaechlich aus PLAN_QA_MODEL und ist nicht
   # irgendwo im Skript festverdrahtet.

@@ -8,8 +8,8 @@
 # Ausnahme in [T002448-M4]. Ein Laufzeittest gegen :8091 waere in CI nicht
 # ausfuehrbar, dort laeuft kein llama-server.
 #
-# T900348: der lokale Stack faehrt Qwen3.8-27B-gsq via llama.cpp :1919
-# (vorher FreeToken, T900164/T900203). Der Provider-Key heisst historisch "llamacpp-local";
+# T900365: der lokale Stack faehrt Muse-Glimmer-30B via llama.cpp :1919
+# (davor Qwen3.8-27B-gsq, T900348/T900359; FreeToken, T900164/T900203). Der Provider-Key heisst historisch "llamacpp-local";
 # die Loadout-Kopplung an loadouts.json ist entfallen.
 
 setup() {
@@ -65,10 +65,10 @@ setup() {
   [ "${output}" = "0" ]
 }
 
-@test "T002545: die Agentendefinitionen verweisen auf Qwen3.8-27B-gsq" {
-  # T900348: alle lokalen Agenten laufen auf llamacpp-local/Qwen3.8-27B-gsq
-  # (llama.cpp :1919, RTX 5070 Ti, 153600 served KV, T900359).
-  run grep -c 'llamacpp-local/Qwen3.8-27B-gsq' "${AGENTS}"
+@test "T002545: die Agentendefinitionen verweisen auf Muse-Glimmer-30B" {
+  # T900365: alle lokalen Agenten laufen auf llamacpp-local/Muse-Glimmer-30B
+  # (llama.cpp :1919, RTX 5070 Ti, 131072 served KV).
+  run grep -c 'llamacpp-local/Muse-Glimmer-30B' "${AGENTS}"
   [ "${status}" -eq 0 ]
   [ "${output}" -gt 0 ]
 }
@@ -79,7 +79,7 @@ setup() {
   # FreeToken-Zahl. Gebunden wird jetzt per PROVIDER: jeder
   # llamacpp-local-limit.context muss eine positive ganze Zahl sein, ungleich
   # dem advertised max_model_len 262144 und nicht groesser als die served
-  # KV 153600 (gemessen T900348).
+  # KV 131072 (T900365; vorher 153600, T900348).
   #
   # [T003065] Vorher stand hier `grep -c '262144'` mit der Erwartung 0: 262144
   # war der Wert des abgeloesten 12B-Servers und stand fuer die Drift-Klasse,
@@ -105,8 +105,8 @@ setup() {
       if (ctx === 262144) {
         console.error(k + ' ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
       }
-      if (ctx > 153600) {
-        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
+      if (ctx > 131072) {
+        console.error(k + ' ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
       }
     }
     process.exit(0);

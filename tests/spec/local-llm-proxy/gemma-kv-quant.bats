@@ -72,8 +72,7 @@ _argv_facts() {
 _KV_Q4_ALLOWED="gemma26-factory
 gemma4
 gemma26-throughput
-qwen38-220k
-qwen38-gsq"
+qwen38-220k"
 
 @test "nur ausdruecklich ausgenommene GPU-Chat-Loadouts starten mit q4_0-KV" {
   run _argv_facts

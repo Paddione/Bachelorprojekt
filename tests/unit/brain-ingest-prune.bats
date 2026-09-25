@@ -16,7 +16,7 @@ teardown() {
   rm -rf "$TESTDIR"
 }
 
-@test "keeps page whose Rückverweis source exists, flags deleted one" {
+@test "keeps page whose Rueckverweis source exists, flags deleted one" {
   printf -- '---\ntype: note\n---\n\n# Keep\n\nsource:: Rückverweis: Bachelorprojekt live.md\n' > "$TESTDIR/brain/wiki/keep.md"
   printf -- '---\ntype: note\n---\n\n# Drop\n\nsource:: Rückverweis: Bachelorprojekt gone.md\n' > "$TESTDIR/brain/wiki/drop.md"
   run bash "$SCRIPT" --brain-repo "$TESTDIR/brain" --root "$TESTDIR/root" \

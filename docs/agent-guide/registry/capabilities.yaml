@@ -556,10 +556,6 @@ capabilities:
       fallback: "Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist."
       roles: [orchestrator, bachelorprojekt-ops]
       tier: assisted
-      deep_ref: ".claude/skills/finetune-run/SKILL.md"
-    skill:finetune-run:
-      state: suppressed
-      reason: "cli:scripts/finetune ist die kanonische Instanz und verlinkt dieses SKILL.md bereits als deep_ref — das Skill wird nicht separat injiziert."
 
   # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
   # weil der damalige Vendor-Trainings-Skill die kanonische Instanz war. Der Schnitt war

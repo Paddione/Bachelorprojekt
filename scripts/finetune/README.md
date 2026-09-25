@@ -6,7 +6,8 @@ teuer gelernt hat: ein geratenes `max_seq_length` kuerzte 45% des Korpus, ein dr
 Chat-Template kostete Trainings-/Serving-Konsistenz.
 
 Fuer Unsloth/TRL-Fachfragen (LoRA-Parameter, VRAM-Optimierung, aktuelle API-Signaturen) siehe
-das Skill `unsloth-buddy` — dieses Verzeichnis kopiert dessen Code nicht.
+die Unsloth/TRL-Upstream-Referenz — im Harness ueber `context7` (`resolve-library-id` →
+`query-docs`). Dieses Verzeichnis kopiert deren Code nicht.
 
 ## Reihenfolge
 
@@ -73,7 +74,7 @@ Dieses Repo-Worktree/CI haelt keine ML-Abhaengigkeiten (unsloth/trl/torch/transf
 Jinja2-Templates + eine heuristische Tokenlaengenschaetzung (dokumentierte Abweichung, siehe
 Docstrings). `train.py`/`export_gguf.py` unterstuetzen `--dry-run`: Vorbedingungen und
 Konfiguration/Speichercheck werden geprueft, ohne die schweren Abhaengigkeiten zu importieren.
-Ein echter Trainingslauf braucht den GPU-Host (siehe unsloth-buddy) und ist Teil der
+Ein echter Trainingslauf braucht den GPU-Host (siehe Unsloth/TRL-Upstream) und ist Teil der
 Vollabnahme in T002606 — nicht Teil dieses Subsystems.
 
 ## Assistant-only Loss

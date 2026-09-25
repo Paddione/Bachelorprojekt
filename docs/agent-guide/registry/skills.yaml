@@ -473,33 +473,6 @@ skills:
             runtime_tool: "mcp__mcp-postgres__query"
     exclusions: {}
 
-  - id: finetune-run
-    provenance: project
-    exposure: adapter
-    source: .agents/skills/finetune-run
-    harnesses:
-      codex:
-        path: .agents/skills/finetune-run
-        sync: identical
-      agy:
-        path: .agents/skills/finetune-run
-        sync: identical
-      opencode:
-        path: .opencode/skills/finetune-run
-        sync: manual
-        rationale: "OpenCode adapter: runtime MCP tool identifiers differ from portable capability names."
-        maps:
-          - capability: "postgres.read-only-query"
-            runtime_tool: "mcp-postgres_query"
-      claude_code:
-        path: .claude/skills/finetune-run
-        sync: manual
-        rationale: "Claude Code adapter: MCP tool identifiers use the Claude double-underscore runtime form."
-        maps:
-          - capability: "postgres.read-only-query"
-            runtime_tool: "mcp__mcp-postgres__query"
-    exclusions: {}
-
   - id: incident-response
     provenance: project
     exposure: adapter

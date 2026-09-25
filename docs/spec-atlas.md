@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2434 · Scenarios: 5406
+Specs: 129 · Requirements: 2439 · Scenarios: 5414
 
 ## factory-pipeline
 
@@ -591,20 +591,14 @@ Last touches:
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
 
 ### llm-local-dev
-Reqs: 40 · Scenarios: 82 · Lines: 1009
+Reqs: 45 · Scenarios: 90 · Lines: 1115
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Dead Checkpoints Are Not Declared | T900365 | 2026-09-25 | MODIFIED
   - Single Definition Site for the opencode `llamacpp-local` Provider | T900365 | 2026-09-25 | MODIFIED
-  - Local Agent Roster on the Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
-  - Project Default Model Targets the Local Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
-  - Local Agent Roster on the Glimmer Checkpoint | T900365 | 2026-09-25 | MODIFIED
-In-flight:
-  - Image Generation MCP for Muse Code | T900379 | active | ADDED
-  - Image Output Is Confined to Git Working Trees | T900379 | active | ADDED
-  - ComfyUI Runs Only While Images Are Requested | T900379 | active | ADDED
-  - Generated Images Can Be Cut Out and Pixelated | T900379 | active | ADDED
-  - The Image MCP Is Registered Only in Muse Code | T900379 | active | ADDED
+  - Image Generation MCP for Muse Code | T900379 | 2026-09-25 | ADDED
+  - Image Output Is Confined to Git Working Trees | T900379 | 2026-09-25 | ADDED
+  - ComfyUI Runs Only While Images Are Requested | T900379 | 2026-09-25 | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

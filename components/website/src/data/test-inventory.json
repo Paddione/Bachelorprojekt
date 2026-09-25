@@ -4254,6 +4254,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/glimmer-worker-mcp",
+    "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/opencode-compaction",
     "file": "tests/spec/llm-local-dev/opencode-compaction.bats",
     "category": "llm-local-dev",

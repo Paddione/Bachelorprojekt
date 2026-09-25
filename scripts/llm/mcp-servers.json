@@ -5,6 +5,14 @@
       "cwd": "/home/patrick/Bachelorprojekt",
       "timeout_ms": 30000
     },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@4.1.1"
+      ],
+      "timeout_ms": 60000
+    },
     "ticket-mcp-node": {
       "command": "node",
       "args": [

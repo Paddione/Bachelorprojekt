@@ -109,7 +109,7 @@
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": false,
     "superpowers@claude-plugins-official": true,
-    "context7@claude-plugins-official": true,
+    "context7@claude-plugins-official": false,
     "code-review@claude-plugins-official": false,
     "code-simplifier@claude-plugins-official": false,
     "skill-creator@claude-plugins-official": true,

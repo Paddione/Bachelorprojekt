@@ -31,6 +31,35 @@
 # generierten Configs (.mcp.json, .opencode/opencode.jsonc, mcp_config.json,
 # scripts/llm/mcp-servers.json) nie von Hand editieren.
 clients:
+  context7:
+    transport: stdio
+    command: npx
+    args: [-y, "@upstash/context7-mcp@4.1.1"]
+    note: >-
+      All harnesses use the official upstream tools over stdio, including
+      llama.cpp which does not support HTTP MCP. Disable the duplicate Claude
+      plugin: its client=claude-code-plugin endpoint requires authentication
+      even when anonymous access works on the standard endpoint.
+      Codex and Gemini CLI user configuration: docs/runbooks/context7-harnesses.md.
+    harness:
+      claude_code:
+        command: npx
+        args: [-y, "@upstash/context7-mcp@4.1.1"]
+      agy:
+        command: npx
+        args: [-y, "@upstash/context7-mcp@4.1.1"]
+      opencode:
+        type: local
+        command: [npx, -y, "@upstash/context7-mcp@4.1.1"]
+        enabled: true
+      qwen_code:
+        command: npx
+        args: [-y, "@upstash/context7-mcp@4.1.1"]
+      llamacpp:
+        command: npx
+        args: [-y, "@upstash/context7-mcp@4.1.1"]
+        timeout_ms: 60000
+
   mcp-kubernetes:
     transport: http
     endpoint: http://localhost:18080/mcp

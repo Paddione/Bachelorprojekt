@@ -27,8 +27,6 @@ file_body() {
   awk '/^AS \$\$$/{on=1; next} /^\$\$;$/{on=0} on' "$LATEST"
 }
 
-norm() { tr -s '[:space:]' ' ' | sed 's/^ //; s/ $//'; }
-
 @test "the latest migration declares a runtime-check marker (positive anchor)" {
   run grep -oP 'RUNTIME-CHECK: function=tickets\.fn_purge_test_data marker=\K\S+' "$LATEST"
   [ "$status" -eq 0 ]
@@ -43,17 +41,16 @@ norm() { tr -s '[:space:]' ' ' | sed 's/^ //; s/ $//'; }
 }
 
 @test "the runtime body equals the latest migration body" {
+  # Exakter Vergleich: auch Leerraum in SQL-String-Literalen (dynamisches SQL) zaehlt.
+  local b; b="$(file_body)"
+  [ -n "$b" ]
   run module_body
   [ "$status" -eq 0 ]
-  local a b
-  a="$(norm <<<"$output")"
-  b="$(file_body | norm)"
-  [ -n "$b" ]
-  [ "$a" = "$b" ]
+  [ "$output" = "$b" ]
 }
 
 @test "no other website module defines the purge function" {
-  run grep -rlF 'CREATE OR REPLACE FUNCTION tickets.fn_purge_test_data' "$REPO/components/website/src/lib"
+  run grep -rlF 'CREATE OR REPLACE FUNCTION tickets.fn_purge_test_data' "$REPO/components/website/src"
   [ "$status" -eq 0 ]
   [ "$output" = "$MOD" ]
 }

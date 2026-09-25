@@ -30,8 +30,10 @@ export const POST: APIRoute = async ({ request , locals }) => {
     // Defensive, idempotent schema-ensure: this CronJob endpoint imports only
     // website-db (never questionnaire-db), so on a fresh pod that never served a
     // questionnaire/admin page the questionnaire_* / systemtest_* tables may not
-    // exist yet. tickets.fn_purge_test_data() DELETEs from them unconditionally,
-    // so it would 500 without the tables (T000406). Memoised — runs at most once.
+    // exist yet. Up to v6 tickets.fn_purge_test_data() DELETEd from them
+    // unconditionally and returned 500 without the tables (T000406); v8
+    // (tickets/purge-fn.ts, T900381) guards them with to_regclass, so this is now
+    // defence in depth. Memoised — runs at most once.
     await initTicketsSchema();
     await ensureQuestionnaireSchemaOnce(pool);
     const counts = await purgeAllTestData(pool);

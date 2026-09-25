@@ -18,6 +18,6 @@ reverted the manually applied v7/v8 migrations on fleet (T900381), which the run
 
 #### Scenario: No second definition in the website
 
-- **GIVEN** the website sources under `components/website/src/lib/`
+- **GIVEN** the website sources under `components/website/src/`
 - **WHEN** they are searched for `CREATE OR REPLACE FUNCTION tickets.fn_purge_test_data`
 - **THEN** the only match is in `tickets/purge-fn.ts`

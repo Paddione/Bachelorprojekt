@@ -10,6 +10,8 @@
 # PRUEFMODUS: Output-Verifikation. Der Server wird GESTARTET und per curl
 # angesprochen; ComfyUI ist durch fake-comfyui.py ersetzt, systemctl durch
 # einen Stub, der den Fake startet/stoppt und jeden Aufruf protokolliert.
+# Ausnahme "trim defaults …": reiner Logiktest der puren Funktionen in lib.mjs
+# (validateArgs/postprocessArgs), per node importiert statt ueber den Server.
 
 setup_file() {
   export REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
@@ -172,6 +174,8 @@ run_job() {
     console.log(args({ transparent: true }));
     console.log(args({ transparent: true, trim: false }));
     console.log(args({ pixelate: { size: 16 } }));
+    console.log(args({ trim: true }));
+    console.log(validateArgs({ prompt: 'x', trim: 'false' }).error);
   "
   [ "$status" -eq 0 ]
   grep -q -e '--transparent' <<<"${lines[0]}"
@@ -180,6 +184,9 @@ run_job() {
   [ -z "$(grep -e '--trim' <<<"${lines[1]}" || true)" ]
   grep -q -e '--pixelate 16' <<<"${lines[2]}"
   [ -z "$(grep -e '--trim' <<<"${lines[2]}" || true)" ]
+  # trim ohne transparent ist wirkungslos und erzeugt keine Nachbearbeitung
+  [ "${lines[3]}" = "--in in.png --out out.png" ]
+  grep -q 'trim must be a boolean' <<<"${lines[4]}"
 }
 
 @test "an idle server stops comfyui" {

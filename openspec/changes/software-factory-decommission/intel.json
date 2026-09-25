@@ -1,0 +1,555 @@
+{
+  "meta": {
+    "slug": "software-factory-decommission",
+    "ticket_id": "T900399",
+    "generated_from": "main@0142c388e",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5471,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/factory-control.ts",
+      "language": "javascript",
+      "loc": 184,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 716
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/factory/force-tick.ts",
+      "language": "javascript",
+      "loc": 44,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 856
+    },
+    {
+      "path": "components/website/src/pages/sdlc/api/factory/parallel-status.ts",
+      "language": "javascript",
+      "loc": 73,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 827
+    },
+    {
+      "path": "docs/agent-guide/registry/agents.yaml",
+      "language": "config",
+      "loc": 137,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/capabilities.yaml",
+      "language": "config",
+      "loc": 849,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/goals.yaml",
+      "language": "config",
+      "loc": 219,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/mcp.yaml",
+      "language": "config",
+      "loc": 485,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/networks.yaml",
+      "language": "config",
+      "loc": 226,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/skills.yaml",
+      "language": "config",
+      "loc": 1121,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/tools.yaml",
+      "language": "config",
+      "loc": 272,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-pod/deployment.yaml",
+      "language": "config",
+      "loc": 250,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/dev-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 53,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/specs/software-factory.md",
+      "language": "markdown",
+      "loc": 5756,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/migrate-db.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/migrations/2026-09-26-factory-decommission.sql",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/ticket.sh",
+      "language": "bash",
+      "loc": 1136,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.agents.yml",
+      "language": "config",
+      "loc": 564,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/decommission-guard.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3894:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3894:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3894:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3895:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3895:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3895:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3896:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3896:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3896:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3897:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3897:        _run()  {(...)",
+      "type_text": "3897:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5049:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5049:        kexec_psql() {(...)",
+      "type_text": "5049:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/sdlc/api/factory-control.ts:69:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {",
+      "kind": "function",
+      "file": "components/website/src/pages/sdlc/api/factory-control.ts",
+      "signature": "69:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "type_text": "69:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/sdlc/api/factory/force-tick.ts:8:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {",
+      "kind": "function",
+      "file": "components/website/src/pages/sdlc/api/factory/force-tick.ts",
+      "signature": "8:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "type_text": "8:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "components/website/src/pages/sdlc/api/factory/parallel-status.ts:13:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {",
+      "kind": "function",
+      "file": "components/website/src/pages/sdlc/api/factory/parallel-status.ts",
+      "signature": "13:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "type_text": "13:function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:169:cmd_create() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "169:cmd_create() {(...)",
+      "type_text": "169:cmd_create() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:174:cmd_update_status() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "174:cmd_update_status() {(...)",
+      "type_text": "174:cmd_update_status() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:180:cmd_update_fields() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "180:cmd_update_fields() {(...)",
+      "type_text": "180:cmd_update_fields() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:186:cmd_set_parent() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "186:cmd_set_parent() {(...)",
+      "type_text": "186:cmd_set_parent() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:192:cmd_add_comment() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "192:cmd_add_comment() {(...)",
+      "type_text": "192:cmd_add_comment() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:226:cmd_archive_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "226:cmd_archive_plan() {(...)",
+      "type_text": "226:cmd_archive_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:317:cmd_get_attachments() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "317:cmd_get_attachments() {(...)",
+      "type_text": "317:cmd_get_attachments() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:386:cmd_get() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "386:cmd_get() {(...)",
+      "type_text": "386:cmd_get() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:391:cmd_enqueue() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "391:cmd_enqueue() {(...)",
+      "type_text": "391:cmd_enqueue() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:396:cmd_stage_plan() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "396:cmd_stage_plan() {(...)",
+      "type_text": "396:cmd_stage_plan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:401:cmd_assert_phase_chain() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "401:cmd_assert_phase_chain() {(...)",
+      "type_text": "401:cmd_assert_phase_chain() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:406:cmd_release_hold() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "406:cmd_release_hold() {(...)",
+      "type_text": "406:cmd_release_hold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:434:cmd_seq_repair() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "434:cmd_seq_repair() {(...)",
+      "type_text": "434:cmd_seq_repair() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:444:cmd_set_touched_files() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "444:cmd_set_touched_files() {(...)",
+      "type_text": "444:cmd_set_touched_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:462:cmd_set_scout_drift() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "462:cmd_set_scout_drift() {(...)",
+      "type_text": "462:cmd_set_scout_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:482:cmd_set_pipeline_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "482:cmd_set_pipeline_slot() {(...)",
+      "type_text": "482:cmd_set_pipeline_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:498:cmd_release_slot() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "498:cmd_release_slot() {(...)",
+      "type_text": "498:cmd_release_slot() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:513:cmd_touch() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "513:cmd_touch() {(...)",
+      "type_text": "513:cmd_touch() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:528:cmd_retry_count() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "528:cmd_retry_count() {(...)",
+      "type_text": "528:cmd_retry_count() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:570:cmd_unfactory() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "570:cmd_unfactory() {(...)",
+      "type_text": "570:cmd_unfactory() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:624:cmd_factory_control() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "624:cmd_factory_control() {(...)",
+      "type_text": "624:cmd_factory_control() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:657:cmd_dryrun_mark() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "657:cmd_dryrun_mark() {(...)",
+      "type_text": "657:cmd_dryrun_mark() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:673:cmd_dryrun_check() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "673:cmd_dryrun_check() {(...)",
+      "type_text": "673:cmd_dryrun_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:689:cmd_feature_flag() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "689:cmd_feature_flag() {(...)",
+      "type_text": "689:cmd_feature_flag() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:730:cmd_phase() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "730:cmd_phase() {(...)",
+      "type_text": "730:cmd_phase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:757:cmd_inject() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "757:cmd_inject() {(...)",
+      "type_text": "757:cmd_inject() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:799:cmd_get_injections() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "799:cmd_get_injections() {(...)",
+      "type_text": "799:cmd_get_injections() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:827:cmd_plan_meta() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "827:cmd_plan_meta() {(...)",
+      "type_text": "827:cmd_plan_meta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:885:_csv_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "885:_csv_to_quoted() {(...)",
+      "type_text": "885:_csv_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:897:_pipe_to_quoted() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "897:_pipe_to_quoted() {(...)",
+      "type_text": "897:_pipe_to_quoted() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:910:cmd_lastenheft() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "910:cmd_lastenheft() {(...)",
+      "type_text": "910:cmd_lastenheft() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:954:_readiness_to_json() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "954:_readiness_to_json() {(...)",
+      "type_text": "954:_readiness_to_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:964:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "964:cmd_list() {(...)",
+      "type_text": "964:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:969:cmd_backfill_id() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "969:cmd_backfill_id() {(...)",
+      "type_text": "969:cmd_backfill_id() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:974:cmd_get_timeline() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "974:cmd_get_timeline() {(...)",
+      "type_text": "974:cmd_get_timeline() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:1050:cmd_triage() {",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "1050:cmd_triage() {(...)",
+      "type_text": "1050:cmd_triage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.agents.yml:172:          probe() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.agents.yml",
+      "signature": "172:          probe() {(...)",
+      "type_text": "172:          probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "taskfiles/Taskfile.agents.yml:494:        check() {",
+      "kind": "function",
+      "file": "taskfiles/Taskfile.agents.yml",
+      "signature": "494:        check() {(...)",
+      "type_text": "494:        check() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

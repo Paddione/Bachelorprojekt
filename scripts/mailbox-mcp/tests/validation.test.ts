@@ -47,13 +47,30 @@ describe("Sanitization utilities", () => {
 
     it("should remove event handlers", () => {
       expect(sanitizeHtml('<div onclick="alert()">content</div>')).toBe(
-        "<div >content</div>",
+        "<div>content</div>",
       );
     });
 
     it("should remove javascript: urls", () => {
       expect(sanitizeHtml('<a href="javascript:alert()">link</a>')).toBe(
-        '<a href="">link</a>',
+        "<a>link</a>",
+      );
+    });
+
+    it("should strip malformed and nested script markup", () => {
+      expect(sanitizeHtml("<scr<script>ipt>alert(1)</script><p>ok</p>")).not.toMatch(/<script/i);
+      expect(sanitizeHtml("<script>alert(1)</script foo><p>ok</p>")).toBe("<p>ok</p>");
+    });
+
+    it("should drop javascript:, vbscript: and data: link schemes", () => {
+      for (const scheme of ["javascript", "JaVaScRiPt", "vbscript", "data"]) {
+        expect(sanitizeHtml(`<a href="${scheme}:alert(1)">x</a>`)).toBe("<a>x</a>");
+      }
+    });
+
+    it("should keep common mail formatting", () => {
+      expect(sanitizeHtml('<p style="color:red"><b>hi</b> <a href="https://x.test">l</a></p>')).toBe(
+        '<p style="color:red"><b>hi</b> <a href="https://x.test">l</a></p>',
       );
     });
   });

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import dayjs from "dayjs";
 import ICAL from "ical.js";
 import { createDAVClient, type DAVCalendar, type DAVObject } from "tsdav";
@@ -344,7 +345,7 @@ export class CalendarService {
     CalendarEvent,
     "id" | "uid" | "summary" | "description" | "location"
   > {
-    const uid = event.uid || `${Date.now()}-${Math.random()}`;
+    const uid = event.uid || randomUUID();
     return {
       id: uid,
       uid,

@@ -342,44 +342,6 @@ skills:
         sync: identical
     exclusions: {}
 
-  - id: ui-ux-pro-max
-    provenance: vendor
-    exposure: portable
-    source: .agents/skills/ui-ux-pro-max
-    harnesses:
-      codex:
-        path: .agents/skills/ui-ux-pro-max
-        sync: identical
-      agy:
-        path: .agents/skills/ui-ux-pro-max
-        sync: identical
-      opencode:
-        path: .opencode/skills/ui-ux-pro-max
-        sync: removed
-      claude_code:
-        path: .claude/skills/ui-ux-pro-max
-        sync: identical
-    exclusions: {}
-
-  - id: unsloth-buddy
-    provenance: vendor
-    exposure: portable
-    source: .agents/skills/unsloth-buddy
-    harnesses:
-      codex:
-        path: .agents/skills/unsloth-buddy
-        sync: identical
-      agy:
-        path: .agents/skills/unsloth-buddy
-        sync: identical
-      opencode:
-        path: .opencode/skills/unsloth-buddy
-        sync: removed
-      claude_code:
-        path: .claude/skills/unsloth-buddy
-        sync: identical
-    exclusions: {}
-
   - id: update-dependencies
     provenance: project
     exposure: portable

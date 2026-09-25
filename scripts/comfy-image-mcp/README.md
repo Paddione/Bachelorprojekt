@@ -13,7 +13,9 @@ Design: `openspec/changes/archive/*comfy-image-mcp/design.md`. Vorbild: `scripts
 | `image_status {}` | ComfyUI erreichbar, freier VRAM, Warteschlange, Sekunden bis zum Auto-Stopp. |
 
 `transparent: true` stellt das Motiv frei (`rembg`, Modell `isnet-general-use`) und ergänzt den Prompt um
-einen weißen Hintergrund. `pixelate: {size, colors, scale}` verkleinert die längere Seite auf `size` px,
+einen weißen Hintergrund. Freigestellte Bilder werden danach auf das Motiv zugeschnitten (`trim`, Default =
+`transparent`; Rand 2 % der längeren Seite) — sonst füllte das Motiv einen Pixel-Sprite nur zu einem Bruchteil.
+`trim: false` behält die volle Leinwand, etwa wenn mehrere Sprites dieselbe Größe brauchen. `pixelate: {size, colors, scale}` verkleinert die längere Seite auf `size` px,
 reduziert auf `colors` Farben, macht das Alpha hart und vergrößert optional um `scale` (Nearest). In beiden
 Fällen bleibt das Rohbild als `<name>.raw.png` liegen.
 

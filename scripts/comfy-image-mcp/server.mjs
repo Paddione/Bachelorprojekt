@@ -19,7 +19,16 @@ import {
   corsHeadersFor,
   writeSecurityError,
 } from '../lib/mcp-http-security.mjs';
-import { validateArgs, checkOutPath, assertTemplate, buildPrompt, ImageQueue, jobView } from './lib.mjs';
+import {
+  validateArgs,
+  checkOutPath,
+  assertTemplate,
+  buildPrompt,
+  ImageQueue,
+  jobView,
+  postprocessArgs,
+  needsPostprocess,
+} from './lib.mjs';
 import { createClient } from './comfy-client.mjs';
 
 const SERVER_NAME = 'comfy-image-mcp';
@@ -52,11 +61,7 @@ const client = createClient({
 
 // Schreibt in eine Temp-Datei; runJob benennt sie erst nach Erfolg um (kein halbes PNG an out_path).
 function postprocess(p, tmpOut, deadline) {
-  const args = [join(HERE, 'postprocess.py'), '--in', p.rawPath, '--out', tmpOut];
-  if (p.transparent) args.push('--transparent');
-  if (p.pixelate) {
-    args.push('--pixelate', String(p.pixelate.size), '--colors', String(p.pixelate.colors), '--scale', String(p.pixelate.scale));
-  }
+  const args = [join(HERE, 'postprocess.py'), ...postprocessArgs(p, p.rawPath, tmpOut)];
   return new Promise((resolve, reject) => {
     const child = spawn(PYTHON, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let err = '';
@@ -100,7 +105,7 @@ async function runJob(job) {
   const png = await client.fetchImage(ref);
   lap('generate_s');
 
-  const needsPost = p.transparent || p.pixelate;
+  const needsPost = needsPostprocess(p);
   if (!needsPost) {
     writeNew(p.outPath, png, p.overwrite);
   } else {
@@ -147,6 +152,7 @@ const TOOLS = [
       'backgrounds/parallax layers, card illustrations, portraits, single item icons and images with legible ' +
       'text (logos, signs, title screens). Consistent sprite sheets, animation frames or the same character ' +
       'across several images do NOT work reliably. transparent:true removes the background (for sprites); ' +
+      'transparent images are trimmed to the subject by default (trim:false keeps the canvas); ' +
       'pixelate {size, colors, scale} turns the result into pixel art with a hard alpha. One 768x768 image ' +
       'takes about 2 minutes (plus ~1 minute if ComfyUI has to start). Returns a job_id immediately; poll ' +
       'image_result. Reuse the reported seed to reproduce an image.',
@@ -161,6 +167,10 @@ const TOOLS = [
         steps: { type: 'integer', minimum: 1, maximum: 60, description: 'Sampling steps (default 25).' },
         negative_prompt: { type: 'string' },
         transparent: { type: 'boolean', description: 'Cut out the subject (RGBA). Keeps <name>.raw.png.' },
+        trim: {
+          type: 'boolean',
+          description: 'Crop to the subject plus a small transparent margin before pixelate (default: same as transparent).',
+        },
         pixelate: {
           type: 'object',
           description: 'Pixel-art post-processing. Keeps <name>.raw.png.',
@@ -211,7 +221,7 @@ async function callTool(name, args) {
     case 'image_generate': {
       const v = validateArgs(args, { timeoutFloorS: TIMEOUT_FLOOR_S });
       if (v.error) return text(v.error, true);
-      const needsRaw = Boolean(v.params.transparent || v.params.pixelate);
+      const needsRaw = needsPostprocess(v.params);
       const out = checkOutPath(args.out_path, v.params.overwrite, needsRaw);
       if (out.error) return text(out.error, true);
       if (queue.claims(out.path) || (needsRaw && queue.claims(out.rawPath))) {

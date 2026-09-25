@@ -34,6 +34,8 @@ export function validateArgs(args, { timeoutFloorS = 60 } = {}) {
       steps: args.steps === undefined ? 25 : args.steps,
       seed: args.seed === undefined ? randomInt(0, 2 ** 31) : args.seed,
       transparent: args.transparent === true,
+      // trim (T900386): Default folgt transparent — ohne Alpha gibt es nichts zuzuschneiden.
+      trim: typeof args.trim === 'boolean' ? args.trim : args.transparent === true,
       pixelate: null,
       overwrite: args.overwrite === true,
     };
@@ -81,6 +83,24 @@ export function checkOutPath(p, overwrite, needsRaw = false) {
     if (existsSync(f) && !overwrite) return { error: `file exists (pass overwrite: true to replace): ${f}` };
   }
   return { path, dir, rawPath };
+}
+
+// Argumente fuer postprocess.py (ohne Skriptpfad). Reihenfolge der Stufen legt postprocess.py fest:
+// Freistellung -> Zuschnitt -> Pixelate.
+export function postprocessArgs(params, inPath, outPath) {
+  const a = ['--in', inPath, '--out', outPath];
+  if (params.transparent) a.push('--transparent');
+  if (params.trim) a.push('--trim');
+  if (params.pixelate) {
+    const { size, colors, scale } = params.pixelate;
+    a.push('--pixelate', String(size), '--colors', String(colors), '--scale', String(scale));
+  }
+  return a;
+}
+
+// true, wenn der Job eine Nachbearbeitung (und damit <name>.raw.png) braucht.
+export function needsPostprocess(params) {
+  return Boolean(params.transparent || params.pixelate || params.trim);
 }
 
 function nodeOf(graph, classType) {

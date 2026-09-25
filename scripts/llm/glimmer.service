@@ -1,4 +1,5 @@
 # systemd-User-Unit: Muse Glimmer 30B UD-IQ3_XXS + DFlash2-Drafter auf der RTX 5070 Ti allein [T900365].
+# Status: Aktiv (T900365) — einziges lokales Generierungs-Backend auf :1919.
 # Loest Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp (qwen38-gsq.service, T900359) als Backend auf :1919 ab —
 # alle Konsumenten (opencode llamacpp-local, Factory, brain-ingest) sprechen weiter :1919 an.
 # Glimmer ist aus Muse Spark destilliert, der Modellfamilie des opencode-Orchestrators.

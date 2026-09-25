@@ -355,7 +355,7 @@ skills:
         sync: identical
       opencode:
         path: .opencode/skills/ui-ux-pro-max
-        sync: identical
+        sync: removed
       claude_code:
         path: .claude/skills/ui-ux-pro-max
         sync: identical
@@ -374,7 +374,7 @@ skills:
         sync: identical
       opencode:
         path: .opencode/skills/unsloth-buddy
-        sync: identical
+        sync: removed
       claude_code:
         path: .claude/skills/unsloth-buddy
         sync: identical

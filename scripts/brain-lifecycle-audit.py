@@ -16,6 +16,22 @@ from typing import Any
 REQUIRED_LIFECYCLE = ("source_kind", "source_revision", "observed_at", "valid_from")
 CLAIM_RE = re.compile(r"^claim::\s*([^=]+?)\s*=\s*(.+?)\s*$")
 SOURCE_RE = re.compile(r"^source::\s+Bachelorprojekt\s+(.+?)\s*$")
+# Brain-native Meta-Seiten (vgl. brain-ingest-prune.sh: bare oder "<Thema> (self)").
+META_SOURCE_RE = re.compile(r"^source::\s+(self|test|.*\(self\))\s*$")
+SELF_SOURCE_VALUES = ("self", "test")
+
+
+def _is_self_source(value: str) -> bool:
+    """True wenn ein source::-Wert eine Brain-native Meta-Quelle bezeichnet.
+
+    Greift für Body-Zeilen (via META_SOURCE_RE-Aufrufer) und für
+    Frontmatter-eingebettete `source::`-Zeilen, deren Key-Parsing ein
+    führendes ":" im Wert zurücklässt (`source` → `": <wert>"`).
+    """
+    text = value.strip()
+    if text.startswith(":"):
+        text = text[1:].strip()
+    return text in SELF_SOURCE_VALUES or text.endswith("(self)")
 
 
 class AuditError(ValueError):
@@ -187,7 +203,18 @@ def collect_findings(pages: list[PageRecord], source_root: Path, as_of: datetime
             findings.append({"code": "upstream_revision_mismatch", "slug": page.slug,
                              "recorded_revision": upstream, "source_revision": source_upstream})
         if missing:
-            findings.append({"code": "metadata_unknown", "slug": page.slug, "missing": missing})
+            # Meta-Seiten haben per Design keine Bachelorprojekt-Provenienz
+            # (T900401) — Frische ist für handgepflegte Seiten kein Kriterium.
+            # Die source::-Zeile steht je nach Ära im Body oder im Frontmatter.
+            front_source = page.metadata.get("source", "")
+            is_meta = (
+                isinstance(front_source, str) and _is_self_source(front_source)
+            ) or any(
+                META_SOURCE_RE.fullmatch(line)
+                for line in page.body.splitlines()
+            )
+            if not is_meta:
+                findings.append({"code": "metadata_unknown", "slug": page.slug, "missing": missing})
     claims: dict[str, list[tuple[PageRecord, str]]] = {}
     for page in pages:
         if page.metadata.get("status") != "active":

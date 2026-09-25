@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.364.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.2...website-v1.364.3) (2026-09-25)
+
+
+### Bug Fixes
+
+* **test:** resolve live E2E failures and retire followups and factory-qs specs [T900392] ([#5910](https://github.com/Paddione/Bachelorprojekt/issues/5910)) ([f315931](https://github.com/Paddione/Bachelorprojekt/commit/f31593133ef5a37bf9a492ddd578e633df406a0a))
+
 ## [1.364.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.1...website-v1.364.2) (2026-09-25)
 
 

@@ -108,6 +108,9 @@ Running/Succeeded ist oder deren Container nicht ready sind. Alle G-K8S-Goals pr
 Manifeste (YAML) — dieses Ziel schaut erstmals auf den Live-Zustand des Clusters.
 Baseline 2026-07-22: `workspace/[livekit-egress — removed T002184]` (Pending), `workspace/test-pod`
 (Failed — Debris), `workspace-korczewski/oauth2-proxy-terminal-…` (Pending).
+Hinweis Brand-Pause (T002479/T014537/T900363): Bei pausierter Brand (`flux-korczewski` mit `spec.suspend == true`)
+wird `workspace-korczewski` von `ops_kubectl_count()` dynamisch übersprungen. Sobald die Brand
+reaktiviert wird, schärft sich die Prüfung automatisch wieder auf beide Namespaces.
 
 ```bash
 python3 -c "
@@ -228,13 +231,14 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 
 ## G-LLM01 — Modellserver-Verfügbarkeit (Loadout-Endpunkte): n/a → 0
 
-**Was:** Zählt die in `scripts/llm/loadouts.json` geführten Modellserver, die nicht erreichbar sind.
-Die Loadout-Datei ist die SSOT für Modellserver; ein toter Server darin bedeutet verlorene
-Inferenz-Kapazität. `exclusiveGroup`-Mitglieder einer Gruppe gelten nur als eine Zähleinheit —
-eine Gruppe ist verfügbar, sobald ein Mitglied lebt. Messquelle ist `scripts/lib/llm-stack-measure.sh`
-(`server-availability`); der Positiv-Anker (`/livez` des llm-proxy und eine auswertbare
-Loadout-Registry) entscheidet `n/a` gegen `0` — eine nicht durchgeführte Messung zählt nie als
-erreicht.
+**Was:** Zählt die in `scripts/llm/loadouts.json` geführten Modellserver (nur aktivierte Loadouts),
+die nicht erreichbar sind. Die Loadout-Datei ist die SSOT für Modellserver; ein toter Server darin
+bedeutet verlorene Inferenz-Kapazität. FreeToken auf Port 1919 wurde pensioniert (T900363); :1919 bedient
+ausschließlich den nativen `llama-server` mit `Qwen3.8-27B-gsq` (150k Kontext, MTP via `qwen38-gsq.service`).
+`exclusiveGroup`-Mitglieder einer Gruppe gelten nur als eine Zähleinheit — eine Gruppe ist verfügbar,
+sobald ein Mitglied lebt. Messquelle ist `scripts/lib/llm-stack-measure.sh` (`server-availability`);
+der Positiv-Anker (`/livez` oder `/health` des llm-proxy und eine auswertbare Loadout-Registry)
+entscheidet `n/a` gegen `0` — eine nicht durchgeführte Messung zählt nie als erreicht.
 
 ```bash
 bash scripts/lib/llm-stack-measure.sh server-availability
@@ -263,10 +267,9 @@ bash scripts/lib/llm-stack-measure.sh proxy-readiness
 **Was:** Zählt deklarierte LLM-Unit-Dateien (`scripts/llm/*.service`, `scripts/llm-proxy/*.service`)
 ohne `enabled`-Zustand (`systemctl --user is-enabled`). Fehlt der Autostart, ist der Dienst nach
 einem Neustart weg, ohne dass es auffällt — der llm-proxy hatte keinen Autostart, während die
-Modellserver ihn seit T002110 hatten. `ollama.service` ist deklariert und bewusst nicht auf dieser
-Maschine installiert; es zählt als Fund und darf nicht wegdefiniert werden. Messquelle ist
-`scripts/lib/llm-stack-measure.sh` (`autostart-coverage`); der Positiv-Anker ist mindestens eine
-deklarierte Unit-Datei.
+Modellserver ihn seit T002110 hatten. `ollama.service` ist eine statische Referenz-Unit und wird
+bewusst ignoriert. Messquelle ist `scripts/lib/llm-stack-measure.sh` (`autostart-coverage`);
+der Positiv-Anker ist mindestens eine deklarierte Unit-Datei.
 
 ```bash
 bash scripts/lib/llm-stack-measure.sh autostart-coverage

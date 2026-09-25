@@ -38,7 +38,7 @@ ExecStart=%h/opt/llama-current/bin/llama-server \
   -fa on -ctk q4_0 -ctv q4_0 \
   --spec-type draft-mtp --spec-draft-n-max 4 \
   -np 1 --jinja \
-  --host 127.0.0.1 --port 1919
+  --host 0.0.0.0 --port 1919
 Restart=on-failure
 RestartSec=10
 TimeoutStartSec=300

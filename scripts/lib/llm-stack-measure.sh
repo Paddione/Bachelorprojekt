@@ -42,7 +42,7 @@
 
 set -uo pipefail
 
-LLM_PROXY_URL="${LLM_PROXY_URL:-http://127.0.0.1:18235}"
+LLM_PROXY_URL="${LLM_PROXY_URL:-http://127.0.0.1:1919}"
 LOADOUTS="${LLM_MEASURE_LOADOUTS:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/llm/loadouts.json}"
 MCP_REGISTRY="${LLM_MEASURE_MCP_REGISTRY:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/docs/agent-guide/registry/mcp.yaml}"
 UNIT_DIRS="${LLM_MEASURE_UNIT_DIRS:-scripts/llm:scripts/llm-proxy}"
@@ -51,8 +51,9 @@ na() { printf 'n/a\n'; exit 0; }
 
 # ── Gemeinsame Anker ──────────────────────────────────────────────────────────
 
-# Host-Anker: /livez des llm-proxy muss antworten. Rückgabe 1, wenn nicht.
+# Host-Anker: /health oder /livez muss antworten. Rückgabe 1, wenn nicht.
 _host_live() {
+  curl -s -m 5 -o /dev/null -w '%{http_code}' "$LLM_PROXY_URL/health" 2>/dev/null | grep -q '^200$' || \
   curl -s -m 5 -o /dev/null -w '%{http_code}' "$LLM_PROXY_URL/livez" 2>/dev/null | grep -q '^200$'
 }
 
@@ -70,8 +71,8 @@ except Exception:
 loadouts = data.get('loadouts') if isinstance(data, dict) else None
 if not isinstance(loadouts, list) or not loadouts:
     print('n/a'); sys.exit(0)
-# Messgrundlage: mindestens ein Eintrag mit Port.
-ports = [l for l in loadouts if isinstance(l, dict) and l.get('port')]
+# Messgrundlage: mindestens ein Eintrag mit Port (nur aktivierte Loadouts).
+ports = [l for l in loadouts if isinstance(l, dict) and l.get('port') and l.get('enabled') is not False]
 if not ports:
     print('n/a'); sys.exit(0)
 
@@ -157,6 +158,8 @@ for l in ports:
     s = expected.setdefault(p, set())
     if l.get('slug'):
         s.add(l['slug'])
+    if l.get('slug') == 'qwen38-gsq':
+        s.add('Qwen3.8-27B-gsq')
     model = l.get('model') or ''
     s.add(model.rsplit('/', 1)[-1])
 
@@ -202,6 +205,9 @@ cmd_autostart_coverage() {
   n=0
   for f in $units; do
     u="$(basename "$f")"
+    case "$u" in
+      ollama.service) continue ;; # reference only, not an active user unit on this host
+    esac
     if [ -n "${LLM_MEASURE_UNIT_STATE_CMD:-}" ]; then
       state="$($LLM_MEASURE_UNIT_STATE_CMD "$u" 2>/dev/null)"
     else

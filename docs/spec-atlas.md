@@ -392,7 +392,7 @@ In-flight:
   - Fresh rooms auto-seed the brand default scenario | T900360 | active | ADDED
   - System scenarios are fully staged | T900360 | active | ADDED
   - Leiter can reset to the startup default | T900360 | active | ADDED
-  - Board template seeding is idempotent | T900360 | active | MODIFIED
+  - Board template seeding is idempotent | T900360 | active | ADDED
 
 ### centralized-logging
 Reqs: 16 · Scenarios: 35 · Lines: 396

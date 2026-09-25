@@ -363,3 +363,28 @@ setup() {
   run grep -qF -- 'is_default' "$mig"
   [ "$status" -eq 0 ]
 }
+
+# (f) Template lines seeding — staged lines are reseeded with staged ids via
+# line_create (fallback generateId), the stale __lines__ sentinel is cleared
+# first, and an absent/empty list leaves it empty (offline grep gates).
+@test "T900360 (f): seedFiguresFromTemplate reseeds staged lines via line_create and clears stale lines" {
+  run grep -q 'templateState?.lines' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -qF -- "figs.set('__lines__'" "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q "type: 'line_create'" "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'seedFiguresFromTemplate' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+}
+
+# (g) Template lines snapshot — applyTemplateToRoom broadcasts the seeded lines
+# under the `lines` field (types/messages.ts + ws-client.ts contract).
+@test "T900360 (g): applyTemplateToRoom snapshot carries lines" {
+  run grep -q 'lines: built.lines' "${SRC}/server/figures.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'lines?: BrettLine' "${SRC}/types/messages.ts"
+  [ "$status" -eq 0 ]
+  run grep -q 'msg.lines' "${SRC}/client/ws-client.ts"
+  [ "$status" -eq 0 ]
+}

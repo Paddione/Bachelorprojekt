@@ -399,13 +399,14 @@ export function seedFigureMapFromState(map: Map<string, any>, state: any): void 
  * starting with `__`) and re-adds each template figure via applyMutation('add')
  * so appearance-defaulting and the 200-cap apply. It also reseeds the staged
  * board dimensions carried in the template state (D4 gap): zones via
- * zone_create, anchors via anchor_create, and optik via optik_set. Each of
- * the __zones__ / __anchors__ sentinels is reset to an empty list before the
- * staged entries are applied, so a previous board layout never leaks into the
- * seeded room; an absent or empty template list leaves the sentinel cleared.
- * Staged ids are preserved (fallback: module-local generateId()). All other
- * sentinels (__session_phase__, __lobby_settings__, __roles__,
- * __moderation__, …) stay untouched. No DB.
+ * zone_create, anchors via anchor_create, lines via line_create, and optik via
+ * optik_set. Each of the __zones__ / __anchors__ sentinels is reset to an empty
+ * list and the __lines__ sentinel to an empty map before the staged entries are
+ * applied, so a previous board layout never leaks into the seeded room; an
+ * absent or empty template list leaves the sentinel cleared. Staged ids are
+ * preserved (fallback: module-local generateId()). All other sentinels
+ * (__session_phase__, __lobby_settings__, __roles__, __moderation__, …) stay
+ * untouched. No DB.
  */
 export function seedFiguresFromTemplate(room: string, templateState: any): void {
   const figs = ensureFigureMap(room);
@@ -434,6 +435,27 @@ export function seedFiguresFromTemplate(room: string, templateState: any): void 
       if (a && typeof a === 'object') applyMutation(room, { type: 'anchor_create', anchor: a });
     }
   }
+  // Lines (T900360): clear the stale __lines__ sentinel, then reseed the staged
+  // lines via line_create (staged ids preserved; missing ids fall back to
+  // generateId()). line_create takes a flat id/fromId/toId/lineType payload
+  // (unlike the nested zone/anchor payloads) — hence the mapping here. An
+  // absent or empty template list leaves the sentinel cleared.
+  const lines: BrettLine[] | undefined = templateState?.lines;
+  figs.set('__lines__', { id: '__lines__', lines: {} });
+  if (Array.isArray(lines)) {
+    for (const l of lines) {
+      if (l && typeof l === 'object') {
+        applyMutation(room, {
+          type: 'line_create',
+          id: typeof l.id === 'string' && l.id ? l.id : generateId(),
+          fromId: l.fromId,
+          toId: l.toId,
+          lineType: l.lineType,
+          ...(l.createdBy ? { createdBy: l.createdBy } : {}),
+        });
+      }
+    }
+  }
   // Optik (D4): apply the staged board optik via optik_set (validated as a
   // non-array object). An absent optik leaves __optik__ untouched.
   const optik: OptikSettings | undefined = templateState?.optik;
@@ -445,12 +467,12 @@ export function seedFiguresFromTemplate(room: string, templateState: any): void 
 /**
  * D7 — Template apply orchestrator. Server-authoritative: seeds the room from
  * the loaded snapshot state (NOT a client-supplied figure payload) via
- * seedFiguresFromTemplate — figures, zones, anchors, and optik — then
- * broadcasts a `snapshot` covering figures, zones, anchors, and optik as
- * emitted by buildStateFromMutations, so every client renders the staged
- * constellation. The snapshot is already persisted in server state via the
- * seed, closing the latent "snapshot has no applyMutation case" persistence
- * gap for templates.
+ * seedFiguresFromTemplate — figures, zones, anchors, lines, and optik — then
+ * broadcasts a `snapshot` covering figures, zones, anchors, lines, and optik as
+ * emitted by buildStateFromMutations (field name `lines`, see types/messages.ts
+ * and client ws-client.ts), so every client renders the staged constellation.
+ * The snapshot is already persisted in server state via the seed, closing the
+ * latent "snapshot has no applyMutation case" persistence gap for templates.
  */
 export function applyTemplateToRoom(room: string, templateState: any, broadcastFn: (m: any) => void): void {
   seedFiguresFromTemplate(room, templateState);
@@ -460,6 +482,7 @@ export function applyTemplateToRoom(room: string, templateState: any, broadcastF
     figures: built.figures ?? [],
     zones: built.zones ?? [],
     anchors: built.anchors ?? [],
+    lines: built.lines ?? [],
     optik: built.optik ?? null,
   });
 }

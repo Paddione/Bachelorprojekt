@@ -49,16 +49,18 @@ test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@ad
 
     const stamp = `e2e-bgem3-${Date.now()}`;
     const dialog = page.locator('dialog[open]');
-    await dialog.locator('input[placeholder*="Website"]').or(dialog.locator('input[type="text"]')).first().fill(stamp);
+    await dialog.locator('label').filter({ hasText: 'Name' }).locator('input').fill(stamp);
     await dialog.locator('input[type="url"]').fill('https://example.com');
 
     // Intercept the API call to verify embeddingModel is sent correctly
+    const anlegenBtn = dialog.getByRole('button', { name: 'Anlegen' });
+    await expect(anlegenBtn).toBeEnabled({ timeout: 10_000 });
     const [response] = await Promise.all([
       page.waitForResponse(r =>
         r.url().includes('/api/admin/knowledge/collections') &&
         r.request().method() === 'POST'
       ),
-      dialog.getByRole('button', { name: 'Anlegen' }).click(),
+      anlegenBtn.click(),
     ]);
 
     expect(response.status()).toBe(201);

@@ -226,12 +226,15 @@ test.describe('Brett Mobile (Android) @mobile', () => {
 
       const before = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);
 
-      const cdp = await ctx.newCDPSession(page);
-      const startX = await page.evaluate(() => Math.round(window.innerWidth * 0.2));
-      const y = await page.evaluate(() => Math.round(window.innerHeight * 0.3));
-      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y }] });
-      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove',  touchPoints: [{ x: startX + 120, y }] });
-      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd',   touchPoints: [] });
+      await page.evaluate(() => {
+        const canvas = document.querySelector('canvas');
+        if (!canvas) return;
+        const startX = Math.round(window.innerWidth * 0.2);
+        const y = Math.round(window.innerHeight * 0.3);
+        canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: startX, clientY: y, bubbles: true }));
+        canvas.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, pointerType: 'touch', clientX: startX + 120, clientY: y, bubbles: true }));
+        canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, pointerType: 'touch', clientX: startX + 120, clientY: y, bubbles: true }));
+      });
       await page.waitForTimeout(200);
 
       const after = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);

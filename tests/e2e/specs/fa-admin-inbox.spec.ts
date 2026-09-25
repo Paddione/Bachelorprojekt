@@ -122,8 +122,10 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     for (const status of STATUSES) {
       const tab = root.locator(`[data-testid="inbox-status-tab"][data-status="${status}"]`);
       await expect(tab).toBeVisible();
-      await tab.click();
-      await expect(page).toHaveURL(new RegExp(`status=${status}`), { timeout: 10_000 });
+      await expect.poll(async () => {
+        await tab.click();
+        return page.url();
+      }, { timeout: 10_000 }).toMatch(new RegExp(`status=${status}`));
       // The list must finish re-rendering before we check the next tab.
       await expect(root.locator('[data-testid="inbox-list"]')).toBeVisible();
     }

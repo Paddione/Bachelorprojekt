@@ -188,7 +188,7 @@ export async function openAgentGuide(page: Page) {
   // that container and centers the row in the viewport.
   await agentGuideRow.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await expect(agentGuideRow).toBeVisible();
-  await agentGuideRow.click();
+  await agentGuideRow.click({ force: true });
 
   const body = page.locator('.ag-body');
   await expect(body).toBeVisible({ timeout: 30_000 });

@@ -11,7 +11,6 @@ test.describe('FA: Admin CRM & operations pages', { tag: ['@admin', '@crm'] }, (
   const adminPages = [
     '/admin/termine',
     '/admin/kalender',
-    '/admin/followups',
     '/admin/nachrichten',
     '/admin/inbox',
     '/admin/raeume',

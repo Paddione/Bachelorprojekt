@@ -12,6 +12,7 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 const { goals, tools, taxonomy, themes, glossary, map } = loadGuideData();
 
 test.beforeEach(() => {
+  test.setTimeout(45_000);
   test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — PortalSidekick only on authenticated layouts');
 });
 

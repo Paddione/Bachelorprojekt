@@ -980,20 +980,6 @@ The system SHALL allow an authenticated admin to create a Pocket-ID-backed clien
 - **WHEN** ein neuer Client per `POST /api/admin/clients/create` mit E-Mail, Vorname und Nachname erstellt wird, danach die Client-Liste aufgerufen wird, der Client-Detail-Tab für Notizen navigiert wird, eine Notiz erstellt und gelöscht wird, und schließlich der Client über die Delete-API entfernt wird
 - **THEN** gibt `POST /api/admin/clients/create` HTTP 201 mit `{ ok: true, userId }` zurück; der neue Client erscheint mit vollständigem Namen in der Liste (`data-testid="admin-client-item"`); Notizen sind in der Datenbank persistiert und nach dem Löschen nicht mehr sichtbar; der Client ist nach dem Löschen nicht mehr in der Liste vorhanden
 
----
-
-### Requirement: Admin Follow-up CRUD Lifecycle with Done-State Toggle
-<!-- e2e: fa-admin-db-crud-followups.spec.ts -->
-
-The system SHALL allow an authenticated admin to create a follow-up with a reason and due date, mark it as done, verify the done state in the UI, and delete it, with each state change persisted to the database.
-
-#### Scenario: Follow-up erstellen, als erledigt markieren, löschen *(E2E)*
-
-- **GIVEN** ein Admin ist via Pocket ID angemeldet und die Follow-up-Liste (`/admin/followups`) ist erreichbar
-- **WHEN** ein Follow-up per `POST /api/admin/followups/create` mit Reason und Fälligkeitsdatum erstellt wird, danach per `POST /api/admin/followups/update` mit `done=true` als erledigt markiert wird, anschließend `/admin/followups?done=1` aufgerufen wird, und schließlich das Follow-up per Delete-Formular entfernt wird
-- **THEN** erscheint das Follow-up nach Erstellung in der Liste mit dem angegebenen Reason-Text; nach dem Done-Update ist es in der erledigten Ansicht als erledigt dargestellt; nach dem Löschen ist es nicht mehr in der Liste sichtbar
-
----
 
 ### Requirement: Admin Projekte CRUD Lifecycle Including Subprojekt Creation
 <!-- e2e: fa-admin-db-crud-projekte.spec.ts -->

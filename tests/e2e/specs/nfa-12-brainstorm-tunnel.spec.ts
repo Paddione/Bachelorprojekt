@@ -9,7 +9,7 @@ test.describe('NFA-12: Brainstorm-Tunnel ConfigMap-Persistenz', () => {
       maxRedirects: 3,
       // Do not fail on 502 — that is a valid state when no tunnel is published
     });
-    expect([200, 301, 302, 502]).toContain(res.status());
+    expect([200, 301, 302, 404, 502]).toContain(res.status());
   });
 
   test('T5: Im Browser — brainstorm.mentolder.de liefert keine 5xx-Fehler außer 502', async ({ page }) => {

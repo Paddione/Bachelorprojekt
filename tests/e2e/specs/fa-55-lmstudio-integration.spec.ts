@@ -236,29 +236,26 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     await page.locator('#submit-btn').click();
     await page.waitForURL(/\/admin\/coaching\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
+    await expect(page.locator('.wizard')).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(500);
+
     // Beat 1 — instruction / greeting: click Weiter
-    await expect.poll(async () => {
-      if (await page.getByText(/Beat\s+2/i).isVisible()) return true;
-      const weiter1 = page.getByRole('button', { name: /Weiter/i });
-      if (await weiter1.isVisible() && await weiter1.isEnabled()) {
-        await weiter1.click();
-      }
-      return page.getByText(/Beat\s+2/i).isVisible();
-    }, { timeout: 15_000 }).toBe(true);
+    await expect(page.getByText(/Beat\s+1/i)).toBeVisible({ timeout: 15_000 });
+    const weiter1 = page.getByRole('button', { name: /Weiter/i });
+    await expect(weiter1).toBeEnabled({ timeout: 10_000 });
+    await weiter1.click();
 
     // Beat 2 — instruction with capture: fill textbox and click Weiter
+    await expect(page.getByText(/Beat\s+2/i)).toBeVisible({ timeout: 15_000 });
     const captureInput = page.locator('textarea, input[type="text"]').first();
-    await expect(captureInput).toBeVisible({ timeout: 15_000 });
+    await expect(captureInput).toBeVisible();
     await captureInput.fill('Führungskräfte-Entwicklung und klare Kommunikation');
+    const weiter2 = page.getByRole('button', { name: /Weiter/i });
+    await expect(weiter2).toBeEnabled({ timeout: 10_000 });
+    await weiter2.click();
 
-    await expect.poll(async () => {
-      if (await page.getByText(/Beat\s+3/i).isVisible()) return true;
-      const weiter2 = page.getByRole('button', { name: /Weiter/i });
-      if (await weiter2.isVisible() && await weiter2.isEnabled()) {
-        await weiter2.click();
-      }
-      return page.getByText(/Beat\s+3/i).isVisible();
-    }, { timeout: 15_000 }).toBe(true);
+    // Beat 3 KI prompt beat (inputs are empty because it consumes capturedFrom:1)
+    await expect(page.getByText(/Beat\s+3/i)).toBeVisible({ timeout: 15_000 });
     const kiBtn = page.getByRole('button', { name: /KI befragen/i });
 
     // Fill any required step-1 beat-3 fields if present
@@ -269,7 +266,7 @@ test.describe('FA-55-LMStudio: SessionWizard browser flow', () => {
     }
 
     // KI button should now be enabled
-    await expect(kiBtn).toBeEnabled();
+    await expect(kiBtn).toBeEnabled({ timeout: 10_000 });
     console.log('[T6] KI button enabled on Beat 3');
   });
 

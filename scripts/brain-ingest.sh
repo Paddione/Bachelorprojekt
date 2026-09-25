@@ -3,7 +3,11 @@
 # Transforms Bachelorprojekt source files into brain wiki pages via LLM,
 # delivers via PR to Paddione/brain.
 #
-# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune] [--from-scratch]
+# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune] [--from-scratch] [--group <name>]
+#
+# --group beschränkt den Lauf auf genau eine Manifest-Gruppe (Thema, T900402).
+# --pilot wirkt danach als "erste N Quellen der Gruppe". --group ist nicht mit
+# --from-scratch kombinierbar (Reset träfe alle Gruppen, Aufbau nur eine).
 #
 # Env:
 #   LM_STUDIO_URL    — llama-server ingest-pool API URL
@@ -41,6 +45,7 @@ DRY_RUN=0
 PILOT=0
 PRUNE=0
 FROM_SCRATCH=0
+GROUP=""
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}"
@@ -72,6 +77,7 @@ while [[ $# -gt 0 ]]; do
     --branch)     BRANCH="${2:?--branch requires a name}"; shift ;;
     --prune)      PRUNE=1 ;;
     --from-scratch) FROM_SCRATCH=1 ;;
+    --group) GROUP="${2:?--group requires a name}"; shift ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
@@ -81,6 +87,12 @@ done
 # only rebuild a partial slice, losing the rest. (T012902)
 if [ "$FROM_SCRATCH" -eq 1 ] && [ "$PILOT" -gt 0 ]; then
   echo "error: --from-scratch cannot be combined with --pilot" >&2; exit 2
+fi
+
+# --from-scratch + --group is forbidden for the same reason: the reset wipes
+# every group, the rebuild would only restore one. (T900402)
+if [ "$FROM_SCRATCH" -eq 1 ] && [ -n "$GROUP" ]; then
+  echo "error: --from-scratch cannot be combined with --group" >&2; exit 2
 fi
 
 [ -n "$BRAIN_REPO" ] || { echo "error: --brain-repo required" >&2; exit 1; }
@@ -137,9 +149,19 @@ WORKLIST="$(mktemp)"
 # path it covers. The ${VAR:-} guards matter because `set -u` is in force and an
 # abort in Phase 1 fires the trap before the later variables are ever assigned.
 trap 'rm -f "${WORKLIST:-}" "${SLUGS_JSON:-}" "${CHUNKS_TSV:-}" "${DELIVERED_TSV:-}"; rm -rf "${CHUNK_DIR:-}" "${RESULTS_DIR:-}"' EXIT
-bash "$WORKLIST_SCRIPT" --root "$REPO_ROOT" --manifest "$MANIFEST" > "$WORKLIST"
+WORKLIST_ARGS=(--root "$REPO_ROOT" --manifest "$MANIFEST")
+[ -n "$GROUP" ] && WORKLIST_ARGS+=(--group "$GROUP")
+bash "$WORKLIST_SCRIPT" "${WORKLIST_ARGS[@]}" > "$WORKLIST"
 TOTAL="$(wc -l < "$WORKLIST")"
-echo "Worklist: $TOTAL source files"
+if [ -n "$GROUP" ]; then
+  if [ "$TOTAL" -eq 0 ]; then
+    echo "Gruppe '$GROUP' hat keine Quellen im Manifest — nichts zu tun."
+    exit 0
+  fi
+  echo "Gruppen-Modus: nur '$GROUP' ($TOTAL Quellen)"
+else
+  echo "Worklist: $TOTAL source files"
+fi
 
 # Apply pilot limit
 if [ "$PILOT" -gt 0 ] && [ "$PILOT" -lt "$TOTAL" ]; then
@@ -607,8 +629,10 @@ if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --other
 fi
 
 git add wiki/ index.md
-git commit -m "chore(agents): initial ingest from Bachelorprojekt ($PROCESSED pages) [T001861]"
-echo "  Committed $PROCESSED pages"
+GROUP_SUFFIX=""
+[ -n "$GROUP" ] && GROUP_SUFFIX=", group $GROUP"
+git commit -m "chore(agents): initial ingest from Bachelorprojekt ($PROCESSED pages$GROUP_SUFFIX) [T001861]"
+echo "  Committed $PROCESSED pages$GROUP_SUFFIX"
 
 # Push branch
 if git remote get-url origin &>/dev/null; then
@@ -672,6 +696,7 @@ if git remote get-url origin &>/dev/null; then
 **Transformation:** Heavy (LLM-assisted summarization + frontmatter + wikilinks)
 **Chunking:** Section-aware at Requirement/H2 headings, greedy-packed to ~8000 chars (T002679)
 **Pilot:** $(if [ "$PILOT" -gt 0 ]; then echo "$PILOT pages"; else echo "full run"; fi)
+**Group:** $(if [ -n "$GROUP" ]; then echo "$GROUP"; else echo "all"; fi)
 
 **Quality gates passed:**
 - [x] Coverage gate (≥95%)

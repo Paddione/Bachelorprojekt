@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1362,
+      "file_count": 1363,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -1241,6 +1241,7 @@
         "tests/unit/backup-restore-recovery.bats",
         "tests/unit/bats-runner-path.bats",
         "tests/unit/brain-chunk-fence.bats",
+        "tests/unit/brain-ingest-group.bats",
         "tests/unit/brain-ingest-moc.bats",
         "tests/unit/brain-ingest-prune.bats",
         "tests/unit/brain-ingest-restamp.bats",

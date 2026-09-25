@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # brain-ingest-worklist.sh — Generator für Brain-Doku Worklist (TAB-separated)
 #
-# Usage: brain-ingest-worklist.sh [--root <dir>] [--manifest <file>]
-#        brain-ingest-worklist.sh --pending [--state <file>] [--root <dir>]
+# Usage: brain-ingest-worklist.sh [--root <dir>] [--manifest <file>] [--group <name>]
+#        brain-ingest-worklist.sh --pending [--state <file>] [--root <dir>] [--group <name>]
+#
+# --group schränkt die Worklist auf genau eine Manifest-Gruppe ein (Thema).
+# Unbekannte Gruppen sind ein harter Fehler (Fail-closed, T900402).
 #
 # --pending gibt STATT der Zeilenliste eine einzelne Zahl aus: die Menge der
 # Chunks, die beim naechsten Ingest-Lauf tatsaechlich Arbeit waeren. [T013916]
@@ -30,6 +33,7 @@ ROOT="."
 MANIFEST="scripts/brain/ingest-sources.yaml"
 PENDING_MODE=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
+GROUP=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -37,6 +41,7 @@ while [[ $# -gt 0 ]]; do
     --manifest) MANIFEST="${2:?--manifest requires a value}"; shift ;;
     --pending)  PENDING_MODE=1 ;;
     --state)    STATE_FILE="${2:?--state requires a value}"; shift ;;
+    --group)    GROUP="${2:?--group requires a value}"; shift ;;
     --help|-h)  sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -53,6 +58,15 @@ if [[ ! -d "$ROOT" ]]; then
   exit 1
 fi
 ROOT="$(cd "$ROOT" && pwd)"
+
+# --- --group: fail-closed gegen das Manifest validieren (Map- UND List-Stil) ---
+if [[ -n "$GROUP" ]]; then
+  valid_groups="$(awk '/^groups:/{flag=1; next} /^[A-Za-z]/{flag=0} flag && /^  - group: /{sub(/^  - group: /,""); print} flag && /^  [A-Za-z0-9_-]+:/{sub(/^  /,""); sub(/:.*/,""); print}' "$MANIFEST" | sort -u)"
+  if ! grep -qxF "$GROUP" <<< "$valid_groups"; then
+    echo "Fehler: unbekannte Gruppe '$GROUP'. Gültig: $(paste -sd' ' <<< "$valid_groups")" >&2
+    exit 1
+  fi
+fi
 
 # --- exclude: list of prefix/substring patterns ---
 exclude_patterns=()
@@ -135,6 +149,7 @@ find "$ROOT" \
   is_excluded "$rel" && continue
   grp="$(group_for "$rel")" || true
   [[ -z "$grp" ]] && continue
+  [[ -n "$GROUP" && "$grp" != "$GROUP" ]] && continue
   slug="$(slugify "$rel")"
   printf '%s\t%s\t%s\n' "$rel" "$slug" "$grp"
 done > "$WORKLIST_TMP"
@@ -174,6 +189,10 @@ cat "$WORKLIST_TMP"
 # Drift detection: warn (stderr, exit stays 0) about any manifest-declared
 # group with zero matches anywhere in the walked tree — this is how the
 # 78%-dead ssot-specs list went unnoticed for weeks (T001884).
+# Bei --group entfällt die Prüfung (alle anderen Gruppen sind absichtlich leer).
+if [[ -n "$GROUP" ]]; then
+  exit 0
+fi
 declared_groups="$(awk '/^groups:/{flag=1; next} /^[A-Za-z]/{flag=0} flag && /^  [A-Za-z0-9_-]+:/{gsub(/^  /,""); gsub(/:.*/,""); print}' "$MANIFEST")"
 observed_groups="$(cut -f3 "$WORKLIST_TMP" | sort -u)"
 while IFS= read -r g; do

@@ -159,6 +159,41 @@ YAML
   [[ "$output" == *"vitest-coverage"* ]] || { echo "FAIL: *-coverage/ dir wrongly excluded"; return 1; }
 }
 
+@test "worklist --group restricts rows to exactly one group (T900402)" {
+  mkdir -p "$WORK/repo/notes" "$WORK/repo/guides"
+  printf -- '# note a\n' > "$WORK/repo/notes/a.md"
+  printf -- '# guide b\n' > "$WORK/repo/guides/b.md"
+  cat > "$WORK/manifest.yaml" <<YAML
+exclude:
+  - drafts/
+groups:
+  notes: notes/*.md
+  guides: guides/*.md
+YAML
+
+  run bash "$WL" --root "$WORK/repo" --manifest "$WORK/manifest.yaml" --group notes
+  [ "$status" -eq 0 ] || { echo "FAIL: worklist --group exited with $status"; return 1; }
+  [[ "$output" == *"notes/a.md"* ]] || { echo "FAIL: notes/a.md fehlt"; return 1; }
+  [[ "$output" != *"guides/b.md"* ]] || { echo "FAIL: guides/b.md trotz --group notes enthalten"; return 1; }
+  [[ "$(printf '%s\n' "$output" | cut -f3 | sort -u)" == "notes" ]] || { echo "FAIL: Fremdgruppe in Ausgabe"; return 1; }
+}
+
+@test "worklist --group rejects unknown groups fail-closed (T900402)" {
+  _fixture
+
+  run bash "$WL" --root "$WORK/repo" --manifest "$WORK/manifest.yaml" --group bogus
+  [ "$status" -ne 0 ] || { echo "FAIL: unbekannte Gruppe muss fehlschlagen"; return 1; }
+  [[ "$output" == *"unbekannte Gruppe"* ]] || { echo "FAIL: keine Fehlermeldung"; return 1; }
+}
+
+@test "worklist --group validates list-style manifests too (T900402)" {
+  _fixture
+
+  run bash "$WL" --root "$WORK/repo" --manifest "$WORK/manifest.yaml" --group notes
+  [ "$status" -eq 0 ] || { echo "FAIL: List-Stil-Gruppe notes muss gelten, exit $status"; return 1; }
+  [[ "$output" == *"a.md"* ]] || { echo "FAIL: a.md fehlt"; return 1; }
+}
+
 @test "worklist suppresses a nested node_modules tree regardless of depth" {
   mkdir -p "$WORK/repo/components/website/node_modules/some-pkg"
   printf -- '{}' > "$WORK/repo/components/website/node_modules/some-pkg/package.json"

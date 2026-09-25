@@ -2,7 +2,7 @@
 title: "purge-fn-website-sync — Implementation Plan"
 ticket_id: T900381
 domains: [website, db, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

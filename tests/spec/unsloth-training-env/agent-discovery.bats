@@ -60,7 +60,10 @@ setup() {
   run bash "$REPO_ROOT/scripts/toolset-context.sh" bachelorprojekt-ops
   [ "$status" -eq 0 ]
   [[ "$output" == *"cli:scripts/finetune"* ]]
-  [[ "$output" == *"finetune-run/SKILL.md"* ]]
+  # Bis T900378 stand hier zusaetzlich `finetune-run/SKILL.md`. Mit dem Skill ist auch seine
+  # Registry-Instanz (`skill:finetune-run`, state: suppressed) entfallen — die Assertion
+  # konnte nicht mehr gruen werden. `cli:scripts/finetune` ist die kanonische Instanz und
+  # traegt das Subsystem weiterhin allein; der Skill war nur eine Tiefen-Referenz darauf.
 
   # Konfigurations-Querschnittsprüfung (dokumentierte Ausnahme, s.o.): die Registry selbst
   # traegt genau eine canonical-Instanz je Faehigkeit (Gate-Vertrag von agents:toolset:check).

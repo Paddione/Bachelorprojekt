@@ -142,7 +142,6 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 | [`brain-ingest`](brain-ingest/SKILL.md) | Brain-Wiki-Ingestion — Worklist aus `scripts/brain/ingest-sources.yaml` generieren, Quelldateien per LLM in Wiki-Seiten transformieren, Ergebnis per PR an das externe `Paddione/brain`-Repo ausliefern. |
 | [`references`](references/SKILL.md) | Geteilte Querschnitts-Referenzen für dev-flow-Skills und Subagenten — Subagent-Provisionierung, Plan-Quality-Gates, MCP-Tool-Guide, Session-Koordination, CI-Fix-Loop, Deploy-Routing. |
 | [`agentic-resource-lookup`](agentic-resource-lookup/SKILL.md) | Externe MCP-Server und Agent-Plugins **bei Bedarf** finden (`scripts/agentic-lookup.mjs`), ohne sie zu installieren und ohne ihre Beschreibungen dauerhaft im Kontext zu tragen. Findet und protokolliert nur — die Kuratierungs-Entscheidung selbst gehört zu [`toolset-curate`](toolset-curate/SKILL.md). |
-| [`finetune-run`](finetune-run/SKILL.md) | Trainingslauf **innerhalb dieses Repos** — `scripts/finetune/`, `Taskfile.finetune.yml`, `finetune:measure/guard/train/traces/export`. Verbindet die Repo-Konventionen (Ticket, Worktree, Vorbedingungs-Gates) mit dem Vendor-Skill `unsloth-buddy`, statt dessen Wissen zu duplizieren. Für allgemeine Unsloth/TRL-API-Fragen direkt `unsloth-buddy`. |
 | [`skill-craft`](skill-craft/SKILL.md) | Skill-Lebenszyklus-Einstieg — finden, installieren, erstellen und verbessern (`find-skills`, `skill-creator`). |
 
 ---

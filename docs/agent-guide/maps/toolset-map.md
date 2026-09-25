@@ -445,9 +445,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer die Unsloth/TRL-Upstream-Referenz direkt.
   - _Fallback:_ `Upstream-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist.`
   - _Rollen:_ `orchestrator`, `bachelorprojekt-ops`
-  - _Tiefe:_ `.claude/skills/finetune-run/SKILL.md`
-- **`skill:finetune-run`** — Status `suppressed`
-  - _Grund:_ cli:scripts/finetune ist die kanonische Instanz und verlinkt dieses SKILL.md bereits als deep_ref — das Skill wird nicht separat injiziert.
 
 ## Fähigkeit: `huggingface-hub-operationen`
 

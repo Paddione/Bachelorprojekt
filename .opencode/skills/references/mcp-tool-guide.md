@@ -310,3 +310,26 @@ ausgegeben. BATS-Regressionsschutz: `tests/spec/mcp-gateway/client-env-check.bat
 - **Tools:** `brain_search(query, top_k)` — BM25-Suche über Wiki-Seiten; `brain_read(slug)` — vollständige Seitenabgabe (Frontmatter + Body).
 - **Wann bevorzugen:** Brain-Wiki-Inhalte lesen (Specs, Runbooks, ADRs, Gotchas) — bevor grep/glob auf dem Wiki-Dateisystem.
 - **Fallback:** direktes `cat ~/brain/wiki/<slug>.md` oder `grep` über das Wiki-Verzeichnis.
+
+## `context7` — Bibliotheks-Dokumentation (Upstream-Docs)
+
+- **Transport:** stdio via `npx -y @upstash/context7-mcp@4.1.1`. Bewusst **stdio und nicht HTTP**,
+  weil llama.cpp kein HTTP-MCP spricht — deshalb nimmt jeder Harness das offizielle
+  Upstream-Paket statt einer eigenen HTTP-Variante. Registrierung: `docs/agent-guide/registry/mcp.yaml`
+  (SSOT, `clients.context7`), generiert nach `.mcp.json` + `opencode.jsonc` über `task mcp:sync`.
+- **Tools:** `resolve-library-id` (Bibliotheksname → stabile Context7-ID), danach `query-docs`
+  (ID → Doku-/Typauszüge).
+- **Wann bevorzugen:** aktuelle API- und Typ-Referenz für eine **Fremdbibliothek** — bevor Trainingsdaten
+  oder Erinnerung antworten. Quelle für das Plan-Intel-Bundle-Feld `external_types`
+  (siehe [plan-intel-bundle.md](plan-intel-bundle.md)).
+- **Fallback:** die `.d.ts` der tatsächlich installierten Version unter `node_modules` lesen; das
+  ist die versionsgenaue Wahrheit, wenn der Server unerreichbar ist. Als `risks[]`-Eintrag im
+  Intel-Bundle vermerken, nicht als leere Sektion.
+
+**Doppelregistrierung in Claude Code ist bewusst deaktiviert:** `context7@claude-plugins-official`
+steht in `.claude/settings.json` auf `false`. Grund: dessen `client=claude-code-plugin`-Endpunkt
+verlangt Authentifizierung, obwohl der Standard-Endpunkt anonym funktioniert — mit Plugin laufen
+zwei Instanzen, deren Tools sich im Namensraum überschneiden. Der Server heißt in allen Harnesses
+`context7`, die Claude-Tools also `mcp__context7__*`.
+
+Harness-Setup je Client (Codex, Gemini CLI): [context7-harnesses.md](../../../docs/runbooks/context7-harnesses.md).

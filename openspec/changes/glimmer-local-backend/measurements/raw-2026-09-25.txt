@@ -1,0 +1,144 @@
+# Rohdaten Glimmer-Benchmark 2026-09-25
+# llama.cpp e85e15cf6 (Build ~/opt/llama.cpp-e85e15c), CUDA 13.3, sm_86+sm_120
+# Host: RTX 5070 Ti 16 GB (CUDA0) + RTX 3060 Ti 8 GB (CUDA1, Desktop)
+
+######## glimmer-bench-solo-q4kv-n15-long.txt
+== solo-q4kv-n15-long  2026-09-25T15:42:16+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1732 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 14851 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"cAKjNJubTdjuwaFFhS3WsuFeruc35Ftv"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":117097,"prompt_tps":1078.659585491913,"pred_tps":82.92736137256266,"draft_n":405,"draft_acc":104,"answer":"GLIMMER-7741","err":null}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 1808 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 14853 MiB, 16303 MiB
+
+######## glimmer-bench-solo-q4kv-n15.txt
+== solo-q4kv-n15  2026-09-25T15:41:31+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1721 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 14647 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+{"pred_tps":72.39878945356318,"n":600,"draft_n":2396,"draft_acc":437,"has_reasoning":true,"content_len":0}
+{"pred_tps":80.061600651934,"n":600,"draft_n":2496,"draft_acc":430,"has_reasoning":true,"content_len":0}
+{"pred_tps":92.05036737931681,"n":600,"draft_n":2125,"draft_acc":453,"has_reasoning":true,"content_len":0}
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"tcPkyr3uEfHlTheefjDpbPNGDaIYkGwn"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":null,"prompt_tps":null,"pred_tps":null,"draft_n":null,"draft_acc":null,"answer":"","err":"[json.exception.parse_error.101] parse error at line 1, column 1: attempting to parse an empty input; check that your input string or stream contains the expected JSON"}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 1879 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 14851 MiB, 16303 MiB
+
+######## glimmer-bench-solo-q8_0kv-n0-a.txt
+== solo-q8_0kv-n0-a  2026-09-25T15:52:09+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1745 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 12997 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+{"pred_tps":52.77561868619899,"n":600,"draft_n":null,"draft_acc":null,"has_reasoning":true,"content_len":0}
+{"pred_tps":52.51975124050513,"n":600,"draft_n":null,"draft_acc":null,"has_reasoning":true,"content_len":0}
+{"pred_tps":52.75356432231529,"n":600,"draft_n":null,"draft_acc":null,"has_reasoning":true,"content_len":0}
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"YQrHm4ouXjqt2LfjTae54wN0oMcB7cGV"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":117097,"prompt_tps":1662.9771109123947,"pred_tps":35.99613456893398,"draft_n":null,"draft_acc":null,"answer":"GLIMMER-7741","err":null}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 1806 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 13019 MiB, 16303 MiB
+
+######## glimmer-bench-solo-q8_0kv-n15.txt
+== solo-q8_0kv-n15  2026-09-25T15:44:34+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1766 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15087 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+{"pred_tps":65.02529364510737,"n":600,"draft_n":2676,"draft_acc":420,"has_reasoning":true,"content_len":0}
+{"pred_tps":80.82887515082885,"n":600,"draft_n":2444,"draft_acc":435,"has_reasoning":true,"content_len":0}
+{"pred_tps":81.73380459671462,"n":600,"draft_n":2420,"draft_acc":434,"has_reasoning":true,"content_len":0}
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"udTlFFbZpaVsWmeriBIyuOubHMRKL6iL"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":117097,"prompt_tps":1103.373925939023,"pred_tps":53.08350840167165,"draft_n":1230,"draft_acc":150,"answer":"GLIMMER-7741","err":null}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 1767 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15293 MiB, 16303 MiB
+
+######## glimmer-bench-solo-q8_0kv-n4-b.txt
+== solo-q8_0kv-n4-b  2026-09-25T15:56:42+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1905 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15087 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+{"pred_tps":75.22956634990288,"n":600,"draft_n":852,"draft_acc":386,"has_reasoning":true,"content_len":0}
+{"pred_tps":77.3443937968505,"n":600,"draft_n":875,"draft_acc":379,"has_reasoning":true,"content_len":0}
+{"pred_tps":83.79738994213083,"n":600,"draft_n":792,"draft_acc":399,"has_reasoning":true,"content_len":0}
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"SWau1NRWPenVIeKORXEvPpF3aohPJlWU"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":117097,"prompt_tps":1090.2510198297998,"pred_tps":89.00847106334606,"draft_n":116,"draft_acc":76,"answer":"GLIMMER-7741","err":null}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 2108 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15291 MiB, 16303 MiB
+
+######## glimmer-bench-solo-q8_0kv-n4.txt
+== solo-q8_0kv-n4  2026-09-25T15:49:26+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1787 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15087 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+{"pred_tps":74.52370457211013,"n":600,"draft_n":878,"draft_acc":379,"has_reasoning":true,"content_len":0}
+{"pred_tps":83.48094641470936,"n":600,"draft_n":812,"draft_acc":394,"has_reasoning":true,"content_len":0}
+{"pred_tps":82.66068602573493,"n":600,"draft_n":821,"draft_acc":392,"has_reasoning":true,"content_len":0}
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"eG4OlPnA7S5SnJFxG3w9BU712w56gQQL"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":117097,"prompt_tps":1103.3608261272964,"pred_tps":84.13061109110672,"draft_n":144,"draft_acc":90,"answer":"GLIMMER-7741","err":null}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 1756 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15291 MiB, 16303 MiB
+
+######## glimmer-bench-solo-q8_0kv-n6-a.txt
+== solo-q8_0kv-n6-a  2026-09-25T15:54:12+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1781 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15087 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+{"pred_tps":70.98204308361163,"n":600,"draft_n":1148,"draft_acc":407,"has_reasoning":true,"content_len":0}
+{"pred_tps":77.8047373862804,"n":600,"draft_n":1067,"draft_acc":421,"has_reasoning":true,"content_len":0}
+{"pred_tps":74.56951665383797,"n":600,"draft_n":1128,"draft_acc":411,"has_reasoning":true,"content_len":0}
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"FURGfF3p3Tpw2DBg2pF2EVkGDJIMcgzG"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":117097,"prompt_tps":1075.7902830643957,"pred_tps":61.06017916801145,"draft_n":564,"draft_acc":180,"answer":"GLIMMER-7741","err":null}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 2027 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15291 MiB, 16303 MiB
+
+######## glimmer-bench-solo-q8_0kv-n8.txt
+== solo-q8_0kv-n8  2026-09-25T15:47:02+02:00
+-- VRAM nach Start:
+NVIDIA GeForce RTX 3060 Ti, 1767 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15087 MiB, 16303 MiB
+{"n_ctx":131072,"model":"Muse-Glimmer-30B"}
+-- Kurz-Decode (3 Laeufe, max_tokens 600, temp 1.0/top_p 0.95/top_k 64):
+{"pred_tps":68.71347159156804,"n":600,"draft_n":1443,"draft_acc":418,"has_reasoning":true,"content_len":0}
+{"pred_tps":78.69116751418412,"n":600,"draft_n":1408,"draft_acc":422,"has_reasoning":true,"content_len":0}
+{"pred_tps":72.18918338487006,"n":600,"draft_n":1580,"draft_acc":399,"has_reasoning":true,"content_len":0}
+-- Tool-Call:
+{"finish":"tool_calls","tool_calls":[{"type":"function","function":{"name":"get_weather","arguments":"{\"city\":\"Berlin\"}"},"id":"4V8CYvJDNXTfcZ7lpj7Z108nbNhTvUUs"}],"content":""}
+-- Lang-Prompt (~480000 Zeichen, Needle in der Mitte):
+{"prompt_n":117097,"prompt_tps":1103.4733594916934,"pred_tps":72.35907613877376,"draft_n":256,"draft_acc":88,"answer":"GLIMMER-7741","err":null}
+-- VRAM nach Lang-Prompt:
+NVIDIA GeForce RTX 3060 Ti, 1767 MiB, 8192 MiB
+NVIDIA GeForce RTX 5070 Ti, 15293 MiB, 16303 MiB

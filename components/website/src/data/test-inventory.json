@@ -4248,6 +4248,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/glimmer-serving-profile",
+    "file": "tests/spec/llm-local-dev/glimmer-serving-profile.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/opencode-compaction",
     "file": "tests/spec/llm-local-dev/opencode-compaction.bats",
     "category": "llm-local-dev",
@@ -4560,6 +4566,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/glimmer-default-backend",
+    "file": "tests/spec/local-llm-proxy/glimmer-default-backend.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/gpu-lock",
     "file": "tests/spec/local-llm-proxy/gpu-lock.bats",
     "category": "local-llm-proxy",
@@ -4652,12 +4664,6 @@
   {
     "id": "local-llm-proxy/proxy-tests-registered",
     "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/qwen38-default-backend",
-    "file": "tests/spec/local-llm-proxy/qwen38-default-backend.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },

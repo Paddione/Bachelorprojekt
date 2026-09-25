@@ -82,7 +82,7 @@ async function queryLlm(prompt) {
       // endet — und dieser Aufrufer erwartet unten JSON in content (T002501).
       // Gleiche Absicherung wie in scripts/health-goals-payload.py und
       // scripts/factory/triage-body.sh.
-      chat_template_kwargs: { enable_thinking: false },
+      chat_template_kwargs: { enable_thinking: false, reasoning_strength: 'low' },
     });
 
     const curl = spawn('curl', [

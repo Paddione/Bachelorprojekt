@@ -33,7 +33,7 @@ def build_payload(model: str, gid: str, context: str) -> dict:
         # Das Skript parst das leere content dann als JSON, faengt die Exception
         # und protokolliert JEDES Goal als "unfillable (Parse-Fehler)" — eine
         # 100-Prozent-Fehlerquote, die wie eine ehrliche Messung aussieht.
-        'chat_template_kwargs': {'enable_thinking': False},
+        'chat_template_kwargs': {'enable_thinking': False, 'reasoning_strength': 'low'},
     }
 
 

@@ -1,12 +1,13 @@
 {
   "provider": {
-    // Lokaler Provider auf :1919 [T900208, T900348, T900359].
+    // Lokaler Provider auf :1919 [T900208, T900348, T900359, T900365].
     //
     // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
     // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
-    // llama.cpp, seit T900359 Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp auf der RTX 5070 Ti
-    // allein mit MTP-Spekulation (systemd-User-Unit scripts/llm/qwen38-gsq.service).
-    // Es loest FreeToken-native (Qwen3.6-35B-A3B-NVFP4) auf demselben Port ab.
+    // llama.cpp, seit T900365 Muse Glimmer 30B UD-IQ3_XXS mit DFlash2-Drafter auf
+    // der RTX 5070 Ti allein (systemd-User-Unit scripts/llm/glimmer.service).
+    // Glimmer ist aus Muse Spark destilliert, der Familie des orchestrator-Modells.
+    // Davor: Qwen3.8-27B GSQ-RCO (T900359), FreeToken-native Qwen3.6 (T900203).
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
     // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
@@ -14,26 +15,27 @@
     // explizite Agenten-Wahl.
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ3_XXS-mtp, RTX 5070 Ti, 150k ctx)",
+      "name": "llama.cpp :1919 (Muse Glimmer 30B UD-IQ3_XXS + DFlash2, RTX 5070 Ti, 131k ctx)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
       "models": {
-        // GEMESSEN 2026-09-24 (llama.cpp b61-0adcc3bb5, 5070 Ti allein, q4_0-KV,
-        // draft-mtp n-max 4): Decode ~96 tok/s bei kurzem Kontext;
-        // 123.536-Token-Prompt: Prefill 823 tok/s, Decode 55,7 tok/s, Needle
-        // gefunden. Dense 27B, Reasoning default on -> kleines max_tokens
-        // liefert leeren content (length) — Budget grosszuegig.
+        // GEMESSEN 2026-09-25 (llama.cpp e85e15cf6, 5070 Ti allein, q8_0-KV,
+        // draft-dflash n-max 4): Decode ~79 tok/s bei kurzem Kontext;
+        // 117.097-Token-Prompt: Prefill ~1095 tok/s, Decode 84-89 tok/s, Needle
+        // gefunden. Dense 30B; das Chat-Template setzt "Reasoning strength: high"
+        // selbst -> kleines max_tokens liefert leeren content (length) — Budget
+        // grosszuegig. 131072 = served KV = max_position_embeddings.
         // limit.input ist Pflicht fuer den V1-Compaction-Trigger: ohne ihn
         // ignoriert opencode compaction.reserved und kompaktiert erst bei
-        // context − output = 145408 (T900362, siehe opencode.jsonc).
-        "Qwen3.8-27B-gsq": {
-          "name": "Qwen3.8-27B dense (llama.cpp :1919, RTX 5070 Ti, 150k ctx, ~96 tok/s decode, reasoning on)",
+        // context − output (T900362, siehe opencode.jsonc).
+        "Muse-Glimmer-30B": {
+          "name": "Muse Glimmer 30B (llama.cpp :1919, RTX 5070 Ti, 131k ctx, ~79-89 tok/s decode, reasoning high)",
           "limit": {
-            "context": 153600,
-            "input": 153600,
+            "context": 131072,
+            "input": 131072,
             "output": 8192
           }
         }
@@ -167,12 +169,12 @@
     // FreeToken-Modell — fuenf Namen, ein Slot, kein Prefix-Cache-Gewinn mehr
     // (ein Resident-Checkpoint, ein Radix-Cache). Kollabiert zu einem `local`.
     // Engine: -np 1 (ein Slot); llama.cpp queuet weitere Requests als
-    // sequenzielle Dispatches, die ≤153600 served KV teilen. Der Orchestrator
+    // sequenzielle Dispatches, die ≤131072 served KV teilen. Der Orchestrator
     // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~100k).
     "local": {
-      "description": "Sole local implementation subagent (Qwen3.8-27B dense via llama.cpp :1919, RTX 5070 Ti, 150k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
+      "description": "Sole local implementation subagent (Muse Glimmer 30B via llama.cpp :1919, RTX 5070 Ti, 131k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
-      "model": "llamacpp-local/Qwen3.8-27B-gsq",
+      "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -182,7 +184,7 @@
     "reviewer": {
       "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",
       "mode": "subagent",
-      "model": "llamacpp-local/Qwen3.8-27B-gsq",
+      "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#FBBF24",
       "temperature": 0.4,
@@ -363,14 +365,15 @@
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
-    // Plan-Primary: Qwen3.8-27B dense via llama.cpp :1919 (153600 served KV).
+    // Plan-Primary: Muse Glimmer 30B via llama.cpp :1919 (131072 served KV, T900365).
+    // Heisst nach dem Modell, das es faehrt (Regel aus T016419; bis T900365 qwen38-primary).
     // Autonomous ticket-hammering agent: prioritizes critical issues,
     // plans (/dev-flow-plan), explores (/opsx:explore), executes, archives.
-    "qwen38-primary": {
-      "description": "PRIMARY: Local Qwen3.8-27B dense via llama.cpp :1919 (RTX 5070 Ti, 150k served KV, gemessen 2026-09-24). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
+    "glimmer-primary": {
+      "description": "PRIMARY: Local Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131k served KV, gemessen 2026-09-25). Autonomous ticket-hammering agent: prioritizes critical issues, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives one by one. Tab-selectable.",
       "mode": "primary",
-      "model": "llamacpp-local/Qwen3.8-27B-gsq",
-      "prompt": "{file:./prompts/qwen38-primary.md}",
+      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "prompt": "{file:./prompts/glimmer-primary.md}",
       "color": "#10B981",
       "temperature": 0.3,
       "steps": 150,

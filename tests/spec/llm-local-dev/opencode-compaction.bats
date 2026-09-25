@@ -34,9 +34,9 @@ setup() {
 }
 
 @test "compaction block: threshold math comment" {
-  run grep -qF '153600 − max(8192, 33600) = 120000' "$REPO/.opencode/opencode.jsonc"
+  run grep -qF '131072 − max(8192, 33600) = 97472' "$REPO/.opencode/opencode.jsonc"
   [ "$status" -eq 0 ]
-  run grep -qF '153600 − 33600 = 120000' "$REPO/.opencode/opencode.jsonc"
+  run grep -qF '131072 − 33600 = 97472' "$REPO/.opencode/opencode.jsonc"
   [ "$status" -eq 0 ]
 }
 
@@ -53,7 +53,7 @@ setup() {
   [ "$output" = "true" ]
 }
 
-@test "compaction trigger for the default model is 120000 on V1 and V2 (T900350, T900362)" {
+@test "compaction trigger for the default model is 97472 on V1 and V2 (T900350, T900362, T900365)" {
   if ! node -e "try{require('json5')}catch(e){process.exit(77)}" 2>/dev/null; then
     skip "json5 not resolvable"
   fi
@@ -70,10 +70,10 @@ setup() {
     console.log(v1 + ' ' + v2);
   "
   [ "$status" -eq 0 ]
-  [ "$output" = "120000 120000" ]
+  [ "$output" = "97472 97472" ]
 }
 
-@test "DCP local limits resolve below the default model's compaction trigger (T900350)" {
+@test "DCP local limits resolve below the default model's compaction trigger (T900350, T900365)" {
   if ! node -e "try{require('json5')}catch(e){process.exit(77)}" 2>/dev/null; then
     skip "json5 not resolvable"
   fi
@@ -91,7 +91,7 @@ setup() {
     console.log(min + ' ' + max + ' ' + (min < max && max < trig));
   "
   [ "$status" -eq 0 ]
-  [ "$output" = "61440 115200 true" ]
+  [ "$output" = "52429 91750 true" ]
 }
 
 @test "reviewer role: edit and bash denied in factory_roles mirror" {

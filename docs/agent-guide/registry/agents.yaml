@@ -52,12 +52,12 @@ runtimes:
   # Details siehe docs/agent-guide/registry/retired.md.
   local:
     mode: subagent
-    model: llamacpp-local/Qwen3.8-27B-gsq
+    model: llamacpp-local/Muse-Glimmer-30B
     write_capable: false
-    note: "Sole local implementation subagent: Qwen3.8-27B dense via llama.cpp :1919 (RTX 5070 Ti, GSQ-RCO IQ3_XXS-mtp, 153600 served KV, ~96 tok/s decode, gemessen 2026-09-24) [T900348, T900359]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~100k)."
+    note: "Sole local implementation subagent: Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, UD-IQ3_XXS + DFlash2, 131072 served KV, ~79-89 tok/s decode, gemessen 2026-09-25) [T900365]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~90k)."
   reviewer:
     mode: subagent
-    model: llamacpp-local/Qwen3.8-27B-gsq
+    model: llamacpp-local/Muse-Glimmer-30B
     write_capable: false
     note: "Factory reviewer role — read/grep/glob/tests only; no edit/write/bash/task dispatch (Orchestrator applies review edits) [T900074]"
   big-pickle:
@@ -114,12 +114,12 @@ runtimes:
     mode: primary
     model: opencode-go/muse-spark-1.3-contributor
     write_capable: true
-    note: "PLANNER fallback on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, qwen38-primary. Free-first chain: orchestrator (Zen-free) → planner-muse (Go) → deepseek rails."
-  qwen38-primary:
+    note: "PLANNER fallback on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, glimmer-primary. Free-first chain: orchestrator (Zen-free) → planner-muse (Go) → deepseek rails."
+  glimmer-primary:
     mode: primary
-    model: llamacpp-local/Qwen3.8-27B-gsq
+    model: llamacpp-local/Muse-Glimmer-30B
     write_capable: true
-    note: "PRIMARY: Local Qwen3.8-27B dense via llama.cpp (:1919, RTX 5070 Ti, served KV 153600) (llamacpp-local/Qwen3.8-27B-gsq) [T900348]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
+    note: "PRIMARY: Local Muse Glimmer 30B via llama.cpp (:1919, RTX 5070 Ti, served KV 131072) (llamacpp-local/Muse-Glimmer-30B) [T900365]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
 
 # T900074-p2: factory role declarations (mirror — SSOT is .opencode/agent-models.jsonc)
 factory_roles:

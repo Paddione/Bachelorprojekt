@@ -137,21 +137,22 @@ EOF"
 }
 
 @test "agent-models.jsonc declares a MEASURED context for the local model, not n_ctx_train (T002545/T002558/T002633)" {
-  # T900348: der llamacpp-local-Katalog fuehrt genau ein Modell:
-  # Qwen3.8-27B-gsq (llama.cpp :1919, scripts/llm/qwen38-gsq.service).
-  # limit.context 153600 ist die GEMESSENE served KV (n_ctx in /props) —
-  # nicht n_ctx_train 262144, das ueber dem real Verfuegbaren liegt.
+  # T900365: der llamacpp-local-Katalog fuehrt genau ein Modell:
+  # Muse-Glimmer-30B (llama.cpp :1919, scripts/llm/glimmer.service).
+  # limit.context 131072 ist die served KV (n_ctx in /props) und zugleich
+  # max_position_embeddings von Glimmer. Frueher (Qwen, T900348) lag n_ctx_train
+  # mit 262144 ueber dem real Verfuegbaren — daher die 262144-Sperre unten.
   #
   # Geprueft wird deshalb die EIGENSCHAFT: positive ganze Zahl, ungleich 262144
-  # (n_ctx_train) und nicht groesser als 153600 (served KV).
+  # (frueheres n_ctx_train) und nicht groesser als 131072 (served KV).
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
     const m = ((o.provider || {})['llamacpp-local'] || {}).models || {};
-    const entry = m['Qwen3.8-27B-gsq'];
-    if (!entry) { console.error('Qwen3.8-27B-gsq fehlt im llamacpp-local-Katalog'); process.exit(1); }
+    const entry = m['Muse-Glimmer-30B'];
+    if (!entry) { console.error('Muse-Glimmer-30B fehlt im llamacpp-local-Katalog'); process.exit(1); }
     const ctx = (entry.limit || {}).context;
     if (!Number.isInteger(ctx) || ctx <= 0) {
       console.error('ctx ' + ctx + ' ist keine positive ganze Zahl'); process.exit(1);
@@ -159,32 +160,32 @@ EOF"
     if (ctx === 262144) {
       console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
     }
-    if (ctx > 153600) {
-      console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
+    if (ctx > 131072) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
     }
     process.exit(0);
   "
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc defines the local family on Qwen3.8 (T002545/T900203/T900348)" {
+@test "agent-models.jsonc defines the local family on Muse Glimmer (T002545/T900203/T900365)" {
   # T900203: die fuenf Familien-Handles (gptoss/devstral/gemma/gemma12/qwen38)
   # sind 2026-09-16 zu einem `local` kollabiert (T900164) — kein gemma-Subagent
   # mehr. Die lokale Familie ist: local + reviewer als Subagenten und
-  # qwen38-primary als Primary, alle drei seit T900348 auf
-  # llamacpp-local/Qwen3.8-27B-gsq.
+  # glimmer-primary als Primary, alle drei seit T900365 auf
+  # llamacpp-local/Muse-Glimmer-30B.
   run node -e "
     const fs = require('fs');
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const a = JSON.parse(j).agent || {};
-    const expect = { local: 'subagent', reviewer: 'subagent', 'qwen38-primary': 'primary' };
+    const expect = { local: 'subagent', reviewer: 'subagent', 'glimmer-primary': 'primary' };
     for (const [name, mode] of Object.entries(expect)) {
       const v = a[name];
       if (!v) { console.error(name + ' fehlt in agent-models.jsonc'); process.exit(1); }
       if (v.mode !== mode) { console.error(name + ' mode ' + v.mode + ' != ' + mode); process.exit(1); }
-      if (v.model !== 'llamacpp-local/Qwen3.8-27B-gsq') {
-        console.error(name + ' model ' + v.model + ' != llamacpp-local/Qwen3.8-27B-gsq'); process.exit(1);
+      if (v.model !== 'llamacpp-local/Muse-Glimmer-30B') {
+        console.error(name + ' model ' + v.model + ' != llamacpp-local/Muse-Glimmer-30B'); process.exit(1);
       }
     }
     process.exit(0);
@@ -193,9 +194,8 @@ EOF"
 }
 
 @test "agent-models.jsonc provides a local primary with measured context (T002545/T016419/T900203)" {
-  # T900203/T900348: der einzige lokale Primary ist qwen38-primary, Modell
-  # Qwen3.8-27B-gsq. Sein Kontext ist der gemessene served-KV-Wert 153600 —
-  # nicht n_ctx_train 262144. Die Zahl steht als konkreter Eintrag im Provider
+  # T900203/T900365: der einzige lokale Primary ist glimmer-primary, Modell
+  # Muse-Glimmer-30B. Sein Kontext ist der served-KV-Wert 131072. Die Zahl steht als konkreter Eintrag im Provider
   # (T014105-Prinzip); ihre Kopplung an -c der Unit prueft der Test unten.
   #
   # Warum <= und nicht ==: ein niedrigerer Wert ist konservativ und harmlos.
@@ -207,12 +207,12 @@ EOF"
     const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
-    const prim = (o.agent || {})['qwen38-primary'];
-    if (!prim) { console.error('qwen38-primary fehlt'); process.exit(1); }
-    if (prim.mode !== 'primary') { console.error('qwen38-primary mode ' + prim.mode + ' != primary'); process.exit(1); }
+    const prim = (o.agent || {})['glimmer-primary'];
+    if (!prim) { console.error('glimmer-primary fehlt'); process.exit(1); }
+    if (prim.mode !== 'primary') { console.error('glimmer-primary mode ' + prim.mode + ' != primary'); process.exit(1); }
     const model = prim.model;
-    if (model !== 'llamacpp-local/Qwen3.8-27B-gsq') {
-      console.error('qwen38-primary model ' + model + ' != llamacpp-local/Qwen3.8-27B-gsq'); process.exit(1);
+    if (model !== 'llamacpp-local/Muse-Glimmer-30B') {
+      console.error('glimmer-primary model ' + model + ' != llamacpp-local/Muse-Glimmer-30B'); process.exit(1);
     }
     const [prov, mid] = model.split('/');
     const entry = ((o.provider[prov] || {}).models || {})[mid];
@@ -224,8 +224,8 @@ EOF"
     if (ctx === 262144) {
       console.error('ctx ' + ctx + ' ist das advertised max_model_len, nicht die served KV'); process.exit(1);
     }
-    if (ctx > 153600) {
-      console.error('ctx ' + ctx + ' uebersteigt die served 153600 KV'); process.exit(1);
+    if (ctx > 131072) {
+      console.error('ctx ' + ctx + ' uebersteigt die served 131072 KV'); process.exit(1);
     }
     process.exit(0);
   "
@@ -248,8 +248,8 @@ EOF"
 }
 
 @test "T016419: dead checkpoint catalog entries are removed" {
-  # T900203/T900348: der llamacpp-local-Katalog fuehrt genau ein Modell
-  # (Qwen3.8-27B-gsq). Alle frueheren Checkpoint-Eintraege
+  # T900203/T900365: der llamacpp-local-Katalog fuehrt genau ein Modell
+  # (Muse-Glimmer-30B). Alle frueheren Checkpoint-Eintraege
   # — die toten GGUFs UND die ehemaligen Fallback-Eintraege (hauhau-qwen36,
   # gemma12-vision, qwen38-220k) — sind entfernt. Statisch geprueft — bewusst
   # KEIN Filesystem-Check gegen GGUF-Pfade (CI hat weder /mnt/c noch ~/models).
@@ -257,10 +257,10 @@ EOF"
     const j5 = require('json5');
     const d = j5.parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
     const m = ((d.provider || {})['llamacpp-local'] || {}).models || {};
-    if (!('Qwen3.8-27B-gsq' in m)) {
-      console.error('positive anchor failed: Qwen3.8-27B-gsq fehlt im llamacpp-local-Katalog'); process.exit(1);
+    if (!('Muse-Glimmer-30B' in m)) {
+      console.error('positive anchor failed: Muse-Glimmer-30B fehlt im llamacpp-local-Katalog'); process.exit(1);
     }
-    const dead = ['qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
+    const dead = ['Qwen3.8-27B-gsq','Qwen3.6-35B-A3B-NVFP4','qwen38-220k','gptoss-context','gemma26-factory','gemma4','gemma26-throughput','gemma12-vision','hauhau-qwen36']
       .filter(k => k in m);
     if (dead.length) { console.error('dead catalog entries still declared: ' + dead.join(',')); process.exit(1); }
     process.exit(0);
@@ -268,22 +268,22 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
-@test "T900348: catalog context matches -c and port of the llama.cpp unit" {
-  # Die served KV entsteht aus -c in scripts/llm/qwen38-gsq.service. Weicht
+@test "T900348/T900365: catalog context matches -c and port of the llama.cpp unit" {
+  # Die served KV entsteht aus -c in scripts/llm/glimmer.service. Weicht
   # limit.context davon ab, verspricht opencode mehr (oder weniger) Kontext als
   # der Server hat. Der Port muss der baseURL des Providers entsprechen.
-  local unit="$REPO/scripts/llm/qwen38-gsq.service"
+  local unit="$REPO/scripts/llm/glimmer.service"
   run bash -c "grep -oE -- '-c [0-9]+' '$unit' | awk '{print \$2}'"
   [ "$status" -eq 0 ]
-  [ "$output" = "153600" ]
+  [ "$output" = "131072" ]
   run bash -c "grep -oE -- '--port [0-9]+' '$unit' | awk '{print \$2}'"
   [ "$output" = "1919" ]
   run node -e "
     const d = require('json5').parse(require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8'));
-    const e = (((d.provider || {})['llamacpp-local'] || {}).models || {})['Qwen3.8-27B-gsq'];
+    const e = (((d.provider || {})['llamacpp-local'] || {}).models || {})['Muse-Glimmer-30B'];
     console.log(e ? e.limit.context : 'missing');
   "
-  [ "$output" = "153600" ]
+  [ "$output" = "131072" ]
 }
 
 @test "T900051: FreeToken smoke test verifies version model KV and concurrency" {

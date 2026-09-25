@@ -136,9 +136,10 @@ Gib NUR das fertige Markdown aus:"
 call_llm() {
   local prompt="$1" response curl_cfg="" think='{}'
   [ -n "$LM_API_KEY" ] && curl_cfg="$(printf 'header = "Authorization: Bearer %s"' "$LM_API_KEY")"
-  # Gemma 4 uses chat_template_kwargs.enable_thinking; DeepSeek uses thinking.type.
+  # Gemma 4 uses chat_template_kwargs.enable_thinking; DeepSeek uses thinking.type;
+  # Muse Glimmer uses chat_template_kwargs.reasoning_strength (no "off" level) [T900365].
   # Send both — unknown keys are harmlessly ignored by each provider. [T002533]
-  [ "${LM_DISABLE_THINKING:-0}" = "1" ] && think='{"thinking":{"type":"disabled"},"chat_template_kwargs":{"enable_thinking":false}}'
+  [ "${LM_DISABLE_THINKING:-0}" = "1" ] && think='{"thinking":{"type":"disabled"},"chat_template_kwargs":{"enable_thinking":false,"reasoning_strength":"low"}}'
     response="$(jq -n --rawfile prompt /dev/fd/4 \
         --arg model "$LM_MODEL" \
         --argjson max_tokens "$LM_MAX_TOKENS" \

@@ -16,14 +16,14 @@ source "$HERE/lib.sh"; factory_resolve
 SOURCE="${1:?source required}"; TIER="${2:?tier required}"
 
 # T900208/T900348: einziges lokales Backend ist llama.cpp (:1919, systemd-
-# User-Unit scripts/llm/qwen38-gsq.service, single-flight -np 1). Der llm-proxy (:18235)
+# User-Unit scripts/llm/glimmer.service seit T900365, single-flight -np 1). Der llm-proxy (:18235)
 # ist seit 2026-09-03 stillgelegt (ADR-007); mit ihm entfiel der Modell-Pin aus
 # /admin/factory — FACTORY_MODEL_ID ist der einzige Regler fuer den Modellnamen.
 # base_url OHNE '/v1': die Konsumenten (auto-triage.sh, scout-llm-fallback.sh)
 # haengen '/v1/chat/completions' selbst an [T003492].
 FT_LOCAL_PROVIDER="freetoken-local"
 FT_LOCAL_BASEURL="${FACTORY_LOCAL_URL:-http://127.0.0.1:1919}"
-FACTORY_DEFAULT_MODEL="${FACTORY_MODEL_ID:-Qwen3.8-27B-gsq}"
+FACTORY_DEFAULT_MODEL="${FACTORY_MODEL_ID:-Muse-Glimmer-30B}"
 
 # Tier "opus": Modell aus der Registry, aber OHNE Slot-Claim.
 #

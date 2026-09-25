@@ -34,7 +34,7 @@ source "$HERE/lib.sh"
 # T014028: lokaler Default ist llama.cpp (Modell-ID, kein Loadout-Slug —
 # dieselbe Konvention wie route-provider.sh, damit der Default-Konsistenzguard
 # in tests/spec/software-factory/factory-model-id-default.bats gruen bleibt).
-MODEL_ID="${FACTORY_MODEL_ID:-Qwen3.8-27B-gsq}"
+MODEL_ID="${FACTORY_MODEL_ID:-Muse-Glimmer-30B}"
 # Dieselbe Adresse und derselbe Override wie route-provider.sh (FACTORY_LOCAL_URL).
 # [T003492] OHNE '/v1' — die Konsumenten haengen '/v1/chat/completions' selbst an
 # (openspec/specs/software-factory.md: base_url adressiert die Wurzel, "that the

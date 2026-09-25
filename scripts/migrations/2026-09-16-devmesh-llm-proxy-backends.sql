@@ -35,7 +35,7 @@ ALTER TABLE tickets.llm_proxy_backends OWNER TO website;
 INSERT INTO tickets.llm_proxy_backends
   (name, kind, base_url, api_key_env, enabled, priority, fixups, model_aliases, max_inflight, roles, loadout_slug)
 VALUES
-  ('qwen38-gsq',       'llamacpp',      'http://llm-gateway-host:1919/v1', NULL, true, 1,  '[]'::jsonb, '{"qwen38-gsq": "Qwen3.8-27B-gsq"}'::jsonb, 1, '[]'::jsonb, NULL),
+  ('glimmer',          'llamacpp',      'http://llm-gateway-host:1919/v1', NULL, true, 1,  '[]'::jsonb, '{"glimmer": "Muse-Glimmer-30B"}'::jsonb, 1, '[]'::jsonb, NULL),
   ('llamacpp-gemma12', 'llamacpp',      'http://llm-gateway-host:8089/v1', NULL, true, 1,  '[]'::jsonb, '{"gemma12-vision": "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"}'::jsonb, 3, '[]'::jsonb, NULL),
   ('llamacpp-gemma4',  'llamacpp',      'http://llm-gateway-host:8090/v1', NULL, true, 1,  '[]'::jsonb, '{}'::jsonb, 1, '[]'::jsonb, NULL),
   ('llamacpp-qwen38',  'llamacpp',      'http://llm-gateway-host:8094/v1', NULL, true, 1,  '[]'::jsonb, '{"qwen38-220k": "qwen38-220k"}'::jsonb, 1, '[]'::jsonb, NULL),
@@ -60,7 +60,7 @@ ON CONFLICT (name) DO UPDATE
 UPDATE tickets.llm_proxy_backends
    SET enabled = false, updated_at = now()
  WHERE enabled
-   AND name NOT IN ('qwen38-gsq','llamacpp-gemma12','llamacpp-gemma4','llamacpp-qwen38',
+   AND name NOT IN ('glimmer','llamacpp-gemma12','llamacpp-gemma4','llamacpp-qwen38',
                     'cluster-embed','cluster-rerank','lmstudio','deepseek');
 
 COMMIT;

@@ -11,9 +11,9 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | Agent | Model | Use case |
 |-------|-------|----------|
 | `orchestrator` | `opencode-zen/muse-spark-1.3-contributor-free` (1M ctx, 131k out, primary, write) + Go fallback `opencode-go/muse-spark-1.3-contributor` via `planner-muse` | Primary — dispatches `local` (budgeted) + planner-muse/2-rail cloud escalation |
-| `local` | `llamacpp-local/Qwen3.8-27B-gsq` (150k served KV, dense MTP) | Sole local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
-| `planner-muse` | `opencode-go/muse-spark-1.3-contributor` (1M ctx, primary, write) | Planning fallback (M2 after 2× local); dispatched by `orchestrator`/`big-pickle`/`qwen38-primary` |
-| `qwen38-primary` | `llamacpp-local/Qwen3.8-27B-gsq` (150k, primary, write) | Plan-primary (dense MTP); autonomer Ticket-Worker |
+| `local` | `llamacpp-local/Muse-Glimmer-30B` (131k served KV, DFlash2) | Sole local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
+| `planner-muse` | `opencode-go/muse-spark-1.3-contributor` (1M ctx, primary, write) | Planning fallback (M2 after 2× local); dispatched by `orchestrator`/`big-pickle`/`glimmer-primary` |
+| `glimmer-primary` | `llamacpp-local/Muse-Glimmer-30B` (131k, primary, write) | Plan-primary (Muse Glimmer, Spark-Familie); autonomer Ticket-Worker |
 | `big-pickle` | `opencode-zen/big-pickle` (~260k ctx, primary, write) | Zen-Singleagent bis Free-Quota verbraucht |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free` (primary, write) | Free-Tier-Primary; dispatcht nur `ox-alpha` |
 | `ox-alpha` | `opencode-zen/laguna-s-2.1-free` (subagent, write) | Subagent-Zwilling von `ox-alpha-free` |
@@ -23,7 +23,7 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 | `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API, all, write) | Direkte API (bypass Go gateway) |
 | `deepseek-flash` | `opencode-go/deepseek-v4-flash` (all, write) | Parallel-Throughput bis 3 |
 | `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API, all, write) | Direkte API (bypass Go gateway) |
-| `reviewer` | `llamacpp-local/Qwen3.8-27B-gsq` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
+| `reviewer` | `llamacpp-local/Muse-Glimmer-30B` (subagent, read-only) | Review-Rolle (read/grep/tests); Edits wendet der Orchestrator an [T900074] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch: `task local` für lokale Implementation + deepseek-Rails (Go zuerst). Lokale: `write=deny` → Orchestrator erzeugt. SSOT `.opencode/agent-models.jsonc`; Historie `docs/agent-guide/registry/retired.md`.

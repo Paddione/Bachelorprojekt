@@ -5,7 +5,7 @@
 // "could not encode request: System message must be at the beginning."
 //
 // Ursache:
-// opencode (1.18.31) sendet fuer den Agenten qwen38-primary und den internen
+// opencode (1.18.31) sendet fuer den Agenten glimmer-primary und den internen
 // Titel-Agenten mehrere system-Nachrichten (system, system, user). Das FreeToken-
 // Qwen3.6-Chat-Template akzeptiert strikt nur genau eine system-Nachricht an Position 0.
 // Frueher wurde dies durch fixups.mjs im llm-proxy und freetoken-active.ts abgefangen.

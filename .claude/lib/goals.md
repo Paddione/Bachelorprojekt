@@ -234,7 +234,7 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 **Was:** Zählt die in `scripts/llm/loadouts.json` geführten Modellserver (nur aktivierte Loadouts),
 die nicht erreichbar sind. Die Loadout-Datei ist die SSOT für Modellserver; ein toter Server darin
 bedeutet verlorene Inferenz-Kapazität. FreeToken auf Port 1919 wurde pensioniert (T900363); :1919 bedient
-ausschließlich den nativen `llama-server` mit `Qwen3.8-27B-gsq` (150k Kontext, MTP via `qwen38-gsq.service`).
+ausschließlich den nativen `llama-server` mit `Muse-Glimmer-30B` (131k Kontext, DFlash2 via `glimmer.service`, T900365).
 `exclusiveGroup`-Mitglieder einer Gruppe gelten nur als eine Zähleinheit — eine Gruppe ist verfügbar,
 sobald ein Mitglied lebt. Messquelle ist `scripts/lib/llm-stack-measure.sh` (`server-availability`);
 der Positiv-Anker (`/livez` oder `/health` des llm-proxy und eine auswertbare Loadout-Registry)

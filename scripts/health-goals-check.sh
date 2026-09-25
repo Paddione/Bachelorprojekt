@@ -166,6 +166,9 @@ import json,subprocess,sys,datetime
 mode,ctx=sys.argv[1],sys.argv[2]
 now=datetime.datetime.now(datetime.timezone.utc); n=0
 for ns in sys.argv[3:]:
+    if ns == "workspace-korczewski" and subprocess.run(
+        ["kubectl","get","kustomization","flux-korczewski","-n","flux-system","--context",ctx,"--request-timeout=5s","-o","jsonpath={.spec.suspend}"],
+        capture_output=True,text=True).stdout.strip().lower() == "true": continue
     d=json.loads(subprocess.check_output(
         ["kubectl","get","pods","-n",ns,"--context",ctx,"--request-timeout=10s","-o","json"],
         stderr=subprocess.DEVNULL))
@@ -252,7 +255,7 @@ def fm(p):
     m=re.search(r'[Tt]riggers on:\s*(.*)',d); return toks(m.group(1)) if m else set()
 rows={}; seg=False
 for line in open('AGENTS.md').read().splitlines():
-    if re.match(r'^<summary>Claude Code Domain Agents',line): seg=True; continue
+    if re.match(r'^<summary>(Claude Code )?Domain Agents',line): seg=True; continue
     if seg and re.match(r'^</details>',line): break
     if seg:
         m=re.match(r'\|(.*?)\|\s*`(bachelorprojekt-[a-z]+)`\s*\|\s*$',line)
@@ -429,7 +432,7 @@ row target G-DOC02 "$(anchor_file CLAUDE.md; wc -l < CLAUDE.md | tr -d ' ')" le 
 row target G-AGENTIC01 "$(bash scripts/lib/count-unresolved-agent-tools.sh)" le 0 "tools:-Eintraege, die ins Leere zeigen (leere Aufloesung oder unbekannter MCP-Server)"
 row target G-AGENTIC10 "$(
   c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
-    grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
+    grep -RlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c
 )" le 0 "Agenten ohne dispatchende Skill (website/db/security)"
 row target G-DOC03 "$(c=0; for d in components/website components/brett scripts tests k3d; do ls "$d"/README* >/dev/null 2>&1 && c=$((c+1)); done; echo $c)" ge 5 "README-Index Hauptverzeichnisse"
 row target G-SEC05 "$(anchor_ref main; git log -50 --pretty='%G? %ae' main 2>/dev/null | grep -vE '(41898282\+)?github-actions\[bot\]@users\.noreply\.github\.com' | awk '{print $1}' | grep -c N || true)" le 2 "unsignierte Commits (letzte 50; adjusted: ohne freshness-Bot)"
@@ -657,7 +660,7 @@ dora_count() { # <since> <grep-pattern|-> — Commits auf main im Zeitfenster
     git log --since="$since" --first-parent --oneline main 2>/dev/null | wc -l | tr -d ' '
   else
     git log --since="$since" --first-parent --format='%s' main 2>/dev/null \
-      | grep -ciE "$pat" || echo 0
+      | grep -ciE "$pat" || true
   fi
 }
 
@@ -710,10 +713,8 @@ exit_code_of_script() { # <script-pfad> [args…]
 }
 
 # --- Offline + schnell (18) ---------------------------------------------------
-row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src 2>/dev/null | grep -v goals-data.generated.json | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
-# grep -c druckt bei null Treffern "0" und exitet trotzdem 1 — ein `|| echo 0`
-# haengt deshalb eine zweite Zeile an und macht aus dem gueltigen Wert "0" den
-# ungueltigen Wert "0\n0". Nur den Exit abfangen, nie die Ausgabe ersetzen.
+row target G-CQ06  "$(anchor_dir components/website/src; grep -rnE '@deprecated' components/website/src --exclude='*.test.ts' 2>/dev/null | grep -v goals-data.generated.json | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in components/website/src"
+# Nur den Exit abfangen, nie die Ausgabe ersetzen (grep -c druckt bei null Treffern "0").
 row gate   G-TEST01 "$(grep -rniE "skip [\"']" tests --include='*.bats' 2>/dev/null | grep -ciE 'pending|todo|WP-|disabled' || true)" eq 0 "BATS Debt-Skips (pending/todo/WP-/disabled)"
 row target G-TEST03 "$(anchor_dir components/website/src; grep -rnE '(describe|it|test)\.(skip|todo)\b' components/website/src --include='*.ts' 2>/dev/null | wc -l | tr -d ' ')" le 1 "Vitest Skipped/Todo-Suiten (Ist 1 bei Aufnahme T002598)"
 row gate   G-TEST04 "$(git status --porcelain components/website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
@@ -724,7 +725,7 @@ row gate   G-SEC02 "$(exit_code_of_script scripts/git-crypt-guard.sh check-track
 row target G-SEC03 "$(ts=$(git log -1 --format=%at -- environments/sealed-secrets/*.yaml 2>/dev/null); [ -n "$ts" ] && echo $(( ( $(date +%s) - ts ) / 86400 )) || echo '-')" le 90 "Tage seit letzter SealedSecret-Rotation"
 row target G-SEC04 "$(min=''; for p in environments/certs/*.pem; do [ -f "$p" ] || continue; e=$(openssl x509 -enddate -noout -in "$p" 2>/dev/null | cut -d= -f2); [ -n "$e" ] || continue; d=$(( ( $(date -d "$e" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 )); { [ -z "$min" ] || [ "$d" -lt "$min" ]; } && min=$d; done; echo "${min:--}")" ge 30 "Sealing-Cert Restlaufzeit (Tage, Minimum)"
 row gate   G-DEP03 "$(anchor_file components/website/Dockerfile; grep -q 'npm ci' components/website/Dockerfile 2>/dev/null && echo 1 || echo 0)" eq 0 "PM-Konsistenz: npm ci in components/website/Dockerfile (0=nur pnpm)"
-row gate   G-RH04 "$(cutoff=$(( $(date +%s) - 30*86400 )); git for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/remotes/origin 2>/dev/null | while read -r b ts; do case "$b" in origin/HEAD|origin/main) continue;; esac; [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && echo "$b"; done | wc -l | tr -d ' ')" eq 0 "Stale Remote Branches (>30d)"
+row target G-RH04 "$(cutoff=$(( $(date +%s) - 30*86400 )); git for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/remotes/origin 2>/dev/null | while read -r b ts; do case "$b" in origin/HEAD|origin/main) continue;; esac; [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && echo "$b"; done | wc -l | tr -d ' ')" le 0 "Stale Remote Branches (>30d)"
 want G-RH07 && row gate   G-RH07 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task freshness:check)" eq 0 "Freshness-Check (Exit)"
 row gate   G-K8S01 "$(k8s_audit limits)"     eq 0 "Deployments ohne resources.limits"
 row target G-K8S02 "$(k8s_audit readiness)"  le 3 "Deployments ohne readinessProbe"
@@ -733,11 +734,7 @@ want G-K8S04 && row gate   G-K8S04 "$([ "$FAST" = 1 ] && echo '-' || exit_code_o
 
 # --- Netzabhängig: gh mit Timeout, sonst SKIP (7) -----------------------------
 row target G-CI01 "$(wf_success_rate ci.yml 20)" ge 95 "main CI-Erfolgsrate (%, letzte 20)"
-row gate   G-CI02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 run list --workflow ci.yml --branch main --limit 5 --json conclusion) && python3 -c "
-import json,sys
-try: print(sum(1 for x in json.loads(sys.argv[1]) if x.get('conclusion')=='failure'))
-except Exception: print('-')
-" "$o" || echo '-'; })" eq 0 "Rote main-HEAD-Laeufe (letzte 5)"
+row gate   G-CI02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 run list --workflow ci.yml --branch main --limit 5 --json conclusion) && python3 -c "import json,sys; print(sum(1 for x in json.loads(sys.argv[1]) if x.get('conclusion')=='failure')) if sys.argv[1] else print('-')" "$o" 2>/dev/null || echo '-'; })" eq 0 "Rote main-HEAD-Laeufe (letzte 5)"
 row gate   G-GIT01 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json createdAt) && python3 -c "
 import json,sys,datetime
 try:

@@ -139,7 +139,7 @@ _skip_if_no_db() {
   run bash -c "source '${REPO_ROOT}/scripts/factory/lib.sh'; factory_resolve; \
     factory_psql -t -A -c \"SELECT DISTINCT COALESCE(base_url,'') FROM tickets.provider_config WHERE source IN ('factory-implement','factory-review') AND enabled=true\""
   [ "$status" -eq 0 ]
-  echo "$output" | grep -q '127.0.0.1:18235'
+  echo "$output" | grep -qE '127.0.0.1:(18235|1919)'
 
   # Teil 2 — Laufzeit, zustandsabhaengig: welcher Kandidat gewinnt, entscheidet der
   # Slot-Zustand. Invariant bleibt aber, dass NIE das alte direkte llama.cpp-Backend

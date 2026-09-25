@@ -122,6 +122,26 @@ Das Audit meldet `stale_source` (Quelle neuer als Seite → Nachlauf nötig),
 (Seite ohne Provenienz-Frontmatter). Exit-Code 1 bedeutet Findings, nicht
 Absturz. Die Eval misst Recall@k/MRR über `tests/fixtures/brain/retrieval-eval.jsonl`.
 
+## Verifikation frisch ingestierter Seiten (Report-only)
+
+Zwei Werkzeuge prüfen die inhaltliche Qualität genau der Seiten, die der
+aktuelle Delivery-Branch gegenüber `origin/main` verändert hat. Beide sind
+reine Reports (Exit 0) — Ticket nur für bestätigte Treffer, nie automatisch:
+
+```bash
+# Dangling Datei-/Ticket-Referenzen (deterministisch, ohne LLM)
+bash scripts/brain-verify-refs.sh --brain-repo ~/brain
+bash scripts/brain-verify-refs.sh --brain-repo ~/brain --check-tickets  # + Ticket-DB
+
+# Widerspruchs-Spotcheck Zusammenfassung vs. Quelle (lokales LLM, pro Quelle)
+bash scripts/brain-verify-claims.sh --source docs/runbooks/brain-ingest.md \
+  --wiki-dir ~/brain/wiki --max-pairs 10
+```
+
+`--slugs a,b,c` oder `--all` statt Branch-Diff sind möglich (Usage im
+Skript-Kopf). Befunde immer am Original belegen (Seite:Zeile bzw. Zitatpaar),
+bevor sie als Ticket oder Pipeline-Fix weitergehen.
+
 ## Prune-Verhalten und Meta-Seiten
 
 Der Prune läuft in **jedem** Ingest-Durchgang mit (Default dry). Nur `--prune`

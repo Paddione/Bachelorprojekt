@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.364.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.363.1...website-v1.364.0) (2026-09-25)
+
+
+### Features
+
+* **ops:** trim cut-out comfy images to the subject before pixelate [T900386] ([#5895](https://github.com/Paddione/Bachelorprojekt/issues/5895)) ([4bb936f](https://github.com/Paddione/Bachelorprojekt/commit/4bb936f7203697defbabf611ee2612a5b30fce17))
+
 ## [1.363.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.363.0...website-v1.363.1) (2026-09-25)
 
 

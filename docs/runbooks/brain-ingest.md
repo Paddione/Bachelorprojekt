@@ -58,6 +58,19 @@ schreibt MOC-Seiten neu, prunt seiten ohne lebende Quelle, passiert die Gates
 automatisch einen PR gegen `Paddione/brain`. Das Zusammenführen des PRs ist
 **manuell** (Squash-Merge, danach Remote-Branch löschen).
 
+Einzelnes Thema nachladen (nur eine Manifest-Gruppe transformieren):
+
+```bash
+task brain:ingest:run -- --group runbooks
+```
+
+Gültige Gruppen stehen in `scripts/brain/ingest-sources.yaml` (`ssot-specs`,
+`runbooks`, `adr`, `gotchas-footguns`, `agent-guide-maps`, `core-docs`,
+`health-goals`, `diagrams`, `github-reviewed`); unbekannte Namen brechen den
+Lauf fail-closed ab. MOC-Seiten und `index.md` werden dabei immer vollständig
+neu geschrieben (Metadaten-Refresh, kein LLM), der Prune bleibt global.
+`--group` ist nicht mit `--from-scratch` kombinierbar.
+
 ## Delivery abschließen: PR mergen und Branch pflegen
 
 1. PR-Status prüfen (Checks müssen grün sein, sonst Fehlerursache im

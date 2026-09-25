@@ -35,6 +35,12 @@ task brain:ingest:pilot  # Pilot
 task brain:ingest:run    # Voller Lauf inkl. PR
 ```
 
+Einzelnes Thema nachladen (Gruppe aus `ingest-sources.yaml`, z. B. `runbooks`):
+
+```bash
+task brain:ingest:run -- --group runbooks
+```
+
 ### 4. Reproduzierbarer Neuaufbau
 
 Entfernt zuerst alle aus Bachelorprojekt erzeugten Wiki-Seiten, setzt den State

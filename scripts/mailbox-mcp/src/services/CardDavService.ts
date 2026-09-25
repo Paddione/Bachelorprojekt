@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { createDAVClient, type DAVAddressBook, type DAVObject } from "tsdav";
 import type { CalDavConnection } from "../types/calendar.types.js";
 import { createLogger } from "./Logger.js";
@@ -184,7 +185,7 @@ export class CardDavService {
       throw new Error("No address book available to save contact");
     }
 
-    const uid = `contact-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const uid = `contact-${randomUUID()}`;
     const vCardLines = [
       "BEGIN:VCARD",
       "VERSION:3.0",

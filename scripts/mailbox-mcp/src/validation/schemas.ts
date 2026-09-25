@@ -1,3 +1,4 @@
+import sanitize from "sanitize-html";
 import * as v from "valibot";
 
 // =============================================================================
@@ -20,15 +21,24 @@ export const sanitizeString = (str: string): string => {
     .join("");
 };
 
-export const sanitizeHtml = (html: string): string => {
-  // Basic HTML sanitization - remove dangerous tags and attributes
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
-    .replace(/on\w+="[^"]*"/gi, "") // Remove event handlers
-    .replace(/href="javascript:[^"]*"/gi, 'href=""') // Remove javascript: URLs
-    .replace(/javascript:/gi, "");
+// Outgoing HTML mail bodies are sanitized with an allowlist parser instead of
+// regex stripping: regex filters cannot reliably match malformed or nested
+// markup (CodeQL js/bad-tag-filter, js/incomplete-multi-character-sanitization).
+const HTML_SANITIZE_OPTIONS: sanitize.IOptions = {
+  allowedTags: [...sanitize.defaults.allowedTags, "img", "span", "font", "center"],
+  allowedAttributes: {
+    ...sanitize.defaults.allowedAttributes,
+    "*": ["style", "class", "align", "width", "height", "color", "bgcolor"],
+    img: ["src", "alt", "title", "width", "height"],
+    font: ["face", "size", "color"],
+  },
+  allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowedSchemesByTag: { img: ["http", "https", "cid", "data"] },
+  allowProtocolRelative: false,
 };
+
+export const sanitizeHtml = (html: string): string =>
+  sanitize(html, HTML_SANITIZE_OPTIONS);
 
 // =============================================================================
 // BASE VALIDATION SCHEMAS

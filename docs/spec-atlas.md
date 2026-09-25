@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2439 · Scenarios: 5414
+Specs: 129 · Requirements: 2440 · Scenarios: 5416
 
 ## factory-pipeline
 
@@ -593,7 +593,7 @@ Last touches:
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
 
 ### llm-local-dev
-Reqs: 45 · Scenarios: 90 · Lines: 1115
+Reqs: 46 · Scenarios: 92 · Lines: 1143
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
   - Dead Checkpoints Are Not Declared | T900365 | 2026-09-25 | MODIFIED
@@ -601,8 +601,6 @@ Last touches:
   - Image Generation MCP for Muse Code | T900379 | 2026-09-25 | ADDED
   - Image Output Is Confined to Git Working Trees | T900379 | 2026-09-25 | ADDED
   - ComfyUI Runs Only While Images Are Requested | T900379 | 2026-09-25 | ADDED
-In-flight:
-  - Transparent Images Are Trimmed to the Subject | T900386 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

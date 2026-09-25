@@ -1,0 +1,21 @@
+# systemd-User-Unit: MCP-Bruecke Muse Code -> Glimmer als Arbeitermodell [T900373].
+# Status: Aktiv (T900373) — MCP-Bruecke Muse Code -> Glimmer (:1919), 127.0.0.1:13007.
+#
+# Installation und Registrierung in beiden Muse-settings.json (WSL + Windows):
+#   task llm:glimmer-worker:install
+# Das Bearer-Token liegt in ~/.config/glimmer-worker-mcp/server.env (Modus 600),
+# erzeugt vom Installer. Windows erreicht den Listener ueber WSL mirrored networking.
+[Unit]
+Description=Glimmer worker MCP for Muse Code (Streamable HTTP, 127.0.0.1:13007)
+After=network.target glimmer.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h
+EnvironmentFile=%h/.config/glimmer-worker-mcp/server.env
+ExecStart=/usr/bin/env node %h/Bachelorprojekt/scripts/glimmer-worker-mcp/server.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

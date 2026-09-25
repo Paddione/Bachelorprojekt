@@ -205,3 +205,8 @@ tasks:
     desc: "DEPRECATED — bge embed/rerank sind seit T002551 CPU-Deployments im Cluster."
     cmds:
       - echo "LM Studio (lmstudio-preload.sh) is deprecated since T002110. Embedding/Reranking kommen seit T002551 aus dem Cluster (k3d/llm-gpu.yaml, via bge-mcp port-forward auf 127.0.0.1:8081/8082)."
+
+  glimmer-worker:install:
+    desc: "Glimmer-Worker-MCP (127.0.0.1:13007) installieren und in Muse Code (WSL + Windows) eintragen [T900373]"
+    cmds:
+      - bash scripts/glimmer-worker-mcp/install.sh

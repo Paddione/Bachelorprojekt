@@ -599,6 +599,10 @@ Last touches:
   - Local Agent Roster on the Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
   - Project Default Model Targets the Local Qwen3.8 Checkpoint | T900365 | 2026-09-25 | RENAMED
   - Local Agent Roster on the Glimmer Checkpoint | T900365 | 2026-09-25 | MODIFIED
+In-flight:
+  - Glimmer Worker MCP for Muse Code | T900373 | active | ADDED
+  - Windows Paths Are Accepted by the Glimmer Worker | T900373 | active | ADDED
+  - The Glimmer Worker Is Registered Only in Muse Code | T900373 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

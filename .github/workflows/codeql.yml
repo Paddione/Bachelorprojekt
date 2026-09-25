@@ -1,0 +1,104 @@
+# .github/workflows/codeql.yml — Code-Scanning mit CodeQL [T900375]
+#
+# Anlass: Der Check "github-advanced-security" schlug auf jedem PR fehl (#5872–#5878),
+# die API meldete "no analysis found" — Advanced Security war aktiv, aber kein Workflow
+# lieferte eine Analyse. Dieser Workflow liefert sie.
+#
+# Zuschnitt:
+#   - Sprachen mit echtem Nutzen: javascript-typescript (Website inkl. /api/*, Node-Skripte),
+#     go (scripts/factory/mcp-go, scripts/ticket-mcp/go), actions (Workflow-Dateien selbst).
+#     Kein Python/Shell — dort deckt CodeQL wenig ab.
+#   - PRs nur bei Code-Aenderungen (Pfadfilter); reine Plan-/Doku-PRs laufen nicht an.
+#   - Woechentlich komplett auf main, damit neue Regeln auch Bestandscode pruefen.
+#   - Bewusst KEIN Pflicht-Check (Branch-Protection unveraendert): erst die
+#     Bestandsbefunde sichten und als eigene Tickets triagieren.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'components/**'
+      - 'scripts/**'
+      - 'brett/**'
+      - '.github/workflows/**'
+      - '.github/workflows/codeql.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/**'
+      - 'scripts/**'
+      - 'brett/**'
+      - '.github/workflows/**'
+      - '.github/workflows/codeql.yml'
+  schedule:
+    - cron: '17 3 * * 1'   # montags 03:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  OPENSPEC_TELEMETRY: '0'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: actions
+            build-mode: none
+          - language: go
+            build-mode: manual
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # Vendorte Fremdpakete und generierte Artefakte sind nicht unser Code.
+          config: |
+            paths-ignore:
+              - '**/node_modules/**'
+              - 'tests/unit/lib/**'
+              - 'k3d/docs-content-built/**'
+              - '**/*.generated.*'
+
+      # Die Go-Module liegen in Unterverzeichnissen; Autobuild findet sie nicht.
+      - name: Build Go modules
+        if: matrix.language == 'go'
+        run: |
+          set -euo pipefail
+          for mod in scripts/factory/mcp-go scripts/ticket-mcp/go; do
+            echo "::group::go build $mod"
+            (cd "$mod" && go build ./...)
+            echo "::endgroup::"
+          done
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

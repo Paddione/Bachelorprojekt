@@ -75,6 +75,19 @@ tasks:
         {{if .DRY_RUN}}set -- "$@" --dry-run{{end}}
         python3 scripts/finetune/train.py "$@"
 
+  train-vision:
+    desc: "Qwen3-VL image/screenshot QLoRA. CORPUS=<jsonl> MODEL=<hf-id-or-snapshot> MAX_SEQ_LENGTH=<n> [EVAL_CORPUS=<jsonl>] [DRY_RUN=1]"
+    preconditions:
+      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MAX_SEQ_LENGTH}}" ]'
+        msg: "CORPUS=, MODEL= und MAX_SEQ_LENGTH= sind erforderlich."
+    cmds:
+      - |
+        set -- --corpus "{{.CORPUS}}" --model "{{.MODEL}}" --max-seq-length "{{.MAX_SEQ_LENGTH}}"
+        {{if .EVAL_CORPUS}}set -- "$@" --eval-corpus "{{.EVAL_CORPUS}}"{{end}}
+        {{if .FREEZE_VISION_LAYERS}}set -- "$@" --freeze-vision-layers{{end}}
+        {{if .DRY_RUN}}set -- "$@" --dry-run{{end}}
+        python3 scripts/finetune/train_vision.py "$@"
+
   traces:
     desc: "Erfolgreiche Factory-Laeufe zu Trainingskorpus rendern. FIXTURE=<json>|ROWS_JSON=<json> [COMMENTS_JSON=<json>] [WITH_CONTEXT=1] OUT=<jsonl>"
     preconditions:

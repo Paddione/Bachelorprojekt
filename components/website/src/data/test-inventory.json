@@ -5784,6 +5784,12 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-training-env/vision-route",
+    "file": "tests/spec/unsloth-training-env/vision-route.bats",
+    "category": "unsloth-training-env",
+    "kind": "shell"
+  },
+  {
     "id": "vaultwarden-integration",
     "file": "tests/spec/vaultwarden-integration.bats",
     "category": "vaultwarden-integration",

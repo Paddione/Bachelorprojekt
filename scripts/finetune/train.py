@@ -112,6 +112,13 @@ def validate_lora_config(r: int, alpha: int, dropout: float) -> None:
 def resolve_training_mode(config: dict) -> dict:
     """Resolve model-specific precision before loading heavyweight GPU libraries."""
     model = config["model"].lower()
+    model_path = Path(config["model"])
+    if model_path.is_dir() and (model_path / "config.json").is_file():
+        model_config = json.loads((model_path / "config.json").read_text(encoding="utf-8"))
+        if model_config.get("model_type") == "qwen3_vl":
+            raise SystemExit("FEHLER: Qwen3-VL braucht train_vision.py mit Bild-Daten und UnslothVisionDataCollator.")
+    if "qwen3-vl" in model or "qwen3_vl" in model:
+        raise SystemExit("FEHLER: Qwen3-VL braucht train_vision.py mit Bild-Daten und UnslothVisionDataCollator.")
     qwen35 = "qwen3.5" in model or "qwen3_5" in model
     bnb = "bnb-4bit" in model or "bnb_4bit" in model
     precision = config.get("precision") or "auto"

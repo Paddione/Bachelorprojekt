@@ -4088,7 +4088,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 788,
+      "file_count": 789,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -4594,6 +4594,7 @@
         "scripts/llm/pk-devices/run-bootstrap-admin.cmd",
         "scripts/llm/pk-devices/run-host-portproxy.cmd",
         "scripts/llm/pk-devices/run-startup.cmd",
+        "scripts/llm/qwen35-mtp.service",
         "scripts/llm/restart-freetoken.ps1",
         "scripts/llm/routing-check.sh",
         "scripts/llm/start-gemma-server.ps1",

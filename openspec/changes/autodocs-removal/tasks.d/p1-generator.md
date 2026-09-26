@@ -39,6 +39,7 @@ each claimed number equals `residual_budget` output. Line counts are live
 | `commitlint.config.cjs` | edit: drop docs-gen scope, net 0 (Ist 116) | Budget 284, Ist 116, Limit 400 (.cjs) |
 | `scripts/worktree-create.sh` | edit: reword comment, net 0 (Ist 620) | Budget 180, Ist 620, Limit 800 (.sh) |
 | `.gitignore` | edit: drop 2 lines, net -2 (Ist 257 after) | Ist 259, S1 n/a (no extension) |
+| `scripts/devflow-post-merge-deploy.sh` | edit: drop DEPLOY_DOCS path, net -5 (Ist 129 after) | Budget 666, Ist 134, Limit 800 (.sh) |
 | `.github/workflows/build-docs.yml` | delete via git rm | S1 n/a (removed) |
 | `scripts/docs.Dockerfile` | delete via git rm | S1 n/a (removed) |
 | `scripts/build-docs.mjs` | delete via git rm | S1 n/a (removed) |
@@ -287,6 +288,39 @@ becomes:
 ```text
 # docs-content-built HTML is committed; search-index.json is generated (build-docs.mjs:231)
 k3d/docs-content-built/search-index.json
+```
+
+`scripts/devflow-post-merge-deploy.sh` (net -5): remove the DEPLOY_DOCS
+path (no docs build exists anymore; anchor
+`grep -n 'DEPLOY_DOCS' scripts/devflow-post-merge-deploy.sh` → exactly
+4 hits at L80/84/89/110). Four spots, everything else byte-identical:
+
+```bash
+python3 - <<'PY'
+p = 'scripts/devflow-post-merge-deploy.sh'
+lines = open(p).read().split('\n')
+# 1. init line + 2. trigger line (exact matches, unique by anchor)
+lines = [l for l in lines if l not in (
+  'DEPLOY_DOCS=false',
+  'echo "$CHANGED" | grep -qE \'^docs/\' && DEPLOY_DOCS=true',
+)]
+s = '\n'.join(lines)
+# 3. early-exit condition clause
+old_cond = '      && "$DEPLOY_K8S" == false && "$DEPLOY_DOCS" == false ]]; then'
+new_cond = '      && "$DEPLOY_K8S" == false ]]; then'
+assert s.count(old_cond) == 1, "condition clause exactly once"
+s = s.replace(old_cond, new_cond)
+# 4. info block
+old_block = ('if [[ "$DEPLOY_DOCS" == true ]]; then\n'
+             '  echo "ℹ Docs-Image: .github/workflows/build-docs.yml baut — kein lokaler Build."\n'
+             'fi\n')
+assert s.count(old_block) == 1, "info block exactly once"
+s = s.replace(old_block, '')
+open(p, 'w').write(s)
+print("DEPLOY_DOCS path removed")
+PY
+test -z "$(grep -n 'DEPLOY_DOCS\|build-docs' scripts/devflow-post-merge-deploy.sh || true)"
+bash -n scripts/devflow-post-merge-deploy.sh && echo "OK: Syntax"
 ```
 
 Verify Task 3:

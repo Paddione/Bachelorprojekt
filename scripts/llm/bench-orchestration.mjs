@@ -11,7 +11,7 @@
 // Sie misst, ob der Orchestrator Worker-Ausgaben gegenprueft und neu delegiert.
 //
 // Aufruf:
-//   node scripts/llm/bench-orchestration.mjs --orch 1921 --label glimmer [--reps 3] [--worker 1920] [--worker-think] [--tasks csv,chain]
+//   node scripts/llm/bench-orchestration.mjs --orch 1921 --label glimmer [--reps 3] [--worker 1920] [--worker-think] [--tasks csv,chain] [--orch-model <id>]
 // Ergebnis: eine JSON-Zeile pro Lauf auf stdout-Datei --out (Default: bench-orchestration-<label>.jsonl
 // im aktuellen Verzeichnis), Zusammenfassung auf stderr.
 
@@ -25,6 +25,8 @@ const LABEL = arg('label', 'orch');
 const REPS = Number(arg('reps', '3'));
 const OUT = arg('out', `bench-orchestration-${LABEL}.jsonl`);
 const WORKER_THINK = process.argv.includes('--worker-think');
+// FreeToken verlangt "model" im Request (HTTP 422 ohne), llama.cpp ignoriert es.
+const ORCH_MODEL = arg('orch-model', undefined);
 const ONLY = arg('tasks', '').split(',').filter(Boolean);
 const MAX_TURNS = 12;
 
@@ -151,7 +153,7 @@ async function runTask(task, rep) {
   try {
     for (let turn = 0; turn < MAX_TURNS && rec.answer === null; turn++) {
       rec.turns++;
-      const { msg, usage, ms } = await chat(ORCH, { messages, tools: TOOLS, tool_choice: 'auto', max_tokens: 8192 });
+      const { msg, usage, ms } = await chat(ORCH, { model: ORCH_MODEL, messages, tools: TOOLS, tool_choice: 'auto', max_tokens: 8192 });
       rec.orch_ms += ms; rec.orch_tokens += usage.completion_tokens ?? 0;
       const calls = msg.tool_calls ?? [];
       messages.push({ role: 'assistant', content: msg.content ?? '', tool_calls: calls.length ? calls : undefined });

@@ -18,6 +18,7 @@ die eigentliche Arbeit an Qwen3.5-4B-MTP auf der RTX 3060 Ti (:1920, `qwen35-mtp
 | Orchestrator | Quant, Kontext | Bestanden | fault erkannt | Protokollfehler | Ø Delegationen | Ø Zeit/Aufgabe | Decode |
 |---|---|---|---|---|---|---|---|
 | Qwen3.8-27B GSQ-RCO | IQ3_XXS-mtp, 153.600, q4_0 | **15/15** | 3/3 | 0 | 3,7 | 27,2 s | 79 t/s |
+| Qwen3.6-35B-A3B-NVFP4 (FreeToken 0.1.3, Windows) | NVFP4 offload, 200.000 KV, 2 Slots | 11/15 | 3/3 | 5 | 2,9 | 30,7 s | 91 t/s |
 | Muse-Glimmer-30B + DFlash2 | UD-IQ3_XXS, 131.072, q8_0 | 9/15 | 3/3 | 0 | 4,9 | 44,6 s | 82 t/s |
 | Qwen3-30B-A3B-Instruct-2507 | UD-Q3_K_XL, 32.768, q4_0 | 4/15 | 3/3 | 7 (+3 HTTP 500) | 3,0 | 15,5 s | 147 t/s |
 
@@ -29,6 +30,10 @@ Fehlerbilder:
 - Qwen3-30B-A3B: zerstoert Escapes beim Abschreiben (`\d` wird zu `×`/`Ö`/Surrogaten, der Server
   scheitert am Tool-JSON mit HTTP 500), schreibt Worker-Ergebnisse eigenmaechtig um (Worker `TOTAL=306`,
   abgegeben `338`), erfindet Wortzaehlungen und delegiert nur die Multiplikation.
+- Qwen3.6-35B-A3B (FreeToken): `slugs` 0/3, uebernimmt Umlautfehler des Workers (`api-schuesel`,
+  `grsse`, `backup-taglich`) und gibt in einem Lauf die fehlerhafte Liste selbst vor. `csv#3` endet nach
+  korrekter Worker-Antwort mit leerer Nachricht statt `finish`. 3 bestandene Laeufe antworteten im
+  Klartext statt ueber `finish` (als Protokollfehler gezaehlt).
 - Qwen3.8-27B GSQ-RCO: keine Fehllaeufe. Laengster Lauf `slugs#3` mit 17 Delegationen (Schritte fein zerlegt).
 
 ## Nachstellen
@@ -54,10 +59,29 @@ systemd-run --user --unit=bench-qwen3-30b $GPU $M -m ~/models/Qwen3-30B-A3B-Inst
   -c 32768 -fit off -ngl 999 -fa on -ctk q4_0 -ctv q4_0 --temp 0.7 --top-p 0.8 --top-k 20 --min-p 0 \
   -np 1 --jinja --host 127.0.0.1 --port 1921
 node scripts/llm/bench-orchestration.mjs --orch 1921 --label qwen3-30b-a3b --reps 3
+
+# FreeToken (Windows, via Daemon) -- FreeToken verlangt das model-Feld
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$LOCALAPPDATA\FreeToken\Start-Qwen.ps1" -ContextTokens 200000 -MaxRequests 2
+node scripts/llm/bench-orchestration.mjs --orch 1919 --orch-model Qwen3.6-35B-A3B-NVFP4 --label freetoken-qwen36 --reps 3
 ```
 
 Zusammenfassung steht in der letzten stderr-Zeile, Einzellaeufe in `bench-orchestration-<label>.jsonl`
 (Fehllaeufe mit gekuerztem Verlauf in `.trace`).
+
+## FreeToken-Durchsatz (Qwen3.6-35B-A3B-NVFP4, 200k KV)
+
+Start: `Start-Qwen.ps1 -ContextTokens 200000 -MaxRequests <n>` (Daemon :1900, `--moe-cache-auto`,
+radix, `--moe-prefill-hit-d2d`, `--text-model-only`, neu: `--enable-special-token-ckpt`).
+Messung per Wanduhr, 400 Token je Strom, Thinking aus (inkl. Prefill und HTTP):
+
+| MaxRequests | GPU-Expert-Slots | Mamba-Slots | 1 Strom | 2 Stroeme gesamt | 4 Stroeme gesamt |
+|---|---|---|---|---|---|
+| 4 | 3.126 | 24 | 98-105 t/s | 124 t/s | 89 t/s (22 je Strom) |
+| 2 | 3.562 | 12 | 90-109 t/s | 148 t/s (74 je Strom) | - |
+
+Scheduler-Log bei 2 Stroemen: 177-204 t/s reiner Decode. 4 Slots sind schlechter als 2, weil der
+Offload an PCIe haengt und mehr parallele Stroeme mehr verschiedene Experten pro Schritt anfordern.
+Gewaehlt: MaxRequests 2. FreeToken nimmt jede Modell-ID an (`Muse-Glimmer-30B` wird beantwortet).
 
 ## Einschraenkung
 

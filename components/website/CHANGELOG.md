@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.367.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.366.0...website-v1.367.0) (2026-09-26)
+
+
+### Features
+
+* software factory decommission T900399 ([#5933](https://github.com/Paddione/Bachelorprojekt/issues/5933)) ([69ae047](https://github.com/Paddione/Bachelorprojekt/commit/69ae047f1d9926c68b64137c496e1f2b8a671a1a))
+
 ## [1.366.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.365.0...website-v1.366.0) (2026-09-26)
 
 

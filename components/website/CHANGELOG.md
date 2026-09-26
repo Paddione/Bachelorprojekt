@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.369.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.368.0...website-v1.369.0) (2026-09-26)
+
+
+### Features
+
+* **mcp:** retrieval eval-baseline, ADR-009, and Node MCP parity [T900448] ([#5946](https://github.com/Paddione/Bachelorprojekt/issues/5946)) ([25f62c8](https://github.com/Paddione/Bachelorprojekt/commit/25f62c86507070b5954242442604d7df11c152b8))
+
 ## [1.368.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.367.0...website-v1.368.0) (2026-09-26)
 
 

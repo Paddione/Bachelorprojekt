@@ -51,6 +51,8 @@ openclaw/.env
 .lavish/kit/daemon/dist/
 vaultwarden-import-*.json
 *-bitwarden-export.json
+bitwarden.json
+bitwarden-*.json
 claude-code/*-export.settings.json
 k3d/vaultwarden-seed-credentials.yaml
 k3d/vaultwarden-seed-job.yaml

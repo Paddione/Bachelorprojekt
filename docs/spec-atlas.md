@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2440 · Scenarios: 5415
+Specs: 130 · Requirements: 2444 · Scenarios: 5423
 
 ## factory-pipeline
 
@@ -982,6 +982,14 @@ Reqs: 11 · Scenarios: 23 · Lines: 245
 Paths: k3d/vaultwarden
 Last touches:
   - Spec-BATS smoke coverage | T002012 | 2026-07-21 | ADDED
+
+### warden-mcp
+Reqs: 4 · Scenarios: 8 · Lines: 89
+Last touches:
+  - REQ-WARDEN-MCP-001 Credentials only from the user config file | T900404 | 2026-09-26 | ADDED
+  - REQ-WARDEN-MCP-002 No credentials in tracked MCP configs | T900404 | 2026-09-26 | ADDED
+  - REQ-WARDEN-MCP-003 Every mutating vault tool asks for confirmation | T900404 | 2026-09-26 | ADDED
+  - REQ-WARDEN-MCP-004 Bitwarden CLI is resolved and version-checked on every platform | T900404 | 2026-09-26 | ADDED
 
 ### website-db-split
 Reqs: 3 · Scenarios: 3 · Lines: 46

@@ -13,12 +13,16 @@ status: approved
   und anlegen/ändern/löschen.
 - Kein Credential im Repo — weder Klartext, noch git-crypt, noch `${VAR}`-Platzhalter in getrackten
   Configs.
-- Jede mutierende Operation braucht eine explizite Bestätigung im Claude-Code-Permission-Dialog.
+- Jede mutierende Operation braucht eine explizite Bestätigung im Permission-Dialog des
+  jeweiligen Harness (Claude Code: `permissions.ask`, opencode: `permission` = `ask`).
+- Auch opencode kommt an den Tresor — der Server soll am Python-Orchestrator (agy) vorbei
+  weiterverfügbar bleiben.
 
 ## Non-Goals
 
-- HTTP-Transport, Cluster-Deployment, weitere Harnesses, dediziertes Service-Konto,
-  Änderungen an Vaultwarden selbst.
+- HTTP-Transport, Cluster-Deployment, Harnesses über `claude_code` und `opencode` hinaus (agy,
+  qwen_code und llamacpp bleiben tresorfrei), dediziertes Service-Konto, Änderungen an
+  Vaultwarden selbst.
 
 ## Decisions
 
@@ -59,6 +63,26 @@ Einträge von Vaultwarden 1.36.0 nicht entschlüsseln (`invalid type: JsValue(Ob
 startet npx über `npx-cli.js` mit `cwd = Home` (cmd.exe verweigert UNC-Arbeitsverzeichnisse).
 `SSO_ONLY=true` blockiert den API-Key-Login nicht (`bw login --apikey` + `unlock` erfolgreich).
 
+### D6 — WSL/Linux: dieselbe Pin-Logik, `~/.local/bin/bw` [T900404, 2026-09-26]
+Unter WSL ist das gebündelte `@bitwarden/cli` (2026.9.0) **startbar** — der `spawn EFTYPE`-Befund
+aus D5 ist Windows-spezifisch —, scheitert aber beim Entschlüsseln genau wie bw ≥ 2026.7:
+`bw.js --nointeraction --session <redacted> create item <redacted> failed with exit code 1`. Der
+Launcher sucht darum plattformunabhängig `PATH` → `~/.local/bin/bw` → (nur Windows) WinGet-Paket und
+prüft die Version. Fehlt ein nutzbares `bw`, ist das eine Warnung und kein Abbruch: warden-mcp
+verbindet lazy und meldet `Vault access not ready yet <host>`. Für WSL wurde daher
+bw-linux-2026.6.0 aus dem clients-Release `cli-v2026.6.0` nach `~/.local/bin/bw` installiert
+(`chmod 700`) — dieselbe Version wie der Windows-Pin aus D5.
+
+### D7 — Zweiter Harness `opencode` mit eigener ask-Liste [T900404, 2026-09-26]
+Umgesetzt über die Registry (`harness.opencode` mit `type: local`,
+`command: [node, scripts/warden-mcp/launch.mjs]`, `enabled: true`), damit `task mcp:check` die
+Erreichbarkeit weiter fail-closed prüft. Der `mcp`-Block von `.opencode/opencode.jsonc` ist
+generiert (nur dieser), der `permission`-Block nicht — die 25 Regeln stehen dort handgeschrieben
+neben `"doom_loop": "deny"`. opencode bildet Tool-IDs als `<server>_<tool>`, also
+`warden_keychain_<name>` ohne `mcp__`-Präfix. Wildcards (`"warden_*": "ask"`) wären kürzer,
+explizit sind die 25 aber 1:1 mit `.claude/settings.json` und dem Release-Review vergleichbar —
+die Liste wird bei jedem Versions-Bump an beiden Stellen neu gezogen.
+
 ## Risks
 
 - **SSO_ONLY:** Vaultwarden läuft mit `SSO_ONLY=true` (Spec `vaultwarden-integration`). Ob der
@@ -69,5 +93,9 @@ startet npx über `npx-cli.js` mit `cwd = Home` (cmd.exe verweigert UNC-Arbeitsv
   `ghcr.io/icoretech/warden-mcp` ist ein eigener Folge-Change.
 - **npx auf Windows:** `npx` ist dort `npx.cmd`; Node ≥ 20 verlangt `shell: true` zum Spawnen von
   `.cmd`-Dateien (CVE-2024-27980).
+- **Dateirechte unter WSL:** `~/.config/warden-mcp/server.env` ist dort ein Symlink auf die
+  Windows-Datei unter `/mnt/c`, wo `chmod 600` nicht greift (drvfs, Rechte 777). Der Launcher
+  warnt in dem Fall nur — der Wert selbst ist der API-Key, nicht das Master-Passwort im Klartext
+  der Prozessliste.
 - **Master-Passwort auf Platte:** inhärent in warden-mcp (`BW_PASSWORD`); gemildert durch
   Dateirechte und Platzierung außerhalb jedes Repos.

@@ -382,15 +382,22 @@ clients:
     note: >-
       Vaultwarden-Tresor des Nutzers via @icoretech/warden-mcp (Version im Launcher
       gepinnt). Credentials ausschliesslich aus ~/.config/warden-mcp/server.env, nie
-      im Repo. Bewusst NUR harness.claude_code — jede weitere Harness waere ein
-      weiterer Pfad zum persoenlichen Tresor. Mutierende Tools stehen in
-      .claude/settings.json unter permissions.ask; bei Versions-Bump die Liste neu
-      ziehen. Windows braucht bw.exe <= 2026.6.x im PATH (neuere bw-CLIs koennen
-      Vaultwarden 1.36.0 nicht entschluesseln). [T900404]
+      im Repo. Harnesses claude_code und opencode; agy, qwen_code und llamacpp
+      bleiben bewusst aus, jeder weitere Harness waere ein weiterer Pfad zum
+      persoenlichen Tresor. Mutierende Tools stehen in .claude/settings.json
+      (permissions.ask, IDs mcp__warden__keychain_*) und in .opencode/opencode.jsonc
+      (permission, IDs warden_keychain_*); bei Versions-Bump beide Listen neu ziehen.
+      Windows und WSL brauchen bw <= 2026.6.x, neuere bw-CLIs koennen Vaultwarden
+      1.36.0 nicht entschluesseln; der Launcher sucht PATH, ~/.local/bin/bw und
+      winget. [T900404]
     harness:
       claude_code:
         command: node
         args: [scripts/warden-mcp/launch.mjs]
+      opencode:
+        type: local
+        command: [node, scripts/warden-mcp/launch.mjs]
+        enabled: true
 
 cluster:
   # In-Cluster-Bundle: k3d/dev-pod/{deployment,service,pvc,rbac}.yaml [T900107]

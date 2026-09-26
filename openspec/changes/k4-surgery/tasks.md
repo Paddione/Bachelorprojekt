@@ -1,42 +1,27 @@
 ---
-title: "k4-surgery — Implementation Plan"
+title: K4-Surgery — Spiegel entfernen
 ticket_id: T900451
-domains: [plan-authoring]
+domains: [brain, cleanup]
 status: active
-file_locks: []
-shared_changes: false
-batch_id: null
-parent_feature: null
-depends_on_plans: []
 ---
 
 # k4-surgery — Implementation Plan
 
-_Ticket: T900451_
-
 ## File Structure
 
-```
-<author fills this in — list of new/changed files>
-```
+- `scripts/brain-ingest*.sh` + Helfer (p1, 18 Pfade DEL + Skill-Verzeichnis)
+- `taskfiles/Taskfile.brain.yaml` (p1, Shrink auf brain:chunk/eval/chunk)
+- `Taskfile.yml` (p1, Brain-Block entfernen)
+- `scripts/health-goals-check.sh` (p1, G-BRAIN12/13/14 raus)
+- `.claude/lib/goals.md` (p1, G-BRAIN12/13/14 raus)
 
-## Verify (RED → GREEN)
+## Partials
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-pipeline.md | impl | scripts/brain-ingest.sh, scripts/brain-ingest-worklist.sh, scripts/brain-ingest-transform.sh, scripts/brain-ingest-moc.sh, scripts/brain-ingest-prune.sh, scripts/brain-ingest-restamp.sh, scripts/brain-ingest-swap.sh, scripts/brain-ingest-reset.sh, scripts/brain-ingest-coverage.sh, scripts/brain-group-match.sh, scripts/brain-source-provenance.sh, scripts/brain-page-metadata.py, scripts/brain-lifecycle-audit.py, scripts/brain-expertise.py, scripts/brain-bootstrap.sh, scripts/brain-merge-hook.sh, .github/workflows/brain-merge-hook.yml, scripts/brain/ingest-sources.yaml, .agents/skills/brain-ingest/SKILL.md, taskfiles/Taskfile.brain.yaml, Taskfile.yml, scripts/health-goals-check.sh, .claude/lib/goals.md | |
 
-```bash
-# Example: run the BATS test the author will add in their first task
-# (eigene Datei unter tests/spec/<spec-slug>/<kurz-slug>.bats, T002416)
-tests/unit/lib/bats-core/bin/bats tests/spec/brain-k4-brain-wiki/
-# expected: FAIL (red — the fix is not yet implemented)
-```
-
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
-
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+## Verify (final, wächst mit den Partials)
 
 ```bash
 task test:changed

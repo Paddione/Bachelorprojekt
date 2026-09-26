@@ -22,7 +22,7 @@ setup() {
   "docs/mini.md#2": {"slug": "page-bad", "type": "note"}
 }
 EOF
-  printf -- '---\ntype: note\n---\n\n# Ok\n\nDer Dienst lauscht auf Port 1919.\n' \
+  printf -- '---\ntype: note\n---\n\n# Ok\n\nDer Dienst lauscht auf Port 1919.\n\nSiehe auch [[page-bad]] für Details.\n' \
     > "$TESTDIR/brain/wiki/page-ok.md"
   printf -- '---\ntype: note\n---\n\n# Bad\n\nDie Statusfarbe ist rot.\n' \
     > "$TESTDIR/brain/wiki/page-bad.md"

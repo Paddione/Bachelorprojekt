@@ -8,7 +8,7 @@ kopieren, sondern verlinken.
 > **Pull-basiertes Deploy-Modell (Flux, T002083).** Prod wird auf dem fleet-Cluster von
 > FluxCD reconciled: `.github/workflows/render-fleet-artifact.yml` rendert bei jedem
 > `main`-Push das OCI-Artefakt `ghcr.io/paddione/fleet-manifests`, Flux zieht es. Container-
-> Images baut GitHub Actions (`build-website.yml`, `build-brett.yml`, `build-docs.yml`).
+> Images baut GitHub Actions (`build-website.yml`, `build-brett.yml`).
 > Die `task feature:*`-Tasks sind **Break-Glass-Fallback**, kein Regelweg.
 
 > **Generierte Artefakte lösen kein Deploy aus (T002255).** Pfade, die in `.gitattributes`
@@ -30,7 +30,6 @@ kopieren, sondern verlinken.
 |---|---|
 | `components/website/**` | `.github/workflows/build-website.yml` (baut + rollt aus). Break-Glass: `task feature:website` — braucht GHCR-Login. |
 | `components/brett/**` | `.github/workflows/build-brett.yml`. Break-Glass: `task feature:brett`. |
-| `docs/**` | `.github/workflows/build-docs.yml`. Break-Glass: `task docs:deploy`. |
 | `fleet/**`, `prod*/**`, `prod-fleet/**`, `environments/**` | Flux reconciled das OCI-Artefakt. Break-Glass: `task feature:deploy` (kein Registry-Login nötig). |
 | `fleet/sdlc-stack/**` | **kein Deploy** — Dev-Namespace auf Fleet (`workspace-dev`), existiert nicht als Prod-Overlay; wird vor dem `fleet/**`-Match aus `$CHANGED` gefiltert (T003982) |
 | `linguist-generated`-Pfade | **kein Deploy** — aus der Selektion gefiltert |
@@ -42,7 +41,6 @@ MERGE_COMMIT=$(git log origin/main -1 --format="%H")
 CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh | sed '/^fleet\/sdlc-stack\//d')
 echo "$CHANGED" | grep -qE '^components/website/'  && echo "→ build-website.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^components/brett/'    && echo "→ build-brett.yml (kein lokaler Build)"
-echo "$CHANGED" | grep -qE '^docs/'     && echo "→ build-docs.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^(fleet/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' && task feature:deploy
 ```
 

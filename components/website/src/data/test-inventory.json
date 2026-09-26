@@ -4896,6 +4896,12 @@
     "kind": "shell"
   },
   {
+    "id": "routing-docs-guard",
+    "file": "tests/spec/routing-docs-guard.bats",
+    "category": "routing-docs-guard",
+    "kind": "shell"
+  },
+  {
     "id": "runner/wrapper-guards",
     "file": "tests/spec/runner/wrapper-guards.bats",
     "category": "runner",

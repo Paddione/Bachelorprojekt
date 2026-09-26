@@ -122,3 +122,9 @@ Der Router (`llm-proxy`) leitet `voyage`-Aufrufe an die VoyageAI-API weiter (mit
 2. **`ticket_embeddings` ist toter Code** — vollständig implementiert, aber kein Aufrufer. Entweder aktivieren (Route/Hook bauen) oder als technische Schuld dokumentieren.
 3. **Keine Mixed-Model-Collision heute** — der Guard funktioniert, aber jede Collection hat genau ein Modell. Das Risiko entsteht erst, wenn jemand `bge-m3`-Chunks in eine `voyage`-Collection schreibt (oder umgekehrt).
 4. **Coaching hat keine eigenen Embeddings** — das im Ticket genannte „Coaching-Knowledge" läuft über `knowledge.chunks`, nicht über `coaching.*`.
+
+## Addendum (2026-09-26, T900453)
+
+Der post-commit-Hook (`scripts/index-repo.ts`, oben Zeilen 30/98) ist durch
+merge-getriebene In-Cluster-Embeds ersetzt (Change 2/6); die Hook-Passagen oben
+beschreiben den historischen Stand.

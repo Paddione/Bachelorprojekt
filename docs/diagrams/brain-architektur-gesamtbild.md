@@ -10,7 +10,7 @@
 | K1 | Vektorspeicher (pgvector) | Drei Vektor-Tabellen: `knowledge.chunks`, `code_embeddings`, `ticket_embeddings` | `docs/diagrams/k1-vector-db.md` |
 | K2 | bge-Embedding/Reranker | bge-m3 + bge-reranker-v2-m3 als K8s-Deployments | `docs/brain/k2-bge-paare.md` |
 | K3 | Code-Graph (codebase-memory-mcp) | Symbol-Graph, Aufrufketten, 14 MCP-Tools | `docs/brain/k3-code-graph.md` |
-| K4 | Brain-Wiki (Paddione/brain) | Externes Repo, ingest aus openspec/specs/ + docs/ | T002434 (in Arbeit) |
+| K4 | Authored-Docs-Kern in `docs/` (Mirror stillgelegt) | ADRs, Runbooks, Gotchas, Karten; kein externes Repo mehr | `docs/brain/recall-routing.md` |
 | K5 | OpenSpec | SSOT-Specs + Changes + Archiv, Lebenszyklus propose→apply→archive | `docs/brain/k5-openspec.md` |
 | K6 | Ticket/Factory | tickets.tickets DB + factory pipeline | T002436 (in Arbeit) |
 | K7 | Agenten/MCP-Harness | MCP-Server, Agenten-Rollen, llm-proxy Bridge | `docs/brain/k7-agenten-mcp.md` |
@@ -23,6 +23,8 @@ Kanten-Legende:
 - `- ->` deklariert, trägt heute NICHT
 - `···►` fehlt ganz (sollte existieren)
 - `(F)` Format · `(T)` Transport · `(A)` Auslöser
+
+> Stand 2026-08-02: Diagramm zeigt die Welt vor dem Epic-Umbau (K1 merge-getrieben seit 2/6, K4-Mirror stillgelegt seit 4/6) — aktuell: `docs/brain/recall-routing.md`.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐

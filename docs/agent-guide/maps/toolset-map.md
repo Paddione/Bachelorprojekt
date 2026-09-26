@@ -104,14 +104,6 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/ticket-dispatch/SKILL.md`
 
-## Fähigkeit: `factory-steuerung`
-
-- **`mcp:factory-mcp-node`** — Status `canonical` · Tier `assisted`
-  - _Wann:_ Factory-Queue, Status, Enqueue, Trigger, ähnliche OpenSpec-Changes finden.
-  - _Nicht:_ type=task-Tickets — der Dispatcher scheduled ausschliesslich type=feature.
-  - _Rollen:_ `bachelorprojekt-test`, `orchestrator`
-  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
-
 ## Fähigkeit: `repo-task-ausfuehrung`
 
 - **`mcp:mcp-task-runner`** — Status `canonical` · Tier `caution`
@@ -271,7 +263,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `system-audit`
 
 - **`skill:system-audit`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki) — endet je Befund in Ticket + OpenSpec-Proposal.
+  - _Wann:_ Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Authored-Docs) — endet je Befund in Ticket + OpenSpec-Proposal.
   - _Nicht:_ Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/system-audit/SKILL.md`
@@ -296,16 +288,16 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `code-graph`
 
 - **`mcp:codebase-memory-mcp`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Erste Anlaufstelle für Code-Struktur: Symbole, Aufrufketten, Architektur, Impact.
-  - _Nicht:_ Nicht-Code-Dateien und freier Text — dafür Grep und Glob.
+  - _Wann:_ Bekanntes Symbol oder Call-Chain gesucht: K3-Präzisionsschicht zuerst (Details: docs/brain/recall-routing.md).
+  - _Nicht:_ Semantische Was-Fragen (dafür K1-Embeddings) und Doktrin/Prozess (dafür docs/ direkt).
   - _Fallback:_ `Grep/Glob; bei nicht indiziertem Projekt zuerst index_repository`
   - _Rollen:_ `all`
 
 ## Fähigkeit: `embedding-rerank`
 
 - **`mcp:bge-mcp`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Embeddings und Reranking über den bge-Stack (semantische Plan- und Wiki-Suche).
-  - _Nicht:_ Wenn bge-embed im Cluster nicht Ready ist — dann schlägt der Aufruf fehl.
+  - _Wann:_ Semantische Was-Fragen über Code, Specs und Docs: K1-Roh-Recall zuerst (docs/brain/recall-routing.md).
+  - _Nicht:_ Wenn bge-embed im Cluster nicht Ready ist; bei bekanntem Symbol zuerst K3-Graph.
   - _Rollen:_ `orchestrator`
 
 ## Fähigkeit: `dokumentations-lookup`

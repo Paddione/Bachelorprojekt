@@ -76,7 +76,7 @@ bash scripts/agent-escalate.sh --agent "bachelorprojekt-<role>" --reason "<what>
 
 ## Code Discovery
 
-Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, `search_code`.
+Route recall by query type ([recall-routing](docs/brain/recall-routing.md)): known symbol → K3 graph first (`search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, `search_code`); semantic question → K1 embeddings first; doctrine/process → authored `docs/` first. Fallback order K1→K3→K4; grep/glob only for string literals and config values.
 
 ## OpenSpec conventions
 

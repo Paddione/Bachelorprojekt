@@ -84,7 +84,7 @@
 | `website/src/lib/ingest-json-core.ts` | Batch-Indexierung von JSON-Dokumenten |
 | `scripts/index-repo.ts` | Repository-Indexierung |
 | `scripts/knowledge/ingest-web.mjs` | Web-Crawling-Ingestion |
-| `scripts/brain-ingest.sh` | Brain-Wiki-Ingestion |
+| `scripts/brain-ingest.sh` (entfernt) | Brain-Wiki-Ingestion (stillgelegt, K4-Retire) |
 | `website/src/pages/api/bge/retrieve.ts` | Öffentlicher Retrieve-API-Endpunkt |
 | `website/src/pages/api/admin/knowledge/collections/[id]/documents.ts` | Admin: Document-Embedding |
 

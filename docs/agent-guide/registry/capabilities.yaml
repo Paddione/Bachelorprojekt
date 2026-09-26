@@ -326,7 +326,7 @@ capabilities:
   system-audit:
     skill:system-audit:
       state: canonical
-      use_when: "Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Brain-Wiki) — endet je Befund in Ticket + OpenSpec-Proposal."
+      use_when: "Audit über alle Systeme anfragen (GitOps-Repo, Live-Cluster, Website, Repo, Toolset, Security, DB, LLM-Pipeline, Authored-Docs) — endet je Befund in Ticket + OpenSpec-Proposal."
       avoid_when: "Akute Störung — dafür incident-response; Tiefe eines Einzel-Audits bleibt beim Spezial-Skill."
       roles: [orchestrator]
       tier: safe
@@ -357,8 +357,8 @@ capabilities:
   code-graph:
     mcp:codebase-memory-mcp:
       state: canonical
-      use_when: "Erste Anlaufstelle für Code-Struktur: Symbole, Aufrufketten, Architektur, Impact."
-      avoid_when: "Nicht-Code-Dateien und freier Text — dafür Grep und Glob."
+      use_when: "Bekanntes Symbol oder Call-Chain gesucht: K3-Präzisionsschicht zuerst (Details: docs/brain/recall-routing.md)."
+      avoid_when: "Semantische Was-Fragen (dafür K1-Embeddings) und Doktrin/Prozess (dafür docs/ direkt)."
       fallback: "Grep/Glob; bei nicht indiziertem Projekt zuerst index_repository"
       roles: [all]
       tier: safe
@@ -366,8 +366,8 @@ capabilities:
   embedding-rerank:
     mcp:bge-mcp:
       state: canonical
-      use_when: "Embeddings und Reranking über den bge-Stack (semantische Plan- und Wiki-Suche)."
-      avoid_when: "Wenn bge-embed im Cluster nicht Ready ist — dann schlägt der Aufruf fehl."
+      use_when: "Semantische Was-Fragen über Code, Specs und Docs: K1-Roh-Recall zuerst (docs/brain/recall-routing.md)."
+      avoid_when: "Wenn bge-embed im Cluster nicht Ready ist; bei bekanntem Symbol zuerst K3-Graph."
       roles: [orchestrator]
       tier: safe
 

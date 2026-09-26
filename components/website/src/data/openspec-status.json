@@ -5095,6 +5095,12 @@
       "status": "archived"
     }
   ],
+  "T900453": [
+    {
+      "slug": "agent-routing-docs",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

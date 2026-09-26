@@ -257,6 +257,15 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 > war die Ursache der G-AGENTIC12-Drift in T002678. Der Server heißt hier `playwright`, seine Tools
 > also `playwright_*`.
 
+## Recall-Schichtwahl (K1/K3/K4)
+
+Kurzwahl je Fragetyp (Tiefe: [recall-routing](../../../docs/brain/recall-routing.md)):
+
+- **K1 zuerst** bei semantischer Was-Frage: `bge-mcp` (`bge_embed`, `bge_rerank`) — Roh-Recall über Code, Specs, Docs.
+- **K3 zuerst** bei bekanntem Symbol/Call-Chain: `codebase-memory-mcp` (`search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, `search_code`) — Präzisions-Check.
+- **K4 zuerst** bei Doktrin/Prozess: direkt `docs/` lesen (`docs/adr/`, `docs/runbooks/`, Gotchas, Karten) — kein MCP, Authoring-Stand.
+- **Fallback** ohne Typ-Treffer: K1→K3→K4 (Roh-Recall → Präzisions-Check → Doktrin).
+
 ## `codebase-memory-mcp` — Code-Wissensgraph
 
 - **Transport:** lokales Binary (`codebase-memory-mcp`), stdio.

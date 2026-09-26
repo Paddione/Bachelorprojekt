@@ -117,7 +117,7 @@ runtimes:
     note: "Primary orchestrator on Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131072 served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation (exe-muse and DeepSeek rails). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator)."
   exe-muse:
     mode: subagent
-    model: opencode-go/muse-spark-1.3-contributor
+    model: opencode-go-oai/muse-spark-1.3-contributor
     write_capable: true
     note: "EXECUTOR on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, glimmer-primary. Free-first chain: orchestrator (Zen-free) → exe-muse (Go) → deepseek rails."
   glimmer-primary:

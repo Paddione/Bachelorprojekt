@@ -3696,6 +3696,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-local-dev/fixtures/plan-runner-fake-opencode",
+    "file": "tests/spec/llm-local-dev/fixtures/plan-runner-fake-opencode.sh",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
     "id": "llm-local-dev/glimmer-serving-profile",
     "file": "tests/spec/llm-local-dev/glimmer-serving-profile.bats",
     "category": "llm-local-dev",
@@ -3710,6 +3716,12 @@
   {
     "id": "llm-local-dev/opencode-compaction",
     "file": "tests/spec/llm-local-dev/opencode-compaction.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-local-dev/plan-runner",
+    "file": "tests/spec/llm-local-dev/plan-runner.bats",
     "category": "llm-local-dev",
     "kind": "shell"
   },

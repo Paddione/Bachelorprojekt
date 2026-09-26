@@ -5119,6 +5119,12 @@
       "status": "archived"
     }
   ],
+  "T900504": [
+    {
+      "slug": "plan-runner",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

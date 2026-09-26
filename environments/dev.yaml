@@ -16,7 +16,6 @@ env_vars:
   BRAND_ID: korczewski
   BRAND_NAME: "KORE"
   WEBSITE_IMAGE: website
-  DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: workspace
   # devmesh: Profil und Basis-Domain; A-Records zeigen nur auf Tailnet-Adressen (D3).
   DEVMESH_DOMAIN: devmesh.mentolder.de

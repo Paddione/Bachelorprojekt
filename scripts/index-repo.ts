@@ -23,8 +23,7 @@ const BATCH_SIZE = 16;
 const IGNORE_FILE_PATTERNS: RegExp[] = [/-rendered\.ya?ml$/];
 
 const IGNORE_DIRS = new Set([
-  'node_modules', 'dist', '.git', 'docs-content-built',
-  'k3d/docs-content-built', '.svelte-kit', '.astro', 'build',
+  'node_modules', 'dist', '.git', '.svelte-kit', '.astro', 'build',
   // T002259: dev-flow arbeitet in .worktrees/<slug>. Ohne diesen Eintrag
   // indexiert walkDir jeden gleichzeitig existierenden Worktree als weitere
   // Voll-Kopie des Repos — Duplikate unter fremden Pfaden in

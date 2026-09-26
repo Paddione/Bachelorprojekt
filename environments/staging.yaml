@@ -29,7 +29,6 @@ env_vars:
   WEBSITE_IMAGE_DIGEST: sha256:1111111111111111111111111111111111111111111111111111111111111111
   BRETT_IMAGE: latest
   BRETT_IMAGE_DIGEST: sha256:2222222222222222222222222222222222222222222222222222222222222222
-  DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: website-staging
   WORKSPACE_NAMESPACE: workspace-staging
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
@@ -49,7 +48,6 @@ env_vars:
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   POCKET_ID_FRONTEND_URL: "https://auth.staging.korczewski.de"
   POCKET_ID_DOMAIN: "auth.staging.korczewski.de"
-  DOCS_URL: "https://docs.staging.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.staging.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.staging.korczewski.de"
   BRAIN_EXTERNAL_URL: "https://brain.staging.korczewski.de"

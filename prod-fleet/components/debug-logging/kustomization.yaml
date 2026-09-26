@@ -100,20 +100,6 @@ patches:
   #     Erkennbar an SERVER_ROOT/SERVER_PORT im Container-Env.
   #     mediaviewer-widget und mentolder-web sind bewusst NICHT dabei: sie
   #     fuehren keine SERVER_*-Variablen und sind damit kein SWS.
-  - target: { kind: Deployment, name: docs }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: { name: docs }
-      spec:
-        template:
-          spec:
-            containers:
-              - name: docs
-                env:
-                  - name: SERVER_LOG_LEVEL
-                    value: "debug"
-
   - target: { kind: Deployment, name: downloads }
     patch: |-
       apiVersion: apps/v1
@@ -264,25 +250,6 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata: { name: oauth2-proxy-comfy }
-      spec:
-        template:
-          spec:
-            containers:
-              - name: oauth2-proxy
-                env:
-                  - name: OAUTH2_PROXY_STANDARD_LOGGING
-                    value: "true"
-                  - name: OAUTH2_PROXY_AUTH_LOGGING
-                    value: "true"
-                  - name: OAUTH2_PROXY_REQUEST_LOGGING
-                    value: "true"
-                  - name: OAUTH2_PROXY_SILENCE_PING_LOGGING
-                    value: "true"
-  - target: { kind: Deployment, name: oauth2-proxy-docs }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: { name: oauth2-proxy-docs }
       spec:
         template:
           spec:

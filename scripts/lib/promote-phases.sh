@@ -20,8 +20,6 @@ svc_image_repo() {
       # PR #2167): both brands deploy the same ghcr.io/paddione/website.
       echo "ghcr.io/paddione/website" ;;
     brett) echo "ghcr.io/paddione/workspace-brett" ;;
-
-    docs)  echo "ghcr.io/paddione/workspace-docs" ;;
   esac
 }
 
@@ -29,7 +27,6 @@ svc_deployment() {
   case "$1" in
     website) echo "website" ;;
     brett)   echo "brett" ;;
-    docs)    echo "docs" ;;
   esac
 }
 
@@ -53,7 +50,6 @@ default_smoke_grep() {
   case "$1" in
     website) echo 'fa-fragebogen|.*-auth-setup|fa-07-' ;;
     brett)   echo 'brett-duel-mode|fa-27-brett' ;;
-    docs)    echo '' ;;
   esac
 }
 
@@ -171,10 +167,6 @@ promote_phase_build() {
   case "$svc" in
     website) run docker build -t "$full" "${REPO}/components/website/" >&2 ;;
     brett)   run docker build -t "$full" "${REPO}/components/brett/" >&2 ;;
-    docs)
-      run node "${REPO}/scripts/build-docs.mjs" >&2
-      run docker build -t "$full" -f "${REPO}/scripts/docs.Dockerfile" "${REPO}" >&2
-      ;;
   esac
   echo "$full"
 }

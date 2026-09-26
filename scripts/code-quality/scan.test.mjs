@@ -14,7 +14,6 @@ test('scanUniverse returns tracked files under code_roots minus ignores', () => 
   assert.ok(files.length > 1000, `expected a large scan set, got ${files.length}`);
   // ignore_globs honoured:
   assert.ok(!files.includes('components/website/src/lib/system-test-seed-data.ts'));
-  assert.ok(!files.some((f) => f.startsWith('k3d/docs-content-built/')));
   // gate-test fixtures are ignored (Finding-3 fix): they never perturb the index.
   assert.ok(!files.some((f) => f.startsWith('scripts/code-quality/fixtures/')));
   // outside code_roots excluded:

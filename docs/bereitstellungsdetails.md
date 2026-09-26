@@ -194,13 +194,6 @@ Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) 
 * **Image-Tag:** `:latest`
 * **Produktions-URLs:** `arena-ws.korczewski.de`
 
-### 4.12 Documentation (`docs`)
-* **Beschreibung:** Eine statische Dokumentations-Webseite (Docsify), die das Admin- und Benutzerhandbuch bereitstellt.
-* **K8s-Deployment-Name:** `docs`
-* **K8s-Namespace:** `workspace` / `workspace-korczewski`
-* **Image-Tag:** `:latest` (wird via `task docs:deploy` neu gebaut)
-* **Produktions-URLs:** `docs.mentolder.de`, `docs.korczewski.de`
-
 ### 4.13 PostgreSQL 16 (`postgresql`)
 * **Beschreibung:** Der zentrale relationale Datenbank-Server der Plattform. Pro Marke läuft eine eigene PostgreSQL-Instanz im jeweiligen Namespace. Der Zugriff erfolgt über interne Kubernetes-DNS-Namen (`shared-db`).
 * **K8s-Deployment-Name:** `shared-db`

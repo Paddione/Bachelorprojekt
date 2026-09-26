@@ -5,8 +5,6 @@
   "scripts": {
     "typecheck": "tsc --build",
     "test:track-pr": "node --test scripts/track-pr.test.mjs",
-    "test:docs-gen": "node --test scripts/docs-gen/*.test.mjs",
-    "build:docs": "node scripts/build-docs.mjs",
     "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs",
     "test:code-quality": "node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs",
     "test:openspec": "vitest run scripts/openspec-validate.test.ts scripts/openspec-merge.test.ts scripts/openspec-merge-truncation.test.ts --reporter=verbose",

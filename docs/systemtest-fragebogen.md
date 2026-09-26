@@ -56,7 +56,6 @@
 | FA-10 | Kundenanfragen-Kontaktformular | |
 | FA-11 | Kunden-Portal | |
 | FA-12 | Claude Code AI Assistant (MCP) | |
-| FA-13 | Dokumentations-Service | |
 | FA-14 | User Registration Flow | |
 | FA-15 | OIDC Website Login | |
 | FA-16 | Calendar Booking | |
@@ -217,29 +216,6 @@ Bemerkungen: ___________________________________________________________________
 | T4 | ForwardAuth-Proxy prüfen: `kubectl get deploy mcp-auth-proxy -n workspace -o jsonpath='{.status.readyReplicas}'` | Wert > 0 |
 | T5 | Anfrage ohne Token an MCP-Auth-Proxy: `curl -i http://mcp-auth-proxy.workspace.svc/auth` | HTTP 401 |
 | T6 | `task mcp:status` ausführen | Alle MCP-Container als `Running` gelistet |
-
-**Befund:**
-
-Tatsächliches Ergebnis: ______________________________________________________________________________________________
-
-Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen
-
-Bemerkungen: ______________________________________________________________________________________________
-
----
-
-### FA-13: Dokumentations-Service
-
-> **Beschreibung:** Prüft den internen Dokumentations-Dienst (Docsify), der auf `docs.{DOMAIN}` erreichbar ist.
-
-**Vorbedingungen:** Workspace-Stack deployed
-
-| Schritt | Aktion | Erwartetes Ergebnis |
-|---------|--------|---------------------|
-| T1 | Docs-Deployment prüfen: `kubectl get deploy docs -n workspace -o jsonpath='{.status.readyReplicas}'` | Wert > 0 |
-| T2 | Docs-Service intern ansprechen: HTTP-Anfrage auf `http://docs.workspace.svc.cluster.local` | HTTP-Antwort (kein Timeout) |
-| T3 | DOCS_DOMAIN in ConfigMap prüfen: `kubectl get configmap domain-config -n workspace -o jsonpath='{.data.DOCS_DOMAIN}'` | Wert enthält Domain |
-| T4 | Im Browser `https://docs.{DOMAIN}` öffnen | Docsify-Startseite wird geladen |
 
 **Befund:**
 

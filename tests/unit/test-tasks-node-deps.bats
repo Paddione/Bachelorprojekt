@@ -16,7 +16,7 @@
 # on any tree that is already installed, so it only ever fires on a fresh local
 # worktree — exactly the broken case.
 #
-# RED until Taskfile.yml guards test:agent-guide (+ defensively test:docs-gen);
+# RED until Taskfile.yml guards test:agent-guide;
 # GREEN after.
 
 setup() {
@@ -57,16 +57,6 @@ first_match_line() {
 
 @test "T000427: test:agent-guide lazily installs node deps before any node call" {
   block="$(task_block test:agent-guide)"
-  echo "$block" | grep -qE -- "$GUARD_RE"
-  guard_ln="$(echo "$block" | first_match_line "$GUARD_RE")"
-  node_ln="$(echo "$block" | first_match_line "$NODE_RE")"
-  [ -n "$guard_ln" ]
-  [ -n "$node_ln" ]
-  [ "$guard_ln" -lt "$node_ln" ]
-}
-
-@test "T000427: test:docs-gen lazily installs node deps before any node call (defensive)" {
-  block="$(task_block test:docs-gen)"
   echo "$block" | grep -qE -- "$GUARD_RE"
   guard_ln="$(echo "$block" | first_match_line "$GUARD_RE")"
   node_ln="$(echo "$block" | first_match_line "$NODE_RE")"

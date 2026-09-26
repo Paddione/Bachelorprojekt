@@ -28,7 +28,6 @@ env_vars:
   WEBSITE_IMAGE_DIGEST: sha256:1111111111111111111111111111111111111111111111111111111111111111
   BRETT_IMAGE: latest
   BRETT_IMAGE_DIGEST: sha256:2222222222222222222222222222222222222222222222222222222222222222
-  DOCS_IMAGE: mentolder-docs
   WEBSITE_NAMESPACE: website
   WORKSPACE_NAMESPACE: workspace
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
@@ -48,7 +47,6 @@ env_vars:
   TURN_PUBLIC_IP: "204.168.244.104"
   TURN_NODE: "pk-hetzner-4"
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
-  DOCS_URL: "https://docs.mentolder.de"
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
   VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
   BRAIN_EXTERNAL_URL: "https://brain.mentolder.de"

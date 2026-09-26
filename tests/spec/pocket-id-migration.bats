@@ -237,11 +237,6 @@ migrated_oauth2_manifests() {
   ! grep -q 'STUDIO_OIDC_SECRET' "${K3D}/oauth2-proxy-studio.yaml" || false
 }
 
-@test "pocket-id: oauth2-proxy-docs rewires DOCS_OIDC_SECRET to POCKET_ID_DOCS_SECRET" {
-  grep -q 'POCKET_ID_DOCS_SECRET' "${K3D}/oauth2-proxy-docs.yaml"
-  ! grep -q 'DOCS_OIDC_SECRET' "${K3D}/oauth2-proxy-docs.yaml" || false
-}
-
 @test "pocket-id: oauth2-proxy-brainstorm rewires BRAINSTORM_OIDC_SECRET to POCKET_ID_BRAINSTORM_SECRET" {
   grep -q 'POCKET_ID_BRAINSTORM_SECRET' "${K3D}/dev-stack/oauth2-proxy-brainstorm.yaml"
   ! grep -q 'BRAINSTORM_OIDC_SECRET' "${K3D}/dev-stack/oauth2-proxy-brainstorm.yaml" || false

@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-94 Services · 1933 Abhängigkeitskanten · 297 API-Endpoints
+92 Services · 1849 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -33,7 +33,6 @@ flowchart LR
   shared_db_dev["shared-db-dev"]:::default
   sish["sish"]:::default
   website["website"]:::default
-  docs["docs"]:::default
   downloads["downloads"]:::default
   einvoice_sidecar["einvoice-sidecar"]:::default
   error_log_retention["error-log-retention"]:::default
@@ -60,7 +59,6 @@ flowchart LR
   ntfy["ntfy"]:::default
   oauth2_proxy_brett["oauth2-proxy-brett"]:::default
   oauth2_proxy_comfy["oauth2-proxy-comfy"]:::default
-  oauth2_proxy_docs["oauth2-proxy-docs"]:::default
   oauth2_proxy_downloads["oauth2-proxy-downloads"]:::default
   oauth2_proxy_mailpit["oauth2-proxy-mailpit"]:::default
   oauth2_proxy_mediaviewer["oauth2-proxy-mediaviewer"]:::default
@@ -192,7 +190,6 @@ flowchart LR
   traefik -->|"ingress"| spreed_signaling
   traefik -->|"ingress"| vaultwarden
   traefik -->|"ingress"| mentolder_web
-  traefik -->|"ingress"| oauth2_proxy_docs
   traefik -->|"ingress"| oauth2_proxy_downloads
   traefik -->|"ingress"| oauth2_proxy_brett
   traefik -->|"ingress"| oauth2_proxy_comfy
@@ -225,7 +222,6 @@ flowchart LR
   shared_db_dev_lb -->|"selector"| shared_db_dev
   shared_db_dev -->|"selector"| shared_db_dev
   sish -->|"selector"| sish
-  docs -->|"selector"| docs
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar
   registry_cache -->|"selector"| registry_cache
@@ -289,8 +285,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| admin_actions_cleanup
-  admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -368,8 +362,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| admin_actions_prune
-  admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -445,8 +437,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| sessions_purge
-  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -520,8 +510,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| db_backup
-  db_backup -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -592,8 +580,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| db_restore_verify
-  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -661,8 +647,6 @@ flowchart LR
   brett -->|"secret:workspace-s…"| oauth2_proxy_brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| brett
-  brett -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -727,8 +711,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| billing_dunning_detection
-  billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -795,8 +777,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| monthly_billing
-  monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -861,8 +841,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| scheduled_publish
-  scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -925,8 +903,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
-  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -987,8 +963,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_dev
-  oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1047,8 +1021,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_session_hub
-  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1105,8 +1077,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| error_log_retention
-  error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1161,8 +1131,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| knowledge_ingest_prs
-  knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1214,8 +1182,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1265,8 +1231,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| knowledge_reindex_all
-  knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1314,8 +1278,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| nextcloud
-  nextcloud -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1357,8 +1319,6 @@ flowchart LR
   oauth2_proxy_brett -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| notify_unread
-  notify_unread -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1403,8 +1363,6 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| notify_unread
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1447,8 +1405,6 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_mailpit
@@ -1491,48 +1447,6 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_comfy
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_downloads
-  oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_mailpit
-  oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
-  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
-  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_studio
-  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_terminal
-  oauth2_proxy_terminal -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_traefik
-  oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_videovault
-  oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| pocket_id
-  pocket_id -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_recovery
-  oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| sdlc_console
-  sdlc_console -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| shared_db
-  shared_db -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| studio_server
-  studio_server -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| spreed_signaling
-  spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| talk_recording
-  talk_recording -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| vaultwarden
-  vaultwarden -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| videovault
-  videovault -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| whiteboard
-  whiteboard -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| talk_transcriber
-  talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| ddns_updater
-  ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| dev_db_refresh
-  dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
@@ -1997,7 +1911,6 @@ flowchart TB
     shared_db_dev["shared-db-dev"]
     sish["sish"]
     website["website"]
-    docs["docs"]
     downloads["downloads"]
     einvoice_sidecar["einvoice-sidecar"]
     error_log_retention(["error-log-retention"])
@@ -2016,7 +1929,6 @@ flowchart TB
     ntfy["ntfy"]
     oauth2_proxy_brett["oauth2-proxy-brett"]
     oauth2_proxy_comfy["oauth2-proxy-comfy"]
-    oauth2_proxy_docs["oauth2-proxy-docs"]
     oauth2_proxy_downloads["oauth2-proxy-downloads"]
     oauth2_proxy_mailpit["oauth2-proxy-mailpit"]
     oauth2_proxy_mediaviewer["oauth2-proxy-mediaviewer"]

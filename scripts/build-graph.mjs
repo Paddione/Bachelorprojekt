@@ -2,7 +2,7 @@
 /**
  * build-graph.mjs — K8s Service Dependency Graph (LAD-1)
  *
- * Parses k3d/**\/*.yaml + prod*\/**\/*.yaml (excluding docs-content-built)
+ * Parses k3d/**\/*.yaml + prod*\/**\/*.yaml
  * to extract Deployment/StatefulSet/CronJob nodes and service-to-service
  * dependency edges (via env refs, initContainers, ingress backends).
  *
@@ -53,12 +53,12 @@ function main() {
   const edgeSet = new Set(); // deduplication key
   const edges = [];
 
-  // Collect yaml files from k3d/ and prod*/ dirs (excluding docs-content-built)
+  // Collect yaml files from k3d/ and prod*/ dirs
   const dirs = ['k3d', 'prod', 'prod-mentolder', 'prod-korczewski', 'prod-fleet'];
   const yamlFiles = [];
   for (const dir of dirs) {
     const full = join(ROOT, dir);
-    const files = globYaml(full, ROOT, ['k3d/docs-content-built']);
+    const files = globYaml(full, ROOT);
     yamlFiles.push(...files);
   }
 

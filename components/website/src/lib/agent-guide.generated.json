@@ -1043,12 +1043,7 @@
       "related": [
         "agent-infra"
       ],
-      "links": [
-        {
-          "label_de": "Claude-Code-Doku",
-          "url": "https://docs.mentolder.de/claude-code.html"
-        }
-      ],
+      "links": [],
       "theme": "website",
       "aliases_de": [
         "website",
@@ -1263,12 +1258,7 @@
       "related": [
         "agent-infra"
       ],
-      "links": [
-        {
-          "label_de": "Begriffe & Glossar",
-          "url": "https://docs.mentolder.de/glossary.html"
-        }
-      ],
+      "links": [],
       "theme": "sicherheit",
       "aliases_de": [
         "secret",

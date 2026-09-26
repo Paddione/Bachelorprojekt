@@ -600,12 +600,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-13",
-    "file": "tests/e2e/specs/fa-13-docs.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
     "id": "FA-14",
     "file": "tests/local/FA-14.sh",
     "category": "FA",
@@ -2160,6 +2154,12 @@
     "kind": "shell"
   },
   {
+    "id": "autodocs-removal-guard",
+    "file": "tests/spec/autodocs-removal-guard.bats",
+    "category": "autodocs-removal-guard",
+    "kind": "shell"
+  },
+  {
     "id": "background-agents-fallback",
     "file": "tests/spec/background-agents-fallback.bats",
     "category": "background-agents-fallback",
@@ -2504,12 +2504,6 @@
   {
     "id": "ci-cd/devflow-execute-hardening-t002365",
     "file": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
-    "category": "ci-cd",
-    "kind": "shell"
-  },
-  {
-    "id": "ci-cd/docs-content-guards",
-    "file": "tests/spec/ci-cd/docs-content-guards.bats",
     "category": "ci-cd",
     "kind": "shell"
   },

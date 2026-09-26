@@ -86,7 +86,6 @@ jobs:
             paths-ignore:
               - '**/node_modules/**'
               - 'tests/unit/lib/**'
-              - 'k3d/docs-content-built/**'
               - '**/*.generated.*'
 
       # Die Go-Module liegen in Unterverzeichnissen; Autobuild findet sie nicht.

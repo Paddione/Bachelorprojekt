@@ -6,7 +6,7 @@
 #   bash scripts/feature-promote.sh                  # prompts for SERVICE & TARGET
 #
 # Inputs:
-#   SERVICE             website | brett | docs
+#   SERVICE             website | brett
 #   TARGET              mentolder | korczewski | both
 #   PROMOTE_TAG         override the auto-generated image tag
 #   SMOKE_GREP          override the Playwright --grep pattern for this run
@@ -32,7 +32,7 @@
 #      b) tests/e2e/smoke/<service>.txt (one pattern per non-comment line;
 #         joined with | into a single regex)
 #      c) built-in default below
-#    Empty pattern → smoke skipped (currently the case for `docs`).
+#    Empty pattern → smoke skipped.
 #
 # 3. AUTO-ROLLBACK ON FAILED ROLLOUT
 #    Every `kubectl set image` is followed by `kubectl rollout status` with
@@ -43,9 +43,6 @@
 #    out (no cross-cluster rollback; that'd need a coordinator and isn't the
 #    scope here).
 #
-# ── Per-service quirks ───────────────────────────────────────────────────────
-#   - docs:  no dev stage; image deploys straight to both prods via set-image
-#            on both clusters. TARGET=both is implied.
 
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -69,7 +66,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/promote-phases.sh"
 echo "═══ Promote ${SERVICE} → ${TARGET}  tag=${PROMOTE_TAG} ═══"
 
 # Phase 1 — build + push.
-# website builds per-brand; brett/docs share one image across clusters.
+# website builds per-brand; brett uses one shared image across clusters.
 declare -A IMG
 echo ""
 echo "▶ Phase 1/4 — build + push"
@@ -84,39 +81,33 @@ else
   for c in "${CLUSTERS[@]}"; do IMG[$c]="$shared"; done
 fi
 
-# Phase 2 — dev rollout (skip for docs).
-if [[ "$SERVICE" != "docs" ]]; then
-  echo ""
-  echo "▶ Phase 2/4 — dev rollout"
-  for c in "${CLUSTERS[@]}"; do
-    promote_phase_dev_deploy "$SERVICE" "$c" "${IMG[$c]}" || { echo "✗ Dev rollout failed. Aborting." >&2; exit 1; }
-  done
+# Phase 2 — dev rollout.
+echo ""
+echo "▶ Phase 2/4 — dev rollout"
+for c in "${CLUSTERS[@]}"; do
+  promote_phase_dev_deploy "$SERVICE" "$c" "${IMG[$c]}" || { echo "✗ Dev rollout failed. Aborting." >&2; exit 1; }
+done
 
-  # Phase 3 — smoke.
-  PW_FILTER=$(resolve_smoke_grep "$SERVICE")
-  echo ""
-  if [[ -n "$PW_FILTER" ]]; then
-    echo "▶ Phase 3/4 — Playwright smoke"
-    for c in "${CLUSTERS[@]}"; do
-      if ! promote_phase_smoke "$SERVICE" "$c"; then
-        echo "✗ Smoke FAILED on dev/${c}. Aborting before prod." >&2
-        echo "  Dev is still on tag ${PROMOTE_TAG}; revert with: kubectl --context $(dev_ctx "$c") -n $(dev_ns "$c") rollout undo deploy/$(svc_deployment "$SERVICE")" >&2
-        exit 1
-      fi
-    done
-  else
-    echo "▶ Phase 3/4 — smoke skipped (no pattern for ${SERVICE})"
-  fi
+# Phase 3 — smoke.
+PW_FILTER=$(resolve_smoke_grep "$SERVICE")
+echo ""
+if [[ -n "$PW_FILTER" ]]; then
+  echo "▶ Phase 3/4 — Playwright smoke"
+  for c in "${CLUSTERS[@]}"; do
+    if ! promote_phase_smoke "$SERVICE" "$c"; then
+      echo "✗ Smoke FAILED on dev/${c}. Aborting before prod." >&2
+      echo "  Dev is still on tag ${PROMOTE_TAG}; revert with: kubectl --context $(dev_ctx "$c") -n $(dev_ns "$c") rollout undo deploy/$(svc_deployment "$SERVICE")" >&2
+      exit 1
+    fi
+  done
 else
-  echo ""
-  echo "▶ Phase 2-3/4 — skipped (docs has no dev stage)"
+  echo "▶ Phase 3/4 — smoke skipped (no pattern for ${SERVICE})"
 fi
 
 # Phase 4 — prod rollout.
 echo ""
 echo "▶ Phase 4/4 — prod rollout"
 PROD_CLUSTERS=("${CLUSTERS[@]}")
-[[ "$SERVICE" == "docs" ]] && PROD_CLUSTERS=(mentolder korczewski)   # docs always both
 
 FAIL=0
 for c in "${PROD_CLUSTERS[@]}"; do

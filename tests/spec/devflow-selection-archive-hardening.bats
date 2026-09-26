@@ -86,7 +86,7 @@ setup() {
 }
 
 @test "T002255-A2: post-merge-deploy nennt stattdessen den zustaendigen CI-Workflow" {
-  run grep -nE 'build-website\.yml|build-brett\.yml|build-docs\.yml' "$POST_MERGE"
+  run grep -nE 'build-website\.yml|build-brett\.yml' "$POST_MERGE"
   [ "$status" -eq 0 ]
 }
 

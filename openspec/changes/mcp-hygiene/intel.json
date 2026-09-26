@@ -1,0 +1,651 @@
+{
+  "meta": {
+    "slug": "mcp-hygiene",
+    "ticket_id": "T900479",
+    "generated_from": "main@0128b1e75",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/settings.json",
+      "language": "config",
+      "loc": 208,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/mcp-tool-guide.md",
+      "language": "markdown",
+      "loc": 335,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/references/mcp-tool-guide.md",
+      "language": "markdown",
+      "loc": 335,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "components/website/src/lib/agent-guide.generated.json",
+      "language": "config",
+      "loc": 1924,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/20-werkzeuge.md",
+      "language": "markdown",
+      "loc": 327,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/maps/toolset-map.md",
+      "language": "markdown",
+      "loc": 669,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/capabilities.yaml",
+      "language": "config",
+      "loc": 821,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/expected/agy-mcp-config.json",
+      "language": "config",
+      "loc": 39,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/mcp.yaml",
+      "language": "config",
+      "loc": 430,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/code-quality/gates.yaml",
+      "language": "config",
+      "loc": 284,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory-mcp-node/package.json",
+      "language": "config",
+      "loc": 6,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory-mcp-node/server.mjs",
+      "language": "javascript",
+      "loc": 759,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 41
+    },
+    {
+      "path": "scripts/hermes-mcp-provision.sh",
+      "language": "bash",
+      "loc": 37,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 763
+    },
+    {
+      "path": "scripts/hermes-mcp-servers.yaml",
+      "language": "config",
+      "loc": 25,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/mcp-sync.sh",
+      "language": "bash",
+      "loc": 644,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 156
+    },
+    {
+      "path": "tests/spec/hermes-mcp-access.bats",
+      "language": "bash",
+      "loc": 310,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "language": "bash",
+      "loc": 159,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-gateway/native-server-startup-token.bats",
+      "language": "bash",
+      "loc": 99,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-gateway/token-drift-auto-sync.bats",
+      "language": "bash",
+      "loc": 211,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-tooling.bats",
+      "language": "bash",
+      "loc": 173,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/decommission-guard.bats",
+      "language": "bash",
+      "loc": 269,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": ".claude/skills/references/mcp-tool-guide.md:125:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }",
+      "kind": "function",
+      "file": ".claude/skills/references/mcp-tool-guide.md",
+      "signature": "125:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }(...)",
+      "type_text": "125:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": ".opencode/skills/references/mcp-tool-guide.md:125:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }",
+      "kind": "function",
+      "file": ".opencode/skills/references/mcp-tool-guide.md",
+      "signature": "125:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }(...)",
+      "type_text": "125:  psql() { kubectl exec \"$PGPOD\" -n workspace --context fleet -c postgres -- psql -U website -d website \"$@\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:25:function envOr(key, def) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "25:function envOr(key, def) {(...)",
+      "type_text": "25:function envOr(key, def) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:29:function repo() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "29:function repo() {(...)",
+      "type_text": "29:function repo() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:34:function port() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "34:function port() {(...)",
+      "type_text": "34:function port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:38:function openspecURL() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "38:function openspecURL() {(...)",
+      "type_text": "38:function openspecURL() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:42:function llmKey() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "42:function llmKey() {(...)",
+      "type_text": "42:function llmKey() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:50:function hashFile(path) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "50:function hashFile(path) {(...)",
+      "type_text": "50:function hashFile(path) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:59:function serverStale() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "59:function serverStale() {(...)",
+      "type_text": "59:function serverStale() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:86:function resolveLLM() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "86:function resolveLLM() {(...)",
+      "type_text": "86:function resolveLLM() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:90:      repo() + '/scripts/factory/route-provider.sh',",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "90:      repo() + '/scripts/factory/route-provider.sh',(...)",
+      "type_text": "90:      repo() + '/scripts/factory/route-provider.sh',(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:118:function resolveAuthKey(apiKeyEnv) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "118:function resolveAuthKey(apiKeyEnv) {(...)",
+      "type_text": "118:function resolveAuthKey(apiKeyEnv) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:151:function applyCORS(res, req) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "151:function applyCORS(res, req) {(...)",
+      "type_text": "151:function applyCORS(res, req) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:160:function validOriginFor(origin) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "160:function validOriginFor(origin) {(...)",
+      "type_text": "160:function validOriginFor(origin) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:167:function guardMCP(req, res) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "167:function guardMCP(req, res) {(...)",
+      "type_text": "167:function guardMCP(req, res) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:180:function psqlJSON(sql) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "180:function psqlJSON(sql) {(...)",
+      "type_text": "180:function psqlJSON(sql) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:197:function queueJSON() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "197:function queueJSON() {(...)",
+      "type_text": "197:function queueJSON() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:209:function countByStatus(raw) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "209:function countByStatus(raw) {(...)",
+      "type_text": "209:function countByStatus(raw) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:221:function atoiOrRaw(s) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "221:function atoiOrRaw(s) {(...)",
+      "type_text": "221:function atoiOrRaw(s) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:307:function toolFactoryStatus() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "307:function toolFactoryStatus() {(...)",
+      "type_text": "307:function toolFactoryStatus() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:342:function toolFactoryQueue() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "342:function toolFactoryQueue() {(...)",
+      "type_text": "342:function toolFactoryQueue() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:347:function toolFactoryEnqueue(args) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "347:function toolFactoryEnqueue(args) {(...)",
+      "type_text": "347:function toolFactoryEnqueue(args) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:367:function toolFactoryTrigger() {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "367:function toolFactoryTrigger() {(...)",
+      "type_text": "367:function toolFactoryTrigger() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:377:function toolFactoryRecent(args) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "377:function toolFactoryRecent(args) {(...)",
+      "type_text": "377:function toolFactoryRecent(args) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:394:function toolOpenspecSimilar(args) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "394:function toolOpenspecSimilar(args) {(...)",
+      "type_text": "394:function toolOpenspecSimilar(args) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:456:function resolveToolCallAnswer(ans) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "456:function resolveToolCallAnswer(ans) {(...)",
+      "type_text": "456:function resolveToolCallAnswer(ans) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:478:function toolFactoryAsk(args) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "478:function toolFactoryAsk(args) {(...)",
+      "type_text": "478:function toolFactoryAsk(args) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:584:    releaseSlot();",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "584:    releaseSlot();(...)",
+      "type_text": "584:    releaseSlot();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:587:    releaseSlot();",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "587:    releaseSlot();(...)",
+      "type_text": "587:    releaseSlot();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:595:function callTool(name, args) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "595:function callTool(name, args) {(...)",
+      "type_text": "595:function callTool(name, args) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory-mcp-node/server.mjs:613:function readBody(req) {",
+      "kind": "function",
+      "file": "scripts/factory-mcp-node/server.mjs",
+      "signature": "613:function readBody(req) {(...)",
+      "type_text": "613:function readBody(req) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:58:harden_secret_file() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "58:harden_secret_file() {(...)",
+      "type_text": "58:harden_secret_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:82:opencode_source() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "82:opencode_source() {(...)",
+      "type_text": "82:opencode_source() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:90:render_claude_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "90:render_claude_json() {(...)",
+      "type_text": "90:render_claude_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:126:render_agy_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "126:render_agy_json() {(...)",
+      "type_text": "126:render_agy_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:220:render_llamacpp_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "220:render_llamacpp_json() {(...)",
+      "type_text": "220:render_llamacpp_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:254:render_opencode_jsonc() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "254:render_opencode_jsonc() {(...)",
+      "type_text": "254:render_opencode_jsonc() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:332:render_qwen_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "332:render_qwen_json() {(...)",
+      "type_text": "332:render_qwen_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:423:render_claude_user_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "423:render_claude_user_json() {(...)",
+      "type_text": "423:render_claude_user_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:489:merge_claude_user_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "489:merge_claude_user_json() {(...)",
+      "type_text": "489:merge_claude_user_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:504:check_claude_user_json() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "504:check_claude_user_json() {(...)",
+      "type_text": "504:check_claude_user_json() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:526:diff_or_drift() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "526:diff_or_drift() {(...)",
+      "type_text": "526:diff_or_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:542:cmd_render() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "542:cmd_render() {(...)",
+      "type_text": "542:cmd_render() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/mcp-sync.sh:598:cmd_check() {",
+      "kind": "function",
+      "file": "scripts/mcp-sync.sh",
+      "signature": "598:cmd_check() {(...)",
+      "type_text": "598:cmd_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/hermes-mcp-access.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/hermes-mcp-access.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/hermes-mcp-access.bats:36:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/hermes-mcp-access.bats",
+      "signature": "36:teardown() {(...)",
+      "type_text": "36:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:12:setup_file() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "12:setup_file() {(...)",
+      "type_text": "12:setup_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:51:teardown_file() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "51:teardown_file() {(...)",
+      "type_text": "51:teardown_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:56:rpc() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "56:rpc() {(...)",
+      "type_text": "56:rpc() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats:63:call() {",
+      "kind": "function",
+      "file": "tests/spec/llm-local-dev/glimmer-worker-mcp.bats",
+      "signature": "63:call() {(...)",
+      "type_text": "63:call() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/native-server-startup-token.bats:14:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/native-server-startup-token.bats",
+      "signature": "14:setup() {(...)",
+      "type_text": "14:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/native-server-startup-token.bats:31:assert_no_port_bound() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/native-server-startup-token.bats",
+      "signature": "31:assert_no_port_bound() {(...)",
+      "type_text": "31:assert_no_port_bound() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/token-drift-auto-sync.bats:22:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/token-drift-auto-sync.bats",
+      "signature": "22:setup() {(...)",
+      "type_text": "22:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/token-drift-auto-sync.bats:70:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/token-drift-auto-sync.bats",
+      "signature": "70:teardown() {(...)",
+      "type_text": "70:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/token-drift-auto-sync.bats:75:heal_env() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/token-drift-auto-sync.bats",
+      "signature": "75:heal_env() {(...)",
+      "type_text": "75:heal_env() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/decommission-guard.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/decommission-guard.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -5101,6 +5101,12 @@
       "status": "archived"
     }
   ],
+  "T900479": [
+    {
+      "slug": "mcp-hygiene",
+      "status": "plan_staged"
+    }
+  ],
   "T900481": [
     {
       "slug": "2026-09-26-wip-glance-autopilot",

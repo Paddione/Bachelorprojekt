@@ -2,7 +2,7 @@
 title: "openspec-orphan-auto-dispatch — Implementation Plan"
 ticket_id: T900503
 domains: [ci, openspec]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

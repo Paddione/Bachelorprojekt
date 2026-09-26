@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2440 · Scenarios: 5411
+Specs: 130 · Requirements: 2442 · Scenarios: 5414
 
 ## factory-pipeline
 
@@ -341,17 +341,13 @@ Last touches:
   - K1/K3-Verhältnis (Defekt D8) (REQ-k3-04) | T002433 | 2026-08-02 | ADDED
 
 ### brain-k4-brain-wiki
-Reqs: 3 · Scenarios: 6 · Lines: 72
+Reqs: 5 · Scenarios: 9 · Lines: 110
 Last touches:
   - Diagramm der Ingest-Pipeline (REQ-k4-01) | T900451 | 2026-09-26 | REMOVED
   - Quellgruppen-Erhebung (REQ-k4-02) | T900451 | 2026-09-26 | REMOVED
   - Lesepfad-Integration (REQ-k4-03) | T900451 | 2026-09-26 | REMOVED
   - Fail-closed Prompt-Obergrenze (REQ-k4-05) | T900451 | 2026-09-26 | REMOVED
   - Deterministische Eltern-MOC (REQ-k4-06) | T900451 | 2026-09-26 | REMOVED
-In-flight:
-  - Versioned eval set is wired into CI | T900448 | active | ADDED
-  - Baseline artifact is recorded | T900448 | active | ADDED
-  - Node/Python index parity | T900448 | active | ADDED
 
 ### brain-k5-openspec
 Reqs: 4 · Scenarios: 4 · Lines: 41

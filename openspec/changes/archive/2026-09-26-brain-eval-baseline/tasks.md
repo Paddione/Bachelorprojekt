@@ -2,7 +2,7 @@
 title: Brain-Eval-Baseline + Node-Parität
 ticket_id: T900448
 domains: [brain, eval, mcp]
-status: active
+status: completed
 ---
 
 # brain-eval-baseline — Implementation Plan

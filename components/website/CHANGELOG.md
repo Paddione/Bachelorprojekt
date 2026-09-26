@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.371.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.370.0...website-v1.371.0) (2026-09-26)
+
+
+### Features
+
+* **mcp:** implement k3 auto-refresh periodisch [T900450] ([#5951](https://github.com/Paddione/Bachelorprojekt/issues/5951)) ([b81e73c](https://github.com/Paddione/Bachelorprojekt/commit/b81e73c441ad6974689ed28e9f13eca3993ce59e))
+
 ## [1.370.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.369.0...website-v1.370.0) (2026-09-26)
 
 

@@ -154,3 +154,36 @@ teardown() { rm -rf "$TMP"; }
   run grep -n 'OPENSPEC_EMBED_COVERAGE_TOLERANCE' "$REPO/scripts/openspec-embed.mjs"
   [ "$status" -eq 0 ]
 }
+
+@test "Single-Writer Zaehler: INSERT INTO knowledge.chunks und ACTIVE_STATUSES exakt 1" {
+  run grep -c 'INSERT INTO knowledge.chunks' "$REPO/scripts/openspec-embed.mjs"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 1 ]
+  run grep -c 'const ACTIVE_STATUSES' "$REPO/scripts/openspec-embed.mjs"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 1 ]
+}
+
+@test "completenessGateMessage Default-Toleranz 10% und Fehl-Slug Meldung" {
+  run node --input-type=module -e "
+    import { computeCoverageGap, completenessGateMessage } from '$REPO/scripts/openspec-embed.mjs';
+    const gapWarn = computeCoverageGap(['a', 'b', 'c'], ['a']);
+    if (completenessGateMessage(gapWarn) !== completenessGateMessage(gapWarn, 0.10)) process.exit(1);
+    const gapOk = computeCoverageGap(['a', 'b', 'c'], ['a', 'b', 'c']);
+    if (completenessGateMessage(gapOk) !== completenessGateMessage(gapOk, 0.10)) process.exit(2);
+    const msg = completenessGateMessage(gapWarn);
+    if (!msg.startsWith('WARN: completeness gate') || !msg.includes('b')) process.exit(3);
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "embedSlug dry-run erreicht Schreibpfad ohne DB-Verbindung" {
+  mkdir -p "$TMP/openspec/changes/demo-slug"
+  printf -- '---\nticket_id: T1\nstatus: planning\n---\n# Proposal: demo\n' > "$TMP/openspec/changes/demo-slug/proposal.md"
+  printf -- '---\nticket_id: T1\nstatus: planning\n---\n# Tasks: demo\n' > "$TMP/openspec/changes/demo-slug/tasks.md"
+  run env OPENSPEC_EMBED_REPO="$TMP" node "$REPO/scripts/openspec-embed.mjs" --slug demo-slug --dry-run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"dry-run"* ]]
+}
+

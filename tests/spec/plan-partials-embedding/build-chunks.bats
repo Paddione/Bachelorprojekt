@@ -72,3 +72,59 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
   [[ "$output" == *"sectionTitle: p1-core"* ]]
 }
+
+@test "openspec-embed delegiert an scs-chunking und enthaelt kein splitByTokenBudget" {
+  run bash -c "grep -c 'splitByTokenBudget' '$REPO/scripts/openspec-embed.mjs' || true"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 0 ]
+  run grep -c 'scs-chunking' "$REPO/scripts/openspec-embed.mjs"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+}
+
+
+@test "chunkSections teilt im Modul-Budget und beachtet Test-Optionen" {
+  run node --input-type=module -e "
+    import { chunkSections } from '$REPO/scripts/openspec-embed.mjs';
+    const short = chunkSections('# T\n\nWenig Text.');
+    if (short.length !== 1) process.exit(1);
+    const long = chunkSections('# T\n\n' + 'Satz. '.repeat(600));
+    if (long.length <= 1) process.exit(2);
+    const custom = chunkSections('# T\n\n' + 'Satz. '.repeat(600), { targetTokens: 50, overlapTokens: 5 });
+    if (custom.length <= long.length) process.exit(3);
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "buildChunks-Chunks tragen Modul-Budget und proposal/partial fileTypes" {
+  run node --input-type=module -e "
+    import { buildChunks } from '$REPO/scripts/openspec-embed.mjs';
+    import { estimateTokens } from '$REPO/scripts/lib/scs-chunking.ts';
+    const files = {
+      proposal: '---\n---\n# P\n\n' + 'Satz. '.repeat(400),
+      tasks: '---\n---\n# T\n\nText',
+      partials: { demo: '# Partial demo\n\n' + 'Schritt. '.repeat(400) }
+    };
+    const chunks = buildChunks(files);
+    for (const c of chunks) {
+      if (estimateTokens(c.text) > 512 + 64) process.exit(1);
+    }
+    if (!chunks.some(c => c.fileType === 'proposal')) process.exit(2);
+    if (!chunks.some(c => c.fileType === 'partial')) process.exit(3);
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "chunkCode Regression ueber scs-chunking intakt" {
+  run node --input-type=module -e "
+    import { chunkCode } from '$REPO/scripts/lib/scs-chunking.ts';
+    const code = 'const a = 1;\n'.repeat(50);
+    const out = chunkCode(code, 'x.ts').join('\n---\n');
+    if (!out.includes('const a = 1;')) process.exit(1);
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+

@@ -176,8 +176,10 @@ git push -u origin $(git branch --show-current)
 
 #### Schritt C.1: Decompose — Partial-Manifest erstellen
 Erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest** — Partials mit disjunkten
-`target_files`-Listen; das **letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
-STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials (D1). Obergrenze 9 (`--partials`-Cap).
+`target_files`-Listen; jede Zeile trägt zusätzlich `min_tier` + `ctx_tokens` (Dispatch-Vorgabe
+für den Orchestrator, R1/R2 — Rubrik in Schritt 3.7); das **letzte Partial ist IMMER die
+Tests-Rolle** (`tests`) und trägt den STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials
+(D1). Obergrenze 9 (`--partials`-Cap).
 
 #### Schritt C.2: Pipeline-Loop — Pro Partial: Plan → Stage → Enqueue → Factory
 
@@ -263,6 +265,9 @@ Dateimengen; Obergrenze 9 (`--partials`-Cap). Keine Datei darf in zwei Partials
 liegen (D1 — `scripts/plan-lint.sh` erzwingt das im Partial-Modus). Partials
 können über die optionale 5. Manifest-Spalte `depends_on` Abhängigkeiten
 deklarieren (D2 — `scripts/plan-lint.sh` validiert Referenzen und Azyklizität).
+Die Spalten 6+7 (`min_tier`, `ctx_tokens`) sind PFLICHT (R1/R2 — Rubrik in (b)):
+sie sagen dem Orchestrator, mit welcher billigsten Stufe und welchem
+Kontextbudget er das Partial dispatchen soll.
 
 **(b) Fan-out** — N parallele Plan-Subagenten (Claude Code: `Task`-Tool; opencode:
 `delegate(...)`). Kontext pro Subagent NUR: `openspec/changes/<slug>/proposal.md`,
@@ -272,9 +277,29 @@ gefilterte `intel.json` für genau seine Dateien) und die
 [plan-quality-gates](.agents/skills/references/plan-quality-gates.md)-Referenz.
 Jeder schreibt SEINE `openspec/changes/<slug>/tasks.d/pX-<name>.md`; der Orchestrator
 schreibt den `tasks.md`-**Index** mit der `## Partials`-Manifest-Tabelle
-(`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> |`), der `## File Structure`
-(Union aller Partials) und dem finalen Verify-Task (STRUCT3). `plan-lint.sh` aktiviert
-den Partial-Modus über die Existenz von `tasks.d/` automatisch.
+(`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> | min_tier | ctx_tokens |`),
+der `## File Structure` (Union aller Partials) und dem finalen Verify-Task (STRUCT3).
+`plan-lint.sh` aktiviert den Partial-Modus über die Existenz von `tasks.d/` automatisch.
+
+**Resourcing-Rubrik (R1/R2 — „cheapest that does the trick"):** Der Orchestrator
+dispatcht jedes Partial auf genau der Stufe aus `min_tier` und budgetiert aus
+`ctx_tokens` — nie darunter, Eskalation nur bei Fehlschlag (Kette im
+Orchestrator-Prompt). Die Stufen-Labels sind stabile Kapazitätsklassen; die
+konkrete Runtime-Bindung steht in `.opencode/agent-models.jsonc` +
+`.opencode/prompts/orchestrator.md` (heute: `4b-local` → `qwen35-mtp`,
+`27b-local` → `local`, `cloud` → `exe-muse`/DeepSeek-Kette):
+- `4b-local`: mechanisch, voll spezifiziert — exakte Anker, ein Subsystem,
+  Testausführung/Reporting, Boilerplate, Doc-Sync. Text-only, kein Deep-Debugging.
+- `27b-local`: Default für Implementation — Multi-File-Änderungen, Debugging mit
+  Urteil, Review, alles mit echtem Reasoning-Bedarf innerhalb des 131k-Fensters.
+- `cloud`: Bedarf über 131072 Tokens, tiefstes Reasoning (neuartige Architektur,
+  systemübergreifendes Design) oder genuin offene Exploration.
+`ctx_tokens`-Faustregel: (Σ `wc -l` der target_files + zu lesende Testdateien) × 40,
+aufgerundet auf den nächsten S/M/L-Bucket (32000/80000/90000). Über 90000: das
+Partial weiter aufteilen statt breiter zu dispatchen; was sich nicht unter 131072
+aufteilen lässt, bekommt `cloud`. `plan-lint.sh` erzwingt: `min_tier` exakt aus
+der Enum (R1), `ctx_tokens` positive Ganzzahl ≤ 1000000 und auf lokalen Stufen
+≤ 131072 (R2).
 
 Der folgende Single-Plan-Ablauf gilt für den 1-Partial-Fall (und ist der Prompt-Kern,
 den jeder Fan-out-Subagent für sein Partial bekommt):

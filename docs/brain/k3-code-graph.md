@@ -99,27 +99,23 @@
 ## Speicher und Index
 
 ### Physischer Speicher
-- **Kein lokaler Speicher** — kein `.codebase-memory/`-Verzeichnis existiert aktuell
-- Historisch: `.codebase-memory/graph.db.zst` (16.7 MB, PR #2281) — seit T001717 nicht mehr getrackt
-- Server-side: in-memory Index, vom MCP-Binary verwaltet
-- Persistenz: Graph geht bei Prozess-Neustart verloren und muss neu indiziert werden
+- **Persistenz:** SQLite-Datenbank unter `~/.cache/codebase-memory-mcp/` (kein Datenverlust bei Neustart)
+- Historisch: `.codebase-memory/graph.db.zst` (16.7 MB, PR #2281) — seit T001717 nicht mehr im git getrackt
+- Projekt: `home-patrick-Bachelorprojekt` mit 97.506 Nodes / 228.997 Edges (Stand September 2026)
 
-### Index-Triggert
+### Index-Trigger
 | Trigger | Mechanismus | Status |
 |---------|-----------|--------|
-| `index_repository` | MCP-Tool, manuell | primär |
-| `detect_changes` | MCP-Tool, git diff | ergänzend |
-| CI/Hook | Kein automatisierter Trigger gefunden | **fehlt** |
-| Post-Commit | Siehe K1 (bge-Embeddings) — Code-Graph hat kein Äquivalent | **fehlt** |
+| `scripts/cbm-refresh-cron.sh` | Hourly Cron-Job mit Pre-Gate (skip-if-fresh) | primär |
+| `index_status` | Pre-Gate Prüfung (~10 ms, liefert Index-Alter) | aktiv |
+| `detect_changes` | Pre-Gate Drift-Erkennung (~1,4 s, git diff) | aktiv |
+| `codebase:refresh` | Manueller Taskfile-Trigger via `scripts/mcp/cbm-single-flight.sh` | ergänzend |
 
 ### Indizierte Projekte
 
-| Projekt | Nodes | Edges | Größe | Context |
-|---------|-------|-------|-------|---------|
-| `.worktrees/remove-codebase-memory-graph-regen` | 30,519 | 75,572 | ~85 MB | Worktree-Test |
-| `/tmp/wt-t001592-website-agent-settings` | 30,465 | 75,524 | ~61 MB | Worktree-Test |
-
-> **Achtung:** Der Haupt-Repository-Pfad (`/home/patrick/Bachelorprojekt`) ist in keinem der indizierten Projekte enthalten. Beide Einträge zeigen auf temporäre Worktrees.
+| Projekt | Nodes | Edges | Speicherort | Context |
+|---------|-------|-------|-------------|---------|
+| `home-patrick-Bachelorprojekt` | 97.506 | 228.997 | `~/.cache/codebase-memory-mcp/` | Haupt-Repository |
 
 ## K1/K3-Verhältnis (Defekt D8)
 
@@ -135,12 +131,12 @@
 │  codebase-memory-mcp → search_graph, trace_path              │
 │  Index: Symbole, Aufrufketten, Routen, Abhängigkeiten         │
 │  Strukturelle Suche (Caller, Callee, Datenfluss)              │
-│  Trigger: manuell (index_repository / detect_changes)         │
+│  Trigger: periodisch (Cron via scripts/cbm-refresh-cron.sh)   │
 ├──────────────────────────────────────────────────────────────┤
 │  GETRENNT MIT GRUND:                                          │
 │  ✓ Verschiedene Abfragearten (Semantik ≠ Struktur)            │
 │  ✓ Verschiedene Index-Modi (Vektor ≠ Graph)                   │
-│  ✓ Verschiedene Index-Läufe (Hook ≠ manuell)                  │
+│  ✓ Verschiedene Index-Läufe (Hook ≠ Cron)                     │
 │                                                                │
 │  RISIKEN:                                                     │
 │  ✗ Keine Querverweise zwischen K1 und K3                      │
@@ -154,33 +150,33 @@
 
 | Stelle | K1 | K3 | Divergenz-Risiko |
 |--------|----|----|-----------------|
-| Index-Zeitpunkt | post-commit (sofort) | manuell/periodisch | K3 hinkt hinterher |
+| Index-Zeitpunkt | post-commit (sofort) | periodisch (hourly Cron) | K3 hinkt bis zu 1h hinterher |
 | Scope | specs, docs, Code-Chunks | Symbole, Aufrufketten | Überschneidungen (docstrings) inkonsistent |
-| Code-Änderungen | sofort sichtbar | erst nach manuellem Re-Index | Alte Ergebnisse bei neuer Codebasis |
-| Fehlerbehandlung | fail-closed (bge-m3) / failover (Voyage) | Index-Tool-Fehler → leere Ergebnisse | Unterschiedliche Ausfall-Semantik |
+| Code-Änderungen | sofort sichtbar | sichtbar nach nächstem Refresh / detect_changes | Bis zu 1h Latenz bei neuer Codebasis |
+| Fehlerbehandlung | fail-closed (bge-m3) / failover (Voyage) | Single-Flight-Lock / Exit-Codes | Unterschiedliche Ausfall-Semantik |
 
 ## Defekt-Referenz (T002430)
 
 | Defekt | Betrifft K3? | Status |
 |--------|-------------|--------|
-| D1: Keine beschrifteten Schnittstellen | ✅ | Behohen durch dieses Dokument |
-| D2: Informationsfluss undurchsichtig | ✅ | Behohen durch Diagramm |
+| D1: Keine beschrifteten Schnittstellen | ✅ | Behoben durch dieses Dokument |
+| D2: Informationsfluss undurchsichtig | ✅ | Behoben durch Diagramm |
 | D3: Keine Fehlerfortpflanzung dokumentiert | ✅ | Siehe Auseinanderlauf-Stellen |
 | D4: Host-SPOF | — | N/A (lokaler Prozess, kein Cluster-Dienst) |
 | D5: Kein Failover | ⚠️ | Kein Mechanismus bei Index-Ausfall |
 | D6: Keine Health-Metriken | ⚠️ | `health-goals-check.sh` prüft nur ob `graph.db.zst` getrackt ist (nicht mehr) |
-| D7: Index-Trigger manuell | ⚠️ | Kein automatischer Re-Index (anders als K1 post-commit) |
+| D7: Index-Trigger manuell | ✅ | Behoben durch periodischen Cron-Job (`scripts/cbm-refresh-cron.sh`) |
 | D8: K1/K3 auseinanderlaufend | ⚠️ | **Kern-Defekt**: getrennte Indexe, keine Reconciliation |
 
 ## Ist/Soll-Abgrenzung
 
 | Aspekt | IST | SOLL (empfohlen) |
 |--------|-----|-----------------|
-| Index-Persistenz | In-memory, geht bei Neustart verloren | Persistenter Index (graph.db) |
-| Index-Trigger | Manuell (index_repository) | Automatisch (post-commit Hook, CI) |
-| Projekt-Index | Nur Worktrees, nicht Haupt-Repo | Haupt-Repo + alle relevanten Worktrees |
+| Index-Persistenz | SQLite (`~/.cache/codebase-memory-mcp/`) | Persistenter SQLite-Index |
+| Index-Trigger | Periodisch (hourly Cron `scripts/cbm-refresh-cron.sh`) | Automatisch (post-commit Hook, CI) |
+| Projekt-Index | Haupt-Repo (`home-patrick-Bachelorprojekt`: 97.506 Nodes / 228.997 Edges) | Haupt-Repo + alle relevanten Worktrees |
 | K1/K3-Reconciliation | Keine | Querverweise oder gemeinsamer Index-Lauf |
-| Health-Monitoring | Kein Check | Health-Check: Index-Alter, Projekt-Präsenz |
+| Health-Monitoring | Index-Alter via `index_status`, Drift via `detect_changes` | Health-Check: Index-Alter, Projekt-Präsenz |
 
 ## Änderungshistorie
 
@@ -189,3 +185,4 @@
 | 2026-06 | T001717 | graph.db.zst nicht mehr getrackt (Persistenz entfernt) |
 | 2026-06 | PR #2281 | graph.db.zst (16.7MB) ursprünglich committed |
 | 2026-07 | T002433 | Dieses Dokument: Visualisierung und Schnittstellen-Dokumentation |
+| 2026-09 | T900450 | Periodischer Auto-Refresh via Cron, Single-Flight-Schutz, SQLite-Persistenz dokumentiert |

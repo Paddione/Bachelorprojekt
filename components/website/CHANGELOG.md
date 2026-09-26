@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.373.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.372.0...website-v1.373.0) (2026-09-26)
+
+
+### Features
+
+* **mcp:** retire factory-mcp-node, sync hermes, and curate toolset [T900479] ([#5979](https://github.com/Paddione/Bachelorprojekt/issues/5979)) ([ed8e764](https://github.com/Paddione/Bachelorprojekt/commit/ed8e764c6d4acfd18abe6f058feef21de1015478))
+
 ## [1.372.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.3...website-v1.372.0) (2026-09-26)
 
 

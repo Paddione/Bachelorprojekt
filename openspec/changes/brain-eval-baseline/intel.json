@@ -65,9 +65,33 @@
       "s1_budget": null
     },
     {
+      "path": "tests/fixtures/brain/retrieval-baseline.json",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/adr/ADR-009-brain-3layer-architektur.md",
+      "language": "markdown",
+      "loc": 78,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": "tests/spec/brain-k4-brain-wiki/retrieval-eval.bats",
       "language": "bash",
       "loc": 101,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/node-parity.bats",
+      "language": "bash",
+      "loc": 0,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null

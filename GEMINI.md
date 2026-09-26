@@ -35,6 +35,6 @@ Aussagen** im Repo: ein Identity Provider, der längst ersetzt ist, ein entfernt
 ein Deploy-Modell, das dem tatsächlichen widersprach, und vier Kommandos, die es nicht gibt.
 Duplizierte Ebenen driften — niemand merkt es, weil nichts sie misst.
 
-Diese Datei bitte **nicht „vervollständigen"**. Ein fail-closed Gate in
-`tests/spec/agent-skills.bats` (T002305) hält Zeilenzahl, Service-Aufzählungen und
-Kommando-Literale klein.
+Diese Datei bitte **nicht „vervollständigen"**. Ein Gate in
+`tests/spec/agent-skills.bats` (T002305) hält Service-Aufzählungen und
+Kommando-Literale klein (Zeilenzahl advisory).

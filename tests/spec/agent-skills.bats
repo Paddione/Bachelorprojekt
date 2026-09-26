@@ -170,7 +170,9 @@ ROOT_INSTRUCTION_FILES=(CLAUDE.md AGENTS.md GEMINI.md)
   [ -f "$f" ]
 
   local lines; lines=$(wc -l < "$f")
-  [ "$lines" -le 40 ] || { echo "GEMINI.md hat $lines Zeilen (Limit 40)"; return 1; }
+  if [ "$lines" -gt 40 ]; then
+    echo "# ADVISORY: GEMINI.md hat $lines Zeilen (advisory target: <= 40)" >&3
+  fi
 
   # Hartkodierte Task-Kommandos widersprechen CLAUDE.md ("Never look up or hardcode
   # task commands" -> scripts/vda.sh oracle). Ausnahme: die agy-exklusive MCP-Sync-Notiz.

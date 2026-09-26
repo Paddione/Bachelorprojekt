@@ -30,6 +30,7 @@ env_vars:
   TLS_SECRET_NAME: korczewski-tls
   SMTP_FROM: korczewski@mailbox.org
   SMTP_USER: korczewski@mailbox.org
+  MAILBOX_EMAIL: patrick@korczewski.de
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   SMTP_SECURE: "false"

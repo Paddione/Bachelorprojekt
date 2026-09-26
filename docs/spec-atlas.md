@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2445 · Scenarios: 5426
+Specs: 130 · Requirements: 2447 · Scenarios: 5430
 
 ## factory-pipeline
 
@@ -589,17 +589,14 @@ Last touches:
   - opencode worktree isolation stays git-crypt-safe | T013724 | 2026-08-22 | MODIFIED
 
 ### llm-local-dev
-Reqs: 46 · Scenarios: 92 · Lines: 1143
+Reqs: 48 · Scenarios: 96 · Lines: 1199
 Paths: openclaw/, Taskfile.openclaw
 Last touches:
+  - Plan Runner Executes OpenSpec Partials With Local Models | T900504 | 2026-09-27 | ADDED
+  - Orchestrator Self-Execution When All Workers Are Busy | T900504 | 2026-09-27 | ADDED
   - Dead Checkpoints Are Not Declared | T900365 | 2026-09-25 | MODIFIED
   - Single Definition Site for the opencode `llamacpp-local` Provider | T900365 | 2026-09-25 | MODIFIED
   - Image Generation MCP for Muse Code | T900379 | 2026-09-25 | ADDED
-  - Image Output Is Confined to Git Working Trees | T900379 | 2026-09-25 | ADDED
-  - ComfyUI Runs Only While Images Are Requested | T900379 | 2026-09-25 | ADDED
-In-flight:
-  - Plan Runner Executes OpenSpec Partials With Local Models | T900504 | active | ADDED
-  - Orchestrator Self-Execution When All Workers Are Busy | T900504 | active | ADDED
 
 ### local-dev-mesh
 Reqs: 20 · Scenarios: 42 · Lines: 469

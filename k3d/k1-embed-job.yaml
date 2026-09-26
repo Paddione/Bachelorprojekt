@@ -1,0 +1,158 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k1-embed-$JOB_ID
+  namespace: workspace
+  labels:
+    app: k1-embed
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 3
+  activeDeadlineSeconds: 5400
+  template:
+    metadata:
+      labels:
+        app: k1-embed
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: git-fetch
+          image: alpine/git@sha256:ae0f6f4bce38d2b8c40becc0d6241a08d9f57186ea03029de2189a2b5e722d94
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          command: ["sh", "-c", "set -eu && git init /repo && cd /repo && git remote add origin \"$REPO_URL\" && git fetch --depth 1 origin \"$MERGE_SHA\" && git checkout FETCH_HEAD"]
+          env:
+            - name: REPO_URL
+              value: "$REPO_URL"
+            - name: MERGE_SHA
+              value: "$MERGE_SHA"
+            - name: HOME
+              value: "/tmp"
+          volumeMounts:
+            - name: repo
+              mountPath: /repo
+            - name: tmp
+              mountPath: /tmp
+        - name: npm-deps
+          image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          command: ["sh", "-c", "set -eu && cd /repo && npm install pg tsx --no-package-lock --silent"]
+          env:
+            - name: HOME
+              value: "/tmp"
+            - name: NPM_CONFIG_CACHE
+              value: "/tmp/.npm"
+          volumeMounts:
+            - name: repo
+              mountPath: /repo
+            - name: tmp
+              mountPath: /tmp
+      containers:
+        - name: embed
+          image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+          imagePullPolicy: IfNotPresent
+          workingDir: /repo
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: WEBSITE_DB_PASSWORD
+            - name: SESSIONS_DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.workspace.svc.cluster.local:5432/website"
+            - name: PGHOST
+              value: "shared-db.workspace.svc.cluster.local"
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "website"
+            - name: PGUSER
+              value: "website"
+            - name: PGPASSWORD
+              value: "$(WEBSITE_DB_PASSWORD)"
+            - name: LLM_ENABLED
+              value: "true"
+            - name: LLM_EMBED_MODEL
+              value: "bge-m3"
+            - name: LLM_EMBED_URL
+              value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
+            - name: MERGE_SHA
+              value: "$MERGE_SHA"
+            - name: FULL
+              value: "$FULL"
+            - name: JOB_ID
+              value: "$JOB_ID"
+            - name: HOME
+              value: "/tmp"
+            - name: NPM_CONFIG_CACHE
+              value: "/tmp/.npm"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: repo
+              mountPath: /repo
+            - name: tmp
+              mountPath: /tmp
+            - name: diff
+              mountPath: /diff
+              readOnly: true
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+              trap 'echo "k1-embed FAILED merge=$MERGE_SHA"' ERR
+              echo "k1-embed start merge=$MERGE_SHA full=$FULL"
+              DIFF_FILE="/diff/diff.txt"
+              if [ "$FULL" = "1" ] || [ ! -s "$DIFF_FILE" ]; then
+                node scripts/openspec-embed.mjs --all-specs
+                node scripts/openspec-embed.mjs --all-docs
+                node scripts/openspec-embed.mjs --migrate-changes
+                npx tsx scripts/index-repo.ts
+              else
+                matched=0
+                while IFS= read -r f || [ -n "$f" ]; do
+                  [ -z "$f" ] && continue
+                  case "$f" in
+                    openspec/specs/*.md)
+                      [ -f "$f" ] && { node scripts/openspec-embed.mjs --path "$f" --source specs_ssot; matched=1; } ;;
+                    docs/adr/*.md|docs/runbooks/*.md)
+                      [ -f "$f" ] && { node scripts/openspec-embed.mjs --path "$f" --source docs; matched=1; } ;;
+                    *.ts|*.mts|*.mjs|*.js|*.cjs|*.py|*.svelte|*.astro)
+                      [ -f "$f" ] && { npx tsx scripts/index-repo.ts --file "$f"; matched=1; } ;;
+                  esac
+                done < "$DIFF_FILE"
+                [ "$matched" -eq 0 ] && echo "keine indexierten Pfade"
+              fi
+              echo "k1-embed COMPLETE merge=$MERGE_SHA"
+      volumes:
+        - name: repo
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: diff
+          configMap:
+            name: k1-embed-diff-$JOB_ID

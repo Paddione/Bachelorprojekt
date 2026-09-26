@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1259,
+      "file_count": 1260,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -914,6 +914,7 @@
         "tests/spec/plan-context.bats",
         "tests/spec/plan-partials-embedding/build-chunks.bats",
         "tests/spec/plan-partials-embedding/coverage-gate.bats",
+        "tests/spec/plan-partials-embedding/k1-embeds.bats",
         "tests/spec/plan-partials-embedding/manifest-parser.bats",
         "tests/spec/plan-partials-embedding/size-gate.bats",
         "tests/spec/planning-office/epic-lastenheft.bats",
@@ -3205,7 +3206,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 872,
+      "file_count": 873,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/dev-flow-exe.md",
@@ -3848,6 +3849,7 @@
         "k3d/gitlab-runner-stack/registry-cache.yaml",
         "k3d/gitlab-runner-stack/values/gitlab-runner.yaml",
         "k3d/ingress.yaml",
+        "k3d/k1-embed-job.yaml",
         "k3d/knowledge-ingest-cronjob.yaml",
         "k3d/kustomization.yaml",
         "k3d/llm-gateway-ingress.yaml",

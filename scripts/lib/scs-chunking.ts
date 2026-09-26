@@ -11,16 +11,15 @@
 
 import { extname } from 'node:path';
 
-const CHUNK_MAX_TOKENS = 512;
-const CHUNK_OVERLAP = 64;
-
+export const CHUNK_MAX_TOKENS = 512;
+export const CHUNK_OVERLAP = 64;
 
 // T002266: estimateTokens rechnete mit 4 Zeichen/Token. Das gilt fuer Prosa —
 // Code und YAML tokenisieren dichter. Gemessen am laufenden bge-m3-Server:
 // 2000 Zeichen Code = 774 echte Tokens, 4000 Zeichen YAML = 1253. Das sind
 // ~2.6 Zeichen/Token, die Schaetzung war also rund 1.5x zu optimistisch und
 // die nominell "512-Token"-Chunks enthielten real bis zu ~774 Tokens.
-const CHARS_PER_TOKEN = 2.6;
+export const CHARS_PER_TOKEN = 2.6;
 
 // Harter Backstop in ZEICHEN, unabhaengig von jeder Schaetzung. Er greift genau
 // dort, wo die zeilenweise Token-Logik strukturell nicht greifen kann:
@@ -33,7 +32,7 @@ const CHARS_PER_TOKEN = 2.6;
 //     (k3d/monitoring/kube-prometheus-stack-rendered.yaml). Solche Chunks
 //     werden vom Embedding-Server mit HTTP 500 abgelehnt und landen still im
 //     catch von main() als SKIP.
-const CHUNK_MAX_CHARS = Math.floor(CHUNK_MAX_TOKENS * CHARS_PER_TOKEN);
+export const CHUNK_MAX_CHARS = Math.floor(CHUNK_MAX_TOKENS * CHARS_PER_TOKEN);
 
 export function estimateTokens(text: string): number {
   return Math.ceil(text.length / CHARS_PER_TOKEN);
@@ -47,11 +46,11 @@ export function chunkCode(content: string, filePath: string): string[] {
 
 // Zerlegt eine einzelne Zeile, die allein schon zu gross ist. Ohne das bleibt
 // jede Token-Rechnung wirkungslos, denn umgebrochen wurde nur ZWISCHEN Zeilen.
-export function splitOversizedLine(line: string): string[] {
-  if (line.length <= CHUNK_MAX_CHARS) return [line];
+export function splitOversizedLine(line: string, maxChars: number = CHUNK_MAX_CHARS): string[] {
+  if (line.length <= maxChars) return [line];
   const parts: string[] = [];
-  for (let i = 0; i < line.length; i += CHUNK_MAX_CHARS) {
-    parts.push(line.slice(i, i + CHUNK_MAX_CHARS));
+  for (let i = 0; i < line.length; i += maxChars) {
+    parts.push(line.slice(i, i + maxChars));
   }
   return parts;
 }
@@ -59,19 +58,25 @@ export function splitOversizedLine(line: string): string[] {
 // Gemeinsamer Kern beider Chunker: akkumuliert zeilenweise und deckelt sowohl
 // die geschaetzten Tokens ALS AUCH die Zeichen. Der Zeichendeckel ist die
 // Garantie — er haengt an keiner Schaetzung.
-export function boundedChunks(text: string): string[] {
+export function boundedChunks(
+  text: string,
+  opts?: { targetTokens?: number; overlapTokens?: number }
+): string[] {
+  const maxTokens = opts?.targetTokens ?? CHUNK_MAX_TOKENS;
+  const overlap = opts?.overlapTokens ?? CHUNK_OVERLAP;
+  const maxChars = Math.floor(maxTokens * CHARS_PER_TOKEN);
   const chunks: string[] = [];
   let current: string[] = [];
   let currentTokens = 0;
   let currentChars = 0;
 
   for (const rawLine of text.split('\n')) {
-    for (const line of splitOversizedLine(rawLine)) {
+    for (const line of splitOversizedLine(rawLine, maxChars)) {
       const lineTokens = estimateTokens(line);
       const lineChars = line.length + 1; // +1 fuer das \n beim Join
       const wouldExceed =
-        currentTokens + lineTokens > CHUNK_MAX_TOKENS ||
-        currentChars + lineChars > CHUNK_MAX_CHARS;
+        currentTokens + lineTokens > maxTokens ||
+        currentChars + lineChars > maxChars;
 
       if (wouldExceed && current.length > 0) {
         chunks.push(current.join('\n'));
@@ -82,7 +87,7 @@ export function boundedChunks(text: string): string[] {
         let overlapTokens = 0;
         for (let i = current.length - 1; i >= 0; i--) {
           const t = estimateTokens(current[i]);
-          if (overlapTokens + t > CHUNK_OVERLAP) break;
+          if (overlapTokens + t > overlap) break;
           overlapLines.unshift(current[i]);
           overlapTokens += t;
         }
@@ -121,4 +126,48 @@ export function chunkYaml(content: string): string[] {
 
 export function chunkSource(content: string): string[] {
   return boundedChunks(content);
+}
+
+export interface MarkdownChunk {
+  text: string;
+  title: string;
+  charOffset: number;
+}
+
+export function chunkMarkdown(
+  content: string,
+  opts?: { targetTokens?: number; overlapTokens?: number }
+): MarkdownChunk[] {
+  const lines = content.split('\n');
+  const sections: { text: string; offset: number }[] = [];
+  let buf = '';
+  let bufOffset = 0;
+  let runningOffset = 0;
+
+  for (const line of lines) {
+    const isHeading = /^#{1,3}\s/.test(line);
+    if (isHeading && buf.length > 0) {
+      sections.push({ text: buf, offset: bufOffset });
+      buf = '';
+      bufOffset = runningOffset;
+    }
+    if (buf.length === 0) bufOffset = runningOffset;
+    buf += line + '\n';
+    runningOffset += line.length + 1;
+  }
+  if (buf.length > 0) sections.push({ text: buf, offset: bufOffset });
+
+  const out: MarkdownChunk[] = [];
+  for (const sec of sections) {
+    const headingLine = sec.text.split('\n').find(l => /^#{1,6}\s/.test(l));
+    const title = headingLine ? headingLine.replace(/^#{1,6}\s+/, '').trim() : '';
+    let pieces = boundedChunks(sec.text, opts);
+    if (pieces.length === 0 && sec.text.trim().length > 0) {
+      pieces = [sec.text.trim()];
+    }
+    for (const piece of pieces) {
+      out.push({ text: piece, title, charOffset: sec.offset });
+    }
+  }
+  return out;
 }

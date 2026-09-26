@@ -1,0 +1,124 @@
+name: k1-embed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.ts'
+      - '**.mts'
+      - '**.mjs'
+      - '**.js'
+      - '**.cjs'
+      - '**.py'
+      - '**.svelte'
+      - '**.astro'
+      - '**.md'
+      - '.github/workflows/k1-embed.yml'
+      - 'k3d/k1-embed-job.yaml'
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Full reindex'
+        type: boolean
+        default: true
+
+concurrency:
+  group: k1-embed-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  OPENSPEC_TELEMETRY: '0'
+
+jobs:
+  diff:
+    name: Determine changed files
+    runs-on: ubuntu-latest
+    outputs:
+      full: ${{ steps.calc.outputs.full }}
+      files: ${{ steps.calc.outputs.files }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+          fetch-tags: false
+      - id: calc
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.full }}" = "true" ]; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+            echo "files=" >> "$GITHUB_OUTPUT"
+          else
+            diffs=$(git diff --name-only HEAD~1..HEAD -- '**.ts' '**.mts' '**.mjs' '**.js' '**.cjs' '**.py' '**.svelte' '**.astro' '**.md' || true)
+            count=$(echo "$diffs" | grep -c . || true)
+            if [ "$count" -gt 200 ] || [ "$count" -eq 0 ]; then
+              echo "full=true" >> "$GITHUB_OUTPUT"
+              echo "files=" >> "$GITHUB_OUTPUT"
+            else
+              echo "full=false" >> "$GITHUB_OUTPUT"
+              {
+                echo "files<<EOF"
+                echo "$diffs"
+                echo "EOF"
+              } >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+  trigger:
+    name: Run in-cluster embed job
+    needs: [diff]
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+      - name: Install kubectl & configure cluster access
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+          chmod +x /usr/local/bin/kubectl
+          mkdir -p ~/.kube
+          umask 077
+          chmod 700 ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+      - name: Launch embed job
+        id: run_job
+        run: |
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          JOB_ID="${SHORT_SHA}-${{ github.run_id }}"
+          MERGE_SHA=$(git rev-parse HEAD)
+          REPO_URL=$(git remote get-url origin)
+          FULL="${{ needs.diff.outputs.full == 'true' && '1' || '0' }}"
+
+          cat << 'EOF' > /tmp/k1-diff.txt
+          ${{ needs.diff.outputs.files }}
+          EOF
+
+          kubectl create configmap "k1-embed-diff-${JOB_ID}" \
+            --from-file=diff.txt=/tmp/k1-diff.txt -n workspace
+
+          sed -e "s/\$JOB_ID/${JOB_ID}/g" \
+              -e "s/\$MERGE_SHA/${MERGE_SHA}/g" \
+              -e "s/\$FULL/${FULL}/g" \
+              -e "s|\$REPO_URL|${REPO_URL}|g" \
+              k3d/k1-embed-job.yaml | kubectl apply -f -
+
+          echo "job_id=${JOB_ID}" >> "$GITHUB_OUTPUT"
+          echo "merge_sha=${MERGE_SHA}" >> "$GITHUB_OUTPUT"
+
+          kubectl wait --for=condition=complete "job/k1-embed-${JOB_ID}" -n workspace --timeout=5400s
+      - name: Cleanup configmap & record summary
+        if: always()
+        run: |
+          JOB_ID="${{ steps.run_job.outputs.job_id }}"
+          if [ -n "$JOB_ID" ]; then
+            kubectl delete configmap "k1-embed-diff-${JOB_ID}" -n workspace --ignore-not-found || true
+          fi
+          echo "### K1 Embed Job" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Job ID**: \`${JOB_ID}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Merge SHA**: \`${{ steps.run_job.outputs.merge_sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Status**: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"

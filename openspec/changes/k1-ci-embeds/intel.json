@@ -1,0 +1,299 @@
+{
+  "meta": {
+    "slug": "k1-ci-embeds",
+    "ticket_id": "T900449",
+    "generated_from": "main@b31a6b756",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/openspec-embed.mjs",
+      "language": "javascript",
+      "loc": 585,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 215
+    },
+    {
+      "path": "scripts/lib/scs-chunking.ts",
+      "language": "javascript",
+      "loc": 124,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 776
+    },
+    {
+      "path": "scripts/index-repo.ts",
+      "language": "javascript",
+      "loc": 447,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 453
+    },
+    {
+      "path": "scripts/openspec-embed-local.sh",
+      "language": "bash",
+      "loc": 220,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 580
+    },
+    {
+      "path": "scripts/openspec-embed-lib.sh",
+      "language": "bash",
+      "loc": 59,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 741
+    },
+    {
+      "path": ".github/workflows/k1-embed.yml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/k1-embed-job.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/plan-partials-embedding/build-chunks.bats",
+      "language": "bash",
+      "loc": 74,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+      "language": "bash",
+      "loc": 156,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/plan-partials-embedding/k1-embeds.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:104:function sectionTitleOf(section) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "104:function sectionTitleOf(section) {(...)",
+      "type_text": "104:function sectionTitleOf(section) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:109:function splitByTokenBudget(text, target, overlap) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "109:function splitByTokenBudget(text, target, overlap) {(...)",
+      "type_text": "109:function splitByTokenBudget(text, target, overlap) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:238:function readIfExists(p) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "238:function readIfExists(p) {(...)",
+      "type_text": "238:function readIfExists(p) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:242:function vecLiteral(v) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "242:function vecLiteral(v) {(...)",
+      "type_text": "242:function vecLiteral(v) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:328:function isConnectFailure(err) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "328:function isConnectFailure(err) {(...)",
+      "type_text": "328:function isConnectFailure(err) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:584:  main();",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "584:  main();(...)",
+      "type_text": "584:  main();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:115:function sha256(s: string): string {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "115:function sha256(s: string): string {(...)",
+      "type_text": "115:function sha256(s: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:160:function walkDir(dir: string, out: string[] = []): string[] {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "160:function walkDir(dir: string, out: string[] = []): string[] {(...)",
+      "type_text": "160:function walkDir(dir: string, out: string[] = []): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:177:function extractImports(content: string, filePath: string): string[] {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "177:function extractImports(content: string, filePath: string): string[] {(...)",
+      "type_text": "177:function extractImports(content: string, filePath: string): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:193:function resolveImportPath(importSpec: string, fromFile: string): string | null {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "193:function resolveImportPath(importSpec: string, fromFile: string): string | null {(...)",
+      "type_text": "193:function resolveImportPath(importSpec: string, fromFile: string): string | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:216:function vecLiteral(v: number[]): string {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "216:function vecLiteral(v: number[]): string {(...)",
+      "type_text": "216:function vecLiteral(v: number[]): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:443:  main().catch(err => {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "443:  main().catch(err => {(...)",
+      "type_text": "443:  main().catch(err => {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:50:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "50:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "type_text": "50:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:63:probe_embed() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "63:probe_embed() {(...)",
+      "type_text": "63:probe_embed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:86:probe_diagnosis() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "86:probe_diagnosis() {(...)",
+      "type_text": "86:probe_diagnosis() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:9:pf_listener_pid() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "9:pf_listener_pid() {(...)",
+      "type_text": "9:pf_listener_pid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:26:embed_output_is_success() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "26:embed_output_is_success() {(...)",
+      "type_text": "26:embed_output_is_success() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:50:in_rebase() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "50:in_rebase() {(...)",
+      "type_text": "50:in_rebase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:57:parse_pf_local_port() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "57:parse_pf_local_port() {(...)",
+      "type_text": "57:parse_pf_local_port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/build-chunks.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/build-chunks.bats:17:teardown() { rm -rf \"$TMP\"; }",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
+      "signature": "17:teardown() { rm -rf \"$TMP\"; }(...)",
+      "type_text": "17:teardown() { rm -rf \"$TMP\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/coverage-gate.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/coverage-gate.bats:11:teardown() { rm -rf \"$TMP\"; }",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+      "signature": "11:teardown() { rm -rf \"$TMP\"; }(...)",
+      "type_text": "11:teardown() { rm -rf \"$TMP\"; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

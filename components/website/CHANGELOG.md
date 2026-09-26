@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.371.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.2...website-v1.371.3) (2026-09-26)
+
+
+### Documentation
+
+* **agents:** document recall routing and sweep stale ingest refs [T900453] ([#5966](https://github.com/Paddione/Bachelorprojekt/issues/5966)) ([dfd2042](https://github.com/Paddione/Bachelorprojekt/commit/dfd2042a650d5b84933845244bf67b48d5ff1d1a))
+
 ## [1.371.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.1...website-v1.371.2) (2026-09-26)
 
 

@@ -78,10 +78,49 @@
         // Go danach); Auth wie ueblich via ~/.local/share/opencode/auth.json.
         "muse-spark-1.3-contributor": {
           "name": "Muse Spark 1.3 Contributor (OpenCode Go, 1M ctx, 131k output)",
+          "reasoning": true,
+          "variants": {
+            "none": {},
+            "minimal": {},
+            "low": {},
+            "medium": {},
+            "high": {},
+            "xhigh": {},
+            "max": {}
+          },
           "limit": {
             "context": 1000000,
             "output": 131072
           }
+        }
+      }
+    },
+    // Go-Rail, aber OpenAI-RESPONSES-Protokoll: muse-spark-1.3-contributor wird
+    // vom /responses-Endpoint bedient; /chat/completions + /v1/messages lehnen
+    // es mit `ModelProtocolUnsupported` ab. opencode kennt kein per-model `npm`,
+    // also eigener Provider-Block mit `@ai-sdk/openai` (Doku: opencode.ai/docs/go,
+    // Endpoints-Tabelle). Key kommt aus der ENV, damit hier kein Secret steht.
+    "opencode-go-oai": {
+      "npm": "@ai-sdk/openai",
+      "name": "OpenCode Go (Responses-Protokoll — muse-spark-1.3-contributor)",
+      "options": {
+        "baseURL": "https://opencode.ai/zen/go/v1",
+        "apiKey": "{env:OPENCODE_GO_API_KEY}"
+      },
+      "models": {
+        "muse-spark-1.3-contributor": {
+          "name": "Muse Spark 1.3 Contributor (Go /responses, 1M ctx, 131k output)",
+          "reasoning": true,
+          "variants": {
+            "none": {},
+            "minimal": {},
+            "low": {},
+            "medium": {},
+            "high": {},
+            "xhigh": {},
+            "max": {}
+          },
+          "limit": { "context": 1000000, "output": 131072 }
         }
       }
     },
@@ -121,13 +160,32 @@
         },
         // T900210: Muse Spark 1.3 Contributor Free im Zen-Katalog (1M ctx /
         // 131k output, $0/$0, Training-Data-Sharing). Free-first Default fuer
-        // Orchestrator-Planung; Go-Variante ist der Fallback (planner-muse).
+        // Orchestrator-Planung; Go-Variante ist der Fallback (exe-muse).
         "muse-spark-1.3-contributor-free": {
           "name": "Muse Spark 1.3 Contributor Free (OpenCode Zen, free tier, 1M ctx, 131k output)",
           "limit": {
             "context": 1000000,
             "output": 131072
           }
+        }
+      }
+    },
+    // Zen-Rail, aber OpenAI-RESPONSES-Protokoll: muse-spark-1.3-contributor-free
+    // lehnt /chat/completions mit `ModelProtocolUnsupported` ab (aus opencode
+    // heraus verifiziert). Gleiche Ursache wie beim Go-Rail, eigener Block
+    // wegen fehlendem per-model `npm`. Key aus der ENV, kein Secret in Config.
+    "opencode-zen-oai": {
+      "npm": "@ai-sdk/openai",
+      "name": "OpenCode Zen (Responses-Protokoll — muse-spark-1.3-contributor-free)",
+      "options": {
+        "baseURL": "https://opencode.ai/zen/v1",
+        "apiKey": "{env:OPENCODE_ZEN_API_KEY}"
+      },
+      "models": {
+        "muse-spark-1.3-contributor-free": {
+          "name": "Muse Spark 1.3 Contributor Free (Zen /responses, 1M ctx, 131k output)",
+          "reasoning": true,
+          "limit": { "context": 1000000, "output": 131072 }
         }
       }
     },
@@ -264,9 +322,9 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: Muse Spark 1.3 Contributor Free via OpenCode Zen (free tier, 1M ctx, 131k output). Dispatches the single local subagent plus cloud escalation (planner-muse Go fallback first, then helper-go/helper, pro/pro-direct, flash/flash-direct). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: Muse Spark 1.3 Contributor Free via OpenCode Zen (free tier, 1M ctx, 131k output). Dispatches the single local subagent plus cloud escalation (exe-muse on the Go rail, then helper-go/helper, pro/pro-direct, flash/flash-direct). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Tab-selectable via Tab key.",
       "mode": "primary",
-      "model": "opencode-zen/muse-spark-1.3-contributor-free",
+      "model": "opencode-zen-oai/muse-spark-1.3-contributor-free",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,
@@ -276,7 +334,7 @@
       "permission": {
         "task": {
           "local": "allow",
-          "planner-muse": "allow",
+          "exe-muse": "allow",
           "deepseek-helper-go": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
@@ -288,18 +346,19 @@
         }
       }
     },
-    // T900210: planner-muse — Muse-Spark-Planungs-Fallback auf dem Go-Katalog
-    // (Subscription, kein Training-Sharing wie Zen-free). Free-zuerst:
-    // Orchestrator plant auf Zen-free; erst bei Stall (2x lokal, bzw. 1x im
-    // FACTORY_MODE=api) uebernimmt planner-muse (M2 der Eskalationskette),
-    // danach DeepSeek-Rails. Modus primary (tab-selektirbar), Prompt geteilt
-    // mit dem Orchestrator (Planungs-Prompt).
-    "planner-muse": {
-      "description": "PLANNER fallback: Muse Spark 1.3 Contributor via OpenCode Go (1M ctx, 131k output, subscription rail). First cloud escalation after local stalls (M2) — takes the compacted handoff and plans/implements the partial end-to-end. Free-first chain: orchestrator (Zen-free) -> planner-muse (Go) -> deepseek rails.",
-      "mode": "primary",
-      "model": "opencode-go/muse-spark-1.3-contributor",
-      "prompt": "{file:./prompts/orchestrator.md}",
-      "color": "#A78BFA",
+    // exe-muse — Muse-Spark-Ausfuehrungs-Agent auf dem Go-Katalog
+    // (Subscription, kein Training-Sharing wie Zen-free). Niedrige
+    // Reasoning-Stufe (`low`) und `mode: subagent`: dispatchbar, bewusst NICHT
+    // tab-waehlbar — Planung macht der Orchestrator, Ausfuehrung hier.
+    // Leaf-Agent: `task: deny`, kann nicht weiterdelegieren. Eigenes Prompt
+    // prompts/muse.md (Cloud-Worker-Subagent), NICHT der Orchestrator-Prompt.
+    "exe-muse": {
+      "description": "EXECUTOR (dispatchable, low reasoning): Muse Spark 1.3 Contributor via the OpenCode Go subscription (1M ctx). The single Muse seat: cheap reasoning tier so bulk and mechanical execution stays fast. Dispatch here for oversized or under-specified implementation work and for local-stall escalation handoffs. Leaf: cannot dispatch further.",
+      "mode": "subagent",
+      "model": "opencode-go-oai/muse-spark-1.3-contributor",
+      "variant": "low",
+      "prompt": "{file:./prompts/muse.md}",
+      "color": "#34D399",
       "temperature": 0.2,
       "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
@@ -323,7 +382,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "planner-muse": "allow",
+          "exe-muse": "allow",
           "deepseek-helper-go": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
@@ -385,7 +444,7 @@
         "websearch": "deny",
         "task": {
           "local": "allow",
-          "planner-muse": "allow",
+          "exe-muse": "allow",
           "deepseek-helper-go": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",

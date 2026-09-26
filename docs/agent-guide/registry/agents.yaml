@@ -64,7 +64,7 @@ runtimes:
     mode: primary
     model: opencode-zen/big-pickle
     write_capable: true
-    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + planner-muse + 2-rail deepseek-*)."
+    note: "PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04]. Since 2026-09-16 task-dispatch allowed for the same subagent set as the orchestrator (local + exe-muse + 2-rail deepseek-*)."
   ox-alpha-free:
     mode: primary
     model: opencode-zen/laguna-s-2.1-free
@@ -109,12 +109,12 @@ runtimes:
     mode: primary
     model: opencode-zen/muse-spark-1.3-contributor-free
     write_capable: true
-    note: "Primary orchestrator on Muse Spark 1.3 Contributor Free (OpenCode Zen, free tier, 1M ctx, 131k output) [T900210]. Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches the single local subagent (budget_tokens per packet) + cloud escalation. Eskalationskette: local (2x) → planner-muse (Go, M2) → deepseek-helper-go → deepseek-helper → deepseek-pro"
-  planner-muse:
-    mode: primary
+    note: "Primary orchestrator on Muse Spark 1.3 Contributor Free (OpenCode Zen, free tier, 1M ctx, 131k output) [T900210]. Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches the single local subagent (budget_tokens per packet) + cloud escalation. Eskalationskette: local (2x) → exe-muse (Go, M2) → deepseek-helper-go → deepseek-helper → deepseek-pro"
+  exe-muse:
+    mode: subagent
     model: opencode-go/muse-spark-1.3-contributor
     write_capable: true
-    note: "PLANNER fallback on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, glimmer-primary. Free-first chain: orchestrator (Zen-free) → planner-muse (Go) → deepseek rails."
+    note: "EXECUTOR on Muse Spark 1.3 Contributor via OpenCode Go (subscription rail, 1M ctx, 131k output) [T900210]. First cloud escalation after local stalls (M2); dispatched by orchestrator, big-pickle, glimmer-primary. Free-first chain: orchestrator (Zen-free) → exe-muse (Go) → deepseek rails."
   glimmer-primary:
     mode: primary
     model: llamacpp-local/Muse-Glimmer-30B

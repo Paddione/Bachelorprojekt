@@ -224,7 +224,7 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 ## Fähigkeit: `repo-hygiene`
 
 - **`skill:repo-hygiene`** — Status `canonical` · Tier `caution`
-  - _Wann:_ Stale Branches und Worktrees, offene PRs, Issue-Intake, Factory-Queue.
+  - _Wann:_ Stale Branches und Worktrees, offene PRs, Issue-Intake.
   - _Nicht:_ Ticket-Inhalt — Triage und Vollständigkeit gehören zu ticket-ops.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/repo-hygiene/SKILL.md`
@@ -285,6 +285,12 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`plugin:semgrep@claude-plugins-official`** — Status `suppressed`
   - _Grund:_ Nicht aktiviert; CI deckt den Secret-Scan über gitleaks 8.18.2 ab.
 
+## Fähigkeit: `tresor-zugriff`
+
+- **`mcp:warden`** — Status `canonical` · Tier `caution`
+  - _Wann:_ Persönliche Tresor-Credentials lesen; Schreiben nur nach Rückfrage.
+  - _Rollen:_ `orchestrator`, `bachelorprojekt-security`
+
 ## Fähigkeit: `code-graph`
 
 - **`mcp:codebase-memory-mcp`** — Status `canonical` · Tier `safe`
@@ -302,10 +308,12 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `dokumentations-lookup`
 
-- **`plugin:context7@claude-plugins-official`** — Status `canonical` · Tier `safe`
+- **`mcp:context7`** — Status `canonical` · Tier `safe`
   - _Wann:_ Aktuelle Doku zu Bibliotheken, Frameworks, SDKs und CLIs statt aus dem Gedächtnis.
   - _Nicht:_ Refactoring, Business-Logik, allgemeine Programmierkonzepte.
   - _Rollen:_ `all`
+- **`plugin:context7@claude-plugins-official`** — Status `suppressed`
+  - _Grund:_ Doppelt mcp:context7; der Plugin-Endpoint verlangt Auth, der MCP-Server funktioniert anonym.
 
 ## Fähigkeit: `websuche`
 
@@ -404,11 +412,13 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 ## Fähigkeit: `ausgabestil`
 
-- **`plugin:learning-output-style@claude-plugins-official`** — Status `canonical` · Tier `safe`
-  - _Wann:_ Aktiver Ausgabestil dieser Sitzung: erklärend mit Lern-Einschüben.
-  - _Rollen:_ `orchestrator`
+- **`plugin:learning-output-style@claude-plugins-official`** — Status `suppressed`
+  - _Grund:_ Vom Operator deaktiviert; kein aktiver Ausgabestil.
+
+## Fähigkeit: `ausgabestil-erklarend`
+
 - **`plugin:explanatory-output-style@claude-plugins-official`** — Status `suppressed`
-  - _Grund:_ learning-output-style ist aktiv und enthält den erklärenden Teil bereits.
+  - _Grund:_ Vom Operator deaktiviert; kein aktiver Ausgabestil.
 
 ## Fähigkeit: `modell-finetuning`
 
@@ -664,6 +674,137 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 - **`plugin:oh-my-opencode-slim:acp_run@npm`** — Status `suppressed`
   - _Grund:_ Keine ACP-Agenten konfiguriert — das Tool wird nicht registriert (acpRunTools leer).
 
+## Fähigkeit: `sdlc-autopilot`
+
+- **`skill:sdlc-autopilot`** — Status `suppressed`
+  - _Grund:_ Opencode-only (AGENTS.md); kein Claude-Pfad.
+
+## Fähigkeit: `opencode-git-workflow`
+
+- **`skill:opencode-git-workflow`** — Status `suppressed`
+  - _Grund:_ Opencode-Harness-Skill, Fehlplatzierung im Claude-Skill-Verzeichnis.
+
+## Fähigkeit: `skill-creator`
+
+- **`skill:skill-creator`** — Status `suppressed`
+  - _Grund:_ Doppelt superpowers:writing-skills (wie das gleichnamige Plugin).
+
+## Fähigkeit: `skill-discovery`
+
+- **`skill:find-skills`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Installierbare Skills zu einer Aufgabe finden.
+  - _Rollen:_ `orchestrator`
+
+## Fähigkeit: `lokales-modell-serving`
+
+- **`skill:freetoken-setup`** — Status `canonical` · Tier `caution`
+  - _Wann:_ FreeToken-MoE-Backend starten, Modell wechseln, Caches dimensionieren.
+  - _Rollen:_ `orchestrator`
+
+## Fähigkeit: `hf-mem`
+
+- **`skill:hf-mem`** — Status `unreviewed`
+  - _Grund:_ Klärung: nutzt der freetoken-Flow Speicherschätzung? Falls ja canonical [orchestrator], sonst suppressed.
+
+## Fähigkeit: `huggingface-best`
+
+- **`skill:huggingface-best`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-community-evals`
+
+- **`skill:huggingface-community-evals`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-datasets`
+
+- **`skill:huggingface-datasets`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-llm-trainer`
+
+- **`skill:huggingface-llm-trainer`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-local-models`
+
+- **`skill:huggingface-local-models`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-lora-space-builder`
+
+- **`skill:huggingface-lora-space-builder`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-paper-publisher`
+
+- **`skill:huggingface-paper-publisher`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-papers`
+
+- **`skill:huggingface-papers`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-tool-builder`
+
+- **`skill:huggingface-tool-builder`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-trackio`
+
+- **`skill:huggingface-trackio`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-vision-trainer`
+
+- **`skill:huggingface-vision-trainer`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `huggingface-zerogpu`
+
+- **`skill:huggingface-zerogpu`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren.
+
+## Fähigkeit: `skill-craft`
+
+- **`skill:skill-craft`** — Status `unreviewed`
+  - _Grund:_ Klärung: Verhältnis zu superpowers:writing-skills (kanonischer Skill-Pfad).
+
+## Fähigkeit: `train-sentence-transformers`
+
+- **`skill:train-sentence-transformers`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed.
+
+## Fähigkeit: `transformers-js`
+
+- **`skill:transformers-js`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed.
+
+## Fähigkeit: `trl-training`
+
+- **`skill:trl-training`** — Status `unreviewed`
+  - _Grund:_ Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed.
+
 ## Residuale Mehrdeutigkeiten
 
-Keine — jede Instanz ist kuriert, und jede unterdrückte Instanz ist technisch durchsetzbar.
+Diese Einträge sind bewusst offen. Auflösung über den Skill `toolset-curate`.
+
+- `skill:hf-mem` (Fähigkeit `hf-mem`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-best` (Fähigkeit `huggingface-best`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-community-evals` (Fähigkeit `huggingface-community-evals`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-datasets` (Fähigkeit `huggingface-datasets`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-llm-trainer` (Fähigkeit `huggingface-llm-trainer`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-local-models` (Fähigkeit `huggingface-local-models`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-lora-space-builder` (Fähigkeit `huggingface-lora-space-builder`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-paper-publisher` (Fähigkeit `huggingface-paper-publisher`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-papers` (Fähigkeit `huggingface-papers`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-tool-builder` (Fähigkeit `huggingface-tool-builder`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-trackio` (Fähigkeit `huggingface-trackio`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-vision-trainer` (Fähigkeit `huggingface-vision-trainer`) — unreviewed — noch nicht kuriert
+- `skill:huggingface-zerogpu` (Fähigkeit `huggingface-zerogpu`) — unreviewed — noch nicht kuriert
+- `skill:skill-craft` (Fähigkeit `skill-craft`) — unreviewed — noch nicht kuriert
+- `skill:train-sentence-transformers` (Fähigkeit `train-sentence-transformers`) — unreviewed — noch nicht kuriert
+- `skill:transformers-js` (Fähigkeit `transformers-js`) — unreviewed — noch nicht kuriert
+- `skill:trl-training` (Fähigkeit `trl-training`) — unreviewed — noch nicht kuriert
+

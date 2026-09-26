@@ -106,7 +106,7 @@ capabilities:
       tier: assisted
       deep_ref: ".claude/skills/database-specialist/SKILL.md"
 
-  # ─── Tickets, Factory, Pläne ────────────────────────────────────────────────────────
+  # ─── Tickets und Pläne ──────────────────────────────────────────────────────────────
   ticket-lebenszyklus:
     mcp:ticket-mcp-node:
       state: canonical
@@ -282,7 +282,7 @@ capabilities:
   repo-hygiene:
     skill:repo-hygiene:
       state: canonical
-      use_when: "Stale Branches und Worktrees, offene PRs, Issue-Intake, Factory-Queue."
+      use_when: "Stale Branches und Worktrees, offene PRs, Issue-Intake."
       avoid_when: "Ticket-Inhalt — Triage und Vollständigkeit gehören zu ticket-ops."
       roles: [orchestrator]
       tier: caution
@@ -353,6 +353,13 @@ capabilities:
       state: suppressed
       reason: "Nicht aktiviert; CI deckt den Secret-Scan über gitleaks 8.18.2 ab."
 
+  tresor-zugriff:
+    mcp:warden:
+      state: canonical
+      use_when: "Persönliche Tresor-Credentials lesen; Schreiben nur nach Rückfrage."
+      roles: [orchestrator, bachelorprojekt-security]
+      tier: caution
+
   # ─── Wissen & Recherche ─────────────────────────────────────────────────────────────
   code-graph:
     mcp:codebase-memory-mcp:
@@ -372,12 +379,15 @@ capabilities:
       tier: safe
 
   dokumentations-lookup:
-    plugin:context7@claude-plugins-official:
+    mcp:context7:
       state: canonical
       use_when: "Aktuelle Doku zu Bibliotheken, Frameworks, SDKs und CLIs statt aus dem Gedächtnis."
       avoid_when: "Refactoring, Business-Logik, allgemeine Programmierkonzepte."
       roles: [all]
       tier: safe
+    plugin:context7@claude-plugins-official:
+      state: suppressed
+      reason: "Doppelt mcp:context7; der Plugin-Endpoint verlangt Auth, der MCP-Server funktioniert anonym."
 
   websuche:
     plugin:brightdata-plugin@claude-plugins-official:
@@ -496,16 +506,15 @@ capabilities:
       state: suppressed
       reason: "Nicht aktiviert; CLAUDE.md wird bewusst von Hand gepflegt."
 
-  # ─── Ausgabestil ────────────────────────────────────────────────────────────────────
   ausgabestil:
     plugin:learning-output-style@claude-plugins-official:
-      state: canonical
-      use_when: "Aktiver Ausgabestil dieser Sitzung: erklärend mit Lern-Einschüben."
-      roles: [orchestrator]
-      tier: safe
+      state: suppressed
+      reason: "Vom Operator deaktiviert; kein aktiver Ausgabestil."
+
+  ausgabestil-erklarend:
     plugin:explanatory-output-style@claude-plugins-official:
       state: suppressed
-      reason: "learning-output-style ist aktiv und enthält den erklärenden Teil bereits."
+      reason: "Vom Operator deaktiviert; kein aktiver Ausgabestil."
 
   # ─── ML & Training ──────────────────────────────────────────────────────────────────
   # T900377: der vendorte Skill unsloth-buddy wurde aus dem Repo entfernt, damit
@@ -819,3 +828,118 @@ capabilities:
     plugin:oh-my-opencode-slim:acp_run@npm:
       state: suppressed
       reason: "Keine ACP-Agenten konfiguriert — das Tool wird nicht registriert (acpRunTools leer)."
+
+  # ─── Skills (Triage T900479) ────────────────────────────────────────────────────────
+  sdlc-autopilot:
+    skill:sdlc-autopilot:
+      state: suppressed
+      reason: "Opencode-only (AGENTS.md); kein Claude-Pfad."
+
+  opencode-git-workflow:
+    skill:opencode-git-workflow:
+      state: suppressed
+      reason: "Opencode-Harness-Skill, Fehlplatzierung im Claude-Skill-Verzeichnis."
+
+  skill-creator:
+    skill:skill-creator:
+      state: suppressed
+      reason: "Doppelt superpowers:writing-skills (wie das gleichnamige Plugin)."
+
+  skill-discovery:
+    skill:find-skills:
+      state: canonical
+      use_when: "Installierbare Skills zu einer Aufgabe finden."
+      roles: [orchestrator]
+      tier: safe
+
+  lokales-modell-serving:
+    skill:freetoken-setup:
+      state: canonical
+      use_when: "FreeToken-MoE-Backend starten, Modell wechseln, Caches dimensionieren."
+      roles: [orchestrator]
+      tier: caution
+
+  hf-mem:
+    skill:hf-mem:
+      state: unreviewed
+      reason: "Klärung: nutzt der freetoken-Flow Speicherschätzung? Falls ja canonical [orchestrator], sonst suppressed."
+
+  huggingface-best:
+    skill:huggingface-best:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-community-evals:
+    skill:huggingface-community-evals:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-datasets:
+    skill:huggingface-datasets:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-llm-trainer:
+    skill:huggingface-llm-trainer:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-local-models:
+    skill:huggingface-local-models:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-lora-space-builder:
+    skill:huggingface-lora-space-builder:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-paper-publisher:
+    skill:huggingface-paper-publisher:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-papers:
+    skill:huggingface-papers:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-tool-builder:
+    skill:huggingface-tool-builder:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-trackio:
+    skill:huggingface-trackio:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-vision-trainer:
+    skill:huggingface-vision-trainer:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  huggingface-zerogpu:
+    skill:huggingface-zerogpu:
+      state: unreviewed
+      reason: "Vendor-Drop ohne belegten Repo-Konsumenten; bei Trainings-/Eval-Bedarf (scripts/finetune/) einzeln kuratieren."
+
+  skill-craft:
+    skill:skill-craft:
+      state: unreviewed
+      reason: "Klärung: Verhältnis zu superpowers:writing-skills (kanonischer Skill-Pfad)."
+
+  train-sentence-transformers:
+    skill:train-sentence-transformers:
+      state: unreviewed
+      reason: "Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed."
+
+  transformers-js:
+    skill:transformers-js:
+      state: unreviewed
+      reason: "Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed."
+
+  trl-training:
+    skill:trl-training:
+      state: unreviewed
+      reason: "Vendor-Drop; Klärung gegen scripts/finetune/ und Website-Stack, dann canonical oder suppressed."

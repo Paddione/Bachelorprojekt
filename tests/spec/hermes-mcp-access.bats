@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# SSOT: openspec/specs/hermes-mcp-access.md
+# SSOT: openspec/changes/archive/2026-07-15-hermes-agent-mcp-access/specs/hermes-mcp-access.md
 #
 # BATS suite for hermes-agent-mcp-access capability.
 # All scenarios mirror 1:1 the Scenarios in the OpenSpec spec.
@@ -30,7 +30,7 @@ setup() {
   fi
 
   # Stashed values for verification
-  _servers_expected="mcp-postgres mcp-kubernetes factory-mcp codebase-memory-mcp mcp-task-runner ticket-mcp"
+  _servers_expected="mcp-postgres mcp-kubernetes codebase-memory-mcp mcp-task-runner ticket-mcp bge-mcp context7 warden"
 }
 
 teardown() {
@@ -45,10 +45,10 @@ teardown() {
   _opencode_mcp=$(cat "${SCRIPT_REPO_ROOT}/.opencode/opencode.jsonc" 2>/dev/null | grep -A10 '"mcp": {' || true)
   _servers_catalog=($(echo "$_opencode_mcp" | grep '^[a-z].*:' | sed 's/.*: *//' | tr '\n' ' ' | xargs))
   
-  # Build expected list from design doc table (6 servers)
-  _expected_servers="mcp-postgres mcp-kubernetes factory-mcp codebase-memory-mcp mcp-task-runner ticket-mcp"
+  # Build expected list from design doc table (8 servers)
+  _expected_servers="mcp-postgres mcp-kubernetes codebase-memory-mcp mcp-task-runner ticket-mcp bge-mcp context7 warden"
   
-  # Check we have exactly 6 servers and they're all present
+  # Check we have exactly 8 servers and they're all present
   local count=0
   for server in $_expected_servers; do
     if yq ".$server" "$REGISTRY_SCRIPT" >/dev/null 2>&1; then
@@ -56,8 +56,8 @@ teardown() {
     fi
   done
   
-  [[ $count -eq 6 ]] || {
-    echo "Found $count servers (expected 6)"
+  [[ $count -eq 8 ]] || {
+    echo "Found $count servers (expected 8)"
     return 1
   }
 
@@ -90,8 +90,8 @@ teardown() {
 mcp-kubernetes:pods_delete,pods_exec,pods_run,resources_delete,resources_create_or_update,resources_scale
 codebase-memory-mcp:delete_project,index_repository,ingest_traces,manage_adr
 ticket-mcp:create_ticket,enqueue_ticket,transition_status,triage_ticket,update_fields,set_readiness_flag,set_touched_files,set_plan_meta,stage_plan,archive_plan,link_tickets,record_grill_answers,record_phase_event,report_mishap,flush_mishap_buffer,add_comment,add_pr_link,backfill_ticket_id
-factory-mcp:factory_enqueue,factory_trigger
 mcp-task-runner:execute_plan,run_task,run_task_async,cancel_task
+warden:keychain_create_attachment,keychain_create_card,keychain_create_folder,keychain_create_identity,keychain_create_login,keychain_create_logins,keychain_create_note,keychain_create_org_collection,keychain_create_ssh_key,keychain_delete_attachment,keychain_delete_folder,keychain_delete_item,keychain_delete_items,keychain_delete_org_collection,keychain_edit_folder,keychain_edit_org_collection,keychain_move_item_to_organization,keychain_restore_item,keychain_send_create,keychain_send_create_encoded,keychain_send_delete,keychain_send_edit,keychain_send_remove_password,keychain_set_login_uris,keychain_update_item
 '
 
   # For each server with a denylist, check all destructive tools are listed

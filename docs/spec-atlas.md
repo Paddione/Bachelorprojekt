@@ -209,6 +209,10 @@ Last touches:
   - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | 2026-09-11 | MODIFIED
   - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | 2026-09-11 | MODIFIED
   - G-AGENTIC01 Subagent Tool-Scope Baseline Tracked | T002494 | 2026-08-02 | MODIFIED
+In-flight:
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900479 | active | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900479 | active | MODIFIED
+  - Orphan MCP server sources are removed or registered | T900479 | active | ADDED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112

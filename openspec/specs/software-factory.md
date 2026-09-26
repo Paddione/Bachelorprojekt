@@ -50,97 +50,6 @@ dem **Dispatcher** (Queue-Poll, Slot-Management, Tick-Orchestrierung), der **Pip
 
 ## Requirements
 
-### Requirement: Dispatcher-Tick-Execution
-
-The system SHALL execute exactly one Dispatcher tick per Timer-Aktivierung via `wakeup.sh`
-under a `flock`-Sperre, sodass simultane Ticks ausgeschlossen sind. Der Timer re-armt erst
-nach Tick-Ende (`OnUnitInactiveSec=10min`), und `RuntimeMaxSec=900s` killt hängende Runs.
-`wakeup.sh` SHALL den Tick über `scripts/factory/dispatcher-bridge.sh` (Bash, kein
-LLM/Tool-Call für den Tick selbst) dispatchen, statt das Modell zu einem
-`Workflow(dispatcher.js)`-Tool-Call zu zwingen.
-
-#### Scenario: Normaler Tick ohne parallele Instanz
-- **GIVEN** der systemd-Timer `factory.timer` feuert
-- **WHEN** keine andere Factory-Instanz läuft (`/tmp/factory-tick.lock` frei)
-- **THEN** `wakeup.sh` erwirbt die flock-Sperre, entsperrt git-crypt und ruft
-  `dispatcher-bridge.sh` mit dem präparierten `prep_file` auf
-
-#### Scenario: Paralleler Start während laufendem Tick
-- **GIVEN** ein Factory-Tick ist aktiv (flock-Sperre gehalten)
-- **WHEN** der Timer erneut feuert (z.B. nach Reboot mit `Persistent=true`)
-- **THEN** `wakeup.sh` beendet sich ohne Aktion (flock blockiert); kein doppelter Dispatch
-
-#### Scenario: Leere Queue erfordert keinen LLM/Tool-Call
-- **GIVEN** beide Brand-Queues sind leer (kein Ticket zum Dispatchen)
-- **WHEN** `wakeup.sh` den Tick über `dispatcher-bridge.sh` startet
-- **THEN** `dispatcher-bridge.sh` beendet sich mit Exit 0, ohne `claude`/`Workflow`
-  aufzurufen — der Tick bleibt rein Bash-basiert
-
-### Requirement: Queue-Poll und Slot-Claim
-
-The system SHALL poll the backlog per brand every tick and SHALL account slot
-usage as `SUM(slot_count)` over all `in_progress` tickets with a set
-`pipeline_slot` (the `pipeline_slot` column remains as the "holds slots" marker).
-A single-slot claim (`slot_count=1`, the default) SHALL behave exactly like the
-legacy claim. A gang claim (`slots.sh claim-gang <ext_id> <n>`) SHALL be one
-atomic SQL statement that succeeds only when
-`SUM(slot_count) + n <= FACTORY_SLOTS_PER_BRAND`; on failure it SHALL exit 1 and
-claim nothing (all-or-nothing). A claim only succeeds while
-`pipeline_slot IS NULL` and `status IN ('backlog','triage','plan_staged')` —
-race-safe. `slots.sh release` SHALL reset both `pipeline_slot` to NULL and
-`slot_count` to 1. `schedule.sh` SHALL apply head-of-line blocking: if the
-front-most queue candidate needs `n` slots and fewer than `n` are free, NO
-lower-ranked ticket is pulled ahead in that tick (prevents gang starvation).
-
-#### Scenario: Feature aus dem Backlog schedulen
-
-- **GIVEN** brand `mentolder` has 2 of 3 slots free and ticket T000500 in status `backlog` with `slot_count=1`
-- **WHEN** the dispatcher runs `schedule.sh`
-- **THEN** T000500 is claimed via `claim-gang` with n=1, receives a `pipeline_slot` and `status=in_progress`; the UPDATE returns the slot number
-
-#### Scenario: Gang claim succeeds when the pool fits
-
-- **GIVEN** brand `mentolder` has 3 of 3 slots free and ticket T000600 staged with `slot_count=3`
-- **WHEN** `slots.sh claim-gang T000600 3` runs
-- **THEN** the claim succeeds atomically, `SUM(slot_count)` over `in_progress` tickets becomes 3, and T000600 is `in_progress`
-
-#### Scenario: Gang claim is all-or-nothing
-
-- **GIVEN** brand `mentolder` has only 2 of 3 slots free
-- **WHEN** `slots.sh claim-gang T000600 3` runs
-- **THEN** the command exits 1 and NO row is changed — T000600 keeps `pipeline_slot IS NULL` and its previous status
-
-#### Scenario: Head-of-line blocking prevents gang starvation
-
-- **GIVEN** the front-most queue candidate T000600 needs 3 slots, only 2 are free, and a later candidate T000601 needs 1 slot
-- **WHEN** `schedule.sh` runs
-- **THEN** the loop breaks at T000600 and T000601 is NOT claimed in this tick
-
-#### Scenario: Release resets the gang accounting
-
-- **GIVEN** ticket T000600 holds a gang claim with `slot_count=3`
-- **WHEN** `slots.sh release T000600` runs
-- **THEN** `pipeline_slot` becomes NULL and `slot_count` is reset to 1
-
-### Requirement: Kill-Switch und Daily-Cap Guards
-
-The system SHALL vor jedem Launch zwei FAIL-CLOSED Guards prüfen: den globalen/per-Brand
-Kill-Switch und das tägliche Deploy-Cap. Bei Lese-Fehler oder ungesetztem Cap gilt der
-Guard als ausgelöst (Paused/Reached). Kein Feature wird gestartet, bis beide Guards `off`/
-unterhalb des Caps melden.
-
-#### Scenario: Kill-Switch global aktiviert
-- **GIVEN** `factory-control killswitch` hat den Wert `on` für `brand=NULL` (global)
-- **WHEN** der Dispatcher `guard_killswitch_on` aufruft
-- **THEN** der Guard returnt exit 0 (ON); kein Feature wird in diesem Tick gestartet
-
-#### Scenario: Tages-Cap überschritten
-- **GIVEN** `FACTORY_DAILY_DEPLOY_CAP=5` und Brand `mentolder` hat heute bereits 5 Deploys
-- **WHEN** `guard_daily_cap_reached mentolder` aufgerufen wird
-- **THEN** der Guard returnt exit 0 (Reached); das Feature wird auf `blocked` gesetzt und sein Slot freigegeben
-
----
-
 ### Requirement: 6-Phasen-Pipeline mit Komplexitäts-Routing
 
 The system SHALL jedes Feature durch eine sequenzielle 6-Phasen-Pipeline führen
@@ -3810,6 +3719,32 @@ Allow-Liste von `orchestrator`, `big-pickle` und `glimmer-primary` stehen
 - **WHEN** the orchestrator escalates
 - **THEN** the partial is dispatched to `planner-muse` with a compacted handoff
 
+### Requirement: Software-Factory Subsystem Decommissioned
+
+The software factory subsystem (systemd timer, runner pod, dispatcher pipelines, MCP server, and database control tables) SHALL be completely decommissioned and absent from active deployment.
+
+#### Scenario: No factory units active
+
+- **GIVEN** the dev host systemd environment
+- **WHEN** checking `systemctl --user is-active factory.timer factory-mcp.service`
+- **THEN** all factory services report inactive or unit not found
+
+#### Scenario: No factory runner manifests in dev-stack
+
+- **GIVEN** the Kubernetes dev-stack configuration in `k3d/dev-stack/kustomization.yaml`
+- **WHEN** inspecting the resource list
+- **THEN** `factory-runner.yaml` and `factory-runner-netpol.yaml` are not included
+
+### Requirement: Independent Database Migration Execution
+
+Database migrations for `shared-db` SHALL execute independently of any factory subsystem components via a decoupled migration runner.
+
+#### Scenario: Run migrations via db-migrate
+
+- **GIVEN** pending SQL migrations in `migrations/*.sql`
+- **WHEN** executing `task db:migrate` (or legacy alias `task factory:migrate`)
+- **THEN** the migrations are applied to `shared-db` and recorded in `public.factory_schema_migrations`
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -5790,3 +5725,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (9779ad1e2f91) -->
 
 <!-- merged from change delta software-factory.md (2ff446e65a35) -->
+
+<!-- merged from change delta software-factory.md (cc563c4aeb4e) -->

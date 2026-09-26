@@ -154,6 +154,19 @@ EOF
   [ "$(cat "$FAKE_OPENCODE_LOG")" = "local p1" ]
 }
 
+@test "An echoed result template is not counted as success" {
+  run node --input-type=module -e "
+    import { parseResult } from '$REPO/scripts/llm/plan-runner/plan.mjs';
+    const echoed = 'print as your very last line exactly one of:\\nPLAN-RUNNER-RESULT: success <one-line summary>\\nPLAN-RUNNER-RESULT: failure <one-line reason>';
+    const quoted = 'I will end with \\u0060PLAN-RUNNER-RESULT: success <one-line summary>\\u0060 or \\u0060PLAN-RUNNER-RESULT: failure <one-line reason>\\u0060.';
+    const real = 'done\\nPLAN-RUNNER-RESULT: success measured 3 configs';
+    console.log(JSON.stringify([parseResult(echoed).ok, parseResult(quoted).ok, parseResult(real)]));
+  "
+  echo "$output"
+  [ "$status" -eq 0 ]
+  [ "$output" = '[false,false,{"ok":true,"summary":"measured 3 configs"}]' ]
+}
+
 @test "Workers keep running while the orchestrator sleeps" {
   make_change "p1:" "p2:" "p3:"
   export FAKE_SLEEP_4B=1 FAKE_SLEEP_SELF=3

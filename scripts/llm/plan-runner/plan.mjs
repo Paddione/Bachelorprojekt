@@ -104,10 +104,13 @@ export function buildWorkerPrompt({ partial, partialText, worktree, extra = '' }
 
 // Sucht die letzte Zeile mit PLAN-RUNNER-RESULT:. Ohne Treffer gilt der Lauf als Fehlschlag.
 export function parseResult(output) {
-  const lines = String(output ?? '').split(/\r?\n/).filter((l) => l.includes(RESULT_MARKER));
-  if (!lines.length) return { ok: false, summary: 'no result line' };
-  const rest = lines[lines.length - 1].slice(lines[lines.length - 1].indexOf(RESULT_MARKER) + RESULT_MARKER.length).trim();
-  const m = rest.match(/^(success|failure)\b\s*(.*)$/);
-  if (!m) return { ok: false, summary: `malformed result line: ${rest.slice(0, 200)}` };
+  // Nur Zeilen, die mit dem Marker BEGINNEN, und ohne <Platzhalter>: sonst zaehlt die im Prompt
+  // stehende oder vom Modell zitierte Vorlage "success <one-line summary>" als Erfolg (T900504, Lauf 1).
+  const re = new RegExp(`^${RESULT_MARKER}\\s+(success|failure)\\b\\s*(.*)$`);
+  const hits = String(output ?? '').split(/\r?\n/)
+    .map((l) => l.trim().match(re))
+    .filter((m) => m && !/^<[^>]*>/.test(m[2]));
+  if (!hits.length) return { ok: false, summary: 'no result line' };
+  const m = hits[hits.length - 1];
   return { ok: m[1] === 'success', summary: m[2] || m[1] };
 }

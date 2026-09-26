@@ -53,6 +53,12 @@
       "args": [
         "scripts/ticket-mcp-node/server.mjs"
       ]
+    },
+    "warden": {
+      "command": "node",
+      "args": [
+        "scripts/warden-mcp/launch.mjs"
+      ]
     }
   }
 }

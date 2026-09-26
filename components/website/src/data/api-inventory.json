@@ -1827,6 +1827,14 @@
       "description": null,
       "tier": null,
       "deprecated": null
+    },
+    {
+      "name": "warden",
+      "transport": "stdio",
+      "endpoint": null,
+      "description": null,
+      "tier": null,
+      "deprecated": null
     }
   ],
   "factoryTools": [

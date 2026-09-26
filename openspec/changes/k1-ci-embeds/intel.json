@@ -2,7 +2,7 @@
   "meta": {
     "slug": "k1-ci-embeds",
     "ticket_id": "T900449",
-    "generated_from": "main@8acdca228",
+    "generated_from": "main@b31a6b756",
     "domains": [
       "plan-authoring",
       "dev-tooling",
@@ -67,6 +67,30 @@
     {
       "path": "k3d/k1-embed-job.yaml",
       "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/plan-partials-embedding/build-chunks.bats",
+      "language": "bash",
+      "loc": 74,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+      "language": "bash",
+      "loc": 156,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/plan-partials-embedding/k1-embeds.bats",
+      "language": "bash",
       "loc": 0,
       "s1_limit": 0,
       "s1_baseline": null,
@@ -224,6 +248,38 @@
       "file": "scripts/openspec-embed-lib.sh",
       "signature": "57:parse_pf_local_port() {(...)",
       "type_text": "57:parse_pf_local_port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/build-chunks.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/build-chunks.bats:17:teardown() { rm -rf \"$TMP\"; }",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
+      "signature": "17:teardown() { rm -rf \"$TMP\"; }(...)",
+      "type_text": "17:teardown() { rm -rf \"$TMP\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/coverage-gate.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/plan-partials-embedding/coverage-gate.bats:11:teardown() { rm -rf \"$TMP\"; }",
+      "kind": "function",
+      "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+      "signature": "11:teardown() { rm -rf \"$TMP\"; }(...)",
+      "type_text": "11:teardown() { rm -rf \"$TMP\"; }(...)",
       "source": "grep"
     }
   ],

@@ -106,7 +106,7 @@ STUB
   grep -qF 'start bge-mcp' "$LOG"
   # Positiv-Anker oben (llm-proxy startete) belegt: fehlende Zeilen unten sind
   # tatsaechliche Abwesenheit, nicht ein grundsaetzlich leeres Log.
-  refused="$(grep -cE 'start (github|ticket-mcp|brain-mcp|task-runner|codebase-memory)' "$LOG" || true)"
+  refused="$(grep -cE 'start (github|ticket-mcp|task-runner|codebase-memory)' "$LOG" || true)"
   [ "$refused" -eq 0 ]
 }
 

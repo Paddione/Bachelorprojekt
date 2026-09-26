@@ -52,11 +52,11 @@ setup_file() {
 @test "bge: gerendertes k3d-Manifest traegt Ingress-Ausnahmen fuer embed und rerank aus dem website-Namespace" {
   [ -s "${RENDERED}" ]
 
-  # Positiv-Anker: das Muster existiert bereits fuer brain (T002465). Faellt es
+  # Positiv-Anker: das Muster existiert fuer vaultwarden. Faellt es
   # weg, ist das Rendering kaputt und die Negativ-Aussage unten waere vakuos.
   run yq eval-all 'select(.kind == "NetworkPolicy") | .metadata.name' "${RENDERED}"
   [ "$status" -eq 0 ]
-  echo "$output" | grep -qx 'allow-website-to-brain-ingress'
+  echo "$output" | grep -qx 'allow-website-to-vaultwarden-ingress'
 
   echo "$output" | grep -qx 'allow-website-to-bge-embed-ingress'
   echo "$output" | grep -qx 'allow-website-to-bge-rerank-ingress'

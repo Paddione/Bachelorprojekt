@@ -47,8 +47,7 @@ setup() {
   local f missing=""
   # T900399: die drei Factory-Aufrufer (triage-body.sh, factory-mcp-node/server.mjs,
   # factory/mcp-go/main.go) sind mit dem Factory-Subsystem entfallen.
-  for f in scripts/brain-ingest-transform.sh \
-           scripts/health-goals-payload.py scripts/arbitration/synthesize.mjs \
+  for f in scripts/health-goals-payload.py scripts/arbitration/synthesize.mjs \
            scripts/web-audit.mjs scripts/plan-qa-check.sh; do
     # Positiv-Anker: der Aufrufer schaltet Thinking ueberhaupt ab.
     grep -q 'enable_thinking' "$REPO/$f" || { missing="${missing}${f}: kein enable_thinking (Anker)\n"; continue; }

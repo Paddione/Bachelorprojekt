@@ -181,18 +181,6 @@
 
     },
 
-    "brain-mcp-node": {
-
-      "type": "local",
-
-      "command": ["node","scripts/brain-mcp-node/server.mjs"],
-
-      "environment": {"BRAIN_WIKI_DIR":"~/brain/wiki"},
-
-      "enabled": false
-
-    },
-
     "codebase-memory-mcp": {
 
       "type": "local",

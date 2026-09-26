@@ -5,7 +5,7 @@
 # Pruefmodus: command output verification — die Server werden tatsaechlich als
 # stdio-Prozess gestartet und ihre JSON-RPC-Antwort geprueft. Ein Source-Grep
 # taugt hier nicht: beide hier abgesicherten Defekte (Zirkelimport-Deadlock in
-# ticket-mcp-node, process.stdout.flush() in brain-mcp-node) waren im Quelltext
+# ticket-mcp-node) waren im Quelltext
 # unauffaellig und zeigten sich ausschliesslich zur Laufzeit.
 
 setup() {
@@ -73,22 +73,6 @@ LIST='{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
   [[ "$output" == *'ticket-mcp-node version='* ]]
 }
 
-# ── brain-mcp-node ─────────────────────────────────────────────────────
-
-@test "brain-mcp-node ueberlebt mehr als ein JSON-RPC-Frame" {
-  # Positiv-Anker zuerst: die zweite Antwort muss ankommen. Vor dem Fix warf
-  # writeMsg() beim ersten Frame einen TypeError und der Server beendete sich,
-  # sodass id:2 nie erschien.
-  run mcp_stdio "$REPO/scripts/brain-mcp-node/server.mjs" "$INIT" "$LIST"
-  echo "output: $output"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"id":1'* ]]
-  [[ "$output" == *'"id":2'* ]]
-  [[ "$output" == *'brain-mcp'* ]]
-  # Kein Internal error in irgendeiner Antwort.
-  errors="$(printf '%s' "$output" | grep -c 'Internal error' || true)"
-  [ "$errors" -eq 0 ]
-}
 
 # ── findRepoRoot terminiert ────────────────────────────────────────────
 

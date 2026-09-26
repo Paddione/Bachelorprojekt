@@ -46,22 +46,22 @@ _render_korczewski() {
   [ "$wildcard" -eq "$groups" ] || { echo "FAIL: ${wildcard} wildcard gates but ${groups} allowed-group restrictions"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 8 gates carry --allowed-group=workspace-users" {
+@test "prod render (mentolder): exactly 7 gates carry --allowed-group=workspace-users" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --allowed-group=workspace-users' <<< "$RENDER" || true)"
-  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 allowed-group gates, got ${count}"; return 1; }
+  [ "$count" -eq 7 ] || { echo "FAIL: expected 7 allowed-group gates, got ${count}"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 9 gates carry --oidc-groups-claim=groups" {
+@test "prod render (mentolder): exactly 8 gates carry --oidc-groups-claim=groups" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --oidc-groups-claim=groups' <<< "$RENDER" || true)"
-  [ "$count" -eq 9 ] || { echo "FAIL: expected 9 oidc-groups-claim gates, got ${count}"; return 1; }
+  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 oidc-groups-claim gates, got ${count}"; return 1; }
 }
 
-@test "prod render (mentolder): exactly 9 gates request the groups scope" {
+@test "prod render (mentolder): exactly 8 gates request the groups scope" {
   RENDER="$(_render_mentolder)"
   count="$(grep -c -- '- --scope=openid email profile groups' <<< "$RENDER" || true)"
-  [ "$count" -eq 9 ] || { echo "FAIL: expected 9 gates with groups scope, got ${count}"; return 1; }
+  [ "$count" -eq 8 ] || { echo "FAIL: expected 8 gates with groups scope, got ${count}"; return 1; }
 }
 
 @test "prod render (mentolder): the 4 allowlist gates keep --authenticated-emails-file" {

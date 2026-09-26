@@ -27,6 +27,5 @@ spec:
     - { name: kubernetes, port: 8080, targetPort: 8080, protocol: TCP }
     - { name: github, port: 3002, targetPort: 3002, protocol: TCP }
     - { name: ticket, port: 3003, targetPort: 3003, protocol: TCP }
-    - { name: brain, port: 3004, targetPort: 3004, protocol: TCP }
     - { name: task-runner, port: 3005, targetPort: 3005, protocol: TCP }
     - { name: codebase-mem, port: 3006, targetPort: 3006, protocol: TCP }

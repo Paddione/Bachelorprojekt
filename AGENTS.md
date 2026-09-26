@@ -10,9 +10,9 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | `opencode-zen/muse-spark-1.3-contributor-free` (1M ctx, 131k out, primary, write) + Go fallback `opencode-go/muse-spark-1.3-contributor` via `planner-muse` | Primary — dispatches `local` (budgeted) + planner-muse/2-rail cloud escalation |
+| `orchestrator` | `opencode-zen/muse-spark-1.3-contributor-free` (1M ctx, 131k out, primary, write) + Go fallback `opencode-go/muse-spark-1.3-contributor` via `exe-muse` | Primary — dispatches `local` (budgeted) + exe-muse/2-rail cloud escalation |
 | `local` | `llamacpp-local/Muse-Glimmer-30B` (131k served KV, DFlash2) | Sole local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
-| `planner-muse` | `opencode-go/muse-spark-1.3-contributor` (1M ctx, primary, write) | Planning fallback (M2 after 2× local); dispatched by `orchestrator`/`big-pickle`/`glimmer-primary` |
+| `exe-muse` | `opencode-go/muse-spark-1.3-contributor` (1M ctx, subagent, write) | Execution worker (M2 after 2× local); dispatched by `orchestrator`/`big-pickle`/`glimmer-primary` |
 | `glimmer-primary` | `llamacpp-local/Muse-Glimmer-30B` (131k, primary, write) | Plan-primary (Muse Glimmer, Spark-Familie); autonomer Ticket-Worker |
 | `big-pickle` | `opencode-zen/big-pickle` (~260k ctx, primary, write) | Zen-Singleagent bis Free-Quota verbraucht |
 | `ox-alpha-free` | `opencode-zen/laguna-s-2.1-free` (primary, write) | Free-Tier-Primary; dispatcht nur `ox-alpha` |

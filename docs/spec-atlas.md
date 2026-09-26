@@ -344,6 +344,9 @@ Last touches:
   - Index-Erhebung (REQ-k3-02) | T002433 | 2026-08-02 | ADDED
   - Transport und Harness-Integration (REQ-k3-03) | T002433 | 2026-08-02 | ADDED
   - K1/K3-Verhältnis (Defekt D8) (REQ-k3-04) | T002433 | 2026-08-02 | ADDED
+In-flight:
+  - Index-Erhebung (REQ-k3-02) | T900450 | active | MODIFIED
+  - Periodischer Graph-Refresh (REQ-k3-05) | T900450 | active | ADDED
 
 ### brain-k4-brain-wiki
 Reqs: 13 · Scenarios: 25 · Lines: 239

@@ -84,6 +84,8 @@ write_registry() {
     printf '    discovery_root: .opencode/skills\n'
     printf '  claude_code:\n'
     printf '    discovery_root: .claude/skills\n'
+    printf '  muse:\n'
+    printf '    discovery_root: .agents/skills\n'
     printf 'skills:\n'
     printf '%s\n' "$body"
   } > "$ROOT/$REGISTRY_REL"
@@ -142,6 +144,7 @@ count_findings() { # count_findings <grep-regex über json_findings-Zeilen>
     harnesses:
       codex:       { path: .agents/skills/demo-portable,   sync: identical }
       agy:         { path: .agents/skills/demo-portable,   sync: identical }
+      muse:         { path: .agents/skills/demo-portable,   sync: identical }
       opencode:    { path: .opencode/skills/demo-portable, sync: identical }
       claude_code: { path: .claude/skills/demo-portable,   sync: identical }
     exclusions: {}
@@ -168,6 +171,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-portable,   sync: identical }
       agy:         { path: .agents/skills/demo-portable,   sync: identical }
+      muse:         { path: .agents/skills/demo-portable,   sync: identical }
       opencode:    { path: .opencode/skills/demo-portable, sync: identical }
       claude_code: { path: .claude/skills/demo-portable,   sync: identical }
     exclusions: {}
@@ -180,6 +184,7 @@ YAML
   assert_has 'missing-projection'
   assert_has 'harness=codex'
   assert_has 'harness=agy'
+  assert_has 'harness=muse'
   assert_has 'dangling-source'
   # Die vorhandenen Projektionen duerfen nicht faelschlich als fehlend gelten.
   assert_lacks 'harness=opencode'
@@ -197,6 +202,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-portable,   sync: identical }
       agy:         { path: .agents/skills/demo-portable,   sync: identical }
+      muse:         { path: .agents/skills/demo-portable,   sync: identical }
       opencode:    { path: .opencode/skills/demo-portable, sync: identical }
       claude_code: { path: .claude/skills/demo-portable,   sync: identical }
     exclusions: {}
@@ -206,6 +212,7 @@ YAML
   [ "$status" -eq 1 ]
   [ "$(count_findings '^missing-projection|demo-portable|codex$')" -eq 1 ]
   [ "$(count_findings '^missing-projection|demo-portable|agy$')" -eq 1 ]
+  [ "$(count_findings '^missing-projection|demo-portable|muse$')" -eq 1 ]
   [ "$(count_findings '^dangling-source|demo-portable|-')" -eq 1 ]
   [ "$(count_findings '^missing-projection|demo-portable|opencode$')" -eq 0 ]
 }
@@ -226,6 +233,7 @@ YAML
     exclusions:
       codex:       "OpenCode-nativer Runbook-Skill: kein portabler Kern, keine Codex-Sicht."
       agy:         "OpenCode-nativer Runbook-Skill: agy konsumiert die OpenCode-Lane nicht."
+      muse:         "OpenCode-nativer Runbook-Skill: muse konsumiert die OpenCode-Lane nicht."
       claude_code: "OpenCode-nativer Runbook-Skill: keine Claude-Variante vorgesehen."
 YAML
 
@@ -251,6 +259,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-known,   sync: identical }
       agy:         { path: .agents/skills/demo-known,   sync: identical }
+      muse:         { path: .agents/skills/demo-known,   sync: identical }
       opencode:    { path: .opencode/skills/demo-known, sync: identical }
       claude_code: { path: .claude/skills/demo-known,   sync: identical }
     exclusions: {}
@@ -277,6 +286,7 @@ YAML
     printf '  agy:\n    discovery_root: .agents/skills\n'
     printf '  opencode:\n    discovery_root: .opencode/skills\n'
     printf '  claude_code:\n    discovery_root: .claude/skills\n'
+    printf '  muse:\n    discovery_root: .agents/skills\n'
     printf 'ignore:\n'
     printf '  - id: demo-local-only\n'
     printf '    rationale: "Lokal via market-cli installiert, nicht getrackt (T001783)."\n'
@@ -290,6 +300,7 @@ YAML
     printf '      agy:         { path: .agents/skills/demo-registered,   sync: identical }\n'
     printf '      opencode:    { path: .opencode/skills/demo-registered, sync: identical }\n'
     printf '      claude_code: { path: .claude/skills/demo-registered,   sync: identical }\n'
+    printf '      muse:        { path: .agents/skills/demo-registered,   sync: identical }\n'
     printf '    exclusions: {}\n'
   } > "$ROOT/$REGISTRY_REL"
 
@@ -313,6 +324,7 @@ YAML
     exclusions:
       codex:       "Fixture: Quelle fehlt absichtlich."
       agy:         "Fixture: Quelle fehlt absichtlich."
+      muse:         "Fixture: Quelle fehlt absichtlich."
       claude_code: "Fixture: Quelle fehlt absichtlich."
 YAML
 
@@ -336,6 +348,7 @@ YAML
     exclusions:
       codex:       "Begruendet."
       agy:         ""
+      muse:        "Begruendet."
       claude_code: "Begruendet."
 YAML
 
@@ -346,6 +359,7 @@ YAML
   # Positiv-Anker: die beiden begruendeten Ausschluesse sind unauffaellig.
   assert_lacks 'harness=codex'
   assert_lacks 'harness=claude_code'
+  assert_lacks 'harness=muse'
 }
 
 @test "sync=manual ohne Begruendung wird als non-rationalized-exception gemeldet" {
@@ -359,6 +373,7 @@ YAML
     harnesses:
       codex:    { path: .agents/skills/demo-manual,   sync: identical }
       agy:      { path: .agents/skills/demo-manual,   sync: identical }
+      muse:      { path: .agents/skills/demo-manual,   sync: identical }
       opencode: { path: .opencode/skills/demo-manual, sync: manual }
     exclusions:
       claude_code: "Fixture: nur OpenCode-Adapter."
@@ -381,6 +396,7 @@ YAML
     harnesses:
       codex:    { path: .agents/skills/demo-adapter,   sync: identical }
       agy:      { path: .agents/skills/demo-adapter,   sync: identical }
+      muse:      { path: .agents/skills/demo-adapter,   sync: identical }
       opencode:
         path: .opencode/skills/demo-adapter
         sync: manual
@@ -407,6 +423,7 @@ YAML
     harnesses:
       codex:    { path: .agents/skills/demo-adapter,   sync: identical }
       agy:      { path: .agents/skills/demo-adapter,   sync: identical }
+      muse:      { path: .agents/skills/demo-adapter,   sync: identical }
       opencode:
         path: .opencode/skills/demo-adapter
         sync: manual
@@ -443,6 +460,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-drift,   sync: identical }
       agy:         { path: .agents/skills/demo-drift,   sync: identical }
+      muse:         { path: .agents/skills/demo-drift,   sync: identical }
       opencode:    { path: .opencode/skills/demo-drift, sync: identical }
       claude_code: { path: .claude/skills/demo-drift,   sync: identical }
     exclusions: {}
@@ -469,6 +487,7 @@ YAML
     harnesses:
       codex:    { path: .agents/skills/demo-files,   sync: identical }
       agy:      { path: .agents/skills/demo-files,   sync: identical }
+      muse:      { path: .agents/skills/demo-files,   sync: identical }
       opencode: { path: .opencode/skills/demo-files, sync: identical }
     exclusions:
       claude_code: "Fixture: kein Claude-Harness deklariert."
@@ -492,6 +511,7 @@ YAML
     harnesses:
       codex:    { path: .agents/skills/demo-extra,   sync: identical }
       agy:      { path: .agents/skills/demo-extra,   sync: identical }
+      muse:      { path: .agents/skills/demo-extra,   sync: identical }
       opencode: { path: .opencode/skills/demo-extra, sync: identical }
     exclusions:
       claude_code: "Fixture: kein Claude-Harness deklariert."
@@ -518,6 +538,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-multi,   sync: identical }
       agy:         { path: .agents/skills/demo-multi,   sync: identical }
+      muse:         { path: .agents/skills/demo-multi,   sync: identical }
       opencode:    { path: .opencode/skills/demo-multi, sync: identical }
       claude_code: { path: .claude/skills/demo-multi,   sync: identical }
     exclusions: {}
@@ -542,6 +563,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-meta,   sync: identical }
       agy:         { path: .agents/skills/demo-meta,   sync: identical }
+      muse:         { path: .agents/skills/demo-meta,   sync: identical }
       opencode:    { path: .opencode/skills/demo-meta, sync: identical }
       claude_code: { path: .claude/skills/demo-meta,   sync: identical }
     exclusions: {}
@@ -567,6 +589,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-symroot,   sync: identical }
       agy:         { path: .agents/skills/demo-symroot,   sync: identical }
+      muse:         { path: .agents/skills/demo-symroot,   sync: identical }
       opencode:    { path: .opencode/skills/demo-symroot, sync: identical }
       claude_code: { path: .claude/skills/demo-symroot,   sync: identical }
     exclusions: {}
@@ -592,6 +615,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-symproj,   sync: identical }
       agy:         { path: .agents/skills/demo-symproj,   sync: identical }
+      muse:         { path: .agents/skills/demo-symproj,   sync: identical }
       opencode:    { path: .opencode/skills/demo-symproj, sync: identical }
       claude_code: { path: .claude/skills/demo-symproj,   sync: identical }
     exclusions: {}
@@ -615,6 +639,7 @@ YAML
     printf '  agy:\n    discovery_root: .agents/skills\n'
     printf '  opencode:\n    discovery_root: .opencode/skills\n'
     printf '  claude_code:\n    discovery_root: .claude/skills\n'
+    printf '  muse:\n    discovery_root: .agents/skills\n'
     printf 'skills:\n'
     printf '  - id: demo-schema\n'
     printf '    provenance: project\n'
@@ -642,6 +667,7 @@ YAML
       codex: { path: .agents/skills/demo-exposure, sync: identical }
     exclusions:
       agy:         "Fixture."
+      muse:         "Fixture."
       opencode:    "Fixture."
       claude_code: "Fixture."
 YAML
@@ -663,6 +689,7 @@ YAML
       codex: { path: .agents/skills/demo-dup, sync: identical }
     exclusions:
       agy:         "Fixture."
+      muse:         "Fixture."
       opencode:    "Fixture."
       claude_code: "Fixture."
   - id: demo-dup
@@ -671,6 +698,7 @@ YAML
     source: .agents/skills/demo-dup
     harnesses:
       agy: { path: .agents/skills/demo-dup, sync: identical }
+      muse: { path: .agents/skills/demo-dup, sync: identical }
     exclusions:
       codex:       "Fixture."
       opencode:    "Fixture."
@@ -694,6 +722,7 @@ YAML
     harnesses:
       codex: { path: .agents/skills/demo-outside, sync: identical }
       agy:   { path: .agents/skills/demo-outside, sync: identical }
+      muse:   { path: .agents/skills/demo-outside, sync: identical }
       opencode: { path: .claude/skills/demo-outside, sync: identical }
     exclusions:
       claude_code: "Fixture."
@@ -740,6 +769,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-default,   sync: identical }
       agy:         { path: .agents/skills/demo-default,   sync: identical }
+      muse:         { path: .agents/skills/demo-default,   sync: identical }
       opencode:    { path: .opencode/skills/demo-default, sync: identical }
       claude_code: { path: .claude/skills/demo-default,   sync: identical }
     exclusions: {}
@@ -764,6 +794,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-custom,   sync: identical }
       agy:         { path: .agents/skills/demo-custom,   sync: identical }
+      muse:         { path: .agents/skills/demo-custom,   sync: identical }
       opencode:    { path: .opencode/skills/demo-custom, sync: identical }
       claude_code: { path: .claude/skills/demo-custom,   sync: identical }
     exclusions: {}
@@ -787,6 +818,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-noop,   sync: identical }
       agy:         { path: .agents/skills/demo-noop,   sync: identical }
+      muse:         { path: .agents/skills/demo-noop,   sync: identical }
       opencode:    { path: .opencode/skills/demo-noop, sync: identical }
       claude_code: { path: .claude/skills/demo-noop,   sync: identical }
     exclusions: {}
@@ -814,6 +846,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-write,   sync: identical }
       agy:         { path: .agents/skills/demo-write,   sync: identical }
+      muse:         { path: .agents/skills/demo-write,   sync: identical }
       opencode:    { path: .opencode/skills/demo-write, sync: identical }
       claude_code: { path: .claude/skills/demo-write,   sync: identical }
     exclusions: {}
@@ -845,6 +878,7 @@ YAML
     harnesses:
       codex:    { path: .agents/skills/demo-write-manual,   sync: identical }
       agy:      { path: .agents/skills/demo-write-manual,   sync: identical }
+      muse:      { path: .agents/skills/demo-write-manual,   sync: identical }
       opencode:
         path: .opencode/skills/demo-write-manual
         sync: manual
@@ -881,6 +915,7 @@ YAML
     exclusions:
       codex:       "Fixture: nativer OpenCode-Skill."
       agy:         "Fixture: nativer OpenCode-Skill."
+      muse:         "Fixture: nativer OpenCode-Skill."
       claude_code: "Fixture: nativer OpenCode-Skill."
 YAML
 
@@ -904,6 +939,7 @@ YAML
     harnesses:
       codex:       { path: .agents/skills/demo-ci-write,   sync: identical }
       agy:         { path: .agents/skills/demo-ci-write,   sync: identical }
+      muse:         { path: .agents/skills/demo-ci-write,   sync: identical }
       opencode:    { path: .opencode/skills/demo-ci-write, sync: identical }
       claude_code: { path: .claude/skills/demo-ci-write,   sync: identical }
     exclusions: {}
@@ -935,7 +971,7 @@ YAML
   [ "$schema_errors" -eq 0 ]
 }
 
-@test "live: das Inventar deklariert genau die vier Ziel-Harnesses" {
+@test "live: das Inventar deklariert genau die fünf Ziel-Harnesses" {
   run node "$ENGINE" --root "$REPO" --check --json
   [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
 
@@ -946,7 +982,7 @@ YAML
       const j = JSON.parse(s);
       console.log((j.harnesses ?? []).map((h) => h.id).sort().join(","));
     });')"
-  [ "$harness_ids" = "agy,claude_code,codex,opencode" ]
+  [ "$harness_ids" = "agy,claude_code,codex,muse,opencode" ]
 }
 
 @test "live: jeder git-getrackte Skill-id ist im Inventar katalogisiert oder bewusst ignoriert" {

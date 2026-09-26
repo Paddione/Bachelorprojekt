@@ -5,7 +5,7 @@
 import { isObject, isNonEmptyString, normalizeRelative, isInsideNormalized, resolveFromRoot } from './fsutil.mjs';
 import { makeFinding, FATAL_CODES } from './findings.mjs';
 
-export const HARNESS_IDS = ['codex', 'agy', 'opencode', 'claude_code'];
+export const HARNESS_IDS = ['codex', 'agy', 'opencode', 'claude_code', 'muse'];
 export const ALLOWED_EXPOSURES = new Set(['portable', 'native', 'adapter']);
 export const ALLOWED_SYNC = new Set(['identical', 'manual']);
 

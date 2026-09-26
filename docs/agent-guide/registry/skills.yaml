@@ -18,6 +18,8 @@ harnesses:
     discovery_root: .opencode/skills
   claude_code:
     discovery_root: .claude/skills
+  muse:
+    discovery_root: .agents/skills
 
 skills:
   # ── Portable shared corpus: canonical body in .agents/skills ──
@@ -38,8 +40,10 @@ skills:
       claude_code:
         path: .claude/skills/agentic-resource-lookup
         sync: identical
+      muse:
+        path: .agents/skills/agentic-resource-lookup
+        sync: identical
     exclusions: {}
-
   - id: brain-ingest
     provenance: project
     exposure: portable
@@ -57,8 +61,10 @@ skills:
       claude_code:
         path: .claude/skills/brain-ingest
         sync: identical
+      muse:
+        path: .agents/skills/brain-ingest
+        sync: identical
     exclusions: {}
-
   - id: database-specialist
     provenance: project
     exposure: portable
@@ -76,8 +82,10 @@ skills:
       claude_code:
         path: .claude/skills/database-specialist
         sync: identical
+      muse:
+        path: .agents/skills/database-specialist
+        sync: identical
     exclusions: {}
-
   - id: dev-flow-chore
     provenance: project
     exposure: portable
@@ -95,8 +103,10 @@ skills:
       claude_code:
         path: .claude/skills/dev-flow-chore
         sync: identical
+      muse:
+        path: .agents/skills/dev-flow-chore
+        sync: identical
     exclusions: {}
-
   - id: dev-flow-e2e
     provenance: project
     exposure: portable
@@ -114,8 +124,10 @@ skills:
       claude_code:
         path: .claude/skills/dev-flow-e2e
         sync: identical
+      muse:
+        path: .agents/skills/dev-flow-e2e
+        sync: identical
     exclusions: {}
-
   - id: git-workflow
     provenance: project
     exposure: portable
@@ -133,8 +145,10 @@ skills:
       claude_code:
         path: .claude/skills/git-workflow
         sync: identical
+      muse:
+        path: .agents/skills/git-workflow
+        sync: identical
     exclusions: {}
-
   - id: gitops-cluster-debug
     provenance: vendor
     exposure: portable
@@ -152,8 +166,10 @@ skills:
       claude_code:
         path: .claude/skills/gitops-cluster-debug
         sync: identical
+      muse:
+        path: .agents/skills/gitops-cluster-debug
+        sync: identical
     exclusions: {}
-
   - id: gitops-knowledge
     provenance: vendor
     exposure: portable
@@ -171,8 +187,10 @@ skills:
       claude_code:
         path: .claude/skills/gitops-knowledge
         sync: identical
+      muse:
+        path: .agents/skills/gitops-knowledge
+        sync: identical
     exclusions: {}
-
   - id: gitops-repo-audit
     provenance: vendor
     exposure: portable
@@ -190,8 +208,10 @@ skills:
       claude_code:
         path: .claude/skills/gitops-repo-audit
         sync: identical
+      muse:
+        path: .agents/skills/gitops-repo-audit
+        sync: identical
     exclusions: {}
-
   - id: lavish
     provenance: vendor
     exposure: portable
@@ -209,8 +229,10 @@ skills:
       claude_code:
         path: .claude/skills/lavish
         sync: identical
+      muse:
+        path: .agents/skills/lavish
+        sync: identical
     exclusions: {}
-
   - id: operations-management
     provenance: project
     exposure: portable
@@ -228,8 +250,10 @@ skills:
       claude_code:
         path: .claude/skills/operations-management
         sync: identical
+      muse:
+        path: .agents/skills/operations-management
+        sync: identical
     exclusions: {}
-
   - id: repo-hygiene
     provenance: project
     exposure: portable
@@ -247,8 +271,10 @@ skills:
       claude_code:
         path: .claude/skills/repo-hygiene
         sync: identical
+      muse:
+        path: .agents/skills/repo-hygiene
+        sync: identical
     exclusions: {}
-
   - id: security-specialist
     provenance: project
     exposure: portable
@@ -266,8 +292,10 @@ skills:
       claude_code:
         path: .claude/skills/security-specialist
         sync: identical
+      muse:
+        path: .agents/skills/security-specialist
+        sync: identical
     exclusions: {}
-
   - id: ticket-dispatch
     provenance: project
     exposure: portable
@@ -285,8 +313,10 @@ skills:
       claude_code:
         path: .claude/skills/ticket-dispatch
         sync: identical
+      muse:
+        path: .agents/skills/ticket-dispatch
+        sync: identical
     exclusions: {}
-
   - id: ticket-ops
     provenance: project
     exposure: portable
@@ -304,8 +334,10 @@ skills:
       claude_code:
         path: .claude/skills/ticket-ops
         sync: identical
+      muse:
+        path: .agents/skills/ticket-ops
+        sync: identical
     exclusions: {}
-
   - id: ticket-triage
     provenance: project
     exposure: portable
@@ -323,8 +355,10 @@ skills:
       claude_code:
         path: .claude/skills/ticket-triage
         sync: identical
+      muse:
+        path: .agents/skills/ticket-triage
+        sync: identical
     exclusions: {}
-
   - id: toolset-curate
     provenance: project
     exposure: portable
@@ -342,8 +376,10 @@ skills:
       claude_code:
         path: .claude/skills/toolset-curate
         sync: identical
+      muse:
+        path: .agents/skills/toolset-curate
+        sync: identical
     exclusions: {}
-
   - id: update-dependencies
     provenance: project
     exposure: portable
@@ -361,8 +397,10 @@ skills:
       claude_code:
         path: .claude/skills/update-dependencies
         sync: identical
+      muse:
+        path: .agents/skills/update-dependencies
+        sync: identical
     exclusions: {}
-
   - id: vitest
     provenance: vendor
     exposure: portable
@@ -380,8 +418,10 @@ skills:
       claude_code:
         path: .claude/skills/vitest
         sync: identical
+      muse:
+        path: .agents/skills/vitest
+        sync: identical
     exclusions: {}
-
   - id: web-audit
     provenance: project
     exposure: portable
@@ -399,8 +439,10 @@ skills:
       claude_code:
         path: .claude/skills/web-audit
         sync: identical
+      muse:
+        path: .agents/skills/web-audit
+        sync: identical
     exclusions: {}
-
   - id: website-specialist
     provenance: project
     exposure: portable
@@ -417,6 +459,9 @@ skills:
         sync: identical
       claude_code:
         path: .claude/skills/website-specialist
+        sync: identical
+      muse:
+        path: .agents/skills/website-specialist
         sync: identical
     exclusions: {}
 
@@ -446,8 +491,10 @@ skills:
         maps:
           - capability: "ticket.record-phase-event"
             runtime_tool: "mcp__ticket-mcp-node__record_phase_event"
+      muse:
+        path: .agents/skills/dev-flow-execute
+        sync: identical
     exclusions: {}
-
   - id: dev-flow-plan
     provenance: project
     exposure: adapter
@@ -473,8 +520,10 @@ skills:
         maps:
           - capability: "postgres.read-only-query"
             runtime_tool: "mcp__mcp-postgres__query"
+      muse:
+        path: .agents/skills/dev-flow-plan
+        sync: identical
     exclusions: {}
-
   - id: incident-response
     provenance: project
     exposure: adapter
@@ -512,8 +561,10 @@ skills:
             runtime_tool: "mcp__mcp-kubernetes__pods_log"
           - capability: "postgres.read-only-query"
             runtime_tool: "mcp__mcp-postgres__query"
+      muse:
+        path: .agents/skills/incident-response
+        sync: identical
     exclusions: {}
-
   - id: infra-ops
     provenance: project
     exposure: adapter
@@ -543,8 +594,10 @@ skills:
             runtime_tool: "mcp__mcp-kubernetes__pods_list_in_namespace"
           - capability: "kubernetes.pod-log"
             runtime_tool: "mcp__mcp-kubernetes__pods_log"
+      muse:
+        path: .agents/skills/infra-ops
+        sync: identical
     exclusions: {}
-
   - id: mishap-tracker
     provenance: project
     exposure: adapter
@@ -578,8 +631,10 @@ skills:
             runtime_tool: "mcp__ticket-mcp-node__get_mishap_buffer"
           - capability: "mishap.flush-buffer"
             runtime_tool: "mcp__ticket-mcp-node__flush_mishap_buffer"
+      muse:
+        path: .agents/skills/mishap-tracker
+        sync: identical
     exclusions: {}
-
   - id: references
     provenance: project
     exposure: adapter
@@ -673,8 +728,10 @@ skills:
             runtime_tool: "mcp__ticket-mcp-node__get_mishap_buffer"
           - capability: "browser.automation"
             runtime_tool: "mcp__playwright__*"
+      muse:
+        path: .agents/skills/references
+        sync: identical
     exclusions: {}
-
   - id: system-audit
     provenance: project
     exposure: adapter
@@ -708,6 +765,9 @@ skills:
             runtime_tool: "mcp__ticket-mcp-node__set_plan_meta"
           - capability: "ticket.set-readiness-flag"
             runtime_tool: "mcp__ticket-mcp-node__set_readiness_flag"
+      muse:
+        path: .agents/skills/system-audit
+        sync: identical
     exclusions: {}
 
   # ── Claude Code native forks ──
@@ -725,6 +785,7 @@ skills:
     exclusions:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
+      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
   - id: openspec-archive-change
     provenance: project
     exposure: native
@@ -739,6 +800,7 @@ skills:
     exclusions:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
+      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
   - id: openspec-explore
     provenance: project
     exposure: native
@@ -753,6 +815,7 @@ skills:
     exclusions:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
+      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
   - id: openspec-propose
     provenance: project
     exposure: native
@@ -768,6 +831,7 @@ skills:
       codex: "Claude Code fork of the OpenSpec workflow; no tracked Codex projection."
       agy: "Claude Code fork of the OpenSpec workflow; no tracked agy projection."
   # ── OpenCode native corpus ──
+      muse: "Claude Code fork of the OpenSpec workflow; no tracked muse projection."
   - id: find-skills
     provenance: vendor
     exposure: native
@@ -782,6 +846,7 @@ skills:
     exclusions:
       codex: "OpenCode-only vendor skill from the skills CLI ecosystem."
       agy: "OpenCode-only vendor skill from the skills CLI ecosystem."
+      muse: "OpenCode-only vendor skill from the skills CLI ecosystem."
   - id: freetoken-setup
     provenance: project
     exposure: native
@@ -796,7 +861,7 @@ skills:
     exclusions:
       codex: "OpenCode-only backend configuration for the local FreeToken host."
       agy: "OpenCode-only backend configuration for the local FreeToken host."
-
+      muse: "OpenCode-only backend configuration for the local FreeToken host."
   - id: hf-mem
     provenance: vendor
     exposure: native
@@ -811,7 +876,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-best
     provenance: vendor
     exposure: native
@@ -826,7 +891,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-community-evals
     provenance: vendor
     exposure: native
@@ -841,7 +906,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-datasets
     provenance: vendor
     exposure: native
@@ -856,7 +921,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-llm-trainer
     provenance: vendor
     exposure: native
@@ -871,7 +936,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-local-models
     provenance: vendor
     exposure: native
@@ -886,7 +951,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-lora-space-builder
     provenance: vendor
     exposure: native
@@ -901,7 +966,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-paper-publisher
     provenance: vendor
     exposure: native
@@ -916,7 +981,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-papers
     provenance: vendor
     exposure: native
@@ -931,7 +996,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-tool-builder
     provenance: vendor
     exposure: native
@@ -946,7 +1011,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-trackio
     provenance: vendor
     exposure: native
@@ -961,7 +1026,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-vision-trainer
     provenance: vendor
     exposure: native
@@ -976,7 +1041,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: huggingface-zerogpu
     provenance: vendor
     exposure: native
@@ -991,7 +1056,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: llama-cpp
     provenance: vendor
     exposure: native
@@ -1004,7 +1069,7 @@ skills:
       codex: "OpenCode-only vendor skill for llama.cpp inference."
       agy: "OpenCode-only vendor skill for llama.cpp inference."
       claude_code: "OpenCode-only vendor skill for llama.cpp inference."
-
+      muse: "OpenCode-only vendor skill for llama.cpp inference."
   - id: opencode-git-workflow
     provenance: project
     exposure: native
@@ -1019,7 +1084,7 @@ skills:
     exclusions:
       codex: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
       agy: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
-
+      muse: "OpenCode compatibility pointer; other harnesses use git-workflow directly."
   - id: sdlc-autopilot
     provenance: project
     exposure: native
@@ -1034,7 +1099,7 @@ skills:
     exclusions:
       codex: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
       agy: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
-
+      muse: "OpenCode-native autonomous SDLC loop with OpenCode runtime behavior."
   - id: skill-craft
     provenance: project
     exposure: native
@@ -1049,7 +1114,7 @@ skills:
     exclusions:
       codex: "OpenCode-native router for the locally installed skill-lifecycle helpers."
       agy: "OpenCode-native router for the locally installed skill-lifecycle helpers."
-
+      muse: "OpenCode-native router for the locally installed skill-lifecycle helpers."
   - id: skill-creator
     provenance: vendor
     exposure: native
@@ -1064,7 +1129,7 @@ skills:
     exclusions:
       codex: "OpenCode-only upstream skill-authoring helper."
       agy: "OpenCode-only upstream skill-authoring helper."
-
+      muse: "OpenCode-only upstream skill-authoring helper."
   - id: train-sentence-transformers
     provenance: vendor
     exposure: native
@@ -1079,7 +1144,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: transformers-js
     provenance: vendor
     exposure: native
@@ -1094,7 +1159,7 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
-
+      muse: "OpenCode-only HuggingFace vendor skill pack."
   - id: trl-training
     provenance: vendor
     exposure: native
@@ -1109,3 +1174,4 @@ skills:
     exclusions:
       codex: "OpenCode-only HuggingFace vendor skill pack."
       agy: "OpenCode-only HuggingFace vendor skill pack."
+      muse: "OpenCode-only HuggingFace vendor skill pack."

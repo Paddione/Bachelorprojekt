@@ -15,24 +15,24 @@
       "path": "skills/gitops-cluster-debug",
       "dest": ".opencode/skills/gitops-cluster-debug",
       "track": "release",
-      "ref": "12628b3d29a199d0e52a147448d90e15f50af8dc",
-      "version": null
+      "ref": "e7e95ef1648a72f5276db6f98b799c5974ea846f",
+      "version": "v0.3.0"
     },
     "gitops-knowledge": {
       "repo": "fluxcd/agent-skills",
       "path": "skills/gitops-knowledge",
       "dest": ".opencode/skills/gitops-knowledge",
       "track": "release",
-      "ref": "12628b3d29a199d0e52a147448d90e15f50af8dc",
-      "version": null
+      "ref": "e7e95ef1648a72f5276db6f98b799c5974ea846f",
+      "version": "v0.3.0"
     },
     "gitops-repo-audit": {
       "repo": "fluxcd/agent-skills",
       "path": "skills/gitops-repo-audit",
       "dest": ".opencode/skills/gitops-repo-audit",
       "track": "release",
-      "ref": "72077b8bb66e39c29acc3f454abd8aa05285ec80",
-      "version": null
+      "ref": "e7e95ef1648a72f5276db6f98b799c5974ea846f",
+      "version": "v0.3.0"
     },
     "hf-mem": {
       "repo": "huggingface/skills",
@@ -144,8 +144,8 @@
       "dest": ".opencode/skills/lavish",
       "track": "release",
       "tag_prefix": "lavish-axi-v",
-      "ref": "03cb0696ed1c5069db8b464e7299fd87098b1fff",
-      "version": null
+      "ref": "69574a88977553385c485c4eccc93999e7ca2793",
+      "version": "lavish-axi-v0.1.78"
     },
     "llama-cpp": {
       "repo": "Orchestra-Research/AI-research-SKILLs",
@@ -160,7 +160,7 @@
       "path": "skills/skill-creator",
       "dest": ".opencode/skills/skill-creator",
       "track": "branch",
-      "ref": "b9e19e6f44773509fbdd7001d77ff41a49a486c1",
+      "ref": "33375500bcea98d610eb30ce10ac4e59b89c390d",
       "version": null
     },
     "train-sentence-transformers": {
@@ -192,7 +192,7 @@
       "path": "skills/vitest",
       "dest": ".opencode/skills/vitest",
       "track": "branch",
-      "ref": "5cae97ca87e0dcfb5a192cd2cbf8b83a9f769e8f",
+      "ref": "e98e476e315f068f72d53bd3afb34fdd4d5851c3",
       "version": null
     }
   },
@@ -208,8 +208,8 @@
           ".opencode/opencode.jsonc",
           ".opencode/package-lock.json"
         ],
-        "ref": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
-        "version": "v6.3.0"
+        "ref": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+        "version": "v6.4.2"
       }
     },
     "npm": {

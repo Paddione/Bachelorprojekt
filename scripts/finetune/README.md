@@ -24,6 +24,39 @@ Korpusformat wie ein extern beschaffter Korpus.
 
 ## Aktueller 4B-Trainingsmodus (September 2026)
 
+### Die drei lokal vorhandenen Modell-Snapshots
+
+Die am 2026-09-27 unter `F:\models\hub` geprueften Snapshots entsprechen:
+
+| Hub-ID | Gewichte | Trainingspfad |
+|---|---|---|
+| `unsloth/Qwen3-4B-unsloth-bnb-4bit` | BNB 4-bit, Qwen3 Text | `finetune:train` mit QLoRA; Vergleichskandidat |
+| `unsloth/Qwen3-4B-Instruct-2507` | volle Gewichte, Qwen3 Text | `finetune:train` mit `PRECISION=4bit` (Quantisierung beim Laden); erster Kandidat fuer Tool-Use/Repo-Workflow |
+| `unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit` | BNB 4-bit, Qwen3-VL | `finetune:train-vision` mit Screenshot-/Bild-Beispielen |
+
+Nur **zwei** der drei Snapshots sind BNB 4-bit. Der Text-Trainer verweigert
+Qwen3-VL bewusst, auch bei einem lokalen Snapshot-Pfad. Fuer den Vision-Lauf
+nutzt `train_vision.py` `FastVisionModel` und `UnslothVisionDataCollator` statt
+des Text-Collators. Ein Text-only-Verhaltensziel gehoert zuerst auf das
+Instruct-2507-Modell; fuer den VLM-Lauf braucht es Bild-Daten und eine eigene
+Bild-/Text-Evaluation. Die Snapshot-Verzeichnisse koennen als `MODEL=` direkt
+verwendet werden, wenn der Python-Prozess dasselbe Laufwerk sieht. Auf HF Jobs
+ist der lokale `F:`-Cache nicht vorhanden; dort Hub-IDs verwenden.
+
+Vision-Korpus (JSONL, Bildpfade relativ zur Korpusdatei):
+
+```json
+{"messages":[{"role":"user","content":[{"type":"text","text":"Beschreibe den Fehler im Screenshot und den naechsten sicheren Tool-Schritt."},{"type":"image","image":"screenshots/example.png"}]},{"role":"assistant","content":[{"type":"text","text":"Der Build zeigt einen fehlenden Import. Ich pruefe zuerst die betroffene Datei und die Importpfade."}]}]}
+```
+
+`task finetune:train-vision CORPUS=<jsonl> MODEL=unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit MAX_SEQ_LENGTH=1024 DRY_RUN=1`
+validiert Format und Bildpfade ohne GPU-Last. Der echte Lauf braucht mindestens
+10 GiB frei auf der sichtbaren CUDA-GPU (Startwert, per CLI aenderbar); die
+aktuelle 5070 Ti war bei der Inspektion belegt. Bilder werden beim Laden auf
+maximal 768 × 768 Pixel verkleinert. Screenshots mit Code, Logs und UI-Zustaenden
+duerfen vor dem Training keine Secrets enthalten. Die Bildbeispiele getrennt
+von den Text-Traces evaluieren; ein niedriger Trainings-Loss allein genuegt nicht.
+
 * **Qwen3.5-4B:** 16-bit/bf16 LoRA auf einem unquantisierten Basismodell. Unsloth
   [raet von QLoRA fuer Qwen3.5 ab](https://unsloth.ai/docs/models/qwen3.5/fine-tune),
   weil dessen Quantisierungsabweichung erhoeht ist. Ein bereits heruntergeladenes

@@ -25,7 +25,10 @@ jobs:
   # Beide brauchten Zugriff auf die Ticket-Datenbank, die seit E3 auf dem
   # Dev-Host liegt. Ersatz: der Branch-Reaper laeuft lokal ueber
   # scripts/branch-reaper.sh (Skill repo-hygiene), die Closure ueber
-  # scripts/factory/github-poller.sh.
+  # scripts/factory/github-poller.sh. [T900399] Auch dieser Ersatz ist mit dem
+  # Factory-Abau entfallen — es gibt keinen automatischen Poller mehr; die
+  # Ticket-Zuordnung nach dem Merge wird lokal ueber
+  # scripts/agent-lock.sh check-merged aufgeloest.
   detect:
     name: Detect manifest changes
     runs-on: ubuntu-latest
@@ -169,10 +172,10 @@ jobs:
       # "Ticket closure scan".
       # Beide schrieben mit TICKET_CTX=fleet in die Ticket-Datenbank. Seit E3
       # liegt sie auf dem Dev-Host, den GitHub nicht erreichen kann.
-      # Ersatz: scripts/factory/github-poller.sh holt gemergte PRs aktiv ab und
-      # schliesst die Tickets lokal (Aufgabe "merges", delegiert an
-      # auto-close-merged.sh). Der Poller laeuft als systemd-User-Timer neben
-      # der Factory.
+      # Ersatz (damals): scripts/factory/github-poller.sh holte gemergte PRs aktiv
+      # ab und schloss die Tickets lokal (Aufgabe "merges", delegiert an
+      # auto-close-merged.sh), als systemd-User-Timer neben der Factory.
+      # [T900399] Auch dieser Ersatz ist mit dem Factory-Abau entfallen.
       # ENTFERNT mit E3/T002626 (ADR-006): "Scout drift ratchet".
       # Die Messung schrieb in tickets.tickets. Seit dem Umzug der SDLC-Daten auf
       # den Dev-Host erreicht CI diese Datenbank nicht mehr. Die Drift-Messung

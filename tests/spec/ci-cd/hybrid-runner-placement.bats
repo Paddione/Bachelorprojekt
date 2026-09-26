@@ -23,8 +23,10 @@ _ci_portable_jobs() {
 }
 
 _portable_workflow_jobs() {
+  # [T900399] ai-review.yml ist mit seiner Engine (scripts/factory/ci-review.mjs)
+  # entfallen — der Workflow haette auf jedem PR an der fehlenden Datei gescheitert.
+  # Die uebrigen drei PR-Hilfsworkflows tragen den Guard weiter.
   printf '%s\t%s\n' \
-    .github/workflows/ai-review.yml ai-review \
     .github/workflows/auto-enable-automerge.yml enable-automerge \
     .github/workflows/e2e-pr.yml e2e-pr \
     .github/workflows/pr-auto-title.yml auto-title

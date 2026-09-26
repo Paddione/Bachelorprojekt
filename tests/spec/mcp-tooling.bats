@@ -84,8 +84,8 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
   # als C:\tmp\... auf und findet die Datei nicht). cygpath nur auf Windows.
   local tmpw="$tmpd"
   case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) tmpw="$(cygpath -m "$tmpd")" ;; esac
-  mkdir -p "$tmpd/scripts/llm"
-  run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh render
+  mkdir -p "$tmpd/scripts/llm" "$tmpd/fakehome"
+  run env MCP_OUT_DIR="$tmpd" HOME="$tmpd/fakehome" bash scripts/mcp-sync.sh render
   [ "$status" -eq 0 ]
   run node -e "const d=require('$tmpw/scripts/llm/mcp-servers.json'); if(typeof d.mcpServers!=='object') process.exit(1)"
   [ "$status" -eq 0 ]
@@ -170,4 +170,48 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
   ' "$tmpw/registry.yaml"
   run env HOME="$tmpd/fakehome" MCP_REGISTRY="$tmpd/registry.yaml" MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh render
   [ "$status" -ne 0 ]
+}
+
+# ── Orphan Guard: every scripts-side MCP server source is registered or documented ──
+@test "orphan guard: every scripts-side MCP server source is registered or documented" {
+  local sources=()
+  for p in scripts/*-mcp*/server.mjs scripts/llm-proxy/server.mjs scripts/ticket-mcp/go scripts/hermes-mcp-*; do
+    [ -e "$p" ] && sources+=("$p")
+  done
+
+  local orphans=()
+  local reg_file="docs/agent-guide/registry/mcp.yaml"
+  [ -f "$reg_file" ] || skip "mcp.yaml not found"
+
+  for src in "${sources[@]}"; do
+    case "$src" in
+      scripts/bge-mcp/server.mjs)
+        grep -q 'bge-mcp:' "$reg_file" || orphans+=("$src (not in mcp.yaml)")
+        ;;
+      scripts/ticket-mcp-node/server.mjs)
+        grep -q 'ticket-mcp-node:' "$reg_file" || orphans+=("$src (not in mcp.yaml)")
+        ;;
+      scripts/llm-proxy/server.mjs)
+        grep -q 'llm-proxy' "$reg_file" || orphans+=("$src (not in mcp.yaml cluster)")
+        ;;
+      scripts/comfy-image-mcp/server.mjs|scripts/glimmer-worker-mcp/server.mjs)
+        grep -q 'User-Scope-Server' "$reg_file" || orphans+=("$src (not in user-scope note)")
+        ;;
+      scripts/ticket-mcp/go)
+        grep -q 'scripts/ticket-mcp/go' "$reg_file" || orphans+=("$src (not documented in mcp.yaml)")
+        ;;
+      scripts/hermes-mcp-provision.sh|scripts/hermes-mcp-servers.yaml)
+        [ -f "scripts/hermes-mcp-servers.yaml" ] || orphans+=("$src (missing hermes catalog)")
+        ;;
+      *)
+        orphans+=("$src (unresolved orphan source)")
+        ;;
+    esac
+  done
+
+  if [ "${#orphans[@]}" -gt 0 ]; then
+    echo "Found orphan MCP server sources:" >&2
+    printf '  - %s\n' "${orphans[@]}" >&2
+    return 1
+  fi
 }

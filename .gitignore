@@ -144,6 +144,9 @@ Systemdesign_Buchhaltung-1.docx
 ~$stemdesign_Buchhaltung-1.docx
 .codex
 
+# Application-Pipeline Render-CLI-Output (scripts/vda/apply/render.sh, T900480)
+.output/
+
 # Python
 __pycache__/
 *.pyc

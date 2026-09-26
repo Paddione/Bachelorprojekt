@@ -2,20 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2434 · Scenarios: 5396
+Specs: 130 · Requirements: 2445 · Scenarios: 5426
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 91 · Scenarios: 198 · Lines: 2385
+Reqs: 96 · Scenarios: 211 · Lines: 2529
 Last touches:
   - OVERVIEW.md must name the complete vendor skill set | T900452 | 2026-09-26 | MODIFIED
-  - Removal of managed worktrees unlocks before removing | T900340 | 2026-09-24 | ADDED
-  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | 2026-09-23 | ADDED
-  - The archive commit carries every SSOT spec its deltas target | T900339 | 2026-09-23 | ADDED
-  - Symlink-Set entspricht den getrackten Skills | T900238 | 2026-09-23 | ADDED
-In-flight:
-  - Recall-Schichtwahl für Agenten | T900453 | active | ADDED
+  - Recall-Schichtwahl für Agenten | T900453 | 2026-09-26 | ADDED
+  - WIP-Uebersicht | T900481 | 2026-09-26 | ADDED
+  - Fail-closed WIP-Finisher | T900481 | 2026-09-26 | ADDED
+  - 4B-Rail nur als Triagierer | T900481 | 2026-09-26 | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -36,17 +34,14 @@ Last touches:
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
 
 ### openspec-workflow
-Reqs: 69 · Scenarios: 156 · Lines: 1724
+Reqs: 72 · Scenarios: 168 · Lines: 1830
 Paths: scripts/openspec, openspec/
 Last touches:
+  - Orphaned changes are archived by a CI executor without discretionary flags | T900338 | 2026-09-26 | ADDED
+  - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | 2026-09-26 | ADDED
+  - A scheduled CI job dispatches archiving of orphaned OpenSpec changes | T900503 | 2026-09-26 | ADDED
   - Archive regenerates and stages every openspec-derived freshness artifact | T900341 | 2026-09-23 | ADDED
   - Half-archive detection does not spawn a process per archive entry | T013673 | 2026-09-17 | ADDED
-  - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | 2026-08-23 | ADDED
-  - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
-  - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
-In-flight:
-  - Orphaned changes are archived by a CI executor without discretionary flags | T900338 | active | ADDED
-  - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | active | ADDED
 
 ### software-factory
 Reqs: 207 · Scenarios: 628 · Lines: 5729
@@ -204,13 +199,13 @@ Last touches:
 Reqs: 8 · Scenarios: 13 · Lines: 169
 
 ### agentic-tooling-quality-goals
-Reqs: 19 · Scenarios: 29 · Lines: 379
+Reqs: 20 · Scenarios: 31 · Lines: 402
 Last touches:
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900479 | 2026-09-26 | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900479 | 2026-09-26 | MODIFIED
+  - Orphan MCP server sources are removed or registered | T900479 | 2026-09-26 | ADDED
   - Indexierung läuft single-flight über alle Instanzen | T016447 | 2026-09-17 | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | 2026-09-17 | ADDED
-  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | 2026-09-11 | MODIFIED
-  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | 2026-09-11 | MODIFIED
-  - G-AGENTIC01 Subagent Tool-Scope Baseline Tracked | T002494 | 2026-08-02 | MODIFIED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112
@@ -343,17 +338,13 @@ Last touches:
   - K1/K3-Verhältnis (Defekt D8) (REQ-k3-04) | T002433 | 2026-08-02 | ADDED
 
 ### brain-k4-brain-wiki
-Reqs: 3 · Scenarios: 6 · Lines: 72
+Reqs: 5 · Scenarios: 9 · Lines: 110
 Last touches:
   - Diagramm der Ingest-Pipeline (REQ-k4-01) | T900451 | 2026-09-26 | REMOVED
   - Quellgruppen-Erhebung (REQ-k4-02) | T900451 | 2026-09-26 | REMOVED
   - Lesepfad-Integration (REQ-k4-03) | T900451 | 2026-09-26 | REMOVED
   - Fail-closed Prompt-Obergrenze (REQ-k4-05) | T900451 | 2026-09-26 | REMOVED
   - Deterministische Eltern-MOC (REQ-k4-06) | T900451 | 2026-09-26 | REMOVED
-In-flight:
-  - Versioned eval set is wired into CI | T900448 | active | ADDED
-  - Baseline artifact is recorded | T900448 | active | ADDED
-  - Node/Python index parity | T900448 | active | ADDED
 
 ### brain-k5-openspec
 Reqs: 4 · Scenarios: 4 · Lines: 41
@@ -873,8 +864,6 @@ Last touches:
   - Local k3d cluster runs the SDLC stack from the production manifests | T900054 | 2026-09-17 | MODIFIED
   - Dev-Host WSL memory verified for the local stack | T900054 | 2026-09-17 | REMOVED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | 2026-09-17 | MODIFIED
-In-flight:
-  - The local poller dispatches archiving of orphaned OpenSpec changes | T900338 | active | ADDED
 
 ### secret-rotation
 Reqs: 45 · Scenarios: 106 · Lines: 883

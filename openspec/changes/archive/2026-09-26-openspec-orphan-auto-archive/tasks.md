@@ -2,7 +2,7 @@
 title: "openspec-orphan-auto-archive — Implementation Plan"
 ticket_id: T900338
 domains: [scripts, ci, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

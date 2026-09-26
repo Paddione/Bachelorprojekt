@@ -971,7 +971,7 @@ YAML
   [ "$schema_errors" -eq 0 ]
 }
 
-@test "live: das Inventar deklariert genau die fünf Ziel-Harnesses" {
+@test "live: das Inventar deklariert genau die fuenf Ziel-Harnesses" {
   run node "$ENGINE" --root "$REPO" --check --json
   [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
 

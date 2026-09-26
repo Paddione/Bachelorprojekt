@@ -3,7 +3,7 @@
 # SSOT: openspec/specs/mcp-gateway.md (Delta: openspec/changes/mcp-http-origin-auth-hardening)
 # Ticket: T900052 — Task 2.4
 #
-# Jeder native HTTP-MCP-Server (factory-mcp-node, bge-mcp, mcp-postgres-local)
+# Jeder native HTTP-MCP-Server (bge-mcp, mcp-postgres-local)
 # muss den Start verweigern, wenn das Pflicht-Token fehlt oder leer ist.
 # Der Shared Guard (mcp-http-security.mjs:requireToken) wirft beim
 # Modul-Laden — der Prozess beendet sich, BEVOR ein Port gebunden wird.
@@ -33,27 +33,6 @@ assert_no_port_bound() {
   run curl -s -o /dev/null -w '%{http_code}' --max-time 1 "http://127.0.0.1:${port}/" 2>/dev/null
   # curl gibt "000" zurueck wenn kein Server da ist, oder einen HTTP-Code wenn einer laeuft
   [ "$output" = "000" ] || [ "$status" -ne 0 ]
-}
-
-# ---------------------------------------------------------------------------
-# factory-mcp-node — FACTORY_MCP_TOKEN, Port via FACTORY_MCP_PORT
-# ---------------------------------------------------------------------------
-
-@test "factory-mcp-node: exits non-zero when FACTORY_MCP_TOKEN is absent" {
-  run env -u FACTORY_MCP_TOKEN FACTORY_MCP_PORT="$FREE_PORT" node "$REPO/scripts/factory-mcp-node/server.mjs"
-  [ "$status" -ne 0 ]
-}
-
-@test "factory-mcp-node: error message names FACTORY_MCP_TOKEN" {
-  run env -u FACTORY_MCP_TOKEN FACTORY_MCP_PORT="$FREE_PORT" node "$REPO/scripts/factory-mcp-node/server.mjs"
-  [[ "$output" == *"MCP-HTTPSEC: Pflicht-Token fehlt"* ]]
-  [[ "$output" == *"FACTORY_MCP_TOKEN"* ]]
-}
-
-@test "factory-mcp-node: does not bind port when token is absent" {
-  run env -u FACTORY_MCP_TOKEN FACTORY_MCP_PORT="$FREE_PORT" node "$REPO/scripts/factory-mcp-node/server.mjs"
-  [ "$status" -ne 0 ]
-  assert_no_port_bound "$FREE_PORT"
 }
 
 # ---------------------------------------------------------------------------

@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.374.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.373.0...website-v1.374.0) (2026-09-26)
+
+
+### Features
+
+* **ci:** scheduled orphan dispatch without database [T900503] ([#5983](https://github.com/Paddione/Bachelorprojekt/issues/5983)) ([c7c24e2](https://github.com/Paddione/Bachelorprojekt/commit/c7c24e2ffcc5684b9b1bc7a062e9438f6352e81c))
+
+## [1.373.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.372.0...website-v1.373.0) (2026-09-26)
+
+
+### Features
+
+* **mcp:** retire factory-mcp-node, sync hermes, and curate toolset [T900479] ([#5979](https://github.com/Paddione/Bachelorprojekt/issues/5979)) ([ed8e764](https://github.com/Paddione/Bachelorprojekt/commit/ed8e764c6d4acfd18abe6f058feef21de1015478))
+
+## [1.372.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.3...website-v1.372.0) (2026-09-26)
+
+
+### Features
+
+* **agents:** WIP at a glance + abandoned-WIP finisher for sdlc-autopilot [T900481] ([#5974](https://github.com/Paddione/Bachelorprojekt/issues/5974)) ([80becd8](https://github.com/Paddione/Bachelorprojekt/commit/80becd817833e2b39f210df77011c471023a1641))
+
 ## [1.371.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.2...website-v1.371.3) (2026-09-26)
 
 

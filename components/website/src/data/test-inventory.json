@@ -4608,6 +4608,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/orphan-detect",
+    "file": "tests/spec/openspec-workflow/orphan-detect.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/plan-archive-freshness-check",
     "file": "tests/spec/openspec-workflow/plan-archive-freshness-check.bats",
     "category": "openspec-workflow",
@@ -4946,6 +4952,18 @@
   {
     "id": "scripts/check-worktree-live-no-env",
     "file": "tests/spec/scripts/check-worktree-live-no-env.bats",
+    "category": "scripts",
+    "kind": "shell"
+  },
+  {
+    "id": "scripts/wip-finish",
+    "file": "tests/spec/scripts/wip-finish.bats",
+    "category": "scripts",
+    "kind": "shell"
+  },
+  {
+    "id": "scripts/wip-glance",
+    "file": "tests/spec/scripts/wip-glance.bats",
     "category": "scripts",
     "kind": "shell"
   },

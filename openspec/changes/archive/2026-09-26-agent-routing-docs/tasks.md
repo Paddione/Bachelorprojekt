@@ -2,7 +2,7 @@
 title: Agent-Routing-Doku — Schichtwahl + Sweep
 ticket_id: T900453
 domains: [docs, agents]
-status: active
+status: completed
 ---
 
 # agent-routing-docs — Implementation Plan

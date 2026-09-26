@@ -4989,8 +4989,8 @@
   ],
   "T900338": [
     {
-      "slug": "openspec-orphan-auto-archive",
-      "status": "plan_staged"
+      "slug": "2026-09-26-openspec-orphan-auto-archive",
+      "status": "archived"
     }
   ],
   "T900339": [
@@ -5067,8 +5067,8 @@
   ],
   "T900448": [
     {
-      "slug": "brain-eval-baseline",
-      "status": "plan_staged"
+      "slug": "2026-09-26-brain-eval-baseline",
+      "status": "archived"
     }
   ],
   "T900449": [
@@ -5097,8 +5097,26 @@
   ],
   "T900453": [
     {
-      "slug": "agent-routing-docs",
-      "status": "plan_staged"
+      "slug": "2026-09-26-agent-routing-docs",
+      "status": "archived"
+    }
+  ],
+  "T900479": [
+    {
+      "slug": "2026-09-26-mcp-hygiene",
+      "status": "archived"
+    }
+  ],
+  "T900481": [
+    {
+      "slug": "2026-09-26-wip-glance-autopilot",
+      "status": "archived"
+    }
+  ],
+  "T900503": [
+    {
+      "slug": "2026-09-26-openspec-orphan-auto-dispatch",
+      "status": "archived"
     }
   ],
   "TBD": [

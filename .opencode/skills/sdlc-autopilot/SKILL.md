@@ -26,6 +26,12 @@ Queue-Material erschöpft ist oder menschliche Freigabe fehlt.
 
 Pro Iteration, in dieser Reihenfolge:
 
+0. **WIP-Lage** — `bash scripts/wip-glance.sh` (read-only, ~1 s) zeigt alle
+   Worktrees, Locks, offenen PRs, unmerged Branches und Stashes mit Zustand
+   `live` / `unlocked-dirty` / `abandoned` / `idle`. Nichts davon wird
+   angefasst. Steht ein `abandoned`-Eintrag drin, erst Schritt W des
+   WIP-Aufraeumens, dann weiter — ein liegengebliebenes Ticket-Repo darf
+   den Loop nicht stillstehen lassen.
 1. **Inventur** — `ticket-mcp_list_tickets` (Status `triage`/`planning`) plus
    `factory-mcp_factory_status` + `factory_queue`. Baue die Arbeitsliste:
    Tickets mit `spec_skizziert=false` zuerst (Spec-Rückstand), dann bereits
@@ -51,9 +57,38 @@ Pro Iteration, in dieser Reihenfolge:
 
 Dann zurück zu 1.
 
+## W. Abandoned-WIP aufraeumen (bis clean)
+
+Zwei Skripte, beide fail-closed [T900481]:
+
+| Kommando | Wirkung |
+| --- | --- |
+| `bash scripts/wip-glance.sh` | read-only Uebersicht; `--json`, `--quiet`, `--stale-hours N` (Default 24) |
+| `bash scripts/wip-finish.sh` | **Planlauf**: Kandidaten + vorgeschlagene Aktion, aendert nichts |
+| `bash scripts/wip-finish.sh --apply --allow <aktion>` | nur die genannten Aktionen ausfuehren |
+
+- **Standard ist Planlauf.** `--apply` ohne `--allow` fuehrt nichts aus.
+- Ein 4B-Rail **triagiert nur** (2. GPU `127.0.0.1:1920` = Qwen3.5-4B-MTP,
+  PK-Tablet via `ssh pk-tablet` → LM Studio `:1234`; `--rails host:port`).
+  Es antwortet mit `ACT=<aktion>|REASON=<kurz>` und schreibt NIE Repo-Inhalt —
+  Grundlage ist der Benchmark `scripts/llm/measurements/`, in dem 4B-Modelle
+  beim Orchestrieren unter 60 % liegen.
+  Antwortet die Rail mit einer nicht angebotenen Aktion, wird sie **verworfen**
+  und die deterministische Heuristik gilt.
+- `commit-dirty` ist die einzige Schreibaktion und verlangt einen Lock, den der
+  Aufrufer selbst haelt, plus einen sauberen Git-Zustand (kein Merge/Rebase).
+- `review-stash`, `open-pr`, `remove-worktree` werden geplant, aber nie
+  automatisch ausgefuehrt — Stashes und fremde Branches sind zu
+  datenverlust-anfaellig fuer einen autonomen Loop.
+- "Bis clean" heisst: **planbar ist clean**, wenn kein `abandoned` mehr da ist.
+  `live` und `unlocked-dirty` sind per Definition *nicht* abandoned. Endet der
+  Loop hier, nennt der Endbericht die uebrigen Kandidaten explizit.
+
 ## Abbruchbedingungen
 
 - Keine dispatchbaren Tickets mehr → Endbericht (erledigt / needs_human / blocked).
+- `wip-glance.sh --quiet` meldet `abandoned=0` → kein WIP-Aufraeumen noetig;
+  sonst vor dem Ticket-Lauf einmal `wip-finish.sh` planen (Schritt W).
 - Zwei aufeinanderfolgende Iterationen ohne Statusänderung → Stop statt Doom-Loop
   (Permission `doom_loop` steht auf deny).
 - User-Interrupt jederzeit respektieren.

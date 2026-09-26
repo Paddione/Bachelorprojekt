@@ -147,7 +147,6 @@ render_agy_json() {
       const envFiles = [
         path.join(configDir, 'bge-mcp', 'server.env'),
         path.join(configDir, 'mcp-postgres', 'server.env'),
-        path.join(configDir, 'factory-mcp-node', 'server.env'),
       ];
       for (const envFile of envFiles) {
         if (!fs.existsSync(envFile)) continue;
@@ -190,7 +189,7 @@ render_agy_json() {
         out.mcpServers[name] = { serverUrl: c.endpoint };
         // [T0141xx] Per-Harness-Header (harness.agy.headers) haben Vorrang vor
         // Top-Level headers — erlaubt Auth pro Harness, ohne .mcp.json zu
-        // beruehren (factory-mcp-node, T002779-Guard).
+        // beruehren.
         const hdrs = h.headers || c.headers;
         if (hdrs) out.mcpServers[name].headers = resolveHeaders(hdrs);
       } else {
@@ -300,8 +299,7 @@ render_opencode_jsonc() {
         // [T900052] Per-Harness-Header: harness.opencode.headers hat Vorrang vor
         // dem Top-Level headers. Das erlaubt einem Server, in .mcp.json (Claude,
         // kein \${VAR}) registriert zu bleiben, waehrend opencode den Auth-Header
-        // traegt — noetig fuer factory-mcp-node (T002779-Guard verlangt die
-        // Registrierung in .mcp.json).
+        // traegt.
         const opencodeHeaders = h.headers || cl.headers;
         if (opencodeHeaders) {
           const translated = {};
@@ -344,7 +342,6 @@ render_qwen_json() {
       const envFiles = [
         path.join(configDir, 'bge-mcp', 'server.env'),
         path.join(configDir, 'mcp-postgres', 'server.env'),
-        path.join(configDir, 'factory-mcp-node', 'server.env'),
       ];
       for (const envFile of envFiles) {
         if (!fs.existsSync(envFile)) continue;
@@ -433,7 +430,6 @@ render_claude_user_json() {
       const envFiles = [
         path.join(configDir, 'bge-mcp', 'server.env'),
         path.join(configDir, 'mcp-postgres', 'server.env'),
-        path.join(configDir, 'factory-mcp-node', 'server.env'),
       ];
       for (const envFile of envFiles) {
         if (!fs.existsSync(envFile)) continue;

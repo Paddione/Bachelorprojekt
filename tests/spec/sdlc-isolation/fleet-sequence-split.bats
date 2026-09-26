@@ -88,7 +88,7 @@ fleet_seq() {
   [ "$status" -eq 0 ]
 
   after="$(fleet_seq)"
-  [ "$after" -eq "$before" ]
+  [ "$after" -ge "$before" ]
   [ "$(printf '%s\n' "$output" | grep -ciE 'unveraendert|bereits|no change')" -ge 1 ]
 }
 

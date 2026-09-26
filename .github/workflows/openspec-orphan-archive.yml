@@ -7,6 +7,9 @@ on:
         description: "Comma-separated list of OpenSpec change slugs to archive"
         required: true
         type: string
+  # T900503 — nightly auto-dispatch: detect orphans, feed them to the executor.
+  schedule:
+    - cron: '17 3 * * *'
 
 concurrency:
   group: openspec-orphan-archive
@@ -16,10 +19,41 @@ env:
   OPENSPEC_TELEMETRY: '0'
 
 jobs:
+  detect:
+    name: Detect orphaned changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Manual dispatch carries its own slugs — detection only for scheduled runs.
+    # event_name (not inputs.slugs) decides: the inputs context is empty on
+    # schedule events and null-comparisons against '' are unreliable.
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      slugs: ${{ steps.run.outputs.slugs }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 1
+
+      - name: Run orphan detection
+        id: run
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          slugs="$(bash scripts/openspec-orphan-detect.sh --min-age-hours 24 | paste -sd, -)"
+          echo "slugs=$slugs" >> "$GITHUB_OUTPUT"
+
   archive:
     name: Orphan archive executor
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: detect
+    # Skipped detect (manual slugs) must not skip the executor; a failed
+    # detect stays visible as a red run instead of archiving blindly.
+    if: always() && needs.detect.result != 'failure' && needs.detect.result != 'cancelled' && (github.event_name == 'workflow_dispatch' || needs.detect.outputs.slugs != '')
     permissions:
       contents: write
       pull-requests: write
@@ -49,7 +83,7 @@ jobs:
       - name: Run orphan archive executor
         id: archive
         env:
-          SLUGS: "${{ inputs.slugs }}"
+          SLUGS: "${{ inputs.slugs || needs.detect.outputs.slugs }}"
         run: |
           mkdir -p "$RUNNER_TEMP/orphan"
           bash scripts/openspec-orphan-archive.sh --slugs "$SLUGS" --out "$RUNNER_TEMP/orphan"

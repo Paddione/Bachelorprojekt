@@ -333,3 +333,15 @@ zwei Instanzen, deren Tools sich im Namensraum überschneiden. Der Server heißt
 `context7`, die Claude-Tools also `mcp__context7__*`.
 
 Harness-Setup je Client (Codex, Gemini CLI): [context7-harnesses.md](../../../docs/runbooks/context7-harnesses.md).
+
+## `warden` — Persönlicher Vaultwarden-Tresor
+
+- **Transport:** stdio via `node scripts/warden-mcp/launch.mjs` (@icoretech/warden-mcp gepinnt im Launcher).
+- **Credentials:** ausschließlich aus `~/.config/warden-mcp/server.env`, niemals im Repository tracken.
+- **Harnesses:** `claude_code` und `opencode` (`clients.warden` in `docs/agent-guide/registry/mcp.yaml`). agy, qwen_code und llamacpp bleiben deaktiviert (jeder weitere Harness wäre ein zusätzlicher Pfad zum persönlichen Tresor).
+- **Tools & ask-Gating:**
+  - Lesezugriffe (`keychain_list_*`, `keychain_get_*`, `keychain_search_*`) für Tresor-Reads.
+  - Sämtliche mutierenden Tools (`keychain_create_*`, `keychain_delete_*`, `keychain_edit_*`, `keychain_send_*`, `keychain_update_*`, etc.) unterliegen striktem ask-Gating in `.claude/settings.json` (`permissions.ask`) und `.opencode/opencode.jsonc` (`permission`). Schreiben nur nach ausdrücklicher Rückfrage.
+- **Bitwarden CLI-Kompatibilität:** Windows und WSL benötigen `bw <= 2026.6.x`, da neuere Versionen der Bitwarden CLI Vaultwarden 1.36.0 nicht entschlüsseln können. Der Launcher prüft PATH, `~/.local/bin/bw` und winget automatisch [T900404].
+- **Wann bevorzugen:** Persönliche Tresor-Credentials lesen; Schreiben nur nach Rückfrage.
+

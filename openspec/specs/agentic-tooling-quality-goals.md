@@ -209,9 +209,9 @@ pointing to it SHALL be measured and documented as a Target baseline.
 registered in `.opencode/opencode.jsonc`.
 
 The comparison SHALL be made against the exact registry keys, not against a shortened or
-historical spelling of a server. A server whose registry key carries a suffix (`brain-mcp-node`,
-`factory-mcp-node`, `ticket-mcp-node`) counts as phantom when `CLAUDE.md` names it without that
-suffix; the two spellings are not interchangeable for this gate. A server removed from
+historical spelling of a server. A server whose registry key carries a suffix (`ticket-mcp-node`)
+counts as phantom when `CLAUDE.md` names it without that suffix; the two spellings are not
+interchangeable for this gate. A server removed from
 `docs/agent-guide/registry/mcp.yaml` SHALL also disappear from the `CLAUDE.md` list in the same
 change, so a removal cannot leave the list claiming a server that no longer exists.
 
@@ -254,8 +254,8 @@ Every `mcp__<server>__*` tool token referenced inside a `SKILL.md` file SHALL co
 actually registered in `.mcp.json` or `.opencode/opencode.jsonc`.
 
 The server segment of the token SHALL match a registry key exactly. A token naming a server by an
-unsuffixed spelling of a suffixed key — `mcp__factory-mcp__…` where the registry holds
-`factory-mcp-node` — is a dead reference, because no such server can be resolved at runtime.
+unsuffixed spelling of a suffixed key — `mcp__ticket-mcp__…` where the registry holds
+`ticket-mcp-node` — is a dead reference, because no such server can be resolved at runtime.
 
 #### Scenario: No dead server references after correction
 
@@ -266,10 +266,10 @@ unsuffixed spelling of a suffixed key — `mcp__factory-mcp__…` where the regi
 
 #### Scenario: An unsuffixed server segment counts as dead
 
-- **GIVEN** a `SKILL.md` referencing `mcp__factory-mcp__factory_status` while the registry holds
-  `factory-mcp-node`
+- **GIVEN** a `SKILL.md` referencing `mcp__ticket-mcp__get_ticket` while the registry holds
+  `ticket-mcp-node`
 - **WHEN** the G-AGENTIC13 measure command checks the extracted token against the registered set
-- **THEN** the reference is counted as dead until the token names `factory-mcp-node`
+- **THEN** the reference is counted as dead until the token names `ticket-mcp-node`
 
 ### Requirement: G-AGENTIC14 MCP Config Parity Gate
 
@@ -359,6 +359,27 @@ und getötete Worker respawnen (STOP/TERM allein heilt nicht).
   einen Volljob ausschließlich über den Single-Flight-Wrapper an — kein
   direkter `index_repository`-Aufruf aus parallelen Sessions.
 
+### Requirement: Orphan MCP server sources are removed or registered
+
+Every MCP server implementation or provisioning source tracked in the repository SHALL resolve to
+exactly one of: a client entry in `docs/agent-guide/registry/mcp.yaml`, a documented user-scope
+installation (operator-local, with an install task or script), or a synced provisioning mirror
+whose catalog is derived from the registry. A source in none of these states is orphaned and
+SHALL be removed.
+
+#### Scenario: No orphan server source remains
+
+- **GIVEN** the tracked MCP server sources (`scripts/*-mcp*/`, `scripts/*mcp*.sh`,
+  `scripts/*mcp*.yaml`) and the registry clients plus the documented user-scope list
+- **WHEN** the orphan guard in `tests/spec/mcp-tooling.bats` resolves each source
+- **THEN** every source resolves and the orphan count is 0
+
+#### Scenario: A newly added server source fails the guard until registered
+
+- **GIVEN** a new tracked server source without a registry entry or user-scope record
+- **WHEN** the orphan guard runs
+- **THEN** it names the source and exits non-zero
+
 ## Acceptance Criteria
 
 - THEN `bash scripts/health-goals-check.sh --only=G-AGENTIC02,G-AGENTIC03,G-AGENTIC04,G-AGENTIC05,G-AGENTIC06,G-AGENTIC07,G-AGENTIC08,G-AGENTIC09,G-AGENTIC11,G-AGENTIC12,G-AGENTIC13,G-AGENTIC14,G-AGENTIC15,G-AGENTIC16,G-AGENTIC17` exits 0 (all 15 Gates green)
@@ -377,3 +398,5 @@ und getötete Worker respawnen (STOP/TERM allein heilt nicht).
 <!-- merged from change delta agentic-tooling-quality-goals.md (d205823dd0d8) -->
 
 <!-- merged from change delta agentic-tooling-quality-goals.md (868d38257953) -->
+
+<!-- merged from change delta agentic-tooling-quality-goals.md (1de847cf5956) -->

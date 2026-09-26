@@ -26,7 +26,7 @@ setup() {
   FAKEHOME="$TMPD/fakehome"
   HOOK_CALLS="$TMPD/calls"
   mkdir -p "$FAKEHOME/.config/bge-mcp" "$FAKEHOME/.config/mcp-postgres" \
-    "$FAKEHOME/.config/factory-mcp-node" "$HOOK_CALLS" "$TMPD/bin"
+    "$HOOK_CALLS" "$TMPD/bin"
 
   # --- systemctl-Stub (PATH): protokolliert Unit-Restarts als Marker-Files ---
   cat > "$TMPD/bin/systemctl" <<EOF
@@ -163,7 +163,6 @@ heal_env() {
   [ -f "$HOOK_CALLS/render" ]
   [ -f "$HOOK_CALLS/restart-bge-mcp" ]
   [ ! -f "$HOOK_CALLS/restart-mcp-postgres-local" ]
-  [ ! -f "$HOOK_CALLS/restart-factory-mcp" ]
   # Negativ: kein Token-Wert (alt wie neu) im Output.
   [[ "$output" != *"$newval"* ]]
   [[ "$output" != *"$oldval"* ]]

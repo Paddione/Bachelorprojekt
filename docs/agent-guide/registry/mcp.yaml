@@ -27,9 +27,10 @@
 # die in BEIDEN Configs vorkommen. Ein Server in nur einer Config wird gar nicht
 # geprueft — die Divergenz schlaegt deshalb erst in dem Moment zu, in dem ein
 # zweiter Harness hinzukommt.
-# Nach jeder Aenderung: task mcp:sync, dann task mcp:check (fail-closed). Die
-# generierten Configs (.mcp.json, .opencode/opencode.jsonc, mcp_config.json,
-# scripts/llm/mcp-servers.json) nie von Hand editieren.
+# User-Scope-Notiz:
+# User-Scope-Server installieren per Taskfile.llm.yml nach
+# ~/.config/muse/settings.json (User-Scope, nicht Registry-verwaltet);
+# mailbox-mcp ist vendored und unregistriert.
 clients:
   context7:
     transport: stdio
@@ -194,7 +195,7 @@ clients:
         httpUrl: http://localhost:13005/mcp
 
   # Node.js ports of the custom MCP servers — zero npm dependencies, stdlib only.
-  # Old Go/Python sources are deprecated (P6: cleanup old sources).
+  # Go-Quellen unter scripts/ticket-mcp/go bleiben Build- und Test-Artefakt (ticket-mcp:build/test, CodeQL, Doctor-Check); Harnesses nutzen den Node-Port.
   # Pfad-Split (2026-08-30): claude_code + opencode nutzen den repo-relativen
   # Pfad (portabel — beide Harnesses starten aus dem Repo-Root; G-AGENTIC14
   # vergleicht genau diese beiden). top-level/agy/llamacpp behalten den

@@ -58,7 +58,7 @@ upstream_release() { # $1 = sed-Ausdruck, $2 = Tag
   git -C "$UP" commit -qam "$2" && git -C "$UP" tag "$2"
 }
 
-@test "update: Upstream-Änderung wird übernommen, lokaler Patch bleibt erhalten" {
+@test "update: Upstream-Aenderung wird uebernommen, lokaler Patch bleibt erhalten" {
   upstream_release 's/^zeile-a$/zeile-a UPSTREAM-NEU/' v1.1.0
   run python3 "$SYNC" update --root "$ROOT" --report "$T/r.json"
   [ "$status" -eq 0 ] || { echo "$output"; return 1; }
@@ -81,7 +81,7 @@ upstream_release() { # $1 = sed-Ausdruck, $2 = Tag
   echo "$output" | grep -qF 'unresolved-conflict: .opencode/skills/zq-demo/SKILL.md'
 }
 
-@test "release-tracking: höchste stabile SemVer gewinnt, Prerelease wird ignoriert" {
+@test "release-tracking: hoechste stabile SemVer gewinnt, Prerelease wird ignoriert" {
   upstream_release 's/^zeile-b$/zeile-b neun/' v1.9.0
   upstream_release 's/^zeile-b neun$/zeile-b zehn/' v1.10.0
   upstream_release 's/^zeile-b zehn$/zeile-b rc/' v2.0.0-rc1

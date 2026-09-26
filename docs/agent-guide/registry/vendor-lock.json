@@ -1,0 +1,237 @@
+{
+  "$comment": "SSOT der Herkunft extern bezogener Skills/Plugins. Gepflegt von scripts/vendor-sync.py (update schreibt ref/version). Runbook: docs/runbooks/vendor-sync.md. ref = Upstream-Commit, gegen den die Repo-Kopie zuletzt synchronisiert wurde (Merge-Basis fuer den 3-Wege-Merge). track: release = hoechste stabile SemVer-Tag (optional tag_prefix), branch = Default-Branch-HEAD (Upstream ohne Releases).",
+  "schema_version": 1,
+  "skills": {
+    "find-skills": {
+      "repo": "vercel-labs/skills",
+      "path": "skills/find-skills",
+      "dest": ".opencode/skills/find-skills",
+      "track": "release",
+      "ref": "7407f3893ad4dceab546ac002c3ef806e4000c73",
+      "version": null
+    },
+    "gitops-cluster-debug": {
+      "repo": "fluxcd/agent-skills",
+      "path": "skills/gitops-cluster-debug",
+      "dest": ".opencode/skills/gitops-cluster-debug",
+      "track": "release",
+      "ref": "12628b3d29a199d0e52a147448d90e15f50af8dc",
+      "version": null
+    },
+    "gitops-knowledge": {
+      "repo": "fluxcd/agent-skills",
+      "path": "skills/gitops-knowledge",
+      "dest": ".opencode/skills/gitops-knowledge",
+      "track": "release",
+      "ref": "12628b3d29a199d0e52a147448d90e15f50af8dc",
+      "version": null
+    },
+    "gitops-repo-audit": {
+      "repo": "fluxcd/agent-skills",
+      "path": "skills/gitops-repo-audit",
+      "dest": ".opencode/skills/gitops-repo-audit",
+      "track": "release",
+      "ref": "72077b8bb66e39c29acc3f454abd8aa05285ec80",
+      "version": null
+    },
+    "hf-mem": {
+      "repo": "huggingface/skills",
+      "path": "skills/hf-mem",
+      "dest": ".opencode/skills/hf-mem",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-best": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-best",
+      "dest": ".opencode/skills/huggingface-best",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-community-evals": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-community-evals",
+      "dest": ".opencode/skills/huggingface-community-evals",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-datasets": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-datasets",
+      "dest": ".opencode/skills/huggingface-datasets",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-llm-trainer": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-llm-trainer",
+      "dest": ".opencode/skills/huggingface-llm-trainer",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-local-models": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-local-models",
+      "dest": ".opencode/skills/huggingface-local-models",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-lora-space-builder": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-lora-space-builder",
+      "dest": ".opencode/skills/huggingface-lora-space-builder",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-paper-publisher": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-paper-publisher",
+      "dest": ".opencode/skills/huggingface-paper-publisher",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-papers": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-papers",
+      "dest": ".opencode/skills/huggingface-papers",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-tool-builder": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-tool-builder",
+      "dest": ".opencode/skills/huggingface-tool-builder",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-trackio": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-trackio",
+      "dest": ".opencode/skills/huggingface-trackio",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-vision-trainer": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-vision-trainer",
+      "dest": ".opencode/skills/huggingface-vision-trainer",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "huggingface-zerogpu": {
+      "repo": "huggingface/skills",
+      "path": "skills/huggingface-zerogpu",
+      "dest": ".opencode/skills/huggingface-zerogpu",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "lavish": {
+      "repo": "kunchenguid/lavish-axi",
+      "path": "skills/lavish",
+      "dest": ".opencode/skills/lavish",
+      "track": "release",
+      "tag_prefix": "lavish-axi-v",
+      "ref": "03cb0696ed1c5069db8b464e7299fd87098b1fff",
+      "version": null
+    },
+    "llama-cpp": {
+      "repo": "Orchestra-Research/AI-research-SKILLs",
+      "path": "12-inference-serving/llama-cpp",
+      "dest": ".opencode/skills/llama-cpp",
+      "track": "release",
+      "ref": "773a52944ba4747a18bd4ae9ade53fff041adcbc",
+      "version": null
+    },
+    "skill-creator": {
+      "repo": "anthropics/skills",
+      "path": "skills/skill-creator",
+      "dest": ".opencode/skills/skill-creator",
+      "track": "branch",
+      "ref": "b9e19e6f44773509fbdd7001d77ff41a49a486c1",
+      "version": null
+    },
+    "train-sentence-transformers": {
+      "repo": "huggingface/skills",
+      "path": "skills/train-sentence-transformers",
+      "dest": ".opencode/skills/train-sentence-transformers",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "transformers-js": {
+      "repo": "huggingface/skills",
+      "path": "skills/transformers-js",
+      "dest": ".opencode/skills/transformers-js",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "trl-training": {
+      "repo": "huggingface/skills",
+      "path": "skills/trl-training",
+      "dest": ".opencode/skills/trl-training",
+      "track": "branch",
+      "ref": "80f9fa530e46f4ae642fcb9e1725bad0e1979395",
+      "version": null
+    },
+    "vitest": {
+      "repo": "antfu/skills",
+      "path": "skills/vitest",
+      "dest": ".opencode/skills/vitest",
+      "track": "branch",
+      "ref": "5cae97ca87e0dcfb5a192cd2cbf8b83a9f769e8f",
+      "version": null
+    }
+  },
+  "plugins": {
+    "git": {
+      "superpowers": {
+        "repo": "obra/superpowers",
+        "track": "release",
+        "skills_dir": "skills",
+        "reference_pattern": "superpowers:([a-z0-9][a-z0-9-]*)",
+        "pins": [
+          ".opencode/package.json",
+          ".opencode/opencode.jsonc",
+          ".opencode/package-lock.json"
+        ],
+        "ref": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+        "version": "v6.3.0"
+      }
+    },
+    "npm": {
+      "manifest": ".opencode/package.json",
+      "packages": {
+        "@opencode-ai/plugin": {
+          "track": "pinned",
+          "reason": "Plugin-SDK muss zur installierten opencode-CLI-Version passen; wird mit der CLI angehoben, nicht unabhaengig."
+        },
+        "@tarquinen/opencode-dcp": {
+          "track": "latest"
+        },
+        "envsitter-guard": {
+          "track": "latest"
+        },
+        "oh-my-opencode-slim": {
+          "track": "latest"
+        },
+        "opencode-agent-memory": {
+          "track": "latest"
+        }
+      }
+    }
+  }
+}

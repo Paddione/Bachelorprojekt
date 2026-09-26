@@ -2418,6 +2418,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/vendor-sync",
+    "file": "tests/spec/agent-skills/vendor-sync.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/worktree-git-op-finish",
     "file": "tests/spec/agent-skills/worktree-git-op-finish.bats",
     "category": "agent-skills",

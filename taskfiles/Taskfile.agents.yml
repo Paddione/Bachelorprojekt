@@ -481,6 +481,26 @@ tasks:
           claude plugin install "$plugin"
         done <<< "$MISSING"
 
+  # ── vendor-sync — extern bezogene Skills/Plugins auf neueste Release ──
+  # SSOT: docs/agent-guide/registry/vendor-lock.json, Runbook:
+  # docs/runbooks/vendor-sync.md. Läuft nächtlich als Cloud-Routine; die
+  # Targets sind dieselben Einstiege für den manuellen Lauf.
+
+  vendor:status:
+    desc: "Vendor-Skills/-Plugins: gelockter Stand vs. neueste Upstream-Release (schreibt nichts)"
+    cmds:
+      - python3 scripts/vendor-sync.py status {{.CLI_ARGS}}
+
+  vendor:update:
+    desc: "Vendor-Skills/-Plugins auf neueste Release heben (3-Wege-Merge, lokale Patches bleiben)"
+    cmds:
+      - python3 scripts/vendor-sync.py update {{.CLI_ARGS}}
+
+  vendor:check:
+    desc: "Integrationsvertrag der Vendor-Skills/-Plugins prüfen (Referenzen, Konfliktmarker, Pins)"
+    cmds:
+      - python3 scripts/vendor-sync.py check {{.CLI_ARGS}}
+
   # ── stdio MCP servers — spawned per-session by the client (Claude Code /
   # opencode), not standalone daemons. Nothing to install/start here; this is
   # a read-only presence check for the stack overview below.

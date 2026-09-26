@@ -1,2 +1,12 @@
 {"id":"brain-foundation","query":"brain lifecycle provenance","relevant_slugs":["openspec-specs-brain-foundation"],"top_k":5,"filters":{"source_kind":"openspec"}}
 {"id":"brain-runbook","query":"brain ingest runbook","relevant_slugs":["docs-runbooks-brain-ingest"],"top_k":5,"filters":{"source_kind":"runbook"}}
+{"id":"adr-fleet","query":"fleet konsolidierung adr","relevant_slugs":["docs-adr-adr-001-fleet-konsolidierung-001"],"top_k":5,"filters":{"source_kind":"adr"}}
+{"id":"adr-merge","query":"merge equals closure definition done","relevant_slugs":["docs-adr-adr-005-merge-equals-abschluss-001"],"top_k":5,"filters":{"source_kind":"adr"}}
+{"id":"diagram-schema","query":"database schema diagram tickets","relevant_slugs":["docs-db-schema-diagram-001"],"top_k":5,"filters":{"source_kind":"diagram"}}
+{"id":"core-agents","query":"agent routing orchestrator subagent","relevant_slugs":["agents-001"],"top_k":5,"filters":{"source_kind":"core-doc"}}
+{"id":"specs-deploy","query":"sealed secrets gitops flux","relevant_slugs":["openspec-specs-workspace-deploy-005"],"top_k":5,"filters":{}}
+{"id":"health-goal","query":"health goal vitest coverage","relevant_slugs":["claude-lib-goals-009"],"top_k":5,"filters":{"source_kind":"health-goal"}}
+{"id":"filter-tags","query":"fleet konsolidierung","relevant_slugs":["docs-adr-adr-001-fleet-konsolidierung-001"],"top_k":5,"filters":{"source_kind":"adr","tags":["fleet-konsolidierung"]}}
+{"id":"filter-type","query":"brain ingest runbook","relevant_slugs":["docs-runbooks-brain-ingest"],"top_k":5,"filters":{"source_kind":"runbook","type":"moc"}}
+{"id":"asof-in-window","query":"fleet konsolidierung adr","relevant_slugs":["docs-adr-adr-001-fleet-konsolidierung-001"],"top_k":5,"filters":{"source_kind":"adr","as_of":"2026-09-26"}}
+{"id":"asof-out-window","query":"fleet konsolidierung adr","relevant_slugs":["docs-adr-adr-001-fleet-konsolidierung-001"],"top_k":5,"filters":{"source_kind":"adr","as_of":"2020-01-01"}}

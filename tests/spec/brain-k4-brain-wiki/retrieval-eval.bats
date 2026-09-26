@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 # SSOT-Spec: openspec/specs/brain-k4-brain-wiki.md
 # Ticket: T012913
+# Ticket: T900448 (Erweiterung: versioniertes Set)
 
 setup() {
   ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
@@ -98,4 +99,39 @@ assert d["cases"][0]["recall_at_k"] == 0.333333
 assert d["cases"][1]["recall_at_k"] == 0.0
 assert d["metrics"]["recall_at_k"] == 0.166667
 PY
+}
+
+@test "versioned eval set runs deterministically without threshold gating" {
+  local evalset="$ROOT/tests/fixtures/brain/retrieval-eval.jsonl"
+  [ -f "$evalset" ]
+  run python3 "$RUNNER" --wiki-dir "$WIKI" --eval-set "$evalset" --top-k 5 --format json
+  [ "$status" -eq 0 ]
+  local out1="$output"
+  run python3 "$RUNNER" --wiki-dir "$WIKI" --eval-set "$evalset" --top-k 5 --format json
+  [ "$status" -eq 0 ]
+  [ "$output" = "$out1" ]
+  python3 - "$out1" <<'PY'
+import json, sys
+d = json.loads(sys.argv[1])
+assert d["schema_version"] == 1
+assert d["case_count"] == 12
+assert d["eval_set"].endswith("tests/fixtures/brain/retrieval-eval.jsonl")
+PY
+  [[ "$out1" != *'threshold'* ]]
+  run python3 "$RUNNER" --wiki-dir "$WIKI" --eval-set "$evalset" --format human
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'cases=12'* ]]
+  [[ "$output" != *'threshold'* ]]
+}
+
+@test "invalid eval sets fail with exit 2" {
+  local bad="$BATS_TEST_TMPDIR/invalid.jsonl"
+  printf '%s\n' '{"id":"dup","query":"a","relevant_slugs":["alpha"]}' '{"id":"dup","query":"b","relevant_slugs":["beta"]}' > "$bad"
+  run python3 "$RUNNER" --wiki-dir "$WIKI" --eval-set "$bad" --format json
+  [ "$status" -eq 2 ]
+  printf '%s\n' '{"id":"k","query":"a","relevant_slugs":["alpha"],"top_k":0}' > "$bad"
+  run python3 "$RUNNER" --wiki-dir "$WIKI" --eval-set "$bad" --format json
+  [ "$status" -eq 2 ]
+  run python3 "$RUNNER" --wiki-dir "$BATS_TEST_TMPDIR/kein-wiki" --eval-set "$ROOT/tests/fixtures/brain/retrieval-eval.jsonl" --format json
+  [ "$status" -eq 2 ]
 }

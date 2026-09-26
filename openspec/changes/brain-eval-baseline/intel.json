@@ -1,0 +1,227 @@
+{
+  "meta": {
+    "slug": "brain-eval-baseline",
+    "ticket_id": "T900448",
+    "generated_from": "main@e83bc6e12",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/brain-retrieval-eval.py",
+      "language": "python",
+      "loc": 170,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 630
+    },
+    {
+      "path": "scripts/brain-index.py",
+      "language": "python",
+      "loc": 229,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 571
+    },
+    {
+      "path": "scripts/brain-mcp-server.py",
+      "language": "python",
+      "loc": 162,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 638
+    },
+    {
+      "path": "scripts/brain-mcp-node/index.mjs",
+      "language": "javascript",
+      "loc": 412,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 388
+    },
+    {
+      "path": "scripts/brain-mcp-node/server.mjs",
+      "language": "javascript",
+      "loc": 236,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 564
+    },
+    {
+      "path": "tests/fixtures/brain/retrieval-eval.jsonl",
+      "language": "text",
+      "loc": 2,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/fixtures/brain/retrieval-baseline.json",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/adr/ADR-009-brain-3layer-architektur.md",
+      "language": "markdown",
+      "loc": 78,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/retrieval-eval.bats",
+      "language": "bash",
+      "loc": 101,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/node-parity.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/brain-mcp-server.py:162:    main()",
+      "kind": "function",
+      "file": "scripts/brain-mcp-server.py",
+      "signature": "162:    main()(...)",
+      "type_text": "162:    main()(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/index.mjs:54:function scalar(value) {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/index.mjs",
+      "signature": "54:function scalar(value) {(...)",
+      "type_text": "54:function scalar(value) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/index.mjs:131:function findMdFilesSync(dir) {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/index.mjs",
+      "signature": "131:function findMdFilesSync(dir) {(...)",
+      "type_text": "131:function findMdFilesSync(dir) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/index.mjs:164:  _buildIndex() {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/index.mjs",
+      "signature": "164:  _buildIndex() {(...)",
+      "type_text": "164:  _buildIndex() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/index.mjs:207:  _wikiChanged() {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/index.mjs",
+      "signature": "207:  _wikiChanged() {(...)",
+      "type_text": "207:  _wikiChanged() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/index.mjs:228:  _ensureFresh() {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/index.mjs",
+      "signature": "228:  _ensureFresh() {(...)",
+      "type_text": "228:  _ensureFresh() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/server.mjs:15:function ok(requestId, result) {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/server.mjs",
+      "signature": "15:function ok(requestId, result) {(...)",
+      "type_text": "15:function ok(requestId, result) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/server.mjs:19:function fail(requestId, code, message) {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/server.mjs",
+      "signature": "19:function fail(requestId, code, message) {(...)",
+      "type_text": "19:function fail(requestId, code, message) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/server.mjs:23:function writeMsg(message) {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/server.mjs",
+      "signature": "23:function writeMsg(message) {(...)",
+      "type_text": "23:function writeMsg(message) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/server.mjs:83:function searchArguments(arguments_) {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/server.mjs",
+      "signature": "83:function searchArguments(arguments_) {(...)",
+      "type_text": "83:function searchArguments(arguments_) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/server.mjs:134:function handleTool(requestId, params, index, wikiDir) {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/server.mjs",
+      "signature": "134:function handleTool(requestId, params, index, wikiDir) {(...)",
+      "type_text": "134:function handleTool(requestId, params, index, wikiDir) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/server.mjs:183:function main() {",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/server.mjs",
+      "signature": "183:function main() {(...)",
+      "type_text": "183:function main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-mcp-node/server.mjs:236:main();",
+      "kind": "function",
+      "file": "scripts/brain-mcp-node/server.mjs",
+      "signature": "236:main();(...)",
+      "type_text": "236:main();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/brain-k4-brain-wiki/retrieval-eval.bats:5:setup() {",
+      "kind": "function",
+      "file": "tests/spec/brain-k4-brain-wiki/retrieval-eval.bats",
+      "signature": "5:setup() {(...)",
+      "type_text": "5:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

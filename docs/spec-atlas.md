@@ -353,6 +353,10 @@ Last touches:
   - Brain MCP retrieval tools | T012913 | 2026-08-19 | ADDED
   - Offline retrieval quality evaluation | T012913 | 2026-08-19 | ADDED
   - Sektions-Chunking statt Kürzung (REQ-k4-04) | T002679 | 2026-08-09 | ADDED
+In-flight:
+  - Versioned eval set is wired into CI | T900448 | active | ADDED
+  - Baseline artifact is recorded | T900448 | active | ADDED
+  - Node/Python index parity | T900448 | active | ADDED
 
 ### brain-k5-openspec
 Reqs: 4 · Scenarios: 4 · Lines: 41

@@ -19,6 +19,11 @@ status: active
 # Page
 
 Live `docs/ok.md` und tot `docs/gone.md` sowie kahl scripts/missing.sh.
+State-Key `docs/ok.md#1` löst auf die Datei auf.
+Schema `docs/*` und `openspec/changes/<slug>/` sind keine Befunde.
+Kommando `docs/ok.md --flag` löst auf die Datei auf.
+Prosa tools/list und k3d/k3s sind keine Befunde.
+MCP-Methode `tools/call` ist kein Pfad.
 URL https://example.com/docs/gone.md ist kein Befund.
 Siehe [[docs-gone]] und T123456 ohne Flag.
 

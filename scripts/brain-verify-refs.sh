@@ -86,9 +86,22 @@ fi
 
 clean_ref() {
   local ref="$1"
-  # Zeilenanker (path:12, path#L12), Leerzeichen und Satzzeichen weg.
-  ref="$(echo "$ref" | sed -E 's/#[Ll][0-9]+$//; s/:[0-9]+$//; s/^[[:space:]]+//; s/[[:space:]]+$//; s/[.,;:!?)]+$//; s/^[(]+//')"
+  # State-Key-Suffixe (path#2, path#moc), Zeilenanker (path:12, path#L12),
+  # Kommando-Argumente (kein Repo-Pfad enthält Leerzeichen), Satzzeichen weg.
+  ref="$(echo "$ref" | sed -E 's/#(moc|[0-9]+)$//; s/#[Ll][0-9]+$//; s/:[0-9]+$//; s/ .*//; s/^[[:space:]]+//; s/[[:space:]]+$//; s/[.,;:!?)]+$//; s/^[(]+//')"
   printf '%s' "$ref"
+}
+
+is_schematic() {
+  # Glob-/Platzhalter-Syntax (docs/*, <slug>, a|b, $VAR): schematisch, nie dangling.
+  # (Zeichen einzeln quotiert — Backslash-Quoting wäre hier literal, T900403.)
+  local ref="$1"
+  [[ "$ref" == *"<"* || "$ref" == *">"* || "$ref" == *"*"* || "$ref" == *"?"* ]] && return 0
+  [[ "$ref" == *"["* || "$ref" == *"]"* || "$ref" == *"{"* || "$ref" == *"}"* ]] && return 0
+  [[ "$ref" == *"|"* || "$ref" == *"$"* ]] && return 0
+  # MCP-Methoden-Vokabular (tools/list, tools/call): Protokoll, keine Pfade.
+  [[ "$ref" =~ ^tools/[A-Za-z0-9_-]+$ ]] && return 0
+  return 1
 }
 
 declare -A SEEN_TICKETS=()
@@ -115,6 +128,7 @@ for page in "${PAGES[@]}"; do
         [ -n "$raw" ] || continue
         ref="$(clean_ref "${raw:1:-1}")"
         [ -n "$ref" ] || continue
+        is_schematic "$ref" && continue
         REFS_N=$((REFS_N + 1))
         [ -e "$ROOT/$ref" ] || {
           echo "DANGLING-REF: wiki/$slug.md:$lineno: $ref"
@@ -127,6 +141,11 @@ for page in "${PAGES[@]}"; do
           [ -n "$raw" ] || continue
           ref="$(clean_ref "$raw")"
           [ -n "$ref" ] || continue
+          is_schematic "$ref" && continue
+          # Kahl (ohne Backticks) sind extensionslose Nicht-Verzeichnisse fast
+          # immer Prosa (tools/list, k3d/k3s) — nur mit Extension oder
+          # Trailing-Slash prüfen. Backticked gilt als bewusstes Zitat.
+          if [[ "$ref" != *"."* && "$ref" != */ ]]; then continue; fi
           REFS_N=$((REFS_N + 1))
           [ -e "$ROOT/$ref" ] || {
             echo "DANGLING-REF: wiki/$slug.md:$lineno: $ref"

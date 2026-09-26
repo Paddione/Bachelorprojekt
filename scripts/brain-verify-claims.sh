@@ -44,7 +44,10 @@ case "$MAX_PAIRS" in ''|*[!0-9]*) echo "error: --max-pairs must be a number" >&2
 LM_URL="${LM_STUDIO_URL:-http://127.0.0.1:1919}"
 LM_MODEL="${LM_MODEL:-Muse-Glimmer-30B}"
 LM_TIMEOUT="${LM_TIMEOUT:-180}"
-LM_MAX_TOKENS="${LM_MAX_TOKENS:-1024}"
+# 2048, nicht 1024: Das Modell verbraucht auch mit abgeschaltetem Thinking noch
+# ~1k Token Reasoning; bei 1024 verhungert der Content mit finish_reason=length
+# (T900403, live beobachtet: 3924/4591 Reasoning-Zeichen, Content leer).
+LM_MAX_TOKENS="${LM_MAX_TOKENS:-2048}"
 LM_API_KEY="${LM_API_KEY:-}"
 
 if ! curl -sf -m 10 "$LM_URL/health" >/dev/null 2>&1; then
@@ -104,6 +107,7 @@ PROMPT_TAIL='---
 Regeln:
 - Liste NUR Tatsachenbehauptungen der Zusammenfassung, die der Quelle WIDERSPRECHEN oder dort KEINE Stütze haben.
 - Stil, Kürzung, Umformulierung und Weglassen sind KEINE Befunde.
+- Wikilinks im Format [[slug]] und reine Navigationshinweise ("siehe auch ...") sind KEINE Befunde.
 - Jede Zeile: WIDERSPRUCH: <Zitat Zusammenfassung> || <Zitat Quelle>
 - Keine Befunde? Antworte mit exakt: OK'
 

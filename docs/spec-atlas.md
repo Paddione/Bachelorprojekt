@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2439 · Scenarios: 5409
+Specs: 130 · Requirements: 2440 · Scenarios: 5411
 
 ## factory-pipeline
 
@@ -202,17 +202,13 @@ Last touches:
 Reqs: 8 · Scenarios: 13 · Lines: 169
 
 ### agentic-tooling-quality-goals
-Reqs: 19 · Scenarios: 29 · Lines: 379
+Reqs: 20 · Scenarios: 31 · Lines: 402
 Last touches:
+  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900479 | 2026-09-26 | MODIFIED
+  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900479 | 2026-09-26 | MODIFIED
+  - Orphan MCP server sources are removed or registered | T900479 | 2026-09-26 | ADDED
   - Indexierung läuft single-flight über alle Instanzen | T016447 | 2026-09-17 | ADDED
   - Stampede-Runbook dokumentiert Akut-Mitigation und Prävention | T016447 | 2026-09-17 | ADDED
-  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900080 | 2026-09-11 | MODIFIED
-  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900080 | 2026-09-11 | MODIFIED
-  - G-AGENTIC01 Subagent Tool-Scope Baseline Tracked | T002494 | 2026-08-02 | MODIFIED
-In-flight:
-  - G-AGENTIC11 CLAUDE.md MCP Server List Accuracy Gate | T900479 | active | MODIFIED
-  - G-AGENTIC13 No Dead MCP Server References In Skills Gate | T900479 | active | MODIFIED
-  - Orphan MCP server sources are removed or registered | T900479 | active | ADDED
 
 ### agentic-trends-radar
 Reqs: 6 · Scenarios: 7 · Lines: 112

@@ -2,7 +2,7 @@
 title: "mcp-hygiene — Implementation Plan"
 ticket_id: T900479
 domains: [mcp, repo-hygiene]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

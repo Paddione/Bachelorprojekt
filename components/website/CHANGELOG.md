@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.374.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.373.0...website-v1.374.0) (2026-09-26)
+
+
+### Features
+
+* **ci:** scheduled orphan dispatch without database [T900503] ([#5983](https://github.com/Paddione/Bachelorprojekt/issues/5983)) ([c7c24e2](https://github.com/Paddione/Bachelorprojekt/commit/c7c24e2ffcc5684b9b1bc7a062e9438f6352e81c))
+
 ## [1.373.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.372.0...website-v1.373.0) (2026-09-26)
 
 

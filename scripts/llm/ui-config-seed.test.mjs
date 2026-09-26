@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { generateUiConfigSeed } from './ui-config-seed.mjs';
+import { buildSystemMessage, generateUiConfigSeed } from './ui-config-seed.mjs';
+
+it('does not instruct the browser to use a server without a browser endpoint', () => {
+  const message = buildSystemMessage({}, [{ name: 'k8s' }]);
+  expect(message).not.toContain('codebase-memory-mcp');
+});
 
 describe('generateUiConfigSeed', () => {
   let tmpDir;

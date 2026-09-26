@@ -223,7 +223,6 @@ clients:
 
   mcp-task-runner:
     transport: stdio
-    browser_endpoint: http://127.0.0.1:18235/mcp/mcp-task-runner
     command: mcp-task-runner
     args:
       - --otel-endpoint
@@ -231,20 +230,9 @@ clients:
       - --taskfile
       - /home/patrick/Bachelorprojekt/Taskfile.yml
     # Absoluter taskfile-Pfad: nicht portabel, wird durch MCPB-Bundle ersetzt (T002301)
-    # T900191: die Bridge laeuft als Teil des llm-proxy-Prozesses, der jetzt im
-    # devmesh-Pod `llm-services` steckt (mcp-node-Image). Die command/args oben
-    # sind absolute Host-Pfade (/home/patrick/Bachelorprojekt/...) und referenzieren
-    # damit ausserhalb des Containers liegende Dateien — Best-effort-Verhalten,
-    # kein Absturz: initBridge() faengt den spawn-Fehler ab, dieser eine
-    # Server bleibt "unavailable", der Proxy selbst bleibt gesund. Vorbestehend
-    # seit T900107 (Proxy zog vom host-nativen WSL in den Container); der
-    # devmesh-Umzug aendert daran nichts. Fuer diesen Server ausschliesslich
-    # den harness-Eintrag (lokaler stdio-Prozess je Maschine) nutzen, nicht die
-    # Bridge/browser_endpoint.
-    bridge:
-      url: http://127.0.0.1:18235/mcp/mcp-task-runner
-      bind: 127.0.0.1:18235
-      auth: null
+    # Der Browser-Bridge-Pfad wurde entfernt: llm-proxy laeuft im Container,
+    # der Task-Runner braucht dagegen den lokalen Checkout. Harnesses starten
+    # ihn weiterhin als lokalen stdio-Prozess.
     harness:
       claude_code:
         # T900039: /usr/local/bin/mcp-task-runner ist nur ein Bash-Wrapper um
@@ -273,25 +261,13 @@ clients:
   # nativen Binary, weil npx den llama-Modellstart verzoegern wuerde.
   codebase-memory-mcp:
     transport: stdio
-    browser_endpoint: http://127.0.0.1:18235/mcp/codebase-memory-mcp
     command: npx
     args:
       - -y
       - codebase-memory-mcp@0.10.8
-    # T900191: die Bridge laeuft als Teil des llm-proxy-Prozesses, der jetzt im
-    # devmesh-Pod `llm-services` steckt (mcp-node-Image). Die command/args oben
-    # sind absolute Host-Pfade (/home/patrick/Bachelorprojekt/...) und referenzieren
-    # damit ausserhalb des Containers liegende Dateien — Best-effort-Verhalten,
-    # kein Absturz: initBridge() faengt den spawn-Fehler ab, dieser eine
-    # Server bleibt "unavailable", der Proxy selbst bleibt gesund. Vorbestehend
-    # seit T900107 (Proxy zog vom host-nativen WSL in den Container); der
-    # devmesh-Umzug aendert daran nichts. Fuer diesen Server ausschliesslich
-    # den harness-Eintrag (lokaler stdio-Prozess je Maschine) nutzen, nicht die
-    # Bridge/browser_endpoint.
-    bridge:
-      url: http://127.0.0.1:18235/mcp/codebase-memory-mcp
-      bind: 127.0.0.1:18235
-      auth: null
+    # Der Browser-Bridge-Pfad wurde entfernt: die Container-Konfiguration
+    # referenzierte ein Host-Binary, das dort nicht existiert. Die lokalen
+    # stdio-Harnesses bleiben erhalten.
     harness:
       claude_code:
         command: npx
@@ -321,20 +297,6 @@ clients:
     args:
       - -y
       - "@playwright/mcp@latest"
-    # T900191: die Bridge laeuft als Teil des llm-proxy-Prozesses, der jetzt im
-    # devmesh-Pod `llm-services` steckt (mcp-node-Image). Die command/args oben
-    # sind absolute Host-Pfade (/home/patrick/Bachelorprojekt/...) und referenzieren
-    # damit ausserhalb des Containers liegende Dateien — Best-effort-Verhalten,
-    # kein Absturz: initBridge() faengt den spawn-Fehler ab, dieser eine
-    # Server bleibt "unavailable", der Proxy selbst bleibt gesund. Vorbestehend
-    # seit T900107 (Proxy zog vom host-nativen WSL in den Container); der
-    # devmesh-Umzug aendert daran nichts. Fuer diesen Server ausschliesslich
-    # den harness-Eintrag (lokaler stdio-Prozess je Maschine) nutzen, nicht die
-    # Bridge/browser_endpoint.
-    bridge:
-      url: http://127.0.0.1:18235/mcp/playwright
-      bind: 127.0.0.1:18235
-      auth: null
     harness:
       claude_code:
         command: npx

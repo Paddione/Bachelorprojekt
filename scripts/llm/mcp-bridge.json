@@ -8,22 +8,6 @@
       "enabled": true,
       "bearerTokenEnv": null
     },
-    "mcp-task-runner": {
-      "command": "mcp-task-runner",
-      "args": ["--otel-endpoint", "localhost:4317", "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"],
-      "env": {},
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "enabled": true,
-      "bearerTokenEnv": null
-    },
-    "codebase-memory-mcp": {
-      "command": "/home/patrick/.local/bin/codebase-memory-mcp",
-      "args": [],
-      "env": {},
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "enabled": true,
-      "bearerTokenEnv": null
-    },
     "github-mcp": {
       "command": "/home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh",
       "args": [],

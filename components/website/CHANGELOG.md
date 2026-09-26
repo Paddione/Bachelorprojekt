@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.378.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.377.0...website-v1.378.0) (2026-09-26)
+
+
+### Features
+
+* **scripts:** route Qwen3-VL training separately [T900513] ([#6007](https://github.com/Paddione/Bachelorprojekt/issues/6007)) ([a4a9901](https://github.com/Paddione/Bachelorprojekt/commit/a4a990138691a898e27ba44eed673d824cbf3220))
+
 ## [1.377.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.376.0...website-v1.377.0) (2026-09-26)
 
 

@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-95 Services · 2018 Abhängigkeitskanten · 297 API-Endpoints
+94 Services · 1933 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -88,7 +88,6 @@ flowchart LR
   videovault["videovault"]:::default
   whiteboard["whiteboard"]:::default
   coredns["coredns"]:::default
-  oauth2_proxy_brain["oauth2-proxy-brain"]:::default
   tls_sync["tls-sync"]:::default
   talk_transcriber["talk-transcriber"]:::default
   whisper["whisper"]:::default
@@ -214,7 +213,6 @@ flowchart LR
   traefik -->|"ingress"| apiinternal
   traefik -->|"ingress"| WEBSITE_PRIMARY_SERVICE
   traefik -->|"ingress"| old_webspace
-  traefik -->|"ingress"| oauth2_proxy_brain
   traefik -->|"ingress"| bachelorprojekt
   traefik -->|"ingress"| sessions_server
   coturn -->|"selector"| coturn
@@ -328,8 +326,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| admin_actions_cleanup
-  admin_actions_cleanup -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| ddns_updater
@@ -409,8 +405,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| admin_actions_prune
-  admin_actions_prune -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| ddns_updater
@@ -489,8 +483,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| sessions_purge
-  sessions_purge -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| ddns_updater
@@ -564,8 +556,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| db_backup
-  db_backup -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| ddns_updater
@@ -639,8 +629,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| db_restore_verify
-  db_restore_verify -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| db_restore_verify
   db_restore_verify -->|"secret:workspace-s…"| ddns_updater
@@ -707,8 +695,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| brett
-  brett -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| ddns_updater
@@ -779,8 +765,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| billing_dunning_detection
-  billing_dunning_detection -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| ddns_updater
@@ -849,8 +833,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| monthly_billing
-  monthly_billing -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| ddns_updater
@@ -917,8 +899,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| scheduled_publish
-  scheduled_publish -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| ddns_updater
@@ -983,8 +963,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
-  oauth2_proxy_brainstorm -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_brainstorm
   oauth2_proxy_brainstorm -->|"secret:workspace-s…"| ddns_updater
@@ -1047,8 +1025,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_dev
-  oauth2_proxy_dev -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| ddns_updater
@@ -1109,8 +1085,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_session_hub
-  oauth2_proxy_session_hub -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_session_hub
   oauth2_proxy_session_hub -->|"secret:workspace-s…"| ddns_updater
@@ -1169,8 +1143,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| error_log_retention
-  error_log_retention -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| ddns_updater
@@ -1226,8 +1198,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| knowledge_ingest_prs
-  knowledge_ingest_prs -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| ddns_updater
@@ -1281,8 +1251,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| ddns_updater
@@ -1334,8 +1302,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| knowledge_reindex_all
-  knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| ddns_updater
@@ -1382,8 +1348,6 @@ flowchart LR
   nextcloud -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| whiteboard
-  nextcloud -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| talk_transcriber
   nextcloud -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| nextcloud
@@ -1431,8 +1395,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| notify_unread
-  notify_unread -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| ddns_updater
@@ -1479,8 +1441,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_brett -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_brett
   oauth2_proxy_brett -->|"secret:workspace-s…"| ddns_updater
@@ -1525,8 +1485,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_comfy
-  oauth2_proxy_comfy -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_comfy
   oauth2_proxy_comfy -->|"secret:workspace-s…"| ddns_updater
@@ -1569,8 +1527,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_docs
   oauth2_proxy_docs -->|"secret:workspace-s…"| ddns_updater
@@ -1611,8 +1567,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_downloads
-  oauth2_proxy_downloads -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_downloads
   oauth2_proxy_downloads -->|"secret:workspace-s…"| ddns_updater
@@ -1651,8 +1605,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_mailpit
-  oauth2_proxy_mailpit -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_mailpit
   oauth2_proxy_mailpit -->|"secret:workspace-s…"| ddns_updater
@@ -1689,8 +1641,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
-  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
   oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| ddns_updater
@@ -1725,8 +1675,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
-  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
   oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| ddns_updater
@@ -1759,8 +1707,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_studio
-  oauth2_proxy_studio -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_studio
   oauth2_proxy_studio -->|"secret:workspace-s…"| ddns_updater
@@ -1791,8 +1737,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_terminal
-  oauth2_proxy_terminal -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_terminal
   oauth2_proxy_terminal -->|"secret:workspace-s…"| ddns_updater
@@ -1821,8 +1765,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_traefik
-  oauth2_proxy_traefik -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_traefik
   oauth2_proxy_traefik -->|"secret:workspace-s…"| ddns_updater
@@ -1849,8 +1791,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_videovault
-  oauth2_proxy_videovault -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_videovault
   oauth2_proxy_videovault -->|"secret:workspace-s…"| ddns_updater
@@ -1874,8 +1814,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| pocket_id
-  pocket_id -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| pocket_id
   pocket_id -->|"secret:workspace-s…"| ddns_updater
@@ -1898,8 +1836,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| oauth2_proxy_recovery
-  oauth2_proxy_recovery -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_recovery
   oauth2_proxy_recovery -->|"secret:workspace-s…"| ddns_updater
@@ -1919,8 +1855,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| sdlc_console
   sdlc_console -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| sdlc_console
-  sdlc_console -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| sdlc_console
   sdlc_console -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| sdlc_console
   sdlc_console -->|"secret:workspace-s…"| ddns_updater
@@ -1935,8 +1869,6 @@ flowchart LR
   talk_recording -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| videovault
   whiteboard -->|"secret:workspace-s…"| shared_db
-  shared_db -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| shared_db
   shared_db -->|"secret:workspace-s…"| talk_transcriber
   shared_db -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| shared_db
@@ -1951,8 +1883,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| studio_server
-  studio_server -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| studio_server
   studio_server -->|"secret:workspace-s…"| ddns_updater
@@ -1966,8 +1896,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| spreed_signaling
-  spreed_signaling -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| spreed_signaling
   spreed_signaling -->|"secret:workspace-s…"| ddns_updater
@@ -1980,8 +1908,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| talk_recording
   talk_recording -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| talk_recording
-  talk_recording -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| talk_recording
   talk_recording -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| talk_recording
   talk_recording -->|"secret:workspace-s…"| ddns_updater
@@ -1992,8 +1918,6 @@ flowchart LR
   videovault -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| vaultwarden
-  vaultwarden -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| vaultwarden
   vaultwarden -->|"secret:workspace-s…"| ddns_updater
@@ -2002,28 +1926,18 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| vaultwarden
   videovault -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| videovault
-  videovault -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| videovault
   videovault -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| videovault
-  whiteboard -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| whiteboard
   whiteboard -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| whiteboard
-  oauth2_proxy_brain -->|"secret:workspace-s…"| talk_transcriber
-  talk_transcriber -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| ddns_updater
-  ddns_updater -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| dev_db_refresh
-  dev_db_refresh -->|"secret:workspace-s…"| oauth2_proxy_brain
   talk_transcriber -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| talk_transcriber
   talk_transcriber -->|"secret:workspace-s…"| dev_db_refresh
@@ -2124,7 +2038,6 @@ flowchart TB
     vaultwarden["vaultwarden"]
     videovault["videovault"]
     whiteboard["whiteboard"]
-    oauth2_proxy_brain["oauth2-proxy-brain"]
     talk_transcriber["talk-transcriber"]
     whisper["whisper"]
     ddns_updater(["ddns-updater"])

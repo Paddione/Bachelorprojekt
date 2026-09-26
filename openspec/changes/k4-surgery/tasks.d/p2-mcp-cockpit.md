@@ -1,7 +1,7 @@
 ---
 title: "k4-surgery/p2-mcp-cockpit — Partial Plan"
 ticket_id: T900451
-domains: [brain, cleanup]
+domains: [scripts, k3d]
 status: active
 ---
 

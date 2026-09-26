@@ -2304,12 +2304,6 @@
     "kind": "shell"
   },
   {
-    "id": "brain-quartz-deploy",
-    "file": "tests/spec/brain-quartz-deploy.bats",
-    "category": "brain-quartz-deploy",
-    "kind": "shell"
-  },
-  {
     "id": "branch-reaper-netzausfall",
     "file": "tests/spec/branch-reaper-netzausfall.bats",
     "category": "branch-reaper-netzausfall",
@@ -4982,12 +4976,6 @@
   {
     "id": "sdlc-cockpit/api-inventory-drift",
     "file": "tests/spec/sdlc-cockpit/api-inventory-drift.bats",
-    "category": "sdlc-cockpit",
-    "kind": "shell"
-  },
-  {
-    "id": "sdlc-cockpit/brain-ingress-policy",
-    "file": "tests/spec/sdlc-cockpit/brain-ingress-policy.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

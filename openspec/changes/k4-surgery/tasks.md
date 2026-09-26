@@ -1,7 +1,7 @@
 ---
 title: K4-Surgery — Spiegel entfernen
 ticket_id: T900451
-domains: [brain, cleanup]
+domains: [scripts, k3d]
 status: active
 ---
 

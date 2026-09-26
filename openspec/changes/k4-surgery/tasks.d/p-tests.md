@@ -1,7 +1,7 @@
 ---
 title: "k4-surgery/p-tests — Partial Plan"
 ticket_id: T900451
-domains: [brain, tests]
+domains: [tests, scripts]
 status: active
 ---
 

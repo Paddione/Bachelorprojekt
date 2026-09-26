@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.366.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.365.0...website-v1.366.0) (2026-09-26)
+
+
+### Features
+
+* **agents:** nightly vendor-sync for external skills and plugins ([#5928](https://github.com/Paddione/Bachelorprojekt/issues/5928)) ([321a897](https://github.com/Paddione/Bachelorprojekt/commit/321a89733d98f1ac993dd6c257dcded74906128b))
+
 ## [1.365.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.4...website-v1.365.0) (2026-09-26)
 
 

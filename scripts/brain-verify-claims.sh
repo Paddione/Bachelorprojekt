@@ -108,6 +108,7 @@ Regeln:
 - Liste NUR Tatsachenbehauptungen der Zusammenfassung, die der Quelle WIDERSPRECHEN oder dort KEINE Stütze haben.
 - Stil, Kürzung, Umformulierung und Weglassen sind KEINE Befunde.
 - Wikilinks im Format [[slug]] und reine Navigationshinweise ("siehe auch ...") sind KEINE Befunde.
+- Übereinstimmende Paare NIEMALS auflisten: sagt die Zusammenfassung "Nie SELECT * auf X (Performance)" und die Quelle "never SELECT * on X", ist das KEIN Befund — keine Zeile ausgeben, auch nicht zur Dokumentation.
 - Jede Zeile: WIDERSPRUCH: <Zitat Zusammenfassung> || <Zitat Quelle>
 - Keine Befunde? Antworte mit exakt: OK'
 

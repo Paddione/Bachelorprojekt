@@ -294,7 +294,7 @@ The system SHALL use `${WORKSPACE_NAMESPACE:-workspace}` (never the hardcoded st
 
 ### Requirement: Explicit ENV= for All Env-Sensitive Deploys
 
-The system SHALL require an explicit `ENV=` parameter for all environment-sensitive tasks (`workspace:deploy`, `workspace:post-setup`, `workspace:talk-setup`, `docs:deploy`, etc.); tasks SHALL default to `ENV=dev` when unset, and the kubectl-context mismatch check SHALL only run when `ENV != dev`, so that a missing `ENV=` with the wrong active context silently targets whatever cluster is current.
+The system SHALL require an explicit `ENV=` parameter for all environment-sensitive tasks (`workspace:deploy`, `workspace:post-setup`, `workspace:talk-setup`, etc.); tasks SHALL default to `ENV=dev` when unset, and the kubectl-context mismatch check SHALL only run when `ENV != dev`, so that a missing `ENV=` with the wrong active context silently targets whatever cluster is current.
 
 #### Scenario: Deploy ohne ENV=-Angabe
 
@@ -309,8 +309,6 @@ The system SHALL require an explicit `ENV=` parameter for all environment-sensit
 - **WHEN** `task workspace:post-setup ENV=mentolder` ausgeführt wird
 - **THEN** wird `ENV=mentolder` (Alias `fleet-mentolder`) zum fleet-Kontext aufgelöst und die Konfiguration in `workspace` geschrieben
 - **AND** das Weglassen von `ENV=mentolder` hätte den Dev-k3d-Cluster verändert, ohne Fehlermeldung
-
----
 
 ### Requirement: Cross-Cutting Changes Apply to Both Brand Namespaces
 
@@ -460,3 +458,5 @@ The system SHALL complete all steps of System-Test 3 (Kommunikation) — coverin
 - **THEN** werden alle Schritte erfolgreich ausgeführt und das Systemtest-Formular abgesendet
 
 <!-- merged from change delta nextcloud-integration.md (0e31d98f8905) -->
+
+<!-- merged from change delta nextcloud-integration.md (1c8534f89338) -->

@@ -203,7 +203,7 @@ Without this list the split exists only in prose, so no gate can scope itself to
 skills without hardcoding a name list that drifts independently.
 
 `OVERVIEW.md` MUST NOT name a skill directory that does not exist, and entries MUST link to the
-source `SKILL.md` rather than to a rendered artifact under `k3d/docs-content-built/`, which does
+source `SKILL.md` rather than to a rendered artifact, which does
 not survive a rename and is not readable from a repository checkout.
 
 #### Scenario: a vendor skill is missing from the third-party section
@@ -2381,3 +2381,5 @@ Rationale: since T900046 `scripts/worktree-create.sh` locks every worktree it cr
 - **THEN** it reports the worktree as removed and exits zero
 
 <!-- merged from change delta agent-skills.md (48a88517486f) -->
+
+<!-- merged from change delta agent-skills.md (1afa7a7424ab) -->

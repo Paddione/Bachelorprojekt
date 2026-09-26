@@ -44,7 +44,7 @@ under test, not noise.
 ### Requirement: Post-merge deploy does not build container images
 
 `scripts/devflow-post-merge-deploy.sh` SHALL NOT invoke tasks that build and push container
-images (`feature:website`, `feature:brett`, `docs:deploy`). Production images are built by
+images (`feature:website`, `feature:brett`). Production images are built by
 their GitHub Actions workflows and rolled out pull-based via Flux; a local build requires a
 registry login the agent does not hold. When such a trigger path is detected, the script
 SHALL name the responsible CI workflow instead.
@@ -132,3 +132,5 @@ the ticket ID.
 - **THEN** it returns the feature commit SHA
 
 <!-- merged from change delta devflow-selection-archive-hardening.md (03f34b6c8240) -->
+
+<!-- merged from change delta devflow-selection-archive-hardening.md (dc43daddfe2d) -->

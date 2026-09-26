@@ -1,42 +1,25 @@
 ---
-title: "k3-auto-refresh — Implementation Plan"
+title: K3-Auto-Refresh periodisch
 ticket_id: T900450
-domains: [plan-authoring]
+domains: [brain, mcp]
 status: active
-file_locks: []
-shared_changes: false
-batch_id: null
-parent_feature: null
-depends_on_plans: []
 ---
 
 # k3-auto-refresh — Implementation Plan
 
-_Ticket: T900450_
-
 ## File Structure
 
-```
-<author fills this in — list of new/changed files>
-```
+- `scripts/mcp/cbm-single-flight.sh` (p1, neu)
+- `docs/runbooks/cbm-index-stampede.md` (p1, neu)
+- `Taskfile.yml` (p1, nur codebase:index/refresh-Targets)
 
-## Verify (RED → GREEN)
+## Partials
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-singleflight.md | impl | scripts/mcp/cbm-single-flight.sh, docs/runbooks/cbm-index-stampede.md, Taskfile.yml | |
 
-```bash
-# Example: run the BATS test the author will add in their first task
-# (eigene Datei unter tests/spec/<spec-slug>/<kurz-slug>.bats, T002416)
-tests/unit/lib/bats-core/bin/bats tests/spec/brain-k3-code-graph/
-# expected: FAIL (red — the fix is not yet implemented)
-```
-
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
-
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+## Verify (final, wächst mit den Partials)
 
 ```bash
 task test:changed

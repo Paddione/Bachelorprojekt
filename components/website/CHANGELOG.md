@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.375.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.374.0...website-v1.375.0) (2026-09-26)
+
+
+### Features
+
+* **scripts:** plan-runner for OpenSpec partials on local models [T900504] ([#5988](https://github.com/Paddione/Bachelorprojekt/issues/5988)) ([5f7d9b6](https://github.com/Paddione/Bachelorprojekt/commit/5f7d9b6f5cc96e1fab3a33caaacbe9ff0f60f02b))
+
 ## [1.374.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.373.0...website-v1.374.0) (2026-09-26)
 
 

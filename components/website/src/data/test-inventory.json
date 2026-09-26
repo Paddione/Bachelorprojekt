@@ -4776,6 +4776,12 @@
     "kind": "shell"
   },
   {
+    "id": "plan-partials-embedding/k1-embeds",
+    "file": "tests/spec/plan-partials-embedding/k1-embeds.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "plan-partials-embedding/manifest-parser",
     "file": "tests/spec/plan-partials-embedding/manifest-parser.bats",
     "category": "plan-partials-embedding",

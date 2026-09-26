@@ -729,6 +729,11 @@ Last touches:
   - Embed-Local-Wrapper retried transiente Backend-Fehler | T004608 | 2026-08-14 | ADDED
   - Completeness-Gate zählt lokale Pläne per Slug und wertet Toleranz | T002877 | 2026-08-11 | ADDED
   - Stale Collection-Einträge verfälschen die Coverage-Zählung nicht | T002877 | 2026-08-11 | ADDED
+In-flight:
+  - Merge-triggered in-cluster embeds | T900449 | active | ADDED
+  - SSOT specs and docs are embedded | T900449 | active | ADDED
+  - Unified prose chunking with migration | T900449 | active | ADDED
+  - `chunkProposal()` teilt übergroße Proposals per Token-Budget | T900449 | active | MODIFIED
 
 ### openspec-pgvector
 Reqs: 11 · Scenarios: 15 · Lines: 189

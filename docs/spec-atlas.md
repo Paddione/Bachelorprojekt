@@ -45,6 +45,7 @@ Last touches:
 In-flight:
   - Orphaned changes are archived by a CI executor without discretionary flags | T900338 | active | ADDED
   - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | active | ADDED
+  - A scheduled CI job dispatches archiving of orphaned OpenSpec changes | T900503 | active | ADDED
 
 ### software-factory
 Reqs: 207 · Scenarios: 628 · Lines: 5729

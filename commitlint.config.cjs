@@ -48,7 +48,7 @@ const SCOPE_ALIAS_GROUPS = {
   factory: ['dev-flow', 'tickets', 'factory-floor', 'auto', 'hooks'],
   agents: ['agent-guide', 'opencode', 'prompt-library', 'knowledge-ingest',
     'openclaw'],
-  ci: ['quality', 'goals', 'cqg', 'docs-gen'],
+  ci: ['quality', 'goals', 'cqg'],
   mcp: ['mcp-task-runner', 'mcp-gateway'],
 };
 

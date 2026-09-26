@@ -166,7 +166,6 @@ jobs:
           SMTP_FROM: mentolder@mailbox.org
           AUTH_EXTERNAL_URL: https://auth.mentolder.de
           NEXTCLOUD_EXTERNAL_URL: https://files.mentolder.de
-          DOCS_URL: https://docs.mentolder.de
           VAULT_EXTERNAL_URL: https://vault.mentolder.de
           WHITEBOARD_EXTERNAL_URL: https://files.mentolder.de/apps/files
           TRAEFIK_EXTERNAL_URL: https://traefik.mentolder.de
@@ -328,7 +327,6 @@ jobs:
           SMTP_FROM: korczewski@mailbox.org
           AUTH_EXTERNAL_URL: https://auth.korczewski.de
           NEXTCLOUD_EXTERNAL_URL: https://files.korczewski.de
-          DOCS_URL: https://docs.korczewski.de
           VAULT_EXTERNAL_URL: https://vault.korczewski.de
           WHITEBOARD_EXTERNAL_URL: https://files.korczewski.de/apps/files
           TRAEFIK_EXTERNAL_URL: https://traefik.korczewski.de

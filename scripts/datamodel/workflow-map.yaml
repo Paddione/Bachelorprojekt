@@ -2,9 +2,8 @@
 #
 # Consumed by scripts/datamodel/build_datamodel.py via `task datamodel:build`:
 #   build_datamodel.py --map <this file> --out /tmp/datamodel-workflow.md
-#   → node scripts/build-docs.mjs --rebuild-page datamodel-workflow …
-#   → rendered HTML lands in docs/legacy-html/datamodel-workflow.html (committed,
-#     served by the docs deployment). Regenerate after schema or step changes.
+#   Contract: /tmp/datamodel-workflow.md is the deliverable — regenerate after
+#   schema or step changes.
 #
 # Schema:
 #   families:      ordered swimlanes for the lifecycle rendering (left → right)

@@ -1,0 +1,899 @@
+{
+  "meta": {
+    "slug": "autodocs-removal",
+    "ticket_id": "T900452",
+    "generated_from": "main@876441bdc",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".githooks/post-merge",
+      "language": "text",
+      "loc": 51,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".githooks/pre-commit",
+      "language": "text",
+      "loc": 259,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-docs.yml",
+      "language": "config",
+      "loc": 143,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/build-website.yml",
+      "language": "config",
+      "loc": 453,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/codeql.yml",
+      "language": "config",
+      "loc": 106,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".gitignore",
+      "language": "text",
+      "loc": 259,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 193,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5485,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "commitlint.config.cjs",
+      "language": "javascript",
+      "loc": 116,
+      "s1_limit": 400,
+      "s1_baseline": null,
+      "s1_budget": 284
+    },
+    {
+      "path": "components/website/src/env.d.ts",
+      "language": "javascript",
+      "loc": 85,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 815
+    },
+    {
+      "path": "docs/DOCS-DESIGN-STANDARDS.md",
+      "language": "markdown",
+      "loc": 26,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/20-werkzeuge.md",
+      "language": "markdown",
+      "loc": 331,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/tools.yaml",
+      "language": "config",
+      "loc": 240,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/bereitstellungsdetails.md",
+      "language": "markdown",
+      "loc": 292,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/brain/k4-brain-wiki.md",
+      "language": "markdown",
+      "loc": 112,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/systemtest-fragebogen.md",
+      "language": "markdown",
+      "loc": 1415,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/dev.yaml",
+      "language": "config",
+      "loc": 65,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/fleet-korczewski.yaml",
+      "language": "config",
+      "loc": 122,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/fleet-mentolder.yaml",
+      "language": "config",
+      "loc": 124,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/korczewski.yaml",
+      "language": "config",
+      "loc": 111,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/mentolder.yaml",
+      "language": "config",
+      "loc": 136,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1726,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/staging.yaml",
+      "language": "config",
+      "loc": 106,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/configmap-domains.yaml",
+      "language": "config",
+      "loc": 49,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/docs-content-built/index.html",
+      "language": "text",
+      "loc": 150,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/docs.yaml",
+      "language": "config",
+      "loc": 66,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/ingress.yaml",
+      "language": "config",
+      "loc": 187,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/kustomization.yaml",
+      "language": "config",
+      "loc": 143,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/oauth2-proxy-docs.yaml",
+      "language": "config",
+      "loc": 142,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/vaultwarden-seed-job.yaml",
+      "language": "config",
+      "loc": 131,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/website.yaml",
+      "language": "config",
+      "loc": 853,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "package.json",
+      "language": "config",
+      "loc": 51,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/build-docs.mjs",
+      "language": "javascript",
+      "loc": 321,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 479
+    },
+    {
+      "path": "scripts/build-graph.mjs",
+      "language": "javascript",
+      "loc": 331,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 469
+    },
+    {
+      "path": "scripts/code-quality/scan.test.mjs",
+      "language": "javascript",
+      "loc": 39,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 761
+    },
+    {
+      "path": "scripts/datamodel/workflow-map.yaml",
+      "language": "config",
+      "loc": 336,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow-post-merge-deploy.sh",
+      "language": "bash",
+      "loc": 134,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 666
+    },
+    {
+      "path": "scripts/docs-gen/systembrett-html.mjs",
+      "language": "javascript",
+      "loc": 221,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 579
+    },
+    {
+      "path": "scripts/docs.Dockerfile",
+      "language": "text",
+      "loc": 7,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/feature-promote.sh",
+      "language": "bash",
+      "loc": 133,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 667
+    },
+    {
+      "path": "scripts/index-repo.ts",
+      "language": "javascript",
+      "loc": 447,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 453
+    },
+    {
+      "path": "scripts/lib/promote-phases.sh",
+      "language": "bash",
+      "loc": 208,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 592
+    },
+    {
+      "path": "scripts/systembrett-generate.mjs",
+      "language": "javascript",
+      "loc": 263,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 537
+    },
+    {
+      "path": "scripts/systembrett-html.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/worktree-create.sh",
+      "language": "bash",
+      "loc": 620,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 180
+    },
+    {
+      "path": "tests/e2e/playwright.config.ts",
+      "language": "javascript",
+      "loc": 306,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 594
+    },
+    {
+      "path": "tests/e2e/specs/fa-13-docs.spec.ts",
+      "language": "javascript",
+      "loc": 61,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 839
+    },
+    {
+      "path": "tests/spec/autodocs-removal-guard.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/docs-content-guards.bats",
+      "language": "bash",
+      "loc": 102,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/devflow-selection-archive-hardening.bats",
+      "language": "bash",
+      "loc": 187,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-dev-mesh/no-k3d-context.bats",
+      "language": "bash",
+      "loc": 42,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/pre-commit-freshness.bats",
+      "language": "bash",
+      "loc": 279,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/.coverage-allowlist",
+      "language": "text",
+      "loc": 62,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/unit/test-tasks-node-deps.bats",
+      "language": "bash",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": ".githooks/pre-commit:7:resolve_guard() {",
+      "kind": "function",
+      "file": ".githooks/pre-commit",
+      "signature": "7:resolve_guard() {(...)",
+      "type_text": "7:resolve_guard() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3888:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3888:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3888:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3889:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3889:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3889:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3890:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3890:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3890:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3891:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3891:        _run()  {(...)",
+      "type_text": "3891:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:5081:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "5081:        kexec_psql() {(...)",
+      "type_text": "5081:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "commitlint.config.cjs:78:function scopeHint(scope) {",
+      "kind": "function",
+      "file": "commitlint.config.cjs",
+      "signature": "78:function scopeHint(scope) {(...)",
+      "type_text": "78:function scopeHint(scope) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/vaultwarden-seed-job.yaml:52:              upsert_login() {",
+      "kind": "function",
+      "file": "k3d/vaultwarden-seed-job.yaml",
+      "signature": "52:              upsert_login() {(...)",
+      "type_text": "52:              upsert_login() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-docs.mjs:56:function cleanOutDir(outDir) {",
+      "kind": "function",
+      "file": "scripts/build-docs.mjs",
+      "signature": "56:function cleanOutDir(outDir) {(...)",
+      "type_text": "56:function cleanOutDir(outDir) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-docs.mjs:67:function writeOut(outDir, relPath, content) {",
+      "kind": "function",
+      "file": "scripts/build-docs.mjs",
+      "signature": "67:function writeOut(outDir, relPath, content) {(...)",
+      "type_text": "67:function writeOut(outDir, relPath, content) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-docs.mjs:317:  main().catch((err) => {",
+      "kind": "function",
+      "file": "scripts/build-docs.mjs",
+      "signature": "317:  main().catch((err) => {(...)",
+      "type_text": "317:  main().catch((err) => {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-graph.mjs:31:function parseYamlFile(filePath) {",
+      "kind": "function",
+      "file": "scripts/build-graph.mjs",
+      "signature": "31:function parseYamlFile(filePath) {(...)",
+      "type_text": "31:function parseYamlFile(filePath) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-graph.mjs:51:function main() {",
+      "kind": "function",
+      "file": "scripts/build-graph.mjs",
+      "signature": "51:function main() {(...)",
+      "type_text": "51:function main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-graph.mjs:310:  function hasStructuralChange(path) {",
+      "kind": "function",
+      "file": "scripts/build-graph.mjs",
+      "signature": "310:  function hasStructuralChange(path) {(...)",
+      "type_text": "310:  function hasStructuralChange(path) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-graph.mjs:331:main();",
+      "kind": "function",
+      "file": "scripts/build-graph.mjs",
+      "signature": "331:main();(...)",
+      "type_text": "331:main();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/devflow-post-merge-deploy.sh:15:select_merge_commit() {",
+      "kind": "function",
+      "file": "scripts/devflow-post-merge-deploy.sh",
+      "signature": "15:select_merge_commit() {(...)",
+      "type_text": "15:select_merge_commit() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:115:function sha256(s: string): string {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "115:function sha256(s: string): string {(...)",
+      "type_text": "115:function sha256(s: string): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:160:function walkDir(dir: string, out: string[] = []): string[] {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "160:function walkDir(dir: string, out: string[] = []): string[] {(...)",
+      "type_text": "160:function walkDir(dir: string, out: string[] = []): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:177:function extractImports(content: string, filePath: string): string[] {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "177:function extractImports(content: string, filePath: string): string[] {(...)",
+      "type_text": "177:function extractImports(content: string, filePath: string): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:193:function resolveImportPath(importSpec: string, fromFile: string): string | null {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "193:function resolveImportPath(importSpec: string, fromFile: string): string | null {(...)",
+      "type_text": "193:function resolveImportPath(importSpec: string, fromFile: string): string | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:216:function vecLiteral(v: number[]): string {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "216:function vecLiteral(v: number[]): string {(...)",
+      "type_text": "216:function vecLiteral(v: number[]): string {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/index-repo.ts:443:  main().catch(err => {",
+      "kind": "function",
+      "file": "scripts/index-repo.ts",
+      "signature": "443:  main().catch(err => {(...)",
+      "type_text": "443:  main().catch(err => {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:7:run() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "7:run() {(...)",
+      "type_text": "7:run() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:15:svc_image_repo() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "15:svc_image_repo() {(...)",
+      "type_text": "15:svc_image_repo() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:28:svc_deployment() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "28:svc_deployment() {(...)",
+      "type_text": "28:svc_deployment() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:37:dev_ctx() { case \"$1\" in mentolder) echo \"fleet\" ;; korczewski) echo \"fleet\" ;; esac; }",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "37:dev_ctx() { case \"$1\" in mentolder) echo \"fleet\" ;; korczewski) echo \"fleet\" ;; esac; }(...)",
+      "type_text": "37:dev_ctx() { case \"$1\" in mentolder) echo \"fleet\" ;; korczewski) echo \"fleet\" ;; esac; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:38:dev_ns()  { case \"$1\" in mentolder) echo \"workspace-dev\"    ;; korczewski) echo \"workspace-korczewski-dev\" ;; esac; }",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "38:dev_ns()  { case \"$1\" in mentolder) echo \"workspace-dev\"    ;; korczewski) echo \"workspace-korczewski-dev\" ;; esac; }(...)",
+      "type_text": "38:dev_ns()  { case \"$1\" in mentolder) echo \"workspace-dev\"    ;; korczewski) echo \"workspace-korczewski-dev\" ;; esac; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:41:prod_ctx() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "41:prod_ctx() {(...)",
+      "type_text": "41:prod_ctx() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:43:prod_ns() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "43:prod_ns() {(...)",
+      "type_text": "43:prod_ns() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:52:default_smoke_grep() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "52:default_smoke_grep() {(...)",
+      "type_text": "52:default_smoke_grep() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:60:resolve_smoke_grep() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "60:resolve_smoke_grep() {(...)",
+      "type_text": "60:resolve_smoke_grep() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:70:roll() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "70:roll() {(...)",
+      "type_text": "70:roll() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:97:observe_prod() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "97:observe_prod() {(...)",
+      "type_text": "97:observe_prod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:144:smoke_one() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "144:smoke_one() {(...)",
+      "type_text": "144:smoke_one() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:164:promote_phase_build() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "164:promote_phase_build() {(...)",
+      "type_text": "164:promote_phase_build() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:182:promote_phase_push() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "182:promote_phase_push() {(...)",
+      "type_text": "182:promote_phase_push() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:188:promote_phase_dev_deploy() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "188:promote_phase_dev_deploy() {(...)",
+      "type_text": "188:promote_phase_dev_deploy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:193:promote_phase_smoke() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "193:promote_phase_smoke() {(...)",
+      "type_text": "193:promote_phase_smoke() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:200:promote_phase_prod_deploy() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "200:promote_phase_prod_deploy() {(...)",
+      "type_text": "200:promote_phase_prod_deploy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/lib/promote-phases.sh:205:promote_phase_observe() {",
+      "kind": "function",
+      "file": "scripts/lib/promote-phases.sh",
+      "signature": "205:promote_phase_observe() {(...)",
+      "type_text": "205:promote_phase_observe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:199:_wc_stash_pop_or_warn() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "199:_wc_stash_pop_or_warn() {(...)",
+      "type_text": "199:_wc_stash_pop_or_warn() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:400:_rollback() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "400:_rollback() {(...)",
+      "type_text": "400:_rollback() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/devflow-selection-archive-hardening.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/devflow-selection-archive-hardening.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-dev-mesh/no-k3d-context.bats:3:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-dev-mesh/no-k3d-context.bats",
+      "signature": "3:setup() {(...)",
+      "type_text": "3:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-dev-mesh/no-k3d-context.bats:8:_active_hits() {",
+      "kind": "function",
+      "file": "tests/spec/local-dev-mesh/no-k3d-context.bats",
+      "signature": "8:_active_hits() {(...)",
+      "type_text": "8:_active_hits() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/pre-commit-freshness.bats:16:setup() {",
+      "kind": "function",
+      "file": "tests/spec/pre-commit-freshness.bats",
+      "signature": "16:setup() {(...)",
+      "type_text": "16:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/pre-commit-freshness.bats:24:_pre_commit_files() {",
+      "kind": "function",
+      "file": "tests/spec/pre-commit-freshness.bats",
+      "signature": "24:_pre_commit_files() {(...)",
+      "type_text": "24:_pre_commit_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/pre-commit-freshness.bats:34:_freshness_check_files() {",
+      "kind": "function",
+      "file": "tests/spec/pre-commit-freshness.bats",
+      "signature": "34:_freshness_check_files() {(...)",
+      "type_text": "34:_freshness_check_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/pre-commit-freshness.bats:108:setup_t001973() {",
+      "kind": "function",
+      "file": "tests/spec/pre-commit-freshness.bats",
+      "signature": "108:setup_t001973() {(...)",
+      "type_text": "108:setup_t001973() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/pre-commit-freshness.bats:170:setup_t002239_m1() {",
+      "kind": "function",
+      "file": "tests/spec/pre-commit-freshness.bats",
+      "signature": "170:setup_t002239_m1() {(...)",
+      "type_text": "170:setup_t002239_m1() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/pre-commit-freshness.bats:242:setup_t003075() {",
+      "kind": "function",
+      "file": "tests/spec/pre-commit-freshness.bats",
+      "signature": "242:setup_t003075() {(...)",
+      "type_text": "242:setup_t003075() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/test-tasks-node-deps.bats:22:setup() {",
+      "kind": "function",
+      "file": "tests/unit/test-tasks-node-deps.bats",
+      "signature": "22:setup() {(...)",
+      "type_text": "22:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/test-tasks-node-deps.bats:33:task_block() {",
+      "kind": "function",
+      "file": "tests/unit/test-tasks-node-deps.bats",
+      "signature": "33:task_block() {(...)",
+      "type_text": "33:task_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/unit/test-tasks-node-deps.bats:44:first_match_line() {",
+      "kind": "function",
+      "file": "tests/unit/test-tasks-node-deps.bats",
+      "signature": "44:first_match_line() {(...)",
+      "type_text": "44:first_match_line() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

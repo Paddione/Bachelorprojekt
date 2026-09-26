@@ -125,7 +125,6 @@ Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotu
 - **`claude-code/`** -- Claude Code configuration and system prompt.
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
-- **`k3d/docs-content-built/`** -- Pre-built HTML served by the `docs` Deployment. Source is compiled by `node scripts/build-docs.mjs` from `docs/` and skill HTML. Deploy via `task docs:deploy`.
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.
@@ -144,7 +143,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - **Test- und BATS-Konventionen -> [`tests/CLAUDE.md`](tests/CLAUDE.md)**: Verzeichnisaufbau `tests/spec/<spec-slug>/`, Runner-Pfad, `$output`-Matching, Positiv-Anker-Pflicht. **Kernregel, die hier bleibt:** Tests pruefen **command output** und Resultate (output verification) statt der Implementierungsquelle, und die Zusicherung haengt an der Semantik des Outputs (Exit-Code, Vorhandensein eines Werts), nicht an dessen Darstellung.
 - **Release notes**: Generate structured release notes via `bash scripts/vda.sh release-notes generate` or `task release:notes`. Publish with `publish-github` or prepend to `CHANGELOG.md` with `publish-changelog`.
 - Systembrett template validation (`scripts/tests/systembrett-template.test.sh`), Security scan (`k3d/*.yaml`).
-- Other workflows: `renovate.yml`, `e2e.yml`, `build-brett.yml`, `build-docs.yml`, `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` (builds brand-neutral image for both brands; no separate korczewski website workflow).
+- Other workflows: `renovate.yml`, `e2e.yml`, `build-brett.yml`, `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` (builds brand-neutral image for both brands; no separate korczewski website workflow).
 
 ## Image Exclusions
 

@@ -77,16 +77,14 @@ CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" \
 DEPLOY_WEBSITE=false
 DEPLOY_BRETT=false
 DEPLOY_K8S=false
-DEPLOY_DOCS=false
 
 echo "$CHANGED" | grep -qE '^components/website/' && DEPLOY_WEBSITE=true
 echo "$CHANGED" | grep -qE '^components/brett/' && DEPLOY_BRETT=true
-echo "$CHANGED" | grep -qE '^docs/' && DEPLOY_DOCS=true
 echo "$CHANGED" | grep -qE '^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' \
   && DEPLOY_K8S=true
 
 if [[ "$DEPLOY_WEBSITE" == false && "$DEPLOY_BRETT" == false \
-      && "$DEPLOY_K8S" == false && "$DEPLOY_DOCS" == false ]]; then
+      && "$DEPLOY_K8S" == false ]]; then
   echo "⚠ Keine bekannten Deploy-Trigger in den geänderten Dateien erkannt."
   echo "Geänderte Dateien:"; echo "$CHANGED"
   echo "Bitte manuell deployen."
@@ -106,9 +104,6 @@ if [[ "$DEPLOY_WEBSITE" == true ]]; then
 fi
 if [[ "$DEPLOY_BRETT" == true ]]; then
   echo "ℹ Brett-Image: .github/workflows/build-brett.yml baut+rollt aus — kein lokaler Build."
-fi
-if [[ "$DEPLOY_DOCS" == true ]]; then
-  echo "ℹ Docs-Image: .github/workflows/build-docs.yml baut — kein lokaler Build."
 fi
 
 # Break-Glass bleibt: `kubectl apply` braucht keinen Registry-Login.

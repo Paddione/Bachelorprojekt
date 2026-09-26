@@ -194,8 +194,6 @@ Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code.
 
 **Verwandt:** [[bachelorprojekt-infra]]
 
-**Mehr dazu:** [https://docs.mentolder.de/claude-code.html](https://docs.mentolder.de/claude-code.html)
-
 ## Betriebs-Agent (ops)
 
 **Agent** · 🟢 **Sicher**
@@ -305,8 +303,6 @@ Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets.
 **Schutzregeln (Guardrails):** Geheimnis-Reihenfolge einhalten (G-SECRET-ORDER), Bei Rot: stoppen und fragen (G-ASK-EXPERT), ENV immer explizit setzen (G-ENV-EXPLICIT)
 
 **Verwandt:** [[bachelorprojekt-infra]]
-
-**Mehr dazu:** [https://docs.mentolder.de/glossary.html](https://docs.mentolder.de/glossary.html)
 
 ## OpenCode-Git-Workflow
 

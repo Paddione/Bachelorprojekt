@@ -62,12 +62,11 @@ spec:
                 echo "$item" | bw encode | bw create item
               }
 
-              # NC, AUTH, WEB, DOCS, OFFICE are shell-local aliases resolved from
+              # NC, AUTH, WEB, OFFICE are shell-local aliases resolved from
               # *_DOMAIN env vars at runtime — NOT Taskfile envsubst targets.
               NC="${NC_DOMAIN:-files.localhost}"
               AUTH="${POCKET_ID_DOMAIN:-auth.localhost}"
               WEB="${WEB_DOMAIN:-web.localhost}"
-              DOCS="${DOCS_DOMAIN:-docs.localhost}"
               OFFICE="${OFFICE_DOMAIN:-office.localhost}"
 
               upsert_login "Nextcloud — Dateien"            "https://${NC}"               "Dateispeicher und Kollaboration"
@@ -77,7 +76,6 @@ spec:
               upsert_login "Pocket ID — Benutzerverwaltung" "https://${AUTH}"             "SSO und Benutzerverwaltung (Pocket ID)"
               upsert_login "Portal — Kundenbereich"         "https://${WEB}/portal"       "Kundenportal (Login via Pocket ID SSO)"
               upsert_login "Admin — Website-Verwaltung"     "https://${WEB}/admin"        "Website-Admin (Login via Pocket ID SSO)"
-              upsert_login "Docs"                           "https://${DOCS}"             "Dokumentation"
 
               echo "Vaultwarden seeding completed successfully."
           env:
@@ -114,12 +112,6 @@ spec:
                 configMapKeyRef:
                   name: domain-config
                   key: WEB_DOMAIN
-                  optional: true
-            - name: DOCS_DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: domain-config
-                  key: DOCS_DOMAIN
                   optional: true
             - name: OFFICE_DOMAIN
               valueFrom:

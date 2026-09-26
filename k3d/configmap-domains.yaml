@@ -12,7 +12,6 @@ data:
   WHITEBOARD_DOMAIN: "board.localhost"
   VAULT_DOMAIN: "vault.localhost"
   MAIL_DOMAIN: "mail.localhost"
-  DOCS_DOMAIN: "docs.localhost"
   DOWNLOADS_DOMAIN: "downloads.localhost"
   RECOVER_DOMAIN: "recover.localhost"
   WEB_DOMAIN: "web.localhost"
@@ -22,7 +21,6 @@ data:
   # Env-registry values (dev defaults — prod overlay overrides these)
   PROD_DOMAIN: "localhost"
   WEBSITE_IMAGE: "workspace-website"
-  DOCS_IMAGE: "workspace-docs"
   INFRA_NAMESPACE: "workspace-infra"
   TLS_SECRET_NAME: "workspace-wildcard-tls"
   TURN_PUBLIC_IP: "127.0.0.1"

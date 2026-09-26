@@ -149,7 +149,6 @@ export default defineConfig({
       testMatch: [
         '**/fa-03-*.spec.ts',    // Nextcloud Talk / video
         '**/fa-12-*.spec.ts',    // Claude Code AI Assistant / MCP infrastructure
-        '**/fa-13-*.spec.ts',    // Dokumentations-Service (Docsify)
         '**/fa-18-*.spec.ts',    // transcription service (cluster-internal URL)
         '**/fa-23-*.spec.ts',    // Vaultwarden
         '**/fa-24-*.spec.ts',    // Whiteboard

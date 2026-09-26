@@ -20,7 +20,6 @@ env_vars:
   LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
   LEGAL_WEBSITE: korczewski.de
   WEBSITE_IMAGE: website
-  DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: website-korczewski
   # PRIMARY_FRONTEND (T001490) — apex web.korczewski.de serves the Astro SSR
   # (website). Switch to `react` to put the React SPA behind the apex instead.
@@ -40,7 +39,6 @@ env_vars:
   TURN_NODE: "pk-hetzner-4"
   TURN_OVERLAY_IP: "10.20.0.1"
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
-  DOCS_URL: "https://docs.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
   BRAIN_EXTERNAL_URL: "https://brain.korczewski.de"

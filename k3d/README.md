@@ -23,7 +23,6 @@ in `prod-fleet/<brand>/` extend it; never apply base or `prod/` directly.
 | `coturn-stack/` | CoTURN TURN server (deployed separately via `task workspace:office:deploy`) |
 | `dev-cluster/` | k3d local cluster setup resources |
 | `dev-stack/` | Dev-only service additions |
-| `docs-content-built/` | Pre-built HTML for the Docs service (do not edit manually) |
 | `monitoring/` | Prometheus + Grafana manifests |
 
 ## hostNetwork-Pods & NetworkPolicy-Ausnahme

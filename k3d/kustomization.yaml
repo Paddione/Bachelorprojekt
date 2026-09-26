@@ -23,7 +23,6 @@ resources:
   - talk-recording.yaml
   - vaultwarden.yaml
   # Buchhaltung
-  - oauth2-proxy-docs.yaml
   # Traefik dashboard SSO gateway
   - oauth2-proxy-traefik.yaml
   - traefik-dashboard-dev.yaml
@@ -72,8 +71,6 @@ resources:
   - oauth2-proxy-videovault.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
-  # Dokumentation
-  - docs.yaml
   # SSO-gated downloads (RustDesk MSI distribution — mentolder only)
   - downloads.yaml
   - oauth2-proxy-downloads.yaml

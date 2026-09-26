@@ -505,7 +505,7 @@ fi
 MAIN_ROOT="$(dirname "$COMMON_DIR")"
 
 # 2) node_modules: git worktrees don't share the gitignored root node_modules,
-#    and several `task test:all` subtasks (test:docs-gen, test:agent-guide) import
+#    and several `task test:all` subtasks (test:agent-guide) import
 #    third-party packages from it. Symlink the base checkout's node_modules so the
 #    worktree resolves deps instantly — no 536M reinstall, and the Taskfile's
 #    `[ -d node_modules ] || npm ci` guards short-circuit (avoiding their race

@@ -135,9 +135,6 @@ env_vars:
   - name: BRETT_IMAGE
     required: false
     default_dev: "latest"
-  - name: DOCS_IMAGE
-    required: true
-    default_dev: "workspace-website"
 
   - name: WEBSITE_NAMESPACE
     required: false
@@ -265,10 +262,6 @@ env_vars:
     required: true
     default_dev: "nextcloud-db.workspace.svc.cluster.local"
     description: "Cluster-internal FQDN of the Nextcloud MariaDB. Overridden per-brand in environments/{korczewski,fleet-korczewski}.yaml when the namespace differs from `workspace`."
-
-  - name: DOCS_URL
-    required: false
-    default_dev: "http://docs.localhost"
 
   - name: AUTH_EXTERNAL_URL
     required: false

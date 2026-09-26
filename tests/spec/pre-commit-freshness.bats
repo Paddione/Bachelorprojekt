@@ -172,13 +172,6 @@ setup_t002239_m1() {
   POST_MERGE="$REPO_ROOT/.githooks/post-merge"
 }
 
-@test "T002239-M1: post-merge hook restores k3d/docs-content-built/ after regen" {
-  setup_t002239_m1
-  [ -f "$POST_MERGE" ] || { echo "MISSING hook: $POST_MERGE"; return 1; }
-  grep -qE 'checkout.*docs-content-built' "$POST_MERGE" \
-    || { echo "MISSING 'checkout -- k3d/docs-content-built/' in $POST_MERGE"; return 1; }
-}
-
 @test "T002239-M1: post-merge hook restores docs/mermaid-snapshots/ after regen" {
   setup_t002239_m1
   [ -f "$POST_MERGE" ] || { echo "MISSING hook: $POST_MERGE"; return 1; }

@@ -31,7 +31,6 @@ interface ImportMetaEnv {
   readonly NEXTCLOUD_ADMIN_USER?: string;
   readonly NEXTCLOUD_ADMIN_PASS?: string;
   readonly NEXTCLOUD_EXTERNAL_URL?: string;
-  readonly DOCS_URL?: string;
   readonly BRAND_NAME?: string;
   readonly CONTACT_NAME?: string;
   readonly CONTACT_EMAIL?: string;

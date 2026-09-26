@@ -25,7 +25,7 @@ import {
   makeArrow,
   makePolyline,
   makeLabel
-} from "./docs-gen/systembrett-html.mjs";
+} from "./systembrett-html.mjs";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Tray composition

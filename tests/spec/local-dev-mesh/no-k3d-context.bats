@@ -11,7 +11,6 @@ _active_hits() {
     ':!docs/superpowers/plans'
     ':!docs/superpowers/specs/archive'
     ':!docs/adr'
-    ':!k3d/docs-content-built'
     ':!scripts/migrations'
     ':!tests/fixtures/mishap-dedupe-korpus.json'
     ':!tests/spec/local-dev-mesh/migrate-from-k3d.bats'

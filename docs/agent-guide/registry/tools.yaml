@@ -139,8 +139,6 @@
   aliases_de: [website, astro, svelte, css, frontend]
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [agent-infra]
-  links:
-    - { label_de: "Claude-Code-Doku", url: "https://docs.mentolder.de/claude-code.html" }
   init_prompt_de: "Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>."
 - id: agent-ops
   name_de: "Betriebs-Agent (ops)"
@@ -219,8 +217,6 @@
   aliases_de: [secret, keycloak, oidc, sealedsecret, zertifikat, rotieren]
   guardrails: [G-SECRET-ORDER, G-ASK-EXPERT, G-ENV-EXPLICIT]
   related: [agent-infra]
-  links:
-    - { label_de: "Begriffe & Glossar", url: "https://docs.mentolder.de/glossary.html" }
   init_prompt_de: "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."
 - id: opencode-git-workflow
   name_de: "OpenCode-Git-Workflow"

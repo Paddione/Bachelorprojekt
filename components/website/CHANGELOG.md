@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.372.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.3...website-v1.372.0) (2026-09-26)
+
+
+### Features
+
+* **agents:** WIP at a glance + abandoned-WIP finisher for sdlc-autopilot [T900481] ([#5974](https://github.com/Paddione/Bachelorprojekt/issues/5974)) ([80becd8](https://github.com/Paddione/Bachelorprojekt/commit/80becd817833e2b39f210df77011c471023a1641))
+
 ## [1.371.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.371.2...website-v1.371.3) (2026-09-26)
 
 

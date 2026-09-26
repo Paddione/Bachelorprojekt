@@ -6,7 +6,9 @@
 #
 # Zuschnitt:
 #   - Sprachen mit echtem Nutzen: javascript-typescript (Website inkl. /api/*, Node-Skripte),
-#     go (scripts/factory/mcp-go, scripts/ticket-mcp/go), actions (Workflow-Dateien selbst).
+#     go (scripts/ticket-mcp/go), actions (Workflow-Dateien selbst).
+#     [T900399] scripts/factory/mcp-go ist mit dem Factory-Abau entfallen und war
+#     das zweite Go-Modul — scripts/ticket-mcp/go ist damit das einzige.
 #     Kein Python/Shell — dort deckt CodeQL wenig ab.
 #   - PRs nur bei Code-Aenderungen (Pfadfilter); reine Plan-/Doku-PRs laufen nicht an.
 #   - Woechentlich komplett auf main, damit neue Regeln auch Bestandscode pruefen.
@@ -92,7 +94,7 @@ jobs:
         if: matrix.language == 'go'
         run: |
           set -euo pipefail
-          for mod in scripts/factory/mcp-go scripts/ticket-mcp/go; do
+          for mod in scripts/ticket-mcp/go; do
             echo "::group::go build $mod"
             (cd "$mod" && go build ./...)
             echo "::endgroup::"

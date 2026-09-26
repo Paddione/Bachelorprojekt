@@ -333,8 +333,11 @@ jobs:
       - name: Agent setup replay reminder
         run: |
           changed=$(git diff --name-only origin/main...HEAD || true)
-          if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|scripts/factory/review-[^/]+\.prompt\.md|scripts/factory/provider-router\.js|AGENTS.md)$'; then
-            echo "::warning::Agenten-Setup geändert — lokal 'task factory:eval:replay' ausführen"
+          # [T900399] scripts/factory/review-*.prompt.md und provider-router.js sind mit
+          # dem Factory-Abau entfallen; 'task factory:eval:replay' gibt es nicht mehr —
+          # das Gate dafuer ist heute 'task agents:toolset:check'.
+          if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|AGENTS.md)$'; then
+            echo "::warning::Agenten-Setup geändert — lokal 'task agents:toolset:check' ausführen"
           fi
 
   test-factory-shard:

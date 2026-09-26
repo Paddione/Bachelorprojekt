@@ -193,44 +193,6 @@ Kein Panel ruft `fetch()` direkt auf (E1). (K9)
 - **WHEN** `GET /api/cockpit/styles` aufgerufen wird
 - **THEN** antwortet er mit der Eintragsliste und `fetchedAt`
 
-### Requirement: Brain references are derived deterministically from source paths
-
-The system SHALL derive the Brain wiki page for a given repository source path
-by the same rule the ingest pipeline uses to write that page, and by no other
-means. The rule is textual and reproducible: strip the file extension, strip a
-leading dot, replace `/`, `_` and space with `-`, lowercase the result — the
-slug produced by `scripts/brain-ingest-worklist.sh`, under which
-`scripts/brain-ingest.sh` stores the page.
-
-The system SHALL NOT use full-text search or semantic retrieval for this
-mapping. A derived reference SHALL be emitted only for source paths that the
-ingest manifest (`scripts/brain/ingest-sources.yaml`) actually accepts as a
-source; for every other path the system SHALL emit no reference rather than a
-guessed one.
-
-#### Scenario: A manifest-covered source path yields its wiki page
-
-- **GIVEN** a source path that the ingest manifest assigns to a group
-- **WHEN** the Brain reference for it is requested
-- **THEN** the returned link points at the page slug the ingest pipeline writes
-  for that same path
-
-#### Scenario: A path outside the manifest yields no reference
-
-- **GIVEN** a source path the ingest manifest does not cover, such as a file
-  under `website/` or `k3d/`
-- **WHEN** the Brain reference for it is requested
-- **THEN** no link is returned for that path
-- **AND** the response states that the path has no wiki page, so the gap is
-  visible rather than silent
-
-#### Scenario: A derived page that does not exist is not offered as a link
-
-- **GIVEN** a derived slug for which the Brain site serves no page
-- **WHEN** the references are assembled
-- **THEN** the link is omitted from the result
-- **AND** the omission is reported alongside the successful links
-
 ### Requirement: Panels present their Brain references in the context slot
 
 The system SHALL fill the panel context slot with the derived Brain references,
@@ -493,23 +455,6 @@ that exists only on a developer machine. They SHALL remain daemon-only.
 - **GIVEN** the cockpit is served as a standalone page
 - **WHEN** the adapter requests any endpoint
 - **THEN** it addresses the local daemon
-
-### Requirement: The website reaches Brain through an explicit ingress policy
-
-The system SHALL carry a NetworkPolicy that allows ingress from the `website`
-namespace to the `brain` pod on its container port. Without it the request is
-dropped: the `workspace` namespace carries `allow-intra-namespace-ingress` with
-an empty pod selector, which denies everything from outside by default. Every
-other service the website reaches has such a policy
-(`allow-website-to-{shared-db,pocket-id,nextcloud,vaultwarden,docuseal}-ingress`);
-`brain` is the one that is missing.
-
-#### Scenario: The website reaches the Brain service
-
-- **GIVEN** the website pod and the brain pod are running
-- **WHEN** the website requests the brain service on its container port
-- **THEN** the connection succeeds
-- **AND** it does not pass through the `oauth2-proxy` edge
 
 ### Requirement: Daemon Runtime Contract
 
@@ -2314,6 +2259,19 @@ starting a process. It SHALL offer no write action in either case.
 - **WHEN** an admin views it
 - **THEN** no control that would write to the proxy is offered
 
+### Requirement: Cockpit ohne Brain-Verweise
+
+The cockpit SHALL NOT link or probe Brain wiki pages: no library
+SHALL derive wiki slugs from source paths and no route SHALL probe a
+brain service.
+
+#### Scenario: No brain wiring in the cockpit
+
+- **GIVEN** the repository after K4 surgery
+- **WHEN** the absence guard runs
+- **THEN** `components/website/src/lib/sdlc/brain-links.ts` does not exist
+- **AND** no API route references `BRAIN_INTERNAL_URL`
+
 ## Kind-Verteilung
 
 | Kind | Ticket | Status |
@@ -2395,3 +2353,5 @@ Siehe `openspec/changes/archive/2026-08-03-sdlc-cockpit-design/design.md`, Absch
 <!-- merged from change delta sdlc-cockpit.md (04129f063ca2) -->
 
 <!-- merged from change delta sdlc-cockpit.md (76e7743820bf) -->
+
+<!-- merged from change delta sdlc-cockpit.md (c7f8d9c1008c) -->

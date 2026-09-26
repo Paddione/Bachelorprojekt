@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2448 · Scenarios: 5431
+Specs: 130 · Requirements: 2437 · Scenarios: 5408
 
 ## factory-pipeline
 
@@ -118,17 +118,13 @@ Last touches:
 ## product
 
 ### sdlc-cockpit
-Reqs: 101 · Scenarios: 199 · Lines: 2397
+Reqs: 100 · Scenarios: 196 · Lines: 2357
 Last touches:
+  - The website reaches Brain through an explicit ingress policy | T900451 | 2026-09-26 | REMOVED
+  - Brain references are derived deterministically from source paths | T900451 | 2026-09-26 | REMOVED
+  - Cockpit ohne Brain-Verweise | T900451 | 2026-09-26 | ADDED
   - Dev-Deployment — SDLC-Console auf mentolder-dev-Cluster | T900145 | 2026-09-16 | RENAMED
   - Dev-Deployment — SDLC-Console auf dem devmesh-Cluster | T900145 | 2026-09-16 | MODIFIED
-  - Satellite Absorption Redirects | T013302 | 2026-08-22 | MODIFIED
-  - Das KI-Deck führt genau eine Phase→Modell-Tabelle | T013302 | 2026-08-22 | ADDED
-  - Der Factory-Default ist im KI-Deck sichtbar und setzbar | T013302 | 2026-08-22 | ADDED
-In-flight:
-  - Brain references are derived deterministically from source paths | T900451 | active | REMOVED
-  - The website reaches Brain through an explicit ingress policy | T900451 | active | REMOVED
-  - Cockpit ohne Brain-Verweise | T900451 | active | ADDED
 
 ### ticket-system
 Reqs: 90 · Scenarios: 246 · Lines: 2319
@@ -324,16 +320,13 @@ Last touches:
   - Time Entry Date Falls Back to CURRENT_DATE When Omitted | T001351 | 2026-07-02 | ADDED
 
 ### brain-foundation
-Reqs: 28 · Scenarios: 66 · Lines: 729
+Reqs: 28 · Scenarios: 65 · Lines: 723
 Last touches:
+  - REQ-BRAIN-FOUNDATION-008 — Glob-Based SSOT Spec Coverage | T900451 | 2026-09-26 | REMOVED
+  - Kein Ingest-Manifest mehr (REQ-BRAIN-FOUNDATION-009) | T900451 | 2026-09-26 | ADDED
   - REQ-BRAIN-FOUNDATION-016 — From-Scratch Rebuild Mode | T012902 | 2026-08-19 | ADDED
   - REQ-BRAIN-FOUNDATION-017 — State File Type Repair | T012902 | 2026-08-19 | ADDED
   - REQ-BRAIN-FOUNDATION-018 — Temporal provenance metadata | T012913 | 2026-08-19 | ADDED
-  - REQ-BRAIN-FOUNDATION-019 — Report-only lifecycle audit | T012913 | 2026-08-19 | ADDED
-  - REQ-BRAIN-FOUNDATION-020 — Review-gated GitHub expertise source | T012913 | 2026-08-19 | ADDED
-In-flight:
-  - REQ-BRAIN-FOUNDATION-008 — Glob-Based SSOT Spec Coverage | T900451 | active | REMOVED
-  - Kein Ingest-Manifest mehr (REQ-BRAIN-FOUNDATION-009) | T900451 | active | ADDED
 
 ### brain-k2-bge
 Reqs: 8 · Scenarios: 10 · Lines: 114
@@ -354,29 +347,17 @@ Last touches:
   - K1/K3-Verhältnis (Defekt D8) (REQ-k3-04) | T002433 | 2026-08-02 | ADDED
 
 ### brain-k4-brain-wiki
-Reqs: 13 · Scenarios: 25 · Lines: 239
+Reqs: 3 · Scenarios: 6 · Lines: 72
 Last touches:
-  - Dokumentierter Dry-Run-Einstieg ist ausführbar | T014543 | 2026-08-23 | ADDED
-  - Brain-Ingest-Delivery-Integrität | T013041 | 2026-08-22 | ADDED
-  - Brain MCP retrieval tools | T012913 | 2026-08-19 | ADDED
-  - Offline retrieval quality evaluation | T012913 | 2026-08-19 | ADDED
-  - Sektions-Chunking statt Kürzung (REQ-k4-04) | T002679 | 2026-08-09 | ADDED
+  - Diagramm der Ingest-Pipeline (REQ-k4-01) | T900451 | 2026-09-26 | REMOVED
+  - Quellgruppen-Erhebung (REQ-k4-02) | T900451 | 2026-09-26 | REMOVED
+  - Lesepfad-Integration (REQ-k4-03) | T900451 | 2026-09-26 | REMOVED
+  - Fail-closed Prompt-Obergrenze (REQ-k4-05) | T900451 | 2026-09-26 | REMOVED
+  - Deterministische Eltern-MOC (REQ-k4-06) | T900451 | 2026-09-26 | REMOVED
 In-flight:
   - Versioned eval set is wired into CI | T900448 | active | ADDED
   - Baseline artifact is recorded | T900448 | active | ADDED
   - Node/Python index parity | T900448 | active | ADDED
-  - Diagramm der Ingest-Pipeline (REQ-k4-01) | T900451 | active | REMOVED
-  - Quellgruppen-Erhebung (REQ-k4-02) | T900451 | active | REMOVED
-  - Lesepfad-Integration (REQ-k4-03) | T900451 | active | REMOVED
-  - Fail-closed Prompt-Obergrenze (REQ-k4-05) | T900451 | active | REMOVED
-  - Deterministische Eltern-MOC (REQ-k4-06) | T900451 | active | REMOVED
-  - Coverage-Gate im Ingest (REQ-k4-07) | T900451 | active | REMOVED
-  - Brain-Retrieval als MCP-Server (REQ-k4-08) | T900451 | active | REMOVED
-  - Registrierung in der MCP-Registry (REQ-k4-09) | T900451 | active | REMOVED
-  - Brain MCP retrieval tools | T900451 | active | REMOVED
-  - Brain-Ingest-Delivery-Integrität | T900451 | active | REMOVED
-  - Dokumentierter Dry-Run-Einstieg ist ausführbar | T900451 | active | REMOVED
-  - K4-Spiegel ist entfernt (REQ-k4-10) | T900451 | active | ADDED
 
 ### brain-k5-openspec
 Reqs: 4 · Scenarios: 4 · Lines: 41

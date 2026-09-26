@@ -68,7 +68,7 @@ export function runWorker({ agent, prompt, worktree, timeoutMs }) {
 export class WorkerPool extends EventEmitter {
   constructor({ slots4b, worktree, timeoutMs, run = runWorker }) {
     super();
-    if (!Number.isInteger(slots4b) || slots4b < 1) throw new Error('slots4b must be a positive integer');
+    if (!Number.isInteger(slots4b) || slots4b < 0) throw new Error('slots4b must be an integer >= 0');
     this.slots4b = slots4b;
     this.worktree = worktree;
     this.timeoutMs = timeoutMs;

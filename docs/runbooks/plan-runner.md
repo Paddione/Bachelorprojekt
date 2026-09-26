@@ -15,7 +15,8 @@ Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, 
 - `qwen38-gsq-iq2s.service` läuft auf `:1919` mit 1 Slot und `-cram 12288`. `--cache-ram` hält den
   Orchestrator-Kontext im Host-RAM, während der Selbstaufruf den Slot belegt.
 - `qwen35-mtp.service` läuft auf `:1920`. Die Slot-Zahl des 4B muss zu `--4b-slots` passen
-  (Default 1, entspricht `-np 1`).
+  (Default 1, entspricht `-np 1`). `--4b-slots 0` schaltet den 4B ab: jede Partial laeuft dann als
+  Selbstaufruf. Das braucht es, wenn eine Partial `qwen35-mtp.service` selbst stoppt oder umkonfiguriert.
 - `opencode` ist im `PATH`, und die Agenten `local` und `qwen35-mtp` sind in
   `.opencode/agent-models.jsonc` konfiguriert.
 - Der Change hat eine `## Partials`-Tabelle in `tasks.md` (`id | plan | role | target_files | depends_on`)

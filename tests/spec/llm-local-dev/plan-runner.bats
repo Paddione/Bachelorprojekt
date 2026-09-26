@@ -139,6 +139,21 @@ EOF
   [ -z "$(grep '^local' "$FAKE_OPENCODE_LOG" || true)" ]
 }
 
+@test "Zero 4B slots run every partial as self-execution" {
+  make_change "p1:"
+  start_orch '[
+    {"name":"execute_self","args":{"partial_id":"p1","prompt":"do it","plan_notes":"self-only run"}},
+    {"name":"mark","args":{"partial_id":"p1","status":"done","note":"ok"}},
+    {"name":"finish","args":{"summary":"done"}}
+  ]'
+  run_runner --4b-slots 0
+  echo "$output"
+  [ "$status" -eq 0 ]
+  # Positiv-Anker: genau ein Selbstaufruf, kein 4B-Lauf.
+  [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "local p1" ]
+}
+
 @test "Workers keep running while the orchestrator sleeps" {
   make_change "p1:" "p2:" "p3:"
   export FAKE_SLEEP_4B=1 FAKE_SLEEP_SELF=3

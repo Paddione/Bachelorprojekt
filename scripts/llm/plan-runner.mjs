@@ -38,15 +38,16 @@ function fail(code, msg) {
 // ---------- CLI ----------
 function parseArgs(argv) {
   const opts = { changeDir: null, worktree: null, slots4b: DEFAULT_4B_SLOTS, maxTurns: 200, timeoutMin: 120 };
-  const num = (k, v) => {
+  // --4b-slots 0 = nur Selbstausfuehrung (z. B. wenn die Partial den 4B-Server selbst umkonfiguriert).
+  const num = (k, v, min = 1) => {
     const n = Number(v);
-    if (!Number.isInteger(n) || n < 1) fail(2, `--${k} needs a positive integer, got ${v}`);
+    if (!Number.isInteger(n) || n < min) fail(2, `--${k} needs an integer >= ${min}, got ${v}`);
     return n;
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--worktree') opts.worktree = argv[++i];
-    else if (a === '--4b-slots') opts.slots4b = num('4b-slots', argv[++i]);
+    else if (a === '--4b-slots') opts.slots4b = num('4b-slots', argv[++i], 0);
     else if (a === '--max-turns') opts.maxTurns = num('max-turns', argv[++i]);
     else if (a === '--timeout-min') opts.timeoutMin = num('timeout-min', argv[++i]);
     else if (a.startsWith('--')) fail(2, `unknown option ${a}`);

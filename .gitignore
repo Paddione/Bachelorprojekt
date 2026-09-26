@@ -258,3 +258,6 @@ out/
 # Hardware (MAC-Adressen) statt das Repo. Vorlage: scripts/iso/node-map.example
 build/iso/
 scripts/iso/node-map
+
+# plan-runner: Laufzustand je Change (T900504)
+openspec/changes/*/.plan-runner/

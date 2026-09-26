@@ -2412,6 +2412,12 @@
     "kind": "shell"
   },
   {
+    "id": "cbm-stampede-guard",
+    "file": "tests/spec/cbm-stampede-guard.bats",
+    "category": "cbm-stampede-guard",
+    "kind": "shell"
+  },
+  {
     "id": "centralized-logging",
     "file": "tests/spec/centralized-logging.bats",
     "category": "centralized-logging",

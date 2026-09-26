@@ -4,7 +4,7 @@
  */
 
 import { readFileSync, statSync, readdirSync } from "node:fs";
-import { join, extname } from "node:path";
+import { join, extname, basename } from "node:path";
 
 const RESULT_METADATA = [
   "type",
@@ -36,10 +36,10 @@ export function parseDateTime(value) {
   if (isNaN(parsed.getTime())) {
     throw new Error(`invalid ISO-8601 date: ${value}`);
   }
-  // Enforce explicit UTC offset when a date-time separator is present
+  // Date-only values are UTC; timestamps require the explicit offset Python accepts.
   if (
-    !/\+|-/g.test(value.replace("Z", "")) &&
-    (normalized.includes("T") || normalized.includes(" "))
+    (normalized.includes("T") || normalized.includes(" ")) &&
+    !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized)
   ) {
     throw new Error("timestamp requires explicit UTC offset");
   }
@@ -136,7 +136,7 @@ function findMdFilesSync(dir) {
       const fullPath = join(dir, entry.name);
       if (entry.isDirectory()) {
         results.push(...findMdFilesSync(fullPath));
-      } else if (extname(entry.name).toLowerCase() === ".md") {
+      } else if (extname(entry.name) === ".md") {
         results.push(fullPath);
       }
     }
@@ -175,10 +175,8 @@ class BrainIndex {
         let tags = frontmatter.tags;
         if (typeof tags === "string") tags = [tags];
         if (!Array.isArray(tags)) tags = [];
-        const stem = filePath.replace(/\.md$/i, "");
-        const title = frontmatter.title
-          ? String(frontmatter.title)
-          : stem.replace(/.*\//, "").replace(/\.md$/i, "");
+        const stem = basename(filePath, extname(filePath));
+        const title = frontmatter.title ? String(frontmatter.title) : stem;
         pages[stem] = {
           frontmatter,
           body,
@@ -237,7 +235,7 @@ class BrainIndex {
    * @returns {string[]}
    */
   static _tokenize(text) {
-    const tokens = text.match(/\w+/g) || [];
+    const tokens = text.match(/[\p{L}\p{N}_]+/gu) || [];
     return tokens
       .filter((t) => t.length > 1)
       .map((t) => t.toLowerCase());
@@ -284,12 +282,12 @@ class BrainIndex {
     if (filters.sourceKind !== undefined && fm.source_kind !== filters.sourceKind)
       return false;
     if (filters.tags !== undefined) {
-      const pageTags = new Set(page.tags.map((t) => t.toLowerCase()));
+      const pageTags = new Set(page.tags);
       for (const tag of filters.tags) {
-        if (!pageTags.has(tag.toLowerCase())) return false;
+        if (!pageTags.has(tag)) return false;
       }
     }
-    if (filters.asOf !== undefined) {
+    if (filters.asOf !== undefined && filters.asOf !== null) {
       const state = freshnessFor(fm, filters.asOf);
       if (state === "stale" || state === "future") return false;
     }

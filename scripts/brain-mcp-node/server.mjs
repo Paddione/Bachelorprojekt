@@ -140,7 +140,13 @@ function handleTool(requestId, params, index, wikiDir) {
   if (name === "brain_search") {
     try {
       const parsed = searchArguments(arguments_);
-      const results = index.search(parsed);
+      const results = index.search(parsed.query, parsed.top_k, {
+        pageType: parsed.page_type,
+        tags: parsed.tags,
+        status: parsed.status,
+        sourceKind: parsed.source_kind,
+        asOf: parsed.as_of,
+      });
       const content = JSON.stringify({ results }, false);
       return ok(requestId, {
         content: [{ type: "text", text: content }],

@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2442 · Scenarios: 5414
+Specs: 130 · Requirements: 2444 · Scenarios: 5421
 
 ## factory-pipeline
 
@@ -34,17 +34,15 @@ Last touches:
   - G-FLUX01 measures Flux reconciliation health | T013429 | 2026-08-22 | ADDED
 
 ### openspec-workflow
-Reqs: 69 · Scenarios: 156 · Lines: 1724
+Reqs: 71 · Scenarios: 163 · Lines: 1782
 Paths: scripts/openspec, openspec/
 Last touches:
+  - Orphaned changes are archived by a CI executor without discretionary flags | T900338 | 2026-09-26 | ADDED
+  - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | 2026-09-26 | ADDED
   - Archive regenerates and stages every openspec-derived freshness artifact | T900341 | 2026-09-23 | ADDED
   - Half-archive detection does not spawn a process per archive entry | T013673 | 2026-09-17 | ADDED
   - Atlas-Generierung erzeugt einen Requirement-granularen SSOT-Index | T015012 | 2026-08-23 | ADDED
-  - Atlas nutzt die kanonische Delta-Grammatik | T015012 | 2026-08-23 | ADDED
-  - Curatierte Gruppen sind View-Metadaten ohne SSOT-Eingriff | T015012 | 2026-08-23 | ADDED
 In-flight:
-  - Orphaned changes are archived by a CI executor without discretionary flags | T900338 | active | ADDED
-  - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | active | ADDED
   - A scheduled CI job dispatches archiving of orphaned OpenSpec changes | T900503 | active | ADDED
 
 ### software-factory
@@ -868,8 +866,6 @@ Last touches:
   - Local k3d cluster runs the SDLC stack from the production manifests | T900054 | 2026-09-17 | MODIFIED
   - Dev-Host WSL memory verified for the local stack | T900054 | 2026-09-17 | REMOVED
   - SDLC-Topologie ist dokumentiert und ADR-geprüft | T016436 | 2026-09-17 | MODIFIED
-In-flight:
-  - The local poller dispatches archiving of orphaned OpenSpec changes | T900338 | active | ADDED
 
 ### secret-rotation
 Reqs: 45 · Scenarios: 106 · Lines: 883

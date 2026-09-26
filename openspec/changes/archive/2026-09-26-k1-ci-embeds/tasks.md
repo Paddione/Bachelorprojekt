@@ -2,7 +2,7 @@
 title: K1-CI-Embeds merge-getrieben
 ticket_id: T900449
 domains: [brain, embeddings, ci]
-status: active
+status: completed
 ---
 
 # k1-ci-embeds — Implementation Plan

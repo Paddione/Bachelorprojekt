@@ -2,11 +2,27 @@
 title: K1-CI-Embeds merge-getrieben
 ticket_id: T900449
 domains: [brain, embeddings, ci]
-status: draft
+status: active
 ---
 
-# Tasks: k1-ci-embeds
+# k1-ci-embeds — Implementation Plan
 
-Skelett — der Implementierungsplan wird in Phase C (Partial-Fan-out)
-geschrieben. Vorgesehene Partials: p1-embedcore (Chunker + openspec-embed.mjs),
-p2-clusterjob (Workflow + k3d-Job), p-tests (BATS + Job-Dry-Run-Gates).
+## File Structure
+
+- `scripts/lib/scs-chunking.ts` (p1, Markdown-Support)
+- `scripts/openspec-embed.mjs` (p1, Chunker-Umstellung + Quellen + Migration)
+- p2/p-tests-Dateien folgen mit ihren Partials.
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-embedcore.md | impl | scripts/lib/scs-chunking.ts, scripts/openspec-embed.mjs | |
+
+## Verify (final, wächst mit den Partials)
+
+```bash
+task test:changed
+task freshness:regenerate
+task freshness:check
+```

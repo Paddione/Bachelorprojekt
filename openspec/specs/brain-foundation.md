@@ -126,27 +126,6 @@ or repo-creation side effects.
 
 <!-- merged from change delta brain-foundation.md (7b8cca345b3e) -->
 
-### Requirement: REQ-BRAIN-FOUNDATION-008 — Glob-Based SSOT Spec Coverage
-
-The ingest manifest (`scripts/brain/ingest-sources.yaml`) SHALL declare the `ssot-specs` group as the
-glob `openspec/specs/*.md` rather than a static, hand-maintained list of individual file paths, so that
-every current and future OpenSpec SSOT capability spec is automatically eligible for brain ingestion
-without a manual manifest edit. The existing `openspec/specs/archive/` exclude prefix SHALL continue to
-suppress archived specs from the glob's matches.
-
-#### Scenario: A newly created SSOT spec is covered without a manifest change
-
-- **GIVEN** the `ssot-specs` group is declared as `openspec/specs/*.md`
-- **WHEN** a new capability spec file is added under `openspec/specs/`
-- **THEN** the worklist generator includes it in the `ssot-specs` group on the very next run
-- **AND** no edit to `scripts/brain/ingest-sources.yaml` was required
-
-#### Scenario: Archived specs remain excluded
-
-- **GIVEN** the `ssot-specs` group is declared as `openspec/specs/*.md`
-- **WHEN** the worklist generator walks `openspec/specs/archive/`
-- **THEN** files under `openspec/specs/archive/` are excluded from the worklist
-
 ### Requirement: REQ-BRAIN-FOUNDATION-009 — Fail-Loud Manifest Drift Detection
 
 `scripts/brain-ingest-worklist.sh` SHALL detect when a manifest-declared group matches zero source
@@ -727,3 +706,18 @@ organization-wide discovery and automatic ingestion of staged material SHALL be 
 - **AND** the worklist includes it under source kind `github-reviewed`
 
 <!-- merged from change delta brain-foundation.md (8e9c77c89c7e) -->
+
+### Requirement: Kein Ingest-Manifest mehr (REQ-BRAIN-FOUNDATION-009)
+
+The repository SHALL NOT maintain a brain ingest manifest: no file
+SHALL declare `ssot-specs` or other ingest source groups for a
+cross-repo wiki pipeline.
+
+#### Scenario: Manifest absence
+
+- **GIVEN** the repository after K4 surgery
+- **WHEN** the absence guard runs
+- **THEN** `scripts/brain/ingest-sources.yaml` does not exist
+- **AND** no script reads an `ssot-specs` group definition
+
+<!-- merged from change delta brain-foundation.md (b0573fe2608e) -->

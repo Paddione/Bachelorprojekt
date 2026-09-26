@@ -2,7 +2,7 @@
 title: K4-Surgery — Spiegel entfernen
 ticket_id: T900451
 domains: [scripts, k3d]
-status: active
+status: completed
 ---
 
 # k4-surgery — Implementation Plan

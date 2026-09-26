@@ -2364,6 +2364,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-k4-brain-wiki/node-parity",
+    "file": "tests/spec/brain-k4-brain-wiki/node-parity.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
     "id": "brain-k4-brain-wiki/parent-moc",
     "file": "tests/spec/brain-k4-brain-wiki/parent-moc.bats",
     "category": "brain-k4-brain-wiki",

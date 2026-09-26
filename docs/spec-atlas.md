@@ -2,7 +2,7 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 129 · Requirements: 2440 · Scenarios: 5417
+Specs: 129 · Requirements: 2440 · Scenarios: 5415
 
 ## factory-pipeline
 
@@ -59,7 +59,7 @@ Last touches:
 ## delivery
 
 ### ci-cd
-Reqs: 118 · Scenarios: 340 · Lines: 3625
+Reqs: 118 · Scenarios: 338 · Lines: 3611
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
   - Dev-Build-Safety — OOM-Schutz für Astro-Build | T900332 | 2026-09-23 | MODIFIED
@@ -516,7 +516,7 @@ Last touches:
   - Parallel Gang Execution in pipeline.mjs | T002129 | 2026-08-02 | ADDED
 
 ### factory-reclaim-lock-respect
-Reqs: 6 · Scenarios: 14 · Lines: 169
+Reqs: 6 · Scenarios: 14 · Lines: 168
 Last touches:
   - Activity heartbeat keeps claims alive | T015822 | 2026-08-24 | ADDED
   - Active-process check precedes pid-based reap | T015822 | 2026-08-24 | ADDED
@@ -601,7 +601,7 @@ Last touches:
   - ComfyUI Runs Only While Images Are Requested | T900379 | 2026-09-25 | ADDED
 
 ### local-dev-mesh
-Reqs: 20 · Scenarios: 42 · Lines: 469
+Reqs: 20 · Scenarios: 42 · Lines: 467
 Last touches:
   - The repository ships no local k3d cluster tooling | T900332 | 2026-09-23 | MODIFIED
   - Dev redeploy pulls the CI-built dev image | T900332 | 2026-09-23 | ADDED

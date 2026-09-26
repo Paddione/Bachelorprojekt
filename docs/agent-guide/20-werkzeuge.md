@@ -316,7 +316,7 @@ Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Ver
 
 **Wofür?** Wenn ein gut umrissenes Feature von einem Multi-Agent-Lauf gebaut werden soll — entweder selbst geplant oder aus einem übergebenen Menschen-Plan (Plan-Reuse).
 
-**So startest du:** Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.js starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy.
+**So startest du:** Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.mjs starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy.
 
 **Was schiefgehen kann:** Sie implementiert und deployt selbstständig (🟠). Ohne Dry-Run kann ein fehlerhafter Stand live gehen — darum erst den Probelauf, dann bewusst scharf schalten.
 

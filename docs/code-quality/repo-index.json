@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1367,
+      "file_count": 1368,
       "files": [
         "components/website/test/fixtures/einvoice/kleinunternehmer.cii.xml",
         "components/website/test/fixtures/einvoice/mixed-rate.cii.xml",
@@ -434,6 +434,7 @@
         "tests/spec/agent-skills/skill-path-references.bats",
         "tests/spec/agent-skills/skill-symlink-targets.bats",
         "tests/spec/agent-skills/superpowers-harness-parity.bats",
+        "tests/spec/agent-skills/vendor-sync.bats",
         "tests/spec/agent-skills/worktree-git-op-finish.bats",
         "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
         "tests/spec/agent-skills/worktree-remove-managed.bats",
@@ -4195,7 +4196,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 913,
+      "file_count": 914,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -5095,6 +5096,7 @@
         "scripts/vda/ticket/triage.sh",
         "scripts/vda/ticket/update-fields.sh",
         "scripts/vda/ticket/update-status.sh",
+        "scripts/vendor-sync.py",
         "scripts/verify-deployment.sh",
         "scripts/verify-ticket-id.sh",
         "scripts/vim/install-llama.sh",

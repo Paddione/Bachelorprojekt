@@ -115,7 +115,16 @@ numbered Markdown options with the recommendation first, never free prose.
 STATUS: <what happened>
 RUNNING: <background work or "none">
 BLOCKED: <blockers or "none">
+NEXT: <next concrete action or "none">
 ```
+
+**Footer self-check (PFLICHT):** the footer is a decision, not a decoration —
+analyze the four values immediately after writing them:
+- `BLOCKED` non-none → propose the recommended fix PLUS 3 alternatives as
+  clickable multiple choice (one-keystroke tools above, recommendation first);
+  no response within 2 min → execute the recommendation.
+- `BLOCKED` none and `NEXT` a clear single direction → announce the
+  recommendation, wait 10 s for objection, then auto-run it.
 
 ## Reference Sections (read on-demand, do not frontload)
 

@@ -20,6 +20,12 @@
 # weder spezifiziert noch abgesichert; dieser Guard schliesst die Luecke fuer den
 # Nachfolger.
 #
+# NACHFOLGE (Repo-Owner, 2026-09-27): NEXT kehrt zurueck — MIT dem, was der alten
+# Regel fehlte: Der Self-Check ist zeitboxed mit Auto-Run (2 min bei BLOCKED mit
+# 4 klickbaren Optionen, 10 s bei klarer Richtung), statt Kontrolle zurueckzugeben.
+# Die Bestaetigungsrunden-Kritik greift deshalb nicht: Schweigen fuehrt aus, nicht
+# zum Stillstand. CONF bleibt abgeschafft.
+#
 # POSITIV-ANKER [T002356-M1]: Jeder Test prueft zuerst, dass AGENTS.md existiert,
 # nicht leer ist und die Vertragsueberschrift traegt, bevor er inhaltliche
 # Aussagen macht. Ohne den Anker wuerde eine geloeschte oder leere Datei jede
@@ -54,30 +60,45 @@ _anchor() {
   [ "$status" -ne 0 ]
 }
 
-@test "T900235: der Vertrag traegt kein NEXT- und kein CONF-Footer-Feld" {
+@test "T900235: der Vertrag traegt kein CONF-Footer-Feld (NEXT kehrte per Nachfolge zurueck)" {
   _anchor
   # Positiv-Anker: der Abschnitt ist nicht leer, sonst bestuenden die
   # Negativ-Aussagen unten vakuos.
   section="$(_section)"
   [ -n "$section" ]
-  # Die Felder werden als Footer-Zeilen 'NEXT:' / 'CONF:' geschrieben. Ein
-  # erklaerender Fliesstext darf die Namen nennen (er begruendet ihren Wegfall),
-  # die Feld-Schreibweise mit Doppelpunkt darf nicht vorkommen.
+  # Das Feld wird als Footer-Zeile 'CONF:' geschrieben. Ein erklaerender
+  # Fliesstext darf den Namen nennen (er begruendet den Wegfall), die
+  # Feld-Schreibweise mit Doppelpunkt darf nicht vorkommen.
   # Keine nackte '!'-Pipeline (tests/CLAUDE.md) — Treffer einsammeln, dann leer pruefen.
-  hits="$(grep -nE '(^|[^A-Za-z`])(NEXT|CONF):' "$AGENTS_MD" || true)"
+  hits="$(grep -nE '(^|[^A-Za-z`])CONF:' "$AGENTS_MD" || true)"
   [ -z "$hits" ] || {
-    echo "Fehlerhafte NEXT:/CONF:-Felder:"; echo "$hits"
+    echo "Fehlerhafte CONF:-Felder:"; echo "$hits"
     false
   }
 }
 
-@test "T900235: der Vertrag behaelt die drei Footer-Felder STATUS, RUNNING, BLOCKED" {
+@test "T900235: der Vertrag behaelt die vier Footer-Felder STATUS, RUNNING, BLOCKED, NEXT" {
   _anchor
   run _section
   [ "$status" -eq 0 ]
   echo "$output" | grep -qF 'STATUS:'
   echo "$output" | grep -qF 'RUNNING:'
   echo "$output" | grep -qF 'BLOCKED:'
+  echo "$output" | grep -qF 'NEXT:'
+}
+
+@test "T900235-Nachfolge: der Footer-Self-Check ist zeitboxed mit Auto-Run" {
+  _anchor
+  run _section
+  [ "$status" -eq 0 ]
+  # BLOCKED-Fall: Empfehlung + 3 Alternativen, klickbar, 2-min-Timeout mit Ausfuehrung.
+  echo "$output" | grep -qF 'PLUS 3 alternatives'
+  echo "$output" | grep -qF 'clickable multiple choice'
+  echo "$output" | grep -qF 'within 2 min'
+  echo "$output" | grep -qF 'execute the recommendation'
+  # Klare Richtung: 10-s-Einspruchsfrist, dann Auto-Run.
+  echo "$output" | grep -qF 'wait 10 s for objection'
+  echo "$output" | grep -qF 'auto-run it'
 }
 
 @test "T900235: der Vertrag benennt die Autonomiegrenze in beiden Richtungen" {

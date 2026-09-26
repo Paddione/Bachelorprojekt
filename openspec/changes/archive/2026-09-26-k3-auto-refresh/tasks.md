@@ -2,7 +2,7 @@
 title: K3-Auto-Refresh periodisch
 ticket_id: T900450
 domains: [brain, mcp]
-status: active
+status: completed
 ---
 
 # k3-auto-refresh — Implementation Plan

@@ -4,10 +4,10 @@
     //
     // Der Key heisst aus historischen Gruenden "llamacpp-local" (Modell-Strings
     // und opencode-Default referenzieren ihn). Seit T900348 steht dahinter wieder
-    // llama.cpp, seit T900365 Muse Glimmer 30B UD-IQ3_XXS mit DFlash2-Drafter auf
-    // der RTX 5070 Ti allein (systemd-User-Unit scripts/llm/glimmer.service).
-    // Glimmer ist aus Muse Spark destilliert, der Familie des orchestrator-Modells.
-    // Davor: Qwen3.8-27B GSQ-RCO (T900359), FreeToken-native Qwen3.6 (T900203).
+    // llama.cpp, seit 2026-09-26 Qwen3.8-27B GSQ-RCO IQ2_S-mtp (196608 served KV,
+    // MTP n-max 4, -cram 12288) auf der RTX 5070 Ti allein (scripts/llm/qwen38-gsq-iq2s.service).
+    // Die Modell-ID "Muse-Glimmer-30B" ist nur noch ein Alias (llama-server ignoriert sie).
+    // Davor: Muse Glimmer 30B (T900365), Qwen3.8 GSQ-RCO IQ3_XXS (T900359), FreeToken (T900203).
     //
     // Direkt statt ueber den llm-proxy (:18235): der Proxy ist seit 2026-09-03
     // stillgelegt (ADR-007). Der Server bedient einen Slot (-np 1); weitere
@@ -15,7 +15,7 @@
     // explizite Agenten-Wahl.
     "llamacpp-local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1919 (Muse Glimmer 30B UD-IQ3_XXS + DFlash2, RTX 5070 Ti, 131k ctx)",
+      "name": "llama.cpp :1919 (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, 196k served KV)",
       "options": {
         "baseURL": "http://127.0.0.1:1919/v1",
         "timeout": 600000,
@@ -32,7 +32,7 @@
         // ignoriert opencode compaction.reserved und kompaktiert erst bei
         // context − output (T900362, siehe opencode.jsonc).
         "Muse-Glimmer-30B": {
-          "name": "Muse Glimmer 30B (llama.cpp :1919, RTX 5070 Ti, 131k ctx, ~79-89 tok/s decode, reasoning high)",
+          "name": "Qwen3.8-27B GSQ-RCO IQ2_S-mtp (llama.cpp :1919, RTX 5070 Ti, 196k served KV, limit 131k, ~71-102 tok/s decode)",
           "limit": {
             "context": 131072,
             "input": 131072,
@@ -41,13 +41,13 @@
         }
       }
     },
-    // Qwen3.5-4B-MTP auf der RTX 3060 Ti. Der Server nutzt ein 131072-Token
-    // KV-Fenster (Q4 fuer Target und MTP-Draft); das Modell selbst kann 262k,
-    // aber auf dieser Display-Karte ist 128k die gemessene VRAM-Grenze mit
-    // ausreichender Reserve. Text-only: kein mmproj geladen.
+    // Qwen3.5-4B-MTP auf der RTX 3060 Ti: 3 Slots mit geteiltem 98304-Token-KV-Pool
+    // (-np 3 -kvu, Q4 fuer Target und MTP-Draft), gemessen 2026-09-26: 162 t/s gesamt
+    // bei 3 Stroemen gegen 101 t/s mit einem Slot, 6.933 MiB (T900504 p4,
+    // scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md). Text-only: kein mmproj.
     "llamacpp-qwen35": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp :1920 (Qwen3.5-4B MTP Q4_K_XL, RTX 3060 Ti, 128k served KV)",
+      "name": "llama.cpp :1920 (Qwen3.5-4B MTP Q4_K_XL, RTX 3060 Ti, 3 Slots, 96k geteilter KV)",
       "options": {
         "baseURL": "http://127.0.0.1:1920/v1",
         "timeout": 600000,
@@ -55,10 +55,10 @@
       },
       "models": {
         "Qwen3.5-4B-MTP": {
-          "name": "Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 128k served KV, Q4_K_XL, Q4 KV)",
+          "name": "Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 Slots, 96k geteilter KV, Q4_K_XL, Q4 KV)",
           "limit": {
-            "context": 131072,
-            "input": 131072,
+            "context": 98304,
+            "input": 98304,
             "output": 8192
           }
         }
@@ -254,7 +254,7 @@
     // sequenzielle Dispatches, die ≤131072 served KV teilen. Der Orchestrator
     // vergibt pro Dispatch budget_tokens (S ~32k / M ~80k / L ~100k).
     "local": {
-      "description": "Higher-capability local implementation subagent (Muse Glimmer 30B via llama.cpp :1919, RTX 5070 Ti, 131k served KV shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
+      "description": "Higher-capability local implementation subagent (Qwen3.8-27B GSQ-RCO IQ2_S-mtp via llama.cpp :1919, RTX 5070 Ti, one slot; context limit 131k shared across queued dispatches). Text-only. Sequential dispatch with per-packet budget_tokens.",
       "mode": "subagent",
       "model": "llamacpp-local/Muse-Glimmer-30B",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -264,7 +264,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "qwen35-mtp": {
-      "description": "Fast text-only local subagent: Qwen3.5-4B MTP Q4_K_XL via llama.cpp :1920 on the RTX 3060 Ti, 131k served KV with Q4 target and draft KV. One request at a time; no vision projector. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
+      "description": "Fast text-only local subagent: Qwen3.5-4B MTP Q4_K_XL via llama.cpp :1920 on the RTX 3060 Ti, 3 parallel slots sharing a 96k KV pool with Q4 target and draft KV. Up to three requests at a time; no vision projector. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model.",
       "mode": "subagent",
       "model": "llamacpp-qwen35/Qwen3.5-4B-MTP",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -272,6 +272,31 @@
       "temperature": 0.3,
       "steps": 40,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    // plan-runner-Worker (T900504): opencode run akzeptiert nur Primaer-Agenten; ein
+    // Subagent (local, qwen35-mtp) faellt dort still auf den Default-Agenten zurueck
+    // und laeuft dann mit dessen Modell und Werkzeugen auf :1919. Deshalb eigene
+    // primaere Worker mit schlankem Prompt; write ist erlaubt (Partials legen Dateien an),
+    // task nicht (kein Weiterdelegieren). Genutzt von scripts/llm/plan-runner/workers.mjs.
+    "plan-worker-4b": {
+      "description": "plan-runner worker on Qwen3.5-4B MTP (llama.cpp :1920, RTX 3060 Ti, 3 slots). Executes one OpenSpec partial; started by scripts/llm/plan-runner.mjs, not for interactive use.",
+      "mode": "primary",
+      "model": "llamacpp-qwen35/Qwen3.5-4B-MTP",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#22D3EE",
+      "temperature": 0.3,
+      "steps": 40,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+    },
+    "plan-worker-self": {
+      "description": "plan-runner self-execution worker on the orchestrator model (llama.cpp :1919, RTX 5070 Ti). Executes one OpenSpec partial in one go when all 4B slots are busy; started by scripts/llm/plan-runner.mjs.",
+      "mode": "primary",
+      "model": "llamacpp-local/Muse-Glimmer-30B",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#34D399",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "reviewer": {
       "description": "Factory reviewer role — read, grep, glob, tests only; no edit/write/bash/task dispatch (Orchestrator applies edits). Write-capable: deny.",

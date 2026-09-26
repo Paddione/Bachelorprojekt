@@ -52,7 +52,7 @@ extrahiert (split), statt Zeilen zusammenzuziehen. `scripts/llm/qwen35-mtp.servi
 
 Der Failing-Test-Step steht in `tasks.d/p5-tests.md` (Task 5.1, `expected: FAIL`).
 
-- [ ] **Task V: Finale Verifikation**
+- [x] **Task V: Finale Verifikation**
   ```bash
   tests/unit/lib/bats-core/bin/bats tests/spec/llm-local-dev/plan-runner.bats
   node --check scripts/llm/plan-runner.mjs scripts/llm/plan-runner/plan.mjs scripts/llm/plan-runner/workers.mjs

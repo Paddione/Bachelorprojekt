@@ -2,9 +2,9 @@
 
 `scripts/llm/plan-runner.mjs` führt die Partials eines OpenSpec-Changes aus (T900504). Der
 Orchestrator (Qwen3.8-27B GSQ-RCO IQ2_S-mtp, RTX 5070 Ti, `:1919`) steuert per Tool-Loop. Die Partials
-laufen als `opencode run --agent qwen35-mtp` auf dem 4B-Worker (Qwen3.5-4B, RTX 3060 Ti, `:1920`).
+laufen als `opencode run --agent plan-worker-4b` auf dem 4B-Worker (Qwen3.5-4B, RTX 3060 Ti, `:1920`).
 Sind alle 4B-Slots belegt, darf der Orchestrator eine Partial selbst ausführen
-(`opencode run --agent local`). Während dieses Selbstaufrufs vergibt der Scheduler frei werdende
+(`opencode run --agent plan-worker-self`). Während dieses Selbstaufrufs vergibt der Scheduler frei werdende
 4B-Slots selbst und meldet die Ergebnisse, sobald der Orchestrator zurückkehrt.
 
 Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, Worker-Prompt) und
@@ -15,9 +15,10 @@ Module: `scripts/llm/plan-runner/plan.mjs` (Manifest, Abhängigkeiten, Zustand, 
 - `qwen38-gsq-iq2s.service` läuft auf `:1919` mit 1 Slot und `-cram 12288`. `--cache-ram` hält den
   Orchestrator-Kontext im Host-RAM, während der Selbstaufruf den Slot belegt.
 - `qwen35-mtp.service` läuft auf `:1920`. Die Slot-Zahl des 4B muss zu `--4b-slots` passen
-  (Default 1, entspricht `-np 1`). `--4b-slots 0` schaltet den 4B ab: jede Partial laeuft dann als
+  (Default 3, entspricht `-np 3 -kvu -c 98304` in `scripts/llm/qwen35-mtp.service`; gemessen in
+  `scripts/llm/measurements/2026-09-27-qwen35-4b-slots.md`). `--4b-slots 0` schaltet den 4B ab: jede Partial laeuft dann als
   Selbstaufruf. Das braucht es, wenn eine Partial `qwen35-mtp.service` selbst stoppt oder umkonfiguriert.
-- `opencode` ist im `PATH`, und die Agenten `local` und `qwen35-mtp` sind in
+- `opencode` ist im `PATH`, und die Primaer-Agenten `plan-worker-4b` und `plan-worker-self` sind in
   `.opencode/agent-models.jsonc` konfiguriert.
 - Der Change hat eine `## Partials`-Tabelle in `tasks.md` (`id | plan | role | target_files | depends_on`)
   und die Partial-Dateien unter `tasks.d/`. Die `target_files` der Partials sind disjunkt, weil 4B-Worker

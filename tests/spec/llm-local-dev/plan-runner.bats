@@ -82,8 +82,8 @@ state_of() { jq -r --arg p "$1" '.partials[$p].status' "$CH/.plan-runner/state.j
   [ "$status" -eq 0 ]
   # Positiv-Anker: beide Partials liefen genau einmal.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -eq 2 ]
-  [ "$(sed -n 1p "$FAKE_OPENCODE_LOG")" = "qwen35-mtp p1" ]
-  [ "$(sed -n 2p "$FAKE_OPENCODE_LOG")" = "qwen35-mtp p2" ]
+  [ "$(sed -n 1p "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p1" ]
+  [ "$(sed -n 2p "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p2" ]
   # Der verfruehte dispatch_4b p2 wurde abgelehnt, nicht gestartet.
   [ "$(jq -r '.messages[-1].content' <<<"$(sed -n 2p "$T/requests.log")" | grep -c 'not ready')" -eq 1 ]
   [ "$(state_of p1)" = "done" ]
@@ -111,7 +111,7 @@ EOF
   [ "$status" -eq 0 ]
   # Positiv-Anker: p2 lief nach dem Neustart.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
-  [ "$(cat "$FAKE_OPENCODE_LOG")" = "qwen35-mtp p2" ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p2" ]
   # Der erste Request zeigt p2 bereits zurueckgesetzt auf open.
   [ "$(sed -n 1p "$T/requests.log" | jq -r '.messages[1].content' | grep -c '"p2":{"status":"open"')" -eq 1 ]
   [ "$(state_of p1)" = "done" ]
@@ -133,10 +133,10 @@ EOF
   [ "$status" -eq 0 ]
   # Positiv-Anker: der 4B-Lauf fand statt.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
-  [ "$(cat "$FAKE_OPENCODE_LOG")" = "qwen35-mtp p1" ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-4b p1" ]
   # Die Anfrage nach execute_self enthaelt die Ablehnung.
   [ "$(sed -n 2p "$T/requests.log" | jq -r '.messages[-1].content' | grep -c 'use dispatch_4b')" -eq 1 ]
-  [ -z "$(grep '^local' "$FAKE_OPENCODE_LOG" || true)" ]
+  [ -z "$(grep '^plan-worker-self' "$FAKE_OPENCODE_LOG" || true)" ]
 }
 
 @test "Zero 4B slots run every partial as self-execution" {
@@ -151,7 +151,7 @@ EOF
   [ "$status" -eq 0 ]
   # Positiv-Anker: genau ein Selbstaufruf, kein 4B-Lauf.
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -gt 0 ]
-  [ "$(cat "$FAKE_OPENCODE_LOG")" = "local p1" ]
+  [ "$(cat "$FAKE_OPENCODE_LOG")" = "plan-worker-self p1" ]
 }
 
 @test "An echoed result template is not counted as success" {
@@ -165,6 +165,29 @@ EOF
   echo "$output"
   [ "$status" -eq 0 ]
   [ "$output" = '[false,false,{"ok":true,"summary":"measured 3 configs"}]' ]
+}
+
+@test "Worker agents are primary agents on the right backends" {
+  # opencode run faellt fuer mode=subagent still auf den Default-Agenten zurueck
+  # ("is a subagent, not a primary agent. Falling back to default agent"): dann laeuft
+  # jeder 4B-Dispatch auf dem Orchestrator-Modell (:1919). Beobachtet im ersten Live-Lauf.
+  run node --input-type=module -e "
+    import { readFileSync } from 'node:fs';
+    import { AGENT_4B, AGENT_SELF } from '$REPO/scripts/llm/plan-runner/workers.mjs';
+    const s = readFileSync('$REPO/.opencode/agent-models.jsonc', 'utf8');
+    const o = JSON.parse(s.replace(/^\\s*\\/\\/.*\$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, ''));
+    const want = { [AGENT_4B]: 'llamacpp-qwen35/', [AGENT_SELF]: 'llamacpp-local/' };
+    for (const [name, prefix] of Object.entries(want)) {
+      const a = (o.agent || {})[name];
+      if (!a) { console.log('missing ' + name); process.exit(1); }
+      if (a.mode !== 'primary') { console.log(name + ' mode ' + a.mode); process.exit(1); }
+      if (!String(a.model).startsWith(prefix)) { console.log(name + ' model ' + a.model); process.exit(1); }
+    }
+    console.log('ok ' + AGENT_4B + ' ' + AGENT_SELF);
+  "
+  echo "$output"
+  [ "$status" -eq 0 ]
+  [[ "$output" == "ok "* ]]
 }
 
 @test "Workers keep running while the orchestrator sleeps" {
@@ -186,8 +209,8 @@ EOF
   [ "$(wc -l < "$FAKE_OPENCODE_LOG")" -eq 3 ]
   # p3 wurde waehrend des Selbstaufrufs vergeben und endete vor ihm.
   local p3 self
-  p3="$(grep -n '^qwen35-mtp p3$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
-  self="$(grep -n '^local p2$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
+  p3="$(grep -n '^plan-worker-4b p3$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
+  self="$(grep -n '^plan-worker-self p2$' "$FAKE_OPENCODE_LOG" | cut -d: -f1)"
   [ -n "$p3" ] && [ -n "$self" ]
   [ "$p3" -lt "$self" ]
   # Das execute_self-Ergebnis meldet die Laeufe aus der Schlafphase.

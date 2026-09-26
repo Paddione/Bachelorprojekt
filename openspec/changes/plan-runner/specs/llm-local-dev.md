@@ -7,7 +7,9 @@ change (`## Partials` table in `tasks.md` plus `tasks.d/pX-*.md`) using the orch
 and Qwen3.5-4B workers on `:1920`. It SHALL use only the Node.js standard library. It SHALL respect each
 partial's `depends_on` column and SHALL persist progress atomically in
 `openspec/changes/<slug>/.plan-runner/state.json`, so that a restart resumes open partials and resets
-partials left `running` to `open`. Workers SHALL run as `opencode run --agent <agent> --dir <worktree>`;
+partials left `running` to `open`. Workers SHALL run as `opencode run --agent <agent> --dir <worktree>` with
+the primary agents `plan-worker-4b` (`:1920`) and `plan-worker-self` (`:1919`), because `opencode run` silently
+replaces a subagent with the default agent;
 the binary SHALL be overridable via `PLAN_RUNNER_OPENCODE` and the orchestrator endpoint via
 `PLAN_RUNNER_ORCH_URL`. A worker run SHALL count as successful only if its output ends with
 `PLAN-RUNNER-RESULT: success`.
@@ -29,7 +31,7 @@ the binary SHALL be overridable via `PLAN_RUNNER_OPENCODE` and the orchestrator 
 The orchestrator SHALL be able to execute a partial itself through the tool `execute_self`, which the
 plan runner SHALL accept only when no 4B worker slot is free. Before starting the self-run the plan runner
 SHALL save the orchestrator's plan notes to the state file. The self-run SHALL be an
-`opencode run --agent local` process whose prompt contains all tasks of the partial, and the orchestrator
+`opencode run --agent plan-worker-self` process whose prompt contains all tasks of the partial, and the orchestrator
 loop SHALL block until it returns success or failure. While the orchestrator is blocked, the plan runner
 SHALL assign every free 4B slot to the next ready partial and SHALL deliver those results to the
 orchestrator when it resumes. The orchestrator's server SHALL run with `--cache-ram` so that its context

@@ -8,8 +8,9 @@ import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { parseResult } from './plan.mjs';
 
-export const AGENT_4B = 'qwen35-mtp';
-export const AGENT_SELF = 'local';
+// Primaer-Agenten: opencode run ersetzt Subagenten still durch den Default-Agenten.
+export const AGENT_4B = 'plan-worker-4b';
+export const AGENT_SELF = 'plan-worker-self';
 const TAIL_CHARS = 4000;
 const live = new Set(); // laufende Kindprozesse, fuer killAllWorkers()
 

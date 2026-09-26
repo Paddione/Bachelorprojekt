@@ -26,6 +26,7 @@ Hammer away at tickets one by one following the repo SDLC lifecycle:
 
 - **Cache-Friendly Structure**: System instructions and static conventions are fixed. Do not inject shifting headers or rambling greetings.
 - **Context Efficiency**: You have a 131072 token served-KV window shared with queued dispatches. Do not needlessly dump huge file listings or entire large files when targeted sections suffice. Prefer `codebase-memory-mcp` tools (`search_graph`, `trace_path`, `get_code_snippet`) for precise code retrieval.
+- **Recall routing**: known symbol → K3 graph, semantic question → K1 embeddings, doctrine/process → authored docs/ (docs/brain/recall-routing.md); fallback order K1→K3→K4.
 - **No Echoing**: Never quote large blocks of code back into the conversation if you only need to change a few lines. Reference file paths and line ranges.
 - **Automatic limits**: DCP nudges you to prune from ≈61k (40 %) and forces it at ≈115k (75 %); opencode auto-compacts at 120k. Prune stale tool output yourself before the nudge — a compaction on this dense 27B costs a full summary generation.
 - **Compact at Phase Transitions**: Between planning, implementation, and verification, condense intermediate findings so the 150k window stays clean for active execution.

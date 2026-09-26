@@ -44,27 +44,6 @@ skills:
         path: .agents/skills/agentic-resource-lookup
         sync: identical
     exclusions: {}
-  - id: brain-ingest
-    provenance: project
-    exposure: portable
-    source: .agents/skills/brain-ingest
-    harnesses:
-      codex:
-        path: .agents/skills/brain-ingest
-        sync: identical
-      agy:
-        path: .agents/skills/brain-ingest
-        sync: identical
-      opencode:
-        path: .opencode/skills/brain-ingest
-        sync: identical
-      claude_code:
-        path: .claude/skills/brain-ingest
-        sync: identical
-      muse:
-        path: .agents/skills/brain-ingest
-        sync: identical
-    exclusions: {}
   - id: database-specialist
     provenance: project
     exposure: portable

@@ -14,6 +14,8 @@ Last touches:
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | 2026-09-23 | ADDED
   - The archive commit carries every SSOT spec its deltas target | T900339 | 2026-09-23 | ADDED
   - Symlink-Set entspricht den getrackten Skills | T900238 | 2026-09-23 | ADDED
+In-flight:
+  - Recall-Schichtwahl für Agenten | T900453 | active | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

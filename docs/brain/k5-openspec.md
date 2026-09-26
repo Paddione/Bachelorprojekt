@@ -78,10 +78,8 @@ Die Spezifikations-Wahrheit des Repos in zwei Ebenen:
 
   Kante K5 → K4 (Brain-Wiki-Ingest)
   ──────────────────────────────────────────
-  scripts/brain/ingest-sources.yaml
-    Gruppe "ssot-specs" ──► liest openspec/specs/*.md (SSOT, NICHT
-                              openspec/changes/) ──► scripts/brain-ingest.sh
-                              ──► externes Repo Paddione/brain
+  ~~scripts/brain/ingest-sources.yaml → scripts/brain-ingest.sh → Paddione/brain~~
+  (stillgelegt, K4-Retire: externer Mirror ausgebaut, K4-Kern liegt in docs/)
   D.h.: K4 konsumiert nur den ARCHIVIERTEN, gemergten Zustand von K5.
   Ein Change, der lange unarchiviert bleibt, ist für K4 unsichtbar —
   das Wiki zeigt den alten SSOT-Stand weiter.

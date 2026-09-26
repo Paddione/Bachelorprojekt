@@ -61,7 +61,7 @@ Follow the Bachelorprojekt workflow rules from AGENTS.md:
 
 ## Code Discovery
 
-Use `codebase-memory-mcp` first (search_graph, trace_path, get_code_snippet, query_graph). Fall back to grep/glob for string literals, config values, shell scripts.
+Use `codebase-memory-mcp` first (search_graph, trace_path, get_code_snippet, query_graph). Fall back to grep/glob for string literals, config values, shell scripts. Route recall by query type — known symbol → K3 graph, semantic question → K1 embeddings, doctrine/process → authored docs/ (docs/brain/recall-routing.md); fallback order K1→K3→K4.
 
 ## Quality Gates (verify before merge)
 

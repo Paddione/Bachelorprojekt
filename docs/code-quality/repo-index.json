@@ -934,6 +934,7 @@
         "tests/spec/repo-structure/spec-suite-website-leak.bats",
         "tests/spec/repo-structure/website-moved.bats",
         "tests/spec/routing-check-freetoken.bats",
+        "tests/spec/routing-docs-guard.bats",
         "tests/spec/runner/wrapper-guards.bats",
         "tests/spec/rustdesk-server.bats",
         "tests/spec/rustdesk-server/on-demand-lifecycle.bats",

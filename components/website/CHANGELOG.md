@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.376.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.375.0...website-v1.376.0) (2026-09-26)
+
+
+### Features
+
+* **scripts:** plan-runner — primary worker agents, 3-slot 4B default [T900504] ([#5997](https://github.com/Paddione/Bachelorprojekt/issues/5997)) ([5bbfd7f](https://github.com/Paddione/Bachelorprojekt/commit/5bbfd7f82f1734bdbcea029274a274f0ce7e7971))
+
 ## [1.375.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.374.0...website-v1.375.0) (2026-09-26)
 
 

@@ -54,7 +54,12 @@ runtimes:
     mode: subagent
     model: llamacpp-local/Muse-Glimmer-30B
     write_capable: false
-    note: "Sole local implementation subagent: Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, UD-IQ3_XXS + DFlash2, 131072 served KV, ~79-89 tok/s decode, gemessen 2026-09-25) [T900365]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~90k)."
+    note: "Higher-capability local implementation subagent: Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, UD-IQ3_XXS + DFlash2, 131072 served KV, ~79-89 tok/s decode, gemessen 2026-09-25) [T900365]. Sequential dispatch with per-packet budget_tokens (S ~32k / M ~80k / L ~90k)."
+  qwen35-mtp:
+    mode: subagent
+    model: llamacpp-qwen35/Qwen3.5-4B-MTP
+    write_capable: false
+    note: "Text-only Qwen3.5-4B MTP Q4_K_XL via llama.cpp :1920 on RTX 3060 Ti; 131072 served KV with Q4 target/draft KV, single slot. Use for bounded research, summaries, and straightforward implementation packets; verify important conclusions on the primary model."
   reviewer:
     mode: subagent
     model: llamacpp-local/Muse-Glimmer-30B
@@ -107,9 +112,9 @@ runtimes:
     note: "Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633]"
   orchestrator:
     mode: primary
-    model: opencode-zen/muse-spark-1.3-contributor-free
+    model: llamacpp-local/Muse-Glimmer-30B
     write_capable: true
-    note: "Primary orchestrator on Muse Spark 1.3 Contributor Free (OpenCode Zen, free tier, 1M ctx, 131k output) [T900210]. Also drives the factory executor (opencode-exec.sh runs --agent orchestrator). Dispatches the single local subagent (budget_tokens per packet) + cloud escalation. Eskalationskette: local (2x) → exe-muse (Go, M2) → deepseek-helper-go → deepseek-helper → deepseek-pro"
+    note: "Primary orchestrator on Muse Glimmer 30B via llama.cpp :1919 (RTX 5070 Ti, 131072 served KV). Dispatches qwen35-mtp on the RTX 3060 Ti for bounded local subtasks, plus cloud escalation (exe-muse and DeepSeek rails). Also drives the factory executor (opencode-exec.sh runs --agent orchestrator)."
   exe-muse:
     mode: subagent
     model: opencode-go/muse-spark-1.3-contributor

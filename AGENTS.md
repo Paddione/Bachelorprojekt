@@ -10,8 +10,9 @@ SSOT `.opencode/agent-models.jsonc`; Claude Code domain agents: `.claude/agents/
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | `opencode-zen/muse-spark-1.3-contributor-free` (1M ctx, 131k out, primary, write) + Go fallback `opencode-go/muse-spark-1.3-contributor` via `exe-muse` | Primary — dispatches `local` (budgeted) + exe-muse/2-rail cloud escalation |
-| `local` | `llamacpp-local/Muse-Glimmer-30B` (131k served KV, DFlash2) | Sole local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
+| `orchestrator` | `llamacpp-local/Muse-Glimmer-30B` (131k ctx, RTX 5070 Ti, primary, write) | Primary — dispatches `qwen35-mtp` on RTX 3060 Ti + exe-muse/2-rail cloud escalation |
+| `local` | `llamacpp-local/Muse-Glimmer-30B` (131k served KV, DFlash2) | Higher-capability local subagent; `write=deny`, `edit=allow`; sequential, `budget_tokens` per packet |
+| `qwen35-mtp` | `llamacpp-qwen35/Qwen3.5-4B-MTP` (128k served KV, RTX 3060 Ti) | Text-only single-slot MTP subagent; Q4_K_XL weights and Q4 KV |
 | `exe-muse` | `opencode-go/muse-spark-1.3-contributor` (1M ctx, subagent, write) | Execution worker (M2 after 2× local); dispatched by `orchestrator`/`big-pickle`/`glimmer-primary` |
 | `glimmer-primary` | `llamacpp-local/Muse-Glimmer-30B` (131k, primary, write) | Plan-primary (Muse Glimmer, Spark-Familie); autonomer Ticket-Worker |
 | `big-pickle` | `opencode-zen/big-pickle` (~260k ctx, primary, write) | Zen-Singleagent bis Free-Quota verbraucht |

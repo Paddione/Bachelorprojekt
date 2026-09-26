@@ -1,0 +1,28 @@
+# Qwen3.5-4B-MTP Q4_K_XL on the RTX 3060 Ti, text-only, for the OpenCode subagent.
+# 131072 served KV (128k); target and draft KV in Q4, one slot, MTP enabled.
+# The RTX 5070 Ti remains dedicated to Muse Glimmer 30B on :1919.
+# Install: cp scripts/llm/qwen35-mtp.service ~/.config/systemd/user/
+#          systemctl --user daemon-reload && systemctl --user enable --now qwen35-mtp
+[Unit]
+Description=llama-server Qwen3.5-4B-MTP Q4_K_XL (RTX 3060 Ti, 128k ctx) on :1920
+After=network.target
+
+[Service]
+Type=simple
+Environment=CUDA_DEVICE_ORDER=PCI_BUS_ID
+Environment=CUDA_VISIBLE_DEVICES=GPU-6b9ac882-e9e9-a364-4423-92d838536b86
+ExecStart=%h/opt/llama-current/bin/llama-server \
+  -m /mnt/f/models/hub/models--unsloth--Qwen3.5-4B-MTP-GGUF/snapshots/86835bf9949e4d14d6860f7910b1340ad4f271a9/Qwen3.5-4B-UD-Q4_K_XL.gguf \
+  --alias Qwen3.5-4B-MTP \
+  --spec-type draft-mtp --spec-draft-n-max 4 \
+  -c 131072 \
+  -fit off -ngl 999 \
+  -fa on -ctk q4_0 -ctv q4_0 -ctkd q4_0 -ctvd q4_0 \
+  -np 1 --jinja --no-mmproj \
+  --host 127.0.0.1 --port 1920
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

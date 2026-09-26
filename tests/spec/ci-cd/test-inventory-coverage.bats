@@ -119,18 +119,19 @@ build_sandbox_inventory() {
 
 @test "inventory: Dateien mit strukturierten IDs behalten ihre Eintraege" {
   # Waechter gegen ein Ueberschiessen des Fixes: der Slug-Fallback darf NUR greifen, wo
-  # keine ID gefunden wurde. Die Software-Factory-Suite liefert 55 FA-SF-Eintraege — die
-  # duerfen weder verschwinden noch durch einen einzelnen Slug-Eintrag ersetzt werden.
+  # keine ID gefunden wurde. Die HWS-Suite (tests/spec/harness-workflow-split/ + die
+  # Bestands-Sammeldatei) liefert 14 HWS-Eintraege — die duerfen weder verschwinden noch
+  # durch einen einzelnen Slug-Eintrag ersetzt werden.
   #
-  # [T002503] Gegen das VERZEICHNIS statt gegen die fruehere Sammeldatei
-  # tests/spec/software-factory.bats. Die Zahl 54 bleibt die Aussage: die Aufteilung war
-  # ein Verschieben, kein Umschreiben, also muss die Summe ueber alle Dateien unveraendert
-  # sein. Genau das haette einen stillen Verlust beim Split aufgedeckt.
-  run jq '[.[] | select(.file | startswith("tests/spec/software-factory/")) | select(.id | startswith("FA-SF-"))] | length' "$SANDBOX"
+  # [T002503] Gegen das VERZEICHNIS statt gegen die fruehere Sammeldatei — dieselbe
+  # Struktur wie beim urspruenglichen FA-SF-Anker. [T900399] Die Software-Factory-Suite
+  # (FA-SF-01..55) ist mit dem Factory-Teardown ersatzlos entfallen, dieser Anker haengt
+  # deshalb jetzt an der naechsten strukturiert-ID-Suite, die uebrig ist.
+  run jq '[.[] | select(.file | startswith("tests/spec/harness-workflow-split")) | select(.id | startswith("HWS-"))] | length' "$SANDBOX"
   [ "$status" -eq 0 ]
-  [ "$output" -eq 55 ]
-  run jq -r '[.[] | select(.file | startswith("tests/spec/software-factory/")) | select(.id | startswith("FA-SF-")) | .id] | sort | first' "$SANDBOX"
-  [ "$output" = "FA-SF-01" ]
+  [ "$output" -eq 14 ]
+  run jq -r '[.[] | select(.file | startswith("tests/spec/harness-workflow-split")) | select(.id | startswith("HWS-")) | .id] | sort | first' "$SANDBOX"
+  [ "$output" = "HWS-1" ]
 }
 
 @test "inventory: Schema bleibt unveraendert (id, file, category, kind; kein tier)" {

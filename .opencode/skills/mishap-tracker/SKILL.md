@@ -146,17 +146,18 @@ ticket-mcp-node_flush_mishap_buffer({ brand: "<brand>" })
 
 ## Step 3.5: Mishap-Bundle automatisch planen
 
-Ein Mishap-**Bundle**-Ticket (`severity=minor`/`trivial`) wird automatisch von `triage` nach
-`plan_staged` gehoben. Das erledigt `scripts/factory/auto-chore-plan.sh` [T002390] — der
-Factory-Tick ruft es pro Marke auf. Das Skript ist die Quelle, nicht diese Prosa.
+Ein Mishap-**Bundle**-Ticket (`severity=minor`/`trivial`) wurde vom `triage`-Pfad automatisch nach
+`plan_staged` gehoben. Das erledigte bis **T900399** `auto-chore-plan.sh` im Factory-Baum [T002390]
+— der Factory-Tick rief es pro Marke auf.
 
-```bash
-BRAND=<brand> bash scripts/factory/auto-chore-plan.sh --all [--dry-run]
-```
+> **[T900399] Entfallen.** Mit dem Factory-Teardown gibt es keinen automatischen Hebepfad mehr:
+> ein Bundle-Ticket wandert manuell von `triage` nach `plan_staged`. Der Rest dieses Abschnitts
+> beschreibt die Gate-Regeln, die weiter gelten — `major`/`critical` tragen `broken`-/`security`-
+> Einträge und bleiben `triage`; es wird **kein** Ticket erzeugt und **kein** Container angelegt.
+> Ein Automationstragendes Skript an anderer Stelle ist nicht Teil von T900399.
 
 Das Gate laesst nur `minor`/`trivial` durch. `major`/`critical` tragen `broken`- oder
-`security`-Eintraege, gehoeren vor menschliche Augen und bleiben `triage`. Das Skript plant ein
-**vorhandenes** Ticket, es erzeugt keines und legt keinen Container an.
+`security`-Eintraege, gehoeren vor menschliche Augen und bleiben `triage`.
 
 ---
 

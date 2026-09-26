@@ -120,18 +120,3 @@ runtimes:
     model: llamacpp-local/Muse-Glimmer-30B
     write_capable: true
     note: "PRIMARY: Local Muse Glimmer 30B via llama.cpp (:1919, RTX 5070 Ti, served KV 131072) (llamacpp-local/Muse-Glimmer-30B) [T900365]. Autonomous ticket-hammering agent: prioritizes critical tickets, plans (/dev-flow-plan), explores (/opsx:explore), executes, and archives."
-
-# T900074-p2: factory role declarations (mirror — SSOT is .opencode/agent-models.jsonc)
-factory_roles:
-  planner:
-    description: "Code search, read, ticket operations; dispatched via orchestrator (local is implementer-only, task:deny)"
-    agents: [orchestrator]
-  implementer:
-    description: "Full dev access: read/edit/bash/task; new files via orchestrator (write:deny by design, AGENTS.md:41)"
-    agents: [local, deepseek-helper-go, deepseek-helper, deepseek-pro, deepseek-pro-direct, deepseek-flash, deepseek-flash-direct]
-  reviewer:
-    description: "Read/grep/glob/tests only; no edit/write/bash/task (edit:deny, write:deny, bash:deny, task:deny)"
-    agents: [reviewer]
-  dispatcher:
-    description: "Ticket/session ops only; no code tools"
-    agents: []

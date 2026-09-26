@@ -57,12 +57,18 @@ setup() {
   # factory-mcp-Tools: Count gegen dieselbe Regex-Quelle wie der Scanner
   # (scripts/sdlc/api-inventory.mjs scanFactoryMcpTools) -- kein harter Count,
   # robust beim naechsten legitimen Tool-Zuwachs (T007968).
-  factory_n=$(node -e '
-    const fs = require("fs");
-    const src = fs.readFileSync("scripts/factory/mcp-go/main.go", "utf8");
-    const re = /Name:\s*"([^"]+)",\s*\n\s*Description:\s*"([^"]+)"/g;
-    process.stdout.write(String([...src.matchAll(re)].length));
-  ')
+  # T900399: der factory-mcp-Server ist ausgebaut, main.go existiert nicht mehr;
+  # der Scanner liefert dann die leere Liste, der Test ebenso.
+  if [ -f scripts/factory/mcp-go/main.go ]; then
+    factory_n=$(node -e '
+      const fs = require("fs");
+      const src = fs.readFileSync("scripts/factory/mcp-go/main.go", "utf8");
+      const re = /Name:\s*"([^"]+)",\s*\n\s*Description:\s*"([^"]+)"/g;
+      process.stdout.write(String([...src.matchAll(re)].length));
+    ')
+  else
+    factory_n=0
+  fi
   [ "$(jq '.factoryTools | length' "$out")" -eq "$factory_n" ]
 }
 

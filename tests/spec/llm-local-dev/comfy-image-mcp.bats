@@ -214,7 +214,10 @@ run_job() {
 }
 
 @test "the MCP registry does not list the image server" {
-  grep -q 'factory-mcp' "$REPO/docs/agent-guide/registry/mcp.yaml"
+  # Positiv-Anker: die Registry ist lesbar und enthaelt überhaupt MCP-Server.
+  # (Bis T900399 stand hier `factory-mcp`; der Server ist mit der Software-Factory
+  # entfallen, der Anker muss an einem verbleibenden Server haengen.)
+  grep -q 'mcp-kubernetes' "$REPO/docs/agent-guide/registry/mcp.yaml"
   [ -z "$(grep -F 'comfy-image' "$REPO/docs/agent-guide/registry/mcp.yaml" || true)" ]
 }
 

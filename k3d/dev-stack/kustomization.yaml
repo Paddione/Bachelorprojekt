@@ -10,9 +10,6 @@ resources:
   - shared-db-dev.yaml
   - website-dev.yaml
   - brett-dev.yaml
-  - factory-runner.yaml
-  # factory-runner tick-to-runner NetworkPolicy (T900110)
-  - factory-runner-netpol.yaml
   - sish.yaml
   - traefik-wildcard-ingress.yaml
   - shared-db-dev-lb.yaml
@@ -37,17 +34,4 @@ patches:
       group: batch
       version: v1
       kind: Job
-  # ADR-007 A.4: Mount des Operator-SealedSecrets factory-runner-secrets nach
-  # /workspace/.secrets/ (FACTORY_GITCRYPT_KEY + FACTORY_ENV_FILE + PAT/API-Keys).
-  # Cleartext-Platzhalter: bis der Operator das Secret per kubeseal angelegt hat,
-  # bleibt der Tick fail-closed (siehe Datei-Kommentar).
-  - path: factory-runner-secrets-patch.yaml
-    target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: factory-runner
-# factory-runner ist die Ausnahme: statisch auf ghcr.io/paddione/factory-runner
-# gepinnt (Tag :latest bis zum ersten CI-Build, Digest hart vor dem Cutover —
-# Strategie-Kommentar in factory-runner.yaml, T016422 T2.3).
 

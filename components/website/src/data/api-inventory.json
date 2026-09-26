@@ -389,7 +389,7 @@
         "PATCH"
       ],
       "backend": [
-        "postgres"
+        "unknown"
       ],
       "description": null,
       "tier": null,
@@ -532,7 +532,7 @@
         "GET"
       ],
       "backend": [
-        "postgres"
+        "unknown"
       ],
       "description": null,
       "tier": null,
@@ -1781,14 +1781,6 @@
       "deprecated": null
     },
     {
-      "name": "factory-mcp-node",
-      "transport": "http",
-      "endpoint": "http://localhost:13003/mcp",
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
       "name": "mcp-kubernetes",
       "transport": "http",
       "endpoint": "http://localhost:18080/mcp",
@@ -1837,48 +1829,5 @@
       "deprecated": null
     }
   ],
-  "factoryTools": [
-    {
-      "name": "factory_ask",
-      "description": "Ask a natural-language question about the Software Factory. Backed by local Qwen 3.5 9B. For actions (enqueue/trigger/...), prefer the dedicated tools.",
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "name": "factory_enqueue",
-      "description": "Enqueue a ticket into the factory backlog",
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "name": "factory_queue",
-      "description": "List exactly the tickets the next factory tick would pick (dispatchable lanes from scripts/factory/queue.sh) — not the raw backlog inventory (see factory_status *_total).",
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "name": "factory_recent",
-      "description": "Show last N factory run comments from ticket_comments",
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "name": "factory_status",
-      "description": "Queue-Tiefe und laufender Tick fuer das Statusband.",
-      "tier": "core",
-      "deprecated": null
-    },
-    {
-      "name": "factory_trigger",
-      "description": "Trigger an immediate factory tick (runs wakeup.sh in background)",
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "name": "openspec_find_similar",
-      "description": "Findet semantisch ähnliche OpenSpec Changes zu einer Suchanfrage (wraps /api/openspec/search)",
-      "tier": null,
-      "deprecated": null
-    }
-  ]
+  "factoryTools": []
 }

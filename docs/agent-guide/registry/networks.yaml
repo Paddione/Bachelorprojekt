@@ -170,13 +170,6 @@ networks:
     status: active
     source: Docker-Daemon
 
-  - id: docker-factory-sandbox-egress
-    cidr: 172.18.0.0/16
-    owner: Docker (Entwicklungsrechner)
-    purpose: Netz factory-sandbox-egress der Software-Factory
-    status: active
-    source: Docker-Daemon
-
   - id: docker-k3d-sdlc-dev
     cidr: 172.23.0.0/16
     owner: Docker (Entwicklungsrechner)

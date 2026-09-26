@@ -18,7 +18,6 @@ beteiligten Bereiche einander nennen, mit Grund und Absicherung.
 | `10.53.0.0/16` | devmesh-Cluster (ADR-008) | Service-Netz (ClusterIP), kubernetes.default auf 10.53.0.1, CoreDNS auf 10.53.0.10 | active | scripts/devmesh/k3s-install.sh (SERVICE_CIDR, CLUSTER_DNS) |
 | `100.64.0.0/10` | Tailnet (p.korczewski) | NAT-durchdringendes Overlay für den Zugriff auf devmesh (ADR-008): Server mit tag:devmesh, Dev-Clients mit tag:devclient | active | Tailscale-Dienst auf den Geräten; Soll-Zustand devmesh/inventory.yaml und devmesh/tailnet-policy.hujson, Prüfung task devmesh:tailnet:check |
 | `172.17.0.0/16` | Docker (Entwicklungsrechner) | Default-Bridge | active | Docker-Daemon |
-| `172.18.0.0/16` | Docker (Entwicklungsrechner) | Netz factory-sandbox-egress der Software-Factory | active | Docker-Daemon |
 | `172.23.0.0/16` | Docker (Entwicklungsrechner) | Netz des lokalen k3d-SDLC-Clusters mentolder-dev (abgebaut) | retired | Docker-Daemon (k3d) |
 | `192.168.100.0/24` | mentolder | WireGuard-Mesh; GPU-Host auf .10, Laptops auf .11 und .12, Hetzner-Knoten auf .33 bis .35 | active | wireguard/wg-mesh-nodes.yaml (Sektion mentolder) |
 | `192.168.100.0/24` | Hetzner Cloud | Privates Netz der Server pk-hetzner-4 (.5), pk-hetzner-6 (.6), pk-hetzner-8 (.8) | active | Hetzner-Cloud-Konsole (nicht im Repo konfiguriert) |

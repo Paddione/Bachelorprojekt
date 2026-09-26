@@ -416,19 +416,9 @@ cmd_release_hold() {
 UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":true}'::jsonb
  WHERE external_id = :'ext_id';
 EOF
-  _exec_sql "$pod" -v setby='release-hold' <<'EOF' >/dev/null 2>&1
-INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
-VALUES ('force-tick-requested', NULL, now()::text, :'setby', now())
-ON CONFLICT (key, brand) DO UPDATE
-  SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
-EOF
   echo "execution_released set to true for ticket $id"
-  # --no-block: factory.service ist Type=oneshot (RuntimeMaxSec=3600). Ohne --no-block
-  # haengt sich `systemctl start` an einen laufenden Job und wartet bis zu 61 min — der
-  # Aufruf ist aber nur ein Weck-Beschleuniger, die Semantik traegt der DB-Schluessel
-  # force-tick-requested oben. Die Bestaetigung steht davor, damit die Zustandsaenderung
-  # auch bei klemmendem systemd gemeldet wird. [T002366]
-  systemctl --user start --no-block factory.service 2>/dev/null || true
+  # T900399: the Software Factory is decommissioned, so there is no wake-up path
+  # left. The release is now a pure DB flag that the next dev-flow session picks up.
 }
 
 cmd_seq_repair() {
@@ -556,136 +546,12 @@ EOF
   esac
 }
 
-# Terminal state for a ticket the Software Factory could not complete (T002361).
-# The watchdog calls this once its per-ticket attempt counter reaches
-# FACTORY_MAX_ATTEMPTS, instead of resetting the status yet again — that reset was
-# the second half of the dry-run-first livelock (a dry-run aborting before
-# `dryrun-mark` never clears guard_dryrun_ok, so every tick forced another
-# preview and burned a headless session).
-#
-# All effects run in ONE transaction on purpose. A half-applied terminal state
-# (status=blocked but no factory_excluded flag) is silently re-dispatchable the
-# moment somebody moves the status back — which is exactly the failure this
-# subcommand exists to prevent.
-cmd_unfactory() {
-  local id="" attempts=""
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --id)       id="$2"; shift 2 ;;
-      --attempts) attempts="$2"; shift 2 ;;
-      *)          echo "Unknown unfactory option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh unfactory" >&2; exit 2 ;;
-    esac; done
-  # Validate BEFORE _pgpod so bad-arg errors stay deterministic without a cluster
-  # (same convention as cmd_phase / FA-SF-48).
-  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
-  # [T002785-1] Der Watchdog uebergibt den Attempts-Wert mit failure_class-Praefix
-  # (INFRA-3, MODEL-2 — scripts/factory/watchdog.sh:178, T002389). Reine-Ziffern-
-  # Validierung liess den regulaeren Eskalationspfad mit exit 2 scheitern; der
-  # Terminal-State (blocked + factory_excluded) wurde nie gesetzt. Erlaubt sind
-  # weiterhin reine Ziffern UND [A-Z]+-<Ziffern>.
-  if [[ -n "$attempts" && ! "$attempts" =~ ^([A-Z]+-)?[0-9]+$ ]]; then
-    echo "ERROR: --attempts must be a non-negative integer (or CLASS-N, e.g. INFRA-3)." >&2; exit 2
-  fi
-  if _ticket_offline_skip "unfactory" "--id" "$id"; then return 0; fi
-  local pod; pod=$(_pgpod)
-  _exec_sql "$pod" -v ext_id="$id" -v attempts="${attempts:-unknown}" <<'EOF' >/dev/null
-BEGIN;
-
-UPDATE tickets.tickets
-SET status         = 'blocked',
-    attention_mode = 'needs_human',
-    readiness      = COALESCE(readiness, '{}'::jsonb) || '{"factory_excluded":true}'::jsonb
-WHERE external_id = :'ext_id';
-
--- The closing comment reads the attempt count and the most recent phase event so
--- the ticket carries its own explanation; the watchdog wrote seven identical
--- comments to T002282 without anybody noticing (T002361).
-INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-SELECT t.id, 'factory-watchdog',
-       'Unfactored: die Software Factory hat dieses Ticket nach '
-       || :'attempts' || ' erfolglosen Watchdog-Runden abgegeben.'
-       || E'\n\nStatus=blocked, attention_mode=needs_human, readiness.factory_excluded=true — '
-       || E'queue.sh dispatcht es in KEINEM Zweig mehr, auch nicht nach einem Statuswechsel.'
-       || E'\n\nLetztes Phase-Event: '
-       || COALESCE((SELECT pe.phase || '/' || pe.state || ' @ ' || pe.at::text
-                    FROM tickets.factory_phase_events pe
-                    WHERE pe.ticket_id = t.id
-                    ORDER BY pe.at DESC LIMIT 1), 'keines')
-       || E'\n\nRueckweg (nur menschlich): '
-       || 'ticket.sh plan-meta set --id ' || t.external_id
-       || ' --readiness factory_excluded=false',
-       'internal'
-FROM tickets.tickets t WHERE t.external_id = :'ext_id';
-
-COMMIT;
-EOF
-  echo "unfactored ticket $id (status=blocked, needs_human, factory_excluded=true)"
-}
-
-cmd_factory_control() {
-  local action="" key="" brand="" value="" set_by=""
-  if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --key)    key="$2"; shift 2 ;;
-      --brand)  brand="$2"; shift 2 ;;
-      --value)  value="$2"; shift 2 ;;
-      --set-by) set_by="$2"; shift 2 ;;
-      *)        echo "Unknown factory-control option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh factory-control" >&2; exit 2 ;;
-    esac; done
-  if [[ "$action" != "get" && "$action" != "set" ]]; then
-    echo "ERROR: factory-control requires an action (get|set)." >&2; exit 2
-  fi
-  if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
-  # Validate before _pgpod so bad-arg errors are deterministic without a cluster (CI/FA-SF-35).
-  if [[ "$action" == "set" && -z "$value" ]]; then echo "ERROR: --value is required for set." >&2; exit 2; fi
-  local pod; pod=$(_pgpod)
-  if [[ "$action" == "get" ]]; then
-    _exec_sql "$pod" -v key="$key" -v brand="$brand" <<'EOF'
-SELECT value FROM tickets.factory_control
-WHERE key = :'key' AND brand IS NOT DISTINCT FROM NULLIF(:'brand','');
-EOF
-  else
-    # Delete-then-insert, NOT ON CONFLICT: the unique index treats NULL brands as DISTINCT, so ON CONFLICT never fires for the global row → duplicates → kill-switch fail-open (T000474).
-    _exec_sql "$pod" -v key="$key" -v brand="$brand" -v value="$value" -v set_by="$set_by" <<'EOF' >/dev/null
-DELETE FROM tickets.factory_control WHERE key = :'key' AND brand IS NOT DISTINCT FROM NULLIF(:'brand','');
-INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
-VALUES (:'key', NULLIF(:'brand',''), :'value', NULLIF(:'set_by',''), now());
-EOF
-    echo "factory-control set: $key=${value}${brand:+ (brand=$brand)}"
-  fi
-}
-
-cmd_dryrun_mark() {
-  local id=""
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown dryrun-mark option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh dryrun-mark" >&2; exit 2 ;;
-    esac; done
-  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
-  local pod; pod=$(_pgpod)
-  _exec_sql "$pod" -v key="dryrun:$id" <<'EOF' >/dev/null
-INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
-VALUES (:'key', NULL, 'done', 'ticket.sh', now())
-ON CONFLICT (key, brand) DO UPDATE SET value = 'done', updated_at = now();
-EOF
-  echo "dryrun marked for ticket $id"
-}
-
-cmd_dryrun_check() {
-  local id=""
-  while [[ $# -gt 0 ]]; do case "$1" in
-      --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown dryrun-check option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh dryrun-check" >&2; exit 2 ;;
-    esac; done
-  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
-  local pod found
-  pod=$(_pgpod)
-  found=$(_exec_sql "$pod" -v key="dryrun:$id" <<'EOF'
-SELECT 1 FROM tickets.factory_control WHERE key = :'key' AND brand IS NULL LIMIT 1;
-EOF
-)
-  if [[ "$found" == "1" ]]; then exit 0; else exit 1; fi
-}
-
+# T900399: the Software Factory is decommissioned. The former `unfactory`
+# (watchdog terminal state), `factory-control` (kill-switch/daily-cap table) and
+# `dryrun-mark` / `dryrun-check` (dry-run livelock guard) subcommands were removed
+# together with the subsystem — their only callers lived in scripts/factory/ and
+# their backing table `tickets.factory_control` is dropped by
+# scripts/migrations/2026-09-26-factory-decommission.sql.
 cmd_feature_flag() {
   local action="" brand="" key="" enabled="" set_by=""
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
@@ -753,7 +619,9 @@ EOF
   echo "phase recorded: $id $phase/$state (driver=$driver)"
 }
 
-# Factory injection: operator notes/context/assets fed into a running/next pipeline. Validate-before-_pgpod (FA-SF-49).
+# Operator injection: notes/context/assets attached to a ticket. Validate-before-_pgpod (FA-SF-49).
+# T900399: the consumer was the deleted factory pipeline; the injection record and
+# this subcommand stay as an operator surface for the SDLC cockpit.
 cmd_inject() {
   local id="" kind="" phase="" title="" content="" tfiles="" file="" nc_path="" by="admin"
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -996,12 +864,6 @@ comments AS (
   FROM tickets.ticket_comments tc
   WHERE tc.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
 ),
-phase_events AS (
-  SELECT 'phase_event' AS source, pe.at AS ts,
-    jsonb_build_object('phase', pe.phase, 'state', pe.state, 'driver', pe.driver, 'detail', pe.detail) AS detail
-  FROM tickets.factory_phase_events pe
-  WHERE pe.ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
-),
 pr_links AS (
   SELECT 'pr_link' AS source, tl.created_at AS ts,
     jsonb_build_object('pr_number', tl.pr_number) AS detail
@@ -1018,7 +880,6 @@ plan_events AS (
 ),
 all_events AS (
   SELECT * FROM comments
-  UNION ALL SELECT * FROM phase_events
   UNION ALL SELECT * FROM pr_links
   UNION ALL SELECT * FROM plan_events
 )
@@ -1117,10 +978,6 @@ case "$cmd" in
   seq-repair)        cmd_seq_repair "$@" ;;
   assert-phase-chain) cmd_assert_phase_chain "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;
-  unfactory)         cmd_unfactory "$@" ;;
-  factory-control)   cmd_factory_control "$@" ;;
-  dryrun-mark)       cmd_dryrun_mark "$@" ;;
-  dryrun-check)      cmd_dryrun_check "$@" ;;
   feature-flag)      cmd_feature_flag "$@" ;;
   phase)             cmd_phase "$@" ;;
   inject)            cmd_inject "$@" ;;

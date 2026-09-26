@@ -6,114 +6,6 @@ version: "3"
 # the opencode/openclaw CLI binary itself.
 
 tasks:
-  factory-mcp:start:
-    desc: "Start the Factory MCP server in the background (PID file)"
-    cmds:
-      # Build the Go binary on first run, then launch it detached. The Go
-      # binary at scripts/factory/mcp-go/bin/factory-mcp is the SSOT for the
-      # Streamable-HTTP MCP shape on 127.0.0.1:13003; the legacy Node
-      # implementation was removed with T014936.
-      - |
-        bash -c '
-          set -euo pipefail
-          REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
-          BIN="$REPO/scripts/factory/mcp-go/bin/factory-mcp"
-          if [[ ! -x "$BIN" ]]; then
-            echo "factory-mcp: building $BIN"
-            (cd "$REPO/scripts/factory/mcp-go" && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.buildInfo=$(git -C "$REPO" describe --always --dirty 2>/dev/null || echo dev)" -o bin/factory-mcp .)
-          fi
-          PIDFILE=/tmp/factory-mcp.pid
-          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-            echo "factory-mcp already running (PID $(cat "$PIDFILE"))"
-          else
-            nohup "$BIN" > /tmp/factory-mcp.log 2>&1 &
-            echo $! > "$PIDFILE"
-            echo "factory-mcp started (PID $(cat "$PIDFILE"))"
-          fi
-        '
-
-  factory-mcp:stop:
-    desc: "Stop the Factory MCP server"
-    cmds:
-      # Run under real bash: go-task's mvdan/sh `kill` builtin mishandles `kill -0`,
-      # so the liveness check always fails and the server is never actually stopped.
-      - |
-        bash -c '
-          PIDFILE=/tmp/factory-mcp.pid
-          if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-            kill "$(cat "$PIDFILE")"
-            rm -f "$PIDFILE"
-            echo "factory-mcp stopped"
-          else
-            echo "factory-mcp not running"
-            rm -f "$PIDFILE"
-          fi
-        '
-
-  factory-mcp:status:
-    desc: "Health-check the Factory MCP server"
-    cmds:
-      - curl -sS --max-time 3 http://127.0.0.1:13003/health && echo "" || echo "factory-mcp not responding"
-
-  factory-mcp:build:
-    desc: "Build the Go factory-mcp binary (scripts/factory/mcp-go/bin/factory-mcp)"
-    dir: scripts/factory/mcp-go
-    cmds:
-      - CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.buildInfo=$$(git describe --always --dirty 2>/dev/null || echo dev)" -o bin/factory-mcp .
-
-  factory-mcp:install:
-    desc: "Install factory-mcp as a persistent systemd USER service (autostart + Restart=always), replacing the manual nohup/PID-file flow."
-    silent: true
-    cmds:
-      - |
-        set -euo pipefail
-        if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host (WSL (or native Windows) without lingering?)."
-          echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: use task agents:factory-mcp:start."
-          exit 1
-        fi
-        BIN="$(pwd)/scripts/factory/mcp-go/bin/factory-mcp"
-        if [[ ! -x "$BIN" ]]; then
-          echo "factory-mcp: building $BIN"
-          (cd scripts/factory/mcp-go && CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/factory-mcp .)
-        fi
-        # Stop any manually-started nohup instance so the port is free for systemd.
-        PIDFILE=/tmp/factory-mcp.pid
-        if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-          kill "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
-        fi
-        UNIT_DIR="${HOME}/.config/systemd/user"
-        SRC="$(pwd)/scripts/factory/mcp-go"
-        mkdir -p "${UNIT_DIR}"
-        ln -sf "${SRC}/factory-mcp.service" "${UNIT_DIR}/factory-mcp.service"
-        systemctl --user daemon-reload
-        systemctl --user enable --now "${SRC}/factory-mcp.service"
-        echo "factory-mcp installed as systemd --user service (autostart + Restart=always)."
-
-  factory-mcp:uninstall:
-    desc: "Stop + disable the factory-mcp systemd service and remove the symlinked unit."
-    silent: true
-    cmds:
-      - |
-        set -euo pipefail
-        UNIT_DIR="${HOME}/.config/systemd/user"
-        systemctl --user disable --now factory-mcp.service 2>/dev/null || true
-        rm -f "${UNIT_DIR}/factory-mcp.service"
-        systemctl --user daemon-reload 2>/dev/null || true
-        echo "factory-mcp systemd service uninstalled."
-
-  factory-mcp:service-status:
-    desc: "Show the factory-mcp systemd service state + recent journal tail."
-    silent: true
-    cmds:
-      - |
-        set -euo pipefail
-        if ! systemctl --user show-environment >/dev/null 2>&1; then
-          echo "No systemd --user manager on this host."
-          exit 0
-        fi
-        systemctl --user status factory-mcp.service --no-pager -n 20 || true
-
   # ── mcp-gateway — kubectl port-forwards [T900107, T900191] ──────────────
   # fleet svc/dev-pod: mcp-kubernetes (:18080), github (:13002).
   # devmesh svc/llm-services: llm-proxy (:18235), mcp-postgres (:13001), bge-mcp (:13005).
@@ -289,17 +181,17 @@ tasks:
         echo "mcp-gateway-watchdog uninstalled."
 
   # ── mcp-unified — single-entry-point for non-systemd hosts (WSL / Windows) ──
-  # Alternative zu start-windows.ps1 fuer WSL ohne systemd. Startet den fleet-Forward,
-  # den devmesh-Forward (llm-services) und factory-mcp-node mit PID-Files.
+  # Alternative zu start-windows.ps1 fuer WSL ohne systemd. Startet den fleet-Forward
+  # und den devmesh-Forward (llm-services) mit PID-Files.
   # Nicht zusammen mit start-windows.ps1 betreiben (gemeinsamer Loopback).
   #
   # Usage:
-  #   task agents:mcp:start      # start all three
-  #   task agents:mcp:stop       # stop all three
-  #   task agents:mcp:status     # health-check all three
+  #   task agents:mcp:start      # start both
+  #   task agents:mcp:stop       # stop both
+  #   task agents:mcp:status     # health-check both
 
   mcp:start:
-    desc: "Start fleet + devmesh port-forwards and factory-mcp (no systemd) — not together with start-windows.ps1"
+    desc: "Start fleet + devmesh port-forwards (no systemd) — not together with start-windows.ps1"
     cmds:
       - bash scripts/mcp-gateway/start-mcp-unified.sh start
 
@@ -309,20 +201,18 @@ tasks:
       - bash scripts/mcp-gateway/start-mcp-unified.sh stop
 
   mcp:status:
-    desc: "Health-check all four MCP endpoints (mcp-kubernetes, mcp-postgres, factory-mcp-node, bge-mcp)"
+    desc: "Health-check all MCP endpoints (mcp-kubernetes, mcp-postgres, bge-mcp)"
     cmds:
       - bash scripts/mcp-gateway/start-mcp-unified.sh status
 
   mcp:install:
     desc: "Install all daemon-backed MCP servers as systemd USER services (Linux with systemd --user)"
     cmds:
-      - task: factory-mcp:install
       - task: mcp-gateway:install
 
   mcp:uninstall:
     desc: "Uninstall all daemon-backed MCP servers from systemd --user"
     cmds:
-      - task: factory-mcp:uninstall
       - task: mcp-gateway:uninstall
 
   mcp:service-status:
@@ -336,7 +226,7 @@ tasks:
           exit 0
         fi
         echo "── systemd MCP services ──"
-        for svc in factory-mcp mcp-gateway devmesh-forward; do
+        for svc in mcp-gateway devmesh-forward; do
           echo -n "$svc: "
           systemctl --user status ${svc}.service --no-pager 2>/dev/null | head -1 || echo "not installed"
         done
@@ -344,7 +234,7 @@ tasks:
   # ── mcp-cors-proxy — CORS-Proxy vor mcp-kubernetes (:18082 -> :18080) ──
   # Das OTS-Image kubernetes_mcp_server kann kein CORS und wirft 403 auf
   # Origin-Header; der Browser-Client (llama-Web-UI) braucht deshalb diesen
-  # Proxy. Same install/status shape as factory-mcp above.
+  # Proxy. Same install/status shape as mcp-gateway above.
 
   mcp-cors-proxy:install:
     desc: "Install mcp-cors-proxy as a persistent systemd USER service (autostart + Restart=always)."
@@ -527,16 +417,14 @@ tasks:
   # ── stack — the whole MCP surface at a glance ─────────────────────────
 
   stack:install:
-    desc: "Install every daemon-backed MCP server (factory-mcp, mcp-gateway, mcp-cors-proxy) as persistent systemd services"
+    desc: "Install every daemon-backed MCP server (mcp-gateway, mcp-cors-proxy) as persistent systemd services"
     cmds:
-      - task: factory-mcp:install
       - task: mcp-gateway:install
       - task: mcp-cors-proxy:install
 
   stack:uninstall:
     desc: "Uninstall every daemon-backed MCP server's systemd service"
     cmds:
-      - task: factory-mcp:uninstall
       - task: mcp-gateway:uninstall
       - task: mcp-cors-proxy:uninstall
 
@@ -545,7 +433,6 @@ tasks:
     silent: true
     cmds:
       - echo "── daemon-backed MCP servers ──"
-      - task: factory-mcp:status
       - task: mcp-gateway:status
       - echo ""
       - task: stdio:status

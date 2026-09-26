@@ -47,7 +47,7 @@ In-flight:
   - A dispatch-only workflow turns executor results into a pull request and issues | T900338 | active | ADDED
 
 ### software-factory
-Reqs: 208 · Scenarios: 635 · Lines: 5757
+Reqs: 208 · Scenarios: 635 · Lines: 5792
 Paths: scripts/factory
 Last touches:
   - Bonsai Provider Registration for Implement and Review | T900365 | 2026-09-25 | MODIFIED
@@ -55,6 +55,12 @@ Last touches:
   - REQ-SF-EXECUTOR-004 — Muse Spark 1.3 planning with Go fallback | T900365 | 2026-09-25 | MODIFIED
   - AK-04: Prototyp-Betrieb | T900310 | 2026-09-22 | MODIFIED
   - Force-Tick Trigger | T900054 | 2026-09-17 | MODIFIED
+In-flight:
+  - Dispatcher-Tick-Execution | T900399 | active | REMOVED
+  - Queue-Poll und Slot-Claim | T900399 | active | REMOVED
+  - Kill-Switch und Daily-Cap Guards | T900399 | active | REMOVED
+  - Software-Factory Subsystem Decommissioned | T900399 | active | ADDED
+  - Independent Database Migration Execution | T900399 | active | ADDED
 
 ## delivery
 

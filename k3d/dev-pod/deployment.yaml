@@ -106,7 +106,7 @@ spec:
             - name: GITHUB_PERSONAL_ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: factory-runner-secrets
+                  name: shared-db-dev-secrets
                   key: GITHUB_PAT
                   optional: true
             - name: DEV_POD_REPO

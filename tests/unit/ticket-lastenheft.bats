@@ -1,12 +1,14 @@
 #!/usr/bin/env bats
 # bats file_tags=offline
-# Offline test: `ticket.sh lastenheft` lock/unlock + `plan-meta --requirements`, and the
-# queue.sh autopilot gate. Arg-validation runs before any cluster access; SQL shape is
+# Offline test: `ticket.sh lastenheft` lock/unlock + `plan-meta --requirements`.
+# Arg-validation runs before any cluster access; SQL shape is
 # asserted against captured psql input. kubectl is mocked; no live cluster.
+# T900399: the former queue.sh autopilot gate was dropped along with the
+# software-factory pipeline; the lastenheft_locked readiness flag itself is
+# unchanged and still exercised below.
 
 setup() {
   TICKET="$BATS_TEST_DIRNAME/../../scripts/ticket.sh"
-  QUEUE="$BATS_TEST_DIRNAME/../../scripts/factory/queue.sh"
   MOCKDIR="$(mktemp -d)"
   CAP="$MOCKDIR/captured.sql"
   # Default mock: any exec (count SELECT + UPDATE) returns "1" so lock precondition passes.
@@ -74,8 +76,4 @@ EOF
   run bash "$TICKET" plan-meta set --id T000123 --requirements 'Login via SSO|Export, als PDF'
   [ "$status" -eq 0 ]
   grep -q "requirements_list = COALESCE(ARRAY\['Login via SSO','Export, als PDF'\], requirements_list)" "$CAP"
-}
-
-@test "queue.sh gates the autopilot on a locked Lastenheft (fail-closed)" {
-  grep -q "COALESCE((readiness->>'lastenheft_locked')::boolean, false) = true" "$QUEUE"
 }

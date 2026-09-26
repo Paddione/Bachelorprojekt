@@ -36,11 +36,11 @@ setup() {
   # scripts/llm/loadouts.json ist BEWUSST NICHT dabei: dort stehen die
   # Backend-Adressen bestimmungsgemaess (die Rollen-Ketten referenzieren die
   # Ports), genau wie bei den Registry-Seeds.
+  # T900399: die drei Factory-Routing-Flaechen (provider-register-local.sh,
+  # route-provider.sh, pipeline.mjs) sind mit dem Factory-Baum entfallen; der
+  # Lint deckt jetzt die verbleibenden Gateway-Konsumenten ab.
   SURFACES=(
     ".opencode/agent-models.jsonc"
-    "scripts/factory/provider-register-local.sh"
-    "scripts/factory/route-provider.sh"
-    "scripts/factory/pipeline.mjs"
     "scripts/openspec-embed-local.sh"
   )
   # Nur die Routing-Flaechen: hier entscheidet ein Modellname, wohin ein
@@ -51,9 +51,7 @@ setup() {
   # Der Backend-Port-Test unten deckt die Datei weiterhin ab, wie es das
   # SSOT-Szenario verlangt.
   ROUTING_SURFACES=(
-    "scripts/factory/provider-register-local.sh"
-    "scripts/factory/route-provider.sh"
-    "scripts/factory/pipeline.mjs"
+    "scripts/openspec-embed-local.sh"
   )
 }
 

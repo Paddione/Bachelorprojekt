@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T11:25:13.699Z",
+  "generatedAt": "2026-09-26T01:38:31.235Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -96,18 +96,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "dev-pod"
-    },
-    {
-      "id": "factory-runner",
-      "namespace": "mentolder",
-      "type": "Deployment",
-      "name": "factory-runner"
-    },
-    {
-      "id": "factory-tick",
-      "namespace": "mentolder",
-      "type": "CronJob",
-      "name": "factory-tick"
     },
     {
       "id": "oauth2-proxy-brainstorm",
@@ -731,12 +719,6 @@
     },
     {
       "from": "dev-pod",
-      "to": "website",
-      "via": "env:FACTORY_PG_URL",
-      "kind": "env"
-    },
-    {
-      "from": "factory-runner",
       "to": "website",
       "via": "env:FACTORY_PG_URL",
       "kind": "env"
@@ -1398,12 +1380,6 @@
     {
       "from": "dev-pod",
       "to": "dev-pod",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "factory-runner",
-      "to": "factory-runner",
       "via": "selector",
       "kind": "selector"
     },
@@ -12575,18 +12551,6 @@
     },
     {
       "from": "dev-pod",
-      "to": "factory-runner",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "factory-runner",
-      "to": "dev-pod",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-pod",
       "to": "sdlc-console",
       "via": "secret:shared-db-dev-secrets",
       "kind": "secret"
@@ -12623,18 +12587,6 @@
     },
     {
       "from": "brett",
-      "to": "factory-runner",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "factory-runner",
-      "to": "brett",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
       "to": "sdlc-console",
       "via": "secret:shared-db-dev-secrets",
       "kind": "secret"
@@ -12666,42 +12618,6 @@
     {
       "from": "website",
       "to": "brett",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "factory-runner",
-      "to": "sdlc-console",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "factory-runner",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "factory-runner",
-      "to": "shared-db-dev",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db-dev",
-      "to": "factory-runner",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "factory-runner",
-      "to": "website",
-      "via": "secret:shared-db-dev-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "website",
-      "to": "factory-runner",
       "via": "secret:shared-db-dev-secrets",
       "kind": "secret"
     },

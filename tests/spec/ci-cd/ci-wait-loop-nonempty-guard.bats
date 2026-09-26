@@ -23,10 +23,13 @@
 #
 # Prüfmodus: command output verification (CLAUDE.md Test-Resultats-Konvention,
 # T002448-M4). Die Helper-Tests speisen eine Fixture-JSON über stdin ein und
-# messen Verdict + Exit-Code; der Schleifentest fährt
-# scripts/factory/pr-babysit-ticket.sh gegen ein gh-Stub-Paar auf dem PATH und
-# misst dessen Terminierung. Kein echter gh-Aufruf, kein Netz. Zugesichert wird
+# messen Verdict + Exit-Code. Kein echter gh-Aufruf, kein Netz. Zugesichert wird
 # die Semantik (Exit-Code, Verdict-Wort), nicht das Ausgabeformat (T002716).
+#
+# T900399: die beiden Schleifen-Tests, die scripts/factory/pr-babysit-ticket.sh
+# gegen ein gh-Stub-Paar fuhren, sind mit dem Factory-Baum entfallen. Die
+# Helper-Semantik (der eigentliche Gegenstand dieses Guards) bleibt vollständig
+# über ci_checks_verdict abgesichert.
 #
 # Die einzige Ausnahme ist der Doku-Guard am Ende: dessen Gegenstand
 # manifestiert sich ausschließlich im Quelltext einer Referenzdatei.
@@ -34,7 +37,6 @@
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   LIB="$REPO/scripts/lib/ci-checks.sh"
-  BABYSIT="$REPO/scripts/factory/pr-babysit-ticket.sh"
   WORK="$(mktemp -d)"
   mkdir -p "$WORK/bin"
 }
@@ -102,29 +104,8 @@ GH_EOF
 }
 
 # ── Schleife: leere Liste terminiert mit Diagnose statt endlos zu drehen ────
-
-@test "T003109: pr-babysit-ticket.sh terminiert bei leerer Checkliste mit Diagnose" {
-  _stub_gh '[]'
-  run env PATH="$WORK/bin:$PATH" REPO="$REPO" MAX_CI_ATTEMPTS=1 POLL_INTERVAL=1 \
-    timeout 20 bash "$BABYSIT" T003109 999
-  # 124 = timeout hat zugeschlagen: die Schleife dreht ohne Fortschritt.
-  [ "$status" -ne 124 ]
-  # 0 wäre die vakuose Lesart "keine Checks pending, also fertig".
-  [ "$status" -ne 0 ]
-  echo "$output" | grep -qiE 'leer|empty|keine checks|no checks'
-}
-
-# ── Positiv-Anker für den Schleifentest: das Stub-Gerüst treibt das Skript ──
-# Ohne diesen Fall bewiese ein `status -ne 124` oben nichts — es könnte auch
-# heißen, dass das Skript am Stub gescheitert ist, statt echt zu terminieren.
-
-@test "T003109: pr-babysit-ticket.sh terminiert bei NICHTLEERER roter Liste (Positiv-Anker)" {
-  _stub_gh '[{"name":"CI","state":"FAILURE"}]'
-  run env PATH="$WORK/bin:$PATH" REPO="$REPO" MAX_CI_ATTEMPTS=1 POLL_INTERVAL=1 \
-    timeout 20 bash "$BABYSIT" T003109 999
-  [ "$status" -ne 124 ]
-  [ "$status" -eq 1 ]
-}
+# T900399: die beiden pr-babysit-Tests sind mit dem Factory-Baum entfallen —
+# der Nichtleere-Guard selbst wird weiterhin ueber ci_checks_verdict belegt.
 
 # ── Doku: die Regel steht in der Referenz, die die Warteschleifen beschreibt ─
 

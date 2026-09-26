@@ -182,18 +182,6 @@
 
     },
 
-    "factory-mcp-node": {
-
-      "type": "remote",
-
-      "url": "http://localhost:13003/mcp",
-
-      "headers": {"Authorization":"Bearer {env:FACTORY_MCP_TOKEN}"},
-
-      "enabled": true
-
-    },
-
     "mcp-kubernetes": {
 
       "type": "remote",

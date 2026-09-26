@@ -79,12 +79,6 @@ includes:
   rustdesk:
     taskfile: ./taskfiles/Taskfile.rustdesk.yml
     dir: .
-  # Software Factory — Phase 1 pipeline documentation wrapper.
-  # See scripts/factory/pipeline.mjs + docs/superpowers/references/factory-usage.md.
-  factory:
-    taskfile: ./taskfiles/Taskfile.factory.yml
-    dir: .
-
   # Brain-Quartz Wiki — initial ingest worklist (T001570).
   # See Taskfile.brain.yaml + scripts/brain-ingest-worklist.sh.
   brain:
@@ -1039,7 +1033,7 @@ tasks:
         echo "$CHANGED" | grep -qE "^components/mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
         echo "$CHANGED" | grep -qE "^scripts/" && RUN_SCRIPTS=true || true
-        echo "$CHANGED" | grep -qE "^(scripts/factory/|tests/local/FA-)" && RUN_FACTORY=true || true
+        echo "$CHANGED" | grep -qE "^(tests/local/FA-)" && RUN_FACTORY=true || true
         # scripts/*-Aenderungen muessen die spec-Suite erreichen koennen: der
         # spec-Finder prueft per Pfad-Probe, welche spec-bats einen geaenderten
         # Pfad referenziert. Ohne diesen Zweig wrde eine reine scripts/*-Aenderung
@@ -4031,6 +4025,44 @@ tasks:
         DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
           pnpm --dir components/website db:migrate
 
+  db:migrate:
+    desc: "Run migrations/*.sql against the target DB (idempotent). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Waiting for shared-db to be ready before running db migrations..."
+        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and running db migrations..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/db-migrate-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          node scripts/migrate-db.mjs
+
   factory:migrate:
     desc: "Run migrations/*.sql against the target DB (idempotent, tracked in public.factory_schema_migrations). ENV=dev|mentolder|korczewski."
     vars:
@@ -4067,7 +4099,7 @@ tasks:
         sleep 3
 
         DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
-          node scripts/migrate-factory.mjs
+          node scripts/migrate-db.mjs
 
   website:migrate:homepage-blocks:
     desc: "Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run)."

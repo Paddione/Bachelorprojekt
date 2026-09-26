@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-98 Services · 2031 Abhängigkeitskanten · 297 API-Endpoints
+96 Services · 2019 Abhängigkeitskanten · 297 API-Endpoints
 
 ## Service-Map
 
@@ -27,8 +27,6 @@ flowchart LR
   systemtest_purge_all["systemtest-purge-all"]:::default
   systemtest_outbox["systemtest-outbox"]:::default
   dev_pod["dev-pod"]:::default
-  factory_runner["factory-runner"]:::default
-  factory_tick["factory-tick"]:::default
   oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]:::default
   oauth2_proxy_dev["oauth2-proxy-dev"]:::default
   oauth2_proxy_session_hub["oauth2-proxy-session-hub"]:::default
@@ -128,7 +126,6 @@ flowchart LR
   systemtest_purge_all -->|"command"| website
   systemtest_outbox -->|"command"| website
   dev_pod -->|"FACTORY_PG_URL"| website
-  factory_runner -->|"FACTORY_PG_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
   sdlc_console -->|"SESSIONS_DATABASE_…"| website
   error_log_retention -->|"command"| website
@@ -225,7 +222,6 @@ flowchart LR
   coturn -->|"selector"| coturn
   janus -->|"selector"| janus
   dev_pod -->|"selector"| dev_pod
-  factory_runner -->|"selector"| factory_runner
   oauth2_proxy_brainstorm -->|"selector"| oauth2_proxy_brainstorm
   oauth2_proxy_dev -->|"selector"| oauth2_proxy_dev
   oauth2_proxy_session_hub -->|"selector"| oauth2_proxy_session_hub
@@ -2054,22 +2050,13 @@ flowchart LR
   website -->|"secret:website-sec…"| sdlc_console
   dev_pod -->|"secret:shared-db-d…"| brett
   brett -->|"secret:shared-db-d…"| dev_pod
-  dev_pod -->|"secret:shared-db-d…"| factory_runner
-  factory_runner -->|"secret:shared-db-d…"| dev_pod
   dev_pod -->|"secret:shared-db-d…"| sdlc_console
   sdlc_console -->|"secret:shared-db-d…"| dev_pod
   dev_pod -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| dev_pod
   website -->|"secret:shared-db-d…"| dev_pod
-  brett -->|"secret:shared-db-d…"| factory_runner
-  factory_runner -->|"secret:shared-db-d…"| brett
   brett -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| brett
-  factory_runner -->|"secret:shared-db-d…"| sdlc_console
-  sdlc_console -->|"secret:shared-db-d…"| factory_runner
-  factory_runner -->|"secret:shared-db-d…"| shared_db_dev
-  shared_db_dev -->|"secret:shared-db-d…"| factory_runner
-  website -->|"secret:shared-db-d…"| factory_runner
   sdlc_console -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| sdlc_console
   shared_db_dev -->|"secret:shared-db-d…"| website
@@ -2093,8 +2080,6 @@ flowchart TB
     monthly_billing(["monthly-billing"])
     scheduled_publish(["scheduled-publish"])
     dev_pod["dev-pod"]
-    factory_runner["factory-runner"]
-    factory_tick(["factory-tick"])
     oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]
     oauth2_proxy_session_hub["oauth2-proxy-session-hub"]
     sdlc_console["sdlc-console"]

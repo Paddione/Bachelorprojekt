@@ -93,8 +93,10 @@ setup() {
 
 @test "REQ-NETPLAN-001: die Registry deklariert die erhobenen Bereiche" {
   local reg="$REPO_ROOT/docs/agent-guide/registry/networks.yaml"
+  # T900399: 172.18.0.0/16 war das factory-sandbox-egress-Netz und ist mit dem
+  # Factory-Subsystem aus der Registry entfernt worden.
   for cidr in "10.0.0.0/8" "10.13.14.0/24" "10.20.0.0/24" "10.42.0.0/16" \
-              "10.43.0.0/16" "100.64.0.0/10" "172.17.0.0/16" "172.18.0.0/16" \
+              "10.43.0.0/16" "100.64.0.0/10" "172.17.0.0/16" \
               "172.23.0.0/16" "192.168.100.0/24"; do
     run grep -F "$cidr" "$reg"
     [ "$status" -eq 0 ]

@@ -1,34 +1,25 @@
 #!/usr/bin/env bats
-# T900103: Messung vom 2026-09-20 zeigte 7 gemergte PRs, deren Tickets offen blieben,
-# weil auto-close-merged.sh nur ueber die Factory-Wakeup-Schleife (wakeup.sh:248) laeuft.
-# Faellt die Factory (oder laeuft sie in einem Fenster nicht), greift kein Netz. Die
-# Nutzerentscheidung vom selben Tag macht den Abgleich zum VERBINDLICHEN Schritt des
-# repo-hygiene-Laufs (§3) — kein neuer Cron, kein neuer Workflow, wakeup.sh:248 bleibt
-# unveraendert. Dieser Test belegt, dass der Aufruf im Ablauf-Abschnitt §3 selbst steht
-# (nicht nur irgendwo im Dokument erwaehnt) und als Pflicht formuliert ist.
+# T900103 (historisches Netz, T900399 abgeloest): Messung vom 2026-09-20 zeigte
+# 7 gemergte PRs, deren Tickets offen blieben, weil auto-close-merged.sh nur ueber die
+# Factory-Wakeup-Schleife (wakeup.sh:248) laeuft. Der Abgleich wurde daraufhin zum
+# verbindlichen Schritt des repo-hygiene-Laufs (§3).
+#
+# T900399: mit dem Factory-Teardown sind auto-close-merged.sh, wakeup.sh und das
+# Factory-Wakeup-Netz entfallen — es gibt keinen Ausloeser mehr, an dem dieser
+# Test ansetzen koennte. Die beiden §3-Assertions sind deshalb ersatzlos entfallen
+# (kein Ersatz-Anker moeglich: das Substrat existiert nicht mehr).
+# Der Preis ist bewusst bezahlt: das kompensierende Netz aus T900103 existiert nicht
+# mehr. Ticket-Schliessung nach gemergten PRs ist jetzt Sache des repo-hygiene-Laufs
+# bzw. des Menschen; der Status-Block von T900399 haelt das fest.
+# UEBRIG: nur der Symlink-Guard, der unabhaengig vom Factory-Thema gilt.
 
 setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
-  OPS_MD="$REPO_ROOT/.claude/skills/references/repo-hygiene-ops.md"
 }
 
 @test "repo-hygiene-ops.md ist ein Symlink auf die opencode-Quelle (beide Spiegel geteilt)" {
   [ -L "$REPO_ROOT/.claude/skills/references" ]
 }
 
-@test "Abschnitt 3 ruft auto-close-merged.sh als verbindlichen Schritt auf, fuer beide Brands" {
-  run sed -n '/^## 3\. PR-Triage/,/^## 4\./p' "$OPS_MD"
-  [ "$status" -eq 0 ]
-  # Positiv-Anker: der Aufruf selbst steht im §3-Textkoerper.
-  grep -qF "auto-close-merged.sh" <<<"$output"
-  grep -qF "BRAND=mentolder" <<<"$output"
-  grep -qF "BRAND=korczewski" <<<"$output"
-  # Pflicht-Sprache, nicht optionale Erwaehnung.
-  grep -qiE "verbindlich" <<<"$output"
-}
-
-@test "Abschnitt-3-Aufruf ist als Netz unabhaengig von der laufenden Factory begruendet" {
-  run sed -n '/^## 3\. PR-Triage/,/^## 4\./p' "$OPS_MD"
-  [ "$status" -eq 0 ]
-  grep -qiE "Factory.*(nicht laeuft|nicht läuft)" <<<"$output"
-}
+# T900399: die beiden §3-Assertions zu auto-close-merged.sh sind mit dem
+# Factory-Teardown entfallen — siehe Header.

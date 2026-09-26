@@ -1,9 +1,13 @@
-// components/website/src/pages/api/factory/force-tick.ts
+// components/website/src/pages/sdlc/api/factory/force-tick.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { writeControl } from '../../../../lib/sdlc/factory-floor';
 
 export const prerender = false;
+
+// T900399 — Software-Factory-Decommission: der Tick-Dispatcher existiert nicht
+// mehr, es gibt keinen `tickets.factory_control.force-tick-requested`-Flag und
+// keinen wakeup.sh, der ihn liest. Der Endpunkt bleibt als 410-Stub, damit das
+// Cockpit-Frontend keinen 500er sieht.
 
 function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | null {
   if (!session) {
@@ -21,24 +25,16 @@ function authGuard(session: Awaited<ReturnType<typeof getSession>>): Response | 
   return null;
 }
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   const guard = authGuard(session);
   if (guard) return guard;
 
-  const requestedAt = new Date().toISOString();
-  try {
-    // Global (brand IS NULL) control flag; wakeup.sh reads + clears it next tick.
-    await writeControl('force-tick-requested', requestedAt, session!.preferred_username);
-    return new Response(JSON.stringify({ ok: true, requestedAt }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (err) {
-    locals.requestLogger.error({ err }, '[api/factory/force-tick] POST error:');
-    return new Response(JSON.stringify({ error: 'force_failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  return new Response(
+    JSON.stringify({
+      error: 'factory_decommissioned',
+      message: 'Der Factory-Tick-Dispatcher wurde mit T900399 abgebaut; es gibt keinen Force-Tick mehr.',
+    }),
+    { status: 410, headers: { 'Content-Type': 'application/json' } },
+  );
 };

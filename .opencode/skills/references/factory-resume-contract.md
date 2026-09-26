@@ -1,5 +1,13 @@
 # Fortsetzungs-Kontrakt für angefangene Tickets [T002327]
 
+> **HINWEIS T900399 — historisch.** Die Software-Factory ist abgeschaltet: der Watchdog, die
+> `queue.sh` und `ticket.sh unfactory` existieren nicht mehr. Dieses Dokument bleibt als
+> Begründung des **Hold-Gates** (`readiness.execution_released=false` als Default, T002272)
+> lesbar — das Gate selbst besteht weiter. Die factory-spezifischen Abschnitte
+> (Watchdog-Verhalten, `unfactory` als „durable half of …", `queue.sh`) beschreiben einen
+> Stand, der nicht mehr existiert; sie sind unten entsprechend markiert und **nicht** als
+> Handlungsanweisung zu lesen.
+
 Referenz zu `dev-flow-execute`. Sie steht hier und nicht im Skill-Body, weil
 der Skill-Body unter `.agents/skills/dev-flow-execute` (Shim zu `.agents/skills/dev-flow-execute/SKILL.md`) exakt auf der 250-Zeilen-Grenze des
 fail-closed Gates **G-AGENTIC09** liegt und keine einzige Zeile Spielraum hat.
@@ -59,7 +67,7 @@ Wer ein Factory-gestagtes Ticket manuell übernimmt (`dev-flow-execute`), setzt 
 bash scripts/ticket.sh plan-meta set --id <external_id> --readiness factory_excluded=true
 ```
 
-Watchdog und `queue.sh` respektieren das Flag; ohne es pongt der Watchdog (`STALE_MIN=0`) gegen die Pipeline: Reset auf `plan_staged` → erneuter Dispatch → Defer am fremden Claim → Status bleibt `in_progress` → nächster Tick resettet erneut (beobachtet an T005560, 22:41–22:54 UTC). Nach Abschluss (Merge → done) wird das Flag beim nächsten Dispatch-Bedarf von Hand zurückgesetzt (`--readiness factory_excluded=false`) — es ist die „durable half of `ticket.sh unfactory`" und wird bewusst nie automatisch gelöscht.
+**[T900399 — historisch, nicht mehr ausführbar]** Watchdog und `queue.sh` respektierten das Flag; ohne es pongte der Watchdog (`STALE_MIN=0`) gegen die Pipeline: Reset auf `plan_staged` → erneuter Dispatch → Defer am fremden Claim → Status bleibt `in_progress` → nächster Tick resettete erneut (beobachtet an T005560, 22:41–22:54 UTC). Nach Abschluss (Merge → done) wurde das Flag beim nächsten Dispatch-Bedarf von Hand zurückgesetzt (`--readiness factory_excluded=false`) — es war die „durable half of `ticket.sh unfactory`" und wurde bewusst nie automatisch gelöscht. Mit dem Factory-Teardown existieren Watchdog, `queue.sh` und `ticket.sh unfactory` nicht mehr; das Flag selbst wird per `mcp-postgres_query` gegen `tickets.ticket_readiness` zurückgesetzt.
 
 ## Das Hold-Gate bleibt unverändert
 
@@ -67,7 +75,9 @@ Watchdog und `queue.sh` respektieren das Flag; ohne es pongt der Watchdog (`STAL
 fähigkeit ersetzt die Freigabe **nicht** — sie macht sie nur folgenlos für bereits
 geleistete Arbeit. Ob ein gestagtes Ticket laufen darf, bleibt eine menschliche
 Entscheidung; neu ist allein, dass eine spätere Freigabe nicht mehr bedeutet, dass die
-Factory von vorne anfängt. `scripts/factory/queue.sh` wird dafür nicht angefasst.
+Factory von vorne anfängt. **[T900399]** Die `queue.sh`, die diesen Fall behandelt
+hat, ist mit der Software-Factory entfallen — der Hold ist heute der einzige Schutz
+gegen Doppel-Dispatch.
 
 ## `reclaim` ist der Notausstieg, nicht der Regelweg
 

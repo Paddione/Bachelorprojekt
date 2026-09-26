@@ -4,8 +4,11 @@
 # Konvention: eine .bats-Datei pro OpenSpec-SSOT-Spec.
 
 PROXY_MOD="scripts/llm-proxy/server.mjs"
-ROUTE="scripts/factory/route-provider.sh"
-
+# T900399: entfernt. `route-provider.sh` (Slot-Claim, tier-Pin, Phase-Zweig) lag im
+# Factory-Baum `scripts/factory/` und ist mit dem Software-Factory-Teardown entfallen.
+# Ebenso die drei route-provider-Tests weiter unten (`factory-implement`-Gateway-Pin,
+# `tier=opus` aus der Registry, `slotId == null`). Der Provider-Loadout dieser Spec
+# (`loadouts.json`, `PROXY_MOD=scripts/llm-proxy/server.mjs`) bleibt unberuehrt.
 # Minimaler OpenAI-kompatibler Stub: $1=port $2=label $3=modelId
 _start_stub() {
   local port="$1" label="$2" model="$3"
@@ -77,7 +80,7 @@ _start_proxy() {
 # im Verify von T002418.
 _skip_if_no_db() {
   local _pod
-  # [T002626] Default folgt scripts/factory/lib.sh: seit ADR-006 E3 liegen die
+  # [T002626] Default folgt dem Cluster-Default der Factory-Bibliothek (seit ADR-006 E3 liegen die
   # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
   # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
   # am lokalen Cluster.
@@ -125,38 +128,6 @@ _skip_if_no_db() {
     "http://127.0.0.1:${PROXY_PORT}/v1/chat/completions"
   [ "$output" = "503" ]
   grep -q '"no_backend"' /tmp/llmproxy_body
-}
-
-@test "route-provider.sh factory-implement sonnet -> Gateway :18235 (kein :8093)" {
-  _skip_if_no_db
-  # Bis T002359 gab der Phase-Zweig den Pin bedingungslos zurueck — ohne Claim, ohne
-  # Health-Check. Seit T013302 existiert der Phasen-Pin gar nicht mehr: die
-  # implement-Konfiguration lebt ausschliesslich in provider_config. Der Test
-  # wurde darum in zwei Teile zerlegt.
-
-  # Teil 1 — Konfiguration, deterministisch: die implement-Zuordnung muss auf
-  # den Proxy zeigen. Das ist die eigentliche T002277-Aussage und haengt an keinem Slot.
-  run bash -c "source '${REPO_ROOT}/scripts/factory/lib.sh'; factory_resolve; \
-    factory_psql -t -A -c \"SELECT DISTINCT COALESCE(base_url,'') FROM tickets.provider_config WHERE source IN ('factory-implement','factory-review') AND enabled=true\""
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -qE '127.0.0.1:(18235|1919)'
-
-  # Teil 2 — Laufzeit, zustandsabhaengig: welcher Kandidat gewinnt, entscheidet der
-  # Slot-Zustand. Invariant bleibt aber, dass NIE das alte direkte llama.cpp-Backend
-  # :8093 herauskommt — egal wie weit die Kaskade durchlaeuft.
-  run bash "${REPO_ROOT}/${ROUTE}" factory-implement sonnet
-  [ "$status" -eq 0 ]
-
-  # Seit T002359 claimt der Aufruf einen echten Slot (vorher gab der Phase-Zweig den Pin
-  # ohne Claim zurueck). Dieser Test laeuft gegen die LIVE-Registry — ohne Release traebe
-  # ihn jeder Lauf naeher an max_concurrent und reproduzierte damit genau den Slot-Leak,
-  # den das Ticket behebt. Freigabe vor den Assertions, damit ein Fehlschlag nichts leakt.
-  local _slot; _slot="$(echo "$output" | jq -r '.slotId // empty' 2>/dev/null || true)"
-  if [[ -n "$_slot" && "$_slot" != "null" ]]; then
-    bash "${REPO_ROOT}/scripts/factory/release-slot.sh" "$_slot" true >/dev/null 2>&1 || true
-  fi
-
-  ! echo "$output" | grep -q ':8093'
 }
 
 # ── GBNF-Escape-Sanitizer (T002112) ───────────────────────────────────────────
@@ -282,23 +253,6 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   # gesunde Backend um.
   grep -q '"gemma-4-12b"' "$mig"
   grep -qE "llamacpp-gemma" "$mig"
-}
-
-@test "route-provider.sh liest tier=opus aus der Registry (T002277)" {
-  # Vorher stand hier ein hardcodiertes Modell, das die DB komplett umging.
-  local rp="${BATS_TEST_DIRNAME}/../../scripts/factory/route-provider.sh"
-  run bash -c "grep -E \"OPUS_MODEL=.ternary-bonsai-27b\" '$rp'"
-  [ "$status" -ne 0 ]
-  grep -qE "tier='opus'" "$rp"
-}
-
-@test "route-provider.sh claimt fuer tier=opus keinen Slot (T002277)" {
-  # opus liefert slotId:null - es gibt beim Aufrufer keinen Release-Pfad. Ginge
-  # es durch die normale Claim-Kette, waere der Provider nach max_concurrent
-  # Aufrufen dauerhaft blockiert.
-  run bash scripts/factory/route-provider.sh factory-plan opus
-  [ "$status" -eq 0 ]
-  echo "${lines[${#lines[@]}-1]}" | jq -e '.slotId == null'
 }
 
 # ── T002281: install-service prueft den tatsaechlichen Zustand ────────

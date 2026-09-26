@@ -6,6 +6,8 @@
 // docs/agent-guide/registry/mcp.yaml (nur `clients:`-Top-Level, nicht
 // `cluster:`) und die factory-mcp-Tools aus scripts/factory/mcp-go/main.go
 // (toolList, keine Zweitquelle -- Aenderungen an main.go fliessen ein).
+// T900399: factory-mcp ist ausgebaut, main.go existiert nicht mehr; der Scan
+// liefert dann `factoryTools: []` (Key bleibt Teil des Vertrags, s.u.).
 // Angereichert mit kuratierten Feldern (description/tier/deprecated) aus
 // docs/agent-guide/registry/api-overlay.yaml. Deterministisch: keine
 // Zeitstempel, stabile Sortierungen -- zwei Laeufe ohne Zwischenaenderung
@@ -113,8 +115,12 @@ export function scanMcpServers(registryPath) {
 }
 
 /** factory-mcp-Tool-Scan: extrahiert die toolList-Eintraege aus main.go per
- *  Regex (Name/Description auf Folgezeilen) -- kein Hardcoding der Liste. */
+ *  Regex (Name/Description auf Folgezeilen) -- kein Hardcoding der Liste.
+ *  T900399: der factory-mcp-Server (scripts/factory/mcp-go) ist ausgebaut;
+ *  fehlt die Quelle, ist das Ergebnis die leere Liste statt eines Absturzes.
+ *  Der Top-Level-Key `factoryTools` bleibt Teil des Schnittstellenvertrags. */
 export function scanFactoryMcpTools(goPath) {
+  if (!existsSync(goPath)) return [];
   const src = readFileSync(goPath, 'utf8');
   const re = /Name:\s*"([^"]+)",\s*\n\s*Description:\s*"([^"]+)"/g;
   const out = [];

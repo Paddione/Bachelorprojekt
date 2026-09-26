@@ -388,21 +388,10 @@ _p5_repo() { cd "$BATS_TEST_DIRNAME/../.." && pwd; }
   [ -f "$root/changes/probe/tasks.md" ] || { echo "--resume hat die fehlende tasks.md nicht geseedet"; false; }
 }
 
-@test "T002375-p5: reconcile-ticket-status.sh setzt KEIN in_progress (Befund, kein Fix)" {
-  # T002356-M2 markierte dieses Skript als Verdaechtigen — ausdruecklich [UNVERIFIED].
-  # Die Pruefung entlastet es: es enthaelt keinen einzigen in_progress-Write. Der
-  # tatsaechliche Schreiber ist scripts/factory/slots.sh (claim_slot), und dort ist es
-  # korrektes Verhalten: wer einen Slot belegt, arbeitet. Geaendert wurde deshalb
-  # nichts — eine Aenderung an einem Skript, das den Fehler nicht verursacht, macht es
-  # schlimmer. Dieser Test haelt den Befund fest, damit die Suche nicht von vorn beginnt.
-  local repo; repo="$(_p5_repo)"
-  run bash -c "grep -cE \"status *= *'in_progress'|--status in_progress\" '$repo/scripts/factory/reconcile-ticket-status.sh' || true"
-  [ "$output" = "0" ] || { echo "reconcile-ticket-status.sh schreibt jetzt in_progress — der Befund von T002375-p5 gilt nicht mehr"; false; }
-
-  # Gegenprobe, damit der Test nicht vakuos ist: der echte Schreiber existiert.
-  run bash -c "grep -c \"status='in_progress'\" '$repo/scripts/factory/slots.sh'"
-  [ "$output" -ge 1 ] || { echo "slots.sh schreibt kein in_progress mehr — Befund neu pruefen"; false; }
-}
+# T900399: der Befund T002375-p5 (reconcile-ticket-status.sh / slots.sh im
+# Factory-Baum) ist mit dem Factory-Subsystem gegenstandslos — beide Skripte
+# sind entfernt. Der in_progress-Write wird heute ueber
+# scripts/vda/ticket/update-status.sh gesteuert, der weiter unten getestet ist.
 
 @test "T002375-p5: plan-archive-steps.md verbietet den SSOT-Direktedit im Change" {
   local repo; repo="$(_p5_repo)"

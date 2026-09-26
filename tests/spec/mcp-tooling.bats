@@ -5,25 +5,19 @@ load 'test_helper'
 
 MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 
-@test "factory-mcp-node is registered at :13003/mcp in BOTH .mcp.json and .opencode/opencode.jsonc" {
-  local opencode_json mcp_servers=()
-  
+# T900399: Der frueher hier gepruefte factory-mcp-node ist mit der Software-Factory
+# entfallen (Registry `docs/agent-guide/registry/mcp.yaml` fuehrt ihn nicht mehr,
+# `task mcp:sync` hat .mcp.json + .opencode/opencode.jsonc bereinigt). Der
+# Assertion-Teil fuer die verbleibenden Harness-Server bleibt erhalten.
+@test "mcp-kubernetes and mcp-postgres are registered in .opencode/opencode.jsonc" {
+  local opencode_json
+
   opencode_json=$(cat ".opencode/opencode.jsonc")
-  
-  # Check .mcp.json (project-level Claude Code MCP config) for factory-mcp-node
-  if ! grep -q '"factory-mcp-node"' ".mcp.json"; then
-    echo "# ERROR: factory-mcp-node not registered in .mcp.json" && exit 1
-  fi
-  
-  # Check .opencode/opencode.jsonc for all MCP servers
-  if ! echo "$opencode_json" | grep -q '"factory-mcp-node"'; then
-    echo "# ERROR: factory-mcp-node not registered in opencode.jsonc" && exit 1
-  fi
-  
+
   if ! echo "$opencode_json" | grep -q '"mcp-kubernetes"'; then
     echo "# ERROR: mcp-kubernetes not registered in opencode.jsonc" && exit 1
   fi
-  
+
   if ! echo "$opencode_json" | grep -q '"mcp-postgres"'; then
     echo "# ERROR: mcp-postgres not registered in opencode.jsonc" && exit 1
   fi

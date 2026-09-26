@@ -984,336 +984,6 @@
     "kind": "shell"
   },
   {
-    "id": "FA-SF-01",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-02",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-03",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-04",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-05",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-06",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-07",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-08",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-09",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-10",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-11",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-12",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-13",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-20",
-    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-21",
-    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-22",
-    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-23",
-    "file": "tests/spec/software-factory/scheduling.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-24",
-    "file": "tests/spec/software-factory/scheduling.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-25",
-    "file": "tests/spec/software-factory/scheduling.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-26",
-    "file": "tests/spec/software-factory/scheduling.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-27",
-    "file": "tests/spec/software-factory/scheduling.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-30",
-    "file": "tests/spec/software-factory/dispatcher.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-31",
-    "file": "tests/spec/software-factory/dispatcher.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-32",
-    "file": "tests/spec/software-factory/dispatcher.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-33",
-    "file": "tests/spec/software-factory/dispatcher.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-34",
-    "file": "tests/spec/software-factory/dispatcher.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-35",
-    "file": "tests/spec/software-factory/retry-and-build-loop.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-36",
-    "file": "tests/spec/software-factory/retry-and-build-loop.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-37",
-    "file": "tests/spec/software-factory/retry-and-build-loop.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-38",
-    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-39",
-    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-40",
-    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-41",
-    "file": "tests/spec/software-factory/wakeup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-42",
-    "file": "tests/spec/software-factory/dashboard.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-43",
-    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-44",
-    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-45",
-    "file": "tests/spec/software-factory/conflict-db-triage.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-46",
-    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-47",
-    "file": "tests/spec/software-factory/wakeup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-48",
-    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-49",
-    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-50",
-    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-51",
-    "file": "tests/spec/software-factory/scheduling.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-52",
-    "file": "tests/spec/software-factory/ticket-lifecycle.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-53",
-    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-57",
-    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-58",
-    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-59",
-    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-60",
-    "file": "tests/spec/software-factory/partial-deploy-gang.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-70",
-    "file": "tests/spec/software-factory/scout-and-routing.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-71",
-    "file": "tests/spec/software-factory/scout-and-routing.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-72",
-    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-73",
-    "file": "tests/spec/software-factory/scheduling.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-74",
-    "file": "tests/spec/software-factory/scout-and-routing.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-75",
-    "file": "tests/spec/software-factory/slot-mapping.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
     "id": "HWS-1",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",
@@ -1980,45 +1650,9 @@
     "kind": "shell"
   },
   {
-    "id": "T002785-1",
-    "file": "tests/spec/ticket-system/unfactory-attempts-T002785.bats",
-    "category": "T002785",
-    "kind": "shell"
-  },
-  {
     "id": "T002785-7",
     "file": "tests/spec/agent-lock-branch-reap-T002785.bats",
     "category": "T002785",
-    "kind": "shell"
-  },
-  {
-    "id": "T003487-1",
-    "file": "tests/spec/factory/watchdog-red-green.bats",
-    "category": "T003487",
-    "kind": "shell"
-  },
-  {
-    "id": "T003487-2",
-    "file": "tests/spec/factory/watchdog-red-green.bats",
-    "category": "T003487",
-    "kind": "shell"
-  },
-  {
-    "id": "T003487-3",
-    "file": "tests/spec/factory/watchdog-red-green.bats",
-    "category": "T003487",
-    "kind": "shell"
-  },
-  {
-    "id": "T003487-4",
-    "file": "tests/spec/factory/watchdog-red-green.bats",
-    "category": "T003487",
-    "kind": "shell"
-  },
-  {
-    "id": "T008015-1",
-    "file": "tests/spec/software-factory/devflow-post-merge-deploy-commit-selection.bats",
-    "category": "T008015",
     "kind": "shell"
   },
   {
@@ -2031,30 +1665,6 @@
     "id": "T008015-6",
     "file": "tests/spec/openspec-workflow/status-map-fail-closed-guard.bats",
     "category": "T008015",
-    "kind": "shell"
-  },
-  {
-    "id": "T015556-1",
-    "file": "tests/spec/software-factory/bounce-loop-guard.bats",
-    "category": "T015556",
-    "kind": "shell"
-  },
-  {
-    "id": "T015556-2",
-    "file": "tests/spec/software-factory/bounce-loop-guard.bats",
-    "category": "T015556",
-    "kind": "shell"
-  },
-  {
-    "id": "T015556-3",
-    "file": "tests/spec/software-factory/bounce-loop-guard.bats",
-    "category": "T015556",
-    "kind": "shell"
-  },
-  {
-    "id": "T015556-4",
-    "file": "tests/spec/software-factory/bounce-loop-guard.bats",
-    "category": "T015556",
     "kind": "shell"
   },
   {
@@ -2466,12 +2076,6 @@
     "kind": "shell"
   },
   {
-    "id": "agentic-review",
-    "file": "tests/spec/agentic-review.bats",
-    "category": "agentic-review",
-    "kind": "shell"
-  },
-  {
     "id": "agentic-tooling-quality-goals",
     "file": "tests/spec/agentic-tooling-quality-goals.bats",
     "category": "agentic-tooling-quality-goals",
@@ -2553,12 +2157,6 @@
     "id": "auth-sso",
     "file": "tests/spec/auth-sso.bats",
     "category": "auth-sso",
-    "kind": "shell"
-  },
-  {
-    "id": "auto-triage-grounding-T002399",
-    "file": "tests/spec/auto-triage-grounding-T002399.bats",
-    "category": "auto-triage-grounding-T002399",
     "kind": "shell"
   },
   {
@@ -3702,12 +3300,6 @@
     "kind": "shell"
   },
   {
-    "id": "dsh-harness-integration/executor",
-    "file": "tests/spec/dsh-harness-integration/executor.bats",
-    "category": "dsh-harness-integration",
-    "kind": "shell"
-  },
-  {
     "id": "dsh-harness-integration/hook-bridge",
     "file": "tests/spec/dsh-harness-integration/hook-bridge.bats",
     "category": "dsh-harness-integration",
@@ -3792,75 +3384,9 @@
     "kind": "shell"
   },
   {
-    "id": "factory-attempt-counter-T002389",
-    "file": "tests/spec/factory-attempt-counter-T002389.bats",
-    "category": "factory-attempt-counter-T002389",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-branch-switch-guard",
-    "file": "tests/spec/factory-branch-switch-guard.bats",
-    "category": "factory-branch-switch-guard",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-escalation-ladder",
-    "file": "tests/spec/factory-escalation-ladder.bats",
-    "category": "factory-escalation-ladder",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-merge-hooks",
-    "file": "tests/spec/factory-merge-hooks.bats",
-    "category": "factory-merge-hooks",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-reclaim-lock-respect",
-    "file": "tests/spec/factory-reclaim-lock-respect.bats",
-    "category": "factory-reclaim-lock-respect",
-    "kind": "shell"
-  },
-  {
     "id": "factory-reclaim-lock-respect/pid-dead-worktree-match-T002849",
     "file": "tests/spec/factory-reclaim-lock-respect/pid-dead-worktree-match-T002849.bats",
     "category": "factory-reclaim-lock-respect",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-reclaim-lock-respect/worktree-reaper-lock-guard-T002896",
-    "file": "tests/spec/factory-reclaim-lock-respect/worktree-reaper-lock-guard-T002896.bats",
-    "category": "factory-reclaim-lock-respect",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-watchdog/factory-excluded-scope",
-    "file": "tests/spec/factory-watchdog/factory-excluded-scope.bats",
-    "category": "factory-watchdog",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-watchdog/merged-ticket-close",
-    "file": "tests/spec/factory-watchdog/merged-ticket-close.bats",
-    "category": "factory-watchdog",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-watchdog/stale-scope-isolation",
-    "file": "tests/spec/factory-watchdog/stale-scope-isolation.bats",
-    "category": "factory-watchdog",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-watchdog/stale-type-coverage",
-    "file": "tests/spec/factory-watchdog/stale-type-coverage.bats",
-    "category": "factory-watchdog",
-    "kind": "shell"
-  },
-  {
-    "id": "factory-watchdog/worktree-activity-shield",
-    "file": "tests/spec/factory-watchdog/worktree-activity-shield.bats",
-    "category": "factory-watchdog",
     "kind": "shell"
   },
   {
@@ -3938,18 +3464,6 @@
   {
     "id": "fleet-operations/ghcr-pull-secret",
     "file": "tests/spec/fleet-operations/ghcr-pull-secret.bats",
-    "category": "fleet-operations",
-    "kind": "shell"
-  },
-  {
-    "id": "fleet-operations/hetzner2-decommission",
-    "file": "tests/spec/fleet-operations/hetzner2-decommission.bats",
-    "category": "fleet-operations",
-    "kind": "shell"
-  },
-  {
-    "id": "fleet-operations/hetzner2-rejoin",
-    "file": "tests/spec/fleet-operations/hetzner2-rejoin.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },
@@ -4302,12 +3816,6 @@
     "kind": "shell"
   },
   {
-    "id": "llm-pipeline",
-    "file": "tests/spec/llm-pipeline.bats",
-    "category": "llm-pipeline",
-    "kind": "shell"
-  },
-  {
     "id": "llm-pipeline/bge-thread-quota",
     "file": "tests/spec/llm-pipeline/bge-thread-quota.bats",
     "category": "llm-pipeline",
@@ -4316,12 +3824,6 @@
   {
     "id": "llm-pipeline/bge-usecase-reachability",
     "file": "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
-    "category": "llm-pipeline",
-    "kind": "shell"
-  },
-  {
-    "id": "llm-pipeline/gemma-thinking-budget",
-    "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
     "category": "llm-pipeline",
     "kind": "shell"
   },
@@ -4370,12 +3872,6 @@
   {
     "id": "local-dev-mesh/devmesh-taskfile",
     "file": "tests/spec/local-dev-mesh/devmesh-taskfile.bats",
-    "category": "local-dev-mesh",
-    "kind": "shell"
-  },
-  {
-    "id": "local-dev-mesh/factory-ctx-default",
-    "file": "tests/spec/local-dev-mesh/factory-ctx-default.bats",
     "category": "local-dev-mesh",
     "kind": "shell"
   },
@@ -4556,12 +4052,6 @@
   {
     "id": "local-llm-proxy/embed-skip-visibility",
     "file": "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
-    "category": "local-llm-proxy",
-    "kind": "shell"
-  },
-  {
-    "id": "local-llm-proxy/factory-default-not-freetoken",
-    "file": "tests/spec/local-llm-proxy/factory-default-not-freetoken.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -4968,12 +4458,6 @@
     "kind": "shell"
   },
   {
-    "id": "mishap-docker-wsl-T002250",
-    "file": "tests/spec/mishap-docker-wsl-T002250.bats",
-    "category": "mishap-docker-wsl-T002250",
-    "kind": "shell"
-  },
-  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",
@@ -4994,12 +4478,6 @@
   {
     "id": "mishap-tracking/go-tests-registriert",
     "file": "tests/spec/mishap-tracking/go-tests-registriert.bats",
-    "category": "mishap-tracking",
-    "kind": "shell"
-  },
-  {
-    "id": "mishap-tracking/rollup-teardown",
-    "file": "tests/spec/mishap-tracking/rollup-teardown.bats",
     "category": "mishap-tracking",
     "kind": "shell"
   },
@@ -5031,12 +4509,6 @@
     "id": "nextcloud-integration",
     "file": "tests/spec/nextcloud-integration.bats",
     "category": "nextcloud-integration",
-    "kind": "shell"
-  },
-  {
-    "id": "observability",
-    "file": "tests/spec/observability.bats",
-    "category": "observability",
     "kind": "shell"
   },
   {
@@ -5097,12 +4569,6 @@
     "id": "openspec-embedding/windows-entrypoint-T900084",
     "file": "tests/spec/openspec-embedding/windows-entrypoint-T900084.bats",
     "category": "openspec-embedding",
-    "kind": "shell"
-  },
-  {
-    "id": "openspec-pgvector",
-    "file": "tests/spec/openspec-pgvector.bats",
-    "category": "openspec-pgvector",
     "kind": "shell"
   },
   {
@@ -5277,12 +4743,6 @@
     "id": "openspec-worktree-anchor",
     "file": "tests/spec/openspec-worktree-anchor.bats",
     "category": "openspec-worktree-anchor",
-    "kind": "shell"
-  },
-  {
-    "id": "pipeline-divergence-T002393",
-    "file": "tests/spec/pipeline-divergence-T002393.bats",
-    "category": "pipeline-divergence-T002393",
     "kind": "shell"
   },
   {
@@ -5553,18 +5013,6 @@
     "id": "s2-cycles-g-cq07",
     "file": "tests/spec/s2-cycles-g-cq07.bats",
     "category": "s2-cycles-g-cq07",
-    "kind": "shell"
-  },
-  {
-    "id": "scout-llm-fallback-erden",
-    "file": "tests/spec/scout-llm-fallback-erden.bats",
-    "category": "scout-llm-fallback-erden",
-    "kind": "shell"
-  },
-  {
-    "id": "scout-prediction-quality",
-    "file": "tests/spec/scout-prediction-quality.bats",
-    "category": "scout-prediction-quality",
     "kind": "shell"
   },
   {
@@ -5898,12 +5346,6 @@
     "kind": "shell"
   },
   {
-    "id": "sdlc-isolation/e3-poller",
-    "file": "tests/spec/sdlc-isolation/e3-poller.bats",
-    "category": "sdlc-isolation",
-    "kind": "shell"
-  },
-  {
     "id": "sdlc-isolation/e3-tickets-lokal",
     "file": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats",
     "category": "sdlc-isolation",
@@ -5918,12 +5360,6 @@
   {
     "id": "sdlc-isolation/llm-up-health",
     "file": "tests/spec/sdlc-isolation/llm-up-health.bats",
-    "category": "sdlc-isolation",
-    "kind": "shell"
-  },
-  {
-    "id": "sdlc-isolation/orphan-archive-dispatch",
-    "file": "tests/spec/sdlc-isolation/orphan-archive-dispatch.bats",
     "category": "sdlc-isolation",
     "kind": "shell"
   },
@@ -6072,338 +5508,8 @@
     "kind": "shell"
   },
   {
-    "id": "software-factory/agent-lock-scope-argument",
-    "file": "tests/spec/software-factory/agent-lock-scope-argument.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/auto-close-uuid-guard",
-    "file": "tests/spec/software-factory/auto-close-uuid-guard.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/auto-triage-type-vocab",
-    "file": "tests/spec/software-factory/auto-triage-type-vocab.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/babysit-prs-ci-never-ran",
-    "file": "tests/spec/software-factory/babysit-prs-ci-never-ran.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/babysit-prs-conflict-guard-T012500",
-    "file": "tests/spec/software-factory/babysit-prs-conflict-guard-T012500.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/babysit-prs-live-lock-guard-T003137",
-    "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/babysit-prs-red-detection",
-    "file": "tests/spec/software-factory/babysit-prs-red-detection.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/batch-closure-title-children",
-    "file": "tests/spec/software-factory/batch-closure-title-children.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/branch-naming-T012502",
-    "file": "tests/spec/software-factory/branch-naming-T012502.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/brand-is-row-filter-not-namespace",
-    "file": "tests/spec/software-factory/brand-is-row-filter-not-namespace.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/close-branch-suffix-fallback",
-    "file": "tests/spec/software-factory/close-branch-suffix-fallback.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/conflict-gate",
-    "file": "tests/spec/software-factory/conflict-gate.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/db-pod-phase-guard",
-    "file": "tests/spec/software-factory/db-pod-phase-guard.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/dispatch-branch-lock-gate",
-    "file": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/docker-info-timeout",
-    "file": "tests/spec/software-factory/docker-info-timeout.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/enqueue-preserves-plan-staged",
-    "file": "tests/spec/software-factory/enqueue-preserves-plan-staged.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-claims-lock-before-write",
-    "file": "tests/spec/software-factory/factory-claims-lock-before-write.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-e2e-pipeline-coverage",
-    "file": "tests/spec/software-factory/factory-e2e-pipeline-coverage.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-mcp-queue-ssot",
-    "file": "tests/spec/software-factory/factory-mcp-queue-ssot.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-mode",
-    "file": "tests/spec/software-factory/factory-mode.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-model-id-default",
-    "file": "tests/spec/software-factory/factory-model-id-default.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-prep-stdout-json",
-    "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-prep-worktree-reuse",
-    "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/factory-status-lane-status-field",
-    "file": "tests/spec/software-factory/factory-status-lane-status-field.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/local-llm-freetoken-direct",
-    "file": "tests/spec/software-factory/local-llm-freetoken-direct.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/merged-dispatch-gate",
-    "file": "tests/spec/software-factory/merged-dispatch-gate.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/opencode-exec-already-running",
-    "file": "tests/spec/software-factory/opencode-exec-already-running.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/opencode-exec-binary-resolution",
-    "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/opencode-exec-ci-signal",
-    "file": "tests/spec/software-factory/opencode-exec-ci-signal.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/opencode-exec-pr-step",
-    "file": "tests/spec/software-factory/opencode-exec-pr-step.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/opencode-exec-prerun-shortcircuit",
-    "file": "tests/spec/software-factory/opencode-exec-prerun-shortcircuit.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/opencode-exec-result-check",
-    "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/orphan-slot-reap",
-    "file": "tests/spec/software-factory/orphan-slot-reap.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/pr-babysit",
-    "file": "tests/spec/software-factory/pr-babysit.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/pr-babysit-ci-never-ran",
-    "file": "tests/spec/software-factory/pr-babysit-ci-never-ran.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/provider-config-baseurl-convention",
-    "file": "tests/spec/software-factory/provider-config-baseurl-convention.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/queue-test-data-filter",
-    "file": "tests/spec/software-factory/queue-test-data-filter.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/readiness-gate-before-launch",
-    "file": "tests/spec/software-factory/readiness-gate-before-launch.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/retry-limit",
-    "file": "tests/spec/software-factory/retry-limit.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/runtime-drift-notify",
-    "file": "tests/spec/software-factory/runtime-drift-notify.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/sandbox-egress",
-    "file": "tests/spec/software-factory/sandbox-egress.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/schedule-blocker-gate",
-    "file": "tests/spec/software-factory/schedule-blocker-gate.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/schedule-blocker-gate-hardening",
-    "file": "tests/spec/software-factory/schedule-blocker-gate-hardening.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/scheduling-cleanup-guard",
-    "file": "tests/spec/software-factory/scheduling-cleanup-guard.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/sf-fixture-observability",
-    "file": "tests/spec/software-factory/sf-fixture-observability.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/ssot-staged-task-requirement",
-    "file": "tests/spec/software-factory/ssot-staged-task-requirement.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/stage-plan-touched-files",
-    "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/tick-http-wakeup",
-    "file": "tests/spec/software-factory/tick-http-wakeup.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/ticket-usage-hints",
-    "file": "tests/spec/software-factory/ticket-usage-hints.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/unparsable-lock-reap",
-    "file": "tests/spec/software-factory/unparsable-lock-reap.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/update-status-id-allowlist-T002906",
-    "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/wakeup-auto-close-timeout",
-    "file": "tests/spec/software-factory/wakeup-auto-close-timeout.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/wakeup-pull-loud-failure",
-    "file": "tests/spec/software-factory/wakeup-pull-loud-failure.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/watchdog-parallel-isolation",
-    "file": "tests/spec/software-factory/watchdog-parallel-isolation.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/wsl-exit-fleet-factory",
-    "file": "tests/spec/software-factory/wsl-exit-fleet-factory.bats",
-    "category": "software-factory",
-    "kind": "shell"
-  },
-  {
-    "id": "software-factory/wsl-exit-nachzug",
-    "file": "tests/spec/software-factory/wsl-exit-nachzug.bats",
+    "id": "software-factory/decommission-guard",
+    "file": "tests/spec/software-factory/decommission-guard.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -6450,12 +5556,6 @@
     "kind": "shell"
   },
   {
-    "id": "t001415-mishap-bundle",
-    "file": "tests/spec/t001415-mishap-bundle.bats",
-    "category": "t001415-mishap-bundle",
-    "kind": "shell"
-  },
-  {
     "id": "t001582-mishap-bundle",
     "file": "tests/spec/t001582-mishap-bundle.bats",
     "category": "t001582-mishap-bundle",
@@ -6494,24 +5594,6 @@
   {
     "id": "ticket-mcp",
     "file": "tests/spec/ticket-mcp.bats",
-    "category": "ticket-mcp",
-    "kind": "shell"
-  },
-  {
-    "id": "ticket-mcp/factory-ask-timeout",
-    "file": "tests/spec/ticket-mcp/factory-ask-timeout.bats",
-    "category": "ticket-mcp",
-    "kind": "shell"
-  },
-  {
-    "id": "ticket-mcp/factory-ask-tool-call",
-    "file": "tests/spec/ticket-mcp/factory-ask-tool-call.bats",
-    "category": "ticket-mcp",
-    "kind": "shell"
-  },
-  {
-    "id": "ticket-mcp/openspec-search-url-default",
-    "file": "tests/spec/ticket-mcp/openspec-search-url-default.bats",
     "category": "ticket-mcp",
     "kind": "shell"
   },

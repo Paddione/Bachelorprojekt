@@ -101,8 +101,9 @@ Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit
 > andere Session den `main-checkout`-Claim —, verändern sich Worktrees und Branches unter dem
 > Lauf; real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Maßgeblich ist der
 > gemeinsame Vorcheck aus §0 (`bash scripts/repo-hygiene-precheck.sh`); der Lock-Test darunter
-> ist dessen Kern und steht hier nur noch zur Erläuterung — er entspricht
-> `scripts/factory/mcp-go/main.go`
+> ist dessen Kern und steht hier nur noch zur Erläuterung — er entspricht dem
+> `tick_running()`-Muster aus der ehemaligen Factory (T900399: mit dem Factory-Teardown
+> entfallen; der `main-checkout`-Lock ist der verbleibende maßgebliche Fall).
 > ```bash
 > tick_running() {
 >   test -f /tmp/factory-tick.lock || return 1
@@ -412,21 +413,18 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 ### Sicherheitsnetz: gemergte PRs gegen offene Tickets abgleichen (T900103)
 
 Dieser Abgleich ist **verbindlicher** Bestandteil jedes repo-hygiene-Laufs — kein optionaler
-Zusatzschritt. `scripts/factory/auto-close-merged.sh` läuft bereits über
-`scripts/factory/wakeup.sh:248` für beide Brands, aber nur solange die Factory tickt; wenn die
-Factory nicht läuft (Ausfall, manuell gestoppt), bleibt das PR-Ticket-Delta unentdeckt — genau das
-Muster der sieben Fälle vom 2026-09-04 (T900103, Messung 2026-09-20: weder `gh`-Metadaten noch die
-Phasen-Kette unterscheiden dabei Auto-Merge von Hand-Merge — Punkt 1/2 der ursprünglichen
-ZU-KLAEREN-Liste bleiben deshalb offen und sind nicht Gegenstand dieses Schritts). Deshalb läuft
-dieser Aufruf hier zusätzlich, unabhängig vom Factory-Takt — das Skript selbst und seine
-`wakeup.sh`-Einhängung bleiben dabei unverändert:
+Zusatzschritt. Er war als Skript (`auto-close-merged.sh` im Factory-Baum, eingehängt in den
+Factory-Wakeup) automatisiert und lief für beide Brands, aber nur solange die Factory tickte; wenn
+die Factory nicht lief (Ausfall, manuell gestoppt), blieb das PR-Ticket-Delta unentdeckt — genau
+das Muster der sieben Fälle vom 2026-09-04 (T900103, Messung 2026-09-20: weder `gh`-Metadaten
+noch die Phasen-Kette unterscheiden dabei Auto-Merge von Hand-Merge — Punkt 1/2 der
+ursprünglichen ZU-KLAEREN-Liste bleiben deshalb offen und sind nicht Gegenstand dieses Schritts).
 
-```bash
-BRAND=mentolder bash scripts/factory/auto-close-merged.sh --dry-run
-BRAND=korczewski bash scripts/factory/auto-close-merged.sh --dry-run
-```
-
-Findet der Dry-Run Nachzügler, denselben Aufruf ohne `--dry-run` wiederholen, um sie zu schließen.
+> **T900399:** Mit dem Factory-Teardown ist das Skript entfallen. Der Abgleich bleibt
+> **verbindlich**, läuft jetzt aber als manueller Operator-Schritt — die `gh`-/SQL-Abfrage
+> oben ("Kein `T000XXX` rekonstruierbar …") ist der Ersatzweg. Ein Automationstragendes
+> Skript an anderer Stelle ist **nicht** Teil dieses Tickets; bis dahin ist der Abgleich
+> Pflichtbestandteil jedes Hygiene-Laufs und darf nicht übersprungen werden.
 
 * **CI-Failures:** `gh pr checks <number>` diagnostizieren. Rote PRs nie mergen. Bekannter Flake →
   re-run; sonst PR offen lassen und (falls Ticket vorhanden) auf `in_progress` belassen.

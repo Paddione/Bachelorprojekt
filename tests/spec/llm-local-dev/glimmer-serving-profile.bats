@@ -45,10 +45,11 @@ setup() {
 
 @test "T900365: reasoning-off callers also send reasoning_strength low" {
   local f missing=""
-  for f in scripts/brain-ingest-transform.sh scripts/factory/triage-body.sh \
+  # T900399: die drei Factory-Aufrufer (triage-body.sh, factory-mcp-node/server.mjs,
+  # factory/mcp-go/main.go) sind mit dem Factory-Subsystem entfallen.
+  for f in scripts/brain-ingest-transform.sh \
            scripts/health-goals-payload.py scripts/arbitration/synthesize.mjs \
-           scripts/web-audit.mjs scripts/factory-mcp-node/server.mjs \
-           scripts/factory/mcp-go/main.go scripts/plan-qa-check.sh; do
+           scripts/web-audit.mjs scripts/plan-qa-check.sh; do
     # Positiv-Anker: der Aufrufer schaltet Thinking ueberhaupt ab.
     grep -q 'enable_thinking' "$REPO/$f" || { missing="${missing}${f}: kein enable_thinking (Anker)\n"; continue; }
     grep -qE "reasoning_strength[\"']?[[:space:]]*[:=]+[[:space:]]*[\"']low" "$REPO/$f" \
@@ -57,10 +58,6 @@ setup() {
   if [ -n "$missing" ]; then printf "$missing" >&2; return 1; fi
 }
 
-@test "T900365: model-gated callers treat glimmer like qwen" {
-  local f
-  for f in scripts/factory-mcp-node/server.mjs scripts/factory/mcp-go/main.go; do
-    grep -qi 'qwen' "$REPO/$f"
-    grep -qi 'glimmer' "$REPO/$f" || { echo "$f: Modell-Gate nennt glimmer nicht" >&2; return 1; }
-  done
-}
+# T900399: mit dem Wegfall von scripts/factory-mcp-node/server.mjs und
+# scripts/factory/mcp-go/main.go bleibt kein modell-gegateter Aufrufer uebrig —
+# der Test entfaellt ersatzlos (kein Ersatz-Anker noetig, es gibt kein Substrat).

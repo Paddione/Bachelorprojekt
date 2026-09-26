@@ -104,23 +104,6 @@ EOF
   no_exec_calls
 }
 
-@test "factory_psql: SELECT laeuft, INSERT gegen devmesh wird verweigert" {
-  cat > "$FIX/factory.sh" <<'EOF'
-export FACTORY_CTX="$1"
-source "$REPO_ROOT/scripts/factory/lib.sh"
-factory_resolve_data_ns
-factory_psql <<<"$2"
-EOF
-  run env REPO_ROOT="$REPO_ROOT" bash "$FIX/factory.sh" devmesh "SELECT count(*) FROM tickets.tickets"
-  [ "$status" -eq 0 ]
-  grep -qE '(^| )exec ' "$STUB_LOG"
-  : > "$STUB_LOG"
-  run env REPO_ROOT="$REPO_ROOT" bash "$FIX/factory.sh" devmesh "INSERT INTO tickets.factory_phase_events (ticket_id) VALUES (1)"
-  [ "$status" -ne 0 ]
-  guard_names_fleet
-  no_exec_calls
-}
-
 @test "ticket-mcp-node: runTicket create gegen devmesh wird mit fleet-Hinweis abgewiesen" {
   command -v node >/dev/null
   cd "$REPO_ROOT"

@@ -4608,6 +4608,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/orphan-detect",
+    "file": "tests/spec/openspec-workflow/orphan-detect.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/plan-archive-freshness-check",
     "file": "tests/spec/openspec-workflow/plan-archive-freshness-check.bats",
     "category": "openspec-workflow",

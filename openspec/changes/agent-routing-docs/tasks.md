@@ -1,42 +1,25 @@
 ---
-title: "agent-routing-docs — Implementation Plan"
+title: Agent-Routing-Doku — Schichtwahl + Sweep
 ticket_id: T900453
-domains: [plan-authoring]
+domains: [docs, agents]
 status: active
-file_locks: []
-shared_changes: false
-batch_id: null
-parent_feature: null
-depends_on_plans: []
 ---
 
 # agent-routing-docs — Implementation Plan
 
-_Ticket: T900453_
-
 ## File Structure
 
-```
-<author fills this in — list of new/changed files>
-```
+- `docs/brain/recall-routing.md` (p1, neu: Baum + Tabelle + Ownership)
+- `AGENTS.md`, `registry/capabilities.yaml`, `mcp-tool-guide.md`, 3 Prompts (p1, Routing-Verdrahtung)
+- Generiert via Keeper-Tasks (p1): `toolset-map.md`, `10/20/30-*.md`, `*-map.md`, 2× `generated.json`
 
-## Verify (RED → GREEN)
+## Partials
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test that reproduces the
-      bug. The test must FAIL on the current branch. Use the phrase
-      `expected: FAIL` in the step body so plan-lint STRUCT2 picks it up.
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-routing-core.md | impl | docs/brain/recall-routing.md, AGENTS.md, docs/agent-guide/registry/capabilities.yaml, .opencode/skills/references/mcp-tool-guide.md, .opencode/prompts/orchestrator.md, .opencode/prompts/primary-agent.md, .opencode/prompts/glimmer-primary.md, docs/agent-guide/maps/toolset-map.md, docs/agent-guide/20-werkzeuge.md, components/website/src/lib/agent-guide.generated.json | |
 
-```bash
-# Example: run the BATS test the author will add in their first task
-# (eigene Datei unter tests/spec/<spec-slug>/<kurz-slug>.bats, T002416)
-tests/unit/lib/bats-core/bin/bats tests/spec/agent-skills/
-# expected: FAIL (red — the fix is not yet implemented)
-```
-
-- [ ] **Fix-Step (GREEN).** Implement the fix. The BATS test from the
-      previous step must now pass.
-
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+## Verify (final, wächst mit den Partials)
 
 ```bash
 task test:changed

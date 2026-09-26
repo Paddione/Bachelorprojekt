@@ -839,7 +839,7 @@ ausgelöst", nicht "tot". Details je Spalte stehen in der Tabelle unten.
 #### Scenario: Website-Code referenziert die entfernten Spalten nirgends mehr
 
 - **GIVEN** der Website-Code in `components/website/src/lib/tickets/` und
-  `components/website/src/pages/api/admin/tickets/`
+  `components/website/src/pages/sdlc/api/tickets/`
 - **WHEN** nach `ai_question`, `human_answer` oder der
   `tickets.tickets`-Spalte `scope` gesucht wird
 - **THEN** liefert die Suche keinen Treffer mehr außerhalb der als obsolet
@@ -1701,7 +1701,7 @@ The system SHALL assign external IDs via `nextval('tickets.external_id_seq')` an
 The system SHALL export `getTicketGraph`, `TicketGraph`, `GraphNode`, `GraphEdge` interfaces, use a recursive CTE named `dep_graph` with depth limit 10, compute a critical path via topological sort, and the API endpoint SHALL return 401 for unauthenticated callers.
 
 #### Scenario: Alle Graph-Exports sind vorhanden *(BATS)*
-- **GIVEN** `components/website/src/lib/ticket-graph.ts` existiert
+- **GIVEN** `components/website/src/lib/sdlc/ticket-graph.ts` existiert
 - **WHEN** die Datei auf Export-Deklarationen geprüft wird
 - **THEN** exportiert sie `getTicketGraph`, `TicketGraph`, `GraphNode`, und `GraphEdge`
 
@@ -1716,7 +1716,7 @@ The system SHALL export `getTicketGraph`, `TicketGraph`, `GraphNode`, `GraphEdge
 - **THEN** enthält sie `computeCriticalPath` mit `inDeg` (in-degree für topologische Sortierung)
 
 #### Scenario: API-Endpoint gibt 401 bei fehlendem Admin zurück *(BATS)*
-- **GIVEN** `components/website/src/pages/api/tickets/graph.ts` existiert
+- **GIVEN** `components/website/src/pages/sdlc/api/tickets/graph.ts` existiert
 - **WHEN** die Datei auf Auth-Prüfung geprüft wird
 - **THEN** enthält sie `isAdmin`, gibt `application/json` zurück und hat eine `401`-Antwort für Unauthentifizierte
 
@@ -1770,7 +1770,7 @@ The system SHALL reject unknown lastenheft subactions with exit 2, refuse to loc
 The system SHALL export `autoTriage`, `runTriage`, and `TriageResult`; use `getProviderConfig(SOURCE.ticketTriage, 'haiku')` from the ki-services registry; implement retry (`attempt < 2`); map priorities to German labels; validate severities; create system comments; and integrate with ticket/bug creation endpoints.
 
 #### Scenario: Alle Triage-Exports und Provider-Konfiguration sind vorhanden *(BATS)*
-- **GIVEN** `components/website/src/lib/ticket-triage.ts` existiert
+- **GIVEN** `components/website/src/lib/sdlc/ticket-triage.ts` existiert
 - **WHEN** die Datei auf Exports und Provider-Imports geprüft wird
 - **THEN** exportiert sie `autoTriage`, `runTriage`, `TriageResult`; importiert `Anthropic` und verwendet `getProviderConfig(SOURCE.ticketTriage, 'haiku')` mit `import { SOURCE } from './ki-services'`
 

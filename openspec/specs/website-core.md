@@ -557,7 +557,7 @@ box and reintroduces the shift the attributes exist to prevent.
 
 #### Scenario: Declared dimensions match the delivered file
 
-- **GIVEN** the portrait derivatives under `website/public/`
+- **GIVEN** the portrait derivatives under `components/website/public/`
 - **WHEN** the `width` and `height` attributes on the portrait `<img>` are compared with the intrinsic dimensions of the file named in `src`
 - **THEN** both values are equal
 
@@ -629,7 +629,7 @@ direct request returns, and a direct request bypasses all CSS.
 
 #### Scenario: Derivative crop is anchored at the top of the original
 
-- **GIVEN** the original `website/public/gerald.jpg` and a derivative under `website/public/`
+- **GIVEN** the original `components/website/public/gerald.jpg` and a derivative under `components/website/public/`
 - **WHEN** the derivative is matched pixel-wise against every candidate crop offset of the original
 - **THEN** the best-matching offset is `y = 0`
 
@@ -742,14 +742,14 @@ performance rules.
 
 `scripts/build-route-manifest.mjs` SHALL not leak the raw stderr of a failed primary manifest
 build — such as the Node stacktrace of a missing `tsx/dist/cli.mjs` behind a present
-`website/node_modules/.bin/tsx` shim — into the task output. When the primary attempt fails and
+`components/website/node_modules/.bin/tsx` shim — into the task output. When the primary attempt fails and
 the documented `extractSlugsFromSource` fallback takes over, the run SHALL print at most a
 one-line notice that the fallback was used, SHALL exit with code 0, and SHALL produce a
 byte-identical manifest.
 
 #### Scenario: tsx shim exists but its cli module is missing
 
-- **GIVEN** `website/node_modules/.bin/tsx` exists while `tsx/dist/cli.mjs` does not
+- **GIVEN** `components/website/node_modules/.bin/tsx` exists while `tsx/dist/cli.mjs` does not
 - **WHEN** `task freshness:regenerate` runs the `routes:manifest` step
 - **THEN** no raw Node stacktrace appears in the output
 - **AND** a one-line notice states that the fallback was used
@@ -1166,11 +1166,11 @@ The system SHALL require authentication for the versions list and restore endpoi
 
 ### Requirement: Transitive-CVE override convention documented
 
-The `website/pnpm-workspace.yaml` MAY include an `overrides` block to pin transitive dependencies to CVE-patched versions when upstream packages have not yet released a fix. Each override entry SHALL include a comment referencing the CVE or advisory ID.
+The `components/website/pnpm-workspace.yaml` MAY include an `overrides` block to pin transitive dependencies to CVE-patched versions when upstream packages have not yet released a fix. Each override entry SHALL include a comment referencing the CVE or advisory ID.
 
 #### Scenario: Override block present with CVE annotation
 
-- **WHEN** `website/pnpm-workspace.yaml` contains an `overrides` field
+- **WHEN** `components/website/pnpm-workspace.yaml` contains an `overrides` field
 - **THEN** each overridden package version constraint SHALL trace to a known advisory (GHSA-* or CVE-*)
 - **AND** the override SHALL be removed once the upstream package ships the fix
 

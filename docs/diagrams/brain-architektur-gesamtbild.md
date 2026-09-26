@@ -130,7 +130,8 @@ Kanten-Legende:
 │  Cluster-Tools (mcp-kubernetes, mcp-postgres) via kubectl port-forward.             │
 │                                                                                     │
 │  ···► K1 FEHLT            Kein MCP-Tool für Vektorsuche. pgvector ist nur über     │
-│       website/src/lib/knowledge-db.ts erreichbar, nicht als MCP-Ressource.          │
+│       components/website/src/lib/knowledge-db.ts                                    │
+│       erreichbar, nicht als MCP-Ressource.                                          │
 │                                                                                     │
 │  ···► K5 FEHLT            Kein MCP-Tool zum Lesen/Schreiben von OpenSpec-Specs.    │
 │       Der Agent muss Dateien manuell lesen (Read-Tool).                             │

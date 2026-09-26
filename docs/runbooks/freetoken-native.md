@@ -51,8 +51,8 @@ Referenzlauf:
 setsid -f env CUDA_VISIBLE_DEVICES=GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4 FREETOKEN_PIN_BUDGET_GB=20 TVM_FFI_CUDA_ARCH_LIST="12.0" /home/patrick/.local/share/freetoken/venv/bin/ft serve --model /home/patrick/models/Qwen3.6-35B-A3B-NVFP4 --kv-reserve-tokens 131072 --max-running-requests 1 --graph 1 --moe-strategy offload --moe-cpu-layers 0 --moe-cache-auto --max-prefill-length 8192 --cache-type radix --memory-ratio 0.90 --sampling-defaults model --enable-cache-report --moe-prefill-hit-d2d --host 127.0.0.1 --port 1929 > /tmp/hotfix-log/serve12.log 2>&1 < /dev/null
 ```
 
-Stop: `kill $(pgrep -f 'ft serve.*1929')`; WSL-seitiges Start-Skript:
-`scripts/llm/start-llama-server.ps1` (Windows-Brücke via `wsl.exe -e bash -lc`).
+Stop: `kill $(pgrep -f 'ft serve.*1929')`; WSL-seitig wird per Windows-Brücke
+(`wsl.exe -e bash -lc`) gestartet.
 
 ## Beobachtungslücke: FreeToken-Verkehr umgeht den Proxy
 
@@ -75,8 +75,7 @@ jq -s 'group_by(.alias) | map({alias: .[0].alias, count: length}) |
 
 Das Schreiben ist fire-and-forget: schlägt es fehl (Verzeichnis fehlt, Datei
 gesperrt, Volume voll), bleibt der ausgehende Request unverändert und es wird
-kein Fehler zum Aufrufer durchgereicht. Guard:
-`tests/spec/llm-local-dev/alias-telemetry.bats`.
+kein Fehler zum Aufrufer durchgereicht.
 
 Diese Datei ersetzt `llm_proxy_request_log` NICHT vollständig — sie kennt
 weder Latenz noch HTTP-Status, nur Alias und Prompt-Größe. Vollständige

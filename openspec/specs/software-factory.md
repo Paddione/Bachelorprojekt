@@ -790,7 +790,7 @@ dedicated worktree created via `scripts/worktree-create.sh`) remain permitted.
 
 #### Scenario: Factory pipeline creates and works inside an isolated worktree
 
-- **GIVEN** `scripts/factory/pipeline.js` creates a dedicated worktree via
+- **GIVEN** `scripts/factory/pipeline.mjs` creates a dedicated worktree via
   `scripts/worktree-create.sh` for a ticket
 - **WHEN** the guard test scans `scripts/factory/`
 - **THEN** the worktree-scoped commands are recognized as exempt and the test passes
@@ -828,7 +828,7 @@ never fail the underlying git command (fail-open) and SHALL never target a raw c
 
 ### Requirement: main-checkout lock is self-claimed on every commit
 
-`scripts/agent-lock.sh::cmd_guard_precommit` SHALL, after confirming no live foreign
+The `cmd_guard_precommit` guard in `scripts/agent-lock-guards.sh` SHALL, after confirming no live foreign
 `main-checkout` lock blocks the commit, best-effort claim/refresh the `main-checkout` lock
 for the committing session with `--branch` set to the current branch name, so that the
 lock's `branch` field stays populated without requiring skills to call
@@ -853,9 +853,9 @@ The system SHALL extend the atomic slot claim so that a claim reserves the candi
 `context_window` tokens on `provider_health.reserved_tokens` and only succeeds when the provider's
 `context_budget` is `NULL` (unbounded) or the sum of already reserved tokens plus the requested
 `context_window` does not exceed `context_budget`. The release SHALL symmetrically decrement
-`reserved_tokens` by the same amount. The four routing implementations
+`reserved_tokens` by the same amount. The three routing implementations
 (`scripts/factory/route-provider.sh`, `scripts/factory/release-slot.sh`,
-`scripts/factory/provider-router.js`, and the inlined clone in `scripts/factory/pipeline.js`)
+and the inlined clone in `scripts/factory/pipeline.mjs`)
 SHALL apply identical budget arithmetic; `components/website/src/lib/provider-config.ts` remains a read-only
 selection path that passes the new columns through without claiming.
 
@@ -1345,7 +1345,7 @@ path (T002830).
 #### Scenario: pipeline handles a chore branch
 
 - **GIVEN** a work branch `chore/<slug>` auto-detected from the ticket's `FACTORY-PLAN-REF`
-- **WHEN** `scripts/factory/pipeline.js` reaches the deploy phase
+- **WHEN** `scripts/factory/pipeline.mjs` reaches the deploy phase
 - **THEN** the branch passes the `^(feature|fix|chore)/` HARD-GUARD and the PR is opened with
   a `chore(<slug>): …` title
 
@@ -1450,7 +1450,7 @@ computation SHALL live in a pure helper module rather than inline in `pipeline.j
 #### Scenario: CI advisory warning on agent-setup changes
 
 - **GIVEN** a pull request that modifies an agent-setup path (`.opencode/agent-models.jsonc`,
-  `scripts/factory/review-*.prompt.md`, `scripts/factory/provider-router.js`, or `AGENTS.md`)
+  `scripts/factory/review-*.prompt.md`, or `AGENTS.md`)
 - **WHEN** the CI Factory job runs
 - **THEN** the job emits a `::warning::` advising a local `task factory:eval:replay`, and a
   pull request that touches none of those paths emits no such warning
@@ -2130,17 +2130,17 @@ procedure, so prose and code cannot drift apart.
 - **GIVEN** ticket `T002382`
 - **WHEN** the script derives its working branch
 - **THEN** the branch is `chore/mishap-T002382` with an uppercase `T`, while the OpenSpec
-  directory is `openspec/changes/mishap-t002382`
+  directory is `openspec/changes/archive/2026-08-03-mishap-t002382`
 
 ### Requirement: The Software Factory BATS suite has a single source
 
-The Software Factory regression cases SHALL live in exactly one file, `tests/spec/software-factory.bats`. The `tests/local/FA-SF-*.bats` tree from which that file was aggregated SHALL NOT be retained alongside it, and `task test:factory` SHALL run the consolidated file rather than the aggregated originals.
+The Software Factory regression cases SHALL live in exactly one directory, `tests/spec/software-factory/`. The `tests/local/FA-SF-*.bats` tree from which that suite was aggregated SHALL NOT be retained alongside it, and `task test:factory` SHALL run the consolidated suite rather than the aggregated originals.
 
 Rationale: the consolidation never removed its 41 source files, so every case existed twice under the same `@test` name. That duplication actively hid a defect — after `scripts/factory/pipeline.js` was deleted, a filtered run over `tests/spec/` looked green while `task test:factory` went red over the stale copies, and each follow-up pull request in the factory area had to identify the breakage as foreign before it could proceed.
 
 #### Scenario: No aggregated duplicate of the consolidated suite remains
 
-- **GIVEN** the consolidated suite `tests/spec/software-factory.bats`
+- **GIVEN** the consolidated suite `tests/spec/software-factory/`
 - **WHEN** the test tree is inspected
 - **THEN** no `tests/local/FA-SF-*.bats` file exists
 
@@ -2148,7 +2148,7 @@ Rationale: the consolidation never removed its 41 source files, so every case ex
 
 - **GIVEN** `task test:factory`
 - **WHEN** it runs
-- **THEN** it executes `tests/spec/software-factory.bats`
+- **THEN** it executes `tests/spec/software-factory/`
 - **AND** it does not reference a `tests/local/FA-SF-*` glob that matches nothing
 
 #### Scenario: Removal preserved every case
@@ -2261,7 +2261,7 @@ and SHALL proceed with the full task list when no partial is complete.
 
 - **GIVEN** a `plan_staged` ticket whose plan ships four partials and whose ticket carries
   `partial-done` phase events for `p1` and `p2`
-- **WHEN** `scripts/factory/pipeline.js` enters the Plan-Reuse step
+- **WHEN** `scripts/factory/pipeline.mjs` enters the Plan-Reuse step
 - **THEN** the resulting task list contains only `p3` and `p4`, and the skipped identifiers `p1` and
   `p2` are logged
 
@@ -2463,11 +2463,11 @@ gateway `:18235` (T900208). The tier SHALL come only from `args.model_tier`, fal
 
 ### Requirement: Stale test files SHALL be removed when superseded
 
-When a BATS test file in `tests/local/` has been fully consolidated into `tests/spec/software-factory.bats`, the legacy file SHALL be removed to prevent test duplication and false positives.
+When a BATS test file in `tests/local/` has been fully consolidated into `tests/spec/software-factory/`, the legacy file SHALL be removed to prevent test duplication and false positives.
 
 #### Scenario: Legacy test removed after consolidation
 - **GIVEN** a legacy FA-SF-20 test in `tests/local/FA-SF-20-pipeline-contract.bats`
-- **AND** `tests/spec/software-factory.bats` contains identical tests with corrected references
+- **AND** `tests/spec/software-factory/` contains identical tests with corrected references
 - **WHEN** the legacy file is removed
 - **THEN** `task test:factory` SHALL pass without failures
 - **AND** `task test:changed` SHALL pass when `scripts/factory/*` is touched

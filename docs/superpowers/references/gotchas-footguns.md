@@ -14,7 +14,7 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 8. [Cluster reset / fresh cluster bring-up order](#cluster-reset--fresh-cluster-bring-up-order) — sealed-secrets → fetch-cert → seal → cert → deploy
 9. [Operational](#operational) — push-based; pull-first; CONFLICTING PR suppresses CI
 10. [Staging environment (ENV=staging)](#staging-environment-envstaging) — workspace-staging ns
-11. [Korczewski homepage uses the Kore design system](#korczewski-homepage-uses-the-kore-design-system-different-from-mentolder) — website/src/components/kore/
+11. [Korczewski homepage uses the Kore design system](#korczewski-homepage-uses-the-kore-design-system-different-from-mentolder) — components/website/src/components/kore/
 12. [Local-first LLM pipeline](#local-first-llm-pipeline) — GPU host; vector space isolation; LM Studio
 13. [dev.mentolder.de stack](#devmentolderde-stack) — devc decommissioned; WSL bootstrap caveats
 14. [Brett](#brett) — stub; reserved for future use
@@ -108,7 +108,7 @@ After any cluster reset (including replacing a Sealed Secrets controller keypair
 
 ### Korczewski homepage uses the Kore design system (different from mentolder)
 
-`web.korczewski.de` and `web.mentolder.de` no longer share a layout. `website/src/pages/index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` and renders the components under `website/src/components/kore/` for the `korczewski` brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.
+`web.korczewski.de` and `web.mentolder.de` no longer share a layout. `components/website/src/pages/index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` and renders the components under `components/website/src/components/kore/` for the `korczewski` brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.
 
 The Kore homepage has a timeline section (`BrandConfig.homepage.timeline === true`) that reads from `v_timeline`. The tracking pipeline was fully removed: `tracking-import` CronJob in PR #788, `track-pr.yml` in PR #993; the timeline shows historical data only (last entry: PR #787). New PRs are no longer tracked automatically.
 
@@ -136,7 +136,7 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 - **Docker Desktop integration:** WSL integration is not auto-enabled for new distros, which blocks all build/k3d/docker work. Enable it manually under Docker Desktop Settings > Resources > WSL Integration.
 - **SSH Key Permissions:** Private keys copied from Windows mount points often arrive with `644` permissions, which SSH will refuse. Run `chmod 600 ~/.ssh/id_ed25519` to fix.
 - **Node.js Version requirements:** Enforced via `.nvmrc` and `engines` in `package.json` (requires Node.js >= 22.13.0 for pnpm 11 compatibility).
-- See [WSL-BOOTSTRAP.md](docs/WSL-BOOTSTRAP.md) for more details.
+- See [WSL-BOOTSTRAP.md](docs/archive/WSL-BOOTSTRAP.md) for more details.
 
 ### Brett
 
@@ -160,7 +160,7 @@ Das Problem erledigt sich mit der Zeit, sobald alle VOR-T002135-Worktrees abger�
 **Symptom.** `gh pr view <n> --json mergeStateStatus` meldet `DIRTY` oder `CONFLICTING`,
 obwohl `git merge origin/main` lokal ohne einen einzigen Konflikt durchläuft und
 `git diff` sauber ist. Die betroffenen Dateien sind ausnahmslos generierte Artefakte —
-`docs/generated/**`, `website/src/data/openspec-status.json`, `website/src/data/test-inventory.json`
+`docs/generated/**`, `components/website/src/data/openspec-status.json`, `components/website/src/data/test-inventory.json`
 und rund 18 weitere.
 
 **Ursache.** `.gitattributes` markiert 21 Pfade mit `merge=ours`. Lokal ist dafür der

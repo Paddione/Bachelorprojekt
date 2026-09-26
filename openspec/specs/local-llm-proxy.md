@@ -70,7 +70,7 @@ The static lint that enforces this SHALL exist as an executable test, not as a d
 #### Scenario: Cutover replaces the legacy proxy in place
 
 - **GIVEN** the legacy systemd user unit is active on port 18235
-- **WHEN** `scripts/llm-proxy/cutover.sh` runs successfully
+- **WHEN** the cutover script runs successfully
 - **THEN** `bonsai-msg-fixup-proxy.service` is disabled and inactive, `llm-proxy.service` is enabled and active on port 18235, and `/healthz` returns HTTP 200
 
 #### Scenario: Static config lint blocks backend-port bypasses
@@ -1179,7 +1179,7 @@ CPU loadout first and the cluster port-forward second.
 Upstream selection SHALL be decided by the outcome of the forwarded request itself, NOT by a
 health probe. A probe is unsound here: on 2026-08-09 the cluster endpoint accepted the connection
 and never answered for over 60 seconds while its `/health` kept returning `200`
-(`scripts/bge-mcp/server.mjs:105-111`, T002838). A health endpoint answers "is the process
+(`scripts/bge-mcp/server.mjs`, T002838). A health endpoint answers "is the process
 alive", not "can it serve my request".
 
 The proxy SHALL advance to the next chain entry on a connection error, on a timeout, and on a
@@ -1243,7 +1243,7 @@ no VRAM; starting them cannot evict a chat loadout from the GPU.
 ### Requirement: The gateway-consumer lint covers the bge surfaces
 
 The static lint (`tests/spec/local-llm-proxy/gateway-consumer-lint.bats`) SHALL additionally track
-`scripts/bge-mcp/bge-mcp.service` and `scripts/openspec-embed-local.sh`, and SHALL additionally
+`scripts/openspec-embed-local.sh` and the rendered llm-services deployment (replacing the deleted bge-mcp.service surface), and SHALL additionally
 reject the bge backend ports `:8081`, `:8095` and `:8096` in those tracked surfaces. Comment lines
 stay exempt, as with the existing literals, so retired configurations remain documentable.
 
@@ -2119,7 +2119,7 @@ to the `llm-proxy` process.
 
 Ein Loadout, dessen top-level `enabled` den Wert `false` trägt (T002753), ist
 vom Proxy zur Laufzeit bereits über `isLoadoutEnabled()` in
-`scripts/llm-proxy/loadouts.mjs:353-364` (`return loadout?.enabled !== false`)
+`scripts/llm-proxy/loadouts.mjs` (`return loadout?.enabled !== false`)
 vom Start ausgeschlossen. Die GGUF-Auflösungs-Verification
 (`tests/spec/local-llm-proxy/loadout-model-files-exist.bats`, T002753) SHALL
 diesen Zustand ebenfalls kennen: ein deaktiviertes Loadout, das keine

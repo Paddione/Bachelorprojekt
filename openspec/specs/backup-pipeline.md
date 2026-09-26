@@ -279,7 +279,7 @@ the postgres container across overlays (2Gi in `prod/patch-shared-db.yaml`).
 #### Scenario: shared-db manifest declares the Memory-backed /dev/shm
 
 - **GIVEN** `k3d/shared-db.yaml`
-- **WHEN** `tests/spec/backup-pipeline.bats` parses the shared-db Deployment
+- **WHEN** the `tests/spec/backup-pipeline/` suite parses the shared-db Deployment
 - **THEN** a volume with `emptyDir.medium: Memory` and a non-empty `sizeLimit` exists
 - **AND** the postgres container mounts that volume at `/dev/shm`
 
@@ -325,7 +325,7 @@ the default `kubectl get jobs` view.
 
 ### Requirement: Manueller Diagnose-Trigger für db-backup
 
-The system SHALL provide a `scripts/db-backup-trigger.sh` operator script that
+The system SHALL provide an operator script `db-backup-trigger.sh` that
 creates a one-off `Job` from the `db-backup` CronJob template in namespace
 `workspace`, tails both container logs (`backup`, `filen-upload`) until the
 Job terminates, and exits with code 0 only when the log line `Filen upload done`
@@ -335,19 +335,19 @@ captured error.
 #### Scenario: Skript bestätigt gesunde Pipeline
 
 - **GIVEN** the `db-backup` CronJob is deployed in namespace `workspace` and Filen credentials are valid
-- **WHEN** an operator runs `bash scripts/db-backup-trigger.sh` from the repository root with `kubectl` context `fleet`
+- **WHEN** an operator runs the `db-backup-trigger.sh` script from the repository root with `kubectl` context `fleet`
 - **THEN** a Job `db-backup-diag-<epoch>` is created, both container logs are printed within 10 minutes, the script prints `Filen upload done`, and exits with code 0
 
 #### Scenario: Skript bricht ab bei Upload-Fehler
 
 - **GIVEN** Filen credentials are invalid (simulated by setting `FILEN_EMAIL` to an empty value via a temporary `Secret` patch, or by waiting for a known outage)
-- **WHEN** `bash scripts/db-backup-trigger.sh` is run
+- **WHEN** the `db-backup-trigger.sh` script is run
 - **THEN** the script exits with code 1 and prints the `filen-upload` container's last 50 log lines including the `ERROR: Filen remote upload failed` marker
 
 #### Scenario: Skript weigert sich außerhalb des fleet-Kontexts
 
 - **GIVEN** the active `kubectl` context is not `fleet`
-- **WHEN** `bash scripts/db-backup-trigger.sh` is run
+- **WHEN** the `db-backup-trigger.sh` script is run
 - **THEN** the script exits with code 1 and prints `FATAL: this script requires kubectl context 'fleet' (active: <name>)` before any Job is created
 
 ### Requirement: Dokumentierte Filen Fail-Modes

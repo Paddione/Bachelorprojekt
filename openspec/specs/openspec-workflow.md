@@ -1639,7 +1639,7 @@ The system SHALL NOT register the third-party `openspec-mcp@0.4.2` package as an
 
 - **GIVEN** the cleanup commit has landed
 - **WHEN** the file system at `openspec/project.md` is checked
-- **THEN** the file does not exist (project context lives in `openspec/config.yaml:context:` instead)
+- **THEN** the file does not exist (project context lives in the `context:` field of `openspec/config.yaml` instead)
 
 ---
 
@@ -1656,7 +1656,7 @@ The system SHALL keep all project-level OpenSpec context (stack, conventions, se
 #### Scenario: config.yaml rules cover specs and design artifacts
 
 - **GIVEN** the polish commit (T001265) has landed
-- **WHEN** `openspec/config.yaml:rules:` is parsed
+- **WHEN** the `rules:` field of `openspec/config.yaml` is parsed
 - **THEN** the keys include `proposal`, `tasks`, `specs`, and `design` (all four artifact IDs the upstream spec-driven schema defines)
 
 ---

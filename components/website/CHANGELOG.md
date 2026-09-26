@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.368.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.367.0...website-v1.368.0) (2026-09-26)
+
+
+### Features
+
+* **mcp:** expose warden-mcp to opencode and resolve bw cross-platform [T900404] ([#5938](https://github.com/Paddione/Bachelorprojekt/issues/5938)) ([fe7640a](https://github.com/Paddione/Bachelorprojekt/commit/fe7640a6c6bc76ab615a7de7e4365f25d3d5bd4d))
+
 ## [1.367.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.366.0...website-v1.367.0) (2026-09-26)
 
 

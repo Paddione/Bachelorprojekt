@@ -2,23 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2435 · Scenarios: 5400
+Specs: 130 · Requirements: 2439 · Scenarios: 5409
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 92 · Scenarios: 202 · Lines: 2423
+Reqs: 96 · Scenarios: 211 · Lines: 2529
 Last touches:
   - OVERVIEW.md must name the complete vendor skill set | T900452 | 2026-09-26 | MODIFIED
   - Recall-Schichtwahl für Agenten | T900453 | 2026-09-26 | ADDED
-  - Removal of managed worktrees unlocks before removing | T900340 | 2026-09-24 | ADDED
-  - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | 2026-09-23 | ADDED
-  - The archive commit carries every SSOT spec its deltas target | T900339 | 2026-09-23 | ADDED
-In-flight:
-  - WIP-Uebersicht | T900481 | active | ADDED
-  - Fail-closed WIP-Finisher | T900481 | active | ADDED
-  - 4B-Rail nur als Triagierer | T900481 | active | ADDED
-  - WIP-Luecke im sdlc-autopilot | T900481 | active | ADDED
+  - WIP-Uebersicht | T900481 | 2026-09-26 | ADDED
+  - Fail-closed WIP-Finisher | T900481 | 2026-09-26 | ADDED
+  - 4B-Rail nur als Triagierer | T900481 | 2026-09-26 | ADDED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842

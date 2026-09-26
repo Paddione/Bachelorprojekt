@@ -103,7 +103,7 @@ change with its own plan.
 
 Every directory move in this change SHALL happen as a single atomic commit that combines
 the `git mv` with all reference updates. After each move, a fixed-string grep for the
-old path over the repository (excluding generated docs under `k3d/docs-content-built/`)
+old path over the repository
 MUST return no stale references.
 
 #### Scenario: Each move is self-contained
@@ -114,8 +114,6 @@ MUST return no stale references.
   at that commit
 - **AND** a fixed-string grep for the old path of the moved directory returns no matches
   outside the moved content itself
-
-<!-- merged from change delta repo-structure.md (3436529475d3) -->
 
 ### Requirement: The drift guard is order-independent against stray empty directories
 
@@ -148,3 +146,5 @@ directory (a real reorg regression) SHALL still fail the guard and MUST NOT be r
 - **THEN** the stray directory is removed so subsequent runs start from a clean root
 
 <!-- merged from change delta repo-structure.md (1264a9df01f3) -->
+
+<!-- merged from change delta repo-structure.md (d1f685668abf) -->

@@ -251,7 +251,7 @@ matrix, and SHALL ingest test results into the website's test-tracking API.
 
 ### Requirement: Freshness-Auto-Regenerierung nach main-Push
 
-The system SHALL regenerate all stale generated artifacts (API-Map, repo-index, architecture HTML)
+The system SHALL regenerate all stale generated artifacts (API-Map, repo-index)
 after every push to `main` and SHALL commit and push the regenerated files if any changed,
 using a dedicated bot identity.
 
@@ -267,8 +267,6 @@ using a dedicated bot identity.
 - **GIVEN** alle generierten Artefakte sind bereits aktuell
 - **WHEN** `git diff --quiet` zeigt `changed=false`
 - **THEN** überspringt der Workflow den Commit-Schritt — kein leerer Commit entsteht
-
----
 
 ### Requirement: Dependency-Update via Renovate (selbstgehostet)
 
@@ -383,60 +381,6 @@ without a prior `npm ci`.
 - **GIVEN** ein frischer Worktree ohne `node_modules/` (z.B. via `scripts/worktree-create.sh`)
 - **WHEN** `task test:agent-guide` aufgerufen wird
 - **THEN** führt der Task zuerst `[ -d node_modules ] || npm ci` aus — und erst danach den `node`-Aufruf — sodass fehlende Packages nicht zu `ERR_MODULE_NOT_FOUND` führen
-
-#### Scenario: test:docs-gen enthält ebenfalls den Lazy-Install-Guard
-
-- **GIVEN** `Taskfile.yml` enthält den Task `test:docs-gen` der einen `node`-Aufruf enthält
-- **WHEN** der Task-Block analysiert wird
-- **THEN** steht der `[ -d node_modules ] || npm ci`-Guard auf einer früheren Zeile als der erste `node`-Aufruf im selben Task-Block
-
----
-
-### Requirement: Docs-Content-Linting auf veraltete und verbotene Inhalte
-
-The system SHALL lint the documentation source in `k3d/docs-content/` and reject any
-references to decommissioned services (Mattermost, InvoiceNinja, Stripe) or stale
-cluster-topology wording, and SHALL enforce sidebar link integrity.
-
-#### Scenario: Verbotene Service-Referenzen im Docs-Content werden erkannt
-
-- **GIVEN** eine Markdown-Datei unter `k3d/docs-content/` enthält den Text `Mattermost`, `InvoiceNinja` oder `Stripe` (außer in `decisions.md`)
-- **WHEN** der `test-docs-content`-BATS-Test läuft
-- **THEN** schlägt der entsprechende Test fehl und gibt den Dateinamen mit dem verbotenen Verweis aus
-
-#### Scenario: Veraltete Cluster-Topologie-Bezeichnungen werden abgewiesen
-
-- **GIVEN** eine Docs-Datei (außer `decisions.md`) enthält `korczewski-Cluster`, `separater Cluster` oder `separates Cluster`
-- **WHEN** der Lint-Test ausgeführt wird
-- **THEN** schlägt der Test fehl — die Begriffe sind seit der Fleet-Konsolidierung veraltet und dürfen nicht mehr erscheinen
-
----
-
-### Requirement: Brand-Switch-Shell
-
-The system SHALL ensure that the docs shell HTML sets `data-brand` from the hostname
-for both brands.
-
-#### Scenario: Docs-Shell setzt data-brand dynamisch für beide Brands
-
-- **GIVEN** `docs-site/index.html` ist die Shell-HTML-Datei des Docs-Deployments
-- **WHEN** der Inhalt der Datei geprüft wird
-- **THEN** enthält die Datei `data-brand`, setzt CSS-Token-Blöcke für `data-brand="mentolder"` und `data-brand="korczewski"`, und referenziert `hostname`-basierte Logik für das Brand-Switching
-
----
-
-### Requirement: Docs-Content-Vollständigkeit — Mermaid-Diagramme
-
-The system SHALL ensure that every service page in the docs carries at least one Mermaid
-architecture diagram.
-
-#### Scenario: Jede Service-Seite enthält mindestens einen Mermaid-Block
-
-- **GIVEN** die Docs-Seiten `keycloak.md`, `nextcloud.md`, `collabora.md`, `talk-hpb.md`, `livestream.md`, `einvoice.md`, `claude-code.md`, `vaultwarden.md`, `website.md`, `whiteboard.md`, `mailpit.md`, `monitoring.md`, `shared-db.md`
-- **WHEN** jede Datei auf das Vorhandensein von ` ```mermaid` geprüft wird
-- **THEN** enthält jede Seite mindestens einen Mermaid-Block — fehlt er, schlägt der Test fehl mit dem Dateinamen
-
----
 
 ### Requirement: Art-Library-Manifest-Validierung
 
@@ -3027,6 +2971,28 @@ verify their own runtime stand.
 - **WHEN** `ticket-mcp-go --version` runs
 - **THEN** it prints a line containing `abc1234` and exits 0
 
+### Requirement: Keine Auto-Docs-Maschinerie mehr
+
+The repository SHALL NOT contain auto reading-docs machinery: no
+docs-build workflow, no docs generator, no built docs tree, no docs
+deployment manifests and no `docs:*` serving tasks. The freshness
+pipeline SHALL regenerate gate/plumbing artifacts only.
+
+#### Scenario: No generator or workflow remains
+
+- **GIVEN** the repository after auto-docs removal
+- **WHEN** the absence guard runs
+- **THEN** `.github/workflows/build-docs.yml`, `scripts/build-docs.mjs`
+  and `scripts/docs-gen/` do not exist
+- **AND** no Taskfile task starts with `docs:build` or `docs:deploy`
+
+#### Scenario: No serving path remains
+
+- **GIVEN** the repository after auto-docs removal
+- **WHEN** the absence guard runs
+- **THEN** `k3d/docs.yaml` and `k3d/docs-content-built/` do not exist
+- **AND** no ingress rule or kustomization resource references a docs service
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -3609,3 +3575,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (e3f7db1622e8) -->
 
 <!-- merged from change delta ci-cd.md (a68dd8c8ee66) -->
+
+<!-- merged from change delta ci-cd.md (941fed3a91aa) -->

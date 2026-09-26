@@ -2,20 +2,18 @@
 
 <!-- generiert von scripts/openspec-atlas.sh [T015012] — nicht handeditieren -->
 
-Specs: 130 · Requirements: 2437 · Scenarios: 5408
+Specs: 130 · Requirements: 2435 · Scenarios: 5403
 
 ## factory-pipeline
 
 ### agent-skills
-Reqs: 91 · Scenarios: 198 · Lines: 2383
+Reqs: 91 · Scenarios: 198 · Lines: 2385
 Last touches:
+  - OVERVIEW.md must name the complete vendor skill set | T900452 | 2026-09-26 | MODIFIED
   - Removal of managed worktrees unlocks before removing | T900340 | 2026-09-24 | ADDED
   - Plan-Frontmatter wird im Archiv-Arbeitsbaum auf completed gesetzt | T900226 | 2026-09-23 | ADDED
   - The archive commit carries every SSOT spec its deltas target | T900339 | 2026-09-23 | ADDED
   - Symlink-Set entspricht den getrackten Skills | T900238 | 2026-09-23 | ADDED
-  - Nicht-Verzeichnis-Ziele nur fuer OVERVIEW.md | T900238 | 2026-09-23 | ADDED
-In-flight:
-  - OVERVIEW.md must name the complete vendor skill set | T900452 | active | MODIFIED
 
 ### dev-flow-plan
 Reqs: 31 · Scenarios: 68 · Lines: 842
@@ -67,21 +65,14 @@ In-flight:
 ## delivery
 
 ### ci-cd
-Reqs: 118 · Scenarios: 338 · Lines: 3611
+Reqs: 116 · Scenarios: 335 · Lines: 3579
 Paths: .github/workflows, scripts/tests, tests/
 Last touches:
-  - Dev-Build-Safety — OOM-Schutz für Astro-Build | T900332 | 2026-09-23 | MODIFIED
-  - A unit test never removes itself from CI because a dependency was not installed | T013674 | 2026-09-17 | ADDED
-  - GitLab CI image refs carry a full registry host | T014566 | 2026-09-17 | ADDED
-  - Staging cronjobs run against a schema-complete database | T014566 | 2026-09-17 | ADDED
-  - Installed ticket-mcp-go binary staleness is detectable | T014735 | 2026-09-17 | ADDED
-In-flight:
-  - Freshness-Auto-Regenerierung nach main-Push | T900452 | active | MODIFIED
-  - Lazy npm ci Guard in Test-Tasks vor Node-Skript-Aufrufen | T900452 | active | MODIFIED
-  - Docs-Content-Linting auf veraltete und verbotene Inhalte | T900452 | active | REMOVED
-  - Brand-Switch-Shell | T900452 | active | REMOVED
-  - Docs-Content-Vollständigkeit — Mermaid-Diagramme | T900452 | active | REMOVED
-  - Keine Auto-Docs-Maschinerie mehr | T900452 | active | ADDED
+  - Freshness-Auto-Regenerierung nach main-Push | T900452 | 2026-09-26 | MODIFIED
+  - Lazy npm ci Guard in Test-Tasks vor Node-Skript-Aufrufen | T900452 | 2026-09-26 | MODIFIED
+  - Docs-Content-Linting auf veraltete und verbotene Inhalte | T900452 | 2026-09-26 | REMOVED
+  - Brand-Switch-Shell | T900452 | 2026-09-26 | REMOVED
+  - Docs-Content-Vollständigkeit — Mermaid-Diagramme | T900452 | 2026-09-26 | REMOVED
 
 ### fleet-operations
 Reqs: 65 · Scenarios: 121 · Lines: 1279
@@ -94,19 +85,14 @@ Last touches:
   - ghcr-pull-secret ist in workspace-office und website-staging vorhanden | T900041 | 2026-09-17 | ADDED
 
 ### workspace-deploy
-Reqs: 88 · Scenarios: 164 · Lines: 1892
+Reqs: 88 · Scenarios: 162 · Lines: 1876
 Paths: k3d/, prod/, prod-fleet/, prod-mentolder/, prod-korczewski/, Taskfile, environments/
 Last touches:
+  - Image-Pinning-Regeln für Core-Services | T900452 | 2026-09-26 | MODIFIED
+  - ENV= immer explizit angeben | T900452 | 2026-09-26 | MODIFIED
+  - Collabora Discovery-Endpoint und Docs-Site nach Deploy erreichbar | T900452 | 2026-09-26 | REMOVED
+  - Collabora Discovery-Endpoint nach Deploy erreichbar | T900452 | 2026-09-26 | ADDED
   - Staging-ID-Skript normalisiert Branch-Namen deterministisch | T900332 | 2026-09-23 | REMOVED
-  - Staging-Stack-Kustomize-Build akzeptiert Platzhalter-Variablen | T900332 | 2026-09-23 | REMOVED
-  - k3d base is single-node-neutral | T900310 | 2026-09-22 | MODIFIED
-  - ENV=dev targets the current kubectl context | T900310 | 2026-09-22 | MODIFIED
-  - Dev-Cluster-Autostart-Unit startet Cluster, erstellt ihn nie neu | T900310 | 2026-09-22 | REMOVED
-In-flight:
-  - Image-Pinning-Regeln für Core-Services | T900452 | active | MODIFIED
-  - ENV= immer explizit angeben | T900452 | active | MODIFIED
-  - Collabora Discovery-Endpoint und Docs-Site nach Deploy erreichbar | T900452 | active | REMOVED
-  - Collabora Discovery-Endpoint nach Deploy erreichbar | T900452 | active | ADDED
 
 ## llm
 
@@ -473,15 +459,13 @@ Last touches:
   - Restore verification guard in the spec test suite | T014544 | 2026-09-17 | ADDED
 
 ### devflow-selection-archive-hardening
-Reqs: 5 · Scenarios: 12 · Lines: 134
+Reqs: 5 · Scenarios: 12 · Lines: 136
 Last touches:
+  - Post-merge deploy does not build container images | T900452 | 2026-09-26 | MODIFIED
   - Merge-commit selection excludes archive commits | T009368 | 2026-08-18 | ADDED
   - Generated artifacts are excluded from change-diff selection | T002255 | 2026-07-27 | ADDED
-  - Post-merge deploy does not build container images | T002255 | 2026-07-27 | ADDED
   - The archive reference describes a reproducible workflow | T002255 | 2026-07-27 | ADDED
   - Worktree limitations of ticket-mcp plan tools are documented | T002255 | 2026-07-27 | ADDED
-In-flight:
-  - Post-merge deploy does not build container images | T900452 | active | MODIFIED
 
 ### divergence-guard
 Reqs: 14 · Scenarios: 44 · Lines: 472
@@ -628,15 +612,13 @@ Last touches:
   - ComfyUI Runs Only While Images Are Requested | T900379 | 2026-09-25 | ADDED
 
 ### local-dev-mesh
-Reqs: 20 · Scenarios: 42 · Lines: 467
+Reqs: 20 · Scenarios: 42 · Lines: 469
 Last touches:
+  - No active reference to the k3d dev context remains | T900452 | 2026-09-26 | MODIFIED
   - The repository ships no local k3d cluster tooling | T900332 | 2026-09-23 | MODIFIED
   - Dev redeploy pulls the CI-built dev image | T900332 | 2026-09-23 | ADDED
   - Dev secrets are materialised by an explicit task | T900332 | 2026-09-23 | ADDED
   - The k3d dev cluster is removed only after the acceptance gate | T900120 | 2026-09-20 | REMOVED
-  - No active reference to the k3d dev context remains | T900120 | 2026-09-20 | MODIFIED
-In-flight:
-  - No active reference to the k3d dev context remains | T900452 | active | MODIFIED
 
 ### main-commit-guard
 Reqs: 1 · Scenarios: 3 · Lines: 37
@@ -724,9 +706,8 @@ Paths: website/src/lib/newsletter, website/src/api/newsletter, website/src/pages
 Reqs: 25 · Scenarios: 46 · Lines: 462
 Paths: k3d/nextcloud
 Last touches:
+  - Explicit ENV= for All Env-Sensitive Deploys | T900452 | 2026-09-26 | MODIFIED
   - Spec-BATS smoke coverage | T002012 | 2026-07-21 | ADDED
-In-flight:
-  - Explicit ENV= for All Env-Sensitive Deploys | T900452 | active | MODIFIED
 
 ### opencode-local-model-runner
 Reqs: 3 · Scenarios: 4 · Lines: 47
@@ -857,13 +838,11 @@ Last touches:
 ### repo-structure
 Reqs: 8 · Scenarios: 12 · Lines: 150
 Last touches:
+  - Moves are atomic with reference updates | T900452 | 2026-09-26 | MODIFIED
   - The drift guard is order-independent against stray empty directories | T011792 | 2026-08-18 | ADDED
   - Repo root carries only harness and GitHub convention files | T006999 | 2026-08-15 | ADDED
   - Build components live under components/ | T006999 | 2026-08-15 | ADDED
   - packages/ holds npm packages | T006999 | 2026-08-15 | ADDED
-  - assets/ holds branding assets | T006999 | 2026-08-15 | ADDED
-In-flight:
-  - Moves are atomic with reference updates | T900452 | active | MODIFIED
 
 ### routing-check-freetoken-t014552
 Reqs: 1 · Scenarios: 1 · Lines: 21

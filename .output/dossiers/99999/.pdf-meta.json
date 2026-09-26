@@ -1,0 +1,14 @@
+{
+  "theme-file": "default",
+  "candidate-name": "Max Mustermann",
+  "candidate-role": "",
+  "candidate-contact": "max@beispiel.de  |  +49 123 456789  |  github.com/maxmustermann",
+  "company": "",
+  "role": "",
+  "salutation": "Sehr geehrte Damen und Herren,",
+  "closing": "Ich freue mich auf ein persönliches Gespräch und stehe Ihnen gerne zur Verfügung.",
+  "motivation": "Mit Erfahrung in Kubernetes, CI/CD-Pipelines, DevOps-Architekturen und LLM-Infrastruktur.",
+  "education": "Bachelor Informatik, TU Beispielstadt",
+  "skills": "",
+  "evidence-items": "fleet-k3s: k3s-basierte Fleet-Architektur mit Kustomize-Overlays, FluxCD-OCI-Delivery und Multi-Brand-Namespace-Tenancy"
+}

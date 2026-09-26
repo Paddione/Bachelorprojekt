@@ -384,7 +384,7 @@ labels on the `workspace` Namespace.
 
 The system SHALL ensure that no core service container image uses the `:latest` tag, that
 all images carry either an explicit version tag or a digest, and that MCP sidecar images,
-internal build images (`paddione/bachelorprojekt`, `workspace-brett`, `docs`, `videovault`,
+internal build images (`paddione/bachelorprojekt`, `workspace-brett`, `videovault`,
 `mediaviewer-widget`, `mentolder-web`) are exempt from the `:latest` prohibition.
 
 #### Scenario: Core-Images ohne :latest
@@ -396,15 +396,13 @@ internal build images (`paddione/bachelorprojekt`, `workspace-brett`, `docs`, `v
 
 #### Scenario: :latest bei internen Build-Images erlaubt
 
-- **GIVEN** `k3d/website.yaml`, `k3d/brett.yaml`, `k3d/docs.yaml`, `k3d/videovault.yaml`,
+- **GIVEN** `k3d/website.yaml`, `k3d/brett.yaml`, `k3d/videovault.yaml`,
   `k3d/mediaviewer-widget.yaml`, `k3d/mentolder-web.yaml` u.a. nutzen `:latest`
-  für intern gebaute Images (`paddione/bachelorprojekt*`, `workspace-brett`, `docs`,
+  für intern gebaute Images (`paddione/bachelorprojekt*`, `workspace-brett`,
   `videovault`, `mediaviewer-widget`, `mentolder-web`, etc.)
 - **WHEN** der Image-Pinning-Check ausgeführt wird
 - **THEN** werden diese Images von der `:latest`-Prüfung ausgenommen
 - **AND** der Check schlägt nur fehl, wenn ein Drittanbieter-Core-Image `:latest` trägt
-
----
 
 ### Requirement: Namespace-Konsistenz im Basis-Build
 
@@ -801,7 +799,7 @@ The system SHALL invoke `scripts/env-resolve.sh` exclusively via `source` (`. sc
 
 ### Requirement: ENV= immer explizit angeben
 
-The system SHALL require an explicit `ENV=<name>` parameter for all environment-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `docs:deploy`, `workspace:talk-setup`), and SHALL default silently to `ENV=dev` when the parameter is omitted — this silent default means an omitted `ENV=` with a non-dev active kubectl context will deploy to whatever cluster is currently active without any warning.
+The system SHALL require an explicit `ENV=<name>` parameter for all environment-sensitive tasks (`workspace:deploy`, `workspace:office:deploy`, `workspace:post-setup`, `workspace:talk-setup`), and SHALL default silently to `ENV=dev` when the parameter is omitted — this silent default means an omitted `ENV=` with a non-dev active kubectl context will deploy to whatever cluster is currently active without any warning.
 
 #### Scenario: Fehlender ENV= mit falschem kubectl-Kontext
 
@@ -809,15 +807,6 @@ The system SHALL require an explicit `ENV=<name>` parameter for all environment-
 - **WHEN** `task workspace:deploy` ohne ENV-Parameter aufgerufen wird
 - **THEN** läuft der Task mit `ENV=dev` und baut den `k3d/`-Basis-Build
 - **AND** der kubectl-Kontext-Mismatch-Check greift nicht (er prüft nur wenn `ENV != dev`), sodass der dev-Build auf dem Prod-Cluster angewendet wird
-
-#### Scenario: Explizites ENV=mentolder trifft den richtigen Cluster
-
-- **GIVEN** `ENV=mentolder` wird übergeben
-- **WHEN** `task workspace:deploy ENV=mentolder` gestartet wird
-- **THEN** löst `env-resolve.sh` `ENV_CONTEXT=fleet` auf und der Kontext-Mismatch-Check läuft
-- **AND** der Task bricht ab, wenn der aktive kubectl-Kontext nicht `fleet` ist
-
----
 
 ### Requirement: Prod-Overlay-Hierarchie — nur prod-fleet wird direkt angewendet
 
@@ -1419,6 +1408,16 @@ applied.
   `flux-infra-controllers` reconcile independently (no edge from brand stacks to
   foreign secret Kustomizations, no edge from infra to secrets)
 
+### Requirement: Collabora Discovery-Endpoint nach Deploy erreichbar
+
+The system SHALL ensure that after `task workspace:office:deploy` the Collabora discovery endpoint responds with a WOPI discovery XML.
+
+#### Scenario: Collabora WOPI Discovery antwortet *(E2E)*
+
+- **GIVEN** `task workspace:office:deploy ENV=mentolder` wurde nach `workspace:deploy` ausgeführt
+- **WHEN** GET `https://office.<PROD_DOMAIN>/hosting/discovery` gesendet wird
+- **THEN** antwortet der Endpunkt mit HTTP 200 und der Body enthält `wopi-discovery`
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1814,23 +1813,6 @@ The system SHALL ensure that after a successful production deployment the Pocket
 
 ---
 
-### Requirement: Collabora Discovery-Endpoint und Docs-Site nach Deploy erreichbar
-<!-- e2e: integration-smoke.spec.ts -->
-
-The system SHALL ensure that after `task workspace:office:deploy` the Collabora discovery endpoint responds with a WOPI discovery XML, and the Docs site responds with HTTP 200, 302, or 401.
-
-#### Scenario: Collabora WOPI Discovery antwortet *(E2E)*
-- **GIVEN** `task workspace:office:deploy ENV=mentolder` wurde nach `workspace:deploy` ausgeführt
-- **WHEN** GET `https://office.<PROD_DOMAIN>/hosting/discovery` gesendet wird
-- **THEN** antwortet der Endpunkt mit HTTP 200 und der Body enthält `wopi-discovery`
-
-#### Scenario: Docs-Site erreichbar (inkl. Auth-Redirect) *(E2E)*
-- **GIVEN** Docs-Deployment (`docs`) läuft im Namespace `workspace`
-- **WHEN** GET `https://docs.<PROD_DOMAIN>` gesendet wird
-- **THEN** antwortet der Endpunkt mit HTTP 200, 302 oder 401 (öffentlich, Auth-Redirect oder Auth-geschützt)
-
----
-
 ### Requirement: Unabhängiger korczewski Deploy-Job in build-website.yml
 
 The system SHALL deploy the website to the korczewski brand in an independent CI job that does NOT depend on the mentolder deploy job, so that a mentolder deployment failure does not block or skip the korczewski deployment.
@@ -1890,3 +1872,5 @@ The system SHALL have BATS tests in `tests/spec/ci-cd.bats` that verify the korc
 <!-- merged from change delta workspace-deploy.md (1ca810891061) -->
 
 <!-- merged from change delta workspace-deploy.md (835474bc986e) -->
+
+<!-- merged from change delta workspace-deploy.md (7b57605a49d0) -->

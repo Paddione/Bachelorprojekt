@@ -95,7 +95,7 @@ is unavailable or the local Tailscale service is not in state `Running`.
 
 The repository SHALL contain no reference to the former local k3d dev context outside
 `openspec/changes/`, `docs/superpowers/plans/`, `docs/superpowers/specs/archive/`, `docs/adr/`,
-`k3d/docs-content-built/`, `scripts/migrations/`, `docs/spec-atlas.md` and
+`scripts/migrations/`, `docs/spec-atlas.md` and
 `scripts/devmesh/migrate-from-k3d.sh` (which names the archived dump file, not a context). The guard
 `tests/spec/local-dev-mesh/no-k3d-context.bats` SHALL hold the search pattern itself, so that
 this requirement does not need to spell it. Context defaults in the factory and ticket tooling
@@ -465,3 +465,5 @@ to the production cluster `fleet`.
   `helm` nor `sish-authorized-keys`
 
 <!-- merged from change delta local-dev-mesh.md (be68f05ee21c) -->
+
+<!-- merged from change delta local-dev-mesh.md (f25c5f489add) -->

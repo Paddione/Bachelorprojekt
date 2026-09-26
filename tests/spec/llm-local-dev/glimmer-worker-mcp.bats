@@ -133,7 +133,7 @@ call() {
 
 @test "installer registers the worker in muse settings without losing entries" {
   local a="$T_DIR/muse-a.json" b="$T_DIR/muse-b.json"
-  echo '{"schema_version":1,"mcpServers":{"factory-mcp-node":{"type":"http","url":"http://localhost:13003/mcp"}}}' > "$a"
+  echo '{"schema_version":1,"mcpServers":{"mcp-postgres":{"type":"http","url":"http://localhost:13001/mcp"}}}' > "$a"
   echo '{"schema_version":1,"provider":"meta"}' > "$b"
   mkdir -p "$T_DIR/cfg"; echo "GLIMMER_WORKER_MCP_TOKEN=tok123" > "$T_DIR/cfg/server.env"
   run env GLIMMER_WORKER_MUSE_SETTINGS="$a $b" GLIMMER_WORKER_ENV_FILE="$T_DIR/cfg/server.env" \
@@ -144,7 +144,7 @@ call() {
     [ "$(jq -r '.mcpServers["glimmer-worker"].headers.Authorization' "$f")" = "Bearer tok123" ]
     [ -f "$f.bak" ]
   done
-  [ "$(jq -r '.mcpServers["factory-mcp-node"].url' "$a")" = "http://localhost:13003/mcp" ]
+  [ "$(jq -r '.mcpServers["mcp-postgres"].url' "$a")" = "http://localhost:13001/mcp" ]
   [ "$(jq -r '.provider' "$b")" = "meta" ]
   # Das Token erscheint nie in der Ausgabe des Installers.
   [ -z "$(grep -F 'tok123' <<<"$output" || true)" ]

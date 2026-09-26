@@ -78,14 +78,6 @@ s1:
     # helpContent.ts is a static copy/dictionary catalog defining contextual help text
     # and action checklists for portal and admin routes. Static text catalog.
     - "components/website/src/lib/helpContent.ts"
-    # pipeline.js is a single monolithic Claude Code Workflow script: the harness
-    # forbids top-level imports-before-`meta` and dynamic import(), so it cannot be
-    # safely split into modules (see T000460). It is a sanctioned exception to the
-    # per-file line limit; the FA-SF-20 contract test guards its structural invariants.
-    - "scripts/factory/pipeline.js"
-    # pipeline.mjs is the ESM twin of pipeline.js — same monolithic Workflow-script
-    # constraint (T000460). Cannot be split due to meta-first + no-dynamic-import rules.
-    - "scripts/factory/pipeline.mjs"
     # billing-db.ts extracted from website-db.ts (G-SIZE03 / T001293): collects all
     # billing schema-init DDL. At 618 lines it slightly exceeds the 600-line limit;
     # future goal can reduce further if needed.

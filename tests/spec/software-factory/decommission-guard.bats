@@ -267,3 +267,21 @@ setup() {
     false
   }
 }
+
+@test "decommission: factory-mcp-node sources are absent" {
+  [ ! -e "$REPO/scripts/factory-mcp-node" ]
+}
+
+@test "decommission: Hermes catalog has no factory-mcp key" {
+  local val
+  val="$(yq '.factory-mcp' "$REPO/scripts/hermes-mcp-servers.yaml")"
+  [ "$val" = "null" ]
+}
+
+@test "decommission: agy expected fixture carries no dead servers" {
+  local fixture="$REPO/docs/agent-guide/registry/expected/agy-mcp-config.json"
+  [ -f "$fixture" ] || skip "agy expected fixture not found"
+  run jq -r '.mcpServers | (has("factory-mcp") or has("task-master-ai"))' "$fixture"
+  [ "$status" -eq 0 ]
+  [ "$output" = "false" ]
+}

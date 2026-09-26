@@ -174,8 +174,21 @@ setup() {
   [ "$status" -eq 1 ]
 }
 
+@test "Job-YAML rendert per sed-Substitution vollstaendig (offline)" {
+  run bash -c "sed -e 's/\\\$JOB_ID/abc1234-999/g' -e 's/\\\$MERGE_SHA/abc1234def5678/g' -e 's/\\\$FULL/0/g' -e 's|\\\$REPO_URL|https://example.invalid/x.git|g' '$REPO/k3d/k1-embed-job.yaml'"
+  [ "$status" -eq 0 ]
+  # Positiv-Anker: ohne Render waeren die Negativpruefungen unten trivial wahr.
+  [[ "$output" == *"apiVersion: batch/v1"* ]]
+  [[ "$output" == *"kind: Job"* ]]
+  [[ "$output" == *"name: k1-embed-abc1234-999"* ]]
+  [[ "$output" == *"https://example.invalid/x.git"* ]]
+  [[ "$output" != *'$JOB_ID'* && "$output" != *'$MERGE_SHA'* && "$output" != *'$FULL'* && "$output" != *'$REPO_URL'* ]]
+}
+
 @test "Job-YAML besteht Client-Dry-Run via sed-Substitution" {
   [ -n "$(command -v kubectl)" ] || skip 'kubectl fehlt'
+  # --dry-run=client braucht API-Discovery; ohne erreichbaren Cluster (CI) ueberspringen [T900505].
+  kubectl version --request-timeout=3s >/dev/null 2>&1 || skip 'kein Kubernetes-API-Server erreichbar'
   export JOB_ID=abc1234-999 FULL=0 MERGE_SHA=abc1234def5678 REPO_URL=https://example.invalid/x.git
   run bash -c "sed -e \"s/\\\$JOB_ID/$JOB_ID/g\" -e \"s/\\\$MERGE_SHA/$MERGE_SHA/g\" -e \"s/\\\$FULL/$FULL/g\" -e \"s|\\\$REPO_URL|$REPO_URL|g\" '$REPO/k3d/k1-embed-job.yaml' | kubectl apply --dry-run=client -f -"
   [ "$status" -eq 0 ]

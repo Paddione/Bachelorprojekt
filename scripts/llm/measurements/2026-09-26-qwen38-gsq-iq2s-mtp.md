@@ -77,3 +77,32 @@ je drei Laeufe (Erstlauf + 2 Wiederholungen):
 llama-server -m $D/Qwen3.8-27B-GSQ-RCO-IQ2_S-mtp.gguf -c 98304 -ctk q4_0 -ctv q4_0 -np 4 -kvu \
   [--spec-type draft-mtp --spec-draft-n-max 4] -fit off -ngl 999 -fa on --jinja --port 1921
 ```
+
+## Orchestrator einfrieren: --cache-ram gegen Slot-Save (IQ2_S, -np 1 -c 196608)
+
+Orchestrator-Prompt 51k Token, dann uebernimmt ein Subagent (17k Token) den einzigen Slot,
+dann kehrt der Orchestrator mit erweitertem Verlauf zurueck (`freeze.mjs`):
+
+| Weg | Neu vorgefuellt | Wanduhr Rueckkehr |
+|---|---|---|
+| kalt (Referenz) | 51.038 | 48,4 s |
+| `-cram 12288` (automatisch) | 26 (51.063 aus RAM) | 2,9 s |
+| `/slots/0?action=save` + `restore` (`--slot-save-path /dev/shm`) | 51.111 (alles) | 47,7 s |
+
+- `--cache-ram` lagert den verdraengten Slot-Zustand im Host-RAM und stellt ihn bei Prefix-Treffer
+  wieder her: ~21,5 KB/Token (1,1 GB fuer 51k).
+- Explizites Save (0,65 s) / Restore (0,31 s) funktioniert technisch, aber bei diesem Hybridmodell
+  wird nach abweichendem Verlauf trotzdem alles neu vorgefuellt (keine Kontext-Checkpoints in der Datei).
+
+## Prefill-Batch (-ub), 24.579-Token-Prompt
+
+| -c | -ub | VRAM | Prefill |
+|---|---|---|---|
+| 196608 | 512 (Default) | 15.439 MiB | 1.305 t/s |
+| 196608 | 1024 | 15.907 MiB | Spill, haengt |
+| 163840 | 2048 | 15.947 MiB | Spill, haengt |
+| 163840 | 1024 | 15.011 MiB | 1.251 t/s |
+| 131072 | 2048 | 14.859 MiB | 1.245 t/s |
+
+Groessere Batches bringen keinen Prefill-Gewinn und kosten Kontext. Solo-Optimum:
+`-np 1 -c 196608 -ub 512 -ctk q4_0 -ctv q4_0 --spec-type draft-mtp --spec-draft-n-max 4 -cram 12288`.

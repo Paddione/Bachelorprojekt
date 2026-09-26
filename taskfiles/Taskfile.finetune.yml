@@ -38,7 +38,7 @@ tasks:
           --corpus "{{.CORPUS}}"
 
   train:
-    desc: "Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [DRY_RUN=1] GPU_LOCK_REQUIRED_MIB=<mib>"
+    desc: "Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> [PRECISION=auto|4bit|16bit] [GPU_MODE=single|balanced] [EVAL_CORPUS=<jsonl>]"
     preconditions:
       - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
         msg: "CORPUS=, MODEL= und MEASURE_REPORT= sind erforderlich (MEASURE_REPORT aus 'task finetune:measure')."
@@ -66,10 +66,14 @@ tasks:
           echo "[finetune] GPU_LOCK_REQUIRED_MIB nicht gesetzt — Training ohne GPU-Arbitrierung."
         fi
 
-        python3 scripts/finetune/train.py \
-          --corpus "{{.CORPUS}}" --model "{{.MODEL}}" --measure-report "{{.MEASURE_REPORT}}" \
-          {{if .CONFIG}}--config "{{.CONFIG}}"{{end}} \
-          {{if .DRY_RUN}}--dry-run{{end}}
+        set -- --corpus "{{.CORPUS}}" --model "{{.MODEL}}" --measure-report "{{.MEASURE_REPORT}}"
+        {{if .PRECISION}}set -- "$@" --precision "{{.PRECISION}}"{{end}}
+        {{if .MAX_SEQ_LENGTH}}set -- "$@" --max-seq-length "{{.MAX_SEQ_LENGTH}}"{{end}}
+        {{if .GPU_MODE}}set -- "$@" --gpu-mode "{{.GPU_MODE}}"{{end}}
+        {{if .EVAL_CORPUS}}set -- "$@" --eval-corpus "{{.EVAL_CORPUS}}"{{end}}
+        {{if .CONFIG}}set -- "$@" --config "{{.CONFIG}}"{{end}}
+        {{if .DRY_RUN}}set -- "$@" --dry-run{{end}}
+        python3 scripts/finetune/train.py "$@"
 
   traces:
     desc: "Erfolgreiche Factory-Laeufe zu Trainingskorpus rendern. FIXTURE=<json>|ROWS_JSON=<json> [COMMENTS_JSON=<json>] [WITH_CONTEXT=1] OUT=<jsonl>"
@@ -104,32 +108,61 @@ tasks:
 
   # ── HF Jobs Cloud (primärer Pfad nach dem WSL-Exit, ADR-007 / T016438) ──
   hf-jobs:train:
-    desc: "Trainingslauf auf HF Jobs Cloud. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [FLAVOR=<cpu-basic|l4x1|a10g|...>] (HF_TOKEN erforderlich)"
+    desc: "Trainingslauf auf HF Jobs Cloud. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> HUB_MODEL_ID=<hf-id> [FLAVOR=l4x1]"
     preconditions:
-      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
-        msg: "CORPUS=, MODEL= und MEASURE_REPORT= sind erforderlich."
+      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MEASURE_REPORT}}" ] && [ -n "{{.HUB_MODEL_ID}}" ]'
+        msg: "CORPUS=, MODEL=, MEASURE_REPORT= und HUB_MODEL_ID= sind erforderlich."
+      - sh: '[ -n "{{.MAX_SEQ_LENGTH}}" ] || [ -n "{{.CONFIG}}" ]'
+        msg: "MAX_SEQ_LENGTH= oder CONFIG= mit max_seq_length ist erforderlich."
       - sh: '[ -n "${HF_TOKEN:-}" ]'
         msg: "HF_TOKEN ist nicht gesetzt — `hf auth login` oder export HF_TOKEN=…"
     cmds:
       - |
+        # A local UV script uploads its own directory, not arbitrary sibling files.
+        # Stage exactly the input bundle; never sync the repo (which contains secrets).
+        STAGE=$(mktemp -d)
+        trap 'rm -rf "$STAGE"' EXIT
+        cp scripts/finetune/{train.py,measure_corpus.py,template_guard.py} "$STAGE/"
+        cp -- "{{.CORPUS}}" "$STAGE/corpus.jsonl"
+        cp -- "{{.MEASURE_REPORT}}" "$STAGE/report.json"
+        {{if .CONFIG}}cp -- "{{.CONFIG}}" "$STAGE/config.json"{{end}}
+        {{if .EVAL_CORPUS}}cp -- "{{.EVAL_CORPUS}}" "$STAGE/eval.jsonl"{{end}}
+        {{if .HUB_TEMPLATE}}cp -- "{{.HUB_TEMPLATE}}" "$STAGE/hub.jinja"{{end}}
+        {{if .PATCHED_TEMPLATE}}cp -- "{{.PATCHED_TEMPLATE}}" "$STAGE/patched.jinja"{{end}}
+        FLAVOR="{{.FLAVOR}}"
+        [ -n "$FLAVOR" ] || FLAVOR=l4x1
+        set -- --corpus /data/corpus.jsonl --model "{{.MODEL}}" \
+          --measure-report /data/report.json --hub-model-id "{{.HUB_MODEL_ID}}" \
+          --report-to trackio --output-dir /tmp/finetune-output
+        {{if .PRECISION}}set -- "$@" --precision "{{.PRECISION}}"{{end}}
+        {{if .MAX_SEQ_LENGTH}}set -- "$@" --max-seq-length "{{.MAX_SEQ_LENGTH}}"{{end}}
+        {{if .CONFIG}}set -- "$@" --config /data/config.json{{end}}
+        {{if .EVAL_CORPUS}}set -- "$@" --eval-corpus /data/eval.jsonl{{end}}
+        {{if .HUB_TEMPLATE}}set -- "$@" --hub-template /data/hub.jinja{{end}}
+        {{if .PATCHED_TEMPLATE}}set -- "$@" --patched-template /data/patched.jinja{{end}}
+        JOB_DRY_RUN=""
+        {{if .DRY_RUN}}JOB_DRY_RUN="--dry-run"{{end}}
         uvx --from "huggingface_hub" hf jobs uv run \
-          {{if .FLAVOR}}--flavor {{.FLAVOR}}{{end}} \
-          --secrets HF_TOKEN \
-          scripts/finetune/train.py \
-          --corpus "{{.CORPUS}}" --model "{{.MODEL}}" \
-          --measure-report "{{.MEASURE_REPORT}}" \
-          {{if .CONFIG}}--config "{{.CONFIG}}"{{end}} \
-          {{if .DRY_RUN}}--dry-run{{end}}
+          --flavor "$FLAVOR" --timeout 2h --detach $JOB_DRY_RUN --secrets HF_TOKEN \
+          --with unsloth --with trl --with datasets --with trackio --with torchvision \
+          "$STAGE/train.py" "$@"
 
   hf-jobs:export:
-    desc: "GGUF-Export als HF Job + Artefakt-Download in den Registry-Pfad. RUN=<job-ref> OUT=<pfad>"
+    desc: "GGUF-Export als HF Job. ADAPTER_REPO=<hf-id> GGUF_REPO=<hf-id> [FLAVOR=l4x1]"
     preconditions:
-      - sh: '[ -n "{{.RUN}}" ] && [ -n "{{.OUT}}" ]'
-        msg: "RUN= und OUT= sind erforderlich."
+      - sh: '[ -n "{{.ADAPTER_REPO}}" ] && [ -n "{{.GGUF_REPO}}" ]'
+        msg: "ADAPTER_REPO= und GGUF_REPO= sind erforderlich."
+      - sh: '[ -n "${HF_TOKEN:-}" ]'
+        msg: "HF_TOKEN ist nicht gesetzt."
     cmds:
       - |
+        FLAVOR="{{.FLAVOR}}"
+        [ -n "$FLAVOR" ] || FLAVOR=l4x1
+        set -- --adapter-repo "{{.ADAPTER_REPO}}" --gguf-repo "{{.GGUF_REPO}}"
+        {{if .QUANTIZATION}}set -- "$@" --quantization "{{.QUANTIZATION}}"{{end}}
+        JOB_DRY_RUN=""
+        {{if .DRY_RUN}}JOB_DRY_RUN="--dry-run"{{end}}
         uvx --from "huggingface_hub" hf jobs uv run \
-          --flavor l4x1 --secrets HF_TOKEN \
-          scripts/finetune/export_gguf.py --run "{{.RUN}}"
-        mkdir -p "{{.OUT}}"
-        uvx --from "huggingface_hub" hf download "{{.RUN}}" --local-dir "{{.OUT}}"
+          --flavor "$FLAVOR" --timeout 2h --detach $JOB_DRY_RUN --secrets HF_TOKEN \
+          --with unsloth --with huggingface_hub \
+          scripts/finetune/hf_export_gguf.py "$@"

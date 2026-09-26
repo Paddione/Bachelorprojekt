@@ -64,11 +64,17 @@ Die Kriterien folgen `design.md` D3/D4/D5:
    Fremdfamilien fallen durch diesen Test. Grenze des Verfahrens: die End-to-End-Akzeptanz
    im llama.cpp-Speculation-Betrieb bleibt bis zur Integration ein unbestätigtes Versprechen
    und wird im Folge-Ticket gemessen, nicht hier behauptet.
-2. **QLoRA-VRAM-Fit (D4).** Maßgeblich ist der geteilte 16-GB-Haushalt. Lokale Belege:
+2. **QLoRA-VRAM-Fit (D4, historischer Auswahlstand).** Maßgeblich war der geteilte 16-GB-Haushalt. Lokale Belege:
    der 4.33-B-Lauffall benötigte per GPU-Lock 4800 MiB; die Heuristik-Matrix des
    Messberichts stuft selbst 7 B bei Seq-Len 3072 auf geschätzte 6.47 GB und 9 B auf
    8.70 GB als fit ein (Schaetzmodell, kein gemessener Lauf). Alle Kandidaten ≤ 8 B
-   erfüllen das Kriterium damit konservativ; die Matrix führt es pro Kandidat.
+   erfuellten das damalige Kriterium; die Matrix fuehrt es pro Kandidat.
+   **Update 2026-09-27:** Unsloth empfiehlt fuer Qwen3.5 jetzt 16-bit LoRA
+   statt QLoRA. Die obigen QLoRA-Schaetzungen beweisen daher keinen aktuellen
+   Trainingsfit. Fuer Qwen3.5-4B nennt Unsloth rund 10 GB bei kurzer Sequenz;
+   `measure_corpus.py` modelliert es nun mit 16-bit-Gewichten und ein realer
+   Kurzlauf muss VRAM und Qualitaet neu bestaetigen. Siehe
+   `scripts/finetune/README.md`.
 3. **Rollengerechtes Eval-Protokoll (D5).**
    - **Worker:** Paired Measurement via `scripts/finetune/eval_harness.py` gegen das
      Testset-Format `scripts/finetune/testsets/agent-actions.jsonl` (Klassen

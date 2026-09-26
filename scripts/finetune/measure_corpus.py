@@ -12,7 +12,7 @@ Ablauf:
   2. Rendertext tokenisieren und die Laenge messen.
   3. Perzentile (median/p90/p95/p99/max) ausgeben, plus je Kandidatenlaenge Anzahl/Anteil
      der Zeilen, die gekuerzt wuerden.
-  4. Eine Machbarkeitsmatrix je Kandidatenmodell aus Gewichtsbedarf (4-bit), Aktivierungen
+  4. Eine Machbarkeitsmatrix je Kandidatenmodell aus Gewichtsbedarf (4-bit oder 16-bit), Aktivierungen
      bei der jeweiligen Sequenzlaenge und Optimizer-States, gestellt gegen das verfuegbare
      VRAM (per --vram-gb, Default 16 — die Zielmaschine aus dem Vorversuch).
 
@@ -59,6 +59,9 @@ MODEL_PROFILES = {
     "gemma-2-27b": {"params_b": 27.0, "hidden": 4608, "layers": 46},
     "qwen2.5-7b": {"params_b": 7.0, "hidden": 3584, "layers": 28},
     "qwen2.5-14b": {"params_b": 14.0, "hidden": 5120, "layers": 48},
+    "qwen3-4b": {"params_b": 4.0, "hidden": 2560, "layers": 36},
+    # Qwen3.5 QLoRA ist laut Unsloth nicht empfohlen; 16-bit LoRA ist Default.
+    "qwen3.5-4b": {"params_b": 4.66, "hidden": 2560, "layers": 32, "precision": "16bit"},
 }
 DEFAULT_PROFILE = {"params_b": 9.0, "hidden": 3584, "layers": 42}
 
@@ -118,8 +121,9 @@ def _feasibility_matrix(candidates: list[int], vram_gb: float) -> dict:
         params_b = profile["params_b"]
         hidden = profile["hidden"]
         layers = profile["layers"]
-        # 4-bit Gewichte: params * 0.5 Byte/Parameter.
-        weight_gb = params_b * 1e9 * 0.5 / 1e9
+        precision = profile.get("precision", "4bit")
+        bytes_per_param = 2.0 if precision == "16bit" else 0.5
+        weight_gb = params_b * bytes_per_param
         per_seq = {}
         for seq_len in candidates:
             # Aktivierungen: grobe Schaetzung ueber Hidden-Size * Layers * Seq-Len * 2 Byte
@@ -132,7 +136,11 @@ def _feasibility_matrix(candidates: list[int], vram_gb: float) -> dict:
                 "estimated_vram_gb": round(total_gb, 2),
                 "fits": total_gb <= vram_gb,
             }
-        matrix[name] = {"weight_gb_4bit": round(weight_gb, 2), "by_seq_len": per_seq}
+        matrix[name] = {
+            "precision": precision,
+            f"weight_gb_{precision}": round(weight_gb, 2),
+            "by_seq_len": per_seq,
+        }
     return matrix
 
 

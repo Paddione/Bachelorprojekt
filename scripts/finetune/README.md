@@ -22,13 +22,83 @@ die Unsloth/TRL-Upstream-Referenz — im Harness ueber `context7` (`resolve-libr
 rendert erfolgreiche Ticket-Laeufe aus `tickets.factory_phase_events` ins gleiche
 Korpusformat wie ein extern beschaffter Korpus.
 
+## Aktueller 4B-Trainingsmodus (September 2026)
+
+* **Qwen3.5-4B:** 16-bit/bf16 LoRA auf einem unquantisierten Basismodell. Unsloth
+  [raet von QLoRA fuer Qwen3.5 ab](https://unsloth.ai/docs/models/qwen3.5/fine-tune),
+  weil dessen Quantisierungsabweichung erhoeht ist. Ein bereits heruntergeladenes
+  `bnb-4bit`-Repo ist kein 16-bit-Basismodell. `--allow-qwen35-4bit` ist nur fuer
+  einen bewusst evaluierten Vergleichslauf vorgesehen.
+* **Qwen3-4B und andere geeignete Dense-Modelle:** 4-bit QLoRA bleibt der
+  Default. Das Windows-Experiment unter `windows-native/` ist ein historisches
+  Beispiel; seine gemessenen 8.97 GB Peak-VRAM gelten fuer genau dessen 2048er
+  Korpus, Batch und Modell, nicht als allgemeine 4B-Garantie.
+* `train.py` benutzt TRLs aktuelle `SFTConfig(max_length=...)`- und
+  `SFTTrainer(processing_class=...)`-Schnittstellen. Ein separates
+  `--eval-corpus` aktiviert Validierungsverlust. Verhalten muss danach mit
+  `eval_harness.py` gegen das Basismodell gemessen werden.
+
+### Zwei lokale GPUs
+
+`--gpu-mode single` ist der Default. Auf der RTX 5070 Ti (16 GB) einen 4B-Lauf
+zuerst allein messen; die RTX 3060 Ti (8 GB) kann waehrenddessen eigene Dienste
+tragen. **VRAM addiert sich nicht zu einem 24-GB-Geraet.** `--gpu-mode balanced`
+setzt Unsloths `device_map="balanced"` fuer einen einzelnen Prozess und verteilt
+Modellteile auf beide sichtbaren CUDA-GPUs. Dieser Modus ist experimentell und
+braucht einen realen Kurzlauf mit Peak-VRAM- und Durchsatzmessung. Wegen der
+ungleichen Karten kann die 8-GB-Karte zuerst voll sein oder den Lauf bremsen.
+DDP/`torchrun` repliziert das Modell je GPU und ist keine VRAM-Zusammenlegung;
+`balanced` wird deshalb nicht mit DDP kombiniert. Siehe
+[Unsloth Multi-GPU](https://unsloth.ai/docs/basics/multi-gpu-training-with-unsloth).
+
+Vor einem lokalen Lauf `nvidia-smi -L` und `CUDA_VISIBLE_DEVICES` pruefen. Die
+WSL-Defaultmaske zeigt laut `docs/runbooks/freetoken-native.md` nur die 3060 Ti;
+fuer die 5070 Ti deren UUID explizit setzen. Auf Windows ist im historischen
+`unsloth-train`-Venv bereits ein funktionierender PyTorch/Unsloth-Stack belegt.
+Am 2026-09-27 sah dieses Venv standardmaessig nur die 3060 Ti. Eine
+**prozesslokale** PowerShell-Maske mit beiden UUIDs liess PyTorch beide Karten
+in der Reihenfolge 5070 Ti, 3060 Ti erkennen. Die 5070 Ti hatte zum Messzeitpunkt
+nur 337 MiB frei; vor einem Training muss ihr laufender Dienst beendet sein.
+
+```powershell
+# UUIDs fuer den eigenen Host mit nvidia-smi -L ermitteln; nur diese Shell aendern.
+$env:CUDA_VISIBLE_DEVICES = 'GPU-7dc4bd81-3a8d-c414-1751-f74dee8882f4,GPU-6b9ac882-e9e9-a364-4423-92d838536b86'
+python -c 'import torch; print([(torch.cuda.get_device_name(i), round(torch.cuda.get_device_properties(i).total_memory / 2**30, 1)) for i in range(torch.cuda.device_count())])'
+```
+
+Erst `torch.cuda.is_available()` und beide Geraetenamen pruefen, dann bei Bedarf
+mit [Unsloths Windows-Anleitung](https://unsloth.ai/docs/get-started/install/windows-installation)
+aktualisieren. Ein 16-bit-LoRA-Lauf auf Qwen3.5 braucht nach Unsloths Messung
+etwa 10 GB VRAM bei kurzer Sequenz; Korpuslaenge, Batch und belegter VRAM koennen
+mehr erfordern.
+
+### Repo-Verhalten als Trainingsziel
+
+Der Korpus soll **beobachtete, erfolgreiche Handlungen** lehren: Dispatch-Paket
+lesen, passende Tools waehlen, echte Tool-Ergebnisse verarbeiten, kleine Edits
+verifizieren und ein knappes Status-/Dateien-/Befund-Ergebnis liefern.
+`collect_factory_traces.py` liefert abgeschlossene Factory-Laeufe;
+`collect_teacher_traces.py` kann bewusst konstruierte Grenzfaelle erzeugen.
+Jede Zeile muss zum *tatsaechlichen* Tool-Schema und Prompt des Ziel-Slots passen.
+Bei Tool-Use-Beispielen gehoeren auch Faelle **ohne** Tool-Aufruf, fehlgeschlagene
+Tools, unpassende Tools und knappe Budgetgrenzen dazu. Im Windows-Vorversuch
+fuehrten 84 % Tool-Demos zu unnoetigen Tool-Aufrufen; ein ausgewogenes Set und
+gleiche Tool-Kontexte bei positiven/negativen Beispielen waren entscheidend.
+
+Vor dem Training: Secrets und private Inhalte entfernen, duplizierte Episoden
+entfernen, Train/Validation nach Ticket oder Szenario trennen, Beispieldialoge
+manuell pruefen und den unveraenderten Basismodell-Score auf
+`testsets/agent-actions.jsonl` festhalten. Trainings-Loss allein ist kein
+Akzeptanzkriterium. Modell-Chat-Template und produktiver Systemprompt muessen
+bei Training und Evaluation uebereinstimmen.
+
 Alle Schritte sind zusaetzlich als Taskfile-Tasks verfuegbar (`Taskfile.finetune.yml`,
 Namespace `finetune:`):
 
 ```bash
 task finetune:measure CORPUS=<jsonl> MODEL=<label> TEMPLATE_FILE=<jinja> OUT=<report.json>
 task finetune:guard   HUB_TEMPLATE=<hub.jinja> PATCHED_TEMPLATE=<patched.jinja> CORPUS=<jsonl>
-task finetune:train    CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<report.json> [DRY_RUN=1]
+task finetune:train    CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<report.json> MAX_SEQ_LENGTH=<n> [DRY_RUN=1]
 task finetune:traces   ROWS_JSON=<mcp-postgres-export.json> OUT=<jsonl> [WITH_CONTEXT=1 COMMENTS_JSON=<kommentare.json>]
 task finetune:export   ADAPTER_DIR=<dir> SLOT_NAME=<name> HUB_TEMPLATE=<hub.jinja> [DRY_RUN=1]
 ```
@@ -51,6 +121,9 @@ Phase-Event-Zeilen.
 
 - **Messbericht** unter dem per `--measure-report`/`MEASURE_REPORT` angegebenen Pfad muss
   existieren (Ausgabe von `measure_corpus.py`).
+  Ein echter Trainingslauf verlangt `tokenizer_source=transformers` und eine explizite
+  `MAX_SEQ_LENGTH` aus der gemessenen Verteilung; der heuristische CI-Fallback
+  und ein geratenes 2048er-Default sind kein Trainingsnachweis.
 - **Template-Guard** muss bestanden sein, wenn `--hub-template`/`--patched-template` gesetzt
   sind — `train.py` ruft `template_guard.py` selbst als Vorbedingung auf.
 
@@ -121,16 +194,23 @@ Zuhause — Fleet-Worker haben keine GPU. Der primäre Trainingspfad ist jetzt
 **HF Jobs Cloud**:
 
 ```bash
-# Voraussetzung: HF_TOKEN exportiert (write-Scope für Artefakt-Upload)
-task finetune:hf-jobs:train CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json>
-task finetune:hf-jobs:export RUN=<job-id> OUT=<registry-pfad>
+# Voraussetzung: HF_TOKEN exportiert (write-Scope fuer Adapter/GGUF)
+task finetune:hf-jobs:train CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> MAX_SEQ_LENGTH=<n> HUB_MODEL_ID=<user/adapter-repo> FLAVOR=l4x1
+# Nach abgeschlossenem Trainingsjob und bestandener Evaluation:
+task finetune:hf-jobs:export ADAPTER_REPO=<user/adapter-repo> GGUF_REPO=<user/gguf-repo> FLAVOR=l4x1
+hf download <user/gguf-repo> --local-dir <registry-pfad>
 ```
 
-* Skripte laufen als UV-Inline-Scripts (PEP 723) — keine venv-Pflege mehr.
-* Monitoring über **Trackio** (Dashboard im Hub); Messwerte fließen in die
-  Modell-Registry (Eignung, Stat-Requirements, Provenienz, Einsatz-Anleitung).
-* Der GGUF-Export landet im Registry-Pfad wie lokal (`export_gguf.py` läuft
-  im Job; Download des Artefakts via `hf download`).
+* Das Trainings-Target packt nur Skripte, Messbericht und angegebene Korpora
+  in ein temporaeres Input-Bundle. Es laedt das Modell im Job neu; lokale
+  Modell-Caches stehen dort nicht zur Verfuegung. Der Hub-Adapter bleibt nach
+  Job-Ende erhalten. Keine ungeprueften oder vertraulichen Korpora hochladen.
+* GPU-Job und GGUF-Export sind asynchron und kostenpflichtig. `--timeout 2h`
+  ist ein Startwert; Laenge und Kosten vor dem Start anhand Korpus und Flavor
+  einschaetzen. **Trackio** sammelt Trainingsmetriken.
+* Das GGUF landet zuerst im separaten Hub-Repo. Nach Job-Ende per `hf download`
+  in den Registry-Pfad holen und `eval_harness.py` gegen das Basismodell laufen
+  lassen. Die Modell-Registry wird erst nach dieser Pruefung aktualisiert.
 * Die lokalen Targets (`finetune:train/export` mit gpu-lock.sh) bleiben
   funktionsfähig, sind aber **deprecated**: sie setzen eine WSL/GPU-Laufzeit
   voraus, die es nach dem WSL-Shutdown nicht mehr gibt.

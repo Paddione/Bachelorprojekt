@@ -52,7 +52,34 @@
       "Bash(git stash drop *)",
       "Bash(git fetch origin main:main)"
     ],
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "ask": [
+      "mcp__warden__keychain_create_attachment",
+      "mcp__warden__keychain_create_card",
+      "mcp__warden__keychain_create_folder",
+      "mcp__warden__keychain_create_identity",
+      "mcp__warden__keychain_create_login",
+      "mcp__warden__keychain_create_logins",
+      "mcp__warden__keychain_create_note",
+      "mcp__warden__keychain_create_org_collection",
+      "mcp__warden__keychain_create_ssh_key",
+      "mcp__warden__keychain_delete_attachment",
+      "mcp__warden__keychain_delete_folder",
+      "mcp__warden__keychain_delete_item",
+      "mcp__warden__keychain_delete_items",
+      "mcp__warden__keychain_delete_org_collection",
+      "mcp__warden__keychain_edit_folder",
+      "mcp__warden__keychain_edit_org_collection",
+      "mcp__warden__keychain_move_item_to_organization",
+      "mcp__warden__keychain_restore_item",
+      "mcp__warden__keychain_send_create",
+      "mcp__warden__keychain_send_create_encoded",
+      "mcp__warden__keychain_send_delete",
+      "mcp__warden__keychain_send_edit",
+      "mcp__warden__keychain_send_remove_password",
+      "mcp__warden__keychain_set_login_uris",
+      "mcp__warden__keychain_update_item"
+    ]
   },
   "disabledMcpjsonServers": [
     "docfork",

@@ -422,6 +422,23 @@ clients:
         enabled: false
     note: "In Claude Code aktiv (T002678) — Browser-Automatisierung fuer dev-flow-e2e und web-audit. In opencode weiterhin disabled. Das offizielle Paket ist @playwright/mcp; das unscoped playwright-mcp ist ein anderes Projekt und darf hier nicht eingetragen werden."
 
+  warden:
+    transport: stdio
+    command: node
+    args: [scripts/warden-mcp/launch.mjs]
+    note: >-
+      Vaultwarden-Tresor des Nutzers via @icoretech/warden-mcp (Version im Launcher
+      gepinnt). Credentials ausschliesslich aus ~/.config/warden-mcp/server.env, nie
+      im Repo. Bewusst NUR harness.claude_code — jede weitere Harness waere ein
+      weiterer Pfad zum persoenlichen Tresor. Mutierende Tools stehen in
+      .claude/settings.json unter permissions.ask; bei Versions-Bump die Liste neu
+      ziehen. Windows braucht bw.exe <= 2026.6.x im PATH (neuere bw-CLIs koennen
+      Vaultwarden 1.36.0 nicht entschluesseln). [T900404]
+    harness:
+      claude_code:
+        command: node
+        args: [scripts/warden-mcp/launch.mjs]
+
 cluster:
   # In-Cluster-Bundle: k3d/dev-pod/{deployment,service,pvc,rbac}.yaml [T900107]
   # Namespace: workspace-dev, Context: fleet

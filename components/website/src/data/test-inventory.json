@@ -6750,6 +6750,18 @@
     "kind": "shell"
   },
   {
+    "id": "warden-mcp/config-guards",
+    "file": "tests/spec/warden-mcp/config-guards.bats",
+    "category": "warden-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "warden-mcp/launcher",
+    "file": "tests/spec/warden-mcp/launcher.bats",
+    "category": "warden-mcp",
+    "kind": "shell"
+  },
+  {
     "id": "website-core",
     "file": "tests/spec/website-core.bats",
     "category": "website-core",

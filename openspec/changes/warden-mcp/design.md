@@ -48,6 +48,17 @@ Nutzer-Entscheidung: persönliches Vaultwarden-Konto, `READONLY`/`NOREVEAL` aus.
 die sonst ohne `ask`-Regel durchrutschen. Ein Upgrade ist ein eigener Change, der die Liste neu
 zieht.
 
+### D5 — Windows: native bw.exe 2026.6.x (Befund Smoke-Test, 2026-09-26)
+warden-mcp spawnt `bw` ohne Shell; das gebündelte `@bitwarden/cli` ist unter Windows eine
+`.js`-Datei → `spawn EFTYPE`. Der Launcher setzt deshalb `BW_BIN` auf eine echte `bw.exe`
+(PATH, sonst `%LOCALAPPDATA%\Microsoft\WinGet\Packages\Bitwarden.CLI_*`). bw ≥ 2026.7.0 kann
+Einträge von Vaultwarden 1.36.0 nicht entschlüsseln (`invalid type: JsValue(Object …)`), getestet
+2026.5.0/2026.6.0 ok, 2026.7.0/2026.8.0/2026.9.0 kaputt → `winget install Bitwarden.CLI --version
+2026.6.0` + `winget pin add --id Bitwarden.CLI --version 2026.6.*`. Außerdem setzt der Launcher
+`KEYCHAIN_BW_HOME_ROOT` (sonst `/data/bw-profiles`, weil `HOME` unter Windows leer ist) und
+startet npx über `npx-cli.js` mit `cwd = Home` (cmd.exe verweigert UNC-Arbeitsverzeichnisse).
+`SSO_ONLY=true` blockiert den API-Key-Login nicht (`bw login --apikey` + `unlock` erfolgreich).
+
 ## Risks
 
 - **SSO_ONLY:** Vaultwarden läuft mit `SSO_ONLY=true` (Spec `vaultwarden-integration`). Ob der

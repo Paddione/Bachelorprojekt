@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.377.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.376.0...website-v1.377.0) (2026-09-26)
+
+
+### Features
+
+* **plans:** partial resourcing via min_tier + ctx_tokens (R1/R2) ([#6001](https://github.com/Paddione/Bachelorprojekt/issues/6001)) ([6bbd300](https://github.com/Paddione/Bachelorprojekt/commit/6bbd30040b1a8c1be68c649d427a3ac6b067ac89))
+* **scripts:** modernize Unsloth 4B training [T900508] ([#6002](https://github.com/Paddione/Bachelorprojekt/issues/6002)) ([aa3f283](https://github.com/Paddione/Bachelorprojekt/commit/aa3f283d8dcaf48407a1007e41133b9820051fe1))
+
 ## [1.376.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.375.0...website-v1.376.0) (2026-09-26)
 
 

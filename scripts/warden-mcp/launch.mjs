@@ -15,10 +15,18 @@
 //   - HOME ist leer, warden-mcp legte sein Profil sonst unter /data/bw-profiles ab.
 //   - Ein UNC-Arbeitsverzeichnis (\\wsl.localhost\...) laesst cmd.exe scheitern;
 //     npx wird deshalb direkt ueber npx-cli.js und mit cwd=Home gestartet.
+//
+// opencode laeuft in WSL (T900404). Dort ist das mitgelieferte @bitwarden/cli
+// zwar ein startbares ELF, aber mit derselben Versionsgrenze: 2026.9.0 legt
+// Eintraege von Vaultwarden 1.36.0 nicht entschluesseln. Deshalb sucht der
+// Launcher auf BEIDEN Plattformen zuerst eine echte, gepinnte bw-Binary
+// (PATH, ~/.local/bin, WinGet-Paket) und warnt, wenn die Version >= 2026.7.0
+// ist — der rohe Fehler von warden-mcp lautet dann nur
+// "create item <redacted> failed with exit code 1".
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 const PACKAGE = '@icoretech/warden-mcp@0.2.44';
 const REQUIRED = ['BW_HOST', 'BW_CLIENTID', 'BW_CLIENTSECRET', 'BW_PASSWORD'];
@@ -59,6 +67,24 @@ function findOnPath(name) {
   return null;
 }
 
+// ~/.local/bin liegt in WSL-Loginshells im PATH, aber nicht zwingend im
+// Environment eines von opencode uebergebenen Kindprozesses.
+function findUserLocalBw() {
+  const candidate = path.join(home, '.local', 'bin', 'bw');
+  return fs.existsSync(candidate) ? candidate : null;
+}
+
+// 'Bitwarden CLI 2026.6.0' (Windows) bzw. '2026.6.0' (Linux) -> [2026, 6, 0].
+function bwVersion(bin) {
+  try {
+    const probe = spawnSync(bin, ['--version'], { encoding: 'utf8', timeout: 10000 });
+    const m = /(\d{4})\.(\d+)\.(\d+)/.exec(`${probe.stdout || ''}${probe.stderr || ''}`);
+    return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+  } catch {
+    return null;
+  }
+}
+
 // Fallback fuer Prozesse, die vor `winget install` gestartet wurden und den
 // neuen PATH-Eintrag nicht kennen (z. B. eine laufende Claude-Desktop-App).
 function findWingetBw() {
@@ -82,10 +108,20 @@ if (!isWin && (fs.statSync(envFile).mode & 0o077) !== 0) {
 
 const env = { ...process.env, ...fileVars };
 env.KEYCHAIN_BW_HOME_ROOT ||= path.join(confDir, 'bw-profiles');
-if (!env.BW_BIN && isWin) {
-  env.BW_BIN = findOnPath('bw.exe') || findWingetBw() || fail(
-    'bw.exe nicht gefunden — `winget install Bitwarden.CLI --version 2026.6.0` oder BW_BIN in server.env setzen',
-  );
+if (!env.BW_BIN) {
+  env.BW_BIN = findOnPath(isWin ? 'bw.exe' : 'bw') || findUserLocalBw() || (isWin && findWingetBw()) || null;
+  if (!env.BW_BIN) {
+    process.stderr.write('warden-mcp: WARN: keine bw-CLI gefunden — der Server startet, aber jedes ' +
+      'keychain_*-Tool scheitert. Gepinnte 2026.6.x in PATH oder ~/.local/bin ablegen, ' +
+      'alternativ BW_BIN in server.env setzen.\n');
+  } else {
+    const v = bwVersion(env.BW_BIN);
+    if (v && (v[0] > 2026 || (v[0] === 2026 && v[1] >= 7))) {
+      process.stderr.write(`warden-mcp: WARN: ${env.BW_BIN} meldet bw ${v.join('.')} — ab 2026.7.0 ` +
+        'koennen die Eintraege von Vaultwarden 1.36.0 nicht entschluesselt werden. Version 2026.6.x ' +
+        'installieren oder BW_BIN in server.env setzen.\n');
+    }
+  }
 }
 
 // npx ohne Shell starten: unter Windows ueber npm's npx-cli.js neben node.exe.
@@ -96,7 +132,7 @@ const [cmd, args] = isWin && fs.existsSync(npxCli)
 
 if (process.env.WARDEN_MCP_DRY_RUN === '1') {
   process.stderr.write(`warden-mcp: dry-run: npx -y ${PACKAGE} --stdio ` +
-    `(bw-profiles=${env.KEYCHAIN_BW_HOME_ROOT}, BW_BIN=${env.BW_BIN ? 'gesetzt' : 'gebuendelt'})\n`);
+    `(bw-profiles=${env.KEYCHAIN_BW_HOME_ROOT}, bw=${env.BW_BIN || 'mitgeliefertes @bitwarden/cli'})\n`);
   process.exit(0);
 }
 

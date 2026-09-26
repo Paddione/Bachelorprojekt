@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # tests/spec/warden-mcp/launcher.bats
-# SSOT-Spec: openspec/specs/warden-mcp.md (REQ-WARDEN-MCP-001)
+# SSOT-Spec: openspec/specs/warden-mcp.md (REQ-WARDEN-MCP-001, REQ-WARDEN-MCP-004)
 #
 # Der Launcher darf warden-mcp nur mit vollstaendigen Credentials aus
 # ~/.config/warden-mcp/server.env starten und gibt nie einen Secret-Wert aus
@@ -50,4 +50,20 @@ _write_env() {
   [[ "$output" == *"bw-profiles"* ]]
   [[ "$output" != *"dummy-secret-value"* ]]
   [[ "$output" != *"dummy-master-value"* ]]
+}
+
+@test "a Bitwarden CLI newer than 2026.6.x only warns and does not block the start" {
+  _write_env "BW_HOST=https://vault.example.test" "BW_CLIENTID=user.dummy" \
+    "BW_CLIENTSECRET=dummy-secret-value" "BW_PASSWORD='dummy-master-value'"
+  local fake_bin="${BATS_TEST_TMPDIR}/bin"
+  mkdir -p "$fake_bin"
+  printf '#!/bin/sh\necho "Bitwarden CLI 2026.9.0"\n' > "${fake_bin}/bw"
+  chmod +x "${fake_bin}/bw"
+  # PATH-Vorlauf gewinnt gegen ~/.local/bin/bw (das es hier nicht gibt).
+  PATH="${fake_bin}:${PATH}" WARDEN_MCP_DRY_RUN=1 run node "$LAUNCHER"
+  echo "launcher output: $output"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"2026.9.0"* ]]
+  # Der Start laeuft weiter — die Warnung ist kein Abbruch.
+  [[ "$output" == *"@icoretech/warden-mcp@0.2.44"* ]]
 }

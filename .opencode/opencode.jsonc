@@ -76,6 +76,37 @@
     "websearch": "allow",
     "lsp": "allow",
     "doom_loop": "deny",
+    // ── warden-mcp Tresorzugriff [T900404] ─────────────────────────────────────
+    // Jedes mutierende Tool des gepinnten Releases (@icoretech/warden-mcp
+    // 0.2.44) verlangt Rueckfrage. Quelle der Wahrheit ist die Annotation im
+    // Release selbst (mutatingToolAnnotations/destructiveToolAnnotations plus
+    // readOnlyHint:false); die Liste ist mit .claude/settings.json identisch
+    // und bei einem Versions-Bump neu zu ziehen.
+    "warden_keychain_create_attachment": "ask",
+    "warden_keychain_create_card": "ask",
+    "warden_keychain_create_folder": "ask",
+    "warden_keychain_create_identity": "ask",
+    "warden_keychain_create_login": "ask",
+    "warden_keychain_create_logins": "ask",
+    "warden_keychain_create_note": "ask",
+    "warden_keychain_create_org_collection": "ask",
+    "warden_keychain_create_ssh_key": "ask",
+    "warden_keychain_delete_attachment": "ask",
+    "warden_keychain_delete_folder": "ask",
+    "warden_keychain_delete_item": "ask",
+    "warden_keychain_delete_items": "ask",
+    "warden_keychain_delete_org_collection": "ask",
+    "warden_keychain_edit_folder": "ask",
+    "warden_keychain_edit_org_collection": "ask",
+    "warden_keychain_move_item_to_organization": "ask",
+    "warden_keychain_restore_item": "ask",
+    "warden_keychain_send_create": "ask",
+    "warden_keychain_send_create_encoded": "ask",
+    "warden_keychain_send_delete": "ask",
+    "warden_keychain_send_edit": "ask",
+    "warden_keychain_send_remove_password": "ask",
+    "warden_keychain_set_login_uris": "ask",
+    "warden_keychain_update_item": "ask",
     "skill": {
       "*": "allow",
       // ── Claude Code stubs (opencode has native equivalents) ──────────
@@ -229,6 +260,16 @@
       "type": "local",
 
       "command": ["node","scripts/ticket-mcp-node/server.mjs"],
+
+      "enabled": true
+
+    },
+
+    "warden": {
+
+      "type": "local",
+
+      "command": ["node","scripts/warden-mcp/launch.mjs"],
 
       "enabled": true
 

@@ -131,19 +131,6 @@
       "deprecated": null
     },
     {
-      "path": "/sdlc/api/cockpit/brain",
-      "file": "cockpit/brain.ts",
-      "methods": [
-        "GET"
-      ],
-      "backend": [
-        "unknown"
-      ],
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
       "path": "/sdlc/api/cockpit/container-count",
       "file": "cockpit/container-count.ts",
       "methods": [
@@ -1752,14 +1739,6 @@
       "name": "bge-mcp",
       "transport": "http",
       "endpoint": "http://localhost:13005/mcp",
-      "description": null,
-      "tier": null,
-      "deprecated": null
-    },
-    {
-      "name": "brain-mcp-node",
-      "transport": "stdio",
-      "endpoint": null,
       "description": null,
       "tier": null,
       "deprecated": null

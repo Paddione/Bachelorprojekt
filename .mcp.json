@@ -1,14 +1,5 @@
 {
   "mcpServers": {
-    "brain-mcp-node": {
-      "command": "node",
-      "args": [
-        "scripts/brain-mcp-node/server.mjs"
-      ],
-      "env": {
-        "BRAIN_WIKI_DIR": "~/brain/wiki"
-      }
-    },
     "codebase-memory-mcp": {
       "command": "npx",
       "args": [

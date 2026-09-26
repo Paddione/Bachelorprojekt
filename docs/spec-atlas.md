@@ -125,6 +125,10 @@ Last touches:
   - Satellite Absorption Redirects | T013302 | 2026-08-22 | MODIFIED
   - Das KI-Deck führt genau eine Phase→Modell-Tabelle | T013302 | 2026-08-22 | ADDED
   - Der Factory-Default ist im KI-Deck sichtbar und setzbar | T013302 | 2026-08-22 | ADDED
+In-flight:
+  - Brain references are derived deterministically from source paths | T900451 | active | REMOVED
+  - The website reaches Brain through an explicit ingress policy | T900451 | active | REMOVED
+  - Cockpit ohne Brain-Verweise | T900451 | active | ADDED
 
 ### ticket-system
 Reqs: 90 · Scenarios: 246 · Lines: 2319
@@ -327,6 +331,9 @@ Last touches:
   - REQ-BRAIN-FOUNDATION-018 — Temporal provenance metadata | T012913 | 2026-08-19 | ADDED
   - REQ-BRAIN-FOUNDATION-019 — Report-only lifecycle audit | T012913 | 2026-08-19 | ADDED
   - REQ-BRAIN-FOUNDATION-020 — Review-gated GitHub expertise source | T012913 | 2026-08-19 | ADDED
+In-flight:
+  - REQ-BRAIN-FOUNDATION-008 — Glob-Based SSOT Spec Coverage | T900451 | active | REMOVED
+  - Kein Ingest-Manifest mehr (REQ-BRAIN-FOUNDATION-009) | T900451 | active | ADDED
 
 ### brain-k2-bge
 Reqs: 8 · Scenarios: 10 · Lines: 114
@@ -358,6 +365,18 @@ In-flight:
   - Versioned eval set is wired into CI | T900448 | active | ADDED
   - Baseline artifact is recorded | T900448 | active | ADDED
   - Node/Python index parity | T900448 | active | ADDED
+  - Diagramm der Ingest-Pipeline (REQ-k4-01) | T900451 | active | REMOVED
+  - Quellgruppen-Erhebung (REQ-k4-02) | T900451 | active | REMOVED
+  - Lesepfad-Integration (REQ-k4-03) | T900451 | active | REMOVED
+  - Fail-closed Prompt-Obergrenze (REQ-k4-05) | T900451 | active | REMOVED
+  - Deterministische Eltern-MOC (REQ-k4-06) | T900451 | active | REMOVED
+  - Coverage-Gate im Ingest (REQ-k4-07) | T900451 | active | REMOVED
+  - Brain-Retrieval als MCP-Server (REQ-k4-08) | T900451 | active | REMOVED
+  - Registrierung in der MCP-Registry (REQ-k4-09) | T900451 | active | REMOVED
+  - Brain MCP retrieval tools | T900451 | active | REMOVED
+  - Brain-Ingest-Delivery-Integrität | T900451 | active | REMOVED
+  - Dokumentierter Dry-Run-Einstieg ist ausführbar | T900451 | active | REMOVED
+  - K4-Spiegel ist entfernt (REQ-k4-10) | T900451 | active | ADDED
 
 ### brain-k5-openspec
 Reqs: 4 · Scenarios: 4 · Lines: 41

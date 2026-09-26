@@ -276,30 +276,7 @@ want G-AGENTIC17 && row gate G-AGENTIC17 "$(
   if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
 )" le 0 "Command-Orphans via S4 (Config-Guard)"
 
-# ── Brain-Dokumentation — GATES (G-BRAIN12/13/15; 01–11 leben im brain-Repo) ──
-want G-BRAIN12 && row gate G-BRAIN12 "$(
-  _wl_err=$(mktemp)
-  if bash scripts/brain-ingest-worklist.sh >/dev/null 2>"$_wl_err"; then
-    grep -c 'hat 0 Treffer' "$_wl_err" || true
-  else echo "-"; fi
-  rm -f "$_wl_err"
-)" eq 0 "Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift)"
-row gate G-BRAIN13 "$(python3 - <<'PY' 2>/dev/null || echo "-"
-import re
-wf=open('.github/workflows/brain-merge-hook.yml').read()
-head=wf.split('jobs:')[0]
-# [T012904] .github/-Pfade sind Trigger, keine Brain-Quellen. Die Selbstreferenz
-# .github/workflows/brain-merge-hook.yml MUSS im paths-Block stehen — der Guard
-# tests/spec/ci-cd/workflow-self-trigger.bats verlangt sie, damit eine Aenderung
-# am Workflow ihn selbst ausloest. Sie hat naturgemaess kein SRC-Gegenstueck und
-# haette die Paritaet sonst dauerhaft auf 1 gehalten.
-paths=[p.strip() for p in re.findall(r'^\s+- ([^\s].*)$', head, re.M)
-       if ('/' in p or p.strip().startswith('.claude')) and not p.strip().startswith('.github/')]
-srcs=re.findall(r'brain-merge-hook\.sh \\\n\s+bachelorprojekt/(\S+)', wf)
-norm=lambda p: p.replace('/**','').rstrip('/')
-print(len(set(map(norm,paths)) ^ set(map(norm,srcs))))
-PY
-)" eq 0 "Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler)"
+# ── Brain-Dokumentation — GATES (G-BRAIN15; Ingest retiriert, T900451) ──
 want G-BRAIN15 && row gate G-BRAIN15 "$(
   bash templates/brain/scripts/lint-frontmatter.sh templates/brain >/dev/null 2>&1 \
     && bash templates/brain/scripts/lint-wikilinks.sh templates/brain >/dev/null 2>&1; echo $?
@@ -560,8 +537,6 @@ except Exception: print('-')
 # --- Langsam: nur ohne --fast (3) ---------------------------------------------
 want G-DEP01 && row gate   G-DEP01 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-audit-count.py audit --json)" eq 0 "High/Critical npm-Vulnerabilities"
 want G-DEP02 && row target G-DEP02 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-outdated-majors.py outdated --format json)" le 3 "Veraltete Major-Dependencies"
-# [T013916] --pending zaehlt offene Chunks (Hash gegen State), nicht alle Quellen.
-want G-BRAIN14 && row gate   G-BRAIN14 "$([ "$FAST" = 1 ] && echo '-' || { [ -f scripts/brain-ingest-worklist.sh ] && timeout 120 bash scripts/brain-ingest-worklist.sh --pending 2>/dev/null || echo '-'; })" eq 0 "Brain-Ingest-Backlog (offene Chunks)"
 
 # --- DORA aus lokaler Git-History, Shallow-Clone-geschützt (3) -----------------
 # [T013916] 5 -> 20: Doku nennt 5/Woche, gemessen werden 4 Wochen.

@@ -1170,21 +1170,6 @@
     "measured_at": "2026-09-25"
   },
   {
-    "id": "G-BRAIN14",
-    "title": "Brain-Ingest-Backlog (offene Chunks)",
-    "category": "Dokumentation",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": null,
-    "current": 17,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "bash scripts/brain-ingest-worklist.sh --pending` (Chunk-Hash gegen State-File, dieselbe Semantik wie `brain-ingest.sh process_page`)",
-    "source": ".claude/lib/goals.md · G-BRAIN14",
-    "measured_at": "2026-09-25"
-  },
-  {
     "id": "G-IF01",
     "title": "MCP-Endpunkte ohne Listener",
     "category": "Agent-Tooling",
@@ -1737,36 +1722,6 @@
     "status": "unknown",
     "measurement": "cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast)",
     "source": ".claude/lib/goals.md · G-TEST05",
-    "measured_at": "2026-09-25"
-  },
-  {
-    "id": "G-BRAIN12",
-    "title": "Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift)",
-    "category": "Dokumentation",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": null,
-    "current": 0,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 | stderr-Warnungen 'hat 0 Treffer' zählen",
-    "source": ".claude/lib/goals.md · G-BRAIN12",
-    "measured_at": "2026-09-25"
-  },
-  {
-    "id": "G-BRAIN13",
-    "title": "Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler)",
-    "category": "Dokumentation",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": null,
-    "current": 0,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff); .github/-Pfade zählen nicht mit — sie sind Trigger, keine Brain-Quellen",
-    "source": ".claude/lib/goals.md · G-BRAIN13",
     "measured_at": "2026-09-25"
   },
   {

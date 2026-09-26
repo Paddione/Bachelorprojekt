@@ -39,10 +39,8 @@ auslösen; alle drei traten am 2026-08-23 gleichzeitig auf:
    `G-RH01` standen alle auf Ist 0, ihre Schwellen aber weiter auf dem Baseline-Wert der
    Aufnahme (41 / 280 / 10 / 30). Sie erlaubten damit stillschweigend die Rückkehr zum alten
    Zustand. Eine Schwelle gehört nach einem Erfolg auf **Ist + kleine Reserve**.
-3. **Die Messung misst etwas anderes als der Titel behauptet.** `G-BRAIN14` zählte die
-   Manifestgröße (172) statt des offenen Backlogs (17) und blieb bei Ziel 0 dauerhaft rot,
-   unabhängig von jeder erledigten Arbeit. `G-SIZE03` maß ein „God-File" mit 311 Zeilen gegen
-   eine Schwelle von 3000.
+3. **Die Messung misst etwas anderes als der Titel behauptet.** `G-SIZE03` maß ein
+   „God-File" mit 311 Zeilen gegen eine Schwelle von 3000.
 
 **Prüffrage vor jeder Zielaufnahme:** Unter welchen realistischen Umständen wird dieses Ziel
 rot? Gibt es keine, ist es kein Ziel.
@@ -680,7 +678,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 |----|------|---------|--------|---------------|
 | **G-FE05** | Lighthouse Performance Score (schlechtere Brand) | n/a | ≥ 90 | Lighthouse-JSON beider Brands → `python3 scripts/lib/runtime-health-measure.py lighthouse` |
 | **G-SLO01** | Öffentliche HTTP-Verfügbarkeit, 7 Tage | n/a | ≥ 995 ‰ | `probe_success` beider Brands, ≥1900 Samples je Serie → `python3 scripts/lib/runtime-health-measure.py slo` |
-| **G-BRAIN14** | Brain-Ingest-Backlog (offene Chunks) | 17 ⚠ | 0 | `bash scripts/brain-ingest-worklist.sh --pending` (Chunk-Hash gegen State-File, dieselbe Semantik wie `brain-ingest.sh process_page`) |
 | **G-IF01** | MCP-Endpunkte ohne Listener | 0 ✓ | 0 | `python3 scripts/lib/mcp-endpoint-probe.py` |
 | **G-IF02** | Stille Degradation (catch ohne logger) | 0 ✓ | 0 | `python3 -c "...catch-Blöcke ohne logger..."` |
 | **G-IF03** | Konfig-Drift MCP-Registry vs Cluster | 0 ✓ | 0 | `kubectl get pods + Registry-Port-Vergleich` |
@@ -718,8 +715,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 1 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738; Fix T013037: Filen-Reroute auf korczewski-Account (2FA-Hang), Remote-Prune 9,9 GiB → 257 MiB` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 2 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `components/website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
-| **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
-| **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff); .github/-Pfade zählen nicht mit — sie sind Trigger, keine Brain-Quellen` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
 | **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 66 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
@@ -741,8 +736,8 @@ bash scripts/health-goals-llm-fill.sh --apply      # schreibt Prio-C-Aktuell mit
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
 - **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03, G-FLUX01, G-OBS01, G-CAP01, G-A11Y01, G-FE05, G-SLO01
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-BRAIN12, G-BRAIN13, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
-- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14, G-AGENTIC09, G-DB11
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
+- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-AGENTIC09, G-DB11
 - **Nur lokal (nicht in CI):** G-WT01–G-WT06, G-LLM01–G-LLM05. Diese Familien messen lokalen Maschinenzustand — Worktrees, Hauptcheckout-Branch, agent-locks, `main`-Divergenz sowie den Betrieb des lokalen LLM-Stacks (Modellserver, Proxy, Loadouts, Units, Backend-Endpunkte). Ein CI-Runner hat davon nichts; die Ziele wären dort strukturell immer grün und damit wertlos. Messort sind `task health:wt` und `task health:llm` (Ziel-IDs aus der Taskfile-Variable `HG_LOCAL_ONLY_GOALS`) sowie ein **nicht failender** Warn-Block in `task freshness:check`, der in CI mit sichtbarer Notiz übersprungen wird. [T002443] [T002442]
 
 
@@ -762,8 +757,8 @@ Die vollständige Änderungshistorie ab dem Baseline-Stichtag steht in
 > Bei der Auslagerung waren es 195 Zeilen Chronik auf 987 Zeilen Datei.
 
 **Baseline-Update 2026-08-19 (Hygiene-Run — A/B-Ziele bereinigt):**
-9 Prio-B-Ziele erreichten ihr Target und wurden nach Prio C verschoben: G-E2E02 (E2E-Testdaten-Leak),
-G-DB11 (Restore-Verify), G-SIZE02 (Großdateien), G-FE05 (Lighthouse Score), G-BRAIN14 (Brain-Backlog),
+8 Prio-B-Ziele erreichten ihr Target und wurden nach Prio C verschoben: G-E2E02 (E2E-Testdaten-Leak),
+G-DB11 (Restore-Verify), G-SIZE02 (Großdateien), G-FE05 (Lighthouse Score),
 G-IF01 (MCP-Endpunkte), G-IF02 (Stille Degradation), G-IF03 (MCP-Drift), G-LLM03 (Modell-ID-Drift).
 Baseline-Updates für noch offene Prio-B-Ziele: G-DB01 0→18 (Regressions-Zuwachs), G-DB03 16→2
 (Restwert), G-OPS01 2→59 (signifikanter Anstieg), G-LLM01 2→3, G-WT05 0→14 (main divergiert).

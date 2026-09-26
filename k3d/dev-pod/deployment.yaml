@@ -5,7 +5,7 @@
 # live ging.
 #
 # Vier Container:
-#   mcp-node        — ticket-mcp, brain-mcp, task-runner,
+#   mcp-node        — ticket-mcp, task-runner,
 #                     codebase-memory, github (MCP_NODE_SERVICES)
 #   mcp-kubernetes  — das Go-Binary von quay.io, unveraendert uebernommen
 #   repo-sync       — einziger Schreiber des Checkout-Volumes
@@ -88,7 +88,7 @@ spec:
             # (dev-local/components/llm-services). Ohne diese Auswahl startete
             # der Supervisor beide erneut.
             - name: MCP_NODE_SERVICES
-              value: "github,ticket-mcp,brain-mcp,task-runner,codebase-memory"
+              value: "github,ticket-mcp,task-runner,codebase-memory"
             # [T900106/T900191] factory_psql (scripts/factory/lib.sh) spricht mit
             # gesetzter FACTORY_PG_URL die ClusterIP direkt an; im Pod fehlt
             # kubectl. Seit dem Umzug des llm-proxy nach devmesh nutzt das nur
@@ -114,7 +114,6 @@ spec:
           ports:
             - { containerPort: 3002, name: github, protocol: TCP }
             - { containerPort: 3003, name: ticket, protocol: TCP }
-            - { containerPort: 3004, name: brain, protocol: TCP }
             - { containerPort: 3005, name: task-runner, protocol: TCP }
             - { containerPort: 3006, name: codebase-mem, protocol: TCP }
           readinessProbe:

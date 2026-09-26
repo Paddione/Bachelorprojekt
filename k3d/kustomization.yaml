@@ -113,9 +113,6 @@ resources:
   # prod/kustomization.yaml instead of here, so it stays out of the dev
   # overlay without dropping out of prod too (both extend this base).
   - oauth2-proxy-rustdesk-web.yaml
-  # Brain — Quartz-rendered LLM-wiki static site (T001569)
-  - brain.yaml
-  - oauth2-proxy-brain.yaml
   # Agentic Terminal SSO bridge (T001565) — ttyd on the WSL host via wg-fleet
   - terminal-sidekick.yaml
   # Interne bge-Endpoints für wg-Mesh-Konsumenten + shared-db-Expositions-Policy [T016430]

@@ -11,13 +11,16 @@ status: active
 
 - `scripts/lib/scs-chunking.ts` (p1, Markdown-Support)
 - `scripts/openspec-embed.mjs` (p1, Chunker-Umstellung + Quellen + Migration)
-- p2/p-tests-Dateien folgen mit ihren Partials.
+- `.github/workflows/k1-embed.yml` (p2, neu)
+- `k3d/k1-embed-job.yaml` (p2, neu)
+- p-tests-Dateien folgen mit ihrem Partial.
 
 ## Partials
 
 | id | file | role | target_files | depends_on |
 |----|------|------|--------------|------------|
 | p1 | tasks.d/p1-embedcore.md | impl | scripts/lib/scs-chunking.ts, scripts/openspec-embed.mjs | |
+| p2 | tasks.d/p2-clusterjob.md | impl | .github/workflows/k1-embed.yml, k3d/k1-embed-job.yaml | |
 
 ## Verify (final, wächst mit den Partials)
 

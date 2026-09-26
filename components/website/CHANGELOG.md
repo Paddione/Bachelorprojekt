@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.365.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.4...website-v1.365.0) (2026-09-26)
+
+
+### Features
+
+* **mcp:** add warden-mcp vault access for Claude Code [T900404] ([#5925](https://github.com/Paddione/Bachelorprojekt/issues/5925)) ([1d593a9](https://github.com/Paddione/Bachelorprojekt/commit/1d593a9d63043d9c23076f17d1e155f1130d9aaf))
+
 ## [1.364.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.364.3...website-v1.364.4) (2026-09-25)
 
 
